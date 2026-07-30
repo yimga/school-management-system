@@ -1,4 +1,5 @@
 {% extends "portal_base.html" %}
+{% load i18n %}
 
 {% block title %}Messaging - {{ SITE.site_name|default:"Portal" }}{% endblock %}
 
@@ -13,13 +14,13 @@
       <div>
         {% comment %} Aesthetic-v2 page-header grammar. Styled by patterns.css. {% endcomment %}
         <div class="eyebrow">Inbox</div>
-        <h1 class="page-h1 h4 mb-0">Messaging</h1>
+        <h1 class="page-h1 h4 mb-0">{% trans "Messaging" %}</h1>
         <p class="page-sub mb-0">Direct messages and group chats.</p>
       </div>
       <div class="d-flex gap-2">
-        <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:message_search' %}"><i class="bi bi-search me-1"></i>Search</a>
-        <a class="btn btn-sm btn-outline-secondary btn-back-secondary" href="{% url 'accounts:user_profile' %}"><i class="bi bi-arrow-left me-1"></i>Back to profile</a>
-        <a class="btn btn-sm btn-primary" href="{% url 'accounts:redirect' %}">Go to dashboard</a>
+        <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:message_search' %}">{% trans "Search" %}</a>
+        <a class="btn btn-sm btn-outline-secondary btn-back-secondary" href="{% url 'accounts:user_profile' %}">{% trans "Back to profile" %}</a>
+        <a class="btn btn-sm btn-primary" href="{% url 'accounts:redirect' %}">{% trans "Go to dashboard" %}</a>
       </div>
     </div>
 
@@ -29,14 +30,14 @@
     <ul class="nav nav-tabs mb-3" aria-label="Message folders">
       <li class="nav-item">
         <a class="nav-link {% if active_tab == 'direct' %}active{% endif %}"{% if active_tab == 'direct' %} aria-current="page"{% endif %} href="{% url 'accounts:user_messages' %}?tab=direct">
-          <i class="bi bi-chat-dots me-1" aria-hidden="true"></i>Direct
+          <i class="bi bi-chat-dots me-1" aria-hidden="true"></i>{% trans "Direct" %}
           {% if direct_conversations %}<span class="rmc-badge ms-1">{{ direct_conversations|length }}</span>{% endif %}
         </a>
       </li>
       {% if not direct_only %}
       <li class="nav-item">
         <a class="nav-link {% if active_tab == 'groups' %}active{% endif %}"{% if active_tab == 'groups' %} aria-current="page"{% endif %} href="{% url 'accounts:user_messages' %}?tab=groups">
-          <i class="bi bi-people me-1" aria-hidden="true"></i>Groups
+          <i class="bi bi-people me-1" aria-hidden="true"></i>{% trans "Groups" %}
           {% if threads %}<span class="rmc-badge ms-1">{{ threads|length }}</span>{% endif %}
         </a>
       </li>
@@ -49,7 +50,7 @@
           <div class="mb-2 d-flex justify-content-between align-items-center">
             <span class="text-muted small">1-on-1 conversations{% if is_student %} with teachers or staff{% endif %}</span>
             {% if not is_student %}
-            <a class="btn btn-sm btn-outline-primary" href="{% url 'accounts:direct_compose' %}">New message</a>
+            <a class="btn btn-sm btn-outline-primary" href="{% url 'accounts:direct_compose' %}">{% trans "New message" %}</a>
             {% endif %}
           </div>
           {% if direct_conversations %}
@@ -63,7 +64,7 @@
                     <div class="flex-grow-1 min-w-0">
                       <div class="fw-semibold">{{ conv.other_user.get_full_name|default:conv.other_user.username }}</div>
                       {% if conv.snippet %}<div class="text-muted small text-truncate">{{ conv.snippet|truncatewords:15 }}</div>{% endif %}
-                      <div class="text-muted small mt-1">{{ conv.last_message_at|timesince }} ago</div>
+                      <div class="text-muted small mt-1">{% blocktrans with timesince=conv.last_message_at|timesince %}{{ timesince }} ago{% endblocktrans %}</div>
                     </div>
                   </div>
                   {% if conv.unread_count %}<span class="rmc-badge rmc-badge--count ms-2">{{ conv.unread_count }}</span>{% endif %}
@@ -80,7 +81,7 @@
         {% else %}
           <div class="mb-2 d-flex justify-content-between align-items-center">
             <span class="text-muted small">Department, class, and role-based threads</span>
-            <a class="btn btn-sm btn-outline-primary" href="{% url 'communication:group_list' %}">Manage groups</a>
+            <a class="btn btn-sm btn-outline-primary" href="{% url 'communication:group_list' %}">{% trans "Manage groups" %}</a>
           </div>
           {% if threads %}
             <div class="list-group list-group-flush">
@@ -89,12 +90,12 @@
                   <div>
                     <div class="d-flex align-items-center gap-2">
                       <span class="fw-semibold">{{ t.title }}</span>
-                      {% if t.scope == 'DEPARTMENT' %}<span class="rmc-badge rmc-badge--info">Department</span>{% endif %}
-                      {% if t.scope == 'CLASSROOM' %}<span class="rmc-badge">Class</span>{% endif %}
-                      {% if t.scope == 'ROLE' %}<span class="rmc-badge">Role</span>{% endif %}
+                      {% if t.scope == 'DEPARTMENT' %}<span class="rmc-badge rmc-badge--info">{% trans "Department" %}</span>{% endif %}
+                      {% if t.scope == 'CLASSROOM' %}<span class="rmc-badge">{% trans "Class" %}</span>{% endif %}
+                      {% if t.scope == 'ROLE' %}<span class="rmc-badge">{% trans "Role" %}</span>{% endif %}
                     </div>
                     {% if t.snippet %}<div class="text-muted small mt-1">{{ t.snippet|truncatewords:18 }}</div>{% endif %}
-                    <div class="text-muted small mt-1">Updated: {{ t.last_message_at|timesince }} ago</div>
+                    <div class="text-muted small mt-1">{% blocktrans with timesince=t.last_message_at|timesince %}Updated: {{ timesince }} ago{% endblocktrans %}</div>
                   </div>
                   {% if t.unread_count %}<span class="rmc-badge rmc-badge--count">{{ t.unread_count }}</span>{% endif %}
                 </a>

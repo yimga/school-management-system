@@ -1,5 +1,5 @@
 {% extends "control_plane_base.html" %}
-{% load static %}
+{% load static  i18n%}
 
 {% block cp_title %}LTI 1.3 tool registration · RunMyCampus{% endblock %}
 {% block cp_workspace_header %}{% endblock %}
@@ -12,7 +12,7 @@
 
 <div class="rmc-page-shell" data-rmc-page="lti-tool-registration">
   <header class="rmc-page-header">
-    <h1 class="rmc-h1">LTI 1.3 tool registration</h1>
+    <h1 class="rmc-h1">{% trans "LTI 1.3 tool registration" %}</h1>
     <p class="rmc-page-sub">
       Onboard external tools (Khan, Quizlet, Kahoot…) as LTI 1.3 platforms.
     </p>
@@ -21,22 +21,22 @@
   {% if view_mode == "list" %}
     <section class="rmc-section" data-rmc-section="lti-tool-list">
       <div class="rmc-section-head">
-        <h2 class="rmc-h2">Registered tools ({{ rows|length }})</h2>
+        <h2 class="rmc-h2">{% blocktrans with count=rows|length %}Registered tools ({{ count }}){% endblocktrans %}</h2>
         <a class="rmc-btn rmc-btn-primary" href="{{ register_url }}"
-           data-rmc-action="lti-tool-register">Register new tool</a>
+           data-rmc-action="lti-tool-register">{% trans "Register new tool" %}</a>
       </div>
 
       {% if rows %}
         <table class="rmc-data-table" data-rmc-table="lti-tools" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
-          <caption class="visually-hidden">Registered tools ({{ rows|length }})</caption>
+          <caption class="visually-hidden">{% blocktrans with count=rows|length %}Registered tools ({{ count }}){% endblocktrans %}</caption>
           <thead>
             <tr>
-              <th scope="col">Tool</th>
-              <th scope="col">Client ID</th>
-              <th scope="col">Deployment</th>
-              <th scope="col">Scopes</th>
-              <th scope="col">School</th>
-              <th scope="col">Status</th>
+              <th scope="col">{% trans "Tool" %}</th>
+              <th scope="col">{% trans "Client ID" %}</th>
+              <th scope="col">{% trans "Deployment" %}</th>
+              <th scope="col">{% trans "Scopes" %}</th>
+              <th scope="col">{% trans "School" %}</th>
+              <th scope="col">{% trans "Status" %}</th>
               <th scope="col">&nbsp;</th>
             </tr>
           </thead>
@@ -55,7 +55,7 @@
                     <span class="rmc-pill rmc-pill-muted">Inactive</span>
                   {% endif %}
                 </td>
-                <td><a href="{{ row.detail_url }}">Details</a></td>
+                <td><a href="{{ row.detail_url }}">{% trans "Details" %}</a></td>
               </tr>
             {% endfor %}
           </tbody>
@@ -63,14 +63,14 @@
       {% else %}
         <div class="rmc-empty" data-rmc-empty="lti-tools">
           No LTI 1.3 tools registered yet.
-          <a href="{{ register_url }}">Register the first one.</a>
+          <a href="{{ register_url }}">{% trans "Register the first one." %}</a>
         </div>
       {% endif %}
     </section>
 
   {% elif view_mode == "create" %}
     <section class="rmc-section" data-rmc-section="lti-tool-form">
-      <h2 class="rmc-h2">Register a new LTI 1.3 tool</h2>
+      <h2 class="rmc-h2">{% trans "Register a new LTI 1.3 tool" %}</h2>
       <form method="post" class="rmc-form" data-rmc-form="lti-tool-register"
             novalidate>
         {% csrf_token %}
@@ -93,9 +93,9 @@
         {% endfor %}
         <div class="rmc-form-actions">
           <button type="submit" class="rmc-btn rmc-btn-primary">
-            Register tool
+            {% trans "Register tool" %}
           </button>
-          <a href="{{ list_url }}" class="rmc-btn rmc-btn-ghost">Cancel</a>
+          <a href="{{ list_url }}" class="rmc-btn rmc-btn-ghost">{% trans "Cancel" %}</a>
         </div>
       </form>
     </section>
@@ -109,7 +109,7 @@
       </div>
       <div class="rmc-callout rmc-callout-warn"
            data-rmc-callout="one-time-secret">
-        <h3>Tool secret (shown once)</h3>
+        <h3>{% trans "Tool secret (shown once)" %}</h3>
         <p>
           Copy this value to your tool now. RunMyCampus only stores its
           SHA-256 hash — it cannot be recovered if lost.
@@ -118,10 +118,10 @@
       </div>
       <p>
         <a class="rmc-btn rmc-btn-primary" href="{{ detail_url }}">
-          View details
+          {% trans "View details" %}
         </a>
         <a class="rmc-btn rmc-btn-ghost" href="{{ list_url }}">
-          Back to list
+          {% trans "Back to list" %}
         </a>
       </p>
     </section>
@@ -157,7 +157,7 @@
       </dl>
       <p>
         <a class="rmc-btn rmc-btn-ghost" href="{{ list_url }}">
-          Back to list
+          {% trans "Back to list" %}
         </a>
       </p>
     </section>

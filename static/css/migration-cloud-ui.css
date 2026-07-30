@@ -451,3 +451,21 @@ body[data-rmc-cp-scroll="canvas"] .rmc-page--canonical-template-picker .rmc-card
 body[data-rmc-cp-scroll="canvas"] .rmc-intake-method-select select.rmc-input--select {
   max-height: none;
 }
+
+/* Tenant portal: connector + intake must scroll inside document canvas. */
+#portalMainContent :where(.rmc-page--migration-connector, [data-rmc-migration-connector-wizard]),
+#portalMainContent :where(.rmc-page--migration-cloud-intake, .rmc-page--canonical-template-picker, [data-mc-intake-v2]) {
+  overflow: visible;
+  max-height: none;
+  min-height: 0;
+  padding-bottom: 2.5rem;
+}
+
+#portalMainContent :where(.rmc-page--migration-connector, [data-rmc-migration-connector-wizard]) .rmc-card,
+#portalMainContent :where(.rmc-page--migration-connector, [data-rmc-migration-connector-wizard]) form {
+  overflow: visible;
+}
+
+#portalMainContent :where(.rmc-page--migration-connector, [data-rmc-migration-connector-wizard]) select.form-select {
+  max-height: none;
+}

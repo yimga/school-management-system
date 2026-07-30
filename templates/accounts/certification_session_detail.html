@@ -23,11 +23,11 @@
     </div>
     <div class="d-flex flex-wrap gap-2">
       <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:certification_home' %}">
-        <i class="bi bi-arrow-left me-1"></i>Back
+        {% trans "Back" %}
       </a>
       {% if can_add_candidates or has_registration_override %}
       <a class="btn btn-sm btn-outline-primary" href="{% url 'accounts:certification_bulk_add_candidates' session.id %}">
-        <i class="bi bi-people me-1"></i>Bulk add candidates
+        {% trans "Bulk add candidates" %}
       </a>
       {% else %}
       <span class="btn btn-sm btn-outline-secondary disabled" title="{{ add_lock_reason }}">
@@ -35,7 +35,7 @@
       </span>
       {% endif %}
       <a class="btn btn-sm btn-primary" href="{% url 'accounts:certification_export_zip' session.id %}">
-        Export `Data[CentreNo].zip`
+        {% trans "Export `Data[CentreNo].zip`" %}
       </a>
     </div>
   </div>
@@ -60,7 +60,7 @@
       {% if can_override_add or can_override_edit %}
       <div class="ms-3">
         <button class="btn btn-sm btn-warning" type="button" data-bs-toggle="modal" data-bs-target="#overrideModal">
-          <i class="bi bi-unlock me-1"></i>Admin override
+          {% trans "Admin override" %}
         </button>
       </div>
       {% endif %}
@@ -81,7 +81,7 @@
   <div class="card shadow-sm">
     <div class="card-body">
       <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="mb-0">Candidates</h5>
+        <h5 class="mb-0">{% trans "Candidates" %}</h5>
         {% if not can_add_candidates and not has_registration_override %}
         <span class="btn btn-sm btn-outline-secondary disabled" title="{{ add_lock_reason }}">
           <i class="bi bi-lock me-1"></i>Add candidate (locked)
@@ -136,40 +136,40 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="overrideModalLabel">Admin Override</h5>
+        <h5 class="modal-title" id="overrideModalLabel">{% trans "Admin Override" %}</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <form method="post" action="{% url 'accounts:certification_session_override' session.id %}">
         {% csrf_token %}
         <div class="modal-body">
           <div class="mb-3">
-            <label class="form-label">Override type</label>
+            <label class="form-label">{% trans "Override type" %}</label>
             <select name="override_type" class="form-select" required>
               {% if not can_add_candidates or not can_edit_candidates %}
-              <option value="registration_locked">Registration lock</option>
+              <option value="registration_locked">{% trans "Registration lock" %}</option>
               {% endif %}
               {% if ca_deadline_passed %}
-              <option value="ca_deadline">CA submission deadline</option>
+              <option value="ca_deadline">{% trans "CA submission deadline" %}</option>
               {% endif %}
             </select>
           </div>
           <div class="mb-3">
-            <label class="form-label">Action</label>
+            <label class="form-label">{% trans "Action" %}</label>
             <select name="action" class="form-select" required>
               {% if has_registration_override or has_ca_override %}
-              <option value="clear">Clear override</option>
+              <option value="clear">{% trans "Clear override" %}</option>
               {% endif %}
-              <option value="set">Set override</option>
+              <option value="set">{% trans "Set override" %}</option>
             </select>
           </div>
           <div class="mb-3">
-            <label class="form-label">Reason (optional)</label>
+            <label class="form-label">{% trans "Reason (optional)" %}</label>
             <textarea name="reason" class="form-control" rows="3" placeholder="Reason for override..."></textarea>
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-warning">Apply override</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+          <button type="submit" class="btn btn-warning">{% trans "Apply override" %}</button>
         </div>
       </form>
     </div>

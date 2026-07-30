@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load region_format %}
+{% load region_format  i18n%}
 
 {% block title %}Student Syllabus Preview{% endblock %}
 
@@ -13,7 +13,7 @@
     <div class="card-body">
       <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-3">
         <div>
-          <h1 class="mb-1">Synthetic Student Preview</h1>
+          <h1 class="mb-1">{% trans "Synthetic Student Preview" %}</h1>
           <p class="text-muted mb-0">
             This sandbox uses safe fake data for every lesson, so you can verify layouts without touching real student records.
           </p>

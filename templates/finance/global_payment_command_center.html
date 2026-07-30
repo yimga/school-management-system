@@ -17,9 +17,9 @@
     <div class="col-md-3">
       <select class="form-select form-select-sm" name="risk">
         <option value="">{% trans "All risk tiers" %}</option>
-        <option value="low" {% if filter_risk == "low" %}selected{% endif %}>low</option>
-        <option value="medium" {% if filter_risk == "medium" %}selected{% endif %}>medium</option>
-        <option value="high" {% if filter_risk == "high" %}selected{% endif %}>high</option>
+        <option value="low" {% if filter_risk == "low" %}selected{% endif %}>{% trans "low" %}</option>
+        <option value="medium" {% if filter_risk == "medium" %}selected{% endif %}>{% trans "medium" %}</option>
+        <option value="high" {% if filter_risk == "high" %}selected{% endif %}>{% trans "high" %}</option>
       </select>
     </div>
     <div class="col-md-2">

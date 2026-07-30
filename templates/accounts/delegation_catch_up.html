@@ -13,12 +13,12 @@
   <div class="container-fluid py-4" data-rmc-scroll-policy="paginate">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
       <div>
-        <h1 class="h4 mb-1">While You Were Away</h1>
+        <h1 class="h4 mb-1">{% trans "While You Were Away" %}</h1>
         <div class="text-muted small">Actions taken by your delegate(s) on your behalf.</div>
       </div>
       <div class="d-flex flex-wrap gap-2">
-        <a class="btn btn-outline-secondary btn-sm" href="{% url 'accounts:my_delegations' %}">Out of Office</a>
-        <a class="btn btn-outline-secondary btn-sm" href="{% url 'accounts:user_profile' %}">Profile</a>
+        <a class="btn btn-outline-secondary btn-sm" href="{% url 'accounts:my_delegations' %}">{% trans "Out of Office" %}</a>
+        <a class="btn btn-outline-secondary btn-sm" href="{% url 'accounts:user_profile' %}">{% trans "Profile" %}</a>
       </div>
     </div>
 
@@ -30,10 +30,10 @@
               <caption class="visually-hidden">{% trans "While You Were Away" %}</caption>
               <thead>
                 <tr>
-                  <th scope="col">When</th>
-                  <th scope="col">Who (acting)</th>
-                  <th scope="col">Action</th>
-                  <th scope="col">Object</th>
+                  <th scope="col">{% trans "When" %}</th>
+                  <th scope="col">{% trans "Who (acting)" %}</th>
+                  <th scope="col">{% trans "Action" %}</th>
+                  <th scope="col">{% trans "Object" %}</th>
                 </tr>
               </thead>
               <tbody>

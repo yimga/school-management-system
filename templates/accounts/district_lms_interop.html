@@ -170,9 +170,9 @@
         <div class="mb-2"><label class="form-label" for="oneroster_scopes">{% trans "Scopes" %}</label><input id="oneroster_scopes" class="form-control form-control-sm" name="oneroster_scopes" value="{{ advanced.oneroster_scopes|default:'*' }}" placeholder="* or roster.students roster.teachers"></div>
         <div class="mb-2"><label class="form-label" for="oneroster_export_profile">{% trans "Export profile" %}</label>
           <select id="oneroster_export_profile" class="form-select form-select-sm" name="oneroster_export_profile">
-            <option value="minimal" {% if advanced.oneroster_export_profile == 'minimal' %}selected{% endif %}>minimal</option>
-            <option value="standard" {% if not advanced.oneroster_export_profile or advanced.oneroster_export_profile == 'standard' %}selected{% endif %}>standard</option>
-            <option value="full" {% if advanced.oneroster_export_profile == 'full' %}selected{% endif %}>full</option>
+            <option value="minimal" {% if advanced.oneroster_export_profile == 'minimal' %}selected{% endif %}>{% trans "minimal" %}</option>
+            <option value="standard" {% if not advanced.oneroster_export_profile or advanced.oneroster_export_profile == 'standard' %}selected{% endif %}>{% trans "standard" %}</option>
+            <option value="full" {% if advanced.oneroster_export_profile == 'full' %}selected{% endif %}>{% trans "full" %}</option>
           </select></div>
         <div class="mb-2"><label class="form-label" for="rate_limit">{% trans "Max requests per 15m (per token)" %}</label><input id="rate_limit" class="form-control form-control-sm" name="rate_limit" value="{{ advanced.oneroster_rate_limit_per_window|default:600 }}"></div>
         <div class="form-check mb-2"><input class="form-check-input" type="checkbox" name="disable_audit" id="da" {% if advanced.oneroster_audit_disabled %}checked{% endif %}><label class="form-check-label" for="da">{% trans "Disable API audit log" %}</label></div>

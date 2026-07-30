@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load static %}
+{% load static  i18n%}
 {% block title %}Access required{% endblock %}
 
 {% block content %}
@@ -8,7 +8,7 @@
 
 {% include "components/next_action_strip.html" %}
 
-  <h1 class="visually-hidden" data-rmc-injected-h1="1">Access required</h1>
+  <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Access required" %}</h1>
 {% url 'home' as home_url %}
 {% include "components/page_header.html" with title="Access required" subtitle="" action_url=home_url action_text="Back to dashboard" %}
 <div class="row justify-content-center">
@@ -24,7 +24,7 @@
           <input type="hidden" name="module" value="{{ module }}">
           <input type="hidden" name="action" value="{{ action }}">
           <input type="hidden" name="next" value="{{ next }}">
-          <button type="submit" class="btn btn-primary" id="access-request-btn">Request access</button>
+          <button type="submit" class="btn btn-primary" id="access-request-btn">{% trans "Request access" %}</button>
         </form>
       </div>
     </div>

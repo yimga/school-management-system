@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load accounts_extras region_format %}
+{% load accounts_extras region_format  i18n%}
 {% block title %}{{ feature.label }}{% endblock %}
 
 {% block content %}
@@ -17,14 +17,14 @@
       {% if feature.key == 'documents' %}
         {% if request.user|has_feature_permission:"settings.manage" or request.user.is_staff or request.user.is_superuser %}
           <a class="btn btn-primary" href="{% url 'portal:document_upload' %}">
-            <i class="bi bi-upload me-1"></i>Upload document
+            {% trans "Upload document" %}
           </a>
           <a class="btn btn-outline-primary" href="{% url 'portal:document_library_manage' %}">
-            <i class="bi bi-folder2-open me-1"></i>Manage library
+            {% trans "Manage library" %}
           </a>
         {% endif %}
       {% endif %}
-      <a class="btn btn-outline-secondary btn-back-primary" href="{% url 'portal:parent_dashboard' %}"><i class="bi bi-arrow-left me-1"></i>Back to dashboard</a>
+      <a class="btn btn-outline-secondary btn-back-primary" href="{% url 'portal:parent_dashboard' %}">{% trans "Back to dashboard" %}</a>
     </div>
   </div>
 
@@ -51,7 +51,7 @@
                   <div class="d-flex gap-2 mt-2">
                     {% if item.file %}
                       <a href="{% url 'portal:document_download' item.id %}" class="btn btn-sm btn-primary">
-                        <i class="bi bi-download me-1"></i>Download
+                        {% trans "Download" %}
                       </a>
                       {% if item.file.name|slice:"-4:"|lower == ".odt" or item.file.name|slice:"-5:"|lower == ".docx" %}
                       <a href="{% url 'portal:document_download_pdf' item.id %}" class="btn btn-sm btn-outline-danger">
@@ -65,7 +65,7 @@
                       {% endif %}
                     {% elif item.link %}
                       <a href="{{ item.link }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-primary">
-                        <i class="bi bi-box-arrow-up-right me-1"></i>Open Link
+                        {% trans "Open Link" %}
                       </a>
                     {% endif %}
                     {% if item.document_type %}
@@ -86,7 +86,7 @@
           No content has been added yet.
           {% if feature.key == 'documents' %}
             {% if request.user|has_feature_permission:"settings.manage" or request.user.is_staff or request.user.is_superuser %}
-              <strong>Upload handbooks, forms, and policies</strong> using the <a href="{% url 'portal:document_upload' %}" class="alert-link">Upload document</a> or <a href="{% url 'portal:document_library_manage' %}" class="alert-link">Manage library</a> button above.
+              <strong>Upload handbooks, forms, and policies</strong> using the <a href="{% url 'portal:document_upload' %}" class="alert-link">{% trans "Upload document" %}</a> {% trans "or" %} <a href="{% url 'portal:document_library_manage' %}" class="alert-link">{% trans "Manage library" %}</a> {% trans "button above." %}
             {% else %}
               Admins can add items via <strong>Backend → Document Library</strong>.
             {% endif %}
@@ -98,6 +98,6 @@
     </div>
   </div>
   <div class="mt-3">
-    <a class="btn btn-outline-secondary btn-sm" href="{% url 'portal:parent_dashboard' %}#children">Return to dashboard</a>
+    <a class="btn btn-outline-secondary btn-sm" href="{% url 'portal:parent_dashboard' %}#children">{% trans "Return to dashboard" %}</a>
   </div>
 {% endblock %}

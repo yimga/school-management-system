@@ -14,14 +14,14 @@
 <div data-rmc-scroll-policy="paginate">
 <div class="d-flex justify-content-between align-items-center mb-3">
   <div>
-    <h1 class="mb-0">Contact Requests</h1>
+    <h1 class="mb-0">{% trans "Contact Requests" %}</h1>
     <p class="text-muted small mb-0">Triage and assign parent requests.</p>
   </div>
 </div>
 
 <form class="row g-2 mb-3" method="get" data-rmc-autosubmit="1">
   <div class="col-md-4">
-    <label class="form-label small text-muted">Status</label>
+    <label class="form-label small text-muted">{% trans "Status" %}</label>
     <select class="form-select" name="status">
       {% for value,label in status_options %}
         <option value="{{ value }}" {% if value == status_filter %}selected{% endif %}>{{ label }}</option>
@@ -29,14 +29,14 @@
     </select>
   </div>
   <div class="col-md-3">
-    <label class="form-label small text-muted">Mine</label>
+    <label class="form-label small text-muted">{% trans "Mine" %}</label>
     <select class="form-select" name="mine">
-      <option value="" {% if not mine %}selected{% endif %}>All</option>
-      <option value="1" {% if mine == "1" %}selected{% endif %}>Only mine</option>
+      <option value="" {% if not mine %}selected{% endif %}>{% trans "All" %}</option>
+      <option value="1" {% if mine == "1" %}selected{% endif %}>{% trans "Only mine" %}</option>
     </select>
   </div>
   <div class="col-md-3 d-flex align-items-end">
-    <button class="btn btn-outline-primary w-100" type="submit" data-rmc-autosubmit-hide-when-js>Filter</button>
+    <button class="btn btn-outline-primary w-100" type="submit" data-rmc-autosubmit-hide-when-js>{% trans "Filter" %}</button>
   </div>
 </form>
 
@@ -47,12 +47,12 @@
       <caption class="visually-hidden">{% trans "Contact Requests" %}</caption>
       <thead>
         <tr>
-          <th scope="col">Submitted</th>
+          <th scope="col">{% trans "Submitted" %}</th>
           <th scope="col">{{ parent_th }}</th>
           <th scope="col">{{ student_th }}</th>
-          <th scope="col">Subject</th>
-          <th scope="col">Status</th>
-          <th scope="col">Assigned</th>
+          <th scope="col">{% trans "Subject" %}</th>
+          <th scope="col">{% trans "Status" %}</th>
+          <th scope="col">{% trans "Assigned" %}</th>
         </tr>
       </thead>
       <tbody>

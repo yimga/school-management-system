@@ -1013,3 +1013,33 @@ body.admin-manager-shell .cp-sidebar-platform-admin .cp-sidebar__group-toggle {
     position: static !important;
   }
 }
+
+/* Tenant /admin/: keep Unfold nav inside the grid column (no viewport-fixed ghosting). */
+html[data-rmc-admin-shell="1"] body.admin-premium-shell:not(.admin-manager-shell) .admin-cp-unified-page #nav-sidebar {
+  position: relative !important;
+  inset: auto !important;
+  top: auto !important;
+  bottom: auto !important;
+  left: auto !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+}
+
+html[data-rmc-admin-shell="1"] body.admin-premium-shell:not(.admin-manager-shell) .admin-cp-unified-page .admin-sidebar-column > div.fixed {
+  position: relative !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+body.admin-premium-shell .rmc-admin-workbench-footer,
+body.admin-manager-shell .rmc-admin-workbench-footer {
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+body.admin-premium-shell:not(.admin-manager-shell) .rmc-admin-workbench-footer--tenant {
+  border-top: 1px solid var(--hairline, rgba(148, 163, 184, 0.25));
+  background: var(--surface-elevated, #fff);
+}

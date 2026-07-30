@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load static phase8_tags %}
+{% load static phase8_tags  i18n%}
 
 {% block title %}EMIS Export Dashboard{% endblock %}
 
@@ -17,7 +17,7 @@
 
 {% include "components/next_action_strip.html" %}
 
-  <h1 class="visually-hidden" data-rmc-injected-h1="1">EMIS Export Dashboard</h1>
+  <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "EMIS Export Dashboard" %}</h1>
 <div class="emis-dashboard-widgets">
 {% phase8_dashboard_declaration "emis/dashboard.html" %}
 {% if phase7_de %}
@@ -29,8 +29,7 @@
   <div class="card" id="emis-export-form">
       <div class="card-header">
         <h5 class="card-title mb-0">
-          <i class="bi bi-file-earmark-spreadsheet me-2"></i>
-          EMIS Data Export
+          {% trans "EMIS Data Export" %}
         </h5>
       </div>
       <div class="card-body">
@@ -40,7 +39,7 @@
           <div class="row g-3">
             <!-- Export Type -->
             <div class="col-md-6">
-              <label for="export_type" class="form-label">Export Type</label>
+              <label for="export_type" class="form-label">{% trans "Export Type" %}</label>
               <select class="form-select" id="export_type" name="export_type" required>
                 {% for value, label in export_types %}
                 <option value="{{ value }}">{{ label }}</option>
@@ -50,7 +49,7 @@
 
             <!-- Country -->
             <div class="col-md-6">
-              <label for="country_code" class="form-label">Country</label>
+              <label for="country_code" class="form-label">{% trans "Country" %}</label>
               <select class="form-select" id="country_code" name="country_code" required>
                 {% for country in supported_countries %}
                 <option value="{{ country.country_code }}" {% if country.country_code == default_country %}selected{% endif %}>
@@ -62,7 +61,7 @@
 
             <!-- Academic Year -->
             <div class="col-md-6">
-              <label for="academic_year" class="form-label">Academic Year</label>
+              <label for="academic_year" class="form-label">{% trans "Academic Year" %}</label>
               <select class="form-select" id="academic_year" name="academic_year" required>
                 {% for year in academic_years %}
                 <option value="{{ year.id }}" {% if year == current_year %}selected{% endif %}>
@@ -74,28 +73,27 @@
 
             <!-- Term (Optional) -->
             <div class="col-md-6">
-              <label for="term" class="form-label">Term (Optional)</label>
+              <label for="term" class="form-label">{% trans "Term (Optional)" %}</label>
               <select class="form-select" id="term" name="term">
-                <option value="">All Terms</option>
+                <option value="">{% trans "All Terms" %}</option>
                 <!-- Terms will be loaded dynamically -->
               </select>
             </div>
 
             <!-- Format -->
             <div class="col-md-6">
-              <label for="format" class="form-label">Export Format</label>
+              <label for="format" class="form-label">{% trans "Export Format" %}</label>
               <select class="form-select" id="format" name="format" required>
                 <option value="csv">CSV</option>
-                <option value="xlsx">Excel (.xlsx)</option>
-                <option value="json">JSON</option>
+                <option value="xlsx">{% trans "Excel (.xlsx)" %}</option>
+                <option value="json">{% trans "JSON" %}</option>
               </select>
             </div>
 
             <!-- Submit Button -->
             <div class="col-12">
               <button type="submit" class="btn btn-primary">
-                <i class="bi bi-download me-2"></i>
-                Generate EMIS Export
+                {% trans "Generate EMIS Export" %}
               </button>
             </div>
           </div>
@@ -107,8 +105,7 @@
   <div class="card">
       <div class="card-header">
         <h6 class="card-title mb-0">
-          <i class="bi bi-info-circle me-2"></i>
-          EMIS Information
+          {% trans "EMIS Information" %}
         </h6>
       </div>
       <div class="card-body">
@@ -131,12 +128,10 @@
     <div class="card mt-3">
       <div class="card-header">
         <h6 class="card-title mb-0">
-          <i class="bi bi-bar-chart me-2"></i>
-          Quick Stats
+          {% trans "Quick Stats" %}
         </h6>
       </div>
       <div class="card-body">
-        {% load i18n %}
 {% load terminology_tags %}
         <section class="row g-3" aria-label="{% trans 'EMIS quick stats' %}">
           <div class="col-12 col-md-6" data-shell-kpi="emis-total-students">
@@ -187,8 +182,7 @@
     <div class="card">
       <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="card-title mb-0">
-          <i class="bi bi-clock-history me-2"></i>
-          Recent Exports
+          {% trans "Recent Exports" %}
         </h5>
         <button type="button" class="btn btn-sm btn-outline-primary" onclick="refreshExports()" aria-label="{% trans 'Refresh exports' %}">
           <i class="bi bi-arrow-clockwise" aria-hidden="true"></i>

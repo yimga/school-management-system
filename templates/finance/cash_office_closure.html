@@ -11,7 +11,7 @@
 {% block content %}
 {% include "components/next_action_strip.html" %}
 
-  <h1 class="visually-hidden" data-rmc-injected-h1="1">Cash Office Closure</h1>
+  <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Cash Office Closure" %}</h1>
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
 {% url 'finance:payments' as cash_closure_back_url %}
@@ -50,7 +50,7 @@
   <div class="col-lg-6 rmc-reveal">
     <div class="card">
       <div class="card-body">
-        <h5 class="mb-3">Close cashier day</h5>
+        <h5 class="mb-3">{% trans "Close cashier day" %}</h5>
         <form method="post" id="cash-office-closure-form"
               data-draft-key="cash_office_closure_{{ closure_profile_id }}" data-draft-max-age-hours="48"
               data-draft-pending-label="Unsynced cash closure"
@@ -61,36 +61,36 @@
           {% csrf_token %}
           <div class="row g-3">
             <div class="col-md-6">
-              <label class="form-label">Closure date</label>
+              <label class="form-label">{% trans "Closure date" %}</label>
               {{ form.closure_date }}
             </div>
             <div class="col-md-6">
-              <label class="form-label">Opening cash</label>
+              <label class="form-label">{% trans "Opening cash" %}</label>
               {{ form.opening_cash }}
             </div>
             <div class="col-md-6">
-              <label class="form-label">Deposited to bank</label>
+              <label class="form-label">{% trans "Deposited to bank" %}</label>
               {{ form.deposited_to_bank }}
             </div>
             <div class="col-md-6">
-              <label class="form-label">Cash on hand</label>
+              <label class="form-label">{% trans "Cash on hand" %}</label>
               {{ form.cash_on_hand }}
             </div>
             <div class="col-md-6">
-              <label class="form-label">Bank account</label>
+              <label class="form-label">{% trans "Bank account" %}</label>
               {{ form.bank_account }}
             </div>
             <div class="col-md-6">
-              <label class="form-label">Deposit reference</label>
+              <label class="form-label">{% trans "Deposit reference" %}</label>
               {{ form.deposit_reference }}
             </div>
             <div class="col-12">
-              <label class="form-label">Notes</label>
+              <label class="form-label">{% trans "Notes" %}</label>
               {{ form.notes }}
             </div>
           </div>
           <div class="mt-3">
-            <button class="btn btn-primary" type="submit">Save closure</button>
+            <button class="btn btn-primary" type="submit">{% trans "Save closure" %}</button>
           </div>
         </form>
       </div>
@@ -100,15 +100,15 @@
   <div class="col-lg-6 rmc-reveal">
     <div class="card">
       <div class="card-body">
-        <h5 class="mb-3">Recent closures</h5>
+        <h5 class="mb-3">{% trans "Recent closures" %}</h5>
         <div class="table-responsive">
           <table class="table table-sm align-middle mb-0 table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
             <caption class="visually-hidden">{% trans "Recent closures" %}</caption>
             <thead>
               <tr>
-                <th scope="col">Date</th>
-                <th scope="col">Status</th>
-                <th scope="col" class="text-end">Discrepancy</th>
+                <th scope="col">{% trans "Date" %}</th>
+                <th scope="col">{% trans "Status" %}</th>
+                <th scope="col" class="text-end">{% trans "Discrepancy" %}</th>
               </tr>
             </thead>
             <tbody>

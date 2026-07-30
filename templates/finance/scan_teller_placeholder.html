@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load region_format %}
+{% load region_format  i18n%}
 {% load static %}
 
 {% block title %}Scan Teller (OCR){% endblock %}
@@ -7,7 +7,7 @@
 {% block content %}
 {% include "components/next_action_strip.html" %}
 
-  <h1 class="visually-hidden" data-rmc-injected-h1="1">Scan Teller (OCR)</h1>
+  <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Scan Teller (OCR)" %}</h1>
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
 {% url 'finance:payments' as finance_payments_url %}
@@ -17,7 +17,7 @@
   <div class="col-lg-6 rmc-reveal">
     <div class="card">
       <div class="card-body">
-        <h5 class="mb-3">Extraction</h5>
+        <h5 class="mb-3">{% trans "Extraction" %}</h5>
         {% if ocr_runtime_status %}
         <div class="rmc-banner {% if ocr_runtime_status.ready %}rmc-banner--success{% else %}rmc-banner--warning{% endif %} small" role="alert">
           <div class="fw-semibold mb-1">OCR runtime status: {{ ocr_runtime_status.provider }} ({{ ocr_runtime_status.method }})</div>
@@ -39,26 +39,26 @@
               data-rmc-offline-hint="Scan metadata stays on this device until you reconnect; attach receipt image when online.">
           {% csrf_token %}
           <div class="mb-3">
-            <label class="form-label">Receipt / teller file</label>
+            <label class="form-label">{% trans "Receipt / teller file" %}</label>
             {{ form.receipt_file }}
           </div>
           <div class="mb-3">
-            <label class="form-label">Expected amount (optional)</label>
+            <label class="form-label">{% trans "Expected amount (optional)" %}</label>
             {{ form.expected_amount }}
             <div class="small text-muted">Used to validate OCR extraction tolerance.</div>
           </div>
           <div class="mb-3">
-            <label class="form-label">Reference hint (optional)</label>
+            <label class="form-label">{% trans "Reference hint (optional)" %}</label>
             {{ form.transaction_reference }}
           </div>
           <div class="mb-3">
-            <label class="form-label">Payment method hint</label>
+            <label class="form-label">{% trans "Payment method hint" %}</label>
             {{ form.payment_method }}
           </div>
           <div class="small text-muted mb-3">
             OCR mode: <strong>{{ verification_method }}</strong>
           </div>
-          <button type="submit" class="btn btn-primary">Scan teller</button>
+          <button type="submit" class="btn btn-primary">{% trans "Scan teller" %}</button>
         </form>
       </div>
     </div>
@@ -67,7 +67,7 @@
   <div class="col-lg-6 rmc-reveal">
     <div class="card mb-3">
       <div class="card-body">
-        <h5 class="mb-3">Extraction Result</h5>
+        <h5 class="mb-3">{% trans "Extraction Result" %}</h5>
         {% if extraction %}
         <div class="row g-2">
           <div class="col-md-6">
@@ -109,7 +109,7 @@
     <div class="card">
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-center mb-3">
-          <h5 class="mb-0">Suggested Matches</h5>
+          <h5 class="mb-0">{% trans "Suggested Matches" %}</h5>
           <span class="small text-muted">Amount tolerance: {{ suggested_tolerance }}</span>
         </div>
         <div class="mb-3">
@@ -137,7 +137,7 @@
                 <div class="fw-semibold">{{ inv.reference|default:inv.id }} • {{ inv.student }}</div>
                 <div class="small text-muted">Balance {{ inv.balance_amount|format_currency }} • Due {{ inv.due_date|format_date }}</div>
               </div>
-              <a class="btn btn-sm btn-outline-primary" href="{% url 'finance:invoice_detail' inv.id %}">Open</a>
+              <a class="btn btn-sm btn-outline-primary" href="{% url 'finance:invoice_detail' inv.id %}">{% trans "Open" %}</a>
             </li>
             {% endfor %}
           </ul>
@@ -146,7 +146,7 @@
           {% endif %}
         </div>
         <hr>
-        <a class="btn btn-sm btn-outline-secondary" href="{% url 'finance:suspense_queue' %}">Open Suspense Queue</a>
+        <a class="btn btn-sm btn-outline-secondary" href="{% url 'finance:suspense_queue' %}">{% trans "Open Suspense Queue" %}</a>
       </div>
     </div>
   </div>

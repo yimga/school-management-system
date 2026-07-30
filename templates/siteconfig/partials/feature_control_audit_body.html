@@ -4,10 +4,10 @@
   <div class="card shadow-sm border-0">
     <div class="card-header bg-light border-bottom py-3 d-flex justify-content-between align-items-center">
       <div>
-        <h1 class="h5 mb-1 fw-semibold">Feature Control Audit Log</h1>
+        <h1 class="h5 mb-1 fw-semibold">{% trans "Feature Control Audit Log" %}</h1>
         <p class="text-muted small mb-0">Recent changes to feature settings</p>
       </div>
-      <a class="btn btn-sm btn-outline-secondary btn-back-secondary" href="{% url 'siteconfig:feature_control_panel' %}"><i class="bi bi-arrow-left me-1"></i>Back to Feature Control</a>
+      <a class="btn btn-sm btn-outline-secondary btn-back-secondary" href="{% url 'siteconfig:feature_control_panel' %}">{% trans "Back to Feature Control" %}</a>
     </div>
     <div class="card-body p-0">
       {% if entries %}
@@ -16,10 +16,10 @@
           <caption class="visually-hidden">{% trans "Feature Control Audit Log" %}</caption>
           <thead class="table-light">
             <tr>
-              <th scope="col">When</th>
-              <th scope="col">User</th>
-              <th scope="col">Action</th>
-              <th scope="col">Changes</th>
+              <th scope="col">{% trans "When" %}</th>
+              <th scope="col">{% trans "User" %}</th>
+              <th scope="col">{% trans "Action" %}</th>
+              <th scope="col">{% trans "Changes" %}</th>
             </tr>
           </thead>
           <tbody>

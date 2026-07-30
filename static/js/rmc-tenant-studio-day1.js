@@ -532,18 +532,29 @@
       });
     }
 
+    var submitBtn = root.querySelector("[data-rmc-day1-logo-upload-submit]");
+
+    function triggerUpload(evt) {
+      if (evt) evt.preventDefault();
+      var file = input && input.files && input.files[0];
+      if (!file) return;
+      var verdict = clientValidateFile(file);
+      var errorEl = root.querySelector("[data-rmc-day1-logo-error]");
+      if (!verdict.ok) {
+        setErrorText(errorEl, verdict.message);
+        return;
+      }
+      submitLogoUpload(root, file);
+    }
+
+    if (submitBtn) {
+      submitBtn.addEventListener("click", triggerUpload);
+    }
+
     if (form) {
       form.addEventListener("submit", function (evt) {
         evt.preventDefault();
-        var file = input && input.files && input.files[0];
-        if (!file) return;
-        var verdict = clientValidateFile(file);
-        var errorEl = root.querySelector("[data-rmc-day1-logo-error]");
-        if (!verdict.ok) {
-          setErrorText(errorEl, verdict.message);
-          return;
-        }
-        submitLogoUpload(root, file);
+        triggerUpload();
       });
     }
   }

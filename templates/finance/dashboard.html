@@ -37,7 +37,7 @@
   {% if finance_request_notifications %}
     <div class="card shadow-sm mb-4">
       <div class="card-body">
-        <h6 class="mb-3">Finance access alerts</h6>
+        <h6 class="mb-3">{% trans "Finance access alerts" %}</h6>
         <ul class="list-unstyled mb-0">
           {% for notif in finance_request_notifications %}
             <li class="d-flex justify-content-between align-items-start mb-2">
@@ -49,7 +49,7 @@
             </li>
           {% endfor %}
         </ul>
-        <a class="btn btn-sm btn-link mt-3" href="{{ finance_request_link }}">Open finance inbox</a>
+        <a class="btn btn-sm btn-link mt-3" href="{{ finance_request_link }}">{% trans "Open finance inbox" %}</a>
       </div>
     </div>
   {% endif %}
@@ -111,15 +111,15 @@
   <div class="dashboard-card-grid dashboard-card-grid--charts mt-2" id="money-ledger" data-dashboard-column="secondary">
     <div class="card border-0 shadow-sm" data-widget-id="finance-recent-invoices">
       <div class="card-body">
-        <h5 class="mb-3">Recent Invoices</h5>
+        <h5 class="mb-3">{% trans "Recent Invoices" %}</h5>
         {% if recent_invoices %}
         <div class="dashboard-card-scroll table-responsive">
             <table class="table table-sm align-middle mb-0 table-family rmc-data-table" aria-label="Recent invoices" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
               <thead>
                 <tr>
-                  <th scope="col">Reference</th>
-                  <th scope="col">Status</th>
-                  <th scope="col" class="text-end">Balance</th>
+                  <th scope="col">{% trans "Reference" %}</th>
+                  <th scope="col">{% trans "Status" %}</th>
+                  <th scope="col" class="text-end">{% trans "Balance" %}</th>
                 </tr>
               </thead>
               <tbody>
@@ -141,15 +141,15 @@
       </div>
     <div class="card border-0 shadow-sm" data-widget-id="finance-recent-payments">
       <div class="card-body">
-        <h5 class="mb-3">Recent Payments</h5>
+        <h5 class="mb-3">{% trans "Recent Payments" %}</h5>
           {% if recent_payments %}
           <div class="dashboard-card-scroll table-responsive">
             <table class="table table-sm align-middle mb-0 table-family rmc-data-table" aria-label="Recent payments" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
               <thead>
                 <tr>
                   <th scope="col">{% term "invoice" %}</th>
-                  <th scope="col">Method</th>
-                  <th scope="col" class="text-end">Amount</th>
+                  <th scope="col">{% trans "Method" %}</th>
+                  <th scope="col" class="text-end">{% trans "Amount" %}</th>
                 </tr>
               </thead>
               <tbody>

@@ -11,38 +11,38 @@
 <div class="container-fluid py-2" data-page-archetype="record-detail" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
   <div>
-    <h1 class="mb-1">Evaluation Evidence</h1>
+    <h1 class="mb-1">{% trans "Evaluation Evidence" %}</h1>
     <div class="text-muted">
       Upload photos, videos, or documents to support technical grading.
     </div>
   </div>
-  <a class="btn btn-outline-secondary btn-back-secondary" href="{% url 'evals:evaluation_admin' %}"><i class="bi bi-arrow-left me-1"></i>Back to Evaluations</a>
+  <a class="btn btn-outline-secondary btn-back-secondary" href="{% url 'evals:evaluation_admin' %}">{% trans "Back to Evaluations" %}</a>
 </div>
 
 <div class="row g-3 mb-4 rmc-reveal-stagger">
   <div class="col-lg-6 rmc-reveal">
     <div class="card h-100">
       <div class="card-body">
-        <h5 class="mb-3">Upload Evidence</h5>
+        <h5 class="mb-3">{% trans "Upload Evidence" %}</h5>
         <form method="post" enctype="multipart/form-data">
           {% csrf_token %}
           <div class="mb-3">
-            <label class="form-label">Evaluation</label>
+            <label class="form-label">{% trans "Evaluation" %}</label>
             {{ form.evaluation }}
           </div>
           <div class="mb-3">
-            <label class="form-label">Media Type</label>
+            <label class="form-label">{% trans "Media Type" %}</label>
             {{ form.media_type }}
           </div>
           <div class="mb-3">
-            <label class="form-label">File</label>
+            <label class="form-label">{% trans "File" %}</label>
             {{ form.file }}
           </div>
           <div class="mb-3">
-            <label class="form-label">Caption</label>
+            <label class="form-label">{% trans "Caption" %}</label>
             {{ form.caption }}
           </div>
-          <button type="submit" class="btn btn-primary">Upload</button>
+          <button type="submit" class="btn btn-primary">{% trans "Upload" %}</button>
         </form>
       </div>
     </div>
@@ -50,16 +50,16 @@
   <div class="col-lg-6 rmc-reveal">
     <div class="card h-100">
       <div class="card-body">
-        <h5 class="mb-3">Recent Evidence</h5>
+        <h5 class="mb-3">{% trans "Recent Evidence" %}</h5>
         <div class="table-responsive">
           <table class="table align-middle table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
             <caption class="visually-hidden">{% trans "Recent Evidence" %}</caption>
             <thead>
               <tr>
-                <th scope="col">Student</th>
-                <th scope="col">Subject</th>
-                <th scope="col">Type</th>
-                <th scope="col">Uploaded</th>
+                <th scope="col">{% trans "Student" %}</th>
+                <th scope="col">{% trans "Subject" %}</th>
+                <th scope="col">{% trans "Type" %}</th>
+                <th scope="col">{% trans "Uploaded" %}</th>
               </tr>
             </thead>
             <tbody>

@@ -44,15 +44,15 @@
             <caption class="visually-hidden">{% trans "School Health Monitor" %}</caption>
             <thead class="table-light">
               <tr>
-                <th scope="col">School</th>
-                <th scope="col">Slug</th>
-                <th scope="col">Sector</th>
-                <th scope="col">Lifecycle</th>
-                <th scope="col">Status</th>
-                <th scope="col">Approved</th>
-                <th scope="col">Students</th>
-                <th scope="col">Statutory</th>
-                <th scope="col">Last activity</th>
+                <th scope="col">{% trans "School" %}</th>
+                <th scope="col">{% trans "Slug" %}</th>
+                <th scope="col">{% trans "Sector" %}</th>
+                <th scope="col">{% trans "Lifecycle" %}</th>
+                <th scope="col">{% trans "Status" %}</th>
+                <th scope="col">{% trans "Approved" %}</th>
+                <th scope="col">{% trans "Students" %}</th>
+                <th scope="col">{% trans "Statutory" %}</th>
+                <th scope="col">{% trans "Last activity" %}</th>
                 <th scope="col"></th>
               </tr>
             </thead>
@@ -112,7 +112,7 @@
                 <td>
                   <a href="{% url 'super:tenant_360' t.id %}" class="btn btn-sm btn-outline-primary me-1">360</a>
                   {% if t.admin_edit_url %}
-                  <a href="{{ t.admin_edit_url }}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                  <a href="{{ t.admin_edit_url }}" class="btn btn-sm btn-outline-secondary">{% trans "Edit" %}</a>
                   {% endif %}
                 </td>
               </tr>

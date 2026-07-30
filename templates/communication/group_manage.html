@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load static %}
+{% load static  i18n%}
 
 {% block title %}Manage {{ thread.title }}{% endblock %}
 
@@ -9,20 +9,20 @@
 
 {% include "components/next_action_strip.html" %}
 
-  <h1 class="visually-hidden" data-rmc-injected-h1="1">Manage {{ thread.title }}</h1>
+  <h1 class="visually-hidden" data-rmc-injected-h1="1">{% blocktrans with value=thread.title %}Manage {{ value }}{% endblocktrans %}</h1>
 <div class="container-fluid">
   <div class="row justify-content-center">
     <div class="col-lg-8">
       <div class="card shadow-sm">
         <div class="card-header">
-          <h4 class="mb-0"><i class="bi bi-gear me-2"></i>Manage Group: {{ thread.title }}</h4>
+          <h4 class="mb-0"><i class="bi bi-gear me-2"></i>{% blocktrans with title=thread.title %}Manage Group: {{ title }}{% endblocktrans %}</h4>
         </div>
         <div class="card-body">
           <form method="post">
             {% csrf_token %}
             
             <div class="mb-3">
-              <label for="{{ form.title.id_for_label }}" class="form-label">Group Name *</label>
+              <label for="{{ form.title.id_for_label }}" class="form-label">{% trans "Group Name *" %}</label>
               {{ form.title }}
               {% if form.title.errors %}
               <div class="text-danger small">{{ form.title.errors }}</div>
@@ -30,7 +30,7 @@
             </div>
 
             <div class="mb-3">
-              <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+              <label for="{{ form.description.id_for_label }}" class="form-label">{% trans "Description" %}</label>
               {{ form.description }}
               {% if form.description.errors %}
               <div class="text-danger small">{{ form.description.errors }}</div>
@@ -41,13 +41,13 @@
               <div class="form-check">
                 {{ form.is_archived }}
                 <label class="form-check-label" for="{{ form.is_archived.id_for_label }}">
-                  Archive this group
+                  {% trans "Archive this group" %}
                 </label>
               </div>
             </div>
 
             <div class="mb-3">
-              <label for="{{ form.members.id_for_label }}" class="form-label">Members</label>
+              <label for="{{ form.members.id_for_label }}" class="form-label">{% trans "Members" %}</label>
               {{ form.members }}
               {% if form.members.errors %}
               <div class="text-danger small">{{ form.members.errors }}</div>
@@ -57,9 +57,9 @@
 
             <div class="d-flex gap-2">
               <button type="submit" class="btn btn-primary">
-                <i class="bi bi-check-circle me-2"></i>Save Changes
+                {% trans "Save Changes" %}
               </button>
-              <a href="{% url 'communication:group_detail' thread_id=thread.id %}" class="btn btn-outline-secondary">Cancel</a>
+              <a href="{% url 'communication:group_detail' thread_id=thread.id %}" class="btn btn-outline-secondary">{% trans "Cancel" %}</a>
             </div>
           </form>
         </div>

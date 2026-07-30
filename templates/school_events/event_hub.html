@@ -1,5 +1,5 @@
 {% extends "backend_base.html" %}
-{% load region_format %}
+{% load region_format  i18n%}
 
 {% block title %}School Events{% endblock %}
 {% block backend_title %}School Events{% endblock %}
@@ -13,7 +13,7 @@
 <div class="container-fluid py-2">
   <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
     <div>
-      <h1 class="h3 mb-1">School events</h1>
+      <h1 class="h3 mb-1">{% trans "School events" %}</h1>
       <p class="text-muted mb-0">Event operations, ticketing, venues, and sponsor commitments for {{ school.name }}.</p>
     </div>
     <div class="d-flex gap-3">
@@ -58,7 +58,6 @@
       <div class="card shadow-sm">
         <div class="card-body p-0">
           <div class="py-4 px-3">
-            {% load i18n %}
 {% load region_format %}
             {% include "components/dashboard_empty_state.html" with icon="bi-calendar-event" title=_("No school events have been configured yet.") message=_("Add events in the events module to display them here.") %}
           </div>

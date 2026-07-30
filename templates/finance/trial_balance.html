@@ -7,7 +7,7 @@
 {% block content %}
 {% include "components/next_action_strip.html" %}
 
-  <h1 class="visually-hidden" data-rmc-injected-h1="1">Trial Balance</h1>
+  <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Trial Balance" %}</h1>
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
 {% trans "Back to Finance" as back_action %}
@@ -17,15 +17,15 @@
   <div class="card-body">
     <div class="row g-2 align-items-end">
       <div class="col-md-3">
-        <label class="form-label small">Start date</label>
+        <label class="form-label small">{% trans "Start date" %}</label>
         <input class="form-control" type="date" name="start" value="{{ start }}">
       </div>
       <div class="col-md-3">
-        <label class="form-label small">End date</label>
+        <label class="form-label small">{% trans "End date" %}</label>
         <input class="form-control" type="date" name="end" value="{{ end }}">
       </div>
       <div class="col-md-3">
-        <button type="submit" class="btn btn-primary w-100" data-rmc-autosubmit-hide-when-js>Filter</button>
+        <button type="submit" class="btn btn-primary w-100" data-rmc-autosubmit-hide-when-js>{% trans "Filter" %}</button>
       </div>
     </div>
   </div>
@@ -38,9 +38,9 @@
         <caption class="visually-hidden">{% trans "Trial Balance" %}</caption>
         <thead>
           <tr>
-            <th scope="col">Account</th>
-            <th scope="col" class="text-end">Debit</th>
-            <th scope="col" class="text-end">Credit</th>
+            <th scope="col">{% trans "Account" %}</th>
+            <th scope="col" class="text-end">{% trans "Debit" %}</th>
+            <th scope="col" class="text-end">{% trans "Credit" %}</th>
           </tr>
         </thead>
         <tbody>

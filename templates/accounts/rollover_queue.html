@@ -12,29 +12,29 @@
 <div class="container-fluid" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
   <nav aria-label="breadcrumb" class="mb-3">
     <ol class="breadcrumb mb-0">
-      <li class="breadcrumb-item"><a href="{% url 'accounts:backend_dashboard' %}">Backend</a></li>
-      <li class="breadcrumb-item"><a href="{% url 'studio_os:workflow_center' %}">Workflow Center</a></li>
-      <li class="breadcrumb-item"><a href="{% url 'accounts:rollover_year' %}">Year-end rollover</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'accounts:backend_dashboard' %}">{% trans "Backend" %}</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'studio_os:workflow_center' %}">{% trans "Workflow Center" %}</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'accounts:rollover_year' %}">{% trans "Year-end rollover" %}</a></li>
       <li class="breadcrumb-item active" aria-current="page">Rollover queue</li>
     </ol>
   </nav>
 
   <div class="card shadow-sm">
     <div class="card-body">
-      <h1 class="h5 mb-3">Rollover queue</h1>
+      <h1 class="h5 mb-3">{% trans "Rollover queue" %}</h1>
       <p class="text-muted small mb-3">
         Proposals prepared for year-end rollover. Open a proposal to review suggested classes, override if needed, then Approve and Apply.
       </p>
-      <a href="{% url 'accounts:rollover_year' %}" class="btn btn-outline-primary mb-3">Back to rollover</a>
+      <a href="{% url 'accounts:rollover_year' %}" class="btn btn-outline-primary mb-3">{% trans "Back to rollover" %}</a>
       <div class="table-responsive">
         <table class="table table-sm table-hover mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <caption class="visually-hidden">{% trans "Rollover queue" %}</caption>
           <thead class="table-light">
             <tr>
-              <th scope="col">Source → Target</th>
-              <th scope="col">Status</th>
-              <th scope="col">Created</th>
-              <th scope="col">Actions</th>
+              <th scope="col">{% trans "Source → Target" %}</th>
+              <th scope="col">{% trans "Status" %}</th>
+              <th scope="col">{% trans "Created" %}</th>
+              <th scope="col">{% trans "Actions" %}</th>
             </tr>
           </thead>
           <tbody>
@@ -44,7 +44,7 @@
               <td><span class="badge {% if p.status == 'PENDING' %}bg-warning text-dark{% elif p.status == 'APPROVED' %}bg-success{% else %}bg-secondary{% endif %}">{{ p.get_status_display }}</span></td>
               <td>{{ p.created_at|date:"M j, Y H:i" }}{% if p.created_by %} by {{ p.created_by.get_full_name|default:p.created_by.username }}{% endif %}</td>
               <td>
-                <a href="{% url 'accounts:rollover_proposal_detail' proposal_id=p.id %}" class="btn btn-sm btn-outline-primary">Review</a>
+                <a href="{% url 'accounts:rollover_proposal_detail' proposal_id=p.id %}" class="btn btn-sm btn-outline-primary">{% trans "Review" %}</a>
               </td>
             </tr>
             {% empty %}

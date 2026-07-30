@@ -13,17 +13,17 @@
 <div data-rmc-scroll-policy="paginate">
 <div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
   <div>
-    <h1 class="mb-0">Grading Deadlines</h1>
+    <h1 class="mb-0">{% trans "Grading Deadlines" %}</h1>
     <div class="text-muted">Manage custom deadlines by term and classroom.</div>
   </div>
-  <a class="btn btn-sm btn-outline-secondary btn-back-secondary" href="{% url 'analytics:dashboard' %}"><i class="bi bi-arrow-left me-1"></i>Back to Analytics</a>
+  <a class="btn btn-sm btn-outline-secondary btn-back-secondary" href="{% url 'analytics:dashboard' %}">{% trans "Back to Analytics" %}</a>
 </div>
 
 <div class="card mb-3">
   <div class="card-body">
     <form method="get" class="row g-2 align-items-end" data-rmc-autosubmit="1">
       <div class="col-md-4">
-        <label class="form-label small" for="deadlines-year">Academic year</label>
+        <label class="form-label small" for="deadlines-year">{% trans "Academic year" %}</label>
         <select id="deadlines-year" class="form-select" name="year">
           {% for y in years %}
             <option value="{{ y.id }}" {% if y.id == year.id %}selected{% endif %}>{{ y.name }}</option>
@@ -31,7 +31,7 @@
         </select>
       </div>
       <div class="col-md-4">
-        <label class="form-label small" for="deadlines-term">Term</label>
+        <label class="form-label small" for="deadlines-term">{% trans "Term" %}</label>
         <select id="deadlines-term" class="form-select" name="term">
           {% for t in terms %}
             <option value="{{ t.id }}" {% if t.id == term.id %}selected{% endif %}>{{ t.get_name_display }}</option>
@@ -39,7 +39,7 @@
         </select>
       </div>
       <div class="col-md-4 d-grid">
-        <button type="submit" class="btn btn-outline-primary" data-rmc-autosubmit-hide-when-js>Load</button>
+        <button type="submit" class="btn btn-outline-primary" data-rmc-autosubmit-hide-when-js>{% trans "Load" %}</button>
       </div>
     </form>
   </div>
@@ -52,20 +52,20 @@
       <input type="hidden" name="year" value="{{ year.id }}">
       <input type="hidden" name="term" value="{{ term.id }}">
       <div class="col-md-4">
-        <label class="form-label small" for="deadlines-classroom">Classroom</label>
+        <label class="form-label small" for="deadlines-classroom">{% trans "Classroom" %}</label>
         <select id="deadlines-classroom" class="form-select" name="classroom">
-          <option value="">Whole school</option>
+          <option value="">{% trans "Whole school" %}</option>
           {% for c in classrooms %}
             <option value="{{ c.id }}">{{ c.name }}</option>
           {% endfor %}
         </select>
       </div>
       <div class="col-md-4">
-        <label class="form-label small" for="deadlines-deadline-at">Deadline</label>
+        <label class="form-label small" for="deadlines-deadline-at">{% trans "Deadline" %}</label>
         <input id="deadlines-deadline-at" class="form-control" type="datetime-local" name="deadline_at" required>
       </div>
       <div class="col-md-4 d-grid">
-        <button class="btn btn-primary" type="submit">Save Deadline</button>
+        <button class="btn btn-primary" type="submit">{% trans "Save Deadline" %}</button>
       </div>
     </form>
   </div>
@@ -77,8 +77,8 @@
       <table class="table table-sm align-middle table-family rmc-data-table" aria-label="Grading deadlines by scope and date" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
         <thead>
           <tr>
-            <th scope="col">Scope</th>
-            <th scope="col">Deadline</th>
+            <th scope="col">{% trans "Scope" %}</th>
+            <th scope="col">{% trans "Deadline" %}</th>
             <th scope="col" style="width:120px;"><span class="visually-hidden">{% trans "Actions" %}</span></th>
           </tr>
         </thead>
@@ -88,7 +88,7 @@
               <td>{{ d.classroom }} — {{ d.subject }}</td>
               <td>{{ d.deadline_at|format_date }} {{ d.deadline_at|time:"H:i" }}</td>
               <td class="text-end">
-                <a class="btn btn-outline-primary btn-sm" href="{% url 'evals:extend_deadline' d.subject_assignment.id %}">Extend</a>
+                <a class="btn btn-outline-primary btn-sm" href="{% url 'evals:extend_deadline' d.subject_assignment.id %}">{% trans "Extend" %}</a>
               </td>
             </tr>
           {% empty %}

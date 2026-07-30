@@ -1,3 +1,4 @@
+{% load i18n %}
 {% comment %}
   Reusable chart component.
   Required: chart_id, chart_type, chart_title
@@ -11,8 +12,7 @@
       <h5 class="card-title mb-0">{{ chart_title }}</h5>
       {% if show_export|default:True %}
       <button type="button" class="btn btn-sm btn-outline-secondary dashboard-chart-export" aria-label="Download chart as PNG" title="Download as PNG" data-chart-export="{{ chart_id }}">
-        <i class="bi bi-download" aria-hidden="true"></i>
-        <span class="d-none d-sm-inline ms-1">Export</span>
+        {% trans "Export" %}
       </button>
       {% endif %}
     </div>
@@ -25,7 +25,7 @@
       <div class="dashboard-chart-error d-none" data-chart-error="{{ chart_id }}">
         <i class="bi bi-exclamation-triangle"></i>
         <span class="small">Could not load chart data.</span>
-        <button type="button" class="btn btn-sm btn-outline-primary btn-retry" data-chart-retry="{{ chart_id }}">Retry</button>
+        <button type="button" class="btn btn-sm btn-outline-primary btn-retry" data-chart-retry="{{ chart_id }}">{% trans "Retry" %}</button>
       </div>
       <div class="dashboard-chart-empty d-none" data-chart-empty="{{ chart_id }}">
         <i class="bi bi-bar-chart"></i>

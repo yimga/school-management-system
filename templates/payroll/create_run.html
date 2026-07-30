@@ -15,10 +15,10 @@
 
 <div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
   <div>
-    <h1 class="mb-0">Create Payroll Run</h1>
+    <h1 class="mb-0">{% trans "Create Payroll Run" %}</h1>
     <div class="text-muted">Compliance: {{ profile.name }} ({{ profile.country_code }})</div>
   </div>
-  <a class="btn btn-outline-secondary btn-sm" href="{% url 'payroll:dashboard' %}">Back</a>
+  <a class="btn btn-outline-secondary btn-sm" href="{% url 'payroll:dashboard' %}">{% trans "Back" %}</a>
 </div>
 
 <form method="post" class="card"
@@ -31,17 +31,17 @@
   <div class="card-body">
     <div class="row g-3">
       <div class="col-md-4">
-        <label class="form-label">Period start</label>
+        <label class="form-label">{% trans "Period start" %}</label>
         <input class="form-control" type="date" name="period_start" value="{{ today }}" required>
       </div>
       <div class="col-md-4">
-        <label class="form-label">Period end</label>
+        <label class="form-label">{% trans "Period end" %}</label>
         <input class="form-control" type="date" name="period_end" value="{{ today }}" required>
       </div>
     </div>
   </div>
   <div class="card-footer d-flex justify-content-end">
-    <button type="submit" class="btn btn-primary">Create Run</button>
+    <button type="submit" class="btn btn-primary">{% trans "Create Run" %}</button>
   </div>
 </form>
 {% endblock %}

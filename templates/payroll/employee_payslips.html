@@ -11,10 +11,10 @@
 
 <div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
   <div>
-    <h1 class="mb-0">My Payslips</h1>
+    <h1 class="mb-0">{% trans "My Payslips" %}</h1>
     <div class="text-muted">{{ employee }}</div>
   </div>
-  <a class="btn btn-outline-secondary btn-sm" href="{% url 'payroll:employee_leave' %}">Leave Requests</a>
+  <a class="btn btn-outline-secondary btn-sm" href="{% url 'payroll:employee_leave' %}">{% trans "Leave Requests" %}</a>
 </div>
 
 <div class="card">
@@ -24,10 +24,10 @@
         <caption class="visually-hidden">{% trans "My Payslips" %}</caption>
         <thead>
           <tr>
-            <th scope="col">Period</th>
-            <th scope="col">Status</th>
-            <th scope="col" class="text-end">Gross</th>
-            <th scope="col" class="text-end">Net</th>
+            <th scope="col">{% trans "Period" %}</th>
+            <th scope="col">{% trans "Status" %}</th>
+            <th scope="col" class="text-end">{% trans "Gross" %}</th>
+            <th scope="col" class="text-end">{% trans "Net" %}</th>
             <th scope="col" class="text-end">{% trans "Payslip" %}</th>
           </tr>
         </thead>

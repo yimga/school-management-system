@@ -8,7 +8,7 @@
 
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="rmc-tenant-exception-task container-fluid px-3 px-lg-4 py-3" data-rmc-tenant-exception-task="1" data-rmc-page-fold-nav="required" data-rmc-scroll-policy="paginate" data-page-archetype="task-list">
-  <h1 class="visually-hidden" data-rmc-injected-h1="1">My Timetable</h1>
+  <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "My Timetable" %}</h1>
   {% include "widgets/dashboard_hero.html" with hero=hero %}
 
   {% if not year or not term %}
@@ -28,17 +28,17 @@
         data-sms-offline-read-cache-key="teacher_timetable_{{ request.user.id }}"
         data-page-critical-read="timetable"
       >
-        <h5 class="card-title mb-3">Weekly schedule</h5>
+        <h5 class="card-title mb-3">{% trans "Weekly schedule" %}</h5>
         <div class="table-responsive">
           <table class="table table-bordered align-middle mb-0 table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
             <caption class="visually-hidden">{% trans "Weekly schedule" %}</caption>
             <thead class="table-light">
               <tr>
-                <th scope="col">Day</th>
-                <th scope="col">Time</th>
-                <th scope="col">Subject</th>
-                <th scope="col">Class</th>
-                <th scope="col">Room</th>
+                <th scope="col">{% trans "Day" %}</th>
+                <th scope="col">{% trans "Time" %}</th>
+                <th scope="col">{% trans "Subject" %}</th>
+                <th scope="col">{% trans "Class" %}</th>
+                <th scope="col">{% trans "Room" %}</th>
               </tr>
             </thead>
             <tbody>

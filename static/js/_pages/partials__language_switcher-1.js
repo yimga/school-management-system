@@ -11,6 +11,15 @@
     var input=document.getElementById("rmc-lang-input");
     if(form&&input){
       input.value=code;
+      var nextInput=form.querySelector('input[name="next"]');
+      if(nextInput&&nextInput.value){
+        try{
+          var nextUrl=new URL(nextInput.value,window.location.origin);
+          nextUrl.searchParams.set("_lang",code);
+          nextUrl.searchParams.set("_lc",String(Date.now()));
+          nextInput.value=nextUrl.pathname+nextUrl.search+nextUrl.hash;
+        }catch(_e){/* keep original next */}
+      }
       form.submit();
       return;
     }

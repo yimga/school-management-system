@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load static %}
+{% load static  i18n%}
 
 {% block title %}Pending Signatures{% endblock %}
 
@@ -9,7 +9,7 @@
 
 {% include "components/next_action_strip.html" %}
 
-  <h1 class="visually-hidden" data-rmc-injected-h1="1">Pending Signatures</h1>
+  <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Pending Signatures" %}</h1>
 <div class="container-fluid px-3 px-lg-4 py-4" data-page-archetype="task-list" data-rmc-scroll-policy="paginate">
   {% url 'portal:parent_dashboard' as dashboard_url %}
   {% include "studio_os/components/page_header.html" with title="Forms Requiring Signature" subtitle="Please review and sign the following forms" action_url=dashboard_url action_text="Back to Dashboard" %}
@@ -61,20 +61,20 @@
               <div class="d-flex gap-2">
                 {% if req.form_document.file %}
                   <a href="{% url 'portal:document_download' req.form_document.id %}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary btn-sm">
-                    <i class="bi bi-eye me-1"></i>View Form
+                    {% trans "View Form" %}
                   </a>
                 {% elif req.form_document.link %}
                   <a href="{{ req.form_document.link }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary btn-sm">
-                    <i class="bi bi-box-arrow-up-right me-1"></i>View Form
+                    {% trans "View Form" %}
                   </a>
                 {% endif %}
                 {% if not req.is_expired %}
                   <a href="{% url 'portal:signature_sign' req.id %}" class="btn btn-primary btn-sm">
-                    <i class="bi bi-pen me-1"></i>Sign Now
+                    {% trans "Sign Now" %}
                   </a>
                 {% else %}
                   <button type="button" class="btn btn-secondary btn-sm" disabled>
-                    <i class="bi bi-x-circle me-1"></i>Expired
+                    {% trans "Expired" %}
                   </button>
                 {% endif %}
               </div>
@@ -85,7 +85,7 @@
     </div>
   {% else %}
     {% include "components/rmc_empty_state.html" with title="All caught up" message="You have no pending signature requests." %}
-    <a href="{% url 'portal:parent_dashboard' %}" class="btn btn-primary btn-back-primary mt-3"><i class="bi bi-arrow-left me-1"></i>Back to Dashboard</a>
+    <a href="{% url 'portal:parent_dashboard' %}" class="btn btn-primary btn-back-primary mt-3">{% trans "Back to Dashboard" %}</a>
   {% endif %}
 </div>
 {% endblock %}

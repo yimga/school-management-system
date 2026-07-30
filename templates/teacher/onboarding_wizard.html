@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load static %}
+{% load static  i18n%}
 {% block title %}Teacher Onboarding{% endblock %}
 
 {% block extrastyle %}
@@ -14,7 +14,7 @@
 
 <div class="wizard-container" data-rmc-scroll-policy="paginate" data-page-archetype="task-form">
   <div class="mb-4">
-    <h1 class="mb-1">Teacher Onboarding</h1>
+    <h1 class="mb-1">{% trans "Teacher Onboarding" %}</h1>
     <div class="text-muted">Complete your teacher profile in a few simple steps.</div>
   </div>
 
@@ -57,7 +57,7 @@
 
       <!-- Step 1: Basic Information -->
       {% if step == 1 %}
-        <h3 class="wizard-step-title">Step 1: Basic Information</h3>
+        <h3 class="wizard-step-title">{% trans "Step 1: Basic Information" %}</h3>
         <p class="wizard-step-description">
           Enter your personal details. This will be used to create your account.
         </p>
@@ -105,7 +105,7 @@
 
       <!-- Step 2: Professional Details -->
       {% if step == 2 %}
-        <h3 class="wizard-step-title">Step 2: Professional Details</h3>
+        <h3 class="wizard-step-title">{% trans "Step 2: Professional Details" %}</h3>
         <p class="wizard-step-description">
           Tell us about your role and department. All fields are optional.
         </p>
@@ -148,7 +148,7 @@
 
       <!-- Step 3: Preferences -->
       {% if step == 3 %}
-        <h3 class="wizard-step-title">Step 3: Preferences</h3>
+        <h3 class="wizard-step-title">{% trans "Step 3: Preferences" %}</h3>
         <p class="wizard-step-description">
           Configure your dashboard and payment preferences.
         </p>
@@ -181,7 +181,7 @@
 
       <!-- Step 4: Profile photo -->
       {% if step == 4 %}
-        <h3 class="wizard-step-title">Step 4: Your photo</h3>
+        <h3 class="wizard-step-title">{% trans "Step 4: Your photo" %}</h3>
         <p class="wizard-step-description">
           Upload a photo for your digital ID card. You can update it later from your profile.
         </p>
@@ -208,16 +208,16 @@
       <div class="wizard-actions">
         {% if step > 1 %}
           <button type="submit" name="action" value="back" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left me-1"></i> Back
+            {% trans "Back" %}
           </button>
         {% else %}
           <div></div>
         {% endif %}
         <button type="submit" name="action" value="next" class="btn btn-primary">
           {% if step == total_steps %}
-            Complete Setup <i class="bi bi-check-circle ms-1"></i>
+            {% trans "Complete Setup" %} <i class="bi bi-check-circle ms-1"></i>
           {% else %}
-            Continue <i class="bi bi-arrow-right ms-1"></i>
+            {% trans "Continue" %} <i class="bi bi-arrow-right ms-1"></i>
           {% endif %}
         </button>
       </div>

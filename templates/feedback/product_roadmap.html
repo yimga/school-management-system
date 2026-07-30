@@ -1,4 +1,5 @@
 {% extends "control_plane_base.html" %}
+{% load i18n %}
 {% block cp_title %}Product Roadmap{% endblock %}
 {% block cp_content %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
@@ -6,7 +7,7 @@
 
 {% include "components/next_action_strip.html" %}
 
-<h1 class="h3">Product Roadmap</h1>
+<h1 class="h3">{% trans "Product Roadmap" %}</h1>
 <p class="text-muted">Internal roadmap is private by default. Tenant and public visibility require explicit flags.</p>
 <div class="row g-3">
   {% for item in roadmap_items %}
@@ -24,7 +25,7 @@
     <div class="col-12">{% include "components/rmc_empty_state.html" with icon="bi-inbox" title=_("No roadmap items yet.") message=_("Nothing here yet — check back after your school adds data.") %}</div>
   {% endfor %}
 </div>
-<h2 class="h4 mt-4">Release Notes</h2>
+<h2 class="h4 mt-4">{% trans "Release Notes" %}</h2>
 <div class="list-group">
   {% for note in release_notes %}
     <div class="list-group-item">

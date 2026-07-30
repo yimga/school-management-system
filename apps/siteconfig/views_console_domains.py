@@ -166,7 +166,7 @@ CONSOLE_DOMAINS = [
         "name": "Integrations & marketplace",
         "outcome": "Integrations and app marketplace",
         "links": [
-            ("Modules", "siteconfig:module_market"),
+            ("App catalog", "tenant_app_catalog"),
             ("App sandbox", "siteconfig:marketplace_sandbox_embed"),
         ],
     },

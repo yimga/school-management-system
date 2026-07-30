@@ -1,4 +1,5 @@
 {% extends "portal_base.html" %}
+{% load i18n %}
 
 {% block title %}New message - {{ SITE.site_name|default:"Portal" }}{% endblock %}
 
@@ -11,8 +12,8 @@
   <div data-rmc-scroll-policy="paginate" class="container-fluid py-4">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
       <div>
-        <a class="btn btn-sm btn-outline-secondary mb-1" href="{% url 'accounts:user_messages' %}?tab=direct"><i class="bi bi-arrow-left me-1"></i>Messages</a>
-        <h1 class="h5 mb-0">New message</h1>
+        <a class="btn btn-sm btn-outline-secondary mb-1" href="{% url 'accounts:user_messages' %}?tab=direct">{% trans "Messages" %}</a>
+        <h1 class="h5 mb-0">{% trans "New message" %}</h1>
       </div>
     </div>
 
@@ -28,29 +29,29 @@
           <div class="mb-3">
             <label for="recipient" class="form-label">To</label>
             <select name="recipient" id="recipient" class="form-select" required>
-              <option value="">Select a user...</option>
+              <option value="">{% trans "Select a user..." %}</option>
               {% for u in recipients %}
                 <option value="{{ u.id }}">{{ u.first_name }} {{ u.last_name|default:"" }} ({{ u.username }})</option>
               {% endfor %}
             </select>
           </div>
           <div class="mb-3">
-            <label for="subject" class="form-label">Subject (optional)</label>
+            <label for="subject" class="form-label">{% trans "Subject (optional)" %}</label>
             <input type="text" name="subject" id="subject" class="form-control" placeholder="Subject" value="Direct message">
           </div>
           <div class="mb-3">
-            <label for="body" class="form-label">Message</label>
+            <label for="body" class="form-label">{% trans "Message" %}</label>
             <textarea name="body" id="body" class="form-control" rows="5" placeholder="Type your message..."></textarea>
             {% comment %} Pass 13.D: AI draft button — only renders when AI_TEACHER_COMMS entitlement is on. {% endcomment %}
             {% include "portal/partials/ai_draft_inline.html" with textarea_id="body" draft_endpoint=ai_teacher_comms_endpoint intent_value=ai_teacher_comms_intent entitlement_ok=ai_teacher_comms_enabled|default:False %}
           </div>
           <div class="mb-3">
-            <label for="compose-attachments" class="form-label"><i class="bi bi-paperclip" aria-hidden="true"></i> Attach files <span class="text-muted small">(PDF, Office or images, up to 10&nbsp;MB each)</span></label>
+            <label for="compose-attachments" class="form-label"><i class="bi bi-paperclip" aria-hidden="true"></i> {% trans "Attach files" %} <span class="text-muted small">{% trans "(PDF, Office or images, up to 10&nbsp;MB each)" %}</span></label>
             <input type="file" name="attachments" id="compose-attachments" class="form-control"
                    multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.odt,.ods,.jpg,.jpeg,.png,.gif,.webp">
           </div>
-          <button type="submit" class="btn btn-primary"><i class="bi bi-send me-1"></i>Send</button>
-          <a class="btn btn-outline-secondary" href="{% url 'accounts:user_messages' %}?tab=direct">Cancel</a>
+          <button type="submit" class="btn btn-primary">{% trans "Send" %}</button>
+          <a class="btn btn-outline-secondary" href="{% url 'accounts:user_messages' %}?tab=direct">{% trans "Cancel" %}</a>
         </form>
       </div>
     </div>

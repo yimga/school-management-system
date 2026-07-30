@@ -139,6 +139,7 @@
   background: color-mix(in srgb, var(--surface-elevated, var(--color-base-0)) 92%, transparent);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
+  isolation: isolate;
 }
 
 @media (max-width: 1199.98px) {

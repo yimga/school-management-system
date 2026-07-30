@@ -6,6 +6,8 @@ Studio OS deep_links; control_plane_nav). Fails fast if a link is staged in temp
 missing from the active URLconf.
 """
 
+from unittest import mock
+
 from django.test import SimpleTestCase
 from django.urls import NoReverseMatch, reverse
 
@@ -76,3 +78,22 @@ class TenantFaviconRedirectTests(SimpleTestCase):
             location.startswith("/static/") or location.startswith("http"),
             msg=location,
         )
+
+    def test_favicon_redirect_uses_tenant_brand_when_available(self):
+        from django.test import RequestFactory
+
+        from config.tenant_urls import favicon_redirect
+
+        request = RequestFactory().get("/favicon.ico")
+        request.school = type(
+            "SchoolStub",
+            (),
+            {"pk": "school-1", "slug": "gilead-tech"},
+        )()
+        with mock.patch(
+            "apps.siteconfig.branding.resolve_brand_profile",
+            return_value={"favicon_url": "/media/tenants/gilead-tech/favicon.png"},
+        ):
+            response = favicon_redirect(request)
+        self.assertIn(response.status_code, (301, 302))
+        self.assertIn("favicon.png", response["Location"])

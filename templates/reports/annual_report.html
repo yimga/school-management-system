@@ -53,13 +53,13 @@
 
   <div class="grid">
     <div class="box">
-      <h3>Student</h3>
+      <h3>{% trans "Student" %}</h3>
       <div><b>Name:</b> {{ student_name|default:"" }}</div>
       <div><b>Class:</b> {{ student.classroom.name|default:"" }}</div>
       <div><b>Specialty:</b> {{ student.specialty.name|default:"" }}</div>
     </div>
     <div class="box">
-      <h3>Decision</h3>
+      <h3>{% trans "Decision" %}</h3>
       <div class="pill">{{ promotion_status|default:"Pending" }}</div>
       {% if promotion_average %}
         <div style="margin-top:8px;">Promotion average required: {{ promotion_average }}</div>
@@ -72,8 +72,8 @@
     <thead>
       <tr>
         <th scope="col">{% term_label %}</th>
-        <th scope="col" class="text-end">Average</th>
-        <th scope="col" class="text-end">Class Position</th>
+        <th scope="col" class="text-end">{% trans "Average" %}</th>
+        <th scope="col" class="text-end">{% trans "Class Position" %}</th>
       </tr>
     </thead>
     <tbody>

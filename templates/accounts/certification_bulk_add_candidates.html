@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load static terminology_tags %}
+{% load static terminology_tags  i18n%}
 
 {% block title %}Bulk Add Candidates{% endblock %}
 
@@ -10,7 +10,7 @@
 <div class="container-fluid" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
   <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-2 mb-3">
     <div>
-      <h1 class="fw-bold mb-1">Bulk add candidates</h1>
+      <h1 class="fw-bold mb-1">{% trans "Bulk add candidates" %}</h1>
       <div class="text-muted">
         Session: <strong>{{ session.name }}</strong>
         · {{ session.get_board_display }} / {{ session.get_level_display }}
@@ -20,9 +20,9 @@
       </div>
     </div>
     <div class="d-flex flex-wrap gap-2">
-      <a class="btn btn-sm btn-outline-secondary btn-back-secondary" href="{% url 'accounts:certification_session_detail' session.id %}"><i class="bi bi-arrow-left me-1"></i>Back to session</a>
+      <a class="btn btn-sm btn-outline-secondary btn-back-secondary" href="{% url 'accounts:certification_session_detail' session.id %}">{% trans "Back to session" %}</a>
       <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:certification_home' %}">
-        All sessions
+        {% trans "All sessions" %}
       </a>
     </div>
   </div>
@@ -33,7 +33,7 @@
         {% csrf_token %}
 
         <div class="col-12 col-lg-6">
-          <label class="form-label fw-semibold">Classrooms (required)</label>
+          <label class="form-label fw-semibold">{% trans "Classrooms (required)" %}</label>
           {% if form.classrooms.errors %}
             <div class="text-danger small mb-1">{{ form.classrooms.errors }}</div>
           {% endif %}
@@ -42,7 +42,7 @@
         </div>
 
         <div class="col-12 col-lg-6">
-          <label class="form-label fw-semibold">Specialties (optional)</label>
+          <label class="form-label fw-semibold">{% trans "Specialties (optional)" %}</label>
           {% if form.specialties.errors %}
             <div class="text-danger small mb-1">{{ form.specialties.errors }}</div>
           {% endif %}
@@ -54,23 +54,23 @@
           <div class="form-check">
             {{ form.skip_existing_candidates }}
             <label class="form-check-label" for="{{ form.skip_existing_candidates.id_for_label }}">
-              Skip students who already have a candidate in this session
+              {% trans "Skip students who already have a candidate in this session" %}
             </label>
           </div>
           <div class="form-check">
             {{ form.include_inactive_students }}
             <label class="form-check-label" for="{{ form.include_inactive_students.id_for_label }}">
-              Include inactive {% term_lower "student" plural=True %}
+              {% trans "Include inactive" %} {% term_lower "student" plural=True %}
             </label>
           </div>
         </div>
 
         <div class="col-12 d-flex gap-2">
           <button class="btn btn-primary" type="submit">
-            <i class="bi bi-people-fill me-1"></i>Create candidates
+            {% trans "Create candidates" %}
           </button>
           <a class="btn btn-outline-secondary" href="{% url 'accounts:certification_session_detail' session.id %}">
-            Cancel
+            {% trans "Cancel" %}
           </a>
         </div>
       </form>
@@ -80,15 +80,15 @@
   {% if preview_students %}
   <div class="card shadow-sm mt-3">
     <div class="card-body">
-      <h5 class="mb-2">Preview (first {{ preview_students|length }} students)</h5>
+      <h5 class="mb-2">{% blocktrans with count=preview_students|length %}Preview (first {{ count }} students){% endblocktrans %}</h5>
       <div class="table-responsive">
         <table class="table table-sm align-middle table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
-          <caption class="visually-hidden">Preview (first {{ preview_students|length }} students)</caption>
+          <caption class="visually-hidden">{% blocktrans with count=preview_students|length %}Preview (first {{ count }} students){% endblocktrans %}</caption>
           <thead>
             <tr>
               <th scope="col">{% term "student" capitalize=True %}</th>
               <th scope="col">{% term "classroom" capitalize=True %}</th>
-              <th scope="col">Specialty</th>
+              <th scope="col">{% trans "Specialty" %}</th>
             </tr>
           </thead>
           <tbody>

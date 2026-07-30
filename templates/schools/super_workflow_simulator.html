@@ -44,10 +44,10 @@
         <div class="col-auto">
           <label for="role" class="form-label">{% trans "Role" %}</label>
           <select id="role" name="role" class="form-select">
-            <option value="ADMIN" {% if workflow_summary.role == "ADMIN" %}selected{% endif %}>ADMIN</option>
-            <option value="TEACHER" {% if workflow_summary.role == "TEACHER" %}selected{% endif %}>TEACHER</option>
-            <option value="PARENT" {% if workflow_summary.role == "PARENT" %}selected{% endif %}>PARENT</option>
-            <option value="STAFF" {% if workflow_summary.role == "STAFF" %}selected{% endif %}>STAFF</option>
+            <option value="ADMIN" {% if workflow_summary.role == "ADMIN" %}selected{% endif %}>{% trans "ADMIN" %}</option>
+            <option value="TEACHER" {% if workflow_summary.role == "TEACHER" %}selected{% endif %}>{% trans "TEACHER" %}</option>
+            <option value="PARENT" {% if workflow_summary.role == "PARENT" %}selected{% endif %}>{% trans "PARENT" %}</option>
+            <option value="STAFF" {% if workflow_summary.role == "STAFF" %}selected{% endif %}>{% trans "STAFF" %}</option>
           </select>
         </div>
         <div class="col-auto">

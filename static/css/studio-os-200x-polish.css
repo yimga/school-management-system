@@ -59,6 +59,7 @@
   filter: blur(40px);
   z-index: -1;
   pointer-events: none;
+  contain: paint;
 }
 
 [data-studio-os-surface] .rmc-page-eyebrow {

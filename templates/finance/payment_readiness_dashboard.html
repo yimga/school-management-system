@@ -40,7 +40,7 @@
     <div class="col-lg-6 rmc-reveal">
       <div class="card shadow-sm h-100">
         <div class="card-body">
-          <h1 class="h5">Corridor profile</h1>
+          <h1 class="h5">{% trans "Corridor profile" %}</h1>
           <dl class="rmc-kv mb-0 small">
             <dt>Compliance profile</dt>
             <dd>{{ profile.name }}</dd>
@@ -63,7 +63,7 @@
     <div class="col-lg-6 rmc-reveal">
       <div class="card shadow-sm h-100">
         <div class="card-body">
-          <h2 class="h5">Orchestration hint</h2>
+          <h2 class="h5">{% trans "Orchestration hint" %}</h2>
           <p class="small text-muted mb-2">Advisory only — billing enforcement unchanged.</p>
           <ul class="small mb-0">
             <li><strong>Selected rail:</strong> {{ effective_rail.selected_rail|default:"—" }}</li>
@@ -76,18 +76,18 @@
 
   <div class="card shadow-sm mb-4" id="gateway-health">
     <div class="card-body">
-      <h2 class="h5">Gateway health (metadata checks)</h2>
+      <h2 class="h5">{% trans "Gateway health (metadata checks)" %}</h2>
       <p class="small text-muted">No live charges; secrets never logged. CARD/BANK rails stay <code>external_required</code> until PSP onboarding completes.</p>
       <div class="table-responsive">
         <table class="table table-sm align-middle mb-0 table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <caption class="visually-hidden">{% trans "Gateway health (metadata checks)" %}</caption>
           <thead>
             <tr>
-              <th scope="col">Role</th>
-              <th scope="col">Rail</th>
-              <th scope="col">Status</th>
+              <th scope="col">{% trans "Role" %}</th>
+              <th scope="col">{% trans "Rail" %}</th>
+              <th scope="col">{% trans "Status" %}</th>
               <th scope="col">{% term "message" %}</th>
-              <th scope="col">Action</th>
+              <th scope="col">{% trans "Action" %}</th>
             </tr>
           </thead>
           <tbody>
@@ -143,7 +143,7 @@
   {% if latest_checks %}
   <div class="card shadow-sm">
     <div class="card-body">
-      <h2 class="h5">Latest recorded checks</h2>
+      <h2 class="h5">{% trans "Latest recorded checks" %}</h2>
       <p class="small text-muted mb-2">Most recent snapshot per rail for this school.</p>
       <ul class="list-group list-group-flush small">
         {% for snap in latest_checks %}

@@ -10,14 +10,14 @@
 <div class="container-fluid py-2" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
       <div class="d-flex align-items-center gap-2">
-        <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:user_messages' %}?tab=direct"><i class="bi bi-arrow-left me-1"></i>Messages</a>
-        <h1 class="h5 mb-0">Chat with {{ other_user.get_full_name|default:other_user.username }}</h1>
+        <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:user_messages' %}?tab=direct">{% trans "Messages" %}</a>
+        <h1 class="h5 mb-0">{% blocktrans with value=other_user.get_full_name|default:other_user.username %}Chat with {{ value }}{% endblocktrans %}</h1>
       </div>
       {% if can_close %}
       <form method="post" action="{% url 'accounts:direct_thread' other_user.id %}" class="d-inline">
         {% csrf_token %}
         <input type="hidden" name="action" value="close">
-        <button type="submit" class="btn btn-sm btn-outline-warning">Close conversation</button>
+        <button type="submit" class="btn btn-sm btn-outline-warning">{% trans "Close conversation" %}</button>
       </form>
       {% endif %}
       {% if can_block %}
@@ -31,11 +31,11 @@
         {% endif %}
       </form>
       {% endif %}
-      <a class="btn btn-sm btn-outline-primary" href="{% url 'accounts:user_profile' %}">Profile</a>
+      <a class="btn btn-sm btn-outline-primary" href="{% url 'accounts:user_profile' %}">{% trans "Profile" %}</a>
     </div>
 
     {% if conversation_closed %}
-    <div class="rmc-banner rmc-banner--info">This conversation is closed. You can no longer reply. To contact the school again, use <a href="{% url 'portal:parent_contact_school' %}">Contact School</a>.</div>
+    <div class="rmc-banner rmc-banner--info">This conversation is closed. You can no longer reply. To contact the school again, use <a href="{% url 'portal:parent_contact_school' %}">{% trans "Contact School" %}</a>.</div>
     {% endif %}
 
     {% if is_blocked %}
@@ -130,7 +130,7 @@
             <input type="hidden" name="subject" value="Direct message">
             <input type="hidden" name="recipient" value="{{ other_user.id }}">
             <div class="mb-2">
-              <label for="direct-reply-body" class="visually-hidden">Message</label>
+              <label for="direct-reply-body" class="visually-hidden">{% trans "Message" %}</label>
               <textarea name="body" id="direct-reply-body" class="form-control" rows="3" placeholder="Type your message..." data-rmc-typing-input></textarea>
             </div>
             <div class="mb-2">
@@ -150,7 +150,7 @@
               <span class="small text-muted" data-rmc-ai-status role="status" aria-live="polite"></span>
             </div>
             {% endif %}
-            <button type="submit" class="btn btn-primary"><i class="bi bi-send me-1"></i>Send</button>
+            <button type="submit" class="btn btn-primary">{% trans "Send" %}</button>
           </form>
         </div>
         {% endif %}

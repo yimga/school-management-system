@@ -95,6 +95,16 @@ body.control-plane-shell .rmc-portal-row-detail-drawer {
   overscroll-behavior: contain;
 }
 
+.rmc-row-detail-drawer__panel {
+  display: grid;
+  gap: var(--space-3, 0.75rem);
+  padding-block: var(--space-2, 0.5rem);
+}
+
+.rmc-row-detail-drawer__panel[hidden] {
+  display: none !important;
+}
+
 .rmc-row-detail-drawer__section-label {
   color: var(--text-secondary, rgba(255, 255, 255, 0.65));
   letter-spacing: 0.06em;

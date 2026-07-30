@@ -1,3 +1,4 @@
+{% load i18n %}
 <!DOCTYPE html>
 {% comment %}
 Standalone — must render when the full base templates can't be rendered.
@@ -19,13 +20,13 @@ Self-contained Apple-tier polish, no external CSS dependency.
     <div class="body">
       <div class="err-code" aria-hidden="true">500</div>
       <p class="meta">Service interrupted</p>
-      <h1 id="error-title">We couldn't complete that page.</h1>
+      <h1 id="error-title">{% trans "We couldn't complete that page." %}</h1>
       <p>This is a server-side fault on our side. Your session and data are safe — the fault has been logged with an incident reference.</p>
       <p>If this happened during a normal action (login, save, view), please retry once. If it persists, contact your school administrator or RunMyCampus support.</p>
       <div class="actions">
-        <a class="primary" href="">Retry</a>
-        <a class="secondary" href="/">Home</a>
-        <a class="secondary" href="/-/version/">Version</a>
+        <a class="primary" href="">{% trans "Retry" %}</a>
+        <a class="secondary" href="/">{% trans "Home" %}</a>
+        <a class="secondary" href="/-/version/">{% trans "Version" %}</a>
       </div>
       <small>If you are an operator: check <code>/-/version/</code>, <code>/api/system/version/</code>, and Render logs for the request that produced this response.</small>
     </div>

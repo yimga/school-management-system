@@ -6,7 +6,7 @@
 {% block content %}
 {% include "components/next_action_strip.html" %}
 
-  <h1 class="visually-hidden" data-rmc-injected-h1="1">Generate Fee {% term "invoice" plural=True %}</h1>
+  <h1 class="visually-hidden" data-rmc-injected-h1="1">{% blocktrans %}Generate Fee{% endblocktrans %} {% term "invoice" plural=True %}</h1>
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
 {% url 'finance:dashboard' as generate_fees_back_url %}
@@ -24,9 +24,9 @@
     <div class="d-flex gap-2">
       <form method="post" action="{% url 'finance:notify_guardians_new_invoices' %}" class="d-inline">
         {% csrf_token %}
-        <button type="submit" class="btn btn-sm btn-primary">Notify guardians</button>
+        <button type="submit" class="btn btn-sm btn-primary">{% trans "Notify guardians" %}</button>
       </form>
-      <a class="btn btn-sm btn-outline-secondary" href="{% url 'finance:invoices' %}">View invoices</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'finance:invoices' %}">{% trans "View invoices" %}</a>
     </div>
   </div>
   {% endif %}

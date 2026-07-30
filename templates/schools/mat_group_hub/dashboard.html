@@ -1,17 +1,18 @@
 {% extends "control_plane_base.html" %}
+{% load i18n %}
 
 {% block title %}MAT Group Hub · RunMyCampus{% endblock %}
 
 {% block cp_content %}
 <header class="mat-hub-header">
-  <h1>MAT Group Hub</h1>
+  <h1>{% trans "MAT Group Hub" %}</h1>
   <p class="mat-hub-subtitle">
     Cross-tenant rollup across all Multi-Academy Trusts, districts, and
     school groups. {{ groups_count }} group{{ groups_count|pluralize }} configured.
   </p>
   <p class="mat-hub-actions">
     <a href="{% url 'super:mat_group_hub_create' %}" class="mat-hub-action-button">
-      + Add MAT group
+      {% trans "+ Add MAT group" %}
     </a>
   </p>
 </header>
@@ -21,7 +22,7 @@
     <p>No MAT groups configured.</p>
     <p class="mat-hub-empty-hint">
       Add groups via operator SiteSettings <code>cockpit_payload["mat_groups"]</code>.
-      See <a href="/docs/MAT_GROUP_HUB.md">docs/MAT_GROUP_HUB.md</a>.
+      See <a href="/docs/MAT_GROUP_HUB.md">{% trans "docs/MAT_GROUP_HUB.md" %}</a>.
     </p>
   </section>
 {% else %}
@@ -49,9 +50,9 @@
         {% endif %}
         <footer class="mat-hub-card__footer">
           <a href="{% url 'super:mat_group_hub_detail' group_id=entry.group.group_id %}"
-             class="mat-hub-card__link">View detail →</a>
+             class="mat-hub-card__link">{% trans "View detail →" %}</a>
           <a href="{% url 'super:mat_group_hub_edit' group_id=entry.group.group_id %}"
-             class="mat-hub-card__link mat-hub-card__link--secondary">Edit</a>
+             class="mat-hub-card__link mat-hub-card__link--secondary">{% trans "Edit" %}</a>
         </footer>
       </article>
     {% endfor %}

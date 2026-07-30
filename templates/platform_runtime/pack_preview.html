@@ -1,4 +1,5 @@
 {% extends "control_plane_base.html" %}
+{% load i18n %}
 {% block cp_title %}Pack Preview{% endblock %}
 {% block cp_content %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
@@ -13,10 +14,10 @@
     <p>Can apply: {{ preview.can_apply }}. Tenant: {{ preview.tenant_name }}</p>
   </header>
   <div data-rmc-scroll-policy="paginate" class="cp-grid cp-grid-2">
-    <article class="cp-card rmc-reveal"><h2>Changes</h2><ul>{% for row in preview.included_changes %}<li>{{ row.section }}: {{ row.target }}</li>{% endfor %}</ul></article>
-    <article class="cp-card rmc-reveal"><h2>Blockers</h2><ul>{% for row in preview.conflicts %}<li>{{ row.code }} - {{ row.message }}</li>{% empty %}<li>No conflicts</li>{% endfor %}</ul></article>
-    <article class="cp-card rmc-reveal"><h2>External Required</h2><ul>{% for row in preview.external_required %}<li>{{ row }}</li>{% empty %}<li>None</li>{% endfor %}</ul></article>
-    <article class="cp-card rmc-reveal"><h2>Rollback</h2><p>{{ preview.rollback_posture.strategy }}</p></article>
+    <article class="cp-card rmc-reveal"><h2>{% trans "Changes" %}</h2><ul>{% for row in preview.included_changes %}<li>{{ row.section }}: {{ row.target }}</li>{% endfor %}</ul></article>
+    <article class="cp-card rmc-reveal"><h2>{% trans "Blockers" %}</h2><ul>{% for row in preview.conflicts %}<li>{{ row.code }} - {{ row.message }}</li>{% empty %}<li>No conflicts</li>{% endfor %}</ul></article>
+    <article class="cp-card rmc-reveal"><h2>{% trans "External Required" %}</h2><ul>{% for row in preview.external_required %}<li>{{ row }}</li>{% empty %}<li>None</li>{% endfor %}</ul></article>
+    <article class="cp-card rmc-reveal"><h2>{% trans "Rollback" %}</h2><p>{{ preview.rollback_posture.strategy }}</p></article>
   </div>
 </section>
 {% endblock %}

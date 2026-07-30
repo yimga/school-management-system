@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load static %}
+{% load static  i18n%}
 {% block title %}Student Pre-Registration{% endblock %}
 
 {% block extrastyle %}
@@ -14,7 +14,7 @@
 
 <div data-rmc-scroll-policy="paginate" class="wizard-container">
   <div class="mb-4">
-    <h1 class="mb-1">Student Pre-Registration</h1>
+    <h1 class="mb-1">{% trans "Student Pre-Registration" %}</h1>
     <div class="text-muted">Complete your registration in a few simple steps.</div>
   </div>
 
@@ -67,7 +67,7 @@
 
       <!-- Step 1: Basic Information -->
       {% if step == 1 %}
-        <h3 class="wizard-step-title">Step 1: Basic Information</h3>
+        <h3 class="wizard-step-title">{% trans "Step 1: Basic Information" %}</h3>
         <p class="wizard-step-description">
           Enter the student's personal details.
         </p>
@@ -117,7 +117,7 @@
 
       <!-- Step 2: Academic Information -->
       {% if step == 2 %}
-        <h3 class="wizard-step-title">Step 2: Academic Information</h3>
+        <h3 class="wizard-step-title">{% trans "Step 2: Academic Information" %}</h3>
         <p class="wizard-step-description">
           Select the academic year, specialty, and classroom. Admission number is optional.
         </p>
@@ -177,7 +177,7 @@
 
       <!-- Step 3: Parent/Guardian Information -->
       {% if step == 3 %}
-        <h3 class="wizard-step-title">Step 3: Parent/Guardian Information</h3>
+        <h3 class="wizard-step-title">{% trans "Step 3: Parent/Guardian Information" %}</h3>
         <p class="wizard-step-description">
           Provide contact information for the parent or guardian. All fields are optional.
         </p>
@@ -230,7 +230,7 @@
 
       <!-- Step 4: Payment & Referral -->
       {% if step == 4 %}
-        <h3 class="wizard-step-title">Step 4: Payment & Referral</h3>
+        <h3 class="wizard-step-title">{% trans "Step 4: Payment & Referral" %}</h3>
         <p class="wizard-step-description">
           Select your preferred payment method and optionally provide a referral code.
         </p>
@@ -261,7 +261,7 @@
 
       <!-- Step 5: Profile photo -->
       {% if step == 5 %}
-        <h3 class="wizard-step-title">Step 5: Student photo</h3>
+        <h3 class="wizard-step-title">{% trans "Step 5: Student photo" %}</h3>
         <p class="wizard-step-description">
           Upload a photo for the student's digital ID card. You can update it later.
         </p>
@@ -288,21 +288,21 @@
       <div class="wizard-actions">
         {% if step > 1 %}
           <button type="submit" name="action" value="back" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left me-1"></i> Back
+            {% trans "Back" %}
           </button>
         {% else %}
           <div></div>
         {% endif %}
         <button type="submit" name="action" value="next" class="btn btn-primary">
           {% if step == total_steps %}
-            Complete Registration <i class="bi bi-check-circle ms-1"></i>
+            {% trans "Complete Registration" %} <i class="bi bi-check-circle ms-1"></i>
           {% else %}
-            Continue <i class="bi bi-arrow-right ms-1"></i>
+            {% trans "Continue" %} <i class="bi bi-arrow-right ms-1"></i>
           {% endif %}
         </button>
         {% if form_draft_url %}
         <button type="submit" name="action" value="save_draft" class="btn btn-outline-secondary">
-          <i class="bi bi-cloud-arrow-up me-1"></i> Save draft
+          {% trans "Save draft" %}
         </button>
         {% endif %}
       </div>

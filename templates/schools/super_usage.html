@@ -26,10 +26,10 @@
             <caption class="visually-hidden">{% trans "Per-school API usage & quotas" %}</caption>
             <thead class="table-light">
               <tr>
-                <th scope="col">School</th>
-                <th scope="col">Students</th>
-                <th scope="col">API usage (sample)</th>
-                <th scope="col">Quota limits</th>
+                <th scope="col">{% trans "School" %}</th>
+                <th scope="col">{% trans "Students" %}</th>
+                <th scope="col">{% trans "API usage (sample)" %}</th>
+                <th scope="col">{% trans "Quota limits" %}</th>
                 <th scope="col"></th>
               </tr>
             </thead>
@@ -57,7 +57,7 @@
                 </td>
                 <td>
                   {% if school.admin_edit_url %}
-                  <a href="{{ school.admin_edit_url }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                  <a href="{{ school.admin_edit_url }}" class="btn btn-sm btn-outline-primary">{% trans "Edit" %}</a>
                   {% endif %}
                 </td>
               </tr>

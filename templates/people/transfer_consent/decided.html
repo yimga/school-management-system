@@ -1,5 +1,6 @@
+{% load i18n %}
 <main style="max-width: 42rem; margin: 3rem auto; font-family: system-ui, sans-serif; line-height: 1.5;"><!-- inline-style-allow: anonymous-standalone-consent-page-no-shell-css -->
-  <h1>School transfer consent</h1>
+  <h1>{% trans "School transfer consent" %}</h1>
   {% if outcome == "consented" %}
     <p>Thank you — your consent has been recorded. The schools will take it
     from here; you do not need to do anything else.</p>

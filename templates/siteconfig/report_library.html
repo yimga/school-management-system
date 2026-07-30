@@ -11,15 +11,15 @@
 
   <div data-rmc-scroll-policy="paginate" class="d-flex justify-content-between align-items-center mb-3">
     <div>
-      <h1 class="h3">Reports & Downloads</h1>
+      <h1 class="h3">{% trans "Reports & Downloads" %}</h1>
       <p class="text-muted mb-0">Report packs now include dependency mapping and seeded preview data alongside downloadable exports.</p>
     </div>
     <div class="d-flex align-items-center gap-2">
       <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:bulk_letters' %}">
-        <i class="bi bi-envelope-paper"></i> Bulk Letters
+        {% trans "Bulk Letters" %}
       </a>
       <a class="btn btn-sm btn-outline-secondary" href="{% if request.public_host_kind == 'manager' %}{% url 'kb:kb_search' %}?q=reports+downloads{% else %}{% url 'kb:kb_search' %}?q=reports+downloads{% endif %}" title="Search help articles">
-        <i class="bi bi-question-circle"></i> Help
+        {% trans "Help" %}
       </a>
       <span class="rmc-badge rmc-badge--success">CSV · Excel · ODS · PDF</span>
     </div>
@@ -32,7 +32,7 @@
           <div class="card-body">
             <div class="d-flex justify-content-between align-items-start mb-2">
               <div>
-                <h2 class="h5 mb-1">Report Packs</h2>
+                <h2 class="h5 mb-1">{% trans "Report Packs" %}</h2>
                 <p class="text-muted small mb-0">Preview seeded fixtures and inspect pack dependencies before rollout.</p>
               </div>
               <span class="rmc-badge rmc-badge--muted">{{ report_packs|length }} active</span>
@@ -89,7 +89,7 @@
                 </table>
               </div>
               <div>
-                <h3 class="h6">Dependencies</h3>
+                <h3 class="h6">{% trans "Dependencies" %}</h3>
                 {% if report_pack_dependencies %}
                   <div class="d-flex flex-wrap gap-2">
                     {% for dependency in report_pack_dependencies %}
@@ -119,10 +119,10 @@
         <caption class="visually-hidden">{% trans "Dependencies" %}</caption>
         <thead>
           <tr>
-            <th scope="col">Report</th>
-            <th scope="col">Description</th>
-            <th scope="col">Default format</th>
-            <th scope="col" class="text-end">Download</th>
+            <th scope="col">{% trans "Report" %}</th>
+            <th scope="col">{% trans "Description" %}</th>
+            <th scope="col">{% trans "Default format" %}</th>
+            <th scope="col" class="text-end">{% trans "Download" %}</th>
           </tr>
         </thead>
         <tbody>
@@ -131,18 +131,18 @@
               <td>{{ report.name }}</td>
               <td class="text-muted">{{ report.description|default:"—" }}</td>
               <td>{{ report.get_preferred_format_display }}</td>
-              <td class="text-end"><details class="rmc-row-disclosure d-inline-block text-start"><summary class="btn btn-sm btn-outline-secondary">Actions</summary><div class="rmc-row-disclosure__body mt-1">
+              <td class="text-end"><details class="rmc-row-disclosure d-inline-block text-start"><summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary><div class="rmc-row-disclosure__body mt-1">
                 <div class="btn-group btn-group-sm">
                   <a class="btn btn-primary" href="{% url 'siteconfig:report_download' report.slug %}" title="Download (default format)">
-                    <i class="bi bi-download me-1"></i> Download
+                    {% trans "Download" %}
                   </a>
                   <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
-                    <span class="visually-hidden">Choose format</span>
+                    {% trans "Choose format" %}
                   </button>
                   <ul class="dropdown-menu dropdown-menu-end">
                     <li><a class="dropdown-item" href="{% url 'siteconfig:report_download' report.slug %}?format=csv"><i class="bi bi-filetype-csv me-2"></i>CSV</a></li>
-                    <li><a class="dropdown-item" href="{% url 'siteconfig:report_download' report.slug %}?format=excel"><i class="bi bi-file-earmark-excel me-2"></i>Excel (.xlsx)</a></li>
-                    <li><a class="dropdown-item" href="{% url 'siteconfig:report_download' report.slug %}?format=ods"><i class="bi bi-file-earmark-spreadsheet me-2"></i>LibreOffice (ODS)</a></li>
+                    <li><a class="dropdown-item" href="{% url 'siteconfig:report_download' report.slug %}?format=excel">{% trans "Excel (.xlsx)" %}</a></li>
+                    <li><a class="dropdown-item" href="{% url 'siteconfig:report_download' report.slug %}?format=ods">{% trans "LibreOffice (ODS)" %}</a></li>
                     <li><a class="dropdown-item" href="{% url 'siteconfig:report_download' report.slug %}?format=pdf"><i class="bi bi-file-earmark-pdf me-2"></i>PDF</a></li>
                   </ul>
                 </div>

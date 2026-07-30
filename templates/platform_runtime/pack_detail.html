@@ -1,4 +1,5 @@
 {% extends "control_plane_base.html" %}
+{% load i18n %}
 {% block cp_title %}{{ pack.name }}{% endblock %}
 {% block cp_content %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
@@ -14,11 +15,11 @@
   </header>
   <div data-rmc-scroll-policy="paginate" class="cp-grid cp-grid-2">
     <article class="cp-card rmc-reveal">
-      <h2>Included Items</h2>
+      <h2>{% trans "Included Items" %}</h2>
       <ul>{% for item in pack.included_items %}<li>{{ item }}</li>{% endfor %}</ul>
     </article>
     <article class="cp-card rmc-reveal">
-      <h2>Safety</h2>
+      <h2>{% trans "Safety" %}</h2>
       <p>Status: {{ pack.status }}</p>
       <p>Safety level: {{ pack.safety_level }}</p>
       <p>Rollback: {{ pack.rollback_available }}</p>

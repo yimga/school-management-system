@@ -8,7 +8,7 @@
 {% block content %}
 {% include "components/next_action_strip.html" %}
 
-  <h1 class="visually-hidden" data-rmc-injected-h1="1">Suspense Queue</h1>
+  <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Suspense Queue" %}</h1>
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
 {% trans "Back to Payments" as back_action %}
@@ -20,7 +20,7 @@
       <div class="card-body">
         <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
           <div>
-            <h5 class="mb-1">Reference: {{ item.transaction_reference|default:"N/A" }}</h5>
+            <h5 class="mb-1">{% blocktrans with value=item.transaction_reference|default:"N/A" %}Reference: {{ value }}{% endblocktrans %}</h5>
             <div class="small text-muted">
               Amount: {{ item.amount|format_currency }} {{ item.currency }} |
               Status: {{ item.get_status_display }} |
@@ -58,17 +58,17 @@
               data-offline-hint="{% trans 'Suspense allocation stays on this device until you reconnect and sync.' %}">
           {% csrf_token %}
           <div class="mb-2">
-            <label class="form-label">Allocation JSON</label>
+            <label class="form-label">{% trans "Allocation JSON" %}</label>
             <textarea name="allocations" class="form-control" rows="2" required>[
   {"invoice_id": {{ item.suggested_invoice.id|default:"0" }}, "amount": "{{ item.remaining_amount }}"}
 ]</textarea>
             <div class="form-text">Use one or many invoice lines to split payment across fees.</div>
           </div>
           <div class="mb-2">
-            <label class="form-label">Notes</label>
+            <label class="form-label">{% trans "Notes" %}</label>
             <input type="text" name="notes" class="form-control" placeholder="Parent proof, teller note, or audit reason">
           </div>
-          <button class="btn btn-primary btn-sm" type="submit">Claim & Allocate</button>
+          <button class="btn btn-primary btn-sm" type="submit">{% trans "Claim & Allocate" %}</button>
         </form>
       </div>
     </div>

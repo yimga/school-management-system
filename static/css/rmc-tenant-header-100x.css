@@ -436,14 +436,20 @@ body.portal-body-with-layout:not(.control-plane-shell) .tp-primary-nav__item[ari
   padding-bottom: 0 !important;
 }
 #portalHeader .user-dropdown-trigger {
-  min-height: 0 !important;
-  padding: 3px 8px !important;
+  min-height: 32px !important;
+  height: 32px !important;
+  padding: 3px 8px 3px 4px !important;
+  gap: 4px !important;
+  border: 1px solid var(--hairline, rgba(148, 163, 184, 0.35));
+  border-radius: var(--radius-lg, 0.5rem);
+  background: var(--surface-elevated, #fff);
+  box-shadow: var(--elev-1, 0 1px 2px rgba(15, 23, 42, 0.06));
 }
 #portalHeader .user-dropdown-trigger .user-avatar,
 #portalHeader .user-dropdown-trigger .user-avatar img,
 #portalHeader .user-dropdown-trigger .avatar-placeholder {
-  width: 30px !important;
-  height: 30px !important;
+  width: 32px !important;
+  height: 32px !important;
 }
 /* match /super/: avatar circle only in the band (the 2-line name/role block was the
    tallest control); the full name + role still live inside the dropdown menu */
@@ -598,8 +604,8 @@ body.portal-body-with-layout:not(.control-plane-shell) .tp-primary-nav__item[ari
   #portalHeader .user-dropdown-trigger .user-avatar,
   #portalHeader .user-dropdown-trigger .user-avatar img,
   #portalHeader .user-dropdown-trigger .avatar-placeholder {
-    width: 26px !important;
-    height: 26px !important;
+    width: 32px !important;
+    height: 32px !important;
   }
 
   #portalHeader .user-dropdown-trigger .dropdown-arrow {

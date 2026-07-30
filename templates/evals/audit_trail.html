@@ -11,7 +11,7 @@
     <div class="row">
         <div class="col-12">
             <h1 class="mb-4">
-                <i class="bi bi-clock-history"></i> Grade Audit Trail
+                {% trans "Grade Audit Trail" %}
             </h1>
             <div class="rmc-banner rmc-banner--info">
                 <strong>{{ student_name }}</strong> - {{ subject_name }}
@@ -32,13 +32,13 @@
                                     <div>
                                         <h6 class="mb-1">
                                             {% if entry.change_type == 'created' %}
-                                                <span class="rmc-badge rmc-badge--success">Created</span>
+                                                <span class="rmc-badge rmc-badge--success">{% trans "Created" %}</span>
                                             {% elif entry.change_type == 'updated' %}
-                                                <span class="rmc-badge rmc-badge--brand">Updated</span>
+                                                <span class="rmc-badge rmc-badge--brand">{% trans "Updated" %}</span>
                                             {% elif entry.change_type == 'validated' %}
-                                                <span class="rmc-badge rmc-badge--info">Validated</span>
+                                                <span class="rmc-badge rmc-badge--info">{% trans "Validated" %}</span>
                                             {% elif entry.change_type == 'offline_synced' %}
-                                                <span class="rmc-badge rmc-badge--warning">Offline Sync</span>
+                                                <span class="rmc-badge rmc-badge--warning">{% trans "Offline Sync" %}</span>
                                             {% else %}
                                                 <span class="rmc-badge">{{ entry.change_type }}</span>
                                             {% endif %}
@@ -59,9 +59,9 @@
                                       <caption class="visually-hidden">{% trans "Grade Audit Trail" %}</caption>
                                         <thead>
                                             <tr>
-                                                <th scope="col">Component</th>
-                                                <th scope="col">Before</th>
-                                                <th scope="col">After</th>
+                                                <th scope="col">{% trans "Component" %}</th>
+                                                <th scope="col">{% trans "Before" %}</th>
+                                                <th scope="col">{% trans "After" %}</th>
                                             </tr>
                                         </thead>
                                         <tbody>

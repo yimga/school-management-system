@@ -1,7 +1,7 @@
 {% extends "portal_base.html" %}
-{% load static %}
+{% load static  i18n%}
 
-{% block title %}{% if is_edit %}Edit{% else %}Upload{% endif %} Document{% endblock %}
+{% block title %}{% if is_edit %}{% trans "Edit" %}{% else %}{% trans "Upload" %}{% endif %} {% trans "Document" %}{% endblock %}
 
 {% block content %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
@@ -12,10 +12,10 @@
 <div data-rmc-scroll-policy="paginate" class="container-fluid px-3 px-lg-4 py-4">
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-      <h1 class="h4 mb-1">{% if is_edit %}Edit{% else %}Upload{% endif %} Document</h1>
+      <h1 class="h4 mb-1">{% if is_edit %}{% trans "Edit" %}{% else %}{% trans "Upload" %}{% endif %} {% trans "Document" %}</h1>
       <p class="text-muted mb-0">{% if is_edit %}Update document information{% else %}Add a new document to the library{% endif %}</p>
     </div>
-    <a href="{% url 'portal:document_library_manage' %}" class="btn btn-sm btn-outline-secondary btn-back-secondary"><i class="bi bi-arrow-left me-1"></i>Back to Library</a>
+    <a href="{% url 'portal:document_library_manage' %}" class="btn btn-sm btn-outline-secondary btn-back-secondary">{% trans "Back to Library" %}</a>
   </div>
 
   {# width-to-width: form fills the main zone; the previously-empty right gutter now carries a real upload guide (was a lone centered col-lg-8). #}
@@ -35,7 +35,7 @@
             <div class="row g-3">
               <!-- Title -->
               <div class="col-12">
-                <label class="form-label fw-semibold">Title <span class="text-danger">*</span></label>
+                <label class="form-label fw-semibold">{% trans "Title *" %}</label>
                 {{ form.title }}
                 {% if form.title.errors %}
                   <div class="text-danger small">{{ form.title.errors }}</div>
@@ -44,7 +44,7 @@
 
               <!-- Description -->
               <div class="col-12">
-                <label class="form-label fw-semibold">Description</label>
+                <label class="form-label fw-semibold">{% trans "Description" %}</label>
                 {{ form.description }}
                 {% if form.description.errors %}
                   <div class="text-danger small">{{ form.description.errors }}</div>
@@ -53,7 +53,7 @@
 
               <!-- Document Type -->
               <div class="col-md-6">
-                <label class="form-label fw-semibold">Document Type <span class="text-danger">*</span></label>
+                <label class="form-label fw-semibold">{% trans "Document Type *" %}</label>
                 {{ form.document_type }}
                 {% if form.document_type.errors %}
                   <div class="text-danger small">{{ form.document_type.errors }}</div>
@@ -62,11 +62,11 @@
 
               <!-- Requires Signature -->
               <div class="col-md-6">
-                <label class="form-label fw-semibold">Signature</label>
+                <label class="form-label fw-semibold">{% trans "Signature" %}</label>
                 <div class="form-check form-switch mt-2">
                   {{ form.requires_signature }}
                   <label class="form-check-label" for="{{ form.requires_signature.id_for_label }}">
-                    Requires electronic signature
+                    {% trans "Requires electronic signature" %}
                   </label>
                 </div>
                 {% if form.requires_signature.errors %}
@@ -77,7 +77,7 @@
 
               <!-- File Upload -->
               <div class="col-12">
-                <label class="form-label fw-semibold">Upload File</label>
+                <label class="form-label fw-semibold">{% trans "Upload File" %}</label>
                 <div class="border border-2 border-dashed rounded p-4 text-center bg-light">
                   {% if document and document.file %}
                     <div class="mb-2">
@@ -109,7 +109,7 @@
 
               <!-- External Link -->
               <div class="col-12">
-                <label class="form-label fw-semibold">External Link</label>
+                <label class="form-label fw-semibold">{% trans "External Link" %}</label>
                 {{ form.link }}
                 {% if form.link.errors %}
                   <div class="text-danger small">{{ form.link.errors }}</div>
@@ -119,7 +119,7 @@
 
               <!-- Visible To Roles -->
               <div class="col-12">
-                <label class="form-label fw-semibold">Visible To</label>
+                <label class="form-label fw-semibold">{% trans "Visible To" %}</label>
                 {{ form.visible_to_roles }}
                 {% if form.visible_to_roles.errors %}
                   <div class="text-danger small">{{ form.visible_to_roles.errors }}</div>
@@ -132,7 +132,7 @@
                 <div class="form-check form-switch">
                   {{ form.is_active }}
                   <label class="form-check-label fw-semibold" for="{{ form.is_active.id_for_label }}">
-                    Active (visible to users)
+                    {% trans "Active (visible to users)" %}
                   </label>
                 </div>
                 {% if form.is_active.errors %}
@@ -145,11 +145,11 @@
                 <hr>
                 <div class="d-flex gap-2 justify-content-end">
                   <a href="{% url 'portal:document_library_manage' %}" class="btn btn-outline-secondary">
-                    Cancel
+                    {% trans "Cancel" %}
                   </a>
                   <button type="submit" class="btn btn-primary">
                     <i class="bi bi-check-circle me-1"></i>
-                    {% if is_edit %}Update{% else %}Upload{% endif %} Document
+                    {% if is_edit %}{% trans "Update" %}{% else %}{% trans "Upload" %}{% endif %} {% trans "Document" %}
                   </button>
                 </div>
               </div>
@@ -160,14 +160,14 @@
     </div>
     <aside class="rmc-page-horizon__aside">
       <details class="card shadow-sm rmc-help-details" data-rmc-scroll-policy="paginate">
-        <summary class="card-body py-2 px-3 fw-semibold small">Upload guide</summary>
+        <summary class="card-body py-2 px-3 fw-semibold small">{% trans "Upload guide" %}</summary>
         <div class="card-body pt-0">
           <ul class="small text-muted mb-3 ps-3">
             <li class="mb-1">Accepted files: PDF, Word (.doc, .docx), Excel (.xls, .xlsx).</li>
             <li class="mb-1">Maximum size: 10MB per file.</li>
             <li class="mb-1">No file to hand? Paste an external link instead.</li>
           </ul>
-          <h3 class="h6 mb-2">Signatures and visibility</h3>
+          <h3 class="h6 mb-2">{% trans "Signatures and visibility" %}</h3>
           <ul class="small text-muted mb-0 ps-3">
             <li class="mb-1">Only FORM documents can require an electronic signature.</li>
             <li class="mb-1">Set who can see it under Visible To — leave empty for all signed-in users.</li>

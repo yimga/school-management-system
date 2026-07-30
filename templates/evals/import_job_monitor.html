@@ -1,5 +1,5 @@
 {% extends 'backend_base.html' %}
-{% load static %}
+{% load static  i18n%}
 {% load region_format %}
 
 {% block title %}Import Job Monitor{% endblock %}
@@ -16,9 +16,9 @@
     <div class="row">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h1><i class="bi bi-list-task"></i> Import Job Monitor</h1>
+                <h1>{% trans "Import Job Monitor" %}</h1>
                 <button type="button" class="btn btn-primary" id="refreshBtn" onclick="refreshJobList()">
-                    <i class="bi bi-arrow-repeat refresh-btn stopped"></i> Refresh
+                    {% trans "Refresh" %}
                 </button>
             </div>
         </div>
@@ -30,19 +30,19 @@
             <div class="card">
                 <div class="card-body">
                     <form method="get" class="form-inline" data-rmc-autosubmit="1">
-                        <label class="mr-2">Filter by Status:</label>
+                        <label class="mr-2">{% trans "Filter by Status:" %}</label>
                         <select name="status" class="form-control mr-3">
-                            <option value="">All Jobs</option>
-                            <option value="processing" {% if status == 'processing' %}selected{% endif %}>Processing</option>
-                            <option value="completed" {% if status == 'completed' %}selected{% endif %}>Completed</option>
-                            <option value="failed" {% if status == 'failed' %}selected{% endif %}>Failed</option>
+                            <option value="">{% trans "All Jobs" %}</option>
+                            <option value="processing" {% if status == 'processing' %}selected{% endif %}>{% trans "Processing" %}</option>
+                            <option value="completed" {% if status == 'completed' %}selected{% endif %}>{% trans "Completed" %}</option>
+                            <option value="failed" {% if status == 'failed' %}selected{% endif %}>{% trans "Failed" %}</option>
                         </select>
                         
-                        <label class="mr-2">Date Range:</label>
+                        <label class="mr-2">{% trans "Date Range:" %}</label>
                         <input type="date" name="from_date" class="form-control mr-2" value="{{ from_date }}" placeholder="From">
                         <input type="date" name="to_date" class="form-control mr-2" value="{{ to_date }}" placeholder="To">
                         
-                        <button type="submit" class="btn btn-info" data-rmc-autosubmit-hide-when-js>Filter</button>
+                        <button type="submit" class="btn btn-info" data-rmc-autosubmit-hide-when-js>{% trans "Filter" %}</button>
                     </form>
                 </div>
             </div>
@@ -95,15 +95,15 @@
                         <div class="d-flex justify-content-between align-items-start">
                             <div>
                                 <h5 class="mb-1">
-                                    Job #{{ job.id }}
+                                    {% blocktrans with job_id=job.id %}Job #{{ job_id }}{% endblocktrans %}
                                     {% if job.status == 'processing' %}
                                         <span class="rmc-badge rmc-badge--info">
-                                            <i class="bi bi-arrow-repeat spinning"></i> Processing
+                                            <i class="bi bi-arrow-repeat spinning"></i>{% trans "Processing" %}
                                         </span>
                                     {% elif job.status == 'completed' %}
-                                        <span class="rmc-badge rmc-badge--success">✓ Completed</span>
+                                        <span class="rmc-badge rmc-badge--success">{% trans "✓ Completed" %}</span>
                                     {% else %}
-                                        <span class="rmc-badge rmc-badge--danger">✗ Failed</span>
+                                        <span class="rmc-badge rmc-badge--danger">{% trans "✗ Failed" %}</span>
                                     {% endif %}
                                 </h5>
                                 <small class="text-muted">
@@ -167,7 +167,7 @@
                         <!-- Error Log (if any) -->
                         {% if job.error_log %}
                         <div class="mt-4">
-                            <h6>Error Log:</h6>
+                            <h6>{% trans "Error Log:" %}</h6>
                             <div class="error-log">
                                 {% for error in job.error_log %}
                                 <div class="error-item">
@@ -182,18 +182,18 @@
                         <div class="mt-4">
                             {% if job.status == 'processing' %}
                                 <button type="button" class="btn btn-sm btn-info" onclick="pollJobStatus({{ job.id }})">
-                                    <i class="bi bi-arrow-repeat"></i> Check Status
+                                    {% trans "Check Status" %}
                                 </button>
                             {% elif job.status == 'completed' %}
                                 <a href="{% url 'evals:compliance_dashboard' %}" class="btn btn-sm btn-primary">
-                                    <i class="bi bi-bar-chart"></i> View Compliance Dashboard
+                                    {% trans "View Compliance Dashboard" %}
                                 </a>
                                 <button type="button" class="btn btn-sm btn-secondary" onclick="exportJobResults({{ job.id }})">
-                                    <i class="bi bi-download"></i> Export Results
+                                    {% trans "Export Results" %}
                                 </button>
                             {% else %}
                                 <button type="button" class="btn btn-sm btn-warning" onclick="retryJob({{ job.id }})">
-                                    <i class="bi bi-arrow-clockwise"></i> Retry
+                                    {% trans "Retry" %}
                                 </button>
                             {% endif %}
                         </div>

@@ -1,5 +1,5 @@
 {% extends "backend_base.html" %}
-{% load static %}
+{% load static  i18n%}
 
 {% block title %}Statistical return{% endblock %}
 
@@ -12,30 +12,30 @@
 <div class="container-fluid" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-scroll-policy="paginate">
   <nav aria-label="breadcrumb" class="mb-3">
     <ol class="breadcrumb mb-0">
-      <li class="breadcrumb-item"><a href="{% url 'accounts:backend_dashboard' %}">Backend</a></li>
-      <li class="breadcrumb-item"><a href="{% url 'studio_os:workflow_center' %}">Workflow Center</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'accounts:backend_dashboard' %}">{% trans "Backend" %}</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'studio_os:workflow_center' %}">{% trans "Workflow Center" %}</a></li>
       <li class="breadcrumb-item active" aria-current="page">Statistical return</li>
     </ol>
   </nav>
 
   <div class="card shadow-sm mb-3">
     <div class="card-body">
-      <h1 class="h5 mb-3">Statistical return</h1>
+      <h1 class="h5 mb-3">{% trans "Statistical return" %}</h1>
       <p class="text-muted small mb-3">
         Annual summary for regional/Ministry submission: students by class, gender, success rate, teacher-student ratio.
       </p>
       <form method="get" action="" class="row g-3 align-items-end">
         <div class="col-md-4">
-          <label for="year" class="form-label">Academic year</label>
+          <label for="year" class="form-label">{% trans "Academic year" %}</label>
           <select name="year" id="year" class="form-select" data-rmc-submit-on-change>
-            <option value="">— Select —</option>
+            <option value="">{% trans "— Select —" %}</option>
             {% for y in years %}
             <option value="{{ y.id }}" {% if year and year.id == y.id %}selected{% endif %}>{{ y.name }}</option>
             {% endfor %}
           </select>
         </div>
         <div class="col-md-4">
-          <a href="?year={{ year.id|default:'' }}&export=csv" class="btn btn-outline-primary">Export CSV</a>
+          <a href="?year={{ year.id|default:'' }}&export=csv" class="btn btn-outline-primary">{% trans "Export CSV" %}</a>
         </div>
       </form>
     </div>
@@ -50,12 +50,12 @@
           <caption class="visually-hidden">{{ year.name }}</caption>
           <thead class="table-light">
             <tr>
-              <th scope="col">Classroom</th>
-              <th scope="col">Students</th>
-              <th scope="col">Male</th>
-              <th scope="col">Female</th>
-              <th scope="col">Promoted</th>
-              <th scope="col">Success %</th>
+              <th scope="col">{% trans "Classroom" %}</th>
+              <th scope="col">{% trans "Students" %}</th>
+              <th scope="col">{% trans "Male" %}</th>
+              <th scope="col">{% trans "Female" %}</th>
+              <th scope="col">{% trans "Promoted" %}</th>
+              <th scope="col">{% trans "Success %" %}</th>
             </tr>
           </thead>
           <tbody>
@@ -75,7 +75,7 @@
           {% if totals %}
           <tfoot class="table-light">
             <tr>
-              <th scope="row">Total</th>
+              <th scope="row">{% trans "Total" %}</th>
               <td>{{ totals.students }}</td>
               <td>{{ totals.male }}</td>
               <td>{{ totals.female }}</td>

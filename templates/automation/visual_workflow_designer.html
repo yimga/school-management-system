@@ -30,10 +30,10 @@
           <h2 class="h6">{% trans "Add node (accessible)" %}</h2>
           <label class="form-label" for="wf-add-kind">{% trans "Kind" %}</label>
           <select class="form-select form-select-sm mb-2" id="wf-add-kind">
-            <option value="trigger">trigger</option>
-            <option value="condition" selected>condition</option>
-            <option value="action">action</option>
-            <option value="delay">delay</option>
+            <option value="trigger">{% trans "trigger" %}</option>
+            <option value="condition" selected>{% trans "condition" %}</option>
+            <option value="action">{% trans "action" %}</option>
+            <option value="delay">{% trans "delay" %}</option>
           </select>
           <div class="row g-1 mb-2">
             <div class="col-6"><label class="form-label mb-0" for="wf-add-x">X</label><input type="number" class="form-control form-control-sm" id="wf-add-x" value="140" aria-label="{% trans 'Canvas X position' %}"></div>
@@ -46,17 +46,17 @@
           <input type="text" class="form-control form-control-sm mb-2" id="wf-name" placeholder="{% trans 'Name' %}">
           <label class="form-label">{% trans "Trigger event" %}</label>
           <select class="form-select form-select-sm mb-2" id="wf-trigger" aria-label="{% trans 'Workflow trigger event' %}">
-            <option value="attendance_marked">attendance_marked</option>
-            <option value="attendance_saved">attendance_saved</option>
-            <option value="marks_submitted">marks_submitted</option>
-            <option value="payment_received">payment_received</option>
-            <option value="payment_success">payment_success</option>
-            <option value="payment_failed">payment_failed</option>
-            <option value="student_created">student_created</option>
-            <option value="report_generated">report_generated</option>
-            <option value="student_risk_detected">student_risk_detected</option>
-            <option value="app_installed">app_installed</option>
-            <option value="offline_action_conflict">offline_action_conflict</option>
+            <option value="attendance_marked">{% trans "attendance_marked" %}</option>
+            <option value="attendance_saved">{% trans "attendance_saved" %}</option>
+            <option value="marks_submitted">{% trans "marks_submitted" %}</option>
+            <option value="payment_received">{% trans "payment_received" %}</option>
+            <option value="payment_success">{% trans "payment_success" %}</option>
+            <option value="payment_failed">{% trans "payment_failed" %}</option>
+            <option value="student_created">{% trans "student_created" %}</option>
+            <option value="report_generated">{% trans "report_generated" %}</option>
+            <option value="student_risk_detected">{% trans "student_risk_detected" %}</option>
+            <option value="app_installed">{% trans "app_installed" %}</option>
+            <option value="offline_action_conflict">{% trans "offline_action_conflict" %}</option>
           </select>
           <label class="form-label">{% trans "Workflow id (optional)" %}</label>
           <input type="number" class="form-control form-control-sm mb-2" id="wf-id" placeholder="{% trans 'New if empty' %}">

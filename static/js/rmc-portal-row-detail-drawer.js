@@ -438,6 +438,52 @@
     }
   }
 
+  function renderPanelFromRow(row) {
+    var panelHost = document.getElementById('rmcPortalRowDetailPanel');
+    if (!panelHost) return;
+    panelHost.innerHTML = '';
+    if (!row) {
+      panelHost.hidden = true;
+      return;
+    }
+    var panel = row.querySelector('[data-rmc-row-detail-panel]');
+    if (!panel) {
+      panelHost.hidden = true;
+      return;
+    }
+    panelHost.hidden = false;
+    panelHost.appendChild(panel.cloneNode(true));
+    panelHost.querySelectorAll('[id]').forEach(function (el) {
+      if (el.id) {
+        el.id = el.id + '-drawer';
+      }
+    });
+    panelHost.querySelectorAll('[for]').forEach(function (el) {
+      var ref = el.getAttribute('for');
+      if (ref) {
+        el.setAttribute('for', ref + '-drawer');
+      }
+    });
+  }
+
+  function shouldSkipCopilot(table, payload, row) {
+    if (table && table.getAttribute('data-rmc-row-detail-skip-copilot') === '1') {
+      return true;
+    }
+    if (row && row.querySelector('[data-rmc-row-detail-panel]')) {
+      return true;
+    }
+    if (!payload) return false;
+    var title = (payload.title || '').trim();
+    if (title === 'Row' || title === '') {
+      var metaKeys = Object.keys(payload.meta || {});
+      if (!metaKeys.length && !(payload.actions || []).length) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   function emitRowContext(payload, rowEl) {
     try {
       document.dispatchEvent(
@@ -508,7 +554,7 @@
     closeDrawerSurface(false);
   }
 
-  function populateDrawerDom(payload) {
+  function populateDrawerDom(payload, row) {
     var titleEl = document.getElementById('rmcPortalRowDetailDrawerLabel');
     var subEl = document.getElementById('rmcPortalRowDetailSubtitle');
     var eyebrowEl = document.getElementById('rmcPortalRowDetailEyebrow');
@@ -528,6 +574,7 @@
     }
     renderStatusPills(payload.meta || {});
     renderMetaGrid(payload.meta || {});
+    renderPanelFromRow(row);
     renderActions(payload.actions || []);
     startLensPolling(payload);
   }
@@ -558,8 +605,10 @@
     // The offcanvas is the self-contained, guaranteed-visible surface; the lens is
     // the bonus mirror the row-detail hint already promises ("…also mirrored in the
     // Lens tab"). Open both so clicking a row always surfaces the detail panel.
-    emitRowContext(payload, row);
-    populateDrawerDom(payload);
+    if (!shouldSkipCopilot(table, payload, row)) {
+      emitRowContext(payload, row);
+    }
+    populateDrawerDom(payload, row);
     showDrawer();
   }
 
@@ -567,7 +616,7 @@
     return !!(
       target &&
       target.closest(
-        'input, select, textarea, button, a, label, form, summary, details, .rmc-row-disclosure, .rmc-row-disclosure__body'
+        'input, select, textarea, button, a, label, form, summary, details, .rmc-row-disclosure, .rmc-row-disclosure__body, [data-rmc-row-detail-trigger]'
       )
     );
   }
@@ -584,20 +633,32 @@
   function bindTable(table) {
     if (!table || table.getAttribute('data-rmc-row-detail-bound') === '1') return;
     table.setAttribute('data-rmc-row-detail-bound', '1');
+    var taskMode = table.getAttribute('data-rmc-row-detail-task') === '1';
     prepareAutoRows(table);
-    table.addEventListener('click', function (ev) {
-      if (isInteractiveTarget(ev.target)) return;
-      var row = ev.target && ev.target.closest('tbody tr');
-      if (!row) return;
-      openDrawer(row, table);
-    });
-    table.addEventListener('keydown', function (ev) {
-      if (ev.key !== 'Enter' && ev.key !== ' ') return;
-      var row = ev.target && ev.target.closest('tbody tr');
-      if (!row) return;
-      if (isInteractiveTarget(ev.target)) return;
-      ev.preventDefault();
-      openDrawer(row, table);
+    if (!taskMode) {
+      table.addEventListener('click', function (ev) {
+        if (isInteractiveTarget(ev.target)) return;
+        var row = ev.target && ev.target.closest('tbody tr');
+        if (!row) return;
+        openDrawer(row, table);
+      });
+      table.addEventListener('keydown', function (ev) {
+        if (ev.key !== 'Enter' && ev.key !== ' ') return;
+        var row = ev.target && ev.target.closest('tbody tr');
+        if (!row) return;
+        if (isInteractiveTarget(ev.target)) return;
+        ev.preventDefault();
+        openDrawer(row, table);
+      });
+    }
+    table.querySelectorAll('[data-rmc-row-detail-trigger]').forEach(function (btn) {
+      btn.addEventListener('click', function (ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        var row = btn.closest('tbody tr');
+        if (!row) return;
+        openDrawer(row, table);
+      });
     });
   }
 

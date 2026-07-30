@@ -1,8 +1,9 @@
+{% load i18n %}
 <hr style="border:none;border-top:1px solid #e5e5e5;margin:24px 0">
 <p style="color:#888;font-size:12px;line-height:1.6;margin:0;--inline-style-allow:email-clients-strip-css-and-vars-require-inline-literals">
   {{ company_name|default:"RunMyCampus" }}<br>
   {{ company_address|default:"" }}<br>
   <a href="{{ company_url|default:'https://runmycampus.com' }}" style="color:#888;--inline-style-allow:email-requires-inline-literals">{{ company_url|default:"runmycampus.com" }}</a><br>
   You are receiving this because you opted in.
-  <a href="{{ unsubscribe_url|default:'#' }}" style="color:#888;--inline-style-allow:email-requires-inline-literals">Unsubscribe</a>.
+  <a href="{{ unsubscribe_url|default:'#' }}" style="color:#888;--inline-style-allow:email-requires-inline-literals">{% trans "Unsubscribe" %}</a>.
 </p>

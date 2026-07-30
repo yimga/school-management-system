@@ -11,10 +11,10 @@
 
 <div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
   <div>
-    <h1 class="mb-0">Leave Requests</h1>
+    <h1 class="mb-0">{% trans "Leave Requests" %}</h1>
     <div class="text-muted">{{ employee }}</div>
   </div>
-  <a class="btn btn-outline-secondary btn-sm" href="{% url 'payroll:employee_payslips' %}">My Payslips</a>
+  <a class="btn btn-outline-secondary btn-sm" href="{% url 'payroll:employee_payslips' %}">{% trans "My Payslips" %}</a>
 </div>
 
 <div class="row g-3 rmc-reveal-stagger">
@@ -27,43 +27,43 @@
           data-rmc-offline-hint="{% trans 'Leave request is queued on this device until sync.' %}">
       {% csrf_token %}
       <div class="card-body">
-        <h5 class="mb-3">Request Leave</h5>
+        <h5 class="mb-3">{% trans "Request Leave" %}</h5>
         {{ form.non_field_errors }}
         <div class="mb-3">
-          <label class="form-label">Leave type</label>
+          <label class="form-label">{% trans "Leave type" %}</label>
           {{ form.leave_type }}
         </div>
         <div class="mb-3">
-          <label class="form-label">Start date</label>
+          <label class="form-label">{% trans "Start date" %}</label>
           {{ form.start_date }}
         </div>
         <div class="mb-3">
-          <label class="form-label">End date</label>
+          <label class="form-label">{% trans "End date" %}</label>
           {{ form.end_date }}
         </div>
         <div class="mb-3">
-          <label class="form-label">Reason</label>
+          <label class="form-label">{% trans "Reason" %}</label>
           {{ form.reason }}
         </div>
       </div>
       <div class="card-footer d-flex justify-content-end">
-        <button type="submit" class="btn btn-primary">Submit</button>
+        <button type="submit" class="btn btn-primary">{% trans "Submit" %}</button>
       </div>
     </form>
   </div>
   <div class="col-lg-6 rmc-reveal">
     <div class="card">
       <div class="card-body">
-        <h5 class="mb-3">History</h5>
+        <h5 class="mb-3">{% trans "History" %}</h5>
         <div class="table-responsive">
           <table class="table table-sm align-middle table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
             <caption class="visually-hidden">{% trans "History" %}</caption>
             <thead>
               <tr>
-                <th scope="col">Type</th>
-                <th scope="col">Dates</th>
-                <th scope="col">Status</th>
-                <th scope="col" class="text-end">Days</th>
+                <th scope="col">{% trans "Type" %}</th>
+                <th scope="col">{% trans "Dates" %}</th>
+                <th scope="col">{% trans "Status" %}</th>
+                <th scope="col" class="text-end">{% trans "Days" %}</th>
               </tr>
             </thead>
             <tbody>

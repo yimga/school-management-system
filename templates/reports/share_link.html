@@ -1,4 +1,5 @@
 {% extends "portal_base.html" %}
+{% load i18n %}
 {% block title %}Share Report{% endblock %}
 
 {% block content %}
@@ -10,10 +11,10 @@
 <div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1">
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
   <div>
-    <h1 class="mb-1">Share Report</h1>
+    <h1 class="mb-1">{% trans "Share Report" %}</h1>
     <div class="text-muted small">Generate a secure link for {{ report_type|capfirst }} report cards.</div>
   </div>
-  <a class="btn btn-outline-secondary btn-sm" href="{% url 'portal:parent_dashboard' %}">Back</a>
+  <a class="btn btn-outline-secondary btn-sm" href="{% url 'portal:parent_dashboard' %}">{% trans "Back" %}</a>
 </div>
 
 <div class="card mb-3">
@@ -29,7 +30,7 @@
 
 <div class="card mb-3">
   <div class="card-body">
-    <label class="form-label fw-semibold">Share link</label>
+    <label class="form-label fw-semibold">{% trans "Share link" %}</label>
     <input type="text" class="form-control" value="{{ share_url }}" readonly>
     <div class="form-text">Links expire automatically after a few days.</div>
   </div>
@@ -41,10 +42,10 @@
       {% csrf_token %}
       <input type="hidden" name="action" value="email">
       <div class="d-flex flex-wrap gap-2 align-items-center">
-        <button class="btn btn-primary btn-sm" type="submit">Email Link</button>
-        <a class="btn btn-outline-secondary btn-sm" href="{{ share_url }}">Open Link</a>
+        <button class="btn btn-primary btn-sm" type="submit">{% trans "Email Link" %}</button>
+        <a class="btn btn-outline-secondary btn-sm" href="{{ share_url }}">{% trans "Open Link" %}</a>
         {% if enable_whatsapp_share %}
-        <a class="btn btn-outline-success btn-sm" href="https://wa.me/?text={{ share_url|urlencode }}" target="_blank" rel="noopener noreferrer" title="Share via WhatsApp">Share via WhatsApp</a>
+        <a class="btn btn-outline-success btn-sm" href="https://wa.me/?text={{ share_url|urlencode }}" target="_blank" rel="noopener noreferrer" title="Share via WhatsApp">{% trans "Share via WhatsApp" %}</a>
         {% endif %}
       </div>
     </form>

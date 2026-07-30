@@ -1,3 +1,4 @@
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -54,7 +55,7 @@
                 {{ reply_excerpt|linebreaksbr }}
               </blockquote>
               <p style="margin:20px 0;/*inline-style-allow:email-template-inline*/">
-                <a class="rmc-email__cta" href="{{ topic_url }}" style="display:inline-block;background-color:{{ primary_color|default:'#4F46E5' }};color:#ffffff;padding:10px 18px;border-radius:6px;text-decoration:none;font-weight:600;/*inline-style-allow:email-template-inline*/">View the full thread</a>
+                <a class="rmc-email__cta" href="{{ topic_url }}" style="display:inline-block;background-color:{{ primary_color|default:'#4F46E5' }};color:#ffffff;padding:10px 18px;border-radius:6px;text-decoration:none;font-weight:600;/*inline-style-allow:email-template-inline*/">{% trans "View the full thread" %}</a>
               </p>
               <p class="rmc-email__meta" style="font-size:13px;color:#6b655d;margin:16px 0 0 0;/*inline-style-allow:email-template-inline*/">You received this because you started or replied to this topic.</p>
             </td>

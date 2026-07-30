@@ -24,9 +24,9 @@
     <label style="font-size: var(--type-size-eyebrow); color: var(--text-secondary);">{% trans "Source" %}
       <select name="source" style="display: block; min-width: 120px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary);">
         <option value="" {% if not filter_source %}selected{% endif %}>{% trans "all" %}</option>
-        <option value="oidc"   {% if filter_source == 'oidc' %}selected{% endif %}>oidc</option>
-        <option value="saml"   {% if filter_source == 'saml' %}selected{% endif %}>saml</option>
-        <option value="manual" {% if filter_source == 'manual' %}selected{% endif %}>manual</option>
+        <option value="oidc"   {% if filter_source == 'oidc' %}selected{% endif %}>{% trans "oidc" %}</option>
+        <option value="saml"   {% if filter_source == 'saml' %}selected{% endif %}>{% trans "saml" %}</option>
+        <option value="manual" {% if filter_source == 'manual' %}selected{% endif %}>{% trans "manual" %}</option>
       </select>
     </label>
     <label style="font-size: var(--type-size-eyebrow); color: var(--text-secondary);">{% trans "Provider" %}

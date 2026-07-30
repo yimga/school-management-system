@@ -1,5 +1,5 @@
 {% extends "control_plane_base.html" %}
-{% load glocal_tags %}
+{% load glocal_tags  i18n%}
 {% block cp_title %}Pack Installations{% endblock %}
 {% block cp_content %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
@@ -8,10 +8,10 @@
 {% include "components/next_action_strip.html" %}
 
 <section class="cp-page" data-page-marker="rmc-pack-installations" data-rmc-scroll-policy="paginate">
-  <header class="cp-page-header"><p class="cp-eyebrow">Installation history</p><h1>Pack installations</h1></header>
-  <div class="cp-table-wrap"><table class="cp-table table-family align-middle table-sm table-sticky-head rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1"><thead><tr><th scope="col">Pack</th><th scope="col">Type</th><th scope="col">School</th><th scope="col">Status</th><th scope="col">Applied</th><th scope="col"></th></tr></thead><tbody>
+  <header class="cp-page-header"><p class="cp-eyebrow">Installation history</p><h1>{% trans "Pack installations" %}</h1></header>
+  <div class="cp-table-wrap"><table class="cp-table table-family align-middle table-sm table-sticky-head rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1"><thead><tr><th scope="col">{% trans "Pack" %}</th><th scope="col">{% trans "Type" %}</th><th scope="col">{% trans "School" %}</th><th scope="col">{% trans "Status" %}</th><th scope="col">{% trans "Applied" %}</th><th scope="col"></th></tr></thead><tbody>
     {% for row in installations %}
-      <tr><td>{{ row.pack_key }}</td><td>{{ row.pack_type }}</td><td>{{ row.school.name }}</td><td>{{ row.status }}</td><td>{{ row.applied_at }}</td><td><a href="{% url 'configuration:pack_installation_detail' row.id %}">Open</a></td></tr>
+      <tr><td>{{ row.pack_key }}</td><td>{{ row.pack_type }}</td><td>{{ row.school.name }}</td><td>{{ row.status }}</td><td>{{ row.applied_at }}</td><td><a href="{% url 'configuration:pack_installation_detail' row.id %}">{% trans "Open" %}</a></td></tr>
     {% endfor %}
   </tbody></table></div>
 </section>

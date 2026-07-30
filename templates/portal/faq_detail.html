@@ -77,7 +77,7 @@
 
                     <!-- Engagement: Vote & Share -->
                     <div class="border-top pt-3">
-                        <h6 class="mb-3">Was this helpful?</h6>
+                        <h6 class="mb-3">{% trans "Was this helpful?" %}</h6>
                         <div class="row">
                             <div class="col-md-6">
                                 {% if user.is_authenticated %}
@@ -86,8 +86,7 @@
                                             class="btn btn-outline-success vote-btn" 
                                             data-faq-id="{{ faq.id }}" 
                                             data-vote="helpful">
-                                        <i class="bi bi-hand-thumbs-up"></i> Yes ({{ faq.helpful_count }})
-                                    </button>
+                                        <i class="bi bi-hand-thumbs-up"></i> {% blocktrans with count=faq.helpful_count %}Yes ({{ count }}){% endblocktrans %}</button>
                                     <button type="button" 
                                             class="btn btn-outline-danger vote-btn" 
                                             data-faq-id="{{ faq.id }}" 
@@ -98,14 +97,14 @@
                                 {% else %}
                                 <a href="{% url 'accounts:login' %}?next={% url 'kb:faq_detail' faq.id %}" 
                                    class="btn btn-outline-primary btn-sm">
-                                    <i class="bi bi-box-arrow-in-right"></i> Login to vote
+                                    {% trans "Login to vote" %}
                                 </a>
                                 {% endif %}
                             </div>
                             <div class="col-md-6 text-right">
                                 <button type="button" class="btn btn-outline-secondary btn-sm" 
                                         onclick="shareThis()">
-                                    <i class="bi bi-share"></i> Share
+                                    {% trans "Share" %}
                                 </button>
                             </div>
                         </div>
@@ -118,7 +117,7 @@
             <div class="card shadow-sm">
                 <div class="card-header">
                     <h5 class="mb-0">
-                        <i class="bi bi-link-45deg"></i> Related Questions
+                        {% trans "Related Questions" %}
                     </h5>
                 </div>
                 <div class="list-group list-group-flush">
@@ -140,7 +139,7 @@
             <div class="card shadow-sm mb-3">
                 <div class="card-header bg-info text-white">
                     <h6 class="mb-0">
-                        <i class="bi bi-lightbulb"></i> Need More Help?
+                        {% trans "Need More Help?" %}
                     </h6>
                 </div>
                 <div class="card-body">
@@ -148,7 +147,7 @@
                         Browse our Knowledge Base for detailed guides and tutorials.
                     </p>
                     <a href="{% url 'kb:kb_home' %}" class="btn btn-info btn-sm btn-block">
-                        <i class="bi bi-book"></i> Knowledge Base
+                        {% trans "Knowledge Base" %}
                     </a>
                 </div>
             </div>
@@ -157,7 +156,7 @@
             <div class="card shadow-sm mb-3">
                 <div class="card-header bg-warning">
                     <h6 class="mb-0">
-                        <i class="bi bi-exclamation-triangle"></i> Found an Issue?
+                        {% trans "Found an Issue?" %}
                     </h6>
                 </div>
                 <div class="card-body">
@@ -165,7 +164,7 @@
                         Help us improve by reporting errors or suggesting updates.
                     </p>
                     <button type="button" class="btn btn-warning btn-sm btn-block" data-bs-toggle="modal" data-bs-target="#reportModal">
-                        <i class="bi bi-flag"></i> Report Problem
+                        {% trans "Report Problem" %}
                     </button>
                 </div>
             </div>
@@ -183,9 +182,7 @@
                         {{ faq.category.description|truncatewords:20 }}
                     </p>
                     <a href="{% url 'kb:faq_list' %}?category={{ faq.category.slug }}" 
-                       class="btn btn-outline-primary btn-sm btn-block">
-                        View All in {{ faq.category.name }}
-                    </a>
+                       class="btn btn-outline-primary btn-sm btn-block">{% blocktrans with value=faq.category.name %}View All in {{ value }}{% endblocktrans %}</a>
                 </div>
             </div>
             {% endif %}

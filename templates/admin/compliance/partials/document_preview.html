@@ -1,9 +1,10 @@
+{% load i18n %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="card shadow-sm mt-4">
   <div class="card-body">
     <div class="d-flex align-items-center justify-content-between mb-3 gap-2">
       <div>
-        <h5 class="mb-1">Document section preview</h5>
+        <h5 class="mb-1">{% trans "Document section preview" %}</h5>
         <p class="text-muted small mb-0">
           See how notices, policy cards, and compliance documents respond to the same theme tokens.
         </p>
@@ -18,7 +19,7 @@
           <span class="rmc-badge rmc-badge--success">Draft</span>
         </header>
         <p>Effective governance depends on clear, accessible legal documents.</p>
-        <button type="button" class="btn btn-sm btn-outline-light">Preview layout</button>
+        <button type="button" class="btn btn-sm btn-outline-light">{% trans "Preview layout" %}</button>
       </article>
       <article class="document-preview-card">
         <header>
@@ -26,7 +27,7 @@
           <span class="rmc-badge rmc-badge--warning">Pending review</span>
         </header>
         <p>Color contrast and margins follow the same admin palette your preview uses.</p>
-        <button type="button" class="btn btn-sm btn-outline-light">Open mockup</button>
+        <button type="button" class="btn btn-sm btn-outline-light">{% trans "Open mockup" %}</button>
       </article>
     </div>
 

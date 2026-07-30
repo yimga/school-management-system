@@ -25,7 +25,7 @@
             <div class="card shadow">
                 <div class="card-header bg-primary text-white">
                     <h1 class="h4 mb-0">
-                        <i class="bi bi-plus-circle"></i> Submit a Question
+                        {% trans "Submit a Question" %}
                     </h1>
                 </div>
                 <div class="card-body">
@@ -40,8 +40,7 @@
                         <!-- Question Field -->
                         <div class="mb-3">
                             <label for="{{ form.question.id_for_label }}">
-                                <strong>Your Question</strong>
-                                <span class="rmc-badge rmc-badge--danger">Required</span>
+                                {% trans "Your Question Required" %}
                             </label>
                             {{ form.question }}
                             {% if form.question.help_text %}
@@ -59,8 +58,7 @@
                         <!-- Answer Field -->
                         <div class="mb-3">
                             <label for="{{ form.answer.id_for_label }}">
-                                <strong>Your Answer</strong>
-                                <span class="rmc-badge rmc-badge--danger">Required</span>
+                                {% trans "Your Answer Required" %}
                             </label>
                             <p class="small text-muted mb-2">
                                 Provide a detailed answer to help other users. You can use basic formatting.
@@ -81,7 +79,7 @@
                         <!-- Category Field -->
                         <div class="mb-3">
                             <label for="{{ form.category.id_for_label }}">
-                                <strong>Category</strong>
+                                {% trans "Category" %}
                             </label>
                             {{ form.category }}
                             <small class="form-text text-muted d-block mt-1">
@@ -97,7 +95,7 @@
                         <!-- Tags Field -->
                         <div class="mb-3">
                             <label for="{{ form.tags.id_for_label }}">
-                                <strong>Tags</strong>
+                                {% trans "Tags" %}
                             </label>
                             {{ form.tags }}
                             <small class="form-text text-muted d-block mt-1">
@@ -114,10 +112,10 @@
                         <!-- Form Actions -->
                         <div class="mb-3">
                             <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-send"></i> Submit Question
+                                {% trans "Submit Question" %}
                             </button>
                             <a href="{% url 'kb:faq_list' %}" class="btn btn-secondary">
-                                <i class="bi bi-x-lg"></i> Cancel
+                                {% trans "Cancel" %}
                             </a>
                         </div>
                     </form>

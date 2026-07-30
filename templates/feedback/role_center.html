@@ -1,4 +1,5 @@
 {% extends "portal_base.html" %}
+{% load i18n %}
 {% block title %}Feedback{% endblock %}
 {% block content %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
@@ -7,20 +8,20 @@
 {% include "components/next_action_strip.html" %}
 
 <div class="container py-3">
-  <h1 class="h3 mb-1">{{ role_surface|title }} Feedback</h1>
+  <h1 class="h3 mb-1">{% blocktrans with role=role_surface|title %}{{ role }} Feedback{% endblocktrans %}</h1>
   <p class="text-muted">Get help first, then tell the school or product team what is not working.</p>
   <div class="d-flex gap-2 flex-wrap mb-3">
-    {% if support_links.kb_home %}<a class="btn btn-outline-secondary btn-sm" href="{{ support_links.kb_home }}">Help articles</a>{% endif %}
-    {% if support_links.faq_list %}<a class="btn btn-outline-secondary btn-sm" href="{{ support_links.faq_list }}">FAQ</a>{% endif %}
-    {% if support_links.portal_help %}<a class="btn btn-outline-secondary btn-sm" href="{{ support_links.portal_help }}">Support hub</a>{% endif %}
-    {% if support_links.contact_center %}<a class="btn btn-outline-secondary btn-sm" href="{{ support_links.contact_center }}">Contact us</a>{% endif %}
-    {% if support_links.support_request %}<a class="btn btn-outline-secondary btn-sm" href="{{ support_links.support_request }}">Contact support</a>{% endif %}
-    {% if role_surface != "student" and support_links.feature_center %}<a class="btn btn-outline-primary btn-sm" href="{{ support_links.feature_center }}">Feature center</a>{% endif %}
+    {% if support_links.kb_home %}<a class="btn btn-outline-secondary btn-sm" href="{{ support_links.kb_home }}">{% trans "Help articles" %}</a>{% endif %}
+    {% if support_links.faq_list %}<a class="btn btn-outline-secondary btn-sm" href="{{ support_links.faq_list }}">{% trans "FAQ" %}</a>{% endif %}
+    {% if support_links.portal_help %}<a class="btn btn-outline-secondary btn-sm" href="{{ support_links.portal_help }}">{% trans "Support hub" %}</a>{% endif %}
+    {% if support_links.contact_center %}<a class="btn btn-outline-secondary btn-sm" href="{{ support_links.contact_center }}">{% trans "Contact us" %}</a>{% endif %}
+    {% if support_links.support_request %}<a class="btn btn-outline-secondary btn-sm" href="{{ support_links.support_request }}">{% trans "Contact support" %}</a>{% endif %}
+    {% if role_surface != "student" and support_links.feature_center %}<a class="btn btn-outline-primary btn-sm" href="{{ support_links.feature_center }}">{% trans "Feature center" %}</a>{% endif %}
   </div>
   {% if help_resources.articles or help_resources.faqs %}
     <section class="card mb-3">
       <div class="card-body">
-        <h2 class="h6">Suggested help</h2>
+        <h2 class="h6">{% trans "Suggested help" %}</h2>
         <div class="row g-2">
           {% for article in help_resources.articles %}
             <div class="col-md-6"><a class="list-group-item list-group-item-action border rounded" href="{% url 'kb:kb_article' article.slug %}">{{ article.title }}</a></div>
@@ -48,13 +49,13 @@
             {% csrf_token %}
             <input type="hidden" name="deflection_acknowledged" data-deflection-ack value="0">
             {{ form.as_p }}
-            <button class="btn btn-primary" type="submit">Send feedback</button>
+            <button class="btn btn-primary" type="submit">{% trans "Send feedback" %}</button>
           </form>
         </div>
       </div>
     </section>
     <section class="col-lg-6 rmc-reveal">
-      <h2 class="h5">Your Feedback</h2>
+      <h2 class="h5">{% trans "Your Feedback" %}</h2>
       <div class="list-group">
         {% for item in feedback_items %}
           <div class="list-group-item">

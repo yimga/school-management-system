@@ -107,41 +107,41 @@
         <div class="ai-dashboard-actions d-none w-100 mb-2" id="aiDashboardActions">
           <span class="small text-muted d-block mb-1">Dashboard:</span>
           <button class="btn btn-sm btn-outline-secondary ai-dashboard-btn" id="aiBtnAddWidget" type="button" title="Open Add widget palette">
-            <i class="bi bi-plus-square"></i> Add widget
+            {% trans "Add widget" %}
           </button>
           <button class="btn btn-sm btn-outline-secondary ai-dashboard-btn" id="aiBtnCustomizeLayout" type="button" title="Enter layout customize mode">
-            <i class="bi bi-grid-3x3-gap"></i> Customize layout
+            {% trans "Customize layout" %}
           </button>
         </div>
         {% if nav_role == 'ADMIN' or nav_role == 'LEADERSHIP' %}
           <button type="button" class="btn btn-sm btn-outline-primary ai-quick-btn" data-prompt="Show me today's attendance summary">
-            <i class="bi bi-calendar-check"></i> Today's Attendance
+            {% trans "Today's Attendance" %}
           </button>
           <button type="button" class="btn btn-sm btn-outline-success ai-quick-btn" data-prompt="What are the overdue invoices?">
-            <i class="bi bi-cash-stack"></i> Overdue Invoices
+            {% trans "Overdue Invoices" %}
           </button>
           <button type="button" class="btn btn-sm btn-outline-info ai-quick-btn" data-prompt="Show recent user activities">
-            <i class="bi bi-activity"></i> Recent Activities
+            {% trans "Recent Activities" %}
           </button>
         {% elif nav_role == 'TEACHER' %}
           <button type="button" class="btn btn-sm btn-outline-primary ai-quick-btn" data-prompt="Show my today's classes">
-            <i class="bi bi-calendar3"></i> Today's Classes
+            {% trans "Today's Classes" %}
           </button>
           <button type="button" class="btn btn-sm btn-outline-success ai-quick-btn" data-prompt="Students pending grades">
-            <i class="bi bi-journal-text"></i> Pending Grades
+            {% trans "Pending Grades" %}
           </button>
           <button type="button" class="btn btn-sm btn-outline-info ai-quick-btn" data-prompt="Attendance summary this week">
-            <i class="bi bi-clipboard-check"></i> Attendance
+            {% trans "Attendance" %}
           </button>
         {% elif nav_role == 'PARENT' %}
           <button type="button" class="btn btn-sm btn-outline-primary ai-quick-btn" data-prompt="Show my child's recent grades">
-            <i class="bi bi-graph-up"></i> Recent Grades
+            {% trans "Recent Grades" %}
           </button>
           <button type="button" class="btn btn-sm btn-outline-success ai-quick-btn" data-prompt="Check fee payment status">
-            <i class="bi bi-wallet2"></i> Fee Status
+            {% trans "Fee Status" %}
           </button>
           <button type="button" class="btn btn-sm btn-outline-info ai-quick-btn" data-prompt="Upcoming parent-teacher meetings">
-            <i class="bi bi-calendar-event"></i> Meetings
+            {% trans "Meetings" %}
           </button>
         {% endif %}
       </div>

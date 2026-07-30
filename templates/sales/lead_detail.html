@@ -24,7 +24,7 @@
         </select>
       </div>
       <div class="col-md-6">
-        <label class="form-label" for="next_follow_up">{% trans "Next follow-up" %} (ISO or YYYY-MM-DD)</label>
+        <label class="form-label" for="next_follow_up">{% trans "Next follow-up" %} {% trans "(ISO or YYYY-MM-DD)" %}</label>
         <input class="form-control form-control-sm" name="next_follow_up" id="next_follow_up" value="{% if lead.next_follow_up %}{{ lead.next_follow_up|date:'Y-m-d H:i' }}{% endif %}">
       </div>
       <div class="col-md-6">
@@ -32,7 +32,7 @@
         <input class="form-control form-control-sm" name="decision_maker" id="decision_maker" value="{{ lead.decision_maker }}" maxlength="200" placeholder="{% trans 'Name or title' %}">
       </div>
       <div class="col-md-6">
-        <label class="form-label" for="deal_owner_id">{% trans "Deal owner" %} (staff)</label>
+        <label class="form-label" for="deal_owner_id">{% trans "Deal owner" %} {% trans "(staff)" %}</label>
         <select class="form-select form-select-sm" name="deal_owner_id" id="deal_owner_id">
           <option value="">—</option>
           {% for u in staff_owners %}

@@ -31,7 +31,7 @@
       <div class="col-md-3">
         <label class="form-label small">{% term_label %}</label>
         <select class="form-select" name="term">
-          <option value="">All</option>
+          <option value="">{% trans "All" %}</option>
           {% for t in term_choices %}
             <option value="{{ t.id }}" {% if request.GET.term == t.id|stringformat:"s" %}selected{% endif %}>
               {{ t.get_name_display }}
@@ -41,9 +41,9 @@
       </div>
 
       <div class="col-md-3">
-        <label class="form-label small">Class</label>
+        <label class="form-label small">{% trans "Class" %}</label>
         <select class="form-select" name="classroom">
-          <option value="">All</option>
+          <option value="">{% trans "All" %}</option>
           {% for c in classrooms %}
             <option value="{{ c.id }}" {% if request.GET.classroom == c.id|stringformat:"s" %}selected{% endif %}>
               {{ c.name }}
@@ -53,9 +53,9 @@
       </div>
 
       <div class="col-md-4">
-        <label class="form-label small">Subject</label>
+        <label class="form-label small">{% trans "Subject" %}</label>
         <select class="form-select" name="subject">
-          <option value="">All</option>
+          <option value="">{% trans "All" %}</option>
           {% for s in subjects %}
             <option value="{{ s.id }}" {% if request.GET.subject == s.id|stringformat:"s" %}selected{% endif %}>
               {{ s.name }}
@@ -67,9 +67,9 @@
       <div class="col-md-2">
         <div class="form-check mb-2">
           <input class="form-check-input" type="checkbox" value="1" id="missingOnly" name="missing" {% if request.GET.missing %}checked{% endif %}>
-          <label class="form-check-label small" for="missingOnly">Missing only</label>
+          <label class="form-check-label small" for="missingOnly">{% trans "Missing only" %}</label>
         </div>
-        <button class="btn btn-primary ds-btn w-100" type="submit" data-rmc-autosubmit-hide-when-js>Filter</button>
+        <button class="btn btn-primary ds-btn w-100" type="submit" data-rmc-autosubmit-hide-when-js>{% trans "Filter" %}</button>
       </div>
     </div>
     <div class="row g-2 align-items-end mt-1">
@@ -93,10 +93,10 @@
       <thead class="gradebook-thead-sticky">
         <tr>
           <th scope="col">{% trans "Student" %}</th>
-          <th scope="col">Subject</th>
-          <th scope="col">Class</th>
+          <th scope="col">{% trans "Subject" %}</th>
+          <th scope="col">{% trans "Class" %}</th>
           <th scope="col">{% term_label %}</th>
-          <th scope="col">Exam</th>
+          <th scope="col">{% trans "Exam" %}</th>
           <th scope="col">{% term "grade" %}</th>
         </tr>
       </thead>

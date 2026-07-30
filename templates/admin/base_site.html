@@ -509,8 +509,8 @@
         <strong>Preview mode</strong> &mdash; {{ PREVIEW_BANNER_TEXT|default:"Sandbox data will not persist." }}
       </span>
       <div class="preview-cue-actions">
-        <a href="{% url 'siteconfig:toggle_preview_mode' %}?next={{ request.path }}">Toggle sandbox</a>
-        <a href="{% url 'siteconfig:clear_preview' %}">Clear preview</a>
+        <a href="{% url 'siteconfig:toggle_preview_mode' %}?next={{ request.path }}">{% trans "Toggle sandbox" %}</a>
+        <a href="{% url 'siteconfig:clear_preview' %}">{% trans "Clear preview" %}</a>
       </div>
     </div>
   {% elif PREVIEW_TOGGLE_ENABLED %}

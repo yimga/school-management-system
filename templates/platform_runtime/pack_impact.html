@@ -1,4 +1,5 @@
 {% extends "control_plane_base.html" %}
+{% load i18n %}
 {% block cp_title %}Pack Impact{% endblock %}
 {% block cp_content %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
@@ -13,10 +14,10 @@
     <p>{{ impact.impact_categories|join:", " }}</p>
   </header>
   <div data-rmc-scroll-policy="paginate" class="cp-grid cp-grid-2">
-    <article class="cp-card rmc-reveal"><h2>Roles</h2><p>{{ impact.affected_roles|join:", " }}</p></article>
-    <article class="cp-card rmc-reveal"><h2>Workflows</h2><p>{{ impact.affected_workflows|join:", " }}</p></article>
-    <article class="cp-card rmc-reveal"><h2>Dashboards</h2><p>{{ impact.affected_dashboards|join:", " }}</p></article>
-    <article class="cp-card rmc-reveal"><h2>Policies</h2><p>{{ impact.affected_policies|join:", " }}</p></article>
+    <article class="cp-card rmc-reveal"><h2>{% trans "Roles" %}</h2><p>{{ impact.affected_roles|join:", " }}</p></article>
+    <article class="cp-card rmc-reveal"><h2>{% trans "Workflows" %}</h2><p>{{ impact.affected_workflows|join:", " }}</p></article>
+    <article class="cp-card rmc-reveal"><h2>{% trans "Dashboards" %}</h2><p>{{ impact.affected_dashboards|join:", " }}</p></article>
+    <article class="cp-card rmc-reveal"><h2>{% trans "Policies" %}</h2><p>{{ impact.affected_policies|join:", " }}</p></article>
   </div>
 </section>
 {% endblock %}

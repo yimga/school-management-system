@@ -31,7 +31,7 @@
     <div class="col-lg-6 rmc-reveal">
       <div class="card shadow-sm">
         <div class="card-body">
-          <h2 class="h5">Setup checklist</h2>
+          <h2 class="h5">{% trans "Setup checklist" %}</h2>
           <p class="small text-muted">Work top to bottom — no technical jargon required.</p>
           <ul class="list-group list-group-flush">
             {% for item in readiness.checklist %}
@@ -73,7 +73,7 @@
       {% endif %}
       <div class="card shadow-sm mb-3">
         <div class="card-body">
-          <h2 class="h5">Country & currency</h2>
+          <h2 class="h5">{% trans "Country & currency" %}</h2>
           <dl class="rmc-kv mb-0 small">
             <dt>Compliance profile</dt>
             <dd>{{ profile.name }}</dd>
@@ -86,7 +86,7 @@
       </div>
       <div class="card shadow-sm mb-3">
         <div class="card-body">
-          <h2 class="h5">Recommended methods</h2>
+          <h2 class="h5">{% trans "Recommended methods" %}</h2>
           <p class="small text-muted mb-2">
             Primary first, backup second — matches guardian-facing hints for this corridor.
           </p>
@@ -99,7 +99,7 @@
       {% if readiness.operator_setup_steps %}
       <div class="card shadow-sm">
         <div class="card-body">
-          <h2 class="h5">Operator playbook</h2>
+          <h2 class="h5">{% trans "Operator playbook" %}</h2>
           <ol class="small mb-0 ps-3">
             {% for step in readiness.operator_setup_steps %}
             <li class="mb-2">{{ step }}</li>
@@ -111,7 +111,8 @@
       {% if readiness.provider_notes %}
       <div class="card shadow-sm mt-3 border-secondary">
         <div class="card-body">
-          <h2 class="h6 text-muted">Outside RunMyCampus</h2>
+          {# i18n-allow: brand-proper-noun #}
+          <h2 class="h6 text-muted">{% trans "Outside RunMyCampus" %}</h2>
           <p class="small mb-0">{{ readiness.provider_notes }}</p>
         </div>
       </div>

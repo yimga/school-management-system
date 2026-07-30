@@ -11,7 +11,7 @@
 {% include "components/next_action_strip.html" %}
 
 {% comment %} semantic-btn-allow: tri-state-request-workflow approve-deny-clarify {% endcomment %}
-  <h1 class="visually-hidden" data-rmc-injected-h1="1">Request {{ req.reference }}</h1>
+  <h1 class="visually-hidden" data-rmc-injected-h1="1">{% blocktrans with value=req.reference %}Request {{ value }}{% endblocktrans %}</h1>
 <div class="container-fluid py-2" data-page-archetype="record-detail">
   {% url 'requests:dashboard' as back_url %}
   {% include "studio_os/components/page_header.html" with title=req.reference subtitle=req.get_request_type_display action_url=back_url action_text="Back to list" %}
@@ -42,7 +42,7 @@
 
 <div class="card shadow-sm mb-4">
   <div class="card-body">
-    <h5 class="mb-3">Action</h5>
+    <h5 class="mb-3">{% trans "Action" %}</h5>
     <form method="post" class="row g-3" id="request-action-form" data-draft-key="request_action_{{ req.id }}" data-draft-max-age-hours="24" data-draft-pending-label="Unsynced decision"
           data-rmc-offline-form="field_capture"
           data-rmc-offline-workflow="requests_decision"
@@ -56,7 +56,7 @@
         <button type="submit" name="action" value="APPROVED" class="btn btn-success">{% trans "Approve" %}</button>
         <button type="submit" name="action" value="DENIED" class="btn btn-danger">{% trans "Deny" %}</button>
         <button type="submit" name="action" value="CLARIFY" class="btn btn-warning text-dark">{% trans "Request clarification" %}</button>
-        <a href="{% url 'requests:dashboard' %}" class="btn btn-outline-secondary">Back</a>
+        <a href="{% url 'requests:dashboard' %}" class="btn btn-outline-secondary">{% trans "Back" %}</a>
       </div>
     </form>
   </div>
@@ -65,7 +65,7 @@
 {% if decisions %}
   <div class="card shadow-sm mb-4">
     <div class="card-body">
-      <h5 class="mb-3">Decisions</h5>
+      <h5 class="mb-3">{% trans "Decisions" %}</h5>
       <ul class="list-group list-group-flush">
         {% for decision in decisions %}
           <li class="list-group-item">
@@ -87,7 +87,7 @@
 {% if audits %}
   <div class="card shadow-sm">
     <div class="card-body">
-      <h5 class="mb-3">Audit trail</h5>
+      <h5 class="mb-3">{% trans "Audit trail" %}</h5>
       <ul class="list-group list-group-flush">
         {% for audit in audits %}
           <li class="list-group-item">

@@ -18,11 +18,11 @@
     <div class="card-body">
       <form method="get" action="{% url 'portal:record_teacher_attendance' %}" class="row g-2 align-items-end mb-3" data-rmc-autosubmit="1">
         <div class="col-auto">
-          <label class="form-label small mb-0">Date</label>
+          <label class="form-label small mb-0">{% trans "Date" %}</label>
           <input type="date" name="date" class="form-control" value="{{ date_value }}">
         </div>
         <div class="col-auto">
-          <button type="submit" class="btn btn-primary" data-rmc-autosubmit-hide-when-js>Load</button>
+          <button type="submit" class="btn btn-primary" data-rmc-autosubmit-hide-when-js>{% trans "Load" %}</button>
         </div>
       </form>
       {% if teachers_with_status %}
@@ -37,10 +37,10 @@
           {% csrf_token %}
           <input type="hidden" name="date" value="{{ date_value }}">
           <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
-            <h6 class="mb-0">Teachers – {{ date_value }}</h6>
+            <h6 class="mb-0">{% blocktrans with date_value=date_value %}Teachers – {{ date_value }}{% endblocktrans %}</h6>
             <div class="d-flex gap-2">
-              <button type="button" class="btn btn-sm btn-outline-secondary" id="mark-all-present">Mark all present</button>
-              <button type="button" class="btn btn-sm btn-success" id="save-all-present">Save all present</button>
+              <button type="button" class="btn btn-sm btn-outline-secondary" id="mark-all-present">{% trans "Mark all present" %}</button>
+              <button type="button" class="btn btn-sm btn-success" id="save-all-present">{% trans "Save all present" %}</button>
             </div>
           </div>
           <div class="table-responsive"
@@ -48,7 +48,7 @@
                data-attendance-scope="teacher"
                data-attendance-status-choices='{{ status_choices_json|default:"[]" }}'>
             <table class="table table-sm align-middle table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
-              <caption class="visually-hidden">Teachers – {{ date_value }}</caption>
+              <caption class="visually-hidden">{% blocktrans with date_value=date_value %}Teachers – {{ date_value }}{% endblocktrans %}</caption>
               <thead class="table-light">
                 <tr>
                   <th scope="col">{% trans_term "Teacher" key="teacher" %}</th>
@@ -75,7 +75,7 @@
               </tbody>
             </table>
           </div>
-          <button type="submit" class="btn btn-primary">Save attendance</button>
+          <button type="submit" class="btn btn-primary">{% trans "Save attendance" %}</button>
         </form>
       {% endif %}
       <div id="sms-roll-call-teacher-offline" class="rmc-banner rmc-banner--info d-none small mb-0 mt-2" role="status" aria-live="polite" data-offline-only></div>

@@ -19,6 +19,7 @@
       {% firstof PUBLIC_BRAND_LOGO_DARK_URL PUBLIC_BRAND_LOGO_URL rmc_operator_logo_default as rmc_operator_logo_dark %}
       <div class="rmc-platform-header__brand">
         {% if MANAGER_PLATFORM_ADMIN_SHELL %}
+        {# i18n-allow: admin-preview-fixture-path #}
         <a href="{{ admin_home_url }}" class="cp-brand rmc-brand-mark-link" aria-label="{% trans 'RunMyCampus platform backoffice' %}">
           {% include "components/rmc_brand_mark.html" with size=32 variant="mark" label="RunMyCampus" logo_url=rmc_operator_logo logo_dark_url=rmc_operator_logo_dark %}
           <span class="cp-brand__lockup">

@@ -13,24 +13,24 @@
 <div class="container-fluid" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1">
   <nav aria-label="breadcrumb" class="mb-3">
     <ol class="breadcrumb mb-0">
-      <li class="breadcrumb-item"><a href="{% url 'accounts:backend_dashboard' %}">Backend</a></li>
-      <li class="breadcrumb-item"><a href="{% url 'studio_os:workflow_center' %}">Workflow Center</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'accounts:backend_dashboard' %}">{% trans "Backend" %}</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'studio_os:workflow_center' %}">{% trans "Workflow Center" %}</a></li>
       <li class="breadcrumb-item active" aria-current="page">Promotion preview</li>
     </ol>
   </nav>
 
   <div class="card shadow-sm mb-3">
     <div class="card-body">
-      <h1 class="h5 mb-3">Promotion preview / borderline list</h1>
+      <h1 class="h5 mb-3">{% trans "Promotion preview / borderline list" %}</h1>
       <p class="text-muted small mb-3">
         By academic year: annual average, promotion status (PROMOTED / REPEAT / DEMOTED / NO_DATA), and borderline flag for deliberation council.
         Borderline = average between demotion and promotion threshold (e.g. 9.0–10.0 when threshold is 10).
       </p>
       <form method="get" action="" class="row g-3 align-items-end">
         <div class="col-md-3">
-          <label for="year" class="form-label">Academic year</label>
+          <label for="year" class="form-label">{% trans "Academic year" %}</label>
           <select name="year" id="year" class="form-select" data-rmc-submit-on-change>
-            <option value="">— Select —</option>
+            <option value="">{% trans "— Select —" %}</option>
             {% for y in years %}
             <option value="{{ y.id }}" {% if year and year.id == y.id %}selected{% endif %}>{{ y.name }}</option>
             {% endfor %}
@@ -38,9 +38,9 @@
         </div>
         {% if year and classrooms %}
         <div class="col-md-3">
-          <label for="classroom" class="form-label">Classroom</label>
+          <label for="classroom" class="form-label">{% trans "Classroom" %}</label>
           <select name="classroom" id="classroom" class="form-select" data-rmc-submit-on-change>
-            <option value="">All classrooms</option>
+            <option value="">{% trans "All classrooms" %}</option>
             {% for c in classrooms %}
             <option value="{{ c.id }}" {% if selected_classroom == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
             {% endfor %}
@@ -48,7 +48,7 @@
         </div>
         {% endif %}
         <div class="col-md-4">
-          <a href="?year={{ year.id|default:'' }}{% if selected_classroom %}&classroom={{ selected_classroom }}{% endif %}&export=csv" class="btn btn-outline-primary">Export CSV</a>
+          <a href="?year={{ year.id|default:'' }}{% if selected_classroom %}&classroom={{ selected_classroom }}{% endif %}&export=csv" class="btn btn-outline-primary">{% trans "Export CSV" %}</a>
         </div>
       </form>
     </div>
@@ -70,11 +70,11 @@
           <caption class="visually-hidden">{% trans "Promotion preview" %}</caption>
           <thead class="table-light">
             <tr>
-              <th scope="col">Classroom</th>
-              <th scope="col">Student</th>
-              <th scope="col">Annual avg</th>
-              <th scope="col">Promotion</th>
-              <th scope="col">Borderline</th>
+              <th scope="col">{% trans "Classroom" %}</th>
+              <th scope="col">{% trans "Student" %}</th>
+              <th scope="col">{% trans "Annual avg" %}</th>
+              <th scope="col">{% trans "Promotion" %}</th>
+              <th scope="col">{% trans "Borderline" %}</th>
             </tr>
           </thead>
           <tbody>

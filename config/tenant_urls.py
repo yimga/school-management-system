@@ -108,7 +108,19 @@ def home(request):
 
 
 def favicon_redirect(request):
-    """Serve favicon by redirecting to default static icon; avoids 500 when 404 pipeline runs for /favicon.ico."""
+    """Serve favicon — tenant brand when bound, else platform default."""
+    school = getattr(request, "school", None)
+    if school is not None:
+        try:
+            from apps.siteconfig.branding import resolve_brand_profile
+
+            favicon_url = (
+                (resolve_brand_profile(school=school).get("favicon_url") or "").strip()
+            )
+            if favicon_url:
+                return redirect(favicon_url, permanent=False)
+        except Exception:
+            pass
     return redirect(
         staticfiles_storage.url("images/runmycampus-icon.png"),
         permanent=False,

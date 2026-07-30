@@ -1,4 +1,5 @@
 {% extends "control_plane_base.html" %}
+{% load i18n %}
 {% block cp_title %}Apply Pack{% endblock %}
 {% block cp_content %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
@@ -13,9 +14,9 @@
     <p>Risk: {{ change_set.risk_level }}. Approval required: {{ change_set.requires_approval }}. Can apply: {{ change_set.can_apply }}.</p>
   </header>
   <div data-rmc-scroll-policy="paginate" class="cp-grid cp-grid-2">
-    {% if result %}<article class="cp-card rmc-reveal"><h2>Result</h2><p>OK: {{ result.ok }}</p><p>{{ result.errors|join:", " }}</p></article>{% endif %}
+    {% if result %}<article class="cp-card rmc-reveal"><h2>{% trans "Result" %}</h2><p>OK: {{ result.ok }}</p><p>{{ result.errors|join:", " }}</p></article>{% endif %}
     <article class="cp-card rmc-reveal">
-      <h2>Change Set</h2>
+      <h2>{% trans "Change Set" %}</h2>
       <p>Affected roles: {{ change_set.impact_summary.affected_roles|join:", " }}</p>
       <p>External blockers: {{ change_set.external_blockers|join:", " }}</p>
       <p>Dependency blockers: {{ change_set.dependency_blockers|length }}</p>
@@ -24,11 +25,11 @@
       {% csrf_token %}
       <input type="hidden" name="school" value="{{ selected_school.slug }}">
       {% if change_set.requires_approval %}
-        <label>Reason <textarea name="reason" rows="3">Governed rollout request</textarea></label>
-        <button class="cp-button cp-button-primary" type="submit" name="action" value="request_approval">Request approval</button>
+        <label>{% trans "Reason Governed rollout request" %}</label>
+        <button class="cp-button cp-button-primary" type="submit" name="action" value="request_approval">{% trans "Request approval" %}</button>
       {% else %}
-        <label><input type="checkbox" name="confirm" value="yes"> Confirm governed pack apply</label>
-        <button class="cp-button cp-button-primary" type="submit"{% if not change_set.can_apply %} disabled{% endif %}>Apply pack</button>
+        <label>{% trans "Confirm governed pack apply" %}</label>
+        <button class="cp-button cp-button-primary" type="submit"{% if not change_set.can_apply %} disabled{% endif %}>{% trans "Apply pack" %}</button>
       {% endif %}
     </form>
   </div>

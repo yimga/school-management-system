@@ -1,4 +1,5 @@
 {% extends "portal_base.html" %}
+{% load i18n %}
 
 {% block title %}Customizer overview{% endblock %}
 
@@ -12,7 +13,7 @@
     <div class="card-body">
       <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-3">
         <div>
-          <h1 class="h4 mb-1">Customizer overview</h1>
+          <h1 class="h4 mb-1">{% trans "Customizer overview" %}</h1>
           <p class="text-muted mb-2">
             Global themes, brand assets, portal toggles, and notification defaults are now editable inside Site Settings. Staff and leadership can still tweak their personal dashboards via Preferences.
           </p>
@@ -21,10 +22,10 @@
           </p>
         </div>
         <div class="d-flex flex-wrap gap-2">
-          <a class="btn btn-primary btn-sm" href="{{ site_settings_url }}">Open Site Settings</a>
-          <a class="btn btn-outline-primary btn-sm" href="{{ preferences_url }}">Edit Preferences</a>
-          <a class="btn btn-outline-secondary btn-sm" href="{% url 'siteconfig:reportcard_builder' %}">Report card builder</a>
-          <a class="btn btn-outline-secondary btn-sm" href="{% url 'siteconfig:tag_manager' %}">Tag Manager</a>
+          <a class="btn btn-primary btn-sm" href="{{ site_settings_url }}">{% trans "Open Site Settings" %}</a>
+          <a class="btn btn-outline-primary btn-sm" href="{{ preferences_url }}">{% trans "Edit Preferences" %}</a>
+          <a class="btn btn-outline-secondary btn-sm" href="{% url 'siteconfig:reportcard_builder' %}">{% trans "Report card builder" %}</a>
+          <a class="btn btn-outline-secondary btn-sm" href="{% url 'siteconfig:tag_manager' %}">{% trans "Tag Manager" %}</a>
         </div>
       </div>
     </div>
@@ -35,7 +36,7 @@
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <div>
-            <h5 class="mb-0">Theme packs</h5>
+            <h5 class="mb-0">{% trans "Theme packs" %}</h5>
             <p class="text-muted small mb-0">Switch between preset looks inside Site Settings for a fresh face lift.</p>
           </div>
           {% if settings.theme_pack %}
@@ -63,9 +64,9 @@
                 <div class="card-footer bg-transparent border-0 pt-0">
                   <a class="btn btn-sm btn-outline-primary" href="{{ site_settings_url }}#field-theme_pack">
                     {% if settings.theme_pack and pack.pk == settings.theme_pack.pk %}
-                      Currently applied
+                      {% trans "Currently applied" %}
                     {% else %}
-                      Apply pack in Site Settings
+                      {% trans "Apply pack in Site Settings" %}
                     {% endif %}
                   </a>
                 </div>
@@ -81,7 +82,7 @@
     <div class="col-md-6 rmc-reveal">
       <div class="card shadow-sm h-100">
         <div class="card-body">
-          <h5 class="mb-3">Current branding</h5>
+          <h5 class="mb-3">{% trans "Current branding" %}</h5>
           <dl class="row">
             <dt class="col-5 text-muted small">Site name</dt>
             <dd class="col-7 mb-2">{{ settings.site_name }}</dd>
@@ -102,7 +103,7 @@
     <div class="col-md-6 rmc-reveal">
       <div class="card shadow-sm h-100">
         <div class="card-body">
-          <h5 class="mb-3">Portal defaults</h5>
+          <h5 class="mb-3">{% trans "Portal defaults" %}</h5>
           <ul class="list-unstyled mb-0 small">
             <li>Parent portal: <strong>{{ settings.enable_parent_portal|yesno:"Enabled,Disabled" }}</strong></li>
             <li>Teacher portal: <strong>{{ settings.enable_teacher_portal|yesno:"Enabled,Disabled" }}</strong></li>

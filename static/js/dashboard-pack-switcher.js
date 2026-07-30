@@ -17,12 +17,6 @@
 
   function expandSelectedPack(root, form) {
     var selected = root.getAttribute("data-selected") || "";
-    try {
-      var stored = localStorage.getItem("rmc-dashboard-pack-applied");
-      if (stored && stored !== "__default__" && !selected) {
-        selected = stored;
-      }
-    } catch (e) { /* ignore quota */ }
     root.setAttribute("open", "");
     if (!selected || !form) {
       return;

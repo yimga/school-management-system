@@ -6,7 +6,7 @@
 {% block cp_content %}
 <header class="mat-detail-header">
   <nav class="mat-detail-breadcrumb">
-    <a href="{% url 'super:mat_group_hub_dashboard' %}">MAT Hub</a>
+    <a href="{% url 'super:mat_group_hub_dashboard' %}">{% trans "MAT Hub" %}</a>
     <span>›</span>
     <strong>{{ group.display_name }}</strong>
   </nav>
@@ -20,7 +20,7 @@
 </header>
 
 <section class="mat-detail-totals">
-  <h2>Group totals</h2>
+  <h2>{% trans "Group totals" %}</h2>
   <dl class="mat-detail-kpis">
     <div><dt>Schools</dt><dd>{{ snapshot.member_count }}</dd></div>
     <div><dt>Students</dt><dd>{{ snapshot.total_students }}</dd></div>
@@ -32,18 +32,18 @@
 </section>
 
 <section class="mat-detail-members">
-  <h2>Per-member breakdown</h2>
+  <h2>{% trans "Per-member breakdown" %}</h2>
   <table class="mat-detail-table">
     <caption class="visually-hidden">{% trans "Per-member breakdown" %}</caption>
     <thead>
       <tr>
-        <th scope="col">School</th>
-        <th scope="col">Region</th>
-        <th scope="col">Students</th>
-        <th scope="col">Staff</th>
-        <th scope="col">Attendance %</th>
-        <th scope="col">Pass %</th>
-        <th scope="col">Status</th>
+        <th scope="col">{% trans "School" %}</th>
+        <th scope="col">{% trans "Region" %}</th>
+        <th scope="col">{% trans "Students" %}</th>
+        <th scope="col">{% trans "Staff" %}</th>
+        <th scope="col">{% trans "Attendance %" %}</th>
+        <th scope="col">{% trans "Pass %" %}</th>
+        <th scope="col">{% trans "Status" %}</th>
       </tr>
     </thead>
     <tbody>
@@ -70,7 +70,7 @@
 
 {% if snapshot.failed_members %}
   <section class="mat-detail-failures">
-    <h3>Failed members</h3>
+    <h3>{% trans "Failed members" %}</h3>
     <p>The following members couldn't be polled in this rollup. The dashboard
        degrades gracefully — partial data is better than no data.</p>
     <ul>
@@ -81,6 +81,6 @@
 
 <footer class="mat-detail-footer">
   <a href="{% url 'super:mat_group_hub_api' group_id=group.group_id %}"
-     class="mat-detail-api-link">JSON ·  /api endpoint →</a>
+     class="mat-detail-api-link">{% trans "JSON · /api endpoint →" %}</a>
 </footer>
 {% endblock %}

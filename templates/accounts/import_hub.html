@@ -17,11 +17,11 @@
         <div class="card-body">
           <div class="d-flex align-items-center gap-2 mb-2">
             <i class="bi bi-magic text-primary icon-lg" ></i>
-            <h5 class="mb-0">Migration Wizard</h5>
+            <h5 class="mb-0">{% trans "Migration Wizard" %}</h5>
           </div>
           <p class="text-muted small mb-3">Upload CSV → map columns → preview → run. Students or grades.</p>
           <a class="btn btn-primary btn-sm" href="{% url 'accounts:migration_wizard' %}">
-            Start wizard <i class="bi bi-chevron-right ms-1"></i>
+            {% trans "Start wizard" %}
           </a>
         </div>
       </div>
@@ -31,11 +31,11 @@
         <div class="card-body">
           <div class="d-flex align-items-center gap-2 mb-2">
             <i class="bi bi-upload text-secondary icon-lg" ></i>
-            <h5 class="mb-0">Entity Import</h5>
+            <h5 class="mb-0">{% trans "Entity Import" %}</h5>
           </div>
           <p class="text-muted small mb-3">Import students, teachers, classrooms via CSV (paste).</p>
           <a class="btn btn-outline-primary btn-sm" href="{% url 'accounts:backend_entity_import' %}">
-            Open Entity Import <i class="bi bi-chevron-right ms-1"></i>
+            {% trans "Open Entity Import" %}
           </a>
         </div>
       </div>
@@ -45,11 +45,11 @@
         <div class="card-body">
           <div class="d-flex align-items-center gap-2 mb-2">
             <i class="bi bi-table text-success icon-lg" ></i>
-            <h5 class="mb-0">Grade Import</h5>
+            <h5 class="mb-0">{% trans "Grade Import" %}</h5>
           </div>
           <p class="text-muted small mb-3">Upload marks and evaluations from spreadsheet.</p>
           <a class="btn btn-success btn-sm" href="{% url 'evals:grade_import_upload' %}">
-            Upload grades <i class="bi bi-chevron-right ms-1"></i>
+            {% trans "Upload grades" %}
           </a>
         </div>
       </div>
@@ -59,11 +59,11 @@
         <div class="card-body">
           <div class="d-flex align-items-center gap-2 mb-2">
             <i class="bi bi-file-earmark-spreadsheet text-info icon-lg" ></i>
-            <h5 class="mb-0">Grade Template</h5>
+            <h5 class="mb-0">{% trans "Grade Template" %}</h5>
           </div>
           <p class="text-muted small mb-3">Download template for grade upload.</p>
           <a class="btn btn-info btn-sm" href="{% url 'evals:grade_import_template' %}">
-            Download template <i class="bi bi-download ms-1"></i>
+            {% trans "Download template" %}
           </a>
         </div>
       </div>

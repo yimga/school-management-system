@@ -389,6 +389,55 @@ class BaseRunMyCampusAdminSite(UnfoldAdminSite):
         return app_list
 
 
+def tenant_admin_user_has_access(request) -> bool:
+    """Shared gate for tenant_admin_site entry and tenant-scoped ModelAdmin permissions.
+
+    Mirrors TenantAdminSite.has_permission so Integration (and other tenant-only)
+    ModelAdmins can grant school owners the same access the site gate already allows.
+    """
+    user = getattr(request, "user", None)
+    if not (
+        user
+        and getattr(user, "is_authenticated", False)
+        and getattr(user, "is_active", False)
+    ):
+        return False
+    school = getattr(request, "school", None)
+    if school is None:
+        return False
+    if getattr(user, "is_superuser", False):
+        return True
+    try:
+        from apps.accounts.auth_backends_role_perms import ADMIN_LIKE_ROLES
+        from apps.schools.models import SchoolMembership
+
+        membership = (
+            SchoolMembership.objects.filter(
+                school=school,
+                user_id=getattr(user, "pk", None),
+                suspended_at__isnull=True,
+            )
+            .only("role", "is_school_owner")
+            .first()
+        )
+        if membership is None:
+            return False
+        if getattr(membership, "is_school_owner", False):
+            return True
+        role_codes = {
+            (getattr(membership, "role", "") or "").upper(),
+            (getattr(user, "role", "") or "").upper(),
+        }
+        if role_codes & ADMIN_LIKE_ROLES:
+            return True
+        return bool(
+            hasattr(user, "has_feature_permission")
+            and user.has_feature_permission("settings.manage", school=school)
+        )
+    except (AttributeError, DatabaseError, ImportError, TypeError, ValueError):
+        return False
+
+
 class TenantAdminSite(BaseRunMyCampusAdminSite):
     login_form = AuthenticationForm
     login_template = "auth/tenant_admin_login.html"
@@ -498,47 +547,7 @@ class TenantAdminSite(BaseRunMyCampusAdminSite):
     def has_permission(self, request):
         if self._is_platform_host(request):
             return False
-        user = getattr(request, "user", None)
-        if not (
-            user
-            and getattr(user, "is_authenticated", False)
-            and getattr(user, "is_active", False)
-        ):
-            return False
-        school = getattr(request, "school", None)
-        if school is None:
-            return False
-        if getattr(user, "is_superuser", False):
-            return True
-        try:
-            from apps.accounts.auth_backends_role_perms import ADMIN_LIKE_ROLES
-            from apps.schools.models import SchoolMembership
-
-            membership = (
-                SchoolMembership.objects.filter(
-                    school=school,
-                    user_id=getattr(user, "pk", None),
-                    suspended_at__isnull=True,
-                )
-                .only("role", "is_school_owner")
-                .first()
-            )
-            if membership is None:
-                return False
-            if getattr(membership, "is_school_owner", False):
-                return True
-            role_codes = {
-                (getattr(membership, "role", "") or "").upper(),
-                (getattr(user, "role", "") or "").upper(),
-            }
-            if role_codes & ADMIN_LIKE_ROLES:
-                return True
-            return bool(
-                hasattr(user, "has_feature_permission")
-                and user.has_feature_permission("settings.manage", school=school)
-            )
-        except (AttributeError, DatabaseError, ImportError, TypeError, ValueError):
-            return False
+        return tenant_admin_user_has_access(request)
 
 
 class PlatformAdminSite(BaseRunMyCampusAdminSite):

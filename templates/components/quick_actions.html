@@ -5,7 +5,7 @@
 <div class="card shadow-sm contextual-quick-actions">
   <div class="card-header bg-gradient-primary text-white d-flex justify-content-between align-items-center">
     <div>
-      <h5 class="mb-0"><i class="bi bi-lightning-charge"></i> {% if contextual_actions %}Next Best Actions{% else %}Quick Actions{% endif %}</h5>
+      <h5 class="mb-0"><i class="bi bi-lightning-charge"></i> {% if contextual_actions %}{% trans "Next Best Actions" %}{% else %}{% trans "Quick Actions" %}{% endif %}</h5>
       <div class="small opacity-75">{% if contextual_actions %}Role-aware actions ranked by urgency and workflow state{% else %}Legacy shortcut grid{% endif %}</div>
     </div>
     <span class="rmc-badge quick-actions-badge" style="background: var(--hairline); color: var(--header-brand-fg, #fff);">{% if contextual_actions %}{{ contextual_actions|length }}{% else %}{{ quick_actions|length|default:10 }}{% endif %}</span>
@@ -19,7 +19,7 @@
         <strong>{{ featured.label }}</strong>
         <p class="mb-0">{{ featured.reason|default:"Most important next step right now." }}</p>
       </div>
-      <a href="{{ featured.url }}" class="btn btn-primary btn-sm">Open</a>
+      <a href="{{ featured.url }}" class="btn btn-primary btn-sm">{% trans "Open" %}</a>
     </div>
     {% endwith %}
     <div class="contextual-actions-panel">
@@ -46,37 +46,29 @@
       <a href="{% url 'accounts:rbac' %}" class="quick-action-item">
         <div class="quick-action-icon bg-primary"><i class="bi bi-person-plus"></i></div>
         <div class="quick-action-content">
-          <div class="quick-action-title">Add User</div>
-          <div class="quick-action-desc">RBAC &amp; access control</div>
+          <div class="quick-action-title">{% trans "Add User" %}</div>
+          <div class="quick-action-desc">{% trans "RBAC &amp; access control" %}</div>
         </div>
       </a>
       <a href="{% url 'accounts:backend_student_create' %}" class="quick-action-item">
         <div class="quick-action-icon bg-success"><i class="bi bi-mortarboard"></i></div>
         <div class="quick-action-content">
-          <div class="quick-action-title">Add {% term "student" capitalize=True %}</div>
-          <div class="quick-action-desc">New enrollment</div>
+          <div class="quick-action-title">{% blocktrans %}Add{% endblocktrans %} {% term "student" capitalize=True %}</div>
+          <div class="quick-action-desc">{% trans "New enrollment" %}</div>
         </div>
       </a>
       <a href="{% url 'accounts:backend_teacher_create' %}" class="quick-action-item">
         <div class="quick-action-icon bg-info"><i class="bi bi-easel"></i></div>
         <div class="quick-action-content">
-          <div class="quick-action-title">Add {% term "teacher" capitalize=True %}</div>
-          <div class="quick-action-desc">New staff member</div>
+          <div class="quick-action-title">{% blocktrans %}Add{% endblocktrans %} {% term "teacher" capitalize=True %}</div>
+          <div class="quick-action-desc">{% trans "New staff member" %}</div>
         </div>
       </a>
       <a href="{% url 'finance:dashboard' %}" class="quick-action-item">
-        <div class="quick-action-icon bg-warning"><i class="bi bi-receipt"></i></div>
-        <div class="quick-action-content">
-          <div class="quick-action-title">Create Invoice</div>
-          <div class="quick-action-desc">New billing</div>
-        </div>
+        {% trans "Create Invoice New billing" %}
       </a>
       <a href="{% url 'studio_os:output' %}" class="quick-action-item">
-        <div class="quick-action-icon bg-secondary"><i class="bi bi-file-earmark-text"></i></div>
-        <div class="quick-action-content">
-          <div class="quick-action-title">View Reports</div>
-          <div class="quick-action-desc">Report library</div>
-        </div>
+        {% trans "View Reports Report library" %}
       </a>
     </div>
     {% endif %}
@@ -90,6 +82,6 @@
     {% else %}
     <a href="{% url 'siteconfig:console_domains_hub' %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-grid"></i> {% trans "Config center" %}</a>
     {% endif %}
-    <a href="{% url 'accounts:rbac' %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-people-fill"></i> RBAC</a>
+    <a href="{% url 'accounts:rbac' %}" class="btn btn-sm btn-outline-secondary">{% trans "RBAC" %}</a>
   </div>
 </div>

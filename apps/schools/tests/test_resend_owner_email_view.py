@@ -112,3 +112,30 @@ class ResendOwnerEmailViewTests(TestCase):
             resp = resend_owner_setup_email_view(req, school_id=str(self.school.pk))
         send.assert_called_once_with(str(self.school.pk), "owner@x.com")
         self.assertEqual(resp.status_code, 302)
+
+    def test_partial_owner_selection_passes_user_ids(self):
+        owner_a = User.objects.create_user(
+            username="owna", email="a@x.com", password="pass12345678", role=User.Role.ADMIN,
+        )
+        owner_b = User.objects.create_user(
+            username="ownb", email="b@x.com", password="pass12345678", role=User.Role.ADMIN,
+        )
+        for user in (owner_a, owner_b):
+            SchoolMembership.objects.create(
+                user=user,
+                school=self.school,
+                role=User.Role.ADMIN,
+                is_school_owner=True,
+                suspended_at=None,
+            )
+        req = self.factory.post(
+            f"/super/schools/{self.school.pk}/resend-owner-setup-email/",
+            {"owner_user_ids": [str(owner_a.pk)]},
+        )
+        req.user = self.operator
+        req.session = {}
+        req._messages = FallbackStorage(req)
+        with mock.patch(_DISPATCH, return_value={"found": True, "recipients": 1, "sent": 1, "configured": True}) as disp:
+            resp = resend_owner_setup_email_view(req, school_id=str(self.school.pk))
+        disp.assert_called_once_with(self.school, owner_user_ids=[owner_a.pk])
+        self.assertEqual(resp.status_code, 302)

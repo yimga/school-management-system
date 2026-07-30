@@ -1,0 +1,33 @@
+/**
+ * Tenant dashboard balance — centered KPI grids and bento cards on role-home surfaces.
+ */
+html[data-rmc-tp-v3-shell="1"] .tp-workflow-metrics,
+html[data-rmc-tp-v3-shell="1"] .rmc-preview-live-teacher .rmc-dh-metric-grid,
+html[data-rmc-tp-v3-shell="1"] .rmc-dh-metric-grid,
+html[data-rmc-tp-v3-shell="1"] .proof-strip,
+html[data-rmc-tp-v3-shell="1"] .rmc-bento-grid {
+  justify-content: center;
+}
+
+html[data-rmc-tp-v3-shell="1"] .tp-workflow-metric,
+html[data-rmc-tp-v3-shell="1"] .rmc-dh-metric,
+html[data-rmc-tp-v3-shell="1"] .proof-strip-card,
+html[data-rmc-tp-v3-shell="1"] .rmc-bento-grid > .rmc-card {
+  text-align: center;
+  align-items: center;
+}
+
+html[data-rmc-tp-v3-shell="1"] .tp-workflow-metric strong,
+html[data-rmc-tp-v3-shell="1"] .rmc-dh-metric__value {
+  display: block;
+  margin-inline: auto;
+}
+
+html[data-rmc-tp-v3-shell="1"] .rmc-dpk-card__grid {
+  justify-content: center;
+}
+
+html[data-rmc-tp-v3-shell="1"] .container-fluid.content-max-960 {
+  max-width: min(960px, 100%);
+  margin-inline: auto;
+}

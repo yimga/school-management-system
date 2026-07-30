@@ -114,6 +114,38 @@ html[data-rmc-isomorphic-template="operator-control-plane"]
     overflow: hidden;
   }
 
+  html[data-rmc-isomorphic-template="operator-control-plane"]
+    body.control-plane-shell
+    .rmc-app-shell[data-rmc-app-shell-copilot="1"]
+    > .rmc-app-shell__copilot
+    .lx-copilot,
+  html[data-rmc-isomorphic-template="operator-control-plane"]
+    body.control-plane-shell
+    .rmc-app-shell[data-rmc-app-shell-copilot="1"]
+    > .rmc-app-shell__copilot
+    .lx-copilot__expanded {
+    min-height: 0;
+    max-height: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  html[data-rmc-isomorphic-template="operator-control-plane"]
+    body.control-plane-shell
+    .rmc-app-shell:has(> .rmc-app-shell__copilot)
+    > .rmc-app-shell__copilot
+    .lx-copilot,
+  html[data-rmc-isomorphic-template="operator-control-plane"]
+    body.control-plane-shell
+    .rmc-app-shell:has(> .rmc-app-shell__copilot)
+    > .rmc-app-shell__copilot
+    .lx-copilot__expanded {
+    min-height: 0;
+    max-height: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
   .rmc-copilot-mobile-fab {
     display: none;
     position: fixed;

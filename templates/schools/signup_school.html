@@ -341,16 +341,16 @@
                 class="form-select rmc-signup-input rmc-signup-vendor-select"
                 aria-label="{% trans 'Migrating from another SIS' %}">
           <option value="">{% trans "No — starting fresh" %}</option>
-          <option value="powerschool" {% if migration_vendor == 'powerschool' %}selected{% endif %}>PowerSchool</option>
-          <option value="blackbaud" {% if migration_vendor == 'blackbaud' %}selected{% endif %}>Blackbaud</option>
-          <option value="veracross" {% if migration_vendor == 'veracross' %}selected{% endif %}>Veracross</option>
-          <option value="infinite_campus" {% if migration_vendor == 'infinite_campus' %}selected{% endif %}>Infinite Campus</option>
-          <option value="alma" {% if migration_vendor == 'alma' %}selected{% endif %}>Alma SIS</option>
-          <option value="facts" {% if migration_vendor == 'facts' %}selected{% endif %}>FACTS / RenWeb</option>
-          <option value="skyward" {% if migration_vendor == 'skyward' %}selected{% endif %}>Skyward</option>
-          <option value="managebac" {% if migration_vendor == 'managebac' %}selected{% endif %}>ManageBac</option>
-          <option value="toddle" {% if migration_vendor == 'toddle' %}selected{% endif %}>Toddle</option>
-          <option value="oneroster" {% if migration_vendor == 'oneroster' %}selected{% endif %}>OneRoster (CSV)</option>
+          <option value="powerschool" {% if migration_vendor == 'powerschool' %}selected{% endif %}>{% trans "PowerSchool" %}</option>
+          <option value="blackbaud" {% if migration_vendor == 'blackbaud' %}selected{% endif %}>{% trans "Blackbaud" %}</option>
+          <option value="veracross" {% if migration_vendor == 'veracross' %}selected{% endif %}>{% trans "Veracross" %}</option>
+          <option value="infinite_campus" {% if migration_vendor == 'infinite_campus' %}selected{% endif %}>{% trans "Infinite Campus" %}</option>
+          <option value="alma" {% if migration_vendor == 'alma' %}selected{% endif %}>{% trans "Alma SIS" %}</option>
+          <option value="facts" {% if migration_vendor == 'facts' %}selected{% endif %}>{% trans "FACTS / RenWeb" %}</option>
+          <option value="skyward" {% if migration_vendor == 'skyward' %}selected{% endif %}>{% trans "Skyward" %}</option>
+          <option value="managebac" {% if migration_vendor == 'managebac' %}selected{% endif %}>{% trans "ManageBac" %}</option>
+          <option value="toddle" {% if migration_vendor == 'toddle' %}selected{% endif %}>{% trans "Toddle" %}</option>
+          <option value="oneroster" {% if migration_vendor == 'oneroster' %}selected{% endif %}>{% trans "OneRoster (CSV)" %}</option>
           <option value="csv" {% if migration_vendor == 'csv' %}selected{% endif %}>{% trans "Generic spreadsheets" %}</option>
           <option value="other" {% if migration_vendor == 'other' %}selected{% endif %}>{% trans "Other (we'll match it)" %}</option>
         </select>

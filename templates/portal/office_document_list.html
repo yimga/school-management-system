@@ -20,7 +20,7 @@
   {% endif %}
   <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
     <caption class="visually-hidden">{% trans "Office Documents" %}</caption>
-    <thead><tr><th scope="col">Title</th><th scope="col">Audience</th><th scope="col">Updated</th><th scope="col"></th></tr></thead>
+    <thead><tr><th scope="col">{% trans "Title" %}</th><th scope="col">{% trans "Audience" %}</th><th scope="col">{% trans "Updated" %}</th><th scope="col"></th></tr></thead>
     <tbody>
       {% for doc in documents %}
       <tr data-rmc-row-detail="1"
@@ -34,7 +34,7 @@
         <td data-label="{% trans 'Actions' %}" class="text-nowrap">
           <a class="btn btn-sm btn-primary" href="{% url 'kb:office_document_open' doc.id %}">{% trans "Open" %}</a>
           <a class="btn btn-sm btn-outline-danger" href="{% url 'kb:office_document_preview_pdf' doc.id %}" target="_blank" rel="noopener">PDF</a>
-          <a class="btn btn-sm btn-outline-secondary" href="{% url 'kb:office_document_download' doc.id %}?format=docx">DOCX</a>
+          <a class="btn btn-sm btn-outline-secondary" href="{% url 'kb:office_document_download' doc.id %}?format=docx">{% trans "DOCX" %}</a>
         </td>
       </tr>
       {% empty %}

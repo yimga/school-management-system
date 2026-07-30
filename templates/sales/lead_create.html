@@ -35,7 +35,7 @@
       <input class="form-control" id="decision_maker" name="decision_maker" maxlength="200" placeholder="{% trans 'Name or title' %}">
     </div>
     <div class="mb-2">
-      <label class="form-label" for="deal_owner_id">{% trans "Deal owner" %} (staff)</label>
+      <label class="form-label" for="deal_owner_id">{% trans "Deal owner" %} {% trans "(staff)" %}</label>
       <select class="form-select" name="deal_owner_id" id="deal_owner_id">
         <option value="">—</option>
         {% for u in staff_owners %}

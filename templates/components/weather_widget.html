@@ -1,10 +1,10 @@
-{% load static %}
+{% load static  i18n%}
 <!-- Weather and daily message card -->
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="weather-widget-card" data-weather-widget data-weather-endpoint="{% url 'api_weather_context' %}">
   <div class="weather-widget-card__header">
     <div>
-      <h6 class="weather-widget-card__title">Today</h6>
+      <h6 class="weather-widget-card__title">{% trans "Today" %}</h6>
       <div class="weather-widget-card__date" data-weather-current-date>--</div>
     </div>
     <div class="weather-widget-card__status">

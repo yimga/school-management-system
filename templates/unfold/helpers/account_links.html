@@ -1,5 +1,6 @@
 {% load i18n %}
 {% url 'accounts:logout' as logout_url %}
+{# i18n-allow: material-symbol-ligature #}
 <a href="{{ logout_url }}"
    class="mx-1 px-3 py-2 rounded-default hover:bg-base-100 dark:hover:bg-base-700 text-font-default-light dark:text-font-default-dark flex items-center gap-2"
    data-rmc-nav-logout="1"
@@ -7,6 +8,7 @@
     <span class="material-symbols-outlined text-base leading-none" aria-hidden="true">logout</span>
     <span>{% trans "Log out" %}</span>
 </a>
+{# i18n-allow: material-symbol-ligature #}
 <a href="{{ logout_url }}?forget_device=1"
    class="mx-1 px-3 py-2 rounded-default hover:bg-base-100 dark:hover:bg-base-700 text-font-default-light dark:text-font-default-dark flex items-center gap-2"
    role="menuitem">
@@ -14,6 +16,7 @@
     <span>{% trans "Log out and forget this browser" %}</span>
 </a>
 {% url 'admin:password_change' as password_change_url %}
+{# i18n-allow: material-symbol-ligature #}
 <a href="{{ password_change_url }}"
    class="mx-1 px-3 py-2 rounded-default hover:bg-base-100 dark:hover:bg-base-700 text-font-default-light dark:text-font-default-dark flex items-center gap-2"
    data-rmc-nav-password="1"

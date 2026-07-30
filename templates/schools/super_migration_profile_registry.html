@@ -27,7 +27,7 @@
        button took the user to /super/). Points to the working blueprints catalog. {% endcomment %}
     <div class="mb-3">
       <p class="text-muted small mb-0">
-        <a href="{% url 'super:migration_cloud' %}">Migration Cloud</a> &rarr; Registry. See the <a href="{% url 'super:blueprints_catalog' %}">Blueprints catalog</a> for the full profile library.
+        <a href="{% url 'super:migration_cloud' %}">{% trans "Migration Cloud" %}</a> &rarr; {% trans "Registry" %}. {% blocktrans %}See the{% endblocktrans %} <a href="{% url 'super:blueprints_catalog' %}">{% trans "Blueprints catalog" %}</a> {% trans "for the full profile library." %}
       </p>
     </div>
 

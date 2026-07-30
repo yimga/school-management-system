@@ -132,6 +132,7 @@
       {% comment %} Left: Color & harmony tools {% endcomment %}
       <div class="theme-experience-left">
         <div class="theme-revert-row mb-2">
+          {# i18n-allow: material-symbol-ligature #}
           <button type="button" id="theme-revert-to-saved" class="btn btn-outline-secondary btn-sm">
             <span class="material-symbols-outlined" style="vertical-align: middle; font-size: var(--type-size-body);">undo</span>
             {% trans "Revert to saved" %}
@@ -279,12 +280,14 @@
         {% comment %} Page ends here: Back, Live preview, Save (right after Ephemeral note) {% endcomment %}
         <div class="theme-experience-actions mt-1 pt-1 border-top">
           {% if back_url %}
+          {# i18n-allow: material-symbol-ligature #}
           <a href="{{ back_url }}" class="btn btn-outline-secondary btn-sm">
             <span class="material-symbols-outlined" style="vertical-align: middle; font-size: var(--type-size-body);">arrow_back</span>
             {% trans "Back to Site Settings" %}
           </a>
           {% endif %}
           <label class="d-inline-flex align-items-center gap-1 mb-0"><input type="checkbox" id="theme-colors-preview-keep" class="me-1"> <span class="small">{% trans "Keep highlights until dismissed" %}</span></label>
+          {# i18n-allow: material-symbol-ligature #}
           <button type="button" id="theme-colors-live-preview" class="btn btn-outline-primary btn-sm">
             <span class="material-symbols-outlined" style="vertical-align: middle; font-size: var(--type-size-body);">visibility</span>
             {% trans "Live preview" %}

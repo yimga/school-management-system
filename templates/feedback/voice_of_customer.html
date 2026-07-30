@@ -15,14 +15,14 @@
 {% endif %}
 <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
   <div>
-    <h1 class="h3">Voice of Customer Center</h1>
+    <h1 class="h3">{% trans "Voice of Customer Center" %}</h1>
     <p class="text-muted mb-0">Unified help, KB, FAQ, contact/support, feedback, roadmap, and release-note loop.</p>
   </div>
   <div class="d-flex gap-2 flex-wrap">
-    <a class="btn btn-outline-secondary" href="{% url 'feedback:help_center' %}">Help center</a>
-    <a class="btn btn-outline-secondary" href="{% url 'feedback:contact_us' %}">Contact us</a>
-    <a class="btn btn-outline-secondary" href="{% url 'feedback:feature_center' %}">Feature center</a>
-    <a class="btn btn-outline-primary" href="{% url 'feedback:product_roadmap' %}">Product roadmap</a>
+    <a class="btn btn-outline-secondary" href="{% url 'feedback:help_center' %}">{% trans "Help center" %}</a>
+    <a class="btn btn-outline-secondary" href="{% url 'feedback:contact_us' %}">{% trans "Contact us" %}</a>
+    <a class="btn btn-outline-secondary" href="{% url 'feedback:feature_center' %}">{% trans "Feature center" %}</a>
+    <a class="btn btn-outline-primary" href="{% url 'feedback:product_roadmap' %}">{% trans "Product roadmap" %}</a>
   </div>
 </div>
 <div class="row g-3 mb-3">
@@ -40,23 +40,23 @@
 <form method="get" class="card card-body mb-3">
   <div class="row g-2 align-items-end">
     <div class="col-md-3">
-      <label class="form-label small" for="voc-status">Status</label>
+      <label class="form-label small" for="voc-status">{% trans "Status" %}</label>
       <input id="voc-status" class="form-control form-control-sm" name="status" value="{{ request.GET.status }}">
     </div>
     <div class="col-md-3">
-      <label class="form-label small" for="voc-role">Role</label>
+      <label class="form-label small" for="voc-role">{% trans "Role" %}</label>
       <input id="voc-role" class="form-control form-control-sm" name="role" value="{{ request.GET.role }}">
     </div>
     <div class="col-md-3">
-      <label class="form-label small" for="voc-module">Module</label>
+      <label class="form-label small" for="voc-module">{% trans "Module" %}</label>
       <input id="voc-module" class="form-control form-control-sm" name="module" value="{{ request.GET.module }}">
     </div>
     <div class="col-md-2">
-      <label class="form-label small" for="voc-severity">Severity</label>
+      <label class="form-label small" for="voc-severity">{% trans "Severity" %}</label>
       <input id="voc-severity" class="form-control form-control-sm" name="severity" value="{{ request.GET.severity }}">
     </div>
     <div class="col-md-1 d-grid">
-      <button class="btn btn-sm btn-primary" type="submit">Filter</button>
+      <button class="btn btn-sm btn-primary" type="submit">{% trans "Filter" %}</button>
     </div>
   </div>
 </form>
@@ -67,7 +67,7 @@
       <div class="table-responsive">
         <table class="table table-sm align-middle table-family rmc-data-table mb-0" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <caption class="visually-hidden">{% trans "Triage Queue" %}</caption>
-          <thead><tr><th scope="col">Title</th><th scope="col">School</th><th scope="col">Role</th><th scope="col">Module</th><th scope="col">Source</th><th scope="col">Support</th><th scope="col">Severity</th><th scope="col">Status</th><th scope="col">Action</th></tr></thead>
+          <thead><tr><th scope="col">{% trans "Title" %}</th><th scope="col">{% trans "School" %}</th><th scope="col">{% trans "Role" %}</th><th scope="col">{% trans "Module" %}</th><th scope="col">{% trans "Source" %}</th><th scope="col">{% trans "Support" %}</th><th scope="col">{% trans "Severity" %}</th><th scope="col">{% trans "Status" %}</th><th scope="col">{% trans "Action" %}</th></tr></thead>
           <tbody>
           {% for item in feedback_items %}
             <tr>
@@ -97,8 +97,8 @@
 <form method="post" action="{% url 'feedback:operator_feedback_action' item.pk %}" class="d-flex gap-1">
                   {% csrf_token %}
                   <input type="hidden" name="status" value="triaged">
-                  <button class="btn btn-sm btn-outline-primary" type="submit">Triage</button>
-                  <button class="btn btn-sm btn-outline-secondary" name="action" value="convert" type="submit">Convert</button>
+                  <button class="btn btn-sm btn-outline-primary" type="submit">{% trans "Triage" %}</button>
+                  <button class="btn btn-sm btn-outline-secondary" name="action" value="convert" type="submit">{% trans "Convert" %}</button>
                 </form>
             </div>
           </details></td>

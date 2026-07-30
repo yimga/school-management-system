@@ -349,7 +349,26 @@ class Day1LogoUploadViewTests(TestCase):
         ):
             resp = TenantStudioDay1Act1LogoUploadView.as_view()(request)
         self.assertEqual(resp.status_code, 403)
+        self.assertEqual(resp["Content-Type"], "application/json")
+        import json as _json
+        payload = _json.loads(resp.content.decode("utf-8"))
+        self.assertFalse(payload["ok"])
+        self.assertEqual(payload["error_code"], "forbidden")
         self.assertFalse(school.logo_url)
+
+    def test_unauthenticated_post_returns_json_401(self):
+        uploaded = SimpleUploadedFile("logo.png", _TINY_PNG_BYTES, content_type="image/png")
+        request = self.factory.post(
+            "/siteconfig/studio/day1/act1/logo-upload/",
+            {"logo": uploaded},
+        )
+        request.school = FakeSchool()
+        from django.contrib.auth.models import AnonymousUser
+
+        request.user = AnonymousUser()
+        resp = TenantStudioDay1Act1LogoUploadView.as_view()(request)
+        self.assertEqual(resp.status_code, 401)
+        self.assertEqual(resp["Content-Type"], "application/json")
 
     def test_no_school_on_request_rejected_403(self):
         uploaded = SimpleUploadedFile("logo.png", _TINY_PNG_BYTES, content_type="image/png")

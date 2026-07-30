@@ -7,18 +7,18 @@
   <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="theme-preview-card" data-current-role="{{ current_role }}">
     <header>
-      <h2>Live screen preview</h2>
+      <h2>{% trans "Live screen preview" %}</h2>
       <p>Auto-updates while you edit Theme & Experience fields. Switch between desktop, tablet, and mobile layouts.</p>
     </header>
 
     <div class="preview-role-selector">
-      <label for="previewRoleSelect"><strong>Preview as:</strong></label>
+      <label for="previewRoleSelect">{% trans "Preview as:" %}</label>
       <select id="previewRoleSelect" data-current-role="{{ current_role }}">
-        <option value="Administrator"{% if current_role == "Administrator" %} selected{% endif %}>Administrator</option>
-        <option value="Principal"{% if current_role == "Principal" %} selected{% endif %}>Principal</option>
-        <option value="Teacher"{% if current_role == "Teacher" %} selected{% endif %}>Teacher</option>
-        <option value="Finance"{% if current_role == "Finance" %} selected{% endif %}>Finance</option>
-        <option value="Support"{% if current_role == "Support" %} selected{% endif %}>Support</option>
+        <option value="Administrator"{% if current_role == "Administrator" %} selected{% endif %}>{% trans "Administrator" %}</option>
+        <option value="Principal"{% if current_role == "Principal" %} selected{% endif %}>{% trans "Principal" %}</option>
+        <option value="Teacher"{% if current_role == "Teacher" %} selected{% endif %}>{% trans "Teacher" %}</option>
+        <option value="Finance"{% if current_role == "Finance" %} selected{% endif %}>{% trans "Finance" %}</option>
+        <option value="Support"{% if current_role == "Support" %} selected{% endif %}>{% trans "Support" %}</option>
       </select>
       <span class="preview-role-note" id="previewRoleLabel">Inherits {{ current_role }} access.</span>
     </div>
@@ -52,7 +52,7 @@
             <strong>Role dashboard</strong>
             <p>Brand, palette, status, and action colors applied together.</p>
           </div>
-          <button type="button" class="preview-primary-action">Primary action</button>
+          <button type="button" class="preview-primary-action">{% trans "Primary action" %}</button>
         </div>
         <div class="preview-topbar">
           <span class="preview-chip preview-chip-active">Live metrics</span>
@@ -91,7 +91,7 @@
           </div>
           <table aria-label="{% trans 'Palette table preview' %}">
             <thead>
-              <tr><th scope="col">Student</th><th scope="col">Status</th><th scope="col">Balance</th></tr>
+              <tr><th scope="col">{% trans "Student" %}</th><th scope="col">{% trans "Status" %}</th><th scope="col">{% trans "Balance" %}</th></tr>
             </thead>
             <tbody>
               <tr><td>Ada</td><td><span class="preview-status-pill">Active</span></td><td>$0</td></tr>
@@ -101,10 +101,9 @@
         </div>
         <form class="preview-form" aria-label="{% trans 'Palette form preview' %}">
           <label>
-            <span>Family note</span>
-            <input type="text" value="Meet after school" readonly>
+            {% trans "Family note" %}
           </label>
-          <button type="button" class="preview-secondary-action">Save draft</button>
+          <button type="button" class="preview-secondary-action">{% trans "Save draft" %}</button>
         </form>
       </div>
     </div>
@@ -117,7 +116,7 @@
     </div>
     <footer>
       <button type="button" class="btn btn-sm btn-outline-primary" id="preview-reset" data-reset-message="Preview reset" data-default-mode="desktop">
-        Reset preview
+        {% trans "Reset preview" %}
       </button>
     </footer>
   </div>

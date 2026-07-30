@@ -21,12 +21,12 @@
       <thead>
         <tr>
           <th scope="col">ID</th>
-          <th scope="col">Entity</th>
-          <th scope="col">Status</th>
-          <th scope="col">Reported</th>
-          <th scope="col">Client (offline) data</th>
-          <th scope="col">Server data</th>
-          <th scope="col">Action</th>
+          <th scope="col">{% trans "Entity" %}</th>
+          <th scope="col">{% trans "Status" %}</th>
+          <th scope="col">{% trans "Reported" %}</th>
+          <th scope="col">{% trans "Client (offline) data" %}</th>
+          <th scope="col">{% trans "Server data" %}</th>
+          <th scope="col">{% trans "Action" %}</th>
         </tr>
       </thead>
       <tbody>
@@ -46,7 +46,7 @@
             <form method="post" action="{% url 'super:sync_repair' school_id=school.id %}" class="d-inline">
               {% csrf_token %}
               <input type="hidden" name="conflict_id" value="{{ c.id }}">
-              <button type="submit" class="btn btn-sm btn-danger">Force Overwrite (client)</button>
+              <button type="submit" class="btn btn-sm btn-danger">{% trans "Force Overwrite (client)" %}</button>
             </form>
             {% else %}
             —

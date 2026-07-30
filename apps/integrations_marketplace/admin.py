@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import reverse
 from django.utils.html import format_html
 
-from config.admin import register_both, register_platform_admin
+from config.admin import register_both, register_platform_admin, tenant_admin_user_has_access
 
 from .models import (
     AppAuditLog,
@@ -31,6 +31,28 @@ class ProxyOwnerAdmin(admin.ModelAdmin):
     @admin.display(description="Record")
     def proxy_owner_label(self, obj):
         return str(obj)
+
+
+class TenantIntegrationAdminMixin:
+    """Tenant /admin/ integration models: owners and admin-like roles may view/change."""
+
+    def _tenant_integration_access(self, request):
+        return tenant_admin_user_has_access(request)
+
+    def has_module_permission(self, request):
+        return self._tenant_integration_access(request)
+
+    def has_view_permission(self, request, obj=None):
+        return self._tenant_integration_access(request)
+
+    def has_change_permission(self, request, obj=None):
+        return self._tenant_integration_access(request)
+
+    def has_add_permission(self, request):
+        return self._tenant_integration_access(request)
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 class MarketplaceAppAdmin(ProxyOwnerAdmin):
@@ -549,7 +571,7 @@ class AppInstallationMarketplaceAdmin(ProxyOwnerAdmin):
 register_platform_admin(AppInstallation, AppInstallationMarketplaceAdmin)
 
 
-class ServiceIntegrationMarketplaceAdmin(ProxyOwnerAdmin):
+class ServiceIntegrationMarketplaceAdmin(TenantIntegrationAdminMixin, ProxyOwnerAdmin):
     """Tenant posture columns for school-scoped service integrations (batch 16 #155)."""
 
     change_form_template = (
@@ -587,7 +609,7 @@ class ServiceIntegrationMarketplaceAdmin(ProxyOwnerAdmin):
         return bool((getattr(obj, "endpoint_url", None) or "").strip())
 
 
-class IntegrationMarketplaceAdmin(ProxyOwnerAdmin):
+class IntegrationMarketplaceAdmin(TenantIntegrationAdminMixin, ProxyOwnerAdmin):
     """P3: escape hatch to feature control + API Center on tenant hosts."""
 
     list_display = (

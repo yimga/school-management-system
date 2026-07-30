@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load static icon_compat %}
+{% load static icon_compat  i18n%}
 
 {% block title %}FAQ - Help Center{% endblock %}
 
@@ -16,13 +16,13 @@
             <div class="card shadow-sm">
                 <div class="card-header bg-primary text-white">
                     <h5 class="mb-0">
-                        <i class="bi bi-list-ul"></i> Categories
+                        {% trans "Categories" %}
                     </h5>
                 </div>
                 <div class="list-group list-group-flush">
                     <a href="{% url 'kb:faq_list' %}" 
                        class="list-group-item list-group-item-action {% if not category %}active{% endif %}">
-                        <i class="bi bi-question-circle"></i> All FAQs
+                        <i class="bi bi-question-circle"></i> {% trans "All FAQs" %}
                         <span class="rmc-badge rmc-badge--brand float-right">{{ all_count }}</span>
                     </a>
                     {% for cat in categories %}
@@ -56,13 +56,13 @@
             <div class="card shadow-sm mt-3 bg-light">
                 <div class="card-body">
                     <h6 class="card-title">
-                        <i class="bi bi-lightbulb text-warning"></i> Tips
+                        {% trans "Tips" %}
                     </h6>
                     <ul class="small">
                         <li>Browse by category</li>
                         <li>Use search bar above</li>
                         <li>Vote helpful FAQs</li>
-                        <li><a href="{% url 'kb:faq_submit' %}">Submit your question</a></li>
+                        <li><a href="{% url 'kb:faq_submit' %}">{% trans "Submit your question" %}</a></li>
                     </ul>
                 </div>
             </div>
@@ -73,19 +73,18 @@
             <!-- Header -->
             <div class="mb-4">
                 <h1 class="h3 mb-2">
-                    <i class="bi bi-question-circle text-primary"></i>
-                    Frequently Asked Questions
+                    {% trans "Frequently Asked Questions" %}
                 </h1>
                 {% if category %}
                 <p class="text-muted">
                     <strong>Category:</strong> {{ category.name }}
-                    <a href="{% url 'kb:faq_list' %}" class="rmc-badge rmc-badge--warning">Clear filter</a>
+                    <a href="{% url 'kb:faq_list' %}" class="rmc-badge rmc-badge--warning">{% trans "Clear filter" %}</a>
                 </p>
                 {% endif %}
                 {% if query %}
                 <p class="text-muted">
                     <strong>Search Results for:</strong> "{{ query }}"
-                    <a href="{% url 'kb:faq_list' %}" class="rmc-badge rmc-badge--warning">Clear search</a>
+                    <a href="{% url 'kb:faq_list' %}" class="rmc-badge rmc-badge--warning">{% trans "Clear search" %}</a>
                 </p>
                 {% endif %}
             </div>
@@ -106,7 +105,7 @@
                                     {{ faq.question }}
                                     {% if faq.is_featured %}
                                     <span class="rmc-badge rmc-badge--success ml-2">
-                                        <i class="bi bi-star"></i> Featured
+                                        <i class="bi bi-star"></i> {% trans "Featured" %}
                                     </span>
                                     {% endif %}
                                 </button>
@@ -137,19 +136,17 @@
                                                         data-faq-id="{{ faq.id }}" 
                                                         data-vote="helpful"
                                                         title="Mark as helpful">
-                                                    <i class="bi bi-hand-thumbs-up"></i> Helpful ({{ faq.helpful_count }})
-                                                </button>
+                                                    <i class="bi bi-hand-thumbs-up"></i> {% blocktrans with count=faq.helpful_count %}Helpful ({{ count }}){% endblocktrans %}</button>
                                                 <button type="button" 
                                                         class="btn btn-outline-danger vote-btn" 
                                                         data-faq-id="{{ faq.id }}" 
                                                         data-vote="unhelpful"
                                                         title="Mark as unhelpful">
-                                                    <i class="bi bi-hand-thumbs-down"></i> Unhelpful ({{ faq.unhelpful_count }})
-                                                </button>
+                                                    <i class="bi bi-hand-thumbs-down"></i> {% blocktrans with count=faq.unhelpful_count %}Unhelpful ({{ count }}){% endblocktrans %}</button>
                                             </div>
                                             {% else %}
                                             <small class="text-muted">
-                                                <a href="{% url 'accounts:login' %}">Login</a> to vote
+                                                <a href="{% url 'accounts:login' %}">{% trans "Login" %}</a> to vote
                                             </small>
                                             {% endif %}
                                         </div>
@@ -184,16 +181,16 @@
             <!-- CTA: Submit FAQ -->
             <div class="rmc-banner border border-primary mt-4">
                 <h6 class="alert-heading">
-                    <i class="bi bi-plus-circle text-primary"></i> Couldn't find your answer?
+                    {% trans "Couldn't find your answer?" %}
                 </h6>
                 <p>Submit your question and our team will add it to the FAQ!</p>
                 {% if user.is_authenticated %}
                 <a href="{% url 'kb:faq_submit' %}" class="btn btn-primary btn-sm">
-                    <i class="bi bi-plus-lg"></i> Submit a Question
+                    {% trans "Submit a Question" %}
                 </a>
                 {% else %}
                 <a href="{% url 'accounts:login' %}?next={% url 'kb:faq_submit' %}" class="btn btn-primary btn-sm">
-                    <i class="bi bi-box-arrow-in-right"></i> Login & Submit
+                    {% trans "Login & Submit" %}
                 </a>
                 {% endif %}
             </div>

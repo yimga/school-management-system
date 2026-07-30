@@ -1,4 +1,5 @@
 {% extends "backend_base.html" %}
+{% load i18n %}
 {% block title %}Feedback Center{% endblock %}
 {% block backend_page %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
@@ -9,16 +10,16 @@
 <div class="container-fluid py-3" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-rmc-section-nav="off">
   <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
     <div>
-      <h1 class="h3 mb-1">Help + Product Voice Center</h1>
+      <h1 class="h3 mb-1">{% trans "Help + Product Voice Center" %}</h1>
       <p class="text-muted mb-0">Search help, contact support, request features, follow decisions, and see what shipped.</p>
     </div>
     <div class="d-flex gap-2 flex-wrap">
-      {% if support_links.kb_home %}<a class="btn btn-outline-secondary" href="{{ support_links.kb_home }}">Knowledge base</a>{% endif %}
-      {% if support_links.faq_list %}<a class="btn btn-outline-secondary" href="{{ support_links.faq_list }}">FAQ</a>{% endif %}
-      {% if support_links.portal_help %}<a class="btn btn-outline-secondary" href="{{ support_links.portal_help }}">Support hub</a>{% endif %}
-      {% if support_links.contact_center %}<a class="btn btn-outline-secondary" href="{{ support_links.contact_center }}">Contact us</a>{% endif %}
-      {% if support_links.feature_center %}<a class="btn btn-outline-primary" href="{{ support_links.feature_center }}">Feature center</a>{% endif %}
-      <a class="btn btn-outline-primary" href="{% url 'feedback:school_roadmap' %}">Roadmap</a>
+      {% if support_links.kb_home %}<a class="btn btn-outline-secondary" href="{{ support_links.kb_home }}">{% trans "Knowledge base" %}</a>{% endif %}
+      {% if support_links.faq_list %}<a class="btn btn-outline-secondary" href="{{ support_links.faq_list }}">{% trans "FAQ" %}</a>{% endif %}
+      {% if support_links.portal_help %}<a class="btn btn-outline-secondary" href="{{ support_links.portal_help }}">{% trans "Support hub" %}</a>{% endif %}
+      {% if support_links.contact_center %}<a class="btn btn-outline-secondary" href="{{ support_links.contact_center }}">{% trans "Contact us" %}</a>{% endif %}
+      {% if support_links.feature_center %}<a class="btn btn-outline-primary" href="{{ support_links.feature_center }}">{% trans "Feature center" %}</a>{% endif %}
+      <a class="btn btn-outline-primary" href="{% url 'feedback:school_roadmap' %}">{% trans "Roadmap" %}</a>
     </div>
   </div>
 
@@ -26,14 +27,14 @@
     <div class="card-body">
       <div class="row g-3 align-items-end">
         <div class="col-lg-6">
-          <h2 class="h5 mb-1">Before you file it, check the help loop</h2>
+          <h2 class="h5 mb-1">{% trans "Before you file it, check the help loop" %}</h2>
           <p class="text-muted mb-0">The center now connects KB, FAQ, support tickets, feedback, roadmap, and release notes so support issues do not get buried in the product backlog.</p>
         </div>
         <form class="col-lg-6" method="get" action="{% url 'feedback:school_feedback' %}">
-          <label class="form-label small fw-semibold" for="feedback-help-q">Search help and feedback context</label>
+          <label class="form-label small fw-semibold" for="feedback-help-q">{% trans "Search help and feedback context" %}</label>
           <div class="input-group">
             <input id="feedback-help-q" class="form-control" type="search" name="q" value="{{ help_resources.query }}" placeholder="Payments, imports, gradebook, login...">
-            <button class="btn btn-primary" type="submit">Search</button>
+            <button class="btn btn-primary" type="submit">{% trans "Search" %}</button>
           </div>
         </form>
       </div>
@@ -82,9 +83,9 @@
             <input type="hidden" name="form_kind" value="feedback">
             {{ feedback_form.as_p }}
             <div class="d-flex gap-2 flex-wrap">
-              <button class="btn btn-primary" type="submit">Submit</button>
+              <button class="btn btn-primary" type="submit">{% trans "Submit" %}</button>
               {% if support_links.support_request %}
-                <a class="btn btn-outline-secondary" href="{{ support_links.support_request }}">Contact support instead</a>
+                <a class="btn btn-outline-secondary" href="{{ support_links.support_request }}">{% trans "Contact support instead" %}</a>
               {% endif %}
             </div>
           </form>
@@ -102,8 +103,8 @@
             <input type="hidden" name="deflection_acknowledged" data-deflection-ack value="0">
             <input type="hidden" name="form_kind" value="feature">
             {{ feature_form.as_p }}
-            <button class="btn btn-primary" type="submit">Submit feature request</button>
-            {% if support_links.feature_center %}<a class="btn btn-outline-secondary ms-2" href="{{ support_links.feature_center }}">Open feature center</a>{% endif %}
+            <button class="btn btn-primary" type="submit">{% trans "Submit feature request" %}</button>
+            {% if support_links.feature_center %}<a class="btn btn-outline-secondary ms-2" href="{{ support_links.feature_center }}">{% trans "Open feature center" %}</a>{% endif %}
           </form>
         </div>
       </div>
@@ -112,7 +113,7 @@
 
   <div class="row g-3 mt-1">
     <section class="col-xl-4 rmc-reveal">
-      <h2 class="h5">My and School Requests</h2>
+      <h2 class="h5">{% trans "My and School Requests" %}</h2>
       <div class="list-group">
         {% for item in feedback_items %}
           <div class="list-group-item">
@@ -128,7 +129,7 @@
       </div>
     </section>
     <section class="col-xl-4 rmc-reveal">
-      <h2 class="h5">Feature Requests</h2>
+      <h2 class="h5">{% trans "Feature Requests" %}</h2>
       <div class="list-group">
         {% for item in feature_requests %}
           <div class="list-group-item">
@@ -140,7 +141,7 @@
             <form method="post" action="{% url 'feedback:vote_feature' item.pk %}">
               {% csrf_token %}
               <input type="hidden" name="next" value="{{ request.get_full_path }}">
-              <button class="btn btn-sm btn-outline-primary" type="submit">Signal priority</button>
+              <button class="btn btn-sm btn-outline-primary" type="submit">{% trans "Signal priority" %}</button>
             </form>
           </div>
         {% empty %}
@@ -149,7 +150,7 @@
       </div>
     </section>
     <section class="col-xl-4 rmc-reveal">
-      <h2 class="h5">You Said / We Did</h2>
+      <h2 class="h5">{% trans "You Said / We Did" %}</h2>
       <div class="list-group">
         {% for item in you_said_we_did %}
           <div class="list-group-item">

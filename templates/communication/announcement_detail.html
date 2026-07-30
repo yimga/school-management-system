@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load static %}
+{% load static  i18n%}
 {% load region_format %}
 
 {% block title %}{{ announcement.title }}{% endblock %}
@@ -26,12 +26,12 @@
             <span class="rmc-badge rmc-badge--success">Published</span>
             {% endif %}
             {% if can_edit %}
-            <a href="{% url 'communication:announcement_edit' announcement_id=announcement.id %}" class="btn btn-sm btn-outline-primary">Edit</a>
+            <a href="{% url 'communication:announcement_edit' announcement_id=announcement.id %}" class="btn btn-sm btn-outline-primary">{% trans "Edit" %}</a>
             {% endif %}
             {% if can_approve %}
             <form method="post" action="{% url 'communication:announcement_approve' announcement_id=announcement.id %}" class="d-inline">
               {% csrf_token %}
-              <button type="submit" class="btn btn-sm btn-success">Approve &amp; publish</button>
+              <button type="submit" class="btn btn-sm btn-success">{% trans "Approve &amp; publish" %}</button>
             </form>
             {% endif %}
           </div>
@@ -57,7 +57,7 @@
       </div>
       {% if department_announcement %}
       <div class="card shadow-sm mt-3">
-        <div class="card-header"><h5 class="mb-0">Department copy</h5></div>
+        <div class="card-header"><h5 class="mb-0">{% trans "Department copy" %}</h5></div>
         <div class="card-body">
           <p class="mb-0">{{ department_announcement.body|linebreaks }}</p>
         </div>

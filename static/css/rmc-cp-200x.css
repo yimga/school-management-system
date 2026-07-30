@@ -3266,6 +3266,7 @@ body[data-rmc-shell-main="control-plane"] .lx-audit__row--danger,
   display: flex;
   flex-direction: column;
   height: 100%;
+  min-height: 0;
 }
 .lx-copilot__collapsed {
   display: flex;
@@ -3414,6 +3415,7 @@ body[data-rmc-shell-main="control-plane"] .lx-audit__row--danger,
   display: none;
   flex-direction: column;
   height: 100%;
+  min-height: 0;
 }
 .rmc-app-shell[data-copilot="expanded"] .lx-copilot__expanded { display: flex; }
 

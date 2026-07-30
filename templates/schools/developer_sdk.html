@@ -19,7 +19,7 @@
   </header>
 
   <section class="section-shell" style="margin-bottom: 1rem;">
-    <h2 class="section-heading">Authentication</h2>
+    <h2 class="section-heading">{% trans "Authentication" %}</h2>
     <p class="section-lead">JWT-based; use the token in <code>Authorization: Bearer &lt;access_token&gt;</code>.</p>
     <ul style="margin: 0.5rem 0; padding-left: 1.25rem;">
       <li><strong>Obtain token:</strong> <code>{{ links.auth_token }}</code></li>
@@ -29,12 +29,12 @@
   </section>
 
   <section class="section-shell rmc-reveal" style="margin-bottom: 1rem;">
-    <h2 class="section-heading">OpenAPI schema</h2>
+    <h2 class="section-heading">{% trans "OpenAPI schema" %}</h2>
     <p class="section-lead">{{ links.api_schema_note }}</p>
   </section>
 
   <section class="section-shell rmc-reveal" style="margin-bottom: 1rem;">
-    <h2 class="section-heading">Interop data APIs</h2>
+    <h2 class="section-heading">{% trans "Interop data APIs" %}</h2>
     <p class="section-lead">Ed‑Fi and CEDS endpoints return paginated, mapped data (students, enrollments, grades).</p>
     <ul style="margin: 0.5rem 0; padding-left: 1.25rem;">
       <li><strong>Ed‑Fi:</strong> {{ links.interop_edfi }}</li>
@@ -43,10 +43,11 @@
   </section>
 
   <section class="section-shell rmc-reveal" style="margin-bottom: 1rem;">
-    <h2 class="section-heading">SDK repo</h2>
+    <h2 class="section-heading">{% trans "SDK repo" %}</h2>
     <p class="section-lead">Minimal client and auth helpers.</p>
-    <p><a href="{{ links.sdk_repo }}" target="_blank" rel="noopener noreferrer">RunMyCampus SDK (GitHub)</a></p>
-    <p><a href="{{ links.developer_portal }}">Back to Developer portal</a> · <a href="{{ links.sandbox }}">Sandbox</a></p>
+    {# i18n-allow: brand-proper-noun #}
+    <p><a href="{{ links.sdk_repo }}" target="_blank" rel="noopener noreferrer">{% trans "RunMyCampus SDK (GitHub)" %}</a></p>
+    <p><a href="{{ links.developer_portal }}">{% trans "Back to Developer portal" %}</a> · <a href="{{ links.sandbox }}">{% trans "Sandbox" %}</a></p>
   </section>
 </section>
 {% endblock %}

@@ -116,6 +116,7 @@
   {% endif %}
 
   <footer style="margin-top: 28px; padding-top: 14px; border-top: 1px solid var(--hairline); display: flex; justify-content: space-between; align-items: center; font-size: var(--type-size-eyebrow); color: var(--text-secondary);">
+    {# i18n-allow: admin-preview-fixture-path #}
     <span>{% trans "JSON" %}: <a href="?format=json" style="color: var(--text-primary);">/portal/super/wedge/{{ wedge.id }}/?format=json</a></span>
     <span>{% trans "API" %}: <a href="{% url 'api:super-wedge-detail' wedge.id %}" style="color: var(--text-primary);">{% url 'api:super-wedge-detail' wedge.id %}</a></span>
     <span>{% trans "Slug" %}: <code style="color: var(--text-primary);">{{ wedge.slug }}</code></span>

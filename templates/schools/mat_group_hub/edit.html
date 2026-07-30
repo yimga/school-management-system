@@ -1,4 +1,5 @@
 {% extends "control_plane_base.html" %}
+{% load i18n %}
 
 {% block title %}{{ page_title }} · MAT Hub · RunMyCampus{% endblock %}
 
@@ -6,7 +7,7 @@
 <section class="w-100 max-w-none py-3" data-rmc-scroll-policy="paginate" data-page-critical-read="1" data-rmc-width-strategy="full">
 <header class="mat-edit-header">
   <nav class="mat-edit-breadcrumb">
-    <a href="{% url 'super:mat_group_hub_dashboard' %}">MAT Hub</a>
+    <a href="{% url 'super:mat_group_hub_dashboard' %}">{% trans "MAT Hub" %}</a>
     <span>›</span>
     <strong>{{ page_title }}</strong>
   </nav>
@@ -41,35 +42,35 @@
   {% endif %}
 
   <fieldset class="mat-edit-fieldset">
-    <legend>Group</legend>
+    <legend>{% trans "Group" %}</legend>
     <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="mat-edit-row">
-      <label for="{{ form.group_id.id_for_label }}">Group ID</label>
+      <label for="{{ form.group_id.id_for_label }}">{% trans "Group ID" %}</label>
       {{ form.group_id }}
       {% if form.group_id.help_text %}<small>{{ form.group_id.help_text }}</small>{% endif %}
       {% for e in form.group_id.errors %}<p class="mat-edit-error">{{ e }}</p>{% endfor %}
     </div>
     <div class="mat-edit-row">
-      <label for="{{ form.display_name.id_for_label }}">Display name</label>
+      <label for="{{ form.display_name.id_for_label }}">{% trans "Display name" %}</label>
       {{ form.display_name }}
       {% for e in form.display_name.errors %}<p class="mat-edit-error">{{ e }}</p>{% endfor %}
     </div>
     <div class="mat-edit-row">
-      <label for="{{ form.operator_email.id_for_label }}">Operator email</label>
+      <label for="{{ form.operator_email.id_for_label }}">{% trans "Operator email" %}</label>
       {{ form.operator_email }}
       {% for e in form.operator_email.errors %}<p class="mat-edit-error">{{ e }}</p>{% endfor %}
     </div>
     <div class="mat-edit-row">
-      <label for="{{ form.region.id_for_label }}">Region</label>
+      <label for="{{ form.region.id_for_label }}">{% trans "Region" %}</label>
       {{ form.region }}
       {% for e in form.region.errors %}<p class="mat-edit-error">{{ e }}</p>{% endfor %}
     </div>
   </fieldset>
 
   <fieldset class="mat-edit-fieldset">
-    <legend>Members</legend>
+    <legend>{% trans "Members" %}</legend>
     <div class="mat-edit-row">
-      <label for="{{ form.members.id_for_label }}">Members (one per line)</label>
+      <label for="{{ form.members.id_for_label }}">{% trans "Members (one per line)" %}</label>
       {{ form.members }}
       {% if form.members.help_text %}<small>{{ form.members.help_text }}</small>{% endif %}
       {% for e in form.members.errors %}<p class="mat-edit-error">{{ e }}</p>{% endfor %}
@@ -78,7 +79,7 @@
 
   {% if not is_new %}
     <fieldset class="mat-edit-fieldset mat-edit-fieldset--danger">
-      <legend>Danger zone</legend>
+      <legend>{% trans "Danger zone" %}</legend>
       <div class="mat-edit-row mat-edit-row--check">
         {{ form.delete }}
         <label for="{{ form.delete.id_for_label }}">{{ form.delete.label }}</label>
@@ -88,10 +89,10 @@
 
   <footer class="mat-edit-actions">
     <button type="submit" class="mat-edit-button mat-edit-button--primary">
-      {% if is_new %}Add group{% else %}Save changes{% endif %}
+      {% if is_new %}{% trans "Add group" %}{% else %}{% trans "Save changes" %}{% endif %}
     </button>
     <a href="{% url 'super:mat_group_hub_dashboard' %}"
-       class="mat-edit-button mat-edit-button--ghost">Cancel</a>
+       class="mat-edit-button mat-edit-button--ghost">{% trans "Cancel" %}</a>
   </footer>
 </form>
 </section>

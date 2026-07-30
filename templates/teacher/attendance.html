@@ -38,7 +38,7 @@
       <div class="card h-100">
         <div class="card-body">
           <div class="text-muted small">Summary</div>
-          <h5 class="mb-3">This record</h5>
+          <h5 class="mb-3">{% trans "This record" %}</h5>
           <ul class="list-unstyled mb-0">
             <li><strong>Present:</strong> {{ present }}</li>
             <li><strong>Late:</strong> {{ late }}</li>
@@ -50,18 +50,18 @@
     <div class="col-md-8 rmc-reveal">
       <div class="card h-100">
         <div class="card-body">
-          <h5 class="mb-2">History</h5>
+          <h5 class="mb-2">{% trans "History" %}</h5>
           {% if logs %}
             <div class="table-responsive">
               <table class="table table-family align-middle mb-0 table-mobile-cards rmc-data-table" id="history" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
                 <caption class="visually-hidden">{% trans "History" %}</caption>
                 <thead class="table-light">
                   <tr>
-                    <th scope="col">Date</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Check-in</th>
-                    <th scope="col">Check-out</th>
-                    <th scope="col">Remarks</th>
+                    <th scope="col">{% trans "Date" %}</th>
+                    <th scope="col">{% trans "Status" %}</th>
+                    <th scope="col">{% trans "Check-in" %}</th>
+                    <th scope="col">{% trans "Check-out" %}</th>
+                    <th scope="col">{% trans "Remarks" %}</th>
                   </tr>
                 </thead>
                 <tbody>

@@ -101,6 +101,16 @@ def school_studio_hub(request: HttpRequest) -> HttpResponse:
         blockers=blockers,
     )
 
+    section_nav_items = [
+        {"id": "section-readiness", "label": _("Readiness")},
+        {"id": "section-fast-path", "label": _("Fast path")},
+        {"id": "section-launch-path", "label": _("Full launch path")},
+    ]
+    if recommendations:
+        section_nav_items.append(
+            {"id": "section-recommendations", "label": _("Recommendations")}
+        )
+
     return render_siteconfig_stem(
         request,
         "tenant_studio_hub",
@@ -120,6 +130,7 @@ def school_studio_hub(request: HttpRequest) -> HttpResponse:
             "studio_link_urls": _studio_hub_link_urls(),
             "day1_required": False,
             "day1_reset_url": _siteconfig_reverse("tenant_studio_day1_reset"),
+            "section_nav_items": section_nav_items,
             **ai_ctx,
         },
         cp_title=_("School Studio"),
@@ -316,6 +327,23 @@ class TenantStudioDay1Act3LockView(LoginRequiredMixin, View):
         )
 
 
+def _logo_upload_json_error(
+    *,
+    status: int,
+    error_code: str,
+    error_message: str,
+) -> JsonResponse:
+    """JSON-only error envelope for the Day-1 logo upload widget."""
+    return JsonResponse(
+        {
+            "ok": False,
+            "error_code": error_code,
+            "error_message": error_message,
+        },
+        status=status,
+    )
+
+
 class TenantStudioDay1Act1LogoUploadView(LoginRequiredMixin, View):
     """Act 1 — live logo upload.
 
@@ -342,22 +370,29 @@ class TenantStudioDay1Act1LogoUploadView(LoginRequiredMixin, View):
 
     http_method_names = ["post", "options"]
 
+    def handle_no_permission(self) -> JsonResponse:
+        """Never redirect to HTML login — the upload widget expects JSON only."""
+        return _logo_upload_json_error(
+            status=401,
+            error_code="unauthenticated",
+            error_message=_("Sign in again to upload your logo."),
+        )
+
+    def dispatch(self, request, *args, **kwargs):
+        if request.method.upper() == "POST" and not getattr(
+            request.user, "is_authenticated", False
+        ):
+            return self.handle_no_permission()
+        return super().dispatch(request, *args, **kwargs)
+
     def post(self, request: HttpRequest) -> HttpResponse:
         school, denied = _require_tenant_operator(request)
         if denied is not None:
-            if (
-                request.headers.get("Accept", "").startswith("application/json")
-                or request.headers.get("X-Requested-With") == "XMLHttpRequest"
-            ):
-                return JsonResponse(
-                    {
-                        "ok": False,
-                        "error_code": "forbidden",
-                        "error_message": _("School administrator access required."),
-                    },
-                    status=403,
-                )
-            return denied
+            return _logo_upload_json_error(
+                status=403,
+                error_code="forbidden",
+                error_message=_("School administrator access required."),
+            )
 
         uploaded = request.FILES.get("logo") if hasattr(request, "FILES") else None
         if uploaded is None:

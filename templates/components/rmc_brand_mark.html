@@ -53,6 +53,7 @@ why the manager topbar shipped without a real logo.
 {% firstof logo_url SITE_LOGO_URL "" as bm_logo_url %}
 {% firstof logo_dark_url SITE_LOGO_DARK_URL bm_logo_url "" as bm_logo_dark_url %}
 {% endif %}
+{# i18n-allow: brand-proper-noun #}
 {% if href %}<a href="{{ href }}" class="rmc-brand-mark-link" aria-label="{{ label|default:SITE.site_name|default:'RunMyCampus' }}">{% endif %}
 <span class="{% if bm_variant == 'lockup' %}rmc-brand-mark rmc-brand-mark--lockup{% if lockup_layout == 'inline' %} rmc-brand-mark--lockup-inline{% endif %}{% else %}rmc-brand-mark rmc-brand-mark--mark{% endif %}{% if bm_logo_url or bm_logo_dark_url %} rmc-brand-mark--has-image{% endif %}" style="--rmc-bm-size: {{ bm_size }}px;" data-rmc-brand-mark="1"{% if lockup_layout %} data-rmc-brand-lockup-layout="{{ lockup_layout }}"{% endif %}>
   <span class="rmc-brand-mark__squircle" aria-hidden="true">

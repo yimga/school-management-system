@@ -50,7 +50,7 @@
     {% endif %}
 {% include "schools/partials/wedge_super_premium_proof.html" %}
     {% if registry_url %}
-    <p class="mb-2"><a href="{{ registry_url }}">Migration Profile Registry</a> (by source system and category)</p>
+    <p class="mb-2"><a href="{{ registry_url }}">{% trans "Migration Profile Registry" %}</a> (by source system and category)</p>
     {% endif %}
 
     <div class="row g-3 mb-4 rmc-reveal-stagger">
@@ -118,11 +118,11 @@
     <summary class="small fw-semibold text-secondary">{% trans "Deep dive: exceptions, profiles, rollback, and recent runs" %}</summary>
     <div class="card shadow-sm border-0 page-family-content-card mb-4">
       <div class="card-body">
-        <h5 class="card-title">Exception queue</h5>
+        <h5 class="card-title">{% trans "Exception queue" %}</h5>
         <p class="text-muted small">Runs with row errors (PARTIAL/FAILED) require acknowledgement. Quarantined rows can be waived after review.</p>
         <div class="row g-4">
           <div class="col-lg-6">
-            <h6 class="fw-semibold">Run-level exceptions</h6>
+            <h6 class="fw-semibold">{% trans "Run-level exceptions" %}</h6>
             {% for run in exception_runs_open %}
             <div class="border rounded p-3 mb-2">
               <div class="fw-semibold">{{ run.migration_type }} — {{ run.school.name|default:"—" }}</div>
@@ -131,7 +131,7 @@
               <form method="post" action="{% url 'super:migration_exception_ack' run.id %}" class="mt-2">
                 {% csrf_token %}
                 <input type="text" name="note" class="form-control form-control-sm mb-1" placeholder="Acknowledgement note (optional)" maxlength="2000">
-                <button type="submit" class="btn btn-sm btn-outline-primary">Acknowledge &amp; close</button>
+                <button type="submit" class="btn btn-sm btn-outline-primary">{% trans "Acknowledge &amp; close" %}</button>
               </form>
             </div>
             {% empty %}
@@ -139,7 +139,7 @@
             {% endfor %}
           </div>
           <div class="col-lg-6">
-            <h6 class="fw-semibold">Quarantine rows</h6>
+            <h6 class="fw-semibold">{% trans "Quarantine rows" %}</h6>
             {% for rec in quarantine_open %}
             <div class="border rounded p-3 mb-2">
               <div class="fw-semibold">{{ rec.domain }} row {{ rec.row_index }} — {{ rec.issue_class }}</div>
@@ -147,7 +147,7 @@
               <form method="post" action="{% url 'super:migration_quarantine_waive' rec.id %}" class="mt-2">
                 {% csrf_token %}
                 <input type="text" name="note" class="form-control form-control-sm mb-1" placeholder="Waive reason (optional)" maxlength="1000">
-                <button type="submit" class="btn btn-sm btn-outline-secondary">Waive row</button>
+                <button type="submit" class="btn btn-sm btn-outline-secondary">{% trans "Waive row" %}</button>
               </form>
             </div>
             {% empty %}
@@ -162,7 +162,7 @@
       <div class="col-xl-4 rmc-reveal" data-dashboard-column="rail">
         <div class="card shadow-sm border-0 page-family-content-card mb-4">
           <div class="card-body">
-            <h5 class="card-title">Connector profiles</h5>
+            <h5 class="card-title">{% trans "Connector profiles" %}</h5>
             <div class="list-group list-group-flush">
               {% for profile in profiles %}
               <a href="?profile={{ profile.slug }}{% if selected_school %}&school_id={{ selected_school.id }}{% endif %}" class="list-group-item list-group-item-action {% if selected_profile and selected_profile.id == profile.id %}active{% endif %}">
@@ -180,14 +180,14 @@
 
         <div class="card shadow-sm border-0 page-family-content-card">
           <div class="card-body">
-            <h5 class="card-title">Rollback queue</h5>
+            <h5 class="card-title">{% trans "Rollback queue" %}</h5>
             {% for run in rollback_candidates %}
             <div class="border rounded p-3 mb-2">
               <div class="fw-semibold">{{ run.migration_type|title }} for {{ run.school.name|default:"Unknown school" }}</div>
               <div class="small text-muted mb-2">{{ run.started_at|date:"Y-m-d H:i" }} | {{ run.status }}</div>
               <form method="post" action="{% url 'super:migration_rollback' run.id %}">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-sm btn-outline-danger">Rollback</button>
+                <button type="submit" class="btn btn-sm btn-outline-danger">{% trans "Rollback" %}</button>
               </form>
             </div>
             {% empty %}
@@ -200,7 +200,7 @@
       <div class="col-xl-8 rmc-reveal" data-dashboard-column="main">
         <div class="card shadow-sm border-0 page-family-content-card mb-4">
           <div class="card-body">
-            <h5 class="card-title">Profile readiness</h5>
+            <h5 class="card-title">{% trans "Profile readiness" %}</h5>
             {% if selected_profile %}
             <div class="mb-2"><strong>{{ selected_profile.name }}</strong> {% if selected_school %}for {{ selected_school.name }}{% endif %}</div>
             <div class="small text-muted mb-3">{{ selected_profile.description|default:"No description." }}</div>
@@ -236,22 +236,22 @@
 
         <div class="card shadow-sm border-0 page-family-content-card">
           <div class="card-body">
-            <h5 class="card-title">Recent migration runs</h5>
+            <h5 class="card-title">{% trans "Recent migration runs" %}</h5>
             <div class="table-responsive">
               <!-- large-collection-allow: dashboard-widget-capped-list -->
               <table class="table table-sm align-middle mb-0 table-family rmc-data-table" aria-label="Recent cloud migration runs" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
                 <thead>
                   <tr>
-                    <th scope="col">Started</th>
-                    <th scope="col">School</th>
-                    <th scope="col">Type</th>
-                    <th scope="col">Status</th>
-                    <th scope="col" class="text-end">Rows</th>
-                    <th scope="col" class="text-end">Created</th>
-                    <th scope="col" class="text-end">Updated</th>
-                    <th scope="col" class="text-end">Errors</th>
-                    <th scope="col">Parity</th>
-                    <th scope="col">Triggered by</th>
+                    <th scope="col">{% trans "Started" %}</th>
+                    <th scope="col">{% trans "School" %}</th>
+                    <th scope="col">{% trans "Type" %}</th>
+                    <th scope="col">{% trans "Status" %}</th>
+                    <th scope="col" class="text-end">{% trans "Rows" %}</th>
+                    <th scope="col" class="text-end">{% trans "Created" %}</th>
+                    <th scope="col" class="text-end">{% trans "Updated" %}</th>
+                    <th scope="col" class="text-end">{% trans "Errors" %}</th>
+                    <th scope="col">{% trans "Parity" %}</th>
+                    <th scope="col">{% trans "Triggered by" %}</th>
                   </tr>
                 </thead>
                 <tbody>

@@ -2,6 +2,7 @@
 {% comment %} Override: proper "Back to site" link and theme switcher with text labels so it works when icon font fails to load. {% endcomment %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="absolute flex flex-row items-center justify-between left-0 m-4 right-0 top-0">
+    {# i18n-allow: material-symbol-ligature #}
     <a href="{% url 'home' %}" class="flex font-medium gap-2 group items-center text-sm text-primary-600 dark:text-primary-500">
         <span class="material-symbols-outlined left-0 relative text-sm transition-all group-hover:-left-1" aria-hidden="true">arrow_back</span>
         <span>{% trans "Back to site" %}</span>
@@ -22,18 +23,21 @@
         <nav class="absolute bg-base-50 border border-base-200 flex flex-col leading-none py-1 right-0 rounded-lg shadow-lg top-8 w-40 z-50 dark:bg-base-800 dark:border-base-700"
              x-cloak x-show="openTheme" x-transition x-on:click.outside="openTheme = false"
              role="menu" aria-label="{% trans 'Theme options' %}">
+            {# i18n-allow: material-symbol-ligature #}
             <button type="button" role="menuitem" class="cursor-pointer flex flex-row mx-1 px-3 py-2 rounded-md hover:bg-base-100 hover:text-base-700 dark:hover:bg-base-700 dark:hover:text-base-200 text-left w-full gap-2"
                     x-on:click="adminTheme = 'light'; openTheme = false"
                     x-bind:class="adminTheme == 'light' && 'text-primary-600 dark:text-primary-500'">
                 <span class="material-symbols-outlined text-lg">light_mode</span>
                 <span>{% trans "Light" %}</span>
             </button>
+            {# i18n-allow: material-symbol-ligature #}
             <button type="button" role="menuitem" class="cursor-pointer flex flex-row mx-1 px-3 py-2 rounded-md hover:bg-base-100 hover:text-base-700 dark:hover:bg-base-700 dark:hover:text-base-200 text-left w-full gap-2"
                     x-on:click="adminTheme = 'dark'; openTheme = false"
                     x-bind:class="adminTheme == 'dark' && 'text-primary-600 dark:text-primary-500'">
                 <span class="material-symbols-outlined text-lg">dark_mode</span>
                 <span>{% trans "Dark" %}</span>
             </button>
+            {# i18n-allow: material-symbol-ligature #}
             <button type="button" role="menuitem" class="cursor-pointer flex flex-row mx-1 px-3 py-2 rounded-md hover:bg-base-100 hover:text-base-700 dark:hover:bg-base-700 dark:hover:text-base-200 text-left w-full gap-2"
                     x-on:click="adminTheme = 'auto'; openTheme = false"
                     x-bind:class="adminTheme == 'auto' && 'text-primary-600 dark:text-primary-500'">

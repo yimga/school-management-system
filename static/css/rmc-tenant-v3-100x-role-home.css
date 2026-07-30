@@ -907,3 +907,28 @@ html[data-rmc-tp-v3-shell="1"][data-theme="dark"] .tp-greeting-block__eyebrow,
 html[data-rmc-tp-v3-shell="1"][data-bs-theme="dark"] .tp-greeting-block__eyebrow {
   color: var(--text-tertiary);
 }
+
+/* Workflow hero + steps: light-mode gradient was washing out text on dark shells. */
+html[data-rmc-tp-v3-shell="1"][data-theme="dark"] .tp-workflow-hero,
+html[data-rmc-tp-v3-shell="1"][data-bs-theme="dark"] .tp-workflow-hero,
+html[data-rmc-tp-v3-shell="1"][data-theme="dark"] .tp-workflow-support,
+html[data-rmc-tp-v3-shell="1"][data-bs-theme="dark"] .tp-workflow-support,
+html[data-rmc-tp-v3-shell="1"][data-theme="dark"] .tp-workflow-step,
+html[data-rmc-tp-v3-shell="1"][data-bs-theme="dark"] .tp-workflow-step {
+  background: var(--surface-elevated);
+  border-color: var(--hairline);
+  box-shadow: var(--elev-1);
+}
+
+html[data-rmc-tp-v3-shell="1"][data-theme="dark"] .tp-workflow-hero h1,
+html[data-rmc-tp-v3-shell="1"][data-bs-theme="dark"] .tp-workflow-hero h1,
+html[data-rmc-tp-v3-shell="1"][data-theme="dark"] .tp-workflow-hero .tp-workflow-eyebrow,
+html[data-rmc-tp-v3-shell="1"][data-bs-theme="dark"] .tp-workflow-hero .tp-workflow-eyebrow,
+html[data-rmc-tp-v3-shell="1"][data-theme="dark"] .tp-workflow-step h3,
+html[data-rmc-tp-v3-shell="1"][data-bs-theme="dark"] .tp-workflow-step h3,
+html[data-rmc-tp-v3-shell="1"][data-theme="dark"] .tp-workflow-step p,
+html[data-rmc-tp-v3-shell="1"][data-bs-theme="dark"] .tp-workflow-step p,
+html[data-rmc-tp-v3-shell="1"][data-theme="dark"] .tp-workflow-focus h2,
+html[data-rmc-tp-v3-shell="1"][data-bs-theme="dark"] .tp-workflow-focus h2 {
+  color: var(--text-primary);
+}

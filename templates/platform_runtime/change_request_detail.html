@@ -1,4 +1,5 @@
 {% extends "control_plane_base.html" %}
+{% load i18n %}
 {% block cp_title %}Change Request{% endblock %}
 {% block cp_content %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
@@ -14,42 +15,42 @@
   </header>
   <div data-rmc-scroll-policy="paginate" class="cp-grid cp-grid-2">
     <article class="cp-card rmc-reveal">
-      <h2>Approval</h2>
+      <h2>{% trans "Approval" %}</h2>
       <p>Reason: {{ change_request.reason }}</p>
       <p>Notes: {{ change_request.approval_notes }}</p>
       <form method="post" action="{% url 'configuration:change_request_approve' change_request.id %}">
         {% csrf_token %}
         <textarea name="notes" rows="2">Approved for governed rollout.</textarea>
-        <button type="submit">Approve</button>
+        <button type="submit">{% trans "Approve" %}</button>
       </form>
       <form method="post" action="{% url 'configuration:change_request_reject' change_request.id %}">
         {% csrf_token %}
         <textarea name="notes" rows="2">Rejected pending more detail.</textarea>
-        <button type="submit">Reject</button>
+        <button type="submit">{% trans "Reject" %}</button>
       </form>
     </article>
     <article class="cp-card rmc-reveal">
-      <h2>Rollout</h2>
+      <h2>{% trans "Rollout" %}</h2>
       <p>External blockers: {{ change_request.external_blockers|join:", " }}</p>
       <form method="post" action="{% url 'configuration:change_request_schedule' change_request.id %}">
         {% csrf_token %}
         <input name="scheduled_at" type="datetime-local">
         <input name="execution_window" placeholder="Execution window">
-        <button type="submit">Schedule</button>
+        <button type="submit">{% trans "Schedule" %}</button>
       </form>
       <form method="post" action="{% url 'configuration:change_request_apply' change_request.id %}">
         {% csrf_token %}
-        <button type="submit">Apply approved change</button>
+        <button type="submit">{% trans "Apply approved change" %}</button>
       </form>
       <form method="post" action="{% url 'configuration:change_request_cancel' change_request.id %}">
         {% csrf_token %}
         <input name="reason" value="Cancelled before rollout">
-        <button type="submit">Cancel</button>
+        <button type="submit">{% trans "Cancel" %}</button>
       </form>
     </article>
   </div>
   <article class="cp-card rmc-reveal">
-    <h2>Change Set</h2>
+    <h2>{% trans "Change Set" %}</h2>
     <pre>{{ change_request.impact_snapshot|pprint }}</pre>
   </article>
 </section>

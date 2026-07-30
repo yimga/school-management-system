@@ -7,7 +7,7 @@
 
 {% include "components/next_action_strip.html" %}
 
-  <h1 class="visually-hidden" data-rmc-injected-h1="1">Approve narrative</h1>
+  <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Approve narrative" %}</h1>
 <div class="container-fluid">
   <div class="row justify-content-center">
     <div class="col-lg-8">
@@ -20,9 +20,9 @@
           <p class="border rounded p-3 bg-light">{{ narrative.message_text }}</p>
           <form method="post" class="d-flex gap-2">
             {% csrf_token %}
-            <button type="submit" name="approve" class="btn btn-primary">Approve</button>
-            <button type="submit" name="mark_sent" value="1" class="btn btn-success">Approve &amp; mark sent</button>
-            <a href="{% url 'communication:narrative_list' %}" class="btn btn-outline-secondary">Cancel</a>
+            <button type="submit" name="approve" class="btn btn-primary">{% trans "Approve" %}</button>
+            <button type="submit" name="mark_sent" value="1" class="btn btn-success">{% trans "Approve &amp; mark sent" %}</button>
+            <a href="{% url 'communication:narrative_list' %}" class="btn btn-outline-secondary">{% trans "Cancel" %}</a>
           </form>
         </div>
       </div>

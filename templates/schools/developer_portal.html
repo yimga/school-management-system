@@ -19,28 +19,28 @@
   </header>
 
   <section class="section-shell" style="margin-bottom: 1rem;">
-    <h2 class="section-heading">API &amp; schema</h2>
+    <h2 class="section-heading">{% trans "API &amp; schema" %}</h2>
     <p class="section-lead">OpenAPI schema and interactive docs are available after login at your school subdomain.</p>
     <p><strong>Path:</strong> <code>{{ links.api_schema_path }}</code></p>
     <p class="section-lead">{{ links.api_schema_note }}</p>
   </section>
 
   <section class="section-shell rmc-reveal" style="margin-bottom: 1rem;">
-    <h2 class="section-heading">Interop &amp; readiness</h2>
+    <h2 class="section-heading">{% trans "Interop &amp; readiness" %}</h2>
     <p class="section-lead">Discovery and readiness endpoints for LTI 1.3, OneRoster, Ed‑Fi, and CEDS.</p>
     <ul style="margin: 0.5rem 0; padding-left: 1.25rem;">
-      <li><a href="{{ links.interop_oneroster }}">OneRoster</a></li>
-      <li><a href="{{ links.interop_lti13 }}">LTI 1.3</a></li>
+      <li><a href="{{ links.interop_oneroster }}">{% trans "OneRoster" %}</a></li>
+      <li><a href="{{ links.interop_lti13 }}">{% trans "LTI 1.3" %}</a></li>
       <li><a href="{{ links.interop_edfi }}">Ed‑Fi</a></li>
-      <li><a href="{{ links.interop_ceds }}">CEDS</a></li>
+      <li><a href="{{ links.interop_ceds }}">{% trans "CEDS" %}</a></li>
     </ul>
     {% if links.webhooks_doc %}
-    <p><a href="{{ links.webhooks_doc }}">Webhooks documentation</a></p>
+    <p><a href="{{ links.webhooks_doc }}">{% trans "Webhooks documentation" %}</a></p>
     {% endif %}
   </section>
 
   <section id="app-lifecycle" class="section-shell rmc-reveal" style="margin-bottom: 1rem;">
-    <h2 class="section-heading">App install lifecycle</h2>
+    <h2 class="section-heading">{% trans "App install lifecycle" %}</h2>
     <p class="section-lead">Request install → approval → schema patch (if allowed) → register widgets → audit. Tied to <code>MarketplaceApp</code> and <code>AppInstallation</code>.</p>
     <ol style="margin: 0.5rem 0; padding-left: 1.25rem;">
       <li><strong>Request install</strong> – School or admin requests an app from the marketplace.</li>
@@ -49,14 +49,15 @@
       <li><strong>Register widgets</strong> – Widget config from the app manifest is stored on the installation; portal surfaces widgets for active installations only.</li>
       <li><strong>Audit</strong> – Every install, uninstall, and suspend is recorded in <code>AppAuditLog</code> with actor and payload.</li>
     </ol>
-    <p><a href="{{ links.sandbox }}">App sandbox</a> – Run third-party app previews in an iframe with CSP and sandbox restrictions.</p>
+    <p><a href="{{ links.sandbox }}">{% trans "App sandbox" %}</a> – Run third-party app previews in an iframe with CSP and sandbox restrictions.</p>
   </section>
 
   <section class="section-shell rmc-reveal" style="margin-bottom: 1rem;">
     <h2 class="section-heading">SDK</h2>
     <p class="section-lead">Minimal client and auth helpers for API integration.</p>
-    <p><a href="{% url 'developer_sdk' %}">SDK &amp; API reference</a> – Auth, base URL, and endpoint summary.</p>
-    <p><a href="{{ links.sdk_repo }}" target="_blank" rel="noopener noreferrer">RunMyCampus SDK (GitHub)</a> – README and minimal module (e.g. auth helper or API client stub).</p>
+    <p><a href="{% url 'developer_sdk' %}">{% trans "SDK &amp; API reference" %}</a> – Auth, base URL, and endpoint summary.</p>
+    {# i18n-allow: brand-proper-noun #}
+    <p><a href="{{ links.sdk_repo }}" target="_blank" rel="noopener noreferrer">{% trans "RunMyCampus SDK (GitHub)" %}</a> – README and minimal module (e.g. auth helper or API client stub).</p>
   </section>
 </section>
 {% endblock %}

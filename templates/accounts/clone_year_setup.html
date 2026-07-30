@@ -1,5 +1,5 @@
 {% extends "backend_base.html" %}
-{% load static %}
+{% load static  i18n%}
 
 {% block title %}Clone previous year{% endblock %}
 
@@ -10,15 +10,15 @@
 <div class="container-fluid" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
   <nav aria-label="breadcrumb" class="mb-3">
     <ol class="breadcrumb mb-0">
-      <li class="breadcrumb-item"><a href="{% url 'accounts:backend_dashboard' %}">Backend</a></li>
-      <li class="breadcrumb-item"><a href="{% url 'studio_os:workflow_center' %}">Workflow Center</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'accounts:backend_dashboard' %}">{% trans "Backend" %}</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'studio_os:workflow_center' %}">{% trans "Workflow Center" %}</a></li>
       <li class="breadcrumb-item active" aria-current="page">Clone previous year</li>
     </ol>
   </nav>
 
   <div class="card shadow-sm">
     <div class="card-body">
-      <h1 class="h5 mb-3">Clone previous year</h1>
+      <h1 class="h5 mb-3">{% trans "Clone previous year" %}</h1>
       <p class="text-muted small mb-3">
         Copy terms, classrooms, subject assignments, and promotion rules from one academic year to another.
         The target year must already exist; create it under Academic years first if needed.
@@ -27,25 +27,25 @@
         {% csrf_token %}
         <div class="row g-3">
           <div class="col-md-5">
-            <label for="source_year" class="form-label">Source year (copy from)</label>
+            <label for="source_year" class="form-label">{% trans "Source year (copy from)" %}</label>
             <select name="source_year" id="source_year" class="form-select" required>
-              <option value="">— Select —</option>
+              <option value="">{% trans "— Select —" %}</option>
               {% for y in years %}
               <option value="{{ y.id }}">{{ y.name }}</option>
               {% endfor %}
             </select>
           </div>
           <div class="col-md-5">
-            <label for="target_year" class="form-label">Target year (copy to)</label>
+            <label for="target_year" class="form-label">{% trans "Target year (copy to)" %}</label>
             <select name="target_year" id="target_year" class="form-select" required>
-              <option value="">— Select —</option>
+              <option value="">{% trans "— Select —" %}</option>
               {% for y in years %}
               <option value="{{ y.id }}">{{ y.name }}</option>
               {% endfor %}
             </select>
           </div>
           <div class="col-md-2 d-flex align-items-end">
-            <button type="submit" class="btn btn-primary w-100">Clone</button>
+            <button type="submit" class="btn btn-primary w-100">{% trans "Clone" %}</button>
           </div>
         </div>
       </form>

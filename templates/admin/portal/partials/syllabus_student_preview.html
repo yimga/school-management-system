@@ -1,9 +1,10 @@
+{% load i18n %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="card shadow-sm mt-4">
   <div class="card-body">
     <div class="d-flex align-items-start justify-content-between gap-3 mb-3">
       <div>
-        <h5 class="mb-1">Student View preview</h5>
+        <h5 class="mb-1">{% trans "Student View preview" %}</h5>
         <p class="text-muted small mb-0">
           Open a sandboxed student view of the syllabus so you can verify lesson layouts, videos, and attachments without touching live data.
         </p>
@@ -13,10 +14,10 @@
 
     <div class="d-flex gap-2 flex-wrap">
       <button type="button" class="btn btn-sm btn-outline-primary" id="previewSyllabusBtn">
-        Launch student preview
+        {% trans "Launch student preview" %}
       </button>
       <button type="button" class="btn btn-sm btn-outline-secondary" id="previewSyllabusIframeBtn">
-        Embed inline preview
+        {% trans "Embed inline preview" %}
       </button>
     </div>
 

@@ -1,4 +1,5 @@
 {% extends "portal_base.html" %}
+{% load i18n %}
 
 {% block title %}Contact Request{% endblock %}
 
@@ -10,10 +11,10 @@
 
 <div class="d-flex justify-content-between align-items-center mb-3">
   <div>
-    <h1 class="mb-0">Contact Request</h1>
+    <h1 class="mb-0">{% trans "Contact Request" %}</h1>
     <p class="text-muted small mb-0">{{ ticket.subject }}</p>
   </div>
-  <a class="btn btn-sm btn-outline-secondary btn-back-secondary" href="{{ back_url }}"><i class="bi bi-arrow-left me-1"></i>Back to list</a>
+  <a class="btn btn-sm btn-outline-secondary btn-back-secondary" href="{{ back_url }}">{% trans "Back to list" %}</a>
 </div>
 
 <div class="row g-3 rmc-reveal-stagger">
@@ -74,7 +75,7 @@
           {% csrf_token %}
           <input type="hidden" name="action" value="assign">
           {{ assign_form.as_p }}
-          <button class="btn btn-warning" type="submit">Save assignment</button>
+          <button class="btn btn-warning" type="submit">{% trans "Save assignment" %}</button>
         </form>
       </div>
     </div>
@@ -86,7 +87,7 @@
           {% csrf_token %}
           <input type="hidden" name="action" value="status">
           {{ status_form.as_p }}
-          <button class="btn btn-primary" type="submit">Update</button>
+          <button class="btn btn-primary" type="submit">{% trans "Update" %}</button>
         </form>
       </div>
     </div>

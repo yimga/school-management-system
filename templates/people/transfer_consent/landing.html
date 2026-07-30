@@ -1,13 +1,14 @@
+{% load i18n %}
 <main style="max-width: 42rem; margin: 3rem auto; font-family: system-ui, sans-serif; line-height: 1.5;"><!-- inline-style-allow: anonymous-standalone-consent-page-no-shell-css -->
-  <h1>School transfer consent</h1>
+  <h1>{% trans "School transfer consent" %}</h1>
   {% if usable %}
     {% include "people/transfer_consent/_consent_text_v1.html" with case=consent.case %}
     <form method="post" action="{% url 'people_transfer_consent_decide' %}">
       {% csrf_token %}
       <input type="hidden" name="token" value="{{ token }}">
       <p>
-        <button type="submit" name="choice" value="consent">I consent to this transfer</button>
-        <button type="submit" name="choice" value="decline">I decline</button>
+        <button type="submit" name="choice" value="consent">{% trans "I consent to this transfer" %}</button>
+        <button type="submit" name="choice" value="decline">{% trans "I decline" %}</button>
       </p>
     </form>
   {% else %}

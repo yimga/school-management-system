@@ -1,9 +1,10 @@
+{% load i18n %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="card shadow-sm mt-4">
   <div class="card-body">
     <div class="d-flex align-items-start justify-content-between gap-2 mb-3">
       <div>
-        <h5 class="mb-1">Send test to yourself</h5>
+        <h5 class="mb-1">{% trans "Send test to yourself" %}</h5>
         <p class="text-muted small mb-0">
           Render dynamic tags (e.g., <code>[Student Name]</code>, <code>[Classroom]</code>) against synthetic data and deliver the message only to you.
         </p>
@@ -12,11 +13,11 @@
     </div>
 
     <div class="mb-3">
-      <label class="form-label small fw-semibold" for="previewCommSubject">Subject</label>
+      <label class="form-label small fw-semibold" for="previewCommSubject">{% trans "Subject" %}</label>
       <input id="previewCommSubject" class="form-control form-control-sm" value="Preview: [Student Name]'s progress">
     </div>
     <div class="mb-3">
-      <label class="form-label small fw-semibold" for="previewCommBody">Body</label>
+      <label class="form-label small fw-semibold" for="previewCommBody">{% trans "Body" %}</label>
       <textarea id="previewCommBody" class="form-control form-control-sm" rows="3">
 Dear [Student Name],
 Your current average for [Specialty] is [Average]. Keep up the momentum!
@@ -25,7 +26,7 @@ Your current average for [Specialty] is [Average]. Keep up the momentum!
 
     <div class="d-flex gap-2 flex-wrap">
       <button type="button" class="btn btn-sm btn-outline-primary" id="previewCommBtn">
-        Send test preview
+        {% trans "Send test preview" %}
       </button>
       <span id="previewCommStatus" class="small text-muted align-self-center d-none">Preview sent.</span>
     </div>

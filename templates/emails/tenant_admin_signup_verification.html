@@ -1,12 +1,14 @@
+{% load i18n %}
 <!doctype html>
 <html lang="en">
 <head><meta charset="utf-8"><title>Verify your RunMyCampus signup</title></head>
+{# i18n-allow: brand-proper-noun #}
 <body style="font-family:system-ui,sans-serif;color:#111;max-width:560px;margin:24px auto;padding:16px;/* inline-style-allow: email-client-requires-inline-css */">
-  <h2>Welcome to RunMyCampus</h2>
+  <h2>{% trans "Welcome to RunMyCampus" %}</h2>
   <p>Hi{% if admin_name %} {{ admin_name }}{% endif %}, thanks for signing up <strong>{{ school_name|default:"your school" }}</strong>.</p>
   <p>Click the button below to verify your email and complete the signup:</p>
   <p style="margin:24px 0">
-    <a href="{{ verification_url|default:'#' }}" style="background:#4F46E5;color:white;padding:10px 18px;border-radius:6px;text-decoration:none;/* inline-style-allow: email-client-requires-inline-css */">Verify email</a>
+    <a href="{{ verification_url|default:'#' }}" style="background:#4F46E5;color:white;padding:10px 18px;border-radius:6px;text-decoration:none;/* inline-style-allow: email-client-requires-inline-css */">{% trans "Verify email" %}</a>
   </p>
   <p style="color:#777;font-size:13px;/* inline-style-allow: email-client-requires-inline-css */">This link expires in 48 hours. If you didn't sign up, you can ignore this email.</p>
   <p style="color:#888;margin-top:24px;font-size:12px;/* inline-style-allow: email-client-requires-inline-css */">— The RunMyCampus team</p>

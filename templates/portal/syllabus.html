@@ -41,7 +41,7 @@
               <h5 class="mb-2">{{ item.title }}</h5>
               <p class="small text-muted mb-3">{{ item.description }}</p>
               {% if item.link %}
-                <a class="btn btn-sm btn-primary" href="{{ item.link }}" target="_blank" rel="noopener noreferrer">Open resource</a>
+                <a class="btn btn-sm btn-primary" href="{{ item.link }}" target="_blank" rel="noopener noreferrer">{% trans "Open resource" %}</a>
               {% else %}
                 <span class="small text-muted">No link provided yet.</span>
               {% endif %}

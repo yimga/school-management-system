@@ -1,0 +1,18 @@
+{% load i18n %}
+{% comment %}
+In-document tenant admin workbench footer — school-branded gateway links inside /admin/.
+{% endcomment %}
+<footer class="rmc-admin-workbench-footer rmc-admin-workbench-footer--tenant" role="contentinfo" data-rmc-admin-workbench-footer="tenant" aria-label="{% trans 'School configuration footer' %}">
+  <div class="rmc-admin-workbench-footer__inner">
+    <div class="rmc-admin-workbench-footer__brand">
+      <strong>{% firstof SITE.site_name request.school.name site_header _("School configuration") %}</strong>
+      <span>{% trans "Configuration & records" %}</span>
+    </div>
+    <nav class="rmc-admin-workbench-footer__links" aria-label="{% trans 'Configuration shortcuts' %}">
+      <a href="{% url 'accounts:backend_dashboard' %}">{% trans "Admin home" %}</a>
+      <a href="{% url 'siteconfig:console_domains_hub' %}">{% trans "Config center" %}</a>
+      <a href="{% url 'feedback:help_center' %}">{% trans "Help center" %}</a>
+    </nav>
+    <p class="rmc-admin-workbench-footer__meta mb-0">{% trans "Tenant-scoped records · RBAC enforced" %}</p>
+  </div>
+</footer>

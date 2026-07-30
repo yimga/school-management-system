@@ -12,7 +12,7 @@
 <div class="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-3">
   <div>
     <div class="eyebrow">{{ academic_year.name }}</div>
-    <h1 class="page-h1 mb-0">At-risk outcome labeling</h1>
+    <h1 class="page-h1 mb-0">{% trans "At-risk outcome labeling" %}</h1>
     <p class="page-sub mb-0">
       Mark each {% term_lower "student" %} with their actual at-risk outcome for {{ academic_year.name }}.
       Labels feed the next training run of the at-risk model.
@@ -74,7 +74,7 @@
                   {% csrf_token %}
                   <input type="hidden" name="student_id" value="{{ student.pk }}">
                   <select name="label" class="form-select form-select-sm">
-                    <option value="">— select —</option>
+                    <option value="">{% trans "— select —" %}</option>
                     {% for value, display in label_choices %}
                       <option value="{{ value }}" {% if label and label.label == value %}selected{% endif %}>{{ display }}</option>
                     {% endfor %}
@@ -84,7 +84,7 @@
                   <input type="text" name="notes" class="form-control form-control-sm" value="{{ label.notes|default:'' }}" placeholder="optional">
               </td>
               <td>
-                  <button type="submit" class="btn btn-sm btn-primary">Save</button>
+                  <button type="submit" class="btn btn-sm btn-primary">{% trans "Save" %}</button>
                 </form>
               </td>
             </tr>

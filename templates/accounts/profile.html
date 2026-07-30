@@ -58,16 +58,16 @@
               <a class="btn btn-outline-secondary btn-sm" href="#profile-security-hub">{% trans "Security center" %}</a>
             </div>
             <div class="d-flex flex-wrap gap-2">
-              <a class="btn btn-outline-primary btn-sm" href="{% url 'accounts:user_notifications' %}">Notifications</a>
-              <a class="btn btn-outline-primary btn-sm" href="{% url 'accounts:my_delegations' %}">Out of Office / Delegation</a>
+              <a class="btn btn-outline-primary btn-sm" href="{% url 'accounts:user_notifications' %}">{% trans "Notifications" %}</a>
+              <a class="btn btn-outline-primary btn-sm" href="{% url 'accounts:my_delegations' %}">{% trans "Out of Office / Delegation" %}</a>
               {% if request.user.is_staff or request.user.is_superuser or request.user.role == 'ADMIN' or request.user.role == 'IT_ADMIN' %}
                 <a class="btn btn-outline-secondary btn-sm" href="{% url 'accounts:backend_dashboard' %}">{% trans "Admin Home" %}</a>
               {% endif %}
               {% if request.user.role == 'TEACHER' %}
-                <a class="btn btn-outline-primary btn-sm" href="{% url 'portal:teacher_dashboard_alias' %}">Teacher Dashboard</a>
+                <a class="btn btn-outline-primary btn-sm" href="{% url 'portal:teacher_dashboard_alias' %}">{% trans "Teacher Dashboard" %}</a>
               {% endif %}
               {% if request.user.role == 'PARENT' %}
-                <a class="btn btn-outline-primary btn-sm" href="{% url 'portal:parent_dashboard' %}">Parent Portal</a>
+                <a class="btn btn-outline-primary btn-sm" href="{% url 'portal:parent_dashboard' %}">{% trans "Parent Portal" %}</a>
               {% endif %}
             </div>
             <div class="text-muted small mt-3">
@@ -227,7 +227,7 @@
                         <span class="text-muted">-</span>
                         {{ s.subject_assignment.subject.name|default:"-" }}
                         {% if s.subject_assignment.specialty %}<span class="text-muted">({{ s.subject_assignment.specialty.name }})</span>{% endif %}
-                        <a href="{% url 'academics:syllabus_preview' s.subject_assignment_id %}" class="ms-1">View</a>
+                        <a href="{% url 'academics:syllabus_preview' s.subject_assignment_id %}" class="ms-1">{% trans "View" %}</a>
                       </li>
                     {% endfor %}
                   </ul>
@@ -249,10 +249,10 @@
                 <div class="mb-3">
                   {% if parent_fees_summary.unpaid_count %}
                     <span class="text-muted small">{{ parent_fees_summary.unpaid_count }} unpaid invoice{{ parent_fees_summary.unpaid_count|pluralize }}</span>
-                    <a class="btn btn-outline-primary btn-sm ms-2" href="{{ parent_fees_summary.invoices_url }}">View Finance</a>
+                    <a class="btn btn-outline-primary btn-sm ms-2" href="{{ parent_fees_summary.invoices_url }}">{% trans "View Finance" %}</a>
                   {% else %}
                     <span class="text-muted small">No outstanding fees.</span>
-                    <a class="btn btn-outline-secondary btn-sm ms-2" href="{{ parent_fees_summary.invoices_url }}">Finance</a>
+                    <a class="btn btn-outline-secondary btn-sm ms-2" href="{{ parent_fees_summary.invoices_url }}">{% trans "Finance" %}</a>
                   {% endif %}
                 </div>
               {% endif %}
@@ -266,7 +266,7 @@
                       <span class="text-muted small">ID: {{ item.student.admission_number }}</span>
                     {% endif %}
                     <a class="btn btn-outline-primary btn-sm" href="{% url 'portal:child_digital_id' item.student.id %}"><i class="bi bi-person-badge me-1"></i>{% trans "ID card" %}</a>
-                    <a class="btn btn-outline-secondary btn-sm ms-auto" href="{% url 'portal:parent_dashboard' %}">View portal</a>
+                    <a class="btn btn-outline-secondary btn-sm ms-auto" href="{% url 'portal:parent_dashboard' %}">{% trans "View portal" %}</a>
                   </li>
                 {% endfor %}
               </ul>
@@ -282,10 +282,10 @@
             <div class="card-body">
               {% if parent_fees_summary.unpaid_count %}
                 <span class="text-muted small">{{ parent_fees_summary.unpaid_count }} unpaid invoice{{ parent_fees_summary.unpaid_count|pluralize }}</span>
-                <a class="btn btn-outline-primary btn-sm ms-2" href="{{ parent_fees_summary.invoices_url }}">View Finance</a>
+                <a class="btn btn-outline-primary btn-sm ms-2" href="{{ parent_fees_summary.invoices_url }}">{% trans "View Finance" %}</a>
               {% else %}
                 <span class="text-muted small">No outstanding fees.</span>
-                <a class="btn btn-outline-secondary btn-sm ms-2" href="{{ parent_fees_summary.invoices_url }}">Finance</a>
+                <a class="btn btn-outline-secondary btn-sm ms-2" href="{{ parent_fees_summary.invoices_url }}">{% trans "Finance" %}</a>
               {% endif %}
             </div>
           </div>
@@ -301,16 +301,16 @@
             <div class="card-body">
               <div class="d-flex flex-wrap gap-2 mb-2">
                 {% if admin_context.site_settings_url %}
-                  <a class="btn btn-outline-primary btn-sm" href="{{ admin_context.site_settings_url }}">Site Settings</a>
+                  <a class="btn btn-outline-primary btn-sm" href="{{ admin_context.site_settings_url }}">{% trans "Site Settings" %}</a>
                 {% endif %}
                 {% if admin_context.backend_url %}
                   <a class="btn btn-outline-primary btn-sm" href="{{ admin_context.backend_url }}">{% trans "Admin Home" %}</a>
                 {% endif %}
                 {% if admin_context.admin_url %}
-                  <a class="btn btn-outline-primary btn-sm" href="{{ admin_context.admin_url }}">{% if is_backend_context %}{% trans "Configuration Engine" %}{% else %}Admin Panel{% endif %}</a>
+                  <a class="btn btn-outline-primary btn-sm" href="{{ admin_context.admin_url }}">{% if is_backend_context %}{% trans "Configuration Engine" %}{% else %}{% trans "Admin Panel" %}{% endif %}</a>
                 {% endif %}
                 {% if admin_context.rbac_url %}
-                  <a class="btn btn-outline-primary btn-sm" href="{{ admin_context.rbac_url }}">User management (RBAC)</a>
+                  <a class="btn btn-outline-primary btn-sm" href="{{ admin_context.rbac_url }}">{% trans "User management (RBAC)" %}</a>
                 {% endif %}
               </div>
               {% if admin_context.permissions_summary %}

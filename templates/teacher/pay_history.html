@@ -10,7 +10,7 @@
 {% include "components/next_action_strip.html" %}
 
 <div data-rmc-scroll-policy="paginate" data-page-archetype="task-list">
-  <h1 class="visually-hidden" data-rmc-injected-h1="1">Pay History</h1>
+  <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Pay History" %}</h1>
   {% include "widgets/dashboard_hero.html" with hero=hero %}
 
   <div class="row g-3 mb-3 rmc-reveal-stagger">
@@ -47,7 +47,7 @@
     <div class="col-md-6 rmc-reveal">
       <div class="card h-100">
         <div class="card-body">
-          <h5 class="mb-2">Attendance streak</h5>
+          <h5 class="mb-2">{% trans "Attendance streak" %}</h5>
           <div class="display-5 fw-bold">{{ attendance_streak }}</div>
           <p class="small text-muted mb-0">Consecutive days present</p>
           {% if attendance_alert %}
@@ -59,7 +59,7 @@
     <div class="col-md-6 rmc-reveal">
       <div class="card h-100">
         <div class="card-body">
-          <h5 class="mb-2">Payment types</h5>
+          <h5 class="mb-2">{% trans "Payment types" %}</h5>
           <ul class="list-unstyled small mb-0">
             {% for method in payment_type_breakdown %}
               <li class="d-flex justify-content-between">
@@ -78,7 +78,7 @@
   {% if attendance_logs %}
     <div class="card mb-3">
       <div class="card-body">
-        <h5 class="mb-3">Recent attendance</h5>
+        <h5 class="mb-3">{% trans "Recent attendance" %}</h5>
         <div class="d-flex flex-wrap gap-2 small text-muted">
           {% for log in attendance_logs|slice:":5" %}
             <span class="badge {% if log.status == 'PRESENT' %}bg-success{% else %}bg-secondary{% endif %}">
@@ -92,17 +92,17 @@
 
   <div class="card">
     <div class="card-body">
-      <h5 class="mb-3">Records</h5>
+      <h5 class="mb-3">{% trans "Records" %}</h5>
       {% if pay_records %}
         <div class="table-responsive">
           <table class="table align-middle mb-0 table-family rmc-data-table" aria-label="{% trans 'Teacher pay history records' %}" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
             <thead class="table-light">
               <tr>
-                <th scope="col">Date</th>
-                <th scope="col">Type</th>
-                <th scope="col" class="text-end">Amount</th>
-                <th scope="col">Description</th>
-                <th scope="col">Recorded by</th>
+                <th scope="col">{% trans "Date" %}</th>
+                <th scope="col">{% trans "Type" %}</th>
+                <th scope="col" class="text-end">{% trans "Amount" %}</th>
+                <th scope="col">{% trans "Description" %}</th>
+                <th scope="col">{% trans "Recorded by" %}</th>
               </tr>
             </thead>
             <tbody>

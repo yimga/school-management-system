@@ -226,7 +226,7 @@
      opted in, so every form ran on raw Bootstrap defaults. {% endcomment %}
   <body class="form-system layout-{{ LAYOUT_STYLE|default:'fluid' }} base-document-shell host-kind-{{ request.public_host_kind|default:'tenant'|lower }}{% if SITE and SITE.use_dark_mode %} base-tenant-dark-alerts{% endif %} {% block body_class %}{% endblock %}" data-rmc-cp-scroll="document" data-rmc-premium-shell="{% if PUBLIC_BRAND_MODE %}marketing{% else %}tenant{% endif %}" data-rmc-page-purpose="{% if PUBLIC_BRAND_MODE %}public-story{% else %}tenant-workspace{% endif %}"{% if request.user.is_authenticated %} data-rmc-back-to-top-policy="always"{% endif %}{% if RMC_AUTH_LANDING_LITE %} data-rmc-auth-landing="1"{% endif %} data-rmc-page-personality="{{ rmc_page_personality|default:'default' }}"{% if AI_COPILOT_QUERY_URL %} data-ai-copilot-url="{{ AI_COPILOT_QUERY_URL }}"{% endif %} data-rmc-country="{{ localization.country_code|default:'' }}" data-rmc-language="{{ localization.language_code|default:'' }}" data-rmc-week-start="{{ localization.week_start|default:1 }}" data-rmc-date-format="{{ localization.date_format|default:'%d/%m/%Y' }}" data-rmc-currency="{{ localization.currency_code|default:'USD' }}" data-rmc-is-rtl="{% if localization.is_rtl %}1{% else %}0{% endif %}">
     {% if not RMC_AUTH_LANDING_LITE %}{% include "partials/rmc_launch_splash.html" %}{% endif %}
-    <a href="#main-content" class="skip-link" aria-label="Skip to main content">Skip to main content</a>
+    <a href="#main-content" class="skip-link" aria-label="Skip to main content">{% trans "Skip to main content" %}</a>
     {% comment %} Page-level HTMX progress bar — appears during htmx requests via body.htmx-request CSS rule. {% endcomment %}
     <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="htmx-progress-bar" aria-hidden="true">{% include "components/_rmc_bell_clock_spinner.html" %}</div>
@@ -249,7 +249,7 @@
           {% include "components/rmc_brand_mark.html" with size=34 variant="lockup" href=home_url label=SITE.site_name|default:"School System" %}
         {% endif %}
         {% if request.user.is_authenticated %}
-          <a class="btn btn-sm btn-outline-light ms-3" href="{% url 'accounts:redirect' %}">Home</a>
+          <a class="btn btn-sm btn-outline-light ms-3" href="{% url 'accounts:redirect' %}">{% trans "Home" %}</a>
         {% endif %}
 
         <div class="base-topbar-actions text-white d-flex align-items-center gap-2 ms-lg-auto order-2 order-lg-3 justify-content-end">
@@ -290,15 +290,15 @@
             {% endif %}
           </div>
           <div class="d-flex flex-column flex-sm-row gap-2 align-items-center">
-            <a class="btn btn-sm btn-light text-dark" href="{% url 'siteconfig:toggle_preview_mode' %}?next={{ request.path }}">Toggle sandbox</a>
-            <a class="btn btn-sm btn-outline-light" href="{% url 'siteconfig:clear_preview' %}">Clear preview</a>
+            <a class="btn btn-sm btn-light text-dark" href="{% url 'siteconfig:toggle_preview_mode' %}?next={{ request.path }}">{% trans "Toggle sandbox" %}</a>
+            <a class="btn btn-sm btn-outline-light" href="{% url 'siteconfig:clear_preview' %}">{% trans "Clear preview" %}</a>
             {% if request.user.is_staff %}
               <form method="post" action="{% url 'siteconfig:set_act_as_role' %}" class="d-flex flex-wrap align-items-center gap-2 mb-0">
                 {% csrf_token %}
                 <input type="hidden" name="next" value="{{ request.path }}">
-                <label for="actAsSelect" class="small text-white mb-0">Act as</label>
+                <label for="actAsSelect" class="small text-white mb-0">{% trans "Act as" %}</label>
                 <select name="role" id="actAsSelect" class="form-select form-select-sm" data-rmc-submit-on-change>
-                  <option value="">Clear</option>
+                  <option value="">{% trans "Clear" %}</option>
                   {% for option in PREVIEW_ACT_AS_CHOICES %}
                     <option value="{{ option.value }}" {% if option.value == PREVIEW_ACT_AS_ROLE %}selected{% endif %}>
                       {{ option.label }}

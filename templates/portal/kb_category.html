@@ -33,13 +33,13 @@
             <div class="card shadow-sm mb-4">
                 <div class="card-header bg-primary text-white">
                     <h5 class="mb-0">
-                        <i class="bi bi-folder"></i> Categories
+                        {% trans "Categories" %}
                     </h5>
                 </div>
                 <div class="list-group list-group-flush">
                     <a href="{% url 'kb:kb_home' %}" 
                        class="list-group-item list-group-item-action">
-                        <i class="bi bi-house"></i> Home
+                        {% trans "Home" %}
                     </a>
                     {% for cat in all_categories %}
                     <a href="{% url 'kb:kb_category' cat.slug %}" 
@@ -62,7 +62,7 @@
             <div class="card shadow-sm">
                 <div class="card-header">
                     <h6 class="mb-0">
-                        <i class="bi bi-sliders"></i> Filter
+                        {% trans "Filter" %}
                     </h6>
                 </div>
                 <div class="card-body">
@@ -72,7 +72,7 @@
                                    name="difficulty" value="BEGINNER"
                                    {% if 'BEGINNER' in selected_difficulties %}checked{% endif %}>
                             <label class="custom-control-label" for="beginner">
-                                <span class="rmc-badge rmc-badge--success">Beginner</span>
+                                {% trans "Beginner" %}
                             </label>
                         </div>
                         <div class="custom-control custom-checkbox">
@@ -80,7 +80,7 @@
                                    name="difficulty" value="INTERMEDIATE"
                                    {% if 'INTERMEDIATE' in selected_difficulties %}checked{% endif %}>
                             <label class="custom-control-label" for="intermediate">
-                                <span class="rmc-badge rmc-badge--warning">Intermediate</span>
+                                {% trans "Intermediate" %}
                             </label>
                         </div>
                         <div class="custom-control custom-checkbox">
@@ -88,10 +88,10 @@
                                    name="difficulty" value="ADVANCED"
                                    {% if 'ADVANCED' in selected_difficulties %}checked{% endif %}>
                             <label class="custom-control-label" for="advanced">
-                                <span class="rmc-badge rmc-badge--danger">Advanced</span>
+                                {% trans "Advanced" %}
                             </label>
                         </div>
-                        <button type="submit" class="btn btn-sm btn-primary mt-2 w-100">Apply</button>
+                        <button type="submit" class="btn btn-sm btn-primary mt-2 w-100">{% trans "Apply" %}</button>
                     </form>
                 </div>
             </div>
@@ -124,7 +124,7 @@
                                         </a>
                                         {% if article.is_featured %}
                                         <span class="rmc-badge rmc-badge--success">
-                                            <i class="bi bi-star"></i> Featured
+                                            <i class="bi bi-star"></i> {% trans "Featured" %}
                                         </span>
                                         {% endif %}
                                     </h5>
@@ -156,7 +156,7 @@
                                     {% endif %}
                                     <a href="{% url 'kb:kb_article' article.slug %}" 
                                        class="btn btn-sm btn-outline-primary mt-2">
-                                        Read <i class="bi bi-arrow-right"></i>
+                                        {% trans "Read" %}
                                     </a>
                                 </div>
                             </div>
@@ -180,16 +180,16 @@
             <!-- CTA: Contribute -->
             <div class="rmc-banner border border-primary mt-4">
                 <h6 class="alert-heading">
-                    <i class="bi bi-lightbulb text-primary"></i> Ready to Contribute?
+                    {% trans "Ready to Contribute?" %}
                 </h6>
                 <p>Share your knowledge by writing an article for this category!</p>
                 {% if user.is_authenticated %}
                 <a href="{% url 'kb:kb_article_submit' %}" class="btn btn-primary btn-sm">
-                    <i class="bi bi-pencil"></i> Write an Article
+                    {% trans "Write an Article" %}
                 </a>
                 {% else %}
                 <a href="{% url 'accounts:login' %}?next={% url 'kb:kb_article_submit' %}" class="btn btn-primary btn-sm">
-                    <i class="bi bi-box-arrow-in-right"></i> Login & Contribute
+                    {% trans "Login & Contribute" %}
                 </a>
                 {% endif %}
             </div>

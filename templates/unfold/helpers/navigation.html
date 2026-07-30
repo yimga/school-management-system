@@ -4,6 +4,7 @@
     {% comment %}Brand (logo + title): platform on manager, site on tenant {% endcomment %}
     <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="flex-shrink-0 border-b border-base-200 dark:border-base-800 px-3 py-3">
+        {# i18n-allow: material-symbol-ligature #}
         <a href="{% url 'admin:index' %}" class="admin-sidebar-brand-link-header admin-unfold-sidebar-brand flex items-center gap-3 min-w-0 text-decoration-none">
             <div class="admin-sidebar-logo-wrap admin-unfold-sidebar-logo-wrap flex items-center justify-center shrink-0 rounded-lg">
                 {% if PUBLIC_BRAND_MODE and PUBLIC_BRAND_FAVICON_URL %}

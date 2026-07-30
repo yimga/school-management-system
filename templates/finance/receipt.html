@@ -42,8 +42,8 @@
     <table class="table table-family align-middle rmc-data-table" aria-label="{% trans 'Invoice line items and amount paid' %}" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
       <thead>
         <tr>
-          <th scope="col">Description</th>
-          <th scope="col" class="text-right">Amount</th>
+          <th scope="col">{% trans "Description" %}</th>
+          <th scope="col" class="text-right">{% trans "Amount" %}</th>
         </tr>
       </thead>
       <tbody>
@@ -56,7 +56,7 @@
       </tbody>
       <tfoot>
         <tr>
-          <th scope="row" class="total">Amount paid</th>
+          <th scope="row" class="total">{% trans "Amount paid" %}</th>
           <td class="text-right total">{{ payment.amount|format_currency }}</td>
         </tr>
       </tfoot>

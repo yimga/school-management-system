@@ -16,6 +16,7 @@
     {% if has_add_permission %}
       {% url cl.opts|admin_urlname:"add" as add_url %}
       {% blocktranslate with name=cl.opts.verbose_name asvar add_title %}Add {{ name }}{% endblocktranslate %}
+      {# i18n-allow: material-symbol-ligature #}
       <a href="{% add_preserved_filters add_url is_popup to_field %}" class="addlink inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-semibold bg-primary-600 text-white hover:bg-primary-700" title="{{ add_title }}">
         <span class="material-symbols-outlined text-base leading-none">add</span>
         <span>{{ add_title }}</span>

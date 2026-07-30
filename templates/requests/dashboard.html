@@ -16,7 +16,7 @@
 
 {% include "components/next_action_strip.html" %}
 
-  <h1 class="visually-hidden" data-rmc-injected-h1="1">Access Requests</h1>
+  <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Access Requests" %}</h1>
 <div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1">
   {% phase8_dashboard_declaration "requests/dashboard.html" %}
   {% if phase7_de %}
@@ -28,13 +28,13 @@
 
 <form method="get" class="row g-2 align-items-end mb-3" data-rmc-autosubmit="1">
   <div class="col-md-4">
-    <label class="form-label small">Search</label>
+    <label class="form-label small">{% trans "Search" %}</label>
     <input type="text" name="q" value="{{ search }}" class="form-control form-control-sm" placeholder="REQ-2026...">
   </div>
   <div class="col-md-3">
-    <label class="form-label small">Request type</label>
+    <label class="form-label small">{% trans "Request type" %}</label>
     <select name="type" class="form-select form-select-sm">
-      <option value="all">All</option>
+      <option value="all">{% trans "All" %}</option>
       {% for option in type_options %}
         <option value="{{ option.key }}" {% if type_filter == option.key %}selected{% endif %}>
           {{ option.label }} ({{ option.count }})
@@ -43,9 +43,9 @@
     </select>
   </div>
   <div class="col-md-3">
-    <label class="form-label small">Status</label>
+    <label class="form-label small">{% trans "Status" %}</label>
     <select name="status" class="form-select form-select-sm">
-      <option value="all">All</option>
+      <option value="all">{% trans "All" %}</option>
       {% for option in status_options %}
         <option value="{{ option.key }}" {% if status_filter == option.key %}selected{% endif %}>
           {{ option.label }} ({{ option.count }})
@@ -54,7 +54,7 @@
     </select>
   </div>
   <div class="col-md-2 d-grid">
-    <button class="btn btn-sm btn-primary" type="submit" data-rmc-autosubmit-hide-when-js>Filter</button>
+    <button class="btn btn-sm btn-primary" type="submit" data-rmc-autosubmit-hide-when-js>{% trans "Filter" %}</button>
   </div>
 </form>
 
@@ -65,11 +65,11 @@
         <table class="table table-hover align-middle mb-0 table-family rmc-data-table" aria-label="Access requests: reference, type, requester, status, and actions" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <thead>
             <tr>
-              <th scope="col">Reference</th>
-              <th scope="col">Type</th>
-              <th scope="col">Requester</th>
-              <th scope="col">Status</th>
-              <th scope="col">Requested</th>
+              <th scope="col">{% trans "Reference" %}</th>
+              <th scope="col">{% trans "Type" %}</th>
+              <th scope="col">{% trans "Requester" %}</th>
+              <th scope="col">{% trans "Status" %}</th>
+              <th scope="col">{% trans "Requested" %}</th>
               <th scope="col"><span class="visually-hidden">{% trans "Actions" %}</span></th>
             </tr>
           </thead>
@@ -86,7 +86,7 @@
                 </td>
                 <td class="text-muted small">{{ req.requested_at|format_date }} {{ req.requested_at|time:"H:i" }}</td>
                 <td class="text-end">
-                  <a class="btn btn-sm btn-outline-primary" href="{% url 'requests:detail' req.id %}">Review</a>
+                  <a class="btn btn-sm btn-outline-primary" href="{% url 'requests:detail' req.id %}">{% trans "Review" %}</a>
                 </td>
               </tr>
             {% endfor %}

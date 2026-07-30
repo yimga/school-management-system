@@ -1,4 +1,5 @@
 {% extends "portal_base.html" %}
+{% load i18n %}
 {% block title %}Access denied{% endblock %}
 {% block content %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
@@ -7,7 +8,7 @@
 {% include "components/next_action_strip.html" %}
 
 <div data-rmc-scroll-policy="paginate" class="rmc-banner rmc-banner--warning">
-  <h1 class="h4 mb-2">Access denied</h1>
+  <h1 class="h4 mb-2">{% trans "Access denied" %}</h1>
   <p class="mb-0">Only school administrators, principals, and proprietors can label at-risk outcomes.</p>
 </div>
 {% endblock %}

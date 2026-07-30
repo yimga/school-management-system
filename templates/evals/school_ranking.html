@@ -10,7 +10,7 @@
 <div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
 <div class="d-flex align-items-center justify-content-between mb-3">
   <div>
-    <h1 class="mb-0">School Ranking</h1>
+    <h1 class="mb-0">{% trans "School Ranking" %}</h1>
     <div class="text-muted">{% if is_t_score %}{% trans "Ranks all students (all classes) by cohort-relative T-score (hensachi, mean 50)." %}{% else %}{% trans "Ranks all students (all classes) by term average." %}{% endif %}</div>
   </div>
 </div>
@@ -19,7 +19,7 @@
   <div class="card-body">
     <div class="row g-2 align-items-end">
       <div class="col-md-4">
-        <label class="form-label small">Academic year</label>
+        <label class="form-label small">{% trans "Academic year" %}</label>
         <select class="form-select" name="year">
           {% for y in years %}
             <option value="{{ y.id }}" {% if y.id == selected_year.id %}selected{% endif %}>{{ y.name }}</option>
@@ -27,7 +27,7 @@
         </select>
       </div>
       <div class="col-md-4">
-        <label class="form-label small">Term</label>
+        <label class="form-label small">{% trans "Term" %}</label>
         <select class="form-select" name="term">
           {% for t in terms %}
             <option value="{{ t.id }}" {% if t.id == selected_term.id %}selected{% endif %}>{{ t.name }}</option>
@@ -35,7 +35,7 @@
         </select>
       </div>
       <div class="col-md-4 d-flex justify-content-end">
-        <button type="submit" class="btn btn-primary" data-rmc-autosubmit-hide-when-js>View</button>
+        <button type="submit" class="btn btn-primary" data-rmc-autosubmit-hide-when-js>{% trans "View" %}</button>
       </div>
     </div>
   </div>
@@ -47,9 +47,9 @@
       <table class="table align-middle table-family rmc-data-table" aria-label="School ranking by average score" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
         <thead>
           <tr>
-            <th scope="col" style="width:72px">Rank</th>
-            <th scope="col">Student</th>
-            <th scope="col">Class</th>
+            <th scope="col" style="width:72px">{% trans "Rank" %}</th>
+            <th scope="col">{% trans "Student" %}</th>
+            <th scope="col">{% trans "Class" %}</th>
             <th scope="col" class="text-end">{{ score_label }}</th>
           </tr>
         </thead>

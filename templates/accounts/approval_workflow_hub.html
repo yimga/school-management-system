@@ -17,12 +17,12 @@
         <div class="card-body">
           <div class="d-flex align-items-center gap-2 mb-2">
             <i class="bi bi-clipboard-check text-primary icon-lg" ></i>
-            <h5 class="mb-0">Grade Approvals</h5>
+            <h5 class="mb-0">{% trans "Grade Approvals" %}</h5>
           </div>
           <p class="text-muted small mb-3">Review teacher-submitted grades before publishing.</p>
           {% if grade_approvals_url %}
           <a class="btn btn-primary btn-sm" href="{{ grade_approvals_url }}" {% if "://" in grade_approvals_url %}target="_blank" rel="noopener"{% endif %}>
-            Review grade approvals <i class="bi bi-chevron-right ms-1"></i>
+            {% trans "Review grade approvals" %}
           </a>
           {% else %}
           <p class="small text-warning mb-0">Set <code>STUDIO_APPROVAL_HUB_TENANT_BASE_URL</code> (school site URL) for manager-host Studio.</p>
@@ -35,12 +35,12 @@
         <div class="card-body">
           <div class="d-flex align-items-center gap-2 mb-2">
             <i class="bi bi-person-check text-success icon-lg" ></i>
-            <h5 class="mb-0">Access Requests</h5>
+            <h5 class="mb-0">{% trans "Access Requests" %}</h5>
           </div>
           <p class="text-muted small mb-3">Finance access, data visibility, and other permission requests.</p>
           {% if access_requests_url %}
           <a class="btn btn-success btn-sm" href="{{ access_requests_url }}" {% if "://" in access_requests_url %}target="_blank" rel="noopener"{% endif %}>
-            Review access requests <i class="bi bi-chevron-right ms-1"></i>
+            {% trans "Review access requests" %}
           </a>
           {% else %}
           <p class="small text-warning mb-0">Configure tenant base URL for deep link.</p>
@@ -53,12 +53,12 @@
         <div class="card-body">
           <div class="d-flex align-items-center gap-2 mb-2">
             <i class="bi bi-envelope-paper text-info icon-lg" ></i>
-            <h5 class="mb-0">Contact Requests</h5>
+            <h5 class="mb-0">{% trans "Contact Requests" %}</h5>
           </div>
           <p class="text-muted small mb-3">Parent and guardian contact requests from the portal.</p>
           {% if contact_requests_url %}
           <a class="btn btn-info btn-sm" href="{{ contact_requests_url }}" {% if "://" in contact_requests_url %}target="_blank" rel="noopener"{% endif %}>
-            Review contact requests <i class="bi bi-chevron-right ms-1"></i>
+            {% trans "Review contact requests" %}
           </a>
           {% else %}
           <p class="small text-warning mb-0">Configure tenant base URL for deep link.</p>

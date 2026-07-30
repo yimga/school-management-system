@@ -8,11 +8,11 @@
 {% include "components/next_action_strip.html" %}
 
 <div data-rmc-scroll-policy="paginate" data-page-archetype="task-list">
-  <h1 class="visually-hidden" data-rmc-injected-h1="1">Cahier de Texte</h1>
+  <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Cahier de Texte" %}</h1>
 {% include "widgets/dashboard_hero.html" with hero=hero %}
 <div class="card mb-3">
   <div class="card-body">
-    <h5 class="card-title">New entry</h5>
+    <h5 class="card-title">{% trans "New entry" %}</h5>
     <form method="post"
           data-rmc-offline-form="notes_report" data-offline-action-type="notes_report"
           data-draft-key="cahier_new_entry" data-draft-max-age-hours="24">
@@ -26,7 +26,7 @@
           {{ form.lesson_topic_code.label_tag }}
           {% if curriculum_nodes %}
             <select name="lesson_topic_code" id="id_lesson_topic_code" class="form-select">
-              <option value="">-- Optional topic from progression --</option>
+              <option value="">{% trans "-- Optional topic from progression --" %}</option>
               {% for code, title in curriculum_nodes %}
                 <option value="{{ code }}">{{ code }} – {{ title }}</option>
               {% endfor %}
@@ -41,18 +41,18 @@
         <div class="col-md-6"><label>{{ form.integration_activity }} {{ form.integration_activity.label }}</label></div>
       </div>
       {% if form.errors %}<div class="text-danger small mt-2">{{ form.errors }}</div>{% endif %}
-      <button type="submit" class="btn btn-primary mt-2">Submit for visa</button>
+      <button type="submit" class="btn btn-primary mt-2">{% trans "Submit for visa" %}</button>
     </form>
   </div>
 </div>
 <div class="card">
   <div class="card-body">
-    <h5 class="card-title">My entries</h5>
+    <h5 class="card-title">{% trans "My entries" %}</h5>
     {% if entries %}
     <div class="table-responsive">
       <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-table-5col="1">
         <caption class="visually-hidden">{% trans "My entries" %}</caption>
-        <thead><tr><th scope="col">Date</th><th scope="col">Class / Subject</th><th scope="col">Title</th><th scope="col">Status</th></tr></thead>
+        <thead><tr><th scope="col">{% trans "Date" %}</th><th scope="col">{% trans "Class / Subject" %}</th><th scope="col">{% trans "Title" %}</th><th scope="col">{% trans "Status" %}</th></tr></thead>
         <tbody>
           {% for e in entries %}
           <tr data-rmc-row-detail="1"

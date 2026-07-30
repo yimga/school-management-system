@@ -153,6 +153,8 @@ def scan_file(path: Path) -> list[dict]:
                 "path": _rel(path),
                 "tag": m.group(1).lower(),
                 "text": snippet,
+                "line": line,
+                "cleaned": cleaned,
             }
         )
     return findings

@@ -665,3 +665,7 @@ html[data-rmc-tenant-studio-day1-armed] .rmc-day1-lock-check {
     animation: none !important;
   }
 }
+
+.rmc-form-inline {
+  display: inline-block;
+}

@@ -66,7 +66,7 @@
             <td class="text-end">
               <a class="btn btn-sm btn-outline-primary" href="{% url 'kb:kb_article' article.slug %}">{% trans "Read" %}</a>
               {% if article.odt_file %}
-              <a class="btn btn-sm btn-outline-success" href="{% url 'kb:kb_article_download_odt' article.slug %}">ODT</a>
+              <a class="btn btn-sm btn-outline-success" href="{% url 'kb:kb_article_download_odt' article.slug %}">{% trans "ODT" %}</a>
               {% endif %}
             </td>
           </tr>
@@ -93,7 +93,7 @@
             <td class="text-end text-nowrap">
               <a class="btn btn-sm btn-primary" href="{% url 'kb:office_document_open' doc.id %}">{% trans "Open" %}</a>
               <a class="btn btn-sm btn-outline-danger" href="{% url 'kb:office_document_preview_pdf' doc.id %}" target="_blank" rel="noopener">PDF</a>
-              <a class="btn btn-sm btn-outline-secondary" href="{% url 'kb:office_document_download' doc.id %}?format=docx">DOCX</a>
+              <a class="btn btn-sm btn-outline-secondary" href="{% url 'kb:office_document_download' doc.id %}?format=docx">{% trans "DOCX" %}</a>
             </td>
           </tr>
           {% empty %}

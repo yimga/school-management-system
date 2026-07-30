@@ -6,14 +6,14 @@
 {% block content %}
 {% include "components/next_action_strip.html" %}
 
-  <h1 class="visually-hidden" data-rmc-injected-h1="1">Signature Requests Management</h1>
+  <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Signature Requests Management" %}</h1>
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
   {% url 'portal:signature_request_create' as create_url %}
   {% include "studio_os/components/page_header.html" with title="Signature Requests" subtitle="Manage electronic signature requests for forms" action_url=create_url action_text="Create Request" %}
   <div class="d-flex gap-2 mb-3 small">
-    <a href="{% url 'studio_os:output' %}?pane=documents" class="text-muted" title="Document library in Output Studio"><i class="bi bi-box-arrow-up-right me-1"></i>Output Studio</a>
-    <a href="{% url 'portal:document_library_manage' %}" class="text-muted">Document Library</a>
+    <a href="{% url 'studio_os:output' %}?pane=documents" class="text-muted" title="Document library in Output Studio">{% trans "Output Studio" %}</a>
+    <a href="{% url 'portal:document_library_manage' %}" class="text-muted">{% trans "Document Library" %}</a>
   </div>
 
   <!-- Stats Cards -->
