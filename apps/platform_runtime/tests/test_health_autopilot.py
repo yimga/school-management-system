@@ -258,8 +258,12 @@ class ConsoleViewTests(TestCase):
         user = user_model.objects.create_user(
             username="op_health", email="op_health@example.com", password="x"
         )
+        # Health-autopilot views require CONTROL-PLANE access, not just is_staff
+        # (tenant admins are is_staff too, per the tenant⟂operator isolation
+        # program) — grant it via the superuser break-glass, else the gate 403s.
         user.is_staff = True
-        user.save(update_fields=["is_staff"])
+        user.is_superuser = True
+        user.save(update_fields=["is_staff", "is_superuser"])
 
         req = RequestFactory().get("/self-healing/")
         req.user = user
@@ -352,8 +356,12 @@ class ApplyViewTests(TestCase):
         user = user_model.objects.create_user(
             username="op_apply", email="op_apply@example.com", password="x"
         )
+        # Health-autopilot views require CONTROL-PLANE access, not just is_staff
+        # (tenant admins are is_staff too, per the tenant⟂operator isolation
+        # program) — grant it via the superuser break-glass, else the gate 403s.
         user.is_staff = True
-        user.save(update_fields=["is_staff"])
+        user.is_superuser = True
+        user.save(update_fields=["is_staff", "is_superuser"])
         return user
 
     def test_get_is_rejected(self):

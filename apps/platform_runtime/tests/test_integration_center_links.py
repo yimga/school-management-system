@@ -4,6 +4,7 @@ from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from apps.accounts.models import User
+from apps.test_utils.http_clients import login_manager_client
 
 _MGR_HOST = "manager.runmycampus.com"
 
@@ -15,15 +16,16 @@ _MGR_HOST = "manager.runmycampus.com"
 )
 class IntegrationCenterLinksTests(TestCase):
     def setUp(self):
-        User.objects.create_user(
+        operator = User.objects.create_user(
             username="integrations_cp",
             password="Test1234!",
             role=User.Role.SUPERADMIN,
             is_staff=True,
             is_superuser=True,
         )
-        self.client = Client(HTTP_HOST=_MGR_HOST, raise_request_exception=False)
-        self.client.login(username="integrations_cp", password="Test1234!")
+        # Manager-host operator page: confirmed device + verified MFA on a
+        # manager-bound session (a bare client.login bounces 302 to MFA setup).
+        self.client = login_manager_client(operator, password="Test1234!", host=_MGR_HOST)
 
     def test_configuration_integrations_page_200(self):
         response = self.client.get("/configuration/integrations/")
