@@ -13,6 +13,7 @@ from apps.schools.decision_architecture import (
     DECISION_ARCHITECTURE_KEYS,
     get_decision_architecture_for_page,
 )
+from apps.test_utils.http_clients import login_manager_client
 
 
 @override_settings(ALLOWED_HOSTS=["*"])
@@ -24,7 +25,11 @@ class RuntimeTruthHubTests(TestCase):
             is_staff=True,
             is_superuser=True,
         )
-        self.client.force_login(self.user)
+        # Manager-host operator page: RequireMFAMiddleware walls the baseline-MFA
+        # superuser role, and the manager host reads a separate session cookie —
+        # a bare force_login bounces 302. login_manager_client binds the manager
+        # session with a confirmed device + verified MFA.
+        self.client = login_manager_client(self.user, password="testpass123")
         self.host = "manager.runmycampus.com"
         cache.clear()
 

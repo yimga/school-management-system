@@ -639,8 +639,25 @@ def _extract_bearer_token(request) -> str:
     return auth[7:].strip()
 
 
+def _decrypted_integration_config(integration) -> dict:
+    """Config with secret-named keys (``service_bearer_token`` etc.) unwrapped.
+
+    ``ServiceIntegration.save()`` Fernet-wraps secret-named config values at rest
+    (Audit C1), so a raw ``config["service_bearer_token"]`` read returns an
+    ``enc::fernet::`` blob, never the plaintext bearer a tool actually sends. The
+    static-bearer LTI service guards must compare against the DECRYPTED value, or
+    every AGS/NRPS/deep-linking call from a tenant whose config was saved after C1
+    is rejected 403. ``decrypt_config`` never raises (a decrypt fault leaves the
+    value wrapped, so the guard fails closed) and passes plaintext through
+    unchanged for half-migrated rows.
+    """
+    from apps.communication.secret_config import decrypt_config
+
+    return decrypt_config(dict(integration.config or {}))
+
+
 def _authorize_lti_service_request(request, integration):
-    cfg = integration.config or {}
+    cfg = _decrypted_integration_config(integration)
     expected = (
         str(cfg.get("service_bearer_token") or "").strip()
         or str(cfg.get("bearer_token") or "").strip()
@@ -751,8 +768,9 @@ def _enforce_lti_scope(request, integration, required: tuple[str, ...]):
         # returned 403, so the caller will never reach this. Be defensive.
         return _insufficient_scope_response(required)
     # If the bearer is the legacy static service_bearer_token, skip scope
-    # enforcement (fixtures path).
-    cfg = integration.config or {}
+    # enforcement (fixtures path). Decrypt first — the value is Fernet-wrapped
+    # at rest (Audit C1), so a raw compare never matches a plaintext bearer.
+    cfg = _decrypted_integration_config(integration)
     expected = (
         str(cfg.get("service_bearer_token") or "").strip()
         or str(cfg.get("bearer_token") or "").strip()

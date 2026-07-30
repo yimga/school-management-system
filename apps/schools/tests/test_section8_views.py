@@ -255,7 +255,9 @@ class SchoolFinderTests(TestCase):
     def test_find_school_page_renders(self):
         response = self.client.get(reverse("find_school"))
         self.assertEqual(response.status_code, 200)
-        self.assertIn("Access Your Campus", response.content.decode())
+        # Finder hero H1 (marketing/find_campus.html) — renamed from the legacy
+        # "Access Your Campus" to the current "Find your campus portal".
+        self.assertIn("Find your campus portal", response.content.decode())
 
     def test_find_school_hx_returns_matching_result(self):
         response = self.client.get(
