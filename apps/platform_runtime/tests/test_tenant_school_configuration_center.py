@@ -3,11 +3,11 @@ from __future__ import annotations
 from unittest.mock import patch
 
 from django.test import Client, TestCase, override_settings
-from django_otp.plugins.otp_totp.models import TOTPDevice
 
 from apps.accounts.models import User
 from apps.finance.models import ComplianceProfile
 from apps.schools.models import School
+from apps.test_utils.http_clients import login_tenant_admin_client
 
 
 @override_settings(
@@ -30,18 +30,17 @@ class TenantSchoolConfigurationCenterTests(TestCase):
             role=User.Role.ADMIN,
             is_staff=True,
         )
-        TOTPDevice.objects.create(user=cls.admin, name="test-device", confirmed=True)
 
     def _admin_client(self):
-        client = Client(
-            HTTP_HOST="tenant-settings.runmycampus.com",
-            raise_request_exception=False,
+        # Tenant ADMIN on a tenant-host page needs a SchoolMembership (else
+        # OperatorTenantConfinementMiddleware confines the is_staff user to
+        # manager/super/ → 302) + confirmed TOTP device + verified session.
+        return login_tenant_admin_client(
+            self.admin,
+            password="x" * 8,
+            host="tenant-settings.runmycampus.com",
+            school=self.school,
         )
-        client.login(username="tenant_settings_admin", password="x" * 8)
-        session = client.session
-        session["mfa_verified"] = True
-        session.save()
-        return client
 
     @staticmethod
     def _store_rendered_templates_without_context_copy(
@@ -61,7 +60,11 @@ class TenantSchoolConfigurationCenterTests(TestCase):
         self.assertIn("School Profile", body)
         self.assertIn("Academic Year / Term", body)
         self.assertIn("Security / Audit", body)
-        self.assertIn("tenant scoped only", body.lower())
+        # Tenant-scoping guarantee: the MAX parity wave replaced the explicit
+        # "tenant scoped only" purpose line with the masthead eyebrow scoping
+        # ("Setup · this school") + the per-section permission gate, so assert the
+        # rendered scoping signal + the no-operator-plane-leakage invariant.
+        self.assertIn("this school", body.lower())
         self.assertNotIn("global registries", body.lower())
         self.assertNotIn("system_closure_map", body)
 
