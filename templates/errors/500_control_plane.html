@@ -13,7 +13,7 @@
     <h1 id="cp-error-title" class="error-title">{% trans "Something went wrong on our side." %}</h1>
     <p class="error-message">{% trans "Please try again in a moment. If this keeps happening, check platform logs and contact support — the fault has been recorded." %}</p>
     <div class="error-actions">
-      <button class="btn btn-primary" type="button" onclick="window.location.reload()"><i class="bi bi-arrow-clockwise me-1"></i>{% trans "Retry" %}</button>
+      <button class="btn btn-primary" type="button" data-rmc-reload><i class="bi bi-arrow-clockwise me-1"></i>{% trans "Retry" %}</button>
       <a class="btn btn-outline-secondary" href="{% url 'super:dashboard' %}"><i class="bi bi-house me-1"></i>{% trans "Back to Manager" %}</a>
     </div>
   </div>

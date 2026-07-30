@@ -9,7 +9,7 @@
     <p class="error-message">{% trans "RunMyCampus is undergoing scheduled maintenance. Your data is safe — please check back in a few minutes." %}</p>
     <p class="small text-muted mb-3">{% trans "Staff preview — end users see this page when maintenance mode is enabled site-wide." %}</p>
     <div class="error-actions">
-      <button class="btn btn-primary" type="button" onclick="window.location.reload()">
+      <button class="btn btn-primary" type="button" data-rmc-reload>
         <i class="bi bi-arrow-clockwise me-1" aria-hidden="true"></i>{% trans "Try again" %}
       </button>
     </div>

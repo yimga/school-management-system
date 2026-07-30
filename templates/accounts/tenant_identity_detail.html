@@ -56,7 +56,7 @@
           <p class="small text-muted mb-3">{% trans "No active sessions found." %}</p>
           {% endif %}
           {% if can_manage %}
-          <form method="post" action="{{ revoke_sessions_url }}" class="d-inline" data-rmc-post-mutation="1" onsubmit="return confirm('{% trans "Revoke all sessions for this user?" %}');">
+          <form method="post" action="{{ revoke_sessions_url }}" class="d-inline" data-rmc-post-mutation="1" data-rmc-confirm="{% trans 'Revoke all sessions for this user?' %}">
             {% csrf_token %}
             {% if detail_return_url %}<input type="hidden" name="next" value="{{ detail_return_url }}">{% endif %}
             <button type="submit" class="btn btn-sm btn-outline-danger">{% trans "Revoke all sessions" %}</button>
@@ -80,13 +80,13 @@
       <div class="d-flex flex-wrap gap-2">
         {% if target_is_owner %}
           {% if target_is_self %}
-          <form method="post" action="{{ revoke_ownership_url }}" class="d-inline" data-rmc-post-mutation="1" onsubmit="return confirm('{% trans "Step down as owner of this school?" %}');">
+          <form method="post" action="{{ revoke_ownership_url }}" class="d-inline" data-rmc-post-mutation="1" data-rmc-confirm="{% trans 'Step down as owner of this school?' %}">
             {% csrf_token %}
             {% if detail_return_url %}<input type="hidden" name="next" value="{{ detail_return_url }}">{% endif %}
             <button type="submit" class="btn btn-sm btn-outline-danger"{% if active_owner_count <= 1 %} disabled{% endif %}>{% trans "Step down as owner" %}</button>
           </form>
           {% else %}
-          <form method="post" action="{{ revoke_ownership_url }}" class="d-inline" data-rmc-post-mutation="1" onsubmit="return confirm('{% trans "Remove ownership from this member?" %}');">
+          <form method="post" action="{{ revoke_ownership_url }}" class="d-inline" data-rmc-post-mutation="1" data-rmc-confirm="{% trans 'Remove ownership from this member?' %}">
             {% csrf_token %}
             {% if detail_return_url %}<input type="hidden" name="next" value="{{ detail_return_url }}">{% endif %}
             <button type="submit" class="btn btn-sm btn-outline-danger"{% if active_owner_count <= 1 and not target_is_suspended %} disabled{% endif %}>{% trans "Remove ownership" %}</button>
@@ -102,7 +102,7 @@
             <button type="submit" class="btn btn-sm btn-outline-primary">{% trans "Make co-owner" %}</button>
           </form>
           {% if not target_is_self %}
-          <form method="post" action="{{ transfer_ownership_url }}" class="d-inline" data-rmc-post-mutation="1" onsubmit="return confirm('{% trans "Transfer ownership to this member and step yourself down?" %}');">
+          <form method="post" action="{{ transfer_ownership_url }}" class="d-inline" data-rmc-post-mutation="1" data-rmc-confirm="{% trans 'Transfer ownership to this member and step yourself down?' %}">
             {% csrf_token %}
             {% if detail_return_url %}<input type="hidden" name="next" value="{{ detail_return_url }}">{% endif %}
             <button type="submit" class="btn btn-sm btn-primary">{% trans "Transfer ownership & step down" %}</button>
@@ -121,7 +121,7 @@
           <button type="submit" class="btn btn-sm btn-success">{% trans "Reactivate member" %}</button>
         </form>
         {% else %}
-        <form method="post" action="{{ suspend_url }}" class="d-inline" data-rmc-post-mutation="1" onsubmit="return confirm('{% trans "Suspend this member? They lose management access and are signed out until reactivated." %}');">
+        <form method="post" action="{{ suspend_url }}" class="d-inline" data-rmc-post-mutation="1" data-rmc-confirm="{% trans 'Suspend this member? They lose management access and are signed out until reactivated.' %}">
           {% csrf_token %}
           {% if detail_return_url %}<input type="hidden" name="next" value="{{ detail_return_url }}">{% endif %}
           <button type="submit" class="btn btn-sm btn-outline-warning">{% trans "Suspend member" %}</button>
@@ -140,7 +140,7 @@
     {% if target_is_owner %}
       {# Removing an owner is owner-only and can't strip the last active owner. #}
       {% if caller_is_owner and target_is_suspended or caller_is_owner and active_owner_count > 1 %}
-      <form method="post" action="{{ offboard_url }}" class="d-inline" data-rmc-post-mutation="1" onsubmit="return confirm('{% trans "Remove this owner from the school?" %}');">
+      <form method="post" action="{{ offboard_url }}" class="d-inline" data-rmc-post-mutation="1" data-rmc-confirm="{% trans 'Remove this owner from the school?' %}">
         {% csrf_token %}
         {% if return_url %}<input type="hidden" name="next" value="{{ return_url }}">{% endif %}
         <button type="submit" class="btn btn-sm btn-outline-danger">{% trans "Offboard from school" %}</button>
@@ -149,7 +149,7 @@
       <button type="button" class="btn btn-sm btn-outline-danger" disabled title="{% trans "Only an owner can remove another owner, and never the last active one." %}">{% trans "Offboard from school" %}</button>
       {% endif %}
     {% else %}
-    <form method="post" action="{{ offboard_url }}" class="d-inline" data-rmc-post-mutation="1" onsubmit="return confirm('{% trans "Remove this user from the school?" %}');">
+    <form method="post" action="{{ offboard_url }}" class="d-inline" data-rmc-post-mutation="1" data-rmc-confirm="{% trans 'Remove this user from the school?' %}">
       {% csrf_token %}
       {% if return_url %}<input type="hidden" name="next" value="{{ return_url }}">{% endif %}
       <button type="submit" class="btn btn-sm btn-outline-danger">{% trans "Offboard from school" %}</button>

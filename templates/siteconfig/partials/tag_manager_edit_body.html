@@ -42,7 +42,7 @@
       <a href="{% url 'siteconfig:tag_manager' %}" class="btn btn-outline-secondary">{% trans "Cancel" %}</a>
     </form>
     <hr class="my-4">
-    <form method="post" onsubmit="return confirm('{% trans "Deactivate this tag? It will no longer appear for new assignments." %}');">
+    <form method="post" data-rmc-confirm="{% trans 'Deactivate this tag? It will no longer appear for new assignments.' %}">
       {% csrf_token %}
       <input type="hidden" name="action" value="delete">
       <button type="submit" class="btn btn-outline-danger btn-sm">{% trans "Deactivate tag" %}</button>

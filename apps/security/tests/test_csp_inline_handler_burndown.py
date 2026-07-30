@@ -39,18 +39,65 @@ _DEFERRED_PARTIALS = [
 ]
 
 
+_MODAL_JS = _REPO / "static" / "js" / "rmc-modal-intelligence.js"
+
+# Templates whose inline on*= handlers were converted to declarative data-* markers
+# in the STEP 2b burndown (all reach the shared module via one of the 4 shells).
+_CONVERTED_TEMPLATES = [
+    _TEMPLATES / "parent" / "finance.html",
+    _TEMPLATES / "parent" / "results.html",
+    _TEMPLATES / "maintenance.html",
+    _TEMPLATES / "errors" / "500_control_plane.html",
+    _TEMPLATES / "errors" / "503_control_plane.html",
+    _TEMPLATES / "apicenter" / "api_keys.html",
+    _TEMPLATES / "apicenter" / "webhook_docs.html",
+    _TEMPLATES / "payroll" / "run_detail.html",
+    _TEMPLATES / "accounts" / "tenant_identity_detail.html",
+    _TEMPLATES / "accounts" / "tenant_join_codes.html",
+    _TEMPLATES / "accounts" / "sso_connections.html",
+    _TEMPLATES / "accounts" / "sessions_page.html",
+    _TEMPLATES / "accounts" / "my_delegations.html",
+    _TEMPLATES / "marketplace" / "blueprint_marketplace.html",
+    _TEMPLATES / "marketplace" / "webhook_endpoints.html",
+    _TEMPLATES / "marketplace" / "tenant_installed_apps.html",
+    _TEMPLATES / "schools" / "advancement_donor_detail.html",
+    _TEMPLATES / "schools" / "super_operator_team_detail.html",
+    _TEMPLATES / "schools" / "super_support_auto_rules.html",
+    _TEMPLATES / "schools" / "super_support_on_call.html",
+    _TEMPLATES / "siteconfig" / "installed_packages_rollback.html",
+    _TEMPLATES / "siteconfig" / "partials" / "tag_manager_edit_body.html",
+    _TEMPLATES / "siteconfig" / "partials" / "maintenance_body.html",
+]
+
+
 class CspHandlerModuleTests(SimpleTestCase):
     def test_handler_module_exists_with_core_capabilities(self):
         self.assertTrue(_HANDLER_JS.exists(), str(_HANDLER_JS))
         src = _HANDLER_JS.read_text(encoding="utf-8")
+        # Capabilities this module OWNS (async-CSS flip + delegated print/reload/img).
         for marker in (
             "data-rmc-async-style",
             "data-rmc-print",
             "data-rmc-reload",
-            "data-rmc-confirm",
             "data-rmc-img-fallback",
         ):
             self.assertIn(marker, src, marker)
+
+    def test_module_does_not_double_handle_confirm(self):
+        # data-rmc-confirm is owned by rmc-modal-intelligence.js (a rich sheet).
+        # This module must NOT register a submit-confirm listener, or forms would
+        # get BOTH the modal AND a native confirm().
+        src = _HANDLER_JS.read_text(encoding="utf-8")
+        self.assertNotIn("addEventListener('submit'", src)
+        self.assertNotIn("window.confirm", src)
+
+    def test_modal_engine_submits_forms_on_confirm(self):
+        # The rich confirm handler re-dispatches via el.click(), a no-op on a
+        # <form>. reRun must submit a form directly so form-level data-rmc-confirm
+        # actually posts after the user confirms.
+        src = _MODAL_JS.read_text(encoding="utf-8")
+        self.assertIn("requestSubmit", src)
+        self.assertIn('el.tagName === "FORM"', src)
 
     def test_shells_load_the_handler_module(self):
         for shell in _SHELLS:
@@ -59,6 +106,17 @@ class CspHandlerModuleTests(SimpleTestCase):
                 shell.read_text(encoding="utf-8"),
                 f"{shell} must load the CSP-safe handler module",
             )
+
+
+class InlineHandlerConversionTests(SimpleTestCase):
+    def test_no_inline_onsubmit_confirm_or_onclick_nav_in_converted_templates(self):
+        # A strict script-src blocks these inline handlers; the burndown replaced
+        # them with data-* markers. None may survive in a converted template.
+        for path in _CONVERTED_TEMPLATES:
+            body = path.read_text(encoding="utf-8")
+            self.assertNotIn('onsubmit="return confirm', body, str(path))
+            self.assertNotIn('onclick="window.print', body, str(path))
+            self.assertNotIn('onclick="window.location.reload', body, str(path))
 
 
 class DeferredCssBurndownTests(SimpleTestCase):

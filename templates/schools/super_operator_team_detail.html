@@ -80,7 +80,7 @@
       </form>
       {% if not is_canonical_admin %}
         {% if profile.status == "active" %}
-        <form method="post" action="{{ suspend_url }}" data-rmc-post-mutation="1" onsubmit="return confirm('{% trans "Suspend this operator?" %}');">
+        <form method="post" action="{{ suspend_url }}" data-rmc-post-mutation="1" data-rmc-confirm="{% trans 'Suspend this operator?' %}">
           {% csrf_token %}
           {% if detail_return_url %}<input type="hidden" name="next" value="{{ detail_return_url }}">{% endif %}
           <button type="submit" class="btn btn-sm btn-outline-secondary">{% trans "Suspend" %}</button>
@@ -94,7 +94,7 @@
         {% endif %}
       {% endif %}
       {% if can_offboard %}
-      <form method="post" action="{% url 'super:operator_team_offboard' operator_user.pk %}" data-rmc-post-mutation="1" onsubmit="return confirm('{% trans "Offboard this operator?" %}');">
+      <form method="post" action="{% url 'super:operator_team_offboard' operator_user.pk %}" data-rmc-post-mutation="1" data-rmc-confirm="{% trans 'Offboard this operator?' %}">
         {% csrf_token %}
         <input type="hidden" name="next" value="{{ roster_url }}">
         <button type="submit" class="btn btn-sm btn-outline-danger">{% trans "Offboard" %}</button>

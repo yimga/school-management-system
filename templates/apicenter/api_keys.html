@@ -79,7 +79,7 @@
             <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
             <div class="rmc-row-disclosure__body mt-1">
 {% if not key.revoked_at %}
-                <form method="post" action="{% url 'apicenter:api_key_revoke' key.pk %}" class="d-inline" onsubmit="return confirm('{% trans "Revoke this key? It will stop working immediately." %}');">
+                <form method="post" action="{% url 'apicenter:api_key_revoke' key.pk %}" class="d-inline" data-rmc-confirm="{% trans 'Revoke this key? It will stop working immediately.' %}">
                   {% csrf_token %}
                   <button type="submit" class="btn btn-outline-danger btn-sm">{% trans "Revoke" %}</button>
                 </form>

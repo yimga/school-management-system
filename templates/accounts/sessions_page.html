@@ -54,7 +54,7 @@
                   <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
                   <div class="rmc-row-disclosure__body mt-1">
 {% if not s.is_current %}
-                <form method="post" action="{% url 'accounts:sessions_revoke' s.session_key %}" class="d-inline" onsubmit="return confirm('{% trans "Revoke this session?" %}');">
+                <form method="post" action="{% url 'accounts:sessions_revoke' s.session_key %}" class="d-inline" data-rmc-confirm="{% trans 'Revoke this session?' %}">
                   {% csrf_token %}
                   <button type="submit" class="btn btn-outline-danger btn-sm">{% trans "Revoke" %}</button>
                 </form>

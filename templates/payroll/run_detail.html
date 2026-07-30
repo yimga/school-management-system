@@ -11,13 +11,13 @@
 
 <div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
   <div>
-    <h1 class="mb-0">Payroll Run</h1>
+    <h1 class="mb-0">{% trans "Payroll Run" %}</h1>
     <div class="text-muted">{{ run.period_start }} - {{ run.period_end }}</div>
   </div>
   <div class="d-flex gap-2">
-    <a class="btn btn-outline-secondary btn-sm" href="{% url 'payroll:dashboard' %}">Back</a>
+    <a class="btn btn-outline-secondary btn-sm" href="{% url 'payroll:dashboard' %}">{% trans "Back" %}</a>
     {% if run.status != "PAID" %}
-      <a class="btn btn-sm btn-primary" href="{% url 'payroll:generate_run' run.id %}">Generate Payslips</a>
+      <a class="btn btn-sm btn-primary" href="{% url 'payroll:generate_run' run.id %}">{% trans "Generate Payslips" %}</a>
     {% endif %}
     {% if run.status == "APPROVED" or run.status == "PROCESSED" or run.status == "REVIEWED" or run.status == "PAID" %}
       <a class="btn btn-sm btn-outline-primary" href="{% url 'payroll:export_disbursement' run.id %}">{% trans "Export bank CSV" %}</a>
@@ -28,12 +28,12 @@
         <button type="submit" class="btn btn-sm btn-outline-primary">{% trans "Mark reviewed" %}</button>
       </form>
     {% elif run.status == "REVIEWED" %}
-      <form method="post" action="{% url 'payroll:approve_run' run.id %}" class="d-inline" onsubmit="return confirm('{% trans "Approve this payroll run? Your sign-off is recorded." %}');">
+      <form method="post" action="{% url 'payroll:approve_run' run.id %}" class="d-inline" data-rmc-confirm="{% trans 'Approve this payroll run? Your sign-off is recorded.' %}">
         {% csrf_token %}
         <button type="submit" class="btn btn-sm btn-primary">{% trans "Approve" %}</button>
       </form>
     {% elif run.status == "APPROVED" %}
-      <form method="post" action="{% url 'payroll:mark_run_paid' run.id %}" class="d-inline" onsubmit="return confirm('{% trans "Mark this run paid? Payslips will be locked from regeneration." %}');">
+      <form method="post" action="{% url 'payroll:mark_run_paid' run.id %}" class="d-inline" data-rmc-confirm="{% trans 'Mark this run paid? Payslips will be locked from regeneration.' %}">
         {% csrf_token %}
         <button type="submit" class="btn btn-sm btn-success">{% trans "Mark as paid" %}</button>
       </form>
@@ -72,16 +72,16 @@
 
 <div class="card">
   <div class="card-body">
-    <h5 class="mb-2">Payslips</h5>
+    <h5 class="mb-2">{% trans "Payslips" %}</h5>
     <div class="table-responsive">
       <table class="table table-sm align-middle table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
         <caption class="visually-hidden">{% trans "Payslips" %}</caption>
         <thead>
           <tr>
-            <th scope="col">Employee</th>
-            <th scope="col">Status</th>
-            <th scope="col" class="text-end">Gross</th>
-            <th scope="col" class="text-end">Net</th>
+            <th scope="col">{% trans "Employee" %}</th>
+            <th scope="col">{% trans "Status" %}</th>
+            <th scope="col" class="text-end">{% trans "Gross" %}</th>
+            <th scope="col" class="text-end">{% trans "Net" %}</th>
           </tr>
         </thead>
         <tbody>

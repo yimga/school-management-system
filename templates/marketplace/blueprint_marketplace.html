@@ -130,7 +130,7 @@
     <details class="studio-os__card studio-os__card--disclosure px-3 py-2" open>
       <summary class="fw-semibold py-1" style="cursor: pointer; list-style: revert;">{% trans "Revert to previous bundle" %}</summary>
       <div class="p-3 pt-2">
-        <form method="post" id="rollback-form" onsubmit="return confirm('{% trans "Revert blueprint for this school? This affects live policy resolution." %}');">
+        <form method="post" id="rollback-form" data-rmc-confirm="{% trans 'Revert blueprint for this school? This affects live policy resolution.' %}">
           {% csrf_token %}
           <input type="hidden" name="action" value="rollback">
           <div class="row g-2">

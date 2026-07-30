@@ -60,7 +60,7 @@
               <button type="submit" class="btn btn-sm btn-success" data-action="marketplace-activate" data-task-step="install:activate">{% trans "Activate" %}</button>
             </form>
             {% endif %}
-            <form method="post" action="{% url 'tenant_uninstall_app' %}" class="d-inline" onsubmit="return confirm('{% if i.install_phase == 'sandbox' %}{% trans "Discard sandbox install and remove this app?" %}{% else %}{% trans "Uninstall this app?" %}{% endif %}');">
+            <form method="post" action="{% url 'tenant_uninstall_app' %}" class="d-inline" data-rmc-confirm="{% if i.install_phase == 'sandbox' %}{% trans 'Discard sandbox install and remove this app?' %}{% else %}{% trans 'Uninstall this app?' %}{% endif %}">
               {% csrf_token %}
               <input type="hidden" name="installation_id" value="{{ i.pk }}">
               <button type="submit" class="btn btn-sm btn-outline-danger">{% if i.install_phase == 'sandbox' %}{% trans "Rollback (remove sandbox)" %}{% else %}{% trans "Uninstall" %}{% endif %}</button>

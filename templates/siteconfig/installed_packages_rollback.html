@@ -60,7 +60,7 @@
                 <details class="rmc-row-disclosure">
                   <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
                   <div class="rmc-row-disclosure__body mt-1">
-<form method="post" class="d-inline" onsubmit="return confirm('{% trans "Rollback this package install?" %}');">
+<form method="post" class="d-inline" data-rmc-confirm="{% trans 'Rollback this package install?' %}">
                   {% csrf_token %}
                   <input type="hidden" name="installed_id" value="{{ p.pk }}">
                   <label class="small me-1">{% trans "Type" %} <code>ROLLBACK</code></label>

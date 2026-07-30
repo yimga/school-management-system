@@ -8,9 +8,13 @@
  *
  *   <button data-rmc-print>                -> window.print()
  *   <button data-rmc-reload>               -> location.reload()
- *   <form   data-rmc-confirm="Message?">   -> confirm() gate before submit
  *   <img    data-rmc-img-fallback>         -> hidden on load error (reveals next sibling)
  *   <link media="print" data-rmc-async-style> -> media flipped to 'all' (async CSS)
+ *
+ * NOTE: `data-rmc-confirm` (confirm-before-submit) is intentionally NOT handled
+ * here — the platform's rich modal handler `rmc-modal-intelligence.js` owns that
+ * declarative marker (a styled sheet, not native confirm()). Adding a second
+ * handler here would double-prompt.
  *
  * Loaded from 'self' (external file), so it needs no nonce. Handlers are delegated
  * at the document, so they also cover dynamically-inserted nodes. Page-SPECIFIC
@@ -49,18 +53,6 @@
       window.print();
     } else if (el.hasAttribute('data-rmc-reload')) {
       window.location.reload();
-    }
-  });
-
-  // --- Delegated submit: confirm() gate before a form posts ------------------
-  document.addEventListener('submit', function (e) {
-    var form = e.target;
-    if (!form || !form.matches || !form.matches('form[data-rmc-confirm]')) {
-      return;
-    }
-    var message = form.getAttribute('data-rmc-confirm') || '';
-    if (message && !window.confirm(message)) {
-      e.preventDefault();
     }
   });
 

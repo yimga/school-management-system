@@ -255,14 +255,24 @@
 
   function reRun(el) {
     // Re-dispatch the element's native default now that it's confirmed. A
-    // single passing-guard prevents the delegate from re-intercepting it:
-    // el.click() submits a submit-button's form, navigates an <a href>, or
-    // fires an onclick — one path covers them all.
+    // single passing-guard prevents the delegate from re-intercepting it.
+    // For a <form> carrying data-rmc-confirm, el.click() is a NO-OP (a form does
+    // not submit on click), so submit it directly — this lets the confirm marker
+    // live on the <form> as well as on a button/<a href>, where el.click()
+    // submits the button's form, navigates the link, or fires its onclick.
     if (passing) {
       passing.add(el);
     }
     try {
-      el.click();
+      if (el.tagName === "FORM") {
+        if (typeof el.requestSubmit === "function") {
+          el.requestSubmit();
+        } else {
+          el.submit();
+        }
+      } else {
+        el.click();
+      }
     } finally {
       if (passing) {
         window.setTimeout(function () {

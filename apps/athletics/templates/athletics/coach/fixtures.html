@@ -53,7 +53,7 @@
                   </form>
                   {% else %}<span class="text-muted small">{% trans "Recorded" %}</span>{% endif %}
                   {% if fixture.status != "completed" and fixture.status != "cancelled" %}
-                  <form method="post" action="{% url 'athletics:coach_cancel_fixture' fixture_id=fixture.id %}" class="d-inline" onsubmit="return confirm('{% trans "Cancel this fixture and release its venue?" %}');">
+                  <form method="post" action="{% url 'athletics:coach_cancel_fixture' fixture_id=fixture.id %}" class="d-inline" data-rmc-confirm="{% trans 'Cancel this fixture and release its venue?' %}">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-outline-danger btn-sm" title="{% trans 'Cancel fixture and free its venue' %}">{% trans "Cancel" %}</button>
                   </form>

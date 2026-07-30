@@ -58,7 +58,7 @@
           <a class="btn btn-outline-primary btn-sm" href="{% url 'reports:parent_share_report' student.id 'annual' %}">{% trans "Share annual" %}</a>
         {% endif %}
       </div>
-      <button type="button" class="btn btn-outline-secondary btn-sm no-print" onclick="window.print();" aria-label="{% trans 'Print' %}">
+      <button type="button" class="btn btn-outline-secondary btn-sm no-print" data-rmc-print aria-label="{% trans 'Print' %}">
         <i class="bi bi-printer me-1" aria-hidden="true"></i>{% trans "Print" %}
       </button>
     </div>

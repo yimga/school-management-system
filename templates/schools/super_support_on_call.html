@@ -206,7 +206,7 @@
                 <details class="rmc-row-disclosure">
                   <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
                   <div class="rmc-row-disclosure__body mt-1">
-<form method="post" action="{% url 'super:support_on_call_save' %}" class="d-inline" onsubmit="return confirm('{% trans "Remove this shift?" %}');">
+<form method="post" action="{% url 'super:support_on_call_save' %}" class="d-inline" data-rmc-confirm="{% trans 'Remove this shift?' %}">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="delete">
                 <input type="hidden" name="shift_id" value="{{ s.pk }}">

@@ -11,7 +11,7 @@
   {% if donor.notes %}<p class="card card-body bg-light">{{ donor.notes }}</p>{% endif %}
 
   <div class="d-flex gap-2 flex-wrap mb-3">
-    <form method="post" action="{% url 'accounts:advancement_send_portal_link' donor.pk %}" onsubmit="return confirm('Email this donor a private giving-summary link?');">
+    <form method="post" action="{% url 'accounts:advancement_send_portal_link' donor.pk %}" data-rmc-confirm="Email this donor a private giving-summary link?">
       {% csrf_token %}
       <button type="submit" class="btn btn-sm btn-outline-secondary min-touch-target">{% trans "Email giving-summary link" %}</button>
     </form>
@@ -28,20 +28,20 @@
   </div>
   {% endif %}
 
-  <h6 class="mt-4">Record gift</h6>
+  <h6 class="mt-4">{% trans "Record gift" %}</h6>
   <form method="post" class="row g-2 align-items-end mb-4">
     {% csrf_token %}
     <input type="hidden" name="action" value="add_gift">
     <div class="col-md-2">
-      <label class="form-label small" for="amt">Amount *</label>
+      <label class="form-label small" for="amt">{% trans "Amount *" %}</label>
       <input type="text" class="form-control" id="amt" name="amount" required inputmode="decimal" placeholder="0.00">
     </div>
     <div class="col-md-1">
-      <label class="form-label small" for="cur">CCY</label>
+      <label class="form-label small" for="cur">{% trans "CCY" %}</label>
       <input type="text" class="form-control" id="cur" name="currency" value="USD" maxlength="3">
     </div>
     <div class="col-md-2">
-      <label class="form-label small" for="camp">Campaign</label>
+      <label class="form-label small" for="camp">{% trans "Campaign" %}</label>
       <input type="text" class="form-control" id="camp" name="campaign_name" maxlength="120" placeholder="Annual fund">
     </div>
     {% if campaigns %}
@@ -67,19 +67,19 @@
     </div>
     {% endif %}
     <div class="col-md-2">
-      <label class="form-label small" for="gn">Notes</label>
+      <label class="form-label small" for="gn">{% trans "Notes" %}</label>
       <input type="text" class="form-control" id="gn" name="gift_notes" maxlength="500">
     </div>
     <div class="col-md-2">
-      <button type="submit" class="btn btn-primary min-touch-target w-100">Add gift</button>
+      <button type="submit" class="btn btn-primary min-touch-target w-100">{% trans "Add gift" %}</button>
     </div>
   </form>
 
-  <h6>Gifts</h6>
+  <h6>{% trans "Gifts" %}</h6>
   <div class="table-responsive">
     <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-6col="1">
       <caption class="visually-hidden">{% trans "Gifts" %}</caption>
-      <thead><tr><th scope="col">Date</th><th scope="col">Amount</th><th scope="col">Campaign</th><th scope="col">{% trans "Fund" %}</th><th scope="col">Notes</th><th scope="col"></th></tr></thead>
+      <thead><tr><th scope="col">{% trans "Date" %}</th><th scope="col">{% trans "Amount" %}</th><th scope="col">{% trans "Campaign" %}</th><th scope="col">{% trans "Fund" %}</th><th scope="col">{% trans "Notes" %}</th><th scope="col"></th></tr></thead>
       <tbody>
         {% for g in gifts %}
         <tr>
@@ -92,10 +92,10 @@
           <details class="rmc-row-disclosure">
             <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
             <div class="rmc-row-disclosure__body mt-1">
-<form method="post" action="{% url 'accounts:advancement_gift_delete' g.pk %}" class="d-inline" data-rmc-post-mutation="1" onsubmit="return confirm('Remove this gift?');">
+<form method="post" action="{% url 'accounts:advancement_gift_delete' g.pk %}" class="d-inline" data-rmc-post-mutation="1" data-rmc-confirm="Remove this gift?">
               {% csrf_token %}
               {% if return_url %}<input type="hidden" name="next" value="{{ return_url }}">{% endif %}
-              <button type="submit" class="btn btn-sm btn-outline-danger min-touch-target">Remove</button>
+              <button type="submit" class="btn btn-sm btn-outline-danger min-touch-target">{% trans "Remove" %}</button>
             </form>
             </div>
           </details></td>
@@ -106,7 +106,7 @@
       </tbody>
     </table>
   </div>
-  <p class="mt-3"><a href="{{ list_url }}">← All donors</a></p>
+  <p class="mt-3"><a href="{{ list_url }}">{% trans "← All donors" %}</a></p>
 </div>
 {% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

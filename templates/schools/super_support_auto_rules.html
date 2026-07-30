@@ -71,7 +71,7 @@
                 <input type="hidden" name="rule_id" value="{{ r.pk }}">
                 <button type="submit" class="btn btn-sm btn-outline-secondary">{% if r.is_active %}{% trans "Pause" %}{% else %}{% trans "Activate" %}{% endif %}</button>
               </form>
-              <form method="post" action="{% url 'super:support_auto_rules_save' %}" class="d-inline" onsubmit="return confirm('{% trans "Delete this rule?" %}');">
+              <form method="post" action="{% url 'super:support_auto_rules_save' %}" class="d-inline" data-rmc-confirm="{% trans 'Delete this rule?' %}">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="delete">
                 <input type="hidden" name="rule_id" value="{{ r.pk }}">

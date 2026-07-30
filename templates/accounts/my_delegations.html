@@ -13,14 +13,14 @@
   <div class="container-fluid py-4" data-rmc-scroll-policy="paginate">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
       <div>
-        <h1 class="h4 mb-1">Out of Office / Delegation</h1>
+        <h1 class="h4 mb-1">{% trans "Out of Office / Delegation" %}</h1>
         <div class="text-muted small">Assign someone to act on your behalf; view actions taken while you were away.</div>
       </div>
       <div class="d-flex flex-wrap gap-2">
-        <a class="btn btn-outline-secondary btn-sm" href="{% url 'accounts:user_profile' %}">Back to profile</a>
-        <a class="btn btn-outline-primary btn-sm" href="{% url 'accounts:delegation_catch_up' %}">While You Were Away</a>
+        <a class="btn btn-outline-secondary btn-sm" href="{% url 'accounts:user_profile' %}">{% trans "Back to profile" %}</a>
+        <a class="btn btn-outline-primary btn-sm" href="{% url 'accounts:delegation_catch_up' %}">{% trans "While You Were Away" %}</a>
         {% if can_create %}
-          <a class="btn btn-primary btn-sm" href="{% url 'accounts:delegation_add' %}">Add delegation</a>
+          <a class="btn btn-primary btn-sm" href="{% url 'accounts:delegation_add' %}">{% trans "Add delegation" %}</a>
         {% endif %}
       </div>
     </div>
@@ -75,10 +75,10 @@
             <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
             <div class="rmc-row-disclosure__body mt-1">
 {% if d.is_current %}
-                        <a class="btn btn-outline-secondary btn-sm py-0" href="{% url 'accounts:delegation_edit' d.pk %}">Edit</a>
-                        <form method="post" action="{% url 'accounts:delegation_revoke' d.pk %}" class="d-inline" onsubmit="return confirm('End this delegation now?');">
+                        <a class="btn btn-outline-secondary btn-sm py-0" href="{% url 'accounts:delegation_edit' d.pk %}">{% trans "Edit" %}</a>
+                        <form method="post" action="{% url 'accounts:delegation_revoke' d.pk %}" class="d-inline" data-rmc-confirm="End this delegation now?">
                           {% csrf_token %}
-                          <button type="submit" class="btn btn-outline-danger btn-sm py-0">End</button>
+                          <button type="submit" class="btn btn-outline-danger btn-sm py-0">{% trans "End" %}</button>
                         </form>
                       {% endif %}
             </div>
@@ -91,7 +91,7 @@
         {% else %}
           <p class="text-muted mb-0">You have not created any delegations.</p>
           {% if can_create %}
-            <a class="btn btn-primary btn-sm mt-2" href="{% url 'accounts:delegation_add' %}">Add delegation</a>
+            <a class="btn btn-primary btn-sm mt-2" href="{% url 'accounts:delegation_add' %}">{% trans "Add delegation" %}</a>
           {% else %}
             <p class="text-muted small mt-2">Your role is not configured to delegate. Contact an administrator.</p>
           {% endif %}

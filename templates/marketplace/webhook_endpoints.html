@@ -60,7 +60,7 @@
           <form method="post" action="{% url 'super:marketplace_webhook_endpoint_edit' app_slug=app.slug endpoint_id=e.pk %}">
             {% csrf_token %}<button name="action" value="rotate_secret" class="btn btn-sm btn-outline-warning">{% trans "Rotate secret" %}</button>
           </form>
-          <form method="post" action="{% url 'super:marketplace_webhook_endpoint_edit' app_slug=app.slug endpoint_id=e.pk %}" onsubmit="return confirm('{% trans "Delete this endpoint?" %}');">
+          <form method="post" action="{% url 'super:marketplace_webhook_endpoint_edit' app_slug=app.slug endpoint_id=e.pk %}" data-rmc-confirm="{% trans 'Delete this endpoint?' %}">
             {% csrf_token %}<button name="action" value="delete" class="btn btn-sm btn-outline-danger">{% trans "Delete" %}</button>
           </form>
                   </motion>
