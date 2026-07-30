@@ -126,7 +126,13 @@ def resolve_brand_profile(*, school=None, site=None) -> dict[str, Any]:
         or theme_tokens.get("login_background_url")
         or ""
     )
-    favicon_url = getattr(profile, "favicon_url", None) or ""
+    # A tenant that uploaded a LOGO but no dedicated favicon should still get a
+    # browser-tab icon that is THEIRS, not the platform's — otherwise the tab
+    # keeps showing the RunMyCampus mark even though the logo uploaded fine. The
+    # logo (often an inline data URI) renders as a favicon on any host. Operator /
+    # public surfaces override this with the RMC favicon downstream, so this
+    # fallback only ever affects tenant surfaces.
+    favicon_url = getattr(profile, "favicon_url", None) or logo_url or ""
     resolved = {
         "logo_url": logo_url or "",
         "logo_dark_url": getattr(profile, "logo_dark_url", None) or "",

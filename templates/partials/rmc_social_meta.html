@@ -23,7 +23,11 @@
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   {% if og_image_alt %}<meta property="og:image:alt" content="{{ og_image_alt }}">{% endif %}
-{% elif SITE_LOGO_URL %}
+{% elif SITE_LOGO_URL and SITE_LOGO_URL|slice:":5" != "data:" %}
+  {% comment %} Only a real http(s) logo URL may be concatenated into an absolute
+     og:image. A base64 data: URI (the inline Day-1 logo) would produce a broken
+     "https://host/data:image/…" tag and dump megabytes of base64 into <head>, so
+     fall through to the platform OG card in that case. {% endcomment %}
   <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ SITE_LOGO_URL }}">
   <meta property="og:image:alt" content="{{ SITE.site_name|default:'RunMyCampus' }}">
 {% else %}
@@ -48,7 +52,7 @@
 {% endif %}
 {% if og_image %}
   <meta name="twitter:image" content="{{ og_image }}">
-{% elif SITE_LOGO_URL %}
+{% elif SITE_LOGO_URL and SITE_LOGO_URL|slice:":5" != "data:" %}
   <meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{{ SITE_LOGO_URL }}">
 {% else %}
   <meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'images/runmycampus-og-card.png' %}">
