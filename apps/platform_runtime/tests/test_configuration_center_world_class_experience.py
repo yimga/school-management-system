@@ -10,6 +10,11 @@ class ConfigurationCenterWorldClassExperienceTests(SimpleTestCase):
     def test_configuration_center_groups_modules_with_readiness_and_actions(self):
         text = (ROOT / "templates" / "platform_runtime" / "configuration_center.html").read_text(encoding="utf-8")
         frame = (ROOT / "templates" / "components" / "rmc_operational_center_frame.html").read_text(encoding="utf-8")
+        # The frame's steering/nav markup moved into the _inner partial, and the
+        # primary CTA into the shared masthead partial, that the frame composes;
+        # fold both in so the marker checks see the current, distributed markup.
+        frame += "\n" + (ROOT / "templates" / "components" / "rmc_operational_center_frame_inner.html").read_text(encoding="utf-8")
+        frame += "\n" + (ROOT / "templates" / "components" / "rmc_page_masthead.html").read_text(encoding="utf-8")
         self.assertIn("rmc_operational_center_frame.html", text)
         self.assertIn("data-rmc-operational-center-frame", frame)
         self.assertIn("data-rmc-ops-nav-grid", frame)

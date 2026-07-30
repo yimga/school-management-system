@@ -110,14 +110,17 @@ class MobileLuxuryCssContractTests(TestCase):
 
     def test_portal_base_links_mobile_luxury_once(self):
         root = Path(__file__).resolve().parents[3]
-        text = (root / "templates" / "portal_base.html").read_text(
+        # v4.02.45 consolidated ~70 portal CSS files into one deferred bundle, so
+        # mobile-luxury-surfaces.css now loads via that bundle rather than a direct
+        # <link> in portal_base. Assert it is wired into the bundle SOT exactly once.
+        manifest = (root / "scripts" / "portal_css_bundle_manifest.json").read_text(
             encoding="utf-8", errors="replace"
         )
-        n = text.count("mobile-luxury-surfaces.css")
+        n = manifest.count("mobile-luxury-surfaces.css")
         self.assertEqual(
             n,
             1,
-            msg="portal_base must load mobile-luxury-surfaces.css exactly once",
+            msg="mobile-luxury-surfaces.css must be in the portal CSS bundle exactly once",
         )
 
     def test_mobile_luxury_css_scroll_and_touch_rules(self):

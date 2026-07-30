@@ -3,6 +3,7 @@ from __future__ import annotations
 from django.test import Client, TestCase, override_settings
 
 from apps.accounts.models import User
+from apps.test_utils.http_clients import login_manager_client
 
 
 _MGR_HOST = "manager.runmycampus.com"
@@ -15,14 +16,15 @@ _MGR_HOST = "manager.runmycampus.com"
 )
 class ConfigurationCenterTests(TestCase):
     def setUp(self):
-        self.client = Client(HTTP_HOST=_MGR_HOST, raise_request_exception=False)
-        User.objects.create_user(
+        operator = User.objects.create_user(
             username="platform_config_operator",
             password="x" * 8,
             role=User.Role.SUPERADMIN,
             is_staff=True,
         )
-        self.client.login(username="platform_config_operator", password="x" * 8)
+        # Manager-host operator page: confirmed device + verified MFA on a
+        # manager-bound session (a bare client.login bounces 302 to MFA setup).
+        self.client = login_manager_client(operator, password="x" * 8, host=_MGR_HOST)
 
     def test_configuration_center_renders_required_modules(self):
         response = self.client.get("/configuration/")
@@ -58,5 +60,8 @@ class ConfigurationCenterTests(TestCase):
         self.assertEqual(response.status_code, 200, msg=response.content[:500])
         body = response.content.decode("utf-8", errors="replace")
         self.assertIn("Runtime + Governance", body)
-        self.assertIn("Runtime truth", body)
+        # The runtime module links its existing system via the CTA "Open runtime
+        # truth" → /super/runtime-truth-hub/ (relabelled from "Runtime truth hub").
+        self.assertIn("Open runtime truth", body)
+        self.assertIn("/super/runtime-truth-hub/", body)
         self.assertNotIn('href="#"', body)

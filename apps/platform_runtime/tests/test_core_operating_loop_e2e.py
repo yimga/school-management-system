@@ -26,7 +26,7 @@ class CoreOperatingLoopE2ETests(TestCase):
         profile = StudentProfile.objects.create(
             user=user,
             school=school,
-            student_id="LOOP-001",
+            student_code="LOOP-001",
             first_name="Loop",
             last_name="Student",
         )

@@ -11,7 +11,10 @@ class ConfigurationAppleClassExperienceTests(SimpleTestCase):
         template = (ROOT / "templates" / "platform_runtime" / "configuration_center.html").read_text(encoding="utf-8")
         nav = (ROOT / "apps" / "platform_runtime" / "operational_center_nav.py").read_text(encoding="utf-8")
         frame = (ROOT / "templates" / "components" / "rmc_operational_center_frame.html").read_text(encoding="utf-8")
-        bundle = f"{template}\n{frame}\n{nav}"
+        # The frame was split into an outer wrapper that {% include %}s an _inner
+        # partial; the depth-model data attributes moved into the inner file.
+        frame_inner = (ROOT / "templates" / "components" / "rmc_operational_center_frame_inner.html").read_text(encoding="utf-8")
+        bundle = f"{template}\n{frame}\n{frame_inner}\n{nav}"
         for token in (
             "data-apple-class-configuration-console",
             "data-rmc-operational-center-frame",
