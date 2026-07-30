@@ -42,50 +42,63 @@ _FEEDBACK_TEST_SETTINGS = dict(
 class _FeedbackClientMixin:
     """Shared tenant-host client setup for feedback HTTP contract tests."""
 
-    @classmethod
-    def setUpTestData(cls):
+    @staticmethod
+    def _build_shared_fixtures(target):
+        """Create the two-school + role-user fixture set on ``target`` (a class
+        or an instance). ``setUpTestData`` binds it to the class (TestCase
+        variant); ``setUp`` binds it to the instance for the TransactionTestCase
+        variant, which never invokes ``setUpTestData`` (it is a TestCase-only
+        hook, so a mixin shared with TransactionTestCase must not rely on it)."""
         suffix = uuid.uuid4().hex[:8]
-        cls.school_a = School.objects.create(
+        target.school_a = School.objects.create(
             name="School A",
             slug=f"feedback-a-{suffix}",
             subdomain=f"feedback-a-{suffix}",
             is_active=True,
         )
-        cls.school_b = School.objects.create(
+        target.school_b = School.objects.create(
             name="School B",
             slug=f"feedback-b-{suffix}",
             subdomain=f"feedback-b-{suffix}",
             is_active=True,
         )
-        cls.admin = User.objects.create_user(
+        target.admin = User.objects.create_user(
             f"feedback-admin-{suffix}", password="password", role="ADMIN"
         )
-        cls.teacher = User.objects.create_user(
+        target.teacher = User.objects.create_user(
             f"feedback-teacher-{suffix}", password="password", role="TEACHER"
         )
-        cls.parent = User.objects.create_user(
+        target.parent = User.objects.create_user(
             f"feedback-parent-{suffix}", password="password", role="PARENT"
         )
-        cls.student = User.objects.create_user(
+        target.student = User.objects.create_user(
             f"feedback-student-{suffix}", password="password", role="STUDENT"
         )
-        cls.operator = User.objects.create_user(
+        target.operator = User.objects.create_user(
             f"feedback-operator-{suffix}",
             password="password",
             role="SUPERADMIN",
             is_staff=True,
             is_superuser=True,
         )
-        for user in (cls.admin, cls.teacher, cls.operator):
+        for user in (target.admin, target.teacher, target.operator):
             TOTPDevice.objects.get_or_create(
                 user=user, name="test-device", defaults={"confirmed": True}
             )
-        for user in (cls.admin, cls.teacher, cls.parent, cls.student):
+        for user in (target.admin, target.teacher, target.parent, target.student):
             SchoolMembership.objects.create(
-                user=user, school=cls.school_a, role=user.role, is_primary=True
+                user=user, school=target.school_a, role=user.role, is_primary=True
             )
 
+    @classmethod
+    def setUpTestData(cls):
+        cls._build_shared_fixtures(cls)
+
     def setUp(self):
+        # TransactionTestCase never runs setUpTestData (a TestCase-only hook),
+        # so build the fixtures per-test when the class hook did not.
+        if not hasattr(self, "school_a"):
+            self._build_shared_fixtures(self)
         self.default_host = f"{self.school_a.subdomain}.runmycampus.com"
         self.client = Client(HTTP_HOST=self.default_host)
 

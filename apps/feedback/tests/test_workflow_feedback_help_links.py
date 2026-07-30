@@ -55,7 +55,12 @@ class FeedbackImportPostureTests(SimpleTestCase):
         if not feedback_dir.exists():
             self.skipTest("apps/feedback not present")
         for p in feedback_dir.rglob("*.py"):
-            if "__pycache__" in p.parts:
+            # The one-way-dependency rule guards PRODUCTION feedback modules;
+            # test files legitimately import workflow_registry for shape
+            # assertions (this very file references the forbidden import string
+            # in its own assertion literal), so exclude the tests package —
+            # scanning it is a self-referential false positive.
+            if "__pycache__" in p.parts or "tests" in p.parts:
                 continue
             txt = p.read_text(encoding="utf-8", errors="ignore")
             self.assertNotIn(
