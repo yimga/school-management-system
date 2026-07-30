@@ -170,7 +170,10 @@ class SuperAdminSurfaceParityTests(TestCase):
         response = self.client.get("/super/", HTTP_HOST=self.host)
         self.assertEqual(response.status_code, 200)
         self.assertNotContains(response, "rmc-operator-surface-strip")
-        self.assertContains(response, "Master preview")
+        # Globe redesign (master-preview prod parity): the "Master preview" text label
+        # folded into the world-globe master-preview shell, asserted via the globe void
+        # band + Live/Offline mode markers below.
+        self.assertContains(response, "rmc-world-globe")
         self.assertContains(response, 'id="rmc-world-globe-mode-live"')
         self.assertContains(response, 'data-rmc-globe-void-band="1"')
         self.assertNotContains(response, "Platform admin")
@@ -194,7 +197,10 @@ class SuperAdminSurfaceParityTests(TestCase):
         self.assertNotContains(response, "data-rmc-operator-workspace-dropdown")
         self.assertNotContains(response, "rmc-operator-workspace-nav")
         self.assertNotContains(response, "data-rmc-operator-surface-strip")
-        self.assertContains(response, "data-rmc-admin-steering-strip")
+        # v15.8: operator steering moved from a per-page workbench strip to the
+        # control-plane header + platform-admin sidebar (see the rationale in
+        # templates/admin/base.html). Assert the operator workspace nav is present.
+        self.assertContains(response, "cp-admin-sidebar-apps")
 
     def test_manager_admin_change_form_exposes_paired_operator_view(self):
         school = School.objects.create(
@@ -205,8 +211,11 @@ class SuperAdminSurfaceParityTests(TestCase):
         url = reverse("admin:schools_school_change", args=[school.pk])
         response = self.client.get(url, HTTP_HOST=self.host)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "data-rmc-admin-changeform-head")
-        self.assertContains(response, "data-rmc-operator-surface-strip")
+        # v15.8: the change-form operator header is the unified command band; the
+        # operator (vs tenant) context it exposes is carried by the workspace scope
+        # attribute — both replace the retired standalone changeform-head/surface-strip.
+        self.assertContains(response, "data-rmc-django-command-band")
+        self.assertContains(response, 'data-rmc-admin-workspace-scope="operator"')
         html = response.content.decode()
         self.assertTrue(
             "operator" in html.lower() or "control plane" in html.lower(),
@@ -257,7 +266,9 @@ class SuperAdminSurfaceParityTests(TestCase):
         response = self.client.get(f"{url}?ids={school.pk}", HTTP_HOST=self.host)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "data-rmc-header-config-chip")
-        self.assertContains(response, "data-rmc-admin-steering-strip")
+        # v15.8: the backoffice shell header is the unified command band (operator
+        # steering relocated to the control-plane header, not a per-page strip).
+        self.assertContains(response, "data-rmc-django-command-band")
 
     def test_manager_admin_uses_platform_admin_sidebar(self):
         for path in ("/admin/", reverse("admin:schools_school_changelist")):
@@ -284,8 +295,11 @@ class SuperAdminSurfaceParityTests(TestCase):
         self.assertIn('data-rmc-control-plane-chrome="1"', html)
         self.assertIn("rmc-platform-chrome-layout.css", html)
         self.assertIn("setAttribute('data-rmc-cp-scroll', 'canvas')", html)
-        self.assertIn("cp-admin-app-list", html)
-        self.assertIn("Applications", html)
+        # v15.2 Admin OS: the manager index IS the app catalog; the model/app list
+        # renders via {% for app in app_list %} inside the catalog-index container
+        # (replaces the retired cp-admin-app-list / "Applications" heading markup).
+        self.assertIn("rmc-admin-catalog-index", html)
+        self.assertIn('data-rmc-admin-catalog-index="1"', html)
         self.assertIn("data-rmc-page-fold-nav", html)
         self.assertIn("rmc-page-fold-nav", html)
         self.assertNotIn("data-rmc-operator-surface-strip", html)
