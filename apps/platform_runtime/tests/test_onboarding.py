@@ -7,7 +7,7 @@ from django_otp.plugins.otp_totp.models import TOTPDevice
 from apps.accounts.models import Permission, User
 from apps.academics.models import AcademicYear, Department
 from apps.people.models import StudentProfile, TeacherProfile
-from apps.schools.models import School
+from apps.schools.models import School, SchoolMembership
 from apps.platform_runtime.models import SchoolOnboardingProgress
 from apps.platform_runtime.onboarding import (
     get_onboarding_steps,
@@ -165,6 +165,13 @@ class OnboardingEngineCoreHttpTests(TestCase):
             is_staff=True,
         )
         u.feature_permissions.add(self.perm)
+        # Tenant-host pages require a school membership (a non-superuser ADMIN
+        # with no membership is bounced 302 off the tenant host).
+        SchoolMembership.objects.get_or_create(
+            user=u,
+            school=self.school,
+            defaults={"role": User.Role.ADMIN, "is_primary": True},
+        )
         TOTPDevice.objects.create(user=u, name="test-device", confirmed=True)
         c = Client(HTTP_HOST=_T_HOST)
         c.login(username=username, password="x" * 8)
