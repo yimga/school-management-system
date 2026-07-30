@@ -132,6 +132,14 @@ run "${PYTHON_BIN}" manage.py seed_migration_connector_profiles
 # invariant, so re-seeding cannot trip the plan_unique_default constraint.
 run "${PYTHON_BIN}" manage.py seed_subscription_catalog
 
+# Gilead-Tech sovereignty showcase: bind the flagship tenant to the
+# sovereign-self-hosted plan and grant it EVERY platform feature/module via
+# durable MANUAL entitlements (idempotent, scoped to slug gilead-tech only —
+# no other tenant is touched). Runs after seed_subscription_catalog because it
+# needs the sovereign plan to exist. Fail-soft (|| true): a showcase-only setup
+# for one tenant must never abort a production deploy.
+run "${PYTHON_BIN}" manage.py ensure_gilead_sovereignty_entitlements || true
+
 # pgvector: post-5k-scale embedding store. Migrates JSON embeddings into a
 # pgvector column + tuned IVFFLAT index, then verifies the planner uses it.
 # Both commands refuse on non-Postgres vendors and are idempotent — safe to

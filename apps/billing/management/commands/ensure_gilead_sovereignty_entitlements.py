@@ -12,9 +12,18 @@ GILEAD_SLUGS = ("gilead-tech", "gilead_tech", "gilead-tech-high")
 
 
 def _collect_platform_feature_codes() -> set[str]:
-    """Union plan-catalog features, module registry codes, and plan row features."""
+    """Union EVERY feature/module source the platform exposes.
+
+    gilead-tech is the "la crème" sovereignty showcase — it must hold literally
+    every feature the platform can offer, so we union three sources rather than
+    two: the plan-catalog feature lists, the STATIC module registry
+    (``FEATURE_REGISTRY``), AND the LIVE DB-seeded module registry
+    (``get_available_modules`` reads ``FeatureToggleDefinition`` rows, which can
+    carry modules that never made it into the static list). Missing the DB
+    source is exactly how a "give it everything" grant silently omits a module.
+    """
     from apps.billing.management.commands.seed_subscription_catalog import PLAN_CATALOG
-    from apps.schools.feature_registry import FEATURE_REGISTRY
+    from apps.schools.feature_registry import FEATURE_REGISTRY, get_available_modules
 
     codes: set[str] = set()
     for row in PLAN_CATALOG:
@@ -25,6 +34,14 @@ def _collect_platform_feature_codes() -> set[str]:
         code = (module.get("code") or "").strip()
         if code:
             codes.add(code)
+    try:
+        # Live DB module registry (may exceed the static FEATURE_REGISTRY).
+        for module in get_available_modules():
+            code = (module.get("code") or "").strip()
+            if code:
+                codes.add(code)
+    except Exception:  # noqa: BLE001 — the DB registry is a bonus source, never fatal
+        pass
     return codes
 
 
