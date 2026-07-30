@@ -112,11 +112,16 @@ class WorkflowAutopilotPolicyTests(TestCase):
     def test_policy_allows_configured_kind(self):
         from apps.platform_runtime.models import WorkflowAutopilotPolicy
 
-        WorkflowAutopilotPolicy.objects.create(
+        # The default tenant_school_provision policy (tenant_schema="") is seeded by
+        # a data migration, so honour the (workflow_key, tenant_schema) unique
+        # constraint with update_or_create instead of a bare create.
+        WorkflowAutopilotPolicy.objects.update_or_create(
             workflow_key="tenant_school_provision",
             tenant_schema="",
-            allowed_auto_fix_kinds=["retry_once_with_backoff"],
-            enabled=True,
+            defaults={
+                "allowed_auto_fix_kinds": ["retry_once_with_backoff"],
+                "enabled": True,
+            },
         )
         self.assertTrue(
             policy_allows_auto_fix(

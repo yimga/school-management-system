@@ -73,9 +73,17 @@ class Workflow10xWaveModelTests(TestCase):
 
 
 class Workflow10xWaveShellTests(SimpleTestCase):
-    def test_portal_includes_tenant_trust_strip(self):
-        text = (REPO_ROOT / "templates/portal_base.html").read_text(encoding="utf-8")
-        self.assertIn("rmc_workflow_tenant_trust_strip.html", text)
+    def test_tenant_experience_includes_workflow_trust_strip(self):
+        # The tools-tray wave (11326592a) relocated the workflow tenant-trust
+        # strip out of portal_base.html and INTO the shared tools-tray context
+        # stack, which the tenant backend shell (backend_base.html) and the
+        # control-plane skeleton both include — so it renders in the operational
+        # tenant experience via one SOT partial instead of being pinned to
+        # portal_base. Assert it ships in that stack.
+        stack = (REPO_ROOT / "templates/partials/rmc_tools_tray_context_stack.html").read_text(encoding="utf-8")
+        self.assertIn("rmc_workflow_tenant_trust_strip.html", stack)
+        backend = (REPO_ROOT / "templates/backend_base.html").read_text(encoding="utf-8")
+        self.assertIn("rmc_tools_tray_context_stack.html", backend)
 
     def test_control_plane_includes_progress_and_copilot(self):
         text = (REPO_ROOT / "templates/control_plane_skeleton.html").read_text(encoding="utf-8")

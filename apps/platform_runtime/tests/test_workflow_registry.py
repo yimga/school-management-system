@@ -16,13 +16,20 @@ class WorkflowRegistryStructureTests(SimpleTestCase):
         self.assertIsInstance(wf.WORKFLOWS, dict)
         self.assertGreater(len(wf.WORKFLOWS), 0, "Registry must seed at least one workflow")
 
-    def test_all_keys_are_kebab_case_slugs(self):
+    def test_all_keys_are_lowercase_slugs(self):
+        # Keys are stable lowercase slugs. Two families coexist by design: UI
+        # workflows use kebab-case ("migration-cloud-connect-sis"), while the
+        # system/orchestration workflows use snake_case because the key IS the
+        # load-bearing identifier elsewhere — the Celery task name and the
+        # persisted WorkflowRun.workflow_key / WorkflowAutopilotPolicy.workflow_key
+        # (e.g. "tenant_school_provision"). Renaming those to kebab would orphan
+        # live rows, so the slug rule is lowercase + no spaces, not no-underscore.
         for key in wf.WORKFLOWS:
             self.assertIsInstance(key, str)
             self.assertTrue(key, "Workflow key must not be empty")
             self.assertEqual(key, key.lower(), f"Workflow key {key!r} must be lowercase")
             self.assertNotIn(" ", key, f"Workflow key {key!r} must not contain spaces")
-            self.assertNotIn("_", key, f"Workflow key {key!r} must use - not _")
+            self.assertRegex(key, r"^[a-z0-9]+([_-][a-z0-9]+)*$", f"Workflow key {key!r} must be a slug")
 
     def test_no_duplicate_titles_per_audience(self):
         seen: set[tuple[str, str]] = set()
@@ -38,14 +45,17 @@ class WorkflowRegistryStructureTests(SimpleTestCase):
                 )
                 seen.add(pair)
 
-    def test_all_workflows_carry_module_path(self):
+    def test_all_workflows_carry_module_owner(self):
+        # Per WorkflowDefinition's own docstring, `module` is "the Django app the
+        # workflow lives under (e.g. 'migration_cloud')" — a bare app label, not a
+        # filesystem path. Assert it is a non-empty lowercase label (traceable to
+        # an owning app), not an apps/ path prefix.
         for key, wdef in wf.WORKFLOWS.items():
             module = getattr(wdef, "module", "")
-            self.assertTrue(module, f"Workflow {key} has empty module path")
-            self.assertTrue(
-                module.startswith("apps/") or module.startswith("services/"),
-                f"Workflow {key} module {module!r} must point under apps/ or services/",
-            )
+            self.assertTrue(module, f"Workflow {key} has empty module owner")
+            self.assertEqual(module, module.lower(), f"Workflow {key} module {module!r} must be lowercase")
+            self.assertNotIn("/", module, f"Workflow {key} module {module!r} must be a Django app label, not a path")
+            self.assertNotIn(" ", module, f"Workflow {key} module {module!r} must not contain spaces")
 
     def test_all_workflows_carry_purpose_sentence(self):
         for key, wdef in wf.WORKFLOWS.items():

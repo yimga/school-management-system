@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import re
 
-from django.test import Client, SimpleTestCase
+from django.test import Client, SimpleTestCase, TestCase
 
 
 TEMPLATE_SYNTAX_LEAK_PATTERNS = (
@@ -27,9 +27,14 @@ TEMPLATE_SYNTAX_LEAK_PATTERNS = (
 )
 
 
-class AutoChromeAnonymousRenderTests(SimpleTestCase):
+class AutoChromeAnonymousRenderTests(TestCase):
     """Anonymous GETs on a few platform surfaces — assert no template leaks
-    and no empty workflow-chrome wrappers."""
+    and no empty workflow-chrome wrappers.
+
+    TestCase (not SimpleTestCase): rendering `/` and `/accounts/login/` runs the
+    real middleware stack, which resolves the tenant per request via a DB query
+    (schools middleware) — DatabaseOperationForbidden under SimpleTestCase.
+    """
 
     def setUp(self):
         self.client = Client()
