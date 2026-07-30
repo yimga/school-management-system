@@ -238,7 +238,7 @@ msgid "Academic terminology registry (platform admin)"
 msgstr ""
 
 msgid "Academic year"
-msgstr ""
+msgstr "Année scolaire"
 
 msgid "Academics"
 msgstr ""
@@ -253,7 +253,7 @@ msgid "Account on hold"
 msgstr ""
 
 msgid "Action"
-msgstr ""
+msgstr "Action"
 
 msgid "Action queue"
 msgstr ""
@@ -265,7 +265,7 @@ msgid "Actions"
 msgstr "Actions"
 
 msgid "Activate"
-msgstr ""
+msgstr "Activer"
 
 msgid "Activate workflows in stages; run simulations before going live."
 msgstr ""
@@ -485,7 +485,7 @@ msgid "Admins only: Site Settings & theme packs"
 msgstr ""
 
 msgid "Admission"
-msgstr ""
+msgstr "Admission"
 
 msgid "Admission format: YY + {{ code }} + #### + SPEC + CLASS (no dashes)."
 msgstr ""
@@ -499,7 +499,7 @@ msgid ""
 msgstr ""
 
 msgid "Admissions"
-msgstr ""
+msgstr "Admissions"
 
 msgid "Admissions WhatsApp"
 msgstr ""
@@ -516,7 +516,7 @@ msgid "Admit"
 msgstr ""
 
 msgid "Advanced"
-msgstr ""
+msgstr "Avancé"
 
 msgid ""
 "Advanced overrides are governed by Studio OS and Configuration Control "
@@ -666,7 +666,7 @@ msgid "Also set Site theme pack"
 msgstr ""
 
 msgid "Alumni"
-msgstr ""
+msgstr "Anciens élèves"
 
 msgid "Amber"
 msgstr ""
@@ -690,7 +690,7 @@ msgid "Amount must be positive"
 msgstr ""
 
 msgid "Analytics"
-msgstr ""
+msgstr "Analytique"
 
 msgid "Analytics & Observability"
 msgstr ""
@@ -844,7 +844,7 @@ msgid ""
 msgstr ""
 
 msgid "Approve"
-msgstr ""
+msgstr "Approuver"
 
 msgid "Approve message to parent"
 msgstr ""
@@ -1143,7 +1143,7 @@ msgid "Back to dashboard"
 msgstr ""
 
 msgid "Back to home"
-msgstr ""
+msgstr "Retour à l'accueil"
 
 msgid "Back to installed apps"
 msgstr ""
@@ -1182,7 +1182,7 @@ msgid "Back to teachers"
 msgstr ""
 
 msgid "Back to top"
-msgstr ""
+msgstr "Retour en haut"
 
 msgid "Backend"
 msgstr ""
@@ -1328,7 +1328,7 @@ msgid "BlogPost — marketing blog"
 msgstr ""
 
 msgid "Blueprint"
-msgstr ""
+msgstr "Modèle"
 
 msgid "Blueprint ID"
 msgstr ""
@@ -1382,7 +1382,7 @@ msgid "BlueprintPack — blueprint definitions"
 msgstr ""
 
 msgid "Blueprints"
-msgstr ""
+msgstr "Modèles"
 
 msgid "Blueprints & policy packs"
 msgstr ""
@@ -1597,7 +1597,7 @@ msgid "Canonical wedge operator URLs"
 msgstr ""
 
 msgid "Canteen"
-msgstr ""
+msgstr "Cantine"
 
 msgid "Canteen meals"
 msgstr ""
@@ -1644,7 +1644,7 @@ msgid ""
 msgstr ""
 
 msgid "Category"
-msgstr ""
+msgstr "Catégorie"
 
 msgid "Category Name"
 msgstr ""
@@ -1683,7 +1683,7 @@ msgid "Change classes (organizational)"
 msgstr ""
 
 msgid "Change password"
-msgstr ""
+msgstr "Changer le mot de passe"
 
 msgid ""
 "Changing theme packs or high-impact colors requires: Live preview → then "
@@ -1840,13 +1840,13 @@ msgid "Classes today"
 msgstr ""
 
 msgid "Classroom"
-msgstr ""
+msgstr "Salle de classe"
 
 msgid "Classroom pagination"
 msgstr ""
 
 msgid "Classrooms"
-msgstr ""
+msgstr "Salles de classe"
 
 msgid "Classrooms:"
 msgstr ""
@@ -1904,10 +1904,10 @@ msgid "Close the loop (wedges 1–10)"
 msgstr ""
 
 msgid "Closed"
-msgstr ""
+msgstr "Fermé"
 
 msgid "Code"
-msgstr ""
+msgstr "Code"
 
 msgid "Code or name..."
 msgstr ""
@@ -1942,7 +1942,7 @@ msgid "Combination reference"
 msgstr ""
 
 msgid "Coming soon"
-msgstr ""
+msgstr "Bientôt disponible"
 
 msgid "Command center"
 msgstr ""
@@ -1954,7 +1954,7 @@ msgid "Commands"
 msgstr ""
 
 msgid "Comment"
-msgstr ""
+msgstr "Commentaire"
 
 msgid "Comment Count"
 msgstr ""
@@ -2250,7 +2250,7 @@ msgid "Copies"
 msgstr ""
 
 msgid "Copy"
-msgstr ""
+msgstr "Copier"
 
 msgid "Copy this token now."
 msgstr ""
@@ -2407,7 +2407,7 @@ msgid "Created"
 msgstr "Créé"
 
 msgid "Created At"
-msgstr ""
+msgstr "Créé le"
 
 msgid "Criterion"
 msgstr ""
@@ -2433,7 +2433,7 @@ msgid ""
 msgstr ""
 
 msgid "Currency"
-msgstr ""
+msgstr "Devise"
 
 msgid "Currency code is required"
 msgstr ""
@@ -2628,7 +2628,7 @@ msgid "Day in the life"
 msgstr ""
 
 msgid "Deactivate"
-msgstr ""
+msgstr "Désactiver"
 
 msgid "Deactivate tag"
 msgstr ""
@@ -2658,7 +2658,7 @@ msgid "Def. source"
 msgstr ""
 
 msgid "Default"
-msgstr ""
+msgstr "Par défaut"
 
 msgid "Default (choose later)"
 msgstr ""
@@ -2740,7 +2740,7 @@ msgid "Demo nav"
 msgstr ""
 
 msgid "Department"
-msgstr ""
+msgstr "Département"
 
 msgid "Dependencies (snapshot)"
 msgstr ""
@@ -2875,7 +2875,7 @@ msgid "Directory, lifecycle, exports"
 msgstr ""
 
 msgid "Disable"
-msgstr ""
+msgstr "Désactiver"
 
 msgid "Disable API audit log"
 msgstr ""
@@ -2886,7 +2886,7 @@ msgid ""
 msgstr ""
 
 msgid "Disabled"
-msgstr ""
+msgstr "Désactivé"
 
 msgid "Discard draft"
 msgstr ""
@@ -2913,7 +2913,7 @@ msgid "Discovery (find school)"
 msgstr ""
 
 msgid "Dismiss"
-msgstr ""
+msgstr "Ignorer"
 
 msgid "Dismiss highlights"
 msgstr ""
@@ -3016,7 +3016,7 @@ msgid "Dominant next action"
 msgstr ""
 
 msgid "Done"
-msgstr ""
+msgstr "Terminé"
 
 msgid "Donor"
 msgstr ""
@@ -3078,7 +3078,7 @@ msgid "Downstream (other packages may depend on this id)"
 msgstr ""
 
 msgid "Draft"
-msgstr ""
+msgstr "Brouillon"
 
 msgid ""
 "Draft and published master schedules. Generate or validate via API "
@@ -3113,7 +3113,7 @@ msgid "Dual transcript (academic + vocational)."
 msgstr ""
 
 msgid "Due"
-msgstr ""
+msgstr "Échéance"
 
 msgid "Due date (earliest first)"
 msgstr ""
@@ -3252,7 +3252,7 @@ msgid "Empty."
 msgstr ""
 
 msgid "Enable"
-msgstr ""
+msgstr "Activer"
 
 msgid "Enable in Module Market"
 msgstr ""
@@ -3261,7 +3261,7 @@ msgid "Enable or disable modules for your school. Changes apply immediately."
 msgstr ""
 
 msgid "Enabled"
-msgstr ""
+msgstr "Activé"
 
 msgid ""
 "End-to-end HTTP clients ship in-repo; district tokens activate live calls."
@@ -3338,7 +3338,7 @@ msgid "Entity code"
 msgstr ""
 
 msgid "Error"
-msgstr ""
+msgstr "Erreur"
 
 msgid "Errors"
 msgstr ""
@@ -3581,7 +3581,7 @@ msgid "Factors"
 msgstr ""
 
 msgid "Failed"
-msgstr ""
+msgstr "Échec"
 
 msgid "Failed logins by role"
 msgstr ""
@@ -3721,7 +3721,7 @@ msgid "Fields"
 msgstr ""
 
 msgid "File"
-msgstr ""
+msgstr "Fichier"
 
 msgid "File Size"
 msgstr ""
@@ -3804,7 +3804,7 @@ msgid "Find your school"
 msgstr ""
 
 msgid "Finish"
-msgstr ""
+msgstr "Terminer"
 
 msgid "First 200 accounts (by school name)."
 msgstr ""
@@ -3937,7 +3937,7 @@ msgid "Freeze"
 msgstr ""
 
 msgid "From"
-msgstr ""
+msgstr "De"
 
 msgid "From date"
 msgstr ""
@@ -3979,7 +3979,7 @@ msgid "Gateway is required"
 msgstr ""
 
 msgid "General"
-msgstr ""
+msgstr "Général"
 
 msgid "General Academic"
 msgstr ""
@@ -4025,7 +4025,7 @@ msgid ""
 msgstr ""
 
 msgid "Get started"
-msgstr ""
+msgstr "Commencer"
 
 msgid "Global AI Version"
 msgstr ""
@@ -4082,7 +4082,7 @@ msgid "Go live"
 msgstr ""
 
 msgid "Go to Dashboard"
-msgstr ""
+msgstr "Aller au tableau de bord"
 
 msgid "Go to Finance"
 msgstr ""
@@ -4091,10 +4091,10 @@ msgid "Go-live in under 2 weeks"
 msgstr ""
 
 msgid "Good afternoon"
-msgstr ""
+msgstr "Bon après-midi"
 
 msgid "Got it"
-msgstr ""
+msgstr "Compris"
 
 msgid "Governance"
 msgstr ""
@@ -4161,7 +4161,7 @@ msgid "Grades flow back into the LMS via LTI Assignment and Grade Services."
 msgstr ""
 
 msgid "Grading"
-msgstr ""
+msgstr "Notation"
 
 msgid "Grading & language"
 msgstr ""
@@ -4262,7 +4262,7 @@ msgid "Header bar (background & colors)"
 msgstr ""
 
 msgid "Health"
-msgstr ""
+msgstr "Santé"
 
 msgid "Health check alert (platform admin)"
 msgstr ""
@@ -4509,7 +4509,7 @@ msgid "In development"
 msgstr ""
 
 msgid "In progress"
-msgstr ""
+msgstr "En cours"
 
 msgid "In review"
 msgstr ""
@@ -4636,7 +4636,7 @@ msgid "Instructions"
 msgstr ""
 
 msgid "Integration"
-msgstr ""
+msgstr "Intégration"
 
 msgid "Integration and API key governance."
 msgstr ""
@@ -4654,7 +4654,7 @@ msgid "Integration trust by category"
 msgstr ""
 
 msgid "Integrations"
-msgstr ""
+msgstr "Intégrations"
 
 msgid "Integrations & API Center"
 msgstr ""
@@ -4714,7 +4714,7 @@ msgid "Invalid or expired"
 msgstr ""
 
 msgid "Inventory"
-msgstr ""
+msgstr "Inventaire"
 
 msgid "Inventory item (optional)"
 msgstr ""
@@ -4732,7 +4732,7 @@ msgid "Invoiced"
 msgstr ""
 
 msgid "Invoices"
-msgstr ""
+msgstr "Factures"
 
 msgid "Is Active"
 msgstr ""
@@ -4890,7 +4890,7 @@ msgid ""
 msgstr ""
 
 msgid "Language"
-msgstr ""
+msgstr "Langue"
 
 msgid "Last 200 incidents (by detected time)."
 msgstr ""
@@ -5210,7 +5210,7 @@ msgid "Load theme & experience in the canvas."
 msgstr ""
 
 msgid "Loading"
-msgstr ""
+msgstr "Chargement"
 
 msgid "Loading personalized next steps…"
 msgstr ""
@@ -5222,7 +5222,7 @@ msgid "Loading..."
 msgstr "Chargement..."
 
 msgid "Loading…"
-msgstr ""
+msgstr "Chargement…"
 
 msgid "Locale registry (platform admin)"
 msgstr ""
@@ -5381,7 +5381,7 @@ msgid "MarketingContent — CMS-style blocks"
 msgstr ""
 
 msgid "Marketplace"
-msgstr ""
+msgstr "Place de marché"
 
 msgid "Marketplace & packs"
 msgstr ""
@@ -5470,7 +5470,7 @@ msgid "Medium"
 msgstr ""
 
 msgid "Menu"
-msgstr ""
+msgstr "Menu"
 
 msgid "Menu items, order from Site Settings"
 msgstr ""
@@ -5636,7 +5636,7 @@ msgid "Mission queues"
 msgstr ""
 
 msgid "Mobile"
-msgstr ""
+msgstr "Mobile"
 
 msgid "Mock"
 msgstr ""
@@ -5656,7 +5656,7 @@ msgid "Models, prompts, gateway"
 msgstr ""
 
 msgid "Module"
-msgstr ""
+msgstr "Module"
 
 msgid "Module Market"
 msgstr ""
@@ -5665,7 +5665,7 @@ msgid "Module market"
 msgstr ""
 
 msgid "Modules"
-msgstr ""
+msgstr "Modules"
 
 msgid "More"
 msgstr "Plus"
@@ -5711,7 +5711,7 @@ msgid "My Preferences"
 msgstr ""
 
 msgid "My Profile"
-msgstr ""
+msgstr "Mon profil"
 
 msgid "My Workflow"
 msgstr ""
@@ -5723,7 +5723,7 @@ msgid "My wallet"
 msgstr ""
 
 msgid "N/A"
-msgstr ""
+msgstr "N/D"
 
 msgid "NGO (21):"
 msgstr ""
@@ -6179,7 +6179,7 @@ msgid "No requests yet."
 msgstr ""
 
 msgid "No results found"
-msgstr ""
+msgstr "Aucun résultat trouvé"
 
 msgid "No reverse"
 msgstr ""
@@ -6337,13 +6337,13 @@ msgid "Not loaded"
 msgstr ""
 
 msgid "Not set"
-msgstr ""
+msgstr "Non défini"
 
 msgid "Not set — generate below"
 msgstr ""
 
 msgid "Notes"
-msgstr ""
+msgstr "Remarques"
 
 msgid "Notify parent"
 msgstr ""
@@ -6370,7 +6370,7 @@ msgid "Object type"
 msgstr ""
 
 msgid "Off"
-msgstr ""
+msgstr "Désactivé"
 
 msgid "Off — API returns live tenant data."
 msgstr ""
@@ -6408,7 +6408,7 @@ msgid "Ollama URL"
 msgstr ""
 
 msgid "On"
-msgstr ""
+msgstr "Activé"
 
 msgid ""
 "On each tenant: Backend → Security & trust "
@@ -6667,7 +6667,7 @@ msgid "Open marks"
 msgstr ""
 
 msgid "Open menu"
-msgstr ""
+msgstr "Ouvrir le menu"
 
 msgid "Open migration simulator"
 msgstr ""
@@ -6839,7 +6839,7 @@ msgid "Organization chart"
 msgstr ""
 
 msgid "Other"
-msgstr ""
+msgstr "Autre"
 
 msgid "Out"
 msgstr ""
@@ -7652,7 +7652,7 @@ msgid "Prefer the control plane"
 msgstr ""
 
 msgid "Preferences"
-msgstr ""
+msgstr "Préférences"
 
 msgid "Prefix"
 msgstr ""
@@ -7671,7 +7671,7 @@ msgid "Preset:"
 msgstr ""
 
 msgid "Preview"
-msgstr ""
+msgstr "Aperçu"
 
 msgid "Preview PDF"
 msgstr ""
@@ -7751,7 +7751,7 @@ msgid "Previous month"
 msgstr ""
 
 msgid "Price"
-msgstr ""
+msgstr "Prix"
 
 msgid "Pricing"
 msgstr "Tarifs"
@@ -7941,7 +7941,7 @@ msgid "Publish selected articles"
 msgstr ""
 
 msgid "Published"
-msgstr ""
+msgstr "Publié"
 
 msgid "Published Articles"
 msgstr ""
@@ -7996,7 +7996,7 @@ msgid "Qty"
 msgstr ""
 
 msgid "Quantity"
-msgstr ""
+msgstr "Quantité"
 
 msgid "Query lineage"
 msgstr ""
@@ -8101,7 +8101,7 @@ msgid "Ready to run your campus?"
 msgstr ""
 
 msgid "Reason"
-msgstr ""
+msgstr "Motif"
 
 msgid "Reason (required)"
 msgstr ""
@@ -8123,7 +8123,7 @@ msgid "Receipts, slips, and PDFs uploaded by finance."
 msgstr ""
 
 msgid "Recent"
-msgstr ""
+msgstr "Récent"
 
 msgid "Recent (incl. checked out)"
 msgstr ""
@@ -8132,7 +8132,7 @@ msgid "Recent Site Settings Changes"
 msgstr ""
 
 msgid "Recent activity"
-msgstr ""
+msgstr "Activité récente"
 
 msgid ""
 "Recent and past automation runs (task name, status, records processed)."
@@ -8182,7 +8182,7 @@ msgid "Recommendations"
 msgstr ""
 
 msgid "Recommended"
-msgstr ""
+msgstr "Recommandé"
 
 msgid "Recommended blueprint"
 msgstr ""
@@ -8261,7 +8261,7 @@ msgid "Refund reason is required"
 msgstr ""
 
 msgid "Region"
-msgstr ""
+msgstr "Région"
 
 msgid "Region catalog"
 msgstr ""
@@ -8359,7 +8359,7 @@ msgid ""
 msgstr ""
 
 msgid "Remarks"
-msgstr ""
+msgstr "Observations"
 
 msgid "Remove from Quick access"
 msgstr ""
@@ -8614,7 +8614,7 @@ msgid "Retries"
 msgstr ""
 
 msgid "Retry"
-msgstr ""
+msgstr "Réessayer"
 
 msgid "Retry preview"
 msgstr ""
@@ -9121,7 +9121,7 @@ msgid "Save style"
 msgstr ""
 
 msgid "Saved"
-msgstr ""
+msgstr "Enregistré"
 
 msgid "Saved state"
 msgstr ""
@@ -9156,7 +9156,7 @@ msgid "Scheduled revenue-share payouts"
 msgstr ""
 
 msgid "Schedules"
-msgstr ""
+msgstr "Horaires"
 
 msgid ""
 "Schedules and “require approval” toggles are in Finance Automation and other"
@@ -9167,7 +9167,7 @@ msgid "Schema"
 msgstr ""
 
 msgid "School"
-msgstr ""
+msgstr "École"
 
 msgid "School (platform admin)"
 msgstr ""
@@ -9292,7 +9292,7 @@ msgid "School-in-a-Box launch flow"
 msgstr ""
 
 msgid "Schools"
-msgstr ""
+msgstr "Écoles"
 
 msgid "Schools and networks that run on RunMyCampus"
 msgstr ""
@@ -9440,7 +9440,7 @@ msgid "Secure sign in"
 msgstr ""
 
 msgid "Security"
-msgstr ""
+msgstr "Sécurité"
 
 msgid "Security & Compliance"
 msgstr ""
@@ -9569,7 +9569,7 @@ msgid ""
 msgstr ""
 
 msgid "Send message"
-msgstr ""
+msgstr "Envoyer un message"
 
 msgid "Send pay link"
 msgstr ""
@@ -9843,7 +9843,7 @@ msgid ""
 msgstr ""
 
 msgid "Skip"
-msgstr ""
+msgstr "Ignorer"
 
 msgid "Skip to Studio content"
 msgstr ""
@@ -10251,7 +10251,7 @@ msgid "Substitutes"
 msgstr ""
 
 msgid "Success"
-msgstr ""
+msgstr "Succès"
 
 msgid "Suggest workflow"
 msgstr ""
@@ -10268,7 +10268,7 @@ msgid ""
 msgstr ""
 
 msgid "Summary"
-msgstr ""
+msgstr "Résumé"
 
 msgid "Summary of active workflow packs and templates."
 msgstr ""
@@ -10308,7 +10308,7 @@ msgid "SuperAdminDashboardPreference — section order storage"
 msgstr ""
 
 msgid "Support"
-msgstr ""
+msgstr "Assistance"
 
 msgid "Support & Feedback"
 msgstr ""
@@ -10593,7 +10593,7 @@ msgid "Tenants using same bundle"
 msgstr ""
 
 msgid "Term"
-msgstr ""
+msgstr "Trimestre"
 
 msgid "Term CSV"
 msgstr ""
@@ -10740,7 +10740,7 @@ msgid "Third term"
 msgstr ""
 
 msgid "This action cannot be undone."
-msgstr ""
+msgstr "Cette action est irréversible."
 
 msgid "This admission number is already in use."
 msgstr ""
@@ -10891,7 +10891,7 @@ msgid "To date"
 msgstr ""
 
 msgid "Today"
-msgstr ""
+msgstr "Aujourd'hui"
 
 msgid "Today's tasks"
 msgstr ""
@@ -11075,13 +11075,13 @@ msgid "URL (subdomain)"
 msgstr ""
 
 msgid "Unassign"
-msgstr ""
+msgstr "Retirer"
 
 msgid "Unassigned"
 msgstr ""
 
 msgid "Unavailable"
-msgstr ""
+msgstr "Indisponible"
 
 msgid "Undo"
 msgstr ""
@@ -11184,7 +11184,7 @@ msgid "Updated - Pending Review"
 msgstr ""
 
 msgid "Updated At"
-msgstr ""
+msgstr "Mis à jour le"
 
 msgid "Upgrade all regions"
 msgstr ""
@@ -11410,7 +11410,7 @@ msgid "Verification"
 msgstr ""
 
 msgid "Verified"
-msgstr ""
+msgstr "Vérifié"
 
 msgid "Verified publisher"
 msgstr ""
@@ -11448,7 +11448,7 @@ msgid "View Count"
 msgstr ""
 
 msgid "View all"
-msgstr ""
+msgstr "Tout afficher"
 
 msgid "View all schools"
 msgstr ""
@@ -11564,7 +11564,7 @@ msgid "Wallet"
 msgstr ""
 
 msgid "Warning"
-msgstr ""
+msgstr "Avertissement"
 
 msgid "Warnings"
 msgstr ""
@@ -11943,7 +11943,7 @@ msgid "Works with:"
 msgstr ""
 
 msgid "Year"
-msgstr ""
+msgstr "Année"
 
 msgid "Yes"
 msgstr "Oui"
@@ -12076,7 +12076,7 @@ msgid "balance check"
 msgstr ""
 
 msgid "beta"
-msgstr ""
+msgstr "bêta"
 
 msgid "blueprint packs"
 msgstr ""
@@ -12103,7 +12103,7 @@ msgid "color"
 msgstr ""
 
 msgid "complete"
-msgstr ""
+msgstr "terminé"
 
 msgid "confidence"
 msgstr ""
@@ -12195,7 +12195,7 @@ msgid ""
 msgstr ""
 
 msgid "more"
-msgstr ""
+msgstr "plus"
 
 msgid "multi-tenant provisioning"
 msgstr ""
@@ -12213,10 +12213,10 @@ msgid "on {{ date }}"
 msgstr ""
 
 msgid "online"
-msgstr ""
+msgstr "en ligne"
 
 msgid "optional"
-msgstr ""
+msgstr "facultatif"
 
 msgid "or ask your admin to assign you to classes."
 msgstr ""
@@ -12234,7 +12234,7 @@ msgid "packs"
 msgstr ""
 
 msgid "pending"
-msgstr ""
+msgstr "en attente"
 
 msgid "platform_runtime.RuntimeDefaults — resolver baselines"
 msgstr ""
@@ -12297,7 +12297,7 @@ msgid "stops"
 msgstr ""
 
 msgid "students"
-msgstr ""
+msgstr "élèves"
 
 msgid "subjects complete"
 msgstr ""
@@ -12309,7 +12309,7 @@ msgid "to search"
 msgstr ""
 
 msgid "user"
-msgstr ""
+msgstr "utilisateur"
 
 msgid "utm_medium"
 msgstr ""
@@ -12612,7 +12612,7 @@ msgid "or a quick cache refresh"
 msgstr ""
 
 msgid "profile"
-msgstr ""
+msgstr "profil"
 
 msgid "registry total"
 msgstr ""
@@ -12940,7 +12940,7 @@ msgid "Design Studio"
 msgstr ""
 
 msgid "Documents"
-msgstr ""
+msgstr "Documents"
 
 msgid ""
 "Field catalog and governance keys classified under this ownership slice."
@@ -13261,7 +13261,7 @@ msgid "Global support CSAT"
 msgstr ""
 
 msgid "Month"
-msgstr ""
+msgstr "Mois"
 
 msgid "No CSAT data yet."
 msgstr ""
@@ -13506,7 +13506,7 @@ msgid "Already read"
 msgstr ""
 
 msgid "Details"
-msgstr ""
+msgstr "Détails"
 
 msgid "Finance Access Requests"
 msgstr ""
@@ -13914,7 +13914,7 @@ msgid "Also include PDF for each letter (requires LibreOffice on the server)"
 msgstr ""
 
 msgid "Any"
-msgstr ""
+msgstr "Tout"
 
 msgid "Audit events"
 msgstr ""
@@ -13958,7 +13958,7 @@ msgid "Definitions"
 msgstr ""
 
 msgid "Departments"
-msgstr ""
+msgstr "Départements"
 
 msgid "Departments (read-only)"
 msgstr ""
@@ -14074,7 +14074,7 @@ msgid "Grading scales by region"
 msgstr ""
 
 msgid "Guardians"
-msgstr ""
+msgstr "Responsables"
 
 msgid "Hash ledger"
 msgstr ""
@@ -14143,7 +14143,7 @@ msgid "Locale"
 msgstr ""
 
 msgid "Locked"
-msgstr ""
+msgstr "Verrouillé"
 
 msgid "Metadata & lineage"
 msgstr ""
@@ -14474,7 +14474,7 @@ msgid "Server version"
 msgstr ""
 
 msgid "Setting"
-msgstr ""
+msgstr "Paramètre"
 
 msgid "Severe issues"
 msgstr ""
@@ -14786,10 +14786,10 @@ msgid "Advanced/Admin: audit log rows"
 msgstr ""
 
 msgid "Available"
-msgstr ""
+msgstr "Disponible"
 
 msgid "Beta"
-msgstr ""
+msgstr "Bêta"
 
 msgid "Governance: beta rollout"
 msgstr ""
@@ -15291,7 +15291,7 @@ msgid "Not required"
 msgstr ""
 
 msgid "Permission"
-msgstr ""
+msgstr "Autorisation"
 
 msgid "Policy (tenant)"
 msgstr ""
@@ -15498,13 +15498,13 @@ msgid "Regional compliance exports"
 msgstr ""
 
 msgid "Report card"
-msgstr ""
+msgstr "Bulletin"
 
 msgid "in target system (Rosetta)"
 msgstr ""
 
 msgid "summary"
-msgstr ""
+msgstr "résumé"
 
 msgid "AI draft output"
 msgstr ""
@@ -15552,7 +15552,7 @@ msgid "Draft will appear here."
 msgstr ""
 
 msgid "End date"
-msgstr ""
+msgstr "Date de fin"
 
 msgid "Export attendance (CSV)"
 msgstr ""
@@ -15618,7 +15618,7 @@ msgid "Staff profiles"
 msgstr ""
 
 msgid "Start date"
-msgstr ""
+msgstr "Date de début"
 
 msgid "Student attendance (CSV export)"
 msgstr ""
@@ -15720,7 +15720,7 @@ msgid "Campuses"
 msgstr ""
 
 msgid "DONE"
-msgstr ""
+msgstr "Terminé"
 
 msgid "Founder North Star"
 msgstr ""
@@ -15801,7 +15801,7 @@ msgid "Security surface signal"
 msgstr ""
 
 msgid "not available"
-msgstr ""
+msgstr "non disponible"
 
 msgid "AI audit rows"
 msgstr ""
@@ -16052,7 +16052,7 @@ msgid "due today"
 msgstr ""
 
 msgid "overdue"
-msgstr ""
+msgstr "en retard"
 
 msgid ""
 "AI operational layer: enabled for this tenant (drafts still require your "
@@ -16289,7 +16289,7 @@ msgid "for the combined ledger."
 msgstr ""
 
 msgid "modules"
-msgstr ""
+msgstr "modules"
 
 msgid "subprocess (apps)"
 msgstr ""
@@ -16430,7 +16430,7 @@ msgid "Existing workflows"
 msgstr ""
 
 msgid "Go to dashboard"
-msgstr ""
+msgstr "Aller au tableau de bord"
 
 msgid "Go to homepage"
 msgstr "Aller à la page d’accueil"
@@ -17135,7 +17135,7 @@ msgid "Term report"
 msgstr ""
 
 msgid "To"
-msgstr ""
+msgstr "À"
 
 msgid "Trigger event"
 msgstr ""
@@ -17357,7 +17357,7 @@ msgid "No tenant context — open this page on your school subdomain."
 msgstr ""
 
 msgid "Note"
-msgstr ""
+msgstr "Remarque"
 
 msgid "Nothing pending."
 msgstr ""
@@ -17432,7 +17432,7 @@ msgid "Schools (sample)"
 msgstr ""
 
 msgid "State"
-msgstr ""
+msgstr "État"
 
 msgid "Student id (optional)"
 msgstr ""
@@ -17661,7 +17661,7 @@ msgid "Export & APIs"
 msgstr ""
 
 msgid "Filters"
-msgstr ""
+msgstr "Filtres"
 
 msgid "Governed NL assistant"
 msgstr ""
@@ -17859,7 +17859,7 @@ msgid "Process outbox after clone (subscribers + webhook queue)"
 msgstr ""
 
 msgid "Publish"
-msgstr ""
+msgstr "Publier"
 
 msgid "Publish blocked: invalid graph."
 msgstr ""
@@ -18414,7 +18414,7 @@ msgid "no"
 msgstr ""
 
 msgid "paid"
-msgstr ""
+msgstr "payé"
 
 msgid "sum"
 msgstr ""
@@ -18877,7 +18877,7 @@ msgid ""
 msgstr ""
 
 msgid "Insights"
-msgstr ""
+msgstr "Analyses"
 
 msgid "Insights Center"
 msgstr ""
@@ -18889,7 +18889,7 @@ msgid "International school positioning"
 msgstr ""
 
 msgid "Invoice"
-msgstr ""
+msgstr "Facture"
 
 msgid "Invoices, fees, and payments — compliance profile {{ p }} ({{ c }})."
 msgstr ""
@@ -18993,7 +18993,7 @@ msgid "No leads yet — create one from the pipeline board."
 msgstr ""
 
 msgid "Offline"
-msgstr ""
+msgstr "Hors ligne"
 
 msgid "Offline Sync"
 msgstr ""
@@ -19412,7 +19412,7 @@ msgid ""
 msgstr ""
 
 msgid "Welcome back"
-msgstr ""
+msgstr "Bon retour"
 
 msgid "What needs attention"
 msgstr ""
@@ -20278,10 +20278,10 @@ msgid "missing tests"
 msgstr ""
 
 msgid "none"
-msgstr ""
+msgstr "aucun"
 
 msgid "preview"
-msgstr ""
+msgstr "aperçu"
 
 msgid "route drift"
 msgstr ""
@@ -20494,7 +20494,7 @@ msgid "Academic Structure"
 msgstr ""
 
 msgid "Academic Year"
-msgstr ""
+msgstr "Année scolaire"
 
 msgid "Academics - {{ label }}"
 msgstr ""
@@ -20512,7 +20512,7 @@ msgid "Access Control"
 msgstr ""
 
 msgid "Access Denied"
-msgstr ""
+msgstr "Accès refusé"
 
 msgid "Access by role"
 msgstr ""
@@ -20527,7 +20527,7 @@ msgid "Access counts grouped by username."
 msgstr ""
 
 msgid "Access denied"
-msgstr ""
+msgstr "Accès refusé"
 
 msgid "Access denied."
 msgstr ""
@@ -20596,7 +20596,7 @@ msgid "Add passkey"
 msgstr ""
 
 msgid "Add student"
-msgstr ""
+msgstr "Ajouter un élève"
 
 msgid "Add student roster"
 msgstr ""
@@ -20780,7 +20780,7 @@ msgid "Assessment Weights (Theory vs Practical)"
 msgstr ""
 
 msgid "Assets"
-msgstr ""
+msgstr "Biens"
 
 msgid "Assign Direct Permissions"
 msgstr ""
@@ -21128,7 +21128,7 @@ msgid "Classes"
 msgstr "Classes"
 
 msgid "Clear"
-msgstr ""
+msgstr "Effacer"
 
 msgid "Clear preview"
 msgstr ""
@@ -21194,7 +21194,7 @@ msgid "Compare against your current SIS"
 msgstr ""
 
 msgid "Complete"
-msgstr ""
+msgstr "Terminé"
 
 msgid "Compliance & Activity"
 msgstr ""
@@ -21215,7 +21215,7 @@ msgid "Configurable workflows + approval chains"
 msgstr ""
 
 msgid "Configure"
-msgstr ""
+msgstr "Configurer"
 
 msgid "Configure (settings)"
 msgstr ""
@@ -21346,7 +21346,7 @@ msgid "Current: {{ year }}"
 msgstr ""
 
 msgid "Curriculum"
-msgstr ""
+msgstr "Programme"
 
 msgid "Custom"
 msgstr "Sur mesure"
@@ -21422,7 +21422,7 @@ msgid "Day closed"
 msgstr ""
 
 msgid "Days"
-msgstr ""
+msgstr "Jours"
 
 msgid "Days left"
 msgstr ""
@@ -22003,7 +22003,7 @@ msgid "Global footprint"
 msgstr ""
 
 msgid "Go back"
-msgstr ""
+msgstr "Retour"
 
 msgid "Good"
 msgstr ""
@@ -22091,7 +22091,7 @@ msgid "Help & Support"
 msgstr ""
 
 msgid "Help Center"
-msgstr ""
+msgstr "Centre d'aide"
 
 msgid "Hi {{ name }}."
 msgstr ""
@@ -22570,7 +22570,7 @@ msgid "Mapping has not run yet. Discovery must complete first."
 msgstr ""
 
 msgid "Mark as read"
-msgstr ""
+msgstr "Marquer comme lu"
 
 msgid "Mark as urgent"
 msgstr ""
@@ -22815,7 +22815,7 @@ msgid "My learning"
 msgstr ""
 
 msgid "My profile"
-msgstr ""
+msgstr "Mon profil"
 
 msgid "My requests"
 msgstr ""
@@ -23777,7 +23777,7 @@ msgid "Receipt File"
 msgstr ""
 
 msgid "Recent Activity"
-msgstr ""
+msgstr "Activité récente"
 
 msgid "Recent Admissions"
 msgstr ""
@@ -23868,7 +23868,7 @@ msgid "Registry readiness and rollout coverage"
 msgstr ""
 
 msgid "Reject"
-msgstr ""
+msgstr "Rejeter"
 
 msgid ""
 "Reminders go out automatically, in the family's preferred channel — not on "
@@ -24228,7 +24228,7 @@ msgid "Security review"
 msgstr ""
 
 msgid "See all"
-msgstr ""
+msgstr "Tout voir"
 
 msgid "See all announcements"
 msgstr ""
@@ -24872,7 +24872,7 @@ msgid "Three plans. No surprises."
 msgstr ""
 
 msgid "Time"
-msgstr ""
+msgstr "Heure"
 
 msgid "Time-based One-Time Password (TOTP)"
 msgstr ""
@@ -25051,7 +25051,7 @@ msgid "Trust this device for 14 days"
 msgstr ""
 
 msgid "Try again"
-msgstr ""
+msgstr "Réessayer"
 
 msgid "Tuesday · 18 March · 942 of 1,002 students expected"
 msgstr ""
@@ -25614,7 +25614,7 @@ msgid "by deployment shape"
 msgstr ""
 
 msgid "close"
-msgstr ""
+msgstr "fermer"
 
 msgid "columns"
 msgstr ""
@@ -25626,7 +25626,7 @@ msgid "e.g., TXN123456"
 msgstr ""
 
 msgid "email"
-msgstr ""
+msgstr "e-mail"
 
 msgid "fee collection by week three"
 msgstr ""
@@ -25677,7 +25677,7 @@ msgid "per teacher per term"
 msgstr ""
 
 msgid "required"
-msgstr ""
+msgstr "obligatoire"
 
 msgid "rolling 90 days · across 47 schools"
 msgstr ""
@@ -26101,7 +26101,7 @@ msgid "Bursar's daily dashboard."
 msgstr ""
 
 msgid "Campus"
-msgstr ""
+msgstr "Campus"
 
 msgid "Campus overrides: {{ campus_name }}"
 msgstr ""
@@ -26678,7 +26678,7 @@ msgid "Grade outlook"
 msgstr ""
 
 msgid "Gradebook"
-msgstr ""
+msgstr "Cahier de notes"
 
 msgid "Gradebook & report cards"
 msgstr ""
@@ -27023,7 +27023,7 @@ msgid "My children"
 msgstr ""
 
 msgid "Navigation"
-msgstr ""
+msgstr "Navigation"
 
 msgid "Needs intervention"
 msgstr ""
@@ -27124,7 +27124,7 @@ msgid ""
 msgstr ""
 
 msgid "Not available"
-msgstr ""
+msgstr "Non disponible"
 
 msgid "Not connected"
 msgstr ""
@@ -27543,7 +27543,7 @@ msgid "Push-friendly alerts — not another portal maze."
 msgstr ""
 
 msgid "Quick actions"
-msgstr ""
+msgstr "Actions rapides"
 
 msgid "Ranking"
 msgstr ""
@@ -28165,7 +28165,7 @@ msgid "Unique identifier used in search, exports, and payment matching."
 msgstr ""
 
 msgid "Unknown"
-msgstr ""
+msgstr "Inconnu"
 
 msgid "Upload two CSVs to compare keys and spot migration risk."
 msgstr ""
@@ -28328,10 +28328,10 @@ msgid "in last 7d"
 msgstr ""
 
 msgid "in progress"
-msgstr ""
+msgstr "en cours"
 
 msgid "inactive"
-msgstr ""
+msgstr "inactif"
 
 msgid "information"
 msgstr ""
@@ -28343,7 +28343,7 @@ msgid "live"
 msgstr ""
 
 msgid "not set"
-msgstr ""
+msgstr "non défini"
 
 msgid "outcomes"
 msgstr ""
@@ -28370,10 +28370,10 @@ msgid "remark"
 msgstr ""
 
 msgid "school"
-msgstr ""
+msgstr "école"
 
 msgid "search"
-msgstr ""
+msgstr "rechercher"
 
 msgid "set"
 msgstr ""
@@ -28394,10 +28394,10 @@ msgid "static (no product route)"
 msgstr ""
 
 msgid "terms"
-msgstr ""
+msgstr "trimestres"
 
 msgid "total"
-msgstr ""
+msgstr "total"
 
 msgid "was: Platform"
 msgstr "auparavant : Plateforme"
@@ -28976,13 +28976,13 @@ msgid "Search schools and incidents"
 msgstr ""
 
 msgid "Search…"
-msgstr ""
+msgstr "Rechercher…"
 
 msgid "Studio workspace"
 msgstr ""
 
 msgid "active"
-msgstr ""
+msgstr "actif"
 
 msgid "3+ stars"
 msgstr ""
@@ -30629,7 +30629,7 @@ msgid "by {{ name }}"
 msgstr ""
 
 msgid "campus"
-msgstr ""
+msgstr "campus"
 
 msgid "classroom door"
 msgstr ""
@@ -30648,7 +30648,7 @@ msgid ""
 msgstr ""
 
 msgid "failed"
-msgstr ""
+msgstr "échec"
 
 msgid ""
 "fields that are not mapped to our canonical ontology are quarantined and "
@@ -30813,7 +30813,7 @@ msgid "Admission Number"
 msgstr ""
 
 msgid "Date of Birth"
-msgstr ""
+msgstr "Date de naissance"
 
 msgid "Gender"
 msgstr "Sexe"
@@ -31408,7 +31408,7 @@ msgid "Catalog sections"
 msgstr ""
 
 msgid "Categories"
-msgstr ""
+msgstr "Catégories"
 
 msgid "Category pagination"
 msgstr ""
@@ -32305,7 +32305,7 @@ msgid ""
 msgstr ""
 
 msgid "Guardian"
-msgstr ""
+msgstr "Responsable"
 
 msgid "Guardian consent campaign"
 msgstr ""
@@ -32914,7 +32914,7 @@ msgid "Matrix"
 msgstr ""
 
 msgid "May"
-msgstr ""
+msgstr "Mai"
 
 msgid "Meal plan"
 msgstr ""
@@ -35509,7 +35509,7 @@ msgid "articles"
 msgstr ""
 
 msgid "available"
-msgstr ""
+msgstr "disponible"
 
 msgid "command palette"
 msgstr ""
@@ -35539,10 +35539,10 @@ msgid "e.g. What should we configure before importing students?"
 msgstr ""
 
 msgid "error"
-msgstr ""
+msgstr "erreur"
 
 msgid "events"
-msgstr ""
+msgstr "événements"
 
 msgid "focus search"
 msgstr ""
@@ -35554,7 +35554,7 @@ msgid "forums"
 msgstr ""
 
 msgid "info"
-msgstr ""
+msgstr "information"
 
 msgid "installable apps"
 msgstr ""
@@ -35578,7 +35578,7 @@ msgid "models"
 msgstr ""
 
 msgid "no data"
-msgstr ""
+msgstr "aucune donnée"
 
 msgid "ok={{ ok }} fail={{ fail }} total={{ total }}"
 msgstr ""
@@ -35626,7 +35626,7 @@ msgid "sandbox installations"
 msgstr ""
 
 msgid "schools"
-msgstr ""
+msgstr "écoles"
 
 msgid "score"
 msgstr ""
@@ -35656,10 +35656,10 @@ msgid "typical switch from legacy SIS (illustrative)"
 msgstr ""
 
 msgid "unavailable"
-msgstr ""
+msgstr "indisponible"
 
 msgid "unknown"
-msgstr ""
+msgstr "inconnu"
 
 msgid "uploads"
 msgstr ""
@@ -35766,7 +35766,7 @@ msgid "(from your primary colour)"
 msgstr ""
 
 msgid "ACTIVE"
-msgstr ""
+msgstr "Actif"
 
 msgid "AI unavailable — check server config"
 msgstr ""
@@ -36508,7 +36508,7 @@ msgid "AI_TEACHER_COMMS entitlement required for parent drafts."
 msgstr ""
 
 msgid "ATTENDANCE"
-msgstr ""
+msgstr "Présences"
 
 msgid "AVERAGE"
 msgstr ""
@@ -36939,7 +36939,7 @@ msgid "BACKOFFICE"
 msgstr ""
 
 msgid "BALANCE"
-msgstr ""
+msgstr "Solde"
 
 msgid "Back to catalog"
 msgstr ""
@@ -37051,7 +37051,7 @@ msgid "Brazil"
 msgstr ""
 
 msgid "Browse"
-msgstr ""
+msgstr "Parcourir"
 
 msgid "Browse all"
 msgstr ""
@@ -37858,7 +37858,7 @@ msgid "Employer transcript"
 msgstr ""
 
 msgid "Empty"
-msgstr ""
+msgstr "Vide"
 
 msgid ""
 "Enable HELP_ZERO_RESULT_AUTO_DRAFT_KB on the platform to auto-queue KB "
@@ -37906,7 +37906,7 @@ msgid "Enrolled"
 msgstr ""
 
 msgid "Enrollment"
-msgstr ""
+msgstr "Inscription"
 
 msgid "Enrollment peak mode"
 msgstr ""
@@ -38507,7 +38507,7 @@ msgid "Host:"
 msgstr ""
 
 msgid "Hours"
-msgstr ""
+msgstr "Heures"
 
 msgid "How this tenant was created and activated."
 msgstr ""
@@ -38618,7 +38618,7 @@ msgid "Indonesia"
 msgstr ""
 
 msgid "Info"
-msgstr ""
+msgstr "Information"
 
 msgid "Inheritance chain"
 msgstr ""
@@ -38664,7 +38664,7 @@ msgid "Inventory pagination"
 msgstr ""
 
 msgid "Invite"
-msgstr ""
+msgstr "Inviter"
 
 msgid "Invite an admin, record attendance, or post a fee."
 msgstr ""
@@ -39174,7 +39174,7 @@ msgid "Mint tag"
 msgstr ""
 
 msgid "Minutes"
-msgstr ""
+msgstr "Minutes"
 
 msgid "Missing data"
 msgstr ""
@@ -39621,7 +39621,7 @@ msgid "One-time link"
 msgstr ""
 
 msgid "Online"
-msgstr ""
+msgstr "En ligne"
 
 msgid "Online payment is not configured. Contact the school office."
 msgstr ""
@@ -40828,7 +40828,7 @@ msgid ""
 msgstr ""
 
 msgid "Report cards"
-msgstr ""
+msgstr "Bulletins"
 
 msgid ""
 "Report request details stay on this device until you reconnect and sync."
@@ -40931,7 +40931,7 @@ msgid ""
 msgstr ""
 
 msgid "Restore"
-msgstr ""
+msgstr "Restaurer"
 
 msgid "Restrict access (wind-down)"
 msgstr ""
@@ -42200,7 +42200,7 @@ msgid ""
 msgstr ""
 
 msgid "This week"
-msgstr ""
+msgstr "Cette semaine"
 
 msgid "This week's featured staff member"
 msgstr ""
@@ -42402,7 +42402,7 @@ msgid "Trust signals"
 msgstr ""
 
 msgid "Tuition"
-msgstr ""
+msgstr "Frais de scolarité"
 
 msgid "Tuition and school fees"
 msgstr ""
@@ -42951,10 +42951,10 @@ msgid "day grace"
 msgstr ""
 
 msgid "days"
-msgstr ""
+msgstr "jours"
 
 msgid "disabled"
-msgstr ""
+msgstr "désactivé"
 
 msgid "docs/SECURITY_KEYS.md"
 msgstr ""
@@ -42972,7 +42972,7 @@ msgid "e.g. fractions introduction for Form 2"
 msgstr ""
 
 msgid "enabled"
-msgstr ""
+msgstr "activé"
 
 msgid "every consequential write"
 msgstr ""
@@ -43014,7 +43014,7 @@ msgid "malformed"
 msgstr ""
 
 msgid "month"
-msgstr ""
+msgstr "mois"
 
 msgid "monthly rotation"
 msgstr ""
@@ -43113,7 +43113,7 @@ msgid "steady · 92% confidence"
 msgstr ""
 
 msgid "student"
-msgstr ""
+msgstr "élève"
 
 msgid "synced to your operator profile"
 msgstr ""
@@ -43128,7 +43128,7 @@ msgid "to launch-ready"
 msgstr ""
 
 msgid "today"
-msgstr ""
+msgstr "aujourd'hui"
 
 msgid "trace, impact, ship"
 msgstr ""
@@ -43143,10 +43143,10 @@ msgid "unset"
 msgstr ""
 
 msgid "unverified"
-msgstr ""
+msgstr "non vérifié"
 
 msgid "verified"
-msgstr ""
+msgstr "vérifié"
 
 msgid "vs ceilings"
 msgstr ""
@@ -43437,7 +43437,7 @@ msgid "Teacher pay history records"
 msgstr ""
 
 msgid "Day"
-msgstr ""
+msgstr "Jour"
 
 msgid "Form"
 msgstr ""
@@ -44294,7 +44294,7 @@ msgid "Device profiles"
 msgstr ""
 
 msgid "Discipline"
-msgstr ""
+msgstr "Discipline"
 
 msgid "Discord webhook"
 msgstr ""
@@ -44897,7 +44897,7 @@ msgid "Search by name, tier, phase, slug, or facet…"
 msgstr ""
 
 msgid "Select all"
-msgstr ""
+msgstr "Tout sélectionner"
 
 msgid "Select all visible tickets"
 msgstr ""
@@ -45106,7 +45106,7 @@ msgid "detail"
 msgstr ""
 
 msgid "draft"
-msgstr ""
+msgstr "brouillon"
 
 msgid "drill"
 msgstr ""
@@ -45166,7 +45166,7 @@ msgid "subject assignment id"
 msgstr ""
 
 msgid "success"
-msgstr ""
+msgstr "succès"
 
 msgid "term id"
 msgstr ""
@@ -45725,7 +45725,7 @@ msgid ""
 msgstr ""
 
 msgid "Hide"
-msgstr ""
+msgstr "Masquer"
 
 msgid "Impersonate"
 msgstr ""
@@ -45903,7 +45903,7 @@ msgid "PDF snapshot"
 msgstr ""
 
 msgid "Page"
-msgstr ""
+msgstr "Page"
 
 msgid "Page URL"
 msgstr ""
@@ -46101,7 +46101,7 @@ msgid "chars max"
 msgstr ""
 
 msgid "default"
-msgstr ""
+msgstr "par défaut"
 
 msgid "max"
 msgstr ""
@@ -46134,7 +46134,7 @@ msgid ""
 msgstr ""
 
 msgid "CLASS"
-msgstr ""
+msgstr "Classe"
 
 msgid "Chat with your department, classroom, or custom groups"
 msgstr ""
@@ -46783,7 +46783,7 @@ msgid "View on site"
 msgstr ""
 
 msgid "done"
-msgstr ""
+msgstr "terminé"
 
 msgid "e.g. mark a student absent today, or schedule a parent callback"
 msgstr ""
@@ -48482,7 +48482,7 @@ msgid "outstanding returns"
 msgstr ""
 
 msgid "subjects"
-msgstr ""
+msgstr "matières"
 
 msgid "views"
 msgstr ""
@@ -49240,7 +49240,7 @@ msgid "Assembly rehearsal"
 msgstr ""
 
 msgid "Assign"
-msgstr ""
+msgstr "Attribuer"
 
 msgid "Assign a superadmin"
 msgstr ""
@@ -49463,7 +49463,7 @@ msgid "Before you submit"
 msgstr ""
 
 msgid "Behavior"
-msgstr ""
+msgstr "Comportement"
 
 msgid "Behavior / incidents"
 msgstr ""
@@ -50545,7 +50545,7 @@ msgid "Do it now"
 msgstr ""
 
 msgid "Document"
-msgstr ""
+msgstr "Document"
 
 msgid "Domains"
 msgstr ""
@@ -50757,7 +50757,7 @@ msgid "Enrolled into the system."
 msgstr ""
 
 msgid "Enrollments"
-msgstr ""
+msgstr "Inscriptions"
 
 msgid "Ensure invoices or fee notices are visible"
 msgstr ""
@@ -52249,7 +52249,7 @@ msgid "More operator options"
 msgstr ""
 
 msgid "More options"
-msgstr ""
+msgstr "Plus d'options"
 
 msgid ""
 "Morph US, IB, Cambridge, and competency scales on the same underlying "
@@ -52709,7 +52709,7 @@ msgid "Notify parent when synced"
 msgstr ""
 
 msgid "Now"
-msgstr ""
+msgstr "Maintenant"
 
 msgid "Now walk your campus through it."
 msgstr ""
@@ -54738,7 +54738,7 @@ msgid "Shape"
 msgstr ""
 
 msgid "Share"
-msgstr ""
+msgstr "Partager"
 
 msgid "Share view"
 msgstr ""
@@ -54752,7 +54752,7 @@ msgid "Shortcuts: T tour · R reset · 1–4 fly regions · Esc clear"
 msgstr ""
 
 msgid "Show"
-msgstr ""
+msgstr "Afficher"
 
 msgid ""
 "Show a band of jump-links at the top for sections that need attention (carry"
@@ -55192,7 +55192,7 @@ msgid "Substitute market"
 msgstr ""
 
 msgid "Subtotal"
-msgstr ""
+msgstr "Sous-total"
 
 msgid "Suggested next steps"
 msgstr ""
@@ -55833,7 +55833,7 @@ msgid "Upcoming fixtures"
 msgstr ""
 
 msgid "Update"
-msgstr ""
+msgstr "Mettre à jour"
 
 msgid "Update plan"
 msgstr ""
@@ -56585,10 +56585,10 @@ msgid "cap."
 msgstr ""
 
 msgid "classrooms"
-msgstr ""
+msgstr "salles de classe"
 
 msgid "clear"
-msgstr ""
+msgstr "effacer"
 
 msgid "collection"
 msgstr ""
@@ -56603,7 +56603,7 @@ msgid "currencies"
 msgstr ""
 
 msgid "dashboard"
-msgstr ""
+msgstr "tableau de bord"
 
 msgid "data quality"
 msgstr ""
@@ -56656,7 +56656,7 @@ msgid "gifts"
 msgstr ""
 
 msgid "guardian"
-msgstr ""
+msgstr "responsable"
 
 msgid "has been published, so marks are final and read-only."
 msgstr ""
@@ -56726,7 +56726,7 @@ msgid "price mode"
 msgstr ""
 
 msgid "published"
-msgstr ""
+msgstr "publié"
 
 msgid "region(s) in school hours"
 msgstr ""
@@ -56741,7 +56741,7 @@ msgid "request required"
 msgstr ""
 
 msgid "reset"
-msgstr ""
+msgstr "réinitialiser"
 
 msgid "reset view"
 msgstr ""
@@ -56834,7 +56834,7 @@ msgid "wound down"
 msgstr ""
 
 msgid "year"
-msgstr ""
+msgstr "année"
 
 msgid ""
 "you agree the athlete must hold a valid medical clearance before competing."
@@ -57901,7 +57901,7 @@ msgid "Format nicely:"
 msgstr ""
 
 msgid "Full name"
-msgstr ""
+msgstr "Nom complet"
 
 msgid ""
 "Generated from your brand seed {{ seed_hex }}. Pick the tone that feels most"

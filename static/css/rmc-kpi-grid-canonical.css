@@ -1,0 +1,68 @@
+/* ============================================================
+   rmc-kpi-grid-canonical.css
+   Canonical, balanced KPI / stat-card grid for tenant surfaces.
+
+   Why this file exists
+   --------------------
+   Tenant KPI rows historically used several parallel fixed-column
+   grids — `grid-template-columns: repeat(N, minmax(0, 1fr))`. A fixed
+   N-track grid stretches edge-to-edge only when it holds exactly N
+   cards; with 2-3 cards it fills the left tracks and leaves the
+   right-hand track(s) empty, which reads as "cards clustered left,
+   dead space on the right". `justify-content` cannot fix that on a
+   `1fr` grid because the 1fr tracks already consume the full width —
+   there is no free space to justify. The real fix is to change the
+   TRACK DEFINITION to `auto-fit` so the row always fills, regardless
+   of card count.
+
+   `.rmc-kpi-grid` is the single convergence target: new KPI rows
+   should adopt this class rather than fork another bespoke grid.
+   The retrofit block below points the three surviving fixed-column
+   tenant grammars at the same balanced model, so the whole platform
+   reads consistently without editing each surface's source file.
+   ============================================================ */
+
+:root {
+  --rmc-kpi-floor: 220px;   /* min card width before the row wraps */
+  --rmc-kpi-gap: var(--space-4, 14px);
+}
+
+/* Canonical class — use this for any new tenant KPI / stat row. */
+.rmc-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(var(--rmc-kpi-floor), 100%), 1fr));
+  gap: var(--rmc-kpi-gap);
+  align-items: stretch;
+  justify-content: center;
+}
+
+/* ------------------------------------------------------------
+   Retrofit the three surviving fixed-column tenant grammars to
+   the balanced auto-fit model. `!important` is deliberate: these
+   rules must win over the per-surface source definitions
+   (rmc-tenant-dashboard-v2.css, rmc-tenant-v3-100x-role-home.css)
+   regardless of stylesheet load order. Layout-only — no colour,
+   no brand tokens — so tenant theming is untouched.
+
+   With auto-fit the row fills its width for ANY card count, so a
+   companion `justify-content: center` (added elsewhere for the v3
+   role-home shell) finally has the intended effect on short rows.
+   ------------------------------------------------------------ */
+
+/* A — tenant cockpit "Today snapshot" KPI row */
+.tp-snapshot__cards {
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)) !important;
+  justify-content: center;
+}
+
+/* B — v3 role-home workflow metrics row (parent / teacher / student) */
+.tp-workflow-metrics {
+  grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr)) !important;
+  justify-content: center;
+}
+
+/* K — tenant dashboard quick-action tiles */
+.tp-quick-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(160px, 100%), 1fr)) !important;
+  justify-content: center;
+}

@@ -194,6 +194,10 @@
     <link rel="stylesheet" href="{% static 'css/rmc-tenant-v3-100x-role-home.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-tenant-dashboard-100x.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-tenant-preview-live-bridge.css' %}">
+    {% comment %} Canonical balanced KPI grid — retrofits the fixed-column
+       .tp-snapshot__cards / .tp-workflow-metrics / .tp-quick-grid grammars to
+       auto-fit so short rows fill the width instead of clustering left. {% endcomment %}
+    <link rel="stylesheet" href="{% static 'css/rmc-kpi-grid-canonical.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-tenant-exception-task-surface.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-civic-footer.css' %}">
     {% comment %} v4.05 (2026-06-25): operator-parity sticky chrome + activation-surface
