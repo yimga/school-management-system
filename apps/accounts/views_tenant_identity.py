@@ -223,6 +223,9 @@ def tenant_identity_detail(request, user_id: int):
     return_url = mutation_return_url(request, roster_url, list_url=roster_url)
     detail_return_url = mutation_return_url(request, detail_url, list_url=detail_url)
     caller_is_owner = _is_school_owner(request.user, school)
+    from apps.accounts.credential_reset import can_reset_target
+
+    can_reset_credentials = can_reset_target(request.user, user, school)
     owner_count = SchoolMembership.objects.filter(
         school=school, is_school_owner=True
     ).count()
@@ -274,6 +277,13 @@ def tenant_identity_detail(request, user_id: int):
             ),
             "reactivate_url": reverse(
                 "accounts:tenant_identity_reactivate", args=[user.pk]
+            ),
+            "can_reset_credentials": can_reset_credentials,
+            "reset_password_url": reverse(
+                "accounts:tenant_identity_reset_password", args=[user.pk]
+            ),
+            "reset_mfa_url": reverse(
+                "accounts:tenant_identity_reset_mfa", args=[user.pk]
             ),
             "target_is_suspended": membership.suspended_at is not None,
             "rbac_url": reverse("accounts:rbac"),
@@ -923,6 +933,72 @@ def tenant_identity_reactivate(request, user_id: int):
         _audit_ownership(request, school, "reactivate", target.user_id)
     messages.success(request, _("Member reactivated — their access is restored."))
     return _owner_detail_redirect(request, user_id)
+
+
+@login_required
+@require_school
+@require_POST
+def tenant_identity_reset_password(request, user_id: int):
+    """Issue a member a one-time temporary password and force a change at next login.
+
+    Gated on the ``identity.reset_credentials`` capability (owners + the tenant-admin
+    tier by default; assignable to any role via RBAC). School-scoped, and an ACTIVE
+    owner can only be reset by another owner (see ``can_reset_target``). The temp
+    password is shown ONCE for the admin to hand over; the member is signed out so it
+    takes effect immediately.
+    """
+    from apps.accounts.credential_reset import admin_reset_password, can_reset_target
+
+    school = request.school
+    target = get_object_or_404(User, pk=user_id)
+    if not can_reset_target(request.user, target, school):
+        return HttpResponseForbidden("Not permitted.")
+    temp_password = admin_reset_password(request.user, target, school, request=request)
+    if request.user.pk != target.pk:
+        # Kill live sessions so the old password stops working right away.
+        _revoke_user_sessions(target.pk)
+    messages.success(
+        request,
+        _(
+            "Temporary password for %(user)s: %(pw)s — share it securely. They must "
+            "set a new password (and set up MFA) at next sign-in."
+        )
+        % {"user": target.get_username(), "pw": temp_password},
+    )
+    detail_url = reverse("accounts:tenant_identity_detail", args=[user_id])
+    return redirect_after_detail_mutation(request, detail_url)
+
+
+@login_required
+@require_school
+@require_POST
+def tenant_identity_reset_mfa(request, user_id: int):
+    """Clear a member's MFA devices so they re-enroll on next login.
+
+    For the "lost my phone" recovery: removes TOTP/backup-code/passkey devices and
+    revokes trusted browsers. Same capability + scope + owner-protection gate as
+    ``tenant_identity_reset_password``. Idempotent for a never-enrolled member.
+    """
+    from apps.accounts.credential_reset import admin_reset_mfa, can_reset_target
+
+    school = request.school
+    target = get_object_or_404(User, pk=user_id)
+    if not can_reset_target(request.user, target, school):
+        return HttpResponseForbidden("Not permitted.")
+    admin_reset_mfa(request.user, target, school, request=request)
+    if request.user.pk != target.pk:
+        # Drop any verified MFA session so they are re-challenged immediately.
+        _revoke_user_sessions(target.pk)
+    messages.success(
+        request,
+        _(
+            "MFA reset for %(user)s — they'll set up a new authenticator at next "
+            "sign-in."
+        )
+        % {"user": target.get_username()},
+    )
+    detail_url = reverse("accounts:tenant_identity_detail", args=[user_id])
+    return redirect_after_detail_mutation(request, detail_url)
 
 
 @require_http_methods(["GET", "POST"])

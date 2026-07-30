@@ -7,6 +7,7 @@ from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.views.decorators.http import require_POST
 from django.utils.translation import gettext as _
 from django.conf import settings
 from django_otp.plugins.otp_totp.models import TOTPDevice
@@ -125,6 +126,45 @@ def dismiss_mfa_banner(request):
     request.session["mfa_banner_dismissed"] = True
     next_url = _safe_next_url(request, request.GET.get("next"), "/admin/")
     return redirect(next_url)
+
+
+@login_required
+@require_POST
+def mfa_defer(request):
+    """Self-service "skip MFA setup for a period" — the opt-out on the enrollment page.
+
+    A required user who isn't ready to enroll (e.g. just handed a temp password) can
+    defer the hard wall for a bounded window; RequireMFAMiddleware then lets them
+    through with a nudge until it expires. Refused for principals who must always be
+    strict (superuser / platform admin / active school owner).
+    """
+    from apps.accounts.mfa_defaults import principal_requires_strict_mfa
+    from apps.accounts.mfa_deferral import defer_mfa_setup, normalize_deferral_days
+
+    school = getattr(request, "school", None)
+    next_url = _safe_next_url(
+        request, request.POST.get("next") or request.GET.get("next"), ""
+    )
+    if principal_requires_strict_mfa(request.user, school):
+        messages.error(
+            request,
+            _("Your role requires two-factor authentication and can't be skipped."),
+        )
+        target = reverse("accounts:mfa_setup") + "?legacy=1"
+        if next_url:
+            target = f"{target}&next={next_url}"
+        return redirect(target)
+    days = normalize_deferral_days(request.POST.get("days"))
+    defer_mfa_setup(request.user, days=days)
+    messages.info(
+        request,
+        _(
+            "Two-factor setup skipped for %(days)s day(s). You can enroll anytime "
+            "from your security settings."
+        )
+        % {"days": days},
+    )
+    return redirect(next_url) if next_url else redirect("accounts:redirect")
 
 
 @login_required

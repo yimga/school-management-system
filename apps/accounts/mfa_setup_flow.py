@@ -169,6 +169,17 @@ def build_mfa_setup_context(request, *, next_url: str = "") -> dict:
         if p.get("created_at"):
             p["created_at"] = p["created_at"].strftime("%Y-%m-%d")
 
+    # Whether the "skip for now (opt out for a period)" control may be offered. A
+    # principal who must always be strict (superuser / platform admin / active
+    # owner) is never allowed to defer, so the button is hidden for them.
+    from apps.accounts.mfa_defaults import principal_requires_strict_mfa
+    from apps.accounts.mfa_deferral import (
+        MFA_SETUP_DEFERRAL_ALLOWED_DAYS,
+        MFA_SETUP_DEFERRAL_DEFAULT_DAYS,
+    )
+
+    can_defer_mfa = not principal_requires_strict_mfa(user, getattr(request, "school", None))
+
     return {
         "has_mfa": has_mfa,
         "qr_code": None,
@@ -180,6 +191,9 @@ def build_mfa_setup_context(request, *, next_url: str = "") -> dict:
         "passkeys": passkeys,
         "mfa_trust_days_options": device_trust_allowed_days(),
         "mfa_trust_default_days": device_trust_default_days(),
+        "can_defer_mfa": can_defer_mfa,
+        "mfa_defer_days_options": MFA_SETUP_DEFERRAL_ALLOWED_DAYS,
+        "mfa_defer_default_days": MFA_SETUP_DEFERRAL_DEFAULT_DAYS,
     }
 
 
@@ -231,6 +245,11 @@ def handle_mfa_setup_post(request, *, next_url: str = "") -> tuple[str, dict | N
             device.confirmed = True
             device.save()
             request.session["mfa_verified"] = True
+            # Enrollment supersedes any "skip for now" window so a stale deferral
+            # can't later wave through a re-enrollment after an MFA reset.
+            from apps.accounts.mfa_deferral import clear_mfa_setup_deferral
+
+            clear_mfa_setup_deferral(user)
             messages.success(request, _("MFA has been successfully enabled!"))
             if inline:
                 return ("redirect_profile", None)

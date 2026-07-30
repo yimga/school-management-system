@@ -229,6 +229,17 @@ def resolve_post_login_mfa_redirect(request, user, *, next_url: str = ""):
         }
         return None
 
+    # A self-/admin-granted MFA-setup deferral lets a softenable principal skip the
+    # first-login wall until it expires (mirrors RequireMFAMiddleware). A strict
+    # principal (superuser / platform admin / active owner) can never defer.
+    from apps.accounts.mfa_deferral import mfa_setup_deferral_active
+    from apps.accounts.mfa_defaults import principal_requires_strict_mfa
+
+    if mfa_setup_deferral_active(user) and not principal_requires_strict_mfa(
+        user, getattr(request, "school", None)
+    ):
+        return None
+
     # strict / enforce → branded setup (never verify — there is no device yet).
     mfa_setup_url = reverse("accounts:mfa_setup")
     target = mfa_setup_url + "?legacy=1"

@@ -133,6 +133,29 @@
   </div>
   {% endif %}
 
+  {% if can_reset_credentials %}
+  <div class="card shadow-sm mt-3">
+    <div class="card-header">{% trans "Credential recovery" %}</div>
+    <div class="card-body">
+      <p class="small text-muted mb-3">
+        {% trans "Help a member who lost their password or their authenticator device. A password reset issues a one-time temporary password (shown once, here) and forces a change at next sign-in; an MFA reset clears their authenticator so they can enroll a new one." %}
+      </p>
+      <div class="d-flex flex-wrap gap-2">
+        <form method="post" action="{{ reset_password_url }}" class="d-inline" data-rmc-post-mutation="1" data-rmc-confirm="{% trans 'Reset the password for this member and issue a temporary one?' %}">
+          {% csrf_token %}
+          {% if detail_return_url %}<input type="hidden" name="next" value="{{ detail_return_url }}">{% endif %}
+          <button type="submit" class="btn btn-sm btn-outline-primary">{% trans "Reset password" %}</button>
+        </form>
+        <form method="post" action="{{ reset_mfa_url }}" class="d-inline" data-rmc-post-mutation="1" data-rmc-confirm="{% trans 'Reset MFA for this member so they can enroll a new device?' %}">
+          {% csrf_token %}
+          {% if detail_return_url %}<input type="hidden" name="next" value="{{ detail_return_url }}">{% endif %}
+          <button type="submit" class="btn btn-sm btn-outline-warning">{% trans "Reset MFA" %}</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
   {% if can_manage %}
   <div class="d-flex flex-wrap gap-2 mt-3">
     <a class="btn btn-sm btn-outline-primary" href="{{ rbac_url }}?user={{ staff_user.pk }}">{% trans "Edit RBAC roles" %}</a>

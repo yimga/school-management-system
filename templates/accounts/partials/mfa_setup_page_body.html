@@ -45,6 +45,21 @@
             {% endif %}
           </div>
           {% if use_passkey %}<div id="passkey-message-first" class="mt-2 small text-muted"></div>{% endif %}
+          {% if can_defer_mfa and next_url %}
+          <div class="mt-3 pt-3 border-top">
+            <form method="post" action="{% url 'accounts:mfa_defer' %}" class="d-flex flex-wrap align-items-center gap-2">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{{ next_url }}">
+              <label for="mfa-defer-days" class="small text-muted mb-0">{% trans "Not ready yet? Skip for" %}</label>
+              <select id="mfa-defer-days" name="days" class="form-select form-select-sm w-auto">
+                {% for days in mfa_defer_days_options %}
+                <option value="{{ days }}"{% if days == mfa_defer_default_days %} selected{% endif %}>{% blocktrans count defer_days=days %}{{ defer_days }} day{% plural %}{{ defer_days }} days{% endblocktrans %}</option>
+                {% endfor %}
+              </select>
+              <button type="submit" class="btn btn-link btn-sm p-0">{% trans "Skip for now" %}</button>
+            </form>
+          </div>
+          {% endif %}
 
         {% elif qr_code %}
           <div class="rmc-banner rmc-banner--warning mb-3"><i class="bi bi-exclamation-triangle me-1"></i><strong>{% trans "Important." %}</strong> {% trans "Save your secret key in a secure place." %}</div>

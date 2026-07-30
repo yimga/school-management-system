@@ -117,7 +117,7 @@ from .views_owner_onboarding import (
 )
 from .guardian_invite import GuardianSetupView
 from apps.schools.super_views_operator_team import operator_invite_accept
-from .views_mfa import mfa_setup, mfa_verify, dismiss_mfa_banner
+from .views_mfa import mfa_setup, mfa_verify, dismiss_mfa_banner, mfa_defer
 from .views_passkey import (
     passkey_registration_options,
     passkey_registration_verify,
@@ -188,6 +188,8 @@ from apps.accounts.views_tenant_identity import (
     tenant_identity_offboard,
     tenant_identity_reactivate,
     tenant_identity_regulator_grant,
+    tenant_identity_reset_mfa,
+    tenant_identity_reset_password,
     tenant_identity_revoke_ownership,
     tenant_identity_revoke_sessions,
     tenant_identity_roster,
@@ -529,6 +531,16 @@ urlpatterns = [
         tenant_identity_reactivate,
         name="tenant_identity_reactivate",
     ),
+    path(
+        "backend/identity/<int:user_id>/reset-password/",
+        tenant_identity_reset_password,
+        name="tenant_identity_reset_password",
+    ),
+    path(
+        "backend/identity/<int:user_id>/reset-mfa/",
+        tenant_identity_reset_mfa,
+        name="tenant_identity_reset_mfa",
+    ),
     path("backend/ops/", ops_hub, name="ops_hub"),
     path("backend/ops/library/", ops_library, name="ops_library"),
     path("backend/ops/transport/", ops_transport, name="ops_transport"),
@@ -866,6 +878,7 @@ urlpatterns = [
         name="guardian_setup",
     ),
     path("mfa/setup/", mfa_setup, name="mfa_setup"),
+    path("mfa/defer/", mfa_defer, name="mfa_defer"),
     path("mfa/dismiss-banner/", dismiss_mfa_banner, name="dismiss_mfa_banner"),
     path("mfa/verify/", mfa_verify, name="mfa_verify"),
     path(

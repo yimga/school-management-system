@@ -255,6 +255,17 @@ class User(AbstractUser):
             "without changing the user's password."
         ),
     )
+    mfa_setup_deferred_until = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text=(
+            "When set to a future time, a required user may defer MFA enrollment "
+            "until then (a self- or admin-granted 'skip for now' window). Honored by "
+            "RequireMFAMiddleware / post-login routing UNLESS the principal must "
+            "always be strict (superuser / platform admin / active school owner). "
+            "Cleared once MFA is enrolled or reset."
+        ),
+    )
     last_security_posture_review_at = models.DateTimeField(
         null=True,
         blank=True,

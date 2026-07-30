@@ -748,6 +748,7 @@ class RequireMFAMiddleware:
         # mfa/setup -> wizard -> mfa/setup loop (the new-owner onboarding loop).
         if (
             "/mfa/setup" in path
+            or "/mfa/defer" in path
             or "/mfa/verify" in path
             or "/mfa/passkey/" in path
             or "wizards/mfa_setup" in path
@@ -837,6 +838,23 @@ class RequireMFAMiddleware:
                 user=user,
             )
             if decision.action == "enforce":
+                # A self-/admin-granted deferral ("skip MFA for N days") downgrades
+                # the hard wall to a pass-through nudge — but ONLY for principals who
+                # may be softened. A superuser / platform admin / active school owner
+                # is already forced to strict above (principal_requires_strict_mfa
+                # pins mode="strict"), so re-checking it here keeps the deferral from
+                # ever letting an owner skip enrollment.
+                from apps.accounts.mfa_deferral import mfa_setup_deferral_active
+
+                if mfa_setup_deferral_active(user) and not principal_requires_strict_mfa(
+                    user, getattr(request, "school", None)
+                ):
+                    request.rmc_mfa_nudge = {
+                        "mode": "deferred",
+                        "action": "nudge",
+                        "grace_days_remaining": None,
+                    }
+                    return self.get_response(request)
                 mfa_setup_url = reverse("accounts:mfa_setup")
                 if path != mfa_setup_url.rstrip("/") and not path.endswith(
                     mfa_setup_url
