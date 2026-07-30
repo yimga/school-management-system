@@ -87,27 +87,37 @@ class Command(BaseCommand):
         training_row_count = 0
         try:
             import joblib  # type: ignore
-
-            bundle = joblib.load(artifact_path)
-            if isinstance(bundle, dict):
-                ts_raw = bundle.get("trained_at")
-                if isinstance(ts_raw, str):
-                    try:
-                        from datetime import datetime
-                        trained_at = datetime.fromisoformat(
-                            ts_raw.replace("Z", "+00:00")
-                        )
-                    except ValueError:
-                        pass
-                feature_order = list(bundle.get("feature_order") or [])
-                training_row_count = int(
-                    bundle.get("training_row_count") or 0
-                )
         except ImportError:
             self.stdout.write(
                 "joblib not installed — bundle metadata not extracted; "
                 "registration will record artifact path only."
             )
+        else:
+            try:
+                bundle = joblib.load(artifact_path)
+                if isinstance(bundle, dict):
+                    ts_raw = bundle.get("trained_at")
+                    if isinstance(ts_raw, str):
+                        try:
+                            from datetime import datetime
+                            trained_at = datetime.fromisoformat(
+                                ts_raw.replace("Z", "+00:00")
+                            )
+                        except ValueError:
+                            pass
+                    feature_order = list(bundle.get("feature_order") or [])
+                    training_row_count = int(
+                        bundle.get("training_row_count") or 0
+                    )
+            except Exception as exc:  # noqa: BLE001
+                # Best-effort metadata: a corrupt / non-bundle artifact (or any
+                # unpickle failure) must not sink registration — fall back to the
+                # path-only record, same as the joblib-missing branch.
+                self.stdout.write(
+                    f"artifact bundle metadata not extractable "
+                    f"({exc.__class__.__name__}); registration will record "
+                    "artifact path + supplied metadata only."
+                )
 
         training_dataset_hash = ""
         if opts.get("training_csv"):

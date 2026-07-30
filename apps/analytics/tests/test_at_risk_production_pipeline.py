@@ -331,10 +331,16 @@ class ShouldRetrainAtRiskCommandTests(TestCase):
                 labeled_by=self.operator,
             )
         self._tmpdir = tempfile.TemporaryDirectory()
-        # Recent artifact: mtime = now → age 0 days.
+        # Recent artifact: age 0 days. The placeholder bundle is unreadable, so
+        # should_retrain_at_risk anchors trained_at on the file mtime — set it an
+        # hour in the past so the labels created just above count as NEW since
+        # training (labeled_at > trained_at) while age stays 0 days. The age-gate
+        # test rewrites this mtime to 200 days itself.
         self.artifact = os.path.join(self._tmpdir.name, "model.joblib")
         with open(self.artifact, "wb") as f:
             f.write(b"x")
+        _anchor = (timezone.now() - timedelta(hours=1)).timestamp()
+        os.utime(self.artifact, (_anchor, _anchor))
 
     def tearDown(self):
         self._tmpdir.cleanup()
