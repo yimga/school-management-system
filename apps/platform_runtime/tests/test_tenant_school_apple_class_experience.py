@@ -8,23 +8,30 @@ ROOT = Path(__file__).resolve().parents[3]
 
 class TenantSchoolAppleClassExperienceTests(SimpleTestCase):
     def test_tenant_school_admin_has_next_action_and_drawer(self):
-        """v2.53 (2026-05-15): "School Readiness Score" and "Next Best Action"
-        tokens removed from above-the-fold here — those were a duplicate
-        apple_class_metric_card + glass_panel restating the value already
-        shown by ``world_class_summary_strip`` (School readiness 74%). The
-        setup drawer + the tenant-safe shell-root attribute survive as the
-        load-bearing experience contract.
+        """MAX operator↔tenant parity wave (6a155f984, 2026-07-21): the bespoke
+        apple-class drawer + Option-A strip + operational-center-frame include were
+        purged from this page in favour of the shared ``rmc_page_masthead.html``
+        chrome + a permission-gated section table (the sibling
+        ``test_governed_installation_apple_class_ux`` was updated in the same commit).
+
+        The load-bearing tenant-safe contract survives and is what this asserts:
+        the apple-class tenant-school-admin shell scope, the shared masthead, the
+        per-section permission gate (so platform-only sections never render), and
+        the nav's tenant-scoped guarantee.
         """
         template = (ROOT / "templates" / "platform_runtime" / "school_configuration_center.html").read_text(encoding="utf-8")
         nav = (ROOT / "apps" / "platform_runtime" / "operational_center_nav.py").read_text(encoding="utf-8")
         bundle = f"{template}\n{nav}"
         for token in (
+            # apple-class experience scoped to the tenant school admin
             "data-apple-class-tenant-school-admin",
-            "apple_class_quick_profile_drawer.html",
-            "rmc_operational_center_frame.html",
+            # shared masthead chrome (replaced the Option-A strip / center frame here)
+            "rmc_page_masthead.html",
+            # per-section permission gate → platform-only sections never render
+            "can_access_permission",
+            "data-school-configuration-section",
+            # nav guarantee: tenant-scoped only, no platform-only actions
             "without exposing platform-only actions",
-            "tenant_option_a_strip.html",
-            "hide_nav_detail",
         ):
             with self.subTest(token=token):
                 self.assertIn(token, bundle)
