@@ -43,6 +43,10 @@ def main() -> int:
         cwd=ROOT,
         capture_output=True,
         text=True,
+        # Windows text=True defaults to cp1252 and crashes decoding the audit's
+        # UTF-8 output (em-dashes / smart quotes); force UTF-8.
+        encoding="utf-8",
+        errors="replace",
     )
     if proc.returncode != 0:
         failures.append("matrix --strict-zero-partials")

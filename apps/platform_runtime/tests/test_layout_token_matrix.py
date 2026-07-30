@@ -65,5 +65,9 @@ class LayoutPersonalityMatrixTests(SimpleTestCase):
             cwd=REPO,
             capture_output=True,
             text=True,
+            # Windows text=True defaults to cp1252 and crashes decoding the
+            # verifier's UTF-8 output (em-dashes / smart quotes); force UTF-8.
+            encoding="utf-8",
+            errors="replace",
         )
         self.assertEqual(proc.returncode, 0, proc.stderr or proc.stdout)
