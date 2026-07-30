@@ -122,6 +122,28 @@ def _build_meal_plan_balance(
     )
 
 
+def _reset_low_balance_signal_state(row):
+    """Clear the on-create signal's side-effect before a direct-task test.
+
+    Creating an ALREADY-low :class:`MealPlanBalance` fires the on-create
+    low-balance signal (correct production behavior — signals.py: "an
+    already-low new row will fire its first notification"), which runs the
+    task eagerly, sends one notification, and stamps the 7-day cooldown +
+    the notification count. The direct-invocation tests below exercise the
+    task in isolation, so we neutralize that side-effect first — mirroring
+    the reset the sweep test already performs. ``.update()`` bypasses the
+    signal (no re-fire); ``mail.outbox`` is cleared so the earlier send
+    doesn't count against the direct call under test.
+    """
+    from apps.schoolops.models import MealPlanBalance
+    MealPlanBalance.objects.filter(pk=row.pk).update(
+        last_low_balance_notification_sent_at=None,
+        low_balance_notification_count=0,
+    )
+    row.refresh_from_db()
+    mail.outbox = []
+
+
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 class LowBalanceSignalTransitionTests(TestCase):
     """Signal fires only on False -> True is_low transition."""
@@ -175,7 +197,7 @@ class LowBalanceTaskTests(TestCase):
         row = _build_meal_plan_balance(
             self.school, self.student, balance="1.00",
         )
-        mail.outbox = []
+        _reset_low_balance_signal_state(row)
         result = notify_low_meal_plan_balance(meal_plan_balance_id=row.pk)
         self.assertTrue(result["delivered_email"])
         self.assertEqual(len(mail.outbox), 1)
@@ -186,7 +208,7 @@ class LowBalanceTaskTests(TestCase):
         row = _build_meal_plan_balance(
             self.school, self.student, balance="1.00",
         )
-        mail.outbox = []
+        _reset_low_balance_signal_state(row)
         result = notify_low_meal_plan_balance(meal_plan_balance_id=row.pk)
         self.assertFalse(result["delivered_email"])
         self.assertTrue(result["skipped_no_guardian_email"])
@@ -211,6 +233,7 @@ class LowBalanceTaskTests(TestCase):
         row = _build_meal_plan_balance(
             self.school, self.student, balance="1.00",
         )
+        _reset_low_balance_signal_state(row)
         notify_low_meal_plan_balance(meal_plan_balance_id=row.pk)
         row.refresh_from_db()
         self.assertEqual(row.low_balance_notification_count, 1)
@@ -251,7 +274,7 @@ class TenantIsolationTests(TestCase):
         row_a = _build_meal_plan_balance(
             school_a, student_a, balance="1.00",
         )
-        mail.outbox = []
+        _reset_low_balance_signal_state(row_a)
         notify_low_meal_plan_balance(meal_plan_balance_id=row_a.pk)
         self.assertEqual(len(mail.outbox), 1)
         recipients = mail.outbox[0].to
@@ -271,6 +294,7 @@ class NoSecretsLoggedTests(TestCase):
         student = _build_student(school)
         _build_guardian(student, email="secret-parent@example.test")
         row = _build_meal_plan_balance(school, student, balance="1.00")
+        _reset_low_balance_signal_state(row)
         with self.assertLogs(
             "apps.schoolops.tasks", level=logging.INFO,
         ) as cm:

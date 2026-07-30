@@ -21,11 +21,14 @@ from django.test import SimpleTestCase
 # Keep this in sync with the heals:
 #   apps/people/schema_repair.py     (people/0059)
 #   apps/schoolops/schema_repair.py  (schoolops/0027)
+#   apps/schools/schema_repair.py    (schools/0082) — SHARED app, heals under --shared
 _HEAL_COVERED = {
     "people.TeacherProfile",
     "people.StudentProfile",
     "people.Applicant",
     "schoolops.VisitorCheckIn",
+    "schools.AdvancementGift",
+    "schools.InKindDonation",
 }
 
 # Models that were CREATED WITH the column (CreateModel) → no heal needed

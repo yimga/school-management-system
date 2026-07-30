@@ -223,17 +223,50 @@ def _build_user(*, is_staff: bool):
 
 
 class MealPlanAnalyticsViewAccessTests(TestCase):
-    """Staff get 200; non-staff get bounced (302 to admin login)."""
+    """Operator (control-plane) gets 200 on the manager host; others bounced.
 
-    def test_staff_user_sees_200(self) -> None:
-        staff = _build_user(is_staff=True)
-        self.client.force_login(staff)
+    The dashboard lives under the operator ``/super/`` namespace, so post
+    tenant⟂operator-isolation hardening it requires control-plane access
+    (``TenantSuperAdminRequiredMiddleware`` + ``user_has_control_plane_access``),
+    not merely ``is_staff`` — the platform mints ``is_staff=True`` TENANT admins,
+    so a plain staff user is correctly 403'd. A superuser reaches it once logged
+    past the operator MFA wall (TOTP confirmed + ``mfa_verified``) on the
+    manager host — the canonical operator-login idiom.
+    """
+
+    _M_HOST = "manager.runmycampus.com"
+
+    def _login_operator_past_mfa(self, user) -> None:
+        from django_otp.plugins.otp_totp.models import TOTPDevice
+        TOTPDevice.objects.update_or_create(
+            user=user, name="test-totp", defaults={"confirmed": True},
+        )
+        self.client.force_login(user)
+        session = self.client.session
+        session["mfa_verified"] = True
+        session.save()
+
+    @override_settings(
+        ALLOWED_HOSTS=["testserver", "manager.runmycampus.com"],
+        MULTI_TENANT_BASE_DOMAIN="runmycampus.com",
+    )
+    def test_operator_sees_200(self) -> None:
+        from django.contrib.auth import get_user_model
+        operator = get_user_model().objects.create_user(
+            username=f"op-{uuid.uuid4().hex[:8]}",
+            email=f"op-{uuid.uuid4().hex[:6]}@test.example",
+            password="testpass-strong",
+            is_staff=True,
+            is_superuser=True,
+            is_active=True,
+        )
+        self._login_operator_past_mfa(operator)
         try:
             url = reverse("super:schoolops_meal_plan_analytics")
         except Exception:
             self.skipTest("super namespace not mounted in this test env")
-        resp = self.client.get(url)
-        self.assertEqual(resp.status_code, 200)
+        resp = self.client.get(url, HTTP_HOST=self._M_HOST)
+        self.assertEqual(resp.status_code, 200, msg=resp.content[:300])
 
     def test_non_staff_user_blocked(self) -> None:
         normal = _build_user(is_staff=False)
