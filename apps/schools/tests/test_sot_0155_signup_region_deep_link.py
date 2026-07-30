@@ -8,9 +8,12 @@ from django.urls import reverse
 
 class SignupRegionDeepLinkSot0155Tests(TestCase):
     def test_get_signup_passes_region_curriculum_country_term(self):
+        # term_preset is now a radio-card group (was a <select>) and the UK
+        # calendar preset's code is "uk-3-term" (was the bare "UK"). The deep
+        # link still pre-selects the matching card.
         url = (
             reverse("signup_school")
-            + "?region=EMEA&country_code=GB&term_preset=UK&curriculum=IB%20Diploma"
+            + "?region=EMEA&country_code=GB&term_preset=uk-3-term&curriculum=IB%20Diploma"
         )
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
@@ -18,7 +21,7 @@ class SignupRegionDeepLinkSot0155Tests(TestCase):
         self.assertIn("EMEA", content)
         self.assertIn("IB Diploma", content)
         self.assertIn('value="GB"', content)
-        self.assertIn('option value="UK" selected', content)
+        self.assertRegex(content, r'name="term_preset" value="uk-3-term"\s*checked')
 
     def test_get_signup_prefills_demo_query_params(self):
         url = (

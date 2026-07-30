@@ -390,15 +390,21 @@ def resolve_bridge_key_for_super_view(
     """Map a super view (and optional path) to a platform-admin bridge key."""
     if not url_name:
         return None
+    # The explicit view→bridge binding table is authoritative and takes
+    # precedence over a spec match: several SUPER_FIRST_PAIRED_SPECS share one
+    # super_url_name (integrations / service_integrations / marketplace_governance
+    # all point at super:marketplace_governance), so a first-spec lookup returns a
+    # sub-facet's bridge_key ("integrations") instead of the view's primary bridge
+    # ("marketplace_apps"). Consult the binding first so the primary wins.
+    bound = SUPER_VIEW_BRIDGE_BINDINGS.get(url_name)
+    if bound:
+        return bound
     full_name = f"super:{url_name}"
     spec = super_first_spec_for_url_name(full_name)
     if spec:
         bridge_key = (spec.get("bridge_key") or "").strip()
         if bridge_key:
             return bridge_key
-    bound = SUPER_VIEW_BRIDGE_BINDINGS.get(url_name)
-    if bound:
-        return bound
     normalized = (path or "").lower()
     if normalized:
         best_len = -1

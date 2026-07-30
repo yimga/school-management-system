@@ -1,6 +1,6 @@
 """Fast matrix/bindings checks (no HTTP, no migrations)."""
 
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, override_settings
 
 from apps.schools.super_admin_paired_surfaces import (
     build_browser_parity_probe_matrix,
@@ -9,6 +9,12 @@ from apps.schools.super_admin_paired_surfaces import (
 )
 
 
+# The parity matrix describes MANAGER-host operator surfaces: its browser probes
+# reverse admin:* changelist names that are served by platform_admin_site on
+# config.manager_urls (config.urls host-dispatches /admin/ and does not register
+# the admin: namespace). Resolve the helper under the manager urlconf — the same
+# urlconf UrlConfSwitcherMiddleware pins on the manager host at request time.
+@override_settings(ROOT_URLCONF="config.manager_urls")
 class SuperAdminPairedSurfacesMatrixTests(SimpleTestCase):
     def test_surface_parity_matrix_is_green(self):
         matrix = build_surface_parity_matrix()

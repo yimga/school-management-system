@@ -14,7 +14,7 @@ from apps.schools.signup_completion_notifications import (
     build_signup_completed_payload,
     notify_tenant_signup_completed,
 )
-from apps.schools.tasks import complete_provisioning_for_school
+from apps.schools.tasks import provision_school_sync
 
 
 @override_settings(
@@ -61,11 +61,15 @@ class SignupProductionReadinessTests(TestCase):
             "apps.platform_runtime.event_bus.publish_event",
             publish_event,
         ):
-            result = complete_provisioning_for_school(
+            # complete_provisioning_for_school is enqueue-only (HTTP path) and
+            # returns is_active=False for a fresh school — the durable outbox
+            # finishes later. This test needs the school actually provisioned on
+            # return, so it uses the synchronous entry point the docstring names.
+            result = provision_school_sync(
                 str(self.school.pk), contact_email=self.owner.email
             )
         self.school.refresh_from_db(fields=["is_active", "settings"])
-        self.assertTrue(result.get("is_active") or self.school.is_active)
+        self.assertTrue((result or {}).get("is_active") or self.school.is_active)
         # Password alone is not "claimed" — stamp the token-gated onboarding step
         # the real signup path writes after the owner sets their credential.
         settings = dict(self.school.settings or {})
