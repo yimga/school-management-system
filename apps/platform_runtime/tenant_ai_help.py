@@ -17,7 +17,13 @@ def build_tenant_ai_help_context(request, *, route_name: str = "") -> dict[str, 
     from services.ai_helpers import is_ai_available
 
     school = getattr(request, "school", None)
-    online = bool(ai_help_enabled_for_request(request))
+    try:
+        online = bool(ai_help_enabled_for_request(request))
+    except Exception:  # noqa: BLE001
+        # Offline-first: a help-flag lookup failure (DB outage, config error) must
+        # degrade this page-decoration context to offline — never 500 the surface
+        # it decorates. Mirrors the is_ai_available() guard on the next line.
+        online = False
     ai_up = is_ai_available(school) if school else False
     breadcrumbs: list[dict[str, str]] = []
     resolved_route = route_name or getattr(getattr(request, "resolver_match", None), "view_name", "") or ""

@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from django.test import Client, TestCase, override_settings
-from django_otp.plugins.otp_totp.models import TOTPDevice
+from django.test import TestCase, override_settings
 
 from apps.accounts.models import User
 from apps.platform_runtime.models import ConfigurationChangeRequest
 from apps.schools.models import School
+from apps.test_utils.http_clients import login_tenant_admin_client
 
 
 @override_settings(
@@ -18,18 +18,17 @@ class TenantChangeRequestBoundaryTests(TestCase):
         self.school = School.objects.create(name="Tenant Boundary", slug="tenant-boundary", subdomain="tenant-boundary", is_active=True)
         self.other = School.objects.create(name="Other Boundary", slug="other-boundary", subdomain="other-boundary", is_active=True)
         self.admin = User.objects.create_user(username="tenant_boundary_admin", password="x" * 8, role=User.Role.ADMIN, is_staff=True)
-        TOTPDevice.objects.create(user=self.admin, name="test-device", confirmed=True)
 
     def _admin_client(self):
-        client = Client(
-            HTTP_HOST="tenant-boundary.runmycampus.com",
-            raise_request_exception=False,
+        # A tenant ADMIN reaching this tenant-host page must carry a SchoolMembership
+        # (else OperatorTenantConfinementMiddleware confines the is_staff user to
+        # manager/super/ → 302) plus a confirmed TOTP device + verified session.
+        return login_tenant_admin_client(
+            self.admin,
+            password="x" * 8,
+            host="tenant-boundary.runmycampus.com",
+            school=self.school,
         )
-        client.login(username="tenant_boundary_admin", password="x" * 8)
-        session = client.session
-        session["mfa_verified"] = True
-        session.save()
-        return client
 
     def test_tenant_high_risk_pack_creates_request_not_install(self):
         client = self._admin_client()
