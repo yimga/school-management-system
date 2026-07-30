@@ -187,7 +187,7 @@ msgid "API key appears invalid (too short)"
 msgstr ""
 
 msgid "API keys"
-msgstr ""
+msgstr "Clés d'API"
 
 msgid "API keys & quotas"
 msgstr ""
@@ -223,7 +223,7 @@ msgid "Absent"
 msgstr "Absent"
 
 msgid "Academic"
-msgstr ""
+msgstr "Pédagogique"
 
 msgid "Academic calendar (optional)"
 msgstr ""
@@ -339,7 +339,7 @@ msgid "Active year:"
 msgstr ""
 
 msgid "Activity log"
-msgstr ""
+msgstr "Journal d'activité"
 
 msgid "Actor"
 msgstr ""
@@ -513,7 +513,7 @@ msgid ""
 msgstr ""
 
 msgid "Admit"
-msgstr ""
+msgstr "Admettre"
 
 msgid "Advanced"
 msgstr "Avancé"
@@ -789,10 +789,10 @@ msgid "Applicant pagination"
 msgstr ""
 
 msgid "Applicants"
-msgstr ""
+msgstr "Candidats"
 
 msgid "Applications"
-msgstr ""
+msgstr "Candidatures"
 
 msgid "Applications (raw CRUD)"
 msgstr ""
@@ -927,7 +927,7 @@ msgid "Assigned classrooms"
 msgstr ""
 
 msgid "Assigned to"
-msgstr ""
+msgstr "Assigné à"
 
 msgid "Assignment ID"
 msgstr ""
@@ -957,7 +957,7 @@ msgid "Attach"
 msgstr ""
 
 msgid "Attachment"
-msgstr ""
+msgstr "Pièce jointe"
 
 msgid "Attendance"
 msgstr "Présence"
@@ -981,7 +981,7 @@ msgid "Audit"
 msgstr ""
 
 msgid "Audit log"
-msgstr ""
+msgstr "Journal d'audit"
 
 msgid "Audit log entry"
 msgstr ""
@@ -1032,7 +1032,7 @@ msgid "Automation view options"
 msgstr ""
 
 msgid "Average"
-msgstr ""
+msgstr "Moyenne"
 
 msgid "Avg"
 msgstr ""
@@ -1391,13 +1391,13 @@ msgid "Blueprints catalog"
 msgstr ""
 
 msgid "Blueprints:"
-msgstr ""
+msgstr "Modèles:"
 
 msgid "Bonus per referral"
 msgstr ""
 
 msgid "Book a Demo"
-msgstr ""
+msgstr "Réserver une démo"
 
 msgid "Book a demo"
 msgstr "Réserver une démo"
@@ -1656,7 +1656,7 @@ msgid "Center: queried object. Outer: downstream consumers (up to 12)."
 msgstr ""
 
 msgid "Certificate"
-msgstr ""
+msgstr "Certificat"
 
 msgid "Certification passed"
 msgstr ""
@@ -1849,7 +1849,7 @@ msgid "Classrooms"
 msgstr "Salles de classe"
 
 msgid "Classrooms:"
-msgstr ""
+msgstr "Salles de classe:"
 
 msgid ""
 "Clear growth path from starter schools to enterprise white-label operators."
@@ -2069,7 +2069,7 @@ msgid "Config center"
 msgstr ""
 
 msgid "Configuration"
-msgstr ""
+msgstr "Configuration"
 
 msgid "Configuration Control Center"
 msgstr ""
@@ -2861,7 +2861,7 @@ msgid ""
 msgstr ""
 
 msgid "Diploma"
-msgstr ""
+msgstr "Diplôme"
 
 msgid ""
 "Direct access to model changelists. For guided configuration use the "
@@ -3058,7 +3058,7 @@ msgid "Download implementation checklist (HTML)"
 msgstr ""
 
 msgid "Download report"
-msgstr ""
+msgstr "Télécharger le rapport"
 
 msgid "Download sample"
 msgstr ""
@@ -3249,7 +3249,7 @@ msgid "Employment details"
 msgstr ""
 
 msgid "Empty."
-msgstr ""
+msgstr "Vide."
 
 msgid "Enable"
 msgstr "Activer"
@@ -4179,7 +4179,7 @@ msgid "Grading rule must be valid JSON (object)."
 msgstr ""
 
 msgid "Grading scale"
-msgstr ""
+msgstr "Barème de notation"
 
 msgid "Grading scale catalog by region."
 msgstr ""
@@ -4274,7 +4274,7 @@ msgid "Health score"
 msgstr ""
 
 msgid "Health:"
-msgstr ""
+msgstr "Santé:"
 
 msgid "Healthy"
 msgstr ""
@@ -4669,7 +4669,7 @@ msgid "Integrations registry (admin)"
 msgstr ""
 
 msgid "Integrations:"
-msgstr ""
+msgstr "Intégrations:"
 
 msgid "Integrity, access, and playbook links."
 msgstr ""
@@ -5556,7 +5556,7 @@ msgid "Migration and APIs"
 msgstr ""
 
 msgid "Migration cloud"
-msgstr ""
+msgstr "Migration Cloud"
 
 msgid "Migration cloud visual"
 msgstr ""
@@ -5840,7 +5840,7 @@ msgid "Next steps"
 msgstr ""
 
 msgid "Next:"
-msgstr ""
+msgstr "Suivant:"
 
 msgid "Next: Choose look"
 msgstr ""
@@ -6358,10 +6358,10 @@ msgid "ODT document"
 msgstr ""
 
 msgid "OFF"
-msgstr ""
+msgstr "Désactivé"
 
 msgid "ON"
-msgstr ""
+msgstr "Activé"
 
 msgid "Object"
 msgstr ""
@@ -6895,7 +6895,7 @@ msgid "Outputs home"
 msgstr ""
 
 msgid "Outstanding"
-msgstr ""
+msgstr "Impayé"
 
 msgid "Outstanding balance (open invoices)"
 msgstr ""
@@ -7104,7 +7104,7 @@ msgid "Partners"
 msgstr ""
 
 msgid "Pass"
-msgstr ""
+msgstr "Réussite"
 
 msgid "Passport document"
 msgstr ""
@@ -7134,7 +7134,7 @@ msgid "Pay history"
 msgstr ""
 
 msgid "Pay now"
-msgstr ""
+msgstr "Payer maintenant"
 
 msgid "Payee"
 msgstr ""
@@ -7161,7 +7161,7 @@ msgid "Payment data contains sensitive information"
 msgstr ""
 
 msgid "Payment method"
-msgstr ""
+msgstr "Mode de paiement"
 
 msgid "Payment methods"
 msgstr ""
@@ -7244,7 +7244,7 @@ msgid "Performance trace (platform admin)"
 msgstr ""
 
 msgid "Period"
-msgstr ""
+msgstr "Période"
 
 msgid "Period / slot"
 msgstr ""
@@ -7589,7 +7589,7 @@ msgid ""
 msgstr ""
 
 msgid "Position"
-msgstr ""
+msgstr "Rang"
 
 msgid "Posted charges"
 msgstr ""
@@ -7791,7 +7791,7 @@ msgid "Prior install impact (stored)"
 msgstr ""
 
 msgid "Priority"
-msgstr ""
+msgstr "Priorité"
 
 msgid "Priority items"
 msgstr ""
@@ -8051,7 +8051,7 @@ msgid "Range"
 msgstr ""
 
 msgid "Rank"
-msgstr ""
+msgstr "Rang"
 
 msgid ""
 "Ranked by column-header overlap with seeded MigrationProfile schema hints. "
@@ -8117,7 +8117,7 @@ msgid "Reason for lateness is required for your region."
 msgstr ""
 
 msgid "Receipt"
-msgstr ""
+msgstr "Reçu"
 
 msgid "Receipts, slips, and PDFs uploaded by finance."
 msgstr ""
@@ -8578,7 +8578,7 @@ msgid "Resolve"
 msgstr ""
 
 msgid "Resolved"
-msgstr ""
+msgstr "Résolu"
 
 msgid "Resources"
 msgstr "Ressources"
@@ -9343,7 +9343,7 @@ msgid "Scopes"
 msgstr ""
 
 msgid "Score"
-msgstr ""
+msgstr "Note"
 
 msgid ""
 "Scroll inside catalog to browse all packs without stretching the full page."
@@ -9526,7 +9526,7 @@ msgid "Select bundle"
 msgstr ""
 
 msgid "Select class"
-msgstr ""
+msgstr "Sélectionner une classe"
 
 msgid "Select plan"
 msgstr ""
@@ -10025,7 +10025,7 @@ msgid "Status & Review"
 msgstr ""
 
 msgid "Status:"
-msgstr ""
+msgstr "Statut:"
 
 msgid "Statutory PDF (shell)"
 msgstr ""
@@ -10125,7 +10125,7 @@ msgid ""
 msgstr ""
 
 msgid "Students:"
-msgstr ""
+msgstr "Élèves:"
 
 msgid "Studio"
 msgstr ""
@@ -10507,7 +10507,7 @@ msgid ""
 msgstr ""
 
 msgid "Teachers:"
-msgstr ""
+msgstr "Enseignants:"
 
 msgid "Teaching pulse"
 msgstr ""
@@ -10947,10 +10947,10 @@ msgid "Total Documents"
 msgstr ""
 
 msgid "Total due"
-msgstr ""
+msgstr "Total dû"
 
 msgid "Total paid"
-msgstr ""
+msgstr "Total payé"
 
 msgid "Totals (visible rows, up to 300)"
 msgstr ""
@@ -10983,7 +10983,7 @@ msgid ""
 msgstr ""
 
 msgid "Transcript"
-msgstr ""
+msgstr "Relevé de notes"
 
 msgid "Transcript & archive"
 msgstr ""
@@ -11010,7 +11010,7 @@ msgid "Trust & legal"
 msgstr ""
 
 msgid "Trust Center"
-msgstr ""
+msgstr "Centre de confiance"
 
 msgid "Trust center"
 msgstr "Centre de confiance"
@@ -11217,7 +11217,7 @@ msgid "Upload lesson plan"
 msgstr ""
 
 msgid "Upload photo"
-msgstr ""
+msgstr "Téléverser une photo"
 
 msgid "Upload photo for ID"
 msgstr ""
@@ -11764,7 +11764,7 @@ msgid "Why RunMyCampus"
 msgstr ""
 
 msgid "Why Switch"
-msgstr ""
+msgstr "Pourquoi changer"
 
 msgid "Why enabled"
 msgstr ""
@@ -13344,7 +13344,7 @@ msgid "Open schedules in tenant admin"
 msgstr ""
 
 msgid "Recipients"
-msgstr ""
+msgstr "Destinataires"
 
 msgid "Scheduled report delivery"
 msgstr ""
@@ -13538,7 +13538,7 @@ msgid ""
 msgstr ""
 
 msgid "Read"
-msgstr ""
+msgstr "Lu"
 
 msgid "Received"
 msgstr ""
@@ -13556,7 +13556,7 @@ msgid "Skip to runtime truth hub content"
 msgstr ""
 
 msgid "Unread"
-msgstr ""
+msgstr "Non lu"
 
 msgid "Unread only"
 msgstr ""
@@ -13816,7 +13816,7 @@ msgid "Platform report platform SKU default (platform admin)"
 msgstr ""
 
 msgid "Academic years"
-msgstr ""
+msgstr "Années scolaires"
 
 msgid "Academic years (read-only)"
 msgstr ""
@@ -13828,7 +13828,7 @@ msgid "Academic years (setup)"
 msgstr ""
 
 msgid "Access"
-msgstr ""
+msgstr "Accès"
 
 msgid ""
 "Active ReportTemplate rows available for this tenant’s template family, "
@@ -15662,7 +15662,7 @@ msgid "No vault items yet."
 msgstr ""
 
 msgid "None."
-msgstr ""
+msgstr "Aucun."
 
 msgid "Passport ID"
 msgstr ""
@@ -16170,7 +16170,7 @@ msgid "Pack catalog validation reported warnings; previews may be incomplete."
 msgstr ""
 
 msgid "Pending approval"
-msgstr ""
+msgstr "En attente d'approbation"
 
 msgid "Policy assistant"
 msgstr ""
@@ -16855,7 +16855,7 @@ msgid "Generate a report"
 msgstr ""
 
 msgid "Generate report"
-msgstr ""
+msgstr "Générer le rapport"
 
 msgid "Generated JSON scan: CSRF, auth hints, raw SQL, exports."
 msgstr ""
@@ -17129,10 +17129,10 @@ msgid "Suspicious / flagged (7 days)"
 msgstr ""
 
 msgid "Take attendance"
-msgstr ""
+msgstr "Faire l'appel"
 
 msgid "Term report"
-msgstr ""
+msgstr "Bulletin trimestriel"
 
 msgid "To"
 msgstr "À"
@@ -17387,7 +17387,7 @@ msgid "Platform-wide rollup for operators (superuser)."
 msgstr ""
 
 msgid "Published."
-msgstr ""
+msgstr "Publié."
 
 msgid "Queue note when offline"
 msgstr ""
@@ -18411,7 +18411,7 @@ msgid "free"
 msgstr ""
 
 msgid "no"
-msgstr ""
+msgstr "Non"
 
 msgid "paid"
 msgstr "payé"
@@ -18420,7 +18420,7 @@ msgid "sum"
 msgstr ""
 
 msgid "yes"
-msgstr ""
+msgstr "Oui"
 
 msgid "Blocked settlement detail"
 msgstr ""
@@ -18507,7 +18507,7 @@ msgid "See the platform with your roles and campuses in mind."
 msgstr ""
 
 msgid "Select…"
-msgstr ""
+msgstr "Sélectionner…"
 
 msgid "Send a message"
 msgstr ""
@@ -18931,7 +18931,7 @@ msgid ""
 msgstr ""
 
 msgid "Marks"
-msgstr ""
+msgstr "Notes"
 
 msgid "Master sheet"
 msgstr ""
@@ -19259,7 +19259,7 @@ msgid ""
 msgstr ""
 
 msgid "School:"
-msgstr ""
+msgstr "École:"
 
 msgid "Security & isolation"
 msgstr ""
@@ -20530,7 +20530,7 @@ msgid "Access denied"
 msgstr "Accès refusé"
 
 msgid "Access denied."
-msgstr ""
+msgstr "Accès refusé."
 
 msgid "Access needs approval."
 msgstr ""
@@ -20635,7 +20635,7 @@ msgid "Alert teachers"
 msgstr ""
 
 msgid "All Systems Operational"
-msgstr ""
+msgstr "Tous les systèmes sont opérationnels"
 
 msgid "All actions"
 msgstr ""
@@ -21179,7 +21179,7 @@ msgid "Command summary"
 msgstr ""
 
 msgid "Comments:"
-msgstr ""
+msgstr "Commentaires:"
 
 msgid "Communicate with parents and staff at scale"
 msgstr ""
@@ -21236,7 +21236,7 @@ msgid "Contact Requests"
 msgstr ""
 
 msgid "Contact Support"
-msgstr ""
+msgstr "Contacter le support"
 
 msgid "Contact the school administration for any questions."
 msgstr ""
@@ -21364,7 +21364,7 @@ msgid "Customize section order"
 msgstr ""
 
 msgid "Daily attendance"
-msgstr ""
+msgstr "Présence quotidienne"
 
 msgid "Daniel Okeke"
 msgstr ""
@@ -22220,7 +22220,7 @@ msgid "Improvement delta"
 msgstr ""
 
 msgid "Inbox"
-msgstr ""
+msgstr "Boîte de réception"
 
 msgid "Incident Response Resources"
 msgstr ""
@@ -22252,7 +22252,7 @@ msgid ""
 msgstr ""
 
 msgid "Intake"
-msgstr ""
+msgstr "Cohorte"
 
 msgid "Integration providers stay green; outages surface before staff notice."
 msgstr ""
@@ -22375,7 +22375,7 @@ msgid "Last 30 days · zero incidents · zero pages"
 msgstr ""
 
 msgid "Last Login"
-msgstr ""
+msgstr "Dernière connexion"
 
 msgid "Last bell"
 msgstr ""
@@ -22387,7 +22387,7 @@ msgid "Last checked: {{ day }} {{ time }}"
 msgstr ""
 
 msgid "Last login"
-msgstr ""
+msgstr "Dernière connexion"
 
 msgid "Last sent"
 msgstr ""
@@ -22952,7 +22952,7 @@ msgid "No data for this term."
 msgstr ""
 
 msgid "No data."
-msgstr ""
+msgstr "Aucune donnée."
 
 msgid "No denials recorded."
 msgstr ""
@@ -23252,7 +23252,7 @@ msgid "Open the full thread to reply or close the ticket:"
 msgstr ""
 
 msgid "Open ticket"
-msgstr ""
+msgstr "Ticket ouvert"
 
 msgid "Open workflow center"
 msgstr ""
@@ -23318,7 +23318,7 @@ msgid "Outstanding Fees"
 msgstr ""
 
 msgid "Outstanding balance"
-msgstr ""
+msgstr "Solde impayé"
 
 msgid "Outstanding balance requires action"
 msgstr ""
@@ -23406,7 +23406,7 @@ msgid "Pass period"
 msgstr ""
 
 msgid "Passed"
-msgstr ""
+msgstr "Réussi"
 
 msgid "Passkeys"
 msgstr ""
@@ -23436,7 +23436,7 @@ msgid "Payer Split (Optional)"
 msgstr ""
 
 msgid "Payment Method"
-msgstr ""
+msgstr "Mode de paiement"
 
 msgid "Payment Readiness"
 msgstr ""
@@ -23451,7 +23451,7 @@ msgid "Payment code (quote for MoMo)"
 msgstr ""
 
 msgid "Payment history"
-msgstr ""
+msgstr "Historique des paiements"
 
 msgid "Payment link"
 msgstr ""
@@ -23807,7 +23807,7 @@ msgid "Recent workflow failures"
 msgstr ""
 
 msgid "Recipient"
-msgstr ""
+msgstr "Destinataire"
 
 msgid "Recommended actions"
 msgstr ""
@@ -23995,7 +23995,7 @@ msgid "Reviewed"
 msgstr ""
 
 msgid "Revoke access"
-msgstr ""
+msgstr "Révoquer l'accès"
 
 msgid "Risk alerts"
 msgstr ""
@@ -24479,7 +24479,7 @@ msgid "Start your school workspace"
 msgstr ""
 
 msgid "Statistics"
-msgstr ""
+msgstr "Statistiques"
 
 msgid "Status page"
 msgstr ""
@@ -24849,7 +24849,7 @@ msgid "This syllabus is not in draft state; you can still edit builder data."
 msgstr ""
 
 msgid "This term"
-msgstr ""
+msgstr "Ce trimestre"
 
 msgid ""
 "This view is audit-logged. Each load creates an AuditLog.VIEW row keyed to "
@@ -25033,7 +25033,7 @@ msgid "Transformer"
 msgstr ""
 
 msgid "Trends"
-msgstr ""
+msgstr "Tendances"
 
 msgid "Trial Balance"
 msgstr ""
@@ -25083,7 +25083,7 @@ msgid ""
 msgstr ""
 
 msgid "Under review"
-msgstr ""
+msgstr "En cours de révision"
 
 msgid "Unique IPs"
 msgstr ""
@@ -25121,7 +25121,7 @@ msgid ""
 msgstr ""
 
 msgid "Upcoming"
-msgstr ""
+msgstr "À venir"
 
 msgid "Upcoming events"
 msgstr ""
@@ -25251,7 +25251,7 @@ msgid "View {{ name }}'s report"
 msgstr ""
 
 msgid "View:"
-msgstr ""
+msgstr "Voir:"
 
 msgid "Views"
 msgstr ""
@@ -25433,7 +25433,7 @@ msgid "Window (days before)"
 msgstr ""
 
 msgid "Withdrawn"
-msgstr ""
+msgstr "Retiré"
 
 msgid "Within SLA"
 msgstr ""
@@ -26482,7 +26482,7 @@ msgid "Family thread stays on one record."
 msgstr ""
 
 msgid "Feature"
-msgstr ""
+msgstr "Fonctionnalité"
 
 msgid "Feature Gap Register"
 msgstr ""
@@ -26491,7 +26491,7 @@ msgid "Feature categories"
 msgstr ""
 
 msgid "Features:"
-msgstr ""
+msgstr "Fonctionnalités:"
 
 msgid "Fee plans, receipts, and arrears on one ledger."
 msgstr ""
@@ -28301,7 +28301,7 @@ msgid "e.g. high attendance recent improvement"
 msgstr ""
 
 msgid "features"
-msgstr ""
+msgstr "Fonctionnalités"
 
 msgid "finished"
 msgstr ""
@@ -29988,7 +29988,7 @@ msgid "Request a platform demo"
 msgstr ""
 
 msgid "Required:"
-msgstr ""
+msgstr "Obligatoire:"
 
 msgid ""
 "Resolve roster, permission, and module issues without opening a support "
@@ -30435,10 +30435,10 @@ msgid "Top tenants by notification volume"
 msgstr ""
 
 msgid "Topic"
-msgstr ""
+msgstr "Sujet"
 
 msgid "Topics"
-msgstr ""
+msgstr "Sujets"
 
 msgid "Total notifications sent"
 msgstr ""
@@ -30611,7 +30611,7 @@ msgid "abandoned"
 msgstr ""
 
 msgid "all"
-msgstr ""
+msgstr "Tous"
 
 msgid "all events"
 msgstr ""
@@ -30665,7 +30665,7 @@ msgid "lifetime"
 msgstr ""
 
 msgid "ok"
-msgstr ""
+msgstr "OK"
 
 msgid "on this page to jump to a mode"
 msgstr ""
@@ -30810,7 +30810,7 @@ msgid "open request(s)."
 msgstr ""
 
 msgid "Admission Number"
-msgstr ""
+msgstr "Numéro d'admission"
 
 msgid "Date of Birth"
 msgstr "Date de naissance"
@@ -30828,7 +30828,7 @@ msgid "Parent Phone"
 msgstr ""
 
 msgid "Place of Birth"
-msgstr ""
+msgstr "Lieu de naissance"
 
 msgid "Profile photo"
 msgstr ""
@@ -31085,7 +31085,7 @@ msgid ""
 msgstr ""
 
 msgid "Application"
-msgstr ""
+msgstr "Candidature"
 
 msgid "Applied to your current role:"
 msgstr ""
@@ -31576,7 +31576,7 @@ msgid "Consented"
 msgstr ""
 
 msgid "Contact Us"
-msgstr ""
+msgstr "Contactez-nous"
 
 msgid "Contact information for you and your child"
 msgstr ""
@@ -32527,7 +32527,7 @@ msgid ""
 msgstr ""
 
 msgid "Import data"
-msgstr ""
+msgstr "Importer des données"
 
 msgid "Import or enroll students from the student roster."
 msgstr ""
@@ -34290,7 +34290,7 @@ msgid "School tenant"
 msgstr ""
 
 msgid "School…"
-msgstr ""
+msgstr "École…"
 
 msgid "Scope consent and marketplace governance remain visible after install."
 msgstr ""
@@ -35629,7 +35629,7 @@ msgid "schools"
 msgstr "écoles"
 
 msgid "score"
-msgstr ""
+msgstr "Note"
 
 msgid "stage for follow-up"
 msgstr ""
@@ -35805,7 +35805,7 @@ msgid "Active mode"
 msgstr ""
 
 msgid "Apply now"
-msgstr ""
+msgstr "Postuler maintenant"
 
 msgid "Back to brand"
 msgstr ""
@@ -36044,7 +36044,7 @@ msgid ""
 msgstr ""
 
 msgid "Saved."
-msgstr ""
+msgstr "Enregistré."
 
 msgid "Search actions…"
 msgstr ""
@@ -36511,7 +36511,7 @@ msgid "ATTENDANCE"
 msgstr "Présences"
 
 msgid "AVERAGE"
-msgstr ""
+msgstr "Moyenne"
 
 msgid ""
 "AWS SES (via SNS relay) — Configure SNS to POST to your API Gateway / Lambda"
@@ -36522,7 +36522,7 @@ msgid "Academic results notification."
 msgstr ""
 
 msgid "Academic year:"
-msgstr ""
+msgstr "Année scolaire:"
 
 msgid "Accent"
 msgstr ""
@@ -37222,7 +37222,7 @@ msgid "Class rank:"
 msgstr ""
 
 msgid "Class:"
-msgstr ""
+msgstr "Classe:"
 
 msgid "Classes & sections"
 msgstr ""
@@ -37773,7 +37773,7 @@ msgid "Dual approval required"
 msgstr ""
 
 msgid "Due date:"
-msgstr ""
+msgstr "Date d'échéance:"
 
 msgid "Due for purge today"
 msgstr ""
@@ -37903,7 +37903,7 @@ msgid "Engine 1 — Stripe Connect (platform payouts)"
 msgstr ""
 
 msgid "Enrolled"
-msgstr ""
+msgstr "Inscrit"
 
 msgid "Enrollment"
 msgstr "Inscription"
@@ -37930,7 +37930,7 @@ msgid "Error kind"
 msgstr ""
 
 msgid "Error:"
-msgstr ""
+msgstr "Erreur:"
 
 msgid "Est."
 msgstr ""
@@ -38039,13 +38039,13 @@ msgid "FERPA-aligned data handling"
 msgstr ""
 
 msgid "Fail"
-msgstr ""
+msgstr "Échec"
 
 msgid "Failed (24h)"
 msgstr ""
 
 msgid "Failed:"
-msgstr ""
+msgstr "Échec:"
 
 msgid "Failing"
 msgstr ""
@@ -38123,7 +38123,7 @@ msgid "Fieldset tabs preview"
 msgstr ""
 
 msgid "File:"
-msgstr ""
+msgstr "Fichier:"
 
 msgid "Filter rail preview"
 msgstr ""
@@ -38229,7 +38229,7 @@ msgid "From email"
 msgstr ""
 
 msgid "From:"
-msgstr ""
+msgstr "De:"
 
 msgid "From: address"
 msgstr ""
@@ -38379,7 +38379,7 @@ msgid "Grading completion below 75%"
 msgstr ""
 
 msgid "Grant access"
-msgstr ""
+msgstr "Accorder l'accès"
 
 msgid ""
 "Grant read-only inspection access for <strong>{{ body }}</strong> via the "
@@ -38691,7 +38691,7 @@ msgid "Invoice label"
 msgstr ""
 
 msgid "Invoice:"
-msgstr ""
+msgstr "Facture:"
 
 msgid "Invoices or fee structures configured for enrolled learners."
 msgstr ""
@@ -39527,7 +39527,7 @@ msgid "Not created yet"
 msgstr ""
 
 msgid "Not enrolled"
-msgstr ""
+msgstr "Non inscrit"
 
 msgid "Not reversible"
 msgstr ""
@@ -39950,7 +39950,7 @@ msgid "Outputs are not loaded in this view"
 msgstr ""
 
 msgid "Outstanding balance:"
-msgstr ""
+msgstr "Solde impayé:"
 
 msgid "Overdue balances"
 msgstr ""
@@ -40087,10 +40087,10 @@ msgid "Pay from wallet"
 msgstr ""
 
 msgid "Pay now:"
-msgstr ""
+msgstr "Payer maintenant:"
 
 msgid "Pay online"
-msgstr ""
+msgstr "Payer en ligne"
 
 msgid ""
 "Pay the family total or review each invoice below — overdue items may block "
@@ -40709,7 +40709,7 @@ msgid "Recovery options on file"
 msgstr ""
 
 msgid "Recurring"
-msgstr ""
+msgstr "Récurrent"
 
 msgid "Redirects you to /super/lifecycle/<id>/"
 msgstr ""
@@ -41422,10 +41422,10 @@ msgid ""
 msgstr ""
 
 msgid "Sent"
-msgstr ""
+msgstr "Envoyés"
 
 msgid "Sent:"
-msgstr ""
+msgstr "Envoyés:"
 
 msgid "Series 1"
 msgstr ""
@@ -41540,7 +41540,7 @@ msgid ""
 msgstr ""
 
 msgid "Sign in:"
-msgstr ""
+msgstr "Se connecter:"
 
 msgid "Signals"
 msgstr ""
@@ -41787,7 +41787,7 @@ msgid ""
 msgstr ""
 
 msgid "Student:"
-msgstr ""
+msgstr "Élève:"
 
 msgid ""
 "Students and guardians unlock attendance, fees, reports, and parent access."
@@ -42036,7 +42036,7 @@ msgid "Term highlights · upcoming events · 1 email every Sunday"
 msgstr ""
 
 msgid "Term:"
-msgstr ""
+msgstr "Trimestre:"
 
 msgid "Terminal"
 msgstr ""
@@ -42217,7 +42217,7 @@ msgid "Time-boxed regulator access"
 msgstr ""
 
 msgid "Time:"
-msgstr ""
+msgstr "Heure:"
 
 msgid ""
 "Title + day rows for the tenant_v3_extended.calendar_weather 7-day strip. "
@@ -43449,7 +43449,7 @@ msgid "Risk score"
 msgstr ""
 
 msgid "Room"
-msgstr ""
+msgstr "Salle"
 
 msgid "Audit signature streams to immutable vault (simulated)."
 msgstr ""
@@ -43582,7 +43582,7 @@ msgid "Back to top | Right-click to reset position"
 msgstr ""
 
 msgid "Admission number"
-msgstr ""
+msgstr "Numéro d'admission"
 
 msgid "Ask about selection"
 msgstr ""
@@ -43876,7 +43876,7 @@ msgid "Placed"
 msgstr ""
 
 msgid "Promoted"
-msgstr ""
+msgstr "Promu"
 
 msgid "Widget heatmap"
 msgstr ""
@@ -43897,7 +43897,7 @@ msgid "Admissions queue depth"
 msgstr ""
 
 msgid "Awaiting review"
-msgstr ""
+msgstr "En attente de révision"
 
 msgid "Find a wizard"
 msgstr ""
@@ -44141,7 +44141,7 @@ msgid "Atom feed"
 msgstr ""
 
 msgid "Attachments"
-msgstr ""
+msgstr "Pièces jointes"
 
 msgid "Attend #"
 msgstr ""
@@ -44162,7 +44162,7 @@ msgid "Back to support"
 msgstr ""
 
 msgid "Backup"
-msgstr ""
+msgstr "Sauvegarde"
 
 msgid "Backups"
 msgstr ""
@@ -45082,7 +45082,7 @@ msgid "active routes"
 msgstr ""
 
 msgid "any"
-msgstr ""
+msgstr "Tout"
 
 msgid "assign to me"
 msgstr ""
@@ -45130,7 +45130,7 @@ msgid "next/prev ticket"
 msgstr ""
 
 msgid "open ticket"
-msgstr ""
+msgstr "Ticket ouvert"
 
 msgid "operator-only"
 msgstr ""
@@ -46193,7 +46193,7 @@ msgid "Forecast"
 msgstr ""
 
 msgid "Homeroom"
-msgstr ""
+msgstr "Classe principale"
 
 msgid "Latest platform activity — open feed"
 msgstr ""
@@ -46705,7 +46705,7 @@ msgid "Current page"
 msgstr ""
 
 msgid "Delete…"
-msgstr ""
+msgstr "Supprimer…"
 
 msgid "Describe what you want to do"
 msgstr ""
@@ -46824,7 +46824,7 @@ msgid "Charged"
 msgstr ""
 
 msgid "Class average"
-msgstr ""
+msgstr "Moyenne de classe"
 
 msgid "Class teachers"
 msgstr ""
@@ -46903,7 +46903,7 @@ msgid ""
 msgstr ""
 
 msgid "Mark attendance"
-msgstr ""
+msgstr "Faire l'appel"
 
 msgid "Messages sent"
 msgstr ""
@@ -47164,7 +47164,7 @@ msgid "Destructive layer is off"
 msgstr ""
 
 msgid "Justification"
-msgstr ""
+msgstr "Justification"
 
 msgid "More navigation"
 msgstr ""
@@ -47512,7 +47512,7 @@ msgid ""
 msgstr ""
 
 msgid "Compose"
-msgstr ""
+msgstr "Rédiger"
 
 msgid "Compose & import"
 msgstr ""
@@ -48571,7 +48571,7 @@ msgstr ""
 
 #: flight-deck-wave (manual catalog append)
 msgid "Duration"
-msgstr ""
+msgstr "Durée"
 
 #: flight-deck-wave (manual catalog append)
 msgid "No step breakdown recorded for this run."
@@ -49100,7 +49100,7 @@ msgid "App catalog command surface"
 msgstr ""
 
 msgid "Applicant"
-msgstr ""
+msgstr "Candidat"
 
 msgid "Applied %(roles)d role(s) to %(people)d member(s)."
 msgstr ""
@@ -49168,7 +49168,7 @@ msgid "Approve region"
 msgstr ""
 
 msgid "Approve request"
-msgstr ""
+msgstr "Approuver la demande"
 
 msgid "Approve this payroll run? Your sign-off is recorded."
 msgstr ""
@@ -49311,7 +49311,7 @@ msgid "Attendance milestones"
 msgstr ""
 
 msgid "Attendance register"
-msgstr ""
+msgstr "Registre d'appel"
 
 msgid "Attendance rhythm"
 msgstr ""
@@ -50534,7 +50534,7 @@ msgid "Directory"
 msgstr ""
 
 msgid "Discounts"
-msgstr ""
+msgstr "Remises"
 
 msgid ""
 "Do NOT paste credentials here — use the credential fields below (encrypted "
@@ -50857,7 +50857,7 @@ msgid "Export and submit request"
 msgstr ""
 
 msgid "Export data"
-msgstr ""
+msgstr "Exporter des données"
 
 msgid "Export evidence"
 msgstr ""
@@ -50919,7 +50919,7 @@ msgid "Feature status, proof route, model, command, and CI coverage"
 msgstr ""
 
 msgid "Features"
-msgstr ""
+msgstr "Fonctionnalités"
 
 msgid ""
 "Federate the sidebar's navigation links into palette results so ⌘K reaches "
@@ -50975,7 +50975,7 @@ msgid "Filter → no matches"
 msgstr ""
 
 msgid "Filter..."
-msgstr ""
+msgstr "Filtrer..."
 
 msgid "Filters active"
 msgstr ""
@@ -51408,7 +51408,7 @@ msgid "Guardian link"
 msgstr ""
 
 msgid "Guardian name"
-msgstr ""
+msgstr "Nom du responsable"
 
 msgid ""
 "Guided mode — step-by-step help that works with no AI model. Turn on Cloud "
@@ -52023,7 +52023,7 @@ msgid ""
 msgstr ""
 
 msgid "Locked:"
-msgstr ""
+msgstr "Verrouillé:"
 
 msgid ""
 "Log the recovery of a tagged item. The event is written to the custody trail"
@@ -53983,7 +53983,7 @@ msgid "Reinstate"
 msgstr ""
 
 msgid "Reject request"
-msgstr ""
+msgstr "Rejeter la demande"
 
 msgid "Remaining"
 msgstr ""
@@ -54563,7 +54563,7 @@ msgid ""
 msgstr ""
 
 msgid "Select student"
-msgstr ""
+msgstr "Sélectionner un élève"
 
 msgid "Select students + staff"
 msgstr ""
@@ -55267,7 +55267,7 @@ msgid "Suspicious"
 msgstr ""
 
 msgid "Syllabus"
-msgstr ""
+msgstr "Programme"
 
 msgid "Syllabus & resources"
 msgstr ""
@@ -55709,7 +55709,7 @@ msgid "Transactional results notification."
 msgstr ""
 
 msgid "Transcripts"
-msgstr ""
+msgstr "Relevés de notes"
 
 msgid "Transfer"
 msgstr ""
@@ -55937,7 +55937,7 @@ msgid "Validate & publish this workflow? It will become live for the school."
 msgstr ""
 
 msgid "Venue"
-msgstr ""
+msgstr "Lieu"
 
 msgid "Verification needs a look"
 msgstr ""
@@ -56540,7 +56540,7 @@ msgid "Zero-UI command surface"
 msgstr ""
 
 msgid "admin"
-msgstr ""
+msgstr "Administration"
 
 msgid "affected role surfaces"
 msgstr ""
@@ -56698,7 +56698,7 @@ msgid "none (inherits platform default)"
 msgstr ""
 
 msgid "now"
-msgstr ""
+msgstr "Maintenant"
 
 msgid "on track"
 msgstr ""
@@ -57909,7 +57909,7 @@ msgid ""
 msgstr ""
 
 msgid "Graduated"
-msgstr ""
+msgstr "Diplômé"
 
 msgid "Grant only what the integration needs."
 msgstr ""
@@ -58689,4 +58689,3769 @@ msgid "← Form"
 msgstr ""
 
 msgid "← Raise a concern"
+msgstr ""
+
+#: templates/sales/lead_detail.html
+msgid "(ISO or YYYY-MM-DD)"
+msgstr ""
+
+#: templates/accounts/direct_compose.html
+msgid "(PDF, Office or images, up to 10&nbsp;MB each)"
+msgstr ""
+
+#: templates/accounts/entity_console.html
+msgid "(no change)"
+msgstr ""
+
+#: templates/evals/resolve_offline_conflict.html
+msgid "(no remarks)"
+msgstr ""
+
+#: templates/sales/lead_create.html
+msgid "(staff)"
+msgstr ""
+
+#: templates/schools/mat_group_hub/dashboard.html
+msgid "+ Add MAT group"
+msgstr ""
+
+#: templates/portal/cahier_list.html
+msgid "-- Optional topic from progression --"
+msgstr ""
+
+#: templates/teacher/marks_entry.html
+msgid "-- choose --"
+msgstr ""
+
+#: templates/super/wedges/index.html
+msgid "/portal/super/wedges/?format=json"
+msgstr ""
+
+#: templates/migration_cloud/super/lms_diagnostics_retention_preview.html
+msgid "7y (default)"
+msgstr ""
+
+#: templates/accounts/tenant_identity_invite.html
+msgid "A one-time accept link is emailed and shown after creation."
+msgstr ""
+
+#: templates/schools/super_workflow_simulator.html
+msgid "ADMIN"
+msgstr "Administration"
+
+#: templates/communication/narrative_list.html
+msgid "AI narrative feedback — drafts"
+msgstr ""
+
+#: templates/accounts/entity_console.html
+msgid "ALUMNI"
+msgstr "Anciens élèves"
+
+#: templates/schools/developer_portal.html
+msgid "API &amp; schema"
+msgstr ""
+
+#: templates/schools/super_usage.html
+msgid "API usage (sample)"
+msgstr ""
+
+#: templates/people/backend_student_create.html
+msgid "Academic Information"
+msgstr "Informations pédagogiques"
+
+#: templates/people/backend_student_create.html
+msgid "Academic Year *"
+msgstr "Année scolaire *"
+
+#: templates/evals/grade_approval_detail.html
+msgid "Academic Year:"
+msgstr "Année scolaire:"
+
+#: templates/accounts/certification_home.html
+msgid "Academic Years"
+msgstr "Années scolaires"
+
+#: templates/accounts/entity_console.html
+msgid "Academic year ID"
+msgstr ""
+
+#: templates/parent/link_child_wizard.html
+msgid "Access Permissions"
+msgstr "Autorisations d'accès"
+
+#: templates/accounts/approval_workflow_hub.html
+msgid "Access Requests"
+msgstr "Demandes d'accès"
+
+#: templates/requests/access_denied.html
+msgid "Access required"
+msgstr "Accès requis"
+
+#: templates/observability/platform_incidents.html
+msgid "Acknowledge"
+msgstr "Accuser réception"
+
+#: templates/schools/super_migration_cloud.html
+msgid "Acknowledge &amp; close"
+msgstr ""
+
+#: templates/base.html
+msgid "Act as"
+msgstr ""
+
+#: templates/accounts/tenant_join_codes.html
+msgid "Active & recent codes"
+msgstr ""
+
+#: templates/portal/document_upload.html
+msgid "Active (visible to users)"
+msgstr ""
+
+#: templates/components/quick_actions.html
+msgid "Add User"
+msgstr "Ajouter un utilisateur"
+
+#: templates/portal/kb_article.html
+msgid "Add a Comment"
+msgstr ""
+
+#: templates/accounts/sso_connections.html
+msgid "Add a connection"
+msgstr ""
+
+#: templates/accounts/sso_connections.html
+msgid "Add connection"
+msgstr ""
+
+#: templates/widgets/parent_dashboard_widgets.html
+msgid "Add contact details in site settings."
+msgstr ""
+
+#: templates/schools/advancement_donor_detail.html
+msgid "Add gift"
+msgstr ""
+
+#: templates/schools/mat_group_hub/edit.html
+msgid "Add group"
+msgstr ""
+
+#: templates/parent/link_child_wizard.html
+msgid ""
+"Add more information to unlock better insights. You can skip any fields you "
+"don't have."
+msgstr ""
+
+#: templates/accounts/tenant_identity_invite.html
+msgid "Add school staff or parent"
+msgstr ""
+
+#: templates/components/ai_copilot.html
+msgid "Add widget"
+msgstr ""
+
+#: templates/accounts/certification_session_detail.html
+msgid "Admin Override"
+msgstr ""
+
+#: templates/accounts/certification_session_detail.html
+msgid "Admin override"
+msgstr ""
+
+#: templates/admin/components/theme_preview_section.html
+msgid "Administrator"
+msgstr ""
+
+#: templates/accounts/entity_console.html
+msgid "Admission #"
+msgstr ""
+
+#: templates/schools/super_ai_model_hub.html
+msgid "Advanced admin: add a regional AI config in Django admin"
+msgstr ""
+
+#: templates/portal/faq_list.html
+msgid "All FAQs"
+msgstr ""
+
+#: templates/evals/import_job_monitor.html
+msgid "All Jobs"
+msgstr ""
+
+#: templates/emis/dashboard.html
+msgid "All Terms"
+msgstr ""
+
+#: templates/analytics/master_sheet.html
+msgid "All marks by term, class, subject, and teacher."
+msgstr ""
+
+#: templates/accounts/certification_bulk_add_candidates.html
+msgid "All sessions"
+msgstr ""
+
+#: templates/finance/suspense_queue.html
+msgid "Allocation JSON"
+msgstr ""
+
+#: templates/accounts/rollover_proposal_detail.html
+msgid "Allow rollover despite outstanding returns"
+msgstr ""
+
+#: templates/schools/signup_school.html
+msgid "Alma SIS"
+msgstr ""
+
+#: templates/schools/advancement_donor_detail.html
+msgid "Amount *"
+msgstr "Montant *"
+
+#: templates/finance/receipt.html
+msgid "Amount paid"
+msgstr "Montant payé"
+
+#: templates/emails/report_ready_sw.html
+msgid "Angalia Ripoti"
+msgstr ""
+
+#: templates/schools/developer_portal.html
+msgid "App install lifecycle"
+msgstr ""
+
+#: templates/platform_runtime/change_request_detail.html
+msgid "Apply approved change"
+msgstr ""
+
+#: templates/accounts/certification_session_detail.html
+msgid "Apply override"
+msgstr ""
+
+#: templates/siteconfig/customizer.html
+msgid "Apply pack in Site Settings"
+msgstr ""
+
+#: templates/accounts/rollover_proposal_detail.html
+msgid "Apply rollover"
+msgstr ""
+
+#: templates/teacher/marks_entry.html
+msgid "Apply teacher-confirmed proposal"
+msgstr ""
+
+#: templates/communication/narrative_approve.html
+msgid "Approve &amp; mark sent"
+msgstr ""
+
+#: templates/communication/announcement_detail.html
+msgid "Approve &amp; publish"
+msgstr ""
+
+#: templates/communication/narrative_approve.html
+msgid "Approve narrative"
+msgstr ""
+
+#: templates/accounts/rollover_proposal_detail.html
+msgid "Approve proposal"
+msgstr ""
+
+#: templates/marketing/partials/mkt_ascension_arena.html
+msgid "Arbor / SIMS"
+msgstr ""
+
+#: templates/communication/group_manage.html
+msgid "Archive this group"
+msgstr ""
+
+#: templates/portal/kb_article_submit.html
+msgid "Article Content Required"
+msgstr ""
+
+#: templates/portal/kb_article.html
+msgid "Article Info"
+msgstr ""
+
+#: templates/portal/kb_article_submit.html
+msgid "Article Title Required"
+msgstr ""
+
+#: templates/portal/kb_article.html
+msgid "Article URL"
+msgstr ""
+
+#: templates/evals/grade_import_upload_v2.html
+msgid "Assessment"
+msgstr "Évaluation"
+
+#: templates/evals/compliance_dashboard.html
+msgid "At Risk"
+msgstr ""
+
+#: templates/accounts/join_school.html
+msgid "At least 8 characters."
+msgstr ""
+
+#: templates/accounts/tenant_identity_invite.html
+msgid "At least 8 characters. The user must change it on first sign-in."
+msgstr ""
+
+#: templates/analytics/executive_dashboard.html
+msgid "At-Risk dashboard"
+msgstr ""
+
+#: templates/portal/kb_article_submit.html
+msgid "Attachments - Screenshots, Images, or Files"
+msgstr ""
+
+#: templates/schools/mat_group_hub/detail.html
+msgid "Attendance %"
+msgstr ""
+
+#: templates/widgets/parent_dashboard_widgets.html
+msgid "Attendance snapshot"
+msgstr ""
+
+#: templates/teacher/pay_history.html
+msgid "Attendance streak"
+msgstr ""
+
+#: templates/siteconfig/feature_control_panel_content.html
+msgid "Audit Log"
+msgstr "Journal d'audit"
+
+#: templates/portal/kb_article.html
+msgid "Author:"
+msgstr ""
+
+#: templates/analytics/deadlines.html
+msgid "Back to Analytics"
+msgstr ""
+
+#: templates/schools/developer_sdk.html
+msgid "Back to Developer portal"
+msgstr ""
+
+#: templates/evals/evidence_upload.html
+msgid "Back to Evaluations"
+msgstr ""
+
+#: templates/siteconfig/partials/feature_control_audit_body.html
+msgid "Back to Feature Control"
+msgstr ""
+
+#: templates/finance/access_bulk.html
+msgid "Back to Invoices"
+msgstr ""
+
+#: templates/portal/document_upload.html
+msgid "Back to Library"
+msgstr ""
+
+#: templates/siteconfig/partials/reportcard_style_preview_body.html
+msgid "Back to builder"
+msgstr ""
+
+#: templates/accounts/join_code_poster.html
+msgid "Back to join codes"
+msgstr ""
+
+#: templates/accounts/rollover_queue.html
+msgid "Back to rollover"
+msgstr ""
+
+#: templates/accounts/certification_bulk_add_candidates.html
+msgid "Back to session"
+msgstr ""
+
+#: templates/siteconfig/request_custom_requirement.html
+msgid "Back to settings"
+msgstr ""
+
+#: templates/accounts/tenant_identity_invite.html
+msgid "Back to staff identity"
+msgstr ""
+
+#: templates/siteconfig/feature_control_panel_content.html
+msgid "Backend list density"
+msgstr ""
+
+#: templates/portal/stats.html
+msgid "Balance outstanding"
+msgstr ""
+
+#: templates/finance/cash_office_closure.html
+msgid "Bank account"
+msgstr ""
+
+#: templates/feedback/school_center.html
+msgid "Before you file it, check the help loop"
+msgstr ""
+
+#: templates/portal/kb_article_submit.html
+msgid "Benefits of Contributing"
+msgstr ""
+
+#: templates/accounts/tenant_identity_invite.html
+msgid ""
+"Best for staff or parents without reliable email. Share the temporary "
+"password securely."
+msgstr ""
+
+#: templates/platform_runtime/pack_installation_detail.html
+msgid "Blueprint link"
+msgstr ""
+
+#: templates/accounts/certification_home.html
+msgid "Board"
+msgstr ""
+
+#: templates/admin/portal/partials/communication_test_preview.html
+msgid "Body"
+msgstr ""
+
+#: templates/reports/promotion_preview.html
+msgid "Borderline"
+msgstr ""
+
+#: templates/marketing/partials/mkt_ascension_arena.html
+msgid "Brightwheel"
+msgstr ""
+
+#: templates/portal/kb_home.html
+msgid "Browse by Category"
+msgstr ""
+
+#: templates/finance/expense_vs_budget.html
+msgid "Budget lines"
+msgstr ""
+
+#: templates/academics/syllabus_builder.html
+msgid ""
+"Builder data (JSON). In a full implementation this would be a guided form; "
+"for now you can edit the JSON."
+msgstr ""
+
+#: templates/finance/access_bulk.html
+msgid "Bulk Finance Access"
+msgstr ""
+
+#: templates/evals/grade_import_upload_v2.html
+msgid "Bulk Grade Import"
+msgstr ""
+
+#: templates/evals/grade_import_upload_v2.html
+msgid "Bulk Grade Import - Upload & Validate"
+msgstr ""
+
+#: templates/accounts/certification_bulk_add_candidates.html
+msgid "Bulk add candidates"
+msgstr ""
+
+#: templates/teacher/marks_entry.html
+msgid "Bulk entry — select your class and subject to begin."
+msgstr ""
+
+#: templates/evals/grade_import_upload_v2.html
+msgid "Bulk grade import validation preview"
+msgstr ""
+
+#: templates/accounts/sso_connections.html
+msgid "Button label"
+msgstr ""
+
+#: templates/evals/grade_approval_detail.html
+msgid "Bypass / Escalate"
+msgstr ""
+
+#: templates/evals/grade_approval_detail.html
+msgid "Bypass and finalize"
+msgstr ""
+
+#: templates/evals/grade_approval_detail.html
+msgid "Bypass reason:"
+msgstr ""
+
+#: templates/evals/grade_approval_detail.html
+msgid "Bypassed by:"
+msgstr ""
+
+#: templates/evals/grade_approval_detail.html
+msgid "Bypassed:"
+msgstr ""
+
+#: templates/accounts/certification_session_detail.html
+msgid "CA submission deadline"
+msgstr ""
+
+#: templates/marketing/partials/_mkt_gradebook_interactive.html
+msgid "CAIE"
+msgstr ""
+
+#: templates/developer/hub.html
+msgid "CEDS"
+msgstr ""
+
+#: templates/accounts/migration_wizard.html
+msgid "CSV column"
+msgstr ""
+
+#: templates/accounts/migration_wizard.html
+msgid "CSV or XLSX file"
+msgstr ""
+
+#: templates/portal/cahier_list.html
+msgid "Cahier de Texte"
+msgstr ""
+
+#: templates/portal/cahier_verify_list.html
+msgid "Cahier de Texte – Verification"
+msgstr ""
+
+#: templates/evals/extend_deadline.html
+msgid "Calculating..."
+msgstr ""
+
+#: templates/accounts/certification_session_detail.html
+msgid "Candidates"
+msgstr ""
+
+#: templates/accounts/rollover_proposal_detail.html
+msgid "Carry forward unpaid fees to next year"
+msgstr ""
+
+#: templates/finance/cash_office_closure.html
+msgid "Cash Office Closure"
+msgstr ""
+
+#: templates/finance/payments.html
+msgid "Cash closure"
+msgstr ""
+
+#: templates/finance/cash_office_closure.html
+msgid "Cash on hand"
+msgstr ""
+
+#: templates/portal/kb_article_submit.html
+msgid "Category Required"
+msgstr ""
+
+#: templates/portal/kb_article.html
+msgid "Category:"
+msgstr "Catégorie:"
+
+#: templates/accounts/certification_home.html
+msgid "Centre"
+msgstr ""
+
+#: templates/platform_runtime/change_request_detail.html
+msgid "Change Set"
+msgstr ""
+
+#: templates/siteconfig/partials/feature_control_ledger_body.html
+msgid "Changes (summary)"
+msgstr ""
+
+#: templates/evals/import_job_monitor.html
+msgid "Check Status"
+msgstr ""
+
+#: templates/evals/grade_import_upload_v2.html
+msgid "Check for errors"
+msgstr ""
+
+#: templates/portal/kb_article_submit.html
+msgid "Choose Files"
+msgstr ""
+
+#: templates/accounts/join_school.html
+msgid "Choose a password"
+msgstr ""
+
+#: templates/siteconfig/report_library.html
+msgid "Choose format"
+msgstr ""
+
+#: templates/finance/suspense_queue.html
+msgid "Claim & Allocate"
+msgstr ""
+
+#: templates/reports/annual_report.html
+msgid "Class Position"
+msgstr ""
+
+#: templates/widgets/parent_dashboard_widgets.html
+msgid "Class timetable"
+msgstr ""
+
+#: templates/people/backend_student_create.html
+msgid "Classroom *"
+msgstr "Salle de classe *"
+
+#: templates/accounts/entity_console.html
+msgid "Classroom ID"
+msgstr ""
+
+#: templates/accounts/certification_bulk_add_candidates.html
+msgid "Classrooms (required)"
+msgstr ""
+
+#: templates/accounts/migration_wizard.html
+msgid "Clear and start over"
+msgstr ""
+
+#: templates/portal/faq_list.html
+msgid "Clear filter"
+msgstr ""
+
+#: templates/portal/faq_list.html
+msgid "Clear search"
+msgstr ""
+
+#: templates/schools/super_sync_repair.html
+msgid "Client (offline) data"
+msgstr ""
+
+#: templates/accounts/sso_connections.html
+msgid "Client ID"
+msgstr ""
+
+#: templates/academics/syllabus_clone.html
+msgid "Clone"
+msgstr ""
+
+#: templates/accounts/clone_year_setup.html
+msgid "Clone previous year"
+msgstr ""
+
+#: templates/academics/syllabus_clone.html
+msgid "Clone syllabus"
+msgstr ""
+
+#: templates/finance/cash_office_closure.html
+msgid "Close cashier day"
+msgstr ""
+
+#: templates/accounts/direct_thread.html
+msgid "Close conversation"
+msgstr ""
+
+#: templates/portal/kb_article.html
+msgid "Close share dialog"
+msgstr ""
+
+#: templates/finance/cash_office_closure.html
+msgid "Closure date"
+msgstr ""
+
+#: templates/widgets/parent_dashboard_widgets.html
+msgid "Code:"
+msgstr "Code:"
+
+#: templates/accounts/tenant_join_codes.html
+msgid "Comma-separated. Leave blank to allow any email."
+msgstr ""
+
+#: templates/portal/kb_article.html
+msgid "Comments"
+msgstr "Commentaires"
+
+#: templates/accounts/entity_import.html
+msgid "Commit preview"
+msgstr ""
+
+#: templates/widgets/parent_dashboard_widgets.html
+msgid "Communication center"
+msgstr ""
+
+#: templates/student/onboarding_wizard.html
+msgid "Complete Registration"
+msgstr ""
+
+#: templates/parent/link_child_wizard.html
+msgid "Complete Setup"
+msgstr ""
+
+#: templates/evals/compliance_dashboard.html
+msgid "Completion Rate"
+msgstr ""
+
+#: templates/widgets/teacher_dashboard_widgets.html
+msgid "Completion spotlight appears once assignments are active."
+msgstr ""
+
+#: templates/evals/compliance_dashboard.html
+msgid "Compliant"
+msgstr ""
+
+#: templates/evals/audit_trail.html
+msgid "Component"
+msgstr ""
+
+#: templates/partials/admin_tenant_workbench_footer.html
+msgid "Configuration & records"
+msgstr ""
+
+#: templates/partials/admin_tenant_workbench_footer.html
+msgid "Configuration shortcuts"
+msgstr ""
+
+#: templates/evals/grade_import_upload_v2.html
+msgid "Confirm & Import"
+msgstr ""
+
+#: templates/evals/extend_deadline.html
+msgid "Confirm Extension"
+msgstr ""
+
+#: templates/platform_runtime/pack_apply.html
+msgid "Confirm governed pack apply"
+msgstr ""
+
+#: templates/platform_runtime/pack_rollback.html
+msgid "Confirm rollback/deactivation"
+msgstr ""
+
+#: templates/emails/newsletter_verify.html
+msgid "Confirm subscription"
+msgstr ""
+
+#: templates/evals/resolve_offline_conflict.html
+msgid "Conflict Detected:"
+msgstr ""
+
+#: templates/schools/super_migration_cloud.html
+msgid "Connector profiles"
+msgstr ""
+
+#: templates/staff/contact_requests_detail.html
+msgid "Contact Request"
+msgstr ""
+
+#: templates/widgets/teacher_dashboard_widgets.html
+msgid "Contact details appear in site settings."
+msgstr ""
+
+#: templates/feedback/school_center.html
+msgid "Contact support instead"
+msgstr ""
+
+#: templates/portal/kb_search.html
+msgid "Content Type"
+msgstr ""
+
+#: templates/portal/kb_article.html
+msgid "Contributors:"
+msgstr ""
+
+#: templates/partials/admin_tenant_workbench_footer.html
+msgid "Control-plane shortcuts"
+msgstr ""
+
+#: templates/feedback/voice_of_customer.html
+msgid "Convert"
+msgstr ""
+
+#: templates/portal/kb_article.html
+msgid "Copy URL to clipboard"
+msgstr ""
+
+#: templates/finance/payment_readiness_dashboard.html
+msgid "Corridor profile"
+msgstr ""
+
+#: templates/portal/faq_list.html
+msgid "Couldn't find your answer?"
+msgstr ""
+
+#: templates/finance/payment_readiness_setup.html
+msgid "Country & currency"
+msgstr ""
+
+#: templates/academics/teacher_syllabus_hub.html
+msgid "Course syllabi"
+msgstr ""
+
+#: templates/accounts/certification_home.html
+msgid "Create Exam Session"
+msgstr ""
+
+#: templates/components/quick_actions.html
+msgid "Create Invoice New billing"
+msgstr ""
+
+#: templates/payroll/create_run.html
+msgid "Create Payroll Run"
+msgstr ""
+
+#: templates/payroll/create_run.html
+msgid "Create Run"
+msgstr ""
+
+#: templates/people/backend_teacher_create.html
+msgid "Create Teacher"
+msgstr ""
+
+#: templates/communication/group_list.html
+msgid "Create Your First Group"
+msgstr ""
+
+#: templates/accounts/tenant_join_codes.html
+msgid "Create a join code"
+msgstr ""
+
+#: templates/accounts/join_school.html
+msgid "Create account & join"
+msgstr ""
+
+#: templates/evals/grade_import_upload_v2.html
+msgid "Create audit trail entries for all changes"
+msgstr ""
+
+#: templates/accounts/certification_bulk_add_candidates.html
+msgid "Create candidates"
+msgstr ""
+
+#: templates/accounts/tenant_join_codes.html
+msgid "Create code"
+msgstr ""
+
+#: templates/evals/grade_import_upload_v2.html
+msgid "Create new evaluations for students with no existing grade"
+msgstr ""
+
+#: templates/accounts/tenant_identity_invite.html
+msgid "Create now with a temporary password"
+msgstr ""
+
+#: templates/teacher/marks_entry.html
+msgid "Create server review proposal"
+msgstr ""
+
+#: templates/accounts/entity_console.html
+msgid "Create student"
+msgstr ""
+
+#: templates/evals/grade_import_upload_v2.html
+msgid "Created vs. updated counts will be confirmed after import."
+msgstr ""
+
+#: templates/siteconfig/customizer.html
+msgid "Current branding"
+msgstr ""
+
+#: templates/evals/extend_deadline.html
+msgid "Current deadline"
+msgstr ""
+
+#: templates/siteconfig/customizer.html
+msgid "Currently applied"
+msgstr ""
+
+#: templates/portal/kb_docs_hub.html
+msgid "DOCX"
+msgstr ""
+
+#: templates/partials/tenant/hero_greeting.html
+msgid "Dashboard focus areas"
+msgstr ""
+
+#: templates/evals/import_job_monitor.html
+msgid "Date Range:"
+msgstr ""
+
+#: templates/accounts/tenant_join_codes.html
+msgid "Deactivate this code?"
+msgstr ""
+
+#: templates/accounts/tenant_join_codes.html
+msgid "Deactivated"
+msgstr ""
+
+#: templates/finance/trial_balance.html
+msgid "Debit"
+msgstr ""
+
+#: templates/evals/grade_approval_detail.html
+msgid "Decision deadline:"
+msgstr ""
+
+#: templates/requests/detail.html
+msgid "Decisions"
+msgstr ""
+
+#: templates/siteconfig/report_library.html
+msgid "Default format"
+msgstr ""
+
+#: templates/accounts/sso_connections.html
+msgid "Default role for new users"
+msgstr ""
+
+#: templates/accounts/academic_rules.html
+msgid "Demote"
+msgstr ""
+
+#: templates/communication/group_list.html
+msgid "Department Groups"
+msgstr ""
+
+#: templates/communication/announcement_detail.html
+msgid "Department copy"
+msgstr ""
+
+#: templates/lti_admin/tool_registration.html
+msgid "Deployment"
+msgstr ""
+
+#: templates/finance/cash_office_closure.html
+msgid "Deposit reference"
+msgstr ""
+
+#: templates/finance/cash_office_closure.html
+msgid "Deposited to bank"
+msgstr ""
+
+#: templates/siteconfig/request_custom_requirement.html
+msgid "Describe your requirement"
+msgstr ""
+
+#: templates/portal/kb_search.html
+msgid "Difficulty"
+msgstr ""
+
+#: templates/parent/medal_case.html
+msgid "Digital medal case"
+msgstr ""
+
+#: templates/customersuccess/super_dashboard.html
+msgid "Dimensions"
+msgstr ""
+
+#: templates/accounts/messages.html
+msgid "Direct"
+msgstr ""
+
+#: templates/siteconfig/feature_control_panel_content.html
+msgid "Disable all"
+msgstr ""
+
+#: templates/siteconfig/feature_control_panel_content.html
+msgid "Disabling may affect user access"
+msgstr ""
+
+#: templates/accounts/sso_connections.html
+msgid "Discovery URL or issuer"
+msgstr ""
+
+#: templates/finance/cash_office_closure.html
+msgid "Discrepancy"
+msgstr ""
+
+#: templates/components/offline_status_bar.html
+msgid "Dismiss list"
+msgstr ""
+
+#: templates/schools/advancement_donor_form.html
+msgid "Display name *"
+msgstr ""
+
+#: templates/portal/document_library_manage.html
+msgid "Document Library Management"
+msgstr ""
+
+#: templates/portal/document_upload.html
+msgid "Document Type *"
+msgstr ""
+
+#: templates/admin/compliance/partials/document_preview.html
+msgid "Document section preview"
+msgstr ""
+
+#: templates/accounts/partials/mfa_setup_page_body.html
+msgid "Don't trust this browser (ask every time)"
+msgstr ""
+
+#: templates/portal/kb_article.html
+msgid "Download ODT (LibreOffice)"
+msgstr ""
+
+#: templates/evals/grade_import_upload_v2.html
+msgid "Download Template"
+msgstr ""
+
+#: templates/portal/kb_article.html
+msgid "Download Word (DOCX)"
+msgstr ""
+
+#: templates/accounts/import_hub.html
+msgid "Download template"
+msgstr ""
+
+#: templates/portal/signature_sign.html
+msgid "Draw Your Signature"
+msgstr ""
+
+#: templates/migration_cloud/attach_source.html
+msgid "Dropbox"
+msgstr ""
+
+#: templates/emails/report_ready_ha.html
+msgid "Duba Sakamako"
+msgstr ""
+
+#: templates/widgets/parent_dashboard_widgets.html
+msgid "Due / Paid / Balance"
+msgstr ""
+
+#: templates/emis/dashboard.html
+msgid "EMIS Data Export"
+msgstr ""
+
+#: templates/emis/dashboard.html
+msgid "EMIS Export Dashboard"
+msgstr ""
+
+#: templates/emis/dashboard.html
+msgid "EMIS Information"
+msgstr ""
+
+#: templates/marketing/components/_currency_switcher.html
+msgid "EUR (€)"
+msgstr ""
+
+#: templates/siteconfig/customizer.html
+msgid "Edit Preferences"
+msgstr ""
+
+#: templates/accounts/sso_connections.html
+msgid "Edit connection"
+msgstr ""
+
+#: templates/portal/signature_sign.html
+msgid "Electronic Signature"
+msgstr ""
+
+#: templates/reports/share_link.html
+msgid "Email Link"
+msgstr ""
+
+#: templates/accounts/tenant_identity_invite.html
+msgid "Email an invite link"
+msgstr ""
+
+#: templates/accounts/magic_link_request.html
+msgid "Email me a sign-in link"
+msgstr ""
+
+#: templates/admin/portal/partials/syllabus_student_preview.html
+msgid "Embed inline preview"
+msgstr ""
+
+#: templates/siteconfig/feature_control_panel_content.html
+msgid "Enable all"
+msgstr ""
+
+#: templates/accounts/join_school.html
+msgid "Enter the join code your school shared, then create your account."
+msgstr ""
+
+#: templates/accounts/magic_link_request.html
+msgid ""
+"Enter your email and we'll send a one-time link that signs you in — no "
+"password needed. It expires in a few minutes."
+msgstr ""
+
+#: templates/evals/resolve_offline_conflict.html
+msgid "Entered:"
+msgstr ""
+
+#: templates/accounts/import_hub.html
+msgid "Entity Import"
+msgstr ""
+
+#: templates/accounts/entity_import.html
+msgid "Entity import (beta)"
+msgstr ""
+
+#: templates/evals/import_job_monitor.html
+msgid "Error Log:"
+msgstr ""
+
+#: templates/evals/evidence_upload.html
+msgid "Evaluation Evidence"
+msgstr ""
+
+#: templates/portal/unified_calendar.html
+msgid "Events, holidays and upcoming deadlines in one place."
+msgstr ""
+
+#: templates/accounts/certification_home.html
+msgid "Exam sessions"
+msgstr ""
+
+#: templates/evals/resolve_offline_conflict.html
+msgid "Exam:"
+msgstr "Examen:"
+
+#: templates/emis/dashboard.html
+msgid "Excel (.xlsx)"
+msgstr ""
+
+#: templates/schools/super_migration_cloud.html
+msgid "Exception queue"
+msgstr ""
+
+#: templates/evals/grade_import_upload_v2.html
+msgid "Expected CSV Format:"
+msgstr ""
+
+#: templates/finance/scan_teller_placeholder.html
+msgid "Expected amount (optional)"
+msgstr ""
+
+#: templates/accounts/tenant_join_codes.html
+msgid "Expires in (days)"
+msgstr ""
+
+#: templates/portal/kb_article.html
+msgid "Explore more articles and guides."
+msgstr ""
+
+#: templates/emis/dashboard.html
+msgid "Export Format"
+msgstr ""
+
+#: templates/evals/import_job_monitor.html
+msgid "Export Results"
+msgstr ""
+
+#: templates/emis/dashboard.html
+msgid "Export Type"
+msgstr ""
+
+#: templates/accounts/certification_home.html
+msgid "Export `Data[CentreNo].zip`"
+msgstr ""
+
+#: templates/analytics/deadlines.html
+msgid "Extend"
+msgstr ""
+
+#: templates/evals/extend_deadline.html
+msgid "Extend Deadline"
+msgstr ""
+
+#: templates/evals/extend_deadline.html
+msgid "Extend Grading Deadline"
+msgstr ""
+
+#: templates/evals/extend_deadline.html
+msgid "Extend by (days):"
+msgstr ""
+
+#: templates/portal/document_upload.html
+msgid "External Link"
+msgstr ""
+
+#: templates/platform_runtime/pack_preview.html
+msgid "External Required"
+msgstr ""
+
+#: templates/teacher/marks_entry.html
+msgid "Extracted line"
+msgstr ""
+
+#: templates/finance/scan_teller_placeholder.html
+msgid "Extraction"
+msgstr ""
+
+#: templates/finance/scan_teller_placeholder.html
+msgid "Extraction Result"
+msgstr ""
+
+#: templates/schools/signup_school.html
+msgid "FACTS / RenWeb"
+msgstr ""
+
+#: templates/portal/kb_search.html
+msgid "FAQ Questions"
+msgstr ""
+
+#: templates/portal/kb_article.html
+msgid "Facebook"
+msgstr ""
+
+#: templates/schools/mat_group_hub/detail.html
+msgid "Failed members"
+msgstr ""
+
+#: templates/admin/components/theme_preview_section.html
+msgid "Family note"
+msgstr ""
+
+#: templates/feedback/school_center.html
+msgid "Feature Requests"
+msgstr ""
+
+#: templates/siteconfig/partials/feature_control_ledger_body.html
+msgid "Feature control panel"
+msgstr ""
+
+#: templates/portal/kb_home.html
+msgid "Featured Articles"
+msgstr ""
+
+#: templates/components/ai_copilot.html
+msgid "Fee Status"
+msgstr ""
+
+#: templates/reports/statistical_return.html
+msgid "Female"
+msgstr "Féminin"
+
+#: templates/widgets/teacher_dashboard_widgets.html
+msgid "Fill"
+msgstr ""
+
+#: templates/evals/compliance_dashboard.html
+msgid "Filter by Status:"
+msgstr ""
+
+#: templates/siteconfig/feature_control_panel_content.html
+msgid "Filter by name or description..."
+msgstr ""
+
+#: templates/widgets/parent_dashboard_widgets.html
+msgid "Financial summary"
+msgstr "Résumé financier"
+
+#: templates/components/pagination.html
+msgid "First"
+msgstr "Premier"
+
+#: templates/people/backend_student_create.html
+msgid "First Name *"
+msgstr "Prénom *"
+
+#: templates/emails/tenant_admin_signup_completed.html
+msgid "First steps"
+msgstr ""
+
+#: templates/parent/link_child_wizard.html
+msgid "Follow these simple steps to connect your child's account."
+msgstr ""
+
+#: templates/schools/super_sync_repair.html
+msgid "Force Overwrite (client)"
+msgstr ""
+
+#: templates/portal/signature_sign.html
+msgid "Form Details"
+msgstr ""
+
+#: templates/parent/link_child_wizard.html
+msgid "Format:"
+msgstr ""
+
+#: templates/portal/faq_detail.html
+msgid "Found an Issue?"
+msgstr ""
+
+#: templates/student360/transcript_archive.html
+msgid "Freeze transcript"
+msgstr ""
+
+#: templates/student360/transcript_archive.html
+msgid "Freeze transcript for year"
+msgstr ""
+
+#: templates/portal/faq_list.html
+msgid "Frequently Asked Questions"
+msgstr ""
+
+#: templates/emis/dashboard.html
+msgid "Generate EMIS Export"
+msgstr ""
+
+#: templates/payroll/run_detail.html
+msgid "Generate Payslips"
+msgstr ""
+
+#: templates/home.html
+msgid "Go to Backend"
+msgstr ""
+
+#: templates/migration_cloud/attach_source.html
+msgid "Google Drive"
+msgstr ""
+
+#: templates/evals/grade_approval_detail.html
+msgid "Grade Approval"
+msgstr ""
+
+#: templates/evals/grade_approval_detail.html
+msgid "Grade Approval Request"
+msgstr ""
+
+#: templates/evals/grade_approval_list.html
+msgid "Grade Approval Requests"
+msgstr ""
+
+#: templates/accounts/approval_workflow_hub.html
+msgid "Grade Approvals"
+msgstr ""
+
+#: templates/accounts/import_hub.html
+msgid "Grade Import"
+msgstr ""
+
+#: templates/accounts/import_hub.html
+msgid "Grade Template"
+msgstr ""
+
+#: templates/evals/grade_approval_list.html
+msgid "Grade approval requests: subject, teacher, status, and actions"
+msgstr ""
+
+#: templates/evals/compliance_dashboard.html
+msgid "Grading Compliance Dashboard"
+msgstr ""
+
+#: templates/analytics/deadlines.html
+msgid "Grading Deadlines"
+msgstr ""
+
+#: templates/accounts/rollover_proposal_detail.html
+msgid "Graduate"
+msgstr ""
+
+#: templates/schools/mat_group_hub/edit.html
+msgid "Group"
+msgstr ""
+
+#: templates/schools/mat_group_hub/edit.html
+msgid "Group ID"
+msgstr ""
+
+#: templates/communication/group_detail.html
+msgid "Group Info"
+msgstr ""
+
+#: templates/communication/group_list.html
+msgid "Group Name"
+msgstr ""
+
+#: templates/communication/group_manage.html
+msgid "Group Name *"
+msgstr ""
+
+#: templates/schools/mat_group_hub/detail.html
+msgid "Group totals"
+msgstr ""
+
+#: templates/accounts/sso_connections.html
+msgid "Group → role map"
+msgstr ""
+
+#: templates/portal/kb_article_submit.html
+msgid "Guidelines for Quality Articles"
+msgstr ""
+
+#: templates/portal/kb_home.html
+msgid "Guides, tutorials, and step-by-step instructions for all features"
+msgstr ""
+
+#: templates/portal/kb_home.html
+msgid "Have Knowledge to Share?"
+msgstr ""
+
+#: templates/siteconfig/feature_control_panel_content.html
+msgid "Header Weather Location"
+msgstr ""
+
+#: templates/feedback/school_center.html
+msgid "Help + Product Voice Center"
+msgstr ""
+
+#: templates/feedback/role_center.html
+msgid "Help articles"
+msgstr ""
+
+#: templates/parent/link_child_wizard.html
+msgid ""
+"How should we reach you? Set your preferred contact method and what you'd "
+"like to access."
+msgstr ""
+
+#: templates/accounts/join_school.html
+msgid "I already have an account"
+msgstr ""
+
+#: templates/people/transfer_consent/landing.html
+msgid "I consent to this transfer"
+msgstr ""
+
+#: templates/accounts/sso_connections.html
+msgid "IdP SSO URL"
+msgstr ""
+
+#: templates/accounts/sso_connections.html
+msgid "IdP entity ID"
+msgstr ""
+
+#: templates/accounts/sso_connections.html
+msgid "IdP signing certificate (PEM)"
+msgstr ""
+
+#: templates/parent/link_child_wizard.html
+msgid "Identify"
+msgstr ""
+
+#: templates/accounts/sso_connections.html
+msgid "Identity provider"
+msgstr ""
+
+#: templates/evals/grade_import_upload_v2.html
+msgid "Import Another File"
+msgstr ""
+
+#: templates/evals/grade_import_upload_v2.html
+msgid "Import Complete"
+msgstr ""
+
+#: templates/evals/import_job_monitor.html
+msgid "Import Job Monitor"
+msgstr ""
+
+#: templates/evals/grade_import_upload_v2.html
+msgid "Import Summary:"
+msgstr ""
+
+#: templates/evals/grade_import_upload_v2.html
+msgid "Import to database"
+msgstr ""
+
+#: templates/accounts/migration_wizard.html
+msgid "Import type"
+msgstr ""
+
+#: templates/portal/stats.html
+msgid "Improving students"
+msgstr ""
+
+#: templates/portal/stats.html
+msgid "Improving students by delta"
+msgstr ""
+
+#: templates/observability/platform_incidents.html
+msgid "Incident"
+msgstr ""
+
+#: templates/accounts/certification_bulk_add_candidates.html
+msgid "Include inactive"
+msgstr ""
+
+#: templates/platform_runtime/pack_detail.html
+msgid "Included Items"
+msgstr ""
+
+#: templates/schools/signup_school.html
+msgid "Infinite Campus"
+msgstr ""
+
+#: templates/emails/operator_tenant_signup_created.html
+msgid "Inspect the tenant"
+msgstr ""
+
+#: templates/schools/developer_portal.html
+msgid "Interop &amp; readiness"
+msgstr ""
+
+#: templates/schools/developer_sdk.html
+msgid "Interop data APIs"
+msgstr ""
+
+#: templates/evals/grade_import_upload_v2.html
+msgid "Invalid Rows — review and fix before import"
+msgstr ""
+
+#: templates/evals/grade_import_upload_v2.html
+msgid "Invalid rows to review and fix before import"
+msgstr ""
+
+#: templates/analytics/executive_dashboard.html
+msgid "Invoices &amp; payments"
+msgstr ""
+
+#: templates/schools/mat_group_hub/detail.html
+msgid "JSON · /api endpoint →"
+msgstr ""
+
+#: templates/communication/group_detail.html
+msgid "Join Group"
+msgstr ""
+
+#: templates/accounts/join_school.html
+msgid "Join code"
+msgstr ""
+
+#: templates/accounts/tenant_join_codes.html
+msgid "Join codes"
+msgstr ""
+
+#: templates/accounts/join_code_poster.html
+msgid "Join poster"
+msgstr ""
+
+#: templates/accounts/join_school.html
+msgid "Join with a code"
+msgstr ""
+
+#: templates/accounts/join_school.html
+msgid "Join your school"
+msgstr ""
+
+#: templates/marketing/components/_currency_switcher.html
+msgid "KES (Ksh)"
+msgstr ""
+
+#: templates/evals/resolve_offline_conflict.html
+msgid "Keep Online Version"
+msgstr ""
+
+#: templates/evals/resolve_offline_conflict.html
+msgid "Keep This Version"
+msgstr ""
+
+#: templates/portal/kb_home.html
+msgid "Knowledge Base - Help Center"
+msgstr ""
+
+#: templates/developer/hub.html
+msgid "LTI 1.3"
+msgstr ""
+
+#: templates/lti_admin/tool_registration.html
+msgid "LTI 1.3 tool registration"
+msgstr ""
+
+#: templates/components/pagination.html
+msgid "Last"
+msgstr "Dernier"
+
+#: templates/communication/group_list.html
+msgid "Last Activity"
+msgstr ""
+
+#: templates/people/backend_student_create.html
+msgid "Last Name *"
+msgstr "Nom *"
+
+#: templates/finance/payment_readiness_dashboard.html
+msgid "Latest recorded checks"
+msgstr ""
+
+#: templates/admin/portal/partials/syllabus_student_preview.html
+msgid "Launch student preview"
+msgstr ""
+
+#: templates/accounts/sso_connections.html
+msgid "Leave blank to keep the current secret."
+msgstr ""
+
+#: templates/payroll/employee_leave.html
+msgid "Leave type"
+msgstr ""
+
+#: templates/siteconfig/partials/feature_control_ledger_body.html
+msgid "Legacy audit view"
+msgstr ""
+
+#: templates/accounts/sso_connections.html
+msgid ""
+"Let staff, teachers, and parents sign in with your identity provider — "
+"Google, Microsoft, Okta, or any OpenID Connect / SAML IdP. Once a connection"
+" is active it appears as a button on this school's login page."
+msgstr ""
+
+#: templates/accounts/certification_home.html
+msgid "Level"
+msgstr ""
+
+#: templates/siteconfig/report_library.html
+msgid "LibreOffice (ODS)"
+msgstr ""
+
+#: templates/portal/kb_article.html
+msgid "LinkedIn"
+msgstr ""
+
+#: templates/admin/components/theme_preview_section.html
+msgid "Live screen preview"
+msgstr ""
+
+#: templates/accounts/rollover_proposal_detail.html
+msgid "Lock source year after rollover"
+msgstr ""
+
+#: templates/portal/kb_category.html
+msgid "Login & Contribute"
+msgstr ""
+
+#: templates/portal/faq_list.html
+msgid "Login & Submit"
+msgstr ""
+
+#: templates/portal/faq_detail.html
+msgid "Login to vote"
+msgstr ""
+
+#: templates/marketing/partials/sections/_hero_edge_map.html
+msgid "London"
+msgstr ""
+
+#: templates/portal/kb_home.html
+msgid "Looking for Quick Answers?"
+msgstr ""
+
+#: templates/widgets/teacher_dashboard_widgets.html
+msgid "Lowest completion subjects"
+msgstr ""
+
+#: templates/schools/mat_group_hub/dashboard.html
+msgid "MAT Group Hub"
+msgstr ""
+
+#: templates/schools/mat_group_hub/detail.html
+msgid "MAT Hub"
+msgstr ""
+
+#: templates/reports/statistical_return.html
+msgid "Male"
+msgstr "Masculin"
+
+#: templates/accounts/messages.html
+msgid "Manage groups"
+msgstr ""
+
+#: templates/portal/feature_page.html
+msgid "Manage library"
+msgstr ""
+
+#: templates/accounts/entity_console.html
+msgid ""
+"Manage students from the frontend using the new headless APIs. RBAC/claims "
+"gate visibility."
+msgstr ""
+
+#: templates/schools/signup_school.html
+msgid "ManageBac"
+msgstr ""
+
+#: templates/accounts/sso_connections.html
+msgid ""
+"Map an IdP group/role claim to a RunMyCampus role. Unmapped users get the "
+"default role below."
+msgstr ""
+
+#: templates/portal/roll_call_student.html
+msgid "Mark all present"
+msgstr ""
+
+#: templates/analytics/master_sheet.html
+msgid "Master Grading Sheet"
+msgstr ""
+
+#: templates/analytics/master_sheet.html
+msgid ""
+"Master sheet: students, class, subject, teacher, term, and score components"
+msgstr ""
+
+#: templates/accounts/tenant_join_codes.html
+msgid "Max uses"
+msgstr ""
+
+#: templates/evals/evidence_upload.html
+msgid "Media Type"
+msgstr ""
+
+#: templates/components/ai_copilot.html
+msgid "Meetings"
+msgstr ""
+
+#: templates/schools/mat_group_hub/edit.html
+msgid "Members (one per line)"
+msgstr ""
+
+#: templates/accounts/messages.html
+msgid "Messaging"
+msgstr "Messagerie"
+
+#: templates/accounts/sso_connections.html
+msgid "Microsoft tenant"
+msgstr ""
+
+#: templates/schools/super_migration_cloud.html
+msgid "Migration Profile Registry"
+msgstr ""
+
+#: templates/accounts/migration_wizard.html
+msgid "Migration scorecard"
+msgstr ""
+
+#: templates/widgets/parent_dashboard_widgets.html
+msgid "Missing evaluations"
+msgstr ""
+
+#: templates/teacher/marks_list.html
+msgid "Missing only"
+msgstr ""
+
+#: templates/observability/platform_incidents.html
+msgid "Mitigate"
+msgstr ""
+
+#: templates/evals/resolve_offline_conflict.html
+msgid "Mock:"
+msgstr ""
+
+#: templates/partials/admin_workbench_footer.html
+msgid "Model workbench · audit-grade configuration"
+msgstr ""
+
+#: templates/admin/submit_line.html
+msgid "More save options"
+msgstr ""
+
+#: templates/portal/kb_search.html
+msgid "Most Helpful"
+msgstr ""
+
+#: templates/portal/kb_home.html
+msgid "Most Popular"
+msgstr ""
+
+#: templates/portal/kb_search.html
+msgid "Most Viewed"
+msgstr ""
+
+#: templates/accounts/rollover_year.html
+msgid ""
+"Move students from the source year to the target year and assign their next "
+"classroom. Select source and target year, then choose the next class for "
+"each student (or keep the suggestion) and apply. Optionally lock the source "
+"year after rollover to prevent further grade edits."
+msgstr ""
+
+#: templates/marketing/partials/sections/_hero_edge_map.html
+msgid "Mumbai"
+msgstr ""
+
+#: templates/teacher/timetable.html
+msgid "My Timetable"
+msgstr ""
+
+#: templates/feedback/school_center.html
+msgid "My and School Requests"
+msgstr ""
+
+#: templates/accounts/entity_console.html
+msgid "NEW"
+msgstr "Nouveau"
+
+#: templates/marketing/partials/sections/_hero_edge_map.html
+msgid "Nairobi"
+msgstr ""
+
+#: templates/parent/link_child_wizard.html
+msgid "Need Help?"
+msgstr ""
+
+#: templates/portal/faq_detail.html
+msgid "Need More Help?"
+msgstr ""
+
+#: templates/portal/kb_article.html
+msgid "Need a quick answer? Check our FAQ."
+msgstr ""
+
+#: templates/payroll/dashboard.html
+msgid "New Payroll Run"
+msgstr ""
+
+#: templates/marketing/partials/sections/_hero_edge_map.html
+msgid "New York"
+msgstr ""
+
+#: templates/components/quick_actions.html
+msgid "New enrollment"
+msgstr ""
+
+#: templates/portal/cahier_list.html
+msgid "New entry"
+msgstr ""
+
+#: templates/accounts/direct_compose.html
+msgid "New message"
+msgstr ""
+
+#: templates/emails/operator_tenant_signup_created.html
+msgid "New school signup on RunMyCampus"
+msgstr ""
+
+#: templates/components/quick_actions.html
+msgid "New staff member"
+msgstr ""
+
+#: templates/components/quick_actions.html
+msgid "Next Best Actions"
+msgstr ""
+
+#: templates/accounts/sso_connections.html
+msgid ""
+"No SSO connections yet. Add one to enable single sign-on on your login page."
+msgstr ""
+
+#: templates/schools/super_tenant_360.html
+msgid "No active school owners on file."
+msgstr ""
+
+#: templates/academics/teacher_syllabus_hub.html
+msgid "No active year/term."
+msgstr ""
+
+#: templates/widgets/parent_dashboard_widgets.html
+msgid "No attendance data available."
+msgstr ""
+
+#: templates/siteconfig/feature_control_panel_content.html
+msgid "No changes to preview."
+msgstr ""
+
+#: templates/portal/kb_article.html
+msgid "No comments yet. Be the first to comment!"
+msgstr ""
+
+#: templates/academics/syllabus_preview.html
+msgid "No content yet. Use Builder or Upload to add content."
+msgstr ""
+
+#: templates/academics/syllabus_builder.html
+msgid ""
+"No curriculum nodes in this school. Add standards in Admin → Curriculum."
+msgstr ""
+
+#: templates/siteconfig/feature_control_panel_content.html
+msgid "No features match your search. Try different keywords."
+msgstr ""
+
+#: templates/widgets/parent_dashboard_widgets.html
+msgid "No finance data available."
+msgstr ""
+
+#: templates/communication/group_list.html
+msgid "No groups yet"
+msgstr ""
+
+#: templates/accounts/tenant_join_codes.html
+msgid "No join codes yet. Create one to let people self-join."
+msgstr ""
+
+#: templates/evals/resolve_offline_conflict.html
+msgid "No online entry exists."
+msgstr ""
+
+#: templates/academics/syllabus_clone.html
+msgid ""
+"No other class (same subject and term) without a syllabus found. Create "
+"syllabi for other classes first or choose another source."
+msgstr ""
+
+#: templates/widgets/parent_dashboard_widgets.html
+msgid "No performance data available."
+msgstr ""
+
+#: templates/widgets/parent_dashboard_widgets.html
+msgid "No queued deadlines yet."
+msgstr ""
+
+#: templates/portal/at_risk_labeling/no_tenant.html
+msgid "No school in scope"
+msgstr ""
+
+#: templates/accounts/rollover_proposal_detail.html
+msgid "No students in this proposal."
+msgstr ""
+
+#: templates/finance/generate_fees.html
+msgid "Notify guardians"
+msgstr ""
+
+#: templates/accounts/rollover_proposal_detail.html
+msgid "Notify parents"
+msgstr ""
+
+#: templates/accounts/rollover_year.html
+msgid "Notify parents after rollover"
+msgstr ""
+
+#: templates/portal/kb_home.html
+msgid "Office Docs"
+msgstr ""
+
+#: templates/evals/resolve_offline_conflict.html
+msgid "Offline Entry"
+msgstr ""
+
+#: templates/evals/resolve_offline_conflict.html
+msgid "Offline mark entry details"
+msgstr ""
+
+#: templates/accounts/sso_connections.html
+msgid "On login page"
+msgstr ""
+
+#: templates/emails/newsletter_verify.html
+msgid "One click away"
+msgstr ""
+
+#: templates/accounts/onboarding_profile.html
+msgid ""
+"One quick step before you start — tell us who you are. You can update this "
+"any time from your profile."
+msgstr ""
+
+#: templates/migration_cloud/attach_source.html
+msgid "OneDrive"
+msgstr ""
+
+#: templates/developer/hub.html
+msgid "OneRoster"
+msgstr ""
+
+#: templates/schools/signup_school.html
+msgid "OneRoster (CSV)"
+msgstr ""
+
+#: templates/evals/resolve_offline_conflict.html
+msgid "Online Entry"
+msgstr ""
+
+#: templates/evals/resolve_offline_conflict.html
+msgid "Online mark entry details"
+msgstr ""
+
+#: templates/staff/contact_requests_list.html
+msgid "Only mine"
+msgstr ""
+
+#: templates/accounts/import_hub.html
+msgid "Open Entity Import"
+msgstr ""
+
+#: templates/payroll/dashboard.html
+msgid "Open Run"
+msgstr ""
+
+#: templates/accounts/automation_hub.html
+msgid "Open Site Settings"
+msgstr ""
+
+#: templates/finance/scan_teller_placeholder.html
+msgid "Open Suspense Queue"
+msgstr ""
+
+#: templates/admin/compliance/partials/document_preview.html
+msgid "Open mockup"
+msgstr ""
+
+#: templates/portal/syllabus.html
+msgid "Open resource"
+msgstr ""
+
+#: templates/academics/syllabus_preview.html
+msgid "Open uploaded file"
+msgstr ""
+
+#: templates/schools/developer_sdk.html
+msgid "OpenAPI schema"
+msgstr ""
+
+#: templates/finance/cash_office_closure.html
+msgid "Opening cash"
+msgstr ""
+
+#: templates/schools/mat_group_hub/edit.html
+msgid "Operator email"
+msgstr ""
+
+#: templates/partials/admin_tenant_workbench_footer.html
+msgid "Operator home"
+msgstr ""
+
+#: templates/finance/payment_readiness_setup.html
+msgid "Operator playbook"
+msgstr ""
+
+#: templates/partials/admin_tenant_workbench_footer.html
+msgid "Operator-scoped · control plane"
+msgstr ""
+
+#: templates/academics/syllabus_builder.html
+msgid "Optional: link this syllabus to curriculum standards (topics/units)."
+msgstr ""
+
+#: templates/finance/payment_readiness_dashboard.html
+msgid "Orchestration hint"
+msgstr ""
+
+#: templates/accounts/delegation_catch_up.html
+msgid "Out of Office"
+msgstr ""
+
+#: templates/accounts/my_delegations.html
+msgid "Out of Office / Delegation"
+msgstr ""
+
+#: templates/portal/signature_requests_manage.html
+msgid "Output Studio"
+msgstr ""
+
+#: templates/finance/payment_readiness_setup.html
+msgid "Outside RunMyCampus"
+msgstr ""
+
+#: templates/components/ai_copilot.html
+msgid "Overdue Invoices"
+msgstr ""
+
+#: templates/accounts/certification_session_detail.html
+msgid "Override type"
+msgstr ""
+
+#: templates/schools/super_tenant_360.html
+msgid "Owner recipients"
+msgstr ""
+
+#: templates/schools/super_workflow_simulator.html
+msgid "PARENT"
+msgstr "Parent"
+
+#: templates/academics/syllabus_upload.html
+msgid "PDF or Word document"
+msgstr ""
+
+#: templates/accounts/entity_console.html
+msgid "PROBATION"
+msgstr ""
+
+#: templates/platform_runtime/pack_installations.html
+msgid "Pack installations"
+msgstr ""
+
+#: templates/finance/payments.html
+msgid "Paid at"
+msgstr ""
+
+#: templates/home.html
+msgid "Parent / Student"
+msgstr ""
+
+#: templates/widgets/parent_dashboard_widgets.html
+msgid "Parent portal:"
+msgstr ""
+
+#: templates/people/backend_student_create.html
+msgid "Parent/Guardian Information"
+msgstr ""
+
+#: templates/accounts/magic_link_request.html
+msgid "Passwordless sign-in"
+msgstr ""
+
+#: templates/finance/scan_teller_placeholder.html
+msgid "Payment method hint"
+msgstr ""
+
+#: templates/teacher/pay_history.html
+msgid "Payment types"
+msgstr ""
+
+#: templates/payroll/dashboard.html
+msgid "Payroll Dashboard"
+msgstr ""
+
+#: templates/payroll/run_detail.html
+msgid "Payroll Run"
+msgstr ""
+
+#: templates/components/ai_copilot.html
+msgid "Pending Grades"
+msgstr ""
+
+#: templates/portal/signature_pending_list.html
+msgid "Pending Signatures"
+msgstr ""
+
+#: templates/communication/announcement_list_pending.html
+msgid "Pending announcements"
+msgstr ""
+
+#: templates/portal/stats.html
+msgid "Pending evaluation entries"
+msgstr ""
+
+#: templates/widgets/parent_dashboard_widgets.html
+msgid "Pending payments"
+msgstr ""
+
+#: templates/academics/syllabus_approval_queue.html
+msgid "Pending syllabi awaiting your approval"
+msgstr ""
+
+#: templates/components/pagination.html
+msgid "Per page"
+msgstr ""
+
+#: templates/widgets/parent_dashboard_widgets.html
+msgid "Performance overview"
+msgstr ""
+
+#: templates/payroll/create_run.html
+msgid "Period end"
+msgstr ""
+
+#: templates/payroll/create_run.html
+msgid "Period start"
+msgstr ""
+
+#: templates/partials/admin_tenant_workbench_footer.html
+msgid "Platform control plane"
+msgstr ""
+
+#: templates/partials/admin_tenant_workbench_footer.html
+msgid "Platform control-plane footer"
+msgstr ""
+
+#: templates/evals/grade_import_upload_v2.html
+msgid "Please wait, this may take a moment"
+msgstr ""
+
+#: templates/platform_runtime/pack_simulation.html
+msgid "Policy Decision"
+msgstr ""
+
+#: templates/widgets/parent_dashboard_widgets.html
+msgid "Portal access"
+msgstr ""
+
+#: templates/siteconfig/customizer.html
+msgid "Portal defaults"
+msgstr ""
+
+#: templates/portal/kb_article.html
+msgid "Post Comment"
+msgstr ""
+
+#: templates/evals/resolve_offline_conflict.html
+msgid "Practical:"
+msgstr ""
+
+#: templates/accounts/rollover_year.html
+msgid "Pre-rollover checklist"
+msgstr ""
+
+#: templates/accounts/rollover_year.html
+msgid "Prepare and add to queue"
+msgstr ""
+
+#: templates/admin/components/theme_preview_section.html
+msgid "Preview as:"
+msgstr ""
+
+#: templates/accounts/entity_import.html
+msgid "Preview guardians"
+msgstr ""
+
+#: templates/admin/compliance/partials/document_preview.html
+msgid "Preview layout"
+msgstr ""
+
+#: templates/accounts/entity_import.html
+msgid "Preview students"
+msgstr ""
+
+#: templates/accounts/tenant_join_codes.html
+msgid "Print QR poster"
+msgstr ""
+
+#: templates/evals/grade_import_upload_v2.html
+msgid "Proceed to Review"
+msgstr ""
+
+#: templates/evals/import_job_monitor.html
+msgid "Processing"
+msgstr "Traitement en cours"
+
+#: templates/evals/grade_import_upload_v2.html
+msgid "Processing grades..."
+msgstr ""
+
+#: templates/feedback/product_roadmap.html
+msgid "Product Roadmap"
+msgstr ""
+
+#: templates/parent/link_child_wizard.html
+msgid "Profile (Optional)"
+msgstr ""
+
+#: templates/schools/super_migration_cloud.html
+msgid "Profile readiness"
+msgstr ""
+
+#: templates/accounts/academic_rules.html
+msgid "Promote ≥"
+msgstr ""
+
+#: templates/accounts/academic_rules.html
+msgid "Promotion &amp; grading settings"
+msgstr ""
+
+#: templates/reports/promotion_preview.html
+msgid "Promotion preview / borderline list"
+msgstr ""
+
+#: templates/siteconfig/request_waiver.html
+msgid "Proof (optional)"
+msgstr ""
+
+#: templates/reports/publish_term.html
+msgid "Publish Term Results"
+msgstr ""
+
+#: templates/reports/publish_term.html
+msgid "Publish for the whole school (overrides class-level settings)"
+msgstr ""
+
+#: templates/accounts/join_code_poster.html
+msgid "QR code to join"
+msgstr ""
+
+#: templates/schools/super_migration_cloud.html
+msgid "Quarantine rows"
+msgstr ""
+
+#: templates/components/quick_actions.html
+msgid "Quick Actions"
+msgstr "Actions rapides"
+
+#: templates/portal/kb_article.html
+msgid "Quick Answers"
+msgstr ""
+
+#: templates/siteconfig/feature_control_panel_content.html
+msgid "Quick presets"
+msgstr ""
+
+#: templates/widgets/parent_dashboard_widgets.html
+msgid "Quick shortcuts to results, fees, and stats."
+msgstr ""
+
+#: templates/accounts/automation_hub.html
+msgid "Quick tips"
+msgstr ""
+
+#: templates/schools/super_usage.html
+msgid "Quota limits"
+msgstr ""
+
+#: templates/components/quick_actions.html
+msgid "RBAC &amp; access control"
+msgstr ""
+
+#: templates/accounts/entity_console.html
+msgid "RETURNING"
+msgstr ""
+
+#: templates/finance/payment_readiness_dashboard.html
+msgid "Rail"
+msgstr ""
+
+#: templates/portal/kb_category.html
+msgid "Ready to Contribute?"
+msgstr ""
+
+#: templates/evals/grade_import_upload_v2.html
+msgid "Ready to import:"
+msgstr ""
+
+#: templates/portal/stats.html
+msgid "Real-time view of rankings, improvements, and hotspots."
+msgstr ""
+
+#: templates/academics/syllabus_approval_queue.html
+msgid "Reason (optional)"
+msgstr ""
+
+#: templates/siteconfig/request_waiver.html
+msgid "Reason *"
+msgstr "Motif *"
+
+#: templates/platform_runtime/pack_apply.html
+msgid "Reason Governed rollout request"
+msgstr ""
+
+#: templates/evals/extend_deadline.html
+msgid "Reason for Extension:"
+msgstr ""
+
+#: templates/finance/scan_teller_placeholder.html
+msgid "Receipt / teller file"
+msgstr ""
+
+#: templates/components/ai_copilot.html
+msgid "Recent Activities"
+msgstr ""
+
+#: templates/emis/dashboard.html
+msgid "Recent Exports"
+msgstr ""
+
+#: templates/components/ai_copilot.html
+msgid "Recent Grades"
+msgstr ""
+
+#: templates/finance/dashboard.html
+msgid "Recent Invoices"
+msgstr ""
+
+#: templates/finance/dashboard.html
+msgid "Recent Payments"
+msgstr ""
+
+#: templates/teacher/pay_history.html
+msgid "Recent attendance"
+msgstr ""
+
+#: templates/student360/student_360_page.html
+msgid "Recent enrollments"
+msgstr ""
+
+#: templates/student360/student_360_page.html
+msgid "Recent evaluations"
+msgstr ""
+
+#: templates/student360/student_360_page.html
+msgid "Recent invoices"
+msgstr ""
+
+#: templates/siteconfig/request_waiver.html
+msgid "Recent requests"
+msgstr ""
+
+#: templates/portal/kb_home.html
+msgid "Recently Updated Articles"
+msgstr ""
+
+#: templates/finance/payment_readiness_setup.html
+msgid "Recommended methods"
+msgstr ""
+
+#: templates/finance/split_allocation.html
+msgid "Record payment"
+msgstr "Enregistrer un paiement"
+
+#: templates/finance/scan_teller_placeholder.html
+msgid "Reference hint (optional)"
+msgstr ""
+
+#: templates/parent/link_child_wizard.html
+msgid "Referral Code (Optional)"
+msgstr ""
+
+#: templates/widgets/parent_dashboard_widgets.html
+msgid "Referrals & parent data"
+msgstr ""
+
+#: templates/lti_admin/tool_registration.html
+msgid "Register a new LTI 1.3 tool"
+msgstr ""
+
+#: templates/lti_admin/tool_registration.html
+msgid "Register new tool"
+msgstr ""
+
+#: templates/lti_admin/tool_registration.html
+msgid "Register the first one."
+msgstr ""
+
+#: templates/lti_admin/tool_registration.html
+msgid "Register tool"
+msgstr ""
+
+#: templates/accounts/certification_session_detail.html
+msgid "Registration lock"
+msgstr ""
+
+#: templates/analytics/executive_dashboard.html
+msgid "Regulatory export"
+msgstr ""
+
+#: templates/portal/faq_detail.html
+msgid "Related Questions"
+msgstr ""
+
+#: templates/feedback/product_roadmap.html
+msgid "Release Notes"
+msgstr "Notes de version"
+
+#: templates/portal/kb_search.html
+msgid "Relevance"
+msgstr ""
+
+#: templates/evals/resolve_offline_conflict.html
+msgid "Remarks:"
+msgstr "Observations:"
+
+#: templates/accounts/sso_connections.html
+msgid "Remove this SSO connection?"
+msgstr ""
+
+#: templates/siteconfig/report_library.html
+msgid "Report Packs"
+msgstr ""
+
+#: templates/portal/faq_detail.html
+msgid "Report Problem"
+msgstr ""
+
+#: templates/siteconfig/report_library.html
+msgid "Reports & Downloads"
+msgstr ""
+
+#: templates/payroll/employee_leave.html
+msgid "Request Leave"
+msgstr ""
+
+#: templates/siteconfig/request_custom_requirement.html
+msgid "Request a custom requirement"
+msgstr ""
+
+#: templates/siteconfig/request_waiver.html
+msgid "Request billing waiver"
+msgstr ""
+
+#: templates/parent/link_child.html
+msgid "Request invite (Email)"
+msgstr ""
+
+#: templates/parent/link_child.html
+msgid "Request invite (Phone)"
+msgstr ""
+
+#: templates/parent/link_child.html
+msgid "Request invite (WhatsApp)"
+msgstr ""
+
+#: templates/teacher/leave.html
+msgid "Request leave"
+msgstr ""
+
+#: templates/portal/cahier_verify_list.html
+msgid "Request revisions"
+msgstr ""
+
+#: templates/requests/dashboard.html
+msgid "Request type"
+msgstr ""
+
+#: templates/requests/dashboard.html
+msgid "Requester"
+msgstr ""
+
+#: templates/portal/document_upload.html
+msgid "Requires electronic signature"
+msgstr ""
+
+#: templates/admin/components/theme_preview_section.html
+msgid "Reset preview"
+msgstr ""
+
+#: templates/components/dashboard_customize_ui.html
+msgid "Reset to default"
+msgstr ""
+
+#: templates/siteconfig/feature_control_panel_content.html
+msgid "Resolved timezone"
+msgstr ""
+
+#: templates/accounts/tenant_join_codes.html
+msgid "Restrict to email domains"
+msgstr ""
+
+#: templates/academics/syllabus_approval_queue.html
+msgid "Return for revision"
+msgstr ""
+
+#: templates/portal/feature_page.html
+msgid "Return to dashboard"
+msgstr ""
+
+#: templates/accounts/rollover_proposal_detail.html
+msgid "Returns"
+msgstr ""
+
+#: templates/siteconfig/feature_control_panel_content.html
+msgid "Revert last change"
+msgstr ""
+
+#: templates/accounts/approval_workflow_hub.html
+msgid "Review access requests"
+msgstr ""
+
+#: templates/migration_cloud/emails/guardian/consent_reminder.html
+msgid "Review and respond"
+msgstr ""
+
+#: templates/accounts/automation_hub.html
+msgid "Review approval queue"
+msgstr ""
+
+#: templates/accounts/approval_workflow_hub.html
+msgid "Review contact requests"
+msgstr ""
+
+#: templates/accounts/approval_workflow_hub.html
+msgid "Review grade approvals"
+msgstr ""
+
+#: templates/evals/grade_approval_list.html
+msgid "Review teacher submissions before publishing the final grades."
+msgstr ""
+
+#: templates/evals/grade_approval_detail.html
+msgid "Reviewer decision"
+msgstr ""
+
+#: templates/evals/grade_approval_detail.html
+msgid "Reviewer notes:"
+msgstr ""
+
+#: templates/accounts/tenant_join_codes.html
+msgid "Role for joiners"
+msgstr ""
+
+#: templates/platform_runtime/pack_installation_detail.html
+msgid "Rollback or deactivate"
+msgstr ""
+
+#: templates/schools/super_migration_cloud.html
+msgid "Rollback queue"
+msgstr ""
+
+#: templates/evals/grade_import_upload_v2.html
+msgid "Row #"
+msgstr ""
+
+#: templates/evals/grade_approval_detail.html
+msgid "Rows submitted:"
+msgstr ""
+
+#: templates/evals/grade_import_upload_v2.html
+msgid "Rows with Warnings"
+msgstr ""
+
+#: templates/teacher/marks_entry.html
+msgid "Run on this device"
+msgstr ""
+
+#: templates/schools/super_migration_cloud.html
+msgid "Run-level exceptions"
+msgstr ""
+
+#: templates/api_schema_ui.html
+msgid "RunMyCampus API"
+msgstr ""
+
+#: templates/schools/developer_portal.html
+msgid "RunMyCampus SDK (GitHub)"
+msgstr ""
+
+#: templates/schools/developer_portal.html
+msgid "SDK &amp; API reference"
+msgstr ""
+
+#: templates/schools/developer_sdk.html
+msgid "SDK repo"
+msgstr ""
+
+#: templates/schools/super_workflow_simulator.html
+msgid "STAFF"
+msgstr "Personnel"
+
+#: templates/siteconfig/partials/reportcard_style_preview_body.html
+msgid "Sample term table"
+msgstr ""
+
+#: templates/teacher/marks_entry.html
+msgid "Save All Marks"
+msgstr ""
+
+#: templates/communication/group_manage.html
+msgid "Save Changes"
+msgstr "Enregistrer les modifications"
+
+#: templates/analytics/deadlines.html
+msgid "Save Deadline"
+msgstr ""
+
+#: templates/portal/kb_article_submit.html
+msgid "Save Draft"
+msgstr ""
+
+#: templates/reports/publish_term.html
+msgid "Save Publish Status"
+msgstr ""
+
+#: templates/portal/roll_call_student.html
+msgid "Save all present"
+msgstr ""
+
+#: templates/admin/submit_line.html
+msgid "Save and add another"
+msgstr "Enregistrer et en ajouter un autre"
+
+#: templates/accounts/onboarding_profile.html
+msgid "Save and continue"
+msgstr "Enregistrer et continuer"
+
+#: templates/admin/submit_line.html
+msgid "Save and continue editing"
+msgstr "Enregistrer et poursuivre les modifications"
+
+#: templates/admin/submit_line.html
+msgid "Save and view"
+msgstr ""
+
+#: templates/admin/submit_line.html
+msgid "Save as new"
+msgstr ""
+
+#: templates/staff/contact_requests_detail.html
+msgid "Save assignment"
+msgstr ""
+
+#: templates/portal/roll_call_student.html
+msgid "Save attendance"
+msgstr ""
+
+#: templates/finance/cash_office_closure.html
+msgid "Save closure"
+msgstr ""
+
+#: templates/evals/grade_approval_detail.html
+msgid "Save decision"
+msgstr ""
+
+#: templates/siteconfig/feature_control_panel_content.html
+msgid "Save these changes"
+msgstr ""
+
+#: templates/admin/submit_line.html
+msgid "Save · more in ▾"
+msgstr ""
+
+#: templates/finance/payments.html
+msgid "Scan Teller"
+msgstr ""
+
+#: templates/finance/scan_teller_placeholder.html
+msgid "Scan Teller (OCR)"
+msgstr ""
+
+#: templates/finance/scan_teller_placeholder.html
+msgid "Scan teller"
+msgstr ""
+
+#: templates/accounts/join_code_poster.html
+msgid "Scan the code, or go to the link below and enter the code."
+msgstr ""
+
+#: templates/widgets/parent_dashboard_widgets.html
+msgid "Schedule fills once timetables are finalized."
+msgstr ""
+
+#: templates/widgets/teacher_dashboard_widgets.html
+msgid "Schedule updates once subjects are assigned."
+msgstr ""
+
+#: templates/feedback/school_roadmap.html
+msgid "School Roadmap"
+msgstr ""
+
+#: templates/portal/stats.html
+msgid "School Stats"
+msgstr ""
+
+#: templates/partials/admin_tenant_workbench_footer.html
+msgid "School configuration footer"
+msgstr ""
+
+#: templates/school_events/event_hub.html
+msgid "School events"
+msgstr ""
+
+#: templates/people/transfer_consent/decided.html
+msgid "School transfer consent"
+msgstr ""
+
+#: templates/teacher/marks_entry.html
+msgid "Scores (editable)"
+msgstr ""
+
+#: templates/portal/kb_article.html
+msgid "Screenshots & Visuals"
+msgstr ""
+
+#: templates/portal/kb_search.html
+msgid "Search FAQs and Knowledge Base..."
+msgstr ""
+
+#: templates/portal/kb_search.html
+msgid "Search Results"
+msgstr ""
+
+#: templates/portal/kb_home.html
+msgid "Search articles and FAQs"
+msgstr ""
+
+#: templates/siteconfig/feature_control_panel_content.html
+msgid "Search city..."
+msgstr ""
+
+#: templates/siteconfig/feature_control_panel_content.html
+msgid "Search features"
+msgstr ""
+
+#: templates/portal/kb_home.html
+msgid "Search for an article, FAQ, or more..."
+msgstr ""
+
+#: templates/feedback/school_center.html
+msgid "Search help and feedback context"
+msgstr ""
+
+#: templates/portal/kb_search.html
+msgid "Search results pagination"
+msgstr ""
+
+#: templates/emails/report_ready_pid.html
+msgid "See Report"
+msgstr ""
+
+#: templates/siteconfig/feature_control_panel_content.html
+msgid "See what would change"
+msgstr ""
+
+#: templates/evals/grade_import_upload_v2.html
+msgid "Select CSV file"
+msgstr ""
+
+#: templates/accounts/direct_compose.html
+msgid "Select a user..."
+msgstr ""
+
+#: templates/siteconfig/feature_control_panel_content.html
+msgid ""
+"Select country then city from the global catalog (all ISO countries; search "
+"loads up to 500 cities). Coordinates and timezone resolve automatically."
+msgstr ""
+
+#: templates/schools/super_tenant_360.html
+msgid "Select owner recipients"
+msgstr ""
+
+#: templates/teacher/marks_entry.html
+msgid "Select your assigned class/subject"
+msgstr ""
+
+#: templates/accounts/tenant_identity_invite.html
+msgid "Self-service join codes"
+msgstr ""
+
+#: templates/evals/grade_import_upload_v2.html
+msgid "Send notifications to parents/guardians if configured"
+msgstr ""
+
+#: templates/accounts/magic_link_request.html
+msgid "Send sign-in link"
+msgstr ""
+
+#: templates/admin/portal/partials/communication_test_preview.html
+msgid "Send test preview"
+msgstr ""
+
+#: templates/admin/portal/partials/communication_test_preview.html
+msgid "Send test to yourself"
+msgstr ""
+
+#: templates/evals/resolve_offline_conflict.html
+msgid "Seq 1:"
+msgstr ""
+
+#: templates/evals/resolve_offline_conflict.html
+msgid "Seq 2:"
+msgstr ""
+
+#: templates/schools/super_sync_repair.html
+msgid "Server data"
+msgstr ""
+
+#: templates/accounts/certification_session_detail.html
+msgid "Set override"
+msgstr ""
+
+#: templates/accounts/onboarding_profile.html
+msgid "Set up your profile"
+msgstr ""
+
+#: templates/emails/tenant_admin_signup_completed.html
+msgid "Set your password &amp; open your portal"
+msgstr ""
+
+#: templates/finance/payment_readiness_setup.html
+msgid "Setup checklist"
+msgstr ""
+
+#: templates/portal/kb_article.html
+msgid "Share Article"
+msgstr ""
+
+#: templates/reports/share_link.html
+msgid "Share Report"
+msgstr ""
+
+#: templates/accounts/tenant_join_codes.html
+msgid ""
+"Share a code so people can join this school themselves — they enter it on "
+"your join page, register, and are added with the role you choose. Restrict "
+"by email domain, cap the number of uses, or set an expiry."
+msgstr ""
+
+#: templates/reports/share_link.html
+msgid "Share link"
+msgstr ""
+
+#: templates/portal/kb_article.html
+msgid "Share this article"
+msgstr ""
+
+#: templates/reports/share_link.html
+msgid "Share via WhatsApp"
+msgstr ""
+
+#: templates/portal/kb_article.html
+msgid "Share your thoughts or questions..."
+msgstr ""
+
+#: templates/teacher/marks_entry.html
+msgid "Show all"
+msgstr ""
+
+#: templates/teacher/marks_entry.html
+msgid "Show missing only"
+msgstr ""
+
+#: templates/accounts/rollover_year.html
+msgid "Show students"
+msgstr ""
+
+#: templates/accounts/sso_connections.html
+msgid "Show this connection on the login page"
+msgstr ""
+
+#: templates/widgets/parent_dashboard_widgets.html
+msgid "Shows next subjects for your linked classrooms."
+msgstr ""
+
+#: templates/portal/signature_sign.html
+msgid "Sign Form"
+msgstr ""
+
+#: templates/portal/signature_pending_list.html
+msgid "Sign Now"
+msgstr ""
+
+#: templates/feedback/school_roadmap.html
+msgid "Sign in to vote"
+msgstr ""
+
+#: templates/accounts/magic_link_request.html
+msgid "Sign in with a password"
+msgstr ""
+
+#: templates/portal/signature_requests_manage.html
+msgid "Signature Requests Management"
+msgstr ""
+
+#: templates/portal/document_upload.html
+msgid "Signatures and visibility"
+msgstr ""
+
+#: templates/accounts/sso_connections.html
+msgid "Single sign-on (SSO)"
+msgstr ""
+
+#: templates/accounts/automation_hub.html
+msgid "Site Settings"
+msgstr ""
+
+#: templates/accounts/partials/mfa_setup_page_body.html
+msgid "Skip MFA prompts on this browser for"
+msgstr ""
+
+#: templates/accounts/certification_bulk_add_candidates.html
+msgid "Skip students who already have a candidate in this session"
+msgstr ""
+
+#: templates/schools/signup_school.html
+msgid "Skyward"
+msgstr ""
+
+#: templates/portal/kb_search.html
+msgid "Sort By"
+msgstr ""
+
+#: templates/accounts/clone_year_setup.html
+msgid "Source year (copy from)"
+msgstr ""
+
+#: templates/accounts/rollover_year.html
+msgid "Source year (current)"
+msgstr ""
+
+#: templates/accounts/certification_bulk_add_candidates.html
+msgid "Specialties (optional)"
+msgstr ""
+
+#: templates/finance/payments.html
+msgid "Split payment"
+msgstr ""
+
+#: templates/school_events/event_detail.html
+msgid "Sponsors"
+msgstr ""
+
+#: templates/home.html
+msgid "Staff / Admin"
+msgstr ""
+
+#: templates/accounts/import_hub.html
+msgid "Start wizard"
+msgstr ""
+
+#: templates/analytics/executive_dashboard.html
+msgid "Statistical return"
+msgstr ""
+
+#: templates/schools/super_tenant_health.html
+msgid "Statutory"
+msgstr ""
+
+#: templates/student/onboarding_wizard.html
+msgid "Step 1: Basic Information"
+msgstr ""
+
+#: templates/accounts/migration_wizard.html
+msgid "Step 1: Choose your current system"
+msgstr ""
+
+#: templates/parent/link_child_wizard.html
+msgid "Step 1: Identify Your Child"
+msgstr ""
+
+#: templates/evals/grade_import_upload_v2.html
+msgid "Step 1: Upload CSV File"
+msgstr ""
+
+#: templates/student/onboarding_wizard.html
+msgid "Step 2: Academic Information"
+msgstr ""
+
+#: templates/parent/link_child_wizard.html
+msgid "Step 2: Contact & Permissions"
+msgstr ""
+
+#: templates/teacher/onboarding_wizard.html
+msgid "Step 2: Professional Details"
+msgstr ""
+
+#: templates/accounts/migration_wizard.html
+msgid "Step 2: Upload"
+msgstr ""
+
+#: templates/evals/grade_import_upload_v2.html
+msgid "Step 2: Validation Results"
+msgstr ""
+
+#: templates/parent/link_child_wizard.html
+msgid "Step 3: Additional Details (Optional)"
+msgstr ""
+
+#: templates/student/onboarding_wizard.html
+msgid "Step 3: Parent/Guardian Information"
+msgstr ""
+
+#: templates/teacher/onboarding_wizard.html
+msgid "Step 3: Preferences"
+msgstr ""
+
+#: templates/evals/grade_import_upload_v2.html
+msgid "Step 3: Review & Confirm"
+msgstr ""
+
+#: templates/accounts/migration_wizard.html
+msgid "Step 3: Run import"
+msgstr ""
+
+#: templates/evals/grade_import_upload_v2.html
+msgid "Step 4: Importing..."
+msgstr ""
+
+#: templates/student/onboarding_wizard.html
+msgid "Step 4: Payment & Referral"
+msgstr ""
+
+#: templates/teacher/onboarding_wizard.html
+msgid "Step 4: Your photo"
+msgstr ""
+
+#: templates/student/onboarding_wizard.html
+msgid "Step 5: Student photo"
+msgstr ""
+
+#: templates/evals/grade_import_upload_v2.html
+msgid "Student Code"
+msgstr ""
+
+#: templates/parent/link_child_wizard.html
+msgid "Student Found"
+msgstr ""
+
+#: templates/parent/link_child_wizard.html
+msgid "Student Information"
+msgstr ""
+
+#: templates/student/onboarding_wizard.html
+msgid "Student Pre-Registration"
+msgstr ""
+
+#: templates/admin/portal/partials/syllabus_student_preview.html
+msgid "Student View preview"
+msgstr ""
+
+#: templates/people/transfer_consent/_consent_text_v1.html
+msgid "Student transfer consent (v1)"
+msgstr ""
+
+#: templates/accounts/direct_compose.html
+msgid "Subject (optional)"
+msgstr ""
+
+#: templates/portal/stats.html
+msgid "Subject weak spots"
+msgstr ""
+
+#: templates/evals/grade_approval_detail.html
+msgid "Subject:"
+msgstr "Matière:"
+
+#: templates/accounts/certification_home.html
+msgid "Submit Registration Data"
+msgstr ""
+
+#: templates/portal/signature_sign.html
+msgid "Submit Signature"
+msgstr ""
+
+#: templates/teacher/marks_entry.html
+msgid "Submit for Review"
+msgstr ""
+
+#: templates/portal/cahier_list.html
+msgid "Submit for visa"
+msgstr ""
+
+#: templates/portal/kb_home.html
+msgid "Submit search"
+msgstr ""
+
+#: templates/portal/faq_list.html
+msgid "Submit your question"
+msgstr ""
+
+#: templates/evals/grade_approval_detail.html
+msgid "Submitted marks"
+msgstr ""
+
+#: templates/evals/grade_approval_detail.html
+msgid "Submitted marks for approval: student and score components"
+msgstr ""
+
+#: templates/reports/statistical_return.html
+msgid "Success %"
+msgstr ""
+
+#: templates/finance/scan_teller_placeholder.html
+msgid "Suggested Matches"
+msgstr ""
+
+#: templates/feedback/role_center.html
+msgid "Suggested help"
+msgstr ""
+
+#: templates/portal/kb_article_submit.html
+msgid "Summary Required"
+msgstr ""
+
+#: templates/finance/suspense_queue.html
+msgid "Suspense Queue"
+msgstr ""
+
+#: templates/academics/syllabus_preview.html
+msgid "Syllabus preview"
+msgstr ""
+
+#: templates/components/offline_status_bar.html
+msgid "Sync now"
+msgstr ""
+
+#: templates/portal/preview/student_syllabus_preview.html
+msgid "Synthetic Student Preview"
+msgstr ""
+
+#: templates/schools/super_workflow_simulator.html
+msgid "TEACHER"
+msgstr "Enseignant"
+
+#: templates/portal/kb_article.html
+msgid "Tags:"
+msgstr ""
+
+#: templates/academics/syllabus_clone.html
+msgid "Target class"
+msgstr ""
+
+#: templates/accounts/clone_year_setup.html
+msgid "Target year (copy to)"
+msgstr ""
+
+#: templates/accounts/rollover_year.html
+msgid "Target year (next)"
+msgstr ""
+
+#: templates/widgets/parent_dashboard_widgets.html
+msgid "Task tracker"
+msgstr ""
+
+#: templates/portal/stats.html
+msgid "Tasks & progress"
+msgstr ""
+
+#: templates/accounts/profile.html
+msgid "Teacher Dashboard"
+msgstr ""
+
+#: templates/teacher/onboarding_wizard.html
+msgid "Teacher Onboarding"
+msgstr ""
+
+#: templates/accounts/tenant_identity_invite.html
+msgid "Temporary password"
+msgstr ""
+
+#: templates/partials/admin_tenant_workbench_footer.html
+msgid "Tenant-scoped records · RBAC enforced"
+msgstr ""
+
+#: templates/emis/dashboard.html
+msgid "Term (Optional)"
+msgstr ""
+
+#: templates/siteconfig/school_theme_settings.html
+msgid "Theme Gallery"
+msgstr ""
+
+#: templates/portal/faq_list.html
+msgid "Tips"
+msgstr ""
+
+#: templates/portal/document_upload.html
+msgid "Title *"
+msgstr "Titre *"
+
+#: templates/components/ai_copilot.html
+msgid "Today's Attendance"
+msgstr ""
+
+#: templates/components/ai_copilot.html
+msgid "Today's Classes"
+msgstr ""
+
+#: templates/marketing/partials/mkt_ascension_arena.html
+msgid "Toddle"
+msgstr ""
+
+#: templates/lti_admin/tool_registration.html
+msgid "Tool"
+msgstr ""
+
+#: templates/lti_admin/tool_registration.html
+msgid "Tool secret (shown once)"
+msgstr ""
+
+#: templates/portal/stats.html
+msgid "Top students (term)"
+msgstr ""
+
+#: templates/widgets/parent_dashboard_widgets.html
+msgid "Top subject"
+msgstr ""
+
+#: templates/evals/grade_import_upload_v2.html
+msgid "Total Rows"
+msgstr ""
+
+#: templates/student360/student_360_page.html
+msgid "Transcript &amp; archive"
+msgstr ""
+
+#: templates/feedback/voice_of_customer.html
+msgid "Triage"
+msgstr ""
+
+#: templates/evals/grade_import_upload_v2.html
+msgid "Trigger automatic grade conversions (letter grades, GPA)"
+msgstr ""
+
+#: templates/schools/super_migration_cloud.html
+msgid "Triggered by"
+msgstr ""
+
+#: templates/portal/kb_article.html
+msgid "Twitter"
+msgstr ""
+
+#: templates/accounts/tenant_identity_invite.html
+msgid ""
+"Two ways to add someone: email them a one-time invite link so they set their"
+" own password, or create the account now with a temporary password you hand "
+"over. Either way, they set a new password and complete their profile on "
+"first sign-in."
+msgstr ""
+
+#: templates/portal/signature_sign.html
+msgid "Type Your Name"
+msgstr ""
+
+#: templates/marketing/components/_currency_switcher.html
+msgid "USD ($)"
+msgstr ""
+
+#: templates/portal/kb_article.html
+msgid "Uncategorized"
+msgstr ""
+
+#: templates/emails/_legal_footer.html
+msgid "Unsubscribe"
+msgstr ""
+
+#: templates/widgets/teacher_dashboard_widgets.html
+msgid "Upcoming classes"
+msgstr ""
+
+#: templates/widgets/parent_dashboard_widgets.html
+msgid "Upcoming events & alerts"
+msgstr ""
+
+#: templates/accounts/entity_console.html
+msgid "Update / Delete student"
+msgstr ""
+
+#: templates/evals/grade_import_upload_v2.html
+msgid "Update existing evaluations with new scores"
+msgstr ""
+
+#: templates/evals/resolve_offline_conflict.html
+msgid "Updated:"
+msgstr "Mis à jour:"
+
+#: templates/accounts/migration_wizard.html
+msgid "Upload & preview"
+msgstr ""
+
+#: templates/evals/evidence_upload.html
+msgid "Upload Evidence"
+msgstr ""
+
+#: templates/portal/document_upload.html
+msgid "Upload File"
+msgstr ""
+
+#: templates/teacher/marks_entry.html
+msgid "Upload Marksheet (OCR)"
+msgstr ""
+
+#: templates/evals/grade_import_upload_v2.html
+msgid "Upload New File"
+msgstr ""
+
+#: templates/accounts/import_hub.html
+msgid "Upload grades"
+msgstr ""
+
+#: templates/portal/document_upload.html
+msgid "Upload guide"
+msgstr ""
+
+#: templates/academics/syllabus_upload.html
+msgid "Upload syllabus"
+msgstr ""
+
+#: templates/evals/grade_approval_detail.html
+msgid ""
+"Use this only when the normal approver is unavailable. A bypass is fully "
+"audited."
+msgstr ""
+
+#: templates/accounts/tenant_join_codes.html
+msgid "Used up"
+msgstr ""
+
+#: templates/accounts/profile.html
+msgid "User management (RBAC)"
+msgstr ""
+
+#: templates/accounts/tenant_join_codes.html
+msgid "Uses"
+msgstr ""
+
+#: templates/evals/grade_import_upload_v2.html
+msgid "Valid Rows"
+msgstr ""
+
+#: templates/accounts/migration_wizard.html
+msgid "Validate only (dry run)"
+msgstr ""
+
+#: templates/evals/audit_trail.html
+msgid "Validated"
+msgstr ""
+
+#: templates/evals/grade_approval_detail.html
+msgid "Validation flags:"
+msgstr ""
+
+#: templates/accounts/migration_wizard.html
+msgid "Validation issues (drill-down)"
+msgstr ""
+
+#: templates/portal/kb_search.html
+msgid "View All FAQs"
+msgstr ""
+
+#: templates/evals/grade_import_upload_v2.html
+msgid "View Compliance Dashboard"
+msgstr ""
+
+#: templates/evals/compliance_dashboard.html
+msgid "View Details"
+msgstr "Voir les détails"
+
+#: templates/portal/kb_article.html
+msgid "View FAQ"
+msgstr ""
+
+#: templates/accounts/profile.html
+msgid "View Finance"
+msgstr ""
+
+#: templates/portal/signature_pending_list.html
+msgid "View Form"
+msgstr ""
+
+#: templates/portal/signature_sign.html
+msgid "View Form PDF"
+msgstr ""
+
+#: templates/portal/kb_search.html
+msgid "View Knowledge Base"
+msgstr ""
+
+#: templates/components/quick_actions.html
+msgid "View Reports Report library"
+msgstr ""
+
+#: templates/schools/mat_group_hub/dashboard.html
+msgid "View detail →"
+msgstr ""
+
+#: templates/lti_admin/tool_registration.html
+msgid "View details"
+msgstr "Voir les détails"
+
+#: templates/accounts/automation_hub.html
+msgid "View execution log"
+msgstr ""
+
+#: templates/finance/generate_fees.html
+msgid "View invoices"
+msgstr ""
+
+#: templates/accounts/profile.html
+msgid "View portal"
+msgstr ""
+
+#: templates/widgets/parent_dashboard_widgets.html
+msgid "View receipts"
+msgstr ""
+
+#: templates/portal/stats.html
+msgid "View tasks"
+msgstr ""
+
+#: templates/portal/email/forum_reply_notification.html
+msgid "View the full thread"
+msgstr ""
+
+#: templates/portal/cahier_verify_list.html
+msgid "Visa"
+msgstr ""
+
+#: templates/portal/document_upload.html
+msgid "Visible To"
+msgstr ""
+
+#: templates/portal/kb_article.html
+msgid "Visuals & Screenshots"
+msgstr ""
+
+#: templates/feedback/voice_of_customer.html
+msgid "Voice of Customer Center"
+msgstr ""
+
+#: templates/emails/report_ready_fr.html
+msgid "Voir le bulletin"
+msgstr ""
+
+#: templates/feedback/school_roadmap.html
+msgid "Vote up"
+msgstr ""
+
+#: templates/schools/super_migration_cloud.html
+msgid "Waive row"
+msgstr ""
+
+#: templates/errors/500_minimal.html
+msgid "We couldn't complete that page."
+msgstr ""
+
+#: templates/siteconfig/feature_control_panel_content.html
+msgid "Weather location"
+msgstr ""
+
+#: templates/schools/developer_portal.html
+msgid "Webhooks documentation"
+msgstr ""
+
+#: templates/home.html
+msgid "Welcome 👋"
+msgstr ""
+
+#: templates/parent/link_child_wizard.html
+msgid "WhatsApp"
+msgstr ""
+
+#: templates/siteconfig/feature_control_panel_content.html
+msgid "When disabled"
+msgstr ""
+
+#: templates/accounts/migration_wizard.html
+msgid "Where are you migrating from?"
+msgstr ""
+
+#: templates/accounts/delegation_catch_up.html
+msgid "Who (acting)"
+msgstr ""
+
+#: templates/emails/report_ready_yo.html
+msgid "Wo Iwe-Ìsìrò"
+msgstr ""
+
+#: templates/portal/kb_article_submit.html
+msgid "Write a Knowledge Base Article"
+msgstr ""
+
+#: templates/marketing/components/_currency_switcher.html
+msgid "XAF (FCFA)"
+msgstr ""
+
+#: templates/marketing/components/_currency_switcher.html
+msgid "XOF (CFA)"
+msgstr ""
+
+#: templates/feedback/school_center.html
+msgid "You Said / We Did"
+msgstr ""
+
+#: templates/evals/grade_import_upload_v2.html
+msgid "You are about to import grades into the database. This will:"
+msgstr ""
+
+#: templates/evals/resolve_offline_conflict.html
+msgid "You can choose to import the offline entry."
+msgstr ""
+
+#: templates/accounts/join_code_poster.html
+msgid "You'll create your account and be added to the school automatically."
+msgstr ""
+
+#: templates/emails/newsletter_confirmed.html
+msgid "You're in 🎉"
+msgstr ""
+
+#: templates/portal/faq_submit.html
+msgid "Your Answer Required"
+msgstr ""
+
+#: templates/accounts/sso_connections.html
+msgid ""
+"Your Entra tenant ID or domain. Use “organizations” for any work/school "
+"account, “common” for personal too."
+msgstr ""
+
+#: templates/feedback/role_center.html
+msgid "Your Feedback"
+msgstr ""
+
+#: templates/portal/faq_submit.html
+msgid "Your Question Required"
+msgstr ""
+
+#: templates/accounts/sso_connections.html
+msgid "Your connections"
+msgstr ""
+
+#: templates/marketing/components/_currency_switcher.html
+msgid "ZAR (R)"
+msgstr ""
+
+#: templates/automation/visual_workflow_designer.html
+msgid "action"
+msgstr "action"
+
+#: templates/automation/visual_workflow_designer.html
+msgid "app_installed"
+msgstr ""
+
+#: templates/automation/visual_workflow_designer.html
+msgid "attendance_marked"
+msgstr ""
+
+#: templates/automation/visual_workflow_designer.html
+msgid "attendance_saved"
+msgstr ""
+
+#: templates/schools/partials/manager_kb_bulk_ops_body.html
+msgid "auto"
+msgstr ""
+
+#: templates/analytics/governed_report_builder.html
+msgid "avg"
+msgstr ""
+
+#: templates/portal/feature_page.html
+msgid "button above."
+msgstr ""
+
+#: templates/automation/visual_workflow_designer.html
+msgid "condition"
+msgstr ""
+
+#: templates/analytics/governed_report_builder.html
+msgid "count"
+msgstr ""
+
+#: templates/automation/visual_workflow_designer.html
+msgid "delay"
+msgstr ""
+
+#: templates/schools/mat_group_hub/dashboard.html
+msgid "docs/MAT_GROUP_HUB.md"
+msgstr ""
+
+#: templates/accounts/migration_wizard.html
+msgid "dry run"
+msgstr ""
+
+#: templates/accounts/tenant_join_codes.html
+msgid "e.g. Grade 7 parents"
+msgstr ""
+
+#: templates/accounts/sso_connections.html
+msgid "e.g. Sign in with Google"
+msgstr ""
+
+#: templates/schools/super_migration_profile_registry.html
+msgid "for the full profile library."
+msgstr ""
+
+#: templates/schools/partials/manager_kb_bulk_ops_body.html
+msgid "libreoffice"
+msgstr ""
+
+#: templates/accounts/rollover_year.html
+msgid "locked"
+msgstr "verrouillé"
+
+#: templates/automation/visual_workflow_designer.html
+msgid "marks_submitted"
+msgstr ""
+
+#: templates/finance/global_payment_command_center.html
+msgid "medium"
+msgstr ""
+
+#: templates/accounts/district_lms_interop.html
+msgid "minimal"
+msgstr ""
+
+#: templates/accounts/tenant_join_codes.html
+msgid "never"
+msgstr ""
+
+#: templates/automation/visual_workflow_designer.html
+msgid "offline_action_conflict"
+msgstr ""
+
+#: templates/super/sso/bindings_index.html
+msgid "oidc"
+msgstr ""
+
+#: templates/portal/email/help_north_star_report.html
+msgid "ops@runmycampus.com"
+msgstr ""
+
+#: templates/accounts/sso_connections.html
+msgid "optional for Google/Microsoft"
+msgstr ""
+
+#: templates/accounts/sso_connections.html
+msgid "optional, JSON"
+msgstr ""
+
+#: templates/schools/partials/manager_kb_bulk_ops_body.html
+msgid "pandoc"
+msgstr ""
+
+#: templates/migration_cloud/email/maa_v2_resign_request.html
+msgid "partner-success@runmycampus.com"
+msgstr ""
+
+#: templates/automation/visual_workflow_designer.html
+msgid "payment_failed"
+msgstr ""
+
+#: templates/automation/visual_workflow_designer.html
+msgid "payment_received"
+msgstr ""
+
+#: templates/automation/visual_workflow_designer.html
+msgid "payment_success"
+msgstr ""
+
+#: templates/accounts/rollover_year.html
+msgid "prepare a proposal, review suggested classes, approve, then apply."
+msgstr ""
+
+#: templates/migration_cloud/emails/guardian/consent_confirmed.html
+msgid "privacy@runmycampus.com"
+msgstr ""
+
+#: templates/automation/visual_workflow_designer.html
+msgid "report_generated"
+msgstr ""
+
+#: templates/super/sso/bindings_index.html
+msgid "saml"
+msgstr ""
+
+#: templates/unfold/helpers/command.html
+msgid "search progress_activity"
+msgstr ""
+
+#: templates/accounts/district_lms_interop.html
+msgid "standard"
+msgstr ""
+
+#: templates/automation/visual_workflow_designer.html
+msgid "student_created"
+msgstr ""
+
+#: templates/automation/visual_workflow_designer.html
+msgid "student_risk_detected"
+msgstr ""
+
+#: templates/portal/kb_article.html
+msgid "to leave a comment"
+msgstr ""
+
+#: templates/automation/visual_workflow_designer.html
+msgid "trigger"
+msgstr ""
+
+#: templates/accounts/tenant_join_codes.html
+msgid "unlimited"
+msgstr ""
+
+#: templates/emails/newsletter_confirmed.html
+msgid "unsubscribe"
+msgstr ""
+
+#: templates/accounts/rollover_year.html
+msgid "— Graduate (Alumni) —"
+msgstr ""
+
+#: templates/student360/transcript_archive.html
+msgid "— Select year —"
+msgstr ""
+
+#: templates/academics/syllabus_clone.html
+msgid "— Select —"
+msgstr ""
+
+#: templates/accounts/migration_wizard.html
+msgid "— Skip —"
+msgstr ""
+
+#: templates/portal/at_risk_labeling/queue.html
+msgid "— select —"
+msgstr ""
+
+#: templates/accounts/sso_connections.html
+msgid "•••••• (unchanged)"
+msgstr ""
+
+#: templates/schools/advancement_donor_detail.html
+msgid "← All donors"
+msgstr ""
+
+#: templates/accounts/migration_wizard.html
+msgid "→ Target field"
+msgstr ""
+
+#: templates/evals/import_job_monitor.html
+msgid "✓ Completed"
+msgstr ""
+
+#: templates/evals/import_job_monitor.html
+msgid "✗ Failed"
 msgstr ""
