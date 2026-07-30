@@ -9,6 +9,7 @@ from django.urls import reverse
 from apps.accounts.models import Permission, User
 from apps.people.models import StudentProfile
 from apps.schools.models import SchoolMembership
+from apps.test_utils.http_clients import login_tenant_admin_client
 from apps.platform_runtime.tests.experience_control_helpers import (
     body_has_strict_attribute,
     count_founder_toolbar_primary,
@@ -24,6 +25,18 @@ from apps.schools.models import School
 
 def _tenant_host(school: School) -> str:
     return f"{school.subdomain}.runmycampus.com"
+
+
+def _verify_mfa(client, user) -> None:
+    """Satisfy RequireMFAMiddleware after force_login: a confirmed device (enroll
+    gate) + a per-session ``mfa_verified`` flag (re-verify gate). The flag is read
+    host-agnostically, so this covers both tenant and manager dashboards."""
+    from django_otp.plugins.otp_totp.models import TOTPDevice
+
+    TOTPDevice.objects.get_or_create(user=user, name="xp-mfa", confirmed=True)
+    session = client.session
+    session["mfa_verified"] = True
+    session.save()
 
 
 class ExperienceControlRegistryTests(TestCase):
@@ -82,7 +95,16 @@ class ExperienceControlStrictBackendDashboardTests(TestCase):
         self.staff.feature_permissions.add(perm)
 
     def test_backend_dashboard_single_primary_posture_marker(self):
-        self.client.force_login(self.staff)
+        # Tenant-host backend dashboard needs a school membership + confirmed
+        # device + verified MFA (not just force_login) — login_tenant_admin_client
+        # binds all three, else the request 302s off the tenant host.
+        self.client = login_tenant_admin_client(
+            self.staff,
+            password="pw" * 8,
+            host=_tenant_host(self.school),
+            school=self.school,
+            role=User.Role.IT_ADMIN,
+        )
         url = reverse("accounts:backend_dashboard")
         resp = self.client.get(url, HTTP_HOST=_tenant_host(self.school))
         self.assertEqual(resp.status_code, 200)
@@ -106,6 +128,7 @@ class ExperienceControlFounderDashboardTests(TestCase):
         )
         c = Client(enforce_csrf_checks=False)
         c.force_login(u)
+        _verify_mfa(c, u)
         url = reverse("super:founder_dashboard", urlconf="config.manager_urls")
         r = c.get(url, HTTP_HOST="manager.runmycampus.com")
         self.assertEqual(r.status_code, 200)
@@ -306,8 +329,15 @@ class ExperienceControlStudent360PermissionTests(TestCase):
             last_name="B",
             student_code="xp-s360-1",
         )
-        c = Client(enforce_csrf_checks=False)
-        c.force_login(staff)
+        # Tenant-host student-360 needs membership + confirmed device + verified
+        # MFA (login_tenant_admin_client), else the request 302s off the host.
+        c = login_tenant_admin_client(
+            staff,
+            password="pw" * 8,
+            host=_tenant_host(school),
+            school=school,
+            role=User.Role.PRINCIPAL,
+        )
         url = reverse("portal:student_360_page", kwargs={"student_id": stu.pk})
         r = c.get(url, HTTP_HOST=_tenant_host(school))
         self.assertEqual(r.status_code, 200)
