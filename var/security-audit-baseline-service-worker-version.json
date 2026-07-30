@@ -3,10 +3,10 @@
   "generated_at": "2026-07-29T14:41:25+00:00",
   "major": 4,
   "minor": 6,
-  "patch": 20,
-  "raw": "sms-v4.06.20-mfa-trust-layout-i18n-syllabus-2026-07-29",
+  "patch": 22,
+  "raw": "sms-v4.06.22-tenant-logo-favicon-menu-mc-2026-07-29",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "mfa-trust-layout-i18n-syllabus",
+  "slug": "tenant-logo-favicon-menu-mc",
   "valid": true
 }
