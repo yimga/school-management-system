@@ -207,7 +207,9 @@ class NorthStarAiAssistantTests(TestCase):
         """UI integration: hub and bulk letters include the North Star AI partial (static check)."""
         repo = Path(__file__).resolve().parents[3]
         for rel in (
-            "templates/siteconfig/scheduled_reports_delivery_hub.html",
+            # The scheduled-reports hub extracted its body into a _body partial;
+            # the AI assistant strip moved with it (hub → body partial → strip).
+            "templates/siteconfig/partials/scheduled_reports_delivery_hub_body.html",
             "templates/siteconfig/bulk_letters.html",
         ):
             text = (repo / rel).read_text(encoding="utf-8")
