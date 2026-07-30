@@ -20,14 +20,29 @@ _TIER_RANK: Final[dict[str, int]] = {
     COMMERCIAL_TIER_ENTERPRISE: 2,
 }
 
+# Includes the ACTUAL seeded plan slugs (seed_subscription_catalog.py), not just the
+# generic aliases — previously every real slug (free-starter … sovereign-self-hosted)
+# fell through commercial_tier_for_plan_slug() to FREE, so even the sovereign flagship
+# resolved to rank-0 and was blocked from enterprise-tier marketplace packs.
 _PLAN_SLUG_FREE: Final[frozenset[str]] = frozenset(
-    {"free", "basic", "starter", "community", "trial"}
+    {
+        "free", "basic", "starter", "community", "trial",
+        "free-starter", "ngo-low-resource",
+    }
 )
 _PLAN_SLUG_PRO: Final[frozenset[str]] = frozenset(
-    {"pro", "professional", "growth", "plus", "standard"}
+    {
+        "pro", "professional", "growth", "plus", "standard",
+        "micro-school", "small-school", "growing-school", "professional-school",
+        "developer-partner",
+    }
 )
 _PLAN_SLUG_ENTERPRISE: Final[frozenset[str]] = frozenset(
-    {"enterprise", "ent", "ministry", "ultimate"}
+    {
+        "enterprise", "ent", "ministry", "ultimate",
+        "multi-campus", "enterprise-network", "district-ministry",
+        "white-label", "sovereign-self-hosted",
+    }
 )
 
 

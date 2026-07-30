@@ -407,7 +407,13 @@ def entitlement_hints_for_school(school, manifest: dict[str, Any] | None) -> dic
                     "Open Plan & entitlements to review upgrade options."
                 )
 
-    blocked = bool(missing) or not plan_ok or not tier_ok or monetization_blocked
+    # Complimentary / manual-override tenants (the sovereign flagship) bypass the
+    # plan-slug and commercial-tier gates too — not just the paid-monetization gate —
+    # so "everything the platform offers" genuinely includes enterprise-tier and
+    # required_plan-gated packs. Feature-flag `missing` still applies (but a
+    # COMPLIMENTARY tenant already holds every flag via has_feature, so it's empty).
+    gate_blocked = (not plan_ok or not tier_ok) and not bypass_paid_gate
+    blocked = bool(missing) or gate_blocked or monetization_blocked
     upgrade_message = (
         manifest.get("upgrade_message") or ""
     ).strip() or "Upgrade your plan or enable required modules to use this app."

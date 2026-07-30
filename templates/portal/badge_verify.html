@@ -5,7 +5,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% trans "Badge verification" %} – {{ SITE.site_name|default:"Portal" }}</title>
-  <link rel="icon" href="{% if SITE_FAVICON_URL %}{{ SITE_FAVICON_URL }}{% else %}{% static 'images/runmycampus-icon.png' %}{% endif %}" type="image/png">
+  {% if SITE_FAVICON_URL %}
+  <link rel="icon" href="{{ SITE_FAVICON_URL }}" type="image/png">
+  {% elif PUBLIC_BRAND_MODE %}
+  <link rel="icon" href="{% static 'images/runmycampus-icon.png' %}" type="image/png">
+  {% else %}
+  {# Tenant with no uploaded favicon → brand-initial squircle, never the RunMyCampus bell. #}
+  {% include "partials/tenant/tenant_initial_favicon.html" %}
+  {% endif %}
   <link rel="stylesheet" href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}">
   <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/css/bootstrap-icons.min.css' %}">
   <link rel="stylesheet" href="{% static 'css/design-tokens.css' %}">

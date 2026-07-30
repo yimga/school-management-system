@@ -703,3 +703,56 @@ html[data-resolved-theme="dark"] body:not(.marketing-surface) .rmc-account-mfa-q
 body.portal-backend-dark .rmc-account-mfa-qr-wrap{
   background-color: #ffffff;  /* off-token-allow: qr-must-be-light-to-scan */
 }
+
+/* §13 — "Effective settings (safe fields)" / config-hub evidence cards.
+   .cp-evidence-summary/-related/-advanced (rmc-class-grammar.css) paint from
+   var(--surface-canvas|--surface-bg) — which are LIGHT on the tenant/default plane —
+   with warm-white hex fallbacks, and the Bootstrap .card / .card-header.bg-light /
+   .bg-body-secondary shells paint fixed light. On a dark shell the value rows
+   ("site_name", "tagline", feature flags…) render as opaque WHITE BARS over white
+   text — the "Effective settings masked / Backend feature flags blanked" report.
+   Repoint the card surfaces + their <code> values to the flipping surface/text
+   tokens so the tenant admin can actually read their own config on dark. */
+html[data-bs-theme="dark"] body:not(.marketing-surface) .cp-evidence-page,
+html[data-theme="dark"] body:not(.marketing-surface) .cp-evidence-page,
+html[data-resolved-theme="dark"] body:not(.marketing-surface) .cp-evidence-page,
+body.portal-backend-dark .cp-evidence-page,
+html[data-bs-theme="dark"] body:not(.marketing-surface) .cp-evidence-summary,
+html[data-theme="dark"] body:not(.marketing-surface) .cp-evidence-summary,
+html[data-resolved-theme="dark"] body:not(.marketing-surface) .cp-evidence-summary,
+body.portal-backend-dark .cp-evidence-summary,
+html[data-bs-theme="dark"] body:not(.marketing-surface) .cp-evidence-related,
+html[data-theme="dark"] body:not(.marketing-surface) .cp-evidence-related,
+html[data-resolved-theme="dark"] body:not(.marketing-surface) .cp-evidence-related,
+body.portal-backend-dark .cp-evidence-related,
+html[data-bs-theme="dark"] body:not(.marketing-surface) .cp-evidence-advanced,
+html[data-theme="dark"] body:not(.marketing-surface) .cp-evidence-advanced,
+html[data-resolved-theme="dark"] body:not(.marketing-surface) .cp-evidence-advanced,
+body.portal-backend-dark .cp-evidence-advanced,
+html[data-bs-theme="dark"] body:not(.marketing-surface) .cp-evidence-page .card,
+html[data-theme="dark"] body:not(.marketing-surface) .cp-evidence-page .card,
+html[data-resolved-theme="dark"] body:not(.marketing-surface) .cp-evidence-page .card,
+body.portal-backend-dark .cp-evidence-page .card,
+html[data-bs-theme="dark"] body:not(.marketing-surface) .cp-evidence-page .card-header,
+html[data-theme="dark"] body:not(.marketing-surface) .cp-evidence-page .card-header,
+html[data-resolved-theme="dark"] body:not(.marketing-surface) .cp-evidence-page .card-header,
+body.portal-backend-dark .cp-evidence-page .card-header,
+html[data-bs-theme="dark"] body:not(.marketing-surface) .cp-evidence-page .bg-light,
+html[data-theme="dark"] body:not(.marketing-surface) .cp-evidence-page .bg-light,
+html[data-resolved-theme="dark"] body:not(.marketing-surface) .cp-evidence-page .bg-light,
+body.portal-backend-dark .cp-evidence-page .bg-light,
+html[data-bs-theme="dark"] body:not(.marketing-surface) .cp-evidence-page .bg-body-secondary,
+html[data-theme="dark"] body:not(.marketing-surface) .cp-evidence-page .bg-body-secondary,
+html[data-resolved-theme="dark"] body:not(.marketing-surface) .cp-evidence-page .bg-body-secondary,
+body.portal-backend-dark .cp-evidence-page .bg-body-secondary{
+  background-color: var(--surface-elevated, var(--surface-canvas)) !important;
+  border-color: var(--hairline) !important;
+  color: var(--text-primary) !important;
+}
+html[data-bs-theme="dark"] body:not(.marketing-surface) .cp-evidence-page code,
+html[data-theme="dark"] body:not(.marketing-surface) .cp-evidence-page code,
+html[data-resolved-theme="dark"] body:not(.marketing-surface) .cp-evidence-page code,
+body.portal-backend-dark .cp-evidence-page code{
+  background-color: transparent;
+  color: var(--text-primary);
+}

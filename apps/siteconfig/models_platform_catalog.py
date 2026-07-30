@@ -1445,12 +1445,23 @@ class CustomFeatureTicket(models.Model):
 def get_feature_fragment_cap(school) -> int | None:
     if not school:
         return 0
+    # Complimentary / manual-override tenants (the sovereign flagship) get the top
+    # allowance regardless of plan slug — otherwise "everything the platform offers"
+    # silently excludes custom feature fragments.
+    billing_type = (getattr(school, "billing_type", "") or "").strip().upper()
+    if billing_type in ("COMPLIMENTARY", "MANUAL_OVERRIDE"):
+        return 5
     plan = getattr(school, "plan", None)
     if not plan:
         return 0
-    slug = (getattr(plan, "slug", None) or "").strip().lower()
-    caps = {"basic": 0, "pro": 2, "enterprise": 5}
-    return caps.get(slug, 0)
+    # Resolve by COMMERCIAL TIER, not raw slug: the seeded premium slugs
+    # (sovereign-self-hosted / multi-campus / district-ministry / white-label /
+    # enterprise-network) were silently capped at 0 by the old slug-keyed map.
+    from apps.siteconfig.commercial_tiers import commercial_tier_for_plan_slug
+
+    tier = commercial_tier_for_plan_slug(getattr(plan, "slug", ""))
+    caps = {"free": 0, "pro": 2, "enterprise": 5}
+    return caps.get(tier, 0)
 
 
 class FeatureFragment(models.Model):

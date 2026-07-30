@@ -210,6 +210,16 @@
 
 .form-check-input {
   cursor: pointer;
+  /* Pin the native checkbox/radio so it never shrinks or clips inside the flex
+     `.form-check` row when the label is long — the root cause of the "tiny broken
+     boxes bleeding before each item" on the institution-profile wizard (and every
+     other backend/admin .form-check checklist). Without an explicit flex-basis the
+     1em box is a shrinkable flex item competing with the label and collapses. This
+     is the single-source fix; the per-surface copies (.rmc-institution-checks / the
+     wizard inline <style>) can retire onto this. */
+  flex: 0 0 auto;
+  min-width: 1.125rem;
+  min-height: 1.125rem;
 }
 
 .form-check-label {

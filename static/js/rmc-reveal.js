@@ -160,11 +160,12 @@
   }
 
   function scheduleGlobalRevealFailsafe() {
-    window.setTimeout(function () {
-      if (countRevealState().hiddenOpacity > 0) {
-        revealAllStranded();
-      }
-    }, 1200);
+    // Unconditional: nothing may stay armed-but-hidden past this budget. We do NOT
+    // gate on a hidden-count probe (countRevealState) — it can read 0 mid-transition
+    // and leave a genuinely stranded node hidden, which is exactly the washed-out
+    // dashboard-hero / backend-grid bug. Revealing an already-revealed node is a
+    // no-op, so an unconditional sweep is safe.
+    window.setTimeout(revealAllStranded, 1200);
   }
 
   function revealOperationalWorkspaces() {
@@ -308,5 +309,26 @@
     document.addEventListener("DOMContentLoaded", safeInit);
   } else {
     safeInit();
+  }
+
+  // Hard visibility guarantee — the root-cause seal for the "armed but never
+  // revealed" stranding that washes out dashboard heroes (hero_greeting), the whole
+  // admin backend reveal grid, and any .rmc-reveal surface not in a per-page
+  // allowlist. This runs INDEPENDENT of init()'s observer/scroll-root path: if init
+  // early-returns, throws before scheduling its own failsafe, or the IntersectionObserver
+  // simply never fires for an off-viewport-root node, these two sweeps still reveal
+  // every still-armed node. Revealing an already-revealed node is a no-op, so this is
+  // pure belt-and-suspenders and can never hide content.
+  try {
+    window.setTimeout(revealAllStranded, 1400);
+    window.addEventListener(
+      "load",
+      function () {
+        window.setTimeout(revealAllStranded, 150);
+      },
+      { once: true }
+    );
+  } catch (_e) {
+    revealAllStranded();
   }
 })();

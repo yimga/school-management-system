@@ -8,8 +8,15 @@
  */
 
 :root {
-  --rmc-workspace-edge-gap: 2px;
-  --rmc-workspace-mobile-gap: 8px;
+  /* Comfortable, responsive workspace gutter. This was a 2px "full-bleed seal"
+     that left cards / KPIs / headings kissing the navigation rail and the viewport
+     edge — content visibly bled out of the surface on tenant Admin Home and across
+     the authenticated shells. A scaled gutter (12px on phones → 24px on wide
+     desktops) reads as intentional, professional spacing at every width without
+     reintroducing a narrow reading column, so surfaces still fill the space between
+     the rails but no longer bleed to the very edge. */
+  --rmc-workspace-edge-gap: clamp(12px, 1.5vw, 24px);
+  --rmc-workspace-mobile-gap: 12px;
 }
 
 /* Manager / control-plane shells. */

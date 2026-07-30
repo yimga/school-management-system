@@ -249,7 +249,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="SMS">
-    <link rel="apple-touch-icon" href="{% static 'images/icon-192.png' %}">
+    {% comment %} Platform home-screen icon only on operator/public surfaces. On a tenant,
+       the tenant apple-touch-icon from rmc_theme_meta stands (no RunMyCampus icon leak). {% endcomment %}
+    {% if PUBLIC_BRAND_MODE %}<link rel="apple-touch-icon" href="{% static 'images/icon-192.png' %}">{% endif %}
   </head>
 
   {% comment %} Pass 8 UX consistency: activate `.form-system` globally so the design system's

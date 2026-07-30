@@ -3,7 +3,14 @@
 <div id="rmc-launch-splash" class="rmc-launch-splash" hidden aria-hidden="true">
   <div class="rmc-launch-splash__inner">
     {% include "components/_bell_clock_mark.html" with size=72 filled_segments=3 extra_class="rmc-launch-splash__mark" %}
+    {% if PUBLIC_BRAND_MODE %}
+    {# Operator / public surfaces show the platform brand. #}
     <p class="rmc-launch-splash__wordmark">{% trans "RunMyCampus" %}</p>
     <p class="rmc-launch-splash__tagline">{% trans "Between the bells" %}</p>
+    {% else %}
+    {# Tenant surfaces show the school's own brand, never "RunMyCampus / Between the bells". #}
+    <p class="rmc-launch-splash__wordmark">{{ SITE.site_name|default:_("Your school") }}</p>
+    {% if tp_brand_tagline %}<p class="rmc-launch-splash__tagline">{{ tp_brand_tagline }}</p>{% endif %}
+    {% endif %}
   </div>
 </div>

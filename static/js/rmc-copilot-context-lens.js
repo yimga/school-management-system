@@ -386,12 +386,15 @@
   }
 
   function shouldAutoOpenLensOnRow() {
-    if (document.documentElement.getAttribute("data-rmc-copilot-lens-auto") === "0") {
-      return false;
-    }
-    if (document.querySelector("[data-rmc-copilot-page-lens]")) {
-      return true;
-    }
+    // Only auto-open the copilot Lens on a row click when a surface EXPLICITLY opts in
+    // via data-rmc-copilot-lens-auto="1". Previously the mere PRESENCE of a page lens
+    // ([data-rmc-copilot-page-lens]) force-opened the copilot on every row click —
+    // and because the row-detail DRAWER also opens on that same click, the user saw
+    // "a (blank) sidebar AND the AI copilot both open" on Module Market, Identity &
+    // Access, and every data-table platform-wide. The drawer is the primary, self-
+    // contained detail surface; the Lens still mirrors the selection SILENTLY (via
+    // renderSelection in onRowOpen) so "Ask about selection" works if/when the user
+    // opens the copilot themselves — it just no longer pops open unbidden.
     return document.documentElement.getAttribute("data-rmc-copilot-lens-auto") === "1";
   }
 
