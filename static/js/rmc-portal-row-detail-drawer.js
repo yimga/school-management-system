@@ -35,7 +35,14 @@
   }
 
   function resolveRowPayload(row, table) {
-    if (row.getAttribute('data-rmc-row-detail') === '1') {
+    var isAutoTable = !!(table && table.getAttribute('data-rmc-row-detail-auto') === '1');
+    // Explicit rows carry their own title/meta attributes. Auto rows are only
+    // STAMPED with data-rmc-row-detail="1" by prepareAutoRows (for click-binding
+    // and selection), so a stamped auto row that lacks explicit title data must
+    // fall through to cell-scraping below — otherwise resolveRowPayload reads the
+    // absent explicit attrs and the drawer shows a blank "Row" / "—".
+    var hasExplicitData = row.hasAttribute('data-rmc-row-title');
+    if (row.getAttribute('data-rmc-row-detail') === '1' && (hasExplicitData || !isAutoTable)) {
       var meta = parseJsonAttr(row, 'data-rmc-row-meta', {});
       var actions = parseJsonAttr(row, 'data-rmc-row-actions', []);
       if (!Array.isArray(actions)) { actions = []; }
@@ -49,7 +56,7 @@
         requeueApiUrl: row.getAttribute('data-rmc-row-requeue-api') || '',
       };
     }
-    if (!table || table.getAttribute('data-rmc-row-detail-auto') !== '1') {
+    if (!isAutoTable) {
       return null;
     }
     var cells = row.querySelectorAll('td, th');

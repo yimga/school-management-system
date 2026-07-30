@@ -1,7 +1,26 @@
 {% load i18n %}
 {% comment %}
-In-document tenant admin workbench footer — school-branded gateway links inside /admin/.
+In-document admin workbench footer for the Django /admin/ shell. Host-aware:
+the manager host shows the platform control-plane brand + operator links; a
+tenant subdomain shows the school's own brand + tenant config links. Each host's
+{% url %} calls sit inside the is_manager_host guard so neither reverses a name
+that is absent on the other host's urlconf.
 {% endcomment %}
+{% if is_manager_host %}
+<footer class="rmc-admin-workbench-footer rmc-admin-workbench-footer--operator" role="contentinfo" data-rmc-admin-workbench-footer="operator" aria-label="{% trans 'Platform control-plane footer' %}">
+  <div class="rmc-admin-workbench-footer__inner">
+    <div class="rmc-admin-workbench-footer__brand">
+      <strong>{% trans "RunMyCampus" %}</strong>
+      <span>{% trans "Platform control plane" %}</span>
+    </div>
+    <nav class="rmc-admin-workbench-footer__links" aria-label="{% trans 'Control-plane shortcuts' %}">
+      <a href="{% url 'manager_home' %}">{% trans "Operator home" %}</a>
+      <a href="{% url 'feedback:help_center' %}">{% trans "Help center" %}</a>
+    </nav>
+    <p class="rmc-admin-workbench-footer__meta mb-0">{% trans "Operator-scoped · control plane" %}</p>
+  </div>
+</footer>
+{% else %}
 <footer class="rmc-admin-workbench-footer rmc-admin-workbench-footer--tenant" role="contentinfo" data-rmc-admin-workbench-footer="tenant" aria-label="{% trans 'School configuration footer' %}">
   <div class="rmc-admin-workbench-footer__inner">
     <div class="rmc-admin-workbench-footer__brand">
@@ -16,3 +35,4 @@ In-document tenant admin workbench footer — school-branded gateway links insid
     <p class="rmc-admin-workbench-footer__meta mb-0">{% trans "Tenant-scoped records · RBAC enforced" %}</p>
   </div>
 </footer>
+{% endif %}

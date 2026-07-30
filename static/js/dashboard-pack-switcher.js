@@ -86,9 +86,6 @@
           return resp.json();
         })
         .then(function () {
-          try {
-            localStorage.setItem("rmc-dashboard-pack-applied", code || "__default__");
-          } catch (e) { /* ignore quota */ }
           root.classList.add("rmc-dpk--applying");
           if (document.documentElement) {
             document.documentElement.setAttribute("data-rmc-dashboard-pack-applying", "1");

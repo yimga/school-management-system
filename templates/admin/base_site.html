@@ -534,6 +534,10 @@
 
 {% block footer %}
   {{ block.super }}
+  {% comment %} Host-aware in-document workbench footer — gives both the manager
+     control-plane /admin/ and the tenant /admin/ a consistent branded footer band
+     instead of Unfold's bare default. {% endcomment %}
+  {% if request.user.is_authenticated %}{% include "partials/admin_tenant_workbench_footer.html" %}{% endif %}
   <div id="admin-sidebar-live" aria-live="polite" aria-atomic="true" class="visually-hidden" role="status"></div>
   {% comment %} v3.58.6 (2026-05-22) Wave 10 Agent R — /admin/ broken-render fix.
      The cockpit partials (_operator_presence / _ai_copilot_rail /
