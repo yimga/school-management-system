@@ -282,8 +282,18 @@ def _count_tenant_rows(bundle: MigrationBundle) -> dict[str, int]:
     except Exception:  # noqa: BLE001
         schema_context = None  # type: ignore[assignment]
 
+    from django.db import connection as _django_connection
+
     def _wrap(work):
-        if schema_context and bundle.schema_name:
+        # Skip schema_context on a non-tenant DB backend (single-schema sqlite
+        # test/dev lane, or an RLS single-schema deploy): it has no schema to
+        # switch and entering it raises AttributeError ('DatabaseWrapper' has
+        # no 'tenant'). Mirrors orchestrator's set_schema guard.
+        if (
+            schema_context
+            and bundle.schema_name
+            and hasattr(_django_connection, "set_schema")
+        ):
             with schema_context(bundle.schema_name):
                 return work()
         return work()

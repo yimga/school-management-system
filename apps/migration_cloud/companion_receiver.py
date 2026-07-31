@@ -1175,7 +1175,9 @@ def companion_server_pubkey_view(request: HttpRequest, **kwargs) -> JsonResponse
         client = getattr(school, "tenant_client", None)
         schema_name = getattr(client, "schema_name", None) if client else None
 
-    if schema_name:
+    from django.db import connection as _django_connection
+
+    if schema_name and hasattr(_django_connection, "set_schema"):
         try:
             from django_tenants.utils import schema_context  # type: ignore[import-not-found]
         except ImportError:
@@ -1184,6 +1186,9 @@ def companion_server_pubkey_view(request: HttpRequest, **kwargs) -> JsonResponse
             with schema_context(schema_name):
                 info = _read_active_public_key_info(school)
     else:
+        # No schema to switch (SHARED_APPS placement, or a non-tenant DB
+        # backend where entering schema_context would raise) — the FK filter
+        # inside the service is the load-bearing isolation.
         info = _read_active_public_key_info(school)
 
     if info is None:
