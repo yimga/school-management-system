@@ -223,9 +223,12 @@ def process_outbound_message_queue(self, school_id=None, limit=50) -> dict:
         )
         if not candidate_ids:
             return 0, 0
+        # Set updated_at EXPLICITLY: a bulk .update() bypasses the field's auto_now,
+        # and the stale-claim recovery above keys off updated_at to find rows a dead
+        # worker abandoned mid-send.
         OutboundMessageQueue.objects.filter(  # tenant-isolation-allow: ids already school-scoped by the candidate query above
             id__in=candidate_ids, status__in=("pending", "retrying"),
-        ).update(status="processing")
+        ).update(status="processing", updated_at=timezone.now())
         items = list(
             OutboundMessageQueue.objects.filter(  # tenant-isolation-allow: ids already school-scoped by the candidate query above
                 id__in=candidate_ids, status="processing"

@@ -1294,6 +1294,12 @@ class OutboundMessageQueue(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     sent_at = models.DateTimeField(null=True, blank=True)
     error_message = models.CharField(max_length=500, blank=True)
+    # Last-touched timestamp — the drainer's stale-claim recovery
+    # (process_outbound_message_queue) returns rows stuck in "processing" for
+    # >15 min to the retry pool by comparing this. Nullable so the AddField is a
+    # no-op backfill on existing rows; set EXPLICITLY at claim time because a bulk
+    # QuerySet.update() bypasses auto_now.
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     class Meta:
         ordering = ["-created_at"]
