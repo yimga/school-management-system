@@ -921,6 +921,17 @@ def _resolve_school_from_request(request) -> "School | None":
             )
             return school
 
+    # Single-tenant edge deployments (a sovereign on-prem box serving ONE school):
+    # any host that didn't match a domain/subdomain — a bare LAN hostname, the
+    # machine's IP, or even the base domain — resolves to the sole active school,
+    # so the box works without per-school subdomain DNS. Fully gated on the
+    # SINGLE_TENANT setting: _get_single_tenant_school() returns None unless
+    # SINGLE_TENANT is on AND exactly one active school exists, so multi-tenant /
+    # cloud deployments (SINGLE_TENANT=False by default) are completely unaffected.
+    single = _get_single_tenant_school()
+    if single is not None:
+        return single
+
     # Base/public hosts never resolve to tenant context.
     if _is_base_domain(host, base_domain):
         return None
