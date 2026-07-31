@@ -135,17 +135,20 @@ class Command(BaseCommand):
             findings.append((WARN, "RMC_AUTO_ENQUEUE_OUTBOUND is OFF — a failed SMS/WhatsApp send is LOST rather than queued. Set it to 1 for an offline box."))
 
         # --- Broker-less background drain -----------------------------------
-        # No broker => the periodic drainers (email DLQ + SMS/WhatsApp queue) never
-        # fire, so the box must forward via a cron entry.
+        # No broker => NO beat/worker, so every periodic job is dead unless a cron
+        # revives the in-process registry.
         if not str(getattr(settings, "CELERY_BROKER_URL", "") or "").strip():
             findings.append((
                 WARN,
-                "No CELERY_BROKER_URL — the periodic queue drainers do NOT run. Schedule "
-                "`python manage.py drain_edge_outbox` on cron (e.g. */5) so queued email + "
-                "SMS/WhatsApp forward when the box is online.",
+                "No CELERY_BROKER_URL — there is NO beat/worker, so every periodic job is "
+                "dead: the email + SMS/WhatsApp queue drainers, the events outbox that fires "
+                "internal subscribers, reminders, monitors. Schedule `python manage.py "
+                "run_periodic_jobs` on cron (e.g. */5) — it runs the WHOLE registry beat-less, "
+                "each job at its own cadence, with per-job locking. (`drain_edge_outbox` "
+                "forwards only email + SMS/WhatsApp — a subset, and it misses the events outbox.)",
             ))
         else:
-            findings.append((OK, "A Celery broker is configured — the periodic queue drainers run under beat/worker."))
+            findings.append((OK, "A Celery broker is configured — the periodic jobs run under beat/worker."))
 
         # --- OCR (offline FOSS = Tesseract) ---------------------------------
         ocr_cmd = str(getattr(settings, "MARKSHEET_OCR_COMMAND", "") or "").strip() or "tesseract"
@@ -194,6 +197,36 @@ class Command(BaseCommand):
             ))
         else:
             findings.append((OK, "Outbound payment collection is off — capture offline cash/manual payments (OfflinePaymentIntent); they reconcile when the box is online."))
+
+        # --- Media durability -----------------------------------------------
+        storages = getattr(settings, "STORAGES", {}) or {}
+        media_backend = str(
+            (storages.get("default") or {}).get("BACKEND", "")
+            or getattr(settings, "DEFAULT_FILE_STORAGE", "")
+        )
+        if "s3" in media_backend.lower() or "minio" in media_backend.lower():
+            findings.append((OK, f"Media uses an object-storage backend ({media_backend.rsplit('.', 1)[-1]}) — durable across redeploys and off-box."))
+        else:
+            findings.append((
+                WARN,
+                "Media is on the LOCAL filesystem (MEDIA_ROOT). Uploads — student/teacher "
+                "photos, evaluation evidence, logos, receipts — are WIPED on redeploy unless "
+                "MEDIA_ROOT sits on a persistent volume. The self-host compose now mounts a "
+                "`mediadata` volume (a bind mount you back up off-box is safer); there is no "
+                "off-box media backup unless you add one. For scale set MEDIA_STORAGE_BACKEND=s3 "
+                "(self-hosted MinIO / Cloudflare R2).",
+            ))
+
+        # --- Local AI (Ollama) endpoint (edge profile) ----------------------
+        if profile == "edge":
+            ollama = str(
+                getattr(settings, "OLLAMA_ENDPOINT", "")
+                or os.environ.get("OLLAMA_ENDPOINT", "")
+            ).strip()
+            if ollama:
+                findings.append((OK, f"OLLAMA_ENDPOINT set ({ollama}) — run `ollama serve` + pull a model; if it's down, AI degrades to deterministic rules (no crash)."))
+            else:
+                findings.append((WARN, "RMC_DEPLOYMENT_PROFILE=edge but OLLAMA_ENDPOINT is unset — AI will use deterministic rules only (no local LLM)."))
 
         # --- Report ---------------------------------------------------------
         styles = {OK: self.style.SUCCESS, WARN: self.style.WARNING, FAIL: self.style.ERROR}

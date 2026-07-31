@@ -19,6 +19,14 @@ x-app: &app
     REDIS_URL: "redis://valkey:6379/0"
     # Broker is explicit + safe here because a worker service runs below.
     CELERY_BROKER_URL: "redis://valkey:6379/1"
+  volumes:
+    # PERSIST uploaded media (student/teacher photos, evaluation evidence, logos,
+    # receipts, documents). MEDIA_ROOT is /app/media INSIDE the container; without a
+    # named volume `docker compose up --build` recreates the web container and WIPES all
+    # uploads on every version update. Shared across web/worker/beat so a worker that
+    # writes a generated file and the web that serves it agree. Use a bind mount (e.g.
+    # `/srv/rmc/media:/app/media`) instead if you back that host path up off-box.
+    - mediadata:/app/media
   depends_on:
     db:
       condition: service_healthy
@@ -68,3 +76,4 @@ services:
 volumes:
   pgdata:
   valkeydata:
+  mediadata:

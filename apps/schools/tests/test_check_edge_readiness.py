@@ -127,3 +127,40 @@ class CheckEdgeReadinessTests(TestCase):
     def test_payment_collection_enabled_warns(self):
         output, err = self._run()
         self.assertIn("FAILS CLOSED offline", output)
+
+    @override_settings(
+        SECRET_KEY=_LONG_SECRET, DEBUG=False, ALLOWED_HOSTS=["school.lan"], CELERY_BROKER_URL="",
+    )
+    def test_broker_less_recommends_run_periodic_jobs(self):
+        output, err = self._run()
+        self.assertIn("run_periodic_jobs", output)
+
+    @override_settings(
+        SECRET_KEY=_LONG_SECRET, DEBUG=False, ALLOWED_HOSTS=["school.lan"],
+        STORAGES={
+            "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+            "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+        },
+    )
+    def test_local_media_backend_warns_about_durability(self):
+        output, err = self._run()
+        self.assertIn("Media is on the LOCAL filesystem", output)
+
+    @override_settings(
+        SECRET_KEY=_LONG_SECRET, DEBUG=False, ALLOWED_HOSTS=["school.lan"],
+        STORAGES={
+            "default": {"BACKEND": "storages.backends.s3.S3Storage"},
+            "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+        },
+    )
+    def test_object_storage_media_backend_ok(self):
+        output, err = self._run()
+        self.assertIn("object-storage backend", output)
+
+    @override_settings(
+        SECRET_KEY=_LONG_SECRET, DEBUG=False, ALLOWED_HOSTS=["school.lan"],
+        RMC_DEPLOYMENT_PROFILE="edge", OLLAMA_ENDPOINT="",
+    )
+    def test_edge_profile_without_ollama_endpoint_warns(self):
+        output, err = self._run()
+        self.assertIn("OLLAMA_ENDPOINT is unset", output)
