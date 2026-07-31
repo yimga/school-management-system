@@ -115,7 +115,7 @@
         <div class="stat-item">
           <div class="stat-value">
             {% if request.user.last_login %}
-              {{ request.user.last_login|timesince|truncatewords:2 }}
+              {{ request.user.last_login|timesince|truncatewords:2|cut:"," }}
             {% else %}
               {% trans "N/A" %}
             {% endif %}
@@ -126,7 +126,7 @@
         <div class="stat-item">
           <div class="stat-value">
             {% if request.user.date_joined %}
-              {{ request.user.date_joined|timesince|truncatewords:2 }}
+              {{ request.user.date_joined|timesince|truncatewords:2|cut:"," }}
             {% else %}
               {% trans "N/A" %}
             {% endif %}

@@ -3080,15 +3080,24 @@ html[data-bs-theme="dark"] .toast-undo {
 }
 
 .stat-item {
-  flex: 1;
+  flex: 1 1 0;
+  /* min-width:0 lets each tile shrink below its content's intrinsic width;
+     without it a long value like "1 month" refuses to shrink and the third
+     tile overflows/clips off the dropdown's right edge (the "1 mon…" bug). */
+  min-width: 0;
   text-align: center;
   color: var(--header-brand-fg, var(--color-base-0));
 }
 
 .stat-value {
   font-weight: 700;
-  font-size: var(--type-size-body-l);
+  /* body-m (was body-l): body-l was oversized for three narrow tiles, forcing
+     the multi-word timesince values ("8 minutes", "1 month") to overflow. */
+  font-size: var(--type-size-body-m, 1rem);
+  line-height: 1.15;
   margin-bottom: 0.25rem;
+  /* Long values wrap inside the tile instead of pushing it wider. */
+  overflow-wrap: anywhere;
 }
 
 .stat-label {
