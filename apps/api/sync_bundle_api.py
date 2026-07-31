@@ -23,8 +23,10 @@ from django.conf import settings
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.settings import api_settings
 from rest_framework.views import APIView
 
+from apps.api.edge_auth import EdgeCredentialAuthentication
 from apps.api.sync_services import apply_changes
 from apps.schools.tenant_api_guards import user_may_operate_on_school
 from apps.sync_engine.delta_bundle import verify_and_parse_bundle
@@ -44,6 +46,9 @@ from apps.sync_engine.delta_bundle import verify_and_parse_bundle
     ),
 )
 class SyncBundleUploadView(APIView):
+    # Edge machine credential FIRST (so an edge box needs no session/subdomain), then
+    # the project defaults so an online session upload still authenticates normally.
+    authentication_classes = [EdgeCredentialAuthentication, *api_settings.DEFAULT_AUTHENTICATION_CLASSES]
     permission_classes = [IsAuthenticated]
 
     def post(self, request):

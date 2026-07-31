@@ -51,9 +51,8 @@ class Command(BaseCommand):
         parser.add_argument("--device-id", dest="device_id", default="edge", help="Edge/device id stamped in the bundle header.")
 
     def handle(self, *args, **options):
-        from apps.api.sync_services import _get_entity_config  # SOT: (model, allowed-field set) per entity
         from apps.schools.models import School
-        from apps.sync_engine.delta_bundle import export_delta_bundle
+        from apps.sync_engine.edge_outbox import build_edge_delta_bundle
 
         slug = (options.get("slug") or "").strip()
         school_id = (options.get("school_id") or "").strip()
@@ -74,51 +73,21 @@ class Command(BaseCommand):
             if since is None:
                 raise CommandError(f"Could not parse --since {raw_since!r} (use ISO-8601).")
 
-        config = _get_entity_config()
-        want = {e.strip().lower() for e in (options.get("entities") or "").split(",") if e.strip()}
-        unknown = want - set(config)
-        if unknown:
-            raise CommandError(f"Unknown --entities: {sorted(unknown)}. Supported: {sorted(config)}.")
+        entities = [e.strip().lower() for e in (options.get("entities") or "").split(",") if e.strip()]
+        try:
+            data, meta = build_edge_delta_bundle(
+                school, since=since, entities=entities, device_id=(options.get("device_id") or "edge")
+            )
+        except ValueError as exc:
+            raise CommandError(str(exc).replace("unknown_entities:", "Unknown --entities: "))
 
-        rows: list[dict] = []
-        counts: dict[str, int] = {}
-        high_water = None
-        for entity_type, (model, allowed) in config.items():
-            if want and entity_type not in want:
-                continue
-            qs = model._default_manager.filter(school=school)  # school= is the tenant-isolation kwarg
-            if since is not None:
-                qs = qs.filter(updated_at__gt=since)
-            n = 0
-            for instance in qs.order_by("updated_at").iterator():
-                changes = {f: getattr(instance, f) for f in sorted(allowed) if hasattr(instance, f)}
-                updated_at = getattr(instance, "updated_at", None)
-                rows.append(
-                    {
-                        "entity_type": entity_type,
-                        "id": instance.pk,
-                        "changes": changes,
-                        "updated_at": updated_at.isoformat() if updated_at else None,
-                    }
-                )
-                if updated_at and (high_water is None or updated_at > high_water):
-                    high_water = updated_at
-                n += 1
-            if n:
-                counts[entity_type] = n
-
-        data = export_delta_bundle(
-            school_id=str(school.id),
-            rows=rows,
-            device_id=(options.get("device_id") or "edge"),
-        )
         out = Path(options["out"])
         out.write_bytes(data)
 
-        summary = ", ".join(f"{k}={v}" for k, v in sorted(counts.items())) or "no changes"
+        summary = ", ".join(f"{k}={v}" for k, v in sorted(meta["counts"].items())) or "no changes"
         self.stdout.write(
-            self.style.SUCCESS(f"Wrote {out} ({len(rows)} row(s): {summary}); signed for {school.slug}.")
+            self.style.SUCCESS(f"Wrote {out} ({meta['row_count']} row(s): {summary}); signed for {school.slug}.")
         )
-        if high_water is not None:
+        if meta["high_water_iso"]:
             # Feed this back as --since on the next run so already-sent rows aren't re-posted.
-            self.stdout.write(f"Next cursor (--since): {high_water.isoformat()}")
+            self.stdout.write(f"Next cursor (--since): {meta['high_water_iso']}")

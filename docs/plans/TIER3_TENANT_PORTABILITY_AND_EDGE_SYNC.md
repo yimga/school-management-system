@@ -1,7 +1,8 @@
 # Tier 3 — Full-fidelity tenant portability + edge↔operator sync
 
-Status: **IN PROGRESS** (Slice 0 = this doc + the portability engine; Slice 1 = the
-persisting bundle receiver — both DONE + tested). Author: platform.
+Status: **IN PROGRESS** — Slices 0-3 DONE + tested (clone engine; persisting receiver;
+edge outbox producer; machine credential + authenticated outbound transport). Slice 4
+(insert/upsert reconciliation) remains. Author: platform.
 Supersedes the "manual DR export/restore only" gap called out in
 `docs/LOCAL_HUB_MODE.md` and the sync verdict in
 `finding_sovereign_edge_selfhost_state_2026_07_31` (memory).
@@ -126,9 +127,29 @@ idempotent: a colliding pk is an UPDATE of the same identity.
   that bundle to the operator's `/api/v1/sync/bundle/upload/` when connectivity
   returns (queue-and-forward) needs the per-box **machine credential** to
   authenticate, so it is built together with Slice 3 rather than before it.
-- **Slice 3:** edge **identity + reachability** — a per-box machine credential the
-  operator issues (so the hub can authenticate its upstream POST), plus the
-  operator-managed tunnel/registration for a box behind a private LAN.
+- **Slice 3 — identity + transport (DONE):** the per-box **machine credential** +
+  the authenticated upstream POST, edge-initiated / outbound-only.
+  - Credential reuses `accounts.OfflineCapabilityToken` (sha256-fingerprinted,
+    revocable via the token AND its `DeviceRegistration`, with an expiry) tagged
+    `EDGE_SYNC_SCOPE` so an ordinary mobile offline token can't drive server↔server
+    sync. **No new model / migration** — a sovereign box registers as a device.
+    Bound to a service user that can operate on the school (the operator's apply runs
+    AS that user, so its permissions gate the writes). Minted by
+    `mint_edge_credential` (operator).
+  - `EdgeCredentialAuthentication` (DRF) on `SyncBundleUploadView`: resolves the
+    `Bearer` credential → `(user, school)`, scopes the request, and falls through to
+    Session/JWT when the header isn't an edge credential, so online uploads still work.
+  - `post_edge_outbox` (box) builds the Slice-2 bundle and POSTs it with the
+    credential; **queue-and-forward is idempotent** — the cursor advances ONLY on a
+    successful post, so an offline run keeps the cursor and the next run re-sends the
+    same window (LWW makes a re-send harmless); the failed bundle is also dropped in
+    an outbox dir for manual replay.
+  - **Reachability solved by direction:** the box calls OUT to the operator, so the
+    operator never needs to reach a box behind a private LAN — no inbound tunnel. The
+    core (`apps/sync_engine/edge_outbox.py`) shares one bundle-builder with Slice 2.
+    10 tests (credential auth accept/reject-missing/garbage/revoked/non-scope through
+    the receiver; mint↔resolve; poster success-advances / offline-keeps-cursor-and-
+    queues / rejection-raises-and-keeps-cursor / nothing-to-send).
 - **Slice 4:** **incremental deltas + reconciliation** — change-tracking
   (updated_at / an outbox cursor), natural-key upsert on the operator side, and
   conflict resolution wired onto the existing CRDT/policy machinery
