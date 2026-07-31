@@ -22,7 +22,7 @@ cockpit_payload section is disabled. No new data path.
     <div class="dash-widget rmc-reveal mb-3" data-widget-id="{{ w.id }}" data-widget-source="cockpit" aria-label="{{ w.name }}">
       <div class="card border-0 shadow-sm">
         <div class="card-body">
-          {% include w.partial_path %}
+          {% if w.rendered_html %}{{ w.rendered_html|safe }}{% else %}{% include w.partial_path %}{% endif %}
         </div>
       </div>
     </div>
