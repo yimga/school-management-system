@@ -6,6 +6,7 @@ import hashlib
 import json
 from typing import Any
 
+from django.conf import settings as dj_settings
 from django.db import transaction
 from django.utils import timezone
 
@@ -13,6 +14,7 @@ from apps.packages.engine import apply_package
 from apps.platform_runtime.blueprint_audit import audit_blueprint_event
 from apps.platform_runtime.blueprint_contract import get_blueprint_or_raise
 from apps.platform_runtime.blueprint_impact import analyze_blueprint_impact
+from apps.platform_runtime.blueprint_modules import enable_blueprint_modules
 from apps.platform_runtime.blueprint_preview import preview_blueprint
 from apps.platform_runtime.models import BlueprintInstallation
 from apps.platform_runtime.pack_apply import apply_pack
@@ -170,6 +172,15 @@ def apply_blueprint(
             scope="tenant",
             compatibility={"allowed_scopes": ["tenant"]},
         )
+        # Bridge: switch on the opt-in modules this blueprint's archetype implies
+        # (e.g. boarding-school → dormitory, low-connectivity-school → offline_mode)
+        # in School.features, so applying a blueprint no longer leaves its modules
+        # off until an admin toggles each one by hand. Only codes the blueprint
+        # explicitly names AND the registry exposes are enabled; nothing is fabricated.
+        # Gated by RMC_BLUEPRINT_SYNCS_MODULES (default on) so it stays reversible.
+        module_sync: dict[str, Any] = {}
+        if getattr(dj_settings, "RMC_BLUEPRINT_SYNCS_MODULES", True):
+            module_sync = enable_blueprint_modules(school, blueprint, persist=True)
         installation = BlueprintInstallation.objects.create(
             school=school,
             blueprint_key=blueprint.key,
@@ -195,6 +206,8 @@ def apply_blueprint(
             payload={
                 "external_blockers": installation.external_blockers,
                 "local_first_manifest": local_first_manifest,
+                "modules_enabled": module_sync.get("enabled", []),
+                "modules_skipped_unentitled": module_sync.get("skipped_unentitled", []),
             },
         )
         if event:
@@ -252,4 +265,7 @@ def apply_blueprint(
         "pack_installations": pack_install_results,
         "idempotent": False,
         "local_first_manifest": preview.get("local_first_manifest", {}),
+        "modules_enabled": module_sync.get("enabled", []),
+        "modules_already_on": module_sync.get("already_on", []),
+        "modules_skipped_unentitled": module_sync.get("skipped_unentitled", []),
     }
