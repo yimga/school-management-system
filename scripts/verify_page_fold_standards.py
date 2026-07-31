@@ -61,11 +61,18 @@ def main() -> int:
                 wired,
                 rel,
             )
+            # Admin pages extend admin/base_site.html (which extends base.html),
+            # and base_site.html is where the /admin/ shell actually loads the
+            # fold-standards assets — so honor the full admin shell chain rather
+            # than base.html alone (which would miss the real, live include).
+            fold_text = text
+            if rel == "templates/admin/base.html":
+                fold_text = text + _read("templates/admin/base_site.html")
             add(
                 f"shell_{rel.replace('/', '_')}_fold_assets",
                 f"{rel} loads page fold standards assets",
-                "rmc-page-fold-standards" in text
-                or "rmc_platform_chrome_scripts.html" in text,
+                "rmc-page-fold-standards" in fold_text
+                or "rmc_platform_chrome_scripts.html" in fold_text,
                 rel,
             )
         else:
@@ -148,10 +155,15 @@ def main() -> int:
     )
     add(
         "admin_index_catalog_collapsed",
-        "Platform admin catalog sections default collapsed (no open attribute)",
+        "Platform admin catalog sections are collapsible <details data-rmc-admin-catalog-section>",
         "<details" in admin_index
         and 'data-rmc-admin-catalog-section' in admin_index
-        and "<details class=\"rmc-admin-catalog-section\" id=" in admin_index,
+        # Class PREFIX (not exact): the collapse <details> also carries the
+        # load-bearing rmc-admin-disclosure grammar class (styled in
+        # rmc-admin-approval-surface-v15.css + selected by rmc-admin-model-policy.js
+        # / rmc-admin-workspace.js). An exact-class match broke on that correct,
+        # additive class while the catalog was in fact already collapsed.
+        and 'class="rmc-admin-catalog-section' in admin_index,
         "templates/admin/index_superadmin.html",
     )
 
