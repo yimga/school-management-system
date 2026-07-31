@@ -12,6 +12,7 @@ from unittest.mock import patch
 
 from django.core import mail
 from django.core.management import call_command
+from django.core.management.base import CommandError
 from django.test import TestCase, override_settings
 
 from apps.communication.models import OutboundMessageQueue
@@ -91,6 +92,66 @@ class DrainEdgeOutboxTests(TestCase):
     def test_skip_both_is_a_noop(self):
         out = self._run("--skip-email", "--skip-sms")
         self.assertIn("nothing drained", out)
+
+    def test_school_with_only_retrying_row_is_drained(self):
+        """Outer-loop fix (#1): a school whose only row is 'retrying' (a prior failed
+        send, no newer 'pending') must still be enumerated and drained — otherwise its
+        retry never runs (the dead-drainer one level up)."""
+        row = OutboundMessageQueue.objects.create(
+            school=self.school,
+            channel=OutboundMessageQueue.Channel.WHATSAPP,
+            recipient_identifier="+237600000010",
+            body="retry me",
+            status="retrying",
+        )
+        with patch("apps.communication.channels.send_whatsapp", return_value=True):
+            self._run("--skip-email")  # no --school -> outer-loop enumeration path
+        row.refresh_from_db()
+        self.assertEqual(row.status, "sent")
+
+    def test_school_scoped_drain_on_empty_queue_is_clean(self):
+        """tuple->dict fix: `--school X` on an empty queue must not spuriously error
+        (the empty per-school path used to return a bare (0,0) tuple -> .get() 500)."""
+        out = self._run("--skip-email", "--school", str(self.school.id))
+        self.assertIn("sms_whatsapp(sent=0", out)
+        self.assertNotIn("ERRORS", out)
+
+    def test_each_pending_row_sent_exactly_once(self):
+        """#6 happy path: a single drain claims each row via its own claim stamp and
+        sends it exactly once (the claim-stamp filter doesn't drop legitimately-claimed
+        rows)."""
+        for i in range(3):
+            OutboundMessageQueue.objects.create(
+                school=self.school, channel=OutboundMessageQueue.Channel.WHATSAPP,
+                recipient_identifier=f"+23760000002{i}", body=f"m{i}", status="pending",
+            )
+        with patch("apps.communication.channels.send_whatsapp", return_value=True) as m:
+            self._run("--skip-email")
+        self.assertEqual(m.call_count, 3)
+        self.assertEqual(
+            OutboundMessageQueue.objects.filter(school=self.school, status="sent").count(), 3
+        )
+
+    def test_drain_surfaces_error_and_exits_nonzero(self):
+        """#5: a drain failure must be distinguishable from an empty queue — the summary
+        carries ERRORS=[...] and the command exits non-zero (CommandError)."""
+        with patch(
+            "apps.communication.tasks.process_outbound_message_queue",
+            side_effect=RuntimeError("boom"),
+        ):
+            with self.assertRaises(CommandError):
+                call_command("drain_edge_outbox", "--skip-email", stdout=StringIO(), stderr=StringIO())
+
+    def test_redrive_outbound_accepts_uuid_school(self):
+        """#7: `redrive_outbound_messages --school <uuid>` no longer rejected by argparse
+        (School.pk is a UUID; the old type=int made per-tenant redrive unusable)."""
+        row = OutboundMessageQueue.objects.create(
+            school=self.school, channel=OutboundMessageQueue.Channel.SMS,
+            recipient_identifier="+237600000030", body="x", status="failed",
+        )
+        call_command("redrive_outbound_messages", "--school", str(self.school.id), stdout=StringIO())
+        row.refresh_from_db()
+        self.assertEqual(row.status, "pending")
 
     def test_stale_processing_row_recovered_and_sent(self):
         """A row a dead run abandoned in 'processing' (updated_at > 15 min ago) is

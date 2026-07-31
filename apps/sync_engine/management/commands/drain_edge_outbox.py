@@ -20,10 +20,17 @@ stops the other, and neither raises into the cron:
 Idempotent: a row that still fails to forward (box briefly online, then the
 provider is unreachable) stays queued and is retried next run; each queue's own
 ``redrive_count`` / ``retry_count`` bounds the attempts.
+
+NOTE — ``python manage.py run_periodic_jobs`` is the MORE COMPLETE beat-less drain:
+it runs the whole in-process periodic registry (this SMS/WhatsApp queue AND the email
+DLQ AND ``events.process_event_outbox`` — the internal-subscriber/webhook drainer this
+command does NOT cover — plus reminders and monitors), each at its own cadence with
+per-job locking. Prefer cronning ``run_periodic_jobs`` on a bare box; use this focused
+command when you only want to force email + SMS/WhatsApp forwarding.
 """
 from __future__ import annotations
 
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 
 
 class Command(BaseCommand):
@@ -79,10 +86,24 @@ class Command(BaseCommand):
                     processed=sms_summary.get("processed", 0),
                 )
             )
-        self.stdout.write(
-            "drain_edge_outbox: "
-            + (" ".join(parts) if parts else "nothing drained (both queues skipped)")
+
+        # Surface a drain FAILURE distinctly — otherwise a broken drain reads exactly
+        # like an empty queue (sent=0/redriven=0) and exits 0, so a cron that watches the
+        # exit code or stdout sees a silent failure as "clean".
+        errors = []
+        if email_summary and email_summary.get("error"):
+            errors.append("email:" + str(email_summary["error"]))
+        if sms_summary and sms_summary.get("error"):
+            errors.append("sms_whatsapp:" + str(sms_summary["error"]))
+
+        line = "drain_edge_outbox: " + (
+            " ".join(parts) if parts else "nothing drained (both queues skipped)"
         )
+        if errors:
+            line += " ERRORS=[" + ", ".join(errors) + "]"
+        self.stdout.write(line)
+        if errors:
+            raise CommandError(f"{len(errors)} queue(s) failed to drain: {', '.join(errors)}")
 
     def _drain_email(self, limit):
         try:

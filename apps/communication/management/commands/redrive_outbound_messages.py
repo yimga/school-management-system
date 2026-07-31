@@ -23,7 +23,9 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("--limit", type=int, default=100)
-        parser.add_argument("--school", type=int, default=None)
+        # School.pk is a UUID — accept the UUID string (type=int rejected every real
+        # school id, making the per-tenant redrive unusable).
+        parser.add_argument("--school", default=None)
         parser.add_argument("--dry-run", action="store_true")
 
     def handle(self, *args, **options):
