@@ -1,9 +1,9 @@
 # Tier 3 — Full-fidelity tenant portability + edge↔operator sync
 
-Status: **Slices 0-4 DONE + tested** — clone engine; persisting receiver; edge outbox
+Status: **Slices 0-5 DONE + tested** — clone engine; persisting receiver; edge outbox
 producer; machine credential + authenticated outbound transport; offline-created
-inserts (upsert by client_offline_id). Remaining: full FK id-remapping for
-new-references-new (deferred, noted in Slice 4). Author: platform.
+inserts (upsert by client_offline_id); FK id-remapping for new-references-new
+(Slice 5 — the honest residual, now closed). Author: platform.
 Supersedes the "manual DR export/restore only" gap called out in
 `docs/LOCAL_HUB_MODE.md` and the sync verdict in
 `finding_sovereign_edge_selfhost_state_2026_07_31` (memory).
@@ -172,10 +172,35 @@ idempotent: a colliding pk is an UPDATE of the same identity.
   - **What works cleanly today:** new **students** (no required FK to another new
     record — the primary new-enrollment case) and **attendance/classroom edits or
     inserts that reference already-cloned records**. 7 tests.
-  - **Deferred (honest):** full FK **id-remapping** so a new record can reference
-    *another* new record (e.g. attendance for a brand-new student) — that needs a
-    client-id→operator-pk map applied in dependency order, plus the richer
-    CRDT/policy conflict machinery (`policy_registry.py`, `conflict_resolver.py`).
+  - **Superseded by Slice 5:** the "full FK id-remapping so a new record can reference
+    *another* new record" was deferred here and is now implemented — see Slice 5.
+- **Slice 5 — FK id-remapping for new-references-new (DONE, the honest residual):**
+  the case Slice 4 deferred — a record created offline that references *another*
+  offline-created record in the same bundle (e.g. **attendance for a brand-new
+  student**, or a new student assigned to a new classroom).
+  - **How:** `apply_edge_inserts` now processes rows in **dependency order**
+    (`_insert_dependency_order` — a Kahn topological sort over the `_INSERT_FK_TARGET`
+    FK graph, so referents are created before dependents: classroom → student →
+    attendance), records each new row's freshly-assigned **operator pk** in a
+    `(entity_type, box_local_pk) → operator_pk` map, and **remaps** a dependent FK
+    onto that operator pk instead of dropping it. Results are returned in the caller's
+    **original** bundle order regardless of the internal processing order.
+  - **Still fail-clean:** if a referent could not be created (or isn't in the bundle),
+    the FK is still dropped — so the dependent row links only to real records or, if the
+    FK is required (e.g. `Attendance.student`), fails cleanly and is reported (422),
+    never mis-linked to the box's local pk. A new `Classroom` remains uninsertable via
+    the sync field set (needs `department` + a unique `code`), so a student referencing a
+    new classroom drops that (nullable) FK and still lands.
+  - **Safety of the split is unchanged:** a pk is only remapped when it belongs to a NEW
+    (insert) row in the same bundle (`new_local_pks`); a reference to a **cloned**
+    (pk-stable) record is passed through verbatim, because the box preserves cloned pks
+    and assigns fresh autoincrement pks above them, so a new-row local pk can never
+    collide with a cloned pk on the box. 3 new/updated tests (remap, order-independence,
+    fail-clean fallback) → **10 edge-insert tests**.
+  - **Not attempted (correctly out of scope):** the richer CRDT/policy conflict
+    machinery (`policy_registry.py`, `conflict_resolver.py`) for concurrent divergent
+    edits — Slice 5 is deterministic id-reconciliation, not multi-writer merge. LWW +
+    `SyncConflict` (Slices 1-2) remains the update-conflict story.
 
 ## Security notes
 

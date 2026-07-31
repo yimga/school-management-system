@@ -1,9 +1,13 @@
-"""Edge INSERTS — upsert offline-created rows by client_offline_id (Tier 3 Slice 4).
+"""Edge INSERTS — upsert offline-created rows by client_offline_id (Tier 3 Slice 4/5).
 
 Records created offline on the box carry a client_offline_id and the box's local pk
 (meaningless on the operator). The receiver upserts them by (school, client_offline_id),
-never by pk, so a box-local pk can't collide with a different operator record; a FK
-pointing at another new row's local pk is dropped so it can't mis-link.
+never by pk, so a box-local pk can't collide with a different operator record.
+
+Slice 5 (the honest residual): a FK pointing at ANOTHER new row in the same bundle is
+REMAPPED onto the referent's freshly-assigned operator pk (rows are applied in dependency
+order). If the referent couldn't be created, the FK is dropped so it can't mis-link — a
+required FK then fails cleanly and is reported.
 """
 from __future__ import annotations
 
@@ -112,7 +116,10 @@ class EdgeInsertReceiverTests(TestCase):
         att = Attendance.objects.get(school=self.school, client_offline_id=coid)
         self.assertEqual(att.student_id, self.cloned_student.pk)
 
-    def test_attendance_for_new_student_fails_cleanly_no_corruption(self):
+    def test_attendance_for_new_student_now_remapped_and_created(self):
+        """Slice 5 residual: attendance for a brand-new student (both offline-created in
+        the SAME bundle) is remapped onto the student's freshly-assigned operator pk —
+        no longer dropped. Both rows land; the FK points at the real operator pk."""
         new_student_local_pk = 919191
         rows = [
             {"entity_type": "student", "id": new_student_local_pk, "client_offline_id": "box-stu-x",
@@ -122,10 +129,48 @@ class EdgeInsertReceiverTests(TestCase):
                          "date": "2026-05-02", "status": "present"}, "updated_at": self.future},
         ]
         resp = self._post(rows)
-        # student created; attendance's FK to the new student is dropped -> required student
-        # missing -> row fails cleanly (reported), never mis-linked, batch survives.
-        self.assertEqual(resp.data["created"], 1)
-        self.assertFalse(Attendance.objects.filter(school=self.school, client_offline_id="box-att-x").exists())
+        self.assertEqual(resp.data["created"], 2, resp.data)
+        new_student = StudentProfile.objects.get(school=self.school, client_offline_id="box-stu-x")
+        att = Attendance.objects.get(school=self.school, client_offline_id="box-att-x")
+        self.assertEqual(att.student_id, new_student.pk)          # remapped to the operator pk
+        self.assertNotEqual(att.student_id, new_student_local_pk)  # NOT the box's local pk
+
+    def test_attendance_before_student_in_bundle_still_remapped(self):
+        """Dependency order — not bundle order — governs: attendance listed BEFORE its
+        new student still resolves (the student is created first internally), and results
+        come back in the original bundle order."""
+        slp = 800001
+        rows = [
+            {"entity_type": "attendance", "id": 800002, "client_offline_id": "box-att-y",
+             "changes": {"student_id": slp, "classroom_id": self.classroom.pk,
+                         "date": "2026-05-03", "status": "present"}, "updated_at": self.future},
+            {"entity_type": "student", "id": slp, "client_offline_id": "box-stu-y",
+             "changes": {"first_name": "Yin", "last_name": "Yang"}, "updated_at": self.future},
+        ]
+        resp = self._post(rows)
+        self.assertEqual(resp.data["created"], 2, resp.data)
+        new_student = StudentProfile.objects.get(school=self.school, client_offline_id="box-stu-y")
+        att = Attendance.objects.get(school=self.school, client_offline_id="box-att-y")
+        self.assertEqual(att.student_id, new_student.pk)
+        # results preserve the ORIGINAL bundle order (attendance idx 0, student idx 1)
+        self.assertEqual([r["index"] for r in resp.data["insert_results"]], [0, 1])
+
+    def test_dependent_fk_dropped_when_referent_cannot_be_created(self):
+        """Fail-clean fallback: a new Classroom can't be created via the sync field set
+        (needs department + a unique code), so a new student referencing it has its
+        classroom_id dropped — the student still lands, never mis-linked to the box pk."""
+        new_cls_local_pk = 700001
+        rows = [
+            {"entity_type": "classroom", "id": new_cls_local_pk, "client_offline_id": "box-cls-y",
+             "changes": {"name": "GhostRoom"}, "updated_at": self.future},
+            {"entity_type": "student", "id": 700002, "client_offline_id": "box-stu-z",
+             "changes": {"first_name": "Zed", "last_name": "Zee", "classroom_id": new_cls_local_pk},
+             "updated_at": self.future},
+        ]
+        resp = self._post(rows)
+        self.assertFalse(Classroom.objects.filter(school=self.school, client_offline_id="box-cls-y").exists())
+        student = StudentProfile.objects.get(school=self.school, client_offline_id="box-stu-z")
+        self.assertIsNone(student.classroom_id)  # FK to the uncreatable classroom dropped
         self.assertTrue(any(r["status"] == 422 for r in resp.data["insert_results"]))
 
     def test_classroom_insert_missing_required_fields_fails_cleanly(self):
