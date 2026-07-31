@@ -67,9 +67,21 @@ class AccessDbIntakeAdapter(IntakeAdapter):
                 "Install one of: 'pyodbc' (Windows + ACE driver), 'mdbtools' "
                 "(Linux/macOS), or 'access-parser'."
             )
+        skipped: list[str] = []
+        yielded = 0
         for table in tables:
             csv_bytes = _export_table_as_csv(path, table)
             if not csv_bytes:
+                # A table that enumerated but no engine could export: do NOT skip
+                # silently — that hid dropped tables and let the bundle ingest a
+                # partial DB with no signal. Log it, and if EVERY table fails to
+                # export, fail the bundle fast (visible) rather than "succeeding"
+                # with zero artifacts.
+                skipped.append(table)
+                logger.warning(
+                    "migration_cloud.access_intake: table export produced no rows; skipping",
+                    extra={"table": _safe(table), "db": path.name},
+                )
                 continue
             if len(csv_bytes) > max_bytes:
                 raise IntakeError(
@@ -84,6 +96,7 @@ class AccessDbIntakeAdapter(IntakeAdapter):
             def opener(p=tmp):
                 return p.open("rb")
 
+            yielded += 1
             yield ArtifactPayload(
                 path_within_bundle=f"{path.stem}/{_safe(table)}.csv",
                 filename=f"{_safe(table)}.csv",
@@ -91,6 +104,14 @@ class AccessDbIntakeAdapter(IntakeAdapter):
                 sha256=digest,
                 mime_type="text/csv",
                 content_opener=opener,
+            )
+
+        if yielded == 0 and skipped:
+            raise IntakeError(
+                f"Enumerated {len(skipped)} table(s) in {path.name} but none could "
+                "be exported (no working Access engine, or all tables empty). "
+                "Install 'mdbtools' (Linux/macOS) or 'pyodbc' + the ACE driver "
+                "(Windows), or export the tables to CSV manually."
             )
 
 

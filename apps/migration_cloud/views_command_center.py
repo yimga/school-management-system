@@ -645,6 +645,61 @@ def _section_counsel() -> dict[str, Any]:
         return {"error": type(exc).__name__}
 
 
+# ─── Section 9: Alert status (wires apps.migration_cloud.alert_status) ────
+
+
+def _section_alert_status() -> dict[str, Any]:
+    """Operator alert-delivery posture (channels / dry-run / dedup / rate limit).
+
+    Wires ``alert_status.get_alert_status_summary`` — previously built but never
+    surfaced — into the command center. Self-guarding: returns ``{"error": ...}``
+    on any failure so a broken section never 500s the dashboard.
+    """
+    try:
+        from apps.migration_cloud.alert_status import get_alert_status_summary
+
+        summary = get_alert_status_summary()
+        dry = bool(summary.get("dry_run", True))
+        return {
+            "error": None,
+            "pill": STATUS_INFO if dry else STATUS_OK,
+            "channels_enabled": list(summary.get("channels_enabled") or ["log"]),
+            "dry_run": dry,
+            "active_dedup_keys": int(summary.get("active_dedup_keys", 0) or 0),
+            "rate_limit_per_hour": int(summary.get("rate_limit_per_hour", 0) or 0),
+            "drill_url_name": None,
+        }
+    except Exception as exc:  # noqa: BLE001 — isolated section, never cascades
+        return {"error": type(exc).__name__, "pill": STATUS_WARN}
+
+
+# ─── Section 10: Concierge sources (wires apps.migration_cloud.source_adapters) ──
+
+
+def _section_concierge_sources() -> dict[str, Any]:
+    """Concierge white-glove migration source catalog summary.
+
+    Wires ``source_adapters.summary`` — previously reachable only from tests —
+    so the operator sees how many competitor SIS platforms the concierge team is
+    scoped to migrate from. Self-guarding.
+    """
+    try:
+        from apps.migration_cloud import source_adapters
+
+        s = source_adapters.summary()
+        return {
+            "error": None,
+            "pill": STATUS_INFO,
+            "source_count": int(s.get("source_count", 0) or 0),
+            "by_risk": dict(s.get("by_risk") or {}),
+            "by_segment": dict(s.get("by_segment") or {}),
+            "capability_coverage": int(s.get("total_capability_coverage", 0) or 0),
+            "drill_url_name": None,
+        }
+    except Exception as exc:  # noqa: BLE001 — isolated section, never cascades
+        return {"error": type(exc).__name__, "pill": STATUS_WARN}
+
+
 # ─── View ───────────────────────────────────────────────────────────────
 
 
@@ -668,6 +723,8 @@ class MigrationCloudCommandCenterView(View):
             "signed_release": _section_signed_release(),
             "observability": _section_observability(),
             "counsel": _section_counsel(),
+            "alert_status": _section_alert_status(),
+            "concierge_sources": _section_concierge_sources(),
         }
 
         # Logging discipline — emit ONLY error-keys present per section,
@@ -705,5 +762,7 @@ __all__ = [
     "_section_signed_release",
     "_section_observability",
     "_section_counsel",
+    "_section_alert_status",
+    "_section_concierge_sources",
     "_service_worker_cache_key",
 ]
