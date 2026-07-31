@@ -10,6 +10,13 @@ file. Idempotency is built-in via the existing per-bundle unique-by-hash
 constraint — re-uploading the same file content returns it as
 ``already_accepted`` rather than 409.
 
+Every accepted file's bytes are captured into the encrypted-at-rest
+``MigrationArtifactBlob`` content store (via ``capture_artifact_blob``) so the
+apply step can actually read the rows back. Before this the endpoint created
+metadata-only rows and discarded the bytes, so ``orchestrator._iter_canonical_rows``
+found no blob and no top-level local file and yielded zero rows — a silent
+zero-row apply for every artifact uploaded through this API.
+
 Limits (defensive — operators with bigger needs use the wizard):
 
     * 50 files per request                  (MAX_FILES_PER_REQUEST)
@@ -31,6 +38,8 @@ from __future__ import annotations
 import hashlib
 import logging
 import mimetypes
+import os
+import tempfile
 
 from drf_spectacular.utils import OpenApiResponse, extend_schema, inline_serializer
 from rest_framework import serializers, status
@@ -74,6 +83,71 @@ def _sha256_of_upload(uploaded_file) -> tuple[str, int]:
     return hasher.hexdigest(), total
 
 
+def _spool_and_hash(uploaded_file, *, cap: int) -> tuple[str, str, int, bool]:
+    """Stream the upload to a temp file while hashing, one pass.
+
+    Returns ``(tmp_path, hex_digest, byte_count, over_cap)``. Capturing the bytes
+    (not just the hash) is what lets the apply step read real rows — a hash-only
+    read leaves the artifact with no content and apply yields nothing. Stops
+    writing once ``cap`` is exceeded (``over_cap=True``) so an over-limit file
+    never fills the disk. The caller unlinks ``tmp_path`` after capture.
+    """
+    hasher = hashlib.sha256()
+    total = 0
+    over = False
+    fd, tmp_path = tempfile.mkstemp(prefix="mc-bulk-", suffix=".upload")
+    try:
+        with os.fdopen(fd, "wb") as tmp:
+            for chunk in uploaded_file.chunks(chunk_size=_HASH_CHUNK_SIZE):
+                hasher.update(chunk)
+                total += len(chunk)
+                if total > cap:
+                    over = True
+                    break
+                tmp.write(chunk)
+    finally:
+        try:
+            uploaded_file.seek(0)
+        except (AttributeError, OSError):
+            pass
+    return tmp_path, hasher.hexdigest(), total, over
+
+
+def _safe_unlink(path: str) -> None:
+    try:
+        os.unlink(path)
+    except OSError:
+        pass
+
+
+def _capture_upload_bytes(artifact, tmp_path: str) -> bool:
+    """Capture the spooled temp file into the artifact's encrypted blob store.
+
+    Uses the same ``capture_artifact_blob`` path every intake adapter uses, via a
+    one-shot ``ArtifactPayload`` whose ``content_opener`` reopens the temp file.
+    Best-effort: capture never raises (mirrors ingest).
+    """
+    from apps.migration_cloud.artifact_blob_store import capture_artifact_blob
+    from apps.migration_cloud.intake.base import ArtifactPayload
+
+    payload = ArtifactPayload(
+        path_within_bundle=artifact.path_within_bundle,
+        filename=artifact.filename,
+        byte_size=artifact.byte_size,
+        sha256=artifact.sha256,
+        mime_type=artifact.mime_type,
+        content_opener=lambda p=tmp_path: open(p, "rb"),  # noqa: SIM115 — closed by capture_artifact_blob
+    )
+    return capture_artifact_blob(artifact, payload)
+
+
+def _blob_exists(artifact) -> bool:
+    from apps.migration_cloud.models import MigrationArtifactBlob
+
+    # tenant-isolation-allow: blob-lookup-by-artifact-pk-reachable-only-via-bundle-school
+    return MigrationArtifactBlob.objects.filter(artifact_id=artifact.pk).exists()
+
+
 def _bulk_artifacts_schema_kwargs() -> dict:
     """Return the kwargs for ``@extend_schema`` on the bulk endpoint."""
     return {
@@ -81,11 +155,12 @@ def _bulk_artifacts_schema_kwargs() -> dict:
         "summary": "Bulk-attach up to 50 artifacts to a bundle",
         "description": (
             "Multipart upload that registers 1..N artifacts in one round-trip. "
-            "Each file becomes a ``MigrationArtifact`` row. Content is hashed "
-            "with sha256 server-side; uploading the same content twice into "
-            "the same bundle returns the existing row marked "
-            "``deduplicated=true`` rather than 409. Limits: max 50 files per "
-            "request, max 100MB per file, max 500MB aggregate."
+            "Each file becomes a ``MigrationArtifact`` row and its bytes are "
+            "captured into the encrypted content store so the apply step can read "
+            "the rows. Content is hashed with sha256 server-side; uploading the "
+            "same content twice into the same bundle returns the existing row "
+            "marked ``deduplicated=true`` rather than 409. Limits: max 50 files "
+            "per request, max 100MB per file, max 500MB aggregate."
         ),
         "request": {
             "multipart/form-data": inline_serializer(
@@ -146,82 +221,102 @@ def bulk_artifacts_action_factory():
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # First pass — size validation + sha256 (streaming).
+        # First pass — size validation + sha256 + spool bytes to temp (streaming).
+        # Spooling (not just hashing) is what lets the second pass capture the
+        # bytes into the blob store so apply reads real rows.
         prepared: list[dict] = []
         rejected: list[dict] = []
         running_total = 0
-        for upload in files:
-            name = getattr(upload, "name", "<unnamed>")
-            size_hint = getattr(upload, "size", None)
-            if size_hint is not None and size_hint > MAX_FILE_BYTES:
-                rejected.append({
+        tmp_paths: list[str] = []
+        try:
+            for upload in files:
+                name = getattr(upload, "name", "<unnamed>")
+                size_hint = getattr(upload, "size", None)
+                if size_hint is not None and size_hint > MAX_FILE_BYTES:
+                    rejected.append({
+                        "name": name,
+                        "reason": f"file exceeds per-file limit {MAX_FILE_BYTES} bytes",
+                    })
+                    continue
+                tmp_path, digest, byte_count, over_cap = _spool_and_hash(
+                    upload, cap=MAX_FILE_BYTES
+                )
+                if over_cap:
+                    _safe_unlink(tmp_path)
+                    rejected.append({
+                        "name": name,
+                        "reason": f"file exceeds per-file limit {MAX_FILE_BYTES} bytes",
+                    })
+                    continue
+                if running_total + byte_count > MAX_TOTAL_BYTES:
+                    _safe_unlink(tmp_path)
+                    rejected.append({
+                        "name": name,
+                        "reason": f"aggregate request exceeds {MAX_TOTAL_BYTES} bytes",
+                    })
+                    continue
+                running_total += byte_count
+                tmp_paths.append(tmp_path)
+                prepared.append({
                     "name": name,
-                    "reason": f"file exceeds per-file limit {MAX_FILE_BYTES} bytes",
+                    "byte_size": byte_count,
+                    "sha256": digest,
+                    "tmp_path": tmp_path,
+                    "mime_type": getattr(upload, "content_type", None)
+                                  or mimetypes.guess_type(name)[0] or "",
                 })
-                continue
-            digest, byte_count = _sha256_of_upload(upload)
-            if byte_count > MAX_FILE_BYTES:
-                rejected.append({
-                    "name": name,
-                    "reason": f"file exceeds per-file limit {MAX_FILE_BYTES} bytes",
-                })
-                continue
-            running_total += byte_count
-            if running_total > MAX_TOTAL_BYTES:
-                rejected.append({
-                    "name": name,
-                    "reason": f"aggregate request exceeds {MAX_TOTAL_BYTES} bytes",
-                })
-                continue
-            prepared.append({
-                "name": name,
-                "byte_size": byte_count,
-                "sha256": digest,
-                "mime_type": getattr(upload, "content_type", None)
-                              or mimetypes.guess_type(name)[0] or "",
-            })
 
-        # Second pass — create or dedup.
-        accepted: list[dict] = []
-        for entry in prepared:
-            existing = (
-                # tenant-isolation-allow: bulk-artifacts-dedup-within-already-tenant-scoped-bundle
-                bundle.artifacts.filter(sha256=entry["sha256"]).first()
-            )
-            if existing is not None:
-                accepted.append({
-                    "id": existing.pk,
-                    "filename": existing.filename,
-                    "sha256": existing.sha256,
-                    "byte_size": existing.byte_size,
-                    "deduplicated": True,
-                })
-                continue
-            try:
-                row = MigrationArtifact.objects.create(
-                    bundle=bundle,
-                    filename=entry["name"][:255],
-                    path_within_bundle=entry["name"],
-                    mime_type=entry["mime_type"][:128] if entry["mime_type"] else "",
-                    byte_size=entry["byte_size"],
-                    sha256=entry["sha256"],
+            # Second pass — create or dedup, then capture the bytes.
+            accepted: list[dict] = []
+            for entry in prepared:
+                existing = (
+                    # tenant-isolation-allow: bulk-artifacts-dedup-within-already-tenant-scoped-bundle
+                    bundle.artifacts.filter(sha256=entry["sha256"]).first()
                 )
-                accepted.append({
-                    "id": row.pk,
-                    "filename": row.filename,
-                    "sha256": row.sha256,
-                    "byte_size": row.byte_size,
-                    "deduplicated": False,
-                })
-            except Exception as exc:  # defensive — uniqueness race or model error
-                logger.exception(
-                    "migration_cloud_bulk_artifact_create_failed bundle_id=%s sha256=%s",
-                    bundle.pk, entry["sha256"],
-                )
-                rejected.append({
-                    "name": entry["name"],
-                    "reason": f"create-failed: {type(exc).__name__}",
-                })
+                if existing is not None:
+                    # Top up bytes for a metadata-only row created before capture
+                    # was wired (or a create whose capture failed) — idempotent.
+                    if not _blob_exists(existing):
+                        _capture_upload_bytes(existing, entry["tmp_path"])
+                    accepted.append({
+                        "id": existing.pk,
+                        "filename": existing.filename,
+                        "sha256": existing.sha256,
+                        "byte_size": existing.byte_size,
+                        "deduplicated": True,
+                    })
+                    continue
+                try:
+                    row = MigrationArtifact.objects.create(
+                        bundle=bundle,
+                        filename=entry["name"][:255],
+                        path_within_bundle=entry["name"],
+                        mime_type=entry["mime_type"][:128] if entry["mime_type"] else "",
+                        byte_size=entry["byte_size"],
+                        sha256=entry["sha256"],
+                    )
+                    # Capture the bytes so apply can read real rows (not a
+                    # silent zero-row apply). Best-effort — never blocks accept.
+                    _capture_upload_bytes(row, entry["tmp_path"])
+                    accepted.append({
+                        "id": row.pk,
+                        "filename": row.filename,
+                        "sha256": row.sha256,
+                        "byte_size": row.byte_size,
+                        "deduplicated": False,
+                    })
+                except Exception as exc:  # defensive — uniqueness race or model error
+                    logger.exception(
+                        "migration_cloud_bulk_artifact_create_failed bundle_id=%s sha256=%s",
+                        bundle.pk, entry["sha256"],
+                    )
+                    rejected.append({
+                        "name": entry["name"],
+                        "reason": f"create-failed: {type(exc).__name__}",
+                    })
+        finally:
+            for path in tmp_paths:
+                _safe_unlink(path)
 
         logger.info(
             "migration_cloud_bulk_artifacts bundle_id=%s accepted=%s rejected=%s bytes=%s",

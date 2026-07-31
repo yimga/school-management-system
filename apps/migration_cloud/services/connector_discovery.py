@@ -151,6 +151,32 @@ def fetch_sample_records(
     return preview.sample_records
 
 
+# A ceiling far above any realistic single-entity export. The CSV-backed
+# connectors read the whole source and slice by ``limit``, so this pulls the
+# FULL dataset at import time — the preview/validate step deliberately uses the
+# small default ``limit`` for a quality sample only.
+FULL_EXTRACT_LIMIT = 1_000_000  # magic-number-allow: connector full-extract row ceiling
+
+
+def fetch_all_records(
+    *,
+    connection: MigrationSourceConnection,
+    entity_type: str,
+    limit: int = FULL_EXTRACT_LIMIT,
+) -> list[dict[str, Any]]:
+    """Extract the FULL entity dataset for import (not the preview sample).
+
+    The connector "validate" step stages only ``fetch_sample_records`` (a ~10-row
+    preview) so the operator can review data quality. Importing that sample would
+    land ~10 rows of a real export — the connection would report success while the
+    school's data was almost entirely missing. This re-extracts everything for the
+    actual import via the same adapter + credentials the preview used.
+    """
+    return fetch_sample_records(
+        connection=connection, entity_type=entity_type, limit=limit
+    )
+
+
 def stage_entity_preview(
     *,
     connection: MigrationSourceConnection,

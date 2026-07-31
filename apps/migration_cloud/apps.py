@@ -45,3 +45,17 @@ class MigrationCloudConfig(AppConfig):
             logging.getLogger(__name__).exception(
                 "migration_cloud.apps: tasks_audit import failed"
             )
+        # Register the Migration Cloud Celery tasks (advance / apply / fetch_assets).
+        # This app has NO autodiscovered ``tasks.py``, so without this import
+        # ``fetch_assets_task`` is unregistered and a broker-backed worker silently
+        # drops asset fetches — ``.delay()`` succeeds on the producer but the worker
+        # has no such task. (The critical advance→apply path runs via the durable
+        # HeavyWorkOutbox drain calling the pipeline directly, so it does not depend
+        # on these registrations; the media-asset side branch does.)
+        try:
+            from . import celery_tasks  # noqa: F401 — import registers the @shared_task set
+        except Exception:  # noqa: BLE001
+            import logging
+            logging.getLogger(__name__).exception(
+                "migration_cloud.apps: celery_tasks import failed"
+            )

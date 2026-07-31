@@ -62,9 +62,15 @@ def clone_bundle_to_sandbox(*, bundle: MigrationBundle) -> MigrationBundle:
             sandbox_of=bundle,
             triggered_by=bundle.triggered_by,
         )
-        # Copy artifact rows (file paths) — no byte copy needed.
+        # Copy artifact rows. The captured source bytes live in a per-artifact
+        # OneToOne blob (keyed to the ORIGINAL pk), so a metadata-only copy would
+        # leave the clone's new artifact rows with no bytes — and a sandbox apply
+        # of any blob-backed artifact (archive member / companion / remote /
+        # bulk-API upload) would land zero rows silently. Clone the blob too.
+        from .artifact_blob_store import clone_artifact_blob
+
         for artifact in bundle.artifacts.all():
-            MigrationArtifact.objects.create(
+            clone_artifact = MigrationArtifact.objects.create(
                 bundle=clone,
                 parent_archive=None,
                 path_within_bundle=artifact.path_within_bundle,
@@ -81,6 +87,7 @@ def clone_bundle_to_sandbox(*, bundle: MigrationBundle) -> MigrationBundle:
                 inferred_source=artifact.inferred_source,
                 inferred_domain=list(artifact.inferred_domain or []),
             )
+            clone_artifact_blob(artifact, clone_artifact)
     return clone
 
 

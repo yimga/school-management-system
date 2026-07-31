@@ -72,8 +72,10 @@ _DOMAIN_MODELS: dict[str, tuple[str, str]] = {
     "athletics_fixtures": ("apps.athletics.models", "Fixture"),
     # Deliberately NOT mapped: ``alumni`` lands into StudentProfile (shared with
     # ``students``) so a domain-keyed count would double-count the roster; and
-    # ``payroll`` / ``compliance`` persist only DynamicFieldValue blobs (no
-    # first-class model) — both stay the honest "not verified" case.
+    # ``payroll`` / ``compliance`` / ``schedule`` persist only DynamicFieldValue
+    # blobs (no importable first-class model — ScheduleEntry needs the solved
+    # timetable graph; see schedule_lander) — all stay the honest "not verified"
+    # case.
 }
 
 

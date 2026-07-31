@@ -50,6 +50,31 @@ _DOWNLOAD_TIMEOUT_SECONDS = 60
 _CHUNK = 1024 * 1024
 
 
+class _TransientFetchError(IntakeError):
+    """A remote fetch failure that is worth retrying (network hiccup, timeout).
+
+    A subclass of ``IntakeError`` so, once the retry budget is exhausted, it
+    propagates like any other intake failure. Permanent failures (size cap
+    exceeded, missing optional dependency, malformed URL) raise plain
+    ``IntakeError`` and are NOT retried.
+    """
+
+
+def _resilience_max_retries() -> int:
+    """Retry budget for remote pulls (wires the ``migration_cloud.network`` config)."""
+    try:
+        return max(1, int(mc_defaults.get("migration_cloud.network.max_retries")))
+    except Exception:  # noqa: BLE001 — fall back to a safe default
+        return 5
+
+
+def _safe_unlink(path: Path) -> None:
+    try:
+        path.unlink()
+    except OSError:
+        pass
+
+
 class UrlIntakeAdapter(IntakeAdapter):
     """Fetches a remote artifact then delegates to file/archive intake."""
 
@@ -89,14 +114,33 @@ def _fetch_to_tempfile(url: str, scheme: str, max_bytes: int) -> Path:
     os.close(fd)
     tmp = Path(tmp_name)
 
-    if scheme in ("http", "https"):
-        _fetch_http(url, tmp, max_bytes)
-    elif scheme == "sftp":
-        _fetch_sftp(url, tmp, max_bytes)
-    elif scheme == "s3":
-        _fetch_s3(url, tmp, max_bytes)
-    else:
+    fetcher = {
+        "http": _fetch_http,
+        "https": _fetch_http,
+        "sftp": _fetch_sftp,
+        "s3": _fetch_s3,
+    }.get(scheme)
+    if fetcher is None:
+        _safe_unlink(tmp)
         raise IntakeError(f"URL scheme {scheme!r} is recognized but no fetcher is wired.")
+
+    # Wire network_resilience.retry: a transient network hiccup on a large
+    # remote pull now retries with exponential backoff + jitter instead of
+    # failing the whole bundle on the first blip. Only ``_TransientFetchError``
+    # is retried — a size-cap breach or a missing paramiko/boto3 raises plain
+    # ``IntakeError`` and fails fast. Each attempt re-opens ``dest`` in "wb"
+    # (full re-download), so no partial-append corruption.
+    from apps.migration_cloud import network_resilience
+
+    try:
+        network_resilience.retry(
+            fetcher,
+            max_retries=_resilience_max_retries(),
+            retry_on=(_TransientFetchError,),
+        )(url, tmp, max_bytes)
+    except Exception:
+        _safe_unlink(tmp)
+        raise
     return tmp
 
 
@@ -117,8 +161,10 @@ def _fetch_http(url: str, dest: Path, max_bytes: int) -> None:
                 out.write(chunk)
     except IntakeError:
         raise
-    except Exception as exc:  # noqa: BLE001 — surface a clean message
-        raise IntakeError(f"HTTP fetch failed for {url}: {type(exc).__name__}: {exc}") from exc
+    except Exception as exc:  # noqa: BLE001 — transient network failure → retryable
+        raise _TransientFetchError(
+            f"HTTP fetch failed for {url}: {type(exc).__name__}: {exc}"
+        ) from exc
 
 
 def _fetch_sftp(url: str, dest: Path, max_bytes: int) -> None:
@@ -153,8 +199,10 @@ def _fetch_sftp(url: str, dest: Path, max_bytes: int) -> None:
                 sftp.close()
     except IntakeError:
         raise
-    except Exception as exc:  # noqa: BLE001
-        raise IntakeError(f"SFTP fetch failed for {url}: {type(exc).__name__}: {exc}") from exc
+    except Exception as exc:  # noqa: BLE001 — transient transport failure → retryable
+        raise _TransientFetchError(
+            f"SFTP fetch failed for {url}: {type(exc).__name__}: {exc}"
+        ) from exc
 
 
 def _fetch_s3(url: str, dest: Path, max_bytes: int) -> None:
@@ -180,8 +228,10 @@ def _fetch_s3(url: str, dest: Path, max_bytes: int) -> None:
         client.download_file(bucket, key, str(dest))
     except IntakeError:
         raise
-    except Exception as exc:  # noqa: BLE001
-        raise IntakeError(f"S3 fetch failed for {url}: {type(exc).__name__}: {exc}") from exc
+    except Exception as exc:  # noqa: BLE001 — transient transport failure → retryable
+        raise _TransientFetchError(
+            f"S3 fetch failed for {url}: {type(exc).__name__}: {exc}"
+        ) from exc
 
 
 # Re-register so the upgraded adapter takes precedence over the Phase U1 stub.
