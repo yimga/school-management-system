@@ -95,6 +95,17 @@ def link_guardian_to_student(
         ).first()
         created = False
 
+    # A guardian who links a child is a login-capable member of this school; make
+    # sure they carry a SchoolMembership so the tenant identity roster lists them
+    # and a tenant admin can recover their password offline (credential reset
+    # requires a membership). Best-effort — never fail the link over it.
+    try:
+        from apps.accounts.tenant_identity import ensure_school_membership
+
+        ensure_school_membership(guardian, school, role=guardian.role)
+    except Exception as exc:  # noqa: BLE001 — membership is additive, must not block the link
+        logger.warning("link_guardian_to_student: membership ensure skipped: %s", exc)
+
     _audit_link(guardian=guardian, student=student, link=link, created=created)
     logger.info(
         "link_guardian_to_student guardian=%s student=%s created=%s",

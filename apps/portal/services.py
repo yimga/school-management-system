@@ -1713,6 +1713,20 @@ def link_guardian_via_invite(
     invite.claimed_at = timezone.now()
     invite.save(update_fields=["guardian_user", "claimed_at"])
 
+    # A parent who claims an invite is now a login-capable member of this school:
+    # give them a SchoolMembership so they appear in the tenant identity roster and
+    # a tenant admin can recover their password offline (credential reset requires a
+    # membership). Best-effort — never fail the claim over it (the guardian link and
+    # dashboard access already succeeded); the fix_tenant_login CLI is the fallback.
+    try:
+        from apps.accounts.tenant_identity import ensure_school_membership
+
+        school = getattr(invite.student, "school", None)
+        if school is not None:
+            ensure_school_membership(user, school, role=user.role)
+    except Exception as exc:  # noqa: BLE001 — membership is additive, must not block the claim
+        logger.warning("link_guardian_via_invite: membership ensure skipped: %s", exc)
+
     student = invite.student
     if invite.referral_code and not student.referral_code:
         student.referral_code = invite.referral_code
