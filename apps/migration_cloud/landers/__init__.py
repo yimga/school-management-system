@@ -87,6 +87,7 @@ from . import health_lander  # noqa: F401
 from . import hostel_lander  # noqa: F401
 from . import library_lander  # noqa: F401
 from . import payroll_lander  # noqa: F401
+from . import schedule_lander  # noqa: F401 — timetable rows preserved as DFV (ScheduleEntry needs the solver graph)
 from . import transcripts_lander  # noqa: F401
 from . import transport_lander  # noqa: F401
 # v3.27 — per-student assignment landers paired with the v3.26 catalog

@@ -117,7 +117,9 @@ def run_connector_import(
         # mid-landing failure rolls back partial writes WITHOUT discarding the
         # FAILED record written in the except (which sits outside this block).
         with transaction.atomic():
-            rows = list(staging_batch.staged_rows or [])
+            rows = _resolve_import_rows(
+                connection=connection, staging_batch=staging_batch
+            )
             csv_path = write_staging_csv(rows=rows, entity_type=staging_batch.entity_type)
             bundle, _registered = ingest_staged_csv_to_bundle(
                 csv_path=csv_path,
@@ -230,6 +232,55 @@ def run_connector_import(
         },
     )
     return import_run
+
+
+def _estimated_full_count(staging_batch) -> int | None:
+    """Discovery's estimated full row-count for this batch's entity, or None.
+
+    Read from the batch's discovery run (``counts_by_entity``). ``None`` when
+    there is no discovery run or no count for the entity — in which case we do
+    NOT re-extract and import exactly what was staged.
+    """
+    run = getattr(staging_batch, "discovery_run", None)
+    if run is None:
+        return None
+    counts = getattr(run, "counts_by_entity", None) or {}
+    value = counts.get(staging_batch.entity_type)
+    try:
+        return int(value) if value is not None else None
+    except (TypeError, ValueError):
+        return None
+
+
+def _resolve_import_rows(*, connection, staging_batch) -> list:
+    """Return the rows to import — the FULL dataset, not the preview sample.
+
+    The "validate" step stages only ``fetch_sample_records`` (a ~10-row preview)
+    for quality review. Importing that sample would land ~10 rows of a real export
+    — a "successful" connection that silently dropped nearly all the school's data.
+    When discovery counted MORE rows than were staged (i.e. the staged batch is a
+    truncated preview), re-extract the full dataset via the same connector. Fall
+    back to the staged rows whenever discovery has no larger count, the live
+    re-extract fails, or (defensively) it returns fewer rows than staging — import
+    must never land LESS than the operator already reviewed.
+    """
+    staged = list(staging_batch.staged_rows or [])
+    estimated = _estimated_full_count(staging_batch)
+    if estimated is None or estimated <= len(staged):
+        return staged
+    try:
+        from apps.migration_cloud.services.connector_discovery import fetch_all_records
+
+        full = fetch_all_records(
+            connection=connection, entity_type=staging_batch.entity_type
+        )
+    except Exception:  # noqa: BLE001 — full re-extract is best-effort; staged is the floor
+        logger.warning(
+            "connector_import: full re-extract failed; importing staged sample only",
+            exc_info=True,
+        )
+        return staged
+    return full if len(full) >= len(staged) else staged
 
 
 def _resolve_or_create_run(*, connection, staging_batch, started_by, key, dry_run):

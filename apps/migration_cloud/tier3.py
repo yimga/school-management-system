@@ -61,11 +61,18 @@ def merge_bundles(
         status=BundleStatus.MAPPED,
         triggered_by=base.triggered_by,
     )
+    # The merged parent gets NEW artifact rows with a rewritten
+    # ``path_within_bundle`` (``{child.pk}::<path>``). The captured source bytes
+    # live in a per-artifact OneToOne blob keyed to the ORIGINAL pk, and the
+    # rewritten path also defeats the single-top-level-local-file fallback — so
+    # without copying the blob a merged apply lands ZERO rows for every artifact.
+    from .artifact_blob_store import clone_artifact_blob
+
     merged_per_artifact: dict[str, list] = {}
     merged_domains: dict[str, dict] = {}
     for child in bundles:
         for artifact in child.artifacts.all():
-            MigrationArtifact.objects.create(
+            merged_artifact = MigrationArtifact.objects.create(
                 bundle=parent,
                 parent_archive=None,
                 path_within_bundle=f"{child.pk}::{artifact.path_within_bundle}",
@@ -82,6 +89,7 @@ def merge_bundles(
                 inferred_source=artifact.inferred_source,
                 inferred_domain=list(artifact.inferred_domain or []),
             )
+            clone_artifact_blob(artifact, merged_artifact)
         for path, mappings in (child.mapping_summary or {}).get("per_artifact", {}).items():
             merged_per_artifact[f"{child.pk}::{path}"] = mappings
         for path, dom in (child.discovery_summary or {}).get("per_artifact_domain", {}).items():

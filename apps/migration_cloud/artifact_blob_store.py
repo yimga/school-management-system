@@ -82,18 +82,57 @@ def _safe_close(stream: Any) -> None:
         pass
 
 
+def _mark_artifact_uncaptured_if_expected(artifact: Any, *, reason: str) -> None:
+    """Quarantine an artifact that SHOULD have carried bytes but captured none.
+
+    A silent skip leaves the artifact with no blob and no fallback byte source, so
+    apply yields zero rows for it — and a MIXED bundle (some artifacts captured,
+    some not) is NOT caught by the orchestrator's all-quarantined honesty gate, so
+    the bundle goes green APPLIED with those files contributing nothing (silent
+    PARTIAL data loss). When the artifact reported a non-zero ``byte_size`` the
+    empty capture is an anomaly (a broken adapter opener, a truncated read, or a
+    metadata-only row) — quarantine it with a visible reason so the operator review
+    surface + the all-quarantined gate see it. A genuinely empty (0-byte) artifact
+    stays silent (nothing to capture is correct). Best-effort: never raises.
+    """
+    try:
+        if int(getattr(artifact, "byte_size", 0) or 0) <= 0:
+            return
+        if getattr(artifact, "quarantined", False):
+            return
+        artifact.quarantined = True
+        artifact.quarantine_reason = (
+            f"Source bytes could not be captured for migration ({reason}); not "
+            "applied. Re-upload the file or re-run the source connection."
+        )
+        artifact.save(update_fields=["quarantined", "quarantine_reason", "updated_at"])
+        logger.warning(
+            "migration_cloud.artifact_blob: artifact reported bytes but none captured; quarantined",
+            extra={"artifact_id": getattr(artifact, "pk", None), "reason": reason},
+        )
+    except Exception:  # noqa: BLE001 — quarantine mark is best-effort, never blocks ingest
+        logger.warning(
+            "migration_cloud.artifact_blob: uncaptured-artifact quarantine mark failed",
+            extra={"artifact_id": getattr(artifact, "pk", None)},
+            exc_info=True,
+        )
+
+
 def capture_artifact_blob(artifact: Any, payload: Any) -> bool:
     """Best-effort: store ``artifact``'s source bytes encrypted-at-rest. Never raises.
 
     Called right after the artifact row is created at ingest, where
     ``payload.content_opener`` is still a live callable. Returns True when a blob
     was written, False when skipped (flag off, no opener, empty, over the size
-    cap, or any error — capture must never block ingest).
+    cap, or any error — capture must never block ingest). An artifact that
+    reported bytes (``byte_size > 0``) but captured none is quarantined visibly so
+    the failure is never silent (see ``_mark_artifact_uncaptured_if_expected``).
     """
     if not blob_store_enabled():
         return False
     opener = getattr(payload, "content_opener", None)
     if opener is None:
+        _mark_artifact_uncaptured_if_expected(artifact, reason="no content stream")
         return False
     try:
         cap = max_inline_bytes()
@@ -103,6 +142,7 @@ def capture_artifact_blob(artifact: Any, payload: Any) -> bool:
         finally:
             _safe_close(stream)
         if not data:
+            _mark_artifact_uncaptured_if_expected(artifact, reason="empty source read")
             return False
         if isinstance(data, str):
             data = data.encode(getattr(artifact, "encoding", "") or "utf-8", errors="replace")
@@ -184,6 +224,51 @@ def open_artifact_blob_stream(artifact: Any) -> tuple[IO[bytes] | None, str]:
         )
         return None, ""
     return io.BytesIO(data), (getattr(artifact, "encoding", "") or "utf-8")
+
+
+def clone_artifact_blob(src_artifact: Any, dst_artifact: Any) -> bool:
+    """Copy ``src_artifact``'s stored bytes onto a NEW ``dst_artifact`` row.
+
+    ``MigrationArtifactBlob`` is a OneToOne keyed to the artifact PK, so when a
+    flow creates a *new* artifact row (sandbox clone, multi-bundle merge) the new
+    PK has no blob — and, because merge rewrites ``path_within_bundle``, it cannot
+    even fall back to the single-top-level-local-file path. Without this copy the
+    downstream apply of a blob-backed artifact (archive member / companion /
+    remote / bulk-API upload) resolves to zero rows silently. Best-effort: never
+    raises. Returns True when a blob was copied, False when the source had none.
+    """
+    src_pk = getattr(src_artifact, "pk", None)
+    dst_pk = getattr(dst_artifact, "pk", None)
+    if not src_pk or not dst_pk:
+        return False
+    # tenant-isolation-allow: blob-lookup-by-artifact-pk-reachable-only-via-bundle-school
+    src = MigrationArtifactBlob.objects.filter(artifact_id=src_pk).first()
+    if src is None:
+        return False
+    try:
+        data = bytes(src.payload or b"")
+        if not data:
+            return False
+        with transaction.atomic():
+            # tenant-isolation-allow: blob-clone-scoped-via-dst-artifact-fk-created-under-bundle
+            MigrationArtifactBlob.objects.update_or_create(
+                artifact=dst_artifact,
+                defaults={
+                    "payload": data,
+                    "byte_size": src.byte_size or len(data),
+                    "sha256": src.sha256 or hashlib.sha256(data).hexdigest(),
+                    "expires_at": src.expires_at
+                    or (timezone.now() + timedelta(days=retention_days())),
+                },
+            )
+        return True
+    except Exception:  # noqa: BLE001 — blob clone never blocks the clone/merge
+        logger.warning(
+            "migration_cloud.artifact_blob: clone failed",
+            extra={"src_artifact_id": src_pk, "dst_artifact_id": dst_pk},
+            exc_info=True,
+        )
+        return False
 
 
 def purge_expired_artifact_blobs() -> dict[str, int]:
