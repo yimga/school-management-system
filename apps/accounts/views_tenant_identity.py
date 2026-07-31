@@ -953,6 +953,10 @@ def tenant_identity_reset_password(request, user_id: int):
     target = get_object_or_404(User, pk=user_id)
     if not can_reset_target(request.user, target, school):
         return HttpResponseForbidden("Not permitted.")
+    # Capture the pre-reset state so we can tell the admin when the reset had to
+    # reactivate the account — otherwise the temp password would silently fail to
+    # sign in (authenticate() rejects any inactive account).
+    was_inactive = not target.is_active
     temp_password = admin_reset_password(request.user, target, school, request=request)
     if request.user.pk != target.pk:
         # Kill live sessions so the old password stops working right away.
@@ -965,6 +969,15 @@ def tenant_identity_reset_password(request, user_id: int):
         )
         % {"user": target.get_username(), "pw": temp_password},
     )
+    if was_inactive:
+        messages.info(
+            request,
+            _(
+                "%(user)s was deactivated and has been reactivated so they can sign "
+                "in with this temporary password."
+            )
+            % {"user": target.get_username()},
+        )
     detail_url = reverse("accounts:tenant_identity_detail", args=[user_id])
     return redirect_after_detail_mutation(request, detail_url)
 

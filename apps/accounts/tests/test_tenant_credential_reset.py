@@ -189,14 +189,36 @@ class CredentialResetActionTests(TestCase):
         self.assertTrue(pending.requires_password_change)
         self.assertTrue(pending.check_password(temp))
 
-    def test_reset_password_does_not_reactivate_deactivated_real_account(self):
-        # is_active=False + a REAL password = intentionally locked. A reset must
-        # not silently reactivate it.
+    def test_reset_password_reactivates_inactive_account(self):
+        # An inactive account (even one with a REAL password) is reactivated by an
+        # explicit admin reset — otherwise the temp password is dead on arrival,
+        # since authenticate() rejects any inactive account (the novijonongni bug).
+        # The reactivation is surfaced to the admin by the view, not silent.
         disabled = _mk_user(User.Role.TEACHER, password="realpass12345", active=False)
         _member(disabled, self.school)
-        admin_reset_password(self.owner, disabled, self.school)
+        temp = admin_reset_password(self.owner, disabled, self.school)
         disabled.refresh_from_db()
-        self.assertFalse(disabled.is_active)
+        self.assertTrue(disabled.is_active)
+        self.assertTrue(disabled.requires_password_change)
+        # The freshly-issued temp password now actually works for authentication.
+        self.assertTrue(disabled.check_password(temp))
+
+    def test_reset_makes_inactive_account_authenticable(self):
+        # End-to-end repro of the novijonongni bug: before the fix, authenticate()
+        # returned None for the inactive account no matter the temp password, so the
+        # login form showed the generic "invalid username or password". After the
+        # reset reactivates it, authenticate() resolves the user.
+        from django.contrib.auth import authenticate
+
+        disabled = _mk_user(User.Role.TEACHER, password="realpass12345", active=False)
+        _member(disabled, self.school)
+        self.assertIsNone(
+            authenticate(username=disabled.get_username(), password="realpass12345")
+        )
+        temp = admin_reset_password(self.owner, disabled, self.school)
+        resolved = authenticate(username=disabled.get_username(), password=temp)
+        self.assertIsNotNone(resolved)
+        self.assertEqual(resolved.pk, disabled.pk)
 
     def test_reset_mfa_clears_devices_and_deferral(self):
         TOTPDevice.objects.create(user=self.target, name="d", confirmed=True)
