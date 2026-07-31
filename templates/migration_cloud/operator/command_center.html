@@ -334,6 +334,63 @@
     </section>
     {% endwith %}
 
+    <!-- ── Card 9: Alert status ────────────────────────────────────── -->
+    {% with sec=sections.alert_status %}
+    <section class="rmc-card rmc-card--mc-command" aria-labelledby="cc-alert-heading">
+      <header class="rmc-card__header">
+        <h2 id="cc-alert-heading" class="rmc-h2">{% trans "Alert status" %}</h2>
+        {% if sec.error %}
+          <span class="rmc-pill rmc-pill--muted">{% trans "error" %}</span>
+        {% elif sec.pill == "ok" %}
+          <span class="rmc-pill rmc-pill--success">{% trans "ok" %}</span>
+        {% elif sec.pill == "warn" %}
+          <span class="rmc-pill rmc-pill--warn">{% trans "warn" %}</span>
+        {% elif sec.pill == "alert" %}
+          <span class="rmc-pill rmc-pill--danger">{% trans "alert" %}</span>
+        {% else %}
+          <span class="rmc-pill rmc-pill--muted">{% trans "info" %}</span>
+        {% endif %}
+      </header>
+      {% if sec.error %}
+        <p class="rmc-hint">{% blocktrans with name=sec.error %}Section unavailable: {{ name }}{% endblocktrans %}</p>
+      {% else %}
+        <dl class="rmc-data-table rmc-data-table--mc-command" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
+          <div><dt>{% trans "Channels enabled" %}</dt><dd><code class="rmc-kbd">{{ sec.channels_enabled|join:", " }}</code></dd></div>
+          <div><dt>{% trans "Delivery mode" %}</dt><dd>{% if sec.dry_run %}{% trans "dry-run (log only)" %}{% else %}{% trans "live" %}{% endif %}</dd></div>
+          <div><dt>{% trans "Active dedup keys" %}</dt><dd>{{ sec.active_dedup_keys }}</dd></div>
+          <div><dt>{% trans "Rate limit / hour" %}</dt><dd>{{ sec.rate_limit_per_hour }}</dd></div>
+        </dl>
+      {% endif %}
+    </section>
+    {% endwith %}
+
+    <!-- ── Card 10: Concierge migration sources ────────────────────── -->
+    {% with sec=sections.concierge_sources %}
+    <section class="rmc-card rmc-card--mc-command" aria-labelledby="cc-sources-heading">
+      <header class="rmc-card__header">
+        <h2 id="cc-sources-heading" class="rmc-h2">{% trans "Concierge migration sources" %}</h2>
+        {% if sec.error %}
+          <span class="rmc-pill rmc-pill--muted">{% trans "error" %}</span>
+        {% elif sec.pill == "ok" %}
+          <span class="rmc-pill rmc-pill--success">{% trans "ok" %}</span>
+        {% elif sec.pill == "warn" %}
+          <span class="rmc-pill rmc-pill--warn">{% trans "warn" %}</span>
+        {% else %}
+          <span class="rmc-pill rmc-pill--muted">{% trans "info" %}</span>
+        {% endif %}
+      </header>
+      {% if sec.error %}
+        <p class="rmc-hint">{% blocktrans with name=sec.error %}Section unavailable: {{ name }}{% endblocktrans %}</p>
+      {% else %}
+        <dl class="rmc-data-table rmc-data-table--mc-command" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
+          <div><dt>{% trans "Supported source systems" %}</dt><dd>{{ sec.source_count }}</dd></div>
+          <div><dt>{% trans "Capability coverage" %}</dt><dd>{{ sec.capability_coverage }}</dd></div>
+          <div><dt>{% trans "Risk: low / medium / high" %}</dt><dd>{{ sec.by_risk.low|default:0 }} / {{ sec.by_risk.medium|default:0 }} / {{ sec.by_risk.high|default:0 }}</dd></div>
+        </dl>
+      {% endif %}
+    </section>
+    {% endwith %}
+
   </div>
 </main>
 {% include "partials/portal_row_detail_drawer_bundle.html" %}

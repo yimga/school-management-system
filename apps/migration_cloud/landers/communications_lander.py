@@ -30,6 +30,7 @@ from ._helpers import (
     coerce_date,
     filter_to_model_fields,
     model_field_names,
+    persist_dfv_extras,
     record_id_mapping,
     resolve_student,
     staff_lookup_field,
@@ -118,7 +119,12 @@ class CommunicationsLander(Lander):
                 )
                 sender = getattr(tp, "user", None) if tp else None
 
-            coerce_date(row.get("sent_at"))
+            # Message has no sent_at / status / channel field (created_at is
+            # auto_now_add and cannot carry a historical send time), so preserve
+            # the source-recorded values losslessly as DFV extras after the row
+            # lands — see the extras write below. ``coerce_date`` normalises the
+            # timestamp for that record.
+            sent_at_norm = coerce_date(row.get("sent_at"))
             content_hash = hashlib.sha256(
                 f"{recipient_ext}|{subject}|{body[:500]}".encode("utf-8")
             ).hexdigest()[:32]
@@ -164,6 +170,26 @@ class CommunicationsLander(Lander):
                     ctx=ctx,
                     legacy_id=_cm_legacy,
                     canonical_obj=obj, domain="communications",
+                )
+                # Preserve the source-recorded fields Message has no column for
+                # (sent_at / status / channel / recipient_kind) so migration is
+                # lossless and the docstring's "status preserved as recorded"
+                # holds. Best-effort — persist_dfv_extras records any failure on
+                # ``result`` and never raises.
+                persist_dfv_extras(
+                    ctx=ctx,
+                    entity_type="communications",
+                    entity_id=str(obj.pk),
+                    extras={
+                        "sent_at": row.get("sent_at"),
+                        "sent_at_normalized": (
+                            sent_at_norm.isoformat() if sent_at_norm else ""
+                        ),
+                        "status": row.get("status"),
+                        "channel": row.get("channel"),
+                        "recipient_kind": recipient_kind,
+                    },
+                    result=result,
                 )
             except Exception as exc:  # noqa: BLE001
                 result.quarantined += 1

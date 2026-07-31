@@ -123,6 +123,26 @@ def _looks_like_csv(head: bytes) -> bool:
     return any(delim in text for delim in (",", ";", "\t"))
 
 
+_MALWARE_SCANNER_WARNED = False
+
+
+def _warn_malware_scanner_unconfigured() -> None:
+    """Emit a one-time WARNING that self-serve uploads bypass AV scanning.
+
+    Keeps the fail-open posture visible (never a silent skip) without spamming a
+    line per upload. Reset is process-scoped; a fresh worker re-warns once.
+    """
+    global _MALWARE_SCANNER_WARNED
+    if _MALWARE_SCANNER_WARNED:
+        return
+    _MALWARE_SCANNER_WARNED = True
+    logger.warning(
+        "migration_cloud.intake: UPLOAD_MALWARE_SCANNER is not configured — "
+        "self-serve export uploads are NOT malware-scanned. Set "
+        "UPLOAD_MALWARE_SCANNER to enable AV scanning on the customer upload path."
+    )
+
+
 def _validate_export_upload(uploaded_file) -> None:
     """Validate a self-serve export: a CSV or a ZIP of CSVs.
 
@@ -159,11 +179,18 @@ def _validate_export_upload(uploaded_file) -> None:
         )
 
     # Malware scan only when a scanner is configured (mirrors the shared gate's
-    # guard so we don't slurp the whole file into memory for a no-op scan).
+    # guard so we don't slurp the whole file into memory for a no-op scan). When
+    # NO scanner is configured the scan is a genuine no-op — do NOT let that be
+    # silent: self-serve upload is the platform's most exposed surface, and a
+    # silently-off AV scan reads as "scanned" to anyone auditing the code. Emit a
+    # one-time WARNING so the posture is visible in the logs / operator review;
+    # the scan stays pluggable (set UPLOAD_MALWARE_SCANNER to enable).
     if getattr(settings, "UPLOAD_MALWARE_SCANNER", None) is not None:
         ok, detail = scan_for_malware(_read_all(uploaded_file))
         if not ok:
             raise IntakePipelineError(f"the file failed a security scan: {detail}")
+    else:
+        _warn_malware_scanner_unconfigured()
 
 
 def self_serve_apply_enabled() -> bool:
