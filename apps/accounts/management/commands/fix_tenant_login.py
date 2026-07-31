@@ -26,11 +26,18 @@ Diagnose (read-only, default)::
     python manage.py fix_tenant_login --email owner@school.edu
     python manage.py fix_tenant_login --school new-school      # roster of a school
 
-Fix (email-independent) — set a known password, activate, print it::
+Fix (email-independent) — set a known password, activate, and PROVE it signs in::
 
     python manage.py fix_tenant_login --email owner@school.edu --set-password
     python manage.py fix_tenant_login --email owner@school.edu --set-password 'ChosenPass123!'
-    python manage.py fix_tenant_login --email owner@school.edu --activate  # activate only
+    python manage.py fix_tenant_login --email owner@school.edu --activate    # activate only
+    python manage.py fix_tenant_login --email owner@school.edu --set-password --clear-mfa
+
+After ``--set-password`` the command runs ``authenticate()`` exactly as the login
+backend does and prints PASS/FAIL, so you know the credentials will sign in before
+handing them over (the login page's proof-of-work bot challenge is separate — if it
+sticks, open the page in a fresh incognito window). ``--clear-mfa`` folds in
+``reset_user_mfa`` for a one-shot unblock of an MFA-locked account.
 
 The mutating flags require an explicit ``--email`` target (never a whole school),
 and refuse to act when the identifier matches more than one account — the
@@ -41,7 +48,7 @@ from __future__ import annotations
 
 import secrets
 
-from django.contrib.auth import get_user_model
+from django.contrib.auth import authenticate, get_user_model
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.db.models import Q
@@ -87,6 +94,15 @@ class Command(BaseCommand):
             "--activate",
             action="store_true",
             help="Set is_active=True on the --email target WITHOUT changing the password.",
+        )
+        parser.add_argument(
+            "--clear-mfa",
+            action="store_true",
+            help=(
+                "Also remove the --email target's MFA devices (TOTP/backup/passkey/"
+                "device-trust) so they re-enroll on next sign-in — folds in "
+                "reset_user_mfa for a one-shot unblock."
+            ),
         )
         parser.add_argument(
             "--attach-owner",
@@ -218,8 +234,9 @@ class Command(BaseCommand):
         school = (opts.get("school") or "").strip()
         set_password = opts.get("set_password")  # None = not given; "" = auto-generate
         want_activate = bool(opts.get("activate"))
+        clear_mfa = bool(opts.get("clear_mfa"))
         want_attach = bool(opts.get("attach_owner"))
-        want_mutation = set_password is not None or want_activate
+        want_mutation = set_password is not None or want_activate or clear_mfa
 
         if not email and not school:
             raise CommandError("Pass --email <email-or-username> or --school <slug>.")
@@ -229,12 +246,12 @@ class Command(BaseCommand):
             return self._handle_attach_owner(email, school)
         if want_mutation and not email:
             raise CommandError(
-                "--set-password / --activate need a single --email target "
+                "--set-password / --activate / --clear-mfa need a single --email target "
                 "(they never act on a whole school)."
             )
         if school and not email:
             return self._handle_roster(school)
-        return self._handle_email(email, set_password, want_activate)
+        return self._handle_email(email, set_password, want_activate, clear_mfa)
 
     def _handle_attach_owner(self, email: str, school_ident: str):
         """Attach an EXISTING account as an OWNER of the school (idempotent).
@@ -357,7 +374,7 @@ class Command(BaseCommand):
             "python manage.py fix_tenant_login --email <email> [--set-password]"
         )
 
-    def _handle_email(self, email: str, set_password, want_activate: bool):
+    def _handle_email(self, email: str, set_password, want_activate: bool, clear_mfa: bool = False):
         candidates = self._resolve_candidates(email)
         if not candidates:
             self.stdout.write(
@@ -381,7 +398,7 @@ class Command(BaseCommand):
             self.stdout.write("")
             self._print_account(u)
 
-        if set_password is None and not want_activate:
+        if set_password is None and not want_activate and not clear_mfa:
             self.stdout.write(
                 "\nDiagnose only. To unblock this account WITHOUT email, re-run with "
                 "--set-password (sets a known password + activates)."
@@ -391,13 +408,14 @@ class Command(BaseCommand):
         if len(candidates) > 1:
             raise CommandError(
                 f"'{email}' matches {len(candidates)} accounts — refusing to mutate. "
-                "Re-run --set-password/--activate with the exact USERNAME to disambiguate."
+                "Re-run --set-password/--activate/--clear-mfa with the exact USERNAME "
+                "to disambiguate."
             )
 
         user = candidates[0]
-        self._apply_fix(user, set_password, want_activate)
+        self._apply_fix(user, set_password, want_activate, clear_mfa)
 
-    def _apply_fix(self, user, set_password, want_activate: bool):
+    def _apply_fix(self, user, set_password, want_activate: bool, clear_mfa: bool = False):
         if user.is_superuser:
             self.stdout.write(
                 self.style.WARNING(
@@ -417,19 +435,68 @@ class Command(BaseCommand):
                     fields.append("is_active")
             elif want_activate:
                 if user.is_active:
-                    self.stdout.write("Account is already active — nothing to change.")
-                    return
-                user.is_active = True
-                fields.append("is_active")
-            user.save(update_fields=sorted(set(fields)))
+                    self.stdout.write("Account is already active — no is_active change.")
+                else:
+                    user.is_active = True
+                    fields.append("is_active")
+            if fields:
+                user.save(update_fields=sorted(set(fields)))
+
+        if not fields and not clear_mfa:
+            self.stdout.write("Nothing to change.")
+            return
 
         self.stdout.write(self.style.SUCCESS(f"\nUpdated {user.get_username()} <{user.email or '—'}>:"))
         if "is_active" in fields:
             self.stdout.write("  • activated (is_active=True)")
         if chosen_password is not None:
             self.stdout.write(self.style.SUCCESS(f"  • password set to: {chosen_password}"))
+
+        if clear_mfa:
+            from apps.accounts.management.commands.reset_user_mfa import reset_mfa_for_user
+
+            counts = reset_mfa_for_user(user)
+            try:
+                from apps.accounts.mfa_deferral import clear_mfa_setup_deferral
+
+                clear_mfa_setup_deferral(user)
+            except Exception:  # noqa: BLE001 — deferral clear is best-effort
+                pass
+            self.stdout.write(self.style.SUCCESS(
+                f"  • MFA cleared (totp={counts.get('totp', 0)}, "
+                f"backup={counts.get('static', 0)}, passkey={counts.get('passkey', 0)}) — "
+                "they re-enroll on next sign-in."
+            ))
+
+        if chosen_password is not None:
+            # Prove the unblock the SAME way the login backend does — authenticate()
+            # checks the password AND is_active (an inactive account returns None no
+            # matter the password). A PASS means the credentials WILL sign in; the
+            # login page's bot challenge is separate (see the note below).
+            try:
+                verified = (
+                    authenticate(username=user.get_username(), password=chosen_password)
+                    is not None
+                )
+            except Exception as exc:  # noqa: BLE001 — verification must not mask the fix
+                verified = False
+                self.stdout.write(self.style.WARNING(f"  • verify: authenticate() raised: {exc}"))
+            self.stdout.write(
+                self.style.SUCCESS("  • verify: authenticate() PASSED — this password will sign in.")
+                if verified
+                else self.style.ERROR(
+                    "  • verify: authenticate() FAILED — recheck is_active and that the "
+                    "password meets the validators."
+                )
+            )
             self.stdout.write(
                 "\nHand this password to the owner OUT-OF-BAND. They should sign in at the "
                 "tenant login, then change it and set up MFA. If MFA was already enrolled, "
                 "it still applies after this password sign-in."
+            )
+            self.stdout.write(
+                "If the login page shows \"complete the verification challenge\" and won't "
+                "clear, open it in a fresh private/incognito window — the proof-of-work "
+                "bot defense arms after a failed attempt and a stale cached page can replay "
+                "an already-spent challenge token."
             )
