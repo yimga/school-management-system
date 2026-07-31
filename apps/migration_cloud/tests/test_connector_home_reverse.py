@@ -41,12 +41,19 @@ class ConnectorHomeUploadUrlTests(SimpleTestCase):
             reverse("migration_cloud_super:bundle_new", urlconf=_MANAGER_URLCONF)
         )
 
-    def test_tenant_host_lacks_the_operator_namespaces(self):
-        # Why a hardcoded operator reverse 500'd on the tenant host.
-        with self.assertRaises(NoReverseMatch):
-            reverse("migration_cloud_portal:bundle_new", urlconf=_TENANT_URLCONF)
+    def test_tenant_host_lacks_the_operator_namespace(self):
+        # The OPERATOR namespace (migration_cloud_super) must NOT resolve on the
+        # tenant host — a hardcoded operator reverse there would 500. This is
+        # the cross-host isolation invariant that matters.
         with self.assertRaises(NoReverseMatch):
             reverse("migration_cloud_super:bundle_new", urlconf=_TENANT_URLCONF)
+        # migration_cloud_portal is the TENANT-mirror namespace (plan-gated),
+        # now mounted on config.tenant_urls, so it DOES resolve on the tenant
+        # host — it is not an operator surface and was never the isolation
+        # concern. (The operator mount is migration_cloud_super, asserted above.)
+        self.assertTrue(
+            reverse("migration_cloud_portal:bundle_new", urlconf=_TENANT_URLCONF)
+        )
 
     def test_operator_hosts_lack_school_setup_imports(self):
         # Why the interim tenant-only fix would in turn 500 on the operator hosts

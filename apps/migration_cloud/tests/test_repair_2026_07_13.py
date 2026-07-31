@@ -11,6 +11,7 @@ from types import SimpleNamespace
 from unittest import mock
 
 from django.test import SimpleTestCase
+from django.utils import timezone
 
 from apps.migration_cloud import repair as repair_mod
 from apps.migration_cloud.models import BundleStatus, FinancialMismatchError
@@ -41,6 +42,12 @@ class FakeBundle:
         self.discovery_summary = kw.get("discovery", {})
         self.artifacts = _Arts(kw.get("arts", []))
         self.apply_atomic = kw.get("apply_atomic", False)
+        # repair.py's _applying_is_stale reads updated_at to decide whether an
+        # APPLYING bundle is a wedged/abandoned apply (repairable) vs one that
+        # is actively in flight (NOT repairable). A real bundle always has this
+        # (auto_now); default to "just now" so an APPLYING fake models an
+        # in-flight apply. Pass updated_at=<old datetime> to model a stale one.
+        self.updated_at = kw.get("updated_at", timezone.now())
 
     def mark_status(self, new_status, *, summary_patch=None):
         self.status = new_status

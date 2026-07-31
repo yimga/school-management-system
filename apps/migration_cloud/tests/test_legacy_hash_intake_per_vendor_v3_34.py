@@ -252,15 +252,25 @@ class LegacyHashIntakeNoSecretsLoggedPerVendorTests(TestCase):
                 legacy_hash_created_at_source=anchor_iso,
             )
         self.assertTrue(ok)
-        joined = "\n".join(cm.output)
-        # Never log the hash bytes, never the salt.
-        self.assertNotIn(_HASH_SENTINEL, joined)
-        self.assertNotIn(_SALT_SENTINEL, joined)
-        # But the operator-visible metadata IS logged.
-        self.assertIn("pbkdf2_sha512", joined)
-        self.assertIn("powerschool", joined)
-        # And the new v3.34.0 string-parse flag is recorded.
-        self.assertIn("legacy_hash_intake_stored", joined)
+        # The intake logs STRUCTURALLY via ``extra={}`` (algorithm /
+        # source_vendor / params_keys / anchor flags), not inline in the
+        # message — so the operator metadata lives on the LogRecord fields,
+        # NOT in the formatted ``cm.output`` string. Inspect the record.
+        rec = next(
+            r for r in cm.records
+            if r.getMessage() == "legacy_hash_intake_stored"
+        )
+        # Never log the hash bytes, never the salt — in the formatted message
+        # OR any structured field.
+        blob = "\n".join(cm.output) + "\n" + repr(rec.__dict__)
+        self.assertNotIn(_HASH_SENTINEL, blob)
+        self.assertNotIn(_SALT_SENTINEL, blob)
+        # But the operator-visible metadata IS recorded (structured fields).
+        self.assertEqual(rec.algorithm, "pbkdf2_sha512")
+        self.assertEqual(rec.source_vendor, "powerschool")
+        # params_keys carries only the KEY names (e.g. "salt"), never the value.
+        self.assertIn("salt", rec.params_keys)
+        self.assertNotIn(_SALT_SENTINEL, rec.params_keys)
 
     def test_logger_silent_on_hash_during_future_clamp_path(self) -> None:
         user = User.objects.create_user(

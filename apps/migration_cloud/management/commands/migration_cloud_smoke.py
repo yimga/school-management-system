@@ -95,6 +95,11 @@ _STATUS_PASS = "PASS"
 _STATUS_FAIL = "FAIL"
 _STATUS_SKIP = "SKIP"
 
+# Minimum number of canonical domains the SOT must expose for the smoke to
+# pass. A FLOOR (not an exact count) so the check tolerates new domains being
+# added over time while still catching a truncated / broken SOT.
+_CANONICAL_DOMAIN_FLOOR = 23
+
 _FIXTURES_DIR = (
     Path(__file__).resolve().parent.parent.parent / "tests" / "fixtures"
 )
@@ -318,7 +323,11 @@ class Command(BaseCommand):
         if not rendered or "RunMyCampus Migration Authorization Agreement" not in rendered:
             raise RuntimeError("MAA text render did not produce expected header")
 
-        # 3. 23 canonical domains present.
+        # 3. Canonical domains present — FLOOR check, not an exact count.
+        #    The SOT grows as new domains land (23 → 28 with the athletics /
+        #    alumni / behavior / cafeteria / hostel / transport additions), so
+        #    an `!= 23` assertion spuriously failed the smoke on every domain
+        #    addition. A floor still catches a truncated / broken SOT.
         try:
             from apps.migration_cloud.accelerators.runmycampus_canonical import (
                 DOMAIN_CANONICAL_HEADERS,
@@ -328,17 +337,24 @@ class Command(BaseCommand):
                 f"canonical headers SOT import failed: {exc}"
             ) from exc
         domain_count = len(DOMAIN_CANONICAL_HEADERS)
-        if domain_count != 23:
+        if domain_count < _CANONICAL_DOMAIN_FLOOR:
             raise RuntimeError(
-                f"canonical domain count mismatch: expected 23, got {domain_count}"
+                "canonical domain count below floor: expected >= "
+                f"{_CANONICAL_DOMAIN_FLOOR}, got {domain_count}"
             )
 
         # 4. Synthetic tenant resolution / creation.
         if ctx.apply_mode:
             tenant = _ensure_synthetic_tenant(ctx.tenant_slug)
             ctx.tenant_obj = tenant
-            return f"tenant_ok=apply backends_ok=1 domains=23 maa={active_version}"
-        return f"tenant_ok=dryrun backends_ok=1 domains=23 maa={active_version}"
+            return (
+                f"tenant_ok=apply backends_ok=1 domains={domain_count} "
+                f"maa={active_version}"
+            )
+        return (
+            f"tenant_ok=dryrun backends_ok=1 domains={domain_count} "
+            f"maa={active_version}"
+        )
 
     # ------------------------------------------------------------------
     # Section: maa (sign + persist + log-leak guard)

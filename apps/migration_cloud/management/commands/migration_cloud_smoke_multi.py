@@ -370,7 +370,12 @@ class Command(BaseCommand):
         tenants = ordered
 
         vendor = options["vendor"]
-        concurrency = int(options.get("concurrency") or 4)
+        # NB: distinguish an explicit 0 from a missing value. `x or 4` coerced
+        # `--concurrency=0` to 4 (0 is falsy), so the `< 1` refusal below was
+        # dead for zero — the exact value the DoS guard means to reject. argparse
+        # supplies the default (4), so a None only happens if the key is absent.
+        raw_concurrency = options.get("concurrency")
+        concurrency = int(raw_concurrency) if raw_concurrency is not None else 4
         if concurrency < 1:
             raise CommandError(
                 f"--concurrency must be >=1; got {concurrency}"
