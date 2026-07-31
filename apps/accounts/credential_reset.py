@@ -117,26 +117,35 @@ def can_reset_target(actor, target, school) -> bool:
 # Actions
 # --------------------------------------------------------------------------- #
 def admin_reset_password(actor, target, school, *, request=None) -> str:
-    """Issue a temporary password for ``target`` and force a change on next login.
+    """Issue a temporary password for ``target``, force a change, and RESTORE ACCESS.
 
     Returns the plaintext temp password for the caller to hand over ONCE. The
     caller is responsible for signing the target out (see
     ``views_tenant_identity._revoke_user_sessions``) so the temp password takes
     effect immediately. Never logs the password.
+
+    An INACTIVE target is reactivated (``is_active=True``) as part of the reset.
+    A credential reset is an explicit recovery action whose whole point is to let
+    the member sign in again; leaving ``is_active=False`` makes the temp password
+    dead on arrival, because ``authenticate()`` rejects any inactive account no
+    matter the password, and the member hits a silent "invalid username or
+    password" wall (the exact symptom reported for the ``novijonongni`` account on
+    the gilead tenant). This mirrors the ``fix_tenant_login --set-password`` CLI,
+    which already activates unconditionally, and is what makes the assignable
+    ``identity.reset_credentials`` capability usable by a NON-owner admin (the
+    owner-only "Reactivate" button is otherwise out of their reach). The
+    reactivation is NOT silent — the view surfaces it to the admin — and the
+    owner/superuser guards in ``can_reset_target`` still prevent a lesser admin
+    from reaching an owner. Supersedes the earlier "leave a deactivated-real
+    account inactive" rule (see finding_never_claimed_inactive_account_lockout),
+    which stranded exactly this recovery path.
     """
-    # A never-claimed account (created with set_unusable_password) is being claimed
-    # by this reset, so activate it too — mirrors
-    # password_reset.PortalPasswordResetConfirmView. A DEACTIVATED account that
-    # already had a REAL password is left inactive on purpose: is_active=False +
-    # usable password means "intentionally locked" and a reset must not silently
-    # reactivate it (see finding_never_claimed_inactive_account_lockout).
-    was_unclaimed = not target.has_usable_password()
     temp = generate_temp_password()
     with transaction.atomic():
         target.set_password(temp)
         target.requires_password_change = True
         update_fields = ["password", "requires_password_change"]
-        if was_unclaimed and not target.is_active:
+        if not target.is_active:
             target.is_active = True
             update_fields.append("is_active")
         target.save(update_fields=update_fields)
