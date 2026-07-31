@@ -30,6 +30,42 @@ def user_has_school_membership(user, school) -> bool:
     return SchoolMembership.objects.filter(user_id=user.pk, school_id=school.pk).exists()
 
 
+def ensure_school_membership(user, school, *, role):
+    """Idempotently give ``user`` a ``SchoolMembership`` on ``school``.
+
+    A login-capable tenant user is expected to have a membership: it is what the
+    tenant identity roster lists, what credential recovery (``can_reset_target``)
+    requires, and what ``get_effective_role`` reads. The guardian-claim path
+    (``link_guardian_via_invite``) and the admission-number wizard historically
+    created only a ``StudentGuardian`` link, leaving invite-claimed parents
+    membership-less — invisible to the roster and unresettable by a tenant admin
+    (the offline password-recovery hole). This closes that: it creates the
+    membership when absent and never disturbs an existing one (role, owner flag,
+    or the user's primary-school landing).
+
+    Returns ``(membership, created)`` or ``(None, False)`` on a bad request.
+    """
+    if user is None or school is None:
+        return None, False
+    from apps.schools.models import SchoolMembership
+
+    role = (role or "").strip().upper() or get_user_model().Role.PARENT
+    has_primary = SchoolMembership.objects.filter(  # tenant-isolation-allow: user-scoped primary-membership check
+        user_id=user.pk, is_primary=True
+    ).exists()
+    membership, created = SchoolMembership.objects.get_or_create(
+        user=user,
+        school=school,
+        defaults={
+            # Only claim primary when the user has none — never move their
+            # default landing school out from under them.
+            "role": role,
+            "is_primary": not has_primary,
+        },
+    )
+    return membership, created
+
+
 def localized_role_for_user(user, school) -> str:
     """Effective role code with tenant-local display label when configured."""
     from apps.accounts.iam_localization import localized_role_label
