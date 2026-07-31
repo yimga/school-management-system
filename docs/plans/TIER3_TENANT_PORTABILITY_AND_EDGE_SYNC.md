@@ -108,10 +108,24 @@ idempotent: a colliding pk is an UPDATE of the same identity.
   500'd on the platform's UUID `School.pk`; the binding now compares as strings
   (backwards compatible with integer ids). 5 receiver tests + the 2 delta-bundle
   backwards-compat tests green.
-- **Slice 2:** edge **outbox poster** — a hub-side command/task that packages an
-  incremental delta (start with append-only domains: attendance, grades) into a
-  bundle and POSTs it to the operator when connectivity returns. One-way, highest
-  value, no conflict resolution needed for append-only rows.
+- **Slice 2 — capture half (DONE):** `export_edge_delta_bundle` management command
+  packages a tenant's records changed since a cursor (`--since`) into a signed delta
+  bundle — exactly what the Slice-1 receiver consumes. It syncs **UPDATES to records
+  that already exist upstream**, which is coherent precisely because Slice 0's clone
+  is **pk-preserving** (a row edited on the box carries the same pk on the operator).
+  Semantics: last-writer-wins per record (whole allowed-field snapshot + `updated_at`;
+  the receiver applies only when the bundle is newer, else records a `SyncConflict`).
+  Entity set + field allowlist are read from `apps.api.sync_services` (the same SOT
+  the receiver validates against) so producer and applier never drift. **Correction
+  to the original plan:** the operator's `apply_changes` is UPDATE-only, so this does
+  NOT handle brand-new edge rows ("append-only" inserts like a new enrollment) — that
+  is new-row upsert + reconciliation in Slice 4. Tested by a producer→receiver
+  round-trip (edge changes applied onto a rewound stale copy) + cursor-exclusion +
+  unknown-entity guard.
+- **Slice 2 — transport half (folds into Slice 3):** the authenticated HTTP POST of
+  that bundle to the operator's `/api/v1/sync/bundle/upload/` when connectivity
+  returns (queue-and-forward) needs the per-box **machine credential** to
+  authenticate, so it is built together with Slice 3 rather than before it.
 - **Slice 3:** edge **identity + reachability** — a per-box machine credential the
   operator issues (so the hub can authenticate its upstream POST), plus the
   operator-managed tunnel/registration for a box behind a private LAN.
