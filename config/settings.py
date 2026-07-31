@@ -3598,6 +3598,14 @@ AUDIT_ARCHIVE_ROOT = os.getenv(
 AUDIT_ARCHIVE_SIGNING_KEY = os.getenv("AUDIT_ARCHIVE_SIGNING_KEY", "")
 AUDIT_RETENTION_APPROVAL_TOKEN = os.getenv("AUDIT_RETENTION_APPROVAL_TOKEN", "")
 
+# Children's-privacy (COPPA) minimum self-service age. Personal information
+# "from a child" under COPPA (16 CFR §312.2) means a person under 13; a minor's
+# account may only be created through a flow carrying a verifiable consent basis
+# (school authorization / guardian consent). Env-overridable for regimes with a
+# different age of digital consent (e.g. GDPR Art. 8 permits 13–16).
+# Consumed by apps.compliance.childrens_privacy.coppa_min_age().
+COPPA_SELF_SERVICE_MIN_AGE = int(os.getenv("COPPA_SELF_SERVICE_MIN_AGE", "13"))
+
 # --- Performance & Scaling ---
 COMPLIANCE_DASHBOARD_CACHE_SECONDS = int(
     os.getenv("COMPLIANCE_DASHBOARD_CACHE_SECONDS", "60")
@@ -4110,12 +4118,6 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "apps.migration_cloud.apps.MigrationCloudConfig",
         "apps.requests",
         "apps.billing",
-        # Global country -> payment-rail catalog (RegionalPaymentRailCatalog). No
-        # school FK, one row per country -> public schema. Must be here (not just the
-        # base INSTALLED_APPS) or under schema-per-tenant mode its table is never
-        # created and `payment.models` import raises RuntimeError. See
-        # schools/0083's registry-filtered dependency list.
-        "payment",
         "apps.sales.apps.SalesConfig",
         "apps.metadata.apps.MetadataConfig",
         "emis",

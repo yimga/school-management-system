@@ -27,6 +27,23 @@ def create_student_from_wizard(*, school, wizard_payload, actor_user_id=None) ->
     if school is None or not (first or last):
         return {"ok": False, "error": "missing_school_or_name"}
 
+    # COPPA gate: a minor's account may only be created through a flow that
+    # recorded a verifiable consent basis (school authorization / guardian
+    # consent). Operator/school-mediated wizards stamp
+    # ``coppa_consent_basis=school_authorization`` upstream; a basis-less minor
+    # payload is refused rather than silently provisioning a child's account.
+    if payload.get("is_minor"):
+        from apps.compliance.childrens_privacy import (
+            consent_basis_is_sufficient_for_minor,
+        )
+
+        if not consent_basis_is_sufficient_for_minor(payload.get("coppa_consent_basis")):
+            logger.warning(
+                "create_student_from_wizard blocked: minor without consent basis school=%s",
+                getattr(school, "pk", None),
+            )
+            return {"ok": False, "error": "coppa_consent_required"}
+
     email = (payload.get("email") or "").strip().lower()
 
     try:

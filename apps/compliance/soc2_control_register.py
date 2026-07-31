@@ -155,6 +155,22 @@ SOC2_REGISTER: tuple[SOC2Control, ...] = (
         status="planned",
         notes="GDPR/FERPA SAR workflow needs dedicated build.",
     ),
+    SOC2Control(
+        control_id="P3.1",
+        label="Children's data — a minor's account requires a verifiable consent basis.",
+        category="privacy",
+        evidence_model="migration_cloud.GuardianConsentToken",
+        notes=(
+            "COPPA 16 CFR §312.5(a)(1) school-as-agent: every account-creation "
+            "path is school/operator-mediated (no anonymous child self-"
+            "registration). apps.compliance.childrens_privacy.evaluate_coppa_gate "
+            "classifies + gates at the DOB boundary (min age COPPA_SELF_SERVICE_"
+            "MIN_AGE, default 13); create_student_from_wizard refuses a minor "
+            "payload lacking a consent basis. Raw date of birth is never stored "
+            "(only date_of_birth_hash + a coarse minor flag). GuardianConsentToken "
+            "records are the on-file consent evidence artifact."
+        ),
+    ),
 )
 
 

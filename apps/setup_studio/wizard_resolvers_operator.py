@@ -440,6 +440,33 @@ def write_student_self_onboarding_step(*, school: Any, wizard_key: str, step_key
         dob = str(payload.get("date_of_birth") or "")
         if dob:
             safe_payload["date_of_birth_hash"] = hashlib.sha256(dob.encode("utf-8")).hexdigest()[:16]
+            # COPPA/children's-privacy classification at the ONE point raw DOB is
+            # available. This is an operator/school-mediated flow, so the consent
+            # basis is SCHOOL_AUTHORIZATION (16 CFR §312.5(a)(1) school-as-agent).
+            # Only the coarse minor flag + age band + basis are forwarded — the
+            # raw DOB is dropped from safe_payload above (data minimisation) and
+            # is never persisted or logged.
+            from apps.compliance.childrens_privacy import (
+                ConsentBasis,
+                derive_age,
+                evaluate_coppa_gate,
+            )
+
+            _coppa = evaluate_coppa_gate(
+                age=derive_age(dob),
+                consent_basis=ConsentBasis.SCHOOL_AUTHORIZATION,
+            )
+            safe_payload["is_minor"] = bool(_coppa.is_minor)
+            safe_payload["coppa_age_band"] = _coppa.age_band
+            safe_payload["coppa_consent_basis"] = ConsentBasis.SCHOOL_AUTHORIZATION.value
+            if _coppa.is_minor:
+                logger.info(
+                    "coppa.minor_account_provisioned school=%s actor=%s basis=%s band=%s",
+                    getattr(school, "pk", None),
+                    actor_user_id,
+                    ConsentBasis.SCHOOL_AUTHORIZATION.value,
+                    _coppa.age_band,
+                )
     if school is None:
         logger.info(
             "student_self_onboarding step=%s actor=%s field_count=%d",
