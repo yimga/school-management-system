@@ -45,6 +45,7 @@ from apps.academics.models_lms import LMSAssignment
 from apps.accounts.models import User
 from apps.people.models import StudentProfile, TeacherProfile
 from apps.schools.models import School
+from apps.schools.tests.rls_support import enter_rls_bypass_for_test
 
 
 @tag("tenants_rls")  # routes the file into the Postgres CI lane (django-tests-postgres.yml)
@@ -52,6 +53,9 @@ class HomeworkGradebookQueryCountTests(TestCase):
     """The gradebook matrix must use a constant number of queries (no per-cell N+1)."""
 
     def setUp(self):
+        # Postgres-lane routing tag only; not an RLS-isolation test -> run under
+        # bypass so bound RLS does not deny the seed rows / reads. See rls_support.
+        enter_rls_bypass_for_test(self)
         self.school = School.objects.create(
             name="Gradebook QC School",
             slug="gradebook-qc",

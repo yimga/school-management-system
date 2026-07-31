@@ -20,6 +20,7 @@ from apps.schoolops.booking_services import (
 )
 from apps.schoolops.models import BookableResource, ResourceBooking
 from apps.schools.models import School
+from apps.schools.tests.rls_support import enter_rls_bypass_for_test
 
 User = get_user_model()
 
@@ -42,6 +43,9 @@ class ResourceBookingModuleSmokeTests(TestCase):
 @tag("tenants_rls", "postgres_booking")
 class ResourceBookingServiceTests(TestCase):
     def setUp(self):
+        # Postgres-lane routing tag only; not an RLS-isolation test -> run under
+        # bypass so bound RLS does not deny the seed rows / reads. See rls_support.
+        enter_rls_bypass_for_test(self)
         self.school = School.objects.create(
             name="Booking School",
             slug=f"bk-{uuid.uuid4().hex[:10]}",
@@ -167,6 +171,9 @@ class ResourceBookingPostgresExclusionTests(TestCase):
     """
 
     def setUp(self):
+        # Postgres-lane routing tag only; not an RLS-isolation test -> run under
+        # bypass so bound RLS does not deny the seed rows / reads. See rls_support.
+        enter_rls_bypass_for_test(self)
         self.school = School.objects.create(
             name="PG Booking",
             slug=f"pg-{uuid.uuid4().hex[:10]}",

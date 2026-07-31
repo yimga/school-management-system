@@ -18,7 +18,7 @@ from apps.communication.models import ContactRequest
 from apps.people.models import StudentGuardian, StudentProfile
 from apps.portal.views_contact_requests import staff_contact_request_list
 from apps.schools.rls_context import rls_bypass, rls_school
-from apps.schools.models import School
+from apps.schools.models import School, SchoolMembership
 from apps.siteconfig.models import RegionConfig
 
 
@@ -76,6 +76,18 @@ class CrossModuleSupportIsolationTests(TestCase):
                 password="pass",
                 role=User.Role.SECRETARY,
                 is_staff=True,
+            )
+            # staff_contact_request_list is @tenant_admin_required: the actor must
+            # be a tenant-admin of the school it acts on. Make secretary_b an owner
+            # of school B so the view is reached and the isolation assertion (no
+            # school A rows) actually runs -- under rls_school(B) the school A
+            # ContactRequest is RLS-filtered, proving DB-layer isolation too.
+            SchoolMembership.objects.create(
+                user=self.secretary_b,
+                school=self.school_b,
+                role=User.Role.ADMIN,
+                is_primary=True,
+                is_school_owner=True,
             )
             ContactRequest.objects.create(
                 parent=self.parent,

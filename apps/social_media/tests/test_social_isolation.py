@@ -136,7 +136,8 @@ class SocialFeedBoundaryTests(TestCase):
         self.assertNotIn("beta-post", ids)
 
     def test_cross_tenant_publish_blocked(self):
-        beta_integration = SocialMediaIntegration.objects.get(school=self.beta)
+        with rls_bypass():
+            beta_integration = SocialMediaIntegration.objects.get(school=self.beta)
         request = self.factory.post("/api/v1/social/publish/", {"body": "Hijack"}, format="json")
         request.school = self.alpha
         force_authenticate(request, user=self.admin_alpha)
@@ -172,13 +173,18 @@ class PlatformManagerScopeTests(TestCase):
             )
 
     def test_platform_feed_does_not_include_tenant_rows(self):
-        items = aggregator.read_cached_feed(platform_scope=True)
+        # Verifies the aggregator's app-level scope filter (platform rows have
+        # school IS NULL, which a school-scoped RLS policy would also hide), so
+        # run under bypass and let the aggregator's own filter be the thing tested.
+        with rls_bypass():
+            items = aggregator.read_cached_feed(platform_scope=True)
         ids = {i.get("id") for i in items}
         self.assertIn("corp-1", ids)
         self.assertNotIn("school-1", ids)
 
     def test_tenant_feed_does_not_include_platform_rows(self):
-        items = aggregator.read_cached_feed(school_id=self.school.id)
+        with rls_bypass():
+            items = aggregator.read_cached_feed(school_id=self.school.id)
         ids = {i.get("id") for i in items}
         self.assertIn("school-1", ids)
         self.assertNotIn("corp-1", ids)

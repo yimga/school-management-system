@@ -10,6 +10,7 @@ from apps.automation.domain_event_bridge import (
 )
 from apps.automation.trigger_dispatcher import clear_registry_for_tests, register_handler
 from apps.events.bus import clear_subscribers_for_tests, dispatch_internal_subscribers
+from apps.schools.tests.rls_support import enter_rls_bypass_for_test
 
 
 class ResolveTriggerKeyTests(SimpleTestCase):
@@ -24,6 +25,9 @@ class ResolveTriggerKeyTests(SimpleTestCase):
 @tag("tenants_rls")
 class DomainEventBridgeDispatchTests(TestCase):
     def setUp(self):
+        # Tag routes onto Postgres; test bodies create rows via the ORM -> run
+        # under bypass so bound RLS does not deny them. See rls_support.
+        enter_rls_bypass_for_test(self)
         clear_registry_for_tests()
         clear_subscribers_for_tests()
         register_domain_event_trigger_subscriber()

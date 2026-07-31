@@ -27,6 +27,7 @@ from apps.evals.models import Evaluation
 from apps.evals.services import classroom_term_rankings, school_term_rankings
 from apps.people.models import StudentProfile, TeacherProfile
 from apps.schools.models import School
+from apps.schools.tests.rls_support import enter_rls_bypass_for_test
 
 
 @tag("tenants_rls")
@@ -34,6 +35,9 @@ class TermRankingQueryCountTests(TestCase):
     """Query count must not scale with class size after the bulk ranking fix."""
 
     def setUp(self):
+        # Postgres-lane routing tag only; not an RLS-isolation test -> run under
+        # bypass so bound RLS does not deny the seed rows / reads. See rls_support.
+        enter_rls_bypass_for_test(self)
         self.school = School.objects.create(
             name="Ranking QC School",
             slug="ranking-qc",

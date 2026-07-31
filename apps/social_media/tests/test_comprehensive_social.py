@@ -85,8 +85,11 @@ class TokenExpiryIsolationTests(TestCase):
             )
 
     def test_expired_token_marks_needs_reauth_and_serves_cache(self):
-        result = sync_integration_feed(self.integration)
-        self.integration.refresh_from_db()
+        # App-level cache/reauth behaviour, not DB RLS: the service .save()s and
+        # refresh_from_db reads a FORCE'd table, so run under bypass.
+        with rls_bypass():
+            result = sync_integration_feed(self.integration)
+            self.integration.refresh_from_db()
         self.assertTrue(self.integration.needs_reauth)
         self.assertEqual(result["source"], "cache")
         self.assertEqual(result["items"][0]["id"], "stale")
