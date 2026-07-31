@@ -158,7 +158,8 @@ class EdgeInsertReceiverTests(TestCase):
     def test_dependent_fk_dropped_when_referent_cannot_be_created(self):
         """Fail-clean fallback: a new Classroom can't be created via the sync field set
         (needs department + a unique code), so a new student referencing it has its
-        classroom_id dropped — the student still lands, never mis-linked to the box pk."""
+        classroom_id dropped — the student still lands, never mis-linked to the box pk,
+        and the dropped link is REPORTED (dropped_fks) rather than silently orphaned."""
         new_cls_local_pk = 700001
         rows = [
             {"entity_type": "classroom", "id": new_cls_local_pk, "client_offline_id": "box-cls-y",
@@ -172,6 +173,54 @@ class EdgeInsertReceiverTests(TestCase):
         student = StudentProfile.objects.get(school=self.school, client_offline_id="box-stu-z")
         self.assertIsNone(student.classroom_id)  # FK to the uncreatable classroom dropped
         self.assertTrue(any(r["status"] == 422 for r in resp.data["insert_results"]))
+        # The student's dropped classroom link is surfaced, not silently swallowed.
+        stu_result = next(r for r in resp.data["insert_results"] if r["data"].get("id") == student.pk)
+        self.assertIn("classroom_id", stu_result["data"].get("dropped_fks", []))
+
+    def test_classroom_update_with_phantom_is_active_does_not_crash(self):
+        """`is_active` is not a Classroom field; it was removed from the allow-list so a
+        classroom UPDATE carrying it no longer crashes (`save(update_fields=['is_active'])`
+        -> FieldError). The real field still applies; the phantom is ignored."""
+        resp = self._post([{
+            "entity_type": "classroom", "id": self.classroom.pk, "client_offline_id": "",
+            "changes": {"name": "Renamed Room", "is_active": False}, "updated_at": self.future,
+        }])
+        self.assertEqual(resp.data["applied"], 1, resp.data)
+        self.classroom.refresh_from_db()
+        self.assertEqual(self.classroom.name, "Renamed Room")
+
+    def test_dataerror_is_isolated_not_a_500(self):
+        """A per-row DataError (value too long / out of range on Postgres — a
+        DatabaseError sibling of IntegrityError) must be caught so the per-row savepoint
+        never escapes and rolls back the batch. SQLite doesn't enforce max_length, so we
+        force the DataError to exercise the except path."""
+        from unittest.mock import patch
+
+        from django.db import DataError
+
+        with patch("apps.people.models.StudentProfile.objects.get_or_create",
+                   side_effect=DataError("value too long for type character varying(20)")):
+            resp = self._post([{
+                "entity_type": "student", "id": 500001, "client_offline_id": "box-de-1",
+                "changes": {"first_name": "X"}, "updated_at": self.future,
+            }])
+        self.assertEqual(resp.status_code, 200)  # batch survived; no uncaught 500
+        self.assertEqual(resp.data["created"], 0)
+        self.assertTrue(any(r["status"] == 422 for r in resp.data["insert_results"]))
+
+    def test_malformed_non_dict_bundle_row_does_not_500(self):
+        """A signed bundle line that is a JSON scalar/array (not an object) must be
+        dropped to a `malformed` count, not AttributeError-500 the whole upload."""
+        rows = [
+            42,  # malformed
+            {"entity_type": "student", "id": 500002, "client_offline_id": "box-ok-1",
+             "changes": {"first_name": "Fine"}, "updated_at": self.future},
+        ]
+        resp = self._post(rows)
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.data["malformed"], 1)
+        self.assertEqual(resp.data["created"], 1)  # the valid row still landed
+        self.assertTrue(StudentProfile.objects.filter(school=self.school, client_offline_id="box-ok-1").exists())
 
     def test_classroom_insert_missing_required_fields_fails_cleanly(self):
         coid = "box-cls-001"

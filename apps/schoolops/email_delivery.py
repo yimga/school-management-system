@@ -1004,7 +1004,7 @@ def _maybe_enqueue_dead_letter(
             json.dumps(payload, ensure_ascii=False).encode("utf-8")
         ).decode("utf-8")
         # tenant-isolation-allow: platform-email-dead-letter-no-tenant-scope
-        EmailDeadLetter.objects.create(
+        row = EmailDeadLetter.objects.create(
             to_hash=to_hash,
             subject_prefix=subject_prefix,
             priority=priority,
@@ -1017,11 +1017,15 @@ def _maybe_enqueue_dead_letter(
             "schoolops.email_delivery.dead_letter_enqueued to_hash=%s error_kind=%s",
             to_hash, error_kind,
         )
+        # Truthy success signal so the offline-queue caller can tell a real park from a
+        # swallowed failure (Fernet/DB) and NOT claim "queued" when nothing persisted.
+        return getattr(row, "id", True)
     except Exception as exc:  # broad-by-design — DLQ enqueue never breaks a send
         logger.warning(
             "schoolops.email_delivery.dead_letter_enqueue_failed err_type=%s",
             type(exc).__name__,
         )
+    return None
 
 
 def redrive_dead_letters(limit: int = 50) -> dict:
@@ -1746,7 +1750,7 @@ def send_transactional(
         to_list_off = _coerce_to_list(to)
         to_hash_off = _hash_recipient(to_list_off[0]) if to_list_off else ""
         subject_prefix_off = _redact_subject_for_log(subject or "")
-        _maybe_enqueue_dead_letter(
+        parked = _maybe_enqueue_dead_letter(
             subject=subject,
             body=body,
             to=to_list_off,
@@ -1763,16 +1767,47 @@ def send_transactional(
             attempts=0,
             delivery_event_id=None,
         )
+        if not parked:
+            # The durable park itself failed (e.g. Fernet/DB) — do NOT report "queued"
+            # (that would re-introduce the silent drop this feature exists to prevent).
+            # Surface an honest failure; the caller's fail_silently handling applies.
+            logger.error(
+                "schoolops.email_delivery.offline_queue_park_failed to_hash=%s priority=%s",
+                to_hash_off, priority,
+            )
+            return {
+                "ok": False,
+                "queued": False,
+                "offline_queued": False,
+                "attempts": 0,
+                "delivery_event_id": None,
+                "error_kind": "offline_queue_failed",
+                "bounced": False,
+                "bounce_kind": "",
+            }
+        # Record a queued marker on the delivery log: (a) it dedups a re-send with the
+        # same idempotency_key against the top-of-function check (no duplicate park →
+        # no duplicate delivery on drain), and (b) it makes offline-queued mail visible
+        # on the health dashboard instead of silently absent.
+        offline_event_id = _persist_event(
+            to_hash=to_hash_off,
+            subject_prefix=subject_prefix_off,
+            priority=priority,
+            attempts=0,
+            ok=False,
+            error_kind="offline_queued",
+            idempotency_key=idempotency_key,
+        )
         logger.info(
-            "schoolops.email_delivery.offline_queued to_hash=%s priority=%s",
-            to_hash_off, priority,
+            "schoolops.email_delivery.offline_queued to_hash=%s priority=%s event_id=%s",
+            to_hash_off, priority, offline_event_id or "n/a",
         )
         return {
             "ok": False,
             "queued": True,
             "offline_queued": True,
             "attempts": 0,
-            "delivery_event_id": None,
+            "delivery_event_id": offline_event_id,
             "error_kind": "offline_queued",
             "bounced": False,
             "bounce_kind": "",

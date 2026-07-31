@@ -33,7 +33,10 @@ def _get_entity_config():
             Attendance,
             {"student_id", "classroom_id", "date", "status", "remarks"},
         ),
-        "classroom": (Classroom, {"name", "academic_year_id", "is_active"}),
+        # NOTE: no "is_active" — Classroom has no such field. Leaving the phantom in
+        # would crash the UPDATE path (`save(update_fields=["is_active"])` → FieldError)
+        # whenever a classroom edit carried it.
+        "classroom": (Classroom, {"name", "academic_year_id"}),
     }
 
 
@@ -384,7 +387,7 @@ def apply_edge_inserts(school_id, user, rows):
     Returns ``{"created", "updated", "results"}`` (results carry per-row index/status).
     """
     from django.core.exceptions import FieldError, ValidationError
-    from django.db import IntegrityError, transaction
+    from django.db import DataError, IntegrityError, transaction
 
     from apps.api.entity_api import _is_admin_like
     from apps.schools.models import School
@@ -445,15 +448,19 @@ def apply_edge_inserts(school_id, user, rows):
 
         valid_fields = _settable_field_names(model)
         updates = {}
+        dropped_fks = []
         for key, value in changes.items():
             if key not in allowed or key not in valid_fields:
                 continue  # not editable, or a phantom allow-list entry not on the model
             target = _INSERT_FK_TARGET.get(key)
             if target and value in new_local_pks.get(target, set()):
                 # Points at another new row: substitute the referent's operator pk if it
-                # was already created this batch, else drop (required FK then fails cleanly).
+                # was already created this batch, else DROP (a required FK then fails
+                # cleanly; a nullable FK lands NULL — surfaced via dropped_fks so the
+                # caller can reconcile rather than treat a partial row as a clean success).
                 remapped = remap.get((target, value))
                 if remapped is None:
+                    dropped_fks.append(key)
                     continue
                 value = remapped
             updates[key] = value
@@ -467,7 +474,11 @@ def apply_edge_inserts(school_id, user, rows):
                     for key, value in updates.items():
                         setattr(obj, key, value)
                     obj.save(update_fields=list(updates.keys()))
-        except (IntegrityError, ValidationError, ValueError, TypeError, FieldError) as exc:
+        except (IntegrityError, DataError, ValidationError, ValueError, TypeError, FieldError) as exc:
+            # DataError (value too long / out of range on Postgres) is a DatabaseError
+            # sibling of IntegrityError; catching it keeps the per-row savepoint from
+            # escaping and rolling back the whole batch (SQLite doesn't enforce
+            # max_length, so only prod Postgres exercised this path).
             results_by_index[idx] = {"index": idx, "status": 422, "data": {"error": "insert_failed", "detail": str(exc)[:200]}}
             continue
 
@@ -479,7 +490,10 @@ def apply_edge_inserts(school_id, user, rows):
             created += 1
         else:
             updated += 1
-        results_by_index[idx] = {"index": idx, "status": 201 if was_created else 200, "data": {"id": obj.pk, "created": was_created}}
+        data = {"id": obj.pk, "created": was_created}
+        if dropped_fks:
+            data["dropped_fks"] = dropped_fks  # links that pointed at an uncreated new row
+        results_by_index[idx] = {"index": idx, "status": 201 if was_created else 200, "data": data}
 
     results = [results_by_index[i] for i in range(len(rows))]
     return {"created": created, "updated": updated, "results": results}

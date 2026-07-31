@@ -81,6 +81,31 @@ class OfflineEmailQueueTests(TestCase):
         # Guard sits AFTER the suppression gate — a suppressed address is never parked.
         self.assertEqual(EmailDeadLetter.objects.count(), 0)
 
+    def test_park_failure_reports_honest_failure_not_queued(self):
+        """If the durable park itself fails (Fernet/DB), the caller must NOT be told
+        'queued' — that would re-introduce the silent drop the feature prevents."""
+        from unittest.mock import patch
+
+        with patch(
+            "apps.schoolops.email_delivery._maybe_enqueue_dead_letter", return_value=None
+        ):
+            result = self._send()
+        self.assertFalse(result["ok"])
+        self.assertFalse(result["queued"])
+        self.assertFalse(result.get("offline_queued"))
+        self.assertEqual(result["error_kind"], "offline_queue_failed")
+
+    def test_same_idempotency_key_offline_parks_once(self):
+        """A re-send with the same idempotency_key while offline dedups against the
+        queued marker instead of parking a duplicate (which would double-deliver on drain)."""
+        r1 = self._send(idempotency_key="welcome:parent-42")
+        r2 = self._send(idempotency_key="welcome:parent-42")
+        self.assertTrue(r1.get("offline_queued"))
+        self.assertTrue(r2.get("deduplicated"))
+        self.assertEqual(
+            EmailDeadLetter.objects.filter(status=DeadLetterStatus.PENDING).count(), 1
+        )
+
 
 @override_settings(
     RMC_EMAIL_OFFLINE_QUEUE=True,

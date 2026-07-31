@@ -77,8 +77,14 @@ class SyncBundleUploadView(APIView):
         # meaningless on the operator). Updates go by pk; inserts upsert by
         # (school, client_offline_id) and never touch a pk lookup — so a box-local pk can
         # never collide with a different operator record.
-        update_rows, insert_rows = [], []
+        # A signed bundle line is raw json.loads output; a scalar/array line (not an
+        # object) would AttributeError on `.get(...)` below and 500 the whole upload.
+        # Drop malformed rows to a count instead — the batch survives.
+        update_rows, insert_rows, malformed = [], [], 0
         for row in rows:
+            if not isinstance(row, dict):
+                malformed += 1
+                continue
             (insert_rows if (row.get("client_offline_id") or "").strip() else update_rows).append(row)
 
         out = apply_changes(str(school.id), request.user, update_rows, persist_conflicts=True)
@@ -91,6 +97,7 @@ class SyncBundleUploadView(APIView):
             {
                 "ok": True,
                 "received": len(rows),
+                "malformed": malformed,
                 "applied": out["success_count"],
                 "conflicts": len(out["conflicts"]),
                 "created": inserted["created"],
