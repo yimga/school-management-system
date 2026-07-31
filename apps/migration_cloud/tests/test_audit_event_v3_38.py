@@ -337,20 +337,31 @@ class AuditViewAccessTests(TestCase):
         self.assertEqual(resp.status_code, 200)
 
     def test_response_hides_raw_email_and_slug_keys(self):
+        import re
+
         from apps.migration_cloud.views_audit_admin import MigrationCloudAuditView
 
         request = RequestFactory().get(self._audit_url(), secure=True)
         request.user = self.staff
         resp = MigrationCloudAuditView.as_view()(request)
         self.assertEqual(resp.status_code, 200)
-        body = resp.content
-        # The payload column re-sanitizes — any payload that tried to
-        # carry a literal 'email' or 'slug' or 'tenant_slug' key would
-        # have been rejected at write time. Verify those literal JSON
-        # keys never appear in the HTML.
-        self.assertNotIn(b'"email"', body)
-        self.assertNotIn(b'"slug"', body)
-        self.assertNotIn(b'"tenant_slug"', body)
+        body = resp.content.decode("utf-8")
+        # Scope the leak check to the audit PAYLOAD cells. The payload column
+        # re-sanitizes and any payload carrying a literal 'email'/'slug'/
+        # 'tenant_slug' key is rejected at write time, so a sensitive key can
+        # never render here. A whole-body substring check false-positives on
+        # the surrounding operator shell, which legitimately carries an
+        # "email" newsletter field (_newsletter_band.html) — chrome, not a
+        # data leak.
+        payload_cells = re.findall(
+            r'<pre class="rmc-pre rmc-pre--audit-payload">(.*?)</pre>',
+            body, re.DOTALL,
+        )
+        self.assertTrue(payload_cells, "expected rendered audit payload cells")
+        joined = "\n".join(payload_cells)
+        self.assertNotIn('"email"', joined)
+        self.assertNotIn('"slug"', joined)
+        self.assertNotIn('"tenant_slug"', joined)
 
 
 # ─── Export layer ────────────────────────────────────────────────────────

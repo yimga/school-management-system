@@ -200,8 +200,15 @@ def _rate_limit_should_emit_meta(tenant_id_hash: str) -> bool:
     now = _rate_limit_clock()
     window = _rate_limit_window_seconds()
     with _RATE_LIMIT_LOCK:
-        last = _RATE_LIMIT_META_LAST.get(tenant_id_hash, 0.0)
-        if (now - last) < window:
+        last = _RATE_LIMIT_META_LAST.get(tenant_id_hash)
+        # ``None`` = never emitted → always allow the FIRST meta-event. The
+        # previous 0.0 sentinel silently SUPPRESSED that first emit whenever
+        # the clock read below the window (``time.monotonic()`` < 3600s on a
+        # freshly booted worker, or any injected test clock), because
+        # ``now - 0.0 < window`` was True — dropping the rate-limit audit
+        # signal at the exact moment a tenant first hit the ceiling. Only a
+        # PRIOR emit within the window should dedupe.
+        if last is not None and (now - last) < window:
             return False
         _RATE_LIMIT_META_LAST[tenant_id_hash] = now
         return True
