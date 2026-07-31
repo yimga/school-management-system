@@ -1,6 +1,7 @@
 # Tier 3 — Full-fidelity tenant portability + edge↔operator sync
 
-Status: **IN PROGRESS** (Slice 0 = this doc + the portability engine). Author: platform.
+Status: **IN PROGRESS** (Slice 0 = this doc + the portability engine; Slice 1 = the
+persisting bundle receiver — both DONE + tested). Author: platform.
 Supersedes the "manual DR export/restore only" gap called out in
 `docs/LOCAL_HUB_MODE.md` and the sync verdict in
 `finding_sovereign_edge_selfhost_state_2026_07_31` (memory).
@@ -93,9 +94,20 @@ idempotent: a colliding pk is an UPDATE of the same identity.
 - **Slice 0 (this change):** `tenant_portability.py` export/import engine +
   `export_tenant_bundle` / `import_tenant_bundle` commands + round-trip test.
   → unblocks the CLONE / move.
-- **Slice 1:** make `apps/api/sync_bundle_api.py::SyncBundleUploadView` actually
-  PERSIST (it verifies the signature then returns `{ok, imported}` without writing
-  today) by routing its verified payload into `import_tenant_bundle`.
+- **Slice 1 (DONE):** make `apps/api/sync_bundle_api.py::SyncBundleUploadView`
+  actually PERSIST. It used to verify the signed bundle then return
+  `{ok, imported: <count>}` **without writing**. It now routes the verified rows
+  through `apps.api.sync_services.apply_changes` — the SAME tested path the online
+  `DeltaSyncAPI` uses — so writes land and per-record conflicts create `SyncConflict`
+  (updated_at check) for Sync Center resolution. **Correction to the original plan:**
+  the receiver takes a *delta* bundle (NDJSON rows, `apps.sync_engine.delta_bundle`),
+  NOT the full-fidelity `.rmcbundle` clone container — so it routes into the delta
+  apply path, NOT `import_tenant_bundle` (those are two different payload formats:
+  clone = whole-tenant seed, delta = incremental row changes). Also fixed a latent
+  bug: `delta_bundle.verify_and_parse_bundle` compared school ids with `int()`, which
+  500'd on the platform's UUID `School.pk`; the binding now compares as strings
+  (backwards compatible with integer ids). 5 receiver tests + the 2 delta-bundle
+  backwards-compat tests green.
 - **Slice 2:** edge **outbox poster** — a hub-side command/task that packages an
   incremental delta (start with append-only domains: attendance, grades) into a
   bundle and POSTs it to the operator when connectivity returns. One-way, highest
