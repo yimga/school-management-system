@@ -100,18 +100,24 @@ def _service_worker_cache_key() -> str:
     if base is None:
         return ""
     sw_path = Path(base) / "static" / "js" / "service-worker.js"
+    import re
+
     try:
         if not sw_path.exists():
             return ""
         with open(sw_path, "r", encoding="utf-8") as fh:
             for raw in fh:
-                line = raw.strip()
-                if "CACHE_VERSION" in line and "=" in line and '"' in line:
-                    # Extract the quoted value.
-                    first = line.find('"')
-                    last = line.rfind('"')
-                    if first != -1 and last != -1 and last > first:
-                        return line[first + 1:last]
+                # Match the actual ``CACHE_VERSION = "…"`` DECLARATION only.
+                # A plain substring test ("CACHE_VERSION" in line and "=" and
+                # '"') also matched changelog COMMENT lines that merely mention
+                # CACHE_VERSION and happen to carry an "=" and a quote (e.g. the
+                # multi-paragraph v4.00.0 comment block), returning a giant
+                # garbage value into the operator command center. Anchoring on
+                # ``CACHE_VERSION =`` plus a single quoted token means only the
+                # real declaration line wins.
+                m = re.search(r'CACHE_VERSION\s*=\s*"([^"]+)"', raw)
+                if m:
+                    return m.group(1)
     except (OSError, ValueError):
         return ""
     return ""

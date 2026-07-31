@@ -42,6 +42,10 @@ def _fake_bundle(status, artifacts=None):
         status=status,
         get_status_display=lambda: f"{status} label",
         progress_snapshot={"stages": []},
+        # Real MigrationCloudBundle carries a size_summary JSONField (models.py);
+        # the progress payload reads bundle.size_summary for advance_error, so
+        # the fake must supply it too (else AttributeError on a namespace stub).
+        size_summary={},
         artifacts=_FakeArtifactManager(artifacts or []),
     )
 
@@ -93,7 +97,11 @@ class ProgressPayloadTests(SimpleTestCase):
         refresh.return_value = {"stages": []}
         payload = _progress_payload(_fake_bundle(BundleStatus.FAILED))
         self.assertTrue(payload["failed"])
-        self.assertTrue(payload["done"])  # not detecting → poller stops
+        # A FAILED bundle is terminal but NOT "done": done means "finished
+        # successfully — reload to reveal results" and deliberately excludes
+        # _FAILED_STATUSES. The poller (bundle_review.html) stops on the
+        # separate `failed` branch, not `done`.
+        self.assertFalse(payload["done"])
 
     @mock.patch("apps.migration_cloud.progress.refresh_snapshot")
     def test_snapshot_failure_degrades_not_raises(self, refresh):

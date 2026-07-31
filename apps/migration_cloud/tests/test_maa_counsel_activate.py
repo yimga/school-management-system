@@ -1,7 +1,8 @@
 """v3.40.0 Agent 15 — counsel-activate view + MAAActiveVersionState tests.
 
 Coverage:
-  * View staff-only (anon 302; non-staff 302)
+  * Operator-only (anon 302; authenticated non-operator 403 via the
+    /super/ control-plane seal; operator with control-plane access 200)
   * GET shows v2.0 draft when v1.0 active
   * POST without confirm-token → 400
   * POST with wrong typed phrase → 400
@@ -43,6 +44,12 @@ def _staff_user():
         password="x",
     )
     u.is_staff = True
+    # The /super/ MAA counsel-activate route is sealed by
+    # TenantSuperAdminRequiredMiddleware on CONTROL-PLANE access — a plain
+    # is_staff tenant admin is (correctly) denied 403. An operator carrying
+    # control-plane access (superuser here) reaches the staff_member_required
+    # view behind it. is_staff stays True so that inner gate also passes.
+    u.is_superuser = True
     u.is_active = True
     u.save()
     return u
@@ -95,11 +102,14 @@ class CounselActivateViewTests(TestCase):
         # staff_member_required redirects to admin login.
         self.assertEqual(resp.status_code, 302)
 
-    def test_non_staff_redirects(self):
+    def test_non_staff_denied(self):
         u = _non_staff_user()
         self.client.force_login(u)
         resp = self.client.get(self.url)
-        self.assertEqual(resp.status_code, 302)
+        # An AUTHENTICATED non-operator hitting a /super/ route is denied 403
+        # by TenantSuperAdminRequiredMiddleware (control-plane isolation) — not
+        # a 302 login-redirect (that is only for the anonymous case above).
+        self.assertEqual(resp.status_code, 403)
 
     def test_staff_get_shows_v2_draft_when_v1_active(self):
         u = _staff_user()

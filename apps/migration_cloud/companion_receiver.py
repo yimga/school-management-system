@@ -269,8 +269,16 @@ def _next_step_url(bundle_id: int, request: HttpRequest | None = None) -> str:
 @require_GET
 @login_required
 @safe_500
-def maa_text_view(request: HttpRequest) -> JsonResponse:
+def maa_text_view(request: HttpRequest, **kwargs) -> JsonResponse:
     """Return verbatim MAA text for popup display.
+
+    Accepts ``**kwargs`` to absorb the ``shell`` extra-option that both
+    the ``migration_cloud_super`` (``{"shell": "super"}``) and
+    ``migration_cloud_portal`` (``{"shell": "portal"}``) ``include()``
+    mounts inject into every routed view. Without it this GET endpoint
+    500'd (``TypeError: unexpected keyword argument 'shell'``) on every
+    mount — the class-based sibling views already tolerate it via
+    ``View.dispatch(**kwargs)``.
 
     Querystring:
       vendor=<vendor_source>
@@ -1034,8 +1042,13 @@ class CompanionDecryptHookView(LoginRequiredMixin, View):
 
 
 @require_GET
-def companion_server_pubkey_view(request: HttpRequest) -> JsonResponse:
+def companion_server_pubkey_view(request: HttpRequest, **kwargs) -> JsonResponse:
     """GET /companion/server-pubkey/ — return the active X25519 public key.
+
+    ``**kwargs`` absorbs the ``shell`` extra-option injected by the
+    ``migration_cloud_super`` / ``migration_cloud_portal`` ``include()``
+    mounts (see ``maa_text_view`` for the full rationale); without it this
+    endpoint 500'd on every mount.
 
     v3.34.0 — keypairs are per-tenant. The tenant is resolved from
     ``request.tenant`` (set by django-tenants schema middleware) or

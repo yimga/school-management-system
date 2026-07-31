@@ -211,7 +211,19 @@ def _can_use_db() -> bool:
 
 @unittest.skipUnless(_can_use_db(), "DB or school/user model unavailable")
 class MAAReceiverPromotionWiringTests(TestCase):
-    """Receiver surfaces active + preview correctly and refuses draft POSTs."""
+    """Receiver surfaces active + preview correctly and refuses draft POSTs.
+
+    The companion receiver (``maa_text_view`` / ``MAASignView``) is a
+    TENANT-scoped surface: the appliance authenticates as a tenant user
+    and the view resolves the school from the user's membership. It is
+    reached via the tenant-mirror namespace ``migration_cloud_portal``
+    (``/portal/configure/migration/…``), NOT the operator
+    ``migration_cloud_super`` (``/super/migration/…``) — the latter is
+    sealed by TenantSuperAdminRequiredMiddleware to control-plane access,
+    so a tenant admin hitting it (correctly) gets 403. The endpoints ride
+    along under both namespaces because the whole url module is included
+    in each; the tenant path is the real one for a companion caller.
+    """
 
     @classmethod
     def setUpTestData(cls):  # type: ignore[override]
@@ -222,10 +234,16 @@ class MAAReceiverPromotionWiringTests(TestCase):
         cls.school = School.objects.create(
             name="Promotion Test Academy", subdomain="promo-test",
         )
+        # Global role=ADMIN so ModuleAccessMiddleware grants the
+        # migration_cloud_portal module: on the default test host no tenant
+        # is bound to the request, so can_access_module() consults the
+        # user's global User.role (the ADMIN/SUPERADMIN/IT_ADMIN allow-list)
+        # rather than the per-school membership role.
         cls.user = User.objects.create_user(
             username="promo_operator",
             email="promo@example.com",
             password="not-a-real-password",
+            role="ADMIN",
         )
         try:
             from apps.schools.models import SchoolMembership
@@ -242,7 +260,7 @@ class MAAReceiverPromotionWiringTests(TestCase):
 
     def test_default_tenant_get_returns_v1_no_preview(self):
         self._login()
-        url = reverse("migration_cloud_super:companion_maa_text")
+        url = reverse("migration_cloud_portal:companion_maa_text")
         with override_settings(
             MIGRATION_CLOUD_MAA_DEFAULT_VERSION="v1.0",
             MIGRATION_CLOUD_MAA_OPTIN_TENANT_IDS=[],
@@ -258,7 +276,7 @@ class MAAReceiverPromotionWiringTests(TestCase):
 
     def test_optin_tenant_get_returns_v1_active_plus_v2_preview(self):
         self._login()
-        url = reverse("migration_cloud_super:companion_maa_text")
+        url = reverse("migration_cloud_portal:companion_maa_text")
         with override_settings(
             MIGRATION_CLOUD_MAA_DEFAULT_VERSION="v1.0",
             MIGRATION_CLOUD_MAA_OPTIN_TENANT_IDS=[self.school.pk],
@@ -280,7 +298,7 @@ class MAAReceiverPromotionWiringTests(TestCase):
     def test_optin_tenant_post_v2_signature_text_refused_as_draft_attempt(self):
         from apps.migration_cloud.services.maa_text import render_maa_text
         self._login()
-        url = reverse("migration_cloud_super:companion_maa_sign")
+        url = reverse("migration_cloud_portal:companion_maa_sign")
         # Render the v2.0 (draft) body and try to POST it — the receiver
         # should refuse with code=draft_signature_attempt.
         v2_body = render_maa_text(
@@ -313,7 +331,7 @@ class MAAReceiverPromotionWiringTests(TestCase):
         from apps.migration_cloud.models import MigrationAuthorizationAgreement
         from apps.migration_cloud.services.maa_text import render_maa_text
         self._login()
-        url = reverse("migration_cloud_super:companion_maa_sign")
+        url = reverse("migration_cloud_portal:companion_maa_sign")
         v1_body = render_maa_text(
             "powerschool", "Jane Doe", agreement_version="v1.0",
         )
@@ -342,46 +360,56 @@ class MAAReceiverPromotionWiringTests(TestCase):
     # ---- Hypothetical flip simulation ----------------------------------
 
     def test_hypothetical_flip_v2_signature_text_succeeds_when_promoted(self):
-        """Once v2.0 leaves the draft set + env defaults to v2.0, POST works."""
+        """Once v2.0 is activated (real DB flip) + env defaults to v2.0, POST works.
+
+        Promotion is DB-driven since v3.40.0:
+        ``MAAActiveVersionState.activate_v2`` flips the singleton, and
+        ``get_draft_versions()`` consults that state to elide v2.0 from the
+        draft set — so ``resolve_active_version_for_tenant`` (with the env
+        default also on v2.0) returns v2.0 as the binding version. The
+        original v3.34.0 simulation mutated the module-level
+        ``MAA_TEXT_DRAFT_VERSIONS`` set directly, but that set is no longer
+        the source of truth, so clearing it left the receiver still binding
+        v1.0 → ``signature_text_mismatch``. Activation is rolled back
+        automatically at test end (TestCase transaction).
+        """
         from apps.migration_cloud.models import MigrationAuthorizationAgreement
-        from apps.migration_cloud.services import maa_text as _maa_text_module
+        from apps.migration_cloud.models_maa_state import MAAActiveVersionState
         from apps.migration_cloud.services.maa_text import render_maa_text
 
         self._login()
-        url = reverse("migration_cloud_super:companion_maa_sign")
+        url = reverse("migration_cloud_portal:companion_maa_sign")
 
-        # Capture original draft set so we can restore at end (the
-        # module-level set is monkeypatched in place, not via
-        # override_settings).
-        original_drafts = set(_maa_text_module.MAA_TEXT_DRAFT_VERSIONS)
-        try:
-            _maa_text_module.MAA_TEXT_DRAFT_VERSIONS.clear()
-            v2_body = render_maa_text(
-                "powerschool", "Jane Doe", agreement_version="v2.0",
+        # The REAL flip: activate v2.0 in the singleton state.
+        MAAActiveVersionState.activate_v2(
+            operator_user=self.user,
+            counsel_pdf_url="https://example.com/v2-counsel.pdf",
+            attestation_name="Op Test",
+            attestation_text="counsel signed",
+        )
+        v2_body = render_maa_text(
+            "powerschool", "Jane Doe", agreement_version="v2.0",
+        )
+        with override_settings(
+            MIGRATION_CLOUD_MAA_DEFAULT_VERSION="v2.0",
+            MIGRATION_CLOUD_MAA_OPTIN_TENANT_IDS=[],
+        ):
+            resp = self.client.post(
+                url,
+                data=json.dumps({
+                    "vendor_source": "powerschool",
+                    "vendor_account_holder_name": "Jane Doe",
+                    "signed_by_role": "IT Director",
+                    "submitted_signature_text": v2_body,
+                }),
+                content_type="application/json",
             )
-            with override_settings(
-                MIGRATION_CLOUD_MAA_DEFAULT_VERSION="v2.0",
-                MIGRATION_CLOUD_MAA_OPTIN_TENANT_IDS=[],
-            ):
-                resp = self.client.post(
-                    url,
-                    data=json.dumps({
-                        "vendor_source": "powerschool",
-                        "vendor_account_holder_name": "Jane Doe",
-                        "signed_by_role": "IT Director",
-                        "submitted_signature_text": v2_body,
-                    }),
-                    content_type="application/json",
-                )
-            self.assertIn(resp.status_code, (201, 403))
-            if resp.status_code == 201:
-                body = resp.json()
-                maa = MigrationAuthorizationAgreement.objects.get(pk=body["maa_id"])
-                self.assertEqual(maa.agreement_version, "v2.0")
-                self.assertIn("DRAFT v2.0", maa.signature_text)
-        finally:
-            _maa_text_module.MAA_TEXT_DRAFT_VERSIONS.clear()
-            _maa_text_module.MAA_TEXT_DRAFT_VERSIONS.update(original_drafts)
+        self.assertIn(resp.status_code, (201, 403))
+        if resp.status_code == 201:
+            body = resp.json()
+            maa = MigrationAuthorizationAgreement.objects.get(pk=body["maa_id"])
+            self.assertEqual(maa.agreement_version, "v2.0")
+            self.assertIn("DRAFT v2.0", maa.signature_text)
 
     def test_v1_historic_signatures_remain_queryable_after_flip(self):
         """Pre-flip v1.0 rows stay queryable + valid after the flip."""
@@ -437,10 +465,13 @@ class MAALoggingDoesNotLeakSignatureTextTests(TestCase):
         cls.school = School.objects.create(
             name="Logging Leak Test", subdomain="logleak-test",
         )
+        # Global role=ADMIN so ModuleAccessMiddleware grants the module on
+        # the default test host (no tenant bound → global-role branch).
         cls.user = User.objects.create_user(
             username="logleak_operator",
             email="logleak@example.com",
             password="not-a-real-password",
+            role="ADMIN",
         )
         try:
             from apps.schools.models import SchoolMembership
@@ -455,7 +486,7 @@ class MAALoggingDoesNotLeakSignatureTextTests(TestCase):
         from apps.migration_cloud.services.maa_text import render_maa_text
 
         self.client.force_login(self.user)
-        url = reverse("migration_cloud_super:companion_maa_sign")
+        url = reverse("migration_cloud_portal:companion_maa_sign")
         v2_body = render_maa_text(
             "powerschool", "Jane Doe", agreement_version="v2.0",
         )

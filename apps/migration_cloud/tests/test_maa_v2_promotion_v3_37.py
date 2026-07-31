@@ -264,6 +264,7 @@ class CampaignMgmtCommandTests(TestCase):
         User = get_user_model()
         cls.school = School.objects.create(
             name="Campaign Test Academy", subdomain="campaign-test",
+            slug="campaign-test",
         )
         cls.user = User.objects.create_user(
             username="campaign_op",
@@ -380,6 +381,7 @@ class CampaignMgmtCommandTests(TestCase):
 
         other = School.objects.create(
             name="Other Academy", subdomain="other-academy",
+            slug="other-academy",
         )
         # Cross-tenant fixture: a v1.0 agreement in a different tenant.
         MigrationAuthorizationAgreement.objects.create(
@@ -452,11 +454,17 @@ class PromotionDashboardViewTests(TestCase):
         from django.contrib.auth import get_user_model
 
         User = get_user_model()
+        # The /super/ promotion dashboard is sealed by
+        # TenantSuperAdminRequiredMiddleware on CONTROL-PLANE access; a plain
+        # is_staff tenant admin is denied 403. The operator fixture carries
+        # control-plane access (superuser) AND is_staff for the inner
+        # staff_member_required gate.
         cls.staff = User.objects.create_user(
             username="dash_staff",
             email="dash-staff@example.com",
             password="not-a-real-password",
             is_staff=True,
+            is_superuser=True,
         )
         cls.civilian = User.objects.create_user(
             username="dash_civilian",
@@ -514,6 +522,7 @@ class PromotionDashboardViewTests(TestCase):
 
         school = School.objects.create(
             name="Dash Audit Academy", subdomain="dash-audit",
+            slug="dash-audit",
         )
         MigrationAuthorizationAgreement.objects.create(
             tenant=school,

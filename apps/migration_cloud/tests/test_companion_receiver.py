@@ -117,10 +117,17 @@ class CompanionReceiverDBBackedTests(TestCase):
 
         User = get_user_model()
         cls.school = School.objects.create(name="Test Academy", subdomain="test-academy")
+        # Global role=ADMIN so ModuleAccessMiddleware grants the
+        # migration_cloud_portal (tenant-mirror) module on the default test
+        # host, where no tenant is bound and can_access_module() consults the
+        # global User.role. This does NOT open the /super/ operator mount —
+        # migration_cloud_super is absent from MODULE_ACCESS_DEFAULTS, so those
+        # routes stay 403 for a non-control-plane admin.
         cls.user = User.objects.create_user(
             username="test_operator",
             email="ops@example.com",
             password="not-a-real-password",
+            role="ADMIN",
         )
         # Best-effort tenant binding via SchoolMembership if it exists.
         try:
@@ -314,7 +321,11 @@ class CompanionReceiverDBBackedTests(TestCase):
         maa = self._sign_maa()
         ciphertext = b"sentinel-ciphertext-do-not-log-this"
         sha = hashlib.sha256(ciphertext).hexdigest()
-        url = reverse("migration_cloud_super:companion_upload")
+        # Exercise the receiver through the TENANT-mirror mount. The companion
+        # appliance authenticates as a tenant user; the operator /super/ mount
+        # is control-plane-sealed (403 before the view runs → no logs to
+        # capture), whereas the portal mount is the receiver's real caller path.
+        url = reverse("migration_cloud_portal:companion_upload")
 
         with self.assertLogs("apps.migration_cloud.companion_receiver", level="INFO") as cap:
             self.client.post(
@@ -332,7 +343,7 @@ class CompanionReceiverDBBackedTests(TestCase):
             )
             # Also trigger maa_text + maa_sign code paths.
             self.client.get(
-                reverse("migration_cloud_super:companion_maa_text") + "?vendor=powerschool",
+                reverse("migration_cloud_portal:companion_maa_text") + "?vendor=powerschool",
             )
 
         joined = "\n".join(cap.output)

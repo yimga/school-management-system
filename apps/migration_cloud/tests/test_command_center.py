@@ -130,11 +130,17 @@ class CommandCenterRenderedViewTests(TestCase):
     def setUpTestData(cls):
         from django.contrib.auth import get_user_model
         UserModel = get_user_model()
+        # The command center lives at /super/migration/command-center/,
+        # sealed by TenantSuperAdminRequiredMiddleware on CONTROL-PLANE access
+        # — a plain is_staff tenant admin is denied 403. The operator fixture
+        # carries control-plane access (superuser) plus is_staff for the inner
+        # staff_member_required gate.
         cls.staff = UserModel.objects.create_user(
             username="cc-staff",
             email="cc-staff@example.com",
             password="x" * 24,
             is_staff=True,
+            is_superuser=True,
         )
         cls.user = UserModel.objects.create_user(
             username="cc-user",
@@ -153,11 +159,13 @@ class CommandCenterRenderedViewTests(TestCase):
         # staff_member_required → 302 to admin login.
         self.assertIn(response.status_code, (302, 301))
 
-    def test_non_staff_redirected(self):
+    def test_non_staff_denied(self):
         self.client.force_login(self.user)
         response = self.client.get(self._url())
-        # staff_member_required still redirects non-staff users.
-        self.assertIn(response.status_code, (302, 301))
+        # An AUTHENTICATED non-operator hitting a /super/ route is denied 403
+        # by TenantSuperAdminRequiredMiddleware (control-plane isolation), not
+        # a login redirect (that is only for the anonymous case above).
+        self.assertEqual(response.status_code, 403)
 
     def test_staff_gets_200(self):
         self.client.force_login(self.staff)
@@ -190,6 +198,11 @@ class CommandCenterRenderedViewTests(TestCase):
             raise RuntimeError("simulated section failure")
 
         self.client.force_login(self.staff)
+        # The view relies on section helpers obeying the never-raise contract;
+        # it does not wrap them, so a raising helper propagates. Tell the test
+        # client to return the 500 response instead of re-raising, so we can
+        # assert the loud-500 behaviour.
+        self.client.raise_request_exception = False
         with mock.patch.object(
             cc, "_section_webhook_fleet", side_effect=boom,
         ):
