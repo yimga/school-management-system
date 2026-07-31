@@ -129,6 +129,10 @@ class WebhookHMACDispatchRegressionTests(TestCase):
             secret_hash=hashlib.sha256(self.plaintext).hexdigest(),
             secret_ciphertext=self.plaintext,
             event_types=["bundle.advanced"],
+            # Opt into the synthetic test event's class — the v3.33.0 event-class
+            # gate treats empty event_classes as ["migration.*"], which would
+            # filter out "bundle.advanced" and make enqueue() return None.
+            event_classes=["bundle.*"],
         )
 
     def test_enqueue_signature_matches_recipient_verification(self) -> None:

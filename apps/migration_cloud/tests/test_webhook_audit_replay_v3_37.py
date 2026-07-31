@@ -57,8 +57,13 @@ def _make_school(idx: int = 1):
 
 
 def _make_users():
+    # These views live under /super/ (operator control plane), which
+    # TenantSuperAdminRequiredMiddleware gates on control-plane access — mere
+    # is_staff no longer suffices (tenant-operator isolation seal). A superuser
+    # is the simplest control-plane operator identity (and still satisfies the
+    # view's own staff_member_required).
     staff = User.objects.create_user(
-        username="audit-staff", password="x", is_staff=True,
+        username="audit-staff", password="x", is_staff=True, is_superuser=True,
     )
     non_staff = User.objects.create_user(
         username="audit-nonstaff", password="x", is_staff=False,

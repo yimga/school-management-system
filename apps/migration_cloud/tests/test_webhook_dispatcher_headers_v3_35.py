@@ -134,10 +134,17 @@ def _run_dispatcher_capture(*, secret: bytes, payload: dict, event: str = "migra
     fake_models = mock.MagicMock()
     fake_models.WebhookDeliveryStatus = _Status
 
+    # The dispatcher runs a delivery-time SSRF guard (is_safe_public_url) before
+    # the HTTP call; the test URL (example.invalid) fails DNS resolution and would
+    # be blocked before the header-capture path we're exercising. These are
+    # hermetic header-emission tests (no network), so allow the guard to pass —
+    # the SSRF guard itself is covered by its own tests.
     with mock.patch.dict(sys.modules, {
         "requests": fake_requests,
         "apps.migration_cloud.models": fake_models,
-    }):
+    }), mock.patch(
+        "apps.security.ssrf.is_safe_public_url", return_value=(True, "")
+    ):
         webhook_dispatch._deliver_one(row)
     return captured
 
