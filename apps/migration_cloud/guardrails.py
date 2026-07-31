@@ -170,6 +170,13 @@ def compute_observed_totals(*, bundle: Any) -> dict[str, str]:
             from django_tenants.utils import schema_context
         except ImportError:
             return fn()
+        from django.db import connection
+        if not hasattr(connection, "set_schema"):
+            # Non-tenant DB backend (single-schema sqlite test/dev lane, or an
+            # RLS single-schema deploy): entering schema_context raises
+            # AttributeError ('DatabaseWrapper' has no 'tenant'). Everything is
+            # already in one schema — run as-is. Mirrors orchestrator's guard.
+            return fn()
         with schema_context(schema_name):
             return fn()
 

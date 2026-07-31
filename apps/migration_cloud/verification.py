@@ -133,6 +133,14 @@ def verify_landed_counts(
             from django_tenants.utils import schema_context
         except ImportError:
             return fn()
+        from django.db import connection
+        if not hasattr(connection, "set_schema"):
+            # Non-tenant DB backend (single-schema sqlite test/dev lane, or an
+            # RLS single-schema deploy): there is no schema to switch and
+            # entering schema_context raises AttributeError ('DatabaseWrapper'
+            # has no 'tenant'). Everything already lives in one schema, so run
+            # as-is. Mirrors the guard in orchestrator._land_under_schema.
+            return fn()
         with schema_context(schema_name):
             return fn()
 
