@@ -741,6 +741,13 @@ urlpatterns = [
         name="operator_team_reactivate",
     ),
     path(
+        "team/<int:user_id>/reset-password/",
+        require_super_access_with_host(
+            super_views_operator_team.super_operator_team_reset_password
+        ),
+        name="operator_team_reset_password",
+    ),
+    path(
         "security/command-center/",
         require_super_access_with_host(
             super_views_enterprise_security.super_security_hub
