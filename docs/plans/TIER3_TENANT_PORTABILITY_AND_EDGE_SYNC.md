@@ -1,8 +1,9 @@
 # Tier 3 — Full-fidelity tenant portability + edge↔operator sync
 
-Status: **IN PROGRESS** — Slices 0-3 DONE + tested (clone engine; persisting receiver;
-edge outbox producer; machine credential + authenticated outbound transport). Slice 4
-(insert/upsert reconciliation) remains. Author: platform.
+Status: **Slices 0-4 DONE + tested** — clone engine; persisting receiver; edge outbox
+producer; machine credential + authenticated outbound transport; offline-created
+inserts (upsert by client_offline_id). Remaining: full FK id-remapping for
+new-references-new (deferred, noted in Slice 4). Author: platform.
 Supersedes the "manual DR export/restore only" gap called out in
 `docs/LOCAL_HUB_MODE.md` and the sync verdict in
 `finding_sovereign_edge_selfhost_state_2026_07_31` (memory).
@@ -150,11 +151,31 @@ idempotent: a colliding pk is an UPDATE of the same identity.
     10 tests (credential auth accept/reject-missing/garbage/revoked/non-scope through
     the receiver; mint↔resolve; poster success-advances / offline-keeps-cursor-and-
     queues / rejection-raises-and-keeps-cursor / nothing-to-send).
-- **Slice 4:** **incremental deltas + reconciliation** — change-tracking
-  (updated_at / an outbox cursor), natural-key upsert on the operator side, and
-  conflict resolution wired onto the existing CRDT/policy machinery
-  (`apps/sync_engine/policy_registry.py`, `conflict_resolver.py`,
-  `crdt_wire_protocol.py`). This is operation **B** and the largest slice.
+- **Slice 4 — offline-created inserts (DONE):** sync records CREATED offline on the
+  box, via **natural-key upsert by `(school, client_offline_id)`** — never by pk.
+  - Migration `academics/0073` adds `client_offline_id` (+ partial-unique
+    `(school, client_offline_id)`) to `Attendance` and `Classroom`, matching the
+    existing field on `StudentProfile`/`TeacherProfile`.
+  - **Why not by pk:** these entities use integer autoincrement pks, so a box-local pk
+    for a new record can collide with a *different* operator record. The receiver
+    therefore **splits** rows: those with an empty `client_offline_id` are cloned
+    records (pk stable across the clone) → update-by-pk (`apply_changes`); those with a
+    non-empty `client_offline_id` are box-created → `apply_edge_inserts`, which upserts
+    by `(school, client_offline_id)` under a per-row savepoint (one bad row never rolls
+    back the batch) and is admin-gated.
+  - **FK safety:** a foreign key that points at *another* insert-row's untrustworthy
+    local pk is dropped, so a new record can only link to already-present (cloned,
+    pk-stable) records; if that FK was required, the row fails cleanly and is reported
+    (never silently mis-linked). Phantom allow-list fields are ignored; a row that
+    can't be constructed (e.g. a `Classroom`, which needs `department` + a unique
+    `code` not carried in the sync field set) is reported failed, never dropped.
+  - **What works cleanly today:** new **students** (no required FK to another new
+    record — the primary new-enrollment case) and **attendance/classroom edits or
+    inserts that reference already-cloned records**. 7 tests.
+  - **Deferred (honest):** full FK **id-remapping** so a new record can reference
+    *another* new record (e.g. attendance for a brand-new student) — that needs a
+    client-id→operator-pk map applied in dependency order, plus the richer
+    CRDT/policy conflict machinery (`policy_registry.py`, `conflict_resolver.py`).
 
 ## Security notes
 

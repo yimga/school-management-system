@@ -27,7 +27,7 @@ from rest_framework.settings import api_settings
 from rest_framework.views import APIView
 
 from apps.api.edge_auth import EdgeCredentialAuthentication
-from apps.api.sync_services import apply_changes
+from apps.api.sync_services import apply_changes, apply_edge_inserts
 from apps.schools.tenant_api_guards import user_may_operate_on_school
 from apps.sync_engine.delta_bundle import verify_and_parse_bundle
 
@@ -72,15 +72,32 @@ class SyncBundleUploadView(APIView):
                 status=400,
             )
 
-        out = apply_changes(str(school.id), request.user, rows, persist_conflicts=True)
+        # Split cloned-record UPDATES (no client_offline_id -> pk is stable across the
+        # clone) from offline-CREATED rows (carry a client_offline_id; their local pk is
+        # meaningless on the operator). Updates go by pk; inserts upsert by
+        # (school, client_offline_id) and never touch a pk lookup — so a box-local pk can
+        # never collide with a different operator record.
+        update_rows, insert_rows = [], []
+        for row in rows:
+            (insert_rows if (row.get("client_offline_id") or "").strip() else update_rows).append(row)
+
+        out = apply_changes(str(school.id), request.user, update_rows, persist_conflicts=True)
+        inserted = (
+            apply_edge_inserts(str(school.id), request.user, insert_rows)
+            if insert_rows
+            else {"created": 0, "updated": 0, "results": []}
+        )
         return Response(
             {
                 "ok": True,
                 "received": len(rows),
                 "applied": out["success_count"],
                 "conflicts": len(out["conflicts"]),
+                "created": inserted["created"],
+                "upserted": inserted["updated"],
                 "results": out["results"],
                 "conflict_details": out["conflicts"],
+                "insert_results": inserted["results"],
             }
         )
 

@@ -305,3 +305,118 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True):
         "results": results,
         "conflicts": conflicts,
     }
+
+
+# Foreign-key fields (in the entity allow-lists) that reference another synced entity.
+# Used to drop a link that points at ANOTHER insert-row's untrustworthy local pk.
+_INSERT_FK_TARGET = {"student_id": "student", "classroom_id": "classroom"}
+
+
+def _settable_field_names(model) -> set:
+    """Concrete field names on ``model`` that can be passed to ``create`` — includes
+    both the relation name and its ``<field>_id`` attname. Lets the insert path ignore
+    any phantom entry in an allow-list (e.g. a field that doesn't exist on the model)."""
+    names: set = set()
+    for f in model._meta.get_fields():
+        if not getattr(f, "concrete", False):
+            continue
+        if getattr(f, "name", None):
+            names.add(f.name)
+        attname = getattr(f, "attname", None)
+        if attname:
+            names.add(attname)
+    return names
+
+
+def apply_edge_inserts(school_id, user, rows):
+    """Upsert offline-CREATED rows by ``(school, client_offline_id)`` — edge-only.
+
+    The counterpart to :func:`apply_changes` (which is update-by-pk). Rows here were
+    created on an edge box and carry a client-generated ``client_offline_id`` plus the
+    box's LOCAL integer pks, which are meaningless on the operator — so we NEVER look
+    up by pk; we upsert by ``(school, client_offline_id)`` under a per-row savepoint so
+    one bad row never rolls back the batch. To avoid mis-linking, a foreign key that
+    points at ANOTHER insert-row's local pk (a record whose operator pk differs) is
+    dropped; the row then either links only to already-present (cloned, pk-stable)
+    records or, if that FK was required, fails cleanly and is reported — never silently
+    wrong. Only an admin-like / staff / superuser may create (the edge box acts as a
+    bound school admin).
+
+    Returns ``{"created", "updated", "results"}`` (results carry per-row index/status).
+    """
+    from django.core.exceptions import FieldError, ValidationError
+    from django.db import IntegrityError, transaction
+
+    from apps.api.entity_api import _is_admin_like
+    from apps.schools.models import School
+
+    config = _get_entity_config()
+    school = School.objects.filter(pk=school_id).first() if school_id else None
+    can_create = bool(
+        getattr(user, "is_superuser", False)
+        or getattr(user, "is_staff", False)
+        or _is_admin_like(user)
+    )
+
+    # Local pks that belong to NEW (insert) rows, keyed by entity — their operator pk
+    # will differ, so a FK pointing at one of them cannot be trusted.
+    new_local_pks: dict[str, set] = {}
+    for item in rows:
+        et = (item.get("entity_type") or "").strip().lower()
+        pid = item.get("id")
+        if et and pid is not None:
+            new_local_pks.setdefault(et, set()).add(pid)
+
+    created = 0
+    updated = 0
+    results = []
+    if school is None or not can_create:
+        reason = "tenant_context_required" if school is None else "forbidden"
+        return {
+            "created": 0,
+            "updated": 0,
+            "results": [{"index": i, "status": 403, "data": {"error": reason}} for i, _ in enumerate(rows)],
+        }
+
+    for idx, item in enumerate(rows):
+        entity_type = (item.get("entity_type") or "").strip().lower()
+        coid = (item.get("client_offline_id") or "").strip()
+        changes = item.get("changes") or {}
+        if entity_type not in config or not coid:
+            results.append({"index": idx, "status": 400, "data": {"error": "entity_type_and_client_offline_id_required"}})
+            continue
+        model, allowed = config[entity_type]
+        if not any(getattr(f, "name", "") == "client_offline_id" for f in model._meta.get_fields()):
+            results.append({"index": idx, "status": 422, "data": {"error": "entity_not_insertable"}})
+            continue
+
+        valid_fields = _settable_field_names(model)
+        updates = {}
+        for key, value in changes.items():
+            if key not in allowed or key not in valid_fields:
+                continue  # not editable, or a phantom allow-list entry not on the model
+            target = _INSERT_FK_TARGET.get(key)
+            if target and value in new_local_pks.get(target, set()):
+                continue  # points at another new row whose operator pk differs — drop it
+            updates[key] = value
+
+        try:
+            with transaction.atomic():  # savepoint: isolate a bad row from the batch
+                obj, was_created = model.objects.get_or_create(
+                    school=school, client_offline_id=coid, defaults=updates
+                )
+                if not was_created and updates:
+                    for key, value in updates.items():
+                        setattr(obj, key, value)
+                    obj.save(update_fields=list(updates.keys()))
+        except (IntegrityError, ValidationError, ValueError, TypeError, FieldError) as exc:
+            results.append({"index": idx, "status": 422, "data": {"error": "insert_failed", "detail": str(exc)[:200]}})
+            continue
+
+        if was_created:
+            created += 1
+        else:
+            updated += 1
+        results.append({"index": idx, "status": 201 if was_created else 200, "data": {"id": obj.pk, "created": was_created}})
+
+    return {"created": created, "updated": updated, "results": results}

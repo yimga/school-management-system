@@ -65,6 +65,9 @@ def build_edge_delta_bundle(school, *, since=None, entities=None, device_id="edg
                 {
                     "entity_type": entity_type,
                     "id": instance.pk,
+                    # Non-empty only for records created offline on this box; the operator
+                    # upserts those by (school, client_offline_id) instead of by pk.
+                    "client_offline_id": getattr(instance, "client_offline_id", "") or "",
                     "changes": changes,
                     "updated_at": updated_at.isoformat() if updated_at else None,
                 }
