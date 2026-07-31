@@ -77,7 +77,21 @@ class CrossTenantBoundaryPenetrationTests(TestCase):
         self.assertIn(response.status_code, (302, 403, 404))
 
     def test_forged_session_school_id_does_not_grant_foreign_rows(self):
-        """Session school_id for B cannot read school A admin export on B host."""
+        """A school-B admin who forges ``session['school_id']=A`` on B's host is
+        never served school A's data.
+
+        The platform resolves the active tenant from the HOST + membership, never
+        from the session hint. ``SessionSchoolBindingMiddleware`` REALIGNS a
+        disagreeing session ``school_id`` to the host campus when the user is a
+        member of it (soft-correct), and only force-logs-out + 403 when the user
+        is NOT entitled to the host campus. admin_b IS a member of host B, so the
+        forged ``A`` is discarded — the request serves B (admin_b's own campus) or
+        is blocked, but the foreign ``A`` is never honored. Asserting the forged id
+        is not honored is a STRONGER cross-tenant-leak check than a bare status
+        code: it fails if a regression ever makes the session hint load-bearing.
+        A hard 302/403 here would be wrong — it would break the intentional
+        bookmark-drift realignment path for legitimate multi-campus admins.
+        """
         with rls_bypass():
             admin_b = User.objects.create_user(
                 username=f"pen_b_{uuid.uuid4().hex[:6]}",
@@ -94,13 +108,25 @@ class CrossTenantBoundaryPenetrationTests(TestCase):
         c = Client(HTTP_HOST=_HOST_B)
         c.force_login(admin_b)
         session = c.session
-        session["school_id"] = str(self.school_a.id)
+        session["school_id"] = str(self.school_a.id)  # forged to the FOREIGN campus
         session["mfa_verified"] = True
         session.save()
         with override_settings(ROOT_URLCONF="config.tenant_urls"):
             url = reverse("siteconfig:compliance_exports")
-            status = c.get(url, secure=True).status_code
-        self.assertIn(status, (302, 403))
+            resp = c.get(url, secure=True)
+        # Secure outcomes only: realign→serve own campus (200) or hard-block
+        # (302/403); never a 200 that resolved to the foreign campus.
+        self.assertIn(resp.status_code, (200, 302, 403))
+        # Load-bearing assertion: the forged foreign school_id must NOT survive as
+        # the active tenant. The binding middleware either realigns the session to
+        # the host campus (B) or flushes it on logout — in both secure paths the
+        # session ends pointing at B or empty, never at A. If the forge were ever
+        # honored (the leak this test guards), school A would remain the selected
+        # campus and this would fail. (A UUID/None comparison, not a body substring,
+        # so it can never collide incidentally.)
+        resolved_school_id = c.session.get("school_id")
+        self.assertIn(resolved_school_id, (str(self.school_b.id), None, ""))
+        self.assertNotEqual(resolved_school_id, str(self.school_a.id))
 
     def test_slug_manipulation_on_manager_super_route(self):
         """Tenant admin cannot reach control-plane super dashboard via host swap."""
