@@ -377,6 +377,71 @@ def super_operator_team_reactivate(request, user_id: int):
     return redirect_after_detail_mutation(request, detail_url)
 
 
+@require_POST
+@require_super_access_with_host
+@require_platform_scope(PLATFORM_SCOPE_TEAM_MANAGE)
+def super_operator_team_reset_password(request, user_id: int):
+    """Issue a fellow operator a one-time temporary password (email-independent).
+
+    The operator-side twin of the tenant ``tenant_identity_reset_password``: for a
+    colleague who forgot their password in a low-connectivity setting where the
+    self-serve "forgot my password" email is useless, a TEAM_MANAGE operator hands
+    over the temp password shown here out-of-band. It forces a change on next
+    sign-in, reactivates the account if it was inactive (else authenticate() would
+    reject the temp password), and revokes the operator's live sessions + device
+    trust so the old credentials stop working and MFA re-verifies. The canonical
+    platform admin is out of reach of this peer tool (recover it via the CLI), the
+    same protection suspend/offboard already apply. The temp password is shown ONCE
+    and never logged.
+    """
+    from apps.accounts.credential_reset import set_temporary_password
+    from apps.accounts.mfa_device_trust import revoke_device_trust
+
+    User = get_user_model()
+    user = get_object_or_404(User, pk=user_id)
+    if is_canonical_platform_admin(user) and not is_canonical_platform_admin(
+        request.user
+    ):
+        messages.error(
+            request,
+            _(
+                "The canonical platform admin cannot be reset here — recover it with "
+                "the fix_tenant_login management command."
+            ),
+        )
+        return redirect("super:operator_team_detail", user_id=user_id)
+
+    temp_password, reactivated = set_temporary_password(user)
+    Session.objects.filter(session_key__in=_session_keys_for_user(user)).delete()
+    revoke_device_trust(user)
+    audit_operator_action(
+        request,
+        action="UPDATE",
+        model_name="User",
+        object_id=str(user.pk),
+        object_repr=user.get_username(),
+        new_values={"password_reset": True, "reactivated": reactivated},
+    )
+    messages.success(
+        request,
+        _(
+            "Temporary password for %(user)s: %(pw)s — hand it over securely. They "
+            "must set a new password (and re-verify MFA) at next sign-in."
+        )
+        % {"user": user.get_username(), "pw": temp_password},
+    )
+    if reactivated:
+        messages.info(
+            request,
+            _(
+                "%(user)s was deactivated and has been reactivated so they can sign in."
+            )
+            % {"user": user.get_username()},
+        )
+    detail_url = reverse("super:operator_team_detail", args=[user_id])
+    return redirect_after_detail_mutation(request, detail_url)
+
+
 @require_http_methods(["GET", "POST"])
 @require_super_access_with_host
 @require_platform_scope(PLATFORM_SCOPE_TEAM_PROMOTE)

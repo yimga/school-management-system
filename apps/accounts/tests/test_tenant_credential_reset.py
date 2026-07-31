@@ -220,6 +220,23 @@ class CredentialResetActionTests(TestCase):
         self.assertIsNotNone(resolved)
         self.assertEqual(resolved.pk, disabled.pk)
 
+    def test_set_temporary_password_reports_reactivation(self):
+        # Shared core used by BOTH the tenant and operator resets. Returns
+        # (temp_password, was_reactivated) and reactivates an inactive account.
+        from apps.accounts.credential_reset import set_temporary_password
+
+        active = _mk_user(User.Role.TEACHER, password="p12345678", active=True)
+        temp, reactivated = set_temporary_password(active)
+        self.assertFalse(reactivated)
+        self.assertTrue(active.check_password(temp))
+        self.assertTrue(active.requires_password_change)
+
+        inactive = _mk_user(User.Role.TEACHER, password="p12345678", active=False)
+        temp2, reactivated2 = set_temporary_password(inactive)
+        self.assertTrue(reactivated2)
+        self.assertTrue(inactive.is_active)
+        self.assertTrue(inactive.check_password(temp2))
+
     def test_reset_mfa_clears_devices_and_deferral(self):
         TOTPDevice.objects.create(user=self.target, name="d", confirmed=True)
         defer_mfa_setup(self.target, days=7)

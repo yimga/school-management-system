@@ -79,6 +79,14 @@
         <button type="submit" class="btn btn-sm btn-outline-warning">{% trans "Revoke all sessions" %}</button>
       </form>
       {% if not is_canonical_admin %}
+        {% comment %} Email-independent password recovery for a colleague who forgot
+           their password (e.g. in a low-connectivity area where the self-serve reset
+           email never arrives). Shows a one-time temp password to hand over. {% endcomment %}
+        <form method="post" action="{% url 'super:operator_team_reset_password' operator_user.pk %}" data-rmc-post-mutation="1" data-rmc-confirm="{% trans 'Issue a one-time temporary password for this operator?' %}">
+          {% csrf_token %}
+          {% if detail_return_url %}<input type="hidden" name="next" value="{{ detail_return_url }}">{% endif %}
+          <button type="submit" class="btn btn-sm btn-outline-primary">{% trans "Reset password" %}</button>
+        </form>
         {% if profile.status == "active" %}
         <form method="post" action="{{ suspend_url }}" data-rmc-post-mutation="1" data-rmc-confirm="{% trans 'Suspend this operator?' %}">
           {% csrf_token %}

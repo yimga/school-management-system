@@ -116,39 +116,50 @@ def can_reset_target(actor, target, school) -> bool:
 # --------------------------------------------------------------------------- #
 # Actions
 # --------------------------------------------------------------------------- #
-def admin_reset_password(actor, target, school, *, request=None) -> str:
-    """Issue a temporary password for ``target``, force a change, and RESTORE ACCESS.
+def set_temporary_password(user) -> tuple[str, bool]:
+    """Core: set a fresh temp password, force a change next login, reactivate if inactive.
 
-    Returns the plaintext temp password for the caller to hand over ONCE. The
-    caller is responsible for signing the target out (see
-    ``views_tenant_identity._revoke_user_sessions``) so the temp password takes
-    effect immediately. Never logs the password.
+    Returns ``(temp_password, was_reactivated)``. Shared by the TENANT credential
+    reset (:func:`admin_reset_password`) and the OPERATOR-team reset so both offer
+    the SAME email-independent recovery — the reason this exists: in a
+    low-connectivity area the self-serve "forgot my password" email never reaches
+    the user, so an admin hands over the returned plaintext temp password
+    out-of-band and the user signs in with no internet of their own.
 
-    An INACTIVE target is reactivated (``is_active=True``) as part of the reset.
-    A credential reset is an explicit recovery action whose whole point is to let
-    the member sign in again; leaving ``is_active=False`` makes the temp password
-    dead on arrival, because ``authenticate()`` rejects any inactive account no
-    matter the password, and the member hits a silent "invalid username or
-    password" wall (the exact symptom reported for the ``novijonongni`` account on
-    the gilead tenant). This mirrors the ``fix_tenant_login --set-password`` CLI,
-    which already activates unconditionally, and is what makes the assignable
-    ``identity.reset_credentials`` capability usable by a NON-owner admin (the
-    owner-only "Reactivate" button is otherwise out of their reach). The
-    reactivation is NOT silent — the view surfaces it to the admin — and the
-    owner/superuser guards in ``can_reset_target`` still prevent a lesser admin
-    from reaching an owner. Supersedes the earlier "leave a deactivated-real
-    account inactive" rule (see finding_never_claimed_inactive_account_lockout),
-    which stranded exactly this recovery path.
+    An INACTIVE account is reactivated (``is_active=True``): a reset whose whole
+    point is to restore sign-in must not leave the account inactive, because
+    ``authenticate()`` rejects any inactive account no matter the password — the
+    silent "invalid username or password" wall (the ``novijonongni`` symptom). A
+    change is forced on next sign-in so the temporary secret is never durable.
+    Callers are responsible for revoking the target's live sessions so the temp
+    password takes effect immediately. Never logs the password.
     """
     temp = generate_temp_password()
+    was_inactive = not user.is_active
     with transaction.atomic():
-        target.set_password(temp)
-        target.requires_password_change = True
+        user.set_password(temp)
+        user.requires_password_change = True
         update_fields = ["password", "requires_password_change"]
-        if not target.is_active:
-            target.is_active = True
+        if was_inactive:
+            user.is_active = True
             update_fields.append("is_active")
-        target.save(update_fields=update_fields)
+        user.save(update_fields=update_fields)
+    return temp, was_inactive
+
+
+def admin_reset_password(actor, target, school, *, request=None) -> str:
+    """Tenant credential reset — temp password + forced change + reactivation.
+
+    Thin school-scoped wrapper over :func:`set_temporary_password` that adds the
+    tenant SecurityAuditLog line. Returns the plaintext temp password for the
+    caller to hand over ONCE. The reactivation is surfaced to the admin by the
+    view (not silent); ``can_reset_target`` still enforces the owner/superuser
+    guards. Makes the assignable ``identity.reset_credentials`` capability usable
+    by a NON-owner admin (the owner-only "Reactivate" button is otherwise out of
+    reach). Supersedes the earlier "leave a deactivated-real account inactive"
+    rule (see finding_never_claimed_inactive_account_lockout).
+    """
+    temp, _was_reactivated = set_temporary_password(target)
     _audit(actor, target, school, "password_reset", request=request)
     return temp
 
