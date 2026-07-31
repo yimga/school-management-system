@@ -142,10 +142,13 @@ class Command(BaseCommand):
                 WARN,
                 "No CELERY_BROKER_URL — there is NO beat/worker, so every periodic job is "
                 "dead: the email + SMS/WhatsApp queue drainers, the events outbox that fires "
-                "internal subscribers, reminders, monitors. Schedule `python manage.py "
-                "run_periodic_jobs` on cron (e.g. */5) — it runs the WHOLE registry beat-less, "
-                "each job at its own cadence, with per-job locking. (`drain_edge_outbox` "
-                "forwards only email + SMS/WhatsApp — a subset, and it misses the events outbox.)",
+                "internal subscribers, the social cross-post drainer, the daily DR snapshot "
+                "capture, reminders, monitors. Schedule `python manage.py run_periodic_jobs` "
+                "on cron (e.g. */5) — it runs the WHOLE registry beat-less, each job at its own "
+                "cadence, with per-job locking. (`drain_edge_outbox` forwards only email + "
+                "SMS/WhatsApp — a subset that misses the events outbox AND the DR snapshot; "
+                "run_periodic_jobs is the COMPLETE rail. The DR snapshot lands on this box's "
+                "disk unless object storage is set, so still copy it off-box.)",
             ))
         else:
             findings.append((OK, "A Celery broker is configured — the periodic jobs run under beat/worker."))

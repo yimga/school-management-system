@@ -451,6 +451,46 @@ def ensure_default_jobs() -> None:
             description="Finish APPLYING student transfers after MC bundles land.",
             tags=("people", "transfer", "self-heal", "light"),
         )
+        # --- Beat-only / unscheduled jobs dead on a broker-less box (2026-07-31) ---
+        # Both delegate to a @shared_task that was wired ONLY into
+        # CELERY_BEAT_SCHEDULE (DR) or NOWHERE at all (social outbox), so in the
+        # no-worker topology — the cost-minimal cloud default AND every sovereign
+        # edge mini-PC — they silently never ran. Registered here so the secured
+        # cron endpoint / run_periodic_jobs cron drives them without a worker; a
+        # future Celery worker runs the identical task. Both models live in
+        # SHARED_APPS (public schema), so the task's flat sweep is schema-mode safe.
+        #
+        # 1. Tenant immutable DR snapshot capture. Was the tenant's ONLY disaster-
+        #    recovery backup yet captured NOWHERE on a bare box (beat-only + no
+        #    management command + absent here). HEAVY (per-school compile + gzip +
+        #    encrypt + primary/secondary/S3 write) → auto_eligible=False, off the hot
+        #    /health/ thread. Idempotent per (school, snapshot_date) via
+        #    update_or_create, so a duplicate/late tick (e.g. beside a real beat
+        #    worker) re-captures, never double-writes.
+        _REGISTRY["lifecycle.capture_tenant_immutable_snapshots_daily"] = PeriodicJob(
+            name="lifecycle.capture_tenant_immutable_snapshots_daily",
+            interval_seconds=DAILY_SECONDS,
+            func=_run_capture_tenant_immutable_snapshots_daily,
+            description="Daily tenant immutable DR snapshot capture (encrypt+sign; primary+secondary/S3).",
+            lock_ttl_seconds=HEAVY_JOB_LOCK_TTL_SECONDS,
+            auto_eligible=False,
+            tags=("lifecycle", "dr", "heavy"),
+        )
+        # 2. Social cross-post outbox drainer. Standard-priority posts were orphaned
+        #    in 'pending' on EVERY deployment — the @shared_task had no beat entry,
+        #    no registry row, no command, no caller anywhere. Frequent like the event
+        #    outbox; auto_eligible=False (touches outbound social providers) so it
+        #    runs on the secured cron path, never the hot /health/ thread. Emergency
+        #    broadcasts drain inline in-request and are unaffected.
+        _REGISTRY["social_media.process_outbox_batch"] = PeriodicJob(
+            name="social_media.process_outbox_batch",
+            interval_seconds=FREQUENT_DRAIN_SECONDS,
+            func=_run_process_social_post_outbox,
+            description="Drain the standard-priority social cross-post outbox (emergency posts drain inline).",
+            lock_ttl_seconds=HEAVY_JOB_LOCK_TTL_SECONDS,
+            auto_eligible=False,
+            tags=("social_media", "drainer"),
+        )
         _DEFAULTS_INSTALLED = True
 
 
@@ -573,6 +613,28 @@ def _run_process_event_outbox() -> object:
     from apps.events.tasks import process_outbox_batch
 
     return process_outbox_batch()
+
+
+def _run_capture_tenant_immutable_snapshots_daily() -> object:
+    # DR capture had NO trigger on a broker-less box (beat-only + no management
+    # command + absent from this registry) → the box's ONLY disaster-recovery
+    # backup never ran. Delegates to the SAME @shared_task the beat entry names; it
+    # iterates every active school itself and update_or_creates one snapshot per
+    # (school, day), so a duplicate/late tick re-captures idempotently. .run()
+    # executes the task body synchronously — no worker/broker needed.
+    from apps.lifecycle.tasks_dr_snapshot import capture_tenant_immutable_snapshots_daily
+
+    return capture_tenant_immutable_snapshots_daily.run()
+
+
+def _run_process_social_post_outbox() -> object:
+    # The standard-priority social cross-post drainer had ZERO schedulers anywhere
+    # (no beat entry, no registry row, no command, no caller) → queued non-emergency
+    # posts orphaned in 'pending' forever. Delegates to the SAME @shared_task a
+    # future worker runs; emergency broadcasts drain inline in-request, unaffected.
+    from apps.social_media.tasks import process_outbox_batch
+
+    return process_outbox_batch.run()
 
 
 def _run_send_payment_reminders() -> object:
