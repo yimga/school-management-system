@@ -106,6 +106,19 @@ class OfflineEmailQueueTests(TestCase):
             EmailDeadLetter.objects.filter(status=DeadLetterStatus.PENDING).count(), 1
         )
 
+    def test_offline_queued_not_counted_as_delivery_failure(self):
+        """A parked send is an intentional non-failure — it must NOT inflate the
+        health dashboard's failure count (an offline box parks EVERY send, so this
+        would otherwise read ~100% failure + trip false alerts). It lands in its own
+        offline_queued_count bucket and never in the recent-failures panel."""
+        from apps.schoolops.email_delivery import get_recent_delivery_stats, get_recent_failures
+
+        self._send()  # parks (offline queue on)
+        stats = get_recent_delivery_stats(window_hours=1)
+        self.assertEqual(stats["failed_count"], 0, stats)
+        self.assertEqual(stats["offline_queued_count"], 1, stats)
+        self.assertNotIn("offline_queued", [f["error_kind"] for f in get_recent_failures(limit=5)])
+
 
 @override_settings(
     RMC_EMAIL_OFFLINE_QUEUE=True,

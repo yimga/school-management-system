@@ -101,6 +101,10 @@ _ERR_OTHER = "other"
 # dispatch (audit finding C2). A dropped daemon thread / un-drained Celery
 # task therefore leaves a visible row instead of vanishing silently.
 _ERR_QUEUED = "queued"
+# Marker for a send PARKED in the offline queue (sovereign/edge box). Like _ERR_QUEUED
+# it is an intentional non-failure — it MUST be in the stats sentinel sets, else an
+# offline box (where every send is parked) shows a ~100% delivery-failure rate.
+_ERR_OFFLINE_QUEUED = "offline_queued"
 
 # v3.58.x Wave 9 Agent M — bounce taxonomy labels persisted to
 # EmailDeliveryEvent.bounce_kind. Send-time labels prefix-free; webhook-
@@ -1763,7 +1767,7 @@ def send_transactional(
             idempotency_key=idem,
             to_hash=to_hash_off,
             subject_prefix=subject_prefix_off,
-            error_kind="offline_queued",
+            error_kind=_ERR_OFFLINE_QUEUED,
             attempts=0,
             delivery_event_id=None,
         )
@@ -1795,7 +1799,7 @@ def send_transactional(
             priority=priority,
             attempts=0,
             ok=False,
-            error_kind="offline_queued",
+            error_kind=_ERR_OFFLINE_QUEUED,
             idempotency_key=idempotency_key,
         )
         logger.info(
@@ -1808,7 +1812,7 @@ def send_transactional(
             "offline_queued": True,
             "attempts": 0,
             "delivery_event_id": offline_event_id,
-            "error_kind": "offline_queued",
+            "error_kind": _ERR_OFFLINE_QUEUED,
             "bounced": False,
             "bounce_kind": "",
         }
@@ -2151,7 +2155,7 @@ def get_recent_delivery_stats(window_hours: int = 24) -> dict:
         # Intentional-non-send sentinels are reported separately so the
         # genuine-failure count is not polluted by queued markers (C2),
         # suppression skips (H3), or rate-limit rejections.
-        _sentinels = (_ERR_QUEUED, _ERR_SUPPRESSED, _ERR_RATE_LIMIT)
+        _sentinels = (_ERR_QUEUED, _ERR_OFFLINE_QUEUED, _ERR_SUPPRESSED, _ERR_RATE_LIMIT)
         # tenant-isolation-allow: platform-email-delivery-log-no-tenant-scope
         qs = EmailDeliveryEvent.objects.filter(created_at__gte=cutoff)
         out["sent_count"] = qs.filter(ok=True).count()
@@ -2159,6 +2163,7 @@ def get_recent_delivery_stats(window_hours: int = 24) -> dict:
             error_kind__in=_sentinels
         ).count()
         out["queued_count"] = qs.filter(error_kind=_ERR_QUEUED).count()
+        out["offline_queued_count"] = qs.filter(error_kind=_ERR_OFFLINE_QUEUED).count()
         out["suppressed_count"] = qs.filter(error_kind=_ERR_SUPPRESSED).count()
         out["rate_limited_count"] = qs.filter(error_kind=_ERR_RATE_LIMIT).count()
         # Stuck = a queued marker older than the stuck threshold (default
@@ -2215,7 +2220,7 @@ def get_recent_failures(limit: int = 5) -> list[dict]:
         # tenant-isolation-allow: platform-email-delivery-log-no-tenant-scope
         rows = (
             EmailDeliveryEvent.objects.filter(ok=False)
-            .exclude(error_kind__in=(_ERR_QUEUED, _ERR_SUPPRESSED, _ERR_RATE_LIMIT))
+            .exclude(error_kind__in=(_ERR_QUEUED, _ERR_OFFLINE_QUEUED, _ERR_SUPPRESSED, _ERR_RATE_LIMIT))
             .order_by("-created_at")[: max(1, int(limit))]
         )
         for r in rows:
