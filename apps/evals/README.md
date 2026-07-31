@@ -86,7 +86,11 @@ All ten. This app is deliberately narrow at the schema level.
   `analytics.GradeImportJob`. `apps/api/views_v1.py` guards its lazy import and
   degrades those vocational endpoints to HTTP 501 rather than 500; the retired
   `grade_import_job_detail` route in `urls.py` carries a note explaining the
-  same trap. Keep any new reference behind a guard.
+  same trap. Keep any new reference behind a guard. (2026-07-31: the dead
+  `OfflineGradeQueue` phantom that lived in this module — referenced nowhere in
+  code, no migration, never registered — was deleted as unused scaffolding. The
+  real offline-grade rail is `evals.OfflineMarkEntry` plus the SODP/WAL offline
+  queues, not this class.)
 - **Do not assume 0–100 anywhere.** Resolve the tenant's scale through
   `grading_scale_service` / the canonical band resolver. An out-of-range fill
   must surface as a `ValidationError` to the caller, not be silently written —
