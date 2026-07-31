@@ -11,6 +11,9 @@ exit so it can gate an automated bring-up.
 """
 from __future__ import annotations
 
+import os
+import shutil
+
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
@@ -101,15 +104,96 @@ class Command(BaseCommand):
         elif profile in {"online", "hybrid"}:
             findings.append((WARN, f"RMC_DEPLOYMENT_PROFILE={profile!r}: AI prefers the CLOUD gateway — set 'edge' for an offline box."))
 
-        # --- Email deliverability -------------------------------------------
+        # --- Email deliverability + offline queue ---------------------------
         email_backend = str(getattr(settings, "EMAIL_BACKEND", "") or "")
-        if "smtp" in email_backend.lower():
+        is_smtp = "smtp" in email_backend.lower()
+        try:
+            from apps.schoolops.email_delivery import _offline_email_queue_enabled
+
+            offline_email = _offline_email_queue_enabled()
+        except Exception:  # noqa: BLE001 — import guard; never break readiness
+            offline_email = profile == "edge"
+        if is_smtp:
             if not (getattr(settings, "EMAIL_HOST_USER", "") and getattr(settings, "EMAIL_HOST_PASSWORD", "")):
                 findings.append((WARN, "EMAIL_BACKEND is SMTP but host credentials are empty — mail will NOT deliver."))
             else:
                 findings.append((OK, "SMTP email configured with credentials."))
+        elif offline_email:
+            findings.append((OK, "Non-SMTP backend + offline email queue ON — mail parks durably and forwards via `drain_edge_outbox` on reconnect (nothing dropped)."))
         else:
-            findings.append((OK, "Email uses a non-SMTP backend (console/locmem) — offline-safe, delivers nothing."))
+            findings.append((
+                WARN,
+                "Non-SMTP backend AND the offline email queue is OFF — outbound mail is "
+                "silently DROPPED (the console backend reports a false success). Set "
+                "RMC_EMAIL_OFFLINE_QUEUE=1 (or RMC_DEPLOYMENT_PROFILE=edge) so it parks + forwards.",
+            ))
+
+        # --- SMS / WhatsApp outbound queue ----------------------------------
+        if _truthy(getattr(settings, "RMC_AUTO_ENQUEUE_OUTBOUND", "1")):
+            findings.append((OK, "SMS/WhatsApp auto-enqueue-on-failure is ON — a send that can't reach its provider queues durably (OutboundMessageQueue) instead of being lost."))
+        else:
+            findings.append((WARN, "RMC_AUTO_ENQUEUE_OUTBOUND is OFF — a failed SMS/WhatsApp send is LOST rather than queued. Set it to 1 for an offline box."))
+
+        # --- Broker-less background drain -----------------------------------
+        # No broker => the periodic drainers (email DLQ + SMS/WhatsApp queue) never
+        # fire, so the box must forward via a cron entry.
+        if not str(getattr(settings, "CELERY_BROKER_URL", "") or "").strip():
+            findings.append((
+                WARN,
+                "No CELERY_BROKER_URL — the periodic queue drainers do NOT run. Schedule "
+                "`python manage.py drain_edge_outbox` on cron (e.g. */5) so queued email + "
+                "SMS/WhatsApp forward when the box is online.",
+            ))
+        else:
+            findings.append((OK, "A Celery broker is configured — the periodic queue drainers run under beat/worker."))
+
+        # --- OCR (offline FOSS = Tesseract) ---------------------------------
+        ocr_cmd = str(getattr(settings, "MARKSHEET_OCR_COMMAND", "") or "").strip() or "tesseract"
+        ocr_binary = shutil.which(ocr_cmd)
+        if ocr_binary:
+            findings.append((OK, f"Tesseract OCR binary present ({ocr_binary}) — marksheet/receipt OCR works offline (no cloud Vision needed)."))
+        else:
+            findings.append((
+                WARN,
+                f"Tesseract binary '{ocr_cmd}' is not on PATH — marksheet/receipt OCR will be "
+                "unavailable (it degrades to manual entry, never a crash). Install Tesseract only "
+                "if this school uses OCR; keep the finance receipt method at 'pattern'/'ocr_tesseract' "
+                "(a cloud OCR method fails offline).",
+            ))
+
+        # --- Audit signing + at-rest encryption (offline via local keys) ----
+        signing_backend = str(getattr(settings, "MIGRATION_CLOUD_AUDIT_SIGNING_BACKEND", "") or "local-env-key").strip().lower()
+        cloud_signing = {"aws-kms", "azure-keyvault", "gcp-kms", "hashicorp-vault"}
+        if signing_backend in cloud_signing:
+            findings.append((
+                WARN,
+                f"MIGRATION_CLOUD_AUDIT_SIGNING_BACKEND={signing_backend!r} is a network-bound "
+                "HSM/Vault backend and will fail on an offline box. Use 'local-env-key' (the default).",
+            ))
+        elif getattr(settings, "MIGRATION_CLOUD_AUDIT_SIGNING_KEY", ""):
+            findings.append((OK, "Audit signing uses the offline local-env-key backend with a signing key set."))
+        else:
+            findings.append((WARN, "Audit signing is local-env-key but MIGRATION_CLOUD_AUDIT_SIGNING_KEY is unset — audit events are recorded UNSIGNED. Set a key for tamper-evidence."))
+
+        crypto_source = str(getattr(settings, "DJANGO_CRYPTOGRAPHY_KEYS_SOURCE", "env") or "env").strip().lower()
+        crypto_keys = getattr(settings, "DJANGO_CRYPTOGRAPHY_KEYS", None) or getattr(settings, "DJANGO_CRYPTOGRAPHY_KEY", None) or os.environ.get("DJANGO_CRYPTOGRAPHY_KEY")
+        if crypto_source == "vault":
+            findings.append((WARN, "DJANGO_CRYPTOGRAPHY_KEYS_SOURCE=vault is network-bound and fails offline — use the default env key source on the box."))
+        elif crypto_keys:
+            findings.append((OK, "At-rest field-encryption key (Fernet) is set and offline."))
+        else:
+            findings.append((WARN, "No explicit DJANGO_CRYPTOGRAPHY_KEY(S) — at-rest field encryption derives a key from SECRET_KEY (works, but set an explicit key so a SECRET_KEY rotation can't strand encrypted data)."))
+
+        # --- Payment collection (webhook-settled; offline = fail-closed) ----
+        if _truthy(getattr(settings, "RMC_GATEWAY_COLLECTION_ENABLED", False)):
+            findings.append((
+                WARN,
+                "RMC_GATEWAY_COLLECTION_ENABLED is ON: outbound card / mobile-money collection needs "
+                "the internet and FAILS CLOSED offline (the charge intent is not queued). Record offline "
+                "payments as OfflinePaymentIntent and let the inbound signed webhook settle them online.",
+            ))
+        else:
+            findings.append((OK, "Outbound payment collection is off — capture offline cash/manual payments (OfflinePaymentIntent); they reconcile when the box is online."))
 
         # --- Report ---------------------------------------------------------
         styles = {OK: self.style.SUCCESS, WARN: self.style.WARNING, FAIL: self.style.ERROR}

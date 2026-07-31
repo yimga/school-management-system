@@ -73,3 +73,57 @@ class CheckEdgeReadinessTests(TestCase):
         output, err = self._run()
         self.assertIsNone(err)
         self.assertIn("login will silently fail", output)
+
+    # --- Tier 2 external-dependency offline-correctness checks ---------------
+
+    @override_settings(
+        SECRET_KEY=_LONG_SECRET, DEBUG=False, ALLOWED_HOSTS=["school.lan"],
+        RMC_DEPLOYMENT_PROFILE="edge",
+        EMAIL_BACKEND="django.core.mail.backends.console.EmailBackend",
+    )
+    def test_offline_email_queue_on_reports_ok(self):
+        output, err = self._run()
+        self.assertIsNone(err)
+        self.assertIn("offline email queue ON", output)
+
+    @override_settings(
+        SECRET_KEY=_LONG_SECRET, DEBUG=False, ALLOWED_HOSTS=["school.lan"],
+        RMC_DEPLOYMENT_PROFILE="online", RMC_EMAIL_OFFLINE_QUEUE=False,
+        EMAIL_BACKEND="django.core.mail.backends.console.EmailBackend",
+    )
+    def test_console_backend_without_offline_queue_warns(self):
+        output, err = self._run()
+        self.assertIn("silently DROPPED", output)
+
+    @override_settings(
+        SECRET_KEY=_LONG_SECRET, DEBUG=False, ALLOWED_HOSTS=["school.lan"],
+        RMC_AUTO_ENQUEUE_OUTBOUND="0",
+    )
+    def test_sms_auto_enqueue_off_warns(self):
+        output, err = self._run()
+        self.assertIn("failed SMS/WhatsApp send is LOST", output)
+
+    @override_settings(
+        SECRET_KEY=_LONG_SECRET, DEBUG=False, ALLOWED_HOSTS=["school.lan"],
+        CELERY_BROKER_URL="",
+    )
+    def test_no_broker_warns_to_cron_drain(self):
+        output, err = self._run()
+        self.assertIn("drain_edge_outbox", output)
+
+    @override_settings(
+        SECRET_KEY=_LONG_SECRET, DEBUG=False, ALLOWED_HOSTS=["school.lan"],
+        MIGRATION_CLOUD_AUDIT_SIGNING_BACKEND="aws-kms",
+    )
+    def test_cloud_signing_backend_warns(self):
+        output, err = self._run(strict=True)  # WARN must not trip --strict
+        self.assertIsNone(err)
+        self.assertIn("network-bound", output)
+
+    @override_settings(
+        SECRET_KEY=_LONG_SECRET, DEBUG=False, ALLOWED_HOSTS=["school.lan"],
+        RMC_GATEWAY_COLLECTION_ENABLED=True,
+    )
+    def test_payment_collection_enabled_warns(self):
+        output, err = self._run()
+        self.assertIn("FAILS CLOSED offline", output)
