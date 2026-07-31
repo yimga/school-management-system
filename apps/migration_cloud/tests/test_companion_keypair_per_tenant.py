@@ -22,7 +22,7 @@ import logging
 import re
 import unittest
 
-from django.db import IntegrityError, transaction
+from django.db import IntegrityError, connection, transaction
 from django.test import SimpleTestCase, TestCase
 
 
@@ -304,6 +304,13 @@ class NoSecretsLoggedPerTenantTests(TestCase):
 # ─── Migration replay (rewind + replay 0015) ─────────────────────────────
 
 
+@unittest.skipUnless(
+    connection.vendor == "postgresql",
+    "Migration replay via MigrationExecutor runs schema ops inside the "
+    "TestCase transaction; SQLite cannot toggle foreign-key checks mid-"
+    "transaction (NotSupportedError). Production + CI run on PostgreSQL, "
+    "which handles DDL in a transaction, so the replay is exercised there.",
+)
 class Migration0015ReplayTests(TestCase):
     """``0015_companion_keypair_per_tenant`` rewinds and replays cleanly.
 
