@@ -374,10 +374,16 @@ class FeeInstallment(models.Model):
 class PaymentMethodCode(models.TextChoices):
     CASH = "CASH", "Cash"
     BANK = "BANK", "Bank Transfer"
+    CARD = "CARD", "Credit / Debit Card"
+    DIRECT_DEBIT = "DIRECT_DEBIT", "Direct Debit / ACH"
     MTN_MOMO = "MTN_MOMO", "MTN MoMo"
     ORANGE_MOMO = "ORANGE_MOMO", "Orange Money"
+    MPESA = "MPESA", "M-Pesa"
+    USSD = "USSD", "USSD Payment"
+    QR = "QR", "QR Payment"
     CHECK = "CHECK", "Check"
     WALLET = "WALLET", "Digital Wallet"
+    VOUCHER = "VOUCHER", "Voucher / Sponsor Code"
     OTHER = "OTHER", "Other"
 
 

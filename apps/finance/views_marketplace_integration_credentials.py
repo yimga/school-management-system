@@ -13,7 +13,6 @@ from django.views.decorators.http import require_http_methods
 from apps.marketplace.integration_adapter_credentials import (
     apply_credential_field_values,
     list_credential_entries,
-    mask_secret_value,
 )
 
 from services.post_delete_navigation import redirect_after_save
@@ -70,14 +69,20 @@ def marketplace_integration_credentials(request: HttpRequest):
             if not isinstance(spec, dict):
                 continue
             value = str(spec.get("value") or "")
+            is_secret = (
+                field_key.endswith(("_secret", "_token", "_key"))
+                or field_key in {"password", "secret", "private_key", "service_account"}
+            )
             display_fields.append(
                 {
                     "key": field_key,
                     "label": spec.get("label") or field_key,
                     "required": bool(spec.get("required")),
-                    "value": value,
-                    "masked": mask_secret_value(value) if value else "",
-                    "input_type": "password" if "secret" in field_key or "token" in field_key or "key" in field_key else "text",
+                    # Never round-trip a stored secret (encrypted or plaintext
+                    # legacy) into rendered HTML. A blank submission preserves it.
+                    "value": "" if is_secret else value,
+                    "masked": "Stored securely" if is_secret and value else "",
+                    "input_type": "password" if is_secret else "text",
                 }
             )
 

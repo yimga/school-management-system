@@ -236,17 +236,12 @@ def dashboard(request: HttpRequest):
 @require_permission("payroll.view", "payroll.manage")
 @require_GET
 def export_disbursement(request: HttpRequest, run_id: int):
-    """CSV bank disbursement file for an approved/processed payroll run."""
+    """CSV bank disbursement file for a finally approved payroll run."""
     run = get_object_or_404(PayrollRun, id=run_id)
-    if run.status not in (
-        PayrollRun.Status.APPROVED,
-        PayrollRun.Status.PROCESSED,
-        PayrollRun.Status.REVIEWED,
-        PayrollRun.Status.PAID,
-    ):
+    if not disbursement_export_allowed(run.status):
         messages.error(
             request,
-            "Export is available after the run is processed or approved.",
+            "Disbursement export is available only after final payroll approval.",
         )
         return redirect("payroll:run_detail", run_id=run.id)
 
@@ -258,6 +253,11 @@ def export_disbursement(request: HttpRequest, run_id: int):
         f'attachment; filename="{disbursement_filename(run)}"'
     )
     return response
+
+
+def disbursement_export_allowed(status: str) -> bool:
+    """Money-out files must never be generated before final approval."""
+    return status in (PayrollRun.Status.APPROVED, PayrollRun.Status.PAID)
 
 
 @require_permission("payroll.view", "payroll.manage")

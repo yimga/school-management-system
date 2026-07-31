@@ -9,6 +9,12 @@ from __future__ import annotations
 
 from typing import Any
 
+from apps.communication.secret_config import (
+    ENC_PREFIX,
+    decrypt_config,
+    encrypt_config,
+)
+
 CredentialField = dict[str, Any]
 
 # adapter_key -> list of {key, label, required}
@@ -100,6 +106,42 @@ _PREFIX_SCHEMA: list[tuple[str, list[CredentialField]]] = [
 ]
 
 _SETTINGS_BUCKET = "marketplace_integration_credentials"
+
+
+def _is_secret_field(field_key: str) -> bool:
+    key = str(field_key or "").strip().lower()
+    if key in {"public_key", "key_id", "connect_account_id", "account_sid"}:
+        return False
+    return (
+        key in {"password", "secret", "private_key", "service_account"}
+        or key.endswith("_secret")
+        or key.endswith("_token")
+        or key.endswith("_key")
+    )
+
+
+def _encrypt_credential_value(field_key: str, value: str) -> str:
+    """Fernet-wrap one secret without treating public identifiers as secrets."""
+    if not value or not _is_secret_field(field_key) or value.startswith(ENC_PREFIX):
+        return value
+    wrapped = encrypt_config({field_key: value}).get(field_key, value)
+    if not str(wrapped).startswith(ENC_PREFIX):
+        raise ValueError("Credential encryption is unavailable; value was not saved.")
+    return str(wrapped)
+
+
+def decrypt_credential_entry(entry: dict[str, Any]) -> dict[str, str]:
+    """Return transient plaintext config for an adapter runtime.
+
+    Callers must never persist or log the returned mapping.
+    """
+    values: dict[str, str] = {}
+    for field_key, spec in (entry.get("fields") or {}).items():
+        if not isinstance(spec, dict):
+            continue
+        value = str(spec.get("value") or "")
+        values[field_key] = str(decrypt_config({field_key: value}).get(field_key, value))
+    return values
 
 
 def credential_schema_for_adapter(adapter_key: str) -> list[CredentialField]:
@@ -270,6 +312,11 @@ def apply_credential_field_values(
         if not isinstance(spec, dict):
             spec = {"label": fk, "required": False, "value": ""}
         new_val = str(raw_value or "").strip()
+        # Empty password inputs mean "keep the existing secret", which avoids
+        # exposing a decrypted value back into the HTML merely to support edits.
+        if _is_secret_field(fk) and not new_val and spec.get("value"):
+            continue
+        new_val = _encrypt_credential_value(fk, new_val)
         if spec.get("value") != new_val:
             spec["value"] = new_val
             fields[fk] = spec

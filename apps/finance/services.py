@@ -73,8 +73,8 @@ PROVIDER_SLUG_TO_METHOD = {
     "orange_momo": PaymentMethodCode.ORANGE_MOMO,
     "orange_money": PaymentMethodCode.ORANGE_MOMO,
     "orange": PaymentMethodCode.ORANGE_MOMO,
-    "mpesa_daraja": PaymentMethodCode.OTHER,
-    "mpesa": PaymentMethodCode.OTHER,
+    "mpesa_daraja": PaymentMethodCode.MPESA,
+    "mpesa": PaymentMethodCode.MPESA,
 }
 DEFAULT_SIGNATURE_FORMAT = "{invoice_id}:{amount}"
 DEFAULT_SIGNATURE_HEADER = "X-Signature"

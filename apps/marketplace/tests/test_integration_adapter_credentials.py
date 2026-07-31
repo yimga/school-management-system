@@ -93,6 +93,43 @@ class IntegrationCredentialEditorTests(TestCase):
         self.assertTrue(changed)
         entry = settings["marketplace_integration_credentials"]["payments:paystack"]
         self.assertEqual(entry["status"], "configured")
+        stored = entry["fields"]["secret_key"]["value"]
+        self.assertTrue(stored.startswith("enc::fernet::"))
+        self.assertNotIn("sk_test_abc", stored)
+
+        from apps.marketplace.integration_adapter_credentials import (
+            decrypt_credential_entry,
+        )
+
+        self.assertEqual(decrypt_credential_entry(entry)["secret_key"], "sk_test_abc")
+        self.assertEqual(entry["fields"]["public_key"]["value"], "pk_test_xyz")
+
+    def test_blank_secret_edit_preserves_existing_ciphertext(self):
+        from apps.marketplace.integration_adapter_credentials import (
+            apply_credential_field_values,
+            build_credential_placeholder,
+        )
+
+        settings = {
+            "marketplace_integration_credentials": {
+                "payments:paystack": build_credential_placeholder(
+                    "payments:paystack", app_slug="payments-paystack"
+                )
+            }
+        }
+        settings, _ = apply_credential_field_values(
+            settings,
+            adapter_key="payments:paystack",
+            field_values={"secret_key": "sk_test_keep", "public_key": "pk_test_old"},
+        )
+        before = settings["marketplace_integration_credentials"]["payments:paystack"]["fields"]["secret_key"]["value"]
+        settings, _ = apply_credential_field_values(
+            settings,
+            adapter_key="payments:paystack",
+            field_values={"secret_key": "", "public_key": "pk_test_new"},
+        )
+        after = settings["marketplace_integration_credentials"]["payments:paystack"]["fields"]["secret_key"]["value"]
+        self.assertEqual(after, before)
 
     def test_credential_editor_view_requires_school(self):
         from unittest.mock import patch
