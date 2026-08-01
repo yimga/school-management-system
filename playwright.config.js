@@ -108,6 +108,7 @@ module.exports = defineConfig({
         '**/phase2-portal-navigation.spec.js',
         '**/tenant-portal-experience.spec.js',
         '**/dashboard-pack-backend-grid.spec.js',
+        '**/tenant-pack-full-canvas.spec.js',
       ],
       timeout: 120000,
       workers: 1,
