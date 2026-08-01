@@ -11,6 +11,11 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
+from apps.platform_runtime.offline_proof_evidence import (
+    SERVER_PROOF_PRESENT,
+    browser_proof_detail,
+)
+
 
 BLUEPRINT_STATUSES = {"draft", "preview_ready", "installable", "deprecated"}
 
@@ -186,6 +191,7 @@ def _local_first_manifest(
     external_dependencies: tuple[str, ...] = (),
 ) -> dict[str, Any]:
     high_offline = mode == "high" or "low_connectivity" in coverage
+    browser_proof = browser_proof_detail()
     cached_surfaces = _coverage_surfaces(coverage, modules)
     offline_actions = [
         "attendance.mark",
@@ -241,8 +247,14 @@ def _local_first_manifest(
             "scripts.verify_offline_workflow_apply",
             "browser_storage_restart_harness_pending",
         ],
-        "browser_proof_status": "PARTIAL_CLIENT_HARNESS_REQUIRED",
-        "server_proof_status": "SERVER_SEVEN_DAY_RAILS_PRESENT",
+        # Resolved from recorded harness evidence, never asserted. Reads
+        # BROWSER_PROOF_VERIFIED only when scripts/verify_client_offline_endurance.py
+        # has recorded a full pass against the client sources currently on disk;
+        # anything else (absent, failed, stale) stays pending with a reason.
+        "browser_proof_status": browser_proof["status"],
+        "browser_proof_reason": browser_proof["reason"],
+        "browser_proof_detail": browser_proof.get("detail", ""),
+        "server_proof_status": SERVER_PROOF_PRESENT,
         "rollback_invalidation": {
             "manifest_version_bump": True,
             "device_refresh_required": True,

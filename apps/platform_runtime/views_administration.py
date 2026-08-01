@@ -597,8 +597,38 @@ def tenant_blueprint_setup(request):
         platform_operator=False,
         emit_audit=request.GET.get("preview") == "1",
     )
+    from apps.accounts.effective_access import permission_access
+    from apps.finance.fee_collection_posture import (
+        POSTURE_MANUAL,
+        record_collection_posture,
+        resolve_live_collection_state,
+    )
+
     result = None
-    if request.method == "POST":
+    if request.method == "POST" and request.POST.get("action") == "record_collection_posture":
+        # Explicit, actor-stamped fee-collection decision. Gated on the finance
+        # permission rather than the page's own tier: recording how a school
+        # collects money is a finance decision, not a configuration one.
+        if not permission_access(request.user, school, ("finance.manage",)):
+            return HttpResponseForbidden("Finance permission required to record collection posture.")
+        mode = (request.POST.get("posture") or "").strip()
+        try:
+            record_collection_posture(
+                school,
+                mode=mode,
+                actor=request.user,
+                note=request.POST.get("posture_note", ""),
+            )
+            result = {"ok": True, "message": _("Fee-collection posture recorded.")}
+        except ValueError as exc:
+            result = {"ok": False, "error": str(exc)}
+        preview = preview_blueprint(
+            selected_key,
+            school=school,
+            actor=request.user,
+            platform_operator=False,
+        )
+    elif request.method == "POST":
         change_set = generate_blueprint_change_set(selected_key, school=school, actor=request.user, platform_operator=False)
         if change_set["requires_approval"]:
             change_request = create_change_request(

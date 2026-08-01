@@ -32,7 +32,12 @@ from dataclasses import dataclass
 from typing import Any, Iterable
 
 
-_OFFLINE_READY_STATUSES = {"READY", "READY_WITH_EXTERNAL_BLOCKERS"}
+# Offline proof is scored on offline evidence alone. The historical composite
+# "READY_WITH_EXTERNAL_BLOCKERS" is deliberately absent: it was produced whenever
+# a blueprint carried a *payment* blocker, and counting it as ready meant a
+# payment-gated blueprint out-scored a clean one. blueprint_preview no longer
+# emits it, and it must never be re-admitted here.
+_OFFLINE_READY_STATUSES = {"READY"}
 
 
 @dataclass(frozen=True)
@@ -79,26 +84,63 @@ def _offline_ready(preview: dict[str, Any]) -> bool:
     return status in _OFFLINE_READY_STATUSES
 
 
-def blueprint_readiness_checks(preview: dict[str, Any]) -> list[ReadinessCheck]:
-    """Real readiness facts for a blueprint preview.
+def blueprint_readiness_checks(
+    preview: dict[str, Any], *, school=None
+) -> list[ReadinessCheck]:
+    """Real readiness facts for a blueprint preview, evaluated for one tenant.
 
-    A blueprint that applies cleanly with no conflicts and a ready offline
-    posture reaches 100 — UNLESS it carries an external go-live requirement
-    (live PSP / settlement), which is honestly reported as the remaining 15%
-    until that onboarding completes (it is a capability gate, not an apply
-    blocker — see blueprint_contract.external_required_items).
+    A blueprint that applies cleanly with no conflicts and a proven offline
+    posture reaches 100 — unless it carries a go-live payment requirement this
+    tenant has neither met nor ruled out.
+
+    The live-payment check is resolved against real per-tenant state
+    (``finance.fee_collection_posture``), not against the static contract tuple:
+
+    * a tenant with a live rail SATISFIES it;
+    * a tenant that has explicitly recorded a manual-reconciliation posture is
+      NOT APPLICABLE — the check is dropped from the weighting entirely rather
+      than credited, so the score is taken over the checks that apply to it;
+    * anything else leaves it unmet and named in the caption.
+
+    Passing no ``school`` (or resolving one is impossible) falls back to the
+    static contract reading, which is the conservative direction: the check
+    stays unmet rather than being handed a pass.
     """
-    has_external = bool(preview.get("external_required"))
-    return [
+    checks = [
         ReadinessCheck(40, bool(preview.get("can_apply")), "Applyable preview"),
         ReadinessCheck(25, not preview.get("conflicts"), "Conflict-free"),
         ReadinessCheck(20, _offline_ready(preview), "Offline proof"),
-        ReadinessCheck(15, not has_external, "Live payment onboarding"),
     ]
+    if not preview.get("external_required"):
+        # Blueprint declares no go-live payment gate: nothing to weigh.
+        return checks
+
+    collection = _live_collection_state(school)
+    if collection.get("not_applicable"):
+        return checks
+    checks.append(
+        ReadinessCheck(
+            15,
+            bool(collection.get("live")),
+            str(collection.get("label") or "Live payment onboarding"),
+        )
+    )
+    return checks
 
 
-def blueprint_readiness(preview: dict[str, Any]) -> dict[str, Any]:
-    return readiness_detail(blueprint_readiness_checks(preview))
+def _live_collection_state(school) -> dict[str, Any]:
+    if school is None:
+        return {"live": False, "not_applicable": False, "label": "Live payment onboarding"}
+    try:
+        from apps.finance.fee_collection_posture import resolve_live_collection_state
+
+        return resolve_live_collection_state(school)
+    except Exception:  # noqa: BLE001 — a resolver failure must not fake a pass
+        return {"live": False, "not_applicable": False, "label": "Live payment onboarding"}
+
+
+def blueprint_readiness(preview: dict[str, Any], *, school=None) -> dict[str, Any]:
+    return readiness_detail(blueprint_readiness_checks(preview, school=school))
 
 
 def pack_readiness_checks(preview: dict[str, Any]) -> list[ReadinessCheck]:

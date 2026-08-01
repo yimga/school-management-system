@@ -33,7 +33,9 @@ def analyze_blueprint_impact(
     if external_required:
         categories.append("external_required")
     offline_readiness = preview.get("offline_readiness", {})
-    if offline_readiness.get("status") in {"PARTIAL", "READY_WITH_EXTERNAL_BLOCKERS"}:
+    # Offline proof only — a live-payment gate is already carried by the
+    # "external_required" category above and is not an offline-proof shortfall.
+    if offline_readiness.get("status") == "PARTIAL":
         categories.append("offline_proof_partial")
     if destructive_changes:
         categories.append("destructive")

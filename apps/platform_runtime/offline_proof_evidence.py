@@ -36,6 +36,7 @@ from pathlib import Path
 from typing import Any
 
 from django.conf import settings as dj_settings
+from django.core.exceptions import ImproperlyConfigured
 
 
 #: Emitted when recorded evidence proves the client legs against current code.
@@ -64,8 +65,15 @@ _cache: tuple[Any, dict[str, Any]] | None = None
 
 
 def evidence_path() -> Path:
-    """Where the harness writes, and this resolver reads, the proof artifact."""
-    override = getattr(dj_settings, "RMC_OFFLINE_CLIENT_PROOF_PATH", "")
+    """Where the harness writes, and this resolver reads, the proof artifact.
+
+    Settings are optional here: the blueprint contract is also imported by
+    stdlib-only audit scripts that never call ``django.setup()``.
+    """
+    try:
+        override = getattr(dj_settings, "RMC_OFFLINE_CLIENT_PROOF_PATH", "")
+    except ImproperlyConfigured:
+        override = ""
     return Path(override) if override else _DEFAULT_EVIDENCE_PATH
 
 

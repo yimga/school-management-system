@@ -83,13 +83,22 @@ def _offline_readiness(
     *,
     external_required: list[str],
 ) -> dict[str, Any]:
+    """Offline proof posture — scored on offline evidence ALONE.
+
+    A go-live payment/settlement requirement says nothing about whether the
+    client survives a restart, so it is reported alongside (``external_blockers``)
+    and never folded into ``status``. It used to be: a non-empty
+    ``external_required`` overwrote the verdict with a composite
+    ``READY_WITH_EXTERNAL_BLOCKERS`` that downstream readiness scoring counted as
+    *ready*, so a blueprint carrying a payment blocker scored HIGHER than a clean
+    one. Two independent dimensions, two independent fields.
+    """
     browser_partial = str(manifest.get("browser_proof_status", "")).startswith("PARTIAL")
     proof_status = "PARTIAL" if browser_partial else "READY"
-    if external_required:
-        proof_status = "READY_WITH_EXTERNAL_BLOCKERS"
     target_days = int(manifest.get("offline_survival_target_days") or 0)
     cached_surfaces = list(manifest.get("cached_surfaces") or [])
     offline_actions = list(manifest.get("offline_actions") or [])
+    proof_detail = str(manifest.get("browser_proof_detail") or "")
     return {
         "status": proof_status,
         "mode": blueprint.offline_defaults.get("mode", "standard"),
@@ -98,11 +107,15 @@ def _offline_readiness(
         "cached_surface_count": len(cached_surfaces),
         "offline_action_count": len(offline_actions),
         "browser_proof_status": manifest.get("browser_proof_status"),
+        "browser_proof_reason": manifest.get("browser_proof_reason", ""),
         "server_proof_status": manifest.get("server_proof_status"),
+        # Reported, not scored: these gate live collection, not offline survival.
+        "external_blockers": list(external_required),
+        "external_blocked": bool(external_required),
         "honesty_note": (
-            "Server rails are represented; browser restart/storage proof remains partial until the browser harness runs."
+            f"Server rails are represented; client proof is pending. {proof_detail}".strip()
             if browser_partial
-            else "Server and browser proof are represented."
+            else f"Server and browser proof are both recorded. {proof_detail}".strip()
         ),
     }
 
