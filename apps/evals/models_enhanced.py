@@ -262,59 +262,6 @@ class EvaluationDelta(models.Model):
         return f"{self.student} - {self.change_type} ({self.from_import.id})"
 
 
-class OfflineGradeQueue(models.Model):
-    """
-    Queues grade changes made offline (no internet).
-    Syncs to server when connection restored.
-    """
-
-    class SyncStatus(models.TextChoices):
-        PENDING = "PENDING", "Pending Sync"
-        SYNCING = "SYNCING", "Syncing"
-        SYNCED = "SYNCED", "Synced"
-        CONFLICT = "CONFLICT", "Conflict"
-
-    student = models.ForeignKey(StudentProfile, on_delete=models.CASCADE)
-    subject_assignment = models.ForeignKey(SubjectAssignment, on_delete=models.CASCADE)
-    term = models.ForeignKey(Term, on_delete=models.CASCADE)
-
-    # What was changed
-    seq1_score = models.DecimalField(
-        max_digits=5, decimal_places=2, null=True, blank=True
-    )
-    seq2_score = models.DecimalField(
-        max_digits=5, decimal_places=2, null=True, blank=True
-    )
-    exam_score = models.DecimalField(
-        max_digits=5, decimal_places=2, null=True, blank=True
-    )
-    mock_score = models.DecimalField(
-        max_digits=5, decimal_places=2, null=True, blank=True
-    )
-    practical_score = models.DecimalField(
-        max_digits=5, decimal_places=2, null=True, blank=True
-    )
-    remarks = models.TextField(blank=True)
-
-    # Sync metadata
-    status = models.CharField(
-        max_length=20, choices=SyncStatus.choices, default=SyncStatus.PENDING
-    )
-    created_at = models.DateTimeField(auto_now_add=True)
-    synced_at = models.DateTimeField(null=True, blank=True)
-    device_id = models.CharField(
-        max_length=255, help_text="Device that made the change"
-    )
-    offline_timestamp = models.DateTimeField(help_text="When change was made offline")
-
-    class Meta:
-        unique_together = ("student", "subject_assignment", "term")
-        ordering = ["status", "created_at"]
-
-    def __str__(self):
-        return f"{self.student} - {self.status}"
-
-
 class EvaluationEvidence(models.Model):
     """
     Attachments for evaluations: photos, videos, documents for practical/technical assessments.

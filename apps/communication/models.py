@@ -1294,6 +1294,12 @@ class OutboundMessageQueue(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     sent_at = models.DateTimeField(null=True, blank=True)
     error_message = models.CharField(max_length=500, blank=True)
+    # Claim / last-touch timestamp. The drainer sets it EXPLICITLY at claim time (a bulk
+    # .update() bypasses auto_now) and uses it as BOTH the stale-claim-recovery key (rows
+    # stuck in "processing" >15 min return to the retry pool) AND the per-run ownership
+    # discriminator that stops two concurrent runners double-sending the same row.
+    # Nullable so the AddField is a no-op backfill on existing rows.
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     class Meta:
         ordering = ["-created_at"]

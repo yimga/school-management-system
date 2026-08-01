@@ -451,6 +451,110 @@ def ensure_default_jobs() -> None:
             description="Finish APPLYING student transfers after MC bundles land.",
             tags=("people", "transfer", "self-heal", "light"),
         )
+        # --- Beat-only / unscheduled jobs dead on a broker-less box (2026-07-31) ---
+        # Both delegate to a @shared_task that was wired ONLY into
+        # CELERY_BEAT_SCHEDULE (DR) or NOWHERE at all (social outbox), so in the
+        # no-worker topology — the cost-minimal cloud default AND every sovereign
+        # edge mini-PC — they silently never ran. Registered here so the secured
+        # cron endpoint / run_periodic_jobs cron drives them without a worker; a
+        # future Celery worker runs the identical task. Both models live in
+        # SHARED_APPS (public schema), so the task's flat sweep is schema-mode safe.
+        #
+        # 1. Tenant immutable DR snapshot capture. Was the tenant's ONLY disaster-
+        #    recovery backup yet captured NOWHERE on a bare box (beat-only + no
+        #    management command + absent here). HEAVY (per-school compile + gzip +
+        #    encrypt + primary/secondary/S3 write) → auto_eligible=False, off the hot
+        #    /health/ thread. Idempotent per (school, snapshot_date) via
+        #    update_or_create, so a duplicate/late tick (e.g. beside a real beat
+        #    worker) re-captures, never double-writes.
+        _REGISTRY["lifecycle.capture_tenant_immutable_snapshots_daily"] = PeriodicJob(
+            name="lifecycle.capture_tenant_immutable_snapshots_daily",
+            interval_seconds=DAILY_SECONDS,
+            func=_run_capture_tenant_immutable_snapshots_daily,
+            description="Daily tenant immutable DR snapshot capture (encrypt+sign; primary+secondary/S3).",
+            lock_ttl_seconds=HEAVY_JOB_LOCK_TTL_SECONDS,
+            auto_eligible=False,
+            tags=("lifecycle", "dr", "heavy"),
+        )
+        # 2. Social cross-post outbox drainer. Standard-priority posts were orphaned
+        #    in 'pending' on EVERY deployment — the @shared_task had no beat entry,
+        #    no registry row, no command, no caller anywhere. Frequent like the event
+        #    outbox; auto_eligible=False (touches outbound social providers) so it
+        #    runs on the secured cron path, never the hot /health/ thread. Emergency
+        #    broadcasts drain inline in-request and are unaffected.
+        _REGISTRY["social_media.process_outbox_batch"] = PeriodicJob(
+            name="social_media.process_outbox_batch",
+            interval_seconds=FREQUENT_DRAIN_SECONDS,
+            func=_run_process_social_post_outbox,
+            description="Drain the standard-priority social cross-post outbox (emergency posts drain inline).",
+            lock_ttl_seconds=HEAVY_JOB_LOCK_TTL_SECONDS,
+            auto_eligible=False,
+            tags=("social_media", "drainer"),
+        )
+        # --- Webhook DELIVERY drainers dead on a broker-less box (2026-07-31) ------
+        # The outbound webhook senders are all beat-only (CELERY_BEAT_SCHEDULE
+        # marketplace-webhook-deliver-due / migration-cloud-webhook-deliver-due) or
+        # have only a management command (events), so in the no-worker topology the
+        # signed HMAC POST never fires: a subscription's delivery row is created and
+        # then sits PENDING forever. Each delegate calls the SAME plain drainer the
+        # beat wrapper wraps (they are plain functions, not @shared_task, so call
+        # directly). All three delivery tables are SHARED_APPS (public schema) →
+        # the flat "due rows" sweep is schema-mode safe. auto_eligible=False (each
+        # makes outbound HTTP) so they run on the secured cron path, never /health/.
+        #
+        # 1. Migration Cloud webhook delivery — LIVE producer (bundle lifecycle
+        #    events + the schoolops low-meal-balance signal fan out to subscriptions),
+        #    so on a bare box these HMAC-signed deliveries genuinely never sent.
+        _REGISTRY["migration_cloud.deliver_due_webhooks"] = PeriodicJob(
+            name="migration_cloud.deliver_due_webhooks",
+            interval_seconds=FREQUENT_DRAIN_SECONDS,
+            func=_run_migration_cloud_deliver_due_webhooks,
+            description="POST due MigrationCloudWebhookDelivery rows (HMAC-signed, per-tenant quota + backoff).",
+            lock_ttl_seconds=HEAVY_JOB_LOCK_TTL_SECONDS,
+            auto_eligible=False,
+            tags=("migration_cloud", "webhook", "drainer"),
+        )
+        # 2. Events (domain-event bus) webhook delivery. The registered
+        #    events.process_event_outbox job only QUEUES deliveries + runs internal
+        #    subscribers — it does NOT POST them. The actual sender was beat-only, so
+        #    outbox-routed webhooks queued but never delivered on a bare box.
+        _REGISTRY["events.process_webhook_deliveries"] = PeriodicJob(
+            name="events.process_webhook_deliveries",
+            interval_seconds=FREQUENT_DRAIN_SECONDS,
+            func=_run_process_event_webhook_deliveries,
+            description="POST due domain-event webhook deliveries (the send half of the event outbox).",
+            lock_ttl_seconds=HEAVY_JOB_LOCK_TTL_SECONDS,
+            auto_eligible=False,
+            tags=("events", "webhook", "drainer"),
+        )
+        # 3. Marketplace developer-platform webhook delivery. Symmetric hardening:
+        #    the producer (enqueue_event) is currently DORMANT (test-only), so no
+        #    rows accrue today — but the drainer being present means the moment a
+        #    live producer lands it does not silently ship the same dead-drainer bug.
+        _REGISTRY["marketplace.deliver_due_webhooks"] = PeriodicJob(
+            name="marketplace.deliver_due_webhooks",
+            interval_seconds=FREQUENT_DRAIN_SECONDS,
+            func=_run_marketplace_deliver_due_webhooks,
+            description="POST due marketplace WebhookDelivery rows (HMAC-signed, backoff; dormant until a producer lands).",
+            lock_ttl_seconds=HEAVY_JOB_LOCK_TTL_SECONDS,
+            auto_eligible=False,
+            tags=("marketplace", "webhook", "drainer"),
+        )
+        # Fee-invoice approval-queue EXECUTOR (2026-07-31). When a tenant runs
+        # auto-generate WITH require-approval, an operator-APPROVED
+        # AutomationApprovalQueue row had no executor anywhere — the invoices never
+        # generated (the row sat at APPROVED forever). This drains APPROVED rows,
+        # generating idempotently inside each row's tenant context. Financial +
+        # tenant-fan-out → auto_eligible=False, off the hot /health/ thread.
+        _REGISTRY["finance.execute_approved_fee_invoice_generations"] = PeriodicJob(
+            name="finance.execute_approved_fee_invoice_generations",
+            interval_seconds=FREQUENT_DRAIN_SECONDS,
+            func=_run_execute_approved_fee_invoice_generations,
+            description="Execute operator-APPROVED fee-invoice auto-generation requests (idempotent per invoice).",
+            lock_ttl_seconds=HEAVY_JOB_LOCK_TTL_SECONDS,
+            auto_eligible=False,
+            tags=("finance", "automation", "executor"),
+        )
         _DEFAULTS_INSTALLED = True
 
 
@@ -573,6 +677,66 @@ def _run_process_event_outbox() -> object:
     from apps.events.tasks import process_outbox_batch
 
     return process_outbox_batch()
+
+
+def _run_capture_tenant_immutable_snapshots_daily() -> object:
+    # DR capture had NO trigger on a broker-less box (beat-only + no management
+    # command + absent from this registry) → the box's ONLY disaster-recovery
+    # backup never ran. Delegates to the SAME @shared_task the beat entry names; it
+    # iterates every active school itself and update_or_creates one snapshot per
+    # (school, day), so a duplicate/late tick re-captures idempotently. .run()
+    # executes the task body synchronously — no worker/broker needed.
+    from apps.lifecycle.tasks_dr_snapshot import capture_tenant_immutable_snapshots_daily
+
+    return capture_tenant_immutable_snapshots_daily.run()
+
+
+def _run_process_social_post_outbox() -> object:
+    # The standard-priority social cross-post drainer had ZERO schedulers anywhere
+    # (no beat entry, no registry row, no command, no caller) → queued non-emergency
+    # posts orphaned in 'pending' forever. Delegates to the SAME @shared_task a
+    # future worker runs; emergency broadcasts drain inline in-request, unaffected.
+    from apps.social_media.tasks import process_outbox_batch
+
+    return process_outbox_batch.run()
+
+
+def _run_migration_cloud_deliver_due_webhooks() -> object:
+    # POSTs due MigrationCloudWebhookDelivery rows. deliver_due is a plain function
+    # (the beat entry deliver_due_task just wraps it), so call it directly — same
+    # code a future worker's beat task runs. Live producer, so this genuinely never
+    # sent on a bare box.
+    from apps.migration_cloud.api.webhook_dispatch import deliver_due
+
+    return deliver_due()
+
+
+def _run_process_event_webhook_deliveries() -> object:
+    # The SEND half of the domain-event outbox: process_event_outbox only queues
+    # deliveries + runs internal subscribers; this POSTs the queued deliveries.
+    # Plain batch helper (the apps.events.process_webhook_deliveries task wraps it).
+    from apps.events.tasks import process_webhook_deliveries_batch
+
+    return process_webhook_deliveries_batch()
+
+
+def _run_marketplace_deliver_due_webhooks() -> object:
+    # POSTs due marketplace WebhookDelivery rows. deliver_due is a plain function
+    # (the beat entry marketplace.webhook_deliver_due wraps it). Currently dormant
+    # (producer enqueue_event is test-only) — registered so a future live producer
+    # can't ship the dead-drainer bug.
+    from apps.marketplace.webhooks import deliver_due
+
+    return deliver_due()
+
+
+def _run_execute_approved_fee_invoice_generations() -> object:
+    # Executes operator-APPROVED fee-invoice auto-generation approval-queue rows —
+    # the missing executor (approved rows generated nothing without it). Idempotent
+    # per invoice; runs each inside the row's own tenant context.
+    from apps.finance.tasks import execute_approved_fee_invoice_generations
+
+    return execute_approved_fee_invoice_generations()
 
 
 def _run_send_payment_reminders() -> object:

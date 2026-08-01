@@ -26,11 +26,15 @@ from apps.evals.services import (
 from apps.people.models import StudentProfile, TeacherProfile
 from apps.portal.services import _assignment_completion_spotlight
 from apps.schools.models import School
+from apps.schools.tests.rls_support import enter_rls_bypass_for_test
 
 
 @tag("tenants_rls")
 class TeacherCompletionSpotlightQueryCountTests(TestCase):
     def setUp(self):
+        # Postgres-lane routing tag only; not an RLS-isolation test -> run under
+        # bypass so bound RLS does not deny the seed rows / reads. See rls_support.
+        enter_rls_bypass_for_test(self)
         self.school = School.objects.create(
             name="Completion QC School",
             slug="completion-qc",

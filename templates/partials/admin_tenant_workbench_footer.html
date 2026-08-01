@@ -1,26 +1,18 @@
 {% load i18n %}
 {% comment %}
-In-document admin workbench footer for the Django /admin/ shell. Host-aware:
-the manager host shows the platform control-plane brand + operator links; a
-tenant subdomain shows the school's own brand + tenant config links. Each host's
-{% url %} calls sit inside the is_manager_host guard so neither reverses a name
-that is absent on the other host's urlconf.
+In-document TENANT workbench footer for the Django /admin/ shell on a tenant
+subdomain — the school's own brand + tenant config links, so the tenant /admin/
+gets a branded footer band instead of Unfold's bare default.
+
+Tenant-only by design. The manager control-plane /admin/ already renders
+partials/admin_workbench_footer.html (from admin/base.html's footer block, which
+reaches here via {{ block.super }}). Rendering a second footer here produced the
+DOUBLE footer on the manager host. The `{% if not is_manager_host %}` guard
+suppresses this partial on the manager host AND keeps the tenant {% url %} calls
+inside a host-branch guard (none of these names is guaranteed on the manager
+urlconf, so they must never be reversed on that host).
 {% endcomment %}
-{% if is_manager_host %}
-<footer class="rmc-admin-workbench-footer rmc-admin-workbench-footer--operator" role="contentinfo" data-rmc-admin-workbench-footer="operator" aria-label="{% trans 'Platform control-plane footer' %}">
-  <div class="rmc-admin-workbench-footer__inner">
-    <div class="rmc-admin-workbench-footer__brand">
-      <strong>{% trans "RunMyCampus" %}</strong>
-      <span>{% trans "Platform control plane" %}</span>
-    </div>
-    <nav class="rmc-admin-workbench-footer__links" aria-label="{% trans 'Control-plane shortcuts' %}">
-      <a href="{% url 'manager_home' %}">{% trans "Operator home" %}</a>
-      <a href="{% url 'feedback:help_center' %}">{% trans "Help center" %}</a>
-    </nav>
-    <p class="rmc-admin-workbench-footer__meta mb-0">{% trans "Operator-scoped · control plane" %}</p>
-  </div>
-</footer>
-{% else %}
+{% if not is_manager_host %}
 <footer class="rmc-admin-workbench-footer rmc-admin-workbench-footer--tenant" role="contentinfo" data-rmc-admin-workbench-footer="tenant" aria-label="{% trans 'School configuration footer' %}">
   <div class="rmc-admin-workbench-footer__inner">
     <div class="rmc-admin-workbench-footer__brand">

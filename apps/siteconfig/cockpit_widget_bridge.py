@@ -329,11 +329,24 @@ def widget_id_to_partial_path(widget_id: str) -> str | None:
     return partial
 
 
-def resolve_promoted_cockpit_partials(promoted_ids: list[str] | None) -> list[dict[str, Any]]:
+def resolve_promoted_cockpit_partials(
+    promoted_ids: list[str] | None, request=None
+) -> list[dict[str, Any]]:
     """Map a list of promoted cockpit widget ids to ``{id, name, partial_path}`` rows.
 
     Unknown ids are dropped silently (defense — the layout settings could
     drift from the catalog over time).
+
+    When ``request`` is supplied each partial is rendered here and a row whose
+    partial produces NO visible content is dropped (its pre-rendered HTML is
+    stashed on ``rendered_html`` so the template need not render it twice). This
+    closes the "wall of blank cards" bug: a promoted cockpit section that has
+    since been disabled short-circuits to an empty body, but the card wrapper in
+    ``_promoted_dashboard_widgets.html`` still rendered — one blank rounded card
+    per disabled/empty section. Rendering here and dropping empties means only
+    widgets that actually have content reach the grid. Cockpit partials read
+    their section config from a context processor, so a bare ``request`` context
+    is enough for them to short-circuit correctly.
     """
     if not promoted_ids:
         return []
@@ -348,9 +361,21 @@ def resolve_promoted_cockpit_partials(promoted_ids: list[str] | None) -> list[di
             continue
         parts = wid.split("-", 2)
         section_id = parts[2] if len(parts) >= 3 else ""
-        out.append({
+        row = {
             "id": wid,
             "name": name_by_id.get(section_id) or section_id,
             "partial_path": partial,
-        })
+        }
+        if request is not None:
+            try:
+                from django.template.loader import render_to_string
+
+                html = render_to_string(partial, {}, request=request)
+            except Exception:  # noqa: BLE001 — a broken partial must never break the dashboard
+                continue
+            if not html.strip():
+                # Section disabled / no content → skip so no blank card renders.
+                continue
+            row["rendered_html"] = html
+        out.append(row)
     return out

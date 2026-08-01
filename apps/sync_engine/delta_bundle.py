@@ -26,11 +26,13 @@ def _signing_key() -> bytes:
     return str(secret).encode("utf-8")
 
 
-def export_delta_bundle(*, school_id: int, rows: list[dict[str, Any]], device_id: str = "") -> bytes:
+def export_delta_bundle(*, school_id: str | int, rows: list[dict[str, Any]], device_id: str = "") -> bytes:
     """Serialize rows to signed NDJSON bundle bytes."""
     header = {
         "bundle_version": BUNDLE_VERSION,
-        "school_id": school_id,
+        # str() so UUID school ids (the platform's School.pk type) both JSON-serialize
+        # here and compare cleanly on the verify side. Backwards compatible with int ids.
+        "school_id": str(school_id),
         "device_id": (device_id or "")[:128],
         "exported_at": int(time.time()),
         "row_count": len(rows),
@@ -55,7 +57,7 @@ def iter_bundle_lines(data: bytes) -> Iterator[dict[str, Any]]:
         yield json.loads(line)
 
 
-def verify_and_parse_bundle(data: bytes, *, expected_school_id: int | None = None) -> tuple[list[dict[str, Any]], list[str]]:
+def verify_and_parse_bundle(data: bytes, *, expected_school_id: str | int | None = None) -> tuple[list[dict[str, Any]], list[str]]:
     """Verify HMAC trailer and return (rows, errors)."""
     errors: list[str] = []
     raw_lines = [ln for ln in data.decode("utf-8").splitlines() if ln.strip()]
@@ -79,7 +81,7 @@ def verify_and_parse_bundle(data: bytes, *, expected_school_id: int | None = Non
     header = parsed[0]
     if int(header.get("bundle_version") or 0) != BUNDLE_VERSION:
         return [], ["unsupported_bundle_version"]
-    if expected_school_id is not None and int(header.get("school_id") or 0) != int(expected_school_id):
+    if expected_school_id is not None and str(header.get("school_id") or "") != str(expected_school_id):
         return [], ["school_mismatch"]
     rows = parsed[1:]
     try:

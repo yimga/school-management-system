@@ -2,6 +2,7 @@
 {% load static i18n %}
 
 {% block cp_title %}{% trans "Live support console" %} — {% trans "Support" %}{% endblock %}
+{% block cp_workspace_header %}{% endblock %}
 
 {% block extrastyle %}{{ block.super }}
 <link rel="stylesheet" href="{% static 'css/support-agent-console.css' %}">
@@ -19,6 +20,9 @@
 
 {% block cp_content %}
 <div id="rmc-sac-root" class="rmc-sac-root" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-rmc-scroll-policy="paginate" data-page-critical-read="1" data-ws-path="/ws/support/agent/">
+  {% url 'super:support_dashboard' as support_dashboard_url %}
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="support_live_console" center_eyebrow=_("Platform support") center_title=_("Live support console") center_purpose=_("Answer active tenant conversations in real time. Replies remain customer-visible, ticket-linked, and operator-audited.") primary_url=support_dashboard_url primary_label=_("Support dashboard") nav_groups=operational_nav_groups hide_nav_detail="1" %}
+
   <div class="row g-3">
     <div class="col-lg-4">
       <div class="card border-0 shadow-sm rmc-sac-queue-card">

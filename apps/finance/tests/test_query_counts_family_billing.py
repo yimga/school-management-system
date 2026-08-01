@@ -38,6 +38,7 @@ from apps.finance.family_billing_aggregator import aggregate_family_balance
 from apps.finance.models import ComplianceProfile, Invoice
 from apps.people.models import StudentGuardian, StudentProfile
 from apps.schools.models import School
+from apps.schools.tests.rls_support import enter_rls_bypass_for_test
 
 
 @tag("tenants_rls")  # routes the file into a Postgres CI lane
@@ -45,6 +46,9 @@ class FamilyBillingQueryCountTests(TestCase):
     """aggregate_family_balance (default runners) uses a constant query count."""
 
     def setUp(self):
+        # Postgres-lane routing tag only; not an RLS-isolation test -> run under
+        # bypass so bound RLS does not deny the seed rows / reads. See rls_support.
+        enter_rls_bypass_for_test(self)
         self.school = School.objects.create(
             name="Family Billing QC",
             slug="family-billing-qc",

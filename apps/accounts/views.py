@@ -3769,7 +3769,12 @@ def backend_dashboard(request):
         layout_data = (layout_obj.layout if layout_obj else {}) or {}
         layout_settings = layout_data.get("__settings__") or {}
         promoted_ids = list(layout_settings.get("promoted_cockpit_ids") or [])
-        context["promoted_cockpit_widgets"] = resolve_promoted_cockpit_partials(promoted_ids)
+        # Pass the request so the resolver renders each partial and drops the ones
+        # whose (now-disabled) cockpit section produces no content — otherwise each
+        # empty section shows as a blank card (the "wall of empty boxes" bug).
+        context["promoted_cockpit_widgets"] = resolve_promoted_cockpit_partials(
+            promoted_ids, request=request
+        )
         context["requested_widget_ids"] = list(layout_settings.get("requested_widget_ids") or [])
     except Exception:  # noqa: BLE001 — layout resolution is best-effort, never breaks dashboard
         context.setdefault("promoted_cockpit_widgets", [])

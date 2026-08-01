@@ -74,7 +74,7 @@
                 <td style="padding: 4px;">{{ r.ai_on|yesno:"yes,no" }}</td>
                 <td style="padding: 4px;">{{ r.qlen }}</td>
                 <td style="padding: 4px;">{{ r.school }}</td>
-                <td style="padding: 4px; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ r.url }}">{{ r.url }}</td>
+                <td style="padding: 4px; max-width: 260px; overflow-wrap: anywhere;" title="{{ r.url }}">{{ r.url }}</td>
               </tr>
             {% endfor %}
           </tbody>

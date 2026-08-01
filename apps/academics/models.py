@@ -227,9 +227,19 @@ class Classroom(models.Model):
         ),
     )
     updated_at = models.DateTimeField(auto_now=True)
+    # Client-generated id for a classroom created offline on an edge box; lets the
+    # operator upsert it by (school, client_offline_id) on sync without pk collisions.
+    client_offline_id = models.CharField(max_length=128, blank=True, db_index=True)
 
     class Meta:
         ordering = ["name"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["school", "client_offline_id"],
+                condition=~models.Q(client_offline_id=""),
+                name="uniq_classroom_school_offline_id",
+            ),
+        ]
 
     def __str__(self):
         return self.name
@@ -1074,6 +1084,9 @@ class Attendance(models.Model):
     remarks = models.CharField(max_length=255, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    # Client-generated id for an attendance row marked offline on an edge box; lets the
+    # operator upsert it by (school, client_offline_id) on sync without pk collisions.
+    client_offline_id = models.CharField(max_length=128, blank=True, db_index=True)
 
     class Meta:
         ordering = ["-date", "student"]
@@ -1081,6 +1094,11 @@ class Attendance(models.Model):
             models.UniqueConstraint(
                 fields=["student", "classroom", "date"],
                 name="unique_student_classroom_date_attendance",
+            ),
+            models.UniqueConstraint(
+                fields=["school", "client_offline_id"],
+                condition=~models.Q(client_offline_id=""),
+                name="uniq_attendance_school_offline_id",
             ),
         ]
 

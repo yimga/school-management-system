@@ -33,3 +33,50 @@ class TenantSchoolExperienceRedesignTests(SimpleTestCase):
                 self.assertIn("external", text.lower())
                 self.assertIn("approval", text.lower())
                 self.assertIn("world_class_readiness_meter.html", text)
+
+    def test_tenant_pack_setup_uses_the_approved_full_canvas_contract(self):
+        template = (
+            ROOT / "templates" / "platform_runtime" / "tenant_pack_setup.html"
+        ).read_text(encoding="utf-8")
+        css = (ROOT / "static" / "css" / "rmc-tenant-pack-workbench.css").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn('data-rmc-full-canvas-catalog="tenant-pack"', template)
+        self.assertIn('data-rmc-genuine-pack-action="1"', template)
+        self.assertIn("components/pagination.html", template)
+        self.assertNotIn('class="panel', template)
+        self.assertNotIn('class="grid', template)
+        self.assertNotIn('class="card', template)
+        self.assertNotIn("page-shell", template)
+        self.assertIn(
+            "grid-template-columns: minmax(0, 1fr) minmax(19rem, 28%);", css
+        )
+        self.assertIn("@media (max-width: 1024px)", css)
+        self.assertIn("grid-template-columns: minmax(0, 1fr);", css)
+
+    def test_audited_operator_workbenches_have_one_shared_steering_owner(self):
+        for name in (
+            "super_provision_queue.html",
+            "super_support_live_console.html",
+        ):
+            with self.subTest(name=name):
+                text = (ROOT / "templates" / "schools" / name).read_text(
+                    encoding="utf-8"
+                )
+                self.assertIn("rmc_operational_center_frame.html", text)
+                self.assertIn("block cp_workspace_header", text)
+                self.assertNotIn("<h1", text.lower())
+
+    def test_audited_operator_tables_wrap_long_values_instead_of_clipping(self):
+        paths = (
+            ROOT / "templates" / "super" / "ai_line_intent_coverage.html",
+            ROOT / "templates" / "super" / "merges" / "index.html",
+            ROOT / "templates" / "super" / "school_batches" / "index.html",
+            ROOT / "templates" / "super" / "transfers" / "cases_index.html",
+        )
+        for path in paths:
+            with self.subTest(path=path.relative_to(ROOT)):
+                text = path.read_text(encoding="utf-8")
+                self.assertNotIn("overflow: hidden", text)
+                self.assertIn("overflow-wrap: anywhere", text)

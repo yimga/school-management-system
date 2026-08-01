@@ -7,15 +7,15 @@
 {% block cp_workspace_header %}{% endblock %}
 {% block cp_content %}
 <div class="container-fluid py-3" id="provision-queue-main" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
-  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-    <h1 class="h4 mb-0">{% trans "Provisioning queue" %}</h1>
-    <div class="d-flex flex-wrap gap-2 small">
-      <span class="rmc-badge rmc-badge--warning">{% trans "Running" %}: {{ counts.running }}</span>
-      <span class="rmc-badge rmc-badge--danger">{% trans "Stuck" %}: {{ counts.stuck }}</span>
-      <span class="rmc-badge rmc-badge--danger">{% trans "Failed" %}: {{ counts.failed }}</span>
-      <span class="rmc-badge">{% trans "Queued" %}: {{ counts.queued }}</span>
-      <span class="rmc-badge rmc-badge--muted">{% trans "Total pending" %}: {{ total_pending_count }}</span>
-    </div>
+  {% url 'super:dashboard' as dashboard_url %}
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="provision_queue" center_eyebrow=_("Platform operators") center_title=_("Provisioning queue") center_purpose=_("Track every not-yet-live school, identify stuck or failed provisioning, and requeue from one governed operator workspace.") primary_url=dashboard_url primary_label=_("Back to control plane") nav_groups=operational_nav_groups hide_nav_detail="1" %}
+
+  <div class="d-flex flex-wrap gap-2 small mb-3" aria-label="{% trans 'Provisioning status summary' %}">
+    <span class="rmc-badge rmc-badge--warning">{% trans "Running" %}: {{ counts.running }}</span>
+    <span class="rmc-badge rmc-badge--danger">{% trans "Stuck" %}: {{ counts.stuck }}</span>
+    <span class="rmc-badge rmc-badge--danger">{% trans "Failed" %}: {{ counts.failed }}</span>
+    <span class="rmc-badge">{% trans "Queued" %}: {{ counts.queued }}</span>
+    <span class="rmc-badge rmc-badge--muted">{% trans "Total pending" %}: {{ total_pending_count }}</span>
   </div>
 
   <form method="get" class="mb-3" role="search">

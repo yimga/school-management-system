@@ -30,7 +30,7 @@ UNFOLD = ROOT / "templates" / "unfold"
 REPORT = ROOT / "var" / "django_admin_miss_nothing_audit.json"
 
 EXPECTED_CACHE_BUST = "20260724-admin-os-v158"
-EXPECTED_SW = "sms-v4.06.22-tenant-logo-favicon-menu-mc-2026-07-29"
+EXPECTED_SW = "sms-v4.06.23-admin-footer-ui-cache-refresh-2026-07-31"
 
 REQUIRED_SEALS = (
     "2026-07-19-tools-no-span-explode",

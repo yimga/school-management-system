@@ -70,11 +70,11 @@
 
   <div class="row g-3">
     <div class="col-lg-6 min-w-0">
-      <h3 class="h6 mb-2">{% trans "Pack & template graph" %}</h3>
+      <h3 class="h6 mb-2" id="automation-pack-template-graph">{% trans "Pack & template graph" %}</h3>
       {% include "studio_os/partials/automation_dependency_graph_body.html" with graph=graph %}
     </div>
     <div class="col-lg-6 min-w-0">
-      <h3 class="h6 mb-2">{% trans "Workflow health" %}</h3>
+      <h3 class="h6 mb-2" id="automation-workflow-health">{% trans "Workflow health" %}</h3>
       {% include "studio_os/partials/automation_workflow_health_body.html" with pack_count=pack_count template_count=template_count workflow_center_pane_url=workflow_center_pane_url %}
     </div>
   </div>

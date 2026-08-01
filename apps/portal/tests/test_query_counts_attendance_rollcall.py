@@ -12,11 +12,15 @@ from apps.academics.bulk_attendance import apply_student_status_map, mark_whole_
 from apps.academics.models import AcademicYear, Attendance, Classroom, Department
 from apps.people.models import StudentProfile
 from apps.schools.models import School
+from apps.schools.tests.rls_support import enter_rls_bypass_for_test
 
 
 @tag("tenants_rls")
 class AttendanceRollcallQueryCountTests(TestCase):
     def setUp(self):
+        # Postgres-lane routing tag only; not an RLS-isolation test -> run under
+        # bypass so bound RLS does not deny the seed rows / reads. See rls_support.
+        enter_rls_bypass_for_test(self)
         self.school = School.objects.create(
             name="Att QC School",
             slug="att-qc",

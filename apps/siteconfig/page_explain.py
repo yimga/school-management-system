@@ -117,6 +117,30 @@ def _fallback_page_title(request: Any) -> str:
     return "Dashboard"
 
 
+# Focused single-task flows render as the WHOLE page: the owner-onboarding
+# checkpoints (and the standalone MFA setup) carry their own step trail + progress
+# bar, so the shell "About this page" / Flow Thread strip — and its Flow Launchpad
+# of global next-action cards ("Students on record", "Teachers on record", …) — is
+# redundant noise stacked on top of a step the owner is mid-way through. Suppress
+# the chrome there, mirroring the globe-landing minimal-chrome rule.
+_MINIMAL_CHROME_ROUTE_NAMES = frozenset(
+    {
+        "owner_onboarding_account",
+        "owner_onboarding_school",
+        "owner_onboarding_mfa",
+        "owner_onboarding_done",
+        "onboarding_profile",
+        "mfa_setup",
+    }
+)
+
+
+def _is_minimal_chrome_route(request: Any) -> bool:
+    """True on a focused onboarding / security checkpoint route (see the set above)."""
+    match = getattr(request, "resolver_match", None)
+    return bool(match) and getattr(match, "url_name", "") in _MINIMAL_CHROME_ROUTE_NAMES
+
+
 def build_page_explain_context(request: Any) -> dict[str, Any]:
     """Context dict for ``page_explain_context`` processor and templates.
 
@@ -132,6 +156,7 @@ def build_page_explain_context(request: Any) -> dict[str, Any]:
         return {}
 
     globe_landing = getattr(request, "rmc_cp_globe_landing_minimal_chrome", False)
+    minimal_chrome = globe_landing or _is_minimal_chrome_route(request)
 
     route_help = resolve_route_help(request) or {}
     workflow, workflow_tags = _workflow_context(request)
@@ -145,5 +170,5 @@ def build_page_explain_context(request: Any) -> dict[str, Any]:
         "rmc_page_workflow": workflow,
         "rmc_page_workflow_tags": workflow_tags,
         "rmc_page_field_manifest": manifest,
-        "rmc_page_explain_enabled": not globe_landing,
+        "rmc_page_explain_enabled": not minimal_chrome,
     }

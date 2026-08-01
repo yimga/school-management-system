@@ -14,11 +14,26 @@
 
 {% include "components/next_action_strip.html" %}
 
-<section data-page-archetype="studio-os-launch" aria-labelledby="studio-launch-hero">
+<section data-page-archetype="studio-os-launch" aria-labelledby="studio-launch-hero" data-rmc-section-nav="auto">
   <div data-rmc-scroll-policy="paginate" id="studio-launch-hero">
     {% include "studio_os/partials/mode_hero_shell.html" %}
   </div>
-  {% include "studio_os/partials/studio_guidance_panel.html" %}
+  {% comment %} Guidance is reference material — collapsed by default (parity with
+     Experience mode) so the long launch cockpit is not pushed down the page. {% endcomment %}
+  {% if studio_guidance %}
+  <details class="rmc-collapsable mb-3"
+           data-rmc-collapsable-key="studio-launch-guidance"
+           data-rmc-collapsable-default="collapsed"
+           data-rmc-collapsable-chrome="section">
+    <summary class="rmc-collapsable__head">
+      <span class="rmc-collapsable__title">{% trans "Guidance & tips" %}</span>
+      <span class="rmc-collapsable__chevron" aria-hidden="true">&#9662;</span>
+    </summary>
+    <div class="rmc-collapsable__body">
+      {% include "studio_os/partials/studio_guidance_panel.html" %}
+    </div>
+  </details>
+  {% endif %}
   {% include "studio_os/partials/launch_mode_canvas.html" %}
 </section>
 {% endblock %}

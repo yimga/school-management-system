@@ -40,7 +40,7 @@
           <td style="font-family: monospace;">{{ op.secondary_pk|slice:":8" }} → {{ op.primary_pk|slice:":8" }}</td>
           <td>{{ op.preview.total_rows|default:"—" }}</td>
           <td>{{ op.collisions|length }}</td>
-          <td style="color: var(--text-secondary); max-width: 24ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+          <td style="color: var(--text-secondary); max-width: 24ch; overflow-wrap: anywhere;">
             {% with op.history|last as last_entry %}{{ last_entry.note|default:last_entry.to|default:"—" }}{% endwith %}
           </td>
           <td>

@@ -1196,11 +1196,21 @@ a:not(.btn):not(.nav-link):not(.dropdown-item):hover {
   letter-spacing: var(--tracking-body);
   padding: 0;
   margin: 0;
+  /* Keep the trail on one line; a long trail scrolls inside its own row rather
+     than wrapping. Bootstrap defaults .breadcrumb to flex-wrap:wrap, which — with
+     no per-crumb nowrap — let crumbs shrink below their text width and break
+     mid-word ("Home" -> "Ho\nme") in a squeezed column. */
+  flex-wrap: nowrap;
+  overflow-x: auto;
 }
 .breadcrumb-item {
   display: inline-flex;
   align-items: center;
   color: var(--admin-content-text-muted);
+  /* A crumb label never breaks inside a word, and keeps its intrinsic width so
+     the row (not the word) is what scrolls when space is tight. */
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 .breadcrumb-item + .breadcrumb-item { padding-left: 0; }
 .breadcrumb-item + .breadcrumb-item::before {

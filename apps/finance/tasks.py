@@ -978,8 +978,18 @@ def apply_split_late_fees_task(
     return totals
 
 
-def _auto_generate_fee_invoices_body(dry_run: bool, *, school_id=None) -> dict:
-    """Inner body: run inside tenant context."""
+def _auto_generate_fee_invoices_body(
+    dry_run: bool, *, school_id=None, force_execute: bool = False
+) -> dict:
+    """Inner body: run inside tenant context.
+
+    ``force_execute`` is set by the approved-row executor
+    (``execute_approved_fee_invoice_generations``): the operator already approved,
+    so it overrides ONLY the schedule "not due" gate and the require-approval
+    parking gate — never the ``monthly_invoice_already_run`` money-safety guard,
+    and the per-invoice ``get_or_create`` idempotency still applies. It is never
+    set on the scheduled path (default False), so scheduled behaviour is unchanged.
+    """
     from apps.automation.helpers import get_current_academic_year, get_current_term
     from apps.finance.scheduled_invoicing import (
         billing_period_key,
@@ -1038,7 +1048,9 @@ def _auto_generate_fee_invoices_body(dry_run: bool, *, school_id=None) -> dict:
             dry_run=dry_run,
         )
 
-        if not should_generate and not dry_run:
+        if not should_generate and not dry_run and not force_execute:
+            # force_execute overrides the schedule gate: the operator explicitly
+            # approved this run, so it may generate outside the normal window.
             execution_log.mark_completed(
                 AutomationExecutionLog.Status.SUCCESS,
                 summary={"message": "Generation not due yet"},
@@ -1126,15 +1138,38 @@ def _auto_generate_fee_invoices_body(dry_run: bool, *, school_id=None) -> dict:
             )
             return {"dry_run": True, **execution_summary}
 
-        # Check if approval required
+        # Check if approval required. force_execute (the approved-row executor)
+        # bypasses this gate — the operator already approved, so generate now.
         require_approval = finance_settings["auto_generate_require_approval"]
 
         pulse_workflow_step(None, "generate", payload={"plan_count": len(plans)})
 
-        if require_approval:
-            # Create approval queue entry
+        if require_approval and not force_execute:
+            # Preview what WOULD be generated so the approver reviews a real summary
+            # (not the empty one this used to park), and capture school + schema so
+            # execute_approved_fee_invoice_generations can re-enter the right tenant
+            # context once approved.
+            from django.db import connection
+
+            from apps.finance.services import _student_for_plan
+
+            for plan in plans:
+                students = list(_student_for_plan(plan))
+                execution_summary["plans"].append(
+                    {
+                        "plan_id": plan.id,
+                        "plan_name": plan.name,
+                        "students_count": len(students),
+                        "would_create_invoices": len(students),
+                    }
+                )
+                execution_summary["total_students"] += len(students)
+                execution_summary["total_invoices"] += len(students)
+
             queue_entry = AutomationApprovalQueue.objects.create(
                 automation_type="fee_invoice_generation",
+                school=school,
+                schema_name=getattr(connection, "schema_name", "") or "",
                 execution_summary=execution_summary,
                 status=AutomationApprovalQueue.Status.PENDING,
             )
@@ -1240,6 +1275,63 @@ def auto_generate_fee_invoices_task(
 
 
 auto_generate_fee_invoices_task.rmc_workflow_explicit = True
+
+
+def execute_approved_fee_invoice_generations(limit: int = 50) -> dict:
+    """Execute APPROVED ``fee_invoice_generation`` approval-queue rows.
+
+    When a tenant enables auto-generate AND require-approval, the scheduled
+    generator parks a PENDING ``AutomationApprovalQueue`` row instead of
+    generating. An operator approves it in the admin; WITHOUT this executor the
+    row sat at APPROVED forever and the invoices never generated. This is that
+    missing executor: it drains APPROVED rows, re-running the generation body
+    inside each row's tenant context with ``force_execute=True`` (which overrides
+    only the schedule/approval gates, never the ``monthly_invoice_already_run``
+    money-safety guard), then marks the row EXECUTED.
+
+    Idempotent: ``create_fee_invoices`` get_or_creates each invoice by
+    (academic_year, student) reference, so a re-run (duplicate approval row, or a
+    re-drain of an EXECUTED period) never double-invoices. A per-row failure is
+    isolated and leaves the row APPROVED, so it is retried on the next drain.
+    """
+    from apps.automation.models import AutomationApprovalQueue
+
+    approved = list(
+        AutomationApprovalQueue.objects.filter(  # tenant-isolation-allow: approval-queue is SHARED/public; each row carries its own school_id + schema_name and is executed inside that tenant's context
+            status=AutomationApprovalQueue.Status.APPROVED,
+            automation_type="fee_invoice_generation",
+        ).order_by("approved_at")[: max(1, int(limit))]
+    )
+    executed = 0
+    failed = 0
+    for row in approved:
+        if row.school_id is None and not row.schema_name:
+            logger.warning(
+                "approved fee-invoice queue row %s has no school/schema — cannot "
+                "resolve a tenant context to execute in; skipping.",
+                row.pk,
+            )
+            continue
+        try:
+            result = _run_with_tenant_context(
+                school_id=row.school_id,
+                schema_name=(row.schema_name or None),
+                runnable=lambda r=row: _auto_generate_fee_invoices_body(
+                    dry_run=False, school_id=r.school_id, force_execute=True
+                ),
+            )
+            row.status = AutomationApprovalQueue.Status.EXECUTED
+            summary = dict(row.execution_summary or {})
+            summary["execution_result"] = result
+            row.execution_summary = summary
+            row.save(update_fields=["status", "execution_summary"])
+            executed += 1
+        except FINANCE_TASK_SOFT_FAILURES as exc:
+            logger.error(
+                "approved fee-invoice execution failed queue_id=%s: %s", row.pk, exc
+            )
+            failed += 1  # left APPROVED → retried on the next drain
+    return {"executed": executed, "failed": failed}
 
 
 def _auto_copy_fee_plans_body(dry_run: bool) -> dict:

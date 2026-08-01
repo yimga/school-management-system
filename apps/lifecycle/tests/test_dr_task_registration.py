@@ -27,6 +27,12 @@ from django.test import TestCase
 
 CAPTURE_TASK = "lifecycle.capture_tenant_immutable_snapshots_daily"
 RESTORE_DRILL_TASK = "lifecycle.verify_tenant_snapshot_restore_integrity"
+# Third legitimate lifecycle task: the onboarding stall-watch, re-exported from
+# tasks_stall_watch.py via tasks.py and wired to beat lifecycle-stall-watch
+# (registered 2026-07-19, commit 20de8b8ad). It is surgical, not blanket
+# autodiscovery — so the "wakes no other task" guard below allows exactly these
+# three and still fails on a FOURTH unexpected task.
+STALL_WATCH_TASK = "lifecycle.detect_stalled_onboarding"
 
 # Beat entry key -> task name it must resolve to (config/settings.py).
 _BEAT_ENTRY = "lifecycle-tenant-immutable-snapshot-daily"
@@ -89,12 +95,12 @@ class TenantDrSnapshotTaskRegistrationTests(TestCase):
         )
 
     def test_registering_dr_tasks_wakes_no_other_task(self):
-        """The lifecycle app must contribute ONLY the two DR-snapshot tasks.
+        """The lifecycle app must contribute ONLY its three known named tasks.
 
         Guards against a blanket-autodiscovery fix that would wake dangerous
         dormant tasks (bundle-purge / webhook backlog / synthetic-tenant). Every
         ``lifecycle.*`` task in the live registry must be one of the two
-        DR-snapshot tasks and nothing else.
+        DR-snapshot tasks or the onboarding stall-watch — and nothing else.
         """
         registered = _registered_task_names()
         lifecycle_tasks_in_registry = {
@@ -102,7 +108,7 @@ class TenantDrSnapshotTaskRegistrationTests(TestCase):
         }
         self.assertEqual(
             lifecycle_tasks_in_registry,
-            {CAPTURE_TASK, RESTORE_DRILL_TASK},
+            {CAPTURE_TASK, RESTORE_DRILL_TASK, STALL_WATCH_TASK},
             "apps/lifecycle registered an unexpected task — only the two DR-snapshot "
-            "tasks may come from this app.",
+            "tasks and the onboarding stall-watch may come from this app.",
         )

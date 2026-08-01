@@ -26,6 +26,10 @@
 .rmc-studio-workspace__rail {
   width: var(--studio-workspace-rail-width);
   min-width: 0;
+  /* align-self:start (vs the grid's align-items:stretch) so the rail sizes to its
+     own content instead of the full row height — otherwise position:sticky below
+     has no travel room and the sub-rail scrolls off with the page. */
+  align-self: start;
   max-height: min(72vh, 58rem);
   overflow: auto;
   scrollbar-width: thin;
@@ -194,7 +198,11 @@
 }
 
 @media (min-width: 992px) {
-  .rmc-studio-workspace--control .rmc-studio-workspace__rail {
+  /* Every Studio sub-rail (automation / output / launch / control) follows the
+     canvas as the long mode page scrolls — experience already had this; extending
+     it to the base rail fixes the "sub-sidebar doesn't scroll with the page" bug
+     across all non-experience modes at once. */
+  .rmc-studio-workspace__rail {
     position: sticky;
     top: 1rem;
   }

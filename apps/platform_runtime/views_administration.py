@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from urllib.parse import urlencode
+
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
@@ -638,16 +640,100 @@ def tenant_blueprint_setup(request):
 
 @login_required
 def tenant_pack_setup(request):
+    from django.core.paginator import Paginator
+
     school = getattr(request, "school", None)
     if school is None or not tenant_operator_hub_eligible(request.user):
         return HttpResponseForbidden("Tenant school configuration access required.")
-    packs = list_packs(tenant_safe_only=True)
-    selected_key = (request.POST.get("pack") or request.GET.get("pack") or packs[0]["key"]).strip()
-    pack_type = request.POST.get("pack_type") or request.GET.get("pack_type") or next((p["pack_type"] for p in packs if p["key"] == selected_key), "workflow_pack")
+
+    all_packs = list_packs(tenant_safe_only=True)
+    if not all_packs:
+        return HttpResponseForbidden("No tenant-safe packs are available.")
+
+    requested_key = (
+        request.POST.get("pack")
+        or request.GET.get("pack")
+        or all_packs[0]["key"]
+    ).strip()
+    requested_type = (
+        request.POST.get("pack_type") or request.GET.get("pack_type") or ""
+    ).strip()
+    selected_pack = next(
+        (
+            pack
+            for pack in all_packs
+            if pack["key"] == requested_key
+            and (not requested_type or pack["pack_type"] == requested_type)
+        ),
+        None,
+    )
+    if selected_pack is None:
+        selected_pack = next(
+            (pack for pack in all_packs if pack["key"] == requested_key),
+            all_packs[0],
+        )
+    selected_key = selected_pack["key"]
+    pack_type = selected_pack["pack_type"]
+
+    catalog_query = (request.GET.get("q") or "").strip()[:100]
+    allowed_catalog_types = {
+        "workflow_pack",
+        "dashboard_pack",
+        "policy_bundle",
+        "experience_template",
+    }
+    catalog_type = (request.GET.get("catalog_type") or "").strip()
+    if catalog_type not in allowed_catalog_types:
+        catalog_type = ""
+
+    normalized_query = catalog_query.casefold()
+    catalog_packs = []
+    for pack in all_packs:
+        if catalog_type and pack["pack_type"] != catalog_type:
+            continue
+        searchable = " ".join(
+            str(value or "")
+            for value in (
+                pack.get("name"),
+                pack.get("description"),
+                pack.get("key"),
+                pack.get("pack_type"),
+                " ".join(pack.get("target_roles") or ()),
+                " ".join(pack.get("aliases") or ()),
+            )
+        ).casefold()
+        if normalized_query and normalized_query not in searchable:
+            continue
+        catalog_packs.append(pack)
+
+    page_obj = Paginator(catalog_packs, 12).get_page(request.GET.get("page") or 1)
+    pagination_query = request.GET.copy()
+    pagination_query.pop("page", None)
+    catalog_filter_query = request.GET.copy()
+    for key in ("page", "pack", "pack_type", "preview", "simulate"):
+        catalog_filter_query.pop(key, None)
+
+    catalog_counts = {
+        pack_kind: sum(1 for pack in all_packs if pack["pack_type"] == pack_kind)
+        for pack_kind in allowed_catalog_types
+    }
+    approval_gated_total = sum(
+        1
+        for pack in all_packs
+        if pack["pack_type"] == "policy_bundle"
+        or pack.get("safety_level") in {"high", "critical"}
+        or pack.get("external_dependencies")
+    )
+
     preview = preview_pack(selected_key, pack_type=pack_type, school=school, actor=request.user, platform_operator=False, emit_audit=request.GET.get("preview") == "1")
     change_set = generate_pack_change_set(selected_key, pack_type=pack_type, school=school, actor=request.user, platform_operator=False)
     simulation = simulate_pack(selected_key, pack_type=pack_type, school=school, actor=request.user, platform_operator=False) if request.GET.get("simulate") == "1" else None
-    installations = PackInstallation.objects.filter(school=school).order_by("-created_at")[:25]
+    installation_qs = PackInstallation.objects.filter(school=school).order_by("-created_at")
+    installations = list(installation_qs[:25])
+    installed_total = installation_qs.count()
+    installed_active = installation_qs.filter(
+        status=PackInstallation.Status.APPLIED
+    ).count()
     result = None
     if request.method == "POST":
         if request.POST.get("installation_id") and request.POST.get("mode") in {"deactivate", "rollback"}:
@@ -682,9 +768,20 @@ def tenant_pack_setup(request):
         "platform_runtime/tenant_pack_setup.html",
         {
             "school": school,
-            "packs": packs,
+            "packs": page_obj.object_list,
+            "all_pack_count": len(all_packs),
+            "catalog_result_count": page_obj.paginator.count,
+            "catalog_query": catalog_query,
+            "catalog_type": catalog_type,
+            "catalog_counts": catalog_counts,
+            "catalog_filter_query": catalog_filter_query.urlencode(),
+            "page_obj": page_obj,
+            "pagination_extra_query": pagination_query.urlencode(),
+            "approval_gated_total": approval_gated_total,
             "selected_key": selected_key,
             "selected_pack_type": pack_type,
+            "selected_pack": selected_pack,
+            "selected_simulation_url": f"{request.path}?{urlencode({'pack': selected_key, 'pack_type': pack_type, 'simulate': '1'})}",
             "preview": preview,
             # Real per-tenant pack readiness (applyable / conflict-free /
             # dependencies resolved) — replaces the hardcoded "70" placeholder.
@@ -692,6 +789,8 @@ def tenant_pack_setup(request):
             "change_set": change_set,
             "simulation": simulation,
             "installations": installations,
+            "installed_total": installed_total,
+            "installed_active": installed_active,
             "result": result,
             "page_marker": "rmc-tenant-pack-setup",
             **tenant_pack_setup_frame_context(),

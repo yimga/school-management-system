@@ -209,10 +209,9 @@ def process_outbound_message_queue(self, school_id=None, limit=50) -> dict:
         ).update(status="retrying")
 
         # Atomic claim (audit P2 — concurrent beats/workers double-sent). Pick
-        # candidate ids, then flip them to "processing" with a status-guarded
-        # UPDATE: only ONE worker's UPDATE matches each row (the others see it
-        # already-processing → 0 rows), so each message is claimed exactly once.
-        # Works on SQLite + Postgres without select_for_update/skip_locked.
+        # candidate ids, then flip them to "processing" with a status-guarded UPDATE:
+        # only ONE runner's UPDATE matches each row (the others see it already-processing
+        # → 0 rows). Works on SQLite + Postgres without select_for_update/skip_locked.
         candidate_ids = list(
             OutboundMessageQueue.objects.filter(  # tenant-isolation-allow: celery-platform-comms-beat-iterates-active-schools
                 status__in=("pending", "retrying"),
@@ -222,13 +221,24 @@ def process_outbound_message_queue(self, school_id=None, limit=50) -> dict:
             .values_list("id", flat=True)[:limit]
         )
         if not candidate_ids:
-            return 0, 0
+            return {"sent": 0, "failed": 0, "processed": 0, "school_id": str(current_school_id)}
+        # Stamp the claim with a per-run marker (its exact claim time) and re-select the
+        # work set by that SAME stamp — NOT by the shared "processing" status. Two
+        # concurrent runners (beat + the periodic-registry cron, or the drain command
+        # beside a worker) each read a distinct now(); the status-guard means only ONE
+        # flips a given row, so only its own stamp matches on re-select → the other runner
+        # picks up ZERO of those rows. Re-selecting by status alone (the previous code)
+        # would let BOTH runners send the same row — an unconditional double-send for
+        # WhatsApp/Push, which carry no idempotency key. A bulk .update() bypasses the
+        # field's auto_now, so the stamp is explicit (and the stale-claim recovery above
+        # keys off the same updated_at).
+        claim_stamp = timezone.now()
         OutboundMessageQueue.objects.filter(  # tenant-isolation-allow: ids already school-scoped by the candidate query above
             id__in=candidate_ids, status__in=("pending", "retrying"),
-        ).update(status="processing")
+        ).update(status="processing", updated_at=claim_stamp)
         items = list(
             OutboundMessageQueue.objects.filter(  # tenant-isolation-allow: ids already school-scoped by the candidate query above
-                id__in=candidate_ids, status="processing"
+                id__in=candidate_ids, status="processing", updated_at=claim_stamp
             )
             .select_related("school")
             .order_by("created_at")
@@ -330,8 +340,15 @@ def process_outbound_message_queue(self, school_id=None, limit=50) -> dict:
         "processed": orphaned_failed,
         "schools_processed": 0,
     }
+    # Enumerate schools with ANY non-terminal work — not just "pending". A school whose
+    # only rows are stuck in "processing" (a dead worker) or "retrying" (a prior failed
+    # send, no newer message) would otherwise never be passed to _process_for_school, so
+    # its stale-claim recovery and retry-drain would never run — the dead-drainer bug one
+    # level up.
     school_ids = list(
-        OutboundMessageQueue.objects.filter(status="pending", school__isnull=False)  # tenant-isolation-allow: celery-platform-comms-beat-iterates-active-schools
+        OutboundMessageQueue.objects.filter(  # tenant-isolation-allow: celery-platform-comms-beat-iterates-active-schools
+            status__in=("pending", "retrying", "processing"), school__isnull=False
+        )
         .values_list("school_id", flat=True)
         .distinct()
     )

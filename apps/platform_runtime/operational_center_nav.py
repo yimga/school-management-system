@@ -672,10 +672,10 @@ def tenant_blueprint_setup_frame_context() -> dict[str, Any]:
 def tenant_pack_setup_frame_context() -> dict[str, Any]:
     return {
         "center_eyebrow": "School administrators",
-        "center_title": "Pack setup",
+        "center_title": "Shape how your school works",
         "center_purpose": (
-            "Preview, simulate, request approval, apply approved low-risk changes, deactivate, "
-            "and roll back tenant-safe packs."
+            "Choose tenant-safe workflows, dashboards, policies, and experiences. Preview every "
+            "change, simulate impact, and keep approval and rollback controls in one full-canvas workspace."
         ),
         "status_badge_text": "Tenant-safe",
         "operational_nav_groups": TENANT_PACK_NAV_GROUPS,

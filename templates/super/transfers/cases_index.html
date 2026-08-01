@@ -45,7 +45,7 @@
           <td>{{ case.target_school.name }}</td>
           <td style="font-family: monospace;">{{ case.domains|join:", " }}</td>
           <td style="font-family: monospace;">{{ case.target_bundle_id|default:"—" }}</td>
-          <td style="color: var(--text-secondary); max-width: 26ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{% with case.history|last as last_entry %}{{ last_entry.note|default:"" }}{% endwith %}">
+          <td style="color: var(--text-secondary); max-width: 26ch; overflow-wrap: anywhere;" title="{% with case.history|last as last_entry %}{{ last_entry.note|default:"" }}{% endwith %}">
             {% with case.history|last as last_entry %}{{ last_entry.note|default:last_entry.to|default:"—" }}{% endwith %}
           </td>
           <td>

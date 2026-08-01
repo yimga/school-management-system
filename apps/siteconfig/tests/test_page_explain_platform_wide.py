@@ -70,6 +70,34 @@ class PageExplainPlatformWideTests(SimpleTestCase):
         ctx = build_page_explain_context(req)
         self.assertFalse(ctx["rmc_page_explain_enabled"])
 
+    @mock.patch.object(pe, "build_field_manifest", return_value=[])
+    @mock.patch.object(pe, "_workflow_context", return_value=(None, []))
+    @mock.patch.object(pe, "resolve_route_help", return_value={})
+    def test_onboarding_checkpoint_route_suppresses_strip(self, *_):
+        # A focused onboarding/MFA checkpoint carries its own step trail; the shell
+        # "About this page" / Flow Thread strip (+ Flow Launchpad) must not stack on it.
+        for name in ("owner_onboarding_school", "owner_onboarding_mfa", "mfa_setup"):
+            req = self.rf.get("/authentication/onboarding/mfa/")
+            req.user = _AuthedUser()
+            req.resolver_match = mock.Mock(url_name=name)
+            ctx = build_page_explain_context(req)
+            self.assertFalse(
+                ctx["rmc_page_explain_enabled"],
+                f"{name} should suppress the page-explain strip",
+            )
+
+    @mock.patch.object(pe, "build_field_manifest", return_value=[])
+    @mock.patch.object(pe, "_workflow_context", return_value=(None, []))
+    @mock.patch.object(pe, "resolve_route_help", return_value={})
+    def test_ordinary_route_with_resolver_match_stays_enabled(self, *_):
+        # Suppression is scoped to the allowlist only — a normal authenticated page
+        # that happens to carry a resolver_match still shows the strip.
+        req = self.rf.get("/finance/invoices/")
+        req.user = _AuthedUser()
+        req.resolver_match = mock.Mock(url_name="finance_invoices")
+        ctx = build_page_explain_context(req)
+        self.assertTrue(ctx["rmc_page_explain_enabled"])
+
     def test_fallback_skips_numeric_and_action_segments(self):
         req = self.rf.get("/admin/finance/notification/123/change/")
         self.assertEqual(_fallback_page_title(req), "Notification")

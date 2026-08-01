@@ -101,6 +101,10 @@ _ERR_OTHER = "other"
 # dispatch (audit finding C2). A dropped daemon thread / un-drained Celery
 # task therefore leaves a visible row instead of vanishing silently.
 _ERR_QUEUED = "queued"
+# Marker for a send PARKED in the offline queue (sovereign/edge box). Like _ERR_QUEUED
+# it is an intentional non-failure — it MUST be in the stats sentinel sets, else an
+# offline box (where every send is parked) shows a ~100% delivery-failure rate.
+_ERR_OFFLINE_QUEUED = "offline_queued"
 
 # v3.58.x Wave 9 Agent M — bounce taxonomy labels persisted to
 # EmailDeliveryEvent.bounce_kind. Send-time labels prefix-free; webhook-
@@ -916,11 +920,36 @@ def lift_suppression(to: str) -> bool:
 _DEFAULT_DLQ_MAX_REDRIVES = 5
 
 
+def _offline_email_queue_enabled() -> bool:
+    """True when outbound email must be PARKED in the durable queue instead of
+    attempted inline — the sovereign / offline edge box, which may have no SMTP
+    path at all or only intermittent connectivity.
+
+    On such a box the default ``console.EmailBackend`` reports a *false* success
+    (it writes to stdout and drops the mail), so a signup / reset / alert is lost
+    silently. When this returns True, :func:`send_transactional` parks the full
+    payload in :class:`EmailDeadLetter` (pending) and the box drains it with
+    ``manage.py redrive_email_dead_letters`` (or ``drain_edge_outbox``) once it is
+    online again.
+
+    Explicit ``settings.RMC_EMAIL_OFFLINE_QUEUE`` wins; otherwise it defaults ON
+    for the ``edge`` deployment profile and OFF everywhere else, so the cloud
+    (``online`` profile) is never affected.
+    """
+    raw = getattr(settings, "RMC_EMAIL_OFFLINE_QUEUE", None)
+    if raw is not None:
+        return _coerce_to_bool(raw, False)
+    profile = str(getattr(settings, "RMC_DEPLOYMENT_PROFILE", "") or "").strip().lower()
+    return profile == "edge"
+
+
 def _dlq_enabled() -> bool:
-    """True when the operator has opted into the dead-letter queue."""
+    """True when the durable email queue is active — the operator opted into the
+    dead-letter queue, OR the offline-email queue is on (the edge box parks every
+    send, so its storage + redrive path must be live coherently)."""
     return _coerce_to_bool(
         getattr(settings, "SCHOOLOPS_EMAIL_DLQ_ENABLED", False), False,
-    )
+    ) or _offline_email_queue_enabled()
 
 
 def _dlq_max_redrives() -> int:
@@ -979,7 +1008,7 @@ def _maybe_enqueue_dead_letter(
             json.dumps(payload, ensure_ascii=False).encode("utf-8")
         ).decode("utf-8")
         # tenant-isolation-allow: platform-email-dead-letter-no-tenant-scope
-        EmailDeadLetter.objects.create(
+        row = EmailDeadLetter.objects.create(
             to_hash=to_hash,
             subject_prefix=subject_prefix,
             priority=priority,
@@ -992,11 +1021,15 @@ def _maybe_enqueue_dead_letter(
             "schoolops.email_delivery.dead_letter_enqueued to_hash=%s error_kind=%s",
             to_hash, error_kind,
         )
+        # Truthy success signal so the offline-queue caller can tell a real park from a
+        # swallowed failure (Fernet/DB) and NOT claim "queued" when nothing persisted.
+        return getattr(row, "id", True)
     except Exception as exc:  # broad-by-design — DLQ enqueue never breaks a send
         logger.warning(
             "schoolops.email_delivery.dead_letter_enqueue_failed err_type=%s",
             type(exc).__name__,
         )
+    return None
 
 
 def redrive_dead_letters(limit: int = 50) -> dict:
@@ -1093,6 +1126,11 @@ def redrive_dead_letters(limit: int = 50) -> dict:
             priority=payload.get("priority") or "transactional",
             school=school,
             idempotency_key=f"{base_idem}:redrive:{attempt_no}",
+            # The drain must actually ATTEMPT delivery (not re-park to the offline
+            # queue) and must not spawn a second DLQ row on failure — this loop
+            # already owns the row's status/redrive_count.
+            allow_offline_queue=False,
+            suppress_dead_letter=True,
         )
         row.redrive_count = attempt_no
         if result.get("ok"):
@@ -1153,6 +1191,7 @@ def _send_transactional_sync_core(
     school=None,
     idempotency_key: str = "",
     attachments: Optional[list] = None,
+    suppress_dead_letter: bool = False,
 ) -> dict:
     """Internal synchronous send implementation.
 
@@ -1446,7 +1485,11 @@ def _send_transactional_sync_core(
     # the full payload (encrypted) so an operator can redrive it once the relay
     # recovers. Opt-in via SCHOOLOPS_EMAIL_DLQ_ENABLED (default off) so we never
     # store message bodies unless the operator wants the DLQ.
-    if (not ok) and (not bounced_flag) and last_exc_kind not in (
+    # ``suppress_dead_letter`` is set by the redrive worker: it already owns the
+    # parked row's lifecycle, so re-parking a fresh row on a repeated failure would
+    # AMPLIFY the queue (one new pending row per failed redrive) — catastrophic on
+    # a long-offline edge box. The redrive loop marks the original row instead.
+    if (not suppress_dead_letter) and (not ok) and (not bounced_flag) and last_exc_kind not in (
         _ERR_HEADER_INJECTION, _ERR_SUPPRESSED, _ERR_RATE_LIMIT, _ERR_QUEUED,
     ):
         _maybe_enqueue_dead_letter(
@@ -1546,6 +1589,8 @@ def send_transactional(
     idempotency_key: str = "",
     allow_suppressed: bool = False,
     attachments: Optional[list] = None,
+    allow_offline_queue: bool = True,
+    suppress_dead_letter: bool = False,
 ) -> dict:
     """Send a transactional message with retries + audit logging.
 
@@ -1694,6 +1739,84 @@ def send_transactional(
                 "bounce_kind": "",
             }
 
+    # ── Offline email queue (sovereign / edge box) ──────────────────────
+    # When the box may be offline or has no SMTP path, PARK the message durably
+    # instead of dropping it to the console backend (which reports a false
+    # success) or blocking on an unreachable SMTP host. The edge cron drains it
+    # via `redrive_email_dead_letters` / `drain_edge_outbox` when connectivity
+    # returns; redrive calls back with `allow_offline_queue=False` (and
+    # `suppress_dead_letter=True`) so the drain actually attempts delivery instead
+    # of re-parking. Placed AFTER the suppression + rate-limit gates so a
+    # suppressed / throttled recipient is never queued. No-op on the cloud
+    # (`_offline_email_queue_enabled()` is False for the `online` profile), so the
+    # normal send path is completely unchanged there.
+    if allow_offline_queue and _offline_email_queue_enabled():
+        to_list_off = _coerce_to_list(to)
+        to_hash_off = _hash_recipient(to_list_off[0]) if to_list_off else ""
+        subject_prefix_off = _redact_subject_for_log(subject or "")
+        parked = _maybe_enqueue_dead_letter(
+            subject=subject,
+            body=body,
+            to=to_list_off,
+            html_body=html_body,
+            reply_to=reply_to,
+            from_email=from_email,
+            headers=headers,
+            priority=priority,
+            school=school,
+            idempotency_key=idem,
+            to_hash=to_hash_off,
+            subject_prefix=subject_prefix_off,
+            error_kind=_ERR_OFFLINE_QUEUED,
+            attempts=0,
+            delivery_event_id=None,
+        )
+        if not parked:
+            # The durable park itself failed (e.g. Fernet/DB) — do NOT report "queued"
+            # (that would re-introduce the silent drop this feature exists to prevent).
+            # Surface an honest failure; the caller's fail_silently handling applies.
+            logger.error(
+                "schoolops.email_delivery.offline_queue_park_failed to_hash=%s priority=%s",
+                to_hash_off, priority,
+            )
+            return {
+                "ok": False,
+                "queued": False,
+                "offline_queued": False,
+                "attempts": 0,
+                "delivery_event_id": None,
+                "error_kind": "offline_queue_failed",
+                "bounced": False,
+                "bounce_kind": "",
+            }
+        # Record a queued marker on the delivery log: (a) it dedups a re-send with the
+        # same idempotency_key against the top-of-function check (no duplicate park →
+        # no duplicate delivery on drain), and (b) it makes offline-queued mail visible
+        # on the health dashboard instead of silently absent.
+        offline_event_id = _persist_event(
+            to_hash=to_hash_off,
+            subject_prefix=subject_prefix_off,
+            priority=priority,
+            attempts=0,
+            ok=False,
+            error_kind=_ERR_OFFLINE_QUEUED,
+            idempotency_key=idempotency_key,
+        )
+        logger.info(
+            "schoolops.email_delivery.offline_queued to_hash=%s priority=%s event_id=%s",
+            to_hash_off, priority, offline_event_id or "n/a",
+        )
+        return {
+            "ok": False,
+            "queued": True,
+            "offline_queued": True,
+            "attempts": 0,
+            "delivery_event_id": offline_event_id,
+            "error_kind": _ERR_OFFLINE_QUEUED,
+            "bounced": False,
+            "bounce_kind": "",
+        }
+
     if async_send:
         # Audit C2 — write a synchronous "queued" marker row BEFORE we hand
         # off. If the daemon thread dies on a worker restart (the live
@@ -1794,6 +1917,7 @@ def send_transactional(
         school=school,
         idempotency_key=idempotency_key,
         attachments=attachments,
+        suppress_dead_letter=suppress_dead_letter,
     )
 
 
@@ -2031,7 +2155,7 @@ def get_recent_delivery_stats(window_hours: int = 24) -> dict:
         # Intentional-non-send sentinels are reported separately so the
         # genuine-failure count is not polluted by queued markers (C2),
         # suppression skips (H3), or rate-limit rejections.
-        _sentinels = (_ERR_QUEUED, _ERR_SUPPRESSED, _ERR_RATE_LIMIT)
+        _sentinels = (_ERR_QUEUED, _ERR_OFFLINE_QUEUED, _ERR_SUPPRESSED, _ERR_RATE_LIMIT)
         # tenant-isolation-allow: platform-email-delivery-log-no-tenant-scope
         qs = EmailDeliveryEvent.objects.filter(created_at__gte=cutoff)
         out["sent_count"] = qs.filter(ok=True).count()
@@ -2039,6 +2163,7 @@ def get_recent_delivery_stats(window_hours: int = 24) -> dict:
             error_kind__in=_sentinels
         ).count()
         out["queued_count"] = qs.filter(error_kind=_ERR_QUEUED).count()
+        out["offline_queued_count"] = qs.filter(error_kind=_ERR_OFFLINE_QUEUED).count()
         out["suppressed_count"] = qs.filter(error_kind=_ERR_SUPPRESSED).count()
         out["rate_limited_count"] = qs.filter(error_kind=_ERR_RATE_LIMIT).count()
         # Stuck = a queued marker older than the stuck threshold (default
@@ -2095,7 +2220,7 @@ def get_recent_failures(limit: int = 5) -> list[dict]:
         # tenant-isolation-allow: platform-email-delivery-log-no-tenant-scope
         rows = (
             EmailDeliveryEvent.objects.filter(ok=False)
-            .exclude(error_kind__in=(_ERR_QUEUED, _ERR_SUPPRESSED, _ERR_RATE_LIMIT))
+            .exclude(error_kind__in=(_ERR_QUEUED, _ERR_OFFLINE_QUEUED, _ERR_SUPPRESSED, _ERR_RATE_LIMIT))
             .order_by("-created_at")[: max(1, int(limit))]
         )
         for r in rows:

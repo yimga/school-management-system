@@ -39,6 +39,34 @@ class TenantPackSetupTests(TestCase):
         body = response.content.decode("utf-8", errors="replace")
         self.assertIn("Pack setup", body)
         self.assertIn("Attendance Recovery", body)
+        self.assertIn('data-rmc-full-canvas-catalog="tenant-pack"', body)
+        self.assertIn('data-rmc-pack-inspector="1"', body)
+        self.assertEqual(body.count('data-world-class-tenant-card="1"'), 12)
+
+    def test_catalog_search_and_type_filter_are_server_side_and_paginated(self):
+        client = self._admin_client()
+
+        response = client.get(
+            "/school/setup/packs/?q=attendance+recovery&catalog_type=workflow_pack"
+        )
+
+        self.assertEqual(response.status_code, 200, msg=response.content[:500])
+        body = response.content.decode("utf-8", errors="replace")
+        self.assertIn("Attendance Recovery", body)
+        self.assertIn('value="attendance recovery"', body)
+        self.assertLessEqual(body.count('data-world-class-tenant-card="1"'), 12)
+
+    def test_invalid_pack_selection_falls_back_to_tenant_safe_catalog(self):
+        client = self._admin_client()
+
+        response = client.get(
+            "/school/setup/packs/?pack=operator-only-injection&pack_type=policy_bundle"
+        )
+
+        self.assertEqual(response.status_code, 200, msg=response.content[:500])
+        body = response.content.decode("utf-8", errors="replace")
+        self.assertNotIn('value="operator-only-injection"', body)
+        self.assertIn('data-rmc-genuine-pack-action="1"', body)
 
     def test_tenant_apply_only_affects_own_school(self):
         client = self._admin_client()
