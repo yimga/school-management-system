@@ -33,9 +33,24 @@ def school_not_found(request):
     processor stack, and one of those processors can raise for an anonymous /
     unmatched-path hit (the bug that made /sw-manifest.json and /offline/ return
     500 on tenant subdomains). Fall back to a self-contained 404 on any failure.
+
+    A tenant whose host RESOLVED (``request.school`` is set) but hit an unmatched
+    path is a page-level 404 on a LIVE campus — it must NOT show the "this school
+    hasn't joined RunMyCampus yet" copy, which wrongly tells the owner of a fully
+    provisioned school that their campus does not exist (e.g. ``/academics/`` has
+    no root landing route, so a valid owner visiting it saw "Campus Not Found").
+    The genuinely-unknown-subdomain and pending-provisioning cases are handled
+    upstream in tenant resolution (``_response_for_unknown_tenant_host``) before
+    routing ever reaches this handler.
     """
+    context: dict = {}
+    school = getattr(request, "school", None)
+    pending = bool(getattr(request, "tenant_provisioning_pending", False))
+    if school is not None and not pending:
+        context["campus_page_missing"] = True
+        context["school"] = school
     try:
-        return render(request, "schools/404_tenant.html", status=404)
+        return render(request, "schools/404_tenant.html", context, status=404)
     except Exception:
         logger.warning(
             "school_not_found: branded 404 render failed; serving static 404",

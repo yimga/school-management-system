@@ -375,14 +375,24 @@ def _build_operational_hubs_context(request: HttpRequest) -> list[dict[str, Any]
     return hubs
 
 
-# Honor SUPERUSERS as well as staff — `staff_member_required` alone bounces a
-# superadmin whose account isn't flagged is_staff (they got 502/Forbidden here),
-# inconsistent with every sibling config view (backend_dashboard, cockpit configure,
-# user_may_configure_tenant_experience all allow is_staff OR is_superuser).
-@user_passes_test(
-    lambda u: u.is_active and (u.is_staff or u.is_superuser),
-    login_url=settings.LOGIN_URL,
-)
+# Tenant config console access. Gating on is_staff/is_superuser alone bounced the
+# school's OWN owner/admins whose account is not flagged is_staff (self-serve owners,
+# ADMIN-role accounts) back to /authentication/login/. Because login_view does not
+# short-circuit an already-authenticated user, that 302 silently re-renders the login
+# page — the "entered correct credentials, page reloaded, still not logged in" loop,
+# e.g. logging in with ?next=/siteconfig/console/. This surface is within the tenant's
+# OWN subscription, so it uses the canonical tenant-operator eligibility (is_superuser /
+# settings.manage / ADMIN-like role / is_staff) — the same gate as /school/settings/
+# (school_configuration_center) — instead of a staff-only check that excludes owners.
+def _console_hub_access(user) -> bool:
+    if not getattr(user, "is_active", False):
+        return False
+    from apps.accounts.permissions import tenant_operator_hub_eligible
+
+    return bool(tenant_operator_hub_eligible(user))
+
+
+@user_passes_test(_console_hub_access, login_url=settings.LOGIN_URL)
 def console_domains_hub(request: HttpRequest) -> HttpResponse:
     """Single bounded console: operational hubs + configuration domains + (manager) platform config + operational links. Backoffice merged here; one UI."""
     domains = _build_console_domains_context(request)
