@@ -1,0 +1,75 @@
+templates/accounts/certification_bulk_add_candidates.html:87 <caption> Preview (first                               students)
+templates/accounts/certification_bulk_add_candidates.html:84 <h5> Preview (first                               students)
+templates/accounts/certification_bulk_add_candidates.html:63 <label> Include inactive
+templates/accounts/messages.html:89 <a> Department            
+                                                      Class            
+                                                 Role            
+                     
+                                                                                   
+                     Updated:                                   ago
+templates/accounts/messages.html:32 <a> Direct
+templates/accounts/messages.html:39 <a> Groups
+templates/accounts/messages.html:59 <a> ago
+templates/accounts/profile.html:310 <a> Admin Panel
+templates/communication/group_manage.html:19 <h4> Manage Group:
+templates/components/quick_actions.html:53 <a> Add                                      
+           New enrollment
+templates/components/quick_actions.html:60 <a> Add                                      
+           New staff member
+templates/components/quick_actions.html:8 <h5> Next Best Actions          Quick Actions
+templates/evals/audit_trail.html:33 <h6> Created 
+                                                                                     
+                                                 Updated 
+                                                                                       
+                                                 Validated 
+                                                                                            
+                                                 Offline Sync
+templates/evals/compliance_dashboard.html:23 <h1> Grading Compliance Dashboard
+templates/evals/import_job_monitor.html:98 <h5> Job #            
+                                                                       
+                                         
+                                               Processing
+                                         
+                                                                        
+                                         ✓ Completed 
+                                              
+                                         ✗ Failed
+templates/feedback/role_center.html:11 <h1> Feedback
+templates/feedback/school_roadmap.html:27 <button> Vote up          Sign in to vote
+templates/finance/generate_fees.html:9 <h1> Generate Fee
+templates/migration_cloud/attach_source.html:83 <label> Google Drive 
+           OneDrive 
+           Dropbox
+templates/portal/document_upload.html:151 <button> Update          Upload            Document
+templates/portal/document_upload.html:16 <h1> Edit          Upload            Document
+templates/portal/email/help_north_star_report.html:47 <h1> Help North Star (                  days)
+templates/portal/faq_list.html:24 <a> All FAQs
+templates/portal/faq_list.html:99 <h2> Featured
+templates/portal/feature_disabled.html:11 <h1> Disabled
+templates/portal/kb_category.html:121 <h5> Featured
+templates/portal/kb_home.html:79 <a> Featured 
+                     
+                                                            
+                                                          min read
+templates/portal/kb_home.html:104 <a> articles 
+                        Browse
+templates/portal/kb_home.html:147 <a> views ·                         min
+templates/portal/roll_call_student.html:33 <option> -- Select                          --
+templates/sales/lead_create.html:38 <label> (staff)
+templates/sales/lead_detail.html:27 <label> (ISO or YYYY-MM-DD)
+templates/sales/lead_detail.html:35 <label> (staff)
+templates/schools/mat_group_hub/edit.html:91 <button> Add group          Save changes
+templates/siteconfig/bulk_letters.html:67 <option> (                    ) —                          student
+templates/siteconfig/customizer.html:65 <a> Currently applied
+                              
+                      Apply pack in Site Settings
+templates/student/onboarding_wizard.html:297 <button> Complete Registration   
+                    
+            Continue
+templates/super/sso/bindings_index.html:24 <label> oidc 
+         saml 
+         manual
+templates/teacher/onboarding_wizard.html:217 <button> Complete Setup   
+                    
+            Continue
+templates/unfold/helpers/empty_results.html:32 <a> filter_list_off

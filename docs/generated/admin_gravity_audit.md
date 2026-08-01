@@ -1,19 +1,19 @@
 # Admin gravity audit (generated)
 
-**UTC** `2026-05-23T00:35:16.804600+00:00`  
+**UTC** `2026-07-31T19:21:30.691579+00:00`  
 
 | Metric | Value |
 | --- | --- |
-| approx `admin.site.register` calls | 0 |
-| custom admin template files | 74 |
-| product files w/ admin bridge hints | 68 |
+| approx `admin.site.register` calls | 3 |
+| custom admin template files | 88 |
+| product files w/ admin bridge hints | 76 |
 | product files w/ `admin:metadata` references | 6 |
-| approx product `admin.` reference lines (non-migration) | 610 |
+| approx product `admin.` reference lines (non-migration) | 749 |
 | product views rendering `admin/*.html` | 0 |
 
 ## High-registration apps (3+ register calls, heuristic)
 
-_None (threshold not met)._
+- **governance** — Many admin registrations; prefer product/control-plane surfaces for operator flows when available.
 
 ## Control-plane replacement roadmap (repo-backed)
 

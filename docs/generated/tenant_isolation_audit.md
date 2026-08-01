@@ -1,12 +1,12 @@
 # Tenant isolation audit (generated)
 
-**UTC** `2026-07-13T14:53:02.302227+00:00`
+**UTC** `2026-07-31T17:47:36.515918+00:00`
 
-**Total hits (capped in JSON):** 8532
+**Total hits (capped in JSON):** 9345
 
 | Classification | Count |
 | --- | --- |
-| global_safe | 164 |
-| manager_scoped | 974 |
-| needs_review | 453 |
-| tenant_scoped | 6941 |
+| global_safe | 165 |
+| manager_scoped | 1043 |
+| needs_review | 532 |
+| tenant_scoped | 7605 |

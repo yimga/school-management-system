@@ -7,7 +7,7 @@
     "apps/portal/support_ai_context.py",
     "ai/Modelfile"
   ],
-  "app_count": 45,
+  "app_count": 54,
   "apps": [
     {
       "app_label": "academics",
@@ -18,16 +18,36 @@
       "path": "apps/accounts/"
     },
     {
+      "app_label": "admissions",
+      "path": "apps/admissions/"
+    },
+    {
       "app_label": "analytics",
       "path": "apps/analytics/"
+    },
+    {
+      "app_label": "api",
+      "path": "apps/api/"
     },
     {
       "app_label": "apicenter",
       "path": "apps/apicenter/"
     },
     {
+      "app_label": "assist_dock",
+      "path": "apps/assist_dock/"
+    },
+    {
+      "app_label": "athletics",
+      "path": "apps/athletics/"
+    },
+    {
       "app_label": "automation",
       "path": "apps/automation/"
+    },
+    {
+      "app_label": "billing",
+      "path": "apps/billing/"
     },
     {
       "app_label": "brand_experience",
@@ -74,8 +94,16 @@
       "path": "apps/global_registries/"
     },
     {
+      "app_label": "governance",
+      "path": "apps/governance/"
+    },
+    {
       "app_label": "integrations_marketplace",
       "path": "apps/integrations_marketplace/"
+    },
+    {
+      "app_label": "lifecycle",
+      "path": "apps/lifecycle/"
     },
     {
       "app_label": "marketplace",
@@ -146,6 +174,10 @@
       "path": "apps/runtime_blueprints/"
     },
     {
+      "app_label": "safeguarding",
+      "path": "apps/safeguarding/"
+    },
+    {
       "app_label": "sales",
       "path": "apps/sales/"
     },
@@ -176,24 +208,15 @@
     {
       "app_label": "social_media",
       "path": "apps/social_media/"
-    },
-    {
-      "app_label": "studio_os",
-      "path": "apps/studio_os/"
-    },
-    {
-      "app_label": "sync_engine",
-      "path": "apps/sync_engine/"
-    },
-    {
-      "app_label": "tenancy",
-      "path": "apps/tenancy/"
     }
   ],
-  "generated_at": "2026-05-21T00:12:18.351622+00:00",
+  "generated_at": "2026-07-31T19:17:28.482230+00:00",
   "generated_proof_artifacts": [
     "academic_operations_certification.json",
     "academic_operations_workflow_audit.json",
+    "academic_year_lifecycle_completion_audit.json",
+    "accessibility_matrix_audit.json",
+    "account_profile_layout_balance_audit.json",
     "admin_changelist_render_audit.json",
     "admin_config_browser_qa_report.json",
     "admin_config_domain_implementation_matrix.json",
@@ -207,21 +230,29 @@
     "admin_playwright_sweep_audit.json",
     "admin_usage_extended_audit.json",
     "administration_surface_map.json",
+    "adversarial_redteam_audit.json",
     "agent5_migration_pillar_second_pass_audit.json",
     "aggressive_stage_execution_readiness.json",
+    "ai_auto_migration_pipeline_audit.json",
     "ai_automation_api_engine_room_certification.json",
     "ai_center_api_contracts.json",
     "ai_center_audit_observability.json",
     "ai_center_friction_analysis.json",
+    "ai_center_friction_analysis_A4_observation.json",
     "ai_center_indexing_contract.json",
     "ai_center_modelfile_audit.json",
     "ai_center_platform_inventory.json",
+    "ai_cloud_direction_certification.json",
     "ai_infrastructure_audit_first_teardown.json",
+    "ai_policy_copilot_audit.json",
+    "ai_safety_gap_closure.json",
     "ai_tenant_studio_audit_first_inventory.json",
     "ai_tenant_studio_change_decision_matrix.json",
     "ai_tenant_studio_final_certification.json",
     "ai_tenant_studio_integration_audit.json",
     "ai_tenant_studio_second_pass_challenge.json",
+    "ai_workflow_assistant_audit.json",
+    "allowany_targeted_review.json",
     "analytics_viz_audit.json",
     "analytics_viz_full_completion.json",
     "analytics_viz_gear_up_completion.json",
@@ -229,19 +260,8 @@
     "api_ai_center_discovery.json",
     "api_automation_integration_certification.json",
     "api_center_open_usable_audit.json",
-    "apple_class_authenticated_browser_report.json",
-    "apple_class_component_coverage.json",
-    "apple_class_ux_browser_report.json",
-    "architecture_certification_scorecard.json",
-    "blueprint_marketplace_depth_discovery.json",
-    "category_scope_review.json",
-    "certifier_failure_triage.json",
-    "code_support_index.json",
-    "compliance_evidence_ledger.json",
-    "config_policy_entitlement_certification.json",
-    "control_plane_sweep_routes.json",
-    "control_plane_template_layout_audit.json",
-    "core_runtime_certification.json"
+    "api_center_open_usable_audit_A4_observation.json",
+    "apple_class_authenticated_browser_report.json"
   ],
   "metadata_only": true,
   "pii_free": true,
@@ -249,11 +269,59 @@
   "url_pattern_sample": [
     {
       "file": "config/urls.py",
+      "pattern": "status/"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "status/feed.xml"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "status/subscribe/"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "status/verify/<str:token>/"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "status/unsubscribe/<str:token>/"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "status/history/"
+    },
+    {
+      "file": "config/urls.py",
       "pattern": "v2/"
     },
     {
       "file": "config/urls.py",
+      "pattern": "experience/threshold-era/"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "storefront/"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "experience/<slug:personality_slug>/"
+    },
+    {
+      "file": "config/urls.py",
       "pattern": "offline/"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "sw.js"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "sw-reset/"
+    },
+    {
+      "file": "config/urls.py",
+      "pattern": "billing/embedded-checkout/"
     },
     {
       "file": "config/urls.py",
@@ -325,6 +393,10 @@
     },
     {
       "file": "config/urls.py",
+      "pattern": "admin/<path:remaining>"
+    },
+    {
+      "file": "config/urls.py",
       "pattern": "api/schema/"
     },
     {
@@ -369,6 +441,10 @@
     },
     {
       "file": "config/urls.py",
+      "pattern": "ws/wal/"
+    },
+    {
+      "file": "config/urls.py",
       "pattern": "ready/"
     },
     {
@@ -390,62 +466,6 @@
     {
       "file": "config/urls.py",
       "pattern": "api/observability/slo-dashboard/"
-    },
-    {
-      "file": "config/urls.py",
-      "pattern": "api/observability/runtime-inspect/"
-    },
-    {
-      "file": "config/urls.py",
-      "pattern": "api/observability/friction/"
-    },
-    {
-      "file": "config/urls.py",
-      "pattern": "admin/dashboard/"
-    },
-    {
-      "file": "config/urls.py",
-      "pattern": "api/health/"
-    },
-    {
-      "file": "config/urls.py",
-      "pattern": "api/admin/weather/"
-    },
-    {
-      "file": "config/urls.py",
-      "pattern": "api/weather/context/"
-    },
-    {
-      "file": "config/urls.py",
-      "pattern": "api/notifications/"
-    },
-    {
-      "file": "config/urls.py",
-      "pattern": "api/notifications/mark-all-read/"
-    },
-    {
-      "file": "config/urls.py",
-      "pattern": "api/activities/"
-    },
-    {
-      "file": "config/urls.py",
-      "pattern": "api/dashboard/charts/"
-    },
-    {
-      "file": "config/urls.py",
-      "pattern": "api/ai-copilot/validate/"
-    },
-    {
-      "file": "config/urls.py",
-      "pattern": "api/ai-copilot/permissions/"
-    },
-    {
-      "file": "config/urls.py",
-      "pattern": "api/ai-copilot/limits/"
-    },
-    {
-      "file": "config/urls.py",
-      "pattern": "api/ai-copilot/config/"
     }
   ]
 }

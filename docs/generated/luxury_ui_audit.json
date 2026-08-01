@@ -50,11 +50,11 @@
       ]
     }
   },
-  "generated_at": "2026-07-19T09:30:06.282547+00:00",
+  "generated_at": "2026-07-31T17:52:14.244405+00:00",
   "high_impact_templates_total": 273,
   "inline_styles": {
-    "count": 49,
-    "needs_review_count": 49,
+    "count": 48,
+    "needs_review_count": 48,
     "needs_review_paths": [
       "templates/accounts/backend_dashboard.html",
       "templates/marketplace/tenant_app_catalog.html",
@@ -70,7 +70,6 @@
       "templates/reports/term_report_cameroon.html",
       "templates/reports/term_report_cameroon_modern.html",
       "templates/sales/pipeline_board.html",
-      "templates/schools/billing_dashboard.html",
       "templates/siteconfig/bulk_letters.html",
       "templates/siteconfig/feature_control_panel_content.html",
       "templates/siteconfig/installed_packages_rollback.html",
@@ -356,11 +355,12 @@
       "templates/schools/billing_dashboard.html"
     ],
     "header_violations": [
+      "templates/schools/billing_dashboard.html",
       "templates/teacher/dashboard.html",
       "templates/parent/dashboard.html"
     ],
     "missing_action_bars": 1,
-    "missing_headers": 2,
+    "missing_headers": 3,
     "rows": [
       {
         "action_bar": true,
@@ -377,7 +377,7 @@
       {
         "action_bar": false,
         "exists": true,
-        "header": true,
+        "header": false,
         "path": "templates/schools/billing_dashboard.html"
       },
       {
@@ -842,8 +842,8 @@
       ]
     },
     "inline_style_cleanup": {
-      "count": 49,
-      "needs_review_count": 49,
+      "count": 48,
+      "needs_review_count": 48,
       "needs_review_paths": [
         "templates/accounts/backend_dashboard.html",
         "templates/marketplace/tenant_app_catalog.html",
@@ -859,7 +859,6 @@
         "templates/reports/term_report_cameroon.html",
         "templates/reports/term_report_cameroon_modern.html",
         "templates/sales/pipeline_board.html",
-        "templates/schools/billing_dashboard.html",
         "templates/siteconfig/bulk_letters.html",
         "templates/siteconfig/feature_control_panel_content.html",
         "templates/siteconfig/installed_packages_rollback.html",
@@ -969,11 +968,12 @@
         "templates/schools/billing_dashboard.html"
       ],
       "header_violations": [
+        "templates/schools/billing_dashboard.html",
         "templates/teacher/dashboard.html",
         "templates/parent/dashboard.html"
       ],
       "missing_action_bars": 1,
-      "missing_headers": 2,
+      "missing_headers": 3,
       "rows": [
         {
           "action_bar": true,
@@ -990,7 +990,7 @@
         {
           "action_bar": false,
           "exists": true,
-          "header": true,
+          "header": false,
           "path": "templates/schools/billing_dashboard.html"
         },
         {

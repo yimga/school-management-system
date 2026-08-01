@@ -1,7 +1,7 @@
 # AI Center platform inventory (metadata-only)
 
-**Generated:** 2026-05-21T00:12:18.351622+00:00
-**Apps:** 45
+**Generated:** 2026-07-31T19:17:28.482230+00:00
+**Apps:** 54
 
 This inventory contains **no secrets, credentials, or tenant-private records**.
 
@@ -16,8 +16,20 @@ This inventory contains **no secrets, credentials, or tenant-private records**.
 
 ## Sample URL patterns
 
+- `status/` (config/urls.py)
+- `status/feed.xml` (config/urls.py)
+- `status/subscribe/` (config/urls.py)
+- `status/verify/<str:token>/` (config/urls.py)
+- `status/unsubscribe/<str:token>/` (config/urls.py)
+- `status/history/` (config/urls.py)
 - `v2/` (config/urls.py)
+- `experience/threshold-era/` (config/urls.py)
+- `storefront/` (config/urls.py)
+- `experience/<slug:personality_slug>/` (config/urls.py)
 - `offline/` (config/urls.py)
+- `sw.js` (config/urls.py)
+- `sw-reset/` (config/urls.py)
+- `billing/embedded-checkout/` (config/urls.py)
 - `sw-asset-manifest.json` (config/urls.py)
 - `manifest.json` (config/urls.py)
 - `manifest-portal.json` (config/urls.py)
@@ -34,15 +46,3 @@ This inventory contains **no secrets, credentials, or tenant-private records**.
 - `internal-admin/` (config/urls.py)
 - `internal-admin/<path:remaining>` (config/urls.py)
 - `admin/siteconfig/customizer/` (config/urls.py)
-- `admin/` (config/urls.py)
-- `api/schema/` (config/urls.py)
-- `api/schema/ui/` (config/urls.py)
-- `api/openapi.json` (config/urls.py)
-- `api/openapi.yaml` (config/urls.py)
-- `api/docs/` (config/urls.py)
-- `api/redoc/` (config/urls.py)
-- `graphql/` (config/urls.py)
-- `backend/` (config/urls.py)
-- `healthz/` (config/urls.py)
-- `api/csrf-token/` (config/urls.py)
-- `health/` (config/urls.py)

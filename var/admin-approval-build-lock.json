@@ -1,7 +1,7 @@
 {
   "build_id": "2026-07-24-v15.8",
   "cache_bust": "20260724-admin-os-v158",
-  "sw_version": "sms-v4.06.22-tenant-logo-favicon-menu-mc-2026-07-29",
+  "sw_version": "sms-v4.06.23-admin-footer-ui-cache-refresh-2026-07-31",
   "seal": "2026-07-24-admin-os-v158",
   "approval_previews": [
     "var/design-previews/django-admin-os-top-tier-approval-v15-2026-07-21.html",

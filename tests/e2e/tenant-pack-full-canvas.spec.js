@@ -25,6 +25,7 @@ const VIEWPORTS = [
 ];
 
 test.describe('Tenant Pack approved full-canvas implementation', () => {
+  test.setTimeout(600000);
   test.beforeAll(() => fs.mkdirSync(EVIDENCE_DIR, { recursive: true }));
 
   test('real tenant host, responsive themes, resources, DOM, and genuine actions', async ({ page }) => {

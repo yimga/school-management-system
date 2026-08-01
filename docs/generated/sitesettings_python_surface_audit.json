@@ -1,12 +1,12 @@
 {
   "schema_version": 2,
-  "generated_at": "2026-07-19T09:30:23.136142+00:00",
+  "generated_at": "2026-07-31T19:23:09.182492+00:00",
   "class_level_allowlist": [
     "apps/platform_runtime/helpers.py",
     "apps/siteconfig/models.py"
   ],
   "totals": {
-    "sitesettings_word": 158,
+    "sitesettings_word": 160,
     "get_solo_paren": 3,
     "sitesettings_objects": 1,
     "import_siteconfig_sitesettings": 0,
@@ -14,9 +14,9 @@
     "sitesettings_get_solo": 0,
     "sitesettings_load": 0,
     "get_effective_site_settings": 95,
-    "get_platform_site_settings_record": 32,
+    "get_platform_site_settings_record": 33,
     "runtime_defaults_get_singleton": 14,
-    "files_with_any_hit": 132
+    "files_with_any_hit": 133
   },
   "by_app": {
     "accounts": {
@@ -255,16 +255,16 @@
     },
     "schools": {
       "django_get_model_sitesettings": 0,
-      "files": 10,
+      "files": 11,
       "get_effective_site_settings": 1,
-      "get_platform_site_settings_record": 7,
+      "get_platform_site_settings_record": 8,
       "get_solo_paren": 0,
       "import_siteconfig_sitesettings": 0,
       "runtime_defaults_get_singleton": 1,
       "sitesettings_get_solo": 0,
       "sitesettings_load": 0,
       "sitesettings_objects": 0,
-      "sitesettings_word": 10
+      "sitesettings_word": 12
     },
     "setup_studio": {
       "django_get_model_sitesettings": 0,
@@ -1268,6 +1268,19 @@
       "get_effective_site_settings": 0,
       "get_platform_site_settings_record": 1,
       "runtime_defaults_get_singleton": 1
+    },
+    {
+      "relpath": "apps/schools/tasks.py",
+      "sitesettings_word": 2,
+      "get_solo_paren": 0,
+      "sitesettings_objects": 0,
+      "import_siteconfig_sitesettings": 0,
+      "django_get_model_sitesettings": 0,
+      "sitesettings_get_solo": 0,
+      "sitesettings_load": 0,
+      "get_effective_site_settings": 0,
+      "get_platform_site_settings_record": 1,
+      "runtime_defaults_get_singleton": 0
     },
     {
       "relpath": "apps/schools/views_infrastructure.py",
@@ -2705,6 +2718,19 @@
       "runtime_defaults_get_singleton": 0
     },
     {
+      "relpath": "apps/schools/tasks.py",
+      "sitesettings_word": 2,
+      "get_solo_paren": 0,
+      "sitesettings_objects": 0,
+      "import_siteconfig_sitesettings": 0,
+      "django_get_model_sitesettings": 0,
+      "sitesettings_get_solo": 0,
+      "sitesettings_load": 0,
+      "get_effective_site_settings": 0,
+      "get_platform_site_settings_record": 1,
+      "runtime_defaults_get_singleton": 0
+    },
+    {
       "relpath": "apps/schools/views_mat_group_hub.py",
       "sitesettings_word": 2,
       "get_solo_paren": 0,
@@ -2794,19 +2820,6 @@
       "get_effective_site_settings": 0,
       "get_platform_site_settings_record": 0,
       "runtime_defaults_get_singleton": 0
-    },
-    {
-      "relpath": "apps/siteconfig/models.py",
-      "sitesettings_word": 2,
-      "get_solo_paren": 1,
-      "sitesettings_objects": 0,
-      "import_siteconfig_sitesettings": 0,
-      "django_get_model_sitesettings": 0,
-      "sitesettings_get_solo": 0,
-      "sitesettings_load": 0,
-      "get_effective_site_settings": 0,
-      "get_platform_site_settings_record": 0,
-      "runtime_defaults_get_singleton": 5
     }
   ],
   "violations": [],
