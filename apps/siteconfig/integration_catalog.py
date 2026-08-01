@@ -75,7 +75,7 @@ INTEGRATION_CATALOG: dict[str, dict[str, Any]] = {
             "secret_key": {"type": "password", "label": "Secret Key", "required": True},
             "webhook_secret": {"type": "string", "label": "Webhook Secret"},
         },
-        "description": "Card payments and subscriptions. Per-tenant Stripe account or platform Stripe with Connect.",
+        "description": "Tenant fee collection through the tenant's own Stripe merchant account. Funds settle directly to the tenant; platform collection/splitting is not enabled.",
     },
     "stripe_platform": {
         "label": "Stripe (Platform Billing)",

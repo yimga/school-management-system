@@ -65,12 +65,10 @@ def get_platform_fee(
     *,
     policy: Optional[Dict[str, Any]] = None,
 ) -> Decimal:
-    """Optional platform fee (e.g. 100 XAF) from policy. Prefer policy=request.tenant_runtime.policy in request context."""
-    resolved = _policy_for_gateway(school, policy)
-    gateways_config = resolved.get("payment_gateways") or {}
-    code = (method_code or "").strip().upper()
-    cfg = gateways_config.get(code.lower()) or gateways_config.get(code) or {}
-    fee = cfg.get("platform_fee")
-    if fee is not None:
-        return Decimal(str(fee))
+    """Return zero under the current no-custody tenant-payment contract.
+
+    RunMyCampus bills its SaaS subscription separately in ``apps.billing``.
+    Tenant tuition/fee gateways settle to the tenant; policy configuration must
+    not silently introduce an operator fee on those transactions.
+    """
     return Decimal("0")

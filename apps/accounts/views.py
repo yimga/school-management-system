@@ -4260,6 +4260,19 @@ def login_view(request):
             host_kind = None
     if host_kind == "base" and not is_manager_host:
         return redirect(reverse("global_login_discovery"))
+    # Already signed in on a campus (non-manager) host: never re-paint the login
+    # form for an authenticated user. When a post-login redirect target bounces the
+    # user back here (a config surface with a gate they just missed), re-rendering
+    # the login form reads as the silent "entered correct credentials, page
+    # reloaded, still not logged in" loop the owner reported. Send them into their
+    # campus instead. Loop-proof: the campus home never bounces an authenticated
+    # user back to /authentication/login/, so this cannot cycle.
+    if (
+        request.method == "GET"
+        and not is_manager_host
+        and getattr(request.user, "is_authenticated", False)
+    ):
+        return redirect("/")
     if request.method == "GET" and is_manager_host:
         from apps.accounts.manager_login_next import (
             build_public_login_redirect_url,
