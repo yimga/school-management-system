@@ -2,6 +2,12 @@
 
 **Purpose:** Index of runbooks for major failure modes and operations. Each runbook should be updated when procedures change.
 
+## Incident response (start here in an outage)
+
+| Topic | Doc | Notes |
+|-------|-----|--------|
+| Live incident | docs/INCIDENT_RUNBOOK.md | First-15-minutes: assess via `/healthz/`, declare + assign IC, check "what changed" (auto-deploy OFF, stale SW cache, CI not gating), communicate on the status page, mitigate → roll back / restore, resolve + postmortem. |
+
 ## Deploy and rollback
 
 | Topic | Doc | Notes |
