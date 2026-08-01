@@ -7,6 +7,7 @@ from typing import Any
 from django.db.models import Count
 
 from apps.platform_runtime.blueprint_audit import audit_blueprint_event
+from apps.platform_runtime.blueprint_composition import composition_findings
 from apps.platform_runtime.blueprint_contract import BlueprintContract, get_blueprint_or_raise
 from apps.platform_runtime.pack_preview import preview_pack
 
@@ -173,6 +174,12 @@ def preview_blueprint(
     if blueprint.external_required:
         warnings.append("External dependencies remain required and are not marked complete.")
         safety_notes.append("Live PSP, settlement, and external certification readiness are not enabled by this blueprint.")
+    # Enforce the composition model the contract already declares. Without this,
+    # a second *base* operating model applied cleanly over the first and silently
+    # replaced its plan and offline mode.
+    composition = composition_findings(blueprint, school=school)
+    conflicts.extend(composition["conflicts"])
+    warnings.extend(composition["warnings"])
 
     changes = _change_rows(blueprint)
     # Two kinds, tracked separately: a hard blocker only the platform can clear

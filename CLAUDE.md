@@ -43,6 +43,14 @@ Confirm the precondition state before a heavy structural change:
 
 These rules are durable user instructions. Don't relitigate them per-task.
 
+### Always audit first — run the standard execution loop
+
+**Every request runs the loop in [`docs/RMC_STANDARD_EXECUTION_LOOP.md`](docs/RMC_STANDARD_EXECUTION_LOOP.md): AUDIT → IDENTIFY → FIX → TEST → RE-AUDIT → IMPROVE → REPORT.** There is no task small enough to skip it.
+
+Audit by **running the thing**, not by reading it — execute the engine, hit the route, print the computed value. Reading tells you intent; running tells you behaviour, and the two have diverged on nearly every serious finding in this repo. Never trust the request's framing, a symbol's name, or another agent's summary as ground truth. Report what the audit found even when it contradicts the ask.
+
+Fixes resolve against the product thesis — the **AWS / Linux / Shopify / Salesforce of education** — with **local-first, global presence, and offline mode** as load-bearing pillars that outrank convenience. Every fix carries a test that fails before it; the loop does not exit until the suites and `scripts/pre_push_boundary_check.py` are green and a from-scratch re-audit confirms each finding closed. Residuals found in the re-audit are worked in the same pass. Prefer a permanent seal (CI gate, contract-hygiene test) over a one-time fix. When another agent owns a module, let it finish — then come back and verify its claim against ground truth.
+
 ### No hardcoding
 
 Nothing on the platform may be hardcoded. Every value routes through the 7-layer configurability contract (tenant `SiteSettings` → env var → user prefs → i18n → feature flag → DB fixture → platform constant). When in doubt, push the value up the cascade. Inline hex literals, magic numbers, and role strings are all in scope for the no-hardcoding rule.

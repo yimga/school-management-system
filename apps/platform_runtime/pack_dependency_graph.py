@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from apps.platform_runtime.blueprint_composition import composition_conflicts
 from apps.platform_runtime.blueprint_contract import get_blueprint_or_raise
 from apps.platform_runtime.models import BlueprintInstallation, PackInstallation
 from apps.platform_runtime.pack_contract import get_pack_or_raise
@@ -83,6 +84,11 @@ def detect_dependency_conflicts(
     conflicts: list[dict[str, str]] = []
     if target_type == "blueprint":
         target = get_blueprint_or_raise(target_key)
+        # The declared composition model is the real source of blueprint-level
+        # conflicts. Reading only conflicts_with_blueprints made this a dead
+        # guard: no contract in the catalog populates that tuple, so it returned
+        # [] unconditionally and always had.
+        conflicts.extend(composition_conflicts(target, school=school))
         installed_blueprints = _installed_blueprint_keys(school)
         for key in target.conflicts_with_blueprints:
             if key in installed_blueprints:
@@ -152,6 +158,11 @@ def explain_dependency_blockers(blockers: list[dict[str, str]]) -> list[str]:
         target = blocker.get("target", "")
         if code == "missing_required_pack":
             messages.append(f"Required pack is not installed: {target}.")
+        elif code == "incompatible_base_blueprint":
+            messages.append(
+                f"A different school operating model is already applied: {target}. "
+                f"Roll it back before applying another base blueprint."
+            )
         elif code == "external_required":
             messages.append(f"External proof remains required: {target}.")
         elif code == "pack_conflict":

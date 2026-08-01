@@ -11,6 +11,7 @@
 
 <main class="rmc-page rmc-page--migration-cloud-bind" id="main" data-rmc-core-context="1">
   <header class="rmc-page__header">
+    {# cross-host-reverse-allow: MigrationCloudBindSchoolView returns 403 unless shell=="super"; the tenant and portal includes pass shell="portal", so this template only ever renders under migration_cloud_super on the manager host #}
     <a href="{% url 'migration_cloud_super:bundle_detail' bundle_id=bundle.pk %}"
        class="rmc-back">{% trans "← Back to bundle" %}</a>
     <div class="rmc-page__title-row d-flex align-items-center gap-2 min-w-0">
@@ -27,6 +28,7 @@
   </div>
   {% endif %}
 
+  {# cross-host-reverse-allow: operator-only view (403 unless shell=="super"), never rendered on the tenant or portal host #}
   <form method="post" action="{% url 'migration_cloud_super:bundle_bind_school' bundle_id=bundle.pk %}"
         class="rmc-form rmc-form--intake">
     {% csrf_token %}
@@ -44,6 +46,7 @@
     </fieldset>
     <div class="rmc-form__actions">
       <button type="submit" class="rmc-btn rmc-btn--primary">{% trans "Bind" %}</button>
+      {# cross-host-reverse-allow: operator-only view (403 unless shell=="super"), never rendered on the tenant or portal host #}
       <a href="{% url 'migration_cloud_super:bundle_detail' bundle_id=bundle.pk %}"
          class="rmc-btn rmc-btn--ghost">{% trans "Cancel" %}</a>
     </div>

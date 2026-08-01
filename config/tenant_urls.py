@@ -17,7 +17,9 @@ from django.http import HttpResponseForbidden
 from django.shortcuts import render
 
 from apps.platform_runtime.helpers import get_effective_flags
+from apps.accounts.views_theme import set_theme_preference
 from apps.observability import views as obs_views
+from apps.observability import views_friction as obs_friction_views
 from apps.portal.views_ai_copilot import (
     ai_copilot_query,
     ai_permissions,
@@ -567,6 +569,24 @@ urlpatterns = [
         obs_views.api_operational_slo_dashboard,
         name="api_operational_slo_dashboard",
     ),
+    # Client-surface parity with the apex host. `platform_surface_config`
+    # advertises these four to every tenant page, and each consuming JS module
+    # bails out silently on an empty URL — so declaring them only in config/urls.py
+    # left theme persistence, friction telemetry, browser error capture and CSRF
+    # refresh dead on every tenant subdomain, with nothing louder than a DEBUG log.
+    # rbac-allow: public-csrf-token-issue-pre-auth
+    path("api/csrf-token/", obs_views.csrf_token_refresh, name="api_csrf_token"),
+    path(
+        "api/observability/client-event/",
+        obs_views.client_event_capture,
+        name="client_event_capture",
+    ),
+    path(
+        "api/observability/friction/",
+        obs_friction_views.ingest_friction_event,
+        name="api_friction_ingest",
+    ),
+    path("api/preferences/theme/", set_theme_preference, name="set_theme_preference"),
     path("admin/dashboard/", obs_views.admin_dashboard, name="admin_dashboard"),
     path("api/health/", obs_views.api_health, name="api_health"),
     path("api/admin/weather/", obs_views.api_admin_weather, name="api_admin_weather"),

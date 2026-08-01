@@ -89,6 +89,34 @@ def rollback_blueprint_installation(
                 school.settings = settings
                 school.save(update_fields=["settings"])
                 reverted_changes.append("offline_manifest_invalidation")
+        # Reverse the module bridge. apply_blueprint switches the blueprint's
+        # implied feature codes on in School.features and records exactly which
+        # ones it changed; undo precisely those. A wholesale restore of the
+        # features snapshot would also wipe features the tenant turned on after
+        # the apply, which rollback must never do.
+        enabled_by_apply = list(snapshot.get("modules_enabled") or [])
+        if enabled_by_apply:
+            previous_features = dict(snapshot.get("features") or {})
+            features = dict(getattr(school, "features", None) or {})
+            features_changed = False
+            for code in enabled_by_apply:
+                if code in previous_features:
+                    if features.get(code) != previous_features[code]:
+                        features[code] = previous_features[code]
+                        features_changed = True
+                elif code in features:
+                    del features[code]
+                    features_changed = True
+            if features_changed:
+                school.features = features
+                school.save(update_fields=["features", "updated_at"])
+                reverted_changes.append("school.features")
+                try:
+                    from apps.policies.policy_registry import invalidate_policy_cache
+
+                    invalidate_policy_cache(school)
+                except Exception:  # noqa: BLE001 — cache invalidation is best-effort
+                    pass
         installed_package = (
             InstalledPackage.objects.filter(
                 school=school,

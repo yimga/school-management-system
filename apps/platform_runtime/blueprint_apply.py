@@ -10,12 +10,14 @@ from django.utils import timezone
 
 from apps.packages.engine import apply_package
 from apps.platform_runtime.blueprint_audit import audit_blueprint_event
+from apps.platform_runtime.blueprint_composition import composition_conflicts
 from apps.platform_runtime.blueprint_contract import get_blueprint_or_raise
 from apps.platform_runtime.blueprint_impact import analyze_blueprint_impact
 from apps.platform_runtime.blueprint_modules import enable_blueprint_modules
 from apps.platform_runtime.blueprint_preview import preview_blueprint
 from apps.platform_runtime.models import BlueprintInstallation
 from apps.platform_runtime.pack_apply import apply_pack
+from apps.platform_runtime.pack_dependency_graph import explain_dependency_blockers
 
 
 def _snapshot_school(school) -> dict[str, Any]:
@@ -51,6 +53,28 @@ def apply_blueprint(
         result="requested",
         payload={"confirmed": confirmed},
     )
+    # Resolved against LIVE installations, not against the preview: a caller may
+    # pass a preview_snapshot captured before another blueprint landed (the
+    # approved-change-request path replays a stored snapshot), and a stale payload
+    # must not be able to carry a second operating model past the guard.
+    live_conflicts = composition_conflicts(blueprint, school=school)
+    if live_conflicts:
+        event = audit_blueprint_event(
+            "blueprint_apply_failed",
+            blueprint_key=blueprint.key,
+            school=school,
+            actor=actor,
+            result="blocked",
+            reason="composition_conflict",
+            payload={"conflicts": live_conflicts},
+        )
+        return {
+            "ok": False,
+            "errors": explain_dependency_blockers(live_conflicts),
+            "conflicts": live_conflicts,
+            "warnings": preview.get("warnings", []),
+            "audit_id": getattr(event, "pk", None),
+        }
     impact = analyze_blueprint_impact(
         blueprint.key,
         school=school,
@@ -178,6 +202,11 @@ def apply_blueprint(
         module_sync: dict[str, Any] = {}
         if getattr(dj_settings, "RMC_BLUEPRINT_SYNCS_MODULES", True):
             module_sync = enable_blueprint_modules(school, blueprint, persist=True)
+        # Rollback needs to know which feature codes THIS apply switched on, so it
+        # can reverse exactly those and leave every other feature alone. Without
+        # it, rollback restored school.settings and left the modules enabled
+        # forever — a state that is neither pre-apply nor post-apply.
+        rollback_snapshot["modules_enabled"] = list(module_sync.get("enabled", []))
         installation = BlueprintInstallation.objects.create(
             school=school,
             blueprint_key=blueprint.key,

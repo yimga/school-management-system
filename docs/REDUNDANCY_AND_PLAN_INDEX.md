@@ -4,6 +4,8 @@
 
 **Status lives in one place only:** **All "where we stand" and "what's left" status** is written and read in **[RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) §11.4** (and **§14** = same authority for historical links). Do not add status or "what's left" to PATH_TO_100, PLAN_AND_BACKLOG_STOCK_TAKE, phase batch docs, or this file. When reconciling, update SOT §11.4 first; then sync BACKLOG and (optionally) the stock take. The SOT **At a glance** table lists where to read each kind of status.
 
+**How work is executed (not what to build):** every request — from a one-line fix to a platform-wide wave — runs the loop in **[RMC_STANDARD_EXECUTION_LOOP.md](RMC_STANDARD_EXECUTION_LOOP.md)**: **AUDIT (by running it, never by reading it) → IDENTIFY → FIX → TEST until green → RE-AUDIT from scratch → close residuals in the same pass → IMPROVE + seal → REPORT honestly.** That doc is a *principle*, not a plan: it carries no status and supersedes nothing in §1. It is mirrored as a non-negotiable directive in `CLAUDE.md`. Fixes resolve against the product thesis (the **AWS / Linux / Shopify / Salesforce of education**) with **local-first, global presence, and offline mode** as load-bearing pillars.
+
 **For all agents:** Strategy and completion updates go **only** to the four canonical docs (§1). Do not create new strategy or roadmap files. When given a Cursor prompt, pasted implementation plan, or "12 layers" / UX / marketing directive, use **§6** to see where it lives and where to record progress; then update RUNMYCAMPUS, BACKLOG, docs_truth_ledger, or NEXT_50 as appropriate.
 
 ---

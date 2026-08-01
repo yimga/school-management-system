@@ -86,3 +86,91 @@ class BlueprintRollbackEngineTests(TestCase):
         other.refresh_from_db()
 
         self.assertEqual(other.settings, {"other": "kept"})
+
+
+class BlueprintRollbackModuleBridgeTests(TestCase):
+    """Apply switches modules on in ``School.features``; rollback must switch them back.
+
+    ``apply_blueprint`` runs the module bridge (``enable_blueprint_modules``) and
+    persists ``School.features``. Rollback restored only ``School.settings``, so a
+    rolled-back blueprint left its modules enabled forever — a state that is neither
+    pre-apply nor post-apply, and an entitlement leak once ``entitled_codes`` gating
+    is enforced on paid modules.
+
+    The inverse has to be *surgical*, not a wholesale snapshot restore: features the
+    tenant set independently after the apply must survive (see
+    ``test_rollback_preserves_features_the_blueprint_never_touched``).
+    """
+
+    def setUp(self):
+        self.school = School.objects.create(
+            name="Module Rollback School",
+            slug="module-rollback-school",
+            subdomain="module-rollback-school",
+            is_active=True,
+        )
+        self.actor = User.objects.create_user(
+            username="module_rollback_actor",
+            password="x" * 8,
+            role=User.Role.SUPERADMIN,
+            is_staff=True,
+        )
+
+    def _apply_boarding(self):
+        applied = apply_blueprint(
+            "boarding-school",
+            school=self.school,
+            actor=self.actor,
+            confirmed=True,
+            platform_operator=True,
+            idempotency_key="module-rollback-target",
+        )
+        self.assertTrue(applied["ok"], msg=applied)
+        return BlueprintInstallation.objects.get(pk=applied["installation_id"])
+
+    def test_apply_enables_the_blueprints_modules(self):
+        self._apply_boarding()
+        self.school.refresh_from_db()
+
+        self.assertTrue(self.school.features.get("dormitory"))
+        self.assertTrue(self.school.features.get("parent_chat"))
+
+    def test_rollback_disables_modules_the_blueprint_enabled(self):
+        installation = self._apply_boarding()
+
+        result = rollback_blueprint_installation(
+            installation, actor=self.actor, confirmed=True
+        )
+        self.school.refresh_from_db()
+
+        self.assertTrue(result["ok"], msg=result)
+        self.assertFalse(self.school.features.get("dormitory"))
+        self.assertFalse(self.school.features.get("parent_chat"))
+        self.assertIn("school.features", result["reverted_changes"])
+
+    def test_rollback_preserves_features_the_blueprint_never_touched(self):
+        installation = self._apply_boarding()
+        self.school.refresh_from_db()
+        features = dict(self.school.features or {})
+        features["critical"] = True
+        self.school.features = features
+        self.school.save(update_fields=["features"])
+
+        rollback_blueprint_installation(installation, actor=self.actor, confirmed=True)
+        self.school.refresh_from_db()
+
+        self.assertTrue(self.school.features.get("critical"))
+
+    def test_rollback_keeps_a_module_the_tenant_had_on_before_apply(self):
+        """Pre-existing state is restored, not blanket-disabled."""
+        self.school.features = {"dormitory": True}
+        self.school.save(update_fields=["features"])
+        installation = self._apply_boarding()
+
+        rollback_blueprint_installation(installation, actor=self.actor, confirmed=True)
+        self.school.refresh_from_db()
+
+        # dormitory was on before the blueprint, so rollback must leave it on;
+        # parent_chat was switched on by the blueprint, so it goes back off.
+        self.assertTrue(self.school.features.get("dormitory"))
+        self.assertFalse(self.school.features.get("parent_chat"))

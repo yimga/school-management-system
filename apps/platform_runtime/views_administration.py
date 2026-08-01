@@ -589,6 +589,60 @@ def tenant_import_setup(request):
     )
 
 
+def _resolve_collection_state(school):
+    from apps.finance.fee_collection_posture import resolve_live_collection_state
+
+    return resolve_live_collection_state(school)
+
+
+def _posture_manual_value() -> str:
+    from apps.finance.fee_collection_posture import POSTURE_MANUAL
+
+    return POSTURE_MANUAL
+
+
+def _can_record_posture(user, school) -> bool:
+    from apps.accounts.effective_access import permission_access
+
+    return permission_access(user, school, ("finance.manage",))
+
+
+def _collection_posture_post(request, school):
+    """Shared handler for the fee-collection posture form.
+
+    Both the blueprint and the pack setup surfaces show a readiness meter whose
+    only remaining gate is "Live payment onboarding", so both must be able to
+    settle it in place — a meter that reports an unmet item the page offers no way
+    to resolve is a dead end. One implementation, so the two cannot drift.
+
+    Returns ``(handled, payload)``. ``payload`` is an ``HttpResponseForbidden``
+    when the actor lacks the finance permission, otherwise a result dict for the
+    page banner.
+    """
+    if request.method != "POST" or request.POST.get("action") != "record_collection_posture":
+        return False, None
+
+    from apps.accounts.effective_access import permission_access
+    from apps.finance.fee_collection_posture import record_collection_posture
+
+    # Gated on the finance permission rather than the page's own tier: recording
+    # how a school collects money is a finance decision, not a configuration one.
+    if not permission_access(request.user, school, ("finance.manage",)):
+        return True, HttpResponseForbidden(
+            "Finance permission required to record collection posture."
+        )
+    try:
+        record_collection_posture(
+            school,
+            mode=(request.POST.get("posture") or "").strip(),
+            actor=request.user,
+            note=request.POST.get("posture_note", ""),
+        )
+        return True, {"ok": True, "message": _("Fee-collection posture recorded.")}
+    except ValueError as exc:
+        return True, {"ok": False, "error": str(exc)}
+
+
 @login_required
 def tenant_blueprint_setup(request):
     school = getattr(request, "school", None)
@@ -608,29 +662,13 @@ def tenant_blueprint_setup(request):
     from apps.accounts.effective_access import permission_access
     from apps.finance.fee_collection_posture import (
         POSTURE_MANUAL,
-        record_collection_posture,
         resolve_live_collection_state,
     )
 
-    result = None
-    if request.method == "POST" and request.POST.get("action") == "record_collection_posture":
-        # Explicit, actor-stamped fee-collection decision. Gated on the finance
-        # permission rather than the page's own tier: recording how a school
-        # collects money is a finance decision, not a configuration one.
-        if not permission_access(request.user, school, ("finance.manage",)):
-            return HttpResponseForbidden("Finance permission required to record collection posture.")
-        mode = (request.POST.get("posture") or "").strip()
-        try:
-            record_collection_posture(
-                school,
-                mode=mode,
-                actor=request.user,
-                note=request.POST.get("posture_note", ""),
-            )
-            result = {"ok": True, "message": _("Fee-collection posture recorded.")}
-        except ValueError as exc:
-            result = {"ok": False, "error": str(exc)}
-    elif request.method == "POST":
+    posture_handled, result = _collection_posture_post(request, school)
+    if posture_handled and isinstance(result, HttpResponseForbidden):
+        return result
+    if not posture_handled and request.method == "POST":
         change_set = generate_blueprint_change_set(selected_key, school=school, actor=request.user, platform_operator=False)
         if change_set["requires_approval"]:
             change_request = create_change_request(
@@ -789,8 +827,12 @@ def tenant_pack_setup(request):
     preview = preview_pack(selected_key, pack_type=pack_type, school=school, actor=request.user, platform_operator=False, emit_audit=request.GET.get("preview") == "1")
     change_set = generate_pack_change_set(selected_key, pack_type=pack_type, school=school, actor=request.user, platform_operator=False)
     simulation = simulate_pack(selected_key, pack_type=pack_type, school=school, actor=request.user, platform_operator=False) if request.GET.get("simulate") == "1" else None
-    result = None
-    if request.method == "POST":
+    posture_handled, result = _collection_posture_post(request, school)
+    if posture_handled and isinstance(result, HttpResponseForbidden):
+        return result
+    if not posture_handled:
+        result = None
+    if not posture_handled and request.method == "POST":
         if request.POST.get("installation_id") and request.POST.get("mode") in {"deactivate", "rollback"}:
             installation = get_object_or_404(PackInstallation, pk=request.POST["installation_id"], school=school)
             if request.POST["mode"] == "deactivate":
@@ -818,10 +860,27 @@ def tenant_pack_setup(request):
                     confirmed=request.POST.get("confirm") == "yes",
                     platform_operator=False,
                 )
-    # Resolve lifecycle rows after the POST mutation. Building this queryset
-    # before apply/deactivate/rollback returned a stale response: the operation
-    # succeeded in the database, but the same page still said "No packs
-    # installed" until a manual reload. The post-action render must be truthful.
+    # Re-resolve everything the page renders AFTER the mutation. The preview and
+    # its readiness meter both depend on tenant state that the POST just changed
+    # (installed packs, and the recorded fee-collection posture), so building them
+    # above and rendering them below reported the pre-action world — the same
+    # class of staleness that made a successful apply look like nothing happened.
+    if request.method == "POST":
+        school.refresh_from_db()
+        preview = preview_pack(
+            selected_key,
+            pack_type=pack_type,
+            school=school,
+            actor=request.user,
+            platform_operator=False,
+        )
+        change_set = generate_pack_change_set(
+            selected_key,
+            pack_type=pack_type,
+            school=school,
+            actor=request.user,
+            platform_operator=False,
+        )
     installation_qs = PackInstallation.objects.filter(school=school).order_by(
         "-created_at"
     )
@@ -853,6 +912,12 @@ def tenant_pack_setup(request):
             # Real per-tenant pack readiness (applyable / conflict-free /
             # dependencies resolved) — replaces the hardcoded "70" placeholder.
             "pack_readiness": pack_readiness(preview, school=school),
+            # The only gate that can hold a pack below 100 is live-payment
+            # onboarding, so the page that shows the shortfall also offers the
+            # way to settle it instead of naming an unmet item and stopping.
+            "collection_posture": _resolve_collection_state(school),
+            "posture_manual_value": _posture_manual_value(),
+            "can_record_posture": _can_record_posture(request.user, school),
             "change_set": change_set,
             "simulation": simulation,
             "installations": installations,
