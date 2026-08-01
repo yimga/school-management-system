@@ -18,20 +18,55 @@ driver) against a persistent user-data-dir:
 
 Local evidence tool (Chrome required) — same posture as the axe harness,
 NOT CI-wired. Exit 0 = both legs pass.
+
+``--write-evidence`` records the run at
+``var/offline-client-endurance-proof.json`` — the artifact
+``apps/platform_runtime/offline_proof_evidence.py`` reads to resolve every
+blueprint's ``browser_proof_status`` (which used to be a hardcoded literal).
+Evidence is written ONLY on a full pass, and it fingerprints the client
+sources it proves so a later edit to the vault invalidates the proof instead
+of letting a stale pass vouch for new code.
 """
 
 from __future__ import annotations
 
+import argparse
+import hashlib
 import http.server
+import json
 import socketserver
 import sys
 import tempfile
 import threading
+from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 PIN = "482913"
 CAPABILITY = "cap-token-seven-day-endurance-proof"
+HARNESS = "verify_client_offline_endurance/1"
+EVIDENCE_PATH = ROOT / "var" / "offline-client-endurance-proof.json"
+PROVEN_SOURCES = ("static/js/rmc-offline-auth-vault.js",)
+
+
+def write_evidence(*, legs: dict[str, bool], checks: list[tuple[str, bool]]) -> Path:
+    """Record a passing run so the platform can resolve a real proof status."""
+    EVIDENCE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "harness": HARNESS,
+        "result": "pass",
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "legs": dict(legs),
+        "checks": [{"label": label, "passed": bool(ok)} for label, ok in checks],
+        "source_fingerprint": {
+            rel: hashlib.sha256((ROOT / rel).read_bytes()).hexdigest()
+            for rel in PROVEN_SOURCES
+        },
+    }
+    EVIDENCE_PATH.write_text(
+        json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    return EVIDENCE_PATH
 
 
 def build_page(workdir: Path) -> None:
@@ -54,7 +89,14 @@ def new_driver(profile_dir: str):
     return webdriver.Chrome(options=opts)
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--write-evidence",
+        action="store_true",
+        help="On a full pass, record var/offline-client-endurance-proof.json.",
+    )
+    args = parser.parse_args(argv)
     workdir = Path(tempfile.mkdtemp(prefix="rmc-endurance-"))
     build_page(workdir)
     handler = lambda *a, **kw: http.server.SimpleHTTPRequestHandler(  # noqa: E731
@@ -162,6 +204,14 @@ def main() -> int:
         print(f"verify_client_offline_endurance: FAIL ({len(failures)})", file=sys.stderr)
         return 1
     print("verify_client_offline_endurance: CLIENT_ENDURANCE_PASS (restart + pressure)")
+    if args.write_evidence:
+        # Only a full pass reaches here, so evidence is never written for a
+        # partial or failed run — the resolver would reject it anyway.
+        written = write_evidence(
+            legs={"restart_persistence": True, "storage_pressure": True},
+            checks=checks,
+        )
+        print(f"  evidence recorded: {written.relative_to(ROOT)}")
     return 0
 
 

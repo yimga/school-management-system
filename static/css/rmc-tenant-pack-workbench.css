@@ -2,6 +2,7 @@
    Route-scoped on purpose: this file must never restyle generic panel/grid/card
    primitives elsewhere in the tenant or operator shells. */
 
+.rmc-tenant-pack-workbench,
 [data-rmc-tenant-pack-workbench="1"] {
   --tpw-border: var(--hairline, rgba(148, 163, 184, 0.24));
   --tpw-canvas: var(--surface-canvas, #0b1222);
@@ -166,9 +167,9 @@
 }
 .rmc-tpw-button:hover,
 .rmc-tpw-button:focus-visible { border-color: var(--tpw-primary); color: var(--tpw-text); }
-.rmc-tpw-button--primary { border-color: transparent; background: linear-gradient(135deg, var(--tpw-accent), var(--tpw-primary)); color: #fff; }
+.rmc-tpw-button--primary { border-color: transparent; background: linear-gradient(135deg, var(--tpw-accent), var(--tpw-primary)); color: var(--text-on-brand); }
 .rmc-tpw-button--primary:hover,
-.rmc-tpw-button--primary:focus-visible { color: #fff; filter: brightness(1.06); }
+.rmc-tpw-button--primary:focus-visible { color: var(--text-on-brand); filter: brightness(1.06); }
 .rmc-tpw-button--secondary { border-color: color-mix(in srgb, var(--tpw-primary) 60%, var(--tpw-border)); color: var(--tpw-primary); }
 .rmc-tpw-button--quiet { color: var(--tpw-muted); }
 .rmc-tpw-button--wide { inline-size: 100%; }
@@ -181,7 +182,7 @@
 .rmc-tpw-type-chips a.is-active { border-color: var(--tpw-border); background: var(--tpw-canvas); color: var(--tpw-primary); }
 
 .rmc-tpw-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; }
-.rmc-tpw-card { display: flex; flex-direction: column; min-inline-size: 0; min-block-size: 14.5rem; padding: 1rem; border: 1px solid var(--tpw-border); border-radius: 0.9rem; background: var(--tpw-canvas); box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 4%, transparent); }
+.rmc-tpw-card { display: flex; flex-direction: column; min-inline-size: 0; min-block-size: 14.5rem; padding: 1rem; border: 1px solid var(--tpw-border); border-radius: 0.9rem; background: var(--tpw-canvas); box-shadow: inset 0 1px 0 color-mix(in srgb, var(--text-on-brand) 4%, transparent); }
 .rmc-tpw-card.is-selected { border-color: var(--tpw-primary); box-shadow: inset 3px 0 0 var(--tpw-primary), 0 0 0 1px color-mix(in srgb, var(--tpw-primary) 18%, transparent); }
 .rmc-tpw-card__top { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
 .rmc-tpw-pack-type { color: var(--tpw-primary); font-size: 0.68rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }

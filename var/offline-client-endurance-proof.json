@@ -1,0 +1,46 @@
+{
+  "checks": [
+    {
+      "label": "sealed blob survives browser restart",
+      "passed": true
+    },
+    {
+      "label": "mint-throttle state survives restart",
+      "passed": true
+    },
+    {
+      "label": "outbox row survives restart",
+      "passed": true
+    },
+    {
+      "label": "capability decrypts with correct PIN",
+      "passed": true
+    },
+    {
+      "label": "wrong PIN is refused",
+      "passed": true
+    },
+    {
+      "label": "storage quota was actually reached",
+      "passed": true
+    },
+    {
+      "label": "saveSealed never throws under pressure",
+      "passed": true
+    },
+    {
+      "label": "capability still opens after pressure",
+      "passed": true
+    }
+  ],
+  "generated_at": "2026-08-01T00:35:51.005302+00:00",
+  "harness": "verify_client_offline_endurance/1",
+  "legs": {
+    "restart_persistence": true,
+    "storage_pressure": true
+  },
+  "result": "pass",
+  "source_fingerprint": {
+    "static/js/rmc-offline-auth-vault.js": "d54d7e2040b262a514dd17d4950ac2379b34783f3bc6e0eacde9a97979c29679"
+  }
+}
