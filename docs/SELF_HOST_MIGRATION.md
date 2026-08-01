@@ -36,6 +36,53 @@ docker compose -f deploy/selfhost/docker-compose.yml exec web python manage.py s
 Put a TLS-terminating reverse proxy (Caddy/nginx/Traefik — all open-source) in
 front of `web:10000` for HTTPS + the apex/wildcard tenant domains.
 
+> The bring-up above is the **full multi-tenant stack** (schema-per-tenant,
+> `.env.example`, worker+beat, real domains). For a **single school on an offline
+> LAN mini-PC**, use the sovereign edge profile instead — see the next section.
+
+## Edge / sovereign box (fresh install, ONE school, no Render data)
+This is the on-prem path — a single school (e.g. Gilead Tech High) on a mini-PC
+served over a plain-HTTP LAN, with no cloud dependency. It uses
+[`.env.edge.example`](../deploy/selfhost/.env.edge.example), which runs in
+**shared-DB + RLS mode** (`USE_DJANGO_TENANTS=0`, `SINGLE_TENANT=True`) so a bare
+LAN hostname/IP resolves to the one school without per-subdomain DNS.
+
+```bash
+cd beta/school-management-system
+cp deploy/selfhost/.env.edge.example deploy/selfhost/.env
+$EDITOR deploy/selfhost/.env     # set SECRET_KEY, POSTGRES_PASSWORD, ALLOWED_HOSTS (LAN host/IP)
+docker compose -f deploy/selfhost/docker-compose.yml up -d --build
+```
+
+Boot applies migrations only — **an empty DB has no school and no login.** Create
++ entitle Gilead in **one idempotent, self-verifying command**:
+
+```bash
+docker compose -f deploy/selfhost/docker-compose.yml exec web \
+  python manage.py provision_sovereign_school --create \
+    --email owner@school.lan --password "<StrongPass>"
+```
+
+This runs the real `create_school` engine (creates the `gilead-tech` school +
+a loginable owner and **proves `authenticate()` succeeds before returning**),
+then binds the `sovereign-self-hosted` plan + every feature and enables offline
+mode. Re-running is safe. Then verify the box:
+
+```bash
+docker compose -f deploy/selfhost/docker-compose.yml exec web \
+  python manage.py check_edge_readiness --strict
+```
+
+> ⚠ **Do NOT use `seed_render_users` on the edge box.** It is Render-shaped: at
+> `DEBUG=0` with no `ADMIN_PASSWORD` / `DEFAULT_TENANT_SLUG` / `DEFAULT_TENANT_ADMIN_PASSWORD`
+> set (none are in `.env.edge.example`) it deliberately creates **nothing** — no
+> superuser, no school, no login. `provision_sovereign_school --create` is the
+> edge path.
+
+Broker-less note: if you drop the `worker`/`beat` services, add a cron for
+`python manage.py run_periodic_jobs` (the complete beat-less rail — drainers +
+events outbox + daily DR snapshot). See the tail of `.env.edge.example`.
+
 ## Migrating the data from Render
 1. **Dump** the Render Postgres: `pg_dump "$RENDER_DATABASE_URL" -Fc -f rmc.dump`
    (or use Render's backup download).

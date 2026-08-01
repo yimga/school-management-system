@@ -6,9 +6,10 @@ payment-intent against *that tenant's* PSP credentials (Stripe Connect /
 Paystack / Flutterwave / MTN MoMo / Razorpay).
 
 The platform never holds the tenant's funds — every checkout session is
-created against the tenant's connected merchant account; settlement flows
-direct merchant. The platform takes a configurable per-transaction fee
-(default 0% during pilot; tenant-configurable upper bound).
+created against the tenant's own merchant credentials; settlement flows
+directly to that tenant. RunMyCampus does not add an application fee, split,
+transfer, or other per-transaction platform charge. Operator subscription
+billing is a separate product boundary.
 
 This module is the **session creation kernel**. It does not call any PSP API;
 it produces a `CheckoutSessionRequest` and hands off to the existing PSP

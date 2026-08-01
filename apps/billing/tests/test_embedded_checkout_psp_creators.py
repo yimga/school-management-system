@@ -207,15 +207,17 @@ class StripeDynamicSessionTests(SimpleTestCase):
             create_stripe_dynamic_session,
         )
 
-        with patch("apps.billing.stripe_checkout.get_active_stripe_processor_config",
-                   return_value=None):
+        with patch(
+            "apps.billing.embedded_checkout_psp_creators._tenant_psp_config",
+            return_value={},
+        ) as tenant_config:
             result = create_stripe_dynamic_session(_req(currency="USD"),
                                                     "rmc_ck_x", 2500)
         self.assertFalse(result["ok"])
-        self.assertIn("not active", result["error"])
+        self.assertIn("tenant stripe credentials missing", result["error"])
+        tenant_config.assert_called_once_with("stripe", "t1")
 
     def test_with_stubbed_poster_builds_price_data(self):
-        from types import SimpleNamespace
         from unittest.mock import patch
 
         from apps.billing.embedded_checkout_stripe_dynamic import (
@@ -223,20 +225,21 @@ class StripeDynamicSessionTests(SimpleTestCase):
         )
 
         captured = {}
-        cfg = SimpleNamespace(metadata={"secret_key": "sk_test_xxx"})
-
         def fake_form_post(url, params, headers):
             captured["url"] = url
             captured["params"] = params
             return (200, {"id": "cs_test_abc", "url": "https://checkout.stripe.com/abc"})
 
-        with patch("apps.billing.stripe_checkout.get_active_stripe_processor_config",
-                   return_value=cfg):
+        with patch(
+            "apps.billing.embedded_checkout_psp_creators._tenant_psp_config",
+            return_value={"secret_key": "sk_test_xxx"},
+        ) as tenant_config:
             result = create_stripe_dynamic_session(
                 _req(currency="USD", amount=2500), "rmc_ck_x", 2500,
                 http_post_form=fake_form_post,
             )
         self.assertTrue(result["ok"])
+        tenant_config.assert_called_once_with("stripe", "t1")
         self.assertEqual(result["hosted_url"], "https://checkout.stripe.com/abc")
         # Confirm price_data was built (not a pre-created price).
         self.assertIn("line_items[0][price_data][currency]", captured["params"])

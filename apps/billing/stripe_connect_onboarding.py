@@ -79,7 +79,9 @@ def platform_connect_config(
     return {
         "enabled": enabled,
         "account_type": str(meta.get("connect_account_type") or "express").strip()[:32],
-        "application_fee_percent": str(meta.get("application_fee_percent") or "").strip()[:16],
+        # Compatibility key intentionally pinned blank. Tenant school-fee
+        # collection currently has no platform application fee.
+        "application_fee_percent": "",
     }
 
 

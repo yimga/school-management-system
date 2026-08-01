@@ -39,8 +39,8 @@ LANE2_PILOT_CORRIDORS: tuple[Lane2CorridorChecklist, ...] = (
         evidence_dir="var/evidence/geos-99/psp/stripe",
         evidence_filename="phase1_platform_charge_evidence.json",
         external_blockers=(
-            "Stripe KYB complete (non-recurring + recurring + platform/marketplace products)",
-            "pk_live/sk_live + STRIPE_WEBHOOK_SECRET in env or Integration config",
+            "Tenant Stripe merchant KYB complete for school-fee collection",
+            "Tenant pk_live/sk_live + webhook secret stored in its Integration only",
             "One supervised charge + refund on staging then prod",
         ),
     ),
@@ -55,9 +55,9 @@ LANE2_PILOT_CORRIDORS: tuple[Lane2CorridorChecklist, ...] = (
         evidence_dir="var/evidence/geos-99/psp/stripe",
         evidence_filename="phase2_connect_pilot_evidence.json",
         external_blockers=(
-            "Phase 1 platform charge evidence filed first",
+            "Tenant connected-account onboarding and merchant identity complete",
             "Pilot school completes Express onboarding at /siteconfig/billing-stripe/",
-            "Destination or direct charge on connected account with payout proof",
+            "Direct charge on connected account with tenant payout proof; no destination charge or application fee",
         ),
     ),
     Lane2CorridorChecklist(

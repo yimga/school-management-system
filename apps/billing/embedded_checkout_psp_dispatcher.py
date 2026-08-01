@@ -148,7 +148,7 @@ def _attempt_live_dispatch(
     Wave Q1 (v3.95.2): all 5 non-Stripe PSPs are wired through
     ``embedded_checkout_psp_creators``. Each creator returns ``{"ok": False,
     "error": "credentials missing"}`` until tenant credentials are stored in
-    ``PlatformBillingProcessorConfig.metadata``. The dispatcher fallthrough
+    that tenant's payment ``Integration``. The dispatcher fallthrough
     then tries the next candidate.
 
     Wave Q2 (v3.95.2): Stripe ad-hoc amounts via ``price_data`` (no

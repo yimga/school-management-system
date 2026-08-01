@@ -22,7 +22,9 @@
       "key": "private-primary-school",
       "local_constraints": [],
       "local_first_manifest": {
-        "browser_proof_status": "PARTIAL_CLIENT_HARNESS_REQUIRED",
+        "browser_proof_detail": "Browser restart persistence and storage-pressure legs both proven.",
+        "browser_proof_reason": "verified",
+        "browser_proof_status": "BROWSER_PROOF_VERIFIED",
         "cached_surfaces": [
           "admissions",
           "attendance",
@@ -128,7 +130,9 @@
       "key": "private-secondary-school",
       "local_constraints": [],
       "local_first_manifest": {
-        "browser_proof_status": "PARTIAL_CLIENT_HARNESS_REQUIRED",
+        "browser_proof_detail": "Browser restart persistence and storage-pressure legs both proven.",
+        "browser_proof_reason": "verified",
+        "browser_proof_status": "BROWSER_PROOF_VERIFIED",
         "cached_surfaces": [
           "academics",
           "attendance",
@@ -242,7 +246,9 @@
         "low_connectivity_assessment_entry"
       ],
       "local_first_manifest": {
-        "browser_proof_status": "PARTIAL_CLIENT_HARNESS_REQUIRED",
+        "browser_proof_detail": "Browser restart persistence and storage-pressure legs both proven.",
+        "browser_proof_reason": "verified",
+        "browser_proof_status": "BROWSER_PROOF_VERIFIED",
         "cached_surfaces": [
           "compliance",
           "finance_manual_fallback",
@@ -264,7 +270,6 @@
           "Bursar"
         ],
         "external_dependencies": [
-          "Regional PSP corridor proof",
           "live_payment_collection"
         ],
         "indexeddb_stores": [
@@ -355,7 +360,9 @@
         "translation_review"
       ],
       "local_first_manifest": {
-        "browser_proof_status": "PARTIAL_CLIENT_HARNESS_REQUIRED",
+        "browser_proof_detail": "Browser restart persistence and storage-pressure legs both proven.",
+        "browser_proof_reason": "verified",
+        "browser_proof_status": "BROWSER_PROOF_VERIFIED",
         "cached_surfaces": [
           "academics",
           "family_communications",
@@ -460,7 +467,9 @@
         "leave_request_control"
       ],
       "local_first_manifest": {
-        "browser_proof_status": "PARTIAL_CLIENT_HARNESS_REQUIRED",
+        "browser_proof_detail": "Browser restart persistence and storage-pressure legs both proven.",
+        "browser_proof_reason": "verified",
+        "browser_proof_status": "BROWSER_PROOF_VERIFIED",
         "cached_surfaces": [
           "attendance",
           "discipline",
@@ -564,7 +573,9 @@
         "multi_currency_settlement_external_required"
       ],
       "local_first_manifest": {
-        "browser_proof_status": "PARTIAL_CLIENT_HARNESS_REQUIRED",
+        "browser_proof_detail": "Browser restart persistence and storage-pressure legs both proven.",
+        "browser_proof_reason": "verified",
+        "browser_proof_status": "BROWSER_PROOF_VERIFIED",
         "cached_surfaces": [
           "compliance",
           "curriculum_profiles",
@@ -586,7 +597,6 @@
           "Parent"
         ],
         "external_dependencies": [
-          "Regional PSP and settlement proof",
           "multi_currency_live_collection"
         ],
         "indexeddb_stores": [
@@ -666,7 +676,9 @@
         "cross_campus_governance"
       ],
       "local_first_manifest": {
-        "browser_proof_status": "PARTIAL_CLIENT_HARNESS_REQUIRED",
+        "browser_proof_detail": "Browser restart persistence and storage-pressure legs both proven.",
+        "browser_proof_reason": "verified",
+        "browser_proof_status": "BROWSER_PROOF_VERIFIED",
         "cached_surfaces": [
           "billing",
           "group_analytics",
@@ -686,7 +698,6 @@
           "Finance lead"
         ],
         "external_dependencies": [
-          "Settlement and PSP corridor proof for network billing",
           "network_live_settlement"
         ],
         "indexeddb_stores": [
@@ -776,7 +787,9 @@
         "sync_owner_required"
       ],
       "local_first_manifest": {
-        "browser_proof_status": "PARTIAL_CLIENT_HARNESS_REQUIRED",
+        "browser_proof_detail": "Browser restart persistence and storage-pressure legs both proven.",
+        "browser_proof_reason": "verified",
+        "browser_proof_status": "BROWSER_PROOF_VERIFIED",
         "cached_surfaces": [
           "attendance",
           "finance_manual_fallback",
@@ -799,30 +812,7 @@
           "Finance staff"
         ],
         "external_dependencies": [
-          "PSP proof if live collection is needed",
-          "l",
-          "i",
-          "v",
-          "e",
-          "_",
-          "p",
-          "a",
-          "y",
-          "m",
-          "e",
-          "n",
-          "t",
-          "_",
-          "c",
-          "o",
-          "l",
-          "l",
-          "e",
-          "c",
-          "t",
-          "i",
-          "o",
-          "n"
+          "live_payment_collection"
         ],
         "indexeddb_stores": [
           "tenant_profile",

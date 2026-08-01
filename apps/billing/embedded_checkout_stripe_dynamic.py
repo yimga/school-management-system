@@ -42,22 +42,16 @@ def create_stripe_dynamic_session(
     tenant has not stored their Stripe secret key in the processor config.
     """
     try:
-        from .stripe_checkout import (  # type: ignore
-            get_active_stripe_processor_config,
-            stripe_api_base,
-            stripe_secret_key,
-        )
+        from .embedded_checkout_psp_creators import _tenant_psp_config
         from .processors import _default_form_post  # type: ignore
     except Exception as exc:  # noqa: BLE001
         logger.warning("stripe dynamic creator: import error %s", exc)
         return {"ok": False, "error": f"stripe import error: {exc}"}
 
-    cfg = get_active_stripe_processor_config()
-    if cfg is None:
-        return {"ok": False, "error": "stripe processor config not active"}
-    key = stripe_secret_key(cfg)
+    cfg = _tenant_psp_config("stripe", req.tenant_id)
+    key = str(cfg.get("secret_key") or "").strip()
     if not key:
-        return {"ok": False, "error": "stripe credentials missing"}
+        return {"ok": False, "error": "tenant stripe credentials missing"}
 
     success_url = req.success_url or "https://runmycampus.com/checkout/ok"
     cancel_url = req.cancel_url or "https://runmycampus.com/checkout/cancel"
@@ -92,7 +86,8 @@ def create_stripe_dynamic_session(
         if li.sku:
             params[f"{prefix}[price_data][product_data][metadata][sku]"] = li.sku
 
-    url = f"{stripe_api_base(cfg)}/v1/checkout/sessions"
+    api_base = str(cfg.get("api_base_url") or "https://api.stripe.com").rstrip("/")
+    url = f"{api_base}/v1/checkout/sessions"
     headers = {
         "Authorization": f"Bearer {key}",
         "Content-Type": "application/x-www-form-urlencoded",

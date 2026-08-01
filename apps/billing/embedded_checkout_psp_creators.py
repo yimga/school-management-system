@@ -6,7 +6,7 @@ are present. Each creator is documented against the real vendor API.
 
 Activation requires three things per PSP:
 1. Vendor partner agreement signed (counsel-blocked outside this repo).
-2. Credentials stored in tenant's ``PlatformBillingProcessorConfig.metadata``.
+2. Credentials stored in the tenant's enabled payment ``Integration`` row.
 3. ``PSPRow.adapter_status`` set to ``live`` in
    ``apps/billing/psp_adapter_registry.py``.
 
@@ -16,7 +16,8 @@ fallthrough logic tries the next candidate (per Wave I/P-C+E design).
 
 Boundaries preserved: NO third-party SDK imports at module load time. Every
 creator imports `requests` lazily inside its function. Credential reads go
-through the tenant's PSP processor config row, never platform env vars.
+through the tenant's payment integration row, never the operator's platform-
+billing table or environment variables.
 """
 
 from __future__ import annotations
@@ -30,17 +31,28 @@ from .embedded_checkout import CheckoutSessionRequest
 logger = logging.getLogger(__name__)
 
 
-def _tenant_psp_config(processor: str) -> dict[str, Any]:
-    """Pull credentials from the tenant's active PSP processor row."""
+def _tenant_psp_config(processor: str, tenant_id: str) -> dict[str, Any]:
+    """Return one tenant's enabled PSP config without a global fallback."""
     try:
-        from .models import PlatformBillingProcessorConfig  # type: ignore
-        cfg = PlatformBillingProcessorConfig.objects.filter(
-            code=processor, is_active=True,
-        ).first()
-        if cfg is None:
+        from django.db.models import Q
+
+        from apps.integrations_marketplace.models import Integration
+
+        aliases = {processor, processor.replace("_", "-")}
+        if processor == "orange_money":
+            aliases.update({"orange_momo", "orange"})
+        queryset = Integration.objects.filter(
+            provider="payments", enabled=True, school__isnull=False,
+        ).filter(Q(slug__in=aliases) | Q(config__provider_slug__in=aliases))
+        row = queryset.filter(school__slug=str(tenant_id)).order_by("-updated_at").first()
+        if row is None:
+            try:
+                row = queryset.filter(school_id=tenant_id).order_by("-updated_at").first()
+            except (TypeError, ValueError):
+                row = None
+        if row is None:
             return {}
-        meta = cfg.metadata if isinstance(cfg.metadata, dict) else {}
-        return meta
+        return dict(row.config) if isinstance(row.config, dict) else {}
     except Exception as exc:  # noqa: BLE001
         logger.warning("psp_config lookup failed processor=%s err=%s", processor, exc)
         return {}
@@ -62,7 +74,7 @@ def create_paystack_session(
     total_minor: int,
     http_post=None,
 ) -> dict[str, Any]:
-    cfg = _tenant_psp_config("paystack")
+    cfg = _tenant_psp_config("paystack", req.tenant_id)
     secret = (cfg.get("secret_key") or cfg.get("api_key") or "").strip()
     if not secret:
         return _missing_creds("paystack", ("secret_key",))
@@ -120,7 +132,7 @@ def create_flutterwave_session(
     total_minor: int,
     http_post=None,
 ) -> dict[str, Any]:
-    cfg = _tenant_psp_config("flutterwave")
+    cfg = _tenant_psp_config("flutterwave", req.tenant_id)
     secret = (cfg.get("secret_key") or cfg.get("api_key") or "").strip()
     if not secret:
         return _missing_creds("flutterwave", ("secret_key",))
@@ -185,7 +197,7 @@ def create_razorpay_session(
     total_minor: int,
     http_post=None,
 ) -> dict[str, Any]:
-    cfg = _tenant_psp_config("razorpay")
+    cfg = _tenant_psp_config("razorpay", req.tenant_id)
     key_id = (cfg.get("key_id") or "").strip()
     key_secret = (cfg.get("secret_key") or cfg.get("key_secret") or "").strip()
     if not key_id or not key_secret:
@@ -246,7 +258,7 @@ def create_mtn_momo_session(
     total_minor: int,
     http_post=None,
 ) -> dict[str, Any]:
-    cfg = _tenant_psp_config("mtn_momo")
+    cfg = _tenant_psp_config("mtn_momo", req.tenant_id)
     api_user = (cfg.get("api_user") or "").strip()
     api_key = (cfg.get("api_key") or "").strip()
     subscription_key = (cfg.get("subscription_key") or "").strip()
@@ -312,7 +324,7 @@ def create_orange_money_session(
     total_minor: int,
     http_post=None,
 ) -> dict[str, Any]:
-    cfg = _tenant_psp_config("orange_money")
+    cfg = _tenant_psp_config("orange_money", req.tenant_id)
     merchant_key = (cfg.get("merchant_key") or "").strip()
     access_token = (cfg.get("access_token") or "").strip()
     if not (merchant_key and access_token):
