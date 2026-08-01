@@ -219,6 +219,7 @@ def sync_school_events(school=None, *, limit: int = _SWEEP_EVENT_CAP) -> dict[st
     """
     from apps.school_events.models import SchoolEvent
 
+    # tenant-isolation-allow: calendar-sweep-runs-inside-run-with-tenant-context-so-events-are-schema-scoped
     qs = SchoolEvent.objects.filter(
         status=SchoolEvent.Status.PUBLISHED,
         start_at__gte=timezone.now(),

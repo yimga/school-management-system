@@ -485,6 +485,7 @@ urlpatterns = [
         name="tenant_join_code_poster",
     ),
     # Public self-service: prospective parents/teachers/staff redeem a shared code.
+    # rbac-allow: public self-service school join by a shareable revocable join code; in-view redeem_join_code validates code + domain-allowlist + expiry + max-uses
     path("join/", join_school, name="join_school"),
     path(
         "backend/identity/regulator-grant/",

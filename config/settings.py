@@ -4038,22 +4038,27 @@ KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "").strip()
 #
 # !! DO NOT FLIP TO 0 WITHOUT READING THIS !!
 # In RLS mode, RLS *is* the tenant boundary -- there are no per-tenant schemas to
-# fall back on. Today that boundary is INCOMPLETE: every *_enable_rls_postgresql.py
-# migration hard-codes a literal TABLES list frozen when it was written, and any
-# model given a `school` FK afterwards was never added to it. As of 2026-07-16,
-# `python scripts/scan_rls_table_coverage.py` reports 121 tenant-scoped tables that
-# no RLS migration enumerates (e.g. billing_platforminvoice, billing_subscriptiongrant).
-# Those tables would have NO row-level isolation the moment this flag is 0.
+# fall back on. Historically that boundary was INCOMPLETE: every
+# *_enable_rls_postgresql.py migration hard-codes a literal TABLES list frozen when
+# it was written, and a model given a `school` FK afterwards had to be added to it
+# by hand. That table-coverage gap is now CLOSED: as of 2026-08-01,
+# `python scripts/scan_rls_table_coverage.py` reports 0 tenant-scoped tables that no
+# RLS migration enumerates (the 121-gap figure recorded here on 2026-07-16 was burned
+# down to 0 and this note lagged reality until now). So a `school`-scoped table can no
+# longer silently ship with NO row-level policy.
 #
-# scan_rls_force_coverage.py reporting "0 gaps" does NOT contradict this: it only
-# asserts an app HAS both RLS migration files, never that a given table is in the
-# list. This is invisible to it by construction.
+# scan_rls_force_coverage.py reporting "0 gaps" is a WEAKER guarantee and must not be
+# read as table-level proof: it only asserts an app HAS both RLS migration files, never
+# that a given table is in the list. Table coverage is proven by
+# scan_rls_table_coverage.py above, not by it.
 #
-# The reason this is latent rather than live: should_apply_rls() returns False when
-# USE_DJANGO_TENANTS is truthy (render.yaml sets "1"), so every RLS migration is a
-# no-op in the deployed topology and isolation comes from schemas + service-layer
-# `school=` scoping instead. Flipping to 0 activates a half-built boundary.
-# Prerequisite for the flip: scan_rls_table_coverage.py at 0 findings.
+# Even with coverage at 0, treat the flip as HIGH-STAKES: should_apply_rls() returns
+# False when USE_DJANGO_TENANTS is truthy (render.yaml sets "1"), so every RLS
+# migration is a no-op in the deployed topology -- RLS has never actually enforced in
+# production, and isolation there comes from schemas + service-layer `school=` scoping.
+# Flipping to 0 activates a boundary that has only ever run under test. Validate it
+# end-to-end on production-parity Postgres (scan_rls_table_coverage.py at 0 is the
+# necessary, not sufficient, precondition) before flipping.
 _db_engine = DATABASES.get("default", {}).get("ENGINE", "")
 _use_tenants_env = os.getenv("USE_DJANGO_TENANTS", "").strip().lower()
 if _use_tenants_env in ("0", "false", "no"):

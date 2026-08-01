@@ -54,6 +54,7 @@ def request_magic_link(email, *, school=None, request=None) -> bool:
 
     now = timezone.now()
     window_start = now - timezone.timedelta(minutes=_RATE_WINDOW_MINUTES)
+    # tenant-isolation-allow: magic-link-rate-limit-count-is-scoped-by-resolved-user-not-tenant
     if LoginMagicLink.objects.filter(user=user, created_at__gte=window_start).count() >= _MAX_PER_WINDOW:
         return False  # rate-limited; requester still sees the generic message
 
@@ -115,6 +116,7 @@ def consume_magic_link(token, *, school=None):
             return None
         if school is not None and link.school_id and link.school_id != school.id:
             return None
+        # tenant-isolation-allow: magic-link-marked-used-by-primary-key-on-already-validated-single-row
         LoginMagicLink.objects.filter(pk=link.pk, used_at__isnull=True).update(
             used_at=timezone.now()
         )
