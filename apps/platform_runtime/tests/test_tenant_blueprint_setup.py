@@ -168,11 +168,20 @@ class TenantBlueprintSetupTests(TestCase):
         # A payment-gated blueprint used to be pinned below 100 with no action a
         # tenant could take: the check read a static contract tuple. The page now
         # both explains the gate and carries the decision that closes it.
+        #
+        # Fixture is international-school, whose contract genuinely declares
+        # multi_currency_settlement_external_required. This used to exercise
+        # low-connectivity-school, which is no longer payment-gated at all: its
+        # contract prescribes manual reconciliation, so the meter drops the check
+        # and it reads 100 outright (see
+        # test_blueprint_payment_model_coherence). Keeping that fixture would
+        # have tested a route to 100 for a blueprint already at 100 — a guard
+        # that can no longer fail.
         from apps.finance.fee_collection_posture import POSTURE_MANUAL, get_recorded_posture
 
         client = self._admin_client()
 
-        before = client.get("/school/setup/blueprints/?blueprint=low-connectivity-school")
+        before = client.get("/school/setup/blueprints/?blueprint=international-school")
         self.assertEqual(before.status_code, 200, msg=before.content[:400])
         body = before.content.decode("utf-8", errors="replace")
         self.assertIn("Fee collection posture", body)
@@ -183,7 +192,7 @@ class TenantBlueprintSetupTests(TestCase):
             "/school/setup/blueprints/",
             {
                 "action": "record_collection_posture",
-                "blueprint": "low-connectivity-school",
+                "blueprint": "international-school",
                 "posture": POSTURE_MANUAL,
                 "posture_note": "Cash collected at the bursary",
             },

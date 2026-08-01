@@ -340,6 +340,12 @@ BASELINE_BLUEPRINTS: tuple[BlueprintContract, ...] = (
         billing_defaults=_billing("regional-cm-school-os", psp="external_required"),
         offline_defaults=_offline("high", "low_connectivity_assessment_entry"),
         implementation_checklist=("Confirm GCE forms", "Map subject groups", "Validate grading scale", "Review exam audit", "Set manual payment fallback"),
+        # Live collection stays DECLARED (an optional external capability the
+        # preview must keep surfacing) but is NOT weighed by the readiness meter:
+        # this blueprint declares "manual_payment_fallback" in local_constraints
+        # and ships "Set manual payment fallback" as an implementation step, so
+        # manual reconciliation is its designed payment model, not a workaround.
+        # See readiness_meters._blueprint_declares_manual_payment_model.
         external_required_items=("live_payment_collection",),
         psp_status="external_required",
         composition_role="regional_overlay",
@@ -490,6 +496,14 @@ BASELINE_BLUEPRINTS: tuple[BlueprintContract, ...] = (
         billing_defaults=_billing("offline-school-os", psp="external_required"),
         offline_defaults=_offline("high", "attendance_marks_reports_payments"),
         implementation_checklist=("Enable offline queue", "Assign sync owner", "Configure conflict rules", "Test marks offline", "Review manual payment audit"),
+        # Live collection stays DECLARED here: it is a real, external, optional
+        # capability and the preview must keep surfacing it as a capability
+        # requirement (never an apply blocker). It is deliberately NOT weighed by
+        # the readiness meter, because this blueprint's declared payment model is
+        # manual reconciliation — see local_constraints
+        # ("manual_receipt_reconciliation"), the "Manual payment reconciliation"
+        # workflow pack, the "Payments fallback" module and payments.reconcile.
+        # See readiness_meters._blueprint_declares_manual_payment_model.
         external_required_items=("live_payment_collection",),
         psp_status="external_required",
         composition_role="offline_overlay",

@@ -139,11 +139,23 @@ def _external_checks(
         return checks
     if not go_live:
         return checks
+    if _declares_manual_payment_model(preview):
+        # Out of scope for this BLUEPRINT: dropped from the weighting, not
+        # credited — same treatment as a tenant-recorded manual posture.
+        return checks
 
     collection = _live_collection_state(school)
     if collection.get("not_applicable"):
         # Out of scope for this tenant: dropped from the weighting, not credited.
         return checks
+    # NOTE: a conditional gate ("PSP proof IF live payment collection is
+    # enabled", on the two policy bundles) is deliberately NOT dropped here.
+    # ``pending`` means the tenant has not DECIDED, not that it will never
+    # collect online, so treating the condition as false would infer a decision
+    # from silence — the same "never set up payments" -> "done" false credit
+    # apps.finance.fee_collection_posture exists to forbid. Those packs read 80
+    # until the tenant records a posture, which is one click on the pack setup
+    # page. Sealed by test_the_ceiling_is_not_reachable_by_doing_nothing.
     checks.append(
         ReadinessCheck(
             weight,
@@ -152,6 +164,60 @@ def _external_checks(
         )
     )
     return checks
+
+
+#: Constraint tokens by which a contract declares "we reconcile fees by hand".
+_MANUAL_PAYMENT_CONSTRAINTS = frozenset(
+    {"manual_payment_fallback", "manual_receipt_reconciliation"}
+)
+
+
+def _declares_manual_payment_model(preview: dict[str, Any]) -> bool:
+    """True when the BLUEPRINT's own contract prescribes manual reconciliation.
+
+    Two blueprints declare a live-collection go-live gate while their own
+    contracts declare the opposite operating model:
+
+    * ``low-connectivity-school`` — ``manual_receipt_reconciliation``, plus a
+      "Manual payment reconciliation" workflow pack, a "Payments fallback"
+      module and the ``payments.reconcile`` permission;
+    * ``cameroon-gce-school`` — ``manual_payment_fallback``, and "Set manual
+      payment fallback" as an implementation step.
+
+    The gate is weighed at 15, so both read 85 for every tenant — the
+    offline-first archetype being told it could not finish until it onboarded an
+    online PSP, the very thing a low-connectivity school exists to operate
+    without. A school running exactly the model its blueprint prescribes has no
+    remaining work, so the check does not apply and leaves the denominator.
+
+    This reads a BLUEPRINT CONTRACT fact, never tenant state.
+    ``apps.finance.fee_collection_posture`` documents that a manual posture is
+    never inferred from the absence of a rail, because that would turn "this
+    school never set up payments" into "this school is done". Nothing here
+    infers anything about a tenant: a blueprint that stays silent on its payment
+    model is unaffected and still resolves against the tenant's real posture.
+
+    The gate itself remains DECLARED on the contract and keeps being surfaced by
+    the preview as a capability requirement (never an apply blocker), so a
+    school that does want a live rail is still guided to one.
+    """
+    key = preview.get("blueprint_key")
+    if not key:
+        # Packs share this helper and carry no blueprint key — unaffected.
+        return False
+    try:
+        from apps.platform_runtime.blueprint_contract import get_blueprint
+
+        blueprint = get_blueprint(str(key))
+    except (ImportError, AttributeError, TypeError, ValueError):
+        return False
+    if blueprint is None:
+        return False
+    constraints = {
+        str(c).strip().lower()
+        for c in (getattr(blueprint, "local_constraints", None) or ())
+    }
+    return bool(constraints & _MANUAL_PAYMENT_CONSTRAINTS)
 
 
 def _live_collection_state(school) -> dict[str, Any]:
