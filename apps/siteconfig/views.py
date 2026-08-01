@@ -1978,6 +1978,7 @@ def theme_colors_page(request):
         "theme_contrast_report": contrast_report,
         "theme_contrast_targets": theme_contrast_targets_for_client(),
         "theme_publish_guarded_count": len(THEME_PUBLISH_GUARDED_FIELDS),
+        "operator_cp_theme_colors_head": True,
         "skip_theme_publish_guard": bool(
             theme_settings.get("skip_theme_publish_guard", False)
         ),

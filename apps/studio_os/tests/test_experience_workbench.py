@@ -1,16 +1,28 @@
 """Phase 5 — Experience Studio three-pane workbench and context links."""
 
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from apps.accounts.models import Permission
+from apps.schools.models import School, SchoolMembership
 
 User = get_user_model()
 
 
+@override_settings(
+    ALLOWED_HOSTS=["*"],
+    DISABLE_SCHOOL_ACTIVATION_GATE=True,
+    SECURE_SSL_REDIRECT=False,
+)
 class ExperienceStudioWorkbenchTests(TestCase):
     def setUp(self):
+        self.school = School.objects.create(
+            name="Experience Workbench School",
+            slug="experience-workbench",
+            subdomain="experience-workbench",
+            is_active=True,
+        )
         self.user = User.objects.create_user(
             username="exp-wb-user",
             email="exp-wb@example.com",
@@ -24,6 +36,13 @@ class ExperienceStudioWorkbenchTests(TestCase):
             defaults={"name": "Manage settings"},
         )
         self.user.feature_permissions.add(manage_perm)
+        SchoolMembership.objects.create(
+            user=self.user,
+            school=self.school,
+            role=User.Role.IT_ADMIN,
+            is_primary=True,
+        )
+        self.client.defaults["HTTP_HOST"] = "experience-workbench.runmycampus.com"
 
     def test_experience_studio_renders_workbench_when_theme_in_page(self):
         self.client.force_login(self.user)
@@ -69,3 +88,14 @@ class ExperienceStudioWorkbenchTests(TestCase):
         response = self.client.get(reverse("studio_os:experience"))
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"studio-experience-mode.css", response.content)
+        self.assertEqual(response.content.count(b"studio-experience-mode.css"), 1)
+        self.assertEqual(response.content.count(b"tenant-command-workspace.css"), 1)
+
+    def test_tenant_studio_shell_has_one_h1(self):
+        """The masthead owns the tenant Studio title; toolbar context is not a second H1."""
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("studio_os:experience"))
+        self.assertEqual(response.status_code, 200)
+        body = response.content.decode("utf-8", errors="ignore").lower()
+        self.assertEqual(body.count("<h1"), 1)
+        self.assertIn('data-rmc-studio-context-title="1"', body)

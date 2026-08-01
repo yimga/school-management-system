@@ -24,6 +24,10 @@ const ROUTES = process.env.RMC_OPERATOR_QUICK === '1' ? [
   { slug: 'provision-queue', path: '/super/provision-queue/' },
   { slug: 'support-live', path: '/super/support/live/' },
 ];
+const HEAD_OWNERSHIP_ROUTES = [
+  { slug: 'theme-colors', path: '/siteconfig/theme-colors/?standalone=1' },
+  { slug: 'studio-experience', path: '/studio/experience/' },
+];
 const QUICK_WIDTH = Number(process.env.RMC_OPERATOR_QUICK_WIDTH || 1440);
 const VIEWPORTS = process.env.RMC_OPERATOR_QUICK === '1' ? [
   { name: String(QUICK_WIDTH), width: QUICK_WIDTH, height: QUICK_WIDTH <= 390 ? 844 : 1000 },
@@ -213,9 +217,80 @@ test.describe('operator audited workbenches', () => {
       }
     }
 
+    // Shared theme-preview assets must be owned by <head> on both manager
+    // surfaces that render them. This browser proof complements the global
+    // template parser audit and prevents body-level CSS/script regressions.
+    const headOwnershipEvidence = [];
+    for (const route of HEAD_OWNERSHIP_ROUTES) {
+      for (const theme of ['dark', 'light']) {
+        for (const viewport of [VIEWPORTS[0], VIEWPORTS[VIEWPORTS.length - 1]]) {
+          await page.setViewportSize({ width: viewport.width, height: viewport.height });
+          const response = await page.goto(route.path, {
+            waitUntil: 'domcontentloaded',
+            timeout: 120000,
+          });
+          await ensureManagerHost(page);
+          expect(response).not.toBeNull();
+          expect(response.status(), route.path).toBe(200);
+          expect(new URL(page.url()).hostname).toBe('manager.runmycampus.com');
+          await page.evaluate((activeTheme) => {
+            if (!window.RMCTheme || typeof window.RMCTheme.set !== 'function') {
+              throw new Error('RMCTheme API unavailable');
+            }
+            window.RMCTheme.set(activeTheme);
+          }, theme);
+          await page.waitForTimeout(200);
+
+          const dom = await page.evaluate(() => {
+            const root = document.documentElement;
+            const cssUrls = Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
+              .map((node) => node.href);
+            const visibleH1 = Array.from(document.querySelectorAll('h1')).filter((node) => {
+              const rect = node.getBoundingClientRect();
+              const style = getComputedStyle(node);
+              return rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility !== 'hidden';
+            });
+            return {
+              clientWidth: root.clientWidth,
+              scrollWidth: root.scrollWidth,
+              h1Visible: visibleH1.length,
+              resolvedTheme: root.getAttribute('data-resolved-theme'),
+              duplicateCssUrls: cssUrls.filter((url, index) => cssUrls.indexOf(url) !== index),
+              bodyStylesheetUrls: Array.from(document.body.querySelectorAll('link[rel="stylesheet"]'))
+                .map((node) => node.href),
+              themePreviewCssInHead: document.head.querySelectorAll('link[href*="site-settings-preview.css"]').length,
+              contrastGuardInHead: document.head.querySelectorAll('script[src*="contrast-guard.js"]').length,
+              themePreviewScriptInHead: document.head.querySelectorAll('script[src*="site-settings-preview.js"]').length,
+            };
+          });
+
+          expect(dom.scrollWidth).toBeLessThanOrEqual(dom.clientWidth + 1);
+          expect(dom.h1Visible).toBe(1);
+          expect(dom.resolvedTheme).toBe(theme);
+          expect(dom.duplicateCssUrls).toEqual([]);
+          expect(dom.bodyStylesheetUrls).toEqual([]);
+          expect(dom.themePreviewCssInHead).toBe(1);
+          expect(dom.contrastGuardInHead).toBe(1);
+          expect(dom.themePreviewScriptInHead).toBe(1);
+
+          const shot = path.join(EVIDENCE_DIR, `${route.slug}-${theme}-${viewport.name}.png`);
+          await page.screenshot({ path: shot, fullPage: true });
+          headOwnershipEvidence.push({
+            route: route.path,
+            theme,
+            viewport,
+            status: response.status(),
+            url: page.url(),
+            ...dom,
+            screenshot: path.relative(ROOT, shot).replace(/\\/g, '/'),
+          });
+        }
+      }
+    }
+
     fs.writeFileSync(
       path.join(EVIDENCE_DIR, 'operator-workbench-browser-evidence.json'),
-      `${JSON.stringify({ generatedAt: new Date().toISOString(), evidence, environmentWarnings, consoleErrors, brokenResources }, null, 2)}\n`,
+      `${JSON.stringify({ generatedAt: new Date().toISOString(), evidence, headOwnershipEvidence, environmentWarnings, consoleErrors, brokenResources }, null, 2)}\n`,
       'utf8',
     );
     expect(brokenResources).toEqual([]);

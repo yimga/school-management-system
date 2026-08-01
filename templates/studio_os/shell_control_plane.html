@@ -21,6 +21,7 @@
 <link rel="stylesheet" href="{% static 'css/studio-automation-cockpit.css' %}">
 {% elif current_mode == "experience" %}
 <link rel="stylesheet" href="{% static 'css/studio-experience-mode.css' %}">
+{% include "siteconfig/partials/theme_editor_head_assets.html" %}
 {% endif %}
 {% endblock %}
 

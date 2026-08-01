@@ -34,7 +34,65 @@ class ThemePreviewContractTests(TestCase):
         self.assertIn("theme-preview-evidence-status", html)
         self.assertIn("data-rmc-preview-fallbacks", html)
         self.assertIn("theme-live-preview-modal", html)
-        self.assertIn("rmc-live-preview-contract.css", html)
+
+    def test_standalone_theme_assets_are_owned_by_head(self):
+        page = (ROOT / "templates/siteconfig/theme_colors.html").read_text(
+            encoding="utf-8"
+        )
+        body = (
+            ROOT / "templates/siteconfig/partials/theme_colors_page_body.html"
+        ).read_text(encoding="utf-8")
+        assets = (
+            ROOT / "templates/admin/components/theme_preview_assets.html"
+        ).read_text(encoding="utf-8")
+        palette = (
+            ROOT / "templates/admin/components/admin_dashboard_palette_selector.html"
+        ).read_text(encoding="utf-8")
+
+        head_start = page.index("{% block extrastyle %}")
+        head = page[head_start : page.index("{% endblock %}", head_start)]
+        self.assertIn("siteconfig/partials/theme_editor_head_assets.html", head)
+        self.assertIn("rmc-live-preview-contract.css", head)
+        self.assertNotIn('rel="stylesheet"', body)
+        self.assertNotIn('rel="stylesheet"', palette)
+        self.assertNotIn("admin/components/theme_preview_assets.html", body)
+        self.assertNotIn("<div", assets)
+
+    def test_studio_experience_head_owns_shared_theme_assets(self):
+        experience = (ROOT / "templates/studio_os/modes/experience.html").read_text(
+            encoding="utf-8"
+        )
+        content = (
+            ROOT / "templates/siteconfig/partials/theme_colors_content.html"
+        ).read_text(encoding="utf-8")
+
+        head_start = experience.index("{% block extrastyle %}")
+        head = experience[
+            head_start : experience.index("{% endblock %}", head_start)
+        ]
+        self.assertIn("siteconfig/partials/theme_editor_head_assets.html", head)
+        self.assertNotIn('rel="stylesheet"', content)
+        self.assertNotIn("admin/components/theme_preview_assets.html", content)
+
+    def test_manager_theme_assets_are_owned_by_operator_head(self):
+        wrapper = (
+            ROOT / "templates/siteconfig/operator_control_plane_page.html"
+        ).read_text(encoding="utf-8")
+        assets = (
+            ROOT / "templates/siteconfig/partials/theme_colors_operator_head_assets.html"
+        ).read_text(encoding="utf-8")
+        editor_assets = (
+            ROOT / "templates/siteconfig/partials/theme_editor_head_assets.html"
+        ).read_text(encoding="utf-8")
+
+        head_start = wrapper.index("{% block extrastyle %}")
+        head = wrapper[head_start : wrapper.index("{% endblock %}", head_start)]
+        self.assertIn("theme_colors_operator_head_assets.html", head)
+        self.assertNotIn("dashboard-responsive.css", head)
+        self.assertIn("theme_editor_head_assets.html", assets)
+        self.assertIn("rmc-live-preview-contract.css", assets)
+        self.assertIn("admin/components/theme_preview_assets.html", editor_assets)
+        self.assertIn("admin-color-preview.css", editor_assets)
 
     def test_publish_guard_bypass_is_audit_logged(self):
         src = (ROOT / "apps/siteconfig/views.py").read_text(encoding="utf-8")
