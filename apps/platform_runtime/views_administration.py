@@ -630,12 +630,6 @@ def tenant_blueprint_setup(request):
             result = {"ok": True, "message": _("Fee-collection posture recorded.")}
         except ValueError as exc:
             result = {"ok": False, "error": str(exc)}
-        preview = preview_blueprint(
-            selected_key,
-            school=school,
-            actor=request.user,
-            platform_operator=False,
-        )
     elif request.method == "POST":
         change_set = generate_blueprint_change_set(selected_key, school=school, actor=request.user, platform_operator=False)
         if change_set["requires_approval"]:
@@ -657,6 +651,28 @@ def tenant_blueprint_setup(request):
                 confirmed=request.POST.get("confirm") == "yes",
                 platform_operator=False,
             )
+    if request.method == "POST":
+        # Re-resolve AFTER the mutation. Built once at the top, this page
+        # re-rendered post-apply exactly as it looked pre-apply — same enabled
+        # Apply button, no trace of the install — which is indistinguishable
+        # from "nothing happened" and invites a second click.
+        school.refresh_from_db()
+        preview = preview_blueprint(
+            selected_key,
+            school=school,
+            actor=request.user,
+            platform_operator=False,
+        )
+
+    installations = list(
+        BlueprintInstallation.objects.filter(school=school)
+        .order_by("-applied_at", "-id")[:25]
+    )
+    applied_keys = {
+        row.blueprint_key
+        for row in installations
+        if row.status == BlueprintInstallation.Status.APPLIED
+    }
     return render(
         request,
         "platform_runtime/tenant_blueprint_setup.html",
@@ -665,6 +681,8 @@ def tenant_blueprint_setup(request):
             "blueprints": blueprints,
             "selected_key": selected_key,
             "preview": preview,
+            "installations": installations,
+            "applied_keys": applied_keys,
             # Real, per-tenant readiness derived from this preview (applyable /
             # conflict-free / offline proof / live-payment onboarding) — replaces
             # the old hardcoded "72" placeholder so the bar can actually reach 100.

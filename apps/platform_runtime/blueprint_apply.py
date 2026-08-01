@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
-import json
 from typing import Any
 
 from django.conf import settings as dj_settings
@@ -25,11 +23,6 @@ def _snapshot_school(school) -> dict[str, Any]:
         "settings": dict(getattr(school, "settings", {}) or {}),
         "features": dict(getattr(school, "features", {}) or {}),
     }
-
-
-def _stable_hash(payload: dict[str, Any]) -> str:
-    raw = json.dumps(payload, sort_keys=True, default=str)
-    return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:24]
 
 
 def apply_blueprint(
@@ -116,7 +109,11 @@ def apply_blueprint(
             "audit_id": getattr(event, "pk", None),
         }
 
-    idem = idempotency_key or f"{blueprint.key}:{school.pk}:{_stable_hash(preview)}"
+    # Stable per (blueprint, version, school). Deliberately NOT a hash of the
+    # preview: the preview embeds a live installation COUNT, so it changed the
+    # instant the first apply landed — a second click then hashed differently,
+    # missed this duplicate guard, and wrote another installation row.
+    idem = idempotency_key or f"{blueprint.key}:{blueprint.version}:{school.pk}"
     existing = BlueprintInstallation.objects.filter(
         school=school,
         blueprint_key=blueprint.key,

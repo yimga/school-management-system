@@ -64,16 +64,25 @@ def _change_rows(blueprint: BlueprintContract) -> list[dict[str, Any]]:
     return changes
 
 
-def _tenant_counts(school) -> dict[str, int]:
+def _tenant_counts(school, blueprint_key: str = "") -> dict[str, int]:
     if school is None:
         return {}
     from apps.platform_runtime.models import BlueprintInstallation
 
+    rows = BlueprintInstallation.objects.filter(school=school)
     return {
-        "blueprint_installations": BlueprintInstallation.objects.filter(
-            school=school
-        ).count(),
-        "active_same_blueprint": 0,
+        "blueprint_installations": rows.count(),
+        # Was hardcoded 0, so nothing downstream could tell whether THIS
+        # blueprint was already applied to this tenant — including the UI that
+        # has to choose between offering "Apply" and showing "Applied".
+        "active_same_blueprint": (
+            rows.filter(
+                blueprint_key=blueprint_key,
+                status=BlueprintInstallation.Status.APPLIED,
+            ).count()
+            if blueprint_key
+            else 0
+        ),
     }
 
 
@@ -208,10 +217,14 @@ def preview_blueprint(
             else "Use this as a base operating model; add overlays for region, language, boarding, or offline needs."
         ),
     }
+    tenant_counts = _tenant_counts(school, blueprint.key)
     result = {
         "blueprint_key": blueprint.key,
         "blueprint_name": blueprint.name,
         "blueprint_version": blueprint.version,
+        # Surfaced at the top level so a caller does not have to dig through the
+        # audit summary to answer "is this already live for this tenant?".
+        "already_applied": bool(tenant_counts.get("active_same_blueprint")),
         "tenant": str(getattr(school, "pk", "") or ""),
         "tenant_name": getattr(school, "name", "") or "",
         "can_apply": can_apply,
@@ -253,7 +266,7 @@ def preview_blueprint(
                 "blueprint_rollback_requested",
                 "blueprint_rolled_back",
             ],
-            "tenant_counts": _tenant_counts(school),
+            "tenant_counts": tenant_counts,
         },
         "implementation_checklist": list(blueprint.implementation_checklist),
         "package_payload": {
