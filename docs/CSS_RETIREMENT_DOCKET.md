@@ -1,6 +1,23 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-07-09
+**Last updated:** 2026-07-31
+
+## 2026-07-31 — Blueprint readiness: 80/85/20 → 100 reachable (hardcoded proof literal + inverted meter + un-appliable status)
+
+**Reported as:** "applying a blueprint shows blockers; I want blueprints at 100% readiness." **Audit first (ground truth by running the real preview engine against a tenant):** 4 blueprints read 80, 3 read 85, `multi-campus-network` read 20 — but `can_apply` was **True for all 7 tenant-facing blueprints**, the approval gate was clear, and the apply form already posts `confirm=yes`. Nothing blocked apply. What the page showed was a readiness meter that could not reach 100 by construction, plus its amber badges.
+
+**Three root causes, all real:**
+
+1. **Hardcoded proof literal.** `blueprint_contract._local_first_manifest` asserted `browser_proof_status="PARTIAL_CLIENT_HARNESS_REQUIRED"` — a literal written before any browser harness existed and never revisited after `scripts/verify_client_offline_endurance.py` (Chrome/selenium, restart-persistence + storage-pressure legs) landed. Same defect class as the hardcoded "72" meter this codebase already fixed once: it measures nothing and can never move. Running the harness on the current tree passes **8/8 checks** — the literal had been stale, not accurate.
+2. **Inverted offline verdict.** `blueprint_preview._offline_readiness` let a non-empty `external_required` (a *payment* gate) overwrite the offline verdict with a composite `READY_WITH_EXTERNAL_BLOCKERS`, which `readiness_meters._OFFLINE_READY_STATUSES` counted as **ready** — so a payment-gated blueprint out-scored a clean one (85 vs 80) on offline proof it had not earned.
+3. **Unsatisfiable payment check.** The live-payment check read a *static contract tuple*, never per-tenant PSP state, so no tenant could ever clear it. Combined with (1), no blueprint could reach 100 on any path.
+4. **`multi-campus-network` was un-appliable by anyone.** `status="preview_ready"` is not a soft label: preview raises `not_installable` → `can_apply=False`, and BOTH apply paths check it — including an approved operator change request (which re-reads the stored snapshot).
+
+**What landed (no migration, no SW bump — no new CSS/JS):** new `apps/platform_runtime/offline_proof_evidence.py` resolves the proof status from a recorded artifact (`var/offline-client-endurance-proof.json`, written only by a full harness pass via the new `--write-evidence` flag) and **self-invalidates**: the artifact fingerprints `rmc-offline-auth-vault.js`, so an edit to the vault drops the status back to pending instead of letting a stale pass vouch for new code. Offline status is now scored on offline evidence alone, with the payment gate reported alongside (`external_blockers` / `external_blocked`). New `apps/finance/fee_collection_posture.py` resolves the payment gate against real per-tenant state (Stripe Connect connected + charges enabled, or a configured integration on a corridor the platform has filed live evidence for); a school that reconciles fees by hand records an explicit, actor-stamped, audited posture and the check becomes **not-applicable — dropped from the denominator, never credited** (silence is never a decision; "no rail configured" stays `pending`). `multi-campus-network` flipped to `installable` only after an end-to-end test proved the governed path completes.
+
+**Evidence:** readiness now 100 for the 4 non-payment blueprints, and 100 for the 3 payment blueprints once the tenant records a posture or connects a rail (both proven); `multi-campus-network` 20 → 85 with `can_apply=True` for an operator. 85 tests green across 14 suites on a private DB lane (the shared keepdb was lock-contended by parallel sessions — the errors it produced were env flakes, re-run clean). Must-fire seals added: proof goes stale on source drift; the retired composite offline status must not be re-admitted as ready; a resolver failure never fabricates a pass; the operator-approval gate and tenant block on `multi-campus-network` both still refuse. All boundary gates green; 1880 templates compile; no new magic numbers, role strings, or untranslated labels.
+
+**Deploy:** merge + deploy (auto-deploy is OFF). `var/offline-client-endurance-proof.json` must be committed for the proof to resolve in production; re-run `python scripts/verify_client_offline_endurance.py --write-evidence` (needs Chrome) after any change to `static/js/rmc-offline-auth-vault.js`, otherwise blueprint readiness honestly drops to 76 until it is re-proven. Registered follow-up: surface the collection posture on the finance payment-readiness page too (it is currently recordable only from the blueprint setup page), and wire the harness into a Chrome-capable CI lane so the proof refreshes without a human.
 
 ## 2026-07-09 — Config-read burndown COMPLETE: 182 → 0 (9.8-regime A-wave, config-SOT adoption)
 

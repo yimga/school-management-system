@@ -52,6 +52,11 @@ STATE_LIVE = "live"
 STATE_MANUAL_RECORDED = "manual_recorded"
 STATE_PENDING = "pending"
 
+#: Free-text note cap, matched by the form field's ``maxlength``.
+MAX_NOTE_CHARS = 500
+#: Platform event-log idempotency key column width.
+_IDEMPOTENCY_KEY_CHARS = 128
+
 
 def get_recorded_posture(school) -> dict[str, Any]:
     """The tenant's recorded decision, or ``{}`` when none has been made."""
@@ -81,7 +86,7 @@ def record_collection_posture(school, *, mode: str, actor=None, note: str = "") 
         "mode": mode,
         "recorded_at": timezone.now().isoformat(),
         "recorded_by": getattr(actor, "pk", None),
-        "note": str(note or "")[:500],
+        "note": str(note or "")[:MAX_NOTE_CHARS],
     }
     settings_blob = dict(getattr(school, "settings", None) or {})
     settings_blob[POSTURE_SETTINGS_KEY] = record
@@ -101,7 +106,9 @@ def record_collection_posture(school, *, mode: str, actor=None, note: str = "") 
             },
             tenant_id=str(school.pk),
             school_id=school.pk,
-            idempotency_key=f"fee_collection_posture:{school.pk}:{record['recorded_at']}"[:128],
+            idempotency_key=(
+                f"fee_collection_posture:{school.pk}:{record['recorded_at']}"
+            )[:_IDEMPOTENCY_KEY_CHARS],
         )
     except Exception:  # noqa: BLE001 — audit must never break the decision itself
         logger.warning("fee_collection_posture_audit_failed", exc_info=True)

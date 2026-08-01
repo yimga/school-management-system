@@ -440,7 +440,14 @@ BASELINE_BLUEPRINTS: tuple[BlueprintContract, ...] = (
         region="global",
         maturity_level="advanced",
         owner="Platform configuration",
-        status="preview_ready",
+        # Was "preview_ready", which is not a soft label: preview raises a
+        # not_installable conflict for it, so can_apply was False and BOTH apply
+        # paths refused — including an approved operator change request. The
+        # blueprint was un-appliable by anyone, forever. Flipped only after
+        # test_multi_campus_network_apply proved the governed path completes
+        # end-to-end; that test also holds the operator-approval gate and the
+        # tenant block, so installable is not a widening of access.
+        status="installable",
         scope="both",
         modules=("Group analytics", "Tenant lifecycle", "Billing", "Support"),
         roles=("Group admin", "Campus admin", "Finance lead"),

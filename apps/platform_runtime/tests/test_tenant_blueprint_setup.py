@@ -164,6 +164,59 @@ class TenantBlueprintSetupTests(TestCase):
         self.assertIn("Apply tenant blueprint", body)
         self.assertNotIn("Resolve blockers before apply", body)
 
+    def test_payment_blueprint_offers_a_route_to_100_and_records_it(self):
+        # A payment-gated blueprint used to be pinned below 100 with no action a
+        # tenant could take: the check read a static contract tuple. The page now
+        # both explains the gate and carries the decision that closes it.
+        from apps.finance.fee_collection_posture import POSTURE_MANUAL, get_recorded_posture
+
+        client = self._admin_client()
+
+        before = client.get("/school/setup/blueprints/?blueprint=low-connectivity-school")
+        self.assertEqual(before.status_code, 200, msg=before.content[:400])
+        body = before.content.decode("utf-8", errors="replace")
+        self.assertIn("Fee collection posture", body)
+        self.assertIn("Record manual reconciliation", body)
+        self.assertEqual(before.context["blueprint_readiness"]["value"], 85)
+
+        response = client.post(
+            "/school/setup/blueprints/",
+            {
+                "action": "record_collection_posture",
+                "blueprint": "low-connectivity-school",
+                "posture": POSTURE_MANUAL,
+                "posture_note": "Cash collected at the bursary",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200, msg=response.content[:400])
+        self.school.refresh_from_db()
+        self.assertEqual(get_recorded_posture(self.school)["mode"], POSTURE_MANUAL)
+        self.assertEqual(response.context["blueprint_readiness"]["value"], 100)
+        self.assertEqual(response.context["blueprint_readiness"]["unmet"], [])
+        # And no blueprint was applied by the posture form.
+        self.assertFalse(BlueprintInstallation.objects.filter(school=self.school).exists())
+
+    def test_posture_record_is_refused_without_finance_permission(self):
+        from apps.finance.fee_collection_posture import POSTURE_MANUAL, get_recorded_posture
+
+        client = self._admin_client()
+        with patch(
+            "apps.accounts.effective_access.permission_access", return_value=False
+        ):
+            response = client.post(
+                "/school/setup/blueprints/",
+                {
+                    "action": "record_collection_posture",
+                    "blueprint": "low-connectivity-school",
+                    "posture": POSTURE_MANUAL,
+                },
+            )
+
+        self.assertEqual(response.status_code, 403)
+        self.school.refresh_from_db()
+        self.assertEqual(get_recorded_posture(self.school), {})
+
     def test_blocked_blueprint_state_explains_reason(self):
         # Force a tenant-safe blueprint into preview_ready so the UI must explain
         # why Apply is disabled (not a silent empty-conflict block).
