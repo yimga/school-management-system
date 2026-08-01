@@ -1,6 +1,22 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-07-31
+**Last updated:** 2026-08-01
+
+## 2026-08-01 — Readiness ceiling closed: 0/8 blueprints and 0/154 packs can be stuck below 100
+
+**Follow-on to 2026-07-31.** With blueprint readiness fixed, a catalog-wide sweep found the same defect one layer down and one meter still hardcoded.
+
+**Two policy bundles carried the identical mis-declaration:** `finance-approval` (alias "Basic approvals" — pulled in by **private-primary-school**) and `low-connectivity-attendance` (alias "Sync conflict rules" — **low-connectivity-school**) declared a *conditional* PSP proof ("PSP proof **if** live payment collection is enabled" / "remains external **when** live collection is used") in `external_dependencies`, the apply-time HARD blocker field. Both read 80 for every tenant, including schools that will never collect online. `PackContract` gained `external_required_items` mirroring `BlueprintContract`, both items moved, and `_policy()` gained a separate `go_live=` kwarg so the two kinds can never be conflated again at the call site. Governance did not widen: both are policy bundles, and `_requires_approval` gates *every* policy bundle regardless — the change is purely about honesty and the meter.
+
+**Both previews now report the two kinds separately** (`external_hard_blockers` / `external_go_live`) and `_external_checks` in `readiness_meters` weighs them differently: a hard blocker is always unmet while present (only the platform can clear it), a go-live gate resolves against the tenant's recorded fee-collection posture. Previews written before the split fall back to treating `external_required` as go-live, which is what every one of them is. `pack_impact` reports the conditional gate as a new non-escalating `go_live_required` category rather than the risk-escalating `external_required`.
+
+**Last hardcoded meter retired:** the billing configuration module's `value="64"` (deferred by the 07-18 wave) now reads `platform_billing_readiness()` — adapter-wired and live-settlement-verified corridor counts from the register. A platform with no filed evidence honestly reads low instead of a comfortable fake 64.
+
+**Posture is now recordable where it belongs:** the finance payment-readiness page carries the panel (its home surface), alongside the blueprint setup page where the shortfall first surfaces. New `python manage.py blueprint_readiness_report [--school <slug>] [--record-manual-collection]` answers "are our blueprints at 100 for this tenant?" per school, names every shortfall, and settles the one an operator can settle without a PSP — read-only unless the flag is passed, refuses a school that already has a live rail, and will not overwrite an existing posture without `--force`.
+
+**Evidence:** with a settled posture, **0/154 tenant-safe packs and 0/8 blueprints** score below 100 (was 2 packs at 80 and 4 blueprints at 85). 95 tests green across 20 suites. New permanent seals: `test_catalog_reaches_full_readiness` asserts every tenant-safe blueprint AND pack reaches 100 (with a must-fire companion proving the assertion is not vacuous), plus a contract-hygiene test that **fails on any conditional wording ("if", "when", "optional", "conditional") inside `external_dependencies`** — the defect class cannot return silently. All boundary gates green; 1882 templates compile; the only magic-number drift on the tree is a peer's `edge_outbox.py`, not this wave.
+
+**Deploy:** no migration, no SW bump. Same deploy note as 2026-07-31 (ship `var/offline-client-endurance-proof.json`).
 
 ## 2026-07-31 — Blueprint readiness: 80/85/20 → 100 reachable (hardcoded proof literal + inverted meter + un-appliable status)
 

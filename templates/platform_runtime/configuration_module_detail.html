@@ -123,7 +123,7 @@
       {% include "components/apple_class_metric_card.html" with label=_("PSP status") value=_("External blocked") detail=_("No live PSP or settlement proof is claimed from local QA.") %}
     </div>
     <div class="col-lg-6">
-      {% include "components/apple_class_data_quality_meter.html" with meter_id="configuration-billing-readiness" title=_("Billing Impact Preview") value="64" status="external-blocked" status_label=_("Manual fallback") body=_("Package changes show entitlement and billing impact without claiming live payment readiness.") %}
+      {% include "components/apple_class_data_quality_meter.html" with meter_id="configuration-billing-readiness" title=_("Billing Impact Preview") value=billing_readiness.value status=billing_readiness.status status_label=billing_readiness.status_label body=billing_readiness.body %}
     </div>
   </div>
   {% endif %}

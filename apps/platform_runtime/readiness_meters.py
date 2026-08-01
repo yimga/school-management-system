@@ -111,16 +111,42 @@ def blueprint_readiness_checks(
         ReadinessCheck(25, not preview.get("conflicts"), "Conflict-free"),
         ReadinessCheck(20, _offline_ready(preview), "Offline proof"),
     ]
-    if not preview.get("external_required"):
-        # Blueprint declares no go-live payment gate: nothing to weigh.
+    checks.extend(_external_checks(preview, school, weight=15))
+    return checks
+
+
+def _external_checks(
+    preview: dict[str, Any], school, *, weight: float
+) -> list[ReadinessCheck]:
+    """Weigh outstanding external requirements, by kind.
+
+    A HARD blocker (``external_dependencies`` — only the platform can clear it)
+    is always weighed and always unmet while present. A GO-LIVE gate
+    (``external_required_items``) is resolved against the tenant's real
+    fee-collection posture. Previews written before the split expose only
+    ``external_required``; those are treated as go-live gates, which is what
+    every one of them is today.
+    """
+    hard = list(preview.get("external_hard_blockers") or [])
+    if "external_go_live" in preview:
+        go_live = list(preview.get("external_go_live") or [])
+    else:
+        go_live = [item for item in (preview.get("external_required") or []) if item not in hard]
+
+    checks: list[ReadinessCheck] = []
+    if hard:
+        checks.append(ReadinessCheck(weight, False, "External dependencies"))
+        return checks
+    if not go_live:
         return checks
 
     collection = _live_collection_state(school)
     if collection.get("not_applicable"):
+        # Out of scope for this tenant: dropped from the weighting, not credited.
         return checks
     checks.append(
         ReadinessCheck(
-            15,
+            weight,
             bool(collection.get("live")),
             str(collection.get("label") or "Live payment onboarding"),
         )
@@ -143,15 +169,69 @@ def blueprint_readiness(preview: dict[str, Any], *, school=None) -> dict[str, An
     return readiness_detail(blueprint_readiness_checks(preview, school=school))
 
 
-def pack_readiness_checks(preview: dict[str, Any]) -> list[ReadinessCheck]:
-    """Real readiness facts for a pack preview (same contract shape)."""
-    has_external = bool(preview.get("external_required"))
-    return [
+def pack_readiness_checks(
+    preview: dict[str, Any], *, school=None
+) -> list[ReadinessCheck]:
+    """Real readiness facts for a pack preview (same contract shape).
+
+    Packs carry the same two kinds of external requirement as blueprints and are
+    resolved the same way — two policy bundles declared a *conditional* go-live
+    PSP proof as an apply-time dependency, which pinned them at 80 for every
+    tenant including ones that never collect online.
+    """
+    checks = [
         ReadinessCheck(50, bool(preview.get("can_apply")), "Applyable preview"),
         ReadinessCheck(30, not preview.get("conflicts"), "Conflict-free"),
-        ReadinessCheck(20, not has_external, "Dependencies resolved"),
     ]
+    checks.extend(_external_checks(preview, school, weight=20))
+    return checks
 
 
-def pack_readiness(preview: dict[str, Any]) -> dict[str, Any]:
-    return readiness_detail(pack_readiness_checks(preview))
+def pack_readiness(preview: dict[str, Any], *, school=None) -> dict[str, Any]:
+    return readiness_detail(pack_readiness_checks(preview, school=school))
+
+
+def platform_billing_readiness() -> dict[str, Any]:
+    """Operator-facing billing-rail readiness, from the corridor register.
+
+    Replaces a hardcoded ``value="64"`` on the billing configuration module — a
+    number that measured nothing and could never move. The facts here are the
+    platform's own rails: how many pilot corridors have an adapter wired, and
+    how many have live settlement evidence filed. A platform that has filed no
+    live evidence honestly reads low; it reaches 100 when every corridor is
+    adapter-wired AND verified live.
+    """
+    try:
+        from apps.finance.payment_lane2_status import build_lane2_corridor_rows
+
+        rows = build_lane2_corridor_rows(school=None)
+    except Exception:  # noqa: BLE001 — an operator meter must never 500 the page
+        rows = []
+
+    if not rows:
+        return {
+            "value": 0,
+            "status": "external-blocked",
+            "status_label": "No corridors registered",
+            "body": "No payment corridor is registered yet, so no billing rail can be claimed.",
+            "unmet": ["Corridor registry"],
+        }
+
+    adapter_ready = sum(1 for row in rows if row.get("adapter_status") == "ready")
+    live_proof = sum(1 for row in rows if row.get("live_proof"))
+    checks = [
+        ReadinessCheck(40, adapter_ready / len(rows), "Corridor adapters wired"),
+        ReadinessCheck(60, live_proof / len(rows), "Live settlement evidence filed"),
+    ]
+    detail = readiness_detail(checks)
+    detail["status"] = "ready" if live_proof == len(rows) else "external-blocked"
+    detail["status_label"] = (
+        "Live settlement verified" if live_proof else "Manual fallback"
+    )
+    detail["body"] = (
+        f"{adapter_ready}/{len(rows)} corridors adapter-wired, "
+        f"{live_proof}/{len(rows)} with live settlement evidence filed. "
+        "Package changes show entitlement and billing impact without claiming "
+        "live payment readiness."
+    )
+    return detail

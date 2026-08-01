@@ -24,7 +24,11 @@ from apps.platform_runtime.blueprint_apply import apply_blueprint
 from apps.platform_runtime.blueprint_contract import get_blueprint, list_blueprints
 from apps.platform_runtime.blueprint_impact import analyze_blueprint_impact
 from apps.platform_runtime.blueprint_preview import preview_blueprint
-from apps.platform_runtime.readiness_meters import blueprint_readiness, pack_readiness
+from apps.platform_runtime.readiness_meters import (
+    blueprint_readiness,
+    pack_readiness,
+    platform_billing_readiness,
+)
 from apps.platform_runtime.blueprint_rollback import rollback_blueprint_installation
 from apps.platform_runtime.configuration_change_requests import (
     apply_approved_change_request,
@@ -102,6 +106,9 @@ def configuration_module_detail(request, module_key: str):
         context["pack_key"] = module_key
     elif module_key == "registries":
         context["registries"] = resolved_registry_rows()
+    elif module_key == "billing":
+        # Real corridor/settlement facts — the meter used to be a literal "64".
+        context["billing_readiness"] = platform_billing_readiness()
     elif module_key == "experience":
         from apps.siteconfig.theme_experience_surfaces import (
             build_platform_theme_experience_surfaces,
@@ -827,7 +834,7 @@ def tenant_pack_setup(request):
             "preview": preview,
             # Real per-tenant pack readiness (applyable / conflict-free /
             # dependencies resolved) — replaces the hardcoded "70" placeholder.
-            "pack_readiness": pack_readiness(preview),
+            "pack_readiness": pack_readiness(preview, school=school),
             "change_set": change_set,
             "simulation": simulation,
             "installations": installations,

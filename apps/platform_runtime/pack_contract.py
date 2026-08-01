@@ -24,7 +24,16 @@ class PackContract:
     version: str
     included_items: tuple[str, ...]
     prerequisites: tuple[str, ...] = ()
+    # Apply-time HARD blockers only. A non-empty external_dependencies feeds
+    # blocked_by_external and the "external_required" impact category, which
+    # forces governance approval. Do NOT put a conditional go-live payment proof
+    # here — that is a capability gate, not an apply blocker; use
+    # external_required_items (below). Mirrors BlueprintContract exactly.
     external_dependencies: tuple[str, ...] = ()
+    # Go-live capability gates (live PSP / settlement proof). Surfaced on every
+    # preview/impact signal and closed by the tenant's recorded fee-collection
+    # posture; never an apply blocker and never approval-forcing.
+    external_required_items: tuple[str, ...] = ()
     requires_packs: tuple[str, ...] = ()
     requires_modules: tuple[str, ...] = ()
     requires_roles: tuple[str, ...] = ()
@@ -215,7 +224,9 @@ def _policy(
     aliases: tuple[str, ...] = (),
     safety: str = "high",
     external: tuple[str, ...] = (),
+    go_live: tuple[str, ...] = (),
 ) -> PackContract:
+    """``external`` = apply-time hard blocker. ``go_live`` = capability gate."""
     return PackContract(
         key=key,
         name=name,
@@ -231,6 +242,7 @@ def _policy(
         requires_modules=("Fees",) if key == "finance-approval" else (),
         blocked_by_external=external,
         external_dependencies=external,
+        external_required_items=go_live,
         safety_level=safety,
         rules=rules,
         approval_flows=(f"{key}-approval",),
@@ -259,11 +271,11 @@ BASELINE_PACKS: tuple[PackContract, ...] = (
     _db("insights-center", "Insights Center", widgets=("performance", "risk", "reports"), roles=("Leadership",), aliases=("Exam operations", "Student welfare", "Admissions pipeline", "Sync queue", "Department performance")),
     _db("network-operator", "Network Operator", widgets=("campus_health", "rollout", "support"), roles=("Group admin",), aliases=("Network command", "Campus comparison"), safety="high"),
     _db("board-owner", "Board / Owner", widgets=("strategy", "compliance", "finance"), roles=("Owner", "Board"), aliases=("Board Owner",)),
-    _policy("finance-approval", "Finance Approval", rules=("dual_approval", "reconciliation_required"), aliases=("Basic approvals", "Manual audit"), external=("PSP/live settlement proof remains external when live collection is used",)),
+    _policy("finance-approval", "Finance Approval", rules=("dual_approval", "reconciliation_required"), aliases=("Basic approvals", "Manual audit"), go_live=("PSP/live settlement proof remains external when live collection is used",)),
     _policy("report-publishing", "Report Publishing", rules=("grade_lock_required", "principal_release"), aliases=("Exam approvals", "Translation review")),
     _policy("parent-communication", "Parent Communication", rules=("guardian_visibility", "consent_required"), aliases=("Guardian visibility", "Language visibility", "Guardian approval")),
     _policy("teacher-delegation", "Teacher Delegation", rules=("hod_delegate", "role_limited_actions"), aliases=("Role delegation",)),
-    _policy("low-connectivity-attendance", "Low-connectivity Attendance", rules=("offline_conflict_review", "sync_owner_required"), aliases=("Sync conflict rules",), external=("PSP proof if live payment collection is enabled",)),
+    _policy("low-connectivity-attendance", "Low-connectivity Attendance", rules=("offline_conflict_review", "sync_owner_required"), aliases=("Sync conflict rules",), go_live=("PSP proof if live payment collection is enabled",)),
     _policy("exam-assessment", "Exam / Assessment", rules=("exam_audit", "grade_moderation"), aliases=("Regional grading", "Exam audit")),
     _policy("data-privacy", "Data Privacy", rules=("export_review", "retention_guardrail"), aliases=("Student Data Governance", "Student data guardrails", "Residency and retention", "Data export review", "Cross-campus governance")),
     _policy("security-impersonation", "Security / Impersonation", rules=("impersonation_audit", "elevated_access_expiry"), aliases=("Incident audit",)),

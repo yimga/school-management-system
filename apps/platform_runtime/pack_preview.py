@@ -43,7 +43,9 @@ def preview_pack(
         conflicts.append({"code": "tenant_blocked", "message": "Tenant users cannot apply this pack directly."})
     if pack.status != "installable":
         conflicts.append({"code": "not_installable", "message": f"Pack status is {pack.status}."})
-    if pack.external_dependencies:
+    go_live_required = list(pack.external_required_items)
+    hard_blockers = list(pack.external_dependencies)
+    if hard_blockers or go_live_required:
         warnings.append("External dependencies remain required and are not marked complete.")
     can_apply = pack.apply_available and not conflicts and school is not None
     result = {
@@ -57,7 +59,13 @@ def preview_pack(
         "prerequisites": list(pack.prerequisites),
         "conflicts": conflicts,
         "warnings": warnings,
-        "external_required": list(pack.external_dependencies),
+        # Everything still outstanding, for display. The two kinds are also
+        # reported separately because they behave differently: a hard blocker
+        # can only be cleared by the platform, while a go-live gate is closed by
+        # the tenant's own fee-collection posture.
+        "external_required": hard_blockers + go_live_required,
+        "external_hard_blockers": hard_blockers,
+        "external_go_live": go_live_required,
         "affected_roles": list(pack.target_roles),
         "affected_dashboards": list(pack.widgets if pack.pack_type == "dashboard_pack" else ()),
         "affected_workflows": list(pack.triggers if pack.pack_type == "workflow_pack" else ()),

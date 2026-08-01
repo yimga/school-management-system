@@ -22,7 +22,33 @@ def payment_readiness_setup(request: HttpRequest):
         return HttpResponseForbidden("No compliance profile configured.")
 
     school = getattr(request, "school", None)
+
+    # Fee-collection posture lives here, on the payments surface that owns it.
+    # It is also recordable from the blueprint setup page (where the readiness
+    # shortfall first surfaces), but this is its home: the same explicit,
+    # actor-stamped, audited decision either way.
+    from apps.finance.fee_collection_posture import (
+        POSTURE_LIVE_RAIL,
+        POSTURE_MANUAL,
+        record_collection_posture,
+        resolve_live_collection_state,
+    )
+
+    posture_result = None
+    if request.method == "POST" and request.POST.get("action") == "record_collection_posture":
+        try:
+            record_collection_posture(
+                school,
+                mode=(request.POST.get("posture") or "").strip(),
+                actor=request.user,
+                note=request.POST.get("posture_note", ""),
+            )
+            posture_result = {"ok": True}
+        except ValueError as exc:
+            posture_result = {"ok": False, "error": str(exc)}
+
     readiness = compute_payment_readiness(school, profile)
+    collection_posture = resolve_live_collection_state(school)
 
     from apps.finance.models import TenantPaymentPolicy
     from apps.finance.payment_orchestration import build_simple_payment_flow
@@ -62,5 +88,9 @@ def payment_readiness_setup(request: HttpRequest):
             "lane2_corridors": lane2_corridors,
             "stripe_connect": stripe_connect,
             "stripe_connect_url": stripe_connect_url,
+            "collection_posture": collection_posture,
+            "posture_manual_value": POSTURE_MANUAL,
+            "posture_live_value": POSTURE_LIVE_RAIL,
+            "posture_result": posture_result,
         },
     )

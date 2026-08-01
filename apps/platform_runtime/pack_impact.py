@@ -24,7 +24,13 @@ def analyze_pack_impact(
     if pack.safety_level == "destructive":
         categories.append("destructive")
     if pack.external_dependencies:
+        # Hard apply-time blocker — escalates risk and forces approval.
         categories.append("external_required")
+    if pack.external_required_items:
+        # Go-live capability gate — reported, but deliberately NOT risk-escalating:
+        # a conditional PSP proof must not turn an otherwise self-service pack
+        # into a governance detour (same rule as BlueprintContract).
+        categories.append("go_live_required")
     if pack.approval_flows:
         categories.append("approval_required")
     if pack.platform_only and not platform_operator:
@@ -47,6 +53,9 @@ def analyze_pack_impact(
         "affected_policies": list(pack.rules),
         "billing_effects": {"live_psp_enabled": False, "package_metadata_only": True},
         "external_dependencies": list(pack.external_dependencies),
+        "go_live_required": list(pack.external_required_items),
+        "external_requirements_remaining": list(pack.external_dependencies)
+        + list(pack.external_required_items),
         "rollback_coverage": preview["rollback_posture"],
         "audit_coverage": ["pack_previewed", "pack_simulated", "pack_applied", "pack_rolled_back"],
     }

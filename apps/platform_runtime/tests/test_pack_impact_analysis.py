@@ -29,7 +29,23 @@ class PackImpactAnalysisTests(TestCase):
         self.assertTrue(result["audit_coverage"])
 
     def test_external_dependencies_do_not_appear_completed(self):
+        # finance-approval's PSP requirement is CONDITIONAL ("...when live
+        # collection is used"), so it is a go-live capability gate, not an
+        # apply-time dependency. It must stay visible and uncompleted...
         result = analyze_pack_impact("finance-approval", pack_type="policy_bundle", school=self.school)
 
-        self.assertIn("external_required", result["impact_categories"])
+        self.assertIn("go_live_required", result["impact_categories"])
+        self.assertTrue(result["go_live_required"])
+        self.assertTrue(result["external_requirements_remaining"])
         self.assertFalse(result["billing_effects"]["live_psp_enabled"])
+
+    def test_conditional_go_live_gate_does_not_escalate_risk(self):
+        # ...but it must NOT be reported as a hard external dependency, which is
+        # what escalates risk to "high" and forces a governance detour. A school
+        # that never collects online was being blocked by a proof it will never
+        # need. (This pack still requires approval — every policy_bundle does —
+        # so the gate is asserted at the category level, where the difference is.)
+        result = analyze_pack_impact("finance-approval", pack_type="policy_bundle", school=self.school)
+
+        self.assertNotIn("external_required", result["impact_categories"])
+        self.assertEqual(result["external_dependencies"], [])

@@ -156,5 +156,27 @@ class PackReadinessTests(SimpleTestCase):
     def test_pack_with_conflict_drops(self):
         preview = {"can_apply": True, "conflicts": [{"code": "x"}], "external_required": []}
         result = pack_readiness(preview)
-        self.assertEqual(result["value"], 70)  # 50 apply + 20 deps, conflict (30) unmet
+        # 50 apply / 80 applicable total — the dependency check is not weighed at
+        # all when the pack declares no outstanding external requirement.
+        self.assertEqual(result["value"], 62)
         self.assertIn("Conflict-free", result["unmet"])
+
+    def test_pack_hard_external_dependency_is_never_cleared_by_posture(self):
+        # A go-live gate is closed by the tenant's collection posture; a HARD
+        # dependency is not — only the platform can clear it. If posture
+        # resolution ever reached hard blockers it would credit work nobody did.
+        preview = {
+            "can_apply": True,
+            "conflicts": [],
+            "external_required": ["signed data-processing addendum"],
+            "external_hard_blockers": ["signed data-processing addendum"],
+            "external_go_live": [],
+        }
+        with patch(
+            "apps.finance.fee_collection_posture.resolve_live_collection_state",
+            return_value={"live": False, "not_applicable": True, "label": "manual"},
+        ):
+            result = pack_readiness(preview, school=object())
+
+        self.assertEqual(result["value"], 80)
+        self.assertIn("External dependencies", result["unmet"])

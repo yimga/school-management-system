@@ -103,6 +103,54 @@ class FeeCollectionPostureTests(TestCase):
 
         self.assertEqual(state["state"], STATE_LIVE)
 
+    def test_payment_readiness_page_renders_each_posture_state(self):
+        # The finance page is the posture's home surface. It is gated by
+        # require_permission + require_step_up, so this exercises the panel at
+        # the template level: each state must render its own affordance, and the
+        # record form must appear ONLY when there is something to settle.
+        from django.template.loader import render_to_string
+        from django.test import RequestFactory
+
+        # A request is required so the shell's context processors run; without
+        # one the base template cannot resolve its site context.
+        request = RequestFactory().get("/finance/payments/setup/")
+        request.school = self.school
+        request.user = self.actor
+
+        def render(context):
+            return render_to_string(
+                "finance/payment_readiness_setup.html", context, request=request
+            )
+
+        base = {
+            "profile": None,
+            "readiness": {"status": "FALLBACK_ONLY", "headline": "", "subhead": "", "checklist": []},
+            "status_badge_class": "warning",
+            "stripe_connect": {"connected": False, "charges_enabled": False, "account_id": ""},
+            "stripe_connect_url": "/x/",
+            "lane2_corridors": [],
+            "posture_manual_value": POSTURE_MANUAL,
+        }
+
+        pending = render({**base, "collection_posture": self._resolve()})
+        self.assertIn("Record manual reconciliation", pending)
+
+        record_collection_posture(self.school, mode=POSTURE_MANUAL, actor=self.actor)
+        self.school.refresh_from_db()
+        recorded = render({**base, "collection_posture": self._resolve()})
+        self.assertNotIn("Record manual reconciliation", recorded)
+
+        live = render(
+            {
+                **base,
+                "collection_posture": self._resolve(
+                    {"stripe_connect": True, "verified_corridors": []}
+                ),
+            }
+        )
+        self.assertIn("live collection is enabled", live)
+        self.assertNotIn("Record manual reconciliation", live)
+
     def test_malformed_stored_posture_is_ignored(self):
         self.school.settings = {"fee_collection_posture": {"mode": "nonsense"}}
         self.school.save(update_fields=["settings"])

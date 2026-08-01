@@ -166,7 +166,13 @@ def preview_blueprint(
         safety_notes.append("Live PSP, settlement, and external certification readiness are not enabled by this blueprint.")
 
     changes = _change_rows(blueprint)
-    external_required = list(blueprint.external_required_items or blueprint.external_dependencies)
+    # Two kinds, tracked separately: a hard blocker only the platform can clear
+    # versus a go-live capability gate the tenant's own fee-collection posture
+    # closes. Folding them together would let posture resolution wrongly clear a
+    # real blocker.
+    hard_blockers = list(blueprint.external_dependencies)
+    go_live_required = list(blueprint.external_required_items)
+    external_required = hard_blockers + go_live_required
     local_first_manifest = blueprint.local_first_manifest_payload
     offline_readiness = _offline_readiness(
         blueprint,
@@ -214,6 +220,8 @@ def preview_blueprint(
         "conflicts": conflicts,
         "warnings": warnings,
         "external_required": external_required,
+        "external_hard_blockers": hard_blockers,
+        "external_go_live": go_live_required,
         "local_first_manifest": local_first_manifest,
         "offline_readiness": offline_readiness,
         "outage_survival_matrix": {
