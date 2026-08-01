@@ -8,6 +8,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
+from django.utils.translation import gettext as _
 
 from apps.accounts.permissions import tenant_operator_hub_eligible
 from apps.platform_runtime.administration_catalog import (
@@ -660,7 +661,12 @@ def tenant_blueprint_setup(request):
             # Real, per-tenant readiness derived from this preview (applyable /
             # conflict-free / offline proof / live-payment onboarding) — replaces
             # the old hardcoded "72" placeholder so the bar can actually reach 100.
-            "blueprint_readiness": blueprint_readiness(preview),
+            # ``school`` is what makes the payment check resolvable at all: without
+            # it the gate reads a static contract tuple no tenant can satisfy.
+            "blueprint_readiness": blueprint_readiness(preview, school=school),
+            "collection_posture": resolve_live_collection_state(school),
+            "posture_manual_value": POSTURE_MANUAL,
+            "can_record_posture": permission_access(request.user, school, ("finance.manage",)),
             "result": result,
             "page_marker": "rmc-tenant-blueprint-setup",
             **tenant_blueprint_setup_frame_context(),

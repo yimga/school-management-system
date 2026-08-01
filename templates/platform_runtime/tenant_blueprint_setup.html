@@ -115,13 +115,52 @@
           </ul>
         </div>
         {% endif %}
+        {% if preview.external_required %}
+        <section class="rounded-3 border p-3 mb-3" data-blueprint-collection-posture="1">
+          <div class="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-2">
+            <div>
+              <h3 class="h6 mb-1">{% trans "Fee collection posture" %}</h3>
+              <p class="small text-muted mb-0">{{ collection_posture.label }}</p>
+            </div>
+            <span class="badge {% if collection_posture.state == 'live' %}text-bg-success{% elif collection_posture.state == 'manual_recorded' %}text-bg-secondary{% else %}text-bg-warning{% endif %}">
+              {{ collection_posture.state }}
+            </span>
+          </div>
+          {% if collection_posture.state == 'pending' %}
+            <p class="small text-muted mb-2">
+              {% trans "This blueprint can be applied now — live collection is a go-live capability gate, not an apply blocker. If this school reconciles fees manually (cash, bank transfer, or mobile-money receipts), record that below so readiness stops asking for onboarding it will never do." %}
+            </p>
+            {% if can_record_posture %}
+            <form method="post" class="d-flex flex-wrap align-items-end gap-2">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="record_collection_posture">
+              <input type="hidden" name="blueprint" value="{{ selected_key }}">
+              <input type="hidden" name="posture" value="{{ posture_manual_value }}">
+              <div class="flex-grow-1" style="min-width:14rem">
+                <label class="form-label small mb-1" for="rmc-posture-note">{% trans "How fees are collected (optional note)" %}</label>
+                <input class="form-control form-control-sm" id="rmc-posture-note" name="posture_note" maxlength="500">
+              </div>
+              <button class="btn btn-outline-secondary btn-sm" type="submit">{% trans "Record manual reconciliation" %}</button>
+            </form>
+            {% else %}
+            <p class="small text-muted mb-0">{% trans "A finance manager can record this school's collection posture." %}</p>
+            {% endif %}
+          {% elif collection_posture.state == 'manual_recorded' %}
+            <p class="small text-muted mb-0">
+              {% blocktrans with recorded=collection_posture.recorded_at %}Recorded {{ recorded }}. Connect a payment rail at any time to switch this school to live collection.{% endblocktrans %}
+            </p>
+          {% else %}
+            <p class="small text-muted mb-0">{% trans "A verified payment rail is available to this school." %}</p>
+          {% endif %}
+        </section>
+        {% endif %}
         <section class="rounded-3 border p-3 mb-3" data-blueprint-local-first-preview="1">
           <div class="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-2">
             <div>
               <h3 class="h6 mb-1">{% trans "Local-first readiness" %}</h3>
               <p class="small text-muted mb-0">{{ preview.offline_readiness.honesty_note }}</p>
             </div>
-            <span class="badge {% if preview.offline_readiness.status == 'PARTIAL' %}text-bg-warning{% elif preview.offline_readiness.status == 'READY_WITH_EXTERNAL_BLOCKERS' %}text-bg-info{% else %}text-bg-success{% endif %}">
+            <span class="badge {% if preview.offline_readiness.status == 'PARTIAL' %}text-bg-warning{% else %}text-bg-success{% endif %}">
               {{ preview.offline_readiness.status }}
             </span>
           </div>
