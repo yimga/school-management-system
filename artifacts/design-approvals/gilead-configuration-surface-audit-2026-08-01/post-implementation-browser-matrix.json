@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-01T19:45:39.974Z",
+  "generatedAt": "2026-08-01T20:13:24.132Z",
   "host": "demo-school.runmycampus.com",
   "buildId": "2026-08-01-v1.1",
   "routes": [
@@ -188,7 +188,7 @@
       "simulatedActions": [],
       "unsafePostForms": 0,
       "unexpectedFixedOverlays": [],
-      "actionCount": 37,
+      "actionCount": 35,
       "computedColorScheme": "light",
       "computedBackground": "rgb(253, 249, 242)",
       "httpStatus": 200,
@@ -357,7 +357,8 @@
       "computedColorScheme": "light",
       "computedBackground": "rgba(0, 0, 0, 0)",
       "httpStatus": 200,
-      "findings": []
+      "findings": [],
+      "screenshot": "app-catalog-1440-light.png"
     },
     {
       "route": "compliance-alias",
@@ -545,7 +546,7 @@
       "simulatedActions": [],
       "unsafePostForms": 0,
       "unexpectedFixedOverlays": [],
-      "actionCount": 37,
+      "actionCount": 35,
       "computedColorScheme": "light",
       "computedBackground": "rgb(253, 249, 242)",
       "httpStatus": 200,
@@ -901,7 +902,7 @@
       "simulatedActions": [],
       "unsafePostForms": 0,
       "unexpectedFixedOverlays": [],
-      "actionCount": 37,
+      "actionCount": 35,
       "computedColorScheme": "light",
       "computedBackground": "rgb(253, 249, 242)",
       "httpStatus": 200,
@@ -1260,7 +1261,7 @@
       "simulatedActions": [],
       "unsafePostForms": 0,
       "unexpectedFixedOverlays": [],
-      "actionCount": 37,
+      "actionCount": 35,
       "computedColorScheme": "light",
       "computedBackground": "rgb(253, 249, 242)",
       "httpStatus": 200,
@@ -1633,7 +1634,7 @@
       "simulatedActions": [],
       "unsafePostForms": 0,
       "unexpectedFixedOverlays": [],
-      "actionCount": 37,
+      "actionCount": 35,
       "computedColorScheme": "dark",
       "computedBackground": "rgb(11, 16, 32)",
       "httpStatus": 200,
