@@ -162,6 +162,7 @@ def enable_blueprint_modules(
     if persist and changed:
         school.features = current
         school.save(update_fields=["features", "updated_at"])
+        _sync_module_toggle_state(school, result["enabled"], enabled=True)
         try:
             from apps.policies.policy_registry import invalidate_policy_cache
 
@@ -169,3 +170,41 @@ def enable_blueprint_modules(
         except Exception:  # noqa: BLE001 — cache invalidation is best-effort
             pass
     return result
+
+
+def _sync_module_toggle_state(school, codes, *, enabled: bool) -> None:
+    """Mirror a module decision into the toggle store.
+
+    The platform keeps module state in two places: the positive-only
+    ``School.features`` JSON, and the ``FeatureToggleState`` rows that are the
+    only place an *off* decision can be recorded (and the audited path). The
+    tenant-facing module market writes both on every activate/deactivate; this
+    bridge wrote only ``School.features``, so after a blueprint enabled a module
+    the stores disagreed — features said on while the toggle store still carried
+    the tenant's earlier off. It resolved on only because the ``School.features``
+    short-circuit runs first, which any reordering or any consumer reading the
+    toggle store directly would undo.
+    """
+    if not codes:
+        return
+    try:
+        from apps.siteconfig.feature_toggles import set_toggle_state
+    except ImportError:  # noqa: BLE001 — never break an apply on the mirror
+        return
+    for code in codes:
+        try:
+            set_toggle_state(
+                f"module.{code}",
+                enabled=enabled,
+                school=school,
+                label=f"Module: {code}",
+                description=f"School-level module toggle for '{code}'.",
+                category="modules",
+            )
+        except Exception:  # noqa: BLE001 — a mirror failure must not fail apply
+            logger.warning(
+                "blueprint module toggle mirror failed school=%s code=%s enabled=%s",
+                getattr(school, "pk", None),
+                code,
+                enabled,
+            )

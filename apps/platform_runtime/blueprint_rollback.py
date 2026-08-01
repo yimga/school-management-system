@@ -111,6 +111,18 @@ def rollback_blueprint_installation(
                 school.features = features
                 school.save(update_fields=["features", "updated_at"])
                 reverted_changes.append("school.features")
+                # Mirror the retraction into the toggle store, which is where an
+                # "off" decision actually lives. Without this the store kept
+                # advertising an enable this blueprint no longer stands behind.
+                from apps.platform_runtime.blueprint_modules import (
+                    _sync_module_toggle_state,
+                )
+
+                _sync_module_toggle_state(
+                    school,
+                    [code for code in enabled_by_apply if not features.get(code)],
+                    enabled=False,
+                )
                 try:
                     from apps.policies.policy_registry import invalidate_policy_cache
 

@@ -188,8 +188,30 @@ FEATURE_REGISTRY: list[ModuleSpec] = [
 ]
 
 
+# T21: modules ship default-ON so every tenant has the full module surface
+# unless an operator explicitly turns one off. This constant is the single
+# source of that decision — ``ensure_module_registry_seeded`` stamps it onto the
+# FeatureToggleDefinition rows, and ``resolve_module_enabled`` applies it when
+# those rows do not exist yet, so the two can never disagree.
+MODULE_DEFAULT_ENABLED = True
+
+
 def _definition_key(code: str) -> str:
     return f"module.{(code or '').strip().lower()}"
+
+
+def registry_module_codes() -> frozenset[str]:
+    """Declared module codes. Pure read — never touches the database.
+
+    ``get_available_modules`` seeds toggle definitions as a side effect, so it
+    must not be used to answer "is this a module?" on a read path: that made
+    module availability depend on whether a listing page had ever been rendered.
+    """
+    return frozenset(
+        str(module.get("code") or "").strip().lower()
+        for module in FEATURE_REGISTRY
+        if module.get("code")
+    )
 
 
 def ensure_module_registry_seeded() -> None:
@@ -207,7 +229,7 @@ def ensure_module_registry_seeded() -> None:
             # future) has the full module surface unless an operator explicitly
             # turns one off. An explicit per-school opt-out lives in
             # FeatureToggleState and still wins in resolve_toggle().
-            "default_enabled": True,
+            "default_enabled": MODULE_DEFAULT_ENABLED,
             "is_active": True,
             "metadata": {"price": str(module.get("price") or "Free")},
         }
