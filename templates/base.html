@@ -436,8 +436,6 @@
     {% if request.resolver_match.url_name == 'signup_school' %}
     <script src="{% static 'js/_pages/rmc-signup-form.js' %}" defer></script>
     {% endif %}
-    {% comment %} v4.01.46: terminal dual-plane pass after late body scripts. {% endcomment %}
-    {% include "partials/rmc_theme_experience_dual_plane_styles.html" %}
     {% endif %}
     {% comment %} back-to-top is chrome for scrolling shells only; the immersive login shell
        (RMC_AUTH_LANDING_LITE) is a single non-scrolling screen AND omits rmc-back-to-top.css,

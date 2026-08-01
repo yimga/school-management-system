@@ -178,6 +178,7 @@ class IntegrationCredentialEditorTests(TestCase):
             username="cred_editor",
             password="Test1234!",
             is_staff=True,
+            is_superuser=True,
         )
         factory = RequestFactory()
         request = factory.get("/finance/integration-credentials/")

@@ -182,7 +182,6 @@
     <link rel="stylesheet" href="{% static 'css/theme-platform-contrast.css' %}">
     <link rel="stylesheet" href="{% static 'css/theme-platform-readability.css' %}">
     <link rel="stylesheet" href="{% static 'css/migration-cloud-ui.css' %}">
-    {% include "partials/rmc_theme_experience_dual_plane_styles.html" %}
     <link rel="stylesheet" href="{% static 'css/rmc-nav-sidebar.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-horizontal-nav-rail.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-vertical-density-platform.css' %}">
@@ -243,9 +242,20 @@
     {% if request.public_host_kind == 'manager' %}
     <link rel="stylesheet" href="{% static 'css/rmc-platform-workspace-edge-fit.css' %}">
     {% endif %}
+    {% if SHOW_OFFLINE_STATUS_BAR %}
+    <link rel="stylesheet" href="{% static 'css/reduce-motion-low-power.css' %}">
+    {% endif %}
+    {% if lifecycle_concierge_enabled and not tp_v3_tenant_shell %}
+    <link rel="stylesheet" href="{% static 'css/rmc-lifecycle-concierge.css' %}">
+    {% endif %}
+    {% if request.user.is_authenticated %}
+    <link rel="stylesheet" href="{% static 'css/rmc-support-quick-create.css' %}">
+    {% endif %}
     {% comment %} v4.02.9: tenant workspace Tools edge-tray (tenant host) + manager portal bridge operator tray. {% endcomment %}
     {% include "partials/rmc_tenant_tools_styles.html" %}
     {% include "partials/rmc_operator_tools_styles.html" %}
+    {% comment %} Terminal authenticated theme layer remains head-owned after every conditional shell stylesheet. {% endcomment %}
+    {% include "partials/rmc_theme_experience_dual_plane_styles.html" %}
 
     <!-- PWA Support — per-tenant manifest. v2.58 (2026-05-15) -->
     <link rel="manifest" href="{% url 'pwa_manifest_platform' %}">
@@ -688,7 +698,6 @@
     {% include "partials/rmc_sms_offline_config.html" %}
 
     {% if SHOW_OFFLINE_STATUS_BAR %}
-    <link rel="stylesheet" href="{% static 'css/reduce-motion-low-power.css' %}">
     <script src="{% static 'js/vendor/dexie.min.js' %}"></script>
     <script src="{% static 'js/offline-db.js' %}"></script>
     <script src="{% static 'js/sync-manager.js' %}"></script>
@@ -887,14 +896,11 @@
     {% endif %}
     {% comment %} v3.61.2 (2026-05-22): Lifecycle concierge — hidden on v3 100x role homes (hero + cockpit own onboarding). {% endcomment %}
     {% if lifecycle_concierge_enabled and not tp_v3_tenant_shell %}
-    <link rel="stylesheet" href="{% static 'css/rmc-lifecycle-concierge.css' %}">
     <script src="{% static 'js/_pages/rmc-lifecycle-concierge.js' %}" defer></script>
     {% include "lifecycle/concierge_modal.html" %}
     {% endif %}
     {% comment %} v4.00.37: universal "Report issue" chip — auto-attaches URL + role + browser context. {% endcomment %}
     {% include "partials/rmc_support_quick_create.html" %}
-    {% comment %} v4.01.44: terminal dual-plane pass after late-loaded concierge/support CSS. {% endcomment %}
-    {% include "partials/rmc_theme_experience_dual_plane_styles.html" %}
     {% if request.user.is_authenticated %}{% include "components/back_to_top.html" %}{% endif %}
   </body>
 </html>

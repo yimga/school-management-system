@@ -1,7 +1,7 @@
 {% load i18n static %}
-{% comment %} v4.00.37 — Universal "Report issue" chip booted from every tenant shell. {% endcomment %}
+{% comment %} v4.00.37 — Universal "Report issue" chip booted from every tenant shell.
+The stylesheet is head-owned by portal_base.html; this body partial owns runtime data/scripts only. {% endcomment %}
 {% if request.user.is_authenticated %}
-<link rel="stylesheet" href="{% static 'css/rmc-support-quick-create.css' %}">
 <script nonce="{{ csp_nonce }}" id="rmc-support-quick-create-config" type="application/json">
 {
   "endpoint": "{% url 'portal:support_quick_create' %}",

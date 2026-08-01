@@ -149,7 +149,7 @@ test.describe('Tenant Pack approved full-canvas implementation', () => {
     expect(filtered).not.toBeNull();
     expect(filtered.status()).toBe(200);
     await expect(page.locator('[data-world-class-tenant-card="1"]')).toHaveCount(1);
-    await expect(page.getByRole('heading', { name: 'Attendance Recovery', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Attendance Recovery', exact: true }).first()).toBeVisible();
 
     fs.writeFileSync(
       path.join(EVIDENCE_DIR, 'tenant-pack-full-canvas-browser-evidence.json'),

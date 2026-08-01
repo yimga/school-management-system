@@ -37,6 +37,12 @@ WRAP_TEMPLATES = (
     TEMPLATES / "super" / "transfers" / "cases_index.html",
 )
 
+SHELL_TEMPLATES = (
+    TEMPLATES / "portal_base.html",
+    TEMPLATES / "control_plane_skeleton.html",
+    TEMPLATES / "base.html",
+)
+
 
 def rel(path: Path) -> str:
     return path.relative_to(ROOT).as_posix()
@@ -136,6 +142,19 @@ def scan() -> dict[str, object]:
             findings.append(finding(path, "clipping_overflow_hidden"))
         if "overflow-wrap: anywhere" not in text:
             findings.append(finding(path, "long_value_wrap_missing"))
+
+    for path in SHELL_TEMPLATES:
+        text = path.read_text(encoding="utf-8", errors="replace")
+        body_pos = text.casefold().find("<body")
+        if body_pos >= 0 and 'rel="stylesheet"' in text[body_pos:]:
+            findings.append(finding(path, "shell_stylesheet_link_in_body"))
+        if text.count("rmc_theme_experience_dual_plane_styles.html") != 1:
+            findings.append(finding(path, "duplicate_or_missing_terminal_theme_stylesheet"))
+
+    support_partial = TEMPLATES / "partials" / "rmc_support_quick_create.html"
+    support_text = support_partial.read_text(encoding="utf-8", errors="replace")
+    if 'rel="stylesheet"' in support_text:
+        findings.append(finding(support_partial, "runtime_partial_injects_stylesheet"))
 
     return {
         "template_count": template_count,
