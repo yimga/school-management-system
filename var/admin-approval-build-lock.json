@@ -1,7 +1,7 @@
 {
   "build_id": "2026-08-01-v16.0",
   "cache_bust": "20260801-admin-os-v160-tenant-configuration-operations",
-  "sw_version": "sms-v4.06.25-tenant-configuration-operations-2026-08-01",
+  "sw_version": "sms-v4.06.26-tenant-configuration-operations-2026-08-01",
   "seal": "2026-07-31-admin-os-v159-full-canvas",
   "approval_previews": [
     "var/design-previews/django-admin-os-top-tier-approval-v15-2026-07-21.html",

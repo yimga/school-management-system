@@ -63,6 +63,35 @@ def platform_app_version() -> str:
         return "0.0.0"
 
 
+def platform_release_version() -> str:
+    """Calendar release used by marketplace floors such as ``2025.03``."""
+    try:
+        from django.conf import settings
+
+        return (
+            str(getattr(settings, "RMC_RELEASE_VERSION", "") or "0.0").strip()
+            or "0.0"
+        )
+    except Exception:
+        return "0.0"
+
+
+_CALENDAR_RELEASE_RE = re.compile(r"^20\d{2}\.(?:0?[1-9]|1[0-2])(?:\.\d+)?$")
+
+
+def platform_compatibility_version(required_version: object) -> str:
+    """Select the matching version scheme for a declared compatibility floor.
+
+    ``APP_VERSION`` is product semver (currently 3.2.1). Marketplace seed data
+    uses calendar releases (for example 2025.03). Comparing those two unrelated
+    schemes made every current first-party listing look obsolete.
+    """
+    required = str(required_version or "").strip()
+    if _CALENDAR_RELEASE_RE.fullmatch(required):
+        return platform_release_version()
+    return platform_app_version()
+
+
 def normalize_pricing_kind(raw: str) -> str:
     """Bucket for UI: free | paid | included | enterprise."""
     pt = (raw or "").strip().lower()
@@ -280,7 +309,7 @@ def compatibility_signals_for_listing(
 
     min_pf = (manifest.get("min_platform_version") or "").strip()
     if min_pf:
-        pv = platform_app_version()
+        pv = platform_compatibility_version(min_pf)
         if _compare_versions(pv, min_pf) < 0:
             ok = False
             messages.append(
@@ -293,7 +322,7 @@ def compatibility_signals_for_listing(
         cd = catalog_listing_display(listing)
         min_rmc = (cd.get("min_rmc_version") or "").strip()
         if min_rmc:
-            pv = platform_app_version()
+            pv = platform_compatibility_version(min_rmc)
             if _compare_versions(pv, min_rmc) < 0:
                 ok = False
                 messages.append(

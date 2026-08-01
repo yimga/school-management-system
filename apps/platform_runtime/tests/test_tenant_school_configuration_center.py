@@ -81,7 +81,7 @@ class TenantSchoolConfigurationCenterTests(TestCase):
         response = client.get("/academics/")
         self.assertEqual(response.status_code, 200, msg=response.content[:500])
         body = response.content.decode("utf-8", errors="replace")
-        self.assertIn('data-rmc-tenant-ops-build="2026-08-01-v1.0"', body)
+        self.assertIn('data-rmc-tenant-ops-build="2026-08-01-v1.1"', body)
         self.assertEqual(body.count("<h1"), 1)
 
         response = client.get("/portal/offline-sync/?state=failed")

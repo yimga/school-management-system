@@ -61,8 +61,27 @@ class FrictionEndpointTests(TestCase):
 
     def test_known_kinds_match_choices(self):
         # Hardcoded list shouldn't drift away from the model choices.
-        for code in ("validation_retry", "form_abandon", "dwell_excess", "repeat_error"):
+        for code in (
+            "validation_retry",
+            "form_abandon",
+            "dwell_excess",
+            "repeat_error",
+            "layout_overflow",
+        ):
             self.assertIn(code, FRICTION_KIND_CODES)
+
+    def test_layout_sentinel_kind_is_accepted(self):
+        resp = self._post(
+            {
+                "view_name": "tenant:compliance.dashboard",
+                "kind": "layout_overflow",
+                "payload": {"selector": ".portal-page-body", "delta": 4},
+            }
+        )
+        self.assertEqual(resp.status_code, 201)
+        self.assertTrue(
+            FrictionEvent.objects.filter(kind="layout_overflow").exists()
+        )
 
     def test_creates_row_on_first_event(self):
         resp = self._post({"view_name": "portal:grades.entry", "kind": "validation_retry"})

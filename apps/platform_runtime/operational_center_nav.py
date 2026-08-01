@@ -684,13 +684,12 @@ def tenant_pack_setup_frame_context() -> dict[str, Any]:
 
 def tenant_app_catalog_frame_context() -> dict[str, Any]:
     return {
-        "center_eyebrow": "School administrators",
+        "center_eyebrow": "Governed capability marketplace",
         "center_title": "School App Catalog",
         "center_purpose": (
-            "Sandbox-first school app installation with visible scopes, billing model, install "
-            "impact, webhook health, and uninstall posture."
+            "Browse by outcome, validate trust at a glance, and open details only when you need them."
         ),
-        "status_badge_text": "Tenant-safe",
+        "status_badge_text": "",
         "operational_nav_groups": TENANT_APP_CATALOG_NAV_GROUPS,
     }
 

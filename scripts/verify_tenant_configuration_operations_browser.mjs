@@ -3,7 +3,7 @@
 
 import { spawn, spawnSync } from "node:child_process";
 import fs from "node:fs";
-import http from "node:http";
+import net from "node:net";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
@@ -13,7 +13,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const HOST = (process.env.RMC_TENANT_BROWSER_HOST || "demo-school.runmycampus.com").trim();
 const PORT = Number(process.env.RMC_TENANT_BROWSER_PORT || "8031");
 const PYTHON = (process.env.RMC_TENANT_BROWSER_PYTHON || "python").trim();
-const BUILD_ID = "2026-08-01-v1.0";
+const BUILD_ID = "2026-08-01-v1.1";
 const OUTPUT = path.join(
   ROOT,
   "artifacts",
@@ -49,6 +49,29 @@ const VIEWPORTS = [
   { width: 390, height: 844 },
 ];
 const THEMES = ["light", "dark"];
+
+function selectedByEnv(values, envName, valueFor) {
+  const requested = new Set(
+    String(process.env[envName] || "")
+      .split(",")
+      .map((value) => value.trim())
+      .filter(Boolean),
+  );
+  if (!requested.size) return values;
+  return values.filter((value) => requested.has(String(valueFor(value))));
+}
+
+const RUN_ROUTES = selectedByEnv(ROUTES, "RMC_TENANT_BROWSER_ROUTES", (route) => route.key);
+const RUN_VIEWPORTS = selectedByEnv(
+  VIEWPORTS,
+  "RMC_TENANT_BROWSER_WIDTHS",
+  (viewport) => viewport.width,
+);
+const RUN_THEMES = selectedByEnv(THEMES, "RMC_TENANT_BROWSER_THEMES", (theme) => theme);
+
+if (!RUN_ROUTES.length || !RUN_VIEWPORTS.length || !RUN_THEMES.length) {
+  throw new Error("Browser audit filters selected an empty route, viewport, or theme matrix");
+}
 
 function command(args, extraEnv = {}) {
   const result = spawnSync(PYTHON, args, {
@@ -91,30 +114,24 @@ function createSession() {
 
 function probe() {
   return new Promise((resolve) => {
-    const request = http.get(
-      {
-        hostname: "127.0.0.1",
-        port: PORT,
-        path: "/authentication/login/",
-        headers: { Host: HOST },
-        timeout: 5000,
-      },
-      (response) => {
-        response.resume();
-        resolve(response.statusCode || 0);
-      },
-    );
-    request.on("error", () => resolve(0));
-    request.on("timeout", () => {
-      request.destroy();
-      resolve(0);
-    });
+    let settled = false;
+    const socket = net.createConnection({ host: "127.0.0.1", port: PORT });
+    const finish = (ready) => {
+      if (settled) return;
+      settled = true;
+      socket.destroy();
+      resolve(ready);
+    };
+    socket.setTimeout(5000);
+    socket.once("connect", () => finish(true));
+    socket.once("error", () => finish(false));
+    socket.once("timeout", () => finish(false));
   });
 }
 
 async function waitForServer() {
   for (let attempt = 0; attempt < 90; attempt += 1) {
-    if ((await probe()) > 0) return;
+    if (await probe()) return;
     await new Promise((resolve) => setTimeout(resolve, 1000));
   }
   throw new Error(`Django did not become ready on ${HOST}:${PORT}`);
@@ -162,6 +179,73 @@ async function inspectPage(page, route, viewport, theme, resourceFailures) {
           .map(Number.parseFloat)
           .filter((value) => value > 0),
       }));
+      const catalogGrid = document.querySelector(".rmc-catalog-app-grid");
+      const catalogCards = catalogGrid
+        ? [...catalogGrid.querySelectorAll("[data-rmc-mkt-app-card]")].filter(isVisible)
+        : [];
+      const catalogCompatibilityWarnings = catalogGrid
+        ? [...catalogGrid.querySelectorAll("[data-rmc-mkt-compat-warning], [data-rmc-mkt-plan-gate]")]
+            .filter(isVisible)
+            .map((element) => (element.textContent || "").trim())
+        : [];
+      const rgb = (value) => {
+        const channels = String(value || "").match(/[\d.]+/g);
+        return channels && channels.length >= 3 ? channels.slice(0, 3).map(Number) : null;
+      };
+      const luminance = (channels) => {
+        if (!channels) return null;
+        const linear = channels.map((channel) => {
+          const value = channel / 255;
+          return value <= 0.03928 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+        });
+        return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
+      };
+      const contrastRatio = (foreground, background) => {
+        const first = luminance(rgb(foreground));
+        const second = luminance(rgb(background));
+        if (first === null || second === null) return null;
+        return (Math.max(first, second) + 0.05) / (Math.min(first, second) + 0.05);
+      };
+      const catalogHeading = document.querySelector(".tenant-app-catalog-wrap h1");
+      const catalogWrap = document.querySelector(".tenant-app-catalog-wrap");
+      const catalogWrapStyle = catalogWrap ? getComputedStyle(catalogWrap) : null;
+      const catalogHeadingColor = catalogHeading ? getComputedStyle(catalogHeading).color : null;
+      const effectiveBackgroundColor = (element) => {
+        let current = element?.parentElement || null;
+        while (current) {
+          const value = getComputedStyle(current).backgroundColor;
+          const channels = String(value || "").match(/[\d.]+/g);
+          if (channels && channels.length >= 3) {
+            const alpha = channels.length >= 4 ? Number(channels[3]) : 1;
+            if (alpha >= 0.95) return value;
+          }
+          current = current.parentElement;
+        }
+        return getComputedStyle(document.documentElement).backgroundColor;
+      };
+      const catalogCanvasColor = effectiveBackgroundColor(catalogHeading);
+      const catalogHeadingColorRules = [];
+      if (catalogHeading) {
+        const collectRules = (rules, href) => {
+          for (const rule of [...(rules || [])]) {
+            if (rule.cssRules) collectRules(rule.cssRules, href);
+            if (!rule.selectorText || !rule.style?.color) continue;
+            try {
+              if (catalogHeading.matches(rule.selectorText)) {
+                catalogHeadingColorRules.push({
+                  href,
+                  selector: rule.selectorText,
+                  color: rule.style.color,
+                  priority: rule.style.getPropertyPriority("color"),
+                });
+              }
+            } catch (_error) {}
+          }
+        };
+        for (const sheet of [...document.styleSheets]) {
+          try { collectRules(sheet.cssRules, sheet.href || "inline"); } catch (_error) {}
+        }
+      }
       const rawIcons = [...document.querySelectorAll(".material-symbols-outlined")]
         .filter(isVisible)
         .filter((element) => !getComputedStyle(element).fontFamily.toLowerCase().includes("material symbols"))
@@ -214,6 +298,41 @@ async function inspectPage(page, route, viewport, theme, resourceFailures) {
         hasApprovedBuild: Boolean(root),
         fullWidthRatio,
         gridTracks,
+        catalog: route.key === "app-catalog" ? {
+          cardCount: catalogCards.length,
+          gridColumnCount: catalogGrid
+            ? (getComputedStyle(catalogGrid).gridTemplateColumns.match(/-?\d+(?:\.\d+)?px/g) || [])
+                .map(Number.parseFloat)
+                .filter((value) => value > 0).length
+            : 0,
+          filterFormCount: document.querySelectorAll('[data-rmc-catalog-filter-form="1"]').length,
+          legacyHeroCount: document.querySelectorAll(".proof-hero").length,
+          openDisclosureCount: catalogGrid?.querySelectorAll("details[open]").length || 0,
+          reviewInstallActionCount: catalogGrid?.querySelectorAll("[data-rmc-open-install-impact]").length || 0,
+          scopeActionCount: catalogGrid?.querySelectorAll('a[href*="scope-consent"]').length || 0,
+          compatibilityWarnings: catalogCompatibilityWarnings,
+          headingColor: catalogHeadingColor,
+          headingBackgroundColor: catalogCanvasColor,
+          headingContrastRatio: contrastRatio(catalogHeadingColor, catalogCanvasColor),
+          headingClassName: catalogHeading?.className || null,
+          headingColorRules: catalogHeadingColorRules,
+          themeAttributes: {
+            htmlTheme: document.documentElement.getAttribute("data-theme"),
+            htmlResolvedTheme: document.documentElement.getAttribute("data-resolved-theme"),
+            htmlBootstrapTheme: document.documentElement.getAttribute("data-bs-theme"),
+            bodyTheme: document.body.getAttribute("data-theme"),
+            bodyBootstrapTheme: document.body.getAttribute("data-bs-theme"),
+          },
+          computedTokens: catalogWrapStyle ? {
+            colorBase50: catalogWrapStyle.getPropertyValue("--color-base-50").trim(),
+            textPrimary: catalogWrapStyle.getPropertyValue("--text-primary").trim(),
+            catalogInk: catalogWrapStyle.getPropertyValue("--rmc-catalog-ink").trim(),
+          } : null,
+          falseCompatibilityCopy: [
+            "App not declared for plan tier Sovereign / Self-Hosted",
+            "Platform version 3.2.1 is below listing minimum RMC 2025.03.",
+          ].filter((message) => document.body.textContent.includes(message)),
+        } : null,
         rawIcons,
         simulatedActions,
         unsafePostForms,
@@ -248,8 +367,45 @@ function findingsFor(result, route) {
     findings.push(`canvas width ratio ${result.fullWidthRatio.toFixed(3)}`);
   }
   if (result.viewport.width <= 1024) {
-    const multiColumn = result.gridTracks.filter((grid) => grid.columns.length > 1);
+    const multiColumn = result.gridTracks.filter(
+      (grid) =>
+        grid.columns.length > 1 &&
+        !(route.key === "app-catalog" && String(grid.selector).includes("rmc-catalog-app-grid")),
+    );
     if (multiColumn.length) findings.push(`responsive grids still multi-column ${multiColumn.length}`);
+  }
+  if (route.key === "app-catalog") {
+    const expectedCatalogColumns = result.viewport.width > 1024
+      ? 3
+      : result.viewport.width > 720
+        ? 2
+        : 1;
+    if (!result.catalog || result.catalog.cardCount < 1) findings.push("catalog cards missing");
+    if (result.catalog?.gridColumnCount !== expectedCatalogColumns) {
+      findings.push(
+        `catalog grid columns ${result.catalog?.gridColumnCount || 0}; expected ${expectedCatalogColumns}`,
+      );
+    }
+    if (result.catalog?.filterFormCount !== 1) {
+      findings.push(`catalog filter forms ${result.catalog?.filterFormCount || 0}`);
+    }
+    if (result.catalog?.legacyHeroCount) findings.push("legacy catalog hero still rendered");
+    if (result.catalog?.openDisclosureCount) {
+      findings.push(`catalog disclosures open by default ${result.catalog.openDisclosureCount}`);
+    }
+    if (!result.catalog?.reviewInstallActionCount) findings.push("review/install actions missing");
+    if (!result.catalog?.scopeActionCount) findings.push("scope actions missing");
+    if (result.catalog?.themeAttributes?.htmlResolvedTheme !== result.statusTheme) {
+      findings.push(
+        `resolved theme ${result.catalog?.themeAttributes?.htmlResolvedTheme || "missing"}; expected ${result.statusTheme}`,
+      );
+    }
+    if (result.catalog?.headingContrastRatio !== null && result.catalog?.headingContrastRatio < 4.5) {
+      findings.push(`catalog heading contrast ${result.catalog.headingContrastRatio.toFixed(2)}:1`);
+    }
+    if (result.catalog?.falseCompatibilityCopy.length) {
+      findings.push(`false compatibility warnings ${result.catalog.falseCompatibilityCopy.length}`);
+    }
   }
   if (result.rawIcons.length) findings.push(`raw icon names ${result.rawIcons.join(", ")}`);
   if (result.simulatedActions.length) {
@@ -266,12 +422,15 @@ function findingsFor(result, route) {
 async function main() {
   fs.mkdirSync(OUTPUT, { recursive: true });
   const sessionId = createSession();
-  const log = fs.openSync(SERVER_LOG, "a");
+  const log = fs.openSync(SERVER_LOG, "w");
   const server = spawn(PYTHON, ["manage.py", "runserver", `127.0.0.1:${PORT}`, "--noreload"], {
     cwd: ROOT,
     env: {
       ...process.env,
       DEBUG: "1",
+      DB_LOG_LEVEL: process.env.RMC_TENANT_BROWSER_DB_LOG_LEVEL || "WARNING",
+      LOG_LEVEL: process.env.RMC_TENANT_BROWSER_LOG_LEVEL || "WARNING",
+      USE_FILE_LOGGING: "False",
       SECURE_SSL_REDIRECT: "0",
       SESSION_COOKIE_SECURE: "0",
       CSRF_COOKIE_SECURE: "0",
@@ -289,8 +448,8 @@ async function main() {
       args: [`--host-resolver-rules=MAP ${HOST} 127.0.0.1`],
     });
     const results = [];
-    for (const theme of THEMES) {
-      for (const viewport of VIEWPORTS) {
+    for (const theme of RUN_THEMES) {
+      for (const viewport of RUN_VIEWPORTS) {
         const context = await browser.newContext({
           viewport,
           colorScheme: theme,
@@ -311,7 +470,7 @@ async function main() {
           localStorage.setItem("rmc-theme", theme);
           document.documentElement.dataset.theme = theme;
         }, { theme });
-        for (const route of ROUTES) {
+        for (const route of RUN_ROUTES) {
           const page = await context.newPage();
           const resourceFailures = [];
           page.on("response", (response) => {
@@ -325,18 +484,33 @@ async function main() {
             }
           });
           page.on("requestfailed", (request) => {
+            const failure = request.failure()?.errorText || "request failed";
+            // EventSource connections remain open by design. Chromium reports
+            // ERR_ABORTED when the audit closes a completed page even after the
+            // stream received HTTP 200; that is lifecycle cancellation, not a
+            // broken resource. No other request type/error is waived.
+            if (request.resourceType() === "eventsource" && failure === "net::ERR_ABORTED") {
+              return;
+            }
             resourceFailures.push({
               status: 0,
               type: request.resourceType(),
               url: request.url(),
-              error: request.failure()?.errorText || "request failed",
+              error: failure,
             });
           });
           const response = await page.goto(`http://${HOST}:${PORT}${route.path}`, {
             waitUntil: "domcontentloaded",
             timeout: 120000,
           });
-          await page.waitForTimeout(350);
+          await page.evaluate((resolvedTheme) => {
+            localStorage.setItem("theme", resolvedTheme);
+            localStorage.setItem("rmc-theme", resolvedTheme);
+            document.documentElement.setAttribute("data-theme", resolvedTheme);
+            document.documentElement.setAttribute("data-resolved-theme", resolvedTheme);
+            document.documentElement.setAttribute("data-bs-theme", resolvedTheme);
+          }, theme);
+          await page.waitForTimeout(route.key === "app-catalog" ? 1600 : 350);
           const result = await inspectPage(page, route, viewport, theme, resourceFailures);
           result.httpStatus = response?.status() || 0;
           result.findings = findingsFor(result, route);
@@ -344,6 +518,7 @@ async function main() {
           const shouldCapture =
             (viewport.width === 1440 && theme === "dark") ||
             (viewport.width === 390 && theme === "light") ||
+            (route.key === "app-catalog" && viewport.width === 1440 && theme === "light") ||
             result.findings.length > 0;
           if (shouldCapture) {
             const shot = `${route.key}-${viewport.width}-${theme}.png`;
@@ -361,9 +536,9 @@ async function main() {
       generatedAt: new Date().toISOString(),
       host: HOST,
       buildId: BUILD_ID,
-      routes: ROUTES.map((route) => route.path),
-      viewportWidths: VIEWPORTS.map((viewport) => viewport.width),
-      themes: THEMES,
+      routes: RUN_ROUTES.map((route) => route.path),
+      viewportWidths: RUN_VIEWPORTS.map((viewport) => viewport.width),
+      themes: RUN_THEMES,
       resultCount: results.length,
       findingCount,
       results,

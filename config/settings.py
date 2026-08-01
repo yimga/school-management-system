@@ -4001,7 +4001,10 @@ except ValueError:
 OLLAMA_PULL_TIMEOUT_SECONDS = max(60, min(_pull_to, 86400))
 
 # --- Application Version ---
-APP_VERSION = "3.2.1"  # System version for dashboard footer
+APP_VERSION = "3.2.1"  # Product semver surfaced in the dashboard footer.
+# Marketplace manifests also support calendar release floors (YYYY.MM). Keep
+# that scheme separate from APP_VERSION so 3.2.1 is never compared to 2025.03.
+RMC_RELEASE_VERSION = (os.getenv("RMC_RELEASE_VERSION", "2026.08") or "2026.08").strip()
 
 # --- v4.00.0 Zero-latency mandate envelope settings -------------------------
 # All are env-overridable, all optional. Documented in docs/EDGE_TOPOLOGY.md

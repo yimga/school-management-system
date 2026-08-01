@@ -141,6 +141,8 @@ def next_commercial_tier(tier_key: object) -> str:
 def plan_slug_candidates_for_commercial_tier(tier: object) -> frozenset[str]:
     """Return known plan slug hints for a commercial tier (for Stripe price / upgrade UX)."""
     t = normalize_commercial_tier_slug(tier)
+    if t == COMMERCIAL_TIER_FREE:
+        return _PLAN_SLUG_FREE
     if t == COMMERCIAL_TIER_PRO:
         return _PLAN_SLUG_PRO
     if t == COMMERCIAL_TIER_ENTERPRISE:

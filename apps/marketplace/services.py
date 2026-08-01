@@ -12,6 +12,14 @@ from django.core.management.base import CommandError
 from django.urls import NoReverseMatch, reverse
 
 from apps.platform_runtime.structured_logging import log_exception_with_context
+from apps.siteconfig.commercial_tiers import (
+    COMMERCIAL_TIER_ENTERPRISE,
+    COMMERCIAL_TIER_FREE,
+    COMMERCIAL_TIER_PRO,
+    commercial_tier_for_plan_slug,
+    normalize_commercial_tier_slug,
+    plan_slug_candidates_for_commercial_tier,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -275,14 +283,43 @@ def check_app_compatibility(school, app, *, warn_only=False):
                 school_id=school_id,
                 extra={"section": "blueprint_families"},
             )
-    # Plan tiers
+    # Plan tiers. Marketplace manifests declare stable plan slugs or the coarse
+    # free/pro/enterprise tier keys. Comparing ``str(school.plan)`` used the
+    # human display name (for example "Sovereign / Self-Hosted") and falsely
+    # rejected an enterprise school against ["standard", "enterprise"].
     plan_tiers = compat.get("plan_tiers")
     if plan_tiers and isinstance(plan_tiers, (list, tuple)):
-        school_plan = getattr(school, "plan", None) or getattr(
-            school, "plan_tier", None
+        school_plan = getattr(school, "plan", None)
+        school_plan_slug = (
+            getattr(school_plan, "slug", "")
+            or getattr(school, "plan_tier", "")
+            or ""
         )
-        if school_plan and str(school_plan) not in [str(p) for p in plan_tiers]:
-            msg = f"App not declared for plan tier {school_plan}"
+        school_tier = commercial_tier_for_plan_slug(school_plan_slug)
+        declared = {str(value).strip().lower() for value in plan_tiers if value}
+        declared_commercial_tiers = {
+            tier
+            for tier in (
+                COMMERCIAL_TIER_FREE,
+                COMMERCIAL_TIER_PRO,
+                COMMERCIAL_TIER_ENTERPRISE,
+            )
+            if any(
+                normalize_commercial_tier_slug(value) == tier
+                or value in plan_slug_candidates_for_commercial_tier(tier)
+                for value in declared
+            )
+        }
+        plan_matches = bool(
+            school_plan_slug
+            and (
+                str(school_plan_slug).strip().lower() in declared
+                or school_tier in declared_commercial_tiers
+            )
+        )
+        if school_plan_slug and not plan_matches:
+            school_plan_label = getattr(school_plan, "name", "") or school_plan_slug
+            msg = f"App not declared for plan tier {school_plan_label}"
             if warn_only:
                 warnings.append(msg)
             else:

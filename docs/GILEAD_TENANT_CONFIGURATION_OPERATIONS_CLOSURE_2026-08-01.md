@@ -18,8 +18,11 @@ The production tenant identity audited before implementation was school ID `f984
 5. Sidebar regrouping was adjacency-sensitive and happened in templates. Repeated category runs produced duplicate navigation groups. Grouping is now deterministic server-side data.
 6. Page-specific CSS and the row-detail drawer bundle had split ownership. Some child pages emitted duplicate stylesheet URLs or stylesheet links in `<body>`. Root shells now own the CSS in `<head>` and legacy child includes are safe no-ops.
 7. Finance, configuration, academics, offline sync, compliance, and app catalog had no shared full-canvas operating layout. The approved responsive workbench, density, action hierarchy, and page-aware rail are now supplied by one tenant operations stylesheet.
-8. The app catalog mixed template values into executable JavaScript and used long unbounded records. The interaction code is now static, reads JSON/data attributes, and uses accessible disclosure cards.
-9. The asset build identifiers were not tied to this closure. Tenant and Django-admin build/cache locks and the service-worker version now advance together.
+8. The App Catalog compared `str(school.plan)` (the display label `Sovereign / Self-Hosted`) with manifest slugs and compared product semver `3.2.1` with calendar release floor `2025.03`. Compatibility now uses canonical plan slugs plus the `free`/`pro`/`enterprise` alias ladder, and calendar floors use `RMC_RELEASE_VERSION` while semantic floors continue to use `APP_VERSION`.
+9. Client JavaScript fetched a simplified public catalog and replaced Django's governed cards, removing genuine install and scope actions. Filtering is now a server-owned GET workflow; JavaScript only debounces/submits it. Compact three/two/one-column cards remain server-rendered and their compatibility/rollback details are collapsed by default.
+10. Catalog cards inherited the global reveal animation and could remain invisible at the mobile audit instant. Primary inventory is no longer reveal-gated. The light-theme command canvas also inherited an `!important` dark heading rule from `backend-light-theme.css`; the App Catalog boundary now owns high-contrast foreground tokens and browser evidence enforces at least 4.5:1.
+11. The responsive layout sentinel posted the undeclared friction kind `layout_overflow`, causing its own telemetry endpoint to return HTTP 400 on narrow compliance pages. The canonical model choices, endpoint tests, and migration `observability.0007_alter_frictionevent_kind` now carry the same code.
+12. The asset build identifiers were not tied to this closure. Tenant and Django-admin build/cache locks and the service-worker version now advance together.
 
 ## Implemented surfaces and infrastructure
 
@@ -30,6 +33,8 @@ The production tenant identity audited before implementation was school ID `f984
 - Deterministic navigation: `apps/siteconfig/portal_sidebar_items.py`, `apps/siteconfig/context_processors.py`, and the portal sidebar partials.
 - Approved tenant workbench: `static/css/rmc-tenant-configuration-operations.css` plus the configuration, academics, finance, offline-sync, compliance, and app-catalog templates.
 - Genuine catalog interaction: `static/js/tenant-app-catalog.js`; simulated/no-op preview behavior was removed.
+- Marketplace compatibility: `apps/marketplace/services.py`, `apps/marketplace/manifest_schema.py`, `apps/siteconfig/commercial_tiers.py`, and the `RMC_RELEASE_VERSION` setting.
+- Responsive telemetry contract: `apps/observability/models_friction.py` plus migration `0007_alter_frictionevent_kind.py`.
 - Root-owned drawer assets: `templates/partials/portal_row_detail_drawer_bundle.html` and `templates/marketing/base_marketing.html`.
 - Cache seal: `var/tenant-configuration-operations-build-lock.json`, `var/admin-approval-build-lock.json`, and `static/js/service-worker.js`.
 - Permanent verification: browser/build-lock scripts and targeted Django tests under `apps/platform_runtime/tests`, `apps/portal/tests`, and `apps/marketplace/tests`.
@@ -38,10 +43,12 @@ The production tenant identity audited before implementation was school ID `f984
 
 - Real tenant-host browser matrix: 56/56 results pass across seven routes, widths 1440/1024/768/390, and light/dark themes.
 - Every matrix result asserts correct tenant hostname/scope, HTTP success after valid redirects, one visible H1, zero horizontal overflow, no failed resources, no duplicate CSS URL, no stylesheet in body, no unexpected fixed overlay, and no raw icon name.
+- All eight App Catalog combinations render 12 governed cards and 12 genuine review/install plus 12 genuine scope actions. Columns resolve to 3/2/2/1 at 1440/1024/768/390, both requested themes resolve genuinely, heading contrast is 18.10:1, and both reported false compatibility messages are absent.
+- App Catalog/tenant-operations targeted Django slice: 58/58 pass. Friction endpoint/digest regression slice: 14/14 pass.
 - Django regression sets: 64/64 and 109/109 pass (173 applicable tests total), including tenant isolation, readiness, provisioning/lifecycle, catalog, finance/offline surfaces, navigation, incident banner, and 1/7/14/30-day MFA trusted-browser behavior and revocation.
 - `manage.py check`: pass.
 - `makemigrations --check --dry-run`: no changes.
-- `migrate --plan`: no planned migrations in the audited local environment.
+- Migration `observability.0007_alter_frictionevent_kind` applied successfully to the audited local database; the final `migrate --plan` has no pending operations.
 - `collectstatic --dry-run --noinput`: pass; only pre-existing third-party duplicate-name notices were emitted.
 - Django admin template compilation, approval-preview parity, leftovers, platform-wide, miss-nothing, canvas, tenant-scroll, long-surface, platform-surface, and row-drawer audits: pass with zero findings.
 - Build-lock and service-worker monotonicity checks: pass.
@@ -61,4 +68,4 @@ python manage.py assign_default_dashboard_packs --school-id f984ea95-d2ad-4900-b
 python manage.py assign_default_dashboard_packs --school-id f984ea95-d2ad-4900-b513-66a345928316 --apply --json
 ```
 
-The first assignment command is a read-only preview. Review its selected pack/layout assignments before applying. After the scoped apply, restart application workers and clear/roll CDN caches so service worker `sms-v4.06.25-tenant-configuration-operations-2026-08-01` is served. Then authenticate on the actual Gilead hostname and repeat the seven-route matrix. Readiness reaches 100% only when the production tenant has real active assignment evidence; the UI no longer manufactures a healthy status from stale fields.
+The first assignment command is a read-only preview. Review its selected pack/layout assignments before applying. After the scoped apply, restart application workers and clear/roll CDN caches so service worker `sms-v4.06.26-tenant-configuration-operations-2026-08-01` is served. Then authenticate on the actual Gilead hostname and repeat the seven-route matrix. Readiness reaches 100% only when the production tenant has real active assignment evidence; the UI no longer manufactures a healthy status from stale fields.

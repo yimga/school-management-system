@@ -7,13 +7,13 @@
 
 {% block extrastyle %}{{ block.super }}
 <link rel="stylesheet" href="{% static 'css/manager-aesthetic-polish.css' %}">
-<link rel="stylesheet" href="{% static 'css/rmc-tenant-configuration-operations.css' %}?v=20260801-tenant-configuration-operations-v1">
+<link rel="stylesheet" href="{% static 'css/rmc-tenant-configuration-operations.css' %}?v=20260801-tenant-configuration-operations-v2">
 {% endblock %}
 
 {% block backend_page %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 
-<main class="container-fluid py-3 rmc-max-suppress-meta-option-a rmc-tenant-ops" data-rmc-tenant-ops-build="2026-08-01-v1.0" data-page-archetype="setup" data-rmc-os-center="school_configuration_center" data-rmc-school-configuration-center="{{ page_marker }}" data-apple-class-tenant-school-admin="1" data-rmc-scroll-policy="paginate" data-rmc-work-root="1" data-rmc-static-chrome="1">
+<main class="container-fluid py-3 rmc-max-suppress-meta-option-a rmc-tenant-ops" data-rmc-tenant-ops-build="2026-08-01-v1.1" data-page-archetype="setup" data-rmc-os-center="school_configuration_center" data-rmc-school-configuration-center="{{ page_marker }}" data-apple-class-tenant-school-admin="1" data-rmc-scroll-policy="paginate" data-rmc-work-root="1" data-rmc-static-chrome="1">
   {% include "components/rmc_page_masthead.html" %}
 
   <section class="rmc-config-readiness" aria-label="{% trans 'Configuration readiness' %}">

@@ -140,8 +140,7 @@
   .rmc-finance-canvas .rmc-metric-ticker__full,
   .rmc-finance-canvas .dashboard-card-grid--charts,
   .rmc-finance-canvas [data-dashboard-column="main"],
-  .rmc-catalog-canvas .proof-hero-grid,
-  .rmc-catalog-canvas .proof-catalog-grid {
+  .rmc-catalog-canvas .proof-hero-grid {
     grid-template-columns: minmax(0, 1fr) !important;
   }
   .rmc-compliance-canvas .metrics-grid,

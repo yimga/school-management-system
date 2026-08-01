@@ -1,7 +1,7 @@
 {
   "pass": true,
   "expected_cache_bust": "20260801-admin-os-v160-tenant-configuration-operations",
-  "expected_sw": "sms-v4.06.25-tenant-configuration-operations-2026-08-01",
+  "expected_sw": "sms-v4.06.26-tenant-configuration-operations-2026-08-01",
   "content_pages": 11,
   "findings": []
 }

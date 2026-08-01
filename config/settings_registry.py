@@ -350,6 +350,7 @@ SETTINGS_REGISTRY: tuple[SettingSpec, ...] = (
 
     # ---- App / build version + endpoints ------------------------------------
     SettingSpec("APP_VERSION", "str", '""', "ops", "Human-readable app version surfaced at /-/version/."),
+    SettingSpec("RMC_RELEASE_VERSION", "str", '""', "ops", "Calendar release used by marketplace compatibility floors (YYYY.MM)."),
     SettingSpec("BASE_URL", "str", '""', "ops", "Public base URL for absolute-link generation."),
     SettingSpec("SITE_URL", "str", '""', "ops", "Synonym for BASE_URL used in older code paths."),
     SettingSpec("SITE_NAME", "str", '"RunMyCampus"', "ops", "Public site name used in metadata + emails."),

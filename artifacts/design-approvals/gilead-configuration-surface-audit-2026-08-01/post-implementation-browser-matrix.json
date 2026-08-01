@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-08-01T13:51:33.727Z",
+  "generatedAt": "2026-08-01T19:45:39.974Z",
   "host": "demo-school.runmycampus.com",
-  "buildId": "2026-08-01-v1.0",
+  "buildId": "2026-08-01-v1.1",
   "routes": [
     "/school/settings/",
     "/school/configuration/",
@@ -56,13 +56,14 @@
           ]
         }
       ],
+      "catalog": null,
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
       "unexpectedFixedOverlays": [],
       "actionCount": 17,
       "computedColorScheme": "light",
-      "computedBackground": "rgb(11, 16, 32)",
+      "computedBackground": "rgba(0, 0, 0, 0)",
       "httpStatus": 200,
       "findings": []
     },
@@ -98,13 +99,14 @@
           ]
         }
       ],
+      "catalog": null,
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
       "unexpectedFixedOverlays": [],
       "actionCount": 17,
       "computedColorScheme": "light",
-      "computedBackground": "rgb(11, 16, 32)",
+      "computedBackground": "rgba(0, 0, 0, 0)",
       "httpStatus": 200,
       "findings": []
     },
@@ -148,6 +150,7 @@
           ]
         }
       ],
+      "catalog": null,
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
@@ -180,6 +183,7 @@
       "hasApprovedBuild": true,
       "fullWidthRatio": 1,
       "gridTracks": [],
+      "catalog": null,
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
@@ -212,6 +216,7 @@
       "hasApprovedBuild": true,
       "fullWidthRatio": 1,
       "gridTracks": [],
+      "catalog": null,
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
@@ -245,21 +250,112 @@
       "fullWidthRatio": 1,
       "gridTracks": [
         {
-          "selector": "proof-catalog-grid",
+          "selector": "proof-catalog-grid rmc-catalog-app-grid",
           "columns": [
-            285.875,
-            285.875,
-            285.875
+            288.547,
+            288.547,
+            288.562
           ]
         }
       ],
+      "catalog": {
+        "cardCount": 12,
+        "gridColumnCount": 3,
+        "filterFormCount": 1,
+        "legacyHeroCount": 0,
+        "openDisclosureCount": 0,
+        "reviewInstallActionCount": 12,
+        "scopeActionCount": 12,
+        "compatibilityWarnings": [
+          "Plan review"
+        ],
+        "headingColor": "rgb(248, 250, 252)",
+        "headingBackgroundColor": "rgb(11, 16, 32)",
+        "headingContrastRatio": 18.095148740806835,
+        "headingClassName": "rmc-page-masthead__title cp-page-h1 mb-0",
+        "headingColorRules": [
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/vendor/bootstrap/css/bootstrap.min.css",
+            "selector": ".h1, .h2, .h3, .h4, .h5, .h6, h1, h2, h3, h4, h5, h6",
+            "color": "var(--bs-heading-color)",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/rmc-page-archetypes-max.css",
+            "selector": ".rmc-page-masthead__title",
+            "color": "var(--text-primary)",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/portal-shell-enhanced.min.css",
+            "selector": "body.portal-body-with-layout:not(.control-plane-shell) .rmc-os-page-header__title, body.portal-body-with-layout:not(.control-plane-shell) .portal-page-body h1, body.portal-body-with-layout:not(.control-plane-shell) .section-title",
+            "color": "var(--text-primary)",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/portal-shell-enhanced.min.css",
+            "selector": "#main-content .page-wrap h1:first-child, #main-content .page-wrap .page-title, #main-content .page-wrap .content-title",
+            "color": "var(--admin-content-text,var(--color-text-primary))",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/rmc-platform-inner-pages.css",
+            "selector": "body.portal-body-with-layout:not(.control-plane-shell) .rmc-os-page-header__title, body.portal-body-with-layout:not(.control-plane-shell) .portal-page-body h1, body.portal-body-with-layout:not(.control-plane-shell) .section-title",
+            "color": "var(--text-primary)",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/backend-light-theme.css",
+            "selector": "body.portal-backend-light .workflow-hero h2, body.portal-backend-light .workflow-title, body.portal-backend-light .card-title, body.portal-backend-light h1, body.portal-backend-light h2, body.portal-backend-light h3",
+            "color": "rgb(26, 22, 18)",
+            "priority": "important"
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/rmc-operational-center-frame.css",
+            "selector": "body.control-plane-shell #cp-main-content [data-rmc-operational-center-frame=\"1\"] .cp-page-h1, :is(body.portal-body-with-layout, body.manager-portal-bridge) :is(#main-content, .portal-page-body) [data-rmc-operational-center-frame=\"1\"] .cp-page-h1",
+            "color": "var(--text-primary, var(--rmc-wcx-ink))",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/marketplace-tenant-app-catalog.css?v=20260801-tenant-configuration-operations-v2",
+            "selector": "body.portal-backend-light .tenant-app-catalog-wrap :is(h1, h2, h3), body.portal-backend-dark .tenant-app-catalog-wrap :is(h1, h2, h3), body.control-plane-shell #cp-main-content .tenant-app-catalog-wrap :is(h1, h2, h3)",
+            "color": "var(--rmc-catalog-ink)",
+            "priority": "important"
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/theme-platform-readability.css",
+            "selector": "html[data-resolved-theme=\"light\"] :is(#cp-main-content, [data-rmc-shell-main]) :is(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .card-title):not(:is(.proof-hero, .cp-hero, .bg-dark) *)",
+            "color": "var(--text-primary, var(--color-base-900))",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/rmc-tenant-cp-parity.css",
+            "selector": "html[data-rmc-tp-v3-shell=\"1\"] body:not(.control-plane-shell) .portal-main-col h1, html[data-rmc-tp-v3-shell=\"1\"] body:not(.control-plane-shell) .portal-main-col .rmc-page-title",
+            "color": "var(--text-primary)",
+            "priority": ""
+          }
+        ],
+        "themeAttributes": {
+          "htmlTheme": "light",
+          "htmlResolvedTheme": "light",
+          "htmlBootstrapTheme": "light",
+          "bodyTheme": null,
+          "bodyBootstrapTheme": null
+        },
+        "computedTokens": {
+          "colorBase50": "#f8fafc",
+          "textPrimary": "#f8fafc",
+          "catalogInk": "#f8fafc"
+        },
+        "falseCompatibilityCopy": []
+      },
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
       "unexpectedFixedOverlays": [],
-      "actionCount": 58,
+      "actionCount": 47,
       "computedColorScheme": "light",
-      "computedBackground": "rgb(11, 16, 32)",
+      "computedBackground": "rgba(0, 0, 0, 0)",
       "httpStatus": 200,
       "findings": []
     },
@@ -285,13 +381,14 @@
       "hasApprovedBuild": true,
       "fullWidthRatio": 1,
       "gridTracks": [],
+      "catalog": null,
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
       "unexpectedFixedOverlays": [],
       "actionCount": 25,
       "computedColorScheme": "light",
-      "computedBackground": "rgb(11, 16, 32)",
+      "computedBackground": "rgba(0, 0, 0, 0)",
       "httpStatus": 200,
       "findings": []
     },
@@ -324,13 +421,14 @@
           ]
         }
       ],
+      "catalog": null,
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
       "unexpectedFixedOverlays": [],
       "actionCount": 17,
       "computedColorScheme": "light",
-      "computedBackground": "rgb(11, 16, 32)",
+      "computedBackground": "rgba(0, 0, 0, 0)",
       "httpStatus": 200,
       "findings": []
     },
@@ -363,13 +461,14 @@
           ]
         }
       ],
+      "catalog": null,
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
       "unexpectedFixedOverlays": [],
       "actionCount": 17,
       "computedColorScheme": "light",
-      "computedBackground": "rgb(11, 16, 32)",
+      "computedBackground": "rgba(0, 0, 0, 0)",
       "httpStatus": 200,
       "findings": []
     },
@@ -408,6 +507,7 @@
           ]
         }
       ],
+      "catalog": null,
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
@@ -440,6 +540,7 @@
       "hasApprovedBuild": true,
       "fullWidthRatio": 1,
       "gridTracks": [],
+      "catalog": null,
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
@@ -472,6 +573,7 @@
       "hasApprovedBuild": true,
       "fullWidthRatio": 1,
       "gridTracks": [],
+      "catalog": null,
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
@@ -505,19 +607,111 @@
       "fullWidthRatio": 1,
       "gridTracks": [
         {
-          "selector": "proof-catalog-grid",
+          "selector": "proof-catalog-grid rmc-catalog-app-grid",
           "columns": [
-            508.984
+            252.734,
+            252.734
           ]
         }
       ],
+      "catalog": {
+        "cardCount": 12,
+        "gridColumnCount": 2,
+        "filterFormCount": 1,
+        "legacyHeroCount": 0,
+        "openDisclosureCount": 0,
+        "reviewInstallActionCount": 12,
+        "scopeActionCount": 12,
+        "compatibilityWarnings": [
+          "Plan review"
+        ],
+        "headingColor": "rgb(248, 250, 252)",
+        "headingBackgroundColor": "rgb(11, 16, 32)",
+        "headingContrastRatio": 18.095148740806835,
+        "headingClassName": "rmc-page-masthead__title cp-page-h1 mb-0",
+        "headingColorRules": [
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/vendor/bootstrap/css/bootstrap.min.css",
+            "selector": ".h1, .h2, .h3, .h4, .h5, .h6, h1, h2, h3, h4, h5, h6",
+            "color": "var(--bs-heading-color)",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/rmc-page-archetypes-max.css",
+            "selector": ".rmc-page-masthead__title",
+            "color": "var(--text-primary)",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/portal-shell-enhanced.min.css",
+            "selector": "body.portal-body-with-layout:not(.control-plane-shell) .rmc-os-page-header__title, body.portal-body-with-layout:not(.control-plane-shell) .portal-page-body h1, body.portal-body-with-layout:not(.control-plane-shell) .section-title",
+            "color": "var(--text-primary)",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/portal-shell-enhanced.min.css",
+            "selector": "#main-content .page-wrap h1:first-child, #main-content .page-wrap .page-title, #main-content .page-wrap .content-title",
+            "color": "var(--admin-content-text,var(--color-text-primary))",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/rmc-platform-inner-pages.css",
+            "selector": "body.portal-body-with-layout:not(.control-plane-shell) .rmc-os-page-header__title, body.portal-body-with-layout:not(.control-plane-shell) .portal-page-body h1, body.portal-body-with-layout:not(.control-plane-shell) .section-title",
+            "color": "var(--text-primary)",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/backend-light-theme.css",
+            "selector": "body.portal-backend-light .workflow-hero h2, body.portal-backend-light .workflow-title, body.portal-backend-light .card-title, body.portal-backend-light h1, body.portal-backend-light h2, body.portal-backend-light h3",
+            "color": "rgb(26, 22, 18)",
+            "priority": "important"
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/rmc-operational-center-frame.css",
+            "selector": "body.control-plane-shell #cp-main-content [data-rmc-operational-center-frame=\"1\"] .cp-page-h1, :is(body.portal-body-with-layout, body.manager-portal-bridge) :is(#main-content, .portal-page-body) [data-rmc-operational-center-frame=\"1\"] .cp-page-h1",
+            "color": "var(--text-primary, var(--rmc-wcx-ink))",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/marketplace-tenant-app-catalog.css?v=20260801-tenant-configuration-operations-v2",
+            "selector": "body.portal-backend-light .tenant-app-catalog-wrap :is(h1, h2, h3), body.portal-backend-dark .tenant-app-catalog-wrap :is(h1, h2, h3), body.control-plane-shell #cp-main-content .tenant-app-catalog-wrap :is(h1, h2, h3)",
+            "color": "var(--rmc-catalog-ink)",
+            "priority": "important"
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/theme-platform-readability.css",
+            "selector": "html[data-resolved-theme=\"light\"] :is(#cp-main-content, [data-rmc-shell-main]) :is(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .card-title):not(:is(.proof-hero, .cp-hero, .bg-dark) *)",
+            "color": "var(--text-primary, var(--color-base-900))",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/rmc-tenant-cp-parity.css",
+            "selector": "html[data-rmc-tp-v3-shell=\"1\"] body:not(.control-plane-shell) .portal-main-col h1, html[data-rmc-tp-v3-shell=\"1\"] body:not(.control-plane-shell) .portal-main-col .rmc-page-title",
+            "color": "var(--text-primary)",
+            "priority": ""
+          }
+        ],
+        "themeAttributes": {
+          "htmlTheme": "light",
+          "htmlResolvedTheme": "light",
+          "htmlBootstrapTheme": "light",
+          "bodyTheme": null,
+          "bodyBootstrapTheme": null
+        },
+        "computedTokens": {
+          "colorBase50": "#f8fafc",
+          "textPrimary": "#f8fafc",
+          "catalogInk": "#f8fafc"
+        },
+        "falseCompatibilityCopy": []
+      },
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
       "unexpectedFixedOverlays": [],
-      "actionCount": 58,
+      "actionCount": 47,
       "computedColorScheme": "light",
-      "computedBackground": "rgb(11, 16, 32)",
+      "computedBackground": "rgba(0, 0, 0, 0)",
       "httpStatus": 200,
       "findings": []
     },
@@ -543,13 +737,14 @@
       "hasApprovedBuild": true,
       "fullWidthRatio": 1,
       "gridTracks": [],
+      "catalog": null,
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
       "unexpectedFixedOverlays": [],
       "actionCount": 25,
       "computedColorScheme": "light",
-      "computedBackground": "rgb(11, 16, 32)",
+      "computedBackground": "rgba(0, 0, 0, 0)",
       "httpStatus": 200,
       "findings": []
     },
@@ -582,13 +777,14 @@
           ]
         }
       ],
+      "catalog": null,
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
       "unexpectedFixedOverlays": [],
       "actionCount": 17,
       "computedColorScheme": "light",
-      "computedBackground": "rgb(11, 16, 32)",
+      "computedBackground": "rgba(0, 0, 0, 0)",
       "httpStatus": 200,
       "findings": []
     },
@@ -621,13 +817,14 @@
           ]
         }
       ],
+      "catalog": null,
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
       "unexpectedFixedOverlays": [],
       "actionCount": 17,
       "computedColorScheme": "light",
-      "computedBackground": "rgb(11, 16, 32)",
+      "computedBackground": "rgba(0, 0, 0, 0)",
       "httpStatus": 200,
       "findings": []
     },
@@ -666,6 +863,7 @@
           ]
         }
       ],
+      "catalog": null,
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
@@ -698,6 +896,7 @@
       "hasApprovedBuild": true,
       "fullWidthRatio": 1,
       "gridTracks": [],
+      "catalog": null,
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
@@ -730,6 +929,7 @@
       "hasApprovedBuild": true,
       "fullWidthRatio": 1,
       "gridTracks": [],
+      "catalog": null,
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
@@ -763,19 +963,111 @@
       "fullWidthRatio": 1,
       "gridTracks": [
         {
-          "selector": "proof-catalog-grid",
+          "selector": "proof-catalog-grid rmc-catalog-app-grid",
           "columns": [
-            621.281
+            310.641,
+            310.656
           ]
         }
       ],
+      "catalog": {
+        "cardCount": 12,
+        "gridColumnCount": 2,
+        "filterFormCount": 1,
+        "legacyHeroCount": 0,
+        "openDisclosureCount": 0,
+        "reviewInstallActionCount": 12,
+        "scopeActionCount": 12,
+        "compatibilityWarnings": [
+          "Plan review"
+        ],
+        "headingColor": "rgb(248, 250, 252)",
+        "headingBackgroundColor": "rgb(11, 16, 32)",
+        "headingContrastRatio": 18.095148740806835,
+        "headingClassName": "rmc-page-masthead__title cp-page-h1 mb-0",
+        "headingColorRules": [
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/vendor/bootstrap/css/bootstrap.min.css",
+            "selector": ".h1, .h2, .h3, .h4, .h5, .h6, h1, h2, h3, h4, h5, h6",
+            "color": "var(--bs-heading-color)",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/rmc-page-archetypes-max.css",
+            "selector": ".rmc-page-masthead__title",
+            "color": "var(--text-primary)",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/portal-shell-enhanced.min.css",
+            "selector": "body.portal-body-with-layout:not(.control-plane-shell) .rmc-os-page-header__title, body.portal-body-with-layout:not(.control-plane-shell) .portal-page-body h1, body.portal-body-with-layout:not(.control-plane-shell) .section-title",
+            "color": "var(--text-primary)",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/portal-shell-enhanced.min.css",
+            "selector": "#main-content .page-wrap h1:first-child, #main-content .page-wrap .page-title, #main-content .page-wrap .content-title",
+            "color": "var(--admin-content-text,var(--color-text-primary))",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/rmc-platform-inner-pages.css",
+            "selector": "body.portal-body-with-layout:not(.control-plane-shell) .rmc-os-page-header__title, body.portal-body-with-layout:not(.control-plane-shell) .portal-page-body h1, body.portal-body-with-layout:not(.control-plane-shell) .section-title",
+            "color": "var(--text-primary)",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/backend-light-theme.css",
+            "selector": "body.portal-backend-light .workflow-hero h2, body.portal-backend-light .workflow-title, body.portal-backend-light .card-title, body.portal-backend-light h1, body.portal-backend-light h2, body.portal-backend-light h3",
+            "color": "rgb(26, 22, 18)",
+            "priority": "important"
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/rmc-operational-center-frame.css",
+            "selector": "body.control-plane-shell #cp-main-content [data-rmc-operational-center-frame=\"1\"] .cp-page-h1, :is(body.portal-body-with-layout, body.manager-portal-bridge) :is(#main-content, .portal-page-body) [data-rmc-operational-center-frame=\"1\"] .cp-page-h1",
+            "color": "var(--text-primary, var(--rmc-wcx-ink))",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/marketplace-tenant-app-catalog.css?v=20260801-tenant-configuration-operations-v2",
+            "selector": "body.portal-backend-light .tenant-app-catalog-wrap :is(h1, h2, h3), body.portal-backend-dark .tenant-app-catalog-wrap :is(h1, h2, h3), body.control-plane-shell #cp-main-content .tenant-app-catalog-wrap :is(h1, h2, h3)",
+            "color": "var(--rmc-catalog-ink)",
+            "priority": "important"
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/theme-platform-readability.css",
+            "selector": "html[data-resolved-theme=\"light\"] :is(#cp-main-content, [data-rmc-shell-main]) :is(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .card-title):not(:is(.proof-hero, .cp-hero, .bg-dark) *)",
+            "color": "var(--text-primary, var(--color-base-900))",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/rmc-tenant-cp-parity.css",
+            "selector": "html[data-rmc-tp-v3-shell=\"1\"] body:not(.control-plane-shell) .portal-main-col h1, html[data-rmc-tp-v3-shell=\"1\"] body:not(.control-plane-shell) .portal-main-col .rmc-page-title",
+            "color": "var(--text-primary)",
+            "priority": ""
+          }
+        ],
+        "themeAttributes": {
+          "htmlTheme": "light",
+          "htmlResolvedTheme": "light",
+          "htmlBootstrapTheme": "light",
+          "bodyTheme": null,
+          "bodyBootstrapTheme": null
+        },
+        "computedTokens": {
+          "colorBase50": "#f8fafc",
+          "textPrimary": "#f8fafc",
+          "catalogInk": "#f8fafc"
+        },
+        "falseCompatibilityCopy": []
+      },
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
       "unexpectedFixedOverlays": [],
-      "actionCount": 58,
+      "actionCount": 47,
       "computedColorScheme": "light",
-      "computedBackground": "rgb(11, 16, 32)",
+      "computedBackground": "rgba(0, 0, 0, 0)",
       "httpStatus": 200,
       "findings": []
     },
@@ -801,13 +1093,14 @@
       "hasApprovedBuild": true,
       "fullWidthRatio": 1,
       "gridTracks": [],
+      "catalog": null,
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
       "unexpectedFixedOverlays": [],
       "actionCount": 25,
       "computedColorScheme": "light",
-      "computedBackground": "rgb(11, 16, 32)",
+      "computedBackground": "rgba(0, 0, 0, 0)",
       "httpStatus": 200,
       "findings": []
     },
@@ -840,13 +1133,14 @@
           ]
         }
       ],
+      "catalog": null,
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
       "unexpectedFixedOverlays": [],
       "actionCount": 17,
       "computedColorScheme": "light",
-      "computedBackground": "rgb(11, 16, 32)",
+      "computedBackground": "rgba(0, 0, 0, 0)",
       "httpStatus": 200,
       "findings": [],
       "screenshot": "settings-390-light.png"
@@ -880,13 +1174,14 @@
           ]
         }
       ],
+      "catalog": null,
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
       "unexpectedFixedOverlays": [],
       "actionCount": 17,
       "computedColorScheme": "light",
-      "computedBackground": "rgb(11, 16, 32)",
+      "computedBackground": "rgba(0, 0, 0, 0)",
       "httpStatus": 200,
       "findings": [],
       "screenshot": "configuration-390-light.png"
@@ -926,6 +1221,7 @@
           ]
         }
       ],
+      "catalog": null,
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
@@ -959,6 +1255,7 @@
       "hasApprovedBuild": true,
       "fullWidthRatio": 1,
       "gridTracks": [],
+      "catalog": null,
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
@@ -992,6 +1289,7 @@
       "hasApprovedBuild": true,
       "fullWidthRatio": 1,
       "gridTracks": [],
+      "catalog": null,
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
@@ -1026,19 +1324,110 @@
       "fullWidthRatio": 1,
       "gridTracks": [
         {
-          "selector": "proof-catalog-grid",
+          "selector": "proof-catalog-grid rmc-catalog-app-grid",
           "columns": [
-            253.219
+            266.031
           ]
         }
       ],
+      "catalog": {
+        "cardCount": 12,
+        "gridColumnCount": 1,
+        "filterFormCount": 1,
+        "legacyHeroCount": 0,
+        "openDisclosureCount": 0,
+        "reviewInstallActionCount": 12,
+        "scopeActionCount": 12,
+        "compatibilityWarnings": [
+          "Plan review"
+        ],
+        "headingColor": "rgb(248, 250, 252)",
+        "headingBackgroundColor": "rgb(11, 16, 32)",
+        "headingContrastRatio": 18.095148740806835,
+        "headingClassName": "rmc-page-masthead__title cp-page-h1 mb-0",
+        "headingColorRules": [
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/vendor/bootstrap/css/bootstrap.min.css",
+            "selector": ".h1, .h2, .h3, .h4, .h5, .h6, h1, h2, h3, h4, h5, h6",
+            "color": "var(--bs-heading-color)",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/rmc-page-archetypes-max.css",
+            "selector": ".rmc-page-masthead__title",
+            "color": "var(--text-primary)",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/portal-shell-enhanced.min.css",
+            "selector": "body.portal-body-with-layout:not(.control-plane-shell) .rmc-os-page-header__title, body.portal-body-with-layout:not(.control-plane-shell) .portal-page-body h1, body.portal-body-with-layout:not(.control-plane-shell) .section-title",
+            "color": "var(--text-primary)",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/portal-shell-enhanced.min.css",
+            "selector": "#main-content .page-wrap h1:first-child, #main-content .page-wrap .page-title, #main-content .page-wrap .content-title",
+            "color": "var(--admin-content-text,var(--color-text-primary))",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/rmc-platform-inner-pages.css",
+            "selector": "body.portal-body-with-layout:not(.control-plane-shell) .rmc-os-page-header__title, body.portal-body-with-layout:not(.control-plane-shell) .portal-page-body h1, body.portal-body-with-layout:not(.control-plane-shell) .section-title",
+            "color": "var(--text-primary)",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/backend-light-theme.css",
+            "selector": "body.portal-backend-light .workflow-hero h2, body.portal-backend-light .workflow-title, body.portal-backend-light .card-title, body.portal-backend-light h1, body.portal-backend-light h2, body.portal-backend-light h3",
+            "color": "rgb(26, 22, 18)",
+            "priority": "important"
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/rmc-operational-center-frame.css",
+            "selector": "body.control-plane-shell #cp-main-content [data-rmc-operational-center-frame=\"1\"] .cp-page-h1, :is(body.portal-body-with-layout, body.manager-portal-bridge) :is(#main-content, .portal-page-body) [data-rmc-operational-center-frame=\"1\"] .cp-page-h1",
+            "color": "var(--text-primary, var(--rmc-wcx-ink))",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/marketplace-tenant-app-catalog.css?v=20260801-tenant-configuration-operations-v2",
+            "selector": "body.portal-backend-light .tenant-app-catalog-wrap :is(h1, h2, h3), body.portal-backend-dark .tenant-app-catalog-wrap :is(h1, h2, h3), body.control-plane-shell #cp-main-content .tenant-app-catalog-wrap :is(h1, h2, h3)",
+            "color": "var(--rmc-catalog-ink)",
+            "priority": "important"
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/theme-platform-readability.css",
+            "selector": "html[data-resolved-theme=\"light\"] :is(#cp-main-content, [data-rmc-shell-main]) :is(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .card-title):not(:is(.proof-hero, .cp-hero, .bg-dark) *)",
+            "color": "var(--text-primary, var(--color-base-900))",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/rmc-tenant-cp-parity.css",
+            "selector": "html[data-rmc-tp-v3-shell=\"1\"] body:not(.control-plane-shell) .portal-main-col h1, html[data-rmc-tp-v3-shell=\"1\"] body:not(.control-plane-shell) .portal-main-col .rmc-page-title",
+            "color": "var(--text-primary)",
+            "priority": ""
+          }
+        ],
+        "themeAttributes": {
+          "htmlTheme": "light",
+          "htmlResolvedTheme": "light",
+          "htmlBootstrapTheme": "light",
+          "bodyTheme": null,
+          "bodyBootstrapTheme": null
+        },
+        "computedTokens": {
+          "colorBase50": "#f8fafc",
+          "textPrimary": "#f8fafc",
+          "catalogInk": "#f8fafc"
+        },
+        "falseCompatibilityCopy": []
+      },
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
       "unexpectedFixedOverlays": [],
-      "actionCount": 58,
+      "actionCount": 47,
       "computedColorScheme": "light",
-      "computedBackground": "rgb(11, 16, 32)",
+      "computedBackground": "rgba(0, 0, 0, 0)",
       "httpStatus": 200,
       "findings": [],
       "screenshot": "app-catalog-390-light.png"
@@ -1065,13 +1454,14 @@
       "hasApprovedBuild": true,
       "fullWidthRatio": 1,
       "gridTracks": [],
+      "catalog": null,
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
       "unexpectedFixedOverlays": [],
       "actionCount": 25,
       "computedColorScheme": "light",
-      "computedBackground": "rgb(11, 16, 32)",
+      "computedBackground": "rgba(0, 0, 0, 0)",
       "httpStatus": 200,
       "findings": [],
       "screenshot": "compliance-alias-390-light.png"
@@ -1108,6 +1498,7 @@
           ]
         }
       ],
+      "catalog": null,
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
@@ -1151,6 +1542,7 @@
           ]
         }
       ],
+      "catalog": null,
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
@@ -1202,6 +1594,7 @@
           ]
         }
       ],
+      "catalog": null,
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
@@ -1235,6 +1628,7 @@
       "hasApprovedBuild": true,
       "fullWidthRatio": 1,
       "gridTracks": [],
+      "catalog": null,
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
@@ -1268,6 +1662,7 @@
       "hasApprovedBuild": true,
       "fullWidthRatio": 1,
       "gridTracks": [],
+      "catalog": null,
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
@@ -1302,19 +1697,98 @@
       "fullWidthRatio": 1,
       "gridTracks": [
         {
-          "selector": "proof-catalog-grid",
+          "selector": "proof-catalog-grid rmc-catalog-app-grid",
           "columns": [
-            285.875,
-            285.875,
-            285.875
+            288.547,
+            288.547,
+            288.562
           ]
         }
       ],
+      "catalog": {
+        "cardCount": 12,
+        "gridColumnCount": 3,
+        "filterFormCount": 1,
+        "legacyHeroCount": 0,
+        "openDisclosureCount": 0,
+        "reviewInstallActionCount": 12,
+        "scopeActionCount": 12,
+        "compatibilityWarnings": [
+          "Plan review"
+        ],
+        "headingColor": "rgb(248, 250, 252)",
+        "headingBackgroundColor": "rgb(11, 16, 32)",
+        "headingContrastRatio": 18.095148740806835,
+        "headingClassName": "rmc-page-masthead__title cp-page-h1 mb-0",
+        "headingColorRules": [
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/vendor/bootstrap/css/bootstrap.min.css",
+            "selector": ".h1, .h2, .h3, .h4, .h5, .h6, h1, h2, h3, h4, h5, h6",
+            "color": "var(--bs-heading-color)",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/rmc-page-archetypes-max.css",
+            "selector": ".rmc-page-masthead__title",
+            "color": "var(--text-primary)",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/portal-shell-enhanced.min.css",
+            "selector": "body.portal-body-with-layout:not(.control-plane-shell) .rmc-os-page-header__title, body.portal-body-with-layout:not(.control-plane-shell) .portal-page-body h1, body.portal-body-with-layout:not(.control-plane-shell) .section-title",
+            "color": "var(--text-primary)",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/portal-shell-enhanced.min.css",
+            "selector": "#main-content .page-wrap h1:first-child, #main-content .page-wrap .page-title, #main-content .page-wrap .content-title",
+            "color": "var(--admin-content-text,var(--color-text-primary))",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/rmc-platform-inner-pages.css",
+            "selector": "body.portal-body-with-layout:not(.control-plane-shell) .rmc-os-page-header__title, body.portal-body-with-layout:not(.control-plane-shell) .portal-page-body h1, body.portal-body-with-layout:not(.control-plane-shell) .section-title",
+            "color": "var(--text-primary)",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/rmc-operational-center-frame.css",
+            "selector": "body.control-plane-shell #cp-main-content [data-rmc-operational-center-frame=\"1\"] .cp-page-h1, :is(body.portal-body-with-layout, body.manager-portal-bridge) :is(#main-content, .portal-page-body) [data-rmc-operational-center-frame=\"1\"] .cp-page-h1",
+            "color": "var(--text-primary, var(--rmc-wcx-ink))",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/marketplace-tenant-app-catalog.css?v=20260801-tenant-configuration-operations-v2",
+            "selector": "body.portal-backend-light .tenant-app-catalog-wrap :is(h1, h2, h3), body.portal-backend-dark .tenant-app-catalog-wrap :is(h1, h2, h3), body.control-plane-shell #cp-main-content .tenant-app-catalog-wrap :is(h1, h2, h3)",
+            "color": "var(--rmc-catalog-ink)",
+            "priority": "important"
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/rmc-tenant-cp-parity.css",
+            "selector": "html[data-rmc-tp-v3-shell=\"1\"] body:not(.control-plane-shell) .portal-main-col h1, html[data-rmc-tp-v3-shell=\"1\"] body:not(.control-plane-shell) .portal-main-col .rmc-page-title",
+            "color": "var(--text-primary)",
+            "priority": ""
+          }
+        ],
+        "themeAttributes": {
+          "htmlTheme": "dark",
+          "htmlResolvedTheme": "dark",
+          "htmlBootstrapTheme": "dark",
+          "bodyTheme": null,
+          "bodyBootstrapTheme": null
+        },
+        "computedTokens": {
+          "colorBase50": "#f8fafc",
+          "textPrimary": "#f8fafc",
+          "catalogInk": "#f8fafc"
+        },
+        "falseCompatibilityCopy": []
+      },
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
       "unexpectedFixedOverlays": [],
-      "actionCount": 58,
+      "actionCount": 47,
       "computedColorScheme": "dark",
       "computedBackground": "rgb(11, 16, 32)",
       "httpStatus": 200,
@@ -1343,6 +1817,7 @@
       "hasApprovedBuild": true,
       "fullWidthRatio": 1,
       "gridTracks": [],
+      "catalog": null,
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
@@ -1383,6 +1858,7 @@
           ]
         }
       ],
+      "catalog": null,
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
@@ -1422,6 +1898,7 @@
           ]
         }
       ],
+      "catalog": null,
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
@@ -1467,6 +1944,7 @@
           ]
         }
       ],
+      "catalog": null,
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
@@ -1499,6 +1977,7 @@
       "hasApprovedBuild": true,
       "fullWidthRatio": 1,
       "gridTracks": [],
+      "catalog": null,
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
@@ -1531,6 +2010,7 @@
       "hasApprovedBuild": true,
       "fullWidthRatio": 1,
       "gridTracks": [],
+      "catalog": null,
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
@@ -1564,17 +2044,97 @@
       "fullWidthRatio": 1,
       "gridTracks": [
         {
-          "selector": "proof-catalog-grid",
+          "selector": "proof-catalog-grid rmc-catalog-app-grid",
           "columns": [
-            508.984
+            252.734,
+            252.734
           ]
         }
       ],
+      "catalog": {
+        "cardCount": 12,
+        "gridColumnCount": 2,
+        "filterFormCount": 1,
+        "legacyHeroCount": 0,
+        "openDisclosureCount": 0,
+        "reviewInstallActionCount": 12,
+        "scopeActionCount": 12,
+        "compatibilityWarnings": [
+          "Plan review"
+        ],
+        "headingColor": "rgb(248, 250, 252)",
+        "headingBackgroundColor": "rgb(11, 16, 32)",
+        "headingContrastRatio": 18.095148740806835,
+        "headingClassName": "rmc-page-masthead__title cp-page-h1 mb-0",
+        "headingColorRules": [
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/vendor/bootstrap/css/bootstrap.min.css",
+            "selector": ".h1, .h2, .h3, .h4, .h5, .h6, h1, h2, h3, h4, h5, h6",
+            "color": "var(--bs-heading-color)",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/rmc-page-archetypes-max.css",
+            "selector": ".rmc-page-masthead__title",
+            "color": "var(--text-primary)",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/portal-shell-enhanced.min.css",
+            "selector": "body.portal-body-with-layout:not(.control-plane-shell) .rmc-os-page-header__title, body.portal-body-with-layout:not(.control-plane-shell) .portal-page-body h1, body.portal-body-with-layout:not(.control-plane-shell) .section-title",
+            "color": "var(--text-primary)",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/portal-shell-enhanced.min.css",
+            "selector": "#main-content .page-wrap h1:first-child, #main-content .page-wrap .page-title, #main-content .page-wrap .content-title",
+            "color": "var(--admin-content-text,var(--color-text-primary))",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/rmc-platform-inner-pages.css",
+            "selector": "body.portal-body-with-layout:not(.control-plane-shell) .rmc-os-page-header__title, body.portal-body-with-layout:not(.control-plane-shell) .portal-page-body h1, body.portal-body-with-layout:not(.control-plane-shell) .section-title",
+            "color": "var(--text-primary)",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/rmc-operational-center-frame.css",
+            "selector": "body.control-plane-shell #cp-main-content [data-rmc-operational-center-frame=\"1\"] .cp-page-h1, :is(body.portal-body-with-layout, body.manager-portal-bridge) :is(#main-content, .portal-page-body) [data-rmc-operational-center-frame=\"1\"] .cp-page-h1",
+            "color": "var(--text-primary, var(--rmc-wcx-ink))",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/marketplace-tenant-app-catalog.css?v=20260801-tenant-configuration-operations-v2",
+            "selector": "body.portal-backend-light .tenant-app-catalog-wrap :is(h1, h2, h3), body.portal-backend-dark .tenant-app-catalog-wrap :is(h1, h2, h3), body.control-plane-shell #cp-main-content .tenant-app-catalog-wrap :is(h1, h2, h3)",
+            "color": "var(--rmc-catalog-ink)",
+            "priority": "important"
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/rmc-tenant-cp-parity.css",
+            "selector": "html[data-rmc-tp-v3-shell=\"1\"] body:not(.control-plane-shell) .portal-main-col h1, html[data-rmc-tp-v3-shell=\"1\"] body:not(.control-plane-shell) .portal-main-col .rmc-page-title",
+            "color": "var(--text-primary)",
+            "priority": ""
+          }
+        ],
+        "themeAttributes": {
+          "htmlTheme": "dark",
+          "htmlResolvedTheme": "dark",
+          "htmlBootstrapTheme": "dark",
+          "bodyTheme": null,
+          "bodyBootstrapTheme": null
+        },
+        "computedTokens": {
+          "colorBase50": "#f8fafc",
+          "textPrimary": "#f8fafc",
+          "catalogInk": "#f8fafc"
+        },
+        "falseCompatibilityCopy": []
+      },
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
       "unexpectedFixedOverlays": [],
-      "actionCount": 58,
+      "actionCount": 47,
       "computedColorScheme": "dark",
       "computedBackground": "rgb(11, 16, 32)",
       "httpStatus": 200,
@@ -1602,6 +2162,7 @@
       "hasApprovedBuild": true,
       "fullWidthRatio": 1,
       "gridTracks": [],
+      "catalog": null,
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
@@ -1641,6 +2202,7 @@
           ]
         }
       ],
+      "catalog": null,
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
@@ -1680,6 +2242,7 @@
           ]
         }
       ],
+      "catalog": null,
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
@@ -1725,6 +2288,7 @@
           ]
         }
       ],
+      "catalog": null,
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
@@ -1757,6 +2321,7 @@
       "hasApprovedBuild": true,
       "fullWidthRatio": 1,
       "gridTracks": [],
+      "catalog": null,
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
@@ -1789,6 +2354,7 @@
       "hasApprovedBuild": true,
       "fullWidthRatio": 1,
       "gridTracks": [],
+      "catalog": null,
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
@@ -1822,17 +2388,97 @@
       "fullWidthRatio": 1,
       "gridTracks": [
         {
-          "selector": "proof-catalog-grid",
+          "selector": "proof-catalog-grid rmc-catalog-app-grid",
           "columns": [
-            621.281
+            310.641,
+            310.656
           ]
         }
       ],
+      "catalog": {
+        "cardCount": 12,
+        "gridColumnCount": 2,
+        "filterFormCount": 1,
+        "legacyHeroCount": 0,
+        "openDisclosureCount": 0,
+        "reviewInstallActionCount": 12,
+        "scopeActionCount": 12,
+        "compatibilityWarnings": [
+          "Plan review"
+        ],
+        "headingColor": "rgb(248, 250, 252)",
+        "headingBackgroundColor": "rgb(11, 16, 32)",
+        "headingContrastRatio": 18.095148740806835,
+        "headingClassName": "rmc-page-masthead__title cp-page-h1 mb-0",
+        "headingColorRules": [
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/vendor/bootstrap/css/bootstrap.min.css",
+            "selector": ".h1, .h2, .h3, .h4, .h5, .h6, h1, h2, h3, h4, h5, h6",
+            "color": "var(--bs-heading-color)",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/rmc-page-archetypes-max.css",
+            "selector": ".rmc-page-masthead__title",
+            "color": "var(--text-primary)",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/portal-shell-enhanced.min.css",
+            "selector": "body.portal-body-with-layout:not(.control-plane-shell) .rmc-os-page-header__title, body.portal-body-with-layout:not(.control-plane-shell) .portal-page-body h1, body.portal-body-with-layout:not(.control-plane-shell) .section-title",
+            "color": "var(--text-primary)",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/portal-shell-enhanced.min.css",
+            "selector": "#main-content .page-wrap h1:first-child, #main-content .page-wrap .page-title, #main-content .page-wrap .content-title",
+            "color": "var(--admin-content-text,var(--color-text-primary))",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/rmc-platform-inner-pages.css",
+            "selector": "body.portal-body-with-layout:not(.control-plane-shell) .rmc-os-page-header__title, body.portal-body-with-layout:not(.control-plane-shell) .portal-page-body h1, body.portal-body-with-layout:not(.control-plane-shell) .section-title",
+            "color": "var(--text-primary)",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/rmc-operational-center-frame.css",
+            "selector": "body.control-plane-shell #cp-main-content [data-rmc-operational-center-frame=\"1\"] .cp-page-h1, :is(body.portal-body-with-layout, body.manager-portal-bridge) :is(#main-content, .portal-page-body) [data-rmc-operational-center-frame=\"1\"] .cp-page-h1",
+            "color": "var(--text-primary, var(--rmc-wcx-ink))",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/marketplace-tenant-app-catalog.css?v=20260801-tenant-configuration-operations-v2",
+            "selector": "body.portal-backend-light .tenant-app-catalog-wrap :is(h1, h2, h3), body.portal-backend-dark .tenant-app-catalog-wrap :is(h1, h2, h3), body.control-plane-shell #cp-main-content .tenant-app-catalog-wrap :is(h1, h2, h3)",
+            "color": "var(--rmc-catalog-ink)",
+            "priority": "important"
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/rmc-tenant-cp-parity.css",
+            "selector": "html[data-rmc-tp-v3-shell=\"1\"] body:not(.control-plane-shell) .portal-main-col h1, html[data-rmc-tp-v3-shell=\"1\"] body:not(.control-plane-shell) .portal-main-col .rmc-page-title",
+            "color": "var(--text-primary)",
+            "priority": ""
+          }
+        ],
+        "themeAttributes": {
+          "htmlTheme": "dark",
+          "htmlResolvedTheme": "dark",
+          "htmlBootstrapTheme": "dark",
+          "bodyTheme": null,
+          "bodyBootstrapTheme": null
+        },
+        "computedTokens": {
+          "colorBase50": "#f8fafc",
+          "textPrimary": "#f8fafc",
+          "catalogInk": "#f8fafc"
+        },
+        "falseCompatibilityCopy": []
+      },
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
       "unexpectedFixedOverlays": [],
-      "actionCount": 58,
+      "actionCount": 47,
       "computedColorScheme": "dark",
       "computedBackground": "rgb(11, 16, 32)",
       "httpStatus": 200,
@@ -1860,6 +2506,7 @@
       "hasApprovedBuild": true,
       "fullWidthRatio": 1,
       "gridTracks": [],
+      "catalog": null,
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
@@ -1899,6 +2546,7 @@
           ]
         }
       ],
+      "catalog": null,
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
@@ -1938,6 +2586,7 @@
           ]
         }
       ],
+      "catalog": null,
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
@@ -1983,6 +2632,7 @@
           ]
         }
       ],
+      "catalog": null,
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
@@ -2015,6 +2665,7 @@
       "hasApprovedBuild": true,
       "fullWidthRatio": 1,
       "gridTracks": [],
+      "catalog": null,
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
@@ -2047,6 +2698,7 @@
       "hasApprovedBuild": true,
       "fullWidthRatio": 1,
       "gridTracks": [],
+      "catalog": null,
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
@@ -2080,17 +2732,96 @@
       "fullWidthRatio": 1,
       "gridTracks": [
         {
-          "selector": "proof-catalog-grid",
+          "selector": "proof-catalog-grid rmc-catalog-app-grid",
           "columns": [
-            253.219
+            266.031
           ]
         }
       ],
+      "catalog": {
+        "cardCount": 12,
+        "gridColumnCount": 1,
+        "filterFormCount": 1,
+        "legacyHeroCount": 0,
+        "openDisclosureCount": 0,
+        "reviewInstallActionCount": 12,
+        "scopeActionCount": 12,
+        "compatibilityWarnings": [
+          "Plan review"
+        ],
+        "headingColor": "rgb(248, 250, 252)",
+        "headingBackgroundColor": "rgb(11, 16, 32)",
+        "headingContrastRatio": 18.095148740806835,
+        "headingClassName": "rmc-page-masthead__title cp-page-h1 mb-0",
+        "headingColorRules": [
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/vendor/bootstrap/css/bootstrap.min.css",
+            "selector": ".h1, .h2, .h3, .h4, .h5, .h6, h1, h2, h3, h4, h5, h6",
+            "color": "var(--bs-heading-color)",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/rmc-page-archetypes-max.css",
+            "selector": ".rmc-page-masthead__title",
+            "color": "var(--text-primary)",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/portal-shell-enhanced.min.css",
+            "selector": "body.portal-body-with-layout:not(.control-plane-shell) .rmc-os-page-header__title, body.portal-body-with-layout:not(.control-plane-shell) .portal-page-body h1, body.portal-body-with-layout:not(.control-plane-shell) .section-title",
+            "color": "var(--text-primary)",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/portal-shell-enhanced.min.css",
+            "selector": "#main-content .page-wrap h1:first-child, #main-content .page-wrap .page-title, #main-content .page-wrap .content-title",
+            "color": "var(--admin-content-text,var(--color-text-primary))",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/rmc-platform-inner-pages.css",
+            "selector": "body.portal-body-with-layout:not(.control-plane-shell) .rmc-os-page-header__title, body.portal-body-with-layout:not(.control-plane-shell) .portal-page-body h1, body.portal-body-with-layout:not(.control-plane-shell) .section-title",
+            "color": "var(--text-primary)",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/rmc-operational-center-frame.css",
+            "selector": "body.control-plane-shell #cp-main-content [data-rmc-operational-center-frame=\"1\"] .cp-page-h1, :is(body.portal-body-with-layout, body.manager-portal-bridge) :is(#main-content, .portal-page-body) [data-rmc-operational-center-frame=\"1\"] .cp-page-h1",
+            "color": "var(--text-primary, var(--rmc-wcx-ink))",
+            "priority": ""
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/marketplace-tenant-app-catalog.css?v=20260801-tenant-configuration-operations-v2",
+            "selector": "body.portal-backend-light .tenant-app-catalog-wrap :is(h1, h2, h3), body.portal-backend-dark .tenant-app-catalog-wrap :is(h1, h2, h3), body.control-plane-shell #cp-main-content .tenant-app-catalog-wrap :is(h1, h2, h3)",
+            "color": "var(--rmc-catalog-ink)",
+            "priority": "important"
+          },
+          {
+            "href": "http://demo-school.runmycampus.com:8031/static/css/rmc-tenant-cp-parity.css",
+            "selector": "html[data-rmc-tp-v3-shell=\"1\"] body:not(.control-plane-shell) .portal-main-col h1, html[data-rmc-tp-v3-shell=\"1\"] body:not(.control-plane-shell) .portal-main-col .rmc-page-title",
+            "color": "var(--text-primary)",
+            "priority": ""
+          }
+        ],
+        "themeAttributes": {
+          "htmlTheme": "dark",
+          "htmlResolvedTheme": "dark",
+          "htmlBootstrapTheme": "dark",
+          "bodyTheme": null,
+          "bodyBootstrapTheme": null
+        },
+        "computedTokens": {
+          "colorBase50": "#f8fafc",
+          "textPrimary": "#f8fafc",
+          "catalogInk": "#f8fafc"
+        },
+        "falseCompatibilityCopy": []
+      },
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,
       "unexpectedFixedOverlays": [],
-      "actionCount": 58,
+      "actionCount": 47,
       "computedColorScheme": "dark",
       "computedBackground": "rgb(11, 16, 32)",
       "httpStatus": 200,
@@ -2118,6 +2849,7 @@
       "hasApprovedBuild": true,
       "fullWidthRatio": 1,
       "gridTracks": [],
+      "catalog": null,
       "rawIcons": [],
       "simulatedActions": [],
       "unsafePostForms": 0,

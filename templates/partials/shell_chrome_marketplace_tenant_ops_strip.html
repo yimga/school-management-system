@@ -1,14 +1,13 @@
 {% load i18n %}
-{% comment %} After-install / activate / scope strip (tenant app catalog). data-shell-marketplace-ops is the contract. {% endcomment %}
-<nav
-  class="d-flex flex-wrap align-items-center gap-2 py-2 mb-2 border-bottom border-light border-opacity-10"
+{% comment %} Approved tenant catalog operating-policy card. data-shell-marketplace-ops remains the shell contract. {% endcomment %}
+<article
+  class="rmc-catalog-policy-card"
   data-shell-marketplace-ops="activate-configure"
   data-shell-chrome="marketplace-ops-strip"
-  aria-label="{% trans 'Install, activate, and scope actions' %}"
+  aria-labelledby="rmc-catalog-policy-title"
 >
-  <span class="small text-white-50 me-1">{% trans "After install" %}:</span>
-  <a href="{% url 'tenant_installed_apps' %}" class="btn btn-sm btn-outline-light ds-btn">{% trans "Installed &amp; activate" %}</a>
-  <a href="{% url 'tenant_scope_consent' %}" class="btn btn-sm btn-outline-light ds-btn">{% trans "Scope approvals" %}</a>
-  <span class="small text-white-50 ms-md-auto">{% trans "Sandbox first — activate only when ready." %}</span>
-</nav>
+  <h2 id="rmc-catalog-policy-title">{% trans "Your operating policy" %}</h2>
+  <p>{% trans "Apps install to sandbox. Sensitive scopes require approval. Activation remains a separate deliberate action." %}</p>
+  <a href="{% url 'tenant_scope_consent' %}" class="btn btn-sm btn-outline-primary ds-btn">{% trans "View policy" %}</a>
+</article>
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>

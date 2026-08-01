@@ -9,7 +9,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator
 from django.db import DatabaseError
-from django.db.models import Count, Prefetch, Q, Sum
+from django.db.models import Avg, Count, Prefetch, Q, Sum
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -24,6 +24,7 @@ from apps.billing.stripe_checkout import (
 from apps.schools.control_plane import user_has_control_plane_access
 from apps.marketplace.models import (
     AppInstallation,
+    AppRating,
     AppScope,
     MarketplaceApp,
     MarketplaceListing,
@@ -1061,7 +1062,13 @@ def tenant_installed_apps(request):
                 "action_url": reverse("tenant_app_catalog"),
             },
         )
-    installations = list(
+    phase_filter = (request.GET.get("phase") or "").strip().lower()
+    if phase_filter not in {
+        AppInstallation.InstallPhase.SANDBOX,
+        AppInstallation.InstallPhase.ACTIVE,
+    }:
+        phase_filter = ""
+    installations_qs = (
         AppInstallation.objects.filter(
             school=school,
             status=AppInstallation.Status.ACTIVE,
@@ -1078,6 +1085,9 @@ def tenant_installed_apps(request):
         )
         .order_by("-installed_at")
     )
+    if phase_filter:
+        installations_qs = installations_qs.filter(install_phase=phase_filter)
+    installations = list(installations_qs)
     listing_by_app_id = {
         lst.app_id: lst
         for lst in MarketplaceListing.objects.filter(
@@ -1132,9 +1142,14 @@ def tenant_installed_apps(request):
             "installations": installations,
             "school": school,
             "pending_scope_grants_count": pending_scope_grants_count,
-            "page_title": "Installed apps",
-            "page_subtitle": "Apps installed for this school. New installs land in sandbox first.",
+            "page_title": "Sandbox queue" if phase_filter == "sandbox" else "Installed apps",
+            "page_subtitle": (
+                "Apps waiting in this school's sandbox for review and deliberate activation."
+                if phase_filter == "sandbox"
+                else "Apps installed for this school. New installs land in sandbox first."
+            ),
             "action_url": reverse("tenant_app_catalog"),
+            "phase_filter": phase_filter,
         },
     )
 
@@ -1166,7 +1181,43 @@ def tenant_app_catalog(request):
     listings = (
         MarketplaceListing.objects.select_related("app", "publisher")
         .prefetch_related("app__scopes", "app__version_compat")
-        .annotate(
+        .filter(app__is_active=True, status=MarketplaceListing.Status.APPROVED)
+    )
+    catalog_outcomes = list(
+        listings.exclude(category="")
+        .order_by("category")
+        .values_list("category", flat=True)
+        .distinct()
+    )
+    catalog_filters = {
+        "q": (request.GET.get("q") or "").strip(),
+        "outcome": (request.GET.get("outcome") or "").strip(),
+        "pricing": (request.GET.get("pricing") or "").strip().lower(),
+        "sort": (request.GET.get("sort") or "relevant").strip().lower(),
+    }
+    if catalog_filters["q"]:
+        query = catalog_filters["q"]
+        listings = listings.filter(
+            Q(app__name__icontains=query)
+            | Q(app__slug__icontains=query)
+            | Q(app__description__icontains=query)
+            | Q(short_description__icontains=query)
+            | Q(category__icontains=query)
+            | Q(publisher__name__icontains=query)
+        )
+    if catalog_filters["outcome"]:
+        listings = listings.filter(category__iexact=catalog_filters["outcome"])
+    if catalog_filters["pricing"] == "included":
+        listings = listings.filter(app__pricing_model=MarketplaceApp.PricingModel.FREE)
+    elif catalog_filters["pricing"] == "paid":
+        listings = listings.filter(
+            app__pricing_model__in=(
+                MarketplaceApp.PricingModel.SUBSCRIPTION,
+                MarketplaceApp.PricingModel.USAGE,
+            )
+        )
+
+    listings = listings.annotate(
             active_installations=Count(
                 "app__installations",
                 filter=Q(
@@ -1179,10 +1230,25 @@ def tenant_app_catalog(request):
             sensitive_scope_count=Count(
                 "app__scopes", filter=Q(app__scopes__sensitive=True), distinct=True
             ),
+            average_rating=Avg(
+                "app__ratings__stars",
+                filter=Q(app__ratings__status=AppRating.Status.PUBLISHED),
+            ),
+            rating_count=Count(
+                "app__ratings",
+                filter=Q(app__ratings__status=AppRating.Status.PUBLISHED),
+                distinct=True,
+            ),
         )
-        .filter(app__is_active=True, status=MarketplaceListing.Status.APPROVED)
-        .order_by("app__name")
-    )
+    if catalog_filters["sort"] == "popular":
+        listings = listings.order_by("-active_installations", "app__name")
+    elif catalog_filters["sort"] == "rating":
+        listings = listings.order_by("-average_rating", "-rating_count", "app__name")
+    elif catalog_filters["sort"] == "newest":
+        listings = listings.order_by("-approved_at", "app__name")
+    else:
+        catalog_filters["sort"] = "relevant"
+        listings = listings.order_by("app__name")
     active_installations = list(
         AppInstallation.objects.filter(
             school=school,
@@ -1219,6 +1285,25 @@ def tenant_app_catalog(request):
     page_obj = Paginator(installable, 12).get_page(request.GET.get("page") or 1)
     listings_page = list(page_obj.object_list)
 
+    verified_publisher_ids = {
+        listing.publisher_id
+        for listing in installable
+        if listing.publisher_id
+        and getattr(listing.publisher, "verification_status", "")
+        == PublisherOrganization.VerificationStatus.VERIFIED
+    }
+    compatibility_review_count = sum(
+        1
+        for listing in installable
+        if not bool((getattr(listing, "mkt_compatibility", None) or {}).get("ok", True))
+    )
+    unverified_listing_count = sum(
+        1
+        for listing in installable
+        if getattr(getattr(listing, "publisher", None), "verification_status", "")
+        != PublisherOrganization.VerificationStatus.VERIFIED
+    )
+    catalog_policy_healthy = not compatibility_review_count and not unverified_listing_count
     catalog_stats = {
         "apps": len(installable),
         "installed": len(installed_slugs),
@@ -1227,15 +1312,20 @@ def tenant_app_catalog(request):
             for listing in installable
             if getattr(listing, "sensitive_scope_count", 0) == 0
         ),
-        "verified_publishers": sum(
-            1
-            for listing in installable
-            if getattr(getattr(listing, "publisher", None), "verification_status", "")
-            == PublisherOrganization.VerificationStatus.VERIFIED
-        ),
+        "verified_publishers": len(verified_publisher_ids),
+        "compatibility_review": compatibility_review_count,
         "showing": len(listings_page),
         "filtered_total": page_obj.paginator.count,
     }
+    catalog_masthead_chips = [
+        {"label": "Available", "value": str(catalog_stats["apps"]), "tone": "info"},
+        {
+            "label": "Verified publishers",
+            "value": str(catalog_stats["verified_publishers"]),
+            "tone": "success",
+        },
+        {"label": "Installed", "value": str(catalog_stats["installed"]), "tone": "neutral"},
+    ]
     catalog_counts = get_platform_catalog_counts()
     platform_pack_catalog = {}
     try:
@@ -1274,11 +1364,16 @@ def tenant_app_catalog(request):
             "installed_slugs": installed_slugs,
             "catalog_stats": catalog_stats,
             "catalog_counts": catalog_counts,
+            "catalog_filters": catalog_filters,
+            "catalog_outcomes": catalog_outcomes,
+            "catalog_masthead_chips": catalog_masthead_chips,
+            "catalog_policy_healthy": catalog_policy_healthy,
             "install_impact_preview_url": reverse("tenant_install_impact_preview"),
             "phase9_links": build_phase9_ecosystem_links(),
             "platform_pack_catalog": platform_pack_catalog,
             "plan_context": plan_context,
             "catalog_install_app_id": catalog_install_app_id,
+            "sandbox_queue_url": f'{reverse("tenant_installed_apps")}?phase=sandbox',
             **tenant_app_catalog_frame_context(),
         },
     )

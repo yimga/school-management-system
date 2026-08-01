@@ -8,10 +8,10 @@
 {% block extrastyle %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'marketing/css/proof-pages.css' %}">
-<link rel="stylesheet" href="{% static 'css/marketplace-tenant-app-catalog.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-operational-center-frame.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-tenant-blueprint-option-a.css' %}?v=20260717-option-a-rollout">
-<link rel="stylesheet" href="{% static 'css/rmc-tenant-configuration-operations.css' %}?v=20260801-tenant-configuration-operations-v1">
+<link rel="stylesheet" href="{% static 'css/rmc-tenant-configuration-operations.css' %}?v=20260801-tenant-configuration-operations-v2">
+<link rel="stylesheet" href="{% static 'css/marketplace-tenant-app-catalog.css' %}?v=20260801-tenant-configuration-operations-v2">
 {% endblock %}
 
 {% block backend_page %}
@@ -20,7 +20,7 @@
 
 {% include "components/next_action_strip.html" %}
 
-<div class="container-fluid py-2 proof-page tenant-app-catalog-wrap ui-premium-surface rmc-tenant-ops rmc-catalog-canvas rmc-mkt-catalog--compact" data-rmc-tenant-ops-build="2026-08-01-v1.0" data-page-archetype="catalog" data-shell-marketplace="tenant-app-catalog" data-rmc-market-surface="catalog" data-rmc-mkt-catalog-surface="1" data-rmc-component-audit="1" data-apple-class-app-catalog="tenant" data-rmc-zero-click="1" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-rmc-section-nav="auto" data-rmc-option-a-canvas="1">
+<div class="container-fluid py-2 proof-page tenant-app-catalog-wrap ui-premium-surface rmc-tenant-ops rmc-catalog-canvas rmc-mkt-catalog--compact" data-rmc-tenant-ops-build="2026-08-01-v1.1" data-page-archetype="catalog" data-shell-marketplace="tenant-app-catalog" data-rmc-market-surface="catalog" data-rmc-mkt-catalog-surface="1" data-rmc-component-audit="1" data-apple-class-app-catalog="tenant" data-rmc-zero-click="1" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-rmc-section-nav="auto" data-rmc-option-a-canvas="1">
   {% if not school %}
   <div class="proof-panel" data-page-header="1">
     <h1 class="proof-panel-title">{% trans "App catalog" %}</h1>
@@ -30,236 +30,103 @@
     </nav>
   </div>
   {% else %}
-  {% include "components/rmc_operational_center_frame.html" with tenant_surface="1" os_center_key="tenant_app_catalog" center_eyebrow=center_eyebrow center_title=center_title center_purpose=center_purpose status_badge_text=status_badge_text nav_groups=operational_nav_groups primary_url="#tenant-catalog-grid" primary_label=_("Browse apps") secondary_url="/school/settings/" secondary_label=_("School configuration") %}
-  {% comment %} v2.68 Wave A: dependency graph is reference material — collapse so the catalog grid is the first thing admins see. {% endcomment %}
-  <details class="studio-os__card studio-os__card--disclosure mb-3 px-3 py-2" role="region" aria-labelledby="tenant-app-scope-graph-heading">
-    <summary class="d-flex align-items-center gap-2 py-1" style="cursor: pointer; list-style: revert;">
-      <span id="tenant-app-scope-graph-heading" class="fw-semibold small">{% trans "Permission scope visual" %}</span>
-      <span class="text-muted small">{% trans "How app consent and billing flow to school install." %}</span>
-    </summary>
-    <div class="pt-3 pb-1">
-      {% include "components/apple_class_dependency_graph.html" with graph_id="tenant-app-scope-graph" title=_("Permission scope visual") source=_("App") dependency=_("Consent and billing") target=_("School install") %}
-    </div>
+  {% url 'tenant_installed_apps' as installed_apps_url %}
+  {% if rmc_conversion_single_action_enforced|default:False %}
+  {% include "components/rmc_operational_center_frame.html" with tenant_surface="1" hide_nav_detail="1" os_center_key="tenant_app_catalog" page_archetype="setup" center_eyebrow=center_eyebrow center_title=center_title center_purpose=center_purpose masthead_chips=catalog_masthead_chips primary_url=sandbox_queue_url primary_label=_("Review sandbox queue") %}
+  <details class="rmc-conversion-more-actions rmc-catalog-more-actions">
+    <summary>{% trans "More" %}</summary>
+    <div><a href="{{ installed_apps_url }}">{% trans "Installed apps" %}</a><a href="{% url 'tenant_scope_consent' %}">{% trans "Scope consent" %}</a></div>
   </details>
-  <section id="section-catalog-hero" class="proof-hero">
-    <div class="proof-hero-grid">
-      <div>
-        <div class="proof-kicker"><i class="bi bi-box-seam"></i> {{ school.name }}</div>
-        {% if plan_context and plan_context.slug %}
-        <div class="proof-strip mb-2" data-rmc-plan-tier="{{ plan_context.tier_key }}">
-          <div class="proof-strip-card border border-light">
-            <strong>{% trans "Your plan" %}</strong>
-            <span class="d-block small text-white-50">{{ plan_context.name }} ({{ plan_context.tier_label }})</span>
-          </div>
-          <div class="proof-strip-card border border-light small">
-            {% trans "Paid or plan-gated apps show upgrade copy from the manifest; installs still go to sandbox first." %}
-          </div>
+  {% else %}
+  {% include "components/rmc_operational_center_frame.html" with tenant_surface="1" hide_nav_detail="1" os_center_key="tenant_app_catalog" page_archetype="setup" center_eyebrow=center_eyebrow center_title=center_title center_purpose=center_purpose masthead_chips=catalog_masthead_chips primary_url=sandbox_queue_url primary_label=_("Review sandbox queue") secondary_url=installed_apps_url secondary_label=_("Installed apps") %}
+  {% endif %}
+  <span class="visually-hidden" data-rmc-tenant-catalog-primary="1" data-task-step="marketplace:browse-catalog">{% trans "Browse apps" %}</span>
+
+  <section id="section-catalog-readiness" class="rmc-catalog-readiness-grid" aria-label="{% trans 'Install readiness and operating policy' %}">
+    <article class="rmc-catalog-readiness-card">
+      <div class="rmc-catalog-card-heading">
+        <div>
+          <h2>{% trans "Install readiness" %}</h2>
+          <p>{% trans "Sandbox-first · scope approval · rollback evidence" %}</p>
         </div>
-        {% endif %}
-        <h2 class="proof-hero-title">{% trans "Install with confidence." %}</h2>
-        <p class="proof-hero-copy">
-          {% trans "Sandbox-first catalog: every install is staged so your team can preview impact, review scopes, and activate deliberately." %}
-        </p>
-        <div class="proof-hero-actions ds-action-bar d-flex flex-wrap gap-2" data-rmc-tenant-catalog-hero-actions="1">
-          {% if rmc_conversion_single_action_enforced|default:False %}
-          <a href="#tenant-catalog-grid" class="btn btn-light btn-sm ds-btn" data-rmc-tenant-catalog-primary="1" data-task-step="marketplace:browse-catalog">{% trans "Browse apps" %}</a>
-          <details class="rmc-conversion-more-actions border border-light border-opacity-25 rounded px-2 py-1">
-            <summary class="btn btn-sm btn-outline-light mb-0 text-white-50">{% trans "More" %}</summary>
-            <div class="pt-2 d-flex flex-wrap gap-2">
-              <a href="{% url 'tenant_installed_apps' %}" class="btn btn-outline-light btn-sm ds-btn">{% trans "Installed apps" %}</a>
-              <a href="{% url 'tenant_scope_consent' %}" class="btn btn-outline-light btn-sm ds-btn">{% trans "Scope consent" %}</a>
-            </div>
-          </details>
-          {% else %}
-          <a href="{% url 'tenant_installed_apps' %}" class="btn btn-light btn-sm ds-btn">{% trans "Installed apps" %}</a>
-          <a href="{% url 'tenant_scope_consent' %}" class="btn btn-outline-light btn-sm ds-btn">{% trans "Scope consent" %}</a>
-          {% endif %}
-        </div>
-        <div class="proof-strip">
-          <div class="proof-strip-card"><strong>{{ catalog_stats.apps|default:0 }}</strong><span>{% trans "apps available" %}</span></div>
-          <div class="proof-strip-card"><strong>{{ catalog_stats.verified_publishers|default:0 }}</strong><span>{% trans "verified publishers" %}</span></div>
-          <div class="proof-strip-card"><strong>{{ catalog_stats.installed|default:0 }}</strong><span>{% trans "already installed" %}</span></div>
-        </div>
-        {% if catalog_counts %}
-        <div class="proof-strip mt-2">
-          <div class="proof-strip-card"><strong>{{ catalog_counts.first_party_apps|default:0 }}</strong><span>{% trans "first-party apps" %}</span></div>
-          <div class="proof-strip-card"><strong>{{ catalog_counts.blueprint_packs|default:0 }}</strong><span>{% trans "blueprint packs" %}</span></div>
-          <div class="proof-strip-card"><strong>{{ catalog_counts.workflow_packs|default:0 }}</strong><span>{% trans "workflow packs" %}</span></div>
-          <div class="proof-strip-card"><strong>{{ catalog_counts.dashboard_packs|default:0 }}</strong><span>{% trans "dashboard packs" %}</span></div>
-          <div class="proof-strip-card"><strong>{{ catalog_counts.policy_bundles|default:0 }}</strong><span>{% trans "policy bundles" %}</span></div>
-        </div>
-        {% endif %}
+        <span class="rmc-catalog-status{% if catalog_policy_healthy %} is-healthy{% else %} is-review{% endif %}">
+          {% if catalog_policy_healthy %}{% trans "Policy healthy" %}{% else %}{% trans "Review required" %}{% endif %}
+        </span>
       </div>
-      <div class="proof-visual">
-        <div class="proof-app-screen h-100">
-          <strong>{% trans "Install path" %}</strong>
-          <p class="mb-2">{% trans "Choose app, review trust signals, install to sandbox, approve scopes if needed, then activate." %}</p>
-          <div class="proof-chip-row">
-            <span class="proof-chip"><i class="bi bi-shield-check"></i> {% trans "Verified" %}</span>
-            <span class="proof-chip"><i class="bi bi-sliders"></i> {% trans "Compatibility" %}</span>
-            <span class="proof-chip"><i class="bi bi-hourglass-split"></i> {% trans "Sandbox" %}</span>
-          </div>
+      <div class="rmc-catalog-checklist">
+        <div class="rmc-catalog-check">
+          <i class="bi bi-shield-check" aria-hidden="true"></i>
+          <div><strong>{% trans "Verified publisher" %}</strong><small>{% trans "Identity and signing checked" %}</small></div>
+          <code>{% trans "Required" %}</code>
+        </div>
+        <div class="rmc-catalog-check">
+          <i class="bi bi-check2-circle" aria-hidden="true"></i>
+          <div><strong>{% trans "Compatibility" %}</strong><small>{% trans "Plan and platform checked" %}</small></div>
+          <code>{% trans "Before install" %}</code>
         </div>
       </div>
-    </div>
+      {% if plan_context and plan_context.slug %}
+      <p class="rmc-catalog-plan" data-rmc-plan-tier="{{ plan_context.tier_key }}">
+        <strong>{% trans "Your plan" %}:</strong> {{ plan_context.name }} · {{ plan_context.tier_label }}
+      </p>
+      {% endif %}
+      <details class="rmc-catalog-scope-visual" role="region" aria-labelledby="tenant-app-scope-graph-heading">
+        <summary id="tenant-app-scope-graph-heading">{% trans "Permission scope visual" %}</summary>
+        <div>
+          {% include "components/apple_class_dependency_graph.html" with graph_id="tenant-app-scope-graph" title=_("Permission scope visual") source=_("App") dependency=_("Consent and billing") target=_("School install") %}
+        </div>
+      </details>
+    </article>
+    {% include "partials/shell_chrome_marketplace_tenant_ops_strip.html" %}
   </section>
 
-  {% include "partials/shell_chrome_marketplace_tenant_ops_strip.html" %}
-
-  <nav class="rmc-section-nav mb-3 d-flex flex-wrap gap-1 small" aria-label="{% trans 'On this page' %}" data-rmc-toc>
-    <a href="#section-catalog-hero" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "Overview" %}</a>
-    <a href="#section-catalog-grid" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "App catalog" %}</a>
-    <a href="#section-install-flow" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "Install flow" %}</a>
-    <a href="#section-rollback" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "Rollback expectations" %}</a>
-    <a href="#section-interop-hub" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "Migration & interoperability" %}</a>
-  </nav>
-
-  <section id="section-catalog-grid" class="proof-panel">
-    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+  <section id="section-catalog-grid" class="rmc-catalog-browser">
+    <div class="rmc-catalog-browser__heading">
       <div>
-        <h2 class="proof-panel-title">{% trans "App catalog" %}</h2>
-        <p class="proof-panel-copy">{% trans "Browse governed apps, then install to sandbox instead of pushing directly into live use." %}</p>
+        <h2>{% trans "App catalog" %}</h2>
+        <p>{% trans "Browse governed apps, then install to sandbox instead of pushing directly into live use." %}</p>
       </div>
-      <a href="{% url 'tenant_installed_apps' %}" class="btn btn-outline-primary">{% trans "Review sandbox installs" %}</a>
+      <span class="rmc-catalog-result-summary">{% blocktrans with shown=catalog_stats.showing total=catalog_stats.filtered_total %}Showing {{ shown }} of {{ total }} apps{% endblocktrans %}</span>
     </div>
 
-    {% comment %} Polish (v3.27.x): progressive-enhancement search/facet bar driven by the catalog JSON API. Falls back to server-rendered grid below if JS is off. {% endcomment %}
-    <div class="d-flex flex-wrap gap-2 align-items-center mb-3 rmc-catalog-toolbar" data-region="catalog-search-bar" data-catalog-api-url="/marketplace/api/v1/catalog/" data-catalog-fallback-url="{% static 'marketing/img/catalog-placeholder.svg' %}">
+    <form method="get" action="{{ request.path }}" class="rmc-catalog-toolbar" data-region="catalog-search-bar" data-rmc-catalog-filter-form="1">
       <label for="tenant-catalog-search" class="visually-hidden">{% trans "Search apps" %}</label>
-      <input type="search" id="tenant-catalog-search" name="q" placeholder="{% trans 'Search apps' %}" class="form-control form-control-sm" style="max-width:18rem;" data-catalog-search-input>
+      <input type="search" id="tenant-catalog-search" name="q" value="{{ catalog_filters.q }}" placeholder="{% trans 'Search apps, outcomes or publishers…' %}" class="form-control form-control-sm" data-catalog-search-input>
+      <label for="tenant-catalog-outcome" class="visually-hidden">{% trans "Filter by outcome" %}</label>
+      <select id="tenant-catalog-outcome" name="outcome" class="form-select form-select-sm" data-catalog-facet="outcome">
+        <option value="">{% trans "All outcomes" %}</option>
+        {% for outcome in catalog_outcomes %}<option value="{{ outcome }}"{% if catalog_filters.outcome == outcome %} selected{% endif %}>{{ outcome }}</option>{% endfor %}
+      </select>
       <label for="tenant-catalog-pricing" class="visually-hidden">{% trans "Filter by pricing" %}</label>
-      <select id="tenant-catalog-pricing" class="form-select form-select-sm w-auto" data-catalog-facet="pricing">
+      <select id="tenant-catalog-pricing" name="pricing" class="form-select form-select-sm" data-catalog-facet="pricing">
         <option value="">{% trans "Any pricing" %}</option>
-        <option value="free">{% trans "Free" %}</option>
-        <option value="subscription">{% trans "Subscription" %}</option>
-        <option value="usage">{% trans "Usage" %}</option>
+        <option value="included"{% if catalog_filters.pricing == 'included' %} selected{% endif %}>{% trans "Included" %}</option>
+        <option value="paid"{% if catalog_filters.pricing == 'paid' %} selected{% endif %}>{% trans "Paid" %}</option>
       </select>
       <label for="tenant-catalog-sort" class="visually-hidden">{% trans "Sort catalog" %}</label>
-      <select id="tenant-catalog-sort" class="form-select form-select-sm w-auto" data-catalog-facet="sort">
-        <option value="popular">{% trans "Most popular" %}</option>
-        <option value="newest">{% trans "Newest" %}</option>
-        <option value="rating">{% trans "Highest rated" %}</option>
-        <option value="name">{% trans "Name (A–Z)" %}</option>
+      <select id="tenant-catalog-sort" name="sort" class="form-select form-select-sm" data-catalog-facet="sort">
+        <option value="relevant"{% if catalog_filters.sort == 'relevant' %} selected{% endif %}>{% trans "Most relevant" %}</option>
+        <option value="popular"{% if catalog_filters.sort == 'popular' %} selected{% endif %}>{% trans "Most popular" %}</option>
+        <option value="rating"{% if catalog_filters.sort == 'rating' %} selected{% endif %}>{% trans "Highest rated" %}</option>
+        <option value="newest"{% if catalog_filters.sort == 'newest' %} selected{% endif %}>{% trans "Newest" %}</option>
       </select>
-      <label for="tenant-catalog-min-rating" class="visually-hidden">{% trans "Minimum rating" %}</label>
-      <select id="tenant-catalog-min-rating" class="form-select form-select-sm w-auto" data-catalog-facet="min_rating">
-        <option value="">{% trans "Any rating" %}</option>
-        <option value="3">{% trans "3+ stars" %}</option>
-        <option value="4">{% trans "4+ stars" %}</option>
-        <option value="4.5">{% trans "4.5+ stars" %}</option>
-      </select>
-      <span class="small text-muted" data-catalog-result-count></span>
-    </div>
-    {% comment %}Superseded by the external type-safe catalog controller below.{% endcomment %}
-    {% comment %}
-    <script nonce="{{ csp_nonce }}">
-      (function(){
-        var bar = document.querySelector('[data-region="catalog-search-bar"]');
-        if (!bar) return;
-        var apiUrl = bar.getAttribute('data-catalog-api-url') || '/marketplace/api/v1/catalog/';
-        var grid = document.getElementById('tenant-catalog-grid');
-        var counter = bar.querySelector('[data-catalog-result-count]');
-        if (!grid) return;
-        var serverCards = Array.from(grid.children); // preserved for fallback
-        var debounce = null;
-        function render(apps){
-          grid.replaceChildren();
-          if (counter) counter.textContent = apps.length + ' result' + (apps.length===1?'':'s');
-          if (apps.length === 0) {
-            var empty = document.createElement('div');
-            empty.className = 'text-muted small py-3';
-            empty.textContent = 'No apps match your filters.';
-            grid.appendChild(empty);
-            return;
-          }
-          apps.forEach(function(a){
-            var card = document.createElement('a');
-            card.className = 'proof-app-card rmc-reveal';
-            card.href = a.detail_url;
-            card.setAttribute('data-rmc-mkt-app-card-js','1');
-            card.style.textDecoration='none';
-            card.textContent =
-              '<div class="proof-app-card-body">' +
-              (a.preview_image_url ? '<img src="'+a.preview_image_url+'" alt="" class="img-fluid mb-2" loading="lazy">' : '') +
-              '<h3 class="h6 mb-1">'+ (a.name||'') +'</h3>' +
-              '<div class="small text-muted mb-1">'+ (a.publisher_name||'') +'</div>' +
-              (a.short_description ? '<p class="small mb-2">'+a.short_description+'</p>' : '') +
-              '<div class="small">★ '+ (a.rating_average||0) +' ('+ (a.rating_count||0) +') · ' +
-              (a.active_installs||0) +' installs · v'+ (a.current_version||'') +'</div>' +
-              '</div>';
-            grid.appendChild(card);
-          });
-        }
-        function refresh(){
-          var q = bar.querySelector('[data-catalog-search-input]').value || '';
-          var pricing = bar.querySelector('[data-catalog-facet="pricing"]').value || '';
-          var sort = bar.querySelector('[data-catalog-facet="sort"]').value || 'popular';
-          var minRating = bar.querySelector('[data-catalog-facet="min_rating"]').value || '';
-          var url = apiUrl + '?q=' + encodeURIComponent(q) + '&pricing=' + encodeURIComponent(pricing) + '&sort=' + encodeURIComponent(sort);
-          if (minRating) url += '&min_rating=' + encodeURIComponent(minRating);
-          fetch(url, { credentials: 'same-origin' })
-            .then(function(r){ return r.ok ? r.json() : Promise.reject(r.status); })
-            .then(function(data){ render(data.apps || []); })
-            .catch(function(){
-              // On API failure restore server-rendered cards.
-              grid.replaceChildren();
-              serverCards.forEach(function(c){ grid.appendChild(c); });
-            });
-        }
-        bar.addEventListener('input', function(){ clearTimeout(debounce); debounce = setTimeout(refresh, 220); });
-        bar.addEventListener('change', refresh);
-        // Don't auto-refresh on initial load — the server-rendered grid is fine
-        // as the first paint; only re-fetch when the user actually filters.
-      })();
-    </script>
-    {% endcomment %}
-    <div class="proof-catalog-grid" id="tenant-catalog-grid">
+      <noscript><button type="submit" class="btn btn-sm btn-primary">{% trans "Apply filters" %}</button></noscript>
+    </form>
+    <div class="proof-catalog-grid rmc-catalog-app-grid" id="tenant-catalog-grid">
       {% for listing in listings %}
-      <article class="proof-app-card rmc-mkt-app-card rmc-reveal" data-phase9-listing-trust data-rmc-mkt-app-card="1" data-rmc-mkt-listing-pipeline-phase="{{ listing.mkt_listing_pipeline_phase|default:'' }}">
-        {% if listing.preview_image_url %}
-        <div class="proof-app-preview-img mb-2 border rounded bg-light d-flex align-items-center justify-content-center">
-          <img src="{{ listing.preview_image_url }}" data-rmc-catalog-image data-rmc-fallback-src="{% static 'marketing/img/catalog-placeholder.svg' %}" alt="{% trans 'App listing preview image' %}" class="img-fluid rounded" style="max-height: 140px; object-fit: contain; width: 100%;" loading="lazy">
+      <article class="proof-app-card rmc-mkt-app-card rmc-catalog-app" data-phase9-listing-trust data-rmc-mkt-app-card="1" data-rmc-mkt-listing-pipeline-phase="{{ listing.mkt_listing_pipeline_phase|default:'' }}">
+        <div class="rmc-catalog-app__topline">
+          <span class="rmc-catalog-app__icon" aria-hidden="true"><i class="bi bi-box-seam"></i></span>
+          <span class="rmc-catalog-status{% if listing.publisher and listing.publisher.verification_status == 'verified' %} is-healthy{% else %} is-review{% endif %}">
+            {% if listing.publisher and listing.publisher.verification_status == 'verified' %}{% trans "Verified" %}{% else %}{% trans "Review" %}{% endif %}
+          </span>
         </div>
-        {% endif %}
-        {% if listing.screenshot_urls %}
-        <div class="proof-app-screenshots mb-2 d-flex gap-1 flex-wrap" data-listing-screenshots>
-          {% for url in listing.screenshot_urls|slice:":5" %}
-          <img src="{{ url }}" data-rmc-catalog-image data-rmc-fallback-src="{% static 'marketing/img/catalog-placeholder.svg' %}" alt="{% trans 'App screenshot' %}" class="rounded border bg-light" style="height: 56px; width: 80px; object-fit: contain;" loading="lazy">
-          {% endfor %}
-        </div>
-        {% elif not listing.preview_image_url %}
-        <div class="proof-app-screenshots mb-2 d-flex gap-1 flex-wrap opacity-75" data-listing-screenshots-placeholder>
-          <img src="{% static 'marketing/img/catalog-placeholder.svg' %}" alt="" class="rounded border" style="height: 56px; width: 80px; object-fit: cover;" width="80" height="56" loading="lazy">
-          <img src="{% static 'marketing/img/catalog-placeholder.svg' %}" alt="" class="rounded border" style="height: 56px; width: 80px; object-fit: cover;" width="80" height="56" loading="lazy">
-        </div>
-        {% endif %}
-        <div class="proof-app-head">
+        <div class="proof-app-head rmc-catalog-app__heading">
           <div>
             <h3 class="mb-1">{{ listing.app.name }}</h3>
             <div class="text-muted small">{{ listing.app.slug }} • v{{ listing.app.version }}</div>
           </div>
           <div class="proof-app-meta proof-trust-badges" data-rmc-mkt-lifecycle-badges="1">
-            {% if listing.app.kind == 'first_party' %}
-            <span class="rmc-badge rmc-badge--brand" title="{% trans 'Built and supported by RunMyCampus' %}"><i class="bi bi-star-fill"></i> {% trans "First-party" %}</span>
-            {% endif %}
-            <span class="badge {% if listing.publisher and listing.publisher.verification_status == 'verified' %}text-bg-success{% else %}text-bg-secondary{% endif %}" title="{% trans 'Publisher verification' %}">
-              <i class="bi bi-shield-check"></i> {% if listing.publisher and listing.publisher.verification_status == 'verified' %}{% trans "Verified publisher" %}{% else %}{% trans "Review required" %}{% endif %}
-            </span>
-            {% if listing.mkt_governance_badge == 'certified' %}
-            <span class="rmc-badge rmc-badge--brand" title="{% trans 'Governance: certified listing' %}"><i class="bi bi-patch-check-fill"></i> {% trans "Certified" %}</span>
-            {% elif listing.mkt_governance_badge == 'beta' %}
-            <span class="rmc-badge rmc-badge--warning" title="{% trans 'Governance: beta rollout' %}"><i class="bi bi-flask"></i> {% trans "Beta" %}</span>
-            {% elif listing.mkt_governance_badge == 'internal' %}
-            <span class="rmc-badge" title="{% trans 'Governance: internal / tenant-private' %}"><i class="bi bi-building-lock"></i> {% trans "Internal" %}</span>
-            {% elif listing.mkt_governance_badge == 'verified' %}
-            <span class="rmc-badge rmc-badge--info" title="{% trans 'Governance: verified' %}"><i class="bi bi-patch-check"></i> {% trans "Verified" %}</span>
-            {% endif %}
-            {% if listing.security_review_status == 'approved' and listing.mkt_governance_badge != 'verified' %}
-            <span class="rmc-badge rmc-badge--info" title="{% trans 'Security review passed' %}"><i class="bi bi-shield-lock"></i> {% trans "Security reviewed" %}</span>
-            {% endif %}
-            {% if listing.certification_status == 'approved' and listing.mkt_governance_badge != 'certified' %}
-            <span class="rmc-badge rmc-badge--info" title="{% trans 'Certification passed' %}"><i class="bi bi-patch-check"></i> {% trans "Listed certified" %}</span>
-            {% endif %}
             {% if listing.app.slug in installed_slugs %}
             <span class="rmc-badge rmc-badge--success" data-rmc-mkt-lifecycle="{{ listing.mkt_lifecycle }}">{% if listing.mkt_lifecycle == 'installed' %}{% trans "Sandbox" %}{% elif listing.mkt_lifecycle == 'active' %}{% trans "Active" %}{% elif listing.mkt_lifecycle == 'disabled' %}{% trans "Disabled" %}{% else %}{% trans "Installed" %}{% endif %}</span>
             {% else %}
@@ -274,18 +141,14 @@
           </div>
         </div>
 
-        <div class="proof-app-screen">
+        <div class="proof-app-screen rmc-catalog-app__summary">
           <strong>{% if listing.category %}{{ listing.category|title }}{% else %}{% trans "Best for school operations" %}{% endif %}</strong>
           <p class="mb-2">{% if listing.short_description %}{{ listing.short_description|truncatewords:24 }}{% elif listing.app.description %}{{ listing.app.description|truncatewords:24 }}{% else %}{% trans "Governed school capability." %}{% endif %}</p>
-          <div class="proof-chip-row">
+          <div class="proof-chip-row rmc-catalog-app__meta">
             <span class="proof-chip"><i class="bi bi-key"></i> {{ listing.scope_count|default:0 }} {% trans "scopes" %}</span>
-            <span class="proof-chip"><i class="bi bi-exclamation-triangle"></i> {{ listing.sensitive_scope_count|default:0 }} {% trans "sensitive" %}</span>
             <span class="proof-chip"><i class="bi bi-box-arrow-in-down"></i> {% trans "Sandbox first" %}</span>
-            {% if listing.compatibility.plan_tiers %}
-            <span class="proof-chip"><i class="bi bi-stack"></i> {{ listing.compatibility.plan_tiers|join:", " }}</span>
-            {% endif %}
             {% if listing.mkt_manifest_ui.pricing_kind %}
-            <span class="proof-chip {% if listing.mkt_manifest_ui.pricing_kind == 'paid' %}text-dark bg-warning bg-opacity-25{% elif listing.mkt_manifest_ui.pricing_kind == 'enterprise' %}text-white bg-dark{% elif listing.mkt_manifest_ui.pricing_kind == 'free' %}text-success border border-success{% else %}text-muted{% endif %}" title="{% trans 'Pricing label — checkout only starts when billing is configured; no simulated purchases.' %}" data-rmc-mkt-pricing-kind="{{ listing.mkt_manifest_ui.pricing_kind }}"><i class="bi bi-tag"></i>
+            <span class="proof-chip" title="{% trans 'Pricing label — checkout only starts when billing is configured; no simulated purchases.' %}" data-rmc-mkt-pricing-kind="{{ listing.mkt_manifest_ui.pricing_kind }}"><i class="bi bi-tag"></i>
               {% if listing.mkt_manifest_ui.pricing_kind == 'free' %}{% trans "Free" %}
               {% elif listing.mkt_manifest_ui.pricing_kind == 'paid' %}{% trans "Paid" %}
               {% elif listing.mkt_manifest_ui.pricing_kind == 'enterprise' %}{% trans "Enterprise" %}
@@ -293,81 +156,54 @@
               {% if listing.mkt_manifest_ui.price_display %} · {{ listing.mkt_manifest_ui.price_display }}{% endif %}{% if listing.mkt_manifest_ui.trial_available %} · {% trans "Trial" %}{% endif %}
             </span>
             {% endif %}
-            {% if listing.mkt_revenue_share_percent is not None %}
-            <span class="proof-chip text-muted" title="{% trans 'Publisher revenue share (governance)' %}"><i class="bi bi-percent"></i> {% trans "Rev share" %} {{ listing.mkt_revenue_share_percent }}%</span>
-            {% endif %}
+            {% if listing.mkt_compatibility and listing.mkt_compatibility.ok == False %}<span class="rmc-catalog-status is-review" data-rmc-mkt-compat-warning="1">{% trans "Compatibility review" %}</span>{% endif %}
+            {% if listing.mkt_entitlement.blocked %}<span class="rmc-catalog-status is-review" data-rmc-mkt-plan-gate="1">{% trans "Plan review" %}</span>{% endif %}
           </div>
-          {% if listing.mkt_compatibility and listing.mkt_compatibility.ok == False %}
-          <div class="rmc-banner rmc-banner--error py-2 small mb-2" role="status" data-rmc-mkt-compat-warning="1">
-            <strong>{% trans "Compatibility review:" %}</strong>
-            {% if listing.mkt_compatibility.messages %}
-              {% for m in listing.mkt_compatibility.messages %}<span class="d-block">{{ m }}</span>{% endfor %}
-            {% else %}
-              <span class="d-block">{% trans "Declared constraints may not match this tenant or platform version." %}</span>
-            {% endif %}
-          </div>
-          {% endif %}
-          {% if listing.mkt_entitlement.blocked %}
-          <div class="rmc-banner rmc-banner--warning py-2 small mb-2" role="status" data-rmc-mkt-plan-gate="1">
-            {% trans "Plan / modules:" %} {{ listing.mkt_entitlement.upgrade_message }}
-            {% if listing.mkt_entitlement.required_commercial_tier %}
-            <span class="d-block mt-1 text-muted">{% trans "Minimum tier" %}: <code>{{ listing.mkt_entitlement.required_commercial_tier }}</code>
-              {% if listing.mkt_entitlement.current_commercial_tier %}· {% trans "Yours" %}: <code>{{ listing.mkt_entitlement.current_commercial_tier }}</code>{% endif %}
-            </span>
-            {% endif %}
-            {% if listing.mkt_entitlement.missing_features %}<span class="d-block mt-1"><code>{{ listing.mkt_entitlement.missing_features|join:", " }}</code></span>{% endif %}
-          </div>
-          {% endif %}
-          {% if listing.app.scopes.all %}
-          <div class="mt-2">
-            <strong class="small">{% trans "Required permissions:" %}</strong>
-            <ul class="list-unstyled small mb-0 mt-1">
-              {% for scope in listing.app.scopes.all %}
-              <li><code>{{ scope.scope_code }}</code>{% if scope.description %} — {{ scope.description }}{% endif %}{% if scope.sensitive %} <span class="rmc-badge rmc-badge--warning">{% trans "Sensitive" %}</span>{% endif %}</li>
-              {% endfor %}
-            </ul>
-          </div>
-          {% endif %}
         </div>
 
         <details class="rmc-mkt-app-disclosure mt-2">
-        <summary>{% trans "Trust, compatibility & rollback" %}</summary>
-        {% with cd=listing.catalog_display %}
-        <div class="small border-top pt-2 mt-2" data-listing-compatibility>
-          {% if cd.platform_min_version or cd.min_rmc_version %}
-          <p class="mb-1"><strong>{% trans "Platform compatibility" %}:</strong>
-            {% if cd.platform_min_version %}{% trans "min platform" %} <code>{{ cd.platform_min_version }}</code>{% endif %}
-            {% if cd.min_rmc_version %}{% if cd.platform_min_version %} · {% endif %}{% trans "min RMC" %} <code>{{ cd.min_rmc_version }}</code>{% endif %}
-            {% if cd.app_version_range %}<span class="text-muted">({{ cd.app_version_range }})</span>{% endif %}
-          </p>
+        <summary>{% trans "Compatibility & rollback" %}</summary>
+        <div class="rmc-catalog-app__details">
+          {% if listing.mkt_compatibility and listing.mkt_compatibility.ok == False %}
+          <div class="rmc-catalog-compat-message" role="status">
+            <strong>{% trans "Compatibility review" %}</strong>
+            {% if listing.mkt_compatibility.messages %}{% for m in listing.mkt_compatibility.messages %}<span>{{ m }}</span>{% endfor %}{% else %}<span>{% trans "Declared constraints may not match this tenant or platform release." %}</span>{% endif %}
+          </div>
           {% endif %}
-          {% if cd.blueprint_families %}
-          <p class="mb-1 text-muted">{% trans "Blueprint families" %}: {{ cd.blueprint_families|join:", " }}</p>
+          {% if listing.mkt_entitlement.blocked %}
+          <div class="rmc-catalog-compat-message" role="status">
+            <strong>{% trans "Plan or module review" %}</strong>
+            <span>{{ listing.mkt_entitlement.upgrade_message }}</span>
+            {% if listing.mkt_entitlement.required_commercial_tier %}<span>{% trans "Minimum tier" %}: <code>{{ listing.mkt_entitlement.required_commercial_tier }}</code>{% if listing.mkt_entitlement.current_commercial_tier %} · {% trans "Yours" %}: <code>{{ listing.mkt_entitlement.current_commercial_tier }}</code>{% endif %}</span>{% endif %}
+            {% if listing.mkt_entitlement.missing_features %}<span><code>{{ listing.mkt_entitlement.missing_features|join:", " }}</code></span>{% endif %}
+          </div>
           {% endif %}
-          {% if cd.workflow_families %}
-          <p class="mb-1 text-muted">{% trans "Workflow families" %}: {{ cd.workflow_families|join:", " }}</p>
+          {% if listing.app.scopes.all %}
+          <div>
+            <strong>{% trans "Required permissions" %}</strong>
+            <ul class="list-unstyled mb-2">
+              {% for scope in listing.app.scopes.all %}<li><code>{{ scope.scope_code }}</code>{% if scope.description %} — {{ scope.description|truncatewords:12 }}{% endif %}{% if scope.sensitive %} <span class="rmc-badge rmc-badge--warning">{% trans "Sensitive" %}</span>{% endif %}</li>{% endfor %}
+            </ul>
+          </div>
           {% endif %}
-          {% if cd.recommended_sectors %}
-          <p class="mb-1 text-muted">{% trans "Sectors" %}: {{ cd.recommended_sectors|join:", " }}</p>
-          {% endif %}
-          {% if cd.compat_notes %}
-          <p class="mb-1 small text-muted">{{ cd.compat_notes }}</p>
-          {% endif %}
+          {% with cd=listing.catalog_display %}
+          <div data-listing-compatibility>
+            {% if cd.platform_min_version or cd.min_rmc_version %}
+            <p><strong>{% trans "Platform compatibility" %}:</strong>
+              {% if cd.platform_min_version %}{% trans "minimum platform" %} <code>{{ cd.platform_min_version }}</code>{% endif %}
+              {% if cd.min_rmc_version %}{% if cd.platform_min_version %} · {% endif %}{% trans "minimum RMC release" %} <code>{{ cd.min_rmc_version }}</code>{% endif %}
+              {% if cd.app_version_range %}<span>({{ cd.app_version_range }})</span>{% endif %}
+            </p>
+            {% endif %}
+            {% if cd.blueprint_families %}<p>{% trans "Blueprint families" %}: {{ cd.blueprint_families|join:", " }}</p>{% endif %}
+            {% if cd.workflow_families %}<p>{% trans "Workflow families" %}: {{ cd.workflow_families|join:", " }}</p>{% endif %}
+            {% if cd.recommended_sectors %}<p>{% trans "Sectors" %}: {{ cd.recommended_sectors|join:", " }}</p>{% endif %}
+            {% if cd.compat_notes %}<p>{{ cd.compat_notes }}</p>{% endif %}
+          </div>
+          <p data-listing-rollback-copy><strong>{% trans "Rollback expectations" %}:</strong> {{ cd.rollback_summary }}</p>
+          {% endwith %}
+          <p>{% trans "Install starts in sandbox. Activation remains separate, uninstall stays available from Installed apps, and external billing is used only when the manifest genuinely requires it." %}</p>
         </div>
-        {% endwith %}
-        <div class="text-muted small">
-          {% if listing.compatibility.countries %}
-          {% trans "Declared for regions:" %} {{ listing.compatibility.countries|join:", " }}
-          {% else %}
-          {% trans "Compatibility details will be confirmed during install review." %}
-          {% endif %}
-          {% if listing.app.slug not in installed_slugs %}
-          <span class="d-block mt-1">{% trans "Preview in sandbox before going live. Uninstall available from Installed apps anytime." %}</span>
-          {% endif %}
-        </div>
-        {% with cd=listing.catalog_display %}
-        <div class="small text-muted mt-1" data-listing-rollback-copy><strong>{% trans "Rollback expectations" %}:</strong> {{ cd.rollback_summary }}</div>
-        {% endwith %}
         </details>
 
         {% if listing.app.slug in installed_slugs %}
@@ -383,22 +219,13 @@
         </div>
         {% else %}
         <div class="proof-app-actions d-flex flex-wrap gap-2" data-rmc-mkt-action-tier-order="install-flow">
-          <button type="button" class="btn btn-primary" data-rmc-mkt-primary-action data-rmc-open-install-impact data-app-id="{{ listing.app.pk }}" {% if listing.mkt_entitlement.blocked %}disabled aria-disabled="true"{% endif %}>{% trans "Review impact & install" %}</button>
+          <button type="button" class="btn btn-primary" data-rmc-mkt-primary-action data-rmc-open-install-impact data-app-id="{{ listing.app.pk }}" {% if listing.mkt_entitlement.blocked or listing.mkt_compatibility.ok == False %}disabled aria-disabled="true"{% endif %}>{% trans "Review & install" %}</button>
           {% url 'marketplace:app_purchase_intent' listing.app.pk as purchase_intent_url %}
           {% if listing.mkt_manifest_ui.pricing_type == 'paid' or listing.mkt_manifest_ui.pricing_type == 'enterprise' %}
           <a href="{{ purchase_intent_url }}" class="btn btn-outline-primary btn-sm" data-rmc-mkt-purchase-intent="1">{% trans "Billing / purchase path" %}</a>
           {% endif %}
-          <a href="{% url 'tenant_scope_consent' %}" class="btn btn-outline-secondary btn-sm">{% trans "Scope consent" %}</a>
+          <a href="{% url 'tenant_scope_consent' %}" class="btn btn-outline-secondary btn-sm">{% trans "Scope" %}</a>
         </div>
-        <details class="rmc-mkt-app-disclosure mt-2" data-rmc-mkt-next-steps="1">
-        <summary>{% trans "What happens after install" %}</summary>
-        <p class="small text-muted mt-2 mb-1">{% trans "Install starts in sandbox. Activation remains a separate, deliberate step." %}</p>
-        <ol class="small text-muted ps-3 mb-0" aria-label="{% trans 'What happens next' %}">
-          <li>{% trans "Install in sandbox and verify permissions." %}</li>
-          <li>{% trans "Test app behavior with your data and workflow." %}</li>
-          <li>{% trans "Activate only after team sign-off." %}</li>
-        </ol>
-        </details>
         {% endif %}
       </article>
       {% empty %}
@@ -525,5 +352,5 @@
 {% endblock %}
 
 {% block extrajs %}{{ block.super }}
-<script src="{% static 'js/tenant-app-catalog.js' %}?v=20260801-tenant-configuration-operations-v1" defer></script>
+<script src="{% static 'js/tenant-app-catalog.js' %}?v=20260801-tenant-configuration-operations-v2" defer></script>
 {% endblock %}

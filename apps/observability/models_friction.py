@@ -30,6 +30,7 @@ FRICTION_KINDS: tuple[tuple[str, str], ...] = (
     ("form_abandon", "Started a form, navigated away without submit"),
     ("dwell_excess", "Lingered on a step far beyond normal"),
     ("repeat_error", "Same client-side error fired 3× in a session"),
+    ("layout_overflow", "Responsive layout root overflow detected"),
 )
 FRICTION_KIND_CODES: frozenset[str] = frozenset(code for code, _ in FRICTION_KINDS)
 
