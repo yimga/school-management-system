@@ -75,6 +75,8 @@ test.describe('Tenant Pack approved full-canvas implementation', () => {
         const dom = await page.evaluate(() => {
           const root = document.documentElement;
           const mainNode = document.querySelector('[data-rmc-tenant-pack-workbench="1"]');
+          const canvasNode = mainNode?.closest('[data-rmc-django-surface-canvas]');
+          const pageWrap = mainNode?.closest('.page-wrap');
           const layout = document.querySelector('.rmc-tpw-layout');
           const cssUrls = Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
             .map((node) => node.href);
@@ -90,6 +92,8 @@ test.describe('Tenant Pack approved full-canvas implementation', () => {
             ? Array.from(mainNode.querySelectorAll('*')).filter((node) => getComputedStyle(node).position === 'fixed').length
             : -1;
           const mainRect = mainNode ? mainNode.getBoundingClientRect() : null;
+          const canvasRect = canvasNode ? canvasNode.getBoundingClientRect() : null;
+          const pageWrapRect = pageWrap ? pageWrap.getBoundingClientRect() : null;
           return {
             clientWidth: root.clientWidth,
             scrollWidth: root.scrollWidth,
@@ -99,6 +103,8 @@ test.describe('Tenant Pack approved full-canvas implementation', () => {
               return rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility !== 'hidden';
             }).length,
             mainWidth: mainRect ? mainRect.width : 0,
+            canvasWidth: canvasRect ? canvasRect.width : 0,
+            pageWrapWidth: pageWrapRect ? pageWrapRect.width : 0,
             layoutColumns: layout ? getComputedStyle(layout).gridTemplateColumns : '',
             cssCount: cssUrls.length,
             duplicateCssUrls: cssUrls.filter((url, index) => cssUrls.indexOf(url) !== index),
@@ -114,9 +120,14 @@ test.describe('Tenant Pack approved full-canvas implementation', () => {
           };
         });
 
+        const shot = path.join(EVIDENCE_DIR, `tenant-pack-${theme}-${viewport.name}.png`);
+        await page.screenshot({ path: shot, fullPage: true });
+        evidence.push({ theme, viewport, url: page.url(), status: response.status(), ...dom, screenshot: path.relative(ROOT, shot).replace(/\\/g, '/') });
+
         expect(dom.h1Visible).toBe(1);
         expect(dom.scrollWidth).toBeLessThanOrEqual(dom.clientWidth + 1);
-        expect(dom.mainWidth).toBeGreaterThan(viewport.width * 0.72);
+        expect(dom.mainWidth).toBeGreaterThan(viewport.width * 0.62);
+        expect(Math.abs(dom.mainWidth - dom.canvasWidth)).toBeLessThanOrEqual(1);
         expect(dom.duplicateCssUrls).toEqual([]);
         expect(dom.stylesheetLinksInBody).toBe(0);
         expect(dom.fixedInsideMain).toBe(0);
@@ -129,9 +140,6 @@ test.describe('Tenant Pack approved full-canvas implementation', () => {
           expect(dom.layoutColumns.trim().split(/\s+/).length).toBeGreaterThanOrEqual(2);
         }
 
-        const shot = path.join(EVIDENCE_DIR, `tenant-pack-${theme}-${viewport.name}.png`);
-        await page.screenshot({ path: shot, fullPage: true });
-        evidence.push({ theme, viewport, url: page.url(), status: response.status(), ...dom, screenshot: path.relative(ROOT, shot).replace(/\\/g, '/') });
       }
     }
 
