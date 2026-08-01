@@ -1,0 +1,878 @@
+{
+  "generatedAt": "2026-08-01T04:04:47.432Z",
+  "evidence": [
+    {
+      "route": "/super/provision-queue/",
+      "theme": "dark",
+      "viewport": {
+        "name": "1440",
+        "width": 1440,
+        "height": 1000
+      },
+      "status": 200,
+      "url": "http://manager.runmycampus.com:8013/super/provision-queue/",
+      "clientWidth": 1440,
+      "scrollWidth": 1440,
+      "h1Visible": 1,
+      "operationalFrames": 1,
+      "duplicateCssUrls": [],
+      "bodyStylesheetUrls": [],
+      "fixedInsideMain": [],
+      "visibleExpectedFixedControls": [
+        "assist-dock"
+      ],
+      "visibleAssistDocks": 1,
+      "rawIconNames": [],
+      "resolvedTheme": "dark",
+      "shellGridTemplateColumns": "280px 1116px 44px",
+      "shellRect": {
+        "left": 0,
+        "right": 1440,
+        "width": 1440
+      },
+      "canvasRect": {
+        "left": 280,
+        "right": 1396,
+        "width": 1116
+      },
+      "mainRect": {
+        "left": 0,
+        "right": 1440,
+        "width": 1440
+      },
+      "sidebarDisplay": "flex",
+      "screenshot": "artifacts/design-approvals/tenant-pack-full-canvas-implementation-2026-07-31/operator-workbenches/provision-queue-dark-1440.png"
+    },
+    {
+      "route": "/super/provision-queue/",
+      "theme": "dark",
+      "viewport": {
+        "name": "1024",
+        "width": 1024,
+        "height": 900
+      },
+      "status": 200,
+      "url": "http://manager.runmycampus.com:8013/super/provision-queue/",
+      "clientWidth": 1024,
+      "scrollWidth": 1024,
+      "h1Visible": 1,
+      "operationalFrames": 1,
+      "duplicateCssUrls": [],
+      "bodyStylesheetUrls": [],
+      "fixedInsideMain": [],
+      "visibleExpectedFixedControls": [
+        "copilot-mobile-fab",
+        "assist-dock"
+      ],
+      "visibleAssistDocks": 1,
+      "rawIconNames": [],
+      "resolvedTheme": "dark",
+      "shellGridTemplateColumns": "1024px",
+      "shellRect": {
+        "left": 0,
+        "right": 1024,
+        "width": 1024
+      },
+      "canvasRect": {
+        "left": 0,
+        "right": 1024,
+        "width": 1024
+      },
+      "mainRect": {
+        "left": 0,
+        "right": 1024,
+        "width": 1024
+      },
+      "sidebarDisplay": "none",
+      "screenshot": "artifacts/design-approvals/tenant-pack-full-canvas-implementation-2026-07-31/operator-workbenches/provision-queue-dark-1024.png"
+    },
+    {
+      "route": "/super/provision-queue/",
+      "theme": "dark",
+      "viewport": {
+        "name": "768",
+        "width": 768,
+        "height": 900
+      },
+      "status": 200,
+      "url": "http://manager.runmycampus.com:8013/super/provision-queue/",
+      "clientWidth": 768,
+      "scrollWidth": 768,
+      "h1Visible": 1,
+      "operationalFrames": 1,
+      "duplicateCssUrls": [],
+      "bodyStylesheetUrls": [],
+      "fixedInsideMain": [],
+      "visibleExpectedFixedControls": [
+        "copilot-mobile-fab",
+        "assist-dock"
+      ],
+      "visibleAssistDocks": 1,
+      "rawIconNames": [],
+      "resolvedTheme": "dark",
+      "shellGridTemplateColumns": "768px",
+      "shellRect": {
+        "left": 0,
+        "right": 768,
+        "width": 768
+      },
+      "canvasRect": {
+        "left": 0,
+        "right": 768,
+        "width": 768
+      },
+      "mainRect": {
+        "left": 0,
+        "right": 768,
+        "width": 768
+      },
+      "sidebarDisplay": "none",
+      "screenshot": "artifacts/design-approvals/tenant-pack-full-canvas-implementation-2026-07-31/operator-workbenches/provision-queue-dark-768.png"
+    },
+    {
+      "route": "/super/provision-queue/",
+      "theme": "dark",
+      "viewport": {
+        "name": "390",
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "url": "http://manager.runmycampus.com:8013/super/provision-queue/",
+      "clientWidth": 390,
+      "scrollWidth": 390,
+      "h1Visible": 1,
+      "operationalFrames": 1,
+      "duplicateCssUrls": [],
+      "bodyStylesheetUrls": [],
+      "fixedInsideMain": [],
+      "visibleExpectedFixedControls": [
+        "copilot-mobile-fab",
+        "assist-dock"
+      ],
+      "visibleAssistDocks": 1,
+      "rawIconNames": [],
+      "resolvedTheme": "dark",
+      "shellGridTemplateColumns": "390px",
+      "shellRect": {
+        "left": 0,
+        "right": 390,
+        "width": 390
+      },
+      "canvasRect": {
+        "left": 0,
+        "right": 390,
+        "width": 390
+      },
+      "mainRect": {
+        "left": 0,
+        "right": 390,
+        "width": 390
+      },
+      "sidebarDisplay": "none",
+      "screenshot": "artifacts/design-approvals/tenant-pack-full-canvas-implementation-2026-07-31/operator-workbenches/provision-queue-dark-390.png"
+    },
+    {
+      "route": "/super/provision-queue/",
+      "theme": "light",
+      "viewport": {
+        "name": "1440",
+        "width": 1440,
+        "height": 1000
+      },
+      "status": 200,
+      "url": "http://manager.runmycampus.com:8013/super/provision-queue/",
+      "clientWidth": 1440,
+      "scrollWidth": 1440,
+      "h1Visible": 1,
+      "operationalFrames": 1,
+      "duplicateCssUrls": [],
+      "bodyStylesheetUrls": [],
+      "fixedInsideMain": [],
+      "visibleExpectedFixedControls": [
+        "assist-dock"
+      ],
+      "visibleAssistDocks": 1,
+      "rawIconNames": [],
+      "resolvedTheme": "light",
+      "shellGridTemplateColumns": "280px 1116px 44px",
+      "shellRect": {
+        "left": 0,
+        "right": 1440,
+        "width": 1440
+      },
+      "canvasRect": {
+        "left": 280,
+        "right": 1396,
+        "width": 1116
+      },
+      "mainRect": {
+        "left": 0,
+        "right": 1440,
+        "width": 1440
+      },
+      "sidebarDisplay": "flex",
+      "screenshot": "artifacts/design-approvals/tenant-pack-full-canvas-implementation-2026-07-31/operator-workbenches/provision-queue-light-1440.png"
+    },
+    {
+      "route": "/super/provision-queue/",
+      "theme": "light",
+      "viewport": {
+        "name": "1024",
+        "width": 1024,
+        "height": 900
+      },
+      "status": 200,
+      "url": "http://manager.runmycampus.com:8013/super/provision-queue/",
+      "clientWidth": 1024,
+      "scrollWidth": 1024,
+      "h1Visible": 1,
+      "operationalFrames": 1,
+      "duplicateCssUrls": [],
+      "bodyStylesheetUrls": [],
+      "fixedInsideMain": [],
+      "visibleExpectedFixedControls": [
+        "copilot-mobile-fab",
+        "assist-dock"
+      ],
+      "visibleAssistDocks": 1,
+      "rawIconNames": [],
+      "resolvedTheme": "light",
+      "shellGridTemplateColumns": "1024px",
+      "shellRect": {
+        "left": 0,
+        "right": 1024,
+        "width": 1024
+      },
+      "canvasRect": {
+        "left": 0,
+        "right": 1024,
+        "width": 1024
+      },
+      "mainRect": {
+        "left": 0,
+        "right": 1024,
+        "width": 1024
+      },
+      "sidebarDisplay": "none",
+      "screenshot": "artifacts/design-approvals/tenant-pack-full-canvas-implementation-2026-07-31/operator-workbenches/provision-queue-light-1024.png"
+    },
+    {
+      "route": "/super/provision-queue/",
+      "theme": "light",
+      "viewport": {
+        "name": "768",
+        "width": 768,
+        "height": 900
+      },
+      "status": 200,
+      "url": "http://manager.runmycampus.com:8013/super/provision-queue/",
+      "clientWidth": 768,
+      "scrollWidth": 768,
+      "h1Visible": 1,
+      "operationalFrames": 1,
+      "duplicateCssUrls": [],
+      "bodyStylesheetUrls": [],
+      "fixedInsideMain": [],
+      "visibleExpectedFixedControls": [
+        "copilot-mobile-fab",
+        "assist-dock"
+      ],
+      "visibleAssistDocks": 1,
+      "rawIconNames": [],
+      "resolvedTheme": "light",
+      "shellGridTemplateColumns": "768px",
+      "shellRect": {
+        "left": 0,
+        "right": 768,
+        "width": 768
+      },
+      "canvasRect": {
+        "left": 0,
+        "right": 768,
+        "width": 768
+      },
+      "mainRect": {
+        "left": 0,
+        "right": 768,
+        "width": 768
+      },
+      "sidebarDisplay": "none",
+      "screenshot": "artifacts/design-approvals/tenant-pack-full-canvas-implementation-2026-07-31/operator-workbenches/provision-queue-light-768.png"
+    },
+    {
+      "route": "/super/provision-queue/",
+      "theme": "light",
+      "viewport": {
+        "name": "390",
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "url": "http://manager.runmycampus.com:8013/super/provision-queue/",
+      "clientWidth": 390,
+      "scrollWidth": 390,
+      "h1Visible": 1,
+      "operationalFrames": 1,
+      "duplicateCssUrls": [],
+      "bodyStylesheetUrls": [],
+      "fixedInsideMain": [],
+      "visibleExpectedFixedControls": [
+        "copilot-mobile-fab",
+        "assist-dock"
+      ],
+      "visibleAssistDocks": 1,
+      "rawIconNames": [],
+      "resolvedTheme": "light",
+      "shellGridTemplateColumns": "390px",
+      "shellRect": {
+        "left": 0,
+        "right": 390,
+        "width": 390
+      },
+      "canvasRect": {
+        "left": 0,
+        "right": 390,
+        "width": 390
+      },
+      "mainRect": {
+        "left": 0,
+        "right": 390,
+        "width": 390
+      },
+      "sidebarDisplay": "none",
+      "screenshot": "artifacts/design-approvals/tenant-pack-full-canvas-implementation-2026-07-31/operator-workbenches/provision-queue-light-390.png"
+    },
+    {
+      "route": "/super/support/live/",
+      "theme": "dark",
+      "viewport": {
+        "name": "1440",
+        "width": 1440,
+        "height": 1000
+      },
+      "status": 200,
+      "url": "http://manager.runmycampus.com:8013/super/support/live/",
+      "clientWidth": 1440,
+      "scrollWidth": 1440,
+      "h1Visible": 1,
+      "operationalFrames": 1,
+      "duplicateCssUrls": [],
+      "bodyStylesheetUrls": [],
+      "fixedInsideMain": [],
+      "visibleExpectedFixedControls": [
+        "assist-dock"
+      ],
+      "visibleAssistDocks": 1,
+      "rawIconNames": [],
+      "resolvedTheme": "dark",
+      "shellGridTemplateColumns": "280px 1116px 44px",
+      "shellRect": {
+        "left": 0,
+        "right": 1440,
+        "width": 1440
+      },
+      "canvasRect": {
+        "left": 280,
+        "right": 1396,
+        "width": 1116
+      },
+      "mainRect": {
+        "left": 0,
+        "right": 1440,
+        "width": 1440
+      },
+      "sidebarDisplay": "flex",
+      "screenshot": "artifacts/design-approvals/tenant-pack-full-canvas-implementation-2026-07-31/operator-workbenches/support-live-dark-1440.png"
+    },
+    {
+      "route": "/super/support/live/",
+      "theme": "dark",
+      "viewport": {
+        "name": "1024",
+        "width": 1024,
+        "height": 900
+      },
+      "status": 200,
+      "url": "http://manager.runmycampus.com:8013/super/support/live/",
+      "clientWidth": 1024,
+      "scrollWidth": 1024,
+      "h1Visible": 1,
+      "operationalFrames": 1,
+      "duplicateCssUrls": [],
+      "bodyStylesheetUrls": [],
+      "fixedInsideMain": [],
+      "visibleExpectedFixedControls": [
+        "copilot-mobile-fab",
+        "assist-dock"
+      ],
+      "visibleAssistDocks": 1,
+      "rawIconNames": [],
+      "resolvedTheme": "dark",
+      "shellGridTemplateColumns": "1024px",
+      "shellRect": {
+        "left": 0,
+        "right": 1024,
+        "width": 1024
+      },
+      "canvasRect": {
+        "left": 0,
+        "right": 1024,
+        "width": 1024
+      },
+      "mainRect": {
+        "left": 0,
+        "right": 1024,
+        "width": 1024
+      },
+      "sidebarDisplay": "none",
+      "screenshot": "artifacts/design-approvals/tenant-pack-full-canvas-implementation-2026-07-31/operator-workbenches/support-live-dark-1024.png"
+    },
+    {
+      "route": "/super/support/live/",
+      "theme": "dark",
+      "viewport": {
+        "name": "768",
+        "width": 768,
+        "height": 900
+      },
+      "status": 200,
+      "url": "http://manager.runmycampus.com:8013/super/support/live/",
+      "clientWidth": 768,
+      "scrollWidth": 768,
+      "h1Visible": 1,
+      "operationalFrames": 1,
+      "duplicateCssUrls": [],
+      "bodyStylesheetUrls": [],
+      "fixedInsideMain": [],
+      "visibleExpectedFixedControls": [
+        "copilot-mobile-fab",
+        "assist-dock"
+      ],
+      "visibleAssistDocks": 1,
+      "rawIconNames": [],
+      "resolvedTheme": "dark",
+      "shellGridTemplateColumns": "768px",
+      "shellRect": {
+        "left": 0,
+        "right": 768,
+        "width": 768
+      },
+      "canvasRect": {
+        "left": 0,
+        "right": 768,
+        "width": 768
+      },
+      "mainRect": {
+        "left": 0,
+        "right": 768,
+        "width": 768
+      },
+      "sidebarDisplay": "none",
+      "screenshot": "artifacts/design-approvals/tenant-pack-full-canvas-implementation-2026-07-31/operator-workbenches/support-live-dark-768.png"
+    },
+    {
+      "route": "/super/support/live/",
+      "theme": "dark",
+      "viewport": {
+        "name": "390",
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "url": "http://manager.runmycampus.com:8013/super/support/live/",
+      "clientWidth": 390,
+      "scrollWidth": 390,
+      "h1Visible": 1,
+      "operationalFrames": 1,
+      "duplicateCssUrls": [],
+      "bodyStylesheetUrls": [],
+      "fixedInsideMain": [],
+      "visibleExpectedFixedControls": [
+        "copilot-mobile-fab",
+        "assist-dock"
+      ],
+      "visibleAssistDocks": 1,
+      "rawIconNames": [],
+      "resolvedTheme": "dark",
+      "shellGridTemplateColumns": "390px",
+      "shellRect": {
+        "left": 0,
+        "right": 390,
+        "width": 390
+      },
+      "canvasRect": {
+        "left": 0,
+        "right": 390,
+        "width": 390
+      },
+      "mainRect": {
+        "left": 0,
+        "right": 390,
+        "width": 390
+      },
+      "sidebarDisplay": "none",
+      "screenshot": "artifacts/design-approvals/tenant-pack-full-canvas-implementation-2026-07-31/operator-workbenches/support-live-dark-390.png"
+    },
+    {
+      "route": "/super/support/live/",
+      "theme": "light",
+      "viewport": {
+        "name": "1440",
+        "width": 1440,
+        "height": 1000
+      },
+      "status": 200,
+      "url": "http://manager.runmycampus.com:8013/super/support/live/",
+      "clientWidth": 1440,
+      "scrollWidth": 1440,
+      "h1Visible": 1,
+      "operationalFrames": 1,
+      "duplicateCssUrls": [],
+      "bodyStylesheetUrls": [],
+      "fixedInsideMain": [],
+      "visibleExpectedFixedControls": [
+        "assist-dock"
+      ],
+      "visibleAssistDocks": 1,
+      "rawIconNames": [],
+      "resolvedTheme": "light",
+      "shellGridTemplateColumns": "280px 1116px 44px",
+      "shellRect": {
+        "left": 0,
+        "right": 1440,
+        "width": 1440
+      },
+      "canvasRect": {
+        "left": 280,
+        "right": 1396,
+        "width": 1116
+      },
+      "mainRect": {
+        "left": 0,
+        "right": 1440,
+        "width": 1440
+      },
+      "sidebarDisplay": "flex",
+      "screenshot": "artifacts/design-approvals/tenant-pack-full-canvas-implementation-2026-07-31/operator-workbenches/support-live-light-1440.png"
+    },
+    {
+      "route": "/super/support/live/",
+      "theme": "light",
+      "viewport": {
+        "name": "1024",
+        "width": 1024,
+        "height": 900
+      },
+      "status": 200,
+      "url": "http://manager.runmycampus.com:8013/super/support/live/",
+      "clientWidth": 1024,
+      "scrollWidth": 1024,
+      "h1Visible": 1,
+      "operationalFrames": 1,
+      "duplicateCssUrls": [],
+      "bodyStylesheetUrls": [],
+      "fixedInsideMain": [],
+      "visibleExpectedFixedControls": [
+        "copilot-mobile-fab",
+        "assist-dock"
+      ],
+      "visibleAssistDocks": 1,
+      "rawIconNames": [],
+      "resolvedTheme": "light",
+      "shellGridTemplateColumns": "1024px",
+      "shellRect": {
+        "left": 0,
+        "right": 1024,
+        "width": 1024
+      },
+      "canvasRect": {
+        "left": 0,
+        "right": 1024,
+        "width": 1024
+      },
+      "mainRect": {
+        "left": 0,
+        "right": 1024,
+        "width": 1024
+      },
+      "sidebarDisplay": "none",
+      "screenshot": "artifacts/design-approvals/tenant-pack-full-canvas-implementation-2026-07-31/operator-workbenches/support-live-light-1024.png"
+    },
+    {
+      "route": "/super/support/live/",
+      "theme": "light",
+      "viewport": {
+        "name": "768",
+        "width": 768,
+        "height": 900
+      },
+      "status": 200,
+      "url": "http://manager.runmycampus.com:8013/super/support/live/",
+      "clientWidth": 768,
+      "scrollWidth": 768,
+      "h1Visible": 1,
+      "operationalFrames": 1,
+      "duplicateCssUrls": [],
+      "bodyStylesheetUrls": [],
+      "fixedInsideMain": [],
+      "visibleExpectedFixedControls": [
+        "copilot-mobile-fab",
+        "assist-dock"
+      ],
+      "visibleAssistDocks": 1,
+      "rawIconNames": [],
+      "resolvedTheme": "light",
+      "shellGridTemplateColumns": "768px",
+      "shellRect": {
+        "left": 0,
+        "right": 768,
+        "width": 768
+      },
+      "canvasRect": {
+        "left": 0,
+        "right": 768,
+        "width": 768
+      },
+      "mainRect": {
+        "left": 0,
+        "right": 768,
+        "width": 768
+      },
+      "sidebarDisplay": "none",
+      "screenshot": "artifacts/design-approvals/tenant-pack-full-canvas-implementation-2026-07-31/operator-workbenches/support-live-light-768.png"
+    },
+    {
+      "route": "/super/support/live/",
+      "theme": "light",
+      "viewport": {
+        "name": "390",
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "url": "http://manager.runmycampus.com:8013/super/support/live/",
+      "clientWidth": 390,
+      "scrollWidth": 390,
+      "h1Visible": 1,
+      "operationalFrames": 1,
+      "duplicateCssUrls": [],
+      "bodyStylesheetUrls": [],
+      "fixedInsideMain": [],
+      "visibleExpectedFixedControls": [
+        "copilot-mobile-fab",
+        "assist-dock"
+      ],
+      "visibleAssistDocks": 1,
+      "rawIconNames": [],
+      "resolvedTheme": "light",
+      "shellGridTemplateColumns": "390px",
+      "shellRect": {
+        "left": 0,
+        "right": 390,
+        "width": 390
+      },
+      "canvasRect": {
+        "left": 0,
+        "right": 390,
+        "width": 390
+      },
+      "mainRect": {
+        "left": 0,
+        "right": 390,
+        "width": 390
+      },
+      "sidebarDisplay": "none",
+      "screenshot": "artifacts/design-approvals/tenant-pack-full-canvas-implementation-2026-07-31/operator-workbenches/support-live-light-390.png"
+    }
+  ],
+  "headOwnershipEvidence": [
+    {
+      "route": "/siteconfig/theme-colors/?standalone=1",
+      "theme": "dark",
+      "viewport": {
+        "name": "1440",
+        "width": 1440,
+        "height": 1000
+      },
+      "status": 200,
+      "url": "http://manager.runmycampus.com:8013/siteconfig/theme-colors/?standalone=1",
+      "clientWidth": 1440,
+      "scrollWidth": 1440,
+      "h1Visible": 1,
+      "resolvedTheme": "dark",
+      "duplicateCssUrls": [],
+      "bodyStylesheetUrls": [],
+      "themePreviewCssInHead": 1,
+      "contrastGuardInHead": 1,
+      "themePreviewScriptInHead": 1,
+      "screenshot": "artifacts/design-approvals/tenant-pack-full-canvas-implementation-2026-07-31/operator-workbenches/theme-colors-dark-1440.png"
+    },
+    {
+      "route": "/siteconfig/theme-colors/?standalone=1",
+      "theme": "dark",
+      "viewport": {
+        "name": "390",
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "url": "http://manager.runmycampus.com:8013/siteconfig/theme-colors/?standalone=1",
+      "clientWidth": 390,
+      "scrollWidth": 390,
+      "h1Visible": 1,
+      "resolvedTheme": "dark",
+      "duplicateCssUrls": [],
+      "bodyStylesheetUrls": [],
+      "themePreviewCssInHead": 1,
+      "contrastGuardInHead": 1,
+      "themePreviewScriptInHead": 1,
+      "screenshot": "artifacts/design-approvals/tenant-pack-full-canvas-implementation-2026-07-31/operator-workbenches/theme-colors-dark-390.png"
+    },
+    {
+      "route": "/siteconfig/theme-colors/?standalone=1",
+      "theme": "light",
+      "viewport": {
+        "name": "1440",
+        "width": 1440,
+        "height": 1000
+      },
+      "status": 200,
+      "url": "http://manager.runmycampus.com:8013/siteconfig/theme-colors/?standalone=1",
+      "clientWidth": 1440,
+      "scrollWidth": 1440,
+      "h1Visible": 1,
+      "resolvedTheme": "light",
+      "duplicateCssUrls": [],
+      "bodyStylesheetUrls": [],
+      "themePreviewCssInHead": 1,
+      "contrastGuardInHead": 1,
+      "themePreviewScriptInHead": 1,
+      "screenshot": "artifacts/design-approvals/tenant-pack-full-canvas-implementation-2026-07-31/operator-workbenches/theme-colors-light-1440.png"
+    },
+    {
+      "route": "/siteconfig/theme-colors/?standalone=1",
+      "theme": "light",
+      "viewport": {
+        "name": "390",
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "url": "http://manager.runmycampus.com:8013/siteconfig/theme-colors/?standalone=1",
+      "clientWidth": 390,
+      "scrollWidth": 390,
+      "h1Visible": 1,
+      "resolvedTheme": "light",
+      "duplicateCssUrls": [],
+      "bodyStylesheetUrls": [],
+      "themePreviewCssInHead": 1,
+      "contrastGuardInHead": 1,
+      "themePreviewScriptInHead": 1,
+      "screenshot": "artifacts/design-approvals/tenant-pack-full-canvas-implementation-2026-07-31/operator-workbenches/theme-colors-light-390.png"
+    },
+    {
+      "route": "/studio/experience/",
+      "theme": "dark",
+      "viewport": {
+        "name": "1440",
+        "width": 1440,
+        "height": 1000
+      },
+      "status": 200,
+      "url": "http://manager.runmycampus.com:8013/studio/experience/",
+      "clientWidth": 1440,
+      "scrollWidth": 1440,
+      "h1Visible": 1,
+      "resolvedTheme": "dark",
+      "duplicateCssUrls": [],
+      "bodyStylesheetUrls": [],
+      "themePreviewCssInHead": 1,
+      "contrastGuardInHead": 1,
+      "themePreviewScriptInHead": 1,
+      "screenshot": "artifacts/design-approvals/tenant-pack-full-canvas-implementation-2026-07-31/operator-workbenches/studio-experience-dark-1440.png"
+    },
+    {
+      "route": "/studio/experience/",
+      "theme": "dark",
+      "viewport": {
+        "name": "390",
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "url": "http://manager.runmycampus.com:8013/studio/experience/",
+      "clientWidth": 390,
+      "scrollWidth": 390,
+      "h1Visible": 1,
+      "resolvedTheme": "dark",
+      "duplicateCssUrls": [],
+      "bodyStylesheetUrls": [],
+      "themePreviewCssInHead": 1,
+      "contrastGuardInHead": 1,
+      "themePreviewScriptInHead": 1,
+      "screenshot": "artifacts/design-approvals/tenant-pack-full-canvas-implementation-2026-07-31/operator-workbenches/studio-experience-dark-390.png"
+    },
+    {
+      "route": "/studio/experience/",
+      "theme": "light",
+      "viewport": {
+        "name": "1440",
+        "width": 1440,
+        "height": 1000
+      },
+      "status": 200,
+      "url": "http://manager.runmycampus.com:8013/studio/experience/",
+      "clientWidth": 1440,
+      "scrollWidth": 1440,
+      "h1Visible": 1,
+      "resolvedTheme": "light",
+      "duplicateCssUrls": [],
+      "bodyStylesheetUrls": [],
+      "themePreviewCssInHead": 1,
+      "contrastGuardInHead": 1,
+      "themePreviewScriptInHead": 1,
+      "screenshot": "artifacts/design-approvals/tenant-pack-full-canvas-implementation-2026-07-31/operator-workbenches/studio-experience-light-1440.png"
+    },
+    {
+      "route": "/studio/experience/",
+      "theme": "light",
+      "viewport": {
+        "name": "390",
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "url": "http://manager.runmycampus.com:8013/studio/experience/",
+      "clientWidth": 390,
+      "scrollWidth": 390,
+      "h1Visible": 1,
+      "resolvedTheme": "light",
+      "duplicateCssUrls": [],
+      "bodyStylesheetUrls": [],
+      "themePreviewCssInHead": 1,
+      "contrastGuardInHead": 1,
+      "themePreviewScriptInHead": 1,
+      "screenshot": "artifacts/design-approvals/tenant-pack-full-canvas-implementation-2026-07-31/operator-workbenches/studio-experience-light-390.png"
+    }
+  ],
+  "environmentWarnings": [
+    "The Cross-Origin-Opener-Policy header has been ignored, because the URL's origin was untrustworthy. It was defined either in the final response or a redirect. Please deliver the response using the HTTPS protocol. You can also use the 'localhost' origin instead. See https://www.w3.org/TR/powerful-features/#potentially-trustworthy-origin and https://html.spec.whatwg.org/#the-cross-origin-opener-policy-header.",
+    "The Cross-Origin-Opener-Policy header has been ignored, because the URL's origin was untrustworthy. It was defined either in the final response or a redirect. Please deliver the response using the HTTPS protocol. You can also use the 'localhost' origin instead. See https://www.w3.org/TR/powerful-features/#potentially-trustworthy-origin and https://html.spec.whatwg.org/#the-cross-origin-opener-policy-header.",
+    "WebSocket connection to 'ws://manager.runmycampus.com:8013/ws/support/agent/' failed: Error during WebSocket handshake: Unexpected response code: 302",
+    "WebSocket connection to 'ws://manager.runmycampus.com:8013/ws/support/agent/' failed: Error during WebSocket handshake: Unexpected response code: 302",
+    "WebSocket connection to 'ws://manager.runmycampus.com:8013/ws/support/agent/' failed: Error during WebSocket handshake: Unexpected response code: 302",
+    "WebSocket connection to 'ws://manager.runmycampus.com:8013/ws/support/agent/' failed: Error during WebSocket handshake: Unexpected response code: 302",
+    "WebSocket connection to 'ws://manager.runmycampus.com:8013/ws/support/agent/' failed: Error during WebSocket handshake: Unexpected response code: 302",
+    "The Cross-Origin-Opener-Policy header has been ignored, because the URL's origin was untrustworthy. It was defined either in the final response or a redirect. Please deliver the response using the HTTPS protocol. You can also use the 'localhost' origin instead. See https://www.w3.org/TR/powerful-features/#potentially-trustworthy-origin and https://html.spec.whatwg.org/#the-cross-origin-opener-policy-header.",
+    "The Cross-Origin-Opener-Policy header has been ignored, because the URL's origin was untrustworthy. It was defined either in the final response or a redirect. Please deliver the response using the HTTPS protocol. You can also use the 'localhost' origin instead. See https://www.w3.org/TR/powerful-features/#potentially-trustworthy-origin and https://html.spec.whatwg.org/#the-cross-origin-opener-policy-header.",
+    "The Cross-Origin-Opener-Policy header has been ignored, because the URL's origin was untrustworthy. It was defined either in the final response or a redirect. Please deliver the response using the HTTPS protocol. You can also use the 'localhost' origin instead. See https://www.w3.org/TR/powerful-features/#potentially-trustworthy-origin and https://html.spec.whatwg.org/#the-cross-origin-opener-policy-header.",
+    "The Cross-Origin-Opener-Policy header has been ignored, because the URL's origin was untrustworthy. It was defined either in the final response or a redirect. Please deliver the response using the HTTPS protocol. You can also use the 'localhost' origin instead. See https://www.w3.org/TR/powerful-features/#potentially-trustworthy-origin and https://html.spec.whatwg.org/#the-cross-origin-opener-policy-header.",
+    "The Cross-Origin-Opener-Policy header has been ignored, because the URL's origin was untrustworthy. It was defined either in the final response or a redirect. Please deliver the response using the HTTPS protocol. You can also use the 'localhost' origin instead. See https://www.w3.org/TR/powerful-features/#potentially-trustworthy-origin and https://html.spec.whatwg.org/#the-cross-origin-opener-policy-header.",
+    "The Cross-Origin-Opener-Policy header has been ignored, because the URL's origin was untrustworthy. It was defined either in the final response or a redirect. Please deliver the response using the HTTPS protocol. You can also use the 'localhost' origin instead. See https://www.w3.org/TR/powerful-features/#potentially-trustworthy-origin and https://html.spec.whatwg.org/#the-cross-origin-opener-policy-header.",
+    "The Cross-Origin-Opener-Policy header has been ignored, because the URL's origin was untrustworthy. It was defined either in the final response or a redirect. Please deliver the response using the HTTPS protocol. You can also use the 'localhost' origin instead. See https://www.w3.org/TR/powerful-features/#potentially-trustworthy-origin and https://html.spec.whatwg.org/#the-cross-origin-opener-policy-header.",
+    "The Cross-Origin-Opener-Policy header has been ignored, because the URL's origin was untrustworthy. It was defined either in the final response or a redirect. Please deliver the response using the HTTPS protocol. You can also use the 'localhost' origin instead. See https://www.w3.org/TR/powerful-features/#potentially-trustworthy-origin and https://html.spec.whatwg.org/#the-cross-origin-opener-policy-header."
+  ],
+  "consoleErrors": [],
+  "brokenResources": []
+}
