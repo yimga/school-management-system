@@ -18,6 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 TEMPLATES = ROOT / "templates"
 PACK_TEMPLATE = TEMPLATES / "platform_runtime" / "tenant_pack_setup.html"
 PACK_CSS = ROOT / "static" / "css" / "rmc-tenant-pack-workbench.css"
+OPERATOR_COPILOT_CSS = ROOT / "static" / "css" / "rmc-cp-copilot-grid-lock.css"
 APPROVAL = (
     ROOT
     / "var"
@@ -41,6 +42,36 @@ SHELL_TEMPLATES = (
     TEMPLATES / "portal_base.html",
     TEMPLATES / "control_plane_skeleton.html",
     TEMPLATES / "base.html",
+)
+
+HEAD_ONLY_PARTIALS = (
+    TEMPLATES / "partials" / "control_plane_operator_brand_style.html",
+    TEMPLATES / "partials" / "rmc_viewport_engine.html",
+    TEMPLATES / "components" / "rum_beacon.html",
+    TEMPLATES / "partials" / "rmc_conditional_feature_boot.html",
+    TEMPLATES / "partials" / "rmc_deferred_stylesheet.html",
+    TEMPLATES / "partials" / "rmc_tenant_tools_styles.html",
+    TEMPLATES / "partials" / "rmc_operator_tools_styles.html",
+)
+
+BACKEND_SHELLS = (
+    TEMPLATES / "backend_base_tenant.html",
+    TEMPLATES / "backend_base_manager.html",
+)
+
+HEAD_OWNED_RUNTIME_CSS = (
+    "rmc-portal-row-detail-drawer.css",
+    "rmc-tour.css",
+    "rmc-ai-mode-switch.css",
+)
+
+BODY_COMPONENT_STYLESHEET_BANS = (
+    TEMPLATES / "components" / "contextual_feedback_widget.html",
+)
+
+CSRF_META_FIRST_SCRIPTS = (
+    ROOT / "static" / "js" / "theme-preference-bootstrap.js",
+    ROOT / "static" / "js" / "rmc-tour.js",
 )
 
 
@@ -133,6 +164,8 @@ def scan() -> dict[str, object]:
             findings.append(finding(path, "operator_steering_frame_missing"))
         if "block cp_workspace_header" not in text:
             findings.append(finding(path, "duplicate_workspace_header_not_suppressed"))
+        if path.name == "super_support_live_console.html" and "block cp_preview_page_h1" not in text:
+            findings.append(finding(path, "duplicate_base_page_h1_not_suppressed"))
         if "<h1" in text.casefold():
             findings.append(finding(path, "local_h1_duplicates_shared_frame"))
 
@@ -150,6 +183,106 @@ def scan() -> dict[str, object]:
             findings.append(finding(path, "shell_stylesheet_link_in_body"))
         if text.count("rmc_theme_experience_dual_plane_styles.html") != 1:
             findings.append(finding(path, "duplicate_or_missing_terminal_theme_stylesheet"))
+        for stylesheet in HEAD_OWNED_RUNTIME_CSS:
+            if text.count(stylesheet) != 1:
+                findings.append(
+                    finding(path, f"runtime_stylesheet_head_ownership:{stylesheet}")
+                )
+
+    portal_base = (TEMPLATES / "portal_base.html").read_text(
+        encoding="utf-8", errors="replace"
+    )
+    for token in (
+        'id="rmc-responsive-sidebar-terminal"',
+        'max-width: 991.98px',
+        '#portal-sidebar-col[data-shell-sidebar-mount="desktop"]',
+        '#portalSidebar[data-shell-sidebar-mount="offcanvas"]:not(.show)',
+    ):
+        if token not in portal_base:
+            findings.append(finding(TEMPLATES / "portal_base.html", f"mobile_sidebar_contract:{token}"))
+
+    control_plane_skeleton = (TEMPLATES / "control_plane_skeleton.html").read_text(
+        encoding="utf-8", errors="replace"
+    )
+    for token in (
+        'id="rmc-cp-responsive-grid-critical"',
+        "max-width:1024px",
+        'grid-template-areas:"rmc-shell-h" "rmc-shell-cv" "rmc-shell-f"',
+        ">.rmc-app-shell__sidebar",
+    ):
+        if token not in control_plane_skeleton:
+            findings.append(
+                finding(
+                    TEMPLATES / "control_plane_skeleton.html",
+                    f"operator_mobile_critical_contract:{token}",
+                )
+            )
+
+    operator_grid_css = OPERATOR_COPILOT_CSS.read_text(
+        encoding="utf-8", errors="replace"
+    )
+    for token in (
+        "@media (max-width: 1024px)",
+        "grid-template-columns: minmax(0, 1fr) !important;",
+        ".rmc-app-shell:has(> .rmc-app-shell__copilot)",
+        "display: none !important;",
+    ):
+        if token not in operator_grid_css:
+            findings.append(finding(OPERATOR_COPILOT_CSS, f"operator_mobile_css_contract:{token}"))
+
+    shell_runtime_flags = {
+        "portal_row_detail_drawer_bundle.html": "rmc_row_drawer_css_in_head=True",
+        "rmc_tour_bootstrap.html": "rmc_tour_css_in_head=True",
+        "rmc_ai_chrome_page_data.html": "rmc_ai_mode_css_in_head=True",
+    }
+    for path in SHELL_TEMPLATES:
+        text = path.read_text(encoding="utf-8", errors="replace")
+        for include_name, flag in shell_runtime_flags.items():
+            if include_name in text and flag not in text:
+                findings.append(finding(path, f"runtime_stylesheet_flag_missing:{flag}"))
+
+    for path in HEAD_ONLY_PARTIALS:
+        text = path.read_text(encoding="utf-8", errors="replace").casefold()
+        for body_tag in ("<div", "<main", "<section", "<article", "<p", "<span"):
+            if body_tag in text:
+                findings.append(finding(path, f"head_partial_contains_body_markup:{body_tag}"))
+
+    for path in BODY_COMPONENT_STYLESHEET_BANS:
+        text = path.read_text(encoding="utf-8", errors="replace").casefold()
+        if '<link rel="stylesheet"' in text:
+            findings.append(finding(path, "body_component_owns_stylesheet"))
+
+    for path in CSRF_META_FIRST_SCRIPTS:
+        text = path.read_text(encoding="utf-8", errors="replace")
+        meta_lookup = 'document.querySelector(\'meta[name="csrf-token"]\')'
+        cookie_lookup = "document.cookie.match"
+        if meta_lookup not in text or cookie_lookup not in text:
+            findings.append(finding(path, "csrf_resolution_contract_missing"))
+        elif text.index(meta_lookup) > text.index(cookie_lookup):
+            findings.append(finding(path, "csrf_cookie_precedes_request_bound_meta"))
+
+    for path in BACKEND_SHELLS:
+        text = path.read_text(encoding="utf-8", errors="replace").casefold()
+        if "<h1" in text:
+            findings.append(finding(path, "router_shell_owns_fallback_h1"))
+
+    ownership_forbidden = {
+        TEMPLATES / "platform_runtime" / "tenant_pack_setup.html": (
+            "rmc-world-class-experience.css",
+        ),
+        TEMPLATES / "backend_base_tenant.html": ("tenant-command-workspace.css",),
+        TEMPLATES / "partials" / "rmc_tenant_tools_styles.html": (
+            "rmc-workflow-guidance.css",
+        ),
+        TEMPLATES / "partials" / "rmc_operator_tools_styles.html": (
+            "rmc-workflow-guidance.css",
+        ),
+    }
+    for path, forbidden_tokens in ownership_forbidden.items():
+        text = path.read_text(encoding="utf-8", errors="replace")
+        for token in forbidden_tokens:
+            if token in text:
+                findings.append(finding(path, f"duplicate_stylesheet_ownership:{token}"))
 
     support_partial = TEMPLATES / "partials" / "rmc_support_quick_create.html"
     support_text = support_partial.read_text(encoding="utf-8", errors="replace")

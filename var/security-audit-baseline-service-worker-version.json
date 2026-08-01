@@ -1,12 +1,12 @@
 {
   "date": "2026-07-31",
-  "generated_at": "2026-07-31T19:19:27+00:00",
+  "generated_at": "2026-08-01T01:24:54+00:00",
   "major": 4,
   "minor": 6,
-  "patch": 23,
-  "raw": "sms-v4.06.23-admin-footer-ui-cache-refresh-2026-07-31",
+  "patch": 24,
+  "raw": "sms-v4.06.24-full-canvas-shell-refresh-2026-07-31",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "admin-footer-ui-cache-refresh",
+  "slug": "full-canvas-shell-refresh",
   "valid": true
 }

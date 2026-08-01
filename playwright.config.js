@@ -89,6 +89,7 @@ module.exports = defineConfig({
         '**/manager-theme-visibility.spec.js',
         '**/control-plane-layout-audit.spec.js',
         '**/copilot-rail-grid.spec.js',
+        '**/operator-audited-workbenches.spec.js',
         '**/world-globe-online-offline.spec.js',
       ],
       use: {
@@ -117,6 +118,9 @@ module.exports = defineConfig({
         baseURL:
           process.env.PLAYWRIGHT_TENANT_BASE_URL ||
           `http://127.0.0.1:${_tenantPhasePort}/t/demo-school`,
+        ...(process.env.PLAYWRIGHT_TENANT_STORAGE_STATE
+          ? { storageState: path.resolve(process.env.PLAYWRIGHT_TENANT_STORAGE_STATE) }
+          : {}),
         serviceWorkers: 'block',
         launchOptions: {
           // Subdomain canonical redirects after login require *.runmycampus.com → 127.0.0.1.

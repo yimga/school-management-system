@@ -79,7 +79,6 @@
     <link rel="stylesheet" href="{% static 'css/theme-visibility-guard.css' %}">
     <link rel="stylesheet" href="{% static 'css/manager-control-plane.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-sidebar-rail-contract.css' %}">
-    <link rel="stylesheet" href="{% static 'css/dashboard-topology-shell.css' %}">
     <link rel="stylesheet" href="{% static 'css/control-plane-operator-brand.css' %}">
     <link rel="stylesheet" href="{% static 'css/platform-high-end.css' %}">
     <link rel="stylesheet" href="{% static 'css/control-plane-ultra.css' %}">
@@ -108,6 +107,9 @@
        the WFP card paints as unstyled document-flow junk under the civic footer. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-workflow-progress.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-workflow-guidance.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-portal-row-detail-drawer.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-tour.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-ai-mode-switch.css' %}">
     <link rel="stylesheet" href="{% static 'css/phase2-control-plane-bundle.css' %}">
     <link rel="stylesheet" href="{% static 'css/tenant-command-workspace.css' %}">
     <link rel="stylesheet" href="{% static 'css/regional-rtl.css' %}">
@@ -179,6 +181,7 @@
     <link rel="stylesheet" href="{% static 'css/rmc-backoffice-scroll-10x.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-list-bulk-select.css' %}" media="print" data-rmc-async-style>
     <link rel="stylesheet" href="{% static 'css/rmc-nav-sidebar.css' %}">
+    <link rel="stylesheet" href="{% static 'css/voc-widget.css' %}">
     {% comment %} Styles the in-content next-action strip (.rmc-nas-*); without it
        the strip rendered as raw stacked text/links on control-plane pages. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/next-action-strip.css' %}">
@@ -187,6 +190,10 @@
     {% if cockpit.ai_copilot_rail.enabled %}
     {% comment %} Critical inline pin (attribute-keyed + self-activating :has() fallback) — survives stale SW/CDN CSS when external grid-lock 404s or caches pre-fix sheets, so the copilot rail can never regress to the full-width bottom band. {% endcomment %}
     <style nonce="{{ csp_nonce }}" id="rmc-cp-copilot-grid-critical">html[data-rmc-isomorphic-template="operator-control-plane"] body.control-plane-shell .rmc-app-shell[data-rmc-app-shell-copilot="1"]{display:grid!important;grid-template-columns:var(--rmc-app-shell-sidebar-w,clamp(240px,18vw,320px)) minmax(0,1fr) var(--rmc-app-shell-copilot-w,44px)!important;grid-template-areas:"rmc-shell-h rmc-shell-h rmc-shell-h" "rmc-shell-sb rmc-shell-cv rmc-shell-cp" "rmc-shell-f rmc-shell-f rmc-shell-f"!important}html[data-rmc-isomorphic-template="operator-control-plane"] body.control-plane-shell .rmc-app-shell[data-rmc-app-shell-copilot="1"]>.rmc-app-shell__header{grid-area:rmc-shell-h!important}html[data-rmc-isomorphic-template="operator-control-plane"] body.control-plane-shell .rmc-app-shell[data-rmc-app-shell-copilot="1"]>.rmc-app-shell__sidebar{grid-area:rmc-shell-sb!important}html[data-rmc-isomorphic-template="operator-control-plane"] body.control-plane-shell .rmc-app-shell[data-rmc-app-shell-copilot="1"]>.rmc-app-shell__canvas{grid-area:rmc-shell-cv!important}html[data-rmc-isomorphic-template="operator-control-plane"] body.control-plane-shell .rmc-app-shell[data-rmc-app-shell-copilot="1"]>.rmc-app-shell__copilot{grid-area:rmc-shell-cp!important;grid-row:2!important;grid-column:3!important;width:var(--rmc-app-shell-copilot-w,44px)!important;max-width:var(--rmc-app-shell-copilot-w,44px)!important;min-width:0!important;position:relative!important;inset:auto!important;left:auto!important;right:auto!important;bottom:auto!important;top:auto!important}html[data-rmc-isomorphic-template="operator-control-plane"] body.control-plane-shell .rmc-app-shell[data-rmc-app-shell-copilot="1"]>.rmc-app-shell__footer{grid-area:rmc-shell-f!important}html[data-rmc-isomorphic-template="operator-control-plane"] body.control-plane-shell .rmc-app-shell[data-rmc-app-shell-copilot="1"]>dialog.rmc-sheet:not([open]),html[data-rmc-isomorphic-template="operator-control-plane"] body.control-plane-shell .rmc-app-shell[data-rmc-app-shell-copilot="1"]>[data-rmc-operator-notebook],html[data-rmc-isomorphic-template="operator-control-plane"] body.control-plane-shell .rmc-app-shell[data-rmc-app-shell-copilot="1"]>.lx-notebook{position:fixed!important;grid-column:1!important;grid-row:1!important;width:auto!important;height:auto!important;margin:0!important;pointer-events:auto!important}@media (max-width:1199.98px){html[data-rmc-isomorphic-template="operator-control-plane"] body.control-plane-shell .rmc-app-shell[data-rmc-app-shell-copilot="1"]>.rmc-app-shell__copilot{display:none!important}}html[data-rmc-isomorphic-template="operator-control-plane"] body.control-plane-shell .rmc-app-shell:has(> .rmc-app-shell__copilot){display:grid!important;grid-template-columns:var(--rmc-app-shell-sidebar-w,clamp(240px,18vw,320px)) minmax(0,1fr) var(--rmc-app-shell-copilot-w,44px)!important;grid-template-areas:"rmc-shell-h rmc-shell-h rmc-shell-h" "rmc-shell-sb rmc-shell-cv rmc-shell-cp" "rmc-shell-f rmc-shell-f rmc-shell-f"!important}html[data-rmc-isomorphic-template="operator-control-plane"] body.control-plane-shell .rmc-app-shell[data-copilot="expanded"]:has(> .rmc-app-shell__copilot){--rmc-app-shell-copilot-w:360px}html[data-rmc-isomorphic-template="operator-control-plane"] body.control-plane-shell .rmc-app-shell:has(> .rmc-app-shell__copilot)>.rmc-app-shell__header{grid-area:rmc-shell-h!important}html[data-rmc-isomorphic-template="operator-control-plane"] body.control-plane-shell .rmc-app-shell:has(> .rmc-app-shell__copilot)>.rmc-app-shell__sidebar{grid-area:rmc-shell-sb!important}html[data-rmc-isomorphic-template="operator-control-plane"] body.control-plane-shell .rmc-app-shell:has(> .rmc-app-shell__copilot)>.rmc-app-shell__canvas{grid-area:rmc-shell-cv!important}html[data-rmc-isomorphic-template="operator-control-plane"] body.control-plane-shell .rmc-app-shell:has(> .rmc-app-shell__copilot)>.rmc-app-shell__copilot{grid-area:rmc-shell-cp!important;grid-row:2!important;grid-column:3!important;width:var(--rmc-app-shell-copilot-w,44px)!important;max-width:var(--rmc-app-shell-copilot-w,44px)!important;min-width:0!important;position:relative!important;inset:auto!important;left:auto!important;right:auto!important;bottom:auto!important;top:auto!important}html[data-rmc-isomorphic-template="operator-control-plane"] body.control-plane-shell .rmc-app-shell:has(> .rmc-app-shell__copilot)>.rmc-app-shell__footer{grid-area:rmc-shell-f!important}@media (max-width:1199.98px){html[data-rmc-isomorphic-template="operator-control-plane"] body.control-plane-shell .rmc-app-shell:has(> .rmc-app-shell__copilot)>.rmc-app-shell__copilot{display:none!important}}</style>
+    {% comment %} Terminal responsive fallback mirrors the external 1024px contract.
+       It follows the desktop critical pin so stale cached CSS cannot squeeze
+       the operator canvas into a sidebar-sized strip on tablets or phones. {% endcomment %}
+    <style nonce="{{ csp_nonce }}" id="rmc-cp-responsive-grid-critical">@media (max-width:1024px){html[data-rmc-isomorphic-template="operator-control-plane"] body.control-plane-shell .rmc-app-shell[data-rmc-app-shell-copilot="1"],html[data-rmc-isomorphic-template="operator-control-plane"] body.control-plane-shell .rmc-app-shell:has(>.rmc-app-shell__copilot){grid-template-columns:minmax(0,1fr)!important;grid-template-areas:"rmc-shell-h" "rmc-shell-cv" "rmc-shell-f"!important}html[data-rmc-isomorphic-template="operator-control-plane"] body.control-plane-shell .rmc-app-shell[data-rmc-app-shell-copilot="1"]>.rmc-app-shell__sidebar,html[data-rmc-isomorphic-template="operator-control-plane"] body.control-plane-shell .rmc-app-shell:has(>.rmc-app-shell__copilot)>.rmc-app-shell__sidebar,html[data-rmc-isomorphic-template="operator-control-plane"] body.control-plane-shell .rmc-app-shell[data-rmc-app-shell-copilot="1"]>.rmc-app-shell__copilot,html[data-rmc-isomorphic-template="operator-control-plane"] body.control-plane-shell .rmc-app-shell:has(>.rmc-app-shell__copilot)>.rmc-app-shell__copilot{display:none!important}html[data-rmc-isomorphic-template="operator-control-plane"] body.control-plane-shell .rmc-app-shell[data-rmc-app-shell-copilot="1"]>.rmc-app-shell__canvas,html[data-rmc-isomorphic-template="operator-control-plane"] body.control-plane-shell .rmc-app-shell:has(>.rmc-app-shell__copilot)>.rmc-app-shell__canvas{grid-area:rmc-shell-cv!important;grid-column:1/-1!important;width:100%!important;max-width:none!important;margin-inline:0!important}}</style>
     {% endif %}
     {% comment %} Terminal dual-plane stylesheet is owned by head, never injected from body. {% endcomment %}
     {% include "partials/rmc_theme_experience_dual_plane_styles.html" %}
@@ -292,7 +299,7 @@
       {% include "partials/rmc_notification_engine.html" %}
       {% include "partials/rmc_modal_engine.html" %}
       {% include "partials/rmc_detail_engine.html" %}
-      {% include "partials/portal_row_detail_drawer_bundle.html" %}
+      {% include "partials/portal_row_detail_drawer_bundle.html" with rmc_row_drawer_css_in_head=True %}
       <script src="{% static 'js/rmc-avatar-seed.js' %}" defer></script>
       <script src="{% static 'js/rmc-form-dirty.js' %}" defer></script>
       <script src="{% static 'js/rmc-autosubmit.js' %}" defer></script>
@@ -326,7 +333,7 @@
     {% endif %}
     <script src="{% static 'js/return-to-origin.js' %}" defer></script>
     <script src="{% static 'js/rmc-launch-splash.js' %}" defer></script>
-    {% include "partials/rmc_tour_bootstrap.html" %}
+    {% include "partials/rmc_tour_bootstrap.html" with rmc_tour_css_in_head=True %}
     {% if request.user.is_authenticated %}
     {% include "partials/rmc_platform_surface_page_data.html" %}
     {% comment %} v4.02.70: operator PWA + offline config (globe/KB static precache on manager host). {% endcomment %}
@@ -336,7 +343,7 @@
     }</script>
     <script src="{% static 'js/rmc-service-worker-registration.js' %}"></script>
     <script src="{% static 'js/rmc-kb-offline-cache.js' %}" defer></script>
-    {% include "partials/rmc_ai_chrome_page_data.html" %}
+    {% include "partials/rmc_ai_chrome_page_data.html" with rmc_ai_mode_css_in_head=True %}
     {% include "partials/rmc_assist_dock_labels.html" %}
     {% endif %}
     {% comment %}Authentication checkpoints are deliberately quiet: loading the

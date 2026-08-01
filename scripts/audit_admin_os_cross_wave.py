@@ -93,18 +93,18 @@ def main() -> int:
     )
     ban(
         "templates/admin/index_superadmin.html",
-        "W1 no steering/tools op",
+        "W1 no legacy steering op",
         "cp-steering",
-        "admin_index_context_rail.html",
-        "admin_workspace_tools.html",
     )
     ban(
         "templates/admin/index_tenant.html",
-        "W1 no steering/tools ten",
+        "W1 no legacy steering ten",
         "cp-steering",
-        "admin_index_context_rail.html",
-        "admin_workspace_tools.html",
     )
+    must("templates/admin/index_superadmin.html", "W1 approved index rail op", "admin_index_context_rail.html")
+    must("templates/admin/index_superadmin.html", "W1 approved index tools op", "admin_workspace_tools.html")
+    must("templates/admin/index_tenant.html", "W1 approved index rail ten", "admin_index_context_rail.html")
+    must("templates/admin/index_tenant.html", "W1 approved index tools ten", "admin_workspace_tools.html")
     ban(
         "templates/admin/base.html",
         "W1 no decision banner",
@@ -319,7 +319,7 @@ def main() -> int:
     ):
         must(guided, f"guided rail {Path(guided).name}", "admin_guided_surface_rail.html")
 
-    # Scan/Edit keep tools; Discover does not
+    # Scan/Edit and approved Discover surfaces keep page-aware tools.
     must("templates/admin/change_list.html", "scan tools", "admin_workspace_tools.html")
     must("templates/admin/change_form.html", "edit tools", "admin_workspace_tools.html")
     must("templates/admin/app_index.html", "dossier tools", "admin_workspace_tools.html")

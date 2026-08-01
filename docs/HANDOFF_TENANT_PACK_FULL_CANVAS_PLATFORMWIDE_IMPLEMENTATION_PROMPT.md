@@ -28,6 +28,9 @@ Audit first, implement every confirmed defect, then re-audit the complete operat
 10. Repair every related audit finding: operator provisioning queue and live support console must use the shared steering frame without duplicate headers; long URL/history cells in the four audited control-plane tables must wrap rather than clip.
 11. Add regression tests and a platform-wide source audit so the old defect signature cannot return.
 12. Use an explicit cache-bust on new static assets and include deployment cache invalidation in the release steps.
+13. Treat head ownership as a rendered-DOM invariant: no head partial may emit body markup, and no body component may emit a stylesheet link.
+14. Resolve post-action state only after the mutation so the successful Apply response immediately renders the updated native installation table without requiring a reload.
+15. Keep build ID, cache-bust ID, approval seal, and service-worker version synchronized and monotonically increasing.
 
 ## Scope and isolation gates
 
@@ -57,7 +60,7 @@ python scripts/verify_django_admin_preview_parity.py
 python scripts/audit_django_admin_surface_leftovers.py
 python scripts/sweep_django_admin_platformwide_layout.py
 python scripts/audit_django_admin_miss_nothing.py
-python scripts/check_service_worker_version_monotonic.py
+python scripts/verify_service_worker_version.py --check-monotonic
 python manage.py test apps.platform_runtime.tests.test_tenant_pack_setup apps.platform_runtime.tests.test_tenant_school_experience_redesign apps.platform_runtime.tests.test_governed_installation_ux_flow
 git diff --check -- <all files intentionally changed by this implementation>
 ```
@@ -81,6 +84,8 @@ Capture the authenticated tenant route and representative affected operator rout
 - correct native table display and contained table-only overflow.
 
 Remove stale failure screenshots and reports after successful reruns so release evidence cannot contradict the final state.
+
+The audit must explicitly rule out the known failure chain: a body element emitted by a head-only include causes the HTML parser to close `<head>` early; inherited shells then duplicate stylesheet ownership; stale collected-static manifests keep old hashed assets live; cached template loaders keep old markup live until worker restart; and pre-mutation queryset evaluation makes a successful POST appear unapplied. Also verify that legacy responsive `display: flex !important` rules cannot leave the desktop sidebar over the mobile canvas.
 
 ## Completion report and deployment
 

@@ -5,4 +5,3 @@ v4.02.0 — Operator Tools edge-tray styles (manager host only).
 {% if request.public_host_kind == 'manager' and cockpit.operator_tools.enabled|default:False %}
 <link rel="stylesheet" href="{% static 'css/rmc-operator-tools-tray.css' %}">
 {% endif %}
-<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>

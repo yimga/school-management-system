@@ -764,12 +764,6 @@ def tenant_pack_setup(request):
     preview = preview_pack(selected_key, pack_type=pack_type, school=school, actor=request.user, platform_operator=False, emit_audit=request.GET.get("preview") == "1")
     change_set = generate_pack_change_set(selected_key, pack_type=pack_type, school=school, actor=request.user, platform_operator=False)
     simulation = simulate_pack(selected_key, pack_type=pack_type, school=school, actor=request.user, platform_operator=False) if request.GET.get("simulate") == "1" else None
-    installation_qs = PackInstallation.objects.filter(school=school).order_by("-created_at")
-    installations = list(installation_qs[:25])
-    installed_total = installation_qs.count()
-    installed_active = installation_qs.filter(
-        status=PackInstallation.Status.APPLIED
-    ).count()
     result = None
     if request.method == "POST":
         if request.POST.get("installation_id") and request.POST.get("mode") in {"deactivate", "rollback"}:
@@ -799,6 +793,18 @@ def tenant_pack_setup(request):
                     confirmed=request.POST.get("confirm") == "yes",
                     platform_operator=False,
                 )
+    # Resolve lifecycle rows after the POST mutation. Building this queryset
+    # before apply/deactivate/rollback returned a stale response: the operation
+    # succeeded in the database, but the same page still said "No packs
+    # installed" until a manual reload. The post-action render must be truthful.
+    installation_qs = PackInstallation.objects.filter(school=school).order_by(
+        "-created_at"
+    )
+    installations = list(installation_qs[:25])
+    installed_total = installation_qs.count()
+    installed_active = installation_qs.filter(
+        status=PackInstallation.Status.APPLIED
+    ).count()
     return render(
         request,
         "platform_runtime/tenant_pack_setup.html",

@@ -14,7 +14,7 @@
       <li><a href="{% url 'siteconfig:feature_control_panel' %}" class="text-primary-600 hover:underline">{% trans "Feature control" %}</a></li>
       <li><a href="{% url 'siteconfig:tenant_runtime_configuration_hub' %}" class="text-primary-600 hover:underline">{% trans "Effective runtime summary" %}</a></li>
       <li><a href="{% url 'siteconfig:console_domains_hub' %}" class="text-primary-600 hover:underline">{% trans "Configuration hub" %}</a></li>
-      <li><a href="{% url 'studio_os:output' %}" class="text-primary-600 hover:underline">{% trans "Studio · Output" %}</a></li>
+      {% if is_manager_host %}<li><a href="{% url 'studio_os:output' %}" class="text-primary-600 hover:underline">{% trans "Studio · Output" %}</a></li>{% endif %}
     </ul>
   </section>
 {% endblock %}

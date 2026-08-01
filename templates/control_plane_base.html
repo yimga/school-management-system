@@ -6,7 +6,6 @@
 {% block extrastyle %}{{ block.super }}
 <link rel="stylesheet" href="{% static 'css/rmc-premium-os.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-premium-polish.css' %}">
-<link rel="stylesheet" href="{% static 'css/rmc-world-class-experience.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-operational-center-frame.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-surface-spacing-contract.css' %}">
 {% comment %} Pass B: platform-wide aesthetic discipline (card grammar, type rhythm, empty-state hygiene). {% endcomment %}
@@ -14,19 +13,11 @@
 {% comment %} Pass A: manager-specific polish (card surfaces, studio toolbar, rail, sidebar).
    Loaded last so it wins specificity ties without needing !important everywhere. {% endcomment %}
 <link rel="stylesheet" href="{% static 'css/manager-aesthetic-polish.css' %}">
-<link rel="stylesheet" href="{% static 'css/rmc-cp-sidebar-200x.css' %}">
-<link rel="stylesheet" href="{% static 'css/rmc-platform-inner-pages.css' %}">
-<link rel="stylesheet" href="{% static 'css/rmc-sidebar-rail-contract.css' %}">
-{% include "partials/rmc_sidebar_disclosure_contract_styles.html" %}
 {% include "partials/rmc_security_posture_layout_styles.html" %}
 <link rel="stylesheet" href="{% static 'css/rmc-cp-v8-full-width.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-cp-v8-layout-contract.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-page-archetypes-max.css' %}">
-<link rel="stylesheet" href="{% static 'css/rmc-platform-header.css' %}">
-<link rel="stylesheet" href="{% static 'css/rmc-ai-guided-assistant-card.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-calendar-weather-dashboard.css' %}">
-<link rel="stylesheet" href="{% static 'css/rmc-cp-consolidated-operator-shell.css' %}">
-<link rel="stylesheet" href="{% static 'css/rmc-platform-workspace-edge-fit.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-tenant-surface-scroll-contract.css' %}?v=20260713-platform-pages">
 {% endblock %}
 

@@ -76,6 +76,9 @@ class TenantPackSetupTests(TestCase):
         self.assertEqual(response.status_code, 200, msg=response.content[:500])
         self.assertTrue(PackInstallation.objects.filter(school=self.school, pack_key="attendance-recovery").exists())
         self.assertFalse(PackInstallation.objects.filter(school=self.other).exists())
+        body = response.content.decode("utf-8", errors="replace")
+        self.assertIn('data-rmc-native-table="1"', body)
+        self.assertIn("attendance-recovery", body)
 
     def test_external_blockers_remain_honest(self):
         client = self._admin_client()
