@@ -94,8 +94,14 @@ KNOWN_DEAD_ENTRIES: dict[str, str] = {
         "Due mailboxes never fetched. Waking it starts outbound mailbox polling.",
     "integrations-renew-push-subscriptions":
         "Push subscriptions never renewed -> they lapse. Waking it starts outbound calls.",
-    "siteconfig-sweep-pending-custom-domains":
-        "Pending custom domains are never swept -> a tenant's custom domain never activates.",
+    # RESOLVED 2026-08-01: siteconfig-sweep-pending-custom-domains is now LIVE.
+    # Its @shared_tasks (siteconfig.sweep_pending_custom_domains +
+    # siteconfig.verify_custom_domain) live in tasks_custom_domain.py, which
+    # SiteconfigConfig.ready() now imports so they register before the beat
+    # scheduler reads the registry. The sweep only does read-only DNS TXT checks
+    # and flips is_verified (safe to wake) — a real broken feature (a tenant's
+    # DNS-verified custom domain never activated) is now fixed. Must-FIRE guard:
+    # apps/siteconfig/tests/test_custom_domain_task_registration.py.
     "migration-cloud-token-rotation-watchdog":
         "Token-rotation watchdog never fires.",
     "migration-cloud-webhook-deliver-due":

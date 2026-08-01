@@ -71,6 +71,28 @@ class SiteconfigConfig(AppConfig):
             ValueError,
         ) as exc:
             logger.warning("Siteconfig public-incident signal wiring skipped: %s", exc)
+        # Register the custom-domain background tasks so the beat entry
+        # `siteconfig-sweep-pending-custom-domains` names a LIVE task. The
+        # @shared_tasks live in tasks_custom_domain.py (NOT tasks.py), so bare
+        # Celery autodiscover never imported them and the sweep silently never
+        # fired — a tenant's DNS-verified custom domain therefore never
+        # activated. Importing here (like the models/signals above) registers
+        # siteconfig.sweep_pending_custom_domains + siteconfig.verify_custom_domain
+        # before the beat scheduler reads the registry. The sweep only does
+        # read-only DNS TXT checks and flips is_verified; no cert/provisioning
+        # or other outbound side effects.
+        try:
+            from . import tasks_custom_domain  # noqa: F401
+        except (
+            AttributeError,
+            ImportError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ) as exc:
+            logger.warning(
+                "Siteconfig custom-domain task registration skipped: %s", exc
+            )
         # Default Django admin site only; manager and tenant urlconfs use config.admin.admin_site
         # (RunMyCampusAdminSite), which has login_template = "auth/admin_login.html" for the high-end
         # superadmin login. This assignment affects django.contrib.admin.site if used elsewhere.
