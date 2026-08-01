@@ -1,4 +1,5 @@
 from django.urls import path
+from django.views.generic import RedirectView
 
 from apps.schools.views_tenant_health_api import (
     TenantHealthStreamView,
@@ -410,6 +411,15 @@ urlpatterns = [
         name="portal_operational_health_stream",
     ),
     path("offline/sync-queue/", offline_sync_queue, name="offline_sync_queue"),
+    path(
+        "offline-sync/",
+        RedirectView.as_view(
+            pattern_name="portal:offline_sync_queue",
+            permanent=False,
+            query_string=True,
+        ),
+        name="offline_sync_legacy",
+    ),
     path("offline/conflicts/", offline_sync_conflicts, name="offline_sync_conflicts"),
     path("api/offline/enqueue/", api_offline_enqueue, name="api_offline_enqueue"),
     path("api/offline/process/", api_offline_process, name="api_offline_process"),

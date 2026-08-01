@@ -9,7 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Iterable
 
-from django.urls import NoReverseMatch, reverse
+from django.urls import NoReverseMatch, get_urlconf, reverse
 from django.utils.translation import gettext_lazy as _
 
 from apps.platform_runtime.blueprint_contract import list_blueprints
@@ -540,32 +540,46 @@ REGISTRIES: tuple[dict[str, str], ...] = (
 # Static catalog routes only — status/missing are resolved live by
 # ``enrich_tenant_configuration_sections`` (MAX Wave 1: no wallpaper "ready").
 TENANT_CONFIGURATION_SECTIONS: tuple[dict[str, str], ...] = (
-    {"name": "School Profile", "status": "", "missing": "", "route": "/siteconfig/console/", "primary_action": "Open profile configuration", "permission": "settings.manage", "probe": "school_created"},
-    {"name": "Academic Year / Term", "status": "", "missing": "", "route": "/siteconfig/academic-years/", "primary_action": "Review academic year setup", "permission": "settings.manage", "probe": "academic_year"},
-    {"name": "Classes / Subjects", "status": "", "missing": "", "route": "/academics/", "primary_action": "Open academic structure", "permission": "settings.manage", "probe": "classes"},
-    {"name": "Grading Rules", "status": "", "missing": "", "route": "/siteconfig/grading-settings/", "primary_action": "Open grading rules", "permission": "grades.manage", "probe": "grading"},
-    {"name": "Report Templates", "status": "", "missing": "", "route": "/siteconfig/reports/builder/", "primary_action": "Open report builder", "permission": "reports.manage", "probe": "reports"},
-    {"name": "Fees", "status": "", "missing": "", "route": "/finance/", "primary_action": "Open money center", "permission": "finance.view", "probe": "fees"},
-    {"name": "Roles / Permissions", "status": "", "missing": "", "route": "/admin/", "primary_action": "Open technical role records", "permission": "settings.manage", "probe": "roles"},
-    {"name": "Parent Portal", "status": "", "missing": "", "route": "/portal/", "primary_action": "Open parent portal preview", "permission": "portal.manage", "probe": "portal"},
-    {"name": "Teacher Portal", "status": "", "missing": "", "route": "/portal/teacher/", "primary_action": "Open teacher workspace", "permission": "portal.manage", "probe": "portal"},
-    {"name": "Apps", "status": "", "missing": "", "route": "/settings/app-catalog/", "primary_action": "Open school app catalog", "permission": "settings.manage", "probe": "apps"},
-    {"name": "Workflows", "status": "", "missing": "", "route": "/studio/automation/", "primary_action": "Open automation studio", "permission": "settings.manage", "probe": "workflows"},
-    {"name": "Offline Settings", "status": "", "missing": "", "route": "/portal/offline-sync/", "primary_action": "Open offline sync", "permission": "settings.manage", "probe": "offline"},
+    {"name": "School Profile", "status": "", "missing": "", "route_name": "siteconfig:console_domains_hub", "primary_action": "Open profile configuration", "permission": "settings.manage", "probe": "school_created"},
+    {"name": "Academic Year / Term", "status": "", "missing": "", "route_name": "siteconfig:academic_years_setup_evidence", "primary_action": "Review academic year setup", "permission": "settings.manage", "probe": "academic_year"},
+    {"name": "Classes / Subjects", "status": "", "missing": "", "route_name": "academics:hub", "primary_action": "Open academic structure", "permission": "settings.manage", "probe": "classes"},
+    {"name": "Grading Rules", "status": "", "missing": "", "route_name": "siteconfig:grading_settings", "primary_action": "Open grading rules", "permission": "grades.manage", "probe": "grading"},
+    {"name": "Report Templates", "status": "", "missing": "", "route_name": "siteconfig:reportcard_builder", "primary_action": "Open report builder", "permission": "reports.manage", "probe": "reports"},
+    {"name": "Fees", "status": "", "missing": "", "route_name": "finance:dashboard", "primary_action": "Open money center", "permission": "finance.view", "probe": "fees"},
+    {"name": "Roles / Permissions", "status": "", "missing": "", "route_name": "tenant_admin:index", "primary_action": "Open technical role records", "permission": "settings.manage", "probe": "roles"},
+    {"name": "Parent Portal", "status": "", "missing": "", "route_name": "portal:parent_dashboard", "primary_action": "Open parent portal preview", "permission": "portal.manage", "probe": "portal"},
+    {"name": "Teacher Portal", "status": "", "missing": "", "route_name": "portal:teacher_dashboard_alias", "primary_action": "Open teacher workspace", "permission": "portal.manage", "probe": "portal"},
+    {"name": "Apps", "status": "", "missing": "", "route_name": "tenant_app_catalog", "primary_action": "Open school app catalog", "permission": "settings.manage", "probe": "apps"},
+    {"name": "Workflows", "status": "", "missing": "", "route_name": "studio_os:automation", "primary_action": "Open automation studio", "permission": "settings.manage", "probe": "workflows"},
+    {"name": "Offline Settings", "status": "", "missing": "", "route_name": "portal:offline_sync_queue", "primary_action": "Open offline sync", "permission": "settings.manage", "probe": "offline"},
     {
         "name": "Branding / Theme",
         "status": "",
         "missing": "",
-        "route": "/siteconfig/theme-experience/hub/",
+        "route_name": "siteconfig:theme_experience_hub",
         "primary_action": "Open theme & experience hub",
         "permission": "settings.manage",
         "probe": "branding",
     },
-    {"name": "Security / Audit", "status": "", "missing": "", "route": "/compliance/", "primary_action": "Open school audit", "permission": "compliance.view", "probe": "audit"},
+    {"name": "Security / Audit", "status": "", "missing": "", "route_name": "compliance:dashboard", "primary_action": "Open school audit", "permission": "compliance.view", "probe": "audit"},
 )
 
 
-def enrich_tenant_configuration_sections(school) -> list[dict[str, object]]:
+def _resolve_tenant_configuration_route(section, *, request=None, urlconf=None) -> tuple[str, str]:
+    """Resolve a configuration action through the tenant URL registry.
+
+    Missing ownership fails closed: callers receive an empty href plus a useful
+    diagnostic instead of shipping another tenant-scoped 404.
+    """
+    route_name = str(section.get("route_name") or "")
+    active_urlconf = urlconf or getattr(request, "urlconf", None) or get_urlconf() or "config.tenant_urls"
+    try:
+        return reverse(route_name, urlconf=active_urlconf), ""
+    except (NoReverseMatch, TypeError, ValueError):
+        return "", f"Route unavailable: {route_name}"
+
+
+def enrich_tenant_configuration_sections(school, *, request=None, user=None) -> list[dict[str, object]]:
     """Resolve live status tags for School Configuration Center cards.
 
     Maps setup_health_score checks + lightweight presence probes onto the locked
@@ -580,7 +594,7 @@ def enrich_tenant_configuration_sections(school) -> list[dict[str, object]]:
     )
     from apps.schools.setup_health import setup_health_score
 
-    health = setup_health_score(school)
+    health = setup_health_score(school, user=user)
     check_map = {name: bool(passed) for name, passed, _label in health.get("checks", [])}
 
     def _probe(name: str) -> tuple[str, str]:
@@ -628,9 +642,16 @@ def enrich_tenant_configuration_sections(school) -> list[dict[str, object]]:
     for section in TENANT_CONFIGURATION_SECTIONS:
         probe = section.get("probe", "school_created")
         key, missing = _probe(probe)
+        route, route_error = _resolve_tenant_configuration_route(section, request=request)
+        if route_error:
+            key = STATUS_NEEDS_SETUP
+            missing = route_error
         rows.append(
             {
                 **section,
+                "route": route,
+                "route_error": route_error,
+                "action_disabled": bool(route_error),
                 "status": STATUS_LABELS[key],
                 "status_key": key,
                 "status_tone": STATUS_VARIANTS[key],
@@ -829,13 +850,16 @@ def all_surface_map_rows() -> Iterable[dict[str, str]]:
             "tests_needed": "configuration center access, route links, tenant boundary",
         }
     for section in TENANT_CONFIGURATION_SECTIONS:
+        route, route_error = _resolve_tenant_configuration_route(
+            section, urlconf="config.tenant_urls"
+        )
         yield {
-            "current_route": section["route"],
+            "current_route": route,
             "current_template_view": section["name"],
             "current_user": "tenant school admin",
             "belongs_to": "/school",
             "current_status": section["status"],
-            "risk": section["missing"],
+            "risk": route_error or section["missing"],
             "recommended_action": section["primary_action"],
             "tests_needed": "tenant school configuration access and platform registry exclusion",
         }

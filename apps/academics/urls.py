@@ -1,10 +1,11 @@
 from django.urls import path
 
-from . import views_syllabus, views_timetable, views_workflow
+from . import views_hub, views_syllabus, views_timetable, views_workflow
 
 app_name = "academics"
 
 urlpatterns = [
+    path("", views_hub.academics_hub, name="hub"),
     path(
         "workflow/<str:workflow_key>/",
         views_workflow.WorkflowWizardView.as_view(),

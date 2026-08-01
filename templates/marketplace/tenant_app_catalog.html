@@ -11,6 +11,7 @@
 <link rel="stylesheet" href="{% static 'css/marketplace-tenant-app-catalog.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-operational-center-frame.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-tenant-blueprint-option-a.css' %}?v=20260717-option-a-rollout">
+<link rel="stylesheet" href="{% static 'css/rmc-tenant-configuration-operations.css' %}?v=20260801-tenant-configuration-operations-v1">
 {% endblock %}
 
 {% block backend_page %}
@@ -19,7 +20,7 @@
 
 {% include "components/next_action_strip.html" %}
 
-<div class="container-fluid py-2 proof-page tenant-app-catalog-wrap ui-premium-surface" data-page-archetype="catalog" data-shell-marketplace="tenant-app-catalog" data-rmc-market-surface="catalog" data-rmc-mkt-catalog-surface="1" data-rmc-component-audit="1" data-apple-class-app-catalog="tenant" data-rmc-zero-click="1" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-rmc-section-nav="auto" data-rmc-option-a-canvas="1">
+<div class="container-fluid py-2 proof-page tenant-app-catalog-wrap ui-premium-surface rmc-tenant-ops rmc-catalog-canvas rmc-mkt-catalog--compact" data-rmc-tenant-ops-build="2026-08-01-v1.0" data-page-archetype="catalog" data-shell-marketplace="tenant-app-catalog" data-rmc-market-surface="catalog" data-rmc-mkt-catalog-surface="1" data-rmc-component-audit="1" data-apple-class-app-catalog="tenant" data-rmc-zero-click="1" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-rmc-section-nav="auto" data-rmc-option-a-canvas="1">
   {% if not school %}
   <div class="proof-panel" data-page-header="1">
     <h1 class="proof-panel-title">{% trans "App catalog" %}</h1>
@@ -123,7 +124,7 @@
     </div>
 
     {% comment %} Polish (v3.27.x): progressive-enhancement search/facet bar driven by the catalog JSON API. Falls back to server-rendered grid below if JS is off. {% endcomment %}
-    <div class="d-flex flex-wrap gap-2 align-items-center mb-3" data-region="catalog-search-bar" data-catalog-api-url="/marketplace/api/v1/catalog/">
+    <div class="d-flex flex-wrap gap-2 align-items-center mb-3 rmc-catalog-toolbar" data-region="catalog-search-bar" data-catalog-api-url="/marketplace/api/v1/catalog/" data-catalog-fallback-url="{% static 'marketing/img/catalog-placeholder.svg' %}">
       <label for="tenant-catalog-search" class="visually-hidden">{% trans "Search apps" %}</label>
       <input type="search" id="tenant-catalog-search" name="q" placeholder="{% trans 'Search apps' %}" class="form-control form-control-sm" style="max-width:18rem;" data-catalog-search-input>
       <label for="tenant-catalog-pricing" class="visually-hidden">{% trans "Filter by pricing" %}</label>
@@ -149,6 +150,8 @@
       </select>
       <span class="small text-muted" data-catalog-result-count></span>
     </div>
+    {% comment %}Superseded by the external type-safe catalog controller below.{% endcomment %}
+    {% comment %}
     <script nonce="{{ csp_nonce }}">
       (function(){
         var bar = document.querySelector('[data-region="catalog-search-bar"]');
@@ -160,7 +163,7 @@
         var serverCards = Array.from(grid.children); // preserved for fallback
         var debounce = null;
         function render(apps){
-          grid.innerHTML = '';
+          grid.replaceChildren();
           if (counter) counter.textContent = apps.length + ' result' + (apps.length===1?'':'s');
           if (apps.length === 0) {
             var empty = document.createElement('div');
@@ -175,7 +178,7 @@
             card.href = a.detail_url;
             card.setAttribute('data-rmc-mkt-app-card-js','1');
             card.style.textDecoration='none';
-            card.innerHTML =
+            card.textContent =
               '<div class="proof-app-card-body">' +
               (a.preview_image_url ? '<img src="'+a.preview_image_url+'" alt="" class="img-fluid mb-2" loading="lazy">' : '') +
               '<h3 class="h6 mb-1">'+ (a.name||'') +'</h3>' +
@@ -199,7 +202,7 @@
             .then(function(data){ render(data.apps || []); })
             .catch(function(){
               // On API failure restore server-rendered cards.
-              grid.innerHTML = '';
+              grid.replaceChildren();
               serverCards.forEach(function(c){ grid.appendChild(c); });
             });
         }
@@ -209,18 +212,19 @@
         // as the first paint; only re-fetch when the user actually filters.
       })();
     </script>
+    {% endcomment %}
     <div class="proof-catalog-grid" id="tenant-catalog-grid">
       {% for listing in listings %}
-      <article class="proof-app-card rmc-reveal" data-phase9-listing-trust data-rmc-mkt-app-card="1" data-rmc-mkt-listing-pipeline-phase="{{ listing.mkt_listing_pipeline_phase|default:'' }}">
+      <article class="proof-app-card rmc-mkt-app-card rmc-reveal" data-phase9-listing-trust data-rmc-mkt-app-card="1" data-rmc-mkt-listing-pipeline-phase="{{ listing.mkt_listing_pipeline_phase|default:'' }}">
         {% if listing.preview_image_url %}
         <div class="proof-app-preview-img mb-2 border rounded bg-light d-flex align-items-center justify-content-center">
-          <img src="{{ listing.preview_image_url }}" alt="{% trans 'App listing preview image' %}" class="img-fluid rounded" style="max-height: 140px; object-fit: contain; width: 100%;" loading="lazy">
+          <img src="{{ listing.preview_image_url }}" data-rmc-catalog-image data-rmc-fallback-src="{% static 'marketing/img/catalog-placeholder.svg' %}" alt="{% trans 'App listing preview image' %}" class="img-fluid rounded" style="max-height: 140px; object-fit: contain; width: 100%;" loading="lazy">
         </div>
         {% endif %}
         {% if listing.screenshot_urls %}
         <div class="proof-app-screenshots mb-2 d-flex gap-1 flex-wrap" data-listing-screenshots>
           {% for url in listing.screenshot_urls|slice:":5" %}
-          <img src="{{ url }}" alt="{% trans 'App screenshot' %}" class="rounded border bg-light" style="height: 56px; width: 80px; object-fit: contain;" loading="lazy">
+          <img src="{{ url }}" data-rmc-catalog-image data-rmc-fallback-src="{% static 'marketing/img/catalog-placeholder.svg' %}" alt="{% trans 'App screenshot' %}" class="rounded border bg-light" style="height: 56px; width: 80px; object-fit: contain;" loading="lazy">
           {% endfor %}
         </div>
         {% elif not listing.preview_image_url %}
@@ -326,6 +330,8 @@
           {% endif %}
         </div>
 
+        <details class="rmc-mkt-app-disclosure mt-2">
+        <summary>{% trans "Trust, compatibility & rollback" %}</summary>
         {% with cd=listing.catalog_display %}
         <div class="small border-top pt-2 mt-2" data-listing-compatibility>
           {% if cd.platform_min_version or cd.min_rmc_version %}
@@ -362,6 +368,7 @@
         {% with cd=listing.catalog_display %}
         <div class="small text-muted mt-1" data-listing-rollback-copy><strong>{% trans "Rollback expectations" %}:</strong> {{ cd.rollback_summary }}</div>
         {% endwith %}
+        </details>
 
         {% if listing.app.slug in installed_slugs %}
         <div class="proof-app-actions">
@@ -383,12 +390,15 @@
           {% endif %}
           <a href="{% url 'tenant_scope_consent' %}" class="btn btn-outline-secondary btn-sm">{% trans "Scope consent" %}</a>
         </div>
+        <details class="rmc-mkt-app-disclosure mt-2" data-rmc-mkt-next-steps="1">
+        <summary>{% trans "What happens after install" %}</summary>
         <p class="small text-muted mt-2 mb-1">{% trans "Install starts in sandbox. Activation remains a separate, deliberate step." %}</p>
-        <ol class="small text-muted ps-3 mb-0" data-rmc-mkt-next-steps="1" aria-label="{% trans 'What happens next' %}">
+        <ol class="small text-muted ps-3 mb-0" aria-label="{% trans 'What happens next' %}">
           <li>{% trans "Install in sandbox and verify permissions." %}</li>
           <li>{% trans "Test app behavior with your data and workflow." %}</li>
           <li>{% trans "Activate only after team sign-off." %}</li>
         </ol>
+        </details>
         {% endif %}
       </article>
       {% empty %}
@@ -512,4 +522,8 @@
   {% endif %}
   {% endif %}
 </div>
+{% endblock %}
+
+{% block extrajs %}{{ block.super }}
+<script src="{% static 'js/tenant-app-catalog.js' %}?v=20260801-tenant-configuration-operations-v1" defer></script>
 {% endblock %}

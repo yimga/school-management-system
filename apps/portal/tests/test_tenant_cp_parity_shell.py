@@ -15,7 +15,8 @@ class TenantSidebarV8GroupsTests(SimpleTestCase):
             encoding="utf-8"
         )
         self.assertIn("cp-sidebar__group", text)
-        self.assertIn("{% regroup PORTAL_SIDEBAR_ITEMS by section", text)
+        self.assertIn("PORTAL_SIDEBAR_GROUPS", text)
+        self.assertNotIn("{% regroup", text)
         self.assertIn("cp-sidebar__item", text)
 
     def test_portal_sidebar_wires_v8_when_tenant_shell(self):

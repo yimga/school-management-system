@@ -3,15 +3,14 @@
 Tenant v8 sidebar groups — mirrors manager_complete_sidebar_nav / cp-sidebar__group.
 Config-driven PORTAL_SIDEBAR_ITEMS grouped by section with collapsible <details>.
 {% endcomment %}
-{% regroup PORTAL_SIDEBAR_ITEMS by section as section_groups %}
-{% for group in section_groups %}
+{% for group in PORTAL_SIDEBAR_GROUPS %}
 {% cycle '1' '2' '3' '4' '5' '6' as navaccent silent %}
-<details class="cp-sidebar__group cp-sidebar__group--tenant{% if forloop.first or group.list.0.section_is_active %} cp-sidebar__group--expanded{% endif %}"
-         {% if forloop.first or group.list.0.section_is_active %}open{% endif %}
+<details class="cp-sidebar__group cp-sidebar__group--tenant{% if forloop.first or group.is_active %} cp-sidebar__group--expanded{% endif %}"
+         {% if forloop.first or group.is_active %}open{% endif %}
          data-rmc-nav-accent="{{ navaccent }}"
-         data-rmc-portal-sidebar-group="{{ group.grouper|default:'navigation'|slugify }}">
-  <summary class="cp-sidebar__section cp-sidebar__group-toggle{% if forloop.first %} cp-sidebar__section--first{% endif %}">{{ group.grouper|default:_("Navigation") }}</summary>
-  {% for item in group.list %}
+         data-rmc-portal-sidebar-group="{{ group.name|default:'navigation'|slugify }}">
+  <summary class="cp-sidebar__section cp-sidebar__group-toggle{% if forloop.first %} cp-sidebar__section--first{% endif %}">{{ group.name|default:_("Navigation") }}</summary>
+  {% for item in group.items %}
     {% if item.url and item.id not in PINNED_SIDEBAR_IDS %}
   <a class="cp-sidebar__item{% if item.is_current %} cp-sidebar__item--current{% endif %}"
      href="{{ item.url }}"

@@ -10,15 +10,13 @@
 <link rel="stylesheet" href="{% static 'css/decision-engine-surface.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-auto-grid.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-charts.css' %}">
-<link rel="stylesheet" href="{% static 'css/rmc-world-class-experience.css' %}">
-<link rel="stylesheet" href="{% static 'css/rmc-page-archetypes-max.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-tenant-configuration-operations.css' %}?v=20260801-tenant-configuration-operations-v1">
 <script src="{% static 'js/_pages/finance__dashboard.js' %}"></script>
 {% endblock %}
 
 {% block content %}
-  <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Finance" %}</h1>
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="rmc-tenant-exception-task container-fluid py-2 rmc-max-suppress-meta-option-a" data-rmc-tenant-exception-task="1" data-rmc-page-fold-nav="required" data-page-archetype="money" data-rmc-os-center="money_center" data-rmc-ux-role-dashboard="finance-workspace" data-apple-class-billing-ux="1" data-rmc-scroll-policy="paginate" data-rmc-work-root="1" data-rmc-static-chrome="1">
+<div class="rmc-tenant-exception-task container-fluid py-2 rmc-max-suppress-meta-option-a rmc-tenant-ops rmc-finance-canvas" data-rmc-tenant-ops-build="2026-08-01-v1.0" data-rmc-tenant-exception-task="1" data-rmc-page-fold-nav="required" data-page-archetype="money" data-rmc-os-center="money_center" data-rmc-ux-role-dashboard="finance-workspace" data-apple-class-billing-ux="1" data-rmc-scroll-policy="paginate" data-rmc-work-root="1" data-rmc-static-chrome="1">
 {% phase8_dashboard_declaration "finance/dashboard.html" %}
 {% include "partials/finance_glocal_strip.html" %}
 {% include "components/rmc_page_masthead.html" %}

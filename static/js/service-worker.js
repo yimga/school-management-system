@@ -207,7 +207,7 @@
 // rmc-copilot-help-mode.css so tenants drop the retired bottom takeover.
 // v4.05.75: tenant shell chrome contract fixes footer-as-body-content and
 // cache-busts rmc-tenant-workspace-canvas.css for deployed tenants.
-const CACHE_VERSION = "sms-v4.06.24-full-canvas-shell-refresh-2026-07-31";
+const CACHE_VERSION = "sms-v4.06.25-tenant-configuration-operations-2026-08-01";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 
@@ -302,6 +302,7 @@ const STATIC_ASSETS = [
   "/static/css/rmc-class-grammar-ext.css",
   "/static/css/rmc-copilot-help-mode.css",
   "/static/css/rmc-tenant-workspace-canvas.css",
+  "/static/css/rmc-tenant-configuration-operations.css",
   "/static/css/rmc-warm-bright-school.css",
   "/static/css/rmc-platform-header.css",
   "/static/css/migration-cloud-ui.css",
@@ -325,6 +326,7 @@ const STATIC_ASSETS = [
   "/static/js/rmc-kb-ai-assistant.js",
   "/static/js/rmc-operator-help-center.js",
   "/static/js/rmc-tenant-provisioning-status.js",
+  "/static/js/tenant-app-catalog.js",
   // v4.00.4: zero-latency mandate runtime modules.
   "/static/js/rmc-viewport-engine.js",
   "/static/js/rmc-wal-stream.js",

@@ -1,6 +1,7 @@
 """URLs for Compliance App Dashboard"""
 
 from django.urls import path, include
+from django.views.generic import RedirectView
 from apps.compliance.views import (
     ComplianceDashboardView,
     ComplianceOverviewAPI,
@@ -28,6 +29,15 @@ from apps.compliance.views_data_quality import data_quality_center
 app_name = "compliance"
 
 urlpatterns = [
+    path(
+        "",
+        RedirectView.as_view(
+            pattern_name="compliance:dashboard",
+            permanent=False,
+            query_string=True,
+        ),
+        name="home",
+    ),
     # Dashboard view
     path("dashboard/", ComplianceDashboardView.as_view(), name="dashboard"),
     # Wave E: auditor magic-link. Public inspector landing is token-gated (the

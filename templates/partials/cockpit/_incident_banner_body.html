@@ -1,0 +1,19 @@
+{% load i18n %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="rmc-cp-incident-banner rmc-cp-incident-banner--{{ banner.severity|default:'warn' }}"
+     role="alert"
+     data-rmc-cp-incident-banner="1"
+     data-rmc-incident-host="{{ incident_host }}"
+     {% if incident_host == 'tenant' %}data-rmc-tenant-incident-banner="1"{% endif %}
+     data-rmc-cp-incident-severity="{{ banner.severity|default:'warn' }}">
+  <div class="rmc-cp-incident-banner__inner">
+    <span class="rmc-cp-incident-banner__label">{% trans "Attention" %}</span>
+    <span class="rmc-cp-incident-banner__text rmc-text-shield" data-rmc-text-shield="1">{{ banner.text }}</span>
+    {% if banner.timestamp %}<span class="rmc-cp-incident-banner__time">{{ banner.timestamp }}</span>{% endif %}
+    <button type="button" class="rmc-cp-incident-banner__open btn btn-sm" data-bs-toggle="offcanvas" data-bs-target="#rmcCpActivityDrawer" aria-controls="rmcCpActivityDrawer">
+      {% if incident_host == 'tenant' %}{% trans "View school activity" %}{% else %}{% trans "View activity" %}{% endif %}
+    </button>
+    <button type="button" class="rmc-cp-incident-banner__snooze btn btn-sm btn-link" data-rmc-cp-incident-snooze="1" aria-label="{% trans 'Snooze for one hour' %}">{% trans "Snooze 1h" %}</button>
+    <button type="button" class="rmc-cp-incident-banner__dismiss btn btn-sm btn-link" data-rmc-cp-incident-dismiss="1" aria-label="{% trans 'Dismiss alert' %}">{% trans "Dismiss" %}</button>
+  </div>
+</div>

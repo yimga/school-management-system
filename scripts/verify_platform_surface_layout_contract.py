@@ -93,12 +93,11 @@ def main() -> int:
     )
     add(
         "portal_document_scroll_all_hosts",
-        "Tenant portal body uses document scroll (not manager-only)",
+        "Portal shell selects canvas for the tenant OS and document scroll for bridge pages",
         (
-            _contains("templates/portal_base.html", 'data-rmc-cp-scroll="document"')
-            or _contains(
+            _contains(
                 "templates/portal_base.html",
-                "body_scroll_policy %}document{% endblock",
+                "{% if tp_v3_tenant_shell %}canvas{% else %}document{% endif %}",
             )
         )
         and _not_contains(
@@ -109,9 +108,11 @@ def main() -> int:
     )
     add(
         "marketing_chrome_sweep",
-        "Marketing shell wires sticky chrome layout + fold standards",
-        _contains("templates/marketing/base_marketing.html", "rmc_platform_chrome_styles.html")
-        and _contains("templates/marketing/base_marketing.html", "back_to_top.html"),
+        "Marketing shell owns document scroll, fold standards, and back-to-top without tenant/operator chrome",
+        _contains("templates/marketing/base_marketing.html", 'data-rmc-cp-scroll="document"')
+        and _contains("templates/marketing/base_marketing.html", "rmc-page-fold-standards.css")
+        and _contains("templates/marketing/base_marketing.html", "back_to_top.html")
+        and _not_contains("templates/marketing/base_marketing.html", "rmc_platform_chrome_styles.html"),
         "marketing/base_marketing.html",
     )
     add(

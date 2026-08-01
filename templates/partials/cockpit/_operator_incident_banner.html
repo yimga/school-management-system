@@ -1,38 +1,6 @@
 {% load i18n %}
-{% if operator_incident_banner or tenant_incident_banner %}
-{% firstof operator_incident_banner tenant_incident_banner as banner_val %}{% with banner=banner_val %}
-<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="rmc-cp-incident-banner rmc-cp-incident-banner--{{ banner.severity|default:'warn' }}"
-     role="alert"
-     data-rmc-cp-incident-banner="1"
-     {% if tenant_incident_banner %}data-rmc-tenant-incident-banner="1"{% endif %}
-     data-rmc-cp-incident-severity="{{ banner.severity|default:'warn' }}">
-  <div class="rmc-cp-incident-banner__inner">
-    <span class="rmc-cp-incident-banner__label">{% trans "Attention" %}</span>
-    <span class="rmc-cp-incident-banner__text rmc-text-shield" data-rmc-text-shield="1">{{ banner.text }}</span>
-    {% if banner.timestamp %}
-    <span class="rmc-cp-incident-banner__time">{{ banner.timestamp }}</span>
-    {% endif %}
-    <button type="button"
-            class="rmc-cp-incident-banner__open btn btn-sm"
-            data-bs-toggle="offcanvas"
-            data-bs-target="#rmcCpActivityDrawer"
-            aria-controls="rmcCpActivityDrawer">
-      {% if tenant_incident_banner %}{% trans "View school activity" %}{% else %}{% trans "View activity" %}{% endif %}
-    </button>
-    <button type="button"
-            class="rmc-cp-incident-banner__snooze btn btn-sm btn-link"
-            data-rmc-cp-incident-snooze="1"
-            aria-label="{% trans 'Snooze for one hour' %}">
-      {% trans "Snooze 1h" %}
-    </button>
-    <button type="button"
-            class="rmc-cp-incident-banner__dismiss btn btn-sm btn-link"
-            data-rmc-cp-incident-dismiss="1"
-            aria-label="{% trans 'Dismiss alert' %}">
-      {% trans "Dismiss" %}
-    </button>
-  </div>
-</div>
-{% endwith %}
+{% if operator_incident_banner %}
+  {% include "partials/cockpit/_incident_banner_body.html" with banner=operator_incident_banner incident_host="operator" only %}
+{% elif tenant_incident_banner %}
+  {% include "partials/cockpit/_incident_banner_body.html" with banner=tenant_incident_banner incident_host="tenant" only %}
 {% endif %}

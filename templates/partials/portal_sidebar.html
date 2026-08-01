@@ -106,11 +106,10 @@ SiteSettings.cockpit_payload.
       {% if tp_v3_tenant_shell %}
         {% include "partials/portal_sidebar_v8_groups.html" %}
       {% else %}
-      {% for item in PORTAL_SIDEBAR_ITEMS %}
+      {% for group in PORTAL_SIDEBAR_GROUPS %}
+        <div class="sidebar-section-title">{{ group.name }}</div>
+        {% for item in group.items %}
         {% if item.url and item.id not in PINNED_SIDEBAR_IDS %}
-          {% ifchanged item.section %}
-            <div class="sidebar-section-title">{{ item.section }}</div>
-          {% endifchanged %}
           <div class="sidebar-nav-item-wrapper d-flex align-items-center gap-0">
             <a class="nav-link nav-pill flex-grow-1{% if item.badge %} d-flex align-items-center justify-content-between{% endif %}" href="{{ item.url }}" title="{{ item.label }}" data-sidebar-id="{{ item.id }}">
               <span><i class="bi {{ item.icon|default:'bi-circle' }} me-2"></i>{{ item.label }}</span>
@@ -121,6 +120,7 @@ SiteSettings.cockpit_payload.
             </button>
           </div>
         {% endif %}
+        {% endfor %}
       {% endfor %}
       {% endif %}
     {% else %}

@@ -460,7 +460,7 @@ def school_configuration_center(request):
     # Real school readiness (school created / branding / dashboard / plan) from
     # setup_health_score — replaces the hardcoded "74" so the bar reaches 100
     # only when the four setup facts are actually satisfied.
-    health = setup_health_score(school)
+    health = setup_health_score(school, user=request.user)
     school_readiness = {
         "value": health["score"],
         "unmet": [label for _name, passed, label in health["checks"] if not passed],
@@ -509,7 +509,9 @@ def school_configuration_center(request):
         "platform_runtime/school_configuration_center.html",
         {
             "school": school,
-            "sections": enrich_tenant_configuration_sections(school),
+            "sections": enrich_tenant_configuration_sections(
+                school, request=request, user=request.user
+            ),
             "school_readiness": school_readiness,
             "page_marker": "rmc-school-configuration-center",
             **school_configuration_frame_context(),

@@ -1,8 +1,12 @@
 {% extends "portal_base.html" %}
 {% block rmc_workspace_os_header %}{% endblock %}
-{% load i18n glocal_tags rmc_explain_tags %}
+{% load i18n glocal_tags rmc_explain_tags static %}
 
 {% block title %}{% trans "Offline sync queue" %} — {{ block.super }}{% endblock %}
+
+{% block extrastyle %}{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/rmc-tenant-configuration-operations.css' %}?v=20260801-tenant-configuration-operations-v1">
+{% endblock %}
 
 {% block content %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
@@ -12,7 +16,7 @@
 
 {% comment %} table-pagination-allow: per-user-queue-view-layer-row-cap natural-drain-not-list-view {% endcomment %}
 {% comment %} table-column-budget-allow: offline-sync-multi-section-operator-conditional-columns — idempotency in row drawer meta {% endcomment %}
-<div class="container-fluid px-3 px-lg-4 py-4" data-rmc-offline-sync-queue="1" data-rmc-os-center="offline_sync_center" data-task="offline_sync" data-task-step="portal:offline-sync-queue" data-rmc-scroll-policy="paginate" data-page-archetype="task-list" data-rmc-core-context="1">
+<div class="container-fluid px-3 px-lg-4 py-4 rmc-tenant-ops rmc-offline-canvas" data-rmc-tenant-ops-build="2026-08-01-v1.0" data-rmc-offline-sync-queue="1" data-rmc-os-center="offline_sync_center" data-task="offline_sync" data-task-step="portal:offline-sync-queue" data-rmc-scroll-policy="paginate" data-page-archetype="task-list" data-rmc-core-context="1">
   {% trans "Operations" as off_eyebrow %}
   {% trans "Queued offline mutations for this school — process in order; failures stay visible for retry or conflict resolution." as off_purpose %}
   {% include "components/rmc_os_page_header.html" with os_center_key="offline_sync_center" center_eyebrow=off_eyebrow center_title=_("Offline Sync Center") center_purpose=off_purpose %}

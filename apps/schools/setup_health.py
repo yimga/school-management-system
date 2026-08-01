@@ -7,7 +7,7 @@ from __future__ import annotations
 from typing import Any
 
 
-def setup_health_score(school: Any) -> dict[str, Any]:
+def setup_health_score(school: Any, *, user: Any = None) -> dict[str, Any]:
     """
     Return a simple health score (0-100) and checklist for school setup.
     Used by Setup Studio and admin.
@@ -31,13 +31,14 @@ def setup_health_score(school: Any) -> dict[str, Any]:
         else:
             checks.append(("branding", False, "Branding not set"))
         max_score += 25
-        if getattr(school, "default_dashboard_slug", None) or getattr(
-            school, "default_workflow_slug", None
-        ):
+        from apps.schools.runtime_assignment_evidence import runtime_assignment_evidence
+
+        runtime_evidence = runtime_assignment_evidence(school, user=user)
+        if runtime_evidence["passed"]:
             score += 25
-            checks.append(("runtime", True, "Dashboard/workflow assigned"))
+            checks.append(("runtime", True, "Active dashboard/workflow assignment"))
         else:
-            checks.append(("runtime", False, "Dashboard/workflow not assigned"))
+            checks.append(("runtime", False, "Active dashboard/workflow assignment missing"))
         max_score += 25
         if getattr(school, "plan_id", None):
             score += 25
@@ -50,6 +51,13 @@ def setup_health_score(school: Any) -> dict[str, Any]:
         "score": round((score / max_score) * 100) if max_score else 0,
         "checks": checks,
         "max_score": max_score,
+        "runtime_evidence": runtime_evidence if school else {
+            "passed": False,
+            "source": "none",
+            "required_roles": ["ADMIN"],
+            "matched_roles": [],
+            "counts": {},
+        },
     }
 
 

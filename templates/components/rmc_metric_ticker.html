@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n rmc_component_tags %}
 {% comment %} Sticky scroll-aware metric ticker — Apple Stocks-style pinned KPI row.
 
    Wraps a KPI block so that when the user scrolls past it, a condensed mirror
@@ -26,8 +26,8 @@
 
    rmc-metric-ticker.js wires the IntersectionObserver + show/hide behavior. {% endcomment %}
 
-{% firstof metric_items metrics as tmval %}{% with ticker_metrics=tmval %}
-<section class="rmc-metric-ticker" data-rmc-metric-ticker aria-label="{% trans 'Key metrics' %}">
+{% with ticker_metrics=metrics|valid_metric_items:8 %}
+<section class="rmc-metric-ticker" data-rmc-metric-ticker data-rmc-metric-count="{{ ticker_metrics|length }}" aria-label="{% trans 'Key metrics' %}">
   <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="rmc-metric-ticker__sentinel" aria-hidden="true"></div>
   <div class="rmc-metric-ticker__full row g-3">
@@ -44,6 +44,8 @@
           {% endif %}
         </div>
       </div>
+    {% empty %}
+      <div class="col-12"><div class="kpi rmc-metric-ticker__card rmc-metric-ticker__empty"><span class="label">{% trans "No metrics available yet" %}</span></div></div>
     {% endfor %}
   </div>
 

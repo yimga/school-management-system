@@ -14,8 +14,9 @@ SHELL_FILES = {
     "control_plane": TEMPLATES / "control_plane_skeleton.html",
     "portal": TEMPLATES / "portal_base.html",
     "tenant_base": TEMPLATES / "base.html",
-    "admin": TEMPLATES / "admin" / "base_site.html",
 }
+ADMIN_BASE = TEMPLATES / "admin" / "base_site.html"
+BUNDLE_TEMPLATE = TEMPLATES / "partials" / "portal_row_detail_drawer_bundle.html"
 
 BUNDLE = "portal_row_detail_drawer_bundle.html"
 JS = REPO / "static" / "js" / "rmc-portal-row-detail-drawer.js"
@@ -44,6 +45,16 @@ def main() -> int:
         if BUNDLE not in text:
             failures.append(f"Shell {name} ({path.name}) missing {BUNDLE}")
 
+    admin_text = ADMIN_BASE.read_text(encoding="utf-8", errors="replace")
+    if BUNDLE in admin_text or "rmc-portal-row-detail-drawer.css" in admin_text:
+        failures.append("Django admin must not mount the global portal row-detail drawer")
+
+    bundle_text = BUNDLE_TEMPLATE.read_text(encoding="utf-8", errors="replace")
+    if "{% if rmc_row_drawer_css_in_head %}" not in bundle_text:
+        failures.append("Drawer bundle must render only when the root shell owns its head CSS")
+    if '<link rel="stylesheet"' in bundle_text:
+        failures.append("Drawer bundle must not emit a stylesheet from body")
+
     cp_dupes: list[str] = []
     table_pages = 0
     explicit_row_pages = 0
@@ -57,16 +68,6 @@ def main() -> int:
         if extends_cp and BUNDLE in text:
             rel = path.relative_to(REPO).as_posix()
             cp_dupes.append(rel)
-
-    if cp_dupes:
-        warnings.append(
-            f"{len(cp_dupes)} control-plane page(s) duplicate {BUNDLE} "
-            f"(shell provides it; dedupe handles DOM but double script load is wasteful)"
-        )
-        for rel in sorted(cp_dupes)[:15]:
-            warnings.append(f"  duplicate: {rel}")
-        if len(cp_dupes) > 15:
-            warnings.append(f"  ... and {len(cp_dupes) - 15} more")
 
     operator_pages = [
         TEMPLATES / "schools" / "super_schools_list.html",
@@ -106,7 +107,7 @@ def main() -> int:
     print("ROW DETAIL DRAWER PLATFORM AUDIT")
     print(f"  Templates with data-rmc-row-detail-table: {table_pages}")
     print(f"  Templates with explicit data-rmc-row-detail rows: {explicit_row_pages}")
-    print(f"  Control-plane duplicate bundle includes: {len(cp_dupes)}")
+    print(f"  Legacy control-plane bundle includes (render-safe no-ops): {len(cp_dupes)}")
 
     if warnings:
         print("\nWARNINGS:")

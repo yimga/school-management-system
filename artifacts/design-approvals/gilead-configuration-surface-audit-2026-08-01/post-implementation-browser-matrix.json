@@ -1,0 +1,2132 @@
+{
+  "generatedAt": "2026-08-01T13:51:33.727Z",
+  "host": "demo-school.runmycampus.com",
+  "buildId": "2026-08-01-v1.0",
+  "routes": [
+    "/school/settings/",
+    "/school/configuration/",
+    "/academics/",
+    "/portal/offline-sync/?source=browser-audit",
+    "/finance/",
+    "/settings/app-catalog/",
+    "/compliance/?source=browser-audit"
+  ],
+  "viewportWidths": [
+    1440,
+    1024,
+    768,
+    390
+  ],
+  "themes": [
+    "light",
+    "dark"
+  ],
+  "resultCount": 56,
+  "findingCount": 0,
+  "results": [
+    {
+      "route": "settings",
+      "requestedPath": "/school/settings/",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/school/settings/",
+      "finalPath": "/school/settings/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "Configuration\n          \n            \n\n\n  \n    \n      \n      \n    \n    Configuration"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [
+        {
+          "selector": "rmc-ops-card-grid rmc-config-grid",
+          "columns": [
+            220.906,
+            220.906,
+            220.906,
+            220.906
+          ]
+        }
+      ],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 17,
+      "computedColorScheme": "light",
+      "computedBackground": "rgb(11, 16, 32)",
+      "httpStatus": 200,
+      "findings": []
+    },
+    {
+      "route": "configuration",
+      "requestedPath": "/school/configuration/",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/school/configuration/",
+      "finalPath": "/school/configuration/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "Configuration\n          \n            \n\n\n  \n    \n      \n      \n    \n    Configuration"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [
+        {
+          "selector": "rmc-ops-card-grid rmc-config-grid",
+          "columns": [
+            220.906,
+            220.906,
+            220.906,
+            220.906
+          ]
+        }
+      ],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 17,
+      "computedColorScheme": "light",
+      "computedBackground": "rgb(11, 16, 32)",
+      "httpStatus": 200,
+      "findings": []
+    },
+    {
+      "route": "academics",
+      "requestedPath": "/academics/",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/academics/",
+      "finalPath": "/academics/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "Academics"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [
+        {
+          "selector": "rmc-ops-kpis",
+          "columns": [
+            220.906,
+            220.906,
+            220.906,
+            220.906
+          ]
+        },
+        {
+          "selector": "rmc-ops-card-grid",
+          "columns": [
+            299.875,
+            299.875,
+            299.875
+          ]
+        }
+      ],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 8,
+      "computedColorScheme": "light",
+      "computedBackground": "rgb(253, 249, 242)",
+      "httpStatus": 200,
+      "findings": []
+    },
+    {
+      "route": "offline-sync-alias",
+      "requestedPath": "/portal/offline-sync/?source=browser-audit",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/portal/offline/sync-queue/?source=browser-audit",
+      "finalPath": "/portal/offline/sync-queue/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "Queued"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 37,
+      "computedColorScheme": "light",
+      "computedBackground": "rgb(253, 249, 242)",
+      "httpStatus": 200,
+      "findings": []
+    },
+    {
+      "route": "finance",
+      "requestedPath": "/finance/",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/finance/",
+      "finalPath": "/finance/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "Finance\n          \n            \n\n\n  \n    \n      \n      \n    \n    Finance"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 27,
+      "computedColorScheme": "light",
+      "computedBackground": "rgb(253, 249, 242)",
+      "httpStatus": 200,
+      "findings": []
+    },
+    {
+      "route": "app-catalog",
+      "requestedPath": "/settings/app-catalog/",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/settings/app-catalog/",
+      "finalPath": "/settings/app-catalog/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "School App Catalog\n          \n            \n\n\n  \n    \n      \n      \n    \n    School App Catalog"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [
+        {
+          "selector": "proof-catalog-grid",
+          "columns": [
+            285.875,
+            285.875,
+            285.875
+          ]
+        }
+      ],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 58,
+      "computedColorScheme": "light",
+      "computedBackground": "rgb(11, 16, 32)",
+      "httpStatus": 200,
+      "findings": []
+    },
+    {
+      "route": "compliance-alias",
+      "requestedPath": "/compliance/?source=browser-audit",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/compliance/dashboard/?source=browser-audit",
+      "finalPath": "/compliance/dashboard/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "📊 Compliance & Audit Dashboard"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 25,
+      "computedColorScheme": "light",
+      "computedBackground": "rgb(11, 16, 32)",
+      "httpStatus": 200,
+      "findings": []
+    },
+    {
+      "route": "settings",
+      "requestedPath": "/school/settings/",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/school/settings/",
+      "finalPath": "/school/settings/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "light",
+      "viewport": {
+        "width": 1024,
+        "height": 900
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "Configuration\n          \n            \n\n\n  \n    \n      \n      \n    \n    Configuration"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [
+        {
+          "selector": "rmc-ops-card-grid rmc-config-grid",
+          "columns": [
+            550.984
+          ]
+        }
+      ],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 17,
+      "computedColorScheme": "light",
+      "computedBackground": "rgb(11, 16, 32)",
+      "httpStatus": 200,
+      "findings": []
+    },
+    {
+      "route": "configuration",
+      "requestedPath": "/school/configuration/",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/school/configuration/",
+      "finalPath": "/school/configuration/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "light",
+      "viewport": {
+        "width": 1024,
+        "height": 900
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "Configuration\n          \n            \n\n\n  \n    \n      \n      \n    \n    Configuration"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [
+        {
+          "selector": "rmc-ops-card-grid rmc-config-grid",
+          "columns": [
+            550.984
+          ]
+        }
+      ],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 17,
+      "computedColorScheme": "light",
+      "computedBackground": "rgb(11, 16, 32)",
+      "httpStatus": 200,
+      "findings": []
+    },
+    {
+      "route": "academics",
+      "requestedPath": "/academics/",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/academics/",
+      "finalPath": "/academics/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "light",
+      "viewport": {
+        "width": 1024,
+        "height": 900
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "Academics"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [
+        {
+          "selector": "rmc-ops-kpis",
+          "columns": [
+            550.984
+          ]
+        },
+        {
+          "selector": "rmc-ops-card-grid",
+          "columns": [
+            550.984
+          ]
+        }
+      ],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 8,
+      "computedColorScheme": "light",
+      "computedBackground": "rgb(253, 249, 242)",
+      "httpStatus": 200,
+      "findings": []
+    },
+    {
+      "route": "offline-sync-alias",
+      "requestedPath": "/portal/offline-sync/?source=browser-audit",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/portal/offline/sync-queue/?source=browser-audit",
+      "finalPath": "/portal/offline/sync-queue/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "light",
+      "viewport": {
+        "width": 1024,
+        "height": 900
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "Queued"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 37,
+      "computedColorScheme": "light",
+      "computedBackground": "rgb(253, 249, 242)",
+      "httpStatus": 200,
+      "findings": []
+    },
+    {
+      "route": "finance",
+      "requestedPath": "/finance/",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/finance/",
+      "finalPath": "/finance/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "light",
+      "viewport": {
+        "width": 1024,
+        "height": 900
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "Finance\n          \n            \n\n\n  \n    \n      \n      \n    \n    Finance"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 27,
+      "computedColorScheme": "light",
+      "computedBackground": "rgb(253, 249, 242)",
+      "httpStatus": 200,
+      "findings": []
+    },
+    {
+      "route": "app-catalog",
+      "requestedPath": "/settings/app-catalog/",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/settings/app-catalog/",
+      "finalPath": "/settings/app-catalog/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "light",
+      "viewport": {
+        "width": 1024,
+        "height": 900
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "School App Catalog\n          \n            \n\n\n  \n    \n      \n      \n    \n    School App Catalog"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [
+        {
+          "selector": "proof-catalog-grid",
+          "columns": [
+            508.984
+          ]
+        }
+      ],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 58,
+      "computedColorScheme": "light",
+      "computedBackground": "rgb(11, 16, 32)",
+      "httpStatus": 200,
+      "findings": []
+    },
+    {
+      "route": "compliance-alias",
+      "requestedPath": "/compliance/?source=browser-audit",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/compliance/dashboard/?source=browser-audit",
+      "finalPath": "/compliance/dashboard/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "light",
+      "viewport": {
+        "width": 1024,
+        "height": 900
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "📊 Compliance & Audit Dashboard"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 25,
+      "computedColorScheme": "light",
+      "computedBackground": "rgb(11, 16, 32)",
+      "httpStatus": 200,
+      "findings": []
+    },
+    {
+      "route": "settings",
+      "requestedPath": "/school/settings/",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/school/settings/",
+      "finalPath": "/school/settings/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "light",
+      "viewport": {
+        "width": 768,
+        "height": 900
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "Configuration\n          \n            \n\n\n  \n    \n      \n      \n    \n    Configuration"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [
+        {
+          "selector": "rmc-ops-card-grid rmc-config-grid",
+          "columns": [
+            663.281
+          ]
+        }
+      ],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 17,
+      "computedColorScheme": "light",
+      "computedBackground": "rgb(11, 16, 32)",
+      "httpStatus": 200,
+      "findings": []
+    },
+    {
+      "route": "configuration",
+      "requestedPath": "/school/configuration/",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/school/configuration/",
+      "finalPath": "/school/configuration/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "light",
+      "viewport": {
+        "width": 768,
+        "height": 900
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "Configuration\n          \n            \n\n\n  \n    \n      \n      \n    \n    Configuration"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [
+        {
+          "selector": "rmc-ops-card-grid rmc-config-grid",
+          "columns": [
+            663.281
+          ]
+        }
+      ],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 17,
+      "computedColorScheme": "light",
+      "computedBackground": "rgb(11, 16, 32)",
+      "httpStatus": 200,
+      "findings": []
+    },
+    {
+      "route": "academics",
+      "requestedPath": "/academics/",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/academics/",
+      "finalPath": "/academics/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "light",
+      "viewport": {
+        "width": 768,
+        "height": 900
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "Academics"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [
+        {
+          "selector": "rmc-ops-kpis",
+          "columns": [
+            663.281
+          ]
+        },
+        {
+          "selector": "rmc-ops-card-grid",
+          "columns": [
+            663.281
+          ]
+        }
+      ],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 8,
+      "computedColorScheme": "light",
+      "computedBackground": "rgb(253, 249, 242)",
+      "httpStatus": 200,
+      "findings": []
+    },
+    {
+      "route": "offline-sync-alias",
+      "requestedPath": "/portal/offline-sync/?source=browser-audit",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/portal/offline/sync-queue/?source=browser-audit",
+      "finalPath": "/portal/offline/sync-queue/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "light",
+      "viewport": {
+        "width": 768,
+        "height": 900
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "Queued"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 37,
+      "computedColorScheme": "light",
+      "computedBackground": "rgb(253, 249, 242)",
+      "httpStatus": 200,
+      "findings": []
+    },
+    {
+      "route": "finance",
+      "requestedPath": "/finance/",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/finance/",
+      "finalPath": "/finance/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "light",
+      "viewport": {
+        "width": 768,
+        "height": 900
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "Finance\n          \n            \n\n\n  \n    \n      \n      \n    \n    Finance"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 27,
+      "computedColorScheme": "light",
+      "computedBackground": "rgb(253, 249, 242)",
+      "httpStatus": 200,
+      "findings": []
+    },
+    {
+      "route": "app-catalog",
+      "requestedPath": "/settings/app-catalog/",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/settings/app-catalog/",
+      "finalPath": "/settings/app-catalog/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "light",
+      "viewport": {
+        "width": 768,
+        "height": 900
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "School App Catalog\n          \n            \n\n\n  \n    \n      \n      \n    \n    School App Catalog"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [
+        {
+          "selector": "proof-catalog-grid",
+          "columns": [
+            621.281
+          ]
+        }
+      ],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 58,
+      "computedColorScheme": "light",
+      "computedBackground": "rgb(11, 16, 32)",
+      "httpStatus": 200,
+      "findings": []
+    },
+    {
+      "route": "compliance-alias",
+      "requestedPath": "/compliance/?source=browser-audit",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/compliance/dashboard/?source=browser-audit",
+      "finalPath": "/compliance/dashboard/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "light",
+      "viewport": {
+        "width": 768,
+        "height": 900
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "📊 Compliance & Audit Dashboard"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 25,
+      "computedColorScheme": "light",
+      "computedBackground": "rgb(11, 16, 32)",
+      "httpStatus": 200,
+      "findings": []
+    },
+    {
+      "route": "settings",
+      "requestedPath": "/school/settings/",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/school/settings/",
+      "finalPath": "/school/settings/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "Configuration\n          \n            \n\n\n  \n    \n      \n      \n    \n    Configuration"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [
+        {
+          "selector": "rmc-ops-card-grid rmc-config-grid",
+          "columns": [
+            295.219
+          ]
+        }
+      ],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 17,
+      "computedColorScheme": "light",
+      "computedBackground": "rgb(11, 16, 32)",
+      "httpStatus": 200,
+      "findings": [],
+      "screenshot": "settings-390-light.png"
+    },
+    {
+      "route": "configuration",
+      "requestedPath": "/school/configuration/",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/school/configuration/",
+      "finalPath": "/school/configuration/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "Configuration\n          \n            \n\n\n  \n    \n      \n      \n    \n    Configuration"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [
+        {
+          "selector": "rmc-ops-card-grid rmc-config-grid",
+          "columns": [
+            295.219
+          ]
+        }
+      ],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 17,
+      "computedColorScheme": "light",
+      "computedBackground": "rgb(11, 16, 32)",
+      "httpStatus": 200,
+      "findings": [],
+      "screenshot": "configuration-390-light.png"
+    },
+    {
+      "route": "academics",
+      "requestedPath": "/academics/",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/academics/",
+      "finalPath": "/academics/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "Academics"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [
+        {
+          "selector": "rmc-ops-kpis",
+          "columns": [
+            295.219
+          ]
+        },
+        {
+          "selector": "rmc-ops-card-grid",
+          "columns": [
+            295.219
+          ]
+        }
+      ],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 8,
+      "computedColorScheme": "light",
+      "computedBackground": "rgb(253, 249, 242)",
+      "httpStatus": 200,
+      "findings": [],
+      "screenshot": "academics-390-light.png"
+    },
+    {
+      "route": "offline-sync-alias",
+      "requestedPath": "/portal/offline-sync/?source=browser-audit",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/portal/offline/sync-queue/?source=browser-audit",
+      "finalPath": "/portal/offline/sync-queue/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "Queued"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 37,
+      "computedColorScheme": "light",
+      "computedBackground": "rgb(253, 249, 242)",
+      "httpStatus": 200,
+      "findings": [],
+      "screenshot": "offline-sync-alias-390-light.png"
+    },
+    {
+      "route": "finance",
+      "requestedPath": "/finance/",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/finance/",
+      "finalPath": "/finance/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "Finance\n          \n            \n\n\n  \n    \n      \n      \n    \n    Finance"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 27,
+      "computedColorScheme": "light",
+      "computedBackground": "rgb(253, 249, 242)",
+      "httpStatus": 200,
+      "findings": [],
+      "screenshot": "finance-390-light.png"
+    },
+    {
+      "route": "app-catalog",
+      "requestedPath": "/settings/app-catalog/",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/settings/app-catalog/",
+      "finalPath": "/settings/app-catalog/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "School App Catalog\n          \n            \n\n\n  \n    \n      \n      \n    \n    School App Catalog"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [
+        {
+          "selector": "proof-catalog-grid",
+          "columns": [
+            253.219
+          ]
+        }
+      ],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 58,
+      "computedColorScheme": "light",
+      "computedBackground": "rgb(11, 16, 32)",
+      "httpStatus": 200,
+      "findings": [],
+      "screenshot": "app-catalog-390-light.png"
+    },
+    {
+      "route": "compliance-alias",
+      "requestedPath": "/compliance/?source=browser-audit",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/compliance/dashboard/?source=browser-audit",
+      "finalPath": "/compliance/dashboard/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "📊 Compliance & Audit Dashboard"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 25,
+      "computedColorScheme": "light",
+      "computedBackground": "rgb(11, 16, 32)",
+      "httpStatus": 200,
+      "findings": [],
+      "screenshot": "compliance-alias-390-light.png"
+    },
+    {
+      "route": "settings",
+      "requestedPath": "/school/settings/",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/school/settings/",
+      "finalPath": "/school/settings/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "Configuration\n          \n            \n\n\n  \n    \n      \n      \n    \n    Configuration"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [
+        {
+          "selector": "rmc-ops-card-grid rmc-config-grid",
+          "columns": [
+            220.906,
+            220.906,
+            220.906,
+            220.906
+          ]
+        }
+      ],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 17,
+      "computedColorScheme": "dark",
+      "computedBackground": "rgb(11, 16, 32)",
+      "httpStatus": 200,
+      "findings": [],
+      "screenshot": "settings-1440-dark.png"
+    },
+    {
+      "route": "configuration",
+      "requestedPath": "/school/configuration/",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/school/configuration/",
+      "finalPath": "/school/configuration/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "Configuration\n          \n            \n\n\n  \n    \n      \n      \n    \n    Configuration"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [
+        {
+          "selector": "rmc-ops-card-grid rmc-config-grid",
+          "columns": [
+            220.906,
+            220.906,
+            220.906,
+            220.906
+          ]
+        }
+      ],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 17,
+      "computedColorScheme": "dark",
+      "computedBackground": "rgb(11, 16, 32)",
+      "httpStatus": 200,
+      "findings": [],
+      "screenshot": "configuration-1440-dark.png"
+    },
+    {
+      "route": "academics",
+      "requestedPath": "/academics/",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/academics/",
+      "finalPath": "/academics/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "Academics"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [
+        {
+          "selector": "rmc-ops-kpis",
+          "columns": [
+            220.906,
+            220.906,
+            220.906,
+            220.906
+          ]
+        },
+        {
+          "selector": "rmc-ops-card-grid",
+          "columns": [
+            299.875,
+            299.875,
+            299.875
+          ]
+        }
+      ],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 8,
+      "computedColorScheme": "dark",
+      "computedBackground": "rgb(11, 16, 32)",
+      "httpStatus": 200,
+      "findings": [],
+      "screenshot": "academics-1440-dark.png"
+    },
+    {
+      "route": "offline-sync-alias",
+      "requestedPath": "/portal/offline-sync/?source=browser-audit",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/portal/offline/sync-queue/?source=browser-audit",
+      "finalPath": "/portal/offline/sync-queue/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "Queued"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 37,
+      "computedColorScheme": "dark",
+      "computedBackground": "rgb(11, 16, 32)",
+      "httpStatus": 200,
+      "findings": [],
+      "screenshot": "offline-sync-alias-1440-dark.png"
+    },
+    {
+      "route": "finance",
+      "requestedPath": "/finance/",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/finance/",
+      "finalPath": "/finance/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "Finance\n          \n            \n\n\n  \n    \n      \n      \n    \n    Finance"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 27,
+      "computedColorScheme": "dark",
+      "computedBackground": "rgb(11, 16, 32)",
+      "httpStatus": 200,
+      "findings": [],
+      "screenshot": "finance-1440-dark.png"
+    },
+    {
+      "route": "app-catalog",
+      "requestedPath": "/settings/app-catalog/",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/settings/app-catalog/",
+      "finalPath": "/settings/app-catalog/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "School App Catalog\n          \n            \n\n\n  \n    \n      \n      \n    \n    School App Catalog"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [
+        {
+          "selector": "proof-catalog-grid",
+          "columns": [
+            285.875,
+            285.875,
+            285.875
+          ]
+        }
+      ],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 58,
+      "computedColorScheme": "dark",
+      "computedBackground": "rgb(11, 16, 32)",
+      "httpStatus": 200,
+      "findings": [],
+      "screenshot": "app-catalog-1440-dark.png"
+    },
+    {
+      "route": "compliance-alias",
+      "requestedPath": "/compliance/?source=browser-audit",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/compliance/dashboard/?source=browser-audit",
+      "finalPath": "/compliance/dashboard/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "📊 Compliance & Audit Dashboard"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 25,
+      "computedColorScheme": "dark",
+      "computedBackground": "rgb(11, 16, 32)",
+      "httpStatus": 200,
+      "findings": [],
+      "screenshot": "compliance-alias-1440-dark.png"
+    },
+    {
+      "route": "settings",
+      "requestedPath": "/school/settings/",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/school/settings/",
+      "finalPath": "/school/settings/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "dark",
+      "viewport": {
+        "width": 1024,
+        "height": 900
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "Configuration\n          \n            \n\n\n  \n    \n      \n      \n    \n    Configuration"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [
+        {
+          "selector": "rmc-ops-card-grid rmc-config-grid",
+          "columns": [
+            550.984
+          ]
+        }
+      ],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 17,
+      "computedColorScheme": "dark",
+      "computedBackground": "rgb(11, 16, 32)",
+      "httpStatus": 200,
+      "findings": []
+    },
+    {
+      "route": "configuration",
+      "requestedPath": "/school/configuration/",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/school/configuration/",
+      "finalPath": "/school/configuration/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "dark",
+      "viewport": {
+        "width": 1024,
+        "height": 900
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "Configuration\n          \n            \n\n\n  \n    \n      \n      \n    \n    Configuration"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [
+        {
+          "selector": "rmc-ops-card-grid rmc-config-grid",
+          "columns": [
+            550.984
+          ]
+        }
+      ],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 17,
+      "computedColorScheme": "dark",
+      "computedBackground": "rgb(11, 16, 32)",
+      "httpStatus": 200,
+      "findings": []
+    },
+    {
+      "route": "academics",
+      "requestedPath": "/academics/",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/academics/",
+      "finalPath": "/academics/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "dark",
+      "viewport": {
+        "width": 1024,
+        "height": 900
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "Academics"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [
+        {
+          "selector": "rmc-ops-kpis",
+          "columns": [
+            550.984
+          ]
+        },
+        {
+          "selector": "rmc-ops-card-grid",
+          "columns": [
+            550.984
+          ]
+        }
+      ],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 8,
+      "computedColorScheme": "dark",
+      "computedBackground": "rgb(11, 16, 32)",
+      "httpStatus": 200,
+      "findings": []
+    },
+    {
+      "route": "offline-sync-alias",
+      "requestedPath": "/portal/offline-sync/?source=browser-audit",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/portal/offline/sync-queue/?source=browser-audit",
+      "finalPath": "/portal/offline/sync-queue/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "dark",
+      "viewport": {
+        "width": 1024,
+        "height": 900
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "Queued"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 37,
+      "computedColorScheme": "dark",
+      "computedBackground": "rgb(11, 16, 32)",
+      "httpStatus": 200,
+      "findings": []
+    },
+    {
+      "route": "finance",
+      "requestedPath": "/finance/",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/finance/",
+      "finalPath": "/finance/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "dark",
+      "viewport": {
+        "width": 1024,
+        "height": 900
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "Finance\n          \n            \n\n\n  \n    \n      \n      \n    \n    Finance"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 27,
+      "computedColorScheme": "dark",
+      "computedBackground": "rgb(11, 16, 32)",
+      "httpStatus": 200,
+      "findings": []
+    },
+    {
+      "route": "app-catalog",
+      "requestedPath": "/settings/app-catalog/",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/settings/app-catalog/",
+      "finalPath": "/settings/app-catalog/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "dark",
+      "viewport": {
+        "width": 1024,
+        "height": 900
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "School App Catalog\n          \n            \n\n\n  \n    \n      \n      \n    \n    School App Catalog"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [
+        {
+          "selector": "proof-catalog-grid",
+          "columns": [
+            508.984
+          ]
+        }
+      ],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 58,
+      "computedColorScheme": "dark",
+      "computedBackground": "rgb(11, 16, 32)",
+      "httpStatus": 200,
+      "findings": []
+    },
+    {
+      "route": "compliance-alias",
+      "requestedPath": "/compliance/?source=browser-audit",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/compliance/dashboard/?source=browser-audit",
+      "finalPath": "/compliance/dashboard/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "dark",
+      "viewport": {
+        "width": 1024,
+        "height": 900
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "📊 Compliance & Audit Dashboard"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 25,
+      "computedColorScheme": "dark",
+      "computedBackground": "rgb(11, 16, 32)",
+      "httpStatus": 200,
+      "findings": []
+    },
+    {
+      "route": "settings",
+      "requestedPath": "/school/settings/",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/school/settings/",
+      "finalPath": "/school/settings/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "dark",
+      "viewport": {
+        "width": 768,
+        "height": 900
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "Configuration\n          \n            \n\n\n  \n    \n      \n      \n    \n    Configuration"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [
+        {
+          "selector": "rmc-ops-card-grid rmc-config-grid",
+          "columns": [
+            663.281
+          ]
+        }
+      ],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 17,
+      "computedColorScheme": "dark",
+      "computedBackground": "rgb(11, 16, 32)",
+      "httpStatus": 200,
+      "findings": []
+    },
+    {
+      "route": "configuration",
+      "requestedPath": "/school/configuration/",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/school/configuration/",
+      "finalPath": "/school/configuration/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "dark",
+      "viewport": {
+        "width": 768,
+        "height": 900
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "Configuration\n          \n            \n\n\n  \n    \n      \n      \n    \n    Configuration"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [
+        {
+          "selector": "rmc-ops-card-grid rmc-config-grid",
+          "columns": [
+            663.281
+          ]
+        }
+      ],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 17,
+      "computedColorScheme": "dark",
+      "computedBackground": "rgb(11, 16, 32)",
+      "httpStatus": 200,
+      "findings": []
+    },
+    {
+      "route": "academics",
+      "requestedPath": "/academics/",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/academics/",
+      "finalPath": "/academics/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "dark",
+      "viewport": {
+        "width": 768,
+        "height": 900
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "Academics"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [
+        {
+          "selector": "rmc-ops-kpis",
+          "columns": [
+            663.281
+          ]
+        },
+        {
+          "selector": "rmc-ops-card-grid",
+          "columns": [
+            663.281
+          ]
+        }
+      ],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 8,
+      "computedColorScheme": "dark",
+      "computedBackground": "rgb(11, 16, 32)",
+      "httpStatus": 200,
+      "findings": []
+    },
+    {
+      "route": "offline-sync-alias",
+      "requestedPath": "/portal/offline-sync/?source=browser-audit",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/portal/offline/sync-queue/?source=browser-audit",
+      "finalPath": "/portal/offline/sync-queue/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "dark",
+      "viewport": {
+        "width": 768,
+        "height": 900
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "Queued"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 37,
+      "computedColorScheme": "dark",
+      "computedBackground": "rgb(11, 16, 32)",
+      "httpStatus": 200,
+      "findings": []
+    },
+    {
+      "route": "finance",
+      "requestedPath": "/finance/",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/finance/",
+      "finalPath": "/finance/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "dark",
+      "viewport": {
+        "width": 768,
+        "height": 900
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "Finance\n          \n            \n\n\n  \n    \n      \n      \n    \n    Finance"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 27,
+      "computedColorScheme": "dark",
+      "computedBackground": "rgb(11, 16, 32)",
+      "httpStatus": 200,
+      "findings": []
+    },
+    {
+      "route": "app-catalog",
+      "requestedPath": "/settings/app-catalog/",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/settings/app-catalog/",
+      "finalPath": "/settings/app-catalog/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "dark",
+      "viewport": {
+        "width": 768,
+        "height": 900
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "School App Catalog\n          \n            \n\n\n  \n    \n      \n      \n    \n    School App Catalog"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [
+        {
+          "selector": "proof-catalog-grid",
+          "columns": [
+            621.281
+          ]
+        }
+      ],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 58,
+      "computedColorScheme": "dark",
+      "computedBackground": "rgb(11, 16, 32)",
+      "httpStatus": 200,
+      "findings": []
+    },
+    {
+      "route": "compliance-alias",
+      "requestedPath": "/compliance/?source=browser-audit",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/compliance/dashboard/?source=browser-audit",
+      "finalPath": "/compliance/dashboard/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "dark",
+      "viewport": {
+        "width": 768,
+        "height": 900
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "📊 Compliance & Audit Dashboard"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 25,
+      "computedColorScheme": "dark",
+      "computedBackground": "rgb(11, 16, 32)",
+      "httpStatus": 200,
+      "findings": []
+    },
+    {
+      "route": "settings",
+      "requestedPath": "/school/settings/",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/school/settings/",
+      "finalPath": "/school/settings/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "Configuration\n          \n            \n\n\n  \n    \n      \n      \n    \n    Configuration"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [
+        {
+          "selector": "rmc-ops-card-grid rmc-config-grid",
+          "columns": [
+            295.219
+          ]
+        }
+      ],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 17,
+      "computedColorScheme": "dark",
+      "computedBackground": "rgb(11, 16, 32)",
+      "httpStatus": 200,
+      "findings": []
+    },
+    {
+      "route": "configuration",
+      "requestedPath": "/school/configuration/",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/school/configuration/",
+      "finalPath": "/school/configuration/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "Configuration\n          \n            \n\n\n  \n    \n      \n      \n    \n    Configuration"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [
+        {
+          "selector": "rmc-ops-card-grid rmc-config-grid",
+          "columns": [
+            295.219
+          ]
+        }
+      ],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 17,
+      "computedColorScheme": "dark",
+      "computedBackground": "rgb(11, 16, 32)",
+      "httpStatus": 200,
+      "findings": []
+    },
+    {
+      "route": "academics",
+      "requestedPath": "/academics/",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/academics/",
+      "finalPath": "/academics/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "Academics"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [
+        {
+          "selector": "rmc-ops-kpis",
+          "columns": [
+            295.219
+          ]
+        },
+        {
+          "selector": "rmc-ops-card-grid",
+          "columns": [
+            295.219
+          ]
+        }
+      ],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 8,
+      "computedColorScheme": "dark",
+      "computedBackground": "rgb(11, 16, 32)",
+      "httpStatus": 200,
+      "findings": []
+    },
+    {
+      "route": "offline-sync-alias",
+      "requestedPath": "/portal/offline-sync/?source=browser-audit",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/portal/offline/sync-queue/?source=browser-audit",
+      "finalPath": "/portal/offline/sync-queue/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "Queued"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 37,
+      "computedColorScheme": "dark",
+      "computedBackground": "rgb(11, 16, 32)",
+      "httpStatus": 200,
+      "findings": []
+    },
+    {
+      "route": "finance",
+      "requestedPath": "/finance/",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/finance/",
+      "finalPath": "/finance/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "Finance\n          \n            \n\n\n  \n    \n      \n      \n    \n    Finance"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 27,
+      "computedColorScheme": "dark",
+      "computedBackground": "rgb(11, 16, 32)",
+      "httpStatus": 200,
+      "findings": []
+    },
+    {
+      "route": "app-catalog",
+      "requestedPath": "/settings/app-catalog/",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/settings/app-catalog/",
+      "finalPath": "/settings/app-catalog/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "School App Catalog\n          \n            \n\n\n  \n    \n      \n      \n    \n    School App Catalog"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [
+        {
+          "selector": "proof-catalog-grid",
+          "columns": [
+            253.219
+          ]
+        }
+      ],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 58,
+      "computedColorScheme": "dark",
+      "computedBackground": "rgb(11, 16, 32)",
+      "httpStatus": 200,
+      "findings": []
+    },
+    {
+      "route": "compliance-alias",
+      "requestedPath": "/compliance/?source=browser-audit",
+      "finalUrl": "http://demo-school.runmycampus.com:8031/compliance/dashboard/?source=browser-audit",
+      "finalPath": "/compliance/dashboard/",
+      "hostname": "demo-school.runmycampus.com",
+      "statusTheme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "h1Count": 1,
+      "h1Text": [
+        "📊 Compliance & Audit Dashboard"
+      ],
+      "horizontalOverflow": 0,
+      "duplicateCss": [],
+      "stylesheetLinksInBody": 0,
+      "resourceFailures": [],
+      "hasApprovedBuild": true,
+      "fullWidthRatio": 1,
+      "gridTracks": [],
+      "rawIcons": [],
+      "simulatedActions": [],
+      "unsafePostForms": 0,
+      "unexpectedFixedOverlays": [],
+      "actionCount": 25,
+      "computedColorScheme": "dark",
+      "computedBackground": "rgb(11, 16, 32)",
+      "httpStatus": 200,
+      "findings": []
+    }
+  ]
+}

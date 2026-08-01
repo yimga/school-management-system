@@ -18,6 +18,7 @@ from apps.people.models import StudentProfile
 from apps.platform_runtime.models import OfflineAction
 from apps.platform_runtime.offline_queue import enqueue_offline_action, process_offline_queue
 from apps.schools.models import School, SchoolMembership
+from apps.schools.provision_email_urls import build_public_site_url
 
 
 def _tenant_host(school: School) -> str:
@@ -183,10 +184,16 @@ class OfflineSyncDashboardHttpTests(TestCase):
         url = reverse("portal:offline_sync_queue")
         self.client.force_login(self.teacher_a)
         resp = self.client.get(url, HTTP_HOST=_tenant_host(self.school_b))
-        self.assertEqual(resp.status_code, 200)
-        self.assertNotContains(resp, tenant_marker)
+        # Tenant-host isolation rejects the session before a cross-school page can
+        # render.  The former 200 expectation pre-dated the host-membership gate.
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(
+            resp["Location"],
+            build_public_site_url(reverse("accounts:login")),
+        )
+        self.assertNotIn(tenant_marker, resp.content.decode())
         # Bare str(pk) is unsafe (e.g. "1" appears in unrelated HTML); assert row hook absent.
-        self.assertNotContains(resp, f'data-rmc-offline-row="{action.pk}"')
+        self.assertNotIn(f'data-rmc-offline-row="{action.pk}"', resp.content.decode())
 
     def test_operator_can_resolve_other_users_conflict(self):
         Attendance.objects.create(

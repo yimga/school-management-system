@@ -1,0 +1,41 @@
+{
+  "audited_at_utc": "2026-08-01T12:03:43Z",
+  "baseline_commit": "84c62b0728a5fbd6aff40bdc39e055f9eedb411c",
+  "tenant": {
+    "id": "f984ea95-d2ad-4900-b513-66a345928316",
+    "slug": "gilead-tech",
+    "hostname": "gilead-tech.runmycampus.com"
+  },
+  "live_signed_out_routes": [
+    {"path": "/school/configuration/", "status": 302, "location": "/authentication/login/?next=/school/configuration/"},
+    {"path": "/settings/app-catalog/", "status": 302, "location": "/authentication/login/?next=/settings/app-catalog/"},
+    {"path": "/finance/", "status": 302, "location": "/authentication/login/?next=/finance/"},
+    {"path": "/academics/", "status": 404},
+    {"path": "/portal/offline-sync/", "status": 404},
+    {"path": "/portal/offline/sync-queue/", "status": 302, "location": "/authentication/login/?next=/portal/offline/sync-queue/"},
+    {"path": "/compliance/", "status": 404},
+    {"path": "/compliance/dashboard/", "status": 302, "location": "/authentication/login/?next=/compliance/dashboard/"}
+  ],
+  "source_findings": {
+    "configuration_action_count": 14,
+    "stale_configuration_routes": [
+      "/siteconfig/academic-years/",
+      "/academics/",
+      "/portal/offline-sync/",
+      "/compliance/"
+    ],
+    "metric_ticker_object_coercion_occurrences": 1,
+    "incident_banner_object_coercion_occurrences": 1,
+    "adjacency_sensitive_sidebar_regroup_occurrences": 1,
+    "readiness_runtime_source": "legacy School.default_dashboard_slug/default_workflow_slug only",
+    "provisioning_runtime_source": "active DashboardPackAssignment and TenantLayoutAssignment rows"
+  },
+  "browser_evidence": {
+    "finance_metric_ticker_height_px": 8925,
+    "finance_work_zone_height_px": 11930,
+    "finance_duplicate_h1_nodes": 2,
+    "approval_matrix_scene_checks": 48,
+    "approval_matrix_failures": 0
+  },
+  "production_data_note": "The local development database does not contain slug gilead-tech. No production tenant data was mutated during this pre-change audit."
+}

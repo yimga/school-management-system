@@ -75,6 +75,23 @@ class TenantSchoolConfigurationCenterTests(TestCase):
 
         self.assertEqual(response.status_code, 200, msg=response.content[:500])
 
+    def test_academics_root_and_legacy_aliases_are_live_on_tenant_host(self):
+        client = self._admin_client()
+
+        response = client.get("/academics/")
+        self.assertEqual(response.status_code, 200, msg=response.content[:500])
+        body = response.content.decode("utf-8", errors="replace")
+        self.assertIn('data-rmc-tenant-ops-build="2026-08-01-v1.0"', body)
+        self.assertEqual(body.count("<h1"), 1)
+
+        response = client.get("/portal/offline-sync/?state=failed")
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], "/portal/offline/sync-queue/?state=failed")
+
+        response = client.get("/compliance/?period=30d")
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], "/compliance/dashboard/?period=30d")
+
     def test_school_product_route_aliases_use_tenant_safe_surfaces(self):
         client = self._admin_client()
 

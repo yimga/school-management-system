@@ -11,7 +11,9 @@ class AppCatalogWorldClassUXTests(SimpleTestCase):
         for rel in ("templates/marketplace/app_catalog.html", "templates/marketplace/tenant_app_catalog.html"):
             with self.subTest(rel=rel):
                 text = (ROOT / rel).read_text(encoding="utf-8")
-                self.assertIn("world_class_page_hero.html", text)
+                # Both catalogs now use the shared operational-center frame; the
+                # retired marketing-style hero is not the product shell owner.
+                self.assertIn("rmc_operational_center_frame.html", text)
                 self.assertRegex(text, "scopes|Scopes|Permission|permission")
                 self.assertRegex(text, "sandbox|Sandbox")
                 self.assertRegex(text, "billing|Billing")

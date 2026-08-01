@@ -1,0 +1,38 @@
+{% extends "portal_base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Academics" %} — {{ block.super }}{% endblock %}
+{% block extrastyle %}{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/rmc-tenant-configuration-operations.css' %}?v=20260801-tenant-configuration-operations-v1">
+{% endblock %}
+
+{% block content %}
+<main class="rmc-tenant-ops rmc-tenant-ops--academics" data-rmc-tenant-ops-build="2026-08-01-v1.0" data-page-archetype="hub" data-rmc-scroll-policy="paginate">
+  <section class="rmc-ops-hero" aria-labelledby="academics-title">
+    <div>
+      <p class="rmc-ops-eyebrow">{% trans "School operations · academic management" %}</p>
+      <h1 id="academics-title">{% trans "Academics" %}</h1>
+      <p>{% trans "Plan the school year, connect teaching records, publish timetables and keep syllabus coverage visible from one tenant-scoped workspace." %}</p>
+    </div>
+    <a class="btn btn-primary" href="{% url 'siteconfig:academic_years_setup_evidence' %}">{% trans "Review academic year" %}</a>
+  </section>
+
+  <section class="rmc-ops-kpis" aria-label="{% trans 'Academic record counts' %}">
+    <article><span>{% trans "Academic years" %}</span><strong>{{ model_counts.academic_years }}</strong></article>
+    <article><span>{% trans "Classes" %}</span><strong>{{ model_counts.classes }}</strong></article>
+    <article><span>{% trans "Subjects" %}</span><strong>{{ model_counts.subjects }}</strong></article>
+    <article><span>{% trans "Teaching assignments" %}</span><strong>{{ model_counts.assignments }}</strong></article>
+  </section>
+
+  <section class="rmc-ops-card-grid" aria-label="{% trans 'Academic workspaces' %}">
+    {% for action in academic_actions %}
+    <article class="rmc-ops-card">
+      <div class="rmc-ops-card__count">{{ action.count }}</div>
+      <h2>{{ action.title }}</h2>
+      <p>{{ action.description }}</p>
+      {% if action.url %}<a class="btn btn-outline-primary" href="{{ action.url }}">{% trans "Open workspace" %}</a>{% else %}<span class="badge text-bg-warning">{% trans "Route unavailable" %}</span>{% endif %}
+    </article>
+    {% endfor %}
+  </section>
+</main>
+{% endblock %}

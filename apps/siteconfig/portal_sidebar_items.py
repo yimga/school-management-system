@@ -329,6 +329,22 @@ def _dedupe_sidebar_items(items):
     return deduped
 
 
+def build_portal_sidebar_groups(items):
+    """Accumulate interleaved items into one deterministic group per section."""
+    groups = []
+    by_name = {}
+    for item in items or []:
+        name = item.get("section") or "Navigation"
+        group = by_name.get(name)
+        if group is None:
+            group = {"name": name, "items": [], "is_active": False}
+            by_name[name] = group
+            groups.append(group)
+        group["items"].append(item)
+        group["is_active"] = bool(group["is_active"] or item.get("section_is_active") or item.get("is_current"))
+    return groups
+
+
 def build_portal_sidebar_items(request, site):
     """
     Return a list of sidebar items {id, label, url, icon, section, badge} for the current user.

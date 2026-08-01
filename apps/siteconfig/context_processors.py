@@ -21,7 +21,11 @@ from apps.siteconfig.config_service import (
     get_effective_site_settings,
 )
 from .preview_state import ACT_AS_ROLE_SESSION_KEY
-from .portal_sidebar_items import build_portal_sidebar_baseline, build_portal_sidebar_items
+from .portal_sidebar_items import (
+    build_portal_sidebar_baseline,
+    build_portal_sidebar_groups,
+    build_portal_sidebar_items,
+)
 from apps.policies.policy_registry import get_effective_policy
 
 OPTIONAL_CONTEXT_ERRORS = (
@@ -1414,6 +1418,7 @@ def site_settings(request):
     # Super Admin / Schools: global toggle to show or hide /super/ and Schools link.
     ctx["SUPER_ADMIN_UI_ENABLED"] = bool(flags_ctx.get("enable_super_admin_ui", True))
     portal_items = ctx["PORTAL_SIDEBAR_ITEMS"]
+    ctx["PORTAL_SIDEBAR_GROUPS"] = build_portal_sidebar_groups(portal_items)
     pinned_list, pinned_ids = _get_pinned_sidebar_items(request, portal_items)
     ctx["PINNED_SIDEBAR_ITEMS"] = pinned_list
     ctx["PINNED_SIDEBAR_IDS"] = pinned_ids

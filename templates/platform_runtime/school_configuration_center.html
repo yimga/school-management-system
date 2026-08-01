@@ -6,49 +6,38 @@
 {% block title %}{% trans "Configuration" %}{% endblock %}
 
 {% block extrastyle %}{{ block.super }}
-<link rel="stylesheet" href="{% static 'css/rmc-world-class-experience.css' %}">
-<link rel="stylesheet" href="{% static 'css/rmc-page-archetypes-max.css' %}">
 <link rel="stylesheet" href="{% static 'css/manager-aesthetic-polish.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-tenant-configuration-operations.css' %}?v=20260801-tenant-configuration-operations-v1">
 {% endblock %}
 
 {% block backend_page %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 
-<main class="container-fluid py-3 rmc-max-suppress-meta-option-a" data-page-archetype="setup" data-rmc-os-center="school_configuration_center" data-rmc-school-configuration-center="{{ page_marker }}" data-apple-class-tenant-school-admin="1" data-rmc-scroll-policy="paginate" data-rmc-work-root="1" data-rmc-static-chrome="1">
+<main class="container-fluid py-3 rmc-max-suppress-meta-option-a rmc-tenant-ops rmc-tenant-config-canvas" data-rmc-tenant-ops-build="2026-08-01-v1.0" data-page-archetype="setup" data-rmc-os-center="school_configuration_center" data-rmc-school-configuration-center="{{ page_marker }}" data-apple-class-tenant-school-admin="1" data-rmc-scroll-policy="paginate" data-rmc-work-root="1" data-rmc-static-chrome="1">
   {% include "components/rmc_page_masthead.html" %}
 
-  <div data-rmc-scroll-policy="paginate" class="tableish-setup">
-    <div class="table-responsive">
-      <table class="table table-family table-sm align-middle rmc-data-table mb-0">
-        <caption class="visually-hidden">{% trans "Configuration areas" %}</caption>
-        <thead>
-          <tr>
-            <th scope="col">{% trans "Area" %}</th>
-            <th scope="col">{% trans "State" %}</th>
-            <th scope="col">{% trans "Blocker" %}</th>
-            <th scope="col"><span class="visually-hidden">{% trans "Action" %}</span></th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for section in sections %}
-          {% can_access_permission section.permission as sec_ok %}
-          {% if sec_ok %}
-          <tr data-school-configuration-section="{{ section.name }}">
-            <td><strong>{{ section.name }}</strong></td>
-            <td>
-              <span class="badge rounded-pill {% if section.status_tone == 'success' %}text-bg-success{% elif section.status_tone == 'warning' %}text-bg-warning{% elif section.status_tone == 'danger' %}text-bg-danger{% else %}text-bg-secondary{% endif %}">{{ section.status }}</span>
-            </td>
-            <td class="small text-muted">{{ section.missing }}</td>
-            <td class="text-end"><a class="btn btn-primary btn-sm" href="{{ section.route }}">{{ section.primary_action }}</a></td>
-          </tr>
-          {% endif %}
-          {% empty %}
-          <tr><td colspan="4" class="text-muted">{% trans "No configuration sections available." %}</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
+  <section class="rmc-config-readiness" aria-label="{% trans 'Configuration readiness' %}">
+    <div class="rmc-config-readiness__ring" style="--rmc-ready: {{ school_readiness.value }}" role="img" aria-label="{{ school_readiness.value }}% ready"><strong>{{ school_readiness.value }}%</strong><span>{% trans "ready" %}</span></div>
+    <div>
+      <p class="rmc-ops-eyebrow">{% trans "Evidence-backed readiness" %}</p>
+      <h2>{% if school_readiness.complete %}{% trans "School configuration is operational" %}{% else %}{% trans "Finish the remaining setup evidence" %}{% endif %}</h2>
+      {% if school_readiness.unmet %}<ul class="rmc-config-blockers">{% for blocker in school_readiness.unmet %}<li>{{ blocker }}</li>{% endfor %}</ul>{% else %}<p>{% trans "Profile, branding, runtime assignment and plan evidence are active." %}</p>{% endif %}
     </div>
-  </div>
+  </section>
+
+  <section class="rmc-ops-card-grid rmc-config-grid" aria-label="{% trans 'Configuration areas' %}" data-rmc-scroll-policy="paginate">
+    {% for section in sections %}
+    {% can_access_permission section.permission as sec_ok %}
+    {% if sec_ok %}
+    <article class="rmc-ops-card" data-school-configuration-section="{{ section.name }}" data-route-name="{{ section.route_name }}">
+      <div class="rmc-ops-card__topline"><span class="badge rounded-pill {% if section.status_tone == 'success' %}text-bg-success{% elif section.status_tone == 'warning' %}text-bg-warning{% elif section.status_tone == 'danger' %}text-bg-danger{% else %}text-bg-secondary{% endif %}">{{ section.status }}</span><span class="small text-muted">{{ forloop.counter|stringformat:"02d" }}</span></div>
+      <h2>{{ section.name }}</h2>
+      <p>{{ section.missing }}</p>
+      {% if section.route %}<a class="btn btn-outline-primary" href="{{ section.route }}">{{ section.primary_action }}</a>{% else %}<button class="btn btn-outline-secondary" type="button" disabled title="{{ section.route_error }}">{% trans "Route unavailable" %}</button>{% endif %}
+    </article>
+    {% endif %}
+    {% empty %}<p class="text-muted">{% trans "No configuration sections available." %}</p>{% endfor %}
+  </section>
   <div class="rmc-wcx-mobile-marker" data-world-class-mobile-layout="stacked">{% trans "Mobile setup keeps actions stacked with large touch targets." %}</div>
 </main>
 {% endblock %}
