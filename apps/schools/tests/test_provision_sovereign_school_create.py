@@ -106,10 +106,13 @@ class ProvisionSovereignSchoolCreateTests(TestCase):
         )
         self.assertGreater(enabled_features, 0, "no features enabled on the school")
 
-        # (d) offline mode on
+        # (d) offline mode on. The bundle's master switch `enable_offline_mode`
+        # lands in SiteSettings (feature control), NOT school.features; the
+        # school-level signal is the policy-module key `offline_mode` written by
+        # apply_offline_mode_bundle_for_school -> _enable_offline_mode_policy_module.
         self.assertTrue(
-            (getattr(school, "features", None) or {}).get("enable_offline_mode"),
-            "offline mode was not enabled",
+            (getattr(school, "features", None) or {}).get("offline_mode"),
+            "offline mode (policy module) was not enabled on the school",
         )
 
     def test_create_is_idempotent(self):
@@ -139,7 +142,7 @@ class ProvisionSovereignSchoolCreateTests(TestCase):
         self.assertIsNotNone(school)
         self.assertEqual(getattr(school.plan, "slug", None), "sovereign-self-hosted")
         self.assertFalse(
-            (getattr(school, "features", None) or {}).get("enable_offline_mode"),
+            (getattr(school, "features", None) or {}).get("offline_mode"),
             "--no-offline must not enable offline mode",
         )
 
@@ -151,10 +154,15 @@ class ProvisionSovereignSchoolCreateTests(TestCase):
         self.assertIsNone(self._gilead(), "no school should be created without --email")
 
     def test_create_refuses_non_gilead_slug(self):
+        # NB: migrations seed an INACTIVE `gilead-school` husk, so the invariant
+        # is "no NEW school created", not "zero schools exist".
+        before = School.objects.count()
         _out, err = self._run_create(slug="totally-not-gilead")
         self.assertIn("not a Gilead slug", err)
+        self.assertIsNone(self._gilead(), "a Gilead school must not be created")
+        self.assertFalse(School.objects.filter(slug="totally-not-gilead").exists())
         self.assertEqual(
-            School.objects.count(), 0, "a non-resolvable school must not be created"
+            School.objects.count(), before, "a non-resolvable school must not be created"
         )
 
     def test_dry_run_create_writes_nothing(self):
@@ -165,8 +173,12 @@ class ProvisionSovereignSchoolCreateTests(TestCase):
     # --- backward compatibility ----------------------------------------- #
 
     def test_without_create_and_no_school_errors_unchanged(self):
-        # The historical behaviour: no --create, no school -> error, no creation.
+        # The historical behaviour: no --create, no Gilead school -> error, no
+        # creation. (An inactive `gilead-school` husk from migrations is not a
+        # Gilead-slug school, so the command still reports "not found".)
+        before = School.objects.count()
         out, err = StringIO(), StringIO()
         call_command("provision_sovereign_school", stdout=out, stderr=err)
         self.assertIn("Sovereign school not found", err.getvalue())
-        self.assertEqual(School.objects.count(), 0)
+        self.assertIsNone(self._gilead())
+        self.assertEqual(School.objects.count(), before)

@@ -207,14 +207,14 @@ def main() -> int:
 
     add(
         "12",
-        "Manager /admin/ operator civic footer",
-        _contains("templates/admin/base.html", "rmc_operator_footer_civic.html")
+        "Manager /admin/ delegates footer to the control-plane workbench",
+        _contains("templates/admin/base.html", "admin_workbench_footer.html")
         and _contains(
-            "templates/partials/rmc_operator_footer_civic.html",
-            'data-rmc-footer-surface="operator-civic"',
+            "templates/partials/admin_workbench_footer.html",
+            "rmc-admin-workbench-footer",
         )
         and _contains("templates/admin/base_site.html", "rmc-footer-surfaces.css"),
-        "templates/admin/base.html + rmc_operator_footer_civic.html + base_site.html",
+        "templates/admin/base.html + admin_workbench_footer.html + base_site.html",
     )
 
     tenant_urls_text = (ROOT / "config" / "tenant_urls.py").read_text(

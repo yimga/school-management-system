@@ -43,7 +43,7 @@ IMPLEMENTATION: dict[str, dict] = {
             ("templates/admin/base.html", ("control_plane_unified_header.html",)),
             ("templates/partials/control_plane_unified_header.html", ("cp-header", "cp_shell_header_ticker", "cp-header__row--live", "cp-header__row--inline-chrome", "_activity_ticker.html", 'data-rmc-cp-header-200x="1"')),
             ("templates/admin/base_site.html", ("rmc-admin-v1-200x.css", "rmc-cp-header-200x.css", "rmc-cp-sidebar-200x.css")),
-            ("templates/admin/index_superadmin.html", ("cp-hero", "cp-steering", "cp-kpi-strip", "cp-catalog-card", "data-rmc-admin-catalog-index", "admin_v1_index_surface_previews", "rmc-page-fold-nav", "rmc-admin-catalog-section")),
+            ("templates/admin/index_superadmin.html", ("rmc-django-command-band", "rmc-admin-discover-canvas", "cp-catalog-card", "data-rmc-admin-catalog-index", "admin_v1_index_surface_previews", "rmc-page-fold-nav", "rmc-admin-catalog-section")),
             ("templates/admin/partials/admin_v1_index_surface_previews.html", ("cp-changelist", "cp-form-frame", "cp-platform-tag-row")),
             ("templates/admin/base_site.html", ("help_contextual_drawer.html",)),
             ("templates/partials/help_contextual_drawer.html", ("Need help on this page?",)),

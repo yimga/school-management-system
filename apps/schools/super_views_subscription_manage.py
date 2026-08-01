@@ -94,7 +94,7 @@ def tenant_subscription_manage(request, school_id):
     if request.method == "POST":
         return _handle_action(request, school, subscription)
 
-    plans = list(Plan.objects.filter(is_active=True).order_by("name"))
+    plans = Plan.objects.filter(is_active=True).order_by("name")
 
     # Read-only platform billing history + current balance, so operators do not
     # have to fall back to Django admin to see what a tenant was charged.

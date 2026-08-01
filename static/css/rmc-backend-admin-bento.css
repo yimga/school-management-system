@@ -5,6 +5,19 @@
   min-width: 0;
 }
 
+/* Preserve every shortcut while counterbalancing the left-weighted mission
+   copy. Narrow screens retain source order and familiar left alignment. */
+.rmc-admin-deep-links {
+  justify-content: flex-end;
+  align-items: center;
+}
+
+@media (max-width: 720px) {
+  .rmc-admin-deep-links {
+    justify-content: flex-start;
+  }
+}
+
 .rmc-admin-bento__tabs {
   margin-bottom: 0.75rem;
   position: sticky;

@@ -118,7 +118,7 @@ backend-shell dashboard-page-backend
     {% endif %}
     {% include "components/rmc_page_masthead.html" %}
     {% include "components/rmc_mission_role_tabs.html" %}
-    <div class="d-flex flex-wrap gap-2 mt-2" aria-label="{% trans 'Admin deep links' %}">
+    <div class="rmc-admin-deep-links d-flex flex-wrap gap-2 mt-2" aria-label="{% trans 'Admin deep links' %}">
       <a class="btn btn-sm btn-outline-secondary" href="{% url 'school_configuration_center_canonical' %}">{% trans "Configuration" %}</a>
       <a class="btn btn-sm btn-outline-secondary" href="{% url 'school_studio' %}">{% trans "School Studio" %}</a>
       <a class="btn btn-sm btn-outline-secondary" href="{% url 'portal_configure' %}">{% trans "Configure hub" %}</a>

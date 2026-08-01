@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-13T13:56:43.687517+00:00",
+  "generated_at": "2026-08-01T10:15:39.816820+00:00",
   "schema_version": 1,
   "verdict": "WORKSPACE_LAYOUT_READY",
   "checks": [
@@ -13,7 +13,7 @@
       "id": "page_fold_standards",
       "status": "PASS",
       "detail": "verify_page_fold_standards.py exit 0",
-      "proof": "index section jumps in unified hero toolbar\n[PASS] section_nav_toc_css: Platform chrome loads section-nav TOC stylesheet\n[PASS] admin_index_catalog_collapsed: Platform admin catalog sections default collapsed (no open attribute)\n[PASS] pagination_partial: Shared numbered pagination partial exists\n[PASS] back_to_top_two_fold_threshold: Back-to-top uses 2-fold scroll threshold\n[PASS] back_to_top_scroll_container_first: Back-to-top loads scroll-container before init\n\nPAGE_FOLD_STANDARDS: 26/26 PASS"
+      "proof": "rdion compression\n[PASS] marketing_voice_fieldset_accordion: Marketing voice configure uses fieldset accordion compression\n[PASS] tenant_app_catalog_fold_nav: Tenant app catalog marks page-fold nav + section nav\n[PASS] migration_intake_new_fold_nav: Migration intake marks page-fold nav\n[PASS] support_ticket_detail_fold_nav: Support ticket detail marks page-fold nav\n[PASS] migration_intake_start_fieldset_accordion: Customer migration intake uses fieldset accordion\n\nPAGE_FOLD_STANDARDS: 42/42 PASS"
     },
     {
       "id": "platform_chromatic_compliance",
@@ -25,7 +25,7 @@
       "id": "luxury_ui_severe_integration",
       "status": "PASS",
       "detail": "audit_luxury_ui_surface.py exit 0 (no shell inline / severe table violations)",
-      "proof": "audit_luxury_ui_surface: OK -> C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system-render-audit\\docs\\generated\\luxury_ui_audit.json | score=15/15 verdict=ULTRA-LUXURY gate=PASS"
+      "proof": "audit_luxury_ui_surface: OK -> C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\docs\\generated\\luxury_ui_audit.json | score=14/15 verdict=ULTRA-LUXURY gate=PASS"
     },
     {
       "id": "studio_os_workspace_layout",

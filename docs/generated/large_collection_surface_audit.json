@@ -1,8 +1,187 @@
 {
-  "by_surface": {},
-  "finding_count": 0,
-  "findings": [],
-  "generated_at": "2026-07-13T19:35:04Z",
-  "remediation_status": "PASS",
-  "top_findings": []
+  "by_surface": {
+    "shared": 1,
+    "tenant": 3
+  },
+  "finding_count": 4,
+  "findings": [
+    {
+      "collection": "caseload",
+      "columns": 8,
+      "file": "templates/staff/counselor_caseload.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "line": 52,
+      "loop": "for c in caseload",
+      "reasons": [
+        "8 columns",
+        "2 form(s) inside repeated rows",
+        "7 input/select controls inside repeated rows"
+      ],
+      "recommendations": [
+        "Move row forms behind disclosure, drawer, or detail page.",
+        "Use compact density, sticky headers, and hide secondary fields behind row detail.",
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 2,
+      "row_forms": 2,
+      "row_inputs": 7,
+      "score": 10,
+      "surface": "shared"
+    },
+    {
+      "collection": "grid.rows",
+      "columns": 2,
+      "file": "templates/academics/timetable_review.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "line": 104,
+      "loop": "for row in grid.rows",
+      "reasons": [
+        "1 form(s) inside repeated rows"
+      ],
+      "recommendations": [
+        "Move row forms behind disclosure, drawer, or detail page.",
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 1,
+      "row_forms": 1,
+      "row_inputs": 0,
+      "score": 4,
+      "surface": "tenant"
+    },
+    {
+      "collection": "connections",
+      "columns": 3,
+      "file": "templates/accounts/sso_connections.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "line": 122,
+      "loop": "for c in connections",
+      "reasons": [
+        "2 form(s) inside repeated rows"
+      ],
+      "recommendations": [
+        "Move row forms behind disclosure, drawer, or detail page.",
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 3,
+      "row_forms": 2,
+      "row_inputs": 0,
+      "score": 4,
+      "surface": "tenant"
+    },
+    {
+      "collection": "codes",
+      "columns": 5,
+      "file": "templates/accounts/tenant_join_codes.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "line": 65,
+      "loop": "for c in codes",
+      "reasons": [
+        "1 form(s) inside repeated rows"
+      ],
+      "recommendations": [
+        "Move row forms behind disclosure, drawer, or detail page.",
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 2,
+      "row_forms": 1,
+      "row_inputs": 0,
+      "score": 4,
+      "surface": "tenant"
+    }
+  ],
+  "generated_at": "2026-08-01T10:15:34Z",
+  "remediation_status": "PARTIAL",
+  "top_findings": [
+    {
+      "collection": "caseload",
+      "columns": 8,
+      "file": "templates/staff/counselor_caseload.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "line": 52,
+      "loop": "for c in caseload",
+      "reasons": [
+        "8 columns",
+        "2 form(s) inside repeated rows",
+        "7 input/select controls inside repeated rows"
+      ],
+      "recommendations": [
+        "Move row forms behind disclosure, drawer, or detail page.",
+        "Use compact density, sticky headers, and hide secondary fields behind row detail.",
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 2,
+      "row_forms": 2,
+      "row_inputs": 7,
+      "score": 10,
+      "surface": "shared"
+    },
+    {
+      "collection": "grid.rows",
+      "columns": 2,
+      "file": "templates/academics/timetable_review.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "line": 104,
+      "loop": "for row in grid.rows",
+      "reasons": [
+        "1 form(s) inside repeated rows"
+      ],
+      "recommendations": [
+        "Move row forms behind disclosure, drawer, or detail page.",
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 1,
+      "row_forms": 1,
+      "row_inputs": 0,
+      "score": 4,
+      "surface": "tenant"
+    },
+    {
+      "collection": "connections",
+      "columns": 3,
+      "file": "templates/accounts/sso_connections.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "line": 122,
+      "loop": "for c in connections",
+      "reasons": [
+        "2 form(s) inside repeated rows"
+      ],
+      "recommendations": [
+        "Move row forms behind disclosure, drawer, or detail page.",
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 3,
+      "row_forms": 2,
+      "row_inputs": 0,
+      "score": 4,
+      "surface": "tenant"
+    },
+    {
+      "collection": "codes",
+      "columns": 5,
+      "file": "templates/accounts/tenant_join_codes.html",
+      "has_paginate_scroll_policy": true,
+      "has_pagination": false,
+      "line": 65,
+      "loop": "for c in codes",
+      "reasons": [
+        "1 form(s) inside repeated rows"
+      ],
+      "recommendations": [
+        "Move row forms behind disclosure, drawer, or detail page.",
+        "Add pagination or virtualization for large collections."
+      ],
+      "row_actions": 2,
+      "row_forms": 1,
+      "row_inputs": 0,
+      "score": 4,
+      "surface": "tenant"
+    }
+  ]
 }

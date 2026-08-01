@@ -1,0 +1,178 @@
+{
+  "h1": [
+    {
+      "text": "Finance",
+      "cls": "visually-hidden",
+      "rect": {
+        "x": 325.59375,
+        "y": 269.34375,
+        "width": 1,
+        "height": 1,
+        "top": 269.34375,
+        "right": 326.59375,
+        "bottom": 270.34375,
+        "left": 325.59375
+      },
+      "display": "block",
+      "clip": "rect(0px, 0px, 0px, 0px)",
+      "position": "absolute"
+    },
+    {
+      "text": "Finance \nFinance",
+      "cls": "rmc-page-masthead__title cp-page-h1 mb-0",
+      "rect": {
+        "x": 338.59375,
+        "y": 536.515625,
+        "width": 123.546875,
+        "height": 42.875,
+        "top": 536.515625,
+        "right": 462.140625,
+        "bottom": 579.390625,
+        "left": 338.59375
+      },
+      "display": "block",
+      "clip": "auto",
+      "position": "static"
+    }
+  ],
+  "scrollHeight": 900,
+  "bodyText": true,
+  "skeletons": [],
+  "widgets": [
+    {
+      "id": "finance-hero",
+      "cls": "col-12",
+      "rect": {
+        "x": 345.046875,
+        "y": 11132.921875,
+        "width": 939.21875,
+        "height": 329.8125,
+        "top": 11132.921875,
+        "right": 1284.265625,
+        "bottom": 11462.734375,
+        "left": 345.046875
+      },
+      "text": "FINANCE DASHBOARD\nDemo finance — demo-school\nReceivables, collections, and alert"
+    },
+    {
+      "id": "finance-summary-receivables",
+      "cls": "col-12 col-md-6 col-lg-3",
+      "rect": {
+        "x": 345.046875,
+        "y": 11491.84375,
+        "width": 231.53125,
+        "height": 48,
+        "top": 11491.84375,
+        "right": 576.578125,
+        "bottom": 11539.84375,
+        "left": 345.046875
+      },
+      "text": "Accounts receivable\n$0.00"
+    },
+    {
+      "id": "finance-summary-payables",
+      "cls": "col-12 col-md-6 col-lg-3",
+      "rect": {
+        "x": 576.578125,
+        "y": 11491.84375,
+        "width": 231.53125,
+        "height": 48,
+        "top": 11491.84375,
+        "right": 808.109375,
+        "bottom": 11539.84375,
+        "left": 576.578125
+      },
+      "text": "Accounts payable\n$0.00"
+    },
+    {
+      "id": "finance-summary-paid",
+      "cls": "col-12 col-md-6 col-lg-3",
+      "rect": {
+        "x": 808.109375,
+        "y": 11491.84375,
+        "width": 231.53125,
+        "height": 48,
+        "top": 11491.84375,
+        "right": 1039.640625,
+        "bottom": 11539.84375,
+        "left": 808.109375
+      },
+      "text": "Paid (YTD)\n$0.00"
+    },
+    {
+      "id": "finance-summary-overdue",
+      "cls": "col-12 col-md-6 col-lg-3",
+      "rect": {
+        "x": 1039.640625,
+        "y": 11491.84375,
+        "width": 231.53125,
+        "height": 48,
+        "top": 11491.84375,
+        "right": 1271.171875,
+        "bottom": 11539.84375,
+        "left": 1039.640625
+      },
+      "text": "Overdue invoices\n0"
+    },
+    {
+      "id": "finance-status-counts",
+      "cls": "",
+      "rect": {
+        "x": 351.59375,
+        "y": 11568.953125,
+        "width": 455.0625,
+        "height": 373.59375,
+        "top": 11568.953125,
+        "right": 806.65625,
+        "bottom": 11942.546875,
+        "left": 351.59375
+      },
+      "text": "Invoice status\nExport\nNo data to display"
+    },
+    {
+      "id": "finance-invoice-trend",
+      "cls": "",
+      "rect": {
+        "x": 822.65625,
+        "y": 11568.953125,
+        "width": 455.0625,
+        "height": 373.59375,
+        "top": 11568.953125,
+        "right": 1277.71875,
+        "bottom": 11942.546875,
+        "left": 822.65625
+      },
+      "text": "Invoice trend (4 months)\nExport"
+    },
+    {
+      "id": "finance-recent-invoices",
+      "cls": "card border-0 shadow-sm",
+      "rect": {
+        "x": 351.59375,
+        "y": 11982.546875,
+        "width": 461.609375,
+        "height": 640.78125,
+        "top": 11982.546875,
+        "right": 813.203125,
+        "bottom": 12623.328125,
+        "left": 351.59375
+      },
+      "text": "Recent Invoices\nNo invoices yet\n\nGenerate fee invoices to see them here.\n\nGenera"
+    },
+    {
+      "id": "finance-recent-payments",
+      "cls": "card border-0 shadow-sm",
+      "rect": {
+        "x": 829.203125,
+        "y": 11998.546875,
+        "width": 461.609375,
+        "height": 624.78125,
+        "top": 11998.546875,
+        "right": 1290.8125,
+        "bottom": 12623.328125,
+        "left": 829.203125
+      },
+      "text": "Recent Payments\nNo payments yet\n\nPayments will appear here once invoices are pai"
+    }
+  ]
+}

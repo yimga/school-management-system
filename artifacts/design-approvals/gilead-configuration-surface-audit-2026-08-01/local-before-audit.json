@@ -1,0 +1,211 @@
+[
+  {
+    "name": "configuration",
+    "path": "/school/configuration/",
+    "status": 200,
+    "dom": {
+      "url": "http://demo-school.runmycampus.com:8014/school/configuration/",
+      "title": "Configuration",
+      "visibleH1": 1,
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "visibleSidebarGroups": [
+        "quick-access",
+        "home",
+        "account",
+        "communication",
+        "support",
+        "content-documents",
+        "academic-management",
+        "people-access",
+        "financial-management",
+        "analytics-reports",
+        "workflows-approvals",
+        "access-roles",
+        "templates-branding",
+        "display-platform",
+        "integrations-data",
+        "configuration"
+      ],
+      "duplicateVisibleGroups": [],
+      "duplicateCss": [
+        "/static/css/rmc-world-class-experience.1a8bfc7c6459.css",
+        "/static/css/rmc-page-archetypes-max.cb891ad6dbfc.css"
+      ],
+      "stylesInBody": 0,
+      "bodyText": "Skip to main content\nN\nNew Test High School\nADMIN WORKSPACE\nSchool command surface\n🏠 Home\n💳 Finance\n💬 Messages\n📊 Analytics\n⋯ More\nGlobal search\n/\nLIVE\nNew student enrolled in Year 4\n \nConsole\nConfigure\nDE\n1\n/\nNavigation\nQUICK ACCESS\nWorkflow Center\nPreferences\nHOME\nDashboard\nACCOUNT\nCOMMUNICATION\nSUPPORT\nCONTENT & DOCUMENTS\nACADEMIC MANAGEMENT\nPEOPLE & ACCESS\nFINANCIAL MANAGEMENT\nANALYTICS & REPORTS\nWORKFLOWS & APPROVALS\nACCESS & ROLES\nTEMPLATES & BRANDING\nDISPLAY & PLATFORM\nINTEGRATIONS & DATA\nCONFIGURATION\nRecent Activity\nHelp\nHOME\n›\nSCHOOL\n›\nCONFIGURATION\nAbout this page\nSchool Configuration Center Canonical\nSchool Configuration Center Canonical\nNEXT\nReport schedules or catalog in use\n→\n\nYOUR FLOW\n\nReport schedules or catalog in use\nComplete setup to unlock full value.\nCONTINUE →\nDomains / email routing (CCC)\nComplete setup to unlock full value.\nOPEN →\nData import (CSV migration) used or reviewed\nComplete setup to unlock full value.\nOPEN →\nSETUP · THIS SCHOOL\nConfiguration \nConf"
+    },
+    "badResponses": [],
+    "consoleErrors": []
+  },
+  {
+    "name": "app-catalog",
+    "path": "/settings/app-catalog/",
+    "status": 200,
+    "dom": {
+      "url": "http://demo-school.runmycampus.com:8014/settings/app-catalog/",
+      "title": "App catalog",
+      "visibleH1": 1,
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "visibleSidebarGroups": [
+        "quick-access",
+        "home",
+        "account",
+        "communication",
+        "support",
+        "content-documents",
+        "academic-management",
+        "people-access",
+        "financial-management",
+        "analytics-reports",
+        "workflows-approvals",
+        "access-roles",
+        "templates-branding",
+        "display-platform",
+        "integrations-data",
+        "configuration"
+      ],
+      "duplicateVisibleGroups": [],
+      "duplicateCss": [],
+      "stylesInBody": 0,
+      "bodyText": "Skip to main content\nN\nNew Test High School\nADMIN WORKSPACE\nSchool command surface\n🏠 Home\n💳 Finance\n💬 Messages\n📊 Analytics\n⋯ More\nGlobal search\n/\nLIVE\nNew student enrolled in Year 4\n \nSchool workspace\nApple Class QA ★\nBackend Shell School ★\nGilead School System Management System ★\nNew Test High School ★\nA\nA\nAI\nAI Center School\nAdm Test\nAdmin UI smoke school client\nB\nBill\nBundle School A\nBundle School B\nCedar Ridge Academy\nCond Test\nDOM Budget School\nDiag School Z\nE2E Golden School\nE2E Marketplace Install School\nEAV\nEngine Sub Test High\nEngine Sub Test High\nEnrich Test\nFallback Lang Test US High\nGEOS Demo School\nGR\nGenuinely Broken2\nI\nIso\nLens Test\nMail Test School\nMaple Grove High\nNew Test high school\nObs Test\nPending Co\nPhase Test\nSLA Smoke School\nSignup Audit School\nSignup Audit School\nSignup Audit School\nSignup Audit School\nSignup Audit School\nSignup Audit School\nSignup Audit School\nSignup Audit School\nSignup Audit School\nSignup Audit School\nSignup Audit School\nSignup Audit Scho"
+    },
+    "badResponses": [],
+    "consoleErrors": []
+  },
+  {
+    "name": "finance",
+    "path": "/finance/",
+    "status": 200,
+    "dom": {
+      "url": "http://demo-school.runmycampus.com:8014/finance/",
+      "title": "Finance",
+      "visibleH1": 2,
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "visibleSidebarGroups": [
+        "quick-access",
+        "home",
+        "account",
+        "communication",
+        "support",
+        "content-documents",
+        "academic-management",
+        "people-access",
+        "financial-management",
+        "analytics-reports",
+        "workflows-approvals",
+        "access-roles",
+        "templates-branding",
+        "display-platform",
+        "integrations-data",
+        "configuration"
+      ],
+      "duplicateVisibleGroups": [],
+      "duplicateCss": [
+        "/static/css/rmc-world-class-experience.1a8bfc7c6459.css",
+        "/static/css/rmc-page-archetypes-max.cb891ad6dbfc.css",
+        "/static/css/rmc-portal-row-detail-drawer.0f30962fcf57.css"
+      ],
+      "stylesInBody": 1,
+      "bodyText": "Skip to main content\nN\nNew Test High School\nADMIN WORKSPACE\nSchool command surface\n🏠 Home\n💳 Finance\n💬 Messages\n📊 Analytics\n⋯ More\nGlobal search\n/\nLIVE\nNew student enrolled in Year 4\n \nSchool workspace\nApple Class QA ★\nBackend Shell School ★\nGilead School System Management System ★\nNew Test High School ★\nA\nA\nAI\nAI Center School\nAdm Test\nAdmin UI smoke school client\nB\nBill\nBundle School A\nBundle School B\nCedar Ridge Academy\nCond Test\nDOM Budget School\nDiag School Z\nE2E Golden School\nE2E Marketplace Install School\nEAV\nEngine Sub Test High\nEngine Sub Test High\nEnrich Test\nFallback Lang Test US High\nGEOS Demo School\nGR\nGenuinely Broken2\nI\nIso\nLens Test\nMail Test School\nMaple Grove High\nNew Test high school\nObs Test\nPending Co\nPhase Test\nSLA Smoke School\nSignup Audit School\nSignup Audit School\nSignup Audit School\nSignup Audit School\nSignup Audit School\nSignup Audit School\nSignup Audit School\nSignup Audit School\nSignup Audit School\nSignup Audit School\nSignup Audit School\nSignup Audit Scho"
+    },
+    "badResponses": [],
+    "consoleErrors": []
+  },
+  {
+    "name": "academics",
+    "path": "/academics/",
+    "status": 404,
+    "dom": {
+      "url": "http://demo-school.runmycampus.com:8014/academics/",
+      "title": "Page not found | RunMyCampus",
+      "visibleH1": 1,
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "visibleSidebarGroups": [],
+      "duplicateVisibleGroups": [],
+      "duplicateCss": [
+        "/static/css/rmc-collapsable.236cd366aa74.css"
+      ],
+      "stylesInBody": 0,
+      "bodyText": "Skip to main content\nN\nNew Test High School\nHome\n Security 75\nPress ? for keyboard shortcuts\nDE\n1\ndemo.admin\nAdmin\nAbout this page\nSchool workspace\nSchool workspace\nNEXT\nReport schedules or catalog in use\n→\n\nYOUR FLOW\n\nReport schedules or catalog in use\nComplete setup to unlock full value.\nCONTINUE →\nDomains / email routing (CCC)\nComplete setup to unlock full value.\nOPEN →\nData import (CSV migration) used or reviewed\nComplete setup to unlock full value.\nOPEN →\nHome\nAcademics\nPage not found\n\nNew Test High School is live on RunMyCampus, but the page you requested doesn't exist.\n\nGo to your dashboard\nNew Test High School\n\nPrivacy Policy | Terms of Service | Cookie Policy\n\n© 2026 New Test High School. All rights reserved.\n\n0\nBack to top\nBack to top"
+    },
+    "badResponses": [
+      {
+        "status": 404,
+        "url": "http://demo-school.runmycampus.com:8014/academics/"
+      }
+    ],
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ]
+  },
+  {
+    "name": "offline-old",
+    "path": "/portal/offline-sync/",
+    "status": 404,
+    "dom": {
+      "url": "http://demo-school.runmycampus.com:8014/portal/offline-sync/",
+      "title": "Page not found | RunMyCampus",
+      "visibleH1": 1,
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "visibleSidebarGroups": [],
+      "duplicateVisibleGroups": [],
+      "duplicateCss": [
+        "/static/css/rmc-collapsable.236cd366aa74.css"
+      ],
+      "stylesInBody": 0,
+      "bodyText": "Skip to main content\nN\nNew Test High School\nHome\n Security 75\nPress ? for keyboard shortcuts\nDE\n1\ndemo.admin\nAdmin\nAbout this page\nMarketing Region\nMarketing Region\nNEXT\nReport schedules or catalog in use\n→\n\nYOUR FLOW\n\nReport schedules or catalog in use\nComplete setup to unlock full value.\nCONTINUE →\nDomains / email routing (CCC)\nComplete setup to unlock full value.\nOPEN →\nData import (CSV migration) used or reviewed\nComplete setup to unlock full value.\nOPEN →\nHome\nPortal\nOffline Sync\nPage not found\n\nNew Test High School is live on RunMyCampus, but the page you requested doesn't exist.\n\nGo to your dashboard\nNew Test High School\n\nPrivacy Policy | Terms of Service | Cookie Policy\n\n© 2026 New Test High School. All rights reserved.\n\n0\nBack to top\nBack to top"
+    },
+    "badResponses": [
+      {
+        "status": 404,
+        "url": "http://demo-school.runmycampus.com:8014/portal/offline-sync/"
+      }
+    ],
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ]
+  },
+  {
+    "name": "offline-canonical",
+    "path": "/portal/offline/sync-queue/",
+    "status": 200,
+    "dom": {
+      "url": "http://demo-school.runmycampus.com:8014/portal/offline/sync-queue/",
+      "title": "Offline sync queue — Portal",
+      "visibleH1": 1,
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "visibleSidebarGroups": [
+        "quick-access",
+        "home",
+        "account",
+        "communication",
+        "support",
+        "content-documents",
+        "academic-management",
+        "people-access",
+        "financial-management",
+        "analytics-reports",
+        "workflows-approvals",
+        "access-roles",
+        "templates-branding",
+        "display-platform",
+        "integrations-data",
+        "configuration"
+      ],
+      "duplicateVisibleGroups": [],
+      "duplicateCss": [
+        "/static/css/rmc-portal-row-detail-drawer.0f30962fcf57.css"
+      ],
+      "stylesInBody": 1,
+      "bodyText": "Skip to main content\nN\nNew Test High School\nADMIN WORKSPACE\nSchool command surface\n🏠 Home\n💳 Finance\n💬 Messages\n📊 Analytics\n⋯ More\nGlobal search\n/\nLIVE\nNew student enrolled in Year 4\n \nSchool workspace\nApple Class QA ★\nBackend Shell School ★\nGilead School System Management System ★\nNew Test High School ★\nA\nA\nAI\nAI Center School\nAdm Test\nAdmin UI smoke school client\nB\nBill\nBundle School A\nBundle School B\nCedar Ridge Academy\nCond Test\nDOM Budget School\nDiag School Z\nE2E Golden School\nE2E Marketplace Install School\nEAV\nEngine Sub Test High\nEngine Sub Test High\nEnrich Test\nFallback Lang Test US High\nGEOS Demo School\nGR\nGenuinely Broken2\nI\nIso\nLens Test\nMail Test School\nMaple Grove High\nNew Test high school\nObs Test\nPending Co\nPhase Test\nSLA Smoke School\nSignup Audit School\nSignup Audit School\nSignup Audit School\nSignup Audit School\nSignup Audit School\nSignup Audit School\nSignup Audit School\nSignup Audit School\nSignup Audit School\nSignup Audit School\nSignup Audit School\nSignup Audit Scho"
+    },
+    "badResponses": [],
+    "consoleErrors": []
+  }
+]
