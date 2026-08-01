@@ -151,11 +151,27 @@ def is_feature_enabled(school, code: str) -> bool:
         if normalized in addon_set:
             return True
     # Wedges 23–43: School.features JSON (learning institution packs + one-click installs)
+    #
+    # This store is positive-only for GRANTS, but an explicit ``False`` is a real
+    # opt-out and must fail closed. Production writes that form as a genuine
+    # off-switch in places that never touch the toggle store —
+    # ``marketplace/activation_orchestrator``, ``learning_institution_runtime``
+    # (feature-set + wedge retraction), and ``advancement_services``, whose
+    # docstring states "ONLY an explicit False" disables the surface. Falling
+    # through on ``False`` let the module default re-grant a capability the
+    # school had switched off, including PII-bearing ones (clinic health log,
+    # visitor log). Absent key => no opinion => keep resolving.
     raw_feats = getattr(school, "features", None) or {}
+    explicitly_disabled = False
     if isinstance(raw_feats, dict):
         for fk, fv in raw_feats.items():
-            if fv and str(fk).strip().lower() == normalized:
+            if str(fk).strip().lower() != normalized:
+                continue
+            if fv:
                 return True
+            explicitly_disabled = True
+    if explicitly_disabled:
+        return False
     # Phase A: getTenantModules — union of feature keys from TenantSystem + SystemFeature
     try:
         from apps.siteconfig.tenant_config import get_tenant_modules

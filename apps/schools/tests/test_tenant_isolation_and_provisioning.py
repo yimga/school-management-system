@@ -385,13 +385,42 @@ class FeatureFlagTests(TestCase):
             user=self.user, school=self.school, role=User.Role.TEACHER, is_primary=True
         )
 
-    def test_has_feature_false_when_not_in_features(self):
+    def test_has_feature_false_when_explicitly_disabled(self):
+        """An explicit ``False`` is an opt-out and must fail closed.
+
+        This previously asserted that an ABSENT key resolves False. That held
+        only on a database whose FeatureToggleDefinition rows had never been
+        seeded — i.e. a test database. On a seeded (production) database the
+        declared T21 default is ON, so an absent key resolves True and the
+        assertion was documenting behaviour production did not have. Recording
+        the opt-out the way the platform actually records it keeps the guard
+        real without depending on the seeding accident.
+        """
+        self.school.features = {"cahier_de_texte": False}
+        self.school.save(update_fields=["features"])
         self.assertFalse(self.school.has_feature("cahier_de_texte"))
 
     def test_has_feature_true_when_enabled(self):
         self.school.features = {"cahier_de_texte": True}
         self.school.save()
         self.assertTrue(self.school.has_feature("cahier_de_texte"))
+
+    def test_absent_key_resolves_to_the_declared_module_default(self):
+        """Absent means "no opinion", which the platform answers with T21 default-ON."""
+        from apps.schools.feature_registry import (
+            MODULE_DEFAULT_ENABLED,
+            registry_module_codes,
+        )
+
+        self.assertIn("cahier_de_texte", registry_module_codes())
+        self.assertEqual(self.school.features, {})
+        self.assertEqual(
+            self.school.has_feature("cahier_de_texte"), MODULE_DEFAULT_ENABLED
+        )
+
+    def test_an_undeclared_code_is_never_granted_by_the_module_default(self):
+        """Must-fire: the default must not have become an unconditional yes."""
+        self.assertFalse(self.school.has_feature("definitely_not_a_module"))
 
 
 class OfflineSyncPerSchoolTests(TestCase):
@@ -406,7 +435,10 @@ class OfflineSyncPerSchoolTests(TestCase):
             slug="no-offline",
             subdomain="no-offline",
             is_active=True,
-            features={},  # offline_mode not enabled
+            # Explicit opt-out. An ABSENT key would resolve to the declared
+            # T21 module default (ON) on any seeded database, so `{}` asserted
+            # a 403 that production does not produce.
+            features={"offline_mode": False},
         )
         user = User.objects.create_user(
             username="offline_test_user",
