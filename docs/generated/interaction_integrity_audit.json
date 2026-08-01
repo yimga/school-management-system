@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-01T10:25:09.302211+00:00",
+  "generated_at": "2026-08-01T12:07:17.071837+00:00",
   "verdict": "INTERACTION_INTEGRITY_PASS",
   "pass_count": 19,
   "fail_count": 0,
@@ -116,7 +116,7 @@
       "id": "17",
       "label": "Contract tests green",
       "status": "PASS",
-      "proof": "fast: =- server_name=- \ndef process_webhook_deliveries_task(batch_size=0):\n    return 1\n\n...................\n----------------------------------------------------------------------\nRan 26 tests in 0.811s\n\nOK\nfeedback: skipped (RMC_VERIFY_INTERACTION_SKIP_FEEDBACK_TESTS=1)"
+      "proof": "fast: =- server_name=- \ndef process_webhook_deliveries_task(batch_size=0):\n    return 1\n\n...................\n----------------------------------------------------------------------\nRan 26 tests in 0.870s\n\nOK\nfeedback: skipped (RMC_VERIFY_INTERACTION_SKIP_FEEDBACK_TESTS=1)"
     }
   ]
 }

@@ -6,6 +6,7 @@ PASS exits 0 with TENANT_CHROME_FINISH_PASS.
 from __future__ import annotations
 
 import pathlib
+import re
 import sys
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -74,7 +75,13 @@ def main() -> int:
             "rmc-platform-vertical-compact.css must force 360px when copilot is expanded"
         )
 
-    if "sms-v4.06.23-admin-footer-ui-cache-refresh-2026-07-31" not in sw:
+    cache_match = re.search(
+        r'const CACHE_VERSION = "sms-v(\d+)\.(\d+)\.(\d+)[^"]*";', sw
+    )
+    cache_version = (
+        tuple(int(part) for part in cache_match.groups()) if cache_match else None
+    )
+    if cache_version is None or cache_version < (4, 6, 23):
         findings.append("service-worker CACHE_VERSION must bump for chrome rootfix")
 
     # Keep onboarding auto-expand (preview parity); width seal prevents crush.
