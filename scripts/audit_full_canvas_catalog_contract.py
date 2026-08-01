@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from pathlib import Path
 
 
@@ -45,6 +46,9 @@ SHELL_TEMPLATES = (
 )
 
 HEAD_ONLY_PARTIALS = (
+    TEMPLATES / "admin" / "components" / "theme_preview_assets.html",
+    TEMPLATES / "partials" / "rmc_analytics_viz_assets.html",
+    TEMPLATES / "partials" / "rmc_dropzone_self_host.html",
     TEMPLATES / "partials" / "control_plane_operator_brand_style.html",
     TEMPLATES / "partials" / "rmc_viewport_engine.html",
     TEMPLATES / "components" / "rum_beacon.html",
@@ -52,6 +56,10 @@ HEAD_ONLY_PARTIALS = (
     TEMPLATES / "partials" / "rmc_deferred_stylesheet.html",
     TEMPLATES / "partials" / "rmc_tenant_tools_styles.html",
     TEMPLATES / "partials" / "rmc_operator_tools_styles.html",
+    TEMPLATES / "reports" / "_report_styles.html",
+    TEMPLATES / "siteconfig" / "partials" / "theme_editor_head_assets.html",
+    TEMPLATES / "siteconfig" / "partials" / "theme_colors_operator_head_assets.html",
+    TEMPLATES / "studio_os" / "partials" / "shell_extrastyle.html",
 )
 
 BACKEND_SHELLS = (
@@ -66,12 +74,25 @@ HEAD_OWNED_RUNTIME_CSS = (
 )
 
 BODY_COMPONENT_STYLESHEET_BANS = (
+    TEMPLATES / "admin" / "components" / "admin_dashboard_palette_selector.html",
     TEMPLATES / "components" / "contextual_feedback_widget.html",
+    TEMPLATES / "siteconfig" / "partials" / "theme_colors_content.html",
+    TEMPLATES / "siteconfig" / "partials" / "theme_colors_page_body.html",
 )
 
 CSRF_META_FIRST_SCRIPTS = (
     ROOT / "static" / "js" / "theme-preference-bootstrap.js",
     ROOT / "static" / "js" / "rmc-tour.js",
+)
+
+HEAD_BLOCK_RE = re.compile(
+    r"{%\s*block\s+(extrahead|extrastyle|extra_css)\s*%}(.*?){%\s*endblock\s*%}",
+    re.DOTALL,
+)
+STATIC_INCLUDE_RE = re.compile(r'''{%\s*include\s+["']([^"']+)["']''')
+BODY_MARKUP_RE = re.compile(
+    r"<(?:div|main|section|article|p|span|form|aside|nav|header|footer)\b",
+    re.IGNORECASE,
 )
 
 
@@ -92,6 +113,29 @@ def scan() -> dict[str, object]:
     for path in sorted(TEMPLATES.rglob("*.html")):
         template_count += 1
         text = path.read_text(encoding="utf-8", errors="replace")
+
+        # A body element inside a head-owned block closes <head> in the HTML
+        # parser. Check both direct markup and every statically named include,
+        # so a new asset partial cannot silently recreate the failure chain.
+        for head_block in HEAD_BLOCK_RE.finditer(text):
+            block_name, block_body = head_block.groups()
+            if BODY_MARKUP_RE.search(block_body):
+                findings.append(finding(path, f"head_block_contains_body_markup:{block_name}"))
+            for include_name in STATIC_INCLUDE_RE.findall(block_body):
+                include_path = TEMPLATES / include_name
+                if not include_path.is_file():
+                    continue
+                include_text = include_path.read_text(
+                    encoding="utf-8", errors="replace"
+                )
+                if BODY_MARKUP_RE.search(include_text):
+                    findings.append(
+                        finding(
+                            path,
+                            f"head_include_contains_body_markup:{include_name}",
+                        )
+                    )
+
         if (
             'data-page-archetype="operational-workbench"' not in text
             and 'data-rmc-operational-workbench="1"' not in text
@@ -271,6 +315,9 @@ def scan() -> dict[str, object]:
             "rmc-world-class-experience.css",
         ),
         TEMPLATES / "backend_base_tenant.html": ("tenant-command-workspace.css",),
+        TEMPLATES / "siteconfig" / "operator_control_plane_page.html": (
+            "dashboard-responsive.css",
+        ),
         TEMPLATES / "partials" / "rmc_tenant_tools_styles.html": (
             "rmc-workflow-guidance.css",
         ),

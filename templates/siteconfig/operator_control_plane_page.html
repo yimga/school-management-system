@@ -4,9 +4,11 @@
 {% block extrastyle %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/cp-operator-density-1096-1097.css' %}">
-<link rel="stylesheet" href="{% static 'css/dashboard-responsive.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-user-preferences.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-account-surface.css' %}">
+{% if operator_cp_theme_colors_head %}
+{% include "siteconfig/partials/theme_colors_operator_head_assets.html" %}
+{% endif %}
 {% endblock %}
 
 {% block title %}{{ operator_cp_title|default:"RunMyCampus Manager" }} — RunMyCampus Manager{% endblock %}

@@ -56,6 +56,13 @@ def main() -> int:
             ROOT / "var" / "design-previews" / "tenant-option-a-palette-lifecycle-blueprint-audit.html",
             "Warm command workspace",
         ),
+        (
+            ROOT
+            / "var"
+            / "design-previews"
+            / "tenant-pack-setup-full-canvas-before-after-approval-2026-07-31.html",
+            "full-canvas before / after approval",
+        ),
     )
     for path, token in approved_previews:
         _abs_has(path, token, failures)
@@ -91,8 +98,12 @@ def main() -> int:
     ):
         _has(rel, token, failures)
 
-    # Tenant Option A: sparse tenant pages must use the warm command workspace,
-    # bounded work zones, tenant-local blueprint actions, and full palette preview.
+    # Tenant Option A evolved into the shared page-aware masthead/operational
+    # frame. Assert the current composition instead of requiring the retired
+    # strip directly on every page (which would recreate duplicate chrome).
+    # The original strip remains a supported component where it is still the
+    # correct archetype; the approved tenant-pack route uses its dedicated
+    # full-canvas catalog and decision rail.
     for rel, token in (
         ("templates/siteconfig/get_blueprints.html", "tenant-command-workspace.css"),
         ("templates/siteconfig/partials/get_blueprints_body.html", 'data-rmc-command-workspace="tenant-blueprints"'),
@@ -101,34 +112,42 @@ def main() -> int:
         ("templates/siteconfig/partials/get_blueprints_body.html", "data-rmc-blueprint-apply-action"),
         ("templates/siteconfig/partials/get_blueprints_body.html", "tenant_blueprint_setup_base_url"),
         ("templates/siteconfig/partials/get_blueprints_body.html", 'data-rmc-bounded-work-zone="tenant-blueprint-catalog"'),
-        ("templates/platform_runtime/tenant_blueprint_setup.html", "tenant_blueprint_option_a_strip.html"),
+        ("templates/platform_runtime/tenant_blueprint_setup.html", "rmc_operational_center_frame.html"),
+        ("templates/platform_runtime/tenant_blueprint_setup.html", 'tenant_surface="1"'),
         ("templates/platform_runtime/tenant_blueprint_setup.html", "hide_nav_detail"),
         ("templates/components/tenant_blueprint_option_a_strip.html", "tenant_option_a_strip.html"),
         ("templates/components/tenant_option_a_strip.html", "world_class_guided_stepper.html"),
-        ("templates/platform_runtime/tenant_pack_setup.html", "tenant_option_a_strip.html"),
+        ("templates/platform_runtime/tenant_pack_setup.html", 'data-rmc-full-canvas-catalog="tenant-pack"'),
+        ("templates/platform_runtime/tenant_pack_setup.html", 'data-rmc-pack-inspector="1"'),
+        ("templates/platform_runtime/tenant_pack_setup.html", "rmc_operational_center_frame.html"),
         ("templates/platform_runtime/tenant_pack_setup.html", "hide_nav_detail"),
-        ("templates/platform_runtime/school_configuration_center.html", "tenant_option_a_strip.html"),
-        ("templates/platform_runtime/school_configuration_center.html", "hide_nav_detail"),
-        ("templates/platform_runtime/tenant_import_setup.html", "tenant_option_a_strip.html"),
+        ("templates/platform_runtime/school_configuration_center.html", "rmc_page_masthead.html"),
+        ("templates/platform_runtime/school_configuration_center.html", 'data-rmc-work-root="1"'),
+        ("templates/platform_runtime/tenant_import_setup.html", "rmc_operational_center_frame.html"),
+        ("templates/platform_runtime/tenant_import_setup.html", 'tenant_surface="1"'),
         ("templates/platform_runtime/tenant_import_setup.html", "hide_nav_detail"),
-        ("templates/finance/dashboard.html", "tenant_option_a_strip.html"),
-        ("templates/finance/dashboard.html", "hide_nav_detail"),
-        ("templates/finance/payment_readiness_dashboard.html", "tenant_option_a_strip.html"),
+        ("templates/finance/dashboard.html", "rmc_page_masthead.html"),
+        ("templates/finance/dashboard.html", 'data-rmc-work-root="1"'),
+        ("templates/finance/payment_readiness_dashboard.html", "rmc_operational_center_frame.html"),
+        ("templates/finance/payment_readiness_dashboard.html", 'tenant_surface="1"'),
         ("templates/finance/payment_readiness_dashboard.html", "hide_nav_detail"),
-        ("templates/marketplace/tenant_app_catalog.html", "tenant_option_a_strip.html"),
-        ("templates/marketplace/tenant_app_catalog.html", "hide_nav_detail"),
-        ("templates/siteconfig/partials/onboarding_body.html", "tenant_option_a_strip.html"),
-        ("templates/siteconfig/partials/theme_experience_hub_body.html", "tenant_option_a_strip.html"),
-        ("templates/siteconfig/partials/theme_colors_page_body.html", "tenant_option_a_strip.html"),
-        # Operator governed-config Option A (only the four necessary twins)
-        ("templates/platform_runtime/configuration_center.html", "tenant_option_a_strip.html"),
+        ("templates/marketplace/tenant_app_catalog.html", "rmc_operational_center_frame.html"),
+        ("templates/marketplace/tenant_app_catalog.html", 'tenant_surface="1"'),
+        ("templates/siteconfig/partials/onboarding_body.html", 'data-rmc-command-workspace="school-activation-onboarding"'),
+        ("templates/siteconfig/partials/onboarding_body.html", 'data-rmc-operational-workbench="1"'),
+        ("templates/siteconfig/partials/theme_experience_hub_body.html", 'data-rmc-plane="{% if operator_plane %}platform{% else %}tenant{% endif %}"'),
+        ("templates/siteconfig/partials/theme_experience_hub_body.html", 'data-rmc-page-fold-nav="required"'),
+        ("templates/siteconfig/partials/theme_colors_page_body.html", 'data-rmc-command-workspace="theme-experience"'),
+        ("templates/siteconfig/partials/theme_colors_page_body.html", 'data-rmc-operational-workbench="1"'),
+        # Operator governed-config twins use the same shared frame while
+        # retaining operator-only authority and route ownership.
+        ("templates/platform_runtime/configuration_center.html", "rmc_operational_center_frame.html"),
         ("templates/platform_runtime/configuration_center.html", "hide_nav_detail"),
-        ("templates/platform_runtime/configuration_center.html", 'option_a_tag=_("Operator")'),
-        ("templates/platform_runtime/blueprint_marketplace.html", "tenant_option_a_strip.html"),
+        ("templates/platform_runtime/blueprint_marketplace.html", "rmc_operational_center_frame.html"),
         ("templates/platform_runtime/blueprint_marketplace.html", "hide_nav_detail"),
-        ("templates/platform_runtime/pack_marketplace.html", "tenant_option_a_strip.html"),
+        ("templates/platform_runtime/pack_marketplace.html", "rmc_operational_center_frame.html"),
         ("templates/platform_runtime/pack_marketplace.html", "hide_nav_detail"),
-        ("templates/platform_runtime/change_requests.html", "tenant_option_a_strip.html"),
+        ("templates/platform_runtime/change_requests.html", "rmc_operational_center_frame.html"),
         ("templates/platform_runtime/change_requests.html", "hide_nav_detail"),
         ("templates/components/tenant_option_a_strip.html", "option_a_tag"),
         ("templates/platform_runtime/tenant_blueprint_setup.html", "Apply tenant blueprint"),
@@ -165,7 +184,8 @@ def main() -> int:
     print("APPROVED_HTML_IMPLEMENTATION_AUDIT_PASS")
     print("  django_admin_canvas: implemented")
     print("  fix_review_packet: implemented")
-    print("  tenant_option_a: implemented")
+    print("  tenant_option_a_and_shared_frame: implemented")
+    print("  tenant_pack_full_canvas: implemented")
     print("  claude_artifact: represented by local tenant Option A preview")
     return 0
 

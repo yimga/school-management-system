@@ -50,13 +50,13 @@
       </div>
     </details>
     {% endif %}
-    <h1 class="h5 mb-0 ms-auto">
+    <div class="h5 mb-0 ms-auto" data-rmc-studio-context-title="1">
       {% if current_mode %}
         {% for m in studio_modes %}{% if m.id == current_mode %}{{ m.label }}{% endif %}{% endfor %} – {% trans "Studio" %}
       {% else %}
         {% trans "Studio" %}
       {% endif %}
-    </h1>
+    </div>
   </div>
 
   {% include "components/ai_guided_assistant_card.html" with assistant_key="studio_os_assistant" card_title=_("Studio guided assistant") card_hint=_("Suggests next steps across Studio modes. Apply packages and automations only through existing preview and rollback flows.") %}

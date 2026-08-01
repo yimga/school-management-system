@@ -17,6 +17,9 @@ const EVIDENCE_DIR = path.join(
   'tenant-pack-full-canvas-implementation-2026-07-31',
 );
 const ROUTE = `${TENANT_BASE_URL}/school/setup/packs/`;
+const HEAD_OWNERSHIP_ROUTES = [
+  { slug: 'studio-experience', path: '/studio/experience/' },
+];
 const VIEWPORTS = process.env.RMC_TENANT_PACK_QUICK === '1' ? [
   { name: '1440', width: 1440, height: 1000 },
 ] : [
@@ -44,6 +47,11 @@ test.describe('Tenant Pack approved full-canvas implementation', () => {
       if (
         value.includes('Cross-Origin-Opener-Policy header has been ignored')
         || value.includes("WebSocket connection to 'ws://demo-school.runmycampus.com:8013/ws/notifications/' failed")
+        || (
+          value.includes("Framing 'https://demo-school.runmycampus.com/'")
+          && value.includes("default-src 'self'")
+          && TENANT_BASE_URL.startsWith('http://')
+        )
       ) {
         environmentWarnings.push(value);
         return;
@@ -220,9 +228,80 @@ test.describe('Tenant Pack approved full-canvas implementation', () => {
     await expect(nativeTable).toBeVisible();
     expect(await nativeTable.evaluate((table) => getComputedStyle(table).display)).toBe('table');
 
+    // The platform-wide re-audit found that shared theme-preview assets were
+    // structurally correct in source but were being included by two page
+    // bodies. Prove the repaired ownership against rendered tenant-host DOM,
+    // at desktop/mobile widths and in both themes.
+    const headOwnershipEvidence = [];
+    for (const route of HEAD_OWNERSHIP_ROUTES) {
+      for (const theme of ['dark', 'light']) {
+        for (const viewport of [VIEWPORTS[0], VIEWPORTS[VIEWPORTS.length - 1]]) {
+          await page.setViewportSize({ width: viewport.width, height: viewport.height });
+          const response = await page.goto(`${TENANT_BASE_URL}${route.path}`, {
+            waitUntil: 'domcontentloaded',
+            timeout: 120000,
+          });
+          expect(response).not.toBeNull();
+          expect(response.status(), route.path).toBe(200);
+          expect(new URL(page.url()).hostname).toBe('demo-school.runmycampus.com');
+          await page.evaluate((activeTheme) => {
+            if (!window.RMCTheme || typeof window.RMCTheme.set !== 'function') {
+              throw new Error('RMCTheme API unavailable');
+            }
+            window.RMCTheme.set(activeTheme);
+          }, theme);
+          await page.waitForTimeout(200);
+
+          const dom = await page.evaluate(() => {
+            const root = document.documentElement;
+            const cssUrls = Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
+              .map((node) => node.href);
+            const visibleH1 = Array.from(document.querySelectorAll('h1')).filter((node) => {
+              const rect = node.getBoundingClientRect();
+              const style = getComputedStyle(node);
+              return rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility !== 'hidden';
+            });
+            return {
+              clientWidth: root.clientWidth,
+              scrollWidth: root.scrollWidth,
+              h1Visible: visibleH1.length,
+              resolvedTheme: root.getAttribute('data-resolved-theme'),
+              duplicateCssUrls: cssUrls.filter((url, index) => cssUrls.indexOf(url) !== index),
+              bodyStylesheetUrls: Array.from(document.body.querySelectorAll('link[rel="stylesheet"]'))
+                .map((node) => node.href),
+              themePreviewCssInHead: document.head.querySelectorAll('link[href*="site-settings-preview.css"]').length,
+              contrastGuardInHead: document.head.querySelectorAll('script[src*="contrast-guard.js"]').length,
+              themePreviewScriptInHead: document.head.querySelectorAll('script[src*="site-settings-preview.js"]').length,
+            };
+          });
+
+          expect(dom.scrollWidth).toBeLessThanOrEqual(dom.clientWidth + 1);
+          expect(dom.h1Visible).toBe(1);
+          expect(dom.resolvedTheme).toBe(theme);
+          expect(dom.duplicateCssUrls).toEqual([]);
+          expect(dom.bodyStylesheetUrls).toEqual([]);
+          expect(dom.themePreviewCssInHead).toBe(1);
+          expect(dom.contrastGuardInHead).toBe(1);
+          expect(dom.themePreviewScriptInHead).toBe(1);
+
+          const shot = path.join(EVIDENCE_DIR, `${route.slug}-${theme}-${viewport.name}.png`);
+          await page.screenshot({ path: shot, fullPage: true });
+          headOwnershipEvidence.push({
+            route: route.path,
+            theme,
+            viewport,
+            status: response.status(),
+            url: page.url(),
+            ...dom,
+            screenshot: path.relative(ROOT, shot).replace(/\\/g, '/'),
+          });
+        }
+      }
+    }
+
     fs.writeFileSync(
       path.join(EVIDENCE_DIR, 'tenant-pack-full-canvas-browser-evidence.json'),
-      `${JSON.stringify({ generatedAt: new Date().toISOString(), evidence, environmentWarnings, consoleErrors, brokenResources, httpFailures }, null, 2)}\n`,
+      `${JSON.stringify({ generatedAt: new Date().toISOString(), evidence, headOwnershipEvidence, environmentWarnings, consoleErrors, brokenResources, httpFailures }, null, 2)}\n`,
       'utf8',
     );
     expect(brokenResources).toEqual([]);

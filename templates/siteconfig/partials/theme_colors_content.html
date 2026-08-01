@@ -1,6 +1,5 @@
 {% load i18n static %}
 {% comment %} Theme & Experience content for Studio OS or standalone theme_colors page. Expects: form, site_settings, preview_mode_active, theme_contrast_report, theme_recent_change_meta, theme_publish_guarded_count, admin_theme_packs, admin_theme_packs_by_group, back_url, etc. {% endcomment %}
-{% include "admin/components/theme_preview_assets.html" %}
 <form method="post" action="{% url 'siteconfig:theme_colors' %}{% if back_url %}?next={{ back_url|urlencode }}{% endif %}" id="theme-colors-form" data-rmc-theme-content-surface="{{ theme_content_surface|default:'standalone' }}">
   {% csrf_token %}
   <input type="hidden" name="preview_confirmed" id="theme-preview-confirmed" value="0">
