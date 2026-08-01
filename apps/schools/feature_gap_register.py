@@ -434,11 +434,11 @@ FEATURE_REGISTER: tuple[FeatureRow, ...] = (
     ),
     FeatureRow(
         feature_slug="crdt-offline-convergence",
-        label="CRDT offline convergence (LWW-register + G-set + multi-terminal wallet)",
+        label="CRDT convergence ENGINE (LWW-register + G-set + multi-terminal wallet) — engine/command-proven, not the live reconnect path",
         capability_domain="integrations",
         status="shipped",
         proof_management_command="verify_crdt_convergence",
-        notes="SHIPPED Wave F 2026-06-07: apps/sync_engine/crdt.py (LWWRegister ordered by Lamport-clock+replica-id — deterministic, NOT wall-clock LWW; GSet union; lamport_tick) + crdt_wallet.py (grow-only unique-op log, union-merge, Decimal-safe effective_balance, multi-terminal offline debit with HONEST overdraft DETECTION on reconciliation — overdraft is uncoordinatable offline per CAP, so detected not faked; online mode reserve_debit can reject). Proven convergent: tests test_crdt 13/13 + verify_crdt_convergence command. Device-to-device mesh TRANSPORT (BLE/Wi-Fi-Direct) rides on top; rmc-lan-mule-sync.js is the LAN transport. This is the correct home for Wave C's deferred multi-terminal wallet reservation.",
+        notes="SHIPPED Wave F 2026-06-07 AS A CONVERGENCE ENGINE (not the general live reconnect path): apps/sync_engine/crdt.py (LWWRegister ordered by Lamport-clock+replica-id — deterministic, NOT wall-clock LWW; GSet union; lamport_tick) + crdt_wallet.py (grow-only unique-op log, union-merge, Decimal-safe effective_balance, multi-terminal offline debit with HONEST overdraft DETECTION on reconciliation — overdraft is uncoordinatable offline per CAP, so detected not faked; online mode reserve_debit can reject). Proven convergent by tests test_crdt 13/13 + the verify_crdt_convergence management command. SCOPE BOUNDARY (do not overread 'shipped'): the deterministic convergence engine + math is what ships and is proven; it is NOT the general LIVE offline reconnect path — the live conflict resolution the platform runs on reconnect is causal-LWW (apps/sync_engine/conflict_resolver.py::resolve_one, which can return manual_review/reject_offline), NOT the state-CRDT merge. The engine's only importers today are the verify command and apps/sync_engine/views_crdt.py, which is a diagnostic surface not yet URL-mounted. Wiring the CRDT engine as the live reconnect path (and mounting views_crdt) is deferred follow-up. Device-to-device mesh TRANSPORT (BLE/Wi-Fi-Direct) rides on top; rmc-lan-mule-sync.js is the LAN transport. This is the correct home for Wave C's deferred multi-terminal wallet reservation.",
     ),
 )
 
