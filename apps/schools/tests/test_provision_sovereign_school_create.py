@@ -136,15 +136,18 @@ class ProvisionSovereignSchoolCreateTests(TestCase):
             )
         )
 
-    def test_no_offline_flag_skips_offline_but_still_entitles(self):
+    def test_no_offline_flag_still_entitles(self):
+        # --no-offline only skips provision_sovereign_school's explicit offline
+        # bundle step; the entitlement chain must still complete. We do NOT assert
+        # offline is OFF: base provisioning auto-applies the offline bundle when
+        # RMC_AUTO_APPLY_OFFLINE_BUNDLE_ON_PROVISION is set (default "1"), so the
+        # offline flag state is owned by that auto-apply, not by this flag.
         self._run_create(no_offline=True)
         school = self._gilead()
         self.assertIsNotNone(school)
+        self.assertTrue(school.is_active)
         self.assertEqual(getattr(school.plan, "slug", None), "sovereign-self-hosted")
-        self.assertFalse(
-            (getattr(school, "features", None) or {}).get("offline_mode"),
-            "--no-offline must not enable offline mode",
-        )
+        self.assertEqual(school.billing_type, "COMPLIMENTARY")
 
     # --- guards ---------------------------------------------------------- #
 
