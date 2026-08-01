@@ -84,6 +84,11 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # "1", where `migrate_schemas --shared` dies on any fresh database.
     ("scripts/scan_cross_tenancy_fk.py", "architectural-boundaries.yml"),
     ("scripts/verify_offline_capability_implementation.py", "architectural-boundaries.yml"),
+    # Offline manifest taxonomy: the compiled tenant manifest must always carry the
+    # operational_context contract keys (operational_state et al.) even when the ops
+    # resolver fails. This gate existed but ran on NO workflow (only in a paths:
+    # filter), and was RED when executed — wired into ci.yml (needs Django) 2026-08-01.
+    ("scripts/verify_offline_manifest_taxonomy.py", "ci.yml"),
     # Tenant-facing money renders the locale currency, never a hardcoded symbol.
     ("scripts/scan_locale_display.py", "architectural-boundaries.yml"),
     # Global academic kernel — the canonical world grade-scale families must

@@ -182,9 +182,18 @@ def build_school_offline_manifest(school: Any) -> TenantManifest:
         "payment": _payment_posture(country_code),
     }
 
+    # Seed the operational_context contract keys with safe defaults FIRST so the
+    # manifest ALWAYS carries operational_state (and its siblings) even when the
+    # ops/health resolvers fail — edge boot, incomplete setup, or a transient DB
+    # error. An edge/PWA planner consuming the manifest can rely on the key being
+    # present; the try block below upgrades these to real values on success.
     operational_context: dict[str, Any] = {
         "country_code": country_code,
         "schema_contract": "tenant_manifest_v2",
+        "operational_state": "unknown",
+        "operational_reasons": [],
+        "launch_readiness_score": 0,
+        "health_score": 0,
     }
     try:
         from apps.platform_runtime.tenant_operational_lifecycle import (
@@ -196,7 +205,7 @@ def build_school_offline_manifest(school: Any) -> TenantManifest:
         health = setup_health_score(school)
         operational_context.update(
             {
-                "operational_state": ops.get("state"),
+                "operational_state": ops.get("state") or "unknown",
                 "operational_reasons": list(ops.get("reasons") or []),
                 "launch_readiness_score": int(
                     ops.get("launch_readiness_score") or health.get("score") or 0
