@@ -36,6 +36,7 @@ def bind_user_to_tenant(
     unaffected.
     """
     try:
+        # tenant-isolation-allow: sso-primary-binding-invariant-checks-across-all-of-this-users-tenants
         has_other_primary = (
             UserTenantBinding.objects.filter(user=user, is_primary=True)
             .exclude(school=school)

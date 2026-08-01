@@ -52,6 +52,7 @@ def generate_join_code(
 
     for _ in range(12):
         code = _generate_code_string()
+        # tenant-isolation-allow: join-code-uniqueness-is-a-global-bearer-credential-collision-check
         if not SchoolJoinCode.objects.filter(code=code).exists():
             break
     else:  # pragma: no cover - astronomically unlikely
@@ -77,6 +78,7 @@ def resolve_join_code(code, *, school=None):
     code = (code or "").strip().upper()
     if not code:
         return None
+    # tenant-isolation-allow: join-code-resolved-by-bearer-credential-then-optionally-school-narrowed
     qs = SchoolJoinCode.objects.filter(code=code)
     if school is not None:
         qs = qs.filter(school=school)
