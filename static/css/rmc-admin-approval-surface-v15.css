@@ -1,10 +1,10 @@
 /* ============================================================
    Django admin approval surface v15 — Admin OS
-   2026-07-24-admin-os-v158
+   2026-07-31-admin-os-v159-full-canvas
    SOT: var/design-previews/django-admin-os-top-tier-approval-v15-2026-07-21.html
    Extends v13 full-fill + density with page-aware archetypes:
    discover / scan / edit / audit / decide / dossier
-   v15.8: Discover mounts the same page-aware rail and tools tracks as every
+   v15.9: Discover mounts the same page-aware rail and tools tracks as every
    other admin workspace; all tracks collapse to one column at <= 1024px.
    ============================================================ */
 

@@ -51,8 +51,10 @@
   }
 
   function getCsrf() {
+    var meta = document.querySelector('meta[name="csrf-token"]');
+    if (meta && meta.content) return meta.content;
     var m = document.cookie.match(/csrftoken=([^;]+)/);
-    return m ? m[1] : "";
+    return m ? decodeURIComponent(m[1]) : "";
   }
 
   function track(event, context) {

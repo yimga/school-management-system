@@ -1,16 +1,16 @@
 {
-  "build_id": "2026-07-24-v15.8",
-  "cache_bust": "20260724-admin-os-v158",
-  "sw_version": "sms-v4.06.23-admin-footer-ui-cache-refresh-2026-07-31",
-  "seal": "2026-07-24-admin-os-v158",
+  "build_id": "2026-07-31-v15.9",
+  "cache_bust": "20260731-admin-os-v159-full-canvas",
+  "sw_version": "sms-v4.06.24-full-canvas-shell-refresh-2026-07-31",
+  "seal": "2026-07-31-admin-os-v159-full-canvas",
   "approval_previews": [
     "var/design-previews/django-admin-os-top-tier-approval-v15-2026-07-21.html",
     "var/design-previews/django-admin-page-aware-full-fill-approval-2026-07-19.html",
     "var/design-previews/tenant-admin-config-engine-approval-2026-07-19.html"
   ],
   "visible_proofs": [
-    "data-rmc-admin-approval-build=\"2026-07-24-v15.8\"",
-    "v15.8 · Admin OS · operator+tenant",
+    "data-rmc-admin-approval-build=\"2026-07-31-v15.9\"",
+    "v15.9 · Admin OS · operator+tenant",
     "data-rmc-admin-archetype=\"discover\"",
     "data-rmc-admin-archetype=\"scan\"",
     "data-rmc-admin-archetype=\"edit\"",

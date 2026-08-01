@@ -273,6 +273,11 @@
      Reads CSRF from the cookie. No-op if not authenticated (the endpoint will
      return 401/403 and we ignore). */
   function readCsrf() {
+    /* A parent-domain cookie and a tenant-host cookie can legally share the
+       same name. document.cookie does not guarantee which one appears first,
+       so prefer the request-bound masked token rendered into the shell. */
+    var meta = document.querySelector('meta[name="csrf-token"]');
+    if (meta && meta.content) { return meta.content; }
     var m = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
     return m ? decodeURIComponent(m[1]) : null;
   }

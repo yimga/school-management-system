@@ -332,3 +332,49 @@ html[data-rmc-isomorphic-template="operator-control-plane"]
     display: inline-flex;
   }
 }
+
+/* Approved responsive contract: at 1024px and below the operator workspace is
+   one full-width column. Keep this terminal so both the attribute-keyed rule
+   and the later :has() safety net cannot restore the desktop sidebar column. */
+@media (max-width: 1024px) {
+  html[data-rmc-isomorphic-template="operator-control-plane"]
+    body.control-plane-shell
+    .rmc-app-shell[data-rmc-app-shell-copilot="1"],
+  html[data-rmc-isomorphic-template="operator-control-plane"]
+    body.control-plane-shell
+    .rmc-app-shell:has(> .rmc-app-shell__copilot) {
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-areas:
+      "rmc-shell-h"
+      "rmc-shell-cv"
+      "rmc-shell-f" !important;
+  }
+
+  html[data-rmc-isomorphic-template="operator-control-plane"]
+    body.control-plane-shell
+    .rmc-app-shell[data-rmc-app-shell-copilot="1"] > .rmc-app-shell__sidebar,
+  html[data-rmc-isomorphic-template="operator-control-plane"]
+    body.control-plane-shell
+    .rmc-app-shell:has(> .rmc-app-shell__copilot) > .rmc-app-shell__sidebar,
+  html[data-rmc-isomorphic-template="operator-control-plane"]
+    body.control-plane-shell
+    .rmc-app-shell[data-rmc-app-shell-copilot="1"] > .rmc-app-shell__copilot,
+  html[data-rmc-isomorphic-template="operator-control-plane"]
+    body.control-plane-shell
+    .rmc-app-shell:has(> .rmc-app-shell__copilot) > .rmc-app-shell__copilot {
+    display: none !important;
+  }
+
+  html[data-rmc-isomorphic-template="operator-control-plane"]
+    body.control-plane-shell
+    .rmc-app-shell[data-rmc-app-shell-copilot="1"] > .rmc-app-shell__canvas,
+  html[data-rmc-isomorphic-template="operator-control-plane"]
+    body.control-plane-shell
+    .rmc-app-shell:has(> .rmc-app-shell__copilot) > .rmc-app-shell__canvas {
+    grid-area: rmc-shell-cv !important;
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin-inline: 0 !important;
+  }
+}

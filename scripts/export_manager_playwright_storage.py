@@ -16,6 +16,8 @@ if str(ROOT) not in sys.path:
 # invisible to runserver when REDIS_URL is cleared for E2E.
 os.environ["REDIS_URL"] = ""
 os.environ["RMC_FORCE_DB_SESSIONS"] = "1"
+
+
 def _usable_sqlite_db(path: Path) -> bool:
     """Skip empty placeholder files (0-byte db_working.sqlite3 breaks E2E export)."""
     try:
@@ -26,11 +28,22 @@ def _usable_sqlite_db(path: Path) -> bool:
 
 _root = Path(__file__).resolve().parent.parent
 if not (os.environ.get("DB_FILE") or "").strip():
-    for _db_name in ("db_working.sqlite3", "db.sqlite3"):
-        _db_path = _root / _db_name
-        if _usable_sqlite_db(_db_path):
-            os.environ["DB_FILE"] = str(_db_path)
-            break
+    _visual_db = (os.environ.get("VISUAL_QA_DB_FILE") or "").strip()
+    if _visual_db:
+        os.environ["DB_FILE"] = _visual_db
+    else:
+        _env_local = _root / ".env.local"
+        if _env_local.is_file():
+            for _line in _env_local.read_text(encoding="utf-8").splitlines():
+                if _line.startswith("DB_FILE=") and _line.partition("=")[2].strip():
+                    os.environ["DB_FILE"] = _line.partition("=")[2].strip()
+                    break
+    if not (os.environ.get("DB_FILE") or "").strip():
+        for _db_name in ("db_working.sqlite3", "db.sqlite3"):
+            _db_path = _root / _db_name
+            if _usable_sqlite_db(_db_path):
+                os.environ["DB_FILE"] = str(_db_path)
+                break
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 
 AUTH_PATH = ROOT / "artifacts" / "manager-playwright-auth.json"

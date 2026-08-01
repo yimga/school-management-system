@@ -2,7 +2,7 @@
 """Seal Admin OS empty-space / full-bleed contract (operator + tenant).
 
 Fails when CSS/templates reintroduce:
-  - Discover Catalog phantom rail|tools tracks (right gutter)
+  - Discover Catalog phantom or empty rail|tools tracks (right gutter)
   - Early change-form 2-col that strands tools (right void)
   - Decide card hard-capped narrow gutters
   - Double mx-4 inset on already-padded admin banners
@@ -45,15 +45,26 @@ def main() -> int:
     app_index = _read(APP_INDEX)
     decide = _read(DECIDE)
 
-    # --- Discover must be 1-col dual-attr (beats #cp-main-content 3-col) ---
+    compact_v15 = re.sub(r"\s+", "", v15)
+    compact_base = re.sub(r"\s+", "", base_site)
+
+    # --- Discover uses approved desktop tracks and <=1024 one-column collapse. ---
     if '[data-rmc-admin-index-canvas="operator"][data-rmc-admin-discover="1"]' not in v15:
-        errors.append("v15 CSS missing Discover operator dual-attr 1-col seal")
+        errors.append("v15 CSS missing Discover operator dual-attr seal")
     if '[data-rmc-admin-index-canvas="tenant"][data-rmc-admin-discover="1"]' not in v15:
-        errors.append("v15 CSS missing Discover tenant dual-attr 1-col seal")
+        errors.append("v15 CSS missing Discover tenant dual-attr seal")
     if '[data-rmc-admin-index-canvas="operator"][data-rmc-admin-discover="1"]' not in base_site:
-        errors.append("critical inline CSS missing Discover dual-attr 1-col (operator)")
+        errors.append("critical inline CSS missing Discover dual-attr seal (operator)")
     if '[data-rmc-admin-index-canvas="tenant"][data-rmc-admin-discover="1"]' not in base_site:
-        errors.append("critical inline CSS missing Discover dual-attr 1-col (tenant)")
+        errors.append("critical inline CSS missing Discover dual-attr seal (tenant)")
+    operator_grid = "grid-template-columns:minmax(0,1fr)minmax(9.2rem,17%)2.35rem!important"
+    tenant_grid = "grid-template-columns:minmax(0,1fr)minmax(9.5rem,18%)2.35rem!important"
+    if operator_grid not in compact_v15 or operator_grid not in compact_base:
+        errors.append("operator Discover grid must match approved minmax(0,1fr) minmax(9.2rem,17%) 2.35rem")
+    if tenant_grid not in compact_v15 or tenant_grid not in compact_base:
+        errors.append("tenant Discover grid must match approved minmax(0,1fr) minmax(9.5rem,18%) 2.35rem")
+    if "@media(max-width:1024px)" not in compact_v15:
+        errors.append("v15 CSS missing <=1024 single-column responsive gate")
 
     # --- Ban phantom tools track (≤1180 used to reserve 3rem while tools were display:none) ---
     if re.search(
@@ -92,10 +103,12 @@ def main() -> int:
     if "place-items: start center" in v15:
         errors.append("Decide canvas must not center a narrow card (place-items start stretch)")
 
-    # --- Templates: Discover has no rail/tools ---
+    # --- Templates: Discover rail/tools tracks must be contentful. ---
     for label, src in (("operator index", index_op), ("tenant index", index_t)):
-        if "admin_workspace_tools.html" in src or "admin_index_context_rail.html" in src:
-            errors.append(f"{label} must not mount tools/rail (Discover = 1-col)")
+        if "admin_workspace_tools.html" not in src:
+            errors.append(f"{label} missing approved page-aware tools strip")
+        if "admin_index_context_rail.html" not in src:
+            errors.append(f"{label} missing approved page-aware context rail")
         if 'data-rmc-admin-discover="1"' not in src:
             errors.append(f"{label} missing data-rmc-admin-discover=1")
 
@@ -128,7 +141,7 @@ def main() -> int:
         return 1
 
     print("ADMIN_OS_EMPTY_SPACE_PASS")
-    print("  discover=1-col edit/scan=3-col-contentful decide=full-bleed dossier=aligned")
+    print("  discover=approved-3-col-responsive edit/scan=3-col-contentful decide=full-bleed dossier=aligned")
     return 0
 
 

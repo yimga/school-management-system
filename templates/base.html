@@ -192,6 +192,9 @@
     <link rel="stylesheet" href="{% static 'css/rmc-premium-os.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-premium-polish.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-world-class-experience.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-portal-row-detail-drawer.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-tour.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-ai-mode-switch.css' %}">
     <script src="{% static 'js/htmx.min.js' %}" defer></script>
     <link rel="stylesheet" href="{% static 'css/portal-ui-components.css' %}">
     {% comment %} Pass B: platform-wide aesthetic discipline (card grammar, type rhythm, empty-state hygiene). {% endcomment %}
@@ -400,7 +403,7 @@
     {% include "partials/rmc_notification_engine.html" %}
     {% include "partials/rmc_modal_engine.html" %}
     {% include "partials/rmc_detail_engine.html" %}
-    {% include "partials/portal_row_detail_drawer_bundle.html" %}
+    {% include "partials/portal_row_detail_drawer_bundle.html" with rmc_row_drawer_css_in_head=True %}
     {% endif %}
     <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
     {% if not RMC_AUTH_LANDING_LITE %}
@@ -416,13 +419,13 @@
     <script src="{% static 'js/preview-highlights.js' %}"></script>
     {% endif %}
     {% include "partials/rmc_shortcuts_nav_data.html" %}
-    {% include "partials/rmc_tour_bootstrap.html" %}
+    {% include "partials/rmc_tour_bootstrap.html" with rmc_tour_css_in_head=True %}
     {% include "partials/rmc_platform_chrome_scripts.html" %}
     {% include "partials/rmc_isomorphic_grid_boot.html" %}
     {% comment %} v3.53.0 (2026-05-21): Universal Command Bar overlay. {% endcomment %}
     {% if request.user.is_authenticated and '/authentication/onboarding/' not in request.path %}
     {% include "partials/rmc_platform_surface_page_data.html" %}
-    {% include "partials/rmc_ai_chrome_page_data.html" %}
+    {% include "partials/rmc_ai_chrome_page_data.html" with rmc_ai_mode_css_in_head=True %}
     {# Unified command engine — mounted here too so the palette is platform-wide; the command bar below yields to it. #}
     {% include 'components/rmc_command_palette.html' %}
     {% url 'command_bar_actions' as command_bar_actions_url %}

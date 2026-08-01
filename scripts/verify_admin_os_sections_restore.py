@@ -57,12 +57,12 @@ def main() -> int:
     must("rmc-tenant-admin-sec-catalog" in ten, "tenant index missing catalog section")
     must('data-rmc-admin-archetype="discover"' in ten, "tenant index missing discover archetype")
 
-    # Fluff stays out
+    # Legacy fluff stays out; approved page-aware rail/tools stay present.
     for label, text in (("operator", op), ("tenant", ten)):
         must("cp-steering" not in text, f"{label} index reintroduced cp-steering")
         must("cp-kpi-strip" not in text, f"{label} index reintroduced KPI strip")
-        must("admin_workspace_tools.html" not in text, f"{label} index reintroduced tools column")
-        must("admin_index_context_rail.html" not in text, f"{label} index reintroduced context rail")
+        must("admin_workspace_tools.html" in text, f"{label} index missing approved tools strip")
+        must("admin_index_context_rail.html" in text, f"{label} index missing page-aware context rail")
         must('class="rmc-section-nav"' not in text and "class='rmc-section-nav'" not in text,
              f"{label} index must use rmc-admin-section-jumps (not sticky .rmc-section-nav)")
 

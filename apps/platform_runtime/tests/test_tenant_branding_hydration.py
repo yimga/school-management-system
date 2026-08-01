@@ -46,6 +46,26 @@ class SevenLayerCascadeDocumentationTests(SimpleTestCase):
         self.assertNotIn('setAttribute("data-theme", "system")', js)
         self.assertNotIn("setAttribute('data-theme', 'system')", js)
 
+    def test_theme_sync_prefers_request_bound_csrf_meta(self):
+        root = Path(__file__).resolve().parents[3]
+        js = (root / "static/js/theme-preference-bootstrap.js").read_text(
+            encoding="utf-8"
+        )
+        meta_lookup = "document.querySelector('meta[name=\"csrf-token\"]')"
+        cookie_lookup = "document.cookie.match"
+        self.assertIn(meta_lookup, js)
+        self.assertIn(cookie_lookup, js)
+        self.assertLess(js.index(meta_lookup), js.index(cookie_lookup))
+
+    def test_tour_analytics_prefers_request_bound_csrf_meta(self):
+        root = Path(__file__).resolve().parents[3]
+        js = (root / "static/js/rmc-tour.js").read_text(encoding="utf-8")
+        meta_lookup = "document.querySelector('meta[name=\"csrf-token\"]')"
+        cookie_lookup = "document.cookie.match"
+        self.assertIn(meta_lookup, js)
+        self.assertIn(cookie_lookup, js)
+        self.assertLess(js.index(meta_lookup), js.index(cookie_lookup))
+
 
 class BrandGuardAndSanitizeTests(SimpleTestCase):
     def test_guard_brand_dict_remediates_low_contrast_primary(self):

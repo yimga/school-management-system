@@ -91,6 +91,9 @@
     <link rel="stylesheet" href="{% static 'css/rmc-footer-surfaces.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-workflow-progress.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-workflow-guidance.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-portal-row-detail-drawer.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-tour.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-ai-mode-switch.css' %}">
     <link rel="stylesheet" href="{% static 'css/design-system-unified.css' %}">
     <link rel="stylesheet" href="{% static 'css/design-system-phase2-enforcement.css' %}">
     <link rel="stylesheet" href="{% static 'css/platform-responsive-touch.css' %}">
@@ -256,6 +259,35 @@
     {% include "partials/rmc_operator_tools_styles.html" %}
     {% comment %} Terminal authenticated theme layer remains head-owned after every conditional shell stylesheet. {% endcomment %}
     {% include "partials/rmc_theme_experience_dual_plane_styles.html" %}
+    {% comment %}
+      Terminal responsive ownership guard. Legacy tenant bundles still contain
+      high-specificity display rules for the desktop navigation mount. Below
+      Bootstrap's lg breakpoint they used to beat the early FOUC guard and
+      paint the desktop rail over the whole mobile canvas. Keep this after all
+      shell styles so desktop and offcanvas mounts stay mutually exclusive.
+    {% endcomment %}
+    <style nonce="{{ csp_nonce }}" id="rmc-responsive-sidebar-terminal">
+      @media (max-width: 991.98px) {
+        html body.portal-body-with-layout #portal-sidebar-col[data-shell-sidebar-mount="desktop"],
+        html body.portal-body-with-layout #cp-sidebar-col[data-shell-sidebar-mount="desktop"] {
+          display: none !important;
+          visibility: hidden !important;
+          pointer-events: none !important;
+          inline-size: 0 !important;
+          max-inline-size: 0 !important;
+        }
+        html body.portal-body-with-layout #portalSidebar[data-shell-sidebar-mount="offcanvas"]:not(.show) {
+          display: none !important;
+          visibility: hidden !important;
+          pointer-events: none !important;
+        }
+        html body.portal-body-with-layout .portal-main-col[data-shell-main="portal"] {
+          inline-size: 100% !important;
+          max-inline-size: 100% !important;
+          min-inline-size: 0 !important;
+        }
+      }
+    </style>
 
     <!-- PWA Support — per-tenant manifest. v2.58 (2026-05-15) -->
     <link rel="manifest" href="{% url 'pwa_manifest_platform' %}">
@@ -782,7 +814,7 @@
       {% include "partials/rmc_notification_engine.html" %}
       {% include "partials/rmc_modal_engine.html" %}
       {% include "partials/rmc_detail_engine.html" %}
-      {% include "partials/portal_row_detail_drawer_bundle.html" %}
+      {% include "partials/portal_row_detail_drawer_bundle.html" with rmc_row_drawer_css_in_head=True %}
       {% comment %} Phase N (2026-05-12): deterministic avatar gradients. {% endcomment %}
       <script src="{% static 'js/rmc-avatar-seed.js' %}" defer></script>
       {% comment %} Phase Q (2026-05-12): dirty-state form detection + sticky save bar. {% endcomment %}
@@ -864,7 +896,7 @@
     <script src="{% static 'js/preview-highlights.js' %}"></script>
     {% endif %}
     {% include "partials/rmc_shortcuts_nav_data.html" %}
-    {% include "partials/rmc_tour_bootstrap.html" %}
+    {% include "partials/rmc_tour_bootstrap.html" with rmc_tour_css_in_head=True %}
     {% if rmc_fr_tour_show and rmc_fr_tour_context %}
     {% comment %} T17: per-role first-run guided tour. The context processor sets this only on the teacher/parent/student landings for a user who hasn't finished that role's tour; rmc-tour.js reads this config, autostarts once, then POSTs completeUrl to remember it per role so it never re-autostarts. {% endcomment %}
     <script nonce="{{ csp_nonce }}" type="application/json" id="rmc-tour-page-config">{
@@ -875,7 +907,7 @@
     {% endif %}
     {% if request.user.is_authenticated %}
     {% include "partials/rmc_platform_surface_page_data.html" %}
-    {% include "partials/rmc_ai_chrome_page_data.html" %}
+    {% include "partials/rmc_ai_chrome_page_data.html" with rmc_ai_mode_css_in_head=True %}
     {% include "partials/rmc_assist_dock_labels.html" %}
     {% comment %} v4.00.91: registry SOT island — JS hydrates chips from this payload. {% endcomment %}
     {% include "partials/rmc_assist_dock_slots.html" %}
