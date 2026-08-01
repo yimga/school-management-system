@@ -79,6 +79,21 @@ docker compose -f deploy/selfhost/docker-compose.yml exec web \
 > superuser, no school, no login. `provision_sovereign_school --create` is the
 > edge path.
 
+**Any tenant, not just Gilead.** This self-host capability is platform-wide —
+Gilead is only the showcase instance. Any other school self-hosts the same way
+via the tenant-agnostic `create_school` engine directly (same create + owner +
+synchronous provision + auto-applied offline; it just omits the Gilead-only
+COMPLIMENTARY "unlock every feature" grant):
+
+```bash
+docker compose -f deploy/selfhost/docker-compose.yml exec web \
+  python manage.py create_school \
+    --name "Buea Model School" --slug buea-model --email owner@buea.lan --country CM
+```
+
+`provision_sovereign_school --create` is exactly this engine plus the
+sovereign entitlement, resolved under the canonical `gilead-tech` slug.
+
 Broker-less note: if you drop the `worker`/`beat` services, add a cron for
 `python manage.py run_periodic_jobs` (the complete beat-less rail — drainers +
 events outbox + daily DR snapshot). See the tail of `.env.edge.example`.
