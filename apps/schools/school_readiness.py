@@ -7,8 +7,24 @@ from __future__ import annotations
 
 from typing import Any
 
+from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+
+
+def _safe_reverse(name: str, query: str = "") -> str:
+    """Resolve a tenant-host URL name for a one-click journey CTA; '' if unresolvable.
+
+    Called inside a tenant request, so ``reverse`` binds to the tenant urlconf. Wrapped
+    so a renamed/absent route degrades to a non-link phase rather than 500-ing the meter.
+    """
+    try:
+        url = reverse(name)
+    except (NoReverseMatch, TypeError, ValueError):
+        return ""
+    if query:
+        url = f"{url}?{query}"
+    return url
 
 
 def build_school_readiness(school, *, user: Any = None) -> dict[str, Any]:
@@ -61,6 +77,19 @@ def build_school_readiness(school, *, user: Any = None) -> dict[str, Any]:
     if needs_resume:
         provision_done = False
 
+    # One-click journey: each phase deep-links to the surface that advances it, so a
+    # non-done phase is resolved in a single click instead of scroll → checklist → hunt.
+    # The launch phase jumps straight to the FIRST unresolved blocker's own fix URL when
+    # one exists (blockers already carry a resolved ``link`` from setup_studio._score).
+    first_blocker_link = next(
+        (
+            b["link"]
+            for b in blockers
+            if (b.get("link") or "").strip() and b.get("link") != "#"
+        ),
+        "",
+    )
+
     phases = [
         {
             "key": "provision",
@@ -73,12 +102,14 @@ def build_school_readiness(school, *, user: Any = None) -> dict[str, Any]:
                 if needs_resume and phase_b_failed_steps
                 else provision.get("phase_message") or provision_status
             ),
+            "href": _safe_reverse("siteconfig:guided_onboarding"),
         },
         {
             "key": "configure",
             "label": str(_("Configured")),
             "done": checklist_pct >= 70,
             "detail": str(_("{pct}% activation checklist").format(pct=checklist_pct)),
+            "href": _safe_reverse("siteconfig:onboarding"),
         },
         {
             "key": "launch",
@@ -89,12 +120,15 @@ def build_school_readiness(school, *, user: Any = None) -> dict[str, Any]:
                 if blockers
                 else _("All launch blockers cleared")
             ),
+            "href": first_blocker_link
+            or _safe_reverse("studio_os:launch", "pane=checklist"),
         },
         {
             "key": "operate",
             "label": str(_("Daily operations")),
             "done": lifecycle.get("state") == "daily_operations",
             "detail": str(lifecycle.get("state") or "unknown"),
+            "href": _safe_reverse("accounts:backend_dashboard"),
         },
     ]
     phase_done = sum(1 for p in phases if p["done"])
@@ -144,6 +178,7 @@ def build_school_readiness(school, *, user: Any = None) -> dict[str, Any]:
                 "label": str(_("Data migrated")),
                 "done": migration_done,
                 "detail": migration_detail,
+                "href": _safe_reverse("studio_os:launch", "pane=migration"),
             },
         )
         phase_done = sum(1 for p in phases if p["done"])

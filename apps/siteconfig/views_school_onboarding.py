@@ -6,6 +6,7 @@ from __future__ import annotations
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
+from django.template.loader import render_to_string
 from django.urls import NoReverseMatch, reverse
 from django.utils.translation import gettext as _
 
@@ -78,6 +79,28 @@ def school_activation_onboarding(request: HttpRequest) -> HttpResponse:
             operator_cp_breadcrumb(_("Onboarding"), active=True),
         ),
     )
+
+
+@login_required
+def school_activation_onboarding_fragment(request: HttpRequest) -> HttpResponse:
+    """Chrome-less activation-checklist fragment for the Admin Home slide-over drawer.
+
+    Same real onboarding data as :func:`school_activation_onboarding`, rendered as a bare
+    partial (no shell) so the drawer opens the full checklist in place instead of a page
+    navigation. The full page stays the no-JS / fetch-failure fallback.
+    """
+    school, denied = require_tenant_lifecycle_school(request)
+    if denied is not None:
+        return denied
+    progress: dict = {}
+    if school is not None:
+        progress = get_school_onboarding_progress(school, user=request.user)
+    html = render_to_string(
+        "partials/tenant/activation_checklist_fragment.html",
+        {"onboarding": progress, "school": school},
+        request=request,
+    )
+    return HttpResponse(html)
 
 
 @login_required

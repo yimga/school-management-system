@@ -100,3 +100,55 @@
   display: block;
   max-width: 42ch;
 }
+
+/* ── Cockpit item A: sticky command header on the Admin Home ─────────────────────
+   Pin the page's command/context band (the "Flow Thread" explain strip, which hosts
+   the primary next-action) so it stays reachable while the dashboard scrolls. SCOPED
+   to the backend landing only (body.dashboard-page-backend) — zero effect on the ~90
+   other portal surfaces that render the same strip in normal flow.
+
+   The strip is a direct child of .page-wrap, which sits inside the inner scroll column
+   (#main-content / .portal-main-col, overflow-y:auto — the tp-v3 canvas scroll surface).
+   Two things blocked the pin, both fixed here for THIS landing only:
+     1. .page-wrap is a FLEX ITEM in the flex-column .portal-main-col. The shell already
+        sets `height:auto` on it, but its default `flex-shrink:1` shrinks the box back to
+        the ~574px scroll-column viewport while its content overflows visibly to ~2259px.
+        position:sticky is bounded by its containing block's BOX, so it released after ~one
+        screen. `flex-shrink:0` lets the box keep its full content height, so the pin spans
+        the whole inner scroll. (Selector specificity intentionally beats the shell's
+        `html[tp-v3] body[canvas] .portal-main-col > .page-wrap` rule.)
+     2. .page-wrap carried a lingering `pageEnter` fill-mode transform (design-tokens.css)
+        whose identity matrix still establishes a containing block; animation:none drops it
+        so nothing between the strip and its scroll container interferes with the pin. */
+body.dashboard-page-backend .page-wrap.rmc-shell-content-grid {
+  animation: none;
+}
+
+html[data-rmc-tp-v3-shell="1"]
+  body[data-rmc-cp-scroll="canvas"].dashboard-page-backend
+  .portal-main-col
+  > .page-wrap {
+  flex-shrink: 0;
+}
+
+body.dashboard-page-backend .rmc-page-explain-strip {
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  /* Opaque enough that scrolled cards do not bleed through the pinned bar. */
+  background: color-mix(in oklab, var(--surface-canvas, var(--surface-bg)) 90%, transparent);
+  -webkit-backdrop-filter: saturate(1.08) blur(10px);
+  backdrop-filter: saturate(1.08) blur(10px);
+  border-bottom: 1px solid color-mix(in oklab, var(--hairline) 65%, transparent);
+  /* Small breathing room so the blurred bar reads as a distinct pinned surface. */
+  padding-block: 0.4rem;
+  margin-bottom: 0.5rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.dashboard-page-backend .rmc-page-explain-strip {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: var(--surface-canvas, var(--surface-bg));
+  }
+}

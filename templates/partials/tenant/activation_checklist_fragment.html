@@ -1,0 +1,37 @@
+{% load i18n %}
+{% comment %}
+  Activation checklist as a chrome-less fragment for the Admin Home slide-over drawer
+  (rmc-activation-checklist-drawer.js fetches this into the rmc-sheet body). Real
+  onboarding data from get_school_onboarding_progress — same steps as the full page at
+  siteconfig:onboarding, which stays the no-JS / fallback destination. Bootstrap grammar
+  only, so it themes cleanly inside the dialog top-layer with no bespoke CSS.
+{% endcomment %}
+<div data-rmc-activation-checklist="1">
+  {% if onboarding.total %}
+  <div class="d-flex align-items-center justify-content-between mb-2">
+    <span class="fw-semibold">{% blocktrans with done=onboarding.completed total=onboarding.total %}{{ done }} of {{ total }} complete{% endblocktrans %}</span>
+    <span class="badge text-bg-primary">{{ onboarding.percent }}%</span>
+  </div>
+  <div class="progress mb-3" role="progressbar" aria-label="{% trans 'Activation progress' %}" aria-valuenow="{{ onboarding.percent }}" aria-valuemin="0" aria-valuemax="100" style="height: 0.5rem;">
+    <div class="progress-bar" style="width: {{ onboarding.percent }}%"></div>
+  </div>
+  <ul class="list-group list-group-flush" data-rmc-checklist-steps="1">
+    {% for step in onboarding.display_steps %}
+    <li class="list-group-item d-flex align-items-start gap-2 px-0{% if step.done %} opacity-75{% endif %}" data-step-key="{{ step.key }}">
+      <i class="bi {% if step.done %}bi-check-circle-fill text-success{% else %}bi-circle text-secondary{% endif %} mt-1 flex-shrink-0" aria-hidden="true"></i>
+      <div class="flex-grow-1">
+        <div class="fw-semibold">{{ step.label }}</div>
+        {% if step.description %}<div class="small text-muted">{{ step.description }}</div>{% endif %}
+      </div>
+      {% if step.link and step.link != '#' %}
+      <a class="btn btn-sm {% if step.done %}btn-outline-secondary{% else %}btn-primary{% endif %} flex-shrink-0" href="{{ step.link }}">
+        {% if step.done %}{% trans "Review" %}{% else %}{% trans "Start" %}{% endif %}
+      </a>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="text-muted mb-0">{% trans "Your activation checklist will appear here as setup steps are detected." %}</p>
+  {% endif %}
+</div>

@@ -27,6 +27,27 @@
     }
   }
 
+  function syncBlockers(root, payload) {
+    // The one-click blockers strip is server-rendered only when blockers exist. On
+    // refresh we hide chips whose blocker resolved and collapse the strip when the
+    // last one clears — no innerHTML, so there is no injection surface from the API.
+    var strip = qs(root, "[data-rmc-readiness-blockers='1']");
+    if (!strip) return;
+    var studio = payload.setup_studio || {};
+    var open = {};
+    (studio.launch_blockers || []).forEach(function (b) {
+      if (b && b.key) open[b.key] = true;
+    });
+    var chips = qsa(strip, "[data-blocker-key]");
+    var visible = 0;
+    chips.forEach(function (chip) {
+      var resolved = !open[chip.getAttribute("data-blocker-key")];
+      chip.hidden = resolved;
+      if (!resolved) visible += 1;
+    });
+    strip.hidden = visible === 0;
+  }
+
   function syncTrain(root, payload, meta) {
     if (!payload || !payload.ok) return;
     var meter = qs(root, "[data-rmc-readiness-meter='1'] i");
@@ -55,7 +76,12 @@
       li.classList.toggle("is-done", !!phase.done);
       var detail = li.querySelector(".rmc-readiness-train__phase-detail");
       if (detail && phase.detail) detail.textContent = phase.detail;
+      // Keep the one-click journey link current if the phase's target moved
+      // (e.g. the launch phase re-points at the next unresolved blocker).
+      var link = li.querySelector("[data-rmc-phase-link='1']");
+      if (link && phase.href) link.setAttribute("href", phase.href);
     });
+    syncBlockers(root, payload);
     var golive = document.querySelector("[data-rmc-execute-launch-form='1']");
     var launchReady = !!(payload.setup_studio && payload.setup_studio.launch_ready);
     if (golive) golive.hidden = !launchReady;

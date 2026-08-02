@@ -164,12 +164,33 @@
   {% endif %}
 
   {% if rmc_setup_checklist_url %}
-  <a class="rmc-setup-surface__all" href="{{ rmc_setup_checklist_url }}"><i class="bi bi-check2-square" aria-hidden="true"></i><span>{% trans "Open full activation checklist" %}</span></a>
+  {# Slide-over: JS opens the full checklist in place; href stays the no-JS fallback. #}
+  <a class="rmc-setup-surface__all" href="{{ rmc_setup_checklist_url }}"
+     data-rmc-checklist-drawer="1"
+     data-rmc-checklist-src="{% url 'siteconfig:onboarding_fragment' %}"
+     aria-haspopup="dialog" aria-controls="rmc-activation-checklist-sheet"><i class="bi bi-check2-square" aria-hidden="true"></i><span>{% trans "Open full activation checklist" %}</span></a>
+  <dialog class="rmc-sheet rmc-sheet--side-end rmc-sheet--lg" id="rmc-activation-checklist-sheet" data-rmc-checklist-sheet="1" aria-label="{% trans 'Activation checklist' %}">
+    <div class="rmc-sheet__handle" aria-hidden="true"></div>
+    <header class="rmc-sheet__header">
+      <h3 class="rmc-sheet__title">{% trans "Activation checklist" %}</h3>
+      <button type="button" class="btn-close" data-rmc-sheet-close aria-label="{% trans 'Close' %}"></button>
+    </header>
+    <div class="rmc-sheet__body" data-rmc-checklist-body="1">
+      <p class="text-muted small py-3 mb-0" data-rmc-checklist-loading="1" data-error="{% trans 'Could not load the checklist here — opening the full page.' %}">
+        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>{% trans "Loading checklist…" %}
+      </p>
+    </div>
+    <footer class="rmc-sheet__footer rmc-sheet__footer--split">
+      <span class="text-muted small">{% trans "Changes save as you complete each step." %}</span>
+      <a class="btn btn-sm btn-outline-secondary" href="{{ rmc_setup_checklist_url }}">{% trans "Open full page" %}</a>
+    </footer>
+  </dialog>
   {% endif %}
   <script src="{% static 'js/rmc-setup-surface-tabs.js' %}" defer></script>
   <script src="{% static 'js/rmc-school-readiness-cache.js' %}" defer></script>
   <script src="{% static 'js/rmc-setup-surface-readiness.js' %}" defer></script>
   <script src="{% static 'js/rmc-journey-offline-mirror.js' %}" defer></script>
+  <script src="{% static 'js/rmc-activation-checklist-drawer.js' %}" defer></script>
 </section>
 {% endwith %}
 {% endif %}

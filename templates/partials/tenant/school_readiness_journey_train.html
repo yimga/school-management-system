@@ -37,11 +37,38 @@
   <ol class="rmc-readiness-train__phases" data-rmc-readiness-phases="1">
     {% for phase in readiness.phases %}
     <li class="rmc-readiness-train__phase{% if phase.done %} is-done{% endif %}" data-phase-key="{{ phase.key }}">
+      {% if phase.href %}
+      <a class="rmc-readiness-train__phase-link" href="{{ phase.href }}" data-rmc-phase-link="1">
+        <span class="rmc-readiness-train__phase-label">{{ phase.label }}</span>
+        <span class="rmc-readiness-train__phase-detail">{{ phase.detail }}</span>
+        <i class="bi bi-arrow-right-short rmc-readiness-train__phase-go" aria-hidden="true"></i>
+      </a>
+      {% else %}
       <span class="rmc-readiness-train__phase-label">{{ phase.label }}</span>
       <span class="rmc-readiness-train__phase-detail">{{ phase.detail }}</span>
+      {% endif %}
     </li>
     {% endfor %}
   </ol>
+  {% with launch_blockers=readiness.setup_studio.launch_blockers %}
+  {% if launch_blockers %}
+  {# One-click blockers: turn "N blocker(s)" from dead text into direct resolve links. #}
+  <div class="rmc-readiness-train__blockers" data-rmc-readiness-blockers="1" aria-label="{% trans 'Launch blockers to resolve' %}">
+    <span class="rmc-readiness-train__blockers-label">{% trans "Resolve to launch" %}</span>
+    <div class="rmc-readiness-train__blockers-list" role="list">
+      {% for blocker in launch_blockers %}
+      {% if blocker.link and blocker.link != '#' %}
+      <a class="rmc-readiness-train__blocker" href="{{ blocker.link }}" role="listitem" data-blocker-key="{{ blocker.key }}">
+        <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+        <span class="rmc-readiness-train__blocker-label">{{ blocker.label }}</span>
+        <span class="rmc-readiness-train__blocker-cta">{% trans "Resolve" %}<i class="bi bi-arrow-right-short" aria-hidden="true"></i></span>
+      </a>
+      {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+  {% endwith %}
 </div>
 {% endwith %}
 {% endif %}

@@ -447,6 +447,118 @@
   margin-top: 0.15rem;
 }
 
+/* One-click journey: whole phase box is a link to the surface that advances it. */
+.rmc-readiness-train__phase-link {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  /* Negative margins pull the link over the li padding so the entire cell is clickable. */
+  margin: -0.45rem -0.5rem;
+  padding: 0.45rem 0.5rem;
+  border-radius: inherit;
+  text-decoration: none;
+  color: inherit;
+  transition: background var(--motion-fast, 0.15s) var(--ease-standard, ease);
+}
+
+.rmc-readiness-train__phase-link:hover {
+  background: color-mix(in oklab, var(--brand-primary) 7%, transparent);
+}
+
+.rmc-readiness-train__phase-link:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+.rmc-readiness-train__phase-go {
+  align-self: flex-end;
+  margin-top: -0.9rem;
+  font-size: 1rem;
+  line-height: 1;
+  color: var(--brand-primary);
+  opacity: 0;
+  transform: translateX(-0.15rem);
+  transition:
+    opacity var(--motion-fast, 0.15s) var(--ease-standard, ease),
+    transform var(--motion-fast, 0.15s) var(--ease-standard, ease);
+}
+
+.rmc-readiness-train__phase-link:hover .rmc-readiness-train__phase-go,
+.rmc-readiness-train__phase-link:focus-visible .rmc-readiness-train__phase-go {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* One-click blockers: each unresolved blocker is a direct resolve link. */
+.rmc-readiness-train__blockers {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.7rem;
+}
+
+.rmc-readiness-train__blockers-label {
+  font-size: var(--type-size-micro, 0.7rem);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--brand-warning, var(--text-secondary));
+}
+
+.rmc-readiness-train__blockers-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.rmc-readiness-train__blocker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid
+    color-mix(in oklab, var(--brand-warning, var(--brand-primary)) 40%, var(--hairline));
+  background: color-mix(
+    in oklab,
+    var(--brand-warning, var(--brand-primary)) 8%,
+    var(--surface-elevated)
+  );
+  color: var(--text-primary);
+  font-size: var(--type-size-micro, 0.7rem);
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    border-color var(--motion-fast, 0.15s) var(--ease-standard, ease),
+    background var(--motion-fast, 0.15s) var(--ease-standard, ease),
+    transform var(--motion-fast, 0.15s) var(--ease-standard, ease);
+}
+
+.rmc-readiness-train__blocker:hover {
+  border-color: color-mix(in oklab, var(--brand-warning, var(--brand-primary)) 65%, var(--hairline));
+  background: color-mix(in oklab, var(--brand-warning, var(--brand-primary)) 14%, var(--surface-elevated));
+  transform: translateY(-1px);
+}
+
+.rmc-readiness-train__blocker:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+.rmc-readiness-train__blocker-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 22ch;
+}
+
+.rmc-readiness-train__blocker-cta {
+  display: inline-flex;
+  align-items: center;
+  color: var(--brand-primary);
+  font-weight: 700;
+}
+
 .rmc-setup-golive-panel {
   display: flex;
   flex-wrap: wrap;

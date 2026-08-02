@@ -157,6 +157,7 @@ from .views_school_onboarding import (
     onboarding_step_detail,
     onboarding_step_mark_complete,
     school_activation_onboarding,
+    school_activation_onboarding_fragment,
 )
 from .views_school_group_hierarchy import school_group_hierarchy
 from apps.schools.views_group_console import group_console, group_console_upgrade
@@ -213,6 +214,11 @@ urlpatterns = [
         name="onboarding_step",
     ),
     path("onboarding/", school_activation_onboarding, name="onboarding"),
+    path(
+        "onboarding/fragment/",
+        school_activation_onboarding_fragment,
+        name="onboarding_fragment",
+    ),
     path("console/", console_domains_hub, name="console_domains_hub"),
     path(
         "metadata/operator-hub/",
