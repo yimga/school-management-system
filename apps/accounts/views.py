@@ -56,6 +56,7 @@ from apps.siteconfig.config_service import (
 from apps.platform_runtime.config_resolver import get_effective_config
 
 from .forms import (
+    BulkUserRolesForm,
     ClaimInviteAccountForm,
     EditRoleForm,
     PermissionForm,
@@ -2112,6 +2113,7 @@ def rbac_dashboard(request):
     )
     user_permission_form = UserPermissionForm(prefix="user_permission", school=school)
     temporary_grant_form = TemporaryRoleGrantForm(prefix="temp_grant", school=school)
+    bulk_user_roles_form = BulkUserRolesForm(prefix="bulk_user_roles", school=school)
 
     if request.method == "POST":
         form_type = request.POST.get("form_type")
@@ -2249,6 +2251,36 @@ def rbac_dashboard(request):
             ):
                 messages.error(request, _("User is not a member of this school."))
                 return _rbac_redirect(request)
+        elif form_type == "bulk_user_roles":
+            # Inverse of user_roles: grant ONE role to MANY members at once.
+            # The form's user/role querysets are already scoped to this school, so
+            # a cross-school member or role fails validation (no grant happens).
+            bulk_user_roles_form = BulkUserRolesForm(
+                request.POST, prefix="bulk_user_roles", school=school
+            )
+            if bulk_user_roles_form.is_valid():
+                role = bulk_user_roles_form.cleaned_data["role"]
+                if not role_applies_to_school(role, school):
+                    messages.error(
+                        request,
+                        _("Role %(code)s is not valid for this school.")
+                        % {"code": role.code},
+                    )
+                    return _rbac_redirect(request)
+                members = bulk_user_roles_form.cleaned_data["users"]
+                granted = 0
+                for member in members:
+                    if not user_has_school_membership(member, school):
+                        continue
+                    # Additive — never removes a member's existing roles.
+                    member.roles.add(role)
+                    granted += 1
+                messages.success(
+                    request,
+                    _("Granted role %(role)s to %(count)d member(s).")
+                    % {"role": role.name, "count": granted},
+                )
+                return _rbac_redirect(request)
 
     today = timezone.localdate()
     from apps.platform_runtime.localization import (
@@ -2319,6 +2351,7 @@ def rbac_dashboard(request):
         "user_role_form": user_role_form,
         "user_permission_form": user_permission_form,
         "temporary_grant_form": temporary_grant_form,
+        "bulk_user_roles_form": bulk_user_roles_form,
         "active_temporary_grants": active_temporary_grants,
         "edit_role_form": edit_role_form,
         "edit_role_id": edit_role_id,

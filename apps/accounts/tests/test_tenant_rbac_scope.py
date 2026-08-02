@@ -53,6 +53,21 @@ class TenantRbacScopeTests(TestCase):
             is_primary=True,
         )
         self.role = AccessRole.objects.create(code="auditor", name="Auditor")
+        # admin_a is a superuser → strict MFA enforcement walls the RBAC dashboard
+        # behind device enrollment. Give them a confirmed TOTP device so the
+        # request reaches the view (the login helper also marks MFA verified).
+        from django_otp.plugins.otp_totp.models import TOTPDevice
+
+        TOTPDevice.objects.create(user=self.admin_a, name="default", confirmed=True)
+
+    def _login_school_a(self) -> Client:
+        client = Client()
+        client.force_login(self.admin_a)
+        session = client.session
+        session["school_id"] = str(self.school_a.id)
+        session["mfa_verified"] = True
+        session.save()
+        return client
 
     def test_user_role_form_scoped_to_school(self) -> None:
         form = UserRoleForm(school=self.school_a)
@@ -66,11 +81,7 @@ class TenantRbacScopeTests(TestCase):
             name="Bursar B",
             school=self.school_b,
         )
-        client = Client()
-        client.force_login(self.admin_a)
-        session = client.session
-        session["school_id"] = str(self.school_a.id)
-        session.save()
+        client = self._login_school_a()
         response = client.get(
             reverse("accounts:rbac"),
             {"edit_role": str(role_b.pk)},
@@ -79,11 +90,7 @@ class TenantRbacScopeTests(TestCase):
         self.assertIsNone(response.context.get("edit_role_id"))
 
     def test_rbac_post_rejects_cross_school_user(self) -> None:
-        client = Client()
-        client.force_login(self.admin_a)
-        session = client.session
-        session["school_id"] = str(self.school_a.id)
-        session.save()
+        client = self._login_school_a()
         response = client.post(
             reverse("accounts:rbac"),
             {

@@ -73,12 +73,24 @@ class BulkUserRolesTests(TestCase):
         self.role = AccessRole.objects.create(
             code="form_teacher", name="Form Teacher", school=self.school_a
         )
+        # The admin is a superuser, so strict MFA enforcement walls the RBAC
+        # dashboard behind device enrollment. Give them a confirmed TOTP device
+        # so `has_device` is true (the _login_school_a session also marks MFA
+        # verified) and the request reaches the view.
+        from django_otp.plugins.otp_totp.models import TOTPDevice
+
+        TOTPDevice.objects.create(user=self.admin_a, name="default", confirmed=True)
 
     def _login_school_a(self) -> Client:
         client = Client()
         client.force_login(self.admin_a)
         session = client.session
         session["school_id"] = str(self.school_a.id)
+        # The RBAC dashboard is behind the post-login MFA gate; mark this session
+        # MFA-verified so the request reaches the view instead of being redirected
+        # to /authentication/mfa/setup/ (the canonical test pattern — see
+        # apps/feedback/tests/test_voice_of_customer_dashboard.py).
+        session["mfa_verified"] = True
         session.save()
         return client
 

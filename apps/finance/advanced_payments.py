@@ -157,8 +157,14 @@ class SplitPayment(models.Model):
     USE CASE: Parent pays for multiple children, scholarship splits
     """
 
+    # DO_NOTHING (not CASCADE) while this model is parked: it has no migration
+    # and no DB table yet (see the module docstring — future re-introduction).
+    # Once it is imported, its reverse relation is attached to the live Invoice,
+    # and Django's delete-collector would otherwise SELECT from the nonexistent
+    # `finance_splitpayment` table on every Invoice deletion (an OperationalError).
+    # Restore on_delete=CASCADE when the table is created via a migration.
     parent_invoice = models.ForeignKey(
-        "finance.Invoice", on_delete=models.CASCADE, related_name="split_payments"
+        "finance.Invoice", on_delete=models.DO_NOTHING, related_name="split_payments"
     )
 
     split_name = models.CharField(max_length=255)
@@ -177,8 +183,11 @@ class SplitPaymentPart(models.Model):
         SplitPayment, on_delete=models.CASCADE, related_name="parts"
     )
 
+    # DO_NOTHING while parked (no table yet) so deleting a User does not cascade
+    # into the nonexistent `finance_splitpaymentpart` table. Restore CASCADE when
+    # the table is created via a migration.
     payer = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="payment_splits"
+        User, on_delete=models.DO_NOTHING, related_name="payment_splits"
     )
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     percentage = models.DecimalField(
@@ -293,8 +302,11 @@ class InstallmentPlan(models.Model):
     INTEGRATES WITH: apps.finance.models.Invoice
     """
 
+    # DO_NOTHING while parked (no table yet) so deleting an Invoice does not
+    # cascade into the nonexistent `finance_installmentplan` table. Restore
+    # CASCADE when the table is created via a migration.
     invoice = models.OneToOneField(
-        "finance.Invoice", on_delete=models.CASCADE, related_name="installment_plan"
+        "finance.Invoice", on_delete=models.DO_NOTHING, related_name="installment_plan"
     )
 
     num_installments = models.IntegerField()
