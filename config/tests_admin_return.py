@@ -3,7 +3,7 @@
 import uuid
 
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from apps.policies.models import CountryProfile
@@ -11,10 +11,15 @@ from apps.policies.models import CountryProfile
 User = get_user_model()
 
 # auth.User is registered on both admin sites; tests use CountryProfile for add redirect.
+# CountryProfile is registered on platform_admin_site (namespace "admin"), which is
+# mounted only in config.manager_urls — the default ROOT_URLCONF (config.urls) routes
+# /admin/ through a host dispatcher and registers no "admin" namespace, so the reverse()
+# calls below need the manager urlconf.
 _ADD = "admin:policies_countryprofile_add"
 _LIST = "admin:policies_countryprofile_changelist"
 
 
+@override_settings(ROOT_URLCONF="config.manager_urls")
 class AdminAddViewReturnToOriginTests(TestCase):
     """Test that add_view redirects to request.POST['next'] when safe."""
 
