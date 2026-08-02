@@ -42,6 +42,7 @@ active parallel-session commits between runs.
 | MC: `hasattr(connection,"set_schema")` guard on 4 `schema_context` call sites | `207b117d5` | verification/guardrails/companion_receiver/shadow |
 | finance: receipt-upload fixtures use valid PNG magic bytes | `67397b627` | `test_receipt_upload_flow` 4 OK |
 | analytics+finance: grading-scale + membership drift (clusters A/C) | `30df7869b` | `test_seed_helpers` 11 OK, `test_phase0_security` EvaluationValidationTest 5 OK (8 tests fixed) |
+| config: pin `admin_return` tests to `config.manager_urls` (NoReverseMatch host-split) | `d0c71bf2d` | `config.tests_admin_return` 3 OK |
 
 ## Backlog by cluster (census3)
 
@@ -83,6 +84,12 @@ active parallel-session commits between runs.
 | Cluster | ~N | Note |
 |---------|---:|------|
 | `database is locked` / `TransactionManagementError` | ~11 | SQLite disk contention from concurrent worktrees/sessions. Passes on a quiet machine; not fixable in code. |
+
+### G. Test ahead of code — unshipped feature, NOT a stale test (accounts owner)
+
+| Cluster | ~N | Root cause | Fix recipe |
+|---------|---:|-----------|-----------|
+| `accounts.test_bulk_user_roles.BulkUserRolesTests` bulk grant | 2 | **Unshipped feature.** `BulkUserRolesForm` exists (`apps/accounts/forms.py:109`) and its scoping works (`test_form_users_scoped_to_school` passes), but the RBAC view (`apps/accounts/views.py:2117+`) handles only `role`/`permission`/`user_roles`/`user_permissions`/`edit_role`/`temporary_grant` — there is **no `bulk_user_roles` handler**, and the view never imports or renders `BulkUserRolesForm`. So `form_type=bulk_user_roles` falls through, redirects 302, and grants nothing (the 302 assert passes; the grant assert fails). | Complete the feature (accounts owner): add an `elif form_type == "bulk_user_roles":` branch mirroring the `user_roles` handler (validate `BulkUserRolesForm(school=…)`, `user.roles.add(role)` for each selected member, additive), AND render the form in the RBAC template so it has a UI. This is feature-completion in parallel-active accounts, not a fixture fix — routed, not done unilaterally. |
 
 ## Recommended sequence
 
