@@ -30,7 +30,20 @@
 {% include "components/next_action_strip.html" %}
 
 {% if tp_v3_role_home %}
+{% comment %} The .rmc-dh family home below renders its OWN rmc_dh_hero greeting
+   whenever it shows; rendering hero_greeting's tp-hero greeting on top of it
+   produced a double greeting. The condition here mirrors the family-home include
+   condition below (not replace_dh_hero OR not links). When the family home
+   renders we keep only the pack switcher + experience command strip — which the
+   family-home hero does not provide — and drop the duplicate greeting. When it
+   does not (threshold window replaces it AND links exist), the full hero_greeting
+   stays as the primary greeting. {% endcomment %}
+{% if not cockpit.threshold_parent_window.replace_dh_hero or not links %}
+{% include "partials/tenant/experience_command_strip.html" %}
+{% include "components/dashboard_pack_switcher.html" %}
+{% else %}
 {% include "partials/tenant/hero_greeting.html" %}
+{% endif %}
 {% endif %}
 
 {% url 'portal:portal_operational_health_json' as tenant_health_api_url %}

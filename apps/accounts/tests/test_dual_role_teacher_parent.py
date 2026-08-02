@@ -8,7 +8,8 @@ Integration tests for dual-role users (Teacher + Parent, same account).
 
 from datetime import date
 
-from django.test import TestCase, Client
+from django.test import Client, SimpleTestCase, TestCase
+from django.template.loader import get_template
 from django.urls import reverse
 
 from apps.accounts.models import User
@@ -128,3 +129,39 @@ class DualRolePortalAccessTests(TestCase):
         links = list(guardian_student_links(self.dual_user, results_only=True))
         self.assertEqual(len(links), 1)
         self.assertEqual(links[0].student_id, self.student.id)
+
+    def test_parent_dashboard_single_greeting_hero(self):
+        """No double greeting: hero_greeting's tp-hero greeting and the .rmc-dh
+        family-home hero must never both render (the pre-fix bug). The page must
+        still render (200) with exactly one greeting when a hero shows."""
+        self.client.login(username="teacher_parent", password="pass1234")
+        resp = self.client.get(reverse("portal:parent_dashboard"), follow=False)
+        self.assertEqual(resp.status_code, 200)
+        body = resp.content.decode("utf-8", "replace")
+        tp_greeting = 'data-rmc-tp-hero-greeting="1"' in body
+        dh_greeting = "rmc-dh-hero" in body
+        self.assertFalse(
+            tp_greeting and dh_greeting,
+            "double greeting: hero_greeting AND rmc_dh_hero both rendered",
+        )
+
+
+class ParentDashboardGreetingDedupeSealTests(SimpleTestCase):
+    """Source-contract seal for the double-greeting dedup on parent/dashboard."""
+
+    def setUp(self):
+        self.src = open(
+            get_template("parent/dashboard.html").origin.name, encoding="utf-8"
+        ).read()
+
+    def test_hero_greeting_gated_by_family_home_condition(self):
+        # hero_greeting renders only when the .rmc-dh family home does NOT (the
+        # dedup condition mirrors the family-home include condition below it).
+        self.assertIn("replace_dh_hero or not links", self.src)
+        self.assertIn("partials/tenant/hero_greeting.html", self.src)
+
+    def test_pack_switcher_and_experience_strip_relocated_not_lost(self):
+        # When the family home renders, its hero does not provide these two, so
+        # they are relocated (kept), not dropped with the duplicate greeting.
+        self.assertIn("partials/tenant/experience_command_strip.html", self.src)
+        self.assertIn("components/dashboard_pack_switcher.html", self.src)
