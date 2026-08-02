@@ -41,14 +41,15 @@ active parallel-session commits between runs.
 | Harness: `schema_context` no-op under `USE_DJANGO_TENANTS=0` (`ReliableDiscoverRunner` installs a single-schema tenant shim) | `61a4a0c7c` | `connection.tenant` cluster → 0; +must-fire test |
 | MC: `hasattr(connection,"set_schema")` guard on 4 `schema_context` call sites | `207b117d5` | verification/guardrails/companion_receiver/shadow |
 | finance: receipt-upload fixtures use valid PNG magic bytes | `67397b627` | `test_receipt_upload_flow` 4 OK |
+| analytics+finance: grading-scale + membership drift (clusters A/C) | `30df7869b` | `test_seed_helpers` 11 OK, `test_phase0_security` EvaluationValidationTest 5 OK (8 tests fixed) |
 
 ## Backlog by cluster (census3)
 
 ### A. Stale fixtures — quick, safe fixes (mine/anyone)
 
-| Cluster | ~N | Root cause | Fix recipe |
-|---------|---:|-----------|-----------|
-| `SubjectAssignment.specialty_id` NOT NULL | 6 | `specialty` became a required PROTECT FK (part of `unique_together`); old setUps create `SubjectAssignment` without it | In each setUp: `Specialty.objects.create(school=…, department=…, name=…, code=<unique>)` and pass `specialty=` to `SubjectAssignment.objects.create`. **⚠️ `apps.analytics.tests.test_seed_helpers.SeedGradeLabelsTests` also has stacked drift — see C.** |
+| Cluster | ~N | Root cause | Fix recipe | Status |
+|---------|---:|-----------|-----------|--------|
+| `SubjectAssignment.specialty_id` NOT NULL | 6 | `specialty` became a required PROTECT FK (part of `unique_together`); old setUps create `SubjectAssignment` without it | In each setUp: `Specialty.objects.create(department=…, name=…, code=<unique>)` and pass `specialty=` to `SubjectAssignment.objects.create`. **All 6 were in `SeedGradeLabelsTests` — the specialty NOT-NULL was just the first layer of the stacked drift in C.** | **✅ FIXED `30df7869b`** |
 
 ### B. Genuine async-design change — needs test rework (people-domain owner)
 
@@ -58,17 +59,17 @@ active parallel-session commits between runs.
 
 ### C. Stale tests vs evolved models — domain rework (evals/academics owner)
 
-| Cluster | ~N | Root cause | Fix recipe |
-|---------|---:|-----------|-----------|
-| analytics `SeedGradeLabelsTests` (`test_seed_helpers`) | 6 | **Stacked drift.** (1) specialty (see A); (2) `Evaluation.save()` now enforces "at least one score" over component fields (`seq1/seq2/exam`), so setting only `final_score` fails; (3) school resolves to a **/20** scale, so the tests' /100 scores (72.5, 68) fail `exam_score cannot exceed 20`. | Rework to set component scores within the school's actual scale (or configure a `percentage`/100 grading scale for the test school via the evals grading-config), and create the no-score fixture via `.update(...)` to bypass `save()` validation. Do **not** weaken the `actual_grade` assertions. Needs evals-domain knowledge of the weighted `final_score` computation. |
-| `finance.tests.test_phase0_security` exam_score-on-0-100-scale | 1 | Same /20-vs-/100 scale drift | Align test to the school's grading scale. |
+| Cluster | ~N | Root cause | Fix recipe | Status |
+|---------|---:|-----------|-----------|--------|
+| analytics `SeedGradeLabelsTests` (`test_seed_helpers`) | 6 | **Stacked drift.** (1) specialty (see A); (2) `Evaluation.save()` recomputes `final_score` from components and `clean()` requires ≥1 *component* score (`seq1/seq2/exam`), so setting only `final_score` both fails and is overwritten; (3) an unresolvable school clamps to the **/20** fallback, so the tests' /100 scores (72.5, 68) fail `exam_score cannot exceed 20`; also `clean()` cross-checks the student's specialty/class/year against the assignment's. | Bind an `AssessmentWeights` row (`score_scale=100`, `grading_scale="percentage"`, `exam_weight=100`, others 0) so a single `exam_score` flows through unchanged as `final_score`; make the student match the assignment's specialty/class/year; reproduce the legacy final_score-null fallback via `Evaluation.objects.filter(pk=…).update(final_score=None)`. No `actual_grade` assertion weakened. Also fixed the sibling `SeedDigestRecipientsTests` (seeder scopes admins via `SchoolMembership`; tests created bare `role=` users → 4 passed vacuously). | **✅ FIXED `30df7869b`** |
+| `finance.tests.test_phase0_security` exam_score-on-0-100-scale | 1 | The test patched `apps.evals.grading.max_score_for_school`, but `Evaluation.clean()` was changed to bound scores via `apps.evals.grading_provisioning.resolve_school_score_scale` (operational `AssessmentWeights` scale) — so the patch was a no-op, the school clamped to /20, and 85 > 20 failed. | Patch the resolver `clean()` actually uses (`resolve_school_score_scale` → `Decimal("100")`). | **✅ FIXED `30df7869b`** |
 
 ### D. Test-realism / harness artifacts (feature owners)
 
 | Cluster | ~N | Root cause | Fix recipe |
 |---------|---:|-----------|-----------|
 | `legacy_hashes.test_key_rotation_v3_33` re-encrypt/orphan | 7 | **NOT a prod bug.** Each test overrides `DJANGO_CRYPTOGRAPHY_KEYS` to a *fresh ephemeral key*, but `rotate_all_encrypted_columns`/`verify_no_orphan_ciphertexts` walk EVERY committed encrypted row platform-wide — incl. the reuse-snapshot `admin` user, written under the SECRET_KEY-derived shim, which can't decrypt under the fresh key. | Scope the walk to the test's own rows (pass `model_filter`), or include the shim-derived key in the override, or build on a DB with no pre-committed encrypted rows. |
-| DR restore `no such table: finance_splitpayment` | 2 | `SplitPayment`/`SplitPaymentPart`/`DynamicPricingRule`/`InstallmentPlan` in `finance/advanced_payments.py` — `makemigrations` reports no changes, so they're likely `managed=False` (no table created). DR restore iterates all tables and hits the missing one. | Confirm `managed=False`; have the DR snapshot/restore skip unmanaged tables, or provide the table in the test target schema. |
+| DR roundtrip `no such table: finance_splitpayment` | 2 | **CORRECTED root cause — a test-ordering artifact, NOT a DR-restore/`managed=False` issue and NOT a prod bug.** `SplitPayment`/`SplitPaymentPart`/`DynamicPricingRule`/`InstallmentPlan` in `finance/advanced_payments.py` are deliberately table-less "future" models (module docstring: "re-introduction when DB tables are re-added … migration 0045"); `makemigrations` reports no changes because nothing imports them at app-load time (`finance/models.py` does not; `payment_plans`/`services` only mention/lazy-touch them). The ONLY module-level importer is the test `finance/tests/test_advanced_payments_currency.py`, loaded during full-suite discovery — which registers `SplitPayment`, giving `Invoice` a phantom `split_payments` **CASCADE** reverse relation. The DR roundtrip test's cleanup does `Invoice.objects.filter(school=…).delete()`; the collector walks that reverse relation and queries the never-migrated `finance_splitpayment` → `OperationalError`. Passes in isolation (module not imported → model not registered → no reverse relation). **Not a prod bug**: `advanced_payments` is not imported on any prod path, so the model is never registered in prod and Invoice deletion is unaffected. | **Needs a finance-owner decision, not a unilateral fix.** Either (a) land migration 0045 to add the tables (makes the models real everywhere — but that is the deferred product decision the docstring names, and a prod schema change in parallel-owned finance), or (b) if the models stay deferred, stop `test_advanced_payments_currency.py` from registering CASCADE-to-nowhere relations (e.g. move the pure currency helpers out of the model-defining module, or give the FKs `on_delete=DO_NOTHING` until tables exist). Same class as the `reports_reportdefinition` roundtrip failure below. |
 
 ### E. Parallel-session drift — burn down as models/UI settle (parallel owner)
 
