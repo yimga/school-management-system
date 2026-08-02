@@ -110,3 +110,20 @@ class SeasonHintContrastTests(SimpleTestCase):
         block = _css_rule_body(css, ".rmc-page-masthead__season {")
         self.assertIn("color:", block, ".rmc-page-masthead__season must set explicit ink")
         self.assertIn("--text-primary", block)
+
+
+class AppearanceStripCollapseTests(SimpleTestCase):
+    def test_style_strip_collapses_chips_behind_disclosure(self) -> None:
+        text = (
+            ROOT / "templates" / "partials" / "tenant" / "setup_dashboard_style_strip.html"
+        ).read_text(encoding="utf-8")
+        self.assertIn("rmc-setup-style-strip__disclosure", text)
+        self.assertIn("<details", text)
+        self.assertIn("<summary", text)
+        # chips are still in the DOM (progressive, no-JS friendly, no data loss)
+        self.assertIn("rmc-setup-style-strip__chip", text)
+
+    def test_css_defines_the_disclosure(self) -> None:
+        css = (ROOT / "static" / "css" / "rmc-setup-surface.css").read_text(encoding="utf-8")
+        self.assertIn(".rmc-setup-style-strip__disclosure", css)
+        self.assertIn(".rmc-setup-style-strip__summary", css)

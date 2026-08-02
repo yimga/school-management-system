@@ -147,7 +147,10 @@ class SetupCommandSurfaceWizardStageTests(SimpleTestCase):
     def test_wizard_branch_classes_all_defined_in_css(self):
         out = self._render()
         css = _CSS.read_text(encoding="utf-8")
-        for cls in set(re.findall(r"rmc-setup-surface[\w-]*", out)):
+        # Only scan class="" attribute values — not script src filenames like
+        # js/rmc-setup-surface-tabs.js, which are not CSS classes.
+        class_tokens = " ".join(re.findall(r'class="([^"]*)"', out))
+        for cls in set(re.findall(r"rmc-setup-surface[\w-]*", class_tokens)):
             self.assertIn("." + cls, css, f"{cls} referenced but undefined in CSS")
 
 
@@ -194,5 +197,8 @@ class SetupCommandSurfaceContractTests(SimpleTestCase):
             },
         )
         css = _CSS.read_text(encoding="utf-8")
-        for cls in set(re.findall(r"rmc-setup-surface[\w-]*", html)):
+        # Only scan class="" attribute values — script src filenames such as
+        # js/rmc-setup-surface-readiness.js are not CSS classes.
+        class_tokens = " ".join(re.findall(r'class="([^"]*)"', html))
+        for cls in set(re.findall(r"rmc-setup-surface[\w-]*", class_tokens)):
             self.assertIn("." + cls, css, f"{cls} referenced in template but undefined in CSS")

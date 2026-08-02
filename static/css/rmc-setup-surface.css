@@ -627,7 +627,55 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.35rem;
-  flex: 1 1 auto;
+  margin-top: 0.5rem;
+}
+
+/* Appearance disclosure (approved 2026-08-02): the preset chips collapse behind a
+   one-line summary so the strip no longer eats a full band by default. */
+.rmc-setup-style-strip__disclosure {
+  min-width: 0;
+}
+
+.rmc-setup-style-strip__summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-sm, 6px);
+  border: 1px solid var(--hairline);
+  background: var(--surface-elevated);
+}
+
+.rmc-setup-style-strip__summary::-webkit-details-marker {
+  display: none;
+}
+
+.rmc-setup-style-strip__summary::marker {
+  content: "";
+}
+
+.rmc-setup-style-strip__summary:hover {
+  border-color: color-mix(in oklab, var(--brand-primary) 40%, var(--hairline));
+}
+
+.rmc-setup-style-strip__disclosure[open] > .rmc-setup-style-strip__summary {
+  border-color: color-mix(in oklab, var(--brand-primary) 40%, var(--hairline));
+}
+
+.rmc-setup-style-strip__summary-cue {
+  font-weight: 650;
+  color: var(--brand-primary);
+}
+
+.rmc-setup-style-strip__summary-cue::after {
+  content: " \25BE"; /* down caret */
+}
+
+.rmc-setup-style-strip__disclosure[open] .rmc-setup-style-strip__summary-cue::after {
+  content: " \25B4"; /* up caret */
 }
 
 .rmc-setup-style-strip__preset-form {
