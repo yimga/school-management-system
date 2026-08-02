@@ -1,6 +1,9 @@
 {% extends "control_plane_base.html" %}
-{% load i18n phase8_tags %}
+{% load i18n static phase8_tags %}
 {% block cp_title %}{% trans "Implementation command center" %}{% endblock %}
+{% block extrastyle %}{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/manager-control-plane.css' %}">
+{% endblock %}
 {% block cp_content %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
@@ -18,88 +21,109 @@
     {% endif %}
   </header>
 
-  <div class="card border-0 shadow-sm mb-4">
-    <div class="card-body">
-      <h2 class="h6 text-uppercase text-muted">{% trans "Go-live readiness" %}</h2>
-      <p class="mb-1">
-        <span class="display-6">{{ go_live_readiness_score }}</span>
-        <span class="text-muted">/ 100</span>
-        <span class="rmc-badge rmc-badge--muted border ms-2">{{ go_live_readiness_band }}</span>
-      </p>
-      {% if consolidated_blockers %}
-      <p class="small text-muted mb-2">{% trans "Consolidated blockers (missing + partial checklist items)" %}</p>
-      <ul class="small mb-0">
-        {% for b in consolidated_blockers|slice:":12" %}
-        <li><strong>{{ b.title }}</strong> — <span class="text-muted">{{ b.status }}</span>{% if b.detail %}: {{ b.detail|truncatewords:24 }}{% endif %}</li>
-        {% endfor %}
-      </ul>
-      {% else %}
-      <p class="small text-muted mb-0">{% trans "No checklist blockers in missing/partial state for this scope." %}</p>
+  {# Go-live readiness + primary next action folded into ONE bounded panel (was two stacked cards, one wrapping a lone button). #}
+  <section class="cp-panel rmc-reveal mb-4">
+    <div class="cp-panel-header">
+      <div>
+        <span class="cp-panel-eyebrow">{% trans "Go-live" %}</span>
+        <h2 class="cp-panel-title">{% trans "Readiness" %}</h2>
+      </div>
+      {% if primary_next_action.url %}
+      <div class="cp-panel-header-actions">
+        <a class="btn btn-primary btn-sm" href="{{ primary_next_action.url }}">{{ primary_next_action.label }}</a>
+      </div>
       {% endif %}
-      <p class="small mt-2 mb-0">
-        <a href="{% url 'platform_runtime:implementation_missing_data_blockers_json' %}">{% trans "Blockers JSON" %}</a>
-        {% if school %}(<code>?school_slug={{ school.slug }}</code>){% endif %}
-      </p>
     </div>
-  </div>
-
-  <div class="card border-0 shadow-sm mb-4">
-    <div class="card-body">
-      <h2 class="h6 text-uppercase text-muted">{% trans "Primary next action" %}</h2>
-      <a class="btn btn-primary" href="{{ primary_next_action.url }}">{{ primary_next_action.label }}</a>
-    </div>
-  </div>
-
-  <div class="card border-0 shadow-sm mb-4">
-    <div class="card-body">
-      <h2 class="h6 text-uppercase text-muted">{% trans "Adoption signals (event log — honest)" %}</h2>
-      {% if adoption_metrics.insufficient_data %}
-      <p class="small text-warning mb-0">{{ adoption_metrics.reason }}</p>
-      {% else %}
-      <ul class="small mb-0">
-        <li>{% trans "Dashboard / lifecycle signals" %}: {{ adoption_metrics.dashboard_viewed|yesno:"yes,no" }}</li>
-        <li>{% trans "First action (observed)" %}: {{ adoption_metrics.first_action_completed|yesno:"yes,no" }}</li>
-        <li>{% trans "Workflow / automation" %}: {{ adoption_metrics.workflow_used|yesno:"yes,no" }}</li>
-        <li>{% trans "Reports" %}: {{ adoption_metrics.report_generated|yesno:"yes,no" }}</li>
-        <li>{% trans "Parent portal" %}: {{ adoption_metrics.parent_portal_activated|yesno:"yes,no" }}</li>
-        <li>{% trans "Offline" %}: {{ adoption_metrics.offline_sync_used|yesno:"yes,no" }}</li>
-        <li>{% trans "Sample size (events)" %}: {{ adoption_metrics.event_sample_size }}</li>
-      </ul>
-      {% endif %}
-      {% for b in adoption_metrics.blockers %}
-      <div class="mt-2">
-        <span class="small">{{ b.label }}</span>
-        {% if b.primary_action.url %}
-        <a class="btn btn-sm btn-outline-secondary ms-2" href="{{ b.primary_action.url }}">{{ b.primary_action.label }}</a>
-        {% endif %}
+    <p class="mb-2">
+      <span class="display-6">{{ go_live_readiness_score }}</span>
+      <span class="text-muted">/ 100</span>
+      <span class="cp-status-badge cp-status-badge-neutral ms-2">{{ go_live_readiness_band }}</span>
+    </p>
+    {% if consolidated_blockers %}
+    <p class="small text-muted mb-2">{% trans "Consolidated blockers (missing + partial checklist items)" %}</p>
+    <div class="cp-list">
+      {% for b in consolidated_blockers|slice:":12" %}
+      <div class="cp-list-row">
+        <div>
+          <strong>{{ b.title }}</strong>
+          {% if b.detail %}<div class="cp-list-meta">{{ b.detail|truncatewords:24 }}</div>{% endif %}
+        </div>
+        <span class="cp-status-badge cp-status-badge-warning">{{ b.status }}</span>
       </div>
       {% endfor %}
     </div>
-  </div>
+    {% else %}
+    <p class="small text-muted mb-0">{% trans "No checklist blockers in missing/partial state for this scope." %}</p>
+    {% endif %}
+    <p class="small mt-2 mb-0">
+      <a href="{% url 'platform_runtime:implementation_missing_data_blockers_json' %}">{% trans "Blockers JSON" %}</a>
+      {% if school %}(<code>?school_slug={{ school.slug }}</code>){% endif %}
+    </p>
+  </section>
 
-  <div class="table-responsive">
-    <table class="table table-sm align-middle table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
-      <caption class="visually-hidden">{% trans "Adoption signals (event log — honest)" %}</caption>
-      <thead>
-        <tr>
-          <th scope="col">{% trans "Item" %}</th>
-          <th scope="col">{% trans "Status" %}</th>
-          <th scope="col">{% trans "Detail" %}</th>
-          <th scope="col">{% trans "Primary action" %}</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for row in checklist_items %}
-        <tr>
-          <td>{{ row.title }}</td>
-          <td><span class="rmc-badge rmc-badge--muted border">{{ row.status }}</span></td>
-          <td class="small text-muted">{{ row.detail }}</td>
-          <td><a href="{{ row.primary_action.url }}">{{ row.primary_action.label }}</a></td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+  {# Adoption signals (aggregate booleans from the event log). The per-item checklist is the distinct table below — kept. #}
+  <section class="cp-panel rmc-reveal mb-4">
+    <div class="cp-panel-header">
+      <div>
+        <span class="cp-panel-eyebrow">{% trans "Adoption" %}</span>
+        <h2 class="cp-panel-title">{% trans "Adoption signals (event log — honest)" %}</h2>
+      </div>
+    </div>
+    {% if adoption_metrics.insufficient_data %}
+    <p class="small text-warning mb-0">{{ adoption_metrics.reason }}</p>
+    {% else %}
+    <div class="cp-list">
+      <div class="cp-list-row"><div><strong>{% trans "Dashboard / lifecycle signals" %}</strong></div><span class="cp-status-badge cp-status-badge-{{ adoption_metrics.dashboard_viewed|yesno:'success,neutral' }}">{{ adoption_metrics.dashboard_viewed|yesno:'yes,no' }}</span></div>
+      <div class="cp-list-row"><div><strong>{% trans "First action (observed)" %}</strong></div><span class="cp-status-badge cp-status-badge-{{ adoption_metrics.first_action_completed|yesno:'success,neutral' }}">{{ adoption_metrics.first_action_completed|yesno:'yes,no' }}</span></div>
+      <div class="cp-list-row"><div><strong>{% trans "Workflow / automation" %}</strong></div><span class="cp-status-badge cp-status-badge-{{ adoption_metrics.workflow_used|yesno:'success,neutral' }}">{{ adoption_metrics.workflow_used|yesno:'yes,no' }}</span></div>
+      <div class="cp-list-row"><div><strong>{% trans "Reports" %}</strong></div><span class="cp-status-badge cp-status-badge-{{ adoption_metrics.report_generated|yesno:'success,neutral' }}">{{ adoption_metrics.report_generated|yesno:'yes,no' }}</span></div>
+      <div class="cp-list-row"><div><strong>{% trans "Parent portal" %}</strong></div><span class="cp-status-badge cp-status-badge-{{ adoption_metrics.parent_portal_activated|yesno:'success,neutral' }}">{{ adoption_metrics.parent_portal_activated|yesno:'yes,no' }}</span></div>
+      <div class="cp-list-row"><div><strong>{% trans "Offline" %}</strong></div><span class="cp-status-badge cp-status-badge-{{ adoption_metrics.offline_sync_used|yesno:'success,neutral' }}">{{ adoption_metrics.offline_sync_used|yesno:'yes,no' }}</span></div>
+      <div class="cp-list-row"><div><strong>{% trans "Sample size (events)" %}</strong></div><span class="cp-status-badge cp-status-badge-neutral">{{ adoption_metrics.event_sample_size }}</span></div>
+    </div>
+    {% endif %}
+    {% for b in adoption_metrics.blockers %}
+    <div class="mt-2 d-flex align-items-center gap-2">
+      <span class="small">{{ b.label }}</span>
+      {% if b.primary_action.url %}
+      <a class="btn btn-sm btn-outline-secondary" href="{{ b.primary_action.url }}">{{ b.primary_action.label }}</a>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </section>
+
+  {# Per-item adoption checklist — distinct from the aggregate signals above (itemized status/detail/action). #}
+  <section class="cp-panel rmc-reveal">
+    <div class="cp-panel-header">
+      <div>
+        <span class="cp-panel-eyebrow">{% trans "Checklist" %}</span>
+        <h2 class="cp-panel-title">{% trans "Adoption checklist" %}</h2>
+      </div>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-sm align-middle table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
+        <caption class="visually-hidden">{% trans "Adoption signals (event log — honest)" %}</caption>
+        <thead>
+          <tr>
+            <th scope="col">{% trans "Item" %}</th>
+            <th scope="col">{% trans "Status" %}</th>
+            <th scope="col">{% trans "Detail" %}</th>
+            <th scope="col">{% trans "Primary action" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in checklist_items %}
+          <tr>
+            <td>{{ row.title }}</td>
+            <td><span class="cp-status-badge cp-status-badge-neutral">{{ row.status }}</span></td>
+            <td class="small text-muted">{{ row.detail }}</td>
+            <td>{% if row.primary_action.url %}<a href="{{ row.primary_action.url }}">{{ row.primary_action.label }}</a>{% else %}—{% endif %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
 </div>
 {% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

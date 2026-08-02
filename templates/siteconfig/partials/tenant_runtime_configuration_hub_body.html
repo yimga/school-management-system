@@ -89,6 +89,15 @@
     {% if ai_governance_url %}
     <a class="btn btn-sm btn-outline-primary" href="{{ ai_governance_url }}">{% trans "AI governance" %}</a>
     {% endif %}
+    {% if theme_colors_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ theme_colors_url }}">{% trans "Theme & colors" %}</a>
+    {% endif %}
+    {% if school_theme_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ school_theme_url }}">{% trans "School theme" %}</a>
+    {% endif %}
+    {% if user_preferences_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ user_preferences_url }}">{% trans "User preferences" %}</a>
+    {% endif %}
   </div>
 
   {% if school %}
@@ -179,18 +188,7 @@
     </div>
   </div>
 
-  <div class="card border-0 shadow-sm mb-4">
-    <div class="card-header bg-light fw-semibold">{% trans "Product configuration links" %}</div>
-    <div class="card-body">
-      <ul class="mb-0">
-        <li><a href="{{ console_url }}">{% trans "Configuration Control Center (domains & outcomes)" %}</a></li>
-        <li><a href="{{ feature_control_url }}">{% trans "Feature control" %}</a></li>
-        <li><a href="{{ theme_colors_url }}">{% trans "Theme & colors" %}</a></li>
-        <li><a href="{{ school_theme_url }}">{% trans "School theme" %}</a></li>
-        <li><a href="{{ user_preferences_url }}">{% trans "User preferences" %}</a></li>
-      </ul>
-    </div>
-  </div>
+  {# Product-config link card removed: it duplicated the related-links bar above (console + feature-control already there; theme/school-theme/user-preferences merged in). #}
 
   {% if admin_sitesettings_url %}
   <div class="cp-evidence-advanced border-top pt-3 mt-2" data-rmc-evidence-advanced="1">

@@ -83,7 +83,10 @@ class ImplementationCommandCenterTests(TestCase):
         self.assertIn("Teachers", body)
         self.assertIn("payment", body.lower())
         self.assertIn("offline", body.lower())
-        self.assertIn("Go-live readiness", body)
+        # Readiness panel now uses the bounded cp-panel grammar: eyebrow "Go-live"
+        # + title "Readiness" (folded together with the primary next action).
+        self.assertIn("Go-live", body)
+        self.assertIn("Readiness", body)
         self.assertRegex(body, r"/\s*100")
 
     def test_blockers_json_endpoint(self):
