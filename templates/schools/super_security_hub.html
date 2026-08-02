@@ -1,11 +1,14 @@
 {% extends "control_plane_base.html" %}
 {% comment %} table-column-budget-allow: security-hub-eight-column-operator-lens {% endcomment %}
-{% load i18n phase8_tags %}
+{% load i18n static phase8_tags %}
 {% load terminology_tags %}
 
 {% block cp_title %}{% trans "Security & audit" %}{% endblock %}
 
 {% block cp_workspace_header %}{% endblock %}
+{% block extrastyle %}{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/manager-control-plane.css' %}">
+{% endblock %}
 {% block breadcrumbs %}
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb mb-0">
@@ -22,19 +25,16 @@
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div id="super-security-hub-main" class="container-fluid py-2" tabindex="-1" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-rmc-section-nav="off" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-decision-engine="surface" data-rmc-super-security-hub="1" data-page-critical-read="1">
   {% phase8_dashboard_declaration "schools/super_security_hub.html" %}
-  {% include "components/rmc_operational_center_frame.html" with os_center_key="security_hub" center_eyebrow=_("Platform operators") center_title=_("Operations") center_purpose="" primary_url="" primary_label="" nav_groups=operational_nav_groups %}
-  <h1 class="h4 mb-3">{% trans "Security & enterprise audit" %}</h1>
-  <p class="text-secondary small mb-4">
-    {% trans "Enterprise security command center — live signals plus generated verifier JSON summaries (docs/generated). Live signals: security events, compliance export/permission trail, active sessions. Deep static scan:" %}
-    <a href="{{ security_surface_url }}">{% trans "Security surface audit" %}</a>
-    · <a href="{{ support_dashboard_url }}">{% trans "Support" %}</a>
-    {% if admin_security_audit_url %}
-    · <a href="{{ admin_security_audit_url }}">{% trans "Security audit log (admin)" %}</a>
-    {% endif %}
-    {% if admin_auditlog_url %}
-    · <a href="{{ admin_auditlog_url }}">{% trans "Compliance audit log (admin)" %}</a>
-    {% endif %}
-  </p>
+  {# Single header band: the specific page title lives in the operator frame (was a generic frame title plus a duplicate page heading). #}
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="security_hub" center_eyebrow=_("Platform operators") center_title=_("Security & enterprise audit") center_purpose=_("Live security signals plus generated verifier summaries — events, permission trail, exports, and active sessions.") primary_url=security_surface_detail_url primary_label=_("Surface ledger") nav_groups=operational_nav_groups %}
+
+  {# Secondary links, deduplicated: the security-surface audit is linked once here (was also a standalone stat card). #}
+  <div class="cp-chip-row mb-3">
+    {% if security_surface_url %}<a class="btn btn-sm btn-outline-primary" href="{{ security_surface_url }}">{% trans "Security surface audit" %}</a>{% endif %}
+    {% if support_dashboard_url %}<a class="btn btn-sm btn-outline-primary" href="{{ support_dashboard_url }}">{% trans "Support" %}</a>{% endif %}
+    {% if admin_security_audit_url %}<a class="btn btn-sm btn-outline-primary" href="{{ admin_security_audit_url }}">{% trans "Security audit log (admin)" %}</a>{% endif %}
+    {% if admin_auditlog_url %}<a class="btn btn-sm btn-outline-primary" href="{{ admin_auditlog_url }}">{% trans "Compliance audit log (admin)" %}</a>{% endif %}
+  </div>
 
   {% for rg in governance_risk_groups %}
   <div class="rmc-banner rmc-banner--warning d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 mb-3" role="alert" data-rmc-security-risk-group="{{ rg.id }}">
@@ -46,34 +46,94 @@
   </div>
   {% endfor %}
 
-  <div class="card shadow-sm mb-3 border-primary" data-rmc-enterprise-verifier-strip="1">
-    <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-      <span>{% trans "Governance verifier summaries (generated JSON)" %}</span>
-      <a class="btn btn-sm btn-outline-primary" href="{{ security_surface_detail_url }}">{% trans "Open detailed surface ledger" %}</a>
-    </div>
-    <div class="card-body py-2">
-      <div class="row g-2">
-        {% for c in verifier_cards %}
-        <div class="col-6 col-md-4 col-xl-3">
-          <div class="border rounded p-2 h-100 small {% if not c.present %}border-warning{% endif %}">
-            <div class="fw-semibold mb-1">{{ c.label }}</div>
-            <div class="text-muted mb-1">{{ c.summary }}</div>
-            {% if c.generated_at %}<div class="text-muted" style="font-size:var(--type-size-eyebrow);">{% trans "UTC" %} {{ c.generated_at|truncatechars:24 }}</div>{% endif %}
-          </div>
-        </div>
-        {% endfor %}
-      </div>
-      {% if governance_missing_files %}
-      <p class="small text-muted mb-0 mt-2">{% trans "Missing files on disk — run the mechanical verifier scripts from repo root; dashboard degrades gracefully." %}</p>
-      {% endif %}
-    </div>
+  {# At-a-glance security KPIs as bounded overview tiles (were four heterogeneous stat cards; the lone-button static-scan card folds into the links + posture panel). #}
+  <div class="cp-overview-grid mb-3">
+    <article class="cp-overview-card cp-overview-card-crimson rmc-reveal">
+      <span class="cp-overview-label">{% trans "Suspicious events (7d)" %}</span>
+      <strong class="cp-overview-value">{{ suspicious_count_7d }}</strong>
+      <span class="cp-overview-meta">{% trans "Flagged security events" %}</span>
+    </article>
+    <article class="cp-overview-card cp-overview-card-amber rmc-reveal">
+      <span class="cp-overview-label">{% trans "Impossible travel (7d)" %}</span>
+      <strong class="cp-overview-value">{{ impossible_travel_7d }}</strong>
+      <span class="cp-overview-meta">{% trans "Geo-velocity anomalies" %}</span>
+    </article>
+    <article class="cp-overview-card cp-overview-card-slate rmc-reveal">
+      <span class="cp-overview-label">{% trans "Active sessions" %}</span>
+      <strong class="cp-overview-value">{{ session_total_hint }}</strong>
+      <span class="cp-overview-meta">{% trans "Non-expired (sample below)" %}</span>
+    </article>
   </div>
 
-  <div class="card shadow-sm mb-3" data-rmc-impersonation-audit-strip="1">
-    <div class="card-header">{% trans "Impersonation & proxy (platform operator)" %}</div>
-    <div class="card-body p-0 table-responsive rmc-iso-scroll-zone rmc-iso-scroll-zone--h-18" data-rmc-iso-scroll-zone="1">
+  {# Posture panel folds the descriptive "Data trust" + HTTP-audit note + static-scan status into one bounded panel. #}
+  <section class="cp-panel rmc-reveal mb-3">
+    <div class="cp-panel-header">
+      <div>
+        <span class="cp-panel-eyebrow">{% trans "Posture" %}</span>
+        <h2 class="cp-panel-title">{% trans "Enterprise controls" %}</h2>
+      </div>
+    </div>
+    <div class="cp-list">
+      <div class="cp-list-row">
+        <div>
+          <strong>{% trans "Mutating /super/ audit" %}</strong>
+          <div class="cp-list-meta">{% trans "Log mutating operator requests to the compliance audit log (ENTERPRISE_SUPER_HTTP_AUDIT)." %}</div>
+        </div>
+        {% if enterprise_super_http_audit %}
+        <span class="cp-status-badge cp-status-badge-success">{% trans "On" %}</span>
+        {% else %}
+        <span class="cp-status-badge cp-status-badge-neutral">{% trans "Off" %}</span>
+        {% endif %}
+      </div>
+      <div class="cp-list-row">
+        <div>
+          <strong>{% trans "Export integrity" %}</strong>
+          <div class="cp-list-meta">{% trans "Regional compliance CSVs carry X-Export-Content-SHA256 + X-Export-Signature (HMAC-SHA256) for offline verification." %}</div>
+        </div>
+        <span class="cp-status-badge cp-status-badge-success">{% trans "Signed" %}</span>
+      </div>
+      <div class="cp-list-row">
+        <div>
+          <strong>{% trans "Static surface scan" %}</strong>
+          <div class="cp-list-meta">{% trans "Generated JSON scan: CSRF, auth hints, raw SQL, exports. Open via the Security surface audit link above." %}</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cp-panel rmc-reveal mb-3" data-rmc-enterprise-verifier-strip="1">
+    <div class="cp-panel-header">
+      <div>
+        <span class="cp-panel-eyebrow">{% trans "Governance" %}</span>
+        <h2 class="cp-panel-title">{% trans "Verifier summaries (generated JSON)" %}</h2>
+      </div>
+    </div>
+    <div class="row g-2">
+      {% for c in verifier_cards %}
+      <div class="col-6 col-md-4 col-xl-3">
+        <div class="border rounded p-2 h-100 small {% if not c.present %}border-warning{% endif %}">
+          <div class="fw-semibold mb-1">{{ c.label }}</div>
+          <div class="text-muted mb-1">{{ c.summary }}</div>
+          {% if c.generated_at %}<div class="text-muted" style="font-size:var(--type-size-eyebrow);">{% trans "UTC" %} {{ c.generated_at|truncatechars:24 }}</div>{% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% if governance_missing_files %}
+    <p class="small text-muted mb-0 mt-2">{% trans "Missing files on disk — run the mechanical verifier scripts from repo root; dashboard degrades gracefully." %}</p>
+    {% endif %}
+  </section>
+
+  <section class="cp-panel rmc-reveal mb-3" data-rmc-impersonation-audit-strip="1">
+    <div class="cp-panel-header">
+      <div>
+        <span class="cp-panel-eyebrow">{% trans "Operator" %}</span>
+        <h2 class="cp-panel-title">{% trans "Impersonation & proxy" %}</h2>
+      </div>
+    </div>
+    <div class="table-responsive rmc-iso-scroll-zone rmc-iso-scroll-zone--h-18" data-rmc-iso-scroll-zone="1">
       <!-- large-collection-allow: dashboard-widget-capped-list -->
-<table class="table table-sm table-family mb-0 small rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
+      <table class="table table-sm table-family mb-0 small rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
         <caption class="visually-hidden">{% trans "Impersonation & proxy (platform operator)" %}</caption>
         <thead><tr><th scope="col">{% trans "When (UTC)" %}</th><th scope="col">{% trans "Actor" %}</th><th scope="col">{% trans "Peer / approval" %}</th><th scope="col">{% trans_term "School" key="school" %}</th><th scope="col">{% trans "Action" %}</th><th scope="col">{% trans "Reason" %}</th><th scope="col">{% trans "Read-only" %}</th></tr></thead>
         <tbody>
@@ -93,58 +153,16 @@
         </tbody>
       </table>
     </div>
-    <div class="card-footer small text-muted">{% trans "Dual-control schools require a peer approver on switch; consent + justification policies apply per settings." %}</div>
-  </div>
-
-  <div class="row g-3 mb-3 rmc-reveal-stagger">
-    <div class="col-md-3 rmc-reveal">
-      <div class="card border-warning h-100 shadow-sm">
-        <div class="card-header">{% trans "Anomalies (7 days)" %}</div>
-        <div class="card-body small">
-          <p class="mb-1"><strong>{{ suspicious_count_7d }}</strong> {% trans "suspicious security events" %}</p>
-          <p class="mb-0 text-secondary">{% trans "Impossible travel" %}: <strong>{{ impossible_travel_7d }}</strong></p>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-3 rmc-reveal">
-      <div class="card border-secondary h-100 shadow-sm">
-        <div class="card-header">{% trans "Security surface (static)" %}</div>
-        <div class="card-body small">
-          <p class="mb-2">{% trans "Generated JSON scan: CSRF, auth hints, raw SQL, exports." %}</p>
-          <a class="btn btn-sm btn-outline-primary" href="{{ security_surface_url }}">{% trans "Open" %}</a>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-3 rmc-reveal">
-      <div class="card border-secondary h-100 shadow-sm">
-        <div class="card-header">{% trans "Session visibility" %}</div>
-        <div class="card-body small">
-          <p class="mb-1"><strong>{{ session_total_hint }}</strong> {% trans "non-expired Django sessions (sample below)." %}</p>
-          {% if enterprise_super_http_audit %}
-          <p class="text-success mb-0">{% trans "HTTP mutation audit for /super/ is ON (ENTERPRISE_SUPER_HTTP_AUDIT)." %}</p>
-          {% else %}
-          <p class="text-muted mb-0">{% trans "Optional: set ENTERPRISE_SUPER_HTTP_AUDIT=1 to log mutating /super/ requests to the compliance audit log." %}</p>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-    <div class="col-md-3 rmc-reveal">
-      <div class="card border-secondary h-100 shadow-sm">
-        <div class="card-header">{% trans "Data trust" %}</div>
-        <div class="card-body small">
-          <p class="mb-0">{% trans "Regional compliance CSV downloads include X-Export-Content-SHA256 and X-Export-Signature (HMAC-SHA256) for offline verification." %}</p>
-        </div>
-      </div>
-    </div>
-  </div>
+    <p class="cp-list-meta small mt-2 mb-0">{% trans "Dual-control schools require a peer approver on switch; consent + justification policies apply per settings." %}</p>
+  </section>
 
   <details class="de-secondary-collapsible mb-3" open>
     <summary class="small fw-semibold text-secondary mb-2">{% trans "Detailed logs and sessions (tables)" %}</summary>
   <div class="row g-3 rmc-reveal-stagger">
     <div class="col-lg-4 rmc-reveal">
-      <div class="card shadow-sm">
-        <div class="card-header">{% trans "Security events (recent)" %}</div>
-        <div class="card-body p-0 table-responsive rmc-iso-scroll-zone rmc-iso-scroll-zone--h-22" data-rmc-iso-scroll-zone="1">
+      <section class="cp-panel h-100">
+        <div class="cp-panel-header"><div><span class="cp-panel-eyebrow">{% trans "Events" %}</span><h2 class="cp-panel-title">{% trans "Security events (recent)" %}</h2></div></div>
+        <div class="table-responsive rmc-iso-scroll-zone rmc-iso-scroll-zone--h-22" data-rmc-iso-scroll-zone="1">
           <table class="table table-sm table-family table-hover mb-0 small rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
             <caption class="visually-hidden">{% trans "Security events (recent)" %}</caption>
             <thead><tr><th scope="col">{% trans "When" %}</th><th scope="col">{% trans "Type" %}</th><th scope="col">{% trans "User" %}</th><th scope="col">{% trans "Flag" %}</th></tr></thead>
@@ -162,12 +180,12 @@
             </tbody>
           </table>
         </div>
-      </div>
+      </section>
     </div>
     <div class="col-lg-4 rmc-reveal">
-      <div class="card shadow-sm border-warning">
-        <div class="card-header">{% trans "Suspicious / flagged (7 days)" %}</div>
-        <div class="card-body p-0 table-responsive rmc-iso-scroll-zone rmc-iso-scroll-zone--h-22" data-rmc-iso-scroll-zone="1">
+      <section class="cp-panel h-100">
+        <div class="cp-panel-header"><div><span class="cp-panel-eyebrow">{% trans "Flagged" %}</span><h2 class="cp-panel-title">{% trans "Suspicious / flagged (7 days)" %}</h2></div></div>
+        <div class="table-responsive rmc-iso-scroll-zone rmc-iso-scroll-zone--h-22" data-rmc-iso-scroll-zone="1">
           <table class="table table-sm table-family table-hover mb-0 small rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
             <caption class="visually-hidden">{% trans "Suspicious / flagged (7 days)" %}</caption>
             <thead><tr><th scope="col">{% trans "When" %}</th><th scope="col">{% trans "Type" %}</th><th scope="col">{% trans "User" %}</th></tr></thead>
@@ -184,12 +202,12 @@
             </tbody>
           </table>
         </div>
-      </div>
+      </section>
     </div>
     <div class="col-lg-4 rmc-reveal">
-      <div class="card shadow-sm">
-        <div class="card-header">{% trans "Permission changes (compliance log)" %}</div>
-        <div class="card-body p-0 table-responsive rmc-iso-scroll-zone rmc-iso-scroll-zone--h-22" data-rmc-iso-scroll-zone="1">
+      <section class="cp-panel h-100">
+        <div class="cp-panel-header"><div><span class="cp-panel-eyebrow">{% trans "Compliance" %}</span><h2 class="cp-panel-title">{% trans "Permission changes" %}</h2></div></div>
+        <div class="table-responsive rmc-iso-scroll-zone rmc-iso-scroll-zone--h-22" data-rmc-iso-scroll-zone="1">
           <table class="table table-sm table-family table-hover mb-0 small rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
             <caption class="visually-hidden">{% trans "Permission changes (compliance log)" %}</caption>
             <thead><tr><th scope="col">{% trans "When" %}</th><th scope="col">{% trans "Action" %}</th><th scope="col">{% trans "Object" %}</th></tr></thead>
@@ -206,12 +224,12 @@
             </tbody>
           </table>
         </div>
-      </div>
+      </section>
     </div>
     <div class="col-lg-4 rmc-reveal">
-      <div class="card shadow-sm">
-        <div class="card-header">{% trans "Access denied (compliance log)" %}</div>
-        <div class="card-body p-0 table-responsive rmc-iso-scroll-zone rmc-iso-scroll-zone--h-22" data-rmc-iso-scroll-zone="1">
+      <section class="cp-panel h-100">
+        <div class="cp-panel-header"><div><span class="cp-panel-eyebrow">{% trans "Compliance" %}</span><h2 class="cp-panel-title">{% trans "Access denied" %}</h2></div></div>
+        <div class="table-responsive rmc-iso-scroll-zone rmc-iso-scroll-zone--h-22" data-rmc-iso-scroll-zone="1">
           <table class="table table-sm table-family table-hover mb-0 small rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
             <caption class="visually-hidden">{% trans "Access denied (compliance log)" %}</caption>
             <thead><tr><th scope="col">{% trans "When" %}</th><th scope="col">{% trans "Object" %}</th><th scope="col">{% trans "User" %}</th></tr></thead>
@@ -228,12 +246,12 @@
             </tbody>
           </table>
         </div>
-      </div>
+      </section>
     </div>
     <div class="col-lg-4 rmc-reveal">
-      <div class="card shadow-sm">
-        <div class="card-header">{% trans "Approvals (workflow)" %}</div>
-        <div class="card-body p-0 table-responsive rmc-iso-scroll-zone rmc-iso-scroll-zone--h-22" data-rmc-iso-scroll-zone="1">
+      <section class="cp-panel h-100">
+        <div class="cp-panel-header"><div><span class="cp-panel-eyebrow">{% trans "Workflow" %}</span><h2 class="cp-panel-title">{% trans "Approvals" %}</h2></div></div>
+        <div class="table-responsive rmc-iso-scroll-zone rmc-iso-scroll-zone--h-22" data-rmc-iso-scroll-zone="1">
           <table class="table table-sm table-family table-hover mb-0 small rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
             <caption class="visually-hidden">{% trans "Approvals (workflow)" %}</caption>
             <thead><tr><th scope="col">{% trans "When" %}</th><th scope="col">{% trans "Object" %}</th><th scope="col">{% trans "Actor" %}</th></tr></thead>
@@ -250,12 +268,12 @@
             </tbody>
           </table>
         </div>
-      </div>
+      </section>
     </div>
     <div class="col-lg-4 rmc-reveal">
-      <div class="card shadow-sm">
-        <div class="card-header">{% trans "Export timeline (compliance log + integrity)" %}</div>
-        <div class="card-body p-0 table-responsive rmc-iso-scroll-zone rmc-iso-scroll-zone--h-22" data-rmc-iso-scroll-zone="1">
+      <section class="cp-panel h-100">
+        <div class="cp-panel-header"><div><span class="cp-panel-eyebrow">{% trans "Integrity" %}</span><h2 class="cp-panel-title">{% trans "Export timeline" %}</h2></div></div>
+        <div class="table-responsive rmc-iso-scroll-zone rmc-iso-scroll-zone--h-22" data-rmc-iso-scroll-zone="1">
           <!-- large-collection-allow: dashboard-widget-capped-list -->
           <table class="table table-sm table-family table-hover mb-0 small rmc-data-table" data-rmc-export-timeline="1" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
             <caption class="visually-hidden">{% trans "Export timeline (compliance log + integrity)" %}</caption>
@@ -278,13 +296,13 @@
             </tbody>
           </table>
         </div>
-      </div>
+      </section>
     </div>
   </div>
 
-  <div class="card shadow-sm mt-3">
-    <div class="card-header">{% trans "Active sessions (sample)" %}</div>
-    <div class="card-body p-0 table-responsive rmc-iso-scroll-zone rmc-iso-scroll-zone--h-16" data-rmc-iso-scroll-zone="1">
+  <section class="cp-panel rmc-reveal mt-3">
+    <div class="cp-panel-header"><div><span class="cp-panel-eyebrow">{% trans "Sessions" %}</span><h2 class="cp-panel-title">{% trans "Active sessions (sample)" %}</h2></div></div>
+    <div class="table-responsive rmc-iso-scroll-zone rmc-iso-scroll-zone--h-16" data-rmc-iso-scroll-zone="1">
       <table class="table table-sm table-family mb-0 small rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
         <caption class="visually-hidden">{% trans "Active sessions (sample)" %}</caption>
         <thead><tr><th scope="col">{% trans_term "Session" key="session" %}</th><th scope="col">{% trans "Expires" %}</th><th scope="col">{% trans "User" %}</th></tr></thead>
@@ -301,7 +319,7 @@
         </tbody>
       </table>
     </div>
-  </div>
+  </section>
   </details>
 </div>
 {% endblock %}

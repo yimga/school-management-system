@@ -97,3 +97,45 @@ class TenantRuntimeConfigHubDedupeTests(SimpleTestCase):
 
     def test_related_bar_still_canonical_link_surface(self):
         self.assertIn("cp-evidence-related", self.src)
+
+
+class SuperSecurityHubConsolidationTests(SimpleTestCase):
+    TEMPLATE = "schools/super_security_hub.html"
+
+    def setUp(self):
+        self.src = _template_source(self.TEMPLATE)
+
+    def test_adopts_bounded_cp_panel_grammar(self):
+        self.assertIn("cp-panel", self.src)
+        self.assertIn("cp-panel-title", self.src)
+
+    def test_no_raw_bootstrap_cards_remain(self):
+        # The stacked `card shadow-sm` boxes (stat cards + table cards) are gone.
+        self.assertNotIn("card shadow-sm", self.src)
+        self.assertNotIn("card border-warning", self.src)
+
+    def test_single_header_band(self):
+        # The duplicate <h1> "Security & enterprise audit" band is folded into the
+        # operator frame's title; no standalone <h1> remains on the page.
+        self.assertNotIn("<h1", self.src)
+        self.assertIn('center_title=_("Security & enterprise audit")', self.src)
+
+    def test_stat_cards_became_overview_tiles(self):
+        # The four heterogeneous col-md-3 stat cards became a bounded KPI grid;
+        # the lone-button "Security surface (static)" card is gone.
+        self.assertIn("cp-overview-grid", self.src)
+        self.assertNotIn("Security surface (static)", self.src)
+        self.assertNotIn("col-md-3", self.src)
+
+    def test_all_audit_tables_preserved(self):
+        # No security/compliance table dropped in the consolidation.
+        for marker in (
+            "data-rmc-impersonation-audit-strip",
+            "data-rmc-export-timeline",
+            "Permission changes",
+            "Access denied",
+            "Approvals",
+            "Active sessions (sample)",
+            "data-rmc-enterprise-verifier-strip",
+        ):
+            self.assertIn(marker, self.src)
