@@ -365,8 +365,12 @@ class EvaluationValidationTest(TestCase):
             teacher=self.teacher,
             exam_score=Decimal("85"),
         )
+        # Evaluation.clean() bounds scores by the school's OPERATIONAL scale via
+        # resolve_school_score_scale (AssessmentWeights.score_scale), NOT the
+        # locale-derived max_score_for_school it used to call — so simulate a
+        # 0-100 school by patching the resolver clean() actually uses.
         with patch(
-            "apps.evals.grading.max_score_for_school",
+            "apps.evals.grading_provisioning.resolve_school_score_scale",
             return_value=Decimal("100"),
         ):
             evaluation.full_clean()
