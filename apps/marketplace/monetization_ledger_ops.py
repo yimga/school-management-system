@@ -66,7 +66,11 @@ def classify_settlement_lane(school) -> dict:
             "readiness_tier": None,
         }
 
-    compliance = ComplianceProfile.objects.filter(school=school).first()
+    # ComplianceProfile has no `school` FK — it is a per-tenant-schema record resolved
+    # by active flag (mirrors regional_payment_readiness.readiness_for_marketplace_entitlement_context
+    # and offline_workflow_handlers). Filtering on a non-existent `school` field raised
+    # FieldError at query-build time, 500-ing every real (non-test) marketplace install.
+    compliance = ComplianceProfile.objects.filter(is_active=True).first()
     snap = compute_payment_readiness(school, compliance)
     tier = str(snap.get("tier") or "").strip().upper()
 

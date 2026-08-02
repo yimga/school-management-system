@@ -3,14 +3,17 @@
 from __future__ import annotations
 
 from decimal import Decimal
+from unittest.mock import patch
 
 from django.test import RequestFactory, TestCase
 
 from apps.accounts.models import User
+from apps.finance.models import ComplianceProfile
 from apps.marketplace.models import MarketplaceMonetizationLedgerEntry
 from apps.marketplace.monetization_ledger_ops import (
     append_marketplace_ledger_entry,
     append_payment_success_ledger,
+    classify_settlement_lane,
 )
 from apps.marketplace.settlement_truth import (
     PHASE_SETTLEMENT_EXTERNAL_BLOCKED,
@@ -135,3 +138,55 @@ class MarketplaceSettlementTruthTests(TestCase):
         self.assertIn("payment_readiness_missing_setup", body)
         self.assertIn("MISSING_SETUP", body)
         self.assertNotIn("UNIQUE_BLOCKER_B_ONLY", body)
+
+
+class ClassifySettlementLaneProductionPathTests(TestCase):
+    """Regression seal for the marketplace-install 500.
+
+    ``classify_settlement_lane`` short-circuits under the unittest guard, so the
+    production branch — which resolves the tenant ComplianceProfile — was never
+    exercised by the suite. It queried a non-existent ``school`` field on
+    ComplianceProfile, raising FieldError at query-build time and 500-ing every
+    real (non-test) paid marketplace install. These tests patch the guard off so
+    the production branch runs; before the fix each raises FieldError.
+    """
+
+    databases = {"default"}
+
+    LANES = {"test_mode", "external_blocked", "pending_external", "internal"}
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.school = School.objects.create(
+            name="Lane School",
+            slug="lane-school",
+            subdomain="laneschool",
+            is_active=True,
+        )
+
+    def test_production_branch_no_compliance_profile_does_not_raise(self):
+        # Exact prod repro: no ComplianceProfile row for the tenant.
+        with patch(
+            "apps.marketplace.monetization_ledger_ops._running_under_unittest",
+            return_value=False,
+        ):
+            snap = classify_settlement_lane(self.school)
+        self.assertIsInstance(snap, dict)
+        self.assertIn(snap.get("lane"), self.LANES)
+
+    def test_production_branch_with_compliance_profile_does_not_raise(self):
+        # A real tenant compliance profile is present; the field-build error
+        # fired regardless of whether a row existed, so this is must-fire too.
+        ComplianceProfile.objects.create(
+            name="Lane Compliance",
+            country_code="CM",
+            is_active=True,
+        )
+        with patch(
+            "apps.marketplace.monetization_ledger_ops._running_under_unittest",
+            return_value=False,
+        ):
+            snap = classify_settlement_lane(self.school)
+        self.assertIsInstance(snap, dict)
+        self.assertIn(snap.get("lane"), self.LANES)
+        self.assertIn("readiness_tier", snap)

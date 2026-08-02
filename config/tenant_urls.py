@@ -202,10 +202,20 @@ def page_not_found(request, exception):
     # that pulls tenant context + context processors that can raise on an asset
     # path, turning the 404 into a 500. Return a plain 404 for asset paths — the
     # same reason favicon_redirect exists. Real page 404s still get the brand page.
+    #
+    # A WebSocket handshake to /ws/* that reaches THIS handler means Channels/ASGI
+    # is not serving this host (Render tenant + manager web services are WSGI-only;
+    # see rmc-wal-stream.js). Rendering the full-shell branded "Campus Not Found"
+    # page (~1.2 MB) for a WS handshake is pure waste — the client discards the
+    # body and re-downloads it on every reconnect. Return a tiny plain 404 instead.
     path = request.path or ""
     static_url = settings.STATIC_URL or "/static/"
     media_url = settings.MEDIA_URL or "/media/"
-    if path.startswith(static_url) or path.startswith(media_url):
+    if (
+        path.startswith(static_url)
+        or path.startswith(media_url)
+        or path.startswith("/ws/")
+    ):
         from django.http import HttpResponseNotFound
 
         return HttpResponseNotFound("Not found")
