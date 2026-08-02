@@ -270,8 +270,20 @@ class Command(BaseCommand):
             try:
                 from django.core.management import call_command
 
-                call_command("resend_owner_setup_email", "--school", school.slug)
-                self.stdout.write(self.style.SUCCESS(f"Owner setup email dispatched for {school.slug}."))
+                # --only-unclaimed: this seed runs on EVERY deploy, so send the
+                # "your school is ready" email ONLY to owners who still need to
+                # claim their account. Once the owner has set their own password
+                # and onboarded, re-welcoming them on every release is pure noise
+                # (a forced resend is still available via `resend_owner_setup_email`
+                # without this flag, or the tenant-360 "Resend owner setup email"
+                # button).
+                call_command(
+                    "resend_owner_setup_email",
+                    "--school",
+                    school.slug,
+                    "--only-unclaimed",
+                )
+                self.stdout.write(self.style.SUCCESS(f"Owner setup email step ran for {school.slug}."))
             except Exception as exc:  # noqa: BLE001 - report, never fail the seed
                 self.stdout.write(
                     self.style.WARNING(

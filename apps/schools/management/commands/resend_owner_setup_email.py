@@ -52,6 +52,16 @@ class Command(BaseCommand):
             action="store_true",
             help="Show who would receive the email without sending anything.",
         )
+        parser.add_argument(
+            "--only-unclaimed",
+            action="store_true",
+            help=(
+                "Only email owners who have NOT yet claimed a credential (skip "
+                "owners already set up + onboarded). The deploy auto-send passes "
+                "this so a set-up owner is never re-welcomed on every release; "
+                "omit it for a full operator-forced resend."
+            ),
+        )
 
     def _resolve_school(self, ident: str):
         from django.core.exceptions import ValidationError
@@ -70,8 +80,13 @@ class Command(BaseCommand):
                 school = None
         return school
 
-    def _owner_emails(self, school) -> list[str]:
-        """Distinct, non-empty emails of the school's ACTIVE owners, in a stable order."""
+    def _owner_emails(self, school, *, only_unclaimed: bool = False) -> list[str]:
+        """Distinct, non-empty emails of the school's ACTIVE owners, in a stable order.
+
+        With ``only_unclaimed=True``, owners who have already claimed a credential
+        (usable password + completed onboarding) are skipped — used by the deploy
+        auto-send so a set-up owner is not re-welcomed on every release.
+        """
         from apps.schools.models import SchoolMembership
 
         rows = (
@@ -81,9 +96,15 @@ class Command(BaseCommand):
             .select_related("user")
             .order_by("-is_primary", "user__pk")
         )
+        if only_unclaimed:
+            from apps.schools.signup_completion_notifications import (
+                owner_has_claimed_credential,
+            )
         seen: set[str] = set()
         emails: list[str] = []
         for m in rows:
+            if only_unclaimed and owner_has_claimed_credential(school, m.user):
+                continue
             email = (getattr(m.user, "email", "") or "").strip()
             key = email.lower()
             if email and key not in seen:
@@ -96,12 +117,43 @@ class Command(BaseCommand):
         if school is None:
             raise CommandError(f"No school found for '{options['school']}'.")
 
+        only_unclaimed = bool(options.get("only_unclaimed"))
         one = (options.get("email") or "").strip()
-        recipients = [one] if one else self._owner_emails(school)
+        if one:
+            recipients = [one]
+            # Honour --only-unclaimed for a single explicit address too: resolve the
+            # owner account and drop it when they have already claimed a credential.
+            if only_unclaimed:
+                from django.contrib.auth import get_user_model
+                from django.db.models import Q
+
+                from apps.schools.signup_completion_notifications import (
+                    owner_has_claimed_credential,
+                )
+
+                u = (
+                    get_user_model()
+                    .objects.filter(Q(email__iexact=one) | Q(username__iexact=one))
+                    .order_by("pk")
+                    .first()
+                )
+                if u is not None and owner_has_claimed_credential(school, u):
+                    recipients = []
+        else:
+            recipients = self._owner_emails(school, only_unclaimed=only_unclaimed)
         dry_run = bool(options.get("dry_run"))
 
         label = f"{school.slug or school.pk} ({getattr(school, 'name', '')})"
         if not recipients:
+            if only_unclaimed:
+                # Not an error: every owner is already set up, so there is nothing
+                # to (re)send. This is the steady state on routine deploys — the
+                # cause of the "welcome email every deploy" report.
+                self.stdout.write(
+                    f"{label}: all owners have already claimed their accounts — "
+                    f"nothing to send (--only-unclaimed)."
+                )
+                return
             self.stdout.write(
                 self.style.WARNING(
                     f"{label}: no active owner with an email address. "
