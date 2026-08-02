@@ -31,45 +31,6 @@ def dashboard(request: HttpRequest):
 
     dashboard_data = finance_dashboard_data(profile)
     summary = dashboard_data.get("summary", {})
-    hero = {
-        "tagline": "Finance Dashboard",
-        "title": profile.name,
-        "subtitle": "Receivables, collections, and alerts",
-        "icon": "bi-cash-coin",
-        "stats": [
-            {
-                "label": "Receivables",
-                "value": summary.get("receivables"),
-                "meta": "Outstanding AR",
-            },
-            {
-                "label": "Collected",
-                "value": summary.get("paid"),
-                "meta": "YTD payments",
-            },
-            {
-                "label": "Overdue",
-                "value": summary.get("overdue"),
-                "meta": "Invoices late",
-            },
-        ],
-        "actions": [
-            {
-                "label": "Overdue list",
-                "url": reverse("finance:invoices") + "?status=OVERDUE",
-            },
-            {"label": "Generate fees", "url": reverse("finance:generate_fees")},
-            {"label": "All invoices", "url": reverse("finance:invoices")},
-            {
-                "label": "Payment setup",
-                "url": reverse("finance:payment_readiness_setup"),
-            },
-            {
-                "label": "Payment readiness (tenant)",
-                "url": reverse("finance:payment_readiness_dashboard"),
-            },
-        ],
-    }
     dashboard_context = get_dashboard_context(request.user, "finance", request=request)
     dashboard_settings = dashboard_context.get("dashboard_settings", {})
     allow_custom_layout = dashboard_context.get("allow_custom_layout", False)
@@ -174,48 +135,8 @@ def dashboard(request: HttpRequest):
         },
     }
 
-    urgent_queue: list[dict] = []
-    for n in finance_requests_qs[:4]:
-        urgent_queue.append(
-            {
-                "title": str(getattr(n, "title", "") or "Finance request"),
-                "url": finance_request_link,
-                "hint": str(getattr(n, "message", "") or "")[:140],
-            }
-        )
     overdue_n = summary.get("overdue") or 0
-    if overdue_n and not urgent_queue:
-        urgent_queue.append(
-            {
-                "title": f"{overdue_n} overdue invoice(s)",
-                "url": reverse("finance:invoices") + "?status=OVERDUE",
-                "hint": "Collect or follow up on overdue balances.",
-            }
-        )
-    if not urgent_queue:
-        urgent_queue.append(
-            {
-                "title": "No finance inbox items",
-                "url": "",
-                "hint": "Receivables and payments look quiet.",
-            }
-        )
-
     recent_invoices = dashboard_data.get("recent_invoices") or []
-    activity_rows: list[dict] = []
-    for inv in list(recent_invoices)[:4]:
-        try:
-            status = inv.get_status_display()  # type: ignore[union-attr]
-        except (AttributeError, TypeError, ValueError):
-            status = ""
-        ref = getattr(inv, "reference", None) or getattr(inv, "id", "")
-        activity_rows.append({"title": str(ref), "meta": str(status)})
-
-    if not activity_rows:
-        activity_rows.append(
-            {"title": "Finance dashboard", "meta": "Snapshot ready — use next actions."}
-        )
-
     recv = summary.get("receivables")
     finance_metrics = [
         {
@@ -245,17 +166,6 @@ def dashboard(request: HttpRequest):
             "icon": "receipt",
         },
     ]
-    phase7_de = {
-        "eyebrow": "Finance home",
-        "headline_label": "Outstanding receivables",
-        "headline_value": recv,
-        "headline_meta": str(profile.name),
-        "metrics": list(hero.get("stats") or [])[:4],
-        "urgent_queue": urgent_queue,
-        "next_actions": list(hero.get("actions") or [])[:3],
-        "activity": activity_rows,
-    }
-
     from apps.platform_runtime.operational_center_nav import money_center_frame_context
     from apps.platform_runtime.page_status_tags import (
         STATUS_ATTENTION,
@@ -307,10 +217,8 @@ def dashboard(request: HttpRequest):
 
     context = {
         "profile": profile,
-        "hero": hero,
         "chart_status_donut_json": json.dumps(chart_status_donut),
         "chart_trend_area_json": json.dumps(chart_trend_area),
-        "phase7_de": phase7_de,
         "finance_metrics": finance_metrics,
         **dashboard_data,
     }

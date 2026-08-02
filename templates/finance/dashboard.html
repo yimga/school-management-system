@@ -84,9 +84,6 @@
   </section>
   </div>
   <!-- rmc-ux-above-fold-end -->
-{% if phase7_de %}
-  {% include "components/decision_engine_surface.html" with de_eyebrow=phase7_de.eyebrow de_headline_label=phase7_de.headline_label de_headline_value=phase7_de.headline_value de_headline_meta=phase7_de.headline_meta de_metrics=phase7_de.metrics de_urgent_queue=phase7_de.urgent_queue de_next_actions=phase7_de.next_actions de_activity=phase7_de.activity %}
-{% endif %}
   {% with finance_metrics|default:None as metrics %}
     {% if metrics %}
       {% include "components/rmc_metric_ticker.html" with metrics=metrics %}
@@ -94,12 +91,6 @@
   {% endwith %}
   <div class="finance-dashboard-extra mb-3">
     {% tenant_hook 'FINANCE_DASHBOARD_EXTRA' %}
-  </div>
-
-  <div class="row g-3 mb-3" data-dashboard-column="hero">
-    <div class="col-12" data-widget-id="finance-hero">
-      {% include "widgets/dashboard_hero.html" with hero=hero %}
-    </div>
   </div>
 
   <div class="row g-3 mb-3" data-dashboard-column="main">
