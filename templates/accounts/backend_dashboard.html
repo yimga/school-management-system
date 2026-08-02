@@ -113,7 +113,7 @@ backend-shell dashboard-page-backend
     {% if mission_season %}
     <div class="rmc-page-masthead__season mb-2" data-rmc-mission-season="{{ mission_season.key }}" role="status">
       <strong>{{ mission_season.label }}</strong>
-      <span class="text-muted"> — {{ mission_season.hint }}</span>
+      <span class="rmc-page-masthead__season-hint"> — {{ mission_season.hint }}</span>
     </div>
     {% endif %}
     {% include "components/rmc_page_masthead.html" %}

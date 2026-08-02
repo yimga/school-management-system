@@ -164,7 +164,7 @@
   {% endif %}
 
   {% if rmc_setup_checklist_url %}
-  <a class="rmc-setup-surface__all" href="{{ rmc_setup_checklist_url }}">{% trans "Open full activation checklist" %}</a>
+  <a class="rmc-setup-surface__all" href="{{ rmc_setup_checklist_url }}"><i class="bi bi-check2-square" aria-hidden="true"></i><span>{% trans "Open full activation checklist" %}</span></a>
   {% endif %}
   <script src="{% static 'js/rmc-setup-surface-tabs.js' %}" defer></script>
   <script src="{% static 'js/rmc-school-readiness-cache.js' %}" defer></script>

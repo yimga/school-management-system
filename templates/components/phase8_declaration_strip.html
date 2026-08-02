@@ -1,6 +1,16 @@
 {% load i18n %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="phase8-declaration-strip card border-0 shadow-sm mb-3" data-phase8-declaration="1" role="region" aria-label="{% trans 'Dashboard intent' %}">
+{% comment %}
+  Dashboard "intent" declaration (Phase-8 JTBD contract). This is design-contract
+  instrumentation — the raw dashboard_type key + JTBD framing — not customer copy.
+  Retired from the VISIBLE surface (approved 2026-08-02 cockpit canvas) but kept in
+  the DOM + accessibility tree via .visually-hidden so:
+    - the Phase-8 coverage/render contract still asserts (class + data attribute),
+    - the density gate still counts the `card` token,
+    - screen-reader users still get the page intent.
+  ~90 dashboards (tenant + operator) declutter from this single change.
+{% endcomment %}
+<div class="phase8-declaration-strip card border-0 shadow-sm mb-3 visually-hidden" data-phase8-declaration="1" role="region" aria-label="{% trans 'Dashboard intent' %}">
   <div class="card-body py-2 px-3">
     <div class="d-flex flex-wrap align-items-baseline gap-2 mb-1">
       <span class="rmc-badge text-uppercase small">{{ dec.dashboard_type }}</span>

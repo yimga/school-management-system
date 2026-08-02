@@ -220,8 +220,18 @@
   border-radius: 0.5rem;
   border: 1px solid var(--hairline);
   background: color-mix(in srgb, var(--rmc-arch-mission) 10%, var(--rmc-chip-mix-base));
+  /* Accessible ink on the pale-mission band: the hint used to be .text-muted
+     (~1.4:1 on the cream tint — a WCAG fail). Route it through the primary ink
+     token so it is legible in both themes. Approved 2026-08-02 cockpit canvas. */
+  color: var(--text-primary);
   min-width: 0;
   overflow: visible;
+}
+
+/* The season line's supporting hint: de-emphasised, but never below 4.5:1 on
+   the mission band (mix toward primary ink, not the muted-secondary token). */
+.rmc-page-masthead__season-hint {
+  color: color-mix(in srgb, var(--text-primary) 82%, var(--rmc-arch-mission));
 }
 
 /* Full-bleed role switcher: the four Mission role tabs stretch to equal
