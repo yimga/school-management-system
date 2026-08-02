@@ -158,7 +158,7 @@ class Command(BaseCommand):
             from apps.communication.models import CommunicationTemplate  # noqa: PLC0415
 
             tpl = CommunicationTemplate.objects.filter(
-                school_id=school_id, slug="friction_digest", is_active=True
+                school_id=school_id, key="friction_digest", is_active=True
             ).first()
             if tpl is None:
                 logger.info("friction_digest no template for school_id=%s", school_id)

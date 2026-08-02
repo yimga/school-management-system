@@ -1,0 +1,6 @@
+{
+  "finding_count": 0,
+  "findings": [],
+  "generated_at": "2026-08-02T20:38:33+00:00",
+  "rule": "every literal keyword passed to .filter/.exclude/.get/.get_or_create/.update_or_create on a directly-resolvable <Model>.objects chain must have its first __ segment resolve via the model's _meta.get_field; guard with try/except FieldError or # filter-field-allow: <reason>"
+}

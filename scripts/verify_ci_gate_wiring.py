@@ -59,6 +59,7 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     ("scripts/verify_settings_key_integrity.py", "ci.yml"),
     ("scripts/verify_field_reference_integrity.py", "ci.yml"),
     ("scripts/verify_relation_path_integrity.py", "ci.yml"),
+    ("scripts/verify_orm_filter_field_integrity.py", "ci.yml"),
     # Documented-baseline drift meta-check (doc vs JSON).
     ("scripts/check_documented_baselines.py", "architectural-boundaries.yml"),
     # Template render safety + attribute-context layout-frame guard.

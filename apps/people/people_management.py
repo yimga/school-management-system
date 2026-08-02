@@ -203,12 +203,19 @@ class TeacherAdminEnhancements:
                         },
                     )
 
+                    # TeacherProfile identifies staff by `staff_id` (not
+                    # `employee_number`) and stores the contact number in `phone`
+                    # (not `phone_number`); `qualification` has no column and is
+                    # kept under `custom_attributes`. The old field names raised
+                    # FieldError/TypeError and broke every row of the CSV import.
                     teacher, created = TeacherProfile.objects.get_or_create(
-                        employee_number=emp_num,
+                        staff_id=emp_num,
                         defaults={
                             "user": user,
-                            "phone_number": row.get("Phone", ""),
-                            "qualification": row.get("Qualification", "bachelors"),
+                            "phone": row.get("Phone", ""),
+                            "custom_attributes": {
+                                "qualification": row.get("Qualification", "bachelors"),
+                            },
                         },
                     )
 

@@ -322,7 +322,7 @@ class StudentDashboardAPI(View):
 
         try:
             from apps.people.models import StudentProfile
-            from apps.academics.models import Attendance, Classroom
+            from apps.academics.models import Attendance
 
             try:
                 # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
@@ -334,11 +334,18 @@ class StudentDashboardAPI(View):
                     status=404,
                 )
 
-            # Current classes
-            # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
-            current_classes = Classroom.objects.filter(
-                level=student.current_class
-            ).count()
+            # Current classes: subjects taught in the student's current classroom.
+            # `current_classroom` is the SOT property; the old
+            # `Classroom.objects.filter(level=student.current_class)` referenced
+            # neither a real StudentProfile attribute (`current_class`) nor a real
+            # Classroom field (`level`), so this endpoint returned 500 for every
+            # student (the outer handler catches the AttributeError).
+            current_classroom = student.current_classroom
+            current_classes = (
+                current_classroom.subject_assignments.count()
+                if current_classroom
+                else 0
+            )
 
             # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
             # Attendance percentage

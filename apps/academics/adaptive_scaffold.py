@@ -141,7 +141,10 @@ def award_badge_for_achievement(school, student, badge_type_code: str, reason: s
     """Integration hook: award a badge to a student (uses people.Badge)."""
     from apps.people.models import Badge, BadgeType
 
-    bt = BadgeType.objects.filter(school=school, code=badge_type_code).first()  # tenant-isolation-allow: scoped-via-school-filter-badge-type-lookup
+    # BadgeType is a global catalog keyed by `code` (it has no per-school field;
+    # the tenant schema already isolates rows). Filtering on a non-existent
+    # `school` field raised FieldError at query-build time.
+    bt = BadgeType.objects.filter(code=badge_type_code).first()
     if not bt:
         return None
     return Badge.objects.create(
