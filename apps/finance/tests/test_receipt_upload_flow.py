@@ -20,6 +20,12 @@ from apps.finance.models import (
 )
 from apps.people.models import StudentProfile
 
+# A payload whose leading bytes are a real PNG magic signature, so the upload
+# view's content sniff (apps.security.upload_validation.sniff_file_mime) accepts
+# it as image/png. The view (correctly) rejects files whose magic bytes don't
+# match the declared type, so a receipt fixture must carry a valid signature.
+_VALID_PNG = b"\x89PNG\r\n\x1a\n" + b"fake-image-data"
+
 
 def _finance_site_namespace(profile: ComplianceProfile) -> SimpleNamespace:
     return SimpleNamespace(
@@ -116,7 +122,7 @@ class ReceiptUploadFlowTests(TestCase):
         }
         receipt = SimpleUploadedFile(
             "receipt.png",
-            b"fake-image-data",
+            _VALID_PNG,
             content_type="image/png",
         )
         site_ns = _finance_site_namespace(self.profile)
@@ -167,7 +173,7 @@ class ReceiptUploadFlowTests(TestCase):
         }
         receipt = SimpleUploadedFile(
             "receipt.png",
-            b"fake-image-data",
+            _VALID_PNG,
             content_type="image/png",
         )
 
