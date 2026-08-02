@@ -234,6 +234,10 @@ module.exports = defineConfig({
         '**/offline-authenticated-sync.spec.js',
         '**/report-card-hash-parent.spec.js',
         '**/tenant-shell-a11y.spec.js',
+        // Manual browser-validation of the Admin Home cockpit fixes; needs a booted
+        // tenant server (see the spec header for the recipe), so it is not part of
+        // the generic no-server sweep.
+        '**/cockpit-sticky-slideover.spec.js',
       ],
       use: {
         channel: 'chromium',
