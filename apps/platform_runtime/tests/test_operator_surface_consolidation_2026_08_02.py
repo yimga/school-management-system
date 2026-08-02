@@ -139,3 +139,40 @@ class SuperSecurityHubConsolidationTests(SimpleTestCase):
             "data-rmc-enterprise-verifier-strip",
         ):
             self.assertIn(marker, self.src)
+
+
+class SuperRuntimeInspectorConsolidationTests(SimpleTestCase):
+    TEMPLATE = "schools/super_runtime_inspector.html"
+
+    def setUp(self):
+        self.src = _template_source(self.TEMPLATE)
+
+    def test_adopts_bounded_cp_panel_grammar(self):
+        self.assertIn("cp-panel", self.src)
+        self.assertIn("cp-panel-title", self.src)
+
+    def test_loads_manager_control_plane_css(self):
+        # control_plane_base does not load it; the converted page must.
+        self.assertIn("css/manager-control-plane.css", self.src)
+
+    def test_no_raw_bootstrap_cards_remain(self):
+        # The 13 stacked `card shadow-sm border-0` boxes with dark headers are gone.
+        self.assertNotIn("card shadow-sm border-0", self.src)
+        self.assertNotIn("card-header bg-dark", self.src)
+
+    def test_internal_dev_labels_stripped_from_titles(self):
+        # GAP.6 / GAP.13 / Phase 6 / "(step 6)" are engineering references, not
+        # operator-facing copy.
+        self.assertNotIn("GAP.6", self.src)
+        self.assertNotIn("GAP.13", self.src)
+        self.assertNotIn("Phase 6", self.src)
+        self.assertNotIn("(step 6)", self.src)
+
+    def test_overlapping_routing_cards_folded_into_one_panel(self):
+        # Route + Override sources + Source summary (all restate preview/sandbox +
+        # provenance IDs) merged into a single panel.
+        self.assertIn("Routing & resolution sources", self.src)
+
+    def test_feature_toggle_table_wiring_preserved(self):
+        self.assertIn('data-rmc-row-detail-table="1"', self.src)
+        self.assertIn("inspection.feature_toggles", self.src)

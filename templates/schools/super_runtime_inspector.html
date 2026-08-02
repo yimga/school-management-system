@@ -4,6 +4,9 @@
 {% load terminology_tags %}
 
 {% block cp_title %}{% trans "Runtime Inspector" %}{% endblock %}
+{% block extrastyle %}{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/manager-control-plane.css' %}">
+{% endblock %}
 
 {% block cp_workspace_header %}{% endblock %}
 {% block breadcrumbs %}
@@ -23,30 +26,35 @@
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div id="runtime-inspector-main" class="container-fluid py-2" tabindex="-1" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1"{% include "schools/partials/decision_architecture_attrs.html" %} data-rmc-scroll-policy="paginate" data-page-critical-read="1">
   {% include "components/rmc_operational_center_frame.html" with os_center_key="runtime_inspector" center_eyebrow=_("Platform operators") center_title="Runtime inspector" center_purpose="Inspect effective blueprint, active packs, policies, overrides, and compilation trace for a school." primary_url=dashboard_url primary_label="Back to dashboard" nav_groups=operational_nav_groups %}
-  <div class="card shadow-sm border-0 page-family-content-card card-grammar mb-3">
-    <div class="card-body">
-      <form method="get" class="row g-3 align-items-end">
-        <div class="col-auto">
-          <label for="school_id" class="form-label">{% trans "School ID (UUID)" %}</label>
-          <input type="text" id="school_id" name="school_id" class="form-control" value="{{ school.id|default:'' }}" placeholder="UUID" style="min-width: 20rem;">
-        </div>
-        <div class="col-auto">
-          <button type="submit" class="btn btn-primary">{% trans "Inspect" %}</button>
-        </div>
-      </form>
-      {% if schools_sample %}
-      <p class="mt-3 mb-1 small text-secondary">{% trans "Quick pick (recent active schools):" %}</p>
-      <ul class="list-inline mb-0">
-        {% for s in schools_sample %}
-        <li class="list-inline-item me-2"><a href="?school_id={{ s.id }}">{{ s.name|truncatechars:30 }}</a> <code class="small">{{ s.slug }}</code></li>
-        {% endfor %}
-      </ul>
-      {% endif %}
-      {% if school %}
-      <p class="mt-3 mb-0"><strong>{% trans_term "School" key="school" %}:</strong> {{ school.name }} ({{ school.slug }})</p>
-      {% endif %}
+
+  <section class="cp-panel rmc-reveal mb-3">
+    <div class="cp-panel-header">
+      <div>
+        <span class="cp-panel-eyebrow">{% trans "Target" %}</span>
+        <h2 class="cp-panel-title">{% trans "Inspect a school" %}</h2>
+      </div>
     </div>
-  </div>
+    <form method="get" class="row g-3 align-items-end">
+      <div class="col-auto">
+        <label for="school_id" class="form-label">{% trans "School ID (UUID)" %}</label>
+        <input type="text" id="school_id" name="school_id" class="form-control" value="{{ school.id|default:'' }}" placeholder="UUID" style="min-width: 20rem;">
+      </div>
+      <div class="col-auto">
+        <button type="submit" class="btn btn-primary">{% trans "Inspect" %}</button>
+      </div>
+    </form>
+    {% if schools_sample %}
+    <p class="mt-3 mb-1 small text-secondary">{% trans "Quick pick (recent active schools):" %}</p>
+    <div class="cp-chip-row">
+      {% for s in schools_sample %}
+      <a class="cp-chip" href="?school_id={{ s.id }}">{{ s.name|truncatechars:30 }} <code class="small">{{ s.slug }}</code></a>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% if school %}
+    <p class="mt-3 mb-0"><strong>{% trans_term "School" key="school" %}:</strong> {{ school.name }} ({{ school.slug }})</p>
+    {% endif %}
+  </section>
 
   {% if inspection.error %}
   <div class="rmc-banner rmc-banner--warning" role="alert">
@@ -55,163 +63,176 @@
   {% endif %}
 
   {% if inspection and not inspection.error %}
-  <div class="row">
-    <div class="col-lg-6 mb-3">
-      <div class="card shadow-sm border-0 page-family-content-card card-grammar h-100">
-        <div class="card-header bg-dark text-light">{% trans "Effective blueprint" %}</div>
-        <div class="card-body">
-          {% if inspection.effective_blueprint %}
-          <ul class="list-unstyled mb-0">
-            <li><strong>ID:</strong> {{ inspection.effective_blueprint.id|default:"—" }}</li>
-            <li><strong>Code:</strong> {{ inspection.effective_blueprint.code|default:"—" }}</li>
-            <li><strong>Family:</strong> {{ inspection.effective_blueprint.family|default:"—" }}</li>
-            <li><strong>Name:</strong> {{ inspection.effective_blueprint.name|default:"—" }}</li>
-          </ul>
-          {% else %}
-          <p class="text-secondary mb-0">—</p>
-          {% endif %}
-        </div>
+  <section class="cp-panel rmc-reveal mb-3">
+    <div class="cp-panel-header">
+      <div>
+        <span class="cp-panel-eyebrow">{% trans "Composition" %}</span>
+        <h2 class="cp-panel-title">{% trans "Effective blueprint & active packs" %}</h2>
       </div>
     </div>
-    <div class="col-lg-6 mb-3">
-      <div class="card shadow-sm border-0 page-family-content-card card-grammar h-100">
-        <div class="card-header bg-dark text-light">{% trans "Active packs" %}</div>
-        <div class="card-body">
-          {% if inspection.active_packs %}
-          <ul class="list-unstyled mb-0">
-            <li><strong>Workflow:</strong> {{ inspection.active_packs.workflow|default:"—" }}</li>
-            <li><strong>Dashboard:</strong> {{ inspection.active_packs.dashboard|default:"—" }}</li>
-            <li><strong>Policy:</strong> {{ inspection.active_packs.policy|default:"—" }}</li>
-          </ul>
-          {% else %}
-          <p class="text-secondary mb-0">—</p>
-          {% endif %}
+    <div class="row g-3">
+      <div class="col-lg-6">
+        <h3 class="cp-panel-eyebrow mb-2">{% trans "Effective blueprint" %}</h3>
+        {% if inspection.effective_blueprint %}
+        <div class="cp-list">
+          <div class="cp-list-row"><div><strong>{% trans "ID" %}</strong></div><span><code>{{ inspection.effective_blueprint.id|default:"—" }}</code></span></div>
+          <div class="cp-list-row"><div><strong>{% trans "Code" %}</strong></div><span>{{ inspection.effective_blueprint.code|default:"—" }}</span></div>
+          <div class="cp-list-row"><div><strong>{% trans "Family" %}</strong></div><span>{{ inspection.effective_blueprint.family|default:"—" }}</span></div>
+          <div class="cp-list-row"><div><strong>{% trans "Name" %}</strong></div><span>{{ inspection.effective_blueprint.name|default:"—" }}</span></div>
         </div>
-      </div>
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-lg-6 mb-3">
-      <div class="card shadow-sm border-0 page-family-content-card card-grammar h-100">
-        <div class="card-header bg-dark text-light">{% trans "Route" %}</div>
-        <div class="card-body">
-          {% if inspection.route %}
-          <ul class="list-unstyled mb-0">
-            <li><strong>Surface:</strong> {{ inspection.route.surface|default:"—" }}</li>
-            <li><strong>Preview:</strong> {{ inspection.route.is_preview|yesno:"Yes,No" }}</li>
-            <li><strong>Sandbox:</strong> {{ inspection.route.is_sandbox|yesno:"Yes,No" }}</li>
-          </ul>
-          {% else %}
-          <p class="text-secondary mb-0">—</p>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-    <div class="col-lg-6 mb-3">
-      <div class="card shadow-sm border-0 page-family-content-card card-grammar h-100">
-        <div class="card-header bg-dark text-light">{% trans "Override sources" %}</div>
-        <div class="card-body">
-          {% if inspection.override_sources %}
-          <ul class="list-unstyled mb-0 small">
-            <li><strong>Source blueprint ID:</strong> {{ inspection.override_sources.source_blueprint_id|default:"—" }}</li>
-            <li><strong>Source policy bundle ID:</strong> {{ inspection.override_sources.source_policy_bundle_id|default:"—" }}</li>
-            <li><strong>Applied overrides:</strong> {{ inspection.override_sources.applied_overrides|join:", "|default:"—" }}</li>
-            <li><strong>Compilation timestamp:</strong> {{ inspection.override_sources.compilation_timestamp|default:"—" }}</li>
-            {% if inspection.override_sources.compilation_trace %}
-            <li class="mt-1"><strong>Trace:</strong> <code>{{ inspection.override_sources.compilation_trace|join:" → " }}</code></li>
-            {% endif %}
-          </ul>
-          {% else %}
-          <p class="text-secondary mb-0">—</p>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-lg-6 mb-3">
-      <div class="card shadow-sm border-0 page-family-content-card card-grammar h-100">
-        <div class="card-header bg-dark text-light">{% trans "Precedence chain" %}</div>
-        <div class="card-body">
-          {% if inspection.precedence_chain %}
-          <ol class="small mb-0 ps-3">
-            {% for step in inspection.precedence_chain %}
-            <li><strong>{{ step.label }}</strong> <span class="text-secondary">({{ step.key }})</span></li>
-            {% endfor %}
-          </ol>
-          {% else %}
-          <p class="text-secondary mb-0">--</p>
-          {% endif %}
-          {% if inspection.feature_flags_merge_order %}
-          <p class="small text-secondary mt-2 mb-0"><strong>{% trans "Runtime feature-flag merge (step 6)" %}:</strong>
-          <code>{{ inspection.feature_flags_merge_order|join:" → " }}</code></p>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-    <div class="col-lg-6 mb-3">
-      <div class="card shadow-sm border-0 page-family-content-card card-grammar h-100">
-        <div class="card-header bg-dark text-light">{% trans "Source summary" %}</div>
-        <div class="card-body">
-          {% if inspection.source_summary %}
-          <ul class="list-unstyled mb-0 small">
-            <li><strong>Blueprint ID:</strong> {{ inspection.source_summary.blueprint_id|default:"--" }}</li>
-            <li><strong>Policy bundle ID:</strong> {{ inspection.source_summary.policy_bundle_id|default:"--" }}</li>
-            <li><strong>Preview mode:</strong> {{ inspection.source_summary.preview_mode|yesno:"Yes,No" }}</li>
-            <li><strong>Sandbox mode:</strong> {{ inspection.source_summary.sandbox_mode|yesno:"Yes,No" }}</li>
-          </ul>
-          {% else %}
-          <p class="text-secondary mb-0">--</p>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="card shadow-sm border-0 page-family-content-card card-grammar mb-3">
-    <div class="card-header bg-dark text-light">{% trans "Entitlements &amp; why enabled (GAP.6)" %}</div>
-    <div class="card-body">
-      {% if inspection.entitlements %}
-      <h6 class="text-secondary">{% trans "Current entitlements" %}</h6>
-      <ul class="list-unstyled small mb-2">
-        {% if inspection.entitlements.modules %}
-        <li><strong>{% trans_term "Modules" key="module" plural=True %}:</strong> {{ inspection.entitlements.modules|join:", " }}</li>
+        {% else %}
+        <p class="text-secondary mb-0">—</p>
         {% endif %}
-        {% for key, value in inspection.entitlements.items %}
-        {% if key != "modules" and value is not None %}
-        <li><strong>{{ key }}:</strong> {{ value }}</li>
+      </div>
+      <div class="col-lg-6">
+        <h3 class="cp-panel-eyebrow mb-2">{% trans "Active packs" %}</h3>
+        {% if inspection.active_packs %}
+        <div class="cp-list">
+          <div class="cp-list-row"><div><strong>{% trans "Workflow" %}</strong></div><span>{{ inspection.active_packs.workflow|default:"—" }}</span></div>
+          <div class="cp-list-row"><div><strong>{% trans "Dashboard" %}</strong></div><span>{{ inspection.active_packs.dashboard|default:"—" }}</span></div>
+          <div class="cp-list-row"><div><strong>{% trans "Policy" %}</strong></div><span>{{ inspection.active_packs.policy|default:"—" }}</span></div>
+        </div>
+        {% else %}
+        <p class="text-secondary mb-0">—</p>
         {% endif %}
-        {% endfor %}
-      </ul>
-      {% endif %}
-      {% if inspection.entitlements_why %}
-      <h6 class="text-secondary mt-2">{% trans "Why enabled" %}</h6>
-      <p class="small mb-0">{% trans "Source of entitlements: plan, policy bundle, or blueprint." %}</p>
-      <ul class="list-unstyled small mb-0">
-        <li><strong>{% trans "Plan" %}:</strong> {{ inspection.entitlements_why.plan_name|default:inspection.entitlements_why.plan_code|default:"—" }}</li>
-        <li><strong>{% trans "Plan code" %}:</strong> {{ inspection.entitlements_why.plan_code|default:"—" }}</li>
-        <li><strong>{% trans "Policy bundle ID" %}:</strong> {{ inspection.entitlements_why.policy_bundle_id|default:"—" }}</li>
-        <li><strong>{% trans "Blueprint ID" %}:</strong> {{ inspection.entitlements_why.blueprint_id|default:"—" }}</li>
-      </ul>
-      {% else %}
-      <p class="text-secondary mb-0 small">{% trans "No entitlement source info (no school or plan)." %}</p>
-      {% endif %}
+      </div>
     </div>
-  </div>
+  </section>
+
+  <section class="cp-panel rmc-reveal mb-3">
+    <div class="cp-panel-header">
+      <div>
+        <span class="cp-panel-eyebrow">{% trans "Resolution order" %}</span>
+        <h2 class="cp-panel-title">{% trans "Precedence chain" %}</h2>
+      </div>
+    </div>
+    {% if inspection.precedence_chain %}
+    <ol class="small mb-0 ps-3">
+      {% for step in inspection.precedence_chain %}
+      <li><strong>{{ step.label }}</strong> <span class="text-secondary">({{ step.key }})</span></li>
+      {% endfor %}
+    </ol>
+    {% else %}
+    <p class="text-secondary mb-0">—</p>
+    {% endif %}
+    {% if inspection.feature_flags_merge_order %}
+    <p class="small text-secondary mt-2 mb-0"><strong>{% trans "Runtime feature-flag merge" %}:</strong>
+    <code>{{ inspection.feature_flags_merge_order|join:" → " }}</code></p>
+    {% endif %}
+  </section>
+
+  {# Route + Override sources + Source summary all restate routing/provenance — folded into one panel. #}
+  <section class="cp-panel rmc-reveal mb-3">
+    <div class="cp-panel-header">
+      <div>
+        <span class="cp-panel-eyebrow">{% trans "Provenance" %}</span>
+        <h2 class="cp-panel-title">{% trans "Routing & resolution sources" %}</h2>
+      </div>
+    </div>
+    <div class="row g-3">
+      <div class="col-lg-4">
+        <h3 class="cp-panel-eyebrow mb-2">{% trans "Route" %}</h3>
+        {% if inspection.route %}
+        <div class="cp-list">
+          <div class="cp-list-row"><div><strong>{% trans "Surface" %}</strong></div><span>{{ inspection.route.surface|default:"—" }}</span></div>
+          <div class="cp-list-row"><div><strong>{% trans "Preview" %}</strong></div><span class="cp-status-badge cp-status-badge-{{ inspection.route.is_preview|yesno:'attention,neutral' }}">{{ inspection.route.is_preview|yesno:"Yes,No" }}</span></div>
+          <div class="cp-list-row"><div><strong>{% trans "Sandbox" %}</strong></div><span class="cp-status-badge cp-status-badge-{{ inspection.route.is_sandbox|yesno:'attention,neutral' }}">{{ inspection.route.is_sandbox|yesno:"Yes,No" }}</span></div>
+        </div>
+        {% else %}
+        <p class="text-secondary mb-0">—</p>
+        {% endif %}
+      </div>
+      <div class="col-lg-4">
+        <h3 class="cp-panel-eyebrow mb-2">{% trans "Override sources" %}</h3>
+        {% if inspection.override_sources %}
+        <div class="cp-list">
+          <div class="cp-list-row"><div><strong>{% trans "Source blueprint ID" %}</strong></div><span><code class="small">{{ inspection.override_sources.source_blueprint_id|default:"—" }}</code></span></div>
+          <div class="cp-list-row"><div><strong>{% trans "Source policy bundle ID" %}</strong></div><span><code class="small">{{ inspection.override_sources.source_policy_bundle_id|default:"—" }}</code></span></div>
+          <div class="cp-list-row"><div><strong>{% trans "Applied overrides" %}</strong></div><span>{{ inspection.override_sources.applied_overrides|join:", "|default:"—" }}</span></div>
+          <div class="cp-list-row"><div><strong>{% trans "Compilation timestamp" %}</strong></div><span>{{ inspection.override_sources.compilation_timestamp|default:"—" }}</span></div>
+        </div>
+        {% if inspection.override_sources.compilation_trace %}
+        <p class="small mt-2 mb-0"><strong>{% trans "Trace" %}:</strong> <code>{{ inspection.override_sources.compilation_trace|join:" → " }}</code></p>
+        {% endif %}
+        {% else %}
+        <p class="text-secondary mb-0">—</p>
+        {% endif %}
+      </div>
+      <div class="col-lg-4">
+        <h3 class="cp-panel-eyebrow mb-2">{% trans "Source summary" %}</h3>
+        {% if inspection.source_summary %}
+        <div class="cp-list">
+          <div class="cp-list-row"><div><strong>{% trans "Blueprint ID" %}</strong></div><span><code class="small">{{ inspection.source_summary.blueprint_id|default:"—" }}</code></span></div>
+          <div class="cp-list-row"><div><strong>{% trans "Policy bundle ID" %}</strong></div><span><code class="small">{{ inspection.source_summary.policy_bundle_id|default:"—" }}</code></span></div>
+          <div class="cp-list-row"><div><strong>{% trans "Preview mode" %}</strong></div><span>{{ inspection.source_summary.preview_mode|yesno:"Yes,No" }}</span></div>
+          <div class="cp-list-row"><div><strong>{% trans "Sandbox mode" %}</strong></div><span>{{ inspection.source_summary.sandbox_mode|yesno:"Yes,No" }}</span></div>
+        </div>
+        {% else %}
+        <p class="text-secondary mb-0">—</p>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+
+  <section class="cp-panel rmc-reveal mb-3">
+    <div class="cp-panel-header">
+      <div>
+        <span class="cp-panel-eyebrow">{% trans "Entitlements" %}</span>
+        <h2 class="cp-panel-title">{% trans "Entitlements & why enabled" %}</h2>
+      </div>
+    </div>
+    {% if inspection.entitlements %}
+    <h3 class="cp-panel-eyebrow mb-2">{% trans "Current entitlements" %}</h3>
+    <ul class="list-unstyled small mb-2">
+      {% if inspection.entitlements.modules %}
+      <li><strong>{% trans_term "Modules" key="module" plural=True %}:</strong> {{ inspection.entitlements.modules|join:", " }}</li>
+      {% endif %}
+      {% for key, value in inspection.entitlements.items %}
+      {% if key != "modules" and value is not None %}
+      <li><strong>{{ key }}:</strong> {{ value }}</li>
+      {% endif %}
+      {% endfor %}
+    </ul>
+    {% endif %}
+    {% if inspection.entitlements_why %}
+    <h3 class="cp-panel-eyebrow mt-2 mb-1">{% trans "Why enabled" %}</h3>
+    <p class="small mb-1">{% trans "Source of entitlements: plan, policy bundle, or blueprint." %}</p>
+    <ul class="list-unstyled small mb-0">
+      <li><strong>{% trans "Plan" %}:</strong> {{ inspection.entitlements_why.plan_name|default:inspection.entitlements_why.plan_code|default:"—" }}</li>
+      <li><strong>{% trans "Plan code" %}:</strong> {{ inspection.entitlements_why.plan_code|default:"—" }}</li>
+      <li><strong>{% trans "Policy bundle ID" %}:</strong> {{ inspection.entitlements_why.policy_bundle_id|default:"—" }}</li>
+      <li><strong>{% trans "Blueprint ID" %}:</strong> {{ inspection.entitlements_why.blueprint_id|default:"—" }}</li>
+    </ul>
+    {% else %}
+    <p class="text-secondary mb-0 small">{% trans "No entitlement source info (no school or plan)." %}</p>
+    {% endif %}
+  </section>
+
   {% if inspection.entitlement_registry %}
-  <div class="card shadow-sm border-0 page-family-content-card card-grammar mb-3">
-    <div class="card-header bg-dark text-light">{% trans "Entitlement registry (canonical, Phase 6)" %}</div>
-    <div class="card-body small">
+  <section class="cp-panel rmc-reveal mb-3">
+    <div class="cp-panel-header">
+      <div>
+        <span class="cp-panel-eyebrow">{% trans "Canonical registry" %}</span>
+        <h2 class="cp-panel-title">{% trans "Entitlement registry" %}</h2>
+      </div>
+    </div>
+    <div class="small">
       <p class="mb-1"><strong>{% trans "Schema" %}:</strong> {{ inspection.entitlement_registry.registry_schema_version|default:"—" }}</p>
       <p class="mb-1"><strong>{% trans "Effective modules" %}:</strong> {{ inspection.entitlement_registry.effective_modules|join:", "|default:"—" }}</p>
       <p class="mb-1"><strong>{% trans "Caps" %}:</strong> max_students={{ inspection.entitlement_registry.caps.max_students|default:"—" }}, max_api_calls={{ inspection.entitlement_registry.caps.max_api_calls|default:"—" }}</p>
       <p class="mb-0"><strong>{% trans "Gates" %}:</strong> marketplace={{ inspection.entitlement_registry.gates.marketplace_allowed|yesno:"Yes,No" }}, sandbox={{ inspection.entitlement_registry.gates.sandbox_enabled|yesno:"Yes,No" }}, white_label={{ inspection.entitlement_registry.gates.white_label_enabled|yesno:"Yes,No" }}</p>
     </div>
-  </div>
+  </section>
   {% endif %}
   {% if inspection.blueprint_lifecycle %}
-  <div class="card shadow-sm border-0 page-family-content-card card-grammar mb-3">
-    <div class="card-header bg-dark text-light">{% trans "Blueprint lifecycle &amp; versioning" %}</div>
-    <div class="card-body small">
+  <section class="cp-panel rmc-reveal mb-3">
+    <div class="cp-panel-header">
+      <div>
+        <span class="cp-panel-eyebrow">{% trans "Lifecycle" %}</span>
+        <h2 class="cp-panel-title">{% trans "Blueprint lifecycle & versioning" %}</h2>
+      </div>
+    </div>
+    <div class="small">
       {% if inspection.blueprint_lifecycle.linked %}
       <p class="mb-1"><strong>{% trans "Pack update needed" %}:</strong> {{ inspection.blueprint_lifecycle.pack_update_needed|yesno:"Yes,No" }}</p>
       {% if inspection.blueprint_lifecycle.applied_pack %}
@@ -224,12 +245,17 @@
       <p class="text-secondary mb-0">{% trans "No TenantBlueprint linked for this school." %}</p>
       {% endif %}
     </div>
-  </div>
+  </section>
   {% endif %}
   {% if inspection.marketplace_install_registry %}
-  <div class="card shadow-sm border-0 page-family-content-card card-grammar mb-3">
-    <div class="card-header bg-dark text-light">{% trans "Marketplace install registry" %}</div>
-    <div class="card-body small">
+  <section class="cp-panel rmc-reveal mb-3">
+    <div class="cp-panel-header">
+      <div>
+        <span class="cp-panel-eyebrow">{% trans "Marketplace" %}</span>
+        <h2 class="cp-panel-title">{% trans "Marketplace install registry" %}</h2>
+      </div>
+    </div>
+    <div class="small">
       <p class="mb-1"><strong>{% trans "Active installations" %}:</strong> {{ inspection.marketplace_install_registry.active_installation_count|default:0 }}</p>
       <p class="mb-1"><strong>{% trans "Granted scopes" %}:</strong> {{ inspection.marketplace_install_registry.granted_scope_count|default:0 }}</p>
       {% if inspection.marketplace_install_registry.apps %}
@@ -240,92 +266,101 @@
       </ul>
       {% endif %}
     </div>
-  </div>
+  </section>
   {% endif %}
-  <div class="card shadow-sm border-0 page-family-content-card card-grammar mb-3">
-    <div class="card-header bg-dark text-light">{% trans "Feature toggles &amp; flag metadata (GAP.13)" %}</div>
-    <div class="card-body">
-      {% if inspection.feature_toggles %}
-      <p class="small text-secondary mb-2">{% trans "Active overrides with owner/expiry/source/scope from capability registry. Source: school = tenant override, global = platform override." %}</p>
-      <div class="table-responsive">
-        <table class="table table-sm mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
-          <caption class="visually-hidden">{% trans "Feature toggles &amp; flag metadata (GAP.13)" %}</caption>
-          <thead><tr><th scope="col">{% trans "Key" %}</th><th scope="col">{% trans "On" %}</th><th scope="col">{% trans "Source" %}</th><th scope="col">{% trans "Expires" %}</th><th scope="col">{% trans "Owner" %}</th><th scope="col">{% trans "Def. source" %}</th><th scope="col">{% trans "Scope" %}</th></tr></thead>
-          <tbody>
-            {% for t in inspection.feature_toggles %}
-            <tr>
-              <td><code>{{ t.key }}</code></td>
-              <td>{{ t.is_enabled|yesno:"Yes,No" }}</td>
-              <td>{{ t.source }}</td>
-              <td class="text-muted small">{{ t.expires_at|default:"—" }}</td>
-              <td class="small">{{ t.owner|default:"—" }}</td>
-              <td class="small">{{ t.definition_source|default:"—" }}</td>
-              <td class="small">{{ t.scope|default:"—" }}</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-      {% else %}
-      <p class="text-secondary mb-0 small">{% trans "No feature toggle overrides for this school (or registry not in use)." %}</p>
-      {% endif %}
-    </div>
-  </div>
-  <div class="card shadow-sm border-0 page-family-content-card card-grammar mb-3">
-    <div class="card-header bg-dark text-light">{% trans "Governor limits" %}</div>
-    <div class="card-body">
-      {% if inspection.governor_limits %}
-      <p class="small text-secondary mb-2">{{ inspection.governor_limits.note|default:"" }}</p>
-      <div class="row">
-        <div class="col-md-6">
-          <h6 class="text-secondary">{% trans "Limits (platform)" %}</h6>
-          <ul class="list-unstyled small mb-0">
-            {% for key, value in inspection.governor_limits.limits.items %}
-            <li><strong>{{ key }}:</strong> {{ value }}</li>
-            {% endfor %}
-          </ul>
-        </div>
-        <div class="col-md-6">
-          <h6 class="text-secondary">{% trans "Usage vs limit" %}</h6>
-          <ul class="list-unstyled small mb-0">
-            {% for key, status in inspection.governor_limits.status.items %}
-            <li><strong>{{ key }}:</strong> {{ status.used }} / {{ status.limit }} {% if not status.enforced %}(not enforced){% endif %}</li>
-            {% endfor %}
-          </ul>
-        </div>
-      </div>
-      {% else %}
-      <p class="text-secondary mb-0">—</p>
-      {% endif %}
-    </div>
-  </div>
-  <div class="card shadow-sm border-0 page-family-content-card card-grammar mb-3">
-    <div class="card-header bg-dark text-light">{% trans "Localization &amp; integrations" %}</div>
-    <div class="card-body">
-      <div class="row">
-        <div class="col-md-6">
-          <h6 class="text-secondary">{% trans "Localization" %}</h6>
-          {% if inspection.localization %}
-          <ul class="list-unstyled small mb-0">
-            <li>Language: {{ inspection.localization.language_code|default:"—" }}</li>
-            <li>Direction: {{ inspection.localization.direction|default:"—" }}</li>
-            <li>Terminology pack: {{ inspection.localization.terminology_pack|default:"—" }}</li>
-          </ul>
-          {% else %}
-          <p class="text-secondary mb-0">—</p>
-          {% endif %}
-        </div>
-        <div class="col-md-6">
-          <h6 class="text-secondary">{% trans "Integrations" %}</h6>
-          {% if inspection.integrations and inspection.integrations.enabled_slugs %}
-          <p class="small mb-0">{{ inspection.integrations.enabled_slugs|join:", " }}</p>
-          {% else %}
-          <p class="text-secondary mb-0">—</p>
-          {% endif %}
-        </div>
+  <section class="cp-panel rmc-reveal mb-3">
+    <div class="cp-panel-header">
+      <div>
+        <span class="cp-panel-eyebrow">{% trans "Feature flags" %}</span>
+        <h2 class="cp-panel-title">{% trans "Feature toggles & flag metadata" %}</h2>
       </div>
     </div>
-  </div>
+    {% if inspection.feature_toggles %}
+    <p class="small text-secondary mb-2">{% trans "Active overrides with owner/expiry/source/scope from capability registry. Source: school = tenant override, global = platform override." %}</p>
+    <div class="table-responsive">
+      <table class="table table-sm mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
+        <caption class="visually-hidden">{% trans "Feature toggles & flag metadata" %}</caption>
+        <thead><tr><th scope="col">{% trans "Key" %}</th><th scope="col">{% trans "On" %}</th><th scope="col">{% trans "Source" %}</th><th scope="col">{% trans "Expires" %}</th><th scope="col">{% trans "Owner" %}</th><th scope="col">{% trans "Def. source" %}</th><th scope="col">{% trans "Scope" %}</th></tr></thead>
+        <tbody>
+          {% for t in inspection.feature_toggles %}
+          <tr>
+            <td><code>{{ t.key }}</code></td>
+            <td>{{ t.is_enabled|yesno:"Yes,No" }}</td>
+            <td>{{ t.source }}</td>
+            <td class="text-muted small">{{ t.expires_at|default:"—" }}</td>
+            <td class="small">{{ t.owner|default:"—" }}</td>
+            <td class="small">{{ t.definition_source|default:"—" }}</td>
+            <td class="small">{{ t.scope|default:"—" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="text-secondary mb-0 small">{% trans "No feature toggle overrides for this school (or registry not in use)." %}</p>
+    {% endif %}
+  </section>
+  <section class="cp-panel rmc-reveal mb-3">
+    <div class="cp-panel-header">
+      <div>
+        <span class="cp-panel-eyebrow">{% trans "Governor" %}</span>
+        <h2 class="cp-panel-title">{% trans "Governor limits" %}</h2>
+      </div>
+    </div>
+    {% if inspection.governor_limits %}
+    <p class="small text-secondary mb-2">{{ inspection.governor_limits.note|default:"" }}</p>
+    <div class="row">
+      <div class="col-md-6">
+        <h3 class="cp-panel-eyebrow mb-2">{% trans "Limits (platform)" %}</h3>
+        <ul class="list-unstyled small mb-0">
+          {% for key, value in inspection.governor_limits.limits.items %}
+          <li><strong>{{ key }}:</strong> {{ value }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      <div class="col-md-6">
+        <h3 class="cp-panel-eyebrow mb-2">{% trans "Usage vs limit" %}</h3>
+        <ul class="list-unstyled small mb-0">
+          {% for key, status in inspection.governor_limits.status.items %}
+          <li><strong>{{ key }}:</strong> {{ status.used }} / {{ status.limit }} {% if not status.enforced %}(not enforced){% endif %}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+    {% else %}
+    <p class="text-secondary mb-0">—</p>
+    {% endif %}
+  </section>
+  <section class="cp-panel rmc-reveal mb-3">
+    <div class="cp-panel-header">
+      <div>
+        <span class="cp-panel-eyebrow">{% trans "Locale & integrations" %}</span>
+        <h2 class="cp-panel-title">{% trans "Localization & integrations" %}</h2>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-6">
+        <h3 class="cp-panel-eyebrow mb-2">{% trans "Localization" %}</h3>
+        {% if inspection.localization %}
+        <ul class="list-unstyled small mb-0">
+          <li>{% trans "Language" %}: {{ inspection.localization.language_code|default:"—" }}</li>
+          <li>{% trans "Direction" %}: {{ inspection.localization.direction|default:"—" }}</li>
+          <li>{% trans "Terminology pack" %}: {{ inspection.localization.terminology_pack|default:"—" }}</li>
+        </ul>
+        {% else %}
+        <p class="text-secondary mb-0">—</p>
+        {% endif %}
+      </div>
+      <div class="col-md-6">
+        <h3 class="cp-panel-eyebrow mb-2">{% trans "Integrations" %}</h3>
+        {% if inspection.integrations and inspection.integrations.enabled_slugs %}
+        <p class="small mb-0">{{ inspection.integrations.enabled_slugs|join:", " }}</p>
+        {% else %}
+        <p class="text-secondary mb-0">—</p>
+        {% endif %}
+      </div>
+    </div>
+  </section>
   {% endif %}
 </div>
 {% endblock %}
