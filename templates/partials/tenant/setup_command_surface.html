@@ -1,22 +1,28 @@
 {% load static i18n terminology_tags rmc_explain_tags %}
 {% comment %}
-  Onboarding "command surface" for the tenant-admin v3 canvas.
+  Onboarding "command cockpit" for the tenant-admin v3 canvas.
 
   Renders ONLY while a school is still onboarding (gated on the view's
   `show_setup_landing` signal) and ONLY on the default v3 canvas — never in the
   `?simple=1` legacy stack, which already carries the full readiness cards.
 
-  Visual direction mirrors var/design-previews/tenant-admin-workspace-preview.html
-  (hero + progress ring + numbered "Configure" stage + wizard-style step cards),
-  rebuilt with the semantic token system + .rmc-* grammar (see
+  Approved 2026-08-02 canvas
+  (var/design-previews/tenant-admin-home-command-cockpit-before-after-approval-2026-08-02.html):
+  the setup landing's scattered islands — greeting, next-action hero, role-home
+  scaffold, faded mission band, journey rail, status chips, hub deep-links and the
+  bare checklist link — fold into ONE bounded `.rmc-cockpit` card with hairline-
+  separated zones (head · next · journey · hubs · appearance). Every real action,
+  route, ring and journey phase is preserved — nothing above the fold is lost to
+  scroll, and the actual setup-studio wizard stages remain the working area below
+  the card. Rebuilt on the semantic token system + .rmc-* grammar (see
   static/css/rmc-setup-surface.css) so tenant brand and light/dark flip cleanly.
 
   NOT the operator cockpit — live analytics widgets live on the Cockpit tab
   (Configure → Cockpit in SiteSettings). Setup Studio wizards are a separate surface.
 
-  All content is real onboarding data (rmc_school_onboarding) — no fabricated
-  step counts or time estimates. Steps with no resolved deep-link fall back to
-  the full activation checklist.
+  All content is real onboarding data (rmc_school_onboarding / rmc_school_readiness)
+  — no fabricated step counts or time estimates. Steps with no resolved deep-link
+  fall back to the full activation checklist.
 {% endcomment %}
 {% if show_setup_landing and not backend_show_legacy_dashboard and rmc_school_onboarding and rmc_school_onboarding.total %}
 {% url 'siteconfig:onboarding' as rmc_setup_checklist_url %}
@@ -24,10 +30,101 @@
 {% with ring_pct=rmc_school_readiness.meter_percent|default:rmc_school_onboarding.percent %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <section class="rmc-setup-surface" data-rmc-setup-surface="active" data-rmc-page-fold-nav="required" aria-label="{% blocktrans with school_term=rmc_school_term %}Set up your {{ school_term }}{% endblocktrans %}">
-  {% include "partials/tenant/school_readiness_journey_train.html" %}
-  {% include "partials/tenant/provisioning_partial_failure_banner.html" %}
 
-  {% include "partials/tenant/setup_dashboard_style_strip.html" %}
+  {# ── ONE bounded command cockpit: head · next · journey · hubs · appearance ── #}
+  <div class="rmc-cockpit" data-rmc-cockpit="1">
+
+    {# ck-head: identity + a single health pill (folds the four status chips) #}
+    <div class="rmc-cockpit__head">
+      <div class="rmc-cockpit__ident">
+        <p class="rmc-cockpit__eyebrow">{% trans "School readiness" %}</p>
+        <div class="d-flex align-items-center gap-2 min-w-0 flex-wrap">
+          <h1 class="rmc-cockpit__title mb-0 truncate">{% blocktrans with school_term=rmc_school_term %}Set up your {{ school_term }}{% endblocktrans %}</h1>
+          {% blocktrans with school_term=rmc_school_term asvar setup_surface_tip %}One guided path from first login to launch — provision, configure, import data, then go live.{% endblocktrans %}
+          {% rmc_info_tag title=_("School setup") body=setup_surface_tip surface="tenant" placement="bottom" %}
+        </div>
+      </div>
+      {% if rmc_school_readiness_launch_ready %}
+      <span class="rmc-cockpit__health is-ready" data-rmc-cockpit-health="ready"><span class="rmc-cockpit__pulse" aria-hidden="true"></span>{% trans "Launch ready" %}</span>
+      {% else %}
+      <span class="rmc-cockpit__health" data-rmc-cockpit-health="setup"><span class="rmc-cockpit__pulse" aria-hidden="true"></span>{% blocktrans with pct=ring_pct %}Setting up · {{ pct }}% ready{% endblocktrans %}</span>
+      {% endif %}
+    </div>
+
+    {# ck-next: ONE next-action band — ring + copy + Do-it-now + Activation checklist #}
+    <div class="rmc-cockpit__next">
+      <div class="rmc-setup-surface__ring" style="--rmc-setup-ring-pct: {{ ring_pct }}%" role="img" aria-label="{% blocktrans with pct=ring_pct %}{{ pct }} percent toward launch readiness{% endblocktrans %}">
+        <span class="rmc-setup-surface__ring-value">{{ ring_pct }}%</span>
+      </div>
+      <div class="rmc-cockpit__next-copy">
+        <p class="rmc-cockpit__next-kicker">{% blocktrans with done=rmc_school_onboarding.completed total=rmc_school_onboarding.total %}Next step · {{ done }} of {{ total }} essentials ready{% endblocktrans %}</p>
+        {% if rmc_setup_recommended_next.label %}
+        <h2 class="rmc-cockpit__next-title">{{ rmc_setup_recommended_next.label }}</h2>
+        {% elif rmc_school_onboarding.next_action.label %}
+        <h2 class="rmc-cockpit__next-title">{{ rmc_school_onboarding.next_action.label }}</h2>
+        {% else %}
+        <h2 class="rmc-cockpit__next-title">{% trans "Continue your setup" %}</h2>
+        {% endif %}
+      </div>
+      <div class="rmc-cockpit__next-actions">
+        {% with primary_link=rmc_setup_recommended_next.link|default:rmc_school_onboarding.next_action.url %}
+        {% if primary_link %}
+        <a class="btn btn-primary rmc-cockpit__cta" href="{{ primary_link }}" data-rmc-setup-next-action="1">
+          <i class="bi bi-lightning-charge-fill" aria-hidden="true"></i><span>{% trans "Do it now" %}</span>
+        </a>
+        {% endif %}
+        {% endwith %}
+        {% if rmc_setup_checklist_url %}
+        {# Slide-over: JS opens the full checklist in place; href stays the no-JS fallback. #}
+        <a class="rmc-setup-surface__all" href="{{ rmc_setup_checklist_url }}"
+           data-rmc-checklist-drawer="1"
+           data-rmc-checklist-src="{% url 'siteconfig:onboarding_fragment' %}"
+           aria-haspopup="dialog" aria-controls="rmc-activation-checklist-sheet"><i class="bi bi-check2-square" aria-hidden="true"></i><span>{% trans "Activation checklist" %}</span></a>
+        {% endif %}
+      </div>
+    </div>
+
+    {# ck-journey: the readiness rail, rendered ONCE (phase links + one-click blockers) #}
+    <div class="rmc-cockpit__journey">
+      {% include "partials/tenant/school_readiness_journey_train.html" %}
+    </div>
+
+    {# ck-body: hub bento (the scattered deep-links, folded in). Host-split names use the non-raising `as` form so the partial renders off-host; hrefs populate at runtime on the tenant subdomain. #}
+    {% url 'school_configuration_center_canonical' as hub_configuration_url %}
+    {% url 'school_studio' as hub_studio_url %}
+    {% url 'portal_configure' as hub_configure_url %}
+    {% url 'finance:dashboard' as hub_finance_url %}
+    <div class="rmc-cockpit__body">
+      <span class="rmc-cockpit__body-label">{% trans "Jump to your work" %}</span>
+      <div class="rmc-cockpit__bento" role="list">
+        <a class="rmc-cockpit__tile" href="{{ hub_configuration_url }}" role="listitem">
+          <span class="rmc-cockpit__tile-ico" aria-hidden="true"><i class="bi bi-sliders2"></i></span>
+          <b class="rmc-cockpit__tile-title">{% trans "Configuration" %}</b>
+          <small class="rmc-cockpit__tile-desc">{% trans "School profile, plan, brand & academics" %}</small>
+        </a>
+        <a class="rmc-cockpit__tile" href="{{ hub_studio_url }}" role="listitem">
+          <span class="rmc-cockpit__tile-ico" aria-hidden="true"><i class="bi bi-stars"></i></span>
+          <b class="rmc-cockpit__tile-title">{% trans "School Studio" %}</b>
+          <small class="rmc-cockpit__tile-desc">{% trans "Design packs, layout & content" %}</small>
+        </a>
+        <a class="rmc-cockpit__tile" href="{{ hub_configure_url }}" role="listitem">
+          <span class="rmc-cockpit__tile-ico" aria-hidden="true"><i class="bi bi-command"></i></span>
+          <b class="rmc-cockpit__tile-title">{% trans "Configure hub" %}</b>
+          <small class="rmc-cockpit__tile-desc">{% trans "Modules, integrations & data" %}</small>
+        </a>
+        <a class="rmc-cockpit__tile" href="{{ hub_finance_url }}" role="listitem">
+          <span class="rmc-cockpit__tile-ico" aria-hidden="true"><i class="bi bi-credit-card"></i></span>
+          <b class="rmc-cockpit__tile-title">{% trans "Finance" %}</b>
+          <small class="rmc-cockpit__tile-desc">{% trans "Fees, invoices & payments" %}</small>
+        </a>
+      </div>
+    </div>
+
+    {# ck-foot: appearance disclosure (Dashboard style ▾ + All preferences) #}
+    <div class="rmc-cockpit__foot">
+      {% include "partials/tenant/setup_dashboard_style_strip.html" %}
+    </div>
+  </div>
 
   {% if rmc_school_readiness_launch_ready and not rmc_school_has_launched %}
   <div class="rmc-setup-golive-panel" data-rmc-setup-golive-panel="1">
@@ -39,30 +136,7 @@
   </div>
   {% endif %}
 
-  <header class="rmc-setup-surface__hero">
-    <div class="rmc-setup-surface__hero-copy">
-      <p class="rmc-setup-surface__eyebrow">{% trans "School readiness" %}</p>
-      <div class="d-flex align-items-center gap-2 min-w-0 flex-wrap">
-        <h1 class="rmc-setup-surface__title mb-0 truncate">{% blocktrans with school_term=rmc_school_term %}Set up your {{ school_term }}{% endblocktrans %}</h1>
-        {% blocktrans with school_term=rmc_school_term asvar setup_surface_tip %}One guided path from first login to launch — provision, configure, import data, then go live.{% endblocktrans %}
-        {% rmc_info_tag title=_("School setup") body=setup_surface_tip surface="tenant" placement="bottom" %}
-      </div>
-      {% if rmc_setup_recommended_next and rmc_setup_recommended_next.link %}
-      <a class="rmc-setup-surface__cta btn btn-primary btn-sm" href="{{ rmc_setup_recommended_next.link }}" data-rmc-setup-next-action="1">
-        <i class="bi bi-arrow-right-circle" aria-hidden="true"></i>
-        <span>{{ rmc_setup_recommended_next.cta_label|default:_("Recommended next") }} — {{ rmc_setup_recommended_next.label }}</span>
-      </a>
-      {% elif rmc_school_onboarding.next_action and rmc_school_onboarding.next_action.url %}
-      <a class="rmc-setup-surface__cta btn btn-primary btn-sm" href="{{ rmc_school_onboarding.next_action.url }}" data-rmc-setup-next-action="1">
-        <i class="bi bi-arrow-right-circle" aria-hidden="true"></i>
-        <span>{{ rmc_school_onboarding.next_action.label }}</span>
-      </a>
-      {% endif %}
-    </div>
-    <div class="rmc-setup-surface__ring" style="--rmc-setup-ring-pct: {{ ring_pct }}%" role="img" aria-label="{% blocktrans with pct=ring_pct %}{{ pct }} percent toward launch readiness{% endblocktrans %}">
-      <span class="rmc-setup-surface__ring-value">{{ ring_pct }}%</span>
-    </div>
-  </header>
+  {% include "partials/tenant/provisioning_partial_failure_banner.html" %}
 
   {% if rmc_setup_data_path_choices %}
   <div class="rmc-setup-surface__branch" data-rmc-setup-data-branch="1">
@@ -93,7 +167,7 @@
   {% if rmc_setup_wizard_stages.stages %}
   {% comment %}Full setup-studio wizard journey — real registry data grouped by lifecycle
      stage (apps/setup_studio/setup_surface.build_setup_wizard_stages). Each card
-     deep-links to the tenant wizard runner.{% endcomment %}
+     deep-links to the tenant wizard runner. This is the working area BELOW the cockpit.{% endcomment %}
   <nav class="rmc-section-nav rmc-setup-surface__stage-nav" aria-label="{% trans 'Setup stages' %}">
     <div class="rmc-surface-subnav" role="list">
       {% for stage in rmc_setup_wizard_stages.stages %}
@@ -164,11 +238,6 @@
   {% endif %}
 
   {% if rmc_setup_checklist_url %}
-  {# Slide-over: JS opens the full checklist in place; href stays the no-JS fallback. #}
-  <a class="rmc-setup-surface__all" href="{{ rmc_setup_checklist_url }}"
-     data-rmc-checklist-drawer="1"
-     data-rmc-checklist-src="{% url 'siteconfig:onboarding_fragment' %}"
-     aria-haspopup="dialog" aria-controls="rmc-activation-checklist-sheet"><i class="bi bi-check2-square" aria-hidden="true"></i><span>{% trans "Open full activation checklist" %}</span></a>
   <dialog class="rmc-sheet rmc-sheet--side-end rmc-sheet--lg" id="rmc-activation-checklist-sheet" data-rmc-checklist-sheet="1" aria-label="{% trans 'Activation checklist' %}">
     <div class="rmc-sheet__handle" aria-hidden="true"></div>
     <header class="rmc-sheet__header">

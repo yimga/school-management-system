@@ -850,3 +850,269 @@
 .rmc-setup-surface__card.is-recommended {
   border-color: color-mix(in oklab, var(--brand-primary) 35%, var(--hairline));
 }
+
+/* ================= Command cockpit (approved 2026-08-02 canvas) =================
+   Folds the setup landing's scattered islands — greeting, next-action hero, role-home
+   scaffold, faded mission band, journey rail, status chips, hub deep-links and the bare
+   checklist link — into ONE bounded card with hairline-separated zones (head · next ·
+   journey · hubs · appearance). Token-only (no hex/rgb) so check_no_hardcoding +
+   scan_off_token_colors stay green and tenant brand + light/dark own the surface. The
+   real setup-studio wizard stages remain the working area BELOW this card. */
+.rmc-cockpit {
+  margin-bottom: 1.25rem;
+  min-width: 0;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg, 18px);
+  overflow: hidden;
+  background: linear-gradient(
+    150deg,
+    color-mix(in oklab, var(--brand-primary) 8%, var(--surface-elevated)),
+    var(--surface-elevated) 46%
+  );
+  box-shadow: var(--elev-1);
+}
+
+/* ---- ck-head: identity + one health pill (folds the four status chips) ---- */
+.rmc-cockpit__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.1rem 1.25rem;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.rmc-cockpit__ident {
+  min-width: 0;
+}
+
+.rmc-cockpit__eyebrow {
+  margin: 0 0 0.2rem;
+  font-size: var(--type-size-micro, 0.7rem);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.rmc-cockpit__title {
+  font-size: var(--type-size-xl, 1.4rem);
+  font-weight: 750;
+  color: var(--text-primary);
+}
+
+.rmc-cockpit__health {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: var(--radius-pill, 999px);
+  border: 1px solid var(--hairline);
+  background: color-mix(in oklab, var(--text-secondary) 8%, transparent);
+  color: var(--text-secondary);
+  font-size: var(--type-size-micro, 0.72rem);
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.rmc-cockpit__health.is-ready {
+  border-color: color-mix(in oklab, var(--brand-accent, var(--brand-primary)) 42%, var(--hairline));
+  background: color-mix(in oklab, var(--brand-accent, var(--brand-primary)) 10%, transparent);
+  color: var(--brand-accent, var(--text-primary));
+}
+
+.rmc-cockpit__pulse {
+  width: 0.5rem;
+  height: 0.5rem;
+  flex: none;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* ---- ck-next: ONE next-action band — ring + copy + two adjacent actions ---- */
+.rmc-cockpit__next {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.rmc-cockpit__next .rmc-setup-surface__ring {
+  margin-left: 0;
+  width: 60px;
+  height: 60px;
+}
+
+.rmc-cockpit__next-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.rmc-cockpit__next-kicker {
+  margin: 0;
+  font-size: var(--type-size-micro, 0.7rem);
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--brand-primary);
+}
+
+.rmc-cockpit__next-title {
+  margin: 0.15rem 0 0;
+  font-size: var(--type-size-lg, 1.1rem);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.rmc-cockpit__next-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  margin-left: auto;
+}
+
+.rmc-cockpit__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+/* Secondary = the checklist slide-over trigger (.rmc-setup-surface__all); inside the
+   cockpit actions row it drops its stacked top margin so it aligns with "Do it now". */
+.rmc-cockpit__next-actions .rmc-setup-surface__all {
+  margin-top: 0;
+}
+
+/* ---- ck-journey: the readiness rail, folded flush into its zone (no box-in-a-box) ---- */
+.rmc-cockpit__journey {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.rmc-cockpit__journey .rmc-readiness-train {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+/* ---- ck-body: hub bento (the scattered deep-links, folded into the card) ---- */
+.rmc-cockpit__body {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.rmc-cockpit__body-label {
+  display: block;
+  margin-bottom: 0.6rem;
+  font-size: var(--type-size-micro, 0.7rem);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.rmc-cockpit__bento {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.6rem;
+}
+
+.rmc-cockpit__tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.85rem 0.9rem;
+  min-width: 0;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 13px);
+  background: var(--surface-elevated);
+  color: inherit;
+  text-decoration: none;
+  transition:
+    border-color var(--motion-fast, 0.15s) var(--ease-standard, ease),
+    transform var(--motion-fast, 0.15s) var(--ease-standard, ease),
+    box-shadow var(--motion-fast, 0.15s) var(--ease-standard, ease);
+}
+
+.rmc-cockpit__tile-ico {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius-sm, 9px);
+  font-size: 1rem;
+  background: color-mix(in oklab, var(--brand-primary) 15%, transparent);
+  color: var(--brand-primary);
+}
+
+.rmc-cockpit__tile-title {
+  font-size: var(--type-size-sm, 0.85rem);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.rmc-cockpit__tile-desc {
+  font-size: var(--type-size-micro, 0.72rem);
+  color: var(--text-secondary);
+  line-height: 1.35;
+}
+
+.rmc-cockpit__tile:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+/* ---- ck-foot: appearance disclosure, folded flush into its zone ---- */
+.rmc-cockpit__foot {
+  padding: 0.75rem 1.25rem;
+}
+
+.rmc-cockpit__foot .rmc-setup-style-strip {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+@media (hover: hover) {
+  .rmc-cockpit__tile:hover {
+    border-color: var(--brand-primary);
+    transform: translateY(-2px);
+    box-shadow: var(--elev-2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rmc-cockpit__tile {
+    transition: border-color var(--motion-fast, 0.15s) var(--ease-standard, ease);
+  }
+  .rmc-cockpit__tile:hover {
+    transform: none;
+  }
+}
+
+@media (max-width: 1024px) {
+  .rmc-cockpit__bento {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .rmc-cockpit__head,
+  .rmc-cockpit__next {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .rmc-cockpit__next-actions {
+    margin-left: 0;
+    justify-content: flex-start;
+  }
+  .rmc-cockpit__bento {
+    grid-template-columns: 1fr;
+  }
+}

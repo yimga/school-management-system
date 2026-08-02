@@ -118,12 +118,15 @@ backend-shell dashboard-page-backend
     {% endif %}
     {% include "components/rmc_page_masthead.html" %}
     {% include "components/rmc_mission_role_tabs.html" %}
+    {% if not show_setup_landing %}
+    {# On setup landing these hubs live in the cockpit bento (setup_command_surface ck-body); render here only afterwards. #}
     <div class="rmc-admin-deep-links d-flex flex-wrap gap-2 mt-2" aria-label="{% trans 'Admin deep links' %}">
       <a class="btn btn-sm btn-outline-secondary" href="{% url 'school_configuration_center_canonical' %}">{% trans "Configuration" %}</a>
       <a class="btn btn-sm btn-outline-secondary" href="{% url 'school_studio' %}">{% trans "School Studio" %}</a>
       <a class="btn btn-sm btn-outline-secondary" href="{% url 'portal_configure' %}">{% trans "Configure hub" %}</a>
       <a class="btn btn-sm btn-outline-secondary" href="{% url 'finance:dashboard' %}">{% trans "Finance" %}</a>
     </div>
+    {% endif %}
   </div>
   {% endif %}
 
@@ -156,7 +159,7 @@ backend-shell dashboard-page-backend
       {% include "partials/tenant/setup_command_surface.html" %}
     </div>
     <div class="rmc-admin-bento__panel rmc-admin-cockpit-zone" id="rmc-admin-onboarding-snapshot" data-rmc-admin-bento-panel="snapshot" hidden aria-hidden="true">
-      {% include "partials/tenant/school_readiness_journey_train.html" %}
+      {# Journey rail renders once — inside the command cockpit (Setup Studio tab); not duplicated here. #}
       {% include "partials/tenant/intelligent_dashboard_note.html" with variant="onboarding-snapshot" %}
       {% include "partials/tenant/operational_health_strip.html" with tenant_health=tenant_health health_api_url=tenant_health_api_url health_stream_url=tenant_health_stream_url health_surface="admin" %}
       {% include "partials/operator_queue_smart_links_banner.html" %}

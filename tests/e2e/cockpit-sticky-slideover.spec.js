@@ -171,6 +171,47 @@ test('C · journey phases are one-click links; blockers are direct resolve links
   }
 });
 
+test('D · setup landing folds into ONE bounded cockpit card (head/next/journey/hubs/appearance)', async ({ page }) => {
+  await loginTenant(page, { username: 'demo.admin', password: 'Test1234' });
+  await gotoAdminHome(page);
+
+  // Exactly one bounded command cockpit card is rendered and visible.
+  const cockpit = page.locator("[data-rmc-cockpit='1']");
+  await expect(cockpit).toHaveCount(1);
+  await expect(cockpit.first()).toBeVisible();
+
+  // Every zone is present, folded into the one card (no box-in-a-box islands).
+  for (const zone of [
+    '.rmc-cockpit__head',
+    '.rmc-cockpit__next',
+    '.rmc-cockpit__journey',
+    '.rmc-cockpit__body',
+    '.rmc-cockpit__foot',
+  ]) {
+    await expect(cockpit.locator(zone)).toHaveCount(1);
+  }
+
+  // One health pill folds the old four status chips.
+  await expect(cockpit.locator('[data-rmc-cockpit-health]')).toHaveCount(1);
+
+  // ONE next-action band: the readiness ring + both actions adjacent.
+  const band = cockpit.locator('.rmc-cockpit__next');
+  await expect(band.locator('.rmc-setup-surface__ring')).toHaveCount(1);
+  await expect(band.locator("[data-rmc-setup-next-action='1']")).toHaveCount(1);
+  await expect(band.locator("[data-rmc-checklist-drawer='1']")).toHaveCount(1);
+
+  // The four hub deep-links are folded into the bento inside the card.
+  await expect(cockpit.locator('.rmc-cockpit__tile')).toHaveCount(4);
+
+  // The journey rail renders exactly ONCE on the whole page (deduped).
+  await expect(page.locator("[data-rmc-readiness-train='1']")).toHaveCount(1);
+
+  // The journey rail sits inside the cockpit's journey zone.
+  await expect(
+    cockpit.locator(".rmc-cockpit__journey [data-rmc-readiness-train='1']"),
+  ).toHaveCount(1);
+});
+
 test('regression · checklist CTA is a real button; Phase-8 strip retired; appearance collapsed', async ({ page }) => {
   await loginTenant(page, { username: 'demo.admin', password: 'Test1234' });
   await gotoAdminHome(page);
