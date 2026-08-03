@@ -1614,9 +1614,16 @@ def tenant_scope_consent(request):
 @login_required
 @tenant_marketplace_manage_required
 @enforce_tenant_security(action="admin", require_school=False)
-@require_POST
 def tenant_approve_scope(request):
-    """Tenant: approve a pending (sensitive) scope grant."""
+    """Tenant: approve a pending (sensitive) scope grant.
+
+    POST performs the approval. A GET — e.g. opening this action URL directly in
+    the browser (as the action target of the Scope Consent "Approve" button) —
+    has nothing to render, so redirect to the Scope Consent page instead of
+    dead-ending on the tenant "Page not found" page.
+    """
+    if request.method != "POST":
+        return redirect("tenant_scope_consent")
     school = getattr(request, "school", None)
     if not school:
         messages.error(request, "No school context.")

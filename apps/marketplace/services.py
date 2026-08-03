@@ -858,7 +858,102 @@ def install_app(
     apply_marketplace_install_monetization(
         school=school, app=app, installation=installation, listing=listing
     )
+    notify_admins_of_install(installation, installed_by=installed_by)
     return installation
+
+
+def _marketplace_admin_recipient_ids(school):
+    """Active user ids who can approve marketplace scopes (owners + admins) for a school."""
+    from django.db.models import Q
+
+    from apps.accounts.models import User
+    from apps.schools.models import SchoolMembership
+
+    return list(
+        SchoolMembership.objects.filter(
+            Q(role=User.Role.ADMIN) | Q(is_school_owner=True),
+            school=school,
+            user__is_active=True,
+        )
+        .values_list("user_id", flat=True)
+        .distinct()
+    )
+
+
+def notify_admins_of_install(installation, *, installed_by=None):
+    """Drop a header-bell notification for tenant admins when an app is installed.
+
+    Two rows via the idempotent ``Notification.notify_unread`` write path:
+      * INFO — "App installed: <name>" (links to Installed Apps);
+      * WARNING — "Approve permissions: <name>" WHEN the install left one or more
+        SENSITIVE scopes PENDING elevated approval, linking straight to the Scope
+        Consent page so the admin knows exactly where to grant them.
+
+    Best-effort: a notification failure must NEVER break an install, so the whole
+    body is guarded. The bell + inbox read the same queryset, so emitting the row
+    is all the wiring the existing notification engine needs.
+    """
+    try:
+        from django.urls import NoReverseMatch, reverse
+
+        from apps.finance.models import Notification
+        from apps.marketplace.models import ScopeGrant
+
+        school = installation.school
+        app = installation.app
+        recipient_ids = _marketplace_admin_recipient_ids(school)
+        if not recipient_ids:
+            return
+
+        try:
+            installed_link = reverse("tenant_installed_apps")
+        except NoReverseMatch:
+            installed_link = "/settings/installed-apps/"
+        try:
+            consent_link = reverse("tenant_scope_consent")
+        except NoReverseMatch:
+            consent_link = "/settings/scope-consent/"
+
+        pending_scopes = list(
+            ScopeGrant.objects.filter(
+                installation=installation,
+                status=ScopeGrant.GrantStatus.PENDING,
+            ).select_related("scope")
+        )
+        pending_codes = ", ".join(
+            sorted((g.scope.scope_code or "").strip() for g in pending_scopes if g.scope)
+        )
+
+        for uid in recipient_ids:
+            Notification.objects.notify_unread(
+                recipient_id=uid,
+                title=f"App installed: {app.name}",
+                message=f"“{app.name}” was installed for {school.name}.",
+                severity=Notification.Severity.INFO,
+                link=installed_link,
+                school=school,
+                created_by=installed_by,
+            )
+            if pending_scopes:
+                Notification.objects.notify_unread(
+                    recipient_id=uid,
+                    title=f"Approve permissions: {app.name}",
+                    message=(
+                        f"“{app.name}” needs your approval for the sensitive "
+                        f"permission(s): {pending_codes}. Open Scope Consent to review "
+                        "and approve."
+                    ),
+                    severity=Notification.Severity.WARNING,
+                    link=consent_link,
+                    school=school,
+                    created_by=installed_by,
+                )
+    except Exception:  # noqa: BLE001 — notifications are best-effort; never break an install
+        import logging
+
+        logging.getLogger(__name__).debug(
+            "marketplace install notification emit failed", exc_info=True
+        )
 
 
 def uninstall_app(school, app, *, uninstalled_by=None, run_cleanup=True):
