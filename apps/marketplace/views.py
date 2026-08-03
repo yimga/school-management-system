@@ -1823,6 +1823,14 @@ def sandbox_embed(request):
             )
     if not iframe_src:
         iframe_src = ""
+    elif not iframe_src.startswith(("http://", "https://")):
+        # Chromeless embed: preview the target surface's CONTENT without the full
+        # portal shell (header/sidebar/footer). portal_base renders
+        # data-rmc-embed on <html> for ?rmc_embed=1 and css/rmc-embed.css hides
+        # the chrome. Only same-origin (relative) surfaces get the flag; external
+        # third-party widget URLs are left untouched.
+        sep = "&" if "?" in iframe_src else "?"
+        iframe_src = f"{iframe_src}{sep}rmc_embed=1"
     frame_ancestors = "'self'"
     _embed_parse_errors = (ValueError, TypeError, AttributeError, KeyError)
     if iframe_src and (

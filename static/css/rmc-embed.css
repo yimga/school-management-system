@@ -1,0 +1,43 @@
+/* Chromeless embed mode.
+ *
+ * Loaded ONLY when portal_base renders with ?rmc_embed=1 (the marketplace app
+ * sandbox previews a surface's CONTENT inside an iframe). Every rule is scoped
+ * under html[data-rmc-embed], so this file is completely inert on any normal
+ * page — the selectors cannot match without the flag on <html>.
+ *
+ * Goal: show the page content the way it really looks, minus the full portal
+ * shell (header, primary nav, sidebar, footer, launch splash, copilot rail),
+ * so the preview is not a confusing page-within-a-page.
+ */
+
+/* --- Hide the shell chrome ------------------------------------------------ */
+html[data-rmc-embed] .rmc-app-shell__header,
+html[data-rmc-embed] .tp-header,
+html[data-rmc-embed] [data-rmc-shell-header],
+html[data-rmc-embed] #portalHeader,
+html[data-rmc-embed] .tp-primary-nav-bandrow,
+html[data-rmc-embed] .portal-sidebar-col,
+html[data-rmc-embed] .cp-sidebar-col,
+html[data-rmc-embed] #portalSidebar,
+html[data-rmc-embed] [data-rmc-shell-footer],
+html[data-rmc-embed] .rmc-civic-footer,
+html[data-rmc-embed] #rmc-launch-splash,
+html[data-rmc-embed] .rmc-launch-splash,
+html[data-rmc-embed] .rmc-app-shell__copilot {
+  display: none !important;
+}
+
+/* --- Let the content column span the full iframe width -------------------- */
+html[data-rmc-embed] .portal-main-col {
+  flex: 1 1 100% !important;
+  max-width: 100% !important;
+  width: 100% !important;
+}
+
+/* --- Trim shell padding so content sits flush in the iframe --------------- */
+html[data-rmc-embed] body {
+  padding: 0 !important;
+}
+html[data-rmc-embed] .portal-page-body {
+  padding-top: 0 !important;
+}

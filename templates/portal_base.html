@@ -1,6 +1,6 @@
 {% load static i18n accounts_extras control_console workflow_guidance_tags %}
 <!doctype html>
-<html lang="{% firstof rmc_locale LANGUAGE_CODE default_language 'en' %}" dir="{{ rmc_text_direction|default:'ltr' }}"{% if rmc_low_bandwidth %} data-rmc-low-bandwidth="1"{% endif %} data-rmc-regional-ui="1" data-surface="{% if request.public_host_kind == 'manager' %}control-plane{% else %}tenant{% endif %}" data-cockpit-skin="{{ cockpit_shell.skin|default:'light' }}" data-portal-header-variant="{{ PORTAL_HEADER_VARIANT|default:'statement' }}" data-portal-footer-variant="{{ PORTAL_FOOTER_VARIANT|default:'standard' }}" data-rmc-premium-shell="portal" data-rmc-page-purpose="authenticated-workspace" data-rmc-aesthetic="v2" data-rmc-shell-root="{{ rmc_shell.portal_shell_root|default:'portal' }}"{% if request.public_host_kind == 'manager' %} data-rmc-isomorphic-template="operator-control-plane"{% else %} data-rmc-isomorphic-template="tenant-admin-hub"{% endif %}{% if tp_v3_role_home %} data-rmc-tp-v3-role-home="1"{% endif %}{% if tp_v3_tenant_shell %} data-rmc-tp-v3-shell="1"{% endif %}{% if request.public_host_kind != 'manager' %} data-rmc-layout="fluid" data-rmc-density="{{ rmc_tenant_density|default:'compact' }}"{% endif %}{% include "partials/shell_rmc_registry_html_attrs.html" %}>
+<html lang="{% firstof rmc_locale LANGUAGE_CODE default_language 'en' %}" dir="{{ rmc_text_direction|default:'ltr' }}"{% if rmc_low_bandwidth %} data-rmc-low-bandwidth="1"{% endif %} data-rmc-regional-ui="1" data-surface="{% if request.public_host_kind == 'manager' %}control-plane{% else %}tenant{% endif %}" data-cockpit-skin="{{ cockpit_shell.skin|default:'light' }}" data-portal-header-variant="{{ PORTAL_HEADER_VARIANT|default:'statement' }}" data-portal-footer-variant="{{ PORTAL_FOOTER_VARIANT|default:'standard' }}" data-rmc-premium-shell="portal" data-rmc-page-purpose="authenticated-workspace" data-rmc-aesthetic="v2" data-rmc-shell-root="{{ rmc_shell.portal_shell_root|default:'portal' }}"{% if request.public_host_kind == 'manager' %} data-rmc-isomorphic-template="operator-control-plane"{% else %} data-rmc-isomorphic-template="tenant-admin-hub"{% endif %}{% if tp_v3_role_home %} data-rmc-tp-v3-role-home="1"{% endif %}{% if tp_v3_tenant_shell %} data-rmc-tp-v3-shell="1"{% endif %}{% if request.public_host_kind != 'manager' %} data-rmc-layout="fluid" data-rmc-density="{{ rmc_tenant_density|default:'compact' }}"{% endif %}{% if request.GET.rmc_embed == '1' %} data-rmc-embed="1"{% endif %}{% include "partials/shell_rmc_registry_html_attrs.html" %}>
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -103,6 +103,14 @@
     <link rel="stylesheet" href="{% static 'css/glocal-text-expansion.css' %}">
     {% comment %} v4.02.45: ~70 blocking CSS files → one deferred min bundle (see scripts/portal_css_bundle_manifest.json). {% endcomment %}
     {% include "partials/rmc_deferred_stylesheet.html" with stylesheet="css/portal-shell-enhanced.min.css" %}
+    {% comment %} Chromeless embed (?rmc_embed=1 — marketplace app sandbox). The deferred bundle
+       above flips to active via rmc-csp-handlers.js, which may not run inside the sandboxed
+       iframe (leaving content half-styled), so eager-load it here; and load the chrome-hide
+       layer. Both are gated on the flag and inert on every normal page. {% endcomment %}
+    {% if request.GET.rmc_embed == '1' %}
+    <link rel="stylesheet" href="{% static 'css/portal-shell-enhanced.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-embed.css' %}">
+    {% endif %}
     {% comment %} LAYOUT SPINE — loaded BLOCKING (not left to the deferred bundle) and
        AFTER it so the canonical files win the cascade even when the minified
        portal-shell-enhanced.min.css is STALE in a deployed build or the service-worker
