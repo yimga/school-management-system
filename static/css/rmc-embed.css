@@ -6,11 +6,16 @@
  * page — the selectors cannot match without the flag on <html>.
  *
  * Goal: show the page content the way it really looks, minus the full portal
- * shell (header, primary nav, sidebar, footer, launch splash, copilot rail),
- * so the preview is not a confusing page-within-a-page.
+ * shell (header, primary nav, sidebar, footer, launch splash, copilot rail,
+ * floating docks/FABs), so the preview is not a confusing page-within-a-page.
+ *
+ * SCOPE NOTE: we hide only chrome that lives OUTSIDE the content column
+ * (.portal-main-col) or floats over it. Elements INSIDE the content column
+ * (breadcrumb, "About this page" strip, the page's own body) are left alone so
+ * the preview reflects how the surface really looks — never hide page content.
  */
 
-/* --- Hide the shell chrome ------------------------------------------------ */
+/* --- Structural shell chrome (header / primary nav / sidebar / footer) ----- */
 html[data-rmc-embed] .rmc-app-shell__header,
 html[data-rmc-embed] .tp-header,
 html[data-rmc-embed] [data-rmc-shell-header],
@@ -23,7 +28,22 @@ html[data-rmc-embed] [data-rmc-shell-footer],
 html[data-rmc-embed] .rmc-civic-footer,
 html[data-rmc-embed] #rmc-launch-splash,
 html[data-rmc-embed] .rmc-launch-splash,
-html[data-rmc-embed] .rmc-app-shell__copilot {
+/* --- Floating chrome: copilot rail, assist dock, chat FAB, help chips ------ *
+ * These render at the end of <body>, OUTSIDE the content column, and float
+ * over the page. The dark vertical icon-chip strip on the right is the JS-built
+ * assist dock (.rmc-assist-dock); the copilot rail mounts as
+ * [data-rmc-copilot-mount] (tenant + manager) wrapping .rmc-app-shell__copilot —
+ * the old pass hid neither the assist dock nor the real copilot mount. */
+html[data-rmc-embed] [data-rmc-copilot-mount],
+html[data-rmc-embed] .rmc-tenant-portal-copilot-mount,
+html[data-rmc-embed] .rmc-manager-portal-copilot-mount,
+html[data-rmc-embed] .rmc-app-shell__copilot,
+html[data-rmc-embed] .rmc-assist-dock,
+html[data-rmc-embed] [data-rmc-assist-dock],
+html[data-rmc-embed] .portal-chathead,
+html[data-rmc-embed] .ai-copilot-wrapper,
+html[data-rmc-embed] .rmc-support-quick-chip,
+html[data-rmc-embed] [data-rmc-proactive-help-nudge] {
   display: none !important;
 }
 
@@ -34,7 +54,9 @@ html[data-rmc-embed] .portal-main-col {
   width: 100% !important;
 }
 
-/* --- Trim shell padding so content sits flush in the iframe --------------- */
+/* --- Trim shell padding so content sits flush in the iframe ---------------- *
+ * body padding:0 also neutralises the right gutter the shell reserves for the
+ * (now-hidden) fixed copilot rail, so the content is not left with dead space. */
 html[data-rmc-embed] body {
   padding: 0 !important;
 }

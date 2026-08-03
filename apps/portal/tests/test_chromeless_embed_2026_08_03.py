@@ -60,28 +60,51 @@ class RmcEmbedStylesheetSealTests(SimpleTestCase):
     def test_every_rule_is_scoped_to_the_embed_flag(self):
         # The safety guarantee: no rule may apply without html[data-rmc-embed],
         # so a normal page (no flag) is provably unaffected by this stylesheet.
+        # Checked per comma-separated selector, not just per block, so a single
+        # unscoped selector inside a grouped rule cannot hide behind a scoped one.
         stripped = re.sub(r"/\*.*?\*/", "", self.css, flags=re.S)
         for block in stripped.split("}"):
             if "{" not in block:
                 continue
-            selector = block.split("{", 1)[0].strip()
-            if not selector:
+            selector_list = block.split("{", 1)[0].strip()
+            if not selector_list:
                 continue
-            self.assertIn(
-                "data-rmc-embed", selector, f"unscoped selector leaks to all pages: {selector!r}"
-            )
+            for selector in selector_list.split(","):
+                selector = selector.strip()
+                if not selector:
+                    continue
+                self.assertIn(
+                    "data-rmc-embed",
+                    selector,
+                    f"unscoped selector leaks to all pages: {selector!r}",
+                )
 
     def test_hides_chrome_and_expands_content(self):
         for token in (
             ".rmc-app-shell__header",
             ".portal-sidebar-col",
             "[data-rmc-shell-footer]",
-            ".rmc-app-shell__copilot",
             "#rmc-launch-splash",
         ):
             self.assertIn(token, self.css)
         self.assertIn(".portal-main-col", self.css)
         self.assertIn("display: none", self.css)
+
+    def test_hides_floating_chrome_outside_content_column(self):
+        # Regression seal for the 2026-08-03 gap re-audit: the copilot rail, the
+        # floating messages FAB, and the AI assist dock render OUTSIDE the content
+        # column and float over the page, but the first pass missed them. The
+        # copilot rail mounts as [data-rmc-copilot-mount] in portal_base.html —
+        # NOT .rmc-app-shell__copilot, which was a near-dead selector that never
+        # matched the visible rail. Each token must be present in the hide layer.
+        for token in (
+            "[data-rmc-copilot-mount]",
+            ".rmc-assist-dock",
+            ".portal-chathead",
+            ".ai-copilot-wrapper",
+            ".rmc-support-quick-chip",
+        ):
+            self.assertIn(token, self.css)
 
 
 class SandboxEmbedAppendsFlagSealTests(SimpleTestCase):
