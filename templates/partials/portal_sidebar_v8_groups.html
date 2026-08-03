@@ -11,7 +11,9 @@ Config-driven PORTAL_SIDEBAR_ITEMS grouped by section with collapsible <details>
          data-rmc-portal-sidebar-group="{{ group.name|default:'navigation'|slugify }}">
   <summary class="cp-sidebar__section cp-sidebar__group-toggle{% if forloop.first %} cp-sidebar__section--first{% endif %}">{{ group.name|default:_("Navigation") }}</summary>
   {% for item in group.items %}
-    {% if item.url and item.id not in PINNED_SIDEBAR_IDS %}
+    {% comment %} A nav item with no visible label renders as a blank pill; require a
+       label so injected/config entries that arrive label-less never render empty. {% endcomment %}
+    {% if item.url and item.label and item.id not in PINNED_SIDEBAR_IDS %}
   <a class="cp-sidebar__item{% if item.is_current %} cp-sidebar__item--current{% endif %}"
      href="{{ item.url }}"
      {% if item.is_current %}aria-current="page"{% endif %}

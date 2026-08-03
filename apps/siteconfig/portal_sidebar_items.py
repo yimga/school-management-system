@@ -313,6 +313,13 @@ def _dedupe_sidebar_items(items):
         if item_id and item_id in seen_item_ids:
             continue
         raw_label = item.get("label") or ""
+        if not str(raw_label).strip():
+            # A label-less nav item renders as a blank pill in the v8 sidebar and
+            # buckets into a spurious "Navigation" group (config sidebar order,
+            # the OS-nav registry, or marketplace-injected entries can arrive
+            # without a label). Drop it here so it never reaches grouping; the
+            # v8 template also guards on item.label, belt-and-suspenders.
+            continue
         label_url = (raw_label, item.get("url") or "")
         if label_url[1] and label_url in seen_label_urls:
             continue
