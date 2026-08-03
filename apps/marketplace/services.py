@@ -956,6 +956,81 @@ def notify_admins_of_install(installation, *, installed_by=None):
         )
 
 
+def notify_admins_of_scope_approved(scope_grant, *, approved_by=None):
+    """Confirm in the header bell when a pending sensitive scope is approved.
+
+    Closes the loop opened by ``notify_admins_of_install``'s WARNING nudge: once
+    an owner/admin grants a sensitive permission, every owner/admin gets an INFO
+    confirmation that it is now active, and — when NO sensitive scope is left
+    pending for that installation — the stale "Approve permissions: <app>" nudge
+    is marked read so the bell stops asking for something already done.
+
+    Best-effort: a notification failure must NEVER break the approval, so the whole
+    body is guarded. Call only on the real PENDING→GRANTED transition (see
+    ``approve_sensitive_scope``) so re-approving an already-granted scope is silent.
+    """
+    try:
+        from django.urls import NoReverseMatch, reverse
+
+        from apps.finance.models import Notification
+        from apps.marketplace.models import ScopeGrant
+
+        # Resolve the relations we render from in one query (the caller may hand us
+        # a grant loaded with only ``scope``).
+        grant = (
+            ScopeGrant.objects.select_related(
+                "installation", "installation__app", "installation__school", "scope"
+            ).get(pk=scope_grant.pk)
+        )
+        installation = grant.installation
+        school = installation.school
+        app = installation.app
+        scope_code = (getattr(grant.scope, "scope_code", "") or "").strip()
+
+        recipient_ids = _marketplace_admin_recipient_ids(school)
+        if not recipient_ids:
+            return
+
+        try:
+            installed_link = reverse("tenant_installed_apps")
+        except NoReverseMatch:
+            installed_link = "/settings/installed-apps/"
+
+        # Any sensitive scope still awaiting approval for this installation? If none,
+        # the earlier "Approve permissions" nudge is stale and should be cleared.
+        pending_remaining = ScopeGrant.objects.filter(
+            installation=installation,
+            status=ScopeGrant.GrantStatus.PENDING,
+        ).exists()
+
+        for uid in recipient_ids:
+            Notification.objects.notify_unread(
+                recipient_id=uid,
+                title=f"Permission approved: {app.name} — {scope_code}",
+                message=(
+                    f"The sensitive permission “{scope_code}” for “{app.name}” has "
+                    f"been approved and is now active for {school.name}."
+                ),
+                severity=Notification.Severity.INFO,
+                link=installed_link,
+                school=school,
+                created_by=approved_by,
+            )
+            if not pending_remaining:
+                # Resolve (not delete) the stale approval nudge for this app.
+                Notification.objects.filter(
+                    recipient_id=uid,
+                    title=f"Approve permissions: {app.name}",
+                    is_read=False,
+                ).update(is_read=True)
+    except Exception:  # noqa: BLE001 — notifications are best-effort; never break an approval
+        import logging
+
+        logging.getLogger(__name__).debug(
+            "marketplace scope-approval notification emit failed", exc_info=True
+        )
+
+
 def uninstall_app(school, app, *, uninstalled_by=None, run_cleanup=True):
     """
     Mark app as uninstalled for the school; set uninstalled_at; audit log.
@@ -1102,17 +1177,25 @@ def grant_scopes(installation, scope_codes_or_scope_objects, granted_by=None):
 
 
 def approve_sensitive_scope(scope_grant, approved_by):
-    """Set scope grant to granted and set elevated_approved_at/by. Idempotent."""
+    """Set scope grant to granted and set elevated_approved_at/by. Idempotent.
+
+    On the real PENDING→GRANTED transition (and only then — re-approving an
+    already-granted scope stays silent) drop a header-bell confirmation for the
+    school's owners/admins via ``notify_admins_of_scope_approved``.
+    """
     from apps.marketplace.models import ScopeGrant
 
     if not isinstance(scope_grant, ScopeGrant):
         scope_grant = ScopeGrant.objects.select_related("scope").get(pk=scope_grant)
+    was_pending = scope_grant.status == ScopeGrant.GrantStatus.PENDING
     scope_grant.status = ScopeGrant.GrantStatus.GRANTED
     scope_grant.elevated_approved_at = timezone.now()
     scope_grant.elevated_approved_by = approved_by
     scope_grant.save(
         update_fields=["status", "elevated_approved_at", "elevated_approved_by"]
     )
+    if was_pending:
+        notify_admins_of_scope_approved(scope_grant, approved_by=approved_by)
     return scope_grant
 
 

@@ -30,7 +30,7 @@ from apps.marketplace.models import (
     PublisherOrganization,
     ScopeGrant,
 )
-from apps.marketplace.services import install_app
+from apps.marketplace.services import approve_sensitive_scope, install_app
 from apps.schools.models import School, SchoolMembership
 
 _HOST = "notify-school.runmycampus.com"
@@ -166,3 +166,119 @@ class MarketplaceInstallNotificationTests(TestCase):
         resp = client.get(url)
         self.assertEqual(resp.status_code, 302, "GET must redirect, not 404/405")
         self.assertIn("scope-consent", resp["Location"])
+
+    # ----- approval-confirmation (the loop-closing counterpart of the nudge) -----
+
+    def _mfa_client(self):
+        from django_otp.plugins.otp_totp.models import TOTPDevice
+
+        client = Client(HTTP_HOST=_HOST, raise_request_exception=False)
+        TOTPDevice.objects.get_or_create(
+            user=self.admin, name="notify-device", defaults={"confirmed": True}
+        )
+        client.login(username="notify_admin", password="test-harness-1")
+        session = client.session
+        session["mfa_verified"] = True
+        session.save()
+        return client
+
+    def test_approving_pending_scope_confirms_and_clears_nudge(self):
+        inst = self._install("migration_import")
+        grant = ScopeGrant.objects.get(installation=inst, scope=self.sensitive_scope)
+        self.assertEqual(grant.status, ScopeGrant.GrantStatus.PENDING)
+        # install left an unread "Approve permissions" nudge for owner + admin
+        for user in (self.admin, self.owner):
+            self.assertTrue(
+                self._notes(user)
+                .filter(title__startswith="Approve permissions", is_read=False)
+                .exists()
+            )
+
+        approve_sensitive_scope(grant, self.admin)
+
+        grant.refresh_from_db()
+        self.assertEqual(grant.status, ScopeGrant.GrantStatus.GRANTED)
+        for user in (self.admin, self.owner):
+            notes = self._notes(user)
+            confirm = notes.filter(title__startswith="Permission approved").first()
+            self.assertIsNotNone(
+                confirm, f"{user.username} got no approval confirmation"
+            )
+            self.assertEqual(confirm.severity, Notification.Severity.INFO)
+            self.assertIn("migration_import", confirm.title)
+            self.assertIn("migration_import", confirm.message)
+            # the stale "needs approval" nudge is resolved (no sensitive scope left pending)
+            self.assertFalse(
+                notes.filter(
+                    title__startswith="Approve permissions", is_read=False
+                ).exists(),
+                f"{user.username}'s approval nudge should be cleared once nothing is pending",
+            )
+        # a plain member is still not an approver -> gets nothing
+        self.assertEqual(self._notes(self.member).count(), 0)
+
+    def test_reapproving_granted_scope_is_silent(self):
+        inst = self._install("migration_import")
+        grant = ScopeGrant.objects.get(installation=inst, scope=self.sensitive_scope)
+        approve_sensitive_scope(grant, self.admin)
+        first = list(
+            self._notes(self.admin)
+            .filter(title__startswith="Permission approved")
+            .values_list("pk", flat=True)
+        )
+        self.assertEqual(len(first), 1)
+        # re-approving an already-granted scope must NOT emit a second confirmation
+        approve_sensitive_scope(grant, self.admin)
+        second = list(
+            self._notes(self.admin)
+            .filter(title__startswith="Permission approved")
+            .values_list("pk", flat=True)
+        )
+        self.assertEqual(second, first, "re-approval must be silent")
+
+    def test_approval_with_another_pending_scope_keeps_nudge(self):
+        inst = self._install("migration_import")
+        # a second sensitive scope still awaiting approval on the same installation
+        other = AppScope.objects.create(
+            app=self.app, scope_code="grades:write", description="Write grades",
+            sensitive=True,
+        )
+        ScopeGrant.objects.create(
+            installation=inst, scope=other, status=ScopeGrant.GrantStatus.PENDING
+        )
+        grant = ScopeGrant.objects.get(installation=inst, scope=self.sensitive_scope)
+
+        approve_sensitive_scope(grant, self.admin)
+
+        # confirmation still fires for the approved one...
+        self.assertTrue(
+            self._notes(self.admin)
+            .filter(title__startswith="Permission approved")
+            .exists()
+        )
+        # ...but the nudge must remain because a sensitive scope is still pending
+        self.assertTrue(
+            self._notes(self.admin)
+            .filter(title__startswith="Approve permissions", is_read=False)
+            .exists(),
+            "nudge must persist while any scope is still pending",
+        )
+
+    def test_post_approve_scope_grants_and_confirms_end_to_end(self):
+        inst = self._install("migration_import")
+        grant = ScopeGrant.objects.get(installation=inst, scope=self.sensitive_scope)
+        client = self._mfa_client()
+        url = reverse("tenant_approve_scope", urlconf="config.tenant_urls")
+        resp = client.post(url, {"grant_id": grant.pk})
+        self.assertEqual(resp.status_code, 302, "POST approve must redirect")
+        grant.refresh_from_db()
+        self.assertEqual(
+            grant.status, ScopeGrant.GrantStatus.GRANTED,
+            "POST through the real view must flip the grant to GRANTED",
+        )
+        self.assertTrue(
+            self._notes(self.admin)
+            .filter(title__startswith="Permission approved")
+            .exists(),
+            "the real approval POST must drop a header-bell confirmation",
+        )
