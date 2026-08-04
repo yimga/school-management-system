@@ -63,3 +63,41 @@ class TenantHeaderChromeTests(SimpleTestCase):
             encoding="utf-8"
         )
         self.assertIn("clamp(180px, 22vw, 300px)", hundred_x)
+
+
+class OperatorHeaderChromeTests(SimpleTestCase):
+    """Parity seal for the operator/manager header (manager_operator_topbar.html).
+
+    Unlike the tenant header, the operator header already had a narrow search
+    (rmc-cp-header-200x.css caps `.rmc-platform-header__command` at 280px via an
+    `!important` that wins the cascade) AND a bell — but that bell is the
+    PLATFORM-INCIDENT bell (links the incident console; badge = incident count),
+    not the operator's personal notification inbox, which was avatar-only (the
+    same gap the tenant had). This locks the restored discrete PERSONAL bell
+    without disturbing the incident bell. Messages is intentionally NOT added —
+    it is not an operator destination (absent from the operator nav/dropdown).
+    """
+
+    def setUp(self):
+        self.header = (
+            ROOT / "templates/partials/manager_operator_topbar.html"
+        ).read_text(encoding="utf-8")
+
+    def test_personal_notifications_bell_present_and_config_gated(self):
+        self.assertIn('data-rmc-header-bell="1"', self.header)
+        self.assertIn("accounts:user_notifications", self.header)
+        # FILLED bell = personal inbox, visually distinct from the incident bell.
+        self.assertIn("bi-bell-fill", self.header)
+        self.assertIn("{% if SHOW_HEADER_NOTIFICATIONS %}", self.header)
+        # badge reuses the live poll hook so it stays fresh in place
+        self.assertIn("data-rmc-unread-badge", self.header)
+
+    def test_incident_bell_preserved_and_distinct(self):
+        # The platform-incident bell (its own gate) must remain — operators keep
+        # the at-a-glance ops signal alongside the new personal bell.
+        self.assertIn("cockpit_shell.show.bell", self.header)
+
+    def test_messages_icon_not_added_to_operator_header(self):
+        # Messages is a tenant-communication destination, not an operator one; it
+        # must NOT be bolted onto the operator header (RBAC-aware parity != copy).
+        self.assertNotIn("accounts:user_messages", self.header)

@@ -131,6 +131,20 @@
             {% if not MANAGER_PLATFORM_ADMIN_SHELL %}
             {% include "components/rmc_operator_workspace_dropdown.html" %}
             {% endif %}
+            {% comment %} v4.05 (2026-08-03): discrete PERSONAL notifications bell — parity with the
+               tenant header restore. Distinct from the platform-incident bell below: THIS one is the
+               operator's own finance.Notification inbox (bi-bell-FILL → accounts:user_notifications),
+               that one is the ops signal (bi-bell outline → incident console). Config/page-aware via
+               SHOW_HEADER_NOTIFICATIONS; badge reuses data-rmc-unread-badge so rmc-notification-bell-poll.js
+               (ships with user_dropdown.html below) keeps it live in place. Operator search is already
+               capped at 280px (rmc-cp-header-200x.css) and Messages is not an operator destination, so
+               neither is touched here. {% endcomment %}
+            {% if SHOW_HEADER_NOTIFICATIONS %}
+            <a href="{% url 'accounts:user_notifications' %}" class="cp-topbar-bell rmc-platform-header__icon-btn" aria-label="{% trans 'Notifications' %}" title="{% trans 'Notifications' %}" data-rmc-header-bell="1">
+              <i class="bi bi-bell-fill" aria-hidden="true"></i>
+              <span class="cp-topbar-bell__badge" data-rmc-unread-badge data-rmc-unread-badge-style="avatar" aria-hidden="true"{% if not NOTIFICATIONS_UNREAD_COUNT %} hidden{% endif %}>{% if NOTIFICATIONS_UNREAD_COUNT > 99 %}99+{% else %}{{ NOTIFICATIONS_UNREAD_COUNT|default:0 }}{% endif %}</span>
+            </a>
+            {% endif %}
             {% comment %} Notification bell — CONFIGURABLE via cockpit_shell.show.bell. {% endcomment %}
             {% if cockpit_shell.show.bell or not cockpit_shell %}
             {% if platform_incidents_url %}
