@@ -565,12 +565,14 @@ body.portal-body-with-layout:not(.control-plane-shell) .tp-primary-nav__item[ari
     background: var(--surface-elevated);
   }
 
-  /* Search fills free space in the actions track (like /super/). */
+  /* 2026-08-03: search narrowed + capped (kept in sync with rmc-tenant-chrome-finish.css,
+     which loads later and wins) so it can't greedily fill the row — leaves room for the
+     discrete Messages + Notifications header icons. */
   #portalHeader .topbar-search.header-search-container {
-    flex: 1 1 220px !important;
+    flex: 0 1 clamp(180px, 22vw, 300px) !important;
     width: auto !important;
-    min-width: 160px !important;
-    max-width: min(420px, 35vw) !important;
+    min-width: 150px !important;
+    max-width: 300px !important;
     margin-left: 0 !important;
     margin-right: auto !important;
   }

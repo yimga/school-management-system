@@ -50,11 +50,14 @@
     min-width: 0;
   }
 
+  /* 2026-08-03: search narrowed (was flex:1 1 220px / max-width min(420px,35vw) — it
+     greedily filled the actions track). A responsive, capped basis leaves room for the
+     discrete Messages + Notifications icons; margin-right:auto still right-aligns controls. */
   #portalHeader .topbar-search.header-search-container {
-    flex: 1 1 220px !important;
+    flex: 0 1 clamp(180px, 22vw, 300px) !important;
     width: auto !important;
-    min-width: 160px !important;
-    max-width: min(420px, 35vw) !important;
+    min-width: 150px !important;
+    max-width: 300px !important;
     margin-right: auto !important;
     margin-left: 0 !important;
   }

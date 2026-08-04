@@ -446,19 +446,30 @@
               {% if available_languages %}
               {% include "partials/language_switcher.html" %}
               {% endif %}
-              {% comment %} v4.00.17: header de-duplication. Removed standalone help icon
-                 (data-rmc-page-help), header notifications bell, and the help-center
-                 link — all three are surfaced by components/user_dropdown.html
-                 (Help & Support section + unread badge on avatar + notifications row),
-                 so duplicating them in the header was crowding the row onto two lines.
-                 Messages icon stays because it's a distinct destination not in the
-                 dropdown. {% endcomment %}
-              {% if request.user.is_authenticated and not rmc_page_help_on_copilot_rail %}
+              {% comment %} v4.05 (2026-08-03): discrete Messages + Notifications icons on the tenant
+                 header. Reverses the v4.00.17 de-duplication that had folded the bell into the avatar
+                 corner badge only — invisible on a platform this size. RBAC: Messages is a UNIVERSAL
+                 destination (every role carries accounts:user_messages in the sidebar) and the badge is
+                 recipient-scoped; Notifications are per-recipient. Config/page-aware via
+                 SHOW_HEADER_NOTIFICATIONS. Messages is no longer suppressed on copilot-rail pages (the
+                 old copilot-rail coupling made it vanish there); the narrowed search
+                 (rmc-tenant-chrome-finish.css) reclaims the room. The bell badge reuses
+                 data-rmc-unread-badge so rmc-notification-bell-poll.js (shipped with user_dropdown.html)
+                 keeps it live in place, and it links to the full inbox. {% endcomment %}
               <a class="btn btn-link p-0 position-relative topbar-icon-btn" href="{% url 'accounts:user_messages' %}" title="{% trans 'Messages' %}" aria-label="{% trans 'Open Messages' %}">
                 <i class="bi bi-chat-dots-fill"></i>
                 {% if messages_unread_count %}
                 <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger topbar-icon-badge">{{ messages_unread_count }}</span>
                 {% endif %}
+              </a>
+              {% if SHOW_HEADER_NOTIFICATIONS %}
+              <a class="btn btn-link p-0 position-relative topbar-icon-btn" href="{% url 'accounts:user_notifications' %}" title="{% trans 'Notifications' %}" aria-label="{% trans 'Notifications' %}" data-rmc-header-bell="1">
+                <i class="bi bi-bell-fill"></i>
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger topbar-icon-badge"
+                      data-rmc-unread-badge data-rmc-unread-badge-style="avatar" aria-hidden="true"
+                      {% if not NOTIFICATIONS_UNREAD_COUNT %}hidden{% endif %}>
+                  {% if NOTIFICATIONS_UNREAD_COUNT > 99 %}99+{% else %}{{ NOTIFICATIONS_UNREAD_COUNT|default:0 }}{% endif %}
+                </span>
               </a>
               {% endif %}
               {% comment %} Phase F follow-through (2026-05-12): Console / Configure shell switcher
