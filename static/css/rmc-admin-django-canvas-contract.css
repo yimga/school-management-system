@@ -4145,6 +4145,26 @@ body:is(.admin-manager-shell, .admin-premium-shell) .rmc-admin-workbench-footer_
   color: var(--text-tertiary, var(--color-base-400));
 }
 
+/* v16.1 — pinned shell footer band. The workbench footer moved out of <main> into
+   the .rmc-app-shell grid row 3 (admin/base.html), wrapped in
+   .rmc-app-shell__footer + .rmc-admin-shell-footer. The wrapper (rmc-app-shell.css)
+   already owns the grid placement (grid-row:3; grid-column:1/-1), the top hairline,
+   the surface, and the 50dvh overflow cap — so the inner band drops its own top
+   margin + duplicate hairline + surface to avoid a double frame, and keeps only its
+   brand/links/meta layout inside the pinned band. */
+.rmc-admin-shell-footer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.rmc-app-shell__footer.rmc-admin-shell-footer > .rmc-admin-workbench-footer {
+  margin-top: 0;
+  border-top: 0;
+  background: transparent;
+  min-height: 0;
+  width: 100%;
+}
+
 /* Tenant change-form readability: academic year and other admin forms must stay
    sharp — no stranded glass overlays or scroll-reveal opacity on fieldsets. */
 html[data-rmc-admin-html="unfold"] body.admin-premium-shell

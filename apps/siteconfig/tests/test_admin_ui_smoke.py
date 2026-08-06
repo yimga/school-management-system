@@ -408,6 +408,65 @@ class AdminUiSmokeTests(TestCase):
         finally:
             set_urlconf(None)
 
+    def test_tenant_admin_footer_is_pinned_shell_band_outside_main(self):
+        """The tenant /admin/ workbench footer must be the grid-row-3 .rmc-app-shell__footer
+        band (a SIBLING of the scrolling canvas), NOT stranded inside <main>.
+
+        Regression seal for v16.1: the footer used to render inside
+        <main class="rmc-app-shell__canvas-body"> (flex:1 0 auto), so a short change
+        form left the footer mid-canvas with a large blank band below it and no real
+        pinned footer. The .rmc-app-shell grid always reserved a row-3 footer slot;
+        this asserts the admin shell actually fills it and that the branded workbench
+        footer sits OUTSIDE the canvas <main>.
+        """
+        model_admin = tenant_admin_site._registry[_TenantSettingsModel]
+        path = reverse(
+            "admin:siteconfig_sitesettings_change",
+            args=[self.site.pk],
+            urlconf="config.tenant_urls",
+        )
+        request = _admin_request_with_session_and_messages(
+            self.factory, self.superuser, path=path
+        )
+        request.public_host_kind = "tenant"
+        request.urlconf = "config.tenant_urls"
+        set_urlconf("config.tenant_urls")
+        try:
+            response = model_admin.change_view(request, str(self.site.pk))
+            self.assertEqual(response.status_code, 200)
+            if hasattr(response, "render") and callable(response.render):
+                response.render()
+            body = response.content.decode("utf-8", errors="ignore")
+        finally:
+            set_urlconf(None)
+
+        # 1. The pinned grid-row-3 footer band exists.
+        self.assertIn(
+            'class="rmc-app-shell__footer',
+            body,
+            "tenant /admin/ is missing the pinned .rmc-app-shell__footer grid band",
+        )
+        # 2. The branded workbench footer renders OUTSIDE <main> (a grid sibling of
+        #    the canvas), never stranded inside the scrolling canvas-body.
+        main_close = body.rfind("</main>")
+        workbench = body.rfind("rmc-admin-workbench-footer")
+        self.assertGreater(main_close, 0, "no </main> in the admin shell")
+        self.assertGreater(
+            workbench,
+            main_close,
+            "workbench footer is still inside <main> (stranded mid-canvas) — it must "
+            "be hoisted to the .rmc-app-shell__footer grid row 3 below the canvas",
+        )
+        # 3. The tenant footer must NOT double-render inside the canvas body.
+        canvas_body = body.find("rmc-app-shell__canvas-body")
+        inside_main_footer = body.find("rmc-admin-workbench-footer", canvas_body, main_close)
+        self.assertEqual(
+            inside_main_footer,
+            -1,
+            "tenant workbench footer still renders inside <main> — remove the "
+            "in-canvas include so only the pinned grid-row-3 band remains",
+        )
+
     def test_reportcardstyle_change_form_links_to_control_plane_surfaces(self):
         """P3: ReportCardStyle admin links to report builder + Output studio + config hub (tenant-safe URLs)."""
         style = ReportCardStyle.objects.create(

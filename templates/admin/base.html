@@ -120,16 +120,30 @@
                 {% if is_manager_host %}{% block admin_manager_sticky_actions %}{% endblock %}{% endif %}
 
                 {% block footer %}
-                {% if is_manager_host %}
-                {% include "partials/admin_workbench_footer.html" %}
+                {% comment %} v16.1: the branded workbench footer band moved OUT of
+                   <main> into the .rmc-app-shell grid row 3 below (viewport-pinned).
+                   Inside the canvas-body it was stranded mid-canvas with a blank band
+                   below short change forms. Only the scroll-hoisting back-to-top stays. {% endcomment %}
                 {% include 'components/back_to_top.html' %}
-                {% else %}
-                {% include 'components/back_to_top.html' %}
-                {% endif %}
                 {% endblock %}
 
             </main>
         </div>
+
+        {% comment %} v16.1: viewport-pinned shell footer — grid row 3, a SIBLING of
+           the scrolling canvas (never inside <main>). This is the persistent
+           contentinfo band the .rmc-app-shell contract (rmc-app-shell.css) always
+           intended; the 1fr canvas row absorbs whitespace so short change forms no
+           longer leave a stranded footer + blank band. Popups skip it. {% endcomment %}
+        {% if request.user.is_authenticated and not is_popup %}
+        <div class="rmc-app-shell__footer rmc-admin-shell-footer" data-rmc-admin-shell-footer="{% if is_manager_host %}manager{% else %}tenant{% endif %}">
+            {% if is_manager_host %}
+                {% include "partials/admin_workbench_footer.html" %}
+            {% else %}
+                {% include "partials/admin_tenant_workbench_footer.html" %}
+            {% endif %}
+        </div>
+        {% endif %}
 
         {% comment %}Django admin owns its page-aware 2.35rem tools column.
         Global copilot/notebook rails and viewport-pinned civic footers belong
@@ -146,7 +160,9 @@
     {% comment %}Manager host: .rmc-app-shell is the fixed-height scroll canvas, so the
        back-to-top sits OUTSIDE it (sibling of the shell) — inside, it is clipped/
        scroll-bound pre-hydration; components__back_to_top.js only hoists to <body>
-       when it finds the button inside .rmc-app-shell. The tenant-admin include stays
-       inside <main> above. emit_once dedupes if the chrome-scripts partial also ran.{% endcomment %}
+       when it finds the button inside .rmc-app-shell. The tenant back-to-top include
+       stays inside <main> above (v16.1: the workbench FOOTER is now the pinned grid
+       row-3 band, not an in-<main> block). emit_once dedupes if the chrome-scripts
+       partial also ran.{% endcomment %}
     {% endif %}
 {% endblock %}
