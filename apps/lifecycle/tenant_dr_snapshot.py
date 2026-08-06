@@ -23,7 +23,7 @@ restorable — ``_decrypt_blob`` passes a gzip-magic blob through unchanged. Tha
 is not a downgrade vector: the HMAC is verified first, and an attacker cannot
 forge it without ``SECRET_KEY``.
 
-Payload contract (``schema_version`` "2.1"):
+Payload contract (``schema_version`` "2.2"):
 
 - ``counts`` — aggregate row counts (kept for backward compatibility and for a
   cheap restore-integrity check).
@@ -59,13 +59,30 @@ FK can be rewritten to the freshly restored parent pk:
                               amount/paid_at fallback when blank; ``invoice`` /
                               ``student`` remapped; full_clean bypassed)
 
+Schema 2.2 additionally restores tenant ACCESS and the start of the academic
+record:
+
+    academics.Subject        (natural key: school + name; the subject catalog)
+    schools.SchoolMembership (natural key: user + school; ``user`` remapped to a
+                              restored accounts.User — restores WHO can reach the
+                              tenant + their role/ownership, so a recovered tenant
+                              has admins and is reachable)
+    academics.Attendance     (natural key: student + classroom + date; both FKs
+                              remapped; the per-day attendance history)
+
+Still OUT of the restorable surface (deferred, larger FK closures / lower DR
+priority): grades (evals.Evaluation → SubjectAssignment, whose natural key drags
+Specialty + an M2M teacher set), homework (LMS assignment/submission with file
+blobs), messages (communication, wide user fan-out) and the timetable
+(academics ScheduleEntry / TimeSlot). These are the next expansion.
+
 The fail-closed HMAC signature guarantee is unchanged: ``restore_from_snapshot``
 verifies the signature (and the bound school id) BEFORE opening any transaction
 or writing any row, for the FULL expanded payload above.
 
-Schema 2.1 is a pure superset of 2.0 — it only ADDS table keys. Older 2.0
-snapshots restore unchanged (the new specs find no rows for their keys and
-are no-ops), so reading legacy blobs stays backward-compatible.
+Each schema bump is a pure superset — it only ADDS table keys. Older 2.0 / 2.1
+snapshots restore unchanged (the new specs find no rows for their keys and are
+no-ops), so reading legacy blobs stays backward-compatible.
 """
 
 from __future__ import annotations
@@ -87,7 +104,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 
 logger = logging.getLogger(__name__)
 
-SNAPSHOT_SCHEMA_VERSION = "2.1"
+SNAPSHOT_SCHEMA_VERSION = "2.2"
 
 
 @dataclass(frozen=True)
@@ -196,6 +213,13 @@ RESTORE_PLAN: tuple[_RestoreSpec, ...] = (
             "department": ("academics", "Department"),
         },
     ),
+    _RestoreSpec(
+        app_label="academics",
+        model_name="Subject",
+        # UniqueConstraint(school, name) — school is forced, so name identifies.
+        natural_key=("name",),
+        remap_fk={},
+    ),
     # --- People --------------------------------------------------------------
     _RestoreSpec(
         app_label="people",
@@ -218,6 +242,30 @@ RESTORE_PLAN: tuple[_RestoreSpec, ...] = (
         # ``user`` is non-nullable (so it is remapped, never nulled). pay_scale
         # (payroll) + the profile photo are out of the config-core scope.
         null_fields=("pay_scale", "profile_photo"),
+    ),
+    # --- Access + academic record (schema 2.2) -------------------------------
+    _RestoreSpec(
+        app_label="schools",
+        model_name="SchoolMembership",
+        # unique_together (user, school) — school is forced, ``user`` (remapped to
+        # a restored accounts.User) identifies the membership within the tenant.
+        # Restores WHO can access the tenant and their role/ownership — without it
+        # a restored tenant has no admins and is unreachable.
+        natural_key=("user",),
+        remap_fk={"user": ("accounts", "User")},
+    ),
+    _RestoreSpec(
+        app_label="academics",
+        model_name="Attendance",
+        # UniqueConstraint(student, classroom, date) — both FKs are in scope and
+        # remapped to the freshly restored parents. client_offline_id (an offline
+        # -sync artifact) is restored verbatim; its (school, client_offline_id)
+        # partial-unique is per-tenant and never collides on a fresh target.
+        natural_key=("student", "classroom", "date"),
+        remap_fk={
+            "student": ("people", "StudentProfile"),
+            "classroom": ("academics", "Classroom"),
+        },
     ),
     # --- Finance ledger ------------------------------------------------------
     _RestoreSpec(
@@ -457,7 +505,14 @@ def compile_snapshot_payload(school) -> dict[str, Any]:
     from apps.schools.models import SchoolMembership
     from apps.people.models import StudentProfile, TeacherProfile
     from apps.finance.models import ComplianceProfile, Invoice, InvoiceLine, Payment
-    from apps.academics.models import AcademicYear, Classroom, Department, Term
+    from apps.academics.models import (
+        AcademicYear,
+        Attendance,
+        Classroom,
+        Department,
+        Subject,
+        Term,
+    )
 
     sid = str(school.pk)
 
@@ -485,13 +540,23 @@ def compile_snapshot_payload(school) -> dict[str, Any]:
     teacher_user_ids = [
         uid for uid in teachers_qs.values_list("user_id", flat=True) if uid is not None
     ]
+    # SchoolMembership users must also be captured — a membership row restored
+    # against a user that was never snapshotted could not remap its ``user`` FK,
+    # so the tenant's admins/owners would be lost on restore. Close the FK graph
+    # over BOTH teacher identities and membership identities.
+    membership_qs = SchoolMembership.objects.filter(school=school)
+    membership_user_ids = [
+        uid for uid in membership_qs.values_list("user_id", flat=True) if uid is not None
+    ]
     invoice_profile_ids = [
         pid
         for pid in invoices_qs.values_list("profile_id", flat=True)
         if pid is not None
     ]
     # tenant-isolation-allow: closure-of-tenant-fk-graph-restricted-to-referenced-pks
-    referenced_users_qs = User.objects.filter(pk__in=set(teacher_user_ids))
+    referenced_users_qs = User.objects.filter(
+        pk__in=set(teacher_user_ids) | set(membership_user_ids)
+    )
     # tenant-isolation-allow: closure-of-tenant-fk-graph-restricted-to-referenced-pks
     referenced_profiles_qs = ComplianceProfile.objects.filter(
         pk__in=set(invoice_profile_ids)
@@ -512,10 +577,17 @@ def compile_snapshot_payload(school) -> dict[str, Any]:
         "academics.Classroom": _serialize_rows(
             Classroom.objects.filter(school=school)
         ),
+        "academics.Subject": _serialize_rows(Subject.objects.filter(school=school)),
         "people.StudentProfile": _serialize_rows(
             StudentProfile.objects.filter(school=school)
         ),
         "people.TeacherProfile": _serialize_rows(teachers_qs),
+        # Access rows — WHO can reach the tenant and their role/ownership.
+        "schools.SchoolMembership": _serialize_rows(membership_qs),
+        # Student attendance history (student + classroom both in-scope parents).
+        "academics.Attendance": _serialize_rows(
+            Attendance.objects.filter(school=school)
+        ),
         "finance.Invoice": _serialize_rows(invoices_qs),
         # Invoice line items — an invoice restored without its lines loses its
         # real total (recalc would zero it). Scoped to this school's invoices.
@@ -533,9 +605,11 @@ def compile_snapshot_payload(school) -> dict[str, Any]:
         "captured_at": datetime.now(timezone.utc).isoformat(),
         "school_config": school_config,
         "counts": {
-            "memberships": SchoolMembership.objects.filter(school=school).count(),
+            "memberships": membership_qs.count(),
             "students": StudentProfile.objects.filter(school=school).count(),
             "teachers": TeacherProfile.objects.filter(school=school).count(),
+            "subjects": Subject.objects.filter(school=school).count(),
+            "attendance": Attendance.objects.filter(school=school).count(),
             "invoices": Invoice.objects.filter(school=school).count(),
             "payments": Payment.objects.filter(school=school).count(),
         },

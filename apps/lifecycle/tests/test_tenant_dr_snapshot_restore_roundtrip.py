@@ -27,7 +27,14 @@ from django.contrib.auth import get_user_model
 from django.db import connection
 from django.test import TestCase, override_settings, tag
 
-from apps.academics.models import AcademicYear, Classroom, Department, Term
+from apps.academics.models import (
+    AcademicYear,
+    Attendance,
+    Classroom,
+    Department,
+    Subject,
+    Term,
+)
 from apps.finance.models import ComplianceProfile, Invoice, InvoiceLine, Payment
 from apps.lifecycle.tenant_dr_snapshot import (
     SNAPSHOT_SCHEMA_VERSION,
@@ -36,7 +43,7 @@ from apps.lifecycle.tenant_dr_snapshot import (
     verify_signature,
 )
 from apps.people.models import StudentProfile, TeacherProfile
-from apps.schools.models import School
+from apps.schools.models import School, SchoolMembership
 
 User = get_user_model()
 
@@ -170,6 +177,50 @@ class DrSnapshotRestoreRoundTripBaseTests(TestCase):
             "payment": payment,
         }
 
+    def _seed_source_school_with_access_and_academic_record(self):
+        """Config core + a school admin membership + a subject + an attendance row.
+
+        Exercises the schema-2.2 surface: schools.SchoolMembership (with its
+        remapped ``user``), academics.Subject, and academics.Attendance (whose
+        ``student`` + ``classroom`` are both in-scope remapped parents).
+        """
+        school = self._seed_source_school()
+
+        # An admin identity + the access row that lets them reach the tenant.
+        admin_user = User.objects.create_user(
+            username=f"admin-{uuid.uuid4().hex[:8]}",
+            email="head@example.test",
+            first_name="Head",
+            last_name="Teacher",
+            role=User.Role.ADMIN,
+        )
+        membership = SchoolMembership.objects.create(
+            user=admin_user,
+            school=school,
+            role="ADMIN",
+            is_primary=True,
+            is_school_owner=True,
+        )
+        subject = Subject.objects.create(school=school, name="Mathematics")
+        student = StudentProfile.objects.get(school=school)
+        classroom = Classroom.objects.get(school=school)
+        attendance = Attendance.objects.create(
+            school=school,
+            student=student,
+            classroom=classroom,
+            date="2025-09-15",
+            status=Attendance.Status.PRESENT,
+        )
+        return {
+            "school": school,
+            "admin_user": admin_user,
+            "membership": membership,
+            "subject": subject,
+            "attendance": attendance,
+            "student": student,
+            "classroom": classroom,
+        }
+
     def _purge_restorable_source_rows(self, school):
         """Model a true fresh-instance DR: after the signed snapshot is captured,
         drop the source school's restorable rows so the restore into an EMPTY
@@ -186,6 +237,10 @@ class DrSnapshotRestoreRoundTripBaseTests(TestCase):
         Deletes children before parents so each cascade's recalc never trips on a
         still-present sibling.
         """
+        # Schema-2.2 children first (Attendance references Student + Classroom).
+        Attendance.objects.filter(school=school).delete()
+        SchoolMembership.objects.filter(school=school).delete()
+        Subject.objects.filter(school=school).delete()
         Payment.objects.filter(school=school).delete()
         Invoice.objects.filter(school=school).delete()  # cascades InvoiceLine
         TeacherProfile.objects.filter(school=school).delete()
@@ -468,6 +523,111 @@ class DrSnapshotRestoreRoundTripBaseTests(TestCase):
         self.assertEqual(rep["finance.Invoice"]["created"], 0)
         self.assertEqual(rep["finance.Payment"]["updated"], 1)
         self.assertEqual(rep["finance.Payment"]["created"], 0)
+
+    # ------------------------------------------------------------------ #
+    # Schema 2.2: SchoolMembership + Subject + Attendance round-trip      #
+    # ------------------------------------------------------------------ #
+    def test_payload_carries_access_and_academic_record_rows(self):
+        seed = self._seed_source_school_with_access_and_academic_record()
+        meta = capture_daily_snapshot(seed["school"])
+        restored = restore_from_snapshot(
+            Path(meta["primary_uri"]),
+            school_id=str(seed["school"].pk),
+            expected_sig=meta["signature_hex"],
+            target_school=seed["school"],  # idempotent re-apply onto same tenant
+        )
+        self.assertEqual(restored["schema_version"], SNAPSHOT_SCHEMA_VERSION)
+        tables = restored["tables"]
+        self.assertEqual(len(tables["schools.SchoolMembership"]), 1)
+        self.assertEqual(len(tables["academics.Subject"]), 1)
+        self.assertEqual(len(tables["academics.Attendance"]), 1)
+        # The admin User behind the membership is captured (so it can remap).
+        usernames = {r["fields"]["username"] for r in tables["accounts.User"]}
+        self.assertIn(seed["admin_user"].username, usernames)
+        # Real field data, not counts.
+        self.assertEqual(tables["academics.Subject"][0]["fields"]["name"], "Mathematics")
+        self.assertTrue(
+            tables["schools.SchoolMembership"][0]["fields"]["is_school_owner"]
+        )
+        self.assertEqual(
+            tables["academics.Attendance"][0]["fields"]["status"], "present"
+        )
+
+    def test_restore_materializes_access_and_academic_record_into_fresh_target(self):
+        seed = self._seed_source_school_with_access_and_academic_record()
+        source = seed["school"]
+        src_username = seed["admin_user"].username
+        src_password = seed["admin_user"].password
+
+        meta = capture_daily_snapshot(source)
+        self._purge_restorable_source_rows(source)
+
+        target_slug = f"tgt-{uuid.uuid4().hex[:10]}"
+        target = School.objects.create(
+            name="Recovered Access", slug=target_slug, subdomain=target_slug
+        )
+        self.assertEqual(SchoolMembership.objects.filter(school=target).count(), 0)
+        self.assertEqual(Attendance.objects.filter(school=target).count(), 0)
+
+        result = restore_from_snapshot(
+            Path(meta["primary_uri"]),
+            school_id=str(source.pk),
+            expected_sig=meta["signature_hex"],
+            target_school=target,
+        )
+
+        # Access row materialized under the target — the admin can reach the tenant.
+        self.assertEqual(SchoolMembership.objects.filter(school=target).count(), 1)
+        tgt_membership = SchoolMembership.objects.get(school=target)
+        self.assertEqual(tgt_membership.user.username, src_username)
+        # User identity (incl. password hash) preserved for the restored admin.
+        self.assertEqual(tgt_membership.user.password, src_password)
+        self.assertTrue(tgt_membership.is_school_owner)
+        self.assertEqual(tgt_membership.role, "ADMIN")
+
+        # Subject catalog + attendance history materialized under the target.
+        self.assertEqual(Subject.objects.filter(school=target).count(), 1)
+        self.assertEqual(Subject.objects.get(school=target).name, "Mathematics")
+
+        self.assertEqual(Attendance.objects.filter(school=target).count(), 1)
+        tgt_att = Attendance.objects.get(school=target)
+        self.assertEqual(tgt_att.status, Attendance.Status.PRESENT)
+        self.assertEqual(str(tgt_att.date), "2025-09-15")
+        # Both FKs remapped to the freshly restored parents under the target.
+        self.assertEqual(tgt_att.student, StudentProfile.objects.get(school=target))
+        self.assertEqual(tgt_att.classroom, Classroom.objects.get(school=target))
+
+        # Restore report is honest about creations.
+        rep = result["restored"]["tables"]
+        self.assertEqual(rep["schools.SchoolMembership"]["created"], 1)
+        self.assertEqual(rep["academics.Subject"]["created"], 1)
+        self.assertEqual(rep["academics.Attendance"]["created"], 1)
+
+    def test_restore_access_and_academic_record_is_idempotent(self):
+        seed = self._seed_source_school_with_access_and_academic_record()
+        source = seed["school"]
+        meta = capture_daily_snapshot(source)
+        self._purge_restorable_source_rows(source)
+        target_slug = f"tgt-{uuid.uuid4().hex[:10]}"
+        target = School.objects.create(
+            name="Recovered Access Twice", slug=target_slug, subdomain=target_slug
+        )
+        kwargs = dict(
+            school_id=str(source.pk),
+            expected_sig=meta["signature_hex"],
+            target_school=target,
+        )
+        restore_from_snapshot(Path(meta["primary_uri"]), **kwargs)
+        second = restore_from_snapshot(Path(meta["primary_uri"]), **kwargs)
+
+        self.assertEqual(SchoolMembership.objects.filter(school=target).count(), 1)
+        self.assertEqual(Subject.objects.filter(school=target).count(), 1)
+        self.assertEqual(Attendance.objects.filter(school=target).count(), 1)
+        rep = second["restored"]["tables"]
+        self.assertEqual(rep["schools.SchoolMembership"]["updated"], 1)
+        self.assertEqual(rep["schools.SchoolMembership"]["created"], 0)
+        self.assertEqual(rep["academics.Attendance"]["updated"], 1)
+        self.assertEqual(rep["academics.Attendance"]["created"], 0)
 
     def test_tampered_blob_fails_closed_before_any_write(self):
         source = self._seed_source_school()
