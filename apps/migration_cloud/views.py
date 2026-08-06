@@ -2647,9 +2647,11 @@ class MigrationCloudCanonicalTemplateView(LoginRequiredMixin, View):
     ``apps.migration_cloud.accelerators.runmycampus_canonical`` then
     short-circuits classification + mapping for the resulting bundle.
 
-    Two routes:
-        GET /…/template/                — zip of all 20 canonical-domain CSVs
-        GET /…/template/<domain>.csv    — single domain CSV (headers only)
+    Routes:
+        GET /…/template/                — zip of every canonical-domain CSV (+ README)
+        GET /…/template/?format=xlsx    — one Excel workbook covering every domain
+        GET /…/template/<domain>.csv    — single-domain CSV (headers + version marker)
+        GET /…/template/<domain>.xlsx   — single-domain Excel (Data + Instructions sheets)
 
     No tenant data is touched — this is a static template generator. Auth
     is required to gate against scraping the canonical schema.
@@ -2882,6 +2884,47 @@ _CANONICAL_SAMPLE_VALUES: dict[str, dict[str, str]] = {
         "status": "complete", "due_date": "2026-07-15",
         "completed_date": "2026-07-08", "notes": "Renewed",
     },
+    "structure": {
+        "academic_year": "2026/2027", "year_start": "2026-09-01", "year_end": "2027-07-15",
+        "year_is_active": "true", "term": "First", "term_label": "First Term",
+        "term_position": "1", "term_start": "2026-09-01", "term_end": "2026-12-18",
+        "department": "Sciences", "specialty": "General", "classroom": "Form 4A",
+        "subject": "Mathematics", "coefficient": "4", "teacher_ref": "STF-001",
+        "teacher_first_name": "Amina", "teacher_last_name": "Okoro",
+        "teacher_email": "amina.okoro@example.edu",
+    },
+    "academics": {
+        "subject_code": "MATH-101", "subject_name": "Mathematics", "code": "SCI",
+        "name": "Sciences", "department": "Sciences", "credits": "4",
+    },
+    "transport_assignments": {
+        "student_external_id": "STD-001", "route": "Route 4", "stop": "Oak Lane & Main",
+        "pickup_time": "07:25", "dropoff_time": "15:40",
+    },
+    "hostel_assignments": {
+        "student_external_id": "STD-001", "hostel": "Unity House", "room": "B-204",
+        "checkin_date": "2026-08-18", "checkout_date": "",
+    },
+    "cafeteria_assignments": {
+        "student_external_id": "STD-001", "meal_plan": "standard", "balance": "85.00",
+        "currency": "USD", "dietary_notes": "vegetarian",
+    },
+    "athletics_teams": {
+        "team_name": "Senior Football", "sport": "Football", "season": "2026/2027",
+        "gender": "mixed", "level": "senior", "home_venue": "Main Field",
+        "roster_cap": "22", "status": "active",
+    },
+    "athletics_memberships": {
+        "student_external_id": "STD-001", "team_name": "Senior Football",
+        "position": "Midfielder", "jersey_number": "8", "joined_date": "2026-09-05",
+        "status": "active",
+    },
+    "athletics_fixtures": {
+        "team_name": "Senior Football", "opponent_name": "Riverside Academy",
+        "fixture_type": "league", "venue": "Main Field",
+        "scheduled_start": "2026-10-03T15:00:00Z", "scheduled_end": "2026-10-03T16:45:00Z",
+        "home_score": "2", "away_score": "1", "status": "completed",
+    },
 }
 
 
@@ -2898,26 +2941,22 @@ def _canonical_sample_row(domain: str, sorted_headers: list[str]) -> str:
 
 
 def _canonical_template_csv(domain: str, headers: set[str]) -> str:
-    """Render a single canonical-domain CSV (headers + a commented example row).
+    """Render a single canonical-domain CSV (headers only, no data rows).
 
     Headers are sorted alphabetically for stability across releases so
     diff-tools work cleanly when operators version their filled-in
-    templates. A leading commented row carries the canonical-template
-    contract version so future schema bumps are detectable. When sample
-    values exist for the domain, a second ``#``-commented row shows one
-    filled-in example — the intake profiler skips ``#``-comment lines, so the
-    example round-trips safely (it is never mistaken for real data on upload).
+    templates. A leading ``#``-commented row carries the canonical-template
+    contract version so future schema bumps are detectable; the intake profiler
+    AND the apply-path CSV reader both skip leading ``#``-comment/blank lines, so
+    a filled-in template round-trips (the marker never becomes the header row).
+    A worked example per column lives on the XLSX Instructions sheet — never in
+    the CSV data region, where it would be read back as a bogus record.
     """
     sorted_headers = sorted(headers)
-    out = (
+    return (
         f"# runmycampus-canonical-template: domain={domain} version=1.0\n"
         + ",".join(sorted_headers) + "\n"
     )
-    values = _CANONICAL_SAMPLE_VALUES.get(domain)
-    if values:
-        example = ",".join(values.get(h, "") for h in sorted_headers)
-        out += f"# example (delete this line before upload): {example}\n"
-    return out
 
 
 def _canonical_field_guidance(domain: str, sorted_headers: list[str]) -> list[dict[str, str]]:

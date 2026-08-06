@@ -24,16 +24,33 @@ from apps.schools.models import School
 BLUEPRINT = "private-primary-school"
 
 
-def _post(school, user, installation_id):
-    request = RequestFactory().post(
-        f"/school/setup/blueprints/installations/{installation_id}/rollback/",
-        {"confirm": "yes"},
-    )
+def _mk(request, school, user):
     request.school = school
     request.user = user
     request.session = SessionStore()
     request._messages = FallbackStorage(request)
     return request
+
+
+def _post(school, user, installation_id):
+    return _mk(
+        RequestFactory().post(
+            f"/school/setup/blueprints/installations/{installation_id}/rollback/",
+            {"confirm": "yes"},
+        ),
+        school,
+        user,
+    )
+
+
+def _get(school, user, installation_id):
+    return _mk(
+        RequestFactory().get(
+            f"/school/setup/blueprints/installations/{installation_id}/rollback/"
+        ),
+        school,
+        user,
+    )
 
 
 @override_settings(ROOT_URLCONF="config.tenant_urls")
@@ -92,3 +109,27 @@ class TenantBlueprintRollbackViewTests(TestCase):
         self.assertIsInstance(resp, HttpResponseForbidden)
         installation.refresh_from_db()
         self.assertEqual(installation.status, BlueprintInstallation.Status.APPLIED)
+
+    def test_get_redirects_without_side_effect(self):
+        installation = self._apply(self.school)
+        resp = tenant_blueprint_rollback(
+            _get(self.school, self.admin, installation.id), installation.id
+        )
+        self.assertEqual(resp.status_code, 302)
+        installation.refresh_from_db()
+        self.assertEqual(installation.status, BlueprintInstallation.Status.APPLIED)
+
+    def test_rolling_back_a_non_applied_installation_flashes_error(self):
+        installation = self._apply(self.school)
+        # First rollback succeeds (APPLIED -> ROLLED_BACK).
+        tenant_blueprint_rollback(_post(self.school, self.admin, installation.id), installation.id)
+        installation.refresh_from_db()
+        self.assertEqual(installation.status, BlueprintInstallation.Status.ROLLED_BACK)
+        # A second rollback hits the "only applied can be rolled back" error branch:
+        # the view must still 302 (flash an error), never 500.
+        resp = tenant_blueprint_rollback(
+            _post(self.school, self.admin, installation.id), installation.id
+        )
+        self.assertEqual(resp.status_code, 302)
+        installation.refresh_from_db()
+        self.assertEqual(installation.status, BlueprintInstallation.Status.ROLLED_BACK)

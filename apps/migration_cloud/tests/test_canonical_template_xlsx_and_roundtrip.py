@@ -59,15 +59,47 @@ class ProfilerSkipsCommentLinesTests(SimpleTestCase):
         self.assertEqual(rows, [["1", "Ada"]])
 
 
-class CanonicalTemplateCsvExampleTests(SimpleTestCase):
-    def test_csv_keeps_header_contract_and_adds_commented_example(self):
+class CanonicalTemplateCsvContractTests(SimpleTestCase):
+    def test_csv_is_marker_line_plus_sorted_headers_only(self):
         text = _canonical_template_csv("students", DOMAIN_CANONICAL_HEADERS["students"])
         lines = text.splitlines()
-        # Contract preserved: comment line 0, headers line 1 (sorted).
+        # Contract: comment marker line 0, headers line 1 (sorted), nothing else.
         self.assertTrue(lines[0].startswith("# runmycampus-canonical-template:"))
         self.assertEqual(lines[1].split(","), sorted(lines[1].split(",")))
-        # Example row present and commented out (skip-safe on re-upload).
-        self.assertTrue(any(ln.startswith("# example") for ln in lines))
+        # No data region at all — and crucially no post-header '#' line (which the
+        # apply reader would otherwise land as a bogus record).
+        self.assertEqual(len(lines), 2)
+
+
+class OrchestratorRoundTripTests(SimpleTestCase):
+    """The apply reader — not just the profiler — must skip the marker line."""
+
+    def test_apply_reader_skips_marker_and_reads_the_real_headers(self):
+        import csv
+
+        from apps.migration_cloud.orchestrator import _strip_leading_comment_lines
+
+        headers = DOMAIN_CANONICAL_HEADERS["students"]
+        sorted_headers = sorted(headers)
+        # A school downloads the template (marker + headers) and fills in a row.
+        filled = _canonical_template_csv("students", headers) + ",".join(
+            f"v_{h}" for h in sorted_headers
+        ) + "\n"
+        reader = csv.DictReader(_strip_leading_comment_lines(io.StringIO(filled)))
+        self.assertEqual(reader.fieldnames, sorted_headers)
+        rows = list(reader)
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0][sorted_headers[0]], f"v_{sorted_headers[0]}")
+
+    def test_data_value_starting_with_hash_is_not_dropped(self):
+        import csv
+
+        from apps.migration_cloud.orchestrator import _strip_leading_comment_lines
+
+        text = "# runmycampus-canonical-template: domain=x version=1.0\nid,name\n#4501,Ada\n7,Zoe\n"
+        rows = list(csv.DictReader(_strip_leading_comment_lines(io.StringIO(text))))
+        self.assertEqual(len(rows), 2)
+        self.assertEqual(rows[0]["id"], "#4501")  # a '#' data value survives
 
 
 class CanonicalTemplateXlsxTests(SimpleTestCase):
@@ -103,6 +135,18 @@ class CanonicalTemplateXlsxTests(SimpleTestCase):
         self.assertIn("Instructions", wb.sheetnames)
         # One data sheet per domain (plus the Instructions overview).
         self.assertGreaterEqual(len(wb.sheetnames), len(DOMAIN_CANONICAL_HEADERS))
+
+    def test_previously_blank_domain_now_has_examples(self):
+        """The 8 header-only domains (e.g. athletics) had blank Example cells."""
+        from openpyxl import load_workbook
+
+        data = _canonical_template_xlsx(
+            "athletics_teams", DOMAIN_CANONICAL_HEADERS["athletics_teams"]
+        )
+        info = load_workbook(io.BytesIO(data))["Instructions"]
+        examples = {row[0].value: row[3].value for row in info.iter_rows(min_row=2)}
+        self.assertTrue(examples.get("sport"), "athletics_teams example still blank")
+        self.assertTrue(examples.get("team_name"))
 
 
 class CanonicalTemplateXlsxRouteTests(SimpleTestCase):

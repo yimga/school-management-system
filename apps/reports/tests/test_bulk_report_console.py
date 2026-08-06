@@ -289,3 +289,145 @@ class BulkReportGroupingTests(TestCase):
             {"academic_year_id": 999999, "term_id": 999999},
         )
         self.assertFalse(result["ok"])
+
+
+class BulkReportViewTests(TestCase):
+    """View-layer coverage for the 4 bulk views — RBAC, ledger, offline messaging.
+
+    RequestFactory + a superuser (bypasses ``@require_permission``); the heavy
+    generate/print/distribute functions are mocked at the boundary so these
+    exercise the VIEW logic (batch ledger creation, redirects, the offline
+    QUEUED→COMPLETED message, the school=None guard) — the offline-first
+    differentiator that otherwise had zero end-to-end coverage.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.school = School.objects.create(
+            name="Bulk View School", slug="bulk-view-school",
+            subdomain="bulk-view-school", country_code="CM", is_active=True,
+        )
+        cls.year = AcademicYear.objects.create(
+            school=cls.school, name="2025/2026",
+            start_date=date(2025, 9, 1), end_date=date(2026, 7, 31), is_active=True,
+        )
+        cls.term = Term.objects.create(
+            school=cls.school, academic_year=cls.year, name=Term.Name.FIRST,
+            position=1, start_date=date(2025, 9, 1), end_date=date(2025, 12, 15),
+            is_active=True,
+        )
+        # A shared (school=None) year/term so the school=None guard is reachable.
+        cls.shared_year = AcademicYear.objects.create(
+            name="Shared 2025/2026", start_date=date(2025, 9, 1),
+            end_date=date(2026, 7, 31), is_active=True,
+        )
+        cls.shared_term = Term.objects.create(
+            academic_year=cls.shared_year, name=Term.Name.FIRST, position=1,
+            start_date=date(2025, 9, 1), end_date=date(2025, 12, 15), is_active=True,
+        )
+        cls.admin = User.objects.create_superuser(
+            username="bulk_view_admin", email="bv@example.com", password="x",
+        )
+
+    def _req(self, method, data=None, *, school="__self__"):
+        from django.contrib.messages.storage.fallback import FallbackStorage
+        from django.contrib.sessions.backends.db import SessionStore
+        from django.test import RequestFactory
+
+        req = getattr(RequestFactory(), method)("/reports/bulk/", data or {})
+        req.school = self.school if school == "__self__" else school
+        req.user = self.admin
+        req.session = SessionStore()
+        req._messages = FallbackStorage(req)
+        return req
+
+    def _data(self, **extra):
+        return {"year": str(self.year.id), "term": str(self.term.id), **extra}
+
+    def test_generate_view_creates_ledger_and_redirects(self):
+        from apps.reports import views as reports_views
+        from apps.reports.bulk_generation import BulkReportResult
+
+        fake = BulkReportResult(generated=3, skipped=1, students=4)
+        with mock.patch(
+            "apps.reports.bulk_generation.generate_term_report_cards", return_value=fake
+        ):
+            resp = reports_views.bulk_report_generate(self._req("post", self._data()))
+        self.assertEqual(resp.status_code, 302)
+        batch = ReportCardBatch.objects.filter(action=ReportCardBatch.Action.GENERATE).first()
+        self.assertIsNotNone(batch)
+        self.assertEqual(batch.included_count, 3)
+        self.assertEqual(batch.status, ReportCardBatch.Status.COMPLETED)
+
+    def test_print_view_returns_pdf(self):
+        from apps.reports import views as reports_views
+        from apps.reports.bulk_print import GroupPrintResult
+
+        with mock.patch(
+            "apps.reports.bulk_print.build_group_report_pdf",
+            return_value=(b"%PDF-1.4 merged", GroupPrintResult(included=2)),
+        ):
+            resp = reports_views.bulk_report_print(self._req("get", self._data(format="pdf")))
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp["Content-Type"], "application/pdf")
+        self.assertIn(".pdf", resp["Content-Disposition"])
+        self.assertTrue(ReportCardBatch.objects.filter(action=ReportCardBatch.Action.PRINT).exists())
+
+    def test_print_view_returns_zip(self):
+        from apps.reports import views as reports_views
+        from apps.reports.bulk_print import GroupPrintResult
+
+        with mock.patch(
+            "apps.reports.bulk_print.build_group_report_zip",
+            return_value=(b"PKzipbytes", GroupPrintResult(included=1)),
+        ):
+            resp = reports_views.bulk_report_print(self._req("get", self._data(format="zip")))
+        self.assertEqual(resp["Content-Type"], "application/zip")
+        self.assertIn(".zip", resp["Content-Disposition"])
+
+    def test_print_view_empty_group_redirects_with_warning(self):
+        from apps.reports import views as reports_views
+        from apps.reports.bulk_print import GroupPrintResult
+
+        with mock.patch(
+            "apps.reports.bulk_print.build_group_report_pdf",
+            return_value=(b"", GroupPrintResult(included=0)),
+        ):
+            resp = reports_views.bulk_report_print(self._req("get", self._data()))
+        self.assertEqual(resp.status_code, 302)  # redirect back, no file
+
+    def test_share_view_enqueues_and_completes_when_online(self):
+        from apps.reports import views as reports_views
+        from apps.platform_runtime.models import OfflineAction
+
+        with mock.patch(
+            "apps.reports.bulk_distribution.distribute_report_batch",
+            return_value={"ok": True, "students": 5, "notified": 5},
+        ):
+            resp = reports_views.bulk_report_share(self._req("post", self._data()))
+        self.assertEqual(resp.status_code, 302)
+        batch = ReportCardBatch.objects.filter(action=ReportCardBatch.Action.SHARE).first()
+        self.assertIsNotNone(batch)
+        # An offline action was durably enqueued...
+        action = OfflineAction.objects.filter(
+            school=self.school, action_type="report_batch.distribute"
+        ).first()
+        self.assertIsNotNone(action, "share did not enqueue the offline distribute action")
+        # ...and the inline drain (online) completed it.
+        batch.refresh_from_db()
+        self.assertEqual(batch.status, ReportCardBatch.Status.COMPLETED)
+
+    def test_share_view_forbidden_without_tenant_school(self):
+        from apps.reports import views as reports_views
+
+        # school=None but a shared year/term resolves → hits the school-context guard.
+        resp = reports_views.bulk_report_share(
+            self._req(
+                "post",
+                {"year": str(self.shared_year.id), "term": str(self.shared_term.id)},
+                school=None,
+            )
+        )
+        from django.http import HttpResponseForbidden
+
+        self.assertIsInstance(resp, HttpResponseForbidden)

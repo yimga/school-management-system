@@ -706,6 +706,29 @@ def _iter_csv_rows(
         yield from _iter_csv_rows_stream(fh, mapping_index, locale_hints)
 
 
+def _strip_leading_comment_lines(fh: Any) -> Iterator[str]:
+    """Yield lines from ``fh``, dropping ONLY leading blank + ``#``-comment lines.
+
+    The RunMyCampus canonical template ships a leading
+    ``# runmycampus-canonical-template: ...`` marker line. Without dropping it,
+    ``csv.DictReader`` takes that comment as the sole fieldname and every real
+    row misroutes to quarantine on apply — so a school that downloaded a
+    template, filled it in and re-uploaded it lost its data at import (the
+    profiler was fixed but this apply-path reader was not). Only LEADING lines
+    are dropped; once real content starts, every row is yielded unchanged, so a
+    data value that begins with ``#`` is never lost and quoted newlines still
+    reassemble (csv pulls more lines from this iterator inside a quote).
+    """
+    header_seen = False
+    for line in fh:
+        if not header_seen:
+            stripped = line.strip()
+            if not stripped or stripped.startswith("#"):
+                continue
+            header_seen = True
+        yield line
+
+
 def _iter_csv_rows_stream(
     fh: Any,
     mapping_index: dict[str, dict[str, Any]],
@@ -718,7 +741,7 @@ def _iter_csv_rows_stream(
         dialect = csv.Sniffer().sniff(sample, delimiters=",;\t|")
     except csv.Error:
         dialect = csv.excel
-    reader = csv.DictReader(fh, dialect=dialect)
+    reader = csv.DictReader(_strip_leading_comment_lines(fh), dialect=dialect)
     for raw_row in reader:
         yield _transform_row(raw_row, mapping_index, locale_hints)
 

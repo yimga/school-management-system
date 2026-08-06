@@ -249,7 +249,7 @@ def _build_catalog() -> list[SettingsCategory]:
                 SettingsEntry("Import data",
                               "Bring students, staff and grades in from another system.",
                               "bi-box-arrow-in-down",
-                              _try_url("tenant_import_setup"),
+                              _try_url("school_setup_imports"),
                               "import migration csv template data"),
             ],
         ),

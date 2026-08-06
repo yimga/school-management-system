@@ -417,16 +417,18 @@ def _read_csv_like(stream: IO[bytes], encoding: str) -> tuple[list[list[Any]], l
     headers: list[str] = []
     data_seen = 0
     for row in reader:
-        # Skip blank lines and '#'-comment lines BEFORE picking the header row.
-        # The canonical template the platform hands tenants ships a leading
-        # '# runmycampus-canonical-template: ...' line (and may carry a '#'-example
-        # row); reading row 0 unconditionally made a filled-in template round-trip
-        # with that comment as its ONLY column and the real headers demoted to data.
-        if not row or not any(str(c).strip() for c in row):
-            continue
-        if str(row[0]).lstrip().startswith("#"):
-            continue
         if not headers:
+            # Skip blank + '#'-comment lines ONLY before the header row. The
+            # canonical template ships a leading '# runmycampus-canonical-template:'
+            # marker; reading row 0 unconditionally made a filled-in template
+            # round-trip with that comment as its ONLY column and the real headers
+            # demoted to data. Restricting the skip to the pre-header region means a
+            # legitimate DATA value that starts with '#' (e.g. an issue ref) is never
+            # dropped from the sample.
+            if not row or not any(str(c).strip() for c in row):
+                continue
+            if str(row[0]).lstrip().startswith("#"):
+                continue
             headers = [str(c).strip() for c in row]
             continue
         if data_seen >= _SAMPLE_ROWS:

@@ -545,6 +545,7 @@ TENANT_CONFIGURATION_SECTIONS: tuple[dict[str, str], ...] = (
     {"name": "Classes / Subjects", "status": "", "missing": "", "route_name": "academics:hub", "primary_action": "Open academic structure", "permission": "settings.manage", "probe": "classes"},
     {"name": "Grading Rules", "status": "", "missing": "", "route_name": "siteconfig:grading_settings", "primary_action": "Open grading rules", "permission": "grades.manage", "probe": "grading"},
     {"name": "Report Templates", "status": "", "missing": "", "route_name": "siteconfig:reportcard_builder", "primary_action": "Open report builder", "permission": "reports.manage", "probe": "reports"},
+    {"name": "Report Cards (bulk)", "status": "", "missing": "", "route_name": "reports:bulk_report_console", "primary_action": "Generate, print & share report cards", "permission": "reports.manage", "probe": "reports"},
     {"name": "Fees", "status": "", "missing": "", "route_name": "finance:dashboard", "primary_action": "Open money center", "permission": "finance.view", "probe": "fees"},
     {"name": "Roles / Permissions", "status": "", "missing": "", "route_name": "accounts:rbac", "primary_action": "Open roles & permissions", "permission": "settings.manage", "probe": "roles"},
     {"name": "Parent Portal", "status": "", "missing": "", "route_name": "portal:parent_dashboard", "primary_action": "Open parent portal preview", "permission": "portal.manage", "probe": "portal"},
@@ -563,6 +564,8 @@ TENANT_CONFIGURATION_SECTIONS: tuple[dict[str, str], ...] = (
         "probe": "branding",
     },
     {"name": "Security / Audit", "status": "", "missing": "", "route_name": "compliance:dashboard", "primary_action": "Open school audit", "permission": "compliance.view", "probe": "audit"},
+    {"name": "Notifications", "status": "", "missing": "", "route_name": "siteconfig:scheduled_reports_delivery_hub", "primary_action": "Open notifications & scheduled delivery", "permission": "settings.manage", "probe": "portal"},
+    {"name": "Integrations", "status": "", "missing": "", "route_name": "integrations_marketplace:hub", "primary_action": "Open integrations marketplace", "permission": "settings.manage", "probe": "apps"},
     {"name": "Portal Settings Hub", "status": "", "missing": "", "route_name": "portal_configure", "primary_action": "Open portal configuration hub", "permission": "settings.manage", "probe": "portal"},
 )
 
