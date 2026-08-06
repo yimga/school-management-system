@@ -522,6 +522,58 @@ def list_blueprints(*, tenant_safe_only: bool = False) -> list[dict[str, Any]]:
     return rows
 
 
+def rank_blueprints_for_school(
+    school, *, tenant_safe_only: bool = False
+) -> list[dict[str, Any]]:
+    """Return blueprints ordered by fit for the school's country / region.
+
+    The bare listing was region-blind — a Cameroon school and a US school saw
+    the identical, unranked catalog even though each blueprint declares a
+    ``region`` and ``regional_overlays``. This ranks region-matched blueprints
+    first (country == region, or country present in the blueprint's regional
+    overlays), then global baselines, and annotates each row with ``fit_score``
+    / ``fit_reasons`` / ``fit_label`` so the setup surface can badge the best
+    match. Non-destructive: it only sorts + annotates the existing rows.
+    """
+    country = str(getattr(school, "country_code", "") or "").strip().upper()
+    region_code = str(getattr(school, "default_region_id", "") or "").strip().upper()
+    rows = list_blueprints(tenant_safe_only=tenant_safe_only)
+    for row in rows:
+        bp_region = str(row.get("region") or "").strip().upper()
+        overlays = {
+            str(code or "").strip().upper()
+            for code in (row.get("regional_overlays") or [])
+            if str(code or "").strip()
+        }
+        score = 0
+        reasons: list[str] = []
+        if country and bp_region and country == bp_region:
+            score += 40
+            reasons.append(f"Matched to your country ({country})")
+        elif country and country in overlays:
+            score += 30
+            reasons.append(f"Regional overlay for {country}")
+        elif region_code and (region_code == bp_region or region_code in overlays):
+            score += 25
+            reasons.append(f"Matched to your region ({region_code})")
+        if bp_region in ("", "GLOBAL"):
+            score += 5
+            if not reasons:
+                reasons.append("Works in any region")
+        row["fit_score"] = score
+        row["fit_reasons"] = reasons
+        row["fit_label"] = (
+            "Best match" if score >= 40 else ("Recommended" if score >= 20 else "General")
+        )
+    rows.sort(
+        key=lambda r: (
+            -int(r.get("fit_score", 0)),
+            str(r.get("name") or r.get("key") or "").lower(),
+        )
+    )
+    return rows
+
+
 def get_blueprint(key: str) -> BlueprintContract | None:
     normalized = (key or "").strip().lower()
     return next((bp for bp in BASELINE_BLUEPRINTS if bp.key == normalized), None)

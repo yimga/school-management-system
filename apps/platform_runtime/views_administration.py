@@ -21,7 +21,11 @@ from apps.platform_runtime.administration_catalog import (
     resolved_registry_rows,
 )
 from apps.platform_runtime.blueprint_apply import apply_blueprint
-from apps.platform_runtime.blueprint_contract import get_blueprint, list_blueprints
+from apps.platform_runtime.blueprint_contract import (
+    get_blueprint,
+    list_blueprints,
+    rank_blueprints_for_school,
+)
 from apps.platform_runtime.blueprint_impact import analyze_blueprint_impact
 from apps.platform_runtime.blueprint_preview import preview_blueprint
 from apps.platform_runtime.readiness_meters import (
@@ -650,7 +654,9 @@ def tenant_blueprint_setup(request):
     school = getattr(request, "school", None)
     if school is None or not tenant_operator_hub_eligible(request.user):
         return HttpResponseForbidden("Tenant school configuration access required.")
-    blueprints = list_blueprints(tenant_safe_only=True)
+    # Rank by fit for THIS school's country/region so the region-appropriate
+    # blueprint sorts first and becomes the default selection (was region-blind).
+    blueprints = rank_blueprints_for_school(school, tenant_safe_only=True)
     selected_key = (
         request.POST.get("blueprint") or request.GET.get("blueprint") or blueprints[0]["key"]
     ).strip()
