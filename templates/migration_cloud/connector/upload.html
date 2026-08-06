@@ -46,6 +46,19 @@ tenant host, since the connector namespace is nested under super/portal too).
   </form>
 </section>
 
+{% if template_picker_url %}
+<section class="rmc-card mb-4" aria-labelledby="mc-template-heading">
+  <h3 id="mc-template-heading" class="h6 mb-2">{% trans "Don't have an export from another system?" %}</h3>
+  <p class="small text-muted mb-3">
+    {% trans "Download our ready-made templates, fill in the columns you have (leave the rest blank), and upload them here. Each template uses the exact column names and roles the platform expects — students, staff, guardians, grades, fees and more — so your data lines up automatically." %}
+  </p>
+  <div class="d-flex gap-2 flex-wrap">
+    <a class="btn btn-outline-primary btn-sm" href="{{ template_picker_url }}">{% trans "Preview the templates" %}</a>
+    {% if template_zip_url %}<a class="btn btn-outline-secondary btn-sm" href="{{ template_zip_url }}">{% trans "Download all templates (ZIP)" %}</a>{% endif %}
+  </div>
+</section>
+{% endif %}
+
 <section class="rmc-card" aria-labelledby="mc-detect-heading">
   <h3 id="mc-detect-heading" class="h6 text-muted">{% trans "What we detect automatically" %}</h3>
   <ul class="small text-muted mb-0">

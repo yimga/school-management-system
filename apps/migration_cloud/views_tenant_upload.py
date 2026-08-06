@@ -79,6 +79,38 @@ _ACCEPTED_UPLOAD_EXTENSIONS = (
 )
 
 
+def _canonical_template_urls(request) -> dict[str, str]:
+    """Resolve the canonical-template picker + zip URLs for the current host.
+
+    The template routes live under the portal/super namespaces (not the connector
+    wizard's), so we resolve defensively across the namespaces a given host may
+    expose and fall through to empty strings — the upload template only shows the
+    "use our templates" panel when a URL is present, so a host without the routes
+    simply omits it (never a NoReverseMatch 500). This surfaces the ready-made
+    import templates to self-serve tenants, who previously could only reach them
+    from the operator intake page.
+    """
+    from django.urls import NoReverseMatch, reverse
+
+    out: dict[str, str] = {"template_picker_url": "", "template_zip_url": ""}
+    resolvers = (
+        ("template_picker_url", "canonical_template_picker"),
+        ("template_zip_url", "canonical_template_zip"),
+    )
+    for key, name in resolvers:
+        for namespace in (
+            "migration_cloud_portal",
+            "migration_cloud_super",
+            "migration_cloud_connector",
+        ):
+            try:
+                out[key] = reverse(f"{namespace}:{name}")
+                break
+            except NoReverseMatch:
+                continue
+    return out
+
+
 def _persist_uploads(files) -> tuple[list[str], list[str]]:
     """Stream uploads to durable MEDIA storage; return ``(paths, sha256s)``.
 
@@ -430,13 +462,15 @@ class TenantMigrationUploadView(_TenantAdminWriteRequiredMixin, View):
     template_name = "migration_cloud/connector/upload.html"
 
     def _base_context(self, request, school):
-        return {
+        ctx = {
             "page_title": "Upload & auto-import",
             "school": school,
             "accepted_extensions": ", ".join(_ACCEPTED_UPLOAD_EXTENSIONS),
             "domain_choices": canonical_domain_choices(),
             "cancel_url": _connector_reverse(request, "connector-home"),
         }
+        ctx.update(_canonical_template_urls(request))
+        return ctx
 
     def get(self, request):
         school = _request_school(request)
