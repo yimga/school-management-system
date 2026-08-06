@@ -2280,3 +2280,93 @@ def retry_bank_verification_task(
         totals["still_pending"] += result.get("still_pending", 0) or 0
         totals["errors"] += result.get("errors", 0) or 0
     return totals
+
+
+def _run_settlement_reconciliation_body(
+    period_start, period_end, dry_run: bool
+) -> dict:
+    """Inner body: reconcile the current tenant schema. Runs in tenant context."""
+    from apps.finance.reconciliation import run_settlement_reconciliation
+
+    execution_log = AutomationExecutionLog.objects.create(
+        task_name="finance.run_settlement_reconciliation",
+        execution_type=AutomationExecutionLog.ExecutionType.DRY_RUN
+        if dry_run
+        else AutomationExecutionLog.ExecutionType.SCHEDULED,
+        status=AutomationExecutionLog.Status.PENDING,
+    )
+    try:
+        result = run_settlement_reconciliation(
+            period_start=period_start, period_end=period_end, dry_run=dry_run
+        )
+        execution_log.mark_completed(
+            AutomationExecutionLog.Status.SUCCESS,
+            records_processed=result.get("written", 0),
+            records_failed=result.get("discrepancies", 0),
+            summary={
+                "period_start": result.get("period_start"),
+                "period_end": result.get("period_end"),
+                "groups": result.get("groups", 0),
+                "discrepancies": result.get("discrepancies", 0),
+                "dry_run": dry_run,
+            },
+        )
+        return result
+    except FINANCE_TASK_SOFT_FAILURES as e:
+        logger.exception("run_settlement_reconciliation_task failed")
+        execution_log.mark_completed(
+            AutomationExecutionLog.Status.FAILED,
+            error_message=str(e),
+        )
+        raise
+
+
+@shared_task(bind=True, name="finance.run_settlement_reconciliation")
+def run_settlement_reconciliation_task(
+    self,
+    period_start: str | None = None,
+    period_end: str | None = None,
+    dry_run: bool = False,
+    school_id: str | None = None,
+) -> dict:
+    """Roll up recorded payments into PaymentReconciliation per (region, method,
+    period) and flag gateway collections lacking a settlement id. RECORDING ONLY
+    — never moves money, never calls a PSP, never mutates a Payment. Runs in
+    tenant context (per school_id or all active schools). period_start/end are
+    ISO date strings (YYYY-MM-DD); omit for the previous calendar month.
+    Operators can disable the beat via RMC_FINANCE_RECONCILIATION_DISABLED=1."""
+    import os
+
+    if os.environ.get("RMC_FINANCE_RECONCILIATION_DISABLED", "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+    }:
+        return {"skipped": "disabled", "written": 0, "discrepancies": 0}
+
+    if school_id:
+        return _run_with_tenant_context(
+            school_id=school_id,
+            runnable=lambda: _run_settlement_reconciliation_body(
+                period_start, period_end, dry_run
+            ),
+        )
+    totals = {
+        "groups": 0,
+        "written": 0,
+        "discrepancies": 0,
+        "schools": 0,
+        "dry_run": dry_run,
+    }
+    for sid in get_active_school_ids():
+        result = _run_with_tenant_context(
+            school_id=sid,
+            runnable=lambda a=period_start, b=period_end, d=dry_run: (
+                _run_settlement_reconciliation_body(a, b, d)
+            ),
+        )
+        totals["groups"] += result.get("groups", 0) or 0
+        totals["written"] += result.get("written", 0) or 0
+        totals["discrepancies"] += result.get("discrepancies", 0) or 0
+        totals["schools"] += 1
+    return totals

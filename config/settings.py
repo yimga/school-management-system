@@ -2472,6 +2472,21 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": 86400.0,  # Daily; task self-checks SiteSettings mode/enable flags
         "options": {"expires": 3600},
     },
+    # Monthly settlement reconciliation. Rolls up each tenant's recorded
+    # payments per (region, payment_method, previous calendar month) into
+    # finance.PaymentReconciliation and flags gateway collections booked
+    # completed without a settlement transaction id. RECORDING ONLY — never
+    # moves money, never calls a PSP, never mutates a Payment, so it is safe to
+    # run unattended. 1st of each month 02:30 UTC; operators can disable it with
+    # RMC_FINANCE_RECONCILIATION_DISABLED=1 without redeploying.
+    "finance-settlement-reconciliation": {
+        "task": "finance.run_settlement_reconciliation",
+        "schedule": (
+            _celery_crontab(day_of_month="1", hour=2, minute=30)
+            if _celery_crontab is not None else 2592000.0
+        ),
+        "options": {"expires": 3600},
+    },
     "send-deadline-reminders": {
         "task": "analytics.send_deadline_reminders",
         "schedule": 86400.0,  # Daily; uses SiteSettings.teacher_deadline_reminder_days
