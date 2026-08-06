@@ -9,10 +9,11 @@ were silent no-ops. apps/analytics/tasks.py now re-exports exactly those four,
 so their decorators run and the entries resolve.
 
 The FIFTH analytics beat entry, analytics-send-risk-digest-daily
-(analytics.send_risk_digest_all), sends outbound email/Slack + a per-school LLM
-narration; it is DEFERRED — its @shared_task lives in
-apps/analytics/celery_tasks_risk_digest.py (imported nowhere) and its beat key is
-in verify_beat_task_registry.KNOWN_DEAD_ENTRIES.
+(analytics.send_risk_digest_all), was woken 2026-08-05: apps/analytics/tasks.py
+now re-exports it (so it registers) after send_risk_digest was refactored to
+check RiskDigestRecipient BEFORE running the per-school LLM narration (bounding
+spend to opted-in schools). The beat entry stays env-gated
+(ENABLE_RISK_DIGEST_BEAT) and outbound only reaches enabled recipients.
 
 RULE ZERO: the presence of a @shared_task name in source proves NOTHING about
 whether the module is imported. Only the live registry knows. These tests probe
@@ -153,29 +154,30 @@ class AnalyticsNightlyBatchRegistrationTests(TestCase):
 class AnalyticsSurgicalWakeSnapshotTests(TestCase):
     """Authoritative fresh-subprocess proofs (production autodiscovery)."""
 
-    def test_woke_only_the_intended_four_and_nothing_else(self):
-        """The analytics.* registry must be EXACTLY the 3 pre-existing + 4 woken.
+    def test_woke_only_the_intended_set_and_nothing_else(self):
+        """The analytics.* registry must be EXACTLY the 3 pre-existing + 4 compute
+        wrappers + the now-woken risk digest.
 
-        This is the before/after diff proof: no OTHER analytics task woke, and
-        the deferred risk-digest task did NOT wake.
+        This is the before/after diff proof: no OTHER analytics task woke.
         """
         registry = _fresh_subprocess_registry()
         analytics = {k for k in registry if k.startswith("analytics.")}
         self.assertEqual(
             analytics,
-            PRE_EXISTING_ANALYTICS_TASKS | WOKEN_TASKS,
-            "analytics.* registry drifted from the intended surgical set.",
+            PRE_EXISTING_ANALYTICS_TASKS | WOKEN_TASKS | {DEFERRED_TASK},
+            "analytics.* registry drifted from the intended set.",
         )
 
-    def test_deferred_risk_digest_is_not_registered_by_autodiscovery(self):
-        """The outbound-email/LLM digest task must stay UNREGISTERED."""
+    def test_risk_digest_is_now_registered(self):
+        """The risk-digest task is now woken (2026-08-05): re-exported from
+        apps/analytics/tasks.py after its recipient check moved before narration.
+        """
         registry = _fresh_subprocess_registry()
-        self.assertNotIn(
+        self.assertIn(
             DEFERRED_TASK,
             registry,
-            f"{DEFERRED_TASK} was woken — it sends outbound email/Slack + "
-            "per-school LLM narration and must stay deferred until its recipient "
-            "check is moved before narration.",
+            f"{DEFERRED_TASK} must be registered — it is re-exported from "
+            "apps/analytics/tasks.py.",
         )
 
     def test_gate_exits_zero(self):
@@ -194,8 +196,10 @@ class AnalyticsSurgicalWakeSnapshotTests(TestCase):
 
 
 class AnalyticsDeferredEntryDocumentedTests(TestCase):
-    def test_deferred_entry_recorded_in_known_dead_with_real_reason(self):
-        """The deferred entry must be in KNOWN_DEAD_ENTRIES with a specific reason."""
+    def test_risk_digest_no_longer_in_known_dead(self):
+        """The risk-digest entry is woken (2026-08-05) — it must be GONE from the
+        baseline (the gate demands the list only shrink when an entry resolves).
+        """
         import importlib.util
 
         spec = importlib.util.spec_from_file_location(
@@ -205,12 +209,12 @@ class AnalyticsDeferredEntryDocumentedTests(TestCase):
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
         known = module.KNOWN_DEAD_ENTRIES
-        self.assertIn(DEFERRED_BEAT_ENTRY, known)
-        reason = known[DEFERRED_BEAT_ENTRY]
-        # A real reason, not a placeholder: mentions the outbound behaviour.
-        self.assertGreater(len(reason), 40)
-        self.assertIn("outbound", reason.lower())
-        # And the four woken entries must NOT be listed as dead.
+        self.assertNotIn(
+            DEFERRED_BEAT_ENTRY,
+            known,
+            f"{DEFERRED_BEAT_ENTRY} was woken; it must not be in KNOWN_DEAD_ENTRIES.",
+        )
+        # The four earlier-woken compute entries must also not be listed as dead.
         for entry_key in WOKEN_BEAT_ENTRIES:
             self.assertNotIn(
                 entry_key,

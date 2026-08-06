@@ -62,17 +62,23 @@ class Command(BaseCommand):
         sent = 0
         failed = 0
         for school in schools:
-            digest = self._generate_digest(school, top_n=opts["top_n"])
-            if not digest:
-                continue
+            # Check recipients BEFORE generating the digest. _generate_digest
+            # runs ai_narrate_risk_digest — an LLM gateway invoke — so narrating
+            # a school that never configured a recipient burns spend for output
+            # nobody receives. Skipping the narration for opt-out schools bounds
+            # LLM cost to schools that actually enabled the digest. (This ordering
+            # is what makes the nightly fan-out safe to wake.)
             recipients = list(
                 # tenant-isolation-allow: scoped via school= below
                 RiskDigestRecipient.objects.filter(school=school, enabled=True)
             )
             if not recipients:
                 self.stdout.write(
-                    f"{school.slug}: no recipients configured."
+                    f"{school.slug}: no recipients configured; skipping narration."
                 )
+                continue
+            digest = self._generate_digest(school, top_n=opts["top_n"])
+            if not digest:
                 continue
             subject = self._resolve_subject(school)
             for recipient in recipients:

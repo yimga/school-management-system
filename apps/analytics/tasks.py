@@ -41,19 +41,26 @@ logger = logging.getLogger(__name__)
 # decorators so the beat entries resolve. Same fix pattern as
 # apps/lifecycle/tasks.py (DR snapshot).
 #
-# SURGICAL: we import ONLY the four read/idempotent-write COMPUTE wrappers. We
-# deliberately do NOT import apps/analytics/celery_tasks_risk_digest.py, so
-# analytics.send_risk_digest_all stays UNREGISTERED — it sends outbound
-# email/Slack + per-school LLM narration and is DEFERRED in
-# scripts/verify_beat_task_registry.py::KNOWN_DEAD_ENTRIES until its recipient
-# check is moved before narration. Proven against the LIVE registry (wakes these
-# four and nothing else) in
-# apps/analytics/tests/test_nightly_batch_task_registration.py.
+# We import the four read/idempotent-write COMPUTE wrappers here.
 from apps.analytics.celery_tasks import (  # noqa: F401
     build_student_embeddings_task,
     check_at_risk_drift_watchdog,
     compute_nightly_grade_predictions_task,
     compute_nightly_risk_task,
+)
+
+# 2026-08-05 — WAKE analytics.send_risk_digest_all (previously deferred). Its
+# @shared_task lives in celery_tasks_risk_digest.py (not a tasks.py), so this
+# re-export is what registers it. The nightly fan-out is now safe to wake:
+#   * the beat entry itself is env-gated (ENABLE_RISK_DIGEST_BEAT) — operator
+#     opt-in per deployment;
+#   * send_risk_digest now checks RiskDigestRecipient BEFORE running the LLM
+#     narration, so spend is bounded to schools that actually enabled the digest
+#     (the exact precondition named in KNOWN_DEAD_ENTRIES); and
+#   * outbound email/Slack only ever go to enabled RiskDigestRecipient rows
+#     (per-school opt-in).
+from apps.analytics.celery_tasks_risk_digest import (  # noqa: F401
+    send_risk_digest_task,
 )
 
 # Reference them so the re-export is not flagged unused; the import (which runs
@@ -63,6 +70,7 @@ _WOKEN_ANALYTICS_BATCH_TASKS = (
     compute_nightly_grade_predictions_task,
     build_student_embeddings_task,
     check_at_risk_drift_watchdog,
+    send_risk_digest_task,
 )
 
 # §2.4: Typed tuples for deadline reminder and task run (no broad except).

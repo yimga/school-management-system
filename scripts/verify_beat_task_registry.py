@@ -77,16 +77,15 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 # `analytics-send-risk-digest-daily`, is DEFERRED below -- its @shared_task lives
 # in apps/analytics/celery_tasks_risk_digest.py, imported nowhere.
 KNOWN_DEAD_ENTRIES: dict[str, str] = {
-    "analytics-send-risk-digest-daily":
-        "Deferred: analytics.send_risk_digest_all fans out over EVERY active "
-        "school and (a) runs an LLM narration invoke (ai_narrate_risk_digest -> "
-        "services.ai_helpers.invoke_with_request) per school BEFORE checking "
-        "whether that school configured any digest recipient -> unbounded LLM "
-        "spend even for non-opted-in schools, and (b) sends outbound EMAIL + "
-        "Slack to RiskDigestRecipient rows. Its @shared_task lives in "
-        "apps/analytics/celery_tasks_risk_digest.py (imported nowhere). Wake it "
-        "only after moving the recipient check before narration, then re-export "
-        "it from apps/analytics/tasks.py and drop this entry.",
+    # RESOLVED 2026-08-05: analytics-send-risk-digest-daily is now LIVE.
+    # analytics.send_risk_digest_all is re-exported from apps/analytics/tasks.py
+    # so it registers, and send_risk_digest now checks RiskDigestRecipient BEFORE
+    # running the per-school LLM narration (bounding spend to opted-in schools) —
+    # the exact precondition this entry required. The beat entry itself stays
+    # env-gated (ENABLE_RISK_DIGEST_BEAT) and outbound email/Slack only reach
+    # enabled RiskDigestRecipient rows. Must-FIRE guards:
+    # apps/analytics/tests/test_risk_digest_recipient_gate.py +
+    # apps/analytics/tests/test_nightly_batch_task_registration.py.
     # RESOLVED 2026-08-05: the three generic connected-mailbox sweeper beats
     # (integrations_marketplace.refresh_due_oauth_tokens / fetch_due_mailboxes /
     # renew_due_subscriptions) now register via IntegrationsMarketplaceConfig
