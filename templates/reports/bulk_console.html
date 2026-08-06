@@ -31,7 +31,21 @@
 
   <div class="card mb-3">
     <div class="card-body">
+      <div class="mb-3 d-flex flex-wrap align-items-center gap-2">
+        <span class="text-muted small me-1">{% trans "Report scope" %}</span>
+        <div class="btn-group btn-group-sm" role="group" aria-label="{% trans 'Report scope' %}">
+          <a class="btn {% if not is_annual %}btn-primary{% else %}btn-outline-primary{% endif %}"
+             href="?year={{ year.id }}{% if term %}&term={{ term.id }}{% endif %}&scope=term">{% trans "Term" %}</a>
+          <a class="btn {% if is_annual %}btn-primary{% else %}btn-outline-primary{% endif %}"
+             href="?year={{ year.id }}&scope=annual">{% trans "Annual (whole year)" %}</a>
+        </div>
+        <span class="text-muted small">
+          {% if is_annual %}{% trans "One end-of-year transcript per student, aggregating every published term." %}
+          {% else %}{% trans "One card per student for the selected term." %}{% endif %}
+        </span>
+      </div>
       <form method="get" class="row g-2 align-items-end">
+        <input type="hidden" name="scope" value="{{ active_scope }}">
         <div class="col-md-5">
           <label class="form-label small">{% trans "Academic Year" %}</label>
           <select class="form-select" name="year" data-rmc-submit-on-change>
@@ -40,6 +54,7 @@
             {% endfor %}
           </select>
         </div>
+        {% if not is_annual %}
         <div class="col-md-5">
           <label class="form-label small">{% term_label %}</label>
           <select class="form-select" name="term" data-rmc-submit-on-change>
@@ -48,7 +63,8 @@
             {% endfor %}
           </select>
         </div>
-        <div class="col-md-2 d-grid">
+        {% endif %}
+        <div class="{% if is_annual %}col-md-7{% else %}col-md-2{% endif %} d-grid">
           <button type="submit" class="btn btn-outline-primary">{% trans "Load" %}</button>
         </div>
       </form>
@@ -62,10 +78,11 @@
         <form method="post" action="{% url 'reports:bulk_report_generate' %}" class="d-inline">
           {% csrf_token %}
           <input type="hidden" name="year" value="{{ year.id }}">
-          <input type="hidden" name="term" value="{{ term.id }}">
-          <button class="btn btn-sm btn-outline-primary" type="submit"><i class="bi bi-collection me-1"></i>{% trans "Generate whole year" %}</button>
+          {% if not is_annual %}<input type="hidden" name="term" value="{{ term.id }}">{% endif %}
+          <input type="hidden" name="scope" value="{{ active_scope }}">
+          <button class="btn btn-sm btn-outline-primary" type="submit"><i class="bi bi-collection me-1"></i>{% trans "Generate all" %}</button>
         </form>
-        <a class="btn btn-sm btn-outline-secondary" href="{% url 'reports:bulk_report_print' %}?year={{ year.id }}&term={{ term.id }}"><i class="bi bi-printer me-1"></i>{% trans "Print whole year (PDF)" %}</a>
+        <a class="btn btn-sm btn-outline-secondary" href="{% url 'reports:bulk_report_print' %}?year={{ year.id }}{% if not is_annual %}&term={{ term.id }}{% endif %}&scope={{ active_scope }}"><i class="bi bi-printer me-1"></i>{% trans "Print all (PDF)" %}</a>
       </div>
     </div>
     <div class="table-responsive">
@@ -90,17 +107,19 @@
                   <form method="post" action="{% url 'reports:bulk_report_generate' %}" class="d-inline">
                     {% csrf_token %}
                     <input type="hidden" name="year" value="{{ year.id }}">
-                    <input type="hidden" name="term" value="{{ term.id }}">
+                    {% if not is_annual %}<input type="hidden" name="term" value="{{ term.id }}">{% endif %}
+                    <input type="hidden" name="scope" value="{{ active_scope }}">
                     <input type="hidden" name="group_mode" value="{{ g.mode }}">
                     <input type="hidden" name="group_ref_id" value="{{ g.ref_id }}">
                     <button class="btn btn-outline-primary" type="submit" title="{% trans 'Generate this group' %}"><i class="bi bi-collection"></i> {% trans "Generate" %}</button>
                   </form>
-                  <a class="btn btn-outline-secondary" title="{% trans 'Print merged PDF' %}" href="{% url 'reports:bulk_report_print' %}?year={{ year.id }}&term={{ term.id }}&group_mode={{ g.mode }}&group_ref_id={{ g.ref_id }}&format=pdf"><i class="bi bi-printer"></i> {% trans "Print" %}</a>
-                  <a class="btn btn-outline-secondary" title="{% trans 'Download as ZIP' %}" href="{% url 'reports:bulk_report_print' %}?year={{ year.id }}&term={{ term.id }}&group_mode={{ g.mode }}&group_ref_id={{ g.ref_id }}&format=zip"><i class="bi bi-file-earmark-zip"></i> {% trans "ZIP" %}</a>
+                  <a class="btn btn-outline-secondary" title="{% trans 'Print merged PDF' %}" href="{% url 'reports:bulk_report_print' %}?year={{ year.id }}{% if not is_annual %}&term={{ term.id }}{% endif %}&scope={{ active_scope }}&group_mode={{ g.mode }}&group_ref_id={{ g.ref_id }}&format=pdf"><i class="bi bi-printer"></i> {% trans "Print" %}</a>
+                  <a class="btn btn-outline-secondary" title="{% trans 'Download as ZIP' %}" href="{% url 'reports:bulk_report_print' %}?year={{ year.id }}{% if not is_annual %}&term={{ term.id }}{% endif %}&scope={{ active_scope }}&group_mode={{ g.mode }}&group_ref_id={{ g.ref_id }}&format=zip"><i class="bi bi-file-earmark-zip"></i> {% trans "ZIP" %}</a>
                   <form method="post" action="{% url 'reports:bulk_report_share' %}" class="d-inline">
                     {% csrf_token %}
                     <input type="hidden" name="year" value="{{ year.id }}">
-                    <input type="hidden" name="term" value="{{ term.id }}">
+                    {% if not is_annual %}<input type="hidden" name="term" value="{{ term.id }}">{% endif %}
+                    <input type="hidden" name="scope" value="{{ active_scope }}">
                     <input type="hidden" name="group_mode" value="{{ g.mode }}">
                     <input type="hidden" name="group_ref_id" value="{{ g.ref_id }}">
                     <button class="btn btn-outline-success" type="submit" title="{% trans 'Share with families' %}"><i class="bi bi-send"></i> {% trans "Share" %}</button>

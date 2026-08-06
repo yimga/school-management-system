@@ -1,0 +1,40 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Currency" %} – {{ school.name }}{% endblock %}
+{% block backend_title %}{% trans "Currency" %}{% endblock %}
+
+{% block backend_page %}
+{% include "components/next_action_strip.html" %}
+
+  <div class="visually-hidden rmc-empty-state-sentinel" aria-hidden="true"></div>
+<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
+    {% include "studio_os/components/page_header.html" with title=_("Currency") subtitle=_("The currency invoices, statements and fee amounts are shown in.") %}
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h1 class="h5 mb-3">{% trans "Default currency" %}</h1>
+        <p class="text-muted small">
+          {% if override_currency %}
+            {% blocktrans %}This school uses an explicit currency override. Region default: {{ region_currency }}.{% endblocktrans %}
+          {% elif region_currency %}
+            {% blocktrans %}This school currently inherits its region's currency ({{ region_currency }}). Choosing one below sets an explicit override.{% endblocktrans %}
+          {% else %}
+            {% trans "Choose the currency this school bills in." %}
+          {% endif %}
+        </p>
+        <form method="post" action="">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label" for="default_currency">{% trans "Currency" %}</label>
+            <select class="form-select" id="default_currency" name="default_currency">
+              {% for c in currency_choices %}
+                <option value="{{ c.code }}" {% if current_currency == c.code %}selected{% endif %}>{{ c.code }} — {{ c.name }}{% if c.symbol %} ({{ c.symbol }}){% endif %}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary">{% trans "Save currency" %}</button>
+        </form>
+      </div>
+    </div>
+</div>
+{% endblock %}

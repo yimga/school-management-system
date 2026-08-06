@@ -528,6 +528,75 @@ def grading_settings(request):
 
 
 @login_required
+def currency_settings(request):
+    """School default currency — a real override the tenant config resolver reads.
+
+    Writes ``school.settings['default_currency']``, the exact key
+    ``siteconfig.tenant_config`` maps to ``out['currency']`` — so this is a live
+    override, not a display-only screen. When no override is set the school
+    inherits its region's currency (shown for reference). Codes come from the
+    registry SOT (``registries.list_currency_choices``); an unknown code is
+    rejected. Same admin gate as the other tenant config editors.
+    """
+    from django.http import HttpResponseForbidden
+
+    school = getattr(request, "school", None)
+    if not school:
+        messages.warning(
+            request, "Select a school (use your school subdomain) to manage currency."
+        )
+        return redirect("siteconfig:user_preferences")
+    from apps.siteconfig.tenant_experience_policy import (
+        user_may_manage_backend_config,
+    )
+
+    if not user_may_manage_backend_config(request.user):
+        return HttpResponseForbidden(
+            "You do not have permission to change school currency settings."
+        )
+
+    from apps.registries.services import (
+        is_known_currency_code,
+        list_currency_choices,
+    )
+
+    settings_dict = school.settings if isinstance(school.settings, dict) else {}
+    override_currency = str(
+        settings_dict.get("default_currency") or settings_dict.get("currency") or ""
+    ).strip().upper()
+    region = getattr(school, "default_region", None)
+    region_currency = str(getattr(region, "default_currency", "") or "").strip().upper()
+    current_currency = override_currency or region_currency
+
+    if request.method == "POST":
+        new_code = (request.POST.get("default_currency") or "").strip().upper()
+        if not new_code:
+            messages.warning(request, "Choose a currency.")
+        elif not is_known_currency_code(new_code):
+            messages.warning(request, "That is not a recognized currency code.")
+        else:
+            if not isinstance(school.settings, dict):
+                school.settings = {}
+            school.settings["default_currency"] = new_code
+            school.save(update_fields=["settings"])
+            messages.success(request, f"Default currency set to {new_code}.")
+        return redirect("siteconfig:currency_settings")
+
+    return render(
+        request,
+        "siteconfig/currency_settings.html",
+        {
+            "school": school,
+            "region": region,
+            "current_currency": current_currency,
+            "override_currency": override_currency,
+            "region_currency": region_currency,
+            "currency_choices": list_currency_choices(),
+        },
+    )
+
+
+@login_required
 def module_market(request):
     """Module market (App Store): list available modules, activate/deactivate for current school (Phase 3)."""
     from django.http import HttpResponseForbidden

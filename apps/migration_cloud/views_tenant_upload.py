@@ -541,6 +541,54 @@ class TenantMigrationUploadView(_TenantAdminWriteRequiredMixin, View):
         return redirect(_connector_reverse(request, "bundle-review", bundle_id=result.bundle_id))
 
 
+def _field_choices_for_domain(domain: str) -> list[str]:
+    """Canonical field names a source column may map to, for one domain's <select>.
+
+    Reuses the ontology (the mapper's own source of truth); an unknown/absent
+    domain (e.g. a header-only domain not in ``CANONICAL_ONTOLOGY``) yields an
+    empty list — the review select then only offers the current mapping + the
+    "keep as custom field" escape, which is honest rather than misleading.
+    """
+    if not domain:
+        return []
+    try:
+        from .ontology import iter_canonical_fields
+
+        return sorted({f["canonical_field"] for f in iter_canonical_fields(domain)})
+    except Exception:  # noqa: BLE001 — a catalog hiccup must never break the review page
+        return []
+
+
+def _column_mapping_rows(artifact_maps) -> list[dict]:
+    """Shape the persisted per-artifact column→canonical mapping for the review UI.
+
+    Reads the exact JSON the operator page reads and the orchestrator applies
+    (``bundle.mapping_summary['per_artifact'][path]``). A column with no
+    confident mapping is quarantined as ``custom_fields.<slug>`` by the mapper
+    (never dropped); we surface that as an explicit "kept as custom field" state
+    so a tenant admin understands nothing was lost.
+    """
+    out = []
+    for m in artifact_maps or []:
+        if not isinstance(m, dict):
+            continue
+        canon = str(m.get("canonical_field") or "")
+        conf = m.get("confidence")
+        out.append(
+            {
+                "source_column": m.get("source_column", ""),
+                "canonical_field": canon,
+                "confidence_pct": (
+                    round(float(conf) * 100) if conf is not None else None
+                ),
+                "method": m.get("method", ""),
+                "reasoning": m.get("reasoning", ""),
+                "is_custom": canon.startswith("custom_fields."),
+            }
+        )
+    return out
+
+
 class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
     """GET → per-file detected format + entity + confidence, with override.
     POST → save per-file entity overrides and re-detect.
@@ -576,19 +624,88 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
                 artifact.save(update_fields=["assigned_domain", "updated_at"])
                 changed += 1
         if changed:
+            # A record-type change re-runs classify+map, which would discard any
+            # column edits submitted alongside it — so re-detect wins and column
+            # overrides are intentionally not applied in the same pass.
             _sync_tenant_domain_overrides(bundle)
             _advance(bundle.pk)
             messages.success(request, f"Updated {changed} file(s) and re-detected.")
+            return redirect(_connector_reverse(request, "bundle-review", bundle_id=bundle.pk))
+
+        # No record-type change → apply any per-column mapping corrections in
+        # place. This rewrites the SAME mapping_summary the apply reads; it does
+        # NOT rewind/re-map (that would throw the tenant's choices away).
+        mapping_changed = self._apply_column_overrides(request, bundle)
+        if mapping_changed:
+            messages.success(
+                request,
+                f"Updated {mapping_changed} column mapping(s). Re-run the import "
+                "for the changes to take effect.",
+            )
         else:
             messages.info(request, "No changes to apply.")
         return redirect(_connector_reverse(request, "bundle-review", bundle_id=bundle.pk))
 
+    def _apply_column_overrides(self, request, bundle) -> int:
+        """Rewrite ``mapping_summary['per_artifact']`` from the review form's selects.
+
+        Fields are ``map__<artifact_pk>__<i>`` (chosen canonical field) with a
+        companion ``mapsrc__<artifact_pk>__<i>`` (the source column). The override
+        is matched to the stored mapping by source column (robust to reordering),
+        mirroring the operator ``manual_correction`` recipe so a tenant override
+        reaches landed data exactly as an operator's does. Returns the count of
+        mappings actually changed.
+        """
+        per_artifact = (bundle.mapping_summary or {}).get("per_artifact") or {}
+        if not per_artifact:
+            return 0
+        changed = 0
+        for artifact in bundle.artifacts.all():
+            path = artifact.path_within_bundle or ""
+            mappings = per_artifact.get(path) or []
+            if not mappings:
+                continue
+            for i in range(len(mappings)):
+                sel_key = f"map__{artifact.pk}__{i}"
+                if sel_key not in request.POST:
+                    continue
+                new_canon = (request.POST.get(sel_key) or "").strip()
+                src_col = (request.POST.get(f"mapsrc__{artifact.pk}__{i}") or "").strip()
+                if not new_canon or not src_col:
+                    continue
+                for m in mappings:
+                    if (
+                        isinstance(m, dict)
+                        and str(m.get("source_column") or "") == src_col
+                        and str(m.get("canonical_field") or "") != new_canon
+                    ):
+                        m["canonical_field"] = new_canon
+                        m["confidence"] = max(float(m.get("confidence") or 0.0), 0.95)
+                        m["method"] = "tenant_override"
+                        m["reasoning"] = "Tenant correction via the mapping review."
+                        changed += 1
+            per_artifact[path] = mappings
+        if changed:
+            bundle.mapping_summary = {
+                **(bundle.mapping_summary or {}),
+                "per_artifact": per_artifact,
+            }
+            bundle.save(update_fields=["mapping_summary", "updated_at"])
+        return changed
+
     def build_context(self, request, bundle, apply_result=None):
         rows = []
+        # The auto-mapping the pipeline already computed + persisted — the same
+        # JSON the operator page reads and the orchestrator applies. Surfacing it
+        # here lets a tenant admin review + correct a wrong column mapping before
+        # import, instead of the auto-map being silent.
+        per_artifact = (bundle.mapping_summary or {}).get("per_artifact") or {}
         for artifact in bundle.artifacts.all():
             candidates = artifact.inferred_domain if isinstance(artifact.inferred_domain, list) else []
             top = candidates[0] if candidates and isinstance(candidates[0], dict) else {}
             detected = (artifact.assigned_domain or top.get("domain", "") or "").strip()
+            artifact_maps = per_artifact.get(artifact.path_within_bundle or "") or []
+            mapping_rows = _column_mapping_rows(artifact_maps)
             rows.append(
                 {
                     "id": artifact.pk,
@@ -608,6 +725,8 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
                     "quarantine_reason": artifact.quarantine_reason,
                     "hint": _row_hint(artifact),
                     "dfv_only": detected in ("payroll", "compliance"),
+                    "mappings": mapping_rows,
+                    "field_choices": _field_choices_for_domain(detected),
                 }
             )
         flight = _import_flight(bundle)

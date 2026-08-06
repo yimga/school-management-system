@@ -117,12 +117,14 @@ def validate_offline_payload(action_type: str, payload: dict[str, Any]) -> list[
             errors.append("support.ticket requires message")
 
     if at == OfflineActionType.REPORT_BATCH_DISTRIBUTE:
-        # A distribution is bound to a term of an academic year; the group ref
-        # (classroom/specialty) is optional (absent = whole year).
+        # A distribution is bound to an academic year; the group ref
+        # (classroom/specialty) is optional (absent = whole year). A TERM share
+        # names a term; an ANNUAL (whole-year) share has no term at all.
+        is_annual = str(payload.get("report_type") or "TERM").upper() == "ANNUAL"
         if payload.get("academic_year_id") in (None, ""):
             errors.append("report_batch.distribute requires academic_year_id")
-        if payload.get("term_id") in (None, ""):
-            errors.append("report_batch.distribute requires term_id")
+        if not is_annual and payload.get("term_id") in (None, ""):
+            errors.append("report_batch.distribute requires term_id (or report_type=ANNUAL)")
 
     if at == OfflineActionType.HOMEWORK_SUBMIT:
         # Canonical path carries assignment_id (academics.LMSSubmission); the legacy

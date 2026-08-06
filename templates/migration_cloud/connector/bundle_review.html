@@ -355,11 +355,53 @@ persistent data failure routes to correction rather than an endless retry.
             </td>
           </tr>
           {% endif %}
+          {% if row.mappings %}
+          <tr>
+            <td colspan="5" class="pt-0">
+              <details class="mc-column-mapping">
+                <summary class="small">{% blocktrans count counter=row.mappings|length %}Review {{ counter }} column mapping{% plural %}Review {{ counter }} column mappings{% endblocktrans %}</summary>
+                <div class="table-responsive mt-2">
+                  <table class="table table-sm align-middle mb-2">
+                    <thead>
+                      <tr>
+                        <th scope="col">{% trans "Your column" %}</th>
+                        <th scope="col">{% trans "Maps to field" %}</th>
+                        <th scope="col">{% trans "Confidence" %}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for m in row.mappings %}
+                      <tr>
+                        <td>{{ m.source_column }}</td>
+                        <td>
+                          <input type="hidden" name="mapsrc__{{ row.id }}__{{ forloop.counter0 }}" value="{{ m.source_column }}">
+                          <label class="visually-hidden" for="map-{{ row.id }}-{{ forloop.counter0 }}">{% trans "Field for this column" %}</label>
+                          <select id="map-{{ row.id }}-{{ forloop.counter0 }}" name="map__{{ row.id }}__{{ forloop.counter0 }}" class="form-select form-select-sm">
+                            {% if m.is_custom %}<option value="{{ m.canonical_field }}" selected>{% trans "Keep as custom field" %}</option>{% endif %}
+                            {% for cf in row.field_choices %}
+                            <option value="{{ cf }}"{% if cf == m.canonical_field %} selected{% endif %}>{{ cf }}</option>
+                            {% endfor %}
+                            {% if not m.is_custom and m.canonical_field and m.canonical_field not in row.field_choices %}
+                            <option value="{{ m.canonical_field }}" selected>{{ m.canonical_field }}</option>
+                            {% endif %}
+                          </select>
+                        </td>
+                        <td class="text-muted small">{% if m.confidence_pct is not None %}{{ m.confidence_pct }}%{% else %}—{% endif %}{% if m.is_custom %} · {% trans "custom" %}{% endif %}</td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                  <p class="text-muted small mb-0">{% trans "Columns we could not confidently place are kept as custom fields — nothing is dropped. Correct any mapping, then save and re-run the import." %}</p>
+                </div>
+              </details>
+            </td>
+          </tr>
+          {% endif %}
           {% endfor %}
         </tbody>
       </table>
     </div>
-    <button type="submit" class="btn btn-outline-secondary btn-sm">{% trans "Save corrections & re-detect" %}</button>
+    <button type="submit" class="btn btn-outline-secondary btn-sm">{% trans "Save changes" %}</button>
   </form>
   {% else %}
   <div class="rmc-empty mb-0" role="status">

@@ -9,6 +9,7 @@ from .views import (
     admission_number_preview_api,
     maintenance_view,
     grading_settings,
+    currency_settings,
     module_market,
     clear_preview,
     preview_from_form,
@@ -316,6 +317,7 @@ urlpatterns = [
         name="ai_center",
     ),
     path("grading-settings/", grading_settings, name="grading_settings"),
+    path("currency-settings/", currency_settings, name="currency_settings"),
     path(
         "grading-scales/bands/",
         grading_scale_bands_operator_view,

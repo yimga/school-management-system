@@ -53,29 +53,44 @@ def _default_pdf_renderer(request, template_name, context):
     return render_pdf_bytes(request, template_name, context)
 
 
-def _student_term_pdf_bytes(
-    *, request, student, academic_year, term, render_pdf, enforce_publish, enforce_fee_clearance
+def _student_report_pdf_bytes(
+    *,
+    request,
+    student,
+    academic_year,
+    term,
+    report_type,
+    render_pdf,
+    enforce_publish,
+    enforce_fee_clearance,
 ) -> tuple[bytes | None, str]:
-    """One student's TERM card as PDF bytes for the bundle, or (None, reason).
+    """One student's TERM or ANNUAL card as PDF bytes for the bundle, or (None, reason).
 
     Prefers the frozen archive bytes (already gate-cleared at generation); falls
     back to an ephemeral render for a not-yet-generated card, applying the exact
-    same eligibility gate as generation so nothing slips out unpublished.
+    same eligibility gate as generation so nothing slips out unpublished. The
+    annual branch aggregates the year (``term=None``) and requires every term
+    published, exactly like the parent single-card annual download.
     """
     from apps.reports.bulk_generation import (
         SKIP_NO_MARKS,
         SKIP_RENDER_FAILED,
+        _bulk_report_context,
+        _context_has_marks,
+        annual_report_eligibility,
+        render_annual_report_pdf_bytes,
         render_term_report_pdf_bytes,
         student_report_eligibility,
     )
-    from apps.reports.services import term_report_context
     from apps.reports.views import _frozen_pdf_bytes, _report_card_is_frozen
+
+    is_annual = report_type == ReportCard.Type.ANNUAL
 
     existing_rc = ReportCard.objects.filter(
         academic_year=academic_year,
-        term=term,
+        term=None if is_annual else term,
         student=student,
-        type=ReportCard.Type.TERM,
+        type=report_type,
     ).first()
     # A frozen (published) card is the authoritative artifact — reuse its exact
     # bytes so the printed stack matches what a parent downloads to the byte.
@@ -84,28 +99,45 @@ def _student_term_pdf_bytes(
         if frozen:
             return frozen, ""
 
-    ok, reason, _note = student_report_eligibility(
-        student,
-        academic_year,
-        term,
-        enforce_publish=enforce_publish,
-        enforce_fee_clearance=enforce_fee_clearance,
-    )
+    if is_annual:
+        ok, reason, _note = annual_report_eligibility(
+            student,
+            academic_year,
+            enforce_publish=enforce_publish,
+            enforce_fee_clearance=enforce_fee_clearance,
+        )
+    else:
+        ok, reason, _note = student_report_eligibility(
+            student,
+            academic_year,
+            term,
+            enforce_publish=enforce_publish,
+            enforce_fee_clearance=enforce_fee_clearance,
+        )
     if not ok:
         return None, reason
 
     try:
-        context = term_report_context(student, academic_year, term)
-        if not (context.get("rows") or []):
+        context = _bulk_report_context(student, academic_year, term, report_type)
+        if not _context_has_marks(context, report_type):
             return None, SKIP_NO_MARKS
-        pdf_bytes = render_term_report_pdf_bytes(
-            request=request,
-            student=student,
-            academic_year=academic_year,
-            term=term,
-            context=context,
-            render_pdf=render_pdf,
-        )
+        if is_annual:
+            pdf_bytes = render_annual_report_pdf_bytes(
+                request=request,
+                student=student,
+                academic_year=academic_year,
+                context=context,
+                render_pdf=render_pdf,
+            )
+        else:
+            pdf_bytes = render_term_report_pdf_bytes(
+                request=request,
+                student=student,
+                academic_year=academic_year,
+                term=term,
+                context=context,
+                render_pdf=render_pdf,
+            )
         return pdf_bytes, ""
     except (DatabaseError, ValueError, TypeError, AttributeError, RuntimeError) as exc:
         logger.warning(
@@ -117,18 +149,28 @@ def _student_term_pdf_bytes(
 
 
 def _iter_group_pdfs(
-    *, school, students, academic_year, term, actor, render_pdf, enforce_publish, enforce_fee_clearance
+    *,
+    school,
+    students,
+    academic_year,
+    term,
+    report_type,
+    actor,
+    render_pdf,
+    enforce_publish,
+    enforce_fee_clearance,
 ):
     """Yield ``(student, pdf_bytes_or_None, reason)`` for each student in a group."""
     from apps.reports.bulk_generation import _synthetic_request
 
     request = _synthetic_request(school, actor=actor)
     for student in students:
-        pdf_bytes, reason = _student_term_pdf_bytes(
+        pdf_bytes, reason = _student_report_pdf_bytes(
             request=request,
             student=student,
             academic_year=academic_year,
             term=term,
+            report_type=report_type,
             render_pdf=render_pdf,
             enforce_publish=enforce_publish,
             enforce_fee_clearance=enforce_fee_clearance,
@@ -142,15 +184,18 @@ def build_group_report_pdf(
     students,
     academic_year,
     term,
+    report_type=ReportCard.Type.TERM,
     actor=None,
     render_pdf=None,
     enforce_publish: bool = True,
     enforce_fee_clearance: bool = True,
 ) -> tuple[bytes, GroupPrintResult]:
-    """Merge a group's TERM cards into one print-ready PDF (one card per page-run).
+    """Merge a group's cards into one print-ready PDF (one card per page-run).
 
-    Returns ``(pdf_bytes, GroupPrintResult)``. ``pdf_bytes`` is empty when no
-    student in the group is eligible — the caller decides how to surface that.
+    ``report_type`` selects TERM (needs ``term``) or ANNUAL (``term`` ignored,
+    whole-year transcript). Returns ``(pdf_bytes, GroupPrintResult)``.
+    ``pdf_bytes`` is empty when no student in the group is eligible — the caller
+    decides how to surface that.
     """
     from pypdf import PdfReader, PdfWriter
 
@@ -163,6 +208,7 @@ def build_group_report_pdf(
         students=students,
         academic_year=academic_year,
         term=term,
+        report_type=report_type,
         actor=actor,
         render_pdf=render_pdf,
         enforce_publish=enforce_publish,
@@ -198,12 +244,13 @@ def build_group_report_zip(
     students,
     academic_year,
     term,
+    report_type=ReportCard.Type.TERM,
     actor=None,
     render_pdf=None,
     enforce_publish: bool = True,
     enforce_fee_clearance: bool = True,
 ) -> tuple[bytes, GroupPrintResult]:
-    """Bundle a group's TERM cards as a ZIP of one PDF per student.
+    """Bundle a group's cards as a ZIP of one PDF per student (TERM or ANNUAL).
 
     Returns ``(zip_bytes, GroupPrintResult)``; ``zip_bytes`` is empty when no
     student is eligible.
@@ -218,6 +265,7 @@ def build_group_report_zip(
             students=students,
             academic_year=academic_year,
             term=term,
+            report_type=report_type,
             actor=actor,
             render_pdf=render_pdf,
             enforce_publish=enforce_publish,

@@ -21,13 +21,21 @@ logger = logging.getLogger(__name__)
 
 
 def distribute_report_batch(
-    *, school: Any, academic_year: Any, term: Any, classroom: Any = None, specialty: Any = None
+    *,
+    school: Any,
+    academic_year: Any,
+    term: Any = None,
+    classroom: Any = None,
+    specialty: Any = None,
+    report_type: str = "TERM",
 ) -> dict:
     """Notify each student + results-permitted guardian in a group that cards are ready.
 
-    Returns ``{"ok": True, "students": n, "notified": m}``. Never raises for a
-    single recipient's failure — one bad dispatch must not abandon the rest;
-    logging is PII-safe (exception type only), matching the publish-notify path.
+    ``report_type`` is ``"TERM"`` (the notification names the term) or
+    ``"ANNUAL"`` (``term`` is ``None`` — the notification names the whole-year
+    report). Returns ``{"ok": True, "students": n, "notified": m}``. Never raises
+    for a single recipient's failure — one bad dispatch must not abandon the
+    rest; logging is PII-safe (exception type only), matching the publish path.
     """
     from apps.communication.dispatch import dispatch_event
     from apps.evals.notify_published import (
@@ -44,12 +52,15 @@ def distribute_report_batch(
     if not students:
         return {"ok": True, "students": 0, "notified": 0}
 
-    term_label = (
-        getattr(term, "label", None) or getattr(term, "name", None) or "term"
-    )
+    if str(report_type).upper() == "ANNUAL":
+        scope_label = "annual"
+    else:
+        scope_label = (
+            getattr(term, "label", None) or getattr(term, "name", None) or "term"
+        )
     context = {
         "title": "Report card ready",
-        "message": f"Your {term_label} report card is ready to view.",
+        "message": f"Your {scope_label} report card is ready to view.",
         "link": "/reports/",
         "severity": "INFO",
     }

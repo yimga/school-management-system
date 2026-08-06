@@ -36,7 +36,10 @@ from apps.academics.models import (
 from apps.accounts.models import User
 from apps.evals.models import AssessmentWeights, Evaluation
 from apps.people.models import StudentProfile, TeacherProfile
-from apps.reports.bulk_generation import generate_term_report_cards
+from apps.reports.bulk_generation import (
+    generate_annual_report_cards,
+    generate_term_report_cards,
+)
 from apps.reports.bulk_print import build_group_report_pdf, build_group_report_zip
 from apps.reports.distribution_grouping import (
     GROUP_MODE_CLASS,
@@ -239,6 +242,50 @@ class BulkReportGroupingTests(TestCase):
         self.assertEqual(res.included, 0)
         self.assertEqual(data, b"")
 
+    # --- annual (whole-year) scope ----------------------------------------
+    def test_generate_annual_scopes_to_a_specialty(self):
+        """The new annual verb: a whole-year transcript per student, term=None."""
+        result = generate_annual_report_cards(
+            school=self.school,
+            academic_year=self.year,
+            specialty=self.spec_a,
+            actor=None,
+            pdf_renderer=_fake_render,
+        ).as_dict()
+        self.assertEqual(result["generated"], 1, result["reasons"])
+        annual = ReportCard.objects.filter(
+            student=self.student_a, type=ReportCard.Type.ANNUAL
+        ).first()
+        self.assertIsNotNone(annual)
+        self.assertIsNone(annual.term_id)  # annual cards are keyed term=None
+        self.assertFalse(
+            ReportCard.objects.filter(
+                student=self.student_b, type=ReportCard.Type.ANNUAL
+            ).exists()
+        )
+
+    def test_annual_print_merges_group_into_one_pdf(self):
+        from pypdf import PdfReader
+
+        students = scoped_student_queryset(self.school, self.year)
+        data, res = build_group_report_pdf(
+            school=self.school, students=students, academic_year=self.year,
+            term=None, report_type=ReportCard.Type.ANNUAL, render_pdf=_fake_render,
+        )
+        self.assertEqual(res.included, 2, res.reasons)
+        self.assertTrue(data.startswith(b"%PDF"))
+        self.assertEqual(len(PdfReader(io.BytesIO(data)).pages), 2)
+
+    def test_annual_requires_every_term_published(self):
+        # Annual needs ALL terms published; drop the publish and it skips, not renders.
+        TermPublishStatus.objects.all().delete()
+        result = generate_annual_report_cards(
+            school=self.school, academic_year=self.year,
+            actor=None, pdf_renderer=_fake_render,
+        ).as_dict()
+        self.assertEqual(result["generated"], 0)
+        self.assertGreaterEqual(result["reasons"].get("not_published", 0), 1)
+
     # --- offline distribute action ----------------------------------------
     def test_offline_payload_validation(self):
         from apps.platform_runtime.offline_action_types import validate_offline_payload
@@ -250,6 +297,51 @@ class BulkReportGroupingTests(TestCase):
             ),
             [],
         )
+
+    def test_offline_payload_annual_needs_no_term(self):
+        from apps.platform_runtime.offline_action_types import validate_offline_payload
+
+        # An ANNUAL share has no term at all — it must validate without term_id.
+        self.assertEqual(
+            validate_offline_payload(
+                "report_batch.distribute",
+                {"academic_year_id": 1, "report_type": "ANNUAL"},
+            ),
+            [],
+        )
+        # A TERM share still requires term_id.
+        self.assertTrue(
+            validate_offline_payload(
+                "report_batch.distribute", {"academic_year_id": 1}
+            )
+        )
+
+    def test_annual_applier_distributes_without_term(self):
+        from apps.platform_runtime.offline_queue import _apply_report_batch_distribute
+
+        batch = ReportCardBatch.objects.create(
+            school=self.school, academic_year=self.year, term=None,
+            action=ReportCardBatch.Action.SHARE,
+            status=ReportCardBatch.Status.QUEUED,
+        )
+        payload = {
+            "academic_year_id": self.year.id,
+            "report_type": "ANNUAL",
+            "batch_id": batch.id,
+        }
+        with mock.patch(
+            "apps.reports.bulk_distribution.distribute_report_batch",
+            return_value={"ok": True, "students": 2, "notified": 2},
+        ) as m:
+            result = _apply_report_batch_distribute(
+                self.school.id, self.teacher.user_id, payload
+            )
+        self.assertTrue(result["ok"])
+        # The applier must forward the annual report_type (term stays None).
+        self.assertEqual(m.call_args.kwargs.get("report_type"), "ANNUAL")
+        self.assertIsNone(m.call_args.kwargs.get("term"))
+        batch.refresh_from_db()
+        self.assertEqual(batch.status, ReportCardBatch.Status.COMPLETED)
 
     def test_applier_marks_batch_completed(self):
         from apps.platform_runtime.offline_queue import _apply_report_batch_distribute
@@ -358,6 +450,27 @@ class BulkReportViewTests(TestCase):
         self.assertIsNotNone(batch)
         self.assertEqual(batch.included_count, 3)
         self.assertEqual(batch.status, ReportCardBatch.Status.COMPLETED)
+
+    def test_generate_view_annual_scope_records_termless_batch(self):
+        from apps.reports import views as reports_views
+        from apps.reports.bulk_generation import BulkReportResult
+
+        fake = BulkReportResult(generated=2, skipped=0, students=2)
+        with mock.patch(
+            "apps.reports.bulk_generation.generate_annual_report_cards", return_value=fake
+        ) as m:
+            resp = reports_views.bulk_report_generate(
+                self._req("post", {"year": str(self.year.id), "scope": "annual"})
+            )
+        self.assertEqual(resp.status_code, 302)
+        self.assertTrue(m.called)  # annual verb, not the term verb
+        batch = ReportCardBatch.objects.filter(
+            action=ReportCardBatch.Action.GENERATE
+        ).order_by("-id").first()
+        self.assertIsNotNone(batch)
+        self.assertIsNone(batch.term_id)  # annual run is not bound to a term
+        self.assertEqual(batch.included_count, 2)
+        self.assertIn("scope=annual", resp["Location"])
 
     def test_print_view_returns_pdf(self):
         from apps.reports import views as reports_views
