@@ -73,9 +73,11 @@ class OperatorHeaderChromeTests(SimpleTestCase):
     `!important` that wins the cascade) AND a bell — but that bell is the
     PLATFORM-INCIDENT bell (links the incident console; badge = incident count),
     not the operator's personal notification inbox, which was avatar-only (the
-    same gap the tenant had). This locks the restored discrete PERSONAL bell
-    without disturbing the incident bell. Messages is intentionally NOT added —
-    it is not an operator destination (absent from the operator nav/dropdown).
+    same gap the tenant had). Per the owner's "one bell" directive the incident
+    bell is now REMOVED and the single personal notifications bell (bi-bell-fill →
+    accounts:user_notifications) is the one bell, matching the tenant; incidents
+    surface via the system-status chip, not a second bell. Messages is
+    intentionally NOT added — not an operator destination (absent from nav/dropdown).
     """
 
     def setUp(self):
@@ -92,10 +94,19 @@ class OperatorHeaderChromeTests(SimpleTestCase):
         # badge reuses the live poll hook so it stays fresh in place
         self.assertIn("data-rmc-unread-badge", self.header)
 
-    def test_incident_bell_preserved_and_distinct(self):
-        # The platform-incident bell (its own gate) must remain — operators keep
-        # the at-a-glance ops signal alongside the new personal bell.
-        self.assertIn("cockpit_shell.show.bell", self.header)
+    def test_exactly_one_bell_incident_bell_removed(self):
+        # ONE bell only — the personal notifications bell (bi-bell-fill). The
+        # former platform-incident bell (bi-bell outline, its own gate) is removed
+        # so the operator header matches the tenant: a single, unambiguous bell.
+        # Incidents surface via the system-status chip, not a second bell.
+        self.assertNotIn("cockpit_shell.show.bell", self.header)
+        self.assertNotIn("Open incident console", self.header)
+        # no outline bell icon left competing with the single fill bell
+        self.assertNotIn('bi bi-bell"', self.header)
+        self.assertEqual(
+            self.header.count('data-rmc-header-bell="1"'), 1,
+            "exactly one notifications bell must remain",
+        )
 
     def test_messages_icon_not_added_to_operator_header(self):
         # Messages is a tenant-communication destination, not an operator one; it

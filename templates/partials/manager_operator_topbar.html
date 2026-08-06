@@ -131,33 +131,20 @@
             {% if not MANAGER_PLATFORM_ADMIN_SHELL %}
             {% include "components/rmc_operator_workspace_dropdown.html" %}
             {% endif %}
-            {% comment %} v4.05 (2026-08-03): discrete PERSONAL notifications bell — parity with the
-               tenant header restore. Distinct from the platform-incident bell below: THIS one is the
-               operator's own finance.Notification inbox (bi-bell-FILL → accounts:user_notifications),
-               that one is the ops signal (bi-bell outline → incident console). Config/page-aware via
+            {% comment %} v4.05 (2026-08-03): the ONE notifications bell — the operator's own
+               finance.Notification inbox (bi-bell-fill → accounts:user_notifications), matching the
+               tenant header so the whole platform has a single, consistent bell. Config/page-aware via
                SHOW_HEADER_NOTIFICATIONS; badge reuses data-rmc-unread-badge so rmc-notification-bell-poll.js
-               (ships with user_dropdown.html below) keeps it live in place. Operator search is already
-               capped at 280px (rmc-cp-header-200x.css) and Messages is not an operator destination, so
-               neither is touched here. {% endcomment %}
+               (ships with user_dropdown.html below) keeps it live in place. Platform INCIDENTS are a
+               SEPARATE concern and surface via the system-status chip (cp-nav-status-chip) above — never
+               a second bell — so the former incident bell is intentionally gone (one bell, no confusion).
+               Operator search is already capped at 280px (rmc-cp-header-200x.css); Messages is not an
+               operator destination. {% endcomment %}
             {% if SHOW_HEADER_NOTIFICATIONS %}
             <a href="{% url 'accounts:user_notifications' %}" class="cp-topbar-bell rmc-platform-header__icon-btn" aria-label="{% trans 'Notifications' %}" title="{% trans 'Notifications' %}" data-rmc-header-bell="1">
               <i class="bi bi-bell-fill" aria-hidden="true"></i>
               <span class="cp-topbar-bell__badge" data-rmc-unread-badge data-rmc-unread-badge-style="avatar" aria-hidden="true"{% if not NOTIFICATIONS_UNREAD_COUNT %} hidden{% endif %}>{% if NOTIFICATIONS_UNREAD_COUNT > 99 %}99+{% else %}{{ NOTIFICATIONS_UNREAD_COUNT|default:0 }}{% endif %}</span>
             </a>
-            {% endif %}
-            {% comment %} Notification bell — CONFIGURABLE via cockpit_shell.show.bell. {% endcomment %}
-            {% if cockpit_shell.show.bell or not cockpit_shell %}
-            {% if platform_incidents_url %}
-              <a href="{{ platform_incidents_url }}" class="cp-topbar-bell rmc-platform-header__icon-btn" aria-label="{% blocktrans count count=platform_incidents|length %}{{ count }} open incident{% plural %}{{ count }} open incidents{% endblocktrans %}" title="{% trans 'Open incident console' %}">
-                <i class="bi bi-bell" aria-hidden="true"></i>
-                {% if platform_incidents|length %}<span class="cp-topbar-bell__badge" aria-hidden="true">{{ platform_incidents|length }}</span>{% endif %}
-              </a>
-            {% elif cp_command_center_url %}
-              <a href="{{ cp_command_center_url }}" class="cp-topbar-bell rmc-platform-header__icon-btn" aria-label="{% trans 'Notifications' %}" title="{% trans 'Notifications' %}">
-                <i class="bi bi-bell" aria-hidden="true"></i>
-                {% if attention_school_count %}<span class="cp-topbar-bell__badge" aria-hidden="true">{{ attention_school_count }}</span>{% endif %}
-              </a>
-            {% endif %}
             {% endif %}
             {% comment %} v4.02.x: the inline Tier-1 LIVE badge that used to sit by the bell
                ("LIVE New school provisioned …") was REMOVED platform-wide per owner. The live
