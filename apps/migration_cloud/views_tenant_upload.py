@@ -365,7 +365,10 @@ def _progress_payload(bundle) -> dict:
     try:
         from .progress import refresh_snapshot
 
-        snapshot = refresh_snapshot(bundle=bundle)
+        # persist=False: this is a hot read-only poller (~2.5 s/viewer); compute
+        # the live snapshot without a DB write on a GET. The worker keeps the
+        # stored copy fresh at each stage boundary.
+        snapshot = refresh_snapshot(bundle=bundle, persist=False)
     except Exception:  # noqa: BLE001 — never break the poller on a snapshot error
         logger.debug("tenant progress: snapshot failed for %s", bundle.pk, exc_info=True)
         snapshot = getattr(bundle, "progress_snapshot", None) or {}
@@ -438,12 +441,14 @@ class _TenantAdminWriteRequiredMixin(LoginRequiredMixin):
 class TenantMigrationProgressView(LoginRequiredMixin, View):
     """GET JSON: live auto-detection progress for the caller's OWN bundle.
 
-    Polled by ``bundle_review.html`` while profile → classify → map runs (async
-    on the Celery worker in production, or already-complete inline on a broker
-    outage). Tenant-scoped via :func:`_tenant_bundle_or_404` — a cross-tenant or
-    unknown id is a 404 (never 403), so id-enumeration can't distinguish "exists
-    elsewhere". Read-only from the tenant's perspective; grants no operator
-    visibility (isolation preserved).
+    Polled by ``bundle_review.html`` while profile → classify → map runs on the
+    background worker (a durable ``HeavyWorkOutbox`` row drained off the HTTP
+    thread; on a broker/worker outage the row simply waits, so the poller keeps
+    watching rather than seeing a synchronous result). Tenant-scoped via
+    :func:`_tenant_bundle_or_404` — a cross-tenant or unknown id is a 404 (never
+    403), so id-enumeration can't distinguish "exists elsewhere". Read-only: the
+    snapshot is computed with ``persist=False`` (no DB write on GET) and grants no
+    operator visibility (isolation preserved).
     """
 
     def get(self, request, bundle_id: int):

@@ -69,7 +69,7 @@ def emit(
         logger.debug("progress.emit failed", exc_info=True)
 
 
-def refresh_snapshot(*, bundle: MigrationBundle) -> dict[str, Any]:
+def refresh_snapshot(*, bundle: MigrationBundle, persist: bool = True) -> dict[str, Any]:
     """Recompute the live progress snapshot from the event stream.
 
     Snapshot shape::
@@ -82,6 +82,13 @@ def refresh_snapshot(*, bundle: MigrationBundle) -> dict[str, Any]:
             ],
             "updated_at": iso,
         }
+
+    ``persist`` (default ``True``) writes the snapshot back to the bundle — what
+    the worker (pipeline / orchestrator) and the operator DAG view want. A hot,
+    read-only poller (the tenant progress endpoint, hit every ~2.5 s per viewer)
+    passes ``persist=False`` to compute the live picture WITHOUT a DB write on a
+    GET; the snapshot is still set in-memory so the caller sees a consistent
+    object, and the worker keeps the stored copy fresh at each stage boundary.
     """
     events = list(
         MigrationProgressEvent.objects.filter(bundle=bundle).order_by("created_at")
@@ -125,7 +132,8 @@ def refresh_snapshot(*, bundle: MigrationBundle) -> dict[str, Any]:
         "current_status": bundle.status,
     }
     bundle.progress_snapshot = snapshot
-    bundle.save(update_fields=["progress_snapshot", "updated_at"])
+    if persist:
+        bundle.save(update_fields=["progress_snapshot", "updated_at"])
     return snapshot
 
 

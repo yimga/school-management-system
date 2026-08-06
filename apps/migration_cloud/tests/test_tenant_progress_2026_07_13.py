@@ -148,3 +148,48 @@ class MigrationStatusCardTests(SimpleTestCase):
 
         req = SimpleNamespace(school=SimpleNamespace(pk=123), tenant=None)
         self.assertIsNone(_migration_status_card(req))
+
+
+class RefreshSnapshotPersistTests(SimpleTestCase):
+    """The hot read-only poller must not write to the DB on a GET.
+
+    refresh_snapshot(persist=False) still computes + returns the live snapshot and
+    sets it in-memory, but skips bundle.save — so the tenant progress endpoint,
+    polled every ~2.5s per viewer, doesn't issue a write per poll. persist=True
+    (the default all worker/operator callers use) still saves.
+    """
+
+    def _fake_bundle(self):
+        return SimpleNamespace(
+            pk=7,
+            status=BundleStatus.INGESTING,
+            progress_snapshot=None,
+            save=mock.Mock(),
+        )
+
+    @mock.patch("apps.migration_cloud.progress.MigrationProgressEvent")
+    def test_persist_false_does_not_write(self, event_model):
+        event_model.objects.filter.return_value.order_by.return_value = []
+        from apps.migration_cloud.progress import refresh_snapshot
+
+        bundle = self._fake_bundle()
+        snap = refresh_snapshot(bundle=bundle, persist=False)
+        bundle.save.assert_not_called()
+        self.assertIn("stages", snap)
+        self.assertEqual(bundle.progress_snapshot, snap)  # still set in-memory
+
+    @mock.patch("apps.migration_cloud.progress.MigrationProgressEvent")
+    def test_persist_true_writes(self, event_model):
+        event_model.objects.filter.return_value.order_by.return_value = []
+        from apps.migration_cloud.progress import refresh_snapshot
+
+        bundle = self._fake_bundle()
+        refresh_snapshot(bundle=bundle, persist=True)
+        bundle.save.assert_called_once()
+
+    @mock.patch("apps.migration_cloud.progress.refresh_snapshot")
+    def test_poller_calls_with_persist_false(self, refresh):
+        # _progress_payload must invoke the snapshot helper in non-persisting mode.
+        refresh.return_value = {"stages": []}
+        _progress_payload(_fake_bundle(BundleStatus.PROFILED))
+        self.assertFalse(refresh.call_args.kwargs.get("persist", True))
