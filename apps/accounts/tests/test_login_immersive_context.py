@@ -37,7 +37,11 @@ class LoginImmersiveContextTests(SimpleTestCase):
         self.assertTrue(payload["moments"])
         self.assertGreaterEqual(len(payload["moments"]), 1)
 
-    def test_free_tier_caps_slides(self):
+    def test_free_tier_caps_slides_at_the_free_floor(self):
+        # Free tier shows the full built-in rotation (FREE_MAX_SLIDES) but caps
+        # a school's custom deck there — a larger deck needs Login Canvas Pro.
+        from apps.accounts.login_immersive_canvas import FREE_MAX_SLIDES
+
         request = RequestFactory().get("/authentication/login/")
         request.site_settings = type(
             "S",
@@ -51,6 +55,8 @@ class LoginImmersiveContextTests(SimpleTestCase):
                                 {"title": "One"},
                                 {"title": "Two"},
                                 {"title": "Three"},
+                                {"title": "Four"},
+                                {"title": "Five"},
                             ]
                         },
                     }
@@ -59,7 +65,8 @@ class LoginImmersiveContextTests(SimpleTestCase):
         )()
         section = resolve_login_immersive_section(request)
         slides = section["hero_banner"]["slides"]
-        self.assertEqual(len(slides), 1)
+        self.assertEqual(len(slides), FREE_MAX_SLIDES)
+        self.assertGreaterEqual(FREE_MAX_SLIDES, 3)  # full default rotation, not 1
 
     def test_pro_enables_marquee_mode(self):
         request = RequestFactory().get("/authentication/login/")

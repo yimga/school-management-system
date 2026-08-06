@@ -49,8 +49,14 @@ METRIC_CATALOG: dict[str, dict[str, str]] = {
     },
 }
 
-FREE_MAX_SLIDES = 1
-FREE_MAX_GALLERY = 1
+# Free tier shows the full built-in rotation (the 3 default slides
+# portal/staff/families) + a filled 3-up gallery, so every school's login looks
+# intentional out of the box — the login is the platform's first impression, not
+# a paywalled surface. Login Canvas Pro differentiates on DEPTH, not presence:
+# large custom decks (12 slides / 6 gallery), animated marquee/hybrid hero modes,
+# per-slide scheduling, and sponsored/network monetization slots.
+FREE_MAX_SLIDES = 3
+FREE_MAX_GALLERY = 3
 PRO_MAX_SLIDES = 12
 PRO_MAX_GALLERY = 6
 

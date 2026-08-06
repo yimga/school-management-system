@@ -78,6 +78,32 @@ class DashFeedFallbackTests(SimpleTestCase):
         self.assertEqual(feed[0]["title"], "Sports day Friday")
 
 
+class FreeTierLoginIsFullTests(SimpleTestCase):
+    """The free login shows the full built-in rotation + gallery; Pro differs on depth."""
+
+    def test_free_floor_shows_the_full_default_rotation(self):
+        self.assertGreaterEqual(lic.FREE_MAX_SLIDES, 3)
+        self.assertGreaterEqual(lic.FREE_MAX_GALLERY, 3)
+
+    def test_pro_still_strictly_exceeds_free(self):
+        # Guard against accidentally flattening the tiers — Pro must stay richer.
+        self.assertGreater(lic.PRO_MAX_SLIDES, lic.FREE_MAX_SLIDES)
+        self.assertGreater(lic.PRO_MAX_GALLERY, lic.FREE_MAX_GALLERY)
+
+    def test_free_tenant_render_has_rotating_carousel_and_filled_gallery(self):
+        req = RequestFactory().get("/authentication/login/")
+        req.public_host_kind = None
+        req.school = None
+        ctx = lic.build_login_immersive_render_context(req)
+        self.assertFalse(ctx["pro_enabled"], "this asserts the FREE experience")
+        self.assertGreater(
+            len(ctx["carousel_slides"]), 1, "free hero must rotate, not sit static"
+        )
+        self.assertGreater(
+            len(ctx["moments"]), 1, "free gallery must fill, not strand one image"
+        )
+
+
 class GalleryGridAdaptsTests(SimpleTestCase):
     """CSS must adapt the gallery column count so few images leave no empty columns."""
 
