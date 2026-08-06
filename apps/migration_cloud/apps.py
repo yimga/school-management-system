@@ -59,3 +59,34 @@ class MigrationCloudConfig(AppConfig):
             logging.getLogger(__name__).exception(
                 "migration_cloud.apps: celery_tasks import failed"
             )
+        # Register the four beat-scheduled Migration Cloud tasks whose
+        # @shared_task lives outside an autodiscovered tasks.py, so their beat
+        # entries resolve instead of silently never running. All four are safe
+        # to schedule:
+        #   * tasks_retention.purge_completed_migration_bundles_audit_task —
+        #     DRY-RUN audit, never mutates (only counts + info alerts).
+        #   * tasks_smoke.run_smoke_against_synthetic_tenant — kill-switched OFF
+        #     by default (MIGRATION_CLOUD_SMOKE_NIGHTLY_ENABLED); no-op in prod.
+        #   * tasks_alerts.token_rotation_watchdog — read-only scan + warning
+        #     alerts; never mutates.
+        #   * api.webhook_dispatch.deliver_due_task — outbound, but self-gated
+        #     OFF by default (MIGRATION_CLOUD_WEBHOOK_DISPATCH_ENABLED).
+        for _beat_module in (
+            "tasks_retention",
+            "tasks_smoke",
+            "tasks_alerts",
+        ):
+            try:
+                __import__(f"apps.migration_cloud.{_beat_module}")
+            except Exception:  # noqa: BLE001
+                import logging
+                logging.getLogger(__name__).exception(
+                    "migration_cloud.apps: %s import failed", _beat_module
+                )
+        try:
+            from .api import webhook_dispatch  # noqa: F401 — registers deliver_due_task
+        except Exception:  # noqa: BLE001
+            import logging
+            logging.getLogger(__name__).exception(
+                "migration_cloud.apps: webhook_dispatch import failed"
+            )

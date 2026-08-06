@@ -3306,6 +3306,17 @@ MIGRATION_CLOUD_OPERATOR_ALERT_EMAIL = (
     os.environ.get("MIGRATION_CLOUD_OPERATOR_ALERT_EMAIL", "") or ""
 ).strip() or None
 
+# v3.32.0 webhook dispatcher — SAFETY GATE (default OFF). The
+# ``migration-cloud-webhook-deliver-due`` beat entry drains pending
+# MigrationCloudWebhookDelivery rows and POSTs them to subscriber URLs. Waking
+# it against an accumulated backlog would fire stale webhooks at subscribers all
+# at once, so the beat-driven drain no-ops until an operator explicitly enables
+# it (after draining / date-bounding the queue). Manual/inline ``deliver_due()``
+# calls are unaffected — only the autonomous beat wrapper is gated.
+MIGRATION_CLOUD_WEBHOOK_DISPATCH_ENABLED = (
+    os.environ.get("MIGRATION_CLOUD_WEBHOOK_DISPATCH_ENABLED", "0").strip() == "1"
+)
+
 # v3.40.0 Agent 14 — Per-tenant audit-event volume rate-limit.
 #
 # Guards the append-only audit chain against runaway emit loops (bad

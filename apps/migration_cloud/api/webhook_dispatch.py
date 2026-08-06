@@ -621,5 +621,17 @@ def deliver_due_task(batch_size: int = 200) -> dict:
 
     Kept separate so unit tests can call ``deliver_due()`` directly
     without dragging the Celery decorator's wrapping behavior in.
+
+    SAFETY GATE: the beat-driven drain is disabled by default
+    (``settings.MIGRATION_CLOUD_WEBHOOK_DISPATCH_ENABLED``). Waking this against
+    an accumulated backlog would POST a burst of stale webhooks to subscribers,
+    so it stays a no-op until an operator enables it after draining / date-
+    bounding the queue. Manual/inline ``deliver_due()`` callers are unaffected.
     """
+    if not getattr(settings, "MIGRATION_CLOUD_WEBHOOK_DISPATCH_ENABLED", False):
+        logger.info(
+            "migration_cloud_webhook_dispatch disabled "
+            "(MIGRATION_CLOUD_WEBHOOK_DISPATCH_ENABLED off); returning noop"
+        )
+        return {"processed": 0, "delivered": 0, "deferred": 0, "disabled": True}
     return deliver_due(batch_size=batch_size)

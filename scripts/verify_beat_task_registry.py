@@ -102,17 +102,21 @@ KNOWN_DEAD_ENTRIES: dict[str, str] = {
     # and flips is_verified (safe to wake) — a real broken feature (a tenant's
     # DNS-verified custom domain never activated) is now fixed. Must-FIRE guard:
     # apps/siteconfig/tests/test_custom_domain_task_registration.py.
-    "migration-cloud-token-rotation-watchdog":
-        "Token-rotation watchdog never fires.",
-    "migration-cloud-webhook-deliver-due":
-        "Due webhooks are never delivered. Waking this SENDS REAL OUTBOUND WEBHOOKS, "
-        "possibly a backlog of them at once. Drain/date-bound the queue before enabling.",
-    "migration-cloud-retention-audit-monthly":
-        "DESTRUCTIVE IF WOKEN: purge_completed_migration_bundles_audit_task DELETES "
-        "completed migration bundles. Review retention windows before enabling.",
-    "migration-cloud-smoke-nightly":
-        "Nightly smoke against a synthetic tenant never runs. Waking it CREATES tenant "
-        "data nightly.",
+    #
+    # RESOLVED 2026-08-05: the four Migration Cloud beat tasks below now register
+    # via MigrationCloudConfig.ready() (their @shared_task lives outside an
+    # autodiscovered tasks.py). All four are safe to schedule:
+    #   * tasks_retention.purge_completed_migration_bundles_audit_task is a
+    #     DRY-RUN audit (never mutates — the earlier "DESTRUCTIVE" note conflated
+    #     it with the mutating management command);
+    #   * tasks_smoke.run_smoke_against_synthetic_tenant is kill-switched OFF by
+    #     default (MIGRATION_CLOUD_SMOKE_NIGHTLY_ENABLED) → no-op in prod;
+    #   * tasks_alerts.token_rotation_watchdog is a read-only scan + warning
+    #     alerts (never mutates);
+    #   * api.webhook_dispatch.deliver_due_task is outbound but self-gated OFF by
+    #     default (MIGRATION_CLOUD_WEBHOOK_DISPATCH_ENABLED) so the beat drain
+    #     no-ops until an operator drains the backlog and enables it.
+    # Must-FIRE guard: apps/migration_cloud/tests/test_beat_task_registration.py.
 }
 
 
