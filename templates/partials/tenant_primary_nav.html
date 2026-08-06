@@ -9,6 +9,7 @@
   <a href="{% url 'portal:parent_dashboard' %}" class="tp-primary-nav__item"{% if 'parent' in request.path %} aria-current="page"{% endif %}>🏠 {% trans "Home" %}</a>
   <a href="{% url 'portal:parent_finance' %}" class="tp-primary-nav__item"{% if 'finance' in request.path %} aria-current="page"{% endif %}>💳 {% trans "Finance" %}</a>
   <a href="{% url 'accounts:user_messages' %}" class="tp-primary-nav__item">💬 {% trans "Messages" %}{% if messages_unread_count %}<span class="tp-nav-count">{{ messages_unread_count }}</span>{% endif %}</a>
+  <a href="{% url 'portal:parent_workflow' %}" class="tp-primary-nav__item">⚡ {% trans "Workflow" %}</a>
   <a href="{% url 'portal:portal_stats' %}" class="tp-primary-nav__item">📊 {% trans "Progress" %}</a>
   {% elif EFFECTIVE_PORTAL_ROLE == 'TEACHER' %}
   <a href="{% url 'portal:teacher_dashboard_alias' %}" class="tp-primary-nav__item"{% if 'teacher' in request.path %} aria-current="page"{% endif %}>🏠 {% trans "Home" %}</a>

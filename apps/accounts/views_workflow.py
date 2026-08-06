@@ -252,17 +252,26 @@ def approval_workflow_hub(request):
     )
 
 
-@login_required
-@user_passes_test(_is_admin_user)
+# settings.manage (not _is_admin_user) so the same admin tier that reaches the
+# Workflow Center — which links here — can actually open this hub. _is_admin_user
+# excluded LEADERSHIP / IT_ADMIN / PRINCIPAL / VICE_PRINCIPAL / DEAN (they are
+# ADMIN_LIKE_ROLES, granted settings.manage, but not is_staff / role==ADMIN), so
+# the Workflow Center's "Automation hub" link bounced them to login.
+@permission_required("settings.manage")
 def automation_hub(request):
     """Single place for automation: execution log, approval queue, and links to configure schedules (Site Settings)."""
     execution_log_url = approval_queue_url = site_settings_url = None
     try:
-        execution_log_url = reverse(
-            "admin:automation_automationexecutionlog_changelist"
-        )
+        # Prefer the tenant-admin-accessible outcomes console over the Django-admin
+        # changelist (which requires is_staff and dead-ends for role-based admins).
+        execution_log_url = reverse("automation:outcomes_console")
     except NoReverseMatch:
-        pass
+        try:
+            execution_log_url = reverse(
+                "admin:automation_automationexecutionlog_changelist"
+            )
+        except NoReverseMatch:
+            pass
     try:
         approval_queue_url = reverse(
             "admin:automation_automationapprovalqueue_changelist"
@@ -298,8 +307,10 @@ def automation_hub(request):
     )
 
 
-@login_required
-@user_passes_test(_is_admin_user)
+# settings.manage (not _is_admin_user) so it matches the Workflow Center gate that
+# links here — LEADERSHIP / IT_ADMIN / PRINCIPAL / VICE_PRINCIPAL / DEAN reach the
+# Workflow Center + its "Import Hub" link but were bounced by the _is_admin_user gate.
+@permission_required("settings.manage")
 def import_hub(request):
     """Hub linking to Entity Import, Grade Import, Migration Wizard, templates. Served under Studio OS (/studio/hubs/import/)."""
     early = _manager_host_without_school_workflow_redirect(request)

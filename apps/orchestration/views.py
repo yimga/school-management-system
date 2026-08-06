@@ -8,9 +8,7 @@ Celery runners) — this is its operator UI. Retry/compensation live here too.
 
 import logging
 
-from django.conf import settings
 from django.contrib import messages
-from django.contrib.admin.views.decorators import staff_member_required
 from django.db.utils import ProgrammingError
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -18,6 +16,7 @@ from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from apps.platform_runtime.models import PlatformOperatorOrchestrationWorkbenchLink
+from apps.schools.control_plane import require_super_access_with_host
 
 from . import event_log, versioning
 from .models import (
@@ -29,7 +28,7 @@ from .models import (
 logger = logging.getLogger(__name__)
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@require_super_access_with_host
 def operator_workbench(request):
     """Operator view: list recent orchestration runs, SLA overdue, retries (4.1)."""
     runs = []
@@ -74,7 +73,7 @@ def operator_workbench(request):
     )
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@require_super_access_with_host
 @require_POST
 def start_run(request, code):
     """Launch a run of a process definition from the Workflow Center.
@@ -118,7 +117,7 @@ def start_run(request, code):
     return redirect(reverse("super:orchestration_run_detail", args=[run.pk]))
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@require_super_access_with_host
 def run_detail_page(request, run_id: int):
     """Operator run detail: status + the full step-event timeline for one run."""
     run = get_object_or_404(
@@ -139,7 +138,7 @@ def run_detail_page(request, run_id: int):
     )
 
 
-@staff_member_required(login_url=settings.LOGIN_URL)
+@require_super_access_with_host
 def retry_run(request, run_id: int):
     """Re-queue a failed run (set status to PENDING, clear completed_at). Phase 10 — 4.1."""
     run = get_object_or_404(OrchestrationRun, pk=run_id)

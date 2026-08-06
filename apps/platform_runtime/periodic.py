@@ -264,6 +264,28 @@ def ensure_default_jobs() -> None:
             auto_eligible=False,
             tags=("events", "drainer"),
         )
+        # 3b. Orchestration engine drain + SLO rollup — CRITICAL: beat-only in
+        #     CELERY_BEAT_SCHEDULE and absent here, so on the no-worker / sovereign-
+        #     edge topology an operator "Start run" created a PENDING OrchestrationRun
+        #     that never drained (and orchestration SLO telemetry stayed blank).
+        _REGISTRY["orchestration.process_due_runs"] = PeriodicJob(
+            name="orchestration.process_due_runs",
+            interval_seconds=FREQUENT_DRAIN_SECONDS,
+            func=_run_orchestration_process_due_runs,
+            description="Drain due orchestration runs (execute one step per pending run).",
+            lock_ttl_seconds=HEAVY_JOB_LOCK_TTL_SECONDS,
+            auto_eligible=False,
+            tags=("orchestration", "drainer"),
+        )
+        _REGISTRY["orchestration.aggregate_slos"] = PeriodicJob(
+            name="orchestration.aggregate_slos",
+            interval_seconds=FREQUENT_DRAIN_SECONDS,
+            func=_run_orchestration_aggregate_slos,
+            description="Roll up orchestration SLO metrics (p50/p95/p99 + queue depth).",
+            lock_ttl_seconds=HEAVY_JOB_LOCK_TTL_SECONDS,
+            auto_eligible=False,
+            tags=("orchestration", "slo"),
+        )
         # 4. Payment reminders + retry of failed reminders. Daily.
         _REGISTRY["finance.send_payment_reminders"] = PeriodicJob(
             name="finance.send_payment_reminders",
@@ -749,6 +771,26 @@ def _run_retry_failed_payment_reminders() -> object:
     from apps.finance.tasks import retry_failed_payment_reminders_task
 
     return retry_failed_payment_reminders_task.run()
+
+
+def _run_orchestration_process_due_runs() -> object:
+    # The orchestration engine's drain was beat-ONLY (CELERY_BEAT_SCHEDULE) and
+    # absent from this registry, so on the no-worker / sovereign-edge topology an
+    # operator "Start run" created a PENDING OrchestrationRun that NEVER drained.
+    # Runs the SAME management command the orchestration.process_due_runs task wraps
+    # (bypasses the Flight-Deck @track_workflow decorator, which needs no broker here).
+    from django.core.management import call_command
+
+    return call_command("process_orchestration_runs", limit=50)
+
+
+def _run_orchestration_aggregate_slos() -> object:
+    # Companion to the drain: rolls up p50/p95/p99 + queue-depth SLO metrics. Also
+    # beat-only, so orchestration SLO telemetry stayed blank on broker-less boxes.
+    # Delegates to the SAME helper the orchestration.aggregate_slos task wraps.
+    from apps.orchestration.slo_aggregator import aggregate_recent_window
+
+    return aggregate_recent_window(window_minutes=60)
 
 
 def _run_send_deadline_reminders() -> object:

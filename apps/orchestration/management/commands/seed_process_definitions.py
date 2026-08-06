@@ -29,10 +29,16 @@ DEFAULTS = [
         "name": "Approval chain",
         "description": "Multi-step approval workflow (e.g. waiver, policy).",
     },
+    # student_transfer is the one runner that does real cross-school work
+    # (runners.StudentTransferRunner); it was previously unseeded, so it never
+    # appeared in the workbench catalogue. migration_run was the inverse bug —
+    # seeded but with NO runner (get_runner returns None), so its runs sat PENDING
+    # forever and inflated the SLO queue-depth metric. Migration runs are driven by
+    # Migration Cloud, not this orchestration engine, so the definition is dropped.
     {
-        "code": "migration_run",
-        "name": "Migration run",
-        "description": "Data migration run (parity, sync).",
+        "code": "student_transfer",
+        "name": "Student transfer",
+        "description": "Student transfer case (records, clearances, handoff).",
     },
 ]
 

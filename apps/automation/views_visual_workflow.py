@@ -22,7 +22,18 @@ from apps.automation.workflow_graph_models import Workflow, WorkflowEdge, Workfl
 
 
 def _staff_school(request):
-    if not getattr(request.user, "is_staff", False):
+    """Tenant workflow-engine gate + school resolver.
+
+    Admits the school's ADMIN TIER via the host-aware Studio contract
+    (superuser / Django staff / role ADMIN on the tenant host; operators only on
+    the manager host), NOT ``is_staff`` alone. Role-based tenant admins are never
+    Django ``is_staff`` by platform design (see ``schools.control_plane``), so an
+    ``is_staff``-only gate made the tenant's own workflow engine unreachable for
+    the exact operator it is built for — the Studio shell already admits them.
+    """
+    from apps.schools.control_plane import user_can_access_studio_on_request
+
+    if not user_can_access_studio_on_request(request):
         return None, JsonResponse({"error": "forbidden"}, status=403)
     school = getattr(request, "school", None)
     if not school:
@@ -34,9 +45,11 @@ def _staff_school(request):
 @login_required
 @require_http_methods(["GET"])
 def visual_workflow_designer(request):
-    """Studio-linked canvas: palette + save graph (staff, tenant)."""
-    if not getattr(request.user, "is_staff", False):
-        messages.warning(request, "Staff only.")
+    """Studio-linked canvas: palette + save graph (tenant admin tier)."""
+    from apps.schools.control_plane import user_can_access_studio_on_request
+
+    if not user_can_access_studio_on_request(request):
+        messages.warning(request, "Studio access is limited to your school's admin team.")
         return redirect(reverse("accounts:backend_dashboard"))
     school = getattr(request, "school", None)
     if not school:

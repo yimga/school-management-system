@@ -3,7 +3,8 @@ Step 41: Bounded console for automation outcomes (not raw settings).
 Surfaces MigrationRun and AutomationExecutionLog results for operators; no profile/playbook editing here.
 """
 
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 from django.db.models import Count, Q
 from django.shortcuts import render
 from django.urls import reverse
@@ -13,17 +14,23 @@ from .models import AutomationExecutionLog, MigrationRun
 from .workflow_graph_models import WorkflowRunLog
 
 
-def _staff_required(user):
-    return getattr(user, "is_staff", False) or getattr(user, "is_superuser", False)
-
-
 @login_required
-@user_passes_test(_staff_required)
 def outcomes_console(request):
     """
     Outcomes-only console: recent migration runs, execution logs, and visual workflow runs.
     No raw settings (profiles, playbooks); read-only outcome summary.
+
+    Admits the tenant ADMIN TIER via the host-aware Studio contract (role-based
+    tenant admins are never Django ``is_staff``, so an ``is_staff``-only gate hid
+    the tenant's own automation outcomes from the operator it is built for).
+    Operators-only on the manager host; tenant admins on the tenant host.
     """
+    from apps.schools.control_plane import user_can_access_studio_on_request
+
+    if not user_can_access_studio_on_request(request):
+        raise PermissionDenied(
+            "Automation outcomes are limited to your school's admin team."
+        )
     school = getattr(request, "school", None)
     # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
     base_runs = MigrationRun.objects.all().select_related(
