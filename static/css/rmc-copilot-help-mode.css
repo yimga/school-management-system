@@ -96,7 +96,12 @@
   resize: vertical;
   border: 1px solid var(--hairline, rgba(255, 255, 255, 0.12));
   border-radius: var(--radius-md, 8px);
-  background: color-mix(in srgb, var(--surface-canvas, #0f172a) 88%, #3a2a18 12%);
+  /* The help textarea sits on the always-dark copilot rail. The previous
+     theme-aware `--surface-canvas` background resolved to a light cream in
+     light theme, colliding with the fixed near-white `--cp-chrome-text` so
+     typed text was invisible. Use the same fixed dark-glass as the main
+     `.lx-copilot__input` so text stays readable in BOTH themes. */
+  background: rgba(255, 255, 255, 0.05); /* off-token-allow: dark-chrome-copilot-glass */
   color: var(--cp-chrome-text, #f4f4f5);
   padding: 9px 10px;
   font: inherit;

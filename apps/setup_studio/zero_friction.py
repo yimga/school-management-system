@@ -84,7 +84,7 @@ def what_is_blocking_launch(school) -> dict[str, Any]:
         else "Review launch checklist and go live.",
         suggested_values={"blockers": explanations[:10]},
         auto_fix_available=bool(blockers),
-        auto_fix_kind="compile_setup_studio" if blockers else "",
+        auto_fix_kind="auto_repair_setup" if blockers else "",
     )
     return {
         "blockers": explanations,
@@ -107,7 +107,15 @@ def apply_recommended_setup(school, *, actor_id: int | None = None) -> dict[str,
         "actor_id": actor_id,
         "next_step_key": next_step.get("key", ""),
         "next_url": next_step.get("link") or "",
-        "recommended_blueprint_slug": blueprint.get("slug") or blueprint.get("key") or "",
+        # ``_rank_blueprints`` emits the pack slug under both ``slug`` and the
+        # legacy ``pack_slug`` key; accept either so the recommended pack is not
+        # silently dropped (the empty-slug bug on the launch surface).
+        "recommended_blueprint_slug": (
+            blueprint.get("slug")
+            or blueprint.get("pack_slug")
+            or blueprint.get("key")
+            or ""
+        ),
         "health_score": data["health_score"],
         "launch_ready": data["launch_ready"],
     }

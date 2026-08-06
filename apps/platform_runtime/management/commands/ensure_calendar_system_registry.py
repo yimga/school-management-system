@@ -2,6 +2,10 @@
 Idempotent seed for CalendarSystemRegistry rows matching RegionConfig.calendar_system codes.
 
 Run after deploy or in CI migrate hooks: ``python manage.py ensure_calendar_system_registry``
+
+The canonical row set now lives in ``apps.registries.services`` (single source of
+truth shared with ``ensure_registry_baseline`` and the launch-page self-heal); this
+command is a thin operator entry point over that helper.
 """
 
 from __future__ import annotations
@@ -9,13 +13,9 @@ from __future__ import annotations
 from django.core.management.base import BaseCommand
 
 from apps.registries.models import CalendarSystemRegistry
-
-# Keys must match RegionConfig.CALENDAR_CHOICES values (setup_studio lookup).
-_REGISTRY_ROWS: tuple[tuple[str, str, dict], ...] = (
-    ("gregorian", "Gregorian (civil)", {"runtime_code": "gregorian"}),
-    ("islamic", "Islamic (Hijri)", {"runtime_code": "hijri"}),
-    ("buddhist", "Buddhist / Thai solar", {"runtime_code": "buddhist"}),
-    ("hebrew", "Hebrew calendar", {"runtime_code": "hebrew"}),
+from apps.registries.services import (
+    CALENDAR_SYSTEM_SEED_DEFAULTS,
+    ensure_calendar_system_registry_seed,
 )
 
 
@@ -23,29 +23,13 @@ class Command(BaseCommand):
     help = "Ensure CalendarSystemRegistry has active rows for all RegionConfig calendar_system values."
 
     def handle(self, *args, **options):
-        created = 0
-        updated = 0
-        for code, name, metadata in _REGISTRY_ROWS:
-            row, was_created = CalendarSystemRegistry.objects.update_or_create(
-                code=code,
-                defaults={
-                    "name": name,
-                    "metadata": metadata,
-                    "is_active": True,
-                },
-            )
-            if was_created:
-                created += 1
-            else:
-                if row.name != name or not row.is_active:
-                    row.name = name
-                    row.is_active = True
-                    row.metadata = {**(row.metadata or {}), **metadata}
-                    row.save(update_fields=["name", "is_active", "metadata", "updated_at"])
-                    updated += 1
+        before = CalendarSystemRegistry.objects.count()
+        ensure_calendar_system_registry_seed()
+        after = CalendarSystemRegistry.objects.count()
         self.stdout.write(
             self.style.SUCCESS(
-                f"CalendarSystemRegistry: {created} created, {updated} updated, "
-                f"{len(_REGISTRY_ROWS)} codes ensured."
+                f"CalendarSystemRegistry: {after - before} created, "
+                f"{len(CALENDAR_SYSTEM_SEED_DEFAULTS)} codes ensured "
+                f"({after} active total)."
             )
         )

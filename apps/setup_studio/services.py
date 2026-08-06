@@ -384,6 +384,17 @@ def _registry_alignment_snapshot(school) -> dict[str, Any]:
     calendar) plus institution type, grade scale, education system — operator signal
     for Setup/Launch with structured key_rows + mismatch_count.
     """
+    # Lazy self-heal: the timezone/locale/institution-type/calendar reference
+    # tables have no deploy-time seeder on older environments, so a school with
+    # those fields set would render permanent "yellow triangles". Seeding is
+    # SHARED (public schema) and idempotent/short-circuited, so first view of the
+    # Launch page aligns them for every tenant. Best-effort — never block render.
+    try:
+        from apps.registries.services import ensure_localization_registry_baseline
+
+        ensure_localization_registry_baseline()
+    except Exception:  # noqa: BLE001 — alignment display must survive a seed failure
+        logger.debug("registry self-heal skipped", exc_info=True)
     cc = str(getattr(school, "country_code", "") or "").strip().upper()[:2]
     iana = str(getattr(school, "timezone", "") or "").strip()
     snap: dict[str, Any] = {
@@ -1286,6 +1297,10 @@ def _rank_blueprints(school) -> list[dict[str, Any]]:
                 else ("Recommended" if score >= 30 else "Baseline option"),
                 "reason_summary": ", ".join(reasons[:3]),
                 "pack_slug": str(pack.slug),
+                # Canonical slug key consumed by apply_recommended_setup / the
+                # "Use recommended setup" action. Kept alongside ``pack_slug``
+                # (which template consumers already read) so both contracts hold.
+                "slug": str(pack.slug),
             }
         )
 

@@ -24,6 +24,7 @@ from .models import (
     AcademicTerminologyRegistry,
     LocaleRegistry,
     CalendarSystemRegistry,
+    TimeZoneRegistry,
 )
 from .currency_seed import ensure_currency_registry_seed
 
@@ -778,6 +779,169 @@ def ensure_grade_scale_seed() -> None:
         )
 
 
+# ---------------------------------------------------------------------------
+# Localization registries (timezone / locale / institution type / calendar).
+#
+# These four reference tables previously had NO production seeder — they were
+# only ever written by test fixtures — so on live deploys every school whose
+# corresponding field was set rendered a permanent "yellow triangle" on the
+# Launch/Setup registry-alignment card. The helpers below make them seedable on
+# the same paths as the other registries (provisioning, deploy, lazy self-heal).
+# `apps.registries` is SHARED (public schema), so seeding once covers every
+# tenant.
+# ---------------------------------------------------------------------------
+
+# ISO 639-1 language codes the platform recognizes as a locale hint. The
+# alignment check resolves a school's language hint (often a bare language
+# code) against these, so seeding the bare codes covers the common case; the
+# candidate resolver falls back from `fr_CM` → `fr` automatically.
+LOCALE_SEED_DEFAULTS: tuple[dict, ...] = (
+    {"code": "en", "name": "English", "is_rtl": False},
+    {"code": "fr", "name": "French", "is_rtl": False},
+    {"code": "es", "name": "Spanish", "is_rtl": False},
+    {"code": "pt", "name": "Portuguese", "is_rtl": False},
+    {"code": "ar", "name": "Arabic", "is_rtl": True},
+    {"code": "de", "name": "German", "is_rtl": False},
+    {"code": "it", "name": "Italian", "is_rtl": False},
+    {"code": "nl", "name": "Dutch", "is_rtl": False},
+    {"code": "sw", "name": "Swahili", "is_rtl": False},
+    {"code": "ha", "name": "Hausa", "is_rtl": False},
+    {"code": "yo", "name": "Yoruba", "is_rtl": False},
+    {"code": "ig", "name": "Igbo", "is_rtl": False},
+    {"code": "am", "name": "Amharic", "is_rtl": False},
+    {"code": "zh", "name": "Chinese", "is_rtl": False},
+    {"code": "hi", "name": "Hindi", "is_rtl": False},
+    {"code": "bn", "name": "Bengali", "is_rtl": False},
+    {"code": "ur", "name": "Urdu", "is_rtl": True},
+    {"code": "fa", "name": "Persian", "is_rtl": True},
+    {"code": "he", "name": "Hebrew", "is_rtl": True},
+    {"code": "ru", "name": "Russian", "is_rtl": False},
+    {"code": "tr", "name": "Turkish", "is_rtl": False},
+    {"code": "id", "name": "Indonesian", "is_rtl": False},
+    {"code": "ja", "name": "Japanese", "is_rtl": False},
+    {"code": "ko", "name": "Korean", "is_rtl": False},
+    {"code": "vi", "name": "Vietnamese", "is_rtl": False},
+    {"code": "th", "name": "Thai", "is_rtl": False},
+    {"code": "pl", "name": "Polish", "is_rtl": False},
+)
+
+# Institution types keyed to `School.school_type` (the value the alignment check
+# compares) plus common sector variants. BASE_SCHOOL / TECHNICAL_COLLEGE /
+# STEM_ACADEMY are the canonical `school_type` codes and MUST be present, since
+# `school_type` defaults to BASE_SCHOOL for every school.
+INSTITUTION_TYPE_SEED_DEFAULTS: tuple[dict, ...] = (
+    {"code": "BASE_SCHOOL", "name": "General school (K-12)", "sort_order": 10},
+    {"code": "TECHNICAL_COLLEGE", "name": "Technical / vocational college", "sort_order": 20},
+    {"code": "STEM_ACADEMY", "name": "STEM academy", "sort_order": 30},
+    {"code": "PRIMARY_SCHOOL", "name": "Primary school", "sort_order": 40},
+    {"code": "SECONDARY_SCHOOL", "name": "Secondary school", "sort_order": 50},
+    {"code": "NURSERY_SCHOOL", "name": "Nursery / early years", "sort_order": 60},
+    {"code": "UNIVERSITY", "name": "University / higher education", "sort_order": 70},
+    {"code": "TRAINING_CENTER", "name": "Training center", "sort_order": 80},
+    {"code": "SPECIAL_SCHOOL", "name": "Special-needs school", "sort_order": 90},
+)
+
+# Calendar systems keyed to `RegionConfig.calendar_system` values. Single source
+# of truth for both this helper and the `ensure_calendar_system_registry`
+# management command (which now delegates here).
+CALENDAR_SYSTEM_SEED_DEFAULTS: tuple[dict, ...] = (
+    {"code": "gregorian", "name": "Gregorian (civil)", "metadata": {"runtime_code": "gregorian"}},
+    {"code": "islamic", "name": "Islamic (Hijri)", "metadata": {"runtime_code": "hijri"}},
+    {"code": "buddhist", "name": "Buddhist / Thai solar", "metadata": {"runtime_code": "buddhist"}},
+    {"code": "hebrew", "name": "Hebrew calendar", "metadata": {"runtime_code": "hebrew"}},
+    {"code": "ethiopian", "name": "Ethiopian calendar", "metadata": {"runtime_code": "ethiopian"}},
+)
+
+# Timezone display names that must not be humanized from their IANA id.
+_TIMEZONE_SPECIAL_NAMES: dict[str, str] = {
+    "UTC": "Coordinated Universal Time",
+    "GMT": "Greenwich Mean Time",
+}
+
+
+def ensure_timezone_registry_seed() -> int:
+    """Idempotent seed for IANA timezones (Section 20.1/20.6)."""
+    existing = TimeZoneRegistry.objects.count()
+    if existing >= 400:  # magic-number-allow: pytz-timezone-count-floor
+        return existing
+    # Fixed reference instant → deterministic standard-time offset (no DST/now()
+    # dependency, so the seeded metadata is stable across runs and CI).
+    reference = datetime(2000, 1, 1, 12, 0, 0)  # noqa: DTZ001 — naive on purpose for localize()
+    for tz_name in pytz.all_timezones:
+        offset_fmt = ""
+        try:
+            aware = pytz.timezone(tz_name).localize(reference)
+            raw = aware.strftime("%z")  # e.g. +0100
+            if len(raw) == 5:
+                offset_fmt = f"{raw[:3]}:{raw[3:]}"
+        except Exception:  # noqa: BLE001 — offset is informational; never block the seed
+            offset_fmt = ""
+        display = _TIMEZONE_SPECIAL_NAMES.get(tz_name) or tz_name.replace("_", " ")
+        TimeZoneRegistry.objects.update_or_create(
+            code=tz_name,
+            defaults={"name": display, "utc_offset": offset_fmt, "is_active": True},
+        )
+    return TimeZoneRegistry.objects.count()
+
+
+def ensure_locale_registry_seed() -> int:
+    """Idempotent seed for locale/language codes (Section 20.1/20.6)."""
+    if LocaleRegistry.objects.count() >= len(LOCALE_SEED_DEFAULTS):
+        return LocaleRegistry.objects.count()
+    for row in LOCALE_SEED_DEFAULTS:
+        LocaleRegistry.objects.update_or_create(
+            code=row["code"],
+            defaults={
+                "name": row["name"],
+                "is_rtl": bool(row.get("is_rtl")),
+                "is_active": True,
+            },
+        )
+    return LocaleRegistry.objects.count()
+
+
+def ensure_institution_type_registry_seed() -> int:
+    """Idempotent seed for institution types (Section 20.2/20.4/20.6)."""
+    if InstitutionTypeRegistry.objects.count() >= len(INSTITUTION_TYPE_SEED_DEFAULTS):
+        return InstitutionTypeRegistry.objects.count()
+    for row in INSTITUTION_TYPE_SEED_DEFAULTS:
+        InstitutionTypeRegistry.objects.update_or_create(
+            code=row["code"],
+            defaults={
+                "name": row["name"],
+                "sort_order": row.get("sort_order", 0),
+                "is_active": True,
+            },
+        )
+    return InstitutionTypeRegistry.objects.count()
+
+
+def ensure_calendar_system_registry_seed() -> int:
+    """Idempotent seed for academic calendar systems (Section 20.1/20.6)."""
+    if CalendarSystemRegistry.objects.count() >= len(CALENDAR_SYSTEM_SEED_DEFAULTS):
+        return CalendarSystemRegistry.objects.count()
+    for row in CALENDAR_SYSTEM_SEED_DEFAULTS:
+        CalendarSystemRegistry.objects.update_or_create(
+            code=row["code"],
+            defaults={
+                "name": row["name"],
+                "metadata": row.get("metadata", {}),
+                "is_active": True,
+            },
+        )
+    return CalendarSystemRegistry.objects.count()
+
+
+def ensure_localization_registry_baseline() -> None:
+    """Seed only the four localization registries. Cheap once seeded (each helper
+    short-circuits on a count check), so it is safe to call as a lazy self-heal
+    from read paths such as the Launch/Setup registry-alignment snapshot."""
+    ensure_timezone_registry_seed()
+    ensure_locale_registry_seed()
+    ensure_institution_type_registry_seed()
+    ensure_calendar_system_registry_seed()
+
+
 def ensure_registry_baseline() -> None:
     ensure_country_registry_seed()
     ensure_currency_registry_seed()  # Part F 16.1: 195 currencies
@@ -786,6 +950,7 @@ def ensure_registry_baseline() -> None:
     ensure_document_type_seed()
     ensure_fee_category_seed()
     ensure_grade_scale_seed()
+    ensure_localization_registry_baseline()
 
 
 def list_country_choices() -> list[dict[str, str]]:

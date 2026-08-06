@@ -62,9 +62,16 @@ def api_recommended_setup(request):
     except (UnicodeError, json.JSONDecodeError):
         body = {}
     actor_id = getattr(request.user, "pk", None)
-    if body.get("auto_fix"):
-        from apps.setup_studio.services import compile_setup_studio
-
-        compile_setup_studio(school)
     result = apply_recommended_setup(school, actor_id=actor_id)
+    if body.get("auto_fix"):
+        # "Fix automatically" must actually PERFORM safe setup (seed/align
+        # registries, attach the default plan, create a starter academic year),
+        # not merely recompute the score. The report lists what was fixed and
+        # what still needs a human decision (blueprint choice, roster import).
+        from apps.setup_studio.auto_repair import auto_repair_setup
+
+        result["auto_repair"] = auto_repair_setup(school, actor_id=actor_id)
+        # Re-read the recommendation after repair so the payload reflects the
+        # new, higher health score and cleared blockers.
+        result.update(apply_recommended_setup(school, actor_id=actor_id))
     return JsonResponse(result)
