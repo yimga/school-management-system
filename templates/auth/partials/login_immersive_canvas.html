@@ -131,7 +131,7 @@
   {% endif %}
 
   {% if lic.moments %}
-  <div class="rmc-auth-immersive__moments rmc-auth-immersive__zone" data-rmc-login-zone="gallery">
+  <div class="rmc-auth-immersive__moments rmc-auth-immersive__zone" data-rmc-login-zone="gallery" data-moment-count="{{ lic.moments|length }}">
     {% for moment in lic.moments %}
       <figure class="rmc-auth-immersive__moment">
         {% if moment.link_url %}

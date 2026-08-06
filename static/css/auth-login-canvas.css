@@ -667,6 +667,16 @@ body:has(.rmc-auth-immersive) [data-shell-chrome="django-messages"] {
   max-height: 14vh;
 }
 
+/* Adapt the column count to the number of images so a thin gallery (FREE tier
+   caps to 1, some tenants configure 2) never leaves empty grid columns. */
+.rmc-auth-immersive__moments[data-moment-count="1"] {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.rmc-auth-immersive__moments[data-moment-count="2"] {
+  grid-template-columns: repeat(2, 1fr);
+}
+
 .rmc-auth-immersive__moment {
   position: relative;
   border-radius: 12px;

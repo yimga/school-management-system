@@ -387,6 +387,45 @@ def _resolve_metric(key: str, request: Any, school: Any, now: datetime) -> dict[
     return {"label": label, "value": value, "sub": sub, "key": key}
 
 
+# Metric tiles whose value never depends on tenant data — a safe backfill when a
+# live metric resolves to a bare "—" (Students on the manager host / anonymous
+# session / a query failure), so the bento grid never shows a dead tile.
+_ALWAYS_RESOLVABLE_TILE_KEYS = (
+    "today_date",
+    "portal_secure",
+    "support_help",
+    "languages_count",
+)
+
+
+def _tile_has_value(tile: dict[str, str]) -> bool:
+    """True when a tile carries a real value (``0`` counts; a bare em dash does not)."""
+    return str(tile.get("value") or "").strip() not in ("", "—", "-")
+
+
+def _finalize_bento(
+    tiles: list[dict[str, str]], request: Any, school: Any, now: datetime
+) -> list[dict[str, str]]:
+    """Replace any tile that resolved to a dead "—" with the next always-resolvable
+    tile, keeping the tile count + positions stable so the 4-up grid never gaps."""
+    used = {t.get("key") for t in tiles if _tile_has_value(t)}
+    fallbacks = [k for k in _ALWAYS_RESOLVABLE_TILE_KEYS if k not in used]
+    out: list[dict[str, str]] = []
+    for tile in tiles:
+        if _tile_has_value(tile):
+            out.append(tile)
+            continue
+        replacement = None
+        while fallbacks:
+            candidate = _resolve_metric(fallbacks.pop(0), request, school, now)
+            if _tile_has_value(candidate):
+                used.add(candidate["key"])
+                replacement = candidate
+                break
+        out.append(replacement or tile)
+    return out
+
+
 def _default_gallery(request: Any, wallpaper_url: str) -> list[dict[str, str]]:
     from django.templatetags.static import static
 
@@ -437,7 +476,9 @@ def _ticker_items(section: dict[str, Any]) -> list[str]:
     return items[:12]
 
 
-def _dash_feed(section: dict[str, Any], *, max_items: int) -> list[dict[str, str]]:
+def _dash_feed(
+    section: dict[str, Any], *, max_items: int, is_manager: bool = False
+) -> list[dict[str, str]]:
     feed: list[dict[str, str]] = []
     for card in (section.get("cards") or [])[:max_items]:
         if not isinstance(card, dict):
@@ -465,15 +506,57 @@ def _dash_feed(section: dict[str, Any], *, max_items: int) -> list[dict[str, str
             }
         )
     if not feed:
-        feed = [
-            {
-                "icon": "📢",
-                "title": str(_("Welcome to your school portal")),
-                "subtitle": str(_("Sign in to see live announcements here.")),
-                "tag": str(_("Portal")),
-                "tag_class": "info",
-            }
-        ]
+        # No live announcements yet — orient the visitor with what's inside
+        # instead of one lonely placeholder card in a tall panel. Host-aware so
+        # the operator console never shows parent/fees copy.
+        if is_manager:
+            feed = [
+                {
+                    "icon": "🏫",
+                    "title": str(_("Provisioning")),
+                    "subtitle": str(_("New schools onboarded in minutes")),
+                    "tag": str(_("Console")),
+                    "tag_class": "ok",
+                },
+                {
+                    "icon": "💳",
+                    "title": str(_("Billing & plans")),
+                    "subtitle": str(_("Subscriptions, invoices, and regional pricing")),
+                    "tag": str(_("Portal")),
+                    "tag_class": "info",
+                },
+                {
+                    "icon": "🛟",
+                    "title": str(_("Support desk")),
+                    "subtitle": str(_("Tenant health and operator tickets")),
+                    "tag": str(_("Info")),
+                    "tag_class": "info",
+                },
+            ]
+        else:
+            feed = [
+                {
+                    "icon": "📣",
+                    "title": str(_("Announcements")),
+                    "subtitle": str(_("School news the moment it is posted")),
+                    "tag": str(_("Inside")),
+                    "tag_class": "ok",
+                },
+                {
+                    "icon": "🧾",
+                    "title": str(_("Report cards & fees")),
+                    "subtitle": str(_("Grades and balances in one place")),
+                    "tag": str(_("Portal")),
+                    "tag_class": "info",
+                },
+                {
+                    "icon": "💬",
+                    "title": str(_("Messages")),
+                    "subtitle": str(_("Reach teachers and the school office")),
+                    "tag": str(_("Inside")),
+                    "tag_class": "info",
+                },
+            ]
     return feed
 
 
@@ -607,7 +690,12 @@ def build_login_immersive_render_context(request: Any) -> dict[str, Any]:
     if not tile_keys:
         tile_keys = login_canvas_defaults(is_manager=is_manager)["metrics"]["tile_keys"]
     bento = (
-        [_resolve_metric(k, request, school, now) for k in tile_keys]
+        _finalize_bento(
+            [_resolve_metric(k, request, school, now) for k in tile_keys],
+            request,
+            school,
+            now,
+        )
         if metrics_cfg.get("enabled", True)
         else []
     )
@@ -668,7 +756,9 @@ def build_login_immersive_render_context(request: Any) -> dict[str, Any]:
         "ticker_items": ticker_items if zones.get("show_ticker", True) else [],
         "bento_stats": bento if zones.get("show_bento", True) else [],
         "dash_feed": _dash_feed(
-            ticker_section, max_items=int(feed_cfg.get("max_items") or 5)
+            ticker_section,
+            max_items=int(feed_cfg.get("max_items") or 5),
+            is_manager=is_manager,
         )
         if zones.get("show_feed", True)
         else [],
