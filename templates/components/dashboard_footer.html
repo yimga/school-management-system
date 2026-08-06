@@ -32,7 +32,9 @@ Falls back to SITE-model values when cockpit.footer.* is empty.
           {% endif %}
         {% endwith %}
         <span class="rmc-civic-footer__est">
-          · {{ cockpit.footer.brand.descriptor|default:"Family portal" }}
+          {% comment %} Neutral default: the footer renders for admins/teachers/parents/
+             students alike, so "Family portal" was wrong for staff. {% endcomment %}
+          · {{ cockpit.footer.brand.descriptor|default:"School portal" }}
           {% with founded=cockpit.footer.brand.founded_year|default:SITE.footer_founded_year %}{% if founded %} · {% trans "Est." %} {{ founded }}{% endif %}{% endwith %}
         </span>
       </div>
@@ -56,8 +58,12 @@ Falls back to SITE-model values when cockpit.footer.* is empty.
               <span class="rmc-civic-footer__pill{% if pillar.tone == 'secure' %} rmc-civic-footer__pill--secure{% elif pillar.tone == 'cert' %} rmc-civic-footer__pill--cert{% endif %}">{{ pillar.label }}</span>
             {% endfor %}
           {% else %}
-            {% comment %} Default trust pillar when nothing is configured {% endcomment %}
-            <span class="rmc-civic-footer__pill rmc-civic-footer__pill--secure">🔒 FERPA · ISO 27001 · WCAG 2.1 AA</span>
+            {% comment %} Default trust signal when nothing is configured. Deliberately
+               NOT a specific certification (FERPA / ISO 27001 / WCAG) — those are
+               audited, jurisdiction-specific claims a given school may not hold, and
+               asserting them by default on a school's own portal is misleading.
+               Configure real certifications via cockpit.footer.trust_pillars. {% endcomment %}
+            <span class="rmc-civic-footer__pill rmc-civic-footer__pill--secure">🔒 {% trans "Secure &amp; private" %}</span>
           {% endif %}
         {% endwith %}
 
@@ -100,10 +106,15 @@ Falls back to SITE-model values when cockpit.footer.* is empty.
               <span class="rmc-civic-footer__contact">{{ c.glyph|default:"·" }}{% if c.href %} <a href="{{ c.href }}">{{ c.value }}</a>{% else %} {{ c.value }}{% endif %}</span>
             {% endfor %}
           {% else %}
-            {% comment %} Fall back to SITE-model contact info {% endcomment %}
-            {% if SITE.company_phone %}<span class="rmc-civic-footer__contact">📞 <a href="tel:{{ SITE.company_phone }}">{{ SITE.company_phone }}</a></span>{% endif %}
-            {% if SITE.company_email %}<span class="rmc-civic-footer__contact">📧 <a href="mailto:{{ SITE.company_email }}">{{ SITE.company_email }}</a></span>{% endif %}
-            {% if SITE.company_address %}<span class="rmc-civic-footer__contact">📍 {{ SITE.company_address }}</span>{% endif %}
+            {% comment %} SITE.company_* are the PLATFORM's contacts — showing them on a
+               tenant's own portal footer is a leak (a school would display RunMyCampus's
+               phone/email). Only fall back to them on the manager/operator host, where
+               they are correct. Tenants configure their own via cockpit.footer.contacts. {% endcomment %}
+            {% if request.public_host_kind == 'manager' %}
+              {% if SITE.company_phone %}<span class="rmc-civic-footer__contact">📞 <a href="tel:{{ SITE.company_phone }}">{{ SITE.company_phone }}</a></span>{% endif %}
+              {% if SITE.company_email %}<span class="rmc-civic-footer__contact">📧 <a href="mailto:{{ SITE.company_email }}">{{ SITE.company_email }}</a></span>{% endif %}
+              {% if SITE.company_address %}<span class="rmc-civic-footer__contact">📍 {{ SITE.company_address }}</span>{% endif %}
+            {% endif %}
             {% if MARKETING_BASE_URL %}<span class="rmc-civic-footer__contact">📡 <a href="{{ MARKETING_BASE_URL }}/uptime/" target="_blank" rel="noopener noreferrer">{% trans "Platform status" %}</a></span>{% endif %}
           {% endif %}
         {% endwith %}
