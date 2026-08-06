@@ -25,7 +25,7 @@ import logging
 from pathlib import Path
 
 from django.conf import settings
-from django.contrib.admin.views.decorators import staff_member_required
+from apps.schools.control_plane import require_control_plane_access
 from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.views import View
@@ -113,7 +113,7 @@ def _compute_sparkline(rows: list[dict]) -> list[dict]:
 
 
 # rbac-allow: super-staff-migration-cloud-smoke-history
-@method_decorator(staff_member_required, name="dispatch")
+@method_decorator(require_control_plane_access, name="dispatch")
 class SmokeRunHistoryView(View):
     """GET /super/migration/smoke/history/ — staff-only.
 

@@ -19,6 +19,7 @@
         {% trans "Refresh deck" %}
       </button>
       <a class="btn btn-outline-secondary btn-sm truncate" href="{% url 'super:provision_queue' %}">{% trans "Provision queue" %}</a>
+      {% if orchestration_workbench_url %}<a class="btn btn-outline-secondary btn-sm truncate" href="{{ orchestration_workbench_url }}">{% trans "Orchestration workbench" %}</a>{% endif %}
       <a class="btn btn-outline-secondary btn-sm truncate" href="{% url 'super:dashboard' %}">{% trans "Back to dashboard" %}</a>
     </div>
   </header>

@@ -22,7 +22,7 @@ import logging
 from datetime import timedelta
 
 from django.contrib import messages
-from django.contrib.admin.views.decorators import staff_member_required
+from apps.schools.control_plane import require_control_plane_access
 from django.core.paginator import Paginator
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
@@ -94,7 +94,7 @@ def _token_row_for_table(row: MigrationCloudAPIToken) -> dict:
     }
 
 
-@method_decorator(staff_member_required, name="dispatch")
+@method_decorator(require_control_plane_access, name="dispatch")
 class MigrationCloudTokenListView(View):
     """GET /super/migration/operator/tokens/ — staff-only token table."""
 
@@ -129,7 +129,7 @@ class MigrationCloudTokenListView(View):
         return render(request, self.template_name, context)
 
 
-@method_decorator(staff_member_required, name="dispatch")
+@method_decorator(require_control_plane_access, name="dispatch")
 class MigrationCloudTokenMintView(View):
     """GET form + POST creates a token; plaintext shown ONCE."""
 
@@ -208,7 +208,7 @@ class MigrationCloudTokenMintView(View):
         return render(request, self.result_template, context)
 
 
-@method_decorator(staff_member_required, name="dispatch")
+@method_decorator(require_control_plane_access, name="dispatch")
 class MigrationCloudTokenRevokeView(View):
     """POST /super/migration/operator/tokens/<id>/revoke/ — immediate revoke."""
 
@@ -240,7 +240,7 @@ class MigrationCloudTokenRevokeView(View):
         return HttpResponseRedirect(reverse(f"{namespace}:operator_token_list"))
 
 
-@method_decorator(staff_member_required, name="dispatch")
+@method_decorator(require_control_plane_access, name="dispatch")
 class TokenRotationChainView(View):
     """GET /super/migration/operator/tokens/<id>/chain/ — walk the rotation chain.
 
@@ -369,7 +369,7 @@ class TokenRotationChainView(View):
         return render(request, self.template_name, context)
 
 
-@method_decorator(staff_member_required, name="dispatch")
+@method_decorator(require_control_plane_access, name="dispatch")
 class MigrationCloudTokenRotateView(View):
     """POST /super/migration/operator/tokens/<id>/rotate/ — same logic as API rotate."""
 

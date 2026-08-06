@@ -12,7 +12,7 @@ Shows:
 
 Security:
 
-  * Staff-only via ``@method_decorator(staff_member_required,
+  * Staff-only via ``@method_decorator(require_control_plane_access,
     name="dispatch")``.
   * The notes field is persisted to the per-run JSON file ONLY; the
     response page truncates notes to 120 chars in the table display
@@ -27,7 +27,7 @@ import logging
 from pathlib import Path
 
 from django.conf import settings
-from django.contrib.admin.views.decorators import staff_member_required
+from apps.schools.control_plane import require_control_plane_access
 from django.http import HttpResponseBadRequest
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -101,7 +101,7 @@ def _list_recent_runs(limit: int = _MAX_RUNS_DISPLAYED) -> list[dict]:
 
 
 # rbac-allow: super-staff-dsar-runbook-view-record
-@method_decorator(staff_member_required, name="dispatch")
+@method_decorator(require_control_plane_access, name="dispatch")
 class DSARRunbookView(View):
     """GET + POST /super/migration/dsar/runbook/ — operator DSAR runbook.
 

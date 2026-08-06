@@ -22,7 +22,7 @@ Panels:
      ``MigrationCloudMAACampaignNotification`` grouped by
      ``dispatch_mode``.
 
-Permission model: ``@staff_member_required`` via
+Permission model: ``@require_control_plane_access`` via
 ``method_decorator(..., name="dispatch")``. The URL pattern carries
 ``# rbac-allow: super-staff-view-maa-promotion-status`` so the
 RBAC matrix records the intentional staff-only gate.
@@ -39,7 +39,7 @@ from pathlib import Path
 from typing import Any
 
 from django.conf import settings
-from django.contrib.admin.views.decorators import staff_member_required
+from apps.schools.control_plane import require_control_plane_access
 from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.views import View
@@ -246,7 +246,7 @@ def _campaign_progress_panel() -> dict[str, Any]:
     return {"total": total, "by_campaign": by_campaign, "load_error": False}
 
 
-@method_decorator(staff_member_required, name="dispatch")
+@method_decorator(require_control_plane_access, name="dispatch")
 class MAA_V2_PromotionDashboardView(View):
     """GET /super/migration/maa-v2-promotion/ — staff-only promotion dashboard.
 

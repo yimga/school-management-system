@@ -3,9 +3,12 @@
 <div class="container-fluid py-3 studio-os-subpage-canvas" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1">
   {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
   <div class="studio-os__card py-3 px-3">
-    <p class="mb-3">{% trans "Staged activation lets you roll out workflow changes gradually. Run simulations from the Workflow hub to verify behavior, then activate in stages (e.g. by school, role, or feature flag) to reduce risk." %}</p>
-    {% if workflow_hub_url %}
-    <p class="mb-0"><a href="{{ workflow_hub_url }}">{% trans "Workflow hub" %}</a> — {% trans "Manage flows, run simulations, and activate workflows." %}</p>
-    {% endif %}
+    {% if maturity == 'roadmap' %}<p class="mb-2"><span class="badge bg-secondary">{% trans "Roadmap — not yet available" %}</span></p>{% endif %}
+    <p class="mb-3">{% trans "Staged rollout — enable a workflow for a subset (by school, role, or feature flag) and then promote it — is on the roadmap and not built in this release." %}</p>
+    <p class="mb-3">{% trans "What you can do today: build the workflow in the visual designer, run it through simulation to verify its behaviour and impact, then publish when you are confident." %}</p>
+    <div class="d-flex flex-wrap gap-2">
+      {% if simulation_url %}<a class="btn btn-sm btn-outline-primary" href="{{ simulation_url }}">{% trans "Open simulation engine" %}</a>{% endif %}
+      {% if workflow_hub_url %}<a class="btn btn-sm btn-link" href="{{ workflow_hub_url }}">{% trans "Workflow hub" %}</a>{% endif %}
+    </div>
   </div>
 </div>

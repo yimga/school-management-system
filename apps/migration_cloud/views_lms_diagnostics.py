@@ -22,7 +22,7 @@ import json as _json
 import logging
 from datetime import timedelta
 
-from django.contrib.admin.views.decorators import staff_member_required
+from apps.schools.control_plane import require_control_plane_access
 from django.http import HttpRequest, JsonResponse
 from django.shortcuts import render
 from django.utils import timezone
@@ -179,7 +179,7 @@ def _compute_lms_diagnostics() -> dict:
     return out
 
 
-@staff_member_required
+@require_control_plane_access
 @require_http_methods(["GET"])
 def lms_diagnostics(request: HttpRequest):
     """v4.00.56 — Operator dashboard at /super/migration/lms/diagnostics/.
@@ -206,7 +206,7 @@ def lms_diagnostics(request: HttpRequest):
 # ---------------------------------------------------------------------------
 # v4.00.59 — Operator action buttons: force-refresh + force-rotate per
 # provider. POSTs land here from the diagnostics dashboard; CSRF-protected
-# Django session auth via @staff_member_required.
+# Django session auth via @require_control_plane_access.
 # ---------------------------------------------------------------------------
 
 
@@ -713,7 +713,7 @@ def _action_totals() -> dict:
     }
 
 
-@staff_member_required
+@require_control_plane_access
 @require_http_methods(["GET"])
 def lms_diagnostics_action_history(request: HttpRequest):
     """v4.00.60 — JSON-only endpoint returning the last-action ring snapshot.
@@ -1113,7 +1113,7 @@ def _read_retention_purge_token(raw: str):
     return (years, cutoff_iso), "ok"
 
 
-@staff_member_required
+@require_control_plane_access
 @require_http_methods(["GET"])
 def lms_diagnostics_retention_preview(request: HttpRequest):
     """v4.00.64 — Operator preview of the next retention sweep's footprint.
@@ -1228,7 +1228,7 @@ def lms_diagnostics_retention_preview(request: HttpRequest):
     )
 
 
-@staff_member_required
+@require_control_plane_access
 @require_http_methods(["POST"])
 def lms_diagnostics_retention_purge(request: HttpRequest):
     """v4.00.66 — Honor the "Confirm purge" click from the preview UI.
@@ -1341,7 +1341,7 @@ def _parse_window_iso(raw):
     return dt
 
 
-@staff_member_required
+@require_control_plane_access
 @require_http_methods(["POST"])
 def lms_diagnostics_force_refresh(request: HttpRequest):
     """v4.00.59 — Force-refresh every expired token for ``?provider=<slug>``.
@@ -1385,7 +1385,7 @@ def lms_diagnostics_force_refresh(request: HttpRequest):
     )
 
 
-@staff_member_required
+@require_control_plane_access
 @require_http_methods(["POST"])
 def lms_diagnostics_force_rotate(request: HttpRequest):
     """v4.00.59 — Force-rotate every token past the rotation-grace window

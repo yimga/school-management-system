@@ -706,6 +706,128 @@ def workflow_center(request):
     return render(request, "accounts/workflow_center.html", ctx)
 
 
+def _is_tenant_staff_member(user):
+    """Any authenticated tenant staff member (operational roles + admin).
+
+    Parents and students have their own per-role workflow portals; everyone else
+    who is signed in to the tenant (bursar, HOD, secretary, registrar, dean,
+    finance/academics/comms staff, IT admin, admin, …) is a "staff member" for the
+    purpose of the personal My-Workflow launcher. This is a personal launcher that
+    only surfaces links the user is already entitled to — it grants no new access.
+    """
+    if not user or not user.is_authenticated:
+        return False
+    if user.is_staff or user.is_superuser:
+        return True
+    role = (getattr(user, "role", "") or "").upper()
+    # role-string-allow: parent/student excluded — they have their own per-role workflow portals
+    return role not in {"", "PARENT", "STUDENT"}
+
+
+def _staff_workflow_cards(request):
+    """Build the signed-in staffer's personal workflow launcher cards.
+
+    Each card is dropped when its target URL doesn't resolve (``_workflow_link``
+    returns None), so a staffer only ever sees surfaces they can actually reach —
+    no new access is granted here. Live counts are computed where cheap and
+    wrapped so a query failure simply omits the badge rather than 500-ing.
+    """
+    user = request.user
+    school = getattr(request, "school", None) or getattr(request, "tenant", None)
+    cards = []
+
+    # 1) Approvals — pending automation approvals + the approval-hub deep links.
+    if _can_access_approval_hub(user):
+        pending = None
+        try:
+            from apps.automation.models import AutomationApprovalQueue
+
+            qs = AutomationApprovalQueue.objects.filter(  # tenant-isolation-allow: approval-queue-shared-public-scoped-to-request-school
+                status=AutomationApprovalQueue.Status.PENDING,
+            )
+            if school is not None and getattr(school, "pk", None):
+                qs = qs.filter(school=school)
+            pending = qs.count()
+        except ACCOUNTS_SOFT_FAILURES:
+            pending = None
+        card = _workflow_link(_("Approvals"), "accounts:approval_workflow_hub", primary=True)
+        if card:
+            card["icon"] = "bi-clipboard-check"
+            card["description"] = _(
+                "Grade approvals, access requests and contact requests waiting on you."
+            )
+            card["count"] = pending
+            cards.append(card)
+
+    # 2) Requests routed to the staffer / their team.
+    req = _workflow_link(_("Requests"), "requests:dashboard")
+    if req:
+        req["icon"] = "bi-inbox"
+        req["description"] = _("Track and action requests routed to you and your team.")
+        cards.append(req)
+
+    # 3) Messages.
+    msg = _workflow_link(_("Messages"), "accounts:user_messages")
+    if msg:
+        msg["icon"] = "bi-chat-dots"
+        msg["description"] = _("Your direct messages and conversations.")
+        cards.append(msg)
+
+    # 4) Communication (announcements / groups).
+    comm = _workflow_link(_("Announcements"), "communication:announcement_create")
+    if comm:
+        comm["icon"] = "bi-megaphone"
+        comm["description"] = _("Post announcements and reach your message groups.")
+        cards.append(comm)
+
+    # 5) Admins also get the full school-lifecycle Workflow Center.
+    if _is_admin_user(user):
+        wc = _workflow_link(_("Workflow Center"), "studio_os:workflow_center", primary=True)
+        if wc:
+            wc["icon"] = "bi-diagram-3"
+            wc["description"] = _(
+                "The full school-year lifecycle: setup → onboarding → marks → reports."
+            )
+            cards.append(wc)
+
+    return cards
+
+
+@login_required
+@user_passes_test(_is_tenant_staff_member)
+def staff_workflow_center(request):
+    """Personal "My Workflow" launcher for operational staff.
+
+    Teacher / parent / student each have a per-role workflow portal, but the ~20
+    non-admin operational roles (bursar, HOD, secretary, registrar, dean,
+    finance/academics/comms staff, …) had none — they fell through to a bare
+    "Home" link. This is their entry point: it surfaces the approval / request /
+    communication surfaces they are ENTITLED to (dead links are dropped, so it
+    grants no new access) with live counts where cheap.
+    """
+    early = _manager_host_without_school_workflow_redirect(request)
+    if early is not None:
+        return early
+    cards = _staff_workflow_cards(request)
+    try:
+        home_url = reverse("accounts:redirect")
+    except NoReverseMatch:
+        home_url = "/"
+    return render(
+        request,
+        "accounts/staff_workflow_center.html",
+        {
+            "BREADCRUMBS": [
+                {"label": _("Home"), "url": home_url},
+                {"label": _("My Workflow"), "url": "", "active": True},
+            ],
+            "cards": cards,
+            "page_title": _("My Workflow"),
+            "page_subtitle": _("Your approvals, requests and tasks in one place."),
+        },
+    )
+
+
 @permission_required("settings.manage")
 @user_passes_test(_is_admin_user)
 def academic_rules(request):

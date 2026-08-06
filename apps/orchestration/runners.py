@@ -42,6 +42,12 @@ class BaseOrchestrationRunner:
     def __init__(self, run: OrchestrationRun, max_retries: int = 3):
         self.run = run
         self.max_retries = max_retries
+        # When True, run_step() must compute impact WITHOUT side effects (no
+        # sends, no writes). Set by run_workflow_simulation(); the real drain
+        # (execute()) leaves it False so runners actually act. Runners that
+        # perform side effects (e.g. FeeFollowUpRunner sends reminders) MUST
+        # honour this flag or simulation would fire real emails/SMS.
+        self.dry_run = False
 
     def run_step(self) -> dict:
         """Execute one step. Return output_payload fragment; raise on failure."""
@@ -180,31 +186,72 @@ class BaseOrchestrationRunner:
 
 
 class FeeFollowUpRunner(BaseOrchestrationRunner):
-    """Runner for fee_follow_up: enqueue reminder work per school; records run in OrchestrationRun."""
+    """Runner for fee_follow_up: actually SEND due payment reminders for the run's school.
+
+    Previously this only COUNTED reminders due and returned the number — a
+    "fee follow-up" that followed up with nobody. It now drives the real
+    multi-channel sender (``finance.send_payment_reminders_task``), which enters
+    the run's tenant context via ``_run_with_tenant_context``, respects
+    per-reminder locks, channel/contact preferences, and reschedules
+    ``next_send_at`` (so a re-drain never double-sends within a reminder's own
+    schedule). ``dry_run`` (simulation) short-circuits to a count only.
+    """
 
     code = "fee_follow_up"
+
+    def _count_due(self, school_id: str) -> int:
+        try:
+            from apps.finance.models import PaymentReminder
+
+            return PaymentReminder.objects.filter(
+                invoice__school_id=self.run.school_id,
+                is_active=True,
+                next_send_at__lte=timezone.now(),
+            ).count()
+        except _ORCHESTRATION_STEP_QUERY_ERRORS:
+            log_exception_with_context(
+                "FeeFollowUpRunner run_step count query failed",
+                school_id=school_id,
+                extra={"step": "fee_follow_up"},
+            )
+            return 0
 
     def run_step(self) -> dict:
         school_id = getattr(self.run.school_id, "hex", None) or str(
             getattr(self.run.school_id, "", "")
         )
-        count = 0
-        try:
-            from apps.finance.models import PaymentReminder
+        if not self.run.school_id:
+            # No school bound → nothing to send. Honest empty result.
+            return {
+                "school_id": school_id,
+                "reminders_sent": 0,
+                "reminders_due": 0,
+                "channels": {},
+                "step": "fee_follow_up",
+            }
+        if self.dry_run:
+            # Simulation: report what WOULD be sent; never send (no side effects).
+            return {
+                "school_id": school_id,
+                "reminders_due": self._count_due(school_id),
+                "reminders_sent": 0,
+                "dry_run": True,
+                "step": "fee_follow_up",
+            }
+        # Real execution: send the due reminders inside the school's tenant context.
+        from apps.finance.tasks import send_payment_reminders_task
 
-            if self.run.school_id:
-                count = PaymentReminder.objects.filter(
-                    invoice__school_id=self.run.school_id,
-                    is_active=True,
-                    next_send_at__lte=timezone.now(),
-                ).count()
-        except _ORCHESTRATION_STEP_QUERY_ERRORS:
-            log_exception_with_context(
-                "FeeFollowUpRunner run_step query failed",
-                school_id=school_id,
-                extra={"step": "fee_follow_up"},
-            )
-        return {"school_id": school_id, "reminders_due": count, "step": "fee_follow_up"}
+        result = send_payment_reminders_task.apply(
+            kwargs={"school_id": str(self.run.school_id), "dry_run": False}
+        ).get()
+        result = result or {}
+        return {
+            "school_id": school_id,
+            "reminders_sent": int(result.get("sent", 0) or 0),
+            "reminders_due": int(result.get("count", 0) or 0),
+            "channels": result.get("channels", {}) or {},
+            "step": "fee_follow_up",
+        }
 
 
 class AdmissionsRunner(BaseOrchestrationRunner):
@@ -236,6 +283,12 @@ class AdmissionsRunner(BaseOrchestrationRunner):
         return {
             "school_id": school_id,
             "pending_applications": count,
+            # Honest readiness snapshot: this runner reports what needs an
+            # operator decision (there is no safe auto-admit — offers/enrolment
+            # are a human decision), so it flags requires_action rather than
+            # pretending it processed anything.
+            "requires_action": count > 0,
+            "kind": "readiness_snapshot",
             "step": "admissions",
         }
 
@@ -266,19 +319,57 @@ class ReEnrollmentRunner(BaseOrchestrationRunner):
         return {
             "school_id": school_id,
             "eligible_students": count,
+            # Honest readiness snapshot (no safe auto-invite — re-enrolment
+            # invitations are an operator decision), so flag requires_action.
+            "requires_action": count > 0,
+            "kind": "readiness_snapshot",
             "step": "re_enrollment",
         }
 
 
 class ApprovalChainRunner(BaseOrchestrationRunner):
-    """Runner for approval_chain: multi-step approval workflows (e.g. fee waiver, leave) (4.1)."""
+    """Runner for approval_chain: report the school's pending approval backlog.
+
+    Previously this echoed ``chain_id`` and did nothing at all. It now surfaces
+    a real, honest signal — the count of PENDING ``AutomationApprovalQueue`` rows
+    for the run's school — so the operator workbench shows an actionable approval
+    backlog instead of a no-op. Advancing an individual approval remains a human
+    decision made in the Approval Hub / admin.
+    """
 
     code = "approval_chain"
 
     def run_step(self) -> dict:
         payload = self.run.input_payload or {}
         chain_id = payload.get("chain_id") or ""
-        return {"chain_id": chain_id, "step": "approval_chain"}
+        school_id = getattr(self.run.school_id, "hex", None) or str(
+            getattr(self.run.school_id, "", "")
+        )
+        pending = 0
+        try:
+            from apps.automation.models import AutomationApprovalQueue
+
+            # AutomationApprovalQueue is a SHARED/public model keyed by school_id;
+            # scope to this run's school so no other tenant's backlog is counted.
+            qs = AutomationApprovalQueue.objects.filter(  # tenant-isolation-allow: approval-queue-shared-public-scoped-to-run-school-id
+                status=AutomationApprovalQueue.Status.PENDING,
+            )
+            if self.run.school_id:
+                qs = qs.filter(school_id=self.run.school_id)
+            pending = qs.count()
+        except _ORCHESTRATION_STEP_QUERY_ERRORS:
+            log_exception_with_context(
+                "ApprovalChainRunner run_step query failed",
+                school_id=school_id,
+                extra={"step": "approval_chain"},
+            )
+        return {
+            "chain_id": chain_id,
+            "pending_approvals": pending,
+            "requires_action": pending > 0,
+            "kind": "readiness_snapshot",
+            "step": "approval_chain",
+        }
 
 
 class StudentTransferRunner(BaseOrchestrationRunner):
@@ -308,6 +399,15 @@ class StudentTransferRunner(BaseOrchestrationRunner):
             return {
                 "error": "case_not_found",
                 "case_id": str(case_id),
+                "step": "student_transfer",
+            }
+        if self.dry_run:
+            # Simulation must not execute the real transfer (records move, FKs
+            # remap). Report that a runnable case was found; take no action.
+            return {
+                "case_id": str(case_id),
+                "would_run": True,
+                "dry_run": True,
                 "step": "student_transfer",
             }
         from apps.people.transfer_service import run_transfer_case
@@ -383,6 +483,9 @@ def run_workflow_simulation(definition_code: str, payload: dict, school=None) ->
     runner = get_runner(run)
     if runner is None:
         return {"impact_count": 0, "steps": [], "dry_run": True}
+    # Simulation must have NO side effects: flag the runner so side-effecting
+    # runners (e.g. FeeFollowUpRunner) count instead of send.
+    runner.dry_run = True
     try:
         step_out = runner.run_step()
     except _ORCHESTRATION_RUN_ERRORS as e:
@@ -395,7 +498,12 @@ def run_workflow_simulation(definition_code: str, payload: dict, school=None) ->
         return {"impact_count": 0, "steps": [{"error": str(e)[:200]}], "dry_run": True}
     steps = [step_out]
     impact = 0
-    for key in ("reminders_due", "pending_applications", "eligible_students"):
+    for key in (
+        "reminders_due",
+        "pending_applications",
+        "eligible_students",
+        "pending_approvals",
+    ):
         impact += step_out.get(key) or 0
     if impact == 0 and step_out:
         impact = 1

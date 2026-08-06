@@ -114,7 +114,14 @@ def _resolve_automation_iframe_src(pane: str, request=None) -> str:
 
 
 def _automation_explainer_context(pane: str):
-    """Context for in-shell explainer panes (native HTML, no iframe)."""
+    """Context for in-shell explainer panes (native HTML, no iframe).
+
+    Each pane declares an honest ``maturity``: ``available`` panes carry a
+    ``primary_url`` deep-link into the real tool (the shipped visual designer, or
+    the conflict/replay subpages backed by real data), while ``roadmap`` panes say
+    plainly they are not built yet and point to what works today — instead of
+    dressing prose as a shipped feature.
+    """
     from django.utils.translation import gettext as gt
 
     wf = ""
@@ -122,62 +129,77 @@ def _automation_explainer_context(pane: str):
         wf = reverse("studio_os:automation") + "?pane=workflow"
     except NoReverseMatch:
         pass
+    designer = ""
+    try:
+        designer = reverse("automation:visual_workflow_designer")
+    except NoReverseMatch:
+        pass
+
+    def _sub(name: str) -> str:
+        try:
+            return reverse(name)
+        except NoReverseMatch:
+            return ""
+
     hint = gt("Manage flows, run simulations, and activate workflows.")
     explainers = {
         "conflict": {
             "title": gt("Conflict detection"),
-            "subtitle": "",
             "body": gt(
-                "Conflict detection helps identify overlapping or incompatible workflow definitions before activation. "
-                "Use the Workflow center to run simulations and review dependencies; resolve conflicts there before enabling new flows."
+                "Scan your workflows for graph-validation errors and trigger overlaps "
+                "(more than one live workflow firing on the same event) before you activate new flows."
             ),
-            "workflow_hint": hint,
+            "maturity": "available",
+            "primary_url": _sub("studio_os:automation_conflict_detection"),
+            "primary_label": gt("Run conflict scan"),
         },
         "staged": {
             "title": gt("Staged activation"),
-            "subtitle": "",
             "body": gt(
-                "Roll out workflow changes in stages: preview impact, enable for a subset, then promote. "
-                "Use the Workflow center to run simulations before full activation."
+                "Staged rollout (enable for a subset, then promote) is on the roadmap and not built in this release. "
+                "Today, use the visual builder and simulation to verify a workflow before you publish it."
             ),
-            "workflow_hint": hint,
+            "maturity": "roadmap",
+            "primary_url": designer,
+            "primary_label": gt("Open visual builder"),
         },
         "replay": {
             "title": gt("Replay / rollback"),
-            "subtitle": "",
             "body": gt(
-                "Review workflow runs, replay instances for debugging, and roll back when needed. "
-                "Use Automation rollback from the Studio toolbar when available."
+                "Review your recent workflow runs and roll a workflow back to its last saved version."
             ),
-            "workflow_hint": gt(
-                "View runs, replay instances, and manage workflow config."
-            ),
+            "maturity": "available",
+            "primary_url": _sub("studio_os:automation_replay_rollback"),
+            "primary_label": gt("Open replay & rollback"),
         },
         "visual_builder": {
             "title": gt("Visual builder"),
-            "subtitle": "",
             "body": gt(
-                "Build workflows visually with drag-and-drop: add steps, connect conditions, and define triggers. "
-                "The Workflow center is where you create and edit flows; a full visual builder can integrate there when productized."
+                "Build workflows visually with drag-and-drop: add triggers, conditions, actions and delays, "
+                "connect them, save, and simulate before publishing. The visual designer is available now."
             ),
-            "workflow_hint": gt("Manage flows and workflow templates."),
+            "maturity": "available",
+            "primary_url": designer,
+            "primary_label": gt("Open visual workflow designer"),
         },
         "nl_workflow": {
             "title": gt("Natural-language workflow"),
-            "subtitle": "",
             "body": gt(
-                "Describe automations in plain language; the system maps intent to workflow steps where supported. "
-                "Use the Workflow center to refine and activate generated flows."
+                "Generating a workflow from a plain-language description is on the roadmap and not built in this release. "
+                "Today, build the flow directly in the visual designer."
             ),
-            "workflow_hint": gt("Create and manage workflows."),
+            "maturity": "roadmap",
+            "primary_url": designer,
+            "primary_label": gt("Open visual workflow designer"),
         },
         "simulation": {
             "title": gt("Simulation engine"),
-            "subtitle": "",
             "body": gt(
-                "Run workflow simulations before going live. Verify behavior and impact from the Workflow center, then activate when ready."
+                "Run workflow simulations before going live. Verify behavior and impact, then activate when ready."
             ),
-            "workflow_hint": gt("Run simulations and activate workflows."),
+            "maturity": "available",
+            "primary_url": _sub("studio_os:automation_simulation_engine"),
+            "primary_label": gt("Open simulation engine"),
         },
     }
     data = explainers.get((pane or "").strip().lower())
@@ -189,6 +211,9 @@ def _automation_explainer_context(pane: str):
         "body": data["body"],
         "workflow_pane_url": wf,
         "workflow_hint": data.get("workflow_hint", hint),
+        "maturity": data.get("maturity", "available"),
+        "primary_url": data.get("primary_url", ""),
+        "primary_label": data.get("primary_label", ""),
     }
 
 
@@ -842,6 +867,11 @@ def studio_automation_conflict_detection(request):
         workflow_hub_url = reverse("studio_os:automation") + "?pane=workflow"
     except NoReverseMatch:
         pass
+    # Real conflict scan over the tenant's own workflows (graph validation +
+    # trigger overlaps), not static prose.
+    from apps.studio_os.automation_panes import build_workflow_conflict_report
+
+    conflict_report = build_workflow_conflict_report(request)
     return _render_studio_subpage(
         request,
         canvas_partial="studio_os/partials/subpages/automation_conflict_detection.html",
@@ -849,6 +879,7 @@ def studio_automation_conflict_detection(request):
         shell_title=_("Conflict detection") + " · " + str(_("Automation")),
         page_context={
             "workflow_hub_url": workflow_hub_url,
+            "conflict_report": conflict_report,
             "page_title": _("Conflict detection"),
             "page_subtitle": _(
                 "Detect and resolve conflicts before activating workflows."
@@ -872,6 +903,11 @@ def studio_automation_staged_activation(request):
         workflow_hub_url = reverse("studio_os:automation") + "?pane=workflow"
     except NoReverseMatch:
         pass
+    simulation_url = ""
+    try:
+        simulation_url = reverse("studio_os:automation_simulation_engine")
+    except NoReverseMatch:
+        pass
     return _render_studio_subpage(
         request,
         canvas_partial="studio_os/partials/subpages/automation_staged_activation.html",
@@ -879,6 +915,10 @@ def studio_automation_staged_activation(request):
         shell_title=_("Staged activation") + " · " + str(_("Automation")),
         page_context={
             "workflow_hub_url": workflow_hub_url,
+            "simulation_url": simulation_url,
+            # Honest: staged rollout infrastructure is not built yet. Say so, and
+            # point to the real tools that DO exist today.
+            "maturity": "roadmap",
             "page_title": _("Staged activation"),
             "page_subtitle": _(
                 "Activate workflows in stages; run simulations before going live."
@@ -907,6 +947,16 @@ def studio_automation_replay_rollback(request):
         rollback_url = reverse("studio_os:rollback") + "?mode=automation"
     except NoReverseMatch:
         pass
+    visual_designer_url = ""
+    try:
+        visual_designer_url = reverse("automation:visual_workflow_designer")
+    except NoReverseMatch:
+        pass
+    # Real recent runs (WorkflowRunLog) so replay/rollback targets actual
+    # instances instead of only describing the capability.
+    from apps.studio_os.automation_panes import recent_workflow_runs
+
+    runs_data = recent_workflow_runs(request)
     return _render_studio_subpage(
         request,
         canvas_partial="studio_os/partials/subpages/automation_replay_rollback.html",
@@ -915,6 +965,9 @@ def studio_automation_replay_rollback(request):
         page_context={
             "workflow_hub_url": workflow_hub_url,
             "rollback_url": rollback_url,
+            "visual_designer_url": visual_designer_url,
+            "recent_runs": runs_data.get("runs", []),
+            "recent_runs_available": runs_data.get("available", False),
             "page_title": _("Replay / rollback"),
             "page_subtitle": _(
                 "Re-run workflow instances and roll back workflow or config changes."
@@ -927,7 +980,7 @@ def studio_automation_replay_rollback(request):
 
 
 def _automation_explainer_view(
-    request, canvas_partial: str, page_title: str, page_subtitle: str
+    request, canvas_partial: str, page_title: str, page_subtitle: str, extra_context=None
 ):
     """Shared helper for Automation Studio explainer pages (staff-only, workflow_hub_url, action back to automation)."""
     if not user_can_access_studio_on_request(request):
@@ -937,18 +990,21 @@ def _automation_explainer_view(
         workflow_hub_url = reverse("studio_os:automation") + "?pane=workflow"
     except NoReverseMatch:
         pass
+    page_context = {
+        "workflow_hub_url": workflow_hub_url,
+        "page_title": page_title,
+        "page_subtitle": page_subtitle,
+        "action_url": reverse("studio_os:automation"),
+        "action_text": _("Back to Automation"),
+    }
+    if extra_context:
+        page_context.update(extra_context)
     return _render_studio_subpage(
         request,
         canvas_partial=canvas_partial,
         embed_title=f"{page_title} · {str(_('Automation'))}",
         shell_title=f"{page_title} · {str(_('Automation'))}",
-        page_context={
-            "workflow_hub_url": workflow_hub_url,
-            "page_title": page_title,
-            "page_subtitle": page_subtitle,
-            "action_url": reverse("studio_os:automation"),
-            "action_text": _("Back to Automation"),
-        },
+        page_context=page_context,
         current_mode="automation",
     )
 
@@ -994,6 +1050,11 @@ def studio_automation_visual_builder(request):
 @login_required
 def studio_automation_natural_language_workflow(request):
     """§4.3 Automation Studio optional: Natural-language workflow generation. Explains NL-to-workflow; links to Workflow hub."""
+    designer_url = ""
+    try:
+        designer_url = reverse("automation:visual_workflow_designer")
+    except NoReverseMatch:
+        pass
     return _automation_explainer_view(
         request,
         "studio_os/partials/subpages/automation_natural_language_workflow.html",
@@ -1001,6 +1062,11 @@ def studio_automation_natural_language_workflow(request):
         _(
             "Describe workflows in plain language; the system suggests or generates flow steps. Refine and activate from the Workflow hub."
         ),
+        extra_context={
+            # Honest: NL-to-workflow generation is not built in this release.
+            "maturity": "roadmap",
+            "visual_workflow_designer_url": designer_url,
+        },
     )
 
 

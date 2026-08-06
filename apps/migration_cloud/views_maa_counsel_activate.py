@@ -23,7 +23,7 @@ Operator workflow:
      ``MASignView`` (v3.33) start binding v2.0.
 
 Hard contracts:
-  * Staff-only via ``@method_decorator(staff_member_required, ...)``.
+  * Staff-only via ``@method_decorator(require_control_plane_access, ...)``.
   * Token compare via ``hmac.compare_digest``.
   * Counsel attestation TEXT is NEVER persisted or logged — only the
     first 12 chars of its sha256 hex digest land in the audit payload.
@@ -42,7 +42,7 @@ from typing import Any
 from urllib.parse import urlparse
 
 from django.contrib import messages
-from django.contrib.admin.views.decorators import staff_member_required
+from apps.schools.control_plane import require_control_plane_access
 from django.core.cache import cache
 from django.shortcuts import redirect, render
 from django.urls import NoReverseMatch, reverse
@@ -167,7 +167,7 @@ def _current_state_snapshot() -> dict[str, Any]:
     return snapshot
 
 
-@method_decorator(staff_member_required, name="dispatch")
+@method_decorator(require_control_plane_access, name="dispatch")
 class MAACounselActivateView(View):
     """GET + POST /super/migration/maa/v2-counsel-activate/ — counsel-activate UI."""
 

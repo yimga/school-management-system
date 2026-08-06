@@ -1,0 +1,40 @@
+{% extends "backend_base.html" %}
+{% load static i18n %}
+
+{% block backend_title %}{% trans "My Workflow" %}{% endblock %}
+
+{% block backend_page %}
+{% include "components/next_action_strip.html" %}
+
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
+  {% url 'accounts:redirect' as home_url %}
+  {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=home_url action_text=_("Home") %}
+
+  {% if cards %}
+  <div class="row g-4 rmc-reveal-stagger">
+    {% for card in cards %}
+    <div class="col-md-6 col-lg-4 rmc-reveal">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <i class="bi {{ card.icon|default:'bi-list-check' }} text-primary icon-lg"></i>
+            <h5 class="mb-0">{{ card.label }}</h5>
+            {% if card.count %}<span class="badge bg-primary rounded-pill ms-auto">{{ card.count }}</span>{% endif %}
+          </div>
+          {% if card.description %}<p class="text-muted small mb-3">{{ card.description }}</p>{% endif %}
+          <a class="btn {% if card.primary %}btn-primary{% else %}btn-outline-primary{% endif %} btn-sm" href="{{ card.url }}">{% trans "Open" %}</a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <p class="text-muted mb-0">{% trans "You have no workflow surfaces assigned yet. When approvals, requests or messages are routed to you, they will appear here." %}</p>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

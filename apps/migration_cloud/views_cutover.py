@@ -17,7 +17,7 @@ recordable.
 
 Security / discipline:
 
-  * Staff-only via ``@method_decorator(staff_member_required, name="dispatch")``
+  * Staff-only via ``@method_decorator(require_control_plane_access, name="dispatch")``
     (matches the sibling operator surfaces: health, DSAR runbook).
   * Bundle attachment is cross-district-guarded: a bundle may only be attached
     to a runbook of its OWN school (404-style refusal otherwise).
@@ -33,7 +33,7 @@ from __future__ import annotations
 import logging
 
 from django.contrib import messages
-from django.contrib.admin.views.decorators import staff_member_required
+from apps.schools.control_plane import require_control_plane_access
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.decorators import method_decorator
@@ -101,7 +101,7 @@ def _resolve_bundle_for_school(bundle_id_raw: str, school_id: int) -> MigrationB
 
 
 # rbac-allow: super-staff-migration-cloud-cutover-runbook
-@method_decorator(staff_member_required, name="dispatch")
+@method_decorator(require_control_plane_access, name="dispatch")
 class CutoverRunbookView(View):
     """GET + POST — operator cutover-runbook console (create / advance / sign)."""
 

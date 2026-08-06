@@ -32,6 +32,9 @@
   <div id="orchestration-workbench-main" class="container-fluid py-2 control-plane-shell" tabindex="-1" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-decision-engine="surface" data-rmc-scroll-policy="paginate">
 {% phase8_dashboard_declaration "orchestration/operator_workbench.html" %}
   {% include "components/rmc_operational_center_frame.html" with os_center_key="operator_workbench" center_eyebrow=_("Platform operators") center_title=_("Operations") center_purpose="" primary_url="" primary_label="" nav_groups=operational_nav_groups %}
+  {% if flight_deck_url %}
+  <p class="small text-secondary mb-3">{% trans "Looking for platform workflows (provisioning, imports, self-healing)?" %} <a href="{{ flight_deck_url }}">{% trans "Open the Workflow Flight Deck" %}</a>.</p>
+  {% endif %}
   {% if operator_orchestration_workbench_links %}
   <div class="card shadow-sm border-0 mb-3">
     <div class="card-header bg-dark text-light">{% trans "Operator curated links" %}</div>

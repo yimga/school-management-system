@@ -95,6 +95,16 @@ def flight_deck_view(request):
         primary_url=reverse("platform_runtime:workflow_progress_flight_deck"),
         primary_label="Refresh deck",
     )
+    # Cross-link to the OTHER workflow observability plane — the orchestration
+    # workbench (OrchestrationRun business processes), a different object than the
+    # @track_workflow platform runs shown here. Guarded so it degrades if unrouted.
+    from django.urls import NoReverseMatch
+
+    orchestration_workbench_url = ""
+    try:
+        orchestration_workbench_url = reverse("super:orchestration_workbench")
+    except NoReverseMatch:
+        pass
     return render(
         request,
         "platform_runtime/workflow_flight_deck.html",
@@ -105,6 +115,7 @@ def flight_deck_view(request):
             "flight_deck_page_url": reverse("platform_runtime:workflow_progress_flight_deck"),
             "flight_deck_endpoints_json": json.dumps(_flight_deck_endpoints()),
             "flight_deck_labels": flight_deck_labels(),
+            "orchestration_workbench_url": orchestration_workbench_url,
         },
     )
 

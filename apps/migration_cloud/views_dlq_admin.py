@@ -47,7 +47,7 @@ from __future__ import annotations
 
 import logging
 
-from django.contrib.admin.views.decorators import staff_member_required
+from apps.schools.control_plane import require_control_plane_access
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.utils.decorators import method_decorator
@@ -88,7 +88,7 @@ def _dlq_row_for_listing(row) -> dict:
 
 
 # rbac-allow: super-staff-webhook-dlq-list
-@method_decorator(staff_member_required, name="dispatch")
+@method_decorator(require_control_plane_access, name="dispatch")
 class WebhookDeadLetterListView(View):
     """GET — list up to 100 pending DLQ rows for operator triage.
 
@@ -241,7 +241,7 @@ def _attempt_outbound_replay(row, payload_bytes: bytes) -> tuple[bool, str, int 
 
 
 # rbac-allow: super-staff-webhook-dlq-manual-replay
-@method_decorator(staff_member_required, name="dispatch")
+@method_decorator(require_control_plane_access, name="dispatch")
 class WebhookDeadLetterReplayView(View):
     """POST — replay one parked WebhookDeadLetter row.
 

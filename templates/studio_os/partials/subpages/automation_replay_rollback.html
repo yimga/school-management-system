@@ -3,12 +3,41 @@
 <div class="container-fluid py-3 studio-os-subpage-canvas" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1">
   {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
   <div class="studio-os__card py-3 px-3">
-    <p class="mb-3">{% trans "Replay lets you re-run workflow instances for debugging or recovery. Rollback reverts workflow or configuration changes to a previous state. Use the Workflow hub to inspect runs and the shell rollback action when available for this mode." %}</p>
-    {% if workflow_hub_url %}
-    <p class="mb-2"><a href="{{ workflow_hub_url }}">{% trans "Workflow hub" %}</a> — {% trans "View runs, replay instances, and manage workflow config." %}</p>
+    <p class="mb-3">{% trans "Review your recent workflow runs, re-run an instance for debugging, and roll a workflow back to its last saved version." %}</p>
+
+    <h3 class="h6 mb-2">{% trans "Recent runs" %}</h3>
+    {% if not recent_runs_available %}
+      <p class="text-muted">{% trans "Open this from your school to review its workflow runs. (No school is bound to this session.)" %}</p>
+    {% elif recent_runs %}
+      <div class="table-responsive mb-3">
+        <table class="table table-sm align-middle">
+          <thead><tr>
+            <th>{% trans "Workflow" %}</th><th>{% trans "Trigger" %}</th>
+            <th>{% trans "Status" %}</th><th>{% trans "When" %}</th>
+          </tr></thead>
+          <tbody>
+            {% for run in recent_runs %}
+            <tr>
+              <td>{{ run.workflow.name }}</td>
+              <td>{{ run.trigger_event }}</td>
+              <td>
+                <span class="badge {% if run.status == 'success' %}bg-success{% elif run.status == 'failed' %}bg-danger{% else %}bg-secondary{% endif %}">{{ run.get_status_display }}</span>
+                {% if run.dry_run %}<span class="badge bg-info ms-1">{% trans "Dry run" %}</span>{% endif %}
+              </td>
+              <td>{{ run.created_at|date:"Y-m-d H:i" }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="text-muted">{% trans "No workflow runs recorded yet. Runs appear here once a published workflow fires." %}</p>
     {% endif %}
-    {% if rollback_url %}
-    <p class="mb-0"><a href="{{ rollback_url }}">{% trans "Rollback" %}</a> — {% trans "Revert to the last saved state when rollback is available for Automation." %}</p>
-    {% endif %}
+
+    <div class="d-flex flex-wrap gap-2">
+      {% if visual_designer_url %}<a class="btn btn-sm btn-outline-primary" href="{{ visual_designer_url }}">{% trans "Open visual builder" %}</a>{% endif %}
+      {% if rollback_url %}<a class="btn btn-sm btn-outline-secondary" href="{{ rollback_url }}">{% trans "Rollback a workflow" %}</a>{% endif %}
+      {% if workflow_hub_url %}<a class="btn btn-sm btn-link" href="{{ workflow_hub_url }}">{% trans "Workflow hub" %}</a>{% endif %}
+    </div>
   </div>
 </div>

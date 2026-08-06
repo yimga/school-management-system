@@ -4,9 +4,17 @@
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="studio-os__card py-3 px-3" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1">
   <div class="min-w-0">
-    <h2 class="h5 mb-2 text-break">{{ title }}</h2>
+    <h2 class="h5 mb-2 text-break">
+      {{ title }}
+      {% if maturity == 'roadmap' %}<span class="badge bg-secondary align-middle ms-1">{% trans "Roadmap" %}</span>{% endif %}
+    </h2>
     {% if subtitle %}<p class="text-muted small mb-3 text-break">{{ subtitle }}</p>{% endif %}
     <p class="mb-3 text-break">{{ body }}</p>
+    {% if primary_url %}
+    <p class="mb-2">
+      <a class="btn btn-sm {% if maturity == 'roadmap' %}btn-outline-primary{% else %}btn-primary{% endif %}" href="{{ primary_url }}">{{ primary_label }}</a>
+    </p>
+    {% endif %}
     {% if workflow_pane_url %}
     <p class="mb-0 small">
       <a href="{{ workflow_pane_url }}">{% trans "Workflow center" %}</a>

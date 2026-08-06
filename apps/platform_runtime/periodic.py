@@ -286,6 +286,20 @@ def ensure_default_jobs() -> None:
             auto_eligible=False,
             tags=("orchestration", "slo"),
         )
+        # 3c. Recurring-trigger scheduler — wires the orphaned
+        #     orchestration.trigger_runs_for_definition capability in. OPT-IN and
+        #     default-OFF (fires only definitions whose config_schema.auto_trigger
+        #     is enabled), so no behaviour change until an operator turns it on;
+        #     without it, recurring orchestration had NO scheduled path at all.
+        _REGISTRY["orchestration.auto_trigger"] = PeriodicJob(
+            name="orchestration.auto_trigger",
+            interval_seconds=FREQUENT_DRAIN_SECONDS,
+            func=_run_orchestration_auto_trigger,
+            description="Fire opt-in recurring orchestration definitions (config_schema.auto_trigger; default off).",
+            lock_ttl_seconds=HEAVY_JOB_LOCK_TTL_SECONDS,
+            auto_eligible=False,
+            tags=("orchestration", "trigger"),
+        )
         # 4. Payment reminders + retry of failed reminders. Daily.
         _REGISTRY["finance.send_payment_reminders"] = PeriodicJob(
             name="finance.send_payment_reminders",
@@ -791,6 +805,50 @@ def _run_orchestration_aggregate_slos() -> object:
     from apps.orchestration.slo_aggregator import aggregate_recent_window
 
     return aggregate_recent_window(window_minutes=60)
+
+
+def _run_orchestration_auto_trigger() -> object:
+    # Wire the previously-ORPHANED recurring-trigger capability into the in-process
+    # scheduler. Recurring orchestration ("fire fee_follow_up daily") had NO
+    # scheduled path: orchestration.trigger_runs_for_definition existed but no beat,
+    # no registry entry, and no caller ever invoked it — so an operator had to
+    # hand-start every run. This is OPT-IN and default-OFF: a definition only
+    # auto-triggers when its config_schema carries
+    #   {"auto_trigger": {"enabled": true, "cadence_hours": 24}}
+    # so behaviour is unchanged until an operator turns it on. Per-definition cadence
+    # is tracked in config_schema.auto_trigger.last_triggered_at (JSONField write, no
+    # migration). The job ticks frequently but only fires a definition once its own
+    # cadence has elapsed.
+    from datetime import timedelta
+
+    from django.core.management import call_command
+    from django.utils import timezone
+    from django.utils.dateparse import parse_datetime
+
+    from apps.orchestration.models import ProcessDefinition
+
+    now = timezone.now()
+    triggered: list[str] = []
+    for defn in ProcessDefinition.objects.all():
+        cfg = (defn.config_schema or {}).get("auto_trigger") or {}
+        if not cfg.get("enabled"):
+            continue
+        try:
+            cadence_hours = float(cfg.get("cadence_hours") or 24)
+        except (TypeError, ValueError):
+            cadence_hours = 24.0
+        last_raw = cfg.get("last_triggered_at")
+        last = parse_datetime(last_raw) if isinstance(last_raw, str) else None
+        if last is not None and (now - last) < timedelta(hours=cadence_hours):
+            continue
+        call_command("trigger_orchestration_runs", code=defn.code)
+        cfg["last_triggered_at"] = now.isoformat()
+        schema = dict(defn.config_schema or {})
+        schema["auto_trigger"] = cfg
+        defn.config_schema = schema
+        defn.save(update_fields=["config_schema", "updated_at"])
+        triggered.append(defn.code)
+    return {"auto_triggered": triggered}
 
 
 def _run_send_deadline_reminders() -> object:

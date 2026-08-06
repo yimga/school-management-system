@@ -1,8 +1,17 @@
 """Operator-shell screens for Migration Cloud outbound webhooks.
 
-Staff-only Django views (NOT DRF) for the partner-success team to
+Control-plane operator Django views (NOT DRF) for the partner-success team to
 register, list, deactivate, retry, and audit outbound webhook
 subscriptions and their delivery log.
+
+These are CROSS-TENANT operator surfaces (they list/administer every tenant's
+subscriptions), and the migration_cloud urlconf is mounted on the tenant
+``migration_cloud_portal`` namespace as well as the manager ``migration_cloud_super``
+one. ``staff_member_required`` is NOT an operator gate here — the platform mints
+``is_staff=True`` tenant admins, so it let a tenant admin reach this cross-tenant
+surface from their own subdomain. They are therefore gated with
+``require_control_plane_access`` (control-plane role required, any host), which
+admits operators while refusing tenant admins.
 
 Secret material is rendered on the create response page ONCE — never
 again. The list view returns ``whsec_...XXXX`` previews only.
@@ -18,7 +27,6 @@ import logging
 import secrets
 
 from django.contrib import messages
-from django.contrib.admin.views.decorators import staff_member_required
 from django.core.paginator import Paginator
 from django.http import (
     HttpResponse,
@@ -31,6 +39,8 @@ from django.utils import timezone
 from django.utils.dateparse import parse_date
 from django.utils.decorators import method_decorator
 from django.views import View
+
+from apps.schools.control_plane import require_control_plane_access
 
 from apps.migration_cloud.models import (
     MigrationCloudWebhookDelivery,
@@ -115,7 +125,7 @@ def _delivery_row(row: MigrationCloudWebhookDelivery) -> dict:
     }
 
 
-@method_decorator(staff_member_required, name="dispatch")
+@method_decorator(require_control_plane_access, name="dispatch")
 class MigrationCloudWebhookListView(View):
     """GET — list all webhook subscriptions (staff cross-tenant view)."""
 
@@ -157,7 +167,7 @@ class MigrationCloudWebhookListView(View):
         return render(request, self.template_name, context)
 
 
-@method_decorator(staff_member_required, name="dispatch")
+@method_decorator(require_control_plane_access, name="dispatch")
 class MigrationCloudWebhookSubscribeView(View):
     """GET form + POST creates subscription; secret shown ONCE."""
 
@@ -221,7 +231,7 @@ class MigrationCloudWebhookSubscribeView(View):
         return render(request, self.template_name, context)
 
 
-@method_decorator(staff_member_required, name="dispatch")
+@method_decorator(require_control_plane_access, name="dispatch")
 class MigrationCloudWebhookDeliveryLogView(View):
     """GET — paginated delivery log for one subscription (or all if no id)."""
 
@@ -315,7 +325,7 @@ def _audit_row(row: MigrationCloudWebhookDelivery) -> dict:
 
 
 # rbac-allow: super-staff-webhook-audit-view-deliveries
-@method_decorator(staff_member_required, name="dispatch")
+@method_decorator(require_control_plane_access, name="dispatch")
 class WebhookSubscriptionAuditView(View):
     """GET — paginated last-200 delivery audit for one subscription.
 
@@ -396,7 +406,7 @@ class WebhookSubscriptionAuditView(View):
 
 
 # rbac-allow: super-staff-webhook-manual-replay
-@method_decorator(staff_member_required, name="dispatch")
+@method_decorator(require_control_plane_access, name="dispatch")
 class WebhookDeliveryReplayView(View):
     """POST — manually replay a webhook delivery.
 
@@ -551,7 +561,7 @@ class WebhookDeliveryReplayView(View):
 
 
 # rbac-allow: super-staff-webhook-subscription-deactivate
-@method_decorator(staff_member_required, name="dispatch")
+@method_decorator(require_control_plane_access, name="dispatch")
 class MigrationCloudWebhookDeactivateView(View):
     """POST — deactivate (soft-delete) a webhook subscription.
 
@@ -601,7 +611,7 @@ class MigrationCloudWebhookDeactivateView(View):
         return HttpResponseRedirect(reverse(f"{namespace}:operator_webhook_list"))
 
 
-@method_decorator(staff_member_required, name="dispatch")
+@method_decorator(require_control_plane_access, name="dispatch")
 class MigrationCloudWebhookRetryView(View):
     """POST — manually re-enqueue a failed/exhausted delivery."""
 

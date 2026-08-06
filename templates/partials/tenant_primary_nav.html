@@ -24,10 +24,13 @@
   {% elif request.user.is_staff or request.user.is_superuser or EFFECTIVE_PORTAL_ROLE == 'ADMIN' %}
   <a href="{% url 'accounts:backend_dashboard' %}" class="tp-primary-nav__item"{% if request.path|slice:':18' == '/accounts/backend' or '/portal/backend' in request.path %} aria-current="page"{% endif %}>🏠 {% trans "Home" %}</a>
   <a href="{% url 'finance:dashboard' %}" class="tp-primary-nav__item">💳 {% trans "Finance" %}</a>
+  <a href="{% url 'accounts:staff_workflow' %}" class="tp-primary-nav__item">⚡ {% trans "Workflow" %}</a>
   <a href="{% url 'accounts:user_messages' %}" class="tp-primary-nav__item">💬 {% trans "Messages" %}{% if messages_unread_count %}<span class="tp-nav-count">{{ messages_unread_count }}</span>{% endif %}</a>
   <a href="{% url 'analytics:dashboard' %}" class="tp-primary-nav__item">📊 {% trans "Analytics" %}</a>
   {% else %}
   <a href="{% url 'accounts:redirect' %}" class="tp-primary-nav__item">🏠 {% trans "Home" %}</a>
+  <a href="{% url 'accounts:staff_workflow' %}" class="tp-primary-nav__item">⚡ {% trans "Workflow" %}</a>
+  <a href="{% url 'accounts:user_messages' %}" class="tp-primary-nav__item">💬 {% trans "Messages" %}{% if messages_unread_count %}<span class="tp-nav-count">{{ messages_unread_count }}</span>{% endif %}</a>
   {% endif %}
   <div class="dropdown tp-primary-nav__more">
     <button class="tp-primary-nav__item dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false" aria-label="{% trans 'More options' %}">⋯ {% trans "More" %}</button>

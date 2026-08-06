@@ -3,9 +3,55 @@
 <div class="container-fluid py-3 studio-os-subpage-canvas" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1">
   {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
   <div class="studio-os__card py-3 px-3">
-    <p class="mb-3">{% trans "Conflict detection helps identify overlapping or incompatible workflow definitions before activation. Use the Workflow hub to run simulations and review dependencies; resolve conflicts there before enabling new flows." %}</p>
+    <p class="mb-3">{% trans "Conflict detection scans your workflows for graph-validation errors and for trigger overlaps — more than one live workflow firing on the same event — so you can resolve them before activation." %}</p>
+
+    {% if not conflict_report.available %}
+      <p class="text-muted mb-0">{% trans "Open this scan from your school to review its workflows. (No school is bound to this session.)" %}</p>
+    {% elif conflict_report.clean %}
+      <div class="alert alert-success mb-0" role="status">
+        {% blocktrans count total=conflict_report.total_workflows trimmed %}
+          No conflicts found across {{ total }} workflow.
+        {% plural %}
+          No conflicts found across {{ total }} workflows.
+        {% endblocktrans %}
+      </div>
+    {% else %}
+      {% if conflict_report.trigger_overlaps %}
+      <h3 class="h6 mt-2 mb-2">{% trans "Trigger overlaps" %}</h3>
+      <ul class="mb-3">
+        {% for ov in conflict_report.trigger_overlaps %}
+        <li>
+          <strong>{{ ov.trigger }}</strong> —
+          {% blocktrans count count=ov.count trimmed %}{{ count }} live workflow fires on this event{% plural %}{{ count }} live workflows fire on this event{% endblocktrans %}:
+          {{ ov.workflows|join:", " }}
+        </li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+
+      {% if conflict_report.issues %}
+      <h3 class="h6 mt-2 mb-2">{% trans "Validation issues" %}</h3>
+      <div class="table-responsive">
+        <table class="table table-sm align-middle">
+          <thead><tr>
+            <th>{% trans "Workflow" %}</th><th>{% trans "Status" %}</th><th>{% trans "Issues" %}</th>
+          </tr></thead>
+          <tbody>
+            {% for it in conflict_report.issues %}
+            <tr>
+              <td>{{ it.name }}</td>
+              <td><span class="badge bg-secondary">{{ it.status }}</span></td>
+              <td>{{ it.errors|join:", " }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% endif %}
+    {% endif %}
+
     {% if workflow_hub_url %}
-    <p class="mb-0"><a href="{{ workflow_hub_url }}">{% trans "Workflow hub" %}</a> — {% trans "Manage flows, run simulations, and activate workflows." %}</p>
+    <p class="mb-0 mt-3 small"><a href="{{ workflow_hub_url }}">{% trans "Workflow hub" %}</a> — {% trans "Manage flows, run simulations, and activate workflows." %}</p>
     {% endif %}
   </div>
 </div>

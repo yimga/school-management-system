@@ -23,7 +23,7 @@ import json
 import logging
 from datetime import datetime, time
 
-from django.contrib.admin.views.decorators import staff_member_required
+from apps.schools.control_plane import require_control_plane_access
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.http import HttpResponseBadRequest, StreamingHttpResponse
@@ -63,7 +63,7 @@ def _parse_iso_or_date(value: str, *, date_only_end: bool = False) -> datetime |
 
 
 # rbac-allow: super-staff-audit-event-dashboard
-@method_decorator(staff_member_required, name="dispatch")
+@method_decorator(require_control_plane_access, name="dispatch")
 class MigrationCloudAuditView(View):
     """GET /super/migration/audit/ — staff-only audit dashboard.
 
@@ -172,7 +172,7 @@ def _verify_chain_state(
 
 
 # rbac-allow: super-staff-audit-event-export
-@method_decorator(staff_member_required, name="dispatch")
+@method_decorator(require_control_plane_access, name="dispatch")
 class MigrationCloudAuditExportView(View):
     """GET /super/migration/audit/export/ — JSONL stream.
 

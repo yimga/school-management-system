@@ -16,7 +16,7 @@ for incident response. Six panels:
      → "unknown", malformed JSON → "unknown"; the dashboard renders
      even when half the gates haven't been baselined yet).
 
-Permission model: ``staff_member_required`` via
+Permission model: ``require_control_plane_access`` via
 ``@method_decorator(... , name="dispatch")``. URL pattern carries
 ``# rbac-allow: super-staff-migration-cloud-health-status``.
 
@@ -44,7 +44,7 @@ from pathlib import Path
 from typing import Any
 
 from django.conf import settings
-from django.contrib.admin.views.decorators import staff_member_required
+from apps.schools.control_plane import require_control_plane_access
 from django.shortcuts import render
 from django.utils import timezone
 from django.utils.decorators import method_decorator
@@ -547,7 +547,7 @@ def _migration_fleet_panel() -> dict[str, Any]:
     }
 
 
-@method_decorator(staff_member_required, name="dispatch")
+@method_decorator(require_control_plane_access, name="dispatch")
 class MigrationCloudHealthView(View):
     """GET /super/migration/health/ — staff-only platform health dashboard.
 

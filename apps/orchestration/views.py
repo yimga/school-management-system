@@ -61,6 +61,17 @@ def operator_workbench(request):
             )
     except ProgrammingError:
         pass
+    # Cross-link to the platform Flight Deck (the OTHER workflow observability
+    # plane — it tracks @track_workflow platform runs, a different object than the
+    # OrchestrationRun rows shown here). Operators kept losing one when on the
+    # other; surface each from the other. Guarded so it degrades if unrouted.
+    from django.urls import NoReverseMatch
+
+    flight_deck_url = ""
+    try:
+        flight_deck_url = reverse("platform_runtime:workflow_progress_flight_deck")
+    except NoReverseMatch:
+        pass
     return render(
         request,
         "orchestration/operator_workbench.html",
@@ -69,6 +80,7 @@ def operator_workbench(request):
             "runs_overdue": runs_overdue,
             "definitions": definitions,
             "operator_orchestration_workbench_links": operator_orchestration_workbench_links,
+            "flight_deck_url": flight_deck_url,
         },
     )
 

@@ -13,7 +13,7 @@ page with a flash if 13 hasn't shipped yet).
 
 Hard contracts:
 
-  * ``@method_decorator(staff_member_required, "dispatch")`` — staff
+  * ``@method_decorator(require_control_plane_access, "dispatch")`` — staff
     only; never tenant-exposed.
   * CSRF-protected (no exempt) — operator action.
   * NEVER logs vendor or tenant slug as raw — sha256 prefix only.
@@ -30,7 +30,7 @@ from typing import Any
 
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.admin.views.decorators import staff_member_required
+from apps.schools.control_plane import require_control_plane_access
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import NoReverseMatch, reverse
@@ -154,7 +154,7 @@ def _emit_audit(
         )
 
 
-@method_decorator(staff_member_required, name="dispatch")
+@method_decorator(require_control_plane_access, name="dispatch")
 class SmokeRunTriggerView(View):
     """Operator-facing "Run Smoke Now" form + dispatcher."""
 

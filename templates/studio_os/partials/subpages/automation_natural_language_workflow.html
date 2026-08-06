@@ -3,9 +3,12 @@
 <div class="container-fluid py-3 studio-os-subpage-canvas" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1">
   {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
   <div class="studio-os__card py-3 px-3">
-    <p class="mb-3">{% trans "Describe what you want the workflow to do in plain language; the system can suggest or generate flow steps. Refine and activate from the Workflow hub. Natural-language generation is available when the feature is enabled." %}</p>
-    {% if workflow_hub_url %}
-    <p class="mb-0"><a href="{{ workflow_hub_url }}">{% trans "Workflow hub" %}</a> — {% trans "Create and manage workflows." %}</p>
-    {% endif %}
+    {% if maturity == 'roadmap' %}<p class="mb-2"><span class="badge bg-secondary">{% trans "Roadmap — not yet available" %}</span></p>{% endif %}
+    <p class="mb-3">{% trans "Generating a workflow from a plain-language description is on the roadmap and not built in this release." %}</p>
+    <p class="mb-3">{% trans "What you can do today: build the flow directly in the visual designer — drag in triggers, conditions, actions and delays, connect them, and publish." %}</p>
+    <div class="d-flex flex-wrap gap-2">
+      {% if visual_workflow_designer_url %}<a class="btn btn-sm btn-outline-primary" href="{{ visual_workflow_designer_url }}">{% trans "Open visual workflow designer" %}</a>{% endif %}
+      {% if workflow_hub_url %}<a class="btn btn-sm btn-link" href="{{ workflow_hub_url }}">{% trans "Workflow hub" %}</a>{% endif %}
+    </div>
   </div>
 </div>

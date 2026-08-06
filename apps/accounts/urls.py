@@ -61,6 +61,7 @@ from .views_rollover import (
 from .views_workflow import (
     academic_rules,
     automation_hub,
+    staff_workflow_center,
 )
 from apps.schools.views_tenant_health_api import (
     TenantHealthStreamView,
@@ -729,6 +730,7 @@ urlpatterns = [
         lambda r: redirect(reverse("studio_os:approval_hub"), permanent=False),
         name="approval_workflow_hub",
     ),
+    path("workflow/my/", staff_workflow_center, name="staff_workflow"),
     path("workflow/automation/", automation_hub, name="automation_hub"),
     path("workflow/clone-year/", clone_year_setup, name="clone_year_setup"),
     path("workflow/rollover/", rollover_year, name="rollover_year"),

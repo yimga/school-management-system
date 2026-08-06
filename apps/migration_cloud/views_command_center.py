@@ -25,7 +25,7 @@ Sections:
 
 Hard contract:
 
-  * Staff-only via ``@method_decorator(staff_member_required, "dispatch")``.
+  * Staff-only via ``@method_decorator(require_control_plane_access, "dispatch")``.
   * Every cross-tenant queryset carries the 5-part-hyphenated marker
     ``# tenant-isolation-allow: command-center-cross-tenant-snapshot-staff-only``.
   * Defensive ``getattr(obj, "field", default)`` so sibling-agent
@@ -42,7 +42,7 @@ from pathlib import Path
 from typing import Any
 
 from django.conf import settings
-from django.contrib.admin.views.decorators import staff_member_required
+from apps.schools.control_plane import require_control_plane_access
 from django.db.models import Count
 from django.shortcuts import render
 from django.urls import NoReverseMatch, reverse
@@ -703,7 +703,7 @@ def _section_concierge_sources() -> dict[str, Any]:
 # ─── View ───────────────────────────────────────────────────────────────
 
 
-@method_decorator(staff_member_required, name="dispatch")
+@method_decorator(require_control_plane_access, name="dispatch")
 class MigrationCloudCommandCenterView(View):
     """GET ``/super/migration/command-center/`` — operator command center.
 
