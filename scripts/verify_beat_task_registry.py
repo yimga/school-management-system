@@ -87,13 +87,14 @@ KNOWN_DEAD_ENTRIES: dict[str, str] = {
         "apps/analytics/celery_tasks_risk_digest.py (imported nowhere). Wake it "
         "only after moving the recipient check before narration, then re-export "
         "it from apps/analytics/tasks.py and drop this entry.",
-    "integrations-refresh-oauth-tokens":
-        "OAuth tokens are never refreshed -> tenant integrations silently expire. "
-        "Waking it starts outbound calls to third-party identity providers.",
-    "integrations-fetch-mailboxes":
-        "Due mailboxes never fetched. Waking it starts outbound mailbox polling.",
-    "integrations-renew-push-subscriptions":
-        "Push subscriptions never renewed -> they lapse. Waking it starts outbound calls.",
+    # RESOLVED 2026-08-05: the three generic connected-mailbox sweeper beats
+    # (integrations_marketplace.refresh_due_oauth_tokens / fetch_due_mailboxes /
+    # renew_due_subscriptions) now register via IntegrationsMarketplaceConfig
+    # .ready() (their @shared_task lives outside an autodiscovered tasks.py).
+    # All three are OUTBOUND but self-gated OFF by default
+    # (INTEGRATIONS_MARKETPLACE_OUTBOUND_SWEEPS_ENABLED) so the beat drain no-ops
+    # until an operator enables marketplace mailbox integrations. Must-FIRE
+    # guard: apps/integrations_marketplace/tests/test_outbound_sweep_beat_registration.py.
     # RESOLVED 2026-08-01: siteconfig-sweep-pending-custom-domains is now LIVE.
     # Its @shared_tasks (siteconfig.sweep_pending_custom_domains +
     # siteconfig.verify_custom_domain) live in tasks_custom_domain.py, which

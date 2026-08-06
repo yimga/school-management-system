@@ -325,6 +325,14 @@ try:
 
     @shared_task(name="integrations_marketplace.refresh_due_oauth_tokens")
     def refresh_due_oauth_tokens_task() -> list[dict[str, Any]]:
+        # SAFETY GATE: outbound OAuth-provider calls per connected row. The beat
+        # drain no-ops until an operator enables marketplace mailbox integrations.
+        from django.conf import settings
+
+        if not getattr(
+            settings, "INTEGRATIONS_MARKETPLACE_OUTBOUND_SWEEPS_ENABLED", False
+        ):
+            return [{"status": "disabled_outbound_sweeps_gate_off"}]
         return refresh_due_oauth_tokens()
 except ImportError:  # pragma: no cover — celery is in production deps
     refresh_due_oauth_tokens_task = None

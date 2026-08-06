@@ -304,6 +304,14 @@ try:
 
     @shared_task(name="integrations_marketplace.renew_due_subscriptions")
     def renew_due_subscriptions_task() -> list[dict[str, Any]]:
+        # SAFETY GATE: outbound push-subscription renewals per connected row. The
+        # beat drain no-ops until an operator enables marketplace mailbox integrations.
+        from django.conf import settings
+
+        if not getattr(
+            settings, "INTEGRATIONS_MARKETPLACE_OUTBOUND_SWEEPS_ENABLED", False
+        ):
+            return [{"status": "disabled_outbound_sweeps_gate_off"}]
         return renew_due_subscriptions()
 except ImportError:  # pragma: no cover
     renew_due_subscriptions_task = None

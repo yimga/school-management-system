@@ -291,6 +291,14 @@ try:
 
     @shared_task(name="integrations_marketplace.fetch_due_mailboxes")
     def fetch_due_mailboxes_task() -> list[dict[str, Any]]:
+        # SAFETY GATE: outbound mailbox polling per connected row. The beat drain
+        # no-ops until an operator enables marketplace mailbox integrations.
+        from django.conf import settings
+
+        if not getattr(
+            settings, "INTEGRATIONS_MARKETPLACE_OUTBOUND_SWEEPS_ENABLED", False
+        ):
+            return [{"status": "disabled_outbound_sweeps_gate_off"}]
         return fetch_due_mailboxes()
 except ImportError:  # pragma: no cover
     fetch_due_mailboxes_task = None

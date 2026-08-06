@@ -130,6 +130,26 @@ class IntegrationsMarketplaceConfig(AppConfig):
                 "integrations_marketplace: failed to import calendar_sync"
             )
 
+        # Generic connected-mailbox sweeper beats (OAuth token refresh, mailbox
+        # fetch, push-subscription renewal). Their @shared_task lives outside an
+        # autodiscovered tasks.py, so importing here registers the names before
+        # the beat scheduler reads the registry — otherwise the beat entries are
+        # silent no-ops. Each wrapper is OUTBOUND and self-gated OFF by default
+        # (INTEGRATIONS_MARKETPLACE_OUTBOUND_SWEEPS_ENABLED); the beat drain
+        # no-ops until an operator enables marketplace mailbox integrations.
+        for _sweep_module in (
+            "token_refresh",
+            "mailbox_fetch",
+            "subscription_renewal",
+        ):
+            try:
+                __import__(f"apps.integrations_marketplace.{_sweep_module}")
+            except Exception:  # noqa: BLE001
+                import logging
+                logging.getLogger(__name__).exception(
+                    "integrations_marketplace: failed to import %s", _sweep_module
+                )
+
         # v2.79 — startup advisory check: warn if OAUTH_CALLBACK_BASE_URL is
         # unset in a production-looking environment so operators don't ship a
         # broken OAuth dance silently.

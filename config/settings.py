@@ -101,6 +101,18 @@ _oauth_callback_base = (os.getenv("OAUTH_CALLBACK_BASE_URL") or "").strip().rstr
 if not _oauth_callback_base and not DEBUG:
     _oauth_callback_base = MANAGER_PLATFORM_BASE_URL or "https://manager.runmycampus.com"
 OAUTH_CALLBACK_BASE_URL = _oauth_callback_base
+# Integrations Marketplace outbound sweeper beats — SAFETY GATE (default OFF).
+# Gates the three generic connected-mailbox sweepers
+# (integrations_marketplace.refresh_due_oauth_tokens / fetch_due_mailboxes /
+# renew_due_subscriptions) which make OUTBOUND calls to third-party providers
+# (Google / Microsoft) for every connected ServiceIntegration row. The beat
+# wrappers no-op until an operator enables the marketplace mailbox integrations
+# for this deployment. Manual/mgmt-command invocation of the underlying
+# functions is unaffected. (LMS-specific token beats have their own wiring.)
+INTEGRATIONS_MARKETPLACE_OUTBOUND_SWEEPS_ENABLED = (
+    os.environ.get("INTEGRATIONS_MARKETPLACE_OUTBOUND_SWEEPS_ENABLED", "0").strip()
+    == "1"
+)
 # Public marketing site URL — env-driven so the platform brand domain is configurable
 # per environment (staging vs prod) and never hardcoded in views/templates.
 # Read in templates as `{{ public_site_url }}` (via context processor) or as
