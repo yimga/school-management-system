@@ -1,8 +1,12 @@
 """Wave 9 Agent N (v3.58.x) — vendor write-path authorization status dashboard.
 
-Staff-only operator surface at ``/super/migration/vendor-write-status/``
+Control-plane operator surface at ``/super/migration/vendor-write-status/``
 that reports the current authorization state for each of the 6 vendor
-slugs the platform recognizes. Pairs with
+slugs the platform recognizes. Gated with ``require_control_plane_access``
+(not ``staff_member_required``) because the shared migration_cloud urlconf is
+also mounted on the tenant ``migration_cloud_portal`` namespace, and the platform
+mints ``is_staff=True`` tenant admins — so a staff gate here would let a tenant
+admin reach this cross-tenant operator surface from their own subdomain. Pairs with
 :mod:`apps.migration_cloud.services.vendor_write_gate`.
 
 The view NEVER reads or renders:
@@ -19,10 +23,11 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.views import View
+
+from apps.schools.control_plane import require_control_plane_access
 
 from apps.migration_cloud.services.vendor_write_gate import (
     COUNSEL_DOCKETED_VENDORS,
@@ -38,7 +43,7 @@ _RUNBOOK_DOC_PATH = "docs/FACTS_SKYWARD_WRITE_PATH_FLIP_RUNBOOK.md"
 _GATE_MODULE_PATH = "apps/migration_cloud/services/vendor_write_gate.py"
 
 
-@method_decorator(staff_member_required, name="dispatch")
+@method_decorator(require_control_plane_access, name="dispatch")
 class VendorWriteStatusView(View):
     """GET-only status surface.
 

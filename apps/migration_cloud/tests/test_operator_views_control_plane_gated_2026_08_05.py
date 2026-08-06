@@ -29,6 +29,9 @@ _FILES = [
     "apps/migration_cloud/views_maa_promotion.py",
     "apps/migration_cloud/views_smoke_history.py",
     "apps/migration_cloud/views_smoke_trigger.py",
+    # api/ subpath operator surface also mounted on the tenant portal namespace
+    # (the staff-gate scanner missed it — aliased-import .as_view() false-negative).
+    "apps/migration_cloud/api/views_vendor_write_status.py",
 ]
 
 
