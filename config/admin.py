@@ -438,6 +438,34 @@ def tenant_admin_user_has_access(request) -> bool:
         return False
 
 
+class _TenantScopedQuerysetMixin:
+    """Confine a ModelAdmin's changelist to the request's school (+ global rows).
+
+    A SHARED_APPS model's physical table lives in the ``public`` schema and holds
+    EVERY tenant's rows; a tenant-schema request's ``search_path`` includes
+    ``public``, so an unscoped changelist on such a model would render all
+    schools' data on one school's branded ``/admin/``. This mixin — applied
+    automatically by :meth:`TenantAdminSite.register` to every registered model
+    that has a concrete ``school`` field — appends ``school == request.school OR
+    school IS NULL`` so a school sees its own rows plus platform-global (NULL)
+    rows, and NEVER another tenant's. It WRAPS (via ``super()``) any existing
+    ``get_queryset`` so annotations / ordering are preserved. A ModelAdmin can
+    opt out with ``tenant_scope_exempt = True`` (e.g. a genuinely global catalog
+    the school is meant to browse in full).
+    """
+
+    _rmc_tenant_scoped = True
+
+    def get_queryset(self, request):
+        from django.db.models import Q
+
+        qs = super().get_queryset(request)
+        school = getattr(request, "school", None)
+        if school is not None:
+            qs = qs.filter(Q(school=school) | Q(school__isnull=True))
+        return qs
+
+
 class TenantAdminSite(BaseRunMyCampusAdminSite):
     login_form = AuthenticationForm
     login_template = "auth/tenant_admin_login.html"
@@ -548,6 +576,65 @@ class TenantAdminSite(BaseRunMyCampusAdminSite):
         if self._is_platform_host(request):
             return False
         return tenant_admin_user_has_access(request)
+
+    # --- Tenant isolation on the admin changelist ------------------------------
+    # SHARED_APPS models registered here read the public schema (every tenant's
+    # rows in one table), so without scoping a school's /admin/ would list all
+    # schools' data. register() auto-wraps any school-bearing model with
+    # _TenantScopedQuerysetMixin — a single structural seal instead of a
+    # per-ModelAdmin get_queryset each app could (and did) forget. TENANT_APPS
+    # models are schema-isolated already; the extra filter there is a harmless
+    # no-op (their rows carry this school or NULL).
+    @staticmethod
+    def _model_has_concrete_school_field(model) -> bool:
+        try:
+            field = model._meta.get_field("school")
+        except Exception:  # noqa: BLE001 — FieldDoesNotExist / unusual meta → not scopable
+            return False
+        return bool(getattr(field, "concrete", False)) and not getattr(
+            field, "many_to_many", False
+        )
+
+    def _tenant_scoped_admin_class(self, model, admin_class):
+        if getattr(admin_class, "tenant_scope_exempt", False):
+            return admin_class
+        if getattr(admin_class, "_rmc_tenant_scoped", False):
+            return admin_class
+        if not self._model_has_concrete_school_field(model):
+            return admin_class
+        return type(
+            admin_class.__name__,
+            (_TenantScopedQuerysetMixin, admin_class),
+            {"__module__": getattr(admin_class, "__module__", __name__)},
+        )
+
+    def register(self, model_or_iterable, admin_class=None, **options):
+        """Register, auto-scoping any school-bearing model to the current tenant.
+
+        Every tenant-admin registration path funnels through here
+        (``@admin.register(..., site=tenant_admin_site)``, ``register_tenant_admin``,
+        ``register_both``), so this is the one place the cross-tenant leak is
+        sealed. Options are applied into the class before wrapping so Unfold's
+        registration sees the final class; ``super().register`` (Unfold) still
+        runs for its own bookkeeping.
+        """
+        from django.contrib.admin import ModelAdmin as _DjangoModelAdmin
+
+        if isinstance(model_or_iterable, (list, tuple, set, frozenset)):
+            models_iter = list(model_or_iterable)
+        else:
+            models_iter = [model_or_iterable]
+
+        base_class = admin_class or _DjangoModelAdmin
+        for model in models_iter:
+            cls = base_class
+            if options:
+                cls = type(
+                    f"{model.__name__}Admin",
+                    (base_class,),
+                    {**options, "__module__": getattr(base_class, "__module__", __name__)},
+                )
+            super().register(model, self._tenant_scoped_admin_class(model, cls))
 
 
 class PlatformAdminSite(BaseRunMyCampusAdminSite):
