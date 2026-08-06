@@ -73,6 +73,48 @@ class BlueprintRollbackEngineTests(TestCase):
 
         self.assertEqual(self.school.features, {"critical": True})
 
+    def test_rollback_preserves_other_blueprints_settings_markers(self):
+        """Cross-blueprint data-loss guard: rolling back one blueprint must not
+        wipe a second, still-installed blueprint's settings markers.
+
+        The previous rollback restored ``school.settings`` wholesale from the
+        pre-apply snapshot, which erased any marker a LATER blueprint had added.
+        The surgical rollback removes only the target blueprint's own markers.
+        """
+        self.school.refresh_from_db()
+        settings = dict(self.school.settings or {})
+        settings.setdefault("blueprint_marketplace", {})["other-blueprint"] = {
+            "status": "applied"
+        }
+        settings.setdefault("local_first_blueprints", {})["other-blueprint"] = {
+            "status": "applied"
+        }
+        self.school.settings = settings
+        self.school.save(update_fields=["settings"])
+
+        result = rollback_blueprint_installation(
+            self.installation, actor=self.actor, confirmed=True
+        )
+        self.assertTrue(result["ok"], msg=result)
+        self.school.refresh_from_db()
+
+        # The other blueprint's markers survive the rollback of THIS blueprint.
+        self.assertEqual(
+            self.school.settings.get("blueprint_marketplace", {}).get("other-blueprint"),
+            {"status": "applied"},
+        )
+        self.assertEqual(
+            self.school.settings.get("local_first_blueprints", {}).get("other-blueprint"),
+            {"status": "applied"},
+        )
+        # The target blueprint's own markers are gone.
+        self.assertNotIn(
+            self.installation.blueprint_key,
+            self.school.settings.get("blueprint_marketplace", {}),
+        )
+        # Tenant's own pre-existing setting is untouched.
+        self.assertEqual(self.school.settings.get("original"), "kept")
+
     def test_rollback_respects_tenant_isolation(self):
         other = School.objects.create(
             name="Rollback Other",

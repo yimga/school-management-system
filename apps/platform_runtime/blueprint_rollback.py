@@ -71,24 +71,50 @@ def rollback_blueprint_installation(
     with transaction.atomic():
         school = installation.school
         snapshot = dict(installation.rollback_snapshot or {})
-        if "settings" in snapshot:
-            school.settings = dict(snapshot.get("settings") or {})
+        # Surgically retract ONLY this blueprint's settings markers.
+        # apply_blueprint writes settings["blueprint_marketplace"][key] and
+        # settings["local_first_blueprints"][key]. A WHOLESALE restore of the
+        # pre-apply snapshot (the previous behaviour) reverted the entire
+        # settings dict — wiping markers that a LATER, still-installed blueprint
+        # had added, a cross-blueprint data-loss edge. This mirrors the surgical
+        # features rollback below: touch only the keys THIS blueprint owns and
+        # leave every other blueprint's markers and the tenant's own settings
+        # intact. (snapshot["settings"] is retained for audit but not restored.)
+        key = installation.blueprint_key
+        settings = dict(school.settings or {})
+        snapshot_settings = snapshot.get("settings")
+        settings_changed = False
+        # Remove this blueprint's per-blueprint keyed markers.
+        for marker_bucket in ("blueprint_marketplace", "local_first_blueprints"):
+            bucket = dict(settings.get(marker_bucket) or {})
+            if key in bucket:
+                del bucket[key]
+                settings[marker_bucket] = bucket
+                settings_changed = True
+                if marker_bucket == "local_first_blueprints":
+                    reverted_changes.append("offline_manifest_invalidation")
+        # Decide how to reconcile the non-keyed global settings this apply also
+        # wrote (e.g. pack_installation_simulation). When NO other blueprint
+        # remains, restore the pre-apply snapshot wholesale so those global keys
+        # are cleaned up too (single-blueprint rollback returns settings to their
+        # exact pre-apply shape). When OTHER blueprints are still installed, keep
+        # the rest of settings intact — a wholesale restore would wipe a later,
+        # still-installed blueprint's markers (the cross-blueprint data-loss bug).
+        remaining_blueprints = settings.get("blueprint_marketplace") or {}
+        if not remaining_blueprints:
+            if isinstance(snapshot_settings, dict):
+                settings = dict(snapshot_settings)
+                settings_changed = True
+            else:
+                for marker_bucket in ("blueprint_marketplace", "local_first_blueprints"):
+                    if not settings.get(marker_bucket):
+                        settings.pop(marker_bucket, None)
+        if settings_changed:
+            school.settings = settings
             school.save(update_fields=["settings"])
             reverted_changes.append("school.settings")
-            reverted_changes.append("offline_manifest_invalidation")
         else:
-            skipped_changes.append("school.settings_snapshot_missing")
-            settings = dict(school.settings or {})
-            local_first = dict(settings.get("local_first_blueprints") or {})
-            if installation.blueprint_key in local_first:
-                local_first[installation.blueprint_key]["status"] = "rolled_back"
-                local_first[installation.blueprint_key][
-                    "offline_manifest_invalidation"
-                ] = offline_manifest_invalidation
-                settings["local_first_blueprints"] = local_first
-                school.settings = settings
-                school.save(update_fields=["settings"])
-                reverted_changes.append("offline_manifest_invalidation")
+            skipped_changes.append("blueprint_settings_markers_missing")
         # Reverse the module bridge. apply_blueprint switches the blueprint's
         # implied feature codes on in School.features and records exactly which
         # ones it changed; undo precisely those. A wholesale restore of the
