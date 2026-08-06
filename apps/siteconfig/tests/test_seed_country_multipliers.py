@@ -27,7 +27,31 @@ class SeedCountryMultipliersTests(TestCase):
         self.assertTrue(india.is_active)
         japan = CountryMultiplier.objects.get(country_code="JP")
         self.assertEqual(japan.multiplier, Decimal("0.8800"))
-        self.assertGreaterEqual(len(COUNTRY_MULTIPLIER_SEED_ROWS), 45)
+        # Wave 30 expansion — curated depth tripled from ~50 to 140+ markets.
+        self.assertGreaterEqual(len(COUNTRY_MULTIPLIER_SEED_ROWS), 130)
+
+    def test_seed_rows_are_unique_and_in_band(self):
+        codes = [r["country_code"].upper() for r in COUNTRY_MULTIPLIER_SEED_ROWS]
+        self.assertEqual(len(codes), len(set(codes)), "duplicate country_code in seed")
+        for row in COUNTRY_MULTIPLIER_SEED_ROWS:
+            self.assertIn(row["zone"], {"A", "B", "C"}, row["country_code"])
+            # 6,4 / 5,4 DecimalField bounds + sane pricing/VAT ranges.
+            self.assertLess(row["multiplier"], Decimal("2"), row["country_code"])
+            self.assertGreater(row["multiplier"], Decimal("0"), row["country_code"])
+            self.assertLessEqual(row["tax_rate"], Decimal("0.3000"), row["country_code"])
+            self.assertGreaterEqual(row["tax_rate"], Decimal("0"), row["country_code"])
+
+    def test_low_income_markets_get_sub_parity_bands(self):
+        # The whole point of the expansion: these markets previously fell back to
+        # a neutral 1.0x (US parity) default. They must now carry a real,
+        # below-parity PPP multiplier. Regression guard for accidental reverts.
+        seed_country_multipliers()
+        for code in ("NP", "ET", "MW", "AF", "HT", "MG", "TZ"):
+            row = CountryMultiplier.objects.get(country_code=code)
+            self.assertLess(
+                row.multiplier, Decimal("0.5000"),
+                f"{code} should price well below US parity",
+            )
 
     def test_seed_is_idempotent(self):
         seed_country_multipliers()
