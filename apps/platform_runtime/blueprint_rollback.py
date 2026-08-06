@@ -200,39 +200,6 @@ def rollback_blueprint_installation(
                     invalidate_policy_cache(school)
                 except Exception:  # noqa: BLE001 — cache invalidation is best-effort
                     pass
-        # Roll back the CHILD PACKS this blueprint installed. apply_blueprint
-        # records each pack it applies as a PackInstallation pointing back at this
-        # BlueprintInstallation (``pack_installations``). Previously rollback never
-        # touched them, so undoing a blueprint left every child pack APPLIED — its
-        # features and config still live — making the "undo" only partial. Roll
-        # each still-applied child back (confirmed, since the parent rollback is
-        # already confirmed); one child's failure must not abort the others.
-        from apps.platform_runtime.models import PackInstallation
-        from apps.platform_runtime.pack_rollback import rollback_pack_installation
-
-        child_pack_results: list[dict] = []
-        try:
-            child_packs = list(
-                installation.pack_installations.filter(
-                    status=PackInstallation.Status.APPLIED
-                )
-            )
-        except Exception:  # noqa: BLE001 — a missing relation must not break rollback
-            child_packs = []
-        any_pack_reverted = False
-        for pack in child_packs:
-            try:
-                res = rollback_pack_installation(pack, actor=actor, confirmed=True)
-            except Exception as exc:  # noqa: BLE001 — isolate one bad child pack
-                res = {"ok": False, "error": type(exc).__name__}
-            child_pack_results.append({"pack_installation_id": pack.pk, "ok": res.get("ok")})
-            if res.get("ok"):
-                any_pack_reverted = True
-            else:
-                skipped_changes.append(f"pack_installation_rollback_failed:{pack.pk}")
-        if any_pack_reverted:
-            reverted_changes.append("pack_installations")
-
         installed_package = (
             InstalledPackage.objects.filter(
                 school=school,
