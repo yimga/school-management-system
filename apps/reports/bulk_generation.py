@@ -26,7 +26,6 @@ from dataclasses import dataclass, field
 
 from django.core.files.base import ContentFile
 from django.db import DatabaseError, transaction
-from django.db.models import Q
 from django.test import RequestFactory
 
 from apps.reports.models import ReportCard
@@ -85,6 +84,59 @@ class BulkReportResult:
         }
 
 
+def student_report_eligibility(
+    student,
+    academic_year,
+    term,
+    *,
+    enforce_publish: bool = True,
+    enforce_fee_clearance: bool = True,
+) -> tuple[bool, str, str]:
+    """Whether one student's TERM card may be produced, and why not.
+
+    The gate order + reasons are the contract bulk generate AND bulk print/share
+    share, so a card refused generation is never quietly printed or shared
+    instead. Returns ``(ok, reason_key, note)`` — ``reason_key`` is one of the
+    ``SKIP_*`` constants (empty when ``ok``); ``note`` carries the human fee
+    message when relevant. The "no marks" check stays with the caller because it
+    needs the built report context.
+    """
+    from apps.reports.services import (
+        financial_clearance_block_message,
+        is_term_published,
+        student_has_financial_clearance,
+        student_has_outstanding_returns,
+    )
+
+    if enforce_publish and not is_term_published(
+        academic_year.id, term.id, getattr(student, "classroom_id", None)
+    ):
+        return False, SKIP_NOT_PUBLISHED, ""
+
+    # Third-term rule: some classrooms (Form 5 / Upper Sixth) stop at two.
+    classroom_obj = getattr(student, "classroom", None)
+    if (
+        getattr(term, "position", None) == 3
+        and classroom_obj is not None
+        and not getattr(classroom_obj, "allows_third_term", True)
+    ):
+        return False, SKIP_THIRD_TERM_BLOCKED, ""
+
+    if enforce_fee_clearance and not student_has_financial_clearance(
+        student, academic_year
+    ):
+        return (
+            False,
+            SKIP_FEE_BLOCKED,
+            financial_clearance_block_message(student, academic_year),
+        )
+
+    if student_has_outstanding_returns(student, academic_year):
+        return False, SKIP_OUTSTANDING_RETURNS, ""
+
+    return True, "", ""
+
+
 def _synthetic_request(school, actor=None):
     """A request good enough for absolute-URI building and tenant scoping.
 
@@ -112,45 +164,33 @@ def generate_term_report_cards(
     academic_year,
     term,
     classroom=None,
+    specialty=None,
     actor=None,
     enforce_publish: bool = True,
     enforce_fee_clearance: bool = True,
     dry_run: bool = False,
     pdf_renderer=None,
 ) -> BulkReportResult:
-    """Generate (or refresh) TERM report cards for a classroom, or the whole year.
+    """Generate (or refresh) TERM report cards for a classroom, a specialty, or the whole year.
+
+    Pass ``classroom`` to narrow to one class (general-education axis) or
+    ``specialty`` to narrow to one stream (technical/STEM axis); pass neither to
+    cover the whole year. The scoping (including the ``school__isnull=True`` rule
+    that stops a bare ``school=`` filter dropping almost the entire roll) lives in
+    :func:`apps.reports.distribution_grouping.scoped_student_queryset` so bulk
+    generate / print / share always cover the identical set of students.
 
     Returns a :class:`BulkReportResult`; nothing raises for a single student's
     failure — one bad row must not abandon the other 199.
     """
-    from apps.people.models import StudentProfile
-    from apps.reports.services import (
-        financial_clearance_block_message,
-        is_term_published,
-        student_has_financial_clearance,
-        student_has_outstanding_returns,
-        term_report_context,
-    )
+    from apps.reports.distribution_grouping import scoped_student_queryset
+    from apps.reports.services import term_report_context
 
     render_pdf = pdf_renderer or _default_pdf_renderer
     result = BulkReportResult()
 
-    students = StudentProfile.objects.filter(  # tenant-isolation-allow: bulk-report-scoped-via-caller-school-and-academic-year
-        academic_year=academic_year, is_active=True
-    )
-    if school is not None:
-        # Include school__isnull=True. Under schema-per-tenant the per-row FK is
-        # redundant (the schema already isolates the tenant) and is very often
-        # NULL — the platform's own seeders leave it unset. A bare
-        # filter(school=school) therefore silently drops almost the entire roll:
-        # on the Buea tenant it matched 1 student of 20, which would have looked
-        # like "the class only has one student" rather than a scoping bug. The
-        # academic_year + tenant schema already bound this queryset.
-        students = students.filter(Q(school=school) | Q(school__isnull=True))
-    if classroom is not None:
-        students = students.filter(classroom=classroom)
-    students = students.select_related("classroom", "specialty", "school").order_by(
-        "last_name", "first_name"
+    students = scoped_student_queryset(
+        school, academic_year, classroom=classroom, specialty=specialty
     )
 
     request = _synthetic_request(school, actor=actor)
@@ -158,34 +198,15 @@ def generate_term_report_cards(
     for student in students:
         result.students += 1
         try:
-            if enforce_publish and not is_term_published(
-                academic_year.id, term.id, getattr(student, "classroom_id", None)
-            ):
-                result._skip(student, SKIP_NOT_PUBLISHED)
-                continue
-
-            # Third-term rule: some classrooms (Form 5 / Upper Sixth) stop at two.
-            classroom_obj = getattr(student, "classroom", None)
-            if (
-                getattr(term, "position", None) == 3
-                and classroom_obj is not None
-                and not getattr(classroom_obj, "allows_third_term", True)
-            ):
-                result._skip(student, SKIP_THIRD_TERM_BLOCKED)
-                continue
-
-            if enforce_fee_clearance and not student_has_financial_clearance(
-                student, academic_year
-            ):
-                result._skip(
-                    student,
-                    SKIP_FEE_BLOCKED,
-                    financial_clearance_block_message(student, academic_year),
-                )
-                continue
-
-            if student_has_outstanding_returns(student, academic_year):
-                result._skip(student, SKIP_OUTSTANDING_RETURNS)
+            ok, reason, note = student_report_eligibility(
+                student,
+                academic_year,
+                term,
+                enforce_publish=enforce_publish,
+                enforce_fee_clearance=enforce_fee_clearance,
+            )
+            if not ok:
+                result._skip(student, reason, note)
                 continue
 
             context = term_report_context(student, academic_year, term)
@@ -221,31 +242,23 @@ def generate_term_report_cards(
     return result
 
 
-def _persist_one(
-    *, request, school, student, academic_year, term, context, actor, render_pdf, result
-):
-    """Render + persist one card, mirroring parent_download_term_report."""
+def render_term_report_pdf_bytes(
+    *, request, student, academic_year, term, context, render_pdf
+) -> bytes:
+    """Render one TERM card to PDF bytes — the shared render, no persistence.
+
+    Adds the verification QR + share URL and resolves the per-student style
+    template exactly as the parent download and bulk generation do, so a card
+    that is generated, printed and shared is byte-shaped identically. Callers
+    that persist (bulk generation) hash the returned bytes; callers that only
+    print/bundle (bulk print) use them ephemerally.
+    """
     from apps.reports.services import (
         build_share_token,
         build_share_url,
         generate_report_qr_code,
     )
-    from apps.reports.views import _record_report_hash, _report_card_is_frozen
     from apps.siteconfig.models_tooling import get_report_card_style_for_student
-
-    # Immutable archive: a report card that was already published (frozen — its
-    # verification hash is recorded) must not be silently re-rendered or
-    # overwritten by a bulk run. A deliberate reissue is a separate, explicit
-    # action; bulk generation leaves frozen cards untouched.
-    existing_rc = ReportCard.objects.filter(
-        academic_year=academic_year,
-        term=term,
-        student=student,
-        type=ReportCard.Type.TERM,
-    ).first()
-    if existing_rc is not None and _report_card_is_frozen(existing_rc):
-        result._ok(student, False)
-        return
 
     token = build_share_token("TERM", student.id, academic_year.id, term.id)
     context = dict(context)
@@ -262,7 +275,37 @@ def _persist_one(
     except (DatabaseError, AttributeError, ValueError, TypeError):
         pass
 
-    pdf_bytes = render_pdf(request, template_name, context)
+    return render_pdf(request, template_name, context)
+
+
+def _persist_one(
+    *, request, school, student, academic_year, term, context, actor, render_pdf, result
+):
+    """Render + persist one card, mirroring parent_download_term_report."""
+    from apps.reports.views import _record_report_hash, _report_card_is_frozen
+
+    # Immutable archive: a report card that was already published (frozen — its
+    # verification hash is recorded) must not be silently re-rendered or
+    # overwritten by a bulk run. A deliberate reissue is a separate, explicit
+    # action; bulk generation leaves frozen cards untouched.
+    existing_rc = ReportCard.objects.filter(
+        academic_year=academic_year,
+        term=term,
+        student=student,
+        type=ReportCard.Type.TERM,
+    ).first()
+    if existing_rc is not None and _report_card_is_frozen(existing_rc):
+        result._ok(student, False)
+        return
+
+    pdf_bytes = render_term_report_pdf_bytes(
+        request=request,
+        student=student,
+        academic_year=academic_year,
+        term=term,
+        context=context,
+        render_pdf=render_pdf,
+    )
 
     # student.school is the authoritative owner; fall back to the run's school so
     # the row is never left NULL — a NULL school makes tenant-scoped QR/hash

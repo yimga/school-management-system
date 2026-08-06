@@ -1584,3 +1584,283 @@ def regulatory_export(request: HttpRequest):
             "terms": terms,
         },
     )
+
+
+# ---------------------------------------------------------------------------
+# Bulk report-card console — generate / print / share a whole class or specialty.
+#
+# Single-card creation was previously a side effect of a parent clicking a
+# download link; there was no way for a school to produce, print, or share a
+# whole group's cards in one run, and no offline path for the schools that need
+# it most. These four views are that console. All are staff-gated on the same
+# ``reports.manage`` code as publish; the group axis (class vs specialty) comes
+# from ``distribution_grouping`` so a technical college groups by stream and a
+# base school by class without any per-school branching here.
+# ---------------------------------------------------------------------------
+def _bulk_resolve_year_term(request: HttpRequest, school):
+    """Resolve (year_obj, term_obj) for a bulk action from GET/POST, scoped to school."""
+    year, active_term = _active_year_and_term_for_school(school)
+    if not year or not active_term:
+        return None, None
+    year_id = request.POST.get("year") or request.GET.get("year") or str(year.id)
+    term_id = request.POST.get("term") or request.GET.get("term") or str(active_term.id)
+    year_qs = AcademicYear.objects.filter(id=year_id)  # tenant-isolation-allow: view-scoped-via-request-school
+    year_qs = year_qs.filter(school=school) if school is not None else year_qs.filter(school__isnull=True)
+    year_obj = get_object_or_404(year_qs)
+    term_obj = get_object_or_404(Term, id=term_id, academic_year=year_obj)
+    return year_obj, term_obj
+
+
+def _bulk_console_redirect(year_obj, term_obj):
+    from django.urls import reverse
+
+    base = reverse("reports:bulk_report_console")
+    return redirect(f"{base}?year={year_obj.id}&term={term_obj.id}")
+
+
+@require_permission("reports.manage")
+def bulk_report_console(request: HttpRequest):
+    """List the term's report-card groups with generate / print / share actions."""
+    from apps.reports.distribution_grouping import (
+        list_report_groups,
+        resolve_report_group_mode,
+    )
+    from apps.reports.models import ReportCardBatch
+
+    school = _report_scope_school(request)
+    year_obj, term_obj = _bulk_resolve_year_term(request, school)
+    if year_obj is None:
+        return HttpResponseForbidden("No active academic year/term configured yet.")
+
+    years = (  # tenant-isolation-allow: view-scoped-via-request-school
+        AcademicYear.objects.filter(school=school)
+        if school is not None
+        else AcademicYear.objects.filter(school__isnull=True)
+    ).order_by("-start_date")
+    terms = Term.objects.filter(academic_year=year_obj).order_by("position")
+    group_mode = resolve_report_group_mode(school)
+    groups = list_report_groups(school, year_obj)
+    recent_batches = ReportCardBatch.objects.filter(  # tenant-isolation-allow: view-scoped-via-academic-year-under-request-school
+        academic_year=year_obj
+    ).select_related("requested_by").order_by("-created_at")[:12]
+
+    return render(
+        request,
+        "reports/bulk_console.html",
+        {
+            "school": school,
+            "year": year_obj,
+            "term": term_obj,
+            "years": years,
+            "terms": terms,
+            "group_mode": group_mode,
+            "group_mode_label": "Specialty" if group_mode == "SPECIALTY" else "Class",
+            "groups": groups,
+            "recent_batches": recent_batches,
+        },
+    )
+
+
+@require_permission("reports.manage")
+@require_http_methods(["POST"])
+def bulk_report_generate(request: HttpRequest):
+    """Generate (or refresh) a group's term report cards in one run."""
+    from apps.reports.bulk_generation import generate_term_report_cards
+    from apps.reports.distribution_grouping import resolve_group
+    from apps.reports.models import ReportCardBatch
+
+    school = _report_scope_school(request)
+    year_obj, term_obj = _bulk_resolve_year_term(request, school)
+    if year_obj is None:
+        return HttpResponseForbidden("No active academic year/term configured yet.")
+
+    mode = request.POST.get("group_mode") or ""
+    ref_id = request.POST.get("group_ref_id") or ""
+    classroom = specialty = None
+    label = "whole year"
+    ref_id_val = None
+    if ref_id:
+        _ref, scope, label = resolve_group(school, year_obj, mode, ref_id)
+        if scope is None:
+            messages.error(request, "That class/specialty could not be found for this year.")
+            return _bulk_console_redirect(year_obj, term_obj)
+        classroom, specialty = scope.get("classroom"), scope.get("specialty")
+        ref_id_val = int(ref_id)
+
+    result = generate_term_report_cards(
+        school=school,
+        academic_year=year_obj,
+        term=term_obj,
+        classroom=classroom,
+        specialty=specialty,
+        actor=request.user,
+    )
+    ReportCardBatch.objects.create(
+        school=school,
+        academic_year=year_obj,
+        term=term_obj,
+        action=ReportCardBatch.Action.GENERATE,
+        status=ReportCardBatch.Status.COMPLETED,
+        group_mode=mode,
+        group_ref_id=ref_id_val,
+        group_label=label,
+        included_count=result.generated,
+        skipped_count=result.skipped,
+        summary=result.as_dict(),
+        requested_by=request.user,
+        completed_at=timezone.now(),
+    )
+    messages.success(
+        request,
+        f"Generated {result.generated} report card(s) for {label}"
+        + (f"; {result.skipped} skipped." if result.skipped else "."),
+    )
+    return _bulk_console_redirect(year_obj, term_obj)
+
+
+@require_permission("reports.manage")
+def bulk_report_print(request: HttpRequest):
+    """Return a merged PDF (or ZIP) of a group's term report cards for printing."""
+    from apps.reports.bulk_print import build_group_report_pdf, build_group_report_zip
+    from apps.reports.distribution_grouping import resolve_group, scoped_student_queryset
+    from apps.reports.models import ReportCardBatch
+
+    school = _report_scope_school(request)
+    year_obj, term_obj = _bulk_resolve_year_term(request, school)
+    if year_obj is None:
+        return HttpResponseForbidden("No active academic year/term configured yet.")
+
+    mode = request.GET.get("group_mode") or request.POST.get("group_mode") or ""
+    ref_id = request.GET.get("group_ref_id") or request.POST.get("group_ref_id") or ""
+    fmt = (request.GET.get("format") or request.POST.get("format") or "pdf").strip().lower()
+
+    classroom = specialty = None
+    label = "whole-year"
+    ref_id_val = None
+    if ref_id:
+        _ref, scope, label = resolve_group(school, year_obj, mode, ref_id)
+        if scope is None:
+            return HttpResponseForbidden("That class/specialty could not be found for this year.")
+        classroom, specialty = scope.get("classroom"), scope.get("specialty")
+        ref_id_val = int(ref_id)
+
+    students = scoped_student_queryset(
+        school, year_obj, classroom=classroom, specialty=specialty
+    )
+    if fmt == "zip":
+        data, res = build_group_report_zip(
+            school=school, students=students, academic_year=year_obj,
+            term=term_obj, actor=request.user,
+        )
+        content_type, ext = "application/zip", "zip"
+    else:
+        data, res = build_group_report_pdf(
+            school=school, students=students, academic_year=year_obj,
+            term=term_obj, actor=request.user,
+        )
+        content_type, ext = "application/pdf", "pdf"
+
+    ReportCardBatch.objects.create(
+        school=school,
+        academic_year=year_obj,
+        term=term_obj,
+        action=ReportCardBatch.Action.PRINT,
+        status=ReportCardBatch.Status.COMPLETED,
+        group_mode=mode,
+        group_ref_id=ref_id_val,
+        group_label=label,
+        included_count=res.included,
+        skipped_count=res.skipped,
+        summary={"reasons": res.reasons, "format": ext},
+        requested_by=request.user,
+        completed_at=timezone.now(),
+    )
+
+    if not data:
+        messages.warning(request, "No eligible report cards to print for this group yet — generate them first.")
+        return _bulk_console_redirect(year_obj, term_obj)
+
+    safe_label = "".join(c if c.isalnum() or c in "-_" else "-" for c in str(label))[:60]
+    resp = HttpResponse(data, content_type=content_type)
+    resp["Content-Disposition"] = (
+        f'attachment; filename="report-cards-{safe_label}-t{term_obj.id}.{ext}"'
+    )
+    return resp
+
+
+@require_permission("reports.manage")
+@require_http_methods(["POST"])
+def bulk_report_share(request: HttpRequest):
+    """Queue a group's report cards to be shared with families (offline-first)."""
+    from apps.platform_runtime.offline_action_types import OfflineActionType
+    from apps.platform_runtime.offline_queue import (
+        enqueue_offline_action,
+        process_offline_queue,
+    )
+    from apps.reports.distribution_grouping import resolve_group
+    from apps.reports.models import ReportCardBatch
+
+    school = _report_scope_school(request)
+    year_obj, term_obj = _bulk_resolve_year_term(request, school)
+    if year_obj is None:
+        return HttpResponseForbidden("No active academic year/term configured yet.")
+    if school is None:
+        # The offline queue is tenant-bound (OfflineAction.school is required); a
+        # school-less shared context has no tenant to queue against.
+        return HttpResponseForbidden("Sharing requires a tenant school context.")
+
+    mode = request.POST.get("group_mode") or ""
+    ref_id = request.POST.get("group_ref_id") or ""
+    label = "whole year"
+    ref_id_val = None
+    if ref_id:
+        _ref, scope, label = resolve_group(school, year_obj, mode, ref_id)
+        if scope is None:
+            messages.error(request, "That class/specialty could not be found for this year.")
+            return _bulk_console_redirect(year_obj, term_obj)
+        ref_id_val = int(ref_id)
+
+    batch = ReportCardBatch.objects.create(
+        school=school,
+        academic_year=year_obj,
+        term=term_obj,
+        action=ReportCardBatch.Action.SHARE,
+        status=ReportCardBatch.Status.QUEUED,
+        group_mode=mode,
+        group_ref_id=ref_id_val,
+        group_label=label,
+        requested_by=request.user,
+    )
+    enqueue_offline_action(
+        user_id=request.user.id,
+        school_id=school.id,
+        action_type=OfflineActionType.REPORT_BATCH_DISTRIBUTE,
+        payload={
+            "academic_year_id": year_obj.id,
+            "term_id": term_obj.id,
+            "group_mode": mode,
+            "group_ref_id": ref_id_val,
+            "batch_id": batch.id,
+        },
+        idempotency_key=f"rcbatch-{batch.id}",
+    )
+    # Local-first: the durable queue row is the anchor. Drain it now so a cloud
+    # tenant shares immediately; an offline edge box keeps it QUEUED to send on
+    # its next sync. The queue's own status machine prevents double-processing.
+    try:
+        process_offline_queue(school_id=school.id, user_id=request.user.id, limit=5)
+        batch.refresh_from_db()
+    except (DatabaseError, ValueError, RuntimeError):
+        pass
+
+    if batch.status == ReportCardBatch.Status.COMPLETED:
+        messages.success(
+            request,
+            f"Shared {label} report cards with {batch.included_count} family group(s).",
+        )
+    else:
+        messages.success(
+            request,
+            f"Queued {label} report cards to share. They will be sent as soon as this device is back online.",
+        )
+    return _bulk_console_redirect(year_obj, term_obj)

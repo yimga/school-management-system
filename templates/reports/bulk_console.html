@@ -1,0 +1,162 @@
+{% extends "portal_base.html" %}
+{% load static %}
+{% load i18n terminology_tags %}
+{% block title %}{% trans "Bulk Report Cards" %}{% endblock %}
+
+{% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-hidden="true"></div>
+
+<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-task="report_bulk">
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+    <div>
+      <h1 class="mb-1">{% trans "Bulk Report Cards" %}</h1>
+      <div class="text-muted small">
+        {% blocktrans with mode=group_mode_label %}Generate, print and share a whole {{ mode }} in one run.{% endblocktrans %}
+      </div>
+    </div>
+    <div class="d-flex gap-2">
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'reports:publish_term_results' %}"><i class="bi bi-megaphone me-1"></i>{% trans "Publish results" %}</a>
+      <a class="btn btn-sm btn-outline-secondary btn-back-outline" href="{% url 'accounts:backend_dashboard' %}"><i class="bi bi-arrow-left me-1"></i>{% trans "Back to Backend" %}</a>
+    </div>
+  </div>
+
+  {% include "components/next_action_strip.html" %}
+
+  <div class="alert alert-info d-flex align-items-start gap-2 mb-3" role="note">
+    <i class="bi bi-hdd-network mt-1"></i>
+    <div class="small">
+      {% blocktrans with mode=group_mode_label %}This school groups report cards by <strong>{{ mode }}</strong>. Sharing works offline first — a queued share is delivered the moment this device is back online.{% endblocktrans %}
+    </div>
+  </div>
+
+  <div class="card mb-3">
+    <div class="card-body">
+      <form method="get" class="row g-2 align-items-end">
+        <div class="col-md-5">
+          <label class="form-label small">{% trans "Academic Year" %}</label>
+          <select class="form-select" name="year" onchange="this.form.submit()">
+            {% for y in years %}
+              <option value="{{ y.id }}" {% if y.id == year.id %}selected{% endif %}>{{ y.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-5">
+          <label class="form-label small">{% term_label %}</label>
+          <select class="form-select" name="term" onchange="this.form.submit()">
+            {% for t in terms %}
+              <option value="{{ t.id }}" {% if t.id == term.id %}selected{% endif %}>{{ t.get_name_display }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-2 d-grid">
+          <button type="submit" class="btn btn-outline-primary">{% trans "Load" %}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span class="fw-semibold">{% blocktrans with mode=group_mode_label %}Groups by {{ mode }}{% endblocktrans %}</span>
+      <div class="d-flex gap-2">
+        <form method="post" action="{% url 'reports:bulk_report_generate' %}" class="d-inline">
+          {% csrf_token %}
+          <input type="hidden" name="year" value="{{ year.id }}">
+          <input type="hidden" name="term" value="{{ term.id }}">
+          <button class="btn btn-sm btn-outline-primary" type="submit"><i class="bi bi-collection me-1"></i>{% trans "Generate whole year" %}</button>
+        </form>
+        <a class="btn btn-sm btn-outline-secondary" href="{% url 'reports:bulk_report_print' %}?year={{ year.id }}&term={{ term.id }}"><i class="bi bi-printer me-1"></i>{% trans "Print whole year (PDF)" %}</a>
+      </div>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th scope="col">{{ group_mode_label }}</th>
+            <th scope="col" class="text-end">{% trans "Students" %}</th>
+            <th scope="col" class="text-end">{% trans "Actions" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for g in groups %}
+            <tr>
+              <td>
+                <div class="fw-semibold">{{ g.label }}</div>
+                {% if g.code %}<div class="text-muted small">{{ g.code }}</div>{% endif %}
+              </td>
+              <td class="text-end">{{ g.student_count }}</td>
+              <td class="text-end">
+                <div class="btn-group btn-group-sm" role="group">
+                  <form method="post" action="{% url 'reports:bulk_report_generate' %}" class="d-inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="year" value="{{ year.id }}">
+                    <input type="hidden" name="term" value="{{ term.id }}">
+                    <input type="hidden" name="group_mode" value="{{ g.mode }}">
+                    <input type="hidden" name="group_ref_id" value="{{ g.ref_id }}">
+                    <button class="btn btn-outline-primary" type="submit" title="{% trans 'Generate this group' %}"><i class="bi bi-collection"></i> {% trans "Generate" %}</button>
+                  </form>
+                  <a class="btn btn-outline-secondary" title="{% trans 'Print merged PDF' %}" href="{% url 'reports:bulk_report_print' %}?year={{ year.id }}&term={{ term.id }}&group_mode={{ g.mode }}&group_ref_id={{ g.ref_id }}&format=pdf"><i class="bi bi-printer"></i> {% trans "Print" %}</a>
+                  <a class="btn btn-outline-secondary" title="{% trans 'Download as ZIP' %}" href="{% url 'reports:bulk_report_print' %}?year={{ year.id }}&term={{ term.id }}&group_mode={{ g.mode }}&group_ref_id={{ g.ref_id }}&format=zip"><i class="bi bi-file-earmark-zip"></i> {% trans "ZIP" %}</a>
+                  <form method="post" action="{% url 'reports:bulk_report_share' %}" class="d-inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="year" value="{{ year.id }}">
+                    <input type="hidden" name="term" value="{{ term.id }}">
+                    <input type="hidden" name="group_mode" value="{{ g.mode }}">
+                    <input type="hidden" name="group_ref_id" value="{{ g.ref_id }}">
+                    <button class="btn btn-outline-success" type="submit" title="{% trans 'Share with families' %}"><i class="bi bi-send"></i> {% trans "Share" %}</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="3" class="text-center text-muted py-4">
+                {% blocktrans with mode=group_mode_label|lower %}No {{ mode }} groups found for this year yet.{% endblocktrans %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header fw-semibold">{% trans "Recent bulk runs" %}</div>
+    <div class="table-responsive">
+      <table class="table table-sm align-middle mb-0">
+        <thead>
+          <tr>
+            <th scope="col">{% trans "Action" %}</th>
+            <th scope="col">{% trans "Group" %}</th>
+            <th scope="col">{% trans "Status" %}</th>
+            <th scope="col" class="text-end">{% trans "Included" %}</th>
+            <th scope="col" class="text-end">{% trans "Skipped" %}</th>
+            <th scope="col">{% trans "By" %}</th>
+            <th scope="col">{% trans "When" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for b in recent_batches %}
+            <tr>
+              <td>{{ b.get_action_display }}</td>
+              <td>{{ b.group_label|default:"—" }}</td>
+              <td>
+                {% if b.status == "COMPLETED" %}<span class="badge text-bg-success">{{ b.get_status_display }}</span>
+                {% elif b.status == "QUEUED" %}<span class="badge text-bg-warning">{{ b.get_status_display }}</span>
+                {% elif b.status == "FAILED" %}<span class="badge text-bg-danger">{{ b.get_status_display }}</span>
+                {% else %}<span class="badge text-bg-secondary">{{ b.get_status_display }}</span>{% endif %}
+              </td>
+              <td class="text-end">{{ b.included_count }}</td>
+              <td class="text-end">{{ b.skipped_count }}</td>
+              <td>{{ b.requested_by.get_full_name|default:b.requested_by.username|default:"—" }}</td>
+              <td class="text-muted small">{{ b.created_at|date:"Y-m-d H:i" }}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="7" class="text-center text-muted py-3">{% trans "No bulk runs yet." %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

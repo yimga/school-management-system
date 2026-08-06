@@ -24,6 +24,7 @@ class OfflineActionType(models.TextChoices):
     NOTIFY_STAFF = "notify.staff", "Notify staff"
     PROVISIONAL_SIGNUP = "provision.signup", "Provisional signup"
     IAM_REQUEST_ACCESS = "iam.request_access", "IAM request access (server-validated)"
+    REPORT_BATCH_DISTRIBUTE = "report_batch.distribute", "Report card batch distribute"
 
 
 NOTIFY_PREFIX = "notify."
@@ -114,6 +115,14 @@ def validate_offline_payload(action_type: str, payload: dict[str, Any]) -> list[
             errors.append("support.ticket requires subject")
         if not str(payload.get("message") or payload.get("body") or "").strip():
             errors.append("support.ticket requires message")
+
+    if at == OfflineActionType.REPORT_BATCH_DISTRIBUTE:
+        # A distribution is bound to a term of an academic year; the group ref
+        # (classroom/specialty) is optional (absent = whole year).
+        if payload.get("academic_year_id") in (None, ""):
+            errors.append("report_batch.distribute requires academic_year_id")
+        if payload.get("term_id") in (None, ""):
+            errors.append("report_batch.distribute requires term_id")
 
     if at == OfflineActionType.HOMEWORK_SUBMIT:
         # Canonical path carries assignment_id (academics.LMSSubmission); the legacy

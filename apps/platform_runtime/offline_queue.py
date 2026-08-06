@@ -1150,6 +1150,73 @@ def _apply_support_ticket(school_id, user_id: int, payload: dict[str, Any]) -> d
     return {"ok": True, "ticket_id": str(ticket.pk)}
 
 
+def _apply_report_batch_distribute(
+    school_id, user_id: int, payload: dict[str, Any]
+) -> dict[str, Any]:
+    """Drain a queued 'share this class's report cards' action.
+
+    Resolves the term + group from the payload and fans the report-ready
+    notification to each family via the shared ``distribute_report_batch`` path
+    (identical to the online console). Marks the originating ``ReportCardBatch``
+    completed when one is referenced. Server-owned: the payload carries ids only,
+    never recipient contact details, so an offline device cannot smuggle an
+    arbitrary send.
+    """
+    from django.utils import timezone
+
+    from apps.academics.models import AcademicYear, Term
+    from apps.reports.bulk_distribution import distribute_report_batch
+    from apps.reports.distribution_grouping import resolve_group
+    from apps.reports.models import ReportCardBatch
+    from apps.schools.models import School
+
+    school = School.objects.filter(pk=school_id).first()
+    academic_year = AcademicYear.objects.filter(pk=payload.get("academic_year_id")).first()
+    term = Term.objects.filter(pk=payload.get("term_id")).first()
+    if academic_year is None or term is None:
+        return {"ok": False, "error": "academic_year_or_term_not_found"}
+
+    classroom = specialty = None
+    ref_id = payload.get("group_ref_id")
+    if ref_id not in (None, ""):
+        _ref, scope_kwargs, _label = resolve_group(
+            school, academic_year, payload.get("group_mode") or "", ref_id
+        )
+        if scope_kwargs is None:
+            return {"ok": False, "error": "group_ref_not_resolvable"}
+        classroom = scope_kwargs.get("classroom")
+        specialty = scope_kwargs.get("specialty")
+
+    result = distribute_report_batch(
+        school=school,
+        academic_year=academic_year,
+        term=term,
+        classroom=classroom,
+        specialty=specialty,
+    )
+
+    batch_id = payload.get("batch_id")
+    if batch_id not in (None, ""):
+        batch = ReportCardBatch.objects.filter(  # tenant-isolation-allow: explicit-school-scoped-batch-lookup
+            pk=batch_id, school_id=school_id
+        ).first()
+        if batch is not None:
+            batch.status = ReportCardBatch.Status.COMPLETED
+            batch.completed_at = timezone.now()
+            batch.included_count = result.get("students", 0)
+            batch.summary = {**(batch.summary or {}), "distribute": result}
+            batch.save(
+                update_fields=[
+                    "status",
+                    "completed_at",
+                    "included_count",
+                    "summary",
+                ]
+            )
+
+    return {"ok": True, "distributed": True, **result}
+
+
 def _apply_lms_submission(
     school_id,
     user_id: int,
@@ -1396,6 +1463,11 @@ def _apply_payload(action: Any, *, force_local: bool = False) -> dict[str, Any]:
         return _apply_provision_signup(sid, uid, payload)
     if at_norm == OfflineActionType.PROVISIONAL_SIGNUP:
         return _apply_provision_signup(sid, uid, payload)
+    if (
+        at == OfflineAction.ActionType.REPORT_BATCH_DISTRIBUTE
+        or at_norm == OfflineActionType.REPORT_BATCH_DISTRIBUTE
+    ):
+        return _apply_report_batch_distribute(sid, uid, payload)
     return {"ok": False, "error": f"Unknown action_type: {at}"}
 
 

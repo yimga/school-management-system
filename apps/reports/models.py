@@ -579,6 +579,82 @@ class AdHocReportExecution(models.Model):
         return f"{self.definition.name} - {self.status} @ {self.created_at}"
 
 
+class ReportCardBatch(models.Model):
+    """A record of one bulk generate / print / share run over a report-card group.
+
+    Bulk actions used to leave no trace — a school could not answer "did I already
+    share Form 4A's term reports, and to whom?". This is the run ledger: which
+    group (class or specialty), which term, who ran it, how many cards it covered,
+    and whether the offline distribution has drained yet. It is the payload anchor
+    the offline ``report_batch.distribute`` action reads back when connectivity
+    returns.
+    """
+
+    class Action(models.TextChoices):
+        GENERATE = "GENERATE", "Generate"
+        PRINT = "PRINT", "Print"
+        SHARE = "SHARE", "Share"
+
+    class Status(models.TextChoices):
+        PENDING = "PENDING", "Pending"
+        QUEUED = "QUEUED", "Queued (offline)"
+        COMPLETED = "COMPLETED", "Completed"
+        FAILED = "FAILED", "Failed"
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="report_card_batches",
+    )
+    academic_year = models.ForeignKey(
+        AcademicYear, on_delete=models.CASCADE, related_name="report_card_batches"
+    )
+    term = models.ForeignKey(
+        Term,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="report_card_batches",
+    )
+    action = models.CharField(max_length=10, choices=Action.choices)
+    status = models.CharField(
+        max_length=10, choices=Status.choices, default=Status.PENDING
+    )
+    # Grouping axis this batch ran on: "CLASS" or "SPECIALTY" (distribution_grouping).
+    group_mode = models.CharField(max_length=16, blank=True)
+    # The classroom/specialty pk the batch targeted (null = whole year).
+    group_ref_id = models.IntegerField(null=True, blank=True)
+    group_label = models.CharField(max_length=160, blank=True)
+
+    included_count = models.IntegerField(default=0)
+    skipped_count = models.IntegerField(default=0)
+    summary = models.JSONField(default=dict, blank=True)
+
+    requested_by = models.ForeignKey(
+        User,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="report_card_batches",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(
+                fields=["academic_year", "term", "created_at"],
+                name="reports_rcbatch_ayt_idx",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.action} {self.group_label or 'whole year'} ({self.status})"
+
+
 # ReportDefinition and MaterializedReportCache are intentionally not registered here.
 # reports.0017 retired those BI tables. apps.reports.bi_models keeps
 # compatibility aliases for the live ad-hoc report models.

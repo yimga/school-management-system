@@ -2056,6 +2056,7 @@ class OfflineAction(models.Model):
         PROVISION_SIGNUP = "provision.signup", "Provisional device signup"
         DONATION_INTAKE = "donation.intake", "Donation / pledge capture"
         IN_KIND_INTAKE = "in_kind.intake", "In-kind donation capture"
+        REPORT_BATCH_DISTRIBUTE = "report_batch.distribute", "Report card batch distribute"
 
     class Resolution(models.TextChoices):
         KEEP_MINE = "keep_mine", "Keep mine"

@@ -16,7 +16,10 @@
     <h1 class="mb-1">{% trans "Publish Term Results" %}</h1>
     <div class="text-muted small">Publishing locks teacher entry and enables parent access.</div>
   </div>
-  <a class="btn btn-sm btn-outline-secondary btn-back-outline" href="{% url 'accounts:backend_dashboard' %}"><i class="bi bi-arrow-left me-1"></i>{% trans "Back to Backend" %}</a>
+  <div class="d-flex gap-2">
+    <a class="btn btn-sm btn-outline-primary" href="{% url 'reports:bulk_report_console' %}"><i class="bi bi-collection me-1"></i>{% trans "Bulk report cards" %}</a>
+    <a class="btn btn-sm btn-outline-secondary btn-back-outline" href="{% url 'accounts:backend_dashboard' %}"><i class="bi bi-arrow-left me-1"></i>{% trans "Back to Backend" %}</a>
+  </div>
 </div>
 
 <div class="card mb-3">
