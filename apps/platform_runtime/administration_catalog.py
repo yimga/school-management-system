@@ -546,10 +546,11 @@ TENANT_CONFIGURATION_SECTIONS: tuple[dict[str, str], ...] = (
     {"name": "Grading Rules", "status": "", "missing": "", "route_name": "siteconfig:grading_settings", "primary_action": "Open grading rules", "permission": "grades.manage", "probe": "grading"},
     {"name": "Report Templates", "status": "", "missing": "", "route_name": "siteconfig:reportcard_builder", "primary_action": "Open report builder", "permission": "reports.manage", "probe": "reports"},
     {"name": "Fees", "status": "", "missing": "", "route_name": "finance:dashboard", "primary_action": "Open money center", "permission": "finance.view", "probe": "fees"},
-    {"name": "Roles / Permissions", "status": "", "missing": "", "route_name": "tenant_admin:index", "primary_action": "Open technical role records", "permission": "settings.manage", "probe": "roles"},
+    {"name": "Roles / Permissions", "status": "", "missing": "", "route_name": "accounts:rbac", "primary_action": "Open roles & permissions", "permission": "settings.manage", "probe": "roles"},
     {"name": "Parent Portal", "status": "", "missing": "", "route_name": "portal:parent_dashboard", "primary_action": "Open parent portal preview", "permission": "portal.manage", "probe": "portal"},
     {"name": "Teacher Portal", "status": "", "missing": "", "route_name": "portal:teacher_dashboard_alias", "primary_action": "Open teacher workspace", "permission": "portal.manage", "probe": "portal"},
     {"name": "Apps", "status": "", "missing": "", "route_name": "tenant_app_catalog", "primary_action": "Open school app catalog", "permission": "settings.manage", "probe": "apps"},
+    {"name": "Modules", "status": "", "missing": "", "route_name": "siteconfig:module_market", "primary_action": "Open module market", "permission": "settings.manage", "probe": "apps"},
     {"name": "Workflows", "status": "", "missing": "", "route_name": "studio_os:automation", "primary_action": "Open automation studio", "permission": "settings.manage", "probe": "workflows"},
     {"name": "Offline Settings", "status": "", "missing": "", "route_name": "portal:offline_sync_queue", "primary_action": "Open offline sync", "permission": "settings.manage", "probe": "offline"},
     {
