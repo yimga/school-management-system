@@ -276,9 +276,15 @@ body:has(.rmc-auth-immersive) [data-shell-chrome="django-messages"] {
 
 .rmc-auth-immersive__carousel {
   position: relative;
+  /* Stack every slide in ONE grid cell so the box sizes to its TALLEST slide.
+     Absolute-positioned slides gave the box zero intrinsic height, so a fixed
+     max-height + overflow:hidden clipped any slide taller than the cap (the
+     "cut / leaking" hero-text bug). In-flow grid stacking gives the flex item a
+     real min-content floor, so it can never be squeezed below its content. */
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
   flex: 1 1 auto;
   min-height: 72px;
-  max-height: 22vh;
   padding-bottom: 24px;
   border-radius: 18px;
   border: 1px solid var(--rmc-auth-hair);
@@ -355,8 +361,10 @@ body:has(.rmc-auth-immersive) [data-shell-chrome="django-messages"] {
 }
 
 .rmc-auth-immersive__slide {
-  position: absolute;
-  inset: 0 0 28px;
+  /* All slides share the same grid cell → crossfade stack that the container
+     grows to contain. (Was position:absolute, which contributed no height.) */
+  grid-area: 1 / 1;
+  min-width: 0;
   padding: 1rem 1.1rem;
   display: flex;
   flex-direction: column;
@@ -387,6 +395,7 @@ body:has(.rmc-auth-immersive) [data-shell-chrome="django-messages"] {
   font-size: clamp(.9rem, 2vh, 1.25rem);
   line-height: 1.25;
   max-width: 32ch;
+  overflow-wrap: anywhere;
 }
 
 .rmc-auth-immersive__slide p {
@@ -1174,7 +1183,8 @@ body:has(.rmc-auth-immersive) [data-shell-chrome="django-messages"] {
 }
 
 .rmc-auth-immersive[data-rmc-login-layout="campus_hero"] .rmc-auth-immersive__carousel {
-  max-height: 28vh;
+  /* Give the hero more of the vertical slack; height still floors at content
+     (no max-height cap — that clipped taller slides on this preset too). */
   flex-grow: 2;
 }
 
@@ -1424,8 +1434,20 @@ body:has(.rmc-auth-immersive) [data-shell-chrome="django-messages"] {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .rmc-auth-immersive__carousel {
-    max-height: 16vh;
+  /* Short viewports: keep the hero compact by TIGHTENING type, not by capping
+     height + clipping. The grid-stacked carousel sizes to content, so a cap here
+     would re-introduce the cut-text bug on exactly the screens that showed it. */
+  .rmc-auth-immersive__slide {
+    padding: .6rem 1.1rem;
+  }
+
+  .rmc-auth-immersive__slide strong {
+    font-size: clamp(.85rem, 1.8vh, 1.05rem);
+  }
+
+  .rmc-auth-immersive__slide p {
+    margin-top: 4px;
+    font-size: 11px;
   }
 }
 
