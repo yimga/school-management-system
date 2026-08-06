@@ -4145,6 +4145,45 @@ body:is(.admin-manager-shell, .admin-premium-shell) .rmc-admin-workbench-footer_
   color: var(--text-tertiary, var(--color-base-400));
 }
 
+/* Compact /admin/ workbench footer — match the operator /super/ civic-ribbon density
+   (rmc-cp-operator-footer.css: primary row min-height 31px, ~×0.7 vertical rhythm).
+   Applies to BOTH the tenant (.admin-premium-shell) and operator (.admin-manager-shell)
+   /admin/ footers so neither is the chunky ~135px 3-row stack — they read as one
+   compact two-row ribbon: brand (left) / gateway links (right) on one row, then a thin
+   hairline-separated meta micro-row. `padding-right` reserves the fixed Tools edge-tab
+   column (rmc-operator-tools-tray.css) so the right-aligned links never sit under it.
+   Equal specificity to the base rule above, emitted after it → wins. */
+body:is(.admin-manager-shell, .admin-premium-shell) .rmc-admin-workbench-footer {
+  min-height: 0;
+  margin-top: 0;
+  padding: 0.5rem clamp(0.85rem, 1.55vw, 1.25rem);
+  padding-right: calc(var(--rmc-operator-tools-tab-w, 44px) + 1rem);
+}
+body:is(.admin-manager-shell, .admin-premium-shell) .rmc-admin-workbench-footer__inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem 0.75rem;
+  min-height: 31px;
+  max-width: none;
+}
+body:is(.admin-manager-shell, .admin-premium-shell) .rmc-admin-workbench-footer__brand {
+  font-size: 0.75rem;
+}
+body:is(.admin-manager-shell, .admin-premium-shell) .rmc-admin-workbench-footer__links {
+  margin-left: auto;
+  font-size: 0.7rem;
+}
+body:is(.admin-manager-shell, .admin-premium-shell) .rmc-admin-workbench-footer__meta {
+  order: 3;
+  width: 100%;
+  min-width: 0;
+  padding-top: 0.35rem;
+  border-top: 1px solid var(--hairline, rgba(148, 163, 184, 0.22));
+  font-size: 0.66rem;
+}
+
 /* v16.1 — pinned shell footer band. The workbench footer moved out of <main> into
    the .rmc-app-shell grid row 3 (admin/base.html), wrapped in
    .rmc-app-shell__footer + .rmc-admin-shell-footer. The wrapper (rmc-app-shell.css)

@@ -467,6 +467,64 @@ class AdminUiSmokeTests(TestCase):
             "in-canvas include so only the pinned grid-row-3 band remains",
         )
 
+    def test_admin_head_declares_utf8_charset(self):
+        """The /admin/ shell must emit <meta charset="utf-8"> in its <head>.
+
+        Regression seal: Unfold's skeleton (unfold/layouts/skeleton.html) renders
+        <title> first and NO <meta charset>, and base.html/portal_base.html/
+        control_plane_skeleton.html all carry charset while admin/base_site.html did
+        not — so the tenant + operator /admin/ pages relied solely on the response's
+        HTTP Content-Type header and mojibaked (…, ·, ⚙️ → â€¦, Â·) whenever served
+        without it (service-worker cache replay / proxies). base_site.html now emits it
+        first in {% block extrastyle %}.
+        """
+        self._login_tenant_admin_client()
+        resp = self.client.get(_reverse_tenant_admin("admin:index"))
+        self.assertEqual(resp.status_code, 200)
+        body = resp.content.decode("utf-8", errors="ignore")
+        self.assertRegex(
+            body,
+            r"""<meta\s+charset=["']?utf-8["']?""",
+            "tenant /admin/ <head> is missing <meta charset='utf-8'> (Unfold skeleton omits it)",
+        )
+        head_end = body.lower().find("</head>")
+        charset_pos = body.lower().find("charset")
+        self.assertTrue(
+            0 < charset_pos < head_end,
+            "charset declaration must live inside <head>, before </head>",
+        )
+
+    def test_admin_workbench_footer_is_compact(self):
+        """The /admin/ workbench footers (tenant + operator) match the operator /super/
+        civic-ribbon density instead of the chunky 4.5rem 3-row stack.
+
+        Contract seal: the base rule sets min-height:4.5rem + a grid inner (3 stacked
+        rows); the compact override must neutralize that (min-height:0) and lay the
+        inner out as a flex ribbon, reserving the fixed Tools edge-tab column.
+        """
+        from django.contrib.staticfiles import finders
+
+        css_path = finders.find("css/rmc-admin-django-canvas-contract.css")
+        self.assertIsNotNone(css_path, "canvas contract stylesheet not found")
+        css = Path(css_path).read_text(encoding="utf-8")
+        # Anchor on the compact override's own comment (the base rule shares the selector).
+        anchor = "Compact /admin/ workbench footer"
+        self.assertIn(anchor, css, "compact /admin/ footer override block is missing")
+        compact_block = css.split(anchor, 1)[1][:1400]
+        self.assertIn(
+            "min-height: 0;", compact_block, "compact footer must drop the 4.5rem min-height"
+        )
+        self.assertIn(
+            "--rmc-operator-tools-tab-w",
+            compact_block,
+            "compact footer must reserve the Tools edge-tab column via padding-right",
+        )
+        self.assertIn(
+            "display: flex;",
+            compact_block,
+            "compact footer inner must be a flex ribbon (was grid stack)",
+        )
+
     def test_reportcardstyle_change_form_links_to_control_plane_surfaces(self):
         """P3: ReportCardStyle admin links to report builder + Output studio + config hub (tenant-safe URLs)."""
         style = ReportCardStyle.objects.create(

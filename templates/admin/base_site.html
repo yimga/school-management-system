@@ -4,6 +4,18 @@
 {% block bodyclass %}{{ block.super }} {% if is_manager_host %}admin-manager-shell control-plane-shell cp-surface{% else %}admin-premium-shell{% endif %}{% endblock %}
 
 {% block extrastyle %}
+  {% comment %}
+    UTF-8 charset MUST land within the first 1024 bytes of the document. Unfold's
+    skeleton (unfold/layouts/skeleton.html) emits <title> first and NO <meta charset>,
+    so the tenant + operator /admin/ pages relied solely on the response's HTTP
+    Content-Type header — and mojibaked (…, ·, ⚙️ → â€¦, Â·, âš™ï¸) whenever served
+    without it (service-worker cache replay, some proxies, saved pages). Emit it FIRST
+    in extrastyle — before block.super's CSS payload — so it precedes the ~1KB of admin
+    stylesheet links and stays under the 1024-byte sniff window (block.super pushed the
+    other meta tags to byte ~1150, past the limit). base.html / portal_base.html /
+    control_plane_skeleton.html already carry charset; this closes the /admin/ gap.
+  {% endcomment %}
+  <meta charset="utf-8">
   {{ block.super }}
   <link rel="manifest" href="{% url 'pwa_manifest_platform' %}">
   {% comment %} v3.57.1 (2026-05-21): PWA install-prompt chrome (admin backoffice). {% endcomment %}
