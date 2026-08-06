@@ -37,20 +37,43 @@ class OrangeMoneyGateway(BasePaymentGateway):
                 raw_response={"status": "not_configured", "missing": missing},
             )
 
-        tx_id = f"orange_{reference or uuid4().hex[:16]}"
+        if self.config.get("stub_only"):
+            # Deliberate local/test stub mode: pin a pending success WITHOUT any
+            # HTTP. Pinned by the fail-closed contract so the fix cannot be
+            # "fixed" by breaking stub callers.
+            tx_id = f"orange_{reference or uuid4().hex[:16]}"
+            return GatewayResult(
+                success=True,
+                transaction_id=tx_id,
+                message="Orange Money collection request initiated (stub).",
+                raw_response={
+                    "status": "pending",
+                    "provider": self.code,
+                    "reference": reference,
+                    "amount": str(amount),
+                    "currency": currency,
+                    "payer_phone": payer_phone,
+                    "description": description or "",
+                    "platform_fee": str(platform_fee or Decimal("0")),
+                    "stub_only": True,
+                },
+            )
+        # Live-configured, but NO live HTTP initiation is implemented for Orange
+        # Money yet. FAIL CLOSED: fabricating success here would tell the platform a
+        # collection was requested when the payer was never prompted — a pending
+        # payment that can never settle (the webhook never comes). Surface the truth
+        # so the school falls back to a rail that actually charges.
         return GatewayResult(
-            success=True,
-            transaction_id=tx_id,
-            message="Orange Money collection request initiated.",
+            success=False,
+            transaction_id=None,
+            message=(
+                "Orange Money live collection is not implemented yet — use a "
+                "supported rail, or set stub_only for local testing."
+            ),
             raw_response={
-                "status": "pending",
+                "status": "initiation_not_implemented",
                 "provider": self.code,
                 "reference": reference,
-                "amount": str(amount),
-                "currency": currency,
-                "payer_phone": payer_phone,
-                "description": description or "",
-                "platform_fee": str(platform_fee or Decimal("0")),
             },
         )
 

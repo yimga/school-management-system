@@ -249,3 +249,122 @@ class MercadoPagoFailClosedTests(SimpleTestCase):
             )
         self.assertFalse(result.success)
         self.assertIsNone(result.transaction_id)
+
+
+# ---------------------------------------------------------------------------
+# 2026-08-05: the three rails that had NO live HTTP initiation at all
+# (orange_money / dlocal / pesapal) previously fabricated success=True + a
+# synthetic transaction_id the moment they were config-complete — a
+# collection the payer was never prompted for, a pending payment that could
+# never settle. They now fail closed unless stub_only is set. Same three
+# distinct modes as the rails above.
+# ---------------------------------------------------------------------------
+
+
+class OrangeMoneyFailClosedTests(SimpleTestCase):
+    _LIVE = {"client_id": "c-1", "client_secret": "s-1", "merchant_key": "m-1"}
+
+    def test_live_configured_without_real_http_fails_closed(self):
+        from apps.finance.gateways.orange_money import OrangeMoneyGateway
+
+        gw = OrangeMoneyGateway(None, config=dict(self._LIVE))
+        result = gw.initiate(
+            amount=Decimal("15000"), currency="XAF", reference="ref-live"
+        )
+        self.assertFalse(
+            result.success,
+            "live-configured Orange Money must not fabricate success for a "
+            "collection it never sent",
+        )
+        self.assertIsNone(result.transaction_id)
+        self.assertEqual(
+            result.raw_response.get("status"), "initiation_not_implemented"
+        )
+
+    def test_stub_only_still_succeeds(self):
+        from apps.finance.gateways.orange_money import OrangeMoneyGateway
+
+        gw = OrangeMoneyGateway(None, config=dict(self._LIVE, stub_only=True))
+        result = gw.initiate(
+            amount=Decimal("15000"), currency="XAF", reference="ref-stub"
+        )
+        self.assertTrue(result.success)
+        self.assertTrue(str(result.transaction_id or "").startswith("orange_"))
+
+    def test_unconfigured_still_fails_closed(self):
+        from apps.finance.gateways.orange_money import OrangeMoneyGateway
+
+        gw = OrangeMoneyGateway(None, config={})
+        result = gw.initiate(amount=Decimal("100"), currency="XAF", reference="r")
+        self.assertFalse(result.success)
+        self.assertEqual(result.raw_response.get("status"), "not_configured")
+
+
+class DlocalFailClosedTests(SimpleTestCase):
+    _LIVE = {"api_key": "k-1", "secret_key": "s-1"}
+
+    def test_live_configured_without_real_http_fails_closed(self):
+        from apps.finance.gateways.dlocal import DlocalGateway
+
+        gw = DlocalGateway(None, config=dict(self._LIVE))
+        result = gw.initiate(
+            amount=Decimal("50.00"), currency="BRL", reference="ref-live"
+        )
+        self.assertFalse(result.success)
+        self.assertIsNone(result.transaction_id)
+        self.assertEqual(
+            result.raw_response.get("status"), "initiation_not_implemented"
+        )
+
+    def test_stub_only_still_succeeds(self):
+        from apps.finance.gateways.dlocal import DlocalGateway
+
+        gw = DlocalGateway(None, config=dict(self._LIVE, stub_only=True))
+        result = gw.initiate(
+            amount=Decimal("50.00"), currency="BRL", reference="ref-stub"
+        )
+        self.assertTrue(result.success)
+        self.assertTrue(str(result.transaction_id or "").startswith("dlocal_"))
+
+    def test_unconfigured_still_fails_closed(self):
+        from apps.finance.gateways.dlocal import DlocalGateway
+
+        gw = DlocalGateway(None, config={})
+        result = gw.initiate(amount=Decimal("100"), currency="BRL", reference="r")
+        self.assertFalse(result.success)
+        self.assertEqual(result.raw_response.get("status"), "not_configured")
+
+
+class PesapalFailClosedTests(SimpleTestCase):
+    _LIVE = {"consumer_key": "ck-1", "consumer_secret": "cs-1"}
+
+    def test_live_configured_without_real_http_fails_closed(self):
+        from apps.finance.gateways.pesapal import PesapalGateway
+
+        gw = PesapalGateway(None, config=dict(self._LIVE))
+        result = gw.initiate(
+            amount=Decimal("500"), currency="KES", reference="ref-live"
+        )
+        self.assertFalse(result.success)
+        self.assertIsNone(result.transaction_id)
+        self.assertEqual(
+            result.raw_response.get("status"), "initiation_not_implemented"
+        )
+
+    def test_stub_only_still_succeeds(self):
+        from apps.finance.gateways.pesapal import PesapalGateway
+
+        gw = PesapalGateway(None, config=dict(self._LIVE, stub_only=True))
+        result = gw.initiate(
+            amount=Decimal("500"), currency="KES", reference="ref-stub"
+        )
+        self.assertTrue(result.success)
+        self.assertTrue(str(result.transaction_id or "").startswith("pesapal_"))
+
+    def test_unconfigured_still_fails_closed(self):
+        from apps.finance.gateways.pesapal import PesapalGateway
+
+        gw = PesapalGateway(None, config={})
+        result = gw.initiate(amount=Decimal("100"), currency="KES", reference="r")
+        self.assertFalse(result.success)
+        self.assertEqual(result.raw_response.get("status"), "not_configured")

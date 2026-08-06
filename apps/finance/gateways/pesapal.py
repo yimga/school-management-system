@@ -33,16 +33,34 @@ class PesapalGateway(BasePaymentGateway):
                 message="Pesapal gateway not configured.",
                 raw_response={"status": "not_configured", "missing": missing},
             )
+        if self.config.get("stub_only"):
+            # Deliberate local/test stub mode (pinned by the fail-closed contract).
+            return GatewayResult(
+                success=True,
+                transaction_id=f"pesapal_{reference}",
+                message="Pesapal payment request created (stub).",
+                raw_response={
+                    "status": "pending",
+                    "provider": self.code,
+                    "reference": reference,
+                    "amount": str(amount),
+                    "currency": currency,
+                    "stub_only": True,
+                },
+            )
+        # Live-configured, but NO live HTTP initiation is implemented for Pesapal
+        # yet. FAIL CLOSED rather than fabricate success for a charge never sent.
         return GatewayResult(
-            success=True,
-            transaction_id=f"pesapal_{reference}",
-            message="Pesapal payment request created.",
+            success=False,
+            transaction_id=None,
+            message=(
+                "Pesapal live collection is not implemented yet — use a supported "
+                "rail, or set stub_only for local testing."
+            ),
             raw_response={
-                "status": "pending",
+                "status": "initiation_not_implemented",
                 "provider": self.code,
                 "reference": reference,
-                "amount": str(amount),
-                "currency": currency,
             },
         )
 
