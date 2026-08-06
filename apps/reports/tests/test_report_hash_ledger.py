@@ -7,8 +7,14 @@ from django.urls import reverse
 from apps.accounts.models import User
 from apps.academics.models import AcademicYear, Classroom, Department, Specialty, Term
 from apps.people.models import StudentProfile
+from django.core.files.base import ContentFile
+
 from apps.reports.models import ReportCard, ReportDocumentHash
-from apps.reports.views import _record_report_hash
+from apps.reports.views import (
+    _frozen_pdf_bytes,
+    _record_report_hash,
+    _report_card_is_frozen,
+)
 from apps.schools.models import School
 
 
@@ -74,6 +80,51 @@ class ReportHashLedgerTests(TestCase):
         row = ReportDocumentHash.objects.get(report_card=self.report_card)
         self.assertEqual(len(row.sha256_hash), 64)
         self.assertEqual(row.file_size_bytes, len(b"%PDF-sample-content"))
+
+    # --- M4: immutable freeze-once ledger ---------------------------------- #
+
+    def test_hash_is_frozen_once_and_not_overwritten(self):
+        """MUST FIRE: the first recorded hash is authoritative forever. A later
+        re-render producing different bytes must NOT overwrite the ledger — that
+        was the immutability defect (update_or_create silently drifted the hash).
+        """
+        _record_report_hash(self.user, self.report_card, b"original-pdf-bytes")
+        frozen = ReportDocumentHash.objects.get(
+            report_card=self.report_card
+        ).sha256_hash
+
+        _record_report_hash(self.user, self.report_card, b"DIFFERENT-pdf-bytes")
+
+        rows = ReportDocumentHash.objects.filter(report_card=self.report_card)
+        self.assertEqual(rows.count(), 1)  # never duplicated
+        row = rows.get()
+        self.assertEqual(row.sha256_hash, frozen)  # never overwritten
+        # The divergence is recorded for audit (bounded), not silently dropped.
+        self.assertIn("divergent_digests", row.metadata)
+        self.assertEqual(len(row.metadata["divergent_digests"]), 1)
+
+    def test_hash_rerecord_same_bytes_is_idempotent(self):
+        _record_report_hash(self.user, self.report_card, b"same-bytes")
+        _record_report_hash(self.user, self.report_card, b"same-bytes")
+        row = ReportDocumentHash.objects.get(report_card=self.report_card)
+        self.assertEqual(
+            ReportDocumentHash.objects.filter(report_card=self.report_card).count(), 1
+        )
+        self.assertNotIn("divergent_digests", row.metadata)
+
+    def test_report_card_is_frozen_helper(self):
+        self.assertFalse(_report_card_is_frozen(self.report_card))
+        _record_report_hash(self.user, self.report_card, b"x")
+        self.assertTrue(_report_card_is_frozen(self.report_card))
+
+    def test_frozen_pdf_bytes_serves_stored_document(self):
+        # A stored file without a recorded hash is NOT frozen yet.
+        self.report_card.pdf_file.save("r.pdf", ContentFile(b"stored-pdf"), save=True)
+        self.assertIsNone(_frozen_pdf_bytes(self.report_card))
+        # Freezing records the hash; thereafter the STORED bytes are served
+        # verbatim so downloads always match the recorded hash.
+        _record_report_hash(self.user, self.report_card, b"stored-pdf")
+        self.assertEqual(_frozen_pdf_bytes(self.report_card), b"stored-pdf")
 
     def test_verify_report_hash_endpoint_by_hash(self):
         _record_report_hash(self.user, self.report_card, b"pdf-one")

@@ -194,25 +194,82 @@ def _log_report_card_action(
     )
 
 
+def _report_card_is_frozen(report_card: ReportCard) -> bool:
+    """A report card is FROZEN once its verification hash has been recorded."""
+    return ReportDocumentHash.objects.filter(report_card=report_card).exists()
+
+
+def _frozen_pdf_bytes(report_card: ReportCard) -> bytes | None:
+    """Return the stored (frozen) PDF bytes iff this report card was already
+    frozen — a ReportDocumentHash exists AND ``pdf_file`` is present and readable.
+
+    Returns ``None`` to signal "not yet frozen; render + freeze now". Serving the
+    stored bytes (rather than re-rendering) is what makes a published report card
+    immutable: the downloaded document always matches the recorded SHA-256.
+    """
+    if not getattr(report_card, "pdf_file", None):
+        return None
+    if not _report_card_is_frozen(report_card):
+        return None
+    try:
+        with report_card.pdf_file.open("rb") as fh:
+            data = fh.read()
+    except (OSError, ValueError):
+        return None
+    return data or None
+
+
 def _record_report_hash(user: User, report_card: ReportCard, pdf_bytes: bytes):
     """
-    Persist SHA-256 digest for generated PDF so external verifiers can validate
+    Persist SHA-256 digest for a generated PDF so external verifiers can validate
     transcript/report authenticity.
+
+    FREEZE-ONCE (immutable ledger): the FIRST recorded hash is authoritative
+    forever. A previous ``update_or_create`` here silently overwrote the digest on
+    every re-render, so the "immutable" verification record drifted whenever the
+    template, fonts, or a corrected grade changed the bytes — quietly invalidating
+    any credential a parent had already verified. Now:
+      * no hash yet  -> create it (this is the freeze / publish moment);
+      * same digest  -> idempotent no-op (verified);
+      * new digest   -> the frozen hash is NOT overwritten; the divergence is
+                        recorded in metadata for audit and surfaced in the log.
     """
     digest = hashlib.sha256(pdf_bytes).hexdigest()
-    ReportDocumentHash.objects.update_or_create(
+    existing = ReportDocumentHash.objects.filter(report_card=report_card).first()
+    if existing is not None:
+        if existing.sha256_hash == digest:
+            _log_report_card_action(
+                user, report_card, "hash-verified", {"sha256": digest}
+            )
+            return
+        # Immutability guarantee: keep the original, never overwrite. Record the
+        # divergent digest (bounded) so an audit can see a re-render drifted.
+        meta = dict(existing.metadata or {})
+        divergences = list(meta.get("divergent_digests") or [])
+        if digest not in divergences:
+            divergences.append(digest)
+            meta["divergent_digests"] = divergences[-10:]
+            existing.metadata = meta
+            existing.save(update_fields=["metadata"])
+        _log_report_card_action(
+            user,
+            report_card,
+            "hash-divergence",
+            {"frozen": existing.sha256_hash, "recomputed": digest},
+        )
+        return
+
+    ReportDocumentHash.objects.create(
         report_card=report_card,
-        defaults={
-            "school": getattr(report_card, "school", None),
-            "sha256_hash": digest,
-            "file_size_bytes": len(pdf_bytes or b""),
-            "generated_by": user if getattr(user, "is_authenticated", False) else None,
-            "metadata": {
-                "student_id": report_card.student_id,
-                "academic_year_id": report_card.academic_year_id,
-                "term_id": report_card.term_id,
-                "type": report_card.type,
-            },
+        school=getattr(report_card, "school", None),
+        sha256_hash=digest,
+        file_size_bytes=len(pdf_bytes or b""),
+        generated_by=user if getattr(user, "is_authenticated", False) else None,
+        metadata={
+            "student_id": report_card.student_id,
+            "academic_year_id": report_card.academic_year_id,
+            "term_id": report_card.term_id,
+            "type": report_card.type,
         },
     )
     _log_report_card_action(user, report_card, "hash-recorded", {"sha256": digest})
@@ -308,7 +365,6 @@ def parent_download_term_report(request: HttpRequest, student_id: int):
         else "reports/term_report.html"
     )
     context["report_style"] = style
-    pdf_bytes = render_pdf_bytes(request, template_name, context)
 
     rc, _ = ReportCard.objects.get_or_create(
         academic_year=year,
@@ -321,16 +377,27 @@ def parent_download_term_report(request: HttpRequest, student_id: int):
         # Stamp the owning school so tenant-host QR/hash verification resolves:
         # verify_report_hash filters report_card__school=request.school, so a
         # NULL-school row 404s for every tenant. Also heals legacy rows created
-        # before school was stamped. Persisted by the pdf_file.save() below.
+        # before school was stamped.
         rc.school = student.school
+        rc.save(update_fields=["school"])
     filename = f"report_{student.student_code}_{year.name}_{term.name}.pdf".replace(
         "/", "-"
     )
-    rc.pdf_file.save(filename, ContentFile(pdf_bytes), save=True)
-    _record_report_hash(request.user, rc, pdf_bytes)
-    _record_report_card_lineage(rc, context)
 
-    _log_report_card_action(request.user, rc, "download-term", {"filename": filename})
+    # Immutable archive: once a report card is published (frozen), serve the
+    # STORED pdf_file verbatim so the bytes always match the recorded hash — never
+    # silently re-render. Only the first download renders, persists, and freezes.
+    pdf_bytes = _frozen_pdf_bytes(rc)
+    if pdf_bytes is None:
+        pdf_bytes = render_pdf_bytes(request, template_name, context)
+        rc.pdf_file.save(filename, ContentFile(pdf_bytes), save=True)
+        _record_report_hash(request.user, rc, pdf_bytes)
+        _record_report_card_lineage(rc, context)
+        _log_report_card_action(request.user, rc, "download-term", {"filename": filename})
+    else:
+        _log_report_card_action(
+            request.user, rc, "download-term-frozen", {"filename": filename}
+        )
     resp = HttpResponse(pdf_bytes, content_type="application/pdf")
     resp["Content-Disposition"] = f'attachment; filename="{filename}"'
     return resp
@@ -479,7 +546,6 @@ def parent_download_annual_report(request: HttpRequest, student_id: int):
         else "reports/annual_report.html"
     )
     context["report_style"] = style
-    pdf_bytes = render_pdf_bytes(request, template_name, context)
 
     rc, _ = ReportCard.objects.get_or_create(
         academic_year=year,
@@ -492,14 +558,26 @@ def parent_download_annual_report(request: HttpRequest, student_id: int):
         # Stamp the owning school so tenant-host QR/hash verification resolves:
         # verify_report_hash filters report_card__school=request.school, so a
         # NULL-school row 404s for every tenant. Also heals legacy rows created
-        # before school was stamped. Persisted by the pdf_file.save() below.
+        # before school was stamped.
         rc.school = student.school
+        rc.save(update_fields=["school"])
     filename = f"annual_report_{student.student_code}_{year.name}.pdf".replace("/", "-")
-    rc.pdf_file.save(filename, ContentFile(pdf_bytes), save=True)
-    _record_report_hash(request.user, rc, pdf_bytes)
-    _record_report_card_lineage(rc, context)
 
-    _log_report_card_action(request.user, rc, "download-annual", {"filename": filename})
+    # Immutable archive: serve the frozen PDF verbatim once published; only the
+    # first download renders, persists, and freezes (hash + stored file).
+    pdf_bytes = _frozen_pdf_bytes(rc)
+    if pdf_bytes is None:
+        pdf_bytes = render_pdf_bytes(request, template_name, context)
+        rc.pdf_file.save(filename, ContentFile(pdf_bytes), save=True)
+        _record_report_hash(request.user, rc, pdf_bytes)
+        _record_report_card_lineage(rc, context)
+        _log_report_card_action(
+            request.user, rc, "download-annual", {"filename": filename}
+        )
+    else:
+        _log_report_card_action(
+            request.user, rc, "download-annual-frozen", {"filename": filename}
+        )
     resp = HttpResponse(pdf_bytes, content_type="application/pdf")
     resp["Content-Disposition"] = f'attachment; filename="{filename}"'
     return resp

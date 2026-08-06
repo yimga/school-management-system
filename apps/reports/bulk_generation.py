@@ -230,8 +230,22 @@ def _persist_one(
         build_share_url,
         generate_report_qr_code,
     )
-    from apps.reports.views import _record_report_hash
+    from apps.reports.views import _record_report_hash, _report_card_is_frozen
     from apps.siteconfig.models_tooling import get_report_card_style_for_student
+
+    # Immutable archive: a report card that was already published (frozen — its
+    # verification hash is recorded) must not be silently re-rendered or
+    # overwritten by a bulk run. A deliberate reissue is a separate, explicit
+    # action; bulk generation leaves frozen cards untouched.
+    existing_rc = ReportCard.objects.filter(
+        academic_year=academic_year,
+        term=term,
+        student=student,
+        type=ReportCard.Type.TERM,
+    ).first()
+    if existing_rc is not None and _report_card_is_frozen(existing_rc):
+        result._ok(student, False)
+        return
 
     token = build_share_token("TERM", student.id, academic_year.id, term.id)
     context = dict(context)
