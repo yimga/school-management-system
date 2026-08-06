@@ -563,6 +563,7 @@ TENANT_CONFIGURATION_SECTIONS: tuple[dict[str, str], ...] = (
         "probe": "branding",
     },
     {"name": "Security / Audit", "status": "", "missing": "", "route_name": "compliance:dashboard", "primary_action": "Open school audit", "permission": "compliance.view", "probe": "audit"},
+    {"name": "Portal Settings Hub", "status": "", "missing": "", "route_name": "portal_configure", "primary_action": "Open portal configuration hub", "permission": "settings.manage", "probe": "portal"},
 )
 
 

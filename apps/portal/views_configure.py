@@ -230,6 +230,29 @@ def _build_catalog() -> list[SettingsCategory]:
                               "retention archive purge"),
             ],
         ),
+        SettingsCategory(
+            slug="setup",
+            label="Setup & Advanced",
+            icon="bi-sliders",
+            description="The full configuration center, blueprints, and data import.",
+            entries=[
+                SettingsEntry("School Configuration Center",
+                              "Every configuration surface in one card grid, with launch readiness.",
+                              "bi-grid-3x3-gap",
+                              _try_url("tenant_configuration_center"),
+                              "configuration center readiness launch cards"),
+                SettingsEntry("Blueprints",
+                              "Apply a region-appropriate setup blueprint, or roll one back.",
+                              "bi-diagram-3",
+                              _try_url("tenant_blueprint_setup"),
+                              "blueprint template setup region rollback"),
+                SettingsEntry("Import data",
+                              "Bring students, staff and grades in from another system.",
+                              "bi-box-arrow-in-down",
+                              _try_url("tenant_import_setup"),
+                              "import migration csv template data"),
+            ],
+        ),
     ]
 
 
