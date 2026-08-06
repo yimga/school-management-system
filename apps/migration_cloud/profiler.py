@@ -415,13 +415,24 @@ def _read_csv_like(stream: IO[bytes], encoding: str) -> tuple[list[list[Any]], l
     reader = csv.reader(io.StringIO(text), dialect=dialect)
     rows = []
     headers: list[str] = []
-    for i, row in enumerate(reader):
-        if i == 0:
+    data_seen = 0
+    for row in reader:
+        # Skip blank lines and '#'-comment lines BEFORE picking the header row.
+        # The canonical template the platform hands tenants ships a leading
+        # '# runmycampus-canonical-template: ...' line (and may carry a '#'-example
+        # row); reading row 0 unconditionally made a filled-in template round-trip
+        # with that comment as its ONLY column and the real headers demoted to data.
+        if not row or not any(str(c).strip() for c in row):
+            continue
+        if str(row[0]).lstrip().startswith("#"):
+            continue
+        if not headers:
             headers = [str(c).strip() for c in row]
             continue
-        if i > _SAMPLE_ROWS:
+        if data_seen >= _SAMPLE_ROWS:
             break
         rows.append(row)
+        data_seen += 1
     return rows, headers, encoding
 
 

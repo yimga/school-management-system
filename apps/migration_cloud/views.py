@@ -2655,8 +2655,15 @@ class MigrationCloudCanonicalTemplateView(LoginRequiredMixin, View):
     is required to gate against scraping the canonical schema.
     """
 
-    def get(self, request, domain: str | None = None, shell: str = "super"):
+    _XLSX_CONTENT_TYPE = (
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+
+    def get(self, request, domain: str | None = None, shell: str = "super", fmt: str = "csv"):
         from .accelerators.runmycampus_canonical import DOMAIN_CANONICAL_HEADERS
+
+        # Format from the route (.xlsx suffix) or an explicit ?format= override.
+        want_xlsx = fmt == "xlsx" or request.GET.get("format", "").lower() == "xlsx"
 
         if domain is not None:
             domain_key = domain.strip().lower()
@@ -2667,9 +2674,28 @@ class MigrationCloudCanonicalTemplateView(LoginRequiredMixin, View):
                      "known_domains": sorted(DOMAIN_CANONICAL_HEADERS.keys())},
                     status=404,
                 )
+            if want_xlsx:
+                resp = HttpResponse(
+                    _canonical_template_xlsx(domain_key, headers),
+                    content_type=self._XLSX_CONTENT_TYPE,
+                )
+                resp["Content-Disposition"] = f'attachment; filename="{domain_key}.xlsx"'
+                return resp
             csv_text = _canonical_template_csv(domain_key, headers)
             resp = HttpResponse(csv_text, content_type="text/csv; charset=utf-8")
             resp["Content-Disposition"] = f'attachment; filename="{domain_key}.csv"'
+            return resp
+
+        # No domain → the whole catalogue. XLSX = one workbook (Instructions +
+        # a sheet per domain); CSV = a ZIP of one file per domain + a README.
+        if want_xlsx:
+            resp = HttpResponse(
+                _canonical_template_workbook_all(),
+                content_type=self._XLSX_CONTENT_TYPE,
+            )
+            resp["Content-Disposition"] = (
+                'attachment; filename="runmycampus-canonical-template.xlsx"'
+            )
             return resp
 
         import io
@@ -2872,18 +2898,116 @@ def _canonical_sample_row(domain: str, sorted_headers: list[str]) -> str:
 
 
 def _canonical_template_csv(domain: str, headers: set[str]) -> str:
-    """Render a single canonical-domain CSV (headers only, no data rows).
+    """Render a single canonical-domain CSV (headers + a commented example row).
 
     Headers are sorted alphabetically for stability across releases so
     diff-tools work cleanly when operators version their filled-in
     templates. A leading commented row carries the canonical-template
-    contract version so future schema bumps are detectable.
+    contract version so future schema bumps are detectable. When sample
+    values exist for the domain, a second ``#``-commented row shows one
+    filled-in example — the intake profiler skips ``#``-comment lines, so the
+    example round-trips safely (it is never mistaken for real data on upload).
     """
     sorted_headers = sorted(headers)
-    return (
+    out = (
         f"# runmycampus-canonical-template: domain={domain} version=1.0\n"
         + ",".join(sorted_headers) + "\n"
     )
+    values = _CANONICAL_SAMPLE_VALUES.get(domain)
+    if values:
+        example = ",".join(values.get(h, "") for h in sorted_headers)
+        out += f"# example (delete this line before upload): {example}\n"
+    return out
+
+
+def _canonical_field_guidance(domain: str, sorted_headers: list[str]) -> list[dict[str, str]]:
+    """Per-column guidance for a domain: description, required?, example.
+
+    Enriches the bare canonical headers with the rich metadata from
+    ``CANONICAL_ONTOLOGY`` (description + value examples) where a field aligns,
+    falling back to the sample-value table. This is what turns a headers-only
+    template into one a school can actually fill in without guessing.
+    """
+    try:
+        from .ontology.catalog import CANONICAL_ONTOLOGY
+
+        onto_fields = CANONICAL_ONTOLOGY.get(domain, {}) or {}
+    except Exception:  # noqa: BLE001 — ontology is advisory enrichment, never fatal
+        onto_fields = {}
+    required = set(_canonical_required_fields(domain))
+    samples = _CANONICAL_SAMPLE_VALUES.get(domain, {})
+    guidance: list[dict[str, str]] = []
+    for header in sorted_headers:
+        meta = onto_fields.get(header) or {}
+        description = str(meta.get("description") or "")
+        example = samples.get(header) or ""
+        if not example:
+            examples = meta.get("value_examples") or []
+            example = str(examples[0]) if examples else ""
+        guidance.append(
+            {
+                "column": header,
+                "description": description,
+                "required": "Yes" if header in required else "",
+                "example": example,
+            }
+        )
+    return guidance
+
+
+def _canonical_template_xlsx(domain: str, headers: set[str]) -> bytes:
+    """A single-domain XLSX: a Data sheet (headers only) + an Instructions sheet.
+
+    The Data sheet stays headers-only so the operator fills it in and uploads it
+    verbatim; the Instructions sheet carries the per-column description / required
+    flag / example, so guidance never contaminates the data the importer reads.
+    """
+    import io
+
+    from openpyxl import Workbook
+
+    sorted_headers = sorted(headers)
+    wb = Workbook()
+    data_ws = wb.active
+    data_ws.title = "Data"
+    data_ws.append(sorted_headers)
+
+    info_ws = wb.create_sheet(title="Instructions")
+    info_ws.append(["Column", "Description", "Required?", "Example"])
+    for row in _canonical_field_guidance(domain, sorted_headers):
+        info_ws.append([row["column"], row["description"], row["required"], row["example"]])
+
+    stream = io.BytesIO()
+    wb.save(stream)
+    stream.seek(0)
+    return stream.read()
+
+
+def _canonical_template_workbook_all() -> bytes:
+    """One workbook covering every domain: an overview Instructions sheet + one
+    headers-only Data sheet per domain (sheet titles capped at Excel's 31 chars)."""
+    import io
+
+    from openpyxl import Workbook
+
+    from .accelerators.runmycampus_canonical import DOMAIN_CANONICAL_HEADERS
+
+    wb = Workbook()
+    overview = wb.active
+    overview.title = "Instructions"
+    overview.append(["Domain", "Column", "Description", "Required?", "Example"])
+    for domain_key, headers in sorted(DOMAIN_CANONICAL_HEADERS.items()):
+        sorted_headers = sorted(headers)
+        for row in _canonical_field_guidance(domain_key, sorted_headers):
+            overview.append(
+                [domain_key, row["column"], row["description"], row["required"], row["example"]]
+            )
+        ws = wb.create_sheet(title=domain_key[:31] or "sheet")
+        ws.append(sorted_headers)
+    stream = io.BytesIO()
+    wb.save(stream)
+    stream.seek(0)
+    return stream.read()
 
 
 def _canonical_template_readme() -> str:

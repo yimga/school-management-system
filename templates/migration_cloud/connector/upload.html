@@ -54,8 +54,14 @@ tenant host, since the connector namespace is nested under super/portal too).
   </p>
   <div class="d-flex gap-2 flex-wrap">
     <a class="btn btn-outline-primary btn-sm" href="{{ template_picker_url }}">{% trans "Preview the templates" %}</a>
-    {% if template_zip_url %}<a class="btn btn-outline-secondary btn-sm" href="{{ template_zip_url }}">{% trans "Download all templates (ZIP)" %}</a>{% endif %}
+    {% if template_zip_url %}
+      <a class="btn btn-outline-secondary btn-sm" href="{{ template_zip_url }}?format=xlsx">{% trans "Download all (Excel)" %}</a>
+      <a class="btn btn-outline-secondary btn-sm" href="{{ template_zip_url }}">{% trans "Download all (CSV zip)" %}</a>
+    {% endif %}
   </div>
+  <p class="small text-muted mt-2 mb-0">
+    {% trans "The Excel workbook includes an Instructions sheet describing every column with an example value." %}
+  </p>
 </section>
 {% endif %}
 

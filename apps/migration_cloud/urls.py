@@ -82,6 +82,7 @@ urlpatterns = [
     # Long-tail canonical template — the "Shopify CSV" path for any custom source.
     path("template/", views.MigrationCloudCanonicalTemplateView.as_view(), name="canonical_template_zip"),
     path("template/<str:domain>.csv", views.MigrationCloudCanonicalTemplateView.as_view(), name="canonical_template_csv"),
+    path("template/<str:domain>.xlsx", views.MigrationCloudCanonicalTemplateView.as_view(), {"fmt": "xlsx"}, name="canonical_template_xlsx"),
     path("template/picker/", views.MigrationCloudCanonicalTemplatePickerView.as_view(), name="canonical_template_picker"),
     # v3.27 — Migration Cloud public REST API alpha (DRF viewsets, OpenAPI-covered).
     path("api/v1/", include("apps.migration_cloud.api.urls")),

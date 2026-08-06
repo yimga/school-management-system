@@ -21,9 +21,14 @@
     
     <div data-rmc-scroll-policy="paginate" class="rmc-page__actions">
       <a class="rmc-btn rmc-btn--primary"
+         href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:canonical_template_zip' %}?format=xlsx{% else %}{% url 'migration_cloud_super:canonical_template_zip' %}?format=xlsx{% endif %}"
+         data-rmc-canonical-template-xlsx-all>
+        {% trans "Download all (Excel)" %}
+      </a>
+      <a class="rmc-btn rmc-btn--ghost"
          href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:canonical_template_zip' %}{% else %}{% url 'migration_cloud_super:canonical_template_zip' %}{% endif %}"
          data-rmc-canonical-template-zip>
-        {% trans "Download all (zip)" %}
+        {% trans "Download all (CSV zip)" %}
       </a>
     </div>
   </header>
@@ -53,11 +58,16 @@
           <pre class="rmc-code rmc-code--sample"><code>{{ domain.sample_row }}</code></pre>
         </details>
       </div>
-      <footer class="rmc-card__footer">
+      <footer class="rmc-card__footer d-flex gap-2 flex-wrap">
         <a class="rmc-btn rmc-btn--ghost rmc-btn--sm"
            href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:canonical_template_csv' domain=domain.slug %}{% else %}{% url 'migration_cloud_super:canonical_template_csv' domain=domain.slug %}{% endif %}"
            data-rmc-canonical-template-csv="{{ domain.slug }}">
           {% blocktrans with slug=domain.slug %}Download {{ slug }}.csv{% endblocktrans %}
+        </a>
+        <a class="rmc-btn rmc-btn--ghost rmc-btn--sm"
+           href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:canonical_template_xlsx' domain=domain.slug %}{% else %}{% url 'migration_cloud_super:canonical_template_xlsx' domain=domain.slug %}{% endif %}"
+           data-rmc-canonical-template-xlsx="{{ domain.slug }}">
+          {% blocktrans with slug=domain.slug %}Download {{ slug }}.xlsx{% endblocktrans %}
         </a>
       </footer>
     </article>
