@@ -2,12 +2,16 @@
 
 from __future__ import annotations
 
+import logging
+
 from django.db import transaction
 
 from apps.packages.engine import rollback as rollback_package
 from apps.packages.models import InstalledPackage
 from apps.platform_runtime.blueprint_audit import audit_blueprint_event
 from apps.platform_runtime.models import BlueprintInstallation
+
+logger = logging.getLogger(__name__)
 
 
 def rollback_blueprint_installation(
@@ -71,6 +75,47 @@ def rollback_blueprint_installation(
     with transaction.atomic():
         school = installation.school
         snapshot = dict(installation.rollback_snapshot or {})
+        # Retract the packs this blueprint installed, FIRST.
+        #
+        # apply_blueprint installs the blueprint's dashboard/workflow/policy
+        # packs as child PackInstallation rows. Rollback never touched them, so
+        # a tenant who undid a blueprint was told "rolled_back" while all of its
+        # packs stayed status=applied — for private-primary-school that is seven,
+        # including the "Finance Approval" (dual approval, reconciliation
+        # required) and "Parent Communication" (guardian visibility, consent)
+        # POLICY bundles, which keep enforcing rules the tenant just retracted.
+        #
+        # Ordered before the settings retraction below because a pack's own
+        # retraction touches settings["pack_installation_simulation"]; doing it
+        # first keeps each layer undoing only what it wrote, newest first.
+        from apps.platform_runtime.models import PackInstallation
+        from apps.platform_runtime.pack_rollback import rollback_pack_installation
+
+        child_packs = list(
+            installation.pack_installations.filter(
+                status=PackInstallation.Status.APPLIED
+            ).order_by("-applied_at", "-id")
+        )
+        rolled_back_packs: list[str] = []
+        for pack_installation in child_packs:
+            try:
+                pack_result = rollback_pack_installation(
+                    pack_installation, actor=actor, confirmed=True
+                )
+            except Exception:  # noqa: BLE001 — one bad pack must not strand the rest
+                logger.exception(
+                    "blueprint rollback: child pack rollback raised school=%s pack=%s",
+                    getattr(school, "pk", None),
+                    pack_installation.pack_key,
+                )
+                skipped_changes.append(f"pack:{pack_installation.pack_key}")
+                continue
+            if pack_result.get("ok"):
+                rolled_back_packs.append(pack_installation.pack_key)
+            else:
+                skipped_changes.append(f"pack:{pack_installation.pack_key}")
+        if rolled_back_packs:
+            reverted_changes.append("pack_installations")
         # Surgically retract ONLY this blueprint's settings markers.
         # apply_blueprint writes settings["blueprint_marketplace"][key] and
         # settings["local_first_blueprints"][key]. A WHOLESALE restore of the
@@ -155,6 +200,39 @@ def rollback_blueprint_installation(
                     invalidate_policy_cache(school)
                 except Exception:  # noqa: BLE001 — cache invalidation is best-effort
                     pass
+        # Roll back the CHILD PACKS this blueprint installed. apply_blueprint
+        # records each pack it applies as a PackInstallation pointing back at this
+        # BlueprintInstallation (``pack_installations``). Previously rollback never
+        # touched them, so undoing a blueprint left every child pack APPLIED — its
+        # features and config still live — making the "undo" only partial. Roll
+        # each still-applied child back (confirmed, since the parent rollback is
+        # already confirmed); one child's failure must not abort the others.
+        from apps.platform_runtime.models import PackInstallation
+        from apps.platform_runtime.pack_rollback import rollback_pack_installation
+
+        child_pack_results: list[dict] = []
+        try:
+            child_packs = list(
+                installation.pack_installations.filter(
+                    status=PackInstallation.Status.APPLIED
+                )
+            )
+        except Exception:  # noqa: BLE001 — a missing relation must not break rollback
+            child_packs = []
+        any_pack_reverted = False
+        for pack in child_packs:
+            try:
+                res = rollback_pack_installation(pack, actor=actor, confirmed=True)
+            except Exception as exc:  # noqa: BLE001 — isolate one bad child pack
+                res = {"ok": False, "error": type(exc).__name__}
+            child_pack_results.append({"pack_installation_id": pack.pk, "ok": res.get("ok")})
+            if res.get("ok"):
+                any_pack_reverted = True
+            else:
+                skipped_changes.append(f"pack_installation_rollback_failed:{pack.pk}")
+        if any_pack_reverted:
+            reverted_changes.append("pack_installations")
+
         installed_package = (
             InstalledPackage.objects.filter(
                 school=school,

@@ -650,6 +650,46 @@ def _collection_posture_post(request, school):
 
 
 @login_required
+def tenant_blueprint_rollback(request, installation_id: int):
+    """Let a tenant admin roll back a blueprint THEY applied — no operator needed.
+
+    Mirrors the operator ``blueprint_rollback_view`` but gated on the tenant-admin
+    eligibility guard (``tenant_operator_hub_eligible``), NOT control-plane, and
+    hard-scoped to ``request.school`` so a tenant can only ever undo its OWN
+    installations. The rollback engine already retracts the modules, child packs
+    and settings markers surgically, so "change a blueprint without affecting
+    anything else" holds for a tenant-initiated undo too.
+    """
+    from django.contrib import messages
+
+    school = getattr(request, "school", None)
+    if school is None or not tenant_operator_hub_eligible(request.user):
+        return HttpResponseForbidden("Tenant school configuration access required.")
+    installation = get_object_or_404(
+        BlueprintInstallation, pk=installation_id, school=school
+    )
+    if request.method != "POST":
+        return redirect("tenant_blueprint_setup")
+    result = rollback_blueprint_installation(
+        installation,
+        actor=request.user,
+        confirmed=request.POST.get("confirm") == "yes",
+    )
+    if result.get("ok"):
+        messages.success(
+            request,
+            "Blueprint rolled back — its modules, packs and settings markers were retracted. "
+            "Nothing else your school configured was touched.",
+        )
+    else:
+        messages.error(
+            request,
+            "; ".join(result.get("errors") or ["Rollback could not be completed."]),
+        )
+    return redirect("tenant_blueprint_setup")
+
+
+@login_required
 def tenant_blueprint_setup(request):
     school = getattr(request, "school", None)
     if school is None or not tenant_operator_hub_eligible(request.user):

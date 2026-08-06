@@ -97,6 +97,7 @@ from apps.platform_runtime.views_click_tracking import (
 from apps.platform_runtime.views_administration import (
     internal_admin_alias_redirect,
     school_configuration_center,
+    tenant_blueprint_rollback,
     tenant_blueprint_setup,
     tenant_import_setup,
     tenant_pack_setup,
@@ -346,6 +347,11 @@ urlpatterns = [
     path("school/settings/", school_configuration_center, name="school_configuration_center"),
     path("school/configuration/", school_configuration_center, name="school_configuration_center_canonical"),
     path("school/setup/blueprints/", tenant_blueprint_setup, name="tenant_blueprint_setup"),
+    path(
+        "school/setup/blueprints/installations/<int:installation_id>/rollback/",
+        tenant_blueprint_rollback,
+        name="tenant_blueprint_rollback",
+    ),
     path("school/setup/packs/", tenant_pack_setup, name="tenant_pack_setup"),
     path("school/setup/imports/", tenant_import_setup, name="school_setup_imports"),
     path(

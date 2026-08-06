@@ -252,7 +252,7 @@
           <dt class="col-sm-4">{% trans "External blockers" %}</dt><dd class="col-sm-8">{{ preview.external_required|join:", " }}</dd>
           <dt class="col-sm-4">{% trans "Offline proof" %}</dt><dd class="col-sm-8">{{ preview.offline_readiness.server_proof_status }} / {{ preview.offline_readiness.browser_proof_status }}</dd>
           <dt class="col-sm-4">{% trans "Approval state" %}</dt><dd class="col-sm-8" data-world-class-approval-state="visible">{% trans "Approval requested when risk requires it" %}</dd>
-          <dt class="col-sm-4">{% trans "Rollback" %}</dt><dd class="col-sm-8" data-world-class-rollback-posture="tenant-visible">{% trans "Tracked after approved apply" %}</dd>
+          <dt class="col-sm-4">{% trans "Rollback" %}</dt><dd class="col-sm-8" data-world-class-rollback-posture="tenant-visible">{% trans "You can roll back an applied blueprint below — its modules, packs and settings markers are retracted, nothing else is touched." %}</dd>
           <dt class="col-sm-4">{% trans_term "Modules" key="module" plural=True %}</dt><dd class="col-sm-8">{% for change in preview.changes %}{% if change.section == "module" %}{{ change.target }}{% if not forloop.last %}, {% endif %}{% endif %}{% endfor %}</dd>
         </dl>
         {% if preview.already_applied %}
@@ -279,7 +279,16 @@
             {% for installation in installations %}
             <li class="d-flex flex-wrap align-items-center justify-content-between gap-2 border-bottom py-1">
               <span>{{ installation.blueprint_key }} <span class="text-muted">v{{ installation.installed_version }}</span></span>
-              <span class="badge {% if installation.status == "applied" %}text-bg-success{% else %}text-bg-secondary{% endif %}">{{ installation.get_status_display }}</span>
+              <span class="d-flex align-items-center gap-2">
+                <span class="badge {% if installation.status == "applied" %}text-bg-success{% else %}text-bg-secondary{% endif %}">{{ installation.get_status_display }}</span>
+                {% if installation.status == "applied" %}
+                <form method="post" action="{% url 'tenant_blueprint_rollback' installation_id=installation.id %}" onsubmit="return confirm('{% trans "Roll back this blueprint? Its modules, packs and settings markers will be retracted." %}');" class="d-inline">
+                  {% csrf_token %}
+                  <input type="hidden" name="confirm" value="yes">
+                  <button type="submit" class="btn btn-outline-danger btn-sm py-0">{% trans "Roll back" %}</button>
+                </form>
+                {% endif %}
+              </span>
             </li>
             {% endfor %}
           </ul>
