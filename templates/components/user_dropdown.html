@@ -337,7 +337,7 @@
       <li>
         {% comment %} v2.6 (2026-05-12): keyboard shortcut cheat sheet trigger. The same
            overlay opens via `?` anywhere — listing it here makes it discoverable. {% endcomment %}
-        <button class="dropdown-item" type="button" onclick="if (window.RMCShortcuts && window.RMCShortcuts.open) { window.RMCShortcuts.open(); } return false;">
+        <button class="dropdown-item" type="button" data-rmc-open-shortcuts>
           <i class="bi bi-keyboard"></i>
           <span>{% trans "Keyboard shortcuts" %}</span>
           <kbd class="rmc-kbd ms-auto">?</kbd>

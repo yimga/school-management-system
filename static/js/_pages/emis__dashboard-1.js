@@ -14,6 +14,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Update terms when academic year changes
   document.getElementById('academic_year')?.addEventListener('change', loadTerms);
+
+  // Refresh recent exports on demand (was inline onclick="refreshExports()").
+  document.querySelector('[data-rmc-refresh-exports]')?.addEventListener('click', function () {
+    refreshExports(this);
+  });
 });
 
 function loadCountryInfo() {
@@ -46,8 +51,8 @@ function loadCountryInfo() {
 
 function loadRecentExports() {
   var statusUrl = ((window.__RMC_PAGE_DATA__["emis__dashboard-1"] || {})["url_emis_status"]) || "";
-  if (!statusUrl) return;
-  fetch(statusUrl)
+  if (!statusUrl) return Promise.resolve();
+  return fetch(statusUrl)
     .then(response => response.json())
     .then(data => {
       const container = document.getElementById('recent-exports');
@@ -121,8 +126,7 @@ function loadTerms() {
   termSelect.innerHTML = '<option value="">All Terms</option>';
 }
 
-function refreshExports() {
-  const button = event.target.closest('button');
+function refreshExports(button) {
   const originalHtml = button.innerHTML;
   button.innerHTML = '<i class="bi bi-arrow-clockwise spinning"></i>';
   button.disabled = true;

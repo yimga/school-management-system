@@ -3216,6 +3216,16 @@ def compliance_dashboard_view(request):
     if status_filter != "all":
         compliance_data = [t for t in compliance_data if t["status"] == status_filter]
 
+    # Serialize each teacher's deadline list to JSON for the "View Details" modal.
+    # The template embeds it in a data attribute the page script JSON.parses; this
+    # replaces the old inline onclick that passed the Python repr as a JS literal
+    # (which a CSP nonce cannot cover and JSON.parse cannot read). default=str
+    # tolerates any date/decimal values in the rows.
+    import json as _json
+
+    for _teacher in compliance_data:
+        _teacher["deadlines_json"] = _json.dumps(_teacher.get("deadlines") or [], default=str)
+
     context = {
         "compliance_data": compliance_data,
         "kpis": {

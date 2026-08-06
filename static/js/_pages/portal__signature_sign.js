@@ -119,3 +119,6 @@ document.getElementById('signatureForm')?.addEventListener('submit', function(e)
   document.getElementById('submitBtn').disabled = true;
   document.getElementById('submitBtn').innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Processing...';
 });
+
+// CSP: was inline onclick="clearSignature()".
+document.querySelector('[data-rmc-clear-signature]')?.addEventListener('click', clearSignature);

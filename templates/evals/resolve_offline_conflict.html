@@ -73,7 +73,7 @@
                                     </td>
                                 </tr>
                             </table>
-                            <button type="button" class="btn btn-danger btn-block" onclick="document.getElementById('choice').value='offline'; document.getElementById('conflictForm').submit();">
+                            <button type="button" class="btn btn-danger btn-block" data-rmc-set-and-submit data-rmc-set-field="#choice" data-rmc-set-value="offline" data-rmc-submit-form="#conflictForm">
                                 <i class="bi bi-check2-circle"></i> {% trans "Keep This Version" %}
                             </button>
                         </div>
@@ -136,7 +136,7 @@
                                 <strong>{% trans "No online entry exists." %}</strong> {% trans "You can choose to import the offline entry." %}
                             </div>
                             {% endif %}
-                            <button type="button" class="btn btn-success btn-block" onclick="document.getElementById('choice').value='online'; document.getElementById('conflictForm').submit();">
+                            <button type="button" class="btn btn-success btn-block" data-rmc-set-and-submit data-rmc-set-field="#choice" data-rmc-set-value="online" data-rmc-submit-form="#conflictForm">
                                 <i class="bi bi-check2-circle"></i> {% trans "Keep Online Version" %}
                             </button>
                         </div>

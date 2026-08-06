@@ -65,6 +65,9 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # Template render safety + attribute-context layout-frame guard.
     ("scripts/audit_template_render_safety.py", "architectural-boundaries.yml"),
     ("scripts/scan_attribute_context_includes.py", "architectural-boundaries.yml"),
+    # M9 CSP enforce seal: no inline on*= event handlers on served (non-admin)
+    # templates — strict script-src blocks them, so the enforce flip needs 0.
+    ("scripts/scan_inline_event_handlers.py", "architectural-boundaries.yml"),
     # Eager filter-arg VariableDoesNotExist 500 class (ops_surface / slice / add).
     # Static scanner stays deps-free; completion verifier (static-only in boundaries,
     # full Django run in ci.yml) is the only allowed "done" proof.

@@ -132,7 +132,8 @@ Mirrors the Wave 13 CountryRegistry admin change_form side-by-side layout
           <button type="submit" class="btn btn-primary">{% trans "Save marketing voice" %}</button>
           <button type="submit" name="action" value="reset_marketing_voice"
                   class="btn btn-outline-danger"
-                  onclick="return confirm('{% trans "Clear this tenant's marketing voice override? Country defaults will apply." %}');">
+                  data-rmc-confirm="{% trans "Clear this tenant's marketing voice override? Country defaults will apply." %}"
+                  data-rmc-confirm-tone="danger">
             {% trans "Clear override" %}
           </button>
         </div>

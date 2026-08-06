@@ -359,19 +359,19 @@
                     <div class="input-group">
                         <input type="text" class="form-control" id="articleUrl" 
                                value="{{ request.build_absolute_uri }}" readonly aria-describedby="copyUrlBtn">
-                        <button type="button" class="btn btn-outline-secondary" id="copyUrlBtn" onclick="copyUrl()" aria-label="{% trans 'Copy URL to clipboard' %}">
+                        <button type="button" class="btn btn-outline-secondary" id="copyUrlBtn" data-rmc-copy-url aria-label="{% trans 'Copy URL to clipboard' %}">
                             <i class="bi bi-clipboard"></i> {% trans "Copy" %}
                         </button>
                     </div>
                 </div>
                 <div class="social-share">
-                    <button type="button" onclick="shareOn('twitter')" class="btn btn-info btn-sm">
+                    <button type="button" data-rmc-share-on="twitter" class="btn btn-info btn-sm">
                         {% trans "Twitter" %}
                     </button>
-                    <button type="button" onclick="shareOn('facebook')" class="btn btn-primary btn-sm">
+                    <button type="button" data-rmc-share-on="facebook" class="btn btn-primary btn-sm">
                         {% trans "Facebook" %}
                     </button>
-                    <button type="button" onclick="shareOn('linkedin')" class="btn btn-info btn-sm">
+                    <button type="button" data-rmc-share-on="linkedin" class="btn btn-info btn-sm">
                         {% trans "LinkedIn" %}
                     </button>
                 </div>

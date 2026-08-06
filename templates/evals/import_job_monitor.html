@@ -17,7 +17,7 @@
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h1>{% trans "Import Job Monitor" %}</h1>
-                <button type="button" class="btn btn-primary" id="refreshBtn" onclick="refreshJobList()">
+                <button type="button" class="btn btn-primary" id="refreshBtn" data-rmc-refresh-jobs>
                     {% trans "Refresh" %}
                 </button>
             </div>
@@ -113,7 +113,7 @@
                                     {% endif %}
                                 </small>
                             </div>
-                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="toggleJobDetails(this)" aria-label="Toggle job details">
+                            <button type="button" class="btn btn-sm btn-outline-primary" data-rmc-toggle-job-details aria-label="Toggle job details">
                                 <i class="bi bi-chevron-down" aria-hidden="true"></i>
                             </button>
                         </div>
@@ -181,18 +181,18 @@
                         <!-- Actions -->
                         <div class="mt-4">
                             {% if job.status == 'processing' %}
-                                <button type="button" class="btn btn-sm btn-info" onclick="pollJobStatus({{ job.id }})">
+                                <button type="button" class="btn btn-sm btn-info" data-rmc-poll-job="{{ job.id }}">
                                     {% trans "Check Status" %}
                                 </button>
                             {% elif job.status == 'completed' %}
                                 <a href="{% url 'evals:compliance_dashboard' %}" class="btn btn-sm btn-primary">
                                     {% trans "View Compliance Dashboard" %}
                                 </a>
-                                <button type="button" class="btn btn-sm btn-secondary" onclick="exportJobResults({{ job.id }})">
+                                <button type="button" class="btn btn-sm btn-secondary" data-rmc-export-job="{{ job.id }}">
                                     {% trans "Export Results" %}
                                 </button>
                             {% else %}
-                                <button type="button" class="btn btn-sm btn-warning" onclick="retryJob({{ job.id }})">
+                                <button type="button" class="btn btn-sm btn-warning" data-rmc-retry-job="{{ job.id }}">
                                     {% trans "Retry" %}
                                 </button>
                             {% endif %}

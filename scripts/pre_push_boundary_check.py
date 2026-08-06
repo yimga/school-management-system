@@ -58,6 +58,9 @@ GATES: list[tuple[str, list[str]]] = [
     ("off-token-colors", ["scan_off_token_colors.py", "--strict"]),
     ("theme-locked-token-text", ["scan_theme_locked_token_text.py", "--strict"]),
     ("inline-style-off-token", ["scan_inline_style_off_token.py", "--compare"]),
+    # M9 CSP enforce seal: no inline on*= event handlers in served (non-admin)
+    # templates — a strict script-src (no 'unsafe-inline') blocks them.
+    ("inline-event-handlers", ["scan_inline_event_handlers.py", "--compare"]),
     ("template-render-safety", ["audit_template_render_safety.py", "--compare"]),
     ("attribute-context-includes", ["scan_attribute_context_includes.py"]),
     # {% include with x|default:missing_var %} → VariableDoesNotExist 500 (ops_surface class).

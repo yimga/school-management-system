@@ -34,7 +34,7 @@
       <form method="get" class="row g-2 align-items-end">
         <div class="col-md-5">
           <label class="form-label small">{% trans "Academic Year" %}</label>
-          <select class="form-select" name="year" onchange="this.form.submit()">
+          <select class="form-select" name="year" data-rmc-submit-on-change>
             {% for y in years %}
               <option value="{{ y.id }}" {% if y.id == year.id %}selected{% endif %}>{{ y.name }}</option>
             {% endfor %}
@@ -42,7 +42,7 @@
         </div>
         <div class="col-md-5">
           <label class="form-label small">{% term_label %}</label>
-          <select class="form-select" name="term" onchange="this.form.submit()">
+          <select class="form-select" name="term" data-rmc-submit-on-change>
             {% for t in terms %}
               <option value="{{ t.id }}" {% if t.id == term.id %}selected{% endif %}>{{ t.get_name_display }}</option>
             {% endfor %}

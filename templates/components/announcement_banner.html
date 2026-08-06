@@ -13,7 +13,7 @@
           </div>
           <p class="announcement-message mb-0">{{ announcement.message }}</p>
         </div>
-        <button class="announcement-close" onclick="closeAnnouncement({{ announcement.id }});" type="button">
+        <button class="announcement-close" data-rmc-close-announcement="{{ announcement.id }}" type="button">
           &times;
         </button>
       </div>

@@ -75,6 +75,7 @@ on:
       - "var/security-audit-baseline-template-tag-loads.json"
       - "templates/**/*.html"
       - "scripts/scan_inline_style_off_token.py"
+      - "scripts/scan_inline_event_handlers.py"
       - "scripts/scan_undefined_css_classes.py"
       - "scripts/scan_off_token_colors.py"
       - "scripts/scan_theme_locked_token_text.py"
@@ -124,6 +125,7 @@ on:
       - "static/css/**/*.css"
       - "static/marketing/css/**/*.css"
       - "var/security-audit-baseline-inline-style-off-token.json"
+      - "var/security-audit-baseline-inline-event-handlers.json"
       - "var/security-audit-baseline-undefined-css-classes.json"
       - "var/security-audit-baseline-ai-gateway-boundary.json"
       - "var/security-audit-baseline-sentry-boundary.json"
@@ -1412,6 +1414,27 @@ jobs:
         # inside the style itself.
         run: |
           python scripts/scan_inline_style_off_token.py --compare
+
+  inline-event-handlers:
+    name: "CSP enforce seal: no inline on*= event handlers"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run scanner --compare
+        # M9 CSP enforce seal. A strict `script-src` (no 'unsafe-inline') blocks
+        # inline `onclick=`/`onchange=`/`onsubmit=` … attributes, so they must be
+        # zero on every served (non-admin) template before CSP_ENFORCE=1 is safe.
+        # Retire the handler into a nonced <script> (addEventListener) or a
+        # data-attribute handled by static/js/rmc-csp-handlers.js. Mark an
+        # unavoidable site with `<!-- inline-handler-allow: <reason> -->`. The
+        # /admin/ surface is excluded (CSP-bypassed by the middleware).
+        run: |
+          python scripts/scan_inline_event_handlers.py --compare
 
   off-token-colors:
     name: "Off-token color literals in CSS (theme switching safety)"

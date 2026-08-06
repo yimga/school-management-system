@@ -319,7 +319,7 @@
           <button type="button" class="btn btn-sm btn-primary" id="btnPreviewDiffSidecar">
             <i class="bi bi-eye me-1"></i>{% trans "Preview changes" %}
           </button>
-          <button type="button" class="btn btn-sm btn-outline-secondary" onclick="window.open('{% url 'accounts:backend_dashboard' %}', 'rmc-feature-preview', 'popup,width=1280,height=900')">
+          <button type="button" class="btn btn-sm btn-outline-secondary" data-rmc-popup data-rmc-popup-url="{% url 'accounts:backend_dashboard' %}" data-rmc-popup-name="rmc-feature-preview" data-rmc-popup-features="popup,width=1280,height=900">
             <i class="bi bi-window me-1"></i>{% trans "Popout affected dashboard" %}
           </button>
           <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:backend_dashboard' %}" target="_blank" rel="noopener noreferrer">

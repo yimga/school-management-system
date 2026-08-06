@@ -14,3 +14,16 @@
       }
     }
   }
+
+  // CSP: was inline onclick="closeAnnouncement(id)". This partial can be included
+  // more than once per page, so bind a single delegated listener guarded by a
+  // window flag to avoid double-invoking on repeat includes.
+  if (!window.__rmcAnnouncementCloseBound) {
+    window.__rmcAnnouncementCloseBound = true;
+    document.addEventListener('click', function (e) {
+      var btn = e.target && e.target.closest ? e.target.closest('[data-rmc-close-announcement]') : null;
+      if (btn) {
+        closeAnnouncement(btn.getAttribute('data-rmc-close-announcement'));
+      }
+    });
+  }

@@ -14,6 +14,11 @@
  *   <input  data-rmc-select-on-click>         -> field text selected on click    (was onclick="this.select()")
  *   <input  data-rmc-select-on-focus>         -> field text selected on focus     (was onfocus="this.select()")
  *   <form   data-rmc-noop-submit>             -> submit suppressed (JS-driven form) (was onsubmit="return false")
+ *   <el     data-rmc-stop-propagation>        -> click does not bubble to a clickable ancestor (was onclick="event.stopPropagation()")
+ *   <el     data-rmc-popup [-url|-name|-features]> -> window.open(...) popup       (was onclick="window.open(...)")
+ *   <el     data-rmc-click-target="#sel">     -> proxies its click to #sel        (was onclick="document.getElementById('x').click()")
+ *   <select data-rmc-navigate-param="k" [data-rmc-navigate-reset="p"]> -> sets ?k=value (resetting p=1) and navigates (was onchange="...searchParams.set(...);window.location=...")
+ *   <el     data-rmc-set-and-submit data-rmc-set-field="#f" data-rmc-set-value="v" data-rmc-submit-form="#form"> -> sets #f.value then submits #form (was onclick="document.getElementById('f').value='v';document.getElementById('form').submit()")
  *
  * NOTE: `data-rmc-confirm` (confirm-before-submit) is intentionally NOT handled
  * here — the platform's rich modal handler `rmc-modal-intelligence.js` owns that
@@ -48,13 +53,45 @@
     }
   }
 
-  // --- Delegated click: print / reload / select-field ------------------------
+  // --- window.open popup (replaces onclick="window.open(url, name, features)") -
+  function openPopup(el) {
+    var url = el.getAttribute('data-rmc-popup-url') || el.getAttribute('href') || '';
+    if (!url) {
+      return;
+    }
+    var name = el.getAttribute('data-rmc-popup-name') || '_blank';
+    var features = el.getAttribute('data-rmc-popup-features') || '';
+    window.open(url, name, features);
+  }
+
+  // --- set a field then submit a form (replaces the two-statement inline
+  // onclick="document.getElementById('choice').value='x'; form.submit()"). ----
+  function applySetAndSubmit(el) {
+    var fieldSel = el.getAttribute('data-rmc-set-field');
+    if (fieldSel) {
+      var field = document.querySelector(fieldSel);
+      if (field) {
+        field.value = el.getAttribute('data-rmc-set-value') || '';
+      }
+    }
+    var formSel = el.getAttribute('data-rmc-submit-form');
+    var form = formSel ? document.querySelector(formSel) : null;
+    if (form && typeof form.submit === 'function') {
+      form.submit();
+    }
+  }
+
+  // --- Delegated click: print / reload / select-field / popup / proxy / submit -
   document.addEventListener('click', function (e) {
     var target = e.target;
     if (!target || !target.closest) {
       return;
     }
-    var el = target.closest('[data-rmc-print],[data-rmc-reload],[data-rmc-select-on-click]');
+    var el = target.closest(
+      '[data-rmc-print],[data-rmc-reload],[data-rmc-select-on-click],' +
+      '[data-rmc-popup],[data-rmc-click-target],[data-rmc-set-and-submit],' +
+      '[data-rmc-open-shortcuts]'
+    );
     if (!el) {
       return;
     }
@@ -64,6 +101,25 @@
       window.location.reload();
     } else if (el.hasAttribute('data-rmc-select-on-click') && typeof el.select === 'function') {
       el.select();
+    } else if (el.hasAttribute('data-rmc-popup')) {
+      e.preventDefault();
+      openPopup(el);
+    } else if (el.hasAttribute('data-rmc-click-target')) {
+      e.preventDefault();
+      var proxySel = el.getAttribute('data-rmc-click-target');
+      var proxied = proxySel ? document.querySelector(proxySel) : null;
+      if (proxied && typeof proxied.click === 'function') {
+        proxied.click();
+      }
+    } else if (el.hasAttribute('data-rmc-set-and-submit')) {
+      e.preventDefault();
+      applySetAndSubmit(el);
+    } else if (el.hasAttribute('data-rmc-open-shortcuts')) {
+      // Opens the keyboard-shortcut cheat sheet (also reachable via `?`).
+      e.preventDefault();
+      if (window.RMCShortcuts && typeof window.RMCShortcuts.open === 'function') {
+        window.RMCShortcuts.open();
+      }
     }
   });
 
@@ -74,13 +130,60 @@
   // which likewise bypassed the submit event / native validation.
   document.addEventListener('change', function (e) {
     var el = e.target;
-    if (!el || !el.hasAttribute || !el.hasAttribute('data-rmc-submit-on-change')) {
+    if (!el || !el.hasAttribute) {
       return;
     }
-    var form = el.form || (el.closest ? el.closest('form') : null);
-    if (form) {
-      form.submit();
+    if (el.hasAttribute('data-rmc-submit-on-change')) {
+      var form = el.form || (el.closest ? el.closest('form') : null);
+      if (form) {
+        form.submit();
+      }
+      return;
     }
+    if (el.hasAttribute('data-rmc-navigate-param')) {
+      navigateWithParam(el);
+    }
+  });
+
+  // --- Navigate by rewriting a query param (replaces the page-size select's
+  // onchange="var u=new URL(...);u.searchParams.set('page_size',this.value);
+  // window.location=u..."). Optional data-rmc-navigate-reset lists params to
+  // reset to '1' (e.g. jump back to page 1 when the page size changes). --------
+  function navigateWithParam(el) {
+    var param = el.getAttribute('data-rmc-navigate-param');
+    if (!param) {
+      return;
+    }
+    var url = new URL(window.location.href);
+    url.searchParams.set(param, el.value);
+    var resetList = (el.getAttribute('data-rmc-navigate-reset') || '').split(/[\s,]+/);
+    for (var i = 0; i < resetList.length; i++) {
+      if (resetList[i]) {
+        url.searchParams.set(resetList[i], '1');
+      }
+    }
+    window.location.assign(url.toString());
+  }
+
+  // --- Delegated input: derive a sibling field's NAME from this field's value -
+  // Replaces oninput="document.getElementById('x').name='subject_'+this.value.toUpperCase()"
+  // on the "add subject (CODE:value)" inputs — typing a CA code sets the paired
+  // value input's submit name (subject_<CODE>) so the new column posts correctly.
+  document.addEventListener('input', function (e) {
+    var el = e.target;
+    if (!el || !el.getAttribute) {
+      return;
+    }
+    var targetSel = el.getAttribute('data-rmc-derive-name-target');
+    if (!targetSel) {
+      return;
+    }
+    var target = document.querySelector(targetSel);
+    if (!target) {
+      return;
+    }
+    var prefix = el.getAttribute('data-rmc-derive-name-prefix') || '';
+    target.name = prefix + (el.value || '').toUpperCase();
   });
 
   // --- Delegated focus: select the field's text ------------------------------
@@ -128,11 +231,34 @@
     }
   }, true);
 
-  // The script is deferred, so the DOM is normally parsed by the time it runs;
-  // guard anyway so an early/non-deferred load still promotes on DOMContentLoaded.
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', promoteAsyncStyles);
-  } else {
+  // --- Stop-propagation: a TARGET-phase click guard --------------------------
+  // Replaces onclick="event.stopPropagation()" on a control nested inside a
+  // clickable row/card, keeping a button/link click from also firing the
+  // ancestor's handler. This one CANNOT be document-delegated: a document
+  // listener runs at the END of bubbling, after the ancestor already handled the
+  // click. Binding directly on the element (target phase) matches the inline
+  // handler's timing — and stopPropagation on the element does not suppress
+  // OTHER listeners on that same element (e.g. data-rmc-approve-request), only
+  // the bubble to ancestors.
+  function bindStopPropagation() {
+    var nodes = document.querySelectorAll('[data-rmc-stop-propagation]');
+    for (var i = 0; i < nodes.length; i++) {
+      nodes[i].addEventListener('click', function (ev) {
+        ev.stopPropagation();
+      });
+    }
+  }
+
+  function onReady() {
     promoteAsyncStyles();
+    bindStopPropagation();
+  }
+
+  // The script is deferred, so the DOM is normally parsed by the time it runs;
+  // guard anyway so an early/non-deferred load still initialises on DOMContentLoaded.
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', onReady);
+  } else {
+    onReady();
   }
 })();

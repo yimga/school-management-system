@@ -29,7 +29,7 @@
         <input type="hidden" name="student_id" value="{{ child.pk }}">
         <input type="hidden" name="format" value="json">
         <button type="submit" name="action" value="export" class="btn btn-sm btn-primary">{% trans "Download JSON export" %}</button>
-        <button type="submit" name="action" value="erasure" class="btn btn-sm btn-outline-danger" onclick="return confirm('{% trans "Submit erasure request for this child? This cannot be undone after processing." %}');">{% trans "Request erasure" %}</button>
+        <button type="submit" name="action" value="erasure" class="btn btn-sm btn-outline-danger" data-rmc-confirm="{% trans "Submit erasure request for this child? This cannot be undone after processing." %}" data-rmc-confirm-tone="danger">{% trans "Request erasure" %}</button>
       </form>
     </div>
   </div>

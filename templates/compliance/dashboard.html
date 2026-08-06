@@ -297,11 +297,11 @@
                     <p class="last-checked">{% blocktrans with day=threat_metrics.last_checked|format_date time=threat_metrics.last_checked|time:"H:i" %}Last checked: {{ day }} {{ time }}{% endblocktrans %}</p>
                     <div class="button-group">
                         {% if threat_metrics.is_muted %}
-                            <button type="button" class="btn btn-sm" onclick="muteThreats('clear')">🔔 {% trans "Unmute" %}</button>
+                            <button type="button" class="btn btn-sm" data-rmc-mute="clear">🔔 {% trans "Unmute" %}</button>
                         {% else %}
-                            <button type="button" class="btn btn-sm" onclick="muteThreats('1h')">{% trans "Mute 1h" %}</button>
-                            <button type="button" class="btn btn-sm" onclick="muteThreats('4h')">{% trans "Mute 4h" %}</button>
-                            <button type="button" class="btn btn-sm" onclick="muteThreats('24h')">{% trans "Mute 24h" %}</button>
+                            <button type="button" class="btn btn-sm" data-rmc-mute="1h">{% trans "Mute 1h" %}</button>
+                            <button type="button" class="btn btn-sm" data-rmc-mute="4h">{% trans "Mute 4h" %}</button>
+                            <button type="button" class="btn btn-sm" data-rmc-mute="24h">{% trans "Mute 24h" %}</button>
                         {% endif %}
                     </div>
                 </div>

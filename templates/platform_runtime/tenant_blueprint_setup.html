@@ -282,7 +282,7 @@
               <span class="d-flex align-items-center gap-2">
                 <span class="badge {% if installation.status == "applied" %}text-bg-success{% else %}text-bg-secondary{% endif %}">{{ installation.get_status_display }}</span>
                 {% if installation.status == "applied" %}
-                <form method="post" action="{% url 'tenant_blueprint_rollback' installation_id=installation.id %}" onsubmit="return confirm('{% trans "Roll back this blueprint? Its modules, packs and settings markers will be retracted." %}');" class="d-inline">
+                <form method="post" action="{% url 'tenant_blueprint_rollback' installation_id=installation.id %}" data-rmc-confirm="{% trans "Roll back this blueprint? Its modules, packs and settings markers will be retracted." %}" data-rmc-confirm-tone="danger" class="d-inline">
                   {% csrf_token %}
                   <input type="hidden" name="confirm" value="yes">
                   <button type="submit" class="btn btn-outline-danger btn-sm py-0">{% trans "Roll back" %}</button>

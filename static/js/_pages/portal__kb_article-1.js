@@ -57,4 +57,10 @@ function shareOn(platform) {
     
     window.open(shareUrl, '_blank', 'width=600,height=400');
 }
+
+// CSP: were inline onclick="copyUrl()" / onclick="shareOn('twitter')" etc.
+document.querySelector('[data-rmc-copy-url]')?.addEventListener('click', copyUrl);
+document.querySelectorAll('[data-rmc-share-on]').forEach(function (b) {
+  b.addEventListener('click', function () { shareOn(b.getAttribute('data-rmc-share-on')); });
+});
 })();

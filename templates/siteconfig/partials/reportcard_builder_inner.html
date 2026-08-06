@@ -274,7 +274,7 @@
           <a class="btn btn-sm btn-outline-primary" href="{% url 'siteconfig:reportcard_style_preview' preview_default_style_slug %}" target="_blank" rel="noopener noreferrer">{% trans "Open HTML preview" %}</a>
           <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:reportcard_style_pdf' preview_default_style_slug 'term' %}" target="_blank" rel="noopener noreferrer">{% trans "Open term PDF" %}</a>
           <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:reportcard_style_pdf' preview_default_style_slug 'annual' %}" target="_blank" rel="noopener noreferrer">{% trans "Open annual PDF" %}</a>
-          <button class="btn btn-sm btn-outline-secondary" type="button" onclick="window.open('{% url 'siteconfig:reportcard_style_preview' preview_default_style_slug %}', 'rmc-reportcard-preview', 'popup,width=1200,height=900')">{% trans "Popout preview" %}</button>
+          <button class="btn btn-sm btn-outline-secondary" type="button" data-rmc-popup data-rmc-popup-url="{% url 'siteconfig:reportcard_style_preview' preview_default_style_slug %}" data-rmc-popup-name="rmc-reportcard-preview" data-rmc-popup-features="popup,width=1200,height=900">{% trans "Popout preview" %}</button>
           {% else %}
           <p class="small text-muted mb-0">{% trans "Create or select a report style to enable direct previews." %}</p>
           {% endif %}

@@ -36,6 +36,9 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => console.error('Error:', error));
         });
     });
+
+    // CSP: was inline onclick="shareThis()".
+    document.querySelector('[data-rmc-share-this]')?.addEventListener('click', shareThis);
 });
 
 function shareThis() {

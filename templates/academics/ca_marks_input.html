@@ -39,7 +39,7 @@
           <div class="col-sm-6 col-md-4">
             <label class="form-label small text-muted" for="subject-new-{{ slot }}">{% trans "Add subject (CODE:value)" %}</label>
             <div class="d-flex gap-1">
-              <input type="text" placeholder="MATH" id="subject-new-code-{{ slot }}" class="form-control form-control-sm" style="max-width:90px" oninput="document.getElementById('subject-new-{{ slot }}').name='subject_'+this.value.toUpperCase();">
+              <input type="text" placeholder="MATH" id="subject-new-code-{{ slot }}" class="form-control form-control-sm" style="max-width:90px" data-rmc-derive-name-target="#subject-new-{{ slot }}" data-rmc-derive-name-prefix="subject_">
               <input type="number" step="0.01" id="subject-new-{{ slot }}" name="" class="form-control form-control-sm" placeholder="0.00">
             </div>
           </div>

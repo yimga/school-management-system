@@ -142,10 +142,10 @@
                     
                     <!-- Action Buttons -->
                     <div class="mt-4">
-                        <button type="button" class="btn btn-primary" id="proceedButton" onclick="moveToStep3()">
+                        <button type="button" class="btn btn-primary" id="proceedButton" data-rmc-grade-proceed>
                             <i class="bi bi-arrow-right"></i> {% trans "Proceed to Review" %}
                         </button>
-                        <button type="button" class="btn btn-secondary" onclick="resetUpload()">
+                        <button type="button" class="btn btn-secondary" data-rmc-grade-reset>
                             <i class="bi bi-arrow-clockwise"></i> {% trans "Upload New File" %}
                         </button>
                     </div>
@@ -186,10 +186,10 @@
                     </div>
                     
                     <div class="mt-4">
-                        <button type="button" class="btn btn-lg btn-success" id="applyButton" onclick="applyImport()">
+                        <button type="button" class="btn btn-lg btn-success" id="applyButton" data-rmc-grade-apply>
                             <i class="bi bi-check2"></i> {% trans "Confirm & Import" %}
                         </button>
-                        <button type="button" class="btn btn-lg btn-secondary" onclick="backToValidation()">
+                        <button type="button" class="btn btn-lg btn-secondary" data-rmc-grade-back>
                             <i class="bi bi-arrow-left"></i> {% trans "Back" %}
                         </button>
                     </div>
@@ -244,7 +244,7 @@
                         <a href="{% url 'evals:compliance_dashboard' %}" class="btn btn-primary">
                             <i class="bi bi-bar-chart"></i> {% trans "View Compliance Dashboard" %}
                         </a>
-                        <button type="button" class="btn btn-secondary" onclick="resetUpload()">
+                        <button type="button" class="btn btn-secondary" data-rmc-grade-reset>
                             <i class="bi bi-cloud-upload"></i> {% trans "Import Another File" %}
                         </button>
                     </div>

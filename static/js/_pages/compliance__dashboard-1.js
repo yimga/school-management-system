@@ -28,4 +28,12 @@ async function muteThreats(duration) {
         alert('Failed to update threat mute status: ' + error.message);
     }
 }
+
+  // CSP: was inline onclick="muteThreats('1h')" etc. muteThreats is scoped to
+  // this IIFE, so it is bound here rather than exposed globally.
+  document.querySelectorAll('[data-rmc-mute]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      muteThreats(btn.getAttribute('data-rmc-mute'));
+    });
+  });
 })();

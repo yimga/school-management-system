@@ -104,10 +104,10 @@
             {% else %}<span class="rmc-badge rmc-badge--muted" title="{{ row.billing_reason }}">{% trans "Unknown" %}</span>{% endif %}
           </td>
           <td>
-            <a href="{{ offboard_tenant_360_url }}#offboarding" class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation();">{% trans "Offboarding" %}</a>
+            <a href="{{ offboard_tenant_360_url }}#offboarding" class="btn btn-sm btn-outline-danger" data-rmc-stop-propagation>{% trans "Offboarding" %}</a>
             {% if row.status == "requested" %}
-            <button type="button" class="btn btn-sm btn-success ms-1" data-rmc-approve-request data-school-id="{{ row.school.id }}" data-api-url="{{ approve_api_url }}" onclick="event.stopPropagation();">{% trans "Approve" %}</button>
-            <button type="button" class="btn btn-sm btn-outline-secondary ms-1" data-rmc-reject-request data-school-id="{{ row.school.id }}" data-api-url="{{ reject_api_url }}" onclick="event.stopPropagation();">{% trans "Reject" %}</button>
+            <button type="button" class="btn btn-sm btn-success ms-1" data-rmc-approve-request data-school-id="{{ row.school.id }}" data-api-url="{{ approve_api_url }}" data-rmc-stop-propagation>{% trans "Approve" %}</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary ms-1" data-rmc-reject-request data-school-id="{{ row.school.id }}" data-api-url="{{ reject_api_url }}" data-rmc-stop-propagation>{% trans "Reject" %}</button>
             {% endif %}
           </td>
         </tr>

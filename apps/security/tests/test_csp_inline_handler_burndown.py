@@ -215,3 +215,74 @@ class Batch1DelegatedConversionTests(SimpleTestCase):
         body = (_REPO / "templates/errors/500_minimal.html").read_text(encoding="utf-8")
         self.assertNotIn("onclick=", body)
         self.assertIn('<a class="primary" href="">', body)
+
+
+# STEP 2d — the full non-admin inline on*= burndown (40 handlers / 21 templates).
+# Generic patterns became data-* markers handled by the shared module; bespoke
+# page functions were bound via addEventListener in each page's own _pages/*.js.
+# Each tuple: (relative path, [inline strings GONE], [data-* markers PRESENT]).
+_BATCH2_CONVERSIONS = [
+    ("templates/reports/bulk_console.html", ['onchange="this.form.submit()"'], ["data-rmc-submit-on-change"]),
+    ("templates/components/pagination.html", ["window.location = u.toString()"], ["data-rmc-navigate-param"]),
+    ("templates/schools/super_offboarding_queue.html", ['onclick="event.stopPropagation'], ["data-rmc-stop-propagation"]),
+    ("templates/platform_runtime/tenant_blueprint_setup.html", ['onsubmit="return confirm'], ["data-rmc-confirm"]),
+    ("templates/siteconfig/super/marketing_voice_configure.html", ['onclick="return confirm'], ["data-rmc-confirm"]),
+    ("templates/portal/parent_data_rights.html", ['onclick="return confirm'], ["data-rmc-confirm"]),
+    ("templates/siteconfig/feature_control_panel_content.html", ['onclick="window.open'], ["data-rmc-popup"]),
+    ("templates/siteconfig/partials/reportcard_builder_inner.html", ['onclick="window.open'], ["data-rmc-popup"]),
+    ("templates/evals/resolve_offline_conflict.html", ["onclick=\"document.getElementById('choice')"], ["data-rmc-set-and-submit"]),
+    ("templates/portal/kb_article_submit.html", ["onclick=\"document.getElementById('fileInput')", 'onclick="saveDraft()"'], ["data-rmc-click-target", "data-rmc-save-draft"]),
+    ("templates/compliance/dashboard.html", ['onclick="muteThreats'], ["data-rmc-mute"]),
+    ("templates/emis/dashboard.html", ['onclick="refreshExports()"'], ["data-rmc-refresh-exports"]),
+    ("templates/evals/compliance_dashboard.html", ['onclick="showTeacherDetails'], ["data-rmc-teacher-details"]),
+    ("templates/evals/grade_import_upload_v2.html", ['onclick="moveToStep3()"', 'onclick="resetUpload()"'], ["data-rmc-grade-proceed", "data-rmc-grade-reset"]),
+    ("templates/evals/import_job_monitor.html", ['onclick="refreshJobList()"', 'onclick="retryJob'], ["data-rmc-refresh-jobs", "data-rmc-retry-job"]),
+    ("templates/portal/faq_detail.html", ['onclick="shareThis()"'], ["data-rmc-share-this"]),
+    ("templates/portal/kb_article.html", ['onclick="copyUrl()"', "onclick=\"shareOn('twitter')\""], ["data-rmc-copy-url", 'data-rmc-share-on="twitter"']),
+    ("templates/portal/signature_sign.html", ['onclick="clearSignature()"'], ["data-rmc-clear-signature"]),
+    ("templates/components/announcement_banner.html", ['onclick="closeAnnouncement'], ["data-rmc-close-announcement"]),
+    ("templates/components/user_dropdown.html", ["onclick=\"if (window.RMCShortcuts"], ["data-rmc-open-shortcuts"]),
+    ("templates/academics/ca_marks_input.html", ['oninput="document.getElementById'], ["data-rmc-derive-name-target"]),
+]
+
+
+class Batch2InlineHandlerBurndownTests(SimpleTestCase):
+    def test_inline_handlers_removed_and_markers_present(self):
+        for rel, removed, added in _BATCH2_CONVERSIONS:
+            body = (_REPO / rel).read_text(encoding="utf-8")
+            for gone in removed:
+                self.assertNotIn(gone, body, f"{rel} still ships inline handler {gone!r}")
+            for marker in added:
+                self.assertIn(marker, body, f"{rel} missing declarative marker {marker!r}")
+
+    def test_shared_module_owns_the_new_generic_behaviors(self):
+        src = _HANDLER_JS.read_text(encoding="utf-8")
+        for marker in (
+            "data-rmc-stop-propagation",
+            "data-rmc-popup",
+            "data-rmc-click-target",
+            "data-rmc-navigate-param",
+            "data-rmc-set-and-submit",
+            "data-rmc-open-shortcuts",
+            "data-rmc-derive-name-target",
+        ):
+            self.assertIn(marker, src, marker)
+
+    def test_scanner_reports_zero_inline_handlers(self):
+        # The authoritative seal: scripts/scan_inline_event_handlers.py finds no
+        # inline on*= attribute on any served (non-admin) template.
+        import importlib.util
+
+        spec = importlib.util.spec_from_file_location(
+            "_scan_inline_event_handlers",
+            _REPO / "scripts" / "scan_inline_event_handlers.py",
+        )
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        findings = mod.collect()
+        self.assertEqual(
+            findings,
+            [],
+            "inline on*= handlers present: "
+            + ", ".join(f"{f['file']}:{f['line']}[{f['event']}]" for f in findings),
+        )

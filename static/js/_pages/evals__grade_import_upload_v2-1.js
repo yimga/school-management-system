@@ -289,4 +289,18 @@
   window.backToValidation = backToValidation;
   window.applyImport = applyImport;
   window.resetUpload = resetUpload;
+
+  // CSP: replace the inline onclick handlers on the wizard step buttons.
+  document.querySelectorAll('[data-rmc-grade-proceed]').forEach(function (b) {
+    b.addEventListener('click', moveToStep3);
+  });
+  document.querySelectorAll('[data-rmc-grade-apply]').forEach(function (b) {
+    b.addEventListener('click', applyImport);
+  });
+  document.querySelectorAll('[data-rmc-grade-back]').forEach(function (b) {
+    b.addEventListener('click', backToValidation);
+  });
+  document.querySelectorAll('[data-rmc-grade-reset]').forEach(function (b) {
+    b.addEventListener('click', resetUpload);
+  });
 })();

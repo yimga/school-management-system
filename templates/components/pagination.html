@@ -24,7 +24,7 @@ Optional: page_size, page_size_options - current value and list e.g. [20, 50, 10
     <div class="pagination-page-size rmc-pagination__size-select d-flex align-items-center gap-1">
       <label for="pagination-page-size-select" class="small text-muted mb-0">{% trans "Per page" %}</label>
       <select id="pagination-page-size-select" class="form-select form-select-sm" style="width: auto;" aria-label="Items per page"
-              onchange="var u = new URL(window.location.href); u.searchParams.set('page', '1'); u.searchParams.set('page_size', this.value); window.location = u.toString();">
+              data-rmc-navigate-param="page_size" data-rmc-navigate-reset="page">
         {% for n in page_size_options %}
         <option value="{{ n }}" {% if page_size == n %}selected{% endif %}>{{ n }}</option>
         {% endfor %}

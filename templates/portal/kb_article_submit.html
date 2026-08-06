@@ -184,7 +184,7 @@
                                 <p class="text-muted">Drag and drop files here or click to browse</p>
                                 <input type="file" id="fileInput" name="attachments" multiple accept="image/*,.pdf,.doc,.docx"
                                        style="display: none;">
-                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="document.getElementById('fileInput').click()">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" data-rmc-click-target="#fileInput">
                                     {% trans "Choose Files" %}
                                 </button>
                             </div>
@@ -199,7 +199,7 @@
                             <button type="submit" class="btn btn-primary">
                                 {% trans "Submit Article" %}
                             </button>
-                            <button type="button" class="btn btn-secondary" onclick="saveDraft()">
+                            <button type="button" class="btn btn-secondary" data-rmc-save-draft>
                                 {% trans "Save Draft" %}
                             </button>
                             <a href="{% url 'kb:kb_home' %}" class="btn btn-light">

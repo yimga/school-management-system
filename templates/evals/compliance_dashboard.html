@@ -134,8 +134,8 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#detailsModal" 
-                                            onclick="showTeacherDetails({{ teacher.teacher_id }}, '{{ teacher.teacher_name }}', {{ teacher.deadlines|safe }})">
+                                    <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#detailsModal"
+                                            data-rmc-teacher-details data-teacher-name="{{ teacher.teacher_name }}" data-teacher-deadlines="{{ teacher.deadlines_json }}">
                                         {% trans "View Details" %}
                                     </button>
                                 </td>

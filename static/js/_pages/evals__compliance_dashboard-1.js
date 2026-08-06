@@ -31,4 +31,20 @@ function showTeacherDetails(teacherId, teacherName, deadlines) {
         `;
     });
 }
+
+  // CSP: was inline onclick="showTeacherDetails(id, 'name', deadlines)". The
+  // deadlines array now rides on a JSON data attribute (see the view's
+  // deadlines_json) and is parsed here; teacherId was unused by the function.
+  document.querySelectorAll('[data-rmc-teacher-details]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var name = btn.getAttribute('data-teacher-name') || '';
+      var deadlines = [];
+      try {
+        deadlines = JSON.parse(btn.getAttribute('data-teacher-deadlines') || '[]');
+      } catch (_e) {
+        deadlines = [];
+      }
+      showTeacherDetails(null, name, deadlines);
+    });
+  });
 })();
