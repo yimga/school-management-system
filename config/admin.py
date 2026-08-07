@@ -466,6 +466,84 @@ class _TenantScopedQuerysetMixin:
         return qs
 
 
+class _TenantFormFKScopeMixin:
+    """Scope FK / M2M OPTION LISTS in tenant ``/admin/`` add & change forms to the
+    request's school — the ``formfield_for_foreignkey`` / ``formfield_for_manytomany``
+    sibling of the changelist :class:`_TenantScopedQuerysetMixin`.
+
+    A ForeignKey to the SHARED_APPS ``schools.School`` reads the ``public`` schema,
+    whose single table holds EVERY tenant's rows — so an unscoped form dropdown renders
+    a **cross-tenant picker** (the reported bug: Add Academic Year's ``School`` field
+    listing other schools). Historically each admin had to remember a manual ``exclude``
+    / override (e.g. CurriculumAllocationAdmin's ``exclude = ("school",)``); this mixin —
+    applied by :meth:`TenantAdminSite.register` to EVERY registered model (a model with
+    no ``school`` field of its own can still FK ``School``) — makes it structural. It
+    limits the option list to:
+
+      * ``schools.School`` FK       → the request's OWN school only (and pre-selects it);
+      * a SHARED school-bearing FK   → own school + platform-global (``NULL``) rows.
+
+    Both are safe on CHANGE forms too: an object owned by this tenant always carries its
+    own School (or NULL), so the scoped queryset never rejects an existing value.
+    TENANT_APPS targets are schema-isolated already, so their option lists carry only
+    this tenant's rows — left untouched. ``accounts.User`` FKs are deliberately NOT
+    scoped here (the tenant User surface is already confined to school members by
+    ``TenantScopedUserAdmin`` + autocomplete; a blunt member-only form queryset would
+    reject a legitimate existing operator-set ``created_by`` on a change form). FAIL-
+    CLOSED (``.none()``) for ``School`` when the school is indeterminate: a tenant form
+    must never fall back to every tenant's rows. Opt out with
+    ``tenant_fk_scope_exempt = True``.
+    """
+
+    _rmc_tenant_fk_scoped = True
+
+    def _rmc_scope_related_formfield(self, db_field, request, formfield):
+        if formfield is None:
+            return formfield
+        qs = getattr(formfield, "queryset", None)
+        related = getattr(db_field, "related_model", None)
+        if qs is None or related is None:
+            return formfield
+
+        is_school = related._meta.label_lower == "schools.school"
+        is_school_bearing = TenantAdminSite._model_has_concrete_school_field(related)
+        if not (is_school or is_school_bearing):
+            # TENANT_APPS / genuinely global catalog / User target — either
+            # schema-isolated or scoped by its own admin. Leave untouched.
+            return formfield
+
+        from django.db.models import Q
+
+        school = getattr(request, "school", None)
+        determinate = (
+            school is not None
+            and getattr(school, "pk", None) is not None
+            and school.__class__.__name__ == "School"
+        )
+
+        if is_school:
+            if not determinate:
+                # Fail closed: never fall back to every tenant's school.
+                formfield.queryset = qs.none()
+                return formfield
+            formfield.queryset = qs.filter(pk=school.pk)
+            # Pre-select the tenant's own school (the school comes from the tenant
+            # context / header switcher, not a per-form choice).
+            if getattr(formfield, "initial", None) in (None, ""):
+                formfield.initial = school.pk
+        elif is_school_bearing and determinate:
+            formfield.queryset = qs.filter(Q(school=school) | Q(school__isnull=True))
+        return formfield
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        formfield = super().formfield_for_foreignkey(db_field, request, **kwargs)
+        return self._rmc_scope_related_formfield(db_field, request, formfield)
+
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        formfield = super().formfield_for_manytomany(db_field, request, **kwargs)
+        return self._rmc_scope_related_formfield(db_field, request, formfield)
+
+
 class TenantAdminSite(BaseRunMyCampusAdminSite):
     login_form = AuthenticationForm
     login_template = "auth/tenant_admin_login.html"
@@ -596,15 +674,28 @@ class TenantAdminSite(BaseRunMyCampusAdminSite):
         )
 
     def _tenant_scoped_admin_class(self, model, admin_class):
-        if getattr(admin_class, "tenant_scope_exempt", False):
-            return admin_class
-        if getattr(admin_class, "_rmc_tenant_scoped", False):
-            return admin_class
-        if not self._model_has_concrete_school_field(model):
+        mixins = []
+        # (1) FK / M2M form-field scope — applies to EVERY tenant model, because a
+        #     model with no ``school`` field of its own can still ForeignKey the
+        #     SHARED ``schools.School`` / ``accounts.User`` (the Add-Academic-Year
+        #     School-picker leak). Structural seal for the form path.
+        if not getattr(admin_class, "tenant_fk_scope_exempt", False) and not getattr(
+            admin_class, "_rmc_tenant_fk_scoped", False
+        ):
+            mixins.append(_TenantFormFKScopeMixin)
+        # (2) Changelist queryset scope — only models with a concrete ``school``
+        #     field (a SHARED model whose public table holds every tenant's rows).
+        if (
+            not getattr(admin_class, "tenant_scope_exempt", False)
+            and not getattr(admin_class, "_rmc_tenant_scoped", False)
+            and self._model_has_concrete_school_field(model)
+        ):
+            mixins.append(_TenantScopedQuerysetMixin)
+        if not mixins:
             return admin_class
         return type(
             admin_class.__name__,
-            (_TenantScopedQuerysetMixin, admin_class),
+            (*mixins, admin_class),
             {"__module__": getattr(admin_class, "__module__", __name__)},
         )
 
