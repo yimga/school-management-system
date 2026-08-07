@@ -773,7 +773,8 @@ html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-
 }
 
 [data-rmc-shell-root="django-admin"] [data-rmc-django-form-body] > fieldset.module > h2::before {
-  content: counter(rmc-admin-fs) ". ";
+  content: counter(rmc-admin-fs) ".";
+  margin-inline-end: 0.4em; /* the h2 is a flex row — a trailing space collapses, so reserve the gap */
   color: var(--text-secondary, #94a3b8);
   font-weight: 700;
 }

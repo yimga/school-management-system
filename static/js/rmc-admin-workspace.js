@@ -24,6 +24,22 @@
     return label.length > 42 ? label.slice(0, 41) + "…" : label;
   }
 
+  // Top-level sections only. A tabular inline's `.inline-group` wraps an inner
+  // `fieldset.module`, so the raw selector matches the same section twice —
+  // dropping nodes nested inside another matched node keeps the count honest
+  // (FORM PULSE "sections" + the On-this-page rail: 7, not 8, and no duplicate
+  // "Student guardians" row).
+  function collectSections(main) {
+    var nodes = Array.prototype.slice.call(
+      main.querySelectorAll("fieldset.module, .inline-group")
+    );
+    return nodes.filter(function (node) {
+      return !nodes.some(function (other) {
+        return other !== node && other.contains(node);
+      });
+    });
+  }
+
   function closePreviewDrawer(drawer) {
     var target = drawer || document.getElementById("rmc-django-preview-drawer");
     if (target) target.setAttribute("hidden", "");
@@ -114,7 +130,7 @@
     var main = document.getElementById("content-main");
     if (!nav || !main) return;
 
-    var sections = main.querySelectorAll("fieldset.module, .inline-group");
+    var sections = collectSections(main);
     var items = [];
 
     Array.prototype.forEach.call(sections, function (sec, i) {
@@ -181,7 +197,7 @@
 
     function countSections() {
       if (!main) return 0;
-      return main.querySelectorAll("fieldset.module, .inline-group").length;
+      return collectSections(main).length;
     }
 
     function countRequiredEmpty() {

@@ -161,7 +161,7 @@
         {% elif app.section == 'financial' %}{% trans "Financial" %}
         {% elif app.section == 'operations' %}{% trans "Operations" %}
         {% elif app.section == 'system' %}{% trans "System & configuration" %}
-        {% elif app.section %}{{ app.section }}
+        {% elif app.section %}{{ app.section|capfirst }}
         {% else %}{% trans "Other" %}{% endif %}
       </h2>
     {% endifchanged %}

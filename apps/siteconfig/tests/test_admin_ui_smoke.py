@@ -570,6 +570,69 @@ class AdminUiSmokeTests(TestCase):
             "floor rule must set a viewport-unit min-height on the shell",
         )
 
+    def test_premium_form_contract_restores_field_row_grid_and_inline_table(self):
+        """The premium form contract (v16) must keep BOTH of Unfold's native layouts
+        alive against the over-broad `.form-row{display:flex;flex-direction:column}`
+        rule, on BOTH /admin/ shells.
+
+        Regression seal (2026-08-07): that one rule was defeating (1) Unfold's
+        multi-column field rows (`field-row lg:grid-cols-2/3`) — force-stacking
+        grouped fields full-width so pages ran ~2x too long — and (2) tabular inline
+        tables — matching a tabular inline's <tr class="form-row"> and shattering the
+        row into a stacked 13-cell column (2252px for one empty guardian row) while
+        the header bled off the panel. Headless-verified fix: identity -49%, guardian
+        inline -82%, whole add-student page -44%, zero horizontal bleed, on tenant
+        (admin-premium-shell) AND operator (admin-manager-shell). If any of these
+        rules is removed the shatter/stack returns.
+        """
+        from django.contrib.staticfiles import finders
+
+        css_path = finders.find("css/rmc-admin-django-canvas-contract.css")
+        self.assertIsNotNone(css_path, "canvas contract stylesheet not found")
+        css = Path(css_path).read_text(encoding="utf-8")
+        anchor = "PREMIUM FORM CONTRACT (v16"
+        self.assertIn(anchor, css, "premium form contract block is missing")
+        block = css.split(anchor, 1)[1]
+
+        # (1) Field rows are restored to Unfold's responsive grid on BOTH shells.
+        self.assertIn(".form-row.field-row", block, "field-row rule missing")
+        self.assertIn("display: grid !important", block, "field-row must be grid, not flex-column")
+        for shell in ("admin-premium-shell", "admin-manager-shell"):
+            self.assertIn(shell, block, f"contract must cover the {shell} shell")
+        self.assertIn(".lg\\:grid-cols-3", block, "multi-column (grid-cols-3) mapping missing")
+
+        # (2) Tabular inline rows/cells keep real table semantics inside a scroll panel.
+        self.assertIn(".inline-group table tr.form-row", block, "inline tr rule missing")
+        self.assertIn("display: table-row !important", block, "inline row must stay table-row")
+        self.assertIn("display: table-cell !important", block, "inline cell must stay table-cell")
+        self.assertIn("overflow-x: auto !important", block, "wide inline must scroll, not bleed")
+
+    def test_admin_workspace_dedupes_nested_inline_sections(self):
+        """FORM PULSE 'sections' + the On-this-page rail must count each section once.
+
+        Regression seal: `fieldset.module, .inline-group` matches a tabular inline
+        twice (the `.inline-group` wraps an inner `fieldset.module`), so the count
+        read 8 for 7 real sections and the rail showed a duplicate 'Student guardians'
+        row. `collectSections()` drops nodes nested inside another matched node.
+        """
+        from django.contrib.staticfiles import finders
+
+        js_path = finders.find("js/rmc-admin-workspace.js")
+        self.assertIsNotNone(js_path, "admin workspace script not found")
+        js = Path(js_path).read_text(encoding="utf-8")
+        self.assertIn("function collectSections", js, "collectSections dedupe helper missing")
+        self.assertIn("other.contains(node)", js, "dedupe must drop nested matched nodes")
+        # Both consumers must route through the dedupe, not the raw selector.
+        self.assertIn("var sections = collectSections(main);", js, "rail must use collectSections")
+        self.assertIn("return collectSections(main).length;", js, "count must use collectSections")
+        # The raw fieldset/inline selector must appear exactly once — inside
+        # collectSections only — so neither consumer double-counts by calling it directly.
+        self.assertEqual(
+            js.count('"fieldset.module, .inline-group"'),
+            1,
+            "the fieldset/inline selector must live only inside collectSections()",
+        )
+
     def test_reportcardstyle_change_form_links_to_control_plane_surfaces(self):
         """P3: ReportCardStyle admin links to report builder + Output studio + config hub (tenant-safe URLs)."""
         style = ReportCardStyle.objects.create(
