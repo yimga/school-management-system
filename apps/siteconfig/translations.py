@@ -103,13 +103,13 @@ class LocalizationService:
 
     @staticmethod
     def format_currency(amount, currency=None, lang=None, region=None):
-        """Format amount. If region has default_currency and separators, use them."""
-        from apps.siteconfig.currency import get_currency_symbol
+        """Format amount using the currency's real minor-unit digit count + symbol
+        placement (routes through ``apps.registries.currency.format_money`` — the
+        single currency-display SoT), honouring a region's default_currency /
+        separators when supplied. Fixes the CFA franc rendering as "FCFA1,000.00".
+        """
+        from apps.registries.currency import format_money
 
-        try:
-            amt = float(amount)
-        except (TypeError, ValueError):
-            return str(amount)
         def _platform_default_currency() -> str:
             try:
                 from django.conf import settings as _settings
@@ -124,18 +124,13 @@ class LocalizationService:
                 or currency
                 or _platform_default_currency()
             )
-            dec_sep = getattr(region, "decimal_separator", None) or "."
-            thousands_sep = getattr(region, "thousands_separator", None) or ","
-            symbol = get_currency_symbol(cur)
-            s = f"{amt:,.2f}"
-            if thousands_sep != ",":
-                s = s.replace(",", thousands_sep)
-            if dec_sep != ".":
-                s = s.replace(".", dec_sep)
-            return f"{symbol}{s}"
-        currency = currency or _platform_default_currency()
-        symbol = get_currency_symbol(currency)
-        return f"{symbol}{amt:,.2f}"
+            return format_money(
+                amount,
+                cur,
+                decimal_sep=getattr(region, "decimal_separator", None),
+                thousands_sep=getattr(region, "thousands_separator", None),
+            )
+        return format_money(amount, currency or _platform_default_currency())
 
     @staticmethod
     def format_number(number, decimals=2, region=None):

@@ -76,14 +76,25 @@ class FormatCurrencyFilterTests(TestCase):
     def test_none_returns_empty(self):
         self.assertEqual(format_currency(None), "")
 
-    def test_xaf_style(self):
-        self.assertEqual(format_currency(12500.50), "FCFA12,500.50")
+    def test_xaf_style_routes_through_format_money(self):
+        # XAF (CFA franc) has NO minor unit and a SUFFIX symbol: "50 000 FCFA",
+        # never the old "FCFA50,000.00". The filter delegates to the currency SoT.
+        from apps.registries.currency import format_money
+
+        self.assertEqual(format_currency(12500), format_money(12500, "XAF"))
+        rendered = format_currency(12500)
+        self.assertTrue(rendered.endswith("FCFA"))  # suffix, not prefix
+        self.assertNotIn(".", rendered)  # zero decimals, no fractional part
 
     def test_invalid_value_returns_str(self):
         self.assertEqual(format_currency("n/a"), "n/a")
 
     def test_decimal_input(self):
-        self.assertEqual(format_currency(Decimal("5000.00")), "FCFA5,000.00")
+        from apps.registries.currency import format_money
+
+        self.assertEqual(
+            format_currency(Decimal("5000.00")), format_money(Decimal("5000.00"), "XAF")
+        )
 
 
 class _FakeRegion:
@@ -190,8 +201,9 @@ class PinnedTenantCurrencyTests(SimpleTestCase):
             "school-fr", _FakeSchool("XAF", default_region=region)
         )
         with pin, school:
-            symbol, dec_sep, thousands_sep = _resolve_pinned_tenant_currency()
+            symbol, dec_sep, thousands_sep, code = _resolve_pinned_tenant_currency()
         self.assertEqual(symbol, get_currency_symbol("XAF"))
+        self.assertEqual(code, "XAF")
         self.assertEqual(dec_sep, ",")
         self.assertEqual(thousands_sep, " ")
 
@@ -200,14 +212,14 @@ class PinnedTenantCurrencyTests(SimpleTestCase):
             "school-x", _FakeSchool("USD", default_region=None)
         )
         with pin, school:
-            _, dec_sep, thousands_sep = _resolve_pinned_tenant_currency()
+            _, dec_sep, thousands_sep, _code = _resolve_pinned_tenant_currency()
         self.assertEqual((dec_sep, thousands_sep), (".", ","))
 
     def test_explicit_context_currency_overrides_pin(self):
         # A context-aware caller passing currency_symbol wins over the pin.
         pin, school, _ = _patch_pin_and_school("school-cm", _FakeSchool("XAF"))
         with pin, school:
-            symbol, dec_sep, thousands_sep = _resolve_currency_context(
+            symbol, dec_sep, thousands_sep, _code = _resolve_currency_context(
                 {
                     "currency_symbol": "€",
                     "decimal_separator": ",",

@@ -55,12 +55,13 @@ class CurrencyLocalization:
 
     @staticmethod
     def format_currency_by_region(amount, region):
-        # Phase C: use single source of truth for symbols (no hardcoded ₦, KSh, $).
+        # Phase C: single source of truth for symbols AND minor-unit digits /
+        # placement (no hardcoded ₦/KSh/$, and no bogus 2 decimals or wrong symbol
+        # position on the CFA franc — a Cameroon report card shows "50 000 FCFA").
         currency = CurrencyLocalization.get_regional_currency(region)
-        from apps.siteconfig.currency import get_currency_symbol
+        from apps.registries.currency import format_money
 
-        symbol = get_currency_symbol(currency)
-        return f"{symbol}{amount:,.2f}"
+        return format_money(amount, currency)
 
 
 """

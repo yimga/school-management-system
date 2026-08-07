@@ -471,27 +471,29 @@ def format_date_tenant(dt, request=None, school=None) -> str:
 def format_currency_tenant(amount, request=None, school=None) -> str:
     """
     Phase C: Format amount as currency using tenant locale (currency from get_tenant_locale).
-    No hardcoded $ or XAF; uses get_currency_symbol(currency) and tenant separators.
+
+    Routes through ``apps.registries.currency.format_money`` so the amount honours
+    the currency's minor-unit digit count and symbol placement (XAF -> "50 000 FCFA",
+    not "FCFA50,000.00"), while still respecting any locale-configured separators.
     """
+    if amount is None:
+        return ""
     try:
-        amt = float(amount)
+        float(amount)
     except (TypeError, ValueError):
         return str(amount)
     locale = get_tenant_locale(request=request, school=school)
     currency = (
         locale.get("currency") or locale.get("default_currency") or "USD"
     ).strip()
-    from apps.siteconfig.currency import get_currency_symbol
+    from apps.registries.currency import format_money
 
-    symbol = get_currency_symbol(currency)
-    dec_sep = locale.get("decimal_separator") or "."
-    thousands_sep = locale.get("thousands_separator") or ","
-    s = (
-        f"{amt:,.2f}".replace(",", "\x01")
-        .replace(".", dec_sep)
-        .replace("\x01", thousands_sep)
+    return format_money(
+        amount,
+        currency,
+        decimal_sep=locale.get("decimal_separator"),
+        thousands_sep=locale.get("thousands_separator"),
     )
-    return f"{symbol}{s}" if symbol else s
 
 
 def sync_tenant_modules_to_school_features(

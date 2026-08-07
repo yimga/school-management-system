@@ -69,7 +69,7 @@ def _resolve_pinned_tenant_currency():
         thousands_sep = (
             (getattr(region, "thousands_separator", None) or ",") if region else ","
         )
-        resolved = (get_currency_symbol(code), dec_sep, thousands_sep)
+        resolved = (get_currency_symbol(code), dec_sep, thousands_sep, code)
     except (ImportError, AttributeError, TypeError, ValueError, _DBError):
         return None
     _PINNED_CURRENCY.set((school_id, resolved))
@@ -77,14 +77,24 @@ def _resolve_pinned_tenant_currency():
 
 
 def _resolve_currency_context(context):
-    """Get currency symbol and separators from context, the request's pinned
-    tenant, or settings defaults — in that order."""
+    """Get ``(symbol, dec_sep, thousands_sep, currency_code)`` from context, the
+    request's pinned tenant, or settings defaults — in that order.
+
+    ``currency_code`` is what lets the caller pick the currency's real minor-unit
+    digit count + symbol placement; it may be ``None`` on the legacy context path
+    when only a display symbol is known.
+    """
     if context:
         symbol = context.get("currency_symbol")
         dec_sep = context.get("decimal_separator")
         thousands_sep = context.get("thousands_separator")
         if symbol is not None and dec_sep is not None and thousands_sep is not None:
-            return symbol or "", dec_sep or ".", thousands_sep or ","
+            return (
+                symbol or "",
+                dec_sep or ".",
+                thousands_sep or ",",
+                context.get("currency_code"),
+            )
     pinned = _resolve_pinned_tenant_currency()
     if pinned is not None:
         return pinned
@@ -96,7 +106,7 @@ def _resolve_currency_context(context):
         or "USD"
     )
     symbol = get_currency_symbol(currency)
-    return symbol, ".", ","
+    return symbol, ".", ",", currency
 
 
 def _date_format_to_django(pattern: str) -> str:
@@ -149,17 +159,24 @@ def format_date(value, date_format_pattern=None):
 
 @register.filter
 def format_currency(value):
-    """Format a number as currency. Uses context tenant_locale when available else DEFAULT_CURRENCY."""
+    """Format a number as currency using the request-pinned tenant's currency.
+
+    Routes through ``apps.registries.currency.format_money`` so the amount honours
+    the currency's real minor-unit digit count and symbol placement — e.g. a
+    Cameroon (XAF) fee renders ``50 000 FCFA``, not ``FCFA50,000.00``.
+    """
     if value is None:
         return ""
     try:
         amount = float(value)
     except (TypeError, ValueError):
         return str(value)
-    symbol, dec_sep, thousands_sep = _resolve_currency_context(None)
-    s = f"{amount:,.2f}"
-    s = s.replace(".", "\x00").replace(",", thousands_sep).replace("\x00", dec_sep)
-    return f"{symbol}{s}" if symbol else s
+    symbol, dec_sep, thousands_sep, code = _resolve_currency_context(None)
+    from apps.registries.currency import format_money
+
+    return format_money(
+        amount, code, symbol=symbol, decimal_sep=dec_sep, thousands_sep=thousands_sep
+    )
 
 
 @register.simple_tag(takes_context=True)
