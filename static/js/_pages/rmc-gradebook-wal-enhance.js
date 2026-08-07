@@ -16,6 +16,18 @@
   if (window.__rmcGradebookWALBound) return;
   window.__rmcGradebookWALBound = true;
 
+  // Only take over grade saves when the WAL stream can actually DELIVER. On a
+  // WSGI deploy `rmcWAL` still exists and `.append()` writes to IndexedDB, but
+  // the socket never boots and the envelope is never flushed — so binding here
+  // used to hijack even ONLINE "Save All Marks", preventDefault the native POST,
+  // and ship into a WAL that never drained (silent grade loss). Gating on
+  // walStreamEnabled makes grading route to exactly one rail: WAL when it is
+  // deliverable, otherwise the SODP offline queue + the native POST.
+  function walStreamEnabled() {
+    var cfg = window.SMS_OFFLINE_CONFIG || {};
+    return cfg.walStreamEnabled === true;
+  }
+
   function num(v) {
     if (v == null) return null;
     const s = String(v).trim();
@@ -74,6 +86,7 @@
   }
 
   function wire() {
+    if (!walStreamEnabled()) return; // single-rail: defer to SODP + native POST
     if (!window.rmcWAL || typeof window.rmcWAL.append !== "function") return;
     const form = document.querySelector('form#marks-entry-form[data-rmc-offline-form="grading"]');
     if (!form) return;

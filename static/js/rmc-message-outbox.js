@@ -21,6 +21,25 @@
   "use strict";
   if (window.rmcMessageOutbox) return;
 
+  // The outbox rides the WAL rail, which only DELIVERS when the WAL stream can
+  // actually boot (ASGI + RMC_WAL_STREAM_ENABLED). On a WSGI deploy `rmcWAL`
+  // still EXISTS and `.append()` writes to IndexedDB, but the socket never boots
+  // and the row is never flushed — so gating on `rmcWAL` alone let the UI claim
+  // "saved, will send automatically" while the message was silently lost. We now
+  // require walStreamEnabled before claiming an offline compose was queued.
+  function walStreamEnabled() {
+    var cfg = window.SMS_OFFLINE_CONFIG || {};
+    return cfg.walStreamEnabled === true;
+  }
+
+  function canQueueToWal() {
+    return (
+      walStreamEnabled() &&
+      window.rmcWAL &&
+      typeof window.rmcWAL.append === "function"
+    );
+  }
+
   function fieldValue(form, name) {
     if (!name) return "";
     var el = form.elements[name];
@@ -49,8 +68,21 @@
     }
   }
 
+  // Honest failure notice — shown when we CANNOT durably queue the message (the
+  // WAL rail is not deliverable on this connection). Never claims the message was
+  // saved; tells the user to reconnect and retry so nothing is silently lost.
+  function showUnavailableNotice(form) {
+    var note = document.createElement("div");
+    note.className = "alert alert-warning";
+    note.setAttribute("role", "alert");
+    note.textContent =
+      "You're offline and this message could not be saved on this connection. " +
+      "Please reconnect and send it again.";
+    form.parentNode.insertBefore(note, form);
+  }
+
   async function queueMessage(payload) {
-    if (!window.rmcWAL || typeof window.rmcWAL.append !== "function") {
+    if (!canQueueToWal()) {
       return false;
     }
     var recipientId = parseInt(payload.recipientId, 10);
@@ -94,9 +126,9 @@
         if (ok) {
           showQueuedNotice(form, successUrl);
         } else {
-          // Could not queue (no WAL support) — fall back to normal submit so
-          // the user isn't silently blocked.
-          form.submit();
+          // Could not durably queue (WAL rail not deliverable on this
+          // connection) — tell the user honestly instead of silently losing it.
+          showUnavailableNotice(form);
         }
       });
     });
@@ -114,7 +146,7 @@
   //         data-type-field="announcement_type" data-audience-field="audience"
   //         data-urgent-field="is_urgent" data-success-url="...">
   async function queueAnnouncement(payload) {
-    if (!window.rmcWAL || typeof window.rmcWAL.append !== "function") {
+    if (!canQueueToWal()) {
       return false;
     }
     if (!payload.title || !payload.content) return false;
@@ -156,7 +188,7 @@
         if (ok) {
           showQueuedNotice(form, successUrl);
         } else {
-          form.submit();
+          showUnavailableNotice(form);
         }
       });
     });
@@ -174,7 +206,7 @@
   //         data-thread-id="42" data-message-field="message"
   //         data-success-url="...">
   async function queueThreadMessage(payload) {
-    if (!window.rmcWAL || typeof window.rmcWAL.append !== "function") {
+    if (!canQueueToWal()) {
       return false;
     }
     var threadId = parseInt(payload.threadId, 10);
@@ -212,7 +244,7 @@
         if (ok) {
           showQueuedNotice(form, successUrl);
         } else {
-          form.submit();
+          showUnavailableNotice(form);
         }
       });
     });

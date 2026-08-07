@@ -138,7 +138,11 @@
 
   function wireGrading(form) {
     form.addEventListener('submit', function (ev) {
-      if (navigator.onLine || !enabled()) return;
+      // Single-rail: when the WAL stream is deliverable it owns grade saves, so
+      // the SODP queue defers to avoid double-queuing the same marks (the WAL
+      // enhancer, conversely, does NOT bind when walStreamEnabled is false).
+      var _walCfg = window.SMS_OFFLINE_CONFIG || {};
+      if (navigator.onLine || !enabled() || _walCfg.walStreamEnabled === true) return;
       var active = document.activeElement;
       if (active && active.getAttribute && active.getAttribute('name') === 'action' && active.value === 'submit_for_approval') {
         return;

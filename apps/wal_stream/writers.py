@@ -456,7 +456,58 @@ def _apply_grade(envelope: dict[str, Any]) -> None:
             )
         rows = kept
     if rows:
-        OfflineMarkEntry.objects.bulk_create(rows, ignore_conflicts=True)
+        _bulk_create_marks_idempotent(OfflineMarkEntry, rows)
+
+
+def _grade_natural_key(row) -> tuple:
+    """The natural key the SODP grade applier dedupes a pending mark on."""
+    return (
+        row.teacher_id,
+        row.subject_assignment_id,
+        row.student_id,
+        row.academic_year_id,
+        row.term_id,
+    )
+
+
+def _bulk_create_marks_idempotent(OfflineMarkEntry, rows: list) -> None:
+    """Create offline marks idempotently — the guard the SODP grade path has.
+
+    WAL delivery is at-least-once and ``OfflineMarkEntry`` carries no unique
+    constraint, so ``bulk_create(..., ignore_conflicts=True)`` dedupes NOTHING:
+    a re-applied envelope inserts duplicate rows. Mirror the SODP applier
+    (``platform_runtime.offline_queue._apply_grading``): skip any (teacher,
+    subject_assignment, student, academic_year, term) that already has a pending
+    row, and collapse duplicates appearing twice within the same batch.
+    """
+    if not rows:
+        return
+    existing = set(
+        OfflineMarkEntry.objects.filter(
+            status="pending",
+            teacher_id__in={r.teacher_id for r in rows},
+            subject_assignment_id__in={r.subject_assignment_id for r in rows},
+            student_id__in={r.student_id for r in rows},
+            academic_year_id__in={r.academic_year_id for r in rows},
+            term_id__in={r.term_id for r in rows},
+        ).values_list(
+            "teacher_id",
+            "subject_assignment_id",
+            "student_id",
+            "academic_year_id",
+            "term_id",
+        )
+    )
+    seen: set = set()
+    fresh = []
+    for row in rows:
+        key = _grade_natural_key(row)
+        if key in existing or key in seen:
+            continue
+        seen.add(key)
+        fresh.append(row)
+    if fresh:
+        OfflineMarkEntry.objects.bulk_create(fresh)
 
 
 def _resolve_teacher_id_from_envelope(envelope: dict[str, Any], TeacherProfile) -> int | None:

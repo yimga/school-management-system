@@ -338,10 +338,15 @@ class WALWriterTenantIsolationTests(SimpleTestCase):
             ],
         }
         captured: list = []
+        # The idempotency guard queries for already-pending marks; none exist here.
+        _empty_pending = mock.Mock()
+        _empty_pending.values_list.return_value = []
 
         with mock.patch("apps.wal_stream.writers._resolve_teacher_id_from_envelope", return_value=42), \
                 mock.patch("apps.wal_stream.writers._ids_in_school",
                            side_effect=lambda model, ids, school_id, **kw: {i for i in ids if i != 999}), \
+                mock.patch("apps.evals.models.OfflineMarkEntry.objects.filter",
+                           return_value=_empty_pending), \
                 mock.patch("apps.evals.models.OfflineMarkEntry.objects.bulk_create",
                            side_effect=lambda rows, **kw: captured.extend(rows)):
             from apps.wal_stream.writers import _apply_grade
