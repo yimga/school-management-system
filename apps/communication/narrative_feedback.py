@@ -3,9 +3,13 @@ AI narrative feedback: create achievement events and optional LLM-generated
 parent message (draft); teacher approves before sending.
 """
 
+import logging
+
 from django.utils import timezone
 
 from apps.communication.models import AchievementEvent, NarrativeFeedback
+
+logger = logging.getLogger(__name__)
 
 
 def create_achievement_event(
@@ -110,8 +114,76 @@ def approve_narrative(narrative: NarrativeFeedback, approved_by) -> None:
     narrative.save(update_fields=["status", "approved_by", "approved_at", "updated_at"])
 
 
+def dispatch_narrative_to_guardians(narrative: NarrativeFeedback) -> int:
+    """Deliver an approved kudos narrative to the student's guardians.
+
+    Routes through the shared notification rail (``dispatch_event``) so the parent
+    actually receives the message — an email plus the in-app bell — with each
+    guardian's notification preferences honoured. Best-effort per guardian: one
+    failing send never blocks the others. Returns the number of guardians the
+    message was dispatched to (0 when the narrative has no student / no guardians,
+    which is logged so a silently undeliverable kudos is visible).
+    """
+    from apps.communication.dispatch import Channel, dispatch_event
+    from apps.finance.models import Notification
+
+    student = getattr(narrative, "student", None)
+    if student is None:
+        logger.warning("narrative.no_student narrative=%s", getattr(narrative, "pk", None))
+        return 0
+
+    from apps.people.models import StudentGuardian
+
+    # tenant-isolation-allow: guardians-resolved-from-the-narrative's-own-student
+    links = StudentGuardian.objects.filter(
+        student=student, is_active=True
+    ).select_related("guardian_user")
+
+    message = (narrative.message_text or "").strip()
+    count = 0
+    seen: set = set()
+    for link in links:
+        guardian = getattr(link, "guardian_user", None)
+        if guardian is None or guardian.pk in seen:
+            continue
+        seen.add(guardian.pk)
+        dispatch_event(
+            "achievement.kudos",
+            recipient=guardian,
+            school=narrative.school,
+            context={
+                "title": "A note from school",
+                "message": message,
+                "severity": Notification.Severity.INFO,
+            },
+            channels=[Channel.EMAIL, Channel.IN_APP],
+        )
+        count += 1
+    if count == 0:
+        logger.warning(
+            "narrative.no_guardians narrative=%s student=%s",
+            getattr(narrative, "pk", None),
+            getattr(student, "pk", None),
+        )
+    return count
+
+
 def mark_narrative_sent(narrative: NarrativeFeedback) -> None:
-    """Mark narrative as sent (e.g. after email/push delivered)."""
+    """Deliver the narrative to the student's guardians, then mark it SENT.
+
+    Before this, the method only flipped the status flag — the parent received
+    nothing. It now dispatches through the notification rail (email + in-app
+    bell) first, then records the row as SENT. Delivery is best-effort: a
+    transport failure is logged but must not strand the row as an unsent draft.
+    """
+    try:
+        dispatch_narrative_to_guardians(narrative)
+    except Exception:  # noqa: BLE001 — a delivery failure must not strand the row
+        logger.warning(
+            "narrative.dispatch_failed narrative=%s",
+            getattr(narrative, "pk", None),
+            exc_info=True,
+        )
     narrative.status = NarrativeFeedback.Status.SENT
     narrative.sent_at = timezone.now()
     narrative.save(update_fields=["status", "sent_at", "updated_at"])

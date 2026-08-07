@@ -40,6 +40,21 @@ def normalize_action_dict(raw: dict[str, Any]) -> dict[str, Any]:
     out["type"] = t
     if "params" not in out:
         out["params"] = {}
+    # Preserve the notify audience the alias just collapsed. Without this,
+    # ``notify_parent``/``notify_teacher``/``notify_admin`` all flatten to a bare
+    # ``notify`` with no recipient, and the engine could only log — the parent
+    # was never told. Stash the audience so the handler can resolve real
+    # recipients from the run context.
+    if t == "notify" and str(raw.get("type") or "").strip().lower() in (
+        "notify_parent",
+        "notify_teacher",
+        "notify_admin",
+    ):
+        params = dict(out.get("params") or {})
+        params.setdefault(
+            "audience", str(raw.get("type")).strip().lower().split("_", 1)[1]
+        )
+        out["params"] = params
     return out
 
 

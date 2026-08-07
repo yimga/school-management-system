@@ -13,12 +13,25 @@ from apps.automation.workflow_template_gallery import (
 )
 
 
-def _staff_required(user):
-    return getattr(user, "is_staff", False) or getattr(user, "is_superuser", False)
+def _can_view_gallery(user):
+    """Operator staff OR a tenant admin may browse the template gallery.
+
+    The old ``is_staff``/superuser-only gate locked out tenant admins, who are
+    ``role=ADMIN`` with ``is_staff=False`` by design — so the whole gallery was
+    dead on every tenant. Workflow configuration is an admin task, so admit the
+    admin-tier roles too.
+    """
+    if not getattr(user, "is_authenticated", False):
+        return False
+    if getattr(user, "is_staff", False) or getattr(user, "is_superuser", False):
+        return True
+    role = (getattr(user, "role", "") or "").upper()
+    # role-string-allow: workflow-gallery-admin-tier-audience
+    return role in ("ADMIN", "PRINCIPAL", "LEADERSHIP", "OWNER")
 
 
 @login_required
-@user_passes_test(_staff_required)
+@user_passes_test(_can_view_gallery)
 def workflow_template_gallery(request):
     school = getattr(request, "school", None)
     items = []
@@ -64,7 +77,7 @@ def workflow_template_gallery(request):
 
 
 @login_required
-@user_passes_test(_staff_required)
+@user_passes_test(_can_view_gallery)
 def workflow_template_dry_run(request, template_id: str):
     """One-click dry-run: simulate published workflow for trigger, else synthetic sample JSON."""
     from apps.automation.visual_executor import simulate_workflow

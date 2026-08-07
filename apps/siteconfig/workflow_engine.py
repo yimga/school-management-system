@@ -203,20 +203,87 @@ def evaluate_conditions(conditions: list, context: dict) -> bool:
     return True
 
 
+def _resolve_workflow_notify_recipients(audience: str, context: dict, school):
+    """Resolve the ``User`` rows a workflow notification should reach.
+
+    Reads ids from the run ``context`` — ``student_id`` for a *parent* audience,
+    an explicit ``recipient_user_id``/``user_id``/``teacher_id`` for a direct
+    target — and the school roster (*admin* audience). Returns a de-duplicated
+    list of active users. This is what makes ``notify_parent``/``notify_teacher``/
+    ``notify_admin`` deliver to real people instead of logging into the void.
+    """
+    from django.contrib.auth import get_user_model
+
+    user_model = get_user_model()
+    recipients: list = []
+    seen: set = set()
+
+    def _add(user):
+        if user is not None and getattr(user, "is_active", True) and user.pk not in seen:
+            seen.add(user.pk)
+            recipients.append(user)
+
+    context = context or {}
+    explicit_id = context.get("recipient_user_id") or context.get("user_id")
+    if explicit_id:
+        _add(user_model.objects.filter(pk=explicit_id).first())
+
+    audience = (audience or "").lower()
+    student_id = context.get("student_id")
+
+    if audience == "parent" and student_id:
+        from apps.people.models import StudentGuardian
+
+        # tenant-isolation-allow: guardians-resolved-from-the-workflow-run's-student
+        links = StudentGuardian.objects.filter(
+            student_id=student_id, is_active=True
+        ).select_related("guardian_user")
+        for link in links:
+            _add(getattr(link, "guardian_user", None))
+    elif audience == "teacher":
+        teacher_id = context.get("teacher_id") or context.get("assigned_teacher_id")
+        if teacher_id:
+            _add(user_model.objects.filter(pk=teacher_id).first())
+    elif audience == "admin" and school is not None:
+        from apps.schools.models import SchoolMembership
+
+        # tenant-isolation-allow: admins-resolved-from-the-workflow's-own-school
+        memberships = SchoolMembership.objects.filter(
+            school=school,
+            role__in=("ADMIN", "PRINCIPAL", "OWNER"),  # role-string-allow: workflow-notify-admin-audience
+        ).select_related("user")
+        for membership in memberships:
+            _add(getattr(membership, "user", None))
+
+    return recipients
+
+
 def _run_action_notify(
     params: dict, context: dict, school=None, dry_run: bool = False, **kwargs
 ):
-    """Send notification (email/push/in-app). params: channel, subject, body, recipient_ref (e.g. context key)."""
+    """Send a workflow notification.
+
+    params: ``channel`` (email/sms/push/log), ``subject``, ``body``, ``audience``
+    (parent|teacher|admin — set by the graph compiler for the ``notify_*``
+    aliases), ``to`` (explicit address for the legacy direct-email path).
+
+    An ``audience`` (or an explicit context user id) is now resolved to real
+    recipients and delivered through the shared :func:`dispatch_event` rail — the
+    in-app bell plus email, each gated by the recipient's own preferences — so a
+    "notify parent" step actually reaches the parent instead of only logging.
+    """
     if dry_run:
         return {
             "dry_run": True,
             "channel": params.get("channel") or "log",
             "preview": True,
         }
-    channel = (params.get("channel") or "log").lower()
-    if channel == "log":
-        logger.info("Workflow notify: %s", params.get("body", params))
-        return {}
+    channel = (params.get("channel") or "").lower()
+    subject = params.get("subject", "Notification")
+    body = params.get("body", "")
+    context = context or {}
+
+    # Legacy explicit-address email path (unchanged).
     if channel == "email" and params.get("to"):
         try:
             from apps.communication.notification_service import send_email
@@ -226,8 +293,8 @@ def _run_action_notify(
             )
             send_email(
                 to_list,
-                subject=params.get("subject", "Notification"),
-                body=params.get("body", ""),
+                subject=subject,
+                body=body,
                 school=school,
                 fail_silently=True,
             )
@@ -244,7 +311,41 @@ def _run_action_notify(
             )
             logger.warning("Workflow notify email failed: %s", e)
             raise WorkflowActionExecutionError(str(e)) from e
-    # In-app / push can be wired here via notification backend
+        return {"delivered_email": len(to_list)}
+
+    # Audience-routed delivery through the shared notification rail.
+    audience = (params.get("audience") or "").lower()
+    if audience or context.get("recipient_user_id") or context.get("user_id"):
+        recipients = _resolve_workflow_notify_recipients(audience, context, school)
+        if not recipients:
+            logger.info(
+                "Workflow notify: no recipient resolved (audience=%s)", audience or "-"
+            )
+            return {"delivered": 0, "reason": "no_recipient"}
+        from apps.communication.dispatch import Channel, dispatch_event
+
+        channels = [Channel.EMAIL, Channel.IN_APP]
+        if channel in ("sms", "all"):
+            channels.append(Channel.SMS)
+        elif channel == "push":
+            channels.append(Channel.PUSH)
+        delivered = 0
+        for user in recipients:
+            try:
+                dispatch_event(
+                    "workflow.notification",
+                    recipient=user,
+                    school=school,
+                    context={"title": subject, "message": body},
+                    channels=channels,
+                )
+                delivered += 1
+            except WORKFLOW_SOFT_FAILURES as e:  # never let one recipient sink the run
+                logger.warning("Workflow notify dispatch failed: %s", e)
+        return {"delivered": delivered}
+
+    # No audience and no explicit recipient — nothing to deliver to; log honestly.
+    logger.info("Workflow notify (log-only, no recipient): %s", body or params)
     return {}
 
 

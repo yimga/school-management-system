@@ -28,6 +28,7 @@ from apps.safeguarding.concern_kernel import (
 )
 from apps.safeguarding.dsl_notify import (
     acknowledge_inbox_entry,
+    build_concern_deep_link,
     list_unacknowledged,
     notify_dsl_of_concern,
 )
@@ -96,6 +97,128 @@ def user_is_dsl(user: Any, school: Any) -> bool:
         if not assignments:
             return True
     return is_dsl(int(user.pk), school_id_token(school), load_dsl_assignments(school))
+
+
+# Admin-tier roles that may triage safeguarding concerns until a dedicated DSL
+# roster is configured (mirrors ``user_is_dsl``'s fallback). Used as the fallback
+# recipient pool for the urgent real-time alert.
+_DSL_FALLBACK_ROLES = ("ADMIN", "PRINCIPAL", "OWNER")  # role-string-allow: safeguarding-dsl-triage-fallback-pool
+
+
+def resolve_dsl_recipients(school: Any) -> list:
+    """Resolve the ``User`` rows an urgent safeguarding alert must reach.
+
+    Primary pool: the configured DSL roster (``dsl_user_ids`` +
+    ``stakeholder_pipeline``). Fallback (no roster yet): admin/principal/owner
+    members can triage — so a concern raised at a school that has not named a DSL
+    is still delivered to a real person, never dispatched into the void.
+    """
+    from django.contrib.auth import get_user_model
+
+    user_model = get_user_model()
+    user_ids = [a.user_id for a in load_dsl_assignments(school) if a.user_id]
+    if user_ids:
+        # tenant-isolation-allow: recipients-are-this-school's-own-configured-dsl-user-ids
+        return list(user_model.objects.filter(pk__in=user_ids, is_active=True))
+
+    from apps.schools.models import SchoolMembership
+
+    # tenant-isolation-allow: safeguarding-dsl-fallback-scoped-to-request-school
+    memberships = SchoolMembership.objects.filter(
+        school=school, role__in=_DSL_FALLBACK_ROLES
+    ).select_related("user")
+    out: list = []
+    seen: set[int] = set()
+    for membership in memberships:
+        user = getattr(membership, "user", None)
+        if user is None or not getattr(user, "is_active", False) or user.pk in seen:
+            continue
+        seen.add(user.pk)
+        out.append(user)
+    return out
+
+
+def _user_phone(user: Any) -> str:
+    """Best-effort phone lookup for a staff recipient.
+
+    DSLs are staff, not guardians, so ``dispatch_event`` reads the SMS number from
+    the per-recipient ``context`` rather than a guardian link. Returns "" when no
+    number is found — the SMS leg then reports ``no_phone`` honestly (email + the
+    in-app bell still carry the alert)."""
+    for attr in ("phone", "phone_number", "mobile", "msisdn"):
+        val = (getattr(user, attr, "") or "").strip()
+        if val:
+            return val
+    for prof_attr in ("profile", "staff_profile", "teacher_profile"):
+        profile = getattr(user, prof_attr, None)
+        if profile is None:
+            continue
+        for attr in ("phone", "phone_number", "mobile"):
+            val = (getattr(profile, attr, "") or "").strip()
+            if val:
+                return val
+    return ""
+
+
+def _dispatch_dsl_alert(*, school: Any, entry: ConcernEntry, category_label: str) -> None:
+    """Fire a real-time alert to every DSL the moment a concern is raised.
+
+    Before this, a concern only landed in a poll-only ``dsl_inbox`` bucket — an
+    abuse / FGM / self-harm disclosure could sit unseen until a DSL happened to
+    open the queue. Now urgent categories escalate to SMS + email + the in-app
+    bell; non-urgent concerns still ring the bell + email so nothing waits on a
+    poll. PII stays OUT of the payload — the deep link is the only path to the
+    narrative (matching the ``dsl_notify`` contract). Best-effort: a dispatch
+    failure must never unwind the concern submission itself.
+    """
+    try:
+        from apps.communication.dispatch import Channel, dispatch_event
+        from apps.finance.models import Notification
+
+        recipients = resolve_dsl_recipients(school)
+        if not recipients:
+            logger.warning(
+                "safeguarding.no_dsl_recipient concern=%s school=%s",
+                entry.concern_id,
+                getattr(school, "pk", None),
+            )
+            return
+
+        if entry.is_urgent:
+            channels = [Channel.SMS, Channel.EMAIL, Channel.IN_APP]
+            severity = Notification.Severity.ALERT
+            title = "Urgent safeguarding concern"
+        else:
+            channels = [Channel.EMAIL, Channel.IN_APP]
+            severity = Notification.Severity.WARNING
+            title = "New safeguarding concern"
+        message = (
+            f"A {category_label} concern needs a Designated Safeguarding Lead. "
+            "Open it to review."
+        )
+        link = build_concern_deep_link(entry.concern_id)
+
+        for user in recipients:
+            dispatch_event(
+                "safeguarding.concern_raised",
+                recipient=user,
+                school=school,
+                context={
+                    "title": title,
+                    "message": message,
+                    "link": link,
+                    "severity": severity,
+                    "phone": _user_phone(user),
+                },
+                channels=channels,
+            )
+    except Exception:  # noqa: BLE001 — alert must never unwind submit
+        logger.warning(
+            "safeguarding.dsl_alert_failed concern=%s school=%s",
+            getattr(entry, "concern_id", None),
+            getattr(school, "pk", None),
+            exc_info=True,
+        )
 
 
 def find_concern(school: Any, concern_id: str) -> ConcernEntry | None:
@@ -174,6 +297,13 @@ def submit_concern_for_school(
     settings["safeguarding"] = blob
     school.settings = settings
     school.save(update_fields=["settings"])
+
+    # Real-time DSL alert (best-effort — never unwinds the persisted concern).
+    _dispatch_dsl_alert(
+        school=school,
+        entry=entry,
+        category_label=(cat.label if cat else entry.category_key),
+    )
     return entry
 
 

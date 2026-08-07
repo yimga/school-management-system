@@ -69,10 +69,13 @@ EVENT_CATEGORY_MAP: Dict[str, str] = {
     "attendance.absent": Category.ATTENDANCE,
     # Broadcast / messaging
     "announcement.published": Category.ANNOUNCEMENTS,
+    "achievement.kudos": Category.ANNOUNCEMENTS,
     "message.received": Category.MESSAGES,
     # Behaviour / admissions
     "discipline.incident": Category.DISCIPLINE,
     "applicant.admitted": Category.ADMISSIONS,
+    # Child protection — never muteable (see NotificationPreference.is_muted).
+    "safeguarding.concern_raised": Category.SAFEGUARDING,
 }
 
 #: Category used for any event_key not present in :data:`EVENT_CATEGORY_MAP`.
@@ -88,6 +91,7 @@ DEFAULT_CHANNELS_BY_CATEGORY: Dict[str, List[str]] = {
     Category.MESSAGES: [Channel.IN_APP, Channel.PUSH],
     Category.DISCIPLINE: [Channel.EMAIL, Channel.IN_APP, Channel.SMS],
     Category.ADMISSIONS: [Channel.EMAIL, Channel.IN_APP],
+    Category.SAFEGUARDING: [Channel.SMS, Channel.EMAIL, Channel.IN_APP],
     Category.SYSTEM: [Channel.IN_APP],
 }
 

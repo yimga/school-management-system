@@ -1456,6 +1456,7 @@ class NotificationPreference(models.Model):
         MESSAGES = "messages", "Messages"
         DISCIPLINE = "discipline", "Discipline"
         ADMISSIONS = "admissions", "Admissions"
+        SAFEGUARDING = "safeguarding", "Safeguarding"
         SYSTEM = "system", "System"
 
     class Channel(models.TextChoices):
@@ -1499,7 +1500,15 @@ class NotificationPreference(models.Model):
         return f"NotificationPreference[{self.user_id}]"
 
     def is_muted(self, category) -> bool:
-        """True if the given category is in the user's muted list."""
+        """True if the given category is in the user's muted list.
+
+        Safeguarding is never muteable: a Designated Safeguarding Lead must not
+        be able to silence a child-protection alert (abuse / FGM / self-harm)
+        through notification preferences — so it is excluded from the mute check
+        regardless of what the stored list contains.
+        """
+        if category == self.Category.SAFEGUARDING:
+            return False
         return category in (self.muted_categories or [])
 
     def allows(self, category, channel) -> bool:
