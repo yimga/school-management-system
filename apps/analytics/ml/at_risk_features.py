@@ -112,7 +112,10 @@ def _populate_evaluations(features: AtRiskFeatures, student, since) -> None:
         # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
         qs = (
             Evaluation.objects.filter(student=student, updated_at__gte=since)
-            .only("seq1", "seq2", "exam", "updated_at")
+            # The Evaluation fields are seq1_score/seq2_score/exam_score; the old
+            # bare seq1/seq2/exam raised FieldError (swallowed below), so these
+            # three at-risk ML features were silently pinned to 0.
+            .only("seq1_score", "seq2_score", "exam_score", "updated_at")
             .order_by("updated_at")
         )
         rows = list(qs)
@@ -122,7 +125,11 @@ def _populate_evaluations(features: AtRiskFeatures, student, since) -> None:
         return
     scores: list[float] = []
     for r in rows:
-        candidates = [getattr(r, "seq1", None), getattr(r, "seq2", None), getattr(r, "exam", None)]
+        candidates = [
+            getattr(r, "seq1_score", None),
+            getattr(r, "seq2_score", None),
+            getattr(r, "exam_score", None),
+        ]
         nums = [float(v) for v in candidates if v is not None]
         if nums:
             scores.append(sum(nums) / len(nums))

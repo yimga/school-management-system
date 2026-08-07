@@ -1,7 +1,7 @@
 {
   "build_id": "2026-08-01-v16.0",
   "cache_bust": "20260807-admin-form-quality-v161",
-  "sw_version": "sms-v4.06.27-admin-form-quality-2026-08-07",
+  "sw_version": "sms-v4.06.28-offline-rail-integrity-2026-08-07",
   "seal": "2026-07-31-admin-os-v159-full-canvas",
   "approval_previews": [
     "var/design-previews/django-admin-os-top-tier-approval-v15-2026-07-21.html",

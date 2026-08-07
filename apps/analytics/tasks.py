@@ -354,6 +354,19 @@ def compute_risk_factors_task(self, school_id: str) -> dict:
         school = School.objects.filter(id=current_school_id).first()
         if not school:
             return {"status": "error", "message": "School not found"}
+        # Honesty + de-duplication: when a trained ML artifact is deployed, the
+        # analytics.compute_nightly_risk beat owns RiskFactor (real, honestly
+        # versioned model output). This crude attendance heuristic must NOT delete
+        # and overwrite those predictions — so it defers entirely, and the two
+        # daily beats stop fighting over the same table.
+        from apps.analytics.at_risk_readiness import assess_at_risk_readiness
+
+        if assess_at_risk_readiness().mode == "ml-artifact":
+            return {
+                "status": "skipped",
+                "reason": "ml_artifact_owns_risk_factors",
+                "school_id": current_school_id,
+            }
         today = timezone.now().date()
         last_30 = today - timedelta(days=30)
         signals_written = _write_student_signals_for_school(school, today, last_30)
@@ -382,6 +395,10 @@ def compute_risk_factors_task(self, school_id: str) -> dict:
                 student_id=sid,
                 score=score,
                 reason_summary=reason[:500],
+                # Honest self-describing label: this is an attendance heuristic,
+                # not a trained model — surfaces/exports can say so instead of
+                # letting a blank version read as a real prediction.
+                model_version="heuristic-attendance-30d",
             )
             created += 1
         return {

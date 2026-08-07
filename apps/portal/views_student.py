@@ -68,6 +68,20 @@ def student_learning_home(request: HttpRequest):
     except (AttributeError, DatabaseError, TypeError, ValueError):
         pass
 
+    # Surface the adaptive-learning recommendation the grade-save kernel computes
+    # into student.extra_data["adaptive_next"] — previously written on every grade
+    # entry but read by nothing (an orphaned compute). This is its first consumer.
+    adaptive_next = None
+    if profile is not None:
+        _extra = getattr(profile, "extra_data", None)
+        _rec = _extra.get("adaptive_next") if isinstance(_extra, dict) else None
+        if isinstance(_rec, dict) and _rec.get("rationale"):
+            adaptive_next = {
+                "rationale": str(_rec.get("rationale") or ""),
+                "difficulty_band": str(_rec.get("difficulty_band") or ""),
+                "topic_key": str(_rec.get("topic_key") or ""),
+            }
+
     headline = (
         f"{profile.first_name} {profile.last_name}".strip()
         if profile
@@ -144,6 +158,7 @@ def student_learning_home(request: HttpRequest):
         {
             "phase7_de": phase7_de,
             "tenant_health": tenant_health,
+            "adaptive_next": adaptive_next,
             **home_extras,
             **build_tp_hero_context(
                 request,

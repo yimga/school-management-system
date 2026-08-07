@@ -3,10 +3,10 @@
   "generated_at": "2026-08-07T00:00:00+00:00",
   "major": 4,
   "minor": 6,
-  "patch": 27,
-  "raw": "sms-v4.06.27-admin-form-quality-2026-08-07",
+  "patch": 28,
+  "raw": "sms-v4.06.28-offline-rail-integrity-2026-08-07",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "admin-form-quality",
+  "slug": "offline-rail-integrity",
   "valid": true
 }

@@ -34,6 +34,20 @@
    cockpit sections render below, each gated on cockpit.<section>.enabled. {% endcomment %}
 {% include "student/_rmc_dh_student_home.html" %}
 
+{% comment %} Adaptive next-topic recommendation — the first consumer of the
+   grade-save kernel's student.extra_data["adaptive_next"] (previously orphaned). {% endcomment %}
+{% if adaptive_next %}
+<section class="container-fluid px-3 px-lg-4 mt-3" data-rmc-section-anchor aria-label="{% trans 'Recommended next' %}">
+  <div class="card">
+    <div class="card-body">
+      <div class="text-uppercase small text-muted mb-1">{% trans "Recommended next" %}</div>
+      <p class="mb-1">{{ adaptive_next.rationale }}</p>
+      {% if adaptive_next.difficulty_band %}<span class="badge bg-secondary">{{ adaptive_next.difficulty_band }}</span>{% endif %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
 {% if cockpit.ai_study_buddy.enabled or cockpit.realtime_presence.enabled %}
 <div id="rmc-student-cockpit" class="tp-dashboard-cockpit container-fluid px-3 px-lg-4" data-rmc-tp-dashboard-cockpit="student" data-rmc-section-anchor>
   {% if cockpit.ai_study_buddy.enabled %}{% include "partials/cockpit/_collapsable_section.html" with title=_("AI study buddy") key="student__ai_study_buddy" default_state="collapsed" include_partial="partials/cockpit/_ai_study_buddy.html" chrome="section" %}{% endif %}

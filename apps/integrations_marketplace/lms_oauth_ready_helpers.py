@@ -54,6 +54,29 @@ def _live_outbound_enabled(env_var: str) -> bool:
     return raw in ("1", "true", "yes", "on")
 
 
+def _absolutize_endpoint(url: str, base_url: str = "") -> str | None:
+    """Return an absolute http(s) endpoint, or None if one cannot be formed.
+
+    blackboard / powerschool / sakai carry their token + grade paths as SUFFIXES
+    of an operator-supplied per-tenant base_url (never a bare host), so posting the
+    raw relative path to ``requests`` raised ``MissingSchema`` the moment live
+    outbound was enabled. Resolve the relative suffix against the base_url; if the
+    result still has no scheme, return None so the caller reports an honest config
+    error instead of crashing.
+    """
+    from urllib.parse import urljoin, urlparse
+
+    url = (url or "").strip()
+    if urlparse(url).scheme in ("http", "https"):
+        return url
+    base = (base_url or "").strip()
+    if base and urlparse(base).scheme in ("http", "https"):
+        joined = urljoin(base, url)
+        if urlparse(joined).scheme in ("http", "https"):
+            return joined
+    return None
+
+
 def make_oauth_ready_helpers(
     *,
     provider_slug: str,
@@ -117,9 +140,14 @@ def make_oauth_ready_helpers(
         except ImportError as exc:
             return {"status": "live_outbound_unavailable", "provider": provider_slug,
                     "reason": f"deps_missing:{exc}"}
+        endpoint = _absolutize_endpoint(token_url, str(_kwargs.get("base_url") or ""))
+        if endpoint is None:
+            return {"status": "config_error", "provider": provider_slug,
+                    "reason": "relative_token_url_requires_base_url",
+                    "token_url": token_url, "audit_id": audit_id}
         try:
             resp = requests.post(
-                token_url,
+                endpoint,
                 data={
                     "grant_type": "authorization_code",
                     "code": code,
@@ -193,9 +221,14 @@ def make_oauth_ready_helpers(
         except ImportError as exc:
             return {"status": "live_outbound_unavailable", "provider": provider_slug,
                     "reason": f"deps_missing:{exc}"}
+        endpoint = _absolutize_endpoint(token_url, str(_kwargs.get("base_url") or ""))
+        if endpoint is None:
+            return {"status": "config_error", "provider": provider_slug,
+                    "reason": "relative_token_url_requires_base_url",
+                    "token_url": token_url, "audit_id": audit_id}
         try:
             resp = requests.post(
-                token_url,
+                endpoint,
                 data={
                     "grant_type": "refresh_token",
                     "refresh_token": refresh_token,
@@ -278,10 +311,15 @@ def make_oauth_ready_helpers(
                     "reason": f"deps_missing:{exc}"}
         if not access_token:
             return {"status": "bad_request", "provider": provider_slug, "reason": "missing_access_token"}
+        endpoint = _absolutize_endpoint(path_suffix, str(_kwargs.get("base_url") or ""))
+        if endpoint is None:
+            return {"status": "config_error", "provider": provider_slug,
+                    "reason": "relative_grade_path_requires_base_url",
+                    "target_path_suffix": path_suffix}
         try:
             resp = requests.request(
                 grade_push_method,
-                path_suffix,
+                endpoint,
                 json=body,
                 headers={"Authorization": f"Bearer {access_token}"},
                 timeout=30,
