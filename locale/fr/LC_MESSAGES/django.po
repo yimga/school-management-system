@@ -241,7 +241,7 @@ msgid "Academic year"
 msgstr "Année scolaire"
 
 msgid "Academics"
-msgstr ""
+msgstr "Scolarité"
 
 msgid "Access Your Campus"
 msgstr ""
@@ -311,16 +311,16 @@ msgid "Active sessions; revoke if needed."
 msgstr ""
 
 msgid "Active students"
-msgstr ""
+msgstr "Élèves actifs"
 
 msgid "Active subjects"
-msgstr ""
+msgstr "Matières actives"
 
 msgid "Active subscriptions"
 msgstr ""
 
 msgid "Active teachers"
-msgstr ""
+msgstr "Enseignants actifs"
 
 msgid "Active term:"
 msgstr ""
@@ -359,7 +359,7 @@ msgid "Add add-on"
 msgstr ""
 
 msgid "Add applicant"
-msgstr ""
+msgstr "Ajouter un candidat"
 
 msgid "Add campus"
 msgstr ""
@@ -371,7 +371,7 @@ msgid "Add definition"
 msgstr ""
 
 msgid "Add domain"
-msgstr ""
+msgstr "Ajouter un domaine"
 
 msgid "Add donor"
 msgstr ""
@@ -380,13 +380,13 @@ msgid "Add multiplier"
 msgstr ""
 
 msgid "Add plan"
-msgstr ""
+msgstr "Ajouter un forfait"
 
 msgid "Add region"
-msgstr ""
+msgstr "Ajouter une région"
 
 msgid "Add resource"
-msgstr ""
+msgstr "Ajouter une ressource"
 
 msgid "Add scale"
 msgstr ""
@@ -62473,3 +62473,25 @@ msgstr ""
 #: templates/evals/import_job_monitor.html
 msgid "✗ Failed"
 msgstr ""
+
+msgid "New invoice: %(ref)s"
+msgstr "Nouvelle facture : %(ref)s"
+
+msgid ""
+"Invoice %(ref)s has been issued for %(student)s. Log in to the parent portal"
+" to view details and pay."
+msgstr ""
+"La facture %(ref)s a été émise pour %(student)s. Connectez-vous au portail "
+"des parents pour consulter les détails et effectuer le paiement."
+
+msgid "Payment received for invoice %(ref)s"
+msgstr "Paiement reçu pour la facture %(ref)s"
+
+msgid "Payment of %(amount)s has been recorded for invoice %(ref)s."
+msgstr "Un paiement de %(amount)s a été enregistré pour la facture %(ref)s."
+
+msgid "New grades published"
+msgstr "Nouvelles notes publiées"
+
+msgid "New grades have been published for %(subject)s."
+msgstr "De nouvelles notes ont été publiées pour %(subject)s."

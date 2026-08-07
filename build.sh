@@ -69,6 +69,12 @@ python3 scripts/verify_world_globe_staticfiles_deploy.py --source
 # Set Django settings module for production build
 export DJANGO_SETTINGS_MODULE=config.settings
 
+# Compile gettext catalogs (locale/*/LC_MESSAGES/*.po -> *.mo) with polib, since
+# GNU gettext's msgfmt is not on the build host. Without this a French string
+# committed to a .po never reached users (the deploy served the stale committed
+# .mo). Best-effort — a catalog compile hiccup must not fail the whole build.
+python3 manage.py compile_message_catalogs || echo "compile_message_catalogs skipped"
+
 # Never run makemigrations in CI/production.
 python3 manage.py collectstatic --noinput
 python3 scripts/verify_world_globe_staticfiles_deploy.py --staticfiles
