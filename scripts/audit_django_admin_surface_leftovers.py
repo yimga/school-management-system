@@ -40,19 +40,17 @@ def main() -> int:
             for pat, label in banned:
                 if re.search(pat, line):
                     add("P0", p, i, f"{label}: {line.strip()[:120]}")
-            if "studio_os:" in line:
-                window = "\n".join(lines[max(0, i - 5) : i + 1])
-                # Manager-only templates are OK without gate
-                rel = p.as_posix()
-                manager_only = "index_superadmin" in rel or "admin_operator_steering" in rel
-                if not manager_only and "is_manager_host" not in window:
-                    # extra_user_links wraps whole block; check file-level gate
-                    file_txt = "\n".join(lines)
-                    if "extra_user_links" in rel and file_txt.find("{% if is_manager_host %}") < file_txt.find("studio_os:"):
-                        continue
-                    if "app_list" in rel and "is_manager_host" in "\n".join(lines[max(0, i - 8) : i]):
-                        continue
-                    add("P1", p, i, f"unguarded studio_os link: {line.strip()[:120]}")
+            # NOTE (2026-08-07): studio_os links are intentionally NOT flagged.
+            # Studio OS is mounted on BOTH the manager and tenant hosts and, on the
+            # tenant host, is a first-class surface for the tenant-admin tier
+            # (superuser / staff / role ADMIN) — the same gate as the tenant backend
+            # dashboard (see apps/schools/control_plane.py::
+            # user_can_access_studio_on_request). So a tenant admin change-form escape
+            # hatch that links studio_os:output is a correct, TENANT-SAFE link, not an
+            # operator-surface leftover — the AdminUiSmokeTests assert exactly that.
+            # Real operator-surface isolation (super:/manager_/ '/super/') is enforced
+            # by the CI gate scan_tenant_template_operator_links.py, which correctly
+            # does NOT classify studio_os as an operator surface.
 
     core = {
         "change_form.html": 'data-rmc-django-workspace="change-form"',
