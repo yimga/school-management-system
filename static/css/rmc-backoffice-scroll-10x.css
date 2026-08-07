@@ -18,6 +18,24 @@ body.admin-premium-shell[data-rmc-cp-scroll="canvas"] .rmc-app-shell {
   max-height: var(--rmc-iso-viewport-h, 100dvh) !important;
 }
 
+/* Floor the TENANT /admin/ (admin-premium-shell) canvas shell at the viewport.
+   The `min-height:0` above lets the 1fr canvas shrink so #cp-main-content owns the
+   scroll — but manager + control-plane also receive a `height:100% !important`
+   COMPANION rule (rmc-shell-scroll-contract.css / admin-cp-parity.css) and the tenant
+   premium shell never did. With no height companion, the shell's own `height:100dvh`
+   cannot stretch a CSS grid whose <body> height is indefinite, so a SHORT change/list
+   page collapsed the entire shell to content height and stranded the pinned grid-row-3
+   footer with a dark void beneath it (verified in a headless browser: 872px shell in a
+   1080px viewport → 208px void). A viewport-unit `min-height` fills the shell regardless
+   of the parent's indefiniteness where `height:100%`/`height:100dvh` cannot. This is a
+   NO-OP on long pages — the `max-height` above already pins them to the viewport, so
+   min == max == the viewport and #cp-main-content keeps its internal scroll. Specificity
+   (0,5,2) deliberately beats the `min-height:0` rule above regardless of sheet order. */
+html[data-rmc-admin-html="unfold"] body.admin-premium-shell[data-rmc-cp-scroll="canvas"] [data-rmc-shell-root="django-admin"].rmc-app-shell {
+  min-height: var(--rmc-iso-viewport-h-fallback, 100vh) !important;
+  min-height: var(--rmc-iso-viewport-h, 100dvh) !important;
+}
+
 /* /super/: the canvas owns chrome; the canvas body is the page scroller. */
 body.control-plane-shell[data-rmc-cp-scroll="canvas"] .rmc-app-shell__canvas {
   overflow: hidden !important;

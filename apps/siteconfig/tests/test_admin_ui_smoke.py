@@ -525,6 +525,47 @@ class AdminUiSmokeTests(TestCase):
             "compact footer inner must be a flex ribbon (was grid stack)",
         )
 
+    def test_tenant_admin_canvas_shell_floors_at_viewport(self):
+        """The tenant /admin/ (admin-premium-shell) canvas shell must be floored to the
+        viewport height so short change/list pages don't collapse the grid to content
+        height and strand the pinned grid-row-3 footer over a dark void.
+
+        Regression seal (2026-08-06): manager + control-plane canvas shells receive a
+        `height:100% !important` companion rule (rmc-shell-scroll-contract / admin-cp-parity)
+        but the tenant premium shell never did, so `min-height:0` in rmc-backoffice-scroll-10x
+        let the grid collapse to ~content height (verified: 872px shell in a 1080px viewport
+        → 208px void). The fix floors the premium canvas shell with a viewport-unit
+        `min-height` (a `height`/`height:100%` cannot stretch a grid whose <body> height is
+        indefinite; a viewport-unit min-height can). No-op on long pages (max-height already
+        pins them). If this rule is removed the void returns.
+        """
+        from django.contrib.staticfiles import finders
+
+        css_path = finders.find("css/rmc-backoffice-scroll-10x.css")
+        self.assertIsNotNone(css_path, "backoffice scroll contract stylesheet not found")
+        css = Path(css_path).read_text(encoding="utf-8")
+        anchor = "Floor the TENANT /admin/"
+        self.assertIn(anchor, css, "tenant admin shell viewport-floor block is missing")
+        # Window must clear the explanatory comment (~1KB) to reach the rule below it.
+        floor_block = css.split(anchor, 1)[1][:1600]
+        # Scoped to the tenant premium canvas admin shell (not manager/control-plane).
+        self.assertIn(
+            'body.admin-premium-shell[data-rmc-cp-scroll="canvas"]',
+            floor_block,
+            "floor rule must target the tenant premium canvas shell",
+        )
+        self.assertIn(
+            "[data-rmc-shell-root=\"django-admin\"].rmc-app-shell",
+            floor_block,
+            "floor rule must target the .rmc-app-shell grid root",
+        )
+        # A viewport-unit min-height floor (the whole point — height/height:100% do not work).
+        self.assertIn(
+            "min-height: var(--rmc-iso-viewport-h",
+            floor_block,
+            "floor rule must set a viewport-unit min-height on the shell",
+        )
+
     def test_reportcardstyle_change_form_links_to_control_plane_surfaces(self):
         """P3: ReportCardStyle admin links to report builder + Output studio + config hub (tenant-safe URLs)."""
         style = ReportCardStyle.objects.create(
