@@ -8,7 +8,7 @@
     <ul class="flex flex-wrap gap-x-5 gap-y-2 text-sm list-none m-0 p-0">
       <li><a href="{% url 'portal:document_library_manage' %}" class="text-primary-600 hover:underline font-medium">{% trans "Document library" %}</a></li>
       <li><a href="{% url 'siteconfig:feature_control_panel' %}" class="text-primary-600 hover:underline">{% trans "Feature control" %}</a></li>
-      {% if is_manager_host %}<li><a href="{% url 'studio_os:output' %}" class="text-primary-600 hover:underline">{% trans "Studio · Output" %}</a></li>{% endif %}
+      <li><a href="{% url 'studio_os:output' %}" class="text-primary-600 hover:underline">{% trans "Studio · Output" %}</a></li>
       <li><a href="{% url 'siteconfig:console_domains_hub' %}" class="text-primary-600 hover:underline">{% trans "Configuration hub" %}</a></li>
     </ul>
   </section>

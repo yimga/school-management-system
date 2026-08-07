@@ -4331,3 +4331,51 @@ html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rm
 html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group table td:has(> input[type="checkbox"]) {
   text-align: center !important;
 }
+
+/* --- 3. Clear add / remove-row controls ----------------------------------- */
+/* "Add another …" was a bare text link in a full-width cell — easy to miss.
+   Make it a real, compact button affordance with a leading "+". */
+html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group .add-row td {
+  padding: 0.6rem 0.7rem !important;
+  background: transparent !important;
+  border-bottom: 0 !important;
+  text-align: left !important;
+}
+html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group .add-row a {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.95rem;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.82rem;
+  text-decoration: none !important;
+  color: var(--brand-primary, #4f46e5) !important;
+  background: color-mix(in srgb, var(--brand-primary, #4f46e5) 12%, transparent) !important;
+  border: 1px solid color-mix(in srgb, var(--brand-primary, #4f46e5) 32%, transparent) !important;
+  transition: background var(--motion-fast, 120ms) var(--ease-out, ease-out);
+}
+html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group .add-row a:hover {
+  background: color-mix(in srgb, var(--brand-primary, #4f46e5) 20%, transparent) !important;
+}
+html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group .add-row a::before {
+  content: "+";
+  font-size: 1.05em;
+  line-height: 1;
+  font-weight: 700;
+}
+/* Per-row remove — a clear red-tinted control, not a bare word/icon adrift. */
+html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group :is(td.delete, .delete) a,
+html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group a.inline-deletelink {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.28rem 0.65rem;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-decoration: none !important;
+  color: var(--color-danger, #dc2626) !important;
+  background: color-mix(in srgb, var(--color-danger, #dc2626) 10%, transparent) !important;
+  border: 1px solid color-mix(in srgb, var(--color-danger, #dc2626) 26%, transparent) !important;
+}

@@ -547,7 +547,18 @@
     radar.setAttribute("aria-label", "Section radar");
     main.appendChild(radar);
 
-    var sections = main.querySelectorAll("fieldset.module, .inline-group");
+    // Top-level sections only: a tabular inline's `.inline-group` wraps an
+    // inner `fieldset.module`, so the raw selector matches the same section
+    // twice. Drop nodes nested inside another matched node so the dot count
+    // matches the "On this page" rail + FORM PULSE (7, not 8).
+    var raw = Array.prototype.slice.call(
+      main.querySelectorAll("fieldset.module, .inline-group")
+    );
+    var sections = raw.filter(function (node) {
+      return !raw.some(function (other) {
+        return other !== node && other.contains(node);
+      });
+    });
     var dots = [];
 
     Array.prototype.forEach.call(sections, function (sec, i) {

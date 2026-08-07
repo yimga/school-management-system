@@ -299,6 +299,12 @@
   }
 
   function wireSectionNav(form) {
+    // Page-aware: the Django admin shell renders its own richer section
+    // navigation (numbered fieldset headings + the labelled "On this page"
+    // rail), so a generic top tab bar here would be a third, redundant copy of
+    // the same list. Skip it inside the admin shell; keep it everywhere else.
+    if (form.closest('[data-rmc-shell-root="django-admin"]')) { return; }
+
     var secs = Array.prototype.filter.call(
       form.querySelectorAll(".form-section, .rmc-form__section, fieldset"),
       function (s) { return sectionHeading(s); }

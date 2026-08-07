@@ -159,8 +159,15 @@ class AdminUiSmokeTests(TestCase):
         set_urlconf(self._prev_urlconf)
         super().tearDown()
 
-    def _platform_change_form_body(self, model, pk) -> str:
-        """Render a platform-admin change form via RequestFactory (avoids manager Client auth redirects)."""
+    def _platform_change_form_body(self, model, pk, school=None) -> str:
+        """Render a platform-admin change form via RequestFactory (avoids manager Client auth redirects).
+
+        Some tenant-scoped ModelAdmins (e.g. ServiceIntegration via
+        TenantIntegrationAdminMixin) gate on ``tenant_admin_user_has_access``,
+        which requires ``request.school`` before the superuser bypass — pass
+        ``school=`` to supply that context. Default keeps the school-less request
+        the other callers rely on.
+        """
         model_admin = platform_admin_site._registry[model]
         path = _reverse_platform_admin(
             f"admin:{model._meta.app_label}_{model._meta.model_name}_change",
@@ -171,6 +178,8 @@ class AdminUiSmokeTests(TestCase):
         )
         request.public_host_kind = "manager"
         request.urlconf = _MANAGER_URLCONF
+        if school is not None:
+            request.school = school
         set_urlconf(_MANAGER_URLCONF)
         try:
             response = model_admin.change_view(request, str(pk))
@@ -633,6 +642,89 @@ class AdminUiSmokeTests(TestCase):
             "the fieldset/inline selector must live only inside collectSections()",
         )
 
+    def test_form_intelligence_skips_section_nav_inside_admin_shell(self):
+        """The platform-wide form enhancer must NOT build its `rmc-fi-nav` top tab
+        bar inside the Django admin shell.
+
+        Regression seal (2026-08-07): `rmc-form-intelligence.js` enhances every
+        <form> and injects a horizontal `rmc-fi-nav` section tab bar. Inside the
+        admin shell that is a third, redundant copy of the section list (the admin
+        already renders numbered fieldset headings + the labelled 'On this page'
+        rail), so `wireSectionNav` early-returns when the form is inside
+        `[data-rmc-shell-root="django-admin"]`. Page-aware: the guard is scoped to
+        the admin shell, so form-intelligence's nav keeps working on every other
+        surface. If the guard is removed the redundant top tab bar returns.
+        """
+        from django.contrib.staticfiles import finders
+
+        js_path = finders.find("js/rmc-form-intelligence.js")
+        self.assertIsNotNone(js_path, "form-intelligence script not found")
+        js = Path(js_path).read_text(encoding="utf-8")
+        # The guard must live inside wireSectionNav and return before building nav.
+        self.assertIn("function wireSectionNav", js, "wireSectionNav missing")
+        # Slice to the NEXT top-level function (2-space indent) — not the first
+        # bare "function " (an inline `function (s)` callback lives inside the body
+        # before the nav is built).
+        nav_body = js.split("function wireSectionNav", 1)[1].split("\n  function ", 1)[0]
+        self.assertIn(
+            "closest('[data-rmc-shell-root=\"django-admin\"]')",
+            nav_body,
+            "wireSectionNav must skip the admin shell (page-aware guard)",
+        )
+        # The guard must return BEFORE the nav element is created.
+        guard_at = nav_body.index('data-rmc-shell-root="django-admin"')
+        build_at = nav_body.index('"rmc-fi-nav"')
+        self.assertLess(
+            guard_at, build_at, "the admin-shell guard must precede nav construction"
+        )
+
+    def test_section_radar_dedupes_nested_inline_sections(self):
+        """The section-radar dots must count each section once (7, not 8) — same
+        dedupe as the rail + FORM PULSE.
+
+        Regression seal (2026-08-07): `initSectionRadar` used the raw
+        `fieldset.module, .inline-group` selector, which matches a tabular inline
+        twice (the `.inline-group` wraps an inner `fieldset.module`), so it drew 8
+        dots for 7 real sections. It must drop nodes nested inside another matched
+        node.
+        """
+        from django.contrib.staticfiles import finders
+
+        js_path = finders.find("js/rmc-admin-os-innovations.js")
+        self.assertIsNotNone(js_path, "admin os-innovations script not found")
+        js = Path(js_path).read_text(encoding="utf-8")
+        self.assertIn("function initSectionRadar", js, "initSectionRadar missing")
+        radar_body = js.split("function initSectionRadar", 1)[1].split("\n  function ", 1)[0]
+        self.assertIn(
+            "other.contains(node)",
+            radar_body,
+            "section radar must drop nested matched nodes (dedupe to 7)",
+        )
+
+    def test_premium_form_contract_styles_inline_add_and_remove_controls(self):
+        """The v16 contract must give the tabular inline clear add/remove controls.
+
+        Regression seal (2026-08-07): 'Add another …' was a bare text link in a
+        full-width cell and the dynamic 'Remove' link was unstyled. The contract now
+        renders the add link as a real pill button (with a leading '+') and the
+        `inline-deletelink` remove control as a red-tinted button, page-aware
+        (scoped to the django-admin shell + premium-form-frame).
+        """
+        from django.contrib.staticfiles import finders
+
+        css_path = finders.find("css/rmc-admin-django-canvas-contract.css")
+        self.assertIsNotNone(css_path, "canvas contract stylesheet not found")
+        css = Path(css_path).read_text(encoding="utf-8")
+        block = css.split("PREMIUM FORM CONTRACT (v16", 1)[1]
+        # Add control: a real button affordance with a leading "+".
+        self.assertIn(".inline-group .add-row a", block, "add-row button rule missing")
+        self.assertIn('content: "+"', block, "add-row button must carry a leading +")
+        # Remove control: the dynamic inline-deletelink is styled as a button.
+        self.assertIn("a.inline-deletelink", block, "remove-control rule missing")
+        # Page-aware: scoped to the admin shell + the change/add form contract.
+        self.assertIn('[data-rmc-shell-root="django-admin"]', block)
+        self.assertIn('[data-rmc-admin-form-contract="premium-form-frame"]', block)
+
     def test_reportcardstyle_change_form_links_to_control_plane_surfaces(self):
         """P3: ReportCardStyle admin links to report builder + Output studio + config hub (tenant-safe URLs)."""
         style = ReportCardStyle.objects.create(
@@ -769,6 +861,9 @@ class AdminUiSmokeTests(TestCase):
         )
         request.public_host_kind = "tenant"
         request.urlconf = "config.tenant_urls"
+        # IntegrationMarketplaceAdmin gates on tenant_admin_user_has_access, which
+        # requires request.school before the superuser bypass — supply it.
+        request.school = self.smoke_school
         set_urlconf("config.tenant_urls")
         try:
             response = model_admin.change_view(request, str(integration.pk))
@@ -1702,7 +1797,9 @@ class AdminUiSmokeTests(TestCase):
             service_name="P3 smoke service integration",
             service_type=ServiceIntegration.ServiceType.LTI,
         )
-        body = self._platform_change_form_body(ServiceIntegration, si.pk)
+        body = self._platform_change_form_body(
+            ServiceIntegration, si.pk, school=self.smoke_school
+        )
         self.assertIn("service-integration-cp-escape-heading", body)
         for expect_path in (
             _reverse_super("super:dashboard"),
