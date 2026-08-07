@@ -257,11 +257,17 @@ def _format_number_plain(value, decimals=2) -> str:
         num = float(value)
     except (TypeError, ValueError):
         return str(value)
-    if decimals is None:
-        dec = 2
+    dec = 2 if decimals is None else int(decimals)
+    # The scalar filter can't see template context, so resolve the pinned tenant's
+    # separators the same way ``format_currency`` does — a francophone school then
+    # renders "12 500,50" instead of the hardcoded "12,500.50". Falls back to the
+    # en-style ./, when there is no tenant pin / no region separators configured.
+    resolved = _resolve_pinned_tenant_currency()
+    if resolved:
+        _symbol, dec_sep, thousands_sep, _code = resolved
     else:
-        dec = int(decimals)
-    return _format_number_value(num, dec, ".", ",")
+        dec_sep, thousands_sep = ".", ","
+    return _format_number_value(num, dec, dec_sep or ".", thousands_sep or ",")
 
 
 @register.filter

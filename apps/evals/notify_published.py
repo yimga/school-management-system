@@ -142,8 +142,24 @@ def notify_grades_published_direct(
 
         subject_label = _subject_label(subject_assignment)
         link = _results_link()
-        title = "New grades published"
-        message = f"New grades have been published for {subject_label}."
+        # Render in the tenant's language so a francophone school's parents get a
+        # French notification (strings resolve from the gettext catalog).
+        from django.utils import translation
+        from django.utils.translation import gettext as _
+
+        _locale = ""
+        try:
+            from apps.siteconfig.tenant_config import get_tenant_locale
+
+            _loc = get_tenant_locale(school=school)
+            _locale = (_loc.get("default_language") or _loc.get("locale") or "").strip()
+        except Exception:  # noqa: BLE001 — locale lookup must not break notify
+            _locale = ""
+        with translation.override(_locale or None):
+            title = _("New grades published")
+            message = _("New grades have been published for %(subject)s.") % {
+                "subject": subject_label
+            }
 
         def _dispatch() -> None:
             from apps.communication.dispatch import dispatch_event

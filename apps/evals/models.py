@@ -127,6 +127,22 @@ EXTENDED_GRADE_BANDS: dict[str, dict] = {
             ("4", 4.49), ("5", 5.49), ("6", 6.0),
         ],
     },
+    # Francophone "note sur 20" mentions (Cameroon / France / Senegal): a 0–20
+    # score reads as a French mention, never an A–E letter. Descending — return
+    # the first band the value clears (value >= min). The anglophone numeric_0_20
+    # scale deliberately stays A–E (absent here ⇒ GradeConverter.numeric_to_letter),
+    # so bilingual schools keep both conventions on the SAME 0–20 axis.
+    "french_0_20": {
+        "score_scale": 20,
+        "kind": "mention",
+        "bands": [
+            ("Très bien", 16),
+            ("Bien", 14),
+            ("Assez bien", 12),
+            ("Passable", 10),
+            ("Insuffisant", 0),
+        ],
+    },
 }
 
 

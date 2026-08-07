@@ -69,6 +69,32 @@ class QualitativeTests(SimpleTestCase):
         self.assertEqual(resolve_extended_band_label("qualitative_pd", 30), "Beginning")
 
 
+class FrenchMentionTests(SimpleTestCase):
+    def test_note_sur_20_mentions(self):
+        cases = {
+            18: "Très bien", 16: "Très bien", 15: "Bien", 14: "Bien",
+            13: "Assez bien", 12: "Assez bien", 11: "Passable", 10: "Passable",
+            9: "Insuffisant", 0: "Insuffisant",
+        }
+        for score, expected in cases.items():
+            self.assertEqual(
+                resolve_extended_band_label("french_0_20", score), expected, msg=score
+            )
+
+    def test_converter_band_label_uses_mention(self):
+        conv = GradeConverter(_StubWeights("french_0_20"))
+        self.assertEqual(conv.band_label(Decimal("18")), "Très bien")
+        self.assertEqual(conv.convert(Decimal("18"))["band"], "Très bien")
+
+    def test_anglophone_numeric_0_20_still_letters(self):
+        # Only the francophone key maps to mentions; anglophone 0–20 keeps A–E.
+        self.assertIsNone(resolve_extended_band_label("numeric_0_20", 18))
+        conv = GradeConverter(_StubWeights("numeric_0_20"))
+        self.assertEqual(
+            conv.band_label(Decimal("18")), conv.numeric_to_letter(Decimal("18"))
+        )
+
+
 class BackwardCompatTests(SimpleTestCase):
     def test_extended_resolver_returns_none_for_five_band_scales(self):
         # The A–E numeric scales are NOT extended families — resolver returns None so

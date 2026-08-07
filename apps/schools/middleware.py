@@ -1905,9 +1905,30 @@ class TenantLocaleMiddleware(MiddlewareMixin):
                 "TenantLocaleMiddleware tz activate skipped tz=%s err=%s", tzname, exc
             )
 
+    @staticmethod
+    def _resolve_tenant_language(school) -> str:
+        """The tenant's chosen UI language.
+
+        The settings view writes the admin's choice into
+        ``School.settings['default_language']`` — the JSON blob ``get_tenant_locale``
+        reads — and NOT the ``School.default_language`` model field. Reading only
+        the field left every ``{% trans %}`` surface in English even after French
+        was selected (the field stayed blank). Prefer the settings-JSON value (the
+        write-path source of truth, which also heals tenants that already picked a
+        language), and fall back to the model field for any set the old way.
+        """
+        if school is None:
+            return ""
+        settings_blob = getattr(school, "settings", None)
+        if isinstance(settings_blob, dict):
+            val = (settings_blob.get("default_language") or "").strip()
+            if val:
+                return val
+        return (getattr(school, "default_language", "") or "").strip()
+
     def _maybe_activate_language(self, request):
         school = getattr(request, "school", None)
-        lang = (getattr(school, "default_language", "") or "").strip() if school else ""
+        lang = self._resolve_tenant_language(school)
         if not lang:
             return
         try:

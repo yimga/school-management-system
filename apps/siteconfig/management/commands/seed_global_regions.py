@@ -5,6 +5,26 @@ from apps.siteconfig.education_profile_engine import ensure_country_profile
 from apps.siteconfig.global_catalog import GlobalGeoCatalog
 from apps.siteconfig.models import RegionConfig
 
+# Comma-decimal + non-breaking-space thousands is the francophone number
+# convention ("12 500,50"), the CFA-franc zone standard. Seed it so a Cameroon /
+# Senegal tenant renders numbers the way its users read them instead of the
+# en-style "12,500.50". Keyed off the CFA currencies (which ARE the francophone-
+# Africa set) plus the francophone-euro/comoros countries, so it is correct even
+# where a bilingual country's catalog default_language is recorded as English.
+_FR_NUMBER_CURRENCIES = frozenset({"XAF", "XOF"})
+_FR_NUMBER_COUNTRIES = frozenset({"FR", "BE", "LU", "MC", "MG", "DJ", "KM"})
+_FR_DECIMAL_SEP = ","
+_FR_THOUSANDS_SEP = "\xa0"  # non-breaking space
+
+
+def _number_separators(code, currency, default_language) -> tuple[str, str]:
+    is_fr = (
+        currency in _FR_NUMBER_CURRENCIES
+        or code in _FR_NUMBER_COUNTRIES
+        or (default_language or "").split("-")[0].lower() == "fr"
+    )
+    return (_FR_DECIMAL_SEP, _FR_THOUSANDS_SEP) if is_fr else (".", ",")
+
 
 class Command(BaseCommand):
     help = "Seed RegionConfig for all countries from the global catalog."
@@ -40,6 +60,9 @@ class Command(BaseCommand):
         for country in countries:
             code = country["code"]
             defaults = GlobalGeoCatalog.country_defaults(code)
+            dec_sep, thou_sep = _number_separators(
+                code, defaults["currency"], defaults["default_language"]
+            )
             region, created = RegionConfig.objects.get_or_create(
                 code=code,
                 defaults={
@@ -49,6 +72,8 @@ class Command(BaseCommand):
                     "date_format": "DD/MM/YYYY",
                     "grading_scale": "0-100",
                     "default_currency": defaults["currency"],
+                    "decimal_separator": dec_sep,
+                    "thousands_separator": thou_sep,
                     "academic_year_start_month": 9,
                     "term_count_per_year": 3,
                 },
@@ -76,6 +101,12 @@ class Command(BaseCommand):
             if defaults["currency"] and region.default_currency != defaults["currency"]:
                 region.default_currency = defaults["currency"]
                 changed = True
+            if region.decimal_separator != dec_sep:
+                region.decimal_separator = dec_sep
+                changed = True
+            if region.thousands_separator != thou_sep:
+                region.thousands_separator = thou_sep
+                changed = True
 
             if changed:
                 region.save(
@@ -84,6 +115,8 @@ class Command(BaseCommand):
                         "timezone",
                         "default_language",
                         "default_currency",
+                        "decimal_separator",
+                        "thousands_separator",
                         "updated_at",
                     ]
                 )

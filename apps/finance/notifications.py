@@ -105,16 +105,44 @@ def notify_guardians_new_invoice(
     return count
 
 
+def _email_locale_for_school(school) -> str:
+    """The language transactional emails should render in for this tenant.
+
+    Reads the tenant's chosen language (the same source of truth
+    TenantLocaleMiddleware activates the UI from) so a francophone school's
+    parents receive French emails. Empty string ⇒ platform default. Never raises:
+    a locale lookup must not block an email.
+    """
+    if school is None:
+        return ""
+    try:
+        from apps.siteconfig.tenant_config import get_tenant_locale
+
+        loc = get_tenant_locale(school=school)
+        return (loc.get("default_language") or loc.get("locale") or "").strip()
+    except Exception:  # noqa: BLE001 — locale resolution must not block the email
+        return ""
+
+
 def _send_new_invoice_emails(invoice: Invoice, guardians: list) -> None:
     """Send optional email to guardians (Phase 2.3) via the reliability layer."""
+    from django.utils import translation
+    from django.utils.translation import gettext as _
+
     from apps.schoolops.email_delivery import send_transactional
 
     ref = invoice.reference or f"INV-{invoice.id}"
-    subject = f"New invoice: {ref}"
-    body = (
-        f"Invoice {ref} has been issued for {invoice.student}. "
-        "Log in to the parent portal to view details and pay."
+    school = getattr(invoice, "school", None) or getattr(
+        getattr(invoice, "student", None), "school", None
     )
+    # Render the subject/body in the tenant's language so a francophone school's
+    # parents get a French email (strings live in the gettext catalog).
+    with translation.override(_email_locale_for_school(school) or None):
+        subject = _("New invoice: %(ref)s") % {"ref": ref}
+        body = _(
+            "Invoice %(ref)s has been issued for %(student)s. "
+            "Log in to the parent portal to view details and pay."
+        ) % {"ref": ref, "student": invoice.student}
     for g in guardians:
         email = (getattr(g, "email", None) or "").strip() or (
             g.guardian_user.email or ""
@@ -190,11 +218,18 @@ def notify_guardians_payment_received(
 
 def _send_payment_received_emails(payment: Payment, guardians: list) -> None:
     """Optional email when payment is received (Phase 2.4) via reliability layer."""
+    from django.utils import translation
+    from django.utils.translation import gettext as _
+
     from apps.schoolops.email_delivery import send_transactional
 
     ref = payment.invoice.reference if payment.invoice else str(payment.id)
-    subject = f"Payment received for invoice {ref}"
-    body = f"Payment of {payment.amount} has been recorded for invoice {ref}."
+    school = getattr(payment.invoice, "school", None) if payment.invoice else None
+    with translation.override(_email_locale_for_school(school) or None):
+        subject = _("Payment received for invoice %(ref)s") % {"ref": ref}
+        body = _(
+            "Payment of %(amount)s has been recorded for invoice %(ref)s."
+        ) % {"amount": payment.amount, "ref": ref}
     for g in guardians:
         email = (getattr(g, "email", None) or "").strip() or (
             g.guardian_user.email or ""

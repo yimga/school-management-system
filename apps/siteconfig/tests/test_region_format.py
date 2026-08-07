@@ -228,6 +228,21 @@ class PinnedTenantCurrencyTests(SimpleTestCase):
             )
         self.assertEqual((symbol, dec_sep, thousands_sep), ("€", ",", "."))
 
+    def test_scalar_format_number_uses_pinned_francophone_separators(self):
+        # {{ x|format_number }} has no context, so it must resolve the pinned
+        # tenant's separators — a francophone region renders "12 500,50".
+        region = _FakeRegion(decimal_separator=",", thousands_separator="\xa0")
+        pin, school, _ = _patch_pin_and_school(
+            "school-cm", _FakeSchool("XAF", default_region=region)
+        )
+        with pin, school:
+            self.assertEqual(format_number(12500.5), "12\xa0500,50")
+
+    def test_scalar_format_number_defaults_to_en_style_without_pin(self):
+        pin, school, _ = _patch_pin_and_school(None, None)
+        with pin, school:
+            self.assertEqual(format_number(12500.5), "12,500.50")
+
 
 class FormatNumberFilterTests(TestCase):
     def test_none_returns_empty(self):

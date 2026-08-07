@@ -19,9 +19,12 @@ _ROOT = Path(__file__).resolve().parents[3]
 
 
 class _FakeSchool:
-    def __init__(self, tz="", lang=""):
+    def __init__(self, tz="", lang="", settings=None):
         self.timezone = tz
         self.default_language = lang
+        # The settings view writes the language choice into this JSON blob,
+        # not the model field — the M2 fix reads it here first.
+        self.settings = settings
 
 
 def _mw():
@@ -104,6 +107,27 @@ class LanguageActivationTests(SimpleTestCase):
         with translation.override(settings.LANGUAGE_CODE):
             _mw().process_request(req)
             self.assertEqual(translation.get_language(), settings.LANGUAGE_CODE)
+
+    def test_fills_from_settings_json_language(self):
+        # The write path stores the choice in School.settings, model field blank.
+        lang = self._supported_nondefault()
+        req = RequestFactory().get("/")
+        req.school = _FakeSchool(lang="", settings={"default_language": lang})
+        with translation.override(settings.LANGUAGE_CODE):
+            _mw().process_request(req)
+            self.assertEqual(translation.get_language(), lang)
+
+    def test_settings_json_takes_precedence_over_blank_field(self):
+        # settings JSON has the language even though the model field is the bare
+        # platform default — the JSON (write-path SoT) must win.
+        lang = self._supported_nondefault()
+        req = RequestFactory().get("/")
+        req.school = _FakeSchool(
+            lang=settings.LANGUAGE_CODE, settings={"default_language": lang}
+        )
+        with translation.override(settings.LANGUAGE_CODE):
+            _mw().process_request(req)
+            self.assertEqual(translation.get_language(), lang)
 
 
 class MiddlewareRegistrationTests(SimpleTestCase):
