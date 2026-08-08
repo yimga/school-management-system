@@ -113,6 +113,14 @@ _SEED: dict[str, Any] = {
     # Network resilience (Tier 2 #14).
     "migration_cloud.network.max_retries": 5,
     "migration_cloud.network.fetch_timeout_seconds": 30,
+    # SSRF guard (2026-08-08): refuse an intake URL pull whose host resolves to a
+    # non-public address (loopback / RFC-1918 / link-local metadata 169.254.x.x).
+    # A sovereign / edge self-host that legitimately pulls from an INTERNAL host
+    # sets this key to false via RuntimeDefaults / tenant SiteSettings. (Env form
+    # is double-prefixed like every migration_cloud.* key —
+    # ``MIGRATION_CLOUD__MIGRATION_CLOUD__INTAKE__BLOCK_PRIVATE_NETWORK_FETCH=0``.)
+    # Default: block.
+    "migration_cloud.intake.block_private_network_fetch": True,
 }
 
 

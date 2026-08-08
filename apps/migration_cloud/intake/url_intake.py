@@ -26,7 +26,9 @@ Safety:
 
 from __future__ import annotations
 
+import ipaddress
 import os
+import socket
 import tempfile
 import urllib.parse
 import urllib.request
@@ -73,6 +75,65 @@ def _safe_unlink(path: Path) -> None:
         path.unlink()
     except OSError:
         pass
+
+
+def _assert_public_host(url: str) -> None:
+    """SSRF guard: refuse a URL whose host resolves to a non-public address.
+
+    A pasted intake handle must not make the server reach its own cloud-metadata
+    endpoint (``169.254.169.254``), ``localhost``, or anything on the internal
+    RFC-1918 network. EVERY address the host resolves to is checked, so a DNS
+    name that points at a private IP is rejected too. Honors the
+    ``migration_cloud.intake.block_private_network_fetch`` cascade flag (default
+    on) so a sovereign / edge self-host that legitimately pulls from an internal
+    host can opt out.
+    """
+    try:
+        blocked = bool(mc_defaults.get("migration_cloud.intake.block_private_network_fetch"))
+    except Exception:  # noqa: BLE001 — unknown key → safe default (block)
+        blocked = True
+    if not blocked:
+        return
+    host = urllib.parse.urlparse(url).hostname
+    if not host:
+        raise IntakeError(f"Intake URL has no host to validate: {url!r}")
+    try:
+        infos = socket.getaddrinfo(host, None)
+    except OSError as exc:
+        raise IntakeError(f"Could not resolve intake host {host!r}: {exc}") from exc
+    for info in infos:
+        raw_ip = info[4][0]
+        # Strip an IPv6 zone id (e.g. 'fe80::1%eth0') before parsing.
+        ip = ipaddress.ip_address(raw_ip.split("%", 1)[0])
+        if (
+            ip.is_private
+            or ip.is_loopback
+            or ip.is_link_local
+            or ip.is_reserved
+            or ip.is_multicast
+            or ip.is_unspecified
+        ):
+            raise IntakeError(
+                f"Refusing to fetch {host!r}: it resolves to non-public address "
+                f"{ip} (SSRF guard). Allow internal fetches on a self-host "
+                "deployment by setting the config flag "
+                "migration_cloud.intake.block_private_network_fetch=false."
+            )
+
+
+class _SSRFGuardedRedirectHandler(urllib.request.HTTPRedirectHandler):
+    """Re-validate the target host on every redirect hop.
+
+    Without this, an allow-listed public URL that 30x-redirects to
+    ``http://169.254.169.254/…`` would still reach the metadata endpoint — the
+    classic open-redirect SSRF bypass. Raising ``IntakeError`` here is a
+    permanent failure (never retried) because ``_fetch_http`` re-raises
+    ``IntakeError`` ahead of its transient-retry wrapper.
+    """
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):  # noqa: D102
+        _assert_public_host(newurl)
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
 
 
 class UrlIntakeAdapter(IntakeAdapter):
@@ -145,9 +206,11 @@ def _fetch_to_tempfile(url: str, scheme: str, max_bytes: int) -> Path:
 
 
 def _fetch_http(url: str, dest: Path, max_bytes: int) -> None:
+    _assert_public_host(url)  # SSRF guard: block loopback/private/link-local before we connect.
     req = urllib.request.Request(url, headers={"User-Agent": "RunMyCampus-MigrationCloud/1.0"})
+    opener = urllib.request.build_opener(_SSRFGuardedRedirectHandler())
     try:
-        with urllib.request.urlopen(req, timeout=_DOWNLOAD_TIMEOUT_SECONDS) as resp, dest.open("wb") as out:
+        with opener.open(req, timeout=_DOWNLOAD_TIMEOUT_SECONDS) as resp, dest.open("wb") as out:
             total = 0
             while True:
                 chunk = resp.read(_CHUNK)

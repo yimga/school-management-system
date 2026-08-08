@@ -1186,6 +1186,20 @@ class MigrationCloudShadowView(LoginRequiredMixin, View):
         source_counts = payload.get("source_counts") if isinstance(payload.get("source_counts"), dict) else None
         source_pull = (lambda c=source_counts: dict(c)) if source_counts is not None else None
 
+        # Tenant-scope EVERY shadow action. `status` re-resolves below via
+        # _tenant_scoped_bundle, but start/refresh/close MUTATE cutover state
+        # (open the window, arm auto-cutover, seal + advance to RECONCILED) and
+        # previously passed the raw bundle_id straight into shadow.* — so a
+        # portal caller could drive another tenant's migration. Fail closed here
+        # before any shadow.* call touches a bundle it doesn't own.
+        if shell == "portal":
+            school = getattr(request, "school", None) or getattr(request, "tenant", None)
+            school_pk = getattr(school, "pk", None)
+            if school_pk is None or not MigrationBundle.objects.filter(
+                pk=bundle_id, school_id=school_pk
+            ).exists():
+                return JsonResponse({"error": "bundle not found"}, status=404)
+
         try:
             if action == "start":
                 state = shadow.start_shadow_window(
@@ -2077,8 +2091,14 @@ class MigrationCloudIdMappingLookupView(LoginRequiredMixin, View):
             qs = qs.filter(legacy_namespace=namespace)
         if shell == "portal":
             school = getattr(request, "school", None) or getattr(request, "tenant", None)
-            if school is not None:
-                qs = qs.filter(school=school)
+            school_pk = getattr(school, "pk", None)
+            if school_pk is None:
+                # Fail closed: an unresolved tenant must NOT see cross-tenant
+                # id-mappings. Mirrors `_tenant_scoped_bundle` (which 404s on a
+                # None school) — return an empty match set rather than leaking
+                # every school's legacy→canonical id map.
+                return JsonResponse({"legacy_id": legacy_id, "matches": []})
+            qs = qs.filter(school_id=school_pk)
         return JsonResponse({
             "legacy_id": legacy_id,
             "matches": [
@@ -2627,9 +2647,21 @@ class MigrationCloudMergeBundlesView(LoginRequiredMixin, View):
             return JsonResponse({"error": "invalid JSON"}, status=400)
         bundle_ids = payload.get("bundle_ids") or []
         if not isinstance(bundle_ids, list) or len(bundle_ids) < 2:
-            # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
             return JsonResponse({"error": "bundle_ids must be a list of at least 2 IDs"}, status=400)
-        bundles = list(MigrationBundle.objects.filter(pk__in=bundle_ids))
+        # Tenant-scope the merge set. In the portal shell a caller may only merge
+        # bundles owned by their OWN school; without this a tenant could POST
+        # another school's bundle ids and fold them into a joint parent for a
+        # cross-tenant apply (IDOR). Operator (super) shell is control-plane-gated
+        # by the URL mount and may span tenants, matching `_tenant_scoped_bundle`.
+        # tenant-isolation-allow: operator-shell-spans-tenants-portal-adds-school-filter-below
+        merge_qs = MigrationBundle.objects.filter(pk__in=bundle_ids)
+        if shell == "portal":
+            school = getattr(request, "school", None) or getattr(request, "tenant", None)
+            school_pk = getattr(school, "pk", None)
+            if school_pk is None:
+                return JsonResponse({"error": "one or more bundles not found"}, status=404)
+            merge_qs = merge_qs.filter(school_id=school_pk)
+        bundles = list(merge_qs)
         if len(bundles) != len(bundle_ids):
             return JsonResponse({"error": "one or more bundles not found"}, status=404)
         parent = merge_bundles(bundles=bundles, label=str(payload.get("label") or ""))
