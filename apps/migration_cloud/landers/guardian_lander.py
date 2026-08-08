@@ -109,8 +109,10 @@ class GuardianLander(Lander):
                 User=User,
                 user_ref=user_ref,
                 email=email,
+                phone=(row.get("phone") or "").strip(),
                 first_name=first_name,
                 last_name=last_name,
+                school=ctx.school,
                 dry_run=ctx.dry_run,
             )
             if guardian_user is None and not (ctx.dry_run and provision_reason == ""):
@@ -208,13 +210,15 @@ class GuardianLander(Lander):
 
 
 def _resolve_or_provision_user(
-    *, User, user_ref: str, email: str, first_name: str, last_name: str, dry_run: bool
+    *, User, user_ref: str, email: str, phone: str = "",
+    first_name: str, last_name: str, school: Any = None, dry_run: bool,
 ):
     """Return ``(user, reason)`` — reason is set only when user is None.
 
     Resolution order: platform identity (username, internal transfers) →
-    email → provision-with-unusable-password (email required). Existing
-    users are NEVER mutated (role, names, credentials stay theirs).
+    email → PHONE + name (phone-first dedup) → provision-with-unusable-password
+    (email required). Existing users are NEVER mutated (role, names, credentials
+    stay theirs).
     """
     if user_ref:
         user = User.objects.filter(username=user_ref).first()
@@ -224,9 +228,20 @@ def _resolve_or_provision_user(
         user = User.objects.filter(email__iexact=email).first()
         if user is not None:
             return user, ""
+    # Phone-first dedup: many regions this platform serves are phone-primary and
+    # email-rare, so the SAME guardian re-appearing for a sibling under an
+    # inconsistent / absent email would otherwise be re-provisioned as a
+    # DUPLICATE account (or, with no email, quarantined and lost). Link to the
+    # existing guardian account carrying this EXACT phone + a matching name
+    # instead. Guardrailed (name-score floor + single distinct match) so a
+    # shared household phone can never merge two different guardians.
+    matched = _match_guardian_user_by_phone(phone, first_name, last_name, school)
+    if matched is not None:
+        return matched, ""
     if not email:
         return None, (
-            "no guardian_user_ref match and no email to resolve or provision a user"
+            "no guardian_user_ref / phone match and no email to resolve or "
+            "provision a user"
         )
     if dry_run:
         return None, ""  # would provision — preview counts it as landable
@@ -242,6 +257,59 @@ def _resolve_or_provision_user(
     user.set_unusable_password()
     user.save()
     return user, ""
+
+
+def _match_guardian_user_by_phone(phone: str, first_name: str, last_name: str, school: Any):
+    """Phone-first guardian dedup: return the existing guardian ``User`` whose
+    account already carries this EXACT ``phone`` on a ``StudentGuardian`` link
+    AND whose name matches the incoming one, else ``None``.
+
+    Safe against the shared-household-phone case (mum + dad on one number):
+      * the incoming phone must be present AND matched exactly;
+      * the deterministic name score must clear
+        ``migration_cloud.dedup.autolink_min_score`` — so only the guardian
+        whose NAME matches links, not everyone on that phone;
+      * exactly ONE distinct user may clear the bar (a genuine name+phone
+        collision → >1 → no auto-link, provision a fresh account instead).
+    Scoped to the bundle's school so it never reaches across tenants.
+    """
+    phone = (phone or "").strip()
+    if not phone or not (first_name or last_name):
+        return None
+    try:
+        from apps.people.ai_dedup import deterministic_score
+        from apps.people.models import StudentGuardian
+    except Exception:  # noqa: BLE001 — dedup helper / model absent → no auto-link
+        return None
+    from apps.migration_cloud import defaults as mc_defaults
+
+    try:
+        min_score = float(mc_defaults.get("migration_cloud.dedup.autolink_min_score"))
+    except Exception:  # noqa: BLE001 — unknown/blank key → conservative default
+        min_score = 0.95
+    scope: dict[str, Any] = {}
+    if school is not None:
+        scope["student__school"] = school
+    links = StudentGuardian.objects.filter(  # tenant-isolation-allow: lander runs inside schema_context; scoped by student__school
+        phone=phone, **scope,
+    ).select_related("guardian_user")[:25]
+    matched: dict[Any, Any] = {}
+    for link in links:
+        u = getattr(link, "guardian_user", None)
+        if u is None:
+            continue
+        score = deterministic_score(
+            {"first_name": first_name, "last_name": last_name},
+            {
+                "first_name": getattr(u, "first_name", ""),
+                "last_name": getattr(u, "last_name", ""),
+            },
+        )
+        if score >= min_score:
+            matched[u.pk] = u
+    if len(matched) == 1:
+        return next(iter(matched.values()))
+    return None
 
 
 def _free_username(User, email: str) -> str:
