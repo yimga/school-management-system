@@ -513,6 +513,7 @@ def _persist_one(
     # verification hash is recorded) must not be silently re-rendered or
     # overwritten by a bulk run. A deliberate reissue is a separate, explicit
     # action; bulk generation leaves frozen cards untouched.
+    # tenant-isolation-allow: report-card-scoped-via-school-owned-academic-year-and-student
     existing_rc = ReportCard.objects.filter(**lookup).first()
     if existing_rc is not None and _report_card_is_frozen(existing_rc):
         result._ok(student, False)

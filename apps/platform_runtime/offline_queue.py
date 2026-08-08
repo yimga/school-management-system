@@ -1172,9 +1172,19 @@ def _apply_report_batch_distribute(
 
     is_annual = str(payload.get("report_type") or "TERM").upper() == "ANNUAL"
     school = School.objects.filter(pk=school_id).first()
-    academic_year = AcademicYear.objects.filter(pk=payload.get("academic_year_id")).first()
+    if school is None:
+        return {"ok": False, "error": "school_not_found"}
+    # Scope the offline-supplied ids to THIS school: an offline device must not be
+    # able to distribute another tenant's year/term by tampering with the payload.
+    academic_year = AcademicYear.objects.filter(
+        pk=payload.get("academic_year_id"), school=school
+    ).first()
     # A TERM share is bound to a term; an ANNUAL (whole-year) share has none.
-    term = None if is_annual else Term.objects.filter(pk=payload.get("term_id")).first()
+    term = (
+        None
+        if is_annual
+        else Term.objects.filter(pk=payload.get("term_id"), school=school).first()
+    )
     if academic_year is None or (not is_annual and term is None):
         return {"ok": False, "error": "academic_year_or_term_not_found"}
 

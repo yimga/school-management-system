@@ -86,6 +86,7 @@ def _student_report_pdf_bytes(
 
     is_annual = report_type == ReportCard.Type.ANNUAL
 
+    # tenant-isolation-allow: report-card-scoped-via-school-owned-academic-year-and-student
     existing_rc = ReportCard.objects.filter(
         academic_year=academic_year,
         term=None if is_annual else term,

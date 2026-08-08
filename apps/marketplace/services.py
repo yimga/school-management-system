@@ -1018,6 +1018,7 @@ def notify_admins_of_scope_approved(scope_grant, *, approved_by=None):
             )
             if not pending_remaining:
                 # Resolve (not delete) the stale approval nudge for this app.
+                # tenant-isolation-allow: notification-scoped-via-recipient-and-app-specific-title
                 Notification.objects.filter(
                     recipient_id=uid,
                     title=f"Approve permissions: {app.name}",

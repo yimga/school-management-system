@@ -196,6 +196,7 @@ def _log_report_card_action(
 
 def _report_card_is_frozen(report_card: ReportCard) -> bool:
     """A report card is FROZEN once its verification hash has been recorded."""
+    # tenant-isolation-allow: hash-scoped-via-single-report-card-instance
     return ReportDocumentHash.objects.filter(report_card=report_card).exists()
 
 
@@ -235,6 +236,7 @@ def _record_report_hash(user: User, report_card: ReportCard, pdf_bytes: bytes):
                         recorded in metadata for audit and surfaced in the log.
     """
     digest = hashlib.sha256(pdf_bytes).hexdigest()
+    # tenant-isolation-allow: hash-scoped-via-single-report-card-instance
     existing = ReportDocumentHash.objects.filter(report_card=report_card).first()
     if existing is not None:
         if existing.sha256_hash == digest:
