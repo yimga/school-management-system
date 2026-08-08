@@ -369,6 +369,15 @@ body:is(.admin-manager-shell, .admin-premium-shell) .rmc-rail-scope {
 body:is(.admin-manager-shell, .admin-premium-shell) .rmc-rail-scope strong {
   color: var(--text-primary);
 }
+/* The scope label carries the utility `.truncate` (nowrap+ellipsis) which cut
+   "feedback - feedbacksu…"; let it wrap so the full boundary reads (v16.2). */
+body:is(.admin-manager-shell, .admin-premium-shell) .rmc-rail-scope strong.truncate {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
+  line-height: 1.3;
+}
 
 body:is(.admin-manager-shell, .admin-premium-shell) .rmc-onthispage,
 body:is(.admin-manager-shell, .admin-premium-shell) .rmc-rail-actions {

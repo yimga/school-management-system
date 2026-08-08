@@ -1,12 +1,12 @@
 {
-  "date": "2026-08-07",
-  "generated_at": "2026-08-07T00:00:00+00:00",
+  "date": "2026-08-08",
+  "generated_at": "2026-08-08T00:00:00+00:00",
   "major": 4,
   "minor": 6,
-  "patch": 28,
-  "raw": "sms-v4.06.28-offline-rail-integrity-2026-08-07",
+  "patch": 29,
+  "raw": "sms-v4.06.29-admin-scroll-safety-2026-08-08",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "offline-rail-integrity",
+  "slug": "admin-scroll-safety",
   "valid": true
 }

@@ -28,7 +28,7 @@
   {# Icons required on tenant /admin/ (index CTAs, nav) even without full Bootstrap CSS. #}
   <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/css/bootstrap-icons.min.css' %}">
   {% if not is_manager_host %}
-  <link rel="stylesheet" href="{% static 'css/admin-nav-bridge-tenant.css' %}?v=20260807-admin-form-quality-v161">
+  <link rel="stylesheet" href="{% static 'css/admin-nav-bridge-tenant.css' %}?v=20260808-admin-scroll-safety-v162">
   {% endif %}
   <!-- Admin-only design tokens + platform super ultra high-end -->
   {% comment %}
@@ -170,7 +170,7 @@
   <link rel="stylesheet" href="{% static 'css/rmc-cp-consolidated-operator-shell.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-cp-activity-tiers.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-admin-modal-overlay-guard.css' %}" media="print" onload="this.media='all'">
-  <link rel="stylesheet" href="{% static 'css/admin-platform-catalog.css' %}?v=20260807-admin-form-quality-v161">
+  <link rel="stylesheet" href="{% static 'css/admin-platform-catalog.css' %}?v=20260808-admin-scroll-safety-v162">
   {% comment %} v3.58.0 (2026-05-22): /admin/ 200x re-skin overlay — re-styles the existing
      Unfold DOM (dashboard-header, stat-card, app-section, buttons) toward the
      v8 200x preview chrome (dark navy gradient, glass surfaces, Source Serif 4
@@ -180,7 +180,7 @@
   <link rel="stylesheet" href="{% static 'css/admin-200x-shell-overlay.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-admin-v1-200x.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-admin-changelist-live.css' %}">
-  <link rel="stylesheet" href="{% static 'css/rmc-admin-workspace-10x.css' %}?v=20260807-admin-form-quality-v161">
+  <link rel="stylesheet" href="{% static 'css/rmc-admin-workspace-10x.css' %}?v=20260808-admin-scroll-safety-v162">
   <link rel="stylesheet" href="{% static 'css/rmc-cp-sidebar-200x.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-platform-inner-pages.css' %}">
   {% include "partials/rmc_security_posture_layout_styles.html" %}
@@ -189,8 +189,8 @@
   {% comment %} v4.10.1: tenant backend gets the same spacious change-form body
      contract as operator admin, but without operator-only rails or links. {% endcomment %}
   <link rel="stylesheet" href="{% static 'css/rmc-admin-changelist-live.css' %}">
-  <link rel="stylesheet" href="{% static 'css/rmc-admin-workspace-10x.css' %}?v=20260807-admin-form-quality-v161">
-  <link rel="stylesheet" href="{% static 'css/admin-platform-catalog.css' %}?v=20260807-admin-form-quality-v161">
+  <link rel="stylesheet" href="{% static 'css/rmc-admin-workspace-10x.css' %}?v=20260808-admin-scroll-safety-v162">
+  <link rel="stylesheet" href="{% static 'css/admin-platform-catalog.css' %}?v=20260808-admin-scroll-safety-v162">
   {% endif %}
   <link rel="stylesheet" href="{% static 'css/rmc-print.css' %}" media="print">
   {% if is_manager_host %}
@@ -238,8 +238,8 @@
      undone by older model-specific or Unfold defaults. {% endcomment %}
   <meta name="rmc-admin-approval-build" content="2026-08-01-v16.0">
   <meta name="rmc-admin-os-empty-space-gate" content="verify_admin_os_empty_space.py">
-  <link rel="stylesheet" href="{% static 'css/rmc-admin-django-canvas-contract.css' %}?v=20260807-admin-form-quality-v161">
-  <link rel="stylesheet" href="{% static 'css/rmc-tenant-surface-scroll-contract.css' %}?v=20260807-admin-form-quality-v161">
+  <link rel="stylesheet" href="{% static 'css/rmc-admin-django-canvas-contract.css' %}?v=20260808-admin-scroll-safety-v162">
+  <link rel="stylesheet" href="{% static 'css/rmc-tenant-surface-scroll-contract.css' %}?v=20260808-admin-scroll-safety-v162">
   <link rel="stylesheet" href="{% static 'css/rmc-tour.css' %}">
   {% comment %} v15.3: critical Admin OS layout ships INLINE (always on).
        media="not all" left operators on the pre-approval shell whenever ManifestStatic
@@ -347,7 +347,195 @@
       white-space: nowrap !important;
       border: 0 !important;
     }
+    /* ==========================================================================
+       NUCLEAR FORM PACKING (2026-08-08) — always-on, cache-proof.
+       The field-packing that consumes horizontal space intelligently used to live
+       ONLY in external sheets (rmc-admin-workspace-10x.css / canvas-contract). When
+       the service worker or CDN served those stale — or a deploy was behind — every
+       change/add form fell back to Unfold's default: one field per row, inputs
+       capped at max-w-2xl (672px) → "cramped hard-left with dead space right".
+       That is why the fix kept "lingering" after it was supposedly shipped.
+       These rules are inlined into the critical block so they apply the instant the
+       HTML loads, immune to any external-CSS staleness, and pack EVERY fieldset —
+       including single/ungrouped fields the model never grouped with fields=((…)).
+       ====================================================================== */
+    html[data-rmc-admin-html="unfold"] body:is(.admin-premium-shell, .admin-manager-shell)
+      [data-rmc-admin-form-contract="premium-form-frame"] .form-rows {
+      display: grid !important;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 21rem), 1fr)) !important;
+      column-gap: clamp(0.9rem, 1.8vw, 1.6rem) !important;
+      row-gap: 0.5rem !important;
+      align-items: start !important;
+    }
+    /* Wide widgets + grouped multi-column rows own the full lane. */
+    html[data-rmc-admin-html="unfold"] body:is(.admin-premium-shell, .admin-manager-shell)
+      [data-rmc-admin-form-contract="premium-form-frame"] .form-rows
+      > :is(.form-row:has(textarea), .form-row:has(.selector),
+            .form-row:has(.related-widget-wrapper.multiple), .form-row.grid,
+            .form-row.field-row.lg\:grid-cols-2, .form-row.field-row.lg\:grid-cols-3) {
+      grid-column: 1 / -1 !important;
+    }
+    /* Inputs fill their cell (defeat Unfold's max-w-2xl / natural size) — BOTH shells. */
+    html[data-rmc-admin-html="unfold"] body:is(.admin-premium-shell, .admin-manager-shell)
+      [data-rmc-admin-form-contract="premium-form-frame"] .form-rows
+      :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea, .vTextField, .related-widget-wrapper) {
+      width: 100% !important;
+      max-width: 100% !important;
+      box-sizing: border-box;
+    }
+    /* ==========================================================================
+       CONTAINMENT & EDGE COMFORT (2026-08-08) — no heading / label / checkbox /
+       button / input touches or crosses the frame edge. The bleed the user saw is
+       the CSS grid & flex "min-content trap": children default to min-width:auto
+       and REFUSE to shrink below their own content, so a wide input or a long
+       unbreakable label pushes its track past the surface. min-width:0 releases
+       them; overflow-wrap lets long text wrap instead of shooting off the edge.
+       (Measured on the real render: frame already has 24px padding and fields
+       pack 2-across — so we do NOT add frame padding here; that would only waste
+       space. The genuine bleed was the tabular inline running ~618px past the
+       frame because its cell widgets kept Unfold's max-w-2xl natural width.)
+       ====================================================================== */
+    html[data-rmc-admin-html="unfold"] body:is(.admin-premium-shell, .admin-manager-shell)
+      [data-rmc-admin-form-contract="premium-form-frame"]
+      :is(.form-rows, .form-row, .field-row, .field-line, .group\/line, .group\/row,
+          .grow, .related-widget-wrapper, .selector, .selector-available, .selector-chosen) {
+      min-width: 0 !important;
+    }
+    html[data-rmc-admin-html="unfold"] body:is(.admin-premium-shell, .admin-manager-shell)
+      [data-rmc-admin-form-contract="premium-form-frame"] .form-rows > *,
+    html[data-rmc-admin-html="unfold"] body:is(.admin-premium-shell, .admin-manager-shell)
+      [data-rmc-admin-form-contract="premium-form-frame"] :is(.field-row, [class*="grid-cols"]) > * {
+      min-width: 0 !important;
+    }
+    /* Long help text / options / field prose wrap inside their cell — never bleed
+       out. Labels/legends excluded: overflow-wrap:anywhere letter-strips them. */
+    html[data-rmc-admin-html="unfold"] body:is(.admin-premium-shell, .admin-manager-shell)
+      [data-rmc-admin-form-contract="premium-form-frame"]
+      :is(.help, .helptext, [class*="help"], .field-line p, option) {
+      overflow-wrap: anywhere !important;
+      word-break: break-word !important;
+    }
+    /* Inputs keep a zero intrinsic floor so they can never force the track wider. */
+    html[data-rmc-admin-html="unfold"] body:is(.admin-premium-shell, .admin-manager-shell)
+      [data-rmc-admin-form-contract="premium-form-frame"] .form-rows
+      :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea, .vTextField) {
+      min-width: 0 !important;
+    }
+    /* Tabular inline: cell widgets share the lane so the table fits the frame, and
+       it scrolls ONLY when there are genuinely too many columns — never a false
+       618px bleed from every widget claiming max-w-2xl on its own. */
+    html[data-rmc-admin-html="unfold"] body:is(.admin-premium-shell, .admin-manager-shell)
+      [data-rmc-admin-form-contract="premium-form-frame"] .inline-group table {
+      width: 100% !important;
+      table-layout: auto !important;
+    }
+    html[data-rmc-admin-html="unfold"] body:is(.admin-premium-shell, .admin-manager-shell)
+      [data-rmc-admin-form-contract="premium-form-frame"] .inline-group table :is(td, th) {
+      min-width: 0 !important;
+    }
+    html[data-rmc-admin-html="unfold"] body:is(.admin-premium-shell, .admin-manager-shell)
+      [data-rmc-admin-form-contract="premium-form-frame"] .inline-group table
+      :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea, .vTextField) {
+      width: 100% !important;
+      max-width: 100% !important;
+      min-width: 6rem !important;
+      box-sizing: border-box;
+    }
+    /* Buttons wrap onto the next line rather than crowding / crossing the edge. */
+    html[data-rmc-admin-html="unfold"] body:is(.admin-premium-shell, .admin-manager-shell)
+      [data-rmc-admin-form-contract="premium-form-frame"] :is(.submit-row, .rmc-form-actions) {
+      flex-wrap: wrap !important;
+      gap: 0.5rem !important;
+    }
+    @media (min-width: 64rem) {
+      html[data-rmc-admin-html="unfold"] body:is(.admin-premium-shell, .admin-manager-shell)
+        [data-rmc-admin-form-contract="premium-form-frame"] .form-row.field-row.lg\:grid-cols-2 {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 0.35rem 1.4rem !important;
+      }
+      html[data-rmc-admin-html="unfold"] body:is(.admin-premium-shell, .admin-manager-shell)
+        [data-rmc-admin-form-contract="premium-form-frame"] .form-row.field-row.lg\:grid-cols-3 {
+        display: grid !important;
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 0.35rem 1.4rem !important;
+      }
+    }
+    /* Tabular inline → responsive STACKED CARDS. A wide inline (e.g. Student
+       Guardians, 9+ columns) cannot fit the ~790px record panel as a table
+       without clipping columns or bleeding past the edge, and forcing horizontal
+       scroll through Unfold's w-full table is unreliable. So each row becomes a
+       card whose fields carry Unfold's own per-cell data-label. Mirrors the
+       external canvas-contract "v16.1" block so STALE cache is safe too:
+       fits the frame, zero scroll / clip / bleed. */
+    html[data-rmc-admin-html="unfold"] body:is(.admin-premium-shell, .admin-manager-shell)
+      [data-rmc-admin-form-contract="premium-form-frame"] .inline-group :is(.tabular, .inline-related.tabular) fieldset.module {
+      overflow: visible !important;
+      max-width: 100% !important;
+      min-width: 0 !important;
+    }
+    html[data-rmc-admin-html="unfold"] body:is(.admin-premium-shell, .admin-manager-shell)
+      [data-rmc-admin-form-contract="premium-form-frame"] .inline-group :is(.tabular, .inline-related.tabular) table > thead {
+      display: none !important;
+    }
+    html[data-rmc-admin-html="unfold"] body:is(.admin-premium-shell, .admin-manager-shell)
+      [data-rmc-admin-form-contract="premium-form-frame"] .inline-group :is(.tabular, .inline-related.tabular) table,
+    html[data-rmc-admin-html="unfold"] body:is(.admin-premium-shell, .admin-manager-shell)
+      [data-rmc-admin-form-contract="premium-form-frame"] .inline-group :is(.tabular, .inline-related.tabular) table > tbody {
+      display: block !important;
+      width: 100% !important;
+      min-width: 0 !important;
+    }
+    html[data-rmc-admin-html="unfold"] body:is(.admin-premium-shell, .admin-manager-shell)
+      [data-rmc-admin-form-contract="premium-form-frame"] .inline-group :is(.tabular, .inline-related.tabular) table > tbody > tr {
+      display: grid !important;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)) !important;
+      gap: 0.55rem 1.1rem !important;
+      align-items: start !important;
+      padding: 0.9rem 1rem !important;
+      margin: 0 0 0.7rem 0 !important;
+      border: 1px solid var(--hairline, rgba(148, 163, 184, 0.22)) !important;
+      border-radius: 12px !important;
+    }
+    html[data-rmc-admin-html="unfold"] body:is(.admin-premium-shell, .admin-manager-shell)
+      [data-rmc-admin-form-contract="premium-form-frame"] .inline-group :is(.tabular, .inline-related.tabular) table > tbody > tr > :is(td, th) {
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: stretch !important;
+      min-width: 0 !important;
+      width: auto !important;
+      min-height: 0 !important;
+      padding: 0 !important;
+      border: 0 !important;
+    }
+    html[data-rmc-admin-html="unfold"] body:is(.admin-premium-shell, .admin-manager-shell)
+      [data-rmc-admin-form-contract="premium-form-frame"] .inline-group :is(.tabular, .inline-related.tabular) table > tbody > tr > :is(td, th)::before {
+      display: block !important;
+      content: attr(data-label) !important;
+      margin: 0 0 0.3rem 0 !important;
+      font-size: 0.66rem !important;
+      font-weight: 700 !important;
+      letter-spacing: 0.045em !important;
+      text-transform: uppercase !important;
+      color: var(--text-secondary, #93a3c0) !important;
+      overflow-wrap: anywhere !important;
+    }
+    html[data-rmc-admin-html="unfold"] body:is(.admin-premium-shell, .admin-manager-shell)
+      [data-rmc-admin-form-contract="premium-form-frame"] .inline-group :is(.tabular, .inline-related.tabular) table > tbody > tr > td.delete {
+      grid-column: 1 / -1 !important;
+      flex-direction: row !important;
+      justify-content: flex-end !important;
+      align-items: center !important;
+    }
+    html[data-rmc-admin-html="unfold"] body:is(.admin-premium-shell, .admin-manager-shell)
+      [data-rmc-admin-form-contract="premium-form-frame"] .inline-group :is(.tabular, .inline-related.tabular) table > tbody > tr > td.delete::before {
+      display: none !important;
+    }
     @media (max-width: 1024px) {
+      html[data-rmc-admin-html="unfold"] body:is(.admin-premium-shell, .admin-manager-shell)
+        [data-rmc-admin-form-contract="premium-form-frame"] .form-rows {
+        grid-template-columns: minmax(0, 1fr) !important;
+      }
       [data-rmc-shell-root="django-admin"]
         [data-rmc-admin-index-canvas][data-rmc-admin-discover="1"] {
         grid-template-columns: minmax(0, 1fr) !important;
@@ -389,7 +577,7 @@
   {% comment %} v12 is the sole active layout owner and must remain the final
      stylesheet in head so stale component bundles cannot shrink or re-stick
      the approved full-fill canvas. {% endcomment %}
-  <link rel="stylesheet" href="{% static 'css/rmc-admin-approval-surface-v15.css' %}?v=20260807-admin-form-quality-v161" data-rmc-admin-layout-owner="approval-v15">
+  <link rel="stylesheet" href="{% static 'css/rmc-admin-approval-surface-v15.css' %}?v=20260808-admin-scroll-safety-v162" data-rmc-admin-layout-owner="approval-v15">
 {% endblock %}
 
 {% block extrahead %}
@@ -587,9 +775,9 @@
   {% if is_manager_host %}
   <script src="{% static 'js/rmc-admin-v1-200x.js' %}" defer></script>
   {% endif %}
-  <script src="{% static 'js/rmc-admin-workspace.js' %}?v=20260807-admin-form-quality-v161" defer></script>
-  <script src="{% static 'js/rmc-admin-os-innovations.js' %}?v=20260807-admin-form-quality-v161" defer></script>
-  <script src="{% static 'js/rmc-admin-model-policy.js' %}?v=20260807-admin-form-quality-v161" defer></script>
+  <script src="{% static 'js/rmc-admin-workspace.js' %}?v=20260808-admin-scroll-safety-v162" defer></script>
+  <script src="{% static 'js/rmc-admin-os-innovations.js' %}?v=20260808-admin-scroll-safety-v162" defer></script>
+  <script src="{% static 'js/rmc-admin-model-policy.js' %}?v=20260808-admin-scroll-safety-v162" defer></script>
   {% comment %} Phase G: ⌘K command palette on the admin shell too. {% endcomment %}
   {% if request.user.is_authenticated %}
     {% include "partials/rmc_platform_surface_page_data.html" %}
@@ -797,5 +985,5 @@
   {% include "partials/rmc_tour_bootstrap.html" with rmc_tour_css_in_head=True %}
   <script src="{% static 'js/rmc-launch-splash.js' %}" defer></script>
   {% if request.user.is_authenticated %}{% include 'components/back_to_top.html' %}{% endif %}
-  <script src="{% static 'js/rmc-tenant-surface-paginator.js' %}?v=20260807-admin-form-quality-v161" defer></script>
+  <script src="{% static 'js/rmc-tenant-surface-paginator.js' %}?v=20260808-admin-scroll-safety-v162" defer></script>
 {% endblock %}

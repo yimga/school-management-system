@@ -2,7 +2,7 @@
   "pass": true,
   "css_files": 44,
   "content_pages": 11,
-  "expected_cache_bust": "20260801-admin-os-v160-tenant-configuration-operations",
-  "expected_sw": "sms-v4.06.26-tenant-configuration-operations-2026-08-01",
+  "expected_cache_bust": "20260808-admin-scroll-safety-v162",
+  "expected_sw": "sms-v4.06.29-admin-scroll-safety-2026-08-08",
   "findings": []
 }

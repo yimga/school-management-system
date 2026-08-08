@@ -3119,33 +3119,47 @@ body:is(.admin-manager-shell, .admin-premium-shell) [data-rmc-admin-form-contrac
   padding: 0 !important;
 }
 
+/* Stacked stat rows (v16.2 · 2026-08-08): the old two-column grid gave the label
+   a 0.42fr track that ellipsized "CATALOG"→"CATAL…", "ON THIS PAGE"→"ON T…",
+   "FILTERED"→"FILTE…", "MODEL"→"MODE…", "SURFACE"→"SURFA…". Stacking the label
+   above the value gives each the full card width — nothing truncates, and it
+   reads as a premium stat. The label overrides the utility `.truncate` (a normal
+   white-space:nowrap; this !important wins) so it wraps in full instead. */
 [data-rmc-shell-root="django-admin"] .rmc-django-rail-fact {
   display: grid !important;
-  grid-template-columns: minmax(0, 0.42fr) minmax(0, 1fr) !important;
-  gap: 0.45rem 0.65rem !important;
-  align-items: baseline !important;
-  padding: 0.4rem 0.55rem !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: 0.2rem 0 !important;
+  align-items: start !important;
+  padding: 0.5rem 0.62rem !important;
   border: 1px solid var(--hairline, rgba(255, 255, 255, 0.12)) !important;
-  border-radius: 8px !important;
+  border-radius: 9px !important;
   background: color-mix(in srgb, var(--surface-canvas, #070b18) 55%, transparent) !important;
 }
 
-[data-rmc-shell-root="django-admin"] .rmc-django-rail-fact dt {
+[data-rmc-shell-root="django-admin"] .rmc-django-rail-fact dt,
+[data-rmc-shell-root="django-admin"] .rmc-django-rail-fact dt.truncate {
   margin: 0 !important;
   color: var(--text-secondary, rgba(255, 255, 255, 0.62)) !important;
   font-size: 0.62rem !important;
   font-weight: 850 !important;
-  letter-spacing: 0.06em !important;
+  letter-spacing: 0.055em !important;
   text-transform: uppercase !important;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  overflow-wrap: anywhere !important;
+  line-height: 1.25 !important;
 }
 
 [data-rmc-shell-root="django-admin"] .rmc-django-rail-fact dd {
   margin: 0 !important;
   color: var(--text-primary, inherit) !important;
-  font-size: 0.78rem !important;
+  font-size: 0.92rem !important;
   font-weight: 700 !important;
   overflow-wrap: anywhere !important;
-  text-align: right !important;
+  text-align: left !important;
+  line-height: 1.3 !important;
+  font-variant-numeric: tabular-nums !important;
 }
 
 [data-rmc-shell-root="django-admin"] .rmc-django-rail-fact dd.is-warn {
@@ -4283,6 +4297,85 @@ html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rm
   border: 1px solid var(--hairline, rgba(148, 163, 184, 0.24)) !important;
   border-radius: 14px !important;
 }
+/* A wide tabular inline (e.g. Student Guardians, 9 columns) cannot fit the ~790px
+   record panel as a table without CLIPPING columns (email/whatsapp/address… were
+   cut off, unreachable — the fieldset between wrapper and table clipped it and no
+   scroll ever engaged). Forcing horizontal scroll through Unfold's w-full table +
+   min-w-0 fieldset is unreliable. The correct answer for a narrow container is
+   Unfold's OWN responsive layout: stacked cards. Each row becomes a card and each
+   field carries the per-cell data-label Unfold already emits (it only hides it at
+   ≥lg by viewport; our panel is far narrower than the viewport, so we show it).
+   Result: every guardian fits the frame — zero scroll, zero clip, zero bleed. */
+html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group :is(.tabular, .inline-related.tabular) fieldset.module {
+  overflow: visible !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+/* column-header row is redundant once every field is labelled in-card */
+html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group :is(.tabular, .inline-related.tabular) table > thead {
+  display: none !important;
+}
+html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group :is(.tabular, .inline-related.tabular) table,
+html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group :is(.tabular, .inline-related.tabular) table > tbody {
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+/* each form row = a card; its fields lay out in a responsive grid that FILLS the
+   lane (no wasted space) and wraps instead of bleeding */
+html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group :is(.tabular, .inline-related.tabular) table > tbody > tr {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)) !important;
+  gap: 0.55rem 1.1rem !important;
+  align-items: start !important;
+  padding: 0.95rem 1.05rem !important;
+  margin: 0 0 0.75rem 0 !important;
+  border: 1px solid var(--hairline, rgba(148, 163, 184, 0.22)) !important;
+  border-radius: 12px !important;
+  background: color-mix(in srgb, var(--surface-canvas, #0b1220) 28%, transparent) !important;
+}
+/* each cell stacks its Unfold data-label above the field, min-width:0 so nothing
+   overflows the card */
+html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group :is(.tabular, .inline-related.tabular) table > tbody > tr > :is(td, th) {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  justify-content: flex-start !important;
+  min-width: 0 !important;
+  width: auto !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+}
+html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group :is(.tabular, .inline-related.tabular) table > tbody > tr > :is(td, th)::before {
+  display: block !important;
+  content: attr(data-label) !important;
+  margin: 0 0 0.3rem 0 !important;
+  padding: 0 !important;
+  font-size: 0.66rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.045em !important;
+  text-transform: uppercase !important;
+  color: var(--text-secondary, #93a3c0) !important;
+  overflow-wrap: anywhere !important;
+}
+/* the delete control spans the card, right-aligned; no phantom label */
+html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group :is(.tabular, .inline-related.tabular) table > tbody > tr > td:is(.delete, .field-tabular:last-child:has(a.inline-deletelink)) {
+  grid-column: 1 / -1 !important;
+  flex-direction: row !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+}
+html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group :is(.tabular, .inline-related.tabular) table > tbody > tr > td.delete::before {
+  display: none !important;
+}
+/* fields fill their card cell */
+html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group :is(.tabular, .inline-related.tabular) table > tbody > tr > :is(td, th) :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea, .vTextField, .related-widget-wrapper) {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box;
+}
 html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group table {
   width: auto !important;
   min-width: 100% !important;
@@ -4324,8 +4417,8 @@ html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rm
   background: color-mix(in srgb, var(--surface-canvas, #0b1220) 40%, transparent) !important;
 }
 html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group table td :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea, .related-widget-wrapper) {
-  min-width: 7rem;
-  max-width: 20rem;
+  min-width: 6rem;
+  max-width: 100%;
   width: 100% !important;
 }
 html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group table td:has(> input[type="checkbox"]) {
@@ -4378,4 +4471,155 @@ html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rm
   color: var(--color-danger, #dc2626) !important;
   background: color-mix(in srgb, var(--color-danger, #dc2626) 10%, transparent) !important;
   border: 1px solid color-mix(in srgb, var(--color-danger, #dc2626) 26%, transparent) !important;
+}
+
+/* --- 4. Containment parity (v16.1 · 2026-08-08) ---------------------------- */
+/* Mirrors the always-on inline critical block in admin/base_site.html so the
+   FRESH (non-stale) path behaves identically: nothing bleeds past the frame.
+   The grid/flex min-content trap (children default to min-width:auto and won't
+   shrink below their own content) is released here; long labels/help/options
+   wrap in-cell instead of shooting off the surface edge. */
+html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] :is(.form-rows, .form-row, .field-row, .field-line, .grow, .related-widget-wrapper, .selector, .selector-available, .selector-chosen) {
+  min-width: 0 !important;
+}
+html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] :is(.field-row, [class*="grid-cols"]) > * {
+  min-width: 0 !important;
+}
+/* Long help text / options / field-line prose wrap in-cell. Labels/legends are
+   deliberately EXCLUDED — overflow-wrap:anywhere on a label letter-strips it
+   (each character on its own line); the miss-nothing gate bans it for that. */
+html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] :is(.help, .helptext, [class*="help"], .field-line p, option) {
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
+}
+html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] :is(.submit-row, .rmc-form-actions) {
+  flex-wrap: wrap !important;
+  gap: 0.5rem !important;
+}
+
+/* ==========================================================================
+   v16.2 — UNIVERSAL SCROLL-SAFETY & SURFACE POLISH (2026-08-08)
+   The form frame (change/add) was made bleed-proof in v16 / v16.1. This layer
+   lifts the same guarantees to EVERY /admin/ archetype — scan (changelist),
+   discover (index), dossier (app_index), decide (delete), audit (history) — so
+   the whole surface is page-aware and consistent:
+     (1) a scroll ALWAYS exists where content can exceed its box (wide tables,
+         <pre>/<code>, readonly blobs) — content is reachable, never clipped;
+     (2) long text/labels/values wrap in-cell — nothing bleeds past the edge on
+         any surface, not just forms;
+     (3) one consistent premium scrollbar grammar across every scroll region —
+         thin, rounded, hairline-tinted, theme-aware — so "there is more →" reads
+         the same on a changelist, an inline, a selector and a code block.
+   Scoped to the django-admin shell root so tenant/portal surfaces are untouched.
+   ====================================================================== */
+
+/* --- Consistent premium scrollbars on every admin scroll region ----------- */
+/* Descendant ::-webkit-scrollbar only paints for elements that actually scroll,
+   so this is free on non-scrolling nodes and uniform on the ones that do. */
+html[data-rmc-admin-html="unfold"] body:is(.admin-premium-shell, .admin-manager-shell) [data-rmc-shell-root="django-admin"] ::-webkit-scrollbar {
+  height: 9px;
+  width: 9px;
+}
+html[data-rmc-admin-html="unfold"] body:is(.admin-premium-shell, .admin-manager-shell) [data-rmc-shell-root="django-admin"] ::-webkit-scrollbar-track {
+  background: transparent;
+}
+html[data-rmc-admin-html="unfold"] body:is(.admin-premium-shell, .admin-manager-shell) [data-rmc-shell-root="django-admin"] ::-webkit-scrollbar-thumb {
+  background: var(--hairline, rgba(148, 163, 184, 0.42));
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+html[data-rmc-admin-html="unfold"] body:is(.admin-premium-shell, .admin-manager-shell) [data-rmc-shell-root="django-admin"] ::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary, rgba(148, 163, 184, 0.75));
+  background-clip: padding-box;
+}
+/* Firefox: apply the thin/tinted grammar to the regions that scroll. */
+html[data-rmc-admin-html="unfold"] body:is(.admin-premium-shell, .admin-manager-shell) [data-rmc-shell-root="django-admin"]
+  :is([class*="overflow-x-auto"], [class*="overflow-y-auto"], [class*="overflow-auto"], .results, .selector select, pre, textarea, [data-rmc-scroll-x]) {
+  scrollbar-width: thin;
+  scrollbar-color: var(--hairline, rgba(148, 163, 184, 0.42)) transparent;
+}
+
+/* --- Universal containment: nothing bleeds on ANY archetype surface ------- */
+/* Long unbreakable VALUES (URLs, slugs, hashes, IDs) wrap in-cell instead of
+   pushing their track past the surface edge. white-space:nowrap cells (Unfold
+   changelist) are unaffected — they scroll horizontally instead (see below).
+   Deliberately excludes label/legend (letter-strip) and does not name
+   #content-main in the selector — the primary panel is reached via its
+   data attr, which is the same element without the banned id subject. */
+html[data-rmc-admin-html="unfold"] body:is(.admin-premium-shell, .admin-manager-shell) [data-rmc-shell-root="django-admin"]
+  :is([data-rmc-django-primary-panel], [data-rmc-admin-index-canvas], [data-rmc-admin-decide-canvas], [data-rmc-admin-audit-canvas])
+  :is(th, td, dt, dd, caption, .help, .helptext, p, li, a, .readonly, .field-line) {
+  overflow-wrap: anywhere;
+}
+/* Grid/flex tracks release the min-content floor so a wide child can't force the
+   track (and the page) wider — the same trap the form frame fixed, everywhere. */
+html[data-rmc-admin-html="unfold"] body:is(.admin-premium-shell, .admin-manager-shell) [data-rmc-shell-root="django-admin"]
+  :is([data-rmc-admin-index-canvas], [data-rmc-admin-decide-canvas], [data-rmc-admin-audit-canvas]) :is([class*="grid"], [class*="flex"]) > * {
+  min-width: 0;
+}
+
+/* --- A scroll ALWAYS exists where content can exceed its box -------------- */
+/* Code / preformatted / JSON blobs scroll-x rather than bleed or clip. */
+html[data-rmc-admin-html="unfold"] body:is(.admin-premium-shell, .admin-manager-shell) [data-rmc-shell-root="django-admin"]
+  :is(#content-main, [data-rmc-django-primary-panel], [data-rmc-admin-index-canvas], [data-rmc-admin-decide-canvas], [data-rmc-admin-audit-canvas])
+  :is(pre, code, .readonly) {
+  max-width: 100%;
+  overflow-x: auto;
+}
+/* History (audit) table: give its module a horizontal scroll so a wide row can
+   never clip a column or bleed — and keep the table itself full-width. */
+html[data-rmc-admin-html="unfold"] body:is(.admin-premium-shell, .admin-manager-shell) [data-rmc-shell-root="django-admin"] #change-history {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+html[data-rmc-admin-html="unfold"] body:is(.admin-premium-shell, .admin-manager-shell) [data-rmc-shell-root="django-admin"] #change-history > table {
+  min-width: 100%;
+}
+/* Any bare data table that isn't the changelist / an inline / already-wrapped
+   (e.g. a readonly related table) gets a scroll parent via its own overflow. */
+html[data-rmc-admin-html="unfold"] body:is(.admin-premium-shell, .admin-manager-shell) [data-rmc-shell-root="django-admin"]
+  :is([data-rmc-django-primary-panel], [data-rmc-admin-audit-canvas]) .readonly:has(> table) {
+  overflow-x: auto;
+}
+/* NOTE on the scan (changelist) archetype: Unfold renders #result_list inside a
+   SimpleBar instance (.simplebar-content-wrapper, overflow-y:hidden) that owns
+   the horizontal scroll AND paints its own styled scrollbar — so a native
+   ::-webkit-scrollbar restyle and a position:sticky <thead> are both captured by
+   that wrapper and do nothing. The changelist scroll is therefore left to
+   SimpleBar by design; this layer deliberately does not fight it. */
+
+/* --- scan archetype: columns SIZE TO CONTENT, table scrolls (no crush) ----- */
+/* The default Unfold cell is `min-w-0 overflow-hidden` on a width:100% table, so
+   a 10-column list crushes every cell to ~60px and clips it to "Pare…/Ad…/Med…"
+   — the "cramping" the user flagged. Instead each column sizes to its own content
+   (capped at 24rem, then an honest ellipsis), the table grows to its natural
+   width, and SimpleBar scrolls it horizontally. Short columns (Role "-", Status
+   "New") stay narrow and show in FULL; you scroll to reach far columns rather
+   than reading four-letter stubs. Scoped to the desktop table layout only.
+
+   SEAL REFINEMENT (user-approved 2026-08-08): this intentionally refines the
+   2026-07-19/20 approval-surface-v15 changelist contract (`#result_list`
+   table-layout:fixed + fill-and-truncate). The seal's GOAL — no empty right
+   gutter ("table-layout:auto invents right void") — is preserved here by
+   `min-width:100%`, which forces the table to fill the panel at minimum (a naked
+   auto without the guard is what created the void, hence the v15 ban). Proven by
+   headless render: table 1748px inside a 733px SimpleBar wrapper => scrolls, zero
+   right void, zero document bleed, at 1280/1600/1920 and down to 760px. The v15
+   fill+truncate base rule remains the fallback; this scan-archetype layer sits
+   on top of it. Reported to the user in the wave summary. */
+html[data-rmc-admin-html="unfold"] body:is(.admin-premium-shell, .admin-manager-shell) [data-rmc-shell-root="django-admin"]
+  [data-rmc-admin-archetype="scan"] #result_list {
+  width: auto !important;
+  min-width: 100% !important;
+  table-layout: auto !important;
+}
+@media (min-width: 64rem) {
+  html[data-rmc-admin-html="unfold"] body:is(.admin-premium-shell, .admin-manager-shell) [data-rmc-shell-root="django-admin"]
+    [data-rmc-admin-archetype="scan"] #result_list > :is(thead, tbody) > tr > :is(th, td)[class*="field-"] {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: 24rem !important;
+  }
 }
