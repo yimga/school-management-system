@@ -52,6 +52,7 @@ import io
 import json
 import logging
 import re
+import unicodedata
 from collections import Counter
 from typing import IO, Any, Iterable
 
@@ -570,10 +571,19 @@ def _looks_pii(name: str, samples: Iterable[str]) -> bool:
 
 def _normalize_header(name: str) -> str:
     s = (name or "").strip().lower()
-    # Preserve non-ASCII headers (CJK, Arabic, etc.) for locale-aware mapping.
-    if re.search(r"[^\x00-\x7f]", s):
+    # Fold Latin diacritics (é→e, ç→c, ñ→n, ô→o) so accented French / Spanish /
+    # Portuguese headers ("Prénom", "Numéro d'élève", "Décision") normalize
+    # identically to their ASCII synonyms. Genuinely non-Latin scripts (CJK,
+    # Arabic, Cyrillic, …) have no ASCII decomposition, so after folding they
+    # are still non-ASCII and are preserved raw below for locale-aware mapping —
+    # the deliberate behaviour the CJK regression test locks in.
+    folded = "".join(
+        ch for ch in unicodedata.normalize("NFKD", s) if not unicodedata.combining(ch)
+    )
+    if re.search(r"[^\x00-\x7f]", folded):
+        # Still non-ASCII after folding → a non-Latin script; keep it raw.
         return s
-    s = re.sub(r"[^a-z0-9]+", "_", s)
+    s = re.sub(r"[^a-z0-9]+", "_", folded)
     s = re.sub(r"_+", "_", s).strip("_")
     return s
 

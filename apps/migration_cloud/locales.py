@@ -461,3 +461,204 @@ BASELINE_OVERLAY: dict[str, dict[str, dict[str, list[str]]]] = {
         },
     },
 }
+
+
+# --- French coverage seed (2026-08-08) --------------------------------------
+#
+# The catalog seeds `fr` on only ~13 of 123 canonical fields, so a French-
+# headered SIS export from the platform's home market (Cameroon — French +
+# English official languages) failed to auto-map on ~90% of fields and mass-
+# quarantined. This block brings French to bedrock coverage across every
+# domain. Synonyms are ASCII / accent-FREE snake_case: `_normalize_header`
+# folds Latin diacritics (Prénom -> prenom, Numéro d'élève -> numero_d_eleve)
+# before matching, so an accented header lands on its accent-free synonym here.
+#
+# Cameroon note: school-management software (and its CSV exports) carry French
+# or English column headers, never local-language (Ewondo / Duala / Fulfulde)
+# headers, so seeding local-language HEADERS would be theatre — French is the
+# load-bearing second-official-language coverage this market actually needs.
+# A tenant with genuinely bespoke headers still layers its own overlay via
+# `RuntimeDefaults.payload['migration_cloud.ontology.synonyms_overlay']`.
+_FRENCH_SEED_2026_08: dict[str, dict[str, list[str]]] = {
+    "students": {
+        "external_id": ["numero_eleve", "matricule", "matricule_eleve", "code_eleve", "identifiant_eleve", "id_eleve"],
+        "admission_number": ["numero_inscription", "numero_admission", "matricule_inscription", "numero_dossier"],
+        "first_name": ["prenom", "prenoms"],
+        "last_name": ["nom", "nom_de_famille", "nom_famille"],
+        "middle_name": ["deuxieme_prenom", "autre_prenom", "second_prenom"],
+        "date_of_birth": ["date_de_naissance", "date_naissance", "ne_le", "nee_le", "naissance"],
+        "gender": ["sexe", "genre"],
+        "grade_level": ["classe", "niveau", "niveau_scolaire", "niveau_classe"],
+        "enrollment_status": ["statut", "statut_inscription", "statut_eleve", "actif"],
+        "email": ["courriel", "adresse_email", "mail", "mel", "email"],
+        "phone": ["telephone", "tel", "numero_telephone", "portable", "mobile", "gsm"],
+        "address": ["adresse", "adresse_domicile", "domicile", "residence", "adresse_postale"],
+    },
+    "guardians": {
+        "guardian_external_id": ["numero_parent", "id_parent", "code_parent", "numero_tuteur", "identifiant_parent"],
+        "student_external_id": ["numero_eleve", "matricule_eleve", "id_eleve", "numero_enfant"],
+        "relationship": ["relation", "lien", "lien_de_parente", "parente", "qualite"],
+        "first_name": ["prenom", "prenom_parent", "prenom_tuteur"],
+        "last_name": ["nom", "nom_parent", "nom_tuteur", "nom_de_famille"],
+        "email": ["courriel", "email_parent", "courriel_parent", "email"],
+        "phone": ["telephone", "tel", "portable", "telephone_parent"],
+        "is_primary": ["principal", "contact_principal", "parent_principal", "tuteur_principal"],
+    },
+    "staff": {
+        "staff_external_id": ["numero_employe", "matricule_employe", "matricule_personnel", "id_employe", "matricule_enseignant", "numero_enseignant"],
+        "first_name": ["prenom"],
+        "last_name": ["nom", "nom_de_famille"],
+        "email": ["courriel", "email_professionnel", "email"],
+        "role": ["fonction", "poste", "titre", "intitule_poste", "role"],
+        "department": ["departement", "service", "unite", "filiere"],
+        "hire_date": ["date_embauche", "date_d_embauche", "date_recrutement", "date_entree", "date_debut"],
+    },
+    "enrollment": {
+        "student_external_id": ["numero_eleve", "matricule_eleve", "id_eleve"],
+        "academic_year": ["annee_scolaire", "annee_academique", "annee"],
+        "grade_level": ["niveau", "niveau_scolaire"],
+        "homeroom": ["classe", "groupe", "salle_de_classe", "section"],
+        "enrollment_date": ["date_inscription", "date_d_inscription", "date_entree", "date_admission"],
+        "exit_date": ["date_sortie", "date_depart", "date_de_sortie", "date_radiation"],
+    },
+    "academics": {
+        "subject_code": ["code_matiere", "code_cours", "code_discipline"],
+        "subject_name": ["matiere", "discipline", "intitule_matiere", "nom_matiere", "cours"],
+        "credits": ["credits", "coefficient", "coefficients", "unites"],
+        "department": ["departement", "filiere", "service"],
+    },
+    "sections": {
+        "section_external_id": ["numero_section", "id_section", "code_classe", "id_classe", "numero_groupe"],
+        "subject_code": ["code_matiere", "code_cours"],
+        "teacher_external_id": ["numero_enseignant", "id_enseignant", "matricule_enseignant", "code_professeur"],
+        "academic_year": ["annee_scolaire", "annee_academique"],
+        "term": ["trimestre", "semestre", "periode", "sequence"],
+    },
+    "schedule": {
+        "section_external_id": ["numero_section", "id_classe"],
+        "day_of_week": ["jour", "jour_de_la_semaine", "jour_semaine"],
+        "start_time": ["heure_debut", "heure_de_debut", "debut"],
+        "end_time": ["heure_fin", "heure_de_fin", "fin"],
+        "room": ["salle", "salle_de_classe", "local", "lieu"],
+    },
+    "attendance": {
+        "student_external_id": ["numero_eleve", "matricule_eleve"],
+        "date": ["date", "date_presence", "jour"],
+        "status": ["statut", "presence", "etat", "absence"],
+        "period": ["periode", "creneau", "heure"],
+        "reason": ["motif", "raison", "commentaire", "observation"],
+    },
+    "grades": {
+        "student_external_id": ["numero_eleve", "matricule_eleve"],
+        "section_external_id": ["numero_section", "id_classe", "code_classe"],
+        "assessment_name": ["evaluation", "controle", "devoir", "examen", "composition", "interrogation"],
+        "score": ["note", "note_obtenue", "points", "resultat"],
+        "max_score": ["note_maximale", "sur", "note_max", "bareme"],
+        "letter_grade": ["mention", "appreciation", "note_lettre"],
+        "term": ["trimestre", "semestre", "periode", "sequence"],
+        "academic_year": ["annee_scolaire", "annee_academique"],
+    },
+    "transcripts": {
+        "student_external_id": ["numero_eleve", "matricule_eleve"],
+        "academic_year": ["annee_scolaire", "annee_academique"],
+        "subject_code": ["code_matiere", "code_cours"],
+        "final_grade": ["note_finale", "moyenne", "note_annuelle", "resultat_final"],
+        "credits_earned": ["credits_obtenus", "coefficients", "unites_obtenues"],
+        "gpa_points": ["points_moyenne", "moyenne_generale"],
+    },
+    "behavior": {
+        "student_external_id": ["numero_eleve", "matricule_eleve"],
+        "date": ["date", "date_incident"],
+        "category": ["categorie", "type_incident", "nature", "infraction"],
+        "description": ["description", "narratif", "details", "observation"],
+        "consequence": ["consequence", "sanction", "mesure", "suite"],
+    },
+    "health": {
+        "student_external_id": ["numero_eleve", "matricule_eleve"],
+        "blood_type": ["groupe_sanguin", "groupe_de_sang"],
+        "allergies": ["allergies", "allergie"],
+        "medications": ["medicaments", "traitements", "prescriptions"],
+        "immunizations": ["vaccinations", "vaccins", "vaccination"],
+        "emergency_contact_name": ["contact_urgence", "personne_a_prevenir", "nom_contact_urgence"],
+        "emergency_contact_phone": ["telephone_urgence", "tel_urgence", "numero_urgence", "telephone_contact_urgence"],
+    },
+    "finance": {
+        "student_external_id": ["numero_eleve", "matricule_eleve"],
+        "invoice_number": ["numero_facture", "numero_de_facture", "no_facture", "facture", "numero_recu", "reference_facture"],
+        "fee_category": ["type_frais", "categorie_frais", "nature_frais", "rubrique"],
+        "amount": ["montant", "valeur", "montant_frais", "somme"],
+        "currency": ["devise", "monnaie", "code_devise"],
+        "due_date": ["date_echeance", "date_d_echeance", "echeance", "date_limite", "date_de_paiement", "date_limite_de_paiement"],
+        "paid_amount": ["montant_paye", "paye", "montant_regle", "versement"],
+        "balance": ["solde", "reste", "reliquat", "restant_du", "montant_du"],
+    },
+    "payroll": {
+        "staff_external_id": ["numero_employe", "matricule_employe", "matricule"],
+        "pay_period": ["periode_paie", "periode", "mois_paie"],
+        "gross_pay": ["salaire_brut", "brut", "remuneration_brute"],
+        "net_pay": ["salaire_net", "net", "net_a_payer", "remuneration_nette"],
+    },
+    "communications": {
+        "thread_external_id": ["numero_fil", "id_conversation", "id_discussion"],
+        "sender_external_id": ["id_expediteur", "expediteur", "numero_expediteur"],
+        "sent_at": ["envoye_le", "date_envoi", "horodatage"],
+        "body": ["message", "texte", "contenu", "corps"],
+    },
+    "events": {
+        "event_external_id": ["numero_evenement", "id_evenement"],
+        "name": ["nom", "titre", "intitule", "nom_evenement"],
+        "start_at": ["date_debut", "debut", "commence_le"],
+        "end_at": ["date_fin", "fin", "termine_le"],
+        "venue": ["lieu", "endroit", "salle", "emplacement"],
+    },
+    "library": {
+        "item_external_id": ["numero_ouvrage", "id_livre", "code_livre", "cote"],
+        "title": ["titre", "intitule"],
+        "isbn": ["isbn"],
+        "barcode": ["code_barres", "code_barre", "etiquette"],
+        "borrower_external_id": ["numero_emprunteur", "id_emprunteur", "emprunte_par"],
+        "due_date": ["date_retour", "a_rendre_le", "date_de_retour"],
+    },
+    "transport": {
+        "route_name": ["itineraire", "ligne", "trajet", "circuit"],
+        "stop_name": ["arret", "point_arret", "arret_bus", "point_ramassage"],
+        "student_external_id": ["numero_eleve", "matricule_eleve"],
+        "bus_label": ["bus", "vehicule", "numero_bus", "car"],
+    },
+    "hostel": {
+        "hostel_name": ["internat", "dortoir", "pensionnat", "foyer"],
+        "room_number": ["chambre", "numero_chambre", "lit", "numero_lit"],
+        "student_external_id": ["numero_eleve", "matricule_eleve"],
+    },
+    "cafeteria": {
+        "student_external_id": ["numero_eleve", "matricule_eleve"],
+        "meal_plan": ["forfait_repas", "plan_repas", "formule_repas", "cantine"],
+        "balance": ["solde", "credit", "solde_cantine"],
+    },
+    "alumni": {
+        "alumnus_external_id": ["numero_ancien", "id_ancien", "numero_diplome"],
+        "graduation_year": ["annee_diplome", "annee_obtention", "promotion", "annee_sortie"],
+        "current_employer": ["employeur", "entreprise", "employeur_actuel", "societe"],
+        "email": ["courriel", "email_contact", "email"],
+    },
+    "compliance": {
+        "consent_type": ["type_consentement", "consentement", "autorisation"],
+        "student_external_id": ["numero_eleve", "matricule_eleve"],
+        "granted": ["accorde", "consenti", "autorise", "approuve"],
+        "granted_at": ["date_consentement", "signe_le", "date_signature", "accorde_le"],
+    },
+}
+
+
+def _merge_french_seed() -> None:
+    """Fold the French coverage seed into BASELINE_OVERLAY under the ``fr`` key,
+    additively (never dropping an existing overlay language or ``fr`` entry)."""
+    for domain, fields in _FRENCH_SEED_2026_08.items():
+        dom = BASELINE_OVERLAY.setdefault(domain, {})
+        for field, syns in fields.items():
+            field_langs = dom.setdefault(field, {})
+            existing = list(field_langs.get("fr", []))
+            field_langs["fr"] = list(dict.fromkeys([*existing, *syns]))
+
+
+_merge_french_seed()
