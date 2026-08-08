@@ -54,11 +54,12 @@ def run_summarize_attendance_report(
     metrics = {"present": 0, "absent": 0, "late": 0, "total": 0}
     try:
         from datetime import date  # local import
-        from apps.academics.models import AttendanceRecord  # type: ignore
-        # Today's records. Scope-narrowed by class_id; tenant safety is
-        # enforced by the model's default manager.
+        from apps.academics.models import Attendance
+        # Today's records. Scope-narrowed by class_id (a global PK, so the row
+        # set is single-tenant by construction); RLS enforces tenant isolation
+        # at the DB layer.
         today = date.today()
-        qs = AttendanceRecord.objects.filter(
+        qs = Attendance.objects.filter(
             classroom_id=class_id, date=today,
         )
         for rec in qs.values("status"):

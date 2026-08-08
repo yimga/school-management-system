@@ -331,14 +331,14 @@ def _resolve_metric(key: str, request: Any, school: Any, now: datetime) -> dict[
         sub = str(_("Office or IT desk"))
     elif key == "events_this_week":
         try:
-            from apps.academics.models import SchoolEvent
+            from apps.school_events.models import SchoolEvent
 
             if school:
                 start = now.date()
                 end = start + timedelta(days=7)
                 # tenant-isolation-allow: login-canvas-anonymous-event-count
                 count = SchoolEvent.objects.filter(
-                    school=school, start_date__gte=start, start_date__lte=end
+                    school=school, start_at__date__gte=start, start_at__date__lte=end
                 ).count()
                 value = str(count)
                 sub = str(_("Scheduled"))

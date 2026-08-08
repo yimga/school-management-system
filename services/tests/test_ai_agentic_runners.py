@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from django.test import SimpleTestCase
+from datetime import date
+
+from django.test import SimpleTestCase, TestCase
 
 from services.ai_agentic import ActionContext, ProposedAction
 from services.ai_agentic_runners import (
@@ -62,6 +64,75 @@ class AttendanceRunnerTests(SimpleTestCase):
         # Either "No attendance recorded" or an actual summary; either way,
         # no exception.
         self.assertIn("summary", result)
+
+
+class AttendanceRunnerLiveDataTests(TestCase):
+    """Proves the WOKEN path (2026-08-08 dead-guard sweep): the runner used to
+    import a non-existent ``apps.academics.models.AttendanceRecord`` inside a
+    broad ``except`` — so it ALWAYS returned "Attendance data unavailable". It
+    now imports the real ``Attendance`` model; this test creates real rows and
+    asserts the computed metrics, so the fix cannot silently revert to the
+    always-degraded behavior.
+    """
+
+    def setUp(self):
+        from apps.academics.models import (
+            AcademicYear,
+            Attendance,
+            Classroom,
+            Department,
+            Specialty,
+        )
+        from apps.people.models import StudentProfile
+        from apps.schools.models import School
+
+        self.school = School.objects.create(
+            name="AI Attend", slug="ai-attend", subdomain="ai-attend",
+            country_code="FR",
+        )
+        self.year = AcademicYear.objects.create(
+            name="2025/2026-ai", start_date=date(2025, 9, 1),
+            end_date=date(2026, 6, 30), is_active=True, school=self.school,
+        )
+        self.dept = Department.objects.create(
+            name="Science", code="SCI", school=self.school
+        )
+        self.spec = Specialty.objects.create(
+            name="General", code="GEN", department=self.dept
+        )
+        self.classroom = Classroom.objects.create(
+            name="Form 1", code="F1", academic_year=self.year,
+            department=self.dept, school=self.school,
+        )
+        # 4 students → 4 attendance rows for TODAY (the runner queries today):
+        # 2 present, 1 absent, 1 late.
+        statuses = ["present", "present", "absent", "late"]
+        for i, status in enumerate(statuses):
+            student = StudentProfile.objects.create(
+                first_name="S", last_name=str(i), student_code=f"AI{i:03d}",
+                academic_year=self.year, classroom=self.classroom,
+                specialty=self.spec, school=self.school,
+            )
+            Attendance.objects.create(
+                student=student, classroom=self.classroom,
+                date=date.today(), status=status, school=self.school,
+            )
+
+    def test_woken_runner_computes_real_metrics(self):
+        result = run_summarize_attendance_report(
+            ProposedAction(
+                action="summarize_attendance_report",
+                params={"class_id": str(self.classroom.id)},
+            ),
+            _ctx(),
+        )
+        self.assertEqual(
+            result["metrics"],
+            {"present": 2, "absent": 1, "late": 1, "total": 4},
+        )
+        # Not the degraded fallback strings.
+        self.assertNotIn("unavailable", result["summary"].lower())
+        self.assertIn("2/4 present", result["summary"])
 
 
 class FeesRunnerTests(SimpleTestCase):
