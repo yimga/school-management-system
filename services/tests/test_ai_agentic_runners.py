@@ -118,13 +118,20 @@ class AttendanceRunnerLiveDataTests(TestCase):
                 date=date.today(), status=status, school=self.school,
             )
 
+    def _ctx_school(self):
+        # Real tenant handle so _scope_school resolves this school (School.id is
+        # a UUID). The runner refuses to read attendance without it.
+        return ActionContext(
+            tenant_id=str(self.school.id), user_id="u1", user_roles=("TEACHER",),
+        )
+
     def test_woken_runner_computes_real_metrics(self):
         result = run_summarize_attendance_report(
             ProposedAction(
                 action="summarize_attendance_report",
                 params={"class_id": str(self.classroom.id)},
             ),
-            _ctx(),
+            self._ctx_school(),
         )
         self.assertEqual(
             result["metrics"],
@@ -133,6 +140,34 @@ class AttendanceRunnerLiveDataTests(TestCase):
         # Not the degraded fallback strings.
         self.assertNotIn("unavailable", result["summary"].lower())
         self.assertIn("2/4 present", result["summary"])
+
+    def test_refuses_cross_tenant_class(self):
+        """An AI in another tenant must not summarise this school's class.
+
+        Same real class_id, but the caller's tenant is a DIFFERENT school -> the
+        class is not found for that school and no rows are read. The pre-fix
+        classroom_id-only filter would have returned this school's 4 rows even
+        to a caller from another tenant (RLS is off on the edge/offline profile).
+        """
+        from apps.schools.models import School
+
+        other = School.objects.create(
+            name="AI Attend 2", slug="ai-attend-2", subdomain="ai-attend-2",
+            country_code="FR",
+        )
+        result = run_summarize_attendance_report(
+            ProposedAction(
+                action="summarize_attendance_report",
+                params={"class_id": str(self.classroom.id)},
+            ),
+            ActionContext(
+                tenant_id=str(other.id), user_id="u1", user_roles=("TEACHER",),
+            ),
+        )
+        self.assertEqual(
+            result["metrics"], {"present": 0, "absent": 0, "late": 0, "total": 0}
+        )
+        self.assertIn("not found", result["summary"].lower())
 
 
 class FeesRunnerTests(SimpleTestCase):

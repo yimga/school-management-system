@@ -511,6 +511,7 @@ def _snapshot_mark_student_absent(params: dict, school) -> dict:
         student = Student.objects.filter(school=school, pk=student_id).first()
         if student is None:
             return snap
+        # tenant-isolation-allow: attendance-scoped-via-school-filtered-student
         rec = Attendance.objects.filter(student=student, date=on_date).first()
         if rec is not None:
             snap["existed"] = True
@@ -702,6 +703,7 @@ def _reverse_mark_student_absent(payload: dict, school) -> ExecutionResult:
         if student is None:
             return ExecutionResult(ok=False, action="mark_student_absent",
                                    error="Student not found.", blocked_reason="no_reversal")
+        # tenant-isolation-allow: attendance-scoped-via-school-filtered-student
         rec = Attendance.objects.filter(student=student, date=on_date).first()
         if rec is None:
             return ExecutionResult(ok=True, action="mark_student_absent",

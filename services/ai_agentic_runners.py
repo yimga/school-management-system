@@ -80,13 +80,27 @@ def run_summarize_attendance_report(
     metrics = {"present": 0, "absent": 0, "late": 0, "total": 0}
     try:
         from datetime import date  # local import
-        from apps.academics.models import Attendance
-        # Today's records. Scope-narrowed by class_id (a global PK, so the row
-        # set is single-tenant by construction); RLS enforces tenant isolation
-        # at the DB layer.
+
+        from apps.academics.models import Attendance, Classroom
+
+        # An AI attendance summary must never read another tenant's class.
+        # Resolve the caller's school and the class WITHIN it: a class_id that
+        # belongs to another school (or an unresolvable tenant) is refused, not
+        # summarised. Defence-in-depth that does NOT lean on DB-layer RLS being
+        # active — RLS is off on the single-DB edge/offline profile, where the
+        # old classroom_id-only filter would have read across tenants.
+        school = _scope_school(ctx.tenant_id)
+        if school is None:
+            return {"summary": "Tenant scope unavailable.", "metrics": metrics}
+        classroom = Classroom.objects.filter(school=school, pk=class_id).first()
+        if classroom is None:
+            return {
+                "summary": f"Class {class_id} not found for this school.",
+                "metrics": metrics,
+            }
         today = date.today()
         qs = Attendance.objects.filter(
-            classroom_id=class_id, date=today,
+            school=school, classroom=classroom, date=today,
         )
         for rec in qs.values("status"):
             status = (rec.get("status") or "").lower()
