@@ -231,6 +231,7 @@ def _fetch_http(url: str, dest: Path, max_bytes: int) -> None:
 
 
 def _fetch_sftp(url: str, dest: Path, max_bytes: int) -> None:
+    _assert_public_host(url)  # SSRF guard: block private/loopback/link-local SFTP targets.
     try:
         import paramiko  # type: ignore[import-not-found]
     except ImportError as exc:
@@ -269,6 +270,10 @@ def _fetch_sftp(url: str, dest: Path, max_bytes: int) -> None:
 
 
 def _fetch_s3(url: str, dest: Path, max_bytes: int) -> None:
+    # No _assert_public_host here: an s3:// handle's netloc is a BUCKET name, not a
+    # network host — boto3 resolves it to the AWS S3 endpoint, so there is no
+    # attacker-controlled host to SSRF into. (The http/https + sftp fetchers ARE
+    # guarded, since those take a real network host.)
     try:
         import boto3  # type: ignore[import-not-found]
     except ImportError as exc:

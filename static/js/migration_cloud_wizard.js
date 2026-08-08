@@ -191,6 +191,25 @@
       });
       return;
     }
+
+    const rollbackBtn = event.target.closest("[data-mc-rollback-url]");
+    if (rollbackBtn) {
+      const msg = rollbackBtn.getAttribute("data-mc-confirm");
+      if (msg && !window.confirm(msg)) return;
+      const rbUrl = rollbackBtn.getAttribute("data-mc-rollback-url");
+      rollbackBtn.disabled = true;
+      setStatus("Rolling back…", "info");
+      postJson(rbUrl, {}).then(function (resp) {
+        rollbackBtn.disabled = false;
+        if (resp.ok && resp.data && !resp.data.error) {
+          setStatus("Rolled back. Reloading…", "success");
+          window.setTimeout(function () { window.location.reload(); }, 800);
+        } else {
+          setStatus("Rollback failed: " + ((resp.data && resp.data.error) || resp.status), "error");
+        }
+      });
+      return;
+    }
   });
 
   // --- Drag-and-drop reorder of canonical field across rows --------------

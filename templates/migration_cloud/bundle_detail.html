@@ -384,6 +384,25 @@
       </button>
       {% endif %}
     </div>
+    {% if rollback_runs %}
+    <div class="mt-3" data-mc-rollback-panel>
+      <h3 class="rmc-h2">{% trans "Roll back a migration run" %}</h3>
+      <p class="rmc-muted">{% trans "Deletes the rows this run created and restores the values it overwrote on the tenant. A rollback checkpoint is kept. Use when a migration landed wrong." %}</p>
+      <ul class="rmc-stack">
+        {% for r in rollback_runs %}
+        <li class="d-flex align-items-center gap-2 flex-wrap">
+          <code>{{ r.migration_type }}</code>
+          <span class="rmc-muted">{% blocktrans with c=r.created_count u=r.updated_count %}{{ c }} created · {{ u }} updated{% endblocktrans %}</span>
+          <button type="button" class="rmc-btn rmc-btn--sm rmc-btn--ghost"
+                  data-mc-rollback-url="{% if shell == 'portal' %}{% url 'migration_cloud_portal:run_rollback' bundle_id=bundle.pk run_id=r.pk %}{% else %}{% url 'migration_cloud_super:run_rollback' bundle_id=bundle.pk run_id=r.pk %}{% endif %}"
+                  data-mc-confirm="{% trans 'This will DELETE the rows this run created and restore overwritten values on the tenant. Continue?' %}">
+            {% trans "Roll back" %}
+          </button>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
     <p class="rmc-mapping__status" data-mc-status role="status" aria-live="polite"></p>
   </section>
 

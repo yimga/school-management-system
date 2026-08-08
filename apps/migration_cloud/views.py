@@ -802,6 +802,33 @@ class MigrationCloudConsoleView(LoginRequiredMixin, View):
         )
 
 
+def _rollback_runs_for_bundle(bundle):
+    """Per-(domain,artifact) ``MigrationRun`` rows for this bundle that can still
+    be rolled back (a rollback snapshot is present and the run was not already
+    reverted). Empty when the automation app is absent / unmigrated.
+
+    Runs carry no bundle FK — they are school-scoped — but
+    ``orchestrator._create_audit_run`` stamps ``execution_summary["bundle_id"]``
+    at create time, so we associate by that plus the school. ``can_rollback`` is
+    a Python property (not a DB field), so the final filter runs in memory.
+    """
+    if bundle.school_id is None or bundle.status not in (
+        BundleStatus.APPLIED,
+        BundleStatus.RECONCILED,
+    ):
+        return []
+    try:
+        from apps.automation.models import MigrationRun
+    except Exception:  # noqa: BLE001 — automation app absent / unmigrated → no rollback surface
+        return []
+    run_qs = MigrationRun.objects.filter(
+        school_id=bundle.school_id,
+        dry_run=False,
+        execution_summary__bundle_id=bundle.pk,
+    ).order_by("-started_at")
+    return [r for r in run_qs if r.can_rollback]
+
+
 class MigrationCloudBundleDetailView(LoginRequiredMixin, View):
     """Show one bundle's profile / classification / mapping / reconciliation surfaces."""
 
@@ -847,6 +874,8 @@ class MigrationCloudBundleDetailView(LoginRequiredMixin, View):
                 ),
                 # Pre-tenant staging — bundle not bound to a school yet.
                 "needs_school_binding": bundle.school_id is None and shell == "super",
+                # Rollback surface: this bundle's still-revertible apply runs.
+                "rollback_runs": _rollback_runs_for_bundle(bundle),
             },
         )
 
@@ -2116,12 +2145,24 @@ class MigrationCloudIdMappingLookupView(LoginRequiredMixin, View):
         })
 
 
+def _can_reveal_pii(user) -> bool:
+    """Only a platform superuser may see staged PII verbatim in the review UI.
+
+    Everyone else — tenant admins and operators included — sees masked values, so
+    raw SSN / DOB / medical / financial data never reaches an unprivileged
+    browser (screen-share, shoulder-surf, browser cache). A granular per-tenant
+    ``reveal_pii`` permission is the documented next refinement.
+    """
+    return bool(getattr(user, "is_superuser", False))
+
+
 class MigrationCloudConflictsView(LoginRequiredMixin, View):
     """GET endpoint: list pending conflicts. POST endpoint: resolve a conflict.
 
     POST body::
 
         {"conflict_id": 42, "resolution": "OVERWRITE" | "PRESERVE" | "MERGE"}
+        {"action": "fix_all", "resolution": "OVERWRITE" | "PRESERVE" | "MERGE"}
     """
 
     template_name = "migration_cloud/conflicts.html"
@@ -2142,6 +2183,16 @@ class MigrationCloudConflictsView(LoginRequiredMixin, View):
             request.GET.get("resolved_page") or 1
         )
         pending = list(pending_page_obj.object_list)
+        # PII masking: staged conflict rows can hold SSN / DOB / medical / financial
+        # values. Mask them IN MEMORY (never saved) for any viewer without an
+        # explicit reveal right, so raw PII never leaves the server for the review
+        # surface. Applied here so it covers BOTH the JSON and HTML renders below.
+        reveal_pii = _can_reveal_pii(request.user)
+        if not reveal_pii:
+            from .pii_display import mask_dict
+            for _c in pending:
+                _c.existing_values = mask_dict(_c.existing_values)
+                _c.incoming_values = mask_dict(_c.incoming_values)
         pending_count = pending_qs.count()
         resolved = list(resolved_page_obj.object_list)
         pending_extra = request.GET.copy()
@@ -2180,6 +2231,7 @@ class MigrationCloudConflictsView(LoginRequiredMixin, View):
                 "resolved": resolved,
                 "resolved_page_obj": resolved_page_obj,
                 "resolved_pagination_extra_query": resolved_extra.urlencode(),
+                "can_reveal_pii": reveal_pii,
                 "page_title": f"Conflict review — {bundle.label or bundle.idempotency_key}",
             },
         )
@@ -2194,23 +2246,41 @@ class MigrationCloudConflictsView(LoginRequiredMixin, View):
             payload = request.POST.dict()
         from django.http import Http404
 
-        conflict_id = payload.get("conflict_id")
         resolution = (payload.get("resolution") or "").upper()
         if resolution not in {c[0] for c in ConflictResolution.choices}:
             return JsonResponse({"error": "invalid resolution"}, status=400)
-        try:
-            conflict_pk = int(conflict_id)
-        except (TypeError, ValueError):
-            return JsonResponse({"error": "conflict_id required"}, status=400)
-        # Scope by tenant: the GET already resolves via _tenant_scoped_bundle;
-        # the POST must too, then look up the conflict WITHIN that bundle — else a
-        # portal caller could flip another tenant's conflict resolution (which
-        # drives whether apply overwrites/preserves rows). MigrationConflict has
-        # no school_id, so the view-layer scope is the only guard here.
+        # Scope by tenant FIRST (both the batch and single paths). The GET
+        # resolves via _tenant_scoped_bundle; the POST must too, then act only
+        # WITHIN that bundle — else a portal caller could flip another tenant's
+        # conflict resolution (which drives whether apply overwrites/preserves
+        # rows). MigrationConflict has no school_id, so the view-layer bundle
+        # scope is the only guard here.
         try:
             bundle = _tenant_scoped_bundle(request, bundle_id, shell)
         except Http404:
             return JsonResponse({"error": "bundle not found"}, status=404)
+
+        # One-click "Fix All": resolve EVERY pending conflict for this bundle
+        # with the chosen resolution in a single action. Bundle-scoped, so it can
+        # never touch another tenant's queue.
+        if (payload.get("action") or "").lower() == "fix_all":
+            resolver = request.user if request.user.is_authenticated else None
+            resolved_count = bundle.conflicts.filter(
+                resolution=ConflictResolution.PENDING
+            ).update(
+                resolution=resolution,
+                resolved_by=resolver,
+                resolved_at=timezone.now(),
+            )
+            return JsonResponse(
+                {"action": "fix_all", "resolution": resolution, "resolved_count": resolved_count}
+            )
+
+        conflict_id = payload.get("conflict_id")
+        try:
+            conflict_pk = int(conflict_id)
+        except (TypeError, ValueError):
+            return JsonResponse({"error": "conflict_id required"}, status=400)
         conflict = get_object_or_404(MigrationConflict, pk=conflict_pk, bundle=bundle)
         conflict.resolution = resolution
         conflict.resolved_by = request.user if request.user.is_authenticated else None

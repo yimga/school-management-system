@@ -29,6 +29,15 @@
     {% if not pending %}
       <p class="rmc-empty">{% trans "No pending conflicts. The apply step will overwrite cleanly." %}</p>
     {% else %}
+      <div class="rmc-button-row mb-3" data-mc-fixall-panel>
+        <span class="rmc-muted">{% trans "Resolve all pending as:" %}</span>
+        <button type="button" data-mc-fixall-resolution="OVERWRITE" class="rmc-btn rmc-btn--sm rmc-btn--ghost">{% trans "Overwrite all" %}</button>
+        <button type="button" data-mc-fixall-resolution="PRESERVE" class="rmc-btn rmc-btn--sm rmc-btn--ghost">{% trans "Preserve all" %}</button>
+        <button type="button" data-mc-fixall-resolution="MERGE" class="rmc-btn rmc-btn--sm rmc-btn--ghost">{% trans "Merge all" %}</button>
+      </div>
+      {% if not can_reveal_pii %}
+      <p class="rmc-muted">{% trans "Sensitive values (IDs, dates of birth, contact, medical, financial) are hidden in this view. Ask a platform administrator to reveal them if a review needs the raw data." %}</p>
+      {% endif %}
       <table class="rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
         <caption class="visually-hidden">{% trans "Pending review" %} ({{ pending_src|length }})</caption>
         <thead>
@@ -109,6 +118,18 @@ incoming: {{ c.incoming_values }}</pre>
       }).then(function (r) {
         if (r.ok) row.style.opacity = "0.4";
       });
+    });
+  });
+  document.querySelectorAll("[data-mc-fixall-resolution]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var resolution = btn.getAttribute("data-mc-fixall-resolution");
+      if (!window.confirm("Resolve ALL pending conflicts as " + resolution + "? This decides how apply treats every conflicting row.")) return;
+      fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-CSRFToken": csrf },
+        credentials: "same-origin",
+        body: JSON.stringify({ action: "fix_all", resolution: resolution }),
+      }).then(function (r) { if (r.ok) window.location.reload(); });
     });
   });
 })();
