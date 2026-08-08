@@ -1,4 +1,4 @@
-{% load i18n wizard_extras %}
+{% load i18n wizard_extras static %}
 {% comment %}Setup Studio 50X — unified zero-friction CTA strip (Launch Studio + guided onboarding).{% endcomment %}
 {% if zero_friction %}
 <section class="setup-studio-zero-friction rmc-section-nav mb-3" data-rmc-zero-friction="1" data-rmc-scroll-policy="paginate" aria-labelledby="rmc-zero-friction-heading">
@@ -30,7 +30,7 @@
       <a href="{{ zero_friction.actions.resume_wizard_url }}" class="btn btn-outline-primary btn-sm" data-rmc-cta="resume-wizard">{% trans "Resume where I left off" %}</a>
       {% endif %}
       <button type="button" class="btn btn-outline-secondary btn-sm" data-rmc-cta="what-blocking" data-bs-toggle="collapse" data-bs-target="#rmc-zero-friction-blockers" aria-expanded="false">{% trans "What is blocking launch?" %}</button>
-      <form method="post" action="{% url 'setup_studio:zero_friction_recommended' %}" class="d-inline" data-rmc-cta="fix-automatically">
+      <form method="post" action="{% url 'setup_studio:zero_friction_recommended' %}" class="d-inline" data-rmc-cta="fix-automatically" data-rmc-auto-repair-form="1">
         {% csrf_token %}
         <input type="hidden" name="auto_fix" value="1">
         <button type="submit" class="btn btn-outline-warning btn-sm">{% trans "Fix automatically" %}</button>
@@ -51,5 +51,12 @@
       {% endfor %}
     </ul>
   </div>
+  <dialog class="setup-studio-panel" data-rmc-auto-repair-dialog="1" aria-labelledby="rmc-auto-repair-title">
+    <div class="p-3">
+      <div class="d-flex justify-content-between align-items-start gap-3"><h3 id="rmc-auto-repair-title" class="h5">{% trans "Setup repair complete" %}</h3><button type="button" class="btn-close" data-rmc-auto-repair-close="1" aria-label="{% trans 'Close' %}"></button></div>
+      <div data-rmc-auto-repair-result="1" aria-live="polite"></div>
+    </div>
+  </dialog>
+  <script src="{% static 'js/rmc-setup-auto-repair.js' %}" defer></script>
 </section>
 {% endif %}

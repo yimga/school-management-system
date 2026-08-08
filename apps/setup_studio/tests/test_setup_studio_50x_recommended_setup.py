@@ -6,6 +6,9 @@ from apps.policies.models import BlueprintPack
 from apps.registries.models import CountryRegistry
 from apps.schools.models import School
 from apps.setup_studio.zero_friction import apply_recommended_setup
+from apps.setup_studio.views_zero_friction import api_recommended_setup
+from django.contrib.auth import get_user_model
+from django.test import RequestFactory
 
 
 class SetupStudioRecommendedSetupTests(TestCase):
@@ -45,3 +48,16 @@ class SetupStudioRecommendedSetupTests(TestCase):
         self.assertEqual(
             result["recommended_blueprint_slug"], "cm-secondary-launch"
         )
+
+    def test_form_encoded_fix_automatically_runs_repair(self):
+        user = get_user_model().objects.create_user(username="repair-owner")
+        request = RequestFactory().post("/api/setup-studio/recommended/", {"auto_fix": "1"})
+        request.user = user
+        request.school = self.school
+        response = api_recommended_setup(request)
+        self.assertEqual(response.status_code, 200)
+        import json
+
+        payload = json.loads(response.content)
+        self.assertIn("auto_repair", payload)
+        self.assertIn("needs_human", payload["auto_repair"])

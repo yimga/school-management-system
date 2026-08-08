@@ -63,7 +63,8 @@ def api_recommended_setup(request):
         body = {}
     actor_id = getattr(request.user, "pk", None)
     result = apply_recommended_setup(school, actor_id=actor_id)
-    if body.get("auto_fix"):
+    auto_fix = body.get("auto_fix") or request.POST.get("auto_fix")
+    if str(auto_fix).lower() in {"1", "true", "on", "yes"}:
         # "Fix automatically" must actually PERFORM safe setup (seed/align
         # registries, attach the default plan, create a starter academic year),
         # not merely recompute the score. The report lists what was fixed and

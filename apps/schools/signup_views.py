@@ -543,6 +543,20 @@ def signup_school(request: HttpRequest):
     language_codes_csv = "|".join(language_codes)
     primary_language_code = language_code
 
+    funding_type = (request.POST.get("funding_type") or "").strip().lower()
+    if funding_type not in {"public", "private", "mission", "charter", "nonprofit", "other"}:
+        funding_type = ""
+    organization_scope = (request.POST.get("organization_scope") or "single").strip().lower()
+    if organization_scope not in {"single", "district", "network"}:
+        organization_scope = "single"
+    lms_preference = (request.POST.get("lms_preference") or "none").strip().lower()
+    if lms_preference not in {"none", "native", "google-classroom", "microsoft-teams", "canvas", "moodle", "other"}:
+        lms_preference = "none"
+    try:
+        student_capacity = min(1_000_000, max(0, int(request.POST.get("student_capacity") or 0)))
+    except (TypeError, ValueError):
+        student_capacity = 0
+
     errors = []
     if not name:
         errors.append("School name is required.")
@@ -671,6 +685,27 @@ def signup_school(request: HttpRequest):
     # path still reading school.settings["term_preset"] directly.
     if term_preset == "uk-3-term" or (term_preset_raw.upper() in ("UK", "GB")):
         school_settings["term_preset"] = "UK"
+    institution_profile = {
+        "funding_type": funding_type,
+        "organization_scope": organization_scope,
+        "student_capacity": student_capacity,
+        "lms_preference": lms_preference,
+    }
+    school_settings["onboarding_intent"] = {
+        "country_code": country_code,
+        "education_cycles": list(validated_types),
+        "language_codes": list(language_codes),
+        "calendar_code": term_preset,
+        "institution_profile": institution_profile,
+    }
+    from apps.schools.onboarding_recommendations import build_onboarding_recommendations
+
+    school_settings["recommendation_manifest"] = build_onboarding_recommendations(
+        country_code=country_code,
+        education_cycles=list(validated_types),
+        language_codes=list(language_codes),
+        institution_profile=institution_profile,
+    )
     ob_cid = (request.session.get("onboarding_correlation_id") or "").strip()
     if ob_cid or request.session.get("onboarding_plan_slug"):
         rmc_ob = {

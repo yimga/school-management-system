@@ -33,6 +33,23 @@
     {% endif %}
   </div>
 
+  {% if zero_friction.recommendation_manifest.recommendations %}
+  <div class="studio-os__card mb-3" data-rmc-recommendation-manifest="1">
+    <div class="d-flex flex-wrap justify-content-between gap-2"><h3 class="h6 mb-2">{% trans "Recommended for your school" %}</h3><span class="badge text-bg-success">{% trans "Local-first" %}</span></div>
+    <p class="small text-muted">{% trans "Based on your signup profile. These suggestions work offline and remain editable." %}</p>
+    <div class="d-flex flex-wrap gap-2">
+      {% with rec=zero_friction.recommendation_manifest.recommendations %}
+      <span class="badge rounded-pill text-bg-light">{% trans "Blueprint" %}: {{ rec.blueprint }}</span>
+      <span class="badge rounded-pill text-bg-light">{% trans "LMS" %}: {{ rec.lms }}</span>
+      <span class="badge rounded-pill text-bg-light">{% trans "Grading" %}: {{ rec.grading }}</span>
+      <span class="badge rounded-pill text-bg-light">{% trans "Dashboard" %}: {{ rec.dashboard }}</span>
+      <span class="badge rounded-pill text-bg-light">{% trans "District" %}: {{ rec.district }}</span>
+      {% for module in rec.modules %}<span class="badge rounded-pill text-bg-primary">{{ module }}</span>{% endfor %}
+      {% endwith %}
+    </div>
+  </div>
+  {% endif %}
+
   {% if launch_payload.registry_alignment %}
   {% if launch_payload.registry_alignment.detail or launch_payload.registry_alignment.key_rows %}
   <div class="studio-os__card mb-3">

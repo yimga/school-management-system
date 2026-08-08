@@ -46,6 +46,9 @@ def get_zero_friction_payload(school) -> dict[str, Any]:
             )
         except NoReverseMatch:
             resume_url = ""
+    from apps.schools.onboarding_recommendations import ensure_school_recommendations
+
+    recommendation_manifest = ensure_school_recommendations(school)
     return {
         "health_score": payload.get("health_score", 0),
         "health_summary": payload.get("health_summary") or {},
@@ -53,6 +56,7 @@ def get_zero_friction_payload(school) -> dict[str, Any]:
         "launch_blockers": blockers,
         "recommended_next": recommended,
         "recommended_blueprint": payload.get("recommended_blueprint") or {},
+        "recommendation_manifest": recommendation_manifest,
         "resumable_wizards": resumable,
         "actions": {
             "use_recommended_setup": recommended.get("link") or "",

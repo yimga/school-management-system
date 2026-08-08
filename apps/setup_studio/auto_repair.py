@@ -42,6 +42,7 @@ def auto_repair_setup(school, *, actor_id: int | None = None) -> dict[str, Any]:
 
     fixed: list[str] = []
     _align_registries(school, fixed)
+    _ensure_recommendations(school, fixed)
     _attach_default_plan(school, fixed)
     _ensure_academic_year(school, fixed)
 
@@ -147,6 +148,19 @@ def _attach_default_plan(school, fixed: list[str]) -> None:
             fixed.append(f"Attached the default plan ({getattr(plan, 'name', plan)}).")
     except Exception:  # noqa: BLE001
         logger.debug("auto-repair: default plan bind skipped", exc_info=True)
+
+
+def _ensure_recommendations(school, fixed: list[str]) -> None:
+    """Grandfather a local recommendation manifest without changing choices."""
+    try:
+        from apps.schools.onboarding_recommendations import ensure_school_recommendations
+
+        before = (dict(school.settings or {})).get("recommendation_manifest")
+        ensure_school_recommendations(school)
+        if not before:
+            fixed.append("Built your local recommendation profile from existing school data.")
+    except Exception:  # noqa: BLE001
+        logger.debug("auto-repair: recommendation grandfather skipped", exc_info=True)
 
 
 def _ensure_academic_year(school, fixed: list[str]) -> None:

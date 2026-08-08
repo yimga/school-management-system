@@ -276,6 +276,29 @@
         </div>
       </div>
 
+      <fieldset class="mb-3 rmc-signup-field" data-rmc-signup-field="institution_profile">
+        <legend class="rmc-signup-field__label-text h6">{% trans "Help us configure your workspace" %}</legend>
+        <p class="small text-muted mb-3">{% trans "Four quick answers let us recommend modules, blueprints, grading, LMS, dashboards, and offline setup. You can change every choice later." %}</p>
+        <div class="row g-3">
+          <div class="col-sm-6">
+            <label class="form-label" for="funding_type">{% trans "School model" %}</label>
+            <select class="form-select" id="funding_type" name="funding_type">
+              <option value="">{% trans "Choose later" %}</option><option value="public">{% trans "Public" %}</option><option value="private">{% trans "Private" %}</option><option value="mission">{% trans "Faith / mission" %}</option><option value="charter">{% trans "Charter" %}</option><option value="nonprofit">{% trans "Nonprofit" %}</option><option value="other">{% trans "Other" %}</option>
+            </select>
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label" for="organization_scope">{% trans "Organization" %}</label>
+            <select class="form-select" id="organization_scope" name="organization_scope"><option value="single">{% trans "One school / campus" %}</option><option value="district">{% trans "District" %}</option><option value="network">{% trans "School network" %}</option></select>
+          </div>
+          <div class="col-sm-6"><label class="form-label" for="student_capacity">{% trans "Expected students" %}</label><input class="form-control" id="student_capacity" name="student_capacity" type="number" min="0" max="1000000" inputmode="numeric" placeholder="500"></div>
+          <div class="col-sm-6">
+            <label class="form-label" for="lms_preference">{% trans "Learning platform" %}</label>
+            <select class="form-select" id="lms_preference" name="lms_preference"><option value="none">{% trans "Recommend one for me" %}</option><option value="native">{% trans "RunMyCampus learning workspace" %}</option><option value="google-classroom">Google Classroom</option><option value="microsoft-teams">Microsoft Teams</option><option value="canvas">Canvas</option><option value="moodle">Moodle</option><option value="other">{% trans "Other" %}</option></select>
+          </div>
+        </div>
+        <div class="form-text mt-2">{% trans "Recommendations are generated locally from your answers and country registries; internet access or an AI provider is not required." %}</div>
+      </fieldset>
+
       {% comment %}Wave L7 (v3.61.8 — 2026-05-22): school-type cards.
          Drives School.primary_sector at create time so the blueprint
          selector picks the right starter pack on first login. Five
