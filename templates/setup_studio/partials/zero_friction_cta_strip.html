@@ -33,7 +33,7 @@
       <form method="post" action="{% url 'setup_studio:zero_friction_recommended' %}" class="d-inline" data-rmc-cta="fix-automatically" data-rmc-auto-repair-form="1">
         {% csrf_token %}
         <input type="hidden" name="auto_fix" value="1">
-        <button type="submit" class="btn btn-outline-warning btn-sm">{% trans "Fix automatically" %}</button>
+        <button type="submit" class="btn btn-outline-primary btn-sm">{% trans "Fix automatically" %}</button>
       </form>
     </div>
   </div>
