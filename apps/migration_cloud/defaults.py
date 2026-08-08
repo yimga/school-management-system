@@ -110,6 +110,13 @@ _SEED: dict[str, Any] = {
     # OCR confidence warning thresholds (Tier 3 #22).
     "migration_cloud.ocr.min_chars_for_decision": 40,
     "migration_cloud.ocr.low_confidence_threshold": 0.5,
+    # Fuzzy-dedup second-chance auto-link (Tier 1b, 2026-08-08): when a
+    # student's source key misses, an UNAMBIGUOUS high-confidence name+DOB match
+    # to an existing row updates it instead of creating a duplicate. This is the
+    # deterministic_score (0..1) floor a candidate must clear to auto-link; the
+    # exact-DOB pre-filter + single-candidate rule keep it from ever
+    # wrong-merging two distinct people (ambiguous pairs fall to review).
+    "migration_cloud.dedup.autolink_min_score": 0.95,
     # Network resilience (Tier 2 #14).
     "migration_cloud.network.max_retries": 5,
     "migration_cloud.network.fetch_timeout_seconds": 30,

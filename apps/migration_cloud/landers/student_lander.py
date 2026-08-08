@@ -134,10 +134,36 @@ class StudentLander(Lander):
                             **school_scope,
                             admission_number=adm,
                         ).first()
+                # Second-chance FUZZY match: the same person arriving under a
+                # DIFFERENT source key (a re-migration, or a second source
+                # system) would otherwise create a duplicate student. When both
+                # key-based lookups miss, an UNAMBIGUOUS high-confidence name+DOB
+                # match links to the existing row instead of inserting. Gated to
+                # exact-DOB + single-candidate + score floor so it can never
+                # wrong-merge two distinct people; anything short of that falls
+                # through to create + post-hoc surfacing (unchanged).
+                fuzzy_linked = False
+                fuzzy_score = None
+                if existing_obj is None:
+                    match = _find_fuzzy_duplicate(
+                        StudentProfile, school_scope, row, model_fields
+                    )
+                    if match is not None:
+                        existing_obj, fuzzy_score = match
+                        fuzzy_linked = True
+                # On a fuzzy link, never let the incoming identity keys clobber
+                # the existing student's own keys — the new source id is recorded
+                # as an id-mapping, not written over the canonical key.
+                apply_defaults = defaults
+                if fuzzy_linked:
+                    apply_defaults = {
+                        k: v for k, v in defaults.items()
+                        if k not in _IDENTITY_KEY_FIELDS
+                    }
                 if existing_obj is not None:
                     detect_conflict(
                         ctx=ctx, domain="students",
-                        canonical_obj=existing_obj, incoming=defaults,
+                        canonical_obj=existing_obj, incoming=apply_defaults,
                         legacy_id=external_id,
                     )
                     resolution = conflict_resolution_for(ctx=ctx, canonical_obj=existing_obj)
@@ -147,12 +173,14 @@ class StudentLander(Lander):
                             ctx=ctx, legacy_id=external_id,
                             canonical_obj=existing_obj, domain="students",
                         )
+                        if fuzzy_linked:
+                            _record_fuzzy_link(ctx, existing_obj, external_id, fuzzy_score, row)
                         continue
-                    # Update in place when we recovered via admission_number
-                    # rather than the primary lookup field.
-                    for k, v in defaults.items():
+                    # Update in place when we recovered via admission_number or a
+                    # fuzzy name+DOB match rather than the primary lookup field.
+                    for k, v in apply_defaults.items():
                         setattr(existing_obj, k, v)
-                    if lookup_field in model_fields:
+                    if lookup_field in model_fields and not fuzzy_linked:
                         setattr(existing_obj, lookup_field, external_id)
                     # Per-row savepoint: students land in an EARLIER wave of the same
                     # forced-atomic finance transaction, so a bad student row must roll
@@ -160,6 +188,8 @@ class StudentLander(Lander):
                     with row_savepoint():
                         existing_obj.save()
                     obj, created = existing_obj, False
+                    if fuzzy_linked:
+                        _record_fuzzy_link(ctx, existing_obj, external_id, fuzzy_score, row)
                 else:
                     with row_savepoint():
                         obj, created = StudentProfile.objects.update_or_create(
@@ -261,6 +291,102 @@ def _surface_dedup_candidates(model, new_obj, row: dict[str, Any], ctx: "LanderC
     summary.setdefault("dedup_candidates", []).extend(findings)
     bundle.mapping_summary = summary
     bundle.save(update_fields=["mapping_summary"])
+
+
+_IDENTITY_KEY_FIELDS = (
+    "external_id",
+    "sis_external_id",
+    "source_id",
+    "student_code",
+    "admission_number",
+)
+
+
+def _find_fuzzy_duplicate(model, school_scope, row, model_fields):
+    """Return ``(existing_obj, score)`` for an UNAMBIGUOUS high-confidence
+    name+DOB duplicate of ``row`` whose source key missed, else ``None``.
+
+    Three rules make an auto-link unable to wrong-merge two distinct people:
+      * date-of-birth must be present on the incoming row AND matched exactly
+        (a shared exact birthdate is the strong discriminator);
+      * the deterministic name+DOB score must clear the configurable
+        ``migration_cloud.dedup.autolink_min_score`` floor;
+      * exactly ONE candidate may clear the bar — 0 candidates → create a fresh
+        row, >1 → ambiguous, both cases left to the post-hoc ``dedup_candidates``
+        review lane rather than risking a merge.
+    """
+    dob = row.get("date_of_birth")
+    first = (row.get("first_name") or "").strip()
+    last = (row.get("last_name") or "").strip()
+    if not dob or not first or not last:
+        return None
+    if "date_of_birth" not in model_fields or "last_name" not in model_fields:
+        return None
+    try:
+        from apps.people.ai_dedup import deterministic_score
+    except Exception:  # noqa: BLE001 — dedup helper absent → no auto-link
+        return None
+    from apps.migration_cloud import defaults as mc_defaults
+
+    try:
+        min_score = float(mc_defaults.get("migration_cloud.dedup.autolink_min_score"))
+    except Exception:  # noqa: BLE001 — unknown/blank key → conservative default
+        min_score = 0.95
+    candidates = list(
+        model.objects.filter(  # tenant-isolation-allow: lander runs inside schema_context(bundle.schema_name); scoped by school_scope
+            **school_scope,
+            last_name__iexact=last,
+            date_of_birth=dob,
+        )[:10]
+    )
+    hits = []
+    for other in candidates:
+        left = {
+            f: row.get(f)
+            for f in ("first_name", "last_name", "middle_name", "date_of_birth", "phone", "email")
+        }
+        right = {
+            "first_name": getattr(other, "first_name", ""),
+            "last_name": getattr(other, "last_name", ""),
+            "middle_name": getattr(other, "middle_name", ""),
+            "date_of_birth": getattr(other, "date_of_birth", None),
+            "phone": getattr(other, "phone", ""),
+            "email": getattr(other, "email", ""),
+        }
+        score = deterministic_score(left, right)
+        if score >= min_score:
+            hits.append((other, score))
+    if len(hits) == 1:
+        return hits[0]
+    return None
+
+
+def _record_fuzzy_link(ctx, existing_obj, external_id, score, row) -> None:
+    """Note (for operator review) that an incoming source key was linked to an
+    existing student via a fuzzy name+DOB match rather than the source key —
+    so the auto-link is never silent. Best-effort; never breaks the land."""
+    try:
+        from apps.migration_cloud.models import MigrationBundle
+
+        bundle = MigrationBundle.objects.filter(pk=ctx.bundle_id).first()  # tenant-isolation-allow: PK lookup by internal bundle id
+    except Exception:  # noqa: BLE001
+        return
+    if bundle is None:
+        return
+    try:
+        summary = dict(bundle.mapping_summary or {})
+        summary.setdefault("dedup_links", []).append(
+            {
+                "canonical_pk": existing_obj.pk,
+                "linked_external_id": external_id,
+                "score": score,
+                "matched_on": "name+dob",
+            }
+        )
+        bundle.mapping_summary = summary
+        bundle.save(update_fields=["mapping_summary"])
+    except Exception:  # noqa: BLE001
+        return
 
 
 def _lookup_field(canonical: str, available: set[str]) -> str:
