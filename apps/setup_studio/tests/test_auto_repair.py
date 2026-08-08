@@ -9,6 +9,7 @@ localization registries) and reports what still needs a human.
 from __future__ import annotations
 
 from decimal import Decimal
+from unittest.mock import patch
 
 from django.test import TestCase
 
@@ -56,6 +57,11 @@ class AutoRepairSetupTests(TestCase):
         self.assertTrue(AcademicYear.objects.filter(school=self.school).exists())
         # Timezone derived from the country default (was blank).
         self.assertTrue(self.school.timezone)
+        self.assertTrue(report["run_id"])
+        self.assertEqual(
+            self.school.settings["setup_repair_history"][-1]["run_id"],
+            report["run_id"],
+        )
 
         # The genuinely-human steps are reported, not silently performed.
         human_keys = {step["key"] for step in report["needs_human"]}
@@ -73,3 +79,27 @@ class AutoRepairSetupTests(TestCase):
         )
         self.assertEqual(self.school.plan_id, plan_id)
         self.assertEqual(second["health_after"], first["health_after"])
+
+    def test_registry_seed_failure_is_reported_honestly(self):
+        with patch(
+            "apps.registries.services.ensure_registry_baseline",
+            side_effect=RuntimeError("seed unavailable"),
+        ):
+            report = auto_repair_setup(self.school)
+        self.assertGreater(report["warning_count"], 0)
+        self.assertTrue(
+            any("could not be verified" in warning for warning in report["warnings"])
+        )
+        self.assertTrue(
+            any(action["assessment"] == "check_manually" for action in report["actions"])
+        )
+
+    def test_registry_mismatch_becomes_guided_remediation(self):
+        self.school.timezone = "Invalid/School-Time"
+        self.school.save(update_fields=["timezone", "updated_at"])
+        report = auto_repair_setup(self.school)
+        registry_steps = [
+            step for step in report["needs_human"] if step["key"] == "registry_alignment"
+        ]
+        self.assertEqual(len(registry_steps), 1)
+        self.assertTrue(registry_steps[0]["fields"])

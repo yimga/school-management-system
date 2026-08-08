@@ -13,9 +13,11 @@
       if (!response.ok || !data.ok) throw new Error(data.error || "Setup repair could not finish.");
       var report = data.auto_repair || {};
       var fixed = (report.fixed || []).map(function (item) { return "<li>" + escapeHtml(item) + "</li>"; }).join("");
+      var warnings = (report.warnings || []).map(function (item) { return '<li class="text-warning">' + escapeHtml(item) + "</li>"; }).join("");
       var guided = (report.needs_human || []).map(function (step) { var link = step.cta_url ? '<a class="btn btn-sm btn-primary mt-2" href="' + escapeHtml(step.cta_url) + '">Continue</a>' : ""; return '<li class="mb-3"><strong>' + escapeHtml(step.label) + '</strong><div class="small text-muted">' + escapeHtml(step.detail) + "</div>" + link + "</li>"; }).join("");
       var html = '<p><strong>Health:</strong> ' + Number(report.health_before || 0) + "% → " + Number(report.health_after || 0) + "%</p>";
       if (fixed) html += "<h4 class=h6>Fixed automatically</h4><ul>" + fixed + "</ul>";
+      if (warnings) html += "<h4 class=h6>Needs attention</h4><ul>" + warnings + "</ul>";
       if (guided) html += "<h4 class=h6>Your guided next steps</h4><ol>" + guided + "</ol>";
       if (!guided && report.launch_ready) html += "<p class=text-success>Your school is launch ready.</p>";
       var dialog = document.querySelector("[data-rmc-auto-repair-dialog]");

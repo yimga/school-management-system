@@ -19,10 +19,12 @@ class Command(BaseCommand):
         for school in queryset.iterator(chunk_size=200):
             scanned += 1
             current = (dict(school.settings or {})).get("recommendation_manifest")
-            if current:
+            proposed = ensure_school_recommendations(school, save=False)
+            if current == proposed:
                 continue
             missing += 1
-            ensure_school_recommendations(school, save=options["apply"])
+            if options["apply"]:
+                ensure_school_recommendations(school, save=True)
             written += int(options["apply"])
         mode = "APPLY" if options["apply"] else "AUDIT"
         self.stdout.write(self.style.SUCCESS(f"{mode}: scanned={scanned} missing={missing} written={written}"))

@@ -19,3 +19,12 @@ class BackfillOnboardingRecommendationsTests(TestCase):
         call_command("backfill_onboarding_recommendations", "--apply", stdout=out)
         self.school.refresh_from_db()
         self.assertIn("recommendation_manifest", self.school.settings)
+
+    def test_apply_upgrades_an_old_manifest(self):
+        self.school.settings = {"recommendation_manifest": {"version": 1}}
+        self.school.save(update_fields=["settings", "updated_at"])
+        call_command("backfill_onboarding_recommendations", "--apply")
+        self.school.refresh_from_db()
+        self.assertEqual(
+            self.school.settings["recommendation_manifest"]["version"], 2
+        )

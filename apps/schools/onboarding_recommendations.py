@@ -1,30 +1,91 @@
-"""Deterministic local-first recommendations derived from tenant intent."""
+"""Explainable, deterministic, local-first tenant setup recommendations."""
+
 from __future__ import annotations
+
+import hashlib
+import json
 from typing import Any
 
-MANIFEST_VERSION = 1
+MANIFEST_VERSION = 2
 
 
-def build_onboarding_recommendations(*, country_code: str, education_cycles: list[str] | None = None, language_codes: list[str] | None = None, institution_profile: dict[str, Any] | None = None) -> dict[str, Any]:
-    cycles = [str(v).strip().lower() for v in (education_cycles or []) if v]
-    languages = [str(v).strip().lower() for v in (language_codes or []) if v]
+def _bounded_int(value: Any, *, maximum: int = 1_000_000) -> int:
+    try:
+        return min(maximum, max(0, int(value or 0)))
+    except (TypeError, ValueError, OverflowError):
+        return 0
+
+
+def _fingerprint(payload: dict[str, Any]) -> str:
+    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str)
+    return hashlib.sha256(encoded.encode("utf-8")).hexdigest()[:16]
+
+
+def _recommendation(
+    key: str,
+    label: str,
+    value: Any,
+    *,
+    reason: str,
+    confidence: str = "high",
+    decision: str = "automatic",
+    dependencies: list[str] | None = None,
+) -> dict[str, Any]:
+    return {
+        "key": key,
+        "label": label,
+        "value": value,
+        "display_value": ", ".join(str(item) for item in value)
+        if isinstance(value, list)
+        else str(value),
+        "reason": reason,
+        "confidence": confidence,
+        "decision": decision,
+        "dependencies": dependencies or [],
+        "editable": True,
+    }
+
+
+def build_onboarding_recommendations(
+    *,
+    country_code: str,
+    education_cycles: list[str] | None = None,
+    language_codes: list[str] | None = None,
+    institution_profile: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    country = str(country_code or "").strip().upper()[:2]
+    cycles = [
+        str(value).strip().lower() for value in (education_cycles or []) if value
+    ]
+    languages = [
+        str(value).strip().lower() for value in (language_codes or []) if value
+    ]
     profile = dict(institution_profile or {})
-    capacity = max(0, int(profile.get("student_capacity") or 0))
-    multi_campus = profile.get("organization_scope") in {"district", "network"}
-    has_secondary = any(t in " ".join(cycles) for t in ("secondary", "high", "sss", "tvet"))
+    capacity = _bounded_int(profile.get("student_capacity"))
+    profile["student_capacity"] = capacity
+    scope = str(profile.get("organization_scope") or "single").strip().lower()
+    multi_campus = scope in {"district", "network"}
+    cycle_text = " ".join(cycles)
+    has_secondary = any(
+        token in cycle_text for token in ("secondary", "high", "sss", "tvet")
+    )
+    funding = str(profile.get("funding_type") or "").strip().lower()
+    lms = str(profile.get("lms_preference") or "none").strip().lower()
+
     modules = ["student-information", "attendance", "family-portal", "communications"]
     if has_secondary:
         modules += ["grading", "timetable", "examinations"]
-    if profile.get("funding_type") in {"private", "mission", "charter"}:
+    if funding in {"private", "mission", "charter"}:
         modules += ["fees-finance", "financial-aid"]
     if multi_campus:
         modules += ["district-governance", "cross-campus-analytics"]
     if capacity >= 1000:
         modules += ["bulk-operations", "advanced-analytics"]
-    lms = str(profile.get("lms_preference") or "none").strip().lower()
+    modules = list(dict.fromkeys(modules))
+
     recommendations = {
         "blueprint": "country-and-cycle matched blueprint",
-        "modules": list(dict.fromkeys(modules)),
+        "modules": modules,
         "apps": ["offline-capture", "family-portal", "teacher-workspace"],
         "institution_profile": "multi-campus" if multi_campus else "single-campus",
         "district": "district-console" if multi_campus else "not-required",
@@ -34,20 +95,77 @@ def build_onboarding_recommendations(*, country_code: str, education_cycles: lis
         "dashboard": "network-executive" if multi_campus else "role-based-school-operations",
         "local_first": "offline-ready edge profile",
     }
-    reasons = ["country registry", "education cycles"]
-    for key, label in (("funding_type", "funding model"), ("student_capacity", "expected capacity"), ("organization_scope", "organization scope"), ("lms_preference", "LMS preference")):
-        if profile.get(key):
-            reasons.append(label)
-    return {"version": MANIFEST_VERSION, "country_code": str(country_code or "").strip().upper()[:2], "profile": profile, "recommendations": recommendations, "reason_labels": reasons, "source": "signup-intent", "offline_safe": True}
+    cards = [
+        _recommendation(
+            "blueprint", "Blueprint", recommendations["blueprint"],
+            reason="Matched from country and education cycles.", decision="confirm",
+            dependencies=["country", "education-cycles"],
+        ),
+        _recommendation(
+            "modules", "Modules", modules,
+            reason="The smallest day-one module set for the declared school profile.",
+            decision="confirm",
+        ),
+        _recommendation(
+            "lms", "Learning platform", recommendations["lms"],
+            reason="Uses the stated preference, with the native offline-safe fallback.",
+        ),
+        _recommendation(
+            "grading", "Grading", recommendations["grading"],
+            reason="Derived from cycles; the active regional registry is authoritative.",
+            decision="confirm", dependencies=["grading-registry"],
+        ),
+        _recommendation(
+            "dashboard", "Dashboard", recommendations["dashboard"],
+            reason="Matched to single-school or network operating scope.",
+        ),
+        _recommendation(
+            "district", "District tools", recommendations["district"],
+            reason="Enabled only for declared district or network operations.",
+        ),
+        _recommendation(
+            "local_first", "Offline profile", recommendations["local_first"],
+            reason="Local capture and sync-safe workflows are the platform baseline.",
+        ),
+    ]
+    source_payload = {
+        "country_code": country, "education_cycles": cycles,
+        "language_codes": languages, "institution_profile": profile,
+    }
+    signals = (
+        (bool(country), "country registry"), (bool(cycles), "education cycles"),
+        (bool(funding), "funding model"), (bool(capacity), "expected capacity"),
+        (bool(scope), "organization scope"),
+        (lms not in {"", "none"}, "LMS preference"),
+    )
+    reasons = [label for present, label in signals if present]
+    required_signals = (
+        (bool(country), "country"), (bool(cycles), "education cycles"),
+        (bool(funding), "funding model"), (bool(capacity), "expected capacity"),
+    )
+    missing_inputs = [label for present, label in required_signals if not present]
+    return {
+        "version": MANIFEST_VERSION,
+        "fingerprint": _fingerprint(source_payload),
+        "country_code": country,
+        "profile": profile,
+        "recommendations": recommendations,
+        "recommendation_cards": cards,
+        "reason_labels": reasons,
+        "missing_inputs": missing_inputs,
+        "confidence": (
+            "high" if len(missing_inputs) <= 1
+            else "medium" if len(missing_inputs) <= 2 else "low"
+        ),
+        "source": "signup-intent",
+        "offline_safe": True,
+    }
 
 
 def ensure_school_recommendations(school, *, save: bool = True) -> dict[str, Any]:
-    """Create a manifest for legacy tenants without overwriting their choices."""
+    """Create or refresh a manifest without overwriting tenant choices."""
     settings = dict(getattr(school, "settings", None) or {})
     intent = dict(settings.get("onboarding_intent") or {})
-    current = settings.get("recommendation_manifest")
-    if isinstance(current, dict) and current.get("version") == MANIFEST_VERSION:
-        return current
     cycles = list(intent.get("education_cycles") or [])
     if not cycles and getattr(school, "pk", None):
         cycles = list(school.education_system_types.values_list("code", flat=True))
@@ -55,9 +173,21 @@ def ensure_school_recommendations(school, *, save: bool = True) -> dict[str, Any
     primary = str(getattr(school, "primary_language", "") or "").strip()
     if not languages and primary:
         languages = [primary]
-    manifest = build_onboarding_recommendations(country_code=getattr(school, "country_code", ""), education_cycles=cycles, language_codes=languages, institution_profile=intent.get("institution_profile") or {})
-    settings["recommendation_manifest"] = manifest
-    school.settings = settings
+    manifest = build_onboarding_recommendations(
+        country_code=getattr(school, "country_code", ""),
+        education_cycles=cycles,
+        language_codes=languages,
+        institution_profile=intent.get("institution_profile") or {},
+    )
+    current = settings.get("recommendation_manifest")
+    if (
+        isinstance(current, dict)
+        and current.get("version") == MANIFEST_VERSION
+        and current.get("fingerprint") == manifest["fingerprint"]
+    ):
+        return current
     if save and getattr(school, "pk", None):
+        settings["recommendation_manifest"] = manifest
+        school.settings = settings
         school.save(update_fields=["settings", "updated_at"])
     return manifest

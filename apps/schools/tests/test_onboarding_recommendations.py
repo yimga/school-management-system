@@ -27,6 +27,16 @@ class RecommendationRulesTests(SimpleTestCase):
         self.assertEqual(rec["district"], "district-console")
         self.assertIn("fees-finance", rec["modules"])
         self.assertIn("advanced-analytics", rec["modules"])
+        self.assertEqual(manifest["version"], 2)
+        self.assertEqual(manifest["confidence"], "high")
+        self.assertTrue(all(card["reason"] for card in manifest["recommendation_cards"]))
+
+    def test_malformed_legacy_capacity_falls_back_safely(self):
+        manifest = build_onboarding_recommendations(
+            country_code="KE",
+            institution_profile={"student_capacity": "not-a-number"},
+        )
+        self.assertEqual(manifest["profile"]["student_capacity"], 0)
 
 
 class RecommendationGrandfatherTests(TestCase):
@@ -42,6 +52,29 @@ class RecommendationGrandfatherTests(TestCase):
         school.refresh_from_db()
         self.assertEqual(school.settings["legacy_choice"], "keep-me")
         self.assertEqual(school.settings["recommendation_manifest"], manifest)
+
+    def test_changed_intent_refreshes_stale_manifest(self):
+        school = School.objects.create(
+            name="Changing School",
+            slug="changing-recommendations",
+            subdomain="changing-recommendations",
+            country_code="CM",
+            settings={
+                "onboarding_intent": {
+                    "institution_profile": {"organization_scope": "single"}
+                }
+            },
+        )
+        first = ensure_school_recommendations(school)
+        school.settings["onboarding_intent"]["institution_profile"][
+            "organization_scope"
+        ] = "network"
+        school.save(update_fields=["settings", "updated_at"])
+        second = ensure_school_recommendations(school)
+        self.assertNotEqual(first["fingerprint"], second["fingerprint"])
+        self.assertEqual(
+            second["recommendations"]["district"], "district-console"
+        )
 
 
 @override_settings(RATELIMIT_ENABLE=False, ROOT_URLCONF="config.public_urls", EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")

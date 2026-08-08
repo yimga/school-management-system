@@ -23,6 +23,7 @@ blueprint (it changes modules) and importing the roster — are reported back as
 from __future__ import annotations
 
 import logging
+import uuid
 from datetime import date
 from typing import Any
 
@@ -41,10 +42,11 @@ def auto_repair_setup(school, *, actor_id: int | None = None) -> dict[str, Any]:
     health_before = int(before.get("health_score", 0) or 0)
 
     fixed: list[str] = []
-    _align_registries(school, fixed)
-    _ensure_recommendations(school, fixed)
-    _attach_default_plan(school, fixed)
-    _ensure_academic_year(school, fixed)
+    warnings: list[str] = []
+    _align_registries(school, fixed, warnings)
+    _ensure_recommendations(school, fixed, warnings)
+    _attach_default_plan(school, fixed, warnings)
+    _ensure_academic_year(school, fixed, warnings)
 
     after = compile_setup_studio(school)
     health_after = int(after.get("health_score", 0) or 0)
@@ -53,13 +55,25 @@ def auto_repair_setup(school, *, actor_id: int | None = None) -> dict[str, Any]:
         for b in (after.get("launch_blockers") or [])
     ]
     rec_bp = after.get("recommended_blueprint") or {}
+    run_id = _record_repair_run(
+        school,
+        actor_id=actor_id,
+        health_before=health_before,
+        health_after=health_after,
+        fixed=fixed,
+        warnings=warnings,
+    )
     return {
         "ok": True,
+        "run_id": run_id,
         "actor_id": actor_id,
         "health_before": health_before,
         "health_after": health_after,
         "fixed": fixed,
         "fixed_count": len(fixed),
+        "warnings": warnings,
+        "warning_count": len(warnings),
+        "actions": _action_receipts(fixed, warnings),
         "remaining_blockers": remaining,
         "launch_ready": bool(after.get("launch_ready")),
         "recommended_blueprint_slug": (
@@ -69,7 +83,9 @@ def auto_repair_setup(school, *, actor_id: int | None = None) -> dict[str, Any]:
     }
 
 
-def _align_registries(school, fixed: list[str]) -> None:
+def _align_registries(
+    school, fixed: list[str], warnings: list[str] | None = None
+) -> None:
     """Seed the reference registries and fill blank localization defaults from
     the school's country, so the registry-alignment card turns green."""
     try:
@@ -78,6 +94,8 @@ def _align_registries(school, fixed: list[str]) -> None:
         ensure_registry_baseline()
     except Exception:  # noqa: BLE001 — one seed failure must not abort repair
         logger.debug("auto-repair: registry baseline seed skipped", exc_info=True)
+        if warnings is not None:
+            warnings.append("Registry baseline seeding could not be verified. No tenant choice was changed.")
 
     try:
         from apps.siteconfig.global_catalog import GlobalGeoCatalog
@@ -132,9 +150,13 @@ def _align_registries(school, fixed: list[str]) -> None:
             fixed.append("Seeded and verified the reference registries.")
     except Exception:  # noqa: BLE001
         logger.debug("auto-repair: localization derive skipped", exc_info=True)
+        if warnings is not None:
+            warnings.append("Localization defaults could not be derived automatically. Confirm them in school and region settings.")
 
 
-def _attach_default_plan(school, fixed: list[str]) -> None:
+def _attach_default_plan(
+    school, fixed: list[str], warnings: list[str] | None = None
+) -> None:
     try:
         if getattr(school, "plan_id", None):
             return
@@ -148,9 +170,13 @@ def _attach_default_plan(school, fixed: list[str]) -> None:
             fixed.append(f"Attached the default plan ({getattr(plan, 'name', plan)}).")
     except Exception:  # noqa: BLE001
         logger.debug("auto-repair: default plan bind skipped", exc_info=True)
+        if warnings is not None:
+            warnings.append("The default plan could not be attached automatically.")
 
 
-def _ensure_recommendations(school, fixed: list[str]) -> None:
+def _ensure_recommendations(
+    school, fixed: list[str], warnings: list[str] | None = None
+) -> None:
     """Grandfather a local recommendation manifest without changing choices."""
     try:
         from apps.schools.onboarding_recommendations import ensure_school_recommendations
@@ -161,9 +187,13 @@ def _ensure_recommendations(school, fixed: list[str]) -> None:
             fixed.append("Built your local recommendation profile from existing school data.")
     except Exception:  # noqa: BLE001
         logger.debug("auto-repair: recommendation grandfather skipped", exc_info=True)
+        if warnings is not None:
+            warnings.append("The local recommendation profile could not be refreshed.")
 
 
-def _ensure_academic_year(school, fixed: list[str]) -> None:
+def _ensure_academic_year(
+    school, fixed: list[str], warnings: list[str] | None = None
+) -> None:
     try:
         from apps.academics.models import AcademicYear
 
@@ -188,12 +218,99 @@ def _ensure_academic_year(school, fixed: list[str]) -> None:
         )
     except Exception:  # noqa: BLE001
         logger.debug("auto-repair: academic year create skipped", exc_info=True)
+        if warnings is not None:
+            warnings.append("A starter academic year could not be created. Confirm calendar dates in guided setup.")
+
+
+def _action_receipts(fixed: list[str], warnings: list[str]) -> list[dict[str, Any]]:
+    """Plain-language receipt for every successful or incomplete repair."""
+    receipts = [
+        {
+            "status": "fixed",
+            "assessment": "ready",
+            "message": message,
+            "business_impact": "Reduced setup work without overwriting a tenant decision.",
+        }
+        for message in fixed
+    ]
+    receipts.extend(
+        {
+            "status": "needs_attention",
+            "assessment": "check_manually",
+            "message": message,
+            "business_impact": "This may keep launch readiness below target until confirmed.",
+        }
+        for message in warnings
+    )
+    return receipts
+
+
+def _record_repair_run(
+    school,
+    *,
+    actor_id: int | None,
+    health_before: int,
+    health_after: int,
+    fixed: list[str],
+    warnings: list[str],
+) -> str:
+    """Keep a bounded local audit ledger; repair must still succeed if it cannot write."""
+    run_id = uuid.uuid4().hex
+    try:
+        from django.utils import timezone
+
+        settings = dict(school.settings or {})
+        history = list(settings.get("setup_repair_history") or [])
+        history.append(
+            {
+                "run_id": run_id,
+                "actor_id": actor_id,
+                "created_at": timezone.now().isoformat(),
+                "health_before": health_before,
+                "health_after": health_after,
+                "fixed": list(fixed),
+                "warnings": list(warnings),
+            }
+        )
+        settings["setup_repair_history"] = history[-20:]
+        school.settings = settings
+        school.save(update_fields=["settings", "updated_at"])
+    except Exception:  # noqa: BLE001
+        logger.debug("auto-repair: history ledger write skipped", exc_info=True)
+    return run_id
 
 
 def _human_steps(payload: dict[str, Any]) -> list[dict[str, Any]]:
     """The remaining blockers that need a tenant decision, not auto-repair."""
     steps: list[dict[str, Any]] = []
     step_state = payload.get("step_state") or {}
+    registry = payload.get("registry_alignment") or {}
+    mismatches = [
+        row for row in (registry.get("key_rows") or []) if not row.get("ok")
+    ]
+    if mismatches:
+        steps.append(
+            {
+                "key": "registry_alignment",
+                "label": "Confirm registry alignment",
+                "detail": (
+                    f"{len(mismatches)} field(s) need a school decision: "
+                    + ", ".join(
+                        str(row.get("label") or "field") for row in mismatches[:5]
+                    )
+                    + ". Conflicting location, grading, and education-system choices are never overwritten automatically."
+                ),
+                "fields": [
+                    {
+                        "label": row.get("label") or "Field",
+                        "current_value": row.get("value") or "",
+                        "status": "needs_confirmation",
+                    }
+                    for row in mismatches
+                ],
+                "cta_url": (registry.get("settings_cta") or {}).get("url") or "",
+            }
+        )
     if not (step_state.get("blueprint") or {}).get("done"):
         rec = payload.get("recommended_blueprint") or {}
         steps.append(

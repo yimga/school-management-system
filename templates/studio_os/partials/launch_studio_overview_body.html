@@ -36,17 +36,13 @@
   {% if zero_friction.recommendation_manifest.recommendations %}
   <div class="studio-os__card mb-3" data-rmc-recommendation-manifest="1">
     <div class="d-flex flex-wrap justify-content-between gap-2"><h3 class="h6 mb-2">{% trans "Recommended for your school" %}</h3><span class="badge text-bg-success">{% trans "Local-first" %}</span></div>
-    <p class="small text-muted">{% trans "Based on your signup profile. These suggestions work offline and remain editable." %}</p>
+    <p class="small text-muted">{% trans "Based on your signup profile. These suggestions work offline and remain editable." %} {% trans "Confidence" %}: {{ zero_friction.recommendation_manifest.confidence|title }}.</p>
     <div class="d-flex flex-wrap gap-2">
-      {% with rec=zero_friction.recommendation_manifest.recommendations %}
-      <span class="badge rounded-pill text-bg-light">{% trans "Blueprint" %}: {{ rec.blueprint }}</span>
-      <span class="badge rounded-pill text-bg-light">{% trans "LMS" %}: {{ rec.lms }}</span>
-      <span class="badge rounded-pill text-bg-light">{% trans "Grading" %}: {{ rec.grading }}</span>
-      <span class="badge rounded-pill text-bg-light">{% trans "Dashboard" %}: {{ rec.dashboard }}</span>
-      <span class="badge rounded-pill text-bg-light">{% trans "District" %}: {{ rec.district }}</span>
-      {% for module in rec.modules %}<span class="badge rounded-pill text-bg-primary">{{ module }}</span>{% endfor %}
-      {% endwith %}
+      {% for item in zero_friction.recommendation_manifest.recommendation_cards %}
+      <span class="badge rounded-pill {% if item.decision == 'confirm' %}text-bg-warning{% else %}text-bg-light{% endif %}" title="{{ item.reason }}">{{ item.label }}: {{ item.display_value }} · {{ item.decision }}</span>
+      {% endfor %}
     </div>
+    {% if zero_friction.recommendation_manifest.missing_inputs %}<p class="small text-warning mt-2 mb-0">{% trans "Improve these recommendations by confirming" %}: {{ zero_friction.recommendation_manifest.missing_inputs|join:", " }}.</p>{% endif %}
   </div>
   {% endif %}
 
