@@ -560,7 +560,19 @@ def _step10_marketplace(school: Any) -> MarketplaceContext:
                     "widget_config": inst.widget_config or {},
                 }
             )
-            for sg in getattr(inst, "scope_grants", []) or []:
+            # ``inst.scope_grants`` is a reverse-FK RelatedManager (always truthy,
+            # so the old ``... or []`` never fired) — iterating it directly raised
+            # ``TypeError: 'RelatedManager' object is not iterable``, which the
+            # except below swallowed, aborting the WHOLE marketplace load on the
+            # first installation (empty scopes/actions/adapters + log spam every
+            # request). ``.all()`` reuses the ``scope_grants__scope`` prefetch.
+            _scope_grants = getattr(inst, "scope_grants", None)
+            _grants_iter = (
+                _scope_grants.all()
+                if hasattr(_scope_grants, "all")
+                else (_scope_grants or [])
+            )
+            for sg in _grants_iter:
                 if getattr(sg, "status", "granted") != "granted":
                     continue
                 scope = getattr(sg, "scope", None)
