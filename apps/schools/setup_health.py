@@ -6,6 +6,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from apps.platform_runtime.role_registry import ROLE_ADMIN
+
 
 def setup_health_score(school: Any, *, user: Any = None) -> dict[str, Any]:
     """
@@ -54,7 +56,7 @@ def setup_health_score(school: Any, *, user: Any = None) -> dict[str, Any]:
         "runtime_evidence": runtime_evidence if school else {
             "passed": False,
             "source": "none",
-            "required_roles": ["ADMIN"],
+            "required_roles": [ROLE_ADMIN],
             "matched_roles": [],
             "counts": {},
         },

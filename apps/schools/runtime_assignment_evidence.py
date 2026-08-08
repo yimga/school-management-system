@@ -6,6 +6,8 @@ from typing import Any, Iterable
 
 from django.db import DatabaseError
 
+from apps.platform_runtime.role_registry import ROLE_ADMIN
+
 
 def _normalized_roles(roles: Iterable[str]) -> tuple[str, ...]:
     return tuple(dict.fromkeys(str(role).strip().upper() for role in roles if role))
@@ -15,7 +17,7 @@ def runtime_assignment_evidence(
     school: Any,
     *,
     user: Any = None,
-    required_roles: Iterable[str] = ("ADMIN",),
+    required_roles: Iterable[str] = (ROLE_ADMIN,),
 ) -> dict[str, Any]:
     """Return school-scoped evidence used by every setup-readiness consumer.
 
@@ -23,7 +25,7 @@ def runtime_assignment_evidence(
     layout, dashboard pack, workflow assignment, then explicit legacy fallback.
     Inactive packs/templates/assignments never count.
     """
-    roles = _normalized_roles(required_roles) or ("ADMIN",)
+    roles = _normalized_roles(required_roles) or (ROLE_ADMIN,)
     result: dict[str, Any] = {
         "passed": False,
         "source": "none",

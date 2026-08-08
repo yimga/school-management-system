@@ -13,6 +13,8 @@ from typing import Any
 
 from django.core.cache import cache
 
+from apps.platform_runtime.role_registry import normalize_role
+
 logger = logging.getLogger(__name__)
 
 _CACHE_PREFIX = "rmc:entitlement_gate:v1"
@@ -68,19 +70,21 @@ def can_capability(school, capability: str, *, use_cache: bool = True) -> bool:
 
 
 def can_role(user, *roles: str) -> bool:
-    """Role membership gate using platform role registry / User.Role."""
+    """Role membership gate using the canonical role registry / ``User.Role``.
+
+    Both the user's role and the requested roles are run through
+    :func:`apps.platform_runtime.role_registry.normalize_role`, so
+    case/whitespace/enum-vs-string differences never cause a false deny.
+    Superusers are NOT auto-granted here — callers that want that must check
+    ``is_superuser`` explicitly.
+    """
     if user is None or not getattr(user, "is_authenticated", False):
         return False
-    wanted = {str(r or "").strip().upper() for r in roles if str(r or "").strip()}
+    wanted = {normalize_role(r) for r in roles}
+    wanted.discard("")
     if not wanted:
         return False
-    try:
-        from apps.platform_runtime.role_registry import normalize_role
-
-        user_role = normalize_role(getattr(user, "role", None))
-        return user_role in wanted
-    except _GATE_SOFT_FAILURES:
-        return str(getattr(user, "role", "") or "").strip().upper() in wanted
+    return normalize_role(getattr(user, "role", None)) in wanted
 
 
 def can_policy(

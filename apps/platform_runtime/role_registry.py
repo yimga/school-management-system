@@ -41,6 +41,23 @@ ALL_ROLES: frozenset[str] = frozenset(
     }
 )
 
+
+def normalize_role(raw: object) -> str:
+    """Canonicalize a raw role value to its uppercase token form.
+
+    Accepts a ``User.Role`` TextChoices member (unwrapped via ``.value``), a
+    bare string (possibly lower/mixed case or whitespace-padded), ``None``, or
+    any other object, and returns the trimmed uppercase token (``""`` for
+    ``None``/empty). This is the single role-normalization primitive that
+    role-comparison sites should use, so ``"admin"``, ``" Admin "`` and
+    ``User.Role.ADMIN`` all compare equal to :data:`ROLE_ADMIN`.
+    """
+    if raw is None:
+        return ""
+    value = getattr(raw, "value", raw)  # unwrap User.Role / enum members
+    return str(value).strip().upper()
+
+
 __all__ = [
     "ROLE_ADMIN",
     "ROLE_TEACHER",
@@ -49,4 +66,5 @@ __all__ = [
     "ROLE_PROPRIETOR",
     "ROLE_COACH",
     "ALL_ROLES",
+    "normalize_role",
 ]
