@@ -487,6 +487,106 @@ def apply_import(csv_rows, academic_year=None):
     }
 
 
+# How many failed rows are echoed back to the caller / stored on the job.
+# Enough to fix a spreadsheet; not so many that one bad upload bloats the row.
+IMPORT_ERROR_LOG_CAP = 50
+
+
+def resolve_import_job_outcome(result: dict) -> tuple[str, int]:
+    """Map an ``apply_import`` result to ``(GradeImportJob status, failed row count)``.
+
+    ``GradeImportJob.STATUS_CHOICES`` has carried ``partial`` ("Partially
+    Completed") since it was written and nothing ever used it: the apply path
+    hard-coded ``"completed"``, so an import that dropped rows reported a clean
+    run. Grades are the one dataset a school cannot reconstruct from memory.
+
+    ``.get("failed", 0)`` rather than ``["failed"]`` so an older caller or a
+    stubbed importer degrades to the previous shape instead of raising.
+
+    Lives here (not in ``evals.views``) so BOTH the teacher-facing upload view
+    and the migration playbook grade step resolve the status identically. The
+    view re-exports it under its historical ``_resolve_import_job_outcome`` name.
+    """
+    failed = int(result.get("failed", 0) or 0)
+    if failed:
+        return "partial", failed
+    return "completed", 0
+
+
+def apply_grade_import_job(*, academic_year, term, csv_rows, uploaded_by=None):
+    """Create a ``GradeImportJob``, apply the rows, and persist the outcome.
+
+    The reusable core of the teacher-facing grade-import view AND the migration
+    playbook's grade step (``accounts.migration_services.run_grade_import``), so
+    both record an auditable job and dedupe identically (``apply_import`` does
+    ``update_or_create`` on ``(academic_year, term, subject_assignment,
+    student)``). Row-level failures are counted by ``apply_import`` and never
+    raise; a catastrophic apply error marks the job ``failed`` and returns a
+    failed result (never raises), so every caller always gets a ``job_id``.
+
+    ``academic_year`` is passed through to ``apply_import`` explicitly — the old
+    view called ``apply_import(csv_rows)`` with no year, so evaluations landed
+    under ``AcademicYear.filter(is_active=True).first()`` even when the operator
+    (and the recorded job) named a different year. Now the grades land under the
+    year the job records.
+    """
+    from django.utils import timezone
+
+    from apps.analytics.models import GradeImportJob
+
+    rows = list(csv_rows)
+    author = uploaded_by if getattr(uploaded_by, "is_authenticated", False) else None
+    job = GradeImportJob.objects.create(
+        academic_year=academic_year,
+        term=term,
+        uploaded_by=author,
+        status="processing",
+        created_count=0,
+        updated_count=0,
+        failed_count=0,
+        total_rows=len(rows),
+    )
+
+    try:
+        result = apply_import(rows, academic_year)
+    except _EVALS_IMPORTERS_ROW_ERRORS as exc:
+        log_exception_with_context(
+            "evals importers apply_grade_import_job apply failed",
+            school_id=getattr(academic_year, "school_id", None),
+            extra={"academic_year_id": getattr(academic_year, "id", None)},
+        )
+        job.status = "failed"
+        job.failed_count = len(rows) or 1
+        job.error_log = [str(exc)[:200]]
+        job.completed_at = timezone.now()
+        job.save()
+        return {
+            "created": 0,
+            "updated": 0,
+            "failed": job.failed_count,
+            "errors": [{"error": str(exc)[:200]}],
+            "duration_seconds": 0,
+            "job_id": job.id,
+            "status": "failed",
+        }
+
+    status, failed = resolve_import_job_outcome(result)
+    job.created_count = result.get("created", 0)
+    job.updated_count = result.get("updated", 0)
+    job.failed_count = failed
+    job.total_rows = len(rows)
+    if result.get("errors"):
+        job.error_log = result["errors"][:IMPORT_ERROR_LOG_CAP]
+    job.status = status
+    job.completed_at = timezone.now()
+    job.save()
+
+    result["job_id"] = job.id
+    result["status"] = status
+    result["failed"] = failed
+    return result
+
+
 def dry_run_grade_import(csv_rows, academic_year=None):
     """
     Simulate grade import: same lookups as apply_import but no DB writes.

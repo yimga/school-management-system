@@ -93,7 +93,7 @@
 {% include "components/decision_engine_surface.html" with de_eyebrow=phase7_de.eyebrow de_headline_label=phase7_de.headline_label de_headline_value=phase7_de.headline_value de_headline_meta=phase7_de.headline_meta de_metrics=phase7_de.metrics de_urgent_queue=phase7_de.urgent_queue de_next_actions=phase7_de.next_actions de_activity=phase7_de.activity %}
 {% endif %}
 
-<section id="insights-secondary" class="card shadow-sm border-0 mb-4 chart-container" aria-labelledby="insights-viz-heading">
+<section id="insights-viz" class="card shadow-sm border-0 mb-4 chart-container" aria-labelledby="insights-viz-heading">
   <div class="card-body">
     <h2 id="insights-viz-heading" class="h5 mb-2">{% trans "Campus pulse & KPI trends" %}</h2>
     <p class="small text-muted mb-3">{% trans "Tenant-scoped live metrics (attendance, revenue, allocation)." %}</p>
@@ -156,7 +156,7 @@
               <span class="label">{% term "student" plural=True capitalize=True %} {% trans "improved" %}</span>
               <span class="kpi-icon success" aria-hidden="true"><i class="bi bi-graph-up-arrow"></i></span>
             </div>
-            <div class="value" data-kpi-count="analytics-students-improved">{{ improvement_rows|length }}</div>
+            <div class="value" data-kpi-count="analytics-students-improved">{{ improvements|length }}</div>
           </div>
         </div>
       </div>
@@ -173,7 +173,7 @@
       <ul class="list-group list-group-flush mb-3">
         <li class="list-group-item py-2 d-flex justify-content-between align-items-center">
           <span>{% term "teacher" capitalize=True %} {% trans "compliance" %}</span>
-          <span class="rmc-badge rmc-badge--success">{{ teacher_rows|length }}</span>
+          <span class="rmc-badge rmc-badge--success">{{ teacher_stats|length }}</span>
         </li>
         <li class="list-group-item py-2 d-flex justify-content-between align-items-center">
           <span>{% trans "Weak thresholds" %}</span>

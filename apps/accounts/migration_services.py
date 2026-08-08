@@ -557,6 +557,206 @@ def compute_parity_from_scorecard(row_count: int, scorecard: dict) -> dict[str, 
     }
 
 
+# ---------------------------------------------------------------------------
+# Real playbook import appliers (students + grades).
+#
+# ``automation.playbook_executor._run_one_step`` imports these two names inside a
+# ``try/except ImportError`` so a deploy without them degrades to PARTIAL rather
+# than crashing. For a LONG time they did not exist, so every real playbook
+# student/grade step silently reported ``*_service_unavailable``. They are now
+# real, routing through the SAME apply paths the interactive surfaces use:
+#   * students -> apps.customersuccess.bulk_csv_student_import.apply_bulk_csv
+#   * grades   -> apps.evals.importers.apply_grade_import_job
+# The executor's guard stays as a defensive fallback for any deploy that ships an
+# older migration_services.py.
+# ---------------------------------------------------------------------------
+
+# Canonical bulk-CSV columns the student importer recognises.
+_STUDENT_CSV_HEADERS = (
+    "external_id",
+    "first_name",
+    "last_name",
+    "middle_name",
+    "date_of_birth",
+    "email",
+    "grade_level",
+    "guardian_email",
+    "guardian_name",
+    "guardian_phone",
+)
+
+# Playbook / SIS row aliases -> canonical column, matched on normalised keys
+# (``_normalize_for_match`` lower-cases and collapses spaces/dashes to "_").
+_STUDENT_FIELD_ALIASES: dict[str, tuple[str, ...]] = {
+    # external_id is the per-student idempotency anchor. Prefer an explicit
+    # external_id, then the school's own identifiers.
+    "external_id": (
+        "external_id",
+        "student_code",
+        "admission_number",
+        "student_number",
+        "student_id",
+        "matricule",
+    ),
+    "first_name": ("first_name", "firstname", "fname", "given_name"),
+    "last_name": ("last_name", "lastname", "lname", "surname", "family_name"),
+    "middle_name": ("middle_name", "middlename"),
+    "date_of_birth": ("date_of_birth", "dob", "birthdate", "birth_date"),
+    "email": ("email", "email_address"),
+    "grade_level": ("grade_level", "grade", "class", "class_level"),
+    "guardian_email": ("guardian_email", "parent_email"),
+    "guardian_name": ("guardian_name", "parent_name"),
+    "guardian_phone": ("guardian_phone", "parent_phone"),
+}
+
+# Bound how much error detail we hand back to the executor's stored summary.
+_IMPORT_RESULT_ERROR_CAP = 100  # magic-number-allow: import-error-report-cap
+
+
+def _first_present_value(normalized_row: dict, aliases: tuple[str, ...]) -> str:
+    for alias in aliases:
+        value = normalized_row.get(alias)
+        if value not in (None, ""):
+            return str(value).strip()
+    return ""
+
+
+def _student_rows_to_canonical_csv(rows: list[dict]) -> str:
+    """Adapt playbook/SIS row-dicts to the canonical bulk-CSV the wizard parses.
+
+    Round-tripping through the real CSV text means ``parse_and_validate_csv``
+    applies exactly the same validation (external_id format, required
+    first/last name, email shape, ISO date, in-batch duplicate detection) the
+    onboarding wizard relies on — no second, drifting validator.
+    """
+    import csv as _csv
+    import io as _io
+
+    buffer = _io.StringIO()
+    writer = _csv.DictWriter(buffer, fieldnames=list(_STUDENT_CSV_HEADERS))
+    writer.writeheader()
+    for row in rows:
+        source = row if isinstance(row, dict) else {}
+        normalized = {
+            _normalize_for_match(k): v for k, v in source.items() if k
+        }
+        writer.writerow(
+            {
+                column: _first_present_value(normalized, aliases)
+                for column, aliases in _STUDENT_FIELD_ALIASES.items()
+            }
+        )
+    return buffer.getvalue()
+
+
+def run_student_import(school, rows, user=None) -> dict[str, Any]:
+    """Persist migration-playbook student rows via the bulk-CSV import kernel.
+
+    Adapts row-dicts to the canonical columns, runs the wizard's own
+    parse+validate, then applies via
+    ``apps.customersuccess.bulk_csv_student_import.apply_bulk_csv``. That kernel
+    is idempotent: it synthesises a tenant-scoped ``student_code``
+    (``S<school_id>-<external_id>``) and skips rows whose code already exists, so
+    re-running a playbook step never duplicates students. Validation is
+    all-or-nothing (one bad row rejects the batch) — the returned ``errors`` name
+    the exact rows so the operator can fix the sheet and re-run.
+
+    Returns the executor's expected shape: ``created`` / ``updated`` /
+    ``errors`` (list) plus ``skipped`` (idempotent re-run hits) for the audit
+    summary. ``updated`` is always 0 — the kernel creates or skips, it does not
+    mutate an existing student's fields.
+    """
+    from apps.customersuccess.bulk_csv_student_import import (
+        apply_bulk_csv,
+        parse_and_validate_csv,
+    )
+
+    rows = list(rows or [])
+    if not school or not getattr(school, "pk", None):
+        return {
+            "created": 0,
+            "updated": 0,
+            "skipped": 0,
+            "errors": ["no_school_context"],
+        }
+    if not rows:
+        return {"created": 0, "updated": 0, "skipped": 0, "errors": []}
+
+    validated = parse_and_validate_csv(_student_rows_to_canonical_csv(rows))
+    if not validated.is_valid:
+        errors = [
+            f"Row {e.lineno}: {e.field} — {e.reason}" for e in validated.errors
+        ] + [
+            f"duplicate identifier '{dup}' in the uploaded rows"
+            for dup in validated.duplicate_external_ids
+        ]
+        return {
+            "created": 0,
+            "updated": 0,
+            "skipped": 0,
+            "errors": errors[:_IMPORT_RESULT_ERROR_CAP],
+        }
+
+    applied = apply_bulk_csv(school_id=school.pk, validated=validated)
+    errors = [
+        f"{e.get('external_id', '?')}: {e.get('reason', '')}".strip()
+        for e in applied.errors
+    ]
+    return {
+        "created": applied.created,
+        "updated": 0,
+        "skipped": applied.skipped,
+        "errors": errors[:_IMPORT_RESULT_ERROR_CAP],
+    }
+
+
+def run_grade_import(school, rows, user=None) -> dict[str, Any]:
+    """Persist migration-playbook grade rows via the shared grade-apply service.
+
+    Resolves the school's active academic year (falling back to its most recent)
+    and that year's first term, then delegates to
+    ``apps.evals.importers.apply_grade_import_job`` — the SAME service the
+    teacher-facing upload view uses — so the playbook step records an auditable
+    ``GradeImportJob`` and dedupes exactly like an interactive import
+    (``update_or_create`` on ``academic_year, term, subject_assignment,
+    student``). Year resolution is pinned to ``school`` so a playbook run can
+    never write another tenant's grades.
+    """
+    from apps.academics.models import AcademicYear, Term
+    from apps.evals.importers import apply_grade_import_job
+
+    rows = list(rows or [])
+    if not school or not getattr(school, "pk", None):
+        return {"created": 0, "updated": 0, "errors": ["no_school_context"]}
+    if not rows:
+        return {"created": 0, "updated": 0, "errors": []}
+
+    year = (
+        AcademicYear.objects.filter(school=school, is_active=True)
+        .order_by("-start_date")
+        .first()
+        or AcademicYear.objects.filter(school=school).order_by("-start_date").first()
+    )
+    if not year:
+        return {"created": 0, "updated": 0, "errors": ["no_academic_year_for_school"]}
+    # tenant-isolation-allow: term-scoped-via-school-resolved-academic-year
+    term = (
+        Term.objects.filter(academic_year=year).order_by("position", "id").first()
+    )
+    if not term:
+        return {"created": 0, "updated": 0, "errors": ["no_term_for_academic_year"]}
+
+    result = apply_grade_import_job(
+        academic_year=year, term=term, csv_rows=rows, uploaded_by=user
+    )
+    errors = result.get("errors") or []
+    return {
+        "created": result.get("created", 0),
+        "updated": result.get("updated", 0),
+        "errors": errors[:_IMPORT_RESULT_ERROR_CAP],
+    }
+
+
 def compute_parity(migration_run) -> dict[str, Any]:
     """Given a MigrationRun, return parity info (source vs processed)."""
     row_count = migration_run.row_count

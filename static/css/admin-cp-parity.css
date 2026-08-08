@@ -808,7 +808,7 @@ body.admin-manager-shell {
   --rmc-backoffice-gutter: clamp(0.85rem, 1.35vw, 1.4rem);
   --rmc-backoffice-gap: clamp(0.75rem, 1vw, 1rem);
   --rmc-backoffice-form-max: 100%;
-  --rmc-backoffice-field-min: 26rem;
+  --rmc-backoffice-field-min: 17rem;
   --rmc-backoffice-control-h: 2.45rem;
 }
 
@@ -905,7 +905,7 @@ body.admin-manager-shell.change-form #content-main[data-rmc-admin-form-contract=
 
 /* Multi-field lines (already internally gridded by Unfold), free-text, and
    related-object pickers are too wide for one column — span the whole row. */
-body.admin-manager-shell.change-form #content-main[data-rmc-admin-form-contract="premium-form-frame"] .form-rows > .form-row.grid,
+body.admin-manager-shell.change-form #content-main[data-rmc-admin-form-contract="premium-form-frame"] .form-rows > .form-row:has(.field-line ~ .field-line),
 body.admin-manager-shell.change-form #content-main[data-rmc-admin-form-contract="premium-form-frame"] .form-rows > .form-row:has(textarea),
 body.admin-manager-shell.change-form #content-main[data-rmc-admin-form-contract="premium-form-frame"] .form-rows > .form-row:has(.related-widget-wrapper),
 body.admin-manager-shell.change-form #content-main[data-rmc-admin-form-contract="premium-form-frame"] .form-rows > .form-row:has(.vLargeTextField) {

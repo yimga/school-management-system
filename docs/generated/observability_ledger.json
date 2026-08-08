@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-31T17:48:16.670685+00:00",
+  "generated_at": "2026-08-06T12:21:35.126996+00:00",
   "kill_test": {
     "critical_count": 0,
     "present": true,
@@ -7,8 +7,8 @@
   },
   "northstar": {
     "present": true,
-    "rating": "WEAK",
-    "score": 67
+    "rating": "DOMINANT",
+    "score": 75
   },
   "runtime": {
     "ai_audits_recent_24h": -1,

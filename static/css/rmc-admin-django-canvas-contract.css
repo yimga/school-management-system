@@ -9,7 +9,7 @@ html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-
   --rmc-django-canvas-gutter: clamp(0.75rem, 1.05vw, 1.25rem);
   --rmc-django-panel-gap: clamp(0.8rem, 1.15vw, 1.35rem);
   --rmc-django-sidecar: clamp(16rem, 18vw, 22rem);
-  --rmc-django-field-min: 22rem;
+  --rmc-django-field-min: 17rem;
 }
 
 html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell) :is(
@@ -104,7 +104,7 @@ body:is(.admin-manager-shell, .admin-premium-shell).change-form #content-main[da
 }
 
 body:is(.admin-manager-shell, .admin-premium-shell).change-form #content-main[data-rmc-admin-form-contract="premium-form-frame"] .form-rows > :is(
-  .form-row.grid,
+  .form-row:has(.field-line ~ .field-line),
   .form-row:has(textarea),
   .form-row:has(.vLargeTextField),
   .form-row:has(.selector),
@@ -482,13 +482,13 @@ html[data-rmc-admin-html="unfold"] body.admin-premium-shell.change-form [data-rm
 html[data-rmc-admin-html="unfold"] body.admin-manager-shell.change-form .admin-cp-unified-page #cp-main-content #content-main[data-rmc-admin-form-contract="premium-form-frame"] .form-rows,
 html[data-rmc-admin-html="unfold"] body.admin-premium-shell.change-form [data-rmc-shell-root="django-admin"] #content-main[data-rmc-admin-form-contract="premium-form-frame"] .form-rows {
   display: grid !important;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)) !important;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)) !important;
   column-gap: clamp(1rem, 1.6vw, 1.75rem) !important;
   row-gap: 0.5rem !important;
 }
 
-html[data-rmc-admin-html="unfold"] body.admin-manager-shell.change-form .admin-cp-unified-page #cp-main-content #content-main[data-rmc-admin-form-contract="premium-form-frame"] .form-rows > :is(.form-row.grid, .form-row:has(textarea), .form-row:has(.selector), .form-row:has(.related-widget-wrapper), .form-row:has(.vLargeTextField)),
-html[data-rmc-admin-html="unfold"] body.admin-premium-shell.change-form [data-rmc-shell-root="django-admin"] #content-main[data-rmc-admin-form-contract="premium-form-frame"] .form-rows > :is(.form-row.grid, .form-row:has(textarea), .form-row:has(.selector), .form-row:has(.related-widget-wrapper), .form-row:has(.vLargeTextField)) {
+html[data-rmc-admin-html="unfold"] body.admin-manager-shell.change-form .admin-cp-unified-page #cp-main-content #content-main[data-rmc-admin-form-contract="premium-form-frame"] .form-rows > :is(.form-row:has(.field-line ~ .field-line), .form-row:has(textarea), .form-row:has(.selector), .form-row:has(.related-widget-wrapper), .form-row:has(.vLargeTextField)),
+html[data-rmc-admin-html="unfold"] body.admin-premium-shell.change-form [data-rmc-shell-root="django-admin"] #content-main[data-rmc-admin-form-contract="premium-form-frame"] .form-rows > :is(.form-row:has(.field-line ~ .field-line), .form-row:has(textarea), .form-row:has(.selector), .form-row:has(.related-widget-wrapper), .form-row:has(.vLargeTextField)) {
   grid-column: 1 / -1 !important;
 }
 
@@ -517,7 +517,7 @@ html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] {
   --rmc-admin-command-pad: clamp(0.85rem, 1.25vw, 1.2rem);
   --rmc-admin-command-radius: var(--radius-lg, 14px);
   --rmc-admin-command-rail: clamp(16rem, 20vw, 23rem);
-  --rmc-admin-command-field: clamp(18rem, 23vw, 25rem);
+  --rmc-admin-command-field: 17rem;
 }
 
 html[data-rmc-admin-html="unfold"] [data-rmc-admin-canvas-contract="intelligent-full-width"] {
@@ -1253,7 +1253,7 @@ html[data-rmc-admin-html="unfold"] [data-rmc-admin-form-contract="premium-form-f
 
 html[data-rmc-admin-html="unfold"] [data-rmc-admin-form-contract="premium-form-frame"] .form-rows {
   display: grid !important;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)) !important;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)) !important;
   column-gap: clamp(1rem, 1.6vw, 1.75rem) !important;
   row-gap: 0.5rem !important;
 }
@@ -2462,8 +2462,7 @@ body:is(.admin-manager-shell, .admin-premium-shell) [data-rmc-admin-form-contrac
 [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .form-rows > .form-row:has(.selector),
 [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .form-rows > .form-row:has(.related-widget-wrapper),
 [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .form-rows > .form-row:has(.vLargeTextField),
-[data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .form-rows > .form-row:has(.field-line:nth-child(2)),
-[data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .form-rows > .form-row.grid {
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .form-rows > .form-row:has(.field-line:nth-child(2)) {
   grid-column: 1 / -1 !important;
 }
 
@@ -2956,8 +2955,7 @@ body:is(.admin-manager-shell, .admin-premium-shell) [data-rmc-admin-form-contrac
 [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .form-rows > .form-row:has(.selector),
 [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .form-rows > .form-row:has(.related-widget-wrapper),
 [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .form-rows > .form-row:has(.vLargeTextField),
-[data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .form-rows > .form-row:has(.field-line:nth-child(2)),
-[data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .form-rows > .form-row.grid {
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .form-rows > .form-row:has(.field-line:nth-child(2)) {
   grid-column: 1 / -1 !important;
 }
 
@@ -3319,7 +3317,7 @@ html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-
 }
 
 html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell) [data-rmc-admin-form-contract="premium-form-frame"] .form-rows > :is(
-  .form-row.grid,
+  .form-row:has(.field-line ~ .field-line),
   .form-row:has(textarea),
   .form-row:has(.vLargeTextField),
   .form-row:has(.selector),
@@ -3327,7 +3325,7 @@ html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-
   .form-row:has(.readonly)
 ),
 [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .form-rows > :is(
-  .form-row.grid,
+  .form-row:has(.field-line ~ .field-line),
   .form-row:has(textarea),
   .form-row:has(.vLargeTextField),
   .form-row:has(.selector),
@@ -4079,19 +4077,52 @@ html[data-rmc-admin-html="unfold"] body.admin-premium-shell #cp-main-content
   letter-spacing: -0.01em !important;
 }
 
-/* Boolean / radio widgets — prevent overlap bleed on Unfold change forms. */
+/* Boolean / radio widgets — prevent overlap bleed on Unfold change forms.
+   MUST exclude Unfold's Tailwind-sized switch/checkbox (`w-8` / `rounded-full`): clamping
+   those to 1.25rem collapses the 2rem pill into a red/green CIRCLE, and `position:static`
+   breaks the `::after` knob (it is `after:absolute`). Only bare/native controls get sizing. */
 html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
   [data-rmc-admin-form-contract="premium-form-frame"]
   :is(.form-row, .fieldBox, .aligned)
-  :is(input[type="checkbox"], input[type="radio"]) {
+  :is(input[type="checkbox"], input[type="radio"]):not([class*="rounded-full"]):not([class*="w-8"]) {
   width: auto !important;
-  max-width: 1.25rem !important;
-  min-width: 1rem !important;
-  height: 1.25rem !important;
+  height: auto !important;
   flex: 0 0 auto !important;
   margin-inline-end: 0.5rem !important;
-  position: static !important;
   opacity: 1 !important;
+}
+
+/* Unfold boolean SWITCH — guarantee the native pill survives every cascade layer.
+   w-8 (2rem) × h-5 (1.25rem), fully rounded, `relative` so the `after:absolute` knob
+   positions inside it; toggle-colors.css paints the track green (on) / red (off). */
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  [data-rmc-admin-form-contract="premium-form-frame"]
+  input[type="checkbox"][class*="rounded-full"] {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  width: 2rem !important;
+  min-width: 2rem !important;
+  max-width: 2rem !important;
+  height: 1.25rem !important;
+  flex: 0 0 auto !important;
+  position: relative !important;
+  opacity: 1 !important;
+  margin-inline-end: 0.6rem !important;
+}
+
+/* ---- Pop-up add/edit dialogs (?_popup=1) adopt the premium field layout (multi-column
+   pack + fixed toggles) but shed the heavy card frame — the pop-up window already frames
+   the form, so a second border/background/padding just wastes the narrow dialog width. ---- */
+html[data-rmc-admin-html="unfold"] #content-main[data-rmc-admin-form-contract="premium-form-frame"][data-rmc-admin-popup="1"] {
+  border: 0 !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+  overflow: visible !important;
+  padding: 0 !important;
+}
+html[data-rmc-admin-html="unfold"] #content-main[data-rmc-admin-form-contract="premium-form-frame"][data-rmc-admin-popup="1"] form > .flex.flex-col.gap-6,
+html[data-rmc-admin-html="unfold"] #content-main[data-rmc-admin-form-contract="premium-form-frame"][data-rmc-admin-popup="1"] .rmc-django-form-body {
+  padding: 0 !important;
 }
 
 html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)

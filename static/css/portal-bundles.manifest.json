@@ -1,9 +1,9 @@
 {
   "version": "2026-06-02",
-  "generated_utc": "2026-07-22T12:55:26Z",
+  "generated_utc": "2026-08-08T17:52:10Z",
   "enhanced": {
     "path": "static/css/portal-shell-enhanced.min.css",
-    "bytes": 843386,
+    "bytes": 847555,
     "sources": [
       {
         "path": "static/css/rmc-bulk-actions.css",
@@ -17,8 +17,8 @@
       },
       {
         "path": "static/css/rmc-warm-bright-school.css",
-        "sha256": "cb05dd58023ebf8ac0ecdf2a5bafae88be463a71e68e5ceb9e98296dfbd5468b",
-        "bytes": 20658
+        "sha256": "50a528cbe38201633028fe5505134e8d51844fb40f141a302486935e68c65264",
+        "bytes": 21257
       },
       {
         "path": "static/css/rmc-cool-apple-polish.css",
@@ -37,8 +37,8 @@
       },
       {
         "path": "static/css/rmc-civic-footer.css",
-        "sha256": "e76c2358d5005ef2b8d2bb5590b5c3fc9225c52e3272659025466b71174eee4c",
-        "bytes": 12104
+        "sha256": "291bf8c2638490c4e5a6ad7bedb820047dab3794c86064371e95206f2cec9cdb",
+        "bytes": 12248
       },
       {
         "path": "static/css/rmc-cp-operator-footer.css",
@@ -52,8 +52,8 @@
       },
       {
         "path": "static/css/rmc-platform-vertical-compact.css",
-        "sha256": "007abb77e5659fd66f4c57736ceb68aba39f9da6cad14332c390a99f3d2308de",
-        "bytes": 18424
+        "sha256": "807d030ae238cbf57d07bc460d753be4486430da9c92f06e91da7134628f5e5c",
+        "bytes": 17941
       },
       {
         "path": "static/css/portal-app-shell-bridge.css",
@@ -67,13 +67,13 @@
       },
       {
         "path": "static/css/rmc-tenant-header-100x.css",
-        "sha256": "3742fc3abe715db12f1d71fc9386b998d78373c5a37d90512a1e5ae7a32e33cc",
-        "bytes": 23660
+        "sha256": "21be65b699eefbbacae79d4e9bc0ef2e9efa1a5c8c8a0d46fdd6ad5f041805cd",
+        "bytes": 24966
       },
       {
         "path": "static/css/rmc-tenant-v3-100x-role-home.css",
-        "sha256": "2ee5b75cdcc6cde0cab23efb24cdd529dfa821aa22c8f669e8a124305b8b4481",
-        "bytes": 28693
+        "sha256": "df728002872ee5083bcaf7d53f75cd7f85cff8189a3d5198c4d8ff6c37e0be27",
+        "bytes": 30143
       },
       {
         "path": "static/css/rmc-platform-inner-pages.css",
@@ -122,8 +122,8 @@
       },
       {
         "path": "static/css/next-action-strip.css",
-        "sha256": "72d3735101af3b3e7fcce7f40e0542fa8d83c461dec3300b5b150c32dd541c1b",
-        "bytes": 2512
+        "sha256": "a0f27dd68e89fb915fe66378e24fe2cf90a3f8461243b03bbe82c6d3f763cffd",
+        "bytes": 5204
       },
       {
         "path": "static/css/toggle-colors.css",
@@ -207,8 +207,8 @@
       },
       {
         "path": "static/css/table-system.css",
-        "sha256": "46dfa05b10b3b3ed3c9e98bf9805de628cb4d5836b103dcc4bcedb683b5b23ae",
-        "bytes": 6488
+        "sha256": "2e4493a12d549a8205b95f401693f57a6199bb18e5f44598b6d86c245a2d7b58",
+        "bytes": 6317
       },
       {
         "path": "static/css/form-system.css",
@@ -277,8 +277,8 @@
       },
       {
         "path": "static/css/rmc-premium-os.css",
-        "sha256": "067d63f2657f30f7904cbbf93e13b1d032db3b8a4e732d51fdb5957e085f7988",
-        "bytes": 5242
+        "sha256": "42a1b5ea6463ccdddfd51e51fb2e3b91104686aa960f9d182c169c92e764ac35",
+        "bytes": 5450
       },
       {
         "path": "static/css/rmc-premium-polish.css",
@@ -287,8 +287,8 @@
       },
       {
         "path": "static/css/portal-ui-components.css",
-        "sha256": "dac1a8379eb84ac2e002fb489fa92f300bd580e4aba13ac8726708738022dd3e",
-        "bytes": 94204
+        "sha256": "fec105dbee9defb13d8a9a5bd0f24da2712dc6f7de6b7673684a4b77ef35da84",
+        "bytes": 94747
       },
       {
         "path": "static/css/rmc-assist-dock.css",
@@ -302,8 +302,8 @@
       },
       {
         "path": "static/css/rmc-long-page-grammar.css",
-        "sha256": "89b3c1721570b824c5eed78a1e5f9c13d803b55b9ce7257b97fb9ed4f484e851",
-        "bytes": 51961
+        "sha256": "81417b39e0c3ae5ffdfac428c4b1be03f6b381089576ae2cf37d4e8c4bcb0e68",
+        "bytes": 52565
       },
       {
         "path": "static/css/rmc-horizontal-nav-rail.css",
@@ -317,8 +317,8 @@
       },
       {
         "path": "static/css/phase2-portal-bundle.css",
-        "sha256": "d0505b747f2738e6fa2e549b5e3b1d2d84e1da6c3911db59fe4ea0b36db32216",
-        "bytes": 89431
+        "sha256": "23965c8e3b0141dfd404ef81728049da3489b56db63a61ad5784db013e33426b",
+        "bytes": 89865
       },
       {
         "path": "static/css/rmc-cp-activity-tiers.css",
@@ -327,8 +327,8 @@
       },
       {
         "path": "static/css/manager-control-plane.css",
-        "sha256": "688eb18cb6d9cf74d9e2e440d080aa4d9f23be64f2fdf77aa70a9f22af44b347",
-        "bytes": 37751
+        "sha256": "5adf346ff75673fd19df7e4482b65cfa011b082339049753411af4818abf2548",
+        "bytes": 38003
       },
       {
         "path": "static/css/manager-cockpit-v7.css",
@@ -337,8 +337,8 @@
       },
       {
         "path": "static/css/rmc-cp-200x.css",
-        "sha256": "6b6390da064d9274149b70a9fb0f1607c89efce51bd56dc4931d626b92acb92e",
-        "bytes": 157164
+        "sha256": "54b517e3cb14345cbe5a2341b895006364085be23adc0e2705f3c2211ef9082c",
+        "bytes": 157200
       },
       {
         "path": "static/css/rmc-cp-header-200x.css",

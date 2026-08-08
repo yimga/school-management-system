@@ -50,14 +50,13 @@
       ]
     }
   },
-  "generated_at": "2026-08-01T12:00:10.503235+00:00",
-  "high_impact_templates_total": 275,
+  "generated_at": "2026-08-06T12:23:08.072584+00:00",
+  "high_impact_templates_total": 276,
   "inline_styles": {
-    "count": 48,
-    "needs_review_count": 48,
+    "count": 47,
+    "needs_review_count": 47,
     "needs_review_paths": [
       "templates/accounts/backend_dashboard.html",
-      "templates/marketplace/tenant_app_catalog.html",
       "templates/marketplace/tenant_installed_apps.html",
       "templates/reports/_report_styles.html",
       "templates/reports/annual_report.html",
@@ -111,14 +110,15 @@
   "luxury_gate_min_score": 13,
   "luxury_gate_passed": true,
   "missing_ds_btn": {
-    "count": 139,
-    "needs_review_count": 139,
+    "count": 144,
+    "needs_review_count": 144,
     "needs_review_paths": [
       "templates/base.html",
       "templates/control_plane_base.html",
       "templates/marketplace/tenant_installed_apps.html",
       "templates/parent/dashboard.html",
       "templates/portal_base.html",
+      "templates/reports/bulk_console.html",
       "templates/reports/promotion_preview.html",
       "templates/reports/publish_term.html",
       "templates/reports/regulatory_export.html",
@@ -217,6 +217,7 @@
       "templates/studio_os/components/action_bar.html",
       "templates/studio_os/components/loading_empty_states.html",
       "templates/studio_os/partials/_mode_hero.html",
+      "templates/studio_os/partials/automation_explainer_in_canvas.html",
       "templates/studio_os/partials/automation_mode_canvas.html",
       "templates/studio_os/partials/automation_overview_body.html",
       "templates/studio_os/partials/automation_simulation_preview_pane.html",
@@ -242,7 +243,10 @@
       "templates/studio_os/partials/studio_guidance_panel.html",
       "templates/studio_os/partials/studio_operator_toolbar.html",
       "templates/studio_os/partials/studio_overview_deck.html",
+      "templates/studio_os/partials/subpages/automation_natural_language_workflow.html",
+      "templates/studio_os/partials/subpages/automation_replay_rollback.html",
       "templates/studio_os/partials/subpages/automation_simulation_engine.html",
+      "templates/studio_os/partials/subpages/automation_staged_activation.html",
       "templates/studio_os/partials/subpages/automation_visual_builder.html",
       "templates/studio_os/partials/workspace/automation_canvas.html",
       "templates/studio_os/partials/workspace/control_canvas.html",
@@ -258,17 +262,20 @@
     "violation_paths": []
   },
   "missing_table_family": {
-    "count": 8,
-    "needs_review_count": 8,
+    "count": 11,
+    "needs_review_count": 11,
     "needs_review_paths": [
       "templates/reports/annual_report_cameroon.html",
+      "templates/reports/bulk_console.html",
       "templates/reports/statistical_return.html",
       "templates/reports/term_report_cameroon.html",
       "templates/siteconfig/partials/dashboard_configuration_hub_body.html",
       "templates/siteconfig/partials/get_blueprints_body.html",
       "templates/siteconfig/partials/workflow_flow_gallery_body.html",
       "templates/siteconfig/permission_matrix_simulator.html",
-      "templates/siteconfig/super/cockpit_health.html"
+      "templates/siteconfig/super/cockpit_health.html",
+      "templates/studio_os/partials/subpages/automation_conflict_detection.html",
+      "templates/studio_os/partials/subpages/automation_replay_rollback.html"
     ],
     "violation_count": 0,
     "violation_paths": []
@@ -843,11 +850,10 @@
       ]
     },
     "inline_style_cleanup": {
-      "count": 48,
-      "needs_review_count": 48,
+      "count": 47,
+      "needs_review_count": 47,
       "needs_review_paths": [
         "templates/accounts/backend_dashboard.html",
-        "templates/marketplace/tenant_app_catalog.html",
         "templates/marketplace/tenant_installed_apps.html",
         "templates/reports/_report_styles.html",
         "templates/reports/annual_report.html",

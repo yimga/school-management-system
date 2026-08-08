@@ -1,7 +1,7 @@
 # Observability ledger
 
-- generated_at: 2026-07-31T17:48:16.670685+00:00
-- northstar: 67 (WEAK)
+- generated_at: 2026-08-06T12:21:35.126996+00:00
+- northstar: 75 (DOMINANT)
 - kill_test: PASS
 - self_heal: SELF_HEALED_PASS
 - platform_events_recent_24h: -1

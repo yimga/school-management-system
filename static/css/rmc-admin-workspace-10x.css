@@ -277,13 +277,13 @@ body:is(.admin-manager-shell, .admin-premium-shell).change-form #content-main[da
 
 body:is(.admin-manager-shell, .admin-premium-shell).change-form #content-main[data-rmc-admin-form-contract="premium-form-frame"] .form-rows {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
   column-gap: clamp(0.9rem, 1.8vw, 1.6rem);
   row-gap: 0.45rem;
   align-items: start;
 }
 
-body:is(.admin-manager-shell, .admin-premium-shell).change-form #content-main[data-rmc-admin-form-contract="premium-form-frame"] .form-rows > :is(.form-row:has(textarea), .form-row:has(.selector), .form-row:has(.related-widget-wrapper), .form-row.grid) {
+body:is(.admin-manager-shell, .admin-premium-shell).change-form #content-main[data-rmc-admin-form-contract="premium-form-frame"] .form-rows > :is(.form-row:has(textarea), .form-row:has(.selector), .form-row:has(.related-widget-wrapper), .form-row:has(.field-line ~ .field-line)) {
   grid-column: 1 / -1;
 }
 
@@ -549,7 +549,7 @@ body:is(.admin-manager-shell, .admin-premium-shell).change-form #content-main[da
 }
 
 body:is(.admin-manager-shell, .admin-premium-shell).change-form #content-main[data-rmc-admin-form-contract="premium-form-frame"] .form-rows {
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)) !important;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)) !important;
 }
 
 /* Stage 08 aggressive body hardening: catch the actual Unfold admin wrappers

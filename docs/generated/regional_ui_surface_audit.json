@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-31T19:12:07.302475+00:00",
+  "generated_at": "2026-08-06T12:21:02.751558+00:00",
   "rows": [
     {
       "bucket": "shell",
@@ -37,7 +37,7 @@
       "bucket": "high_impact",
       "classification": "needs_review",
       "notes": [
-        "physical LTR/RTR class hints: 8 (sample: ['ps-', 'me-', 'me-', 'me-', 'me-'])"
+        "physical LTR/RTR class hints: 7 (sample: ['me-', 'me-', 'me-', 'me-', 'me-'])"
       ],
       "path": "templates/marketplace/tenant_app_catalog.html"
     },

@@ -579,8 +579,14 @@ html[data-rmc-tenant-studio-day1-armed] .rmc-day1-lock-check {
 }
 
 .rmc-day1-cta-primary {
-  background: var(--accent-primary, var(--text-primary));
-  color: var(--surface-bg);
+  /* Self-contained brand pair: --accent-primary is NOT a declared token, so the
+     old `var(--accent-primary, var(--text-primary))` background silently fell
+     through to --text-primary and paired against `color: var(--surface-bg)`. On
+     the dark studio canvas --text-primary flips near-white while --surface-bg
+     stays light -> white-on-white pale pill. --brand-primary (tenant indigo) with
+     --text-on-brand (white) can never collapse and shows the school's brand. */
+  background: var(--brand-gradient, var(--school-primary, #4f46e5));
+  color: var(--text-on-brand, #fff);
 }
 
 .rmc-day1-cta-primary:hover,

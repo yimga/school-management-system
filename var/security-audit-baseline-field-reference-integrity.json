@@ -1,6 +1,6 @@
 {
   "finding_count": 0,
   "findings": [],
-  "generated_at": "2026-07-23T21:02:11+00:00",
+  "generated_at": "2026-08-06T12:05:53+00:00",
   "rule": "every literal field name passed to .order_by/.values/.values_list/.only/.defer/.distinct on a directly-resolvable <Model>.objects chain must resolve via the model's _meta.get_field; guard with try/except FieldError or # field-ref-allow: <reason>"
 }

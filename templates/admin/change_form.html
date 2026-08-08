@@ -54,7 +54,7 @@
             </div>
         </section>
     {% endif %}
-    <div id="content-main" class="{% if not is_popup %}cp-form-frame rmc-django-form-panel{% endif %}"{% if not is_popup %} data-rmc-admin-form-contract="premium-form-frame" data-rmc-admin-form-scope="{% if is_manager_host %}operator{% else %}tenant{% endif %}" data-rmc-django-form-panel="1" data-rmc-django-primary-panel="1" data-rmc-django-mode-panel="form"{% endif %}>
+    <div id="content-main" class="cp-form-frame rmc-django-form-panel" data-rmc-admin-form-contract="premium-form-frame" data-rmc-admin-form-scope="{% if is_manager_host %}operator{% else %}tenant{% endif %}" data-rmc-django-form-panel="1" data-rmc-django-primary-panel="1" data-rmc-django-mode-panel="form"{% if is_popup %} data-rmc-admin-popup="1"{% endif %}>
         {% include "unfold/helpers/popup_header.html" %}
 
         {% block form_before %}{% endblock %}

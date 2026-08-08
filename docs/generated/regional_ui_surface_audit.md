@@ -1,6 +1,6 @@
 # Regional UI surface audit
 
-**Generated:** 2026-07-31T19:12:07.302475+00:00
+**Generated:** 2026-08-06T12:21:02.751558+00:00
 
 ## Summary
 

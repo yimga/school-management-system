@@ -26,11 +26,9 @@ from apps.academics.services import get_active_year_and_term
 from apps.accounts.decorators import require_permission
 from apps.evals.models import Evaluation
 from apps.people.models import TeacherProfile
-from apps.siteconfig.cache_utils import tenant_cache_key
 from apps.finance.models import Notification
 from apps.accounts.utils import get_dashboard_context
 from apps.siteconfig.config_service import (
-    get_effective_flags,
     get_effective_site_settings,
 )
 
@@ -95,33 +93,8 @@ def _analytics_request_school(request: HttpRequest):
 
 @require_permission("analytics.manage")
 def dashboard(request: HttpRequest):
-    # Part B.5: Optional response cache. Enable via Feature Control (enable_analytics_dashboard_cache) or analytics_dashboard_cache_seconds > 0.
     # config-resolver-allow: six distinct analytics threshold attributes read from one resolve
     site = get_effective_site_settings(request=request)
-    flags = get_effective_flags(request)
-    cache_ttl = 0
-    if flags.get("enable_analytics_dashboard_cache"):
-        try:
-            cache_ttl = int(flags.get("analytics_dashboard_cache_seconds") or 60)
-        except (TypeError, ValueError):
-            cache_ttl = 60
-    else:
-        try:
-            cache_ttl = int(flags.get("analytics_dashboard_cache_seconds") or 0)
-        except (TypeError, ValueError):
-            pass
-    cache_key = None
-    if cache_ttl > 0:
-        from django.core.cache import cache
-
-        cache_key = tenant_cache_key(
-            "analytics_dash:"
-            + (request.get_full_path().replace("/", "_") or "default"),
-            request,
-        )
-        cached = cache.get(cache_key)
-        if cached is not None:
-            return HttpResponse(cached, content_type="text/html; charset=utf-8")
 
     active_year, active_term = get_active_year_and_term(
         school=_analytics_request_school(request)
@@ -481,12 +454,10 @@ def dashboard(request: HttpRequest):
     except _ANALYTICS_USAGE_LOG_ERRORS:
         # Never block the request if usage logging fails
         pass
-    response = render(request, "analytics/dashboard.html", context)
-    if cache_ttl > 0 and cache_key and response.status_code == 200:
-        from django.core.cache import cache
-
-        cache.set(cache_key, response.content, cache_ttl)
-    return response
+    # Never cache the fully rendered authenticated shell. It contains
+    # user-specific navigation, notifications, permissions, and form state.
+    # Cache expensive tenant-scoped analytics data in the service layer instead.
+    return render(request, "analytics/dashboard.html", context)
 
 
 @require_permission("analytics.manage")

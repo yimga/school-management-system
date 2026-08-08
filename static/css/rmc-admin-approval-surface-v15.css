@@ -231,23 +231,53 @@ html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-
   overflow: visible !important;
 }
 
-[data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="change-list"]
-  #changelist-filter {
-  position: fixed !important;
-  inset: 0 !important;
-  z-index: 1050 !important;
-  width: 100vw !important;
-  max-width: none !important;
-  min-width: 0 !important;
-  flex: none !important;
-  margin: 0 !important;
+/* Below Unfold's 2xl (1536px): filter is a fixed MODAL drawer, toggled by `filterOpen`
+   (Alpine x-show hides it by default). At >=1536px Unfold intends an INLINE sidebar
+   (`2xl:relative 2xl:block!`); the fixed rule MUST NOT apply there or it overrides that
+   into a broken fixed overlay covering the table (the ">=1536px filter drawer" bug). */
+@media (max-width: 1535.98px) {
+  [data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="change-list"]
+    #changelist-filter {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 1050 !important;
+    width: 100vw !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    flex: none !important;
+    margin: 0 !important;
+  }
+
+  [data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="change-list"]
+    #changelist-filter > :last-child {
+    width: min(24rem, calc(100vw - 2rem)) !important;
+    max-width: min(24rem, calc(100vw - 2rem)) !important;
+    margin-left: auto !important;
+  }
 }
 
-[data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="change-list"]
-  #changelist-filter > :last-child {
-  width: min(24rem, calc(100vw - 2rem)) !important;
-  max-width: min(24rem, calc(100vw - 2rem)) !important;
-  margin-left: auto !important;
+/* >=1536px: filter is a clean INLINE sidecar beside the table — always visible, no overlay. */
+@media (min-width: 1536px) {
+  [data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="change-list"]
+    #changelist-filter {
+    position: relative !important;
+    inset: auto !important;
+    z-index: 10 !important;
+    flex: 0 0 var(--rmc-django-sidecar, 20rem) !important;
+    width: var(--rmc-django-sidecar, 20rem) !important;
+    max-width: var(--rmc-django-sidecar, 20rem) !important;
+    min-width: 0 !important;
+    margin: 0 0 0 1rem !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+  }
+
+  [data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="change-list"]
+    #changelist-filter > :last-child {
+    width: 100% !important;
+    max-width: none !important;
+    margin-left: 0 !important;
+  }
 }
 
 [data-rmc-shell-root="django-admin"] [data-rmc-django-workspace="change-list"]
@@ -348,7 +378,7 @@ html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-
 
 [data-rmc-shell-root="django-admin"] [data-rmc-django-form-body] .form-rows {
   display: grid !important;
-  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)) !important;
   gap: 0.85rem 1rem !important;
   width: 100% !important;
   max-width: none !important;
@@ -639,7 +669,7 @@ html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-
 /* Scalar form-rows: true 2-up across the MAIN track (not a skinny left column). */
 [data-rmc-shell-root="django-admin"] [data-rmc-django-form-body] .form-rows.aligned {
   display: grid !important;
-  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)) !important;
   gap: 0.65rem 1rem !important;
   width: 100% !important;
   max-width: none !important;
@@ -663,7 +693,7 @@ html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-
     .flex.gap-2.items-center:has(input[type="checkbox"])
   )),
 [data-rmc-shell-root="django-admin"] [data-rmc-django-form-body]
-  .form-rows.aligned > .form-row.grid,
+  .form-rows.aligned > .form-row:has(.field-line ~ .field-line),
 [data-rmc-shell-root="django-admin"] [data-rmc-django-form-body]
   .form-rows.aligned > details.rmc-admin-transfer-panel {
   grid-column: 1 / -1 !important;
@@ -831,7 +861,7 @@ html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-
   #content-main[data-rmc-admin-form-contract="premium-form-frame"]
   .form-rows {
   display: grid !important;
-  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)) !important;
   gap: 0.65rem 1rem !important;
   width: 100% !important;
   max-width: none !important;
@@ -854,7 +884,7 @@ html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-
   .admin-cp-unified-page #cp-main-content
   #content-main[data-rmc-admin-form-contract="premium-form-frame"]
   .form-rows > :is(
-    .form-row.grid,
+    .form-row:has(.field-line ~ .field-line),
     .form-row:has(textarea),
     .form-row:has(.vLargeTextField),
     .form-row:has(.selector),
@@ -867,7 +897,7 @@ html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-
   [data-rmc-shell-root="django-admin"]
   #content-main[data-rmc-admin-form-contract="premium-form-frame"]
   .form-rows > :is(
-    .form-row.grid,
+    .form-row:has(.field-line ~ .field-line),
     .form-row:has(textarea),
     .form-row:has(.vLargeTextField),
     .form-row:has(.selector),

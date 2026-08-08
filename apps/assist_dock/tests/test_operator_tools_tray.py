@@ -60,6 +60,28 @@ class OperatorToolsCockpitDefaultsTests(SimpleTestCase):
 
 
 class OperatorToolsShellTemplateTests(SimpleTestCase):
+    def test_tray_script_never_adopts_operator_or_tenant_shell_containers(self) -> None:
+        from pathlib import Path
+
+        source = (
+            Path(__file__).resolve().parents[3]
+            / "static"
+            / "js"
+            / "rmc-operator-tools-tray.js"
+        ).read_text(encoding="utf-8")
+        for selector in (
+            ".rmc-app-shell",
+            ".portal-layout-wrap",
+            ".portal-layout-row",
+            ".portal-main-col",
+            ".portal-page-body",
+            ".tp-v3-shell-workspace",
+            "[data-rmc-authenticated-shell]",
+            "[data-rmc-shell-main]",
+        ):
+            self.assertIn(selector, source)
+        self.assertIn('if (!btn || btn === backTop) return;', source)
+
     def test_control_plane_skeleton_wires_tray_assets(self) -> None:
         from django.template.loader import get_template
 

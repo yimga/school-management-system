@@ -938,5 +938,237 @@
     "rpo_ok": null,
     "rto_max_hours": 4,
     "started_at": "2026-07-31T14:21:00+00:00"
+  },
+  {
+    "apply_local": true,
+    "backup_ts": null,
+    "checklist": [
+      {
+        "check": "schools_school row count > 0",
+        "count": 106,
+        "status": "pass",
+        "table": "schools_school"
+      },
+      {
+        "check": "people_studentprofile row count > 0",
+        "count": 115,
+        "status": "pass",
+        "table": "people_studentprofile"
+      },
+      {
+        "check": "finance_invoice row count >= 0 (table exists)",
+        "count": 1,
+        "status": "pass",
+        "table": "finance_invoice"
+      },
+      {
+        "check": "analytics_atriskmodelartifact row count > 0",
+        "count": 2,
+        "status": "pass",
+        "table": "analytics_atriskmodelartifact"
+      },
+      {
+        "check": "compliance_auditlog row count > 0",
+        "count": 2353,
+        "status": "pass",
+        "table": "compliance_auditlog"
+      },
+      {
+        "check": "django_migrations row count > 0",
+        "count": 1251,
+        "status": "pass",
+        "table": "django_migrations"
+      },
+      {
+        "check": "platform_runtime_offlineaction row count >= 0 (table exists)",
+        "count": 156,
+        "status": "pass",
+        "table": "platform_runtime_offlineaction"
+      },
+      {
+        "check": "django_content_type row count > 0",
+        "count": 795,
+        "status": "pass",
+        "table": "django_content_type"
+      },
+      {
+        "check": "schoolops_bookableresource row count >= 0 (table exists)",
+        "count": 0,
+        "status": "pass",
+        "table": "schoolops_bookableresource"
+      }
+    ],
+    "dry_run": false,
+    "finished_at": "2026-08-06T11:44:08+00:00",
+    "rpo_hours": null,
+    "rpo_max_hours": 1,
+    "rpo_ok": null,
+    "rto_max_hours": 4,
+    "started_at": "2026-08-06T11:44:04+00:00"
+  },
+  {
+    "apply_local": false,
+    "backup_ts": null,
+    "checklist": [
+      {
+        "check": "schools_school row count > 0",
+        "status": "would-run"
+      },
+      {
+        "check": "people_studentprofile row count > 0",
+        "status": "would-run"
+      },
+      {
+        "check": "finance_invoice row count >= 0 (table exists)",
+        "status": "would-run"
+      },
+      {
+        "check": "analytics_atriskmodelartifact row count > 0",
+        "status": "would-run"
+      },
+      {
+        "check": "compliance_auditlog row count > 0",
+        "status": "would-run"
+      },
+      {
+        "check": "django_migrations row count > 0",
+        "status": "would-run"
+      },
+      {
+        "check": "platform_runtime_offlineaction row count >= 0 (table exists)",
+        "status": "would-run"
+      },
+      {
+        "check": "django_content_type row count > 0",
+        "status": "would-run"
+      },
+      {
+        "check": "schoolops_bookableresource row count >= 0 (table exists)",
+        "status": "would-run"
+      }
+    ],
+    "dry_run": true,
+    "finished_at": "2026-08-06T11:44:10+00:00",
+    "rpo_hours": null,
+    "rpo_max_hours": 1,
+    "rpo_ok": null,
+    "rto_max_hours": 4,
+    "started_at": "2026-08-06T11:44:10+00:00"
+  },
+  {
+    "apply_local": true,
+    "backup_ts": null,
+    "checklist": [
+      {
+        "check": "schools_school row count > 0",
+        "count": 106,
+        "status": "pass",
+        "table": "schools_school"
+      },
+      {
+        "check": "people_studentprofile row count > 0",
+        "count": 115,
+        "status": "pass",
+        "table": "people_studentprofile"
+      },
+      {
+        "check": "finance_invoice row count >= 0 (table exists)",
+        "count": 1,
+        "status": "pass",
+        "table": "finance_invoice"
+      },
+      {
+        "check": "analytics_atriskmodelartifact row count > 0",
+        "count": 2,
+        "status": "pass",
+        "table": "analytics_atriskmodelartifact"
+      },
+      {
+        "check": "compliance_auditlog row count > 0",
+        "count": 2353,
+        "status": "pass",
+        "table": "compliance_auditlog"
+      },
+      {
+        "check": "django_migrations row count > 0",
+        "count": 1251,
+        "status": "pass",
+        "table": "django_migrations"
+      },
+      {
+        "check": "platform_runtime_offlineaction row count >= 0 (table exists)",
+        "count": 156,
+        "status": "pass",
+        "table": "platform_runtime_offlineaction"
+      },
+      {
+        "check": "django_content_type row count > 0",
+        "count": 795,
+        "status": "pass",
+        "table": "django_content_type"
+      },
+      {
+        "check": "schoolops_bookableresource row count >= 0 (table exists)",
+        "count": 0,
+        "status": "pass",
+        "table": "schoolops_bookableresource"
+      }
+    ],
+    "dry_run": false,
+    "finished_at": "2026-08-06T11:53:11+00:00",
+    "rpo_hours": null,
+    "rpo_max_hours": 1,
+    "rpo_ok": null,
+    "rto_max_hours": 4,
+    "started_at": "2026-08-06T11:53:07+00:00"
+  },
+  {
+    "apply_local": false,
+    "backup_ts": null,
+    "checklist": [
+      {
+        "check": "schools_school row count > 0",
+        "status": "would-run"
+      },
+      {
+        "check": "people_studentprofile row count > 0",
+        "status": "would-run"
+      },
+      {
+        "check": "finance_invoice row count >= 0 (table exists)",
+        "status": "would-run"
+      },
+      {
+        "check": "analytics_atriskmodelartifact row count > 0",
+        "status": "would-run"
+      },
+      {
+        "check": "compliance_auditlog row count > 0",
+        "status": "would-run"
+      },
+      {
+        "check": "django_migrations row count > 0",
+        "status": "would-run"
+      },
+      {
+        "check": "platform_runtime_offlineaction row count >= 0 (table exists)",
+        "status": "would-run"
+      },
+      {
+        "check": "django_content_type row count > 0",
+        "status": "would-run"
+      },
+      {
+        "check": "schoolops_bookableresource row count >= 0 (table exists)",
+        "status": "would-run"
+      }
+    ],
+    "dry_run": true,
+    "finished_at": "2026-08-06T11:53:12+00:00",
+    "rpo_hours": null,
+    "rpo_max_hours": 1,
+    "rpo_ok": null,
+    "rto_max_hours": 4,
+    "started_at": "2026-08-06T11:53:12+00:00"
   }
 ]

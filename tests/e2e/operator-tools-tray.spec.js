@@ -160,6 +160,10 @@ test.describe("Operator Tools edge-tray", () => {
       timeout: 120000,
     });
     await expect(page.locator("#page-data-rmc-tenant-tools")).toBeAttached({ timeout: 60000 });
+    const workspace = page.locator(".portal-layout-wrap");
+    await expect(workspace).toBeVisible({ timeout: 60000 });
+    await expect(page.locator("#rmcOperatorToolsTray .portal-layout-wrap")).toHaveCount(0);
+    expect(await workspace.evaluate((node) => node.parentElement?.tagName)).toBe("BODY");
     const tab = page.locator(".rmc-operator-tools__edge-tab");
     await expect(tab).toBeVisible({ timeout: 60000 });
     await tab.click();

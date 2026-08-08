@@ -134,10 +134,12 @@ body.marketing-surface {
 }
 
 .rmc-os-page-header {
-  background: var(--rmc-premium-surface-strong) !important;
-  border: 1px solid var(--rmc-premium-line) !important;
+  /* Authenticated themes own the surface/text pairing. Keeping the old fixed
+     white premium token here made dark-mode headers render white-on-white. */
+  background: var(--surface-elevated, var(--rmc-premium-surface-strong)) !important;
+  border: 1px solid var(--hairline, var(--rmc-premium-line)) !important;
   border-radius: var(--rmc-premium-radius) !important;
-  box-shadow: 0 10px 35px rgba(26, 22, 18, 0.06);
+  box-shadow: var(--elev-1, 0 10px 35px rgba(26, 22, 18, 0.06));
 }
 
 .rmc-os-page-header__title {

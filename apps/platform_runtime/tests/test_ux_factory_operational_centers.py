@@ -191,9 +191,40 @@ class OperationalCenterShellTests(TestCase):
     def test_insights_center_analytics_dashboard_single_os_header_http(self):
         self._enable_analytics_feature_gate()
         self._ensure_active_year_term_for_school()
+        user = self._attach_staff_admin()
+        client = Client(HTTP_HOST=_tenant_host(self.school))
+        self._force_login_verified(client, user)
+        response = self._get_without_context_copy(
+            client,
+            reverse("analytics:dashboard"),
+        )
+        self.assertEqual(response.status_code, 200)
+        body = response.content.decode("utf-8")
+        self._assert_single_os_page_header(body)
+        self.assertIn('data-rmc-os-center="insights_center"', body)
+        self.assertIn('data-rmc-ux-role-dashboard="analytics-insights"', body)
+        self.assertIn('id="portal-sidebar-col"', body)
+        self.assertIn('id="main-content"', body)
+        self.assertIn('id="analytics-filters"', body)
+        self.assertEqual(body.count('id="insights-viz"'), 1)
+        self.assertEqual(body.count('id="insights-secondary"'), 1)
+
         template = (ROOT / "templates" / "analytics" / "dashboard.html").read_text(
             encoding="utf-8"
         )
+        self.assertNotIn("improvement_rows|length", template)
+        self.assertNotIn("teacher_rows|length", template)
+        premium_css = (ROOT / "static" / "css" / "rmc-premium-os.css").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn(
+            "background: var(--surface-elevated, var(--rmc-premium-surface-strong))",
+            premium_css,
+        )
+        header_template = (
+            ROOT / "templates" / "components" / "rmc_os_page_header.html"
+        ).read_text(encoding="utf-8")
+        self.assertNotIn("bg-body-tertiary", header_template)
         self._assert_single_os_page_header_source(template)
         self.assertIn('data-rmc-os-center="insights_center"', template)
         self.assertIn('os_center_key="insights_center"', template)

@@ -44,7 +44,12 @@ from apps.evals.models import (
     AssessmentWeights,
 )
 from apps.evals.rosetta_stone import get_supported_scales, view_grade_in_target_system
-from apps.evals.importers import build_template_headers
+from apps.evals.importers import (
+    IMPORT_ERROR_LOG_CAP as _IMPORT_ERROR_LOG_CAP,
+    apply_grade_import_job,
+    build_template_headers,
+    resolve_import_job_outcome as _resolve_import_job_outcome,
+)
 from apps.reports.services import is_term_published
 from apps.reports.weasy import render_pdf_bytes
 from .forms import (
@@ -3363,36 +3368,17 @@ def grade_import_preview_api(request):
             status=400,
         )
 
-# How many failed rows are echoed back to the teacher / stored on the job.
-# Enough to fix a spreadsheet; not so many that one bad upload bloats the row.
-_IMPORT_ERROR_LOG_CAP = 50  # magic-number-allow: import-error-report-cap
-
-
-def _resolve_import_job_outcome(result: dict) -> tuple[str, int]:
-    """Map an apply_import result to (job status, failed row count).
-
-    ``GradeImportJob.STATUS_CHOICES`` has carried ``partial`` ("Partially
-    Completed") since it was written and nothing ever used it: the apply path
-    hard-coded ``"completed"``, so an import that dropped rows reported a clean
-    run. Grades are the one dataset a school cannot reconstruct from memory.
-
-    ``.get("failed", 0)`` rather than ``["failed"]`` so an older caller or a
-    stubbed importer degrades to the previous shape instead of raising.
-    """
-    failed = int(result.get("failed", 0) or 0)
-    if failed:
-        return "partial", failed
-    return "completed", 0
-
-
 # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
 
 @require_permission("grades.manage")
 def grade_import_apply_api(request):
-    """API endpoint for applying (persisting) grade import."""
-    from apps.evals.importers import apply_import
-    # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
-    from apps.analytics.models import GradeImportJob
+    """API endpoint for applying (persisting) grade import.
+
+    Thin HTTP wrapper: resolve year/term, parse the upload, then delegate the
+    job lifecycle + persistence to the shared ``apply_grade_import_job`` service
+    (also used by the migration playbook's grade step, so both dedupe and report
+    partial/completed identically).
+    """
     import json
 
     if request.method != "POST":
@@ -3432,75 +3418,45 @@ def grade_import_apply_api(request):
             status=400,
         )
 
-    # Create job record
-    job = GradeImportJob.objects.create(
-        academic_year=year,
-        term=term,
-        uploaded_by=request.user if request.user.is_authenticated else None,
-        status="processing",
-        created_count=0,
-        updated_count=0,
-        failed_count=0,
-    )
-
     try:
         csv_file = request.FILES.get("file")
-        csv_module = __import__("csv")
-        reader = csv_module.DictReader(io.TextIOWrapper(csv_file, encoding="utf-8"))
+        reader = csv.DictReader(io.TextIOWrapper(csv_file, encoding="utf-8"))
         csv_rows = list(reader)
-
-        # Apply import
-        result = apply_import(csv_rows)
-
-        # Update job. Rows the importer had to drop are reported, not buried:
-        # job.failed_count used to be touched only by the outer except (a
-        # whole-import crash), so a run that lost 50 of 250 grades still saved
-        # status="completed", failed_count=0 — and the grades were simply gone.
-        status, failed = _resolve_import_job_outcome(result)
-        job.created_count = result["created"]
-        job.updated_count = result["updated"]
-        job.failed_count = failed
-        job.total_rows = len(csv_rows)
-        if result.get("errors"):
-            job.error_log = result["errors"][:_IMPORT_ERROR_LOG_CAP]
-        job.status = status
-        job.completed_at = timezone.now()
-        job.save()
-
-        return HttpResponse(
-            json.dumps(
-                {
-                    "job_id": job.id,
-                    "status": status,
-                    "created": result["created"],
-                    "updated": result["updated"],
-                    "failed": failed,
-                    "errors": (result.get("errors") or [])[:_IMPORT_ERROR_LOG_CAP],
-                    "duration_seconds": result.get("duration_seconds", 0),
-                }
-            ),
-            content_type="application/json",
-        )
-
     except EVALS_SOFT_FAILURES as e:
-        logger.exception("Grade import apply API failed")
-        job.status = "failed"
-        job.failed_count += 1
-        job.error_log = [str(e)]
-        job.save()
-        user_message = "Import failed while saving grades. Check your data matches the template (student codes, subject assignment and term IDs)."
+        logger.exception("Grade import apply API failed to read upload")
         return HttpResponse(
             json.dumps(
                 {
-                    "job_id": job.id,
                     "status": "failed",
-                    "error": user_message,
+                    "error": "Could not read the uploaded file. Check it is a valid CSV export.",
                     "detail": str(e),
                 }
             ),
             content_type="application/json",
             status=400,
         )
+
+    result = apply_grade_import_job(
+        academic_year=year,
+        term=term,
+        csv_rows=csv_rows,
+        uploaded_by=request.user,
+    )
+
+    return HttpResponse(
+        json.dumps(
+            {
+                "job_id": result.get("job_id"),
+                "status": result.get("status"),
+                "created": result.get("created", 0),
+                "updated": result.get("updated", 0),
+                "failed": result.get("failed", 0),
+                "errors": (result.get("errors") or [])[:_IMPORT_ERROR_LOG_CAP],
+                "duration_seconds": result.get("duration_seconds", 0),
+            }
+        ),
+        content_type="application/json",
+    )
 
 
 # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph

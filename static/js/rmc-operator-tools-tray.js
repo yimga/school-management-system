@@ -83,7 +83,10 @@
     if (
       el.id === "content" ||
       el.id === "cp-main-content" ||
-      el.id === "content-main"
+      el.id === "main-content" ||
+      el.id === "content-main" ||
+      el.id === "portal-sidebar-col" ||
+      el.id === "cp-sidebar-col"
     ) {
       return true;
     }
@@ -92,6 +95,9 @@
       el.matches(
         ".rmc-app-shell, .rmc-app-shell__canvas, .rmc-app-shell__canvas-body, " +
           ".cp-page-body, .cp-admin-canvas-main, .cp-admin-page-body, " +
+          ".portal-layout-wrap, .portal-layout-row, .portal-main-col, " +
+          ".portal-page-body, .tp-v3-shell-workspace, .rmc-shell-main, " +
+          "[data-rmc-authenticated-shell], [data-rmc-shell-main], " +
           "[data-rmc-cp-scroll], [data-rmc-scroll-container]"
       )
     ) {
@@ -827,9 +833,12 @@
     var backTop = getChip("back-to-top");
     if (backTop) {
       backTop.addEventListener("click", function (ev) {
-        ev.preventDefault();
         var btn = document.getElementById("back-to-top-btn");
-        if (btn) btn.click();
+        // The adopted chip is normally the real button. Let its native
+        // back-to-top handler run once instead of recursively clicking itself.
+        if (!btn || btn === backTop) return;
+        ev.preventDefault();
+        btn.click();
       });
     }
   }

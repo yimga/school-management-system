@@ -95,7 +95,7 @@
       253
     ],
     "apps/accounts/views_workflow.py": [
-      476
+      487
     ],
     "apps/api/control_plane_internal_views.py": [
       34
@@ -167,7 +167,7 @@
       759
     ],
     "apps/siteconfig/portal_sidebar_items.py": [
-      1602
+      1625
     ],
     "apps/siteconfig/staff_navigation.py": [
       6,
@@ -361,7 +361,7 @@
       "title": "Dynamic field EAV operator (read-only triage; admin CRUD for definitions/values)"
     }
   ],
-  "generated_at": "2026-07-31T19:21:30.691579+00:00",
+  "generated_at": "2026-08-06T12:50:56.888783+00:00",
   "marketplace_app_admin_line_hits": {
     "apps/accounts/management/commands/ensure_default_tenant_admin.py": [
       111
@@ -374,9 +374,9 @@
       965
     ],
     "apps/accounts/views_workflow.py": [
-      268,
-      402,
-      431
+      277,
+      413,
+      442
     ],
     "apps/integrations_marketplace/admin.py": [
       148
@@ -579,13 +579,13 @@
       99
     ],
     "apps/accounts/views.py": [
-      307,
-      1914,
-      2692,
-      2928,
-      3425,
-      3428,
-      3535
+      308,
+      1915,
+      2725,
+      2961,
+      3458,
+      3461,
+      3568
     ],
     "apps/accounts/views_certification.py": [
       48,
@@ -596,18 +596,18 @@
       127
     ],
     "apps/accounts/views_workflow.py": [
-      262,
-      268,
-      393,
-      394,
-      395,
-      396,
-      402,
+      271,
+      277,
       404,
       405,
       406,
       407,
-      408
+      413,
+      415,
+      416,
+      417,
+      418,
+      419
     ],
     "apps/api/control_plane_internal_views.py": [
       34,
@@ -674,7 +674,7 @@
     ],
     "apps/finance/tasks.py": [
       646,
-      1982
+      2074
     ],
     "apps/integrations_marketplace/admin.py": [
       37,
@@ -686,15 +686,12 @@
     "apps/people/views_backend.py": [
       828
     ],
-    "apps/platform_runtime/administration_catalog.py": [
-      549
-    ],
     "apps/platform_runtime/shell_contract.py": [
       119
     ],
     "apps/platform_runtime/views_administration.py": [
-      437,
-      521
+      451,
+      537
     ],
     "apps/schools/admin.py": [
       165,
@@ -820,12 +817,12 @@
       257
     ],
     "apps/siteconfig/context_processors.py": [
-      45,
-      570,
-      599,
-      602,
-      702,
-      704
+      49,
+      574,
+      603,
+      606,
+      706,
+      708
     ],
     "apps/siteconfig/management/commands/audit_tenant_operator_boundary.py": [
       68,
@@ -855,10 +852,10 @@
     ],
     "apps/siteconfig/portal_sidebar_items.py": [
       38,
-      1065,
-      1094,
-      1104,
-      1602
+      1088,
+      1117,
+      1127,
+      1625
     ],
     "apps/siteconfig/staff_navigation.py": [
       6,
@@ -980,13 +977,13 @@
     "apps/accounts/views.py": {
       "category": "permission_and_admin_or_bridge",
       "line_numbers": [
-        307,
-        1914,
-        2692,
-        2928,
-        3425,
-        3428,
-        3535
+        308,
+        1915,
+        2725,
+        2961,
+        3458,
+        3461,
+        3568
       ]
     },
     "apps/accounts/views_certification.py": {
@@ -1006,18 +1003,18 @@
     "apps/accounts/views_workflow.py": {
       "category": "permission_and_admin_or_bridge",
       "line_numbers": [
-        262,
-        268,
-        393,
-        394,
-        395,
-        396,
-        402,
+        271,
+        277,
         404,
         405,
         406,
         407,
-        408
+        413,
+        415,
+        416,
+        417,
+        418,
+        419
       ]
     },
     "apps/api/control_plane_internal_views.py": {
@@ -1129,7 +1126,7 @@
       "category": "permission_and_admin_or_bridge",
       "line_numbers": [
         646,
-        1982
+        2074
       ]
     },
     "apps/integrations_marketplace/admin.py": {
@@ -1151,12 +1148,6 @@
         828
       ]
     },
-    "apps/platform_runtime/administration_catalog.py": {
-      "category": "redirect_or_link_to_admin",
-      "line_numbers": [
-        549
-      ]
-    },
     "apps/platform_runtime/shell_contract.py": {
       "category": "redirect_or_link_to_admin",
       "line_numbers": [
@@ -1166,8 +1157,8 @@
     "apps/platform_runtime/views_administration.py": {
       "category": "redirect_or_link_to_admin",
       "line_numbers": [
-        437,
-        521
+        451,
+        537
       ]
     },
     "apps/schools/admin.py": {
@@ -1353,12 +1344,12 @@
     "apps/siteconfig/context_processors.py": {
       "category": "permission_and_admin_or_bridge",
       "line_numbers": [
-        45,
-        570,
-        599,
-        602,
-        702,
-        704
+        49,
+        574,
+        603,
+        606,
+        706,
+        708
       ]
     },
     "apps/siteconfig/management/commands/audit_tenant_operator_boundary.py": {
@@ -1403,10 +1394,10 @@
       "category": "permission_and_admin_or_bridge",
       "line_numbers": [
         38,
-        1065,
-        1094,
-        1104,
-        1602
+        1088,
+        1117,
+        1127,
+        1625
       ]
     },
     "apps/siteconfig/staff_navigation.py": {
@@ -1594,13 +1585,13 @@
     },
     "apps/accounts/views.py": {
       "line_numbers": [
-        307,
-        1914,
-        2692,
-        2928,
-        3425,
-        3428,
-        3535
+        308,
+        1915,
+        2725,
+        2961,
+        3458,
+        3461,
+        3568
       ],
       "v2": "needs_model_service_support"
     },
@@ -1620,18 +1611,18 @@
     },
     "apps/accounts/views_workflow.py": {
       "line_numbers": [
-        262,
-        268,
-        393,
-        394,
-        395,
-        396,
-        402,
+        271,
+        277,
         404,
         405,
         406,
         407,
-        408
+        413,
+        415,
+        416,
+        417,
+        418,
+        419
       ],
       "v2": "needs_model_service_support"
     },
@@ -1743,7 +1734,7 @@
     "apps/finance/tasks.py": {
       "line_numbers": [
         646,
-        1982
+        2074
       ],
       "v2": "needs_model_service_support"
     },
@@ -1766,12 +1757,6 @@
       ],
       "v2": "admin_fallback_only"
     },
-    "apps/platform_runtime/administration_catalog.py": {
-      "line_numbers": [
-        549
-      ],
-      "v2": "needs_model_service_support"
-    },
     "apps/platform_runtime/shell_contract.py": {
       "line_numbers": [
         119
@@ -1780,8 +1765,8 @@
     },
     "apps/platform_runtime/views_administration.py": {
       "line_numbers": [
-        437,
-        521
+        451,
+        537
       ],
       "v2": "needs_model_service_support"
     },
@@ -1967,12 +1952,12 @@
     },
     "apps/siteconfig/context_processors.py": {
       "line_numbers": [
-        45,
-        570,
-        599,
-        602,
-        702,
-        704
+        49,
+        574,
+        603,
+        606,
+        706,
+        708
       ],
       "v2": "needs_model_service_support"
     },
@@ -2017,10 +2002,10 @@
     "apps/siteconfig/portal_sidebar_items.py": {
       "line_numbers": [
         38,
-        1065,
-        1094,
-        1104,
-        1602
+        1088,
+        1117,
+        1127,
+        1625
       ],
       "v2": "needs_model_service_support"
     },
@@ -2245,13 +2230,13 @@
         },
         {
           "lines": [
-            307,
-            1914,
-            2692,
-            2928,
-            3425,
-            3428,
-            3535
+            308,
+            1915,
+            2725,
+            2961,
+            3458,
+            3461,
+            3568
           ],
           "path": "apps/accounts/views.py",
           "v2": "needs_model_service_support"
@@ -2274,18 +2259,18 @@
         },
         {
           "lines": [
-            262,
-            268,
-            393,
-            394,
-            395,
-            396,
-            402,
+            271,
+            277,
             404,
             405,
             406,
             407,
-            408
+            413,
+            415,
+            416,
+            417,
+            418,
+            419
           ],
           "path": "apps/accounts/views_workflow.py",
           "v2": "needs_model_service_support"
@@ -2346,12 +2331,12 @@
         },
         {
           "lines": [
-            45,
-            570,
-            599,
-            602,
-            702,
-            704
+            49,
+            574,
+            603,
+            606,
+            706,
+            708
           ],
           "path": "apps/siteconfig/context_processors.py",
           "v2": "needs_model_service_support"
@@ -2401,10 +2386,10 @@
         {
           "lines": [
             38,
-            1065,
-            1094,
-            1104,
-            1602
+            1088,
+            1117,
+            1127,
+            1625
           ],
           "path": "apps/siteconfig/portal_sidebar_items.py",
           "v2": "needs_model_service_support"
@@ -2672,7 +2657,7 @@
         {
           "lines": [
             646,
-            1982
+            2074
           ],
           "path": "apps/finance/tasks.py",
           "v2": "needs_model_service_support"
@@ -2686,13 +2671,6 @@
         },
         {
           "lines": [
-            549
-          ],
-          "path": "apps/platform_runtime/administration_catalog.py",
-          "v2": "needs_model_service_support"
-        },
-        {
-          "lines": [
             119
           ],
           "path": "apps/platform_runtime/shell_contract.py",
@@ -2700,8 +2678,8 @@
         },
         {
           "lines": [
-            437,
-            521
+            451,
+            537
           ],
           "path": "apps/platform_runtime/views_administration.py",
           "v2": "needs_model_service_support"
@@ -3240,7 +3218,7 @@
     "admin_bridge_hits_by_category": {
       "harmless_django_admin_registration": 4,
       "permission_and_admin_or_bridge": 33,
-      "redirect_or_link_to_admin": 39
+      "redirect_or_link_to_admin": 38
     },
     "admin_template_files": 88,
     "admin_url_namespaces_by_app_label_segment": {
@@ -3276,7 +3254,7 @@
       "studio": 1,
       "system": 1
     },
-    "approx_product_code_lines_with_admin_substring": 749,
+    "approx_product_code_lines_with_admin_substring": 735,
     "approx_register_calls_in_admin_py": 3,
     "apps_with_admin_py": 41,
     "high_registration_app_labels_gte_3": [
@@ -3284,14 +3262,14 @@
     ],
     "next_recommended_candidate_roadmap_id": "",
     "product_admin_bridge_hits_by_theme": {
-      "accounts_security": 6,
-      "marketplace": 3,
+      "accounts_security": 5,
+      "marketplace": 4,
       "metadata": 20,
-      "other": 43,
+      "other": 42,
       "platform_runtime_fleet": 1,
       "reports_compliance": 3
     },
-    "product_files_mentioning_admin_bridge": 76,
+    "product_files_mentioning_admin_bridge": 75,
     "shipped_category_regression_checks": {
       "backend_classroom_academic_years_before_admin": "pass",
       "backend_student_portal_tabbed_before_admin": "pass",
@@ -3426,14 +3404,14 @@
   },
   "workflow_automation_admin_line_hits": {
     "apps/accounts/views_workflow.py": [
-      262,
-      268,
-      404,
-      405,
-      406,
-      407,
-      408,
-      409
+      271,
+      277,
+      415,
+      416,
+      417,
+      418,
+      419,
+      420
     ],
     "apps/platform_runtime/workflow_registry_promoted.py": [
       348
