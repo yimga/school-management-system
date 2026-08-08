@@ -107,19 +107,38 @@ class StaffLander(Lander):
                 continue
 
             try:
-                teacher_user, reason = resolve_or_provision_user(
-                    User=User,
-                    username_hint=user_ref,
-                    email=email,
-                    first_name=first_name,
-                    last_name=last_name,
-                    role=teacher_role,
-                    dry_run=ctx.dry_run,
+                # Exact employee-number dedup (strongest signal, runs FIRST): a
+                # TeacherProfile already carrying this staff_id in THIS school is
+                # the same person, so reuse its user and let the upsert update in
+                # place — instead of provisioning a DUPLICATE account when the
+                # same staffer re-appears under a different / absent email.
+                # staff_id is the source SIS's stable identity key (not an
+                # ambiguous shared signal like a household phone), so an exact
+                # single match is a safe auto-merge.
+                teacher_user = _match_staff_user_by_staff_id(
+                    TeacherProfile, ctx.school, external_id
                 )
-                if teacher_user is None:
-                    result.quarantined += 1
-                    result.errors.append(f"staff {external_id}: {reason or 'no linkable user'}")
-                    continue
+                if teacher_user is not None:
+                    if not _resolution_would_reach(teacher_user, user_ref, email):
+                        # The strong-key match linked a user that username/email
+                        # would NOT have reached (a re-import under a different /
+                        # absent email) — surface it so the auto-link is never
+                        # silent.
+                        _record_staff_dedup_link(ctx, teacher_user, external_id, email)
+                else:
+                    teacher_user, reason = resolve_or_provision_user(
+                        User=User,
+                        username_hint=user_ref,
+                        email=email,
+                        first_name=first_name,
+                        last_name=last_name,
+                        role=teacher_role,
+                        dry_run=ctx.dry_run,
+                    )
+                    if teacher_user is None:
+                        result.quarantined += 1
+                        result.errors.append(f"staff {external_id}: {reason or 'no linkable user'}")
+                        continue
 
                 # Optional Department FK (SET_NULL) — reuse an existing one by
                 # (school, name); mint a target-scoped code on create so we never
@@ -180,6 +199,80 @@ class StaffLander(Lander):
                 result.quarantined += 1
                 result.errors.append(f"staff upsert failed for {external_id}: {type(exc).__name__}: {exc}")
         return result
+
+
+def _match_staff_user_by_staff_id(TeacherProfile, school: Any, external_id: str):
+    """Exact employee-number dedup: return the ``User`` of an existing
+    ``TeacherProfile`` in THIS school carrying this ``staff_id``, else ``None``.
+
+    ``staff_id`` is the source SIS's stable identity key for the record (not an
+    ambiguous shared signal like a household phone), so an exact match is a safe
+    auto-merge. Guardrailed so it can never wrong-merge:
+      * ``staff_id`` must be present AND matched exactly;
+      * scoped to the bundle's school (never reaches across tenants);
+      * exactly ONE distinct user may match — legacy duplicate data (>1 profile
+        sharing a staff_id) is ambiguous, so don't guess; fall through to the
+        normal username/email resolution and let the merge engine reconcile.
+    """
+    external_id = (external_id or "").strip()
+    if not external_id:
+        return None
+    scope: dict[str, Any] = {}
+    if school is not None:
+        scope["school"] = school
+    profiles = TeacherProfile.objects.filter(  # tenant-isolation-allow: lander runs inside schema_context; scoped by school kwarg
+        staff_id=external_id, **scope,
+    ).select_related("user")[:5]
+    matched: dict[Any, Any] = {}
+    for tp in profiles:
+        u = getattr(tp, "user", None)
+        if u is not None:
+            matched[u.pk] = u
+    if len(matched) == 1:
+        return next(iter(matched.values()))
+    return None
+
+
+def _resolution_would_reach(user, user_ref: str, email: str) -> bool:
+    """True when the normal username/email resolution would have reached THIS
+    user anyway — so the staff_id auto-link is only surfaced (as a dedup link)
+    when it actually prevented a different / duplicate resolution."""
+    if user_ref and getattr(user, "username", "") == user_ref:
+        return True
+    if email and (getattr(user, "email", "") or "").strip().lower() == email.strip().lower():
+        return True
+    return False
+
+
+def _record_staff_dedup_link(ctx, user, external_id: str, email: str) -> None:
+    """Note (for operator review) that an incoming staff row was linked to an
+    existing teacher account by EXACT staff_id rather than by email/username —
+    so the auto-link is never silent. Best-effort; never breaks the land."""
+    bundle_id = getattr(ctx, "bundle_id", None)
+    if bundle_id is None:
+        return
+    try:
+        from apps.migration_cloud.models import MigrationBundle
+
+        bundle = MigrationBundle.objects.filter(pk=bundle_id).first()  # tenant-isolation-allow: PK lookup by internal bundle id
+    except Exception:  # noqa: BLE001
+        return
+    if bundle is None:
+        return
+    try:
+        summary = dict(bundle.mapping_summary or {})
+        summary.setdefault("dedup_links", []).append(
+            {
+                "canonical_user_pk": user.pk,
+                "linked_staff_id": external_id,
+                "incoming_email": (email or "").strip(),
+                "matched_on": "staff_id",
+            }
+        )
+        bundle.mapping_summary = summary
+        bundle.save(update_fields=["mapping_summary"])
+    except Exception:  # noqa: BLE001
+        return
 
 
 register("staff", StaffLander())
