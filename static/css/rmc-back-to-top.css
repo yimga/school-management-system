@@ -408,3 +408,126 @@ html[data-surface="control-plane"][data-rmc-exceeds-2-folds="1"]
     font-size: 0.54rem;
   }
 }
+
+/* ================================================================== *
+ * VARIANTS — both driven by the JS-set --rmc-back-to-top-progress.    *
+ * Selected by the .rmc-back-to-top--aurora / --mercury class (JS      *
+ * resolves it; ?btt=aurora|mercury flips + persists for live compare).*
+ * ================================================================== */
+
+/* mercury fill element is inert unless the mercury variant is active */
+.rmc-back-to-top__fill { display: none; }
+
+/* ---------- Concept A · Aurora (default) ---------- */
+/* conic progress halo replaces the thin SVG ring; frosted glass with a slow
+   rotating aurora sheen + a gentle glow breath. */
+.rmc-back-to-top--aurora .rmc-back-to-top__svg { display: none; }
+
+.rmc-back-to-top--aurora .rmc-back-to-top__ring {
+  inset: -2px;
+  border-radius: 999px;
+  background: conic-gradient(
+    from -90deg,
+    var(--rmc-back-to-top-primary, #4f46e5) 0deg,
+    color-mix(in oklab, var(--rmc-back-to-top-primary, #4f46e5) 55%, var(--rmc-back-to-top-accent, #10b981))
+      calc(var(--rmc-back-to-top-progress, 0) * 180deg),
+    var(--rmc-back-to-top-accent, #10b981) calc(var(--rmc-back-to-top-progress, 0) * 360deg),
+    color-mix(in oklab, var(--hairline, rgba(120, 120, 140, 0.2)) 60%, transparent) 0deg
+  );
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
+          mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
+  filter: drop-shadow(0 0 5px color-mix(in oklab, var(--rmc-back-to-top-primary, #4f46e5) 45%, transparent));
+}
+
+/* rotating aurora sheen */
+.rmc-back-to-top--aurora .rmc-back-to-top__chip::after {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border-radius: 999px;
+  background: conic-gradient(
+    from 0deg,
+    transparent,
+    color-mix(in oklab, var(--rmc-back-to-top-primary, #7c6cff) 22%, transparent),
+    transparent 42%
+  );
+  animation: rmc-btt-aurora-spin 6s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.rmc-back-to-top--aurora.rmc-back-to-top--visible:not([hidden]) {
+  animation:
+    rmc-back-to-top-enter var(--motion-spring, 420ms cubic-bezier(0.34, 1.56, 0.64, 1)),
+    rmc-btt-aurora-glow 5.2s ease-in-out infinite;
+}
+
+@keyframes rmc-btt-aurora-spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes rmc-btt-aurora-glow {
+  0%, 100% {
+    box-shadow:
+      var(--elev-2, 0 8px 24px rgba(15, 23, 42, 0.14)),
+      0 8px 26px -10px color-mix(in oklab, var(--rmc-back-to-top-primary, #4f46e5) 42%, transparent),
+      inset 0 1px 0 color-mix(in oklab, var(--text-on-brand, #fff) 16%, transparent);
+  }
+  50% {
+    box-shadow:
+      var(--elev-2, 0 8px 24px rgba(15, 23, 42, 0.14)),
+      0 14px 40px -8px color-mix(in oklab, var(--rmc-back-to-top-primary, #4f46e5) 60%, transparent),
+      inset 0 1px 0 color-mix(in oklab, var(--text-on-brand, #fff) 22%, transparent);
+  }
+}
+
+/* ---------- Concept B · Mercury (liquid fill) ---------- */
+.rmc-back-to-top--mercury .rmc-back-to-top__svg,
+.rmc-back-to-top--mercury .rmc-back-to-top__ring { display: none; }
+
+.rmc-back-to-top--mercury .rmc-back-to-top__fill {
+  display: block;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: calc(var(--rmc-back-to-top-progress, 0) * 100%);
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--rmc-back-to-top-primary, #4f46e5) 78%, #fff),
+    var(--rmc-back-to-top-primary, #4f46e5) 42%,
+    var(--rmc-back-to-top-accent, #10b981)
+  );
+  opacity: 0.94;
+  z-index: 0;
+  transition: height var(--motion-fast, 150ms ease);
+}
+.rmc-back-to-top--mercury .rmc-back-to-top__fill::before {
+  content: "";
+  position: absolute;
+  top: -5px;
+  left: -12%;
+  width: 124%;
+  height: 10px;
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--rmc-back-to-top-primary, #4f46e5) 68%, var(--rmc-back-to-top-accent, #10b981));
+  opacity: 0.72;
+}
+.rmc-back-to-top--mercury .rmc-back-to-top__icon {
+  z-index: 1;
+  background: none;
+  margin-top: 0;
+  color: var(--text-primary, #1c1917);
+  text-shadow: 0 1px 2px color-mix(in oklab, var(--text-on-brand, #fff) 55%, transparent);
+}
+.rmc-back-to-top--mercury .rmc-back-to-top__percent {
+  z-index: 2;
+  color: var(--text-on-brand, #fff);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rmc-back-to-top--aurora.rmc-back-to-top--visible:not([hidden]),
+  .rmc-back-to-top--aurora .rmc-back-to-top__chip::after {
+    animation: none !important;
+  }
+}

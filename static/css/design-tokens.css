@@ -4731,8 +4731,12 @@ main#main-content {
 .rmc-type-headline-m  { font-size: var(--type-size-headline-m);  line-height: var(--type-lh-headline-m);  letter-spacing: var(--type-tr-headline-m);  font-weight: 600; }
 .rmc-type-body-l      { font-size: var(--type-size-body-l);      line-height: var(--type-lh-body-l);      letter-spacing: var(--type-tr-body-l);      font-weight: 400; }
 .rmc-type-body        { font-size: var(--type-size-body);        line-height: var(--type-lh-body);        letter-spacing: var(--type-tr-body);        font-weight: 400; }
-.rmc-type-caption     { font-size: var(--type-size-caption);     line-height: var(--type-lh-caption);     letter-spacing: var(--type-tr-caption);     font-weight: 500; color: var(--text-tertiary, var(--text-muted)); }
-.rmc-type-eyebrow     { font-size: var(--type-size-eyebrow);     line-height: var(--type-lh-eyebrow);     letter-spacing: var(--type-tr-eyebrow);     font-weight: 600; text-transform: uppercase; color: var(--text-tertiary, var(--text-muted)); }
+/* caption + eyebrow promoted tertiary -> secondary: at these small sizes
+   --text-tertiary sat at ~4.4:1 on the standard --surface-bg canvas (marginal /
+   sub-AA on tinted cards). --text-secondary is the AA-strong tier on every
+   surface, so the whole caption/eyebrow type layer clears 4.5:1 in one step. */
+.rmc-type-caption     { font-size: var(--type-size-caption);     line-height: var(--type-lh-caption);     letter-spacing: var(--type-tr-caption);     font-weight: 500; color: var(--text-secondary, var(--text-tertiary)); }
+.rmc-type-eyebrow     { font-size: var(--type-size-eyebrow);     line-height: var(--type-lh-eyebrow);     letter-spacing: var(--type-tr-eyebrow);     font-weight: 600; text-transform: uppercase; color: var(--text-secondary, var(--text-tertiary)); }
 
 /* Tactile floor utilities */
 .rmc-tactile-44,

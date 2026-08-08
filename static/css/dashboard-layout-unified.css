@@ -141,7 +141,10 @@
   min-height: 120px;
   padding: 1.5rem;
   text-align: center;
-  color: var(--bs-secondary, #6c757d);
+  /* was var(--bs-secondary,#6c757d): --bs-secondary is remapped to the brand
+     tint (#a78bfa, ~2.0:1) so empty-state copy went near-invisible. --text-
+     secondary is the AA text tier. */
+  color: var(--text-secondary, #475569);
 }
 
 .dashboard-empty-state i {

@@ -23,7 +23,10 @@
   --lux-border-strong: rgba(255, 255, 255, 0.16);
   --lux-text-primary: rgba(255, 255, 255, 0.96);
   --lux-text-secondary: rgba(255, 255, 255, 0.62);
-  --lux-text-muted: rgba(255, 255, 255, 0.4);
+  /* 0.4 was ~3.5:1 on the near-black lux canvas (sub-AA for the console empty
+     state + labels that use it). 0.52 -> ~5.6:1, still clearly muted vs
+     secondary(.62) and dim(.26). */
+  --lux-text-muted: rgba(255, 255, 255, 0.52);
   --lux-text-dim: rgba(255, 255, 255, 0.26);
 
   --lux-accent-emerald: #34d399;

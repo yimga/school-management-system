@@ -369,6 +369,40 @@
     });
   }
 
+  var VARIANTS = ["aurora", "mercury"];
+  var VARIANT_KEY = "rmc.back_to_top.variant";
+
+  function resolveVariant() {
+    // ?btt=aurora|mercury flips the look live (and persists) so both concepts
+    // can be compared on the real site; otherwise a body/root data attribute,
+    // else the default. Wrapped so storage/URL failures never break the button.
+    try {
+      var q = new URLSearchParams(window.location.search).get("btt");
+      if (VARIANTS.indexOf(q) !== -1) {
+        window.localStorage.setItem(VARIANT_KEY, q);
+        return q;
+      }
+      var saved = window.localStorage.getItem(VARIANT_KEY);
+      if (VARIANTS.indexOf(saved) !== -1) return saved;
+    } catch (e) {
+      /* no-op: storage / URL unavailable */
+    }
+    var attr =
+      (document.body && document.body.getAttribute("data-rmc-back-to-top-variant")) ||
+      document.documentElement.getAttribute("data-rmc-back-to-top-variant");
+    if (VARIANTS.indexOf(attr) !== -1) return attr;
+    return "aurora";
+  }
+
+  function applyVariant(btn) {
+    if (!btn) return;
+    var variant = resolveVariant();
+    VARIANTS.forEach(function (v) {
+      btn.classList.toggle("rmc-back-to-top--" + v, v === variant);
+    });
+    btn.setAttribute("data-rmc-back-to-top-variant", variant);
+  }
+
   function ensureBodyMounted(btn) {
     if (!btn || btn.parentElement === document.body) return;
     if (btn.closest(".rmc-app-shell")) {
@@ -381,6 +415,7 @@
     if (!btn || btn.getAttribute("data-rmc-mounted") === "1") return false;
 
     ensureBodyMounted(btn);
+    applyVariant(btn);
     state.btn = btn;
     state.progressCircle = btn.querySelector(".rmc-back-to-top__progress");
     state.percentEl = btn.querySelector("[data-rmc-back-to-top-percent]");

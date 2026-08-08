@@ -154,7 +154,7 @@
   color: var(--rmc-civic-fg-strong);
   transform: translateY(-1px);
 }
-.rmc-civic-footer__lang-caret { font-size: 9px; opacity: 0.6; }
+.rmc-civic-footer__lang-caret { font-size: 9px; color: var(--rmc-civic-fg-faint); }
 
 /* App badges */
 .rmc-civic-footer__appbadge {
@@ -250,7 +250,9 @@
   max-width: none;
 }
 .rmc-civic-footer__legal-copy { letter-spacing: 0.01em; }
-.rmc-civic-footer__legal-sep { color: var(--rmc-civic-fg-muted); opacity: 0.6; }
+/* solid faint token instead of opacity-multiplied muted (was ~2.9:1, and the
+   footer is on every page) — recessive but legible. */
+.rmc-civic-footer__legal-sep { color: var(--rmc-civic-fg-faint); }
 .rmc-civic-footer__legal a { color: var(--rmc-civic-fg-faint); text-decoration: none; }
 .rmc-civic-footer__legal a:hover { color: var(--rmc-civic-fg); }
 

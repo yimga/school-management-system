@@ -46,7 +46,8 @@
   font-size: var(--type-size-micro);
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.45); /* off-token-allow: white-overlay */
+  /* was rgba(255,255,255,.45) = ~3.8:1 on the dark hero — solid muted-on-dark ink. */
+  color: var(--cp-text-muted-ultra, #b6c2d6);
   font-weight: 600;
 }
 

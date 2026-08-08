@@ -6777,7 +6777,10 @@ body:has([data-rmc-flow-launchpad]) .rmc-page__header::after {
    token-only definitions — semantic hooks layered on the rmc-command-* / studio-os
    grammar; no fixed color so they never affect a surface's theme. */
 .rmc-command-eyebrow {
-  color: var(--text-secondary);
+  /* fallback added to match its .rmc-command-* siblings — was the only one
+     missing it, so on any aesthetic that defines --bs-secondary-color but not
+     the Apple --text-secondary token the eyebrow silently lost its color. */
+  color: var(--text-secondary, var(--bs-secondary-color));
   font-size: var(--type-size-0, 0.75rem);
   font-weight: 700;
   letter-spacing: 0.06em;

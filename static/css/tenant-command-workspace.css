@@ -235,6 +235,79 @@
   line-height: 1.1;
 }
 
+/* ------------------------------------------------------------------ *
+ * "Publish guardrail" sidecar — hierarchy lift (page-scoped)          *
+ * Safety-critical copy was riding the recessive muted tier; promote   *
+ * it into a clear pre-flight card. Scoped to .feature-control-sidecar *
+ * so every other .rmc-command-* surface is untouched.                 *
+ * ------------------------------------------------------------------ */
+.feature-control-sidecar {
+  --fcs-primary: var(--brand-primary, var(--school-primary, var(--color-primary-600, #4f46e5)));
+  --fcs-accent:  var(--brand-accent, var(--school-accent, #10b981));
+}
+/* eyebrow -> real badge */
+.feature-control-sidecar .rmc-command-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--text-on-brand, #fff);
+  background: linear-gradient(135deg, var(--fcs-primary),
+    color-mix(in oklab, var(--fcs-primary) 68%, var(--fcs-accent)));
+  padding: 0.36rem 0.6rem;
+  border-radius: 7px;
+  box-shadow: 0 6px 16px -9px color-mix(in oklab, var(--fcs-primary) 75%, transparent);
+}
+/* evidence rows -> labelled key : value */
+.feature-control-sidecar .rmc-live-preview-contract__evidence strong {
+  color: var(--fcs-primary);
+}
+/* impact tiles -> accent rail + AA labels */
+.feature-control-sidecar .rmc-command-impact {
+  position: relative;
+  overflow: hidden;
+  padding-left: 0.9rem;
+}
+.feature-control-sidecar .rmc-command-impact::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: linear-gradient(var(--fcs-primary), var(--fcs-accent));
+}
+.feature-control-sidecar .rmc-command-impact small {
+  color: var(--text-secondary);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  font-size: var(--type-size-0, 0.72rem);
+}
+/* change-safety + verify lists -> iconed checklist, off the muted tier */
+.feature-control-sidecar ul.text-muted {
+  list-style: none;
+  padding-left: 0;
+  margin-bottom: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+.feature-control-sidecar ul.text-muted > li {
+  position: relative;
+  padding-left: 1.3rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+.feature-control-sidecar ul.text-muted > li::before {
+  content: "\2713"; /* check mark */
+  position: absolute;
+  left: 0;
+  top: 0.05em;
+  color: var(--fcs-primary);
+  font-weight: 800;
+}
+.feature-control-sidecar .feature-control-sidecar__verify,
+.feature-control-sidecar p.text-muted {
+  color: var(--text-secondary);
+}
+
 .reportcard-builder-root .card,
 .feature-control-command .card {
   border-radius: var(--rmc-tcw-radius);

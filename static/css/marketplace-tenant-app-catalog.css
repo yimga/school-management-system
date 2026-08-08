@@ -5,15 +5,26 @@
   --rmc-catalog-panel-strong: var(--rmc-ops-panel-strong, var(--surface-canvas));
   --rmc-catalog-muted: var(--rmc-ops-muted, var(--text-secondary));
   --rmc-catalog-accent: var(--rmc-ops-accent, var(--brand-primary));
-  /* The approved tenant command canvas is intentionally dark in both theme
-     preferences. Keep its readable foreground independent of transient theme
-     attributes owned by the shared shell runtime. */
+  /* Catalog foreground follows the EFFECTIVE theme. On the light tenant backend
+     the panels resolve to a light --surface-elevated, so the prior unconditional
+     near-white pin (--text-secondary #e2e8f0 etc.) was white-on-white (~1.2:1).
+     Light ink is now scoped to the genuinely-dark surfaces below; on light it
+     inherits the platform's dark-on-light text tokens. */
+  --rmc-catalog-ink: var(--text-primary);
+  width: 100%;
+  max-width: none;
+}
+
+/* Dark surfaces — operator control-plane + dark theme — keep the near-white
+   command-canvas ink the design intends (there the panels are actually dark). */
+body.portal-backend-dark .tenant-app-catalog-wrap,
+body.control-plane-shell .tenant-app-catalog-wrap,
+[data-theme="dark"] .tenant-app-catalog-wrap,
+[data-resolved-theme="dark"] .tenant-app-catalog-wrap {
   --text-primary: var(--color-base-50, #f8fafc);
   --text-secondary: var(--color-base-200, #e2e8f0);
   --text-tertiary: var(--color-base-300, #cbd5e1);
   --rmc-catalog-ink: var(--color-base-50, #f8fafc);
-  width: 100%;
-  max-width: none;
 }
 
 body.portal-backend-light .tenant-app-catalog-wrap :is(h1, h2, h3),

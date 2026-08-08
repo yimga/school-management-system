@@ -48,11 +48,16 @@
   --surface-overlay:        color-mix(in srgb, var(--accent-honey, #c47f1c) 5%, transparent);
   --surface-overlay-strong: color-mix(in srgb, var(--accent-honey, #c47f1c) 10%, transparent);
 
-  /* ---- Text: warm-graphite, not cold-slate ---- */
+  /* ---- Text: warm-graphite, not cold-slate ----
+     tertiary/muted darkened to clear WCAG-AA (4.5:1) on the lightest warm
+     surfaces (#fffaf0 canvas / #fdf9f2 bg): prior #857c70 (3.9:1) / #9a9082
+     (3.0:1) failed AA and washed out captions, metadata & eyebrows platform-wide
+     (this :root default loads on every light shell). New values ≈6.0:1 / ≈5.6:1
+     while keeping the warm hue + the muted-lighter-than-tertiary hierarchy. */
   --text-primary:   var(--site-aesthetic-text-primary, #2a241e);     /* warm near-black */
   --text-secondary: #544d44;                                          /* warm taupe */
-  --text-tertiary:  #857c70;                                          /* warm gray-tan */
-  --text-muted:     #9a9082;                                          /* soft sand muted */
+  --text-tertiary:  #6b6154;                                          /* warm gray-tan (AA) */
+  --text-muted:     #6f6558;                                          /* soft sand muted (AA) */
   --text-on-brand:  #ffffff;
 
   /* ---- Hairlines: warm thin line, no cool blue undertone ---- */
@@ -127,8 +132,10 @@
 
   --text-primary:   var(--site-aesthetic-text-primary, #0f172a);      /* slate-900 */
   --text-secondary: #334155;                                          /* slate-700 */
-  --text-tertiary:  #64748b;                                          /* slate-500 */
-  --text-muted:     #94a3b8;                                          /* slate-400 */
+  /* tertiary/muted darkened to clear AA on the cool-apple white canvas:
+     prior slate-500 #64748b (4.58:1 borderline) / slate-400 #94a3b8 (2.5:1 FAIL). */
+  --text-tertiary:  #536073;                                          /* deep slate (AA ~6.4:1) */
+  --text-muted:     #5e6b7d;                                          /* slate muted (AA ~5.4:1) */
 
   --hairline:        rgba(15, 23, 42, 0.08);
   --hairline-strong: rgba(15, 23, 42, 0.14);
