@@ -151,3 +151,59 @@ class BackToTopVariants(SimpleTestCase):
         src = _read("rmc-back-to-top.css")
         self.assertIn(".rmc-back-to-top--aurora", src)
         self.assertIn(".rmc-back-to-top--mercury", src)
+
+
+class Day1CtaAndAccentTokens(SimpleTestCase):
+    """The Day-1 studio wizard must not paint controls with the UNDEFINED
+    --accent-primary token. It silently fell through to --text-primary; the
+    primary CTA then paired that against `color: var(--surface-bg)`, and on the
+    dark studio canvas --text-primary flips near-white while --surface-bg stays
+    light -> the reported white-on-white 'See three palette options' pill."""
+
+    def setUp(self):
+        self.src = _read("tenant-studio-day1.css")
+
+    def test_primary_cta_uses_brand_on_brand_pair(self):
+        body = _exact_rule(self.src, ".rmc-day1-cta-primary")
+        self.assertTrue(body, "primary CTA rule not found")
+        self.assertTrue(
+            "--brand-gradient" in body or "--school-primary" in body,
+            "primary CTA must fill with the brand token, not --accent-primary",
+        )
+        self.assertIn("--text-on-brand", body, "primary CTA text must be on-brand ink")
+        self.assertNotIn("--accent-primary", body)
+        # the old collapsing text token must be gone from this control
+        self.assertNotIn("--surface-bg", body)
+
+    def test_no_live_accent_primary_reference_remains(self):
+        # _read strips /* */ comments, so a mention inside the fix note is fine;
+        # any surviving hit here is a LIVE declaration on the undefined token.
+        self.assertNotIn("--accent-primary", self.src)
+
+
+class OnBrandInkTokensDeclared(SimpleTestCase):
+    """--brand-accent-ink and --brand-on-primary were referenced platform-wide
+    (workflow-progress chips, field-intelligence save-bar, portal-shell) but
+    NEVER declared, so foreground text fell back to a surface token and went
+    invisible-grade. They must now be declared and AA-legible on their fills."""
+
+    def setUp(self):
+        self.src = _read("design-tokens.css")
+
+    def test_brand_accent_ink_declared_and_AA_on_emerald(self):
+        ink = _token(self.src, "--brand-accent-ink")
+        self.assertTrue(ink, "--brand-accent-ink is not declared")
+        # It is the ink on --brand-accent (= --school-accent #10b981, a LIGHT
+        # emerald), so it must be dark enough to clear AA. White-on-emerald ~2.5:1.
+        self.assertGreaterEqual(
+            _ratio(ink, "#10b981"), AA,
+            f"--brand-accent-ink {ink} fails AA on the emerald accent #10b981",
+        )
+
+    def test_brand_on_primary_declared_and_tracks_on_brand(self):
+        self.assertRegex(
+            self.src, r"--brand-on-primary\s*:\s*var\(--text-on-brand",
+            "--brand-on-primary must be declared and track --text-on-brand (white)",
+        )
+        # documents the pairing it protects: white on the indigo primary is AA
+        self.assertGreaterEqual(_ratio("#ffffff", "#4f46e5"), AA)

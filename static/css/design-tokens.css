@@ -439,6 +439,20 @@
      to a dark value via SiteSettings so contrast stays AA. */
   --text-on-brand: #ffffff;
 
+  /* On-primary ink — foreground on the solid --brand-primary / --school-primary fill
+     (dark indigo #4f46e5). Tracks --text-on-brand (white). Was referenced by the
+     field-intelligence save-bar primary button + portal-shell but NEVER declared, so it
+     fell back to --surface-canvas → dark-ink-on-indigo (unreadable) on dark shells. */
+  --brand-on-primary: var(--text-on-brand, #ffffff);
+
+  /* On-accent ink — foreground on the --brand-accent / --school-accent fill, which is a
+     LIGHT emerald (#10b981) by default, so this is DARK to clear AA (white-on-emerald is
+     only ~2.5:1). Was referenced by the workflow-progress count/running/fix chips +
+     portal-shell but NEVER declared, so text silently fell back to --surface-bg
+     (white on light shells = invisible-grade contrast). Tenants with a dark custom
+     accent should override to a light value via SiteSettings so contrast stays AA. */
+  --brand-accent-ink: #04130b;
+
   /* Amber scale — used for warning chrome distinct from --ds-warning (amber-600).
      400 = soft warning highlights, 500 = alert-warning borders, 700 = dark-theme warning text. */
   --color-amber-400: #fbbf24;

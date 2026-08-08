@@ -216,13 +216,13 @@ html[data-rmc-tenant-studio-day1-armed] .rmc-day1-seed-chip {
 
 .rmc-day1-logo-upload-zone:hover,
 .rmc-day1-logo-upload-zone:focus-visible {
-  border-color: var(--accent-primary, var(--text-primary));
+  border-color: var(--brand-primary, var(--school-primary, #4f46e5));
   color: var(--text-primary);
   outline: none;
 }
 
 .rmc-day1-logo-upload-zone.is-dragover {
-  border-color: var(--accent-primary, var(--text-primary));
+  border-color: var(--brand-primary, var(--school-primary, #4f46e5));
   background: var(--surface-elevated);
   transform: scale(1.01);
 }
@@ -639,7 +639,7 @@ html[data-rmc-tenant-studio-day1-armed] .rmc-day1-lock-check {
 }
 
 .rmc-day1-progress-step.is-active .rmc-day1-progress-dot {
-  background: var(--accent-primary, var(--text-primary));
+  background: var(--brand-primary, var(--school-primary, #4f46e5));
 }
 
 .rmc-day1-progress-step.is-active .rmc-day1-progress-label {
