@@ -18,7 +18,11 @@
 
 .sysconf-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  /* auto-FIT (not auto-fill): collapse empty trailing tracks so the cards
+     stretch to fill the canvas width instead of clustering on the left with a
+     wasted empty column on the right — the "left-oriented, wasted space" the
+     config-center hub showed when a row had fewer cards than would fit. */
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: var(--token-space-3, 0.75rem);
 }
 

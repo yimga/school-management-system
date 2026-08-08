@@ -331,6 +331,37 @@
   text-align: left;
 }
 
+/* Rollout actions: flow the seven buttons into balanced columns instead of one
+   tall full-width stack. When the sidecar drops below the main panel (narrow /
+   embedded studio surfaces) it spans the whole canvas, and a single-column
+   .d-grid wasted the horizontal space and made the page far longer than needed.
+   auto-fit keeps ONE column while the sidecar is a narrow sticky rail and grows
+   to 2-4 columns once it is full-width. */
+.feature-control-sidecar .d-grid {
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 0.5rem;
+}
+
+/* Clear the "blurred" ghost buttons: btn-outline-secondary rendered as a near
+   invisible hairline outline on the pale studio panel. Give them a real (faintly
+   brand-tinted) surface, a solid border, AA ink, a brand icon, and a definite
+   hover — legible on both light and dark studio shells. Token-only so the theme
+   cascade still flips them; no fixed literals. */
+.feature-control-sidecar .btn-outline-secondary {
+  background: color-mix(in oklab, var(--fcs-primary) 5%, var(--surface-elevated));
+  border-color: color-mix(in oklab, var(--fcs-primary) 32%, var(--hairline));
+  color: var(--text-primary);
+}
+.feature-control-sidecar .btn-outline-secondary i {
+  color: var(--fcs-primary);
+}
+.feature-control-sidecar .btn-outline-secondary:hover,
+.feature-control-sidecar .btn-outline-secondary:focus-visible {
+  background: color-mix(in oklab, var(--fcs-primary) 14%, var(--surface-elevated));
+  border-color: var(--fcs-primary);
+  color: var(--fcs-primary);
+}
+
 .reportcard-builder-root .row.g-3 {
   --bs-gutter-x: var(--rmc-tcw-gap);
   --bs-gutter-y: var(--rmc-tcw-gap);

@@ -163,7 +163,12 @@ def studio_resolve_url(
     """
     args = args or ()
     kwargs = kwargs or {}
-    operator_name = viewname.startswith(("super:", "admin:"))
+    # metadata:* views are @require_super_access_with_host (manager-host operator-only),
+    # so they are treated exactly like super:/admin: — they must fail closed on the tenant
+    # plane (otherwise the _PATHS fallback below hands back a same-origin /api/internal/...
+    # path that only exists on config.urls / manager_urls, producing a 404 on the tenant
+    # host, e.g. the Studio governance rail's "Metadata governance" link).
+    operator_name = viewname.startswith(("super:", "admin:", "metadata:"))
     operator_allowed = allow_operator or request_is_manager_scope(request)
     if operator_name and not operator_allowed:
         return ""
@@ -189,7 +194,6 @@ def studio_resolve_url(
             "accounts:",
             "communication:",
             "automation:",
-            "metadata:",
             "apicenter:",
             "evals:",
             "reports:",
