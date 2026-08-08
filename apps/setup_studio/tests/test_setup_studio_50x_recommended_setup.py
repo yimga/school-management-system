@@ -61,3 +61,27 @@ class SetupStudioRecommendedSetupTests(TestCase):
         payload = json.loads(response.content)
         self.assertIn("auto_repair", payload)
         self.assertIn("needs_human", payload["auto_repair"])
+
+    def test_fix_automatically_survives_consumed_request_stream(self):
+        """Regression (prod 500): the 'Fix automatically' form posts multipart
+        FormData, so CSRF middleware reads request.POST (to pull the token)
+        BEFORE the view runs — consuming the stream. The view then read
+        request.body, which raised RawPostDataException (an uncaught 500 on
+        /api/setup-studio/recommended/). Simulate that ordering and assert the
+        endpoint still repairs and returns 200 instead of crashing."""
+        user = get_user_model().objects.create_user(username="repair-owner-stream")
+        request = RequestFactory().post(
+            "/api/setup-studio/recommended/", {"auto_fix": "1"}
+        )
+        request.user = user
+        request.school = self.school
+        # CSRF middleware reads request.POST first — consumes the multipart stream
+        # so a later request.body access would raise RawPostDataException.
+        _ = request.POST
+        response = api_recommended_setup(request)
+        self.assertEqual(response.status_code, 200)
+        import json
+
+        payload = json.loads(response.content)
+        self.assertIn("auto_repair", payload)
+        self.assertTrue(payload["auto_repair"]["ok"])

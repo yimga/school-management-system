@@ -16,6 +16,18 @@
     {% with hs_text=launch_payload.health_summary|health_summary_text %}
     {% if hs_text %}<p class="small rmc-launch-health-summary mb-2">{{ hs_text }}</p>{% endif %}
     {% endwith %}
+    {% if launch_payload.launch_blockers %}
+    <ul class="list-unstyled small mb-2" data-rmc-launch-blocker-fixes="1">
+      {% for blocker in launch_payload.launch_blockers %}
+      <li class="d-flex flex-wrap align-items-center justify-content-between gap-2 py-1 border-bottom border-secondary border-opacity-25">
+        <span class="d-flex align-items-center gap-2 text-break"><i class="bi bi-exclamation-triangle-fill text-warning" aria-hidden="true"></i>{{ blocker.label|default:blocker.key }}</span>
+        {% if blocker.link and blocker.link != "#" %}
+        <a class="btn btn-sm btn-primary flex-shrink-0" href="{{ blocker.link }}">{{ blocker.cta_label|default:_("Fix this") }} <i class="bi bi-arrow-right-short" aria-hidden="true"></i></a>
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    {% endif %}
     {% if launch_payload.recommended_next %}
     <div class="d-flex flex-wrap align-items-center gap-2">
       <span class="small text-muted">{% trans "Next:" %}</span>
@@ -39,10 +51,18 @@
     <p class="small text-muted">{% trans "Based on your signup profile. These suggestions work offline and remain editable." %} {% trans "Confidence" %}: {{ zero_friction.recommendation_manifest.confidence|title }}.</p>
     <div class="d-flex flex-wrap gap-2">
       {% for item in zero_friction.recommendation_manifest.recommendation_cards %}
-      <span class="badge rounded-pill {% if item.decision == 'confirm' %}text-bg-warning{% else %}text-bg-light{% endif %}" title="{{ item.reason }}">{{ item.label }}: {{ item.display_value }} · {{ item.decision }}</span>
+      <span class="badge rounded-pill {% if item.decision == 'confirm' %}bg-primary-subtle text-primary-emphasis border border-primary-subtle{% else %}bg-success-subtle text-success-emphasis border border-success-subtle{% endif %}" title="{{ item.reason }}">{{ item.label }}: {{ item.display_value }} · {% if item.decision == 'confirm' %}{% trans "review" %}{% else %}{% trans "auto" %}{% endif %}</span>
       {% endfor %}
     </div>
-    {% if zero_friction.recommendation_manifest.missing_inputs %}<p class="small text-warning mt-2 mb-0">{% trans "Improve these recommendations by confirming" %}: {{ zero_friction.recommendation_manifest.missing_inputs|join:", " }}.</p>{% endif %}
+    {% if zero_friction.recommendation_manifest.missing_inputs %}<p class="small text-muted mt-2 mb-0">{% trans "Improve these recommendations by confirming" %}: {{ zero_friction.recommendation_manifest.missing_inputs|join:", " }}.</p>{% endif %}
+    {% if launch_studio_base_url %}
+    <div class="d-flex flex-wrap gap-2 mt-3">
+      <a class="btn btn-sm btn-primary" href="{{ launch_studio_base_url }}?pane=onboarding">{% trans "Review & confirm setup" %} <i class="bi bi-arrow-right-short" aria-hidden="true"></i></a>
+      {% if launch_payload.recommended_blueprint and launch_payload.recommended_blueprint.cta_url %}
+      <a class="btn btn-sm btn-outline-primary" href="{{ launch_studio_base_url }}?pane=blueprints">{% trans "Apply recommended blueprint" %}</a>
+      {% endif %}
+    </div>
+    {% endif %}
   </div>
   {% endif %}
 
@@ -67,7 +87,7 @@
     </ul>
     {% endif %}
     {% if launch_payload.registry_alignment.settings_cta and launch_payload.registry_alignment.settings_cta.url and launch_payload.registry_alignment.settings_cta.url != "#" %}
-    <p class="small mb-2"><a class="btn btn-sm btn-outline-secondary" href="{{ launch_payload.registry_alignment.settings_cta.url }}">{{ launch_payload.registry_alignment.settings_cta.label|default:"" }}</a></p>
+    <p class="small mb-2"><a class="btn btn-sm {% if launch_payload.registry_alignment.mismatch_count %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ launch_payload.registry_alignment.settings_cta.url }}">{{ launch_payload.registry_alignment.settings_cta.label|default:_("Fix in settings") }} <i class="bi bi-arrow-right-short" aria-hidden="true"></i></a></p>
     {% endif %}
     {% if not launch_payload.registry_alignment.key_rows and launch_payload.registry_alignment.summary_lines %}
     <ul class="list-unstyled small text-muted mb-0">

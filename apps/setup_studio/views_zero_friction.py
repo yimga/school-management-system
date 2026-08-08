@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
+from django.http import JsonResponse, RawPostDataException
 from django.views.decorators.http import require_GET, require_POST
 
 from apps.setup_studio.zero_friction import (
@@ -13,6 +13,29 @@ from apps.setup_studio.zero_friction import (
     get_zero_friction_payload,
     what_is_blocking_launch,
 )
+
+
+def _read_request_payload(request) -> dict:
+    """Read the POST payload without tripping over an already-consumed stream.
+
+    The "Fix automatically" / "Use recommended setup" controls post multipart
+    ``FormData``, so Django's CSRF middleware reads ``request.POST`` first to pull
+    ``csrfmiddlewaretoken`` — which consumes the request stream and makes a later
+    ``request.body`` access raise ``RawPostDataException`` (previously an uncaught
+    500 on this endpoint). Prefer ``request.POST`` when the stream is gone; only
+    parse a JSON body when the stream is still intact.
+    """
+    try:
+        raw = request.body
+    except RawPostDataException:
+        return {key: request.POST.get(key) for key in request.POST}
+    try:
+        parsed = json.loads(raw.decode("utf-8") or "{}")
+    except (UnicodeError, json.JSONDecodeError):
+        # Not JSON — a form-encoded body is still readable on request.POST here
+        # (request.body was accessed first, so Django cached the raw stream).
+        return {key: request.POST.get(key) for key in request.POST}
+    return parsed if isinstance(parsed, dict) else {}
 
 
 def _school_from_request(request):
@@ -57,13 +80,10 @@ def api_recommended_setup(request):
     school = _school_from_request(request)
     if not school:
         return JsonResponse({"ok": False, "error": "school_required"}, status=400)
-    try:
-        body = json.loads(request.body.decode("utf-8") or "{}")
-    except (UnicodeError, json.JSONDecodeError):
-        body = {}
+    body = _read_request_payload(request)
     actor_id = getattr(request.user, "pk", None)
     result = apply_recommended_setup(school, actor_id=actor_id)
-    auto_fix = body.get("auto_fix") or request.POST.get("auto_fix")
+    auto_fix = body.get("auto_fix")
     if str(auto_fix).lower() in {"1", "true", "on", "yes"}:
         # "Fix automatically" must actually PERFORM safe setup (seed/align
         # registries, attach the default plan, create a starter academic year),
