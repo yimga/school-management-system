@@ -399,6 +399,10 @@ def _apply_bundle_inner(
                 "created": int(totals.get("created", 0)),
                 "updated": int(totals.get("updated", 0)),
                 "quarantined": int(totals.get("quarantined", 0)),
+                # Field-level rollup: per domain, the counts + the NAMES of fields
+                # overwritten on existing records (names as list values; raw
+                # values never leave the tenant schema).
+                "domains": _field_level_apply_summary(outcomes),
             },
         )
     except Exception:  # noqa: BLE001
@@ -1191,6 +1195,57 @@ def _summarize_outcomes(outcomes: list[ArtifactApplyOutcome]) -> dict[str, Any]:
         "artifacts_failed": sum(1 for o in outcomes if o.status == "FAILED"),
     }
     return totals
+
+
+_APPLY_AUDIT_FIELD_CAP = 60  # magic-number-allow: apply-audit-field-name-list-cap
+
+
+def _field_level_apply_summary(
+    outcomes: list[ArtifactApplyOutcome],
+) -> list[dict[str, Any]]:
+    """Per-domain, field-level rollup for the ``bundle.applied`` audit event.
+
+    Extends the coarse bundle totals with, per domain: the created / updated /
+    quarantined counts AND the NAMES of the fields overwritten on existing
+    records (the ``old`` keys of each update). This is the security-relevant
+    surface — which existing fields a re-apply mutated — recorded tamper-evidently
+    without any raw values.
+
+    Field NAMES ride as list VALUES (never dict keys) so ``_sanitize_payload``,
+    which rejects sensitive-keyword dict KEYS, never trips on a legitimate field
+    name like ``email`` / ``date_of_birth``; the raw values stay in the tenant
+    schema and never reach the append-only chain.
+    """
+    by_domain: dict[str, dict[str, Any]] = {}
+    for o in outcomes:
+        info = by_domain.setdefault(
+            o.domain,
+            {"created": 0, "updated": 0, "quarantined": 0, "_fields": set()},
+        )
+        r = o.result
+        info["created"] += int(getattr(r, "created", 0) or 0)
+        info["updated"] += int(getattr(r, "updated", 0) or 0)
+        info["quarantined"] += int(getattr(r, "quarantined", 0) or 0)
+        for entry in getattr(r, "updated_ids_with_old_values", None) or []:
+            old = (entry or {}).get("old") or {}
+            if isinstance(old, dict):
+                info["_fields"].update(str(k) for k in old.keys())
+
+    summary: list[dict[str, Any]] = []
+    for domain in sorted(by_domain):
+        info = by_domain[domain]
+        fields = sorted(info["_fields"])
+        summary.append(
+            {
+                "domain": domain,
+                "created": info["created"],
+                "updated": info["updated"],
+                "quarantined": info["quarantined"],
+                "updated_fields": fields[:_APPLY_AUDIT_FIELD_CAP],
+                "updated_fields_truncated": len(fields) > _APPLY_AUDIT_FIELD_CAP,
+            }
+        )
+    return summary
 
 
 def _empty_result(bundle: MigrationBundle, dry_run: bool, status: str) -> ApplyResult:
