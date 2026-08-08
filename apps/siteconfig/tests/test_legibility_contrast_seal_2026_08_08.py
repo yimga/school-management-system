@@ -207,3 +207,23 @@ class OnBrandInkTokensDeclared(SimpleTestCase):
         )
         # documents the pairing it protects: white on the indigo primary is AA
         self.assertGreaterEqual(_ratio("#ffffff", "#4f46e5"), AA)
+
+
+class UndefinedTokenCollapseGate(SimpleTestCase):
+    """Platform-wide seal: no color/background/border declaration anywhere in the
+    CSS layer may read `var(--X, <collapsing-fallback>)` for an UNDECLARED --X.
+    That is the shared root cause of both 2026-08-08 visibility waves and the
+    class the literal-pair contrast scanner is blind to. Backed by the
+    deterministic scanner scripts/scan_undefined_color_token_fallback.py."""
+
+    def test_no_undefined_token_colour_collapses(self):
+        import sys
+
+        scripts_dir = Path(__file__).resolve().parents[3] / "scripts"
+        if str(scripts_dir) not in sys.path:
+            sys.path.insert(0, str(scripts_dir))
+        import scan_undefined_color_token_fallback as sut
+
+        findings = sut.scan()
+        detail = "; ".join(f"{f['file']}:{f['line']} {f['token']}" for f in findings[:12])
+        self.assertEqual(findings, [], f"undefined-token colour collapses present: {detail}")

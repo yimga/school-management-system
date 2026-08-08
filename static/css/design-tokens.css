@@ -453,8 +453,31 @@
      accent should override to a light value via SiteSettings so contrast stays AA. */
   --brand-accent-ink: #04130b;
 
+  /* Semantic status text + solid status-foreground fills. Referenced by
+     rmc-email-admin, the rmc-workflow-progress status pills, rmc-wizard-engine,
+     rmc-tenant-blueprint and portal-shell but NEVER declared — so status text
+     lost its colour (fell to inherited ink) and a pill background fell through
+     to --text-primary. The --text-* values match the literal fallbacks already
+     used at other call sites (no visual change there); --color-*-fg are the
+     SOLID pill fills, dark -700 shades so white / --text-on-brand ink clears AA. */
+  --text-success: #047857;   /* emerald-700 */
+  --text-danger:  #b91c1c;   /* red-700 */
+  --text-warning: #b45309;   /* amber-700 */
+  --text-info:    #1d4ed8;   /* blue-700 */
+  --text-link:    var(--brand-primary, #4f46e5);
+  --color-success-fg: #047857;
+  --color-warning-fg: #b45309;
+  --color-danger-fg:  #b91c1c;
+  /* Second-elevation alias used by rmc-email-admin card/panel surfaces (was
+     bare-undeclared, so the panel background was dropped entirely). */
+  --surface-2: var(--surface-elevated);
+  /* Operator-header ambient glow — an rgb TRIPLE consumed inside rgba(...); was
+     undeclared so the radial glow layer silently dropped. Indigo brand triple. */
+  --cp-glow-indigo: 79, 70, 229;
+
   /* Amber scale — used for warning chrome distinct from --ds-warning (amber-600).
-     400 = soft warning highlights, 500 = alert-warning borders, 700 = dark-theme warning text. */
+     300 = soft amber tints, 400 = soft warning highlights, 500 = alert-warning borders, 700 = dark-theme warning text. */
+  --color-amber-300: #fcd34d;
   --color-amber-400: #fbbf24;
   --color-amber-500: #f59e0b;
   --color-amber-600: #d97706;

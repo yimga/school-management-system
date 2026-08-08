@@ -25,6 +25,10 @@
   --mkt-text-muted: var(--color-base-500); /* theme-locked-allow: manual-review */
   --mkt-text-inverse: var(--color-base-50); /* theme-locked-allow: manual-review */
   --mkt-surface: var(--color-base-0); /* theme-locked-allow: manual-review */
+  /* Editorial surface — referenced by acquisition-engine + personality-pages
+     (some sites bare, so the section background dropped); tracks --mkt-surface
+     so it flips with the marketing theme. */
+  --mkt-edt-surface: var(--mkt-surface, #ffffff);
   --mkt-border: rgba(26, 22, 18, 0.08);
 
   /* Radii → token-radius (product) */

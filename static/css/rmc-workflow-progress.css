@@ -119,7 +119,7 @@
 
 .rmc-wfp-chip[data-rmc-wfp-state="stuck"] .rmc-wfp-chip__count {
   background: var(--color-warning-fg, var(--text-primary));
-  color: var(--surface-bg);
+  color: var(--text-on-brand, #fff);
 }
 
 /* Closed WFP cards must never paint as document-flow under the footer. */
@@ -315,12 +315,12 @@ body[data-rmc-assist-dock="mounted"] .rmc-wfp-card {
 
 .rmc-wfp-run__pill--stuck {
   background: var(--color-warning-fg, var(--text-primary));
-  color: var(--surface-bg);
+  color: var(--text-on-brand, #fff);
 }
 
 .rmc-wfp-run__pill--failed {
   background: var(--color-danger-fg, var(--text-primary));
-  color: var(--surface-bg);
+  color: var(--text-on-brand, #fff);
 }
 
 /* ───── Percent bar (reference: horizontal progress + label) ───── */
