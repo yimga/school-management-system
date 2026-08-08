@@ -500,7 +500,7 @@ def _snapshot_mark_student_absent(params: dict, school) -> dict:
     try:
         from datetime import date as _date
         from apps.people.models import Student  # type: ignore
-        from apps.academics.models import AttendanceRecord  # type: ignore
+        from apps.academics.models import Attendance
 
         if raw_date:
             y, m, d = (int(x) for x in str(raw_date).split("-"))
@@ -511,11 +511,11 @@ def _snapshot_mark_student_absent(params: dict, school) -> dict:
         student = Student.objects.filter(school=school, pk=student_id).first()
         if student is None:
             return snap
-        rec = AttendanceRecord.objects.filter(student=student, date=on_date).first()
+        rec = Attendance.objects.filter(student=student, date=on_date).first()
         if rec is not None:
             snap["existed"] = True
             snap["prior_status"] = str(getattr(rec, "status", "") or "")
-            snap["prior_notes"] = str(getattr(rec, "notes", "") or "")
+            snap["prior_notes"] = str(getattr(rec, "remarks", "") or "")
     except Exception:  # noqa: BLE001
         logger.debug("snapshot mark_student_absent failed", exc_info=True)
     return snap
@@ -694,7 +694,7 @@ def _reverse_mark_student_absent(payload: dict, school) -> ExecutionResult:
     try:
         from datetime import date as _date
         from apps.people.models import Student  # type: ignore
-        from apps.academics.models import AttendanceRecord  # type: ignore
+        from apps.academics.models import Attendance
 
         y, m, d = (int(x) for x in date_iso.split("-"))
         on_date = _date(y, m, d)
@@ -702,14 +702,14 @@ def _reverse_mark_student_absent(payload: dict, school) -> ExecutionResult:
         if student is None:
             return ExecutionResult(ok=False, action="mark_student_absent",
                                    error="Student not found.", blocked_reason="no_reversal")
-        rec = AttendanceRecord.objects.filter(student=student, date=on_date).first()
+        rec = Attendance.objects.filter(student=student, date=on_date).first()
         if rec is None:
             return ExecutionResult(ok=True, action="mark_student_absent",
                                    result={"reversed": True, "note": "record already absent"})
         if payload.get("existed"):
             rec.status = payload.get("prior_status") or rec.status
-            rec.notes = payload.get("prior_notes") or ""
-            rec.save(update_fields=["status", "notes"])
+            rec.remarks = payload.get("prior_notes") or ""
+            rec.save(update_fields=["status", "remarks"])
             return ExecutionResult(ok=True, action="mark_student_absent",
                                    result={"reversed": True, "restored_status": rec.status})
         rec.delete()

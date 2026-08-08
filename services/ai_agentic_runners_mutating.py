@@ -78,13 +78,35 @@ def run_send_parent_message(
     if school is None:
         return {"ok": False, "error": "tenant scope unavailable"}
 
+    # The real guardian model is StudentGuardian (a Parent<->student LINK); it
+    # has no `school` field, so tenant-scope through the student, and it carries
+    # a merge tombstone (`is_active`) — only active links may be notified.
     try:
-        from apps.people.models import Guardian  # type: ignore
-        guardian = Guardian.objects.filter(school=school, pk=parent_id).first()
+        from apps.people.models import StudentGuardian
+        guardian = (
+            StudentGuardian.objects.filter(
+                student__school=school, pk=parent_id, is_active=True
+            )
+            .select_related("student")
+            .first()
+        )
     except Exception as exc:  # noqa: BLE001
         return {"ok": False, "error": f"guardian lookup failed: {exc}"}
     if guardian is None:
         return {"ok": False, "error": f"guardian {parent_id} not found in tenant"}
+
+    # Consent gate: NEVER message a guardian on a channel they have not opted
+    # in to (StudentGuardian.receives_email/sms/whatsapp). The prior dead stub
+    # skipped this entirely — sending to an opted-out guardian is a privacy /
+    # consent violation, so waking this path MUST honor the flags.
+    consented = {
+        "email": guardian.receives_email,
+        "sms": guardian.receives_sms,
+        "whatsapp": guardian.receives_whatsapp,
+    }.get(channel, False)
+    if not consented:
+        return {"ok": False,
+                "error": f"guardian {parent_id} has not opted in to {channel}"}
 
     # Route through the existing channel adapter facade (Wave v2.7+).
     try:
@@ -94,16 +116,13 @@ def run_send_parent_message(
     except Exception as exc:  # noqa: BLE001
         return {"ok": False, "error": f"channel adapter unavailable: {exc}"}
 
-    # Pick the right address per channel.
+    # Pick the right address per channel from the real StudentGuardian fields.
     if channel == "email":
-        address_str = getattr(guardian, "email", "") or ""
-    else:
-        address_str = (
-            getattr(guardian, "phone_e164", None)
-            or getattr(guardian, "phone", None)
-            or getattr(guardian, "mobile", None)
-            or ""
-        )
+        address_str = guardian.email or ""
+    elif channel == "whatsapp":
+        address_str = guardian.whatsapp_number or guardian.phone or ""
+    else:  # sms / phone
+        address_str = guardian.phone or ""
     if not address_str:
         return {"ok": False,
                 "error": f"guardian {parent_id} has no {channel} address"}
@@ -164,19 +183,28 @@ def run_mark_student_absent(
         return {"ok": False, "error": "tenant scope unavailable"}
 
     try:
-        from apps.people.models import Student  # type: ignore
-        from apps.academics.models import AttendanceRecord  # type: ignore
+        from apps.academics.models import Attendance
+        from apps.people.models import Student  # alias of StudentProfile
         student = Student.objects.filter(school=school, pk=student_id).first()
         if student is None:
             return {"ok": False,
                     "error": f"student {student_id} not found in tenant"}
-        # Upsert: today's record may already exist (mark present earlier).
-        rec, created = AttendanceRecord.objects.update_or_create(
+        # Attendance requires a classroom FK; use the student's current one.
+        classroom = getattr(student, "classroom", None)
+        if classroom is None:
+            return {"ok": False,
+                    "error": f"student {student_id} has no classroom; cannot record attendance"}
+        # Upsert on the natural key (student, classroom, date): today's record
+        # may already exist (e.g. marked present earlier). `remarks` is the real
+        # field (not the fictional `notes`); school is set explicitly (and is
+        # also backfilled from the student on save).
+        rec, created = Attendance.objects.update_or_create(
             student=student,
+            classroom=classroom,
             date=on_date,
             defaults={
                 "status": "absent",
-                "notes": reason,
+                "remarks": reason,
                 "school": school,
             },
         )
