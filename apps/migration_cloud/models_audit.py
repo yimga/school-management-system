@@ -415,6 +415,20 @@ class MigrationCloudAuditEventType(models.TextChoices):
         "migration.cutover.signed_off",
         "Cutover runbook signed off (rehearsal→real→sign-off)",
     )
+    # Tier-1 (audit 2026-08-08) — field-level conflict-resolution decision.
+    # The tamper-evident chain recorded operational events (companion / MAA /
+    # token / connector) and the coarse ``migration.bundle.applied``, but the
+    # actual data-mutation DECISION — which fields of which tenant row an
+    # operator chose to OVERWRITE / PRESERVE / MERGE during upsert-conflict
+    # review — left NO immutable trail. This records that decision at the
+    # field level (changed field NAMES + resolution + actor + row identity),
+    # PII-free by construction: the raw before/after VALUES stay in
+    # ``MigrationConflict`` (access-controlled, UI-masked per Tier-0) and never
+    # touch the exported hash chain.
+    CONFLICT_RESOLVED = (
+        "migration.conflict.resolved",
+        "Migration upsert conflict resolved (field-level decision)",
+    )
 
 
 GENESIS_SENTINEL = "genesis"

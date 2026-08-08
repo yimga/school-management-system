@@ -2145,6 +2145,47 @@ class MigrationCloudIdMappingLookupView(LoginRequiredMixin, View):
         })
 
 
+# Per-row field detail cap for the Fix-All batch audit event: keeps a huge
+# conflict queue from blowing the audit payload (and the per-tenant audit
+# rate-limit). The resolved COUNT is always exact; truncation is flagged.
+_MC_AUDIT_ROW_CAP = 200  # magic-number-allow: audit-row-detail-cap
+
+
+def _safe_conflict_audit(bundle, actor, **payload) -> None:
+    """Append a field-level conflict-resolution decision to the tamper-evident
+    Migration Cloud audit chain (``migration.conflict.resolved``).
+
+    Best-effort: an audit-write failure must NEVER turn a successful resolution
+    into a 500 — the chain gap is detectable by ``verify_audit_chain``. PII-free
+    by construction: only field NAMES + the resolution decision + the row
+    identity are recorded here; the raw before/after values live in
+    ``MigrationConflict`` (UI-masked per Tier-0), never on the exported chain.
+    ``subject`` (a row / bundle identifier) is hashed by ``record()``.
+    """
+    try:
+        from .models_audit import (
+            MigrationCloudAuditEvent,
+            MigrationCloudAuditEventType,
+        )
+    except Exception:  # noqa: BLE001 — audit model absent/unmigrated → skip
+        return
+    subject = payload.pop("subject", None)
+    try:
+        tenant_slug = getattr(getattr(bundle, "school", None), "slug", "") or ""
+        MigrationCloudAuditEvent.objects.record(
+            tenant_slug,
+            MigrationCloudAuditEventType.CONFLICT_RESOLVED.value,
+            actor=actor if getattr(actor, "is_authenticated", False) else None,
+            subject=subject,
+            payload_summary=payload,
+        )
+    except Exception as exc:  # noqa: BLE001 — audit must never break the flow
+        logger.error(
+            "migration_cloud.audit: conflict-resolve emit failed err=%s",
+            type(exc).__name__,
+        )
+
+
 def _can_reveal_pii(user) -> bool:
     """Only a platform superuser may see staged PII verbatim in the review UI.
 
@@ -2265,12 +2306,36 @@ class MigrationCloudConflictsView(LoginRequiredMixin, View):
         # never touch another tenant's queue.
         if (payload.get("action") or "").lower() == "fix_all":
             resolver = request.user if request.user.is_authenticated else None
-            resolved_count = bundle.conflicts.filter(
-                resolution=ConflictResolution.PENDING
-            ).update(
+            pending_qs = bundle.conflicts.filter(resolution=ConflictResolution.PENDING)
+            # Snapshot the field-level detail BEFORE the batch update so the
+            # audit event can record which fields of which rows were decided.
+            # Capped so a huge queue can't blow the row payload (or the audit
+            # rate-limit); the count is always exact and truncation is flagged.
+            pending_rows = list(
+                pending_qs.values("canonical_model", "canonical_pk", "changed_fields")
+            )
+            resolved_count = pending_qs.update(
                 resolution=resolution,
                 resolved_by=resolver,
                 resolved_at=timezone.now(),
+            )
+            _safe_conflict_audit(
+                bundle,
+                request.user,
+                subject=f"bundle#{bundle.pk}",
+                bundle_id=bundle.pk,
+                action="fix_all",
+                resolution=resolution,
+                resolved_count=resolved_count,
+                rows=[
+                    {
+                        "model": r["canonical_model"],
+                        "pk": str(r["canonical_pk"]),
+                        "fields": list(r["changed_fields"] or []),
+                    }
+                    for r in pending_rows[:_MC_AUDIT_ROW_CAP]
+                ],
+                rows_truncated=len(pending_rows) > _MC_AUDIT_ROW_CAP,
             )
             return JsonResponse(
                 {"action": "fix_all", "resolution": resolution, "resolved_count": resolved_count}
@@ -2286,6 +2351,17 @@ class MigrationCloudConflictsView(LoginRequiredMixin, View):
         conflict.resolved_by = request.user if request.user.is_authenticated else None
         conflict.resolved_at = timezone.now()
         conflict.save(update_fields=["resolution", "resolved_by", "resolved_at"])
+        _safe_conflict_audit(
+            bundle,
+            request.user,
+            subject=f"{conflict.canonical_model}#{conflict.canonical_pk}",
+            bundle_id=bundle.pk,
+            canonical_model=conflict.canonical_model,
+            canonical_pk=str(conflict.canonical_pk),
+            resolution=resolution,
+            changed_fields=list(conflict.changed_fields or []),
+            field_count=len(conflict.changed_fields or []),
+        )
         return JsonResponse({"conflict_id": conflict.pk, "resolution": resolution})
 
 
