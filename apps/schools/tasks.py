@@ -101,6 +101,7 @@ def _activate_portal_phase_a(
     try:
         from apps.platform_runtime.helpers import get_platform_site_settings_record
 
+        # config-resolver-allow: write-path-singleton-ensure baseline SiteSettings row so a husk portal's context processors don't 500 (return discarded)
         get_platform_site_settings_record(create=True)
     except (
         ImportError,
