@@ -30,6 +30,32 @@ from .ai_agentic import ActionContext, ProposedAction
 logger = logging.getLogger(__name__)
 
 
+def _scope_school(tenant_id: str):
+    """Resolve the School for tenant-scoped reads; None when unresolved.
+
+    Self-contained (mirrors the mutating/destructive siblings) so a read never
+    silently sums across tenants. Resolves by pk first (School.id is a UUID),
+    falling back to slug for non-pk tenant handles.
+    """
+    tid = str(tenant_id or "").strip()
+    if not tid:
+        return None
+    try:
+        from django.core.exceptions import ValidationError
+        from apps.schools.models import School  # type: ignore
+
+        try:
+            school = School.objects.filter(pk=tid).first()
+        except (ValueError, TypeError, ValidationError):
+            school = None
+        if school is not None:
+            return school
+        return School.objects.filter(slug=tid).first()
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("scope_school lookup failed tenant=%s err=%s", tid, exc)
+        return None
+
+
 # ---------------------------------------------------------------------------
 # Read-only runners
 # ---------------------------------------------------------------------------
@@ -95,25 +121,43 @@ def run_summarize_outstanding_fees(
     proposed: ProposedAction,
     ctx: ActionContext,
 ) -> dict[str, Any]:
-    """Sum outstanding fees for a class, or platform-wide if no class given."""
+    """Sum outstanding fees for a class, or school-wide if no class given.
+
+    Tenant-scoped: an AI fee report must never sum across schools, so the
+    school-wide branch is bounded to the caller's own tenant.
+    """
     class_id = str((proposed.params or {}).get("class_id") or "").strip()
     totals = {"count": 0, "outstanding_minor": 0, "currency": ""}
     try:
-        from apps.finance.models import StudentInvoice  # type: ignore
-        qs = StudentInvoice.objects.filter(is_paid=False)
+        from decimal import Decimal
+
+        from apps.finance.models import Invoice
+
+        school = _scope_school(ctx.tenant_id)
+        if school is None:
+            return {"summary": "Tenant scope unavailable.", "totals": totals}
+        # Outstanding = invoices carrying a positive live balance; drafts (not
+        # yet owed), fully-paid, and voided invoices are excluded. balance_amount
+        # is the canonical remaining-balance field on Invoice.
+        qs = Invoice.objects.filter(school=school, balance_amount__gt=0).exclude(
+            status__in=[
+                Invoice.Status.DRAFT,
+                Invoice.Status.PAID,
+                Invoice.Status.VOID,
+            ]
+        )
         if class_id:
-            qs = qs.filter(student__current_class_id=class_id)
-        for row in qs.values("outstanding_amount", "currency_code"):
-            amt = row.get("outstanding_amount") or 0
+            qs = qs.filter(student__classroom_id=class_id)
+        for row in qs.values("balance_amount", "currency__code"):
+            amt = row.get("balance_amount") or 0
             try:
-                # ORM may return Decimal — convert to minor int.
-                from decimal import Decimal
+                # Decimal major units -> integer minor units.
                 totals["outstanding_minor"] += int(Decimal(amt) * 100)
             except Exception:  # noqa: BLE001
                 continue
             totals["count"] += 1
             if not totals["currency"]:
-                totals["currency"] = row.get("currency_code") or ""
+                totals["currency"] = row.get("currency__code") or ""
     except Exception as exc:  # noqa: BLE001
         logger.warning(
             "summarize_outstanding_fees runner: model query failed err=%s",
@@ -123,7 +167,7 @@ def run_summarize_outstanding_fees(
 
     if totals["count"] == 0:
         return {"summary": "No outstanding invoices.", "totals": totals}
-    scope = f"class {class_id}" if class_id else "platform-wide"
+    scope = f"class {class_id}" if class_id else "school-wide"
     return {
         "summary": (
             f"{totals['count']} outstanding invoice"

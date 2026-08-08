@@ -154,6 +154,121 @@ class FeesRunnerTests(SimpleTestCase):
         self.assertIn("totals", result)
 
 
+class FeesRunnerLiveDataTests(TestCase):
+    """Proves the WOKEN outstanding-fees runner (2026-08-08 dead-guard sweep).
+
+    It used to import a non-existent apps.finance.models.StudentInvoice with
+    fictional fields (is_paid / outstanding_amount / currency_code) inside a
+    broad except -> it ALWAYS returned "Finance data unavailable". It now queries
+    the real Invoice model (balance_amount + status) AND is school-scoped. These
+    assertions prove it (a) computes real outstanding totals, (b) excludes
+    draft/paid/void, and (c) does NOT leak another tenant's invoices into the
+    school-wide total (the fictional platform-wide branch would have).
+    """
+
+    def setUp(self):
+        from decimal import Decimal
+
+        from apps.academics.models import (
+            AcademicYear,
+            Classroom,
+            Department,
+            Specialty,
+        )
+        from apps.finance.models import ComplianceProfile, Invoice
+        from apps.people.models import StudentProfile
+        from apps.schools.models import School
+
+        self.school = School.objects.create(
+            name="Fee S1", slug="fee-s1", subdomain="fee-s1", country_code="CM"
+        )
+        self.other = School.objects.create(
+            name="Fee S2", slug="fee-s2", subdomain="fee-s2", country_code="CM"
+        )
+        self.profile = ComplianceProfile.objects.create(
+            name="CP1", country_code="CM", currency_code="XAF", is_active=True
+        )
+        self.year = AcademicYear.objects.create(
+            name="2025/2026-fee", start_date=date(2025, 9, 1),
+            end_date=date(2026, 6, 30), is_active=True, school=self.school,
+        )
+        self.dept = Department.objects.create(
+            name="Science", code="SCI", school=self.school
+        )
+        self.spec = Specialty.objects.create(
+            name="General", code="GEN", department=self.dept
+        )
+        self.classroom = Classroom.objects.create(
+            name="Form 1", code="F1", academic_year=self.year,
+            department=self.dept, school=self.school,
+        )
+
+        def _student(i):
+            return StudentProfile.objects.create(
+                first_name="S", last_name=str(i), student_code=f"FEE{i:03d}",
+                academic_year=self.year, classroom=self.classroom,
+                specialty=self.spec, school=self.school,
+            )
+
+        s1, s2, s3 = _student(1), _student(2), _student(3)
+
+        def _inv(student, total, bal, status, school=None):
+            return Invoice.objects.create(
+                profile=self.profile, academic_year=self.year, student=student,
+                school=school or self.school, total_amount=Decimal(total),
+                balance_amount=Decimal(bal), status=status,
+            )
+
+        _inv(s1, "100.00", "100.00", Invoice.Status.ISSUED)   # outstanding 100
+        _inv(s2, "50.00", "20.00", Invoice.Status.PARTIAL)    # outstanding 20
+        _inv(s3, "100.00", "0.00", Invoice.Status.PAID)       # excluded (paid)
+        _inv(s1, "30.00", "30.00", Invoice.Status.DRAFT)      # excluded (draft)
+        _inv(s2, "40.00", "40.00", Invoice.Status.VOID)       # excluded (void)
+        # Another tenant's outstanding invoice — must NOT leak into school1.
+        other_profile = ComplianceProfile.objects.create(
+            name="CP2", country_code="CM", currency_code="XAF", is_active=True
+        )
+        Invoice.objects.create(
+            profile=other_profile, academic_year=self.year, school=self.other,
+            total_amount=Decimal("999.00"), balance_amount=Decimal("999.00"),
+            status=Invoice.Status.ISSUED,
+        )
+
+    def _ctx_school(self):
+        return ActionContext(
+            tenant_id=str(self.school.id), user_id="u1", user_roles=("ADMIN",),
+        )
+
+    def test_school_wide_sums_only_outstanding_and_is_tenant_scoped(self):
+        result = run_summarize_outstanding_fees(
+            ProposedAction(action="summarize_outstanding_fees", params={}),
+            self._ctx_school(),
+        )
+        # 2 outstanding invoices (100 + 20) = 12000 minor units; the other
+        # tenant's 999 and this school's paid/draft/void are all excluded.
+        self.assertEqual(result["totals"]["count"], 2)
+        self.assertEqual(result["totals"]["outstanding_minor"], 12000)
+        self.assertNotIn("unavailable", result["summary"].lower())
+
+    def test_class_filter_and_unknown_class(self):
+        r_class = run_summarize_outstanding_fees(
+            ProposedAction(
+                action="summarize_outstanding_fees",
+                params={"class_id": str(self.classroom.id)},
+            ),
+            self._ctx_school(),
+        )
+        self.assertEqual(r_class["totals"]["count"], 2)
+        r_empty = run_summarize_outstanding_fees(
+            ProposedAction(
+                action="summarize_outstanding_fees",
+                params={"class_id": "99999999"},
+            ),
+            self._ctx_school(),
+        )
+        self.assertEqual(r_empty["totals"]["count"], 0)
+
+
 class AnnouncementRunnerTests(SimpleTestCase):
 
     def test_default_audience(self):
