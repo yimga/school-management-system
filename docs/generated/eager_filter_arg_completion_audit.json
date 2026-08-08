@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-08T21:22:52.989630+00:00",
+  "generated_at": "2026-08-08T21:27:25.898090+00:00",
   "static_only": true,
   "pass_count": 6,
   "fail_count": 0,
@@ -23,7 +23,7 @@
       "check_id": "S3",
       "label": "Scanner stdlib unit tests green",
       "ok": true,
-      "proof": "include_with_default_context_var.ScanIncludeWithDefaultContextVarTests.test_honors_default_fallback_allow_marker) ... ok\ntest_skips_dotted_same_object_defaults (scripts.tests.test_scan_include_with_default_context_var.ScanIncludeWithDefaultContextVarTests.test_skips_dotted_same_object_defaults) ... ok\n\n----------------------------------------------------------------------\nRan 8 tests in 0.623s\n\nOK"
+      "proof": "include_with_default_context_var.ScanIncludeWithDefaultContextVarTests.test_honors_default_fallback_allow_marker) ... ok\ntest_skips_dotted_same_object_defaults (scripts.tests.test_scan_include_with_default_context_var.ScanIncludeWithDefaultContextVarTests.test_skips_dotted_same_object_defaults) ... ok\n\n----------------------------------------------------------------------\nRan 8 tests in 1.290s\n\nOK"
     },
     {
       "check_id": "S4",
