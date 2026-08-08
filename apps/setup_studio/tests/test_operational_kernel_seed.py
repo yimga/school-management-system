@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import date
 from unittest import mock
 
+from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.test import TestCase
 
@@ -22,6 +23,8 @@ from apps.schoolops.substitute_market import (
     open_shift,
     release_shift_slot_lock,
 )
+
+User = get_user_model()
 
 
 class GradingFormulaEngineTests(TestCase):
@@ -71,6 +74,15 @@ class SubstituteMarketLockTests(TestCase):
             country_code="CM",
             is_active=True,
         )
+        # absent_teacher is a real FK to accounts.User — use persisted users,
+        # not phantom ids (a phantom id is an IntegrityError, immediate on
+        # Postgres and deferred-to-teardown on SQLite).
+        self.teacher_a = User.objects.create_user(
+            username="sub_teacher_a", password="p", role=User.Role.TEACHER
+        )
+        self.teacher_b = User.objects.create_user(
+            username="sub_teacher_b", password="p", role=User.Role.TEACHER
+        )
 
     def test_lock_prevents_double_booking(self):
         d = date.today()
@@ -90,7 +102,7 @@ class SubstituteMarketLockTests(TestCase):
         ):
             shift = open_shift(
                 school=self.school,
-                absent_teacher_id=99,
+                absent_teacher_id=self.teacher_a.pk,
                 work_date=date.today(),
                 publish_fn=_capture,
             )
@@ -99,14 +111,50 @@ class SubstituteMarketLockTests(TestCase):
         self.assertEqual(published[0]["schema_version"], "substitute_shift.v1")
 
     def test_second_open_raises(self):
+        """Idempotency contract (open_shift docstring): re-opening the SAME
+        (school, work_date, period_label, absent_teacher) slot raises."""
         d = date.today()
         with mock.patch(
             "apps.schoolops.substitute_handover.find_substitute_candidates",
             return_value=[],
         ):
-            open_shift(school=self.school, absent_teacher_id=1, work_date=d, period_label="P1")
+            open_shift(
+                school=self.school,
+                absent_teacher_id=self.teacher_a.pk,
+                work_date=d,
+                period_label="P1",
+            )
             with self.assertRaises(ShiftAlreadyBooked):
-                open_shift(school=self.school, absent_teacher_id=2, work_date=d, period_label="P1")
+                open_shift(
+                    school=self.school,
+                    absent_teacher_id=self.teacher_a.pk,
+                    work_date=d,
+                    period_label="P1",
+                )
+
+    def test_two_teachers_absent_same_slot_both_open(self):
+        """Dedup is per-teacher, NOT per-slot: two teachers absent in the same
+        period each get their own cover shift (both genuinely need covering)."""
+        d = date.today()
+        with mock.patch(
+            "apps.schoolops.substitute_handover.find_substitute_candidates",
+            return_value=[],
+        ):
+            first = open_shift(
+                school=self.school,
+                absent_teacher_id=self.teacher_a.pk,
+                work_date=d,
+                period_label="P1",
+            )
+            second = open_shift(
+                school=self.school,
+                absent_teacher_id=self.teacher_b.pk,
+                work_date=d,
+                period_label="P1",
+            )
+        self.assertTrue(first.shift_id)
+        self.assertTrue(second.shift_id)
+        self.assertNotEqual(first.shift_id, second.shift_id)
 
 
 class MigrationIntakeBootstrapTests(TestCase):
