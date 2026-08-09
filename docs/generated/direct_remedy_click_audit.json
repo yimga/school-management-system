@@ -1,0 +1,23 @@
+{
+  "generated_at": "2026-08-09",
+  "scope": "tenant and operator issue, blocker, readiness, recommendation, and repair actions",
+  "contract": {
+    "maximum_clicks_to_edit": 1,
+    "broad_hub_without_focus_allowed": false,
+    "false_positive_override_requires_reason": true,
+    "override_is_audited": true
+  },
+  "measured_path": {
+    "workflow": "Setup Studio registry blocker to editable control",
+    "before_clicks": 3,
+    "after_clicks": 1,
+    "reduction_percent": 67
+  },
+  "registry_fields_directly_wired": [
+    "country", "subdivision", "timezone", "currency", "locale", "calendar",
+    "institution_type", "grading_scale", "education_system"
+  ],
+  "broad_destinations_forbidden_without_query_or_fragment": [
+    "/authentication/backend/", "/school/configuration/", "/school/settings/", "/siteconfig/console/"
+  ]
+}

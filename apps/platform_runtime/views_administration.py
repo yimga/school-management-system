@@ -461,6 +461,32 @@ def school_configuration_center(request):
     school = getattr(request, "school", None)
     if school is None or not tenant_operator_hub_eligible(request.user):
         return HttpResponseForbidden("Tenant school configuration access required.")
+    from apps.platform_runtime.tenant_direct_remedies import (
+        apply_direct_remedy,
+        build_direct_remedy,
+        override_direct_remedy,
+    )
+
+    repair_field = str(request.GET.get("repair_field") or request.POST.get("repair_field") or "").strip().lower()
+    repair_error = ""
+    repair_saved = False
+    if request.method == "POST" and repair_field:
+        try:
+            if request.POST.get("repair_action") == "override":
+                override_direct_remedy(
+                    school, field_key=repair_field,
+                    reason=request.POST.get("override_reason", ""), actor=request.user,
+                )
+            else:
+                apply_direct_remedy(
+                    school, field_key=repair_field,
+                    value=str(request.POST.get("registry_value") or ""), actor=request.user,
+                )
+            repair_saved = True
+            school.refresh_from_db()
+        except ValueError as exc:
+            repair_error = str(exc)
+    direct_remedy = build_direct_remedy(school, repair_field) if repair_field else None
     # Real school readiness (school created / branding / dashboard / plan) from
     # setup_health_score — replaces the hardcoded "74" so the bar reaches 100
     # only when the four setup facts are actually satisfied.
@@ -511,7 +537,6 @@ def school_configuration_center(request):
     focus_key = str(request.GET.get("focus") or "").strip().lower()
     focus_map = {"school-profile": "School Profile"}
     focused_section = focus_map.get(focus_key, "")
-    repair_field = str(request.GET.get("repair_field") or "").strip().lower()
     return render(
         request,
         "platform_runtime/school_configuration_center.html",
@@ -524,6 +549,9 @@ def school_configuration_center(request):
             "page_marker": "rmc-school-configuration-center",
             "focused_section": focused_section,
             "repair_field": repair_field,
+            "direct_remedy": direct_remedy,
+            "repair_error": repair_error,
+            "repair_saved": repair_saved,
             **school_configuration_frame_context(),
             **masthead,
         },

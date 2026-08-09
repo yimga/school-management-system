@@ -78,13 +78,44 @@ class TenantSchoolConfigurationCenterTests(TestCase):
     def test_repair_deep_link_focuses_the_exact_configuration_card(self):
         client = self._admin_client()
         response = client.get(
-            "/school/configuration/?focus=school-profile&repair_field=education_system"
+            "/school/configuration/?repair_field=education_system"
         )
         self.assertEqual(response.status_code, 200, msg=response.content[:500])
         body = response.content.decode("utf-8", errors="replace")
-        self.assertIn('id="configuration-school-profile"', body)
-        self.assertIn('data-rmc-repair-focus="1"', body)
+        self.assertIn('id="repair-editor"', body)
+        self.assertIn('data-rmc-direct-remedy="education_system"', body)
         self.assertIn("education_system", body)
+        self.assertNotIn('class="rmc-ops-card-grid rmc-config-grid"', body)
+
+    def test_direct_repair_post_saves_and_override_is_audited(self):
+        from apps.registries.models import CountryRegistry
+
+        CountryRegistry.objects.update_or_create(
+            code="CM", defaults={"name": "Cameroon", "is_active": True}
+        )
+        client = self._admin_client()
+        response = client.post(
+            "/school/configuration/?repair_field=country",
+            {"repair_field": "country", "repair_action": "save", "registry_value": "CM"},
+        )
+        self.assertEqual(response.status_code, 200, msg=response.content[:500])
+        self.school.refresh_from_db()
+        self.assertEqual(self.school.country_code, "CM")
+        self.assertContains(response, "Saved. This finding has been recalculated.")
+
+        response = client.post(
+            "/school/configuration/?repair_field=education_system",
+            {
+                "repair_field": "education_system",
+                "repair_action": "override",
+                "override_reason": "Local regulator approved a hybrid system.",
+            },
+        )
+        self.assertEqual(response.status_code, 200, msg=response.content[:500])
+        self.school.refresh_from_db()
+        override = self.school.settings["setup_registry_overrides"]["education_system"]
+        self.assertEqual(override["actor_id"], self.admin.pk)
+        self.assertIn("hybrid", override["reason"])
 
     def test_academics_root_and_legacy_aliases_are_live_on_tenant_host(self):
         client = self._admin_client()

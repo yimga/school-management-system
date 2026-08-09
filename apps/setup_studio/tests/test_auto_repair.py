@@ -105,5 +105,6 @@ class AutoRepairSetupTests(TestCase):
         self.assertTrue(registry_steps[0]["fields"])
         step = registry_steps[0]
         self.assertIn("repair_field=timezone", step["cta_url"])
+        self.assertIn("#repair-editor", step["cta_url"])
         self.assertEqual(step["cta_url"], step["fields"][0]["cta_url"])
         self.assertNotEqual(step["cta_url"], "/school/settings/")

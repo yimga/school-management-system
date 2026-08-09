@@ -16,7 +16,9 @@ STEP_DEFINITIONS = (
         "label": "Create school profile",
         "description": "Confirm institution name, slug, and operating identity before launching deeper setup work.",
         "step_group": "foundation",
-        "link_name": "accounts:backend_dashboard",
+        "link_name": "school_configuration_center_canonical",
+        "link_query": "repair_field=country",
+        "link_fragment": "repair-editor",
         "weight": 10,
         "recommended_choice": "Verify legal name, slug, and operator contact details.",
     },
@@ -62,7 +64,7 @@ STEP_DEFINITIONS = (
         "label": "Choose starter stack",
         "description": "Turn on the starter capabilities your school needs on day one without creating tool sprawl.",
         "step_group": "modules",
-        "link_name": "accounts:backend_dashboard",
+        "link_name": "siteconfig:module_market",
         "weight": 10,
         "recommended_choice": "Start with admissions, academics, finance, and parent communication.",
     },
@@ -169,6 +171,9 @@ def _ensure_step_definitions() -> None:
 
 def _operating_currency_code(school) -> str:
     """Resolve ISO 4217 code from RegionConfig or school settings (PATH III.20)."""
+    direct = str(getattr(school, "currency", "") or "").strip().upper()
+    if len(direct) == 3 and direct.isalpha():
+        return direct
     dr = getattr(school, "default_region", None)
     if dr is not None:
         c = str(getattr(dr, "default_currency", "") or "").strip().upper()
@@ -184,6 +189,9 @@ def _operating_currency_code(school) -> str:
 
 def _operating_locale_hint(school) -> str:
     """BCP 47 / registry hint from RegionConfig or school.settings (PATH III.20)."""
+    direct = str(getattr(school, "default_language", "") or "").strip()
+    if direct:
+        return direct
     st = getattr(school, "settings", None)
     if isinstance(st, dict):
         for key in ("default_locale", "locale", "default_language"):
@@ -327,13 +335,9 @@ def _build_registry_key_rows(
 
 def _registry_field_cta(field_key: str) -> dict[str, str]:
     """Return a focused tenant repair destination, never an unscoped settings hub."""
-    if field_key == "grading_scale":
-        return {"label": gettext("Fix grading scale"), "url": "/siteconfig/grading-settings/#grading_scale"}
-    if field_key == "locale":
-        return {"label": gettext("Fix language and locale"), "url": "/siteconfig/grading-settings/#default_language"}
     return {
-        "label": gettext("Fix school profile alignment"),
-        "url": f"/school/configuration/?focus=school-profile&repair_field={field_key}#configuration-school-profile",
+        "label": gettext("Fix this registry field"),
+        "url": f"/school/configuration/?repair_field={field_key}#repair-editor",
     }
 
 
@@ -341,7 +345,7 @@ def _registry_settings_cta() -> dict[str, str]:
     """One-click path to school/region context (shared shell)."""
     return {
         "label": gettext("Open school & region settings"),
-        "url": "/school/configuration/?focus=school-profile#configuration-school-profile",
+        "url": "/school/configuration/?repair_field=country#repair-editor",
     }
 
 
@@ -595,6 +599,14 @@ def _registry_alignment_snapshot(school) -> dict[str, Any]:
     snap["summary_lines"] = list(parts)
     snap["detail"] = " ".join(p for p in parts if p).strip()
     key_rows, mismatch_count = _build_registry_key_rows(snap)
+    overrides = dict((getattr(school, "settings", {}) or {}).get("setup_registry_overrides") or {})
+    for registry_row in key_rows:
+        override = overrides.get(registry_row.get("key"))
+        if override and not registry_row.get("ok"):
+            registry_row["ok"] = True
+            registry_row["overridden"] = True
+            registry_row["override_reason"] = str(override.get("reason") or "")
+    mismatch_count = sum(1 for registry_row in key_rows if not registry_row.get("ok"))
     snap["key_rows"] = key_rows
     snap["mismatch_count"] = mismatch_count
     snap["settings_cta"] = _registry_settings_cta()

@@ -16,23 +16,43 @@
 <main class="container-fluid py-3 rmc-max-suppress-meta-option-a rmc-tenant-ops" data-rmc-tenant-ops-build="2026-08-01-v1.1" data-page-archetype="setup" data-rmc-os-center="school_configuration_center" data-rmc-school-configuration-center="{{ page_marker }}" data-apple-class-tenant-school-admin="1" data-rmc-scroll-policy="paginate" data-rmc-work-root="1" data-rmc-static-chrome="1">
   {% include "components/rmc_page_masthead.html" %}
 
-  {% if focused_section %}
-  <div class="alert alert-info d-flex flex-wrap align-items-center justify-content-between gap-2" role="status" data-rmc-repair-focus-banner="1">
-    <span>{% blocktrans with section=focused_section field=repair_field|default:_('school profile') %}Repair mode: update {{ field }} in {{ section }} below.{% endblocktrans %}</span>
-    <a href="#configuration-school-profile" class="btn btn-sm btn-primary">{% trans "Go to the exact control" %}</a>
-  </div>
+  {% if direct_remedy %}
+  <section id="repair-editor" class="rmc-ops-card border-primary shadow-sm mb-3" tabindex="-1" data-rmc-direct-remedy="{{ direct_remedy.key }}">
+    <p class="rmc-ops-eyebrow mb-1">{% trans "Direct repair · one screen" %}</p>
+    <h2 class="h4">{% blocktrans with label=direct_remedy.label %}Fix {{ label }}{% endblocktrans %}</h2>
+    <p class="text-muted">{% trans "Choose the correct active registry value and save. You do not need to open another configuration card or page." %}</p>
+    {% if repair_saved %}<div class="alert alert-success" role="status">{% trans "Saved. This finding has been recalculated." %}</div>{% endif %}
+    {% if repair_error %}<div class="alert alert-danger" role="alert">{{ repair_error }}</div>{% endif %}
+    <form method="post" class="row g-2 align-items-end" data-rmc-direct-remedy-form="1">
+      {% csrf_token %}<input type="hidden" name="repair_field" value="{{ direct_remedy.key }}"><input type="hidden" name="repair_action" value="save">
+      <div class="col-12 col-lg-8"><label class="form-label" for="registry-value">{{ direct_remedy.label }}</label><select class="form-select" id="registry-value" name="registry_value" required autofocus>{% for option in direct_remedy.choices %}<option value="{{ option.value }}"{% if option.value == direct_remedy.current_value %} selected{% endif %}>{{ option.label }}</option>{% endfor %}</select></div>
+      <div class="col-12 col-lg-4"><button class="btn btn-primary w-100" type="submit">{% trans "Save and recheck" %}</button></div>
+    </form>
+    <details class="mt-3"{% if direct_remedy.override %} open{% endif %}>
+      <summary>{% trans "This finding is a false positive" %}</summary>
+      {% if direct_remedy.override %}<div class="alert alert-success mt-2 mb-2"><strong>{% trans "Resolved by override" %}</strong> · {{ direct_remedy.override.reason }}</div>{% endif %}
+      <form method="post" class="mt-2" data-rmc-remedy-override-form="1">
+        {% csrf_token %}<input type="hidden" name="repair_field" value="{{ direct_remedy.key }}"><input type="hidden" name="repair_action" value="override">
+        <label class="form-label" for="override-reason">{% trans "Reason for override" %}</label><textarea class="form-control" id="override-reason" name="override_reason" rows="2" minlength="8" maxlength="500" required></textarea>
+        <button class="btn btn-outline-success mt-2" type="submit">{% trans "Mark resolved with audit note" %}</button>
+      </form>
+    </details>
+    <div class="mt-3"><a class="btn btn-sm btn-outline-secondary" href="/studio/launch/">{% trans "Return to Launch Studio" %}</a> <a class="btn btn-sm btn-link" href="/school/configuration/">{% trans "Show all configuration areas" %}</a></div>
+  </section>
+  {% elif focused_section %}
+  <div class="alert alert-info" role="status" data-rmc-repair-focus-banner="1"><span>{% blocktrans with section=focused_section %}Repair mode: open {{ section }} below.{% endblocktrans %}</span></div>
   {% endif %}
 
-  <section class="rmc-config-readiness" aria-label="{% trans 'Configuration readiness' %}">
+  {% if not direct_remedy %}<section class="rmc-config-readiness" aria-label="{% trans 'Configuration readiness' %}">
     <div class="rmc-config-readiness__ring" style="--rmc-ready: {{ school_readiness.value }}" role="img" aria-label="{{ school_readiness.value }}% ready"><strong>{{ school_readiness.value }}%</strong><span>{% trans "ready" %}</span></div>
     <div>
       <p class="rmc-ops-eyebrow">{% trans "Evidence-backed readiness" %}</p>
       <h2>{% if school_readiness.complete %}{% trans "School configuration is operational" %}{% else %}{% trans "Finish the remaining setup evidence" %}{% endif %}</h2>
       {% if school_readiness.unmet %}<ul class="rmc-config-blockers">{% for blocker in school_readiness.unmet %}<li>{{ blocker }}</li>{% endfor %}</ul>{% else %}<p>{% trans "Profile, branding, runtime assignment and plan evidence are active." %}</p>{% endif %}
     </div>
-  </section>
+  </section>{% endif %}
 
-  <section class="rmc-ops-card-grid rmc-config-grid" aria-label="{% trans 'Configuration areas' %}" data-rmc-scroll-policy="paginate">
+  {% if not direct_remedy %}<section class="rmc-ops-card-grid rmc-config-grid" aria-label="{% trans 'Configuration areas' %}" data-rmc-scroll-policy="paginate">
     {% for section in sections %}
     {% can_access_permission section.permission as sec_ok %}
     {% if sec_ok %}
@@ -44,8 +64,8 @@
     </article>
     {% endif %}
     {% empty %}<p class="text-muted">{% trans "No configuration sections available." %}</p>{% endfor %}
-  </section>
+  </section>{% endif %}
   <div class="rmc-wcx-mobile-marker" data-world-class-mobile-layout="stacked">{% trans "Mobile setup keeps actions stacked with large touch targets." %}</div>
 </main>
-{% if focused_section %}<script>document.addEventListener("DOMContentLoaded",function(){var el=document.querySelector("[data-rmc-repair-focus]");if(el){el.scrollIntoView({behavior:"smooth",block:"center"});el.focus({preventScroll:true});}});</script>{% endif %}
+{% if focused_section or direct_remedy %}<script>document.addEventListener("DOMContentLoaded",function(){var el=document.querySelector("[data-rmc-direct-remedy],[data-rmc-repair-focus]");if(el){el.scrollIntoView({behavior:"smooth",block:"center"});el.focus({preventScroll:true});}});</script>{% endif %}
 {% endblock %}
