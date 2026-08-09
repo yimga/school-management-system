@@ -23,6 +23,8 @@ from typing import Any, Iterator
 
 from ._helpers import (
     coerce_date,
+    conflict_resolution_for,
+    detect_conflict,
     filter_to_model_fields,
     map_enrollment_status,
     model_field_names,
@@ -143,7 +145,41 @@ class EnrollmentLander(Lander):
                 result.updated += 1
                 continue
             try:
+                old_snapshot: dict = {}
                 if updates:
+                    # Log any existing-vs-incoming diff for operator review and
+                    # honour a prior PRESERVE decision. The other person landers
+                    # route existing-row writes through detect_conflict /
+                    # conflict_resolution_for; enrollment previously did a bare
+                    # setattr, silently overwriting a student's lifecycle state
+                    # (grade/status/section) with no conflict row and an EMPTY
+                    # `old` -- so the field-level apply audit under-reported the
+                    # very overwrites that touch pre-existing student records.
+                    detect_conflict(
+                        ctx=ctx, domain="enrollment", canonical_obj=student,
+                        incoming=updates, legacy_id=external_id,
+                    )
+                    if conflict_resolution_for(ctx=ctx, canonical_obj=student) == "PRESERVE":
+                        # Operator kept the existing enrollment; skip the field
+                        # writes. DFV extras below are additive, not an overwrite,
+                        # so they still land.
+                        persist_dfv_extras(
+                            ctx=ctx, entity_type="student", entity_id=student.pk,
+                            extras=extras, result=result,
+                        )
+                        result.skipped += 1
+                        continue
+                    # Snapshot the OLD non-empty values BEFORE overwriting so the
+                    # field-level apply audit records which fields this bundle
+                    # overwrote (it reads entry["old"].keys()). Empty -> value is
+                    # a fill-in, not an overwrite, so it is not recorded.
+                    for k in updates:
+                        cur = getattr(student, k, None)
+                        if cur not in (None, ""):
+                            old_snapshot[k] = (
+                                cur if isinstance(cur, (str, int, float, bool))
+                                else str(cur)[:200]
+                            )
                     for k, v in updates.items():
                         setattr(student, k, v)
                     # Per-row savepoint: enrollment lands in the same forced-atomic
@@ -155,7 +191,9 @@ class EnrollmentLander(Lander):
                     extras=extras, result=result,
                 )
                 result.updated += 1
-                result.updated_ids_with_old_values.append({"pk": student.pk, "old": {}})
+                result.updated_ids_with_old_values.append(
+                    {"pk": student.pk, "old": old_snapshot}
+                )
                 from ._helpers import record_id_mapping
                 record_id_mapping(
                     ctx=ctx, legacy_id=external_id, canonical_obj=student, domain="enrollment",
