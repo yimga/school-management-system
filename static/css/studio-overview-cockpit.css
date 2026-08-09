@@ -219,7 +219,12 @@
    horizontal overflow risk from col-auto. */
 .rmc-overview-mode-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  /* auto-FIT (not auto-fill): collapse empty trailing tracks so a short row
+     of mode cards stretches to fill the canvas width instead of clustering on
+     the left with a wasted empty column — the "left-oriented, wasted space"
+     complaint. min(...,100%) keeps a lone card from overflowing a viewport
+     narrower than the track floor (enforced overflow gate). */
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
   gap: 12px;
   min-width: 0;
 }
@@ -537,7 +542,7 @@
 
 @media (max-width: 1366px) {
   .rmc-overview-mode-grid {
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
   }
 }
 

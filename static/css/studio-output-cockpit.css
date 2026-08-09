@@ -111,7 +111,12 @@
 
 .rmc-output-tiles {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(var(--rmc-output-tile-min), 1fr));
+  /* auto-FIT (not auto-fill): collapse empty trailing tracks so a short row
+     of output tiles fills the canvas width instead of clustering on the left
+     with a wasted empty column. min(...,100%) keeps a lone tile from
+     overflowing a viewport narrower than the tile floor (the responsive
+     guard below already carried this min() — mirror it here). */
+  grid-template-columns: repeat(auto-fit, minmax(min(var(--rmc-output-tile-min), 100%), 1fr));
   gap: var(--rmc-output-gap);
   list-style: none;
   margin: 0;
@@ -596,7 +601,7 @@
 
 @media (max-width: 991.98px) {
   .rmc-output-tiles {
-    grid-template-columns: repeat(auto-fill, minmax(min(var(--rmc-output-tile-min), 100%), 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(var(--rmc-output-tile-min), 100%), 1fr));
   }
 }
 
