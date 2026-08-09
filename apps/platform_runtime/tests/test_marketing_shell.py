@@ -346,11 +346,16 @@ class ShellWaveBatch989PlusContractTests(unittest.TestCase):
 
     def test_tenant_runtime_hub_phase_b_surface(self):
         root = Path(__file__).resolve().parent.parent.parent.parent
-        text = (root / "templates" / "siteconfig" / "tenant_runtime_configuration_hub.html").read_text(
-            encoding="utf-8", errors="replace"
-        )
+        shell = root / "templates" / "siteconfig" / "tenant_runtime_configuration_hub.html"
+        text = shell.read_text(encoding="utf-8", errors="replace")
         self.assertIn('data-siteconfig-surface="tenant-runtime-hub"', text)
-        self.assertIn("siteconfig:console_domains_hub", text)
+        # The console-domains link moved into the included body partial (refactor);
+        # verify the full chain: the shell includes the body, and the body links out.
+        self.assertIn("tenant_runtime_configuration_hub_body.html", text)
+        body_text = (
+            shell.parent / "partials" / "tenant_runtime_configuration_hub_body.html"
+        ).read_text(encoding="utf-8", errors="replace")
+        self.assertIn("siteconfig:console_domains_hub", body_text)
 
     def test_backend_dashboard_role_home_shell(self):
         root = Path(__file__).resolve().parent.parent.parent.parent

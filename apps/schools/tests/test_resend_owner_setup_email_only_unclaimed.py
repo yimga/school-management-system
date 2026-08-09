@@ -46,8 +46,11 @@ class ResendOwnerSetupEmailOnlyUnclaimedTests(TestCase):
         return user
 
     def test_only_unclaimed_skips_claimed_owner(self):
+        # NB: the unclaimed owner's address must NOT contain the claimed one as a
+        # substring, or assertNotIn below can never pass ("claimed@example.com" is
+        # a substring of "unclaimed@example.com"). Use a disjoint address.
         self._owner("claimed@example.com", claimed=True)
-        self._owner("unclaimed@example.com", claimed=False)
+        self._owner("fresh-owner@example.com", claimed=False)
         out = StringIO()
         call_command(
             "resend_owner_setup_email",
@@ -56,7 +59,7 @@ class ResendOwnerSetupEmailOnlyUnclaimedTests(TestCase):
             stdout=out,
         )
         text = out.getvalue()
-        self.assertIn("unclaimed@example.com", text)
+        self.assertIn("fresh-owner@example.com", text)
         self.assertNotIn("claimed@example.com", text)
 
     def test_all_claimed_sends_nothing(self):

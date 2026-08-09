@@ -33,7 +33,13 @@ class TenantConfigurationRouteContractTests(SimpleTestCase):
             self.assertTrue(route.startswith("/"), section["name"])
             self.assertNotIn("/super/", route)
             routes.append(route)
-        self.assertEqual(len(routes), 14)
+        # Tripwire on the configuration-section set: every section above already
+        # asserted it reverses in the tenant urlconf, starts with "/", and is not
+        # an operator (/super/) route. This count re-baselines to the current
+        # section set (grew from 14 as configuration surfaces were added); bump it
+        # consciously when a section is added or removed.
+        self.assertEqual(len(routes), len(TENANT_CONFIGURATION_SECTIONS))
+        self.assertEqual(len(routes), 19)
 
     def test_canonical_and_legacy_routes_have_named_owners(self):
         self.assertEqual(reverse("academics:hub", urlconf="config.tenant_urls"), "/academics/")
