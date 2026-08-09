@@ -35,7 +35,7 @@
     <p class="text-secondary small mt-3">
       {% if locale_preference %}
         {% blocktrans with code=locale_preference %}Sticky locale: <code>{{ code }}</code> — applied on every page until you pick another or clear it.{% endblocktrans %}
-        <button type="button" class="btn btn-link btn-sm" data-rmc-translate-clear>{% trans "Clear" %}</button>
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-rmc-translate-clear>{% trans "Clear" %}</button>
       {% else %}
         {% trans "Picking a language pins it as your sticky locale across sessions." %}
       {% endif %}

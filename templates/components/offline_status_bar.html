@@ -12,14 +12,14 @@
   <span id="sms-offline-notification-queue-badge" class="rmc-badge rmc-badge--warning d-none" style="font-size: var(--type-size-caption);" title="Queued notifications pending sync">0</span>
   <span id="sms-offline-status-last-synced" class="d-none text-white-50" style="font-size: var(--type-size-caption);" title="Last successful sync"></span>
   <span id="sms-offline-status-spinner" class="spinner-border spinner-border-sm d-none text-white" role="img" aria-label="Syncing"></span>
-  <button type="button" id="sms-offline-sync-now-btn" class="btn btn-link btn-sm p-0 ms-1 text-white text-decoration-underline" style="font-size: inherit;" aria-label="Sync queued data now">{% trans "Sync now" %}</button>
+  <button type="button" id="sms-offline-sync-now-btn" class="btn btn-outline-light btn-sm ms-1" style="font-size: inherit;" aria-label="Sync queued data now">{% trans "Sync now" %}</button>
   {% if OFFLINE_SYNC_QUEUE_URL %}
   <a href="{{ OFFLINE_SYNC_QUEUE_URL }}" class="btn btn-link btn-sm p-0 ms-1 text-white text-decoration-underline d-none d-md-inline" style="font-size: inherit;">{% trans "Queue" %}</a>
   {% endif %}
   {% if OFFLINE_CONFLICTS_URL %}
   <a href="{{ OFFLINE_CONFLICTS_URL }}" class="btn btn-link btn-sm p-0 ms-1 text-warning text-decoration-underline d-none d-md-inline" style="font-size: inherit;">{% trans "Conflicts" %}</a>
   {% endif %}
-  <button type="button" id="sms-offline-conflicts-btn" class="d-none btn btn-link btn-sm p-0 text-warning text-decoration-underline" style="font-size: inherit;" aria-label="View sync conflicts">{% trans "Resolve conflicts" %}</button>
+  <button type="button" id="sms-offline-conflicts-btn" class="d-none btn btn-outline-warning btn-sm" style="font-size: inherit;" aria-label="View sync conflicts">{% trans "Resolve conflicts" %}</button>
 </div>
 <!-- Modal: list of sync conflicts (409 / client errors) for user to resolve manually -->
 <div class="modal fade" id="sms-offline-conflicts-modal" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="sms-offline-conflicts-modal-label" aria-hidden="true">

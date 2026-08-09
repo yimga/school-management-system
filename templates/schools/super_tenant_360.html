@@ -28,6 +28,49 @@
 <div id="tenant-360-main" class="container-fluid py-2" tabindex="-1" data-page-archetype="record-detail" data-decision-engine="surface" data-page-critical-read="1" data-rmc-page-fold-nav="required" data-rmc-section-nav="auto" data-rmc-scroll-policy="paginate">
   {% phase8_dashboard_declaration "schools/super_tenant_360.html" %}
   {% include "studio_os/components/page_header.html" with title=_("School 360") subtitle=school.name action_url=dashboard_url action_text=_("Back to Dashboard") %}
+  <nav class="rmc-tenant-360-nav mb-3" aria-label="{% trans 'School 360 sections' %}">
+    <a class="btn btn-sm btn-primary" href="#tenant-360-overview">{% trans "Overview" %}</a>
+    <a class="btn btn-sm btn-outline-secondary" href="#tenant-360-configuration">{% trans "Effective configuration" %}</a>
+    <a class="btn btn-sm btn-outline-secondary" href="#tenant-360-provisioning">{% trans "Provisioning" %}</a>
+    <a class="btn btn-sm btn-outline-secondary" href="#offboarding">{% trans "Offboarding" %}</a>
+  </nav>
+  <section id="tenant-360-overview" class="card shadow-sm border-secondary mb-3" aria-labelledby="tenant-360-overview-title">
+    <div class="card-header d-flex flex-wrap justify-content-between gap-2 align-items-center">
+      <span id="tenant-360-overview-title">{% trans "Support overview" %}</span>
+      <span class="rmc-badge rmc-badge--success">{% trans "Operator-safe" %}</span>
+    </div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-sm-6 col-xl-3"><div class="border rounded p-3 h-100"><span class="small text-secondary d-block">{% trans "Lifecycle" %}</span><strong>{{ unified_lifecycle.label|default:"Unknown" }}</strong></div></div>
+        <div class="col-sm-6 col-xl-3"><div class="border rounded p-3 h-100"><span class="small text-secondary d-block">{% trans "Blueprint" %}</span><strong>{{ blueprint_code|default:"Not resolved" }}</strong></div></div>
+        <div class="col-sm-6 col-xl-3"><div class="border rounded p-3 h-100"><span class="small text-secondary d-block">{% trans "Provisioning" %}</span><strong>{{ provisioning_progress.status|default:"Unknown" }}</strong></div></div>
+        <div class="col-sm-6 col-xl-3"><div class="border rounded p-3 h-100"><span class="small text-secondary d-block">{% trans "Runtime warnings" %}</span><strong>{{ runtime_warnings|length }}</strong></div></div>
+      </div>
+    </div>
+  </section>
+  <section id="tenant-360-configuration" class="card shadow-sm border-secondary mb-3" aria-labelledby="tenant-360-config-title">
+    <div class="card-header d-flex flex-wrap justify-content-between gap-2 align-items-center">
+      <span id="tenant-360-config-title">{% trans "Effective tenant configuration" %}</span>
+      <span class="small text-secondary">{{ support_configuration_source }}{% if support_configuration_freshness %} · {{ support_configuration_freshness }}{% endif %}</span>
+    </div>
+    <div class="card-body">
+      <p class="small text-secondary">{% trans "Compiled support view across registries, blueprint, modules, apps, localization, integrations, security, dashboards, and workflows. Credentials and secret-like values are always excluded." %}</p>
+      <div class="row g-3">
+        {% for section in support_configuration %}
+        <div class="col-md-6 col-xl-4">
+          <article class="border rounded p-3 h-100">
+            <div class="d-flex justify-content-between gap-2"><h3 class="h6 text-capitalize mb-2">{{ section.key }}</h3><span class="rmc-badge">{{ section.status }}</span></div>
+            <dl class="small mb-0">
+              {% for item in section.items %}<dt>{{ item.label }}</dt><dd class="text-break">{{ item.value }}</dd>{% empty %}<dd class="text-secondary">{% trans "No effective values available." %}</dd>{% endfor %}
+            </dl>
+          </article>
+        </div>
+        {% empty %}
+        <div class="col-12"><div class="rmc-banner rmc-banner--warning">{% trans "Runtime is unavailable; inspect provisioning and runtime warnings below." %}</div></div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
   <div class="row">
     <div class="col-md-6">
       <div class="card shadow-sm border-secondary mb-3">
@@ -323,7 +366,7 @@
           </div>
           <div class="col-auto">
             <button type="button" class="btn btn-sm btn-outline-secondary" data-rmc-offboarding-hold-save>{% trans "Save hold" %}</button>
-            <button type="button" class="btn btn-sm btn-link" data-rmc-offboarding-hold-clear>{% trans "Clear hold" %}</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" data-rmc-offboarding-hold-clear>{% trans "Clear hold" %}</button>
           </div>
         </div>
       </section>

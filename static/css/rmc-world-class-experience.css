@@ -113,9 +113,9 @@
   color: var(--text-secondary) !important;
 }
 
-#cp-main-content .card a,
-#cp-main-content .rmc-wcx-surface a,
-#cp-main-content .rmc-acx-glass-panel a {
+#cp-main-content .card a:not(.btn):not(.cp-btn),
+#cp-main-content .rmc-wcx-surface a:not(.btn):not(.cp-btn),
+#cp-main-content .rmc-acx-glass-panel a:not(.btn):not(.cp-btn) {
   color: var(--link-color, var(--color-primary-300));
 }
 

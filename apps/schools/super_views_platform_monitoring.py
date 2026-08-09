@@ -284,6 +284,7 @@ def super_tenant_360(request, school_id):
         runtime = None
 
     identity = None
+    support_configuration = []
     blueprint_code = None
     policy_summary = {}
     trace = []
@@ -309,6 +310,49 @@ def super_tenant_360(request, school_id):
         if debug:
             trace = getattr(debug, "compilation_trace", []) or []
             warnings = getattr(debug, "warnings", []) or []
+
+        # Operator-safe effective configuration inventory. Values are deliberately
+        # summarized: Tenant 360 must help support diagnose resolution without ever
+        # becoming a credential/secret disclosure surface.
+        from dataclasses import asdict, is_dataclass
+
+        sensitive_fragments = ("secret", "password", "token", "private", "credential", "api_key")
+
+        def support_snapshot(name, value):
+            if value is None:
+                return {"key": name, "status": "Not configured", "count": 0, "items": []}
+            if is_dataclass(value):
+                raw = asdict(value)
+            elif isinstance(value, dict):
+                raw = value
+            else:
+                raw = getattr(value, "__dict__", {})
+            safe_items = []
+            for key, item in raw.items():
+                if key.startswith("_") or any(part in key.lower() for part in sensitive_fragments):
+                    continue
+                if isinstance(item, (dict, list, tuple, set)):
+                    shown = len(item)
+                    display = f"{shown} configured"
+                elif item in (None, ""):
+                    continue
+                else:
+                    display = str(item)
+                safe_items.append({"label": key.replace("_", " ").title(), "value": display})
+            return {
+                "key": name,
+                "status": "Resolved" if safe_items else "No effective values",
+                "count": len(safe_items),
+                "items": safe_items[:6],
+            }
+
+        for section_name in (
+            "registry", "blueprint", "modules", "entitlements", "marketplace",
+            "integrations", "locale", "security", "dashboards", "workflows",
+        ):
+            support_configuration.append(
+                support_snapshot(section_name, getattr(runtime, section_name, None))
+            )
 
     from apps.lifecycle.enrollment_workflow_matrix import (
         build_enrollment_track,
@@ -353,6 +397,11 @@ def super_tenant_360(request, school_id):
             "policy_summary": policy_summary,
             "runtime_trace": trace,
             "runtime_warnings": warnings,
+            "support_configuration": support_configuration,
+            "support_configuration_source": "Effective tenant runtime",
+            "support_configuration_freshness": getattr(
+                getattr(runtime, "debug", None), "compilation_timestamp", None
+            ) if runtime else None,
             "dashboard_url": reverse("super:dashboard"),
             "offboarding": offboarding,
             "offboarding_checklist": offboarding_checklist,

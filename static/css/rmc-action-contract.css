@@ -1,0 +1,75 @@
+/* Platform action contract: loaded after surface CSS in every authenticated shell. */
+:where(.rmc-action-row, .rmc-page-masthead__actions, [data-rmc-os-primary-action-slot]) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem;
+}
+
+/* Button anchors remain buttons even inside cards whose generic link colour is themed. */
+:where(body) :is(a, button, input).btn,
+:where(body) :is(a, button).cp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .45rem;
+  min-height: 2.5rem;
+  padding: .5rem .9rem;
+  border-radius: var(--radius-md, .625rem);
+  font-weight: 650;
+  line-height: 1.2;
+  text-align: center;
+  text-decoration: none;
+  white-space: normal;
+  cursor: pointer;
+}
+
+:where(body) :is(a, button, input).btn-sm,
+:where(body) :is(a, button).cp-btn--compact {
+  min-height: 2rem;
+  padding: .3rem .65rem;
+  font-size: .78rem;
+}
+
+#cp-main-content :is(.card, .rmc-wcx-surface, .rmc-acx-glass-panel) a.btn,
+#cp-main-content :is(.card, .rmc-wcx-surface, .rmc-acx-glass-panel) a.cp-btn,
+main :is(.card, .rmc-wcx-surface, .rmc-acx-glass-panel) a.btn,
+main :is(.card, .rmc-wcx-surface, .rmc-acx-glass-panel) a.cp-btn {
+  text-decoration: none;
+}
+
+#cp-main-content a.cp-btn--primary,
+main a.cp-btn--primary {
+  color: var(--text-on-brand, #fff);
+}
+
+#cp-main-content a.cp-btn--ghost,
+main a.cp-btn--ghost {
+  color: var(--text-primary);
+  background: var(--surface-elevated);
+  border-color: var(--hairline-strong, var(--hairline));
+}
+
+:where(body) :is(a, button, input).btn:focus-visible,
+:where(body) :is(a, button).cp-btn:focus-visible {
+  outline: 3px solid var(--focus-ring, var(--color-sky-400, #38bdf8));
+  outline-offset: 2px;
+}
+
+:where(body) :is(button, input).btn:disabled,
+:where(body) :is(button, .cp-btn)[disabled],
+:where(body) :is(.btn, .cp-btn)[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: .58;
+}
+
+@media (max-width: 575.98px) {
+  :where(.rmc-page-masthead__actions, [data-rmc-os-primary-action-slot]) > :is(.btn, .cp-btn) {
+    flex: 1 1 100%;
+  }
+}
+
+@media (pointer: coarse) {
+  :where(body) :is(a, button, input).btn:not(.btn-sm),
+  :where(body) :is(a, button).cp-btn:not(.cp-btn--compact) { min-height: 2.75rem; }
+}

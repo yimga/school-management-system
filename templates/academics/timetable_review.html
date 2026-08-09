@@ -122,7 +122,7 @@
                         {% if not is_published %}
                         <form method="post" action="{% url 'academics:timetable_cancel_entry' schedule.id e.id %}" class="d-inline">
                           {% csrf_token %}
-                          <button type="submit" class="btn btn-link btn-sm p-0 align-baseline">{% trans "Remove" %}</button>
+                          <button type="submit" class="btn btn-outline-danger btn-sm align-baseline">{% trans "Remove" %}</button>
                         </form>
                         {% endif %}
                       </div>
