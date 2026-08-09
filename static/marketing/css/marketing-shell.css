@@ -902,7 +902,7 @@ body.marketing-surface .btn.btn-outline-primary:hover {
 }
 
 /* Module cards */
-.marketing-home .mkt-modules-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: var(--mkt-spacing-md); }
+.marketing-home .mkt-modules-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: var(--mkt-spacing-md); }
 .marketing-home .mkt-module-card {
   background: var(--mkt-surface);
   border: 1px solid var(--mkt-border);
@@ -949,7 +949,7 @@ body.marketing-surface .btn.btn-outline-primary:hover {
 .marketing-home .mkt-migration-visual img { width: 100%; height: auto; display: block; }
 
 /* Ecosystem */
-.marketing-home .mkt-ecosystem-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--mkt-spacing-md); }
+.marketing-home .mkt-ecosystem-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); gap: var(--mkt-spacing-md); }
 .marketing-home .mkt-ecosystem-card {
   background: var(--mkt-surface);
   border: 1px solid var(--mkt-border);

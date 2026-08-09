@@ -431,7 +431,7 @@
 /* ----- Platform overview (core modules grid) ----- */
 .marketing-home .mkt-modules-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
   gap: var(--mkt-spacing-md);
 }
 .marketing-home .mkt-module-card {
@@ -554,7 +554,7 @@
 /* ----- Ecosystem / marketplace ----- */
 .marketing-home .mkt-ecosystem-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
   gap: var(--mkt-spacing-md);
 }
 .marketing-home .mkt-ecosystem-card {

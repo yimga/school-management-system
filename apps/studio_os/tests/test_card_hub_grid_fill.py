@@ -20,6 +20,13 @@ family as each pass ships.
     .rmc-security-hub-grid
     (left as auto-fill on purpose: .rmc-social-moderation — an image-tile gallery
      where a lone tile stretched full-width would balloon the image.)
+
+  MARKETING family (public platform pages / home): the six marketing-platform-*
+    pages' .mkt-*-handoff-grid (block-link hubs) + .mkt-*-roles (role cards), plus
+    .mkt-modules-grid / .mkt-ecosystem-grid in the shell and the tenant marketing
+    home. All genuine link/card hubs (the sibling .mkt-platform-grid was already
+    auto-fit — the house style); no fixed-tile image galleries among them. The
+    minified marketing-enhanced.min.css is a build artifact and left untouched.
 """
 
 import re
@@ -112,3 +119,33 @@ class PortalCardHubGridFillTest(SimpleTestCase):
         # image, so this deliberately keeps auto-fill. Guard against a blind sweep.
         body = _rule_body(self._read("rmc-social-feed.css"), ".rmc-social-moderation")
         self.assertIn("auto-fill", body)
+
+
+class MarketingCardHubGridFillTest(SimpleTestCase):
+    _MKT = _CSS_DIR.parent / "marketing" / "css"
+    # (base_dir, filename, selector) for every marketing hub converted this pass.
+    _HUBS = [
+        (_MKT, "marketing-platform-admissions.css", ".mkt-adm-handoff-grid"),
+        (_MKT, "marketing-platform-admissions.css", ".mkt-adm-roles"),
+        (_MKT, "marketing-platform-analytics.css", ".mkt-analytics-handoff-grid"),
+        (_MKT, "marketing-platform-analytics.css", ".mkt-analytics-roles"),
+        (_MKT, "marketing-platform-fees-payments.css", ".mkt-fees-handoff-grid"),
+        (_MKT, "marketing-platform-fees-payments.css", ".mkt-fees-roles"),
+        (_MKT, "marketing-platform-parent-portal.css", ".mkt-parent-handoff-grid"),
+        (_MKT, "marketing-platform-parent-portal.css", ".mkt-parent-roles"),
+        (_MKT, "marketing-platform-security.css", ".mkt-security-handoff-grid"),
+        (_MKT, "marketing-platform-security.css", ".mkt-security-roles"),
+        (_MKT, "marketing-platform-teacher-portal.css", ".mkt-teacher-handoff-grid"),
+        (_MKT, "marketing-platform-teacher-portal.css", ".mkt-teacher-roles"),
+        (_MKT, "marketing-shell.css", ".marketing-home .mkt-modules-grid"),
+        (_MKT, "marketing-shell.css", ".marketing-home .mkt-ecosystem-grid"),
+        (_CSS_DIR, "marketing-home.css", ".marketing-home .mkt-modules-grid"),
+        (_CSS_DIR, "marketing-home.css", ".marketing-home .mkt-ecosystem-grid"),
+    ]
+
+    def test_all_marketing_hubs_are_auto_fit(self):
+        for base, name, selector in self._HUBS:
+            css = (base / name).read_text(encoding="utf-8")
+            body = _rule_body(css, selector)
+            self.assertIn("auto-fit", body, f"{name} {selector} must be auto-fit")
+            self.assertNotIn("auto-fill", body, f"{name} {selector} still auto-fill")
