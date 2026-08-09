@@ -73,6 +73,13 @@ def propose_match(
     )
 
 
+# Ceiling for a match that has NO individual-discriminator corroboration
+# (only shared family / household signals). Kept just below the migration_cloud
+# auto-link floor (default 0.95) so such a pair falls to review instead of
+# auto-merging two distinct people.
+_NO_INDIVIDUAL_MATCH_CAP = 0.90
+
+
 def deterministic_score(left: dict[str, Any], right: dict[str, Any]) -> float:
     """Cheap deterministic similarity (0..1).
 
@@ -90,6 +97,11 @@ def deterministic_score(left: dict[str, Any], right: dict[str, Any]) -> float:
     fields = ("last_name", "first_name", "middle_name", "date_of_birth", "guardian_phone", "phone", "email")
     weights_map = {"last_name": 0.30, "first_name": 0.25, "middle_name": 0.10,
                    "date_of_birth": 0.20, "guardian_phone": 0.05, "phone": 0.05, "email": 0.05}
+    # Fields that distinguish an INDIVIDUAL within a family / household. A match
+    # here (not just on shared family signals) is required to reach the
+    # auto-link band — see the cap below.
+    individual_fields = ("first_name", "email")
+    individual_match = False
 
     for field in fields:
         l = normalise(left.get(field))
@@ -99,13 +111,28 @@ def deterministic_score(left: dict[str, Any], right: dict[str, Any]) -> float:
         weights += weights_map[field]
         if l == r:
             score += weights_map[field]
+            if field in individual_fields:
+                individual_match = True
         else:
             # Partial credit on first-name overlap and substring matches.
             if field in ("first_name", "last_name") and (l[:3] == r[:3]):
                 score += weights_map[field] * 0.4
+                if field == "first_name":
+                    individual_match = True
     if weights == 0:
         return 0.0
-    return round(score / weights, 3)
+    result = round(score / weights, 3)
+    if not individual_match:
+        # Skipping a blank field shrinks the denominator, so a match on FAMILY /
+        # HOUSEHOLD signals alone (last_name + date_of_birth, or last_name + a
+        # shared guardian_phone) saturated the ratio to 1.0 — but twins share a
+        # surname + birthdate and a household shares a surname + phone, so those
+        # signals do NOT establish the SAME PERSON. Without a matching individual
+        # discriminator (first name or email) the pair must fall to review / AI,
+        # never silently auto-merge two distinct people. Cap below the auto-link
+        # floor (migration_cloud.dedup.autolink_min_score defaults to 0.95).
+        result = min(result, _NO_INDIVIDUAL_MATCH_CAP)
+    return result
 
 
 def _build_prompt(left: dict[str, Any], right: dict[str, Any]) -> str:
