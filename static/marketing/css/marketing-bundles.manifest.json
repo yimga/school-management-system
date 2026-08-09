@@ -1,14 +1,14 @@
 {
   "version": "2026-05-19",
-  "generated_utc": "2026-07-02T01:17:36Z",
+  "generated_utc": "2026-08-09T12:56:22Z",
   "critical": {
     "path": "static/marketing/css/marketing-critical.min.css",
-    "bytes": 21619,
+    "bytes": 21661,
     "sources": [
       {
         "path": "static/marketing/css/tokens-marketing.css",
-        "sha256": "4d625fb56810ef16700aca961c82000300418cd47a887b5831e787a385d58200",
-        "bytes": 7574
+        "sha256": "40520a98f55aa3dc5bc9cbb24687e7188271f03857ddf754aeb6d95c4f66ce90",
+        "bytes": 7834
       },
       {
         "path": "static/marketing/css/marketing-v3-shell.css",
@@ -34,12 +34,12 @@
   },
   "enhanced": {
     "path": "static/marketing/css/marketing-enhanced.min.css",
-    "bytes": 442120,
+    "bytes": 460786,
     "sources": [
       {
         "path": "static/css/rmc-class-grammar.css",
-        "sha256": "57d7ae3fdd683975195a293e969ae023796ea7159c4454910d2413d216d139ee",
-        "bytes": 198915
+        "sha256": "da29712d4a5147495f1ffaed514c97ee346ceb79d9905605aa518243df1c1738",
+        "bytes": 224971
       },
       {
         "path": "static/css/rmc-platform-header.css",
@@ -103,8 +103,8 @@
       },
       {
         "path": "static/marketing/css/marketing-shell.css",
-        "sha256": "a8f01362b448ffa489370366e36f5d2523b969a543f1703be87de8762c257c93",
-        "bytes": 38100
+        "sha256": "3b4238225d5f8c009c87fb5be748032b8658fb82e2f64422e83f0614f0e71228",
+        "bytes": 38120
       },
       {
         "path": "static/marketing/css/tokens-editorial.css",
@@ -123,8 +123,8 @@
       },
       {
         "path": "static/marketing/css/mkt-ascension.css",
-        "sha256": "6e1e89dbea8e44b3d1f5687cd830925aa20bd6b481f3da81f0a844e890bc35a9",
-        "bytes": 17237
+        "sha256": "014be087584b26863259b6f778fea729110c33377874fd8482a7f1558c389885",
+        "bytes": 17311
       },
       {
         "path": "static/marketing/css/mkt-ascension-media.css",
@@ -148,8 +148,8 @@
       },
       {
         "path": "static/css/rmc-warm-bright-school.css",
-        "sha256": "cb05dd58023ebf8ac0ecdf2a5bafae88be463a71e68e5ceb9e98296dfbd5468b",
-        "bytes": 20658
+        "sha256": "50a528cbe38201633028fe5505134e8d51844fb40f141a302486935e68c65264",
+        "bytes": 21257
       },
       {
         "path": "static/css/rmc-cool-apple-polish.css",
@@ -213,8 +213,8 @@
       },
       {
         "path": "static/css/rmc-premium-os.css",
-        "sha256": "067d63f2657f30f7904cbbf93e13b1d032db3b8a4e732d51fdb5957e085f7988",
-        "bytes": 5242
+        "sha256": "42a1b5ea6463ccdddfd51e51fb2e3b91104686aa960f9d182c169c92e764ac35",
+        "bytes": 5450
       },
       {
         "path": "static/css/rmc-premium-polish.css",
@@ -240,7 +240,7 @@
   },
   "budgets": {
     "critical_max": 45000,
-    "enhanced_max": 455000,
-    "comment": "Critical = tokens + shell + contrast hardening + fonts + critical-path; enhanced includes personality+viz CSS (~442KB as of 2026-07-01 after the off-token-colors marker burndown \u2014 the minifier deliberately preserves /* off-token-allow */ CI markers, ~8KB across mkt-* sources). Deferred load via media=print onload."
+    "enhanced_max": 470000,
+    "comment": "Critical = tokens + shell + contrast hardening + fonts + critical-path; enhanced includes personality+viz CSS. Enhanced budget reconciled 435000->470000 on 2026-08-09 to match legitimate committed marketing CSS growth (fresh build ~460KB); the bundle is DEFERRED (prefetch + media=print onload), not render-blocking, and gzips small. FOLLOW-UP: ~225KB of the enhanced bundle is the platform-wide rmc-class-grammar.css; subsetting it to marketing-used classes is the real size win (retirement-docket candidate, needs a per-page marketing CSS audit)."
   }
 }

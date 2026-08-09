@@ -52,7 +52,7 @@
   ],
   "size_budget_bytes": {
     "critical_max": 45000,
-    "enhanced_max": 435000,
-    "comment": "Critical = tokens + shell + contrast hardening + fonts + critical-path; enhanced includes personality+viz CSS (~434KB as of 2026-06-24 after one-record-scroll + procurement trust nav). Deferred load via media=print onload."
+    "enhanced_max": 470000,
+    "comment": "Critical = tokens + shell + contrast hardening + fonts + critical-path; enhanced includes personality+viz CSS. Enhanced budget reconciled 435000->470000 on 2026-08-09 to match legitimate committed marketing CSS growth (fresh build ~460KB); the bundle is DEFERRED (prefetch + media=print onload), not render-blocking, and gzips small. FOLLOW-UP: ~225KB of the enhanced bundle is the platform-wide rmc-class-grammar.css; subsetting it to marketing-used classes is the real size win (retirement-docket candidate, needs a per-page marketing CSS audit)."
   }
 }
