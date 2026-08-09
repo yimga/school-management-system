@@ -799,6 +799,13 @@ def _step_state_for_school(school) -> dict[str, dict[str, Any]]:
         getattr(school, "theme_pack_id", None) or getattr(school, "primary_color", None)
     )
     has_students = StudentProfile.objects.filter(school=school, is_active=True).exists()
+    # data_path is satisfied by real roster data OR an explicit, auditable
+    # "launch with no students yet" waiver — governed empty-tenant activation,
+    # the alternative to fabricating sample records just to flip has_students.
+    from apps.schools.onboarding_waiver import roster_waived as _roster_waived
+
+    roster_waived = _roster_waived(school)
+    data_path_done = has_students or roster_waived
     has_addons = bool(getattr(school, "addons", None))
     has_experience_template = False
     try:
@@ -840,7 +847,11 @@ def _step_state_for_school(school) -> dict[str, dict[str, Any]]:
         else "Starter modules are not selected yet.",
         "data_path": "Active roster exists."
         if has_students
-        else "Students or staff data has not been imported yet.",
+        else (
+            "Launching with no roster yet (waived)."
+            if roster_waived
+            else "Students or staff data has not been imported yet."
+        ),
         "role_preview": (
             "Role previews are ready for operator review."
             if all(
@@ -850,7 +861,7 @@ def _step_state_for_school(school) -> dict[str, dict[str, Any]]:
             else "One or more role previews still need setup work before a clean review."
         ),
         "launch": "Launch blockers are cleared."
-        if has_year and has_plan and has_blueprint and has_branding and has_students
+        if has_year and has_plan and has_blueprint and has_branding and data_path_done
         else "Launch readiness is incomplete.",
     }
     done_map = {
@@ -862,7 +873,7 @@ def _step_state_for_school(school) -> dict[str, dict[str, Any]]:
         "branding": has_branding,
         "select_experience_template": has_experience_template,
         "starter_stack": has_addons,
-        "data_path": has_students,
+        "data_path": data_path_done,
         "role_preview": all(
             item.get("url") and item["url"] != "#" and item.get("status") == "ready"
             for item in role_previews
@@ -871,7 +882,7 @@ def _step_state_for_school(school) -> dict[str, dict[str, Any]]:
         and has_plan
         and has_blueprint
         and has_branding
-        and has_students,
+        and data_path_done,
     }
 
     state: dict[str, dict[str, Any]] = {}
