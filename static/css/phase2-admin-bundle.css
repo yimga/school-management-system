@@ -17,7 +17,7 @@
   .admin-app-index__title { font-size: var(--type-size-headline-m); font-weight: 700; color: var(--admin-text, var(--color-base-900)); margin: 0 0 8px; letter-spacing: -0.02em; } /* theme-locked-allow: manual-review */
   .admin-app-index__subtitle { font-size: var(--type-size-caption); color: var(--admin-muted, var(--color-base-500)); margin-bottom: 24px; line-height: 1.5; } /* theme-locked-allow: manual-review */
   .admin-app-index__grid {
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 16px;
   }
   .admin-app-index__card {
     background: var(--admin-surface, var(--color-base-0)); border: 1px solid var(--admin-border-strong, var(--color-base-200));
@@ -49,7 +49,7 @@ body.admin-manager-shell #content { padding: 0 !important; margin: 0 !important;
   /* v4.02.12: was max-width 960px (stranded ~470px/side on wide screens). The app
      list flows in a responsive grid below, so the index uses the full canvas. */
   .cp-admin-index { padding: 1.5rem; max-width: none; }
-  .cp-admin-app-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr)); gap: 0.5rem; }
+  .cp-admin-app-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: 0.5rem; }
   .cp-admin-index .cp-hero { margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--cp-panel-border, rgba(255,255,255,0.1)); }
   .cp-admin-index .cp-hero-title { font-size: var(--type-size-body-l); font-weight: 700; margin-bottom: 0.35rem; }
   .cp-admin-index .cp-hero-copy { font-size: var(--type-size-caption); color: var(--cp-muted, rgba(255,255,255,0.6)); margin-bottom: 1rem; }

@@ -27,6 +27,14 @@ family as each pass ships.
     home. All genuine link/card hubs (the sibling .mkt-platform-grid was already
     auto-fit — the house style); no fixed-tile image galleries among them. The
     minified marketing-enhanced.min.css is a build artifact and left untouched.
+
+  ADMIN family (stable admin shells only — the peer's active /admin/ v16.x files
+    cp-parity / approval-surface-v15 / django-canvas-contract, the shared .cp-catalog
+    class, and the Unfold .bento-grid are deliberately NOT touched this pass):
+    .admin-app-index__grid, .cp-admin-app-list, .backend-v2-action-grid,
+    .rmc-admin-catalog-model-grid, .rmc-admin-mirror-grid
+    (left as auto-fill on purpose: .backend-v2-chip-row — a pill/chip row where
+     stretching rounded chips full-width reads wrong.)
 """
 
 import re
@@ -149,3 +157,35 @@ class MarketingCardHubGridFillTest(SimpleTestCase):
             body = _rule_body(css, selector)
             self.assertIn("auto-fit", body, f"{name} {selector} must be auto-fit")
             self.assertNotIn("auto-fill", body, f"{name} {selector} still auto-fill")
+
+
+class AdminCardHubGridFillTest(SimpleTestCase):
+    def _read(self, name: str) -> str:
+        return (_CSS_DIR / name).read_text(encoding="utf-8")
+
+    def _assert_auto_fit(self, css: str, selector: str):
+        body = _rule_body(css, selector)
+        self.assertIn("auto-fit", body, f"{selector} must be auto-fit")
+        self.assertNotIn("auto-fill", body, f"{selector} still auto-fill")
+
+    def test_admin_app_index_grids_are_auto_fit(self):
+        css = self._read("phase2-admin-bundle.css")
+        self._assert_auto_fit(css, ".admin-app-index__grid")
+        self._assert_auto_fit(css, ".cp-admin-app-list")
+
+    def test_backend_action_grid_is_auto_fit(self):
+        self._assert_auto_fit(self._read("backend-dashboard-v2.css"), ".backend-v2-action-grid")
+
+    def test_admin_catalog_model_grid_is_auto_fit(self):
+        self._assert_auto_fit(
+            self._read("admin-platform-catalog.css"), ".rmc-admin-catalog-model-grid"
+        )
+
+    def test_admin_mirror_grid_is_auto_fit(self):
+        self._assert_auto_fit(self._read("rmc-admin-mirror.css"), ".rmc-admin-mirror-grid")
+
+    def test_backend_chip_row_keeps_auto_fill_by_design(self):
+        # Pill/chip row: stretching rounded chips full-width reads wrong, so this
+        # deliberately keeps auto-fill. Guard against a blind sweep.
+        body = _rule_body(self._read("backend-dashboard-v2.css"), ".backend-v2-chip-row")
+        self.assertIn("auto-fill", body)

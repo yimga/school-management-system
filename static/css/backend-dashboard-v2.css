@@ -433,7 +433,10 @@ body[data-dashboard-page="backend"] .backend-v2-chip:focus-visible {
 body[data-dashboard-page="backend"] .backend-v2-action-grid {
   margin-top: var(--dash-gap);
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  /* auto-FIT (not auto-fill): a short row of action cards fills the width
+     instead of clustering left. (The .backend-v2-chip-row above stays auto-fill
+     on purpose — stretching pill chips full-width reads wrong.) */
+  grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr));
   gap: var(--dash-gap);
 }
 
