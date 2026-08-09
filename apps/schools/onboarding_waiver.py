@@ -164,6 +164,7 @@ def waive(school, kind: str, *, actor=None, reason: str = "", note: str = "") ->
         _actor_id(actor),
         record.get("reason") or "",
     )
+    _emit_waiver_audit_event(school, kind, STATE_WAIVED, actor, record.get("reason"))
     return record
 
 
@@ -180,4 +181,56 @@ def unwaive(school, kind: str, *, actor=None, reason: str = "") -> dict[str, Any
         getattr(school, "pk", None),
         _actor_id(actor),
     )
+    _emit_waiver_audit_event(school, kind, STATE_ACTIVE, actor, "")
     return record
+
+
+def waive_migration_if_flagged(
+    school, flagged, *, actor=None, reason: str = REASON_NO_LEGACY_DATA
+):
+    """Record a durable migration waiver when ``flagged`` is truthy.
+
+    Convenience for the public-signup path: a user who explicitly chose
+    "we have no data to migrate" (a WAIVE, distinct from "set up later" which is
+    a defer) carries a session flag that is applied once the school exists. A
+    no-op when not flagged; best-effort, never raises into the caller.
+    """
+    try:
+        if not flagged or school is None:
+            return None
+        return waive(school, WAIVER_MIGRATION, actor=actor, reason=reason)
+    except Exception:  # noqa: BLE001 - signup waiver must never block signup
+        logger.warning("waive_migration_if_flagged failed", exc_info=True)
+        return None
+
+
+def _emit_waiver_audit_event(school, kind, state, actor, reason):
+    """Best-effort tamper-evident audit-chain entry for a waiver transition.
+
+    The durable trail lives in the settings ``history`` list; this ALSO appends a
+    hash-chained ``MigrationCloudAuditEvent`` so the decision is forgery-evident
+    alongside the rest of the tenant's migration audit log. Never raises.
+    """
+    try:
+        slug = getattr(school, "slug", None)
+        if not slug:
+            return
+        from apps.migration_cloud.models_audit import (
+            MigrationCloudAuditEvent,
+            MigrationCloudAuditEventType,
+        )
+
+        event_type = (
+            MigrationCloudAuditEventType.ONBOARDING_WAIVER_APPLIED.value
+            if state == STATE_WAIVED
+            else MigrationCloudAuditEventType.ONBOARDING_WAIVER_REVERSED.value
+        )
+        MigrationCloudAuditEvent.objects.record(
+            tenant_slug=slug,
+            event_type=event_type,
+            actor=actor,
+            subject=None,
+            payload_summary={"kind": kind, "state": state, "reason": reason or ""},
+        )
+    except Exception:  # noqa: BLE001 - audit is best-effort; never break the waiver
+        logger.debug("onboarding waiver audit emit skipped", exc_info=True)

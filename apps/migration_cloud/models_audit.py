@@ -429,6 +429,14 @@ class MigrationCloudAuditEventType(models.TextChoices):
         "migration.conflict.resolved",
         "Migration upsert conflict resolved (field-level decision)",
     )
+    ONBOARDING_WAIVER_APPLIED = (
+        "onboarding.waiver.applied",
+        "Onboarding waiver applied (no data to migrate / launch without roster)",
+    )
+    ONBOARDING_WAIVER_REVERSED = (
+        "onboarding.waiver.reversed",
+        "Onboarding waiver reversed (re-opened)",
+    )
 
 
 GENESIS_SENTINEL = "genesis"

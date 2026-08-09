@@ -297,8 +297,39 @@ def reconcile_bundle(
             logger.debug(
                 "migration_cloud.reconcile: source-blob cleanup skipped", exc_info=True
             )
+        _mark_onboarding_migration_completed(bundle)
 
     return report
+
+
+def _mark_onboarding_migration_completed(bundle) -> None:
+    """Write back the public-onboarding migration status so build_school_readiness
+    resolves the "Data migrated" phase after a real reconcile.
+
+    The migrate phase reads ``School.settings["rmc_public_onboarding"]["migration"]
+    ["status"]`` — which the pipeline never wrote back, so a school that opted into
+    a vendor migration saw that phase pending forever even after RECONCILE. Marks
+    it completed. Best-effort; never blocks reconcile.
+    """
+    try:
+        school = getattr(bundle, "school", None)
+        if school is None:
+            return
+        blob = dict(getattr(school, "settings", None) or {})
+        ob = dict(blob.get("rmc_public_onboarding") or {})
+        mig = dict(ob.get("migration") or {})
+        if mig.get("status") == "completed":
+            return
+        mig["status"] = "completed"
+        ob["migration"] = mig
+        blob["rmc_public_onboarding"] = ob
+        school.settings = blob
+        school.save(update_fields=["settings"])
+    except Exception:  # noqa: BLE001 — status write-back never blocks reconcile
+        logger.debug(
+            "migration_cloud.reconcile: onboarding status write-back skipped",
+            exc_info=True,
+        )
 
 
 def _auto_rollback_bundle(*, bundle: MigrationBundle, observed_pct: float, threshold: float) -> None:

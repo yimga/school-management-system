@@ -807,6 +807,15 @@ def signup_school(request: HttpRequest):
             create_kwargs["primary_sector"] = sector[:64]
     school = School.objects.create(**create_kwargs)
 
+    # A public-onboarding user who chose "We have no data to migrate" (a durable
+    # WAIVE, distinct from "set up later" = defer) gets that recorded now that
+    # the school exists. Best-effort; never blocks signup.
+    from apps.schools.onboarding_waiver import waive_migration_if_flagged
+
+    waive_migration_if_flagged(
+        school, request.session.get("onboarding_migration_waived")
+    )
+
     # v4.00.27 (2026-05-29) — persist all selected education cycles to the
     # School.education_system_types M2M so downstream blueprint/form/grade
     # band assignment can iterate every cycle the school covers, not just
@@ -1197,9 +1206,14 @@ def onboarding_wizard(request: HttpRequest):
             # signup_school so verify_signup can route to the handoff page
             # after magic-link activation.
             skip = request.POST.get("skip_migration") in ("1", "true", "on")
+            no_data = request.POST.get("no_data_to_migrate") in ("1", "true", "on")
             chosen_slug = (request.POST.get("vendor_slug") or "").strip().lower()
             chosen = resolve_vendor(chosen_slug) if chosen_slug else None
-            if skip or not chosen:
+            # "No data to migrate" is a durable WAIVE, distinct from "set up
+            # later" (a defer). Both clear the vendor; only no_data records a
+            # durable migration waiver once the school exists (signup_school).
+            session["onboarding_migration_waived"] = bool(no_data)
+            if skip or no_data or not chosen:
                 session["onboarding_migrate_vendor"] = None
                 session["onboarding_migrate_profile"] = None
                 session["onboarding_migrate_source_system"] = None
@@ -1300,6 +1314,9 @@ def onboarding_wizard(request: HttpRequest):
             "onboarding_template_slug": session.get("onboarding_template_slug"),
             "onboarding_pack_slug": session.get("onboarding_pack_slug"),
             "onboarding_sample_data": session.get("onboarding_sample_data", False),
+            "onboarding_migration_waived": session.get(
+                "onboarding_migration_waived", False
+            ),
             "website_import_doc_url": "#",
             "onboarding_import_primary_color": session.get(
                 "onboarding_import_primary_color"

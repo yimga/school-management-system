@@ -182,6 +182,7 @@
                 </p>
                 <div class="d-flex flex-wrap gap-2 align-items-center">
                   <button type="submit" name="skip_migration" value="1" class="btn btn-link p-0 text-decoration-none">{% trans "Set up migration later" %}</button>
+                  <button type="submit" name="no_data_to_migrate" value="1" class="btn btn-link p-0 text-decoration-none">{% trans "We have no data to migrate" %}</button>
                   <a href="{% url 'onboard_wizard' %}?step=2" class="btn btn-outline-secondary">{% trans "Back" %}</a>
                   <button type="submit" id="vendor-continue-btn" class="btn btn-primary"{% if not selected_vendor_slug %} disabled{% endif %}>
                     <span id="vendor-continue-label" data-default-label="{% trans 'Continue' %}">
@@ -203,7 +204,7 @@
             <li><strong>{% trans "Trial" %}:</strong> {% if onboarding_trial %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</li>
             <li><strong>{% trans "Template" %}:</strong> {{ onboarding_template_slug|default:"—" }}</li>
             <li><strong>{% trans "Blueprint pack" %}:</strong> {{ onboarding_pack_slug|default:"—" }}</li>
-            <li><strong>{% trans "Migrate from" %}:</strong> {% if selected_vendor %}{{ selected_vendor.name }}{% else %}{% trans "Set up later" %}{% endif %}</li>
+            <li><strong>{% trans "Migrate from" %}:</strong> {% if selected_vendor %}{{ selected_vendor.name }}{% elif onboarding_migration_waived %}{% trans "No data to migrate" %}{% else %}{% trans "Set up later" %}{% endif %}</li>
             {% if onboarding_correlation_id %}<li class="text-muted"><strong>{% trans "Session ref" %}:</strong> {{ onboarding_correlation_id|truncatechars:14 }}…</li>{% endif %}
           </ul>
           <p class="mb-4">{% trans "You've chosen your region, plan, look, and migration source. Create your account to activate your school—we'll guide your first action on the dashboard." %}</p>
