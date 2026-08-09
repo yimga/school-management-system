@@ -13,6 +13,8 @@ on:
       - "apps/schools/tests/test_trust_compliance_anchors.py"
       - "apps/schools/tests/test_marketing_personality_validation.py"
       - "scripts/marketing_css_bundle_manifest.json"
+      - "static/css/rmc-class-grammar.css"
+      - "scripts/build_marketing_class_grammar_subset.py"
       - "tests/e2e/marketing-*.spec.js"
       - ".github/workflows/marketing-gates.yml"
   workflow_dispatch:
@@ -42,6 +44,7 @@ jobs:
           python scripts/generate_marketing_frontend_defect_log.py --write
           python scripts/verify_marketing_seo_shell.py
           python scripts/verify_marketing_frontend_completion.py
+          python scripts/build_marketing_class_grammar_subset.py --check
           python scripts/verify_marketing_css_bundles_fresh.py
           python scripts/verify_marketing_public_shell.py
           python scripts/verify_marketing_hero_media.py
