@@ -38,6 +38,7 @@ from apps.setup_studio.views_zero_friction import (
     api_recommended_setup,
     api_zero_friction_payload,
 )
+from apps.setup_studio.views_waiver import onboarding_data_options
 
 app_name = "setup_studio"
 
@@ -58,6 +59,7 @@ urlpatterns = [
     path(f"school/studio/wizards/{_WIZARD_PATTERN}/", TenantWizardView.as_view(), name="tenant_wizard"),
     path(f"school/studio/wizards/{_WIZARD_PATTERN}/{_STEP_PATTERN}/", TenantWizardView.as_view(), name="tenant_wizard_step"),
     path(f"school/studio/wizards/{_WIZARD_PATTERN}/reset/", WizardStateResetView.as_view(), name="tenant_wizard_reset"),
+    path("school/studio/data-options/", onboarding_data_options, name="onboarding_data_options"),
 
     # AJAX
     path("api/wizards/ai/recommend/", WizardAIRecommendView.as_view(), name="wizard_ai_recommend"),

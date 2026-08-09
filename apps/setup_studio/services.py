@@ -1166,6 +1166,14 @@ def _build_data_path_choices(
     migrate_url = _account_migration_wizard_link()
     if migrate_url == "#":
         migrate_url = _migration_studio_link()
+    from apps.schools.onboarding_waiver import (
+        migration_waived as _mig_w,
+        roster_waived as _ros_w,
+    )
+
+    migration_waived = _mig_w(school)
+    roster_waived = _ros_w(school)
+    options_url = _safe_reverse("setup_studio:onboarding_data_options")
     return [
         {
             "key": "roster_import",
@@ -1205,6 +1213,16 @@ def _build_data_path_choices(
             "cta_url": _safe_reverse("finance:dashboard"),
             "status": "Ready" if has_plan and has_students else "Needs plan and roster",
             "tone": "progress" if has_plan and has_students else "pending",
+            "recommended": False,
+        },
+        {
+            "key": "start_fresh",
+            "label": "No data to migrate: start fresh",
+            "detail": "Declare this school has no legacy data to import, or launch with no students yet. Both are reversible - start an import anytime.",
+            "cta_label": "Manage data options",
+            "cta_url": options_url,
+            "status": "Waived" if migration_waived or roster_waived else "Optional",
+            "tone": "progress",
             "recommended": False,
         },
     ]

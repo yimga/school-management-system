@@ -1,0 +1,76 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Data options" %} · {{ SITE.site_name|default:"RunMyCampus" }}{% endblock %}
+
+{% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/next_action_strip.html" %}
+
+<main class="container py-4 rmc-page" id="main">
+  <header class="mb-4">
+    <h1 class="h2 mb-1 mt-2">{% trans "No data to migrate?" %}</h1>
+    <p class="text-secondary mb-0">
+      {% trans "If this school is starting fresh, you can waive data migration and launch without a legacy import. Every choice here is reversible, so you can start an import at any time." %}
+    </p>
+  </header>
+
+  <div data-rmc-scroll-policy="paginate" class="card mb-4">
+    <div class="card-body">
+      <h2 class="h5 mb-2">{% trans "Data migration" %}</h2>
+      {% if migration_waived %}
+        <p class="mb-3">
+          <span class="badge bg-success-subtle text-success-emphasis">{% trans "Waived" %}</span>
+          {% trans "This school has declared it has no legacy data to import." %}
+        </p>
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="kind" value="migration">
+          <input type="hidden" name="action" value="unwaive">
+          <button type="submit" class="btn btn-outline-secondary">{% trans "Actually, we do have data to import" %}</button>
+        </form>
+      {% else %}
+        <p class="mb-3">
+          {% trans "Choose this only if you have no records to import from another system. Your migration step and its reminders will be cleared." %}
+        </p>
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="kind" value="migration">
+          <input type="hidden" name="action" value="waive">
+          <button type="submit" class="btn btn-primary">{% trans "We have no data to migrate" %}</button>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+
+  <div data-rmc-scroll-policy="paginate" class="card">
+    <div class="card-body">
+      <h2 class="h5 mb-2">{% trans "Launch with no students yet" %}</h2>
+      {% if roster_waived %}
+        <p class="mb-3">
+          <span class="badge bg-success-subtle text-success-emphasis">{% trans "Waived" %}</span>
+          {% trans "This school is set to launch with no roster yet. You can add students at any time." %}
+        </p>
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="kind" value="roster">
+          <input type="hidden" name="action" value="unwaive">
+          <button type="submit" class="btn btn-outline-secondary">{% trans "Require a roster before launch" %}</button>
+        </form>
+      {% else %}
+        <p class="mb-3">
+          {% trans "Launch now with an empty roster and add your students in-product later. This clears the launch blocker for the data step." %}
+        </p>
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="kind" value="roster">
+          <input type="hidden" name="action" value="waive">
+          <button type="submit" class="btn btn-outline-primary">{% trans "Launch with no students yet" %}</button>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+</main>
+{% endblock %}
