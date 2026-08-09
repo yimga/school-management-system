@@ -146,6 +146,16 @@ def build_school_readiness(school, *, user: Any = None) -> dict[str, Any]:
     except (AttributeError, TypeError, ValueError):
         migration_intent = False
         migration_status = "not_started"
+    # A migration waiver ("we have no data to migrate") resolves the migrate
+    # phase without a vendor ever completing an import, so it no longer shows as
+    # perpetually pending. See apps/schools/onboarding_waiver.
+    migration_waived = False
+    try:
+        from apps.schools.onboarding_waiver import migration_waived as _mig_waived
+
+        migration_waived = _mig_waived(school)
+    except Exception:  # noqa: BLE001 - waiver read must never break the meter
+        migration_waived = False
     try:
         from apps.setup_studio.models import SetupProgress
 
@@ -160,8 +170,13 @@ def build_school_readiness(school, *, user: Any = None) -> dict[str, Any]:
                 phase["done"] = True
                 phase["detail"] = str(_("Daily operations"))
 
-    if migration_intent and not has_launched:
-        migration_done = migration_status in {"completed", "verified", "imported", "succeeded"}
+    if (migration_intent or migration_waived) and not has_launched:
+        migration_done = migration_waived or migration_status in {
+            "completed",
+            "verified",
+            "imported",
+            "succeeded",
+        }
         migration_detail = {
             "not_started": str(_("Choose vendor & export")),
             "in_progress": str(_("Companion ingest in progress")),
@@ -171,6 +186,8 @@ def build_school_readiness(school, *, user: Any = None) -> dict[str, Any]:
             "imported": str(_("Data imported")),
             "succeeded": str(_("Migration complete")),
         }.get(migration_status, migration_status.replace("_", " "))
+        if migration_waived:
+            migration_detail = str(_("Not needed (no data to migrate)"))
         phases.insert(
             3,
             {
