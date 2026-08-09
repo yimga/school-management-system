@@ -19,6 +19,12 @@
 <div class="rmc-tenant-exception-task container-fluid py-2 rmc-max-suppress-meta-option-a rmc-tenant-ops rmc-finance-canvas" data-rmc-tenant-ops-build="2026-08-01-v1.1" data-rmc-tenant-exception-task="1" data-rmc-page-fold-nav="required" data-page-archetype="money" data-rmc-os-center="money_center" data-rmc-ux-role-dashboard="finance-workspace" data-apple-class-billing-ux="1" data-rmc-scroll-policy="paginate" data-rmc-work-root="1" data-rmc-static-chrome="1">
 {% phase8_dashboard_declaration "finance/dashboard.html" %}
 {% include "partials/finance_glocal_strip.html" %}
+{# Operational-center OS page-header (restored 2026-08-09): this money workspace declares data-rmc-os-center="money_center", so it carries the canonical OS header like every sibling center. The masthead below stays the money-desk command band (finance dashboard consolidation contract). #}
+{% trans "Finance" as money_eyebrow %}
+{% trans "Fees, payments, settlement, and reconciliation — your school's money operations." as money_purpose %}
+{% firstof center_eyebrow money_eyebrow as money_frame_eyebrow %}
+{% firstof center_purpose money_purpose as money_frame_purpose %}
+{% include "components/rmc_os_page_header.html" with os_center_key="money_center" center_eyebrow=money_frame_eyebrow center_title=center_title|default:_("Money Center") center_purpose=money_frame_purpose %}
 {% include "components/rmc_page_masthead.html" %}
 {% if show_module_inline_help_assistant and show_kb_ai_assistant_panel %}
 {% include "partials/help_module_inline_assistant.html" %}

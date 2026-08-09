@@ -23,6 +23,12 @@
   {% firstof center_eyebrow fin_eyebrow as frame_eyebrow %}
   {% firstof center_purpose pay_purpose as frame_purpose %}
   {% firstof status_badge_text readiness_display_label "" as frame_badge %}
+  {# OS page-header + primary action for the payment_readiness operational center (restored 2026-08-09); the frame below keeps the nav pills / jump toolbar. #}
+  {% trans "Review payment readiness" as pr_primary_default %}
+  {% firstof primary_cta_url payment_money_url as pr_primary_url %}
+  {% firstof primary_cta_label pr_primary_default as pr_primary_label %}
+  {% include "components/rmc_os_page_header.html" with os_center_key="payment_readiness" center_eyebrow=frame_eyebrow center_title=center_title|default:_("Payment Readiness Center") center_purpose=frame_purpose status_badge_text=frame_badge status_badge_variant=status_badge_class %}
+  {% include "components/rmc_os_action_bar.html" with primary_url=pr_primary_url primary_label=pr_primary_label primary_data_action="payment-readiness-primary" primary_task="payment_readiness" primary_step="finance:payment-readiness" %}
   {% include "components/rmc_operational_center_frame.html" with tenant_surface="1" hide_nav_detail="1" os_center_key="payment_readiness" center_eyebrow=frame_eyebrow center_title=center_title|default:_("Payment Readiness Center") center_purpose=frame_purpose status_badge_text=frame_badge status_badge_variant=status_badge_class primary_url=primary_cta_url primary_label=primary_cta_label secondary_url=payment_money_url secondary_label=_("Open Money Center") jump_a_id="payment-next-action" jump_a_label=_("Next action") jump_b_id="gateway-health" jump_b_label=_("Gateway health") jump_c_id="psp-matrix" jump_c_label=_("PSP matrix") nav_groups=operational_nav_groups %}
   {% include "components/rmc_os_status_strip.html" with strip_items=os_strip_items %}
   {% if readiness.subhead %}<p class="text-muted small mb-3">{{ readiness.subhead }}</p>{% endif %}
