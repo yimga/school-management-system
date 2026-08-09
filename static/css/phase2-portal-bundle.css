@@ -1000,7 +1000,10 @@ html[data-resolved-theme="dark"] .tenant-app-catalog-wrap .proof-app-card .text-
 
   .children-grid:not(.row) {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    /* auto-FIT (not auto-fill): a parent with one or two children sees the
+       cards fill the width instead of clustering left with a wasted empty
+       column; min(...,100%) guards a lone card on a narrow viewport. */
+    grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
     gap: 1.35rem;
   }
 

@@ -2122,14 +2122,15 @@ html[data-bs-theme="dark"] .dashboard-empty-message {
 .contextual-action-copy { display: grid; gap: 0.1rem; min-width: 0; }
 .contextual-action-title { font-size: var(--type-size-body); font-weight: 600; }
 .contextual-action-reason { color: var(--text-secondary, var(--bs-secondary-color)); }
-.quick-actions-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1px; background: var(--surface-elevated, var(--color-base-200)); }
+/* auto-FIT (not auto-fill): a short row of quick actions fills the canvas width instead of clustering left with a wasted empty column; min(...,100%) guards a lone item on a narrow viewport. */
+.quick-actions-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr)); gap: 1px; background: var(--surface-elevated, var(--color-base-200)); }
 .quick-action-item { display: flex; align-items: center; gap: 12px; padding: 16px; background: var(--admin-content-bg); text-decoration: none; color: inherit; transition: all 0.2s ease; border: none; }
 .quick-action-item:hover { background: var(--surface-elevated, var(--color-base-50)); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); text-decoration: none; color: inherit; }
 .quick-action-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: var(--type-size-body-l); color: white; flex-shrink: 0; }
 .quick-action-content { flex: 1; min-width: 0; }
 .quick-action-title { font-weight: 600; font-size: var(--type-size-body); color: var(--text-primary, var(--color-base-800)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } /* theme-locked-allow: manual-review */
 .quick-action-desc { font-size: var(--type-size-eyebrow); color: var(--text-secondary, var(--color-base-500)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } /* theme-locked-allow: manual-review */
-@media (max-width: 768px) { .quick-actions-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); } .quick-action-item { padding: 12px; } .quick-action-icon { width: 40px; height: 40px; font-size: var(--type-size-body-l); } .contextual-featured-action { flex-direction: column; } }
+@media (max-width: 768px) { .quick-actions-grid { grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr)); } .quick-action-item { padding: 12px; } .quick-action-icon { width: 40px; height: 40px; font-size: var(--type-size-body-l); } .contextual-featured-action { flex-direction: column; } }
 
 /* --- from templates/components/recent_activity.html --- */
 .activity-list {

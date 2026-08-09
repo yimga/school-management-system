@@ -14,6 +14,12 @@ family as each pass ships.
 
   WIZARD family (tenant-facing setup / onboarding flows):
     .rmc-wz-grid, .rmc-wizard-index-grid, .rmc-wizard-zf-domain-grid, .ovendor-grid
+
+  PORTAL family (tenant home / parent / teacher surfaces):
+    .quick-actions-grid, .children-grid:not(.row), .rmc-preview-live-class-grid,
+    .rmc-security-hub-grid
+    (left as auto-fill on purpose: .rmc-social-moderation — an image-tile gallery
+     where a lone tile stretched full-width would balloon the image.)
 """
 
 import re
@@ -70,3 +76,39 @@ class WizardCardHubGridFillTest(SimpleTestCase):
         css = self._read("onboarding-migration.css")
         body = _rule_body(css, ".ovendor-grid", occurrence=2)
         self.assertIn("repeat(4,", body)
+
+
+class PortalCardHubGridFillTest(SimpleTestCase):
+    def _read(self, name: str) -> str:
+        return (_CSS_DIR / name).read_text(encoding="utf-8")
+
+    def _assert_auto_fit(self, css: str, selector: str, *, occurrence: int = 0):
+        body = _rule_body(css, selector, occurrence=occurrence)
+        self.assertIn("auto-fit", body, f"{selector} (occ {occurrence}) must be auto-fit")
+        self.assertNotIn("auto-fill", body, f"{selector} (occ {occurrence}) still auto-fill")
+
+    def test_quick_actions_grid_is_auto_fit_both_breakpoints(self):
+        css = self._read("portal-ui-components.css")
+        # base rule + the max-width:768px override
+        self._assert_auto_fit(css, ".quick-actions-grid", occurrence=0)
+        self._assert_auto_fit(css, ".quick-actions-grid", occurrence=1)
+
+    def test_parent_children_grid_is_auto_fit(self):
+        self._assert_auto_fit(
+            self._read("phase2-portal-bundle.css"), ".children-grid:not(.row)"
+        )
+
+    def test_teacher_preview_class_grid_is_auto_fit(self):
+        self._assert_auto_fit(
+            self._read("rmc-tenant-preview-live-bridge.css"),
+            ".rmc-preview-live-class-grid",
+        )
+
+    def test_security_hub_grid_is_auto_fit(self):
+        self._assert_auto_fit(self._read("rmc-mfa-checkpoint.css"), ".rmc-security-hub-grid")
+
+    def test_social_moderation_gallery_keeps_auto_fill_by_design(self):
+        # Image-tile gallery: a lone tile stretched full-width would balloon the
+        # image, so this deliberately keeps auto-fill. Guard against a blind sweep.
+        body = _rule_body(self._read("rmc-social-feed.css"), ".rmc-social-moderation")
+        self.assertIn("auto-fill", body)

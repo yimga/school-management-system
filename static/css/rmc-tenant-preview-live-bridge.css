@@ -246,7 +246,10 @@ body.tp-v3-role-home .rmc-preview-live-section__body,
 body.tp-v3-role-home .rmc-preview-live-class-grid,
 [data-rmc-preview-live-teacher="1"] .rmc-preview-live-class-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  /* auto-FIT (not auto-fill): a teacher with a few classes sees the cards fill
+     the width instead of clustering left with a wasted empty column;
+     min(...,100%) guards a lone card on a narrow viewport. */
+  grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
   gap: 10px;
 }
 
