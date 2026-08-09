@@ -50,6 +50,13 @@ class ConfigureHubLayoutTests(TestCase):
         self.assertIn('data-page-archetype="settings-hub"', html)
         self.assertIn('data-rmc-static-chrome="1"', html)
         self.assertNotIn("rmc-settings-section rmc-reveal", html)
+        # A category renders exactly one section IFF it has at least one entry
+        # whose URL resolves on THIS host. The `setup` category's routes live only
+        # in config.tenant_urls, so under the default config.urls they resolve to
+        # None and the whole category is (correctly) dropped. The sibling
+        # test_every_entry_resolves_on_tenant_host proves nothing drops on the
+        # tenant host it actually renders under.
         for cat in _build_catalog():
-            self.assertEqual(html.count(f'id="cat-{cat.slug}"'), 1)
+            expected = 1 if any(e.url for e in cat.entries) else 0
+            self.assertEqual(html.count(f'id="cat-{cat.slug}"'), expected)
         self.assertNotIn("rmc-flow-launchpad", html)

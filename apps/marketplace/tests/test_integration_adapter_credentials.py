@@ -184,9 +184,16 @@ class IntegrationCredentialEditorTests(TestCase):
         request = factory.get("/finance/integration-credentials/")
         request.user = user
         request.school = school
+        # The credential editor is behind @require_step_up() (sensitive finance
+        # action). A RequestFactory request has no verified step-up, so the view
+        # 302s to the step-up gate. This test targets the editor's rendering, not
+        # the step-up flow (covered elsewhere) — treat elevation as satisfied.
         with patch(
             "apps.finance.views_marketplace_integration_credentials._active_profile",
             return_value=profile,
+        ), patch(
+            "apps.accounts.step_up.has_recent_step_up",
+            return_value=True,
         ):
             response = marketplace_integration_credentials(request)
         self.assertEqual(response.status_code, 200)
