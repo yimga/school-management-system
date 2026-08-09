@@ -44,7 +44,20 @@ class LaunchOverviewBodyPartialTests(SimpleTestCase):
                 "launch_payload": {
                     "health_score": 42,
                     "launch_ready": False,
-                    "launch_blockers": ["staff"],
+                    # Real shape: get_setup_studio_payload / _score build blockers
+                    # as dicts (key/label/detail/link/cta_label), stored in a
+                    # JSONField and consumed dict-wise by the partial + auto_repair.
+                    # The old ["staff"] string form predates that and no real path
+                    # produces it.
+                    "launch_blockers": [
+                        {
+                            "key": "staff",
+                            "label": "Add teaching staff",
+                            "detail": "No staff accounts yet.",
+                            "link": "/authentication/backend/",
+                            "cta_label": "Resolve",
+                        }
+                    ],
                     "health_summary": {
                         "tone": "progress",
                         "label": "In progress",
