@@ -29,7 +29,7 @@ from typing import Any, Iterator
 
 from apps.migration_cloud import defaults as mc_defaults
 from apps.migration_cloud.models import IntakeMethod
-from apps.migration_cloud.pdf_extract import extract_pdf_text, tabularise
+from apps.migration_cloud.pdf_extract import extract_pdf_text_with_meta, tabularise
 
 from .base import (
     ArtifactPayload,
@@ -64,13 +64,31 @@ class PdfIntakeAdapter(IntakeAdapter):
         max_bytes = int(mc_defaults.get("migration_cloud.intake.max_artifact_bytes"))
         for path, opts in _iter_handle(handle):
             ocr_pref = bool(opts.get("ocr"))
-            text = extract_pdf_text(path, force_ocr=ocr_pref)
+            text, meta = extract_pdf_text_with_meta(path, force_ocr=ocr_pref)
             if not text.strip():
                 raise IntakeError(
                     f"PDF {path.name} produced no extractable text. "
                     "Install pdfplumber (digital PDFs) or pytesseract + "
                     "Tesseract + Poppler binaries (scanned PDFs) for OCR support."
                 )
+            # OCR always-on: a scanned PDF that OCR'd to too few / low-confidence
+            # characters must NOT silently land as garbage rows. Route it to the
+            # needs-review lane (refuse + explain via the existing confidence
+            # thresholds) so the operator corrects / re-scans it or imports the
+            # data another way. Digitally-extracted PDFs skip this gate entirely.
+            if meta.get("used_ocr"):
+                from apps.migration_cloud.tier3 import ocr_confidence_warning
+
+                warning = ocr_confidence_warning(
+                    ocr_chars=int(meta.get("char_count") or 0),
+                    vendor_confidence=meta.get("ocr_confidence"),
+                )
+                if warning:
+                    raise IntakeError(
+                        f"{warning} This scanned PDF ({path.name}) was OCR'd but "
+                        "needs manual review before import — correct or re-scan it, "
+                        "or import the data another way."
+                    )
             tsv_bytes = tabularise(text).encode("utf-8")
             if len(tsv_bytes) > max_bytes:
                 raise IntakeError(

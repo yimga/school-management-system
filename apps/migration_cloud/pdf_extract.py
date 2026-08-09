@@ -101,6 +101,40 @@ def extract_pdf_text(source: PdfSource, *, force_ocr: bool = False) -> str:
     return _try_ocr(data)
 
 
+def extract_pdf_text_with_meta(
+    source: PdfSource, *, force_ocr: bool = False
+) -> tuple[str, dict[str, Any]]:
+    """Like :func:`extract_pdf_text` but also reports extraction metadata.
+
+    Returns ``(text, meta)`` where ``meta`` carries ``used_ocr`` (bool),
+    ``char_count`` (int, stripped) and ``ocr_confidence`` (``0..1`` | ``None``).
+    Digital extraction reports ``used_ocr=False`` / ``ocr_confidence=None``; only
+    the scanned-PDF OCR fall-through carries a confidence, which the PDF intake
+    adapter feeds to :func:`apps.migration_cloud.tier3.ocr_confidence_warning` to
+    route a low-confidence result into the needs-review lane instead of landing
+    garbage rows. The plain :func:`extract_pdf_text` is left untouched so the
+    connectionless FILE_UPLOAD profiler path is unchanged.
+    """
+    data = _as_bytes(source)
+    if not data:
+        return "", {"used_ocr": False, "char_count": 0, "ocr_confidence": None}
+    if not force_ocr:
+        for extractor in (_try_pdfplumber, _try_pypdf):
+            text = extractor(data)
+            if text.strip():
+                return text, {
+                    "used_ocr": False,
+                    "char_count": len(text.strip()),
+                    "ocr_confidence": None,
+                }
+    text, confidence = _try_ocr_with_confidence(data)
+    return text, {
+        "used_ocr": True,
+        "char_count": len(text.strip()),
+        "ocr_confidence": confidence,
+    }
+
+
 def _try_pdfplumber(data: bytes) -> str:
     try:
         import pdfplumber  # type: ignore[import-not-found]
@@ -168,23 +202,26 @@ def _ocr_paths() -> tuple[str | None, str | None, str | None]:
     return tess, poppler, tessdata
 
 
-def _try_ocr(data: bytes) -> str:
-    """OCR fallback — needs Tesseract + Poppler system binaries.
+def _ocr_render_pages(data: bytes) -> list | None:
+    """Render a PDF's pages to images for OCR, or ``None`` when OCR is unavailable.
 
     Disabled unless ``RMC_OCR_ENABLED=1``, so stock deploys behave exactly as
-    before (scanned PDFs degrade to ""). When enabled, the binaries are located
-    via :func:`_ocr_paths` (explicit env vars or the ``.ocr-env`` prefix that
-    ``build.sh`` vendors). ``pdf2image`` renders pages from a *path*, so the
-    bytes are spilled to a short-lived temp file. Absent binaries / libs → ``""``
-    (graceful — never a 500).
+    before (returns ``None`` → callers degrade to ""). When enabled, the binaries
+    are located via :func:`_ocr_paths` (explicit env vars or the ``.ocr-env``
+    prefix that ``build.sh`` vendors) and pytesseract is pointed at them.
+    ``pdf2image`` renders pages from a *path*, so the bytes are spilled to a
+    short-lived temp file. Absent binaries / libs / render failure → ``None``
+    (graceful — never a 500). Shared by :func:`_try_ocr` and
+    :func:`_try_ocr_with_confidence` so the render + binary-resolution logic
+    never drifts between the text-only and confidence-scored paths.
     """
     if os.environ.get("RMC_OCR_ENABLED", "0") != "1":
-        return ""
+        return None
     try:
         import pytesseract  # type: ignore[import-not-found]
         from pdf2image import convert_from_path  # type: ignore[import-not-found]
     except Exception:  # noqa: BLE001
-        return ""
+        return None
     tess_cmd, poppler_path, tessdata_prefix = _ocr_paths()
     if tess_cmd:
         try:
@@ -202,18 +239,74 @@ def _try_ocr(data: bytes) -> str:
         if poppler_path:
             convert_kwargs["poppler_path"] = poppler_path
         try:
-            pages = convert_from_path(str(tmp), **convert_kwargs)
+            return convert_from_path(str(tmp), **convert_kwargs)
         except Exception:  # noqa: BLE001
-            return ""
-        out: list[str] = []
-        for img in pages:
-            try:
-                out.append(pytesseract.image_to_string(img))
-            except Exception:  # noqa: BLE001
-                continue
-        return "\n".join(out)
+            return None
     finally:
         tmp.unlink(missing_ok=True)
+
+
+def _try_ocr(data: bytes) -> str:
+    """OCR fallback text — needs Tesseract + Poppler system binaries.
+
+    See :func:`_ocr_render_pages` for the ``RMC_OCR_ENABLED`` deploy gate and
+    binary resolution. Absent binaries / libs → ``""`` (graceful — never a 500).
+    """
+    pages = _ocr_render_pages(data)
+    if not pages:
+        return ""
+    try:
+        import pytesseract  # type: ignore[import-not-found]
+    except Exception:  # noqa: BLE001
+        return ""
+    out: list[str] = []
+    for img in pages:
+        try:
+            out.append(pytesseract.image_to_string(img))
+        except Exception:  # noqa: BLE001
+            continue
+    return "\n".join(out)
+
+
+def _try_ocr_with_confidence(data: bytes) -> tuple[str, float | None]:
+    """OCR fallback returning ``(text, mean_word_confidence)``.
+
+    Confidence is the mean of Tesseract's per-word ``conf`` values (via
+    ``image_to_data``) normalised to ``0..1``; ``None`` when OCR did not run or
+    produced no scored words. Powers the low-confidence "needs review" gate in
+    the PDF intake adapter — a scanned page that OCRs to a handful of uncertain
+    characters should not silently land as rows. Same deploy gate + graceful
+    degradation as :func:`_try_ocr`.
+    """
+    pages = _ocr_render_pages(data)
+    if not pages:
+        return "", None
+    try:
+        import pytesseract  # type: ignore[import-not-found]
+    except Exception:  # noqa: BLE001
+        return "", None
+    text_out: list[str] = []
+    confs: list[float] = []
+    for img in pages:
+        try:
+            text_out.append(pytesseract.image_to_string(img))
+        except Exception:  # noqa: BLE001
+            pass
+        try:
+            page_data = pytesseract.image_to_data(
+                img, output_type=pytesseract.Output.DICT
+            )
+        except Exception:  # noqa: BLE001
+            continue
+        for raw in page_data.get("conf", []) or []:
+            try:
+                val = float(raw)
+            except (TypeError, ValueError):
+                continue
+            if val >= 0:  # Tesseract marks non-text boxes with -1
+                confs.append(val)
+    mean_conf = (sum(confs) / len(confs) / 100.0) if confs else None
+    return "\n".join(text_out), mean_conf
 
 
 # --- Tabularisation -------------------------------------------------------
