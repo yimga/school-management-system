@@ -214,6 +214,16 @@ class Command(BaseCommand):
                 },
             )
 
+            # Re-anchor the surviving chain from a new genesis. The DELETE removed
+            # a PREFIX of this tenant's hash chain, so the first surviving event's
+            # prev_event_hash pointed at a now-purged event -> verify_audit_chain
+            # would report BROKEN forever, indistinguishable from tamper (and
+            # --repair-genesis only fixes an EMPTY prev, not a stale non-empty one).
+            # Re-hash the survivors (incl. the meta-event just recorded) so the
+            # chain verifies from the purge boundary forward. Same raw-SQL bypass
+            # of the append-only save() guard as the DELETE; one atomic unit.
+            relinked = self._reanchor_surviving_chain(tenant_hash)
+
         logger.info(
             "migration_cloud.audit_retention_purge_applied "
             "tenant_hash_prefix=%s rows_purged=%s cutoff=%s",
@@ -222,12 +232,80 @@ class Command(BaseCommand):
 
         self.stdout.write(
             f"purge_audit_events_pre_approved: APPLIED rows_purged="
-            f"{deleted_via_cursor} meta_event_recorded=1"
+            f"{deleted_via_cursor} meta_event_recorded=1 chain_relinked={relinked}"
         )
 
     # ------------------------------------------------------------------
     # Helpers
     # ------------------------------------------------------------------
+
+    def _reanchor_surviving_chain(self, tenant_hash: str) -> int:
+        """Re-link the surviving events into a valid chain from a new genesis.
+
+        Returns the number of events re-hashed. Raw-SQL UPDATE (the append-only
+        ``save()`` guard forbids mutation; this command already bypasses it for
+        the DELETE). ``compute_root_signature`` re-signs over the new pre-image
+        when a signing key is configured (None/unsigned otherwise); an HSM-only
+        backend raising NotImplementedError propagates rather than silently
+        unsigning, matching the model's write-path posture.
+        """
+        from apps.migration_cloud.models_audit import (
+            GENESIS_SENTINEL,
+            _compute_integrity_hash,
+        )
+
+        survivors = list(
+            MigrationCloudAuditEvent.objects.filter(  # tenant-isolation-allow: re-anchor scoped to the purged tenant_id_hash
+                tenant_id_hash=tenant_hash,
+            ).order_by("created_at", "id")
+        )
+        prev = GENESIS_SENTINEL
+        relinked = 0
+        for ev in survivors:
+            new_integrity = _compute_integrity_hash(
+                pk=str(ev.id),
+                tenant_id_hash=ev.tenant_id_hash,
+                event_type=ev.event_type,
+                actor_id=ev.actor_id,
+                event_subject_hash=ev.event_subject_hash,
+                payload_summary=ev.payload_summary or {},
+                created_at_iso=ev.created_at_iso,
+                prev_event_hash=prev,
+            )
+            ev.prev_event_hash = prev
+            ev.integrity_hash = new_integrity
+            new_sig = self._root_signature_or_none(ev)
+            # ORM .update() (NOT raw SQL / .save()): it bypasses the append-only
+            # save() guard the same way, but adapts the UUID pk correctly — a raw
+            # "WHERE id=%s" with str(uuid) does NOT match the undashed form SQLite
+            # stores, so it would silently update zero rows.
+            MigrationCloudAuditEvent.objects.filter(  # tenant-isolation-allow: re-anchor a single surviving event by pk within the purged tenant
+                pk=ev.pk,
+            ).update(
+                prev_event_hash=prev,
+                integrity_hash=new_integrity,
+                root_key_signature=new_sig,
+            )
+            prev = new_integrity
+            relinked += 1
+        return relinked
+
+    @staticmethod
+    def _root_signature_or_none(ev):
+        try:
+            from apps.migration_cloud.services.audit_root_signing import (
+                compute_root_signature,
+            )
+
+            return compute_root_signature(ev)
+        except NotImplementedError:
+            raise  # HSM-reserved backend — never silently unsign
+        except Exception:  # noqa: BLE001 — non-HSM signing failure -> unsigned + WARN
+            logger.warning(
+                "migration_cloud.audit_retention_purge: root signature recompute "
+                "failed for an event; leaving it unsigned",
+            )
+            return None
 
     def _parse_cutoff(self, raw: str) -> _dt.datetime:
         """Accept date-only or ISO-8601 datetime; return tz-aware UTC."""
