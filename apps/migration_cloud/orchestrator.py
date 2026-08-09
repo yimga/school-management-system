@@ -448,19 +448,36 @@ def _maybe_check_financial_guardrail(
 
 
 def _rollback_all_runs(outcomes: list["ArtifactApplyOutcome"]) -> None:
-    """Roll back every MigrationRun produced by this apply (best-effort)."""
+    """Roll back every MigrationRun produced by this apply, CHILD-FIRST.
+
+    Runs are rolled back most-recent-first (``order_by("-started_at")``) — the
+    REVERSE of the dependency-wave order they applied in. This is load-bearing:
+    later-wave rows PROTECT earlier-wave rows (``Evaluation.student`` /
+    ``Evaluation.teacher`` are ``on_delete=PROTECT``), so deleting a wave-1
+    student BEFORE its wave-3 grades raises ``IntegrityError`` — that student's
+    rollback is marked FAILED and swallowed while the grades roll back
+    afterwards, leaving the student/teacher ORPHANED and live though the bundle
+    reads FAILED. Iterating ``outcomes`` in append (wave) order did exactly this.
+    Rolling back child rows first (grades before students) is the only safe
+    order; ``connector_rollback`` / ``reconciliation`` auto-rollback get it
+    implicitly via ``MigrationRun.Meta.ordering`` — here it is explicit.
+    """
     try:
         from apps.automation.models import MigrationRun
     except ImportError:
         return
-    for o in outcomes:
-        if not o.migration_run_id:
-            continue
+    run_ids = [o.migration_run_id for o in outcomes if o.migration_run_id]
+    if not run_ids:
+        return
+    # tenant-isolation-allow: PK-set lookup by internal run ids from this apply
+    runs = list(MigrationRun.objects.filter(pk__in=run_ids).order_by("-started_at"))
+    for run in runs:
         try:
-            run = MigrationRun.objects.get(pk=o.migration_run_id)  # tenant-isolation-allow: PK lookup by internal run id
             run.trigger_rollback(user=None)
         except Exception:  # noqa: BLE001
-            logger.debug("orchestrator: rollback failed for run %s", o.migration_run_id, exc_info=True)
+            logger.debug(
+                "orchestrator: rollback failed for run %s", run.pk, exc_info=True,
+            )
 
 
 # --- Dependency-DAG wave partitioning ------------------------------------
