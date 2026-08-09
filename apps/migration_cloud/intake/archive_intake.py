@@ -48,6 +48,29 @@ logger = logging.getLogger(__name__)
 _READ_CHUNK = 1024 * 1024  # 1 MiB
 _XLSX_SUFFIXES = (".xlsx", ".xlsm", ".xls")
 
+
+def _read_member_capped(stream, cap: int, member_name: str) -> bytes:
+    """Read an archive member fully but refuse to inflate past ``cap`` bytes.
+
+    A workbook member has to be read whole (the workbook readers need all the
+    bytes), but a member that under-declares its size in the zip central
+    directory would otherwise inflate unbounded here and OOM the worker. Cap the
+    in-memory read exactly like the raw-member streaming path, raising
+    ``IntakeError`` (a cap violation, NOT a skippable member error) on breach.
+    """
+    buf = bytearray()
+    while True:
+        chunk = stream.read(_READ_CHUNK)
+        if not chunk:
+            break
+        buf += chunk
+        if len(buf) > cap:
+            raise IntakeError(
+                f"Member {member_name} inflated past the artifact cap "
+                f"({cap:,} bytes) mid-read — refusing a potential decompression bomb."
+            )
+    return bytes(buf)
+
 # Per-member read failures that quarantine the ONE member instead of failing the
 # whole bundle: encrypted / password-protected zip members raise stdlib
 # RuntimeError (NotImplementedError, its subclass, covers unsupported
@@ -117,7 +140,14 @@ class ArchiveIntakeAdapter(IntakeAdapter):
                 # through to the raw-member path below.
                 if member_name.lower().endswith(_XLSX_SUFFIXES):
                     with opener() as stream:
-                        data = stream.read()
+                        # Bomb guard: the pre-yield check trusts the archive's
+                        # DECLARED member size; a workbook member that
+                        # under-declares (zip central-directory lie) would inflate
+                        # unbounded on a plain stream.read(). Cap the in-memory
+                        # read like the raw-member path below does.
+                        data = _read_member_capped(
+                            stream, max_artifact_bytes, member_name,
+                        )
                     sheets = explode_workbook(data)
                     if len(sheets) >= 2:
                         for payload in _sheet_member_payloads(

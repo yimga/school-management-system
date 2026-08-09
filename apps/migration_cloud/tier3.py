@@ -333,7 +333,7 @@ def _csv_dump(qs, fields: list[str]) -> str:
     writer = csv.writer(buf)
     writer.writerow(fields)
     for obj in qs.iterator():
-        writer.writerow([_str(getattr(obj, f, "")) for f in fields])
+        writer.writerow([_csv_safe(getattr(obj, f, "")) for f in fields])
     return buf.getvalue()
 
 
@@ -343,7 +343,7 @@ def _csv_dump_rows(rows: list[dict], fields: list[str]) -> str:
     writer = csv.writer(buf)
     writer.writerow(fields)
     for row in rows:
-        writer.writerow([_str(row.get(f, "")) for f in fields])
+        writer.writerow([_csv_safe(row.get(f, "")) for f in fields])
     return buf.getvalue()
 
 
@@ -351,6 +351,33 @@ def _str(v: Any) -> str:
     if v is None:
         return ""
     return str(v)
+
+
+# Leading characters a spreadsheet treats as the start of a formula.
+_CSV_FORMULA_TRIGGERS = ("=", "@", "\t", "\r")
+
+
+def _csv_safe(v: Any) -> str:
+    """Neutralize CSV formula injection on the "no lock-in" tenant export.
+
+    A tenant value like ``=cmd|'/c calc'!A1`` (which itself may have arrived via a
+    prior migration into a name / description) would execute when the export CSV
+    is opened in Excel / Google Sheets. Prefix a leading formula trigger with a
+    single quote so the cell renders as text. A leading ``+`` / ``-`` is only
+    neutralized when it is NOT a plain number, so negative amounts and signed
+    values still round-trip.
+    """
+    s = _str(v)
+    if not s:
+        return s
+    first = s[0]
+    if first in _CSV_FORMULA_TRIGGERS:
+        return "'" + s
+    if first in ("+", "-"):
+        rest = s[1:].replace(",", "").replace(".", "", 1)
+        if not rest.isdigit():
+            return "'" + s
+    return s
 
 
 # --- #21 multi-stage rollouts ---------------------------------------------
