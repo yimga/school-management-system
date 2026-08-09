@@ -118,6 +118,68 @@ def _mark_artifact_uncaptured_if_expected(artifact: Any, *, reason: str) -> None
         )
 
 
+_av_unconfigured_warned = False
+
+
+def _warn_artifact_av_unconfigured() -> None:
+    """One-time WARNING that ingest artifacts are not malware-scanned (no scanner)."""
+    global _av_unconfigured_warned
+    if not _av_unconfigured_warned:
+        _av_unconfigured_warned = True
+        logger.warning(
+            "migration_cloud.artifact_blob: no UPLOAD_MALWARE_SCANNER configured — "
+            "ingest artifacts are size/quarantine-gated but NOT malware-scanned. "
+            "Set UPLOAD_MALWARE_SCANNER to enable.",
+        )
+
+
+def _artifact_bytes_av_clean(artifact: Any, data: bytes) -> bool:
+    """Malware-scan the captured (soon-to-be-applied) artifact bytes.
+
+    Extends the self-serve upload AV gate
+    (``services/intake_pipeline._validate_export_upload``) to EVERY intake method:
+    this chokepoint captures the bytes that will actually be applied, for operator
+    FILE_UPLOAD, URL/SFTP/S3, API_PULL, EMAIL, DATABASE, ACCESS_DB and PDF alike.
+    Pluggable via ``settings.UPLOAD_MALWARE_SCANNER``; unset -> a one-time-logged
+    no-op (never a silent clean). Only a DETECTION quarantines the artifact; a
+    scanner ERROR or absence fails open so a misconfigured scanner can't wedge
+    every ingest. Returns True when the bytes may be stored/applied.
+    """
+    from django.conf import settings
+
+    if getattr(settings, "UPLOAD_MALWARE_SCANNER", None) is None:
+        _warn_artifact_av_unconfigured()
+        return True
+    try:
+        from apps.security.upload_validation import scan_for_malware
+
+        ok, detail = scan_for_malware(data)
+    except Exception:  # noqa: BLE001 — a scanner error must never wedge ingest
+        logger.warning(
+            "migration_cloud.artifact_blob: AV scan errored; not blocking",
+            extra={"artifact_id": getattr(artifact, "pk", None)},
+            exc_info=True,
+        )
+        return True
+    if ok:
+        return True
+    try:
+        artifact.quarantined = True
+        artifact.quarantine_reason = f"Blocked by malware scan: {detail}"[:255]
+        artifact.save(update_fields=["quarantined", "quarantine_reason", "updated_at"])
+    except Exception:  # noqa: BLE001 — quarantine mark is best-effort, never blocks ingest
+        logger.warning(
+            "migration_cloud.artifact_blob: AV quarantine mark failed",
+            extra={"artifact_id": getattr(artifact, "pk", None)},
+            exc_info=True,
+        )
+    logger.warning(
+        "migration_cloud.artifact_blob: artifact blocked by malware scan; quarantined",
+        extra={"artifact_id": getattr(artifact, "pk", None)},
+    )
+    return False
+
+
 def capture_artifact_blob(artifact: Any, payload: Any) -> bool:
     """Best-effort: store ``artifact``'s source bytes encrypted-at-rest. Never raises.
 
@@ -175,6 +237,11 @@ def capture_artifact_blob(artifact: Any, payload: Any) -> bool:
                 "migration_cloud.artifact_blob: artifact over inline cap; quarantined",
                 extra={"artifact_id": getattr(artifact, "pk", None), "cap_bytes": cap},
             )
+            return False
+        # Malware-scan the bytes that will actually be stored + applied. A hit
+        # quarantines the artifact and skips the blob (never store/apply malware);
+        # unset scanner -> logged no-op. Extends AV coverage to every intake method.
+        if not _artifact_bytes_av_clean(artifact, data):
             return False
         digest = hashlib.sha256(data).hexdigest()
         expires = timezone.now() + timedelta(days=retention_days())
