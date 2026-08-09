@@ -10,6 +10,12 @@
 name: architectural-boundaries
 
 on:
+  # Direct pushes to the deploy branches would otherwise BYPASS these gates
+  # entirely (branch protection is unavailable on this plan), so a violation
+  # can silently land on main. Run on push with NO path filter so the boundary
+  # scanners always execute on main — visibility is the enforcement here.
+  push:
+    branches: [main, improvements]
   pull_request:
     paths:
       - "apps/**/*.py"

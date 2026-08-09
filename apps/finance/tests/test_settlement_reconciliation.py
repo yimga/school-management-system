@@ -9,6 +9,7 @@ discrepancy detection is ever silently removed, that test goes red.
 
 from __future__ import annotations
 
+import uuid
 from datetime import date, datetime
 from decimal import Decimal
 
@@ -68,7 +69,11 @@ class SettlementReconciliationTests(TestCase):
     def _payment(self, method, amount, *, status="completed", gtx=None,
                  refunded="0.00", fee="0.00", paid_at=None, ref=None):
         return Payment.objects.create(
-            reference_number=ref or ("R%s" % id(object())),
+            # A fresh throwaway object's id() is recycled by GC under batch load,
+            # so two payments in one test could collide on reference_number and
+            # trip the unique constraint (flaky only under concurrent batches).
+            # uuid4 is collision-free regardless of GC timing.
+            reference_number=ref or ("R%s" % uuid.uuid4().hex[:12]),
             region=self.region,
             payment_method=method,
             amount=Decimal(str(amount)),

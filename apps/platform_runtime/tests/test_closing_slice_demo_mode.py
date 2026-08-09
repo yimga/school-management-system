@@ -61,14 +61,42 @@ class DemoModeSettingsResolutionTests(TestCase):
         self.assertEqual(proc.returncode, 0, proc.stderr + proc.stdout)
 
 
+@override_settings(
+    ALLOWED_HOSTS=[
+        "*",
+        "testserver",
+        "localhost",
+        "127.0.0.1",
+        "manager.runmycampus.com",
+    ],
+    MULTI_TENANT_BASE_DOMAIN="runmycampus.com",
+    ROOT_URLCONF="config.tenant_urls",
+)
 class DemoPortalShellMarkersTests(TestCase):
-    """Banner + guided hints render only when demo is enabled (portal_base contract)."""
+    """Banner + guided hints render only when demo is enabled (portal_base contract).
+
+    The demo sandbox banner lives ONLY in ``portal_base.html``. ``user_notifications``
+    renders through ``render_account_page``, which picks the shell by host: the
+    tenant portal shell (portal_base, WITH the banner) on a tenant subdomain, but
+    the manager control-plane shell (bannerless) on control-plane hosts — and the
+    default test client's ``testserver`` host IS a control-plane host. So the
+    banner contract must be asserted on a real tenant host, mirroring
+    ``OperationalCenterShellTests``; the old testserver client rendered the
+    bannerless operator shell and made this look permanently broken.
+    """
 
     @classmethod
     def setUpTestData(cls):
         from apps.accounts.models import User
+        from apps.schools.models import School, SchoolMembership
         from django_otp.plugins.otp_totp.models import TOTPDevice
 
+        cls.school = School.objects.create(
+            name="Demo Shell School",
+            slug="demo-shell-school",
+            subdomain="demoshell",
+            is_active=True,
+        )
         cls.staff = User.objects.create_user(
             username="demo_shell_staff",
             password="cert-pass-01",
@@ -76,21 +104,30 @@ class DemoPortalShellMarkersTests(TestCase):
         )
         cls.staff.role = User.Role.ADMIN
         cls.staff.save(update_fields=["role"])
+        SchoolMembership.objects.get_or_create(
+            user=cls.staff,
+            school=cls.school,
+            defaults={"role": cls.staff.role, "is_primary": True},
+        )
         TOTPDevice.objects.create(user=cls.staff, name="test-device", confirmed=True)
 
-    def _login_staff_verified(self):
-        self.client.login(username="demo_shell_staff", password="cert-pass-01")
-        session = self.client.session
+    def _tenant_client(self):
+        from django.test import Client
+
+        client = Client(HTTP_HOST=f"{self.school.subdomain}.runmycampus.com")
+        client.login(username="demo_shell_staff", password="cert-pass-01")
+        session = client.session
         session["mfa_verified"] = True
         session.save()
+        return client
 
     @override_settings(RUNMYCAMPUS_DEMO_ENABLED=True, RUNMYCAMPUS_DEMO_MODE=False)
     def test_demo_banner_and_hints_when_enabled(self):
         from django.urls import reverse
 
-        self._login_staff_verified()
+        client = self._tenant_client()
         url = reverse("accounts:user_notifications")
-        r = self.client.get(url)
+        r = client.get(url)
         self.assertEqual(r.status_code, 200)
         self.assertContains(r, 'data-rmc-demo-sandbox-banner="1"')
         self.assertContains(r, "data-rmc-demo-guided-hints")
@@ -99,8 +136,8 @@ class DemoPortalShellMarkersTests(TestCase):
     def test_no_demo_banner_when_disabled(self):
         from django.urls import reverse
 
-        self._login_staff_verified()
-        r = self.client.get(reverse("accounts:user_notifications"))
+        client = self._tenant_client()
+        r = client.get(reverse("accounts:user_notifications"))
         self.assertEqual(r.status_code, 200)
         self.assertNotContains(r, 'data-rmc-demo-sandbox-banner="1"')
 

@@ -12,6 +12,12 @@
 name: tenant-isolation-scan
 
 on:
+  # Direct pushes to the deploy branches would otherwise BYPASS this scan
+  # (branch protection is unavailable on this plan), letting a NEW unscoped
+  # tenant query land silently on main. Run on push too so the scan always
+  # executes on main.
+  push:
+    branches: [main, improvements]
   pull_request:
     paths:
       - "apps/**/*.py"
