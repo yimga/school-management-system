@@ -160,10 +160,10 @@
               <td>{{ b.get_action_display }}</td>
               <td>{{ b.group_label|default:"—" }}</td>
               <td>
-                {% if b.status == "COMPLETED" %}<span class="badge text-bg-success">{{ b.get_status_display }}</span>
-                {% elif b.status == "QUEUED" %}<span class="badge text-bg-warning">{{ b.get_status_display }}</span>
-                {% elif b.status == "FAILED" %}<span class="badge text-bg-danger">{{ b.get_status_display }}</span>
-                {% else %}<span class="badge text-bg-secondary">{{ b.get_status_display }}</span>{% endif %}
+                {% if b.status == "COMPLETED" %}<span class="badge bg-success-subtle text-success-emphasis border border-success-subtle">{{ b.get_status_display }}</span>
+                {% elif b.status == "QUEUED" %}<span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">{{ b.get_status_display }}</span>
+                {% elif b.status == "FAILED" %}<span class="badge bg-danger-subtle text-danger-emphasis border border-danger-subtle">{{ b.get_status_display }}</span>
+                {% else %}<span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle">{{ b.get_status_display }}</span>{% endif %}
               </td>
               <td class="text-end">{{ b.included_count }}</td>
               <td class="text-end">{{ b.skipped_count }}</td>

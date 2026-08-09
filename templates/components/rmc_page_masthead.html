@@ -24,7 +24,7 @@ Exactly one H1. Live chips only — never wallpaper Operational/ready.
           {% endif %}
         </h1>
         {% if masthead_status_text %}
-        <span class="badge rounded-pill {% if masthead_status_variant == 'success' %}text-bg-success{% elif masthead_status_variant == 'warning' %}text-bg-warning{% elif masthead_status_variant == 'danger' %}text-bg-danger{% else %}text-bg-secondary{% endif %}">{{ masthead_status_text }}</span>
+        <span class="badge rounded-pill {% if masthead_status_variant == 'success' %}bg-success-subtle text-success-emphasis border border-success-subtle{% elif masthead_status_variant == 'warning' %}bg-warning-subtle text-warning-emphasis border border-warning-subtle{% elif masthead_status_variant == 'danger' %}bg-danger-subtle text-danger-emphasis border border-danger-subtle{% else %}bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle{% endif %}">{{ masthead_status_text }}</span>
         {% endif %}
       </div>
     </div>

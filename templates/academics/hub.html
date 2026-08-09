@@ -30,7 +30,7 @@
       <div class="rmc-ops-card__count">{{ action.count }}</div>
       <h2>{{ action.title }}</h2>
       <p>{{ action.description }}</p>
-      {% if action.url %}<a class="btn btn-outline-primary" href="{{ action.url }}">{% trans "Open workspace" %}</a>{% else %}<span class="badge text-bg-warning">{% trans "Route unavailable" %}</span>{% endif %}
+      {% if action.url %}<a class="btn btn-outline-primary" href="{{ action.url }}">{% trans "Open workspace" %}</a>{% else %}<span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">{% trans "Route unavailable" %}</span>{% endif %}
     </article>
     {% endfor %}
   </section>

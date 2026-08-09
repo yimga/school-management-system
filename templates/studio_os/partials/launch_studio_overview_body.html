@@ -47,7 +47,7 @@
 
   {% if zero_friction.recommendation_manifest.recommendations %}
   <div class="studio-os__card mb-3" data-rmc-recommendation-manifest="1">
-    <div class="d-flex flex-wrap justify-content-between gap-2"><h3 class="h6 mb-2">{% trans "Recommended for your school" %}</h3><span class="badge text-bg-success">{% trans "Local-first" %}</span></div>
+    <div class="d-flex flex-wrap justify-content-between gap-2"><h3 class="h6 mb-2">{% trans "Recommended for your school" %}</h3><span class="badge bg-success-subtle text-success-emphasis border border-success-subtle">{% trans "Local-first" %}</span></div>
     <p class="small text-muted">{% trans "Based on your signup profile. These suggestions work offline and remain editable." %} {% trans "Confidence" %}: {{ zero_friction.recommendation_manifest.confidence|title }}.</p>
     <div class="d-flex flex-wrap gap-2">
       {% for item in zero_friction.recommendation_manifest.recommendation_cards %}

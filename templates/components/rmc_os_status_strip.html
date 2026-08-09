@@ -9,7 +9,7 @@ semantic elements are preferred when an equivalent role exists.
   {% if strip_items %}
   <div class="d-flex flex-wrap gap-2 mb-2" data-rmc-os-strip-items="1" role="list">
     {% for it in strip_items %}
-    <span class="badge rounded-pill {% if it.tone == 'danger' %}text-bg-danger{% elif it.tone == 'warning' %}text-bg-warning{% elif it.tone == 'success' %}text-bg-success{% else %}text-bg-secondary{% endif %}" role="listitem" {% if it.title %}title="{{ it.title }}"{% endif %}>{{ it.label }}</span>
+    <span class="badge rounded-pill {% if it.tone == 'danger' %}bg-danger-subtle text-danger-emphasis border border-danger-subtle{% elif it.tone == 'warning' %}bg-warning-subtle text-warning-emphasis border border-warning-subtle{% elif it.tone == 'success' %}bg-success-subtle text-success-emphasis border border-success-subtle{% else %}bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle{% endif %}" role="listitem" {% if it.title %}title="{{ it.title }}"{% endif %}>{{ it.label }}</span>
     {% endfor %}
   </div>
   {% endif %}

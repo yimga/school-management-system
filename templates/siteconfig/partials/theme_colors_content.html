@@ -7,7 +7,7 @@
 <div class="card border theme-state-strip mb-2">
     <div class="card-body py-2">
       <span id="theme-draft-status-badge" class="rmc-badge rmc-badge--success">{% trans "Saved state" %}</span>
-      <span id="theme-contrast-status-badge" class="badge {% if theme_contrast_report.status == 'ok' %}text-bg-success-subtle{% else %}text-bg-warning{% endif %}">{% if theme_contrast_report.status == "ok" %}{% trans "Contrast: pass" %}{% else %}{% trans "Contrast: check" %}{% endif %}</span>
+      <span id="theme-contrast-status-badge" class="badge {% if theme_contrast_report.status == 'ok' %}bg-success-subtle text-success-emphasis border border-success-subtle{% else %}bg-warning-subtle text-warning-emphasis border border-warning-subtle{% endif %}">{% if theme_contrast_report.status == "ok" %}{% trans "Contrast: pass" %}{% else %}{% trans "Contrast: check" %}{% endif %}</span>
       <span class="small text-muted">{% trans "Site pack:" %} {% if site_settings.theme_pack %}{{ site_settings.theme_pack.name }}{% else %}{% trans "None" %}{% endif %} | {% trans "Admin pack:" %} {% if site_settings.admin_theme_pack %}{{ site_settings.admin_theme_pack.name }}{% else %}{% trans "None" %}{% endif %}</span>
     </div>
   </div>

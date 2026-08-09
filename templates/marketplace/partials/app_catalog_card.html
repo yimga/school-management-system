@@ -16,7 +16,7 @@
     <img src="{% static 'marketing/img/catalog-placeholder.svg' %}" alt="" class="rmc-mkt-app-card__img rmc-mkt-app-card__img--placeholder" loading="lazy" width="320" height="140">
     {% endif %}
     <div class="rmc-mkt-app-card__badges">
-      <span class="badge {% if listing.publisher and listing.publisher.verification_status == 'verified' %}text-bg-success{% else %}text-bg-secondary{% endif %}">
+      <span class="badge {% if listing.publisher and listing.publisher.verification_status == 'verified' %}bg-success-subtle text-success-emphasis border border-success-subtle{% else %}bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle{% endif %}">
         <i class="bi bi-shield-check" aria-hidden="true"></i>
         {% if listing.publisher and listing.publisher.verification_status == 'verified' %}{% trans "Verified" %}{% else %}{% trans "Review" %}{% endif %}
       </span>

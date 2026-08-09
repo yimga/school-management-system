@@ -37,7 +37,7 @@
           <div class="d-flex flex-wrap align-items-center gap-2">
             <span
               id="theme-contrast-status-badge"
-              class="badge {% if theme_contrast_report.status == 'ok' %}text-bg-success-subtle{% else %}text-bg-warning{% endif %}"
+              class="badge {% if theme_contrast_report.status == 'ok' %}bg-success-subtle text-success-emphasis border border-success-subtle{% else %}bg-warning-subtle text-warning-emphasis border border-warning-subtle{% endif %}"
               data-status="{{ theme_contrast_report.status }}"
             >
               {% if theme_contrast_report.status == "ok" %}

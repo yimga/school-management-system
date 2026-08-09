@@ -6,7 +6,7 @@
       <p class="rmc-eyebrow mb-1">{% trans "Data sovereignty" %}</p>
       <h2 class="h6 mb-0" id="data-residency-readiness-heading">{% trans "Regional residency readiness" %}</h2>
     </div>
-    <span class="badge {% if data_residency_readiness.ready %}text-bg-success{% else %}text-bg-warning{% endif %}">
+    <span class="badge {% if data_residency_readiness.ready %}bg-success-subtle text-success-emphasis border border-success-subtle{% else %}bg-warning-subtle text-warning-emphasis border border-warning-subtle{% endif %}">
       {% if data_residency_readiness.ready %}{% trans "Ready" %}{% else %}{% trans "Action needed" %}{% endif %}
     </span>
   </div>

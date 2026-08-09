@@ -24,7 +24,7 @@
         {{ center_title|default:_("Operations") }}
       </div>
       {% if status_badge_text %}
-      <span class="badge rounded-pill {% if status_badge_variant == 'success' %}text-bg-success{% elif status_badge_variant == 'warning' %}text-bg-warning{% elif status_badge_variant == 'danger' %}text-bg-danger{% else %}text-bg-secondary{% endif %}" data-rmc-os-status-badge="1">{{ status_badge_text }}</span>
+      <span class="badge rounded-pill {% if status_badge_variant == 'success' %}bg-success-subtle text-success-emphasis border border-success-subtle{% elif status_badge_variant == 'warning' %}bg-warning-subtle text-warning-emphasis border border-warning-subtle{% elif status_badge_variant == 'danger' %}bg-danger-subtle text-danger-emphasis border border-danger-subtle{% else %}bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle{% endif %}" data-rmc-os-status-badge="1">{{ status_badge_text }}</span>
       {% endif %}
     </div>
     {% if center_purpose %}

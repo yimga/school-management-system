@@ -199,7 +199,7 @@
           </ul>
           {% endif %}
           {% if theme_contrast_report %}
-          <p class="small mb-2"><span class="badge {% if theme_contrast_report.status == 'ok' %}text-bg-success-subtle{% else %}text-bg-warning{% endif %}">{% if theme_contrast_report.status == "ok" %}{% trans "Contrast: pass" %}{% else %}{% trans "Contrast: check" %}{% endif %}</span></p>
+          <p class="small mb-2"><span class="badge {% if theme_contrast_report.status == 'ok' %}bg-success-subtle text-success-emphasis border border-success-subtle{% else %}bg-warning-subtle text-warning-emphasis border border-warning-subtle{% endif %}">{% if theme_contrast_report.status == "ok" %}{% trans "Contrast: pass" %}{% else %}{% trans "Contrast: check" %}{% endif %}</span></p>
           {% endif %}
           {% if studio_version_history %}
           <p class="small fw-semibold mb-1">{% trans "Version history" %}</p>

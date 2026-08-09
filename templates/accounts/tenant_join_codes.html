@@ -79,10 +79,10 @@
                   <td>{{ c.get_role_display|default:c.role }}</td>
                   <td>{{ c.uses_count }}{% if c.max_uses %} / {{ c.max_uses }}{% endif %}</td>
                   <td>
-                    {% if c.is_usable %}<span class="badge text-bg-success">{% trans "Active" %}</span>
-                    {% elif not c.is_active %}<span class="badge text-bg-secondary">{% trans "Deactivated" %}</span>
-                    {% elif c.is_expired %}<span class="badge text-bg-warning">{% trans "Expired" %}</span>
-                    {% else %}<span class="badge text-bg-secondary">{% trans "Used up" %}</span>{% endif %}
+                    {% if c.is_usable %}<span class="badge bg-success-subtle text-success-emphasis border border-success-subtle">{% trans "Active" %}</span>
+                    {% elif not c.is_active %}<span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle">{% trans "Deactivated" %}</span>
+                    {% elif c.is_expired %}<span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">{% trans "Expired" %}</span>
+                    {% else %}<span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle">{% trans "Used up" %}</span>{% endif %}
                   </td>
                   <td class="text-end">
                     <div class="d-inline-flex gap-1 align-items-center">

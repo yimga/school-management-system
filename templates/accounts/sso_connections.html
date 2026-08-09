@@ -135,9 +135,9 @@
                     <div class="small text-secondary text-uppercase">{{ c.idp_type }}{% if c.default_role %} · {{ c.default_role }}{% endif %}</div>
                   </td>
                   <td>
-                    {% if c.login_visible %}<span class="badge text-bg-success">{% trans "On login page" %}</span>
-                    {% elif not c.configured %}<span class="badge text-bg-warning">{% trans "Draft" %}</span>
-                    {% else %}<span class="badge text-bg-secondary">{% trans "Disabled" %}</span>{% endif %}
+                    {% if c.login_visible %}<span class="badge bg-success-subtle text-success-emphasis border border-success-subtle">{% trans "On login page" %}</span>
+                    {% elif not c.configured %}<span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">{% trans "Draft" %}</span>
+                    {% else %}<span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle">{% trans "Disabled" %}</span>{% endif %}
                   </td>
                   <td class="text-end">
                     <div class="d-inline-flex gap-1 align-items-center">
