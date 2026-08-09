@@ -22,6 +22,7 @@ from django.test import SimpleTestCase
 #   apps/people/schema_repair.py     (people/0059)
 #   apps/schoolops/schema_repair.py  (schoolops/0027)
 #   apps/schools/schema_repair.py    (schools/0082) — SHARED app, heals under --shared
+#   apps/academics/schema_repair.py  (academics/0074) — Classroom + Attendance
 _HEAL_COVERED = {
     "people.TeacherProfile",
     "people.StudentProfile",
@@ -29,6 +30,8 @@ _HEAL_COVERED = {
     "schoolops.VisitorCheckIn",
     "schools.AdvancementGift",
     "schools.InKindDonation",
+    "academics.Classroom",
+    "academics.Attendance",
 }
 
 # Models that were CREATED WITH the column (CreateModel) → no heal needed
