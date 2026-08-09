@@ -38,6 +38,11 @@ class SetupStudioServiceTests(TestCase):
             timezone="UTC",
             default_region=self.region,
             school_type="BASE_SCHOOL",
+            # sub_system defaults to "EN" (the LANGUAGE sub-system). The
+            # education-system alignment row must read primary_sector (the sector
+            # TYPE), never the language sub-system — see
+            # test_education_system_row_reads_sector_not_language_subsystem.
+            primary_sector="PRIVATE",
             is_active=True,
         )
         self.cm_country, _ = CountryRegistry.objects.get_or_create(
@@ -87,9 +92,12 @@ class SetupStudioServiceTests(TestCase):
             code="0-20",
             defaults={"name": "0–20 scale", "is_active": True},
         )
+        # A REAL education-system TYPE (sector) — the registry that primary_sector
+        # is validated against. Deliberately do NOT seed an "EN" row: the language
+        # sub-system must never resolve as an education-system type.
         EducationSystemTypeRegistry.objects.get_or_create(
-            code="EN",
-            defaults={"name": "English sub-system", "is_active": True},
+            code="PRIVATE",
+            defaults={"name": "Private / independent", "is_active": True},
         )
         BlueprintPack.objects.create(
             slug="cm-launch",
@@ -237,7 +245,7 @@ class SetupStudioServiceTests(TestCase):
         self.assertTrue(ra.get("grade_scale_registry_ok"))
         self.assertEqual(ra.get("grading_scale_code"), "0-20")
         self.assertTrue(ra.get("education_system_type_registry_ok"))
-        self.assertEqual(ra.get("education_system_code"), "EN")
+        self.assertEqual(ra.get("education_system_code"), "PRIVATE")
         self.assertIn("Institution type registry", ra.get("detail", ""))
         self.assertIn("Grading scale registry", ra.get("detail", ""))
         self.assertIn("Education system type registry", ra.get("detail", ""))
@@ -279,6 +287,39 @@ class SetupStudioServiceTests(TestCase):
             orchestration_keys,
             {"preflight", "preview", "launch_control", "post_launch"},
         )
+
+    def test_education_system_row_reads_sector_not_language_subsystem(self):
+        """Regression: the 'Education system' registry-alignment row must read the
+        school's education-system SECTOR (``primary_sector`` -> EducationSystemType
+        codes like PRIVATE/PUBLIC/IB), NEVER the language sub-system (``sub_system``
+        = FR/EN/INT). Reading ``sub_system`` looked a language code up in the
+        curriculum registry and produced a permanent 'does not line up' warning no
+        tenant could ever clear (only a fake test-seeded 'EN' registry row hid it)."""
+        # A language sub-system that is NOT an education-system type, plus a real
+        # sector. Only the PRIVATE registry row is seeded (setUp) — no 'FR'/'EN'.
+        self.school.sub_system = "FR"
+        self.school.primary_sector = "PRIVATE"
+        self.school.save(update_fields=["sub_system", "primary_sector"])
+        ra = get_setup_studio_payload(self.school)["registry_alignment"]
+        # The row reflects the sector, not the language sub-system.
+        self.assertEqual(ra.get("education_system_code"), "PRIVATE")
+        self.assertNotEqual(ra.get("education_system_code"), "FR")
+        self.assertTrue(ra.get("education_system_type_registry_ok"))
+        # A valid sector must not manufacture a false mismatch.
+        self.assertEqual(ra.get("mismatch_count"), 0)
+
+    def test_education_system_falls_back_to_declared_types_when_no_sector(self):
+        """When ``primary_sector`` is unset, the row falls back to the first declared
+        ``education_system_types`` M2M entry — still a real education-system TYPE."""
+        ib, _ = EducationSystemTypeRegistry.objects.get_or_create(
+            code="IB", defaults={"name": "IB", "is_active": True}
+        )
+        self.school.primary_sector = ""
+        self.school.save(update_fields=["primary_sector"])
+        self.school.education_system_types.add(ib)
+        ra = get_setup_studio_payload(self.school)["registry_alignment"]
+        self.assertEqual(ra.get("education_system_code"), "IB")
+        self.assertTrue(ra.get("education_system_type_registry_ok"))
 
     def test_launch_orchestration_stages_have_required_fields(self):
         """RUNMYCAMPUS §6.5: launch_orchestration stages must have key, label, detail, done, link, status."""

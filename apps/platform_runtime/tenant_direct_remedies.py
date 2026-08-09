@@ -59,7 +59,12 @@ def current_remedy_value(school, field_key: str) -> str:
         "calendar": settings.get("calendar_system") or settings.get("calendar_system_code"),
         "institution_type": getattr(school, "school_type", ""),
         "grading_scale": settings.get("grading_scale") or settings.get("grading_scale_code"),
-        "education_system": getattr(school, "sub_system", ""),
+        # "Education system" is the education-system TYPE / sector (PUBLIC / PRIVATE /
+        # IB / ... — codes in EducationSystemTypeRegistry), which lives on
+        # `primary_sector`. It is NOT the language sub-system (FR / EN / INT on
+        # `sub_system`). remedy_choices() validates against EducationSystemTypeRegistry,
+        # so read/write must target `primary_sector` for the control to be coherent.
+        "education_system": getattr(school, "primary_sector", ""),
     }
     return str(values.get(field_key) or "")
 
@@ -114,8 +119,11 @@ def apply_direct_remedy(school, *, field_key: str, value: str, actor) -> None:
     elif field_key == "grading_scale":
         settings["grading_scale"] = value
     elif field_key == "education_system":
-        school.sub_system = value
-        update_fields.add("sub_system")
+        # Write the chosen EducationSystemTypeRegistry code to `primary_sector`
+        # (the sector field the alignment snapshot reads), NOT `sub_system` — the
+        # language sub-system (FR/EN/INT) must never receive a curriculum/sector code.
+        school.primary_sector = value
+        update_fields.add("primary_sector")
     school.settings = settings
     school.save(update_fields=sorted(update_fields))
 

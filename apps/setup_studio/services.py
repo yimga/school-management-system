@@ -569,7 +569,20 @@ def _registry_alignment_snapshot(school) -> dict[str, Any]:
                 )
         except (ImportError, AttributeError, TypeError, ValueError, DatabaseError):
             parts.append("Grading scale registry lookup failed (non-fatal).")
-    esys = str(getattr(school, "sub_system", "") or "").strip()
+    # "Education system" reflects the school's education-system TYPE / sector
+    # (PUBLIC/PRIVATE/IB/... — codes that live in EducationSystemTypeRegistry),
+    # NOT the language sub-system (FR/EN/INT). Reading `sub_system` here looked a
+    # language code up in the curriculum registry, which can never match, so the
+    # row showed a permanent "does not line up" warning that no tenant could ever
+    # clear. Read `primary_sector` (the sector code the direct-remedy editor now
+    # writes), falling back to the first declared `education_system_types` entry.
+    esys = str(getattr(school, "primary_sector", "") or "").strip()
+    if not esys:
+        try:
+            _first_type = school.education_system_types.all().first()
+            esys = str(getattr(_first_type, "code", "") or "").strip()
+        except (AttributeError, TypeError, ValueError, DatabaseError):
+            esys = ""
     if esys:
         snap["education_system_code"] = esys
         try:
