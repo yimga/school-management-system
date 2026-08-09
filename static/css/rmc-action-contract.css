@@ -6,6 +6,17 @@
   gap: .5rem;
 }
 
+.rmc-tenant-360-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem;
+  padding: .5rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg, .75rem);
+  background: var(--surface-canvas);
+}
+
 /* Button anchors remain buttons even inside cards whose generic link colour is themed. */
 :where(body) :is(a, button, input).btn,
 :where(body) :is(a, button).cp-btn {
