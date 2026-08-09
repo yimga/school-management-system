@@ -75,6 +75,17 @@ class TenantSchoolConfigurationCenterTests(TestCase):
 
         self.assertEqual(response.status_code, 200, msg=response.content[:500])
 
+    def test_repair_deep_link_focuses_the_exact_configuration_card(self):
+        client = self._admin_client()
+        response = client.get(
+            "/school/configuration/?focus=school-profile&repair_field=education_system"
+        )
+        self.assertEqual(response.status_code, 200, msg=response.content[:500])
+        body = response.content.decode("utf-8", errors="replace")
+        self.assertIn('id="configuration-school-profile"', body)
+        self.assertIn('data-rmc-repair-focus="1"', body)
+        self.assertIn("education_system", body)
+
     def test_academics_root_and_legacy_aliases_are_live_on_tenant_host(self):
         client = self._admin_client()
 

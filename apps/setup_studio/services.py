@@ -263,118 +263,85 @@ def _build_registry_key_rows(
     rows: list[dict[str, Any]] = []
     bad = 0
 
+    def row(key: str, label: str, value: str, ok: bool) -> dict[str, Any]:
+        return {
+            "key": key,
+            "label": label,
+            "value": value,
+            "ok": ok,
+            "cta_url": _registry_field_cta(key)["url"],
+        }
+
     if snap.get("country_code"):
         ok = bool(snap.get("registry_row_ok"))
         if not ok:
             bad += 1
-        rows.append(
-            {
-                "label": gettext("Country"),
-                "value": f"{snap.get('country_registry_name') or '—'} ({snap['country_code']})",
-                "ok": ok,
-            }
-        )
+        rows.append(row("country", gettext("Country"), f"{snap.get('country_registry_name') or '—'} ({snap['country_code']})", ok))
     if snap.get("subdivision_code"):
         ok = bool(snap.get("subdivision_registry_ok"))
         if not ok:
             bad += 1
         scode = snap.get("subdivision_code")
         sname = snap.get("subdivision_name") or "—"
-        rows.append(
-            {
-                "label": gettext("Subdivision"),
-                "value": f"{sname} ({scode})",
-                "ok": ok,
-            }
-        )
+        rows.append(row("subdivision", gettext("Subdivision"), f"{sname} ({scode})", ok))
     if snap.get("iana_timezone"):
         ok = bool(snap.get("timezone_registry_ok"))
         if not ok:
             bad += 1
-        rows.append(
-            {
-                "label": gettext("Time zone"),
-                "value": f"{snap.get('timezone_registry_name') or '—'} ({snap['iana_timezone']})",
-                "ok": ok,
-            }
-        )
+        rows.append(row("timezone", gettext("Time zone"), f"{snap.get('timezone_registry_name') or '—'} ({snap['iana_timezone']})", ok))
     if snap.get("currency_code"):
         ok = bool(snap.get("currency_registry_ok"))
         if not ok:
             bad += 1
-        rows.append(
-            {
-                "label": gettext("Currency"),
-                "value": f"{snap.get('currency_registry_name') or '—'} ({snap['currency_code']})",
-                "ok": ok,
-            }
-        )
+        rows.append(row("currency", gettext("Currency"), f"{snap.get('currency_registry_name') or '—'} ({snap['currency_code']})", ok))
     if snap.get("locale_code"):
         ok = bool(snap.get("locale_registry_ok"))
         if not ok:
             bad += 1
-        rows.append(
-            {
-                "label": gettext("Locale"),
-                "value": f"{snap.get('locale_registry_name') or '—'} ({snap['locale_code']})",
-                "ok": ok,
-            }
-        )
+        rows.append(row("locale", gettext("Locale"), f"{snap.get('locale_registry_name') or '—'} ({snap['locale_code']})", ok))
     if snap.get("calendar_system_code"):
         ok = bool(snap.get("calendar_registry_ok"))
         if not ok:
             bad += 1
-        rows.append(
-            {
-                "label": gettext("Calendar system"),
-                "value": f"{snap.get('calendar_registry_name') or '—'} ({snap['calendar_system_code']})",
-                "ok": ok,
-            }
-        )
+        rows.append(row("calendar", gettext("Calendar system"), f"{snap.get('calendar_registry_name') or '—'} ({snap['calendar_system_code']})", ok))
     stc = (snap.get("institution_type_code") or "").strip()
     if stc:
         ok = bool(snap.get("institution_type_registry_ok"))
         if not ok:
             bad += 1
-        rows.append(
-            {
-                "label": gettext("Institution type"),
-                "value": f"{snap.get('institution_type_registry_name') or '—'} ({stc})",
-                "ok": ok,
-            }
-        )
+        rows.append(row("institution_type", gettext("Institution type"), f"{snap.get('institution_type_registry_name') or '—'} ({stc})", ok))
     gsc = (snap.get("grading_scale_code") or "").strip()
     if gsc:
         ok = bool(snap.get("grade_scale_registry_ok"))
         if not ok:
             bad += 1
-        rows.append(
-            {
-                "label": gettext("Grading scale"),
-                "value": f"{snap.get('grade_scale_registry_name') or '—'} ({gsc})",
-                "ok": ok,
-            }
-        )
+        rows.append(row("grading_scale", gettext("Grading scale"), f"{snap.get('grade_scale_registry_name') or '—'} ({gsc})", ok))
     esc = (snap.get("education_system_code") or "").strip()
     if esc:
         ok = bool(snap.get("education_system_type_registry_ok"))
         if not ok:
             bad += 1
-        rows.append(
-            {
-                "label": gettext("Education system"),
-                "value": f"{snap.get('education_system_type_registry_name') or '—'} ({esc})",
-                "ok": ok,
-            }
-        )
+        rows.append(row("education_system", gettext("Education system"), f"{snap.get('education_system_type_registry_name') or '—'} ({esc})", ok))
     return rows, bad
+
+
+def _registry_field_cta(field_key: str) -> dict[str, str]:
+    """Return a focused tenant repair destination, never an unscoped settings hub."""
+    if field_key == "grading_scale":
+        return {"label": gettext("Fix grading scale"), "url": "/siteconfig/grading-settings/#grading_scale"}
+    if field_key == "locale":
+        return {"label": gettext("Fix language and locale"), "url": "/siteconfig/grading-settings/#default_language"}
+    return {
+        "label": gettext("Fix school profile alignment"),
+        "url": f"/school/configuration/?focus=school-profile&repair_field={field_key}#configuration-school-profile",
+    }
 
 
 def _registry_settings_cta() -> dict[str, str]:
     """One-click path to school/region context (shared shell)."""
     return {
         "label": gettext("Open school & region settings"),
-        "url": "/school/configuration/",
+        "url": "/school/configuration/?focus=school-profile#configuration-school-profile",
     }
 
 

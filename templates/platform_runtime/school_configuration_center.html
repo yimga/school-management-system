@@ -16,6 +16,13 @@
 <main class="container-fluid py-3 rmc-max-suppress-meta-option-a rmc-tenant-ops" data-rmc-tenant-ops-build="2026-08-01-v1.1" data-page-archetype="setup" data-rmc-os-center="school_configuration_center" data-rmc-school-configuration-center="{{ page_marker }}" data-apple-class-tenant-school-admin="1" data-rmc-scroll-policy="paginate" data-rmc-work-root="1" data-rmc-static-chrome="1">
   {% include "components/rmc_page_masthead.html" %}
 
+  {% if focused_section %}
+  <div class="alert alert-info d-flex flex-wrap align-items-center justify-content-between gap-2" role="status" data-rmc-repair-focus-banner="1">
+    <span>{% blocktrans with section=focused_section field=repair_field|default:_('school profile') %}Repair mode: update {{ field }} in {{ section }} below.{% endblocktrans %}</span>
+    <a href="#configuration-school-profile" class="btn btn-sm btn-primary">{% trans "Go to the exact control" %}</a>
+  </div>
+  {% endif %}
+
   <section class="rmc-config-readiness" aria-label="{% trans 'Configuration readiness' %}">
     <div class="rmc-config-readiness__ring" style="--rmc-ready: {{ school_readiness.value }}" role="img" aria-label="{{ school_readiness.value }}% ready"><strong>{{ school_readiness.value }}%</strong><span>{% trans "ready" %}</span></div>
     <div>
@@ -29,7 +36,7 @@
     {% for section in sections %}
     {% can_access_permission section.permission as sec_ok %}
     {% if sec_ok %}
-    <article class="rmc-ops-card" data-school-configuration-section="{{ section.name }}" data-route-name="{{ section.route_name }}">
+    <article class="rmc-ops-card{% if focused_section == section.name %} border-primary shadow-sm{% endif %}" id="{% if section.name == 'School Profile' %}configuration-school-profile{% else %}configuration-section-{{ forloop.counter }}{% endif %}" data-school-configuration-section="{{ section.name }}" data-route-name="{{ section.route_name }}"{% if focused_section == section.name %} tabindex="-1" data-rmc-repair-focus="1"{% endif %}>
       <div class="rmc-ops-card__topline"><span class="badge rounded-pill {% if section.status_tone == 'success' %}bg-success-subtle text-success-emphasis border border-success-subtle{% elif section.status_tone == 'warning' %}bg-warning-subtle text-warning-emphasis border border-warning-subtle{% elif section.status_tone == 'danger' %}bg-danger-subtle text-danger-emphasis border border-danger-subtle{% else %}bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle{% endif %}">{{ section.status }}</span><span class="small text-muted">{{ forloop.counter|stringformat:"02d" }}</span></div>
       <h2>{{ section.name }}</h2>
       <p>{{ section.missing }}</p>
@@ -40,4 +47,5 @@
   </section>
   <div class="rmc-wcx-mobile-marker" data-world-class-mobile-layout="stacked">{% trans "Mobile setup keeps actions stacked with large touch targets." %}</div>
 </main>
+{% if focused_section %}<script>document.addEventListener("DOMContentLoaded",function(){var el=document.querySelector("[data-rmc-repair-focus]");if(el){el.scrollIntoView({behavior:"smooth",block:"center"});el.focus({preventScroll:true});}});</script>{% endif %}
 {% endblock %}

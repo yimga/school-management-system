@@ -508,6 +508,10 @@ def school_configuration_center(request):
         status_key=status_key,
         freshness_label="Live readiness",
     )
+    focus_key = str(request.GET.get("focus") or "").strip().lower()
+    focus_map = {"school-profile": "School Profile"}
+    focused_section = focus_map.get(focus_key, "")
+    repair_field = str(request.GET.get("repair_field") or "").strip().lower()
     return render(
         request,
         "platform_runtime/school_configuration_center.html",
@@ -518,6 +522,8 @@ def school_configuration_center(request):
             ),
             "school_readiness": school_readiness,
             "page_marker": "rmc-school-configuration-center",
+            "focused_section": focused_section,
+            "repair_field": repair_field,
             **school_configuration_frame_context(),
             **masthead,
         },

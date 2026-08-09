@@ -305,10 +305,15 @@ def _human_steps(payload: dict[str, Any]) -> list[dict[str, Any]]:
                         "label": row.get("label") or "Field",
                         "current_value": row.get("value") or "",
                         "status": "needs_confirmation",
+                        "cta_url": row.get("cta_url") or "",
                     }
                     for row in mismatches
                 ],
-                "cta_url": (registry.get("settings_cta") or {}).get("url") or "",
+                "cta_url": (
+                    (mismatches[0].get("cta_url") if mismatches else "")
+                    or (registry.get("settings_cta") or {}).get("url")
+                    or ""
+                ),
             }
         )
     if not (step_state.get("blueprint") or {}).get("done"):
