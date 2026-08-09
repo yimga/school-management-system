@@ -778,10 +778,17 @@ class MigrationCloudConsoleView(LoginRequiredMixin, View):
             .select_related("school", "triggered_by")
         )
         if shell == "portal":
-            # Tenant scope: limit to the active school only.
+            # Tenant scope: limit to the active school only, and FAIL CLOSED
+            # when the tenant host did not resolve a school. Leaving the
+            # queryset unfiltered on a null tenant listed every tenant's
+            # bundles (label + school name via select_related) — a cross-tenant
+            # inventory leak. Mirror _tenant_scoped_bundle, which 404s on None.
             school = getattr(request, "school", None) or getattr(request, "tenant", None)
-            if school is not None:
-                bundles_qs = bundles_qs.filter(school=school)
+            bundles_qs = (
+                bundles_qs.filter(school=school)
+                if school is not None
+                else bundles_qs.none()
+            )
         bundles = bundles_qs[:50]
         # Operator-shell-leak fix: the tenant mount renders inside the tenant
         # portal shell, the operator mount inside the control-plane shell.

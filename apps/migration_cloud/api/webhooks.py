@@ -18,8 +18,11 @@ Secret handling:
     of the plaintext) is also stored as a verification aid for operator
     support workflows.
 
-Tenant isolation: list/retrieve filter on ``request.school``; staff see
-all rows.
+Tenant isolation: list/retrieve/create bind to ``request.school``; only a
+platform OPERATOR (control-plane access on the manager/local host, via
+``_is_operator_shell_request``) sees all rows or may target another tenant
+with ``?tenant_id=``. Bare ``is_staff`` is NOT sufficient — tenant admins
+carry ``is_staff=True``.
 """
 
 from __future__ import annotations
@@ -119,9 +122,10 @@ class _WebhookMaskedSerializer(serializers.ModelSerializer):
         tags=["Migration Cloud Webhooks"],
         summary="List webhook subscriptions visible to the caller",
         description=(
-            "Tenant callers see their own school's subscriptions; staff "
-            "callers see all. Secret material is NEVER returned — only "
-            "the last 4 hex chars of ``sha256(secret)`` as a preview."
+            "Tenant callers see their own school's subscriptions; only a "
+            "platform operator (control-plane host) sees all. Secret material "
+            "is NEVER returned — only the last 4 hex chars of "
+            "``sha256(secret)`` as a preview."
         ),
         responses={
             200: _WebhookMaskedSerializer(many=True),
@@ -152,8 +156,16 @@ class WebhookSubscriptionViewSet(viewsets.ModelViewSet):
         if user is None or not user.is_authenticated:
             # tenant-isolation-allow: webhooks-anonymous-rejected-defense-in-depth
             return MigrationCloudWebhookSubscription.objects.none()
-        if user.is_staff:
-            # tenant-isolation-allow: webhooks-staff-operator-shell-cross-tenant-by-design
+        # Cross-tenant "see all" is OPERATOR-only — control-plane access on the
+        # manager/local host. Keying on bare ``is_staff`` was a cross-tenant
+        # read leak: tenant admins are auto-provisioned ``is_staff=True``
+        # (ensure_default_tenant_admin), so on their own subdomain they would
+        # have listed EVERY tenant's subscriptions (URLs, event types,
+        # secret preview). Mirror the BundleViewSet seal.
+        from .permissions import _is_operator_shell_request
+
+        if _is_operator_shell_request(self.request):
+            # tenant-isolation-allow: webhooks-operator-shell-cross-tenant-by-design
             return MigrationCloudWebhookSubscription.objects.all()
         school = getattr(self.request, "school", None) or getattr(
             self.request, "tenant", None,
@@ -164,6 +176,38 @@ class WebhookSubscriptionViewSet(viewsets.ModelViewSet):
             return MigrationCloudWebhookSubscription.objects.none()
         # tenant-isolation-allow: webhooks-scoped-via-request-user-school
         return MigrationCloudWebhookSubscription.objects.filter(tenant_id=school_pk)
+
+    def _resolve_target_tenant_id(self, request):
+        """Resolve which tenant a new subscription binds to.
+
+        A tenant caller is confined to their own ``request.school``. Only a
+        genuine OPERATOR (control-plane access on the manager/local host) may
+        override the binding with ``?tenant_id=N`` — otherwise a tenant admin
+        (auto-provisioned ``is_staff=True``) could register a webhook against
+        ANOTHER tenant and exfiltrate that tenant's signed lifecycle payloads
+        to an attacker-controlled URL.
+        """
+        from .permissions import _is_operator_shell_request
+
+        school = getattr(request, "school", None) or getattr(request, "tenant", None)
+        target_tenant_id = getattr(school, "pk", None)
+        if _is_operator_shell_request(request):
+            explicit = None
+            try:
+                explicit = request.query_params.get("tenant_id")
+            except (AttributeError, TypeError):
+                explicit = None
+            if explicit:
+                # Resolve the School by pk (School uses a UUID pk, so the prior
+                # int(explicit) never matched) and bind only to a real tenant —
+                # never create a dangling FK from an arbitrary ?tenant_id.
+                from apps.schools.models import School
+
+                # tenant-isolation-allow: operator-explicit-cross-tenant-webhook-target-validated
+                resolved = School.objects.filter(pk=explicit).only("pk").first()
+                if resolved is not None:
+                    target_tenant_id = resolved.pk
+        return target_tenant_id
 
     @extend_schema(
         tags=["Migration Cloud Webhooks"],
@@ -194,19 +238,8 @@ class WebhookSubscriptionViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         validated = serializer.validated_data
 
-        # Resolve tenant from the request (staff may register on behalf
-        # of a school passed as ?tenant_id=).
         user = request.user
-        school = getattr(request, "school", None) or getattr(request, "tenant", None)
-        target_tenant_id = getattr(school, "pk", None)
-        if user.is_staff:
-            # Allow staff to pass ?tenant_id=N explicitly
-            try:
-                explicit = request.query_params.get("tenant_id")
-                if explicit:
-                    target_tenant_id = int(explicit)
-            except (ValueError, TypeError, AttributeError):
-                pass
+        target_tenant_id = self._resolve_target_tenant_id(request)
         if target_tenant_id is None:
             return Response(
                 {"error": "no tenant binding for caller"},
