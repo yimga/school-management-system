@@ -662,3 +662,369 @@ def _merge_french_seed() -> None:
 
 
 _merge_french_seed()
+
+
+# --- Spanish + Portuguese coverage seed (2026-08-08) ------------------------
+#
+# Same gap the French seed closed, for the other two Latin launch languages:
+# es / pt each carried synonyms on only ~13 of 123 canonical fields. Now that
+# `_normalize_header` folds Latin diacritics, an accented Spanish / Portuguese
+# header ("Apellido", "Número", "Endereço", "Matrícula", "Situação") normalizes
+# to its accent-free synonym below. Same discipline as French: ASCII/accent-free
+# snake_case, no within-domain collision, liaison / natural multi-word forms
+# seeded so real headers match. "Global presence" — the platform serves Latin
+# America and Lusophone Africa/Brazil, not just francophone markets.
+_SPANISH_SEED_2026_08: dict[str, dict[str, list[str]]] = {
+    "students": {
+        "external_id": ["numero_estudiante", "matricula", "matricula_estudiante", "codigo_estudiante", "id_estudiante", "numero_matricula"],
+        "admission_number": ["numero_admision", "numero_inscripcion", "numero_expediente"],
+        "first_name": ["nombre", "nombres"],
+        "last_name": ["apellido", "apellidos", "apellido_paterno"],
+        "middle_name": ["segundo_nombre"],
+        "date_of_birth": ["fecha_de_nacimiento", "fecha_nacimiento", "nacimiento"],
+        "gender": ["sexo", "genero"],
+        "grade_level": ["grado", "nivel", "curso"],
+        "enrollment_status": ["estado", "estado_inscripcion", "estatus", "activo"],
+        "email": ["correo", "correo_electronico", "email"],
+        "phone": ["telefono", "celular", "movil", "numero_telefono"],
+        "address": ["direccion", "domicilio", "residencia"],
+    },
+    "guardians": {
+        "guardian_external_id": ["numero_padre", "id_padre", "id_tutor", "codigo_tutor", "numero_apoderado"],
+        "student_external_id": ["numero_estudiante", "matricula_estudiante", "id_estudiante", "id_hijo"],
+        "relationship": ["relacion", "parentesco", "vinculo"],
+        "first_name": ["nombre", "nombre_padre", "nombre_tutor"],
+        "last_name": ["apellido", "apellido_padre", "apellido_tutor"],
+        "email": ["correo", "correo_padre", "email_padre"],
+        "phone": ["telefono", "celular", "telefono_padre"],
+        "is_primary": ["principal", "contacto_principal", "apoderado_principal", "tutor_principal"],
+    },
+    "staff": {
+        "staff_external_id": ["numero_empleado", "matricula_empleado", "id_empleado", "numero_personal", "codigo_docente", "numero_docente"],
+        "first_name": ["nombre"],
+        "last_name": ["apellido", "apellidos"],
+        "email": ["correo", "correo_institucional", "email"],
+        "role": ["cargo", "puesto", "funcion", "rol"],
+        "department": ["departamento", "area", "unidad"],
+        "hire_date": ["fecha_contratacion", "fecha_ingreso", "fecha_alta", "fecha_inicio"],
+    },
+    "enrollment": {
+        "student_external_id": ["numero_estudiante", "matricula_estudiante", "id_estudiante"],
+        "academic_year": ["ano_escolar", "ano_academico", "ciclo_escolar", "ano_lectivo"],
+        "grade_level": ["grado", "nivel"],
+        "homeroom": ["seccion", "grupo", "aula", "salon"],
+        "enrollment_date": ["fecha_inscripcion", "fecha_matricula", "fecha_ingreso", "fecha_alta"],
+        "exit_date": ["fecha_salida", "fecha_baja", "fecha_retiro", "fecha_egreso"],
+    },
+    "academics": {
+        "subject_code": ["codigo_materia", "codigo_asignatura", "codigo_curso"],
+        "subject_name": ["materia", "asignatura", "curso", "nombre_materia"],
+        "credits": ["creditos", "unidades", "horas_credito"],
+        "department": ["departamento", "area"],
+    },
+    "sections": {
+        "section_external_id": ["numero_seccion", "id_seccion", "codigo_grupo", "id_grupo"],
+        "subject_code": ["codigo_materia", "codigo_asignatura"],
+        "teacher_external_id": ["numero_docente", "id_docente", "codigo_profesor"],
+        "academic_year": ["ano_escolar", "ano_academico"],
+        "term": ["periodo", "semestre", "trimestre", "bimestre"],
+    },
+    "schedule": {
+        "section_external_id": ["numero_seccion", "id_grupo"],
+        "day_of_week": ["dia", "dia_de_la_semana", "dia_semana"],
+        "start_time": ["hora_inicio", "hora_de_inicio", "inicio"],
+        "end_time": ["hora_fin", "hora_de_fin", "fin"],
+        "room": ["aula", "salon", "sala", "lugar"],
+    },
+    "attendance": {
+        "student_external_id": ["numero_estudiante", "matricula_estudiante"],
+        "date": ["fecha", "fecha_asistencia", "dia"],
+        "status": ["estado", "asistencia", "marca"],
+        "period": ["periodo", "hora", "bloque"],
+        "reason": ["motivo", "razon", "comentario", "observacion"],
+    },
+    "grades": {
+        "student_external_id": ["numero_estudiante", "matricula_estudiante"],
+        "section_external_id": ["numero_seccion", "id_grupo", "codigo_grupo"],
+        "assessment_name": ["evaluacion", "examen", "prueba", "tarea", "trabajo"],
+        "score": ["nota", "calificacion", "puntaje", "puntos"],
+        "max_score": ["nota_maxima", "sobre", "puntaje_maximo"],
+        "letter_grade": ["calificacion_letra", "letra"],
+        "term": ["periodo", "semestre", "trimestre", "bimestre"],
+        "academic_year": ["ano_escolar", "ano_academico"],
+    },
+    "transcripts": {
+        "student_external_id": ["numero_estudiante", "matricula_estudiante"],
+        "academic_year": ["ano_escolar", "ano_academico"],
+        "subject_code": ["codigo_materia", "codigo_asignatura"],
+        "final_grade": ["nota_final", "calificacion_final", "promedio"],
+        "credits_earned": ["creditos_obtenidos", "unidades_obtenidas"],
+        "gpa_points": ["promedio_general", "puntos_promedio"],
+    },
+    "behavior": {
+        "student_external_id": ["numero_estudiante", "matricula_estudiante"],
+        "date": ["fecha", "fecha_incidente"],
+        "category": ["categoria", "tipo_incidente", "falta"],
+        "description": ["descripcion", "detalle", "observacion", "notas"],
+        "consequence": ["consecuencia", "sancion", "medida"],
+    },
+    "health": {
+        "student_external_id": ["numero_estudiante", "matricula_estudiante"],
+        "blood_type": ["grupo_sanguineo", "tipo_de_sangre", "tipo_sangre"],
+        "allergies": ["alergias", "alergia"],
+        "medications": ["medicamentos", "medicinas"],
+        "immunizations": ["vacunas", "vacunacion", "inmunizaciones"],
+        "emergency_contact_name": ["contacto_emergencia", "nombre_contacto_emergencia", "persona_a_contactar"],
+        "emergency_contact_phone": ["telefono_emergencia", "telefono_contacto_emergencia", "numero_emergencia"],
+    },
+    "finance": {
+        "student_external_id": ["numero_estudiante", "matricula_estudiante"],
+        "invoice_number": ["numero_factura", "numero_de_factura", "numero_recibo", "folio"],
+        "fee_category": ["tipo_pago", "categoria_pago", "concepto", "rubro"],
+        "amount": ["monto", "importe", "valor", "cantidad"],
+        "currency": ["moneda", "divisa", "codigo_moneda"],
+        "due_date": ["fecha_vencimiento", "vencimiento", "fecha_limite", "fecha_de_pago"],
+        "paid_amount": ["monto_pagado", "pagado", "importe_pagado"],
+        "balance": ["saldo", "saldo_pendiente", "adeudo", "pendiente"],
+    },
+    "payroll": {
+        "staff_external_id": ["numero_empleado", "matricula_empleado"],
+        "pay_period": ["periodo_pago", "periodo", "mes_pago"],
+        "gross_pay": ["salario_bruto", "bruto", "sueldo_bruto"],
+        "net_pay": ["salario_neto", "neto", "sueldo_neto", "neto_a_pagar"],
+    },
+    "communications": {
+        "thread_external_id": ["numero_hilo", "id_conversacion", "id_mensaje"],
+        "sender_external_id": ["id_remitente", "remitente", "numero_remitente"],
+        "sent_at": ["enviado_el", "fecha_envio", "marca_de_tiempo"],
+        "body": ["mensaje", "texto", "contenido", "cuerpo"],
+    },
+    "events": {
+        "event_external_id": ["numero_evento", "id_evento"],
+        "name": ["nombre", "titulo", "nombre_evento"],
+        "start_at": ["fecha_inicio", "inicio", "comienza"],
+        "end_at": ["fecha_fin", "fin", "termina"],
+        "venue": ["lugar", "sede", "ubicacion"],
+    },
+    "library": {
+        "item_external_id": ["numero_libro", "id_libro", "codigo_libro", "signatura"],
+        "title": ["titulo", "nombre"],
+        "isbn": ["isbn"],
+        "barcode": ["codigo_de_barras", "codigo_barras", "etiqueta"],
+        "borrower_external_id": ["numero_prestatario", "id_prestatario", "prestado_a"],
+        "due_date": ["fecha_devolucion", "devolver_antes", "fecha_de_devolucion"],
+    },
+    "transport": {
+        "route_name": ["ruta", "nombre_ruta", "itinerario"],
+        "stop_name": ["parada", "punto_parada", "punto_recogida"],
+        "student_external_id": ["numero_estudiante", "matricula_estudiante"],
+        "bus_label": ["autobus", "vehiculo", "numero_autobus", "camion"],
+    },
+    "hostel": {
+        "hostel_name": ["internado", "residencia", "dormitorio", "albergue"],
+        "room_number": ["habitacion", "numero_habitacion", "cuarto", "cama"],
+        "student_external_id": ["numero_estudiante", "matricula_estudiante"],
+    },
+    "cafeteria": {
+        "student_external_id": ["numero_estudiante", "matricula_estudiante"],
+        "meal_plan": ["plan_de_comidas", "plan_comidas", "comedor"],
+        "balance": ["saldo", "credito", "saldo_comedor"],
+    },
+    "alumni": {
+        "alumnus_external_id": ["numero_egresado", "id_egresado", "numero_exalumno"],
+        "graduation_year": ["ano_graduacion", "ano_egreso", "promocion"],
+        "current_employer": ["empleador", "empresa", "empleador_actual"],
+        "email": ["correo", "correo_contacto", "email"],
+    },
+    "compliance": {
+        "consent_type": ["tipo_consentimiento", "consentimiento", "autorizacion"],
+        "student_external_id": ["numero_estudiante", "matricula_estudiante"],
+        "granted": ["otorgado", "consentido", "autorizado", "aprobado"],
+        "granted_at": ["fecha_consentimiento", "firmado_el", "fecha_firma"],
+    },
+}
+
+_PORTUGUESE_SEED_2026_08: dict[str, dict[str, list[str]]] = {
+    "students": {
+        "external_id": ["numero_aluno", "matricula", "matricula_aluno", "codigo_aluno", "id_aluno", "ra"],
+        "admission_number": ["numero_matricula", "numero_inscricao", "numero_admissao"],
+        "first_name": ["nome", "primeiro_nome", "nomes"],
+        "last_name": ["sobrenome", "apelido", "ultimo_nome", "nome_de_familia"],
+        "middle_name": ["nome_do_meio", "segundo_nome"],
+        "date_of_birth": ["data_de_nascimento", "data_nascimento", "nascimento"],
+        "gender": ["sexo", "genero"],
+        "grade_level": ["serie", "ano", "nivel", "grau"],
+        "enrollment_status": ["situacao", "status", "estado", "ativo"],
+        "email": ["email", "correio_eletronico", "e_mail"],
+        "phone": ["telefone", "celular", "telemovel", "numero_telefone"],
+        "address": ["endereco", "morada", "residencia"],
+    },
+    "guardians": {
+        "guardian_external_id": ["numero_responsavel", "id_responsavel", "id_encarregado", "codigo_responsavel"],
+        "student_external_id": ["numero_aluno", "matricula_aluno", "id_aluno", "id_filho"],
+        "relationship": ["relacao", "parentesco", "vinculo", "grau_de_parentesco"],
+        "first_name": ["nome", "nome_responsavel"],
+        "last_name": ["sobrenome", "apelido", "sobrenome_responsavel"],
+        "email": ["email", "email_responsavel"],
+        "phone": ["telefone", "celular", "telefone_responsavel"],
+        "is_primary": ["principal", "contato_principal", "responsavel_principal"],
+    },
+    "staff": {
+        "staff_external_id": ["numero_funcionario", "matricula_funcionario", "id_funcionario", "numero_servidor", "codigo_professor", "numero_professor"],
+        "first_name": ["nome"],
+        "last_name": ["sobrenome", "apelido"],
+        "email": ["email", "email_institucional"],
+        "role": ["cargo", "funcao", "papel"],
+        "department": ["departamento", "area", "setor"],
+        "hire_date": ["data_admissao", "data_contratacao", "data_de_admissao", "data_inicio"],
+    },
+    "enrollment": {
+        "student_external_id": ["numero_aluno", "matricula_aluno", "id_aluno"],
+        "academic_year": ["ano_letivo", "ano_escolar", "ano_academico"],
+        "grade_level": ["serie", "ano", "nivel"],
+        "homeroom": ["turma", "grupo", "sala_de_aula"],
+        "enrollment_date": ["data_matricula", "data_inscricao", "data_ingresso"],
+        "exit_date": ["data_saida", "data_desligamento", "data_transferencia"],
+    },
+    "academics": {
+        "subject_code": ["codigo_disciplina", "codigo_materia", "codigo_curso"],
+        "subject_name": ["disciplina", "materia", "curso", "nome_disciplina"],
+        "credits": ["creditos", "carga_horaria", "unidades"],
+        "department": ["departamento", "area"],
+    },
+    "sections": {
+        "section_external_id": ["numero_turma", "id_turma", "codigo_turma", "id_secao"],
+        "subject_code": ["codigo_disciplina", "codigo_materia"],
+        "teacher_external_id": ["numero_professor", "id_professor", "codigo_docente"],
+        "academic_year": ["ano_letivo", "ano_escolar"],
+        "term": ["periodo", "semestre", "trimestre", "bimestre"],
+    },
+    "schedule": {
+        "section_external_id": ["numero_turma", "id_turma"],
+        "day_of_week": ["dia", "dia_da_semana", "dia_semana"],
+        "start_time": ["hora_inicio", "hora_de_inicio", "inicio"],
+        "end_time": ["hora_fim", "hora_de_fim", "fim"],
+        "room": ["sala", "sala_de_aula", "local"],
+    },
+    "attendance": {
+        "student_external_id": ["numero_aluno", "matricula_aluno"],
+        "date": ["data", "data_presenca", "dia"],
+        "status": ["situacao", "presenca", "frequencia"],
+        "period": ["periodo", "aula", "bloco"],
+        "reason": ["motivo", "razao", "observacao"],
+    },
+    "grades": {
+        "student_external_id": ["numero_aluno", "matricula_aluno"],
+        "section_external_id": ["numero_turma", "id_turma", "codigo_turma"],
+        "assessment_name": ["avaliacao", "prova", "exame", "tarefa", "trabalho"],
+        "score": ["nota", "pontuacao", "pontos"],
+        "max_score": ["nota_maxima", "valor_total", "pontuacao_maxima"],
+        "letter_grade": ["conceito", "mencao"],
+        "term": ["periodo", "semestre", "trimestre", "bimestre"],
+        "academic_year": ["ano_letivo", "ano_escolar"],
+    },
+    "transcripts": {
+        "student_external_id": ["numero_aluno", "matricula_aluno"],
+        "academic_year": ["ano_letivo", "ano_escolar"],
+        "subject_code": ["codigo_disciplina", "codigo_materia"],
+        "final_grade": ["nota_final", "media", "media_final"],
+        "credits_earned": ["creditos_obtidos", "carga_horaria_cumprida"],
+        "gpa_points": ["media_geral", "coeficiente_rendimento"],
+    },
+    "behavior": {
+        "student_external_id": ["numero_aluno", "matricula_aluno"],
+        "date": ["data", "data_ocorrencia"],
+        "category": ["categoria", "tipo_ocorrencia", "infracao"],
+        "description": ["descricao", "detalhe", "observacao"],
+        "consequence": ["consequencia", "penalidade", "medida"],
+    },
+    "health": {
+        "student_external_id": ["numero_aluno", "matricula_aluno"],
+        "blood_type": ["tipo_sanguineo", "grupo_sanguineo"],
+        "allergies": ["alergias", "alergia"],
+        "medications": ["medicamentos", "remedios"],
+        "immunizations": ["vacinas", "vacinacao", "imunizacoes"],
+        "emergency_contact_name": ["contato_emergencia", "nome_contato_emergencia", "pessoa_a_contatar"],
+        "emergency_contact_phone": ["telefone_emergencia", "telefone_contato_emergencia", "numero_emergencia"],
+    },
+    "finance": {
+        "student_external_id": ["numero_aluno", "matricula_aluno"],
+        "invoice_number": ["numero_fatura", "numero_da_fatura", "numero_recibo", "numero_boleto"],
+        "fee_category": ["tipo_pagamento", "categoria_pagamento", "rubrica"],
+        "amount": ["valor", "montante", "quantia", "valor_taxa"],
+        "currency": ["moeda", "codigo_moeda"],
+        "due_date": ["data_vencimento", "vencimento", "data_limite", "data_de_pagamento"],
+        "paid_amount": ["valor_pago", "pago", "montante_pago"],
+        "balance": ["saldo", "saldo_devedor", "restante", "valor_devido"],
+    },
+    "payroll": {
+        "staff_external_id": ["numero_funcionario", "matricula_funcionario"],
+        "pay_period": ["periodo_pagamento", "periodo", "mes_pagamento"],
+        "gross_pay": ["salario_bruto", "bruto", "vencimento_bruto"],
+        "net_pay": ["salario_liquido", "liquido", "vencimento_liquido"],
+    },
+    "communications": {
+        "thread_external_id": ["numero_conversa", "id_conversa", "id_mensagem"],
+        "sender_external_id": ["id_remetente", "remetente", "numero_remetente"],
+        "sent_at": ["enviado_em", "data_envio", "carimbo_de_tempo"],
+        "body": ["mensagem", "texto", "conteudo", "corpo"],
+    },
+    "events": {
+        "event_external_id": ["numero_evento", "id_evento"],
+        "name": ["nome", "titulo", "nome_evento"],
+        "start_at": ["data_inicio", "inicio", "comeca"],
+        "end_at": ["data_fim", "fim", "termina"],
+        "venue": ["local", "sede", "localizacao"],
+    },
+    "library": {
+        "item_external_id": ["numero_livro", "id_livro", "codigo_livro", "tombamento"],
+        "title": ["titulo", "nome"],
+        "isbn": ["isbn"],
+        "barcode": ["codigo_de_barras", "codigo_barras", "etiqueta"],
+        "borrower_external_id": ["numero_leitor", "id_leitor", "emprestado_a"],
+        "due_date": ["data_devolucao", "devolver_ate", "data_de_devolucao"],
+    },
+    "transport": {
+        "route_name": ["rota", "nome_rota", "itinerario", "linha"],
+        "stop_name": ["parada", "ponto_parada", "ponto_embarque"],
+        "student_external_id": ["numero_aluno", "matricula_aluno"],
+        "bus_label": ["onibus", "veiculo", "numero_onibus", "autocarro"],
+    },
+    "hostel": {
+        "hostel_name": ["internato", "alojamento", "dormitorio", "residencia"],
+        "room_number": ["quarto", "numero_quarto", "cama"],
+        "student_external_id": ["numero_aluno", "matricula_aluno"],
+    },
+    "cafeteria": {
+        "student_external_id": ["numero_aluno", "matricula_aluno"],
+        "meal_plan": ["plano_de_refeicoes", "plano_refeicoes", "cantina", "refeitorio"],
+        "balance": ["saldo", "credito", "saldo_cantina"],
+    },
+    "alumni": {
+        "alumnus_external_id": ["numero_ex_aluno", "id_ex_aluno", "numero_egresso"],
+        "graduation_year": ["ano_formatura", "ano_conclusao"],
+        "current_employer": ["empregador", "empresa", "empregador_atual"],
+        "email": ["email", "email_contato"],
+    },
+    "compliance": {
+        "consent_type": ["tipo_consentimento", "consentimento", "autorizacao"],
+        "student_external_id": ["numero_aluno", "matricula_aluno"],
+        "granted": ["concedido", "consentido", "autorizado", "aprovado"],
+        "granted_at": ["data_consentimento", "assinado_em", "data_assinatura"],
+    },
+}
+
+
+def _merge_lang_seed(seed: dict, lang: str) -> None:
+    """Fold a language coverage seed into BASELINE_OVERLAY under ``lang``,
+    additively (never dropping an existing overlay language / entry)."""
+    for domain, fields in seed.items():
+        dom = BASELINE_OVERLAY.setdefault(domain, {})
+        for field, syns in fields.items():
+            field_langs = dom.setdefault(field, {})
+            existing = list(field_langs.get(lang, []))
+            field_langs[lang] = list(dict.fromkeys([*existing, *syns]))
+
+
+_merge_lang_seed(_SPANISH_SEED_2026_08, "es")
+_merge_lang_seed(_PORTUGUESE_SEED_2026_08, "pt")
