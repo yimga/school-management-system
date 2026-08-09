@@ -10,8 +10,8 @@ import logging
 import os
 from functools import wraps
 
+from django.core.exceptions import PermissionDenied
 from django.db import DatabaseError, IntegrityError
-from django.http import HttpResponseForbidden
 
 logger = logging.getLogger(__name__)
 
@@ -175,7 +175,7 @@ def require_control_plane_access(view_func):
 
             return redirect_to_login(request.get_full_path())
         if not user_has_control_plane_access(request.user):
-            return HttpResponseForbidden("Control-plane access required.")
+            raise PermissionDenied("Control-plane access required.")
         return view_func(request, *args, **kwargs)
 
     return _wrapped
@@ -194,7 +194,7 @@ def require_super_access(view_func):
 
             return redirect_to_login(request.get_full_path())
         if not user_has_control_plane_access(request.user):
-            return HttpResponseForbidden("Super Admin access required.")
+            raise PermissionDenied("Super Admin access required.")
         return view_func(request, *args, **kwargs)
 
     return _wrapped
@@ -218,7 +218,7 @@ def require_super_access_with_host(view_func):
     @wraps(view_func)
     def _wrapped(request, *args, **kwargs):
         if not _is_super_surface(request):
-            return HttpResponseForbidden(
+            raise PermissionDenied(
                 "Control-plane surface required (manager host or /super/)."
             )
         if not getattr(request, "user", None) or not request.user.is_authenticated:
@@ -226,7 +226,7 @@ def require_super_access_with_host(view_func):
 
             return redirect_to_login(request.get_full_path())
         if not user_has_control_plane_access(request.user):
-            return HttpResponseForbidden("Super Admin access required.")
+            raise PermissionDenied("Super Admin access required.")
         return view_func(request, *args, **kwargs)
 
     return _wrapped
