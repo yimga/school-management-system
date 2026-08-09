@@ -6,6 +6,7 @@
 {% block studio_embed_extrahead %}
   <link rel="stylesheet" href="{% static 'css/tenant-command-workspace.css' %}">
   <link rel="stylesheet" href="{% static 'css/setup-studio-onboarding.css' %}">
+  <link rel="stylesheet" href="{% static 'css/rmc-civic-footer.css' %}">
 {% endblock %}
 
 {% block studio_embed_content %}
@@ -89,7 +90,7 @@
           <div class="setup-studio-checklist-item">
             <div class="d-flex justify-content-between align-items-start gap-2">
               <div class="setup-studio-mini-title">{{ item.label }}</div>
-              <span class="badge {% if item.done %}text-bg-success{% elif item.is_blocker %}text-bg-warning{% else %}text-bg-light{% endif %}">{{ item.status }}</span>
+              <span class="badge {% if item.done %}bg-success-subtle text-success-emphasis border border-success-subtle{% elif item.is_blocker %}bg-warning-subtle text-warning-emphasis border border-warning-subtle{% else %}bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle{% endif %}">{{ item.status }}</span>
             </div>
           </div>
           {% empty %}
@@ -130,4 +131,8 @@
   </div>
   {% endif %}
 </section>
+{% endblock %}
+
+{% block studio_embed_footer %}
+{% include "components/dashboard_footer.html" %}
 {% endblock %}

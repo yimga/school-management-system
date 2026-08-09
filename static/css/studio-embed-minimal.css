@@ -4,9 +4,15 @@
 
 .studio-embed-body {
   margin: 0;
-  background: var(--surface-canvas-soft, var(--color-base-50, #faf8f4));
+  /* --surface-canvas-soft is a light-only token (no dark override), so the embed
+     canvas stayed cream in dark mode while the cards used the theme-flipping
+     --surface-elevated — a light-page/dark-card mismatch vs the rest of the
+     platform. --surface-bg is the canonical page background and flips with the
+     theme, so the embed now matches the active tenant theme. */
+  background: var(--surface-bg, var(--surface-canvas-soft));
   color: var(--text-primary, var(--color-base-900));
   font-family: var(--font-sans, system-ui, sans-serif);
+  min-height: 100dvh;
 }
 
 .studio-embed-main {

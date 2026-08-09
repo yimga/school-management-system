@@ -17,6 +17,10 @@
   <link rel="stylesheet" href="{% static 'css/rmc-class-grammar.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-class-grammar-ext.css' %}">
   <link rel="stylesheet" href="{% static 'css/studio-embed-minimal.css' %}">
+  {% comment %} The embed includes components/back_to_top.html but never loaded its
+     stylesheet, so the button rendered as raw "Back to top" text with the scroll
+     percentage. Load it so the pill/ring styling applies like the rest of the platform. {% endcomment %}
+  <link rel="stylesheet" href="{% static 'css/rmc-back-to-top.css' %}">
   {% include "partials/rmc_platform_shell_beautify_styles.html" %}
   {% block studio_embed_extrahead %}{% endblock %}
 </head>
@@ -29,6 +33,10 @@
 {% include "components/next_action_strip.html" %}
 {% endblock %}
   </main>
+  {% comment %} Opt-in footer slot: empty by default so widget-style embeds stay
+     chromeless; full-page embeds (e.g. guided onboarding) fill it with the tenant
+     civic footer so the standalone view matches the platform. {% endcomment %}
+  {% block studio_embed_footer %}{% endblock %}
   <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}" defer></script>
   <script src="{% static 'js/rmc-scroll-container.js' %}"></script>
   {% include "components/back_to_top.html" %}

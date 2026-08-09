@@ -12,10 +12,14 @@ from apps.registries.models import (
     SubdivisionRegistry,
     TimeZoneRegistry,
 )
+from apps.platform_runtime.models import BlueprintInstallation
 from apps.schools.models import School
 from apps.siteconfig.models_platform_catalog import RegionConfig
 from apps.setup_studio.models import SetupProgress
-from apps.setup_studio.services import get_setup_studio_payload
+from apps.setup_studio.services import (
+    _step_state_for_school,
+    get_setup_studio_payload,
+)
 
 
 class SetupStudioServiceTests(TestCase):
@@ -133,6 +137,54 @@ class SetupStudioServiceTests(TestCase):
         self.assertEqual(progress.launch_blockers, payload["launch_blockers"])
         self.assertEqual(progress.recommendations, payload["recommendations"])
         self.assertFalse(progress.launch_ready)
+
+    def test_applied_runtime_blueprint_clears_blueprint_blocker(self):
+        """An applied RUNTIME blueprint (the green 'Applied' badge on the
+        guided-onboarding surface) must clear the 'Apply blueprint' launch
+        blocker.
+
+        Regression: two blueprint systems coexist — the guided-onboarding surface
+        writes platform_runtime.BlueprintInstallation(status=APPLIED), but the
+        setup_studio blocker only read policies.TenantBlueprint.active_bundle, so a
+        school that applied a runtime blueprint saw 'No active blueprint is
+        attached yet' forever. The step must now recognize the runtime install.
+        """
+        # Before: no blueprint of either system → step not done, and it is a blocker.
+        state_before = _step_state_for_school(self.school)
+        self.assertFalse(state_before["blueprint"]["done"])
+        payload_before = get_setup_studio_payload(self.school)
+        self.assertIn(
+            "blueprint",
+            {b.get("key") for b in payload_before["launch_blockers"]},
+        )
+
+        # Apply a runtime blueprint exactly as platform_runtime.apply_blueprint does.
+        BlueprintInstallation.objects.create(
+            school=self.school,
+            blueprint_key="private-primary-school",
+            status=BlueprintInstallation.Status.APPLIED,
+            idempotency_key="test-applied-runtime-blueprint-1",
+        )
+
+        # After: the blueprint step is recognized done and no longer a blocker.
+        state_after = _step_state_for_school(self.school)
+        self.assertTrue(state_after["blueprint"]["done"])
+        payload_after = get_setup_studio_payload(self.school)
+        self.assertNotIn(
+            "blueprint",
+            {b.get("key") for b in payload_after["launch_blockers"]},
+        )
+
+    def test_rolled_back_runtime_blueprint_does_not_count_as_applied(self):
+        """Only an APPLIED install counts — a rolled-back one must NOT clear the blocker."""
+        BlueprintInstallation.objects.create(
+            school=self.school,
+            blueprint_key="private-primary-school",
+            status=BlueprintInstallation.Status.ROLLED_BACK,
+            idempotency_key="test-rolled-back-runtime-blueprint-1",
+        )
+        state = _step_state_for_school(self.school)
+        self.assertFalse(state["blueprint"]["done"])
 
     def test_role_previews_are_present(self):
         payload = get_setup_studio_payload(self.school)

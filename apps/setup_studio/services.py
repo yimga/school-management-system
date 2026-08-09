@@ -807,9 +807,27 @@ def _step_state_for_school(school) -> dict[str, dict[str, Any]]:
 
     has_year = AcademicYear.objects.filter(school=school).exists()
     has_plan = bool(getattr(school, "plan_id", None))
+    # Two blueprint systems coexist and must both count as "applied" here:
+    #   * policies.TenantBlueprint.active_bundle — the policy-pack path
+    #     ("Use recommended setup" / BlueprintPack), and
+    #   * platform_runtime.BlueprintInstallation(status=APPLIED) — the RUNTIME
+    #     blueprints the guided-onboarding surface applies (the green "Applied"
+    #     badges). That path never writes TenantBlueprint.active_bundle, so a
+    #     school that applied a runtime blueprint used to see the "Apply blueprint"
+    #     launch blocker forever. Read the runtime side with the SAME helper the
+    #     badge surface uses so the blocker's definition of "applied" matches it.
     has_blueprint = TenantBlueprint.objects.filter(
         school=school, active_bundle__isnull=False
     ).exists()
+    if not has_blueprint:
+        try:
+            from apps.platform_runtime.blueprint_composition import (
+                installed_blueprint_keys,
+            )
+
+            has_blueprint = bool(installed_blueprint_keys(school))
+        except (ImportError, AttributeError):
+            pass
     has_branding = bool(
         getattr(school, "theme_pack_id", None) or getattr(school, "primary_color", None)
     )
