@@ -97,7 +97,7 @@
 .rmc-wfp-flight-deck__run-grid {
   display: grid;
   gap: var(--rmc-assist-gap, 12px);
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
 }
 
 .rmc-wfp-flight-deck__run {

@@ -35,6 +35,16 @@ family as each pass ships.
     .rmc-admin-catalog-model-grid, .rmc-admin-mirror-grid
     (left as auto-fill on purpose: .backend-v2-chip-row — a pill/chip row where
      stretching rounded chips full-width reads wrong.)
+
+  RESIDUALS (final QA sweep — hubs missed by the family passes):
+    .rmc-wfp-flight-deck__run-grid, .rmc-mkt-catalog__grid, .hub-page .hub-cards,
+    .rmc-kbd-cheatsheet__grid, and the tenant-dashboard .rmc-dh-cards /
+    .rmc-dh-cards--wide / .rmc-dh-subj (source made honest; already auto-fit at
+    runtime via rmc-kpi-grid-canonical.css's !important override).
+    Remaining deliberate auto-fill galleries platform-wide: .rmc-seating-grid
+    (fixed desk tiles), .rmc-lux-skeleton--grid-cell (loading placeholder),
+    colour/token swatches, data-viz heat cells, day1 gradient-stop chips,
+    social-moderation image tiles, and the peer-owned .cp-catalog / .bento-grid.
 """
 
 import re
@@ -189,3 +199,37 @@ class AdminCardHubGridFillTest(SimpleTestCase):
         # deliberately keeps auto-fill. Guard against a blind sweep.
         body = _rule_body(self._read("backend-dashboard-v2.css"), ".backend-v2-chip-row")
         self.assertIn("auto-fill", body)
+
+
+class ResidualCardHubGridFillTest(SimpleTestCase):
+    """Final QA sweep: residual hubs the family passes missed, the tenant-dashboard
+    source honesty fix, and the two remaining deliberate galleries."""
+
+    def _read(self, name: str) -> str:
+        return (_CSS_DIR / name).read_text(encoding="utf-8")
+
+    def _assert_auto_fit(self, name: str, selector: str):
+        body = _rule_body(self._read(name), selector)
+        self.assertIn("auto-fit", body, f"{name} {selector} must be auto-fit")
+        self.assertNotIn("auto-fill", body, f"{name} {selector} still auto-fill")
+
+    def test_residual_hubs_are_auto_fit(self):
+        self._assert_auto_fit("rmc-workflow-flight-deck.css", ".rmc-wfp-flight-deck__run-grid")
+        self._assert_auto_fit("marketplace-app-catalog.css", ".rmc-mkt-catalog__grid")
+        self._assert_auto_fit("hub-premium.css", ".hub-page .hub-cards")
+        self._assert_auto_fit("design-tokens.css", ".rmc-kbd-cheatsheet__grid")
+
+    def test_tenant_dashboard_hub_grids_are_auto_fit(self):
+        css = self._read("rmc-tenant-dashboard-100x.css")
+        for sel in (".rmc-dh-cards", ".rmc-dh-cards--wide", ".rmc-dh-subj"):
+            body = _rule_body(css, sel)
+            self.assertIn("auto-fit", body, f"{sel} must be auto-fit")
+            self.assertNotIn("auto-fill", body, f"{sel} still auto-fill")
+
+    def test_seating_and_skeleton_keep_auto_fill_by_design(self):
+        # Seating chart = fixed-size desk tiles (a short last row must not balloon);
+        # skeleton = transient loading placeholder. Both correctly keep auto-fill.
+        seating = _rule_body(self._read("rmc-class-grammar.css"), ".rmc-seating-grid")
+        self.assertIn("auto-fill", seating)
+        skel = _rule_body(self._read("lux-workspace.css"), ".rmc-lux-skeleton--grid-cell")
+        self.assertIn("auto-fill", skel)

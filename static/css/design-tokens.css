@@ -4342,7 +4342,7 @@ html.rmc-sheet-scroll-lock body { overflow: hidden; }
 
 .rmc-kbd-cheatsheet__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(11.5rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(11.5rem, 100%), 1fr));
   gap: 1.25rem 1.5rem;
   align-items: start;
 }

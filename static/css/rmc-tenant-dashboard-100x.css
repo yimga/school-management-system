@@ -297,8 +297,8 @@
 .rmc-dh-panel__more:hover { text-decoration: underline; }
 
 /* ============================ Card grid (actions / classes) ============================ */
-.rmc-dh-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 0.6875rem; }
-.rmc-dh-cards--wide { grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); }
+.rmc-dh-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr)); gap: 0.6875rem; }
+.rmc-dh-cards--wide { grid-template-columns: repeat(auto-fit, minmax(min(290px, 100%), 1fr)); }
 .rmc-dh-card {
   display: block;
   padding: 0.8125rem;
@@ -575,7 +575,7 @@
 .rmc-dh-areachart--accent { --rmc-dh-area-fill: color-mix(in oklab, var(--rmc-dh-accent) 30%, transparent); --rmc-dh-area-stroke: var(--rmc-dh-accent); }
 
 /* ============================ Subject progress grid ============================ */
-.rmc-dh-subj { display: grid; grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: 0.625rem; }
+.rmc-dh-subj { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(155px, 100%), 1fr)); gap: 0.625rem; }
 .rmc-dh-subj__s { padding: 0.6875rem 0.75rem; border: 1px solid var(--hairline); border-radius: var(--radius-md, 12px); background: var(--surface-elevated); }
 .rmc-dh-subj__nm { font-size: var(--text-sm, 0.78125rem); font-weight: 600; color: var(--text-primary); }
 .rmc-dh-subj__pc { float: right; font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--rmc-dh-accent); }
