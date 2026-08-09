@@ -2231,18 +2231,20 @@ class MigrationCloudConflictsView(LoginRequiredMixin, View):
             request.GET.get("resolved_page") or 1
         )
         pending = list(pending_page_obj.object_list)
+        resolved = list(resolved_page_obj.object_list)
         # PII masking: staged conflict rows can hold SSN / DOB / medical / financial
         # values. Mask them IN MEMORY (never saved) for any viewer without an
-        # explicit reveal right, so raw PII never leaves the server for the review
-        # surface. Applied here so it covers BOTH the JSON and HTML renders below.
+        # explicit reveal right, for BOTH pending AND resolved — the resolved rows
+        # were placed in the context unmasked, so raw existing/incoming dicts sat
+        # in the response the moment the template surfaced them. Applied here so it
+        # covers BOTH the JSON and HTML renders below.
         reveal_pii = _can_reveal_pii(request.user)
         if not reveal_pii:
             from .pii_display import mask_dict
-            for _c in pending:
+            for _c in (*pending, *resolved):
                 _c.existing_values = mask_dict(_c.existing_values)
                 _c.incoming_values = mask_dict(_c.incoming_values)
         pending_count = pending_qs.count()
-        resolved = list(resolved_page_obj.object_list)
         pending_extra = request.GET.copy()
         pending_extra.pop("page", None)
         resolved_extra = request.GET.copy()

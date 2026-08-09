@@ -449,6 +449,23 @@ _SENSITIVE_KEYS = (
     "signature_text",
     "email",
     "slug",
+    # Broadened 2026-08-09: the block-list was narrower than pii_display's PII
+    # hints, and "dob" (a substring test) never matched "date_of_birth" — so
+    # cleartext PII could ride into the append-only, exportable chain as a dict
+    # VALUE under an un-listed key. These close the highest-value gaps for a
+    # school SIS (chosen as low-false-positive substrings; count/prefix emit
+    # sites are unaffected).
+    "birth",         # date_of_birth / birthdate / place_of_birth
+    "phone",         # phone / guardian_phone / telephone
+    "mobile",        # mobile_number
+    "national_id",
+    "passport",
+    "medical",
+    "health",
+    "diagnosis",
+    "allerg",        # allergy / allergies
+    "salary",
+    "iban",
 )
 
 
