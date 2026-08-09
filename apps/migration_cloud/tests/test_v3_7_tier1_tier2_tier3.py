@@ -124,7 +124,10 @@ class AssetPipelineTests(TestCase):
         self.assertEqual(a1.pk, a2.pk)
         self.assertEqual(a1.status, AssetStatus.PENDING)
 
-    def test_fetch_pending_assets_file_scheme(self):
+    def test_fetch_pending_assets_file_scheme_refused_by_default(self):
+        # SSRF/LFI guard (2026-08-09): a file:// asset source (source_uri comes
+        # off an untrusted migrated row) is refused by default -> FAILED, never
+        # read off the server's disk.
         bundle = _bundle()
         with tempfile.TemporaryDirectory() as td:
             src = Path(td) / "photo.bin"
@@ -135,6 +138,31 @@ class AssetPipelineTests(TestCase):
             )
             from apps.migration_cloud.asset_pipeline import fetch_pending_assets
             counts = fetch_pending_assets(bundle_id=bundle.pk)
+            self.assertEqual(counts["stored"], 0)
+            self.assertEqual(counts["failed"], 1)
+            self.assertEqual(bundle.assets.first().status, AssetStatus.FAILED)
+
+    def test_fetch_pending_assets_file_scheme_optin_confined(self):
+        # A self-host opts in (allow_local_file_source) and reads are confined to
+        # the allowed asset root (here MEDIA_ROOT): a file INSIDE it is stored.
+        from unittest import mock
+
+        from django.test import override_settings
+
+        import apps.migration_cloud.asset_pipeline as _ap
+
+        bundle = _bundle()
+        with tempfile.TemporaryDirectory() as td:
+            src = Path(td) / "photo.bin"
+            src.write_bytes(b"\xff\xd8\xff\xe0fake-jpeg")
+            register_asset(
+                bundle=bundle, entity_kind="student", legacy_id="PS-1",
+                asset_kind="photo", source_uri=src.as_uri(),
+            )
+            with override_settings(MEDIA_ROOT=td), mock.patch.object(
+                _ap, "_allow_local_file_source", return_value=True,
+            ):
+                counts = _ap.fetch_pending_assets(bundle_id=bundle.pk)
             self.assertEqual(counts["stored"], 1)
             asset = bundle.assets.first()
             self.assertEqual(asset.status, AssetStatus.STORED)

@@ -5,9 +5,8 @@ from __future__ import annotations
 import io
 import mimetypes
 from typing import Any, Iterator
-from urllib.error import HTTPError, URLError
-from urllib.request import Request, urlopen
 
+from apps.migration_cloud import defaults as mc_defaults
 from apps.migration_cloud.models import IntakeMethod
 
 from .base import (
@@ -18,6 +17,7 @@ from .base import (
     register_adapter,
     sha256_of_stream,
 )
+from .net_guard import fetch_http_capped
 
 
 class APIPullIntakeAdapter(IntakeAdapter):
@@ -46,21 +46,24 @@ class APIPullIntakeAdapter(IntakeAdapter):
         url = str(handle["url"])
         token = str(handle["api_token"])
         name = str(handle.get("artifact_name") or "api_export.bin")
-        req = Request(
+        try:
+            max_bytes = int(mc_defaults.get("migration_cloud.intake.max_artifact_bytes"))
+        except Exception:  # noqa: BLE001 — safe fallback
+            max_bytes = 5 * 1024 * 1024 * 1024
+        # SSRF-guarded: fetch_http_capped validates the host is public BEFORE
+        # building the request, so a url of http://169.254.169.254/... (or any
+        # RFC-1918 / loopback host) never receives the Authorization: Bearer
+        # token; every redirect hop is re-validated and the body is streamed
+        # under the per-artifact byte cap.
+        payload, _content_type = fetch_http_capped(
             url,
+            max_bytes=max_bytes,
+            timeout=30,
             headers={
                 "Authorization": f"Bearer {token}",
                 "Accept": "application/json, text/csv",
             },
-            method="GET",
         )
-        try:
-            with urlopen(req, timeout=30) as response:  # nosec B310 — URL from operator config
-                payload = response.read()
-        except HTTPError as exc:
-            raise IntakeError(f"API_PULL HTTP {exc.code}") from exc
-        except URLError as exc:
-            raise IntakeError(f"API_PULL unreachable: {exc.reason}") from exc
 
         if not payload:
             raise IntakeError("API_PULL returned empty body")

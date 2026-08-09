@@ -32,6 +32,8 @@ from urllib.parse import urlparse
 
 from django.conf import settings
 
+from apps.migration_cloud import defaults as mc_defaults
+
 from .models import AssetStatus, MigrationAsset, MigrationBundle
 
 logger = logging.getLogger(__name__)
@@ -148,36 +150,56 @@ def fetch_pending_assets(*, bundle_id: int, max_batch: int = 100) -> dict[str, i
     return counts
 
 
+def _asset_max_bytes() -> int:
+    """Per-asset byte ceiling — a photo / scan / PDF, not a whole bundle."""
+    try:
+        return int(mc_defaults.get("migration_cloud.assets.max_asset_bytes"))
+    except Exception:  # noqa: BLE001 — safe fallback
+        return 64 * 1024 * 1024
+
+
+def _asset_http_timeout() -> float:
+    try:
+        return float(mc_defaults.get("migration_cloud.assets.http_timeout_seconds"))
+    except Exception:  # noqa: BLE001
+        return 30.0
+
+
+def _allow_local_file_source() -> bool:
+    """Whether a ``file://`` / local-path asset source is permitted (default no)."""
+    try:
+        return bool(mc_defaults.get("migration_cloud.assets.allow_local_file_source"))
+    except Exception:  # noqa: BLE001
+        return False
+
+
 def _fetch_uri(uri: str) -> tuple[bytes | None, str]:
-    """Fetch bytes from any supported URI scheme. Returns (content, mime_type)."""
+    """Fetch bytes from a supported URI scheme, SSRF- and size-guarded.
+
+    ``source_uri`` comes straight off a migrated SIS row (``photo_url``,
+    ``report_card_url``, …) via ``detect_and_register_assets`` — it is
+    UNTRUSTED. So:
+      * http/https are SSRF-guarded (no loopback / RFC-1918 / metadata IP, every
+        redirect re-validated) and streamed under a per-asset byte cap;
+      * ``file://`` / bare local paths are REFUSED by default — a cloud tenant
+        must never make the server read its own disk (``file:///etc/passwd``) —
+        and only permitted, confined to MEDIA_ROOT, when a self-host opts in via
+        ``migration_cloud.assets.allow_local_file_source``;
+      * ``data:`` and ``s3://`` bodies are capped too.
+    """
     parsed = urlparse(uri)
     scheme = (parsed.scheme or "").lower()
-
-    if scheme in ("", "file"):
-        # Windows-tolerant file URI parse: ``file:///C:/path`` and
-        # ``file://C:\\path`` both have to resolve cleanly.
-        candidate = ""
-        if uri.startswith("file://"):
-            stripped = uri[len("file://"):]
-            if stripped.startswith("/") and len(stripped) > 3 and stripped[2] == ":":
-                candidate = stripped[1:]
-            else:
-                candidate = stripped
-        path = Path(candidate or parsed.path or uri)
-        if not path.exists() or not path.is_file():
-            return None, ""
-        return path.read_bytes(), _guess_mime(path.name)
+    max_bytes = _asset_max_bytes()
 
     if scheme in ("http", "https"):
-        try:
-            import urllib.request
+        from .intake.net_guard import fetch_http_capped
 
-            req = urllib.request.Request(uri, headers={"User-Agent": "RunMyCampus-MigrationCloud/1.0"})
-            with urllib.request.urlopen(req, timeout=30) as resp:  # noqa: S310 — operator-controlled URI
-                mime = resp.headers.get("Content-Type", "").split(";")[0].strip()
-                return resp.read(), mime
-        except Exception:  # noqa: BLE001
-            raise
+        return fetch_http_capped(
+            uri, max_bytes=max_bytes, timeout=_asset_http_timeout(),
+        )
+
+    if scheme in ("", "file"):
+        return _read_local_asset(uri, parsed, max_bytes)
 
     if scheme == "data":
         # data:[<mime>][;base64],<payload>
@@ -185,8 +207,12 @@ def _fetch_uri(uri: str) -> tuple[bytes | None, str]:
         mime = meta.split(";")[0] if meta else ""
         if "base64" in meta:
             import base64
-            return base64.b64decode(payload), mime
-        return payload.encode("utf-8"), mime
+            raw = base64.b64decode(payload)
+        else:
+            raw = payload.encode("utf-8")
+        if len(raw) > max_bytes:
+            raise ValueError(f"data: asset exceeds cap ({max_bytes:,} bytes)")
+        return raw, mime
 
     if scheme == "s3":
         try:
@@ -197,9 +223,59 @@ def _fetch_uri(uri: str) -> tuple[bytes | None, str]:
         key = parsed.path.lstrip("/")
         s3 = boto3.client("s3")
         resp = s3.get_object(Bucket=bucket, Key=key)
+        size = int(resp.get("ContentLength", 0) or 0)
+        if size and size > max_bytes:
+            raise ValueError(f"s3 asset is {size:,} bytes; exceeds cap {max_bytes:,}")
         return resp["Body"].read(), resp.get("ContentType", "")
 
     return None, ""
+
+
+def _read_local_asset(uri: str, parsed, max_bytes: int) -> tuple[bytes | None, str]:
+    """Read a ``file://`` / local-path asset — refused unless opted in + confined."""
+    if not _allow_local_file_source():
+        raise ValueError(
+            "Refusing to read a local-file asset source (SSRF/LFI guard): a "
+            f"migrated row supplied {uri!r}. Enable "
+            "migration_cloud.assets.allow_local_file_source only on a self-host "
+            "that confines assets to MEDIA_ROOT."
+        )
+    # Windows-tolerant file URI parse: ``file:///C:/path`` and ``file://C:\\path``.
+    candidate = ""
+    if uri.startswith("file://"):
+        stripped = uri[len("file://"):]
+        if stripped.startswith("/") and len(stripped) > 3 and stripped[2] == ":":
+            candidate = stripped[1:]
+        else:
+            candidate = stripped
+    path = Path(candidate or parsed.path or uri)
+    try:
+        configured_root = str(
+            mc_defaults.get("migration_cloud.assets.local_source_root") or ""
+        ).strip()
+    except Exception:  # noqa: BLE001
+        configured_root = ""
+    root_dir = (
+        Path(configured_root)
+        if configured_root
+        else Path(getattr(settings, "MEDIA_ROOT", "media"))
+    )
+    try:
+        real = path.resolve()
+        root = root_dir.resolve()
+    except OSError as exc:
+        raise ValueError(f"could not resolve local asset path: {exc}") from exc
+    if not (real == root or real.is_relative_to(root)):
+        raise ValueError(
+            f"local asset path escapes the allowed asset root (path traversal "
+            f"refused): {uri!r}"
+        )
+    if not real.exists() or not real.is_file():
+        return None, ""
+    size = real.stat().st_size
+    if size > max_bytes:
+        raise ValueError(f"local asset is {size:,} bytes; exceeds cap {max_bytes:,}")
+    return real.read_bytes(), _guess_mime(real.name)
 
 
 def _guess_mime(filename: str) -> str:

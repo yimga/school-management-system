@@ -90,6 +90,23 @@ _SEED: dict[str, Any] = {
     # Asset pipeline (Tier 1 #2): per-batch ceiling for fetch_pending_assets.
     "migration_cloud.assets.max_batch": 100,
     "migration_cloud.assets.http_timeout_seconds": 30,
+    # Per-asset byte cap for fetch_pending_assets (a photo / scan / PDF, NOT a
+    # whole bundle). Streamed http/https + data:/s3 fetches refuse a body above
+    # this so a hostile source_uri cannot exhaust worker memory. 64 MiB.
+    "migration_cloud.assets.max_asset_bytes": 64 * 1024 * 1024,
+    # Whether a migrated row's ``file://`` / bare-path asset source may be read
+    # off the SERVER's disk. Default OFF: source_uri is untrusted (comes off the
+    # SIS row), so a cloud tenant must never make the server read file:///etc/passwd.
+    # A self-host that legitimately ships photos as local files opts in; even
+    # then reads are confined to MEDIA_ROOT (path-traversal refused). (Env form
+    # is double-prefixed like every migration_cloud.* key —
+    # ``MIGRATION_CLOUD__MIGRATION_CLOUD__ASSETS__ALLOW_LOCAL_FILE_SOURCE=1``.)
+    "migration_cloud.assets.allow_local_file_source": False,
+    # When local-file asset reads are opted in, confine them to this root
+    # (path-traversal outside it is refused). Empty → MEDIA_ROOT. A self-host
+    # appliance that reads bundled photos from an extraction dir points this at
+    # that dir; the value must be an absolute path the app can read.
+    "migration_cloud.assets.local_source_root": "",
     # Cost predictor (Tier 3 #18): heuristic AI-call token cost.
     "migration_cloud.cost.avg_tokens_per_call": 800,
     "migration_cloud.cost.usd_per_1k_tokens": 0.002,

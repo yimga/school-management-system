@@ -226,7 +226,7 @@ class ConflictPIIMaskingTests(TestCase):
 
 
 class SftpSSRFParityTests(TestCase):
-    @mock.patch("apps.migration_cloud.intake.url_intake.socket.getaddrinfo")
+    @mock.patch("apps.migration_cloud.intake.net_guard.socket.getaddrinfo")
     def test_sftp_blocks_private_host(self, gai):
         gai.return_value = [(2, 1, 6, "", ("10.0.0.5", 0))]
         with self.assertRaises(IntakeError):

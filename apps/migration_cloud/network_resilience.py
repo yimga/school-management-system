@@ -91,9 +91,26 @@ def fetch_with_resume(
     raise FetchError(f"fetch failed for {uri} after {max_retries} attempts: {last_err}")
 
 
+def _assert_public_fetch_host(uri: str) -> None:
+    """SSRF guard shared with the intake fetchers (net_guard SOT).
+
+    A blocked host (loopback / RFC-1918 / link-local metadata) is a PERMANENT
+    failure, so it is raised as ``FetchError`` — caught by ``fetch_with_resume``'s
+    ``except FetchError: raise`` and NOT retried through the backoff loop.
+    """
+    from apps.migration_cloud.intake.base import IntakeError
+    from apps.migration_cloud.intake.net_guard import assert_public_host
+
+    try:
+        assert_public_host(uri)
+    except IntakeError as exc:
+        raise FetchError(str(exc)) from exc
+
+
 def _fetch_http_with_range(uri: str, dest: Path, *, timeout: float, resume_from: int) -> None:
     import urllib.request
 
+    _assert_public_fetch_host(uri)  # SSRF guard before any connect.
     headers = {"User-Agent": "RunMyCampus-MigrationCloud/1.0"}
     mode = "wb"
     if resume_from > 0 and dest.exists():
@@ -111,6 +128,7 @@ def _fetch_http_with_range(uri: str, dest: Path, *, timeout: float, resume_from:
 
 
 def _fetch_sftp(uri: str, dest: Path, *, timeout: float) -> None:
+    _assert_public_fetch_host(uri)  # SSRF guard before any connect.
     parsed = urlparse(uri)
     try:
         import paramiko  # type: ignore[import-not-found]

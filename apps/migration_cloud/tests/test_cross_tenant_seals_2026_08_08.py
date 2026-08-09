@@ -231,39 +231,39 @@ class UrlIntakeSSRFGuardTests(TestCase):
         # (family, type, proto, canonname, sockaddr) — sockaddr[0] is the IP.
         return [(2, 1, 6, "", (ip, 0))]
 
-    @mock.patch("apps.migration_cloud.intake.url_intake.socket.getaddrinfo")
+    @mock.patch("apps.migration_cloud.intake.net_guard.socket.getaddrinfo")
     def test_blocks_cloud_metadata_ip(self, gai):
         gai.return_value = self._addrinfo("169.254.169.254")
         with self.assertRaises(IntakeError):
             _assert_public_host("http://metadata.internal/latest/meta-data/")
 
-    @mock.patch("apps.migration_cloud.intake.url_intake.socket.getaddrinfo")
+    @mock.patch("apps.migration_cloud.intake.net_guard.socket.getaddrinfo")
     def test_blocks_loopback(self, gai):
         gai.return_value = self._addrinfo("127.0.0.1")
         with self.assertRaises(IntakeError):
             _assert_public_host("http://localhost/secret")
 
-    @mock.patch("apps.migration_cloud.intake.url_intake.socket.getaddrinfo")
+    @mock.patch("apps.migration_cloud.intake.net_guard.socket.getaddrinfo")
     def test_blocks_private_rfc1918(self, gai):
         gai.return_value = self._addrinfo("10.1.2.3")
         with self.assertRaises(IntakeError):
             _assert_public_host("http://intranet.example/export.csv")
 
-    @mock.patch("apps.migration_cloud.intake.url_intake.socket.getaddrinfo")
+    @mock.patch("apps.migration_cloud.intake.net_guard.socket.getaddrinfo")
     def test_allows_public_ip(self, gai):
         gai.return_value = self._addrinfo("93.184.216.34")
         # Should not raise.
         _assert_public_host("https://exports.example.edu/roster.csv")
 
-    @mock.patch("apps.migration_cloud.intake.url_intake.mc_defaults.get", return_value=False)
-    @mock.patch("apps.migration_cloud.intake.url_intake.socket.getaddrinfo")
+    @mock.patch("apps.migration_cloud.intake.net_guard.mc_defaults.get", return_value=False)
+    @mock.patch("apps.migration_cloud.intake.net_guard.socket.getaddrinfo")
     def test_opt_out_flag_allows_private(self, gai, _flag):
         gai.return_value = self._addrinfo("10.1.2.3")
         # Self-host opt-out: with block_private_network_fetch off, the guard
         # steps aside even for a private address.
         _assert_public_host("http://intranet.example/export.csv")
 
-    @mock.patch("apps.migration_cloud.intake.url_intake.socket.getaddrinfo")
+    @mock.patch("apps.migration_cloud.intake.net_guard.socket.getaddrinfo")
     def test_redirect_handler_revalidates_target(self, gai):
         gai.return_value = self._addrinfo("169.254.169.254")
         handler = _SSRFGuardedRedirectHandler()
