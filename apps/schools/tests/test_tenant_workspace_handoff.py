@@ -45,7 +45,10 @@ class TenantWorkspaceHandoffTests(TestCase):
         response = self.client.get(reverse("accounts:redirect"), follow=False)
         self.assertEqual(response.status_code, 302)
         self.assertIn("handoff-school.runmycampus.com", response["Location"])
-        self.assertIn("/authentication/login/", response["Location"])
+        # 105c7680a intentionally routes an authenticated pending owner to
+        # /authentication/redirect/ (not the tenant login form) to break the
+        # password -> redirect -> login loop.
+        self.assertIn("/authentication/redirect/", response["Location"])
 
     def _satisfy_mfa_gate(self):
         from django_otp.plugins.otp_totp.models import TOTPDevice

@@ -4818,7 +4818,11 @@ def school_picker(request):
         if host_kind == "base":
             return redirect(reverse("global_login_discovery"))
         return redirect_to_login(request.get_full_path(), login_url=reverse("accounts:login"))
-    if host_kind == "base":
+    # On the apex/base host a GET auto-resolves to the user's tenant handoff
+    # (apex hardening, 4515080cb). A POST, however, is an EXPLICIT school choice
+    # from the picker form and must be honored below — otherwise the apex silently
+    # discards the pick and routes to the active school (login-picker regression).
+    if host_kind == "base" and request.method != "POST":
         from apps.schools.tenant_login_redirect import resolve_public_post_login_handoff
 
         handoff = resolve_public_post_login_handoff(request, request.user)
