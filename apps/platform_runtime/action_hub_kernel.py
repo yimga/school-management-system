@@ -138,7 +138,7 @@ def build_tenant_admin_hub(
             count=overdue_invoices,
             severity="warning",
             icon="bi-receipt",
-            href="/school/finance/?filter=overdue",
+            href="/finance/invoices/?status=overdue",
         ))
     if storage_warning:
         actions.append(HubAction(
@@ -146,7 +146,7 @@ def build_tenant_admin_hub(
             label="Storage nearing capacity",
             severity="warning",
             icon="bi-hdd",
-            href="/school/settings/storage/",
+            href="/siteconfig/billing/plan/?focus=storage",
             helper_text="Free up space or upgrade before write-blocking kicks in.",
         ))
     return ActionHub(persona=PERSONA_TENANT_ADMIN, actions=_sort_actions(actions))

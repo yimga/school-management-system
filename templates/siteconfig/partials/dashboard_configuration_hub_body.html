@@ -141,7 +141,7 @@
                   <div class="rmc-dashboard-preview-card p-3 h-100">
                     <p class="small fw-semibold mb-2">{% trans "Open live role view" %}</p>
                     <p class="small text-muted mb-2">{% trans "Live view opens the current role session for the selected device. The after preview remains non-mutating until Assign is clicked." %}</p>
-                    <a class="btn btn-outline-light btn-sm disabled" href="#" role="button" target="_blank" rel="noopener" data-rmc-dashboard-live-link>{% trans "Open preview" %}</a>
+                    <a class="btn btn-outline-light btn-sm disabled" role="button" target="_blank" rel="noopener" aria-disabled="true" data-rmc-dashboard-live-link>{% trans "Open preview" %}</a>
                     <button class="btn btn-outline-light btn-sm mt-2" type="button" data-rmc-dashboard-popout disabled>{% trans "Popout preview" %}</button>
                   </div>
                 </div>
@@ -251,7 +251,7 @@
                     popout.onclick = function(){ window.open(href, 'rmc-dashboard-preview', 'popup,width=1280,height=900'); };
                   }
                 } else {
-                  liveLink.href = '#';
+                  liveLink.removeAttribute('href');
                   liveLink.classList.add('disabled');
                   liveLink.setAttribute('aria-disabled', 'true');
                   if (popout) {

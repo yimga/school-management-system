@@ -15,6 +15,7 @@ GATES: tuple[tuple[str, list[str]], ...] = (
     ("client_config_cascade", ["scripts/verify_client_config_cascade.py"]),
     ("dead_hrefs_strict", ["scripts/scan_operator_shell_dead_hrefs.py", "--strict"]),
     ("interaction_integrity", ["scripts/verify_interaction_integrity_completion.py"]),
+    ("platform_action_click_contracts", ["scripts/verify_platform_action_click_contracts.py"]),
     ("luxury_baseline", ["scripts/verify_luxury_baseline_default.py"]),
     ("page_fold_standards", ["scripts/verify_page_fold_standards.py"]),
     ("template_comment_zero_leak", ["scripts/verify_template_comment_zero_leak.py"]),

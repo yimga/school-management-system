@@ -1035,7 +1035,7 @@ def _score(
                 "label": item["label"],
                 "detail": item["evidence"],
                 "link": item["link"],
-                "cta_label": "Resolve",
+                "cta_label": f"Fix {item['label']}",
             }
         )
     breakdown = {

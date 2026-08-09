@@ -290,6 +290,19 @@ class ActionHubTests(SimpleTestCase):
         self.assertEqual(hub.actions[0].severity, "danger")
         self.assertEqual(hub.actions[0].key, "safeguarding.urgent")
 
+    def test_tenant_admin_hub_actions_land_on_routable_work_surfaces(self) -> None:
+        hub = build_tenant_admin_hub(overdue_invoices=2, storage_warning=True)
+        actions = {action.key: action for action in hub.actions}
+        self.assertEqual(
+            actions["finance.overdue"].href,
+            "/finance/invoices/?status=overdue",
+        )
+        self.assertEqual(
+            actions["storage.nearing_cap"].href,
+            "/siteconfig/billing/plan/?focus=storage",
+        )
+        self.assertNotIn("/school/settings/", actions["storage.nearing_cap"].href)
+
     def test_tenant_admin_hub_skips_zero_counts(self) -> None:
         hub = build_tenant_admin_hub()
         non_empty = hub.non_empty_actions
