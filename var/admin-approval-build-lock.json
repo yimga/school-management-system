@@ -1,16 +1,17 @@
 {
-  "build_id": "2026-08-01-v16.0",
-  "cache_bust": "20260808-admin-form-intelligence-v163",
-  "sw_version": "sms-v4.06.30-admin-form-intelligence-2026-08-08",
-  "seal": "2026-07-31-admin-os-v159-full-canvas",
+  "build_id": "2026-08-08-v16.4",
+  "cache_bust": "20260808-admin-artifact-parity-v164",
+  "sw_version": "sms-v4.06.31-admin-artifact-parity-2026-08-08",
+  "seal": "2026-08-08-admin-os-v164-artifact-parity",
   "approval_previews": [
     "var/design-previews/django-admin-os-top-tier-approval-v15-2026-07-21.html",
     "var/design-previews/django-admin-page-aware-full-fill-approval-2026-07-19.html",
-    "var/design-previews/tenant-admin-config-engine-approval-2026-07-19.html"
+    "var/design-previews/tenant-admin-config-engine-approval-2026-07-19.html",
+    "var/design-previews/tenant-admin-form-quality-before-after-2026-08-07.html"
   ],
   "visible_proofs": [
-    "data-rmc-admin-approval-build=\"2026-08-01-v16.0\"",
-    "v16.0 · Admin OS · operator+tenant",
+    "data-rmc-admin-approval-build=\"2026-08-08-v16.4\"",
+    "v16.4 · Admin OS · operator+tenant",
     "data-rmc-admin-archetype=\"discover\"",
     "data-rmc-admin-archetype=\"scan\"",
     "data-rmc-admin-archetype=\"edit\"",
@@ -19,6 +20,7 @@
     "Platform Backoffice",
     "rmc-admin-transfer-panel",
     "rmc_info_tag",
+    "Native tabular inlines stay native",
     "data-rmc-layout-owner=\"approval-v15-critical\"",
     "admin_v1_index_surface_previews.html"
   ],

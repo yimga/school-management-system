@@ -611,10 +611,82 @@ class AdminUiSmokeTests(TestCase):
         self.assertIn(".lg\\:grid-cols-3", block, "multi-column (grid-cols-3) mapping missing")
 
         # (2) Tabular inline rows/cells keep real table semantics inside a scroll panel.
-        self.assertIn(".inline-group table tr.form-row", block, "inline tr rule missing")
+        self.assertIn(
+            ".inline-group :is(.tabular, .inline-related.tabular) table tr.form-row",
+            block,
+            "native tabular inline row rule missing",
+        )
         self.assertIn("display: table-row !important", block, "inline row must stay table-row")
         self.assertIn("display: table-cell !important", block, "inline cell must stay table-cell")
         self.assertIn("overflow-x: auto !important", block, "wide inline must scroll, not bleed")
+
+        native_block = block.split("Native Django inline tables remain tables", 1)[1].split(
+            "Clear add / remove-row controls", 1
+        )[0]
+        self.assertNotIn(
+            "table > tbody > tr {\n  display: grid !important",
+            native_block,
+            "the final contract must not convert native inline rows into grid cards",
+        )
+        self.assertIn(
+            ":is(.tabular, .inline-related.tabular) table tr.form-row",
+            native_block,
+            "the native-row override must match the specificity of the tabular wrapper",
+        )
+
+        base_site = (settings.BASE_DIR / "templates/admin/base_site.html").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn(
+            '<meta name="csrf-token" content="{{ csrf_token }}">',
+            base_site,
+            "HttpOnly CSRF cookies require a rendered token for admin JavaScript POSTs",
+        )
+        critical_block = base_site.split("Native tabular inlines stay native", 1)[1].split(
+            "@media (max-width: 1024px)", 1
+        )[0]
+        self.assertIn("display: table-row !important", critical_block)
+        self.assertIn("display: table-cell !important", critical_block)
+        self.assertNotIn(
+            "display: none !important",
+            critical_block,
+            "the cache-proof head contract must keep the native inline header visible",
+        )
+
+        approval_css_path = finders.find("css/rmc-admin-approval-surface-v15.css")
+        self.assertIsNotNone(approval_css_path, "approval surface stylesheet not found")
+        approval_css = Path(approval_css_path).read_text(encoding="utf-8")
+        terminal = approval_css.split(
+            "2026-08-08-admin-os-v164-artifact-parity", 1
+        )[1]
+        self.assertIn("@media (max-width: 1024px)", terminal)
+        self.assertIn(
+            '[data-rmc-admin-workspace-scope="operator"]',
+            terminal,
+            "the exact operator selector must be overridden at the 1024px boundary",
+        )
+        self.assertIn(
+            ".form-row.field-row",
+            terminal,
+            "grouped form rows must collapse to one track at 1024px and below",
+        )
+
+        admin_base = (settings.BASE_DIR / "templates/admin/base.html").read_text(
+            encoding="utf-8"
+        )
+        self.assertNotIn(
+            'include "admin/siteconfig/sitesettings/settings_sidebar.html"',
+            admin_base,
+            "Site Settings must not create a second navigation/canvas wrapper",
+        )
+        model_policy_path = finders.find("js/rmc-admin-model-policy.js")
+        self.assertIsNotNone(model_policy_path, "admin model policy script not found")
+        model_policy = Path(model_policy_path).read_text(encoding="utf-8")
+        self.assertNotIn(
+            '"siteconfig.sitesettings": { defaultFocusMode: true }',
+            model_policy,
+            "Site Settings must not hide its page-aware rail/tools by default",
+        )
 
     def test_admin_workspace_dedupes_nested_inline_sections(self):
         """FORM PULSE 'sections' + the On-this-page rail must count each section once.

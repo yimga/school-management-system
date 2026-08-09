@@ -1,0 +1,559 @@
+{
+  "generatedAt": "2026-08-09T01:16:49.834Z",
+  "suite": "specialized",
+  "scope": "both",
+  "only": null,
+  "models": "siteconfig.sitesettings",
+  "theme": "light",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "build": "2026-08-08-v16.4",
+  "cacheBust": "20260808-admin-artifact-parity-v164",
+  "serviceWorker": "sms-v4.06.31-admin-artifact-parity-2026-08-08",
+  "hosts": {
+    "operator": "http://manager.runmycampus.com:8020",
+    "tenant": "http://demo-school.runmycampus.com:8020"
+  },
+  "pass": true,
+  "surfaceCount": 1,
+  "skipped": [
+    {
+      "scope": "operator",
+      "appLabel": "siteconfig",
+      "modelName": "sitesettings",
+      "reason": "not-scoped:404:http://manager.runmycampus.com:8020/admin/siteconfig/sitesettings/"
+    }
+  ],
+  "findings": [],
+  "results": [
+    {
+      "name": "tenant-siteconfig-sitesettings",
+      "scope": "tenant",
+      "kind": "form",
+      "requestedUrl": "http://demo-school.runmycampus.com:8020/admin/siteconfig/sitesettings/1/change/",
+      "status": 200,
+      "navigationError": "",
+      "badResources": [],
+      "failedResources": [],
+      "consoleErrors": [],
+      "dom": {
+        "url": "http://demo-school.runmycampus.com:8020/admin/siteconfig/sitesettings/1/change/",
+        "host": "demo-school.runmycampus.com",
+        "path": "/admin/siteconfig/sitesettings/1/change/",
+        "title": "Admin Audit School",
+        "scope": "tenant",
+        "build": "2026-08-08-v16.4",
+        "buildMatches": true,
+        "theme": "light",
+        "h1": [
+          "Change Site Settings This form"
+        ],
+        "pageOverflow": 0,
+        "bodyStylesheetLinks": 0,
+        "stylesheetCount": 89,
+        "stylesheetHrefs": [
+          "http://demo-school.runmycampus.com:8020/static/unfold/fonts/inter/styles.css",
+          "http://demo-school.runmycampus.com:8020/static/unfold/fonts/material-symbols/styles.css",
+          "http://demo-school.runmycampus.com:8020/static/unfold/css/styles.css",
+          "http://demo-school.runmycampus.com:8020/static/unfold/css/simplebar/simplebar.css",
+          "http://demo-school.runmycampus.com:8020/static/vendor/bootstrap-icons/css/bootstrap-icons.min.css",
+          "http://demo-school.runmycampus.com:8020/static/css/admin-nav-bridge-tenant.css?v=20260808-admin-artifact-parity-v164",
+          "http://demo-school.runmycampus.com:8020/static/css/design-tokens.css",
+          "http://demo-school.runmycampus.com:8020/static/css/rmc-cockpit-skin-v8.css",
+          "http://demo-school.runmycampus.com:8020/static/css/rmc-operator-theme-coherence.css",
+          "http://demo-school.runmycampus.com:8020/static/css/rmc-app-shell.css",
+          "http://demo-school.runmycampus.com:8020/static/css/design-tokens-personality.css",
+          "http://demo-school.runmycampus.com:8020/static/css/rmc-class-grammar.css",
+          "http://demo-school.runmycampus.com:8020/static/css/rmc-class-grammar-ext.css",
+          "http://demo-school.runmycampus.com:8020/static/css/rmc-bulk-actions.css",
+          "http://demo-school.runmycampus.com:8020/static/css/rmc-warm-bright-school.css",
+          "http://demo-school.runmycampus.com:8020/static/css/rmc-cool-apple-polish.css",
+          "http://demo-school.runmycampus.com:8020/static/css/design-tokens-luxury.css",
+          "http://demo-school.runmycampus.com:8020/static/css/patterns.css",
+          "http://demo-school.runmycampus.com:8020/static/css/bootstrap-theme-bridge.css",
+          "http://demo-school.runmycampus.com:8020/static/css/header-no-spillage.css",
+          "http://demo-school.runmycampus.com:8020/static/css/statement-header.css",
+          "http://demo-school.runmycampus.com:8020/static/css/design-system-unified.css",
+          "http://demo-school.runmycampus.com:8020/static/css/admin-components.css",
+          "http://demo-school.runmycampus.com:8020/static/css/unfold-integration.css",
+          "http://demo-school.runmycampus.com:8020/static/css/admin-console-themes.css",
+          "http://demo-school.runmycampus.com:8020/static/css/rmc-bell-clock-product.css",
+          "http://demo-school.runmycampus.com:8020/static/css/admin-sidebar-scroll.css",
+          "http://demo-school.runmycampus.com:8020/static/css/admin-sidebar-backend-inspired.css",
+          "http://demo-school.runmycampus.com:8020/static/css/admin-sidebar-polish.css",
+          "http://demo-school.runmycampus.com:8020/static/css/rmc-sidebar-luxury-10x.css",
+          "http://demo-school.runmycampus.com:8020/static/css/rmc-sidebar-disclosure-contract.css",
+          "http://demo-school.runmycampus.com:8020/static/css/admin-surface-fixes.css",
+          "http://demo-school.runmycampus.com:8020/static/css/theme-visibility-guard.css",
+          "http://demo-school.runmycampus.com:8020/static/css/platform-high-end.css",
+          "http://demo-school.runmycampus.com:8020/static/css/surface-themes.css",
+          "http://demo-school.runmycampus.com:8020/static/css/table-system.css",
+          "http://demo-school.runmycampus.com:8020/static/css/form-system.css",
+          "http://demo-school.runmycampus.com:8020/static/css/toggle-colors.css",
+          "http://demo-school.runmycampus.com:8020/static/css/card-grammar.css",
+          "http://demo-school.runmycampus.com:8020/static/css/design-system-phase2-enforcement.css",
+          "http://demo-school.runmycampus.com:8020/static/css/chart-rules.css",
+          "http://demo-school.runmycampus.com:8020/static/css/admin-base-site-shell.css",
+          "http://demo-school.runmycampus.com:8020/static/css/portal-ui-components.css",
+          "http://demo-school.runmycampus.com:8020/static/css/phase2-admin-bundle.css",
+          "http://demo-school.runmycampus.com:8020/static/css/rmc-long-page-grammar.css",
+          "http://demo-school.runmycampus.com:8020/static/css/admin-cp-parity.css",
+          "http://demo-school.runmycampus.com:8020/static/css/dashboard-topology-shell.css",
+          "http://demo-school.runmycampus.com:8020/static/css/rmc-platform-chrome-layout.css",
+          "http://demo-school.runmycampus.com:8020/static/css/rmc-page-fold-standards.css",
+          "http://demo-school.runmycampus.com:8020/static/css/rmc-collapsable.css",
+          "http://demo-school.runmycampus.com:8020/static/css/rmc-zero-click-protocol.css",
+          "http://demo-school.runmycampus.com:8020/static/css/rmc-back-to-top.css",
+          "http://demo-school.runmycampus.com:8020/static/css/rmc-section-nav-toc.css",
+          "http://demo-school.runmycampus.com:8020/static/css/rmc-shell-scroll-contract.css",
+          "http://demo-school.runmycampus.com:8020/static/css/rmc-dropdown-viewport-safe.css",
+          "http://demo-school.runmycampus.com:8020/static/css/rmc-page-personality.css",
+          "http://demo-school.runmycampus.com:8020/static/css/rmc-os-grade-density.css",
+          "http://demo-school.runmycampus.com:8020/static/css/rmc-platform-chrome-premium.css",
+          "http://demo-school.runmycampus.com:8020/static/css/rmc-admin-modal-overlay-guard.css",
+          "http://demo-school.runmycampus.com:8020/static/css/rmc-layout-frame-guard.css",
+          "http://demo-school.runmycampus.com:8020/static/css/rmc-operational-center-frame.css",
+          "http://demo-school.runmycampus.com:8020/static/css/rmc-surface-spacing-contract.css",
+          "http://demo-school.runmycampus.com:8020/static/css/rmc-isomorphic-grid.css",
+          "http://demo-school.runmycampus.com:8020/static/css/rmc-isomorphic-grid-sweep.css",
+          "http://demo-school.runmycampus.com:8020/static/css/rmc-layout-token-matrix.css",
+          "http://demo-school.runmycampus.com:8020/static/css/rmc-cp-stacked-header.css",
+          "http://demo-school.runmycampus.com:8020/static/css/rmc-platform-beautify-v4.css",
+          "http://demo-school.runmycampus.com:8020/static/css/rmc-sidebar-rail-contract.css",
+          "http://demo-school.runmycampus.com:8020/static/css/rmc-admin-changelist-live.css",
+          "http://demo-school.runmycampus.com:8020/static/css/rmc-admin-workspace-10x.css?v=20260808-admin-artifact-parity-v164",
+          "http://demo-school.runmycampus.com:8020/static/css/admin-platform-catalog.css?v=20260808-admin-artifact-parity-v164",
+          "http://demo-school.runmycampus.com:8020/static/css/rmc-print.css",
+          "http://demo-school.runmycampus.com:8020/static/css/platform-responsive-touch.css",
+          "http://demo-school.runmycampus.com:8020/static/css/dashboard-responsive.css",
+          "http://demo-school.runmycampus.com:8020/static/css/dark-mode-safety-net.css",
+          "http://demo-school.runmycampus.com:8020/static/css/theme-platform-contrast.css",
+          "http://demo-school.runmycampus.com:8020/static/css/theme-platform-readability.css",
+          "http://demo-school.runmycampus.com:8020/static/css/rmc-signature-motion.css",
+          "http://demo-school.runmycampus.com:8020/static/css/rmc-command-bar.css",
+          "http://demo-school.runmycampus.com:8020/static/css/rmc-footer-surfaces.css",
+          "http://demo-school.runmycampus.com:8020/static/css/rmc-backoffice-scroll-10x.css",
+          "http://demo-school.runmycampus.com:8020/static/css/rmc-theme-experience-dual-plane.css",
+          "http://demo-school.runmycampus.com:8020/static/css/rmc-header-super-chrome-parity.css",
+          "http://demo-school.runmycampus.com:8020/static/css/rmc-admin-django-canvas-contract.css?v=20260808-admin-artifact-parity-v164",
+          "http://demo-school.runmycampus.com:8020/static/css/rmc-tenant-surface-scroll-contract.css?v=20260808-admin-artifact-parity-v164",
+          "http://demo-school.runmycampus.com:8020/static/css/rmc-tour.css",
+          "http://demo-school.runmycampus.com:8020/static/css/rmc-admin-approval-surface-v15.css?v=20260808-admin-artifact-parity-v164",
+          "http://demo-school.runmycampus.com:8020/static/css/rmc-operator-tools-tray.css",
+          "http://demo-school.runmycampus.com:8020/static/css/site-settings-preview.css"
+        ],
+        "duplicateStylesheets": [],
+        "workspace": "change-form",
+        "grid": "799.234px 190.953px 37.5938px",
+        "workspaceWidth": 1095.96875,
+        "primary": {
+          "width": 799.234375,
+          "trackWidth": 799.234,
+          "fillRatio": 1.0000004691992583,
+          "left": 314.15625,
+          "right": 1113.390625
+        },
+        "structure": {
+          "shellRoots": 1,
+          "shellHeaders": 1,
+          "shellSidebars": 1,
+          "indexCanvases": 0,
+          "primaryPanels": 1,
+          "rails": 1,
+          "tools": 1,
+          "rowDrawers": 0,
+          "breadcrumbs": 1
+        },
+        "tools": [
+          "Keyboard shortcuts",
+          "Back to top"
+        ],
+        "toolDiagnostics": [
+          {
+            "display": "flex",
+            "visibility": "visible",
+            "width": 37.59375,
+            "height": 74.390625,
+            "childCount": 2,
+            "visibleChildCount": 2
+          }
+        ],
+        "table": null,
+        "changelistFilter": null,
+        "save": {
+          "present": true,
+          "primary": true,
+          "toggle": true,
+          "menu": true,
+          "menuVisible": false,
+          "menuOperable": true,
+          "menuClosesOnEscape": true
+        },
+        "formGeometry": {
+          "formWidth": 749.234375,
+          "bodyWidth": 749.234375,
+          "actionsWidth": 749.234375,
+          "primaryWidth": 799.234375,
+          "formFillRatio": 0.937440128247737,
+          "bodyFillRatio": 1,
+          "actionsFillRatio": 0.937440128247737,
+          "panelDisplay": "flex",
+          "panelGrid": "none"
+        },
+        "formNativeLayouts": {
+          "groupedFieldRows": [
+            {
+              "display": "grid",
+              "grid": "678.141px",
+              "childCount": 1
+            },
+            {
+              "display": "grid",
+              "grid": "678.141px",
+              "childCount": 1
+            },
+            {
+              "display": "grid",
+              "grid": "678.141px",
+              "childCount": 1
+            },
+            {
+              "display": "grid",
+              "grid": "678.141px",
+              "childCount": 1
+            },
+            {
+              "display": "grid",
+              "grid": "678.141px",
+              "childCount": 1
+            },
+            {
+              "display": "grid",
+              "grid": "678.141px",
+              "childCount": 1
+            },
+            {
+              "display": "grid",
+              "grid": "678.141px",
+              "childCount": 1
+            },
+            {
+              "display": "grid",
+              "grid": "678.141px",
+              "childCount": 1
+            },
+            {
+              "display": "grid",
+              "grid": "678.141px",
+              "childCount": 1
+            },
+            {
+              "display": "grid",
+              "grid": "331.062px",
+              "childCount": 1
+            },
+            {
+              "display": "grid",
+              "grid": "331.078px",
+              "childCount": 1
+            },
+            {
+              "display": "grid",
+              "grid": "331.062px",
+              "childCount": 1
+            },
+            {
+              "display": "grid",
+              "grid": "331.078px",
+              "childCount": 1
+            },
+            {
+              "display": "grid",
+              "grid": "678.141px",
+              "childCount": 1
+            },
+            {
+              "display": "grid",
+              "grid": "331.062px",
+              "childCount": 1
+            },
+            {
+              "display": "grid",
+              "grid": "678.141px",
+              "childCount": 1
+            },
+            {
+              "display": "grid",
+              "grid": "678.141px",
+              "childCount": 1
+            },
+            {
+              "display": "grid",
+              "grid": "678.141px",
+              "childCount": 1
+            },
+            {
+              "display": "grid",
+              "grid": "331.062px",
+              "childCount": 1
+            },
+            {
+              "display": "grid",
+              "grid": "678.141px",
+              "childCount": 1
+            },
+            {
+              "display": "grid",
+              "grid": "331.062px",
+              "childCount": 1
+            },
+            {
+              "display": "grid",
+              "grid": "331.078px",
+              "childCount": 1
+            },
+            {
+              "display": "grid",
+              "grid": "331.062px",
+              "childCount": 1
+            },
+            {
+              "display": "grid",
+              "grid": "331.078px",
+              "childCount": 1
+            },
+            {
+              "display": "grid",
+              "grid": "331.062px",
+              "childCount": 1
+            },
+            {
+              "display": "grid",
+              "grid": "331.078px",
+              "childCount": 1
+            },
+            {
+              "display": "grid",
+              "grid": "331.062px",
+              "childCount": 1
+            },
+            {
+              "display": "grid",
+              "grid": "331.078px",
+              "childCount": 1
+            },
+            {
+              "display": "grid",
+              "grid": "331.062px",
+              "childCount": 1
+            },
+            {
+              "display": "grid",
+              "grid": "331.078px",
+              "childCount": 1
+            },
+            {
+              "display": "grid",
+              "grid": "678.141px",
+              "childCount": 1
+            },
+            {
+              "display": "grid",
+              "grid": "331.062px",
+              "childCount": 1
+            },
+            {
+              "display": "grid",
+              "grid": "331.078px",
+              "childCount": 1
+            },
+            {
+              "display": "grid",
+              "grid": "331.062px",
+              "childCount": 1
+            },
+            {
+              "display": "grid",
+              "grid": "678.141px",
+              "childCount": 1
+            },
+            {
+              "display": "grid",
+              "grid": "331.062px",
+              "childCount": 1
+            },
+            {
+              "display": "grid",
+              "grid": "331.078px",
+              "childCount": 1
+            },
+            {
+              "display": "grid",
+              "grid": "331.062px",
+              "childCount": 1
+            },
+            {
+              "display": "grid",
+              "grid": "331.078px",
+              "childCount": 1
+            },
+            {
+              "display": "grid",
+              "grid": "331.062px",
+              "childCount": 1
+            },
+            {
+              "display": "grid",
+              "grid": "331.078px",
+              "childCount": 1
+            },
+            {
+              "display": "grid",
+              "grid": "331.062px",
+              "childCount": 1
+            },
+            {
+              "display": "grid",
+              "grid": "331.078px",
+              "childCount": 1
+            },
+            {
+              "display": "grid",
+              "grid": "331.062px",
+              "childCount": 1
+            },
+            {
+              "display": "grid",
+              "grid": "331.078px",
+              "childCount": 1
+            },
+            {
+              "display": "grid",
+              "grid": "331.062px",
+              "childCount": 1
+            },
+            {
+              "display": "grid",
+              "grid": "331.078px",
+              "childCount": 1
+            },
+            {
+              "display": "grid",
+              "grid": "331.062px",
+              "childCount": 1
+            },
+            {
+              "display": "grid",
+              "grid": "331.078px",
+              "childCount": 1
+            },
+            {
+              "display": "grid",
+              "grid": "331.062px",
+              "childCount": 1
+            },
+            {
+              "display": "grid",
+              "grid": "331.078px",
+              "childCount": 1
+            },
+            {
+              "display": "grid",
+              "grid": "678.141px",
+              "childCount": 1
+            }
+          ],
+          "inlineTable": null,
+          "redundantSectionNavCount": 0,
+          "sectionLabels": [
+            "General",
+            "Section 2",
+            "Section 3",
+            "Section 4",
+            "Section 5",
+            "Section 6",
+            "Section 7"
+          ],
+          "uniqueSectionLabelCount": 7
+        },
+        "tenantSearchPanelInitiallyVisible": false,
+        "fixedOverlays": [],
+        "wideFixedBands": [],
+        "internalScrollTraps": [],
+        "rawIcons": [],
+        "interactiveText": [
+          "Keyboard shortcuts",
+          "Config center",
+          "Feature control",
+          "Portal",
+          "Toggle actions",
+          "history History",
+          "Admin Audit School Admin Audit School",
+          "Toggle compact sidebar",
+          "Close menu",
+          "Pin this page",
+          "Dashboard",
+          "Admin Home",
+          "Config center",
+          "Theme & Experience",
+          "Feature Control",
+          "Toggle Advanced setup",
+          "Document Library",
+          "Help center",
+          "Knowledge Base",
+          "Toggle Apps",
+          "person admin admin@example.com unfold_more",
+          "Admin Audit School",
+          "⚙️ Configuration Control Center",
+          "More information: This form",
+          "History",
+          "Theme & colors",
+          "Feature control",
+          "Effective runtime summary",
+          "Configuration hub",
+          "Studio · Output",
+          "Open Theme & Experience",
+          "Runtime defaults (payload + typed fields)",
+          "Feature Control",
+          "Manage Integrations (Configuration Engine)",
+          "Open API Center",
+          "← Back",
+          "visibility Preview",
+          "Discard",
+          "Save changes",
+          "Save",
+          "▾",
+          "Back",
+          "Section 1",
+          "Section 2",
+          "Section 3",
+          "Section 4",
+          "Section 5",
+          "Section 6",
+          "Section 7",
+          "More information: SiteSettings object (1)",
+          "All Site Settings",
+          "1General",
+          "2Section 2",
+          "3Section 3",
+          "4Section 4",
+          "5Section 5",
+          "6Section 6",
+          "7Section 7",
+          "Keyboard shortcuts",
+          "Back to top",
+          "Admin home",
+          "Config center",
+          "Help center",
+          "0Tools"
+        ],
+        "loginVisible": false
+      },
+      "findings": [],
+      "saveActionsScreenshot": "artifacts/django-admin-canvas-live/2026-08-08-v16.4-specialized-light-1440-tenant-siteconfig-sitesettings-save-actions.png",
+      "screenshot": "artifacts/django-admin-canvas-live/2026-08-08-v16.4-specialized-light-1440-tenant-siteconfig-sitesettings.png"
+    }
+  ]
+}

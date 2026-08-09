@@ -1,7 +1,7 @@
 {
   "pass": true,
-  "expected_cache_bust": "20260808-admin-form-intelligence-v163",
-  "expected_sw": "sms-v4.06.30-admin-form-intelligence-2026-08-08",
+  "expected_cache_bust": "20260808-admin-artifact-parity-v164",
+  "expected_sw": "sms-v4.06.31-admin-artifact-parity-2026-08-08",
   "content_pages": 11,
   "findings": []
 }

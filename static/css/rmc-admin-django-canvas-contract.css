@@ -4328,103 +4328,33 @@ html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rm
   border: 1px solid var(--hairline, rgba(148, 163, 184, 0.24)) !important;
   border-radius: 14px !important;
 }
-/* A wide tabular inline (e.g. Student Guardians, 9 columns) cannot fit the ~790px
-   record panel as a table without CLIPPING columns (email/whatsapp/address… were
-   cut off, unreachable — the fieldset between wrapper and table clipped it and no
-   scroll ever engaged). Forcing horizontal scroll through Unfold's w-full table +
-   min-w-0 fieldset is unreliable. The correct answer for a narrow container is
-   Unfold's OWN responsive layout: stacked cards. Each row becomes a card and each
-   field carries the per-cell data-label Unfold already emits (it only hides it at
-   ≥lg by viewport; our panel is far narrower than the viewport, so we show it).
-   Result: every guardian fits the frame — zero scroll, zero clip, zero bleed. */
+/* Native Django inline tables remain tables. The tabular wrapper owns any genuine
+   horizontal overflow, while rows and cells retain their native display roles.
+   This also prevents the generic `.form-row` layout from matching <tr>. */
 html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group :is(.tabular, .inline-related.tabular) fieldset.module {
   overflow: visible !important;
-  max-width: 100% !important;
-  min-width: 0 !important;
+  max-width: none !important;
+  min-width: max-content !important;
 }
-/* column-header row is redundant once every field is labelled in-card */
-html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group :is(.tabular, .inline-related.tabular) table > thead {
-  display: none !important;
-}
-html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group :is(.tabular, .inline-related.tabular) table,
-html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group :is(.tabular, .inline-related.tabular) table > tbody {
-  display: block !important;
-  width: 100% !important;
-  min-width: 0 !important;
-}
-/* each form row = a card; its fields lay out in a responsive grid that FILLS the
-   lane (no wasted space) and wraps instead of bleeding */
-html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group :is(.tabular, .inline-related.tabular) table > tbody > tr {
-  display: grid !important;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)) !important;
-  gap: 0.55rem 1.1rem !important;
-  align-items: start !important;
-  padding: 0.95rem 1.05rem !important;
-  margin: 0 0 0.75rem 0 !important;
-  border: 1px solid var(--hairline, rgba(148, 163, 184, 0.22)) !important;
-  border-radius: 12px !important;
-  background: color-mix(in srgb, var(--surface-canvas, #0b1220) 28%, transparent) !important;
-}
-/* each cell stacks its Unfold data-label above the field, min-width:0 so nothing
-   overflows the card */
-html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group :is(.tabular, .inline-related.tabular) table > tbody > tr > :is(td, th) {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: stretch !important;
-  justify-content: flex-start !important;
-  min-width: 0 !important;
-  width: auto !important;
-  min-height: 0 !important;
-  padding: 0 !important;
-  border: 0 !important;
-}
-html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group :is(.tabular, .inline-related.tabular) table > tbody > tr > :is(td, th)::before {
-  display: block !important;
-  content: attr(data-label) !important;
-  margin: 0 0 0.3rem 0 !important;
-  padding: 0 !important;
-  font-size: 0.66rem !important;
-  font-weight: 700 !important;
-  letter-spacing: 0.045em !important;
-  text-transform: uppercase !important;
-  color: var(--text-secondary, #93a3c0) !important;
-  overflow-wrap: anywhere !important;
-}
-/* the delete control spans the card, right-aligned; no phantom label */
-html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group :is(.tabular, .inline-related.tabular) table > tbody > tr > td:is(.delete, .field-tabular:last-child:has(a.inline-deletelink)) {
-  grid-column: 1 / -1 !important;
-  flex-direction: row !important;
-  justify-content: flex-end !important;
-  align-items: center !important;
-}
-html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group :is(.tabular, .inline-related.tabular) table > tbody > tr > td.delete::before {
-  display: none !important;
-}
-/* fields fill their card cell */
-html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group :is(.tabular, .inline-related.tabular) table > tbody > tr > :is(td, th) :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea, .vTextField, .related-widget-wrapper) {
-  width: 100% !important;
-  max-width: 100% !important;
-  min-width: 0 !important;
-  box-sizing: border-box;
-}
-html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group table {
+html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group :is(.tabular, .inline-related.tabular) table {
+  display: table !important;
   width: auto !important;
   min-width: 100% !important;
   table-layout: auto !important;
   border-collapse: separate !important;
   border-spacing: 0 !important;
 }
-html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group table > thead {
+html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group :is(.tabular, .inline-related.tabular) table > thead {
   display: table-header-group !important;
 }
-html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group table > :is(tbody, tfoot) {
+html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group :is(.tabular, .inline-related.tabular) table > :is(tbody, tfoot) {
   display: table-row-group !important;
 }
-html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group table tr,
-html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group table tr.form-row {
+html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group :is(.tabular, .inline-related.tabular) table tr,
+html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group :is(.tabular, .inline-related.tabular) table tr.form-row {
   display: table-row !important;
 }
-html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group table :is(td, th) {
+html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group :is(.tabular, .inline-related.tabular) table :is(td, th) {
   display: table-cell !important;
   width: auto !important;
   min-width: 0 !important;
@@ -4432,7 +4362,7 @@ html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rm
   padding: 0.5rem 0.7rem !important;
   border-bottom: 1px solid color-mix(in srgb, var(--hairline, rgba(148, 163, 184, 0.28)) 60%, transparent) !important;
 }
-html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group table thead th {
+html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group :is(.tabular, .inline-related.tabular) table thead th {
   white-space: nowrap;
   position: sticky;
   top: 0;
@@ -4444,15 +4374,15 @@ html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rm
   background: var(--surface-elevated, #0f1830) !important;
   border-bottom: 1px solid var(--hairline, rgba(148, 163, 184, 0.3)) !important;
 }
-html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group table tbody tr:nth-child(even) td {
+html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group :is(.tabular, .inline-related.tabular) table tbody tr:nth-child(even) td {
   background: color-mix(in srgb, var(--surface-canvas, #0b1220) 40%, transparent) !important;
 }
-html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group table td :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea, .related-widget-wrapper) {
+html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group :is(.tabular, .inline-related.tabular) table td :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea, .related-widget-wrapper) {
   min-width: 6rem;
   max-width: 100%;
   width: 100% !important;
 }
-html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group table td:has(> input[type="checkbox"]) {
+html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] [data-rmc-admin-form-contract="premium-form-frame"] .inline-group :is(.tabular, .inline-related.tabular) table td:has(> input[type="checkbox"]) {
   text-align: center !important;
 }
 
@@ -4641,9 +4571,9 @@ html[data-rmc-admin-html="unfold"] body:is(.admin-premium-shell, .admin-manager-
    on top of it. Reported to the user in the wave summary. */
 html[data-rmc-admin-html="unfold"] body:is(.admin-premium-shell, .admin-manager-shell) [data-rmc-shell-root="django-admin"]
   [data-rmc-admin-archetype="scan"] #result_list {
-  width: auto !important;
+  width: 100% !important;
   min-width: 100% !important;
-  table-layout: auto !important;
+  table-layout: fixed !important;
 }
 @media (min-width: 64rem) {
   html[data-rmc-admin-html="unfold"] body:is(.admin-premium-shell, .admin-manager-shell) [data-rmc-shell-root="django-admin"]

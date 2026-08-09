@@ -620,6 +620,13 @@ html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-
   }
 }
 
+/* Site Settings is a canonical change form. Its retired vertical-search shell
+   must not hide sections or create a second sticky navigation surface. */
+html[data-rmc-admin-html="unfold"] body.app-siteconfig.model-sitesettings.change-form
+  [data-rmc-shell-root="django-admin"] .site-settings-section {
+  display: block !important;
+}
+
 /* v13 deploy proof chip — both admin indexes. */
 .rmc-admin-approval-build-chip,
 .rmc-admin-approval-build-chip[data-rmc-admin-approval-build="2026-07-21-v13"] {
@@ -1641,5 +1648,55 @@ html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-
     justify-content: flex-start !important;
     gap: 0.35rem !important;
     transform: none !important;
+  }
+}
+
+/* 2026-08-08-admin-os-v164-artifact-parity: terminal cascade reassertion. */
+html[data-rmc-admin-html="unfold"] body.admin-manager-shell
+  [data-rmc-shell-root="django-admin"].admin-cp-unified-page
+  #cp-main-content
+  .rmc-admin-workspace[data-rmc-admin-workspace-scope="operator"] {
+  grid-template-columns: minmax(0, 1fr) minmax(9.2rem, 17%) 2.35rem !important;
+}
+html[data-rmc-admin-html="unfold"] body.admin-premium-shell
+  [data-rmc-shell-root="django-admin"]
+  #cp-main-content
+  .rmc-admin-workspace[data-rmc-admin-workspace-scope="tenant"] {
+  grid-template-columns: minmax(0, 1fr) minmax(9.5rem, 18%) 2.35rem !important;
+}
+html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+  [data-rmc-shell-root="django-admin"]
+  #cp-main-content
+  [data-rmc-admin-archetype="scan"] #result_list {
+  display: table !important;
+  width: 100% !important;
+  min-width: 100% !important;
+  max-width: none !important;
+  table-layout: fixed !important;
+}
+@media (max-width: 1024px) {
+  html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+    [data-rmc-shell-root="django-admin"]
+    #cp-main-content
+    .rmc-admin-workspace[data-rmc-admin-workspace-scope] {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  html[data-rmc-admin-html="unfold"] body.admin-manager-shell
+    [data-rmc-shell-root="django-admin"].admin-cp-unified-page
+    #cp-main-content
+    .rmc-admin-workspace[data-rmc-admin-workspace-scope="operator"],
+  html[data-rmc-admin-html="unfold"] body.admin-premium-shell
+    [data-rmc-shell-root="django-admin"]
+    #cp-main-content
+    .rmc-admin-workspace[data-rmc-admin-workspace-scope="tenant"] {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell)
+    [data-rmc-shell-root="django-admin"]
+    #cp-main-content
+    .form-row.field-row {
+    grid-template-columns: minmax(0, 1fr) !important;
   }
 }

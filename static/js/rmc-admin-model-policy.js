@@ -8,7 +8,10 @@
   var POLICIES = {
     "accounts.user": { collapseM2mAfterFirst: true },
     "auth.user": { collapseM2mAfterFirst: true },
-    "siteconfig.sitesettings": { defaultFocusMode: true },
+    // Site Settings keeps the canonical page-aware context rail and tools.
+    // Focus mode remains an explicit keyboard choice; it is never forced by a
+    // model policy because doing so silently flattens the approved workspace.
+    "siteconfig.sitesettings": {},
     "schools.school": { keepIdentityOpen: true },
   };
 

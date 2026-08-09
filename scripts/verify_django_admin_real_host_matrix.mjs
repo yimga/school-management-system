@@ -292,8 +292,10 @@ async function collectDom(page) {
       const railElements = [...document.querySelectorAll("[data-rmc-django-side-panel]")].filter(
         visible,
       );
-      const toolsElements = [...document.querySelectorAll("[data-rmc-django-tools]")].filter(
-        visible,
+      const allToolsElements = [...document.querySelectorAll("[data-rmc-django-tools]")];
+      const toolsElements = allToolsElements.filter(
+        (element) =>
+          visible(element) || [...element.querySelectorAll("a, button")].some(visible),
       );
       const internalScrollTraps = [primaryPanel, ...railElements, ...toolsElements]
         .filter(Boolean)
@@ -366,6 +368,37 @@ async function collectDom(page) {
       const formRect = formElement?.getBoundingClientRect() || null;
       const formBodyRect = formBody?.getBoundingClientRect() || null;
       const actionsRect = actionsSlot?.getBoundingClientRect() || null;
+      const groupedFieldRows = formElement
+        ? [...formElement.querySelectorAll(".form-row.field-row")]
+            .filter(visible)
+            .map((element) => ({
+              display: getComputedStyle(element).display,
+              grid: getComputedStyle(element).gridTemplateColumns,
+              childCount: element.children.length,
+              visibleChildCount: [...element.children].filter(visible).length,
+              visibleFieldCount: [...element.children].filter(
+                (child) => child.matches(".field-line") && visible(child),
+              ).length,
+              children: [...element.children].map((child) => ({
+                tag: child.tagName,
+                className: String(child.className || ""),
+                display: getComputedStyle(child).display,
+                width: child.getBoundingClientRect().width,
+                text: (child.textContent || "").trim().replace(/\s+/g, " ").slice(0, 80),
+              })),
+            }))
+        : [];
+      const inlineTable = formElement?.querySelector(
+        ".inline-group :is(.tabular, .inline-related.tabular) table",
+      );
+      const inlineWrapper = inlineTable?.closest(".tabular, .inline-related.tabular") || null;
+      const inlineHead = inlineTable?.querySelector(":scope > thead") || null;
+      const inlineRow = inlineTable?.querySelector(":scope > tbody > tr.form-row, :scope > tbody > tr") || null;
+      const inlineCell = inlineRow?.querySelector(":scope > td, :scope > th") || null;
+      const sectionLabels = [...document.querySelectorAll("[data-rmc-onthispage] a .lbl")]
+        .filter(visible)
+        .map((element) => (element.textContent || "").trim().replace(/\s+/g, " "))
+        .filter(Boolean);
       return {
         url: location.href,
         host: location.hostname,
@@ -407,6 +440,14 @@ async function collectDom(page) {
           : null,
         structure: structuralCounts,
         tools: toolTitles,
+        toolDiagnostics: allToolsElements.map((element) => ({
+          display: getComputedStyle(element).display,
+          visibility: getComputedStyle(element).visibility,
+          width: element.getBoundingClientRect().width,
+          height: element.getBoundingClientRect().height,
+          childCount: element.querySelectorAll("a, button").length,
+          visibleChildCount: [...element.querySelectorAll("a, button")].filter(visible).length,
+        })),
         table: table
           ? {
               display: getComputedStyle(table).display,
@@ -456,6 +497,26 @@ async function collectDom(page) {
                 (actionsRect?.width || 0) / Math.max(1, primaryRect?.width || 0),
               panelDisplay: getComputedStyle(primaryPanel).display,
               panelGrid: getComputedStyle(primaryPanel).gridTemplateColumns,
+            }
+          : null,
+        formNativeLayouts: formElement
+          ? {
+              groupedFieldRows,
+              inlineTable: inlineTable
+                ? {
+                    tableDisplay: getComputedStyle(inlineTable).display,
+                    tableLayout: getComputedStyle(inlineTable).tableLayout,
+                    headDisplay: inlineHead ? getComputedStyle(inlineHead).display : "",
+                    rowDisplay: inlineRow ? getComputedStyle(inlineRow).display : "",
+                    cellDisplay: inlineCell ? getComputedStyle(inlineCell).display : "",
+                    wrapperOverflowX: inlineWrapper
+                      ? getComputedStyle(inlineWrapper).overflowX
+                      : "",
+                  }
+                : null,
+              redundantSectionNavCount: formElement.querySelectorAll(".rmc-fi-nav").length,
+              sectionLabels,
+              uniqueSectionLabelCount: new Set(sectionLabels).size,
             }
           : null,
         tenantSearchPanelInitiallyVisible: Boolean(searchPanel && visible(searchPanel)),
@@ -601,6 +662,47 @@ function auditResult(result, surface) {
         "form_panel_still_split_grid",
         JSON.stringify(dom.formGeometry),
       );
+    }
+    if (dom.formNativeLayouts) {
+      for (const row of dom.formNativeLayouts.groupedFieldRows) {
+        expect(row.display === "grid", "grouped_field_row_not_grid", JSON.stringify(row));
+        const tracks = gridTracks(row.grid);
+        if (options.width <= 1024) {
+          expect(tracks.length === 1, "grouped_field_row_not_single_column", JSON.stringify(row));
+        } else if (row.visibleFieldCount > 1) {
+          expect(tracks.length > 1, "grouped_field_row_not_packed", JSON.stringify(row));
+        }
+      }
+      expect(
+        dom.formNativeLayouts.redundantSectionNavCount === 0,
+        "redundant_form_section_nav",
+        String(dom.formNativeLayouts.redundantSectionNavCount),
+      );
+      expect(
+        dom.formNativeLayouts.uniqueSectionLabelCount ===
+          dom.formNativeLayouts.sectionLabels.length,
+        "duplicate_form_section_labels",
+        JSON.stringify(dom.formNativeLayouts.sectionLabels),
+      );
+      if (dom.formNativeLayouts.inlineTable) {
+        const inline = dom.formNativeLayouts.inlineTable;
+        expect(inline.tableDisplay === "table", "inline_table_not_native", JSON.stringify(inline));
+        expect(
+          inline.headDisplay === "table-header-group",
+          "inline_table_head_not_native",
+          JSON.stringify(inline),
+        );
+        expect(inline.rowDisplay === "table-row", "inline_row_not_native", JSON.stringify(inline));
+        expect(inline.cellDisplay === "table-cell", "inline_cell_not_native", JSON.stringify(inline));
+        expect(
+          ["auto", "scroll"].includes(inline.wrapperOverflowX),
+          "inline_table_has_no_scroll_owner",
+          JSON.stringify(inline),
+        );
+      }
+      if (surface.expectInlineTable) {
+        expect(Boolean(dom.formNativeLayouts.inlineTable), "expected_inline_table_missing");
+      }
     }
     if (surface.expectSave !== false) {
       expect(dom.save.present, "compact_save_missing");
@@ -1017,6 +1119,10 @@ async function discoverCoreSurfaces(page) {
     add("tenant-user-add", "tenant", "form", "/admin/accounts/user/add/", {
       screenshot: true,
     });
+    add("tenant-student-add", "tenant", "form", "/admin/people/studentprofile/add/", {
+      screenshot: options.width === 1440,
+      expectInlineTable: true,
+    });
     add("tenant-user-change", "tenant", "form", `${tenantUserBase}change/`, {
       screenshot: true,
     });
@@ -1155,14 +1261,16 @@ async function main() {
   }, options.theme);
   await context.addCookies(
     [
-      ["manager.runmycampus.com", "rmc_manager_sessionid", operatorSessionId],
-      ["demo-school.runmycampus.com", "sessionid", tenantSessionId],
-    ].map(([domain, name, value]) => ({
+      ["manager.runmycampus.com", "rmc_manager_sessionid", operatorSessionId, true],
+      ["demo-school.runmycampus.com", "sessionid", tenantSessionId, true],
+      ["manager.runmycampus.com", "rmc_manager_csrftoken", "abcdefghijklmnopqrstuvwxyzABCDEF", false],
+      ["demo-school.runmycampus.com", "csrftoken", "abcdefghijklmnopqrstuvwxyzABCDEF", false],
+    ].map(([domain, name, value, httpOnly]) => ({
       name,
       value,
       domain,
       path: "/",
-      httpOnly: true,
+      httpOnly,
       sameSite: "Lax",
     })),
   );

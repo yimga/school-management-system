@@ -3,10 +3,10 @@
   "generated_at": "2026-08-08T00:00:00+00:00",
   "major": 4,
   "minor": 6,
-  "patch": 30,
-  "raw": "sms-v4.06.30-admin-form-intelligence-2026-08-08",
+  "patch": 31,
+  "raw": "sms-v4.06.31-admin-artifact-parity-2026-08-08",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "admin-form-intelligence",
+  "slug": "admin-artifact-parity",
   "valid": true
 }

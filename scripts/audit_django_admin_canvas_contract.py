@@ -35,8 +35,8 @@ def main() -> int:
     contract_link = "rmc-admin-django-canvas-contract.css"
     if contract_link not in base_site:
         errors.append("templates/admin/base_site.html does not load the final Django canvas contract")
-    if "?v=20260808-admin-form-intelligence-v163" not in base_site:
-        errors.append("Django canvas contracts must use the v15.9 full-canvas cache bust for deployment visibility")
+    if "?v=20260808-admin-artifact-parity-v164" not in base_site:
+        errors.append("Django canvas contracts must use the v16.4 artifact-parity cache bust for deployment visibility")
     if base_site.count(contract_link) != 1:
         errors.append("Django canvas contract must load exactly once")
     approval_link = "rmc-admin-approval-surface-v15.css"
@@ -51,8 +51,49 @@ def main() -> int:
         errors.append("approval v13 CSS must own the tenant main|18% rail|2.35rem tools grid")
     if "@media(max-width:1024px)" not in approval_n:
         errors.append("approval v13 CSS must stack every workspace at 1024px and below")
+    terminal_approval = approval_css.split(
+        "2026-08-08-admin-os-v164-artifact-parity", 1
+    )[-1]
+    terminal_approval_n = re.sub(r"\s+", "", terminal_approval)
+    if (
+        '[data-rmc-admin-workspace-scope="operator"]' not in terminal_approval
+        or ".form-row.field-row" not in terminal_approval
+        or "@media(max-width:1024px)" not in terminal_approval_n
+    ):
+        errors.append(
+            "terminal approval CSS must override the exact operator grid and grouped field rows at 1024px"
+        )
     if "table-layout:fixed!important" not in approval_n or "display:table!important" not in approval_n:
         errors.append("approval v13 CSS must preserve full native Django tables")
+    canvas_n = re.sub(r"\s+", "", css)
+    scan_table_contract = (
+        '[data-rmc-admin-archetype="scan"]#result_list{'
+        "width:100%!important;min-width:100%!important;table-layout:fixed!important;"
+    )
+    if scan_table_contract not in canvas_n:
+        errors.append(
+            "terminal canvas CSS must preserve the approved full-width fixed native changelist table"
+        )
+    if re.search(
+        r'\[data-rmc-admin-archetype="scan"\]\s*#result_list\s*\{[^}]*table-layout\s*:\s*auto',
+        re.sub(r"/\*.*?\*/", "", css, flags=re.S),
+        re.S,
+    ):
+        errors.append("scan archetype must not override the approval contract with table-layout:auto")
+    if "Native tabular inlines stay native" not in base_site:
+        errors.append("critical head CSS must preserve native Django inline tables")
+    if 'include "admin/siteconfig/sitesettings/settings_sidebar.html"' in base:
+        errors.append("Site Settings must not render a duplicate navigation/canvas wrapper")
+    model_policy = _read("static/js/rmc-admin-model-policy.js")
+    if '"siteconfig.sitesettings": { defaultFocusMode: true }' in model_policy:
+        errors.append("Site Settings must not force focus mode and hide page-aware rail/tools")
+    critical_inline = base_site.split("Native tabular inlines stay native", 1)[-1].split(
+        "@media (max-width: 1024px)", 1
+    )[0]
+    if "display: table-row !important" not in critical_inline or "display: table-cell !important" not in critical_inline:
+        errors.append("critical head CSS must own native inline row/cell display semantics")
+    if "display: none !important" in critical_inline:
+        errors.append("critical head CSS must not hide native inline table headers")
     if "position:static!important" not in approval_n:
         errors.append("approval v13 CSS must keep rails, tools and save actions in document flow")
     if change_list.count('data-rmc-django-primary-panel="1"') != 1:
@@ -249,7 +290,7 @@ def main() -> int:
         if "is_manager_host" not in before:
             errors.append("admin/app_list.html Report Library (studio_os:output) must be gated to is_manager_host")
     workspace_10x = _read("static/css/rmc-admin-workspace-10x.css")
-    for m in re.finditer(r"^[^/\n]*width:\s*max-content", workspace_10x, re.M):
+    for m in re.finditer(r"^[^/\n]*(?<!-)width:\s*max-content", workspace_10x, re.M):
         errors.append(f"rmc-admin-workspace-10x.css still has active width:max-content: {m.group(0).strip()[:80]}")
     nav_bridge = _read("templates/components/admin_nav_bridge.html")
     if "Config center" not in nav_bridge or "Feature control" not in nav_bridge:
@@ -267,10 +308,10 @@ def main() -> int:
         if "aria-hidden=\"true\">+</span>" in tools:
             errors.append("admin_workspace_tools must not render inert + on every surface")
     live_css = _read("static/css/rmc-admin-changelist-live.css")
-    if re.search(r"width:\s*max-content", live_css):
+    if re.search(r"(?<!-)width:\s*max-content", live_css):
         errors.append("rmc-admin-changelist-live.css must not use width:max-content on result tables")
     # No active max-content / false label|value grids (comments mentioning them are OK)
-    for m in re.finditer(r"^[^/\n]*width:\s*max-content", css, re.M):
+    for m in re.finditer(r"^[^/\n]*(?<!-)width:\s*max-content", css, re.M):
         errors.append(f"canvas contract still has active width:max-content rule: {m.group(0).strip()[:80]}")
     for m in re.finditer(r"^[^/\n]*0\.(24|32)fr", css, re.M):
         errors.append(f"canvas contract still has active false label|value fr track: {m.group(0).strip()[:80]}")
