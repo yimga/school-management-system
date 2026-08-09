@@ -233,3 +233,28 @@ class ResidualCardHubGridFillTest(SimpleTestCase):
         self.assertIn("auto-fill", seating)
         skel = _rule_body(self._read("lux-workspace.css"), ".rmc-lux-skeleton--grid-cell")
         self.assertIn("auto-fill", skel)
+
+
+class PeerAdminCatalogGridFillTest(SimpleTestCase):
+    """The /admin/ control-plane catalog surfaces: the shared .cp-catalog (styled
+    across three files incl. an !important discover override), the Unfold
+    .bento-grid, and the cp-parity catalog-model grid. These live in the peer's
+    active v16.x territory and were taken as the FINAL pass once that work settled
+    — every one of these files must now be free of the auto-fill left-cluster."""
+
+    _FILES = [
+        "rmc-admin-v1-200x.css",
+        "admin-platform-catalog.css",
+        "rmc-admin-approval-surface-v15.css",
+        "admin-200x-shell-overlay.css",
+        "admin-cp-parity.css",
+    ]
+
+    def test_admin_catalog_surfaces_have_no_auto_fill_grid(self):
+        for name in self._FILES:
+            css = (_CSS_DIR / name).read_text(encoding="utf-8")
+            self.assertNotIn(
+                "repeat(auto-fill",
+                css,
+                f"{name} reintroduced an auto-fill grid — catalog surfaces must fill the canvas",
+            )

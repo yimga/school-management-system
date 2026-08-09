@@ -1187,7 +1187,7 @@ html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-
 /* Discover density: catalog + surface previews fill the full canvas track. */
 [data-rmc-shell-root="django-admin"] [data-rmc-admin-discover="1"] .cp-catalog,
 html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-shell) #cp-main-content [data-rmc-admin-discover="1"] .cp-catalog {
-  grid-template-columns: repeat(auto-fill, minmax(min(14rem, 100%), 1fr)) !important;
+  grid-template-columns: repeat(auto-fit, minmax(min(14rem, 100%), 1fr)) !important;
   width: 100% !important;
 }
 [data-rmc-shell-root="django-admin"] [data-rmc-admin-discover="1"] .cp-changelist.cp-changelist--preview,

@@ -252,7 +252,7 @@ html[data-rmc-admin-html="unfold"] body[data-rmc-admin-shell="1"][data-rmc-nav-b
 html[data-rmc-admin-html="unfold"] body[data-rmc-admin-shell="1"][data-rmc-nav-bridge-host="manager"] .bento-grid {
   display: grid;
   gap: 14px;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
 }
 
 /* Bento panels (per-app cards in the catalog). Match the cp-catalog-card
