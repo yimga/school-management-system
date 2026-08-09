@@ -82,6 +82,8 @@
         <span class="text-muted">{{ row.label|default:"" }}</span>
         <span class="text-break">{{ row.value|default:"" }}</span>
         {% if row.ok %}<i class="bi bi-check-circle-fill text-success" aria-label="{% trans 'OK' %}"></i>{% else %}<i class="bi bi-exclamation-triangle-fill text-warning" aria-label="{% trans 'Needs attention' %}"></i>{% endif %}
+        {# Each mismatched registry finding opens its OWN exact editor (repair_field=<key>), per the remedy-click contract — not the shared country hub. #}
+        {% if not row.ok and row.cta_url %}<a class="small text-nowrap ms-2" href="{{ row.cta_url }}">{% trans "Fix" %}<i class="bi bi-arrow-right-short" aria-hidden="true"></i></a>{% endif %}
       </li>
       {% endfor %}
     </ul>

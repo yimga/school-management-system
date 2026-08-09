@@ -263,6 +263,12 @@ class SetupStudioServiceTests(TestCase):
             self.assertIn("label", row)
             self.assertIn("ok", row)
             self.assertIn("value", row)
+            # Every registry finding carries its OWN focused repair CTA
+            # (repair_field=<key>#repair-editor), per the remedy-click contract —
+            # the launch page renders it for mismatched rows so a tenant opens the
+            # exact editor for that field (e.g. education_system), never a broad hub.
+            self.assertIn(f"repair_field={row['key']}", row.get("cta_url", ""))
+            self.assertIn("#repair-editor", row.get("cta_url", ""))
         preview_titles = {item["title"] for item in payload["preview_cards"]}
         self.assertEqual(
             preview_titles,
