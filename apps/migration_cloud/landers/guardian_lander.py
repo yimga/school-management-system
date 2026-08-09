@@ -246,16 +246,23 @@ def _resolve_or_provision_user(
     if dry_run:
         return None, ""  # would provision — preview counts it as landable
     username = _free_username(User, email)
-    user = User.objects.create_user(
-        username=username,
-        email=email,
-        first_name=first_name,
-        last_name=last_name,
-    )
-    if hasattr(user, "role") and hasattr(User, "Role"):
-        user.role = User.Role.PARENT
-    user.set_unusable_password()
-    user.save()
+    # Savepoint-wrap provisioning: under the forced-atomic finance apply a raw
+    # create_user IntegrityError (concurrent apply racing the same email-derived
+    # username) would mark the WHOLE connection needs_rollback, aborting the
+    # entire finance-bearing bundle instead of quarantining this one guardian.
+    from ._helpers import row_savepoint
+
+    with row_savepoint():
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            first_name=first_name,
+            last_name=last_name,
+        )
+        if hasattr(user, "role") and hasattr(User, "Role"):
+            user.role = User.Role.PARENT
+        user.set_unusable_password()
+        user.save()
     return user, ""
 
 

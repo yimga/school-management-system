@@ -128,37 +128,43 @@ def _apply_bundle_inner(
     dry_run: bool = False,
     workers: int | None = None,
 ) -> ApplyResult:
-    bundle = MigrationBundle.objects.get(pk=bundle_id)  # tenant-isolation-allow: PK lookup by internal id from caller
-
-    if bundle.status == BundleStatus.APPLIED and not dry_run:
-        logger.info("migration_cloud.apply: bundle %s already APPLIED — no-op", bundle_id)
-        return _empty_result(bundle, dry_run, BundleStatus.APPLIED)
-
-    if bundle.status != BundleStatus.MAPPED:
-        raise ValueError(
-            f"Bundle {bundle_id} is in status {bundle.status}; must be MAPPED to apply."
-        )
-
-    from .schema_binding import ensure_bundle_schema_name
-
-    effective_schema = ensure_bundle_schema_name(bundle)
-    if bundle.school_id and not effective_schema:
-        raise ValueError(
-            f"Bundle {bundle_id} is bound to school_id={bundle.school_id} but has no "
-            "tenant schema_name — refuse apply so rows are not written off-tenant. "
-            "Re-bind the school or repair Client.schema_name, then retry."
-        )
-    bundle.refresh_from_db()
-
+    # Claim the bundle atomically under a row lock: read status, re-check, and
+    # flip MAPPED->APPLYING inside one transaction so two concurrent applies
+    # (HeavyWorkOutbox double-dispatch, or a manual apply racing the outbox)
+    # cannot both observe MAPPED and both run every lander -> parallel user
+    # provisioning double-creates guardians/staff. select_for_update is a no-op
+    # on SQLite (tests) and locks the row on Postgres (prod); the second apply
+    # blocks until this commits, then sees APPLYING and refuses below.
     # A dry run is a PREVIEW: it must never mutate the durable lifecycle status.
     # Flipping the real bundle to APPLYING for a dry run made repair.py / the
     # tenant progress card see a live import in flight, and a dry-run worker crash
-    # left the bundle wedged at APPLYING (or marked FAILED by the catch-all below)
-    # — corrupting a bundle the operator only wanted to preview. Keep it at MAPPED;
-    # the dry-run results land in size_summary["last_dry_run"] at the end.
-    if not dry_run:
-        bundle.mark_status(BundleStatus.APPLYING)
-        bundle.refresh_from_db()
+    # left the bundle wedged at APPLYING — so keep it at MAPPED; the dry-run
+    # results land in size_summary["last_dry_run"] at the end.
+    from .schema_binding import ensure_bundle_schema_name
+
+    with transaction.atomic():
+        bundle = MigrationBundle.objects.select_for_update().get(pk=bundle_id)  # tenant-isolation-allow: PK lookup by internal id from caller
+
+        if bundle.status == BundleStatus.APPLIED and not dry_run:
+            logger.info("migration_cloud.apply: bundle %s already APPLIED — no-op", bundle_id)
+            return _empty_result(bundle, dry_run, BundleStatus.APPLIED)
+
+        if bundle.status != BundleStatus.MAPPED:
+            raise ValueError(
+                f"Bundle {bundle_id} is in status {bundle.status}; must be MAPPED to apply."
+            )
+
+        effective_schema = ensure_bundle_schema_name(bundle)
+        if bundle.school_id and not effective_schema:
+            raise ValueError(
+                f"Bundle {bundle_id} is bound to school_id={bundle.school_id} but has no "
+                "tenant schema_name — refuse apply so rows are not written off-tenant. "
+                "Re-bind the school or repair Client.schema_name, then retry."
+            )
+
+        if not dry_run:
+            bundle.mark_status(BundleStatus.APPLYING)
+    bundle.refresh_from_db()
     _emit_progress(bundle_id=bundle_id, kind="stage_started", stage="APPLYING",
                    message=f"Apply started (dry_run={dry_run}, atomic={bundle.apply_atomic})")
 
