@@ -194,7 +194,10 @@
 /* ---- Wizard cards ---------------------------------------------------------- */
 .rmc-wz-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  /* auto-FIT (not auto-fill): a short row of wizard cards fills the canvas
+     width instead of clustering on the left with a wasted empty column.
+     min(...,100%) keeps a lone card from overflowing a narrow viewport. */
+  grid-template-columns: repeat(auto-fit, minmax(min(15rem, 100%), 1fr));
   gap: var(--space-3, 0.75rem);
 }
 

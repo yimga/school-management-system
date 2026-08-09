@@ -108,13 +108,17 @@
 
 .ovendor-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  /* auto-FIT (not auto-fill): a short row of vendor tiles fills the canvas
+     width instead of clustering on the left with a wasted empty column.
+     min(...,100%) keeps a lone tile from overflowing a narrow viewport.
+     (The >=992px rule below caps to a deliberate 4-col grid.) */
+  grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr));
   gap: var(--space-3, 0.75rem);
   margin: 0 0 var(--space-4, 1rem);
 }
 
 @media (min-width: 576px) {
-  .ovendor-grid { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: var(--space-3, 0.75rem); }
+  .ovendor-grid { grid-template-columns: repeat(auto-fit, minmax(min(170px, 100%), 1fr)); gap: var(--space-3, 0.75rem); }
 }
 @media (min-width: 992px) {
   .ovendor-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }

@@ -7,7 +7,10 @@
 .rmc-wizard-index-grid {
   display: grid;
   gap: var(--space-3);
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  /* auto-FIT (not auto-fill): a short/filtered row of wizard cards fills the
+     canvas width instead of clustering on the left with a wasted empty column.
+     min(...,100%) keeps a lone card from overflowing a narrow viewport. */
+  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
   margin-top: var(--space-3);
 }
 
