@@ -16,7 +16,7 @@
       data-admin-theme="{% if TENANT_FORCE_LIGHT_THEME %}light{% elif SITE.theme_brightness == 'dark' %}dark{% else %}light{% endif %}"
       data-simple-mode="{% if simple_mode %}true{% else %}false{% endif %}"
       data-surface="{% if request and request.path|slice:':14' == '/setup-studio/' or request and request.path|slice:':9' == '/onboard/' or request and request.path|slice:':8' == '/onboard' %}onboarding{% elif PUBLIC_BRAND_MODE %}marketing{% else %}tenant{% endif %}"
-      {% if request.resolver_match.url_name == 'signup_school' or request and '/onboard' in request.path or request and request.path|slice:':14' == '/setup-studio/' %}data-rmc-isomorphic-template="onboarding-wizard"{% elif not PUBLIC_BRAND_MODE %}data-rmc-isomorphic-template="tenant-admin-hub"{% endif %}{% include "partials/shell_rmc_registry_html_attrs.html" %}>
+      {% if request.resolver_match.url_name == 'signup_school' or request.resolver_match.url_name == 'verify_signup' or request.resolver_match.url_name == 'resend_signup_verification' or request and '/onboard' in request.path or request and request.path|slice:':14' == '/setup-studio/' %}data-rmc-isomorphic-template="onboarding-wizard"{% elif not PUBLIC_BRAND_MODE %}data-rmc-isomorphic-template="tenant-admin-hub"{% endif %}{% include "partials/shell_rmc_registry_html_attrs.html" %}>
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -221,7 +221,11 @@
     {% comment %} v4.01.46: dual-plane must load last in head (after vertical-compact). {% endcomment %}
     {% include "partials/rmc_theme_experience_dual_plane_styles.html" %}
     {% endif %}
+    <link rel="stylesheet" href="{% static 'css/rmc-theme-surface-safety-v1.css' %}?v=20260809-admin-full-canvas-v170">
     {% block extrastyle_tail %}{% endblock %}
+    {% if request.resolver_match.url_name == 'signup_school' or request.resolver_match.url_name == 'verify_signup' or request.resolver_match.url_name == 'resend_signup_verification' or request and '/onboard' in request.path or request and request.path|slice:':14' == '/setup-studio/' %}
+    <link rel="stylesheet" href="{% static 'css/rmc-signup-balanced-v3.css' %}?v=20260809-admin-full-canvas-v170">
+    {% endif %}
   </head>
 
   {% comment %} Pass 8 UX consistency: activate the `.form-system` class globally so the

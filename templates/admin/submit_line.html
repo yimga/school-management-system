@@ -14,7 +14,7 @@
     {% if request.GET.next %}
     <input type="hidden" name="next" value="{{ request.GET.next }}" form="{{ opts.model_name }}_form">
     {% endif %}
-    <div class="rmc-admin-submit-row__inner backdrop-blur-xs bg-white/80 rounded-b-default pb-2 px-2 dark:bg-base-900/80 lg:border-t lg:border-base-200 relative dark:border-base-800">
+    <div class="rmc-admin-submit-row__inner rmc-admin-submit-surface">
         {% url opts|admin_urlname:'changelist' as changelist_url %}
         <div class="rmc-django-save-compact" data-rmc-save-compact-root="1">
             {% if show_save %}
@@ -101,7 +101,8 @@
     </div>
 </div>
 
-<script nonce="{{ csp_nonce }}">
+{% comment %}Retired v17: behavior is owned once by rmc-admin-page-aware-v17.js.{% endcomment %}
+{% comment %}<script nonce="{{ csp_nonce }}">
 (function () {
   try {
     function dedup() {
@@ -172,4 +173,4 @@
     document.addEventListener('htmx:afterSwap', wireAll);
   } catch (e) {}
 })();
-</script>
+</script>{% endcomment %}

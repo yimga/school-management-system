@@ -1,0 +1,275 @@
+/* 2026-08-09-admin-os-v170-full-canvas
+ * Admin emergency full-canvas contract v17.0.
+ * This file is the ONE terminal geometry owner for operator and tenant /admin/.
+ */
+@import url("./rmc-admin-workspace-10x.css");
+@import url("./rmc-admin-django-canvas-contract.css");
+@import url("./rmc-admin-approval-surface-v15.css");
+
+:root {
+  --rmc-admin-gap: clamp(0.7rem, 1vw, 1.1rem);
+  --rmc-admin-card: var(--surface-raised, var(--surface-1, #141d32));
+  --rmc-admin-card-soft: var(--surface-subtle, var(--surface-2, #10182a));
+  --rmc-admin-line: var(--hairline, rgba(137, 153, 187, 0.24));
+}
+
+html[data-rmc-admin-html="unfold"],
+html[data-rmc-admin-html="unfold"] body,
+[data-rmc-shell-root="django-admin"],
+[data-rmc-shell-root="django-admin"] .rmc-app-shell__main,
+[data-rmc-shell-root="django-admin"] #cp-main-content,
+[data-rmc-shell-root="django-admin"] #content,
+[data-rmc-shell-root="django-admin"] #content-main {
+  inline-size: 100% !important;
+  max-inline-size: none !important;
+  min-inline-size: 0 !important;
+  margin-inline: 0 !important;
+  box-sizing: border-box !important;
+}
+
+[data-rmc-shell-root="django-admin"] #cp-main-content,
+[data-rmc-shell-root="django-admin"] #content {
+  padding-inline: clamp(0.75rem, 1.4vw, 1.5rem) !important;
+}
+
+[data-rmc-shell-root="django-admin"] :is(
+  [data-rmc-django-workspace="change-form"],
+  [data-rmc-django-workspace="change-list"],
+  [data-rmc-admin-index-canvas]
+) {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(9.2rem, 17%) 2.35rem !important;
+  align-items: start !important;
+  gap: var(--rmc-admin-gap) !important;
+  inline-size: 100% !important;
+  max-inline-size: none !important;
+  min-inline-size: 0 !important;
+  margin-inline: 0 !important;
+}
+
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-workspace-scope="tenant"]:is(
+  [data-rmc-django-workspace="change-form"],
+  [data-rmc-django-workspace="change-list"]
+),
+[data-rmc-shell-root="django-admin"] [data-rmc-admin-index-canvas="tenant"] {
+  grid-template-columns: minmax(0, 1fr) minmax(9.5rem, 18%) 2.35rem !important;
+}
+
+[data-rmc-shell-root="django-admin"] :is(.rmc-django-command-band, .rmc-admin-command-band) {
+  grid-column: 1 / -1 !important;
+  min-inline-size: 0 !important;
+}
+
+[data-rmc-shell-root="django-admin"] :is(
+  [data-rmc-django-primary-panel],
+  .rmc-admin-index-main,
+  .rmc-django-primary-panel
+) {
+  grid-column: 1 !important;
+  inline-size: 100% !important;
+  max-inline-size: none !important;
+  min-inline-size: 0 !important;
+}
+
+[data-rmc-shell-root="django-admin"] :is([data-rmc-django-side-panel], [data-rmc-rail]) {
+  grid-column: 2 !important;
+  position: sticky !important;
+  inset-block-start: 0.75rem !important;
+  inline-size: 100% !important;
+  max-block-size: calc(100dvh - 7rem) !important;
+  overflow: auto !important;
+  min-inline-size: 0 !important;
+}
+
+[data-rmc-shell-root="django-admin"] :is([data-rmc-admin-tools], .rmc-admin-workspace-tools) {
+  grid-column: 3 !important;
+  position: sticky !important;
+  inset-block-start: 0.75rem !important;
+  inset-inline: auto !important;
+  transform: none !important;
+  inline-size: 2.35rem !important;
+  max-block-size: calc(100dvh - 7rem) !important;
+}
+
+/* Form deck: page-aware fields use the entire main pane. */
+[data-rmc-admin-form-contract="premium-form-frame"] {
+  inline-size: 100% !important;
+  max-inline-size: none !important;
+  min-inline-size: 0 !important;
+  padding: clamp(0.8rem, 1.35vw, 1.35rem) !important;
+  overflow: clip !important;
+}
+
+[data-rmc-admin-form-contract="premium-form-frame"] .rmc-django-form-body,
+[data-rmc-admin-form-contract="premium-form-frame"] .rmc-admin-section-deck {
+  display: grid !important;
+  grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
+  gap: var(--rmc-admin-gap) !important;
+  min-inline-size: 0 !important;
+}
+
+[data-rmc-admin-form-contract="premium-form-frame"] .rmc-admin-fieldset,
+[data-rmc-admin-form-contract="premium-form-frame"] .site-settings-section {
+  grid-column: span 6 !important;
+  min-inline-size: 0 !important;
+  padding: clamp(0.75rem, 1.2vw, 1.15rem) !important;
+  border: 1px solid var(--rmc-admin-line) !important;
+  border-radius: 0.85rem !important;
+  background: var(--rmc-admin-card) !important;
+}
+
+[data-rmc-admin-form-contract="premium-form-frame"] :is(
+  .rmc-admin-fieldset[data-rmc-fieldset-span="full"],
+  .site-settings-section[data-rmc-fieldset-span="full"],
+  .inline-group,
+  .errornote,
+  [data-rmc-admin-guidance]
+) {
+  grid-column: 1 / -1 !important;
+}
+
+[data-rmc-admin-form-contract="premium-form-frame"] .rmc-admin-fieldset__rows,
+[data-rmc-admin-form-contract="premium-form-frame"] .form-rows {
+  display: grid !important;
+  grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
+  gap: 0.75rem 1rem !important;
+  min-inline-size: 0 !important;
+}
+
+[data-rmc-admin-form-contract="premium-form-frame"] .form-row {
+  grid-column: span 6 !important;
+  inline-size: 100% !important;
+  max-inline-size: none !important;
+  min-inline-size: 0 !important;
+  align-self: start !important;
+}
+
+[data-rmc-admin-form-contract="premium-form-frame"] .form-row[data-rmc-field-span="short"] { grid-column: span 3 !important; }
+[data-rmc-admin-form-contract="premium-form-frame"] .form-row[data-rmc-field-span="wide"] { grid-column: span 8 !important; }
+[data-rmc-admin-form-contract="premium-form-frame"] .form-row[data-rmc-field-span="full"],
+[data-rmc-admin-form-contract="premium-form-frame"] .form-row:has(textarea),
+[data-rmc-admin-form-contract="premium-form-frame"] .form-row:has(.selector),
+[data-rmc-admin-form-contract="premium-form-frame"] .form-row:has(.related-widget-wrapper.multiple) {
+  grid-column: 1 / -1 !important;
+}
+
+[data-rmc-admin-form-contract="premium-form-frame"] :is(
+  .form-row, .field-row, .field-line, .group\/line, .group\/row,
+  .grow, .related-widget-wrapper, .selector, .selector-available, .selector-chosen
+) { min-inline-size: 0 !important; }
+
+[data-rmc-admin-form-contract="premium-form-frame"] :is(
+  input:not([type="checkbox"]):not([type="radio"]), select, textarea,
+  .vTextField, .related-widget-wrapper
+) {
+  inline-size: 100% !important;
+  max-inline-size: 100% !important;
+  min-inline-size: 0 !important;
+  box-sizing: border-box !important;
+}
+
+[data-rmc-admin-form-contract="premium-form-frame"] :is(.help, .helptext, [class*="help"]) {
+  overflow-wrap: anywhere !important;
+}
+
+/* Native Django tables remain tables; only their containing panel may scroll. */
+[data-rmc-shell-root="django-admin"] :is(.results, .inline-group .tabular, .inline-related.tabular) {
+  display: block !important;
+  inline-size: 100% !important;
+  max-inline-size: 100% !important;
+  overflow-x: auto !important;
+  overscroll-behavior-inline: contain;
+}
+[data-rmc-shell-root="django-admin"] :is(.results, .inline-group .tabular, .inline-related.tabular) table,
+[data-rmc-shell-root="django-admin"] #result_list {
+  display: table !important;
+  inline-size: 100% !important;
+  min-inline-size: max-content !important;
+  table-layout: auto !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+}
+[data-rmc-shell-root="django-admin"] #result_list {
+  table-layout: fixed !important;
+  min-inline-size: 100% !important;
+}
+[data-rmc-shell-root="django-admin"] table > thead { display: table-header-group !important; }
+[data-rmc-shell-root="django-admin"] table > :is(tbody, tfoot) { display: table-row-group !important; }
+[data-rmc-shell-root="django-admin"] table > :is(tbody, tfoot) > tr { display: table-row !important; }
+[data-rmc-shell-root="django-admin"] table tr > :is(th, td) { display: table-cell !important; float: none !important; }
+
+/* Compact, in-flow save ownership: no bars or footers may mask form content. */
+[data-rmc-shell-root="django-admin"] .rmc-django-actions-slot,
+[data-rmc-shell-root="django-admin"] .rmc-admin-submit-row,
+[data-rmc-shell-root="django-admin"] .rmc-admin-submit-row__inner {
+  position: static !important;
+  inset: auto !important;
+  transform: none !important;
+  inline-size: 100% !important;
+  max-inline-size: none !important;
+}
+[data-rmc-shell-root="django-admin"] .rmc-admin-submit-row__inner {
+  padding: 0.7rem !important;
+  border: 1px solid var(--rmc-admin-line) !important;
+  border-radius: 0.8rem !important;
+  background: var(--rmc-admin-card-soft) !important;
+}
+[data-rmc-shell-root="django-admin"] :is(.rmc-app-shell__footer, footer[role="contentinfo"]) {
+  position: static !important;
+  inset: auto !important;
+  transform: none !important;
+}
+
+/* Site Settings and similarly large forms use balanced section cards. */
+[data-rmc-admin-form-contract="premium-form-frame"] .rmc-admin-section-deck { grid-column: 1 / -1 !important; }
+[data-rmc-admin-form-contract="premium-form-frame"] .site-settings-section .rmc-admin-fieldset {
+  grid-column: 1 / -1 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+@media (max-width: 1024px) {
+  [data-rmc-shell-root="django-admin"] :is(
+    [data-rmc-django-workspace="change-form"],
+    [data-rmc-django-workspace="change-list"],
+    [data-rmc-admin-index-canvas]
+  ) {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  [data-rmc-shell-root="django-admin"] :is(
+    [data-rmc-django-primary-panel], .rmc-admin-index-main,
+    [data-rmc-django-side-panel], [data-rmc-rail],
+    [data-rmc-admin-tools], .rmc-admin-workspace-tools
+  ) {
+    grid-column: 1 !important;
+    position: static !important;
+    inline-size: 100% !important;
+    max-block-size: none !important;
+  }
+  [data-rmc-shell-root="django-admin"] :is([data-rmc-admin-tools], .rmc-admin-workspace-tools) {
+    display: flex !important;
+    flex-wrap: wrap !important;
+  }
+  [data-rmc-admin-form-contract="premium-form-frame"] :is(.rmc-admin-fieldset, .site-settings-section),
+  [data-rmc-admin-form-contract="premium-form-frame"] .form-row,
+  [data-rmc-admin-form-contract="premium-form-frame"] .form-row[data-rmc-field-span] {
+    grid-column: 1 / -1 !important;
+  }
+}
+
+@media (max-width: 390px) {
+  [data-rmc-shell-root="django-admin"] #cp-main-content,
+  [data-rmc-shell-root="django-admin"] #content,
+  [data-rmc-admin-form-contract="premium-form-frame"] { padding-inline: 0.55rem !important; }
+  [data-rmc-admin-form-contract="premium-form-frame"] .rmc-admin-fieldset__rows,
+  [data-rmc-admin-form-contract="premium-form-frame"] .form-rows { gap: 0.65rem !important; }
+  /* Some specialized Unfold forms insert an anonymous 7px-padded wrapper
+     around the bottom action slot. Recover a compact half-rem of that nested
+     inset symmetrically so Save remains a full-fill form action without
+     escaping the clipped, in-flow primary panel. */
+  html[data-rmc-admin-html="unfold"] [data-rmc-shell-root="django-admin"] #content-main [data-rmc-django-actions-slot] {
+    inline-size: calc(100% + 0.5rem) !important;
+    margin-inline: -0.25rem !important;
+  }
+}

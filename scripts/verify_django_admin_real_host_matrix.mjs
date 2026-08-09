@@ -79,6 +79,16 @@ function parseArgs(argv) {
 }
 
 const options = parseArgs(process.argv.slice(2));
+const operatorHostname = (
+  process.env.RMC_ADMIN_OPERATOR_HOST || "manager.runmycampus.com"
+).trim();
+const tenantHostname = (
+  process.env.RMC_ADMIN_TENANT_HOST || "gilead-tech.runmycampus.com"
+).trim();
+const playwrightUserAgent =
+  process.env.VISUAL_QA_USER_AGENT ||
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
+    "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 const sessionId = (process.env.RMC_ADMIN_SESSIONID || "").trim();
 const operatorSessionId = (
   process.env.RMC_ADMIN_OPERATOR_SESSIONID || sessionId
@@ -95,10 +105,10 @@ if (!operatorSessionId || !tenantSessionId) {
 }
 
 const HOSTS = {
-  operator: `http://manager.runmycampus.com:${options.port}`,
-  tenant: `http://demo-school.runmycampus.com:${options.port}`,
+  operator: `http://${operatorHostname}:${options.port}`,
+  tenant: `http://${tenantHostname}:${options.port}`,
 };
-const HOSTNAMES = new Set(["manager.runmycampus.com", "demo-school.runmycampus.com"]);
+const HOSTNAMES = new Set([operatorHostname, tenantHostname]);
 
 const SPECIALIZED_MODELS = [
   ["automation", "migrationrun"],
@@ -268,7 +278,7 @@ async function collectDom(page) {
         .filter((element) => {
           if (
             !visible(element) ||
-            element.closest("[data-rmc-shell-header], .rmc-app-shell__header")
+            element.closest("[data-rmc-shell-header], .rmc-app-shell__header, table")
           ) {
             return false;
           }
@@ -399,6 +409,17 @@ async function collectDom(page) {
         .filter(visible)
         .map((element) => (element.textContent || "").trim().replace(/\s+/g, " "))
         .filter(Boolean);
+      const sidebarLinkKeys = [...document.querySelectorAll(
+        '[data-rmc-shell-sidebar] a[href], .rmc-app-shell__sidebar a[href], #nav-sidebar a[href]',
+      )]
+        .filter(visible)
+        .map((element) => {
+          const url = new URL(element.href, location.href);
+          return `${url.pathname.replace(/\/+$/, "") || "/"}${url.search}`;
+        });
+      const duplicateSidebarLinks = [
+        ...new Set(sidebarLinkKeys.filter((key, index) => sidebarLinkKeys.indexOf(key) !== index)),
+      ];
       return {
         url: location.href,
         host: location.hostname,
@@ -422,6 +443,7 @@ async function collectDom(page) {
         stylesheetCount: stylesheets.length,
         stylesheetHrefs,
         duplicateStylesheets,
+        duplicateSidebarLinks,
         workspace: layoutGrid
           ? workspaceRoot?.getAttribute("data-rmc-django-workspace") ||
             layoutGrid.getAttribute("data-rmc-admin-index-canvas") ||
@@ -495,6 +517,21 @@ async function collectDom(page) {
               bodyFillRatio: (formBodyRect?.width || 0) / Math.max(1, formRect.width),
               actionsFillRatio:
                 (actionsRect?.width || 0) / Math.max(1, primaryRect?.width || 0),
+              actionsStyle: actionsSlot
+                ? (() => {
+                    const style = getComputedStyle(actionsSlot);
+                    const parentRect = actionsSlot.parentElement?.getBoundingClientRect();
+                    return {
+                      boxSizing: style.boxSizing,
+                      width: style.width,
+                      maxWidth: style.maxWidth,
+                      marginInline: `${style.marginLeft} ${style.marginRight}`,
+                      paddingInline: `${style.paddingLeft} ${style.paddingRight}`,
+                      parentWidth: parentRect?.width || 0,
+                      parentClass: String(actionsSlot.parentElement?.className || ""),
+                    };
+                  })()
+                : null,
               panelDisplay: getComputedStyle(primaryPanel).display,
               panelGrid: getComputedStyle(primaryPanel).gridTemplateColumns,
             }
@@ -539,7 +576,7 @@ function gridTracks(grid) {
 }
 
 function expectedHost(scope) {
-  return scope === "operator" ? "manager.runmycampus.com" : "demo-school.runmycampus.com";
+  return scope === "operator" ? operatorHostname : tenantHostname;
 }
 
 function auditResult(result, surface) {
@@ -567,6 +604,11 @@ function auditResult(result, surface) {
     dom.duplicateStylesheets.length === 0,
     "duplicate_stylesheets",
     JSON.stringify(dom.duplicateStylesheets),
+  );
+  expect(
+    dom.duplicateSidebarLinks.length === 0,
+    "duplicate_sidebar_links",
+    JSON.stringify(dom.duplicateSidebarLinks),
   );
   expect(dom.fixedOverlays.length === 0, "fixed_overlays", JSON.stringify(dom.fixedOverlays));
   expect(
@@ -843,7 +885,11 @@ async function probe(page, surface) {
             timeout: options.timeout,
           })
           .catch(() => null);
-        await submit.click();
+        // Navigation is owned by the explicit wait above. Without noWaitAfter,
+        // Playwright also waits inside click() and can time out at its 30s
+        // action default while a production-shaped Django confirmation is
+        // still rendering, falsely recording an empty DOM.
+        await submit.click({ noWaitAfter: true });
         const navigationResponse = await navigation;
         response =
           navigationResponse ||
@@ -876,6 +922,7 @@ async function probe(page, surface) {
         pageOverflow: 0,
         bodyStylesheetLinks: 0,
         duplicateStylesheets: [],
+        duplicateSidebarLinks: [],
         workspace: "",
         grid: "",
         primary: null,
@@ -904,33 +951,27 @@ async function probe(page, surface) {
       }
     : await collectDom(page);
   if (!navigationError && surface.kind === "form" && dom.save?.toggle) {
-    const saveToggle = page.locator("[data-rmc-save-menu-toggle]").first();
-    await saveToggle.click();
-    await page.waitForTimeout(75);
-    dom.save.menuOperable = await page
-      .locator("[data-rmc-save-menu]")
-      .first()
-      .evaluate((element) => {
-        const rect = element.getBoundingClientRect();
-        const style = getComputedStyle(element);
-        return rect.width > 0 && rect.height > 0 && style.display !== "none";
-      });
-    await page.keyboard.press("Escape");
-    await page.waitForTimeout(75);
-    dom.save.menuClosesOnEscape = await page
-      .locator("[data-rmc-save-menu]")
-      .first()
-      .evaluate((element) => {
-        const rect = element.getBoundingClientRect();
-        const style = getComputedStyle(element);
-        return (
-          element.hidden ||
-          rect.width === 0 ||
-          rect.height === 0 ||
-          style.display === "none" ||
-          style.visibility === "hidden"
-        );
-      });
+    // Exercise the split menu in one document task. Locator actions wait for
+    // navigations by default, which can race a model admin's own canonical
+    // redirect and turn a valid rendered page into a 30-second harness crash.
+    // A real DOM click still invokes the production listener and lets us assert
+    // both open and Escape-close behavior without crossing documents.
+    const menuState = await page.evaluate(() => {
+      const toggle = document.querySelector("[data-rmc-save-menu-toggle]");
+      const menu = document.querySelector("[data-rmc-save-menu]");
+      if (!toggle || !menu) return { operable: false, closesOnEscape: false };
+      const visible = () => {
+        const rect = menu.getBoundingClientRect();
+        const style = getComputedStyle(menu);
+        return !menu.hidden && rect.width > 0 && rect.height > 0 && style.display !== "none";
+      };
+      toggle.click();
+      const operable = visible();
+      document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+      return { operable, closesOnEscape: !visible() };
+    });
+    dom.save.menuOperable = menuState.operable;
+    dom.save.menuClosesOnEscape = menuState.closesOnEscape;
   }
   const result = {
     name: surface.name,
@@ -1247,7 +1288,7 @@ async function main() {
   const browser = await chromium.launch({
     headless: true,
     args: [
-      "--host-resolver-rules=MAP manager.runmycampus.com 127.0.0.1, MAP demo-school.runmycampus.com 127.0.0.1",
+      `--host-resolver-rules=MAP ${operatorHostname} 127.0.0.1, MAP ${tenantHostname} 127.0.0.1`,
     ],
   });
   activeBrowser = browser;
@@ -1255,16 +1296,17 @@ async function main() {
     viewport: { width: options.width, height: options.height },
     colorScheme: options.theme,
     serviceWorkers: "block",
+    userAgent: playwrightUserAgent,
   });
   await context.addInitScript((theme) => {
     localStorage.setItem("runmycampus-theme-preference", theme);
   }, options.theme);
   await context.addCookies(
     [
-      ["manager.runmycampus.com", "rmc_manager_sessionid", operatorSessionId, true],
-      ["demo-school.runmycampus.com", "sessionid", tenantSessionId, true],
-      ["manager.runmycampus.com", "rmc_manager_csrftoken", "abcdefghijklmnopqrstuvwxyzABCDEF", false],
-      ["demo-school.runmycampus.com", "csrftoken", "abcdefghijklmnopqrstuvwxyzABCDEF", false],
+      [operatorHostname, "rmc_manager_sessionid", operatorSessionId, true],
+      [tenantHostname, "sessionid", tenantSessionId, true],
+      [operatorHostname, "rmc_manager_csrftoken", "abcdefghijklmnopqrstuvwxyzABCDEF", false],
+      [tenantHostname, "csrftoken", "abcdefghijklmnopqrstuvwxyzABCDEF", false],
     ].map(([domain, name, value, httpOnly]) => ({
       name,
       value,
@@ -1290,8 +1332,9 @@ async function main() {
     const result = await probe(page, surface);
     results.push(result);
     const state = result.findings.length ? "FAIL" : "PASS";
+    const findingCodes = result.findings.map((finding) => finding.code).join(",");
     console.log(
-      `${state} ${surface.name} status=${result.status} grid=${JSON.stringify(result.dom.grid)} overflow=${result.dom.pageOverflow}`,
+      `${state} ${surface.name} status=${result.status} grid=${JSON.stringify(result.dom.grid)} overflow=${result.dom.pageOverflow}${findingCodes ? ` findings=${findingCodes}` : ""}`,
     );
   }
   await browser.close();

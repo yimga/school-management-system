@@ -33,7 +33,7 @@ Your current average for [Specialty] is [Average]. Keep up the momentum!
   </div>
 </div>
 
-<script>
+<script nonce="{{ csp_nonce }}">
   document.addEventListener("DOMContentLoaded", () => {
     const statusEl = document.getElementById("previewCommStatus");
     document.getElementById("previewCommBtn").addEventListener("click", async () => {

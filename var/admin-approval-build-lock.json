@@ -1,32 +1,33 @@
 {
-  "build_id": "2026-08-08-v16.4",
-  "cache_bust": "20260808-admin-artifact-parity-v164",
-  "sw_version": "sms-v4.06.31-admin-artifact-parity-2026-08-08",
-  "seal": "2026-08-08-admin-os-v164-artifact-parity",
+  "build_id": "2026-08-09-v17.0",
+  "cache_bust": "20260809-admin-full-canvas-v170",
+  "sw_version": "sms-v4.06.32-admin-full-canvas-2026-08-09",
+  "seal": "2026-08-09-admin-os-v170-full-canvas",
   "approval_previews": [
     "var/design-previews/django-admin-os-top-tier-approval-v15-2026-07-21.html",
     "var/design-previews/django-admin-page-aware-full-fill-approval-2026-07-19.html",
     "var/design-previews/tenant-admin-config-engine-approval-2026-07-19.html",
-    "var/design-previews/tenant-admin-form-quality-before-after-2026-08-07.html"
+    "var/design-previews/tenant-admin-form-quality-before-after-2026-08-07.html",
+    "var/design-previews/admin-emergency-full-canvas-and-provisioning-before-after-approval-2026-08-09.html"
   ],
   "visible_proofs": [
-    "data-rmc-admin-approval-build=\"2026-08-08-v16.4\"",
-    "v16.4 · Admin OS · operator+tenant",
+    "data-rmc-admin-approval-build=\"2026-08-09-v17.0\"",
+    "v17.0 · Full canvas · operator+tenant",
     "data-rmc-admin-archetype=\"discover\"",
     "data-rmc-admin-archetype=\"scan\"",
     "data-rmc-admin-archetype=\"edit\"",
-    "rmc-admin-approval-surface-v15.css",
-    "rmc-admin-os-innovations.js",
+    "rmc-admin-emergency-full-canvas-v17.css",
+    "rmc-admin-page-aware-v17.js",
     "Platform Backoffice",
     "rmc-admin-transfer-panel",
     "rmc_info_tag",
-    "Native tabular inlines stay native",
-    "data-rmc-layout-owner=\"approval-v15-critical\"",
+    "Native Django tables remain tables",
+    "data-rmc-admin-layout-owner=\"emergency-v17\"",
     "admin_v1_index_surface_previews.html"
   ],
   "hosts": [
     "operator",
     "tenant"
   ],
-  "rule": "Discover/Edit/Scan use page-aware 3-col grids above 1024px and one column at or below 1024px; Decide/Audit remain task-specific; critical CSS always on."
+  "rule": "One terminal layout owner. Operator uses minmax(0,1fr) minmax(9.2rem,17%) 2.35rem; tenant uses minmax(0,1fr) minmax(9.5rem,18%) 2.35rem; every archetype is one column at or below 1024px."
 }

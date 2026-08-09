@@ -1,0 +1,79 @@
+/* RunMyCampus semantic surface safety — shared by public, tenant and operator UI. */
+:root {
+  --rmc-safe-surface: var(--surface-raised, var(--surface-1, #ffffff));
+  --rmc-safe-surface-soft: var(--surface-subtle, var(--surface-2, #f7f8fc));
+  --rmc-safe-text: var(--text-primary, #172033);
+  --rmc-safe-muted: var(--text-secondary, #637089);
+  --rmc-safe-border: var(--hairline, rgba(73, 89, 116, 0.24));
+  --rmc-safe-accent: var(--brand-primary, #4f46e5);
+}
+
+html:is([data-theme="dark"], [data-admin-theme="dark"], .dark) {
+  --rmc-safe-surface: var(--surface-raised, #151d33);
+  --rmc-safe-surface-soft: var(--surface-subtle, #10182b);
+  --rmc-safe-text: var(--text-primary, #f4f7ff);
+  --rmc-safe-muted: var(--text-secondary, #aeb9cf);
+  --rmc-safe-border: var(--hairline, rgba(151, 166, 198, 0.25));
+}
+
+.rmc-theme-surface,
+.rmc-admin-guidance-card,
+.rmc-theme-graph-surface,
+.rmc-theme-code-surface {
+  color: var(--rmc-safe-text) !important;
+  background: var(--rmc-safe-surface) !important;
+  border-color: var(--rmc-safe-border) !important;
+}
+
+.rmc-admin-guidance-card {
+  display: grid;
+  gap: 0.7rem;
+  margin-block-end: 1rem;
+  padding: clamp(0.9rem, 1.8vw, 1.3rem);
+  border: 1px solid var(--rmc-safe-border);
+  border-inline-start: 0.22rem solid var(--rmc-safe-accent);
+  border-radius: 0.85rem;
+  box-shadow: 0 12px 32px color-mix(in srgb, #020617 11%, transparent);
+}
+
+.rmc-admin-guidance-card :is(h1, h2, h3, h4, strong, label) {
+  color: var(--rmc-safe-text) !important;
+}
+
+.rmc-admin-guidance-card :is(p, small) {
+  color: var(--rmc-safe-muted) !important;
+}
+
+.rmc-admin-guidance-card ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rmc-admin-guidance-card a {
+  display: inline-flex;
+  min-height: 2.25rem;
+  align-items: center;
+  padding: 0.38rem 0.72rem;
+  border: 1px solid var(--rmc-safe-border);
+  border-radius: 999px;
+  color: color-mix(in srgb, var(--rmc-safe-accent) 82%, var(--rmc-safe-text)) !important;
+  text-decoration: none;
+}
+
+.rmc-theme-graph-surface { border: 1px solid var(--rmc-safe-border); }
+.rmc-theme-code-surface { color: var(--rmc-safe-text) !important; }
+.rmc-theme-neutral-badge,
+.rmc-theme-inline-label {
+  color: var(--rmc-safe-text) !important;
+  background: var(--rmc-safe-surface-soft) !important;
+  border-color: var(--rmc-safe-border) !important;
+}
+.rmc-theme-choice-selected {
+  color: var(--rmc-safe-text) !important;
+  background: color-mix(in srgb, var(--rmc-safe-accent) 12%, var(--rmc-safe-surface)) !important;
+  border-color: color-mix(in srgb, var(--rmc-safe-accent) 48%, var(--rmc-safe-border)) !important;
+}

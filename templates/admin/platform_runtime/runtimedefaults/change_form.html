@@ -3,7 +3,7 @@
 
 {% block form_before %}
   {% comment %} P3: RuntimeDefaults is platform-admin; link control-plane shells that resolve on manager/local hosts. {% endcomment %}
-  <section class="mb-5 rounded-lg border border-base-200 dark:border-base-700 bg-base-50 dark:bg-base-900/30 px-4 py-3" role="region" aria-labelledby="runtime-defaults-cp-escape-heading">
+  <section class="rmc-admin-guidance-card" data-rmc-admin-guidance="related-surface" role="region" aria-labelledby="runtime-defaults-cp-escape-heading">
     <h2 id="runtime-defaults-cp-escape-heading" class="text-sm font-semibold text-base-900 dark:text-base-100 mb-1">{% if is_manager_host %}{% trans "Product control plane" %}{% else %}{% trans "Guided school settings" %}{% endif %}</h2>
     <p class="text-xs text-base-600 dark:text-base-400 mb-3">{% trans "Platform defaults span many domains. Use operator hubs when you need guided workflows instead of raw JSON columns." %}</p>
     <ul class="flex flex-wrap gap-x-5 gap-y-2 text-sm list-none m-0 p-0">

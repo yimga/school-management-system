@@ -1,0 +1,4665 @@
+{
+  "generatedAt": "2026-08-09T21:12:36.908Z",
+  "suite": "specialized",
+  "scope": "both",
+  "only": null,
+  "models": "siteconfig.reportcardstyle,siteconfig.sitesettings,siteconfig.tenantadmissionnumberpolicy,siteconfig.themepack,siteconfig.tourstep,siteconfig.userpreference",
+  "theme": "dark",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "build": "2026-08-09-v17.0",
+  "cacheBust": "20260809-admin-full-canvas-v170",
+  "serviceWorker": "sms-v4.06.32-admin-full-canvas-2026-08-09",
+  "hosts": {
+    "operator": "http://manager.runmycampus.com:8020",
+    "tenant": "http://gilead-tech.runmycampus.com:8020"
+  },
+  "pass": true,
+  "surfaceCount": 7,
+  "skipped": [
+    {
+      "scope": "operator",
+      "appLabel": "siteconfig",
+      "modelName": "sitesettings",
+      "reason": "not-scoped:404:http://manager.runmycampus.com:8020/admin/siteconfig/sitesettings/"
+    },
+    {
+      "scope": "operator",
+      "appLabel": "siteconfig",
+      "modelName": "tenantadmissionnumberpolicy",
+      "reason": "not-scoped:404:http://manager.runmycampus.com:8020/admin/siteconfig/tenantadmissionnumberpolicy/"
+    },
+    {
+      "scope": "operator",
+      "appLabel": "siteconfig",
+      "modelName": "themepack",
+      "reason": "not-scoped:404:http://manager.runmycampus.com:8020/admin/siteconfig/themepack/"
+    },
+    {
+      "scope": "operator",
+      "appLabel": "siteconfig",
+      "modelName": "userpreference",
+      "reason": "not-scoped:404:http://manager.runmycampus.com:8020/admin/siteconfig/userpreference/"
+    },
+    {
+      "scope": "tenant",
+      "appLabel": "siteconfig",
+      "modelName": "themepack",
+      "reason": "not-scoped:404:http://gilead-tech.runmycampus.com:8020/admin/siteconfig/themepack/"
+    }
+  ],
+  "findings": [],
+  "results": [
+    {
+      "name": "operator-siteconfig-reportcardstyle",
+      "scope": "operator",
+      "kind": "form",
+      "requestedUrl": "http://manager.runmycampus.com:8020/admin/siteconfig/reportcardstyle/3/change/",
+      "status": 200,
+      "navigationError": "",
+      "badResources": [],
+      "failedResources": [],
+      "consoleErrors": [],
+      "dom": {
+        "url": "http://manager.runmycampus.com:8020/admin/siteconfig/reportcardstyle/3/change/",
+        "host": "manager.runmycampus.com",
+        "path": "/admin/siteconfig/reportcardstyle/3/change/",
+        "title": "RunMyCampus Admin",
+        "scope": "operator",
+        "build": "2026-08-09-v17.0",
+        "buildMatches": true,
+        "theme": "dark",
+        "h1": [
+          "Change report card style This form"
+        ],
+        "pageOverflow": 0,
+        "bodyStylesheetLinks": 0,
+        "stylesheetCount": 117,
+        "stylesheetHrefs": [
+          "http://manager.runmycampus.com:8020/static/unfold/fonts/inter/styles.css",
+          "http://manager.runmycampus.com:8020/static/unfold/fonts/material-symbols/styles.css",
+          "http://manager.runmycampus.com:8020/static/unfold/css/styles.css",
+          "http://manager.runmycampus.com:8020/static/unfold/css/simplebar/simplebar.css",
+          "http://manager.runmycampus.com:8020/static/vendor/bootstrap/css/bootstrap.min.css",
+          "http://manager.runmycampus.com:8020/static/vendor/bootstrap-icons/css/bootstrap-icons.min.css",
+          "http://manager.runmycampus.com:8020/static/css/design-tokens.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-app-shell.css",
+          "http://manager.runmycampus.com:8020/static/css/design-tokens-personality.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-class-grammar.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-class-grammar-ext.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-bulk-actions.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-warm-bright-school.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-cool-apple-polish.css",
+          "http://manager.runmycampus.com:8020/static/css/design-tokens-luxury.css",
+          "http://manager.runmycampus.com:8020/static/css/patterns.css",
+          "http://manager.runmycampus.com:8020/static/css/bootstrap-theme-bridge.css",
+          "http://manager.runmycampus.com:8020/static/css/header-no-spillage.css",
+          "http://manager.runmycampus.com:8020/static/css/statement-header.css",
+          "http://manager.runmycampus.com:8020/static/css/design-system-unified.css",
+          "http://manager.runmycampus.com:8020/static/css/admin-components.css",
+          "http://manager.runmycampus.com:8020/static/css/unfold-integration.css",
+          "http://manager.runmycampus.com:8020/static/css/admin-console-themes.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-bell-clock-product.css",
+          "http://manager.runmycampus.com:8020/static/css/admin-sidebar-scroll.css",
+          "http://manager.runmycampus.com:8020/static/css/admin-sidebar-backend-inspired.css",
+          "http://manager.runmycampus.com:8020/static/css/admin-sidebar-polish.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-sidebar-luxury-10x.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-sidebar-disclosure-contract.css",
+          "http://manager.runmycampus.com:8020/static/css/admin-surface-fixes.css",
+          "http://manager.runmycampus.com:8020/static/css/theme-visibility-guard.css",
+          "http://manager.runmycampus.com:8020/static/css/platform-high-end.css",
+          "http://manager.runmycampus.com:8020/static/css/manager-control-plane.css",
+          "http://manager.runmycampus.com:8020/static/css/admin-manager-shell.css",
+          "http://manager.runmycampus.com:8020/static/css/control-plane-ultra.css",
+          "http://manager.runmycampus.com:8020/static/css/surface-themes.css",
+          "http://manager.runmycampus.com:8020/static/css/table-system.css",
+          "http://manager.runmycampus.com:8020/static/css/form-system.css",
+          "http://manager.runmycampus.com:8020/static/css/toggle-colors.css",
+          "http://manager.runmycampus.com:8020/static/css/card-grammar.css",
+          "http://manager.runmycampus.com:8020/static/css/design-system-phase2-enforcement.css",
+          "http://manager.runmycampus.com:8020/static/css/chart-rules.css",
+          "http://manager.runmycampus.com:8020/static/css/admin-base-site-shell.css",
+          "http://manager.runmycampus.com:8020/static/css/portal-ui-components.css",
+          "http://manager.runmycampus.com:8020/static/css/phase2-admin-bundle.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-long-page-grammar.css",
+          "http://manager.runmycampus.com:8020/static/css/admin-cp-parity.css",
+          "http://manager.runmycampus.com:8020/static/css/dashboard-topology-shell.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-platform-chrome-layout.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-page-fold-standards.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-collapsable.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-zero-click-protocol.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-back-to-top.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-section-nav-toc.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-shell-scroll-contract.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-dropdown-viewport-safe.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-page-personality.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-os-grade-density.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-platform-chrome-premium.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-layout-frame-guard.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-operational-center-frame.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-isomorphic-grid.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-isomorphic-grid-sweep.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-layout-token-matrix.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-cp-stacked-header.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-platform-beautify-v4.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-sidebar-rail-contract.css",
+          "https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;1,8..60,400&family=JetBrains+Mono:wght@400;500&display=swap",
+          "http://manager.runmycampus.com:8020/static/css/manager-cockpit-v7.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-cockpit-skin-v8.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-operator-theme-coherence.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-cp-200x.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-cp-header-200x.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-cp-consolidated-operator-shell.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-cp-activity-tiers.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-admin-modal-overlay-guard.css",
+          "http://manager.runmycampus.com:8020/static/css/admin-platform-catalog.css?v=20260809-admin-full-canvas-v170",
+          "http://manager.runmycampus.com:8020/static/css/admin-200x-shell-overlay.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-admin-v1-200x.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-admin-changelist-live.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-cp-sidebar-200x.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-platform-inner-pages.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-security-posture-nav.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-canvas-chrome-compact.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-print.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-platform-header.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-corporate-os.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-os-shell.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-global-aesthetic.css",
+          "http://manager.runmycampus.com:8020/static/css/manager-aesthetic-polish.css",
+          "http://manager.runmycampus.com:8020/static/css/control-plane-primary-nav.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-horizontal-nav-rail.css",
+          "http://manager.runmycampus.com:8020/static/css/control-plane-phase1-shell.css",
+          "http://manager.runmycampus.com:8020/static/css/control-plane-skeleton-root.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-vertical-density-platform.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-surface-spacing-contract.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-platform-vertical-compact.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-pagination-grammar.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-admin-mirror.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-backoffice-scroll-10x.css",
+          "http://manager.runmycampus.com:8020/static/css/platform-responsive-touch.css",
+          "http://manager.runmycampus.com:8020/static/css/dashboard-responsive.css",
+          "http://manager.runmycampus.com:8020/static/css/dark-mode-safety-net.css",
+          "http://manager.runmycampus.com:8020/static/css/theme-platform-contrast.css",
+          "http://manager.runmycampus.com:8020/static/css/theme-platform-readability.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-signature-motion.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-command-bar.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-footer-surfaces.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-theme-experience-dual-plane.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-nav-sidebar.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-platform-workspace-edge-fit.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-tenant-surface-scroll-contract.css?v=20260809-admin-full-canvas-v170",
+          "http://manager.runmycampus.com:8020/static/css/rmc-tour.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-theme-surface-safety-v1.css?v=20260809-admin-full-canvas-v170",
+          "http://manager.runmycampus.com:8020/static/css/rmc-admin-emergency-full-canvas-v17.css?v=20260809-admin-full-canvas-v170",
+          "http://manager.runmycampus.com:8020/static/css/rmc-operator-tools-tray.css",
+          "http://manager.runmycampus.com:8020/static/css/color-palette-studio.css"
+        ],
+        "duplicateStylesheets": [],
+        "duplicateSidebarLinks": [],
+        "workspace": "change-form",
+        "grid": "854.688px 189.531px 37.5938px",
+        "workspaceWidth": 1150,
+        "primary": {
+          "width": 854.6875,
+          "trackWidth": 854.688,
+          "fillRatio": 0.9999994149912015,
+          "left": 297.546875,
+          "right": 1152.234375
+        },
+        "structure": {
+          "shellRoots": 1,
+          "shellHeaders": 1,
+          "shellSidebars": 1,
+          "indexCanvases": 0,
+          "primaryPanels": 1,
+          "rails": 1,
+          "tools": 1,
+          "rowDrawers": 0,
+          "breadcrumbs": 1
+        },
+        "tools": [
+          "Keyboard shortcuts",
+          "Back to top"
+        ],
+        "toolDiagnostics": [
+          {
+            "display": "flex",
+            "visibility": "visible",
+            "width": 37.59375,
+            "height": 74.390625,
+            "childCount": 2,
+            "visibleChildCount": 2
+          }
+        ],
+        "table": null,
+        "changelistFilter": null,
+        "save": {
+          "present": true,
+          "primary": true,
+          "toggle": true,
+          "menu": true,
+          "menuVisible": false,
+          "menuOperable": true,
+          "menuClosesOnEscape": true
+        },
+        "formGeometry": {
+          "formWidth": 813.8125,
+          "bodyWidth": 813.8125,
+          "actionsWidth": 813.8125,
+          "primaryWidth": 854.6875,
+          "formFillRatio": 0.9521755027422304,
+          "bodyFillRatio": 1,
+          "actionsFillRatio": 0.9521755027422304,
+          "panelDisplay": "flex",
+          "panelGrid": "minmax(0px, 1fr) minmax(224px, 22%)"
+        },
+        "formNativeLayouts": {
+          "groupedFieldRows": [
+            {
+              "display": "grid",
+              "grid": "341.578px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow field-primary_color flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 341.578125,
+                  "text": "Primary color *"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "341.578px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow field-accent_color flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 341.578125,
+                  "text": "Accent color *"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "341.578px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group field-name py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 341.578125,
+                  "text": "Name * 18 / 120"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "341.578px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group field-slug py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 341.578125,
+                  "text": "Slug * 18 / 80"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "706.188px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow flex px-3 flex-col field-description",
+                  "display": "flex",
+                  "width": 706.1875,
+                  "text": "Description Formal admin style with navy hierarchy and high readability for prin"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "341.578px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group field-term_template py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 341.578125,
+                  "text": "Term template * Standard term template Cameroon term template Cameroon term temp"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "341.578px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow field-annual_template flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 341.578125,
+                  "text": "Annual template * Standard annual template Cameroon annual template Cameroon ann"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "341.578px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group field-watermark_text py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 341.578125,
+                  "text": "Watermark text 18 / 150"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "341.578px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow flex px-3 flex-col field-header_tagline",
+                  "display": "flex",
+                  "width": 341.578125,
+                  "text": "Header tagline 31 / 200"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "706.188px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group field-css_snippet py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 706.1875,
+                  "text": "Css snippet .report-header{border-bottom:3px solid #0d173b;}"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "706.188px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group field-labels py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 706.1875,
+                  "text": "Labels {\"remark_header\": \"Remark / Observation\", \"principal_label\": \"Principal /"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "706.188px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "field-layout_config group/line group py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 706.1875,
+                  "text": "Layout config {\"show_school_rank\": true, \"show_specialty_rank\": true} Layout con"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "706.188px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow field-is_active flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 706.1875,
+                  "text": "Is active"
+                }
+              ]
+            }
+          ],
+          "inlineTable": null,
+          "redundantSectionNavCount": 0,
+          "sectionLabels": [
+            "Color Picker",
+            "Section 2",
+            "Report styling",
+            "Options"
+          ],
+          "uniqueSectionLabelCount": 4
+        },
+        "tenantSearchPanelInitiallyVisible": false,
+        "fixedOverlays": [],
+        "wideFixedBands": [],
+        "internalScrollTraps": [],
+        "rawIcons": [],
+        "interactiveText": [
+          "RunMyCampus platform backoffice",
+          "🏛 Backoffice",
+          "⚙ Config center",
+          "⌘ Studio",
+          "↗ Control plane",
+          "📚 Catalog",
+          "More navigation",
+          "Account security — 38/100",
+          "Configuration Control Center",
+          "Notifications",
+          "VI 1 visualqa_operator_v17 Superadmin",
+          "Collapse navigation to icon rail",
+          "Sidebar preferences",
+          "Profile & security ↗",
+          "Platform backoffice",
+          "Add to Quick access",
+          "Control plane",
+          "Add to Quick access",
+          "Help center",
+          "Add to Quick access",
+          "Config center",
+          "Add to Quick access",
+          "Platform operator hub",
+          "Add to Quick access",
+          "Configuration engine",
+          "Add to Quick access",
+          "Studio",
+          "Add to Quick access",
+          "Feature control",
+          "Add to Quick access",
+          "Theme & experience",
+          "Add to Quick access",
+          "Studio Experience",
+          "Add to Quick access",
+          "Control Studio",
+          "Add to Quick access",
+          "Curriculum & region packs",
+          "Add to Quick access",
+          "Geography",
+          "Add to Quick access",
+          "Education systems",
+          "Add to Quick access",
+          "Learning delivery & institution types",
+          "Add to Quick access",
+          "Ministry report stubs",
+          "Add to Quick access",
+          "Registries",
+          "Add to Quick access",
+          "Metadata catalog",
+          "Add to Quick access",
+          "Blueprints",
+          "Add to Quick access",
+          "Policies",
+          "Add to Quick access",
+          "Workflow Packs",
+          "Add to Quick access",
+          "Dashboard Packs",
+          "Add to Quick access",
+          "Workflow Flight Deck",
+          "Add to Quick access",
+          "Operator policy",
+          "Add to Quick access",
+          "Team & identity",
+          "Add to Quick access",
+          "Backlog unlock center",
+          "Add to Quick access",
+          "Fleet governed changes",
+          "Add to Quick access",
+          "Tenant runtime & settings",
+          "Add to Quick access",
+          "Fleet theme & experience hub",
+          "Add to Quick access",
+          "Region grading scales",
+          "Add to Quick access",
+          "Metadata & lineage hub",
+          "Add to Quick access",
+          "Entity catalog",
+          "Add to Quick access",
+          "Dynamic fields (EAV)",
+          "Add to Quick access",
+          "Config mutation audit",
+          "Add to Quick access",
+          "Region validation",
+          "Add to Quick access",
+          "Region comparison",
+          "Add to Quick access",
+          "Platform Studio · Reports",
+          "Add to Quick access",
+          "Report templates",
+          "Add to Quick access",
+          "Official report templates",
+          "Add to Quick access",
+          "Report card styles",
+          "Add to Quick access",
+          "Feature toggle states",
+          "Add to Quick access",
+          "Tour steps",
+          "Add to Quick access",
+          "Feature usage events",
+          "Add to Quick access",
+          "Regional AI configs",
+          "Add to Quick access",
+          "AI model registries",
+          "Add to Quick access",
+          "AI prompt registries",
+          "Add to Quick access",
+          "AI embedding stores",
+          "Add to Quick access",
+          "AI gateway metrics",
+          "Add to Quick access",
+          "Revenue snapshots",
+          "Add to Quick access",
+          "Billing waiver audit logs",
+          "Add to Quick access",
+          "Waiver requests",
+          "Add to Quick access",
+          "Custom nuances",
+          "Add to Quick access",
+          "Pending nuances",
+          "Add to Quick access",
+          "Custom feature tickets",
+          "Add to Quick access",
+          "Feature fragments",
+          "Add to Quick access",
+          "Workflow Run Logs",
+          "Add to Quick access",
+          "Feature Control Audits",
+          "Add to Quick access",
+          "Global syllabus nodes",
+          "Add to Quick access",
+          "Learning passports",
+          "Add to Quick access",
+          "Break glass overrides",
+          "Add to Quick access",
+          "Broadcast campaigns",
+          "Add to Quick access",
+          "Product feedback",
+          "Add to Quick access",
+          "Marketing content",
+          "Add to Quick access",
+          "Blog posts",
+          "Add to Quick access",
+          "Marketing testimonials",
+          "Add to Quick access",
+          "Global support tickets",
+          "Add to Quick access",
+          "Global support ticket replies",
+          "Add to Quick access",
+          "Global support ticket webhook endpoints",
+          "Add to Quick access",
+          "Sync conflicts",
+          "Add to Quick access",
+          "Platform pulse snapshots",
+          "Add to Quick access",
+          "Schools",
+          "Add to Quick access",
+          "School memberships",
+          "Add to Quick access",
+          "Tenant quota limits",
+          "Add to Quick access",
+          "Tenant API usage",
+          "Add to Quick access",
+          "School provisioning events",
+          "Add to Quick access",
+          "Country registry",
+          "Add to Quick access",
+          "Subdivision registry",
+          "Add to Quick access",
+          "Education level registry",
+          "Add to Quick access",
+          "Education system type registry",
+          "Add to Quick access",
+          "Time zone registry",
+          "Add to Quick access",
+          "Currency registry",
+          "Add to Quick access",
+          "Locale registry",
+          "Add to Quick access",
+          "Calendar system registry",
+          "Add to Quick access",
+          "Institution type registry",
+          "Add to Quick access",
+          "Academic terminology registry",
+          "Add to Quick access",
+          "Document type registry",
+          "Add to Quick access",
+          "Fee category registry",
+          "Add to Quick access",
+          "Grade scale registry",
+          "Add to Quick access",
+          "Tenant grade scale overrides",
+          "Add to Quick access",
+          "Country profiles",
+          "Add to Quick access",
+          "Blueprint compatibility rules",
+          "Add to Quick access",
+          "Policy compatibility rules",
+          "Add to Quick access",
+          "Billing accounts",
+          "Add to Quick access",
+          "Tenant subscriptions",
+          "Add to Quick access",
+          "Billing promotions",
+          "Add to Quick access",
+          "Subscription grants",
+          "Add to Quick access",
+          "Country billing profiles",
+          "Add to Quick access",
+          "Entitlements",
+          "Add to Quick access",
+          "Usage meters",
+          "Add to Quick access",
+          "Platform ledger entries",
+          "Add to Quick access",
+          "Billing processor sync events",
+          "Add to Quick access",
+          "Stripe plan prices",
+          "Add to Quick access",
+          "Platform billing processor configs",
+          "Add to Quick access",
+          "Quotes",
+          "Add to Quick access",
+          "Revenue share payouts",
+          "Add to Quick access",
+          "Processor revenue-share accruals",
+          "Add to Quick access",
+          "Platform invoices",
+          "Add to Quick access",
+          "Usage caps",
+          "Add to Quick access",
+          "App Billing Ledger",
+          "Add to Quick access",
+          "App Audit Logs",
+          "Add to Quick access",
+          "Scope Grants",
+          "Add to Quick access",
+          "Marketplace reviews",
+          "Add to Quick access",
+          "Publisher organizations",
+          "Add to Quick access",
+          "Capabilities (registry)",
+          "Add to Quick access",
+          "App Version Compatibility",
+          "Add to Quick access",
+          "App Scopes",
+          "Add to Quick access",
+          "Marketplace Apps",
+          "Add to Quick access",
+          "Marketplace listings",
+          "Add to Quick access",
+          "App Installations",
+          "Add to Quick access",
+          "Publisher organizations",
+          "Add to Quick access",
+          "App permission scopes",
+          "Add to Quick access",
+          "Marketplace Apps",
+          "Add to Quick access",
+          "Marketplace listings",
+          "Add to Quick access",
+          "Marketplace reviews",
+          "Add to Quick access",
+          "App Scopes",
+          "Add to Quick access",
+          "Capabilities (registry)",
+          "Add to Quick access",
+          "App Installations",
+          "Add to Quick access",
+          "Scope Grants",
+          "Add to Quick access",
+          "App Billing Ledger",
+          "Add to Quick access",
+          "App Audit Logs",
+          "Add to Quick access",
+          "App Version Compatibility",
+          "Add to Quick access",
+          "App versions",
+          "Add to Quick access",
+          "App ratings",
+          "Add to Quick access",
+          "Webhook endpoints",
+          "Add to Quick access",
+          "Webhook deliveries",
+          "Add to Quick access",
+          "Publisher signup requests",
+          "Add to Quick access",
+          "Automation execution logs",
+          "Add to Quick access",
+          "Automation approval queues",
+          "Add to Quick access",
+          "Migration profiles",
+          "Add to Quick access",
+          "Migration playbooks",
+          "Add to Quick access",
+          "Migration quarantine records",
+          "Add to Quick access",
+          "Migration runs",
+          "Add to Quick access",
+          "System health metrics",
+          "Add to Quick access",
+          "Health check alerts",
+          "Add to Quick access",
+          "Performance traces",
+          "Add to Quick access",
+          "Anomaly detections",
+          "Add to Quick access",
+          "Platform incidents",
+          "Add to Quick access",
+          "Platform status incidents",
+          "Add to Quick access",
+          "Friction events",
+          "Add to Quick access",
+          "Users",
+          "Add to Quick access",
+          "Relationship tuples",
+          "Add to Quick access",
+          "Developer applications",
+          "Add to Quick access",
+          "O auth token pairs",
+          "Add to Quick access",
+          "O auth authorization codes",
+          "Add to Quick access",
+          "Marketplace extension submissions",
+          "Add to Quick access",
+          "Theme packs",
+          "Add to Quick access",
+          "Design templates",
+          "Add to Quick access",
+          "Brand profiles",
+          "Add to Quick access",
+          "Brand settings",
+          "Add to Quick access",
+          "Global brand registry",
+          "Add to Quick access",
+          "Platform global branding",
+          "Add to Quick access",
+          "Education system profiles",
+          "Add to Quick access",
+          "Provinces / States",
+          "Add to Quick access",
+          "System features",
+          "Add to Quick access",
+          "Tenant system assignments",
+          "Add to Quick access",
+          "Weather locations",
+          "Add to Quick access",
+          "Dynamic Field Definitions",
+          "Add to Quick access",
+          "Dynamic Field Values",
+          "Add to Quick access",
+          "Entity Catalog Entries",
+          "Add to Quick access",
+          "Config Mutation Audit Logs",
+          "Add to Quick access",
+          "Installed Packages",
+          "Add to Quick access",
+          "Package Versions",
+          "Add to Quick access",
+          "Package Change Logs",
+          "Add to Quick access",
+          "Experience Packs",
+          "Add to Quick access",
+          "Document Packs",
+          "Add to Quick access",
+          "Migration bundles",
+          "Add to Quick access",
+          "Migration artifacts",
+          "Add to Quick access",
+          "Migration ID mappings",
+          "Add to Quick access",
+          "Migration assets",
+          "Add to Quick access",
+          "Migration progress events",
+          "Add to Quick access",
+          "Migration conflicts",
+          "Add to Quick access",
+          "Runtime defaults",
+          "Add to Quick access",
+          "Scheduled job heartbeats",
+          "Add to Quick access",
+          "Operator playbook links",
+          "Add to Quick access",
+          "Operator truth hub links",
+          "Add to Quick access",
+          "Operator Phase B links",
+          "Add to Quick access",
+          "Operator workflow simulator links",
+          "Add to Quick access",
+          "Operator support dashboard links",
+          "Add to Quick access",
+          "Operator tenant health links",
+          "Add to Quick access",
+          "Operator command center links",
+          "Add to Quick access",
+          "Operator orchestration workbench links",
+          "Add to Quick access",
+          "Operator super dashboard links",
+          "Add to Quick access",
+          "Operator super schools list links",
+          "Add to Quick access",
+          "Operator super analytics overview links",
+          "Add to Quick access",
+          "Operator platform hub links",
+          "Add to Quick access",
+          "Operator migration cloud links",
+          "Add to Quick access",
+          "Fleet governed changes",
+          "Add to Quick access",
+          "Phase B domain snapshots",
+          "Add to Quick access",
+          "Report platform SKU defaults",
+          "Add to Quick access",
+          "Integration webhook events",
+          "Add to Quick access",
+          "Platform event logs",
+          "Add to Quick access",
+          "Event webhook subscriptions",
+          "Add to Quick access",
+          "Event webhook deliveries",
+          "Add to Quick access",
+          "Pilot defects",
+          "Add to Quick access",
+          "Platform operator profiles",
+          "Add to Quick access",
+          "Platform operator invites",
+          "Add to Quick access",
+          "Platform operator promotion requests",
+          "Add to Quick access",
+          "Operator tenant assignments",
+          "Add to Quick access",
+          "Workflow runs",
+          "Add to Quick access",
+          "Workflow autopilot policies",
+          "Add to Quick access",
+          "Workflow autopilot apply logs",
+          "Add to Quick access",
+          "Workflow duration stats",
+          "Add to Quick access",
+          "Workflow SLA breaches",
+          "Add to Quick access",
+          "Blueprint packs",
+          "Add to Quick access",
+          "Blueprint compatibility rules",
+          "Add to Quick access",
+          "Tenant blueprints",
+          "Add to Quick access",
+          "Form drafts",
+          "Add to Quick access",
+          "Dashboard layouts",
+          "Add to Quick access",
+          "Dashboard Packs",
+          "Add to Quick access",
+          "Dashboard pack assignments",
+          "Add to Quick access",
+          "Dashboard Templates",
+          "Add to Quick access",
+          "Workflow Packs",
+          "Add to Quick access",
+          "Workflow pack assignments",
+          "Add to Quick access",
+          "Workflow Templates",
+          "Add to Quick access",
+          "Dashboard Widgets",
+          "Add to Quick access",
+          "Super Admin dashboard preferences",
+          "Add to Quick access",
+          "Pipeline stages",
+          "Add to Quick access",
+          "Leads",
+          "Add to Quick access",
+          "Experience region approvals",
+          "Add to Quick access",
+          "Audit Logs",
+          "Add to Quick access",
+          "Audit legal holds",
+          "Add to Quick access",
+          "Audit archive records",
+          "Add to Quick access",
+          "Platform Backoffice",
+          "⚙️ Configuration Control Center",
+          "More information: This form",
+          "History",
+          "Report builder",
+          "Configuration hub",
+          "Studio · Output",
+          "palette Color & harmony expand_more",
+          "Discard",
+          "Save changes",
+          "Save",
+          "▾",
+          "Back",
+          "Section 1",
+          "Section 2",
+          "Section 3",
+          "Section 4",
+          "More information: Academic Authority",
+          "All report card styles",
+          "Color Picker",
+          "Report styling",
+          "Options",
+          "1Color Picker",
+          "2Section 2",
+          "3Report styling",
+          "4Options",
+          "Keyboard shortcuts",
+          "Back to top",
+          "Platform status",
+          "Control plane",
+          "Find campus",
+          "Public site",
+          "0Tools"
+        ],
+        "loginVisible": false
+      },
+      "findings": []
+    },
+    {
+      "name": "operator-siteconfig-tourstep",
+      "scope": "operator",
+      "kind": "form",
+      "requestedUrl": "http://manager.runmycampus.com:8020/admin/siteconfig/tourstep/add/",
+      "status": 200,
+      "navigationError": "",
+      "badResources": [],
+      "failedResources": [],
+      "consoleErrors": [],
+      "dom": {
+        "url": "http://manager.runmycampus.com:8020/admin/siteconfig/tourstep/add/",
+        "host": "manager.runmycampus.com",
+        "path": "/admin/siteconfig/tourstep/add/",
+        "title": "RunMyCampus Admin",
+        "scope": "operator",
+        "build": "2026-08-09-v17.0",
+        "buildMatches": true,
+        "theme": "dark",
+        "h1": [
+          "Add tour step This form"
+        ],
+        "pageOverflow": 0,
+        "bodyStylesheetLinks": 0,
+        "stylesheetCount": 117,
+        "stylesheetHrefs": [
+          "http://manager.runmycampus.com:8020/static/unfold/fonts/inter/styles.css",
+          "http://manager.runmycampus.com:8020/static/unfold/fonts/material-symbols/styles.css",
+          "http://manager.runmycampus.com:8020/static/unfold/css/styles.css",
+          "http://manager.runmycampus.com:8020/static/unfold/css/simplebar/simplebar.css",
+          "http://manager.runmycampus.com:8020/static/vendor/bootstrap/css/bootstrap.min.css",
+          "http://manager.runmycampus.com:8020/static/vendor/bootstrap-icons/css/bootstrap-icons.min.css",
+          "http://manager.runmycampus.com:8020/static/css/design-tokens.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-app-shell.css",
+          "http://manager.runmycampus.com:8020/static/css/design-tokens-personality.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-class-grammar.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-class-grammar-ext.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-bulk-actions.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-warm-bright-school.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-cool-apple-polish.css",
+          "http://manager.runmycampus.com:8020/static/css/design-tokens-luxury.css",
+          "http://manager.runmycampus.com:8020/static/css/patterns.css",
+          "http://manager.runmycampus.com:8020/static/css/bootstrap-theme-bridge.css",
+          "http://manager.runmycampus.com:8020/static/css/header-no-spillage.css",
+          "http://manager.runmycampus.com:8020/static/css/statement-header.css",
+          "http://manager.runmycampus.com:8020/static/css/design-system-unified.css",
+          "http://manager.runmycampus.com:8020/static/css/admin-components.css",
+          "http://manager.runmycampus.com:8020/static/css/unfold-integration.css",
+          "http://manager.runmycampus.com:8020/static/css/admin-console-themes.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-bell-clock-product.css",
+          "http://manager.runmycampus.com:8020/static/css/admin-sidebar-scroll.css",
+          "http://manager.runmycampus.com:8020/static/css/admin-sidebar-backend-inspired.css",
+          "http://manager.runmycampus.com:8020/static/css/admin-sidebar-polish.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-sidebar-luxury-10x.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-sidebar-disclosure-contract.css",
+          "http://manager.runmycampus.com:8020/static/css/admin-surface-fixes.css",
+          "http://manager.runmycampus.com:8020/static/css/theme-visibility-guard.css",
+          "http://manager.runmycampus.com:8020/static/css/platform-high-end.css",
+          "http://manager.runmycampus.com:8020/static/css/manager-control-plane.css",
+          "http://manager.runmycampus.com:8020/static/css/admin-manager-shell.css",
+          "http://manager.runmycampus.com:8020/static/css/control-plane-ultra.css",
+          "http://manager.runmycampus.com:8020/static/css/surface-themes.css",
+          "http://manager.runmycampus.com:8020/static/css/table-system.css",
+          "http://manager.runmycampus.com:8020/static/css/form-system.css",
+          "http://manager.runmycampus.com:8020/static/css/toggle-colors.css",
+          "http://manager.runmycampus.com:8020/static/css/card-grammar.css",
+          "http://manager.runmycampus.com:8020/static/css/design-system-phase2-enforcement.css",
+          "http://manager.runmycampus.com:8020/static/css/chart-rules.css",
+          "http://manager.runmycampus.com:8020/static/css/admin-base-site-shell.css",
+          "http://manager.runmycampus.com:8020/static/css/portal-ui-components.css",
+          "http://manager.runmycampus.com:8020/static/css/phase2-admin-bundle.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-long-page-grammar.css",
+          "http://manager.runmycampus.com:8020/static/css/admin-cp-parity.css",
+          "http://manager.runmycampus.com:8020/static/css/dashboard-topology-shell.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-platform-chrome-layout.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-page-fold-standards.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-collapsable.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-zero-click-protocol.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-back-to-top.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-section-nav-toc.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-shell-scroll-contract.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-dropdown-viewport-safe.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-page-personality.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-os-grade-density.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-platform-chrome-premium.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-layout-frame-guard.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-operational-center-frame.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-isomorphic-grid.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-isomorphic-grid-sweep.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-layout-token-matrix.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-cp-stacked-header.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-platform-beautify-v4.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-sidebar-rail-contract.css",
+          "https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;1,8..60,400&family=JetBrains+Mono:wght@400;500&display=swap",
+          "http://manager.runmycampus.com:8020/static/css/manager-cockpit-v7.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-cockpit-skin-v8.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-operator-theme-coherence.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-cp-200x.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-cp-header-200x.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-cp-consolidated-operator-shell.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-cp-activity-tiers.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-admin-modal-overlay-guard.css",
+          "http://manager.runmycampus.com:8020/static/css/admin-platform-catalog.css?v=20260809-admin-full-canvas-v170",
+          "http://manager.runmycampus.com:8020/static/css/admin-200x-shell-overlay.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-admin-v1-200x.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-admin-changelist-live.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-cp-sidebar-200x.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-platform-inner-pages.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-security-posture-nav.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-canvas-chrome-compact.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-print.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-platform-header.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-corporate-os.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-os-shell.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-global-aesthetic.css",
+          "http://manager.runmycampus.com:8020/static/css/manager-aesthetic-polish.css",
+          "http://manager.runmycampus.com:8020/static/css/control-plane-primary-nav.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-horizontal-nav-rail.css",
+          "http://manager.runmycampus.com:8020/static/css/control-plane-phase1-shell.css",
+          "http://manager.runmycampus.com:8020/static/css/control-plane-skeleton-root.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-vertical-density-platform.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-surface-spacing-contract.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-platform-vertical-compact.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-pagination-grammar.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-admin-mirror.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-backoffice-scroll-10x.css",
+          "http://manager.runmycampus.com:8020/static/css/platform-responsive-touch.css",
+          "http://manager.runmycampus.com:8020/static/css/dashboard-responsive.css",
+          "http://manager.runmycampus.com:8020/static/css/dark-mode-safety-net.css",
+          "http://manager.runmycampus.com:8020/static/css/theme-platform-contrast.css",
+          "http://manager.runmycampus.com:8020/static/css/theme-platform-readability.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-signature-motion.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-command-bar.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-footer-surfaces.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-theme-experience-dual-plane.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-nav-sidebar.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-platform-workspace-edge-fit.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-tenant-surface-scroll-contract.css?v=20260809-admin-full-canvas-v170",
+          "http://manager.runmycampus.com:8020/static/css/rmc-tour.css",
+          "http://manager.runmycampus.com:8020/static/css/rmc-theme-surface-safety-v1.css?v=20260809-admin-full-canvas-v170",
+          "http://manager.runmycampus.com:8020/static/css/rmc-admin-emergency-full-canvas-v17.css?v=20260809-admin-full-canvas-v170",
+          "http://manager.runmycampus.com:8020/static/css/rmc-operator-tools-tray.css",
+          "http://manager.runmycampus.com:8020/static/css/site-settings-preview.css"
+        ],
+        "duplicateStylesheets": [],
+        "duplicateSidebarLinks": [],
+        "workspace": "change-form",
+        "grid": "854.688px 189.531px 37.5938px",
+        "workspaceWidth": 1150,
+        "primary": {
+          "width": 854.6875,
+          "trackWidth": 854.688,
+          "fillRatio": 0.9999994149912015,
+          "left": 297.546875,
+          "right": 1152.234375
+        },
+        "structure": {
+          "shellRoots": 1,
+          "shellHeaders": 1,
+          "shellSidebars": 1,
+          "indexCanvases": 0,
+          "primaryPanels": 1,
+          "rails": 1,
+          "tools": 1,
+          "rowDrawers": 0,
+          "breadcrumbs": 1
+        },
+        "tools": [
+          "Keyboard shortcuts",
+          "Back to top"
+        ],
+        "toolDiagnostics": [
+          {
+            "display": "flex",
+            "visibility": "visible",
+            "width": 37.59375,
+            "height": 74.390625,
+            "childCount": 2,
+            "visibleChildCount": 2
+          }
+        ],
+        "table": null,
+        "changelistFilter": null,
+        "save": {
+          "present": true,
+          "primary": true,
+          "toggle": true,
+          "menu": true,
+          "menuVisible": false,
+          "menuOperable": true,
+          "menuClosesOnEscape": true
+        },
+        "formGeometry": {
+          "formWidth": 813.8125,
+          "bodyWidth": 813.8125,
+          "actionsWidth": 799.8125,
+          "primaryWidth": 854.6875,
+          "formFillRatio": 0.9521755027422304,
+          "bodyFillRatio": 1,
+          "actionsFillRatio": 0.9357952468007312,
+          "panelDisplay": "flex",
+          "panelGrid": "minmax(0px, 1fr) minmax(224px, 22%)"
+        },
+        "formNativeLayouts": {
+          "groupedFieldRows": [
+            {
+              "display": "grid",
+              "grid": "706.188px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow field-school flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 706.1875,
+                  "text": "School Select value Gilead School System Management System Gilead Technical High"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "341.578px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow field-context flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 341.578125,
+                  "text": "Context * 17 / 80 Tour context key, e.g. backend_dashboard, studio_os."
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "341.578px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group field-code py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 341.578125,
+                  "text": "Code * 0 / 80 Step id; should match a data-tour attribute when selector is blank"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "341.578px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow field-title flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 341.578125,
+                  "text": "Title 0 / 255"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "706.188px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line field-body group py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 706.1875,
+                  "text": "Body Optional longer copy shown in the tour tooltip."
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "341.578px",
+              "childCount": 2,
+              "visibleChildCount": 2,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group field-selector py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 341.578125,
+                  "text": "Selector 0 / 255 CSS selector for spotlight; defaults to [data-tour=''] when bla"
+                },
+                {
+                  "tag": "CODE",
+                  "className": "",
+                  "display": "block",
+                  "width": 341.578125,
+                  "text": ""
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "327.578px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow flex field-sort_order px-3 flex-col",
+                  "display": "flex",
+                  "width": 327.578125,
+                  "text": "Sort order *"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "327.578px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group field-roles py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 327.578125,
+                  "text": "Roles 0 / 255 Optional comma-separated roles (ADMIN, TEACHER, …). Empty = all ro"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "327.578px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow field-is_active flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 327.578125,
+                  "text": "Is active"
+                }
+              ]
+            }
+          ],
+          "inlineTable": null,
+          "redundantSectionNavCount": 0,
+          "sectionLabels": [
+            "General"
+          ],
+          "uniqueSectionLabelCount": 1
+        },
+        "tenantSearchPanelInitiallyVisible": false,
+        "fixedOverlays": [],
+        "wideFixedBands": [],
+        "internalScrollTraps": [],
+        "rawIcons": [],
+        "interactiveText": [
+          "RunMyCampus platform backoffice",
+          "🏛 Backoffice",
+          "⚙ Config center",
+          "⌘ Studio",
+          "↗ Control plane",
+          "📚 Catalog",
+          "More navigation",
+          "Account security — 38/100",
+          "Configuration Control Center",
+          "Notifications",
+          "VI 1 visualqa_operator_v17 Superadmin",
+          "Collapse navigation to icon rail",
+          "Sidebar preferences",
+          "Profile & security ↗",
+          "Platform backoffice",
+          "Add to Quick access",
+          "Control plane",
+          "Add to Quick access",
+          "Help center",
+          "Add to Quick access",
+          "Config center",
+          "Add to Quick access",
+          "Platform operator hub",
+          "Add to Quick access",
+          "Configuration engine",
+          "Add to Quick access",
+          "Studio",
+          "Add to Quick access",
+          "Feature control",
+          "Add to Quick access",
+          "Theme & experience",
+          "Add to Quick access",
+          "Studio Experience",
+          "Add to Quick access",
+          "Control Studio",
+          "Add to Quick access",
+          "Curriculum & region packs",
+          "Add to Quick access",
+          "Geography",
+          "Add to Quick access",
+          "Education systems",
+          "Add to Quick access",
+          "Learning delivery & institution types",
+          "Add to Quick access",
+          "Ministry report stubs",
+          "Add to Quick access",
+          "Registries",
+          "Add to Quick access",
+          "Metadata catalog",
+          "Add to Quick access",
+          "Blueprints",
+          "Add to Quick access",
+          "Policies",
+          "Add to Quick access",
+          "Workflow Packs",
+          "Add to Quick access",
+          "Dashboard Packs",
+          "Add to Quick access",
+          "Workflow Flight Deck",
+          "Add to Quick access",
+          "Operator policy",
+          "Add to Quick access",
+          "Team & identity",
+          "Add to Quick access",
+          "Backlog unlock center",
+          "Add to Quick access",
+          "Fleet governed changes",
+          "Add to Quick access",
+          "Tenant runtime & settings",
+          "Add to Quick access",
+          "Fleet theme & experience hub",
+          "Add to Quick access",
+          "Region grading scales",
+          "Add to Quick access",
+          "Metadata & lineage hub",
+          "Add to Quick access",
+          "Entity catalog",
+          "Add to Quick access",
+          "Dynamic fields (EAV)",
+          "Add to Quick access",
+          "Config mutation audit",
+          "Add to Quick access",
+          "Region validation",
+          "Add to Quick access",
+          "Region comparison",
+          "Add to Quick access",
+          "Platform Studio · Reports",
+          "Add to Quick access",
+          "Report templates",
+          "Add to Quick access",
+          "Official report templates",
+          "Add to Quick access",
+          "Report card styles",
+          "Add to Quick access",
+          "Feature toggle states",
+          "Add to Quick access",
+          "Tour steps",
+          "Add to Quick access",
+          "Feature usage events",
+          "Add to Quick access",
+          "Regional AI configs",
+          "Add to Quick access",
+          "AI model registries",
+          "Add to Quick access",
+          "AI prompt registries",
+          "Add to Quick access",
+          "AI embedding stores",
+          "Add to Quick access",
+          "AI gateway metrics",
+          "Add to Quick access",
+          "Revenue snapshots",
+          "Add to Quick access",
+          "Billing waiver audit logs",
+          "Add to Quick access",
+          "Waiver requests",
+          "Add to Quick access",
+          "Custom nuances",
+          "Add to Quick access",
+          "Pending nuances",
+          "Add to Quick access",
+          "Custom feature tickets",
+          "Add to Quick access",
+          "Feature fragments",
+          "Add to Quick access",
+          "Workflow Run Logs",
+          "Add to Quick access",
+          "Feature Control Audits",
+          "Add to Quick access",
+          "Global syllabus nodes",
+          "Add to Quick access",
+          "Learning passports",
+          "Add to Quick access",
+          "Break glass overrides",
+          "Add to Quick access",
+          "Broadcast campaigns",
+          "Add to Quick access",
+          "Product feedback",
+          "Add to Quick access",
+          "Marketing content",
+          "Add to Quick access",
+          "Blog posts",
+          "Add to Quick access",
+          "Marketing testimonials",
+          "Add to Quick access",
+          "Global support tickets",
+          "Add to Quick access",
+          "Global support ticket replies",
+          "Add to Quick access",
+          "Global support ticket webhook endpoints",
+          "Add to Quick access",
+          "Sync conflicts",
+          "Add to Quick access",
+          "Platform pulse snapshots",
+          "Add to Quick access",
+          "Schools",
+          "Add to Quick access",
+          "School memberships",
+          "Add to Quick access",
+          "Tenant quota limits",
+          "Add to Quick access",
+          "Tenant API usage",
+          "Add to Quick access",
+          "School provisioning events",
+          "Add to Quick access",
+          "Country registry",
+          "Add to Quick access",
+          "Subdivision registry",
+          "Add to Quick access",
+          "Education level registry",
+          "Add to Quick access",
+          "Education system type registry",
+          "Add to Quick access",
+          "Time zone registry",
+          "Add to Quick access",
+          "Currency registry",
+          "Add to Quick access",
+          "Locale registry",
+          "Add to Quick access",
+          "Calendar system registry",
+          "Add to Quick access",
+          "Institution type registry",
+          "Add to Quick access",
+          "Academic terminology registry",
+          "Add to Quick access",
+          "Document type registry",
+          "Add to Quick access",
+          "Fee category registry",
+          "Add to Quick access",
+          "Grade scale registry",
+          "Add to Quick access",
+          "Tenant grade scale overrides",
+          "Add to Quick access",
+          "Country profiles",
+          "Add to Quick access",
+          "Blueprint compatibility rules",
+          "Add to Quick access",
+          "Policy compatibility rules",
+          "Add to Quick access",
+          "Billing accounts",
+          "Add to Quick access",
+          "Tenant subscriptions",
+          "Add to Quick access",
+          "Billing promotions",
+          "Add to Quick access",
+          "Subscription grants",
+          "Add to Quick access",
+          "Country billing profiles",
+          "Add to Quick access",
+          "Entitlements",
+          "Add to Quick access",
+          "Usage meters",
+          "Add to Quick access",
+          "Platform ledger entries",
+          "Add to Quick access",
+          "Billing processor sync events",
+          "Add to Quick access",
+          "Stripe plan prices",
+          "Add to Quick access",
+          "Platform billing processor configs",
+          "Add to Quick access",
+          "Quotes",
+          "Add to Quick access",
+          "Revenue share payouts",
+          "Add to Quick access",
+          "Processor revenue-share accruals",
+          "Add to Quick access",
+          "Platform invoices",
+          "Add to Quick access",
+          "Usage caps",
+          "Add to Quick access",
+          "App Billing Ledger",
+          "Add to Quick access",
+          "App Audit Logs",
+          "Add to Quick access",
+          "Scope Grants",
+          "Add to Quick access",
+          "Marketplace reviews",
+          "Add to Quick access",
+          "Publisher organizations",
+          "Add to Quick access",
+          "Capabilities (registry)",
+          "Add to Quick access",
+          "App Version Compatibility",
+          "Add to Quick access",
+          "App Scopes",
+          "Add to Quick access",
+          "Marketplace Apps",
+          "Add to Quick access",
+          "Marketplace listings",
+          "Add to Quick access",
+          "App Installations",
+          "Add to Quick access",
+          "Publisher organizations",
+          "Add to Quick access",
+          "App permission scopes",
+          "Add to Quick access",
+          "Marketplace Apps",
+          "Add to Quick access",
+          "Marketplace listings",
+          "Add to Quick access",
+          "Marketplace reviews",
+          "Add to Quick access",
+          "App Scopes",
+          "Add to Quick access",
+          "Capabilities (registry)",
+          "Add to Quick access",
+          "App Installations",
+          "Add to Quick access",
+          "Scope Grants",
+          "Add to Quick access",
+          "App Billing Ledger",
+          "Add to Quick access",
+          "App Audit Logs",
+          "Add to Quick access",
+          "App Version Compatibility",
+          "Add to Quick access",
+          "App versions",
+          "Add to Quick access",
+          "App ratings",
+          "Add to Quick access",
+          "Webhook endpoints",
+          "Add to Quick access",
+          "Webhook deliveries",
+          "Add to Quick access",
+          "Publisher signup requests",
+          "Add to Quick access",
+          "Automation execution logs",
+          "Add to Quick access",
+          "Automation approval queues",
+          "Add to Quick access",
+          "Migration profiles",
+          "Add to Quick access",
+          "Migration playbooks",
+          "Add to Quick access",
+          "Migration quarantine records",
+          "Add to Quick access",
+          "Migration runs",
+          "Add to Quick access",
+          "System health metrics",
+          "Add to Quick access",
+          "Health check alerts",
+          "Add to Quick access",
+          "Performance traces",
+          "Add to Quick access",
+          "Anomaly detections",
+          "Add to Quick access",
+          "Platform incidents",
+          "Add to Quick access",
+          "Platform status incidents",
+          "Add to Quick access",
+          "Friction events",
+          "Add to Quick access",
+          "Users",
+          "Add to Quick access",
+          "Relationship tuples",
+          "Add to Quick access",
+          "Developer applications",
+          "Add to Quick access",
+          "O auth token pairs",
+          "Add to Quick access",
+          "O auth authorization codes",
+          "Add to Quick access",
+          "Marketplace extension submissions",
+          "Add to Quick access",
+          "Theme packs",
+          "Add to Quick access",
+          "Design templates",
+          "Add to Quick access",
+          "Brand profiles",
+          "Add to Quick access",
+          "Brand settings",
+          "Add to Quick access",
+          "Global brand registry",
+          "Add to Quick access",
+          "Platform global branding",
+          "Add to Quick access",
+          "Education system profiles",
+          "Add to Quick access",
+          "Provinces / States",
+          "Add to Quick access",
+          "System features",
+          "Add to Quick access",
+          "Tenant system assignments",
+          "Add to Quick access",
+          "Weather locations",
+          "Add to Quick access",
+          "Dynamic Field Definitions",
+          "Add to Quick access",
+          "Dynamic Field Values",
+          "Add to Quick access",
+          "Entity Catalog Entries",
+          "Add to Quick access",
+          "Config Mutation Audit Logs",
+          "Add to Quick access",
+          "Installed Packages",
+          "Add to Quick access",
+          "Package Versions",
+          "Add to Quick access",
+          "Package Change Logs",
+          "Add to Quick access",
+          "Experience Packs",
+          "Add to Quick access",
+          "Document Packs",
+          "Add to Quick access",
+          "Migration bundles",
+          "Add to Quick access",
+          "Migration artifacts",
+          "Add to Quick access",
+          "Migration ID mappings",
+          "Add to Quick access",
+          "Migration assets",
+          "Add to Quick access",
+          "Migration progress events",
+          "Add to Quick access",
+          "Migration conflicts",
+          "Add to Quick access",
+          "Runtime defaults",
+          "Add to Quick access",
+          "Scheduled job heartbeats",
+          "Add to Quick access",
+          "Operator playbook links",
+          "Add to Quick access",
+          "Operator truth hub links",
+          "Add to Quick access",
+          "Operator Phase B links",
+          "Add to Quick access",
+          "Operator workflow simulator links",
+          "Add to Quick access",
+          "Operator support dashboard links",
+          "Add to Quick access",
+          "Operator tenant health links",
+          "Add to Quick access",
+          "Operator command center links",
+          "Add to Quick access",
+          "Operator orchestration workbench links",
+          "Add to Quick access",
+          "Operator super dashboard links",
+          "Add to Quick access",
+          "Operator super schools list links",
+          "Add to Quick access",
+          "Operator super analytics overview links",
+          "Add to Quick access",
+          "Operator platform hub links",
+          "Add to Quick access",
+          "Operator migration cloud links",
+          "Add to Quick access",
+          "Fleet governed changes",
+          "Add to Quick access",
+          "Phase B domain snapshots",
+          "Add to Quick access",
+          "Report platform SKU defaults",
+          "Add to Quick access",
+          "Integration webhook events",
+          "Add to Quick access",
+          "Platform event logs",
+          "Add to Quick access",
+          "Event webhook subscriptions",
+          "Add to Quick access",
+          "Event webhook deliveries",
+          "Add to Quick access",
+          "Pilot defects",
+          "Add to Quick access",
+          "Platform operator profiles",
+          "Add to Quick access",
+          "Platform operator invites",
+          "Add to Quick access",
+          "Platform operator promotion requests",
+          "Add to Quick access",
+          "Operator tenant assignments",
+          "Add to Quick access",
+          "Workflow runs",
+          "Add to Quick access",
+          "Workflow autopilot policies",
+          "Add to Quick access",
+          "Workflow autopilot apply logs",
+          "Add to Quick access",
+          "Workflow duration stats",
+          "Add to Quick access",
+          "Workflow SLA breaches",
+          "Add to Quick access",
+          "Blueprint packs",
+          "Add to Quick access",
+          "Blueprint compatibility rules",
+          "Add to Quick access",
+          "Tenant blueprints",
+          "Add to Quick access",
+          "Form drafts",
+          "Add to Quick access",
+          "Dashboard layouts",
+          "Add to Quick access",
+          "Dashboard Packs",
+          "Add to Quick access",
+          "Dashboard pack assignments",
+          "Add to Quick access",
+          "Dashboard Templates",
+          "Add to Quick access",
+          "Workflow Packs",
+          "Add to Quick access",
+          "Workflow pack assignments",
+          "Add to Quick access",
+          "Workflow Templates",
+          "Add to Quick access",
+          "Dashboard Widgets",
+          "Add to Quick access",
+          "Super Admin dashboard preferences",
+          "Add to Quick access",
+          "Pipeline stages",
+          "Add to Quick access",
+          "Leads",
+          "Add to Quick access",
+          "Experience region approvals",
+          "Add to Quick access",
+          "Audit Logs",
+          "Add to Quick access",
+          "Audit legal holds",
+          "Add to Quick access",
+          "Audit archive records",
+          "Add to Quick access",
+          "Platform Backoffice",
+          "⚙️ Configuration Control Center",
+          "More information: This form",
+          "Guided onboarding",
+          "Tour steps API",
+          "Configuration hub",
+          "User preferences",
+          "edit",
+          "add",
+          "visibility",
+          "Desktop",
+          "Tablet",
+          "Mobile",
+          "Light",
+          "Dark",
+          "Primary action",
+          "Save draft",
+          "Reset preview",
+          "Discard",
+          "Save changes",
+          "Save",
+          "▾",
+          "Back",
+          "Section 1",
+          "More information: New tour step",
+          "All tour steps",
+          "1General",
+          "Keyboard shortcuts",
+          "Back to top",
+          "Platform status",
+          "Control plane",
+          "Find campus",
+          "Public site",
+          "0Tools"
+        ],
+        "loginVisible": false
+      },
+      "findings": []
+    },
+    {
+      "name": "tenant-siteconfig-reportcardstyle",
+      "scope": "tenant",
+      "kind": "form",
+      "requestedUrl": "http://gilead-tech.runmycampus.com:8020/admin/siteconfig/reportcardstyle/3/change/",
+      "status": 200,
+      "navigationError": "",
+      "badResources": [],
+      "failedResources": [],
+      "consoleErrors": [],
+      "dom": {
+        "url": "http://gilead-tech.runmycampus.com:8020/admin/siteconfig/reportcardstyle/3/change/",
+        "host": "gilead-tech.runmycampus.com",
+        "path": "/admin/siteconfig/reportcardstyle/3/change/",
+        "title": "Gilead Technical High School",
+        "scope": "tenant",
+        "build": "2026-08-09-v17.0",
+        "buildMatches": true,
+        "theme": "dark",
+        "h1": [
+          "Change report card style This form"
+        ],
+        "pageOverflow": 0,
+        "bodyStylesheetLinks": 0,
+        "stylesheetCount": 88,
+        "stylesheetHrefs": [
+          "http://gilead-tech.runmycampus.com:8020/static/unfold/fonts/inter/styles.css",
+          "http://gilead-tech.runmycampus.com:8020/static/unfold/fonts/material-symbols/styles.css",
+          "http://gilead-tech.runmycampus.com:8020/static/unfold/css/styles.css",
+          "http://gilead-tech.runmycampus.com:8020/static/unfold/css/simplebar/simplebar.css",
+          "http://gilead-tech.runmycampus.com:8020/static/vendor/bootstrap-icons/css/bootstrap-icons.min.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-nav-bridge-tenant.css?v=20260809-admin-full-canvas-v170",
+          "http://gilead-tech.runmycampus.com:8020/static/css/design-tokens.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-cockpit-skin-v8.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-operator-theme-coherence.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-app-shell.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/design-tokens-personality.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-class-grammar.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-class-grammar-ext.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-bulk-actions.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-warm-bright-school.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-cool-apple-polish.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/design-tokens-luxury.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/patterns.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/bootstrap-theme-bridge.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/header-no-spillage.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/statement-header.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/design-system-unified.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-components.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/unfold-integration.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-console-themes.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-bell-clock-product.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-sidebar-scroll.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-sidebar-backend-inspired.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-sidebar-polish.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-sidebar-luxury-10x.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-sidebar-disclosure-contract.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-surface-fixes.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/theme-visibility-guard.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/platform-high-end.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/surface-themes.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/table-system.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/form-system.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/toggle-colors.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/card-grammar.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/design-system-phase2-enforcement.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/chart-rules.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-base-site-shell.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/portal-ui-components.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/phase2-admin-bundle.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-long-page-grammar.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-cp-parity.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/dashboard-topology-shell.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-platform-chrome-layout.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-page-fold-standards.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-collapsable.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-zero-click-protocol.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-back-to-top.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-section-nav-toc.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-shell-scroll-contract.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-dropdown-viewport-safe.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-page-personality.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-os-grade-density.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-platform-chrome-premium.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-admin-modal-overlay-guard.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-layout-frame-guard.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-operational-center-frame.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-surface-spacing-contract.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-isomorphic-grid.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-isomorphic-grid-sweep.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-layout-token-matrix.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-cp-stacked-header.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-platform-beautify-v4.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-sidebar-rail-contract.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-admin-changelist-live.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-platform-catalog.css?v=20260809-admin-full-canvas-v170",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-print.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/platform-responsive-touch.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/dashboard-responsive.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/dark-mode-safety-net.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/theme-platform-contrast.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/theme-platform-readability.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-signature-motion.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-command-bar.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-footer-surfaces.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-backoffice-scroll-10x.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-theme-experience-dual-plane.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-header-super-chrome-parity.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-tenant-surface-scroll-contract.css?v=20260809-admin-full-canvas-v170",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-tour.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-theme-surface-safety-v1.css?v=20260809-admin-full-canvas-v170",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-admin-emergency-full-canvas-v17.css?v=20260809-admin-full-canvas-v170",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-operator-tools-tray.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/color-palette-studio.css"
+        ],
+        "duplicateStylesheets": [],
+        "duplicateSidebarLinks": [],
+        "workspace": "change-form",
+        "grid": "799.234px 190.953px 37.5938px",
+        "workspaceWidth": 1095.96875,
+        "primary": {
+          "width": 799.234375,
+          "trackWidth": 799.234,
+          "fillRatio": 1.0000004691992583,
+          "left": 314.15625,
+          "right": 1113.390625
+        },
+        "structure": {
+          "shellRoots": 1,
+          "shellHeaders": 1,
+          "shellSidebars": 1,
+          "indexCanvases": 0,
+          "primaryPanels": 1,
+          "rails": 1,
+          "tools": 1,
+          "rowDrawers": 0,
+          "breadcrumbs": 1
+        },
+        "tools": [
+          "Keyboard shortcuts",
+          "Back to top"
+        ],
+        "toolDiagnostics": [
+          {
+            "display": "flex",
+            "visibility": "visible",
+            "width": 37.59375,
+            "height": 74.390625,
+            "childCount": 2,
+            "visibleChildCount": 2
+          }
+        ],
+        "table": null,
+        "changelistFilter": null,
+        "save": {
+          "present": true,
+          "primary": true,
+          "toggle": true,
+          "menu": true,
+          "menuVisible": false,
+          "menuOperable": true,
+          "menuClosesOnEscape": true
+        },
+        "formGeometry": {
+          "formWidth": 758.359375,
+          "bodyWidth": 758.359375,
+          "actionsWidth": 758.359375,
+          "primaryWidth": 799.234375,
+          "formFillRatio": 0.9488573048425251,
+          "bodyFillRatio": 1,
+          "actionsFillRatio": 0.9488573048425251,
+          "panelDisplay": "flex",
+          "panelGrid": "none"
+        },
+        "formNativeLayouts": {
+          "groupedFieldRows": [
+            {
+              "display": "grid",
+              "grid": "317.359px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow field-primary_color flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.359375,
+                  "text": "Primary color *"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.375px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow field-accent_color flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.375,
+                  "text": "Accent color *"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.359px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group field-name py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.359375,
+                  "text": "Name * 18 / 120"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.375px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group field-slug py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.375,
+                  "text": "Slug * 18 / 80"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "650.734px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow flex px-3 flex-col field-description",
+                  "display": "flex",
+                  "width": 650.734375,
+                  "text": "Description Formal admin style with navy hierarchy and high readability for prin"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.359px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group field-term_template py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.359375,
+                  "text": "Term template * Standard term template Cameroon term template Cameroon term temp"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.375px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow field-annual_template flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.375,
+                  "text": "Annual template * Standard annual template Cameroon annual template Cameroon ann"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.359px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group field-watermark_text py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.359375,
+                  "text": "Watermark text 18 / 150"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.375px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow flex px-3 flex-col field-header_tagline",
+                  "display": "flex",
+                  "width": 317.375,
+                  "text": "Header tagline 31 / 200"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "650.734px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group field-css_snippet py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 650.734375,
+                  "text": "Css snippet .report-header{border-bottom:3px solid #0d173b;}"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "650.734px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group field-labels py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 650.734375,
+                  "text": "Labels {\"remark_header\": \"Remark / Observation\", \"principal_label\": \"Principal /"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "650.734px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "field-layout_config group/line group py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 650.734375,
+                  "text": "Layout config {\"show_school_rank\": true, \"show_specialty_rank\": true} Layout con"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "650.734px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow field-is_active flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 650.734375,
+                  "text": "Is active"
+                }
+              ]
+            }
+          ],
+          "inlineTable": null,
+          "redundantSectionNavCount": 0,
+          "sectionLabels": [
+            "Color Picker",
+            "Section 2",
+            "Report styling",
+            "Options"
+          ],
+          "uniqueSectionLabelCount": 4
+        },
+        "tenantSearchPanelInitiallyVisible": false,
+        "fixedOverlays": [],
+        "wideFixedBands": [],
+        "internalScrollTraps": [],
+        "rawIcons": [],
+        "interactiveText": [
+          "Keyboard shortcuts",
+          "Config center",
+          "Feature control",
+          "Portal",
+          "Toggle actions",
+          "history History",
+          "Gilead Technical High School Gilead Technical High School",
+          "Toggle compact sidebar",
+          "Close menu",
+          "Pin this page",
+          "Admin Home",
+          "Config center",
+          "Theme & Experience",
+          "Feature Control",
+          "Toggle Advanced setup",
+          "Document Library",
+          "Help center",
+          "Knowledge Base",
+          "Toggle Apps",
+          "person visualqa_tenant_v17 visualqa-tenant-v17@example.test unfold_more",
+          "Gilead Technical High School",
+          "⚙️ Configuration Control Center",
+          "More information: This form",
+          "History",
+          "Report builder",
+          "Configuration hub",
+          "Studio · Output",
+          "palette Color & harmony expand_more",
+          "Discard",
+          "Save changes",
+          "Save",
+          "▾",
+          "Back",
+          "Section 1",
+          "Section 2",
+          "Section 3",
+          "Section 4",
+          "More information: Academic Authority",
+          "All report card styles",
+          "Color Picker",
+          "Report styling",
+          "Options",
+          "1Color Picker",
+          "2Section 2",
+          "3Report styling",
+          "4Options",
+          "Keyboard shortcuts",
+          "Back to top",
+          "Admin home",
+          "Config center",
+          "Help center",
+          "0Tools"
+        ],
+        "loginVisible": false
+      },
+      "findings": []
+    },
+    {
+      "name": "tenant-siteconfig-sitesettings",
+      "scope": "tenant",
+      "kind": "form",
+      "requestedUrl": "http://gilead-tech.runmycampus.com:8020/admin/siteconfig/sitesettings/1/change/",
+      "status": 200,
+      "navigationError": "",
+      "badResources": [],
+      "failedResources": [],
+      "consoleErrors": [],
+      "dom": {
+        "url": "http://gilead-tech.runmycampus.com:8020/admin/siteconfig/sitesettings/1/change/",
+        "host": "gilead-tech.runmycampus.com",
+        "path": "/admin/siteconfig/sitesettings/1/change/",
+        "title": "Gilead Technical High School",
+        "scope": "tenant",
+        "build": "2026-08-09-v17.0",
+        "buildMatches": true,
+        "theme": "dark",
+        "h1": [
+          "Change Site Settings This form"
+        ],
+        "pageOverflow": 0,
+        "bodyStylesheetLinks": 0,
+        "stylesheetCount": 88,
+        "stylesheetHrefs": [
+          "http://gilead-tech.runmycampus.com:8020/static/unfold/fonts/inter/styles.css",
+          "http://gilead-tech.runmycampus.com:8020/static/unfold/fonts/material-symbols/styles.css",
+          "http://gilead-tech.runmycampus.com:8020/static/unfold/css/styles.css",
+          "http://gilead-tech.runmycampus.com:8020/static/unfold/css/simplebar/simplebar.css",
+          "http://gilead-tech.runmycampus.com:8020/static/vendor/bootstrap-icons/css/bootstrap-icons.min.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-nav-bridge-tenant.css?v=20260809-admin-full-canvas-v170",
+          "http://gilead-tech.runmycampus.com:8020/static/css/design-tokens.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-cockpit-skin-v8.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-operator-theme-coherence.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-app-shell.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/design-tokens-personality.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-class-grammar.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-class-grammar-ext.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-bulk-actions.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-warm-bright-school.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-cool-apple-polish.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/design-tokens-luxury.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/patterns.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/bootstrap-theme-bridge.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/header-no-spillage.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/statement-header.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/design-system-unified.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-components.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/unfold-integration.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-console-themes.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-bell-clock-product.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-sidebar-scroll.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-sidebar-backend-inspired.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-sidebar-polish.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-sidebar-luxury-10x.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-sidebar-disclosure-contract.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-surface-fixes.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/theme-visibility-guard.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/platform-high-end.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/surface-themes.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/table-system.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/form-system.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/toggle-colors.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/card-grammar.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/design-system-phase2-enforcement.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/chart-rules.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-base-site-shell.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/portal-ui-components.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/phase2-admin-bundle.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-long-page-grammar.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-cp-parity.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/dashboard-topology-shell.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-platform-chrome-layout.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-page-fold-standards.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-collapsable.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-zero-click-protocol.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-back-to-top.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-section-nav-toc.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-shell-scroll-contract.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-dropdown-viewport-safe.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-page-personality.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-os-grade-density.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-platform-chrome-premium.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-admin-modal-overlay-guard.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-layout-frame-guard.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-operational-center-frame.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-surface-spacing-contract.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-isomorphic-grid.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-isomorphic-grid-sweep.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-layout-token-matrix.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-cp-stacked-header.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-platform-beautify-v4.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-sidebar-rail-contract.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-admin-changelist-live.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-platform-catalog.css?v=20260809-admin-full-canvas-v170",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-print.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/platform-responsive-touch.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/dashboard-responsive.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/dark-mode-safety-net.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/theme-platform-contrast.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/theme-platform-readability.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-signature-motion.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-command-bar.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-footer-surfaces.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-backoffice-scroll-10x.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-theme-experience-dual-plane.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-header-super-chrome-parity.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-tenant-surface-scroll-contract.css?v=20260809-admin-full-canvas-v170",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-tour.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-theme-surface-safety-v1.css?v=20260809-admin-full-canvas-v170",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-admin-emergency-full-canvas-v17.css?v=20260809-admin-full-canvas-v170",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-operator-tools-tray.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/site-settings-preview.css"
+        ],
+        "duplicateStylesheets": [],
+        "duplicateSidebarLinks": [],
+        "workspace": "change-form",
+        "grid": "799.234px 190.953px 37.5938px",
+        "workspaceWidth": 1095.96875,
+        "primary": {
+          "width": 799.234375,
+          "trackWidth": 799.234,
+          "fillRatio": 1.0000004691992583,
+          "left": 314.15625,
+          "right": 1113.390625
+        },
+        "structure": {
+          "shellRoots": 1,
+          "shellHeaders": 1,
+          "shellSidebars": 1,
+          "indexCanvases": 0,
+          "primaryPanels": 1,
+          "rails": 1,
+          "tools": 1,
+          "rowDrawers": 0,
+          "breadcrumbs": 1
+        },
+        "tools": [
+          "Keyboard shortcuts",
+          "Back to top"
+        ],
+        "toolDiagnostics": [
+          {
+            "display": "flex",
+            "visibility": "visible",
+            "width": 37.59375,
+            "height": 74.390625,
+            "childCount": 2,
+            "visibleChildCount": 2
+          }
+        ],
+        "table": null,
+        "changelistFilter": null,
+        "save": {
+          "present": true,
+          "primary": true,
+          "toggle": true,
+          "menu": true,
+          "menuVisible": false,
+          "menuOperable": true,
+          "menuClosesOnEscape": true
+        },
+        "formGeometry": {
+          "formWidth": 758.359375,
+          "bodyWidth": 758.359375,
+          "actionsWidth": 758.359375,
+          "primaryWidth": 799.234375,
+          "formFillRatio": 0.9488573048425251,
+          "bodyFillRatio": 1,
+          "actionsFillRatio": 0.9488573048425251,
+          "panelDisplay": "flex",
+          "panelGrid": "none"
+        },
+        "formNativeLayouts": {
+          "groupedFieldRows": [
+            {
+              "display": "grid",
+              "grid": "280.906px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 280.90625,
+                  "text": "Summary RunMyCampusPrimary: #1d2b64● Maintenance: Off● Parent portal: On● Teache"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "280.906px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 280.90625,
+                  "text": "Branding storage Platform global branding (singleton pk=1) holds logos, theme pa"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "280.906px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 280.90625,
+                  "text": "Theme editing is managed on a single page. These settings (Theme pack, Admin the"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "280.906px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow field-maintenance_mode flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 280.90625,
+                  "text": "Maintenance mode"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "280.906px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line field-compliance_profile group py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 280.90625,
+                  "text": "Compliance profile ---------"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "280.906px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 280.90625,
+                  "text": "Runtime defaults Phase B — tenant settings slim rowMost behavioral settings (por"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "280.906px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 280.90625,
+                  "text": "To toggle features (syllabus, documents, forums, etc.) with an audit trail, use "
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "280.906px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 280.90625,
+                  "text": "Integrations & API Center Integrations & API Center: manage external integration"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "280.906px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 280.90625,
+                  "text": "-"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.359px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow flex px-3 flex-col field-footer_wordmark",
+                  "display": "flex",
+                  "width": 317.359375,
+                  "text": "Wordmark"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.375px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow field-footer_motto flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.375,
+                  "text": "Motto"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.359px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow field-footer_founded_year flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.359375,
+                  "text": "Founded year"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.375px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group field-footer_descriptor py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.375,
+                  "text": "Descriptor"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "650.734px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow flex px-3 flex-col field-footer_trust_pillars",
+                  "display": "flex",
+                  "width": 650.734375,
+                  "text": "Trust pillars One per line: label | tone (tone: secure / cert / neutral)"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.359px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group field-footer_language_label py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.359375,
+                  "text": "Language switcher label"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "650.734px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow field-footer_app_badges flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 650.734375,
+                  "text": "App badges One per line: label | url | glyph"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "650.734px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line field-footer_social group py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 650.734375,
+                  "text": "Social links One per line: platform | url | glyph | label"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "650.734px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group field-footer_contacts py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 650.734375,
+                  "text": "Contacts One per line: kind | value | href | glyph"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.359px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line field-footer_stat_line group py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.359375,
+                  "text": "Stat line"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "650.734px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow flex px-3 flex-col field-footer_legal_links",
+                  "display": "flex",
+                  "width": 650.734375,
+                  "text": "Legal links One per line: label | url"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.359px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow flex px-3 flex-col field-footer_copyright_holder",
+                  "display": "flex",
+                  "width": 317.359375,
+                  "text": "Copyright holder"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.375px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow field-footer_powered_by_label flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.375,
+                  "text": "Powered-by label"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.359px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line field-footer_powered_by_url group py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.359375,
+                  "text": "Powered-by URL"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.375px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow field-community_enabled flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.375,
+                  "text": "Enable community band"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.359px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow flex px-3 flex-col field-achievement_enabled",
+                  "display": "flex",
+                  "width": 317.359375,
+                  "text": "Achievement block enabled"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.375px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group field-achievement_title py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.375,
+                  "text": "Achievement title"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.359px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow flex px-3 flex-col field-achievement_period_label",
+                  "display": "flex",
+                  "width": 317.359375,
+                  "text": "Achievement period label"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.375px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line field-achievement_student_initials group py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.375,
+                  "text": "Student initials"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.359px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "field-achievement_student_name group/line group py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.359375,
+                  "text": "Student name"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.375px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group field-achievement_student_subline py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.375,
+                  "text": "Student subline"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "650.734px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group field-achievement_teacher_quote py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 650.734375,
+                  "text": "Teacher quote"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.359px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow flex px-3 flex-col field-achievement_teacher_cite",
+                  "display": "flex",
+                  "width": 317.359375,
+                  "text": "Teacher citation"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.375px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group field-testimonial_enabled py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.375,
+                  "text": "Testimonial block enabled"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.359px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line field-testimonial_title group py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.359375,
+                  "text": "Testimonial title"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "650.734px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow flex px-3 flex-col field-testimonial_quotes",
+                  "display": "flex",
+                  "width": 650.734375,
+                  "text": "Rotating quotes One per line."
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.359px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group field-testimonial_interval_ms py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.359375,
+                  "text": "Rotation interval (ms)"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.375px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow flex px-3 flex-col field-map_enabled",
+                  "display": "flex",
+                  "width": 317.375,
+                  "text": "Map block enabled"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.359px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow field-map_title flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.359375,
+                  "text": "Map title"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.375px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow field-map_period_label flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.375,
+                  "text": "Map period label"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.359px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow flex px-3 flex-col field-map_address_line_1",
+                  "display": "flex",
+                  "width": 317.359375,
+                  "text": "Address line 1"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.375px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow field-map_address_line_2 flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.375,
+                  "text": "Address line 2"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.359px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group field-map_maps_url py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.359375,
+                  "text": "Maps URL"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.375px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow field-map_cta_label flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.375,
+                  "text": "Map CTA label"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.359px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line field-newsletter_enabled group py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.359375,
+                  "text": "Enable newsletter band"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.375px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow flex px-3 flex-col field-newsletter_title",
+                  "display": "flex",
+                  "width": 317.375,
+                  "text": "Title"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.359px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line field-newsletter_subtitle group py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.359375,
+                  "text": "Subtitle"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.375px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group field-newsletter_placeholder py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.375,
+                  "text": "Email placeholder"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.359px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow flex px-3 flex-col field-newsletter_cta_label",
+                  "display": "flex",
+                  "width": 317.359375,
+                  "text": "CTA label"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.375px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group field-newsletter_submit_url py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.375,
+                  "text": "Submit URL"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.359px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group field-newsletter_privacy_url py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.359375,
+                  "text": "Privacy URL"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.375px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group field-newsletter_privacy_label py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.375,
+                  "text": "Privacy label"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "280.906px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 280.90625,
+                  "text": "Updated at May 28, 2026, 12:17 p.m."
+                }
+              ]
+            }
+          ],
+          "inlineTable": null,
+          "redundantSectionNavCount": 0,
+          "sectionLabels": [
+            "General",
+            "Section 2",
+            "Section 3",
+            "Section 4",
+            "Section 5",
+            "Section 6",
+            "Section 7"
+          ],
+          "uniqueSectionLabelCount": 7
+        },
+        "tenantSearchPanelInitiallyVisible": false,
+        "fixedOverlays": [],
+        "wideFixedBands": [],
+        "internalScrollTraps": [],
+        "rawIcons": [],
+        "interactiveText": [
+          "Keyboard shortcuts",
+          "Config center",
+          "Feature control",
+          "Portal",
+          "Toggle actions",
+          "history History",
+          "Gilead Technical High School Gilead Technical High School",
+          "Toggle compact sidebar",
+          "Close menu",
+          "Pin this page",
+          "Admin Home",
+          "Config center",
+          "Theme & Experience",
+          "Feature Control",
+          "Toggle Advanced setup",
+          "Document Library",
+          "Help center",
+          "Knowledge Base",
+          "Toggle Apps",
+          "person visualqa_tenant_v17 visualqa-tenant-v17@example.test unfold_more",
+          "Gilead Technical High School",
+          "⚙️ Configuration Control Center",
+          "More information: This form",
+          "History",
+          "Theme & colors",
+          "Feature control",
+          "Effective runtime",
+          "Configuration hub",
+          "Studio output",
+          "Open Theme & Experience",
+          "Runtime defaults (payload + typed fields)",
+          "Feature Control",
+          "Manage Integrations (Configuration Engine)",
+          "Open API Center",
+          "Discard",
+          "Save changes",
+          "Save",
+          "▾",
+          "Back",
+          "Section 1",
+          "Section 2",
+          "Section 3",
+          "Section 4",
+          "Section 5",
+          "Section 6",
+          "Section 7",
+          "More information: SiteSettings object (1)",
+          "All Site Settings",
+          "1General",
+          "2Section 2",
+          "3Section 3",
+          "4Section 4",
+          "5Section 5",
+          "6Section 6",
+          "7Section 7",
+          "Keyboard shortcuts",
+          "Back to top",
+          "Admin home",
+          "Config center",
+          "Help center",
+          "0Tools"
+        ],
+        "loginVisible": false
+      },
+      "findings": [],
+      "saveActionsScreenshot": "artifacts/django-admin-canvas-live/2026-08-09-v17.0-specialized-dark-1440-tenant-siteconfig-sitesettings-save-actions.png",
+      "screenshot": "artifacts/django-admin-canvas-live/2026-08-09-v17.0-specialized-dark-1440-tenant-siteconfig-sitesettings.png"
+    },
+    {
+      "name": "tenant-siteconfig-tenantadmissionnumberpolicy",
+      "scope": "tenant",
+      "kind": "form",
+      "requestedUrl": "http://gilead-tech.runmycampus.com:8020/admin/siteconfig/tenantadmissionnumberpolicy/add/",
+      "status": 200,
+      "navigationError": "",
+      "badResources": [],
+      "failedResources": [],
+      "consoleErrors": [],
+      "dom": {
+        "url": "http://gilead-tech.runmycampus.com:8020/admin/siteconfig/tenantadmissionnumberpolicy/add/",
+        "host": "gilead-tech.runmycampus.com",
+        "path": "/admin/siteconfig/tenantadmissionnumberpolicy/add/",
+        "title": "Gilead Technical High School",
+        "scope": "tenant",
+        "build": "2026-08-09-v17.0",
+        "buildMatches": true,
+        "theme": "dark",
+        "h1": [
+          "Add Tenant admission number policy This form"
+        ],
+        "pageOverflow": 0,
+        "bodyStylesheetLinks": 0,
+        "stylesheetCount": 88,
+        "stylesheetHrefs": [
+          "http://gilead-tech.runmycampus.com:8020/static/unfold/fonts/inter/styles.css",
+          "http://gilead-tech.runmycampus.com:8020/static/unfold/fonts/material-symbols/styles.css",
+          "http://gilead-tech.runmycampus.com:8020/static/unfold/css/styles.css",
+          "http://gilead-tech.runmycampus.com:8020/static/unfold/css/simplebar/simplebar.css",
+          "http://gilead-tech.runmycampus.com:8020/static/vendor/bootstrap-icons/css/bootstrap-icons.min.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-nav-bridge-tenant.css?v=20260809-admin-full-canvas-v170",
+          "http://gilead-tech.runmycampus.com:8020/static/css/design-tokens.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-cockpit-skin-v8.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-operator-theme-coherence.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-app-shell.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/design-tokens-personality.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-class-grammar.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-class-grammar-ext.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-bulk-actions.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-warm-bright-school.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-cool-apple-polish.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/design-tokens-luxury.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/patterns.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/bootstrap-theme-bridge.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/header-no-spillage.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/statement-header.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/design-system-unified.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-components.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/unfold-integration.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-console-themes.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-bell-clock-product.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-sidebar-scroll.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-sidebar-backend-inspired.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-sidebar-polish.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-sidebar-luxury-10x.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-sidebar-disclosure-contract.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-surface-fixes.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/theme-visibility-guard.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/platform-high-end.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/surface-themes.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/table-system.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/form-system.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/toggle-colors.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/card-grammar.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/design-system-phase2-enforcement.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/chart-rules.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-base-site-shell.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/portal-ui-components.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/phase2-admin-bundle.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-long-page-grammar.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-cp-parity.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/dashboard-topology-shell.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-platform-chrome-layout.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-page-fold-standards.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-collapsable.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-zero-click-protocol.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-back-to-top.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-section-nav-toc.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-shell-scroll-contract.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-dropdown-viewport-safe.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-page-personality.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-os-grade-density.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-platform-chrome-premium.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-admin-modal-overlay-guard.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-layout-frame-guard.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-operational-center-frame.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-surface-spacing-contract.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-isomorphic-grid.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-isomorphic-grid-sweep.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-layout-token-matrix.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-cp-stacked-header.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-platform-beautify-v4.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-sidebar-rail-contract.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-admin-changelist-live.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-platform-catalog.css?v=20260809-admin-full-canvas-v170",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-print.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/platform-responsive-touch.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/dashboard-responsive.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/dark-mode-safety-net.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/theme-platform-contrast.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/theme-platform-readability.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-signature-motion.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-command-bar.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-footer-surfaces.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-backoffice-scroll-10x.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-theme-experience-dual-plane.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-header-super-chrome-parity.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-tenant-surface-scroll-contract.css?v=20260809-admin-full-canvas-v170",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-tour.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-theme-surface-safety-v1.css?v=20260809-admin-full-canvas-v170",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-admin-emergency-full-canvas-v17.css?v=20260809-admin-full-canvas-v170",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-operator-tools-tray.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/site-settings-preview.css"
+        ],
+        "duplicateStylesheets": [],
+        "duplicateSidebarLinks": [],
+        "workspace": "change-form",
+        "grid": "799.234px 190.953px 37.5938px",
+        "workspaceWidth": 1095.96875,
+        "primary": {
+          "width": 799.234375,
+          "trackWidth": 799.234,
+          "fillRatio": 1.0000004691992583,
+          "left": 314.15625,
+          "right": 1113.390625
+        },
+        "structure": {
+          "shellRoots": 1,
+          "shellHeaders": 1,
+          "shellSidebars": 1,
+          "indexCanvases": 0,
+          "primaryPanels": 1,
+          "rails": 1,
+          "tools": 1,
+          "rowDrawers": 0,
+          "breadcrumbs": 1
+        },
+        "tools": [
+          "Keyboard shortcuts",
+          "Back to top"
+        ],
+        "toolDiagnostics": [
+          {
+            "display": "flex",
+            "visibility": "visible",
+            "width": 37.59375,
+            "height": 74.390625,
+            "childCount": 2,
+            "visibleChildCount": 2
+          }
+        ],
+        "table": null,
+        "changelistFilter": null,
+        "save": {
+          "present": true,
+          "primary": true,
+          "toggle": true,
+          "menu": true,
+          "menuVisible": false,
+          "menuOperable": true,
+          "menuClosesOnEscape": true
+        },
+        "formGeometry": {
+          "formWidth": 758.359375,
+          "bodyWidth": 758.359375,
+          "actionsWidth": 758.359375,
+          "primaryWidth": 799.234375,
+          "formFillRatio": 0.9488573048425251,
+          "bodyFillRatio": 1,
+          "actionsFillRatio": 0.9488573048425251,
+          "panelDisplay": "flex",
+          "panelGrid": "none"
+        },
+        "formNativeLayouts": {
+          "groupedFieldRows": [
+            {
+              "display": "grid",
+              "grid": "317.359px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow field-school flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.359375,
+                  "text": "School * Gilead Technical High School"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.375px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow field-strategy flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.375,
+                  "text": "Strategy * Full (YY+School+Seq+Spec+Class) Year + sequence only Sequence only Cu"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.359px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow field-template flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.359375,
+                  "text": "Template 0 / 255 Placeholders: {year_2digit}, {school_code}, {seq_4digit}, {spec"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.375px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group field-pattern py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.375,
+                  "text": "Pattern 0 / 255 Regex to validate admission numbers. Leave blank for default."
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.359px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group field-school_code py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.359375,
+                  "text": "School code *"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.375px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group field-seq_width py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.375,
+                  "text": "Seq width * Padding width for sequence (e.g. 4 -> 0001)."
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.359px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group field-reset_frequency py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.359375,
+                  "text": "Reset frequency * Never (global sequence) Per academic year Per term expand_more"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.375px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow field-is_active flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.375,
+                  "text": "Is active"
+                }
+              ]
+            }
+          ],
+          "inlineTable": null,
+          "redundantSectionNavCount": 0,
+          "sectionLabels": [
+            "General"
+          ],
+          "uniqueSectionLabelCount": 1
+        },
+        "tenantSearchPanelInitiallyVisible": false,
+        "fixedOverlays": [],
+        "wideFixedBands": [],
+        "internalScrollTraps": [],
+        "rawIcons": [],
+        "interactiveText": [
+          "Keyboard shortcuts",
+          "Config center",
+          "Feature control",
+          "Portal",
+          "Gilead Technical High School Gilead Technical High School",
+          "Toggle compact sidebar",
+          "Close menu",
+          "Pin this page",
+          "Admin Home",
+          "Config center",
+          "Theme & Experience",
+          "Feature Control",
+          "Toggle Advanced setup",
+          "Document Library",
+          "Help center",
+          "Knowledge Base",
+          "Toggle Apps",
+          "person visualqa_tenant_v17 visualqa-tenant-v17@example.test unfold_more",
+          "Gilead Technical High School",
+          "⚙️ Configuration Control Center",
+          "More information: This form",
+          "Blueprints",
+          "Workflow gallery",
+          "Feature control",
+          "Configuration hub",
+          "Desktop",
+          "Tablet",
+          "Mobile",
+          "Light",
+          "Dark",
+          "Primary action",
+          "Save draft",
+          "Reset preview",
+          "Discard",
+          "Save changes",
+          "Save",
+          "▾",
+          "Back",
+          "Section 1",
+          "More information: New Tenant admission number policy",
+          "All Tenant admission number policies",
+          "1General",
+          "Keyboard shortcuts",
+          "Back to top",
+          "Admin home",
+          "Config center",
+          "Help center",
+          "0Tools"
+        ],
+        "loginVisible": false
+      },
+      "findings": []
+    },
+    {
+      "name": "tenant-siteconfig-tourstep",
+      "scope": "tenant",
+      "kind": "form",
+      "requestedUrl": "http://gilead-tech.runmycampus.com:8020/admin/siteconfig/tourstep/add/",
+      "status": 200,
+      "navigationError": "",
+      "badResources": [],
+      "failedResources": [],
+      "consoleErrors": [],
+      "dom": {
+        "url": "http://gilead-tech.runmycampus.com:8020/admin/siteconfig/tourstep/add/",
+        "host": "gilead-tech.runmycampus.com",
+        "path": "/admin/siteconfig/tourstep/add/",
+        "title": "Gilead Technical High School",
+        "scope": "tenant",
+        "build": "2026-08-09-v17.0",
+        "buildMatches": true,
+        "theme": "dark",
+        "h1": [
+          "Add tour step This form"
+        ],
+        "pageOverflow": 0,
+        "bodyStylesheetLinks": 0,
+        "stylesheetCount": 88,
+        "stylesheetHrefs": [
+          "http://gilead-tech.runmycampus.com:8020/static/unfold/fonts/inter/styles.css",
+          "http://gilead-tech.runmycampus.com:8020/static/unfold/fonts/material-symbols/styles.css",
+          "http://gilead-tech.runmycampus.com:8020/static/unfold/css/styles.css",
+          "http://gilead-tech.runmycampus.com:8020/static/unfold/css/simplebar/simplebar.css",
+          "http://gilead-tech.runmycampus.com:8020/static/vendor/bootstrap-icons/css/bootstrap-icons.min.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-nav-bridge-tenant.css?v=20260809-admin-full-canvas-v170",
+          "http://gilead-tech.runmycampus.com:8020/static/css/design-tokens.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-cockpit-skin-v8.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-operator-theme-coherence.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-app-shell.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/design-tokens-personality.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-class-grammar.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-class-grammar-ext.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-bulk-actions.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-warm-bright-school.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-cool-apple-polish.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/design-tokens-luxury.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/patterns.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/bootstrap-theme-bridge.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/header-no-spillage.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/statement-header.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/design-system-unified.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-components.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/unfold-integration.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-console-themes.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-bell-clock-product.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-sidebar-scroll.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-sidebar-backend-inspired.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-sidebar-polish.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-sidebar-luxury-10x.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-sidebar-disclosure-contract.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-surface-fixes.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/theme-visibility-guard.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/platform-high-end.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/surface-themes.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/table-system.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/form-system.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/toggle-colors.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/card-grammar.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/design-system-phase2-enforcement.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/chart-rules.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-base-site-shell.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/portal-ui-components.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/phase2-admin-bundle.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-long-page-grammar.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-cp-parity.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/dashboard-topology-shell.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-platform-chrome-layout.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-page-fold-standards.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-collapsable.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-zero-click-protocol.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-back-to-top.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-section-nav-toc.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-shell-scroll-contract.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-dropdown-viewport-safe.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-page-personality.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-os-grade-density.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-platform-chrome-premium.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-admin-modal-overlay-guard.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-layout-frame-guard.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-operational-center-frame.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-surface-spacing-contract.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-isomorphic-grid.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-isomorphic-grid-sweep.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-layout-token-matrix.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-cp-stacked-header.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-platform-beautify-v4.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-sidebar-rail-contract.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-admin-changelist-live.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-platform-catalog.css?v=20260809-admin-full-canvas-v170",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-print.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/platform-responsive-touch.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/dashboard-responsive.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/dark-mode-safety-net.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/theme-platform-contrast.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/theme-platform-readability.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-signature-motion.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-command-bar.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-footer-surfaces.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-backoffice-scroll-10x.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-theme-experience-dual-plane.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-header-super-chrome-parity.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-tenant-surface-scroll-contract.css?v=20260809-admin-full-canvas-v170",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-tour.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-theme-surface-safety-v1.css?v=20260809-admin-full-canvas-v170",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-admin-emergency-full-canvas-v17.css?v=20260809-admin-full-canvas-v170",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-operator-tools-tray.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/site-settings-preview.css"
+        ],
+        "duplicateStylesheets": [],
+        "duplicateSidebarLinks": [],
+        "workspace": "change-form",
+        "grid": "799.234px 190.953px 37.5938px",
+        "workspaceWidth": 1095.96875,
+        "primary": {
+          "width": 799.234375,
+          "trackWidth": 799.234,
+          "fillRatio": 1.0000004691992583,
+          "left": 314.15625,
+          "right": 1113.390625
+        },
+        "structure": {
+          "shellRoots": 1,
+          "shellHeaders": 1,
+          "shellSidebars": 1,
+          "indexCanvases": 0,
+          "primaryPanels": 1,
+          "rails": 1,
+          "tools": 1,
+          "rowDrawers": 0,
+          "breadcrumbs": 1
+        },
+        "tools": [
+          "Keyboard shortcuts",
+          "Back to top"
+        ],
+        "toolDiagnostics": [
+          {
+            "display": "flex",
+            "visibility": "visible",
+            "width": 37.59375,
+            "height": 74.390625,
+            "childCount": 2,
+            "visibleChildCount": 2
+          }
+        ],
+        "table": null,
+        "changelistFilter": null,
+        "save": {
+          "present": true,
+          "primary": true,
+          "toggle": true,
+          "menu": true,
+          "menuVisible": false,
+          "menuOperable": true,
+          "menuClosesOnEscape": true
+        },
+        "formGeometry": {
+          "formWidth": 758.359375,
+          "bodyWidth": 758.359375,
+          "actionsWidth": 744.359375,
+          "primaryWidth": 799.234375,
+          "formFillRatio": 0.9488573048425251,
+          "bodyFillRatio": 1,
+          "actionsFillRatio": 0.9313405407518914,
+          "panelDisplay": "flex",
+          "panelGrid": "none"
+        },
+        "formNativeLayouts": {
+          "groupedFieldRows": [
+            {
+              "display": "grid",
+              "grid": "650.734px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow field-school flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 650.734375,
+                  "text": "School Select value Gilead Technical High School expand_more"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.359px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow field-context flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.359375,
+                  "text": "Context * 17 / 80 Tour context key, e.g. backend_dashboard, studio_os."
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.375px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group field-code py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.375,
+                  "text": "Code * 0 / 80 Step id; should match a data-tour attribute when selector is blank"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.359px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow field-title flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.359375,
+                  "text": "Title 0 / 255"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "650.734px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line field-body group py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 650.734375,
+                  "text": "Body Optional longer copy shown in the tour tooltip."
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.359px",
+              "childCount": 2,
+              "visibleChildCount": 2,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group field-selector py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.359375,
+                  "text": "Selector 0 / 255 CSS selector for spotlight; defaults to [data-tour=''] when bla"
+                },
+                {
+                  "tag": "CODE",
+                  "className": "",
+                  "display": "block",
+                  "width": 317.359375,
+                  "text": ""
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "303.375px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow flex field-sort_order px-3 flex-col",
+                  "display": "flex",
+                  "width": 303.375,
+                  "text": "Sort order *"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "303.375px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group field-roles py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 303.375,
+                  "text": "Roles 0 / 255 Optional comma-separated roles (ADMIN, TEACHER, …). Empty = all ro"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "303.375px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow field-is_active flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 303.375,
+                  "text": "Is active"
+                }
+              ]
+            }
+          ],
+          "inlineTable": null,
+          "redundantSectionNavCount": 0,
+          "sectionLabels": [
+            "General"
+          ],
+          "uniqueSectionLabelCount": 1
+        },
+        "tenantSearchPanelInitiallyVisible": false,
+        "fixedOverlays": [],
+        "wideFixedBands": [],
+        "internalScrollTraps": [],
+        "rawIcons": [],
+        "interactiveText": [
+          "Keyboard shortcuts",
+          "Config center",
+          "Feature control",
+          "Portal",
+          "Gilead Technical High School Gilead Technical High School",
+          "Toggle compact sidebar",
+          "Close menu",
+          "Pin this page",
+          "Admin Home",
+          "Config center",
+          "Theme & Experience",
+          "Feature Control",
+          "Toggle Advanced setup",
+          "Document Library",
+          "Help center",
+          "Knowledge Base",
+          "Toggle Apps",
+          "person visualqa_tenant_v17 visualqa-tenant-v17@example.test unfold_more",
+          "Gilead Technical High School",
+          "⚙️ Configuration Control Center",
+          "More information: This form",
+          "Guided onboarding",
+          "Tour steps API",
+          "Configuration hub",
+          "User preferences",
+          "Desktop",
+          "Tablet",
+          "Mobile",
+          "Light",
+          "Dark",
+          "Primary action",
+          "Save draft",
+          "Reset preview",
+          "Discard",
+          "Save changes",
+          "Save",
+          "▾",
+          "Back",
+          "Section 1",
+          "More information: New tour step",
+          "All tour steps",
+          "1General",
+          "Keyboard shortcuts",
+          "Back to top",
+          "Admin home",
+          "Config center",
+          "Help center",
+          "0Tools"
+        ],
+        "loginVisible": false
+      },
+      "findings": []
+    },
+    {
+      "name": "tenant-siteconfig-userpreference",
+      "scope": "tenant",
+      "kind": "form",
+      "requestedUrl": "http://gilead-tech.runmycampus.com:8020/admin/siteconfig/userpreference/2/change/",
+      "status": 200,
+      "navigationError": "",
+      "badResources": [],
+      "failedResources": [],
+      "consoleErrors": [],
+      "dom": {
+        "url": "http://gilead-tech.runmycampus.com:8020/admin/siteconfig/userpreference/2/change/",
+        "host": "gilead-tech.runmycampus.com",
+        "path": "/admin/siteconfig/userpreference/2/change/",
+        "title": "Gilead Technical High School",
+        "scope": "tenant",
+        "build": "2026-08-09-v17.0",
+        "buildMatches": true,
+        "theme": "dark",
+        "h1": [
+          "Change user preference This form"
+        ],
+        "pageOverflow": 0,
+        "bodyStylesheetLinks": 0,
+        "stylesheetCount": 88,
+        "stylesheetHrefs": [
+          "http://gilead-tech.runmycampus.com:8020/static/unfold/fonts/inter/styles.css",
+          "http://gilead-tech.runmycampus.com:8020/static/unfold/fonts/material-symbols/styles.css",
+          "http://gilead-tech.runmycampus.com:8020/static/unfold/css/styles.css",
+          "http://gilead-tech.runmycampus.com:8020/static/unfold/css/simplebar/simplebar.css",
+          "http://gilead-tech.runmycampus.com:8020/static/vendor/bootstrap-icons/css/bootstrap-icons.min.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-nav-bridge-tenant.css?v=20260809-admin-full-canvas-v170",
+          "http://gilead-tech.runmycampus.com:8020/static/css/design-tokens.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-cockpit-skin-v8.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-operator-theme-coherence.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-app-shell.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/design-tokens-personality.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-class-grammar.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-class-grammar-ext.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-bulk-actions.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-warm-bright-school.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-cool-apple-polish.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/design-tokens-luxury.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/patterns.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/bootstrap-theme-bridge.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/header-no-spillage.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/statement-header.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/design-system-unified.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-components.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/unfold-integration.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-console-themes.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-bell-clock-product.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-sidebar-scroll.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-sidebar-backend-inspired.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-sidebar-polish.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-sidebar-luxury-10x.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-sidebar-disclosure-contract.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-surface-fixes.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/theme-visibility-guard.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/platform-high-end.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/surface-themes.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/table-system.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/form-system.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/toggle-colors.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/card-grammar.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/design-system-phase2-enforcement.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/chart-rules.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-base-site-shell.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/portal-ui-components.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/phase2-admin-bundle.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-long-page-grammar.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-cp-parity.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/dashboard-topology-shell.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-platform-chrome-layout.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-page-fold-standards.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-collapsable.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-zero-click-protocol.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-back-to-top.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-section-nav-toc.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-shell-scroll-contract.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-dropdown-viewport-safe.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-page-personality.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-os-grade-density.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-platform-chrome-premium.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-admin-modal-overlay-guard.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-layout-frame-guard.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-operational-center-frame.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-surface-spacing-contract.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-isomorphic-grid.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-isomorphic-grid-sweep.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-layout-token-matrix.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-cp-stacked-header.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-platform-beautify-v4.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-sidebar-rail-contract.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-admin-changelist-live.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-platform-catalog.css?v=20260809-admin-full-canvas-v170",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-print.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/platform-responsive-touch.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/dashboard-responsive.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/dark-mode-safety-net.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/theme-platform-contrast.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/theme-platform-readability.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-signature-motion.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-command-bar.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-footer-surfaces.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-backoffice-scroll-10x.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-theme-experience-dual-plane.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-header-super-chrome-parity.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-tenant-surface-scroll-contract.css?v=20260809-admin-full-canvas-v170",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-tour.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-theme-surface-safety-v1.css?v=20260809-admin-full-canvas-v170",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-admin-emergency-full-canvas-v17.css?v=20260809-admin-full-canvas-v170",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-operator-tools-tray.css",
+          "http://gilead-tech.runmycampus.com:8020/static/css/site-settings-preview.css"
+        ],
+        "duplicateStylesheets": [],
+        "duplicateSidebarLinks": [],
+        "workspace": "change-form",
+        "grid": "799.234px 190.953px 37.5938px",
+        "workspaceWidth": 1095.96875,
+        "primary": {
+          "width": 799.234375,
+          "trackWidth": 799.234,
+          "fillRatio": 1.0000004691992583,
+          "left": 314.15625,
+          "right": 1113.390625
+        },
+        "structure": {
+          "shellRoots": 1,
+          "shellHeaders": 1,
+          "shellSidebars": 1,
+          "indexCanvases": 0,
+          "primaryPanels": 1,
+          "rails": 1,
+          "tools": 1,
+          "rowDrawers": 0,
+          "breadcrumbs": 1
+        },
+        "tools": [
+          "Keyboard shortcuts",
+          "Back to top"
+        ],
+        "toolDiagnostics": [
+          {
+            "display": "flex",
+            "visibility": "visible",
+            "width": 37.59375,
+            "height": 74.390625,
+            "childCount": 2,
+            "visibleChildCount": 2
+          }
+        ],
+        "table": null,
+        "changelistFilter": null,
+        "save": {
+          "present": true,
+          "primary": true,
+          "toggle": true,
+          "menu": true,
+          "menuVisible": false,
+          "menuOperable": true,
+          "menuClosesOnEscape": true
+        },
+        "formGeometry": {
+          "formWidth": 758.359375,
+          "bodyWidth": 758.359375,
+          "actionsWidth": 758.359375,
+          "primaryWidth": 799.234375,
+          "formFillRatio": 0.9488573048425251,
+          "bodyFillRatio": 1,
+          "actionsFillRatio": 0.9488573048425251,
+          "panelDisplay": "flex",
+          "panelGrid": "none"
+        },
+        "formNativeLayouts": {
+          "groupedFieldRows": [
+            {
+              "display": "grid",
+              "grid": "650.734px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line field-user group py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 650.734375,
+                  "text": "User * Select value admin manager_admin_cp_layout_verify preview_html_impl_verif"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.359px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line field-timezone group py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.359375,
+                  "text": "Timezone * 3 / 64"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.375px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group field-dashboard_view py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.375,
+                  "text": "Dashboard view * Overview Workflow Center Finances Academics Attendance Certific"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.359px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group field-refresh_rate_minutes py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.359375,
+                  "text": "Refresh rate minutes *"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "650.734px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow flex field-notification_channels px-3 flex-col",
+                  "display": "flex",
+                  "width": 650.734375,
+                  "text": "Notification channels []"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.359px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group field-receive_weekly_summary py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.359375,
+                  "text": "Receive weekly summary"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "650.734px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow field-dashboard_widgets flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 650.734375,
+                  "text": "Dashboard widgets []"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.359px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line field-preferred_language group py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.359375,
+                  "text": "Preferred language User's preferred UI language (e.g. en, fr). When set, overrid"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.375px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group field-preferred_region py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.375,
+                  "text": "Preferred region User's preferred region code (e.g. CMR, USA). When set, drives "
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.359px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group field-last_portal_role py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 317.359375,
+                  "text": "Last portal role For users with both Teacher and Parent roles: last selected por"
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "317.375px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow flex px-3 flex-col field-simple_mode",
+                  "display": "flex",
+                  "width": 317.375,
+                  "text": "Simple mode Plan XIV: When True, show simplified UI (consumer-grade)."
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "650.734px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 650.734375,
+                  "text": "Created at July 10, 2026, 3:45 p.m."
+                }
+              ]
+            },
+            {
+              "display": "grid",
+              "grid": "650.734px",
+              "childCount": 1,
+              "visibleChildCount": 1,
+              "visibleFieldCount": 1,
+              "children": [
+                {
+                  "tag": "DIV",
+                  "className": "group/line group py-2.5 field-line grow flex px-3 flex-col",
+                  "display": "flex",
+                  "width": 650.734375,
+                  "text": "Updated at July 10, 2026, 3:45 p.m."
+                }
+              ]
+            }
+          ],
+          "inlineTable": null,
+          "redundantSectionNavCount": 0,
+          "sectionLabels": [
+            "General"
+          ],
+          "uniqueSectionLabelCount": 1
+        },
+        "tenantSearchPanelInitiallyVisible": false,
+        "fixedOverlays": [],
+        "wideFixedBands": [],
+        "internalScrollTraps": [],
+        "rawIcons": [],
+        "interactiveText": [
+          "Keyboard shortcuts",
+          "Config center",
+          "Feature control",
+          "Portal",
+          "Toggle actions",
+          "history History",
+          "Gilead Technical High School Gilead Technical High School",
+          "Toggle compact sidebar",
+          "Close menu",
+          "Pin this page",
+          "Admin Home",
+          "Config center",
+          "Theme & Experience",
+          "Feature Control",
+          "Toggle Advanced setup",
+          "Document Library",
+          "Help center",
+          "Knowledge Base",
+          "Toggle Apps",
+          "person visualqa_tenant_v17 visualqa-tenant-v17@example.test unfold_more",
+          "Gilead Technical High School",
+          "⚙️ Configuration Control Center",
+          "More information: This form",
+          "History",
+          "User preferences",
+          "Dashboard hub",
+          "Dashboard configuration",
+          "Configuration hub",
+          "edit",
+          "add",
+          "visibility",
+          "Desktop",
+          "Tablet",
+          "Mobile",
+          "Light",
+          "Dark",
+          "Primary action",
+          "Save draft",
+          "Reset preview",
+          "Discard",
+          "Save changes",
+          "Save",
+          "▾",
+          "Back",
+          "Section 1",
+          "More information: admin preferences",
+          "All user preferences",
+          "1General",
+          "Keyboard shortcuts",
+          "Back to top",
+          "Admin home",
+          "Config center",
+          "Help center",
+          "0Tools"
+        ],
+        "loginVisible": false
+      },
+      "findings": []
+    }
+  ]
+}

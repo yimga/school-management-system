@@ -8,11 +8,15 @@
 <link rel="stylesheet" href="{% static 'css/rmc-mfa-checkpoint.css' %}">
 {% endblock %}
 
+{% block extrastyle_tail %}{{ block.super }}
+{% endblock %}
+
 {% block extrahead %}{{ block.super }}
 {% comment %} v3.62.2 — Wave 1 local-first: country-adaptive card re-renderer. {% endcomment %}
 <script nonce="{{ csp_nonce }}" type="application/json" id="page-data-rmc-signup-localization">{{ signup_localization_json|default:"{}"|safe }}</script>
 <script defer src="{% static 'js/_pages/rmc-signup-localization-prefetch.js' %}"></script>
 <script defer src="{% static 'js/_pages/rmc-signup-country-adapter.js' %}"></script>
+<script defer src="{% static 'js/rmc-signup-balanced-v3.js' %}?v=20260809-admin-full-canvas-v170"></script>
 {% endblock %}
 
 {% block content %}
@@ -22,7 +26,7 @@
 {% include "components/security_checkpoint_page_open.html" with checkpoint_flow="onboarding" checkpoint_wide=True %}
 {% if cockpit.signup_form.enabled %}
 <section class="auth-shell rmc-iso-wizard-shell" aria-labelledby="signup-title" data-rmc-signup-section="1" data-rmc-isomorphic-wizard="1">
-  <div data-rmc-scroll-policy="paginate" class="auth-card auth-card--signup">
+  <div data-rmc-scroll-policy="paginate" class="auth-card auth-card--signup" data-rmc-signup-balanced="v3">
     {% comment %}
       v3.57.18 Wave 8 — public school-signup form, Apple-tier UX.
       Every text scalar reads from cockpit.signup_form.* (operator-
@@ -64,7 +68,14 @@
     {% endif %}
     {% for message in messages %}<div class="alert alert-{{ message.tags|default:'info' }} mb-3">{{ message }}</div>{% endfor %}
 
-    <form method="post" action="{% url 'signup_school' %}" data-rmc-signup-form="1" novalidate>
+    <ol class="rmc-signup-progress" aria-label="{% trans 'Account setup steps' %}">
+      <li aria-current="step"><span>1</span><strong>{% trans "School profile" %}</strong></li>
+      <li><span>2</span><strong>{% trans "Recommendations" %}</strong></li>
+      <li><span>3</span><strong>{% trans "Verify email" %}</strong></li>
+      <li><span>4</span><strong>{% trans "Password & MFA" %}</strong></li>
+    </ol>
+
+    <form method="post" action="{% url 'signup_school' %}" data-rmc-signup-form="1" data-rmc-signup-layout="balanced" novalidate>
       {% csrf_token %}
       {% if signup_ref == 'demo' %}<input type="hidden" name="signup_ref" value="demo" data-rmc-signup-ref-preserve="1">{% endif %}
 
@@ -278,8 +289,9 @@
 
       <fieldset class="mb-3 rmc-signup-field" data-rmc-signup-field="institution_profile">
         <legend class="rmc-signup-field__label-text h6">{% trans "Help us configure your workspace" %}</legend>
-        <p class="small text-muted mb-3">{% trans "Four quick answers let us recommend modules, blueprints, grading, LMS, dashboards, and offline setup. You can change every choice later." %}</p>
-        <div class="row g-3">
+        <p class="small text-muted mb-3">{% trans "Four quick answers create a useful starting recommendation. Optional details improve the fit without making signup harder." %}</p>
+        <div class="rmc-signup-profile-layout">
+        <div class="row g-3 rmc-signup-profile-fields">
           <div class="col-sm-6">
             <label class="form-label" for="funding_type">{% trans "School model" %}</label>
             <select class="form-select" id="funding_type" name="funding_type">
@@ -296,6 +308,28 @@
             <select class="form-select" id="lms_preference" name="lms_preference"><option value="none">{% trans "Recommend one for me" %}</option><option value="native">{% trans "RunMyCampus learning workspace" %}</option><option value="google-classroom">Google Classroom</option><option value="microsoft-teams">Microsoft Teams</option><option value="canvas">Canvas</option><option value="moodle">Moodle</option><option value="other">{% trans "Other" %}</option></select>
           </div>
         </div>
+        <aside class="rmc-signup-recommendation" data-rmc-signup-recommendation aria-live="polite">
+          <span class="rmc-signup-recommendation__eyebrow">{% trans "Your starting fit" %}</span>
+          <strong data-rmc-recommendation-plan>{% trans "School Pro" %}</strong>
+          <p data-rmc-recommendation-copy>{% trans "A balanced school workspace with local-first operations." %}</p>
+          <ul>
+            <li data-rmc-recommendation-scope>{% trans "Single-campus operations" %}</li>
+            <li data-rmc-recommendation-modules>{% trans "Core records, attendance and communication" %}</li>
+          </ul>
+          <small>{% trans "Recommendation only. You review it before any plan or module is activated." %}</small>
+        </aside>
+        </div>
+        <details class="rmc-signup-fine-tune">
+          <summary>{% trans "Fine-tune my recommendation" %} <span>{% trans "Optional · about 30 seconds" %}</span></summary>
+          <div class="rmc-signup-fine-tune__grid">
+            <div><label class="form-label" for="campus_count">{% trans "Campuses" %}</label><input class="form-control" id="campus_count" name="campus_count" type="number" min="1" max="10000" inputmode="numeric" value="{{ campus_count|default:'' }}" placeholder="1"></div>
+            <div><label class="form-label" for="staff_count">{% trans "Expected staff" %}</label><input class="form-control" id="staff_count" name="staff_count" type="number" min="0" max="1000000" inputmode="numeric" value="{{ staff_count|default:'' }}" placeholder="50"></div>
+            <div><label class="form-label" for="operating_model">{% trans "Operating model" %}</label><select class="form-select" id="operating_model" name="operating_model"><option value="day">{% trans "Day school" %}</option><option value="boarding">{% trans "Boarding school" %}</option><option value="mixed">{% trans "Day and boarding" %}</option></select></div>
+            <div><label class="form-label" for="connectivity_profile">{% trans "Connectivity" %}</label><select class="form-select" id="connectivity_profile" name="connectivity_profile"><option value="mixed">{% trans "Mixed / recommend for me" %}</option><option value="reliable">{% trans "Reliable internet" %}</option><option value="limited">{% trans "Often limited or offline" %}</option></select></div>
+            <div><label class="form-label" for="payment_profile">{% trans "Fee collection" %}</label><select class="form-select" id="payment_profile" name="payment_profile"><option value="basic">{% trans "Simple or not needed" %}</option><option value="online">{% trans "Online payments" %}</option><option value="multi-channel">{% trans "Online, cash and mobile money" %}</option></select></div>
+            <div><label class="form-label" for="go_live_timeline">{% trans "Target go-live" %}</label><select class="form-select" id="go_live_timeline" name="go_live_timeline"><option value="exploring">{% trans "Exploring" %}</option><option value="90-days">{% trans "Within 90 days" %}</option><option value="30-days">{% trans "Within 30 days" %}</option><option value="urgent">{% trans "As soon as possible" %}</option></select></div>
+          </div>
+        </details>
         <div class="form-text mt-2">{% trans "Recommendations are generated locally from your answers and country registries; internet access or an AI provider is not required." %}</div>
       </fieldset>
 

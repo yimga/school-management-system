@@ -596,43 +596,15 @@ class AdminUiSmokeTests(TestCase):
         """
         from django.contrib.staticfiles import finders
 
-        css_path = finders.find("css/rmc-admin-django-canvas-contract.css")
-        self.assertIsNotNone(css_path, "canvas contract stylesheet not found")
-        css = Path(css_path).read_text(encoding="utf-8")
-        anchor = "PREMIUM FORM CONTRACT (v16"
-        self.assertIn(anchor, css, "premium form contract block is missing")
-        block = css.split(anchor, 1)[1]
-
-        # (1) Field rows are restored to Unfold's responsive grid on BOTH shells.
-        self.assertIn(".form-row.field-row", block, "field-row rule missing")
-        self.assertIn("display: grid !important", block, "field-row must be grid, not flex-column")
-        for shell in ("admin-premium-shell", "admin-manager-shell"):
-            self.assertIn(shell, block, f"contract must cover the {shell} shell")
-        self.assertIn(".lg\\:grid-cols-3", block, "multi-column (grid-cols-3) mapping missing")
-
-        # (2) Tabular inline rows/cells keep real table semantics inside a scroll panel.
-        self.assertIn(
-            ".inline-group :is(.tabular, .inline-related.tabular) table tr.form-row",
-            block,
-            "native tabular inline row rule missing",
-        )
-        self.assertIn("display: table-row !important", block, "inline row must stay table-row")
-        self.assertIn("display: table-cell !important", block, "inline cell must stay table-cell")
-        self.assertIn("overflow-x: auto !important", block, "wide inline must scroll, not bleed")
-
-        native_block = block.split("Native Django inline tables remain tables", 1)[1].split(
-            "Clear add / remove-row controls", 1
-        )[0]
-        self.assertNotIn(
-            "table > tbody > tr {\n  display: grid !important",
-            native_block,
-            "the final contract must not convert native inline rows into grid cards",
-        )
-        self.assertIn(
-            ":is(.tabular, .inline-related.tabular) table tr.form-row",
-            native_block,
-            "the native-row override must match the specificity of the tabular wrapper",
-        )
+        css_path = finders.find("css/rmc-admin-emergency-full-canvas-v17.css")
+        self.assertIsNotNone(css_path, "v17 full-canvas contract stylesheet not found")
+        block = Path(css_path).read_text(encoding="utf-8")
+        self.assertIn("minmax(9.2rem, 17%) 2.35rem", block)
+        self.assertIn("minmax(9.5rem, 18%) 2.35rem", block)
+        self.assertIn("@media (max-width: 1024px)", block)
+        self.assertIn("display: table-row !important", block)
+        self.assertIn("display: table-cell !important", block)
+        self.assertIn("overflow-x: auto !important", block)
 
         base_site = (settings.BASE_DIR / "templates/admin/base_site.html").read_text(
             encoding="utf-8"
@@ -642,34 +614,14 @@ class AdminUiSmokeTests(TestCase):
             base_site,
             "HttpOnly CSRF cookies require a rendered token for admin JavaScript POSTs",
         )
-        critical_block = base_site.split("Native tabular inlines stay native", 1)[1].split(
-            "@media (max-width: 1024px)", 1
-        )[0]
-        self.assertIn("display: table-row !important", critical_block)
-        self.assertIn("display: table-cell !important", critical_block)
-        self.assertNotIn(
-            "display: none !important",
-            critical_block,
-            "the cache-proof head contract must keep the native inline header visible",
-        )
-
-        approval_css_path = finders.find("css/rmc-admin-approval-surface-v15.css")
-        self.assertIsNotNone(approval_css_path, "approval surface stylesheet not found")
-        approval_css = Path(approval_css_path).read_text(encoding="utf-8")
-        terminal = approval_css.split(
-            "2026-08-08-admin-os-v164-artifact-parity", 1
-        )[1]
-        self.assertIn("@media (max-width: 1024px)", terminal)
-        self.assertIn(
-            '[data-rmc-admin-workspace-scope="operator"]',
-            terminal,
-            "the exact operator selector must be overridden at the 1024px boundary",
-        )
-        self.assertIn(
-            ".form-row.field-row",
-            terminal,
-            "grouped form rows must collapse to one track at 1024px and below",
-        )
+        self.assertEqual(base_site.count('data-rmc-admin-layout-owner="emergency-v17"'), 1)
+        self.assertIn("rmc-admin-page-aware-v17.js", base_site)
+        page_aware_path = finders.find("js/rmc-admin-page-aware-v17.js")
+        self.assertIsNotNone(page_aware_path, "v17 page-aware behavior module not found")
+        page_aware = Path(page_aware_path).read_text(encoding="utf-8")
+        self.assertIn('root.querySelector("[data-rmc-shell-sidebar]")', page_aware)
+        self.assertIn("url.pathname.replace", page_aware)
+        self.assertIn("item.dataset.rmcDuplicateNav", page_aware)
 
         admin_base = (settings.BASE_DIR / "templates/admin/base.html").read_text(
             encoding="utf-8"

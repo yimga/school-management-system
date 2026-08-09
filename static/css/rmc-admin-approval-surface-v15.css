@@ -1651,7 +1651,7 @@ html[data-rmc-admin-html="unfold"] body:is(.admin-manager-shell, .admin-premium-
   }
 }
 
-/* 2026-08-08-admin-os-v164-artifact-parity: terminal cascade reassertion. */
+/* Foundation imported by the 2026-08-09 v17 terminal full-canvas owner. */
 html[data-rmc-admin-html="unfold"] body.admin-manager-shell
   [data-rmc-shell-root="django-admin"].admin-cp-unified-page
   #cp-main-content

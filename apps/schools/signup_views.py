@@ -556,6 +556,26 @@ def signup_school(request: HttpRequest):
         student_capacity = min(1_000_000, max(0, int(request.POST.get("student_capacity") or 0)))
     except (TypeError, ValueError):
         student_capacity = 0
+    try:
+        campus_count = min(10_000, max(0, int(request.POST.get("campus_count") or 0)))
+    except (TypeError, ValueError):
+        campus_count = 0
+    try:
+        staff_count = min(1_000_000, max(0, int(request.POST.get("staff_count") or 0)))
+    except (TypeError, ValueError):
+        staff_count = 0
+    operating_model = (request.POST.get("operating_model") or "day").strip().lower()
+    if operating_model not in {"day", "boarding", "mixed"}:
+        operating_model = "day"
+    connectivity_profile = (request.POST.get("connectivity_profile") or "mixed").strip().lower()
+    if connectivity_profile not in {"reliable", "mixed", "limited"}:
+        connectivity_profile = "mixed"
+    payment_profile = (request.POST.get("payment_profile") or "basic").strip().lower()
+    if payment_profile not in {"basic", "online", "multi-channel"}:
+        payment_profile = "basic"
+    go_live_timeline = (request.POST.get("go_live_timeline") or "exploring").strip().lower()
+    if go_live_timeline not in {"exploring", "90-days", "30-days", "urgent"}:
+        go_live_timeline = "exploring"
 
     errors = []
     if not name:
@@ -690,6 +710,18 @@ def signup_school(request: HttpRequest):
         "organization_scope": organization_scope,
         "student_capacity": student_capacity,
         "lms_preference": lms_preference,
+        "campus_count": campus_count,
+        "staff_count": staff_count,
+        "operating_model": operating_model,
+        "connectivity_profile": connectivity_profile,
+        "payment_profile": payment_profile,
+        "go_live_timeline": go_live_timeline,
+        # Migration intent participates in the same versioned recommendation
+        # fingerprint as the operating profile. This keeps the blueprint/module
+        # handoff reproducible instead of storing import choices in a detached
+        # lifecycle-only branch.
+        "migration_vendor": migration_vendor,
+        "migration_domains": list(migration_domains),
     }
     school_settings["onboarding_intent"] = {
         "country_code": country_code,

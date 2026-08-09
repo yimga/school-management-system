@@ -1,309 +1,42 @@
 {% extends "admin/change_form.html" %}
 {% load static i18n unfold %}
 
+{% block extrahead %}
+  {{ block.super }}
+  {% include "admin/components/theme_preview_assets.html" %}
+{% endblock %}
+
 {% block form_before %}
-  <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div id="site-settings-unsaved-indicator" class="hidden rounded-lg border px-3 py-1.5 text-sm font-medium shadow-sm bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-700 text-amber-800 dark:text-amber-200 mb-4" role="status" aria-live="polite">{% trans "Unsaved changes" %}</div>
-  <span id="site-settings-preview-url" data-url="{% url 'siteconfig:preview_from_form' %}" class="hidden" aria-hidden="true"></span>
-  {% comment %} SiteSettings is tenant-admin only; every escape stays tenant-scoped. {% endcomment %}
-  <section class="mb-5 rounded-lg border border-base-200 dark:border-base-700 bg-base-50 dark:bg-base-900/30 px-4 py-3" role="region" aria-labelledby="site-settings-cp-escape-heading">
-    <h2 id="site-settings-cp-escape-heading" class="text-sm font-semibold text-base-900 dark:text-base-100 mb-1">{% if is_manager_host %}{% trans "Product control plane" %}{% else %}{% trans "Guided school settings" %}{% endif %}</h2>
-    <p class="text-xs text-base-600 dark:text-base-400 mb-3">{% trans "Guided workflows live outside this form. Use this page when you need every advanced field." %}</p>
-    <ul class="flex flex-wrap gap-x-5 gap-y-2 text-sm list-none m-0 p-0">
-      <li><a href="{% url 'siteconfig:theme_colors' %}" class="text-primary-600 hover:underline font-medium">{% trans "Theme & colors" %}</a></li>
-      <li><a href="{% url 'siteconfig:feature_control_panel' %}" class="text-primary-600 hover:underline">{% trans "Feature control" %}</a></li>
-      <li><a href="{% url 'siteconfig:tenant_runtime_configuration_hub' %}" class="text-primary-600 hover:underline">{% trans "Effective runtime summary" %}</a></li>
-      <li><a href="{% url 'siteconfig:console_domains_hub' %}" class="text-primary-600 hover:underline">{% trans "Configuration hub" %}</a></li>
-      <li><a href="{% url 'studio_os:output' %}" class="text-primary-600 hover:underline">{% trans "Studio · Output" %}</a></li>
+  <section class="rmc-admin-guidance-card"
+           data-rmc-admin-guidance="site-settings"
+           role="region"
+           aria-labelledby="site-settings-guidance-heading">
+    <div>
+      <span class="rmc-django-command-band__eyebrow">{% trans "Guided configuration" %}</span>
+      <h2 id="site-settings-guidance-heading">{% if is_manager_host %}{% trans "Product control plane" %}{% else %}{% trans "Guided school settings" %}{% endif %}</h2>
+      <p>{% trans "Use the guided surfaces for everyday changes. This record remains the complete advanced configuration source." %}</p>
+    </div>
+    <ul aria-label="{% trans 'Related configuration surfaces' %}">
+      <li><a href="{% url 'siteconfig:theme_colors' %}">{% trans "Theme & colors" %}</a></li>
+      <li><a href="{% url 'siteconfig:feature_control_panel' %}">{% trans "Feature control" %}</a></li>
+      <li><a href="{% url 'siteconfig:tenant_runtime_configuration_hub' %}">{% trans "Effective runtime" %}</a></li>
+      <li><a href="{% url 'siteconfig:console_domains_hub' %}">{% trans "Configuration hub" %}</a></li>
+      <li><a href="{% url 'studio_os:output' %}">{% trans "Studio output" %}</a></li>
     </ul>
   </section>
 {% endblock %}
 
 {% block field_sets %}
-  {% comment %} Phase 1.2: Vertical sidebar -- render each tab fieldset as a section; sidebar links scroll to section and set active. {% endcomment %}
   {% with has_conditional_display=adminform.model_admin.conditional_fields %}
-    {% for fieldset in adminform %}
-      {% if "tab" in fieldset.classes %}
-        <div id="section-{{ fieldset.name|slugify }}"
-             class="site-settings-section border-b border-base-200 dark:border-base-800 pb-6 {% if forloop.first %}site-settings-section-active{% endif %}"
-             data-section="{{ fieldset.name|slugify }}"
-             role="region"
-             aria-labelledby="section-heading-{{ fieldset.name|slugify }}">
+    <div class="rmc-admin-section-deck" data-rmc-admin-section-deck="site-settings">
+      {% for fieldset in adminform %}
+        <section id="section-{{ fieldset.name|slugify }}"
+                 class="site-settings-section"
+                 data-section="{{ fieldset.name|slugify }}"
+                 role="region">
           {% include "admin/includes/fieldset.html" with stacked=1 %}
-        </div>
-      {% endif %}
-    {% endfor %}
+        </section>
+      {% endfor %}
+    </div>
   {% endwith %}
-{% endblock %}
-
-{% block extrahead %}
-  {{ block.super }}
-  {% include "admin/components/theme_preview_assets.html" %}
-  
-{% endblock %}
-
-{% block after_field_sets %}
-  {{ block.super }}
-  {% comment %} Phase 1.2: Vertical sidebar navigation + sessionStorage + mobile dropdown {% endcomment %}
-  <script>
-  (function() {
-    var STORAGE_KEY = 'site_settings_active_section';
-    var sections = document.querySelectorAll('.site-settings-section');
-    var navLinks = document.querySelectorAll('.site-settings-sidebar [data-section], .site-settings-mobile-nav [data-section]');
-    var mobileTrigger = document.querySelector('[data-settings-mobile-trigger]');
-    var mobileDropdown = document.querySelector('[data-settings-mobile-dropdown]');
-    var mobileLabel = document.querySelector('[data-settings-mobile-label]');
-
-    function getSectionFromHash() {
-      var hash = window.location.hash.slice(1);
-      if (hash && hash.indexOf('section-') === 0) return hash.replace('section-', '');
-      return null;
-    }
-    function setActiveSection(slug) {
-      if (!slug) return;
-      sections.forEach(function(s) {
-        s.classList.toggle('site-settings-section-active', s.getAttribute('data-section') === slug);
-      });
-      navLinks.forEach(function(a) {
-        a.classList.toggle('active', a.getAttribute('data-section') === slug);
-      });
-      try { sessionStorage.setItem(STORAGE_KEY, slug); } catch (e) {}
-      if (mobileDropdown && mobileDropdown.classList.contains('!block')) {
-        mobileDropdown.classList.add('hidden');
-        mobileDropdown.classList.remove('!block');
-        if (mobileTrigger) mobileTrigger.setAttribute('aria-expanded', 'false');
-      }
-    }
-    function showSectionBySlug(slug) {
-      var el = document.getElementById('section-' + slug);
-      if (el) {
-        setActiveSection(slug);
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    }
-    navLinks.forEach(function(a) {
-      a.addEventListener('click', function(e) {
-        e.preventDefault();
-        var slug = a.getAttribute('data-section');
-        window.location.hash = 'section-' + slug;
-        showSectionBySlug(slug);
-      });
-    });
-    window.addEventListener('hashchange', function() {
-      var slug = getSectionFromHash();
-      if (slug) setActiveSection(slug);
-    });
-    var hashSlug = getSectionFromHash();
-    var initialSlug = hashSlug || (function() {
-      try { return sessionStorage.getItem(STORAGE_KEY); } catch (e) { return null; }
-    })();
-    if (initialSlug) {
-      setActiveSection(initialSlug);
-    } else if (sections.length) {
-      setActiveSection(sections[0].getAttribute('data-section'));
-    }
-    if (mobileTrigger && mobileDropdown) {
-      mobileTrigger.addEventListener('click', function() {
-        var open = mobileDropdown.classList.toggle('hidden');
-        mobileDropdown.classList.toggle('!block', !open);
-        mobileTrigger.setAttribute('aria-expanded', !open ? 'true' : 'false');
-      });
-      document.addEventListener('click', function(e) {
-        if (!mobileTrigger.contains(e.target) && !mobileDropdown.contains(e.target)) {
-          mobileDropdown.classList.add('hidden');
-          mobileDropdown.classList.remove('!block');
-          mobileTrigger.setAttribute('aria-expanded', 'false');
-        }
-      });
-    }
-  })();
-  </script>
-  <script>
-  (function() {
-    var searchEl = document.getElementById('site-settings-search');
-    var searchMobile = document.getElementById('site-settings-search-mobile');
-    var noMatchEl = document.getElementById('site-settings-search-no-match');
-    function runFilter(q) {
-      q = (q || '').trim().toLowerCase();
-      var hasMatch = false;
-      if (q.length === 0) {
-        document.querySelectorAll('.settings-nav-item, .site-settings-mobile-link').forEach(function(el) { el.classList.remove('nav-hidden'); });
-        document.querySelectorAll('.settings-nav-group, .mobile-nav-group').forEach(function(el) { el.classList.remove('nav-group-hidden'); });
-        if (noMatchEl) noMatchEl.classList.add('visually-hidden');
-        return;
-      }
-      document.querySelectorAll('.settings-nav-item').forEach(function(li) {
-        var a = li.querySelector('.settings-nav-link');
-        var text = (a && a.getAttribute('data-search-text')) || (a && a.textContent) || '';
-        var show = text.indexOf(q) !== -1;
-        li.classList.toggle('nav-hidden', !show);
-        if (show) hasMatch = true;
-      });
-      document.querySelectorAll('.settings-nav-group').forEach(function(grp) {
-        var visible = grp.querySelectorAll('.settings-nav-item:not(.nav-hidden)').length > 0;
-        grp.classList.toggle('nav-group-hidden', !visible);
-      });
-      document.querySelectorAll('.site-settings-mobile-link').forEach(function(a) {
-        var text = a.getAttribute('data-search-text') || a.textContent || '';
-        var show = text.indexOf(q) !== -1;
-        a.classList.toggle('nav-hidden', !show);
-        if (show) hasMatch = true;
-      });
-      document.querySelectorAll('.mobile-nav-group').forEach(function(grp) {
-        var next = grp.nextElementSibling;
-        var visible = false;
-        while (next && !next.classList.contains('mobile-nav-group')) {
-          if (next.classList.contains('site-settings-mobile-link') && !next.classList.contains('nav-hidden')) { visible = true; break; }
-          next = next.nextElementSibling;
-        }
-        grp.classList.toggle('nav-group-hidden', !visible);
-      });
-      if (noMatchEl) noMatchEl.classList.toggle('visually-hidden', hasMatch);
-    }
-    if (searchEl) {
-      searchEl.addEventListener('input', function() { runFilter(this.value); });
-      searchEl.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') { this.value = ''; runFilter(''); this.blur(); }
-      });
-    }
-    if (searchMobile) searchMobile.addEventListener('input', function() { runFilter(this.value); });
-  })();
-  </script>
-  <script>
-  (function() {
-    // INJECT BACK BUTTON - More aggressive targeting
-    function injectBackButton() {
-      const submitRow = document.querySelector('.submit-row') ||
-                       document.querySelector('[class*="submit"]') ||
-                       document.querySelector('form[method="post"] > div:last-child');
-
-      if (!submitRow) {
-        setTimeout(injectBackButton, 500);
-        return;
-      }
-
-      if (submitRow.querySelector('.submit-row-back')) return;
-
-      const backBtn = document.createElement('a');
-      backBtn.href = document.referrer && document.referrer !== window.location.href
-                     ? document.referrer
-                     : '/admin/';
-      backBtn.className = 'submit-row-back btn btn-sm';
-      backBtn.innerHTML = '<span aria-hidden="true">&larr;</span> Back';
-      backBtn.style.marginRight = 'auto';
-      backBtn.style.order = '-1';
-
-      submitRow.style.display = 'flex';
-      submitRow.style.alignItems = 'center';
-      submitRow.style.justifyContent = 'flex-end';
-      submitRow.insertBefore(backBtn, submitRow.firstChild);
-
-      if (!submitRow.querySelector('.site-settings-preview-btn')) {
-        const form = document.querySelector('form#sitesettings_form') || document.querySelector('form[method="post"]');
-        const previewUrlEl = document.getElementById('site-settings-preview-url');
-        const previewUrl = previewUrlEl ? previewUrlEl.getAttribute('data-url') : '/siteconfig/preview-from-form/';
-        const csrfInput = form ? form.querySelector('input[name="csrfmiddlewaretoken"]') : null;
-        const csrf = csrfInput ? csrfInput.value : (document.cookie.match(/csrftoken=([^;]+)/) || [])[1];
-        const previewBtn = document.createElement('button');
-        previewBtn.type = 'button';
-        previewBtn.className = 'site-settings-preview-btn btn btn-sm border border-base-200 dark:border-base-700 px-3 py-2 rounded-default';
-        previewBtn.innerHTML = '<span class="material-symbols-outlined" style="vertical-align:middle;font-size:var(--type-size-body-l);">visibility</span> Preview';
-        previewBtn.title = '{% trans "Open site in new tab with current form values (unsaved)" %}';
-        var keepWrap = document.createElement('label');
-        keepWrap.className = 'd-inline-flex align-items-center gap-1 ms-2';
-        keepWrap.style.fontWeight = 'normal';
-        keepWrap.innerHTML = '<input type="checkbox" id="site-settings-preview-keep" name="preview_keep"> <span>' + '{% trans "Keep highlights until dismissed" %}' + '</span>';
-        previewBtn.addEventListener('click', function() {
-          if (!form) return;
-          const fd = new FormData(form);
-          var activeLink = document.querySelector('.settings-nav-link.active');
-          var section = activeLink ? activeLink.getAttribute('data-section') : '';
-          if (!section && window.location.hash && window.location.hash.indexOf('#section-') === 0)
-            section = window.location.hash.replace('#section-', '');
-          if (section) fd.append('preview_section', section);
-          var keepEl = document.getElementById('site-settings-preview-keep');
-          if (keepEl && keepEl.checked) fd.append('preview_keep', '1');
-          const opts = { method: 'POST', body: fd, headers: { 'X-CSRFToken': csrf || '', 'Accept': 'application/json' }, credentials: 'same-origin' };
-          fetch(previewUrl, opts).then(function(r) {
-            return r.json().then(function(data) {
-              if (!r.ok) {
-                var msg = (data.errors && data.errors.length) ? data.errors.join(' ') : (r.statusText || 'Preview failed');
-                if (typeof window.showToast === 'function') window.showToast(msg, 'error', 4000);
-                return;
-              }
-              if (data.redirect_url) window.open(data.redirect_url, '_blank', 'noopener');
-              if (typeof window.showToast === 'function') window.showToast('{% trans "Preview opened in new tab" %}', 'success', 2000);
-            });
-          }).catch(function() {
-            if (typeof window.showToast === 'function') window.showToast('{% trans "Preview failed" %}', 'error', 3000);
-          });
-        });
-        submitRow.insertBefore(previewBtn, submitRow.children[1] || submitRow.firstChild.nextSibling);
-        submitRow.insertBefore(keepWrap, previewBtn.nextSibling);
-      }
-    }
-    
-    // Try immediately and on DOM ready
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', function() {
-        setTimeout(injectBackButton, 200);
-      });
-    } else {
-      setTimeout(injectBackButton, 200);
-    }
-    
-    // Form dirty tracking + unsaved indicator
-    var form = document.querySelector('form#sitesettings_form, form[method="post"]');
-    var indicator = document.getElementById('site-settings-unsaved-indicator');
-    if (form) {
-      var dirty = false;
-      function markDirty() {
-        dirty = true;
-        if (indicator) indicator.classList.remove('hidden');
-      }
-      function markClean() {
-        dirty = false;
-        if (indicator) indicator.classList.add('hidden');
-      }
-      form.addEventListener('change', markDirty);
-      form.addEventListener('input', markDirty);
-      window.addEventListener('beforeunload', function(e) {
-        if (dirty) {
-          e.preventDefault();
-          e.returnValue = '';
-        }
-      });
-      form.addEventListener('submit', function() { markClean(); });
-    }
-  })();
-  </script>
-  {% comment %} Phase 6.4: Inline tooltip for complex toggle - finance_notify_guardians_new_invoice {% endcomment %}
-  <script>
-  (function() {
-    var row = document.querySelector('.field-finance_notify_guardians_new_invoice');
-    if (!row) {
-      var input = document.querySelector('[id="id_finance_notify_guardians_new_invoice"]');
-      if (input) row = input.closest('.form-row') || input.closest('[class*="field-"]') || input.parentElement;
-    }
-    if (!row) row = document.querySelector('label[for="id_finance_notify_guardians_new_invoice"]');
-    if (row) {
-      var label = row.querySelector && row.querySelector('label[for="id_finance_notify_guardians_new_invoice"]') || row.querySelector && row.querySelector('label') || (row.tagName === 'LABEL' ? row : null);
-      if (label && !label.querySelector('.settings-field-tooltip')) {
-        var tip = document.createElement('span');
-        tip.className = 'settings-field-tooltip ms-1';
-        tip.setAttribute('role', 'img');
-        tip.setAttribute('aria-label', 'Help');
-        tip.setAttribute('data-bs-toggle', 'tooltip');
-        tip.setAttribute('data-bs-placement', 'top');
-        tip.setAttribute('title', 'When a new invoice is issued, guardians with finance access get an in-app notification. Enable the separate email option below to also send email.');
-        tip.style.cursor = 'help';
-        tip.innerHTML = '<span style="opacity:0.7;">&#9432;</span>';
-        label.appendChild(tip);
-        if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
-          new bootstrap.Tooltip(tip);
-        }
-      }
-    }
-  })();
-  </script>
 {% endblock %}

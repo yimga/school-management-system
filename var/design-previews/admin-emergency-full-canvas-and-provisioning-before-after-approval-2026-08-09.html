@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>RunMyCampus — Admin Emergency Audit &amp; Repair Approval</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg:#070b18; --shell:#0a1020; --panel:#10182d; --panel-2:#151f39;
+      --panel-3:#1b2745; --line:#273555; --line-2:#354667; --text:#f5f7ff;
+      --muted:#a6b2ca; --soft:#7e8aa4; --cyan:#29d3e2; --blue:#6e7cff;
+      --violet:#a05cf5; --green:#35d399; --amber:#f6bf4a; --red:#ff6978;
+      --shadow:0 18px 48px rgba(0,0,0,.28); --radius:16px;
+      --operator-grid:minmax(0,1fr) minmax(9.2rem,17%) 2.35rem;
+      --tenant-grid:minmax(0,1fr) minmax(9.5rem,18%) 2.35rem;
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+    }
+    * { box-sizing:border-box }
+    html,body { margin:0; min-height:100%; background:var(--bg); color:var(--text) }
+    body { overflow-x:hidden }
+    button,input,select,textarea { font:inherit }
+    button { color:inherit }
+    a { color:var(--cyan); text-decoration:none }
+    .app { min-height:100vh; display:grid; grid-template-rows:64px 1fr }
+    .topbar { position:sticky; top:0; z-index:20; height:64px; display:grid;
+      grid-template-columns:260px minmax(280px,1fr) auto; gap:18px; align-items:center;
+      padding:0 18px; background:rgba(7,11,24,.96); border-bottom:1px solid var(--line);
+      backdrop-filter:blur(14px) }
+    .brand { display:flex; align-items:center; gap:11px; font-weight:850; letter-spacing:-.02em }
+    .logo { width:35px; height:35px; display:grid; place-items:center; border-radius:11px;
+      background:linear-gradient(145deg,var(--blue),var(--violet)); box-shadow:0 0 24px rgba(110,124,255,.35) }
+    .brand small { display:block; color:var(--muted); font-size:11px; font-weight:600; margin-top:2px }
+    .search { max-width:720px; width:100%; justify-self:center; position:relative }
+    .search input { width:100%; height:40px; border-radius:12px; border:1px solid var(--line);
+      padding:0 44px 0 14px; background:#0d1428; color:var(--text); outline:none }
+    .search kbd { position:absolute; right:10px; top:9px; padding:2px 7px; border:1px solid var(--line-2);
+      border-radius:6px; color:var(--muted); background:var(--panel) }
+    .top-actions { display:flex; align-items:center; gap:8px; white-space:nowrap }
+    .button,.icon-button,.seg button { border:1px solid var(--line-2); background:var(--panel);
+      min-height:36px; border-radius:11px; padding:0 13px; cursor:pointer; font-weight:750 }
+    .button:hover,.icon-button:hover,.seg button:hover { border-color:var(--cyan) }
+    .button.primary { color:#061018; border-color:transparent; background:linear-gradient(135deg,var(--cyan),var(--green)) }
+    .button.ghost { background:transparent }
+    .icon-button { width:38px; padding:0; display:grid; place-items:center }
+    .shell { min-width:0; display:grid; grid-template-columns:278px minmax(0,1fr) }
+    .sidebar { position:sticky; top:64px; height:calc(100vh - 64px); overflow:auto; padding:16px 14px 28px;
+      border-right:1px solid var(--line); background:#090f1f }
+    .tenant-card { padding:14px; display:flex; gap:10px; align-items:center; border:1px solid var(--line);
+      background:linear-gradient(135deg,#121b34,#0d1528); border-radius:14px; margin-bottom:14px }
+    .tenant-card strong { display:block; font-size:13px }
+    .tenant-card small { color:var(--muted) }
+    .nav-group { margin-top:14px }
+    .nav-label { padding:0 10px 7px; color:var(--soft); text-transform:uppercase; letter-spacing:.13em;
+      font-size:10px; font-weight:900 }
+    .nav-item { width:100%; border:0; display:flex; align-items:center; gap:10px; color:#c3cbe0;
+      padding:10px 11px; border-radius:9px; background:transparent; cursor:pointer; text-align:left }
+    .nav-item span:first-child { width:20px; text-align:center; color:var(--soft) }
+    .nav-item:hover,.nav-item.active { color:#fff; background:var(--panel-2) }
+    .nav-item.active { box-shadow:inset 3px 0 var(--cyan) }
+    .nav-count { margin-left:auto; min-width:22px; padding:2px 6px; border-radius:999px; text-align:center;
+      background:#242e4d; color:var(--muted); font-size:10px }
+    .main { min-width:0; padding:22px clamp(16px,2.3vw,38px) 52px }
+    .crumbs { color:var(--muted); font-size:12px; display:flex; gap:9px; align-items:center; margin-bottom:15px }
+    .crumbs b { color:#fff }
+    .hero { display:flex; gap:18px; justify-content:space-between; align-items:flex-end; padding:22px 24px;
+      border:1px solid var(--line); border-radius:var(--radius); background:
+      radial-gradient(circle at 86% 20%,rgba(160,92,245,.18),transparent 28%),
+      linear-gradient(135deg,#17213e,#10172b); box-shadow:var(--shadow) }
+    .eyebrow { color:var(--cyan); text-transform:uppercase; letter-spacing:.14em; font-size:10px; font-weight:900 }
+    h1,h2,h3,p { margin-top:0 }
+    h1 { margin:7px 0 7px; font-size:clamp(25px,2.6vw,40px); letter-spacing:-.045em; line-height:1 }
+    .hero p { margin:0; color:var(--muted); max-width:800px; line-height:1.55 }
+    .status { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end }
+    .pill { display:inline-flex; align-items:center; gap:6px; min-height:28px; border:1px solid var(--line-2);
+      border-radius:999px; padding:0 10px; color:#c7d0e5; background:#0d1528; font-size:11px; font-weight:800 }
+    .pill::before { content:""; width:7px; height:7px; border-radius:50%; background:var(--soft) }
+    .pill.red::before { background:var(--red) }.pill.green::before{background:var(--green)}
+    .pill.amber::before { background:var(--amber) }.pill.cyan::before{background:var(--cyan)}
+    .tabs { display:flex; gap:7px; align-items:center; flex-wrap:wrap; margin:16px 0 }
+    .tab { border:1px solid var(--line); color:var(--muted); background:#0b1223; border-radius:10px;
+      padding:9px 13px; cursor:pointer; font-weight:800 }
+    .tab.active { color:white; border-color:#5264a3; background:linear-gradient(135deg,#243161,#17223f) }
+    .tab .badge { margin-left:5px; color:var(--amber) }
+    .view { display:none }.view.active { display:block }
+    .metrics { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:10px; margin-bottom:16px }
+    .metric { padding:14px; min-width:0; border:1px solid var(--line); background:var(--panel); border-radius:13px }
+    .metric strong { display:block; font-size:24px; letter-spacing:-.04em }
+    .metric span { display:block; color:var(--muted); font-size:11px; margin-top:5px }
+    .metric.danger strong { color:var(--red) }.metric.warn strong{color:var(--amber)}
+    .panel { border:1px solid var(--line); border-radius:var(--radius); background:var(--panel); box-shadow:var(--shadow) }
+    .panel-head { padding:17px 19px; border-bottom:1px solid var(--line); display:flex; gap:14px;
+      justify-content:space-between; align-items:center }
+    .panel-head h2 { font-size:16px; margin:0 }
+    .panel-head p { color:var(--muted); font-size:12px; margin:4px 0 0 }
+    .panel-body { padding:18px }
+    .cause-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px }
+    .cause { border:1px solid var(--line); border-radius:13px; padding:15px; background:#0c1427 }
+    .cause-code { color:var(--red); font-size:10px; font-weight:900; letter-spacing:.12em }
+    .cause h3 { font-size:14px; margin:7px 0 }
+    .cause p { color:var(--muted); font-size:12px; line-height:1.5; margin:0 }
+    .scope-table { width:100%; border-collapse:collapse; font-size:12px }
+    .scope-table th,.scope-table td { text-align:left; padding:11px 12px; border-bottom:1px solid var(--line) }
+    .scope-table th { color:var(--muted); font-size:10px; text-transform:uppercase; letter-spacing:.1em }
+    .scope-table td:last-child { color:var(--cyan); font-weight:800 }
+    .contract { display:grid; grid-template-columns:minmax(0,1fr) 260px; gap:15px }
+    .contract-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px }
+    .contract-item { padding:12px; border:1px solid var(--line); border-radius:11px; background:#0c1427;
+      display:flex; gap:10px; align-items:flex-start; color:#dbe2f3; font-size:12px }
+    .check { flex:0 0 22px; height:22px; display:grid; place-items:center; border-radius:7px;
+      background:rgba(53,211,153,.14); color:var(--green); font-weight:900 }
+    .lock-card { padding:16px; border:1px solid #4a4168; border-radius:13px; background:linear-gradient(145deg,#1a1831,#11182c) }
+    .lock-card code { display:block; color:var(--cyan); margin-top:8px; font-size:11px; overflow-wrap:anywhere }
+    .switchbar { margin-bottom:12px; display:flex; justify-content:space-between; gap:12px; align-items:center;
+      padding:10px; border:1px solid var(--line); background:#0c1324; border-radius:13px }
+    .seg { display:flex; gap:4px; padding:3px; border-radius:10px; background:#070c18 }
+    .seg button { min-height:31px; border:0; color:var(--muted); background:transparent }
+    .seg button.active { color:#fff; background:var(--panel-3) }
+    .before-after { display:none }.before-after.active { display:block }
+    .browser { overflow:hidden; border:1px solid var(--line); border-radius:16px; background:#080e1d; box-shadow:var(--shadow) }
+    .browser-chrome { height:42px; display:grid; grid-template-columns:auto minmax(0,1fr) auto; gap:12px;
+      align-items:center; padding:0 13px; border-bottom:1px solid var(--line); background:#0b1223 }
+    .dots { display:flex; gap:6px }.dots i{width:8px;height:8px;border-radius:50%;background:#4b5872}.dots i:first-child{background:var(--red)}
+    .address { max-width:680px; width:100%; justify-self:center; color:var(--muted); font-size:11px; padding:7px 12px;
+      border:1px solid var(--line); border-radius:8px; background:#080e1a }
+    .browser-body { min-height:660px; display:grid; grid-template-columns:205px minmax(0,1fr); background:#0b1121 }
+    .mini-nav { padding:14px 10px; border-right:1px solid var(--line); background:#080e1c }
+    .mini-brand { padding:9px; border-bottom:1px solid var(--line); margin-bottom:10px; font-size:11px; font-weight:850 }
+    .mini-nav div:not(.mini-brand) { color:var(--muted); padding:8px 10px; border-radius:7px; font-size:10px }
+    .mini-nav div.active { color:#fff; background:var(--panel-2); box-shadow:inset 2px 0 var(--cyan) }
+    .mini-page { min-width:0; padding:15px }
+    .mini-top { height:42px; display:flex; justify-content:space-between; align-items:center; padding:0 12px;
+      border:1px solid var(--line); border-radius:10px; background:#10182d; font-size:11px }
+    .mini-workspace { margin-top:13px; display:grid; grid-template-columns:var(--tenant-grid); gap:14px; min-width:0 }
+    .mini-primary,.mini-rail { min-width:0 }
+    .mini-tools { display:flex; flex-direction:column; gap:7px }
+    .tool { width:36px; height:36px; border:1px solid var(--line); border-radius:10px; display:grid; place-items:center; background:#121b32 }
+    .page-title { padding:16px; border:1px solid var(--line); border-radius:12px; background:var(--panel-2); margin-bottom:12px }
+    .page-title small { color:var(--cyan); font-size:9px; font-weight:900; letter-spacing:.1em }
+    .page-title h2 { margin:6px 0 0; font-size:18px }
+    .guidance { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:13px; padding:14px;
+      border:1px solid #334566; border-radius:12px; background:#111b33; margin-bottom:12px }
+    .guidance h3 { font-size:13px; margin:0 0 4px }.guidance p{color:var(--muted);font-size:10px;margin:0}
+    .guidance-links { display:flex; flex-wrap:wrap; gap:6px; align-items:center }
+    .guidance-links span { color:var(--cyan); font-size:10px; padding:5px 8px; border:1px solid #31506a; border-radius:7px }
+    .section-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px }
+    .form-card { padding:13px; border:1px solid var(--line); border-radius:12px; background:#0d1529; min-width:0 }
+    .form-card.full { grid-column:1/-1 }
+    .form-card h3 { font-size:11px; margin:0 0 10px; color:#dfe5f4; text-transform:uppercase; letter-spacing:.08em }
+    .field-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px }
+    .field.wide { grid-column:1/-1 }
+    .field label { display:block; color:#aeb9d0; font-size:9px; font-weight:850; margin-bottom:5px }
+    .fake-input { min-height:34px; border:1px solid #2d3a59; border-radius:8px; background:#080f20; padding:8px 9px;
+      color:#dfe5f3; font-size:10px }
+    .fake-input.area { min-height:60px }
+    .rail-card { border:1px solid var(--line); border-radius:12px; background:#10192e; margin-bottom:10px; overflow:hidden }
+    .rail-card h3 { padding:11px 12px; margin:0; border-bottom:1px solid var(--line); font-size:10px; text-transform:uppercase; letter-spacing:.08em }
+    .rail-card div { margin:8px; padding:8px; border:1px solid #2a3857; border-radius:8px; font-size:9px; color:var(--muted) }
+    .savebar { margin-top:12px; min-height:56px; border:1px solid var(--line); border-radius:11px; padding:9px;
+      display:flex; justify-content:space-between; align-items:center; gap:8px; background:#10192d }
+    .save-split { display:flex }.save-split button{height:34px;border:0;padding:0 12px;font-weight:850}.save-split button:first-child{border-radius:8px 0 0 8px;background:linear-gradient(135deg,var(--cyan),var(--green));color:#061018}.save-split button:last-child{border-radius:0 8px 8px 0;background:#263653;color:#fff}
+    .before-browser .browser-body { grid-template-columns:205px minmax(0,1fr) }
+    .before-browser .mini-page { padding:15px 18px }
+    .before-browser .mini-workspace { grid-template-columns:minmax(0,1fr) 165px 36px }
+    .bad-guidance { min-height:88px; background:#fff; color:#f4f4f6; border-radius:10px; padding:14px; margin:12px 0 }
+    .bad-guidance h3 { margin:0 0 8px }.bad-guidance a{color:#03a9f4;font-size:10px}
+    .bad-form { border:1px solid var(--line); border-radius:11px; padding:12px; min-height:480px; background:#111a30 }
+    .bad-form h3 { font-size:10px }.bad-row{width:168px;margin-bottom:11px}.bad-row label{font-size:8px;font-weight:900;display:block;margin-bottom:4px}.bad-row div{height:32px;border-radius:7px;background:#080f20}.bad-row.area div{height:66px;width:290px}
+    .bad-empty { min-height:250px }.bad-repeat { color:#9aa5bb!important }
+    .notice { border-left:3px solid var(--amber); padding:11px 13px; background:rgba(246,191,74,.08); color:#d7ddeb;
+      font-size:12px; line-height:1.5; border-radius:0 10px 10px 0 }
+    .coverage-grid { display:grid; grid-template-columns:280px minmax(0,1fr); gap:14px }
+    .filter-card { padding:14px; border:1px solid var(--line); border-radius:14px; background:var(--panel) }
+    .filter-card h3 { font-size:12px; margin:0 0 10px }
+    .filter-card label { display:flex; gap:8px; align-items:center; color:var(--muted); padding:6px 0; font-size:11px }
+    .inventory { border:1px solid var(--line); border-radius:14px; overflow:hidden; background:var(--panel) }
+    .inventory-row { display:grid; grid-template-columns:minmax(220px,1.4fr) .55fr .55fr minmax(260px,1fr); gap:10px;
+      padding:11px 13px; border-bottom:1px solid var(--line); align-items:center; font-size:11px }
+    .inventory-row.head { color:var(--muted); text-transform:uppercase; font-size:9px; letter-spacing:.09em;background:#0b1223 }
+    .risk { color:var(--red); font-weight:850 }.proposed{color:var(--green);font-weight:800}
+    .wizard { display:grid; grid-template-columns:220px minmax(0,1fr) 290px; gap:14px }
+    .steps,.recommendation,.question-card { border:1px solid var(--line); border-radius:14px; background:var(--panel) }
+    .steps { padding:12px }.step { display:flex; gap:10px; padding:10px; border-radius:9px;color:var(--muted);font-size:11px}.step b{width:22px;height:22px;display:grid;place-items:center;border-radius:7px;background:#202b49;color:#fff}.step.active{background:#17213d;color:#fff}.step.complete b{background:rgba(53,211,153,.16);color:var(--green)}
+    .question-card { padding:18px }.question-card h2{font-size:18px;margin-bottom:5px}.question-card>p{color:var(--muted);font-size:12px}.choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.choice{display:block;position:relative}.choice input{position:absolute;opacity:0}.choice span{display:block;min-height:66px;border:1px solid var(--line);border-radius:11px;padding:11px;background:#0c1427;font-size:11px}.choice strong{display:block;margin-bottom:5px}.choice em{color:var(--muted);font-style:normal}.choice input:checked+span{border-color:var(--cyan);background:rgba(41,211,226,.08);box-shadow:inset 0 0 0 1px var(--cyan)}
+    .recommendation { padding:15px;background:linear-gradient(150deg,#171d3c,#10182c)}.recommendation h3{font-size:13px}.rec-plan{font-size:22px;font-weight:900;letter-spacing:-.035em;color:var(--green)}.rec-confidence{height:7px;border-radius:99px;background:#27324d;overflow:hidden;margin:9px 0}.rec-confidence i{display:block;height:100%;width:86%;background:linear-gradient(90deg,var(--cyan),var(--green))}.rec-list{margin:12px 0;padding:0;list-style:none}.rec-list li{padding:7px 0;border-bottom:1px solid var(--line);color:#c9d1e4;font-size:10px}.fine{color:var(--soft);font-size:9px;line-height:1.5}
+    .audit-rounds { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px }
+    .round { padding:13px;border:1px solid var(--line);border-radius:12px;background:#0c1427}.round strong{color:var(--green)}.round p{color:var(--muted);font-size:11px;margin:6px 0 0}
+    .mobile-note { display:none }
+    @media (max-width:1180px) {
+      .metrics { grid-template-columns:repeat(3,minmax(0,1fr)) }
+      .cause-grid { grid-template-columns:repeat(2,minmax(0,1fr)) }
+      .wizard { grid-template-columns:180px minmax(0,1fr) }.recommendation{grid-column:1/-1}
+    }
+    @media (max-width:1024px) {
+      .topbar { grid-template-columns:1fr auto }.search{display:none}.shell{grid-template-columns:1fr}.sidebar{display:none}
+      .main{padding:16px}.mini-workspace,.before-browser .mini-workspace{grid-template-columns:1fr}.mini-rail,.mini-tools{display:none}
+      .contract,.coverage-grid,.wizard{grid-template-columns:1fr}.steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
+      .step{display:block}.step b{margin-bottom:6px}.mobile-note{display:block}
+    }
+    @media (max-width:768px) {
+      .topbar{height:auto;min-height:60px;padding:10px 12px}.brand small,.top-actions .button:not(.primary){display:none}.app{grid-template-rows:auto 1fr}
+      .hero{align-items:flex-start;flex-direction:column}.status{justify-content:flex-start}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .cause-grid,.contract-list,.section-grid,.field-grid,.choices{grid-template-columns:1fr}.form-card.full,.field.wide{grid-column:auto}
+      .browser-body,.before-browser .browser-body{grid-template-columns:1fr}.mini-nav{display:none}.browser-chrome{grid-template-columns:auto 1fr}.browser-chrome>span:last-child{display:none}
+      .inventory-row{grid-template-columns:1fr}.inventory-row.head{display:none}.inventory-row span:before{content:attr(data-label);display:block;color:var(--soft);font-size:8px;text-transform:uppercase;margin-bottom:2px}
+    }
+    @media (max-width:480px) {
+      .top-actions .icon-button{display:none}.main{padding:12px}.hero,.panel-body{padding:14px}.metrics{grid-template-columns:1fr 1fr}.metric strong{font-size:19px}
+      .tabs{display:grid;grid-template-columns:1fr 1fr}.tab{font-size:11px}.switchbar{align-items:flex-start;flex-direction:column}.steps{grid-template-columns:1fr 1fr}
+      .page-title{padding:12px}.guidance{grid-template-columns:1fr}.mini-page{padding:9px}.browser-body{min-height:610px}
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand"><span class="logo">R</span><span>RUNMYCAMPUS <small>Admin emergency design audit · 2026-08-09</small></span></div>
+    <label class="search"><input aria-label="Search the approval evidence" placeholder="Search findings, surfaces, models…"><kbd>/</kbd></label>
+    <div class="top-actions">
+      <button class="button ghost" id="theme-toggle">Light preview</button>
+      <button class="icon-button" title="Audit evidence">✓</button>
+      <button class="button primary" data-jump="site">Review proposal</button>
+    </div>
+  </header>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="tenant-card"><span class="logo">G</span><span><strong>Gilead Technical High School</strong><small>Tenant evidence host</small></span></div>
+      <div class="nav-group"><div class="nav-label">Approval</div>
+        <button class="nav-item active" data-view="audit"><span>◎</span>Root-cause audit<span class="nav-count">6</span></button>
+        <button class="nav-item" data-view="site"><span>▦</span>Before / after<span class="nav-count">2</span></button>
+        <button class="nav-item" data-view="coverage"><span>⌁</span>Caught instances<span class="nav-count">40</span></button>
+        <button class="nav-item" data-view="signup"><span>◇</span>Setup autopilot<span class="nav-count">14</span></button>
+      </div>
+      <div class="nav-group"><div class="nav-label">Required scope</div>
+        <div class="nav-item"><span>◫</span>Operator `/admin/`<span class="nav-count">197</span></div>
+        <div class="nav-item"><span>▤</span>Tenant `/admin/`<span class="nav-count">274</span></div>
+        <div class="nav-item"><span>◑</span>Studio / control</div>
+        <div class="nav-item"><span>◉</span>Signup / provisioning</div>
+      </div>
+      <div class="nav-group"><div class="nav-label">Non-negotiable</div>
+        <div class="nav-item"><span>✓</span>One shell owner</div><div class="nav-item"><span>✓</span>Page-aware layouts</div>
+        <div class="nav-item"><span>✓</span>Real-host evidence</div><div class="nav-item"><span>✓</span>Three clean re-audits</div>
+      </div>
+    </aside>
+    <main class="main">
+      <div class="crumbs"><span>Audit lab</span><span>›</span><span>Admin surfaces</span><span>›</span><b id="crumb-current">Root-cause audit</b></div>
+      <section class="hero">
+        <div><div class="eyebrow">Approval gate · audit first</div><h1>Admin canvas emergency repair</h1>
+          <p>This browser is the proposed visual and behavioral contract. It shows why previous “passes” did not fix what people see, the exact families caught, and a page-aware full-canvas replacement for tenant and operator admin.</p></div>
+        <div class="status"><span class="pill red">Current contract fails</span><span class="pill amber">Preview only</span><span class="pill green">Source audited</span></div>
+      </section>
+      <nav class="tabs" aria-label="Approval sections">
+        <button class="tab active" data-view="audit">Audit <span class="badge">6</span></button>
+        <button class="tab" data-view="site">Before / after</button>
+        <button class="tab" data-view="coverage">Coverage <span class="badge">471</span></button>
+        <button class="tab" data-view="signup">Setup autopilot</button>
+      </nav>
+
+      <section class="view active" id="view-audit">
+        <div class="metrics">
+          <div class="metric danger"><strong>4</strong><span>competing layout owners</span></div>
+          <div class="metric warn"><strong>471</strong><span>registered admin models</span></div>
+          <div class="metric"><strong>88</strong><span>admin templates</span></div>
+          <div class="metric danger"><strong>32</strong><span>theme-coupled banners</span></div>
+          <div class="metric danger"><strong>8</strong><span>hard-white template lines</span></div>
+          <div class="metric warn"><strong>119</strong><span>fields in largest form</span></div>
+        </div>
+        <article class="panel">
+          <div class="panel-head"><div><h2>Why approved HTML did not become the rendered product</h2><p>The problem is ownership and proof coverage, not lack of approved design direction.</p></div><span class="pill red">5 critical</span></div>
+          <div class="panel-body cause-grid">
+            <div class="cause"><span class="cause-code">ADMIN-OWNERSHIP-001</span><h3>Four generations own the same geometry</h3><p>Workspace 10×, canvas-contract, inline critical CSS and approval-v15 all target the shell/form. Source order and specificity decide the winner page by page.</p></div>
+            <div class="cause"><span class="cause-code">ADMIN-COVERAGE-002</span><h3>“Platform-wide” meant 11 templates</h3><p>The legacy scanner sees 11 direct base-site pages and 44 filename-matched CSS files. The actual registries contain 197 operator and 274 tenant models.</p></div>
+            <div class="cause"><span class="cause-code">ADMIN-BROWSER-003</span><h3>Outer boxes pass while fields fail</h3><p>Existing browser proof measures workspace tracks and overflow. It does not measure input occupancy, contrast, stacked sections, repeated navigation or excessive page length.</p></div>
+            <div class="cause"><span class="cause-code">THEME-CONTRAST-004</span><h3>Dark shell, light utility card</h3><p>The shell can be dark without Tailwind’s <code>.dark</code> selector controlling a copied <code>bg-base-50</code> card. That produces the white visibility blocker.</p></div>
+            <div class="cause"><span class="cause-code">FORM-DENSITY-005</span><h3>One form strategy cannot fit 471 models</h3><p>Intrinsic native widget widths and always-stacked sections create narrow left columns, vast dead space and forms many screens long.</p></div>
+            <div class="cause"><span class="cause-code">PROVISIONING-006</span><h3>Recommendations stop before plan binding</h3><p>The deterministic setup manifest exists, but high-impact operating inputs, versioned blueprint resolution and an explainable subscription recommendation are incomplete.</p></div>
+          </div>
+        </article>
+        <div style="height:14px"></div>
+        <article class="panel">
+          <div class="panel-head"><div><h2>Approved repair contract</h2><p>One implementation owner; variation comes from page semantics, not competing shells.</p></div><span class="pill cyan">Ready for review</span></div>
+          <div class="panel-body contract">
+            <div class="contract-list">
+              <div class="contract-item"><span class="check">1</span><span>Operator grid: <code>minmax(0,1fr) minmax(9.2rem,17%) 2.35rem</code></span></div>
+              <div class="contract-item"><span class="check">2</span><span>Tenant grid: <code>minmax(0,1fr) minmax(9.5rem,18%) 2.35rem</code></span></div>
+              <div class="contract-item"><span class="check">3</span><span>Single column at 1024px and below; no horizontal document overflow.</span></div>
+              <div class="contract-item"><span class="check">4</span><span>Semantic guidance surfaces use one theme token for background and text.</span></div>
+              <div class="contract-item"><span class="check">5</span><span>Short, standard, wide, relation and inline field strategies use the available canvas.</span></div>
+              <div class="contract-item"><span class="check">6</span><span>Long forms disclose sections; native tables and inlines stay full width.</span></div>
+              <div class="contract-item"><span class="check">7</span><span>Page-aware rail: scope, record, validation, section index and genuine actions only.</span></div>
+              <div class="contract-item"><span class="check">8</span><span>Build, cache-bust and service-worker versions advance together after browser proof.</span></div>
+            </div>
+            <aside class="lock-card"><div class="eyebrow">Current production lock</div><code>2026-08-08-v16.4</code><code>20260808-admin-artifact-parity-v164</code><p class="fine">Previous artifacts can be source-correct yet deployment-stale. The rollout must prove these exact identifiers from each real hostname.</p></aside>
+          </div>
+        </article>
+      </section>
+
+      <section class="view" id="view-site">
+        <div class="switchbar"><div><strong>Tenant Site Settings / Cockpit configuration</strong><div class="fine">The same contract drives student, guardian, runtime, operator and specialized forms.</div></div>
+          <div class="seg" aria-label="Before and after"><button data-mode="before">Before · reproduced</button><button class="active" data-mode="after">After · proposed</button></div></div>
+        <div class="notice mobile-note">At 1024px and below the approved after-layout becomes one column and the contextual rail moves into disclosure panels.</div>
+        <div class="before-after" id="mode-before">
+          <div class="browser before-browser">
+            <div class="browser-chrome"><span class="dots"><i></i><i></i><i></i></span><span class="address">https://gilead-tech.runmycampus.com/admin/siteconfig/sitesettings/1/change/</span><span class="pill red">Current defect</span></div>
+            <div class="browser-body"><aside class="mini-nav"><div class="mini-brand">Gilead Technical High School</div><div>Dashboard</div><div class="active">Config center</div><div>Theme &amp; Experience</div><div>Feature Control</div><div class="bad-repeat">Document Library</div><div class="bad-repeat">Help center</div><div class="bad-repeat">Document Library</div><div class="bad-repeat">Help center</div><div class="bad-repeat">Document Library</div><div class="bad-repeat">Help center</div></aside>
+              <section class="mini-page"><div class="mini-top"><strong>Configuration &amp; records</strong><span>Config center · Feature control · Portal</span></div>
+                <div class="mini-workspace"><div class="mini-primary"><div class="page-title"><small>GILEAD · SITECONFIG</small><h2>Change Site Settings</h2></div>
+                  <div class="bad-guidance"><h3>Guided school settings</h3><p>Guided workflows live outside this form.</p><a>Theme &amp; colors Feature control Effective runtime summary Configuration hub Studio · Output</a></div>
+                  <div class="bad-form"><h3>COCKPIT CONFIGURATION</h3><p class="fine">119-field runtime defaults and long site settings retain intrinsic widget widths.</p>
+                    <div class="bad-row"><label>WORDMARK</label><div></div></div><div class="bad-row"><label>MOTTO</label><div></div></div><div class="bad-row"><label>FOUNDED YEAR</label><div></div></div><div class="bad-row area"><label>TRUST PILLARS</label><div></div></div><div class="bad-row area"><label>APP BADGES</label><div></div></div><div class="bad-row area"><label>SOCIAL LINKS</label><div></div></div><div class="bad-empty"></div>
+                  </div></div><aside class="mini-rail"><div class="rail-card"><h3>This record</h3><div>siteconfig · sitesettings</div><div>Editing · PK 1</div></div><div class="rail-card"><h3>Form pulse</h3><div>Sections · 7</div><div>Required empty · 0</div></div></aside><div class="mini-tools"><span class="tool">?</span><span class="tool">↑</span></div></div>
+              </section></div>
+          </div>
+        </div>
+        <div class="before-after active" id="mode-after">
+          <div class="browser">
+            <div class="browser-chrome"><span class="dots"><i></i><i></i><i></i></span><span class="address">Approved contract · tenant host · Site Settings · page-aware</span><span class="pill green">Proposed</span></div>
+            <div class="browser-body"><aside class="mini-nav"><div class="mini-brand">Gilead Technical High School</div><div>Dashboard</div><div class="active">Config center</div><div>Theme &amp; Experience</div><div>Feature Control</div><div>Integrations</div><div>Document Library</div><div>Help center</div></aside>
+              <section class="mini-page"><div class="mini-top"><strong>Configuration &amp; records</strong><span>Config center · Feature control · Portal</span></div>
+                <div class="mini-workspace"><div class="mini-primary"><div class="page-title"><small>THIS SCHOOL · EXPERIENCE &amp; OPERATIONS</small><h2>Site settings</h2></div>
+                  <div class="guidance"><div><h3>Advanced school presentation controls</h3><p>Everyday settings remain in guided workflows. This record owns deliberate host-level overrides.</p></div><div class="guidance-links"><span>Theme &amp; colors</span><span>Runtime summary</span><span>Integrations</span></div></div>
+                  <div class="section-grid">
+                    <section class="form-card"><h3>Brand identity</h3><div class="field-grid"><div class="field"><label>Wordmark</label><div class="fake-input">Gilead Technical High School</div></div><div class="field"><label>Founded year</label><div class="fake-input">2019</div></div><div class="field wide"><label>Motto</label><div class="fake-input">Knowledge · Character · Service</div></div></div></section>
+                    <section class="form-card"><h3>Language &amp; trust</h3><div class="field-grid"><div class="field"><label>Language switcher label</label><div class="fake-input">Language</div></div><div class="field"><label>Trust display</label><div class="fake-input">FERPA · WCAG 2.1 AA</div></div><div class="field wide"><label>Trust pillars</label><div class="fake-input">Security · accessibility · privacy</div></div></div></section>
+                    <section class="form-card"><h3>Community band</h3><div class="field-grid"><div class="field"><label>Enabled</label><div class="fake-input">On</div></div><div class="field"><label>Rotation</label><div class="fake-input">12 seconds</div></div><div class="field wide"><label>App badges</label><div class="fake-input area">Console | /school/ | ◉<br>Configure | /school/configuration/ | ⚙</div></div></div></section>
+                    <section class="form-card"><h3>Contact &amp; legal</h3><div class="field-grid"><div class="field wide"><label>Contacts</label><div class="fake-input">Support | help@gilead-tech.edu | mail</div></div><div class="field"><label>Copyright holder</label><div class="fake-input">Gilead Technical High School</div></div><div class="field"><label>Powered by</label><div class="fake-input">RunMyCampus</div></div></div></section>
+                    <section class="form-card full"><h3>Map &amp; discovery</h3><div class="field-grid"><div class="field"><label>Address</label><div class="fake-input">School campus address</div></div><div class="field"><label>Maps URL</label><div class="fake-input">https://maps.example/…</div></div><div class="field"><label>Map label</label><div class="fake-input">View campus map</div></div><div class="field"><label>Visibility</label><div class="fake-input">Published</div></div></div></section>
+                  </div><div class="savebar"><div class="save-split"><button>Save</button><button>⌄</button></div><span class="fine">Back · Save and continue · Save and add another</span></div>
+                </div><aside class="mini-rail"><div class="rail-card"><h3>This record</h3><div>Site settings · Editing</div><div>Tenant scope · Gilead</div></div><div class="rail-card"><h3>Sections</h3><div>1 Brand identity</div><div>2 Language &amp; trust</div><div>3 Community band</div><div>4 Contact &amp; legal</div><div>5 Map &amp; discovery</div></div><div class="rail-card"><h3>Form pulse</h3><div>Required empty · 0</div><div>Save state · Clean</div></div></aside><div class="mini-tools"><span class="tool">+</span><span class="tool">?</span><span class="tool">↑</span></div></div>
+              </section></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="view-coverage">
+        <div class="coverage-grid">
+          <aside class="filter-card"><h3>Audit scope</h3><label><input type="checkbox" checked> Tenant admin · 274 models</label><label><input type="checkbox" checked> Operator admin · 197 models</label><label><input type="checkbox" checked> Specialized templates · 32 copied cards</label><label><input type="checkbox" checked> Studio/control · hard-white mount</label><label><input type="checkbox" checked> Signup/provisioning</label><div class="notice" style="margin-top:12px">Examples are evidence, not the boundary. The implementation matrix is generated from both live AdminSite registries.</div></aside>
+          <div class="inventory">
+            <div class="inventory-row head"><span>Family / caught instance</span><span>Count</span><span>Current risk</span><span>Approved correction</span></div>
+            <div class="inventory-row"><span data-label="Family">Tenant ModelAdmin registry</span><span data-label="Count">274</span><span data-label="Risk" class="risk">Under-sampled</span><span data-label="Correction" class="proposed">Index, app, list, add, change, history, delete and actions generated per registry</span></div>
+            <div class="inventory-row"><span data-label="Family">Operator ModelAdmin registry</span><span data-label="Count">197</span><span data-label="Risk" class="risk">Under-sampled</span><span data-label="Correction" class="proposed">Separate hostname/scope matrix and operator-only CTA assertions</span></div>
+            <div class="inventory-row"><span data-label="Family">Siteconfig specialized guidance cards</span><span data-label="Count">10</span><span data-label="Risk" class="risk">Light/dark coupled</span><span data-label="Correction" class="proposed">Semantic guidance component; same-token text and background</span></div>
+            <div class="inventory-row"><span data-label="Family">Portal specialized guidance cards</span><span data-label="Count">8</span><span data-label="Risk" class="risk">Light/dark coupled</span><span data-label="Correction" class="proposed">Shared component and page-specific copy/actions</span></div>
+            <div class="inventory-row"><span data-label="Family">Marketplace/integration guidance cards</span><span data-label="Count">6</span><span data-label="Risk" class="risk">Light/dark coupled</span><span data-label="Correction" class="proposed">Theme-safe component; integration-specific rail</span></div>
+            <div class="inventory-row"><span data-label="Family">Compliance guidance cards</span><span data-label="Count">4</span><span data-label="Risk" class="risk">Light/dark coupled</span><span data-label="Correction" class="proposed">Compliance-aware semantic component</span></div>
+            <div class="inventory-row"><span data-label="Family">Metadata, automation and runtime cards</span><span data-label="Count">4</span><span data-label="Risk" class="risk">Light/dark coupled</span><span data-label="Correction" class="proposed">Single component; context varies by model</span></div>
+            <div class="inventory-row"><span data-label="Family">Studio OS experience graph mount</span><span data-label="Count">1</span><span data-label="Risk" class="risk">Hard white</span><span data-label="Correction" class="proposed">Tokenized graph canvas with explicit light/dark chart palette</span></div>
+            <div class="inventory-row"><span data-label="Family">Siteconfig template gallery graph</span><span data-label="Count">1</span><span data-label="Risk" class="risk">Hard white</span><span data-label="Correction" class="proposed">Tokenized preview surface; contrast assertion</span></div>
+            <div class="inventory-row"><span data-label="Family">Customizer default badge</span><span data-label="Count">1</span><span data-label="Risk" class="risk">Hard white/text-dark</span><span data-label="Correction" class="proposed">Neutral semantic badge</span></div>
+            <div class="inventory-row"><span data-label="Family">Runtime defaults form</span><span data-label="Count">119 fields</span><span data-label="Risk" class="risk">Mile-long page</span><span data-label="Correction" class="proposed">Page-aware sections, search, disclosure, sticky section index</span></div>
+            <div class="inventory-row"><span data-label="Family">School form</span><span data-label="Count">58 fields</span><span data-label="Risk" class="risk">Dense + horizontal relations</span><span data-label="Correction" class="proposed">Identity/operations/billing sections; full-width relations</span></div>
+            <div class="inventory-row"><span data-label="Family">Student profile + guardian inline</span><span data-label="Count">36 fields</span><span data-label="Risk" class="risk">Narrow fields / long stack</span><span data-label="Correction" class="proposed">2-column identity/profile; full-width guardian native table</span></div>
+            <div class="inventory-row"><span data-label="Family">Account user form</span><span data-label="Count">31 fields</span><span data-label="Risk" class="risk">Permission widgets dominate</span><span data-label="Correction" class="proposed">Tabs/disclosures; full-width permissions; compact Save</span></div>
+          </div>
+        </div>
+        <div style="height:14px"></div>
+        <article class="panel"><div class="panel-head"><div><h2>Required browser assertions for every valid generated route</h2><p>Evidence must be collected independently on manager and tenant hostnames at 1440, 1024, 768 and 390px in light and dark.</p></div></div>
+          <div class="panel-body contract-list"><div class="contract-item"><span class="check">✓</span>HTTP 200, correct host/scope and exactly one visible H1</div><div class="contract-item"><span class="check">✓</span>Zero document overflow and no unexpected fixed overlay</div><div class="contract-item"><span class="check">✓</span>No broken resource, duplicate CSS URL or stylesheet in body</div><div class="contract-item"><span class="check">✓</span>Computed contrast passes; no hard-white blocker in dark mode</div><div class="contract-item"><span class="check">✓</span>Actual controls occupy the expected semantic field columns</div><div class="contract-item"><span class="check">✓</span>Native tables/inlines display and form actions genuinely submit</div></div>
+        </article>
+      </section>
+
+      <section class="view" id="view-signup">
+        <div class="notice" style="margin-bottom:14px"><strong>Audit result:</strong> the current signup already captures country, languages, education cycles, funding, organization scope, student capacity, LMS preference and migration intent. This proposal upgrades—not replaces—that deterministic foundation.</div>
+        <div class="wizard">
+          <aside class="steps"><div class="step complete"><b>1</b><span>School basics</span></div><div class="step active"><b>2</b><span>Operating profile</span></div><div class="step"><b>3</b><span>Systems &amp; data</span></div><div class="step"><b>4</b><span>Confirm setup</span></div></aside>
+          <section class="question-card"><div class="eyebrow">Four quick decisions · progressive</div><h2>How will this school operate?</h2><p>Only show questions that change a blueprint, module, compliance profile or plan recommendation. Everything can be reviewed before provisioning.</p>
+            <div class="choices">
+              <label class="choice"><input type="radio" name="scope" value="single" checked><span><strong>One campus</strong><em>A single school and administration team.</em></span></label>
+              <label class="choice"><input type="radio" name="scope" value="network"><span><strong>School network</strong><em>Multiple campuses with shared governance.</em></span></label>
+              <label class="choice"><input type="radio" name="profile" value="day" checked><span><strong>Day school</strong><em>Core academics, people and finance.</em></span></label>
+              <label class="choice"><input type="radio" name="profile" value="boarding"><span><strong>Boarding / transport</strong><em>Add hostel, transport and duty operations.</em></span></label>
+              <label class="choice"><input type="radio" name="connectivity" value="online" checked><span><strong>Reliable internet</strong><em>Cloud-first with normal offline protection.</em></span></label>
+              <label class="choice"><input type="radio" name="connectivity" value="offline"><span><strong>Intermittent internet</strong><em>Prioritize local-first and sync workflows.</em></span></label>
+              <label class="choice"><input type="radio" name="size" value="standard" checked><span><strong>Under 1,000 learners</strong><em>Standard operational scale.</em></span></label>
+              <label class="choice"><input type="radio" name="size" value="large"><span><strong>1,000+ learners</strong><em>Advanced analytics and automation recommended.</em></span></label>
+            </div>
+          </section>
+          <aside class="recommendation"><div class="eyebrow">Explainable recommendation</div><h3>Best-fit plan</h3><div class="rec-plan" id="rec-plan">School Pro</div><div class="rec-confidence"><i id="rec-bar"></i></div><div class="fine" id="rec-confidence">86% confidence · 2 optional answers remain</div><ul class="rec-list" id="rec-list"><li>Secondary school blueprint</li><li>Academics, people, finance and reporting</li><li>Standard sync protection</li><li>English + selected local languages</li></ul><button class="button primary" style="width:100%">Review complete setup</button><p class="fine" style="margin-top:10px">A recommendation never grants billing entitlement silently. The user confirms; the chosen version, rationale and any override enter the audit trail.</p></aside>
+        </div>
+        <div style="height:14px"></div>
+        <article class="panel"><div class="panel-head"><div><h2>Configuration autopilot v3 decision record</h2><p>Minimal questions, maximal deterministic bootstrap.</p></div></div><div class="panel-body contract-list">
+          <div class="contract-item"><span class="check">✓</span>Preserve existing country, languages, cycles, funding, capacity, LMS and migration intent.</div><div class="contract-item"><span class="check">+</span>Add campus/staff scale only when it changes district or capacity modules.</div><div class="contract-item"><span class="check">+</span>Add boarding, transport, fees/payment rails, regulatory assessment and connectivity.</div><div class="contract-item"><span class="check">+</span>Resolve versioned blueprint, modules, grading, language and migration pack IDs.</div><div class="contract-item"><span class="check">+</span>Recommend subscription SKU with reasons, confidence, cost band and upgrade boundary.</div><div class="contract-item"><span class="check">+</span>Persist consent, confirmation, override reason and recompute fingerprint for day-two changes.</div>
+        </div></article>
+        <div style="height:14px"></div>
+        <div class="audit-rounds"><div class="round"><strong>Re-audit 1 · source</strong><p>Registry, inheritance, template utilities, CSS ownership and specialized forms.</p></div><div class="round"><strong>Re-audit 2 · browser</strong><p>Computed geometry, contrast, fields, tables, actions and console/network evidence.</p></div><div class="round"><strong>Re-audit 3 · deployment</strong><p>Real manager/tenant hosts, build/cache/SW identifiers and fresh-session screenshots.</p></div></div>
+      </section>
+    </main>
+  </div>
+</div>
+<script>
+(() => {
+  const labels = {audit:'Root-cause audit',site:'Before / after',coverage:'Caught instances',signup:'Setup autopilot'};
+  function showView(name){
+    document.querySelectorAll('.view').forEach(el=>el.classList.toggle('active',el.id==='view-'+name));
+    document.querySelectorAll('[data-view]').forEach(el=>el.classList.toggle('active',el.dataset.view===name));
+    document.getElementById('crumb-current').textContent=labels[name]||name;
+    location.hash=name==='audit'?'audit':name;
+  }
+  document.querySelectorAll('[data-view]').forEach(el=>el.addEventListener('click',()=>showView(el.dataset.view)));
+  document.querySelectorAll('[data-jump]').forEach(el=>el.addEventListener('click',()=>showView(el.dataset.jump)));
+  document.querySelectorAll('[data-mode]').forEach(button=>button.addEventListener('click',()=>{
+    document.querySelectorAll('[data-mode]').forEach(el=>el.classList.toggle('active',el===button));
+    document.querySelectorAll('.before-after').forEach(el=>el.classList.toggle('active',el.id==='mode-'+button.dataset.mode));
+  }));
+  document.getElementById('theme-toggle').addEventListener('click',event=>{
+    const light=document.documentElement.dataset.theme==='light';
+    document.documentElement.dataset.theme=light?'dark':'light';
+    if(!light){ document.documentElement.style.filter='brightness(1.16) saturate(.86)'; event.currentTarget.textContent='Dark preview'; }
+    else { document.documentElement.style.filter=''; event.currentTarget.textContent='Light preview'; }
+  });
+  function recommend(){
+    const value=name=>document.querySelector(`input[name="${name}"]:checked`)?.value;
+    const network=value('scope')==='network', boarding=value('profile')==='boarding', offline=value('connectivity')==='offline', large=value('size')==='large';
+    const plan=network||large?'Campus Enterprise':boarding||offline?'School Pro + Operations':'School Pro';
+    const items=['Secondary school blueprint','Academics, people, finance and reporting'];
+    if(network)items.push('Multi-campus governance and shared registries');
+    if(boarding)items.push('Boarding, transport and duty operations');
+    if(offline)items.push('Local-first attendance, records and sync queue'); else items.push('Standard sync protection');
+    if(large)items.push('Advanced analytics and workflow automation');
+    document.getElementById('rec-plan').textContent=plan;
+    document.getElementById('rec-list').innerHTML=items.map(item=>`<li>${item}</li>`).join('');
+    const confidence=82+(network?3:0)+(offline?3:0)+(boarding?2:0)+(large?2:0);
+    document.getElementById('rec-bar').style.width=confidence+'%';
+    document.getElementById('rec-confidence').textContent=confidence+'% confidence · confirmation required before provisioning';
+  }
+  document.querySelectorAll('.choice input').forEach(el=>el.addEventListener('change',recommend));
+  const initial=location.hash.slice(1); if(labels[initial])showView(initial);
+  window.__RMC_PREVIEW_READY__=true;
+})();
+</script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 {% if admin_outcome_deck %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div
-  class="mb-3 rounded-lg border border-base-300 bg-base-50 px-3 py-3 dark:border-base-600 dark:bg-base-800/40"
+  class="rmc-theme-surface mb-3 rounded-lg border border-base-300 px-3 py-3 dark:border-base-600"
   role="region"
   aria-label="{% if is_manager_host %}{% trans 'Outcome-based operator navigation' %}{% else %}{% trans 'Related school workflows' %}{% endif %}"
   data-admin-outcome-deck="{{ admin_outcome_deck.admin_deck_outcome_id }}"

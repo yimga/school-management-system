@@ -2,7 +2,7 @@
 {% load i18n %}
 
 {% block form_before %}
-  <section class="mb-5 rounded-lg border border-base-200 dark:border-base-700 bg-base-50 dark:bg-base-900/30 px-4 py-3" role="region" aria-labelledby="compliance-consent-record-cp-escape-heading">
+  <section class="rmc-admin-guidance-card" data-rmc-admin-guidance="related-surface" role="region" aria-labelledby="compliance-consent-record-cp-escape-heading">
     <h2 id="compliance-consent-record-cp-escape-heading" class="text-sm font-semibold text-base-900 dark:text-base-100 mb-1">{% if is_manager_host %}{% trans "Product control plane" %}{% else %}{% trans "Guided school settings" %}{% endif %}</h2>
     <p class="text-xs text-base-600 dark:text-base-400 mb-3">{% trans "Signed consent is an audit artifact; operational context lives in trust and backend consoles." %}</p>
     <ul class="flex flex-wrap gap-x-5 gap-y-2 text-sm list-none m-0 p-0">

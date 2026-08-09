@@ -4,7 +4,7 @@
   "major": 4,
   "minor": 6,
   "patch": 31,
-  "raw": "sms-v4.06.31-admin-artifact-parity-2026-08-08",
+  "raw": "sms-v4.06.32-admin-full-canvas-2026-08-09",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
   "slug": "admin-artifact-parity",

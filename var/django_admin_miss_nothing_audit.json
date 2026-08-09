@@ -1,7 +1,7 @@
 {
   "pass": true,
-  "expected_cache_bust": "20260808-admin-artifact-parity-v164",
-  "expected_sw": "sms-v4.06.31-admin-artifact-parity-2026-08-08",
+  "expected_cache_bust": "20260809-admin-full-canvas-v170",
+  "expected_sw": "sms-v4.06.32-admin-full-canvas-2026-08-09",
   "content_pages": 11,
   "findings": []
 }

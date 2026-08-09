@@ -19,6 +19,13 @@ class RecommendationRulesTests(SimpleTestCase):
                 "organization_scope": "network",
                 "student_capacity": 1500,
                 "lms_preference": "moodle",
+                "campus_count": 3,
+                "staff_count": 180,
+                "operating_model": "mixed",
+                "connectivity_profile": "limited",
+                "payment_profile": "multi-channel",
+                "migration_vendor": "powerschool",
+                "migration_domains": ["students", "grades", "attendance"],
             },
         )
         rec = manifest["recommendations"]
@@ -27,9 +34,16 @@ class RecommendationRulesTests(SimpleTestCase):
         self.assertEqual(rec["district"], "district-console")
         self.assertIn("fees-finance", rec["modules"])
         self.assertIn("advanced-analytics", rec["modules"])
-        self.assertEqual(manifest["version"], 2)
+        self.assertEqual(manifest["version"], 3)
         self.assertEqual(manifest["confidence"], "high")
         self.assertTrue(all(card["reason"] for card in manifest["recommendation_cards"]))
+        self.assertEqual(rec["subscription_plan"], "campus-enterprise")
+        self.assertIn("offline-sync", rec["modules"])
+        self.assertIn("guided-data-migration", rec["modules"])
+        self.assertEqual(rec["migration"]["vendor"], "powerschool")
+        self.assertEqual(rec["migration"]["domains"], ["students", "grades", "attendance"])
+        self.assertFalse(manifest["subscription"]["auto_entitlement"])
+        self.assertTrue(manifest["subscription"]["requires_confirmation"])
 
     def test_malformed_legacy_capacity_falls_back_safely(self):
         manifest = build_onboarding_recommendations(
@@ -84,8 +98,24 @@ class SignupRecommendationCaptureTests(TestCase):
             "name": "Intent Academy", "slug": "intent-academy", "email": "owner@intent.test", "country_code": "CM",
             "school_type": ["secondary"], "language_codes": ["en"], "primary_language_code": "en",
             "funding_type": "mission", "organization_scope": "network", "student_capacity": "1500", "lms_preference": "moodle",
+            "campus_count": "3", "staff_count": "180", "operating_model": "mixed",
+            "connectivity_profile": "limited", "payment_profile": "multi-channel", "go_live_timeline": "30-days",
+            "migration_vendor": "powerschool", "migration_domains": ["students", "grades"],
         })
         self.assertEqual(response.status_code, 200)
         school = School.objects.get(slug="intent-academy")
         self.assertEqual(school.settings["onboarding_intent"]["institution_profile"]["student_capacity"], 1500)
         self.assertEqual(school.settings["recommendation_manifest"]["recommendations"]["lms"], "moodle")
+        profile = school.settings["onboarding_intent"]["institution_profile"]
+        self.assertEqual(profile["campus_count"], 3)
+        self.assertEqual(profile["connectivity_profile"], "limited")
+        self.assertEqual(profile["migration_vendor"], "powerschool")
+        self.assertEqual(profile["migration_domains"], ["students", "grades"])
+        self.assertEqual(
+            school.settings["recommendation_manifest"]["recommendations"]["migration"]["domains"],
+            ["students", "grades"],
+        )
+        self.assertEqual(
+            school.settings["recommendation_manifest"]["subscription"]["recommended_slug"],
+            "campus-enterprise",
+        )

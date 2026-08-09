@@ -40,7 +40,7 @@
     {% if impact_graph_json %}
     <h3 class="h6 mt-3">{% trans "Interactive graph" %}</h3>
     <p class="small text-muted mb-2">{% trans "Pan by dragging; zoom with the mouse wheel." %}</p>
-    <div id="rmc-gallery-graph-mount" class="border rounded bg-white" style="min-height:200px;"></div>
+    <div id="rmc-gallery-graph-mount" class="border rounded rmc-theme-graph-surface" style="min-height:200px;"></div>
     {{ impact_graph_json|json_script:"rmc-gallery-graph-json" }}
     {% endif %}
     {% if impact_bundle.preview %}

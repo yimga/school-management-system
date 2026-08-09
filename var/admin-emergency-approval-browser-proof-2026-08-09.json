@@ -1,0 +1,180 @@
+{
+  "schema": "rmc.admin-emergency-approval-browser-proof.v1",
+  "artifact": "C:\\Users\\yimga\\AppData\\Local\\Temp\\rmc-admin-emergency-audit-20260809\\var\\design-previews\\admin-emergency-full-canvas-and-provisioning-before-after-approval-2026-08-09.html",
+  "generated_at": "2026-08-09T21:37:27.578Z",
+  "pass": true,
+  "results": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "tabs": [
+        {
+          "tab": "audit",
+          "visible": true,
+          "h1": 1
+        },
+        {
+          "tab": "site",
+          "visible": true,
+          "h1": 1
+        },
+        {
+          "tab": "coverage",
+          "visible": true,
+          "h1": 1
+        },
+        {
+          "tab": "signup",
+          "visible": true,
+          "h1": 1
+        }
+      ],
+      "geometry": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "overflow": false
+      },
+      "gridColumns": "638.609px 154.578px 37.5938px",
+      "beforeBackground": "rgb(255, 255, 255)",
+      "afterBackground": "rgb(17, 27, 51)",
+      "beforeLuminance": 1,
+      "afterLuminance": 0.011420529639163794,
+      "consoleErrors": [],
+      "recommendation": "Campus Enterprise",
+      "recommendationItems": 6,
+      "themeToggleWorked": true,
+      "pass": true
+    },
+    {
+      "viewport": {
+        "width": 1024,
+        "height": 900
+      },
+      "tabs": [
+        {
+          "tab": "audit",
+          "visible": true,
+          "h1": 1
+        },
+        {
+          "tab": "site",
+          "visible": true,
+          "h1": 1
+        },
+        {
+          "tab": "coverage",
+          "visible": true,
+          "h1": 1
+        },
+        {
+          "tab": "signup",
+          "visible": true,
+          "h1": 1
+        }
+      ],
+      "geometry": {
+        "scrollWidth": 1024,
+        "clientWidth": 1024,
+        "overflow": false
+      },
+      "gridColumns": "755px",
+      "beforeBackground": "rgb(255, 255, 255)",
+      "afterBackground": "rgb(17, 27, 51)",
+      "beforeLuminance": 1,
+      "afterLuminance": 0.011420529639163794,
+      "consoleErrors": [],
+      "recommendation": "Campus Enterprise",
+      "recommendationItems": 6,
+      "themeToggleWorked": true,
+      "pass": true
+    },
+    {
+      "viewport": {
+        "width": 768,
+        "height": 900
+      },
+      "tabs": [
+        {
+          "tab": "audit",
+          "visible": true,
+          "h1": 1
+        },
+        {
+          "tab": "site",
+          "visible": true,
+          "h1": 1
+        },
+        {
+          "tab": "coverage",
+          "visible": true,
+          "h1": 1
+        },
+        {
+          "tab": "signup",
+          "visible": true,
+          "h1": 1
+        }
+      ],
+      "geometry": {
+        "scrollWidth": 768,
+        "clientWidth": 768,
+        "overflow": false
+      },
+      "gridColumns": "704px",
+      "beforeBackground": "rgb(255, 255, 255)",
+      "afterBackground": "rgb(17, 27, 51)",
+      "beforeLuminance": 1,
+      "afterLuminance": 0.011420529639163794,
+      "consoleErrors": [],
+      "recommendation": "Campus Enterprise",
+      "recommendationItems": 6,
+      "themeToggleWorked": true,
+      "pass": true
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "tabs": [
+        {
+          "tab": "audit",
+          "visible": true,
+          "h1": 1
+        },
+        {
+          "tab": "site",
+          "visible": true,
+          "h1": 1
+        },
+        {
+          "tab": "coverage",
+          "visible": true,
+          "h1": 1
+        },
+        {
+          "tab": "signup",
+          "visible": true,
+          "h1": 1
+        }
+      ],
+      "geometry": {
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "overflow": false
+      },
+      "gridColumns": "346px",
+      "beforeBackground": "rgb(255, 255, 255)",
+      "afterBackground": "rgb(17, 27, 51)",
+      "beforeLuminance": 1,
+      "afterLuminance": 0.011420529639163794,
+      "consoleErrors": [],
+      "recommendation": "Campus Enterprise",
+      "recommendationItems": 6,
+      "themeToggleWorked": true,
+      "pass": true
+    }
+  ]
+}

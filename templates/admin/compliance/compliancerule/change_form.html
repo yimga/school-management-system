@@ -3,7 +3,7 @@
 
 {% block form_before %}
   {% comment %} P3: tenant admin escape hatch — product shells for operators who land on raw ModelAdmin. {% endcomment %}
-  <section class="mb-5 rounded-lg border border-base-200 dark:border-base-700 bg-base-50 dark:bg-base-900/30 px-4 py-3" role="region" aria-labelledby="compliance-rule-cp-escape-heading">
+  <section class="rmc-admin-guidance-card" data-rmc-admin-guidance="related-surface" role="region" aria-labelledby="compliance-rule-cp-escape-heading">
     <h2 id="compliance-rule-cp-escape-heading" class="text-sm font-semibold text-base-900 dark:text-base-100 mb-1">{% if is_manager_host %}{% trans "Product control plane" %}{% else %}{% trans "Guided school settings" %}{% endif %}</h2>
     <p class="text-xs text-base-600 dark:text-base-400 mb-3">{% trans "Governance and console workflows live outside this form." %}</p>
     <ul class="flex flex-wrap gap-x-5 gap-y-2 text-sm list-none m-0 p-0">
