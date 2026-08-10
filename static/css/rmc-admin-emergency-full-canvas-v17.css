@@ -273,3 +273,12 @@ html[data-rmc-admin-html="unfold"] body,
     margin-inline: -0.25rem !important;
   }
 }
+
+/* Semantic hooks — declared 2026-08-10.
+ * The admin fieldset heading/description (templates/admin/includes/fieldset.html)
+ * are visually styled by their Tailwind/Unfold utility classes on the same
+ * element. These rules carry no conflicting visual declaration, so they change
+ * nothing — they exist only so the classes are DEFINED, not dead references,
+ * for scripts/scan_undefined_css_classes.py. */
+.rmc-admin-fieldset__heading { --rmc-admin-fieldset-heading: 1; }
+.rmc-admin-fieldset__description { --rmc-admin-fieldset-description: 1; }

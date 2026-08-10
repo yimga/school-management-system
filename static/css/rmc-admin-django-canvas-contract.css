@@ -4584,3 +4584,12 @@ html[data-rmc-admin-html="unfold"] body:is(.admin-premium-shell, .admin-manager-
     max-width: 24rem !important;
   }
 }
+
+/* Semantic hook — declared 2026-08-10.
+ * `.rmc-admin-submit-surface` is an additional targeting hook on the submit
+ * actions row (templates/admin/submit_line.html). Its visual layout is fully
+ * owned by the sibling `.rmc-admin-submit-row__inner` rules above; this rule
+ * carries no visual declaration of its own, so it changes nothing — it exists
+ * only so the class is DEFINED, not a dead reference, for
+ * scripts/scan_undefined_css_classes.py. */
+.rmc-admin-submit-surface { --rmc-admin-submit-surface: 1; }

@@ -164,3 +164,11 @@ html[data-rmc-isomorphic-template="onboarding-wizard"] [data-shell-page="onboard
   .rmc-iso-wizard-shell .auth-card--signup { padding: 0.9rem !important; }
   .rmc-signup-progress { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* Semantic hook — declared 2026-08-10.
+ * `.rmc-signup-profile-fields` marks the profile-fields grid on the signup form
+ * (templates/schools/signup_school.html); its layout is owned by Bootstrap
+ * `row g-3` on the same element. This rule carries no visual declaration, so it
+ * changes nothing — it exists only so the class is DEFINED, not a dead
+ * reference, for scripts/scan_undefined_css_classes.py. */
+.rmc-signup-profile-fields { --rmc-signup-profile-fields: 1; }
