@@ -81,7 +81,7 @@
   </section>
 </main>
 
-<script>
+<script nonce="{{ csp_nonce }}">
 (function () {
   if (!window.EventSource) return;
   var url = "{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_progress_stream' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_progress_stream' bundle_id=bundle.pk %}{% endif %}";

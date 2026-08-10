@@ -58,7 +58,7 @@
   </details>
 </div>
 
-<script>
+<script nonce="{{ csp_nonce }}">
   document.addEventListener("submit", function (e) {
     var form = e.target;
     if (form.id !== "rmc-ai-line-intents-form") return;

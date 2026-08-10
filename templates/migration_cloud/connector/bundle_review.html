@@ -39,7 +39,7 @@ any locale can't break the inline script's string literals.
   </div>
   <p class="small text-muted mt-2 mb-0" id="mc-detect-note">{% trans "Working…" %}</p>
 </section>
-<script>
+<script nonce="{{ csp_nonce }}">
 (function () {
   var el = document.getElementById('mc-detect-progress');
   if (!el || !window.fetch) { return; }
@@ -137,7 +137,7 @@ says so honestly instead of spinning forever. Copy travels via data-* attributes
   </div>
   <p class="small text-muted mt-2 mb-0" id="mc-import-note">{% if import_flight.stuck %}{% trans "Still queued — the importer will pick this up shortly." %}{% else %}{% trans "Working…" %}{% endif %}</p>
 </section>
-<script>
+<script nonce="{{ csp_nonce }}">
 (function () {
   var el = document.getElementById('mc-import-progress');
   if (!el || !window.fetch) { return; }

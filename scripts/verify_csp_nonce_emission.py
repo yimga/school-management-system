@@ -46,12 +46,33 @@ SHELL_TEMPLATES = (
     REPO_ROOT / "templates" / "admin" / "base_site.html",
 )
 
+# Non-shell templates that carry executable inline <script> blocks and must also echo
+# the nonce. Extends coverage beyond the 5 shells so an inline script added outside a
+# shell cannot silently reintroduce an unsafe-inline dependency and block CSP enforce.
+NONCE_TRACKED_TEMPLATES = (
+    REPO_ROOT / "templates" / "migration_cloud" / "conflicts.html",
+    REPO_ROOT / "templates" / "migration_cloud" / "connector" / "bundle_review.html",
+    REPO_ROOT / "templates" / "migration_cloud" / "progress.html",
+    REPO_ROOT / "templates" / "partials" / "rmc_page_personality.html",
+    REPO_ROOT / "templates" / "platform_runtime" / "school_configuration_center.html",
+    REPO_ROOT / "templates" / "portal" / "ai_line_intents.html",
+    REPO_ROOT / "templates" / "siteconfig" / "partials" / "dashboard_configuration_hub_body.html",
+)
+
+ALL_TRACKED_TEMPLATES = (*SHELL_TEMPLATES, *NONCE_TRACKED_TEMPLATES)
+
 # Match `<script ...>BODY</script>` blocks (no src). Multi-line aware.
 _INLINE_SCRIPT_RE = re.compile(
     r"<script\b(?P<attrs>[^>]*)>(?P<body>(?:(?!</script>).)*?)</script>",
     re.IGNORECASE | re.DOTALL,
 )
 _HAS_SRC_RE = re.compile(r"\bsrc\s*=", re.IGNORECASE)
+# Non-executable script types the browser never runs as JS (data/template payloads).
+# These are not subject to CSP script-src, so they need no nonce.
+_NON_EXEC_TYPE_RE = re.compile(
+    r"""type\s*=\s*['"](?:application/(?:json|ld\+json)|text/(?:template|html|x-template))['"]""",
+    re.IGNORECASE,
+)
 _HAS_NONCE_RE = re.compile(r"\bnonce\s*=\s*['\"]\{\{\s*csp_nonce\s*\}\}['\"]", re.IGNORECASE)
 _ALLOW_RE = re.compile(r"<!--\s*csp-nonce-allow:", re.IGNORECASE)
 
@@ -76,6 +97,8 @@ def _scan_shell(path: Path) -> dict:
             continue  # No inline content -> no nonce needed.
         if _HAS_SRC_RE.search(attrs):
             continue  # External script -> SRI gate handles it.
+        if _NON_EXEC_TYPE_RE.search(attrs):
+            continue  # Data/template block (JSON, ld+json, x-template) -> never executed.
         if _HAS_NONCE_RE.search(attrs):
             continue  # Compliant.
         # Allow-marker on the line just before the tag.
@@ -136,7 +159,7 @@ def _write_baseline(findings: list[dict], shells_missing: list[str]) -> None:
 
 
 def _print_summary(findings: list[dict], results: list[dict]) -> None:
-    print(f"CSP-nonce emission: {len(SHELL_TEMPLATES)} shell(s); violations={len(findings)}")
+    print(f"CSP-nonce emission: {len(ALL_TRACKED_TEMPLATES)} template(s); violations={len(findings)}")
     for r in results:
         if not r["exists"]:
             print(f"  ! MISSING  {r['path']}")
@@ -154,7 +177,7 @@ def main() -> int:
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
 
-    results = [_scan_shell(p) for p in SHELL_TEMPLATES]
+    results = [_scan_shell(p) for p in ALL_TRACKED_TEMPLATES]
     findings = _flatten(results)
     shells_missing = [r["path"] for r in results if not r["exists"]]
     payload = _baseline_payload(findings, shells_missing)

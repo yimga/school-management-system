@@ -67,5 +67,5 @@
   </section>{% endif %}
   <div class="rmc-wcx-mobile-marker" data-world-class-mobile-layout="stacked">{% trans "Mobile setup keeps actions stacked with large touch targets." %}</div>
 </main>
-{% if focused_section or direct_remedy %}<script>document.addEventListener("DOMContentLoaded",function(){var el=document.querySelector("[data-rmc-direct-remedy],[data-rmc-repair-focus]");if(el){el.scrollIntoView({behavior:"smooth",block:"center"});el.focus({preventScroll:true});}});</script>{% endif %}
+{% if focused_section or direct_remedy %}<script nonce="{{ csp_nonce }}">document.addEventListener("DOMContentLoaded",function(){var el=document.querySelector("[data-rmc-direct-remedy],[data-rmc-repair-focus]");if(el){el.scrollIntoView({behavior:"smooth",block:"center"});el.focus({preventScroll:true});}});</script>{% endif %}
 {% endblock %}

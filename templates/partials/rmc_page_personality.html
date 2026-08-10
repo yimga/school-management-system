@@ -36,7 +36,7 @@
 
 {% if domain %}
 <meta name="rmc-page-domain" content="{{ domain }}">
-<script>
+<script nonce="{{ csp_nonce }}">
   (function () {
     try { document.documentElement.setAttribute("data-rmc-page-domain", "{{ domain|escapejs }}"); } catch (e) {}
   })();

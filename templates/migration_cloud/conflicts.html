@@ -101,7 +101,7 @@ incoming: {{ c.incoming_values }}</pre>
   {% endif %}
 </main>
 
-<script>
+<script nonce="{{ csp_nonce }}">
 (function () {
   var url = "{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_conflicts' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_conflicts' bundle_id=bundle.pk %}{% endif %}";
   var csrf = "{{ csrf_token }}";

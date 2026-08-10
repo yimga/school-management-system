@@ -150,7 +150,7 @@
           </div>
         </div>
         <p class="text-muted small mb-0 mt-3">{% trans "DashboardLayout and DashboardUserPreference still apply for per-user overrides. Template config_schema may include a chrome block (header_variant, footer_partial) to override portal header/footer for that role; otherwise the active theme pack layout applies." %}</p>
-        <script>
+        <script nonce="{{ csp_nonce }}">
           (function(){
             var root = document.querySelector('[data-rmc-dashboard-role-preview]');
             if (!root) return;
