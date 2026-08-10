@@ -9,17 +9,40 @@
 
 {% include "components/next_action_strip.html" %}
 
-<section class="rmc-template-preview" data-page-marker="rmc-template-preview" data-rmc-template-key="{{ template_key }}" data-rmc-width-strategy="full">
+<section class="rmc-template-preview rmc-live-preview-contract" data-page-marker="rmc-template-preview" data-rmc-template-key="{{ template_key }}" data-rmc-width-strategy="full" data-rmc-live-preview-contract="1" data-preview-min-inline-width="720">
   <header class="rmc-template-preview__header">
     <h1>{% blocktrans %}Live preview — {{ template_key }}{% endblocktrans %}</h1>
     <p class="rmc-template-preview__subtitle">{% trans "Preview the operating experience this template applies — no changes are written." %}</p>
   </header>
 
-  <div class="rmc-template-preview__frame-wrap">
-    <iframe class="rmc-template-preview__frame"
+  <div class="rmc-template-preview__frame-wrap" data-rmc-preview-frame-shell data-preview-device="desktop">
+    <div class="rmc-live-preview-contract__toolbar">
+      <label for="rmc-template-preview-role">{% trans "Preview as" %}</label>
+      <select id="rmc-template-preview-role" class="form-select form-select-sm" data-rmc-preview-role aria-controls="rmc-template-preview-frame">
+        {% if preview_role_entries %}
+          {% for r in preview_role_entries %}
+            {% if r.url %}
+            <option value="{{ r.url }}">{{ r.label|default:r.role }}</option>
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+      </select>
+      <label for="rmc-template-preview-device">{% trans "Device" %}</label>
+      <select id="rmc-template-preview-device" class="form-select form-select-sm w-auto" data-rmc-preview-device aria-controls="rmc-template-preview-frame">
+        <option value="desktop">{% trans "Desktop" %}</option>
+        <option value="tablet">{% trans "Tablet" %}</option>
+        <option value="mobile">{% trans "Mobile" %}</option>
+      </select>
+    </div>
+
+    <iframe id="rmc-template-preview-frame" class="rmc-template-preview__frame"
             title="{% blocktrans %}Preview frame for {{ template_key }}{% endblocktrans %}"
-            data-rmc-template-preview-iframe="1"
-            sandbox="allow-same-origin"></iframe>
+            src="{{ preview_url }}"
+            data-rmc-preview-frame
+            loading="lazy"
+            referrerpolicy="same-origin"
+            sandbox="allow-same-origin"
+            style="min-height:320px; width:100%; border:0; background:transparent;"></iframe>
   </div>
 
   <details class="rmc-template-preview__details">
@@ -32,4 +55,13 @@
     <a class="rmc-template-preview__action rmc-template-preview__action--primary" href="{% url 'template_marketplace:apply' template_key %}">{% trans "Apply template" %}</a>
   </div>
 </section>
+{% endblock %}
+
+{% block extrastyle %}
+  <link rel="stylesheet" href="{% static 'css/rmc-live-preview-contract.css' %}">
+{% endblock %}
+
+{% block extrajs %}
+  <script src="{% static 'js/rmc-live-preview-contract.js' %}" defer></script>
+  <script src="{% static 'js/rmc-theme-preview-loaded.js' %}" defer></script>
 {% endblock %}
