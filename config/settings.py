@@ -1005,7 +1005,24 @@ AUTH_PASSWORD_VALIDATORS = [
 # existing rows — production deployments must set the env var
 # explicitly). The CRYPTOGRAPHY_KEY name is also what the upstream
 # django-cryptography 1.x reads when its conf is initialized.
-CRYPTOGRAPHY_KEY = os.environ.get("DJANGO_CRYPTOGRAPHY_KEY") or SECRET_KEY
+# Fail closed on hosted deploys: without DJANGO_CRYPTOGRAPHY_KEY the at-rest key is
+# derived from SECRET_KEY, so a later SECRET_KEY rotation would irreversibly destroy
+# every encrypted column. Refuse to boot on Render/production/staging rather than run
+# in that silent trap; local dev and CI keep the derive fallback.
+from config.secret_requirements import require_secret_on_hosted  # noqa: E402
+
+CRYPTOGRAPHY_KEY = (
+    require_secret_on_hosted(
+        "DJANGO_CRYPTOGRAPHY_KEY",
+        os.environ.get("DJANGO_CRYPTOGRAPHY_KEY"),
+        is_hosted=_IS_CLOUD_DEPLOYED,
+        guidance=(
+            "Generate one with `python -c \"from cryptography.fernet import Fernet; "
+            "print(Fernet.generate_key().decode())\"`."
+        ),
+    )
+    or SECRET_KEY
+)
 
 # --- Migration Cloud MAA version flip (v3.34.0 Agent 5) ---
 # Promotion plumbing for the MAA v2.0 counsel-pending body. We CANNOT
@@ -3272,11 +3289,25 @@ MIGRATION_CLOUD_AUDIT_PURGE_APPROVAL_TOKEN = (
 #   * ``aws-kms`` / ``azure-keyvault`` / ``hashicorp-vault`` / ``gcp-kms``
 #     — reserved; current implementation raises NotImplementedError
 #     with "configure HSM bridge first" message + docs reference.
-MIGRATION_CLOUD_AUDIT_SIGNING_KEY = os.environ.get(
-    "MIGRATION_CLOUD_AUDIT_SIGNING_KEY", ""
-)
 MIGRATION_CLOUD_AUDIT_SIGNING_BACKEND = os.environ.get(
     "MIGRATION_CLOUD_AUDIT_SIGNING_BACKEND", "local-env-key"
+)
+# Fail closed on hosted deploys: with the default local-env-key backend a missing
+# signing key means Migration Cloud audit rows are persisted UNSIGNED (tamper-evidence
+# silently off). Require it explicitly rather than degrade. HSM/Vault backends carry the
+# key out-of-band, so they are exempt from this check.
+MIGRATION_CLOUD_AUDIT_SIGNING_KEY = require_secret_on_hosted(
+    "MIGRATION_CLOUD_AUDIT_SIGNING_KEY",
+    os.environ.get("MIGRATION_CLOUD_AUDIT_SIGNING_KEY", ""),
+    is_hosted=(
+        _IS_CLOUD_DEPLOYED
+        and MIGRATION_CLOUD_AUDIT_SIGNING_BACKEND == "local-env-key"
+    ),
+    guidance=(
+        "Audit rows are stored UNSIGNED without it. Generate a secret with "
+        "`python -c \"import secrets; print(secrets.token_urlsafe(48))\"`, or select an "
+        "HSM/Vault backend via MIGRATION_CLOUD_AUDIT_SIGNING_BACKEND."
+    ),
 )
 
 # v3.40.0 Agent 1 — HashiCorp Vault Transit backend dry-run flag.
