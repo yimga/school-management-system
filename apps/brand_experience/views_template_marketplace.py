@@ -34,8 +34,22 @@ from apps.platform_runtime.pack_simulation import simulate_pack
 
 
 def _tenant_school(request: HttpRequest):
-    """Return the tenant school resolved by middleware, or 404."""
-    school = getattr(request, "tenant", None) or getattr(request, "school", None)
+    """Return the tenant School instance resolved by middleware, or 404.
+
+    TENANT_MODEL is ``customers.Client``, so ``request.tenant`` is the
+    django-tenants Client (its ``__str__`` is the schema name ``s_<hex>``), NOT a
+    School. The Client carries a OneToOne ``.school`` to the ``schools.School``
+    record, and the schools bridge middleware sets ``request.school =
+    request.tenant.school``. The previous ``request.tenant or request.school``
+    returned the Client (always truthy), so the confirm-apply path's
+    ``PackInstallation.objects.filter(school=<Client>)`` raised
+    ``ValueError: Cannot query "s_...": Must be "School" instance`` and 500'd.
+    Prefer the bridged ``request.school``; fall back to ``request.tenant.school``
+    so a School instance is always returned (never the Client).
+    """
+    school = getattr(request, "school", None)
+    if school is None:
+        school = getattr(getattr(request, "tenant", None), "school", None)
     if school is None:
         raise Http404("Tenant school not resolved.")
     return school
