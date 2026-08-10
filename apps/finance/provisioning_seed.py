@@ -80,3 +80,68 @@ def ensure_tenant_compliance_profile(school: Any) -> Any | None:
         },
     )
     return profile
+
+
+def ensure_tenant_default_fee_plan(school: Any, *, academic_year: Any = None) -> Any | None:
+    """Ensure a freshly provisioned tenant has at least one editable ``FeePlan``.
+
+    A brand-new tenant schema starts with **zero** fee plans, so the Fees surface renders
+    blank and ``auto_generate_fee_invoices_task`` dead-ends on ``{"status": "no_plans"}`` — the
+    school literally cannot invoice on day one (the lived-experience gap-doc's P0 item). This
+    seeds a single **zero-amount** starter plan carrying one editable ``TUITION`` item that the
+    school edits or duplicates per class. **No money is charged until the school sets an amount.**
+
+    Idempotent and non-destructive:
+      * If the year already has ANY fee plan (the operator has started), it returns without
+        touching anything — an operator's plans are never joined by a stray default.
+      * Otherwise it creates the starter via ``get_or_create``, so a provisioning retry / the
+        half-provisioned reconcile sweep never duplicates it.
+
+    Tenant safety: every read is a reverse-relation accessor off the passed-in, school-scoped
+    ``academic_year`` (``.fee_plans`` / ``.classrooms``) or an ``order_by`` — no unscoped
+    ``Model.objects`` query is issued, so this stays inside tenant isolation by construction.
+
+    MUST be called inside the tenant schema context (provisioning Phase B) and given the
+    school's active ``AcademicYear`` (the row Phase B just seeded). Returns the plan, or
+    ``None`` when it declines/cannot seed (no year / no classroom / no specialty yet).
+    """
+    if academic_year is None:
+        return None
+
+    from apps.academics.models import Specialty
+    from apps.finance.models import FeeItem, FeePlan
+
+    if academic_year.fee_plans.exists():
+        return None  # school already has plans; never add a default alongside them
+
+    classroom = academic_year.classrooms.order_by("name").first()
+    specialty = Specialty.objects.order_by("pk").first()
+    if classroom is None or specialty is None:
+        # Academic skeleton not fully seeded yet (mid-provision). A Phase-B retry
+        # (reconcile_half_provisioned_tenants) will re-run this once it exists.
+        return None
+
+    plan, created = FeePlan.objects.get_or_create(
+        academic_year=academic_year,
+        classroom=classroom,
+        specialty=specialty,
+        name="Default Tuition Plan",
+        defaults={
+            "school": school if getattr(school, "pk", None) else None,
+            "is_active": True,
+            "notes": (
+                "Starter plan created during setup. Edit the tuition amount below "
+                "(or duplicate this plan for each class) to begin invoicing. No fees "
+                "are charged until you set an amount."
+            ),
+        },
+    )
+    if created:
+        FeeItem.objects.create(
+            plan=plan,
+            name="Tuition (set your amount)",
+            amount=Decimal("0"),
+            item_type=FeeItem.ItemType.TUITION,
+            is_mandatory=True,
+        )
+    return plan

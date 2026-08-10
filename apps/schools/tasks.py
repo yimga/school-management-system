@@ -2117,6 +2117,28 @@ def _do_provision_tracked(
             )
             phase_b_failed_steps.append("compliance_profile")
 
+        # Seed a default editable FeePlan so the Fees surface is not blank on day one
+        # and auto-invoicing does not dead-end on {"status": "no_plans"}. Zero-amount
+        # starter the school edits/duplicates; nothing is charged until an amount is
+        # set. Idempotent — skips entirely once the school has any plan. Non-fatal.
+        try:
+            from apps.finance.provisioning_seed import (
+                ensure_tenant_default_fee_plan,
+            )
+
+            fp = ensure_tenant_default_fee_plan(school, academic_year=ay)
+            if fp is not None:
+                logger.info(
+                    "Ensured default FeePlan for school %s (plan %s)",
+                    school_id,
+                    fp.pk,
+                )
+        except (DatabaseError, IntegrityError, ValueError, TypeError, ImportError):
+            logger.exception(
+                "Default FeePlan seed failed for school %s", school_id
+            )
+            phase_b_failed_steps.append("default_fee_plan")
+
         try:
             from apps.schools.provisioning_blueprint import (
                 record_school_template_blueprint,
