@@ -53,9 +53,10 @@ def _validated_profile_photo(request: HttpRequest):
     return upload
 
 
+@login_required
 def teacher_onboarding_wizard(request: HttpRequest):
     """
-    Multi-step wizard for teacher onboarding (self-service registration).
+    Multi-step wizard for teacher onboarding (school-mediated registration).
 
     Steps:
     1. Basic Information (email, name, phone)
@@ -63,7 +64,14 @@ def teacher_onboarding_wizard(request: HttpRequest):
     3. Preferences (payment method, dashboard view)
 
     Uses session to persist form data between steps.
-    Allows unauthenticated users to register.
+
+    Login-required: the default path redirects to the Unified engine wizard,
+    which is itself ``@login_required``. The ``?legacy=1`` opt-out below used to
+    be reachable by ANONYMOUS visitors (it 500'd on the GET render — reading
+    ``request.user.email`` on ``AnonymousUser`` — while a crafted POST could still
+    create a teacher ``User`` + ``TeacherProfile``), silently bypassing that gate.
+    Gating the view holds the legacy branch to the same auth bar as the engine
+    path it falls back to.
 
     v4.00.5: routes to the Unified Wizard Engine (JSON SOT
     ``apps/setup_studio/wizards/teacher_self_onboarding.json``) by default.
