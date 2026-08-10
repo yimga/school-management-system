@@ -23,7 +23,7 @@ restorable — ``_decrypt_blob`` passes a gzip-magic blob through unchanged. Tha
 is not a downgrade vector: the HMAC is verified first, and an attacker cannot
 forge it without ``SECRET_KEY``.
 
-Payload contract (``schema_version`` "2.2"):
+Payload contract (``schema_version`` "2.3"):
 
 - ``counts`` — aggregate row counts (kept for backward compatibility and for a
   cheap restore-integrity check).
@@ -70,11 +70,21 @@ record:
     academics.Attendance     (natural key: student + classroom + date; both FKs
                               remapped; the per-day attendance history)
 
+Schema 2.3 additionally restores coursework (both models carry a non-null
+``school`` FK, so capture is a plain school= filter and every FK parent is
+already captured above):
+
+    academics.LMSAssignment  (natural key: classroom + title + due_at; classroom
+                              / subject / term / teacher remapped; attachment file
+                              nulled — only the path string would survive)
+    academics.LMSSubmission  (natural key: assignment + student; both remapped —
+                              the grade + submission body; graded_by User and the
+                              attachment file nulled as out-of-scope)
+
 Still OUT of the restorable surface (deferred, larger FK closures / lower DR
 priority): grades (evals.Evaluation → SubjectAssignment, whose natural key drags
-Specialty + an M2M teacher set), homework (LMS assignment/submission with file
-blobs), messages (communication, wide user fan-out) and the timetable
-(academics ScheduleEntry / TimeSlot). These are the next expansion.
+Specialty + an M2M teacher set), messages (communication, wide user fan-out) and
+the timetable (academics ScheduleEntry / TimeSlot). These are the next expansion.
 
 The fail-closed HMAC signature guarantee is unchanged: ``restore_from_snapshot``
 verifies the signature (and the bound school id) BEFORE opening any transaction
@@ -104,7 +114,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 
 logger = logging.getLogger(__name__)
 
-SNAPSHOT_SCHEMA_VERSION = "2.2"
+SNAPSHOT_SCHEMA_VERSION = "2.3"
 
 
 @dataclass(frozen=True)
@@ -162,6 +172,8 @@ class _RestoreSpec:
 #   StudentProfile -> only School (user nulled).
 #   TeacherProfile -> User (above) + Department (above); reports_to self-FK
 #                     handled in-table via pk_map of the same label.
+#   LMSAssignment -> Classroom + Subject + Term + TeacherProfile (all above).
+#   LMSSubmission -> LMSAssignment (above) + StudentProfile (above).
 #   Invoice -> ComplianceProfile (above) + StudentProfile + AcademicYear (above).
 #   InvoiceLine -> Invoice (above); precedes Payment so the invoice total is real
 #                  when the payment's post_save recalc evaluates the lines.
@@ -266,6 +278,40 @@ RESTORE_PLAN: tuple[_RestoreSpec, ...] = (
             "student": ("people", "StudentProfile"),
             "classroom": ("academics", "Classroom"),
         },
+    ),
+    # --- Coursework / LMS (schema 2.3) ---------------------------------------
+    _RestoreSpec(
+        app_label="academics",
+        model_name="LMSAssignment",
+        # The model has no unique constraint, so a piece of work is identified
+        # within its (remapped) classroom by title + due date — the same
+        # "parent + descriptive fields" pattern as finance.InvoiceLine. ``due_at``
+        # may be null; _natural_lookup filters it as IS NULL, which is stable.
+        natural_key=("classroom", "title", "due_at"),
+        remap_fk={
+            "classroom": ("academics", "Classroom"),
+            "subject": ("academics", "Subject"),
+            # ``term`` is nullable; remap only fires when a term_id is present.
+            "term": ("academics", "Term"),
+            "teacher": ("people", "TeacherProfile"),
+        },
+        # The uploaded attachment file is not part of the DR row scope (only the
+        # path string would survive, dangling without the object store).
+        null_fields=("attachment",),
+    ),
+    _RestoreSpec(
+        app_label="academics",
+        model_name="LMSSubmission",
+        # unique_together (assignment, student) — both FKs are in scope and
+        # remapped to the freshly restored parents. Mirrors academics.Attendance.
+        natural_key=("assignment", "student"),
+        remap_fk={
+            "assignment": ("academics", "LMSAssignment"),
+            "student": ("people", "StudentProfile"),
+        },
+        # ``graded_by`` is an out-of-scope User (may be any role) and the
+        # submission attachment lives outside the DR row scope.
+        null_fields=("graded_by", "attachment"),
     ),
     # --- Finance ledger ------------------------------------------------------
     _RestoreSpec(
@@ -513,6 +559,7 @@ def compile_snapshot_payload(school) -> dict[str, Any]:
         Subject,
         Term,
     )
+    from apps.academics.models_lms import LMSAssignment, LMSSubmission
 
     sid = str(school.pk)
 
@@ -588,6 +635,16 @@ def compile_snapshot_payload(school) -> dict[str, Any]:
         "academics.Attendance": _serialize_rows(
             Attendance.objects.filter(school=school)
         ),
+        # Coursework — LMS assignments + student submissions (schema 2.3). Both
+        # carry a NON-NULL school FK, so a plain school= filter is complete and
+        # tenant-isolation-clean; every FK parent (classroom/subject/term/teacher,
+        # and the assignment itself for submissions) is already captured above.
+        "academics.LMSAssignment": _serialize_rows(
+            LMSAssignment.objects.filter(school=school)
+        ),
+        "academics.LMSSubmission": _serialize_rows(
+            LMSSubmission.objects.filter(school=school)
+        ),
         "finance.Invoice": _serialize_rows(invoices_qs),
         # Invoice line items — an invoice restored without its lines loses its
         # real total (recalc would zero it). Scoped to this school's invoices.
@@ -610,6 +667,8 @@ def compile_snapshot_payload(school) -> dict[str, Any]:
             "teachers": TeacherProfile.objects.filter(school=school).count(),
             "subjects": Subject.objects.filter(school=school).count(),
             "attendance": Attendance.objects.filter(school=school).count(),
+            "lms_assignments": LMSAssignment.objects.filter(school=school).count(),
+            "lms_submissions": LMSSubmission.objects.filter(school=school).count(),
             "invoices": Invoice.objects.filter(school=school).count(),
             "payments": Payment.objects.filter(school=school).count(),
         },

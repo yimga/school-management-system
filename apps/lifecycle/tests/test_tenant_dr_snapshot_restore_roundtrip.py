@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import unittest
 import uuid
+from datetime import datetime, timezone as dt_timezone
 from decimal import Decimal
 from pathlib import Path
 
@@ -35,6 +36,7 @@ from apps.academics.models import (
     Subject,
     Term,
 )
+from apps.academics.models_lms import LMSAssignment, LMSSubmission
 from apps.finance.models import ComplianceProfile, Invoice, InvoiceLine, Payment
 from apps.lifecycle.tenant_dr_snapshot import (
     SNAPSHOT_SCHEMA_VERSION,
@@ -221,6 +223,70 @@ class DrSnapshotRestoreRoundTripBaseTests(TestCase):
             "classroom": classroom,
         }
 
+    def _seed_source_school_with_homework(self):
+        """Config core + a teacher, subject, and a homework assignment with one
+        student submission.
+
+        Exercises the schema-2.3 coursework surface: academics.LMSAssignment
+        (whose classroom / subject / term / teacher are all in-scope remapped
+        parents) and academics.LMSSubmission (unique_together (assignment,
+        student) — both FKs remapped exactly like academics.Attendance).
+        """
+        school = self._seed_source_school()
+
+        teacher_user = User.objects.create_user(
+            username=f"teacher-{uuid.uuid4().hex[:8]}",
+            email="alan.turing@example.test",
+            first_name="Alan",
+            last_name="Turing",
+            role=User.Role.TEACHER,
+        )
+        dept = Department.objects.get(school=school)
+        teacher = TeacherProfile.objects.create(
+            school=school,
+            user=teacher_user,
+            staff_id=f"STAFF-{uuid.uuid4().hex[:6]}",
+            position_title="Computing Lead",
+            department=dept,
+            salary_amount=Decimal("3800.00"),
+        )
+        subject = Subject.objects.create(school=school, name="Computing")
+        classroom = Classroom.objects.get(school=school)
+        term = Term.objects.get(school=school)
+        student = StudentProfile.objects.get(school=school)
+        assignment = LMSAssignment.objects.create(
+            school=school,
+            classroom=classroom,
+            subject=subject,
+            term=term,
+            teacher=teacher,
+            title="Fractions worksheet",
+            instructions="Complete questions 1-10.",
+            assignment_type=LMSAssignment.AssignmentType.HOMEWORK,
+            status=LMSAssignment.Status.PUBLISHED,
+            points_possible=Decimal("20.00"),
+            due_at=datetime(2025, 10, 1, 17, 0, tzinfo=dt_timezone.utc),
+        )
+        submission = LMSSubmission.objects.create(
+            school=school,
+            assignment=assignment,
+            student=student,
+            status=LMSSubmission.Status.SUBMITTED,
+            content="My answers.",
+            submitted_at=datetime(2025, 9, 30, 9, 0, tzinfo=dt_timezone.utc),
+            score=Decimal("18.00"),
+        )
+        return {
+            "school": school,
+            "teacher": teacher,
+            "teacher_user": teacher_user,
+            "subject": subject,
+            "assignment": assignment,
+            "submission": submission,
+            "student": student,
+            "classroom": classroom,
+        }
+
     def _purge_restorable_source_rows(self, school):
         """Model a true fresh-instance DR: after the signed snapshot is captured,
         drop the source school's restorable rows so the restore into an EMPTY
@@ -237,6 +303,11 @@ class DrSnapshotRestoreRoundTripBaseTests(TestCase):
         Deletes children before parents so each cascade's recalc never trips on a
         still-present sibling.
         """
+        # Schema-2.3 coursework first: submissions reference assignment + student;
+        # assignments PROTECT-reference subject / term / teacher, so they must be
+        # deleted before those parents are removed below.
+        LMSSubmission.objects.filter(school=school).delete()
+        LMSAssignment.objects.filter(school=school).delete()
         # Schema-2.2 children first (Attendance references Student + Classroom).
         Attendance.objects.filter(school=school).delete()
         SchoolMembership.objects.filter(school=school).delete()
@@ -628,6 +699,107 @@ class DrSnapshotRestoreRoundTripBaseTests(TestCase):
         self.assertEqual(rep["schools.SchoolMembership"]["created"], 0)
         self.assertEqual(rep["academics.Attendance"]["updated"], 1)
         self.assertEqual(rep["academics.Attendance"]["created"], 0)
+
+    # ------------------------------------------------------------------ #
+    # Schema 2.3: LMSAssignment + LMSSubmission (coursework) round-trip   #
+    # ------------------------------------------------------------------ #
+    def test_payload_carries_homework_rows(self):
+        seed = self._seed_source_school_with_homework()
+        meta = capture_daily_snapshot(seed["school"])
+        restored = restore_from_snapshot(
+            Path(meta["primary_uri"]),
+            school_id=str(seed["school"].pk),
+            expected_sig=meta["signature_hex"],
+            target_school=seed["school"],  # idempotent re-apply onto same tenant
+        )
+        self.assertEqual(restored["schema_version"], SNAPSHOT_SCHEMA_VERSION)
+        tables = restored["tables"]
+        self.assertEqual(len(tables["academics.LMSAssignment"]), 1)
+        self.assertEqual(len(tables["academics.LMSSubmission"]), 1)
+        # Real field data, not counts.
+        self.assertEqual(
+            tables["academics.LMSAssignment"][0]["fields"]["title"],
+            "Fractions worksheet",
+        )
+        self.assertEqual(
+            tables["academics.LMSSubmission"][0]["fields"]["score"], "18.00"
+        )
+
+    def test_restore_materializes_homework_into_fresh_target(self):
+        seed = self._seed_source_school_with_homework()
+        source = seed["school"]
+        src_title = seed["assignment"].title
+        src_points = seed["assignment"].points_possible
+        src_score = seed["submission"].score
+
+        meta = capture_daily_snapshot(source)
+        self._purge_restorable_source_rows(source)
+
+        target_slug = f"tgt-{uuid.uuid4().hex[:10]}"
+        target = School.objects.create(
+            name="Recovered Coursework", slug=target_slug, subdomain=target_slug
+        )
+        self.assertEqual(LMSAssignment.objects.filter(school=target).count(), 0)
+        self.assertEqual(LMSSubmission.objects.filter(school=target).count(), 0)
+
+        result = restore_from_snapshot(
+            Path(meta["primary_uri"]),
+            school_id=str(source.pk),
+            expected_sig=meta["signature_hex"],
+            target_school=target,
+        )
+
+        # Coursework materialized under the target school.
+        self.assertEqual(LMSAssignment.objects.filter(school=target).count(), 1)
+        self.assertEqual(LMSSubmission.objects.filter(school=target).count(), 1)
+
+        tgt_assignment = LMSAssignment.objects.get(school=target)
+        self.assertEqual(tgt_assignment.title, src_title)
+        self.assertEqual(tgt_assignment.points_possible, src_points)
+        # Every FK parent remapped to the freshly restored row under the target.
+        self.assertEqual(tgt_assignment.classroom, Classroom.objects.get(school=target))
+        self.assertEqual(tgt_assignment.subject, Subject.objects.get(school=target))
+        self.assertEqual(tgt_assignment.teacher, TeacherProfile.objects.get(school=target))
+        self.assertEqual(tgt_assignment.term, Term.objects.get(school=target))
+        # The out-of-scope attachment file is cleared on restore.
+        self.assertFalse(tgt_assignment.attachment)
+
+        tgt_submission = LMSSubmission.objects.get(school=target)
+        self.assertEqual(tgt_submission.score, src_score)
+        # Both FKs remapped to restored parents; out-of-scope grader cleared.
+        self.assertEqual(tgt_submission.assignment_id, tgt_assignment.pk)
+        self.assertEqual(tgt_submission.student, StudentProfile.objects.get(school=target))
+        self.assertIsNone(tgt_submission.graded_by_id)
+
+        # Restore report is honest about creations.
+        rep = result["restored"]["tables"]
+        self.assertEqual(rep["academics.LMSAssignment"]["created"], 1)
+        self.assertEqual(rep["academics.LMSSubmission"]["created"], 1)
+
+    def test_restore_homework_is_idempotent(self):
+        seed = self._seed_source_school_with_homework()
+        source = seed["school"]
+        meta = capture_daily_snapshot(source)
+        self._purge_restorable_source_rows(source)
+        target_slug = f"tgt-{uuid.uuid4().hex[:10]}"
+        target = School.objects.create(
+            name="Recovered Coursework Twice", slug=target_slug, subdomain=target_slug
+        )
+        kwargs = dict(
+            school_id=str(source.pk),
+            expected_sig=meta["signature_hex"],
+            target_school=target,
+        )
+        restore_from_snapshot(Path(meta["primary_uri"]), **kwargs)
+        # Second apply must not duplicate the coursework rows.
+        second = restore_from_snapshot(Path(meta["primary_uri"]), **kwargs)
+        self.assertEqual(LMSAssignment.objects.filter(school=target).count(), 1)
+        self.assertEqual(LMSSubmission.objects.filter(school=target).count(), 1)
+        rep = second["restored"]["tables"]
+        self.assertEqual(rep["academics.LMSAssignment"]["updated"], 1)
+        self.assertEqual(rep["academics.LMSAssignment"]["created"], 0)
+        self.assertEqual(rep["academics.LMSSubmission"]["updated"], 1)
+        self.assertEqual(rep["academics.LMSSubmission"]["created"], 0)
 
     def test_tampered_blob_fails_closed_before_any_write(self):
         source = self._seed_source_school()
