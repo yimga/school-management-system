@@ -11,9 +11,22 @@ import logging
 from typing import Any, Dict, Optional
 
 from django.core.cache import cache
+from django.db import DatabaseError
 from django.utils import timezone
 
 logger = logging.getLogger(__name__)
+
+# Errors that must degrade a single persisted-usage read to 0 rather than blank
+# the whole cockpit (missing app, absent table, transient DB/cache fault).
+_PERSISTED_USAGE_ERRORS = (
+    ImportError,
+    AttributeError,
+    TypeError,
+    ValueError,
+    DatabaseError,
+    ConnectionError,
+    OSError,
+)
 
 # Limit definitions (platform-wide; tenant overrides via plan/entitlement later).
 WORKFLOW_RUNS_PER_DAY_PER_TENANT = 10_000
@@ -118,13 +131,71 @@ def get_platform_governor_limits() -> Dict[str, Any]:
     }
 
 
+def _persisted_tenant_usage(school_id: Any) -> Dict[str, int]:
+    """Read the three DB/ledger-backed usage counters from their AUTHORITATIVE
+    sources rather than a parallel governor cache:
+
+      * ``ai_invocations_today`` -> the billing ``UsageMeter`` daily rollup
+        (``apps.billing.models_metering.snapshot``) — the same ledger the
+        realtime meter and the AI-token flush task already write to.
+      * ``dynamic_field_count`` -> active, tenant-scoped
+        ``metadata.DynamicFieldDefinition`` rows.
+      * ``active_migrations`` -> in-flight ``migration_cloud.MigrationBundle``
+        applies (a bundle sits in ``APPLYING`` for the duration of its tenant
+        apply — the best-available concurrency signal; there is no purpose-built
+        concurrency counter to read).
+
+    Each source is guarded independently so a missing app/table degrades THAT
+    counter to 0 without blanking the cockpit. Returns zeros when the school
+    cannot be resolved (e.g. the no-context inspector branches pass no school).
+    """
+    out = {"active_migrations": 0, "dynamic_field_count": 0, "ai_invocations_today": 0}
+    if not school_id:
+        return out
+    try:
+        from apps.schools.models import School
+
+        school = School.objects.filter(pk=school_id).first()
+    except _PERSISTED_USAGE_ERRORS as e:
+        logger.debug("governor school resolve skip: %s", e)
+        return out
+    if school is None:
+        return out
+    try:
+        from apps.billing.models_metering import snapshot
+
+        out["ai_invocations_today"] = int(snapshot(school).get("ai_invocations", 0) or 0)
+    except _PERSISTED_USAGE_ERRORS as e:
+        logger.debug("governor ai_invocations read skip: %s", e)
+    try:
+        from apps.metadata.models import DynamicFieldDefinition
+
+        out["dynamic_field_count"] = DynamicFieldDefinition.objects.filter(
+            school=school, is_active=True
+        ).count()
+    except _PERSISTED_USAGE_ERRORS as e:
+        logger.debug("governor dynamic_field_count read skip: %s", e)
+    try:
+        from apps.migration_cloud.models import BundleStatus, MigrationBundle
+
+        out["active_migrations"] = MigrationBundle.objects.filter(
+            school=school, status=BundleStatus.APPLYING
+        ).count()
+    except _PERSISTED_USAGE_ERRORS as e:
+        logger.debug("governor active_migrations read skip: %s", e)
+    return out
+
+
 def get_governor_usage_for_tenant(
     tenant_id: Optional[str] = None,
     school_id: Optional[int] = None,
 ) -> Dict[str, Any]:
     """
     Return current usage vs limits for a tenant. API requests per minute are
-    wired to the tenant throttle cache; other counters remain placeholder until instrumented.
+    wired to the tenant throttle cache; workflow/dashboard counters to the
+    governor cache; and migration / dynamic-field / AI-invocation counters to
+    their authoritative DB + billing-ledger sources (see
+    ``_persisted_tenant_usage``).
     """
     limits = get_platform_governor_limits()
     # API requests: read from rate_limit throttle cache when tenant/school is known.
@@ -156,13 +227,14 @@ def get_governor_usage_for_tenant(
             )
         except (TypeError, AttributeError, ConnectionError, OSError) as e:
             logger.debug("governor dashboard_refreshes cache skip: %s", e)
+    persisted = _persisted_tenant_usage(school_id)
     usage = {
         "workflow_runs_today": workflow_runs_today,
         "api_requests_last_minute": api_requests_last_minute,
         "dashboard_refreshes_last_hour": dashboard_refreshes_last_hour,
-        "active_migrations": 0,
-        "dynamic_field_count": 0,
-        "ai_invocations_today": 0,
+        "active_migrations": persisted["active_migrations"],
+        "dynamic_field_count": persisted["dynamic_field_count"],
+        "ai_invocations_today": persisted["ai_invocations_today"],
     }
     status = {
         "workflow_runs_per_day": {
@@ -196,7 +268,13 @@ def get_governor_usage_for_tenant(
             "enforced": False,
         },
     }
-    note = "API requests from throttle; workflow/dashboard from governor cache (record_workflow_run/record_dashboard_refresh)."
+    note = (
+        "API requests from throttle; workflow/dashboard from governor cache "
+        "(record_workflow_run/record_dashboard_refresh); ai_invocations from the "
+        "billing UsageMeter daily rollup; dynamic_field_count from active "
+        "metadata.DynamicFieldDefinition rows; active_migrations from "
+        "migration_cloud bundles in APPLYING."
+    )
     return {
         "limits": limits,
         "usage": usage,
