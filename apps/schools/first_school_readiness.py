@@ -20,6 +20,10 @@ Checks (a tenant must satisfy ALL to be counted as operating-ready):
 * At least one ``Classroom`` is defined.
 * At least one active ``TeacherProfile`` linked to an enabled user.
 * At least one active ``StudentProfile``.
+* At least one active (non-suspended) OWNER membership — somebody who can
+  actually log in and administer the tenant. A school with full academic
+  scaffolding + roster + brand but no owner cannot be operated (nobody can
+  approve, manage the term, or receive critical comms), so it is NOT ready.
 * The School row itself has a non-blank ``name`` (the very first branding
   signal a parent sees in an email subject).
 
@@ -89,6 +93,12 @@ def _has_active_student(school) -> bool:
     return StudentProfile.objects.filter(school=school, is_active=True).exists()
 
 
+def _has_active_owner(school) -> bool:
+    from apps.schools.models import SchoolMembership
+
+    return SchoolMembership.has_active_owner(school)
+
+
 def _has_brand_name(school) -> bool:
     return bool((getattr(school, "name", "") or "").strip())
 
@@ -99,6 +109,7 @@ _CRITERIA = (
     ("classroom", _has_classroom),
     ("active_teacher", _has_active_teacher),
     ("active_student", _has_active_student),
+    ("active_owner", _has_active_owner),
     ("brand_name", _has_brand_name),
 )
 

@@ -1312,6 +1312,23 @@ class SchoolMembership(models.Model):
             suspended_at__isnull=True,
         ).exists()
 
+    @staticmethod
+    def has_active_owner(school) -> bool:
+        """True when ``school`` has at least one NON-SUSPENDED owner membership.
+
+        Ground truth for "someone can actually administer this tenant" — the same
+        condition the provisioning ownerless-activation guard uses to set/clear
+        ``school.settings['provisioning']['needs_owner']``. Readiness and setup-
+        health surfaces call this so a fully-scaffolded-but-ownerless tenant never
+        reads "ready"/"100% set up": a school with academics + roster + branding
+        but no owner has nobody to log in, approve, or receive critical comms.
+        """
+        if school is None or getattr(school, "pk", None) is None:
+            return False
+        return SchoolMembership.objects.filter(  # tenant-isolation-allow: owner-presence-check-school-scoped
+            school=school, is_school_owner=True, suspended_at__isnull=True
+        ).exists()
+
 
 class SignupVerification(models.Model):
     """

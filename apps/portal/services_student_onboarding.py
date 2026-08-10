@@ -13,6 +13,30 @@ from django.db import transaction
 logger = logging.getLogger(__name__)
 
 
+def classify_self_onboarding_dob(date_of_birth):
+    """Classify a self-onboarding date of birth under the school-as-agent basis.
+
+    Returns the :class:`AgeGateDecision` (``is_minor`` / ``age_band`` /
+    ``allowed``). The raw DOB is used ONLY to derive the coarse minor flag + age
+    band and is never returned, logged, or persisted — the same data
+    minimisation the operator wizard applies in
+    ``write_student_self_onboarding_step``. Consent basis is
+    ``SCHOOL_AUTHORIZATION`` (16 CFR §312.5(a)(1) school-as-agent), matching the
+    Unified-engine path so the legacy session flow classifies student minors
+    identically. ``age_unknown`` (no DOB) is non-blocking.
+    """
+    from apps.compliance.childrens_privacy import (
+        ConsentBasis,
+        derive_age,
+        evaluate_coppa_gate,
+    )
+
+    return evaluate_coppa_gate(
+        age=derive_age(date_of_birth) if date_of_birth else None,
+        consent_basis=ConsentBasis.SCHOOL_AUTHORIZATION,
+    )
+
+
 def create_student_from_wizard(*, school, wizard_payload, actor_user_id=None) -> dict:
     """Create a student profile (and a STUDENT user when an email is supplied).
 

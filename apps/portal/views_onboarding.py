@@ -3,9 +3,12 @@ Teacher and Student Onboarding Views
 Separated for better organization
 """
 
+import logging
+
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest
 from django import forms
 
@@ -16,6 +19,8 @@ from apps.platform_runtime.config_resolver import get_effective_config
 from apps.siteconfig.models import FormDraft
 from .runtime_helpers import get_policy_for_request
 from .forms import TeacherOnboardingForm, StudentOnboardingForm
+
+logger = logging.getLogger(__name__)
 
 FORM_DRAFT_KEY_STUDENT_ONBOARDING = "student_onboarding"
 
@@ -200,9 +205,18 @@ def teacher_onboarding_wizard(request: HttpRequest):
     )
 
 
+@login_required
 def student_onboarding_wizard(request: HttpRequest):
     """
     Multi-step wizard for student pre-registration.
+
+    Login-required: the default path redirects to the Unified engine wizard,
+    which is itself ``@login_required`` — so this surface is school-mediated. The
+    ``?legacy=1`` opt-out below used to render + create for ANONYMOUS visitors,
+    silently bypassing that gate (an unauthenticated StudentProfile-writing +
+    guardian-invite-emailing endpoint, and a school-as-agent COPPA basis that an
+    anonymous submitter cannot honestly claim). Gating the view holds the legacy
+    branch to the same auth bar as the engine path it falls back to.
 
     Steps:
     1. Basic Information (name, DOB, gender, place of birth)
@@ -343,35 +357,67 @@ def student_onboarding_wizard(request: HttpRequest):
                 # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
                 if not academic_year:
                     academic_year = AcademicYear.objects.filter(is_active=True).first()
-                try:
-                    student = StudentProfile.objects.create(
-                        first_name=form.cleaned_data["first_name"],
-                        last_name=form.cleaned_data["last_name"],
-                        date_of_birth=form.cleaned_data.get("date_of_birth"),
-                        gender=form.cleaned_data.get("gender"),
-                        place_of_birth=form.cleaned_data.get("place_of_birth", ""),
-                        academic_year=academic_year,
-                        specialty=form.cleaned_data.get("specialty"),
-                        classroom=form.cleaned_data.get("classroom"),
-                        admission_number=form.cleaned_data.get(
-                            "admission_number", ""
-                        ).strip()
-                        or None,
-                        parent_phone=form.cleaned_data.get("parent_phone", ""),
-                        referral_code=form.cleaned_data.get("referral_code", "").strip()
-                        or None,
-                        status=StudentProfile.Status.NEW,
-                        is_active=True,
+                # COPPA / children's-privacy parity with the Unified-engine path.
+                # This self-onboarding surface is school-mediated (school-as-agent,
+                # 16 CFR §312.5(a)(1)) — the same basis the operator producer
+                # stamps — so a student minor is permitted, but we classify at the
+                # one point the raw DOB is available and then DROP it: the raw date
+                # of birth is never persisted on the pre-registration profile (data
+                # minimisation), matching create_student_from_wizard, which never
+                # stores it. A basis-less minor is refused rather than silently
+                # provisioned. Closes the legacy-branch bypass that stored raw DOB
+                # and skipped the gate.
+                from .services_student_onboarding import (
+                    classify_self_onboarding_dob,
+                )
+
+                coppa_decision = classify_self_onboarding_dob(
+                    form.cleaned_data.get("date_of_birth")
+                )
+                if not coppa_decision.allowed:
+                    messages.error(
+                        request,
+                        "This registration needs guardian consent before it can be "
+                        "completed. Please contact the school to enrol this student.",
                     )
-                except forms.ValidationError as cap_error:
-                    # A plan usage cap (apps/schools/plan_limits.py) raises here on the
-                    # student that would breach the limit. It is a user-facing "upgrade
-                    # to add more" message, not a server error — surface it via the
-                    # messages framework and fall through to re-render step 5. The
-                    # already-set-up school keeps working; only this new enrolment is
-                    # refused. forms.ValidationError IS django.core's ValidationError.
-                    messages.error(request, "; ".join(cap_error.messages))
                     student = None
+                else:
+                    try:
+                        student = StudentProfile.objects.create(
+                            first_name=form.cleaned_data["first_name"],
+                            last_name=form.cleaned_data["last_name"],
+                            gender=form.cleaned_data.get("gender"),
+                            place_of_birth=form.cleaned_data.get("place_of_birth", ""),
+                            academic_year=academic_year,
+                            specialty=form.cleaned_data.get("specialty"),
+                            classroom=form.cleaned_data.get("classroom"),
+                            admission_number=form.cleaned_data.get(
+                                "admission_number", ""
+                            ).strip()
+                            or None,
+                            parent_phone=form.cleaned_data.get("parent_phone", ""),
+                            referral_code=form.cleaned_data.get("referral_code", "").strip()
+                            or None,
+                            status=StudentProfile.Status.NEW,
+                            is_active=True,
+                        )
+                    except forms.ValidationError as cap_error:
+                        # A plan usage cap (apps/schools/plan_limits.py) raises here on the
+                        # student that would breach the limit. It is a user-facing "upgrade
+                        # to add more" message, not a server error — surface it via the
+                        # messages framework and fall through to re-render step 5. The
+                        # already-set-up school keeps working; only this new enrolment is
+                        # refused. forms.ValidationError IS django.core's ValidationError.
+                        messages.error(request, "; ".join(cap_error.messages))
+                        student = None
+                    if student is not None and coppa_decision.is_minor:
+                        # PII-free evidence: no raw DOB, only the coarse band + basis.
+                        logger.info(
+                            "coppa.minor_account_provisioned via=legacy_self_onboarding "
+                            "school=%s band=%s basis=school_authorization",
+                            getattr(school, "pk", None),
+                            coppa_decision.age_band,
+                        )
                 if student is not None:
                     photo = _validated_profile_photo(request)
                     if photo:

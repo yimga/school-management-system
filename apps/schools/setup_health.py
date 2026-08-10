@@ -47,6 +47,21 @@ def setup_health_score(school: Any, *, user: Any = None) -> dict[str, Any]:
             checks.append(("plan", True, "Plan assigned"))
         else:
             checks.append(("plan", False, "Plan not assigned"))
+        # Owner presence: a school with branding + plan + runtime but no active
+        # owner has nobody who can log in, approve, or receive critical comms —
+        # it is not fully set up. Query ground truth (a non-suspended owner
+        # membership), the same signal the provisioning ownerless-activation
+        # guard uses, so this never reads "100%" while nobody can administer it.
+        max_score += 25
+        from apps.schools.models import SchoolMembership
+
+        if SchoolMembership.has_active_owner(school):
+            score += 25
+            checks.append(("owner", True, "Owner assigned"))
+        else:
+            checks.append(
+                ("owner", False, "No owner assigned — assign an owner to enable login")
+            )
     if max_score == 0:
         max_score = 1
     return {
@@ -91,5 +106,11 @@ def next_best_action(school: Any, step: int | None = None) -> dict[str, Any]:
                     "action": "assign_dashboard",
                     "label": "Assign dashboard/workflow",
                     "step": 4,
+                }
+            if name == "owner":
+                return {
+                    "action": "assign_owner",
+                    "label": "Assign an owner",
+                    "step": 5,
                 }
     return {"action": "launch", "label": "Launch checklist", "step": 8}

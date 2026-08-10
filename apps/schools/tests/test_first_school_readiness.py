@@ -5,7 +5,7 @@ from __future__ import annotations
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
-from apps.schools.models import School
+from apps.schools.models import School, SchoolMembership
 from apps.schools.first_school_readiness import (
     assess_first_school_readiness,
     FirstSchoolReadinessReport,
@@ -64,6 +64,14 @@ class FirstSchoolReadinessTests(TestCase):
         StudentProfile.objects.create(
             school=school, first_name="A", last_name="B", is_active=True
         )
+        # An operable school needs an owner who can administer it (the
+        # active_owner criterion), so grant one before asserting ready.
+        owner_user = User.objects.create_user(
+            username="owner_ready", email="ow@example.com", password="pwd"
+        )
+        SchoolMembership.objects.create(
+            school=school, user=owner_user, is_school_owner=True
+        )
         report = assess_first_school_readiness()
         self.assertTrue(report.ready, f"Should be ready; not-ready details: {report.tenants_not_ready!r}")
         self.assertEqual(report.schools_operating_ready, 1)
@@ -98,5 +106,98 @@ class FirstSchoolReadinessTests(TestCase):
         StudentProfile.objects.create(
             school=school, first_name="C", last_name="D", is_active=True
         )
+        owner_user = User.objects.create_user(
+            username="owner_ready2", email="ow2@example.com", password="pwd"
+        )
+        SchoolMembership.objects.create(
+            school=school, user=owner_user, is_school_owner=True
+        )
         report = assess_first_school_readiness()
         self.assertEqual(report.issue_count(), 0)
+
+    def test_fully_scaffolded_but_ownerless_school_is_not_operating_ready(self):
+        """A school with full academics + roster + brand but NO active owner
+        cannot be administered, so it must read NOT operating-ready with
+        ``active_owner`` in its missing pieces.
+
+        Regression seal for the ownerless-honesty residual: before the
+        active_owner criterion, this exact school read fully ready — a tenant
+        nobody can log into or govern was presented as go-live.
+        """
+        from apps.academics.models import AcademicYear, Term, Classroom
+        from apps.people.models import StudentProfile, TeacherProfile, Department
+
+        User = get_user_model()
+        school = School.objects.create(
+            name="Ownerless School", slug="ownerless-w7", subdomain="ownerless-w7-sub"
+        )
+        year = AcademicYear.objects.create(
+            school=school, name="2025/2026", start_date="2025-09-01", end_date="2026-06-30"
+        )
+        Term.objects.create(
+            school=school, academic_year=year, name="Term 1",
+            start_date="2025-09-01", end_date="2025-12-15",
+        )
+        dept = Department.objects.create(school=school, name="Default")
+        Classroom.objects.create(
+            school=school, name="Form 1", academic_year=year,
+            department=dept, code="FORM-1-OWNERLESS",
+        )
+        teacher_user = User.objects.create_user(
+            username="teacher_ownerless", email="tro@example.com", password="pwd"
+        )
+        TeacherProfile.objects.create(school=school, user=teacher_user, is_active=True)
+        StudentProfile.objects.create(
+            school=school, first_name="E", last_name="F", is_active=True
+        )
+        # Deliberately create NO owner membership.
+        report = assess_first_school_readiness()
+        not_ready_by_slug = {t["slug"]: t for t in report.tenants_not_ready}
+        self.assertIn(
+            "ownerless-w7", not_ready_by_slug,
+            "A fully-scaffolded but ownerless school must be flagged not-ready.",
+        )
+        self.assertIn("active_owner", not_ready_by_slug["ownerless-w7"]["missing"])
+        self.assertNotIn("ownerless-w7", report.tenants_ready)
+
+    def test_suspended_owner_does_not_satisfy_active_owner(self):
+        """Only a NON-suspended owner counts — a school whose sole owner is
+        suspended has nobody with live authority and must read not-ready."""
+        from apps.academics.models import AcademicYear, Term, Classroom
+        from apps.people.models import StudentProfile, TeacherProfile, Department
+        from django.utils import timezone
+
+        User = get_user_model()
+        school = School.objects.create(
+            name="Suspended Owner School", slug="susp-owner-w7", subdomain="susp-owner-w7-sub"
+        )
+        year = AcademicYear.objects.create(
+            school=school, name="2025/2026", start_date="2025-09-01", end_date="2026-06-30"
+        )
+        Term.objects.create(
+            school=school, academic_year=year, name="Term 1",
+            start_date="2025-09-01", end_date="2025-12-15",
+        )
+        dept = Department.objects.create(school=school, name="Default")
+        Classroom.objects.create(
+            school=school, name="Form 1", academic_year=year,
+            department=dept, code="FORM-1-SUSP",
+        )
+        teacher_user = User.objects.create_user(
+            username="teacher_susp", email="trs@example.com", password="pwd"
+        )
+        TeacherProfile.objects.create(school=school, user=teacher_user, is_active=True)
+        StudentProfile.objects.create(
+            school=school, first_name="G", last_name="H", is_active=True
+        )
+        owner_user = User.objects.create_user(
+            username="owner_susp", email="ows@example.com", password="pwd"
+        )
+        SchoolMembership.objects.create(
+            school=school, user=owner_user, is_school_owner=True,
+            suspended_at=timezone.now(),
+        )
+        report = assess_first_school_readiness()
+        not_ready_by_slug = {t["slug"]: t for t in report.tenants_not_ready}
+        self.assertIn("susp-owner-w7", not_ready_by_slug)
+        self.assertIn("active_owner", not_ready_by_slug["susp-owner-w7"]["missing"])
