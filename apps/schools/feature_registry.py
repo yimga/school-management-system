@@ -7,6 +7,8 @@ from __future__ import annotations
 
 from typing import TypedDict
 
+from django.db import DatabaseError
+
 from apps.policies_rules.models import FeatureToggleDefinition
 
 
@@ -308,7 +310,46 @@ def get_available_modules():
 
 
 def get_module_by_code(code: str) -> ModuleSpec | None:
-    for m in FEATURE_REGISTRY:
-        if m.get("code") == code:
-            return m
-    return None
+    """Return the spec for one module code, PREFERRING the FeatureToggleDefinition
+    overlay so it is consistent with ``get_available_modules``.
+
+    An operator edit to a module's label / description / price (via the
+    FeatureToggleDefinition editor) is reflected here; the static FEATURE_REGISTRY
+    entry is the code-level fallback when no active row exists yet or the DB is
+    unavailable. Operator-added custom modules (a row with no static entry) resolve
+    too. ``impact_bullets`` stay code-sourced — they have no model column.
+    """
+    c = (code or "").strip().lower()
+    if not c:
+        return None
+    static: ModuleSpec | None = next(
+        (
+            dict(m)
+            for m in FEATURE_REGISTRY
+            if str(m.get("code") or "").strip().lower() == c
+        ),
+        None,
+    )
+    try:
+        row = (
+            FeatureToggleDefinition.objects.filter(
+                key=_definition_key(c),
+                category="modules",
+                is_active=True,
+            )
+            .order_by("key")
+            .first()
+        )
+    except (DatabaseError, RuntimeError):
+        # Never crash a read path on a DB/app-registry hiccup — fall back to code.
+        return static
+    if row is None:
+        return static
+    metadata = dict(getattr(row, "metadata", None) or {})
+    fallback = static or {}
+    return {
+        "code": c,
+        "name": str(row.label or fallback.get("name") or c.title()),
+        "description": str(row.description or fallback.get("description") or ""),
+        "price": str(metadata.get("price") or fallback.get("price") or "Free"),
+    }
