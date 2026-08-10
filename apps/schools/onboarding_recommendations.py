@@ -79,6 +79,9 @@ def build_onboarding_recommendations(
     connectivity = str(profile.get("connectivity_profile") or "mixed").strip().lower()
     payment_profile = str(profile.get("payment_profile") or "basic").strip().lower()
     go_live_timeline = str(profile.get("go_live_timeline") or "exploring").strip().lower()
+    session_pattern = str(profile.get("session_pattern") or "single").strip().lower()
+    curriculum_board = str(profile.get("curriculum_board") or "").strip().lower()
+    governance_profile = str(profile.get("governance_profile") or "standard").strip().lower()
     migration_vendor = str(profile.get("migration_vendor") or "").strip().lower()
     migration_domains = list(dict.fromkeys(
         str(value).strip().lower()
@@ -90,6 +93,9 @@ def build_onboarding_recommendations(
         "connectivity_profile": connectivity,
         "payment_profile": payment_profile,
         "go_live_timeline": go_live_timeline,
+        "session_pattern": session_pattern,
+        "curriculum_board": curriculum_board,
+        "governance_profile": governance_profile,
         "migration_vendor": migration_vendor,
         "migration_domains": migration_domains,
     })
@@ -109,6 +115,12 @@ def build_onboarding_recommendations(
         modules += ["payments", "reconciliation"]
     if connectivity == "limited":
         modules += ["offline-sync", "continuity-operations"]
+    if session_pattern in {"double", "continuous"}:
+        modules += ["multi-session-timetable"]
+    if curriculum_board in {"cambridge", "ib"}:
+        modules += ["international-curriculum"]
+    if governance_profile == "strict":
+        modules += ["compliance-governance", "data-residency-controls"]
     if migration_vendor or migration_domains:
         modules += ["guided-data-migration", "migration-reconciliation"]
     modules = list(dict.fromkeys(modules))
@@ -136,6 +148,9 @@ def build_onboarding_recommendations(
         "languages": languages or ["country-default"],
         "dashboard": "network-executive" if multi_campus else "role-based-school-operations",
         "local_first": "offline-ready edge profile",
+        "session_pattern": session_pattern,
+        "curriculum_board": curriculum_board or "national-default",
+        "governance": "strict-compliance-profile" if governance_profile == "strict" else "standard-compliance-profile",
         "subscription_plan": subscription_plan,
         "migration": {
             "vendor": migration_vendor or "not-declared",

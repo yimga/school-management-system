@@ -17,6 +17,7 @@
 <script defer src="{% static 'js/_pages/rmc-signup-localization-prefetch.js' %}"></script>
 <script defer src="{% static 'js/_pages/rmc-signup-country-adapter.js' %}"></script>
 <script defer src="{% static 'js/rmc-signup-balanced-v3.js' %}?v=20260809-admin-full-canvas-v170"></script>
+<script defer src="{% static 'js/rmc-signup-decisions.js' %}?v=20260809-progressive-decisions-v1"></script>
 {% endblock %}
 
 {% block content %}
@@ -289,7 +290,7 @@
 
       <fieldset class="mb-3 rmc-signup-field" data-rmc-signup-field="institution_profile">
         <legend class="rmc-signup-field__label-text h6">{% trans "Help us configure your workspace" %}</legend>
-        <p class="small text-muted mb-3">{% trans "Four quick answers create a useful starting recommendation. Optional details improve the fit without making signup harder." %}</p>
+        <p class="small text-muted mb-3">{% trans "A few quick answers create a working recommendation. We pre-select the best option for each decision from your country and school profile — review and change anything before you provision." %}</p>
         <div class="rmc-signup-profile-layout">
         <div class="row g-3 rmc-signup-profile-fields">
           <div class="col-sm-6">
@@ -297,10 +298,6 @@
             <select class="form-select" id="funding_type" name="funding_type">
               <option value="">{% trans "Choose later" %}</option><option value="public">{% trans "Public" %}</option><option value="private">{% trans "Private" %}</option><option value="mission">{% trans "Faith / mission" %}</option><option value="charter">{% trans "Charter" %}</option><option value="nonprofit">{% trans "Nonprofit" %}</option><option value="other">{% trans "Other" %}</option>
             </select>
-          </div>
-          <div class="col-sm-6">
-            <label class="form-label" for="organization_scope">{% trans "Organization" %}</label>
-            <select class="form-select" id="organization_scope" name="organization_scope"><option value="single">{% trans "One school / campus" %}</option><option value="district">{% trans "District" %}</option><option value="network">{% trans "School network" %}</option></select>
           </div>
           <div class="col-sm-6"><label class="form-label" for="student_capacity">{% trans "Expected students" %}</label><input class="form-control" id="student_capacity" name="student_capacity" type="number" min="0" max="1000000" inputmode="numeric" placeholder="500"></div>
           <div class="col-sm-6">
@@ -317,16 +314,63 @@
             <li data-rmc-recommendation-modules>{% trans "Core records, attendance and communication" %}</li>
           </ul>
           <small>{% trans "Recommendation only. You review it before any plan or module is activated." %}</small>
+          {% if decision_auto %}
+          <small class="d-block mt-2" data-rmc-decision-autosummary>
+            {% blocktrans count auto_count=decision_auto|length trimmed %}
+            We pre-set {{ auto_count }} option automatically from your country — review it below.
+            {% plural %}
+            We pre-set {{ auto_count }} options automatically from your country — review them below.
+            {% endblocktrans %}
+          </small>
+          {% endif %}
         </aside>
         </div>
+
+        {% comment %}Progressive decision model (2026-08-09). Each decision is
+           rendered from apps.schools.onboarding_decisions.build_onboarding_decisions:
+           the recommended option is pre-selected and badged, and decisions the
+           earlier answers already settle carry an "Auto" badge + a plain-language
+           reason (still editable — review before provision). rmc-signup-decisions.js
+           refreshes the badges/pre-selection from /signup/decisions/ as earlier
+           answers change, using the SAME engine, so nothing drifts. Names and
+           value codes are unchanged, so the existing recommendation JS keeps
+           reading them. No new rmc-* classes (undefined-css gate) — Bootstrap
+           subtle badges only.{% endcomment %}
+        {% if decisions.dimensions %}
+        <div class="mt-3" data-rmc-decisions data-rmc-decisions-endpoint="{% url 'signup_decisions_preview' %}"
+             data-rmc-reco-label="{% trans 'Recommended' %}" data-rmc-auto-label="{% trans 'Auto' %}">
+          <div class="rmc-signup-field__label-row">
+            <span class="rmc-signup-field__label-text">{% trans "How will this school operate?" %}</span>
+            <span class="rmc-signup-field__optional">({% trans "recommended options pre-selected" %})</span>
+          </div>
+          <div class="row g-3 mt-0" data-rmc-decisions-grid>
+            {% for d in decisions.dimensions %}
+            <div class="col-sm-6" data-rmc-decision="{{ d.key }}"{% if not d.ask %} data-rmc-decision-auto="1"{% endif %}>
+              <label class="form-label d-flex align-items-center gap-1" for="dec_{{ d.key }}">
+                <span>{{ d.label }}</span>
+                {% if not d.ask %}<span class="badge rounded-pill bg-info-subtle text-info-emphasis" data-rmc-decision-autobadge>{% trans "Auto" %}</span>{% endif %}
+              </label>
+              <select class="form-select" id="dec_{{ d.key }}" name="{{ d.key }}"
+                      data-rmc-decision-select data-rmc-recommended="{{ d.recommended_value }}"
+                      {% if d.help %}aria-describedby="dec_{{ d.key }}_help"{% endif %}>
+                {% for o in d.options %}
+                <option value="{{ o.value }}"{% if o.value == d.recommended_value %} selected{% endif %}>{{ o.label }}{% if o.value == d.recommended_value %} · {% trans "Recommended" %}{% endif %}</option>
+                {% endfor %}
+              </select>
+              <div class="form-text" id="dec_{{ d.key }}_help" data-rmc-decision-note>
+                {% if not d.ask and d.auto_reason %}{{ d.auto_reason }}{% elif d.help %}{{ d.help }}{% endif %}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
         <details class="rmc-signup-fine-tune">
           <summary>{% trans "Fine-tune my recommendation" %} <span>{% trans "Optional · about 30 seconds" %}</span></summary>
           <div class="rmc-signup-fine-tune__grid">
             <div><label class="form-label" for="campus_count">{% trans "Campuses" %}</label><input class="form-control" id="campus_count" name="campus_count" type="number" min="1" max="10000" inputmode="numeric" value="{{ campus_count|default:'' }}" placeholder="1"></div>
             <div><label class="form-label" for="staff_count">{% trans "Expected staff" %}</label><input class="form-control" id="staff_count" name="staff_count" type="number" min="0" max="1000000" inputmode="numeric" value="{{ staff_count|default:'' }}" placeholder="50"></div>
-            <div><label class="form-label" for="operating_model">{% trans "Operating model" %}</label><select class="form-select" id="operating_model" name="operating_model"><option value="day">{% trans "Day school" %}</option><option value="boarding">{% trans "Boarding school" %}</option><option value="mixed">{% trans "Day and boarding" %}</option></select></div>
-            <div><label class="form-label" for="connectivity_profile">{% trans "Connectivity" %}</label><select class="form-select" id="connectivity_profile" name="connectivity_profile"><option value="mixed">{% trans "Mixed / recommend for me" %}</option><option value="reliable">{% trans "Reliable internet" %}</option><option value="limited">{% trans "Often limited or offline" %}</option></select></div>
-            <div><label class="form-label" for="payment_profile">{% trans "Fee collection" %}</label><select class="form-select" id="payment_profile" name="payment_profile"><option value="basic">{% trans "Simple or not needed" %}</option><option value="online">{% trans "Online payments" %}</option><option value="multi-channel">{% trans "Online, cash and mobile money" %}</option></select></div>
             <div><label class="form-label" for="go_live_timeline">{% trans "Target go-live" %}</label><select class="form-select" id="go_live_timeline" name="go_live_timeline"><option value="exploring">{% trans "Exploring" %}</option><option value="90-days">{% trans "Within 90 days" %}</option><option value="30-days">{% trans "Within 30 days" %}</option><option value="urgent">{% trans "As soon as possible" %}</option></select></div>
           </div>
         </details>

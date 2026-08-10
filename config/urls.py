@@ -129,6 +129,7 @@ from apps.schools.signup_views import (
     signup_school,
     signup_slug_check,
     signup_slug_suggest,
+    signup_decisions_preview,
     verify_signup,
     resend_signup_verification,
     accept_school_invite,
@@ -1776,6 +1777,7 @@ urlpatterns = [
     # regional_marketing_landing (HTML) instead of the JSON views.
     path("signup/slug-check/", signup_slug_check, name="signup_slug_check"),
     path("signup/slug-suggest/", signup_slug_suggest, name="signup_slug_suggest"),
+    path("signup/decisions/", signup_decisions_preview, name="signup_decisions_preview"),
     *[
         path(
             f"{prefix}/",

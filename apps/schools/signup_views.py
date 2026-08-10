@@ -200,6 +200,37 @@ def _signup_localization_json(request: HttpRequest, cc: str, country_pack: dict)
     return signup_localization_json(request, cc, country_pack)
 
 
+def _signup_decisions_model(
+    country_code: str,
+    country_pack: dict | None = None,
+    *,
+    cycles: list[str] | None = None,
+    funding: str = "",
+    campus_count: int = 0,
+) -> dict:
+    """Progressive decision model for the setup step — recommended option per
+    decision, auto-applied defaults, and which questions to even ask.
+
+    Pure and DB-free; the ``/signup/decisions/`` endpoint calls the same engine,
+    so the server-rendered "Recommended" badges match the ones the form redraws
+    live as earlier answers change. Region is lifted from the resolved country
+    pack so connectivity/governance defaults sharpen without another lookup.
+    """
+    from apps.schools.onboarding_decisions import build_onboarding_decisions
+
+    region_key = ""
+    source = str((country_pack or {}).get("_source") or "")
+    if source.startswith("regional:"):
+        region_key = source.split(":", 1)[1]
+    return build_onboarding_decisions(
+        country_code=country_code or "",
+        region_key=region_key,
+        education_cycles=list(cycles or []),
+        funding_type=funding or "",
+        institution_profile={"campus_count": campus_count or 0},
+    )
+
+
 # Wave L7 (v3.61.8 — 2026-05-22): public signup 2.0.
 # - inline migration vendor picker (drives lifecycle.services_migration
 #   auto-launch hook by writing settings['migration_intent'] at create time)
@@ -424,12 +455,20 @@ def signup_school(request: HttpRequest):
         if not tp:
             tp = get_default_calendar_code(cc)
         signup_localization_json = _signup_localization_json(request, cc, country_pack)
+        decisions_model = _signup_decisions_model(cc, country_pack)
         return render(
             request,
             "schools/signup_school.html",
             {
                 "country_code": cc,
                 "term_preset": tp,
+                # Progressive decision model: recommended option per decision,
+                # country-auto-applied defaults, and the ask/skip split. The
+                # template pre-selects + badges from this; JS refreshes it from
+                # /signup/decisions/ as earlier answers change.
+                "decisions": decisions_model,
+                "decision_recommended": decisions_model["recommended"],
+                "decision_auto": decisions_model["auto_applied"],
                 "language_code": language_code,
                 "language_codes_csv": language_codes_csv,
                 "primary_language_code": primary_language_code,
@@ -576,6 +615,19 @@ def signup_school(request: HttpRequest):
     go_live_timeline = (request.POST.get("go_live_timeline") or "exploring").strip().lower()
     if go_live_timeline not in {"exploring", "90-days", "30-days", "urgent"}:
         go_live_timeline = "exploring"
+    # Progressive nuance dimensions (v-decisions). Each defaults to the neutral
+    # option; the setup step pre-selects the engine's recommended value, but we
+    # still validate against the allowed set so a hand-crafted POST can't inject
+    # an unknown code into the recommendation fingerprint.
+    session_pattern = (request.POST.get("session_pattern") or "single").strip().lower()
+    if session_pattern not in {"single", "double", "continuous"}:
+        session_pattern = "single"
+    curriculum_board = (request.POST.get("curriculum_board") or "").strip().lower()[:32]
+    if not curriculum_board.replace("-", "").isalnum():
+        curriculum_board = ""
+    governance_profile = (request.POST.get("governance_profile") or "standard").strip().lower()
+    if governance_profile not in {"standard", "strict"}:
+        governance_profile = "standard"
 
     errors = []
     if not name:
@@ -599,6 +651,13 @@ def signup_school(request: HttpRequest):
         for e in errors:
             messages.error(request, e)
         country_pack = resolve_country_pack(country_code)
+        decisions_model = _signup_decisions_model(
+            country_code,
+            country_pack,
+            cycles=list(validated_types),
+            funding=funding_type,
+            campus_count=campus_count,
+        )
         return render(
             request,
             "schools/signup_school.html",
@@ -612,6 +671,12 @@ def signup_school(request: HttpRequest):
                 "marketing_demo_tenant_url": _resolved_marketing_demo_tenant_url(),
                 "signup_countries": _signup_countries(),
                 "country_pack": country_pack,
+                # Recompute the decision model from what the operator already
+                # entered so their pre-selected recommendations survive a
+                # validation bounce instead of resetting to the country default.
+                "decisions": decisions_model,
+                "decision_recommended": decisions_model["recommended"],
+                "decision_auto": decisions_model["auto_applied"],
                 "signup_localization_json": _signup_localization_json(
                     request, country_code, country_pack
                 ),
@@ -640,6 +705,13 @@ def signup_school(request: HttpRequest):
             )
         messages.error(request, errors[0])
         country_pack = resolve_country_pack(country_code)
+        decisions_model = _signup_decisions_model(
+            country_code,
+            country_pack,
+            cycles=list(validated_types),
+            funding=funding_type,
+            campus_count=campus_count,
+        )
         return render(
             request,
             "schools/signup_school.html",
@@ -659,6 +731,11 @@ def signup_school(request: HttpRequest):
                 # v3.62.2: country pack on slug-taken re-render so cards
                 # stay localized in the error state.
                 "country_pack": country_pack,
+                # Keep the recommended-option pre-selection through the
+                # slug-taken bounce as well.
+                "decisions": decisions_model,
+                "decision_recommended": decisions_model["recommended"],
+                "decision_auto": decisions_model["auto_applied"],
                 "signup_localization_json": _signup_localization_json(
                     request, country_code, country_pack
                 ),
@@ -716,6 +793,9 @@ def signup_school(request: HttpRequest):
         "connectivity_profile": connectivity_profile,
         "payment_profile": payment_profile,
         "go_live_timeline": go_live_timeline,
+        "session_pattern": session_pattern,
+        "curriculum_board": curriculum_board,
+        "governance_profile": governance_profile,
         # Migration intent participates in the same versioned recommendation
         # fingerprint as the operating profile. This keeps the blueprint/module
         # handoff reproducible instead of storing import choices in a detached
@@ -2658,3 +2738,62 @@ def signup_slug_suggest(request: HttpRequest) -> JsonResponse:
     # each group (Python's sort is stable) — the cleanest free slug leads.
     results.sort(key=lambda item: not item["available"])
     return JsonResponse({"name": name, "suggestions": results[:4]})
+
+
+@require_GET
+@ratelimit(key="ip", rate="120/m", method="GET", block=True)
+def signup_decisions_preview(request: HttpRequest) -> JsonResponse:
+    """Live progressive decision model for the setup step (recommended flags).
+
+    Recomputes, from the SAME deterministic engine the page server-renders,
+    which option is recommended for each configuration decision, which
+    decisions the answers-so-far already settle (auto-applied, not asked), and
+    which no longer apply. The signup form calls this as earlier answers change
+    (country, cycles, school model, campuses) so the "Recommended" badges and
+    pre-selection track the operator's input without re-loading the page.
+
+    Read-only and DB-free by design: idempotent GET (no CSRF), no tenant scope
+    (public onboarding), and no external / AI call — the flags are identical on
+    the edge and in the cloud. Rate-limited like the sibling slug endpoints so
+    the front door never becomes a compute amplifier under shared-NAT load.
+    """
+    from apps.schools.onboarding_decisions import build_onboarding_decisions
+
+    country_code = (
+        request.GET.get("country_code") or request.GET.get("country") or ""
+    ).strip()[:2]
+    funding = (
+        request.GET.get("funding") or request.GET.get("funding_type") or ""
+    ).strip().lower()[:24]
+    cycles_raw = (request.GET.get("cycles") or "").strip()
+    cycles = [
+        token.strip().lower()
+        for token in cycles_raw.replace("|", ",").split(",")
+        if token.strip()
+    ][:12]
+    try:
+        campus_count = min(10_000, max(0, int(request.GET.get("campus_count") or 0)))
+    except (TypeError, ValueError):
+        campus_count = 0
+    # Region key sharpens connectivity/governance defaults when the specific
+    # country code is unlisted. Resolved in-memory from the country pack, never
+    # from the DB, so this stays a zero-query endpoint.
+    region_key = (request.GET.get("region") or "").strip().lower()[:48]
+    if not region_key and country_code:
+        try:
+            from apps.siteconfig.country_localization_service import resolve_country_pack
+
+            source = str(resolve_country_pack(country_code).get("_source") or "")
+            if source.startswith("regional:"):
+                region_key = source.split(":", 1)[1]
+        except Exception:  # pragma: no cover - defensive; pack resolution is best-effort
+            region_key = ""
+
+    model = build_onboarding_decisions(
+        country_code=country_code,
+        region_key=region_key,
+        education_cycles=cycles,
+        funding_type=funding,
+        institution_profile={"campus_count": campus_count},
+    )
+    return JsonResponse(model)
