@@ -1,9 +1,11 @@
 """check_edge_readiness — sovereign/offline edge deployment config validator."""
 from io import StringIO
 
+from pathlib import Path
+
 from django.core.management import call_command
 from django.core.management.base import CommandError
-from django.test import TestCase, override_settings
+from django.test import SimpleTestCase, TestCase, override_settings
 
 _LONG_SECRET = "x" * 48
 
@@ -164,3 +166,36 @@ class CheckEdgeReadinessTests(TestCase):
     def test_edge_profile_without_ollama_endpoint_warns(self):
         output, err = self._run()
         self.assertIn("OLLAMA_ENDPOINT is unset", output)
+
+
+class EdgeReadinessBringUpWiringSealTests(SimpleTestCase):
+    """The readiness gate above is well-tested but useless if the box never runs it.
+
+    The self-host web entrypoint must INVOKE check_edge_readiness at boot so its
+    findings (silent-dropped mail, the plain-HTTP LAN cookie trap, wiped media, a
+    placeholder SECRET_KEY, dead broker-less drainers) surface in the container
+    logs instead of being a manual command an operator has to discover. This seal
+    goes red if the wiring is ever dropped from the entrypoint.
+    """
+
+    def _entrypoint(self) -> str:
+        root = Path(__file__).resolve().parents[3]
+        return (root / "deploy" / "selfhost" / "entrypoint.web.sh").read_text(
+            encoding="utf-8"
+        )
+
+    def test_selfhost_entrypoint_runs_check_edge_readiness(self):
+        entry = self._entrypoint()
+        self.assertIn(
+            "check_edge_readiness",
+            entry,
+            "deploy/selfhost/entrypoint.web.sh must run check_edge_readiness so edge "
+            "footguns surface at boot (not only when an operator knows to run it).",
+        )
+
+    def test_selfhost_entrypoint_readiness_is_advisory_by_default(self):
+        # Advisory-by-default: a WARN must never block boot; only the opt-in
+        # RMC_EDGE_READINESS_STRICT path may abort startup on a FAIL.
+        entry = self._entrypoint()
+        self.assertIn("RMC_EDGE_READINESS_STRICT", entry)
+        self.assertIn("check_edge_readiness || true", entry)

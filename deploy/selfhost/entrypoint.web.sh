@@ -33,5 +33,19 @@ else
   python manage.py migrate --noinput
 fi
 
+# Surface edge-deployment footguns in the boot logs — the silent-dropped-mail
+# console backend, the plain-HTTP-over-LAN secure-cookie login trap, wiped-on-
+# redeploy local media, dead broker-less drainers, a placeholder SECRET_KEY.
+# The readiness gate is otherwise a manual command an operator must know to run
+# (docs/SELF_HOST_MIGRATION.md); running it every boot makes the box self-report.
+# Advisory by default (never blocks boot); set RMC_EDGE_READINESS_STRICT=1 to make
+# a FAIL-level finding abort startup (via `set -e`).
+echo "[selfhost] edge readiness check"
+if [[ "${RMC_EDGE_READINESS_STRICT:-0}" == "1" ]]; then
+  python manage.py check_edge_readiness --strict
+else
+  python manage.py check_edge_readiness || true
+fi
+
 echo "[selfhost] starting gunicorn"
 exec gunicorn -c config/gunicorn.conf.py config.wsgi:application
