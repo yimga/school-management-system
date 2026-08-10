@@ -103,7 +103,8 @@
 .rmc-finance-canvas .rmc-metric-ticker__full > * { width: auto; max-width: none; padding-inline: .4rem; }
 .rmc-finance-canvas .dashboard-card-grid--charts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .rmc-finance-canvas .dashboard-card-scroll { max-height: 24rem; }
-.rmc-finance-canvas [data-dashboard-column="main"] { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+/* Money-center MAIN column stacks its blocks full-width. The finance widget's two children are the KPI <section class="row"> (which lays its own tiles 4-across via col-lg-3) and the .dashboard-card-grid--charts block (Invoice status + trend). A 4-col grid HERE crammed both into the left two cells and crushed each chart to ~12% width (invoice status/trend rendered as vertical slivers, empty right half). One full-width column lets the KPI row and the 2-up charts each use the whole canvas, matching the Recent Invoices/Payments pair below. */
+.rmc-finance-canvas [data-dashboard-column="main"] { display: grid; grid-template-columns: minmax(0, 1fr); }
 .rmc-finance-canvas [data-dashboard-column="main"] > * { width: auto; max-width: none; }
 
 .rmc-catalog-canvas .proof-hero { min-height: 0; padding: clamp(1rem, 2vw, 1.6rem); }
