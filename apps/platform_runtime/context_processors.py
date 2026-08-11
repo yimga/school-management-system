@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from django.conf import settings
+from django.db import DatabaseError
 from django.urls import NoReverseMatch, reverse
 
 from apps.platform_runtime.rmc_os_shell import resolve_rmc_os_shell
@@ -331,8 +332,30 @@ def tenant_experience_context(request):
     actions = resolve_action_urls(next_best_actions_for_role(school, user))
     ai_ctx = build_tenant_ai_help_context(request)
     offline = offline_help_actions()
+    active_experience_template = {}
+    if getattr(request, "public_host_kind", "tenant") != "manager":
+        try:
+            from apps.accounts.portal_roles import get_effective_portal_role
+            from apps.brand_experience.template_runtime import (
+                resolve_active_experience_template,
+            )
+
+            active_experience_template = resolve_active_experience_template(
+                school=school,
+                role=get_effective_portal_role(request),
+            )
+        except (
+            AttributeError,
+            DatabaseError,
+            ImportError,
+            LookupError,
+            TypeError,
+            ValueError,
+        ):
+            active_experience_template = {}
     return {
         "tenant_daily_ops_actions": actions,
         "tenant_ai_help": ai_ctx,
         "tenant_offline_help_actions": offline,
+        "active_experience_template": active_experience_template,
     }

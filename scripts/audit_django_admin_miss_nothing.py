@@ -29,8 +29,8 @@ ADMIN = ROOT / "templates" / "admin"
 UNFOLD = ROOT / "templates" / "unfold"
 REPORT = ROOT / "var" / "django_admin_miss_nothing_audit.json"
 
-EXPECTED_CACHE_BUST = "20260809-admin-full-canvas-v171"
-EXPECTED_SW = "sms-v4.06.33-admin-full-canvas-2026-08-09"
+EXPECTED_CACHE_BUST = "20260811-experience-runtime-v172"
+EXPECTED_SW = "sms-v4.06.34-experience-runtime-2026-08-11"
 
 REQUIRED_SEALS = (
     "2026-07-19-tools-no-span-explode",

@@ -198,6 +198,8 @@
     <script src="{% static 'js/htmx.min.js' %}" defer></script>
     <link rel="stylesheet" href="{% static 'css/portal-ui-components.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-action-contract.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-ai-guided-assistant-card.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-experience-template-runtime.css' %}">
     {% comment %} Pass B: platform-wide aesthetic discipline (card grammar, type rhythm, empty-state hygiene). {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-global-aesthetic.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-horizontal-nav-rail.css' %}">
@@ -221,10 +223,10 @@
     {% comment %} v4.01.46: dual-plane must load last in head (after vertical-compact). {% endcomment %}
     {% include "partials/rmc_theme_experience_dual_plane_styles.html" %}
     {% endif %}
-    <link rel="stylesheet" href="{% static 'css/rmc-theme-surface-safety-v1.css' %}?v=20260809-admin-full-canvas-v171">
+    <link rel="stylesheet" href="{% static 'css/rmc-theme-surface-safety-v1.css' %}?v=20260811-experience-runtime-v172">
     {% block extrastyle_tail %}{% endblock %}
     {% if request.resolver_match.url_name == 'signup_school' or request.resolver_match.url_name == 'verify_signup' or request.resolver_match.url_name == 'resend_signup_verification' or request and '/onboard' in request.path or request and request.path|slice:':14' == '/setup-studio/' %}
-    <link rel="stylesheet" href="{% static 'css/rmc-signup-balanced-v3.css' %}?v=20260809-admin-full-canvas-v171">
+    <link rel="stylesheet" href="{% static 'css/rmc-signup-balanced-v3.css' %}?v=20260811-experience-runtime-v172">
     {% endif %}
   </head>
 
@@ -232,7 +234,7 @@
      focus rings / hover borders / button polish already shipped in form-system.css
      (lines 55-122) actually render. Previously the CSS was loaded but no element
      opted in, so every form ran on raw Bootstrap defaults. {% endcomment %}
-  <body class="form-system layout-{{ LAYOUT_STYLE|default:'fluid' }} base-document-shell host-kind-{{ request.public_host_kind|default:'tenant'|lower }}{% if SITE and SITE.use_dark_mode %} base-tenant-dark-alerts{% endif %} {% block body_class %}{% endblock %}" data-rmc-cp-scroll="document" data-rmc-premium-shell="{% if PUBLIC_BRAND_MODE %}marketing{% else %}tenant{% endif %}" data-rmc-page-purpose="{% if PUBLIC_BRAND_MODE %}public-story{% else %}tenant-workspace{% endif %}"{% if request.user.is_authenticated %} data-rmc-back-to-top-policy="always"{% endif %}{% if RMC_AUTH_LANDING_LITE %} data-rmc-auth-landing="1"{% endif %} data-rmc-page-personality="{{ rmc_page_personality|default:'default' }}"{% if AI_COPILOT_QUERY_URL %} data-ai-copilot-url="{{ AI_COPILOT_QUERY_URL }}"{% endif %} data-rmc-country="{{ localization.country_code|default:'' }}" data-rmc-language="{{ localization.language_code|default:'' }}" data-rmc-week-start="{{ localization.week_start|default:1 }}" data-rmc-date-format="{{ localization.date_format|default:'%d/%m/%Y' }}" data-rmc-currency="{{ localization.currency_code|default:'USD' }}" data-rmc-is-rtl="{% if localization.is_rtl %}1{% else %}0{% endif %}">
+  <body class="form-system layout-{{ LAYOUT_STYLE|default:'fluid' }} base-document-shell host-kind-{{ request.public_host_kind|default:'tenant'|lower }}{% if SITE and SITE.use_dark_mode %} base-tenant-dark-alerts{% endif %} {% block body_class %}{% endblock %}" data-rmc-cp-scroll="document" data-rmc-premium-shell="{% if PUBLIC_BRAND_MODE %}marketing{% else %}tenant{% endif %}" data-rmc-page-purpose="{% if PUBLIC_BRAND_MODE %}public-story{% else %}tenant-workspace{% endif %}"{% if request.user.is_authenticated %} data-rmc-back-to-top-policy="always"{% endif %}{% if RMC_AUTH_LANDING_LITE %} data-rmc-auth-landing="1"{% endif %} data-rmc-page-personality="{{ rmc_page_personality|default:'default' }}"{% if AI_COPILOT_QUERY_URL %} data-ai-copilot-url="{{ AI_COPILOT_QUERY_URL }}"{% endif %} data-rmc-country="{{ localization.country_code|default:'' }}" data-rmc-language="{{ localization.language_code|default:'' }}" data-rmc-week-start="{{ localization.week_start|default:1 }}" data-rmc-date-format="{{ localization.date_format|default:'%d/%m/%Y' }}" data-rmc-currency="{{ localization.currency_code|default:'USD' }}" data-rmc-is-rtl="{% if localization.is_rtl %}1{% else %}0{% endif %}"{% if active_experience_template %} data-rmc-experience-active="1" data-rmc-experience-template="{{ active_experience_template.template_key }}" data-rmc-experience-layout="{{ active_experience_template.layout }}" data-rmc-experience-palette="{{ active_experience_template.palette_family }}" data-rmc-experience-typography="{{ active_experience_template.typography_stack }}" data-rmc-experience-density="{{ active_experience_template.density_mode }}" data-rmc-experience-mobile="{{ active_experience_template.mobile_behavior }}"{% endif %}>
     {% if not RMC_AUTH_LANDING_LITE %}{% include "partials/rmc_launch_splash.html" %}{% endif %}
     <a href="#main-content" class="skip-link" aria-label="Skip to main content">{% trans "Skip to main content" %}</a>
     {% comment %} Page-level HTMX progress bar — appears during htmx requests via body.htmx-request CSS rule. {% endcomment %}

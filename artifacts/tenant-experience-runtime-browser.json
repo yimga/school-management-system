@@ -1,0 +1,79 @@
+{
+  "generatedAt": "2026-08-11T21:59:00.826Z",
+  "build": "2026-08-11-v17.2",
+  "host": "gilead-tech.runmycampus.com",
+  "templateKey": "admin-school-command-center",
+  "pass": true,
+  "checks": [
+    {
+      "name": "studio launch returns HTTP 200",
+      "pass": true,
+      "evidence": 200
+    },
+    {
+      "name": "studio launch keeps tenant hostname",
+      "pass": true,
+      "evidence": "http://gilead-tech.runmycampus.com:8031/studio/launch/"
+    },
+    {
+      "name": "studio launch remains authenticated",
+      "pass": true,
+      "evidence": "http://gilead-tech.runmycampus.com:8031/studio/launch/"
+    },
+    {
+      "name": "experience checklist step is present",
+      "pass": true,
+      "evidence": ""
+    },
+    {
+      "name": "applied experience checklist step is green",
+      "pass": true,
+      "evidence": "Choose experience template"
+    },
+    {
+      "name": "active template reaches runtime shell",
+      "pass": true,
+      "evidence": "admin-school-command-center"
+    },
+    {
+      "name": "template preview returns HTTP 200",
+      "pass": true,
+      "evidence": 200
+    },
+    {
+      "name": "preview has one visible H1",
+      "pass": true,
+      "evidence": ""
+    },
+    {
+      "name": "preview owns a genuine iframe target",
+      "pass": true,
+      "evidence": "/authentication/backend/?rmc_embed=1&role=admin&device=desktop&tenant_id=f984ea95-d2ad-4900-b513-66a345928316&rmc_preview_path=%2Fauthentication%2Fbackend%2F"
+    },
+    {
+      "name": "preview iframe loads tenant content",
+      "pass": true,
+      "evidence": "http://gilead-tech.runmycampus.com:8031/authentication/backend/?rmc_embed=1&role=admin&device=desktop&tenant_id=f984ea95-d2ad-4900-b513-66a345928316&rmc_preview_path=%2Fauthentication%2Fbackend%2F"
+    },
+    {
+      "name": "preview iframe preserves the admin preview target",
+      "pass": true,
+      "evidence": "http://gilead-tech.runmycampus.com:8031/authentication/backend/?rmc_embed=1&role=admin&device=desktop&tenant_id=f984ea95-d2ad-4900-b513-66a345928316&rmc_preview_path=%2Fauthentication%2Fbackend%2F"
+    },
+    {
+      "name": "preview iframe is not a 404 surface",
+      "pass": true,
+      "evidence": "http://gilead-tech.runmycampus.com:8031/authentication/backend/?rmc_embed=1&role=admin&device=desktop&tenant_id=f984ea95-d2ad-4900-b513-66a345928316&rmc_preview_path=%2Fauthentication%2Fbackend%2F"
+    },
+    {
+      "name": "timetable GET does not return 405",
+      "pass": true,
+      "evidence": "302"
+    },
+    {
+      "name": "timetable GET reaches canonical workspace",
+      "pass": true,
+      "evidence": "http://gilead-tech.runmycampus.com:8031/authentication/backend/ops/timetabling/"
+    }
+  ]
+}

@@ -15,6 +15,29 @@ def deactivate_pack_installation(installation: PackInstallation, *, actor=None, 
         return {"ok": False, "errors": ["Confirmation is required before deactivation."]}
     school = installation.school
     with transaction.atomic():
+        if installation.pack_type == "experience_template":
+            from apps.brand_experience.models_template import TemplateAssignment
+            from apps.brand_experience.template_runtime import (
+                clear_experience_template_runtime,
+            )
+
+            assignment = (
+                TemplateAssignment.objects.select_related("installed_package__school")
+                .filter(
+                    template_key=installation.pack_key,
+                    installed_package__school=school,
+                    installed_package__is_active=True,
+                )
+                .order_by("-applied_at")
+                .first()
+            )
+            if assignment is not None:
+                assignment.installed_package.is_active = False
+                assignment.installed_package.reconciliation_status = "deactivated"
+                assignment.installed_package.save(
+                    update_fields=["is_active", "reconciliation_status"]
+                )
+                clear_experience_template_runtime(assignment=assignment)
         installation.status = PackInstallation.Status.DEACTIVATED
         installation.save(update_fields=["status", "updated_at"])
         event = audit_pack_event(
@@ -39,6 +62,20 @@ def rollback_pack_installation(installation: PackInstallation, *, actor=None, co
         event = audit_pack_event("pack_rollback_failed", pack_key=installation.pack_key, pack_type=installation.pack_type, school=school, actor=actor, result="blocked", reason="not_applied", installation_id=installation.pk)
         return {"ok": False, "errors": ["Only applied pack installations can be rolled back."], "audit_id": getattr(event, "pk", None)}
     with transaction.atomic():
+        template_assignment = None
+        if installation.pack_type == "experience_template":
+            from apps.brand_experience.models_template import TemplateAssignment
+
+            template_assignment = (
+                TemplateAssignment.objects.select_related("installed_package__school")
+                .filter(
+                    template_key=installation.pack_key,
+                    installed_package__school=school,
+                    installed_package__is_active=True,
+                )
+                .order_by("-applied_at")
+                .first()
+            )
         snapshot = installation.rollback_snapshot or {}
         # Surgically retract ONLY this pack's settings marker.
         #
@@ -78,6 +115,12 @@ def rollback_pack_installation(installation: PackInstallation, *, actor=None, co
         package_id = f"{installation.pack_type}:{installation.pack_key}"
         installed = InstalledPackage.objects.filter(package_id=package_id, version=installation.version, school=school, is_active=True).first()
         package_result = rollback_package(installed, actor_id=getattr(actor, "pk", None)) if installed else {"ok": True, "skipped": "no_active_package"}
+        if template_assignment is not None:
+            from apps.brand_experience.template_runtime import (
+                clear_experience_template_runtime,
+            )
+
+            clear_experience_template_runtime(assignment=template_assignment)
         installation.status = PackInstallation.Status.ROLLED_BACK
         installation.save(update_fields=["status", "updated_at"])
         event = audit_pack_event(

@@ -46,7 +46,7 @@ def main() -> int:
     must(
         "templates/admin/base_site.html",
         "W0 CSS+JS owner",
-        "rmc-admin-approval-surface-v15.css",
+        "rmc-admin-emergency-full-canvas-v17.css",
         "rmc-admin-os-innovations.js",
         "rmc-admin-model-policy.js",
         "rmc-admin-workspace.js",
@@ -206,6 +206,11 @@ def main() -> int:
         'data-rmc-admin-focus-root="1"',
     )
     css = read("static/css/rmc-admin-approval-surface-v15.css")
+    terminal_css = read("static/css/rmc-admin-emergency-full-canvas-v17.css")
+    if '@import url("./rmc-admin-approval-surface-v15.css")' not in terminal_css:
+        errors.append("FAIL terminal v17 owner does not import the approved v15 foundation")
+    else:
+        oks.append("OK terminal v17 owner imports the approved v15 foundation")
     for needle, label in (
         ("section-radar", "I4"),
         ("admin-focus", "I5"),
@@ -286,7 +291,7 @@ def main() -> int:
         errors.append(f"FAIL SW mismatch want {lock['sw_version']}")
     else:
         oks.append(f"OK SW {lock['sw_version']}")
-    if lock["seal"] not in css:
+    if lock["seal"] not in terminal_css:
         errors.append(f"FAIL CSS seal missing {lock['seal']}")
     else:
         oks.append(f"OK CSS seal {lock['seal']}")
@@ -328,6 +333,8 @@ def main() -> int:
     import os
 
     env = {**os.environ, "PYTHONIOENCODING": "utf-8"}
+    env.setdefault("DEBUG", "1")
+    env.setdefault("SECRET_KEY", "admin-os-cross-wave-audit-local-only")
     gate_cmds = [
         ["python", "scripts/verify_admin_os_three_click_sla.py"],
         ["python", "scripts/verify_admin_os_sections_restore.py"],

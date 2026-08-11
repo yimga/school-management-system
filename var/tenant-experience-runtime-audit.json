@@ -1,0 +1,17 @@
+{
+  "pass": true,
+  "checks_passed": 54,
+  "templates_scanned": 1878,
+  "errors": [],
+  "build_id": "2026-08-11-v17.2",
+  "cache_bust": "20260811-experience-runtime-v172",
+  "service_worker_version": "sms-v4.06.34-experience-runtime-2026-08-11",
+  "scope": [
+    "tenant Studio launch checklist",
+    "experience template apply/reconcile/rollback",
+    "tenant portal and Django admin runtime",
+    "live role preview",
+    "tenant action affordances",
+    "timetable generator GET/POST contract"
+  ]
+}

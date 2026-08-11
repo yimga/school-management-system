@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block portal_title %}{% blocktrans %}Preview: {{ template_key }}{% endblocktrans %}{% endblock %}
 
@@ -9,23 +9,34 @@
 
 {% include "components/next_action_strip.html" %}
 
-<section class="rmc-template-preview rmc-live-preview-contract" data-page-marker="rmc-template-preview" data-rmc-template-key="{{ template_key }}" data-rmc-width-strategy="full" data-rmc-live-preview-contract="1" data-preview-min-inline-width="720">
+<section class="rmc-template-preview rmc-live-preview-contract"
+         data-page-marker="rmc-template-preview"
+         data-rmc-template-key="{{ template_key }}"
+         data-rmc-width-strategy="full"
+         data-rmc-live-preview-contract="1"
+         data-preview-min-inline-width="720">
   <header class="rmc-template-preview__header">
-    <h1>{% blocktrans %}Live preview — {{ template_key }}{% endblocktrans %}</h1>
-    <p class="rmc-template-preview__subtitle">{% trans "Preview the operating experience this template applies — no changes are written." %}</p>
+    <h1>{% blocktrans %}Live preview &mdash; {{ template_key }}{% endblocktrans %}</h1>
+    <p class="rmc-template-preview__subtitle">{% trans "Preview the operating experience this template applies. No changes are written." %}</p>
+    {% if overlay %}
+    <div class="rmc-live-preview-contract__evidence" aria-label="{% trans 'Template preview evidence' %}">
+      <span><strong>{% trans "Layout" %}:</strong> {{ overlay.layout_family_name }}</span>
+      <span><strong>{% trans "Palette" %}:</strong> {{ overlay.palette_family }}</span>
+      <span><strong>{% trans "Mobile" %}:</strong> {{ overlay.mobile_level }}</span>
+      <span><strong>{% trans "Accessibility" %}:</strong> {{ overlay.accessibility_level }}</span>
+    </div>
+    {% endif %}
   </header>
 
-  <div class="rmc-template-preview__frame-wrap" data-rmc-preview-frame-shell data-preview-device="desktop">
+  <div class="rmc-template-preview__frame-wrap">
     <div class="rmc-live-preview-contract__toolbar">
       <label for="rmc-template-preview-role">{% trans "Preview as" %}</label>
       <select id="rmc-template-preview-role" class="form-select form-select-sm" data-rmc-preview-role aria-controls="rmc-template-preview-frame">
-        {% if preview_role_entries %}
-          {% for r in preview_role_entries %}
-            {% if r.url %}
-            <option value="{{ r.url }}">{{ r.label|default:r.role }}</option>
-            {% endif %}
-          {% endfor %}
-        {% endif %}
+        {% for role_preview in preview_role_entries %}
+          {% if role_preview.url %}<option value="{{ role_preview.url }}">{{ role_preview.label|default:role_preview.role }}</option>{% endif %}
+        {% empty %}
+          <option value="{{ preview_url }}">{% trans "School administrator" %}</option>
+        {% endfor %}
       </select>
       <label for="rmc-template-preview-device">{% trans "Device" %}</label>
       <select id="rmc-template-preview-device" class="form-select form-select-sm w-auto" data-rmc-preview-device aria-controls="rmc-template-preview-frame">
@@ -33,16 +44,32 @@
         <option value="tablet">{% trans "Tablet" %}</option>
         <option value="mobile">{% trans "Mobile" %}</option>
       </select>
+      {% if preview_url %}<a class="rmc-template-preview__action" data-rmc-preview-new-tab href="{{ preview_url }}" target="_blank" rel="noopener noreferrer">{% trans "Open full preview" %}</a>{% endif %}
     </div>
 
-    <iframe id="rmc-template-preview-frame" class="rmc-template-preview__frame"
-            title="{% blocktrans %}Preview frame for {{ template_key }}{% endblocktrans %}"
-            src="{{ preview_url }}"
-            data-rmc-preview-frame
-            loading="lazy"
-            referrerpolicy="same-origin"
-            sandbox="allow-same-origin"
-            style="min-height:320px; width:100%; border:0; background:transparent;"></iframe>
+    {% if preview_url %}
+    <div class="rmc-live-preview-contract__frame" data-rmc-preview-frame-shell data-preview-device="desktop">
+      <iframe id="rmc-template-preview-frame"
+              title="{% blocktrans %}Preview frame for {{ template_key }}{% endblocktrans %}"
+              src="{{ preview_url }}"
+              data-rmc-preview-frame
+              loading="lazy"
+              referrerpolicy="same-origin"
+              sandbox="allow-same-origin"></iframe>
+    </div>
+    <div class="rmc-live-preview-contract__fallbacks" data-rmc-preview-fallbacks hidden>
+      <span data-rmc-preview-status>{% trans "The inline preview is still loading." %}</span>
+      <button class="rmc-template-preview__action" type="button" data-rmc-preview-retry>{% trans "Retry" %}</button>
+      <a class="rmc-template-preview__action rmc-template-preview__action--primary" href="{{ preview_url }}" target="_blank" rel="noopener noreferrer">{% trans "Open in a new tab" %}</a>
+    </div>
+    {% else %}
+    <div class="rmc-live-preview-contract__empty" role="status">
+      <div>
+        <h2>{% trans "No safe preview target is available" %}</h2>
+        <p>{% trans "Complete the role workspace setup, then return here. No placeholder preview is shown." %}</p>
+      </div>
+    </div>
+    {% endif %}
   </div>
 
   <details class="rmc-template-preview__details">
@@ -58,6 +85,7 @@
 {% endblock %}
 
 {% block extrastyle %}
+  <link rel="stylesheet" href="{% static 'css/rmc-template-marketplace.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-live-preview-contract.css' %}">
 {% endblock %}
 

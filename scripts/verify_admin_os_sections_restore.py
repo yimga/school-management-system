@@ -22,6 +22,9 @@ def main() -> int:
     nav = (ROOT / "apps/portal/help_section_nav.py").read_text(encoding="utf-8")
     admin_py = (ROOT / "config/admin.py").read_text(encoding="utf-8")
     css = (ROOT / "static/css/rmc-admin-approval-surface-v15.css").read_text(encoding="utf-8")
+    terminal_css = (ROOT / "static/css/rmc-admin-emergency-full-canvas-v17.css").read_text(
+        encoding="utf-8"
+    )
     lock = json.loads((ROOT / "var/admin-approval-build-lock.json").read_text(encoding="utf-8"))
 
     def must(cond: bool, msg: str) -> None:
@@ -75,13 +78,16 @@ def main() -> int:
     must('data-rmc-admin-archetype="scan"' in cl, "change_list missing scan archetype")
 
     # Layout owner / context
-    crit = bs.split('id="rmc-admin-preview-parity-critical"', 1)
-    must(len(crit) == 2, "critical layout style missing")
-    if len(crit) == 2:
-        head = crit[1].split(">", 1)[0]
-        must('media="not all"' not in head, "critical layout CSS disabled with media=not all")
-    must("approval-v15-critical" in bs, "critical layout owner marker missing")
-    must("rmc-admin-approval-surface-v15.css" in bs, "v15 CSS owner missing")
+    terminal_link = next(
+        (line for line in bs.splitlines() if "rmc-admin-emergency-full-canvas-v17.css" in line),
+        "",
+    )
+    must(bool(terminal_link), "terminal v17 layout owner missing")
+    must('media="not all"' not in terminal_link, "terminal layout CSS disabled with media=not all")
+    must(
+        '@import url("./rmc-admin-approval-surface-v15.css")' in terminal_css,
+        "terminal layout owner missing approved v15 foundation",
+    )
     must("rmc-admin-os-innovations.js" in bs, "innovations JS missing")
     must("build_admin_index_surface_context" in admin_py, "PlatformAdmin must build surface context")
     must("admin_catalog_section_nav_items" in admin_py, "PlatformAdmin must build section nav")

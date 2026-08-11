@@ -1,0 +1,127 @@
+/* Durable ExperienceTemplate runtime layer.
+ * Opt-in only: the server stamps these attributes after a governed package is
+ * actually active for the current tenant and role.
+ */
+
+[data-rmc-experience-active="1"] {
+  --rmc-experience-card-min: 17rem;
+  --rmc-experience-section-gap: 1rem;
+}
+
+[data-rmc-experience-palette="green-emerald"] {
+  --school-primary: #047857;
+  --school-accent: #10b981;
+}
+
+[data-rmc-experience-palette="cool-indigo"] {
+  --school-primary: #4338ca;
+  --school-accent: #6366f1;
+}
+
+[data-rmc-experience-palette="warm-terracotta"] {
+  --school-primary: #b84c32;
+  --school-accent: #e06c4f;
+}
+
+[data-rmc-experience-palette="savanna-ochre"] {
+  --school-primary: #9a6b08;
+  --school-accent: #d59d24;
+}
+
+[data-rmc-experience-palette="andes-clay"] {
+  --school-primary: #97452f;
+  --school-accent: #c4674f;
+}
+
+[data-rmc-experience-palette="desert-amber"] {
+  --school-primary: #b45309;
+  --school-accent: #f59e0b;
+}
+
+[data-rmc-experience-palette="editorial-cream"] {
+  --school-primary: #785f3b;
+  --school-accent: #c19a5b;
+}
+
+[data-rmc-experience-palette="monsoon-teal"] {
+  --school-primary: #0f766e;
+  --school-accent: #14b8a6;
+}
+
+[data-rmc-experience-palette="nordic-slate"] {
+  --school-primary: #475569;
+  --school-accent: #94a3b8;
+}
+
+[data-rmc-experience-palette="sakura-blush"] {
+  --school-primary: #be185d;
+  --school-accent: #f472b6;
+}
+
+[data-rmc-experience-typography="stack-editorial-serif"] :where(h1, h2, h3) {
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+[data-rmc-experience-typography="stack-bilingual-mixed"] {
+  --school-font: Inter, "Noto Sans", "Segoe UI", system-ui, sans-serif;
+}
+
+[data-rmc-experience-active="1"] :where(
+  .card,
+  .rmc-card,
+  .dashboard-card,
+  .rmc-admin-catalog-model-card
+) {
+  border-color: color-mix(in srgb, var(--school-accent) 28%, transparent);
+}
+
+[data-rmc-experience-active="1"] :where(
+  [data-rmc-dashboard-grid],
+  .dashboard-grid,
+  .metric-grid,
+  .rmc-card-grid,
+  .rmc-admin-catalog-model-grid,
+  .admin-app-index__grid
+) {
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(min(100%, var(--rmc-experience-card-min)), 1fr)
+  );
+  gap: var(--rmc-experience-section-gap);
+}
+
+[data-rmc-experience-layout="family_1"] {
+  --rmc-experience-card-min: 20rem;
+}
+
+[data-rmc-experience-layout="family_2"],
+[data-rmc-experience-layout="family_5"],
+[data-rmc-experience-layout="family_6"] {
+  --rmc-experience-card-min: 18rem;
+}
+
+[data-rmc-experience-layout="family_3"],
+[data-rmc-experience-layout="family_8"] {
+  --rmc-experience-card-min: 21rem;
+}
+
+[data-rmc-experience-density="compact"] {
+  --rmc-experience-section-gap: 0.7rem;
+}
+
+[data-rmc-experience-density="comfortable"] {
+  --rmc-experience-section-gap: 1.25rem;
+}
+
+@media (max-width: 64rem) {
+  [data-rmc-experience-active="1"] :where(
+    [data-rmc-dashboard-grid],
+  .dashboard-grid,
+  .metric-grid,
+    .rmc-card-grid,
+    .rmc-admin-catalog-model-grid,
+    .admin-app-index__grid
+  ) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

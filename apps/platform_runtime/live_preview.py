@@ -10,6 +10,7 @@ def get_preview_url(
     device: str | None = None,
     tenant_id=None,
     path: str = "/",
+    origin_host: str | None = None,
 ) -> str | None:
     """
     Return URL for a live preview session (role/device/tenant scoped).
@@ -17,7 +18,26 @@ def get_preview_url(
     """
     from urllib.parse import urlencode
 
-    params = {}
+    from urllib.parse import parse_qsl, urlsplit, urlunsplit
+
+    raw_path = (path or "/").strip()
+    parsed = urlsplit(raw_path)
+    # Setup Studio can supply an absolute canonical tenant URL for the admin
+    # role. Convert it back to a path only when its hostname exactly matches
+    # the current request host. External/protocol-relative destinations remain
+    # blocked so this service cannot become an open redirect.
+    if parsed.scheme or parsed.netloc:
+        allowed_hostname = urlsplit(f"//{origin_host or ''}").hostname
+        if (
+            parsed.scheme not in {"http", "https"}
+            or not allowed_hostname
+            or parsed.hostname != allowed_hostname
+        ):
+            return None
+    if not parsed.path.startswith("/"):
+        return None
+    params = dict(parse_qsl(parsed.query, keep_blank_values=True))
+    params["rmc_embed"] = "1"
     if role:
         params["role"] = role
     if device:
@@ -25,6 +45,6 @@ def get_preview_url(
     if tenant_id:
         params["tenant_id"] = str(tenant_id)
     if path and path != "/":
-        params["path"] = path
+        params["rmc_preview_path"] = parsed.path
     qs = urlencode(params)
-    return f"/portal/preview?{qs}" if qs else "/portal/preview"
+    return urlunsplit(("", "", parsed.path or "/", qs, ""))

@@ -99,7 +99,7 @@
             {% if migration_status.bundle.review_url %}
             <a class="btn btn-sm btn-outline-primary" href="{{ migration_status.bundle.review_url }}"><i class="bi bi-clipboard-check me-1" aria-hidden="true"></i>{% trans "Review / import" %}</a>
             {% endif %}
-            <a class="btn btn-sm btn-link p-0" href="{{ migration_status.upload_url }}">{% trans "Upload more data" %}</a>
+            <a class="btn btn-sm btn-outline-secondary" href="{{ migration_status.upload_url }}">{% trans "Upload more data" %}</a>
           </div>
           {% else %}
           <a class="btn btn-sm btn-primary" href="{{ migration_status.upload_url }}"><i class="bi bi-cloud-arrow-up me-1" aria-hidden="true"></i>{% trans "Import school data" %}</a>

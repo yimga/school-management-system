@@ -135,6 +135,12 @@ def _infer_package_type(payload_sections: dict[str, Any]) -> str:
     if not payload_sections:
         return "blueprint"
     section = next(iter(payload_sections.keys()))
+    # ExperienceTemplate is the registry-facing contract name; InstalledPackage
+    # intentionally keeps the historical ``experience_pack`` choice.  Falling
+    # through to ``blueprint`` made successful template installs invisible to
+    # the experience runtime and rollback UI.
+    if section == "experience_template":
+        return "experience_pack"
     return (
         section
         if section

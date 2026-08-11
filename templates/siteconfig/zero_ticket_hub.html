@@ -49,7 +49,7 @@
           <div class="d-flex align-items-center gap-2">
             <span class="badge {% if check.status == 'pass' %}bg-success{% elif check.status == 'warn' %}bg-warning text-dark{% else %}bg-danger{% endif %}">{{ check.status }}</span>
             {% if check.remedy_url %}
-            <a href="{{ check.remedy_url }}" class="btn btn-sm btn-link">{{ check.remedy_label|default:"Fix" }}</a>
+            <a href="{{ check.remedy_url }}" class="btn btn-sm btn-outline-primary">{{ check.remedy_label|default:"Fix" }}</a>
             {% endif %}
           </div>
         </li>

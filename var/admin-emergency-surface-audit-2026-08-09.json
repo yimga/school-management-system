@@ -1,19 +1,18 @@
 {
   "browser_evidence": {
     "browser_report_files": [
-      "artifacts/django-admin-canvas-live/real-host-core-both-dark-1024-operator-index-operator-user-change-tenant-index-tenant-site-settings-change.json",
-      "artifacts/django-admin-canvas-live/real-host-core-both-dark-1440-operator-index-operator-user-change-tenant-index-tenant-site-settings-change.json",
-      "artifacts/django-admin-canvas-live/real-host-core-both-dark-390.json",
-      "artifacts/django-admin-canvas-live/real-host-core-both-dark-768-operator-index-operator-user-change-tenant-index-tenant-site-settings-change.json",
-      "artifacts/django-admin-canvas-live/real-host-core-both-light-1024-operator-index-operator-user-change-tenant-index-tenant-site-settings-change.json",
-      "artifacts/django-admin-canvas-live/real-host-core-both-light-1440-operator-index-operator-user-change-tenant-index-tenant-site-settings-change.json",
-      "artifacts/django-admin-canvas-live/real-host-core-both-light-390.json",
-      "artifacts/django-admin-canvas-live/real-host-core-both-light-768-operator-index-operator-user-change-tenant-index-tenant-site-settings-change.json",
-      "artifacts/django-admin-canvas-live/real-host-specialized-both-dark-1440-platform-runtime-runtimedefaults-siteconfig-sitesettings-brand-experience-themepack.json",
-      "artifacts/django-admin-canvas-live/real-host-specialized-both-light-390-platform-runtime-runtimedefaults-siteconfig-sitesettings-brand-experience-themepack.json"
+      "artifacts/django-admin-canvas-live/real-host-core-both-dark-1024-operator-user-list-tenant-user-list.json",
+      "artifacts/django-admin-canvas-live/real-host-core-both-dark-1440-operator-user-list-tenant-user-list.json",
+      "artifacts/django-admin-canvas-live/real-host-core-both-dark-390-operator-user-list-tenant-user-list.json",
+      "artifacts/django-admin-canvas-live/real-host-core-both-dark-768-operator-user-list-tenant-user-list.json",
+      "artifacts/django-admin-canvas-live/real-host-core-both-light-1024-operator-user-list-tenant-user-list.json",
+      "artifacts/django-admin-canvas-live/real-host-core-both-light-1440-operator-user-list-tenant-user-list.json",
+      "artifacts/django-admin-canvas-live/real-host-core-both-light-390-operator-user-list-tenant-user-list.json",
+      "artifacts/django-admin-canvas-live/real-host-core-both-light-768-operator-user-list-tenant-user-list.json",
+      "artifacts/django-admin-canvas-live/real-host-core-tenant-dark-390-tenant-user-list.json"
     ],
-    "build_id": "2026-08-09-v17.1",
-    "cache_bust": "20260809-admin-full-canvas-v171",
+    "build_id": "2026-08-11-v17.2",
+    "cache_bust": "20260811-experience-runtime-v172",
     "failed_report_files": [],
     "matrix": [
       "1024:dark",
@@ -27,15 +26,15 @@
     ],
     "max_stylesheet_count": {
       "operator": 118,
-      "tenant": 89
+      "tenant": 88
     },
-    "service_worker_version": "sms-v4.06.33-admin-full-canvas-2026-08-09",
-    "unique_surface_evidence": 31
+    "service_worker_version": "sms-v4.06.34-experience-runtime-2026-08-11",
+    "unique_surface_evidence": 2
   },
-  "content_sha256": "1e95c08b27a87823a4af18c77b81f7bf74d45be96ca3c036b9923a3985fd594f",
+  "content_sha256": "cb783cfc2dd82b5259b7bd193f96a0970b8b50a3b1ac9a4e3af5982f904265f5",
   "contract_satisfied": true,
   "findings": [],
-  "generated_at": "2026-08-11T15:27:33.060373+00:00",
+  "generated_at": "2026-08-11T22:03:08.072644+00:00",
   "registry": {
     "operator": {
       "custom_change_forms": 14,
@@ -378,7 +377,7 @@
       "registered_models": 274
     }
   },
-  "root": "C:\\Users\\yimga\\AppData\\Local\\Temp\\rmc-admin-emergency-audit-20260809",
+  "root": "C:\\Users\\yimga\\AppData\\Local\\Temp\\rmc-studio-launch-audit-20260811",
   "schema": "rmc.admin-emergency-surface-audit.v1",
   "signup": {
     "captured_count": 32,
@@ -425,7 +424,7 @@
     "all_templates": 1878,
     "copied_theme_coupled_admin_guidance_cards": 0,
     "critical": 0,
-    "css_files": 319,
+    "css_files": 320,
     "findings": 0,
     "hard_white_template_lines": 0,
     "inline_admin_scripts_without_nonce": 0,

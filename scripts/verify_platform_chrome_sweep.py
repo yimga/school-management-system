@@ -48,11 +48,19 @@ def main() -> int:
     )
 
     portal = _read("templates/portal_base.html")
-    need('data-rmc-cp-scroll="document"' in portal, "portal_base sets document scroll on body")
+    need(
+        'data-rmc-cp-scroll="{% block body_scroll_policy %}' in portal
+        and "{% if tp_v3_tenant_shell %}canvas{% else %}document{% endif %}" in portal,
+        "portal_base owns an explicit page-aware scroll policy",
+    )
     need("data-rmc-page-fold-nav=\"required\"" in portal and "portal-page-body" in portal, "portal page fold nav")
 
     marketing = _read("templates/marketing/base_marketing.html")
-    need("rmc_platform_chrome_styles.html" in marketing, "marketing includes chrome styles partial")
+    need(
+        "rmc_platform_shell_beautify_styles.html" in marketing
+        and "not operator platform chrome" in marketing,
+        "marketing owns its editorial shell styles without operator chrome",
+    )
     need("back_to_top.html" in marketing, "marketing loads back-to-top")
     need("rmc-page-fold-standards.js" in marketing, "marketing loads fold standards JS")
 
@@ -85,7 +93,6 @@ def main() -> int:
         "templates/control_plane_skeleton.html",
         "templates/admin/base_site.html",
         "templates/portal_base.html",
-        "templates/marketing/base_marketing.html",
         "templates/base.html",
     ):
         body = _read(rel)
@@ -93,6 +100,10 @@ def main() -> int:
             "rmc_platform_chrome_styles.html" in body,
             f"{rel} includes platform chrome styles partial",
         )
+    need(
+        "rmc_platform_chrome_styles.html" not in marketing,
+        "marketing must not import operator platform chrome",
+    )
 
     for rel in (
         "templates/portal_base.html",

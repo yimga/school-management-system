@@ -70,7 +70,7 @@
               {% endfor %}
             </ul>
             {% if cap.patch_hint %}
-            <button type="button" class="btn btn-link btn-sm p-0 mt-1" disabled title="{{ cap.patch_hint }}">{% trans "Suggested fix" %}</button>
+            <span class="badge text-bg-secondary mt-1" title="{{ cap.patch_hint }}">{% trans "Suggested fix available in guidance" %}</span>
             {% endif %}
           </td>
         </tr>

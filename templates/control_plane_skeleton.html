@@ -1,6 +1,6 @@
 {% load i18n static workflow_guidance_tags %}
 <!doctype html>
-<html lang="{{ rmc_locale|default:'en' }}" dir="{{ rmc_text_direction|default:'ltr' }}"{% if not request.user.is_authenticated %} data-rmc-auth-landing="1"{% endif %}{% if rmc_low_bandwidth %} data-rmc-low-bandwidth="1"{% endif %} data-rmc-regional-ui="1" data-theme="light" data-bs-theme="light" data-rmc-aesthetic="cool-apple" data-rmc-admin-density="comfortable" data-surface="control-plane" data-cockpit-skin="{{ cockpit_shell.skin|default:'dark' }}" data-rmc-shell-root="control-plane-skeleton" data-shell-layout="control-plane" data-rmc-isomorphic-template="operator-control-plane"{% include "partials/shell_rmc_registry_html_attrs.html" %}>
+<html lang="{{ rmc_locale|default:'en' }}" dir="{{ rmc_text_direction|default:'ltr' }}"{% if not request.user.is_authenticated %} data-rmc-auth-landing="1"{% endif %}{% if rmc_low_bandwidth %} data-rmc-low-bandwidth="1"{% endif %} data-rmc-regional-ui="1" data-theme="light" data-bs-theme="light" data-rmc-aesthetic="cool-apple" data-rmc-admin-density="comfortable" data-surface="control-plane" data-cockpit-skin="{{ cockpit_shell.skin|default:'dark' }}" data-rmc-shell-root="control-plane-skeleton" data-shell-layout="control-plane" data-rmc-isomorphic-template="operator-control-plane"{% if active_experience_template %} data-rmc-experience-active="1" data-rmc-experience-template="{{ active_experience_template.template_key }}" data-rmc-experience-layout="{{ active_experience_template.layout }}" data-rmc-experience-palette="{{ active_experience_template.palette_family }}" data-rmc-experience-typography="{{ active_experience_template.typography_stack }}" data-rmc-experience-density="{{ active_experience_template.density_mode }}" data-rmc-experience-mobile="{{ active_experience_template.mobile_behavior }}"{% endif %}{% include "partials/shell_rmc_registry_html_attrs.html" %}>
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -69,7 +69,8 @@
     <link rel="stylesheet" href="{% static 'css/rmc-warm-bright-school.css' %}">
     {% comment %} v2.53 (2026-05-15): platform-wide cool-apple polish (Apple elev/material/focus/typography). {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-platform-header.css' %}">
-    <link rel="stylesheet" href="{% static 'css/rmc-ai-guided-assistant-card.css' %}" media="print" data-rmc-async-style>
+    <link rel="stylesheet" href="{% static 'css/rmc-ai-guided-assistant-card.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-experience-template-runtime.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-cool-apple-polish.css' %}">
     <link rel="stylesheet" href="{% static 'css/design-tokens-luxury.css' %}">
     <link rel="stylesheet" href="{% static 'css/bootstrap-theme-bridge.css' %}">

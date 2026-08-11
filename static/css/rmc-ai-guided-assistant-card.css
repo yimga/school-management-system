@@ -69,13 +69,18 @@
 }
 
 .rmc-ai-guided-assistant-card__cta {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
   margin-top: 0.5rem;
+  padding: 0.35rem 0.7rem;
+  border: 1px solid color-mix(in oklab, var(--school-primary, #4f46e5) 55%, transparent);
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--school-primary, #4f46e5) 14%, transparent);
   font-size: var(--type-size-caption, 0.8125rem);
   font-weight: 600;
   color: var(--school-primary, #4f46e5);
-  text-decoration: underline;
-  text-underline-offset: 0.15em;
+  text-decoration: none;
 }
 
 .rmc-ai-guided-assistant-card:hover .rmc-ai-guided-assistant-card__cta,

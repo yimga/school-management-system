@@ -49,7 +49,7 @@ def academics_hub(request):
         ("Academic years & terms", "Create the calendar that powers timetables, grading and reporting.", "siteconfig:academic_years_setup_evidence", "academic_years"),
         ("Classes & subjects", "Review the teaching structure and the subjects available to this school.", "accounts:backend_classroom_list", "classes"),
         ("Teaching assignments", "Connect teachers, classes and subjects with tenant-scoped records.", "accounts:backend_subject_list", "assignments"),
-        ("Timetable", "Generate, review conflicts and publish a real school timetable.", "academics:timetable_generate", "terms"),
+        ("Timetable", "Generate, review conflicts and publish a real school timetable.", "accounts:ops_timetabling", "terms"),
         ("Attendance", "Open the operational attendance capture workflow.", "portal:teacher_attendance", "classes"),
         ("Grading rules", "Configure the rules used by assessment and report surfaces.", "siteconfig:grading_settings", "subjects"),
         ("Course syllabi", "Review syllabus coverage and the approval queue.", "academics:syllabus_approval_queue", "syllabi"),

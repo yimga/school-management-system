@@ -283,6 +283,12 @@ class TimetablePublishFlowViewTests(_TimetableGraphMixin, TestCase):
 
     # -- flow: generate ----------------------------------------------------
 
+    def test_generate_get_opens_workspace_instead_of_returning_405(self):
+        admin = self._member(role=User.Role.ADMIN)
+        resp = self._client(admin).get(self._url("academics:timetable_generate"))
+        self.assertEqual(resp.status_code, 302)
+        self.assertIn("/backend/ops/timetabling/", resp["Location"])
+
     def test_generate_creates_persisted_draft_and_redirects_to_review(self):
         admin = self._member(role=User.Role.ADMIN)
         resp = self._client(admin).post(self._url("academics:timetable_generate"))

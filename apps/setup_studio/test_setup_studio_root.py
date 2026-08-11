@@ -34,6 +34,7 @@ class SetupStudioServiceTests(TestCase):
             timezone="UTC",
             default_region=self.region,
             school_type="BASE_SCHOOL",
+            primary_sector="PRIVATE",
             is_active=True,
         )
         self.cm_country, _ = CountryRegistry.objects.get_or_create(
@@ -84,8 +85,8 @@ class SetupStudioServiceTests(TestCase):
             defaults={"name": "0–20 scale", "is_active": True},
         )
         EducationSystemTypeRegistry.objects.get_or_create(
-            code="EN",
-            defaults={"name": "English sub-system", "is_active": True},
+            code="PRIVATE",
+            defaults={"name": "Private / independent", "is_active": True},
         )
         BlueprintPack.objects.create(
             slug="cm-launch",
@@ -123,7 +124,10 @@ class SetupStudioServiceTests(TestCase):
         self.assertGreaterEqual(payload["progress_percent"], 0)
         self.assertEqual(payload["recommended_next"]["key"], "plan_choice")
         self.assertTrue(payload["blueprint_rankings"])
-        self.assertEqual(len(payload["data_path_choices"]), 4)
+        self.assertEqual(len(payload["data_path_choices"]), 5)
+        self.assertIn(
+            "start_fresh", {choice["key"] for choice in payload["data_path_choices"]}
+        )
         self.assertEqual(
             payload["recommended_blueprint"]["title"], "Cameroon launch baseline"
         )
@@ -183,7 +187,7 @@ class SetupStudioServiceTests(TestCase):
         self.assertTrue(ra.get("grade_scale_registry_ok"))
         self.assertEqual(ra.get("grading_scale_code"), "0-20")
         self.assertTrue(ra.get("education_system_type_registry_ok"))
-        self.assertEqual(ra.get("education_system_code"), "EN")
+        self.assertEqual(ra.get("education_system_code"), "PRIVATE")
         self.assertIn("Institution type registry", ra.get("detail", ""))
         self.assertIn("Grading scale registry", ra.get("detail", ""))
         self.assertIn("Education system type registry", ra.get("detail", ""))

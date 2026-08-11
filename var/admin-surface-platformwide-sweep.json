@@ -2,7 +2,7 @@
   "pass": true,
   "css_files": 45,
   "content_pages": 11,
-  "expected_cache_bust": "20260809-admin-full-canvas-v171",
-  "expected_sw": "sms-v4.06.33-admin-full-canvas-2026-08-09",
+  "expected_cache_bust": "20260811-experience-runtime-v172",
+  "expected_sw": "sms-v4.06.34-experience-runtime-2026-08-11",
   "findings": []
 }

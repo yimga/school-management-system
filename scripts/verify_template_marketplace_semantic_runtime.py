@@ -44,6 +44,7 @@ GENERATED_DIR = REPO_ROOT / "docs" / "generated"
 OUT_JSON = GENERATED_DIR / "template_marketplace_semantic_runtime.json"
 
 TEST_LABEL = "apps.brand_experience.tests.test_template_marketplace_semantic_runtime"
+TEST_SETTINGS = os.getenv("RMC_SEMANTIC_TEST_SETTINGS") or "config.settings"
 
 HONEST_SCOPE = {
     "proves": [
@@ -121,22 +122,25 @@ def _structural_preflight() -> tuple[bool, list[str]]:
         ok = False
         notes.append("missing: studio_os fold partial")
 
-    body_path = (
+    mode_path = (
         REPO_ROOT
         / "templates"
         / "studio_os"
-        / "partials"
-        / "studio_experience_mode_body.html"
+        / "modes"
+        / "experience.html"
     )
-    if not body_path.exists():
+    if not mode_path.exists():
         ok = False
-        notes.append("missing: studio experience mode body")
+        notes.append("missing: studio Experience mode template")
     else:
-        body = body_path.read_text(encoding="utf-8")
+        body = mode_path.read_text(encoding="utf-8")
+        if 'data-rmc-fold-stage="templates"' not in body:
+            ok = False
+            notes.append("studio Experience mode does not declare the Templates fold stage")
         if "experience_templates_fold.html" not in body:
             ok = False
             notes.append(
-                "studio_experience_mode_body.html does not include experience_templates_fold.html"
+                "studio Experience mode does not include experience_templates_fold.html"
             )
 
     views_path = REPO_ROOT / "apps" / "studio_os" / "views.py"
@@ -191,19 +195,29 @@ def _parse_test_summary(stderr_text: str) -> dict:
 def _run_test_label() -> tuple[int, str, str]:
     """Invoke the Django test runner for the semantic-runtime label."""
     python = _resolve_python()
-    cmd = [
-        python,
-        "manage.py",
-        "test",
-        TEST_LABEL,
-        "--settings=config.settings",
-        "--noinput",
-        "--keepdb",
-        "-v",
-        "2",
-    ]
+    if os.name == "nt":
+        cmd = [
+            python,
+            str(REPO_ROOT / "scripts" / "run_sqlite_memory_tests.py"),
+            TEST_LABEL,
+            "--verbosity=2",
+        ]
+    else:
+        cmd = [
+            python,
+            "manage.py",
+            "test",
+            TEST_LABEL,
+            f"--settings={TEST_SETTINGS}",
+            "--noinput",
+            "--keepdb",
+            "-v",
+            "2",
+        ]
     env = os.environ.copy()
     env.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
+    env.setdefault("DEBUG", "1")
+    env.setdefault("SECRET_KEY", "semantic-runtime-verifier-local-only")
     proc = subprocess.run(
         cmd,
         cwd=str(REPO_ROOT),

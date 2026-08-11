@@ -831,16 +831,33 @@ def _step_state_for_school(school) -> dict[str, dict[str, Any]]:
 
     roster_waived = _roster_waived(school)
     data_path_done = has_students or roster_waived
-    has_addons = bool(getattr(school, "addons", None))
+    # Module Market persists canonical ``module.<code>`` feature-toggle state
+    # and the compatibility ``school.features`` map.  ``school.addons`` is a
+    # legacy commercial field and never changes when a starter stack is chosen.
+    features = dict(getattr(school, "features", {}) or {})
+    has_addons = any(bool(value) for value in features.values())
+    if not has_addons:
+        try:
+            from apps.siteconfig.models import FeatureToggleState
+
+            has_addons = FeatureToggleState.objects.filter(
+                school=school,
+                is_enabled=True,
+                definition__key__startswith="module.",
+                definition__is_active=True,
+            ).exists()
+        except (ImportError, AttributeError):
+            has_addons = False
     has_experience_template = False
     try:
-        from apps.brand_experience.models_template import TemplateAssignment
+        from apps.brand_experience.template_runtime import (
+            reconcile_latest_experience_template,
+        )
 
-        has_experience_template = TemplateAssignment.objects.filter(
-            installed_package__school=school,
-            installed_package__is_active=True,
-        ).exists()
-    except (ImportError, AttributeError):
+        reconciled = reconcile_latest_experience_template(school=school)
+
+        has_experience_template = reconciled is not None
+    except (ImportError, AttributeError, DatabaseError, TypeError, ValueError):
         has_experience_template = False
     role_previews = _build_role_previews(
         school,

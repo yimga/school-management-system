@@ -24,6 +24,7 @@ def main() -> int:
     backend_base = _read("templates/backend_base_tenant.html")
     admin_base = _read("templates/admin/base.html")
     admin_base_site = _read("templates/admin/base_site.html")
+    admin_terminal_css = _read("static/css/rmc-admin-emergency-full-canvas-v17.css")
     tenant_backend_css_path = ROOT / "static/css/rmc-django-surface-canvas-parity.css"
     tenant_backend_css = (
         tenant_backend_css_path.read_text(encoding="utf-8", errors="replace")
@@ -87,12 +88,15 @@ def main() -> int:
     admin_tokens = (
         'data-rmc-admin-canvas-host="{% if is_manager_host %}operator{% else %}tenant{% endif %}"',
         'data-rmc-admin-content="canvas-first"',
-        "rmc-admin-django-canvas-contract.css",
         f"?v={approval_cache_bust}",
     )
     for token in admin_tokens:
         if token not in admin_base and token not in admin_base_site:
             errors.append(f"shared admin templates missing {token}")
+    if "rmc-admin-emergency-full-canvas-v17.css" not in admin_base_site:
+        errors.append("shared admin templates missing the terminal v17 layout owner")
+    if '@import url("./rmc-admin-django-canvas-contract.css")' not in admin_terminal_css:
+        errors.append("terminal v17 layout owner missing the Django canvas contract import")
 
     index_tenant = _read("templates/admin/index_tenant.html")
     for token in (

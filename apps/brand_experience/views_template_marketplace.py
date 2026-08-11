@@ -228,10 +228,37 @@ def tenant_template_preview(request: HttpRequest, key: str) -> HttpResponse:
         key, pack_type="experience_template", school=school, actor=request.user,
         platform_operator=False, emit_audit=True,
     )
+    from apps.platform_runtime.live_preview import get_preview_url
+    from apps.studio_os.services import get_studio_role_preview_entries
+
+    role_entries = []
+    for row in get_studio_role_preview_entries(request):
+        target = get_preview_url(
+            role=row.get("role"),
+            device="desktop",
+            tenant_id=getattr(school, "pk", None),
+            path=row.get("url") or "/",
+            origin_host=request.get_host(),
+        )
+        if target:
+            role_entries.append({**row, "url": target})
+    preview_url = role_entries[0]["url"] if role_entries else get_preview_url(
+        role="admin",
+        device="desktop",
+        tenant_id=getattr(school, "pk", None),
+        path="/studio/launch/",
+    )
     return render(
         request,
         "marketplace/templates_preview_frame.html",
-        {"preview": result, "selected_school": school, "template_key": key},
+        {
+            "preview": result,
+            "selected_school": school,
+            "template_key": key,
+            "preview_role_entries": role_entries,
+            "preview_url": preview_url,
+            "overlay": (get_overlay(key).as_dict() if get_overlay(key) else {}),
+        },
     )
 
 
@@ -278,6 +305,8 @@ def tenant_template_apply(request: HttpRequest, key: str) -> HttpResponse:
             impact_snapshot=impact,
             confirmed=True,
         )
+        if result and result.get("ok"):
+            school.refresh_from_db(fields=["settings"])
     return render(
         request,
         "marketplace/templates_apply_confirm.html",
@@ -328,6 +357,8 @@ def tenant_template_rollback(request: HttpRequest, key: str) -> HttpResponse:
         record_template_event,
     )
     from apps.packages.engine import rollback as rollback_package
+    from apps.platform_runtime.models import PackInstallation
+    from apps.platform_runtime.pack_rollback import rollback_pack_installation
 
     assignment = (
         TemplateAssignment.objects.filter(
@@ -341,7 +372,30 @@ def tenant_template_rollback(request: HttpRequest, key: str) -> HttpResponse:
     )
     result: dict | None = None
     if request.method == "POST" and request.POST.get("confirm") == "yes" and assignment is not None:
-        result = rollback_package(assignment.installed_package, actor_id=request.user.pk)
+        installation = (
+            PackInstallation.objects.filter(
+                school=school,
+                pack_key=key,
+                pack_type="experience_template",
+                status=PackInstallation.Status.APPLIED,
+            )
+            .order_by("-applied_at", "-created_at")
+            .first()
+        )
+        if installation is not None:
+            result = rollback_pack_installation(
+                installation,
+                actor=request.user,
+                confirmed=True,
+            )
+        else:
+            result = rollback_package(assignment.installed_package, actor_id=request.user.pk)
+        if result and result.get("ok") and installation is None:
+            from apps.brand_experience.template_runtime import (
+                clear_experience_template_runtime,
+            )
+
+            clear_experience_template_runtime(assignment=assignment)
         try:
             record_template_event(
                 tenant_slug=getattr(school, "slug", "") or "",

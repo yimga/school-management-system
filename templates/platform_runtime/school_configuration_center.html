@@ -37,7 +37,7 @@
         <button class="btn btn-outline-success mt-2" type="submit">{% trans "Mark resolved with audit note" %}</button>
       </form>
     </details>
-    <div class="mt-3"><a class="btn btn-sm btn-outline-secondary" href="/studio/launch/">{% trans "Return to Launch Studio" %}</a> <a class="btn btn-sm btn-link" href="/school/configuration/">{% trans "Show all configuration areas" %}</a></div>
+    <div class="mt-3 d-flex flex-wrap gap-2"><a class="btn btn-sm btn-outline-secondary" href="/studio/launch/">{% trans "Return to Launch Studio" %}</a> <a class="btn btn-sm btn-outline-primary" href="/school/configuration/">{% trans "Show all configuration areas" %}</a></div>
   </section>
   {% elif focused_section %}
   <div class="alert alert-info" role="status" data-rmc-repair-focus-banner="1"><span>{% blocktrans with section=focused_section %}Repair mode: open {{ section }} below.{% endblocktrans %}</span></div>

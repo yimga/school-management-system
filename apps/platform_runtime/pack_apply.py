@@ -9,6 +9,7 @@ from typing import Any
 from django.db import transaction
 from django.utils import timezone
 
+from apps.brand_experience.template_runtime import ExperienceRuntimeError
 from apps.packages.engine import apply_package
 from apps.packages.models import InstalledPackage
 from apps.platform_runtime.models import PackInstallation
@@ -79,10 +80,64 @@ def apply_pack(
         event = audit_pack_event("pack_apply_failed", pack_key=pack.key, pack_type=pack.pack_type, school=school, actor=actor, result="blocked", reason="confirmation_required")
         return {"ok": False, "errors": ["Confirmation is required for this pack."], "audit_id": getattr(event, "pk", None)}
 
+    if pack.pack_type == "experience_template":
+        from apps.brand_experience.template_runtime import build_experience_runtime_payload
+
+        try:
+            build_experience_runtime_payload(
+                pack.key,
+                platform_operator=platform_operator,
+            )
+        except ExperienceRuntimeError as exc:
+            event = audit_pack_event(
+                "pack_apply_failed",
+                pack_key=pack.key,
+                pack_type=pack.pack_type,
+                school=school,
+                actor=actor,
+                result="blocked",
+                reason="experience_runtime_invalid",
+                payload={"errors": [str(exc)]},
+            )
+            return {
+                "ok": False,
+                "errors": [str(exc)],
+                "audit_id": getattr(event, "pk", None),
+            }
+
     idem = idempotency_key or f"{pack.key}:{pack.pack_type}:{getattr(school, 'pk', '')}:{_hash(preview)}"
     existing = PackInstallation.objects.filter(school=school, pack_key=pack.key, pack_type=pack.pack_type, idempotency_key=idem, status=PackInstallation.Status.APPLIED).first()
     if existing:
-        return {"ok": True, "installation_id": existing.pk, "idempotent": True, "applied_changes": existing.applied_changes, "external_blockers": existing.external_blockers}
+        runtime_result = None
+        if pack.pack_type == "experience_template":
+            from apps.brand_experience.template_runtime import activate_experience_template
+
+            try:
+                runtime_result = activate_experience_template(
+                    school=school,
+                    template_key=pack.key,
+                    actor=actor,
+                    reconciled=True,
+                    emit_audit=True,
+                    platform_operator=platform_operator,
+                ).as_dict()
+            except ExperienceRuntimeError as exc:
+                event = audit_pack_event(
+                    "pack_apply_failed",
+                    pack_key=pack.key,
+                    pack_type=pack.pack_type,
+                    school=school,
+                    actor=actor,
+                    result="failed",
+                    reason="experience_runtime_reconciliation_failed",
+                    payload={"errors": [str(exc)]},
+                )
+                return {
+                    "ok": False,
+                    "errors": [str(exc)],
+                    "audit_id": getattr(event, "pk", None),
+                }
+        return {"ok": True, "installation_id": existing.pk, "idempotent": True, "applied_changes": existing.applied_changes, "external_blockers": existing.external_blockers, "experience_runtime": runtime_result}
 
     rollback_snapshot = _snapshot_school(school)
     package_id = f"{pack.pack_type}:{pack.key}"
@@ -99,49 +154,107 @@ def apply_pack(
             scope="tenant",
             compatibility={"allowed_scopes": ["tenant"]},
         )
-    with transaction.atomic():
-        settings = dict(school.settings or {})
-        settings.setdefault("pack_installation_simulation", {})
-        settings["pack_installation_simulation"][pack.key] = {
-            "pack_type": pack.pack_type,
-            "version": pack.version,
-            "applied_at": timezone.now().isoformat(),
-            "external_required": list(preview.get("external_required") or []),
-        }
-        school.settings = settings
-        school.save(update_fields=["settings"])
-        installation = PackInstallation.objects.create(
-            school=school,
-            blueprint_installation=blueprint_installation,
-            pack_key=pack.key,
-            pack_type=pack.pack_type,
-            version=pack.version,
-            installed_version=pack.version,
-            available_version=pack.version,
-            status=PackInstallation.Status.APPLIED,
-            applied_by=actor if getattr(actor, "pk", None) else None,
-            applied_at=timezone.now(),
-            preview_snapshot=preview,
-            simulation_snapshot=simulation,
-            impact_snapshot=impact,
-            applied_changes=preview.get("included_changes", []),
-            rollback_snapshot=rollback_snapshot,
-            external_blockers=list(preview.get("external_required") or []),
-            idempotency_key=idem,
-        )
+    if not package_result.get("ok"):
         event = audit_pack_event(
-            "pack_applied",
+            "pack_apply_failed",
             pack_key=pack.key,
             pack_type=pack.pack_type,
             school=school,
             actor=actor,
-            result="applied",
-            installation_id=installation.pk,
-            payload={"external_blockers": installation.external_blockers},
+            result="failed",
+            reason="package_engine_failed",
+            payload={"errors": list(package_result.get("errors") or [])},
         )
-        if event:
-            installation.audit_ref = str(event.pk)
-            installation.save(update_fields=["audit_ref"])
+        return {
+            "ok": False,
+            "errors": list(package_result.get("errors") or ["Package installation failed."]),
+            "audit_id": getattr(event, "pk", None),
+            "package_result": package_result,
+        }
+    experience_runtime = None
+    try:
+        with transaction.atomic():
+            settings = dict(school.settings or {})
+            settings.setdefault("pack_installation_simulation", {})
+            settings["pack_installation_simulation"][pack.key] = {
+                "pack_type": pack.pack_type,
+                "version": pack.version,
+                "applied_at": timezone.now().isoformat(),
+                "external_required": list(preview.get("external_required") or []),
+            }
+            school.settings = settings
+            school.save(update_fields=["settings"])
+            installation = PackInstallation.objects.create(
+                school=school,
+                blueprint_installation=blueprint_installation,
+                pack_key=pack.key,
+                pack_type=pack.pack_type,
+                version=pack.version,
+                installed_version=pack.version,
+                available_version=pack.version,
+                status=PackInstallation.Status.APPLIED,
+                applied_by=actor if getattr(actor, "pk", None) else None,
+                applied_at=timezone.now(),
+                preview_snapshot=preview,
+                simulation_snapshot=simulation,
+                impact_snapshot=impact,
+                applied_changes=preview.get("included_changes", []),
+                rollback_snapshot=rollback_snapshot,
+                external_blockers=list(preview.get("external_required") or []),
+                idempotency_key=idem,
+            )
+            event = audit_pack_event(
+                "pack_applied",
+                pack_key=pack.key,
+                pack_type=pack.pack_type,
+                school=school,
+                actor=actor,
+                result="applied",
+                installation_id=installation.pk,
+                payload={"external_blockers": installation.external_blockers},
+            )
+            if event:
+                installation.audit_ref = str(event.pk)
+                installation.save(update_fields=["audit_ref"])
+            if pack.pack_type == "experience_template":
+                from apps.brand_experience.template_runtime import (
+                    activate_experience_template,
+                )
+
+                experience_runtime = activate_experience_template(
+                    school=school,
+                    template_key=pack.key,
+                    actor=actor,
+                    installed_package_id=package_result.get("installed_id"),
+                    platform_operator=platform_operator,
+                ).as_dict()
+    except ExperienceRuntimeError as exc:
+        installed_id = package_result.get("installed_id")
+        if installed_id and not package_result.get("skipped"):
+            from apps.packages.engine import rollback as rollback_package
+
+            compensating_package = InstalledPackage.objects.filter(pk=installed_id).first()
+            if compensating_package is not None and compensating_package.is_active:
+                rollback_package(
+                    compensating_package,
+                    actor_id=getattr(actor, "pk", None),
+                )
+        event = audit_pack_event(
+            "pack_apply_failed",
+            pack_key=pack.key,
+            pack_type=pack.pack_type,
+            school=school,
+            actor=actor,
+            result="failed",
+            reason="experience_runtime_activation_failed",
+            payload={"errors": [str(exc)]},
+        )
+        return {
+            "ok": False,
+            "errors": [str(exc)],
+            "audit_id": getattr(event, "pk", None),
+            "package_result": package_result,
+        }
     return {
         "ok": True,
         "installation_id": installation.pk,
@@ -151,5 +264,6 @@ def apply_pack(
         "rollback_available": pack.rollback_available,
         "audit_id": installation.audit_ref,
         "package_result": package_result,
+        "experience_runtime": experience_runtime,
         "idempotent": False,
     }

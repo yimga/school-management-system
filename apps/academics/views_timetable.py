@@ -17,7 +17,7 @@ from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.translation import gettext as _
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_http_methods
 
 from apps.accounts.decorators import login_required, require_permission
 from apps.academics.scheduling import (
@@ -94,10 +94,12 @@ def _dedupe_conflicts(raw_conflicts: list) -> list:
 
 @login_required
 @require_school
-@require_POST
+@require_http_methods(["GET", "POST"])
 @require_permission(_TIMETABLE_PERMISSION)
 def timetable_generate(request):
-    """POST: persist a fresh DRAFT schedule via the Stack-A generator, then review."""
+    """GET opens the workspace; POST persists a fresh DRAFT then reviews it."""
+    if request.method == "GET":
+        return redirect("accounts:ops_timetabling")
     school = request.school
     year, term = get_active_year_and_term(school=school)
     if not (year and term):
