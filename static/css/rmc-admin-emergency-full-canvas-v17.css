@@ -1,5 +1,5 @@
-/* 2026-08-09-admin-os-v170-full-canvas
- * Admin emergency full-canvas contract v17.0.
+/* 2026-08-09-admin-os-v171-full-canvas
+ * Admin emergency full-canvas contract v17.1.
  * This file is the ONE terminal geometry owner for operator and tenant /admin/.
  */
 @import url("./rmc-admin-workspace-10x.css");
@@ -118,6 +118,18 @@ html[data-rmc-admin-html="unfold"] body,
   background: var(--rmc-admin-card) !important;
 }
 
+[data-rmc-admin-form-contract="premium-form-frame"] .rmc-admin-fieldset__heading {
+  margin: 0 0 0.75rem !important;
+  color: var(--rmc-admin-text) !important;
+  border-color: var(--rmc-admin-line) !important;
+}
+
+[data-rmc-admin-form-contract="premium-form-frame"] .rmc-admin-fieldset__description {
+  grid-column: 1 / -1 !important;
+  color: var(--rmc-admin-muted) !important;
+  overflow-wrap: anywhere;
+}
+
 [data-rmc-admin-form-contract="premium-form-frame"] :is(
   .rmc-admin-fieldset[data-rmc-fieldset-span="full"],
   .site-settings-section[data-rmc-fieldset-span="full"],
@@ -213,6 +225,10 @@ html[data-rmc-admin-html="unfold"] body,
   border: 1px solid var(--rmc-admin-line) !important;
   border-radius: 0.8rem !important;
   background: var(--rmc-admin-card-soft) !important;
+}
+[data-rmc-shell-root="django-admin"] .rmc-admin-submit-surface {
+  min-inline-size: 0 !important;
+  box-sizing: border-box !important;
 }
 [data-rmc-shell-root="django-admin"] :is(.rmc-app-shell__footer, footer[role="contentinfo"]) {
   position: static !important;

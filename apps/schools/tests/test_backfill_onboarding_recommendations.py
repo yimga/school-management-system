@@ -4,6 +4,7 @@ from django.core.management import call_command
 from django.test import TestCase
 
 from apps.schools.models import School
+from apps.schools.onboarding_recommendations import MANIFEST_VERSION
 
 
 class BackfillOnboardingRecommendationsTests(TestCase):
@@ -29,5 +30,6 @@ class BackfillOnboardingRecommendationsTests(TestCase):
         call_command("backfill_onboarding_recommendations", "--apply")
         self.school.refresh_from_db()
         self.assertEqual(
-            self.school.settings["recommendation_manifest"]["version"], 2
+            self.school.settings["recommendation_manifest"]["version"],
+            MANIFEST_VERSION,
         )

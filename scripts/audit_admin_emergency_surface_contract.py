@@ -181,6 +181,7 @@ def signup_inventory() -> dict[str, Any]:
     base_template = read(ROOT / "templates" / "base.html")
     view = read(ROOT / "apps" / "schools" / "signup_views.py")
     recommendations = read(ROOT / "apps" / "schools" / "onboarding_recommendations.py")
+    profile_boundary = read(ROOT / "apps" / "schools" / "onboarding_profile.py")
     plan_resolution = read(ROOT / "apps" / "schools" / "plan_resolution.py")
 
     candidates = {
@@ -217,7 +218,41 @@ def signup_inventory() -> dict[str, Any]:
             and "rmc-signup-balanced-v3.css" in base_template
         ),
         "live_recommendation_card": "data-rmc-signup-recommendation" in template,
-        "recommendation_manifest_v3": "MANIFEST_VERSION = 3" in recommendations,
+        "recommendation_manifest_v4": "MANIFEST_VERSION = 4" in recommendations,
+        "typed_profile_boundary": (
+            "class InstitutionProfile(TypedDict)" in profile_boundary
+            and "class NormalizedInstitutionProfile" in profile_boundary
+        ),
+        "strict_input_validation": (
+            "strict=True" in view
+            and "unsupported_choice" in profile_boundary
+            and "out_of_range" in profile_boundary
+        ),
+        "versioned_blueprint_catalog": (
+            "get_blueprint" in recommendations
+            and "all_contracts_resolved" in recommendations
+        ),
+        "confidence_and_reasons": (
+            '"confidence_score"' in recommendations
+            and '"rule_ids"' in recommendations
+            and '"missing_input_details"' in recommendations
+        ),
+        "review_candidate_preserves_confirmed_decision": (
+            "recommendation_candidate" in recommendations
+            and "operator_locked" in recommendations
+        ),
+        "nuanced_operations": all(
+            marker in template + view + recommendations
+            for marker in (
+                "operational_services",
+                "assessment_profile",
+                "identity_profile",
+                "data_residency_requirement",
+                "accessibility_profile",
+                "migration_complexity",
+                "automation_preference",
+            )
+        ),
         "subscription_requires_confirmation": '"requires_confirmation": True' in recommendations,
         "subscription_does_not_auto_entitle": '"auto_entitlement": False' in recommendations,
     }
@@ -227,7 +262,10 @@ def signup_inventory() -> dict[str, Any]:
         "captured_count": sum(candidates.values()),
         "decision_gaps": missing,
         "plan_is_platform_default_not_auto_granted": "tenants never pick a plan" in plan_resolution.lower(),
-        "recommendation_engine_is_local_and_deterministic": "local-first" in recommendations.lower(),
+        "recommendation_engine_is_local_and_deterministic": (
+            "deterministic" in recommendations.lower()
+            and "recommendation-only" in recommendations
+        ),
     }
 
 

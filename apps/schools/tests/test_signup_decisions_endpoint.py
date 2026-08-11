@@ -76,10 +76,9 @@ class SignupCapturesNewDimensionsTests(TestCase):
             "session_pattern": "wat", "governance_profile": "ultra",
         })
         self.assertEqual(resp.status_code, 200)
-        profile = School.objects.get(slug="guard-academy").settings[
-            "onboarding_intent"]["institution_profile"]
-        self.assertEqual(profile["session_pattern"], "single")     # fell back
-        self.assertEqual(profile["governance_profile"], "standard")  # fell back
+        self.assertFalse(School.objects.filter(slug="guard-academy").exists())
+        self.assertContains(resp, "Choose a supported value for session pattern")
+        self.assertContains(resp, "Choose a supported value for governance profile")
 
     def test_setup_page_renders_decision_block(self):
         resp = self.client.get(reverse("signup_school"), {"country_code": "CM"})

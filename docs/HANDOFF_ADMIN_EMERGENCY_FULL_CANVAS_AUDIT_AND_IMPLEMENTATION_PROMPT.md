@@ -14,7 +14,7 @@ Approval evidence:
 
 The approval source round completed against build `2026-08-08-v16.4`. Both independent approval-browser rounds passed at 1440×1000, 1024×900, 768×900 and 390×844 with zero horizontal overflow and zero console errors. They exercised every preview tab, both before/after modes, theme switching and the conditional configuration recommendation. The implemented v17 contract is validated separately against real manager and tenant host routing.
 
-The implemented repair is build `2026-08-09-v17.0`, cache-bust `v170`, service worker `sms-v4.06.32-admin-full-canvas-2026-08-09`, and canvas seal `2026-08-09-admin-os-v170-full-canvas`. Production-shaped browser validation uses independent `manager.runmycampus.com` and `gilead-tech.runmycampus.com` Host headers, independent scoped sessions, all four required viewport widths, and both themes.
+The implemented repair is build `2026-08-09-v17.1`, cache-bust `v171`, service worker `sms-v4.06.33-admin-full-canvas-2026-08-09`, and canvas seal `2026-08-09-admin-os-v171-full-canvas`. Production-shaped browser validation uses independent `manager.runmycampus.com` and `gilead-tech.runmycampus.com` Host headers, independent scoped sessions, all four required viewport widths, and both themes.
 
 Final local implementation result:
 
@@ -125,7 +125,7 @@ Add dark and light computed-style assertions for:
 
 Move page behavior out of specialized inline scripts into nonce-safe, versioned modules. One module owns section switching, compact Save, back navigation, preview and page-aware rails. Preview/popout actions must perform a real action or be removed. Do not locate submit rows with broad `[class*="submit"]` fallbacks.
 
-### 6. Upgrade signup to configuration autopilot v3
+### 6. Upgrade signup to configuration autopilot v4
 
 Preserve the existing simple signup. Use progressive disclosure and ask only questions that change a deterministic output. Add conditional inputs for:
 
@@ -139,6 +139,8 @@ Preserve the existing simple signup. Use progressive disclosure and ask only que
 - data residency, accessibility and special-education requirements when relevant.
 
 Resolve actual versioned IDs for blueprint, modules, grading profile, languages, dashboard/workflow packs and migration packs. Recommend a subscription SKU with rationale, confidence, cost/upgrade boundary and missing-input explanation. A recommendation must never silently grant a paid entitlement. Require confirmation; persist recommendation version, answers, confirmation, overrides and override reason in the audit trail. Recompute deterministically when an input fingerprint changes and protect operator-locked decisions.
+
+Implementation reference: `docs/TENANT_CONFIGURATION_AUTOPILOT_V4.md`. Keep HTTP/form parsing, typed normalization, deterministic policy resolution and persistence as separate concerns. New inputs must be added to the typed boundary and its strict/legacy-repair tests before recommendation rules consume them.
 
 ### 7. Browser and deployment proof
 

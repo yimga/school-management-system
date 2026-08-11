@@ -5,8 +5,8 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-BUILD = "2026-08-09-v17.0"
-CACHE_BUST = "20260809-admin-full-canvas-v170"
+BUILD = "2026-08-09-v17.1"
+CACHE_BUST = "20260809-admin-full-canvas-v171"
 OWNER = "emergency-v17"
 
 
@@ -53,7 +53,7 @@ def main() -> int:
         "display:table-row!important",
         "display:table-cell!important",
         "position:static!important",
-        "2026-08-09-admin-os-v170-full-canvas",
+        "2026-08-09-admin-os-v171-full-canvas",
     )
     for marker in required_css:
         if marker not in css_n:

@@ -1,35 +1,19 @@
 {
   "browser_evidence": {
     "browser_report_files": [
-      "artifacts/django-admin-canvas-live/real-host-core-both-dark-1024.json",
-      "artifacts/django-admin-canvas-live/real-host-core-both-dark-1440.json",
+      "artifacts/django-admin-canvas-live/real-host-core-both-dark-1024-operator-index-operator-user-change-tenant-index-tenant-site-settings-change.json",
+      "artifacts/django-admin-canvas-live/real-host-core-both-dark-1440-operator-index-operator-user-change-tenant-index-tenant-site-settings-change.json",
       "artifacts/django-admin-canvas-live/real-host-core-both-dark-390.json",
-      "artifacts/django-admin-canvas-live/real-host-core-both-dark-768.json",
-      "artifacts/django-admin-canvas-live/real-host-core-both-light-1024.json",
-      "artifacts/django-admin-canvas-live/real-host-core-both-light-1440.json",
+      "artifacts/django-admin-canvas-live/real-host-core-both-dark-768-operator-index-operator-user-change-tenant-index-tenant-site-settings-change.json",
+      "artifacts/django-admin-canvas-live/real-host-core-both-light-1024-operator-index-operator-user-change-tenant-index-tenant-site-settings-change.json",
+      "artifacts/django-admin-canvas-live/real-host-core-both-light-1440-operator-index-operator-user-change-tenant-index-tenant-site-settings-change.json",
       "artifacts/django-admin-canvas-live/real-host-core-both-light-390.json",
-      "artifacts/django-admin-canvas-live/real-host-core-both-light-768.json",
-      "artifacts/django-admin-canvas-live/real-host-core-operator-dark-1440-operator-index.json",
-      "artifacts/django-admin-canvas-live/real-host-core-operator-dark-390-operator-index.json",
-      "artifacts/django-admin-canvas-live/real-host-core-operator-light-1440-operator-index.json",
-      "artifacts/django-admin-canvas-live/real-host-core-operator-light-390-operator-index.json",
-      "artifacts/django-admin-canvas-live/real-host-specialized-both-dark-1440-automation-migrationrun-brand-experience-themepack-compliance-compliancerule-compliance-consentrecord-compliance-consentrequest-c-fceca46aa3.json",
-      "artifacts/django-admin-canvas-live/real-host-specialized-both-dark-1440-integrations-marketplace-appinstallation-integrations-marketplace-integration-integrations-marketplace-marketplaceapp-integration-262706dcf5.json",
-      "artifacts/django-admin-canvas-live/real-host-specialized-both-dark-1440-metadata-dynamicfielddefinition-metadata-dynamicfieldvalue-global-registries-educationsystemprofile-global-registries-gradingscal-f05e5c6de4.json",
-      "artifacts/django-admin-canvas-live/real-host-specialized-both-dark-1440-portal-documentcategory-portal-event-portal-faq-portal-faqcategory-portal-kbarticle-portal-kbcategory.json",
-      "artifacts/django-admin-canvas-live/real-host-specialized-both-dark-1440-portal-portalfeatureitem-registries-countryregistry-siteconfig-dashboarduserpreference-siteconfig-dashboardwidget-siteconfig-feat-cebdab23d6.json",
-      "artifacts/django-admin-canvas-live/real-host-specialized-both-dark-1440-siteconfig-reportcardstyle-siteconfig-sitesettings-siteconfig-tenantadmissionnumberpolicy-siteconfig-themepack-siteconfig-tourste-c866efeddc.json",
-      "artifacts/django-admin-canvas-live/real-host-specialized-both-dark-1440-siteconfig-userpreference.json",
-      "artifacts/django-admin-canvas-live/real-host-specialized-both-light-390-automation-migrationrun-brand-experience-themepack-compliance-compliancerule-compliance-consentrecord-compliance-consentrequest-c-fceca46aa3.json",
-      "artifacts/django-admin-canvas-live/real-host-specialized-both-light-390-integrations-marketplace-appinstallation-integrations-marketplace-integration-integrations-marketplace-marketplaceapp-integration-262706dcf5.json",
-      "artifacts/django-admin-canvas-live/real-host-specialized-both-light-390-metadata-dynamicfielddefinition-metadata-dynamicfieldvalue-global-registries-educationsystemprofile-global-registries-gradingscal-f05e5c6de4.json",
-      "artifacts/django-admin-canvas-live/real-host-specialized-both-light-390-portal-documentcategory-portal-event-portal-faq-portal-faqcategory-portal-kbarticle-portal-kbcategory.json",
-      "artifacts/django-admin-canvas-live/real-host-specialized-both-light-390-portal-portalfeatureitem-registries-countryregistry-siteconfig-dashboarduserpreference-siteconfig-dashboardwidget-siteconfig-feat-cebdab23d6.json",
-      "artifacts/django-admin-canvas-live/real-host-specialized-both-light-390-siteconfig-reportcardstyle-siteconfig-sitesettings-siteconfig-tenantadmissionnumberpolicy-siteconfig-themepack-siteconfig-tourste-c866efeddc.json",
-      "artifacts/django-admin-canvas-live/real-host-specialized-both-light-390-siteconfig-tourstep.json"
+      "artifacts/django-admin-canvas-live/real-host-core-both-light-768-operator-index-operator-user-change-tenant-index-tenant-site-settings-change.json",
+      "artifacts/django-admin-canvas-live/real-host-specialized-both-dark-1440-platform-runtime-runtimedefaults-siteconfig-sitesettings-brand-experience-themepack.json",
+      "artifacts/django-admin-canvas-live/real-host-specialized-both-light-390-platform-runtime-runtimedefaults-siteconfig-sitesettings-brand-experience-themepack.json"
     ],
-    "build_id": "2026-08-09-v17.0",
-    "cache_bust": "20260809-admin-full-canvas-v170",
+    "build_id": "2026-08-09-v17.1",
+    "cache_bust": "20260809-admin-full-canvas-v171",
     "failed_report_files": [],
     "matrix": [
       "1024:dark",
@@ -42,16 +26,16 @@
       "768:light"
     ],
     "max_stylesheet_count": {
-      "operator": 117,
-      "tenant": 90
+      "operator": 118,
+      "tenant": 89
     },
-    "service_worker_version": "sms-v4.06.32-admin-full-canvas-2026-08-09",
-    "unique_surface_evidence": 67
+    "service_worker_version": "sms-v4.06.33-admin-full-canvas-2026-08-09",
+    "unique_surface_evidence": 31
   },
-  "content_sha256": "e7f2803ea115ffda25fa0fe46bfd5e42dfe26cd32bbbd10b9487e66ead8740e6",
+  "content_sha256": "1e95c08b27a87823a4af18c77b81f7bf74d45be96ca3c036b9923a3985fd594f",
   "contract_satisfied": true,
   "findings": [],
-  "generated_at": "2026-08-09T22:32:06.158064+00:00",
+  "generated_at": "2026-08-11T15:27:33.060373+00:00",
   "registry": {
     "operator": {
       "custom_change_forms": 14,
@@ -397,11 +381,12 @@
   "root": "C:\\Users\\yimga\\AppData\\Local\\Temp\\rmc-admin-emergency-audit-20260809",
   "schema": "rmc.admin-emergency-surface-audit.v1",
   "signup": {
-    "captured_count": 26,
+    "captured_count": 32,
     "captured_or_derived": {
       "balanced_signup_contract": true,
       "blueprint_recommendation": true,
       "campus_count": true,
+      "confidence_and_reasons": true,
       "connectivity_profile": true,
       "country": true,
       "education_cycles": true,
@@ -415,16 +400,21 @@
       "migration_domains": true,
       "migration_vendor": true,
       "module_recommendation": true,
+      "nuanced_operations": true,
       "offline_recommendation": true,
       "operating_model": true,
       "organization_scope": true,
       "payment_profile": true,
       "recommendation_manifest_persisted": true,
-      "recommendation_manifest_v3": true,
+      "recommendation_manifest_v4": true,
+      "review_candidate_preserves_confirmed_decision": true,
       "staff_count": true,
+      "strict_input_validation": true,
       "student_capacity": true,
       "subscription_does_not_auto_entitle": true,
-      "subscription_requires_confirmation": true
+      "subscription_requires_confirmation": true,
+      "typed_profile_boundary": true,
+      "versioned_blueprint_catalog": true
     },
     "decision_gaps": [],
     "plan_is_platform_default_not_auto_granted": true,
@@ -435,7 +425,7 @@
     "all_templates": 1878,
     "copied_theme_coupled_admin_guidance_cards": 0,
     "critical": 0,
-    "css_files": 318,
+    "css_files": 319,
     "findings": 0,
     "hard_white_template_lines": 0,
     "inline_admin_scripts_without_nonce": 0,

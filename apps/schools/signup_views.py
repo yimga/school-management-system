@@ -528,11 +528,13 @@ def signup_school(request: HttpRequest):
             term_preset = "uk-3-term"
     signup_ref = (request.POST.get("signup_ref") or "").strip()[:32]
     # Wave L7 — intent capture for downstream auto-launch hooks.
-    migration_vendor = (request.POST.get("migration_vendor") or "").strip().lower()
-    if migration_vendor and migration_vendor not in _SIGNUP_VENDOR_SLUGS:
-        migration_vendor = ""
+    raw_migration_vendor = (request.POST.get("migration_vendor") or "").strip().lower()
+    migration_vendor_invalid = bool(
+        raw_migration_vendor and raw_migration_vendor not in _SIGNUP_VENDOR_SLUGS
+    )
+    migration_vendor = "" if migration_vendor_invalid else raw_migration_vendor
     # Optional "which records to import" multi-select captured next to the vendor.
-    migration_domains = _clean_migration_domains(request.POST.getlist("migration_domains"))
+    raw_migration_domains = request.POST.getlist("migration_domains")
     # v3.62.2 — school_type validated against the COUNTRY's pack first; if
     # not present there, fall back to the legacy hardcoded map so existing
     # bookmarked-form clients keep working.
@@ -582,54 +584,63 @@ def signup_school(request: HttpRequest):
     language_codes_csv = "|".join(language_codes)
     primary_language_code = language_code
 
-    funding_type = (request.POST.get("funding_type") or "").strip().lower()
-    if funding_type not in {"public", "private", "mission", "charter", "nonprofit", "other"}:
-        funding_type = ""
-    organization_scope = (request.POST.get("organization_scope") or "single").strip().lower()
-    if organization_scope not in {"single", "district", "network"}:
-        organization_scope = "single"
-    lms_preference = (request.POST.get("lms_preference") or "none").strip().lower()
-    if lms_preference not in {"none", "native", "google-classroom", "microsoft-teams", "canvas", "moodle", "other"}:
-        lms_preference = "none"
-    try:
-        student_capacity = min(1_000_000, max(0, int(request.POST.get("student_capacity") or 0)))
-    except (TypeError, ValueError):
-        student_capacity = 0
-    try:
-        campus_count = min(10_000, max(0, int(request.POST.get("campus_count") or 0)))
-    except (TypeError, ValueError):
-        campus_count = 0
-    try:
-        staff_count = min(1_000_000, max(0, int(request.POST.get("staff_count") or 0)))
-    except (TypeError, ValueError):
-        staff_count = 0
-    operating_model = (request.POST.get("operating_model") or "day").strip().lower()
-    if operating_model not in {"day", "boarding", "mixed"}:
-        operating_model = "day"
-    connectivity_profile = (request.POST.get("connectivity_profile") or "mixed").strip().lower()
-    if connectivity_profile not in {"reliable", "mixed", "limited"}:
-        connectivity_profile = "mixed"
-    payment_profile = (request.POST.get("payment_profile") or "basic").strip().lower()
-    if payment_profile not in {"basic", "online", "multi-channel"}:
-        payment_profile = "basic"
-    go_live_timeline = (request.POST.get("go_live_timeline") or "exploring").strip().lower()
-    if go_live_timeline not in {"exploring", "90-days", "30-days", "urgent"}:
-        go_live_timeline = "exploring"
-    # Progressive nuance dimensions (v-decisions). Each defaults to the neutral
-    # option; the setup step pre-selects the engine's recommended value, but we
-    # still validate against the allowed set so a hand-crafted POST can't inject
-    # an unknown code into the recommendation fingerprint.
-    session_pattern = (request.POST.get("session_pattern") or "single").strip().lower()
-    if session_pattern not in {"single", "double", "continuous"}:
-        session_pattern = "single"
-    curriculum_board = (request.POST.get("curriculum_board") or "").strip().lower()[:32]
-    if not curriculum_board.replace("-", "").isalnum():
-        curriculum_board = ""
-    governance_profile = (request.POST.get("governance_profile") or "standard").strip().lower()
-    if governance_profile not in {"standard", "strict"}:
-        governance_profile = "standard"
+    from apps.schools.onboarding_profile import normalize_institution_profile
 
-    errors = []
+    profile_result = normalize_institution_profile(
+        {
+            "funding_type": request.POST.get("funding_type"),
+            "organization_scope": request.POST.get("organization_scope"),
+            "learner_scale": request.POST.get("learner_scale"),
+            "student_capacity": request.POST.get("student_capacity"),
+            "lms_preference": request.POST.get("lms_preference"),
+            "campus_count": request.POST.get("campus_count"),
+            "staff_count": request.POST.get("staff_count"),
+            "operating_model": request.POST.get("operating_model"),
+            "operational_services": request.POST.getlist("operational_services"),
+            "connectivity_profile": request.POST.get("connectivity_profile"),
+            "payment_profile": request.POST.get("payment_profile"),
+            "assessment_profile": request.POST.get("assessment_profile"),
+            "identity_profile": request.POST.get("identity_profile"),
+            "data_residency_requirement": request.POST.get("data_residency_requirement"),
+            "accessibility_profile": request.POST.get("accessibility_profile"),
+            "migration_complexity": request.POST.get("migration_complexity"),
+            "automation_preference": request.POST.get("automation_preference"),
+            "go_live_timeline": request.POST.get("go_live_timeline"),
+            "session_pattern": request.POST.get("session_pattern"),
+            "curriculum_board": request.POST.get("curriculum_board"),
+            "governance_profile": request.POST.get("governance_profile"),
+            "migration_vendor": migration_vendor,
+            "migration_domains": raw_migration_domains,
+        },
+        strict=True,
+    )
+    institution_profile = dict(profile_result.values)
+    funding_type = institution_profile["funding_type"]
+    organization_scope = institution_profile["organization_scope"]
+    learner_scale = institution_profile["learner_scale"]
+    student_capacity = institution_profile["student_capacity"]
+    lms_preference = institution_profile["lms_preference"]
+    campus_count = institution_profile["campus_count"]
+    staff_count = institution_profile["staff_count"]
+    operating_model = institution_profile["operating_model"]
+    operational_services = institution_profile["operational_services"]
+    connectivity_profile = institution_profile["connectivity_profile"]
+    payment_profile = institution_profile["payment_profile"]
+    assessment_profile = institution_profile["assessment_profile"]
+    identity_profile = institution_profile["identity_profile"]
+    data_residency_requirement = institution_profile["data_residency_requirement"]
+    accessibility_profile = institution_profile["accessibility_profile"]
+    migration_complexity = institution_profile["migration_complexity"]
+    automation_preference = institution_profile["automation_preference"]
+    go_live_timeline = institution_profile["go_live_timeline"]
+    session_pattern = institution_profile["session_pattern"]
+    curriculum_board = institution_profile["curriculum_board"]
+    governance_profile = institution_profile["governance_profile"]
+    migration_domains = institution_profile["migration_domains"]
+
+    errors = [issue.message for issue in profile_result.errors]
+    if migration_vendor_invalid:
+        errors.append("Choose a supported migration source or select Other / unsure.")
     if not name:
         errors.append("School name is required.")
     if not email:
@@ -684,6 +695,8 @@ def signup_school(request: HttpRequest):
                 "language_codes_csv": language_codes_csv,
                 "primary_language_code": primary_language_code,
                 "language_code": primary_language_code,
+                **institution_profile,
+                "profile_validation_issues": profile_result.issue_payload(),
             },
         )
     if (
@@ -743,6 +756,8 @@ def signup_school(request: HttpRequest):
                 "language_codes_csv": language_codes_csv,
                 "primary_language_code": primary_language_code,
                 "language_code": primary_language_code,
+                **institution_profile,
+                "profile_validation_issues": profile_result.issue_payload(),
             },
         )
 
@@ -782,27 +797,9 @@ def signup_school(request: HttpRequest):
     # path still reading school.settings["term_preset"] directly.
     if term_preset == "uk-3-term" or (term_preset_raw.upper() in ("UK", "GB")):
         school_settings["term_preset"] = "UK"
-    institution_profile = {
-        "funding_type": funding_type,
-        "organization_scope": organization_scope,
-        "student_capacity": student_capacity,
-        "lms_preference": lms_preference,
-        "campus_count": campus_count,
-        "staff_count": staff_count,
-        "operating_model": operating_model,
-        "connectivity_profile": connectivity_profile,
-        "payment_profile": payment_profile,
-        "go_live_timeline": go_live_timeline,
-        "session_pattern": session_pattern,
-        "curriculum_board": curriculum_board,
-        "governance_profile": governance_profile,
-        # Migration intent participates in the same versioned recommendation
-        # fingerprint as the operating profile. This keeps the blueprint/module
-        # handoff reproducible instead of storing import choices in a detached
-        # lifecycle-only branch.
-        "migration_vendor": migration_vendor,
-        "migration_domains": list(migration_domains),
-    }
+    # ``institution_profile`` is already normalized by the typed boundary above.
+    # Keeping the complete v4 answer set together makes recommendation
+    # recomputation deterministic and day-two review/audit possible.
     school_settings["onboarding_intent"] = {
         "country_code": country_code,
         "education_cycles": list(validated_types),

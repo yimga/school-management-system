@@ -16,7 +16,7 @@
 <script nonce="{{ csp_nonce }}" type="application/json" id="page-data-rmc-signup-localization">{{ signup_localization_json|default:"{}"|safe }}</script>
 <script defer src="{% static 'js/_pages/rmc-signup-localization-prefetch.js' %}"></script>
 <script defer src="{% static 'js/_pages/rmc-signup-country-adapter.js' %}"></script>
-<script defer src="{% static 'js/rmc-signup-balanced-v3.js' %}?v=20260809-admin-full-canvas-v170"></script>
+<script defer src="{% static 'js/rmc-signup-balanced-v3.js' %}?v=20260809-admin-full-canvas-v171"></script>
 <script defer src="{% static 'js/rmc-signup-decisions.js' %}?v=20260809-progressive-decisions-v1"></script>
 {% endblock %}
 
@@ -289,31 +289,61 @@
       </div>
 
       <fieldset class="mb-3 rmc-signup-field" data-rmc-signup-field="institution_profile">
-        <legend class="rmc-signup-field__label-text h6">{% trans "Help us configure your workspace" %}</legend>
-        <p class="small text-muted mb-3">{% trans "A few quick answers create a working recommendation. We pre-select the best option for each decision from your country and school profile — review and change anything before you provision." %}</p>
+        <legend class="rmc-signup-field__label-text h6">{% trans "How will this school operate?" %}</legend>
+        <p class="small text-muted mb-2"><strong>{% trans "Four quick decisions · progressive" %}</strong></p>
+        <p class="small text-muted mb-3">{% trans "Only questions that change a blueprint, module, compliance profile or plan recommendation are shown. Every recommendation can be reviewed before provisioning." %}</p>
+        {% if profile_validation_issues %}
+        <div class="alert alert-warning" role="status">
+          <strong>{% trans "Review these setup answers" %}</strong>
+          <ul class="mb-0 mt-1">{% for issue in profile_validation_issues %}<li>{{ issue.message }}</li>{% endfor %}</ul>
+        </div>
+        {% endif %}
         <div class="rmc-signup-profile-layout">
-        <div class="row g-3 rmc-signup-profile-fields">
-          <div class="col-sm-6">
-            <label class="form-label" for="funding_type">{% trans "School model" %}</label>
-            <select class="form-select" id="funding_type" name="funding_type">
-              <option value="">{% trans "Choose later" %}</option><option value="public">{% trans "Public" %}</option><option value="private">{% trans "Private" %}</option><option value="mission">{% trans "Faith / mission" %}</option><option value="charter">{% trans "Charter" %}</option><option value="nonprofit">{% trans "Nonprofit" %}</option><option value="other">{% trans "Other" %}</option>
-            </select>
-          </div>
-          <div class="col-sm-6"><label class="form-label" for="student_capacity">{% trans "Expected students" %}</label><input class="form-control" id="student_capacity" name="student_capacity" type="number" min="0" max="1000000" inputmode="numeric" placeholder="500"></div>
-          <div class="col-sm-6">
-            <label class="form-label" for="lms_preference">{% trans "Learning platform" %}</label>
-            <select class="form-select" id="lms_preference" name="lms_preference"><option value="none">{% trans "Recommend one for me" %}</option><option value="native">{% trans "RunMyCampus learning workspace" %}</option><option value="google-classroom">Google Classroom</option><option value="microsoft-teams">Microsoft Teams</option><option value="canvas">Canvas</option><option value="moodle">Moodle</option><option value="other">{% trans "Other" %}</option></select>
+        <div class="rmc-signup-profile-fields">
+          <div class="rmc-signup-decision-grid" data-rmc-signup-decisions="1">
+            <fieldset class="rmc-signup-decision-group">
+              <legend>{% trans "Campus structure" %}</legend>
+              <label class="rmc-signup-decision"><input type="radio" name="organization_scope" value="single"{% if organization_scope == 'single' or not organization_scope and decision_recommended.organization_scope == 'single' %} checked{% endif %}><span><strong>{% trans "One campus" %}</strong><small>{% trans "A single school and administration team." %}</small></span><b class="rmc-signup-recommended-flag" data-rmc-choice-recommended="organization_scope:single" hidden>{% trans "Recommended" %}</b></label>
+              <label class="rmc-signup-decision"><input type="radio" name="organization_scope" value="network"{% if organization_scope == 'network' or not organization_scope and decision_recommended.organization_scope == 'network' %} checked{% endif %}><span><strong>{% trans "School network" %}</strong><small>{% trans "Multiple campuses with shared governance." %}</small></span><b class="rmc-signup-recommended-flag" data-rmc-choice-recommended="organization_scope:network" hidden>{% trans "Recommended" %}</b></label>
+              <label class="rmc-signup-decision"><input type="radio" name="organization_scope" value="district"{% if organization_scope == 'district' or not organization_scope and decision_recommended.organization_scope == 'district' %} checked{% endif %}><span><strong>{% trans "District / authority" %}</strong><small>{% trans "Delegated schools with central policy and reporting." %}</small></span><b class="rmc-signup-recommended-flag" data-rmc-choice-recommended="organization_scope:district" hidden>{% trans "Recommended" %}</b></label>
+            </fieldset>
+
+            <fieldset class="rmc-signup-decision-group">
+              <legend>{% trans "Daily operations" %}</legend>
+              <label class="rmc-signup-decision"><input type="radio" name="operating_model" value="day"{% if not operating_model or operating_model == 'day' %} checked{% endif %}><span><strong>{% trans "Day school" %}</strong><small>{% trans "Core academics, people and finance." %}</small></span><b class="rmc-signup-recommended-flag" data-rmc-choice-recommended="operating_model:day" hidden>{% trans "Recommended" %}</b></label>
+              <label class="rmc-signup-decision"><input type="radio" name="operating_model" value="boarding"{% if operating_model == 'boarding' %} checked{% endif %}><span><strong>{% trans "Boarding / transport" %}</strong><small>{% trans "Add residence, welfare, transport and duty operations." %}</small></span><b class="rmc-signup-recommended-flag" data-rmc-choice-recommended="operating_model:boarding" hidden>{% trans "Recommended" %}</b></label>
+              <label class="rmc-signup-decision"><input type="radio" name="operating_model" value="mixed"{% if operating_model == 'mixed' %} checked{% endif %}><span><strong>{% trans "Mixed operations" %}</strong><small>{% trans "Day and residential programs with shared services." %}</small></span><b class="rmc-signup-recommended-flag" data-rmc-choice-recommended="operating_model:mixed" hidden>{% trans "Recommended" %}</b></label>
+            </fieldset>
+
+            <fieldset class="rmc-signup-decision-group">
+              <legend>{% trans "Connectivity" %}</legend>
+              <label class="rmc-signup-decision"><input type="radio" name="connectivity_profile" value="reliable"{% if connectivity_profile == 'reliable' or not connectivity_profile and decision_recommended.connectivity_profile == 'reliable' %} checked{% endif %}><span><strong>{% trans "Reliable internet" %}</strong><small>{% trans "Cloud-first with normal offline protection." %}</small></span><b class="rmc-signup-recommended-flag" data-rmc-choice-recommended="connectivity_profile:reliable" hidden>{% trans "Recommended" %}</b></label>
+              <label class="rmc-signup-decision"><input type="radio" name="connectivity_profile" value="limited"{% if connectivity_profile == 'limited' or not connectivity_profile and decision_recommended.connectivity_profile == 'limited' %} checked{% endif %}><span><strong>{% trans "Intermittent internet" %}</strong><small>{% trans "Prioritize local-first and sync workflows." %}</small></span><b class="rmc-signup-recommended-flag" data-rmc-choice-recommended="connectivity_profile:limited" hidden>{% trans "Recommended" %}</b></label>
+              <label class="rmc-signup-decision"><input type="radio" name="connectivity_profile" value="offline-first"{% if connectivity_profile == 'offline-first' %} checked{% endif %}><span><strong>{% trans "Offline-first sites" %}</strong><small>{% trans "Extended local operation with governed reconciliation." %}</small></span><b class="rmc-signup-recommended-flag" data-rmc-choice-recommended="connectivity_profile:offline-first" hidden>{% trans "Recommended" %}</b></label>
+              <label class="rmc-signup-decision"><input type="radio" name="connectivity_profile" value="mixed"{% if connectivity_profile == 'mixed' or not connectivity_profile and decision_recommended.connectivity_profile == 'mixed' %} checked{% endif %}><span><strong>{% trans "Different by campus" %}</strong><small>{% trans "Use a safe mixed-connectivity baseline." %}</small></span><b class="rmc-signup-recommended-flag" data-rmc-choice-recommended="connectivity_profile:mixed" hidden>{% trans "Recommended" %}</b></label>
+            </fieldset>
+
+            <fieldset class="rmc-signup-decision-group">
+              <legend>{% trans "Learner scale" %}</legend>
+              <label class="rmc-signup-decision"><input type="radio" name="learner_scale" value="under-1000"{% if not learner_scale or learner_scale == 'under-1000' %} checked{% endif %}><span><strong>{% trans "Under 1,000 learners" %}</strong><small>{% trans "Standard operational scale." %}</small></span><b class="rmc-signup-recommended-flag" data-rmc-choice-recommended="learner_scale:under-1000" hidden>{% trans "Recommended" %}</b></label>
+              <label class="rmc-signup-decision"><input type="radio" name="learner_scale" value="1000-4999"{% if learner_scale == '1000-4999' %} checked{% endif %}><span><strong>{% trans "1,000–4,999 learners" %}</strong><small>{% trans "Advanced analytics and automation recommended." %}</small></span><b class="rmc-signup-recommended-flag" data-rmc-choice-recommended="learner_scale:1000-4999" hidden>{% trans "Recommended" %}</b></label>
+              <label class="rmc-signup-decision"><input type="radio" name="learner_scale" value="5000-plus"{% if learner_scale == '5000-plus' %} checked{% endif %}><span><strong>{% trans "5,000+ learners" %}</strong><small>{% trans "High-volume data, workflow and governance controls." %}</small></span><b class="rmc-signup-recommended-flag" data-rmc-choice-recommended="learner_scale:5000-plus" hidden>{% trans "Recommended" %}</b></label>
+            </fieldset>
           </div>
         </div>
         <aside class="rmc-signup-recommendation" data-rmc-signup-recommendation aria-live="polite">
-          <span class="rmc-signup-recommendation__eyebrow">{% trans "Your starting fit" %}</span>
-          <strong data-rmc-recommendation-plan>{% trans "School Pro" %}</strong>
+          <span class="rmc-signup-recommendation__eyebrow">{% trans "Explainable recommendation" %}</span>
+          <div class="rmc-signup-recommendation__title"><strong data-rmc-recommendation-plan>{% trans "School Pro" %}</strong><b class="rmc-signup-recommended-flag">{% trans "Recommended" %}</b></div>
           <p data-rmc-recommendation-copy>{% trans "A balanced school workspace with local-first operations." %}</p>
-          <ul>
+          <div class="rmc-signup-confidence"><i data-rmc-recommendation-confidence-bar></i></div>
+          <small data-rmc-recommendation-confidence>{% trans "Building confidence from your answers" %}</small>
+          <ul class="rmc-signup-recommendation__facts">
+            <li><strong>{% trans "Blueprint" %}:</strong> <span data-rmc-recommendation-blueprint>{% trans "Country and school-type matched" %}</span></li>
             <li data-rmc-recommendation-scope>{% trans "Single-campus operations" %}</li>
             <li data-rmc-recommendation-modules>{% trans "Core records, attendance and communication" %}</li>
+            <li data-rmc-recommendation-compliance>{% trans "Country-default compliance and accessibility" %}</li>
           </ul>
-          <small>{% trans "Recommendation only. You review it before any plan or module is activated." %}</small>
+          <small>{% trans "Recommendation only. You review the blueprint, modules, compliance profiles, migration path and plan before anything paid or governed is activated." %}</small>
           {% if decision_auto %}
           <small class="d-block mt-2" data-rmc-decision-autosummary>
             {% blocktrans count auto_count=decision_auto|length trimmed %}
@@ -345,6 +375,7 @@
           </div>
           <div class="row g-3 mt-0" data-rmc-decisions-grid>
             {% for d in decisions.dimensions %}
+            {% if d.key == 'session_pattern' or d.key == 'curriculum_board' or d.key == 'governance_profile' %}
             <div class="col-sm-6" data-rmc-decision="{{ d.key }}"{% if not d.ask %} data-rmc-decision-auto="1"{% endif %}>
               <label class="form-label d-flex align-items-center gap-1" for="dec_{{ d.key }}">
                 <span>{{ d.label }}</span>
@@ -361,6 +392,7 @@
                 {% if not d.ask and d.auto_reason %}{{ d.auto_reason }}{% elif d.help %}{{ d.help }}{% endif %}
               </div>
             </div>
+            {% endif %}
             {% endfor %}
           </div>
         </div>
@@ -369,9 +401,26 @@
         <details class="rmc-signup-fine-tune">
           <summary>{% trans "Fine-tune my recommendation" %} <span>{% trans "Optional · about 30 seconds" %}</span></summary>
           <div class="rmc-signup-fine-tune__grid">
+            <div><label class="form-label" for="student_capacity">{% trans "Expected learners" %}</label><input class="form-control" id="student_capacity" name="student_capacity" type="number" min="0" max="1000000" inputmode="numeric" value="{{ student_capacity|default:'' }}" placeholder="500"><small>{% trans "Refines scale, analytics and plan fit." %}</small></div>
             <div><label class="form-label" for="campus_count">{% trans "Campuses" %}</label><input class="form-control" id="campus_count" name="campus_count" type="number" min="1" max="10000" inputmode="numeric" value="{{ campus_count|default:'' }}" placeholder="1"></div>
             <div><label class="form-label" for="staff_count">{% trans "Expected staff" %}</label><input class="form-control" id="staff_count" name="staff_count" type="number" min="0" max="1000000" inputmode="numeric" value="{{ staff_count|default:'' }}" placeholder="50"></div>
-            <div><label class="form-label" for="go_live_timeline">{% trans "Target go-live" %}</label><select class="form-select" id="go_live_timeline" name="go_live_timeline"><option value="exploring">{% trans "Exploring" %}</option><option value="90-days">{% trans "Within 90 days" %}</option><option value="30-days">{% trans "Within 30 days" %}</option><option value="urgent">{% trans "As soon as possible" %}</option></select></div>
+            <div><label class="form-label" for="funding_type">{% trans "Funding model" %}</label><select class="form-select" id="funding_type" name="funding_type"><option value=""{% if not funding_type %} selected{% endif %}>{% trans "Recommend for me" %}</option><option value="public"{% if funding_type == 'public' %} selected{% endif %}>{% trans "Public / government" %}</option><option value="private"{% if funding_type == 'private' %} selected{% endif %}>{% trans "Private" %}</option><option value="mission"{% if funding_type == 'mission' %} selected{% endif %}>{% trans "Mission / faith-based" %}</option><option value="charter"{% if funding_type == 'charter' %} selected{% endif %}>{% trans "Charter" %}</option><option value="nonprofit"{% if funding_type == 'nonprofit' %} selected{% endif %}>{% trans "Nonprofit" %}</option><option value="other"{% if funding_type == 'other' %} selected{% endif %}>{% trans "Other" %}</option></select></div>
+            <div><label class="form-label" for="lms_preference">{% trans "Learning workspace" %}</label><select class="form-select" id="lms_preference" name="lms_preference"><option value="none"{% if not lms_preference or lms_preference == 'none' %} selected{% endif %}>{% trans "Native / recommend for me" %}</option><option value="google-classroom"{% if lms_preference == 'google-classroom' %} selected{% endif %}>Google Classroom</option><option value="microsoft-teams"{% if lms_preference == 'microsoft-teams' %} selected{% endif %}>Microsoft Teams</option><option value="canvas"{% if lms_preference == 'canvas' %} selected{% endif %}>Canvas</option><option value="moodle"{% if lms_preference == 'moodle' %} selected{% endif %}>Moodle</option><option value="other"{% if lms_preference == 'other' %} selected{% endif %}>{% trans "Other" %}</option></select></div>
+            <fieldset class="rmc-signup-fine-tune__span rmc-signup-service-choices"><legend>{% trans "Additional daily operations" %}</legend><div class="rmc-signup-chip-checks">
+              <label><input type="checkbox" name="operational_services" value="boarding"{% if 'boarding' in operational_services %} checked{% endif %}> {% trans "Boarding" %}</label>
+              <label><input type="checkbox" name="operational_services" value="transport"{% if 'transport' in operational_services %} checked{% endif %}> {% trans "Transport" %}</label>
+              <label><input type="checkbox" name="operational_services" value="cafeteria"{% if 'cafeteria' in operational_services %} checked{% endif %}> {% trans "Meals" %}</label>
+              <label><input type="checkbox" name="operational_services" value="clinic"{% if 'clinic' in operational_services %} checked{% endif %}> {% trans "Clinic / health" %}</label>
+              <label><input type="checkbox" name="operational_services" value="athletics"{% if 'athletics' in operational_services %} checked{% endif %}> {% trans "Athletics / clubs" %}</label>
+            </div></fieldset>
+            <div><label class="form-label" for="payment_profile">{% trans "Fee collection" %}</label><select class="form-select" id="payment_profile" name="payment_profile"><option value="basic"{% if not payment_profile or payment_profile == 'basic' %} selected{% endif %}>{% trans "Simple or not needed" %}</option><option value="cash-only"{% if payment_profile == 'cash-only' %} selected{% endif %}>{% trans "Cash / bank only" %}</option><option value="online"{% if payment_profile == 'online' %} selected{% endif %}>{% trans "Online payments" %}</option><option value="multi-channel"{% if payment_profile == 'multi-channel' %} selected{% endif %}>{% trans "Online, cash and mobile money" %}</option><option value="complex-aid"{% if payment_profile == 'complex-aid' %} selected{% endif %}>{% trans "Complex aid and scholarships" %}</option></select></div>
+            <div><label class="form-label" for="assessment_profile">{% trans "Assessment model" %}</label><select class="form-select" id="assessment_profile" name="assessment_profile"><option value="country-default"{% if not assessment_profile or assessment_profile == 'country-default' %} selected{% endif %}>{% trans "Country default" %}</option><option value="national"{% if assessment_profile == 'national' %} selected{% endif %}>{% trans "National examinations" %}</option><option value="competency"{% if assessment_profile == 'competency' %} selected{% endif %}>{% trans "Competency based" %}</option><option value="international"{% if assessment_profile == 'international' %} selected{% endif %}>{% trans "International programme" %}</option><option value="mixed"{% if assessment_profile == 'mixed' %} selected{% endif %}>{% trans "Mixed programmes" %}</option></select></div>
+            <div><label class="form-label" for="identity_profile">{% trans "Staff sign-in" %}</label><select class="form-select" id="identity_profile" name="identity_profile"><option value="password"{% if not identity_profile or identity_profile == 'password' %} selected{% endif %}>{% trans "Password + MFA" %}</option><option value="google-sso"{% if identity_profile == 'google-sso' %} selected{% endif %}>Google SSO</option><option value="microsoft-sso"{% if identity_profile == 'microsoft-sso' %} selected{% endif %}>Microsoft SSO</option><option value="federated"{% if identity_profile == 'federated' %} selected{% endif %}>{% trans "Federated identity" %}</option><option value="mixed"{% if identity_profile == 'mixed' %} selected{% endif %}>{% trans "Mixed methods" %}</option></select></div>
+            <div><label class="form-label" for="data_residency_requirement">{% trans "Data residency" %}</label><select class="form-select" id="data_residency_requirement" name="data_residency_requirement"><option value="country-default"{% if not data_residency_requirement or data_residency_requirement == 'country-default' %} selected{% endif %}>{% trans "Country default" %}</option><option value="regional"{% if data_residency_requirement == 'regional' %} selected{% endif %}>{% trans "Regional hosting" %}</option><option value="country-locked"{% if data_residency_requirement == 'country-locked' %} selected{% endif %}>{% trans "Country locked" %}</option><option value="self-hosted"{% if data_residency_requirement == 'self-hosted' %} selected{% endif %}>{% trans "Self-hosted" %}</option></select></div>
+            <div><label class="form-label" for="accessibility_profile">{% trans "Accessibility support" %}</label><select class="form-select" id="accessibility_profile" name="accessibility_profile"><option value="standard"{% if not accessibility_profile or accessibility_profile == 'standard' %} selected{% endif %}>{% trans "Standard inclusive defaults" %}</option><option value="enhanced"{% if accessibility_profile == 'enhanced' %} selected{% endif %}>{% trans "Enhanced accommodations" %}</option><option value="intensive"{% if accessibility_profile == 'intensive' %} selected{% endif %}>{% trans "Intensive inclusion support" %}</option></select></div>
+            <div><label class="form-label" for="migration_complexity">{% trans "Migration complexity" %}</label><select class="form-select" id="migration_complexity" name="migration_complexity"><option value="none"{% if not migration_complexity or migration_complexity == 'none' %} selected{% endif %}>{% trans "Starting fresh / unsure" %}</option><option value="single-system"{% if migration_complexity == 'single-system' %} selected{% endif %}>{% trans "One current system" %}</option><option value="multi-system"{% if migration_complexity == 'multi-system' %} selected{% endif %}>{% trans "Several systems" %}</option><option value="legacy-high-risk"{% if migration_complexity == 'legacy-high-risk' %} selected{% endif %}>{% trans "Legacy or high-risk records" %}</option></select></div>
+            <div><label class="form-label" for="automation_preference">{% trans "Automation preference" %}</label><select class="form-select" id="automation_preference" name="automation_preference"><option value="guided"{% if automation_preference == 'guided' %} selected{% endif %}>{% trans "Guide every decision" %}</option><option value="balanced"{% if not automation_preference or automation_preference == 'balanced' %} selected{% endif %}>{% trans "Recommended defaults + review" %}</option><option value="automation-first"{% if automation_preference == 'automation-first' %} selected{% endif %}>{% trans "Automate safe setup" %}</option></select></div>
+            <div><label class="form-label" for="go_live_timeline">{% trans "Target go-live" %}</label><select class="form-select" id="go_live_timeline" name="go_live_timeline"><option value="exploring"{% if not go_live_timeline or go_live_timeline == 'exploring' %} selected{% endif %}>{% trans "Exploring" %}</option><option value="90-days"{% if go_live_timeline == '90-days' %} selected{% endif %}>{% trans "Within 90 days" %}</option><option value="30-days"{% if go_live_timeline == '30-days' %} selected{% endif %}>{% trans "Within 30 days" %}</option><option value="urgent"{% if go_live_timeline == 'urgent' %} selected{% endif %}>{% trans "As soon as possible" %}</option></select></div>
           </div>
         </details>
         <div class="form-text mt-2">{% trans "Recommendations are generated locally from your answers and country registries; internet access or an AI provider is not required." %}</div>
