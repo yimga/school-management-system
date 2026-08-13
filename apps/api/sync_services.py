@@ -187,6 +187,53 @@ def _user_can_edit_entity(user, entity_type, instance):
     return False
 
 
+def _sync_conflict_policy(entity_type):
+    """``(strategy, protected)`` governing an entity's sync conflicts.
+
+    A registered two-way entity with no explicit ``policy_registry`` entry is treated as
+    LWW master data (it was deliberately chosen as safe to converge by timestamp). An
+    entity the registry KNOWS — money (fee_payment / invoice_line / payment_proof),
+    grades (grade_entry), identity (user_profile / permission_grant), etc. — keeps its
+    declared, protected strategy. Aliases are normalized (attendance→attendance_record).
+    """
+    from apps.sync_engine.policy_registry import (
+        MergeStrategy, POLICIES, get_policy, normalize_entity,
+    )
+
+    if normalize_entity(entity_type) in POLICIES:
+        p = get_policy(entity_type)
+        return p.strategy, p.protected
+    return MergeStrategy.CAUSAL_LWW, False
+
+
+def _conflict_decision(entity_type, sync_origin, client_updated_at, server_dt):
+    """Decide how to apply one delta row: ``"apply"`` | ``"conflict"`` | ``"reject"``.
+
+    * LWW master data — newest ``updated_at`` wins; a provably older incoming change is a
+      conflict (the local, newer record is kept).
+    * Protected / authoritative (money, grades, identity) — the CLOUD is the source of
+      truth. A ``cloud-pull`` (cloud→box) always wins on the box (``apply``); a box→cloud
+      push or an online edit NEVER silently overwrites it (``conflict`` → Sync Center).
+      This is the money = cloud-authoritative rule, enforced by policy not by entity name.
+    * ``ONLINE_REQUIRED`` domains (credentials, lifecycle, settlement) are never applied
+      through the offline/sync path (``reject``).
+    """
+    from apps.sync_engine.policy_registry import MergeStrategy
+
+    strategy, protected = _sync_conflict_policy(entity_type)
+    if strategy == MergeStrategy.ONLINE_REQUIRED:
+        return "reject"
+    if protected:
+        return "apply" if sync_origin == "cloud-pull" else "conflict"
+    if (
+        client_updated_at is not None
+        and server_dt is not None
+        and client_updated_at < server_dt
+    ):
+        return "conflict"
+    return "apply"
+
+
 def _serialize_instance_for_conflict(instance, entity_type, fields_subset):
     """Build server_data snapshot for conflict record (only allowed/relevant fields)."""
     data = {}
@@ -328,68 +375,78 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
                     continue
 
             server_dt = getattr(instance, "updated_at", None)
-            if client_updated_at and server_dt:
-                if timezone.is_naive(server_dt):
-                    server_dt = timezone.make_aware(
-                        server_dt, timezone.get_current_timezone()
-                    )
-                if client_updated_at < server_dt:
-                    # Conflict: do not overwrite; persist SyncConflict and return
-                    server_data = _serialize_instance_for_conflict(
-                        instance, entity_type, allowed
-                    )
-                    conflict_id = None
-                    if persist_conflicts:
-                        from apps.siteconfig.models import SyncConflict
-                        from apps.schools.models import School
+            if server_dt is not None and timezone.is_naive(server_dt):
+                server_dt = timezone.make_aware(server_dt, timezone.get_current_timezone())
 
-                        school = (
-                            School.objects.filter(pk=school_id).first()
-                            if school_id
-                            else None
+            decision = _conflict_decision(entity_type, sync_origin, client_updated_at, server_dt)
+            if decision == "reject":
+                # Domain may only change through a live online transaction (policy
+                # ONLINE_REQUIRED); an offline/sync replay must never apply it.
+                results.append(
+                    {
+                        "index": idx,
+                        "status": 409,
+                        "data": {"error": "online_required", "entity_type": entity_type},
+                    }
+                )
+                continue
+            if decision == "conflict":
+                # Do not overwrite; persist SyncConflict for Sync Center resolution. Fires
+                # on a stale LWW change OR any box/online change to a cloud-authoritative
+                # (protected) record — the cloud's copy is kept until a human decides.
+                server_data = _serialize_instance_for_conflict(
+                    instance, entity_type, allowed
+                )
+                conflict_id = None
+                if persist_conflicts:
+                    from apps.siteconfig.models import SyncConflict
+                    from apps.schools.models import School
+
+                    school = (
+                        School.objects.filter(pk=school_id).first()
+                        if school_id
+                        else None
+                    )
+                    if school:
+                        sc = SyncConflict.objects.create(
+                            school=school,
+                            entity_type=entity_type,
+                            entity_id=pk,
+                            client_data=dict(changes),
+                            server_data=server_data,
+                            client_updated_at=client_updated_at,
+                            server_updated_at=server_dt,
+                            reported_by=user,
+                            status=SyncConflict.Status.PENDING,
                         )
-                        if school:
-                            sc = SyncConflict.objects.create(
-                                school=school,
-                                entity_type=entity_type,
-                                entity_id=pk,
-                                client_data=dict(changes),
-                                server_data=server_data,
-                                client_updated_at=client_updated_at,
-                                server_updated_at=server_dt,
-                                reported_by=user,
-                                status=SyncConflict.Status.PENDING,
-                            )
-                            conflict_id = sc.pk
-                    conflicts.append(
-                        {
-                            "index": idx,
-                            "entity_type": entity_type,
-                            "entity_id": pk,
-                            "client_data": dict(changes),
-                            "server_data": server_data,
-                            "client_updated_at": client_updated_at.isoformat()
-                            if client_updated_at
-                            else None,
-                            "server_updated_at": server_dt.isoformat()
-                            if server_dt
-                            else None,
+                        conflict_id = sc.pk
+                conflicts.append(
+                    {
+                        "index": idx,
+                        "entity_type": entity_type,
+                        "entity_id": pk,
+                        "client_data": dict(changes),
+                        "server_data": server_data,
+                        "client_updated_at": client_updated_at.isoformat()
+                        if client_updated_at
+                        else None,
+                        "server_updated_at": server_dt.isoformat() if server_dt else None,
+                        "conflict_id": conflict_id,
+                    }
+                )
+                results.append(
+                    {
+                        "index": idx,
+                        "status": 409,
+                        "data": {
+                            "error": "conflict",
+                            "server_updated_at": server_dt.isoformat() if server_dt else None,
                             "conflict_id": conflict_id,
-                        }
-                    )
-                    results.append(
-                        {
-                            "index": idx,
-                            "status": 409,
-                            "data": {
-                                "error": "conflict",
-                                "server_updated_at": server_dt.isoformat(),
-                                "conflict_id": conflict_id,
-                            },
-                            "conflict_id": conflict_id,
-                        }
-                    )
-                    continue
+                        },
+                        "conflict_id": conflict_id,
+                    }
+                )
+                continue
 
             # Apply updates
             for key, value in updates.items():
