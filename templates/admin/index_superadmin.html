@@ -34,14 +34,15 @@
   </div>
   {% endif %}
 
-  <section class="rmc-django-command-band mt-3" data-rmc-django-command-band="admin-index" data-rmc-admin-approval-surface="operator-index-v15" aria-label="{% trans 'Operator admin command surface' %}">
+  <section class="rmc-django-command-band mt-3" data-rmc-admin-tone="{{ admin_surface_profile.tone|default:'indigo' }}" data-rmc-django-command-band="admin-index" data-rmc-admin-approval-surface="operator-index-v15" aria-label="{% trans 'Operator admin command surface' %}">
     <div class="rmc-django-command-band__copy">
       <span class="rmc-django-command-band__eyebrow">{% trans "Platform Backoffice" %}</span>
       <h1 class="rmc-django-command-band__title">
-        {% trans "Catalog" %}
+        {% firstof admin_surface_profile.index_title _("Platform catalog") %}
         {% blocktrans trimmed asvar admin_hero_tip %}Every registered model for raw record access. Guided work stays in Config center and Studio — open from More when needed.{% endblocktrans %}
         {% rmc_info_tag title=_("About this catalog") body=admin_hero_tip|striptags surface="django-admin" placement="bottom" %}
       </h1>
+      {% include "admin/includes/admin_index_intelligence.html" %}
     </div>
     <div class="rmc-django-command-band__meta rmc-django-command-band__actions" aria-label="{% trans 'Catalog actions' %}">
       {% if admin_catalog %}<span>{% blocktrans with n=admin_catalog.model_count %}{{ n }} models{% endblocktrans %}</span>{% endif %}

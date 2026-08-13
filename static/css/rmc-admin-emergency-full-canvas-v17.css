@@ -5,6 +5,7 @@
 @import url("./rmc-admin-workspace-10x.css");
 @import url("./rmc-admin-django-canvas-contract.css");
 @import url("./rmc-admin-approval-surface-v15.css");
+@import url("./rmc-admin-production-polish-v18.css");
 
 :root {
   --rmc-admin-gap: clamp(0.7rem, 1vw, 1.1rem);

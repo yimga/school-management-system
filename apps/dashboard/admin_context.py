@@ -767,19 +767,36 @@ def build_admin_dashboard_context(
         getattr(field, "name", "") == "role" for field in user_model._meta.get_fields()
     )
 
-    total_users = user_model.objects.count()
-    admin_count = user_model.objects.filter(is_staff=True).count()
+    school = getattr(request, "school", None)
+    is_tenant_admin = school is not None and str(
+        getattr(request, "public_host_kind", "") or ""
+    ).lower() != "manager"
+    users = user_model.objects.all()
+    if is_tenant_admin:
+        # Shared identity tables must never expose platform-wide aggregates to a
+        # tenant `/admin/`.  Membership is the canonical school boundary.
+        from apps.schools.models import SchoolMembership
+
+        tenant_user_ids = SchoolMembership.objects.filter(
+            school=school, suspended_at__isnull=True
+        ).values("user_id")
+        users = users.filter(pk__in=tenant_user_ids)
+
+    total_users = users.count()
+    admin_count = users.filter(is_staff=True).count()
     if role_field_exists:
-        student_count = user_model.objects.filter(role="STUDENT").count()
-        teacher_count = user_model.objects.filter(role="TEACHER").count()
-        parent_count = user_model.objects.filter(role="PARENT").count()
+        student_count = users.filter(role="STUDENT").count()
+        teacher_count = users.filter(role="TEACHER").count()
+        parent_count = users.filter(role="PARENT").count()
     else:
         student_count = 0
         teacher_count = 0
         parent_count = 0
 
-    active_sessions = Session.objects.filter(expire_date__gte=now).count()
-    sessions_24h = Session.objects.filter(
+    # Django sessions have no relational tenant key. Platform-wide session
+    # counts therefore belong only to operator `/admin/`.
+    active_sessions = 0 if is_tenant_admin else Session.objects.filter(expire_date__gte=now).count()
+    sessions_24h = 0 if is_tenant_admin else Session.objects.filter(
         expire_date__gte=now - datetime.timedelta(hours=24)
     ).count()
 

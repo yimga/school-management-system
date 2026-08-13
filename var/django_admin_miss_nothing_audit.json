@@ -1,7 +1,7 @@
 {
   "pass": true,
-  "expected_cache_bust": "20260811-experience-runtime-v172",
-  "expected_sw": "sms-v4.06.34-experience-runtime-2026-08-11",
+  "expected_cache_bust": "20260813-admin-production-v18",
+  "expected_sw": "sms-v4.06.35-admin-production-2026-08-13",
   "content_pages": 11,
   "findings": []
 }

@@ -36,6 +36,8 @@
   data-rmc-page-fold-nav="required"
   data-rmc-section-nav="curated"
   data-rmc-scroll-policy="paginate"
+  data-rmc-admin-role="{{ admin_surface_profile.role_slug|default:'admin' }}"
+  data-rmc-admin-tone="{{ admin_surface_profile.tone|default:'azure' }}"
 >
 
   {% if PREVIEW_MODE_ENABLED %}
@@ -61,14 +63,16 @@
   </div>
   {% endif %}
 
-  <section class="rmc-django-command-band" data-rmc-django-command-band="admin-index" data-rmc-admin-approval-surface="tenant-index-v15" aria-label="{% trans 'School configuration command surface' %}">
+  <section class="rmc-django-command-band" data-rmc-admin-tone="{{ admin_surface_profile.tone|default:'azure' }}" data-rmc-django-command-band="admin-index" data-rmc-admin-approval-surface="tenant-index-v15" aria-label="{% trans 'School configuration command surface' %}">
     <div class="rmc-django-command-band__copy">
       <span class="rmc-django-command-band__eyebrow">{% firstof SITE.site_name _("This school") %}</span>
       <h1 class="rmc-django-command-band__title">
-        {% trans "Configuration &amp; records" %}
+        {% trans "Configuration &amp; records" as tenant_admin_default_title %}
+        {% firstof admin_surface_profile.index_title tenant_admin_default_title %}
         {% trans "Guided domains via Config center. Model catalog below is for direct school-scoped records." as tenant_admin_hero_tip %}
         {% rmc_info_tag title=_("About this engine") body=tenant_admin_hero_tip surface="django-admin" placement="bottom" %}
       </h1>
+      {% include "admin/includes/admin_index_intelligence.html" %}
     </div>
     <div class="rmc-django-command-band__meta rmc-django-command-band__actions" aria-label="{% trans 'School actions' %}">
       <span>{% trans "This school only" %}</span>
@@ -83,6 +87,12 @@
       <button type="button" class="rmc-django-band-action" data-rmc-admin-keymap-open="1" aria-label="{% trans 'Keyboard shortcuts' %}" title="{% trans 'Keyboard shortcuts' %}">?</button>
       <span class="rmc-admin-approval-build-chip" data-rmc-admin-approval-build="2026-08-11-v17.2" title="{% trans 'Deploy proof — Admin OS v17.2 on tenant /admin/' %}">v17.2 · Full canvas · operator+tenant</span>
     </div>
+  </section>
+
+  <section class="rmc-admin-signal-grid" aria-label="{% trans 'School configuration signals' %}">
+    <article class="rmc-admin-signal"><strong>{{ tenant_engine_kpis.config_readiness_pct|default:0 }}%</strong><span>{% trans "Configuration readiness" %}</span></article>
+    <article class="rmc-admin-signal"><strong>{{ tenant_engine_kpis.staff_accounts|default:0 }}</strong><span>{% trans "Active staff accounts" %}</span></article>
+    <article class="rmc-admin-signal"><strong>{{ tenant_engine_kpis.pending_invites|default:0 }}</strong><span>{% trans "Pending guardian invites" %}</span></article>
   </section>
 
   {% if admin_catalog and admin_catalog.sections %}

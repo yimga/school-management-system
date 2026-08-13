@@ -71,6 +71,17 @@ class BaseRunMyCampusAdminSite(UnfoldAdminSite):
     def each_context(self, request):
         context = super().each_context(request)
         context["is_manager_host"] = self.is_platform_site()
+        try:
+            from apps.siteconfig.admin_surface_intelligence import build_admin_surface_profile
+            context["admin_surface_profile"] = build_admin_surface_profile(
+                user=getattr(request, "user", None), is_platform=self.is_platform_site()
+            )
+        except _ADMIN_CONTEXT_FALLBACK_ERRORS:
+            logging.getLogger(__name__).warning("admin surface profile fallback", exc_info=True)
+            context["admin_surface_profile"] = {
+                "role_slug": "operator" if self.is_platform_site() else "admin",
+                "tone": "indigo" if self.is_platform_site() else "azure",
+            }
         if self.is_platform_site():
             try:
                 from apps.schools.tenant_url import build_public_absolute_url
@@ -795,10 +806,6 @@ class PlatformAdminSite(BaseRunMyCampusAdminSite):
                 context["admin_index_kpis"] = [school_kpi] + list(
                     context.get("admin_index_kpis") or []
                 )
-        except _ADMIN_CONTEXT_FALLBACK_ERRORS:
-            from apps.siteconfig.admin_index_surface import empty_admin_index_surface
-
-            context["admin_index_surface"] = empty_admin_index_surface()
         except _ADMIN_CONTEXT_FALLBACK_ERRORS:
             logging.getLogger(__name__).warning(
                 "admin index surface context failed", exc_info=True

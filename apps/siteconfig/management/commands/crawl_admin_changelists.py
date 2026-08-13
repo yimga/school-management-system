@@ -39,7 +39,7 @@ class Command(BaseCommand):
         )
         parser.add_argument(
             "--allow-codes",
-            default="200,302,301,403",
+            default="200",
             help="Comma-separated acceptable HTTP status codes",
         )
         parser.add_argument(
@@ -99,8 +99,15 @@ class Command(BaseCommand):
                 skipped += 1
                 continue
             checked += 1
-            response = client.get(url, follow=False, **extra)
-            code = response.status_code
+            try:
+                response = client.get(url, follow=False, **extra)
+                code = response.status_code
+            except Exception as exc:  # command must report the failing surface, not abort opaquely
+                failures.append((url, 500))
+                self.stderr.write(f"ERROR {url}: {type(exc).__name__}: {exc}\n")
+                if options["fail_fast"]:
+                    raise CommandError(f"Admin crawl failed at {url}") from exc
+                continue
             if code not in allow:
                 failures.append((url, code))
                 self.stderr.write(f"FAIL {code} {url}\n")

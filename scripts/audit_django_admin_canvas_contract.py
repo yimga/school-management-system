@@ -6,7 +6,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 BUILD = "2026-08-11-v17.2"
-CACHE_BUST = "20260811-experience-runtime-v172"
+CACHE_BUST = "20260813-admin-production-v18"
 OWNER = "emergency-v17"
 
 

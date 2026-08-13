@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import json
 import os
-import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -55,6 +54,10 @@ def main() -> int:
                         failures.append("render audit pass=false")
             elif failed != 0:
                 failures.append(f"failed={failed} without render-contract proxy")
+            elif int(data.get("skipped") or 0) or int(data.get("infraSkipped") or 0):
+                failures.append(
+                    "browser evidence contains skipped routes; skipped/MFA-blocked routes cannot count as passes"
+                )
 
     if failures:
         print("ADMIN_PLAYWRIGHT_SWEEP_AUDIT_FAIL")

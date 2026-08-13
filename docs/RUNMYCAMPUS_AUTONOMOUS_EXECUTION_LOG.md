@@ -1,5 +1,17 @@
 # RunMyCampus autonomous execution log
 
+## Slice — `/admin/` production resilience + page-aware polish (batch 1788 - 2026-08-13)
+
+**A. Scope:** Operator and tenant `/admin/` only, including Django Admin Discover, Scan, Edit, Audit, Decide, Dossier, their shared shell, context builders, evidence crawlers, and terminal assets. Portal/backend dashboards and `/super/` product surfaces are excluded.
+
+**B. Shipped:** Typed I/O-free role presentation profiles; semantic role/archetype color; compact tenant configuration signals; tenant membership-scoped user aggregates; platform session totals suppressed on tenant hosts; duplicate fallback removed; strict crawl status handling; MFA/infra skips banned from browser-pass evidence; cache/SW v18 delivery seal.
+
+**C. Proof:** `audit_admin_os_cross_wave` **87 OK / 0 FAIL**; production-upgrade, miss-nothing, leftovers, canvas, empty-space, three-click, preview-parity, template-compile, Django-check and Ruff gates pass; profile tests **3/3 OK**.
+
+**D. Honest:** Larger database test groups hit the local Windows timeout with no assertion output. Deployment must run authenticated operator+tenant Playwright with zero skipped/infraSkipped routes; the verifier now rejects false-green evidence.
+
+**E. Scope seal:** No tenant portal/backend dashboard template or stylesheet changed.
+
 ## Slice — Reach Admin OS / MFA device-trust (batch 1787 - 2026-07-23)
 
 **A. Scope:** User report that Django `/admin/` pages still look unfixed; live Admin OS v15.7 already deployed — unblock authenticating into the catalog index and seal skip-link/index regression.
