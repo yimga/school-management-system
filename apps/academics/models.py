@@ -32,6 +32,10 @@ class AcademicYear(models.Model):
         default=False,
         help_text="Enable the GCE/certification registration workflow for this academic year.",
     )
+    # Edge<->cloud bidirectional sync (Phase 3): change cursor + offline-insert anchor.
+    # null/blank so the additive migration needs no one-off default on existing rows.
+    updated_at = models.DateTimeField(auto_now=True, null=True)
+    client_offline_id = models.CharField(max_length=128, blank=True, default="", db_index=True)
 
     def __init__(self, *args, **kwargs):
         # Backwards-compatibility: accept `starts_on`/`ends_on` kwargs used by older code/tests
@@ -51,6 +55,13 @@ class AcademicYear(models.Model):
 
     class Meta:
         ordering = ["-start_date"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["school", "client_offline_id"],
+                condition=~models.Q(client_offline_id=""),
+                name="uniq_academicyear_school_offline_id",
+            ),
+        ]
 
     def __str__(self):
         return self.name
@@ -96,6 +107,9 @@ class Term(models.Model):
     start_date = models.DateField()
     end_date = models.DateField()
     is_active = models.BooleanField(default=False)
+    # Edge<->cloud bidirectional sync (Phase 3): change cursor + offline-insert anchor.
+    updated_at = models.DateTimeField(auto_now=True, null=True)
+    client_offline_id = models.CharField(max_length=128, blank=True, default="", db_index=True)
 
     def __init__(self, *args, **kwargs):
         # Backwards-compatibility: accept keyword 'order' used by older code/tests
@@ -131,6 +145,11 @@ class Term(models.Model):
                 ),
                 name="term_position_range_1_12_or_null",
             ),
+            models.UniqueConstraint(
+                fields=["school", "client_offline_id"],
+                condition=~Q(client_offline_id=""),
+                name="uniq_term_school_offline_id",
+            ),
         ]
 
     def clean(self):
@@ -161,9 +180,19 @@ class Department(models.Model):
     )
     name = models.CharField(max_length=120)
     code = models.CharField(max_length=30, unique=True)
+    # Edge<->cloud bidirectional sync (Phase 3): change cursor + offline-insert anchor.
+    updated_at = models.DateTimeField(auto_now=True, null=True)
+    client_offline_id = models.CharField(max_length=128, blank=True, default="", db_index=True)
 
     class Meta:
         ordering = ["name"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["school", "client_offline_id"],
+                condition=~models.Q(client_offline_id=""),
+                name="uniq_department_school_offline_id",
+            ),
+        ]
 
     def __str__(self):
         return self.name

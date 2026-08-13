@@ -19,6 +19,12 @@ from django.utils.dateparse import parse_datetime
 _DERIVED_ENTITY_SPECS: list[tuple[str, str, str]] = [
     ("applicant", "people", "Applicant"),
     ("student_note", "people", "StudentNote"),
+    # Slice 2 — academic backbone (client_offline_id + updated_at added by migration).
+    # term.academic_year_id references academic_year (also registered), so the derived
+    # per-entity remap graph links them for new-references-new inserts.
+    ("academic_year", "academics", "AcademicYear"),
+    ("term", "academics", "Term"),
+    ("department", "academics", "Department"),
     # DEFERRED — people.TeacherProfile is CLASS-A master data but carries compensation
     # fields (salary_amount, pay_grade, next_pay_date, …). Two-way LWW on those would let
     # a box salary edit override the cloud, against the money=cloud-authoritative rule.
