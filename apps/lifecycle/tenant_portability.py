@@ -18,6 +18,8 @@ import base64
 import gzip
 import json
 import logging
+from collections import deque
+from functools import lru_cache
 
 from django.apps import apps as django_apps
 from django.conf import settings
@@ -79,11 +81,97 @@ def _tenant_models() -> list:
     return models
 
 
-def _school_field_name(model) -> str | None:
-    """Return the name of a direct ``school`` FK on the model, if any."""
+def _rel_model(f):
+    """The resolved related-model CLASS for a relational field, or ``None``.
+
+    ``Field.related_model`` can still be a lazy STRING (e.g. ``"portal.KBArticle"``)
+    for some string-declared FKs even after app loading — accessing ``._meta`` on
+    it then raises ``AttributeError: 'str' object has no attribute '_meta'``.
+    Normalize to the class (or ``None`` if it can't be resolved) so callers never
+    touch a bare string.
+    """
+    rel = getattr(f, "related_model", None)
+    if isinstance(rel, str):
+        try:
+            return django_apps.get_model(rel)
+        except (LookupError, ValueError):
+            return None
+    return rel
+
+
+def _direct_school_field(model) -> str | None:
+    """Name of a direct FK or O2O to ``schools.School`` on this model, if any.
+
+    Both ``ForeignKey`` and ``OneToOneField`` count. An O2O sets
+    ``many_to_one=False`` / ``one_to_one=True``, so the pre-2026-08 check on
+    ``many_to_one`` alone silently skipped one-to-one school links
+    (``analytics.RiskThresholds``, ``finance.TenantPaymentPolicy``).
+    """
+    try:
+        school_model = django_apps.get_model("schools", "School")
+    except LookupError:
+        school_model = None
     for f in model._meta.get_fields():
-        if getattr(f, "many_to_one", False) and f.name == "school":
+        if (
+            (getattr(f, "many_to_one", False) or getattr(f, "one_to_one", False))
+            and getattr(f, "concrete", False)
+            and f.name == "school"
+            and (school_model is None or _rel_model(f) is school_model)
+        ):
             return "school"
+    return None
+
+
+@lru_cache(maxsize=None)
+def _school_lookup_path(model_label: str) -> str | None:
+    """The ORM lookup that scopes a tenant model to its owning School in RLS mode.
+
+    ``"school"`` for a direct link, a walked path like ``"invoice__school"`` /
+    ``"employee__department__school"`` for a parent-reachable model, or ``None``
+    when no path of concrete FK/O2O edges (staying inside the tenant apps)
+    reaches a field named ``school`` that points at ``schools.School``.
+
+    Breadth-first over concrete many-to-one / one-to-one edges only. It
+    terminates ONLY at a field literally named ``school`` (so a "foreign" link
+    such as ``source_school`` / ``target_school`` is never treated as the owner)
+    and never leaves the tenant apps (so a ``created_by`` → User edge can't scope
+    a row by another tenant's membership). Depth-capped. The result is always
+    filtered by the one concrete ``school`` instance, so the pin is to a single
+    tenant regardless of which path was chosen.
+
+    Known v1 limitation: a model with two+ distinct paths to a school field
+    (e.g. a cross-school transfer record) is scoped by whichever path the BFS
+    reaches first; genuinely dual-owned rows want an explicit override.
+    """
+    app_label, model_name = model_label.split(".", 1)
+    try:
+        start = django_apps.get_model(app_label, model_name)
+        school_model = django_apps.get_model("schools", "School")
+    except LookupError:
+        return None
+
+    seen: set = set()
+    queue: deque = deque([(start, ())])
+    while queue:
+        model, prefix = queue.popleft()
+        if model in seen or len(prefix) > 6:
+            continue
+        seen.add(model)
+        direct = _direct_school_field(model)
+        if direct is not None:
+            return "__".join(prefix + (direct,))
+        for f in model._meta.get_fields():
+            if not (
+                (getattr(f, "many_to_one", False) or getattr(f, "one_to_one", False))
+                and getattr(f, "concrete", False)
+            ):
+                continue
+            rel = _rel_model(f)
+            if rel is None or rel is model or rel is school_model:
+                continue  # unresolved / self / bare foreign-School FK — reach the owner via another edge
+            if rel._meta.app_label not in TENANT_APP_LABELS:
+                continue  # never scope via a shared/User edge (no cross-tenant reach)
+            queue.append((rel, prefix + (f.name,)))
     return None
 
 
@@ -92,10 +180,12 @@ def _scope_queryset(model, school, *, schema_mode: bool):
     if schema_mode:
         # Schema-per-tenant: the schema IS the tenant — every row belongs to it.
         return model._default_manager.all()
-    field = _school_field_name(model)
-    if field is not None:
-        return model._default_manager.filter(**{field: school})
-    # RLS/shared mode with no direct school FK: cannot safely scope in v1.
+    path = _school_lookup_path(_label(model))
+    if path is not None:
+        # RLS/shared mode: direct or parent-reachable ``school`` link.
+        return model._default_manager.filter(**{path: school}).distinct()
+    # No path to School: genuinely global/shared, or a per-tenant table that
+    # carries no school linkage at all (those need a school_id column added).
     return None
 
 
