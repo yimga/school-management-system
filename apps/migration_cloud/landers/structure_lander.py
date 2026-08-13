@@ -52,7 +52,13 @@ import hashlib
 import re
 from typing import Any, Iterator
 
-from ._helpers import coerce_date, coerce_decimal, model_field_names, record_id_mapping
+from ._helpers import (
+    coerce_date,
+    coerce_decimal,
+    mint_scoped_code,
+    model_field_names,
+    record_id_mapping,
+)
 from .base import Lander, LanderContext, LanderError, LanderResult, register
 
 
@@ -64,24 +70,16 @@ def _truthy(v: Any) -> bool:
     return str(v).strip().lower() in ("1", "true", "yes", "y", "t")
 
 
-def _slug_upper(value: str, width: int = 8) -> str:
-    return (re.sub(r"[^A-Z0-9]+", "", (value or "").upper())[:width]) or "X"
-
-
 def _mint_code(*, prefix: str, name: str, school, model, code_field: str = "code") -> str:
-    """A fresh, GLOBALLY-unique code for a provisioned structure row.
-
-    ``Department``/``Specialty``/``Classroom.code`` are ``unique=True`` platform-
-    wide, so we cannot reuse the source's code. Deterministic per (school, name)
-    for stable re-runs, with a hash fallback if the short form ever collides.
-    """
-    sid = str(getattr(school, "pk", "") or "0")
-    base = _slug_upper(name)
-    candidate = f"{prefix}{sid}-{base}"[:30]
-    if not model.objects.filter(**{code_field: candidate}).exists():  # tenant-isolation-allow: code is a GLOBALLY-unique column; global existence check is intentional
-        return candidate
-    digest = hashlib.sha256(f"{sid}:{prefix}:{name}".encode("utf-8")).hexdigest()[:6]
-    return f"{prefix}{sid}-{base[:4]}-{digest}"[:30]
+    """Thin alias over the shared :func:`_helpers.mint_scoped_code` (single source
+    of truth). Kept so existing call sites are unchanged. The shared minter
+    length-bounds the school token so the NAME survives the 30-char ``code`` cap
+    even when ``School.pk`` is a UUID — the duplicate that used to live here
+    silently collapsed every provisioned Department/Specialty/Classroom code to
+    one value (UUID filled the first 30 chars), quarantining the whole scaffold."""
+    return mint_scoped_code(
+        prefix=prefix, name=name, school=school, model=model, code_field=code_field
+    )
 
 
 def _free_username(User, base: str) -> str:

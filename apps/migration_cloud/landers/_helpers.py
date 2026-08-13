@@ -521,15 +521,34 @@ def _slug_upper(value: str, width: int = 8) -> str:
     return (re.sub(r"[^A-Z0-9]+", "", (value or "").upper())[:width]) or "X"
 
 
+def _scope_token(school) -> str:
+    """A SHORT, stable per-school token for a minted code.
+
+    ``School.pk`` is a 36-char UUID on this platform, so a bare ``{prefix}{pk}``
+    already exceeds the 30-char ``code`` column — the ``[:30]`` truncation then
+    drops the NAME entirely and every minted code collapses to one value, so the
+    2nd..Nth provisioned Department/Specialty/Classroom all collide on the
+    ``unique=True`` code and quarantine (0 land past the first). Hash a long id
+    down to 6 hex chars; keep a short integer pk verbatim so existing
+    integer-pk deployments' codes are unchanged.
+    """
+    sid = str(getattr(school, "pk", "") or "0")
+    if len(sid) > 8:  # magic-number-allow: short-integer-pk-threshold (UUIDs are 36)
+        return hashlib.sha1(sid.encode("utf-8")).hexdigest()[:6]
+    return sid
+
+
 def mint_scoped_code(*, prefix: str, name: str, school, model, code_field: str = "code") -> str:
     """A fresh, GLOBALLY-unique code for a provisioned structure row.
 
     ``Department``/``Specialty``/``Classroom.code`` are ``unique=True`` platform-
     wide, so the source's code MUST NOT be reused (it would collide or, worse,
     resolve the SOURCE school's row). Deterministic per (school, name) for stable
-    re-runs, with a hash fallback if the short form ever collides.
+    re-runs, with a hash fallback if the short form ever collides. The school
+    token is length-bounded (:func:`_scope_token`) so the NAME always survives
+    the 30-char cap even when ``School.pk`` is a UUID.
     """
-    sid = str(getattr(school, "pk", "") or "0")
+    sid = _scope_token(school)
     base = _slug_upper(name)
     candidate = f"{prefix}{sid}-{base}"[:30]  # magic-number-allow: code column max_length=30
     if not model.objects.filter(**{code_field: candidate}).exists():  # tenant-isolation-allow: code is a GLOBALLY-unique column; global existence check is intentional

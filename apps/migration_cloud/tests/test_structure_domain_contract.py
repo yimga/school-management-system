@@ -16,7 +16,10 @@ from apps.migration_cloud.accelerators.runmycampus_canonical import (
     DOMAIN_CANONICAL_HEADERS,
 )
 from apps.migration_cloud.landers import get_lander
-from apps.migration_cloud.landers.structure_lander import _mint_code, _slug_upper
+# _slug_upper's canonical home is _helpers (structure_lander's duplicate + its
+# duplicate _mint_code body were collapsed onto the shared, UUID-safe minter).
+from apps.migration_cloud.landers._helpers import _slug_upper
+from apps.migration_cloud.landers.structure_lander import _mint_code
 from apps.migration_cloud.orchestrator import _DEPENDENCY_WAVES
 
 # The columns the exporter emits for the structure domain — the accelerator must

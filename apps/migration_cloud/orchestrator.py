@@ -32,6 +32,7 @@ import csv
 import io
 import json
 import logging
+import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -491,7 +492,7 @@ def _rollback_all_runs(outcomes: list["ArtifactApplyOutcome"]) -> None:
 # Ordered waves; jobs within a wave run in parallel, waves run serially so
 # the next wave sees its parent rows already in the tenant schema.
 _DEPENDENCY_WAVES: tuple[frozenset[str], ...] = (
-    frozenset({"structure", "academic_sessions"}),                  # wave 0: academic scaffold (SPLIT provisioning + OneRoster years/terms) — MUST precede students/enrollment/grades
+    frozenset({"structure", "academic_sessions", "specialties"}),   # wave 0: academic scaffold (SPLIT provisioning + OneRoster years/terms + trade/stream catalog) — MUST precede students/enrollment/grades
     frozenset({"students", "staff", "sections", "academics", "alumni"}),  # wave 1: independent roots (academics = Subject catalog, precedes grades; alumni upserts StudentProfile so guardians/finance/grades can resolve alumni students)
     frozenset({"enrollment", "guardians", "schedule"}),             # wave 2: depend on wave 1
     frozenset({"attendance", "grades", "behavior", "finance", "transcripts",  # wave 3: depend on wave 2
@@ -964,6 +965,38 @@ def _iter_pdf_rows_bytes(
     yield from _iter_csv_rows_stream(io.StringIO(tsv), mapping_index, locale_hints)
 
 
+# Value-hygiene for messy exports (pandas / spreadsheet dumps). A pandas
+# ``to_csv`` writes NaN as the literal ``nan`` and None as ``None``; a numeric
+# id read as a float is written ``241904748.0``. Stored verbatim these become a
+# student's parent named "None", an admission number "nan", or an id that no
+# longer round-trips. Normalised centrally so EVERY reader (CSV/XLSX/JSON) and
+# EVERY domain gets the same clean value.
+_NULL_LITERALS: frozenset[str] = frozenset(
+    {"nan", "none", "null", "n/a", "#n/a", "nil", "(null)", "\\n", "\\N"}
+)
+_INT_FLOAT_RE = re.compile(r"^-?\d+\.0+$")
+
+
+def _normalize_source_value(value: Any) -> Any:
+    """Fold export sentinels to a real null and repair spreadsheet float-ids.
+
+    ``nan``/``None``/``null``/``N/A`` → ``""`` (a genuine empty, not a literal
+    string); an integer-valued float string (``"241904748.0"``) → its integer
+    form so a text id round-trips exactly. Genuine decimals (``"36.5"``) and
+    non-string values are returned untouched.
+    """
+    if not isinstance(value, str):
+        return value
+    s = value.strip()
+    if not s:
+        return value
+    if s.lower() in _NULL_LITERALS:
+        return ""
+    if _INT_FLOAT_RE.match(s):
+        return s.split(".", 1)[0]
+    return value
+
+
 def _transform_row(
     raw_row: dict[str, Any],
     mapping_index: dict[str, dict[str, Any]],
@@ -972,7 +1005,21 @@ def _transform_row(
     """Apply column mappings + transformers; return canonical-keyed dict."""
     canonical: dict[str, Any] = {}
     for source_col, raw_value in raw_row.items():
+        raw_value = _normalize_source_value(raw_value)
         mapping = mapping_index.get(source_col)
+        if mapping is None and isinstance(source_col, str):
+            # The PROFILER strips surrounding whitespace from headers (so the
+            # mapping's source_column is "TEACHER UNIQUE ID"), but the apply-path
+            # csv.DictReader keys the row by the RAW header (" TEACHER UNIQUE ID"
+            # with the leading space real African/TVET exports carry). Without
+            # this whitespace-tolerant retry the padded column never joins its
+            # mapping, lands in _unmapped, and a required id (staff_external_id)
+            # is silently lost — quarantining every row. BOM is deliberately NOT
+            # stripped here: the profiler keeps it ("﻿NAME"), so the exact
+            # match above already covers it and both sides stay consistent.
+            stripped = source_col.strip()
+            if stripped != source_col:
+                mapping = mapping_index.get(stripped)
         if mapping is None:
             # Unmapped column — drop into custom_fields key for the lander to pick up.
             canonical[f"_unmapped.{source_col}"] = raw_value

@@ -62,12 +62,18 @@ def classify_domain(*, artifact: MigrationArtifact) -> dict[str, Any]:
     ranked = _score_domains(normalized_headers)
     top = ranked[0] if ranked else None
     threshold = float(mc_defaults.get("migration_cloud.classifier.domain_min_confidence"))
+    filename = getattr(artifact, "filename", "") or ""
 
     if top and top.confidence >= threshold:
+        # A file NAMED for a person-roster entity (teachers_2026.csv) beats the
+        # header overlap, which cannot tell students/staff/guardians/alumni apart
+        # (they share name/dob/gender/email/phone/address). Non-roster content
+        # (grades, finance) is never overridden — see reconcile_domain_with_filename.
+        chosen = _reconcile_with_filename(filename, top.domain)
         return {
-            "chosen": top.domain,
+            "chosen": chosen,
             "candidates": [c.__dict__ for c in ranked[:5]],
-            "method": "overlap",
+            "method": "overlap" if chosen == top.domain else "overlap+filename",
         }
 
     # AI tiebreaker over the top-3 shortlist + 'custom_fields' escape.
@@ -96,7 +102,7 @@ def classify_domain(*, artifact: MigrationArtifact) -> dict[str, Any]:
             "method": "ai_bridge",
         }
 
-    chosen = top.domain if top else "custom_fields"
+    chosen = _reconcile_with_filename(filename, top.domain) if top else "custom_fields"
     return {
         "chosen": chosen,
         "candidates": [c.__dict__ for c in (ranked or [
@@ -104,6 +110,21 @@ def classify_domain(*, artifact: MigrationArtifact) -> dict[str, Any]:
         ])][:5],
         "method": "fallback",
     }
+
+
+def _reconcile_with_filename(filename: str, content_domain: str | None) -> str:
+    """Let a filename entity-token break the person-roster tie the columns can't.
+
+    Lazy import keeps the classifier free of an accelerator import at module load
+    (the accelerators package registers every accelerator on import).
+    """
+    from apps.migration_cloud.accelerators.runmycampus_canonical import (
+        reconcile_domain_with_filename,
+    )
+
+    return reconcile_domain_with_filename(filename, content_domain) or (
+        content_domain or "custom_fields"
+    )
 
 
 def _score_domains(normalized_headers: set[str]) -> list[DomainCandidate]:

@@ -22,6 +22,7 @@ DOMAINS: tuple[str, ...] = (
     "staff",
     "enrollment",
     "academics",
+    "specialties",
     "sections",
     "schedule",
     "attendance",
@@ -307,8 +308,15 @@ CANONICAL_ONTOLOGY: dict[str, dict[str, dict]] = {
         "staff_external_id": _field(
             description="Source staff identifier.",
             value_type="string",
-            value_examples=["EMP-204"],
-            synonyms={"en": ["staff_id", "employee_id", "teacher_id", "personnel_id"]},
+            value_examples=["EMP-204", "abel.esakenong"],
+            synonyms={
+                "en": [
+                    "staff_id", "employee_id", "teacher_id", "personnel_id",
+                    "teacher_unique_id", "staff_unique_id", "unique_id",
+                    "staff_number", "staff_code", "teacher_code", "staff_ref",
+                ],
+                "fr": ["matricule", "matricule_enseignant"],
+            },
             sensitivity="pii",
         ),
         "first_name": _field(
@@ -363,6 +371,19 @@ CANONICAL_ONTOLOGY: dict[str, dict[str, dict]] = {
             value_type="string",
             value_examples=["Mathematics", "Languages"],
             synonyms={"en": ["department", "dept", "faculty"]},
+        ),
+        "phone": _field(
+            description="Staff phone / contact number.",
+            value_type="string",
+            value_examples=["+237 6xx xxx xxx"],
+            synonyms={
+                "en": [
+                    "phone", "number", "telephone", "mobile", "phone_number",
+                    "contact", "contact_number", "tel", "cell", "msisdn",
+                ],
+                "fr": ["telephone", "numero", "portable"],
+            },
+            sensitivity="pii",
         ),
         "hire_date": _field(
             description="ISO hire date.",
@@ -457,6 +478,55 @@ CANONICAL_ONTOLOGY: dict[str, dict[str, dict]] = {
             value_type="string",
             value_examples=["Sciences"],
             synonyms={"en": ["department", "dept", "faculty"]},
+        ),
+    },
+    # --------------------------------------------------------------- specialties
+    # Vocational / TVET trade programs and academic streams. A dedicated catalog
+    # (name / code / department) that African & French-model schools export as
+    # "specialties" / "filieres". Without this domain the file mis-scored as the
+    # subjects catalog (both share name/code/department) and landed as Subjects —
+    # the wrong entity. Lands into apps.academics.Specialty (+ its required
+    # Department), create-if-missing, deduped by (school, name).
+    "specialties": {
+        "name": _field(
+            description="Specialty / trade / vocational program / academic stream name.",
+            value_type="string",
+            value_examples=["ELECTRICAL POWER SYSTEMS", "PLUMBING", "Science"],
+            synonyms={
+                "en": [
+                    "name", "specialty", "speciality", "specialty_name",
+                    "specialisation", "specialization", "program", "programme",
+                    "trade", "vocation", "option", "stream", "track", "major",
+                ],
+                "fr": ["filiere", "specialite", "nom_filiere", "serie", "section"],
+                "es": ["especialidad", "nombre"],
+                "pt": ["especialidade"],
+            },
+            required_for=["specialties"],
+        ),
+        "code": _field(
+            description="Short specialty code (EPS, PL, FD).",
+            value_type="string",
+            value_examples=["EPS", "PL", "FD"],
+            synonyms={
+                "en": ["code", "specialty_code", "abbreviation", "abbr", "short_code"],
+                "fr": ["sigle", "abreviation"],
+            },
+        ),
+        "department": _field(
+            description="Parent department / faculty / trade cluster the specialty sits under.",
+            value_type="string",
+            value_examples=["ELECTRICAL POWER", "BUILDING CONSTRUCTION"],
+            synonyms={
+                "en": ["department", "dept", "faculty", "division", "cluster"],
+                "fr": ["departement", "pole"],
+            },
+        ),
+        "description": _field(
+            description="Optional specialty description / notes.",
+            value_type="string",
+            value_examples=["Trains electrical power technicians"],
+            synonyms={"en": ["description", "notes", "details", "about"]},
         ),
     },
     # ------------------------------------------------------------------ sections

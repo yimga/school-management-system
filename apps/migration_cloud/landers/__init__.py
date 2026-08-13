@@ -20,6 +20,7 @@ models, with DFV fallback retained for out-of-order bundles):
     * ``enrollment``             → updates StudentProfile grade_level / enrollment_status / section
     * ``structure``              → provisions the academic scaffold (AcademicYear/Term/Department/Classroom/Specialty/Subject/SubjectAssignment + a target-scoped teacher) for a SPLIT into an empty target, in wave 0 so enrollment+grades resolve
     * ``academics``              → ``apps.academics.Subject``          (upsert on name; Subject catalog for grades)
+    * ``specialties``            → ``apps.academics.Specialty`` (+ required ``Department``) (2026-08-13 — trades/streams catalog; dedup on (school, name); keeps the source code when globally free else mints one; wave 0 so enrollment can place students on a specialty)
     * ``sections``               → ``apps.academics.Classroom``        (upsert on code/slug)
     * ``attendance``             → ``apps.academics.Attendance``       (upsert on student+date)
     * ``grades``                 → ``apps.evals.Evaluation``           (upsert on student+term+subject)
@@ -69,6 +70,7 @@ from . import student_lander  # noqa: F401
 # Phase U5 expansion — domain-specific landers.
 from . import academic_sessions_lander  # noqa: F401 — OneRoster academicSessions → AcademicYear/Term (D-3)
 from . import academics_lander  # noqa: F401 — courses/subjects → apps.academics.Subject
+from . import specialty_lander  # noqa: F401 — trades/streams → apps.academics.Specialty (+ Department)
 from . import attendance_lander  # noqa: F401
 from . import behavior_lander  # noqa: F401
 from . import enrollment_lander  # noqa: F401

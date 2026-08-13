@@ -58,6 +58,9 @@ CANONICAL_FILENAME_TO_DOMAIN: dict[str, str] = {
     "guardians.csv": "guardians",
     "parents.csv": "guardians",
     "structure.csv": "structure",
+    "specialties.csv": "specialties",
+    "specialty.csv": "specialties",
+    "filieres.csv": "specialties",
     "enrollment.csv": "enrollment",
     "enrollments.csv": "enrollment",
     "sections.csv": "sections",
@@ -144,6 +147,13 @@ DOMAIN_CANONICAL_HEADERS: dict[str, set[str]] = {
     # resolve Subjects at the target.
     "academics": {
         "subject_code", "subject_name", "credits", "department", "name", "code",
+    },
+    # Specialty / trade / stream catalog (SpecialtyLander → apps.academics.Specialty
+    # + its required Department). Shares name/code/department with academics, so a
+    # filename hint breaks the tie (see reconcile_domain_with_filename / CATALOG).
+    "specialties": {
+        "name", "code", "department", "description", "specialty_name",
+        "specialty_code",
     },
     "sections": {
         "section_external_id", "subject_code", "subject_name",
@@ -260,6 +270,7 @@ DOMAIN_UI_LABELS: dict[str, str] = {
     "enrollment": "Enrollment",
     "structure": "Academic structure",
     "academics": "Subjects / Courses",
+    "specialties": "Specialties / Trades / Streams",
     "sections": "Classes / Sections",
     "attendance": "Attendance",
     "grades": "Grades / Marks",
@@ -305,6 +316,11 @@ DOMAIN_FILENAME_HINTS: tuple[tuple[str, str], ...] = (
     ("enrol", "enrollment"),
     ("enroll", "enrollment"),
     ("registration", "enrollment"),
+    # Specialty / trade / stream catalogs → specialties (before the broader
+    # subject/class tokens so "specialties_*.csv" never falls through to them).
+    ("specialt", "specialties"),
+    ("specialit", "specialties"),
+    ("filiere", "specialties"),
     # Subject/course catalogs → academics (Subject model), NOT sections
     # (Classroom). Class/section filenames stay on sections.
     ("subject", "academics"),
@@ -348,6 +364,51 @@ DOMAIN_FILENAME_HINTS: tuple[tuple[str, str], ...] = (
     ("alumnus", "alumni"),
     ("compliance", "compliance"),
 )
+
+
+# Person-roster domains share the SAME column shape (name / dob / gender /
+# email / phone / address), so raw header overlap CANNOT tell a student roster
+# from a teacher, guardian, or alumni roster — a ``teachers_2026.csv`` scores
+# just as high on the ``students`` synonym set. When a file's NAME names the
+# entity, that human-authored label is the stronger signal than the columns.
+PERSON_ROSTER_DOMAINS: frozenset[str] = frozenset(
+    {"students", "staff", "guardians", "alumni"}
+)
+
+# Catalog domains share name/code/department, so a specialties export scores
+# just as high on the subjects (academics) synonym set and vice-versa. Same
+# tie-break: trust the file's own name.
+CATALOG_DOMAINS: frozenset[str] = frozenset(
+    {"academics", "specialties", "sections"}
+)
+
+# Groups of domains that content-scoring cannot tell apart. A filename hint
+# only overrides content WITHIN one of these groups — never across them.
+_AMBIGUOUS_GROUPS: tuple[frozenset[str], ...] = (
+    PERSON_ROSTER_DOMAINS,
+    CATALOG_DOMAINS,
+)
+
+
+def reconcile_domain_with_filename(
+    filename: str, content_domain: str | None
+) -> str | None:
+    """Prefer a filename entity-hint over a content guess ONLY when BOTH point
+    at the SAME ambiguous group (which content-scoring cannot disambiguate).
+
+    ``teachers_2026-01-18.csv`` whose columns scored ``students`` (shared
+    name/dob/gender/email overlap) resolves to ``staff``; ``specialties_*.csv``
+    scored ``academics`` (shared name/code/department) resolves to ``specialties``.
+    ``student_grades.csv`` (filename hint ``students``, content ``grades``) is NOT
+    overridden — ``grades`` is in no shared group with ``students``, so the columns
+    are the reliable signal there. Content outside a shared group always wins.
+    """
+    hint = guess_domain_from_filename(filename)
+    if hint and content_domain and hint != content_domain:
+        for group in _AMBIGUOUS_GROUPS:
+            if hint in group and content_domain in group:
+                return hint
+    return content_domain
 
 
 def canonical_domain_label(slug: str) -> str:
@@ -510,11 +571,16 @@ def _domain_from_headers(artifact: Any) -> str | None:
 
 
 def _domain_for_artifact(artifact: Any) -> str | None:
-    """Resolve an artifact to a canonical domain via filename first, then headers."""
+    """Resolve an artifact to a canonical domain via filename first, then headers.
+
+    An EXACT canonical filename (``teachers.csv``) is authoritative. Otherwise we
+    score headers, then let a filename entity-token break the person-roster tie
+    the columns cannot (``teachers_<timestamp>.csv`` scored ``students`` → ``staff``).
+    """
     filename = ((getattr(artifact, "filename", "") or "").strip().lower())
     if filename in CANONICAL_FILENAME_TO_DOMAIN:
         return CANONICAL_FILENAME_TO_DOMAIN[filename]
-    return _domain_from_headers(artifact)
+    return reconcile_domain_with_filename(filename, _domain_from_headers(artifact))
 
 
 register_accelerator("runmycampus_canonical", RunMyCampusCanonicalAccelerator())
