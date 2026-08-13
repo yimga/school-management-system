@@ -308,6 +308,27 @@ def _apply_rollover_proposal_impl(
 
     source_year = proposal.source_year
     target_year = proposal.target_year
+
+    # M29 / EOY — produce the immutable grade archive BEFORE any student is
+    # moved. ``batch_freeze_transcripts`` filters is_active=True, but the move
+    # loop below graduates some students to is_active=False (alumni); freezing
+    # here, while every student is still active, captures the graduating
+    # cohort's FINAL transcripts too. Gated on ``lock_source`` (locking the
+    # source year = closing it = freeze its history). Best-effort — a freeze
+    # failure must NEVER break the rollover.
+    frozen = None
+    if lock_source:
+        try:
+            from apps.academics.year_close import batch_freeze_transcripts
+
+            frozen = batch_freeze_transcripts(
+                getattr(proposal, "school", None), source_year
+            )
+        except Exception as e:  # noqa: BLE001 - transcript freeze is best-effort, never fatal
+            logger.warning(
+                "apply_rollover_proposal: transcript freeze failed: %s", e
+            )
+
     # config-resolver-allow: method call get_backend_feature_flags() on the namespace object
     site = get_effective_site_settings(school=getattr(proposal, "school", None))
     if callable(getattr(site, "get_backend_feature_flags", None)):
@@ -425,7 +446,13 @@ def _apply_rollover_proposal_impl(
         graduated,
         skipped,
     )
-    return {"ok": True, "updated": updated, "graduated": graduated, "skipped": skipped}
+    return {
+        "ok": True,
+        "updated": updated,
+        "graduated": graduated,
+        "skipped": skipped,
+        "frozen": frozen,
+    }
 
 
 @shared_task(name="accounts.apply_rollover_proposal")

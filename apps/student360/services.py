@@ -281,23 +281,53 @@ def build_transcript_snapshot(student, academic_year) -> Optional[Dict[str, Any]
         return None
 
 
-def create_immutable_transcript(student, academic_year, created_by=None):
+def create_immutable_transcript(
+    student, academic_year, created_by=None, allow_refreeze=False
+):
     """
     Freeze current transcript for this student and academic year into ImmutableTranscript.
-    If a snapshot already exists for (student, academic_year), it is replaced (re-freeze).
+
+    Write-once by DEFAULT: if a snapshot already exists for
+    ``(student, academic_year)`` it is PRESERVED and returned unchanged — an
+    "immutable" transcript must never be silently overwritten. The rollover /
+    year-close archive relies on this so a re-run cannot clobber a graduating
+    cohort's final, already-frozen transcript.
+
+    Pass ``allow_refreeze=True`` for the deliberate, audited re-freeze that
+    REPLACES the stored snapshot (e.g. the human-initiated freeze surface).
     Returns the ImmutableTranscript instance or None on failure.
     """
     try:
         from .models import ImmutableTranscript
 
+        if not allow_refreeze:
+            # Write-once: an existing frozen snapshot wins. Return it untouched
+            # WITHOUT rebuilding, so the first freeze is preserved even if the
+            # underlying report data has since changed or become unavailable.
+            existing = ImmutableTranscript.objects.filter(
+                student=student, academic_year=academic_year
+            ).first()
+            if existing is not None:
+                return existing
+
         snapshot = build_transcript_snapshot(student, academic_year)
         if not snapshot:
             return None
-        obj, _ = ImmutableTranscript.objects.update_or_create(
-            student=student,
-            academic_year=academic_year,
-            defaults={"snapshot": snapshot, "created_by": created_by},
-        )
+        if allow_refreeze:
+            # Deliberate, audited re-freeze — replace the stored snapshot.
+            obj, _ = ImmutableTranscript.objects.update_or_create(
+                student=student,
+                academic_year=academic_year,
+                defaults={"snapshot": snapshot, "created_by": created_by},
+            )
+        else:
+            # First freeze — create the write-once row. get_or_create also guards
+            # the check-then-create race against the unique_together constraint.
+            obj, _ = ImmutableTranscript.objects.get_or_create(
+                student=student,
+                academic_year=academic_year,
+                defaults={"snapshot": snapshot, "created_by": created_by},
+            )
         return obj
     except _STUDENT360_SERVICE_ERRORS:
         log_exception_with_context(

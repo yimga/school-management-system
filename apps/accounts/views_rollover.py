@@ -290,6 +290,31 @@ def rollover_year(request):
             .annotate(count=Count("id"))
             .values_list("student_id", "count")
         )
+        # M29 / EOY — freeze the immutable grade archive BEFORE any student is
+        # moved. The graduation branch below sets is_active=False, which
+        # ``batch_freeze_transcripts`` (is_active=True only) would then skip, so
+        # freezing here — while every student is still active — captures the
+        # graduating cohort's final transcripts too. Gated on ``lock_source``
+        # (locking the source year = closing it = freeze its history);
+        # best-effort so a freeze error never breaks the rollover.
+        if lock_source and school is not None:
+            try:
+                from apps.academics.year_close import batch_freeze_transcripts
+
+                freeze_result = batch_freeze_transcripts(school, source_year)
+                if freeze_result.get("created"):
+                    messages.success(
+                        request,
+                        f"Archived {freeze_result['created']} immutable "
+                        f"transcript(s) for {source_year.name}.",
+                    )
+            except Exception as e:  # noqa: BLE001 - transcript freeze is best-effort, never fatal
+                _school_id = str(getattr(school, "pk", "") or "")
+                log_exception_with_context(
+                    "accounts rollover_year: transcript freeze failed",
+                    school_id=_school_id,
+                    extra={"view": "rollover_year", "error": str(e)},
+                )
         updated = 0
         graduated = 0
         skipped_outstanding = 0

@@ -317,7 +317,13 @@ def transcript_freeze(request, student_id):
     if not academic_year:
         messages.error(request, "Invalid academic year.")
         return redirect("portal:student_360_page", student_id=student_id)
-    obj = create_immutable_transcript(student, academic_year, created_by=user)
+    # allow_refreeze=True: this is the deliberate, audited, permission-gated
+    # HUMAN freeze surface (created_by=user), the sanctioned re-freeze path —
+    # distinct from the automated rollover/year-close archive, which is
+    # write-once. Re-clicking "Freeze" here intentionally re-captures.
+    obj = create_immutable_transcript(
+        student, academic_year, created_by=user, allow_refreeze=True
+    )
     if obj:
         messages.success(
             request, f"Transcript for {academic_year.name} frozen successfully."
