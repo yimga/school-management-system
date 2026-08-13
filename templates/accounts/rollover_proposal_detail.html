@@ -105,6 +105,10 @@
           <input class="form-check-input" type="checkbox" name="carry_forward_arrears" id="carry_forward_arrears" value="on">
           <label class="form-check-label" for="carry_forward_arrears">{% trans "Carry forward unpaid fees to next year" %}</label>
         </div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="acknowledge_no_backup" id="acknowledge_no_backup" value="on">
+          <label class="form-check-label" for="acknowledge_no_backup">{% trans "I understand there is no recent backup and want to proceed anyway (override the backup gate)" %}</label>
+        </div>
       </div>
       <div class="card-footer">
         <button type="submit" class="btn btn-success">{% trans "Apply rollover" %}</button>

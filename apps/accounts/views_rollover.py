@@ -5,6 +5,7 @@ Extracted from accounts/views.py for giant-file decomposition.
 
 from django.contrib import messages
 from django.contrib.auth.decorators import user_passes_test
+from django.core.exceptions import ValidationError
 from django.db import DatabaseError
 from django.db.models import Count
 from django.shortcuts import redirect, render, get_object_or_404
@@ -16,6 +17,10 @@ from apps.academics.models import AcademicYear, Classroom, Term
 from apps.academics.services_year_setup import clone_academic_year
 from apps.accounts.decorators import permission_required
 from apps.accounts.models import RolloverProposal, RolloverProposalItem, User
+from apps.accounts.rollover_backup import (
+    create_pre_rollover_backup,
+    require_pre_rollover_backup,
+)
 from apps.people.enrollment_services import (
     graduate_student,
     open_enrollment,
@@ -164,6 +169,42 @@ def rollover_year(request):
     """
     years = list(AcademicYear.objects.all().order_by("-start_date"))
     if request.method == "POST":
+        # "Back up now" affordance — trigger the M28 tenant DR snapshot for this
+        # school so the pre-rollover backup gate below is satisfied, then return
+        # to the form (does NOT apply the rollover).
+        if request.POST.get("create_backup_now"):
+            backup_school = getattr(request, "school", None)
+            if backup_school is None:
+                messages.error(
+                    request, "School context is required to create a backup."
+                )
+                return render(
+                    request, "accounts/rollover_year.html", {"years": years}
+                )
+            try:
+                result = create_pre_rollover_backup(backup_school)
+                messages.success(
+                    request,
+                    "Backup created "
+                    f"({result.get('byte_size', 0)} bytes). "
+                    "You can now run the rollover.",
+                )
+            except (
+                DatabaseError,
+                ImportError,
+                OSError,
+                RuntimeError,
+                TypeError,
+                ValueError,
+            ) as e:
+                school_id = str(getattr(backup_school, "pk", "") or "")
+                log_exception_with_context(
+                    "accounts rollover_year: create_pre_rollover_backup failed",
+                    school_id=school_id,
+                    extra={"view": "rollover_year", "error": str(e)},
+                )
+                messages.error(request, f"Backup failed: {e}")
+            return render(request, "accounts/rollover_year.html", {"years": years})
         source_id = request.POST.get("source_year")
         target_id = request.POST.get("target_year")
         lock_source = request.POST.get("lock_source") == "on"
@@ -185,6 +226,20 @@ def rollover_year(request):
             )
             return render(request, "accounts/rollover_year.html", {"years": years})
         school = getattr(request, "school", None)
+        # Pre-rollover backup gate (M29 / EOY gap #3) — fires BEFORE any student
+        # is moved. Refuses the destructive apply unless a recent M28 tenant DR
+        # snapshot exists for this school OR the operator ticked
+        # "acknowledge_no_backup" to explicitly override.
+        try:
+            require_pre_rollover_backup(
+                school,
+                source_year,
+                override=request.POST.get("acknowledge_no_backup") == "on",
+                created_by=request.user,
+            )
+        except ValidationError as e:
+            messages.error(request, e.messages[0] if e.messages else str(e))
+            return render(request, "accounts/rollover_year.html", {"years": years})
         if school is not None:
             from apps.academics.year_close import evaluate_year_close_blockers
 
@@ -583,6 +638,23 @@ def rollover_proposal_detail(request, proposal_id):
             notify_parents = request.POST.get("notify_parents") == "on"
             allow_outstanding = request.POST.get("allow_outstanding_returns") == "on"
             carry_arrears = request.POST.get("carry_forward_arrears") == "on"
+            override_backup = request.POST.get("acknowledge_no_backup") == "on"
+            # Pre-rollover backup gate (M29 / EOY gap #3): fail the apply here,
+            # in-request, when there is no recent M28 snapshot and the operator
+            # did not override — rather than enqueueing a task that would refuse
+            # and silently leave the proposal unapplied.
+            try:
+                require_pre_rollover_backup(
+                    school,
+                    proposal.source_year,
+                    override=override_backup,
+                    created_by=proposal.approved_by or proposal.created_by,
+                )
+            except ValidationError as e:
+                messages.error(request, e.messages[0] if e.messages else str(e))
+                return redirect(
+                    "accounts:rollover_proposal_detail", proposal_id=proposal_id
+                )
             from apps.accounts.tasks import apply_rollover_proposal
 
             _enqueue_rollover_task(
@@ -592,6 +664,7 @@ def rollover_proposal_detail(request, proposal_id):
                 notify_parents=notify_parents,
                 allow_outstanding_returns=allow_outstanding,
                 carry_forward_arrears=carry_arrears,
+                override_backup_gate=override_backup,
             )
             messages.success(
                 request,

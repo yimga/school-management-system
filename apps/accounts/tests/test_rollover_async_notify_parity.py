@@ -67,8 +67,14 @@ class AsyncRolloverNotifyParityTests(EnrollmentFixtureMixin, TestCase):
         # MUST-FIRE: pre-fix the task ignored notify_parents -> zero rows.
         self.assertEqual(self._guardian_notification_count(), 0)
 
+        # override_backup_gate=True: the pre-rollover backup gate (M29 / EOY
+        # gap #3) refuses an un-backed-up apply; this test predates the gate and
+        # asserts notify parity, so it explicitly overrides.
         result = _apply_rollover_proposal_impl(
-            self.proposal.id, lock_source=True, notify_parents=True
+            self.proposal.id,
+            lock_source=True,
+            notify_parents=True,
+            override_backup_gate=True,
         )
         self.assertTrue(result["ok"], result)
         self.assertEqual(result["updated"], 1, result)
@@ -88,8 +94,10 @@ class AsyncRolloverNotifyParityTests(EnrollmentFixtureMixin, TestCase):
         )
 
     def test_async_apply_without_notify_flag_sends_nothing(self):
+        # override_backup_gate=True — see note above (this test asserts the
+        # no-notify path, not the backup gate).
         result = _apply_rollover_proposal_impl(
-            self.proposal.id, notify_parents=False
+            self.proposal.id, notify_parents=False, override_backup_gate=True
         )
         self.assertTrue(result["ok"], result)
         self.assertEqual(self._guardian_notification_count(), 0)

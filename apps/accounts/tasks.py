@@ -266,11 +266,14 @@ def _apply_rollover_proposal_impl(
     notify_parents=False,
     allow_outstanding_returns=False,
     carry_forward_arrears=False,
+    override_backup_gate=False,
 ):
     """Inner implementation: run inside tenant context."""
     import logging
+    from django.core.exceptions import ValidationError
     from django.utils import timezone
     from apps.accounts.models import RolloverProposal
+    from apps.accounts.rollover_backup import require_pre_rollover_backup
     from apps.people.enrollment_services import (
         graduate_student,
         open_enrollment,
@@ -289,6 +292,19 @@ def _apply_rollover_proposal_impl(
             "ok": False,
             "error": f"Proposal status is {proposal.status}, must be APPROVED",
         }
+
+    # Pre-rollover backup gate (M29 / EOY gap #3) — fires BEFORE any student is
+    # moved. Refuse (leaving the proposal APPROVED, unapplied) unless a recent
+    # M28 tenant DR snapshot exists for the school OR the operator overrode.
+    try:
+        require_pre_rollover_backup(
+            getattr(proposal, "school", None),
+            proposal.source_year,
+            override=override_backup_gate,
+            created_by=proposal.approved_by or proposal.created_by,
+        )
+    except ValidationError as e:
+        return {"ok": False, "error": e.messages[0] if e.messages else str(e)}
 
     source_year = proposal.source_year
     target_year = proposal.target_year
@@ -420,8 +436,13 @@ def apply_rollover_proposal(
     allow_outstanding_returns=False,
     carry_forward_arrears=False,
     school_id: str | None = None,
+    override_backup_gate=False,
 ):
-    """Apply APPROVED rollover proposal. Runs in tenant context when school_id is provided."""
+    """Apply APPROVED rollover proposal. Runs in tenant context when school_id is provided.
+
+    ``override_backup_gate`` bypasses the pre-rollover backup gate (M29 / EOY
+    gap #3) when the operator explicitly acknowledged there is no recent backup.
+    """
 
     def _run():
         return _apply_rollover_proposal_impl(
@@ -430,6 +451,7 @@ def apply_rollover_proposal(
             notify_parents,
             allow_outstanding_returns,
             carry_forward_arrears,
+            override_backup_gate,
         )
 
     if school_id:
@@ -440,6 +462,7 @@ def apply_rollover_proposal(
         notify_parents,
         allow_outstanding_returns,
         carry_forward_arrears,
+        override_backup_gate,
     )
 
 

@@ -97,3 +97,26 @@ Besides the single-request "Apply rollover" above, the same screen can enqueue t
 3. **Apply** — approving unlocks an **Apply** action that enqueues `apps.accounts.tasks.apply_rollover_proposal` (Celery via `apply_async`, falling back to in-process `apply` when no broker is available). The task opens/closes enrollments exactly like the synchronous path (`open_enrollment` + `graduate_student`), marks the proposal **`APPLIED`**, optionally locks the source year, and — when **Notify parents** was ticked — notifies each rolled student's guardians. The queue of PENDING/APPROVED proposals is at `apps.accounts.views_rollover.rollover_queue` (`/authentication/workflow/rollover/queue/`).
 
 Lifecycle: `RolloverProposal.Status` = `PENDING` → `APPROVED` → `APPLIED` (or `CANCELLED`).
+
+---
+
+## 6. Pre-rollover backup gate (M29 / EOY gap #3)
+
+Rollover is **destructive** — it opens a new enrollment for every active student in the target year, closes the source-year enrollment, can graduate students to ALUMNI, and can lock the source year. If the operator picked the wrong source/target years or a bad promotion mapping, the whole cohort has already moved before anyone notices. The safety net is the **M28 tenant DR snapshot** — a signed, encrypted, immutable full-state export of the tenant.
+
+**The gate.** Both apply paths refuse to move any student unless **either**:
+
+1. a **recent M28 snapshot** exists for the school (a `apps.lifecycle.models_dr_snapshot.TenantImmutableSnapshot` row — the same row `apps.lifecycle.tenant_dr_snapshot.capture_daily_snapshot` writes and the daily `lifecycle.capture_tenant_immutable_snapshots_daily` Celery task drives — with `created_at` within the freshness window, default **7 days**, overridable via `settings.RMC_PRE_ROLLOVER_BACKUP_MAX_AGE_DAYS`); **or**
+2. the operator **explicitly overrides** by acknowledging there is no backup (form checkbox `acknowledge_no_backup`).
+
+The M28 snapshot is a **whole-tenant** artifact (school + `snapshot_date` + `created_at`); it is **not** scoped to a single academic year, so the gate keys on **school + recency** only. `source_year` is passed only for the audit line.
+
+**Code**
+
+- **Gate helper:** `apps.accounts.rollover_backup.require_pre_rollover_backup(school, source_year, *, override=False, created_by=None)` — raises `django.core.exceptions.ValidationError` when neither a recent snapshot nor an override is present, and emits a PII-free audit line (`branch=backup-present` / `operator-override` / `refused-no-backup`, ids only). Companion reads: `recent_backup_exists(school, *, within_days=None)`.
+- **Sync path:** `apps.accounts.views_rollover.rollover_year` (POST apply branch) — reads `acknowledge_no_backup`; a refusal shows a `messages.error` and re-renders **before** any student is moved.
+- **Async path:** `apps.accounts.tasks.apply_rollover_proposal` threads `override_backup_gate` (default `False`) into `_apply_rollover_proposal_impl`, which calls the gate right after the APPROVED check and **before** the move loop; a refusal returns `{"ok": False, "error": …}` and leaves the proposal APPROVED (unapplied). `created_by` is derived from `proposal.approved_by or proposal.created_by`. `rollover_proposal_detail`'s **Apply** action also fails the gate in-request (rather than enqueueing a task that would silently refuse) and forwards the override.
+
+**"Back up now" affordance**
+
+- The operator creates the required backup by running the existing **M28 tenant DR snapshot** flow. `apps.accounts.rollover_backup.create_pre_rollover_backup(school)` is a thin, read-only delegate to `capture_daily_snapshot(school)`; the `rollover_year` POST branch triggers it when `create_backup_now` is present (reuses the existing `accounts:rollover_year` URL — no new route). Adding the button + the `acknowledge_no_backup` checkbox to `templates/accounts/rollover_year.html` (and the proposal-detail Apply form) is the remaining UI wiring. Absent a manual trigger, the daily snapshot task already produces a fresh backup for every active school.
