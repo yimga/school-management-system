@@ -1,8 +1,28 @@
 # A+ PROGRESS SCOREBOARD (A0 Coordinator)
 
-**Last refreshed:** 2026-08-13 (Claude Code · M29 6/6 · **M30 ISCED spine** `c8dfd5a19` · **W22 grad gate** `a47fc6e60` · **W24 immunization records + alert** `ea368593c` — executing the research cross-walk backlog one shipped+tested increment at a time)  
-**Loop:** Academic-year **close → open** (EOY rollover) → M29 ≈ 85 NO-GO · building M30–M33 / W21–W31 (M30 spine + W22 gate + W24 immunization landed; **platform still NO-GO** — these are foundations/one-metric slices, not the whole moat)  
+**Last refreshed:** 2026-08-13 (Claude Code · **5-increment build session** off the research cross-walk: M29 6/6 gaps · **M30 ISCED spine** `c8dfd5a19` · **W22 grad gate** `a47fc6e60` · **W24 immunization + alert** `ea368593c` · **M32 gov-reporting + Ed-Fi JSON** `01be505db` — each audited-by-running → built → tested → shipped → verified)  
+**Loop:** Academic-year **close → open** (EOY rollover) → M29 ≈ 85 NO-GO · 5 research-backlog increments landed; **platform still NO-GO** — these are real, tested *foundations / one-metric slices*, not the whole moat. Remaining backlog: M31/M33, W21/W23/W25–W31 + each increment's noted follow-ups.  
 **Tree:** HEAD = `origin/main`
+
+---
+
+## M32 — Government / Ministry Reporting Translation Engine — increment 1 (Ed-Fi JSON) — SHIPPED — 2026-08-13
+
+**Commit `01be505db`** (off-tree push, 5 new paths, all `emis/translation/` + one test; boundary gates green; **10/10 must-fire tests RUN green** — I built the keepdb myself and ran the suite; `check` clean; `makemigrations --check` clean — **NO model, NO migration**).
+
+**Audit-by-running first (the loop):** an agent mapped the reporting surface and found the blunt truth — **no real government-submission engine exists**, only four overlapping, explicitly-disclaimed CSV "starter" stacks (`state_reporting` / `compliance_exports` / EMIS export / interop adapters) plus an **unseeded** per-country skeleton (`EMISFieldMapping`/`EMISCompliance`). US-standard per-record mappers (`apps/interop/edfi|ceds`) already exist but have **no serializer + no transport**. So M32 = build the outbound engine and wire ONE real format end-to-end by reusing those mappers.
+
+**What shipped (real + tested):**
+
+| Piece | Where | Note |
+|-------|-------|------|
+| Outbound format registry | `emis/translation/base.py` | `MinistryFormatSerializer` ABC + `register/get/available` — **mirrors the inbound `register_accelerator` pattern**; every future country registers the same way without touching this module; unknown key → `UnknownMinistryFormat` (a `KeyError` subclass, so existing handlers still catch) |
+| US Ed-Fi JSON serializer (reference #1) | `emis/translation/edfi_json.py` | **REUSES** the existing `apps/interop/edfi/adapter` mappers (writes no second mapper); resolves the ORM instances they expect, tenant-scoped by `school`+`academic_year` (both queries carry `school=`); assembles deterministic `{students, studentSchoolAssociations, grades}` JSON; per-record isolation (a bad row is skipped+counted, never aborts the export) |
+| Thin service entry | `emis/translation/service.py` | `translate_school_to_ministry_format(...) → {format_key, content_type, file_extension, filename, content}` — the reusable API a future download view/command binds to |
+
+**Honest audit finding surfaced (not hidden):** the read-from candidate `EMISExportService` emits *flattened dict rows* incompatible with the instance-taking interop mappers, and its enrollment/performance rows are classroom-level aggregates that map to no Ed-Fi resource the mappers produce — so instantiating it would have been dead/redundant work. The serializer instead resolves the instances directly using the **same tenant-scoping `EMISExportService` itself uses**. Called out rather than shoehorned.
+
+**Verdict: M32 remains NO-GO (foundation + one format).** The abstraction is real and proven end-to-end by tests, but it is one format of one country. Follow-ups (deferred): a download view + management command binding the service; additional country formats (the CEDS adapter already exists to wrap next); a **fixed-width** format (e.g. CALPADS) to exercise the non-JSON serializer path and force the abstraction beyond JSON; a DB-backed grades assertion; seeding `EMISFieldMapping`/`EMISCompliance` per country so operators tune field names without a deploy.
 
 ---
 
@@ -88,7 +108,7 @@ Cross-walked the full EOY / "A-Z global platform" research (PowerSchool/Infinite
 |---|--------|---------|------------------|
 | 30 | Universal Education Model (Daycare→Tertiary × Gen/Tech/Voc × ISCED) | **NO-GO (foundation started `c8dfd5a19`)** | grading M3 + EAV M5 + **ISCED spine now shipped** (levels 0–8 + `next_isced_level` ladder + tier grammar on `EducationLevelRegistry`, +EARLY_CHILDHOOD row); still missing level→grade-band mapping, tier-driven fees/promotion/rollover, track prereq-gates / competency-pass, atomic entity/metric/interval/gate engine, country ISCED overlays |
 | 31 | Marketplace App-Injection & Extensibility (Shopify) | **NO-GO (partial)** | marketplace/SDK exists (S7); missing micro-frontend slot injection + scoped-OAuth2 JWT gateway + JSONB `app_extensions` + manifest |
-| 32 | Gov / Ministry Reporting Translation Engine | **NO-GO (unbuilt)** | internal reporting exists; no atomic→ministry-schema (XML/JSON/CSV) per-country template engine |
+| 32 | Gov / Ministry Reporting Translation Engine | **NO-GO (foundation started `01be505db`)** | was 4 disclaimed CSV stacks + an unseeded skeleton; now a real **outbound format registry** + ONE end-to-end tested format (**US Ed-Fi JSON**, reusing the `interop/edfi` mappers) in `emis/translation/`; still missing additional countries, a fixed-width format, the download view/command, and per-country field-map seeding |
 | 33 | B2B Procurement & Supply Marketplace (Amazon) | **NO-GO (unbuilt)** | no embedded supply marketplace / auto-PO-from-class-config |
 
 **+ operational-cycle taskers W21–W31** (extend existing metrics; PART 4C): master-scheduling depth (M15) · graduation audit (M29/M3) · compute-as-a-service APIs (M20/S7) · immunization/health (NEW) · HR year-end (M12) · inventory/asset year-end (M14) · transport & food-service year-end (schoolops) · governance/compliance year-end (NEW) · i18n Hijri/numerals (M21) · no-code blueprint constructor (onboarding) · parallel-planning sandbox depth (M29/W20).
