@@ -25,6 +25,9 @@
   {% if request.public_host_kind == 'manager' %}
   <div class="cp-sidebar__scope" role="status">
     <span>{{ cockpit.workspace_context.scope_label|default:_("All tenants · Global") }}</span>
+    <span class="cp-sidebar__connection" data-operator-connection-status>
+      <i aria-hidden="true"></i><span data-operator-connection-label>{% trans "Local ready" %}</span>
+    </span>
   </div>
   {% endif %}
 </div>

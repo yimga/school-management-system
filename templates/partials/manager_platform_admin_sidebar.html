@@ -3,13 +3,36 @@
      id="{% firstof sidebar_nav_id 'cpSidebarNav' %}"
      aria-label="{% trans 'Platform navigation' %}"
      data-sidebar-nav="true"
+     data-rmc-smart-sidebar="1"
+     data-rmc-sidebar-search="1"
+     data-rmc-sidebar-adaptive="1"
+     data-rmc-sidebar-density="comfortable"
      data-shell-nav-family="platform-admin"
      data-rmc-platform-admin-sidebar="1"
      data-rmc-cp-sidebar-v8="1"
      data-rmc-unified-sidebar="1"
      data-rmc-complete-sidebar="1"
-     data-rmc-sidebar-luxury="10x">
+     data-rmc-sidebar-luxury="10x"
+     data-rmc-operator-admin-sidebar-v2="1">
   {% include "partials/cp_sidebar_operator_identity.html" %}
+  <div class="cp-nav-recent" data-operator-recent-wrap hidden>
+    <div class="cp-sidebar__section cp-sidebar__section--utility">
+      <span>{% trans "Recent work" %}</span>
+      <button type="button" class="cp-sidebar__utility-action" data-operator-recent-clear>{% trans "Clear" %}</button>
+    </div>
+    <div class="cp-sidebar__recent-list" data-operator-recent-list aria-label="{% trans 'Recently visited operator pages' %}"></div>
+  </div>
+  {% if PINNED_CONTROL_PLANE_ITEMS %}
+  <details class="cp-sidebar__group cp-sidebar__group--quick" open data-rmc-cp-sidebar-group="quick-access">
+    <summary class="cp-sidebar__section">{% trans "Quick access" %} <span class="cp-sidebar__count">{{ PINNED_CONTROL_PLANE_ITEMS|length }}</span></summary>
+    {% for item in PINNED_CONTROL_PLANE_ITEMS %}
+    <a class="cp-sidebar__item{% if item.is_current %} cp-sidebar__item--current{% endif %}" href="{{ item.url }}"{% if item.is_current %} aria-current="page"{% endif %} data-cp-primary-id="{{ item.id }}" data-rmc-unified-nav-id="{{ item.id }}">
+      <span class="cp-sidebar__item-label"><i class="bi {{ item.icon|default:'bi-pin-angle-fill' }} cp-nav-icon" aria-hidden="true"></i><span class="cp-nav-label">{{ item.label }}</span></span>
+      <button type="button" class="cp-sidebar__pin cp-pin-btn cp-pin-pinned" data-cp-pin-id="{{ item.id }}" aria-label="{% trans 'Remove from Quick access' %}" title="{% trans 'Remove from Quick access' %}"><i class="bi bi-pin-angle-fill" aria-hidden="true"></i></button>
+    </a>
+    {% endfor %}
+  </details>
+  {% endif %}
   <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="admin-sidebar-app-groups cp-admin-sidebar-apps" id="cp-admin-sidebar-apps" role="group" aria-label="{% trans 'Platform admin apps' %}">
     {% include "partials/manager_complete_sidebar_nav.html" %}

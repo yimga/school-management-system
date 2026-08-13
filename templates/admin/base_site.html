@@ -185,6 +185,7 @@
   <link rel="stylesheet" href="{% static 'css/rmc-admin-changelist-live.css' %}">
   {# The emergency-v17 bundle below is the sole owner of workspace geometry. #}
   <link rel="stylesheet" href="{% static 'css/rmc-cp-sidebar-200x.css' %}">
+  <link rel="stylesheet" href="{% static 'css/rmc-operator-admin-sidebar-v2.css' %}?v=20260813-operator-sidebar-v2">
   <link rel="stylesheet" href="{% static 'css/rmc-platform-inner-pages.css' %}">
   {% include "partials/rmc_security_posture_layout_styles.html" %}
   {% endif %}
@@ -816,7 +817,8 @@
     {% include "partials/rmc_platform_chrome_scripts.html" %}
     {% if is_manager_host %}{% include "partials/rmc_nav_sidebar_page_data.html" %}{% endif %}
     {% if is_manager_host %}<script src="{% static 'js/rmc-nav-sidebar.js' %}" defer></script>
-    <script src="{% static 'js/rmc-sidebar-intelligence.js' %}" defer></script>{% endif %}
+    <script src="{% static 'js/rmc-sidebar-intelligence.js' %}" defer></script>
+    <script src="{% static 'js/rmc-operator-admin-sidebar-v2.js' %}?v=20260813-operator-sidebar-v2" defer></script>{% endif %}
     {% comment %} v4.01.03: g-chord → chip click bridge — closes advertised-but-unbound shortcut gap. {% endcomment %}
   {% endif %}
   {% if is_manager_host %}
