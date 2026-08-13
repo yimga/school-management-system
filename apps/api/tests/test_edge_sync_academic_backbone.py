@@ -24,7 +24,7 @@ from apps.sync_engine.edge_outbox import build_edge_delta_bundle
 _SIGN_KEY = "academic-backbone-test-key"
 
 
-@override_settings(RMC_SYNC_BUNDLE_SIGNING_KEY=_SIGN_KEY)
+@override_settings(RMC_SYNC_BUNDLE_SIGNING_KEY=_SIGN_KEY, RMC_EDGE_SYNC_ENABLED=True)
 class AcademicBackboneSyncTests(TestCase):
     def setUp(self):
         uid = uuid.uuid4().hex[:8]

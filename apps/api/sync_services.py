@@ -101,12 +101,18 @@ def _get_entity_config():
         # whenever a classroom edit carried it.
         "classroom": (Classroom, {"name", "academic_year_id"}),
     }
-    for entity_type, app_label, model_name in _DERIVED_ENTITY_SPECS:
-        try:
-            model = django_apps.get_model(app_label, model_name)
-        except LookupError:
-            continue
-        config[entity_type] = (model, _derive_sync_fields(model))
+    # The expanded two-way registry is gated behind the edge-device flag so ordinary
+    # cloud tenants keep exactly the original three entities (untouched). Only a
+    # deployment that opts in (the sovereign edge box) two-way-syncs the broader set.
+    from django.conf import settings
+
+    if getattr(settings, "RMC_EDGE_SYNC_ENABLED", False):
+        for entity_type, app_label, model_name in _DERIVED_ENTITY_SPECS:
+            try:
+                model = django_apps.get_model(app_label, model_name)
+            except LookupError:
+                continue
+            config[entity_type] = (model, _derive_sync_fields(model))
     return config
 
 

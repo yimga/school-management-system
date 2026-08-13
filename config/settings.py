@@ -3898,6 +3898,15 @@ RMC_DEPLOYMENT_PROFILE = (
     os.getenv("RMC_DEPLOYMENT_PROFILE", "online").strip().lower() or "online"
 )
 RMC_HUB_BASE_URL = (os.getenv("RMC_HUB_BASE_URL", "") or "").strip().rstrip("/")
+# Edge<->cloud BIDIRECTIONAL sync master switch (Phase 5). OFF everywhere by default, so
+# ordinary cloud tenants are untouched: the expanded two-way entity registry and the
+# scheduled push/pull cycle only activate where this is explicitly set. The sovereign
+# edge box turns it on in its .env (RMC_EDGE_SYNC_ENABLED=1). The pull/upload endpoints
+# stay credential-gated regardless; this flag governs what the box AUTO-runs and which
+# entities are two-way syncable.
+RMC_EDGE_SYNC_ENABLED = os.getenv("RMC_EDGE_SYNC_ENABLED", "").strip().lower() in (
+    "1", "true", "yes", "on",
+)
 RMC_AUTO_APPLY_OFFLINE_BUNDLE_ON_PROVISION = os.getenv(
     "RMC_AUTO_APPLY_OFFLINE_BUNDLE_ON_PROVISION", "1"
 ).strip().lower() in ("1", "true", "yes", "on")
