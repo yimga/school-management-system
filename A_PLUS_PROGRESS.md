@@ -1,8 +1,29 @@
 # A+ PROGRESS SCOREBOARD (A0 Coordinator)
 
-**Last refreshed:** 2026-08-13 (Claude Code · M29 6/6 gaps CLOSED · **M30 ISCED spine** `c8dfd5a19` · **W22 graduation gate** `a47fc6e60` — executing the research cross-walk backlog one shipped+tested increment at a time)  
-**Loop:** Academic-year **close → open** (EOY rollover) → M29 ≈ 85 NO-GO · building M30–M33 / W21–W31 (M30 spine + W22 gate landed; **platform still NO-GO** — these are foundations/one-metric slices)  
+**Last refreshed:** 2026-08-13 (Claude Code · M29 6/6 · **M30 ISCED spine** `c8dfd5a19` · **W22 grad gate** `a47fc6e60` · **W24 immunization records + alert** `ea368593c` — executing the research cross-walk backlog one shipped+tested increment at a time)  
+**Loop:** Academic-year **close → open** (EOY rollover) → M29 ≈ 85 NO-GO · building M30–M33 / W21–W31 (M30 spine + W22 gate + W24 immunization landed; **platform still NO-GO** — these are foundations/one-metric slices, not the whole moat)  
 **Tree:** HEAD = `origin/main`
+
+---
+
+## W24 — Immunization & health records + missing-vaccine alert (NEW) — increment 1 SHIPPED — 2026-08-13
+
+**Commit `ea368593c`** (off-tree push, 7 paths, all `apps/schoolops/`; boundary gates green; **10/10 must-fire tests RUN green** — I built the keepdb myself and ran the suite; `check` clean; `makemigrations --check` clean; migration `0037` deps all present on origin/main; `scan_cross_tenancy_fk` / tenant-safety / marker-quality all clean).
+
+**Audit-by-running first (the loop):** an agent traced student-health machinery and found immunization is **entirely unmodeled** — the only health surface is a flat free-text `HealthRecord(record_type="vaccination")` log; no vaccine/dose/date structure, no "required-by-grade" ruleset, no compliance computation, no sweep. But schoolops already **owns** health (the `HealthRecord` model, an `ops_clinic` nurse page, a `require_feature("clinic")` gate) and a **proven sweep→notify rail** exists (`check_badge_expiry_alerts_task` per-school + `finance.Notification.notify_unread` + the `_notify_guardians_of_rollover` guardian path). So W24 = build the structured layer + reuse the rail.
+
+**What shipped (real + tested):**
+
+| Piece | Where | Note |
+|-------|-------|------|
+| `VaccineRequirement` + `ImmunizationRecord` models | `apps/schoolops/models.py` + migration `0037` (additive `CreateModel`×2) | FK decls **MIRROR HealthRecord** (`student` `db_constraint=False`) so the cross-tenancy-fk gate holds; `save()`-normalize the vaccine code; unique `(school, vaccine)` |
+| Pure compute `compute_missing_immunizations(student, school)` | `apps/schoolops/immunization.py` (new) | `{is_compliant, requirements_configured, missing[], exempt[]}`; exemption satisfies a vaccine; met when doses-on-record reach `doses_required`; **no hardcoding** — thresholds from the rows |
+| Per-school alert sweep `check_missing_immunizations_task` | `apps/schoolops/tasks.py` | mirrors `check_badge_expiry_alerts_task`; non-compliant → WARNING `finance.Notification` to **guardians** via `notify_unread`; **PII-safe** (first name only — a test asserts the vaccine name is absent), idempotent (dedup on recipient+title), best-effort per student/guardian |
+| Runnable trigger `manage.py check_missing_immunizations [--school]` | new command | so the feature is **not inert**; admin registers both models |
+
+**Behaviour-preserving:** a school with zero `VaccineRequirement` rows enforces nothing (mirrors W22) — no platform-default seed ships, so today's behaviour is unchanged until a school opts in.
+
+**Verdict: W24 tasker foundation DELIVERED** (structured records + an automated missing-vaccine guardian alert, computed against a tenant ruleset, runnable). Honest residuals / follow-ups (explicitly deferred): nurse/health-office UI + the `ops_clinic` compliance filter view; the intake-form "missing immunization" gate; Celery-beat scheduling + wiring the sweep into the rollover apply loop (the "rising grades — year-end" trigger the tasker names); consulting the advisory `min_age_years`/`max_age_years` hints; and the sweep's `[:2000]` per-school student cap is currently silent (no log when exceeded) — fine for a periodic sweep but a noted refinement.
 
 ---
 
