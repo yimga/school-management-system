@@ -7,6 +7,7 @@ must not create duplicate students").
 
 from __future__ import annotations
 
+import re
 from typing import Any, Iterator
 
 from ._helpers import (
@@ -238,10 +239,85 @@ class StudentLander(Lander):
                 detect_and_register_assets(
                     ctx=ctx, legacy_id=external_id, entity_kind="student", row=row,
                 )
+                # Place the student on their trade Specialty (created in wave 0).
+                # Best-effort enrichment: an unresolved specialty is preserved as
+                # a custom field and never quarantines the (already-landed) student.
+                _link_student_specialty(obj, row, ctx, model_fields, result)
             except Exception as exc:  # noqa: BLE001 — per-row quarantine
                 result.quarantined += 1
                 result.errors.append(f"upsert failed for {external_id}: {type(exc).__name__}: {exc}")
         return result
+
+
+def _norm_spec(v: str) -> str:
+    """Normalize a specialty label for matching: drop a trailing source code
+    ('FASHION DESIGN - FD' / 'WELDING AND METAL FABRICATION - MWIP'), fold to
+    upper, collapse punctuation + runs of whitespace."""
+    s = re.sub(r"\s+-\s+[A-Z0-9]{1,6}\s*$", "", (v or "").strip().upper())
+    s = re.sub(r"[^A-Z0-9 ]+", " ", s)
+    return re.sub(r"\s+", " ", s).strip()
+
+
+def _resolve_specialty_fuzzy(school, ref: str):
+    """Resolve a student's inline specialty label to a ``Specialty`` row.
+
+    The single-file TVET roster carries the specialty name INLINE ('WELDING AND
+    METAL FABRICATION') while the catalog row may carry a trailing code ('WELDING
+    AND METAL FABRICATION - MWIP'), so exact code/name is tried first, then a
+    normalized-name match (strip the trailing code, fold case/whitespace). No
+    guessy token-subset step — an unmatched label stays unresolved (never
+    wrong-links two distinct trades).
+    """
+    ref = (ref or "").strip()
+    if not ref:
+        return None
+    try:
+        from apps.academics.models import Specialty
+    except ImportError:
+        return None
+    qs = (  # tenant-isolation-allow: scoped by school kwarg when present; schema_context isolates otherwise
+        Specialty.objects.filter(school=school)
+        if school is not None
+        else Specialty.objects.all()
+    )
+    exact = (
+        qs.filter(code__iexact=ref).first()  # tenant-isolation-allow: scoped-above-via-school-or-schema-context
+        or qs.filter(name__iexact=ref).first()  # tenant-isolation-allow: scoped-above-via-school-or-schema-context
+    )
+    if exact is not None:
+        return exact
+    target = _norm_spec(ref)
+    if not target:
+        return None
+    for spec in qs[:300]:  # tenant-isolation-allow: scoped-above-via-school-or-schema-context  # magic-number-allow: specialty-catalog scan cap
+        if _norm_spec(spec.name) == target:
+            return spec
+    return None
+
+
+def _link_student_specialty(obj, row: dict[str, Any], ctx, model_fields, result) -> None:
+    """Best-effort: set ``StudentProfile.specialty`` from the roster's inline
+    specialty label, and always preserve the raw label as a custom field so an
+    unresolved specialty is never dropped. Never raises / quarantines."""
+    ref = (row.get("specialty") or "").strip()
+    if not ref:
+        return
+    # Preserve the source label regardless of whether it resolves.
+    persist_dfv_extras(
+        ctx=ctx, entity_type="student", entity_id=obj.pk,
+        extras={"specialty_source": ref}, result=result,
+    )
+    if "specialty" not in model_fields or getattr(obj, "specialty_id", None):
+        return  # model has no FK, or the student is already placed — never overwrite
+    spec = _resolve_specialty_fuzzy(getattr(ctx, "school", None), ref)
+    if spec is None:
+        return
+    try:
+        with row_savepoint():
+            obj.specialty = spec
+            obj.save(update_fields=["specialty"])
+    except Exception:  # noqa: BLE001 — enrichment is best-effort; student already landed
+        pass
 
 
 def _surface_dedup_candidates(model, new_obj, row: dict[str, Any], ctx: "LanderContext") -> None:

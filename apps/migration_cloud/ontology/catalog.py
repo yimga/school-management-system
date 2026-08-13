@@ -239,6 +239,21 @@ CANONICAL_ONTOLOGY: dict[str, dict[str, dict]] = {
             },
             sensitivity="pii",
         ),
+        "specialty": _field(
+            description=(
+                "The student's trade / vocational specialty / academic stream, "
+                "carried INLINE on a single-file TVET roster ('WELDING AND METAL "
+                "FABRICATION'). Linked to the Specialty catalog at apply time."
+            ),
+            value_type="string",
+            value_examples=["WELDING AND METAL FABRICATION", "ACCOUNTING"],
+            synonyms={
+                "en": ["specialty", "speciality", "trade", "option", "stream", "track"],
+                "fr": ["filiere", "specialite", "serie"],
+                "es": ["especialidad"],
+                "pt": ["especialidade"],
+            },
+        ),
     },
     # ----------------------------------------------------------------- guardians
     "guardians": {
