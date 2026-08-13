@@ -61,7 +61,7 @@
                 <a href="{{ portal_home_url|default:'/' }}" class="admin-nav-bridge__switch-btn">{% trans "Portal" %}</a>
                 {% if has_permission %}
                 <div class="admin-nav-bridge__usertools" data-rmc-tenant-admin-usertools="1">
-                  {% include "unfold/helpers/userlinks.html" %}
+                  {% include "components/user_dropdown.html" %}
                 </div>
                 {% endif %}
             {% endif %}

@@ -1,0 +1,72 @@
+{% load i18n static %}
+{% firstof NOTIFICATIONS_UNREAD_COUNT unread_notifications_count 0 as account_unread_count %}
+{% with account_role=EFFECTIVE_PORTAL_ROLE %}
+<div class="dropdown-menu dropdown-menu-end user-dropdown-menu rmc-account-center"
+     aria-labelledby="userDropdownBtn"
+     data-rmc-account-center="1"
+     data-rmc-account-host="{% if request.public_host_kind == 'manager' %}operator{% else %}tenant{% endif %}"
+     data-rmc-account-admin="{% if '/admin/' in request.path %}1{% else %}0{% endif %}">
+  <section class="rmc-account-center__identity" aria-label="{% trans 'Account identity' %}">
+    <div class="rmc-account-center__person">
+      <span class="rmc-account-center__avatar" aria-hidden="true">
+        {% if request.user.profile_photo %}<img src="{{ request.user.profile_photo.url }}" alt="" width="48" height="48" loading="lazy" decoding="async">
+        {% else %}{% with fn=request.user.first_name|default:'' ln=request.user.last_name|default:'' un=request.user.username|default:'' %}{% if fn or ln %}{{ fn|first|upper }}{{ ln|first|upper }}{% elif un %}{{ un|slice:':2'|upper }}{% else %}<i class="bi bi-person-fill"></i>{% endif %}{% endwith %}{% endif %}
+      </span>
+      <span class="rmc-account-center__person-copy">
+        <strong>{% firstof request.user.get_full_name request.user.username _("Account") %}</strong>
+        <small>{% if request.public_host_kind == 'manager' %}{% trans "Platform operator" %}{% elif account_role %}{{ account_role|title }}{% else %}{% trans "Member" %}{% endif %}</small>
+      </span>
+      <span class="rmc-account-center__active"><i aria-hidden="true"></i>{% trans "Active" %}</span>
+    </div>
+    <div class="rmc-account-center__chips">
+      <span class="rmc-account-center__chip">{% if request.public_host_kind == 'manager' %}{% trans "All tenants · Global" %}{% else %}{% firstof SITE.site_name request.school.name _("School workspace") %}{% endif %}</span>
+      <span class="rmc-account-center__chip rmc-account-center__chip--success"><i class="bi bi-shield-check" aria-hidden="true"></i>{% if mfa_enrolled %}{% trans "MFA protected" %}{% else %}{% trans "Security available" %}{% endif %}</span>
+      <span class="rmc-account-center__chip" data-rmc-account-connectivity>{% trans "Local ready" %}</span>
+    </div>
+    <div class="rmc-account-center__health">
+      <span><strong>{% if account_security_score is not None %}{% trans "Account security" %}{% elif mfa_enrolled %}{% trans "Account protected" %}{% else %}{% trans "Account review available" %}{% endif %}</strong><small>{% if mfa_setup_needed %}{% trans "Add multi-factor authentication to strengthen sign-in." %}{% else %}{% trans "Recovery and device controls are available in Security." %}{% endif %}</small></span>
+      {% if account_security_score is not None %}<span class="rmc-account-center__score"><b>{{ account_security_score|default:0 }}%</b></span>{% else %}<i class="bi bi-patch-check-fill rmc-account-center__protected" aria-hidden="true"></i>{% endif %}
+    </div>
+  </section>
+
+  <section class="rmc-account-center__recommendation" aria-label="{% trans 'Recommended account action' %}">
+    <span class="rmc-account-center__spark" aria-hidden="true"><i class="bi bi-stars"></i></span>
+    <span><small>{% trans "Recommended now" %}</small><strong>{% if security_posture_review_due %}{% trans "Review account security" %}{% elif mfa_setup_needed %}{% trans "Protect your sign-in" %}{% else %}{% trans "Review profile and recovery" %}{% endif %}</strong></span>
+    <a href="{% if security_posture_review_due and security_posture_review_url %}{{ security_posture_review_url }}{% elif mfa_setup_needed %}{% url 'accounts:mfa_setup' %}{% else %}{% url 'accounts:user_profile' %}{% endif %}">{% trans "Review" %}</a>
+  </section>
+
+  <section class="rmc-account-center__primary" aria-label="{% trans 'Account actions' %}">
+    <a class="rmc-account-center__tile rmc-account-center__tile--featured" href="{% url 'accounts:user_profile' %}"><i class="bi bi-person-circle"></i><strong>{% trans "View profile" %}</strong><small>{% trans "Identity, photo and contact" %}</small></a>
+    {% url 'siteconfig:user_preferences' as account_preferences_url %}
+    {% if account_preferences_url %}<a class="rmc-account-center__tile" href="{{ account_preferences_url }}"><i class="bi bi-sliders"></i><strong>{% trans "Preferences" %}</strong><small>{% trans "Language, theme and alerts" %}</small></a>{% endif %}
+    <a class="rmc-account-center__tile" href="{% url 'accounts:mfa_setup' %}"><i class="bi bi-shield-lock"></i><strong>{% trans "Security" %}</strong><small>{% trans "MFA, sessions and devices" %}</small></a>
+    {% if '/admin/' in request.path %}
+      {% url 'admin:index' as account_admin_home %}<a class="rmc-account-center__tile" href="{{ account_admin_home }}"><i class="bi bi-clock-history"></i><strong>{% trans "Admin activity" %}</strong><small>{% trans "Configuration and records" %}</small></a>
+    {% else %}
+      <a class="rmc-account-center__tile" href="{% url 'accounts:user_notifications' %}"><i class="bi bi-bell"></i><strong>{% trans "Notifications" %}{% if account_unread_count %} · {{ account_unread_count }}{% endif %}</strong><small>{% trans "Your latest updates" %}</small></a>
+    {% endif %}
+  </section>
+
+  <section class="rmc-account-center__group" aria-label="{% trans 'Workspace and help' %}">
+    <p><span>{% trans "Workspace" %}</span><small>{% trans "Personal" %}</small></p>
+    {% if '/admin/' in request.path %}
+      <a class="rmc-account-center__row" href="{% if request.public_host_kind == 'manager' %}{% url 'super:dashboard' %}{% else %}{{ portal_home_url|default:'/' }}{% endif %}"><i class="bi bi-house-door"></i><span><strong>{% if request.public_host_kind == 'manager' %}{% trans "Return to control plane" %}{% else %}{% trans "Return to school portal" %}{% endif %}</strong><small>{% trans "Leave configuration safely" %}</small></span><b>›</b></a>
+    {% elif SHOW_ROLE_SWITCHER %}
+      <a class="rmc-account-center__row" href="{% url 'accounts:user_profile' %}"><i class="bi bi-arrow-left-right"></i><span><strong>{% trans "Switch role or workspace" %}</strong><small>{% trans "Change active school or persona" %}</small></span><b>›</b></a>
+    {% endif %}
+    {% if account_preferences_url %}<a class="rmc-account-center__row" href="{{ account_preferences_url }}"><i class="bi bi-circle-half"></i><span><strong>{% trans "Appearance" %}</strong><small>{% trans "Theme, density and accessibility" %}</small></span><b>›</b></a>{% endif %}
+    <button class="rmc-account-center__row" type="button" data-rmc-open-shortcuts><i class="bi bi-question-circle"></i><span><strong>{% trans "Help and shortcuts" %}</strong><small>{% trans "Context help, support and keyboard map" %}</small></span><b>›</b></button>
+  </section>
+
+  <details class="rmc-account-center__sessions">
+    <summary><i class="bi bi-laptop"></i><span>{% trans "Sessions and trusted devices" %}</span><small>{% trans "Current" %}</small><b>⌄</b></summary>
+    <div><i class="bi bi-browser-chrome"></i><span><strong>{% trans "Current browser" %}</strong><small>{% trans "Active now · manage details in Security" %}</small></span><a href="{% url 'accounts:mfa_setup' %}">{% trans "Manage" %}</a></div>
+  </details>
+
+  <section class="rmc-account-center__signout" aria-label="{% trans 'Sign out' %}">
+    <a href="{% url 'accounts:logout' %}" data-rmc-nav-logout="1"><i class="bi bi-box-arrow-right"></i><span><strong>{% trans "Sign out" %}</strong><small>{% trans "End this session on this device" %}</small></span><kbd>Alt+L</kbd></a>
+    <p>{% trans "Using a shared computer?" %} <a href="{% url 'accounts:logout' %}?forget_device=1">{% trans "Sign out and forget this browser" %}</a></p>
+  </section>
+  <p class="rmc-account-center__privacy"><i class="bi bi-lock"></i>{% trans "Privacy-safe summary · detailed activity stays inside Security" %}</p>
+</div>
+{% endwith %}

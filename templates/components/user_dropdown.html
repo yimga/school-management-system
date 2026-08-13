@@ -83,7 +83,8 @@
        doesn't overflow the viewport when the trigger sits at the navbar's
        far-right corner (the default left-align cuts off Settings/Logout
        items off-screen on most desktop widths).{% endcomment %}
-    <ul class="dropdown-menu dropdown-menu-end user-dropdown-menu" aria-labelledby="userDropdownBtn">
+    {% include "components/user_account_center_menu.html" %}
+    <ul class="dropdown-menu dropdown-menu-end user-dropdown-menu d-none" aria-labelledby="userDropdownBtn" hidden aria-hidden="true" data-rmc-account-center-legacy="1">
       {% comment %} v4.02.x (2026-06-06): the compact operator header hides the trigger's name/role
          to save horizontal space, so the identity is surfaced HERE at the top of the menu — nothing
          is lost, it just moves one click away. Mirrors the trigger's display-name fallback chain. {% endcomment %}
@@ -378,6 +379,7 @@ JSON data island so the inline executable script can be removed
   "helpUrl": "{% if request.public_host_kind == 'manager' %}{% url 'manager_help_center' as mh %}{{ mh }}{% else %}{% url 'feedback:help_center' as h %}{{ h }}{% endif %}"
 }</script>
 <script src="{% static 'js/_pages/components__user_dropdown.js' %}"></script>
+<script src="{% static 'js/rmc-user-account-center.js' %}" defer></script>
 <script src="{% static 'js/rmc-theme-toggle.js' %}"></script>
 {% comment %} GAP-2: keep the unread bell badge live (polls the unread-count endpoint;
    pauses when the tab is hidden, stops on 401/403). Ships with the bell wherever this
