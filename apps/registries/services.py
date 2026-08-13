@@ -27,15 +27,30 @@ from .models import (
     TimeZoneRegistry,
 )
 from .currency_seed import ensure_currency_registry_seed
+from .isced import tier_for_isced
 
 
+# M30 ISCED progression spine: each coarse row carries a representative
+# ``isced_level`` (see ``apps.registries.isced.ISCED_SPAN_FOR_LEVEL_CODE``); the
+# ``tier`` is derived from that level via ``tier_for_isced`` in the seed writer
+# (no-hardcoding — the ISCED module is the single source of the tier grammar).
+# EARLY_CHILDHOOD (ISCED 0) is added so daycare / pre-primary is representable.
 DEFAULT_EDUCATION_LEVELS = (
+    {
+        "code": "EARLY_CHILDHOOD",
+        "global_name": "Early Childhood",
+        "description": "Pre-primary, daycare, nursery, and kindergarten years.",
+        "sort_order": 5,
+        "country_labels": {"US": "Pre-K", "GB": "Early Years"},
+        "isced_level": 0,
+    },
     {
         "code": "PRIMARY",
         "global_name": "Primary",
         "description": "Foundational school years before lower secondary.",
         "sort_order": 10,
         "country_labels": {"US": "Elementary", "GB": "Primary"},
+        "isced_level": 1,
     },
     {
         "code": "SECONDARY",
@@ -43,6 +58,8 @@ DEFAULT_EDUCATION_LEVELS = (
         "description": "Lower and upper secondary education.",
         "sort_order": 20,
         "country_labels": {"US": "High School"},
+        # Lower-secondary (2) is the representative; upper-secondary = 3.
+        "isced_level": 2,
     },
     {
         "code": "TERTIARY",
@@ -50,6 +67,7 @@ DEFAULT_EDUCATION_LEVELS = (
         "description": "University, college, and post-secondary education.",
         "sort_order": 30,
         "country_labels": {"US": "Higher Education"},
+        "isced_level": 6,
     },
 )
 
@@ -198,6 +216,7 @@ def ensure_country_registry_seed() -> int:
 
 def ensure_taxonomy_seed() -> None:
     for row in DEFAULT_EDUCATION_LEVELS:
+        isced_level = row.get("isced_level")
         EducationLevelRegistry.objects.update_or_create(
             code=row["code"],
             defaults={
@@ -205,6 +224,12 @@ def ensure_taxonomy_seed() -> None:
                 "description": row["description"],
                 "sort_order": row["sort_order"],
                 "country_labels": row.get("country_labels") or {},
+                # M30: idempotently backfill ISCED level + derived tier so
+                # re-running the seed upgrades existing rows without dupes.
+                "isced_level": isced_level,
+                "tier": (
+                    tier_for_isced(isced_level) if isced_level is not None else ""
+                ),
                 "is_active": True,
             },
         )

@@ -1,3 +1,4 @@
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 
@@ -97,6 +98,18 @@ class SubdivisionRegistry(models.Model):
 
 
 class EducationLevelRegistry(models.Model):
+    class Tier(models.TextChoices):
+        """Coarse educational-level tier (M30 ISCED progression spine).
+
+        Values MUST stay in lock-step with ``apps.registries.isced`` tier
+        constants (a contract test asserts this); they drive tier-specific
+        behaviour (fees / promotion / rollover) in later increments.
+        """
+
+        EARLY_CHILDHOOD = "EARLY_CHILDHOOD", "Early childhood"
+        K12 = "K12", "K-12"
+        TERTIARY = "TERTIARY", "Tertiary"
+
     code = models.CharField(max_length=32, primary_key=True)
     global_name = models.CharField(max_length=120)
     description = models.TextField(blank=True)
@@ -105,6 +118,19 @@ class EducationLevelRegistry(models.Model):
         default=dict,
         blank=True,
         help_text="Map of country code -> localized label.",
+    )
+    isced_level = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(8)],
+        help_text="UNESCO ISCED 2011 level 0-8.",
+    )
+    tier = models.CharField(
+        max_length=24,
+        blank=True,
+        default="",
+        choices=Tier.choices,
+        help_text="Coarse educational-level tier used to drive tier-specific behaviour.",
     )
     metadata = models.JSONField(default=dict, blank=True)
     is_active = models.BooleanField(default=True)

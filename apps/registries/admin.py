@@ -352,8 +352,15 @@ class SubdivisionRegistryAdmin(admin.ModelAdmin):
 
 @admin.register(EducationLevelRegistry, site=platform_admin_site)
 class EducationLevelRegistryAdmin(admin.ModelAdmin):
-    list_display = ("code", "global_name", "sort_order", "is_active")
-    list_filter = ("is_active",)
+    list_display = (
+        "code",
+        "global_name",
+        "isced_level",
+        "tier",
+        "sort_order",
+        "is_active",
+    )
+    list_filter = ("is_active", "tier")
     search_fields = ("code", "global_name")
 
 
