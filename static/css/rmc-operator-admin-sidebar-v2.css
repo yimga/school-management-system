@@ -1,17 +1,17 @@
 /* Operator Admin Sidebar v2 — manager /admin/ only. */
 body.admin-manager-shell [data-rmc-operator-admin-sidebar-v2="1"] .cp-sidebar__scope { display:flex; align-items:center; justify-content:space-between; gap:.5rem; }
 body.admin-manager-shell .cp-sidebar__connection { display:inline-flex; align-items:center; gap:.3rem; white-space:nowrap; font-size:.66rem; font-weight:700; letter-spacing:.02em; }
-body.admin-manager-shell .cp-sidebar__connection > i { width:.42rem; height:.42rem; border-radius:50%; background:var(--color-success-400,#34d399); box-shadow:0 0 0 .18rem rgb(52 211 153 / 12%); }
-body.admin-manager-shell .cp-sidebar__connection.is-offline > i { background:var(--color-warning-400,#fbbf24); box-shadow:0 0 0 .18rem rgb(251 191 36 / 12%); }
-body.admin-manager-shell [data-operator-recent-wrap] { margin:.45rem .55rem .6rem; padding:.45rem; border:1px solid rgb(148 163 184 / 16%); border-radius:.75rem; background:linear-gradient(145deg,rgb(59 130 246 / 8%),rgb(15 23 42 / 28%)); }
+body.admin-manager-shell .cp-sidebar__connection > i { width:.42rem; height:.42rem; border-radius:50%; background:var(--status-success); box-shadow:0 0 0 .18rem var(--status-success-bg); }
+body.admin-manager-shell .cp-sidebar__connection.is-offline > i { background:var(--status-warning); box-shadow:0 0 0 .18rem var(--status-warning-bg); }
+body.admin-manager-shell [data-operator-recent-wrap] { margin:.45rem .55rem .6rem; padding:.45rem; border:1px solid var(--hairline); border-radius:.75rem; background:var(--surface-overlay); }
 body.admin-manager-shell [data-operator-recent-wrap][hidden] { display:none !important; }
 body.admin-manager-shell .cp-sidebar__section--utility { display:flex; align-items:center; justify-content:space-between; padding:.15rem .35rem .35rem; }
-body.admin-manager-shell .cp-sidebar__utility-action { border:0; background:transparent; color:var(--color-primary-300,#93c5fd); font:inherit; font-size:.68rem; cursor:pointer; }
+body.admin-manager-shell .cp-sidebar__utility-action { border:0; background:transparent; color:var(--status-info-fg); font:inherit; font-size:.68rem; cursor:pointer; }
 body.admin-manager-shell .cp-sidebar__recent-list { display:grid; gap:.2rem; }
 body.admin-manager-shell .cp-sidebar__recent-item { display:flex; align-items:center; min-width:0; gap:.45rem; padding:.42rem .5rem; border-radius:.55rem; color:inherit; text-decoration:none; font-size:.76rem; }
-body.admin-manager-shell .cp-sidebar__recent-item:hover, body.admin-manager-shell .cp-sidebar__recent-item:focus-visible { background:rgb(148 163 184 / 12%); outline:none; }
+body.admin-manager-shell .cp-sidebar__recent-item:hover, body.admin-manager-shell .cp-sidebar__recent-item:focus-visible { background:var(--surface-overlay); outline:none; }
 body.admin-manager-shell .cp-sidebar__recent-item span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-body.admin-manager-shell .cp-sidebar__count { display:inline-grid; place-items:center; min-width:1.25rem; height:1.25rem; margin-inline-start:auto; border-radius:999px; background:rgb(96 165 250 / 14%); color:var(--color-primary-300,#93c5fd); font-size:.65rem; }
-body.admin-manager-shell .cp-sidebar__group--quick { border-color:rgb(96 165 250 / 22%); background:rgb(30 41 59 / 22%); }
+body.admin-manager-shell .cp-sidebar__count { display:inline-grid; place-items:center; min-width:1.25rem; height:1.25rem; margin-inline-start:auto; border-radius:999px; background:var(--status-info-bg); color:var(--status-info-fg); font-size:.65rem; }
+body.admin-manager-shell .cp-sidebar__group--quick { border-color:var(--hairline); background:var(--surface-overlay); }
 @media (max-width:768px) { body.admin-manager-shell [data-operator-recent-wrap] { margin-inline:.35rem; } }
 @media (prefers-reduced-motion:reduce) { body.admin-manager-shell [data-rmc-operator-admin-sidebar-v2="1"] * { scroll-behavior:auto !important; transition-duration:.01ms !important; } }
