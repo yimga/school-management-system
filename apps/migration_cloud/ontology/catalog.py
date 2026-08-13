@@ -397,6 +397,8 @@ CANONICAL_ONTOLOGY: dict[str, dict[str, dict]] = {
                     "contact", "contact_number", "tel", "cell", "msisdn",
                 ],
                 "fr": ["telephone", "numero", "portable"],
+                "es": ["telefono", "movil", "celular"],
+                "pt": ["telefone", "celular", "telemovel"],
             },
             sensitivity="pii",
         ),
@@ -526,6 +528,8 @@ CANONICAL_ONTOLOGY: dict[str, dict[str, dict]] = {
             synonyms={
                 "en": ["code", "specialty_code", "abbreviation", "abbr", "short_code"],
                 "fr": ["sigle", "abreviation"],
+                "es": ["codigo", "sigla"],
+                "pt": ["codigo", "sigla"],
             },
         ),
         "department": _field(
@@ -535,13 +539,20 @@ CANONICAL_ONTOLOGY: dict[str, dict[str, dict]] = {
             synonyms={
                 "en": ["department", "dept", "faculty", "division", "cluster"],
                 "fr": ["departement", "pole"],
+                "es": ["departamento", "area"],
+                "pt": ["departamento", "area"],
             },
         ),
         "description": _field(
             description="Optional specialty description / notes.",
             value_type="string",
             value_examples=["Trains electrical power technicians"],
-            synonyms={"en": ["description", "notes", "details", "about"]},
+            synonyms={
+                "en": ["description", "notes", "details", "about"],
+                "fr": ["description", "notes", "details"],
+                "es": ["descripcion", "notas", "detalles"],
+                "pt": ["descricao", "notas", "detalhes"],
+            },
         ),
     },
     # ------------------------------------------------------------------ sections
