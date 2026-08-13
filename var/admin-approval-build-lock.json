@@ -1,7 +1,7 @@
 {
   "build_id": "2026-08-11-v17.2",
   "cache_bust": "20260813-admin-production-v18",
-  "sw_version": "sms-v4.06.37-approved-navigation-account-center-2026-08-13",
+  "sw_version": "sms-v4.06.38-account-center-viewport-safe-2026-08-13",
   "seal": "2026-08-13-admin-production-v18",
   "approval_previews": [
     "var/design-previews/django-admin-os-top-tier-approval-v15-2026-07-21.html",

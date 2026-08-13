@@ -31,5 +31,5 @@
     {% comment %}Always use our custom sidebar (Quick access, app groups, purple active, blue nav). Never Unfold's sidebar_navigation. {% endcomment %}
     {% include "admin/app_list.html" with app_list=available_apps show_changelinks=False %}
 
-    {% include "unfold/helpers/navigation_user.html" %}
+    {# Canonical identity/actions live in the header Account Center on every admin host. #}
 </nav>

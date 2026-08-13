@@ -21,6 +21,19 @@
   scrollbar-width: thin;
 }
 .rmc-account-center.show { display: block; }
+/* Bootstrap dropdowns normally remain positioned inside their header stacking
+   context. The shell copilot is a separate fixed grid column, so a large menu
+   can otherwise be clipped beneath it. JS supplies viewport-safe coordinates
+   and accounts for the rail's live collapsed/expanded width. */
+.rmc-account-center.show[data-rmc-account-viewport-positioned="1"] {
+  position: fixed !important;
+  inset: var(--rmc-account-top, 4rem) var(--rmc-account-right, .5rem) auto auto !important;
+  z-index: 1090;
+  max-height: var(--rmc-account-max-height, calc(100dvh - 5rem));
+  margin: 0 !important;
+  transform: none !important;
+  translate: none;
+}
 .rmc-account-center::before { content:""; display:block; height:1px; background:var(--brand-gradient); }
 .rmc-account-center a { text-decoration:none; }
 .rmc-account-center__identity { padding:1.125rem; background:var(--surface-overlay); border-bottom:1px solid var(--ac-border); }

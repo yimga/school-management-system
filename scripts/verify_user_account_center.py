@@ -15,6 +15,9 @@ def main() -> int:
     admin = read("templates/components/admin_nav_bridge.html")
     css = read("static/css/rmc-user-account-center.css")
     js = read("static/js/rmc-user-account-center.js")
+    admin_sidebars = "\n".join(
+        (read("templates/admin/sidebar_inner.html"), read("templates/unfold/helpers/navigation.html"))
+    )
     shells = "\n".join(
         read(path)
         for path in (
@@ -36,6 +39,8 @@ def main() -> int:
         "shared device logout": (menu, "forget_device=1"),
         "admin return": (menu, "Return to control plane"),
         "offline state": (js, 'addEventListener("offline"'),
+        "copilot collision detection": (js, '[data-rmc-copilot-rail]'),
+        "viewport positioning": (css, 'data-rmc-account-viewport-positioned="1"'),
         "professional CSS": (css, ".rmc-account-center__primary"),
         "responsive CSS": (css, "@media(max-width:36rem)"),
         "reduced motion": (css, "prefers-reduced-motion"),
@@ -49,6 +54,8 @@ def main() -> int:
         failures.append("Account Center CSS is not mounted exactly once in all four base shells")
     if "request.user.email }}" in menu:
         failures.append("raw email must not be rendered as visible Account Center identity")
+    if 'include "unfold/helpers/navigation_user.html"' in admin_sidebars:
+        failures.append("admin sidebar must not render a duplicate user profile control")
     if failures:
         print("USER_ACCOUNT_CENTER_FAIL")
         for failure in failures:
