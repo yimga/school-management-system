@@ -9,9 +9,15 @@
 // brief notice and auto-reload after a short pause.
 (function () {
   var cfg = window.SMS_OFFLINE_CONFIG || {};
+  var adminShell = document.querySelector('[data-rmc-shell-root="django-admin"]');
   var swEligible =
     cfg.pwaEnabled &&
     (cfg.enabled || cfg.parentPortalShell || cfg.operatorControlPlaneShell);
+  // A worker registered by portal/control-plane owns scope "/" and therefore
+  // also controls /admin/. Admin must participate in update checks even when it
+  // does not enable offline writes; otherwise an old worker can replay an old
+  // admin shell forever for users who remain inside /admin/ after deployment.
+  swEligible = swEligible || !!adminShell;
   if (!('serviceWorker' in navigator) || !swEligible) return;
 
   var swEl = document.getElementById('rmc-service-worker-url');

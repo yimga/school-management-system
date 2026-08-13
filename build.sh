@@ -77,6 +77,7 @@ python3 manage.py compile_message_catalogs || echo "compile_message_catalogs ski
 
 # Never run makemigrations in CI/production.
 python3 manage.py collectstatic --noinput
+python3 scripts/verify_approved_ui_deploy_artifacts.py --staticfiles
 python3 scripts/verify_world_globe_staticfiles_deploy.py --staticfiles
 
 # Render dashboard often overrides startCommand to bare `.venv/bin/gunicorn ...`.

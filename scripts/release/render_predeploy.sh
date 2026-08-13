@@ -23,6 +23,7 @@ run "${PYTHON_BIN}" scripts/verify_migration_files_tracked.py
 # cache-bust / SW / grid). Catches the class of "deploy looked the same" bugs
 # where CSS-only or un-pushed layout waves never reach production markers.
 run "${PYTHON_BIN}" scripts/verify_django_admin_preview_parity.py
+run "${PYTHON_BIN}" scripts/verify_approved_ui_deploy_artifacts.py --staticfiles
 
 # Fail fast when shell includes reference a template missing from the checkout.
 WFP_STRIP="templates/components/rmc_workflow_progress_strip.html"

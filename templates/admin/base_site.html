@@ -986,6 +986,11 @@
   {% include "partials/rmc_dropdown_viewport_safe_boot.html" %}
   {% include "partials/rmc_tour_bootstrap.html" with rmc_tour_css_in_head=True %}
   <script src="{% static 'js/rmc-launch-splash.js' %}" defer></script>
+  {% if request.user.is_authenticated %}
+  {% include "partials/rmc_sms_offline_config.html" %}
+  <script nonce="{{ csp_nonce }}" type="application/json" id="rmc-service-worker-url">{"url":"{% url 'service_worker_root' %}"}</script>
+  <script src="{% static 'js/rmc-service-worker-registration.js' %}"></script>
+  {% endif %}
   {% if request.user.is_authenticated %}{% include 'components/back_to_top.html' %}{% endif %}
   <script src="{% static 'js/rmc-tenant-surface-paginator.js' %}?v=20260813-admin-production-v18" defer></script>
 {% endblock %}

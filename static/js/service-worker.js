@@ -207,7 +207,7 @@
 // rmc-copilot-help-mode.css so tenants drop the retired bottom takeover.
 // v4.05.75: tenant shell chrome contract fixes footer-as-body-content and
 // cache-busts rmc-tenant-workspace-canvas.css for deployed tenants.
-const CACHE_VERSION = "sms-v4.06.36-tenant-admin-sidebar-2026-08-13";
+const CACHE_VERSION = "sms-v4.06.37-approved-navigation-account-center-2026-08-13";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 
@@ -343,6 +343,14 @@ const STATIC_ASSETS = [
   "/static/css/rmc-tenant-canvas-100x.css",
   "/static/css/rmc-tenant-performance.css",
   "/static/css/rmc-operator-tools-tray.css",
+  // v4.06.37: approved tenant/operator Admin sidebars + unified Account Center.
+  // These are load-bearing shell assets and must update atomically with HTML.
+  "/static/css/rmc-tenant-admin-sidebar-v2.css",
+  "/static/js/rmc-tenant-admin-sidebar-v2.js",
+  "/static/css/rmc-operator-admin-sidebar-v2.css",
+  "/static/js/rmc-operator-admin-sidebar-v2.js",
+  "/static/css/rmc-user-account-center.css",
+  "/static/js/rmc-user-account-center.js",
   // v4.00.7–v4.00.10: adoption helpers (attendance, AI streaming, gradebook).
   "/static/js/_pages/rmc-attendance-wal-enhance.js",
   "/static/js/_pages/rmc-ai-stream-bridge.js",

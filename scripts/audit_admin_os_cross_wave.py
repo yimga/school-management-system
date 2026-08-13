@@ -346,6 +346,7 @@ def main() -> int:
         ["python", "scripts/verify_tenant_admin_sidebar_v2.py"],
         ["python", "scripts/verify_operator_admin_sidebar_v2.py"],
         ["python", "scripts/verify_user_account_center.py"],
+        ["python", "scripts/verify_approved_ui_deploy_artifacts.py"],
         ["python", "scripts/verify_template_compiles.py"],
     ]
     gate_results: list[tuple[str, int]] = []
