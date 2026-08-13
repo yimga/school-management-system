@@ -1,8 +1,29 @@
 # A+ PROGRESS SCOREBOARD (A0 Coordinator)
 
-**Last refreshed:** 2026-08-13 (Claude Code · **M29 all 6 code-addressable gaps CLOSED + shipped** — year-lock, notify-parity, date-integrity, doc, backup gate, freeze-on-apply/write-once; +research cross-walk M30–M33 / W21–W31)  
-**Loop:** Academic-year **close → open** (EOY rollover) capability assessed → **NO-GO** (M29 ≈ 66/100 — run-observed 8/8; material gaps, year-lock proven NOT DB-enforced)  
+**Last refreshed:** 2026-08-13 (Claude Code · M29 6/6 gaps CLOSED · **M30 ISCED progression-spine foundation SHIPPED** `c8dfd5a19` — build program now executing the research cross-walk taskers one increment at a time)  
+**Loop:** Academic-year **close → open** (EOY rollover) → M29 ≈ 85 NO-GO · now building the M30–M33 / W21–W31 backlog (M30 foundation landed; **metric still NO-GO** — spine only)  
 **Tree:** HEAD = `origin/main`
+
+---
+
+## M30 — Universal Education Model — increment 1 (ISCED progression spine) — SHIPPED — 2026-08-13
+
+**Commit `c8dfd5a19`** (off-tree push, 6 paths, all `apps/registries/`; boundary gates green; 15 must-fire tests; `check` + `makemigrations --check` clean). First real build increment of the research cross-walk backlog.
+
+**Audit-by-running first (per the loop):** before building I ran the field/model layer and found M30 is **partially built already** — `EducationLevelRegistry` (`apps/registries/models.py:100`) exists with PRIMARY/SECONDARY/TERTIARY seeded, plus grading (M3) and EAV custom-fields (M5). So this increment **extends** that structure, it does **not** fork a parallel one.
+
+**What shipped (real + tested):**
+
+| Piece | Where | Note |
+|-------|-------|------|
+| Pure ISCED 2011 SoT (levels 0–8 → names, `next_isced_level` progression ladder, `tier_for_isced` grammar) | `apps/registries/isced.py` (new, Django-free) | the M29 rollover matrix will consult `next_isced_level` for the successor level when a cohort completes a stage |
+| `isced_level` (0–8, validated) + `tier` (TextChoices) on `EducationLevelRegistry` | `models.py` + migration `0013` (pure additive `AddField`×2) | safe on fresh + existing DB; `tier` values locked to the pure module by a contract test |
+| Seed backfill: PRIMARY→1/K12, SECONDARY→2/K12, TERTIARY→6/TERTIARY, **new EARLY_CHILDHOOD→0** | `services.py` `ensure_taxonomy_seed` | `tier` is **derived** via `tier_for_isced` (no-hardcoding: ISCED module is the single source of the tier grammar); idempotent |
+| Admin surfaces `isced_level` + `tier` filter | `admin.py` | |
+
+**Verdict: M30 remains NO-GO (foundation only).** What the spine does NOT yet do — the real remaining moat, tracked as later increments: (a) level → **grade-band / classroom mapping** (which grades sit in each ISCED level per country); (b) **tier-driven behaviour** — fees / promotion / rollover successor-level actually consuming `tier` + `next_isced_level`; (c) **track prerequisite-gates / competency-pass** (General vs Technical vs Vocational progression rules); (d) the **atomic entity / metric / interval / gate** engine from the research; (e) **country ISCED overlays** (a country's own level labels + which ISCED level each maps to). Increment 1 is the spine those hang off — it is honest scaffolding with a progression ladder + validated fields + a passing contract test, not a claim that M30 is done.
+
+---
 
 ### Active claims (do not collide)
 
@@ -23,7 +44,7 @@ Cross-walked the full EOY / "A-Z global platform" research (PowerSchool/Infinite
 
 | # | Metric | Verdict | Current coverage |
 |---|--------|---------|------------------|
-| 30 | Universal Education Model (Daycare→Tertiary × Gen/Tech/Voc × ISCED) | **NO-GO (mostly unbuilt)** | grading M3 + EAV M5 exist; no ISCED progression matrix, level tiers, track prereq-gates / competency-pass, or atomic entity/metric/interval/gate engine |
+| 30 | Universal Education Model (Daycare→Tertiary × Gen/Tech/Voc × ISCED) | **NO-GO (foundation started `c8dfd5a19`)** | grading M3 + EAV M5 + **ISCED spine now shipped** (levels 0–8 + `next_isced_level` ladder + tier grammar on `EducationLevelRegistry`, +EARLY_CHILDHOOD row); still missing level→grade-band mapping, tier-driven fees/promotion/rollover, track prereq-gates / competency-pass, atomic entity/metric/interval/gate engine, country ISCED overlays |
 | 31 | Marketplace App-Injection & Extensibility (Shopify) | **NO-GO (partial)** | marketplace/SDK exists (S7); missing micro-frontend slot injection + scoped-OAuth2 JWT gateway + JSONB `app_extensions` + manifest |
 | 32 | Gov / Ministry Reporting Translation Engine | **NO-GO (unbuilt)** | internal reporting exists; no atomic→ministry-schema (XML/JSON/CSV) per-country template engine |
 | 33 | B2B Procurement & Supply Marketplace (Amazon) | **NO-GO (unbuilt)** | no embedded supply marketplace / auto-PO-from-class-config |
