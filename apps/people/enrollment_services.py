@@ -25,10 +25,32 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Optional
 
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils import timezone
 
 from apps.people.models import Enrollment, StudentProfile
+
+
+def assert_year_writable(academic_year) -> None:
+    """Refuse a deliberate enrollment write into a LOCKED academic year.
+
+    Run-observed gap: an enrollment could be opened into a year already locked
+    by a prior rollover — and the student row mutated inside it — with nothing
+    objecting. This is the service-layer guard for the deliberate write
+    entrypoints (``open_enrollment`` and everything routed through it).
+
+    It is intentionally NOT wired into ``Enrollment.save()`` /
+    ``AcademicYear.save()``: rollover locks the SOURCE year *after* moving the
+    cohort, and relock/unlock, fixtures, and admin all legitimately save into a
+    locked year — a blanket raise would break every one of those. Scope is the
+    entrypoints, where "opening a new placement in a closed year" is always wrong.
+    """
+    if academic_year is not None and getattr(academic_year, "is_locked", False):
+        name = getattr(academic_year, "name", None) or academic_year
+        raise ValidationError(
+            f"Academic year '{name}' is locked; enrollment changes are not allowed."
+        )
 
 
 #: What to do with a student the rules cannot decide on — either no
@@ -123,7 +145,12 @@ def open_enrollment(
     most one open row, which is what makes "current class" a derivation rather
     than a guess. Passing ``close_existing=False`` when one is already open is
     therefore an IntegrityError, deliberately.
+
+    Refuses to open into a LOCKED academic year (``assert_year_writable``), and
+    validates the new row through ``full_clean`` before insert so an impossible
+    date window (entry after exit) is rejected here rather than silently stored.
     """
+    assert_year_writable(academic_year)
     with transaction.atomic():
         current = student.current_enrollment
         if current is not None and close_existing:
@@ -138,7 +165,7 @@ def open_enrollment(
             current.close(close_outcome, exit_date=entry_date)
             if previous_enrollment is None:
                 previous_enrollment = current
-        return Enrollment.objects.create(
+        enrollment = Enrollment(
             school_id=student.school_id,
             student=student,
             academic_year=academic_year,
@@ -149,6 +176,12 @@ def open_enrollment(
             entry_date=entry_date or timezone.now().date(),
             previous_enrollment=previous_enrollment,
         )
+        # Validate the model (date-window + field-level) but leave uniqueness /
+        # constraint checks to the DB — the one-active-per-student partial index
+        # already enforces those and existing callers rely on its IntegrityError.
+        enrollment.full_clean(validate_unique=False, validate_constraints=False)
+        enrollment.save()
+        return enrollment
 
 
 def ensure_enrollment(

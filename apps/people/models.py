@@ -1034,6 +1034,31 @@ class Enrollment(models.Model):
     def is_active(self) -> bool:
         return self.status == self.Status.ACTIVE
 
+    def clean(self):
+        """Reject an impossible enrollment window.
+
+        An enrollment cannot end before it began. The dates are otherwise
+        unvalidated (both nullable), so a transposed ``entry_date``/``exit_date``
+        — a data-entry slip or a caller passing them the wrong way round — would
+        silently produce a negative-length placement that every downstream date
+        arithmetic then reads as garbage. Enforced at ``clean()`` (called by the
+        create entrypoints via ``full_clean``) rather than a DB ``CheckConstraint``
+        so it needs no migration and cannot fail a fresh migrate on legacy rows.
+        """
+        super().clean()
+        if (
+            self.entry_date is not None
+            and self.exit_date is not None
+            and self.entry_date > self.exit_date
+        ):
+            raise ValidationError(
+                {
+                    "exit_date": _(
+                        "Exit date cannot be earlier than the entry date."
+                    )
+                }
+            )
+
     def save(self, *args, **kwargs):
         sync_student = kwargs.pop("sync_student", True)
         if self.school_id is None and self.student_id:

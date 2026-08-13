@@ -46,6 +46,64 @@ def _is_admin_user(user):
     )
 
 
+def _notify_guardians_of_rollover(rolled_students, target_year, *, created_by=None):
+    """Notify each guardian of each rolled-over student.
+
+    Shared by the synchronous ``rollover_year`` view and the async
+    ``apps.accounts.tasks.apply_rollover_proposal`` task so BOTH apply paths send
+    the identical in-app notification (and optional SMS) — previously only the
+    sync path did, so a queued rollover with "Notify parents" ticked was silent.
+
+    ``rolled_students`` is an iterable of ``(student, new_classroom)`` tuples.
+    Returns the number of in-app notifications created (for logging/tests).
+    """
+    if not rolled_students:
+        return 0
+    from apps.people.models import StudentGuardian
+    from apps.finance.models import Notification as FinanceNotification
+
+    notifier = None
+    try:
+        from apps.evals.notifications import NotificationService
+
+        notifier = NotificationService()
+    except ImportError:
+        pass
+
+    notified = 0
+    for student, new_classroom in rolled_students:
+        msg = f"Your child {student.get_full_name() or student.last_name} has been assigned to {new_classroom.name} for {target_year.name}."
+        for link in StudentGuardian.objects.filter(
+            student=student
+        ).select_related("guardian_user"):
+            if link.guardian_user_id:
+                FinanceNotification.objects.notify_unread(
+                    title="Class assignment",
+                    message=msg,
+                    severity=FinanceNotification.Severity.INFO,
+                    recipient_id=link.guardian_user_id,
+                    created_by=created_by,
+                )
+                notified += 1
+            if (
+                notifier
+                and getattr(link, "phone", None)
+                and link.phone
+                and getattr(link, "receives_sms", False)
+            ):
+                try:
+                    notifier.send_sms(link.phone, msg)
+                except (
+                    AttributeError,
+                    OSError,
+                    RuntimeError,
+                    TypeError,
+                    ValueError,
+                ):
+                    pass
+    return notified
+
+
 @permission_required("settings.manage")
 @user_passes_test(_is_admin_user)
 def clone_year_setup(request):
@@ -236,45 +294,9 @@ def rollover_year(request):
             updated += 1
             rolled_students.append((s, new_class))
         if notify_parents and rolled_students:
-            from apps.people.models import StudentGuardian
-            from apps.finance.models import Notification as FinanceNotification
-
-            notifier = None
-            try:
-                from apps.evals.notifications import NotificationService
-
-                notifier = NotificationService()
-            except ImportError:
-                pass
-            for student, new_classroom in rolled_students:
-                msg = f"Your child {student.get_full_name() or student.last_name} has been assigned to {new_classroom.name} for {target_year.name}."
-                for link in StudentGuardian.objects.filter(
-                    student=student
-                ).select_related("guardian_user"):
-                    if link.guardian_user_id:
-                        FinanceNotification.objects.notify_unread(
-                            title="Class assignment",
-                            message=msg,
-                            severity=FinanceNotification.Severity.INFO,
-                            recipient_id=link.guardian_user_id,
-                            created_by=request.user,
-                        )
-                    if (
-                        notifier
-                        and getattr(link, "phone", None)
-                        and link.phone
-                        and getattr(link, "receives_sms", False)
-                    ):
-                        try:
-                            notifier.send_sms(link.phone, msg)
-                        except (
-                            AttributeError,
-                            OSError,
-                            RuntimeError,
-                            TypeError,
-                            ValueError,
-                        ):
-                            pass
+            _notify_guardians_of_rollover(
+                rolled_students, target_year, created_by=request.user
+            )
         if carry_forward_arrears_check and flags.get(
             "carry_forward_arrears_on_rollover", True
         ):

@@ -303,6 +303,7 @@ def _apply_rollover_proposal_impl(
     updated = 0
     graduated = 0
     skipped = 0
+    rolled_students = []
     for item in proposal.items.select_related(
         "student", "suggested_next_classroom", "approved_next_classroom"
     ).all():
@@ -350,6 +351,26 @@ def _apply_rollover_proposal_impl(
             ),
         )
         updated += 1
+        rolled_students.append((student, next_class))
+
+    # Notify-parity with the synchronous rollover view: when the operator asked
+    # to notify parents, send the SAME per-guardian in-app notification (and
+    # optional SMS) that ``rollover_year`` sends. Previously this task accepted
+    # ``notify_parents`` and silently ignored it.
+    if notify_parents and rolled_students:
+        try:
+            from apps.accounts.views_rollover import _notify_guardians_of_rollover
+
+            _notify_guardians_of_rollover(
+                rolled_students,
+                target_year,
+                created_by=getattr(proposal, "approved_by", None)
+                or getattr(proposal, "created_by", None),
+            )
+        except (ImportError, AttributeError, TypeError, ValueError) as e:
+            logger.warning(
+                "apply_rollover_proposal: guardian notify failed: %s", e
+            )
 
     proposal.status = RolloverProposal.Status.APPLIED
     proposal.applied_at = timezone.now()
