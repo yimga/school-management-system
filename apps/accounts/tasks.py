@@ -267,6 +267,7 @@ def _apply_rollover_proposal_impl(
     allow_outstanding_returns=False,
     carry_forward_arrears=False,
     override_backup_gate=False,
+    override_graduation_gate=False,
 ):
     """Inner implementation: run inside tenant context."""
     import logging
@@ -274,6 +275,7 @@ def _apply_rollover_proposal_impl(
     from django.utils import timezone
     from apps.accounts.models import RolloverProposal
     from apps.accounts.rollover_backup import require_pre_rollover_backup
+    from apps.academics.graduation_audit import audit_graduation_eligibility
     from apps.people.enrollment_services import (
         graduate_student,
         open_enrollment,
@@ -340,6 +342,8 @@ def _apply_rollover_proposal_impl(
     updated = 0
     graduated = 0
     skipped = 0
+    graduation_blocked = 0
+    blocked_graduates: list = []
     rolled_students = []
     for item in proposal.items.select_related(
         "student", "suggested_next_classroom", "approved_next_classroom"
@@ -353,6 +357,22 @@ def _apply_rollover_proposal_impl(
             skipped += 1
             continue
         if getattr(item, "is_graduate", False):
+            # W22 graduation gate — verify the student actually meets the school's
+            # configured graduation requirements BEFORE graduating them (grades are
+            # read from the SOURCE year being closed). Mirrors the outstanding-returns
+            # skip precedent above: when requirements are configured and the student
+            # is off-track and the operator did NOT override, skip + count and leave
+            # the student on the active roll. Absent config → requirements_configured
+            # is False → this never bites (behaviour-preserving).
+            grad_audit = audit_graduation_eligibility(student, source_year)
+            if (
+                grad_audit.requirements_configured
+                and not grad_audit.is_eligible
+                and not override_graduation_gate
+            ):
+                graduation_blocked += 1
+                blocked_graduates.append(getattr(student, "pk", None))
+                continue
             # Close the enrollment BEFORE the legacy fields are cleared, so the
             # leaving year is preserved in history rather than blanked (2.2).
             graduate_student(student, target_year)
@@ -440,17 +460,21 @@ def _apply_rollover_proposal_impl(
             logger.warning("apply_rollover_proposal: carry_forward_arrears: %s", e)
 
     logger.info(
-        "apply_rollover_proposal: proposal %s applied; updated=%d graduated=%d skipped=%d",
+        "apply_rollover_proposal: proposal %s applied; updated=%d graduated=%d "
+        "skipped=%d graduation_blocked=%d",
         proposal_id,
         updated,
         graduated,
         skipped,
+        graduation_blocked,
     )
     return {
         "ok": True,
         "updated": updated,
         "graduated": graduated,
         "skipped": skipped,
+        "graduation_blocked": graduation_blocked,
+        "blocked_graduates": blocked_graduates,
         "frozen": frozen,
     }
 
@@ -464,11 +488,14 @@ def apply_rollover_proposal(
     carry_forward_arrears=False,
     school_id: str | None = None,
     override_backup_gate=False,
+    override_graduation_gate=False,
 ):
     """Apply APPROVED rollover proposal. Runs in tenant context when school_id is provided.
 
     ``override_backup_gate`` bypasses the pre-rollover backup gate (M29 / EOY
     gap #3) when the operator explicitly acknowledged there is no recent backup.
+    ``override_graduation_gate`` bypasses the W22 graduation-requirements gate
+    when the operator explicitly acknowledged the off-track graduates.
     """
 
     def _run():
@@ -479,6 +506,7 @@ def apply_rollover_proposal(
             allow_outstanding_returns,
             carry_forward_arrears,
             override_backup_gate,
+            override_graduation_gate,
         )
 
     if school_id:
@@ -490,6 +518,7 @@ def apply_rollover_proposal(
         allow_outstanding_returns,
         carry_forward_arrears,
         override_backup_gate,
+        override_graduation_gate,
     )
 
 

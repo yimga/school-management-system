@@ -14,6 +14,10 @@ from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 
 from apps.academics.models import AcademicYear, Classroom, Term
+from apps.academics.graduation_audit import (
+    audit_graduating_cohort,
+    audit_graduation_eligibility,
+)
 from apps.academics.services_year_setup import clone_academic_year
 from apps.accounts.decorators import permission_required
 from apps.accounts.models import RolloverProposal, RolloverProposalItem, User
@@ -213,6 +217,9 @@ def rollover_year(request):
             request.POST.get("allow_outstanding_returns") == "on"
         )
         carry_forward_arrears_check = request.POST.get("carry_forward_arrears") == "on"
+        override_graduation_gate = (
+            request.POST.get("acknowledge_ineligible_graduates") == "on"
+        )
         if not source_id or not target_id:
             messages.error(request, "Please select both source and target year.")
             return render(request, "accounts/rollover_year.html", {"years": years})
@@ -318,6 +325,7 @@ def rollover_year(request):
         updated = 0
         graduated = 0
         skipped_outstanding = 0
+        graduation_blocked = 0
         rolled_students = []
         GRADUATE_VALUE = "__graduate__"
         for s in students:
@@ -334,6 +342,18 @@ def rollover_year(request):
                 skipped_outstanding += 1
                 continue
             if classroom_id == GRADUATE_VALUE:
+                # W22 graduation gate (async/sync parity with the proposal apply
+                # path): don't graduate an off-track student when requirements are
+                # configured and the operator did not override. Absent config →
+                # requirements_configured is False → this never bites.
+                grad_audit = audit_graduation_eligibility(s, source_year)
+                if (
+                    grad_audit.requirements_configured
+                    and not grad_audit.is_eligible
+                    and not override_graduation_gate
+                ):
+                    graduation_blocked += 1
+                    continue
                 # Close the enrollment BEFORE blanking the legacy fields so the
                 # leaving year survives in history (2.2).
                 graduate_student(s, target_year)
@@ -431,6 +451,13 @@ def rollover_year(request):
                 request,
                 f"Skipped {skipped_outstanding} student(s) due to outstanding resource returns. "
                 "Enable 'Allow rollover despite outstanding returns' to include them, or mark items returned in Resource return checklist.",
+            )
+        if graduation_blocked:
+            messages.warning(
+                request,
+                f"Did not graduate {graduation_blocked} student(s) who do not meet the "
+                "configured graduation requirements. Review their records, or tick "
+                "'graduate them anyway' to override the graduation gate.",
             )
         return redirect("accounts:rollover_year")
 
@@ -664,6 +691,9 @@ def rollover_proposal_detail(request, proposal_id):
             allow_outstanding = request.POST.get("allow_outstanding_returns") == "on"
             carry_arrears = request.POST.get("carry_forward_arrears") == "on"
             override_backup = request.POST.get("acknowledge_no_backup") == "on"
+            override_graduation = (
+                request.POST.get("acknowledge_ineligible_graduates") == "on"
+            )
             # Pre-rollover backup gate (M29 / EOY gap #3): fail the apply here,
             # in-request, when there is no recent M28 snapshot and the operator
             # did not override — rather than enqueueing a task that would refuse
@@ -690,16 +720,35 @@ def rollover_proposal_detail(request, proposal_id):
                 allow_outstanding_returns=allow_outstanding,
                 carry_forward_arrears=carry_arrears,
                 override_backup_gate=override_backup,
+                override_graduation_gate=override_graduation,
             )
             messages.success(
                 request,
                 "Rollover is running. Students will be moved to the target year shortly.",
             )
             return redirect("accounts:rollover_queue")
+    # When the proposal is APPROVED the apply form is shown — surface a per-graduate
+    # eligibility check (W22) so the operator sees who is off-track before applying,
+    # and gate the override checkbox on there being at least one ineligible graduate.
+    graduation_audits = []
+    has_ineligible_graduates = False
+    if proposal.status == RolloverProposal.Status.APPROVED:
+        for cohort_item, result in audit_graduating_cohort(proposal):
+            graduation_audits.append(
+                {"item": cohort_item, "student": cohort_item.student, "result": result}
+            )
+            if result.requirements_configured and not result.is_eligible:
+                has_ineligible_graduates = True
     return render(
         request,
         "accounts/rollover_proposal_detail.html",
-        {"proposal": proposal, "items": items, "target_classrooms": target_classrooms},
+        {
+            "proposal": proposal,
+            "items": items,
+            "target_classrooms": target_classrooms,
+            "graduation_audits": graduation_audits,
+            "has_ineligible_graduates": has_ineligible_graduates,
+        },
     )
 
 

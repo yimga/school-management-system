@@ -89,6 +89,40 @@
       <div class="card-header">{% trans "Apply rollover" %}</div>
       <div class="card-body">
         <p class="mb-2">{% blocktrans with year=proposal.target_year.name %}This will move students to {{ year }} and assign the approved next class.{% endblocktrans %}</p>
+        {% if graduation_audits %}
+        <div class="mb-3">
+          <p class="fw-semibold mb-2">{% trans "Graduating students — eligibility" %}</p>
+          <div class="table-responsive">
+            <table class="table table-sm mb-0 align-middle rmc-data-table">
+              <caption class="visually-hidden">{% trans "Graduation eligibility for each graduating student" %}</caption>
+              <thead class="table-light">
+                <tr>
+                  <th scope="col">{% trans "Student" %}</th>
+                  <th scope="col">{% trans "Eligibility" %}</th>
+                  <th scope="col">{% trans "Notes" %}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in graduation_audits %}
+                <tr>
+                  <td>{{ row.student.get_full_name|default:row.student.last_name }}</td>
+                  <td>
+                    {% if not row.result.requirements_configured %}
+                    <span class="rmc-badge rmc-badge--muted">{% trans "No requirements set" %}</span>
+                    {% elif row.result.is_eligible %}
+                    <span class="rmc-badge rmc-badge--success">{% trans "Eligible" %}</span>
+                    {% else %}
+                    <span class="rmc-badge rmc-badge--warning">{% trans "Off-track" %}</span>
+                    {% endif %}
+                  </td>
+                  <td class="small text-muted">{% for reason in row.result.reasons %}{{ reason }}{% if not forloop.last %}; {% endif %}{% endfor %}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {% endif %}
         <div class="form-check">
           <input class="form-check-input" type="checkbox" name="lock_source" id="lock_source" value="on">
           <label class="form-check-label" for="lock_source">{% trans "Lock source year after rollover" %}</label>
@@ -109,6 +143,12 @@
           <input class="form-check-input" type="checkbox" name="acknowledge_no_backup" id="acknowledge_no_backup" value="on">
           <label class="form-check-label" for="acknowledge_no_backup">{% trans "I understand there is no recent backup and want to proceed anyway (override the backup gate)" %}</label>
         </div>
+        {% if has_ineligible_graduates %}
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="acknowledge_ineligible_graduates" id="acknowledge_ineligible_graduates" value="on">
+          <label class="form-check-label" for="acknowledge_ineligible_graduates">{% trans "Some graduating students do not meet the configured graduation requirements. I understand and want to graduate them anyway (override the graduation gate)." %}</label>
+        </div>
+        {% endif %}
       </div>
       <div class="card-footer">
         <button type="submit" class="btn btn-success">{% trans "Apply rollover" %}</button>
