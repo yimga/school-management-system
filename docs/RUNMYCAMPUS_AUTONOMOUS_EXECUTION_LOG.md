@@ -1,5 +1,15 @@
 # RunMyCampus autonomous execution log
 
+## Slice — operator `/admin/` re-sweep + tenant sidebar v2 (batch 1789 - 2026-08-13)
+
+**Scope:** Every shared operator `/admin/` archetype was re-audited; operator navigation remains the control-plane sidebar. Tenant-only upgrade is host-gated in `base_site.html` and JS mounting requires `data-rmc-app-shell-host=tenant`.
+
+**Shipped:** Tenant workspace/role context, local/offline indicator, navigation filter with live result count, pinned empty/count state, five recent admin destinations, storage failure fallback, dynamic keyboard traversal, compact/mobile/RTL-compatible presentation, cache/SW lock repair, and a CI-ready static contract.
+
+**Proof:** Admin OS cross-wave **88 OK / 0 FAIL**; tenant sidebar verifier; production scope; miss-nothing; leftovers; template compile; Node syntax; Django check; Ruff; **6/6** focused tests.
+
+**Honest external:** Full migration-backed crawl cannot complete inside the local Windows time budget, and GitHub Actions jobs are blocked before startup by account billing/spending limits.
+
 ## Slice — `/admin/` production resilience + page-aware polish (batch 1788 - 2026-08-13)
 
 **A. Scope:** Operator and tenant `/admin/` only, including Django Admin Discover, Scan, Edit, Audit, Decide, Dossier, their shared shell, context builders, evidence crawlers, and terminal assets. Portal/backend dashboards and `/super/` product surfaces are excluded.

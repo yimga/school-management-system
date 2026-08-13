@@ -673,6 +673,7 @@
     })();
   </script>
   <script src="{% static 'js/admin-sidebar-nav.js' %}" defer></script>
+  {% if not is_manager_host %}<link rel="stylesheet" href="{% static 'css/rmc-tenant-admin-sidebar-v2.css' %}?v=20260813-tenant-admin-sidebar-v2"><script src="{% static 'js/rmc-tenant-admin-sidebar-v2.js' %}?v=20260813-tenant-admin-sidebar-v2" defer></script>{% endif %}
   <script src="{% static 'js/admin-platform-catalog.js' %}" defer></script>
   <script src="{% static 'js/return-to-origin.js' %}" defer></script>
   {% comment %} 2026-07-27: Tools edge-tray parity with portal_base / control_plane_skeleton —

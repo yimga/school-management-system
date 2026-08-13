@@ -33,9 +33,29 @@ Logo: SITE_ADMIN_LOGO_URL (ThemePack) or SITE_LOGO_URL (SiteSettings) or static 
         </div>
     </div>
 
+    {% if not is_manager_host %}
+    <section class="rmc-tenant-admin-sidebar-context" aria-label="{% trans 'Current admin workspace' %}">
+      <div class="rmc-tenant-admin-sidebar-context__copy">
+        <span class="rmc-tenant-admin-sidebar-context__eyebrow">{% trans "School workspace" %}</span>
+        <strong>{% firstof admin_surface_profile.role_label _("Administrator") %}</strong>
+      </div>
+      <span class="rmc-tenant-admin-sidebar-context__status" data-rmc-admin-connectivity role="status">
+        <span aria-hidden="true"></span><span data-rmc-admin-connectivity-label>{% trans "Local ready" %}</span>
+      </span>
+    </section>
+    <div class="rmc-tenant-admin-sidebar-search" role="search">
+      <label for="rmcTenantAdminNavSearch">{% trans "Find a page or record type" %}</label>
+      <div class="rmc-tenant-admin-sidebar-search__control">
+        <span aria-hidden="true">⌕</span>
+        <input id="rmcTenantAdminNavSearch" type="search" autocomplete="off" spellcheck="false" placeholder="{% trans 'Search admin navigation…' %}" aria-controls="nav-sidebar-apps" aria-describedby="rmcTenantAdminNavSearchStatus">
+        <kbd aria-hidden="true">/</kbd>
+      </div>
+      <p id="rmcTenantAdminNavSearchStatus" class="rmc-tenant-admin-sidebar-search__status" aria-live="polite"></p>
+    </div>
+    {% else %}
     {% include "unfold/helpers/navigation_header.html" %}
     {% include "unfold/helpers/search.html" %}
-    <div class="admin-sidebar-search-hint" aria-hidden="true"><kbd>Ctrl</kbd>+<kbd>K</kbd> {% trans "to search" %}</div>
+    {% endif %}
 
     {% include "admin/app_list.html" with app_list=available_apps show_changelinks=False %}
 

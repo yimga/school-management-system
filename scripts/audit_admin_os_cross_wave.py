@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 import subprocess
-import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -344,6 +343,7 @@ def main() -> int:
         ["python", "scripts/audit_django_admin_canvas_contract.py"],
         ["python", "scripts/audit_django_admin_miss_nothing.py"],
         ["python", "scripts/verify_service_worker_version.py", "--check-monotonic"],
+        ["python", "scripts/verify_tenant_admin_sidebar_v2.py"],
         ["python", "scripts/verify_template_compiles.py"],
     ]
     gate_results: list[tuple[str, int]] = []

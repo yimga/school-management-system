@@ -7,14 +7,20 @@
 <div id="nav-sidebar-apps" class="admin-sidebar-apps {% if platform_admin_sidebar_embed %}admin-sidebar-apps--embed{% else %}h-0 grow overflow-auto d-flex flex-column{% endif %}" role="navigation" aria-label="{% trans 'Applications' %}">
   {% if not platform_admin_sidebar_embed %}
   <div class="admin-sidebar-nav-block" id="admin-sidebar-pinned-wrap">
-    <h2 class="admin-sidebar-section-title admin-sidebar-section-title--muted">{% trans "Pinned" %}</h2>
+    <div class="rmc-tenant-admin-sidebar-section-head"><h2 class="admin-sidebar-section-title admin-sidebar-section-title--muted">{% trans "Pinned" %}</h2><span data-rmc-pinned-count aria-label="{% trans 'Pinned count' %}">0</span></div>
     <ul class="admin-sidebar-quick-list admin-sidebar-pinned-list" id="admin-sidebar-pinned-list" style="list-style: none; margin: 0; padding: 0;"></ul>
+    <p class="rmc-tenant-admin-sidebar-empty" data-rmc-pinned-empty>{% trans "Pin frequently used pages for one-click access." %}</p>
     <p class="admin-sidebar-pin-this mb-0 mt-1">
       <button type="button" class="btn btn-link btn-sm p-0 text-muted admin-pin-this-page d-inline-flex align-items-center gap-1" id="admin-pin-this-page" aria-label="{% trans 'Pin this page' %}" title="{% trans 'Add this page to your Pinned list above' %}">
         <span aria-hidden="true">📌</span>
         <span>{% trans "Pin this page" %}</span>
       </button>
     </p>
+  </div>
+
+  <div class="admin-sidebar-nav-block rmc-tenant-admin-recent" data-rmc-admin-recent-wrap hidden>
+    <div class="rmc-tenant-admin-sidebar-section-head"><h2 class="admin-sidebar-section-title admin-sidebar-section-title--muted">{% trans "Recent" %}</h2><button type="button" data-rmc-admin-recent-clear>{% trans "Clear" %}</button></div>
+    <ol class="admin-sidebar-quick-list" data-rmc-admin-recent-list></ol>
   </div>
 
   <div class="admin-sidebar-nav-block admin-sidebar-quick-access" x-data="(window.getQuickAccessState && window.getQuickAccessState()) || { startOpen: true, setupOpen: true, setupAdvancedOpen: false, librariesOpen: false }">
@@ -140,7 +146,7 @@
   {% if platform_admin_sidebar_embed %}
   <div class="admin-sidebar-app-groups admin-sidebar-app-groups--embed" role="group" aria-label="{% trans 'Apps' %}">
   {% else %}
-  <div class="admin-sidebar-all-apps" x-data="{ allAppsOpen: false }" role="group" aria-label="{% trans 'Apps' %}">
+  <div class="admin-sidebar-all-apps" x-data="{ allAppsOpen: false }" role="group" aria-label="{% trans 'Apps' %}" data-rmc-admin-all-apps>
     <h2 class="admin-sidebar-section-title admin-sidebar-section-title--secondary">
       <button type="button" class="admin-sidebar-all-apps-trigger" @click="allAppsOpen = !allAppsOpen" :aria-expanded="allAppsOpen" aria-label="{% trans 'Toggle Apps' %}" @keydown.enter.prevent="allAppsOpen = !allAppsOpen" @keydown.space.prevent="allAppsOpen = !allAppsOpen">
         <span>{% trans "Apps" %}</span>

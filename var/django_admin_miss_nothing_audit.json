@@ -1,7 +1,7 @@
 {
   "pass": true,
   "expected_cache_bust": "20260813-admin-production-v18",
-  "expected_sw": "sms-v4.06.35-admin-production-2026-08-13",
+  "expected_sw": "sms-v4.06.36-tenant-admin-sidebar-2026-08-13",
   "content_pages": 11,
   "findings": []
 }

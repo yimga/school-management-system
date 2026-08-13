@@ -1,8 +1,8 @@
 {
   "build_id": "2026-08-11-v17.2",
-  "cache_bust": "20260811-experience-runtime-v172",
-  "sw_version": "sms-v4.06.34-experience-runtime-2026-08-11",
-  "seal": "2026-08-11-admin-os-v172-experience-runtime",
+  "cache_bust": "20260813-admin-production-v18",
+  "sw_version": "sms-v4.06.36-tenant-admin-sidebar-2026-08-13",
+  "seal": "2026-08-13-admin-production-v18",
   "approval_previews": [
     "var/design-previews/django-admin-os-top-tier-approval-v15-2026-07-21.html",
     "var/design-previews/django-admin-page-aware-full-fill-approval-2026-07-19.html",
