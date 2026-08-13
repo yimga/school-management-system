@@ -746,3 +746,188 @@ def deliver_notification_intent_task(
             type(exc).__name__,
         )
         return {"ok": False, "error_kind": "task_crashed"}
+
+
+# ──────────────────────────────────────────────────────────────────────
+# W24 — structured immunization records + missing-vaccine alert sweep.
+#
+# Per-school sweep mirroring ``apps.people.tasks.check_badge_expiry_alerts_task``
+# (per-school tenant context via ``_run_with_tenant_context`` /
+# ``get_active_school_ids``). For each active student that is NOT compliant with
+# the tenant's ``VaccineRequirement`` schedule, a WARNING ``finance.Notification``
+# is delivered to the student's guardians via ``notify_unread`` — the same
+# guardian-resolution path as ``_notify_guardians_of_rollover``.
+#
+# PII posture (matches the meal-plan / inventory tasks in this module): the
+# alert names the child's FIRST NAME only — never a vaccine list, a dose count,
+# or any health detail — and every log line carries ids only. Emission is
+# best-effort per guardian and per student (a failure never breaks the sweep),
+# mirroring the rollover notify posture.
+# ──────────────────────────────────────────────────────────────────────
+
+_IMMUNIZATION_SWEEP_STUDENT_CAP = 2000
+# finance.Notification.title is a CharField(max_length=200).
+_IMMUNIZATION_ALERT_TITLE = "Immunization records incomplete"
+
+
+def _emit_missing_immunization_alerts(student, school) -> int:
+    """Deliver one WARNING notification per active guardian of ``student``.
+
+    PII-safe: the message names the child's first name only. Returns the number
+    of notifications created. Never raises — mirrors the rollover best-effort
+    posture so one bad recipient can't abort the sweep.
+    """
+    from apps.finance.models import Notification
+
+    first_name = (getattr(student, "first_name", "") or "").strip() or "your child"
+    message = (
+        f"One or more required immunization records are missing for "
+        f"{first_name}. Please contact the school health office to update "
+        f"the record."
+    )
+    raised = 0
+    try:
+        # tenant-isolation-allow: guardian-link-row-scoped-via-student-fk-already-tenant-bound
+        links = student.guardian_links.filter(is_active=True).select_related(
+            "guardian_user"
+        )
+    except Exception:  # noqa: BLE001
+        return 0
+    for link in links:
+        guardian_user_id = getattr(link, "guardian_user_id", None)
+        if not guardian_user_id:
+            continue
+        try:
+            Notification.objects.notify_unread(
+                title=_IMMUNIZATION_ALERT_TITLE,
+                message=message,
+                severity=Notification.Severity.WARNING,
+                recipient_id=guardian_user_id,
+                school=school,
+            )
+            raised += 1
+        except Exception:  # noqa: BLE001 — per-recipient isolation
+            logger.warning(
+                "schoolops.immunization_alert_failed student_id=%s",
+                getattr(student, "pk", None),
+            )
+    return raised
+
+
+def _run_missing_immunizations_sweep_for_school(school) -> dict[str, Any]:
+    """Sweep one school's active students; alert guardians of non-compliant ones.
+
+    Returns a small summary dict. Never raises. Behaviour-preserving: a school
+    with no ``VaccineRequirement`` rows has nothing to enforce, so its students
+    are never touched.
+    """
+    summary: dict[str, Any] = {
+        "school_id": getattr(school, "pk", None),
+        "students_checked": 0,
+        "students_noncompliant": 0,
+        "alerts_raised": 0,
+        "errors": 0,
+    }
+    if school is None:
+        return summary
+    try:
+        from apps.people.models import StudentProfile
+        from apps.schoolops.immunization import (
+            compute_missing_immunizations,
+            resolve_vaccine_requirements,
+        )
+
+        if not resolve_vaccine_requirements(school):
+            return summary
+
+        students = (
+            StudentProfile.objects.filter(
+                school=school, is_active=True, deleted_at__isnull=True
+            )
+            .only("id", "first_name")
+            .order_by("id")[:_IMMUNIZATION_SWEEP_STUDENT_CAP]
+        )
+        for student in students:
+            summary["students_checked"] += 1
+            try:
+                status = compute_missing_immunizations(student, school)
+            except Exception:  # noqa: BLE001 — per-student isolation
+                summary["errors"] += 1
+                logger.warning(
+                    "schoolops.immunization_compute_failed student_id=%s",
+                    getattr(student, "pk", None),
+                )
+                continue
+            if status.get("is_compliant", True):
+                continue
+            summary["students_noncompliant"] += 1
+            summary["alerts_raised"] += _emit_missing_immunization_alerts(
+                student, school
+            )
+        logger.info(
+            "schoolops.missing_immunizations_sweep school_id=%s checked=%s "
+            "noncompliant=%s alerts=%s",
+            summary["school_id"],
+            summary["students_checked"],
+            summary["students_noncompliant"],
+            summary["alerts_raised"],
+        )
+        return summary
+    except Exception as exc:  # noqa: BLE001
+        summary["errors"] += 1
+        logger.exception(
+            "schoolops.missing_immunizations_sweep crashed school_id=%s exc_type=%s",
+            getattr(school, "pk", None),
+            type(exc).__name__,
+        )
+        return summary
+
+
+@shared_task(bind=True, name="schoolops.check_missing_immunizations")
+def check_missing_immunizations_task(
+    self, school_id: str | None = None
+) -> dict[str, Any]:
+    """W24 — per-school missing-immunization alert sweep.
+
+    Mirrors :func:`apps.people.tasks.check_badge_expiry_alerts_task`: runs the
+    sweep in tenant context per school (or across all active schools when
+    ``school_id`` is None). Returns an aggregate summary dict.
+    """
+    from apps.schools.celery_tasks import (
+        _run_with_tenant_context,
+        get_active_school_ids,
+    )
+
+    def _run_one(sid):
+        from apps.schools.models import School
+
+        # School is the tenant root (SHARED); a pk lookup is not tenant-scoped.
+        school = School.objects.filter(pk=sid).first()
+        return _run_missing_immunizations_sweep_for_school(school)
+
+    if school_id is not None:
+        return (
+            _run_with_tenant_context(
+                school_id=school_id, runnable=lambda: _run_one(school_id)
+            )
+            or {}
+        )
+
+    totals: dict[str, Any] = {
+        "schools": 0,
+        "students_checked": 0,
+        "students_noncompliant": 0,
+        "alerts_raised": 0,
+    }
+    for sid in get_active_school_ids():
+        one = (
+            _run_with_tenant_context(
+                school_id=sid, runnable=lambda s=sid: _run_one(s)
+            )
+            or {}
+        )
+        totals["schools"] += 1
+        totals["students_checked"] += one.get("students_checked", 0)
+        totals["students_noncompliant"] += one.get("students_noncompliant", 0)
+        totals["alerts_raised"] += one.get("alerts_raised", 0)
+    return totals

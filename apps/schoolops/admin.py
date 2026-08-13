@@ -12,6 +12,7 @@ from .models import (
     Hostel,
     HostelAssignment,
     HostelRoom,
+    ImmunizationRecord,
     InventoryItem,
     LibraryItem,
     LibraryLoan,
@@ -22,6 +23,7 @@ from .models import (
     Stop,
     SubstituteHandoverPacketRecord,
     TransportAssignment,
+    VaccineRequirement,
 )
 
 
@@ -123,6 +125,45 @@ class HealthRecordAdmin(admin.ModelAdmin):
     list_filter = ("school", "record_type", "confidential")
     search_fields = ("student__first_name", "student__last_name", "notes")
     raw_id_fields = ("school", "student", "recorded_by")
+
+
+@admin.register(VaccineRequirement, site=tenant_admin_site)
+class VaccineRequirementAdmin(admin.ModelAdmin):
+    list_display = (
+        "vaccine",
+        "school",
+        "doses_required",
+        "min_age_years",
+        "max_age_years",
+        "is_active",
+        "updated_at",
+    )
+    list_filter = ("school", "is_active")
+    search_fields = ("vaccine", "school__name", "notes")
+    raw_id_fields = ("school",)
+
+
+@admin.register(ImmunizationRecord, site=tenant_admin_site)
+class ImmunizationRecordAdmin(admin.ModelAdmin):
+    list_display = (
+        "student",
+        "vaccine",
+        "dose_number",
+        "school",
+        "date_administered",
+        "exemption_type",
+        "created_at",
+    )
+    list_filter = ("school", "vaccine", "exemption_type")
+    search_fields = (
+        "student__first_name",
+        "student__last_name",
+        "student__student_code",
+        "vaccine",
+        "notes",
+    )
+    raw_id_fields = ("school", "student", "verified_by")
+    date_hierarchy = "date_administered"
 
 
 @admin.register(BiometricDevice, site=tenant_admin_site)

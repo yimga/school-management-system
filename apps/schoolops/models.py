@@ -302,6 +302,123 @@ class HealthRecord(models.Model):
         return f"{self.student} - {self.record_type}"
 
 
+class VaccineRequirement(models.Model):
+    """A tenant's required-vaccine schedule row (one per required vaccine).
+
+    W24 — the school-scoped policy the missing-immunization sweep enforces.
+    ``doses_required`` is the core threshold; the age hints are advisory and
+    are not consulted by the increment-1 compute (documented follow-up). NO
+    platform-default seed ships in this increment — a school with zero rows
+    has NO requirements, so the sweep finds nothing to alert on
+    (behaviour-preserving, mirrors the W22 posture).
+    """
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="vaccine_requirements",
+    )
+    vaccine = models.CharField(
+        max_length=64,
+        help_text="Required vaccine code/name (stored normalized: strip + upper).",
+    )
+    doses_required = models.PositiveSmallIntegerField(default=1)
+    min_age_years = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        help_text="Advisory age hint (not enforced by the increment-1 sweep).",
+    )
+    max_age_years = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        help_text="Advisory age hint (not enforced by the increment-1 sweep).",
+    )
+    is_active = models.BooleanField(default=True)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "schoolops"
+        db_table = "schools_vaccinerequirement"
+        ordering = ["vaccine"]
+        unique_together = [("school", "vaccine")]
+        indexes = [
+            models.Index(fields=["school", "is_active"]),
+        ]
+
+    def save(self, *args, **kwargs):
+        # Canonicalize the code so (school, vaccine) uniqueness is meaningful
+        # and requirement.vaccine matches record.vaccine regardless of casing.
+        self.vaccine = (self.vaccine or "").strip().upper()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.vaccine} x{self.doses_required} ({self.school_id})"
+
+
+class ImmunizationRecord(models.Model):
+    """One immunization dose (or exemption) on a student's health record.
+
+    W24 — replaces the free-text ``HealthRecord(record_type="vaccination")``
+    log with structured, countable doses. FK declarations MIRROR
+    :class:`HealthRecord` (esp. ``student`` with ``db_constraint=False``) so
+    the ``scan_cross_tenancy_fk`` posture is preserved. A non-empty
+    ``exemption_type`` marks the vaccine exempt for the student.
+    """
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="immunization_records",
+    )
+    student = models.ForeignKey(
+        "people.StudentProfile",
+        on_delete=models.CASCADE,
+        db_constraint=False,
+        related_name="immunization_records",
+    )
+    vaccine = models.CharField(
+        max_length=64,
+        help_text="Vaccine code/name (stored normalized: strip + upper).",
+    )
+    dose_number = models.PositiveSmallIntegerField(default=1)
+    date_administered = models.DateField(null=True, blank=True)
+    verified_by = models.ForeignKey(
+        _AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="verified_immunization_records",
+    )
+    exemption_type = models.CharField(
+        max_length=16,
+        blank=True,
+        help_text="Non-empty marks the vaccine exempt for the student "
+        "(e.g. medical, religious).",
+    )
+    exemption_reason = models.TextField(blank=True)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "schoolops"
+        db_table = "schools_immunizationrecord"
+        ordering = ["-date_administered", "-created_at"]
+        indexes = [
+            models.Index(fields=["school", "student"]),
+            models.Index(fields=["school", "vaccine"]),
+        ]
+
+    def save(self, *args, **kwargs):
+        self.vaccine = (self.vaccine or "").strip().upper()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.student} - {self.vaccine} #{self.dose_number}"
+
+
 class BiometricDevice(models.Model):
     school = models.ForeignKey(
         "schools.School",
