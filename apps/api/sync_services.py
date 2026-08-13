@@ -11,11 +11,68 @@ from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 
 
+# CLASS-A master-data models wired with AUTO-DERIVED syncable fields (Phase 3, staged
+# to full coverage). Each MUST already carry both a ``client_offline_id`` anchor and an
+# ``auto_now`` ``updated_at`` (so identity is stable across deployments and the delta
+# cursor works) — verified before adding. Later slices append rows here (adding the
+# anchor/timestamp schema first for models that lack it).
+_DERIVED_ENTITY_SPECS: list[tuple[str, str, str]] = [
+    ("applicant", "people", "Applicant"),
+    ("student_note", "people", "StudentNote"),
+    # DEFERRED — people.TeacherProfile is CLASS-A master data but carries compensation
+    # fields (salary_amount, pay_grade, next_pay_date, …). Two-way LWW on those would let
+    # a box salary edit override the cloud, against the money=cloud-authoritative rule.
+    # It joins once Phase 4 gives per-field direction policy (compensation = down-only).
+]
+
+# Field names never synced as a value: the tenant scope, the identity anchor, and the
+# auto timestamps (handled by the engine, not carried as data).
+_SYNC_FIELD_EXCLUDE_NAMES = {"school", "client_offline_id", "created_at", "updated_at"}
+
+
+def _is_sync_tenant_model(model) -> bool:
+    """True if ``model`` lives in a tenant app — so its pk is stable across the
+    pk-preserving clone (or remappable when it is itself a synced entity). A FK to a
+    SHARED/public model (e.g. ``accounts.User``) is NOT: its id differs box vs cloud, so
+    such a link is never synced as a field."""
+    if model is None:
+        return False
+    from apps.lifecycle.tenant_portability import TENANT_APP_LABELS
+
+    return model._meta.app_label in TENANT_APP_LABELS
+
+
+def _derive_sync_fields(model) -> set:
+    """The syncable field set for a CLASS-A model: every editable concrete scalar plus
+    FKs that point at a TENANT model (pk-stable / remappable). Excludes the pk, the
+    tenant scope, the anchor, auto timestamps, and any FK to a shared/public model."""
+    fields: set = set()
+    for f in model._meta.get_fields():
+        if not getattr(f, "concrete", False) or getattr(f, "primary_key", False):
+            continue
+        if getattr(f, "auto_created", False) or not getattr(f, "editable", True):
+            continue
+        if getattr(f, "auto_now", False) or getattr(f, "auto_now_add", False):
+            continue
+        if f.name in _SYNC_FIELD_EXCLUDE_NAMES:
+            continue
+        if getattr(f, "many_to_one", False) or getattr(f, "one_to_one", False):
+            if not _is_sync_tenant_model(getattr(f, "related_model", None)):
+                continue  # FK to User/other shared model — id not portable across deployments
+            fields.add(f.attname)  # sync the <name>_id
+        else:
+            fields.add(f.name)
+    return fields
+
+
 def _get_entity_config():
     from apps.people.models import StudentProfile
     from apps.academics.models import Attendance, Classroom
+    from django.apps import apps as django_apps
 
-    return {
+    # The original three entities keep their CURATED field sets verbatim, so their
+    # long-tested sync behaviour is unchanged by the generalized registry.
+    config = {
         "student": (
             StudentProfile,
             {
@@ -38,6 +95,38 @@ def _get_entity_config():
         # whenever a classroom edit carried it.
         "classroom": (Classroom, {"name", "academic_year_id"}),
     }
+    for entity_type, app_label, model_name in _DERIVED_ENTITY_SPECS:
+        try:
+            model = django_apps.get_model(app_label, model_name)
+        except LookupError:
+            continue
+        config[entity_type] = (model, _derive_sync_fields(model))
+    return config
+
+
+def _insert_fk_targets(config) -> dict:
+    """``{entity_type: {fk_attname: target_entity_type}}`` for FKs (in each entity's
+    synced field set) that point at ANOTHER registered entity — so a new-references-new
+    insert can be remapped onto the referent's operator pk. Derived PER ENTITY, so a
+    field name that resolves to different targets on different models (e.g.
+    ``merged_into_id`` on student vs teacher) is never conflated by a global map."""
+    model_to_entity = {model: et for et, (model, _f) in config.items()}
+    targets: dict = {}
+    for et, (model, allowed) in config.items():
+        per_entity: dict = {}
+        for f in model._meta.get_fields():
+            if not (getattr(f, "many_to_one", False) or getattr(f, "one_to_one", False)):
+                continue
+            if not getattr(f, "concrete", False):
+                continue
+            attname = getattr(f, "attname", None)
+            if attname not in allowed:
+                continue
+            target_et = model_to_entity.get(f.related_model)
+            if target_et and target_et != et:
+                per_entity[attname] = target_et
+        targets[et] = per_entity
+    return targets
 
 
 def _parse_client_updated_at(raw):
@@ -82,6 +171,12 @@ def _user_can_edit_entity(user, entity_type, instance):
         )
         return getattr(instance, "classroom_id", None) in classroom_ids
     if entity_type == "classroom":
+        return _is_admin_like(user)
+    # Generalized CLASS-A master data (teacher, applicant, student_note, …): an
+    # admin-like principal manages it. The edge sync principal is the school
+    # owner/superuser, already allowed above; this also lets a tenant admin edit it
+    # online. Unknown entity types still fall through to a hard deny.
+    if entity_type in {spec[0] for spec in _DERIVED_ENTITY_SPECS}:
         return _is_admin_like(user)
     return False
 
@@ -324,30 +419,21 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
     }
 
 
-# Foreign-key fields (in the entity allow-lists) that reference another synced entity.
-# Used to REMAP a link that points at ANOTHER insert-row (its box-local pk differs from
-# the operator pk) onto the referent's freshly-assigned operator pk once it exists.
-_INSERT_FK_TARGET = {"student_id": "student", "classroom_id": "classroom"}
-
-
 def _insert_dependency_order(config) -> list:
     """Order the entity types so a new row that references ANOTHER new row is created
     AFTER its referent (whose operator pk we then substitute for the box's local pk).
 
-    The edge graph is ``_INSERT_FK_TARGET``: an entity depends on another when one of its
-    allowed fields is a FK to that other entity (e.g. ``attendance.student_id`` -> student,
-    ``student.classroom_id`` -> classroom). A Kahn-style topological sort with a
-    deterministic (sorted) tie-break; a cycle (none exist today) degrades gracefully to
-    sorted order — those rows simply fall back to FK-drop, never mis-link.
+    The edge graph is :func:`_insert_fk_targets` (derived per entity): an entity depends
+    on another when one of its synced FK fields points at that other entity (e.g.
+    ``attendance.student_id`` -> student, ``student.classroom_id`` -> classroom). A
+    Kahn-style topological sort with a deterministic (sorted) tie-break; a cycle (e.g. a
+    self-referential ``reports_to``) degrades gracefully to sorted order — those rows
+    simply fall back to FK-drop, never mis-link.
     """
+    fk_targets = _insert_fk_targets(config)
     deps: dict[str, set] = {}
-    for entity_type, (_model, allowed) in config.items():
-        needed = set()
-        for field in allowed:
-            target = _INSERT_FK_TARGET.get(field)
-            if target and target in config and target != entity_type:
-                needed.add(target)
-        deps[entity_type] = needed
+    for entity_type in config:
+        deps[entity_type] = {t for t in fk_targets.get(entity_type, {}).values() if t != entity_type}
 
     order: list = []
     placed: set = set()
@@ -437,6 +523,7 @@ def apply_edge_inserts(school_id, user, rows, *, sync_origin=None):
     # so a later dependent row can substitute the real pk for the box's local one.
     remap: dict[tuple, object] = {}
     order = _insert_dependency_order(config)
+    fk_targets = _insert_fk_targets(config)  # {entity_type: {fk_attname: target_entity_type}}
 
     def _rank(item):
         et = (item.get("entity_type") or "").strip().lower()
@@ -461,12 +548,13 @@ def apply_edge_inserts(school_id, user, rows, *, sync_origin=None):
             continue
 
         valid_fields = _settable_field_names(model)
+        ent_targets = fk_targets.get(entity_type, {})
         updates = {}
         dropped_fks = []
         for key, value in changes.items():
             if key not in allowed or key not in valid_fields:
                 continue  # not editable, or a phantom allow-list entry not on the model
-            target = _INSERT_FK_TARGET.get(key)
+            target = ent_targets.get(key)
             if target and value in new_local_pks.get(target, set()):
                 # Points at another new row: substitute the referent's operator pk if it
                 # was already created this batch, else DROP (a required FK then fails
