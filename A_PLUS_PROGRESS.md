@@ -1,7 +1,7 @@
 # A+ PROGRESS SCOREBOARD (A0 Coordinator)
 
-**Last refreshed:** 2026-07-20 (Cursor **A↔B Wave 37** @ HEAD)  
-**Loop:** M-Pesa sig + ticket invoice settle + local moat proof → **NO-GO** (EXTERNAL)  
+**Last refreshed:** 2026-08-13 (Claude Code · **research cross-walk → M30–M33 + W21–W31 taskers**; M29 EOY audit prior day)  
+**Loop:** Academic-year **close → open** (EOY rollover) capability assessed → **NO-GO** (M29 ≈ 66/100 — run-observed 8/8; material gaps, year-lock proven NOT DB-enforced)  
 **Tree:** HEAD = `origin/main`
 
 ### Active claims (do not collide)
@@ -9,6 +9,74 @@
 | Agent | Owns | Files | Status |
 |-------|------|-------|--------|
 | **Cursor (this session)** | A↔B Wave 37 loop | M-Pesa HMAC, ticket invoice E2E, moat proof JSON | **DONE** (NO-GO EXTERNAL) |
+| **Claude Code (2026-08-12)** | M29 EOY / year-lifecycle assessment | `CURSOR_A_PLUS_MANDATE.md`, `A_PLUS_PROGRESS.md` (planning docs only — no code change) | **DONE** (M29 NO-GO) |
+
+---
+
+## Research cross-walk → M30–M33 + W21–W31 taskers — 2026-08-13
+
+Cross-walked the full EOY / "A-Z global platform" research (PowerSchool/Infinite-Campus EOY norms; Amazon/AWS/Shopify/Salesforce four-pillar model; Daycare→Tertiary + General/Technical/Vocational scaling; the atomic education engine; the revolving-year loop) against M1–M29 + S1–S8. Detail in `CURSOR_A_PLUS_MANDATE.md` → PART 3 **M30–M33** + PART 4C **W21–W31**.
+
+**Already tracked** (mapped only, no new tasker): tenancy M1 · residency/sovereignty M27 · local rails (M-Pesa/Pix/SEPA) M26 · offline/local-first M8/M25 · grading scales M3 · EAV custom fields M5 · EOY rollover / revolving-year / hemisphere **M29** · RTL i18n M21 · API/microservices M20 · immutable DR M28 · marketplace/SDK S7 · at-risk ML W15.
+
+**4 net-new metrics** (cross-walk gaps — mostly unbuilt → **NO-GO**):
+
+| # | Metric | Verdict | Current coverage |
+|---|--------|---------|------------------|
+| 30 | Universal Education Model (Daycare→Tertiary × Gen/Tech/Voc × ISCED) | **NO-GO (mostly unbuilt)** | grading M3 + EAV M5 exist; no ISCED progression matrix, level tiers, track prereq-gates / competency-pass, or atomic entity/metric/interval/gate engine |
+| 31 | Marketplace App-Injection & Extensibility (Shopify) | **NO-GO (partial)** | marketplace/SDK exists (S7); missing micro-frontend slot injection + scoped-OAuth2 JWT gateway + JSONB `app_extensions` + manifest |
+| 32 | Gov / Ministry Reporting Translation Engine | **NO-GO (unbuilt)** | internal reporting exists; no atomic→ministry-schema (XML/JSON/CSV) per-country template engine |
+| 33 | B2B Procurement & Supply Marketplace (Amazon) | **NO-GO (unbuilt)** | no embedded supply marketplace / auto-PO-from-class-config |
+
+**+ operational-cycle taskers W21–W31** (extend existing metrics; PART 4C): master-scheduling depth (M15) · graduation audit (M29/M3) · compute-as-a-service APIs (M20/S7) · immunization/health (NEW) · HR year-end (M12) · inventory/asset year-end (M14) · transport & food-service year-end (schoolops) · governance/compliance year-end (NEW) · i18n Hijri/numerals (M21) · no-code blueprint constructor (onboarding) · parallel-planning sandbox depth (M29/W20).
+
+**Net effect:** metric set is now **33 + S-rows**. Platform verdict **unchanged: NO-GO** (the cross-walk adds 4 unbuilt moat metrics on top of existing gaps — it does not move the bar).
+
+---
+
+## M29 — Academic-Year Lifecycle / EOY Rollover — capability assessment — 2026-08-12 (Prompt B)
+
+**New tracked metric** (see `CURSOR_A_PLUS_MANDATE.md` → PART 3 **M29** + PART 4 **W20**). Triggered by the EOY-rollover / "run Z → roll back to A" research: the 28-metric rubric carried **no** year-lifecycle metric, though the machinery exists. Audited by a dedicated agent.
+
+**Evidence basis: run-observed.** A fresh throwaway `TestCase` (since deleted; zero repo changes) exercised the real machinery against a test DB — **8/8 audit assertions passed, exit 0**, plus `python manage.py check` = 0 issues. (The `--keepdb` build that first blocked the harness did eventually complete, converting the earlier source-read verdicts to run-observed and **confirming them exactly**.) **Sharper finding under running:** year-lock is provably **NOT** DB/model-enforced — the harness **wrote an enrollment into a locked source year (row created) and mutated a student within it — both succeeded**; only grade-entry views (`apps/evals/views.py:221,289`) honor the lock. A few rows remain **source-read** where noted (absence of a field / validation / gate — nothing to execute). Per the 9.8 regime, the **material gaps** now cap M29 at ≤69 (run-observed proof is no longer the binding constraint).
+
+### Code-machinery checks (run-observed — 8/8 assertions)
+
+| Check | Verdict | Evidence (file:line) |
+|-------|---------|----------------------|
+| `clone_academic_year` copies terms / classrooms (yr-suffixed code) / SA / rules, idempotent | **GO** | `apps/academics/services_year_setup.py:25-139` |
+| `rollover_year` apply → enrollment open/close; lock; locked source hard-blocks re-run | **GO** | `apps/accounts/views_rollover.py:100-333` (lock :314-316, block :123-128) |
+| `get_promotion_status` / thresholds / annual-avg from `PromotionRule` | **GO** | `apps/reports/services.py:244-294` (avg :1047-1087) |
+| Alumni = status ALUMNI / is_active False / classroom null | **GO** | `views_rollover.py:198-210` + `apps/schools/tasks.py:317-329` |
+| `ClassroomPromotionMapping` suggests next class | **GO** | `apps/academics/models.py:248-280`; used `views_rollover.py:378-385` |
+| Notify-parents on apply | **PARTIAL** | sync path sends (`views_rollover.py:238-277`); **async/queue path DROPS it** — `apps/accounts/tasks.py:263-391` has zero guardian/SMS/notify refs |
+| Pre-rollover checklist + blocker scorecard | **PARTIAL→GO** | `views_rollover.py:363-374` + `apps/academics/year_close.py:18-130` (auto-runs only when `request.school` set) |
+
+### Year-end checklist (vs PowerSchool / Infinite Campus / Skyward norms)
+
+| # | Year-end item | Verdict | Evidence (file:line; run-observed except where noted) |
+|---|---------------|---------|-----------------------------------|
+| 1 | Enrollment audit (overlap / missing entry–exit dates) | **NO-GO** | no `Enrollment.clean()`; only `one_active_per_student` DB constraint (`apps/people/models.py:1017-1027`) |
+| 2 | Immutable grade archive (lock → history read-only) | **PARTIAL → NO-GO** | **run-observed: wrote an enrollment into a locked year + mutated a student in it — both succeeded** → lock honored only in grade-entry views (`apps/evals/views.py:221,289`), NOT DB/model-enforced; `ImmutableTranscript` overwrite-able (`apps/student360/services.py:296`), not produced by rollover (freeze works: `batch_freeze_transcripts` 3 created/0 err) |
+| 3 | Full backup/export BEFORE the rollover button | **NO-GO** | no snapshot/export precondition anywhere in `views_rollover.py` |
+| 4 | Next-year calendar / term / bell-schedule setup | **PARTIAL** | terms cloned (`services_year_setup.py:54-72`); no `BellSchedule` model, no internal per-year calendar clone |
+| 5 | Rollover promote / retain / graduate into next grade | **GO** | `views_rollover.py` + `tasks.py`; `promote_cohort` `apps/people/enrollment_services.py:494-547` |
+| 6 | Next-year placement persisted in advance (NYP indicator) | **PARTIAL** | no `next_year_classroom/grade/school` field; only staged `RolloverProposalItem` (`views_rollover.py:516-548`) |
+| 7 | Parallel / sandbox next-year planning | **PARTIAL** | clone-into-future-year + Proposal FSM stage; but writes real rows in the same DB, no branch/env sandbox |
+| 8 | Hemisphere / calendar independence | **GO** | arbitrary source/target `AcademicYear`, no hardcoded summer (`apps/academics/models.py:24-25`) |
+| 9 | Bulk all-students + per-student override | **GO** | `views_rollover.py:162-236` |
+| 10 | Validation / dry-run before apply | **PARTIAL→GO** | `evaluate_year_close_blockers` + `run_year_close_dry_run` (`year_close.py:18-164`) + Proposal review gate |
+
+### Ranked real gaps → next A-wave (W20)
+
+1. **Year-lock is NOT DB/model-enforced** (run-observed: an enrollment was written into a locked source year and a student mutated within it — both succeeded; only grade-entry views `apps/evals/views.py:221,289` honor the lock). A records-integrity hole, not cosmetic. Fix: central `assert_year_writable` guard on `AcademicYear` / `Enrollment.save`.
+2. **Notify-parents silently dropped on the async/queue apply path** (checkbox theater — UI posts it, task ignores it). Fix: `apps/accounts/tasks.py:263-391` — replicate the notification block from `apps/accounts/views_rollover.py:238-277`.
+3. **No pre-rollover backup/export gate** (PowerSchool requires a backup first). Fix: snapshot/export precondition in `apps/accounts/views_rollover.py` before the apply loop + in `rollover_prepare`.
+4. **"Immutable" transcript is overwrite-able and not produced by rollover** (freeze itself works — `batch_freeze_transcripts` 3 created/0 err run-observed — but rollover never calls it). Fix: `apps/student360/services.py:296` (`update_or_create` → append-only) + call `batch_freeze_transcripts` (`apps/academics/year_close.py:184-197`) from every apply path.
+5. **No enrollment date-integrity validation** (entry < exit, no overlapping closed ranges; source-read). Fix: `Enrollment.clean()` near `apps/people/models.py:1072`.
+6. **Doc divergence:** `docs/WORKFLOW_YEAR_ROLLOVER.md:50,57,73` still describes a destructive overwrite of `StudentProfile.academic_year/classroom` and cites `accounts.views.rollover_year`; code now does the enrollment open/close lifecycle in `apps/accounts/views_rollover.py` and adds a `PENDING` status + async proposal/queue path (incl. the notify gap) the doc omits.
+
+**M29 SCORE (9.8 lowest-dimension regime): ≈ 66/100 — NO-GO.** Now **run-observed (8/8)**, so the core close→open flow is *proven* real and coherent (structure clone with year-suffixed codes, PromotionRule-driven status incl. PENDING/NO_DATA, bulk + per-student promote/retain/graduate via a real enrollment open/close lifecycle, alumni, mapping-driven placement, hemisphere-independent). But it is **materially incomplete** for a school that must fully close one year and open the next — year-lock is **proven not DB-enforced** (writes into a locked year succeed), rollover produces no immutable grade archive, no backup gate, no date-integrity validation, notify-theater on the queued path → material-incompleteness ceiling ≤69 governs (run-observed proof is no longer the binding constraint). Consistent with the platform's standing **NO-GO**.
 
 ---
 
