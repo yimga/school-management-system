@@ -177,6 +177,7 @@ def gap_fill_after_apply(*, bundle, outcomes, dry_run: bool = False) -> dict[str
         from apps.academics.structure_provisioning import (
             ensure_general_department,
             ensure_general_specialty,
+            ensure_terms,
             provision_academic_structure_for_school,
             provision_teaching_grid_for_school,
         )
@@ -195,10 +196,31 @@ def gap_fill_after_apply(*, bundle, outcomes, dry_run: bool = False) -> dict[str
             "general_specialty": bool(spec),
         }
 
+        # Country/region-appropriate Term structure (Cameroon 3 trimesters, US 2
+        # semesters, …) — WITHOUT terms the teaching grid returns
+        # missing_prerequisites and no report card can be produced. Admin-editable.
+        summary["terms"] = ensure_terms(school, year)
+
+        # Country-aware grading scale (+ default AssessmentWeights): Cameroon /20,
+        # US letter, etc. A migrated school lands with no GradingScale row; the
+        # report-card engine + mark entry both need one. Idempotent, admin-editable.
+        try:
+            from apps.evals.grading_provisioning import ensure_local_grading_scale
+
+            ensure_local_grading_scale(school, academic_year=year)
+            summary["grading_scale"] = True
+        except Exception as exc:  # noqa: BLE001 — grading seed is best-effort
+            logger.warning(
+                "gap-fill: ensure_local_grading_scale failed for school %s: %s",
+                getattr(school, "pk", "?"), exc, exc_info=True,
+            )
+            summary["grading_scale"] = f"error: {type(exc).__name__}"
+
         # Run the platform's own structure engine as gap-fill: cycle nodes for the
         # school's education type (+ classrooms for K-12 sectors), then the
         # Classroom×Subject×Term teaching grid over whatever landed. Both are
-        # idempotent and scoped to the school's declared type(s).
+        # idempotent and scoped to the school's declared type(s). With terms now
+        # seeded above, the teaching grid actually populates.
         school_type_codes = _derive_school_type_codes(school)
         summary["structure"] = provision_academic_structure_for_school(
             school,

@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
+import logging
+from datetime import date, timedelta
 from typing import Any
 
 from django.db import transaction
+
+logger = logging.getLogger(__name__)
 
 from apps.academics.academic_structure import AcademicStructureNode
 from apps.academics.models import AcademicYear, Classroom, Department
@@ -87,6 +91,127 @@ def ensure_general_specialty(school):
         code=canonical_code,
         name="General",
     )
+
+
+def _resolve_term_structure(school) -> tuple[int, list[str]]:
+    """Return ``(term_count, term_labels)`` for a school, keyed off its country.
+
+    Mirrors the canonical provisioning path (``apps/schools/tasks.py``): the term
+    COUNT and NAMES come from the school's ``RegionConfig`` then its resolved
+    ``EducationSystemProfile`` (both derived from ``country_code``) — Cameroon
+    yields 3 trimesters, a US region 2 semesters, etc. — with the GB ``term_preset``
+    override. Defaults to 3 unnamed terms when nothing resolves. Best-effort: any
+    resolver failure falls back to the default rather than raising."""
+    term_count = 3
+    term_labels: list[str] = []
+    region = getattr(school, "default_region", None)
+    if region is not None:
+        term_count = getattr(region, "term_count_per_year", 3) or 3
+    policy: dict = {}
+    profile = None
+    try:
+        from apps.policies.policy_registry import get_effective_policy
+        from apps.siteconfig.education_profile_engine import resolve_profile_for_school
+
+        policy = get_effective_policy(school) or {}
+        profile = resolve_profile_for_school(
+            school,
+            requested_profile_code=str(policy.get("education_profile_code") or "").strip(),
+            auto_create=True,
+        )
+    except Exception:  # noqa: BLE001 — resolver is best-effort; fall back to defaults
+        logger.debug("ensure_terms: profile/policy resolve failed", exc_info=True)
+    if profile is not None:
+        try:
+            term_count = int(getattr(profile, "term_count_per_year", term_count) or term_count)
+            term_labels = profile.normalized_term_labels() or []
+        except Exception:  # noqa: BLE001
+            pass
+    if (policy.get("term_preset") or "").strip() == "UK":
+        term_count = 3
+        term_labels = term_labels or ["Michaelmas", "Lent", "Trinity"]
+    # Guard: position CheckConstraint allows 1..12; a bad profile value can't
+    # break the seeder.
+    term_count = max(1, min(12, int(term_count or 3)))
+    return term_count, term_labels
+
+
+def ensure_terms(school, academic_year) -> dict[str, Any]:
+    """Idempotently seed the country/region-appropriate ``Term`` rows for a year.
+
+    The migration path (Migration Cloud gap-fill) never runs normal onboarding, so
+    a migrated school lands with an AcademicYear but NO terms — and the teaching
+    grid (``provision_teaching_grid_for_school``) then returns
+    ``missing_prerequisites`` and no report card can be produced. This extracts the
+    canonical term-seeding (previously inline in ``apps/schools/tasks.py``) so both
+    onboarding and migration converge on the same country-aware structure:
+    ``RegionConfig``/``EducationSystemProfile`` drive the count + labels, the year's
+    own start/end dates are split evenly into terms, and exactly one term ends up
+    active (the marks-entry surface 403s without one). Everything stays
+    admin-editable. Keyed on ``get_or_create(school, academic_year, name)`` — the
+    model's ``unique_together`` — so a re-apply never duplicates. Returns a summary.
+    """
+    if school is None or academic_year is None:
+        return {"created_terms": 0, "skipped": "no_school_or_year"}
+    from apps.academics.models import Term
+
+    year_start = getattr(academic_year, "start_date", None)
+    year_end = getattr(academic_year, "end_date", None)
+    if not (year_start and year_end):
+        return {"created_terms": 0, "skipped": "year_missing_dates"}
+
+    term_count, term_labels = _resolve_term_structure(school)
+
+    def _month_start_add(base_date: date, months: int) -> date:
+        year = base_date.year + ((base_date.month - 1 + months) // 12)
+        month = ((base_date.month - 1 + months) % 12) + 1
+        return date(year, month, 1)
+
+    created = 0
+    months_per_term = max(1, 12 // term_count)
+    for i in range(term_count):
+        t_start = _month_start_add(year_start, i * months_per_term)
+        if i == term_count - 1:
+            t_end = year_end
+        else:
+            t_end = _month_start_add(year_start, (i + 1) * months_per_term) - timedelta(days=1)
+        # Clamp a term start that overshoots the year (short/odd year windows) so
+        # start_date never exceeds end_date.
+        if t_start > year_end:
+            t_start = year_start
+        term_name = (
+            term_labels[i]
+            if i < len(term_labels) and str(term_labels[i]).strip()
+            else f"Term {i + 1}"
+        )
+        try:
+            with transaction.atomic():
+                _obj, was_created = Term.objects.get_or_create(
+                    school=school,
+                    academic_year=academic_year,
+                    name=term_name,
+                    defaults={
+                        "position": i + 1,
+                        "start_date": t_start,
+                        "end_date": t_end,
+                        "is_active": i == 0,
+                    },
+                )
+            created += 1 if was_created else 0
+        except Exception:  # noqa: BLE001 — one term never aborts the rest
+            logger.debug("ensure_terms: term %s seed failed", term_name, exc_info=True)
+
+    # The year MUST end with an active term (get_or_create IGNORES the is_active
+    # default when the row already existed from a partial prior run).
+    if not Term.objects.filter(school=school, academic_year=academic_year, is_active=True).exists():
+        first = (
+            Term.objects.filter(school=school, academic_year=academic_year)
+            .order_by("position", "start_date", "id")
+            .first()
+        )
+        if first is not None:
+            Term.objects.filter(pk=first.pk).update(is_active=True)
+    return {"created_terms": created, "term_count": term_count}
 
 
 def provision_teaching_grid_for_school(
