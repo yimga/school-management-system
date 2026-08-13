@@ -35,6 +35,29 @@ _DERIVED_ENTITY_SPECS: list[tuple[str, str, str]] = [
 # auto timestamps (handled by the engine, not carried as data).
 _SYNC_FIELD_EXCLUDE_NAMES = {"school", "client_offline_id", "created_at", "updated_at"}
 
+# Per-entity fields REMOVED from the auto-derived sync set. These are ordinary editable
+# scalars, but they are cloud-governance columns that must NOT converge by two-way LWW —
+# a stale offline box edit must never silently override the cloud's value. Until per-field
+# direction policy exists (the same gap that defers TeacherProfile compensation), the safe
+# move is to keep them OFF the sync rail entirely:
+#   * academic_year.is_locked / enable_gce_registration — the year-end lock and the exam-
+#     registration gate (MEMORY M29). A box must never be able to reopen a year the cloud
+#     locked; the cloud owns these. (The academic_year still syncs its benign fields.)
+_SYNC_FIELD_EXCLUDE_PER_ENTITY: dict[str, set] = {
+    "academic_year": {"is_locked", "enable_gce_registration"},
+}
+
+# Registered entities that are SAFE to converge by last-writer-wins and are NOT already
+# classified in policy_registry.POLICIES. Kept EXPLICIT (not derived from the registry) so
+# that adding a new entity to _DERIVED_ENTITY_SPECS without consciously listing it here —
+# or giving it a POLICIES entry — makes _sync_conflict_policy fail CLOSED (protected
+# manual review) rather than silently treating a possibly-sensitive entity as two-way LWW.
+# When you add a benign master-data entity, add it here; a money/grade/identity entity must
+# instead get a protected POLICIES row.
+_LWW_SAFE_ENTITIES = frozenset(
+    {"student", "classroom", "applicant", "academic_year", "term", "department"}
+)
+
 
 def _is_sync_tenant_model(model) -> bool:
     """True if ``model`` lives in a tenant app — so its pk is stable across the
@@ -63,7 +86,11 @@ def _derive_sync_fields(model) -> set:
         if f.name in _SYNC_FIELD_EXCLUDE_NAMES:
             continue
         if getattr(f, "many_to_one", False) or getattr(f, "one_to_one", False):
-            if not _is_sync_tenant_model(getattr(f, "related_model", None)):
+            # Resolve a possibly lazy-string related_model to its class first (same guard
+            # tenant_portability._rel_model adds) so a string ref never AttributeErrors here.
+            from apps.lifecycle.tenant_portability import _rel_model
+
+            if not _is_sync_tenant_model(_rel_model(f)):
                 continue  # FK to User/other shared model — id not portable across deployments
             fields.add(f.attname)  # sync the <name>_id
         else:
@@ -71,7 +98,7 @@ def _derive_sync_fields(model) -> set:
     return fields
 
 
-def _get_entity_config():
+def _get_entity_config(include_derived=False):
     from apps.people.models import StudentProfile
     from apps.academics.models import Attendance, Classroom
     from django.apps import apps as django_apps
@@ -101,18 +128,22 @@ def _get_entity_config():
         # whenever a classroom edit carried it.
         "classroom": (Classroom, {"name", "academic_year_id"}),
     }
-    # The expanded two-way registry is gated behind the edge-device flag so ordinary
-    # cloud tenants keep exactly the original three entities (untouched). Only a
-    # deployment that opts in (the sovereign edge box) two-way-syncs the broader set.
-    from django.conf import settings
-
-    if getattr(settings, "RMC_EDGE_SYNC_ENABLED", False):
+    # The expanded two-way registry is scoped to EDGE SYNC operations only — callers on
+    # the edge push/pull paths pass include_derived=True. An ordinary online DeltaSyncAPI
+    # request (sync_origin is None) NEVER includes them, so every other tenant, on ANY
+    # deployment (including a shared cloud that also serves edge boxes), sees exactly the
+    # original three entities. Isolation therefore does not depend on a deployment-global
+    # switch — an unregistered/derived entity from a non-edge caller is simply rejected.
+    if include_derived:
         for entity_type, app_label, model_name in _DERIVED_ENTITY_SPECS:
             try:
                 model = django_apps.get_model(app_label, model_name)
             except LookupError:
                 continue
-            config[entity_type] = (model, _derive_sync_fields(model))
+            fields = _derive_sync_fields(model) - _SYNC_FIELD_EXCLUDE_PER_ENTITY.get(
+                entity_type, set()
+            )
+            config[entity_type] = (model, fields)
     return config
 
 
@@ -134,7 +165,9 @@ def _insert_fk_targets(config) -> dict:
             attname = getattr(f, "attname", None)
             if attname not in allowed:
                 continue
-            target_et = model_to_entity.get(f.related_model)
+            from apps.lifecycle.tenant_portability import _rel_model
+
+            target_et = model_to_entity.get(_rel_model(f))
             if target_et and target_et != et:
                 per_entity[attname] = target_et
         targets[et] = per_entity
@@ -206,10 +239,17 @@ def _sync_conflict_policy(entity_type):
         MergeStrategy, POLICIES, get_policy, normalize_entity,
     )
 
-    if normalize_entity(entity_type) in POLICIES:
+    norm = normalize_entity(entity_type)
+    if norm in POLICIES:
         p = get_policy(entity_type)
         return p.strategy, p.protected
-    return MergeStrategy.CAUSAL_LWW, False
+    if norm in _LWW_SAFE_ENTITIES or entity_type in _LWW_SAFE_ENTITIES:
+        return MergeStrategy.CAUSAL_LWW, False
+    # Fail CLOSED for anything not explicitly classified — mirrors policy_registry's own
+    # "unknown entities fail closed to protected manual review" default, so a sensitive
+    # entity can never silently become two-way LWW.
+    p = get_policy(entity_type)
+    return p.strategy, p.protected
 
 
 def _conflict_decision(entity_type, sync_origin, client_updated_at, server_dt):
@@ -231,11 +271,13 @@ def _conflict_decision(entity_type, sync_origin, client_updated_at, server_dt):
         return "reject"
     if protected:
         return "apply" if sync_origin == "cloud-pull" else "conflict"
-    if (
-        client_updated_at is not None
-        and server_dt is not None
-        and client_updated_at < server_dt
-    ):
+    # LWW: newest wins. A client row that cannot PROVE it is newer — a missing or
+    # unparseable updated_at (client_updated_at is None) — must not silently overwrite a
+    # server row that HAS a timestamp; treat it as a conflict for a human to resolve.
+    # Both-missing (a brand-new row with no server-side timestamp to beat) still applies.
+    if client_updated_at is None:
+        return "conflict" if server_dt is not None else "apply"
+    if server_dt is not None and client_updated_at < server_dt:
         return "conflict"
     return "apply"
 
@@ -297,9 +339,13 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
           conflicts: list of { "index", "entity_type", "entity_id", "client_data", "server_data",
                               "client_updated_at", "server_updated_at", "conflict_id" }
     """
-    from django.db import transaction
+    from django.core.exceptions import FieldError, ValidationError
+    from django.db import DataError, IntegrityError, transaction
 
-    config = _get_entity_config()
+    # Edge sync operations (sync_origin set) get the expanded registry; an online
+    # DeltaSyncAPI call (sync_origin None) gets only the original three — other tenants
+    # untouched.
+    config = _get_entity_config(include_derived=sync_origin is not None)
     results = []
     conflicts = []
     success_count = 0
@@ -414,18 +460,33 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
                         else None
                     )
                     if school:
-                        sc = SyncConflict.objects.create(
-                            school=school,
-                            entity_type=entity_type,
-                            entity_id=pk,
-                            client_data=dict(changes),
-                            server_data=server_data,
-                            client_updated_at=client_updated_at,
-                            server_updated_at=server_dt,
-                            reported_by=user,
-                            status=SyncConflict.Status.PENDING,
-                        )
-                        conflict_id = sc.pk
+                        try:
+                            # Savepoint: persisting the conflict record must not be able to
+                            # abort the whole batch. (Also degrades gracefully if a future
+                            # UUID-pk entity is registered before SyncConflict.entity_id is
+                            # widened — a DataError here becomes a 422, never a batch 500.)
+                            with transaction.atomic():
+                                sc = SyncConflict.objects.create(
+                                    school=school,
+                                    entity_type=entity_type,
+                                    entity_id=pk,
+                                    client_data=dict(changes),
+                                    server_data=server_data,
+                                    client_updated_at=client_updated_at,
+                                    server_updated_at=server_dt,
+                                    reported_by=user,
+                                    status=SyncConflict.Status.PENDING,
+                                )
+                            conflict_id = sc.pk
+                        except (
+                            IntegrityError, DataError, ValidationError,
+                            ValueError, TypeError, FieldError,
+                        ) as exc:
+                            results.append({
+                                "index": idx, "status": 422,
+                                "data": {"error": "conflict_persist_failed", "detail": str(exc)[:200]},
+                            })
+                            continue
                 conflicts.append(
                     {
                         "index": idx,
@@ -460,14 +521,32 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
             update_fields = list(updates.keys())
             if hasattr(instance, "updated_at"):
                 update_fields.append("updated_at")
-            instance.save(update_fields=update_fields)
-            success_count += 1
-            new_updated_at = getattr(instance, "updated_at", None)
-            if sync_origin:
-                # Provenance marker so the reverse delta won't echo this sync-applied row.
-                from apps.sync_engine.models import record_sync_apply
+            try:
+                # Per-row savepoint: one un-appliable row (FK to a deleted parent, a
+                # unique/not-null collision — SQLite doesn't enforce these, only prod
+                # Postgres does) must roll back ONLY this row, never the whole bundle. The
+                # save + its echo-suppression ledger write are one atomic unit so a saved
+                # row can never be left without provenance (which would re-ship it forever).
+                with transaction.atomic():
+                    instance.save(update_fields=update_fields)
+                    new_updated_at = getattr(instance, "updated_at", None)
+                    if sync_origin:
+                        # Provenance marker so the reverse delta won't echo this apply.
+                        from apps.sync_engine.models import record_sync_apply
 
-                record_sync_apply(school_id, entity_type, instance.pk, new_updated_at, sync_origin)
+                        record_sync_apply(
+                            school_id, entity_type, instance.pk, new_updated_at, sync_origin
+                        )
+            except (
+                IntegrityError, DataError, ValidationError,
+                ValueError, TypeError, FieldError,
+            ) as exc:
+                results.append({
+                    "index": idx, "status": 422,
+                    "data": {"error": "apply_failed", "detail": str(exc)[:200]},
+                })
+                continue
+            success_count += 1
             results.append(
                 {
                     "index": idx,
@@ -561,7 +640,10 @@ def apply_edge_inserts(school_id, user, rows, *, sync_origin=None):
     from apps.api.entity_api import _is_admin_like
     from apps.schools.models import School
 
-    config = _get_entity_config()
+    # Edge sync operations (sync_origin set) get the expanded registry; an online
+    # DeltaSyncAPI call (sync_origin None) gets only the original three — other tenants
+    # untouched.
+    config = _get_entity_config(include_derived=sync_origin is not None)
     school = School.objects.filter(pk=school_id).first() if school_id else None
     can_create = bool(
         getattr(user, "is_superuser", False)
@@ -624,16 +706,28 @@ def apply_edge_inserts(school_id, user, rows, *, sync_origin=None):
             if key not in allowed or key not in valid_fields:
                 continue  # not editable, or a phantom allow-list entry not on the model
             target = ent_targets.get(key)
-            if target and value in new_local_pks.get(target, set()):
-                # Points at another new row: substitute the referent's operator pk if it
-                # was already created this batch, else DROP (a required FK then fails
-                # cleanly; a nullable FK lands NULL — surfaced via dropped_fks so the
-                # caller can reconcile rather than treat a partial row as a clean success).
-                remapped = remap.get((target, value))
-                if remapped is None:
-                    dropped_fks.append(key)
-                    continue
-                value = remapped
+            if target and value is not None:
+                if value in new_local_pks.get(target, set()):
+                    # Points at another new row: substitute the referent's operator pk if it
+                    # was already created this batch, else DROP (a required FK then fails
+                    # cleanly; a nullable FK lands NULL — surfaced via dropped_fks so the
+                    # caller can reconcile rather than treat a partial row as a clean success).
+                    remapped = remap.get((target, value))
+                    if remapped is None:
+                        dropped_fks.append(key)
+                        continue
+                    value = remapped
+                else:
+                    # Points at an EXISTING (non-new) row of a registered entity: it MUST
+                    # belong to THIS school. On the intended pk-preserving single-tenant
+                    # clone it always does; a value that resolves to another tenant's row (a
+                    # mis-provisioned box / stale reference) is DROPPED rather than linked
+                    # cross-tenant. Guarantee #2 already holds (the created row is owned by
+                    # `school`); this stops a wrong-but-in-schema link.
+                    target_model = config[target][0]
+                    if not target_model._default_manager.filter(pk=value, school=school).exists():
+                        dropped_fks.append(key)
+                        continue
             updates[key] = value
 
         try:
@@ -644,7 +738,13 @@ def apply_edge_inserts(school_id, user, rows, *, sync_origin=None):
                 if not was_created and updates:
                     for key, value in updates.items():
                         setattr(obj, key, value)
-                    obj.save(update_fields=list(updates.keys()))
+                    update_fields = list(updates.keys())
+                    if hasattr(obj, "updated_at"):
+                        # Bump the change cursor, mirroring apply_changes — otherwise an
+                        # UPDATE to an offline-created row keeps its old updated_at and is
+                        # invisible to the incremental delta (filter(updated_at__gt=since)).
+                        update_fields.append("updated_at")
+                    obj.save(update_fields=update_fields)
         except (IntegrityError, DataError, ValidationError, ValueError, TypeError, FieldError) as exc:
             # DataError (value too long / out of range on Postgres) is a DatabaseError
             # sibling of IntegrityError; catching it keeps the per-row savepoint from

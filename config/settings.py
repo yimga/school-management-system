@@ -3898,12 +3898,14 @@ RMC_DEPLOYMENT_PROFILE = (
     os.getenv("RMC_DEPLOYMENT_PROFILE", "online").strip().lower() or "online"
 )
 RMC_HUB_BASE_URL = (os.getenv("RMC_HUB_BASE_URL", "") or "").strip().rstrip("/")
-# Edge<->cloud BIDIRECTIONAL sync master switch (Phase 5). OFF everywhere by default, so
-# ordinary cloud tenants are untouched: the expanded two-way entity registry and the
-# scheduled push/pull cycle only activate where this is explicitly set. The sovereign
-# edge box turns it on in its .env (RMC_EDGE_SYNC_ENABLED=1). The pull/upload endpoints
-# stay credential-gated regardless; this flag governs what the box AUTO-runs and which
-# entities are two-way syncable.
+# Edge<->cloud BIDIRECTIONAL sync AUTO-RUN switch (Phase 5). OFF everywhere by default; the
+# sovereign edge box sets it (RMC_EDGE_SYNC_ENABLED=1) so its scheduled edge_sync_cycle
+# actually pushes/pulls — on every other deployment the cycle is a hard no-op.
+# NOTE: this flag does NOT govern tenant isolation. The expanded two-way entity registry is
+# scoped to edge-sync OPERATIONS (see apps.api.sync_services._get_entity_config's
+# include_derived), so an ordinary online DeltaSyncAPI request always sees only the original
+# three entities regardless of this flag — other tenants stay untouched even on a shared
+# cloud that serves edge boxes. The pull/upload endpoints remain credential-gated.
 RMC_EDGE_SYNC_ENABLED = os.getenv("RMC_EDGE_SYNC_ENABLED", "").strip().lower() in (
     "1", "true", "yes", "on",
 )

@@ -24,7 +24,7 @@ from apps.sync_engine.edge_outbox import build_edge_delta_bundle
 _SIGN_KEY = "academic-backbone-test-key"
 
 
-@override_settings(RMC_SYNC_BUNDLE_SIGNING_KEY=_SIGN_KEY, RMC_EDGE_SYNC_ENABLED=True)
+@override_settings(RMC_SYNC_BUNDLE_SIGNING_KEY=_SIGN_KEY)
 class AcademicBackboneSyncTests(TestCase):
     def setUp(self):
         uid = uuid.uuid4().hex[:8]
@@ -41,7 +41,9 @@ class AcademicBackboneSyncTests(TestCase):
         self.future = (timezone.now() + timezone.timedelta(minutes=10)).isoformat()
 
     def test_registry_includes_academic_backbone(self):
-        cfg = _get_entity_config()
+        # Only present for edge sync operations; online callers keep the original three.
+        self.assertEqual(set(_get_entity_config()), {"student", "attendance", "classroom"})
+        cfg = _get_entity_config(include_derived=True)
         for e in ("academic_year", "term", "department"):
             self.assertIn(e, cfg)
         self.assertIn("academic_year_id", cfg["term"][1])  # remappable FK carried
@@ -63,7 +65,7 @@ class AcademicBackboneSyncTests(TestCase):
                 {"entity_type": "academic_year", "id": year.pk,
                  "changes": {"is_active": True}, "updated_at": self.future},
             ],
-            persist_conflicts=True,
+            persist_conflicts=True, sync_origin="edge-push",
         )
         self.assertEqual(out["success_count"], 2, out)
         term.refresh_from_db(); year.refresh_from_db()
@@ -81,7 +83,7 @@ class AcademicBackboneSyncTests(TestCase):
                          "start_date": "2099-09-01", "end_date": "2099-12-20"},
              "updated_at": self.future},
         ]
-        out = apply_edge_inserts(str(self.school.id), self.user, rows)
+        out = apply_edge_inserts(str(self.school.id), self.user, rows, sync_origin="edge-push")
         self.assertEqual(out["created"], 2, out)
         new_year = AcademicYear.objects.get(school=self.school, client_offline_id="box-ay")
         new_term = Term.objects.get(school=self.school, client_offline_id="box-term")

@@ -43,7 +43,9 @@ def build_edge_delta_bundle(school, *, since=None, entities=None, device_id="edg
     from apps.sync_engine.delta_bundle import export_delta_bundle
     from apps.sync_engine.models import _MISSING, sync_echo_updated_at_map
 
-    config = _get_entity_config()
+    # Building a delta bundle is always an EDGE sync operation (box push / operator
+    # serving a pull), so it uses the full two-way registry.
+    config = _get_entity_config(include_derived=True)
     want = {str(e).strip().lower() for e in (entities or []) if str(e).strip()}
     unknown = want - set(config)
     if unknown:
@@ -66,6 +68,13 @@ def build_edge_delta_bundle(school, *, since=None, entities=None, device_id="edg
         n = 0
         for instance in qs.order_by("updated_at").iterator():
             updated_at = getattr(instance, "updated_at", None)
+            # Advance the cursor over EVERY scanned row, including an echo we are about to
+            # skip. Otherwise, when the newest row in the window is a pure echo, high_water
+            # never reaches its timestamp, the cursor never advances past it, and every
+            # cycle re-scans and re-suppresses the same window (bounded churn, wasted work).
+            # A later GENUINE edit still ships: it gets a strictly greater updated_at.
+            if updated_at and (high_water is None or updated_at > high_water):
+                high_water = updated_at
             applied = echo.get(str(instance.pk), _MISSING)
             if applied is not _MISSING and applied == updated_at:
                 continue  # unchanged since sync wrote it → echo
@@ -81,8 +90,6 @@ def build_edge_delta_bundle(school, *, since=None, entities=None, device_id="edg
                     "updated_at": updated_at.isoformat() if updated_at else None,
                 }
             )
-            if updated_at and (high_water is None or updated_at > high_water):
-                high_water = updated_at
             n += 1
         if n:
             counts[entity_type] = n

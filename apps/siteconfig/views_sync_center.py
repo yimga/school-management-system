@@ -28,7 +28,12 @@ def _resolve_sync_conflict(conflict, resolution, resolved_by):
     if resolution == SyncConflict.Status.RESOLVED_CLIENT:
         from apps.api.sync_services import _get_entity_config
 
-        config = _get_entity_config()
+        # Resolving an edge-sync conflict is itself an edge-scoped operation, so it must
+        # use the FULL two-way registry — otherwise "keep client version" silently writes
+        # NOTHING for a derived entity (applicant/student_note/academic_year/term/department)
+        # while still stamping the record RESOLVED_CLIENT (the operator is told the client
+        # won but the server value is kept). See _get_entity_config(include_derived=...).
+        config = _get_entity_config(include_derived=True)
         if conflict.entity_type in config:
             model, allowed = config[conflict.entity_type]
             updates = {

@@ -179,7 +179,12 @@ class Department(models.Model):
         related_name="departments",
     )
     name = models.CharField(max_length=120)
-    code = models.CharField(max_length=30, unique=True)
+    # Per-SCHOOL unique, not globally unique. A globally-unique code cannot be
+    # bidirectionally synced on a shared cloud: a box creating a department whose code
+    # already exists for ANOTHER tenant would collide. Scoping uniqueness to (school, code)
+    # is a strict LOOSENING of the old global constraint (existing globally-unique rows all
+    # satisfy it), and every production lookup is already school-scoped. See Meta.constraints.
+    code = models.CharField(max_length=30)
     # Edge<->cloud bidirectional sync (Phase 3): change cursor + offline-insert anchor.
     updated_at = models.DateTimeField(auto_now=True, null=True)
     client_offline_id = models.CharField(max_length=128, blank=True, default="", db_index=True)
@@ -191,6 +196,10 @@ class Department(models.Model):
                 fields=["school", "client_offline_id"],
                 condition=~models.Q(client_offline_id=""),
                 name="uniq_department_school_offline_id",
+            ),
+            models.UniqueConstraint(
+                fields=["school", "code"],
+                name="uniq_department_school_code",
             ),
         ]
 

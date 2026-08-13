@@ -64,6 +64,14 @@ class ConflictDecisionUnitTests(SimpleTestCase):
         self.assertEqual(D("password", None, self.newer, self.now), "reject")  # alias
         self.assertEqual(D("tenant_lifecycle", "cloud-pull", self.newer, self.now), "reject")
 
+    def test_unregistered_entity_fails_closed_to_protected(self):
+        # An entity that is neither in POLICIES nor the explicit LWW-safe allowlist must
+        # NOT be treated as two-way LWW — it fails CLOSED to protected/cloud-authoritative,
+        # so a never-classified sensitive entity can't be silently overwritten by a box.
+        D = _conflict_decision
+        self.assertEqual(D("some_unclassified_entity", "edge-push", self.newer, self.now), "conflict")
+        self.assertEqual(D("some_unclassified_entity", "cloud-pull", self.older, self.now), "apply")
+
 
 class ConflictApplyIntegrationTests(TestCase):
     """The wiring end-to-end through apply_changes."""

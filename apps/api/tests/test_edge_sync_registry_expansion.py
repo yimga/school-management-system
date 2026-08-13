@@ -33,7 +33,7 @@ from apps.sync_engine.edge_outbox import build_edge_delta_bundle
 _SIGN_KEY = "registry-expansion-test-key"
 
 
-@override_settings(RMC_SYNC_BUNDLE_SIGNING_KEY=_SIGN_KEY, RMC_EDGE_SYNC_ENABLED=True)
+@override_settings(RMC_SYNC_BUNDLE_SIGNING_KEY=_SIGN_KEY)
 class SyncRegistryExpansionTests(TestCase):
     def setUp(self):
         uid = uuid.uuid4().hex[:8]
@@ -49,7 +49,10 @@ class SyncRegistryExpansionTests(TestCase):
         self.future = (timezone.now() + timezone.timedelta(minutes=10)).isoformat()
 
     def test_registry_lists_new_class_a_entities_without_changing_the_originals(self):
-        cfg = _get_entity_config()
+        # Online (non-edge) callers only ever get the original three.
+        self.assertEqual(set(_get_entity_config()), {"student", "attendance", "classroom"})
+        # Edge sync operations get the expanded set.
+        cfg = _get_entity_config(include_derived=True)
         self.assertIn("applicant", cfg)
         self.assertIn("student_note", cfg)
         # teacher is intentionally DEFERRED (compensation fields need Phase-4 policy).
@@ -75,7 +78,7 @@ class SyncRegistryExpansionTests(TestCase):
             self.user,
             [{"entity_type": "student_note", "id": note.pk,
               "changes": {"body": "Revised", "title": "Seen"}, "updated_at": self.future}],
-            persist_conflicts=True,
+            persist_conflicts=True, sync_origin="edge-push",
         )
         self.assertEqual(out["success_count"], 1, out)
         note.refresh_from_db()
@@ -91,7 +94,7 @@ class SyncRegistryExpansionTests(TestCase):
             self.user,
             [{"entity_type": "applicant", "id": app.pk,
               "changes": {"stage": "interview", "lead_source": "web"}, "updated_at": self.future}],
-            persist_conflicts=True,
+            persist_conflicts=True, sync_origin="edge-push",
         )
         self.assertEqual(out["success_count"], 1, out)
         app.refresh_from_db()
@@ -109,12 +112,35 @@ class SyncRegistryExpansionTests(TestCase):
              "changes": {"student_id": local_student_pk, "body": "Sticky", "kind": "note"},
              "updated_at": self.future},
         ]
-        out = apply_edge_inserts(str(self.school.id), self.user, rows)
+        out = apply_edge_inserts(str(self.school.id), self.user, rows, sync_origin="edge-push")
         self.assertEqual(out["created"], 2, out)
         new_student = StudentProfile.objects.get(school=self.school, client_offline_id="box-stu-n")
         note = StudentNote.objects.get(school=self.school, client_offline_id="box-note-n")
         self.assertEqual(note.student_id, new_student.pk)          # remapped to operator pk
         self.assertNotEqual(note.student_id, local_student_pk)      # NOT the box local pk
+
+    def test_edge_insert_update_bumps_updated_at_for_delta_visibility(self):
+        # An offline-created row re-synced with a change must bump updated_at, or the
+        # incremental delta cursor (filter(updated_at__gt=since)) never sees the edit.
+        apply_edge_inserts(
+            str(self.school.id), self.user,
+            [{"entity_type": "student_note", "id": 111, "client_offline_id": "note-u",
+              "changes": {"body": "first"}, "updated_at": self.future}],
+            sync_origin="edge-push",
+        )
+        note = StudentNote.objects.get(school=self.school, client_offline_id="note-u")
+        old = timezone.now() - timezone.timedelta(days=1)
+        StudentNote.objects.filter(pk=note.pk).update(updated_at=old)  # bypasses auto_now
+        out = apply_edge_inserts(
+            str(self.school.id), self.user,
+            [{"entity_type": "student_note", "id": 111, "client_offline_id": "note-u",
+              "changes": {"body": "second"}, "updated_at": self.future}],
+            sync_origin="edge-push",
+        )
+        self.assertEqual(out["updated"], 1, out)
+        note.refresh_from_db()
+        self.assertEqual(note.body, "second")
+        self.assertGreater(note.updated_at, old)  # bumped -> delta cursor will pick it up
 
     def test_echo_suppression_applies_to_new_entities(self):
         note = StudentNote.objects.create(school=self.school, body="Base", kind="note")

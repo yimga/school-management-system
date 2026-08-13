@@ -2904,7 +2904,10 @@ try:
         if resolution == SyncConflict.Status.RESOLVED_CLIENT:
             from apps.api.sync_services import _get_entity_config
 
-            config = _get_entity_config()
+            # Full two-way registry: resolving an edge-sync conflict is edge-scoped, so a
+            # derived entity's "keep client version" must actually write (not silently
+            # no-op while marking RESOLVED_CLIENT). Mirrors views_sync_center._resolve.
+            config = _get_entity_config(include_derived=True)
             if conflict.entity_type in config:
                 model, allowed = config[conflict.entity_type]
                 updates = {
