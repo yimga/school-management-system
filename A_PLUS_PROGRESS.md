@@ -1,8 +1,29 @@
 # A+ PROGRESS SCOREBOARD (A0 Coordinator)
 
-**Last refreshed:** 2026-08-13 (Claude Code · M29 6/6 gaps CLOSED · **M30 ISCED progression-spine foundation SHIPPED** `c8dfd5a19` — build program now executing the research cross-walk taskers one increment at a time)  
-**Loop:** Academic-year **close → open** (EOY rollover) → M29 ≈ 85 NO-GO · now building the M30–M33 / W21–W31 backlog (M30 foundation landed; **metric still NO-GO** — spine only)  
+**Last refreshed:** 2026-08-13 (Claude Code · M29 6/6 gaps CLOSED · **M30 ISCED spine** `c8dfd5a19` · **W22 graduation gate** `a47fc6e60` — executing the research cross-walk backlog one shipped+tested increment at a time)  
+**Loop:** Academic-year **close → open** (EOY rollover) → M29 ≈ 85 NO-GO · building M30–M33 / W21–W31 (M30 spine + W22 gate landed; **platform still NO-GO** — these are foundations/one-metric slices)  
 **Tree:** HEAD = `origin/main`
+
+---
+
+## W22 — Graduation requirements gate (extends M29 / M3) — SHIPPED — 2026-08-13
+
+**Commit `a47fc6e60`** (off-tree push, 6 paths; boundary gates green; **13/13 must-fire tests RUN green** — I built the keepdb myself and ran the suite; `check` clean; NO new migration).
+
+**Audit-by-running first (the loop):** a dedicated agent traced the actual graduation path and found the blunt truth — K-12 graduation was a **bare manual checkbox** (`RolloverProposalItem.is_graduate` → flip to ALUMNI + close enrollment at `apps/accounts/tasks.py:355`), with **zero** requirements concept. Meanwhile a full requirements engine (`apps/academics/degree_audit.py::run_degree_audit` — credits / prereqs / milestones / GPA) already existed but was **orphaned** (called only by its own tests, keyed to higher-ed `StudentDegreeEnrollment`). So W22 = *connect an existing engine to the decision*, not invent one.
+
+**What shipped (real + tested):**
+
+| Piece | Where | Note |
+|-------|-------|------|
+| Audit engine `audit_graduation_eligibility(student, year)` | `apps/academics/graduation_audit.py` (new) | higher-ed students **DELEGATE to the orphaned `run_degree_audit`** (now connected); K-12 → settings check |
+| K-12 requirements source | `School.settings["graduation_requirements"]` (migration-free JSON, mirrors `onboarding_waivers`) | optional `min_annual_average` / `required_subject_codes` / `min_subjects_passed`; **no hardcoding** — thresholds from config, average/pass reuse the canonical report-path helpers + the school's own grading-scale pass mark |
+| Hard gate + operator override, **both apply paths** | async `_apply_rollover_proposal_impl` (mirrors the outstanding-returns skip) + sync `rollover_year` | block+count an off-track graduate unless `override_graduation_gate`; result carries `graduation_blocked` + `blocked_graduates` (pks, PII-minimal) |
+| Operator-visible eligibility + override checkbox | `rollover_proposal_detail` view + template | per-graduate Eligible/Off-track table + reasons when APPROVED; `acknowledge_ineligible_graduates` checkbox (mirrors the backup-gate checkbox), shown only when someone is off-track |
+
+**Behaviour-preserving contract (proven by a regression test):** a school with **no** requirements configured → `requirements_configured=False` → `is_eligible=True` → the gate **never bites**, graduation proceeds exactly as before. It only bites once a school opts in (K-12 settings) or runs higher-ed degree programs.
+
+**Verdict: W22 tasker DELIVERED** (the off-track-flagging gate exists, is wired to the real decision on both paths, and is tested). Honest residuals for later increments: no in-product editor yet for the K-12 requirements (set via `School.settings` today); no cumulative multi-year GPA (per-year `annual_average` only — the codebase has no cross-year rollup); the sync `rollover_year.html` has no override *checkbox UI* yet (safe default there is skip-and-warn; the override UI lives on the proposal-detail flow). These are refinements, not safety holes — the gate fails safe (blocks) and the operator override is available on the primary flow.
 
 ---
 
