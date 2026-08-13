@@ -41,6 +41,7 @@ def build_edge_delta_bundle(school, *, since=None, entities=None, device_id="edg
     """
     from apps.api.sync_services import _get_entity_config  # SOT: (model, allowed fields)
     from apps.sync_engine.delta_bundle import export_delta_bundle
+    from apps.sync_engine.models import _MISSING, sync_echo_updated_at_map
 
     config = _get_entity_config()
     want = {str(e).strip().lower() for e in (entities or []) if str(e).strip()}
@@ -57,10 +58,18 @@ def build_edge_delta_bundle(school, *, since=None, entities=None, device_id="edg
         qs = model._default_manager.filter(school=school)  # school= is the tenant-isolation kwarg
         if since is not None:
             qs = qs.filter(updated_at__gt=since)
+        # Echo-suppression: a row whose current updated_at still equals what SYNC last
+        # wrote (recorded in the ledger) is a pure echo of an inbound apply — skip it so
+        # a pulled/pushed row never ping-pongs back. A later LOCAL edit moves updated_at
+        # off the recorded value, so genuine changes still ship. See SyncApplyLedger.
+        echo = sync_echo_updated_at_map(school, entity_type)
         n = 0
         for instance in qs.order_by("updated_at").iterator():
-            changes = {f: getattr(instance, f) for f in sorted(allowed) if hasattr(instance, f)}
             updated_at = getattr(instance, "updated_at", None)
+            applied = echo.get(str(instance.pk), _MISSING)
+            if applied is not _MISSING and applied == updated_at:
+                continue  # unchanged since sync wrote it → echo
+            changes = {f: getattr(instance, f) for f in sorted(allowed) if hasattr(instance, f)}
             rows.append(
                 {
                     "entity_type": entity_type,
@@ -194,11 +203,63 @@ def post_bundle(endpoint: str, token: str, data: bytes, *, timeout: float = 30.0
     return status, parsed
 
 
+# High-water response header the DOWNLOAD endpoint stamps so the box can advance its
+# pull cursor without re-parsing the bundle body. Row-count is informational.
+SYNC_HIGH_WATER_HEADER = "X-RMC-Sync-High-Water"
+SYNC_ROW_COUNT_HEADER = "X-RMC-Sync-Row-Count"
+
+
+def pull_bundle(endpoint: str, token: str, *, since=None, entities=None, timeout: float = 30.0):
+    """GET a signed delta bundle DOWN from the operator (cloud->box pull, box side).
+
+    The mirror of :func:`post_bundle`: the box calls OUT to the operator's download
+    endpoint with its machine credential and an optional ``since`` cursor, and the
+    operator streams back the bundle of rows changed since then. Returns
+    ``(status_code, body_bytes, high_water_iso)`` where ``high_water_iso`` is read from
+    the response header (``None`` if absent). A 4xx/5xx is a real HTTP RESPONSE
+    (returned, not raised) so the caller can tell "operator rejected" from "couldn't
+    reach the operator"; a connectivity failure (``URLError``/``OSError``, e.g. offline)
+    PROPAGATES so the caller leaves its cursor put and retries later.
+    """
+    from urllib.parse import urlencode
+
+    query = {}
+    if since:
+        query["since"] = since if isinstance(since, str) else since.isoformat()
+    ents = [str(e).strip().lower() for e in (entities or []) if str(e).strip()]
+    if ents:
+        query["entities"] = ",".join(ents)
+    url = endpoint + (("?" + urlencode(query)) if query else "")
+
+    req = urllib.request.Request(
+        url,
+        method="GET",
+        headers={"Authorization": f"Bearer {token}", "Accept": BUNDLE_CONTENT_TYPE},
+    )
+    high_water = None
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310 — operator URL, not user input
+            status = resp.getcode()
+            body = resp.read()
+            high_water = resp.headers.get(SYNC_HIGH_WATER_HEADER)
+    except urllib.error.HTTPError as exc:  # a response with a 4xx/5xx status, not a connectivity failure
+        status = exc.code
+        try:
+            body = exc.read()
+            high_water = exc.headers.get(SYNC_HIGH_WATER_HEADER) if exc.headers else None
+        except (OSError, AttributeError):
+            body = b""
+    return status, body, high_water
+
+
 __all__ = [
     "EDGE_SYNC_SCOPE",
     "BUNDLE_CONTENT_TYPE",
+    "SYNC_HIGH_WATER_HEADER",
+    "SYNC_ROW_COUNT_HEADER",
     "build_edge_delta_bundle",
     "mint_edge_credential",
     "resolve_edge_credential",
     "post_bundle",
+    "pull_bundle",
 ]

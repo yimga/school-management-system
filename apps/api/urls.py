@@ -94,7 +94,7 @@ from apps.api.proximity_attendance_api import ProximityAttendanceIngestAPI
 from apps.api.sync_delta_api import DeltaSyncAPI
 from apps.api.offline_device_api import OfflineTokenMintView
 from apps.api.iam_offline_api import OfflineIamIntentAPI, PermissionSnapshotAPI
-from apps.api.sync_bundle_api import SyncBundleUploadView
+from apps.api.sync_bundle_api import SyncBundleDownloadView, SyncBundleUploadView
 from apps.portal.views_command_bar import api_command_bar_search
 from apps.portal.views_ai_line import api_ai_line_interpret
 from apps.portal.views_admissions_intake import (
@@ -891,6 +891,11 @@ urlpatterns = [
         "sync/bundle/upload/",
         SyncBundleUploadView.as_view(),
         name="sync-bundle-upload",
+    ),
+    path(
+        "sync/bundle/download/",
+        SyncBundleDownloadView.as_view(),
+        name="sync-bundle-download",
     ),
     # Roadmap due-today implementations (ROADMAP_DUE_TODAY.md) — 16.x, 17.x, 29.x, 30/31, section_11, TENANT_MEDIA, gap ledger
     path(

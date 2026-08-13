@@ -101,8 +101,15 @@ def _serialize_instance_for_conflict(instance, entity_type, fields_subset):
     return data
 
 
-def apply_changes(school_id, user, items, *, persist_conflicts=True):
-    """Sentry-traced wrapper. Backs the `sync.conflict_pending` SLO."""
+def apply_changes(school_id, user, items, *, persist_conflicts=True, sync_origin=None):
+    """Sentry-traced wrapper. Backs the `sync.conflict_pending` SLO.
+
+    ``sync_origin`` (e.g. ``"cloud-pull"`` / ``"edge-push"``) marks that these writes
+    are part of edge<->cloud SYNC, not a local user edit — each applied row then records
+    an echo-suppression provenance marker so the reverse delta never ships it back
+    (see apps.sync_engine.models.SyncApplyLedger). ``None`` (the online DeltaSyncAPI
+    default) records nothing, so a genuine local edit still propagates.
+    """
     from apps.observability.tracing import (
         finish_transaction, set_transaction_status, start_named_transaction,
     )
@@ -113,7 +120,9 @@ def apply_changes(school_id, user, items, *, persist_conflicts=True):
         item_count=len(items) if items else 0,
     )
     try:
-        return _apply_changes_inner(school_id, user, items, persist_conflicts=persist_conflicts)
+        return _apply_changes_inner(
+            school_id, user, items, persist_conflicts=persist_conflicts, sync_origin=sync_origin
+        )
     except Exception:
         set_transaction_status(_txn, "internal_error")
         raise
@@ -121,7 +130,7 @@ def apply_changes(school_id, user, items, *, persist_conflicts=True):
         finish_transaction(_txn)
 
 
-def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True):
+def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync_origin=None):
     """
     Apply delta items for the given tenant (school). Sort by client timestamp;
     for each item: if server record exists and server.updated_at > client_updated_at
@@ -290,6 +299,11 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True):
             instance.save(update_fields=update_fields)
             success_count += 1
             new_updated_at = getattr(instance, "updated_at", None)
+            if sync_origin:
+                # Provenance marker so the reverse delta won't echo this sync-applied row.
+                from apps.sync_engine.models import record_sync_apply
+
+                record_sync_apply(school_id, entity_type, instance.pk, new_updated_at, sync_origin)
             results.append(
                 {
                     "index": idx,
@@ -363,7 +377,7 @@ def _settable_field_names(model) -> set:
     return names
 
 
-def apply_edge_inserts(school_id, user, rows):
+def apply_edge_inserts(school_id, user, rows, *, sync_origin=None):
     """Upsert offline-CREATED rows by ``(school, client_offline_id)`` — edge-only.
 
     The counterpart to :func:`apply_changes` (which is update-by-pk). Rows here were
@@ -490,6 +504,13 @@ def apply_edge_inserts(school_id, user, rows):
             created += 1
         else:
             updated += 1
+        if sync_origin:
+            # Provenance marker so the reverse delta won't echo this sync-applied insert.
+            from apps.sync_engine.models import record_sync_apply
+
+            record_sync_apply(
+                school_id, entity_type, obj.pk, getattr(obj, "updated_at", None), sync_origin
+            )
         data = {"id": obj.pk, "created": was_created}
         if dropped_fks:
             data["dropped_fks"] = dropped_fks  # links that pointed at an uncreated new row
