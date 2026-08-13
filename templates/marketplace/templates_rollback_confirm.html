@@ -9,21 +9,18 @@
 
 {% include "components/next_action_strip.html" %}
 
-<section class="rmc-template-rollback" data-page-marker="rmc-template-rollback" data-rmc-template-key="{{ template_key }}" data-rmc-width-strategy="full">
-  <header class="rmc-template-rollback__header">
-    <h1>{% blocktrans %}Rollback template — {{ template_key }}{% endblocktrans %}</h1>
-    <p class="rmc-template-rollback__subtitle">{% trans "Reverts the active template assignment and emits an audit event. Re-apply later if needed." %}</p>
-  </header>
+<section class="rmc-template-rollback" data-page-marker="rmc-template-rollback" data-rmc-template-key="{{ template_key }}" data-rmc-width-strategy="full" data-rmc-governed-outcome="template-rollback">
+  <div class="rmc-governed-hero"><header class="rmc-governed-hero__main"><p class="rmc-governed-eyebrow">{% trans "Protected recovery" %}</p><h1>{% blocktrans %}Rollback template — {{ template_key }}{% endblocktrans %}</h1><p class="rmc-governed-subtitle">{% trans "Restore the captured school settings and deactivate this assignment without deleting operational data." %}</p></header><aside class="rmc-governed-proof"><div class="rmc-governed-metric"><small>{% trans "Template" %}</small><strong>{{ template_key }}</strong></div><div class="rmc-governed-metric"><small>{% trans "Assignment" %}</small><strong>{% if assignment %}{% trans "Active" %}{% else %}{% trans "Not found" %}{% endif %}</strong></div><div class="rmc-governed-metric"><small>{% trans "Data deletion" %}</small><strong>{% trans "None" %}</strong></div><div class="rmc-governed-metric"><small>{% trans "Audit event" %}</small><strong>{% trans "Recorded" %}</strong></div></aside></div>
+  <div class="rmc-governed-layout"><section class="rmc-governed-panel"><h2>{% trans "Recovery impact" %}</h2><p class="rmc-governed-panel__hint">{% trans "A concise record of what this governed action will do." %}</p><dl class="rmc-governed-facts"><div class="rmc-governed-fact"><dt>{% trans "Active since" %}</dt><dd>{% if assignment %}{{ assignment.applied_at }}{% else %}—{% endif %}</dd></div><div class="rmc-governed-fact"><dt>{% trans "Future use" %}</dt><dd>{% trans "Can be applied again" %}</dd></div><div class="rmc-governed-fact rmc-governed-fact--wide"><dt>{% trans "Protection" %}</dt><dd>{% trans "Existing student, finance, HR, and school operational records remain intact." %}</dd></div></dl></section><aside class="rmc-governed-rail"><section class="rmc-governed-panel"><h2>{% trans "Complete rollback" %}</h2>
 
   {% if not assignment %}
-    <p class="rmc-template-rollback__empty">{% trans "No active assignment found for this template." %}</p>
+    <p class="rmc-template-rollback__empty">{% trans "No active assignment found for this template." %}</p><a class="rmc-governed-action" href="{% url 'template_marketplace:browse' %}">{% trans "Return to catalog" %}<span>&rarr;</span></a>
   {% elif not result %}
     <form method="post" class="rmc-template-rollback__form">
       {% csrf_token %}
       <input type="hidden" name="confirm" value="yes">
-      <p>{% blocktrans %}Active since {{ assignment.applied_at }}.{% endblocktrans %}</p>
-      <button type="submit" class="rmc-template-rollback__submit" data-rmc-confirm="{% trans 'Rollback this template assignment?' %}">{% trans "Confirm rollback" %}</button>
-      <a class="rmc-template-rollback__cancel" href="{% url 'template_marketplace:detail' template_key %}">{% trans "Cancel" %}</a>
+      <button type="submit" class="rmc-template-rollback__submit rmc-governed-action rmc-governed-action--danger" data-rmc-confirm="{% trans 'Rollback this template assignment?' %}">{% trans "Confirm rollback" %}<span>&#8630;</span></button>
+      <a class="rmc-template-rollback__cancel rmc-governed-action" href="{% url 'template_marketplace:detail' template_key %}">{% trans "Cancel" %}<span>&times;</span></a>
     </form>
   {% else %}
     <section class="rmc-template-rollback__result">
@@ -34,8 +31,9 @@
         <ul>{% for e in result.errors %}<li>{{ e }}</li>{% endfor %}</ul>
       </div>
       {% endif %}
-      <a class="rmc-template-rollback__action" href="{% url 'template_marketplace:browse' %}">{% trans "Back to catalog" %}</a>
+      <a class="rmc-template-rollback__action rmc-governed-action" href="{% url 'template_marketplace:browse' %}">{% trans "Back to catalog" %}<span>&rarr;</span></a>
     </section>
   {% endif %}
+  </section></aside></div>
 </section>
 {% endblock %}

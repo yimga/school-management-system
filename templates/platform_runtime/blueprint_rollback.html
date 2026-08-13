@@ -10,22 +10,21 @@
 
 {% include "components/next_action_strip.html" %}
 
-<section class="container-fluid py-3" data-rmc-blueprint-rollback="{{ installation.pk }}">
+<section class="container-fluid py-3" data-rmc-blueprint-rollback="{{ installation.pk }}" data-rmc-governed-outcome="blueprint-rollback">
   <header class="mb-4">
     <p class="small text-muted mb-1"><a href="{% url 'configuration:blueprint_installation_detail' installation.pk %}">{% trans "Installation detail" %}</a></p>
     <h1 class="h3 mb-2">{% trans "Rollback confirmation" %}</h1>
     <p class="text-muted mb-0">{% trans "Rollback restores the stored settings snapshot and deactivates package markers. It does not delete school operational data." %}</p>
   </header>
-  {% if result %}
-  <div data-rmc-scroll-policy="paginate" class="alert {% if result.ok %}alert-success{% else %}alert-warning{% endif %}"><pre class="mb-0">{{ result|pprint }}</pre></div>
-  {% endif %}
-  <div class="card border-0 shadow-sm"><div class="card-body">
-    <dl class="row small">
-      <dt class="col-sm-4">{% trans "Blueprint" %}</dt><dd class="col-sm-8">{{ installation.blueprint_key }}</dd>
-      <dt class="col-sm-4">{% trans_term "School" key="school" %}</dt><dd class="col-sm-8">{{ installation.school.name }}</dd>
-      <dt class="col-sm-4">{% trans "Status" %}</dt><dd class="col-sm-8">{{ installation.status }}</dd>
-    </dl>
+  {% if result %}<div role="status" class="rmc-governed-panel"><strong>{% if result.ok %}{% trans "Rollback completed successfully." %}{% else %}{% trans "Rollback needs attention." %}{% endif %}</strong>{% if result.errors %}<ul>{% for error in result.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}</div>{% endif %}
+  <div class="rmc-governed-layout"><div class="rmc-governed-panel">
+    <dl class="rmc-governed-facts">
+      <div class="rmc-governed-fact"><dt>{% trans "Blueprint" %}</dt><dd>{{ installation.blueprint_key }}</dd></div>
+      <div class="rmc-governed-fact"><dt>{% trans_term "School" key="school" %}</dt><dd>{{ installation.school.name }}</dd></div>
+      <div class="rmc-governed-fact"><dt>{% trans "Status" %}</dt><dd>{{ installation.status }}</dd></div>
+      <div class="rmc-governed-fact"><dt>{% trans "Operational data" %}</dt><dd>{% trans "Preserved" %}</dd></div>
+    </dl></div><aside class="rmc-governed-rail"><section class="rmc-governed-panel"><h2>{% trans "Protected rollback" %}</h2><p class="rmc-governed-panel__hint">{% trans "Restores the stored settings snapshot and deactivates package markers." %}</p>
     <form method="post">{% csrf_token %}<input type="hidden" name="confirm" value="yes"><button class="btn btn-danger btn-sm" type="submit" {% if installation.status != "applied" %}disabled{% endif %}>{% trans "Confirm rollback" %}</button></form>
-  </div></div>
+  </section></aside></div>
 </section>
 {% endblock %}

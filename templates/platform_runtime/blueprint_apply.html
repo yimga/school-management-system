@@ -9,24 +9,22 @@
 
 {% include "components/next_action_strip.html" %}
 
-<section class="container-fluid py-3" data-rmc-blueprint-apply="{{ preview.blueprint_key }}">
+<section class="container-fluid py-3" data-rmc-blueprint-apply="{{ preview.blueprint_key }}" data-rmc-governed-outcome="blueprint-apply">
   <header class="mb-4">
     <p class="small text-muted mb-1"><a href="{% url 'configuration:blueprint_preview' preview.blueprint_key %}{% if selected_school %}?school={{ selected_school.slug }}{% endif %}">{% trans "Preview" %}</a></p>
     <h1 class="h3 mb-2">{% trans "Apply confirmation" %}</h1>
     <p class="text-muted mb-0">{% trans "Apply requires a successful change set and explicit confirmation. High-risk changes require approval before rollout." %}</p>
   </header>
-  {% if result %}
-  <div data-rmc-scroll-policy="paginate" class="alert {% if result.ok %}alert-success{% else %}alert-warning{% endif %}"><pre class="mb-0">{{ result|pprint }}</pre></div>
-  {% endif %}
-  <div class="card border-0 shadow-sm"><div class="card-body">
-    <dl class="row small">
-      <dt class="col-sm-4">{% trans "Blueprint" %}</dt><dd class="col-sm-8">{{ preview.blueprint_name }}</dd>
-      <dt class="col-sm-4">{% trans "Tenant" %}</dt><dd class="col-sm-8">{{ preview.tenant_name }}</dd>
-      <dt class="col-sm-4">{% trans "Can apply" %}</dt><dd class="col-sm-8">{{ preview.can_apply|yesno:"yes,no" }}</dd>
-      <dt class="col-sm-4">{% trans "Risk" %}</dt><dd class="col-sm-8">{{ change_set.risk_level }}</dd>
-      <dt class="col-sm-4">{% trans "Approval required" %}</dt><dd class="col-sm-8">{{ change_set.requires_approval|yesno:"yes,no" }}</dd>
-      <dt class="col-sm-4">{% trans "External required" %}</dt><dd class="col-sm-8">{{ preview.external_required|join:", " }}</dd>
-    </dl>
+  {% if result %}<div role="status" class="rmc-governed-panel"><strong>{% if result.ok %}{% trans "Blueprint applied successfully." %}{% else %}{% trans "Blueprint application needs attention." %}{% endif %}</strong>{% if result.errors %}<ul>{% for error in result.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}</div>{% endif %}
+  <div class="rmc-governed-layout"><div class="rmc-governed-panel">
+    <dl class="rmc-governed-facts">
+      <div class="rmc-governed-fact"><dt>{% trans "Blueprint" %}</dt><dd>{{ preview.blueprint_name }}</dd></div>
+      <div class="rmc-governed-fact"><dt>{% trans "Tenant" %}</dt><dd>{{ preview.tenant_name }}</dd></div>
+      <div class="rmc-governed-fact"><dt>{% trans "Can apply" %}</dt><dd>{{ preview.can_apply|yesno:"yes,no" }}</dd></div>
+      <div class="rmc-governed-fact"><dt>{% trans "Risk" %}</dt><dd>{{ change_set.risk_level }}</dd></div>
+      <div class="rmc-governed-fact"><dt>{% trans "Approval required" %}</dt><dd>{{ change_set.requires_approval|yesno:"yes,no" }}</dd></div>
+      <div class="rmc-governed-fact"><dt>{% trans "External required" %}</dt><dd>{% if preview.external_required %}{{ preview.external_required|join:", " }}{% else %}{% trans "None" %}{% endif %}</dd></div>
+    </dl></div><aside class="rmc-governed-rail"><section class="rmc-governed-panel"><h2>{% trans "Complete rollout" %}</h2>
     <form method="post">
       {% csrf_token %}
       <input type="hidden" name="school" value="{{ selected_school.slug }}">
@@ -38,6 +36,6 @@
         <button class="btn btn-primary btn-sm" type="submit" {% if not change_set.can_apply %}disabled{% endif %}>{% trans "Confirm apply" %}</button>
       {% endif %}
     </form>
-  </div></div>
+  </section></aside></div>
 </section>
 {% endblock %}

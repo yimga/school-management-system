@@ -1,0 +1,42 @@
+/* Shared balanced grammar for governed preview, impact, apply, result and rollback surfaces. */
+[data-rmc-governed-outcome] { width:100%; min-width:0; padding:clamp(.9rem,2vw,1.5rem); color:var(--text-primary); }
+.rmc-governed-hero { display:grid; grid-template-columns:minmax(0,1.45fr) minmax(17rem,.55fr); gap:var(--space-4,1rem); margin-bottom:var(--space-4,1rem); }
+.rmc-governed-hero__main,.rmc-governed-proof,.rmc-governed-panel { min-width:0; border:1px solid var(--hairline); border-radius:var(--radius-lg,1rem); background:var(--surface-elevated); box-shadow:var(--elev-1); }
+.rmc-governed-hero__main { padding:clamp(1rem,2vw,1.5rem); background:linear-gradient(135deg,color-mix(in oklab,var(--status-success) 10%,transparent),transparent 58%),var(--surface-elevated); }
+.rmc-governed-eyebrow { margin:0 0 .3rem; color:var(--status-success-fg); font-size:var(--type-size-xs,.72rem); font-weight:800; letter-spacing:.1em; text-transform:uppercase; }
+.rmc-governed-hero h1 { margin:.25rem 0 .45rem; font-size:clamp(1.65rem,3vw,2.5rem); line-height:1.08; }
+.rmc-governed-subtitle { max-width:72ch; margin:0; color:var(--text-secondary); }
+.rmc-governed-state { display:inline-flex; align-items:center; gap:.4rem; margin-top:.85rem; padding:.35rem .65rem; border:1px solid var(--status-success-bg); border-radius:999px; background:var(--status-success-bg); color:var(--status-success-fg); font-weight:700; }
+.rmc-governed-state::before { content:""; width:.45rem; height:.45rem; border-radius:50%; background:var(--status-success); }
+.rmc-governed-proof { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.5rem; padding:.5rem; }
+.rmc-governed-metric,.rmc-governed-fact { min-width:0; padding:.8rem; border:1px solid var(--hairline); border-radius:var(--radius-md,.75rem); background:var(--surface-canvas); }
+.rmc-governed-metric small,.rmc-governed-metric strong,.rmc-governed-fact dt,.rmc-governed-fact dd { display:block; margin:0; }
+.rmc-governed-metric small,.rmc-governed-fact dt { color:var(--text-secondary); font-size:var(--type-size-xs,.7rem); font-weight:700; letter-spacing:.06em; text-transform:uppercase; }
+.rmc-governed-metric strong,.rmc-governed-fact dd { margin-top:.3rem; overflow-wrap:anywhere; }
+.rmc-governed-layout { display:grid; grid-template-columns:minmax(0,1.45fr) minmax(18rem,.55fr); gap:var(--space-4,1rem); align-items:start; }
+.rmc-governed-panel { padding:clamp(.9rem,1.5vw,1.2rem); }
+.rmc-governed-panel h2 { margin:0 0 .25rem; font-size:var(--type-size-lg,1.15rem); }
+.rmc-governed-panel__hint { margin:0 0 .9rem; color:var(--text-secondary); font-size:var(--type-size-sm,.82rem); }
+.rmc-governed-facts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.65rem; margin:0; }
+.rmc-governed-fact--wide { grid-column:1/-1; }
+.rmc-governed-chips { display:flex; flex-wrap:wrap; gap:.4rem; margin-top:.4rem; }
+.rmc-governed-chip { padding:.25rem .5rem; border:1px solid var(--hairline); border-radius:999px; background:var(--surface-overlay); font-size:var(--type-size-xs,.72rem); }
+.rmc-governed-rollback { display:grid; grid-template-columns:2rem minmax(0,1fr); gap:.65rem; align-items:start; }
+.rmc-governed-rollback__icon { display:grid; place-items:center; width:2rem; height:2rem; border-radius:.6rem; background:var(--status-success-bg); color:var(--status-success-fg); }
+.rmc-governed-rollback p { margin:.2rem 0 0; color:var(--text-secondary); font-size:var(--type-size-sm,.8rem); }
+.rmc-governed-rail { display:grid; gap:var(--space-4,1rem); }
+.rmc-governed-actions { display:grid; gap:.5rem; }
+.rmc-governed-action { display:flex; align-items:center; justify-content:space-between; min-height:2.65rem; padding:.65rem .75rem; border:1px solid var(--hairline); border-radius:.65rem; background:var(--surface-canvas); color:var(--text-primary); text-decoration:none; }
+.rmc-governed-action--primary { border-color:var(--brand-primary); background:var(--brand-primary); color:var(--text-on-brand); font-weight:750; }
+.rmc-governed-action--danger { color:var(--status-danger-fg); }
+.rmc-governed-checks { display:grid; gap:.5rem; }
+.rmc-governed-check { display:grid; grid-template-columns:1.8rem minmax(0,1fr) auto; gap:.55rem; align-items:center; padding:.6rem; border:1px solid var(--hairline); border-radius:.65rem; background:var(--surface-canvas); }
+.rmc-governed-check>i { display:grid; place-items:center; width:1.8rem; height:1.8rem; border-radius:.55rem; background:var(--status-info-bg); color:var(--status-info-fg); font-style:normal; }
+.rmc-governed-check small { display:block; color:var(--text-secondary); }
+.rmc-governed-check em { color:var(--status-success-fg); font-style:normal; font-size:var(--type-size-xs,.7rem); }
+.rmc-governed-more summary { padding:.45rem 0; color:var(--text-secondary); cursor:pointer; }
+[data-rmc-governed-outcome] pre { max-width:100%; overflow:auto; white-space:pre-wrap; overflow-wrap:anywhere; }
+@media(max-width:64rem){.rmc-governed-hero,.rmc-governed-layout{grid-template-columns:1fr}.rmc-governed-proof{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:40rem){[data-rmc-governed-outcome]{padding:.65rem}.rmc-governed-proof,.rmc-governed-facts{grid-template-columns:1fr 1fr}.rmc-governed-fact--wide{grid-column:1/-1}}
+@media(max-width:28rem){.rmc-governed-proof,.rmc-governed-facts{grid-template-columns:1fr}.rmc-governed-fact--wide{grid-column:auto}}
+@media(prefers-reduced-motion:reduce){[data-rmc-governed-outcome] *{transition-duration:.01ms!important}}

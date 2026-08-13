@@ -9,8 +9,8 @@
 
 {% include "components/next_action_strip.html" %}
 
-<section class="rmc-template-customize" data-page-marker="rmc-template-customize" data-rmc-template-key="{{ template_key }}" data-rmc-width-strategy="full">
-  <header class="rmc-template-customize__header">
+<section class="rmc-template-customize" data-page-marker="rmc-template-customize" data-rmc-template-key="{{ template_key }}" data-rmc-width-strategy="full" data-rmc-governed-outcome="template-customize">
+  <header class="rmc-template-customize__header rmc-governed-hero__main">
     <h1>{% blocktrans %}Customize template — {{ template_key }}{% endblocktrans %}</h1>
     <p class="rmc-template-customize__subtitle">{% trans "Edit the customizations JSON. Allowed keys (within policy): brand colors, logo, typography density, card style, dashboard blocks, role visibility, default landing route, compact vs rich mode." %}</p>
   </header>
@@ -24,13 +24,12 @@
     {% if error %}
       <p class="rmc-template-customize__error">{% trans "Could not save:" %} {{ error }}</p>
     {% endif %}
-    <form method="post" class="rmc-template-customize__form">
+    <div class="rmc-governed-layout"><form method="post" class="rmc-template-customize__form rmc-governed-panel">
       {% csrf_token %}
       <label for="rmc-tpl-customizations">{% trans "Customizations JSON" %}</label>
       <textarea id="rmc-tpl-customizations" name="customizations_json" rows="14" class="rmc-template-customize__textarea" spellcheck="false">{{ assignment.customizations|safe }}</textarea>
-      <button type="submit" class="rmc-template-customize__submit">{% trans "Save customizations" %}</button>
-      <a class="rmc-template-customize__cancel" href="{% url 'template_marketplace:detail' template_key %}">{% trans "Cancel" %}</a>
-    </form>
+      <div class="rmc-governed-actions"><button type="submit" class="rmc-template-customize__submit rmc-governed-action rmc-governed-action--primary">{% trans "Save customizations" %}<span>&rarr;</span></button><a class="rmc-template-customize__cancel rmc-governed-action" href="{% url 'template_marketplace:detail' template_key %}">{% trans "Cancel" %}<span>&times;</span></a></div>
+    </form><aside class="rmc-governed-rail"><section class="rmc-governed-panel"><h2>{% trans "Safe customization boundary" %}</h2><p class="rmc-governed-panel__hint">{% trans "Only presentation and role-experience settings are accepted. Operational records are not changed." %}</p><div class="rmc-governed-chips"><span class="rmc-governed-chip">{% trans "Brand" %}</span><span class="rmc-governed-chip">{% trans "Density" %}</span><span class="rmc-governed-chip">{% trans "Dashboard blocks" %}</span><span class="rmc-governed-chip">{% trans "Role visibility" %}</span><span class="rmc-governed-chip">{% trans "Landing route" %}</span></div></section></aside></div>
   {% endif %}
 </section>
 {% endblock %}

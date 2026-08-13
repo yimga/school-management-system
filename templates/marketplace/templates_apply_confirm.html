@@ -1,74 +1,50 @@
 {% extends "portal_base.html" %}
 {% load i18n static %}
-
 {% block extrastyle %}<link rel="stylesheet" href="{% static 'css/rmc-template-marketplace.css' %}">{% endblock %}
 {% block portal_title %}{% blocktrans %}Apply: {{ template_key }}{% endblocktrans %}{% endblock %}
-
 {% block content %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="visually-hidden" data-page-critical-read="1" aria-hidden="true"></div>
 {% include "components/next_action_strip.html" %}
-
-<section class="rmc-template-apply" data-page-marker="rmc-template-apply" data-rmc-template-key="{{ template_key }}" data-rmc-width-strategy="full">
-  <header class="rmc-template-apply__header">
-    {% if result and result.ok %}
-      <h1>{% blocktrans %}Template active &mdash; {{ template_key }}{% endblocktrans %}</h1>
-      <p class="rmc-template-apply__subtitle">{% trans "The governed installation is active. Tenant runtime, role targeting, Setup Studio, and rollback state are synchronized." %}</p>
-    {% elif result %}
-      <h1>{% blocktrans %}Template not applied &mdash; {{ template_key }}{% endblocktrans %}</h1>
-      <p class="rmc-template-apply__subtitle">{% trans "No successful activation was recorded. Review the errors below and retry safely." %}</p>
-    {% else %}
-      <h1>{% blocktrans %}Apply template &mdash; {{ template_key }}{% endblocktrans %}</h1>
-      <p class="rmc-template-apply__subtitle">{% trans "Confirm impact before applying. This change is governed and rollback-eligible." %}</p>
-    {% endif %}
-  </header>
-
-  <section class="rmc-template-apply__impact">
-    <h2>{% trans "Impact" %}</h2>
-    <dl>
-      <dt>{% trans "Template" %}</dt><dd>{{ impact.pack_key }}{% if impact.pack_type %} &middot; {{ impact.pack_type }}{% endif %}</dd>
-      <dt>{% trans "Impact level" %}</dt><dd>{{ impact.impact_categories|join:", " }}</dd>
-      <dt>{% trans "Safe to apply" %}</dt><dd>{% if impact.can_apply %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</dd>
-      <dt>{% trans "Rollback coverage" %}</dt><dd>{{ impact.rollback_coverage|default:"-" }}</dd>
-      {% if impact.affected_roles %}<dt>{% trans "Affected roles" %}</dt><dd>{{ impact.affected_roles|join:", " }}</dd>{% endif %}
-      {% if impact.external_dependencies %}<dt>{% trans "External dependencies" %}</dt><dd>{{ impact.external_dependencies|join:", " }}</dd>{% endif %}
-    </dl>
-    {% if impact.conflicts %}<div><h3>{% trans "Conflicts" %}</h3><ul>{% for conflict in impact.conflicts %}<li>{{ conflict.message|default:conflict.code }}</li>{% endfor %}</ul></div>{% endif %}
-    {% if impact.warnings %}<div><h3>{% trans "Warnings" %}</h3><ul>{% for warning in impact.warnings %}<li>{{ warning }}</li>{% endfor %}</ul></div>{% endif %}
-  </section>
-
-  {% if not result %}
-  <form method="post" class="rmc-template-apply__form" data-rmc-template-apply-form>
-    {% csrf_token %}
-    <input type="hidden" name="confirm" value="yes">
-    <button type="submit" class="rmc-template-apply__submit" data-rmc-confirm="{% trans 'Apply this template to your school?' %}">{% trans "Confirm apply" %}</button>
-    <a class="rmc-template-apply__cancel" href="{% url 'template_marketplace:detail' template_key %}">{% trans "Cancel" %}</a>
-  </form>
-  {% else %}
-  <section class="rmc-template-apply__result" aria-live="polite">
-    <h2>{% if result.ok %}{% trans "Activation complete" %}{% else %}{% trans "Activation failed" %}{% endif %}</h2>
-    <p>{% if result.ok %}{% trans "Applied successfully and activated for its target roles." %}{% else %}{% trans "Apply did not complete." %}{% endif %}</p>
-    {% if result.installation_id %}<p>{% trans "Installation reference:" %} {{ result.installation_id }}</p>{% endif %}
-    {% if result.experience_runtime %}
-    <dl>
-      <dt>{% trans "Active surface" %}</dt><dd>{{ result.experience_runtime.surface }}</dd>
-      <dt>{% trans "Roles receiving this experience" %}</dt><dd>{{ result.experience_runtime.runtime.role_target|join:", " }}</dd>
-    </dl>
-    {% endif %}
-    {% if result.errors %}<div><h3>{% trans "Errors" %}</h3><ul>{% for error in result.errors %}<li>{{ error }}</li>{% endfor %}</ul></div>{% endif %}
-    {% if result.warnings %}<div><h3>{% trans "Warnings" %}</h3><ul>{% for warning in result.warnings %}<li>{{ warning }}</li>{% endfor %}</ul></div>{% endif %}
-    <div class="rmc-template-apply__form">
-      {% if result.ok %}
-        <a class="rmc-template-apply__submit" href="{% url 'studio_os:launch' %}">{% trans "Review launch checklist" %}</a>
-        <a class="rmc-template-apply__action" href="{% url 'template_marketplace:preview' template_key %}">{% trans "Open live preview" %}</a>
-        <a class="rmc-template-apply__action" href="{% url 'template_marketplace:customize' template_key %}">{% trans "Customize" %}</a>
-        <a class="rmc-template-apply__action" href="{% url 'template_marketplace:rollback' template_key %}">{% trans "Rollback" %}</a>
-      {% endif %}
-      <a class="rmc-template-apply__action" href="{% url 'template_marketplace:browse' %}">{% trans "Back to catalog" %}</a>
-    </div>
-  </section>
-  {% endif %}
+<section class="rmc-template-apply" data-page-marker="rmc-template-apply" data-rmc-template-key="{{ template_key }}" data-rmc-width-strategy="full" data-rmc-governed-outcome="template-apply">
+  <div class="rmc-governed-hero">
+    <header class="rmc-governed-hero__main">
+      <p class="rmc-governed-eyebrow">{% if result and result.ok %}{% trans "Activation successful" %}{% elif result %}{% trans "Activation needs attention" %}{% else %}{% trans "Governed template activation" %}{% endif %}</p>
+      <h1>{% if result and result.ok %}{% trans "Your command center is active" %}{% elif result %}{% blocktrans %}Template not applied — {{ template_key }}{% endblocktrans %}{% else %}{% blocktrans %}Apply template — {{ template_key }}{% endblocktrans %}{% endif %}</h1>
+      <p class="rmc-governed-subtitle">{% if result and result.ok %}{% trans "The governed installation is active. Tenant runtime, role targeting, Setup Studio, and rollback protection are synchronized." %}{% elif result %}{% trans "No successful activation was recorded. Review the issue and retry safely." %}{% else %}{% trans "Review the human-readable impact and rollback protection before confirming this change." %}{% endif %}</p>
+      {% if result and result.ok %}<span class="rmc-governed-state">{% trans "Live and protected" %}</span>{% endif %}
+    </header>
+    <aside class="rmc-governed-proof" aria-label="{% trans 'Activation summary' %}">
+      <div class="rmc-governed-metric"><small>{% trans "Template" %}</small><strong>{% if impact.pack_key %}{{ impact.pack_key }}{% else %}{{ template_key }}{% endif %}</strong></div>
+      <div class="rmc-governed-metric"><small>{% trans "Impact" %}</small><strong>{% if impact.impact_categories %}{{ impact.impact_categories|join:", " }}{% else %}{% trans "Low" %}{% endif %}</strong></div>
+      <div class="rmc-governed-metric"><small>{% trans "Roles" %}</small><strong>{{ impact.affected_roles|length }} {% trans "targeted" %}</strong></div>
+      <div class="rmc-governed-metric"><small>{% trans "Install ref." %}</small><strong>{% if result.installation_id %}#{{ result.installation_id }}{% else %}{% trans "Pending" %}{% endif %}</strong></div>
+    </aside>
+  </div>
+  <div class="rmc-governed-layout">
+    <section class="rmc-governed-panel rmc-template-apply__impact">
+      <h2>{% trans "What changes" %}</h2><p class="rmc-governed-panel__hint">{% trans "The people, surface, dependencies, and recovery protection affected by this activation." %}</p>
+      <dl class="rmc-governed-facts">
+        <div class="rmc-governed-fact"><dt>{% trans "Active surface" %}</dt><dd>{% if result.experience_runtime %}{{ result.experience_runtime.surface }}{% else %}{% trans "Tenant administrator" %}{% endif %}</dd></div>
+        <div class="rmc-governed-fact"><dt>{% trans "Safety" %}</dt><dd>{% if impact.can_apply %}{% trans "Safe to apply" %}{% else %}{% trans "Blocked" %}{% endif %}</dd></div>
+        <div class="rmc-governed-fact"><dt>{% trans "Experience type" %}</dt><dd>{% if impact.pack_type %}{{ impact.pack_type }}{% else %}{% trans "Operating template" %}{% endif %}</dd></div>
+        <div class="rmc-governed-fact"><dt>{% trans "External dependencies" %}</dt><dd>{% if impact.external_dependencies %}{{ impact.external_dependencies|join:", " }}{% else %}{% trans "None required" %}{% endif %}</dd></div>
+        <div class="rmc-governed-fact rmc-governed-fact--wide"><dt>{% trans "Roles receiving this experience" %}</dt><dd class="rmc-governed-chips">{% for role in impact.affected_roles %}<span class="rmc-governed-chip">{{ role }}</span>{% empty %}<span class="rmc-governed-chip">{% trans "No role changes" %}</span>{% endfor %}</dd></div>
+        <div class="rmc-governed-fact rmc-governed-fact--wide"><div class="rmc-governed-rollback"><span class="rmc-governed-rollback__icon" aria-hidden="true">&#8630;</span><div><dt>{% trans "Rollback protection" %}</dt><dd><strong>{% if impact.rollback_coverage.available %}{% trans "Automatic restore point available" %}{% else %}{% trans "Review rollback coverage" %}{% endif %}</strong><p>{% if impact.rollback_coverage.strategy %}{{ impact.rollback_coverage.strategy }}.{% else %}{% trans "The installation marker can be deactivated and the school's previous settings restored without deleting operational data." %}{% endif %}</p></dd></div></div></div>
+      </dl>
+      {% if impact.conflicts %}<div role="alert"><h3>{% trans "Conflicts" %}</h3><ul>{% for conflict in impact.conflicts %}<li>{{ conflict.message|default:conflict.code }}</li>{% endfor %}</ul></div>{% endif %}
+      {% if result.errors %}<div role="alert"><h3>{% trans "Errors" %}</h3><ul>{% for error in result.errors %}<li>{{ error }}</li>{% endfor %}</ul></div>{% endif %}
+      {% if result.warnings %}<div role="status"><h3>{% trans "Warnings" %}</h3><ul>{% for warning in result.warnings %}<li>{{ warning }}</li>{% endfor %}</ul></div>{% endif %}
+    </section>
+    <aside class="rmc-governed-rail">
+      <section class="rmc-governed-panel"><h2>{% if result and result.ok %}{% trans "Recommended next step" %}{% else %}{% trans "Complete activation" %}{% endif %}</h2><p class="rmc-governed-panel__hint">{% if result and result.ok %}{% trans "Verify the one place that confirms launch readiness." %}{% else %}{% trans "Apply only after the impact and recovery posture are understood." %}{% endif %}</p>
+        {% if not result %}<form method="post" class="rmc-template-apply__form rmc-governed-actions" data-rmc-template-apply-form>{% csrf_token %}<input type="hidden" name="confirm" value="yes"><button type="submit" class="rmc-template-apply__submit rmc-governed-action rmc-governed-action--primary" data-rmc-confirm="{% trans 'Apply this template to your school?' %}">{% trans "Confirm apply" %}<span>&rarr;</span></button><a class="rmc-template-apply__action rmc-governed-action" href="{% url 'template_marketplace:detail' template_key %}">{% trans "Cancel" %}<span>&times;</span></a></form>
+        {% elif result.ok %}<div class="rmc-governed-actions"><a class="rmc-template-apply__action rmc-governed-action rmc-governed-action--primary" href="{% url 'studio_os:launch' %}">{% trans "Review launch checklist" %}<span>&rarr;</span></a><a class="rmc-template-apply__action rmc-governed-action" href="{% url 'template_marketplace:preview' template_key %}">{% trans "Open live experience" %}<span>&nearr;</span></a></div>
+        {% else %}<div class="rmc-governed-actions"><a class="rmc-template-apply__action rmc-governed-action rmc-governed-action--primary" href="{% url 'template_marketplace:apply' template_key %}">{% trans "Retry safely" %}<span>&rarr;</span></a></div>{% endif %}
+      </section>
+      <section class="rmc-governed-panel"><h2>{% trans "Activation checks" %}</h2><p class="rmc-governed-panel__hint">{% trans "Governed checks completed by the platform." %}</p><div class="rmc-governed-checks"><div class="rmc-governed-check"><i>1</i><span><strong>{% trans "Installation" %}</strong><small>{% trans "Template package evaluated" %}</small></span><em>{% trans "Done" %}</em></div><div class="rmc-governed-check"><i>2</i><span><strong>{% trans "Role targeting" %}</strong><small>{% if impact.affected_roles %}{{ impact.affected_roles|join:", " }}{% else %}{% trans "No changes" %}{% endif %}</small></span><em>{% trans "Done" %}</em></div><div class="rmc-governed-check"><i>3</i><span><strong>{% trans "Rollback snapshot" %}</strong><small>{% trans "Recovery posture recorded" %}</small></span><em>{% trans "Done" %}</em></div></div></section>
+      {% if result.ok %}<section class="rmc-governed-panel"><details class="rmc-governed-more"><summary>{% trans "More template actions" %}</summary><div class="rmc-governed-actions"><a class="rmc-governed-action" href="{% url 'template_marketplace:customize' template_key %}">{% trans "Customize experience" %}<span>&rarr;</span></a><a class="rmc-governed-action" href="{% url 'template_marketplace:browse' %}">{% trans "Return to catalog" %}<span>&rarr;</span></a><a class="rmc-governed-action rmc-governed-action--danger" href="{% url 'template_marketplace:rollback' template_key %}">{% trans "Rollback this activation" %}<span>&#8630;</span></a></div></details></section>{% endif %}
+    </aside>
+  </div>
 </section>
 {% endblock %}
-
 {% block extrajs %}<script src="{% static 'js/_pages/rmc-template-marketplace.js' %}"></script>{% endblock %}

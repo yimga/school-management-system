@@ -4,6 +4,7 @@
 {% block title %}{% block cp_title %}{{ rmc_shell.control_plane_product_title|default:"RunMyCampus Manager" }}{% endblock %}{% endblock %}
 
 {% block extrastyle %}{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/rmc-governed-outcome.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-premium-os.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-premium-polish.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-operational-center-frame.css' %}">
