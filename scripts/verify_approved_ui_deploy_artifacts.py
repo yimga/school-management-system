@@ -16,6 +16,7 @@ ASSETS = (
     "js/rmc-operator-admin-sidebar-v2.js",
     "css/rmc-user-account-center.css",
     "js/rmc-user-account-center.js",
+    "css/rmc-tenant-dashboard-balance.css",
 )
 
 
@@ -47,7 +48,7 @@ def verify_source(failures: list[str]) -> None:
         failures.append("canonical user dropdown does not mount Account Center")
     if 'include "components/user_dropdown.html"' not in admin_bridge:
         failures.append("tenant admin does not mount canonical user dropdown")
-    if "sms-v4.06.38-account-center-viewport-safe" not in sw:
+    if "sms-v4.06.39-approved-dashboard-sidebar-parity" not in sw:
         failures.append("service-worker cache version was not advanced for approved UI")
     if "rmc-service-worker-registration.js" not in base or "rmc-service-worker-url" not in base:
         failures.append("admin shell cannot update a root-scope service worker")

@@ -1,34 +1,13 @@
 {% load i18n %}
-{% comment %}
-  Operator identity strip — admin v1 200x preview parity (manager /admin/ only).
-  PII-safe: uses actor_display when present; never renders raw email.
-{% endcomment %}
-{% if request.user.is_authenticated %}
-<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="cp-sidebar__identity" data-rmc-sidebar-identity="1">
-  <div class="cp-sidebar__user">
-    <div class="cp-sidebar__avatar" aria-hidden="true">
-      {% if actor_display and actor_display.initials %}
-        {{ actor_display.initials }}
-      {% elif request.user.first_name %}
-        {{ request.user.first_name|slice:":1"|upper }}{{ request.user.last_name|slice:":1"|upper }}
-      {% else %}
-        {{ request.user.username|slice:":2"|upper }}
-      {% endif %}
-    </div>
-    <div class="cp-sidebar__user-meta">
-      <strong>{% if actor_display and actor_display.label %}{{ actor_display.label }}{% else %}{{ request.user.get_full_name|default:request.user.username }}{% endif %}</strong>
-      <span>{% if actor_display and actor_display.role_label %}{{ actor_display.role_label }}{% else %}{% trans "Platform operator" %}{% endif %}</span>
-      <a href="{% url 'accounts:user_profile' %}">{% trans "Profile & security" %} ↗</a>
-    </div>
-  </div>
-  {% if request.public_host_kind == 'manager' %}
+{% comment %}Operator scope/connectivity context only. Personal identity, profile,
+security and logout are owned exclusively by the canonical header Account Center.{% endcomment %}
+{% if request.user.is_authenticated and request.public_host_kind == 'manager' %}
+<div class="cp-sidebar__identity cp-sidebar__workspace-context" data-rmc-sidebar-workspace-context="1">
   <div class="cp-sidebar__scope" role="status">
-    <span>{{ cockpit.workspace_context.scope_label|default:_("All tenants · Global") }}</span>
+    <span>{{ cockpit.workspace_context.scope_label|default:_('All tenants · Global') }}</span>
     <span class="cp-sidebar__connection" data-operator-connection-status>
       <i aria-hidden="true"></i><span data-operator-connection-label>{% trans "Local ready" %}</span>
     </span>
   </div>
-  {% endif %}
 </div>
 {% endif %}

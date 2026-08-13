@@ -15,6 +15,15 @@
      data-rmc-sidebar-luxury="10x"
      data-rmc-operator-admin-sidebar-v2="1">
   {% include "partials/cp_sidebar_operator_identity.html" %}
+  <div class="cp-sidebar__operator-search" role="search">
+    <label for="rmcOperatorAdminNavSearch">{% trans "Find an operator tool or record type" %}</label>
+    <div class="cp-sidebar__operator-search-control">
+      <i class="bi bi-search" aria-hidden="true"></i>
+      <input id="rmcOperatorAdminNavSearch" type="search" autocomplete="off" spellcheck="false" placeholder="{% trans 'Search operator navigation…' %}" aria-controls="cp-admin-sidebar-apps" aria-describedby="rmcOperatorAdminNavSearchStatus">
+      <kbd aria-hidden="true">/</kbd>
+    </div>
+    <p id="rmcOperatorAdminNavSearchStatus" aria-live="polite"></p>
+  </div>
   <div class="cp-nav-recent" data-operator-recent-wrap hidden>
     <div class="cp-sidebar__section cp-sidebar__section--utility">
       <span>{% trans "Recent work" %}</span>

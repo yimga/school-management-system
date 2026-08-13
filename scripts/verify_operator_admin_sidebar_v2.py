@@ -20,18 +20,25 @@ def main() -> int:
         "smart navigation": (nav, 'data-rmc-smart-sidebar="1"'),
         "quick access render": (nav, "PINNED_CONTROL_PLANE_ITEMS"),
         "recent work": (nav, "data-operator-recent-wrap"),
+        "workspace context": (identity, 'data-rmc-sidebar-workspace-context="1"'),
         "local status": (identity, "data-operator-connection-status"),
+        "operator search": (nav, "rmcOperatorAdminNavSearch"),
         "operator CSS scope": (css, "body.admin-manager-shell"),
         "operator JS scope": (js, 'classList.contains("admin-manager-shell")'),
         "safe storage": (js, "try { localStorage"),
         "offline handling": (js, 'addEventListener("offline"'),
         "pin persistence": (js, "control_plane_pinned_items"),
+        "keyboard navigation": (js, "function focusables"),
+        "slash shortcut": (js, 'event.key === "/"'),
     }
     failures = [
         f"missing {label}: {token}"
         for label, (body, token) in required.items()
         if token not in body
     ]
+    for forbidden in ("request.user.get_full_name", "request.user.username", "accounts:user_profile", "data-rmc-sidebar-identity"):
+        if forbidden in identity:
+            failures.append(f"operator sidebar duplicates header-owned identity: {forbidden}")
     if failures:
         print("OPERATOR_ADMIN_SIDEBAR_V2_FAIL")
         for failure in failures:

@@ -1,7 +1,7 @@
 {
   "pass": true,
   "expected_cache_bust": "20260813-admin-production-v18",
-  "expected_sw": "sms-v4.06.38-account-center-viewport-safe-2026-08-13",
+  "expected_sw": "sms-v4.06.39-approved-dashboard-sidebar-parity-2026-08-13",
   "content_pages": 11,
   "findings": []
 }

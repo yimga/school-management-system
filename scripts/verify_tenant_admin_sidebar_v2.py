@@ -34,6 +34,8 @@ def main() -> int:
             failures.append(f"missing {label}: {token}")
     if "is_manager_host" not in base or "rmc-tenant-admin-sidebar-v2.js" not in base:
         failures.append("sidebar assets are not host-gated")
+    if 'include "unfold/helpers/navigation_user.html"' in inner:
+        failures.append("tenant admin sidebar duplicates the header Account Center")
     if failures:
         print("TENANT_ADMIN_SIDEBAR_V2_FAIL")
         for failure in failures:

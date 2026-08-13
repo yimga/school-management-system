@@ -10,6 +10,30 @@
     catch (_error) { return []; }
   }
   function writeRecent(value) { try { localStorage.setItem(recentKey, JSON.stringify(value)); } catch (_error) { /* optional */ } }
+  function normalized(value) { return String(value || "").replace(/\s+/g, " ").trim(); }
+  function matchesQuery(label, query) {
+    var haystack=normalized(label).toLocaleLowerCase();
+    return query.split(/\s+/).every(function (term) {
+      if (haystack.includes(term)) return true;
+      if (term.endsWith("y") && haystack.includes(term.slice(0,-1) + "i")) return true;
+      if (term.endsWith("s") && haystack.includes(term.slice(0,-1))) return true;
+      return false;
+    });
+  }
+  function focusables() { return Array.prototype.filter.call(root.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),[tabindex="0"]'), function (node) { return node.offsetParent !== null && !node.closest('[data-operator-search-hidden="1"]'); }); }
+  function filterNavigation(query) {
+    var value=normalized(query).toLocaleLowerCase(), matches=0;
+    root.querySelectorAll("a.cp-sidebar__item, a.cp-sidebar__recent-item").forEach(function (link) {
+      var hit=!value || matchesQuery(link.textContent,value);
+      link.toggleAttribute("data-operator-search-hidden",!hit);
+      if (value && hit) matches++;
+    });
+    root.querySelectorAll(".cp-sidebar__group").forEach(function (group) {
+      group.toggleAttribute("data-operator-search-hidden",!!value && !group.querySelector('a:not([data-operator-search-hidden="1"])'));
+    });
+    var status=root.querySelector("#rmcOperatorAdminNavSearchStatus");
+    if (status) status.textContent=value ? (matches === 1 ? "1 matching destination" : matches + " matching destinations") : "";
+  }
   function currentEntry() {
     var current = root.querySelector('a.cp-sidebar__item[aria-current="page"], a.cp-sidebar__item--current');
     if (!current) return null;
@@ -66,6 +90,22 @@
     });
   }
   var clear=root.querySelector("[data-operator-recent-clear]"); if (clear) clear.addEventListener("click",function () { writeRecent([]); renderRecent(); });
+  var search=root.querySelector("#rmcOperatorAdminNavSearch");
+  if (search) {
+    search.addEventListener("input",function () { filterNavigation(search.value); });
+    document.addEventListener("keydown",function (event) {
+      if (event.key === "/" && !event.ctrlKey && !event.metaKey && !event.altKey && !/input|textarea|select/i.test(event.target.tagName)) { event.preventDefault(); search.focus(); }
+    });
+  }
+  root.addEventListener("keydown",function (event) {
+    if (event.altKey || event.ctrlKey || event.metaKey) return;
+    var nodes=focusables(), index=nodes.indexOf(event.target), next;
+    if (event.key === "ArrowDown") next=nodes[Math.min(nodes.length-1,index+1)];
+    else if (event.key === "ArrowUp") next=nodes[Math.max(0,index-1)];
+    else if (event.key === "Home") next=nodes[0];
+    else if (event.key === "End") next=nodes[nodes.length-1];
+    if (next) { event.preventDefault(); next.focus(); }
+  });
   window.addEventListener("online",updateConnection); window.addEventListener("offline",updateConnection);
   renderRecent(); rememberCurrent(); updateConnection(); bindPins();
 })();
