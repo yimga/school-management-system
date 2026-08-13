@@ -131,6 +131,28 @@ CANONICAL_ONTOLOGY: dict[str, dict[str, dict]] = {
             },
             sensitivity="pii",
         ),
+        "full_name": _field(
+            description=(
+                "Combined full name in ONE column (the common export shape in "
+                "African / French-model SIS: 'ACHU DECLAN ANDOH', 'Ada Lovelace', "
+                "'Lovelace, Ada'). Split into first/middle/last at apply time when "
+                "the source has no separate given/family columns — so a single-"
+                "column roster is not quarantined for 'missing first/last'."
+            ),
+            value_type="string",
+            value_examples=["ACHU DECLAN ANDOH", "Ada Lovelace", "Lovelace, Ada"],
+            synonyms={
+                "en": [
+                    "name", "names", "full_name", "fullname", "student_name",
+                    "learner_name", "pupil_name", "child_name", "candidate_name",
+                ],
+                "fr": ["nom_complet", "nom_et_prenoms", "nom_prenom"],
+                "es": ["nombre_completo"],
+                "pt": ["nome_completo"],
+                "ar": ["الاسم_الكامل"],
+            },
+            sensitivity="pii",
+        ),
         "date_of_birth": _field(
             description="ISO date of birth.",
             value_type="date",
@@ -303,6 +325,26 @@ CANONICAL_ONTOLOGY: dict[str, dict[str, dict]] = {
             synonyms={"en": ["last_name", "surname"]},
             sensitivity="pii",
         ),
+        "full_name": _field(
+            description=(
+                "Combined staff full name in ONE column ('Esakenong Abel', "
+                "'Mary Elonge Motutu'). Split into first/last at apply time when "
+                "the source has no separate given/family columns."
+            ),
+            value_type="string",
+            value_examples=["Esakenong Abel", "Mary Elonge Motutu"],
+            synonyms={
+                "en": [
+                    "name", "names", "full_name", "fullname", "staff_name",
+                    "teacher_name", "employee_name", "instructor_name",
+                    "teacher", "educator",
+                ],
+                "fr": ["nom_complet", "nom_et_prenoms", "enseignant"],
+                "es": ["nombre_completo"],
+                "pt": ["nome_completo"],
+            },
+            sensitivity="pii",
+        ),
         "email": _field(
             description="Work email.",
             value_type="email",
@@ -380,14 +422,35 @@ CANONICAL_ONTOLOGY: dict[str, dict[str, dict]] = {
         "subject_name": _field(
             description="Human-readable subject name.",
             value_type="string",
-            value_examples=["Mathematics"],
-            synonyms={"en": ["subject", "course_name", "subject_name", "course"]},
+            value_examples=["Mathematics", "WORKSHOP PRACTICE"],
+            # "title" is the near-universal header for a subject catalog export
+            # (title / fr_title / coef / subject_code / category). Without it a
+            # subjects file mis-scored to the behavior domain (category +
+            # description overlap) and EVERY row quarantined as a behavior
+            # incident. "name" catches the bare single-name column shape.
+            synonyms={
+                "en": ["subject", "course_name", "subject_name", "course",
+                       "title", "subject_title"],
+                "fr": ["matiere", "intitule", "libelle", "nom_matiere"],
+                "es": ["asignatura", "materia"],
+                "pt": ["disciplina"],
+            },
         ),
         "credits": _field(
-            description="Credit hours / units.",
+            description="Credit hours / units / subject coefficient (weight).",
             value_type="decimal",
-            value_examples=["1.0", "0.5"],
-            synonyms={"en": ["credits", "credit_hours", "units"]},
+            value_examples=["1.0", "0.5", "6", "03"],
+            # "coef"/"coefficient" is the French-model weight column — the
+            # dominant subject-catalog shape in West/Central Africa. It maps to
+            # the closest first-class numeric field (credits/weight) so the
+            # value lands as a number instead of an inert custom field, and it
+            # gives the subjects file a 3rd academics signal so it out-scores
+            # behavior at classification time.
+            synonyms={
+                "en": ["credits", "credit_hours", "units", "coef", "coefficient",
+                       "coefficients", "weight", "coeff"],
+                "fr": ["coefficient", "coef", "coeff"],
+            },
         ),
         "department": _field(
             description="Department the subject belongs to.",

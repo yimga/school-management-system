@@ -86,6 +86,18 @@ class StaffLander(Lander):
             ).strip()
             first_name = (row.get("first_name") or "").strip()
             last_name = (row.get("last_name") or "").strip()
+            # Combined-name fallback (mirrors student_lander): a single
+            # "Name"/"NAME" staff column is split locale-aware into first/last
+            # so a teacher roster with no separate given/family columns is not
+            # quarantined for "missing name".
+            full_name = (row.get("full_name") or "").strip()
+            if full_name and (not first_name or not last_name):
+                from apps.migration_cloud.transformers.name_split import split_full_name
+
+                country = getattr(ctx.school, "country_code", "") if ctx.school else ""
+                fn, _mn, ln = split_full_name(full_name, country=country)
+                first_name = first_name or fn
+                last_name = last_name or ln
             email = (row.get("email") or "").strip()
             user_ref = (row.get("staff_user_ref") or "").strip()
             if not external_id or not (first_name or last_name or user_ref or email):

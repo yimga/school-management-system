@@ -194,6 +194,41 @@ def _pick(
     return full
 
 
+def split_full_name(
+    raw: Any, *, order: str | None = None, country: str | None = None
+) -> tuple[str, str, str]:
+    """Split a single combined-name string into ``(first, middle, last)``.
+
+    Locale-aware: an explicit ``order`` (``first_last`` | ``last_first`` |
+    ``spanish_double``) wins; otherwise the destination ``country``'s
+    ``name_order`` profile is consulted; finally the comma heuristic decides.
+    This is the plain-function twin of ``NameSplitLocale`` for callers that
+    need every component at once (the student/staff landers splitting a
+    combined ``full_name`` column into first + last so the row is not
+    quarantined for "missing first/last").
+    """
+    raw = str(raw or "").strip()
+    if not raw:
+        return "", "", ""
+    order = (order or "").strip().lower()
+    if not order and country:
+        try:
+            from apps.migration_cloud.country_profiles import resolved_country_profile
+
+            profile = resolved_country_profile(str(country))
+            if profile is not None:
+                order = (profile.name_order or "").strip().lower()
+        except Exception:  # noqa: BLE001 — profile lookup never blocks a split
+            order = ""
+    if order == "last_first" or ("," in raw and not order):
+        return _split_last_first(raw)
+    if order == "spanish_double":
+        first, middle, paternal, maternal = _split_spanish_double(raw)
+        last = " ".join(p for p in (paternal, maternal) if p)
+        return first, middle, last
+    return _split_first_last(raw)
+
+
 register("name_split_first_last", NameSplitFirstLast())
 register("name_split_last_first", NameSplitLastFirst())
 register("name_split_spanish_double", NameSplitSpanishDouble())

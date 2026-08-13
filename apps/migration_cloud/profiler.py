@@ -569,8 +569,21 @@ def _looks_pii(name: str, samples: Iterable[str]) -> bool:
     return False
 
 
+# BOM (U+FEFF) + zero-width space/non-joiner/joiner/word-joiner.
+_ZERO_WIDTH_CHARS = ("﻿", "​", "‌", "‍", "⁠")
+
+
 def _normalize_header(name: str) -> str:
-    s = (name or "").strip().lower()
+    # Strip BOM + zero-width marks FIRST. A UTF-8 BOM (U+FEFF) glued to the
+    # first CSV/XLSX header ("﻿NAME", "﻿title") is NOT whitespace, so
+    # .strip() leaves it; it then survives NFKD folding (no ASCII decomposition)
+    # and trips the "non-Latin script -> return raw" guard below, so the header
+    # normalizes to a BOM-prefixed token and matches NO synonym. Every real
+    # spreadsheet exported with a BOM would silently mis-map its first column.
+    s = name or ""
+    for zw in _ZERO_WIDTH_CHARS:
+        s = s.replace(zw, "")
+    s = s.strip().lower()
     # Fold Latin diacritics (é→e, ç→c, ñ→n, ô→o) so accented French / Spanish /
     # Portuguese headers ("Prénom", "Numéro d'élève", "Décision") normalize
     # identically to their ASCII synonyms. Genuinely non-Latin scripts (CJK,

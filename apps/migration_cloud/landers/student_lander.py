@@ -44,6 +44,22 @@ class StudentLander(Lander):
             external_id = (row.get("external_id") or "").strip()
             first_name = (row.get("first_name") or "").strip()
             last_name = (row.get("last_name") or "").strip()
+            middle_name = (row.get("middle_name") or "").strip()
+            # Combined-name fallback: many real exports (African / French-model
+            # SIS) carry ONE "Name"/"NAME" column, not separate given/family
+            # columns. When the source has no first/last, split the canonical
+            # ``full_name`` locale-aware so the row is NOT quarantined for
+            # "missing first/last" — historically the single biggest real-world
+            # data-loss cause on these rosters (0/426 students landed).
+            full_name = (row.get("full_name") or "").strip()
+            if full_name and (not first_name or not last_name):
+                from apps.migration_cloud.transformers.name_split import split_full_name
+
+                country = getattr(ctx.school, "country_code", "") if ctx.school else ""
+                fn, mn, ln = split_full_name(full_name, country=country)
+                first_name = first_name or fn
+                last_name = last_name or ln
+                middle_name = middle_name or mn
             if not external_id or not first_name or not last_name:
                 result.quarantined += 1
                 result.errors.append(
@@ -58,7 +74,7 @@ class StudentLander(Lander):
             defaults = {
                 "first_name": first_name,
                 "last_name": last_name,
-                "middle_name": (row.get("middle_name") or "").strip(),
+                "middle_name": middle_name,
                 "admission_number": (row.get("admission_number") or "").strip(),
                 "email": (row.get("email") or "").strip(),
                 "phone": (row.get("phone") or "").strip(),
@@ -75,7 +91,7 @@ class StudentLander(Lander):
             # preserved as custom fields after the upsert so no source data is
             # silently dropped. The raw enrollment_status token is kept too.
             extras = {
-                "middle_name": (row.get("middle_name") or "").strip(),
+                "middle_name": middle_name,
                 "email": (row.get("email") or "").strip(),
                 "phone": (row.get("phone") or "").strip(),
                 "grade_level": (row.get("grade_level") or "").strip(),
