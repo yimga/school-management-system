@@ -243,6 +243,12 @@ class StudentLander(Lander):
                 # Best-effort enrichment: an unresolved specialty is preserved as
                 # a custom field and never quarantines the (already-landed) student.
                 _link_student_specialty(obj, row, ctx, model_fields, result)
+                # Place the student in a first-class Classroom derived from their
+                # class/form label ('Form Two'), creating it (default 2025/2026
+                # year, admin-editable) if the school doesn't have it. Runs after
+                # the specialty link so the classroom can inherit the trade's
+                # department. Best-effort — never quarantines the landed student.
+                _link_student_classroom(obj, row, ctx, model_fields, result)
             except Exception as exc:  # noqa: BLE001 — per-row quarantine
                 result.quarantined += 1
                 result.errors.append(f"upsert failed for {external_id}: {type(exc).__name__}: {exc}")
@@ -316,6 +322,102 @@ def _link_student_specialty(obj, row: dict[str, Any], ctx, model_fields, result)
         with row_savepoint():
             obj.specialty = spec
             obj.save(update_fields=["specialty"])
+    except Exception:  # noqa: BLE001 — enrichment is best-effort; student already landed
+        pass
+
+
+def _resolve_department_for_student(school, student):
+    """The department a student's classroom should hang off: the student's own
+    trade Specialty's department (TVET) when placed, else the school's General
+    department. Never raises — returns ``None`` only if even the General
+    department cannot be ensured."""
+    spec = getattr(student, "specialty", None)
+    if spec is not None and getattr(spec, "department_id", None):
+        try:
+            return spec.department
+        except Exception:  # noqa: BLE001 — fall back to General
+            pass
+    try:
+        from apps.academics.structure_provisioning import ensure_general_department
+
+        return ensure_general_department(school)
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def _resolve_or_create_classroom(school, label: str, student):
+    """Reuse-or-create a school-scoped ``Classroom`` named after the roster's
+    class/form label. Its two required PROTECT FKs are supplied: the school's
+    academic year (default 2025/2026, created only if none exists) and the
+    student's specialty department (else General). The globally-unique code is
+    minted UUID-safe via ``mint_scoped_code``. Returns the classroom or ``None``
+    when a required FK cannot be resolved."""
+    from apps.academics.models import Classroom
+
+    from ._helpers import get_or_create_named, mint_scoped_code
+
+    name = re.sub(r"\s+", " ", (label or "").strip())
+    if not name:
+        return None
+    from apps.migration_cloud.post_apply_provision import ensure_default_academic_year
+
+    year, _created = ensure_default_academic_year(school)
+    if year is None:
+        return None
+    dept = _resolve_department_for_student(school, student)
+    if dept is None:
+        return None
+    classroom, _made = get_or_create_named(
+        model=Classroom,
+        school=school,
+        name=name,
+        create_kwargs=lambda: {
+            "code": mint_scoped_code(prefix="CLS", name=name, school=school, model=Classroom),
+            "academic_year": year,
+            "department": dept,
+        },
+    )
+    return classroom
+
+
+def _link_student_classroom(obj, row: dict[str, Any], ctx, model_fields, result) -> None:
+    """Best-effort: place the student in a first-class ``Classroom`` derived from
+    the roster's class/form label (canonical ``grade_level`` — 'Form Two'),
+    creating the classroom (2025/2026 year, the trade's department) if the school
+    doesn't have it yet. Always preserves the raw label as a custom field so an
+    unresolved class is never dropped. Never raises / quarantines.
+
+    ``StudentProfile.classroom`` is a nullable compat-projection FK (the SOT is
+    ``Enrollment``, but ``current_classroom`` falls back to it), so setting it +
+    ``academic_year`` places the student without constructing a full Enrollment
+    row. A FULL ``save()`` is used because setting all three of
+    academic_year/specialty/classroom triggers the model's admission-number
+    auto-generation, whose output must persist."""
+    ref = (row.get("grade_level") or row.get("classroom") or "").strip()
+    if not ref:
+        return
+    # Preserve the source label regardless of whether it resolves to a classroom.
+    persist_dfv_extras(
+        ctx=ctx, entity_type="student", entity_id=obj.pk,
+        extras={"class_source": ref}, result=result,
+    )
+    if "classroom" not in model_fields or getattr(obj, "classroom_id", None):
+        return  # model has no FK, or the student is already placed — never overwrite
+    school = getattr(ctx, "school", None)
+    if school is None:
+        return
+    try:
+        classroom = _resolve_or_create_classroom(school, ref, obj)
+    except Exception:  # noqa: BLE001 — placement is best-effort; student already landed
+        classroom = None
+    if classroom is None:
+        return
+    try:
+        with row_savepoint():
+            obj.classroom = classroom
+            if "academic_year" in model_fields and getattr(obj, "academic_year_id", None) is None:
+                obj.academic_year = classroom.academic_year
+            obj.save()  # full save: admission_number/student_code/search_index persist
     except Exception:  # noqa: BLE001 — enrichment is best-effort; student already landed
         pass
 

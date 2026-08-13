@@ -338,6 +338,26 @@ def _apply_bundle_inner(
             logger.exception("orchestrator: post-failure cleanup errored for bundle %s", bundle_id)
         raise
 
+    # Post-apply structural gap-fill (S): scaffold the academic year / default
+    # department+specialty / cycle nodes / teaching grid a running school needs
+    # but the upload didn't carry. Idempotent + deduped against what landed;
+    # gated to only fire when roster/catalog data actually landed. Best-effort —
+    # it must never turn a successful apply into a failure.
+    gap_fill_summary: dict | None = None
+    if not dry_run:
+        try:
+            from apps.migration_cloud.post_apply_provision import gap_fill_after_apply
+
+            gap_fill_summary = gap_fill_after_apply(
+                bundle=bundle, outcomes=outcomes, dry_run=dry_run
+            )
+        except Exception:  # noqa: BLE001 — gap-fill is additive; never break the apply
+            logger.warning(
+                "orchestrator: post-apply gap-fill errored for bundle %s",
+                bundle_id,
+                exc_info=True,
+            )
+
     totals = _summarize_outcomes(outcomes)
     bundle.mapping_summary = {
         **(bundle.mapping_summary or {}),
@@ -349,6 +369,7 @@ def _apply_bundle_inner(
             "dry_run": dry_run,
             "applied_at": timezone.now().isoformat(),
         },
+        **({"gap_fill_provisioning": gap_fill_summary} if gap_fill_summary is not None else {}),
     }
     bundle.save(update_fields=["mapping_summary", "updated_at"])
 

@@ -191,8 +191,11 @@ class SpecialtiesApplyTests(TransactionTestCase):
         advance_bundle(bundle_id=bundle.pk, use_accelerator=True)
         apply_bundle(bundle_id=bundle.pk, workers=1)
 
-        specs = Specialty.objects.filter(school=school)
-        self.assertEqual(specs.count(), 4, "all 4 specialties should land")
+        # Exclude the "General" specialty the post-apply gap-fill (S) ensures as
+        # the default FeePlan/SubjectAssignment FK target — this asserts the 4
+        # UPLOADED specialties landed, independent of that scaffold.
+        specs = Specialty.objects.filter(school=school).exclude(name="General")
+        self.assertEqual(specs.count(), 4, "all 4 uploaded specialties should land")
         # Source code kept when globally free.
         self.assertTrue(specs.filter(code="EPS").exists())
         # Department provisioned + the trailing code stripped.
@@ -202,5 +205,7 @@ class SpecialtiesApplyTests(TransactionTestCase):
         bundle2 = _make_spec_bundle(school, idem="spec-apply-2")
         advance_bundle(bundle_id=bundle2.pk, use_accelerator=True)
         apply_bundle(bundle_id=bundle2.pk, workers=1)
-        self.assertEqual(Specialty.objects.filter(school=school).count(), 4,
-                         "re-apply must not duplicate specialties")
+        self.assertEqual(
+            Specialty.objects.filter(school=school).exclude(name="General").count(), 4,
+            "re-apply must not duplicate specialties",
+        )
