@@ -237,6 +237,12 @@ DOMAIN_CANONICAL_HEADERS: dict[str, set[str]] = {
         "external_id", "first_name", "last_name", "graduation_year",
         "email", "phone", "current_employer", "current_role",
     },
+    # Derived statistics reports (school_stats: per-class/specialty aggregates).
+    # Detected up front by is_derived_report and skipped, never landed as records.
+    "reports": {
+        "class", "specialty", "total", "passed", "failed", "pass %",
+        "best avg", "worst avg", "male", "female",
+    },
     "compliance": {
         "subject_external_id", "category", "status", "due_date",
         "completed_date", "notes",
@@ -289,6 +295,7 @@ DOMAIN_UI_LABELS: dict[str, str] = {
     "cafeteria": "Cafeteria / Meals",
     "cafeteria_assignments": "Meal plan assignments",
     "alumni": "Alumni",
+    "reports": "Reports / Statistics (reference only)",
     "compliance": "Compliance",
     "athletics_teams": "Athletics — teams",
     "athletics_memberships": "Athletics — roster",
@@ -426,6 +433,40 @@ def canonical_domain_choices() -> list[dict[str, str]]:
         {"slug": slug, "label": canonical_domain_label(slug)}
         for slug in sorted(DOMAIN_CANONICAL_HEADERS)
     ]
+
+
+# A DERIVED statistics report (per-class / per-specialty aggregates: Total,
+# Pass %, Passed, Male/Female breakdowns) is NOT a per-entity roster. Ingesting
+# it fabricates phantom enrollment rows (one per aggregate line), so it is
+# detected up front and routed to the report lander, which retains the file as
+# reference and lands ZERO records.
+_REPORT_FILENAME_TOKENS: tuple[str, ...] = (
+    "stat", "summary", "census", "aggregate", "tally", "analytics",
+)
+_REPORT_STAT_HEADERS: frozenset[str] = frozenset({
+    "total", "passed", "failed", "pass %", "pass%", "fail %", "best avg",
+    "worst avg", "average", "male", "female", "male passed", "female passed",
+    "count", "percentage", "subtotal", "grand total", "success rate", "pass rate",
+})
+_REPORT_MIN_STAT_HITS_WITH_NAME = 2  # magic-number-allow: report-detection threshold
+_REPORT_MIN_STAT_HITS_ALONE = 4      # magic-number-allow: report-detection threshold
+
+
+def is_derived_report(headers: Any, filename: str = "") -> bool:
+    """True when an artifact is a DERIVED statistics report, not entity records.
+
+    Trips when the file NAME says so (stats / summary / census) AND it carries a
+    couple of aggregate columns, OR when aggregate columns dominate regardless of
+    the name. A grades roster with a lone ``total`` column is NOT a report (needs
+    several aggregate breakdowns), so real per-entity data still ingests.
+    """
+    name = (filename or "").rsplit("/", 1)[-1].rsplit("\\", 1)[-1].lower()
+    fname_hit = any(tok in name for tok in _REPORT_FILENAME_TOKENS)
+    norm = {(str(h) or "").strip().lower() for h in (headers or [])}
+    stat_hits = len(norm & _REPORT_STAT_HEADERS)
+    if fname_hit and stat_hits >= _REPORT_MIN_STAT_HITS_WITH_NAME:
+        return True
+    return stat_hits >= _REPORT_MIN_STAT_HITS_ALONE
 
 
 def guess_domain_from_filename(filename: str) -> str:
@@ -578,6 +619,10 @@ def _domain_for_artifact(artifact: Any) -> str | None:
     the columns cannot (``teachers_<timestamp>.csv`` scored ``students`` → ``staff``).
     """
     filename = ((getattr(artifact, "filename", "") or "").strip().lower())
+    # A derived statistics report is caught BEFORE any roster matching so its
+    # aggregate lines never land as phantom enrollment/records.
+    if is_derived_report(_artifact_headers(artifact), filename):
+        return "reports"
     if filename in CANONICAL_FILENAME_TO_DOMAIN:
         return CANONICAL_FILENAME_TO_DOMAIN[filename]
     return reconcile_domain_with_filename(filename, _domain_from_headers(artifact))

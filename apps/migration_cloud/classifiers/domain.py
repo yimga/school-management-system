@@ -55,6 +55,21 @@ def classify_domain(*, artifact: MigrationArtifact) -> dict[str, Any]:
     if not cols:
         return _fallback("no_profile_columns")
 
+    # Derived statistics report (school_stats: per-class/specialty aggregates) —
+    # detected up front so its aggregate lines never land as phantom records.
+    from apps.migration_cloud.accelerators.runmycampus_canonical import is_derived_report
+
+    if is_derived_report(
+        [c.get("name", "") for c in cols], getattr(artifact, "filename", "") or ""
+    ):
+        return {
+            "chosen": "reports",
+            "candidates": [
+                DomainCandidate("reports", 0.95, [], "derived statistics report — retained as reference, not ingested").__dict__
+            ],
+            "method": "report_detected",
+        }
+
     normalized_headers = {(c.get("normalized") or "") for c in cols if c.get("normalized")}
     if not normalized_headers:
         return _fallback("no_headers")

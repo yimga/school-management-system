@@ -32,6 +32,7 @@ Returns a list of ``ColumnMapping`` per artifact.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from typing import Any
 
@@ -275,7 +276,11 @@ def _map_one_column(
             (c for c in canonical_fields if c["canonical_field"].lower() == str(recalled.get("canonical_field", "")).lower()),
             None,
         )
-        if cf is not None:
+        # Value-shape floor: the recall layer has no shape check of its own, so a
+        # stale / mistaken decision (USERNAME->date_of_birth) would be applied at
+        # high confidence and crash the parser / corrupt the field. Only accept a
+        # recall onto a strict-typed field when the source values actually fit it.
+        if cf is not None and _samples_fit_value_type(samples, cf.get("value_type", "string")):
             return ColumnMapping(
                 source_column=source_name,
                 canonical_field=cf["canonical_field"],
@@ -382,6 +387,66 @@ def _score_token_similarity(
 
     ranked.sort(key=lambda x: x["score"], reverse=True)
     return ranked
+
+
+# Canonical value-types whose transformer PARSES the value (and raises / stores
+# garbage when the value is the wrong shape). A mapping onto one of these is only
+# safe when the source values actually look like that type.
+_STRICT_VALUE_TYPES: frozenset[str] = frozenset(
+    {"date", "datetime", "int", "decimal", "currency"}
+)
+_DATE_SEP_RE = re.compile(r"^\d{1,4}[-/.]\d{1,2}([-/.]\d{1,4})?$")
+_YEAR_RE = re.compile(r"^(19|20)\d{2}$")
+_COMPACT_DATE_RE = re.compile(r"^\d{8}$")
+_MONTH_RE = re.compile(r"\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)", re.I)
+
+
+def _looks_numeric(v: str) -> bool:
+    # Extract the numeric core so amounts with a currency code/glyph and
+    # thousands separators ("50 000 FCFA", "$1,200") read as numbers, while pure
+    # text ("Catholic") and identifiers ("abel.esakenong") do not.
+    core = re.sub(r"[^\d.\-]", "", v)
+    if not core or core in ("-", ".", "-.", "--"):
+        return False
+    try:
+        float(core)
+        return True
+    except ValueError:
+        return False
+
+
+def _looks_dateish(v: str) -> bool:
+    s = v.strip()
+    if not s:
+        return False
+    if _DATE_SEP_RE.match(s) or _YEAR_RE.match(s) or _COMPACT_DATE_RE.match(s):
+        return True
+    return bool(_MONTH_RE.search(s)) and any(c.isdigit() for c in s)
+
+
+def _samples_fit_value_type(samples: list[Any], value_type: str) -> bool:
+    """Do the source samples plausibly parse as a STRICT canonical type?
+
+    Free-text types (string/email/phone/enum) are always accepted — only the
+    parse-crashing types are gated. Guards the embedding-recall layer, which
+    (unlike token scoring) has NO value-shape check: a stale / mistaken recalled
+    decision like ``USERNAME -> date_of_birth`` ("abel.esakenong" into a date
+    column) would crash the date transformer, and ``Age -> admission_number``
+    would silently store a number as an id. When the values contradict the type
+    we reject the recall and fall through — the row lands as a custom field
+    (no data lost, nothing corrupted) instead.
+    """
+    if value_type not in _STRICT_VALUE_TYPES:
+        return True
+    vals = [str(s).strip() for s in (samples or []) if str(s or "").strip()]
+    if not vals:
+        return True  # no evidence to contradict; don't block on empty samples
+    checked = vals[:8]
+    if value_type in ("int", "decimal", "currency"):
+        ok = sum(1 for v in checked if _looks_numeric(v))
+    else:  # date / datetime
+        ok = sum(1 for v in checked if _looks_dateish(v))
+    return ok >= max(1, len(checked) // 2)  # at least half must plausibly fit
 
 
 def _value_shape_bonus(canonical_type: str, inferred_type: str) -> float:

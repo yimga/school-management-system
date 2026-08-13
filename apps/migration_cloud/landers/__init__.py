@@ -71,6 +71,7 @@ from . import student_lander  # noqa: F401
 from . import academic_sessions_lander  # noqa: F401 — OneRoster academicSessions → AcademicYear/Term (D-3)
 from . import academics_lander  # noqa: F401 — courses/subjects → apps.academics.Subject
 from . import specialty_lander  # noqa: F401 — trades/streams → apps.academics.Specialty (+ Department)
+from . import report_lander  # noqa: F401 — derived stats reports (school_stats) → skip, retained as reference
 from . import attendance_lander  # noqa: F401
 from . import behavior_lander  # noqa: F401
 from . import enrollment_lander  # noqa: F401
