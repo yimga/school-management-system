@@ -1,6 +1,6 @@
 # A+ PROGRESS SCOREBOARD (A0 Coordinator)
 
-**Last refreshed:** 2026-08-13 (Claude Code · **research cross-walk → M30–M33 + W21–W31 taskers**; M29 EOY audit prior day)  
+**Last refreshed:** 2026-08-13 (Claude Code · **M29 all 6 code-addressable gaps CLOSED + shipped** — year-lock, notify-parity, date-integrity, doc, backup gate, freeze-on-apply/write-once; +research cross-walk M30–M33 / W21–W31)  
 **Loop:** Academic-year **close → open** (EOY rollover) capability assessed → **NO-GO** (M29 ≈ 66/100 — run-observed 8/8; material gaps, year-lock proven NOT DB-enforced)  
 **Tree:** HEAD = `origin/main`
 
@@ -35,6 +35,8 @@ Cross-walked the full EOY / "A-Z global platform" research (PowerSchool/Infinite
 ---
 
 ## M29 — Academic-Year Lifecycle / EOY Rollover — capability assessment — 2026-08-12 (Prompt B)
+
+> **UPDATE 2026-08-13 — all 6 code-addressable M29 gaps CLOSED + shipped** (each: agent-implemented, diffs reviewed, must-fire test with fail-before observed). ① year-lock write guard + ② async notify-parity + ③ `Enrollment.clean` date-integrity + ④ doc fix → `02c4dec38`. ⑤ pre-rollover **backup/export gate** wired to the M28 `TenantImmutableSnapshot` + operator override + "Back up now" UI → `9d81dc9c1`. ⑥ **freeze-on-apply** (rollover now produces the immutable archive — frozen BEFORE the move so the graduating cohort is captured) + genuine **write-once** `ImmutableTranscript` → `6e17e58e6`. **M29 re-scored 66 → ≈ 85 (still NO-GO).** The materially-incomplete-on-safety ceiling (≤69) no longer binds; the residual < 98 is now (a) FEATURE-completeness tracked as taskers — next-year calendar / bell-schedule, persisted NYP placement fields, parallel-planning sandbox depth (W31 + W21) — and (b) a run-proven **Postgres / browser E2E** of the full close→open (current proofs are sqlite unit/integration). The matrix rows below are the ORIGINAL 08-12 audit; rows they mark PARTIAL/NO-GO for the six gaps above are now GO per those commits.
 
 **New tracked metric** (see `CURSOR_A_PLUS_MANDATE.md` → PART 3 **M29** + PART 4 **W20**). Triggered by the EOY-rollover / "run Z → roll back to A" research: the 28-metric rubric carried **no** year-lifecycle metric, though the machinery exists. Audited by a dedicated agent.
 
@@ -76,7 +78,7 @@ Cross-walked the full EOY / "A-Z global platform" research (PowerSchool/Infinite
 5. **No enrollment date-integrity validation** (entry < exit, no overlapping closed ranges; source-read). Fix: `Enrollment.clean()` near `apps/people/models.py:1072`.
 6. **Doc divergence:** `docs/WORKFLOW_YEAR_ROLLOVER.md:50,57,73` still describes a destructive overwrite of `StudentProfile.academic_year/classroom` and cites `accounts.views.rollover_year`; code now does the enrollment open/close lifecycle in `apps/accounts/views_rollover.py` and adds a `PENDING` status + async proposal/queue path (incl. the notify gap) the doc omits.
 
-**M29 SCORE (9.8 lowest-dimension regime): ≈ 66/100 — NO-GO.** Now **run-observed (8/8)**, so the core close→open flow is *proven* real and coherent (structure clone with year-suffixed codes, PromotionRule-driven status incl. PENDING/NO_DATA, bulk + per-student promote/retain/graduate via a real enrollment open/close lifecycle, alumni, mapping-driven placement, hemisphere-independent). But it is **materially incomplete** for a school that must fully close one year and open the next — year-lock is **proven not DB-enforced** (writes into a locked year succeed), rollover produces no immutable grade archive, no backup gate, no date-integrity validation, notify-theater on the queued path → material-incompleteness ceiling ≤69 governs (run-observed proof is no longer the binding constraint). Consistent with the platform's standing **NO-GO**.
+**M29 SCORE (9.8 lowest-dimension regime): 66/100 at audit (2026-08-12) → ≈ 85/100 after the 2026-08-13 fixes — still NO-GO.** All six safety gaps are closed and shipped (see the UPDATE at the top of this block: year-lock now DB-guarded at the write entrypoint, rollover produces a write-once immutable archive, a pre-rollover backup gate is enforced, enrollment date-integrity + async notify-parity landed), so the materially-incomplete ceiling (≤69) no longer binds. The residual < 98 is (a) FEATURE-completeness — next-year calendar / bell-schedule, persisted NYP placement fields, parallel-planning sandbox depth (the W-taskers) — and (b) the absence of a run-proven **Postgres / browser** close→open E2E (current tests are sqlite unit/integration → runtime-proof ceiling ≤8.9). Remains **NO-GO**, but materially closer.
 
 ---
 
