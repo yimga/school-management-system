@@ -333,6 +333,17 @@ class Subject(models.Model):
         related_name="subjects",
     )
     name = models.CharField(max_length=120)
+    code = models.CharField(
+        max_length=30,
+        blank=True,
+        default="",
+        db_index=True,
+        help_text=(
+            "Optional national/country-standard subject code (e.g. a GCE board "
+            "code). Auto-derived from the country subject-code scheme on seed and "
+            "fully admin-editable; blank is allowed."
+        ),
+    )
     category = models.CharField(
         max_length=20, choices=Category.choices, default=Category.OTHER
     )

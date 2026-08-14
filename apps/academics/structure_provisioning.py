@@ -626,6 +626,8 @@ def seed_country_subjects(school) -> dict[str, Any]:
     if not subject_seed:
         return {"created_subjects": 0, "skipped": "no_seed"}
 
+    from apps.academics.country_subject_codes import resolve_subject_code
+
     valid_categories = {choice[0] for choice in Subject.Category.choices}
     created = 0
     names: list[str] = []
@@ -641,7 +643,9 @@ def seed_country_subjects(school) -> dict[str, Any]:
         category = raw_category if raw_category in valid_categories else Subject.Category.GENERAL
         try:
             _, was_created = Subject.objects.get_or_create(
-                school=school, name=name, defaults={"category": category}
+                school=school,
+                name=name,
+                defaults={"category": category, "code": resolve_subject_code(school, name)},
             )
             if was_created:
                 created += 1
@@ -649,6 +653,33 @@ def seed_country_subjects(school) -> dict[str, Any]:
         except Exception:  # noqa: BLE001 — one bad subject never aborts the rest
             logger.debug("seed_country_subjects: subject %s failed", name, exc_info=True)
     return {"created_subjects": created, "catalog": names}
+
+
+def backfill_subject_codes(school) -> dict[str, Any]:
+    """Fill a national/country-standard ``code`` on every subject that has none.
+
+    Newly seeded subjects already carry a code; this brings UPLOADED catalogs
+    (which land as bare name-only ``Subject`` rows) up to the same standard, and
+    backfills tenants provisioned before ``Subject.code`` existed. Only touches
+    BLANK codes — an admin's explicit code always wins — so it is idempotent and
+    safe to re-run. Country-aware via
+    :func:`apps.academics.country_subject_codes.resolve_subject_code`."""
+    if school is None:
+        return {"coded_subjects": 0, "skipped": "no_school"}
+    from apps.academics.country_subject_codes import resolve_subject_code
+    from apps.academics.models import Subject
+
+    coded = 0
+    for subject in Subject.objects.filter(school=school).filter(code=""):
+        code = resolve_subject_code(school, subject.name)
+        if not code:
+            continue
+        try:
+            Subject.objects.filter(pk=subject.pk).update(code=code)
+            coded += 1
+        except Exception:  # noqa: BLE001 — one subject never aborts the rest
+            logger.debug("backfill_subject_codes: subject %s failed", subject.name, exc_info=True)
+    return {"coded_subjects": coded}
 
 
 def provision_country_baseline(
@@ -742,6 +773,10 @@ def provision_country_baseline(
     #    export lands no subjects, so the grid would stay empty and no report card
     #    could be produced). An uploaded catalog always wins.
     summary["subjects"] = seed_country_subjects(school)
+
+    # 7b. National subject codes on every code-less subject (seeded rows already
+    #     carry one; this covers uploaded catalogs + pre-``code`` tenants).
+    summary["subject_codes"] = backfill_subject_codes(school)
 
     # 8. Teaching grid over the catalog (now non-empty for a general-ed school),
     #    idempotent either way.
