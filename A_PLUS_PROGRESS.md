@@ -1,8 +1,25 @@
 # A+ PROGRESS SCOREBOARD (A0 Coordinator)
 
-**Last refreshed:** 2026-08-14 (Claude Code · "take to GO" → **binding-constraint audit** (isolation regression CLOSED+SEALED `8a0051bfb`) → **M21 i18n Phase 1 SHIPPED `5914759cf`**: extracted the 1712-string wrap-wave debt (deploy gate un-blocked) + per-push freshness ratchet in CI. Prior 08-13: M29 6/6 · M30 `c8dfd5a19` · W22 `a47fc6e60` · W24 `ea368593c` · M32 `01be505db`)  
-**Loop:** Under the 9.8 lowest-dimension regime, GO = raise the MINIMUM metric. Isolation clean (off ≤4.9). **Floor = M21 i18n ~4.5**; user chose "Both, sealed then content" → **Phase 1 (seal) DONE** (catalog now honest/fresh; freshness gate wired two-tier). **Phase 2 = French CONTENT** (the score-mover) is next. Remaining beyond that: M31/M33, W21/W23/W25–W31 + per-increment follow-ups.  
+**Last refreshed:** 2026-08-14 (Claude Code · "take to GO" → **binding-constraint audit** (isolation regression CLOSED+SEALED `8a0051bfb`) → **M21 i18n Phase 1 `5914759cf`** (catalog hygiene + freshness seal) → **M21 i18n Phase 2 SHIPPED `f1b8e5174`**: 1561 French UI strings on the francophone first-touch surfaces (fr **5.3%→13.3%**) + self-host `.mo`-compile parity. Prior 08-13: M29 6/6 · M30 `c8dfd5a19` · W22 `a47fc6e60` · W24 `ea368593c` · M32 `01be505db`)  
+**Loop:** Under the 9.8 lowest-dimension regime, GO = raise the MINIMUM metric. Isolation clean (off ≤4.9). **Floor = M21 i18n ~4.5**; user chose "Both, sealed then content" → **Phase 1 (seal) + Phase 2 (French content) BOTH DONE** (catalog honest/fresh; freshness gate two-tier; fr now French on auth/onboarding/portals/attendance/grades/fees/timetable). **Next on M21:** native-review deepen fr toward the 60% 'full' bar + extend to es/pt_BR, then RTL/calendar (ar/fa/he at 0%). Remaining beyond M21: M31/M33, W21/W23/W25–W31 + per-increment follow-ups.  
 **Tree:** HEAD = `origin/main`
+
+---
+
+## M21 i18n — Phase 2: French CONTENT on the francophone-facing surfaces — SHIPPED — 2026-08-14
+
+**Commit `f1b8e5174`** (off-tree, 2 paths: `locale/fr/LC_MESSAGES/django.po` + `deploy/selfhost/Dockerfile`; 12 boundary gates green; verified in a pristine `origin/main` worktree — coverage gate + polib compile both exit 0). The **content** half of "Both, sealed then content" (Phase 1 seal = `5914759cf`). This is the score-mover: after Phase 1 made the catalog honest, a francophone user still saw English — Phase 2 makes the first-touch surfaces actually French.
+
+**Audit-by-running finding:** the core nav/action/status vocabulary was **already** French (Save/Dashboard/Students/Attendance/Fees… = most of the prior 1034). The 18,488 untranslated were the **long tail**, heavily operator/AI-platform (low value for the francophone-school thesis). So Phase 2 targeted the **1,570 untranslated strings on the francophone first-touch surfaces** (a curated exact-match set), not a random slice.
+
+**What shipped:**
+- **1,561 French translations applied** (0 unmatched, 0 dup) → fr coverage **5.3% → 13.3%** (1034 → 2595 translated). Surfaces: auth/password, onboarding/setup wizards, parent & student portals, attendance, grades/report cards (bulletins), fees/payments, timetable, dashboard empty-states/messages. Consistent glossary (guardian→tuteur, report card→bulletin, attendance→présence, tuition→scolarité, gradebook→cahier de notes, timetable→emploi du temps, academic year→année scolaire, term→trimestre). Operator/AI surfaces intentionally deferred; **production-grade French still gated on native review** (`docs/i18n/translation_requests/fr.md`) — honest.
+- **binary-`.mo` shipping problem SOLVED without shipping a binary:** cloud `build.sh` already runs `compile_message_catalogs` (polib, no GNU gettext) → the committed `.mo` is a **deploy artifact**, regenerated from `.po` on every deploy. So ship only the LF-safe `.po` (ottpush's `tr -d '\r'` would corrupt a binary `.mo`) and let deploy compile. Proven: polib compile → `fr.mo` = 2595 translated entries.
+- **self-host parity seal:** `deploy/selfhost/Dockerfile` was the one deploy path that ran `collectstatic` but **not** the catalog compile → it would serve the stale committed `.mo` and never show French. Added `compile_message_catalogs` to its build RUN (mirrors `build.sh`), so the local-first / self-host pillar reaches parity.
+
+**Gate safety (verified by running):** no source/`en.po` change → the i18n **freshness** gate is structurally unaffected (it reads `en.po`, never `fr.po`). **Coverage** gate stays GREEN — fr is a `stub` locale (no 60% floor; only 'full'/'source' have floors) and its translated count only rises → no regression, no re-baseline. No committed-`.mo`-vs-`.po` gate exists (the `.mo` checks are globe/service-worker).
+
+**REMAINING on M21:** deepen fr toward the ~60% 'full' bar via native review + extend the pattern to es/pt_BR (next-highest francophone/lusophone markets); then RTL/calendar (ar/fa/he) which are 0%. Beyond M21: M31/M33, W21/W23/W25–W31.
 
 ---
 
