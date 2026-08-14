@@ -16,7 +16,7 @@ from apps.api.sync_delta_api import DeltaSyncAPI
 from apps.people.models import StudentProfile
 from apps.platform_runtime.helpers import get_platform_site_settings_record
 from apps.schools.rls_context import rls_bypass, rls_school
-from apps.schools.models import School
+from apps.schools.models import School, SchoolMembership
 from apps.siteconfig.models import SyncConflict
 
 
@@ -120,6 +120,13 @@ class DeltaSyncSuccessClearQueueTestCase(TestCase):
             username="queue_user",
             password="testpass123",
             is_staff=True,
+        )
+        # The delta endpoint enforces tenant isolation via user_may_operate_on_school:
+        # on a non-manager/non-local host, is_staff alone does NOT grant cross-tenant
+        # access — the user needs an explicit SchoolMembership (or superuser). Without
+        # this the view correctly returns 403 "Forbidden" before ever applying items.
+        SchoolMembership.objects.create(
+            user=self.user, school=self.school, role="ADMIN", is_primary=True
         )
         year = AcademicYear.objects.create(
             name="2024-2025",
