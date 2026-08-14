@@ -29,6 +29,7 @@ Canonical row shape::
 
 from __future__ import annotations
 
+import re
 from typing import Any, Iterator
 
 from ._helpers import (
@@ -38,6 +39,7 @@ from ._helpers import (
     model_field_names,
     persist_dfv_extras,
     record_id_mapping,
+    resolve_canonical_pk_by_legacy,
     resolve_or_provision_user,
     upsert_with_conflict_detection,
 )
@@ -207,10 +209,107 @@ class StaffLander(Lander):
                 )
                 record_id_mapping(ctx=ctx, legacy_id=external_id, canonical_obj=obj, domain="staff")
                 detect_and_register_assets(ctx=ctx, legacy_id=external_id, entity_kind="staff", row=row)
+                # G8: a teacher row often carries the SOURCE system's cross-refs as
+                # underscore id-lists (SUBJECTS="96_98_106", CLASSROOMS="12_15").
+                # Preserve them verbatim (no data loss) AND resolve them to canonical
+                # names via the id-mapping layer where those entities landed.
+                _link_teacher_teaching_hints(obj, row, ctx, result)
             except Exception as exc:  # noqa: BLE001
                 result.quarantined += 1
                 result.errors.append(f"staff upsert failed for {external_id}: {type(exc).__name__}: {exc}")
         return result
+
+
+# A teacher roster carries teaching cross-refs as underscore/comma id-lists under
+# a SUBJECTS / CLASSROOMS-ish column. Match the column NAME.
+_SUBJECTS_COL_RE = re.compile(r"subject", re.IGNORECASE)
+_CLASSROOMS_COL_RE = re.compile(r"class", re.IGNORECASE)
+_ID_LIST_SPLIT_RE = re.compile(r"[\s_,;|/]+")
+_ID_LIST_NULLS = frozenset({"", "none", "nan", "n/a", "na", "null", "-"})
+
+
+def _split_id_list(value: Any) -> list[str]:
+    """Split a source id-list ('96_98_106_229_' / '12, 15') into clean ids."""
+    parts = _ID_LIST_SPLIT_RE.split(str(value or "").strip())
+    return [p for p in parts if p and p.lower() not in _ID_LIST_NULLS]
+
+
+def _extract_teacher_id_lists(row: dict[str, Any]) -> tuple[list[str], list[str]]:
+    """Return ``(subject_ids, classroom_ids)`` from a teacher roster's pass-through
+    columns (``custom_fields.*`` / ``_unmapped.*``). Match on column NAME."""
+    subject_ids: list[str] = []
+    classroom_ids: list[str] = []
+    for key, value in row.items():
+        if not isinstance(key, str):
+            continue
+        m = re.match(r"^(?:custom_fields|_unmapped)\.(.+)$", key)
+        if not m:
+            continue
+        col = m.group(1)
+        ids = _split_id_list(value)
+        if not ids:
+            continue
+        if _SUBJECTS_COL_RE.search(col):
+            subject_ids.extend(ids)
+        elif _CLASSROOMS_COL_RE.search(col):
+            classroom_ids.extend(ids)
+    return subject_ids, classroom_ids
+
+
+def _resolve_names(ctx, ids: list[str], domain: str, model) -> list[str]:
+    """Resolve source legacy ids to canonical row names via the id-mapping layer.
+    Unresolved ids are skipped here (kept verbatim in ``source_*`` extras)."""
+    names: list[str] = []
+    for legacy_id in ids:
+        pk = resolve_canonical_pk_by_legacy(ctx=ctx, legacy_id=legacy_id, domain=domain)
+        if not pk:
+            continue
+        try:
+            obj = model.objects.filter(pk=pk).first()  # tenant-isolation-allow: pk resolved from school-scoped id-mapping
+        except Exception:  # noqa: BLE001
+            obj = None
+        name = getattr(obj, "name", None) if obj is not None else None
+        if name:
+            names.append(str(name))
+    return names
+
+
+def _link_teacher_teaching_hints(obj, row: dict[str, Any], ctx, result) -> None:
+    """Preserve a teacher's SUBJECTS/CLASSROOMS id-lists and resolve them to names.
+
+    The raw id-lists are always kept (``source_subject_ids`` / ``source_classroom_ids``)
+    so nothing is lost. Where the referenced subjects/classrooms LANDED in this same
+    migration (and recorded a ``MigrationIdMapping``), the ids resolve to canonical
+    NAMES (``teaching_subjects`` / ``teaching_classrooms``) an admin can read and turn
+    into real assignments. We do NOT auto-create SubjectAssignments from the id-lists:
+    a class holds students of several specialties, so the (classroom, specialty) a
+    ``SubjectAssignment`` needs is genuinely ambiguous from a teacher roster — that
+    stays an explicit admin/teacher step. Best-effort; never raises/quarantines."""
+    subject_ids, classroom_ids = _extract_teacher_id_lists(row)
+    if not subject_ids and not classroom_ids:
+        return
+    extras: dict[str, Any] = {}
+    if subject_ids:
+        extras["source_subject_ids"] = ", ".join(subject_ids)[:500]
+    if classroom_ids:
+        extras["source_classroom_ids"] = ", ".join(classroom_ids)[:500]
+    try:
+        from apps.academics.models import Classroom, Subject
+
+        subj_names = _resolve_names(ctx, subject_ids, "academics", Subject)
+        class_names = _resolve_names(ctx, classroom_ids, "sections", Classroom)
+        if not class_names:
+            # Classrooms may have landed under the structure lander's namespace.
+            class_names = _resolve_names(ctx, classroom_ids, "structure", Classroom)
+        if subj_names:
+            extras["teaching_subjects"] = ", ".join(subj_names)[:500]
+        if class_names:
+            extras["teaching_classrooms"] = ", ".join(class_names)[:500]
+    except Exception:  # noqa: BLE001 — resolution is best-effort; raw ids already preserved
+        pass
+    persist_dfv_extras(
+        ctx=ctx, entity_type="staff", entity_id=obj.pk, extras=extras, result=result,
+    )
 
 
 def _match_staff_user_by_staff_id(TeacherProfile, school: Any, external_id: str):

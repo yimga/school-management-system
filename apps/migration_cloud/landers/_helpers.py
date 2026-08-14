@@ -236,6 +236,45 @@ def record_id_mapping(
         logging.getLogger(__name__).debug("record_id_mapping skipped", exc_info=True)
 
 
+def resolve_canonical_pk_by_legacy(*, ctx, legacy_id: str, domain: str) -> str | None:
+    """Reverse :func:`record_id_mapping`: return the canonical PK a source LEGACY id
+    maps to within this bundle's school, or ``None``.
+
+    A roster can carry cross-references as the SOURCE system's own ids — e.g. a
+    teacher row's ``SUBJECTS="96_98_106"`` naming subject ids. When those entities
+    landed and recorded a ``MigrationIdMapping`` under the same legacy id, this
+    turns the id back into the canonical row's pk so the reference can be
+    reconstructed. School-scoped by the bundle; best-effort (never raises)."""
+    if not legacy_id:
+        return None
+    try:
+        from apps.migration_cloud.models import MigrationBundle, MigrationIdMapping
+    except Exception:  # noqa: BLE001
+        return None
+    try:
+        bundle = MigrationBundle.objects.filter(pk=ctx.bundle_id).only(  # tenant-isolation-allow: PK lookup by internal bundle id
+            "pk", "school_id", "discovery_summary"
+        ).first()
+        if bundle is None:
+            return None
+        namespace = ((bundle.discovery_summary or {}).get("source") or {}).get(
+            "chosen"
+        ) or "unknown_custom"
+        row = (
+            MigrationIdMapping.objects.filter(  # tenant-isolation-allow: scoped by bundle.school_id
+                legacy_namespace=namespace,
+                legacy_id=str(legacy_id)[:128],
+                school_id=bundle.school_id,
+                domain=domain[:32],
+            )
+            .order_by("-created_at")
+            .first()
+        )
+        return row.canonical_pk if row is not None else None
+    except Exception:  # noqa: BLE001
+        return None
+
+
 _ASSET_KEY_PATTERNS = {
     "photo": ("photo_url", "photo", "photo_path", "image_url"),
     "immunization": ("immunization_url", "immunization_scan"),
