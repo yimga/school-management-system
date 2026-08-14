@@ -33,6 +33,22 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# Reusable regional window shapes (start_month, start_day, end_month, end_day per
+# term, in teaching order). A country that follows a regional norm references the
+# shared template; a country with a distinct calendar lists its own windows. The
+# TEMPLATE's first-term month and length are what ``country_calendar_shape`` reads
+# to drive a fresh ``RegionConfig``'s academic-year start month + term count — so
+# the region shape and these windows can never disagree (which is exactly what the
+# alignment guard in ``resolve_term_windows`` would otherwise reject).
+_TRI_SEP_EN = [(9, 1, 12, 15), (1, 8, 4, 10), (4, 25, 7, 25)]        # Anglophone, 3 terms, Sep start
+_TRI_SEP_FR = [(9, 15, 12, 20), (1, 7, 4, 5), (4, 20, 7, 10)]        # Francophone, 3 trimesters, Sep start
+_TRI_OCT_FR = [(10, 1, 12, 22), (1, 8, 4, 5), (4, 20, 7, 10)]        # Sahel francophone, 3 trimesters, Oct start
+_TRI_JAN = [(1, 8, 4, 10), (5, 2, 8, 8), (9, 2, 11, 28)]            # East/Southern Africa, 3 terms, Jan start
+_TRI_FEB = [(2, 5, 5, 5), (5, 28, 8, 25), (9, 15, 12, 5)]           # 3 terms, Feb start (Uganda-style)
+_TRI_FEB_SH = [(2, 1, 4, 30), (5, 15, 8, 15), (9, 1, 12, 5)]        # Southern-lusophone, 3 trimesters, Feb start
+_SEM_SEP = [(9, 1, 1, 20), (2, 1, 6, 25)]                          # 2 semesters, Sep start (Europe / East Asia)
+_SEM_AUG = [(8, 15, 12, 20), (1, 8, 5, 30)]                        # 2 semesters, Aug start (US-style)
+
 # (start_month, start_day, end_month, end_day) per term, in teaching order.
 # Keyed by ISO alpha-2 country, with optional "<CC>-<SUBSYS>" specialization.
 _TERM_CALENDARS: dict[str, list[tuple[int, int, int, int]]] = {
@@ -62,6 +78,112 @@ _TERM_CALENDARS: dict[str, list[tuple[int, int, int, int]]] = {
     "AU": [(1, 28, 4, 10), (4, 26, 7, 2), (7, 19, 9, 24), (10, 11, 12, 17)],
     "NZ": [(2, 1, 4, 15), (5, 1, 7, 5), (7, 22, 9, 27), (10, 14, 12, 18)],
     "ZA": [(1, 15, 3, 28), (4, 9, 6, 21), (7, 16, 9, 27), (10, 8, 12, 11)],
+
+    # ======================================================================
+    # WEST AFRICA — Anglophone (WAEC, Sep start, 3 terms) & Francophone (bac)
+    # ======================================================================
+    "LR": _TRI_SEP_EN, "SL": _TRI_SEP_EN, "GM": _TRI_SEP_EN,
+    "CI": _TRI_SEP_FR, "TG": _TRI_SEP_FR, "BJ": _TRI_SEP_FR, "CV": _TRI_SEP_FR,
+    "SN": _TRI_OCT_FR, "ML": _TRI_OCT_FR, "BF": _TRI_OCT_FR, "NE": _TRI_OCT_FR,
+    "GN": _TRI_OCT_FR, "MR": _TRI_OCT_FR, "GW": _TRI_OCT_FR,
+
+    # ======================================================================
+    # CENTRAL AFRICA — Francophone (Sep/Oct, 3 trimesters); Angola/Congo basin
+    # ======================================================================
+    "GA": _TRI_SEP_FR, "CG": _TRI_SEP_FR, "CD": _TRI_SEP_FR, "CF": _TRI_SEP_FR,
+    "GQ": _TRI_SEP_FR, "BI": _TRI_SEP_FR, "ST": _TRI_SEP_FR,
+    "TD": _TRI_OCT_FR,
+    "AO": _TRI_FEB_SH,  # southern-hemisphere lusophone, year starts February
+
+    # ======================================================================
+    # EAST AFRICA & Indian Ocean — Jan/Feb 3 terms; Ethiopia 2 semesters (Sep)
+    # ======================================================================
+    "RW": _TRI_SEP_EN,          # REB, 3 terms, Sep start
+    "SS": _TRI_FEB,             # South Sudan, Feb start
+    "ET": _SEM_SEP, "SO": _SEM_SEP, "ER": _SEM_SEP, "SD": _SEM_SEP,
+    "DJ": _TRI_SEP_FR, "KM": _TRI_SEP_FR,
+    "MG": _TRI_OCT_FR,          # Madagascar, francophone
+    "MU": _TRI_JAN, "SC": _TRI_JAN,  # Mauritius / Seychelles, Jan 3-term
+
+    # ======================================================================
+    # SOUTHERN AFRICA — Jan 3-term (ZA is 4-term, above); Malawi moved to Sep
+    # ======================================================================
+    "ZW": _TRI_JAN, "ZM": _TRI_JAN, "BW": _TRI_JAN, "NA": _TRI_JAN,
+    "LS": _TRI_JAN, "SZ": _TRI_JAN,
+    "MW": _TRI_SEP_EN,
+    "MZ": _TRI_FEB_SH,          # Mozambique, southern lusophone
+
+    # ======================================================================
+    # NORTH AFRICA — Sep start; Egypt/Morocco/Libya 2 semesters, Maghreb 3 tri
+    # ======================================================================
+    "EG": [(9, 15, 1, 25), (2, 10, 6, 10)],
+    "MA": [(9, 7, 1, 20), (1, 21, 6, 30)],
+    "LY": _SEM_SEP,
+    "DZ": [(9, 10, 12, 20), (1, 3, 3, 20), (4, 3, 7, 5)],
+    "TN": [(9, 15, 12, 20), (1, 2, 3, 20), (4, 1, 6, 30)],
+
+    # ======================================================================
+    # EUROPE — Sep start; trimesters (ES/PT/IE/BE) or 2 semesters; RU 4 quarters
+    # ======================================================================
+    "ES": [(9, 10, 12, 20), (1, 8, 3, 28), (4, 8, 6, 22)],
+    "PT": [(9, 15, 12, 17), (1, 4, 3, 25), (4, 5, 6, 14)],
+    "IE": [(9, 1, 12, 20), (1, 6, 3, 28), (4, 10, 6, 28)],
+    "BE": _TRI_SEP_FR,
+    "IT": _SEM_SEP, "PL": _SEM_SEP, "AT": _SEM_SEP, "GR": _SEM_SEP,
+    "RO": _SEM_SEP, "UA": _SEM_SEP,
+    "NL": [(8, 25, 1, 31), (2, 1, 7, 15)],
+    "SE": [(8, 20, 12, 20), (1, 10, 6, 10)],
+    "NO": [(8, 18, 12, 20), (1, 2, 6, 20)],
+    "DK": [(8, 10, 12, 20), (1, 2, 6, 25)],
+    "FI": [(8, 10, 12, 20), (1, 8, 6, 3)],
+    "CH": [(8, 20, 1, 31), (2, 1, 7, 5)],
+    "RU": [(9, 1, 10, 27), (11, 6, 12, 28), (1, 9, 3, 22), (4, 1, 5, 27)],
+
+    # ======================================================================
+    # AMERICAS — US/CA above; Latin America (Feb/Mar 2-sem, southern); Caribbean
+    # ======================================================================
+    "MX": [(8, 26, 12, 20), (1, 8, 7, 15)],
+    "BR": [(2, 1, 6, 30), (8, 1, 12, 15)],
+    "AR": [(3, 1, 7, 15), (8, 1, 12, 10)],
+    "CL": [(3, 1, 7, 10), (7, 28, 12, 15)],
+    "PE": [(3, 1, 7, 20), (8, 10, 12, 20)],
+    "CO": [(1, 20, 6, 10), (7, 8, 11, 30)],
+    "JM": _TRI_SEP_EN, "TT": _TRI_SEP_EN, "BB": _TRI_SEP_EN,
+
+    # ======================================================================
+    # ASIA — varied start months; term count by national system
+    # ======================================================================
+    "JP": [(4, 8, 7, 20), (9, 1, 12, 25), (1, 8, 3, 25)],
+    "KR": [(3, 2, 7, 20), (9, 1, 2, 10)],
+    "CN": [(9, 1, 1, 15), (2, 20, 7, 5)],
+    "HK": [(9, 1, 1, 20), (2, 1, 7, 10)],
+    "ID": [(7, 15, 12, 20), (1, 8, 6, 20)],
+    "MY": [(1, 2, 5, 31), (6, 16, 11, 20)],
+    "PH": [(8, 22, 12, 20), (1, 8, 6, 15)],
+    "TH": [(5, 16, 9, 30), (11, 1, 3, 15)],
+    "VN": [(8, 20, 12, 31), (1, 8, 5, 25)],
+    "SG": [(1, 2, 3, 15), (3, 25, 5, 31), (7, 1, 9, 1), (9, 9, 11, 20)],
+    "PK": [(8, 1, 12, 20), (1, 2, 5, 31)],
+    "BD": [(1, 1, 4, 30), (5, 1, 8, 31), (9, 1, 12, 15)],
+    "LK": [(1, 2, 4, 5), (5, 2, 8, 10), (9, 2, 12, 10)],
+    "NP": [(4, 15, 10, 5), (11, 1, 4, 5)],
+
+    # ======================================================================
+    # MENA / GULF — Sep/Aug start; Gulf reformed to 3 terms; Levant 2 semesters
+    # ======================================================================
+    "SA": [(8, 20, 11, 20), (11, 27, 3, 7), (3, 17, 6, 25)],
+    "AE": [(9, 1, 12, 8), (1, 2, 3, 29), (4, 8, 7, 5)],
+    "QA": [(8, 20, 12, 8), (1, 2, 3, 29), (4, 8, 6, 25)],
+    "TR": [(9, 9, 1, 17), (2, 10, 6, 20)],
+    "KW": _SEM_SEP, "BH": _SEM_SEP, "OM": _SEM_SEP, "JO": _SEM_SEP,
+    "IL": _SEM_SEP, "IR": _SEM_SEP, "IQ": _SEM_SEP, "SY": _SEM_SEP, "YE": _SEM_SEP,
+    "LB": _TRI_SEP_FR,
+
+    # ======================================================================
+    # OCEANIA — AU/NZ above (4-term); Pacific islands Jan start
+    # ======================================================================
+    "FJ": _TRI_JAN,
+    "PG": [(1, 29, 6, 20), (7, 15, 12, 10)],
 }
 
 
@@ -190,3 +312,52 @@ def resolve_term_windows(
         windows.append((t_start, t_end))
         prev_start_month = sm
     return windows
+
+
+def _to_alpha2(code: str) -> str:
+    """Best-effort ISO alpha-3 → alpha-2 (``_TERM_CALENDARS`` is alpha-2 keyed).
+
+    An alpha-2 code passes through; an alpha-3 code is converted via ``pycountry``
+    when available (it is a project dependency). If conversion is impossible the
+    caller simply gets no curated shape and falls back to today's hemisphere
+    default — never an exception."""
+    raw = (code or "").strip().upper()
+    if len(raw) == 2:
+        return raw
+    if len(raw) == 3:
+        try:
+            import pycountry  # project dependency (see apps/siteconfig/global_catalog.py)
+
+            match = pycountry.countries.get(alpha_3=raw)
+            if match and getattr(match, "alpha_2", None):
+                return str(match.alpha_2).upper()
+        except Exception:  # noqa: BLE001 — missing lib / unknown code → no shape
+            pass
+    # No reliable conversion: return "" so the caller gets no shape and keeps the
+    # hemisphere default. A naive ``raw[:2]`` truncation would mis-map (CHN→"CH"
+    # collides with Switzerland, MDG→"MD" is not Madagascar's "MG") — a wrong
+    # calendar is worse than none.
+    return ""
+
+
+def country_calendar_shape(code: str) -> tuple[int, int] | None:
+    """Return ``(academic_year_start_month, term_count)`` for a country, or ``None``.
+
+    Derived from the SAME curated windows the term seeder uses, so a fresh
+    ``RegionConfig`` created for this country carries a start month and term count
+    that AGREE with the term-date calendar — otherwise ``resolve_term_windows``'s
+    alignment guard would reject the calendar (a January-start country whose region
+    still said September, or a 4-term country whose region still said 3, would
+    silently drop to the even split). ``RegionConfig.code`` is ISO alpha-3, so an
+    alpha-3 is accepted and normalized. Accepts the bare country only (subsystem
+    specializations share the country's shape). Returns ``None`` for an unknown
+    country — the caller then keeps the hemisphere-default behaviour."""
+    raw = (code or "").strip().upper()
+    if not raw:
+        return None
+    windows = _TERM_CALENDARS.get(raw) if len(raw) == 2 else None
+    if windows is None:
+        windows = _TERM_CALENDARS.get(_to_alpha2(raw))
+    if not windows:
+        return None
+    return int(windows[0][0]), len(windows)

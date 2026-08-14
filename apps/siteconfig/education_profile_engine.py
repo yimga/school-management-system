@@ -263,6 +263,30 @@ def ensure_region_for_country(
     }
     fallback_start_month = 1 if normalized in _SOUTHERN_HEMISPHERE_CODES else 9
     catalog_start = (defaults.get("academic_year_start_month") if isinstance(defaults, dict) else None)
+
+    # Curated per-country academic calendar — the SINGLE source of truth shared
+    # with the term-date seeder (``apps/academics/country_term_calendars.py``). Its
+    # first-term month and term count are taken as ONE unit so this region's
+    # academic-year start month and term count can never disagree with the curated
+    # term windows. Without it, every non-standard-calendar country (East-Africa
+    # January, US/China 2-semester, South-Africa/Singapore 4-term, …) got the blunt
+    # hemisphere default (Sep north / Jan south, 3 terms), which left its term-date
+    # calendar mis-aligned and SILENTLY unused (the alignment guard declined it).
+    # Falls back to the hemisphere default when no calendar is curated. Best-effort:
+    # a lookup failure must never block region creation.
+    curated_shape = None
+    try:
+        from apps.academics.country_term_calendars import country_calendar_shape
+
+        curated_shape = country_calendar_shape(normalized)
+    except Exception:  # noqa: BLE001 — calendar lookup is best-effort
+        curated_shape = None
+    if curated_shape is not None:
+        start_month, term_count = curated_shape
+    else:
+        start_month = catalog_start or fallback_start_month
+        term_count = defaults.get("term_count_per_year", 3) if isinstance(defaults, dict) else 3
+
     return RegionConfig.objects.create(
         code=normalized,
         name=defaults["country_name"],
@@ -271,8 +295,8 @@ def ensure_region_for_country(
         date_format=defaults.get("date_format", "DD/MM/YYYY") if isinstance(defaults, dict) else "DD/MM/YYYY",
         grading_scale=defaults.get("grading_scale", "0-100") if isinstance(defaults, dict) else "0-100",
         default_currency=defaults["currency"],
-        academic_year_start_month=catalog_start or fallback_start_month,
-        term_count_per_year=defaults.get("term_count_per_year", 3) if isinstance(defaults, dict) else 3,
+        academic_year_start_month=start_month,
+        term_count_per_year=term_count,
     )
 
 
