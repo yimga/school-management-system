@@ -4160,6 +4160,13 @@ if _tm_env in ("SCHEMA", "RLS"):
 else:
     TENANCY_MODE = "SCHEMA" if USE_DJANGO_TENANTS else "RLS"
 
+# SINGLE_TENANT: on a sovereign edge box, resolve a bare host to the sole active
+# School (the .env.edge.example sets it True). Declared in settings_registry as a
+# bool; consumed by apps.schools.middleware._get_single_tenant_school and
+# check_edge_readiness via getattr(..., False). Default False keeps every
+# cloud / multi-tenant deployment unaffected — only an edge box opts in.
+SINGLE_TENANT = os.getenv("SINGLE_TENANT", "").strip().lower() in ("1", "true", "yes")
+
 if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
     # Swap to django-tenants PostgreSQL backend
     _db = DATABASES["default"].copy()

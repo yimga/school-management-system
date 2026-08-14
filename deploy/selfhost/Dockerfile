@@ -15,10 +15,13 @@ ENV PYTHONUNBUFFERED=1 \
 WORKDIR /app
 
 # System deps: libpq for psycopg, build tools for any C extensions, Node 20 for
-# the world-globe bundle, git + curl for setup.
+# the world-globe bundle, git + curl for setup. The libpango/cairo/gdk-pixbuf/ffi
+# libs are WeasyPrint's runtime dependencies (requirements.txt pins WeasyPrint) —
+# without them report-card / receipt PDF generation fails at runtime, not build.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         build-essential libpq-dev curl ca-certificates git \
+        libpango-1.0-0 libpangocairo-1.0-0 libcairo2 libgdk-pixbuf-2.0-0 libffi-dev \
     && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y --no-install-recommends nodejs \
     && apt-get clean \
