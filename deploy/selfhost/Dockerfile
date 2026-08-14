@@ -38,13 +38,19 @@ RUN npm ci --no-audit --no-fund || npm install --no-audit --no-fund
 # App source.
 COPY . .
 
-# Build the world-globe WebGL bundle + collect static (mirrors build.sh). A dummy
-# SECRET_KEY lets collectstatic import settings at build time; the real one is
-# injected at runtime via the env file. No DB is touched here.
+# Build the world-globe WebGL bundle + compile gettext catalogs + collect static
+# (mirrors build.sh). A dummy SECRET_KEY lets management commands import settings
+# at build time; the real one is injected at runtime via the env file. No DB is
+# touched here. compile_message_catalogs (polib, no GNU gettext needed) turns each
+# locale/*/LC_MESSAGES/*.po into a fresh .mo — without it the self-hosted box would
+# serve whatever stale .mo happened to be committed, so a French (or any locale)
+# string committed to a .po never reached self-hosted users (the cloud build.sh
+# already does this; this brings the local-first / self-host path to parity).
 RUN SECRET_KEY="build-time-collectstatic-only" \
     python scripts/purge_retired_globe_vendor_chunks.py \
     && SECRET_KEY="build-time-collectstatic-only" npm run build:world-globe \
     && SECRET_KEY="build-time-collectstatic-only" python scripts/generate_globe_earth_night_texture.py \
+    && SECRET_KEY="build-time-collectstatic-only" python manage.py compile_message_catalogs \
     && SECRET_KEY="build-time-collectstatic-only" python manage.py collectstatic --noinput
 
 EXPOSE 10000
