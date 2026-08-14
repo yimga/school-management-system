@@ -316,7 +316,7 @@ body.setup-studio-page #main-content {
 }
 
 .setup-studio-shell[data-page-archetype="setup-studio-embed"] .setup-studio-launch a {
-  color: var(--color-primary-600, var(--bs-primary));
+  color: var(--link-color, var(--bs-primary));
 }
 
 .setup-studio-checklist-item.is-required {
