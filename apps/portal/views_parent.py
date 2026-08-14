@@ -1499,10 +1499,14 @@ def link_child(request: HttpRequest):
                 changed.append(attr)
             if changed:
                 request.user.save(update_fields=changed)
-        messages.success(
-            request,
-            f"Linked {guardian_link.student} successfully. Results and finance access will reflect your choices.",
+        success_msg = (
+            f"Linked {guardian_link.student} successfully. "
+            "Results and finance access will reflect your choices."
         )
+        _hint = getattr(form, "guardian_hint", None)
+        if _hint and _hint.get("name"):
+            success_msg += f" (School records list a parent/guardian: {_hint['name']}.)"
+        messages.success(request, success_msg)
         referral_code = form.cleaned_data.get("referral_code", "").strip()
         reward = award_referral_reward(guardian_link, referral_code, request.user)
         if reward and reward.amount > Decimal("0.00"):
@@ -1518,6 +1522,7 @@ def link_child(request: HttpRequest):
             "form": form,
             "school_code": get_effective_config(key="school_code", request=request),
             "completeness_pct": form.completeness_score(),
+            "guardian_hint": getattr(form, "guardian_hint", None),
             "referral_bonus": get_effective_config(
                 key="referral_bonus_amount", request=request
             ),

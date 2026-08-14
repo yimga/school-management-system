@@ -37,6 +37,40 @@ from apps.siteconfig.integration_registry import resolve_active_integration
 from apps.communication.models import ClassAnnouncement, MessageThread, ThreadReadState
 
 
+def unclaimed_guardian_hint(student) -> dict | None:
+    """A parent/guardian NAME preserved from a data migration for this student,
+    with NO account yet (G6). Returns ``{"name": str, "phone": str}`` (either key
+    optional) or ``None``.
+
+    The migration deliberately creates no ``User``/``StudentGuardian`` for a bare
+    roster name — this hint is surfaced when a real parent claims the child (by
+    admission number) so they can confirm the school has them on record; the
+    account is minted only then, only by the parent (consent-first, COPPA-safe).
+    Read-only; never raises."""
+    if student is None:
+        return None
+    try:
+        from apps.metadata.models import DynamicFieldValue
+    except Exception:  # noqa: BLE001 — metadata app optional
+        return None
+    try:
+        rows = DynamicFieldValue.objects.filter(  # tenant-isolation-allow: entity-scoped by student pk; schema_context isolates
+            entity_type="student",
+            entity_id=str(getattr(student, "pk", ""))[:64],
+            field_key__in=("parent_name", "parent_phone"),
+        )
+        out: dict[str, str] = {}
+        for row in rows:
+            payload = row.value_json if isinstance(row.value_json, dict) else {}
+            value = payload.get("v")
+            if value in (None, ""):
+                continue
+            out[row.field_key.replace("parent_", "")] = str(value)
+        return out or None
+    except DatabaseError:
+        return None
+
+
 # --- RBAC-aware scoping helpers ---
 
 

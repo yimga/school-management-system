@@ -90,6 +90,14 @@
           </div>
         {% endif %}
 
+        {% if guardian_hint and guardian_hint.name %}
+          <div class="col-12">
+            <div class="rmc-banner rmc-banner--info mb-2">
+              {% blocktrans with name=guardian_hint.name %}Our records list a parent/guardian for this student: <strong>{{ name }}</strong>. If that's you, this link is the right place — your account will be connected. No account was created for that name.{% endblocktrans %}
+            </div>
+          </div>
+        {% endif %}
+
         <div class="col-12">
           <h5 class="mb-2">{% blocktrans with t=lc_student_sg %}{{ t }} details{% endblocktrans %}</h5>
         </div>

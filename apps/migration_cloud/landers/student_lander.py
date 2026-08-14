@@ -249,6 +249,11 @@ class StudentLander(Lander):
                 # the specialty link so the classroom can inherit the trade's
                 # department. Best-effort — never quarantines the landed student.
                 _link_student_classroom(obj, row, ctx, model_fields, result)
+                # Preserve a free-text parent/guardian NAME from the roster as a
+                # student-scoped, ACCOUNT-FREE claimable hint (G6) — never a User /
+                # StudentGuardian at ingest (COPPA-safe). A parent who later links
+                # this child sees it surfaced for confirmation.
+                _link_student_guardian_hint(obj, row, ctx, result)
             except Exception as exc:  # noqa: BLE001 — per-row quarantine
                 result.quarantined += 1
                 result.errors.append(f"upsert failed for {external_id}: {type(exc).__name__}: {exc}")
@@ -420,6 +425,72 @@ def _link_student_classroom(obj, row: dict[str, Any], ctx, model_fields, result)
             obj.save()  # full save: admission_number/student_code/search_index persist
     except Exception:  # noqa: BLE001 — enrichment is best-effort; student already landed
         pass
+
+
+# A roster embeds a parent/guardian NAME in a free-text column ("Parent",
+# "Guardian", "Mother/Father", "Next of Kin"). Match the column NAME, not values.
+_GUARDIAN_NAME_HINT_RE = re.compile(
+    r"(parent|guardian|mother|father|next[\s_]*of[\s_]*kin|\bnok\b)", re.IGNORECASE
+)
+_GUARDIAN_PHONE_HINT_RE = re.compile(
+    r"(phone|mobile|tel|contact|msisdn|cell|whatsapp)", re.IGNORECASE
+)
+# A guardian-ish column that is NOT the name (so we don't store an email/id/etc.
+# under parent_name).
+_GUARDIAN_NON_NAME_RE = re.compile(
+    r"(email|mail|\bid\b|occupation|address|relation|status|number)", re.IGNORECASE
+)
+_HINT_NULL_LITERALS = frozenset({"", "none", "nan", "n/a", "na", "null", "-", "0"})
+
+
+def _extract_guardian_hint(row: dict[str, Any]) -> tuple[str, str]:
+    """Return ``(name, phone)`` for a parent/guardian named in a student roster.
+
+    Scans only the pass-through columns (``custom_fields.*`` / ``_unmapped.*``) so
+    a mapped first-class field is never re-read. Keyed on the column NAME carrying
+    a parent/guardian token; a phone-ish guardian column feeds ``phone``, an
+    id/email/occupation-ish one is ignored, everything else is the name. First
+    non-empty wins."""
+    name = ""
+    phone = ""
+    for key, value in row.items():
+        if not isinstance(key, str):
+            continue
+        m = re.match(r"^(?:custom_fields|_unmapped)\.(.+)$", key)
+        if not m:
+            continue
+        col = m.group(1)
+        if not _GUARDIAN_NAME_HINT_RE.search(col):
+            continue
+        v = str(value).strip() if value is not None else ""
+        if v.lower() in _HINT_NULL_LITERALS:
+            continue
+        if _GUARDIAN_PHONE_HINT_RE.search(col):
+            phone = phone or v
+        elif not _GUARDIAN_NON_NAME_RE.search(col):
+            name = name or v
+    return name, phone
+
+
+def _link_student_guardian_hint(obj, row: dict[str, Any], ctx, result) -> None:
+    """Persist a roster's parent/guardian NAME as a student-scoped, account-free
+    claimable hint (G6). NEVER creates a ``User`` or ``StudentGuardian`` — those
+    are minted only when a real parent claims the child (guardian self-onboarding),
+    the platform's consent-first, COPPA-safe rule. Stored on ``DynamicFieldValue``
+    keyed to the student pk (unlike the generic custom-field path, which keys to a
+    synthetic ``migration_artifact`` row and is not student-joinable), so the claim
+    flow can read it back. Best-effort; never raises/quarantines."""
+    name, phone = _extract_guardian_hint(row)
+    extras: dict[str, Any] = {}
+    if name:
+        extras["parent_name"] = name[:120]
+    if phone:
+        extras["parent_phone"] = phone[:40]
+    if not extras:
+        return
+    persist_dfv_extras(
+        ctx=ctx, entity_type="student", entity_id=obj.pk, extras=extras, result=result,
+    )
 
 
 def _surface_dedup_candidates(model, new_obj, row: dict[str, Any], ctx: "LanderContext") -> None:

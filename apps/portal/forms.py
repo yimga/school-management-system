@@ -301,6 +301,15 @@ class LinkChildForm(forms.Form):
         if not student.is_active:
             raise forms.ValidationError(_("This student profile is inactive."))
         self.student = student
+        # Surface a migration-preserved parent/guardian NAME (account-free hint,
+        # G6) so the claiming parent can confirm the school has them on record.
+        # Advisory only — never blocks a valid claim, never creates an account.
+        try:
+            from .services import unclaimed_guardian_hint
+
+            self.guardian_hint = unclaimed_guardian_hint(student)
+        except Exception:  # noqa: BLE001 — a hint is advisory
+            self.guardian_hint = None
         return admission
 
     def clean(self):
