@@ -423,6 +423,59 @@ class SubjectAssignment(models.Model):
                 raise ValidationError("Third term is not allowed for this classroom.")
 
 
+class SpecialtySubject(models.Model):
+    """The curriculum link — which subjects belong to a specialty (course of study).
+
+    The platform had NO specialty↔subject relationship: ``Subject`` floated free,
+    joined to a specialty only per-``SubjectAssignment`` slot. That left two gaps:
+    a migrated teacher roster's subject id-lists could not be turned into
+    assignments (which specialty owns a subject was unknowable), and the teaching
+    grid could only be built under the single "General" specialty — so a student
+    on a TVET trade had no gradeable assignments and no report card.
+
+    This is a lightweight, admin-editable curriculum: a specialty's set of
+    subjects, with an optional coefficient (the francophone weighted-average
+    systems need per-subject coefficients). Seeded with a permissive default (all
+    subjects for each specialty) that the admin trims per trade; the teaching-grid
+    and teacher-assignment builders read it, falling back to "all subjects" when a
+    specialty has no explicit curriculum yet."""
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="specialty_subjects",
+    )
+    specialty = models.ForeignKey(
+        Specialty, on_delete=models.CASCADE, related_name="subject_links"
+    )
+    subject = models.ForeignKey(
+        Subject, on_delete=models.CASCADE, related_name="specialty_links"
+    )
+    coefficient = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=1,
+        help_text="Weight of this subject in the specialty's average (coefficient systems).",
+    )
+    is_core = models.BooleanField(
+        default=True, help_text="Core (vs elective) subject for this specialty."
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["specialty", "subject"],
+                name="academics_specialtysubject_uniq",
+            ),
+        ]
+        ordering = ["specialty__name", "subject__name"]
+
+    def __str__(self):
+        return f"{self.specialty} · {self.subject} (coef {self.coefficient})"
+
+
 class CurriculumAllocation(models.Model):
     """How much weekly teaching time a class owes a subject.
 

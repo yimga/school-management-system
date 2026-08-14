@@ -848,6 +848,132 @@ def seed_country_trades(school) -> dict[str, Any]:
     }
 
 
+def ensure_specialty_curriculum(school) -> dict[str, Any]:
+    """Seed the specialty↔subject curriculum (``SpecialtySubject``) with a
+    permissive default: every subject linked to every specialty, which an admin
+    then trims per trade.
+
+    The platform had no curriculum graph, so a teacher roster's subject id-lists
+    could not become assignments and the grid could only be built under "General".
+    Seeding a default curriculum makes both possible while staying editable.
+    Idempotent (get_or_create on the unique (specialty, subject))."""
+    if school is None:
+        return {"created_links": 0, "skipped": "no_school"}
+    from apps.academics.models import Specialty, SpecialtySubject, Subject
+
+    subjects = list(Subject.objects.filter(school=school))
+    specialties = list(Specialty.objects.filter(school=school))
+    if not (subjects and specialties):
+        return {"created_links": 0, "skipped": "missing_subjects_or_specialties"}
+
+    created = 0
+    with transaction.atomic():
+        for sp in specialties:
+            for subj in subjects:
+                _, was_created = SpecialtySubject.objects.get_or_create(
+                    specialty=sp, subject=subj, defaults={"school": school}
+                )
+                created += 1 if was_created else 0
+    return {
+        "created_links": created,
+        "specialties": len(specialties),
+        "subjects": len(subjects),
+    }
+
+
+def resolve_specialty_subjects(school, specialty) -> list:
+    """Subjects in a specialty's curriculum, or ALL of the school's subjects when
+    the specialty has no explicit curriculum yet (so the grid always has
+    something to build)."""
+    from apps.academics.models import Subject
+
+    subs = list(
+        Subject.objects.filter(
+            school=school, specialty_links__specialty=specialty
+        ).distinct()
+    )
+    if subs:
+        return subs
+    return list(Subject.objects.filter(school=school))
+
+
+def provision_per_specialty_grid(
+    school, *, academic_year: AcademicYear | None = None
+) -> dict[str, Any]:
+    """Build the teaching grid for the (classroom, specialty) pairs that ENROLLED
+    students actually occupy — so a student on a TVET trade (not "General") has
+    matching ``SubjectAssignment`` rows and can be graded / get a report card.
+
+    ``Evaluation.clean`` requires ``student.specialty == assignment.specialty``
+    (and classroom), so the General-only grid left every trade student
+    ungradeable. This is STUDENT-DRIVEN — it enumerates the distinct
+    (classroom, specialty) pairs present in the roster, never a cartesian
+    explosion — and curriculum-aware (uses each specialty's ``SpecialtySubject``
+    list, all subjects as fallback). Idempotent + honours the third-term rule."""
+    if school is None:
+        return {"created_assignments": 0, "skipped": "no_school"}
+    from apps.academics.models import (
+        Classroom,
+        Specialty,
+        Subject,
+        SubjectAssignment,
+        Term,
+    )
+    from apps.people.models import StudentProfile
+
+    year = academic_year
+    if year is None:
+        year = (
+            AcademicYear.objects.filter(school=school, is_active=True).first()
+            or AcademicYear.objects.filter(school=school).order_by("-start_date").first()
+        )
+    if year is None:
+        return {"created_assignments": 0, "skipped": "no_academic_year"}
+
+    terms = list(Term.objects.filter(school=school, academic_year=year).order_by("position"))
+    if not terms:
+        return {"created_assignments": 0, "skipped": "no_terms"}
+
+    pairs = list(
+        StudentProfile.objects.filter(  # tenant-isolation-allow: scoped by school kwarg
+            school=school, classroom__academic_year=year
+        )
+        .exclude(classroom__isnull=True)
+        .exclude(specialty__isnull=True)
+        .values_list("classroom_id", "specialty_id")
+        .distinct()
+    )
+    if not pairs:
+        return {"created_assignments": 0, "skipped": "no_enrolled_pairs"}
+
+    classrooms = {c.id: c for c in Classroom.objects.filter(school=school, academic_year=year)}
+    specialties = {s.id: s for s in Specialty.objects.filter(school=school)}
+    all_subjects = list(Subject.objects.filter(school=school))
+
+    created = 0
+    with transaction.atomic():
+        for classroom_id, specialty_id in pairs:
+            classroom = classrooms.get(classroom_id)
+            specialty = specialties.get(specialty_id)
+            if classroom is None or specialty is None:
+                continue
+            subjects = resolve_specialty_subjects(school, specialty) or all_subjects
+            for term in terms:
+                if term.position == 3 and not classroom.allows_third_term:
+                    continue
+                for subject in subjects:
+                    _, was_created = SubjectAssignment.objects.get_or_create(
+                        academic_year=year,
+                        term=term,
+                        classroom=classroom,
+                        specialty=specialty,
+                        subject=subject,
+                        defaults={"school": school},
+                    )
+                    created += 1 if was_created else 0
+    return {"created_assignments": created, "pairs": len(pairs)}
+
+
 def provision_country_baseline(
     school,
     *,
@@ -959,5 +1085,12 @@ def provision_country_baseline(
     summary["teaching_grid"] = provision_teaching_grid_for_school(
         school, academic_year=year
     )
+
+    # 9. Specialty↔subject curriculum + a STUDENT-DRIVEN per-specialty grid, so a
+    #    student on a TVET trade (not "General") has matching assignments and is
+    #    gradeable (Evaluation.clean requires the assignment's specialty to match
+    #    the student's). Both idempotent + admin-editable.
+    summary["curriculum"] = ensure_specialty_curriculum(school)
+    summary["specialty_grid"] = provision_per_specialty_grid(school, academic_year=year)
 
     return summary
