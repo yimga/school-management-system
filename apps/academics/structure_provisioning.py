@@ -567,6 +567,90 @@ def _ensure_default_instruction_shifts(school, country_code: str) -> int:
     return created
 
 
+def seed_country_subjects(school) -> dict[str, Any]:
+    """Seed the country/education-system default Subject catalog when the school
+    has NONE — bringing the migration path to parity with signup.
+
+    A roster-only export lands students but no subjects, so the teaching grid
+    stays empty (``missing_prerequisites``) and no report card can be produced.
+    Onboarding already seeds these subjects at signup; this makes the SAME seed
+    available to a migrated school, so a bare export still yields a runnable
+    school on day one.
+
+    NEVER touches an existing catalog — an uploaded ``Subject`` list always wins
+    (idempotent guard on ``count() == 0``). The seed is the school's own
+    Education-DNA ``subject_seed`` (the country-pack override, e.g. Cameroon's
+    Mathematics/English/Biology/…, or the language-aware Math/English/Science
+    fallback), NOT a per-upload invention — and every row it creates is a plain
+    admin-editable ``Subject``. Mirrors the signup seeding in
+    ``apps/schools/tasks.py`` so both doors seed the same catalog."""
+    if school is None:
+        return {"created_subjects": 0, "skipped": "no_school"}
+    from apps.academics.models import Subject
+
+    existing = Subject.objects.filter(school=school).count()
+    if existing:
+        return {"created_subjects": 0, "skipped": "catalog_exists", "existing": existing}
+
+    subject_seed: list[dict] = []
+    try:
+        from apps.policies.policy_registry import get_effective_policy
+        from apps.siteconfig.education_profile_engine import resolve_profile_for_school
+
+        policy = get_effective_policy(school) or {}
+        profile = resolve_profile_for_school(
+            school,
+            requested_profile_code=str(policy.get("education_profile_code") or "").strip(),
+            auto_create=True,
+        )
+        if profile is not None:
+            subject_seed = profile.normalized_subject_seed() or []
+    except Exception:  # noqa: BLE001 — profile resolve is best-effort
+        logger.debug("seed_country_subjects: profile resolve failed", exc_info=True)
+
+    if not subject_seed:
+        # Last-resort language-aware fallback (no resolved profile / empty seed),
+        # exactly as signup does — an English-medium school never gets French as a
+        # core subject.
+        try:
+            from apps.siteconfig.education_profile_engine import _default_subject_seed
+
+            fallback_lang = (getattr(school, "default_language", "") or "").strip()
+            if not fallback_lang:
+                sub_system = (getattr(school, "sub_system", "") or "").upper()
+                fallback_lang = "fr" if sub_system == "FR" else "en"
+            subject_seed = _default_subject_seed(fallback_lang) or []
+        except Exception:  # noqa: BLE001
+            logger.debug("seed_country_subjects: fallback seed failed", exc_info=True)
+
+    if not subject_seed:
+        return {"created_subjects": 0, "skipped": "no_seed"}
+
+    valid_categories = {choice[0] for choice in Subject.Category.choices}
+    created = 0
+    names: list[str] = []
+    for item in subject_seed:
+        name = str(item.get("name") if isinstance(item, dict) else item or "").strip()
+        if not name:
+            continue
+        raw_category = str(
+            item.get("category", Subject.Category.GENERAL)
+            if isinstance(item, dict)
+            else Subject.Category.GENERAL
+        ).upper()
+        category = raw_category if raw_category in valid_categories else Subject.Category.GENERAL
+        try:
+            _, was_created = Subject.objects.get_or_create(
+                school=school, name=name, defaults={"category": category}
+            )
+            if was_created:
+                created += 1
+                names.append(name)
+        except Exception:  # noqa: BLE001 — one bad subject never aborts the rest
+            logger.debug("seed_country_subjects: subject %s failed", name, exc_info=True)
+    return {"created_subjects": created, "catalog": names}
+
+
 def provision_country_baseline(
     school,
     *,
@@ -654,8 +738,13 @@ def provision_country_baseline(
         academic_year=year,
     )
 
-    # 7. Teaching grid over whatever catalog exists (subject-catalog seeding is
-    #    layered in by callers/later increments; the grid is idempotent either way).
+    # 7. Country subject catalog — ONLY when the school has none (a roster-only
+    #    export lands no subjects, so the grid would stay empty and no report card
+    #    could be produced). An uploaded catalog always wins.
+    summary["subjects"] = seed_country_subjects(school)
+
+    # 8. Teaching grid over the catalog (now non-empty for a general-ed school),
+    #    idempotent either way.
     summary["teaching_grid"] = provision_teaching_grid_for_school(
         school, academic_year=year
     )
