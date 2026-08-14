@@ -266,9 +266,11 @@ def ensure_terms(school, academic_year) -> dict[str, Any]:
     ``missing_prerequisites`` and no report card can be produced. This extracts the
     canonical term-seeding (previously inline in ``apps/schools/tasks.py``) so both
     onboarding and migration converge on the same country-aware structure:
-    ``RegionConfig``/``EducationSystemProfile`` drive the count + labels, the year's
-    own start/end dates are split evenly into terms, and exactly one term ends up
-    active (the marks-entry surface 403s without one). Everything stays
+    ``RegionConfig``/``EducationSystemProfile`` drive the count + labels; term DATES
+    come from the country's curated calendar (``country_term_calendars``) when one
+    is known — Cameroon's real trimester windows, not an even Aug-31 third — and
+    fall back to an even month split otherwise; and exactly one term ends up active
+    (the marks-entry surface 403s without one). Everything stays
     admin-editable. Keyed on ``get_or_create(school, academic_year, name)`` — the
     model's ``unique_together`` — so a re-apply never duplicates. Returns a summary.
     """
@@ -281,7 +283,20 @@ def ensure_terms(school, academic_year) -> dict[str, Any]:
     if not (year_start and year_end):
         return {"created_terms": 0, "skipped": "year_missing_dates"}
 
-    term_count, term_labels = _resolve_term_structure(school)
+    ctx = _resolve_country_context(school)
+    term_count = ctx["term_count"]
+    term_labels = ctx["term_labels"]
+
+    # Real per-country term windows (Cameroon's third trimester ends in July, not
+    # the Aug 31 an even split would give it). Falls back to ``None`` — the even
+    # month split below — when no calendar is known for the school's country.
+    # Admin-editable via ``settings['term_windows']`` / the education profile.
+    from apps.academics.country_term_calendars import resolve_term_windows
+
+    windows = resolve_term_windows(
+        school, term_count,
+        year_start=year_start, year_end=year_end, start_month=ctx["start_month"],
+    )
 
     def _month_start_add(base_date: date, months: int) -> date:
         year = base_date.year + ((base_date.month - 1 + months) // 12)
@@ -291,15 +306,18 @@ def ensure_terms(school, academic_year) -> dict[str, Any]:
     created = 0
     months_per_term = max(1, 12 // term_count)
     for i in range(term_count):
-        t_start = _month_start_add(year_start, i * months_per_term)
-        if i == term_count - 1:
-            t_end = year_end
+        if windows is not None:
+            t_start, t_end = windows[i]
         else:
-            t_end = _month_start_add(year_start, (i + 1) * months_per_term) - timedelta(days=1)
-        # Clamp a term start that overshoots the year (short/odd year windows) so
-        # start_date never exceeds end_date.
-        if t_start > year_end:
-            t_start = year_start
+            t_start = _month_start_add(year_start, i * months_per_term)
+            if i == term_count - 1:
+                t_end = year_end
+            else:
+                t_end = _month_start_add(year_start, (i + 1) * months_per_term) - timedelta(days=1)
+            # Clamp a term start that overshoots the year (short/odd year windows)
+            # so start_date never exceeds end_date.
+            if t_start > year_end:
+                t_start = year_start
         term_name = (
             term_labels[i]
             if i < len(term_labels) and str(term_labels[i]).strip()
