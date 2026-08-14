@@ -1,8 +1,23 @@
 # A+ PROGRESS SCOREBOARD (A0 Coordinator)
 
-**Last refreshed:** 2026-08-14 (Claude Code · "take to GO" → **binding-constraint audit**: isolation-axis regression found+CLOSED+SEALED `8a0051bfb`; **M21 i18n confirmed as the platform floor ~4.5**. Prior 08-13: 5-increment build session M29 6/6 · M30 `c8dfd5a19` · W22 `a47fc6e60` · W24 `ea368593c` · M32 `01be505db`)  
-**Loop:** Under the 9.8 lowest-dimension regime, GO = raise the MINIMUM metric. Isolation now clean (off ≤4.9). **Floor = M21 i18n ~4.5** (cosmetic scan-0; 0–5.5% real translation; freshness gate fails + unwired) — a large multi-session effort; approach pending user direction. Remaining beyond that: M31/M33, W21/W23/W25–W31 + per-increment follow-ups.  
+**Last refreshed:** 2026-08-14 (Claude Code · "take to GO" → **binding-constraint audit** (isolation regression CLOSED+SEALED `8a0051bfb`) → **M21 i18n Phase 1 SHIPPED `5914759cf`**: extracted the 1712-string wrap-wave debt (deploy gate un-blocked) + per-push freshness ratchet in CI. Prior 08-13: M29 6/6 · M30 `c8dfd5a19` · W22 `a47fc6e60` · W24 `ea368593c` · M32 `01be505db`)  
+**Loop:** Under the 9.8 lowest-dimension regime, GO = raise the MINIMUM metric. Isolation clean (off ≤4.9). **Floor = M21 i18n ~4.5**; user chose "Both, sealed then content" → **Phase 1 (seal) DONE** (catalog now honest/fresh; freshness gate wired two-tier). **Phase 2 = French CONTENT** (the score-mover) is next. Remaining beyond that: M31/M33, W21/W23/W25–W31 + per-increment follow-ups.  
 **Tree:** HEAD = `origin/main`
+
+---
+
+## M21 i18n — Phase 1: catalog hygiene + per-push freshness seal — SHIPPED — 2026-08-14
+
+**Commit `5914759cf`** (off-tree, 23 paths: 20 `.po` + verifier + `ci.yml` + new baseline; 12 boundary gates green; **re-audited from a pristine `origin/main` checkout — all three i18n gates exit 0**). User chose **"Both, sealed then content"**; this is the seal half.
+
+**Audit-by-running finding:** the `scan_untranslated_template_text 1376→0` win was **cosmetic** — the 2026-07-29 wrap wave wrapped ~1700 labels in `{% trans %}` but **never EXTRACTED** them, leaving `en/django.po` **1712 msgids stale**. That silently **FAILED the binary deploy gate** (`pre_deploy_gate.sh` runs `verify_i18n_catalog_fresh`) and starved translators; the freshness gate was **wired into NO per-push CI**.
+
+**What shipped:**
+- **Extraction (the fix):** `sync_i18n_catalog` (polib, gettext-free) run against `origin/main` source **in a clean worktree** (local HEAD was 66 commits behind — a divergent-tree sync would mis-scan and red CI): 18145 unique msgids; **en +1712** (now 100% source-identity), fr +789, all 20 locales merged. Untranslated → English fallback; **no `.mo` recompile → runtime output unchanged**. Binary `verify_i18n_catalog_fresh` now **OK → deploy gate un-blocked**.
+- **Per-push seal (NEW):** `verify_i18n_catalog_fresh` gained `--compare`/`--update-baseline` (ratchet, mirrors the house `scan_*` convention; **binary default preserved** for deploy-gate + self-heal + plan-deliverable callers). Wired into `ci.yml::django-tests` — fails only on a **NEW** wrapped-but-unextracted string beyond the frozen baseline (`var/security-audit-baseline-i18n-catalog-fresh.json`, now `{missing:[]}`). The missing guard that would have caught the 1712-string debt at commit time. Two-tier: binary at deploy (absolute), ratchet at push (early + humane, with the standard `--update-baseline` escape hatch).
+- **Coverage untouched:** `scan_locale_coverage --compare` stays GREEN (en holds 100%, no translated-COUNT regression, stubs have no floor) → no re-baseline; peer-dirty coverage baseline left alone.
+
+**Race handling:** generated against `ce5117892`; pushed with **0 drift** (origin/main unmoved through the window); re-audit on the pushed tip confirms all gates green. **REMAINING = Phase 2 (French CONTENT** — the actual score-mover: fill high-value `fr` msgstrs + recompile `fr.mo`, solving binary-`.mo` shipping through ottpush).
 
 ---
 
