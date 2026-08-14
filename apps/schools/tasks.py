@@ -1676,58 +1676,16 @@ def _do_provision_tracked(
         # before terms; Term.get_or_create makes a requeue safely backfill them
         # (the old ``if created:`` gate left such years permanently term-less).
         try:
-            def _month_start_add(base_date: date, months: int) -> date:
-                year = base_date.year + ((base_date.month - 1 + months) // 12)
-                month = ((base_date.month - 1 + months) % 12) + 1
-                return date(year, month, 1)
+            # Unified with the migration path: ensure_terms() seeds the SAME
+            # country-aware term structure the inline loop used to (same
+            # get_or_create-by-name + active-term guard), but ALSO applies real
+            # per-country term DATES from the country calendar — the inline loop
+            # only ever produced an even 12//term_count month split, so a signup
+            # school's terms ran on fictional dates. One source of truth for both
+            # doors (onboarding + migration). Idempotent; admin-editable.
+            from apps.academics.structure_provisioning import ensure_terms
 
-            months_per_term = 12 // term_count
-            for i in range(term_count):
-                t_start = _month_start_add(year_start, i * months_per_term)
-                if i == term_count - 1:
-                    t_end = year_end
-                else:
-                    next_term_start = _month_start_add(
-                        year_start, (i + 1) * months_per_term
-                    )
-                    t_end = next_term_start - timedelta(days=1)
-                term_name = (
-                    term_labels[i]
-                    if i < len(term_labels) and str(term_labels[i]).strip()
-                    else f"Term {i + 1}"
-                )
-                Term.objects.get_or_create(
-                    school=school,
-                    academic_year=ay,
-                    name=term_name,
-                    defaults={
-                        "position": i + 1,
-                        "start_date": t_start,
-                        "end_date": t_end,
-                        "is_active": i == 0,
-                    },
-                )
-            # The year MUST end up with an active term. ``is_active`` sits in
-            # ``defaults``, which get_or_create IGNORES when the row already
-            # exists — so a resume over terms seeded by an earlier partial drive
-            # (or by the structure/blueprint seeders, which don't set it) leaves
-            # the year with NO active term. That is not cosmetic: the teacher
-            # marks-entry surface resolves the current term and 403s without one,
-            # so grade entry is dead for the year — created by the repair.
-            if not Term.objects.filter(school=school, academic_year=ay, is_active=True).exists():
-                first_term = (
-                    Term.objects.filter(school=school, academic_year=ay)
-                    .order_by("position", "start_date", "id")
-                    .first()
-                )
-                if first_term is not None:
-                    # tenant-isolation-allow: provisioning-activate-term-by-pk-resolved-school-scoped-above
-                    Term.objects.filter(pk=first_term.pk).update(is_active=True)
-                    logger.info(
-                        "Activated term %s for school %s (year had no active term)",
-                        first_term.pk,
-                        school_id,
-                    )
+            ensure_terms(school, ay)
         except (DatabaseError, IntegrityError, ValueError, TypeError):
             # One seed sub-step must never abort the whole provision: the school
             # is already active (Phase A) and missing terms are recoverable.
@@ -2070,6 +2028,37 @@ def _do_provision_tracked(
                 status="FAILED",
                 message="Teaching grid could not be prepared.",
                 payload={"failed": True},
+            )
+
+        # Converge onto the shared country-baseline provisioner so a signup school
+        # gets the SAME country minimum defaults the migration path does — national
+        # subject codes, a vocational trade catalog (TVET schools), the country
+        # admission-number template, and the specialty↔subject curriculum. Fully
+        # idempotent: everything already seeded above (year, terms, subjects, grid)
+        # is left untouched; this only fills the country-specific layers. Best-
+        # effort, never fatal to the provision.
+        try:
+            from apps.academics.structure_provisioning import (
+                provision_country_baseline,
+            )
+
+            baseline_summary = provision_country_baseline(school, academic_year=ay)
+            logger.info(
+                "Country baseline applied for school %s: %s",
+                school_id,
+                {
+                    k: baseline_summary.get(k)
+                    for k in (
+                        "subject_codes",
+                        "trades",
+                        "admission_template",
+                        "curriculum",
+                    )
+                },
+            )
+        except (DatabaseError, IntegrityError, ValueError, TypeError, ImportError):
+            logger.exception(
+                "Country baseline application failed for school %s", school_id
             )
 
         # Assign default dashboard packs per role (Dashboard Packs revival). Idempotent
