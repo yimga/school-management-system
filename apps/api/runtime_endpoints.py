@@ -242,17 +242,25 @@ def structural_options_initialize_runtime(request: HttpRequest) -> JsonResponse:
                 t.strip() for t in raw.replace(",", "|").split("|") if t.strip()
             ]
 
-    from apps.academics.structure_provisioning import provision_academic_structure_for_school
+    from apps.academics.structure_provisioning import provision_country_baseline
     from apps.policies.grading_nuance_templates import sync_grading_nuance_from_policy
 
-    structure_payload = provision_academic_structure_for_school(
-        school,
-        school_type_codes=school_type_codes or None,
+    # Full country baseline, not just cycle nodes + classrooms: this endpoint used
+    # to call provision_academic_structure_for_school directly, so a tenant that
+    # re-initialized structure here got NO terms/grading/subjects/national codes/
+    # trades/admission template/curriculum/grid — a parity gap with every other
+    # provisioning door. provision_country_baseline is idempotent, so an already-
+    # provisioned tenant just gets the missing country layers filled in.
+    baseline_payload = provision_country_baseline(
+        school, school_type_codes=school_type_codes or None
     )
     nuance_payload = sync_grading_nuance_from_policy(school)
     payload = {
         "status": "ok",
-        "structure": structure_payload,
+        # Preserve the historical "structure" key (the cycle-node/classroom result)
+        # for existing clients; expose the whole baseline alongside it.
+        "structure": baseline_payload.get("structure", {}),
+        "baseline": baseline_payload,
         "nuance_sync": nuance_payload,
     }
     response = JsonResponse(payload, json_dumps_params={"separators": (",", ":")})

@@ -809,38 +809,54 @@ def seed_country_trades(school) -> dict[str, Any]:
     if not catalog:
         return {"created_specialties": 0, "skipped": "no_catalog"}
 
-    sid = str(getattr(school, "id", "")).replace("-", "")[:8]
+    # 12 hex chars (48 bits) of the UUID, not 8 — Department.code/Specialty.code
+    # are GLOBALLY unique, and an 8-hex (32-bit) prefix has a non-trivial
+    # birthday-collision chance across tens of thousands of tenants. Codes stay
+    # well under 30 chars (index part FIRST so a [:30] truncation can't collapse
+    # two distinct codes onto one).
+    sid = str(getattr(school, "id", "")).replace("-", "")[:12]
     created_depts = 0
     created_specs = 0
     trades: list[str] = []
-    with transaction.atomic():
-        for d_idx, (dept_name, trade_names) in enumerate(catalog):
-            # School-namespaced + index-based code (unique part FIRST, so a [:30]
-            # truncation can never collapse two codes into one).
-            dept_code = f"{sid}-TD{d_idx}"[:30]
-            dept = (
-                Department.objects.filter(school=school, name=dept_name).first()
-                or Department.objects.filter(school=school, code=dept_code).first()
-            )
-            if dept is None:
-                dept = Department.objects.create(
-                    school=school, name=dept_name, code=dept_code
-                )
+    # NO outer atomic: each create gets its OWN savepoint so a rare cross-school
+    # code collision (IntegrityError) rolls back only that row instead of poisoning
+    # the surrounding transaction — which would make the very NEXT query raise
+    # TransactionManagementError and abort the entire baseline.
+    for d_idx, (dept_name, trade_names) in enumerate(catalog):
+        dept_code = f"{sid}-TD{d_idx}"[:30]
+        dept = (
+            Department.objects.filter(school=school, name=dept_name).first()
+            or Department.objects.filter(school=school, code=dept_code).first()
+        )
+        if dept is None:
+            try:
+                with transaction.atomic():
+                    dept = Department.objects.create(
+                        school=school, name=dept_name, code=dept_code
+                    )
                 created_depts += 1
-            for s_idx, trade_name in enumerate(trade_names):
-                if Specialty.objects.filter(school=school, name=trade_name).exists():
-                    continue
-                spec_code = f"{sid}-TR{d_idx}-{s_idx}"[:30]
-                try:
+            except Exception:  # noqa: BLE001 — a dept-code collision skips it, never poisons the txn
+                logger.debug(
+                    "seed_country_trades: department %s failed", dept_name, exc_info=True
+                )
+                dept = Department.objects.filter(school=school, name=dept_name).first()
+        if dept is None:
+            continue
+        for s_idx, trade_name in enumerate(trade_names):
+            if Specialty.objects.filter(school=school, name=trade_name).exists():
+                continue
+            spec_code = f"{sid}-TR{d_idx}-{s_idx}"[:30]
+            try:
+                with transaction.atomic():
                     Specialty.objects.create(
                         school=school, department=dept, name=trade_name, code=spec_code
                     )
-                    created_specs += 1
-                    trades.append(trade_name)
-                except Exception:  # noqa: BLE001 — one trade never aborts the rest
-                    logger.debug(
-                        "seed_country_trades: specialty %s failed", trade_name, exc_info=True
-                    )
+                created_specs += 1
+                trades.append(trade_name)
+            except Exception:  # noqa: BLE001 — one trade's collision never aborts the rest
+                logger.debug(
+                    "seed_country_trades: specialty %s failed", trade_name, exc_info=True
+                )
     return {
         "created_specialties": created_specs,
         "created_departments": created_depts,

@@ -143,28 +143,50 @@ def resolve_term_windows(
     start_month: int,
 ) -> list[tuple[_dt.date, _dt.date]] | None:
     """Return real ``[(term_start, term_end), …]`` dates for a school's terms, or
-    ``None`` when no calendar is known (caller then uses the even split).
+    ``None`` when no usable calendar applies (caller then uses the even split).
 
-    Each window's calendar year is anchored on the academic year: a month at or
-    after the year's ``start_month`` belongs to ``year_start.year``; an earlier
-    month rolls into the next calendar year. Every date is clamped inside
-    ``[year_start, year_end]`` so a curated window can never push a term outside
-    the year (or make start > end)."""
+    Two correctness rules, learned the hard way:
+
+    1. **Alignment guard.** A curated calendar is authored around its country's
+       real first-term month (Cameroon September, Kenya January). It is only
+       applied when that first-term month equals the school's academic-year
+       ``start_month`` — otherwise the year (say Sep→Aug) and the calendar (say
+       Kenya's Jan→Dec) disagree, and the early terms would fall before
+       ``year_start`` and clamp to a single day. When they disagree we return
+       ``None`` and let the even split, which always fits the year, take over.
+
+    2. **Sequential walk-anchor.** Windows are listed in teaching order, so each
+       window's calendar year is assigned by WALKING the sequence and bumping the
+       year whenever a term's start month wraps past the previous one (Dec→Jan) —
+       and a window whose END month precedes its START month ends in the next
+       year. Anchoring every month independently on ``start_month`` (the old bug)
+       mis-dated any term sitting on the far side of it, producing ``start > end``
+       windows that clamped to a zero-length term.
+
+    Every date is still clamped inside ``[year_start, year_end]`` as a backstop."""
     raw = _lookup_windows(school, term_count)
     if not raw:
         return None
 
-    def _cal_year(month: int) -> int:
-        return year_start.year if month >= start_month else year_start.year + 1
+    # Alignment guard: the calendar's own first term must start in the same month
+    # the academic year does, or it does not belong to this year window.
+    if int(raw[0][0]) != int(start_month):
+        return None
 
     windows: list[tuple[_dt.date, _dt.date]] = []
+    cur_year = year_start.year
+    prev_start_month: int | None = None
     for (sm, sd, em, ed) in raw:
-        t_start = _safe_date(_cal_year(sm), sm, sd)
-        t_end = _safe_date(_cal_year(em), em, ed)
+        if prev_start_month is not None and sm < prev_start_month:
+            cur_year += 1  # start month wrapped past December → next calendar year
+        t_start = _safe_date(cur_year, sm, sd)
+        end_year = cur_year + 1 if em < sm else cur_year
+        t_end = _safe_date(end_year, em, ed)
         if t_start is None or t_end is None:
             return None  # a bad curated row → fall back to the even split wholesale
-        # Clamp inside the academic year and keep start <= end.
+        # Clamp inside the academic year and keep start <= end (backstop).
         t_start = min(max(t_start, year_start), year_end)
         t_end = min(max(t_end, t_start), year_end)
         windows.append((t_start, t_end))
+        prev_start_month = sm
     return windows

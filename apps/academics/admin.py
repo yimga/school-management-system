@@ -1,12 +1,13 @@
 from django.contrib import admin
 from config.admin import register_tenant_admin
 
-from unfold.admin import ModelAdmin
+from unfold.admin import ModelAdmin, TabularInline
 from .models import (
     AcademicYear,
     Term,
     Department,
     Specialty,
+    SpecialtySubject,
     Classroom,
     ClassroomPromotionMapping,
     Subject,
@@ -70,10 +71,31 @@ class DepartmentAdmin(ModelAdmin):
     search_fields = ("name", "code")
 
 
+class SpecialtySubjectInline(TabularInline):
+    """Edit a specialty's curriculum (which subjects it teaches) inline, so an
+    admin can trim the permissive default seeded by ensure_specialty_curriculum."""
+
+    model = SpecialtySubject
+    extra = 0
+    autocomplete_fields = ("subject",)
+    fields = ("subject", "coefficient", "is_core")
+
+
 class SpecialtyAdmin(ModelAdmin):
     list_display = ("name", "code", "department")
     list_filter = ("department",)
     search_fields = ("name", "code", "department__name")
+    inlines = (SpecialtySubjectInline,)
+
+
+class SpecialtySubjectAdmin(ModelAdmin):
+    """Standalone view of the specialty↔subject curriculum links."""
+
+    list_display = ("specialty", "subject", "coefficient", "is_core")
+    list_filter = ("is_core", "specialty")
+    list_editable = ("coefficient", "is_core")
+    search_fields = ("specialty__name", "subject__name")
+    autocomplete_fields = ("specialty", "subject")
 
 
 class ClassroomAdmin(ModelAdmin):
@@ -95,9 +117,10 @@ class ClassroomPromotionMappingAdmin(ModelAdmin):
 
 
 class SubjectAdmin(ModelAdmin):
-    list_display = ("name", "category")
+    list_display = ("name", "code", "category")
+    list_editable = ("code",)
     list_filter = ("category",)
-    search_fields = ("name",)
+    search_fields = ("name", "code")
 
 
 class SubjectAssignmentAdmin(ModelAdmin):
@@ -404,6 +427,7 @@ register_tenant_admin(AcademicYear, AcademicYearAdmin)
 register_tenant_admin(Term, TermAdmin)
 register_tenant_admin(Department, DepartmentAdmin)
 register_tenant_admin(Specialty, SpecialtyAdmin)
+register_tenant_admin(SpecialtySubject, SpecialtySubjectAdmin)
 register_tenant_admin(Classroom, ClassroomAdmin)
 register_tenant_admin(ClassroomPromotionMapping, ClassroomPromotionMappingAdmin)
 register_tenant_admin(Subject, SubjectAdmin)

@@ -54,6 +54,48 @@ class TenantOverrideTests(TestCase):
         self.assertEqual(terms[2].start_date, _dt.date(2026, 1, 15))
 
 
+class AlignmentAndWalkAnchorTests(TestCase):
+    """Regression for the collapse/scramble bug: a January-start calendar (Kenya)
+    anchored on a September start month produced single-day / out-of-order terms."""
+
+    def test_aligned_january_calendar_is_ordered_and_not_collapsed(self):
+        school = School(country_code="KE")  # unsaved: resolver reads country_code only
+        wins = resolve_term_windows(
+            school, 3,
+            year_start=_dt.date(2025, 1, 1), year_end=_dt.date(2025, 12, 31), start_month=1,
+        )
+        self.assertIsNotNone(wins, "an aligned Jan-start calendar should apply")
+        for start, end in wins:
+            self.assertLess(start, end, "no term may collapse to a single day")
+        # strictly chronological across terms
+        self.assertLess(wins[0][1], wins[1][0])
+        self.assertLess(wins[1][1], wins[2][0])
+        self.assertEqual(wins[0][0], _dt.date(2025, 1, 5))
+        self.assertEqual(wins[2][1], _dt.date(2025, 11, 25))
+
+    def test_misaligned_calendar_falls_back_to_even_split(self):
+        # Kenya's calendar starts January; a Sept-start academic year does not
+        # match, so the guard declines (caller uses the even split that fits).
+        school = School(country_code="KE")
+        self.assertIsNone(
+            resolve_term_windows(
+                school, 3,
+                year_start=_dt.date(2025, 9, 1), year_end=_dt.date(2026, 8, 31), start_month=9,
+            )
+        )
+
+    def test_cameroon_still_aligned_and_correct(self):
+        school = School(country_code="CM")
+        wins = resolve_term_windows(
+            school, 3,
+            year_start=_dt.date(2025, 9, 1), year_end=_dt.date(2026, 8, 31), start_month=9,
+        )
+        self.assertIsNotNone(wins)
+        self.assertEqual(wins[0][0], _dt.date(2025, 9, 1))
+        self.assertEqual(wins[1][0], _dt.date(2026, 1, 5))  # walked into the next year
+        self.assertEqual(wins[2][1], _dt.date(2026, 7, 10))
+
+
 class FallbackAndGuardTests(TestCase):
     def test_unknown_country_returns_none_and_even_split_still_seeds_terms(self):
         school = School.objects.create(name="Zz", subdomain="zz-cal", country_code="CM")
