@@ -36,7 +36,12 @@ x-app: &app
 
 services:
   db:
-    image: postgres:16-bookworm
+    # pgvector/pgvector:pg16 == the official postgres:16 (bookworm) image plus the
+    # pgvector extension files preinstalled. Drop-in data-compatible with a volume
+    # first initialised by postgres:16-bookworm. Required so migration 0123 (and the
+    # opt-in migrate_embeddings_to_pgvector command) can `CREATE EXTENSION vector`
+    # instead of crash-looping the web boot on a stock image that lacks it.
+    image: pgvector/pgvector:pg16
     environment:
       POSTGRES_DB: "${POSTGRES_DB:-runmycampus}"
       POSTGRES_USER: "${POSTGRES_USER:-rmc}"
