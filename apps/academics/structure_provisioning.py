@@ -682,6 +682,112 @@ def backfill_subject_codes(school) -> dict[str, Any]:
     return {"coded_subjects": coded}
 
 
+_VOCATIONAL_MARKERS = ("tvet", "vocational", "technical", "trade", "polytechnic")
+
+
+def _is_vocational_school(school) -> bool:
+    """True when a school reads as vocational/TVET — the gate for seeding trades.
+
+    A general-ed school must NEVER sprout a welding specialty, so this is
+    deliberately conservative: it fires only on an explicit vocational marker in
+    the school's declared type (``settings['school_type']`` / ``school_type_raw``
+    / ``education_type``) or an ``education_system_types`` registry code."""
+    if school is None:
+        return False
+    settings_map = getattr(school, "settings", None) or {}
+    blob = " ".join(
+        str(settings_map.get(k) or "")
+        for k in ("school_type", "school_type_raw", "education_type")
+    ).lower()
+    if any(m in blob for m in _VOCATIONAL_MARKERS):
+        return True
+    try:
+        codes = " ".join(
+            str(c).lower()
+            for c in school.education_system_types.values_list("code", flat=True)
+        )
+        if any(m in codes for m in _VOCATIONAL_MARKERS):
+            return True
+    except Exception:  # noqa: BLE001 — M2M may be unavailable; best-effort signal
+        pass
+    return False
+
+
+def seed_country_trades(school) -> dict[str, Any]:
+    """Seed a vocational school's country-default trades (Specialty rows under
+    grouping Departments) when it has none of its own.
+
+    The platform shipped no trade catalog at all, so a TVET school onboarding
+    fresh — or a roster-only export that never listed its trades — landed with a
+    single "General" specialty and nowhere to place a student's course of study.
+    This gives it a country-appropriate default set (Cameroon's Welding / Plumbing
+    / Catering / … or the universal generic set) so it runs on day one.
+
+    Gated to vocational schools only. Skipped when the school already has a real
+    (non-"General") specialty — an uploaded trade list always wins.
+    ``Department.code`` and ``Specialty.code`` are GLOBALLY unique, so both codes
+    are namespaced by school id AND index (never the truncated name — a long name
+    truncated to 30 chars collapses distinct codes to one and collides on the next
+    UUID school). Idempotent + admin-editable."""
+    if school is None:
+        return {"created_specialties": 0, "skipped": "no_school"}
+    if not _is_vocational_school(school):
+        return {"created_specialties": 0, "skipped": "not_vocational"}
+    from apps.academics.models import Department, Specialty
+
+    existing = Specialty.objects.filter(school=school).exclude(name="General").count()
+    if existing:
+        return {"created_specialties": 0, "skipped": "specialties_exist", "existing": existing}
+
+    catalog = None
+    try:
+        from apps.academics.country_trade_catalogs import resolve_trade_catalog
+
+        catalog = resolve_trade_catalog(school)
+    except Exception:  # noqa: BLE001 — catalog resolve is best-effort
+        logger.debug("seed_country_trades: catalog resolve failed", exc_info=True)
+    if not catalog:
+        return {"created_specialties": 0, "skipped": "no_catalog"}
+
+    sid = str(getattr(school, "id", "")).replace("-", "")[:8]
+    created_depts = 0
+    created_specs = 0
+    trades: list[str] = []
+    with transaction.atomic():
+        for d_idx, (dept_name, trade_names) in enumerate(catalog):
+            # School-namespaced + index-based code (unique part FIRST, so a [:30]
+            # truncation can never collapse two codes into one).
+            dept_code = f"{sid}-TD{d_idx}"[:30]
+            dept = (
+                Department.objects.filter(school=school, name=dept_name).first()
+                or Department.objects.filter(school=school, code=dept_code).first()
+            )
+            if dept is None:
+                dept = Department.objects.create(
+                    school=school, name=dept_name, code=dept_code
+                )
+                created_depts += 1
+            for s_idx, trade_name in enumerate(trade_names):
+                if Specialty.objects.filter(school=school, name=trade_name).exists():
+                    continue
+                spec_code = f"{sid}-TR{d_idx}-{s_idx}"[:30]
+                try:
+                    Specialty.objects.create(
+                        school=school, department=dept, name=trade_name, code=spec_code
+                    )
+                    created_specs += 1
+                    trades.append(trade_name)
+                except Exception:  # noqa: BLE001 — one trade never aborts the rest
+                    logger.debug(
+                        "seed_country_trades: specialty %s failed", trade_name, exc_info=True
+                    )
+    return {
+        "created_specialties": created_specs,
+        "created_departments": created_depts,
+        "trades": trades,
+    }
+
+
 def provision_country_baseline(
     school,
     *,
@@ -777,6 +883,11 @@ def provision_country_baseline(
     # 7b. National subject codes on every code-less subject (seeded rows already
     #     carry one; this covers uploaded catalogs + pre-``code`` tenants).
     summary["subject_codes"] = backfill_subject_codes(school)
+
+    # 7c. Country trade catalog for VOCATIONAL schools only (a TVET school lands
+    #     with just "General" and nowhere to place a course of study). No-op for a
+    #     general-ed school; skipped when trades were uploaded.
+    summary["trades"] = seed_country_trades(school)
 
     # 8. Teaching grid over the catalog (now non-empty for a general-ed school),
     #    idempotent either way.
