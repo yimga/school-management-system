@@ -9,11 +9,11 @@ cd /app
 echo "[selfhost] waiting for database..."
 python - <<'PY'
 import os, time, sys
-import psycopg2
+import psycopg  # psycopg 3 — the driver in requirements.txt (psycopg[binary]>=3.1)
 url = os.environ.get("DATABASE_URL", "")
 for attempt in range(60):
     try:
-        psycopg2.connect(url).close()
+        psycopg.connect(url).close()
         print("[selfhost] database is up")
         sys.exit(0)
     except Exception as exc:  # noqa: BLE001 - boot-time readiness poll
