@@ -57293,3 +57293,5424 @@ msgstr ""
 
 msgid "← Raise a concern"
 msgstr ""
+
+msgid ""
+"%(user)s was deactivated and has been reactivated so they can sign in with "
+"this temporary password."
+msgstr ""
+
+msgid "%(user)s was deactivated and has been reactivated so they can sign in."
+msgstr ""
+
+msgid "(ISO or YYYY-MM-DD)"
+msgstr ""
+
+msgid "(PDF, Office or images, up to 10&nbsp;MB each)"
+msgstr ""
+
+msgid "(no change)"
+msgstr ""
+
+msgid "(no remarks)"
+msgstr ""
+
+msgid "(staff)"
+msgstr ""
+
+msgid "+ Add MAT group"
+msgstr ""
+
+msgid "-- Optional topic from progression --"
+msgstr ""
+
+msgid "-- choose --"
+msgstr ""
+
+msgid "/portal/super/wedges/?format=json"
+msgstr ""
+
+msgid "1,000–4,999 learners"
+msgstr ""
+
+msgid "10 items per list"
+msgstr ""
+
+msgid "11 items per list"
+msgstr ""
+
+msgid "12 items per list"
+msgstr ""
+
+msgid "3 items per list"
+msgstr ""
+
+msgid "4 items per list"
+msgstr ""
+
+msgid "5 items per list"
+msgstr ""
+
+msgid "5,000+ learners"
+msgstr ""
+
+msgid "6 items per list"
+msgstr ""
+
+msgid "7 items per list"
+msgstr ""
+
+msgid "7y (default)"
+msgstr ""
+
+msgid "8 items per list"
+msgstr ""
+
+msgid "9 items per list"
+msgstr ""
+
+msgid ""
+"<strong id=\"reviewCreatedCount\">0</strong> valid rows will be imported "
+"(new evaluations created or existing ones updated)"
+msgstr ""
+
+msgid ""
+"<strong id=\"reviewIgnoredCount\">0</strong> rows have issues and will be "
+"skipped"
+msgstr ""
+
+msgid ""
+"<strong><span id=\"completeCreatedCount\">0</span> new evaluations "
+"created</strong>"
+msgstr ""
+
+msgid ""
+"<strong><span id=\"completeUpdatedCount\">0</span> evaluations "
+"updated</strong>"
+msgstr ""
+
+msgid "<strong>Duration: <span id=\"completeDuration\">0</span> seconds</strong>"
+msgstr ""
+
+msgid ""
+"<strong>Offline sync:</strong> When the server is reachable again, queued "
+"data (attendance, grades, entity/API writes) syncs automatically. Users can "
+"click <strong>Sync now</strong> in the portal header to sync manually. A "
+"reachability check runs before showing \"Syncing…\". For platform-wide "
+"offline and data integrity with concurrent users, see <strong>Offline "
+"platform &amp; data integrity</strong> in docs."
+msgstr ""
+
+msgid "<strong>Start searching</strong> to find FAQs and articles"
+msgstr ""
+
+msgid "A balanced school workspace with local-first operations."
+msgstr ""
+
+msgid "A client ID is required for an OIDC connection."
+msgstr ""
+
+msgid "A concise record of what this governed action will do."
+msgstr ""
+
+msgid "A district office overseeing member schools."
+msgstr ""
+
+msgid "A finance manager can record this school's collection posture."
+msgstr ""
+
+msgid "A one-time accept link is emailed and shown after creation."
+msgstr ""
+
+msgid ""
+"A recent tenant backup — or the override above — is required before "
+"rollover. Use “Back up now” to capture a full-state DR snapshot first."
+msgstr ""
+
+msgid "A roster is required again before launch."
+msgstr ""
+
+msgid "A single school and administration team."
+msgstr ""
+
+msgid ""
+"A verified payment rail is available to this school, so live collection is "
+"enabled."
+msgstr ""
+
+msgid "A verified payment rail is available to this school."
+msgstr ""
+
+msgid "ADMIN"
+msgstr ""
+
+msgid "AI narrative feedback — drafts"
+msgstr ""
+
+msgid "ALUMNI"
+msgstr ""
+
+msgid "API &amp; schema"
+msgstr ""
+
+msgid "API usage (sample)"
+msgstr ""
+
+msgid "Academic Information"
+msgstr ""
+
+msgid "Academic Year *"
+msgstr ""
+
+msgid "Academic Year:"
+msgstr ""
+
+msgid "Academic Years"
+msgstr ""
+
+msgid "Academic record counts"
+msgstr ""
+
+msgid "Academic workspaces"
+msgstr ""
+
+msgid "Academic year ID"
+msgstr ""
+
+msgid "Access Permissions"
+msgstr ""
+
+msgid "Access Requests"
+msgstr ""
+
+msgid "Access required"
+msgstr ""
+
+msgid "Accessibility support"
+msgstr ""
+
+msgid "Account actions"
+msgstr ""
+
+msgid ""
+"Account for %(email)s is ready. Share the temporary password securely — "
+"%(name)s will be asked to set a new password and complete their profile on "
+"first sign-in."
+msgstr ""
+
+msgid "Account identity"
+msgstr ""
+
+msgid "Account protected"
+msgstr ""
+
+msgid "Account review available"
+msgstr ""
+
+msgid "Account setup steps"
+msgstr ""
+
+msgid "Acknowledge"
+msgstr ""
+
+msgid "Acknowledge &amp; close"
+msgstr ""
+
+msgid "Act as"
+msgstr ""
+
+msgid "Activation checks"
+msgstr ""
+
+msgid "Activation needs attention"
+msgstr ""
+
+msgid "Activation progress"
+msgstr ""
+
+msgid "Activation successful"
+msgstr ""
+
+msgid "Activation summary"
+msgstr ""
+
+msgid "Active & recent codes"
+msgstr ""
+
+msgid "Active (visible to users)"
+msgstr ""
+
+msgid "Active dedup keys"
+msgstr ""
+
+msgid "Active now · manage details in Security"
+msgstr ""
+
+msgid "Active since"
+msgstr ""
+
+msgid "Active staff accounts"
+msgstr ""
+
+msgid "Active surface"
+msgstr ""
+
+msgid "Actually, we do have data to import"
+msgstr ""
+
+msgid "Add User"
+msgstr ""
+
+msgid "Add a Comment"
+msgstr ""
+
+msgid "Add a connection"
+msgstr ""
+
+msgid "Add connection"
+msgstr ""
+
+msgid "Add contact details in site settings."
+msgstr ""
+
+msgid "Add gift"
+msgstr ""
+
+msgid "Add group"
+msgstr ""
+
+msgid "Add hostel, welfare and duty operations."
+msgstr ""
+
+msgid ""
+"Add more information to unlock better insights. You can skip any fields you "
+"don't have."
+msgstr ""
+
+msgid "Add multi-factor authentication to strengthen sign-in."
+msgstr ""
+
+msgid "Add residence, welfare, transport and duty operations."
+msgstr ""
+
+msgid "Add school staff or parent"
+msgstr ""
+
+msgid "Add widget"
+msgstr ""
+
+msgid "Additional daily operations"
+msgstr ""
+
+msgid "Adds cross-campus governance and analytics."
+msgstr ""
+
+msgid "Admin Override"
+msgstr ""
+
+msgid "Admin activity"
+msgstr ""
+
+msgid "Admin override"
+msgstr ""
+
+msgid "Admin theme – {{ value }}"
+msgstr ""
+
+msgid "Administrator"
+msgstr ""
+
+msgid "Admission #"
+msgstr ""
+
+msgid "Adoption"
+msgstr ""
+
+msgid "Adoption checklist"
+msgstr ""
+
+msgid "Advanced admin: add a regional AI config in Django admin"
+msgstr ""
+
+msgid "Advanced analytics and automation recommended."
+msgstr ""
+
+msgid "Alert status"
+msgstr ""
+
+msgid "All FAQs"
+msgstr ""
+
+msgid "All Jobs"
+msgstr ""
+
+msgid "All Terms"
+msgstr ""
+
+msgid "All marks by term, class, subject, and teacher."
+msgstr ""
+
+msgid "All outcomes"
+msgstr ""
+
+msgid "All pack types"
+msgstr ""
+
+msgid "All sessions"
+msgstr ""
+
+msgid "Allocation JSON"
+msgstr ""
+
+msgid "Allow rollover despite outstanding returns"
+msgstr ""
+
+msgid "Alma SIS"
+msgstr ""
+
+msgid "Amount *"
+msgstr ""
+
+msgid "Amount paid"
+msgstr ""
+
+msgid "Angalia Ripoti"
+msgstr ""
+
+msgid "Annual (whole year)"
+msgstr ""
+
+msgid "Any member of this school — staff, parent, or student."
+msgstr ""
+
+msgid "App install lifecycle"
+msgstr ""
+
+msgid "Applied overrides"
+msgstr ""
+
+msgid "Apply approved change"
+msgstr ""
+
+msgid "Apply only after the impact and recovery posture are understood."
+msgstr ""
+
+msgid "Apply override"
+msgstr ""
+
+msgid "Apply pack in Site Settings"
+msgstr ""
+
+msgid "Apply pack to this school"
+msgstr ""
+
+msgid "Apply recommended blueprint"
+msgstr ""
+
+msgid "Apply rollover"
+msgstr ""
+
+msgid "Apply teacher-confirmed proposal"
+msgstr ""
+
+msgid "Approve &amp; mark sent"
+msgstr ""
+
+msgid "Approve &amp; publish"
+msgstr ""
+
+msgid "Approve narrative"
+msgstr ""
+
+msgid "Approve proposal"
+msgstr ""
+
+msgid ""
+"Apps install to sandbox. Sensitive scopes require approval. Activation "
+"remains a separate deliberate action."
+msgstr ""
+
+msgid "Arbor / SIMS"
+msgstr ""
+
+msgid "Archive this group"
+msgstr ""
+
+msgid "Article Content Required"
+msgstr ""
+
+msgid "Article Info"
+msgstr ""
+
+msgid "Article Title Required"
+msgstr ""
+
+msgid "Article URL"
+msgstr ""
+
+msgid "As soon as possible"
+msgstr ""
+
+msgid "Assessment"
+msgstr ""
+
+msgid "Assessment model"
+msgstr ""
+
+msgid "At Risk"
+msgstr ""
+
+msgid "At least 8 characters."
+msgstr ""
+
+msgid "At least 8 characters. The user must change it on first sign-in."
+msgstr ""
+
+msgid "At-Risk dashboard"
+msgstr ""
+
+msgid "Athletics / clubs"
+msgstr ""
+
+msgid "Attachments - Screenshots, Images, or Files"
+msgstr ""
+
+msgid "Attendance %"
+msgstr ""
+
+msgid "Attendance snapshot"
+msgstr ""
+
+msgid "Attendance streak"
+msgstr ""
+
+msgid "Audit Log"
+msgstr ""
+
+msgid "Author:"
+msgstr ""
+
+msgid "Auto"
+msgstr ""
+
+msgid "Automate safe setup"
+msgstr ""
+
+msgid "Automatic restore point available"
+msgstr ""
+
+msgid "Automation preference"
+msgstr ""
+
+msgid "Available after install"
+msgstr ""
+
+msgid "Avg completeness {{ avg }}%. {{ note }}"
+msgstr ""
+
+msgid "Back to Analytics"
+msgstr ""
+
+msgid "Back to Developer portal"
+msgstr ""
+
+msgid "Back to Evaluations"
+msgstr ""
+
+msgid "Back to Feature Control"
+msgstr ""
+
+msgid "Back to Invoices"
+msgstr ""
+
+msgid "Back to Library"
+msgstr ""
+
+msgid "Back to builder"
+msgstr ""
+
+msgid "Back to join codes"
+msgstr ""
+
+msgid "Back to rollover"
+msgstr ""
+
+msgid "Back to session"
+msgstr ""
+
+msgid "Back to settings"
+msgstr ""
+
+msgid "Back to staff identity"
+msgstr ""
+
+msgid "Back up now"
+msgstr ""
+
+msgid "Backend list density"
+msgstr ""
+
+msgid "Balance outstanding"
+msgstr ""
+
+msgid "Bank account"
+msgstr ""
+
+msgid ""
+"Based on your signup profile. These suggestions work offline and remain "
+"editable."
+msgstr ""
+
+msgid "Before install"
+msgstr ""
+
+msgid "Before you file it, check the help loop"
+msgstr ""
+
+msgid "Benefits of Contributing"
+msgstr ""
+
+msgid ""
+"Best for staff or parents without reliable email. Share the temporary "
+"password securely."
+msgstr ""
+
+msgid "Billing & plans"
+msgstr ""
+
+msgid ""
+"Blueprint and pack readiness ask for live payment onboarding until this "
+"school's collection method is settled. If fees are reconciled by hand — "
+"cash, bank transfer, or mobile-money receipts — record that here and the "
+"live-collection gate stops applying to this school."
+msgstr ""
+
+msgid "Blueprint application needs attention."
+msgstr ""
+
+msgid "Blueprint applied successfully."
+msgstr ""
+
+msgid "Blueprint lifecycle & versioning"
+msgstr ""
+
+msgid "Blueprint link"
+msgstr ""
+
+msgid "Board"
+msgstr ""
+
+msgid "Boarding"
+msgstr ""
+
+msgid "Boarding / transport"
+msgstr ""
+
+msgid "Body"
+msgstr ""
+
+msgid "Borderline"
+msgstr ""
+
+msgid "Both day learners and boarders."
+msgstr ""
+
+msgid "Brightwheel"
+msgstr ""
+
+msgid "Browse by Category"
+msgstr ""
+
+msgid ""
+"Browse governed marketplace apps for your school. Install to sandbox first, "
+"review consent scopes and billing impact, then promote to live use. SSO "
+"Identity opens your school's connection settings — not the compliance "
+"dashboard."
+msgstr ""
+
+msgid "Budget lines"
+msgstr ""
+
+msgid ""
+"Builder data (JSON). In a full implementation this would be a guided form; "
+"for now you can edit the JSON."
+msgstr ""
+
+msgid "Building confidence from your answers"
+msgstr ""
+
+msgid "Bulk Finance Access"
+msgstr ""
+
+msgid "Bulk Grade Import"
+msgstr ""
+
+msgid "Bulk Grade Import - Upload & Validate"
+msgstr ""
+
+msgid "Bulk Report Cards"
+msgstr ""
+
+msgid "Bulk add candidates"
+msgstr ""
+
+msgid "Bulk entry — select your class and subject to begin."
+msgstr ""
+
+msgid "Bulk grade import validation preview"
+msgstr ""
+
+msgid "Bulk report cards"
+msgstr ""
+
+msgid "Button label"
+msgstr ""
+
+msgid "By {{ author }}"
+msgstr ""
+
+msgid "Bypass / Escalate"
+msgstr ""
+
+msgid "Bypass and finalize"
+msgstr ""
+
+msgid "Bypass reason:"
+msgstr ""
+
+msgid "Bypassed by:"
+msgstr ""
+
+msgid "Bypassed:"
+msgstr ""
+
+msgid "CA submission deadline"
+msgstr ""
+
+msgid "CAIE"
+msgstr ""
+
+msgid "CEDS"
+msgstr ""
+
+msgid "CSV column"
+msgstr ""
+
+msgid "CSV or XLSX file"
+msgstr ""
+
+msgid "Cahier de Texte"
+msgstr ""
+
+msgid "Cahier de Texte – Verification"
+msgstr ""
+
+msgid "Calculating..."
+msgstr ""
+
+msgid "Cambridge International"
+msgstr ""
+
+msgid "Campus structure"
+msgstr ""
+
+msgid "Campuses"
+msgstr ""
+
+msgid "Can be applied again"
+msgstr ""
+
+msgid "Candidates"
+msgstr ""
+
+msgid "Canonical registry"
+msgstr ""
+
+msgid "Capability coverage"
+msgstr ""
+
+msgid "Cards and bank transfer."
+msgstr ""
+
+msgid "Carry forward unpaid fees to next year"
+msgstr ""
+
+msgid "Cash / bank only"
+msgstr ""
+
+msgid "Cash Office Closure"
+msgstr ""
+
+msgid "Cash closure"
+msgstr ""
+
+msgid "Cash on hand"
+msgstr ""
+
+msgid "Category Required"
+msgstr ""
+
+msgid "Category:"
+msgstr ""
+
+msgid "Centre"
+msgstr ""
+
+msgid "Change Set"
+msgstr ""
+
+msgid "Change active school or persona"
+msgstr ""
+
+msgid "Changes (summary)"
+msgstr ""
+
+msgid "Changes save as you complete each step."
+msgstr ""
+
+msgid "Channels enabled"
+msgstr ""
+
+msgid "Charter"
+msgstr ""
+
+msgid "Chat with {{ value }}"
+msgstr ""
+
+msgid "Check Status"
+msgstr ""
+
+msgid "Check for errors"
+msgstr ""
+
+msgid "Choose Files"
+msgstr ""
+
+msgid "Choose a pack"
+msgstr ""
+
+msgid "Choose a password"
+msgstr ""
+
+msgid "Choose format"
+msgstr ""
+
+msgid ""
+"Choose the correct active registry value and save. You do not need to open "
+"another configuration card or page."
+msgstr ""
+
+msgid "Choose the currency this school bills in."
+msgstr ""
+
+msgid ""
+"Choose this only if you have no records to import from another system. Your "
+"migration step and its reminders will be cleared."
+msgstr ""
+
+msgid "Claim & Allocate"
+msgstr ""
+
+msgid "Class Position"
+msgstr ""
+
+msgid "Class Ranking"
+msgstr ""
+
+msgid "Class timetable"
+msgstr ""
+
+msgid "Classroom *"
+msgstr ""
+
+msgid "Classroom ID"
+msgstr ""
+
+msgid "Classrooms (required)"
+msgstr ""
+
+msgid "Clear and start over"
+msgstr ""
+
+msgid "Clear filter"
+msgstr ""
+
+msgid "Clear search"
+msgstr ""
+
+msgid "Client (offline) data"
+msgstr ""
+
+msgid "Client ID"
+msgstr ""
+
+msgid "Clinic / health"
+msgstr ""
+
+msgid "Clone"
+msgstr ""
+
+msgid "Clone previous year"
+msgstr ""
+
+msgid "Clone syllabus"
+msgstr ""
+
+msgid "Clone syllabus – {{ subject }}"
+msgstr ""
+
+msgid "Close cashier day"
+msgstr ""
+
+msgid "Close conversation"
+msgstr ""
+
+msgid "Close share dialog"
+msgstr ""
+
+msgid "Closure date"
+msgstr ""
+
+msgid "Cloud-first with normal offline protection."
+msgstr ""
+
+msgid "Code:"
+msgstr ""
+
+msgid ""
+"Columns we could not confidently place are kept as custom fields — nothing "
+"is dropped. Correct any mapping, then save and re-run the import."
+msgstr ""
+
+msgid "Comma-separated. Leave blank to allow any email."
+msgstr ""
+
+msgid "Comments"
+msgstr ""
+
+msgid "Comments ({{ count }})"
+msgstr ""
+
+msgid "Commit preview"
+msgstr ""
+
+msgid "Communication center"
+msgstr ""
+
+msgid "Compatibility & rollback"
+msgstr ""
+
+msgid "Compatibility review"
+msgstr ""
+
+msgid "Competency based"
+msgstr ""
+
+msgid "Compilation timestamp"
+msgstr ""
+
+msgid ""
+"Compiled support view across registries, blueprint, modules, apps, "
+"localization, integrations, security, dashboards, and workflows. Credentials"
+" and secret-like values are always excluded."
+msgstr ""
+
+msgid "Complete Registration"
+msgstr ""
+
+msgid "Complete Setup"
+msgstr ""
+
+msgid "Complete activation"
+msgstr ""
+
+msgid "Complete rollback"
+msgstr ""
+
+msgid "Complete rollout"
+msgstr ""
+
+msgid ""
+"Complete the role workspace setup, then return here. No placeholder preview "
+"is shown."
+msgstr ""
+
+msgid "Completeness: {{ pct }}% — More details unlock better insights."
+msgstr ""
+
+msgid "Completion Rate"
+msgstr ""
+
+msgid "Completion spotlight appears once assignments are active."
+msgstr ""
+
+msgid "Complex aid and scholarships"
+msgstr ""
+
+msgid "Compliance actions"
+msgstr ""
+
+msgid "Compliant"
+msgstr ""
+
+msgid "Component"
+msgstr ""
+
+msgid "Composition"
+msgstr ""
+
+msgid "Concierge migration sources"
+msgstr ""
+
+msgid "Configuration & records"
+msgstr ""
+
+msgid "Configuration and records"
+msgstr ""
+
+msgid "Configuration readiness"
+msgstr ""
+
+msgid "Configuration shortcuts"
+msgstr ""
+
+msgid "Confirm & Import"
+msgstr ""
+
+msgid "Confirm Extension"
+msgstr ""
+
+msgid "Confirm action"
+msgstr ""
+
+msgid "Confirm governed pack apply"
+msgstr ""
+
+msgid "Confirm rollback/deactivation"
+msgstr ""
+
+msgid "Confirm subscription"
+msgstr ""
+
+msgid "Conflict Detected:"
+msgstr ""
+
+msgid ""
+"Conflict detection scans your workflows for graph-validation errors and for "
+"trigger overlaps — more than one live workflow firing on the same event — so"
+" you can resolve them before activation."
+msgstr ""
+
+msgid "Connectivity"
+msgstr ""
+
+msgid "Connector profiles"
+msgstr ""
+
+msgid "Contact Request"
+msgstr ""
+
+msgid "Contact details appear in site settings."
+msgstr ""
+
+msgid "Contact support instead"
+msgstr ""
+
+msgid "Content Type"
+msgstr ""
+
+msgid "Context help, support and keyboard map"
+msgstr ""
+
+msgid "Continue your setup"
+msgstr ""
+
+msgid "Continuous / flexible"
+msgstr ""
+
+msgid "Contributors:"
+msgstr ""
+
+msgid "Conversion rate"
+msgstr ""
+
+msgid "Convert"
+msgstr ""
+
+msgid "Copy URL to clipboard"
+msgstr ""
+
+msgid "Core academics, people and finance."
+msgstr ""
+
+msgid "Core records, attendance and communication"
+msgstr ""
+
+msgid "Corridor profile"
+msgstr ""
+
+msgid "Could not load the checklist here — opening the full page."
+msgstr ""
+
+msgid "Couldn't find your answer?"
+msgstr ""
+
+msgid "Country & currency"
+msgstr ""
+
+msgid "Country and school-type matched"
+msgstr ""
+
+msgid "Country default"
+msgstr ""
+
+msgid "Country locked"
+msgstr ""
+
+msgid "Country-default compliance and accessibility"
+msgstr ""
+
+msgid "Course syllabi"
+msgstr ""
+
+msgid "Create Exam Session"
+msgstr ""
+
+msgid "Create Invoice New billing"
+msgstr ""
+
+msgid "Create Payroll Run"
+msgstr ""
+
+msgid "Create Run"
+msgstr ""
+
+msgid "Create Teacher"
+msgstr ""
+
+msgid "Create Your First Group"
+msgstr ""
+
+msgid "Create a join code"
+msgstr ""
+
+msgid "Create account & join"
+msgstr ""
+
+msgid "Create audit trail entries for all changes"
+msgstr ""
+
+msgid "Create candidates"
+msgstr ""
+
+msgid "Create code"
+msgstr ""
+
+msgid "Create new evaluations for students with no existing grade"
+msgstr ""
+
+msgid "Create now with a temporary password"
+msgstr ""
+
+msgid "Create server review proposal"
+msgstr ""
+
+msgid "Create student"
+msgstr ""
+
+msgid "Created vs. updated counts will be confirmed after import."
+msgstr ""
+
+msgid "Credential recovery"
+msgstr ""
+
+msgid ""
+"Critical features affect user access. Disabling shows a confirmation. Batch "
+"save: toggle multiple, then Save once."
+msgstr ""
+
+msgid "Curated for this school"
+msgstr ""
+
+msgid "Current admin workspace"
+msgstr ""
+
+msgid "Current branding"
+msgstr ""
+
+msgid "Current browser"
+msgstr ""
+
+msgid "Current deadline"
+msgstr ""
+
+msgid "Current file: {{ name }}"
+msgstr ""
+
+msgid ""
+"Current progress, genuine launch requirements, and direct next actions."
+msgstr ""
+
+msgid "Current system: {{ system }}."
+msgstr ""
+
+msgid "Currently applied"
+msgstr ""
+
+msgid "Curriculum / exam board"
+msgstr ""
+
+msgid "Customize experience"
+msgstr ""
+
+msgid "DOCX"
+msgstr ""
+
+msgid "Dashboard blocks"
+msgstr ""
+
+msgid "Dashboard focus areas"
+msgstr ""
+
+msgid "Data deletion"
+msgstr ""
+
+msgid "Data options"
+msgstr ""
+
+msgid "Data-residency, consent and ministry reporting."
+msgstr ""
+
+msgid "Date Range:"
+msgstr ""
+
+msgid "Day and boarding"
+msgstr ""
+
+msgid "Day and residential programs with shared services."
+msgstr ""
+
+msgid "Day school"
+msgstr ""
+
+msgid "Deactivate this code?"
+msgstr ""
+
+msgid "Deactivated"
+msgstr ""
+
+msgid "Debit"
+msgstr ""
+
+msgid "Decision deadline:"
+msgstr ""
+
+msgid "Decisions"
+msgstr ""
+
+msgid "Declared constraints may not match this tenant or platform release."
+msgstr ""
+
+msgid "Default currency"
+msgstr ""
+
+msgid "Default format"
+msgstr ""
+
+msgid "Default role for new users"
+msgstr ""
+
+msgid "Delegated schools with central policy and reporting."
+msgstr ""
+
+msgid ""
+"Deletes the rows this run created and restores the values it overwrote on "
+"the tenant. A rollback checkpoint is kept. Use when a migration landed "
+"wrong."
+msgstr ""
+
+msgid "Delivery mode"
+msgstr ""
+
+msgid "Demote"
+msgstr ""
+
+msgid "Department Groups"
+msgstr ""
+
+msgid "Department copy"
+msgstr ""
+
+msgid "Deploy proof — Admin OS v17.2 on operator /admin/"
+msgstr ""
+
+msgid "Deploy proof — Admin OS v17.2 on tenant /admin/"
+msgstr ""
+
+msgid "Deployment"
+msgstr ""
+
+msgid "Deposit reference"
+msgstr ""
+
+msgid "Deposited to bank"
+msgstr ""
+
+msgid "Describe your requirement"
+msgstr ""
+
+msgid "Design packs, layout & content"
+msgstr ""
+
+msgid "Different by campus"
+msgstr ""
+
+msgid "Difficulty"
+msgstr ""
+
+msgid "Digital medal case"
+msgstr ""
+
+msgid "Dimensions"
+msgstr ""
+
+msgid "Direct"
+msgstr ""
+
+msgid "Direct apply"
+msgstr ""
+
+msgid "Direct repair · one screen"
+msgstr ""
+
+msgid "Disable all"
+msgstr ""
+
+msgid "Disabling may affect user access"
+msgstr ""
+
+msgid "Discovery URL or issuer"
+msgstr ""
+
+msgid "Discovery failed."
+msgstr ""
+
+msgid "Discrepancy"
+msgstr ""
+
+msgid "Dismiss list"
+msgstr ""
+
+msgid "Display name *"
+msgstr ""
+
+msgid "Distribution"
+msgstr ""
+
+msgid "District / authority"
+msgstr ""
+
+msgid "Document Library Management"
+msgstr ""
+
+msgid "Document Type *"
+msgstr ""
+
+msgid "Document section preview"
+msgstr ""
+
+msgid "Don't have an admission number? Contact the school:"
+msgstr ""
+
+msgid "Don't have an export from another system?"
+msgstr ""
+
+msgid "Don't trust this browser (ask every time)"
+msgstr ""
+
+msgid "Double shift"
+msgstr ""
+
+msgid ""
+"Double-shift splits timetable, attendance and staffing into two cohorts."
+msgstr ""
+
+msgid "Download ODT (LibreOffice)"
+msgstr ""
+
+msgid "Download Template"
+msgstr ""
+
+msgid "Download Word (DOCX)"
+msgstr ""
+
+msgid "Download all (CSV zip)"
+msgstr ""
+
+msgid "Download all (Excel)"
+msgstr ""
+
+msgid "Download as ZIP"
+msgstr ""
+
+msgid ""
+"Download our ready-made templates, fill in the columns you have (leave the "
+"rest blank), and upload them here. Each template uses the exact column names"
+" and roles the platform expects — students, staff, guardians, grades, fees "
+"and more — so your data lines up automatically."
+msgstr ""
+
+msgid "Download template"
+msgstr ""
+
+msgid "Download {{ slug }}.xlsx"
+msgstr ""
+
+msgid "Draft invoices: {{ count }}"
+msgstr ""
+
+msgid "Drag to move this window"
+msgstr ""
+
+msgid "Draw Your Signature"
+msgstr ""
+
+msgid "Dropbox"
+msgstr ""
+
+msgid "Duba Sakamako"
+msgstr ""
+
+msgid "Due / Paid / Balance"
+msgstr ""
+
+msgid "EMIS Data Export"
+msgstr ""
+
+msgid "EMIS Export Dashboard"
+msgstr ""
+
+msgid "EMIS Information"
+msgstr ""
+
+msgid "EUR (€)"
+msgstr ""
+
+msgid "Edit Preferences"
+msgstr ""
+
+msgid "Edit connection"
+msgstr ""
+
+msgid "Effective blueprint & active packs"
+msgstr ""
+
+msgid "Effective configuration"
+msgstr ""
+
+msgid "Effective runtime"
+msgstr ""
+
+msgid "Effective tenant configuration"
+msgstr ""
+
+msgid "Electronic Signature"
+msgstr ""
+
+msgid "Email Link"
+msgstr ""
+
+msgid "Email an invite link"
+msgstr ""
+
+msgid "Email me a sign-in link"
+msgstr ""
+
+msgid "Embed inline preview"
+msgstr ""
+
+msgid "Enable all"
+msgstr ""
+
+msgid "End this session on this device"
+msgstr ""
+
+msgid "Enhanced accommodations"
+msgstr ""
+
+msgid "Enrollment configuration & records"
+msgstr ""
+
+msgid "Enrollment operations"
+msgstr ""
+
+msgid "Enter a discovery URL or issuer to test."
+msgstr ""
+
+msgid ""
+"Enter the admission number you received from the school. We'll verify it and"
+" show you the student details."
+msgstr ""
+
+msgid "Enter the join code your school shared, then create your account."
+msgstr ""
+
+msgid ""
+"Enter your email and we'll send a one-time link that signs you in — no "
+"password needed. It expires in a few minutes."
+msgstr ""
+
+msgid "Entered:"
+msgstr ""
+
+msgid "Enterprise controls"
+msgstr ""
+
+msgid "Entitlement registry"
+msgstr ""
+
+msgid "Entitlements"
+msgstr ""
+
+msgid "Entitlements & why enabled"
+msgstr ""
+
+msgid "Entity Import"
+msgstr ""
+
+msgid "Entity import (beta)"
+msgstr ""
+
+msgid "Error Log:"
+msgstr ""
+
+msgid "Evaluation Evidence"
+msgstr ""
+
+msgid "Events, holidays and upcoming deadlines in one place."
+msgstr ""
+
+msgid ""
+"Every change remains tenant-scoped, auditable, and reversible from its real "
+"installation record."
+msgstr ""
+
+msgid "Every rail your families use."
+msgstr ""
+
+msgid "Evidence-backed readiness"
+msgstr ""
+
+msgid "Exam sessions"
+msgstr ""
+
+msgid "Exam:"
+msgstr ""
+
+msgid "Excel (.xlsx)"
+msgstr ""
+
+msgid "Exception queue"
+msgstr ""
+
+msgid ""
+"Existing student, finance, HR, and school operational records remain intact."
+msgstr ""
+
+msgid "Exit date cannot be earlier than the entry date."
+msgstr ""
+
+msgid "Expected CSV Format:"
+msgstr ""
+
+msgid "Expected amount (optional)"
+msgstr ""
+
+msgid "Expected learners"
+msgstr ""
+
+msgid "Expected staff"
+msgstr ""
+
+msgid "Experience type"
+msgstr ""
+
+msgid "Experiences"
+msgstr ""
+
+msgid "Expires in (days)"
+msgstr ""
+
+msgid "Explainable recommendation"
+msgstr ""
+
+msgid "Explore more articles and guides."
+msgstr ""
+
+msgid "Exploring"
+msgstr ""
+
+msgid "Export Format"
+msgstr ""
+
+msgid "Export Results"
+msgstr ""
+
+msgid "Export Type"
+msgstr ""
+
+msgid "Export `Data[CentreNo].zip`"
+msgstr ""
+
+msgid "Export integrity"
+msgstr ""
+
+msgid "Export timeline"
+msgstr ""
+
+msgid "Extend"
+msgstr ""
+
+msgid "Extend Deadline"
+msgstr ""
+
+msgid "Extend Grading Deadline"
+msgstr ""
+
+msgid "Extend by (days):"
+msgstr ""
+
+msgid "Extended local operation with governed reconciliation."
+msgstr ""
+
+msgid "External Link"
+msgstr ""
+
+msgid "External Required"
+msgstr ""
+
+msgid "Extracted line"
+msgstr ""
+
+msgid "Extraction"
+msgstr ""
+
+msgid "Extraction Result"
+msgstr ""
+
+msgid "FACTS / RenWeb"
+msgstr ""
+
+msgid "FAQ Questions"
+msgstr ""
+
+msgid "FAQ Results ({{ count }})"
+msgstr ""
+
+msgid "Facebook"
+msgstr ""
+
+msgid "Failed members"
+msgstr ""
+
+msgid "Family note"
+msgstr ""
+
+msgid "Feature Requests"
+msgstr ""
+
+msgid "Feature control panel"
+msgstr ""
+
+msgid "Feature toggles & flag metadata"
+msgstr ""
+
+msgid "Featured Articles"
+msgstr ""
+
+msgid "Federated identity"
+msgstr ""
+
+msgid "Fee Status"
+msgstr ""
+
+msgid "Fee collection posture"
+msgstr ""
+
+msgid "Fee-collection posture recorded."
+msgstr ""
+
+msgid "Fees, invoices & payments"
+msgstr ""
+
+msgid ""
+"Fees, payments, settlement, and reconciliation — your school's money "
+"operations."
+msgstr ""
+
+msgid "Female"
+msgstr ""
+
+msgid "Field for this column"
+msgstr ""
+
+msgid "Fill"
+msgstr ""
+
+msgid "Filter by Status:"
+msgstr ""
+
+msgid "Filter by name or description..."
+msgstr ""
+
+msgid "Filter by outcome"
+msgstr ""
+
+msgid "Filter tenant-safe packs"
+msgstr ""
+
+msgid "Final decision roles: {{ roles }}"
+msgstr ""
+
+msgid "Finance configuration & records"
+msgstr ""
+
+msgid "Finance operations"
+msgstr ""
+
+msgid "Financial summary"
+msgstr ""
+
+msgid "Find a page or record type"
+msgstr ""
+
+msgid "Find an operator tool or record type"
+msgstr ""
+
+msgid "Fine-tune my recommendation"
+msgstr ""
+
+msgid "Finish the remaining setup evidence"
+msgstr ""
+
+msgid "First"
+msgstr ""
+
+msgid "First Name *"
+msgstr ""
+
+msgid "First steps"
+msgstr ""
+
+msgid "Fix this registry field"
+msgstr ""
+
+msgid "Fix {{ label }}"
+msgstr ""
+
+msgid "Flagged"
+msgstr ""
+
+msgid "Flagged security events"
+msgstr ""
+
+msgid "Follow these simple steps to connect your child's account."
+msgstr ""
+
+msgid "For"
+msgstr ""
+
+msgid "Force Overwrite (client)"
+msgstr ""
+
+msgid "Form Details"
+msgstr ""
+
+msgid "Format:"
+msgstr ""
+
+msgid "Found an Issue?"
+msgstr ""
+
+msgid "Four quick decisions · progressive"
+msgstr ""
+
+msgid "Freeze transcript"
+msgstr ""
+
+msgid "Freeze transcript for year"
+msgstr ""
+
+msgid "Frequently Asked Questions"
+msgstr ""
+
+msgid "From {{ classroom }} → choose target class (same subject & term)"
+msgstr ""
+
+msgid "Funding model"
+msgstr ""
+
+msgid "Funnel stage"
+msgstr ""
+
+msgid "Future use"
+msgstr ""
+
+msgid "Generate EMIS Export"
+msgstr ""
+
+msgid "Generate Fee"
+msgstr ""
+
+msgid "Generate Payslips"
+msgstr ""
+
+msgid "Generate all"
+msgstr ""
+
+msgid "Generate this group"
+msgstr ""
+
+msgid "Generate, print and share a whole {{ mode }} in one run."
+msgstr ""
+
+msgid ""
+"Generated JSON scan: CSRF, auth hints, raw SQL, exports. Open via the "
+"Security surface audit link above."
+msgstr ""
+
+msgid ""
+"Generating a workflow from a plain-language description is on the roadmap "
+"and not built in this release."
+msgstr ""
+
+msgid "Geo-velocity anomalies"
+msgstr ""
+
+msgid "Give the reviewer the school context and intended outcome."
+msgstr ""
+
+msgid "Go to Backend"
+msgstr ""
+
+msgid "Go to your dashboard"
+msgstr ""
+
+msgid "Go-live"
+msgstr ""
+
+msgid "Google Drive"
+msgstr ""
+
+msgid "Governed checks completed by the platform."
+msgstr ""
+
+msgid "Governed template activation"
+msgstr ""
+
+msgid "Governor"
+msgstr ""
+
+msgid "Grade Approval"
+msgstr ""
+
+msgid "Grade Approval Request"
+msgstr ""
+
+msgid "Grade Approval Requests"
+msgstr ""
+
+msgid "Grade Approvals"
+msgstr ""
+
+msgid "Grade Import"
+msgstr ""
+
+msgid "Grade Template"
+msgstr ""
+
+msgid "Grade approval requests: subject, teacher, status, and actions"
+msgstr ""
+
+msgid "Grade approvals, access requests and contact requests waiting on you."
+msgstr ""
+
+msgid "Grades and balances in one place"
+msgstr ""
+
+msgid "Grading Compliance Dashboard"
+msgstr ""
+
+msgid "Grading Deadlines"
+msgstr ""
+
+msgid "Grading scale and report templates for your country."
+msgstr ""
+
+msgid "Graduate"
+msgstr ""
+
+msgid "Graduating students — eligibility"
+msgstr ""
+
+msgid "Graduation eligibility for each graduating student"
+msgstr ""
+
+msgid "Granted role %(role)s to %(count)d member(s)."
+msgstr ""
+
+msgid "Group"
+msgstr ""
+
+msgid "Group ID"
+msgstr ""
+
+msgid "Group Info"
+msgstr ""
+
+msgid "Group Name"
+msgstr ""
+
+msgid "Group Name *"
+msgstr ""
+
+msgid "Group totals"
+msgstr ""
+
+msgid "Group → role map"
+msgstr ""
+
+msgid "Groups by {{ mode }}"
+msgstr ""
+
+msgid "Group→role map must be a JSON object of {group: ROLE}."
+msgstr ""
+
+msgid "Group→role map must be valid JSON (or left blank)."
+msgstr ""
+
+msgid "Guide every decision"
+msgstr ""
+
+msgid "Guidelines for Quality Articles"
+msgstr ""
+
+msgid "Guides, tutorials, and step-by-step instructions for all features"
+msgstr ""
+
+msgid "Have Knowledge to Share?"
+msgstr ""
+
+msgid "Header Weather Location"
+msgstr ""
+
+msgid "Help + Product Voice Center"
+msgstr ""
+
+msgid "Help North Star ({{ days }} days)"
+msgstr ""
+
+msgid ""
+"Help a member who lost their password or their authenticator device. A "
+"password reset issues a one-time temporary password (shown once, here) and "
+"forces a change at next sign-in; an MFA reset clears their authenticator so "
+"they can enroll a new one."
+msgstr ""
+
+msgid "Help and shortcuts"
+msgstr ""
+
+msgid "Help articles"
+msgstr ""
+
+msgid "Helpful ({{ count }})"
+msgstr ""
+
+msgid "High-volume data, workflow and governance controls."
+msgstr ""
+
+msgid "How are teaching sessions scheduled?"
+msgstr ""
+
+msgid "How does the school day work?"
+msgstr ""
+
+msgid "How fees are collected (optional note)"
+msgstr ""
+
+msgid "How is your institution organized?"
+msgstr ""
+
+msgid "How reliable is internet at your campuses?"
+msgstr ""
+
+msgid ""
+"How should we reach you? Set your preferred contact method and what you'd "
+"like to access."
+msgstr ""
+
+msgid "How strict are your compliance requirements?"
+msgstr ""
+
+msgid "How will this school operate?"
+msgstr ""
+
+msgid "How will you collect fees?"
+msgstr ""
+
+msgid "I already have an account"
+msgstr ""
+
+msgid "I consent to this transfer"
+msgstr ""
+
+msgid "I reviewed the preview and confirm this tenant-scoped apply."
+msgstr ""
+
+msgid "I reviewed the student matches and every proposed score."
+msgstr ""
+
+msgid ""
+"I understand there is no recent backup and want to proceed anyway (override "
+"the backup gate)"
+msgstr ""
+
+msgid "IGCSE / A-Level."
+msgstr ""
+
+msgid "IdP SSO URL"
+msgstr ""
+
+msgid "IdP entity ID"
+msgstr ""
+
+msgid "IdP signing certificate (PEM)"
+msgstr ""
+
+msgid "Identify"
+msgstr ""
+
+msgid "Identity and signing checked"
+msgstr ""
+
+msgid "Identity provider"
+msgstr ""
+
+msgid "Identity, photo and contact"
+msgstr ""
+
+msgid ""
+"If an account matches that email, we've sent a sign-in link. Check your "
+"inbox — it expires shortly."
+msgstr ""
+
+msgid ""
+"If this school is starting fresh, you can waive data migration and launch "
+"without a legacy import. Every choice here is reversible, so you can start "
+"an import at any time."
+msgstr ""
+
+msgid "Impersonation & proxy"
+msgstr ""
+
+msgid "Import Another File"
+msgstr ""
+
+msgid "Import Complete"
+msgstr ""
+
+msgid "Import Job Monitor"
+msgstr ""
+
+msgid "Import Summary:"
+msgstr ""
+
+msgid "Import to database"
+msgstr ""
+
+msgid "Import type"
+msgstr ""
+
+msgid "Impossible travel (7d)"
+msgstr ""
+
+msgid "Improve these recommendations by confirming"
+msgstr ""
+
+msgid "Improving students"
+msgstr ""
+
+msgid "Improving students by delta"
+msgstr ""
+
+msgid "Incident"
+msgstr ""
+
+msgid "Include inactive"
+msgstr ""
+
+msgid "Included Items"
+msgstr ""
+
+msgid "Included changes"
+msgstr ""
+
+msgid "Infinite Campus"
+msgstr ""
+
+msgid "Inside"
+msgstr ""
+
+msgid "Inspect a school"
+msgstr ""
+
+msgid "Inspect the tenant"
+msgstr ""
+
+msgid "Install readiness"
+msgstr ""
+
+msgid "Install readiness and operating policy"
+msgstr ""
+
+msgid "Install ref."
+msgstr ""
+
+msgid ""
+"Install starts in sandbox. Activation remains separate, uninstall stays "
+"available from Installed apps, and external billing is used only when the "
+"manifest genuinely requires it."
+msgstr ""
+
+msgid "Installation"
+msgstr ""
+
+msgid "Installed on this school"
+msgstr ""
+
+msgid "Installed tenant-safe packs"
+msgstr ""
+
+msgid "Intensive inclusion support"
+msgstr ""
+
+msgid "Intermittent internet"
+msgstr ""
+
+msgid "International Baccalaureate"
+msgstr ""
+
+msgid "International programme"
+msgstr ""
+
+msgid "Interop &amp; readiness"
+msgstr ""
+
+msgid "Interop data APIs"
+msgstr ""
+
+msgid "Invalid Rows — review and fix before import"
+msgstr ""
+
+msgid "Invalid rows to review and fix before import"
+msgstr ""
+
+msgid ""
+"Invoice %(ref)s has been issued for %(student)s. Log in to the parent portal"
+" to view details and pay."
+msgstr ""
+
+msgid "Invoices &amp; payments"
+msgstr ""
+
+msgid "Issue a one-time temporary password for this operator?"
+msgstr ""
+
+msgid "JSON · /api endpoint →"
+msgstr ""
+
+msgid "Job #{{ job_id }}"
+msgstr ""
+
+msgid "Join Group"
+msgstr ""
+
+msgid "Join code"
+msgstr ""
+
+msgid "Join code %(code)s created."
+msgstr ""
+
+msgid "Join code deactivated."
+msgstr ""
+
+msgid "Join codes"
+msgstr ""
+
+msgid "Join poster"
+msgstr ""
+
+msgid "Join with a code"
+msgstr ""
+
+msgid "Join your school"
+msgstr ""
+
+msgid "Jump to your work"
+msgstr ""
+
+msgid "KES (Ksh)"
+msgstr ""
+
+msgid "Keep Online Version"
+msgstr ""
+
+msgid "Keep This Version"
+msgstr ""
+
+msgid ""
+"Keep admissions, learner records, and registry-backed configuration accurate"
+" and ready."
+msgstr ""
+
+msgid "Keep as custom field"
+msgstr ""
+
+msgid "Knowledge Base - Help Center"
+msgstr ""
+
+msgid "Knowledge Base Results ({{ count }})"
+msgstr ""
+
+msgid "LTI 1.3"
+msgstr ""
+
+msgid "LTI 1.3 tool registration"
+msgstr ""
+
+msgid "Landing route"
+msgstr ""
+
+msgid "Language, theme and alerts"
+msgstr ""
+
+msgid "Largest drop-off"
+msgstr ""
+
+msgid "Last"
+msgstr ""
+
+msgid "Last Activity"
+msgstr ""
+
+msgid "Last Name *"
+msgstr ""
+
+msgid "Last saved by {{ user }} — {{ at }}"
+msgstr ""
+
+msgid "Latest recorded checks"
+msgstr ""
+
+msgid "Launch blockers to resolve"
+msgstr ""
+
+msgid ""
+"Launch now with an empty roster and add your students in-product later. This"
+" clears the launch blocker for the data step."
+msgstr ""
+
+msgid "Launch student preview"
+msgstr ""
+
+msgid "Launch with no students yet"
+msgstr ""
+
+msgid "Learner scale"
+msgstr ""
+
+msgid "Learning & leadership"
+msgstr ""
+
+msgid "Learning workspace"
+msgstr ""
+
+msgid "Leave blank to keep the current secret."
+msgstr ""
+
+msgid "Leave configuration safely"
+msgstr ""
+
+msgid "Leave type"
+msgstr ""
+
+msgid "Legacy audit view"
+msgstr ""
+
+msgid "Legacy or high-risk records"
+msgstr ""
+
+msgid ""
+"Let staff, teachers, and parents sign in with your identity provider — "
+"Google, Microsoft, Okta, or any OpenID Connect / SAML IdP. Once a connection"
+" is active it appears as a button on this school's login page."
+msgstr ""
+
+msgid "Level"
+msgstr ""
+
+msgid "LibreOffice (ODS)"
+msgstr ""
+
+msgid "Lifecycle controls"
+msgstr ""
+
+msgid "LinkedIn"
+msgstr ""
+
+msgid "Linking to: {{ name }}"
+msgstr ""
+
+msgid "Live and protected"
+msgstr ""
+
+msgid "Live preview &mdash; {{ template_key }}"
+msgstr ""
+
+msgid "Live screen preview"
+msgstr ""
+
+msgid "Loading checklist…"
+msgstr ""
+
+msgid "Local ready"
+msgstr ""
+
+msgid "Locale & integrations"
+msgstr ""
+
+msgid "Localization & integrations"
+msgstr ""
+
+msgid "Lock source year after rollover"
+msgstr ""
+
+msgid ""
+"Log mutating operator requests to the compliance audit log "
+"(ENTERPRISE_SUPER_HTTP_AUDIT)."
+msgstr ""
+
+msgid "Login & Contribute"
+msgstr ""
+
+msgid "Login & Submit"
+msgstr ""
+
+msgid "Login to vote"
+msgstr ""
+
+msgid "London"
+msgstr ""
+
+msgid "Looking for Quick Answers?"
+msgstr ""
+
+msgid "Looking for platform workflows (provisioning, imports, self-healing)?"
+msgstr ""
+
+msgid "Lowest completion subjects"
+msgstr ""
+
+msgid "MAT Group Hub"
+msgstr ""
+
+msgid "MAT Hub"
+msgstr ""
+
+msgid "MFA protected"
+msgstr ""
+
+msgid ""
+"MFA reset for %(user)s — they'll set up a new authenticator at next sign-in."
+msgstr ""
+
+msgid "MFA, sessions and devices"
+msgstr ""
+
+msgid "Male"
+msgstr ""
+
+msgid "Manage Group: {{ title }}"
+msgstr ""
+
+msgid "Manage groups"
+msgstr ""
+
+msgid "Manage library"
+msgstr ""
+
+msgid ""
+"Manage school-scoped finance records, controls, and integrations from this "
+"workbench."
+msgstr ""
+
+msgid ""
+"Manage students from the frontend using the new headless APIs. RBAC/claims "
+"gate visibility."
+msgstr ""
+
+msgid "Manage {{ value }}"
+msgstr ""
+
+msgid "ManageBac"
+msgstr ""
+
+msgid ""
+"Map an IdP group/role claim to a RunMyCampus role. Unmapped users get the "
+"default role below."
+msgstr ""
+
+msgid ""
+"Map each CSV column to a target field (or skip). Required: {{ fields }}."
+msgstr ""
+
+msgid "Maps to field"
+msgstr ""
+
+msgid "Mark all present"
+msgstr ""
+
+msgid "Mark resolved with audit note"
+msgstr ""
+
+msgid "Marked as no data to migrate. You can start an import anytime."
+msgstr ""
+
+msgid "Master Grading Sheet"
+msgstr ""
+
+msgid ""
+"Master sheet: students, class, subject, teacher, term, and score components"
+msgstr ""
+
+msgid ""
+"Matched to your country's national examination board — switch to an "
+"international board below if you run one."
+msgstr ""
+
+msgid "Matched to your country."
+msgstr ""
+
+msgid "Matches mobile-money-first markets."
+msgstr ""
+
+msgid "Matches regulated jurisdictions."
+msgstr ""
+
+msgid "Max uses"
+msgstr ""
+
+msgid "Meals"
+msgstr ""
+
+msgid "Media Type"
+msgstr ""
+
+msgid "Meetings"
+msgstr ""
+
+msgid "Members (one per line)"
+msgstr ""
+
+msgid "Merge all"
+msgstr ""
+
+msgid "Messaging"
+msgstr ""
+
+msgid "Microsoft tenant"
+msgstr ""
+
+msgid "Migration Profile Registry"
+msgstr ""
+
+msgid "Migration complexity"
+msgstr ""
+
+msgid "Migration scorecard"
+msgstr ""
+
+msgid "Missing evaluations"
+msgstr ""
+
+msgid "Missing only"
+msgstr ""
+
+msgid "Missing: {{ missing }} · Late: {{ late }}"
+msgstr ""
+
+msgid "Mission / faith-based"
+msgstr ""
+
+msgid "Mitigate"
+msgstr ""
+
+msgid "Mixed"
+msgstr ""
+
+msgid "Mixed methods"
+msgstr ""
+
+msgid "Mixed operations"
+msgstr ""
+
+msgid "Mixed programmes"
+msgstr ""
+
+msgid "Mock:"
+msgstr ""
+
+msgid "Model workbench · audit-grade configuration"
+msgstr ""
+
+msgid "Modules, integrations & data"
+msgstr ""
+
+msgid "More template actions"
+msgstr ""
+
+msgid "Most Helpful"
+msgstr ""
+
+msgid "Most Popular"
+msgstr ""
+
+msgid "Most Viewed"
+msgstr ""
+
+msgid "Most relevant"
+msgstr ""
+
+msgid ""
+"Move students from the source year to the target year and assign their next "
+"classroom. Select source and target year, then choose the next class for "
+"each student (or keep the suggestion) and apply. Optionally lock the source "
+"year after rollover to prevent further grade edits."
+msgstr ""
+
+msgid "Multiple campuses with shared governance."
+msgstr ""
+
+msgid "Mumbai"
+msgstr ""
+
+msgid "Mutating /super/ audit"
+msgstr ""
+
+msgid "My Timetable"
+msgstr ""
+
+msgid "My and School Requests"
+msgstr ""
+
+msgid "NEW"
+msgstr ""
+
+msgid "Nairobi"
+msgstr ""
+
+msgid "National curriculum"
+msgstr ""
+
+msgid "National examination board"
+msgstr ""
+
+msgid "National examinations"
+msgstr ""
+
+msgid "Native / recommend for me"
+msgstr ""
+
+msgid "Need Help?"
+msgstr ""
+
+msgid "Need More Help?"
+msgstr ""
+
+msgid "Need a quick answer? Check our FAQ."
+msgstr ""
+
+msgid "New Payroll Run"
+msgstr ""
+
+msgid "New York"
+msgstr ""
+
+msgid "New enrollment"
+msgstr ""
+
+msgid "New entry"
+msgstr ""
+
+msgid "New grades have been published for %(subject)s."
+msgstr ""
+
+msgid "New grades published"
+msgstr ""
+
+msgid "New invoice: %(ref)s"
+msgstr ""
+
+msgid "New message"
+msgstr ""
+
+msgid "New school signup on RunMyCampus"
+msgstr ""
+
+msgid "New schools onboarded in minutes"
+msgstr ""
+
+msgid "New staff member"
+msgstr ""
+
+msgid "Next Best Actions"
+msgstr ""
+
+msgid "Next step · {{ done }} of {{ total }} essentials ready"
+msgstr ""
+
+msgid ""
+"No SSO connections yet. Add one to enable single sign-on on your login page."
+msgstr ""
+
+msgid "No action available"
+msgstr ""
+
+msgid "No active students in {{ year }}."
+msgstr ""
+
+msgid "No active year/term."
+msgstr ""
+
+msgid "No attendance data available."
+msgstr ""
+
+msgid "No bulk runs yet."
+msgstr ""
+
+msgid "No changes"
+msgstr ""
+
+msgid "No changes to preview."
+msgstr ""
+
+msgid "No comments yet. Be the first to comment!"
+msgstr ""
+
+msgid ""
+"No conflicts found across {{ total }} workflow. {% plural %} No conflicts "
+"found across {{ total }} workflows."
+msgstr ""
+
+msgid "No content yet. Use Builder or Upload to add content."
+msgstr ""
+
+msgid ""
+"No curriculum nodes in this school. Add standards in Admin → Curriculum."
+msgstr ""
+
+msgid "No data to migrate"
+msgstr ""
+
+msgid "No data to migrate?"
+msgstr ""
+
+msgid "No discovery URL and no manual endpoints — saved as a draft."
+msgstr ""
+
+msgid "No effective values available."
+msgstr ""
+
+msgid "No features match your search. Try different keywords."
+msgstr ""
+
+msgid "No finance data available."
+msgstr ""
+
+msgid "No groups yet"
+msgstr ""
+
+msgid "No join codes yet. Create one to let people self-join."
+msgstr ""
+
+msgid ""
+"No matching recipient with an email address for this school — nothing was "
+"sent. Select a member above, type their email in the box, or use the "
+"resend_owner_setup_email --email … command."
+msgstr ""
+
+msgid "No material changes reported."
+msgstr ""
+
+msgid ""
+"No member of this school matches “%(id)s”. Check the address, or pick "
+"someone from the list."
+msgstr ""
+
+msgid "No metrics available yet"
+msgstr ""
+
+msgid "No online entry exists."
+msgstr ""
+
+msgid ""
+"No other class (same subject and term) without a syllabus found. Create "
+"syllabi for other classes first or choose another source."
+msgstr ""
+
+msgid "No packs installed yet."
+msgstr ""
+
+msgid "No packs match this filter."
+msgstr ""
+
+msgid "No performance data available."
+msgstr ""
+
+msgid "No queued deadlines yet."
+msgstr ""
+
+msgid "No requirements set"
+msgstr ""
+
+msgid "No role changes"
+msgstr ""
+
+msgid "No safe preview target is available"
+msgstr ""
+
+msgid "No school in scope"
+msgstr ""
+
+msgid "No school is in context for this request."
+msgstr ""
+
+msgid "No staff members on file — reach a specific person by email below."
+msgstr ""
+
+msgid "No students in this proposal."
+msgstr ""
+
+msgid ""
+"No successful activation was recorded. Review the issue and retry safely."
+msgstr ""
+
+msgid ""
+"No workflow runs recorded yet. Runs appear here once a published workflow "
+"fires."
+msgstr ""
+
+msgid "No {{ mode }} groups found for this year yet."
+msgstr ""
+
+msgid "Non-expired (sample below)"
+msgstr ""
+
+msgid "None required"
+msgstr ""
+
+msgid "Nonprofit"
+msgstr ""
+
+msgid "Not found"
+msgstr ""
+
+msgid "Not needed (no data to migrate)"
+msgstr ""
+
+msgid "Not permitted."
+msgstr ""
+
+msgid "Not ready yet? Skip for"
+msgstr ""
+
+msgid "Notify guardians"
+msgstr ""
+
+msgid "Notify parents"
+msgstr ""
+
+msgid "Notify parents after rollover"
+msgstr ""
+
+msgid "Off-track"
+msgstr ""
+
+msgid "Office Docs"
+msgstr ""
+
+msgid "Offline Entry"
+msgstr ""
+
+msgid "Offline mark entry details"
+msgstr ""
+
+msgid "Offline-first sites"
+msgstr ""
+
+msgid "Often limited or offline"
+msgstr ""
+
+msgid "On login page"
+msgstr ""
+
+msgid "One campus"
+msgstr ""
+
+msgid "One card per student for the selected term."
+msgstr ""
+
+msgid "One click away"
+msgstr ""
+
+msgid "One cohort, one daily timetable."
+msgstr ""
+
+msgid "One current system"
+msgstr ""
+
+msgid ""
+"One end-of-year transcript per student, aggregating every published term."
+msgstr ""
+
+msgid ""
+"One quick step before you start — tell us who you are. You can update this "
+"any time from your profile."
+msgstr ""
+
+msgid "OneDrive"
+msgstr ""
+
+msgid "OneRoster"
+msgstr ""
+
+msgid "OneRoster (CSV)"
+msgstr ""
+
+msgid "Online Entry"
+msgstr ""
+
+msgid "Online mark entry details"
+msgstr ""
+
+msgid "Online payments"
+msgstr ""
+
+msgid "Online, cash and mobile money"
+msgstr ""
+
+msgid "Only mine"
+msgstr ""
+
+msgid ""
+"Only presentation and role-experience settings are accepted. Operational "
+"records are not changed."
+msgstr ""
+
+msgid ""
+"Only questions that change a blueprint, module, compliance profile or plan "
+"recommendation are shown. Every recommendation can be reviewed before "
+"provisioning."
+msgstr ""
+
+msgid "Open Entity Import"
+msgstr ""
+
+msgid "Open Run"
+msgstr ""
+
+msgid "Open Site Settings"
+msgstr ""
+
+msgid "Open Suspense Queue"
+msgstr ""
+
+msgid ""
+"Open any school-scoped model or use guided configuration for safer "
+"operational changes."
+msgstr ""
+
+msgid "Open configuration"
+msgstr ""
+
+msgid "Open data import"
+msgstr ""
+
+msgid "Open data quality"
+msgstr ""
+
+msgid "Open finance records"
+msgstr ""
+
+msgid "Open full page"
+msgstr ""
+
+msgid "Open full preview"
+msgstr ""
+
+msgid "Open in a new tab"
+msgstr ""
+
+msgid "Open live experience"
+msgstr ""
+
+msgid "Open mockup"
+msgstr ""
+
+msgid "Open people records"
+msgstr ""
+
+msgid "Open resource"
+msgstr ""
+
+msgid "Open the Workflow Flight Deck"
+msgstr ""
+
+msgid ""
+"Open this from your school to review its workflow runs. (No school is bound "
+"to this session.)"
+msgstr ""
+
+msgid ""
+"Open this scan from your school to review its workflows. (No school is bound"
+" to this session.)"
+msgstr ""
+
+msgid "Open uploaded file"
+msgstr ""
+
+msgid "Open visual builder"
+msgstr ""
+
+msgid "Open when ready"
+msgstr ""
+
+msgid "Open workspace"
+msgstr ""
+
+msgid "OpenAPI schema"
+msgstr ""
+
+msgid "Opening cash"
+msgstr ""
+
+msgid "Operating template"
+msgstr ""
+
+msgid "Operational data"
+msgstr ""
+
+msgid "Operator email"
+msgstr ""
+
+msgid "Operator playbook"
+msgstr ""
+
+msgid "Operator-safe"
+msgstr ""
+
+msgid "Optional · about 30 seconds"
+msgstr ""
+
+msgid "Optional: link this syllabus to curriculum standards (topics/units)."
+msgstr ""
+
+msgid "Or a specific email / username"
+msgstr ""
+
+msgid "Orchestration hint"
+msgstr ""
+
+msgid ""
+"Our records list a parent/guardian for this student: <strong>{{ name "
+"}}</strong>. If that's you, this link is the right place — your account will"
+" be connected. No account was created for that name."
+msgstr ""
+
+msgid "Out of Office"
+msgstr ""
+
+msgid "Out of Office / Delegation"
+msgstr ""
+
+msgid "Output Studio"
+msgstr ""
+
+msgid "Outside RunMyCampus"
+msgstr ""
+
+msgid "Overall {{ overall }}% · Missing {{ missing }} evaluations"
+msgstr ""
+
+msgid "Overdue Invoices"
+msgstr ""
+
+msgid "Overdue invoices: {{ count }}"
+msgstr ""
+
+msgid "Overdue invoices: {{ overdue }}"
+msgstr ""
+
+msgid "Override type"
+msgstr ""
+
+msgid "Overwrite all"
+msgstr ""
+
+msgid "Owners are preselected. Hold Ctrl/⌘ to pick several."
+msgstr ""
+
+msgid "PARENT"
+msgstr ""
+
+msgid "PDF or Word document"
+msgstr ""
+
+msgid "PROBATION"
+msgstr ""
+
+msgid "PYP / MYP / DP."
+msgstr ""
+
+msgid "Pack catalog summary"
+msgstr ""
+
+msgid "Pack categories"
+msgstr ""
+
+msgid "Pack installations"
+msgstr ""
+
+msgid "Pack setup"
+msgstr ""
+
+msgid "Pack type"
+msgstr ""
+
+msgid "Page {{ page }} of {{ total }}"
+msgstr ""
+
+msgid "Paid at"
+msgstr ""
+
+msgid "Parent / Student"
+msgstr ""
+
+msgid "Parent portal:"
+msgstr ""
+
+msgid "Parent/Guardian Information"
+msgstr ""
+
+msgid "Password & MFA"
+msgstr ""
+
+msgid "Password + MFA"
+msgstr ""
+
+msgid "Passwordless sign-in"
+msgstr ""
+
+msgid "Payment method hint"
+msgstr ""
+
+msgid "Payment of %(amount)s has been recorded for invoice %(ref)s."
+msgstr ""
+
+msgid "Payment received for invoice %(ref)s"
+msgstr ""
+
+msgid "Payment types"
+msgstr ""
+
+msgid "Payroll Dashboard"
+msgstr ""
+
+msgid "Payroll Run"
+msgstr ""
+
+msgid "Pending Grades"
+msgstr ""
+
+msgid "Pending Signatures"
+msgstr ""
+
+msgid "Pending announcements"
+msgstr ""
+
+msgid "Pending evaluation entries"
+msgstr ""
+
+msgid "Pending guardian invites"
+msgstr ""
+
+msgid "Pending payments"
+msgstr ""
+
+msgid "Pending syllabi awaiting your approval"
+msgstr ""
+
+msgid "Pending {{ pending }} of {{ total }}"
+msgstr ""
+
+msgid "Pending: {{ items }}"
+msgstr ""
+
+msgid "Per page"
+msgstr ""
+
+msgid "Performance overview"
+msgstr ""
+
+msgid "Period end"
+msgstr ""
+
+msgid "Period start"
+msgstr ""
+
+msgid "Permission changes"
+msgstr ""
+
+msgid "Personal"
+msgstr ""
+
+msgid "Pin frequently used pages for one-click access."
+msgstr ""
+
+msgid "Pinned count"
+msgstr ""
+
+msgid "Plan and platform checked"
+msgstr ""
+
+msgid "Plan or module review"
+msgstr ""
+
+msgid ""
+"Plan the school year, connect teaching records, publish timetables and keep "
+"syllabus coverage visible from one tenant-scoped workspace."
+msgstr ""
+
+msgid "Please enter your first name."
+msgstr ""
+
+msgid "Please enter your last name."
+msgstr ""
+
+msgid "Please wait, this may take a moment"
+msgstr ""
+
+msgid "Policy Decision"
+msgstr ""
+
+msgid "Policy healthy"
+msgstr ""
+
+msgid "Portal access"
+msgstr ""
+
+msgid "Portal defaults"
+msgstr ""
+
+msgid "Portfolio"
+msgstr ""
+
+msgid "Post Comment"
+msgstr ""
+
+msgid "Post announcements and reach your message groups."
+msgstr ""
+
+msgid "Posture recorded."
+msgstr ""
+
+msgid "Practical:"
+msgstr ""
+
+msgid "Pre-rollover checklist"
+msgstr ""
+
+msgid "Prepare and add to queue"
+msgstr ""
+
+msgid "Preserve all"
+msgstr ""
+
+msgid "Preserved"
+msgstr ""
+
+msgid "Preview (first 15 rows) — {{ count }} total"
+msgstr ""
+
+msgid "Preview (first {{ count }} students)"
+msgstr ""
+
+msgid "Preview as:"
+msgstr ""
+
+msgid "Preview guardians"
+msgstr ""
+
+msgid "Preview layout"
+msgstr ""
+
+msgid "Preview students"
+msgstr ""
+
+msgid ""
+"Preview the operating experience this template applies. No changes are "
+"written."
+msgstr ""
+
+msgid "Preview the templates"
+msgstr ""
+
+msgid "Print QR poster"
+msgstr ""
+
+msgid "Print all (PDF)"
+msgstr ""
+
+msgid "Print merged PDF"
+msgstr ""
+
+msgid "Prioritize local-first and sync workflows."
+msgstr ""
+
+msgid "Privacy-safe summary · detailed activity stays inside Security"
+msgstr ""
+
+msgid "Proceed to Review"
+msgstr ""
+
+msgid "Processing"
+msgstr ""
+
+msgid "Processing grades..."
+msgstr ""
+
+msgid "Product Roadmap"
+msgstr ""
+
+msgid "Profile (Optional)"
+msgstr ""
+
+msgid "Profile readiness"
+msgstr ""
+
+msgid "Profile, branding, runtime assignment and plan evidence are active."
+msgstr ""
+
+msgid "Promote ≥"
+msgstr ""
+
+msgid "Promotion &amp; grading settings"
+msgstr ""
+
+msgid "Promotion preview / borderline list"
+msgstr ""
+
+msgid "Proof (optional)"
+msgstr ""
+
+msgid "Proposal {{ pid }}"
+msgstr ""
+
+msgid "Protect your sign-in"
+msgstr ""
+
+msgid "Protected recovery"
+msgstr ""
+
+msgid "Protected rollback"
+msgstr ""
+
+msgid "Protection"
+msgstr ""
+
+msgid "Provenance"
+msgstr ""
+
+msgid "Provisioning status summary"
+msgstr ""
+
+msgid "Public / government"
+msgstr ""
+
+msgid ""
+"Public schools start with record-keeping only — add collection later if you "
+"need it."
+msgstr ""
+
+msgid "Publish Term Results"
+msgstr ""
+
+msgid "Publish for the whole school (overrides class-level settings)"
+msgstr ""
+
+msgid "QR code to join"
+msgstr ""
+
+msgid "Quarantine rows"
+msgstr ""
+
+msgid "Quick Actions"
+msgstr ""
+
+msgid "Quick Answers"
+msgstr ""
+
+msgid "Quick presets"
+msgstr ""
+
+msgid "Quick shortcuts to results, fees, and stats."
+msgstr ""
+
+msgid "Quick tips"
+msgstr ""
+
+msgid "Quota limits"
+msgstr ""
+
+msgid "RBAC &amp; access control"
+msgstr ""
+
+msgid "RETURNING"
+msgstr ""
+
+msgid "Rail"
+msgstr ""
+
+msgid "Rate limit / hour"
+msgstr ""
+
+msgid "Re-apply this blueprint"
+msgstr ""
+
+msgid "Re-opened data migration for this school."
+msgstr ""
+
+msgid "Reach teachers and the school office"
+msgstr ""
+
+msgid "Ready to Contribute?"
+msgstr ""
+
+msgid "Ready to import:"
+msgstr ""
+
+msgid "Real-time view of rankings, improvements, and hotspots."
+msgstr ""
+
+msgid "Reason (optional)"
+msgstr ""
+
+msgid "Reason *"
+msgstr ""
+
+msgid "Reason Governed rollout request"
+msgstr ""
+
+msgid "Reason for Extension:"
+msgstr ""
+
+msgid "Reason for override"
+msgstr ""
+
+msgid "Receipt / teller file"
+msgstr ""
+
+msgid "Recent Activities"
+msgstr ""
+
+msgid "Recent Exports"
+msgstr ""
+
+msgid "Recent Grades"
+msgstr ""
+
+msgid "Recent Invoices"
+msgstr ""
+
+msgid "Recent Payments"
+msgstr ""
+
+msgid "Recent attendance"
+msgstr ""
+
+msgid "Recent bulk runs"
+msgstr ""
+
+msgid "Recent enrollments"
+msgstr ""
+
+msgid "Recent evaluations"
+msgstr ""
+
+msgid "Recent invoices"
+msgstr ""
+
+msgid "Recent requests"
+msgstr ""
+
+msgid "Recent work"
+msgstr ""
+
+msgid "Recently Updated Articles"
+msgstr ""
+
+msgid "Recently visited operator pages"
+msgstr ""
+
+msgid "Recommend for me"
+msgstr ""
+
+msgid ""
+"Recommendation only. You review the blueprint, modules, compliance profiles,"
+" migration path and plan before anything paid or governed is activated."
+msgstr ""
+
+msgid ""
+"Recommendations are generated locally from your answers and country "
+"registries; internet access or an AI provider is not required."
+msgstr ""
+
+msgid "Recommended account action"
+msgstr ""
+
+msgid "Recommended defaults + review"
+msgstr ""
+
+msgid "Recommended for your school"
+msgstr ""
+
+msgid "Recommended methods"
+msgstr ""
+
+msgid "Recommended now"
+msgstr ""
+
+msgid "Record manual reconciliation"
+msgstr ""
+
+msgid "Record payment"
+msgstr ""
+
+msgid "Record-keeping only, no online collection."
+msgstr ""
+
+msgid ""
+"Recorded {{ recorded }}. Connect a payment rail at any time to switch this "
+"school to live collection."
+msgstr ""
+
+msgid ""
+"Recorded {{ recorded }}. Connecting a payment rail below switches this "
+"school to live collection automatically."
+msgstr ""
+
+msgid "Recovery and device controls are available in Security."
+msgstr ""
+
+msgid "Recovery impact"
+msgstr ""
+
+msgid "Recovery posture recorded"
+msgstr ""
+
+msgid "Reference hint (optional)"
+msgstr ""
+
+msgid "Reference: {{ value }}"
+msgstr ""
+
+msgid "Referral Code (Optional)"
+msgstr ""
+
+msgid "Referral bonus: {{ bonus }} credits"
+msgstr ""
+
+msgid "Referrals & parent data"
+msgstr ""
+
+msgid "Refines scale, analytics and plan fit."
+msgstr ""
+
+msgid ""
+"Regional compliance CSVs carry X-Export-Content-SHA256 + X-Export-Signature "
+"(HMAC-SHA256) for offline verification."
+msgstr ""
+
+msgid "Regional hosting"
+msgstr ""
+
+msgid "Register a new LTI 1.3 tool"
+msgstr ""
+
+msgid "Register new tool"
+msgstr ""
+
+msgid "Register the first one."
+msgstr ""
+
+msgid "Register tool"
+msgstr ""
+
+msgid "Registered tools ({{ count }})"
+msgstr ""
+
+msgid "Registrar"
+msgstr ""
+
+msgid "Registration lock"
+msgstr ""
+
+msgid "Regulatory export"
+msgstr ""
+
+msgid "Related Questions"
+msgstr ""
+
+msgid "Related configuration surfaces"
+msgstr ""
+
+msgid "Release Notes"
+msgstr ""
+
+msgid "Relevance"
+msgstr ""
+
+msgid "Reliable internet"
+msgstr ""
+
+msgid "Remarks:"
+msgstr ""
+
+msgid "Reminders due: {{ count }}"
+msgstr ""
+
+msgid "Remove this SSO connection?"
+msgstr ""
+
+msgid "Repair mode: open {{ section }} below."
+msgstr ""
+
+msgid "Report Packs"
+msgstr ""
+
+msgid "Report Problem"
+msgstr ""
+
+msgid "Report cards & fees"
+msgstr ""
+
+msgid "Report scope"
+msgstr ""
+
+msgid "Reports & Downloads"
+msgstr ""
+
+msgid "Request Leave"
+msgstr ""
+
+msgid "Request a custom requirement"
+msgstr ""
+
+msgid "Request billing waiver"
+msgstr ""
+
+msgid "Request invite (Email)"
+msgstr ""
+
+msgid "Request invite (Phone)"
+msgstr ""
+
+msgid "Request invite (WhatsApp)"
+msgstr ""
+
+msgid "Request leave"
+msgstr ""
+
+msgid "Request revisions"
+msgstr ""
+
+msgid "Request type"
+msgstr ""
+
+msgid "Request {{ value }}"
+msgstr ""
+
+msgid "Requester"
+msgstr ""
+
+msgid "Require a roster before launch"
+msgstr ""
+
+msgid "Requires electronic signature"
+msgstr ""
+
+msgid "Resend setup email"
+msgstr ""
+
+msgid "Resend setup email to a specific member by email or username"
+msgstr ""
+
+msgid "Reset MFA"
+msgstr ""
+
+msgid "Reset MFA for this member so they can enroll a new device?"
+msgstr ""
+
+msgid "Reset preview"
+msgstr ""
+
+msgid "Reset the password for this member and issue a temporary one?"
+msgstr ""
+
+msgid "Reset to default"
+msgstr ""
+
+msgid "Resolution order"
+msgstr ""
+
+msgid "Resolve all pending as:"
+msgstr ""
+
+msgid "Resolve now"
+msgstr ""
+
+msgid "Resolve to launch"
+msgstr ""
+
+msgid "Resolved by override"
+msgstr ""
+
+msgid "Resolved timezone"
+msgstr ""
+
+msgid ""
+"Restore the captured school settings and deactivate this assignment without "
+"deleting operational data."
+msgstr ""
+
+msgid "Restores the stored settings snapshot and deactivates package markers."
+msgstr ""
+
+msgid "Restrict to email domains"
+msgstr ""
+
+msgid "Results for: <strong>\"{{ q }}\"</strong>"
+msgstr ""
+
+msgid "Retry safely"
+msgstr ""
+
+msgid "Return for revision"
+msgstr ""
+
+msgid "Return to Launch Studio"
+msgstr ""
+
+msgid "Return to catalog"
+msgstr ""
+
+msgid "Return to control plane"
+msgstr ""
+
+msgid "Return to dashboard"
+msgstr ""
+
+msgid "Return to school portal"
+msgstr ""
+
+msgid "Returns"
+msgstr ""
+
+msgid "Revert last change"
+msgstr ""
+
+msgid "Review & confirm setup"
+msgstr ""
+
+msgid "Review & install"
+msgstr ""
+
+msgid "Review academic year"
+msgstr ""
+
+msgid "Review access requests"
+msgstr ""
+
+msgid "Review account security"
+msgstr ""
+
+msgid "Review and respond"
+msgstr ""
+
+msgid "Review approval queue"
+msgstr ""
+
+msgid "Review before continuing"
+msgstr ""
+
+msgid "Review contact requests"
+msgstr ""
+
+msgid "Review data rights queue"
+msgstr ""
+
+msgid "Review grade approvals"
+msgstr ""
+
+msgid "Review launch checklist"
+msgstr ""
+
+msgid "Review launch-without-roster option"
+msgstr ""
+
+msgid "Review payment readiness"
+msgstr ""
+
+msgid "Review profile and recovery"
+msgstr ""
+
+msgid "Review rollback coverage"
+msgstr ""
+
+msgid ""
+"Review school-scoped records and configuration that keep learning operations"
+" aligned."
+msgstr ""
+
+msgid "Review teacher submissions before publishing the final grades."
+msgstr ""
+
+msgid ""
+"Review the human-readable impact and rollback protection before confirming "
+"this change."
+msgstr ""
+
+msgid "Review these setup answers"
+msgstr ""
+
+msgid ""
+"Review your recent workflow runs, re-run an instance for debugging, and roll"
+" a workflow back to its last saved version."
+msgstr ""
+
+msgid ""
+"Review {{ counter }} column mapping{% plural %}Review {{ counter }} column "
+"mappings"
+msgstr ""
+
+msgid "Reviewer decision"
+msgstr ""
+
+msgid "Reviewer notes:"
+msgstr ""
+
+msgid "Risk: low / medium / high"
+msgstr ""
+
+msgid "Roadmap — not yet available"
+msgstr ""
+
+msgid "Role for joiners"
+msgstr ""
+
+msgid "Role targeting"
+msgstr ""
+
+msgid "Role visibility"
+msgstr ""
+
+msgid "Roles receiving this experience"
+msgstr ""
+
+msgid "Roll back a migration run"
+msgstr ""
+
+msgid ""
+"Roll back this blueprint? Its modules, packs and settings markers will be "
+"retracted."
+msgstr ""
+
+msgid "Rollback a workflow"
+msgstr ""
+
+msgid "Rollback completed successfully."
+msgstr ""
+
+msgid "Rollback needs attention."
+msgstr ""
+
+msgid "Rollback or deactivate"
+msgstr ""
+
+msgid "Rollback protection"
+msgstr ""
+
+msgid "Rollback queue"
+msgstr ""
+
+msgid "Rollback snapshot"
+msgstr ""
+
+msgid "Rollback this activation"
+msgstr ""
+
+msgid "Rolling or block scheduling."
+msgstr ""
+
+msgid "Rollover proposal — {{ source }} → {{ target }}"
+msgstr ""
+
+msgid "Route unavailable"
+msgstr ""
+
+msgid "Routing & resolution sources"
+msgstr ""
+
+msgid "Row #"
+msgstr ""
+
+msgid "Rows submitted:"
+msgstr ""
+
+msgid "Rows with Warnings"
+msgstr ""
+
+msgid "Run on this device"
+msgstr ""
+
+msgid "Run real simulation"
+msgstr ""
+
+msgid "Run-level exceptions"
+msgstr ""
+
+msgid "RunMyCampus API"
+msgstr ""
+
+msgid "RunMyCampus SDK (GitHub)"
+msgstr ""
+
+msgid "Runtime feature-flag merge"
+msgstr ""
+
+msgid ""
+"Runtime is unavailable; inspect provisioning and runtime warnings below."
+msgstr ""
+
+msgid "Runtime warnings"
+msgstr ""
+
+msgid "SAML needs an SSO URL and IdP signing certificate — saved as a draft."
+msgstr ""
+
+msgid "SDK &amp; API reference"
+msgstr ""
+
+msgid "SDK repo"
+msgstr ""
+
+msgid "SSO connection %(state)s."
+msgstr ""
+
+msgid "SSO connection removed."
+msgstr ""
+
+msgid "SSO connection “%(label)s” saved. It now appears on your login page."
+msgstr ""
+
+msgid "STAFF"
+msgstr ""
+
+msgid "Safe customization boundary"
+msgstr ""
+
+msgid "Sample term table"
+msgstr ""
+
+msgid "Sandbox mode"
+msgstr ""
+
+msgid "Sandbox-first · scope approval · rollback evidence"
+msgstr ""
+
+msgid "Save All Marks"
+msgstr ""
+
+msgid "Save Changes"
+msgstr ""
+
+msgid "Save Deadline"
+msgstr ""
+
+msgid "Save Draft"
+msgstr ""
+
+msgid "Save Publish Status"
+msgstr ""
+
+msgid "Save all present"
+msgstr ""
+
+msgid "Save and continue"
+msgstr ""
+
+msgid "Save and recheck"
+msgstr ""
+
+msgid "Save assignment"
+msgstr ""
+
+msgid "Save attendance"
+msgstr ""
+
+msgid "Save closure"
+msgstr ""
+
+msgid "Save currency"
+msgstr ""
+
+msgid "Save decision"
+msgstr ""
+
+msgid "Save these changes"
+msgstr ""
+
+msgid "Saved as a draft — activate once the IdP is reachable."
+msgstr ""
+
+msgid "Saved. This finding has been recalculated."
+msgstr ""
+
+msgid "Scan Teller"
+msgstr ""
+
+msgid "Scan Teller (OCR)"
+msgstr ""
+
+msgid "Scan teller"
+msgstr ""
+
+msgid "Scan the code, or go to the link below and enter the code."
+msgstr ""
+
+msgid "Schedule fills once timetables are finalized."
+msgstr ""
+
+msgid "Schedule updates once subjects are assigned."
+msgstr ""
+
+msgid "School 360 sections"
+msgstr ""
+
+msgid "School Pro"
+msgstr ""
+
+msgid "School Roadmap"
+msgstr ""
+
+msgid "School Stats"
+msgstr ""
+
+msgid "School administrator"
+msgstr ""
+
+msgid "School configuration footer"
+msgstr ""
+
+msgid "School configuration is operational"
+msgstr ""
+
+msgid "School configuration signals"
+msgstr ""
+
+msgid "School events"
+msgstr ""
+
+msgid "School leadership records"
+msgstr ""
+
+msgid "School network"
+msgstr ""
+
+msgid "School news the moment it is posted"
+msgstr ""
+
+msgid "School operations · academic management"
+msgstr ""
+
+msgid "School profile"
+msgstr ""
+
+msgid "School profile, plan, brand & academics"
+msgstr ""
+
+msgid "School transfer consent"
+msgstr ""
+
+msgid "Scores (editable)"
+msgstr ""
+
+msgid "Screenshots & Visuals"
+msgstr ""
+
+msgid "Search FAQs and Knowledge Base..."
+msgstr ""
+
+msgid "Search Results"
+msgstr ""
+
+msgid "Search admin navigation…"
+msgstr ""
+
+msgid "Search apps, outcomes or publishers…"
+msgstr ""
+
+msgid "Search articles and FAQs"
+msgstr ""
+
+msgid "Search city..."
+msgstr ""
+
+msgid "Search features"
+msgstr ""
+
+msgid "Search for an article, FAQ, or more..."
+msgstr ""
+
+msgid "Search help and feedback context"
+msgstr ""
+
+msgid "Search operator navigation…"
+msgstr ""
+
+msgid "Search packs"
+msgstr ""
+
+msgid "Search results pagination"
+msgstr ""
+
+msgid ""
+"Search the complete tenant-safe catalog. Select a card to inspect real "
+"changes before applying anything."
+msgstr ""
+
+msgid "Search workflows, roles, outcomes…"
+msgstr ""
+
+msgid "Secure &amp; private"
+msgstr ""
+
+msgid "Security available"
+msgstr ""
+
+msgid "See Report"
+msgstr ""
+
+msgid "See the"
+msgstr ""
+
+msgid "See what would change"
+msgstr ""
+
+msgid "Select CSV file"
+msgstr ""
+
+msgid "Select a catalog card to preview the first installation."
+msgstr ""
+
+msgid "Select a user..."
+msgstr ""
+
+msgid ""
+"Select country then city from the global catalog (all ISO countries; search "
+"loads up to 500 cities). Coordinates and timezone resolve automatically."
+msgstr ""
+
+msgid "Select who receives the setup email"
+msgstr ""
+
+msgid "Select your assigned class/subject"
+msgstr ""
+
+msgid "Selected"
+msgstr ""
+
+msgid "Selected pack"
+msgstr ""
+
+msgid "Self-hosted"
+msgstr ""
+
+msgid "Self-service join codes"
+msgstr ""
+
+msgid "Send notifications to parents/guardians if configured"
+msgstr ""
+
+msgid "Send setup email to"
+msgstr ""
+
+msgid "Send sign-in link"
+msgstr ""
+
+msgid "Send test preview"
+msgstr ""
+
+msgid "Send test to yourself"
+msgstr ""
+
+msgid "Sensible defaults for most schools."
+msgstr ""
+
+msgid ""
+"Sensitive values (IDs, dates of birth, contact, medical, financial) are "
+"hidden in this view. Ask a platform administrator to reveal them if a review"
+" needs the raw data."
+msgstr ""
+
+msgid "Separate morning and afternoon cohorts."
+msgstr ""
+
+msgid "Seq 1:"
+msgstr ""
+
+msgid "Seq 2:"
+msgstr ""
+
+msgid "Server data"
+msgstr ""
+
+msgid "Session pattern"
+msgstr ""
+
+msgid "Sessions and trusted devices"
+msgstr ""
+
+msgid ""
+"Set for offline-first from your region — we include capture, sync and "
+"continuity so work never stops."
+msgstr ""
+
+msgid "Set from the campus count you entered — you can change it below."
+msgstr ""
+
+msgid ""
+"Set from your country's typical connectivity — change if your campuses lose "
+"power or internet."
+msgstr ""
+
+msgid "Set override"
+msgstr ""
+
+msgid ""
+"Set to strict compliance for your jurisdiction's data-protection and "
+"ministry-reporting rules — you can relax it if it does not apply."
+msgstr ""
+
+msgid "Set up your profile"
+msgstr ""
+
+msgid "Set your password &amp; open your portal"
+msgstr ""
+
+msgid "Sets grading scales, report-card templates and examination modules."
+msgstr ""
+
+msgid "Setting up · {{ pct }}% ready"
+msgstr ""
+
+msgid "Setup checklist"
+msgstr ""
+
+msgid ""
+"Setup email queued to %(n)s recipient(s), but transactional email is NOT "
+"configured (Brevo EMAIL_HOST_USER / EMAIL_HOST_PASSWORD are empty), so it "
+"will not be delivered until those secrets are set."
+msgstr ""
+
+msgid "Setup email sent to %(n)s recipient(s)."
+msgstr ""
+
+msgid "Setup repair complete"
+msgstr ""
+
+msgid "Several systems"
+msgstr ""
+
+msgid "Share Article"
+msgstr ""
+
+msgid "Share Report"
+msgstr ""
+
+msgid ""
+"Share a code so people can join this school themselves — they enter it on "
+"your join page, register, and are added with the role you choose. Restrict "
+"by email domain, cap the number of uses, or set an expiry."
+msgstr ""
+
+msgid "Share link"
+msgstr ""
+
+msgid "Share this article"
+msgstr ""
+
+msgid "Share via WhatsApp"
+msgstr ""
+
+msgid "Share with families"
+msgstr ""
+
+msgid "Share your thoughts or questions..."
+msgstr ""
+
+msgid "Show all"
+msgstr ""
+
+msgid "Show all configuration areas"
+msgstr ""
+
+msgid "Show all packs"
+msgstr ""
+
+msgid "Show missing only"
+msgstr ""
+
+msgid "Show students"
+msgstr ""
+
+msgid "Show this connection on the login page"
+msgstr ""
+
+msgid ""
+"Showing the first staff members only — reach anyone else by email below."
+msgstr ""
+
+msgid "Showing {{ shown }} of {{ total }} apps"
+msgstr ""
+
+msgid "Shows next subjects for your linked classrooms."
+msgstr ""
+
+msgid "Sign Form"
+msgstr ""
+
+msgid "Sign Now"
+msgstr ""
+
+msgid "Sign in to vote"
+msgstr ""
+
+msgid "Sign in to {{ value }}"
+msgstr ""
+
+msgid "Sign in with a password"
+msgstr ""
+
+msgid "Sign out and forget this browser"
+msgstr ""
+
+msgid "Signature Requests Management"
+msgstr ""
+
+msgid "Signatures and visibility"
+msgstr ""
+
+msgid "Simple or not needed"
+msgstr ""
+
+msgid "Simplest setup for a standalone school."
+msgstr ""
+
+msgid "Simulation complete"
+msgstr ""
+
+msgid "Single session"
+msgstr ""
+
+msgid "Single sign-on (SSO)"
+msgstr ""
+
+msgid "Single-campus operations"
+msgstr ""
+
+msgid "Site Settings"
+msgstr ""
+
+msgid "Skip MFA prompts on this browser for"
+msgstr ""
+
+msgid "Skip students who already have a candidate in this session"
+msgstr ""
+
+msgid "Skyward"
+msgstr ""
+
+msgid ""
+"Some graduating students do not meet the configured graduation requirements."
+" I understand and want to graduate them anyway (override the graduation "
+"gate)."
+msgstr ""
+
+msgid "Sort By"
+msgstr ""
+
+msgid "Source blueprint ID"
+msgstr ""
+
+msgid "Source policy bundle ID"
+msgstr ""
+
+msgid "Source year (copy from)"
+msgstr ""
+
+msgid "Source year (current)"
+msgstr ""
+
+msgid "Specialties (optional)"
+msgstr ""
+
+msgid "Split payment"
+msgstr ""
+
+msgid "Sponsors"
+msgstr ""
+
+msgid "Staff / Admin"
+msgstr ""
+
+msgid "Staff sign-in"
+msgstr ""
+
+msgid ""
+"Staged rollout — enable a workflow for a subset (by school, role, or feature"
+" flag) and then promote it — is on the roadmap and not built in this "
+"release."
+msgstr ""
+
+msgid "Standard inclusive defaults"
+msgstr ""
+
+msgid "Standard operational scale."
+msgstr ""
+
+msgid "Start wizard"
+msgstr ""
+
+msgid "Started → first action"
+msgstr ""
+
+msgid "Started → onboarding complete"
+msgstr ""
+
+msgid "Started → subscription/payment"
+msgstr ""
+
+msgid "Starting fresh / unsure"
+msgstr ""
+
+msgid "Static surface scan"
+msgstr ""
+
+msgid "Statistical return"
+msgstr ""
+
+msgid "Statutory"
+msgstr ""
+
+msgid "Step 1: Basic Information"
+msgstr ""
+
+msgid "Step 1: Choose your current system"
+msgstr ""
+
+msgid "Step 1: Identify Your Child"
+msgstr ""
+
+msgid "Step 1: Upload CSV File"
+msgstr ""
+
+msgid "Step 2: Academic Information"
+msgstr ""
+
+msgid "Step 2: Contact & Permissions"
+msgstr ""
+
+msgid "Step 2: Professional Details"
+msgstr ""
+
+msgid "Step 2: Upload"
+msgstr ""
+
+msgid "Step 2: Validation Results"
+msgstr ""
+
+msgid "Step 3: Additional Details (Optional)"
+msgstr ""
+
+msgid "Step 3: Parent/Guardian Information"
+msgstr ""
+
+msgid "Step 3: Preferences"
+msgstr ""
+
+msgid "Step 3: Review & Confirm"
+msgstr ""
+
+msgid "Step 3: Run import"
+msgstr ""
+
+msgid "Step 4: Importing..."
+msgstr ""
+
+msgid "Step 4: Payment & Referral"
+msgstr ""
+
+msgid "Step 4: Your photo"
+msgstr ""
+
+msgid "Step 5: Student photo"
+msgstr ""
+
+msgid "Strict"
+msgstr ""
+
+msgid "Student 360 — {{ value }}"
+msgstr ""
+
+msgid "Student Code"
+msgstr ""
+
+msgid "Student Found"
+msgstr ""
+
+msgid "Student Information"
+msgstr ""
+
+msgid "Student Pre-Registration"
+msgstr ""
+
+msgid "Student View preview"
+msgstr ""
+
+msgid "Student transfer consent (v1)"
+msgstr ""
+
+msgid "Students in {{ source }} → assign to {{ target }}"
+msgstr ""
+
+msgid "Subject (optional)"
+msgstr ""
+
+msgid "Subject weak spots"
+msgstr ""
+
+msgid "Subject:"
+msgstr ""
+
+msgid "Submit Registration Data"
+msgstr ""
+
+msgid "Submit Signature"
+msgstr ""
+
+msgid "Submit for Review"
+msgstr ""
+
+msgid "Submit for visa"
+msgstr ""
+
+msgid "Submit search"
+msgstr ""
+
+msgid "Submit your question"
+msgstr ""
+
+msgid "Submitted by {{ name }} on {{ date }} {{ time }}."
+msgstr ""
+
+msgid "Submitted marks"
+msgstr ""
+
+msgid "Submitted marks for approval: student and score components"
+msgstr ""
+
+msgid "Subscriptions, invoices, and regional pricing"
+msgstr ""
+
+msgid "Success %"
+msgstr ""
+
+msgid "Suggested Matches"
+msgstr ""
+
+msgid "Suggested fix available in guidance"
+msgstr ""
+
+msgid "Suggested help"
+msgstr ""
+
+msgid "Summary Required"
+msgstr ""
+
+msgid "Support desk"
+msgstr ""
+
+msgid "Support overview"
+msgstr ""
+
+msgid "Supported source systems"
+msgstr ""
+
+msgid "Suspense Queue"
+msgstr ""
+
+msgid "Suspicious events (7d)"
+msgstr ""
+
+msgid "Switch role or workspace"
+msgstr ""
+
+msgid "Syllabus coverage: {{ approved }} of {{ total }} approved"
+msgstr ""
+
+msgid "Syllabus preview"
+msgstr ""
+
+msgid "Sync now"
+msgstr ""
+
+msgid "Synthetic Student Preview"
+msgstr ""
+
+msgid "TEACHER"
+msgstr ""
+
+msgid "Tags:"
+msgstr ""
+
+msgid "Target class"
+msgstr ""
+
+msgid "Target go-live"
+msgstr ""
+
+msgid "Target year (copy to)"
+msgstr ""
+
+msgid "Target year (next)"
+msgstr ""
+
+msgid "Task tracker"
+msgstr ""
+
+msgid "Tasks & progress"
+msgstr ""
+
+msgid "Teacher Dashboard"
+msgstr ""
+
+msgid "Teacher Onboarding"
+msgstr ""
+
+msgid "Teachers – {{ date_value }}"
+msgstr ""
+
+msgid "Teaching assignments"
+msgstr ""
+
+msgid "Template not applied — {{ template_key }}"
+msgstr ""
+
+msgid "Template package evaluated"
+msgstr ""
+
+msgid "Template preview evidence"
+msgstr ""
+
+msgid "Temporary password"
+msgstr ""
+
+msgid ""
+"Temporary password for %(user)s: %(pw)s — hand it over securely. They must "
+"set a new password (and re-verify MFA) at next sign-in."
+msgstr ""
+
+msgid ""
+"Temporary password for %(user)s: %(pw)s — share it securely. They must set a"
+" new password (and set up MFA) at next sign-in."
+msgstr ""
+
+msgid "Tenant administrator"
+msgstr ""
+
+msgid "Tenant health and operator tickets"
+msgstr ""
+
+msgid "Tenant-safe catalog"
+msgstr ""
+
+msgid "Tenant-scoped changes were kept inside this school."
+msgstr ""
+
+msgid "Tenant-scoped records · RBAC enforced"
+msgstr ""
+
+msgid "Term (Optional)"
+msgstr ""
+
+msgid "Terminology pack"
+msgstr ""
+
+msgid "That sign-in link is invalid or has expired. Request a new one."
+msgstr ""
+
+msgid ""
+"The Excel workbook includes an Instructions sheet describing every column "
+"with an example value."
+msgstr ""
+
+msgid ""
+"The canonical platform admin cannot be reset here — recover it with the "
+"fix_tenant_login management command."
+msgstr ""
+
+msgid "The full school-year lifecycle: setup → onboarding → marks → reports."
+msgstr ""
+
+msgid ""
+"The governed installation is active. Tenant runtime, role targeting, Setup "
+"Studio, and rollback protection are synchronized."
+msgstr ""
+
+msgid "The inline preview is still loading."
+msgstr ""
+
+msgid ""
+"The installation marker can be deactivated and the school's previous "
+"settings restored without deleting operational data."
+msgstr ""
+
+msgid "The lean default — nothing you won't use."
+msgstr ""
+
+msgid ""
+"The people, surface, dependencies, and recovery protection affected by this "
+"activation."
+msgstr ""
+
+msgid "The standard pattern for most schools."
+msgstr ""
+
+msgid "Theme Gallery"
+msgstr ""
+
+msgid "Theme, density and accessibility"
+msgstr ""
+
+msgid ""
+"There are conflicting mark entries for <strong>{{ student }}</strong> in "
+"<strong>{{ subject }}</strong>. Please choose which version to keep."
+msgstr ""
+
+msgid ""
+"This blueprint can be applied now — live collection is a go-live capability "
+"gate, not an apply blocker. If this school reconciles fees manually (cash, "
+"bank transfer, or mobile-money receipts), record that below so readiness "
+"stops asking for onboarding it will never do."
+msgstr ""
+
+msgid ""
+"This blueprint is live for this school. Re-applying is safe — it re-runs the"
+" same configuration and never creates a second installation."
+msgstr ""
+
+msgid ""
+"This conversation was closed by the school. Use Contact School to reach them"
+" again."
+msgstr ""
+
+msgid "This finding is a false positive"
+msgstr ""
+
+msgid ""
+"This pack can be applied now — live collection is a go-live capability gate,"
+" not an apply blocker. If this school reconciles fees manually (cash, bank "
+"transfer, or mobile-money receipts), record that so readiness stops asking "
+"for onboarding it will never do."
+msgstr ""
+
+msgid ""
+"This school currently inherits its region's currency ({{ region_currency "
+"}}). Choosing one below sets an explicit override."
+msgstr ""
+
+msgid ""
+"This school groups report cards by <strong>{{ mode }}</strong>. Sharing "
+"works offline first — a queued share is delivered the moment this device is "
+"back online."
+msgstr ""
+
+msgid "This school has declared it has no legacy data to import."
+msgstr ""
+
+msgid ""
+"This school is set to launch with no roster yet. You can add students at any"
+" time."
+msgstr ""
+
+msgid ""
+"This school uses an explicit currency override. Region default: {{ "
+"region_currency }}."
+msgstr ""
+
+msgid ""
+"This will DELETE the rows this run created and restore overwritten values on"
+" the tenant. Continue?"
+msgstr ""
+
+msgid ""
+"This will move students to {{ year }} and assign the approved next class."
+msgstr ""
+
+msgid "Tips"
+msgstr ""
+
+msgid "Title *"
+msgstr ""
+
+msgid "Today's Attendance"
+msgstr ""
+
+msgid "Today's Classes"
+msgstr ""
+
+msgid "Toddle"
+msgstr ""
+
+msgid "Tool"
+msgstr ""
+
+msgid "Tool secret (shown once)"
+msgstr ""
+
+msgid "Top students (term)"
+msgstr ""
+
+msgid "Top subject"
+msgstr ""
+
+msgid "Top: {{ student }} · {{ average }}"
+msgstr ""
+
+msgid "Total Rows"
+msgstr ""
+
+msgid "Trace"
+msgstr ""
+
+msgid "Track and action requests routed to you and your team."
+msgstr ""
+
+msgid "Transcript &amp; archive"
+msgstr ""
+
+msgid "Transcript archive — {{ value }}"
+msgstr ""
+
+msgid "Transcript — {{ value }}"
+msgstr ""
+
+msgid "Trend: {{ trend }}"
+msgstr ""
+
+msgid "Triage"
+msgstr ""
+
+msgid "Trigger automatic grade conversions (letter grades, GPA)"
+msgstr ""
+
+msgid "Trigger overlaps"
+msgstr ""
+
+msgid "Triggered by"
+msgstr ""
+
+msgid "Try a broader search or clear the pack type."
+msgstr ""
+
+msgid "Twitter"
+msgstr ""
+
+msgid ""
+"Two ways to add someone: email them a one-time invite link so they set their"
+" own password, or create the account now with a temporary password you hand "
+"over. Either way, they set a new password and complete their profile on "
+"first sign-in."
+msgstr ""
+
+msgid ""
+"Two-factor setup skipped for %(days)s day(s). You can enroll anytime from "
+"your security settings."
+msgstr ""
+
+msgid "Type Your Name"
+msgstr ""
+
+msgid "USD ($)"
+msgstr ""
+
+msgid "Uncategorized"
+msgstr ""
+
+msgid "Under 1,000 learners"
+msgstr ""
+
+msgid "Unhelpful ({{ count }})"
+msgstr ""
+
+msgid "Unpublished terms: {{ count }}"
+msgstr ""
+
+msgid "Unrecognized request."
+msgstr ""
+
+msgid "Unsubscribe"
+msgstr ""
+
+msgid "Upcoming classes"
+msgstr ""
+
+msgid "Upcoming events & alerts"
+msgstr ""
+
+msgid "Update / Delete student"
+msgstr ""
+
+msgid "Update existing evaluations with new scores"
+msgstr ""
+
+msgid "Updated:"
+msgstr ""
+
+msgid "Updated: {{ timesince }} ago"
+msgstr ""
+
+msgid "Upload & preview"
+msgstr ""
+
+msgid "Upload Evidence"
+msgstr ""
+
+msgid "Upload File"
+msgstr ""
+
+msgid "Upload Marksheet (OCR)"
+msgstr ""
+
+msgid "Upload New File"
+msgstr ""
+
+msgid "Upload grades"
+msgstr ""
+
+msgid "Upload guide"
+msgstr ""
+
+msgid "Upload syllabus"
+msgstr ""
+
+msgid "Upload syllabus – {{ subject }}"
+msgstr ""
+
+msgid "Use a safe mixed-connectivity baseline."
+msgstr ""
+
+msgid ""
+"Use the guided surfaces for everyday changes. This record remains the "
+"complete advanced configuration source."
+msgstr ""
+
+msgid ""
+"Use this only when the normal approver is unavailable. A bypass is fully "
+"audited."
+msgstr ""
+
+msgid "Used up"
+msgstr ""
+
+msgid "User management (RBAC)"
+msgstr ""
+
+msgid "Uses"
+msgstr ""
+
+msgid "Using a shared computer?"
+msgstr ""
+
+msgid "Usually online, occasionally not."
+msgstr ""
+
+msgid "Valid Rows"
+msgstr ""
+
+msgid "Validate only (dry run)"
+msgstr ""
+
+msgid "Validated"
+msgstr ""
+
+msgid "Validation flags:"
+msgstr ""
+
+msgid "Validation issues"
+msgstr ""
+
+msgid "Validation issues (drill-down)"
+msgstr ""
+
+msgid "Verifier summaries (generated JSON)"
+msgstr ""
+
+msgid "Verify the one place that confirms launch readiness."
+msgstr ""
+
+msgid "View All FAQs"
+msgstr ""
+
+msgid "View All in {{ value }}"
+msgstr ""
+
+msgid "View Compliance Dashboard"
+msgstr ""
+
+msgid "View Details"
+msgstr ""
+
+msgid "View FAQ"
+msgstr ""
+
+msgid "View Finance"
+msgstr ""
+
+msgid "View Form"
+msgstr ""
+
+msgid "View Form PDF"
+msgstr ""
+
+msgid "View Knowledge Base"
+msgstr ""
+
+msgid "View Reports Report library"
+msgstr ""
+
+msgid "View detail →"
+msgstr ""
+
+msgid "View details"
+msgstr ""
+
+msgid "View execution log"
+msgstr ""
+
+msgid "View invoices"
+msgstr ""
+
+msgid "View policy"
+msgstr ""
+
+msgid "View portal"
+msgstr ""
+
+msgid "View receipts"
+msgstr ""
+
+msgid "View tasks"
+msgstr ""
+
+msgid "View the full thread"
+msgstr ""
+
+msgid "Visa"
+msgstr ""
+
+msgid "Visible To"
+msgstr ""
+
+msgid "Visuals & Screenshots"
+msgstr ""
+
+msgid "Voice of Customer Center"
+msgstr ""
+
+msgid "Voir le bulletin"
+msgstr ""
+
+msgid "Vote up"
+msgstr ""
+
+msgid "Waive row"
+msgstr ""
+
+msgid "We couldn't complete that page."
+msgstr ""
+
+msgid "We have no data to migrate"
+msgstr ""
+
+msgid ""
+"We pre-set {{ auto_count }} option automatically from your country — review "
+"it below. {% plural %} We pre-set {{ auto_count }} options automatically "
+"from your country — review them below."
+msgstr ""
+
+msgid "Weather location"
+msgstr ""
+
+msgid "Webhooks documentation"
+msgstr ""
+
+msgid "Welcome to RunMyCampus, {{ name }}!"
+msgstr ""
+
+msgid "Welcome 👋"
+msgstr ""
+
+msgid "Welcome! Your account is ready."
+msgstr ""
+
+msgid "What changes"
+msgstr ""
+
+msgid ""
+"What you can do today: build the flow directly in the visual designer — drag"
+" in triggers, conditions, actions and delays, connect them, and publish."
+msgstr ""
+
+msgid ""
+"What you can do today: build the workflow in the visual designer, run it "
+"through simulation to verify its behaviour and impact, then publish when you"
+" are confident."
+msgstr ""
+
+msgid "WhatsApp"
+msgstr ""
+
+msgid "When disabled"
+msgstr ""
+
+msgid "Where are you migrating from?"
+msgstr ""
+
+msgid "Which curriculum or examination board do you follow?"
+msgstr ""
+
+msgid "Who (acting)"
+msgstr ""
+
+msgid "Why should this pack be enabled?"
+msgstr ""
+
+msgid "Within 30 days"
+msgstr ""
+
+msgid "Within 90 days"
+msgstr ""
+
+msgid "Wo Iwe-Ìsìrò"
+msgstr ""
+
+msgid "Workspace and help"
+msgstr ""
+
+msgid "Write a Knowledge Base Article"
+msgstr ""
+
+msgid "XAF (FCFA)"
+msgstr ""
+
+msgid "XOF (CFA)"
+msgstr ""
+
+msgid "YY + {{ code }} + #### + SPEC + CLASS (no dashes)"
+msgstr ""
+
+msgid "Yes ({{ count }})"
+msgstr ""
+
+msgid "You Said / We Did"
+msgstr ""
+
+msgid "You are about to import grades into the database. This will:"
+msgstr ""
+
+msgid "You can choose to import the offline entry."
+msgstr ""
+
+msgid "You can launch with no students yet. Add your roster anytime."
+msgstr ""
+
+msgid ""
+"You can roll back an applied blueprint below — its modules, packs and "
+"settings markers are retracted, nothing else is touched."
+msgstr ""
+
+msgid "You can't message this recipient."
+msgstr ""
+
+msgid "You do not have permission to manage SSO for this school."
+msgstr ""
+
+msgid ""
+"You have no workflow surfaces assigned yet. When approvals, requests or "
+"messages are routed to you, they will appear here."
+msgstr ""
+
+msgid "You'll create your account and be added to the school automatically."
+msgstr ""
+
+msgid "You're in 🎉"
+msgstr ""
+
+msgid "You're signed in."
+msgstr ""
+
+msgid "Your Answer Required"
+msgstr ""
+
+msgid ""
+"Your Entra tenant ID or domain. Use “organizations” for any work/school "
+"account, “common” for personal too."
+msgstr ""
+
+msgid "Your Feedback"
+msgstr ""
+
+msgid "Your Question Required"
+msgstr ""
+
+msgid "Your account is ready — please sign in with your new password."
+msgstr ""
+
+msgid ""
+"Your activation checklist will appear here as setup steps are detected."
+msgstr ""
+
+msgid "Your approvals, requests and tasks in one place."
+msgstr ""
+
+msgid "Your column"
+msgstr ""
+
+msgid "Your command center is active"
+msgstr ""
+
+msgid "Your connections"
+msgstr ""
+
+msgid "Your country's standard curriculum and grading."
+msgstr ""
+
+msgid "Your direct messages and conversations."
+msgstr ""
+
+msgid "Your latest updates"
+msgstr ""
+
+msgid "Your operating policy"
+msgstr ""
+
+msgid "Your profile is set up. Welcome aboard!"
+msgstr ""
+
+msgid "Your role requires two-factor authentication and can't be skipped."
+msgstr ""
+
+msgid "ZAR (R)"
+msgstr ""
+
+msgid "ZIP"
+msgstr ""
+
+msgid "action"
+msgstr ""
+
+msgid "app_installed"
+msgstr ""
+
+msgid "attendance_marked"
+msgstr ""
+
+msgid "attendance_saved"
+msgstr ""
+
+msgid "auto"
+msgstr ""
+
+msgid "available packs"
+msgstr ""
+
+msgid "avg"
+msgstr ""
+
+msgid "button above."
+msgstr ""
+
+msgid "condition"
+msgstr ""
+
+msgid "count"
+msgstr ""
+
+msgid "custom"
+msgstr ""
+
+msgid "delay"
+msgstr ""
+
+msgid "docs/MAT_GROUP_HUB.md"
+msgstr ""
+
+msgid "dry run"
+msgstr ""
+
+msgid "dry-run (log only)"
+msgstr ""
+
+msgid "e.g. Grade 7 parents"
+msgstr ""
+
+msgid "e.g. Sign in with Google"
+msgstr ""
+
+msgid "for the full profile library."
+msgstr ""
+
+msgid "libreoffice"
+msgstr ""
+
+msgid "locked"
+msgstr ""
+
+msgid "marks_submitted"
+msgstr ""
+
+msgid "medium"
+msgstr ""
+
+msgid "minimal"
+msgstr ""
+
+msgid "minimum RMC release"
+msgstr ""
+
+msgid "minimum platform"
+msgstr ""
+
+msgid "name@school.edu"
+msgstr ""
+
+msgid "never"
+msgstr ""
+
+msgid "not claimed"
+msgstr ""
+
+msgid "offline_action_conflict"
+msgstr ""
+
+msgid "oidc"
+msgstr ""
+
+msgid "ops@runmycampus.com"
+msgstr ""
+
+msgid "optional for Google/Microsoft"
+msgstr ""
+
+msgid "optional, JSON"
+msgstr ""
+
+msgid "owner"
+msgstr ""
+
+msgid "pandoc"
+msgstr ""
+
+msgid "partner-success@runmycampus.com"
+msgstr ""
+
+msgid "payment_failed"
+msgstr ""
+
+msgid "payment_received"
+msgstr ""
+
+msgid "payment_success"
+msgstr ""
+
+msgid "prepare a proposal, review suggested classes, approve, then apply."
+msgstr ""
+
+msgid "privacy@runmycampus.com"
+msgstr ""
+
+msgid "recommended options pre-selected"
+msgstr ""
+
+msgid "repeatable operations"
+msgstr ""
+
+msgid "report_generated"
+msgstr ""
+
+msgid "role-aware surfaces"
+msgstr ""
+
+msgid "saml"
+msgstr ""
+
+msgid "search progress_activity"
+msgstr ""
+
+msgid "standard"
+msgstr ""
+
+msgid "student_created"
+msgstr ""
+
+msgid "student_risk_detected"
+msgstr ""
+
+msgid "targeted"
+msgstr ""
+
+msgid "to leave a comment"
+msgstr ""
+
+msgid "trigger"
+msgstr ""
+
+msgid "unlimited"
+msgstr ""
+
+msgid "unsubscribe"
+msgstr ""
+
+msgid "{{ c }} created · {{ u }} updated"
+msgstr ""
+
+msgid ""
+"{{ campus }} is live on RunMyCampus, but the page you requested doesn't "
+"exist."
+msgstr ""
+
+msgid "{{ classroom }} ({{ term }})"
+msgstr ""
+
+msgid "{{ classroom }} · coef {{ coefficient }}"
+msgstr ""
+
+msgid "{{ count }} articles"
+msgstr ""
+
+msgid "{{ count }} governed changes"
+msgstr ""
+
+msgid ""
+"{{ count }} live workflow fires on this event{% plural %}{{ count }} live "
+"workflows fire on this event"
+msgstr ""
+
+msgid "{{ count }} results"
+msgstr ""
+
+msgid "{{ count }} views"
+msgstr ""
+
+msgid "{{ counter }} result{% plural %}{{ counter }} results"
+msgstr ""
+
+msgid "{{ defer_days }} day{% plural %}{{ defer_days }} days"
+msgstr ""
+
+msgid "{{ feature }} Disabled"
+msgstr ""
+
+msgid "{{ label }} · Overdue invoices: {{ overdue }}"
+msgstr ""
+
+msgid "{{ minutes }} min"
+msgstr ""
+
+msgid "{{ minutes }} min read"
+msgstr ""
+
+msgid "{{ n }} reminder scheduled.{% plural %}{{ n }} reminders scheduled."
+msgstr ""
+
+msgid "{{ name }} ({{ code }}) — {{ count }} student"
+msgstr ""
+
+msgid "{{ role }} Feedback"
+msgstr ""
+
+msgid "{{ subject }} · {{ classroom }}"
+msgstr ""
+
+msgid "{{ timesince }} ago"
+msgstr ""
+
+msgid "{{ total }} records · {{ gated }} approval-gated"
+msgstr ""
+
+msgid "{{ views }} views · {{ read_time }} min"
+msgstr ""
+
+msgid "— Graduate (Alumni) —"
+msgstr ""
+
+msgid "— Select year —"
+msgstr ""
+
+msgid "— Select —"
+msgstr ""
+
+msgid "— Skip —"
+msgstr ""
+
+msgid "— select —"
+msgstr ""
+
+msgid "“%(id)s” didn’t match anyone at this school and was skipped."
+msgstr ""
+
+msgid "•••••• (unchanged)"
+msgstr ""
+
+msgid "← All donors"
+msgstr ""
+
+msgid "→ Target field"
+msgstr ""
+
+msgid "✓ Completed"
+msgstr ""
+
+msgid "✗ Failed"
+msgstr ""

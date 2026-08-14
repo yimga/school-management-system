@@ -1,0 +1,6 @@
+{
+  "finding_count": 0,
+  "missing": [],
+  "generated_at": "2026-08-14T15:27:11+00:00",
+  "rule": "en django.po must cover every scanned translatable string. Ratchet: a msgid missing from en.po that is NOT in this baseline fails --compare. Fix with `python manage.py sync_i18n_catalog` (then commit locale/); re-freeze deliberately with --update-baseline."
+}

@@ -35,6 +35,12 @@ jobs:
         run: python scripts/verify_static_reference_integrity.py --compare
       - name: Verify settings-key integrity
         run: python scripts/verify_settings_key_integrity.py --compare
+      - name: Verify i18n catalog freshness (ratchet - no NEW wrapped-but-unextracted strings)
+        # Per-push early-warning tier: fails only on a translatable string wrapped in
+        # {% trans %}/gettext() but NOT extracted into locale/en/.../django.po beyond the
+        # frozen baseline. Complements the binary deploy gate (scripts/pre_deploy_gate.sh).
+        # Fix: `python manage.py sync_i18n_catalog` then commit locale/.
+        run: python scripts/verify_i18n_catalog_fresh.py --compare
       - name: Verify per-app READMEs (metric 24 - docs must not invent surface)
         run: python scripts/verify_app_readmes.py
       - name: Scan RLS table-level coverage (no NEW unenumerated tenant-scoped tables)
