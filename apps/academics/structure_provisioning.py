@@ -682,6 +682,66 @@ def backfill_subject_codes(school) -> dict[str, Any]:
     return {"coded_subjects": coded}
 
 
+def ensure_admission_template(school) -> dict[str, Any]:
+    """Seed a school's country-default admission-number template so new admission
+    numbers follow the local standard instead of the generic fallback.
+
+    Fills the previously-EMPTY ``country_defaults`` admission layer of the policy
+    cascade, but applied SAFELY per-tenant (never in the global resolver, which
+    would change the format under every un-configured tenant). Two guards keep it
+    from ever changing a school's format mid-stream:
+
+      * only when the school has NO ``TenantAdmissionNumberPolicy`` yet, and
+      * only when NO student has been stamped with an admission number yet — so a
+        migration that already issued its roster's numbers is left untouched.
+
+    Stored on ``TenantAdmissionNumberPolicy`` (strategy TEMPLATE), the dedicated
+    per-tenant, admin-editable model the generator reads first. Idempotent."""
+    if school is None:
+        return {"skipped": "no_school"}
+    try:
+        from apps.people.models import StudentProfile
+        from apps.siteconfig.identifier_policy_service import default_school_code_for
+        from apps.siteconfig.models import TenantAdmissionNumberPolicy
+    except Exception:  # noqa: BLE001 — optional dependency wiring
+        return {"skipped": "import_error"}
+
+    if TenantAdmissionNumberPolicy.objects.filter(school=school).exists():
+        return {"skipped": "policy_exists"}
+    # admission_number is blank="" OR null — a school that has stamped ANY real
+    # number must keep its format; only skip the truly-empty rows.
+    if (
+        StudentProfile.objects.filter(school=school)  # tenant-isolation-allow: scoped by school kwarg
+        .filter(admission_number__isnull=False)
+        .exclude(admission_number="")
+        .exists()
+    ):
+        return {"skipped": "numbers_already_issued"}
+
+    template = ""
+    try:
+        from apps.policies.country_admission_templates import resolve_admission_template
+
+        template = resolve_admission_template(school) or ""
+    except Exception:  # noqa: BLE001 — template resolve is best-effort
+        logger.debug("ensure_admission_template: resolve failed", exc_info=True)
+    if not template:
+        return {"skipped": "no_template"}
+
+    try:
+        TenantAdmissionNumberPolicy.objects.create(
+            school=school,
+            strategy="TEMPLATE",
+            template=template,
+            school_code=default_school_code_for(school),
+            is_active=True,
+        )
+        return {"template": template}
+    except Exception:  # noqa: BLE001 — a policy we cannot mint just means the generic default
+        logger.debug("ensure_admission_template: create failed", exc_info=True)
+        return {"skipped": "create_failed"}
+
+
 _VOCATIONAL_MARKERS = ("tvet", "vocational", "technical", "trade", "polytechnic")
 
 
@@ -888,6 +948,11 @@ def provision_country_baseline(
     #     with just "General" and nowhere to place a course of study). No-op for a
     #     general-ed school; skipped when trades were uploaded.
     summary["trades"] = seed_country_trades(school)
+
+    # 7d. Country-default admission-number template (the country_defaults layer),
+    #     applied per-tenant + guarded so it never changes a school that already
+    #     issued numbers.
+    summary["admission_template"] = ensure_admission_template(school)
 
     # 8. Teaching grid over the catalog (now non-empty for a general-ed school),
     #    idempotent either way.
