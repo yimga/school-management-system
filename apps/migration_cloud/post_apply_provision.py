@@ -85,44 +85,25 @@ def ensure_default_academic_year(school):
     Never overrides an existing year (the upload's own session file, or a prior
     run, wins). When the school has NO year at all, mints one named from the
     tenant override ``settings['default_academic_year_name']`` or the platform
-    default, marked active. Returns ``(year, created)`` or ``(None, False)`` when
-    the school is missing. Shared by the student lander (which needs a year to
-    scaffold a classroom during apply) and the gap-fill below, so both converge
-    on the same row.
+    default. Returns ``(year, created)`` or ``(None, False)`` when the school is
+    missing. Shared by the student lander (which needs a year to scaffold a
+    classroom during apply) and the gap-fill below, so both converge on the same
+    row.
+
+    Delegates the actual year window to the shared, COUNTRY-AWARE
+    :func:`apps.academics.structure_provisioning.ensure_academic_year` so a
+    migrated US school gets an August-start year and a Cameroonian one a
+    September-start year — this path previously hardcoded Sept 1 → Aug 28 for
+    every country regardless of its RegionConfig. The tenant name override is
+    still honored (passed through as the year name).
     """
     if school is None:
         return None, False
-    from apps.academics.models import AcademicYear
-
-    from .landers._helpers import row_savepoint
-
-    existing = (
-        AcademicYear.objects.filter(  # tenant-isolation-allow: scoped by school kwarg
-            school=school, is_active=True
-        )
-        .order_by("-start_date")
-        .first()
-        or AcademicYear.objects.filter(school=school)  # tenant-isolation-allow: scoped by school kwarg
-        .order_by("-start_date")
-        .first()
-    )
-    if existing is not None:
-        return existing, False
+    from apps.academics.structure_provisioning import ensure_academic_year
 
     settings_map = getattr(school, "settings", None) or {}
     name = (settings_map.get("default_academic_year_name") or _DEFAULT_ACADEMIC_YEAR_NAME).strip()
-    start, end = _year_bounds_from_name(name)
-    try:
-        with row_savepoint():
-            year, created = AcademicYear.objects.get_or_create(
-                school=school,
-                name=name,
-                defaults={"start_date": start, "end_date": end, "is_active": True},
-            )
-        return year, created
-    except Exception:  # noqa: BLE001 — best-effort; a year we cannot mint just means no scaffold
-        logger.warning("gap-fill: could not ensure academic year for school %s", getattr(school, "pk", "?"), exc_info=True)
-        return None, False
+    return ensure_academic_year(school, name=name)
 
 
 def _derive_school_type_codes(school) -> list[str] | None:
@@ -174,62 +155,27 @@ def gap_fill_after_apply(*, bundle, outcomes, dry_run: bool = False) -> dict[str
 
     summary: dict[str, Any] = {}
     try:
-        from apps.academics.structure_provisioning import (
-            ensure_general_department,
-            ensure_general_specialty,
-            ensure_terms,
-            provision_academic_structure_for_school,
-            provision_teaching_grid_for_school,
-        )
+        from apps.academics.structure_provisioning import provision_country_baseline
 
+        # Resolve the year on the migration side first so the tenant's
+        # ``default_academic_year_name`` override is honored, then hand the whole
+        # country-aware baseline to the shared orchestrator (region fallback →
+        # dept/specialty → terms → grading → structure → teaching grid). Both
+        # onboarding and migration now converge on this ONE function instead of
+        # each hand-listing the same calls in a slightly different order.
         year, year_created = ensure_default_academic_year(school)
         if year is None:
             return {"skipped": "no_academic_year"}
-        summary["academic_year"] = {"name": year.name, "created": bool(year_created)}
 
-        # Default department + specialty every fee-plan / subject-assignment FK
-        # points at. Idempotent, single rows.
-        dept = ensure_general_department(school)
-        spec = ensure_general_specialty(school)
-        summary["defaults"] = {
-            "general_department": bool(dept),
-            "general_specialty": bool(spec),
-        }
-
-        # Country/region-appropriate Term structure (Cameroon 3 trimesters, US 2
-        # semesters, …) — WITHOUT terms the teaching grid returns
-        # missing_prerequisites and no report card can be produced. Admin-editable.
-        summary["terms"] = ensure_terms(school, year)
-
-        # Country-aware grading scale (+ default AssessmentWeights): Cameroon /20,
-        # US letter, etc. A migrated school lands with no GradingScale row; the
-        # report-card engine + mark entry both need one. Idempotent, admin-editable.
-        try:
-            from apps.evals.grading_provisioning import ensure_local_grading_scale
-
-            ensure_local_grading_scale(school, academic_year=year)
-            summary["grading_scale"] = True
-        except Exception as exc:  # noqa: BLE001 — grading seed is best-effort
-            logger.warning(
-                "gap-fill: ensure_local_grading_scale failed for school %s: %s",
-                getattr(school, "pk", "?"), exc, exc_info=True,
-            )
-            summary["grading_scale"] = f"error: {type(exc).__name__}"
-
-        # Run the platform's own structure engine as gap-fill: cycle nodes for the
-        # school's education type (+ classrooms for K-12 sectors), then the
-        # Classroom×Subject×Term teaching grid over whatever landed. Both are
-        # idempotent and scoped to the school's declared type(s). With terms now
-        # seeded above, the teaching grid actually populates.
-        school_type_codes = _derive_school_type_codes(school)
-        summary["structure"] = provision_academic_structure_for_school(
+        summary = provision_country_baseline(
             school,
-            school_type_codes=school_type_codes,
             academic_year=year,
+            school_type_codes=_derive_school_type_codes(school),
         )
-        summary["teaching_grid"] = provision_teaching_grid_for_school(
-            school, academic_year=year
-        )
+        # The orchestrator sees a pre-supplied year (created=False); surface the
+        # fact that GAP-FILL is what actually minted it, for the bundle summary.
+        if isinstance(summary.get("academic_year"), dict):
+            summary["academic_year"]["created"] = bool(year_created)
     except Exception as exc:  # noqa: BLE001 — gap-fill must never break a successful apply
         logger.warning(
             "gap-fill provisioning failed for bundle %s: %s",

@@ -249,9 +249,17 @@ def ensure_region_for_country(
     # Academic year start month: prefer the catalog if it has one for this country;
     # otherwise fall back to a hemisphere-aware default. Southern-hemisphere
     # countries (AU, NZ, ZA, etc.) start their year in Jan/Feb, not September.
+    # ``normalized`` is an ALPHA-3 code (RegionConfig.code is alpha-3, e.g. "AUS"),
+    # so the membership set MUST carry alpha-3 codes too — the original set held
+    # only alpha-2 ("AU"), so no southern-hemisphere country ever matched and every
+    # one silently defaulted to a September start (a wrong academic calendar for
+    # the entire southern hemisphere). Alpha-2 kept alongside for any caller that
+    # passes a 2-letter code straight through.
     _SOUTHERN_HEMISPHERE_CODES = {
         "AU", "NZ", "ZA", "AR", "CL", "UY", "PY", "BO", "PE", "ZW", "ZM",
         "MZ", "MG", "NA", "BW", "SZ", "LS",
+        "AUS", "NZL", "ZAF", "ARG", "CHL", "URY", "PRY", "BOL", "PER", "ZWE",
+        "ZMB", "MOZ", "MDG", "NAM", "BWA", "SWZ", "LSO",
     }
     fallback_start_month = 1 if normalized in _SOUTHERN_HEMISPHERE_CODES else 9
     catalog_start = (defaults.get("academic_year_start_month") if isinstance(defaults, dict) else None)

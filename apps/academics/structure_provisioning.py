@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import logging
+import re
 from datetime import date, timedelta
 from typing import Any
 
 from django.db import transaction
+from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 
@@ -93,20 +95,127 @@ def ensure_general_specialty(school):
     )
 
 
-def _resolve_term_structure(school) -> tuple[int, list[str]]:
-    """Return ``(term_count, term_labels)`` for a school, keyed off its country.
+def ensure_school_region(school):
+    """Ensure ``school.default_region`` is populated from ``country_code``.
 
-    Mirrors the canonical provisioning path (``apps/schools/tasks.py``): the term
-    COUNT and NAMES come from the school's ``RegionConfig`` then its resolved
+    ``School.save`` already auto-links the region for a country, but the migration
+    gap-fill path runs on an already-existing tenant that may have been created
+    (or edited) with the region unset — in which case ``provision_academic_structure``
+    reads an empty ISO, ``resolve_academic_pack_context("")`` returns nothing, and
+    the school silently drops to a generic 3-term structure with no country cycles.
+    This closes that gap defensively before provisioning. Idempotent; returns the
+    region (or ``None`` when the school has no country at all — downstream then
+    uses the platform GLOBAL default)."""
+    if school is None:
+        return None
+    region = getattr(school, "default_region", None)
+    if region is not None:
+        return region
+    iso = (getattr(school, "country_code", None) or "").strip()
+    if not iso:
+        return None
+    try:
+        from apps.siteconfig.education_profile_engine import ensure_region_for_country
+
+        region = ensure_region_for_country(iso)
+        if region is not None:
+            school.default_region = region
+            try:
+                school.save(update_fields=["default_region"])
+            except Exception:  # noqa: BLE001 — a save failure must not abort provisioning
+                logger.debug("ensure_school_region: save(update_fields) failed", exc_info=True)
+        return region
+    except Exception:  # noqa: BLE001 — region resolution is best-effort
+        logger.debug("ensure_school_region: resolve failed", exc_info=True)
+        return None
+
+
+def ensure_academic_year(school, *, name: str | None = None):
+    """Resolve/create the school's active academic year, country-aware.
+
+    Never overrides an existing year (the upload's own session file, or a prior
+    run, wins). The start MONTH comes from :func:`_resolve_country_context` — the
+    same RegionConfig/EducationSystemProfile source signup uses — so the year
+    window matches the country (US August, Cameroon September, southern-hemisphere
+    January) instead of a hardcoded Sept. When ``name`` is given (the migration
+    path passes the tenant's ``default_academic_year_name``) the window is derived
+    from it; otherwise it's derived from today. Returns ``(year, created)`` or
+    ``(None, False)`` when the school is missing / a year cannot be minted."""
+    if school is None:
+        return None, False
+    from apps.academics.models import AcademicYear
+
+    existing = (
+        AcademicYear.objects.filter(  # tenant-isolation-allow: scoped by school kwarg
+            school=school, is_active=True
+        )
+        .order_by("-start_date")
+        .first()
+        or AcademicYear.objects.filter(school=school)  # tenant-isolation-allow: scoped by school kwarg
+        .order_by("-start_date")
+        .first()
+    )
+    if existing is not None:
+        return existing, False
+
+    # Link the country's region first so the start month is country-aware for
+    # EVERY caller — the student lander mints the year mid-apply, before the
+    # orchestrator's own region step runs, and a US school would otherwise get a
+    # Sept-start year. Idempotent no-op when the region is already linked.
+    ensure_school_region(school)
+    start_month = _resolve_country_context(school)["start_month"]
+    if name:
+        years = [int(y) for y in re.findall(r"\d{4}", name)]
+        start_year = years[0] if years else timezone.now().date().year
+    else:
+        today = timezone.now().date()
+        start_year = today.year if today.month >= start_month else today.year - 1
+        name = f"{start_year}/{start_year + 1}"
+    year_start = date(start_year, start_month, 1)
+    # Exactly one year later, minus a day — a full academic-year window that ends
+    # the day before the next year would start, for any start month.
+    year_end = date(start_year + 1, start_month, 1) - timedelta(days=1)
+    try:
+        with transaction.atomic():
+            year, created = AcademicYear.objects.get_or_create(
+                school=school,
+                name=name,
+                defaults={"start_date": year_start, "end_date": year_end, "is_active": True},
+            )
+        return year, created
+    except Exception:  # noqa: BLE001 — best-effort; a year we cannot mint just means no scaffold
+        logger.warning(
+            "ensure_academic_year: could not mint year for school %s",
+            getattr(school, "pk", "?"), exc_info=True,
+        )
+        return None, False
+
+
+def _resolve_country_context(school) -> dict[str, Any]:
+    """Resolve a school's country-derived provisioning context ONCE.
+
+    Returns ``{start_month, term_count, term_labels}``. Both the academic-year
+    WINDOW (``ensure_academic_year``) and the Term STRUCTURE (``ensure_terms``)
+    read from here, so a country's calendar can never drift between the two —
+    before this, the year start month and the term split were resolved by two
+    different code paths (signup's inline block vs. migration's hardcoded Sept),
+    and a migrated US school got a Sept-start year while signup gave it August.
+
+    Resolution order mirrors the canonical provisioning path
+    (``apps/schools/tasks.py``): the school's ``RegionConfig`` then its resolved
     ``EducationSystemProfile`` (both derived from ``country_code``) — Cameroon
-    yields 3 trimesters, a US region 2 semesters, etc. — with the GB ``term_preset``
-    override. Defaults to 3 unnamed terms when nothing resolves. Best-effort: any
-    resolver failure falls back to the default rather than raising."""
+    yields 3 trimesters starting September, a US region 2 semesters starting
+    August, southern-hemisphere regions January — with the GB ``term_preset``
+    override. Best-effort: any resolver failure falls back to platform defaults
+    (Sept start, 3 unnamed terms) rather than raising.
+    """
+    start_month = 9
     term_count = 3
     term_labels: list[str] = []
     region = getattr(school, "default_region", None)
     if region is not None:
         term_count = getattr(region, "term_count_per_year", 3) or 3
+        start_month = int(getattr(region, "academic_year_start_month", 9) or 9)
     policy: dict = {}
     profile = None
     try:
@@ -120,20 +229,32 @@ def _resolve_term_structure(school) -> tuple[int, list[str]]:
             auto_create=True,
         )
     except Exception:  # noqa: BLE001 — resolver is best-effort; fall back to defaults
-        logger.debug("ensure_terms: profile/policy resolve failed", exc_info=True)
+        logger.debug("_resolve_country_context: profile/policy resolve failed", exc_info=True)
     if profile is not None:
         try:
             term_count = int(getattr(profile, "term_count_per_year", term_count) or term_count)
             term_labels = profile.normalized_term_labels() or []
+            start_month = int(getattr(profile, "academic_year_start_month", start_month) or start_month)
         except Exception:  # noqa: BLE001
             pass
     if (policy.get("term_preset") or "").strip() == "UK":
         term_count = 3
         term_labels = term_labels or ["Michaelmas", "Lent", "Trinity"]
+        start_month = 9
     # Guard: position CheckConstraint allows 1..12; a bad profile value can't
-    # break the seeder.
+    # break the seeder. Month is likewise clamped to a real calendar month.
     term_count = max(1, min(12, int(term_count or 3)))
-    return term_count, term_labels
+    start_month = max(1, min(12, int(start_month or 9)))
+    return {"start_month": start_month, "term_count": term_count, "term_labels": term_labels}
+
+
+def _resolve_term_structure(school) -> tuple[int, list[str]]:
+    """Return ``(term_count, term_labels)`` for a school, keyed off its country.
+
+    Thin wrapper over :func:`_resolve_country_context` kept for the callers (and
+    tests) that only need the term half of the context."""
+    ctx = _resolve_country_context(school)
+    return ctx["term_count"], ctx["term_labels"]
 
 
 def ensure_terms(school, academic_year) -> dict[str, Any]:
@@ -426,3 +547,99 @@ def _ensure_default_instruction_shifts(school, country_code: str) -> int:
         if was_created:
             created += 1
     return created
+
+
+def provision_country_baseline(
+    school,
+    *,
+    academic_year: AcademicYear | None = None,
+    school_type_codes: list[str] | None = None,
+) -> dict[str, Any]:
+    """THE single country-appropriate baseline provisioner.
+
+    Both doors a school can enter through — self-service onboarding
+    (``apps/schools/tasks.py``) and Migration-Cloud gap-fill
+    (``apps/migration_cloud/post_apply_provision.py``) — converge here, so a
+    school gets the SAME country-aware minimum baseline whichever way it arrived.
+    Before this, each path hand-listed the same five-to-six calls in its own order
+    and they had already drifted (year start month, whether terms/grading ran),
+    which is exactly how a migrated school ended up with a mismatched calendar.
+
+    Every step is idempotent (``ensure_*`` / ``get_or_create``) and everything it
+    creates is a plain admin-editable row — a country DEFAULT, never a lock. The
+    sequence:
+
+      1. region fallback (``country_code`` → ``RegionConfig``) so downstream reads
+         a real country pack rather than an empty ISO;
+      2. academic year with a country-aware start month (unless the caller passes
+         one it already created);
+      3. the General department + specialty every ``FeePlan`` / ``SubjectAssignment``
+         FK anchors on;
+      4. the country/region Term structure (count + labels + dates);
+      5. the country grading scale (+ default weights);
+      6. cycle nodes + classrooms for the school's declared education type;
+      7. the Classroom×Subject×Term teaching grid over whatever catalog exists.
+
+    Returns a per-step summary dict. Best-effort per step: a single step failing is
+    recorded in the summary, never raised — provisioning must never break the apply
+    (or the signup) that called it.
+    """
+    if school is None:
+        return {"skipped": "no_school"}
+
+    summary: dict[str, Any] = {}
+
+    # 1. Region fallback — a blank/unlinked country otherwise silently yields a
+    #    generic 3-term structure with no country cycles.
+    ensure_school_region(school)
+
+    # 2. Academic year (country-aware start month). The caller may supply a year
+    #    it already resolved (signup creates one inline; migration passes the row
+    #    from its name-override path) — never override it.
+    year = academic_year
+    year_created = False
+    if year is None:
+        year, year_created = ensure_academic_year(school)
+    if year is None:
+        return {"skipped": "no_academic_year"}
+    summary["academic_year"] = {"name": getattr(year, "name", ""), "created": bool(year_created)}
+
+    # 3. Default department + specialty (fee-plan / subject-assignment FK anchors).
+    summary["defaults"] = {
+        "general_department": bool(ensure_general_department(school)),
+        "general_specialty": bool(ensure_general_specialty(school)),
+    }
+
+    # 4. Country/region Term structure (Cameroon 3 trimesters, US 2 semesters, …).
+    #    WITHOUT terms the teaching grid returns missing_prerequisites and no
+    #    report card can be produced.
+    summary["terms"] = ensure_terms(school, year)
+
+    # 5. Country grading scale (+ default AssessmentWeights): Cameroon /20, US
+    #    letter, etc. The report-card engine + mark entry both need one.
+    try:
+        from apps.evals.grading_provisioning import ensure_local_grading_scale
+
+        ensure_local_grading_scale(school, academic_year=year)
+        summary["grading_scale"] = True
+    except Exception as exc:  # noqa: BLE001 — grading seed is best-effort
+        logger.warning(
+            "provision_country_baseline: grading scale failed for school %s: %s",
+            getattr(school, "pk", "?"), exc, exc_info=True,
+        )
+        summary["grading_scale"] = f"error: {type(exc).__name__}"
+
+    # 6. Cycle nodes + classrooms for the school's education type.
+    summary["structure"] = provision_academic_structure_for_school(
+        school,
+        school_type_codes=school_type_codes,
+        academic_year=year,
+    )
+
+    # 7. Teaching grid over whatever catalog exists (subject-catalog seeding is
+    #    layered in by callers/later increments; the grid is idempotent either way).
+    summary["teaching_grid"] = provision_teaching_grid_for_school(
+        school, academic_year=year
+    )
+
+    return summary
