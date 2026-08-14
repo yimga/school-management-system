@@ -96,6 +96,7 @@ def _guided_onboarding_fallback_context(*, school=None, detail: str) -> dict:
         "data_path_choices": [],
         "ai_recommended": False,
         "launch_studio_url": _launch_studio_shell_url(),
+        "launch_data_options_url": "",
         "onboarding_steps": [],
         "csv_dry_run_url": "",
         "csv_apply_url": "",
@@ -516,6 +517,15 @@ def _normalized_launch_checklist(raw_items) -> list[dict]:
                     item,
                     "link",
                     field_name="launch checklist item",
+                ),
+                "requirement_level": _optional_guided_onboarding_string(
+                    item, "requirement_level", field_name="launch checklist item"
+                ) or "recommended",
+                "requirement_label": _optional_guided_onboarding_string(
+                    item, "requirement_label", field_name="launch checklist item"
+                ) or "Recommended - finish later",
+                "is_skippable": _normalized_guided_onboarding_flag(
+                    item.get("is_skippable", False), field_name="launch checklist item skippable"
                 ),
             }
         )
@@ -1073,6 +1083,12 @@ def guided_onboarding_view(request):
             ),
         )
     context["launch_studio_url"] = _launch_studio_shell_url()
+    try:
+        context["launch_data_options_url"] = reverse(
+            "setup_studio:onboarding_data_options"
+        )
+    except NoReverseMatch:
+        context["launch_data_options_url"] = ""
     try:
         context["onboarding_steps"] = get_guided_onboarding_steps(school)
     except GUIDED_ONBOARDING_SOFT_FAILURES:

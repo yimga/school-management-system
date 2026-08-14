@@ -27,7 +27,7 @@
 {% elif launch_iframe_src %}
 <div class="d-flex flex-wrap align-items-center gap-2 mb-2 studio-os__output-native-fallback" role="region" aria-label="{% trans 'Launch view options' %}">
   <span class="small text-muted mb-0">{% trans "Prefer full window?" %}</span>
-  <a class="btn btn-sm btn-outline-primary" href="{{ launch_iframe_src }}" target="_blank" rel="noopener noreferrer">{% trans "Open in full window" %}</a>
+  <a class="btn btn-sm btn-outline-primary" href="{{ launch_standalone_url }}" target="_blank" rel="noopener noreferrer" data-rmc-launch-standalone>{% trans "Open in full window" %}</a>
 </div>
 <iframe id="studio-launch-iframe" class="studio-os-iframe" title="{% trans 'Launch' %}"
         src="{{ launch_iframe_src }}"></iframe>

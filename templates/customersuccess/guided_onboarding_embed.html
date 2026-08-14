@@ -22,9 +22,7 @@
       <span>{% trans "Setup Studio" %}</span>
     </div>
     <h1 class="setup-studio-title mb-2">{% trans "Launch readiness snapshot" %}</h1>
-    <p class="setup-studio-subtitle mb-3">
-      {% trans "Fast embed view: current progress, blockers, and the highest-impact next actions." %}
-    </p>
+    <p class="setup-studio-subtitle mb-3">{% trans "Current progress, genuine launch requirements, and direct next actions." %}</p>
     {% if launch_studio_url %}
     <p class="setup-studio-subtitle small mb-0">
       <a href="{{ launch_studio_url }}" class="text-white text-decoration-underline" target="_parent" rel="noopener">{% trans "Open in Launch Studio (full shell)" %}</a>
@@ -50,7 +48,10 @@
         <p class="setup-studio-muted mb-2">{{ current_step.description }}</p>
         <p class="setup-studio-muted mb-2">{{ current_step.evidence }}</p>
         <div class="setup-studio-actions">
-          <a href="{{ current_step.link }}" class="btn btn-primary btn-sm" target="_parent" rel="noopener">{{ current_step.cta_label }}</a>
+          {% if current_step.key == "data_path" and launch_studio_url %}
+          <a href="{{ launch_studio_url }}?pane=migration" class="btn btn-primary btn-sm" target="_parent" rel="noopener">{% trans "Open data import" %}</a>
+          {% if launch_data_options_url %}<a href="{{ launch_data_options_url }}" class="btn btn-outline-primary btn-sm" target="_parent" rel="noopener">{% trans "Review launch-without-roster option" %}</a>{% endif %}
+          {% else %}<a href="{{ current_step.link }}" class="btn btn-primary btn-sm" target="_parent" rel="noopener">{{ current_step.cta_label }}</a>{% endif %}
         </div>
         {% else %}
         <p class="setup-studio-muted mb-0">{% trans "No active step yet." %}</p>
@@ -69,6 +70,7 @@
           <div class="setup-studio-blocker">
             <div class="setup-studio-mini-title">{{ blocker.label }}</div>
             <div class="setup-studio-muted">{{ blocker.detail }}</div>
+            <div class="setup-studio-actions"><a href="{{ blocker.link }}" class="btn btn-outline-primary btn-sm" target="_parent" rel="noopener">{{ blocker.cta_label }}</a></div>
           </div>
           {% empty %}
           <div class="rmc-empty rmc-empty--inline" role="status">
@@ -86,12 +88,13 @@
           <span class="rmc-badge rmc-badge--muted">{{ launch_checklist|length }}</span>
         </div>
         <div class="setup-studio-list">
-          {% for item in launch_checklist|slice:":6" %}
-          <div class="setup-studio-checklist-item">
+          {% for item in launch_checklist %}
+          <div class="setup-studio-checklist-item {% if item.is_blocker and not item.done %}is-required{% endif %}">
             <div class="d-flex justify-content-between align-items-start gap-2">
-              <div class="setup-studio-mini-title">{{ item.label }}</div>
+              <div><div class="setup-studio-mini-title">{{ item.label }}</div><div class="setup-studio-muted small">{{ item.requirement_label }}</div></div>
               <span class="badge {% if item.done %}bg-success-subtle text-success-emphasis border border-success-subtle{% elif item.is_blocker %}bg-warning-subtle text-warning-emphasis border border-warning-subtle{% else %}bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle{% endif %}">{{ item.status }}</span>
             </div>
+            {% if not item.done %}<div class="setup-studio-actions"><a href="{{ item.link }}" class="btn btn-outline-primary btn-sm" target="_parent" rel="noopener">{% if item.is_skippable %}{% trans "Open when ready" %}{% else %}{% trans "Resolve now" %}{% endif %}</a></div>{% endif %}
           </div>
           {% empty %}
           <div class="rmc-empty rmc-empty--inline" role="status">

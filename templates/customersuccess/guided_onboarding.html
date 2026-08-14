@@ -190,7 +190,7 @@
       </div>
       <div class="setup-studio-list mb-3">
         {% for ostep in onboarding_steps %}
-        <div class="setup-studio-checklist-item">
+        <div class="setup-studio-checklist-item {% if item.is_blocker and not item.done %}is-required{% endif %}">
           <div class="d-flex justify-content-between align-items-start gap-3">
             <div>
               <div class="setup-studio-mini-title">{{ ostep.label }}</div>
@@ -267,12 +267,13 @@
             <div>
               <div class="setup-studio-mini-title">{{ item.label }}</div>
               <div class="setup-studio-muted">{{ item.description }}</div>
+              <div class="setup-studio-muted small mt-1">{{ item.requirement_label }}</div>
             </div>
             <span class="badge {% if item.done %}bg-success-subtle text-success-emphasis border border-success-subtle{% elif item.is_blocker %}bg-warning-subtle text-warning-emphasis border border-warning-subtle{% else %}bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle{% endif %}">{{ item.status }}</span>
           </div>
           {% if not item.done %}
           <div class="setup-studio-actions">
-            <a href="{{ item.link }}" class="btn btn-outline-primary btn-sm">{% trans "Open step" %}</a>
+            <a href="{{ item.link }}" class="btn btn-outline-primary btn-sm">{% if item.is_skippable %}{% trans "Open when ready" %}{% else %}{% trans "Resolve now" %}{% endif %}</a>
           </div>
           {% endif %}
         </div>

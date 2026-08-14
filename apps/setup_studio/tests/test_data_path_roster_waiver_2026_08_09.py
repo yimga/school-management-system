@@ -34,6 +34,16 @@ class DataPathRosterWaiverTests(TestCase):
         state = self._state()
         self.assertFalse(state["data_path"]["done"])
         self.assertTrue(state["data_path"]["is_blocker"])
+        self.assertEqual(state["data_path"]["requirement_level"], "required_with_waiver")
+        self.assertFalse(state["data_path"]["is_skippable"])
+
+    def test_optional_and_recommended_setup_never_masquerade_as_blockers(self):
+        state = self._state()
+        for key in ("branding", "select_experience_template", "starter_stack", "role_preview"):
+            self.assertFalse(state[key]["is_blocker"], key)
+            self.assertTrue(state[key]["is_skippable"], key)
+        self.assertEqual(state["plan_choice"]["requirement_level"], "required")
+        self.assertTrue(state["plan_choice"]["is_blocker"])
 
     def test_roster_waiver_clears_data_path_blocker(self):
         ow.waive(self.school, ow.WAIVER_ROSTER, reason=ow.REASON_NO_STUDENTS_YET)

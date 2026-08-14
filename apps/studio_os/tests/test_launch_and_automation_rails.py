@@ -139,6 +139,10 @@ class StudioLaunchAndAutomationRailsTests(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"studio-launch-iframe", response.content.lower())
+        body = response.content.decode()
+        self.assertIn('data-rmc-launch-standalone', body)
+        self.assertIn(reverse("studio_os:launch") + "?pane=onboarding", body)
+        self.assertNotIn('data-rmc-launch-standalone href=', body)
 
     def test_guided_onboarding_embed_allows_same_origin_framing(self):
         """Launch Studio iframe must not get X-Frame-Options: DENY (browser refused to connect)."""

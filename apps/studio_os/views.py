@@ -1832,6 +1832,9 @@ def studio_shell(request, mode=None):
         launch_pane = pane_raw if pane_raw in allowed_launch else "overview"
         context["launch_pane"] = launch_pane
         context["launch_iframe_src"] = _resolve_launch_iframe_src(request, launch_pane)
+        # iframe_src is intentionally chrome-free. New-window navigation must
+        # remain in the canonical tenant shell or the header/profile controls vanish.
+        context["launch_standalone_url"] = f"{launch_base}?pane={launch_pane}"
         try:
             from apps.studio_os.school_infrastructure import (
                 get_infrastructure_context_for_shell,

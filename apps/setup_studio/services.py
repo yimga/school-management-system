@@ -20,6 +20,7 @@ STEP_DEFINITIONS = (
         "link_query": "repair_field=country",
         "link_fragment": "repair-editor",
         "weight": 10,
+        "requirement_level": "required",
         "recommended_choice": "Verify legal name, slug, and operator contact details.",
     },
     {
@@ -30,6 +31,7 @@ STEP_DEFINITIONS = (
         "link_name": "studio_os:launch",
         "link_query": "pane=plan",
         "weight": 15,
+        "requirement_level": "required",
         "recommended_choice": "Pick the plan that matches your rollout footprint and approvals model.",
     },
     {
@@ -39,6 +41,7 @@ STEP_DEFINITIONS = (
         "step_group": "runtime",
         "link_name": "siteconfig:get_blueprints",
         "weight": 20,
+        "requirement_level": "required",
         "recommended_choice": "Apply the regional or institution-type blueprint first, then customize.",
     },
     {
@@ -48,6 +51,7 @@ STEP_DEFINITIONS = (
         "step_group": "brand",
         "link_name": "studio_os:experience",
         "weight": 15,
+        "requirement_level": "recommended",
         "recommended_choice": "Use one approved logo pack and a single color system before go-live.",
     },
     {
@@ -57,6 +61,7 @@ STEP_DEFINITIONS = (
         "step_group": "brand",
         "link_name": "template_marketplace:browse",
         "weight": 10,
+        "requirement_level": "optional",
         "recommended_choice": "Pick a tenant-safe template first; switch later as the school operating model evolves.",
     },
     {
@@ -66,6 +71,7 @@ STEP_DEFINITIONS = (
         "step_group": "modules",
         "link_name": "siteconfig:module_market",
         "weight": 10,
+        "requirement_level": "optional",
         "recommended_choice": "Start with admissions, academics, finance, and parent communication.",
     },
     {
@@ -73,10 +79,10 @@ STEP_DEFINITIONS = (
         "label": "Connect or import data",
         "description": "Bring in your first student and staff data set so workflows, dashboards, and portals have live records.",
         "step_group": "data",
-        "link_name": "siteconfig:guided_onboarding",
-        "link_query": "embed=1",
-        "link_fragment": "student-csv-import",
+        "link_name": "studio_os:launch",
+        "link_query": "pane=migration",
         "weight": 15,
+        "requirement_level": "required_with_waiver",
         "recommended_choice": "Import the roster via CSV first, then layer finance and historical data.",
     },
     {
@@ -87,6 +93,7 @@ STEP_DEFINITIONS = (
         "link_name": "studio_os:launch",
         "link_query": "pane=role_preview",
         "weight": 5,
+        "requirement_level": "recommended",
         "recommended_choice": "Preview one role at a time and fix any trust or clarity gaps immediately.",
     },
     {
@@ -97,6 +104,7 @@ STEP_DEFINITIONS = (
         "link_name": "studio_os:launch",
         "link_query": "pane=checklist",
         "weight": 10,
+        "requirement_level": "required",
         "recommended_choice": "Do not launch until the readiness panel is green and every blocker is resolved.",
     },
 )
@@ -941,7 +949,9 @@ def _step_state_for_school(school) -> dict[str, dict[str, Any]]:
             "recommended_choice": definition["recommended_choice"],
             "evidence": evidence_map[key],
             "status": "done" if done_map[key] else "pending",
-            "is_blocker": key in {"plan_choice", "blueprint", "branding", "data_path"},
+            "requirement_level": definition["requirement_level"],
+            "is_skippable": definition["requirement_level"] in {"recommended", "optional"},
+            "is_blocker": key in {"plan_choice", "blueprint", "data_path"},
             "definition_label": definitions[key]["label"],
         }
     return state
@@ -1044,6 +1054,14 @@ def _build_launch_checklist(
                 "done": state["done"],
                 "status": "Ready" if state["done"] else "Needs action",
                 "is_blocker": state["is_blocker"],
+                "requirement_level": state["requirement_level"],
+                "is_skippable": state["is_skippable"],
+                "requirement_label": {
+                    "required": "Required to launch",
+                    "required_with_waiver": "Required decision",
+                    "recommended": "Recommended - finish later",
+                    "optional": "Optional - finish later",
+                }[state["requirement_level"]],
                 "link": state["link"],
             }
         )
@@ -1067,6 +1085,9 @@ def _build_launch_checklist(
                     "done": statutory_ok,
                     "status": "Ready" if statutory_ok else "Needs action",
                     "is_blocker": False,
+                    "requirement_level": "recommended",
+                    "requirement_label": "Recommended - finish later",
+                    "is_skippable": True,
                     "link": report_library_url or "#",
                 }
             )
@@ -1696,7 +1717,8 @@ def compile_setup_studio(school) -> dict[str, Any]:
         step_state, launch_blockers, preview_workspace
     )
     current_step_key = next(
-        (key for key, state in step_state.items() if not state["done"]), "launch"
+        (key for key, state in step_state.items() if not state["done"] and state["is_blocker"]),
+        next((key for key, state in step_state.items() if not state["done"]), "launch"),
     )
     completed_keys = [key for key, state in step_state.items() if state["done"]]
     launch_ready = not launch_blockers
@@ -1785,6 +1807,8 @@ def get_setup_studio_payload(school) -> dict[str, Any]:
                 "link": state["link"],
                 "recommended_choice": state["recommended_choice"],
                 "evidence": state["evidence"],
+                "requirement_level": state["requirement_level"],
+                "is_skippable": state["is_skippable"],
             }
         )
     payload["steps"] = steps
