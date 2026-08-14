@@ -716,11 +716,22 @@ if DB_POOL_MODE == "transaction":
     # transaction-local tenant binding and real-pooler tests ship.
     _DB_CONN_MAX_AGE = 0
     _DB_DISABLE_SS_CURSORS = True
+# SSL to the database: managed cloud Postgres (Render) requires it, but a local
+# self-host Postgres container has none. Default preserves the prior behavior
+# (require whenever not DEBUG); a local/edge box sets DB_SSL_REQUIRE=0 to disable
+# so a hardened DEBUG=0 box can still talk to its no-SSL local Postgres.
+_db_ssl_env = os.getenv("DB_SSL_REQUIRE", "").strip().lower()
+if _db_ssl_env in ("0", "false", "no"):
+    _DB_SSL_REQUIRE = False
+elif _db_ssl_env in ("1", "true", "yes"):
+    _DB_SSL_REQUIRE = True
+else:
+    _DB_SSL_REQUIRE = not DEBUG
 if DATABASE_URL:
     _default_db = dj_database_url.config(
         default=DATABASE_URL,
         conn_max_age=_DB_CONN_MAX_AGE,
-        ssl_require=not DEBUG,
+        ssl_require=_DB_SSL_REQUIRE,
     )
     # Ensure ENGINE is present (dj_database_url can return incomplete config if URL is malformed)
     if not _default_db.get("ENGINE"):
@@ -780,7 +791,7 @@ if PREVIEW_DATABASE_URL and not (
     _preview_db = dj_database_url.config(
         default=PREVIEW_DATABASE_URL,
         conn_max_age=_DB_CONN_MAX_AGE,
-        ssl_require=not DEBUG,
+        ssl_require=_DB_SSL_REQUIRE,
     )
     if not _preview_db.get("ENGINE"):
         _preview_db["ENGINE"] = "django.db.backends.postgresql"
@@ -814,7 +825,7 @@ if not RUNNING_TESTS:
         _alias = f"replica_{_region}"
         try:
             _replica_db = dj_database_url.config(
-                default=_url, conn_max_age=_DB_CONN_MAX_AGE, ssl_require=not DEBUG
+                default=_url, conn_max_age=_DB_CONN_MAX_AGE, ssl_require=_DB_SSL_REQUIRE
             )
         except Exception:  # noqa: BLE001 — bad URL: skip, don't crash boot
             continue
