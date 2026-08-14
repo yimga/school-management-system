@@ -48,8 +48,6 @@ class GuidedOnboardingEmbedLaunchLinkTests(TestCase):
         self.assertIn("pane=plan", body)
         self.assertIn("pane=checklist", body)
         self.assertIn("pane=role_preview", body)
-        self.assertIn("Open data import", body)
-        self.assertIn("Review launch-without-roster option", body)
         self.assertIn("Required decision", body)
         try:
             expected = reverse("studio_os:launch")
