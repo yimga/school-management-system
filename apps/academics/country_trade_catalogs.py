@@ -21,6 +21,28 @@ academic subjects and never sprouts a welding specialty.
 
 from __future__ import annotations
 
+# Shared francophone-Africa TVET set (Génie Civil / Mécanique / Électrotechnique /
+# Tertiaire / Hôtellerie / Informatique / Agriculture) — used by the francophone
+# West & Central African countries whose technical systems mirror the same
+# ministry (MINEFOP-style) trade families. Cameroon keeps its own bilingual set.
+_TVET_FR: list[tuple[str, list[str]]] = [
+    ("Génie Civil & Bâtiment",
+     ["Maçonnerie", "Menuiserie & Ébénisterie", "Plomberie Sanitaire",
+      "Construction Bâtiment"]),
+    ("Génie Mécanique",
+     ["Soudure & Construction Métallique", "Mécanique Automobile", "Ajustage & Usinage"]),
+    ("Électrotechnique",
+     ["Installation & Maintenance Électrique", "Électronique", "Froid & Climatisation"]),
+    ("Tertiaire & Gestion",
+     ["Comptabilité", "Secrétariat Bureautique", "Commerce & Vente"]),
+    ("Hôtellerie & Économie Familiale",
+     ["Hôtellerie-Restauration", "Couture & Habillement", "Coiffure & Esthétique"]),
+    ("Informatique",
+     ["Maintenance Informatique & Réseaux", "Développement Web & Logiciel"]),
+    ("Agriculture",
+     ["Production Végétale", "Élevage"]),
+]
+
 # country (ISO alpha-2) -> [(department, [trades...]), ...]
 _TRADE_CATALOGS: dict[str, list[tuple[str, list[str]]]] = {
     # Cameroon TVET (MINEFOP / technical-education trades) — representative,
@@ -44,6 +66,102 @@ _TRADE_CATALOGS: dict[str, list[tuple[str, list[str]]]] = {
         ("Agriculture",
          ["Crop Production", "Animal Husbandry"]),
     ],
+
+    # Nigeria (NBTE technical-college trades) — representative, admin-editable.
+    "NG": [
+        ("Building & Woodwork",
+         ["Bricklaying & Concreting", "Carpentry & Joinery", "Plumbing & Pipe Fitting",
+          "Painting & Decorating"]),
+        ("Mechanical Engineering Trades",
+         ["Welding & Fabrication", "Motor Vehicle Mechanics", "Machining & Fitting"]),
+        ("Electrical & Electronics",
+         ["Electrical Installation & Maintenance", "Radio, TV & Electronics",
+          "Refrigeration & Air Conditioning"]),
+        ("Computer & ICT",
+         ["Computer Craft & Networking", "Data Processing"]),
+        ("Business & Finance",
+         ["Accounting", "Office Technology & Management", "Marketing"]),
+        ("Hospitality & Garment",
+         ["Catering & Hotel Management", "Garment Making / Fashion Design", "Cosmetology"]),
+        ("Agriculture",
+         ["Crop Production", "Animal Production"]),
+    ],
+
+    # Ghana (TVET Service / CTVET trades).
+    "GH": [
+        ("Construction",
+         ["Masonry", "Carpentry & Joinery", "Plumbing", "Painting & Decorating"]),
+        ("Mechanical",
+         ["Welding & Fabrication", "Auto Mechanics", "Fitting & Machining"]),
+        ("Electrical",
+         ["Electrical Installation", "Electronics", "Refrigeration & Air Conditioning"]),
+        ("ICT",
+         ["Computer Hardware & Networking", "Software & Web Design"]),
+        ("Business",
+         ["Accounting", "Secretarial", "Sales & Marketing"]),
+        ("Hospitality & Beauty",
+         ["Catering & Hospitality", "Fashion & Textiles", "Cosmetology & Beauty Therapy"]),
+        ("Agriculture",
+         ["General Agriculture", "Agro-Processing"]),
+    ],
+
+    # Kenya (TVETA / CDACC CBET occupations).
+    "KE": [
+        ("Building & Civil Engineering",
+         ["Masonry", "Carpentry & Joinery", "Plumbing", "Building Technology"]),
+        ("Mechanical & Automotive",
+         ["Welding & Fabrication", "Automotive Engineering", "Fitter Machinist"]),
+        ("Electrical & Electronics",
+         ["Electrical Installation", "Electronics Technology",
+          "Refrigeration & Air Conditioning"]),
+        ("ICT",
+         ["ICT Technician", "Computer Networking"]),
+        ("Business",
+         ["Accountancy", "Secretarial Studies", "Sales & Marketing"]),
+        ("Hospitality & Beauty",
+         ["Food & Beverage / Catering", "Fashion Design & Garment Making",
+          "Hairdressing & Beauty Therapy"]),
+        ("Agriculture",
+         ["Crop Production", "Animal Husbandry"]),
+    ],
+
+    # South Africa (TVET College NC(V) / SETA programmes).
+    "ZA": [
+        ("Engineering & Related Design",
+         ["Fitting & Turning", "Welding", "Motor Mechanics", "Boilermaking"]),
+        ("Electrical Infrastructure Construction",
+         ["Electrical", "Electronics"]),
+        ("Civil Engineering & Building Construction",
+         ["Bricklaying & Plastering", "Carpentry", "Plumbing"]),
+        ("Information Technology & Computer Science",
+         ["IT Support", "Systems Development"]),
+        ("Hospitality",
+         ["Professional Cookery", "Food & Beverage Services"]),
+        ("Office Administration",
+         ["Office Practice", "Bookkeeping"]),
+    ],
+
+    # India (ITI / NCVT engineering & non-engineering trades).
+    "IN": [
+        ("Engineering Trades",
+         ["Fitter", "Turner", "Machinist", "Welder"]),
+        ("Electrical & Electronics",
+         ["Electrician", "Electronics Mechanic", "Refrigeration & Air Conditioning Technician"]),
+        ("Automotive",
+         ["Mechanic (Motor Vehicle)", "Mechanic Diesel"]),
+        ("Construction",
+         ["Draughtsman (Civil)", "Plumber", "Surveyor"]),
+        ("Computer & Office",
+         ["Computer Operator & Programming Assistant (COPA)", "Stenographer"]),
+        ("Apparel & Hospitality",
+         ["Sewing Technology", "Food Production"]),
+    ],
+
+    # Francophone West & Central Africa — shared MINEFOP-style set (_TVET_FR).
+    "CI": _TVET_FR, "SN": _TVET_FR, "ML": _TVET_FR, "BF": _TVET_FR, "NE": _TVET_FR,
+    "GN": _TVET_FR, "TG": _TVET_FR, "BJ": _TVET_FR, "MR": _TVET_FR, "GA": _TVET_FR,
+    "CG": _TVET_FR, "CD": _TVET_FR, "TD": _TVET_FR, "CF": _TVET_FR, "GQ": _TVET_FR,
+    "BI": _TVET_FR, "DJ": _TVET_FR, "MG": _TVET_FR,
 }
 
 # Universal fallback for any vocational school whose country has no curated list.
