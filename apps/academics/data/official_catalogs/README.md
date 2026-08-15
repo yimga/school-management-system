@@ -9,6 +9,20 @@ every school in that country inherits it **without a code change or deploy**.
 This is the "pure data population through the same rows and tables" completion:
 add a country's real codes by dropping in a file and running one command.
 
+## Export a starting template (don't start from a blank file)
+
+Pre-fill a country's file from the shipped curated defaults (real subject
+taxonomy + representative windows), then edit in the official values:
+
+```bash
+python manage.py export_country_catalog_template --country CM --out CM.json
+python manage.py export_country_catalog_template --all --out-dir templates/   # every curated country
+```
+
+The exported `subject_codes` are readable mnemonics (or the real KE/IN codes) —
+replace them with your official board/ministry codes — and `term_windows` are
+representative. Then import the edited file.
+
 ## Import
 
 ```bash

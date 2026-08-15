@@ -235,3 +235,67 @@ def iter_catalog_files(directory: str | Path):
         return
     for path in sorted(d.glob("*.json")):
         yield path
+
+
+# --- Template export: curated defaults -> editable catalog ---------------------
+#
+# The other end of the demand-driven loop. `import_country_official_catalog` loads
+# a country's real data IN; this exports the curated representative defaults OUT as
+# an editable catalog file (the real subject taxonomy + representative windows,
+# pre-filled), so onboarding a country's real data is export -> fill official values
+# -> import, never starting from a blank file. No fabrication: exported codes are
+# the curated mnemonics (or the real KE/IN codes) an operator then replaces.
+
+_TEMPLATE_SOURCE = "TEMPLATE — RunMyCampus curated representative defaults"
+_TEMPLATE_NOTES = (
+    "Pre-filled from RunMyCampus curated defaults. subject_codes are readable "
+    "MNEMONICS (or curated real codes where a country publishes them, e.g. KE/IN) — "
+    "replace with your official board/ministry codes. term_windows are "
+    "REPRESENTATIVE — confirm your school's real dates. Then load with: "
+    "manage.py import_country_official_catalog --file <this file>."
+)
+
+
+def curated_countries() -> list[str]:
+    """ISO alpha-2 codes that have curated subject codes and/or term windows."""
+    from apps.academics.country_subject_codes import _NATIONAL_SUBJECT_CODES
+    from apps.academics.country_term_calendars import _TERM_CALENDARS
+
+    codes = {c for c in _NATIONAL_SUBJECT_CODES if len(c) == 2}
+    codes |= {c for c in _TERM_CALENDARS if len(c) == 2}
+    return sorted(codes)
+
+
+def build_catalog_template(country: str) -> dict[str, Any]:
+    """Return an editable catalog dict for a country, pre-filled from the curated
+    defaults (real subject taxonomy + representative windows).
+
+    Round-trips through :func:`parse_catalog` / :func:`import_catalog`. Raises
+    ``OfficialCatalogError`` when the country has no curated data to seed from."""
+    from apps.academics.country_subject_codes import _NATIONAL_SUBJECT_CODES
+    from apps.academics.country_term_calendars import _TERM_CALENDARS, _to_alpha2
+
+    raw = (country or "").strip().upper()
+    iso2 = raw if len(raw) == 2 else _to_alpha2(raw)
+    if not iso2:
+        raise OfficialCatalogError(f"unknown country code: {country!r}")
+    codes = _NATIONAL_SUBJECT_CODES.get(iso2)
+    windows = _TERM_CALENDARS.get(iso2)
+    if not codes and not windows:
+        raise OfficialCatalogError(f"no curated data for {iso2} to build a template from")
+    template: dict[str, Any] = {
+        "country": iso2,
+        "sub_system": "",
+        "source": _TEMPLATE_SOURCE,
+        "notes": _TEMPLATE_NOTES,
+    }
+    if codes:
+        template["subject_codes"] = {str(k): str(v) for k, v in codes.items()}
+    if windows:
+        template["term_windows"] = [list(w) for w in windows]
+    return template
+
+
+def serialize_catalog(catalog: dict[str, Any]) -> str:
+    """Pretty-print a catalog dict as JSON (matches the shipped file style)."""
+    return json.dumps(catalog, indent=2, ensure_ascii=False) + "\n"

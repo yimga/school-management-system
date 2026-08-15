@@ -55,6 +55,15 @@ python manage.py import_country_official_catalog --dry-run  # report only
 Idempotent and additive. See `apps/academics/data/official_catalogs/README.md`
 for the file format and the honesty rule.
 
+To onboard a new country without starting from a blank file, export a pre-filled
+template from the curated defaults, edit in the official values, then import it —
+the demand-driven round-trip:
+
+```bash
+python manage.py export_country_catalog_template --country CM --out CM.json  # export -> edit -> import
+python manage.py export_country_catalog_template --all --out-dir templates/  # every curated country
+```
+
 ### What ships as real vs representative
 
 | Country | Subject codes | Term windows |
