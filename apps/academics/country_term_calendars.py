@@ -184,6 +184,73 @@ _TERM_CALENDARS: dict[str, list[tuple[int, int, int, int]]] = {
     # ======================================================================
     "FJ": _TRI_JAN,
     "PG": [(1, 29, 6, 20), (7, 15, 12, 10)],
+
+    # ======================================================================
+    # EUROPE (remainder) — Sep start, mostly 2 semesters; Nordic/Alpine Aug
+    # ======================================================================
+    "AL": _SEM_SEP, "AM": _SEM_SEP, "AZ": _SEM_SEP, "BA": _SEM_SEP, "BG": _SEM_SEP,
+    "BY": _SEM_SEP, "CY": _SEM_SEP, "CZ": _SEM_SEP, "EE": _SEM_SEP, "GE": _SEM_SEP,
+    "HR": _SEM_SEP, "HU": _SEM_SEP, "LT": _SEM_SEP, "LV": _SEM_SEP, "MD": _SEM_SEP,
+    "ME": _SEM_SEP, "MK": _SEM_SEP, "PL": _SEM_SEP, "RS": _SEM_SEP, "SI": _SEM_SEP,
+    "SK": _SEM_SEP, "SM": _SEM_SEP, "VA": _SEM_SEP,
+    "IS": [(8, 22, 12, 20), (1, 4, 5, 31)],
+    "LI": [(8, 20, 1, 31), (2, 1, 7, 5)],
+    "AD": _TRI_SEP_FR, "MC": _TRI_SEP_FR, "LU": _TRI_SEP_FR,
+    "MT": _TRI_SEP_EN,
+
+    # ======================================================================
+    # CAUCASUS / CENTRAL ASIA / rest of MENA — Sep start, 2 semesters
+    # ======================================================================
+    "KZ": _SEM_SEP, "KG": _SEM_SEP, "TJ": _SEM_SEP, "TM": _SEM_SEP, "UZ": _SEM_SEP,
+    "PS": _SEM_SEP, "EH": _SEM_SEP,
+    "AF": [(3, 21, 8, 10), (8, 25, 12, 30)],  # Solar-year spring start
+
+    # ======================================================================
+    # ASIA (remainder) — national start months vary widely
+    # ======================================================================
+    "BN": [(1, 2, 5, 31), (6, 16, 11, 20)],   # Brunei, Jan (Malaysia-style)
+    "BT": [(2, 1, 6, 15), (7, 10, 12, 10)],   # Bhutan, Feb
+    "KH": [(11, 1, 3, 15), (3, 25, 8, 10)],   # Cambodia, Nov
+    "KP": [(4, 1, 8, 20), (9, 1, 3, 25)],     # DPR Korea, April
+    "MM": [(6, 1, 10, 20), (11, 1, 3, 10)],   # Myanmar, June
+    "LA": _SEM_SEP, "MN": _SEM_SEP, "MO": _SEM_SEP,
+    "MV": _TRI_JAN,                            # Maldives, Jan 3-term
+    "TL": [(1, 2, 5, 31), (7, 15, 12, 10)],   # Timor-Leste, Jan (southern)
+    "TW": [(9, 1, 1, 20), (2, 15, 6, 30)],    # Taiwan, Sep 2-sem
+
+    # ======================================================================
+    # LATIN AMERICA (remainder) — southern (Feb/Mar) & northern (Jan/Aug/Sep)
+    # ======================================================================
+    "VE": [(9, 16, 12, 20), (1, 8, 3, 28), (4, 8, 7, 10)],  # 3 lapsos, Sep
+    "EC": [(9, 2, 1, 31), (2, 10, 7, 5)],     # Ecuador (Sierra regime), Sep
+    "CU": _SEM_SEP,
+    "DO": [(8, 19, 12, 20), (1, 8, 6, 15)],   # Dominican Rep, Aug
+    "BO": [(2, 1, 6, 30), (7, 15, 11, 30)],   # Bolivia, Feb (southern)
+    "PY": [(2, 15, 6, 30), (7, 20, 11, 30)],  # Paraguay, Feb (southern)
+    "UY": [(3, 1, 7, 10), (7, 25, 12, 10)],   # Uruguay, Mar (southern)
+    "CR": [(2, 8, 7, 5), (7, 17, 12, 15)],    # Costa Rica, Feb
+    "NI": [(2, 1, 6, 15), (7, 8, 11, 30)],    # Nicaragua, Feb
+    "HN": [(2, 1, 6, 20), (7, 20, 11, 30)],   # Honduras, Feb
+    "GT": [(1, 15, 5, 30), (7, 1, 10, 20)],   # Guatemala, Jan
+    "SV": [(1, 15, 5, 30), (7, 1, 11, 10)],   # El Salvador, Jan
+    "PA": [(3, 1, 7, 10), (7, 22, 12, 20)],   # Panama, Mar
+    "SR": [(10, 1, 2, 10), (2, 20, 7, 10)],   # Suriname, Oct (Dutch)
+    "HT": _TRI_SEP_FR,                         # Haiti, francophone
+
+    # ======================================================================
+    # CARIBBEAN (English-speaking / Commonwealth) — Sep, 3 terms
+    # ======================================================================
+    "GY": _TRI_SEP_EN, "BZ": _TRI_SEP_EN, "AG": _TRI_SEP_EN, "BS": _TRI_SEP_EN,
+    "DM": _TRI_SEP_EN, "GD": _TRI_SEP_EN, "KN": _TRI_SEP_EN, "LC": _TRI_SEP_EN,
+    "VC": _TRI_SEP_EN,
+
+    # ======================================================================
+    # PACIFIC — US-affiliated (Aug); Melanesia/Polynesia/Micronesia (Jan/Feb)
+    # ======================================================================
+    "FM": _SEM_AUG, "MH": _SEM_AUG, "PW": _SEM_AUG,
+    "KI": _TRI_JAN, "NR": _TRI_JAN, "SB": _TRI_JAN, "TO": _TRI_JAN, "TV": _TRI_JAN,
+    "WS": _TRI_JAN,
+    "VU": _TRI_FEB,
 }
 
 

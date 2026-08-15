@@ -52,6 +52,21 @@ _FR_CODES: dict[str, str] = {
     "informatique": "INFO",
 }
 
+# Shared Hispanophone subject set (Spain + Spanish-speaking Latin America). Codes
+# are the common abbreviations used on Spanish-language boletines.
+_ES_CODES: dict[str, str] = {
+    "matemáticas": "MAT", "mathematics": "MAT",
+    "lengua": "LEN", "lengua y literatura": "LEN", "castellano": "LEN",
+    "español": "ESP", "spanish": "ESP",
+    "ciencias naturales": "CN", "biología": "BIO", "química": "QUI", "física": "FIS",
+    "ciencias sociales": "CS", "historia": "HIS", "geografía": "GEO",
+    "inglés": "ING", "english": "ING",
+    "educación física": "EF",
+    "informática": "INF", "computación": "INF",
+    "filosofía": "FIL", "economía": "ECO", "contabilidad": "CON",
+    "arte": "ART", "música": "MUS", "educación cívica": "CIV",
+}
+
 # country (ISO alpha-2) -> {normalized subject name: standard code}
 _NATIONAL_SUBJECT_CODES: dict[str, dict[str, str]] = {
     # Cameroon (bilingual GCE / francophone). Mnemonic defaults — an admin can
@@ -145,6 +160,13 @@ _NATIONAL_SUBJECT_CODES: dict[str, dict[str, str]] = {
     "BJ": _FR_CODES, "GA": _FR_CODES, "CG": _FR_CODES, "CD": _FR_CODES,
     "TD": _FR_CODES, "CF": _FR_CODES, "BI": _FR_CODES, "DJ": _FR_CODES,
     "MG": _FR_CODES,
+
+    # Hispanophone — Spain + Spanish-speaking Latin America (shared _ES_CODES).
+    "ES": _ES_CODES, "MX": _ES_CODES, "AR": _ES_CODES, "CL": _ES_CODES,
+    "CO": _ES_CODES, "PE": _ES_CODES, "VE": _ES_CODES, "EC": _ES_CODES,
+    "BO": _ES_CODES, "PY": _ES_CODES, "UY": _ES_CODES, "CR": _ES_CODES,
+    "NI": _ES_CODES, "HN": _ES_CODES, "GT": _ES_CODES, "SV": _ES_CODES,
+    "PA": _ES_CODES, "DO": _ES_CODES, "CU": _ES_CODES,
 }
 
 

@@ -43,6 +43,25 @@ _TVET_FR: list[tuple[str, list[str]]] = [
      ["Production Végétale", "Élevage"]),
 ]
 
+# Shared Hispanophone TVET set (Spain + Spanish-speaking Latin America) — the same
+# trade families as the francophone set, in Spanish.
+_TVET_ES: list[tuple[str, list[str]]] = [
+    ("Construcción",
+     ["Albañilería", "Carpintería", "Instalaciones Sanitarias (Plomería)", "Edificación"]),
+    ("Mecánica",
+     ["Soldadura y Estructuras Metálicas", "Mecánica Automotriz", "Ajuste y Maquinado"]),
+    ("Electricidad y Electrónica",
+     ["Instalaciones Eléctricas", "Electrónica", "Refrigeración y Climatización"]),
+    ("Administración y Comercio",
+     ["Contabilidad", "Secretariado y Ofimática", "Ventas y Mercadeo"]),
+    ("Hostelería y Belleza",
+     ["Gastronomía y Hotelería", "Confección y Moda", "Cosmetología y Peluquería"]),
+    ("Informática",
+     ["Soporte y Redes Informáticas", "Desarrollo Web y Software"]),
+    ("Agropecuaria",
+     ["Producción Agrícola", "Producción Pecuaria"]),
+]
+
 # country (ISO alpha-2) -> [(department, [trades...]), ...]
 _TRADE_CATALOGS: dict[str, list[tuple[str, list[str]]]] = {
     # Cameroon TVET (MINEFOP / technical-education trades) — representative,
@@ -162,6 +181,12 @@ _TRADE_CATALOGS: dict[str, list[tuple[str, list[str]]]] = {
     "GN": _TVET_FR, "TG": _TVET_FR, "BJ": _TVET_FR, "MR": _TVET_FR, "GA": _TVET_FR,
     "CG": _TVET_FR, "CD": _TVET_FR, "TD": _TVET_FR, "CF": _TVET_FR, "GQ": _TVET_FR,
     "BI": _TVET_FR, "DJ": _TVET_FR, "MG": _TVET_FR,
+
+    # Hispanophone — Spain + Spanish-speaking Latin America (shared _TVET_ES).
+    "ES": _TVET_ES, "MX": _TVET_ES, "AR": _TVET_ES, "CL": _TVET_ES, "CO": _TVET_ES,
+    "PE": _TVET_ES, "VE": _TVET_ES, "EC": _TVET_ES, "BO": _TVET_ES, "PY": _TVET_ES,
+    "UY": _TVET_ES, "CR": _TVET_ES, "NI": _TVET_ES, "HN": _TVET_ES, "GT": _TVET_ES,
+    "SV": _TVET_ES, "PA": _TVET_ES, "DO": _TVET_ES, "CU": _TVET_ES,
 }
 
 # Universal fallback for any vocational school whose country has no curated list.

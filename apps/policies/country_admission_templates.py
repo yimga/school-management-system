@@ -72,6 +72,39 @@ _COMPACT_COUNTRIES = {
 }
 _SEQ_YEAR_COUNTRIES = {"US", "CA", "PH"}
 
+# Full-coverage extension so EVERY sovereign country resolves a regional template
+# (not merely the generic fallback), grouped by the same conventions.
+_SLASH_COUNTRIES |= {
+    # English-speaking Caribbean / Commonwealth
+    "GY", "BZ", "AG", "BS", "DM", "GD", "KN", "LC", "VC",
+    # Commonwealth Asia-Pacific
+    "BN", "MV", "KI", "NR", "SB", "TO", "TV", "WS", "VU",
+    # Arabic-region
+    "PS",
+}
+_DASH_COUNTRIES |= {
+    # Latin America (Hispanophone / Lusophone)
+    "VE", "EC", "BO", "PY", "UY", "CR", "NI", "HN", "GT", "SV", "PA", "DO", "CU",
+    "SR", "HT", "TL",
+    # European Romance / micro-states
+    "AD", "MC", "LU", "SM", "VA",
+}
+_COMPACT_COUNTRIES |= {
+    # Central & Eastern Europe / Nordic / Caucasus
+    "AL", "AM", "AZ", "BA", "BG", "BY", "CY", "CZ", "EE", "GE", "HR", "HU",
+    "LT", "LV", "MD", "ME", "MK", "PL", "RS", "SI", "SK", "IS", "LI", "MT", "EH",
+    # Central Asia
+    "KZ", "KG", "TJ", "TM", "UZ",
+    # East / South-East Asia
+    "TW", "MO", "MM", "KH", "LA", "MN", "KP", "BT",
+    # Afghanistan
+    "AF",
+}
+_SEQ_YEAR_COUNTRIES |= {
+    # US-affiliated Pacific
+    "FM", "MH", "PW",
+}
+
 
 def _build_templates() -> dict[str, str]:
     table: dict[str, str] = {}
