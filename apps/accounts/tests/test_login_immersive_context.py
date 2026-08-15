@@ -106,6 +106,8 @@ class LoginImmersiveContextTests(SimpleTestCase):
         defaults = login_canvas_defaults()
         self.assertIn("hero_banner", defaults)
         self.assertIn("zones", defaults)
+        self.assertIn("local_first", defaults)
+        self.assertTrue(defaults["local_first"]["enabled"])
         self.assertTrue(defaults["enabled"])
 
     def test_render_context_role_preview_labels(self):
@@ -116,6 +118,32 @@ class LoginImmersiveContextTests(SimpleTestCase):
         self.assertIn("default", labels)
         self.assertIn("dash_preview", ctx)
         self.assertIn("mini_cards", ctx["dash_preview"]["default"])
+        self.assertTrue(ctx["local_first_enabled"])
+
+    def test_sponsored_slots_are_separate_from_hero_and_unsafe_urls_are_dropped(self):
+        request = RequestFactory().get("/authentication/login/")
+        request.site_settings = type(
+            "S",
+            (),
+            {
+                "cockpit_payload": {
+                    "login_immersive_canvas": {
+                        "pro_enabled": True,
+                        "monetization": {
+                            "allow_sponsored_slot": True,
+                            "sponsored_slots": [
+                                {"title": "Safe local fair", "cta_url": "/events/fair/"},
+                                {"title": "Unsafe", "cta_url": "javascript:alert(1)"},
+                            ],
+                        },
+                    }
+                }
+            },
+        )()
+        ctx = build_login_immersive_render_context(request)
+        self.assertEqual([slot["title"] for slot in ctx["sponsored_slots"]], ["Safe local fair"])
+        self.assertFalse(any(slide.get("sponsored") for slide in ctx["carousel_slides"]))
+        self.assertTrue(ctx["hide_sponsored_offline"])
 
     def test_has_feature_enables_pro(self):
         request = RequestFactory().get("/authentication/login/")
@@ -210,3 +238,24 @@ class LoginImmersiveTemplateContractTests(SimpleTestCase):
         html = login_tpl.read_text(encoding="utf-8")
         self.assertIn("login_immersive_canvas.html", html)
         self.assertIn("data-rmc-login-layout", html)
+        self.assertIn("data-rmc-local-first", html)
+
+    def test_local_front_door_keeps_promotions_away_from_credentials(self):
+        canvas_tpl = Path(settings.BASE_DIR) / "templates" / "auth" / "partials" / "login_immersive_canvas.html"
+        html = canvas_tpl.read_text(encoding="utf-8")
+        self.assertIn("data-rmc-sponsored-region", html)
+        self.assertIn("data-rmc-offline-note", html)
+        login_tpl = (Path(settings.BASE_DIR) / "templates" / "auth" / "login.html").read_text(encoding="utf-8")
+        credentials = login_tpl.split('data-rmc-auth-step="creds"', 1)[1]
+        self.assertNotIn("data-rmc-sponsored-slot", credentials)
+
+    def test_every_operator_and_tenant_login_boundary_declares_local_first_policy(self):
+        auth_dir = Path(settings.BASE_DIR) / "templates" / "auth"
+        tenant_admin = (auth_dir / "tenant_admin_login.html").read_text(encoding="utf-8")
+        operator = (auth_dir / "manager_login.html").read_text(encoding="utf-8")
+        operator_admin = (auth_dir / "admin_login.html").read_text(encoding="utf-8")
+        self.assertIn('data-rmc-local-first-login="tenant-admin"', tenant_admin)
+        self.assertIn('data-rmc-local-first-login="operator"', operator)
+        self.assertIn('data-rmc-local-first-login="operator-admin"', operator_admin)
+        self.assertIn("promotion-free", operator)
+        self.assertIn("promotion-free", operator_admin)

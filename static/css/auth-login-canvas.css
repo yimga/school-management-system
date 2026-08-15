@@ -1507,3 +1507,129 @@ body:has(.rmc-auth-immersive) [data-shell-chrome="django-messages"] {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: none; }
 }
+
+/* Local Front Door v3 -----------------------------------------------------
+   The canvas and auth card read as one workspace. The auth rail stays narrow
+   enough for focus while the content rail owns useful horizontal space. */
+@media (min-width: 981px) {
+  .rmc-auth-immersive {
+    grid-template-columns: minmax(0, 1.5fr) minmax(410px, .72fr);
+    column-gap: 18px;
+    padding-inline: clamp(12px, 1.8vw, 34px);
+  }
+
+  .rmc-auth-immersive__canvas {
+    padding-inline: clamp(14px, 1.6vw, 26px);
+    border: 1px solid var(--rmc-auth-hair);
+    border-radius: 24px 10px 10px 24px;
+    background: color-mix(in srgb, var(--surface-bg, #050810) 76%, transparent);
+  }
+
+  .rmc-auth-immersive__auth {
+    padding: 0;
+  }
+
+  .rmc-auth-immersive__glass {
+    width: 100%;
+    max-width: 520px;
+    margin-inline: 0 auto;
+    border-radius: 10px 24px 24px 10px;
+  }
+}
+
+.rmc-auth-immersive__card-head {
+  justify-content: space-between;
+}
+
+.rmc-auth-immersive__card-title {
+  font-size: clamp(1.25rem, 2.1vw, 1.65rem);
+  letter-spacing: -.025em;
+}
+
+.rmc-auth-immersive__secure-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 9px;
+  border: 1px solid color-mix(in srgb, var(--color-success, #22c55e) 45%, transparent);
+  border-radius: 999px;
+  color: var(--color-success, #6ee7b7);
+  background: color-mix(in srgb, var(--color-success, #22c55e) 13%, transparent);
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.rmc-auth-immersive__secure-state::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.rmc-auth-immersive__local-state {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 9px;
+  align-items: center;
+  padding: 8px 11px;
+  border: 1px solid color-mix(in srgb, var(--color-success, #22c55e) 38%, transparent);
+  border-radius: 12px;
+  background: linear-gradient(90deg, rgba(13, 61, 54, .65), rgba(20, 31, 53, .75));
+}
+
+.rmc-auth-immersive__local-state strong,
+.rmc-auth-immersive__local-state small {
+  display: block;
+}
+
+.rmc-auth-immersive__local-state strong { font-size: 11px; color: #86efc1; }
+.rmc-auth-immersive__local-state small { font-size: 10px; color: var(--rmc-auth-muted); }
+.rmc-auth-immersive__local-dot { width: 7px; height: 7px; border-radius: 50%; background: #45dda3; box-shadow: 0 0 0 4px rgba(69, 221, 163, .1); }
+.rmc-auth-immersive__network-copy { font-size: 10px; font-weight: 800; color: #a7f3d0; }
+
+.rmc-auth-immersive__offline-note {
+  padding: 9px 11px;
+  border: 1px solid #536483;
+  border-radius: 12px;
+  background: #172238;
+}
+.rmc-auth-immersive__offline-note strong,
+.rmc-auth-immersive__offline-note span { display: block; }
+.rmc-auth-immersive__offline-note span { margin-top: 2px; color: var(--rmc-auth-muted); font-size: 10px; }
+
+.rmc-auth-immersive__sponsors { display: grid; grid-template-columns: minmax(0, 1fr); gap: 7px; }
+.rmc-auth-immersive__sponsors[hidden],
+.rmc-auth-immersive__sponsor[hidden],
+.rmc-auth-immersive__offline-note[hidden] { display: none !important; }
+.rmc-auth-immersive__sponsor {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 2px 12px;
+  padding: 10px 38px 10px 12px;
+  border: 1px solid rgba(244, 199, 104, .28);
+  border-radius: 12px;
+  background: linear-gradient(120deg, rgba(64, 50, 23, .52), rgba(18, 27, 48, .86));
+}
+.rmc-auth-immersive__sponsor-mark { grid-column: 1 / -1; color: #e6ce94; font-size: 8px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.rmc-auth-immersive__sponsor strong { font-size: 12px; }
+.rmc-auth-immersive__sponsor small { color: var(--rmc-auth-muted); font-size: 10px; }
+.rmc-auth-immersive__sponsor a { color: #f8d98e; font-size: 10px; font-weight: 750; }
+.rmc-auth-immersive__sponsor button { position: absolute; top: 7px; right: 8px; width: 24px; height: 24px; border: 0; border-radius: 7px; background: transparent; color: var(--rmc-auth-muted); }
+
+.rmc-auth-immersive.is-offline [data-rmc-sponsored-region] { display: none !important; }
+.rmc-auth-immersive.is-offline .rmc-auth-immersive__secure-state { color: #f8d98e; border-color: rgba(244, 199, 104, .35); background: rgba(244, 199, 104, .1); }
+.rmc-auth-immersive.is-offline .rmc-auth-immersive__local-dot { background: #f4c768; box-shadow: 0 0 0 4px rgba(244, 199, 104, .1); }
+
+@media (max-height: 590px) and (min-width: 981px) {
+  .rmc-auth-immersive__local-state { padding-block: 5px; }
+  .rmc-auth-immersive__local-state small,
+  .rmc-auth-immersive__sponsors,
+  .rmc-auth-immersive__bento,
+  [data-rmc-login-zone="gallery"] { display: none; }
+  .rmc-auth-immersive__slide { padding-block: .45rem; }
+  .rmc-auth-immersive__glass { padding: 1rem 1.25rem; }
+}

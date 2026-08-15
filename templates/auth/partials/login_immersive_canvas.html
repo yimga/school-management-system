@@ -52,6 +52,18 @@
     </div>
   </header>
 
+  {% if lic.local_first_enabled %}
+  <div class="rmc-auth-immersive__local-state rmc-auth-immersive__zone" data-rmc-local-state role="status">
+    <span class="rmc-auth-immersive__local-dot" aria-hidden="true"></span>
+    <span><strong>{{ lic.local_first_status_label }}</strong><small>{{ lic.local_first_status_detail }}</small></span>
+    <span class="rmc-auth-immersive__network-copy" data-rmc-auth-network-copy>{% trans "Online" %}</span>
+  </div>
+  <div class="rmc-auth-immersive__offline-note rmc-auth-immersive__zone" data-rmc-offline-note role="status" hidden>
+    <strong>{% trans "You are offline, but your school doorway is ready." %}</strong>
+    <span>{% trans "Verified school identity and locally saved guidance remain available. Connect to complete online authentication." %}</span>
+  </div>
+  {% endif %}
+
   {% if lic.hero_mode == "marquee" or lic.hero_mode == "hybrid" %}
   <div class="rmc-auth-immersive__hero-marquee rmc-auth-immersive__zone{% if lic.hero_full_bleed %} rmc-auth-immersive__hero-marquee--bleed{% endif %}"
        data-rmc-login-zone="hero"
@@ -127,6 +139,20 @@
     <div class="rmc-auth-immersive__dash-body">
       {% include "auth/partials/login_immersive_dash_panels.html" %}
     </div>
+  </div>
+  {% endif %}
+
+  {% if lic.sponsored_slots %}
+  <div class="rmc-auth-immersive__sponsors rmc-auth-immersive__zone" data-rmc-sponsored-region aria-label="{% trans 'Sponsored community information' %}">
+    {% for slot in lic.sponsored_slots %}
+    <article class="rmc-auth-immersive__sponsor" data-rmc-sponsored-slot data-rmc-sponsored-id="{{ forloop.counter }}">
+      <span class="rmc-auth-immersive__sponsor-mark">{% trans "Local partner · Sponsored" %}</span>
+      <strong>{{ slot.title }}</strong>
+      {% if slot.body %}<small>{{ slot.body }}</small>{% endif %}
+      {% if slot.cta_url and slot.cta_label %}<a href="{{ slot.cta_url }}" rel="noopener sponsored">{{ slot.cta_label }}</a>{% endif %}
+      <button type="button" data-rmc-dismiss-sponsored aria-label="{% trans 'Hide sponsored information' %}">×</button>
+    </article>
+    {% endfor %}
   </div>
   {% endif %}
 

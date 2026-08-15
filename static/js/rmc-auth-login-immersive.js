@@ -28,6 +28,11 @@
   var slides = root.querySelectorAll("[data-rmc-auth-carousel-slide]");
   var dots = root.querySelectorAll("[data-rmc-auth-carousel-dot]");
   var clockEl = root.querySelector("[data-rmc-auth-clock]");
+  var networkStatus = root.querySelector("[data-rmc-auth-network-status]");
+  var networkCopy = root.querySelector("[data-rmc-auth-network-copy]");
+  var offlineNote = root.querySelector("[data-rmc-offline-note]");
+  var sponsoredRegion = root.querySelector("[data-rmc-sponsored-region]");
+  var cacheKey = "rmc:login-front-door:" + window.location.host;
 
   var previewMeta = {
     staff: { pill: root.getAttribute("data-preview-staff-label") || "Staff" },
@@ -130,12 +135,64 @@
       var id = tab.getAttribute("data-rmc-auth-tab");
       tabs.forEach(function (t) {
         t.classList.toggle("is-on", t === tab);
+        t.setAttribute("aria-selected", t === tab ? "true" : "false");
       });
       tabPanels.forEach(function (p) {
         p.classList.toggle("is-on", p.getAttribute("data-rmc-auth-tab-panel") === id);
       });
     });
   });
+
+  function setNetworkState() {
+    var offline = !window.navigator.onLine;
+    root.classList.toggle("is-offline", offline);
+    if (networkStatus) networkStatus.textContent = offline ? "Offline · local view" : "Secure";
+    if (networkCopy) networkCopy.textContent = offline ? "Offline-ready" : "Online";
+    if (offlineNote) offlineNote.hidden = !offline;
+    if (sponsoredRegion && root.getAttribute("data-rmc-hide-sponsored-offline") === "1") {
+      sponsoredRegion.hidden = offline;
+    }
+  }
+
+  function cacheAnonymousFrontDoor() {
+    if (root.getAttribute("data-rmc-cache-safe") !== "1" || !window.navigator.onLine) return;
+    try {
+      var brand = root.querySelector(".rmc-auth-immersive__brand h1");
+      var notice = root.querySelector("[data-rmc-login-zone='hero'] strong");
+      window.localStorage.setItem(cacheKey, JSON.stringify({
+        version: 1,
+        savedAt: new Date().toISOString(),
+        school: brand ? brand.textContent.trim().slice(0, 160) : "",
+        notice: notice ? notice.textContent.trim().slice(0, 240) : ""
+      }));
+    } catch (e) {
+      /* Storage may be blocked; login remains fully usable without it. */
+    }
+  }
+
+  root.querySelectorAll("[data-rmc-dismiss-sponsored]").forEach(function (button) {
+    button.addEventListener("click", function () {
+      var slot = button.closest("[data-rmc-sponsored-slot]");
+      if (!slot) return;
+      slot.hidden = true;
+      try {
+        window.sessionStorage.setItem(cacheKey + ":sponsor-dismissed", "1");
+      } catch (e) {
+        /* Session storage is an optional convenience only. */
+      }
+    });
+  });
+  try {
+    if (window.sessionStorage.getItem(cacheKey + ":sponsor-dismissed") === "1" && sponsoredRegion) {
+      sponsoredRegion.hidden = true;
+    }
+  } catch (e) {
+    /* no-op */
+  }
+  window.addEventListener("online", setNetworkState);
+  window.addEventListener("offline", setNetworkState);
+  setNetworkState();
+  cacheAnonymousFrontDoor();
 
   var ci = 0;
   var carouselMs = 7000;

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta
 from typing import Any
+from urllib.parse import urlsplit
 
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -209,6 +210,16 @@ def login_canvas_defaults(*, is_manager: bool = False) -> dict[str, Any]:
         "monetization": {
             "allow_sponsored_slot": False,
             "sponsored_slots": [],
+            "hide_when_offline": True,
+            "max_visible": 1,
+        },
+        "local_first": {
+            "enabled": True,
+            "cache_safe_content": True,
+            "status_label": str(_("Local-first front door")),
+            "status_detail": str(
+                _("School identity and essential notices remain available during an outage")
+            ),
         },
         "zones": {
             "show_ticker": True,
@@ -294,8 +305,8 @@ def _filter_slides(slides: list[dict[str, Any]], *, pro: bool) -> list[dict[str,
                 "title": title,
                 "body": str(slide.get("body") or "").strip(),
                 "cta_label": str(slide.get("cta_label") or "").strip(),
-                "cta_url": str(slide.get("cta_url") or "").strip(),
-                "image_url": str(slide.get("image_url") or "").strip(),
+                "cta_url": _safe_public_url(slide.get("cta_url")),
+                "image_url": _safe_public_url(slide.get("image_url")),
                 "role_hint": str(slide.get("role_hint") or "").strip().lower(),
                 "sponsored": bool(slide.get("sponsored")),
             }
@@ -579,20 +590,50 @@ def merge_operator_sponsored_slots(
     for raw in list(operator_slots) + list(tenant_slots):
         if not isinstance(raw, dict):
             continue
-        label = str(raw.get("label") or raw.get("title") or "").strip()
+        label = str(raw.get("label") or raw.get("title") or "").strip()[:120]
         if not label:
+            continue
+        cta_url = _safe_public_url(raw.get("cta_url"))
+        if raw.get("cta_url") and not cta_url:
             continue
         merged.append(
             {
-                "eyebrow": str(raw.get("eyebrow") or _("Partner")),
+                "eyebrow": str(_("Local partner · Sponsored")),
                 "title": label,
-                "body": str(raw.get("body") or "").strip(),
-                "cta_label": str(raw.get("cta_label") or _("Learn more")),
-                "cta_url": str(raw.get("cta_url") or "").strip(),
+                "body": str(raw.get("body") or "").strip()[:280],
+                "cta_label": str(raw.get("cta_label") or _("Learn more"))[:60],
+                "cta_url": cta_url,
                 "sponsored": True,
+                "source": "tenant" if raw in tenant_slots else "operator",
             }
         )
-    return merged[:2]
+    max_visible = section.get("monetization", {}).get("max_visible", 1)
+    try:
+        max_visible = max(0, min(int(max_visible), 2))
+    except (TypeError, ValueError):
+        max_visible = 1
+    return merged[:max_visible]
+
+
+def _safe_public_url(value: Any) -> str:
+    """Allow same-site paths and HTTP(S) links on the anonymous login surface."""
+    candidate = str(value or "").strip()
+    if not candidate:
+        return ""
+    if candidate.startswith("/") and not candidate.startswith("//"):
+        return candidate
+    try:
+        parsed = urlsplit(candidate)
+    except ValueError:
+        return ""
+    return (
+        candidate
+        if parsed.scheme in {"http", "https"}
+        and parsed.netloc
+        and not parsed.username
+        and not parsed.password
+        else ""
+    )
 
 
 def resolve_login_immersive_section(request: Any) -> dict[str, Any]:
@@ -633,8 +674,7 @@ def resolve_login_immersive_section(request: Any) -> dict[str, Any]:
         pro=pro,
     )
     sponsored = merge_operator_sponsored_slots(section, payload)
-    if sponsored and pro:
-        hero["slides"] = (hero.get("slides") or []) + sponsored
+    section["resolved_sponsored_slots"] = sponsored if pro else []
 
     return section
 
@@ -691,6 +731,8 @@ def build_login_immersive_render_context(request: Any) -> dict[str, Any]:
     feed_cfg = section.get("feed") or {}
     gallery_cfg = section.get("gallery") or {}
     zones = section.get("zones") or {}
+    local_first = section.get("local_first") or {}
+    monetization = section.get("monetization") or {}
 
     tile_keys = list(metrics_cfg.get("tile_keys") or [])[:4]
     if not tile_keys:
@@ -745,7 +787,10 @@ def build_login_immersive_render_context(request: Any) -> dict[str, Any]:
     )
     ticker_items = _ticker_items(ticker_section)
     if not ticker_items:
-        ticker_items = [str(_("Welcome — sign in to reach your school workspace."))]
+        ticker_items = [
+            str(_("Welcome — sign in to reach your school workspace.")),
+            str(_("Secure local-first access for staff, families, and students.")),
+        ]
 
     return {
         "canvas": section,
@@ -774,6 +819,17 @@ def build_login_immersive_render_context(request: Any) -> dict[str, Any]:
         "dash_title": str(feed_cfg.get("dash_title") or _("Today at your school")),
         "moments": gallery_items if zones.get("show_gallery", True) else [],
         "trust_chips": trust_chips if zones.get("show_trust", True) else [],
+        "sponsored_slots": section.get("resolved_sponsored_slots") or [],
+        "hide_sponsored_offline": bool(monetization.get("hide_when_offline", True)),
+        "local_first_enabled": bool(local_first.get("enabled", True)),
+        "local_first_cache_safe": bool(local_first.get("cache_safe_content", True)),
+        "local_first_status_label": str(
+            local_first.get("status_label") or _("Local-first front door")
+        ),
+        "local_first_status_detail": str(
+            local_first.get("status_detail")
+            or _("School identity and essential notices remain available during an outage")
+        ),
         "role_preview_labels": {
             "staff": str(
                 (role_preview.get("staff") or {}).get("pill") or _("Staff dashboard")

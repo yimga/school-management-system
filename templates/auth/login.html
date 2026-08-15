@@ -35,6 +35,9 @@
      data-rmc-login-theme="{{ immersive.theme_variant }}"
      data-rmc-login-hero-mode="{{ immersive.hero_mode }}"
      data-rmc-hero-scroll-seconds="{{ immersive.hero_scroll_seconds }}"
+     data-rmc-local-first="{% if immersive.local_first_enabled %}1{% else %}0{% endif %}"
+     data-rmc-cache-safe="{% if immersive.local_first_cache_safe %}1{% else %}0{% endif %}"
+     data-rmc-hide-sponsored-offline="{% if immersive.hide_sponsored_offline %}1{% else %}0{% endif %}"
      {% if immersive.compact_on_short_viewport %}data-rmc-login-compact="1"{% endif %}
      data-preview-label="{% trans 'Immersive login' %}"
      data-preview-default-label="{{ immersive.role_preview_labels.default }}"
@@ -104,34 +107,11 @@
         <input type="hidden" name="role" id="login-role" value="{{ post_role }}">
 
         <header class="rmc-auth-immersive__card-head">
-          <div class="rmc-auth-immersive__card-ring" aria-hidden="true">
-            {% if is_manager_host %}
-              R
-            {% elif PUBLIC_BRAND_MODE and PUBLIC_BRAND_FAVICON_URL %}
-              <img src="{{ PUBLIC_BRAND_FAVICON_URL }}" alt="" width="40" height="40" decoding="async">
-            {% elif SITE_LOGO_URL %}
-              <img src="{{ SITE_LOGO_URL }}" alt="" width="40" height="40" decoding="async">
-            {% elif SITE.site_name %}
-              {{ SITE.site_name|slice:":1" }}
-            {% else %}
-              S
-            {% endif %}
-          </div>
           <div>
-            {# i18n-allow: brand-proper-noun #}
-            <h2 class="rmc-auth-immersive__card-title">
-              {% if is_manager_host %}
-                RunMyCampus
-              {% elif PUBLIC_BRAND_MODE %}
-                {{ PUBLIC_BRAND_NAME }}
-              {% elif LOGIN_SCHOOL_NAME %}
-                {{ LOGIN_SCHOOL_NAME }}
-              {% else %}
-                {{ SITE.site_name|default:"School portal" }}
-              {% endif %}
-            </h2>
+            <h2 class="rmc-auth-immersive__card-title">{% trans "Welcome back" %}</h2>
             <p class="rmc-auth-immersive__card-meta">{% trans "Secure portal" %} · {{ immersive.date_label }}</p>
           </div>
+          <span class="rmc-auth-immersive__secure-state" data-rmc-auth-network-status role="status">{% trans "Secure" %}</span>
         </header>
 
         <div class="rmc-auth-immersive__step-labels" aria-hidden="true">
@@ -145,7 +125,7 @@
         </div>
 
         <div class="rmc-auth-immersive__step{% if request.method != 'POST' %} is-on{% endif %}" data-rmc-auth-step="role">
-          <h2 class="rmc-auth-immersive__step-title">{% trans "Who are you?" %}</h2>
+          <h2 class="rmc-auth-immersive__step-title">{% trans "How are you joining today?" %}</h2>
           <p class="rmc-auth-immersive__sub">{% trans "Pick the door that matches you — the preview on the left updates as you hover." %}</p>
           <div class="rmc-auth-immersive__role-list" role="group" aria-label="{% trans 'Sign-in role' %}">
             <button type="button" class="rmc-auth-immersive__role-row{% if post_role == 'staff' %} is-picked{% endif %}" data-rmc-auth-role="staff" data-rmc-auth-role-title="{{ TENANT_LABELS.staff|default:'Staff' }}">

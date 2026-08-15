@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="{% static 'css/rmc-cockpit-skin-v8.css' %}">
   <link rel="stylesheet" href="{% static 'css/tenant-admin-login.css' %}">
 </head>
-<body>
+<body data-rmc-local-first-login="tenant-admin">
   <main class="tenant-admin-login" aria-labelledby="tenant-admin-login-heading">
     <div class="tenant-admin-login__shell">
       <section>
@@ -24,9 +24,11 @@
           <span><strong>{% trans "Configuration first" %}</strong>{% trans "Settings and records." %}</span>
           <span><strong>{% trans "Audit aware" %}</strong>{% trans "Actions remain traceable." %}</span>
         </div>
+        <p class="tenant-admin-login__local"><strong>{% trans "Local-first administration" %}</strong> · {% trans "Your school's verified identity and recovery guidance remain available on unstable connections. Administrative changes require a verified session and sync safely." %}</p>
       </section>
 
       <section class="tenant-admin-login__card" aria-label="{% trans 'Sign in form' %}">
+        <span class="tenant-admin-login__secure">{% trans "Secure · promotion-free" %}</span>
         <div class="tenant-admin-login__brand">
           <div class="tenant-admin-login__mark" aria-hidden="true">R</div>
           <div>

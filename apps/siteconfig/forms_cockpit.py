@@ -4403,6 +4403,20 @@ class CockpitPayloadForm(forms.ModelForm):
             "Pro only. One per line: eyebrow | title | body | cta_label | cta_url"
         ),
     )
+    lic_hide_sponsored_offline = forms.BooleanField(
+        required=False,
+        widget=_CHECK,
+        label=_("Login canvas: hide sponsored content offline"),
+        help_text=_("Recommended. Essential school notices remain visible; promotions pause until reconnection."),
+    )
+    lic_sponsored_max_visible = forms.IntegerField(
+        required=False,
+        min_value=0,
+        max_value=2,
+        widget=_NUMBER,
+        label=_("Login canvas: maximum visible sponsored placements"),
+        help_text=_("Use 0 to pause placements, 1 for the recommended restrained layout, or 2 maximum."),
+    )
     lic_dash_staff_note = forms.CharField(
         required=False,
         max_length=320,
@@ -4809,6 +4823,8 @@ class CockpitPayloadForm(forms.ModelForm):
         "lic_metric_tile_keys",
         "lic_allow_sponsored_slot",
         "lic_sponsored_lines",
+        "lic_hide_sponsored_offline",
+        "lic_sponsored_max_visible",
         "lic_dash_staff_note",
         "lic_dash_parent_note",
         "lic_dash_student_note",
@@ -5485,6 +5501,12 @@ class CockpitPayloadForm(forms.ModelForm):
             )
         self.fields["lic_sponsored_lines"].initial = _serialize_lic_sponsored_lines(
             monetization.get("sponsored_slots")
+        )
+        self.fields["lic_hide_sponsored_offline"].initial = bool(
+            monetization.get("hide_when_offline", True)
+        )
+        self.fields["lic_sponsored_max_visible"].initial = monetization.get(
+            "max_visible", 1
         )
         dash_preview = lic.get("dash_preview") or {}
         self.fields["lic_dash_staff_note"].initial = (dash_preview.get("staff") or {}).get(
@@ -6257,6 +6279,10 @@ class CockpitPayloadForm(forms.ModelForm):
             }
         monetization_overlay: dict[str, Any] = {
             "allow_sponsored_slot": bool(cleaned.get("lic_allow_sponsored_slot")),
+            "hide_when_offline": bool(cleaned.get("lic_hide_sponsored_offline")),
+            "max_visible": cleaned.get("lic_sponsored_max_visible")
+            if cleaned.get("lic_sponsored_max_visible") is not None
+            else 1,
         }
         sponsored = _parse_lic_sponsored_lines(cleaned.get("lic_sponsored_lines") or "")
         if sponsored:
