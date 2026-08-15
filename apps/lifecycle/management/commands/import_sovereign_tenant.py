@@ -44,6 +44,13 @@ back, so the box is never left half-migrated.
         --in /srv/rmc/gilead-tech.rmcbundle \
         --slug gilead-tech --owner-email owner@gilead.school.lan
 
+--fresh: when the source is an EMPTY cloud shell, its ``people`` rows still carry
+a required, non-nullable ``TeacherProfile.user`` FK to a cloud User that the
+bundle excludes (Users live in the public/shared schema). A pk-preserving load
+of those rows can never satisfy that FK on the box, so ``--fresh`` pins the UUID
+and provisions clean (plan + entitlements + owner + activate + verify) WITHOUT
+importing the bundle's data. The real roster then arrives via the ingest pipeline.
+
 Requires the SAME SECRET_KEY as the exporting cloud (the bundle is encrypted +
 HMAC-signed with SECRET_KEY bound to the school id); a mismatch fails closed.
 """
@@ -124,6 +131,17 @@ class Command(BaseCommand):
             help="Permit import even if the target school already has tenant rows (collision risk).",
         )
         parser.add_argument(
+            "--fresh",
+            action="store_true",
+            help=(
+                "Provision a CLEAN tenant at the bundle's pinned UUID WITHOUT importing "
+                "the bundle's data. Use when the source is an empty cloud shell whose "
+                "people rows reference cloud Users that don't exist on the box (a "
+                "TeacherProfile.user is a required, non-nullable FK the box can't satisfy). "
+                "Still pins the UUID, entitles, creates the owner, activates, and verifies."
+            ),
+        )
+        parser.add_argument(
             "--dry-run",
             action="store_true",
             help="Report the plan (bundle UUID, target school state, counts) without writing.",
@@ -157,6 +175,7 @@ class Command(BaseCommand):
         password = opts["password"] or _generate_password()
         no_offline = bool(opts["no_offline"])
         allow_nonempty = bool(opts["allow_nonempty"])
+        fresh = bool(opts["fresh"])
         dry_run = bool(opts["dry_run"])
 
         # --- Read the bundle envelope to learn the pin UUID (no decrypt yet) --- #
@@ -204,7 +223,9 @@ class Command(BaseCommand):
                 )
             )
 
-            if nonempty and not allow_nonempty:
+            # In --fresh mode nothing is imported, so a non-empty target carries no
+            # pk-collision risk — the guard is only about the pk-preserving load.
+            if nonempty and not allow_nonempty and not fresh:
                 raise CommandError(
                     "Target school already has tenant rows (%s). A pk-preserving import "
                     "into a non-empty target risks unique-key collisions. Re-run with "
@@ -215,12 +236,13 @@ class Command(BaseCommand):
             if dry_run:
                 self.stdout.write(
                     self.style.WARNING(
-                        "DRY RUN - would %s School id=%s slug=%s, import the bundle, "
+                        "DRY RUN - would %s School id=%s slug=%s, %s, "
                         "entitle%s, create owner %s, activate + verify."
                         % (
                             "reuse" if existing_by_id else "create",
                             bundle_uuid,
                             slug,
+                            "SKIP bundle import (--fresh)" if fresh else "import the bundle",
                             "" if no_offline else " + offline bundle",
                             owner_email,
                         )
@@ -238,16 +260,34 @@ class Command(BaseCommand):
 
                 self._ensure_plan_catalog()
 
-                self.stdout.write("  Importing bundle (RLS-bypassed, pk-preserving)...")
-                result = self._import(bundle_bytes, expected_school_id=bundle_uuid)
-                self.stdout.write(
-                    "    imported %d rows across %d tables%s"
-                    % (
-                        result["total"],
-                        len(result["imported"]),
-                        f" (skipped {len(result['skipped'])})" if result.get("skipped") else "",
+                if fresh:
+                    # Empty cloud shell: its people rows reference cloud Users (a
+                    # non-nullable TeacherProfile.user FK) that don't exist on the box,
+                    # so a pk-preserving load can't satisfy the constraint. Pin the
+                    # UUID and provision clean; the real roster arrives via ingest.
+                    self.stdout.write(
+                        "  FRESH mode: SKIP bundle data import - clean provision at pinned UUID."
                     )
-                )
+                    result = {
+                        "school_id": bundle_uuid,
+                        "tenant_slug": name,
+                        "mode": "fresh",
+                        "imported": {},
+                        "total": 0,
+                        "skipped": [],
+                        "errored": {},
+                    }
+                else:
+                    self.stdout.write("  Importing bundle (RLS-bypassed, pk-preserving)...")
+                    result = self._import(bundle_bytes, expected_school_id=bundle_uuid)
+                    self.stdout.write(
+                        "    imported %d rows across %d tables%s"
+                        % (
+                            result["total"],
+                            len(result["imported"]),
+                            f" (skipped {len(result['skipped'])})" if result.get("skipped") else "",
+                        )
+                    )
 
                 self.stdout.write("  Entitling (sovereignty: every feature)...")
                 call_command("ensure_gilead_sovereignty_entitlements")

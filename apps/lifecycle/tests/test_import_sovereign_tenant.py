@@ -108,6 +108,70 @@ class ImportSovereignTenantTests(TestCase):
             school.refresh_from_db()
             self.assertEqual(getattr(school, "billing_type", ""), "COMPLIMENTARY")
 
+    def test_fresh_mode_pins_uuid_without_importing_shell_people_rows(self):
+        """--fresh provisions a clean tenant at the bundle's UUID and SKIPS the
+        data load.
+
+        The empty cloud shell still carries ``people`` rows whose
+        ``TeacherProfile.user`` is a required, non-nullable OneToOne to a User the
+        bundle excludes — a straight pk-preserving import can never satisfy that FK
+        on the box (and fires create-time signals that dereference the missing
+        User). --fresh must give a working, loginable, entitled tenant anyway,
+        WITHOUT carrying any bundle rows across.
+        """
+        from django.contrib.auth import get_user_model
+
+        from apps.people.models import TeacherProfile
+
+        User = get_user_model()
+        with tempfile.TemporaryDirectory() as tmp:
+            source, sid = self._fresh_source()  # school + one AcademicYear
+            # A teacher whose User is excluded from the bundle: the exact row shape
+            # that made a straight import crash on User.DoesNotExist.
+            with rls_bypass():
+                teacher_user = User.objects.create_user(
+                    username="src_teacher",
+                    email="src_teacher@gilead.school.lan",
+                    password="x",
+                )
+                TeacherProfile.objects.create(user=teacher_user, school=source)
+            bundle = self._export_to_file(source, tmp)
+
+            # Simulate the fresh box: none of the source identities exist.
+            with rls_bypass():
+                TeacherProfile.objects.filter(school_id=sid).delete()
+                AcademicYear.objects.filter(school_id=sid).delete()
+                School.objects.filter(id=sid).delete()
+                teacher_user.delete()
+            self.assertFalse(School.objects.filter(id=sid).exists())
+
+            call_command(
+                "import_sovereign_tenant",
+                in_path=bundle,
+                owner_email=_OWNER,
+                slug=self.SLUG,
+                password=_PW,
+                fresh=True,
+                no_offline=True,
+            )
+
+            # (1) School pinned to the bundle UUID, active.
+            school = School.objects.get(id=sid)
+            self.assertTrue(school.is_active)
+            self.assertEqual(getattr(school, "billing_type", ""), "COMPLIMENTARY")
+
+            # (2) Owner is loginable (created on the box, not from the bundle).
+            self.assertIsNotNone(authenticate(username=_OWNER, password=_PW))
+
+            # (3) NOTHING from the bundle was imported — no dangling teacher/user
+            #     FK, no carried academic year.
+            self.assertEqual(
+                TeacherProfile.objects.filter(school_id=sid).count(), 0
+            )
+            self.assertFalse(
+                AcademicYear.objects.filter(school_id=sid, name="2025/2026").exists()
+            )
+
     def test_refuses_nonempty_target_without_flag(self):
         with tempfile.TemporaryDirectory() as tmp:
             source, sid = self._fresh_source()  # target stays present + non-empty
