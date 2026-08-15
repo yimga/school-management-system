@@ -46,12 +46,20 @@ COPY . .
 # serve whatever stale .mo happened to be committed, so a French (or any locale)
 # string committed to a .po never reached self-hosted users (the cloud build.sh
 # already does this; this brings the local-first / self-host path to parity).
+#
+# collectstatic MUST run with DEBUG=0: off-Render DEBUG defaults to 1, under which
+# settings selects the PLAIN static storage (no content hashing, no manifest). But
+# the box serves with DEBUG=0 -> ForgivingCompressedManifestStaticFilesStorage,
+# which requests hashed filenames (foo.<hash>.css) + a staticfiles.json manifest.
+# Collecting under DEBUG=1 while serving under DEBUG=0 => every hashed URL 404s =>
+# the whole UI renders unstyled. Pin DEBUG=0 here so build-time and runtime storage
+# match. Guarded by apps/schools/tests/test_selfhost_static_manifest.py.
 RUN SECRET_KEY="build-time-collectstatic-only" \
     python scripts/purge_retired_globe_vendor_chunks.py \
     && SECRET_KEY="build-time-collectstatic-only" npm run build:world-globe \
     && SECRET_KEY="build-time-collectstatic-only" python scripts/generate_globe_earth_night_texture.py \
     && SECRET_KEY="build-time-collectstatic-only" python manage.py compile_message_catalogs \
-    && SECRET_KEY="build-time-collectstatic-only" python manage.py collectstatic --noinput
+    && SECRET_KEY="build-time-collectstatic-only" DEBUG=0 python manage.py collectstatic --noinput
 
 EXPOSE 10000
 
