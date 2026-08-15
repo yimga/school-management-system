@@ -1,0 +1,29 @@
+{
+  "country": "KE",
+  "sub_system": "",
+  "source": "KNEC KCSE subject codes (Kenya National Examinations Council)",
+  "notes": "subject_codes are the REAL KNEC/KCSE numeric codes. term_windows are a REPRESENTATIVE Jan-start 3-term calendar (Kenyan school year runs Jan-Nov); a school confirms or adjusts its own real dates.",
+  "subject_codes": {
+    "english": "101",
+    "kiswahili": "102",
+    "mathematics": "121",
+    "biology": "231",
+    "physics": "232",
+    "chemistry": "233",
+    "history and government": "311",
+    "geography": "312",
+    "christian religious education": "313",
+    "islamic religious education": "314",
+    "hindu religious education": "315",
+    "home science": "441",
+    "art and design": "442",
+    "agriculture": "443",
+    "computer studies": "451",
+    "business studies": "565",
+    "music": "511",
+    "french": "701",
+    "german": "702",
+    "arabic": "703"
+  },
+  "term_windows": [[1, 5, 4, 5], [5, 2, 8, 5], [8, 28, 11, 25]]
+}
