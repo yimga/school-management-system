@@ -1,8 +1,24 @@
 # A+ PROGRESS SCOREBOARD (A0 Coordinator)
 
-**Last refreshed:** 2026-08-14 (Claude Code · "take to GO" → **binding-constraint audit** (isolation regression CLOSED+SEALED `8a0051bfb`) → **M21 i18n Phase 1 `5914759cf`** (catalog hygiene + freshness seal) → **M21 i18n Phase 2 SHIPPED `f1b8e5174`**: 1561 French UI strings on the francophone first-touch surfaces (fr **5.3%→13.3%**) + self-host `.mo`-compile parity. Prior 08-13: M29 6/6 · M30 `c8dfd5a19` · W22 `a47fc6e60` · W24 `ea368593c` · M32 `01be505db`)  
-**Loop:** Under the 9.8 lowest-dimension regime, GO = raise the MINIMUM metric. Isolation clean (off ≤4.9). **Floor = M21 i18n ~4.5**; user chose "Both, sealed then content" → **Phase 1 (seal) + Phase 2 (French content) BOTH DONE** (catalog honest/fresh; freshness gate two-tier; fr now French on auth/onboarding/portals/attendance/grades/fees/timetable). **Next on M21:** native-review deepen fr toward the 60% 'full' bar + extend to es/pt_BR, then RTL/calendar (ar/fa/he at 0%). Remaining beyond M21: M31/M33, W21/W23/W25–W31 + per-increment follow-ups.  
+**Last refreshed:** 2026-08-15 (Claude Code · "KEEP GOING A+" → **M21 i18n Phase 1 `5914759cf`** (hygiene+seal) → **Phase 2 `f1b8e5174`** (French, fr **5.3%→13.3%**, +self-host `.mo`-compile parity) → **Phase 3 `d2420dc75`/`aa003f178`** (Spanish + Portuguese content on the same first-touch surfaces → **es 1.4%→9.3%**, **pt_BR 1.4%→9.3%**: THREE usable locales). Prior: binding-constraint audit + isolation seal `8a0051bfb`; 08-13 M29/M30/W22/W24/M32)  
+**Loop:** Under the 9.8 lowest-dimension regime, GO = raise the MINIMUM metric. Isolation clean (off ≤4.9). **Floor = M21 i18n**; content phases shipping steadily — fr/es/pt_BR now translated on auth/onboarding/portals/attendance/grades/fees/timetable. Audit-by-running confirmed i18n **infra is complete** (RTL wired, switcher, locale formatting) → the constraint is CONTENT everywhere. **Next on M21:** native-review depth toward the 60% 'full' bar; RTL/calendar CONTENT for ar/fa/he (infra ready, 0% translated). Remaining beyond M21: M31/M33, W21/W23/W25–W31.  
 **Tree:** HEAD = `origin/main`
+
+---
+
+## M21 i18n — Phase 3: Spanish + Portuguese CONTENT (three usable locales) — SHIPPED — 2026-08-15
+
+**Commits `d2420dc75` (es) + `aa003f178` (pt_BR)** (off-tree, 1 `.po` path each; 12 boundary gates green each; verified in a pristine `origin/main` worktree — coverage gate exit 0). Replicates the Phase 2 French playbook to the next two world-scale markets, on the **same francophone/hispanophone/lusophone first-touch surfaces**.
+
+**Result:** the platform now ships **three usable locales** on the surfaces a family/teacher/admin first touches — **fr 13.3% · es 9.3% · pt_BR 9.3%** (each was ≤1.4% before its phase). es 262→1789 (+1527), pt_BR 261→1788 (+1527). Surfaces: auth/password, onboarding & setup wizards, parent & student portals, attendance, grades/report-cards, fees/payments, timetable, dashboard empty-states.
+
+**Method (proven, gate-safe, zero-risk):** curated **exact-match `MSGID ||| translation` pairs** reusing the SAME 1,561 English keys from the fr set; self-correcting apply script (1527/1527 applied each, 0 typos; 34 keys are genuinely absent from the es/pt_BR catalogs, which carry slightly fewer msgids than fr). Consistent per-language glossary — es: guardian→tutor, report card→boletín, attendance→asistencia, fees→cuotas, tuition→matrícula, gradebook→libro de calificaciones; pt_BR: guardian/parent→responsável, report card→boletim, attendance→frequência, fees→taxas, tuition→mensalidade, gradebook→diário de notas, class→turma, subject→disciplina, student→aluno.
+
+**Audit-by-running that shaped scope:** confirmed the i18n INFRASTRUCTURE is already complete and wired — RTL `dir="rtl"` is emitted on `<html>` in base.html/portal_base.html/control_plane_skeleton.html, `regional-rtl.css` is loaded, unfold admin uses `get_current_language_bidi`, `bidi:True` is set for ar/fa/he/ur, a language switcher exists (`views_i18n.py`), and locale-aware money/number formatting passes. So the binding constraint across ALL locales is translated CONTENT, not capability — which is exactly what Phase 2/3 deliver. `.mo` remains a deploy artifact (build.sh + self-host Dockerfile compile via polib), so only the LF-safe `.po` ships.
+
+**Gate safety (verified):** es/pt_BR are `stub` locales (no floor) → coverage `--compare` GREEN, no re-baseline; no source/`en.po` change → freshness gate untouched. Production-grade es/pt_BR still gated on native review (`docs/i18n/translation_requests/`).
+
+**REMAINING on M21:** native-review deepen fr/es/pt_BR toward the 60% 'full' bar; then RTL/calendar CONTENT for ar/fa/he (infra ready, 0% translated). Beyond M21: M31/M33, W21/W23/W25–W31.
 
 ---
 
