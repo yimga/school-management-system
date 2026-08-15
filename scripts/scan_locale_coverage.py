@@ -139,7 +139,7 @@ LOCALE_DECLARATIONS: dict[str, tuple[str, str]] = {
     "zh_Hant": ("stub", _STUB_BULK_REASON),
     # -- RTL first-touch AI-draft (Phase 4, 2026-08-15) --------------------
     "fa": ("stub", _STUB_FIRSTTOUCH_REASON + " RTL locale."),
-    "he": ("stub", _STUB_FIRSTTOUCH_REASON + " RTL locale (partial — tail msgids pending)."),
+    "he": ("stub", _STUB_FIRSTTOUCH_REASON + " RTL locale."),
     # -- zero-translation locales ------------------------------------------
     "ur": ("stub", _STUB_ZERO_REASON + " RTL locale."),
     "ha": ("stub", _STUB_ZERO_REASON),
