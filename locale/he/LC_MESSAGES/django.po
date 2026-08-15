@@ -20917,22 +20917,22 @@ msgid "SSO (SAML / OIDC), audit log export, custom domains"
 msgstr ""
 
 msgid "SSO / IdP health (7d)"
-msgstr ""
+msgstr "בריאות SSO / IdP (7 ימים)"
 
 msgid "SSO / IdP login health"
-msgstr ""
+msgstr "בריאות התחברות SSO / IdP"
 
 msgid "SSO and MFA patterns IT teams already run"
 msgstr ""
 
 msgid "SSO and tenant health before staff feel a blip."
-msgstr ""
+msgstr "בריאות SSO והדיירים לפני שהצוות מרגיש תקלה."
 
 msgid "SSO diagnostics"
 msgstr ""
 
 msgid "SSO, integrations, and tenant health before staff feel a blip."
-msgstr ""
+msgstr "בריאות SSO, אינטגרציות והדיירים לפני שהצוות מרגיש תקלה."
 
 msgid ""
 "SSO: configure OIDC/SAML under Integrations. LTI: register tools per tenant."
@@ -22837,10 +22837,10 @@ msgid "Skip to school 360 content"
 msgstr ""
 
 msgid "Skip to school health table"
-msgstr ""
+msgstr "דלג לטבלת בריאות בתי הספר"
 
 msgid "Skip to school login discovery"
-msgstr ""
+msgstr "דלג לגילוי התחברות לבית הספר"
 
 msgid "Skip to schools list"
 msgstr ""
@@ -22980,7 +22980,7 @@ msgid "Source: manual edit"
 msgstr ""
 
 msgid "Source: preset palette applied"
-msgstr ""
+msgstr "מקור: הוחלה ערכת צבעים מוגדרת מראש"
 
 msgid "Source: saved values"
 msgstr ""
@@ -23019,7 +23019,7 @@ msgid "Split configured"
 msgstr ""
 
 msgid "Split payment allocation"
-msgstr ""
+msgstr "הקצאת תשלום מפוצל"
 
 msgid "Spreadsheets"
 msgstr ""
@@ -23088,7 +23088,7 @@ msgid "Staff used"
 msgstr ""
 
 msgid "Staff: triage parent contact requests from the inbox."
-msgstr ""
+msgstr "צוות: מיון בקשות יצירת קשר מהורים מתוך תיבת הדואר."
 
 msgid "Staffing gaps surfaced before the first bell."
 msgstr ""
@@ -23124,7 +23124,7 @@ msgid "Staged rollout & safety"
 msgstr ""
 
 msgid "Staged setup workflows and publish paths."
-msgstr ""
+msgstr "תהליכי הגדרה מדורגים ונתיבי פרסום."
 
 msgid "Stages"
 msgstr ""
@@ -23301,7 +23301,7 @@ msgid "Statutory PDF (shell)"
 msgstr ""
 
 msgid "Stay on top of guardian access requests without leaving the dashboard."
-msgstr ""
+msgstr "התעדכן בבקשות גישה של אפוטרופוסים בלי לצאת מלוח הבקרה."
 
 msgid "Step"
 msgstr ""
@@ -23440,22 +23440,22 @@ msgid "Student Information System"
 msgstr ""
 
 msgid "Student Portal"
-msgstr ""
+msgstr "פורטל תלמידים"
 
 msgid "Student attendance"
-msgstr ""
+msgstr "נוכחות תלמידים"
 
 msgid "Student attendance (CSV export)"
-msgstr ""
+msgstr "נוכחות תלמידים (ייצוא CSV)"
 
 msgid "Student attendance export"
-msgstr ""
+msgstr "ייצוא נוכחות תלמידים"
 
 msgid "Student badges"
 msgstr ""
 
 msgid "Student degree enrollment"
-msgstr ""
+msgstr "הרשמת תלמידים לתואר"
 
 msgid "Student details"
 msgstr ""
@@ -23464,7 +23464,7 @@ msgid "Student digital ID card"
 msgstr ""
 
 msgid "Student guardians"
-msgstr ""
+msgstr "אפוטרופוסים של התלמיד"
 
 msgid "Student home"
 msgstr ""
@@ -23499,10 +23499,10 @@ msgid ""
 msgstr ""
 
 msgid "Student portal"
-msgstr ""
+msgstr "פורטל תלמידים"
 
 msgid "Student portal overview"
-msgstr ""
+msgstr "סקירת פורטל התלמידים"
 
 msgid "Student profiles"
 msgstr ""
@@ -23511,7 +23511,7 @@ msgid "Student progress and notes are easier to track over time"
 msgstr ""
 
 msgid "Student records, admissions, attendance"
-msgstr ""
+msgstr "רשומות תלמידים, קבלה, נוכחות"
 
 msgid "Student roster (backend)"
 msgstr ""
@@ -23550,7 +23550,7 @@ msgid "Students used"
 msgstr ""
 
 msgid "Students whose averages improved between terms."
-msgstr ""
+msgstr "תלמידים שהממוצע שלהם השתפר בין הסמסטרים."
 
 msgid "Students {{ s }} | Teachers {{ t }} | Members {{ m }}"
 msgstr ""
@@ -23561,7 +23561,7 @@ msgid ""
 msgstr ""
 
 msgid "Students, teachers, guardians"
-msgstr ""
+msgstr "תלמידים, מורים, אפוטרופוסים"
 
 msgid "Students:"
 msgstr ""
@@ -23650,7 +23650,7 @@ msgid "Studio · Output"
 msgstr ""
 
 msgid "Studio · Report library"
-msgstr ""
+msgstr "סטודיו · ספריית דוחות"
 
 msgid "Studio — experience packs and workflow without skipping preview."
 msgstr ""
@@ -23668,7 +23668,7 @@ msgid "Style & branding"
 msgstr ""
 
 msgid "Style assignments updated."
-msgstr ""
+msgstr "שיוכי הסגנון עודכנו."
 
 msgid "Style preview"
 msgstr ""
@@ -23704,7 +23704,7 @@ msgid "Subject"
 msgstr ""
 
 msgid "Subject Assignment"
-msgstr ""
+msgstr "שיוך מקצוע"
 
 msgid "Subject results"
 msgstr ""
@@ -23716,7 +23716,7 @@ msgid "Subjects below the selected threshold."
 msgstr ""
 
 msgid "Subjects that need attention this term."
-msgstr ""
+msgstr "מקצועות שדורשים תשומת לב בסמסטר זה."
 
 msgid "Submit"
 msgstr ""
@@ -23765,7 +23765,7 @@ msgid "Submit justification"
 msgstr ""
 
 msgid "Submit referral / Contact Discipline Master"
-msgstr ""
+msgstr "שלח הפניה / צור קשר עם רכז המשמעת"
 
 msgid "Submit request"
 msgstr ""
@@ -23828,7 +23828,7 @@ msgid "Subscriptions root"
 msgstr ""
 
 msgid "Substitute / cover assignments"
-msgstr ""
+msgstr "שיבוצי מילוי מקום / החלפה"
 
 msgid "Substitutes"
 msgstr ""
@@ -23870,7 +23870,7 @@ msgid "Suggested next"
 msgstr ""
 
 msgid "Suggested next step: align attendance outreach with academic support."
-msgstr ""
+msgstr "שלב הבא מומלץ: התאמת פנייה בנושא נוכחות לתמיכה הלימודית."
 
 msgid "Suggested priority"
 msgstr ""
@@ -23958,10 +23958,10 @@ msgid "Support & Feedback"
 msgstr ""
 
 msgid "Support & customer success playbooks"
-msgstr ""
+msgstr "מדריכי תמיכה והצלחת לקוחות"
 
 msgid "Support & onboarding (N26)"
-msgstr ""
+msgstr "תמיכה והגדרה (N26)"
 
 msgid "Support Request"
 msgstr ""
@@ -24003,7 +24003,7 @@ msgid "Support owner and escalation path."
 msgstr ""
 
 msgid "Support playbooks"
-msgstr ""
+msgstr "מדריכי תמיכה"
 
 msgid "Support queue & access visibility"
 msgstr ""
@@ -24053,7 +24053,7 @@ msgid ""
 msgstr ""
 
 msgid "Switch to Parent view"
-msgstr ""
+msgstr "עבור לתצוגת הורה"
 
 msgid "Switch to Teacher view"
 msgstr ""
@@ -24085,7 +24085,7 @@ msgid "Syllabus Coverage"
 msgstr ""
 
 msgid "Syllabus and lesson progress are hard to see as a whole"
-msgstr ""
+msgstr "קשה לראות את תוכנית הלימודים והתקדמות השיעורים כמכלול"
 
 msgid "Syllabus approval queue"
 msgstr ""
@@ -24167,7 +24167,7 @@ msgid "System &amp; data"
 msgstr ""
 
 msgid "System Health"
-msgstr ""
+msgstr "בריאות המערכת"
 
 msgid "System Information"
 msgstr ""
@@ -24278,10 +24278,10 @@ msgid "Take attendance"
 msgstr ""
 
 msgid "Take attendance for this class"
-msgstr ""
+msgstr "רשום נוכחות לכיתה זו"
 
 msgid "Take attendance in seconds, on phone or laptop"
-msgstr ""
+msgstr "רשום נוכחות בשניות, בטלפון או במחשב נייד"
 
 msgid "Take me to my dashboard"
 msgstr ""
@@ -24296,7 +24296,7 @@ msgid ""
 msgstr ""
 
 msgid "Take student attendance"
-msgstr ""
+msgstr "רשום נוכחות תלמידים"
 
 msgid "Talk to a human →"
 msgstr ""
@@ -24366,13 +24366,13 @@ msgid "Teacher"
 msgstr ""
 
 msgid "Teacher / parent portals — attendance, marks, and messaging."
-msgstr ""
+msgstr "פורטלים למורים / הורים — נוכחות, ציונים והודעות."
 
 msgid "Teacher / staff digital ID"
 msgstr ""
 
 msgid "Teacher Portal"
-msgstr ""
+msgstr "פורטל מורים"
 
 msgid "Teacher Submission Status"
 msgstr ""
@@ -24384,7 +24384,7 @@ msgid "Teacher action blocks"
 msgstr ""
 
 msgid "Teacher attendance"
-msgstr ""
+msgstr "נוכחות מורים"
 
 msgid "Teacher communities"
 msgstr ""
@@ -24439,7 +24439,7 @@ msgid ""
 msgstr ""
 
 msgid "Teachers repeat work across registers and gradebooks"
-msgstr ""
+msgstr "מורים מבצעים עבודה כפולה בין יומני נוכחות ליומני ציונים"
 
 msgid "Teachers:"
 msgstr ""
@@ -24521,7 +24521,7 @@ msgid ""
 msgstr ""
 
 msgid "Tenant Health & Diagnostic Canvas"
-msgstr ""
+msgstr "בריאות הדייר ולוח אבחון"
 
 msgid "Tenant ID"
 msgstr ""
@@ -24572,7 +24572,7 @@ msgid "Tenant event console"
 msgstr ""
 
 msgid "Tenant health"
-msgstr ""
+msgstr "בריאות הדייר"
 
 msgid ""
 "Tenant hosts: school subdomains (and verified custom domains when "
@@ -24589,7 +24589,7 @@ msgid "Tenant isolation by subdomain"
 msgstr ""
 
 msgid "Tenant isolation discipline multi-campus networks can enforce"
-msgstr ""
+msgstr "משמעת בידוד דיירים שרשתות רב-קמפוסיות יכולות לאכוף"
 
 msgid "Tenant isolation posture procurement can verify."
 msgstr ""
@@ -24636,7 +24636,7 @@ msgid "Tenant runtime hub"
 msgstr ""
 
 msgid "Tenant scheduled reports (read-only)"
-msgstr ""
+msgstr "דוחות מתוזמנים של דייר (קריאה בלבד)"
 
 msgid "Tenant scope"
 msgstr ""
@@ -24679,28 +24679,28 @@ msgid "Tenants using same bundle"
 msgstr ""
 
 msgid "Term 2 review"
-msgstr ""
+msgstr "סקירת סמסטר 2"
 
 msgid "Term CSV"
-msgstr ""
+msgstr "CSV של סמסטר"
 
 msgid "Term ID"
-msgstr ""
+msgstr "מזהה סמסטר"
 
 msgid "Term PDF"
-msgstr ""
+msgstr "PDF של סמסטר"
 
 msgid "Term and annual results for {{ name }}."
 msgstr ""
 
 msgid "Term breakdown"
-msgstr ""
+msgstr "פירוט לפי סמסטר"
 
 msgid "Term labels"
-msgstr ""
+msgstr "תוויות סמסטר"
 
 msgid "Term publish status"
-msgstr ""
+msgstr "סטטוס פרסום סמסטר"
 
 msgid "Term report"
 msgstr ""
@@ -24711,7 +24711,7 @@ msgid ""
 msgstr ""
 
 msgid "Term status and collections."
-msgstr ""
+msgstr "סטטוס סמסטר וגבייה."
 
 msgid ""
 "Term/annual styles, assignments, defaults; preview uses embed/new tab by "
@@ -24742,7 +24742,7 @@ msgid "Test"
 msgstr ""
 
 msgid "Test app behavior with your data and workflow."
-msgstr ""
+msgstr "בדוק את התנהגות האפליקציה עם הנתונים ותהליך העבודה שלך."
 
 msgid "Testimonial"
 msgstr ""
@@ -25022,7 +25022,7 @@ msgid ""
 msgstr ""
 
 msgid "These apply to report cards and evaluations. Region"
-msgstr ""
+msgstr "אלה חלים על תעודות והערכות. אזור"
 
 msgid ""
 "These settings only change what you see (theme, widgets, notifications). "
@@ -25030,7 +25030,7 @@ msgid ""
 msgstr ""
 
 msgid "Third term"
-msgstr ""
+msgstr "סמסטר שלישי"
 
 msgid "This URL name does not resolve in the current configuration."
 msgstr ""
@@ -25042,7 +25042,7 @@ msgid "This admission number is already in use."
 msgstr ""
 
 msgid "This announcement is not pending approval."
-msgstr ""
+msgstr "הודעה זו אינה ממתינה לאישור."
 
 msgid ""
 "This announcement will be sent to all teachers in <strong>{{ name "
@@ -25084,7 +25084,7 @@ msgid ""
 msgstr ""
 
 msgid "This campus health (SLICE 9)"
-msgstr ""
+msgstr "בריאות קמפוס זה (SLICE 9)"
 
 msgid ""
 "This cannot be undone. Type is not required — confirm only if you are sure."
@@ -25123,7 +25123,7 @@ msgid ""
 msgstr ""
 
 msgid "This invoice uses split billing per guardian."
-msgstr ""
+msgstr "חשבונית זו משתמשת בחיוב מפוצל לכל אפוטרופוס."
 
 msgid ""
 "This is a courtesy notice that <strong>{{ first }} {{ last }}</strong>'s "
@@ -25344,10 +25344,10 @@ msgid "Time zone"
 msgstr ""
 
 msgid "Time-based One-Time Password (TOTP)"
-msgstr ""
+msgstr "סיסמה חד-פעמית מבוססת זמן (TOTP)"
 
 msgid "Time-to-value ≤10 min (first result after onboarding/demo signal)"
-msgstr ""
+msgstr "זמן עד ערך ≤10 דקות (תוצאה ראשונה לאחר הגדרה/אות דמו)"
 
 msgid "Timeline"
 msgstr ""
@@ -25359,7 +25359,7 @@ msgid "Timetable"
 msgstr ""
 
 msgid "Timetable, assignments, and grades in one calm surface."
-msgstr ""
+msgstr "מערכת שעות, מטלות וציונים במשטח אחד ורגוע."
 
 msgid "Timetabling"
 msgstr ""
@@ -25428,19 +25428,19 @@ msgid "Today's plan is already staged."
 msgstr ""
 
 msgid "Today's priorities and announcements from your school."
-msgstr ""
+msgstr "סדרי העדיפויות וההודעות של היום מבית הספר שלך."
 
 msgid "Today's slip, attendance, and fee in one card."
-msgstr ""
+msgstr "הטופס, הנוכחות והתשלום של היום בכרטיס אחד."
 
 msgid "Today's slip, attendance, and fee — one card, no app install."
-msgstr ""
+msgstr "הטופס, הנוכחות והתשלום של היום — כרטיס אחד, בלי התקנת אפליקציה."
 
 msgid "Today's tasks"
 msgstr ""
 
 msgid "Toggle Advanced setup"
-msgstr ""
+msgstr "הצג/הסתר הגדרה מתקדמת"
 
 msgid "Toggle Apps"
 msgstr ""
@@ -25546,7 +25546,7 @@ msgid "Top class performers"
 msgstr ""
 
 msgid "Top invoice"
-msgstr ""
+msgstr "חשבונית מובילה"
 
 msgid "Top resources (top 20)"
 msgstr ""
@@ -25561,13 +25561,13 @@ msgid "Top students (class, annual)"
 msgstr ""
 
 msgid "Top students (class, term)"
-msgstr ""
+msgstr "תלמידים מצטיינים (כיתה, סמסטר)"
 
 msgid "Top students (school, annual)"
 msgstr ""
 
 msgid "Top students (school, term)"
-msgstr ""
+msgstr "תלמידים מצטיינים (בית ספר, סמסטר)"
 
 msgid "Top tenants by notification volume"
 msgstr ""
@@ -25688,7 +25688,7 @@ msgid ""
 msgstr ""
 
 msgid "Track fee balances and pay online"
-msgstr ""
+msgstr "עקוב אחר יתרות תשלומים ושלם באינטרנט"
 
 msgid "Track finance and compliance in one dashboard"
 msgstr ""
@@ -25717,7 +25717,7 @@ msgid ""
 msgstr ""
 
 msgid "Transaction ID from receipt (will be extracted if not provided)"
-msgstr ""
+msgstr "מזהה עסקה מהקבלה (יחולץ אם לא יסופק)"
 
 msgid "Transaction Reference (Optional)"
 msgstr ""
@@ -25726,16 +25726,16 @@ msgid "Transcript"
 msgstr ""
 
 msgid "Transcript & archive"
-msgstr ""
+msgstr "גיליון ציונים וארכיון"
 
 msgid "Transcript archive"
-msgstr ""
+msgstr "ארכיון גיליונות ציונים"
 
 msgid "Transcript snapshot summary"
-msgstr ""
+msgstr "סיכום תמונת מצב של גיליון הציונים"
 
 msgid "Transcript vault"
-msgstr ""
+msgstr "כספת גיליונות ציונים"
 
 msgid "Transfer invites"
 msgstr ""
@@ -25752,7 +25752,7 @@ msgid "Transport"
 msgstr ""
 
 msgid "Transport routes"
-msgstr ""
+msgstr "מסלולי הסעות"
 
 msgid "Trends"
 msgstr ""
@@ -25764,10 +25764,10 @@ msgid "Trial"
 msgstr ""
 
 msgid "Trial Balance"
-msgstr ""
+msgstr "מאזן בוחן"
 
 msgid "Trial balance"
-msgstr ""
+msgstr "מאזן בוחן"
 
 msgid "Trial end"
 msgstr ""
@@ -25859,7 +25859,7 @@ msgid "Try demo"
 msgstr ""
 
 msgid "Try payments, imports, gradebook, login, mobile..."
-msgstr ""
+msgstr "נסה תשלומים, ייבוא, יומן ציונים, התחברות, נייד..."
 
 msgid "Try sandbox tenant"
 msgstr ""
@@ -25871,7 +25871,7 @@ msgid "Tuesday · Cedar Ridge Academy"
 msgstr ""
 
 msgid "Tuition, fees, aid — Finance dashboard and admissions workflows."
-msgstr ""
+msgstr "שכר לימוד, תשלומים, סיוע — לוח בקרה פיננסי ותהליכי קבלה."
 
 msgid ""
 "Tune academic years, terms and semesters, grading systems, class structures,"
@@ -25934,7 +25934,7 @@ msgid "Type to filter..."
 msgstr ""
 
 msgid "Type your school name or slug to go straight to your private portal."
-msgstr ""
+msgstr "הקלד את שם בית הספר או המזהה שלו כדי לעבור ישירות לפורטל הפרטי שלך."
 
 msgid "Type: %(type)s"
 msgstr ""
@@ -26015,7 +26015,7 @@ msgid "Unified API"
 msgstr ""
 
 msgid "Unified calendar"
-msgstr ""
+msgstr "לוח שנה מאוחד"
 
 msgid "Unified contract"
 msgstr ""
@@ -26045,7 +26045,7 @@ msgid "Uninstall"
 msgstr ""
 
 msgid "Uninstall from Installed apps at any time; no long-term lock-in."
-msgstr ""
+msgstr "הסר התקנה מ\"אפליקציות מותקנות\" בכל עת; ללא מחויבות לטווח ארוך."
 
 msgid "Uninstall this app?"
 msgstr ""
@@ -26054,7 +26054,7 @@ msgid "Unique IPs"
 msgstr ""
 
 msgid "Unique identifier used in search, exports, and payment matching."
-msgstr ""
+msgstr "מזהה ייחודי המשמש בחיפוש, בייצוא ובהתאמת תשלומים."
 
 msgid "Unit"
 msgstr ""
@@ -26102,7 +26102,7 @@ msgid "Unsaved link form"
 msgstr ""
 
 msgid "Unsaved wizard progress"
-msgstr ""
+msgstr "התקדמות אשף שלא נשמרה"
 
 msgid "Unsynced erasure request"
 msgstr ""
@@ -26111,10 +26111,10 @@ msgid "Unsynced export filters"
 msgstr ""
 
 msgid "Unsynced fee generation"
-msgstr ""
+msgstr "יצירת תשלומים שלא סונכרנה"
 
 msgid "Unsynced invoice changes"
-msgstr ""
+msgstr "שינויי חשבונית שלא סונכרנו"
 
 msgid "Unsynced legacy groups {{ n }}"
 msgstr ""
@@ -26123,7 +26123,7 @@ msgid "Unsynced message"
 msgstr ""
 
 msgid "Unsynced receipt details"
-msgstr ""
+msgstr "פרטי קבלה שלא סונכרנו"
 
 msgid "Unsynced request"
 msgstr ""
@@ -26209,10 +26209,10 @@ msgid "Upload PDF or image"
 msgstr ""
 
 msgid "Upload Payment Receipt"
-msgstr ""
+msgstr "העלה קבלת תשלום"
 
 msgid "Upload Receipt"
-msgstr ""
+msgstr "העלה קבלה"
 
 msgid ""
 "Upload a CSV using the template headers. You can preview before applying."
@@ -26233,7 +26233,7 @@ msgid "Upload failed. Try again."
 msgstr ""
 
 msgid "Upload lesson plan"
-msgstr ""
+msgstr "העלה מערך שיעור"
 
 msgid "Upload photo"
 msgstr ""
@@ -26242,7 +26242,7 @@ msgid "Upload photo for ID"
 msgstr ""
 
 msgid "Upload receipt/screenshot (PDF or image, max 2MB)"
-msgstr ""
+msgstr "העלה קבלה/צילום מסך (PDF או תמונה, עד 2MB)"
 
 msgid "Upload two CSVs to compare keys and spot migration risk."
 msgstr ""
@@ -26254,7 +26254,7 @@ msgid "Uploaded By"
 msgstr ""
 
 msgid "Uploaded Receipts"
-msgstr ""
+msgstr "קבלות שהועלו"
 
 msgid "Upsert conflicts"
 msgstr ""
@@ -26363,7 +26363,7 @@ msgid "Use ranked baselines instead of trial-and-error configuration."
 msgstr ""
 
 msgid "Use same pack for portal and admin"
-msgstr ""
+msgstr "השתמש באותה חבילה לפורטל ולניהול"
 
 msgid "Use stage updates + next follow-up to keep outreach moving."
 msgstr ""
@@ -26425,7 +26425,7 @@ msgid ""
 msgstr ""
 
 msgid "Use this one-time link to choose your new password:"
-msgstr ""
+msgstr "השתמש בקישור החד-פעמי הזה כדי לבחור סיסמה חדשה:"
 
 msgid ""
 "Use this portal to understand REST/API access, scoped keys, quota "
@@ -26443,10 +26443,10 @@ msgid "Use this template"
 msgstr ""
 
 msgid "Use your school login"
-msgstr ""
+msgstr "השתמש בהתחברות של בית הספר"
 
 msgid "Use your wallet to pay invoices at checkout."
-msgstr ""
+msgstr "השתמש בארנק שלך כדי לשלם חשבוניות בקופה."
 
 msgid "Use “Change” above if detection disagrees with your export."
 msgstr ""
@@ -26460,7 +26460,7 @@ msgid "Used by automation (visual workflows)"
 msgstr ""
 
 msgid "Useful for signed invoices or external receipts."
-msgstr ""
+msgstr "שימושי עבור חשבוניות חתומות או קבלות חיצוניות."
 
 msgid "User"
 msgstr ""
@@ -26478,7 +26478,7 @@ msgid "User ID"
 msgstr ""
 
 msgid "User account that owns this passport (student or parent)."
-msgstr ""
+msgstr "חשבון המשתמש שבבעלותו דרכון זה (תלמיד או הורה)."
 
 msgid "User name, role from account"
 msgstr ""
@@ -26578,7 +26578,7 @@ msgid "Verified"
 msgstr ""
 
 msgid "Verified Parent"
-msgstr ""
+msgstr "הורה מאומת"
 
 msgid "Verified events"
 msgstr ""
@@ -26596,7 +26596,7 @@ msgid "Verified publisher"
 msgstr ""
 
 msgid "Verified signups (30d events)"
-msgstr ""
+msgstr "הרשמות מאומתות (אירועי 30 ימים)"
 
 msgid ""
 "Verified status, compatibility chips, best-for labels, and screenshots "
@@ -26661,7 +26661,7 @@ msgid "View Count"
 msgstr ""
 
 msgid "View Security Playbook & Runbooks"
-msgstr ""
+msgstr "הצג מדריך אבטחה וספרי הפעלה"
 
 msgid "View all"
 msgstr ""
@@ -26691,7 +26691,7 @@ msgid "View below"
 msgstr ""
 
 msgid "View calendar"
-msgstr ""
+msgstr "הצג לוח שנה"
 
 msgid "View feed"
 msgstr ""
@@ -26706,13 +26706,13 @@ msgid "View inbox"
 msgstr ""
 
 msgid "View invoice"
-msgstr ""
+msgstr "הצג חשבונית"
 
 msgid "View legacy"
 msgstr ""
 
 msgid "View live grades, attendance, and term reports"
-msgstr ""
+msgstr "הצג ציונים חיים, נוכחות ודוחות סמסטר"
 
 msgid "View log"
 msgstr ""
@@ -26724,7 +26724,7 @@ msgid "View notifications"
 msgstr ""
 
 msgid "View portal feature"
-msgstr ""
+msgstr "הצג תכונת פורטל"
 
 msgid "View profile"
 msgstr ""
@@ -26733,7 +26733,7 @@ msgid "View report"
 msgstr ""
 
 msgid "View report card"
-msgstr ""
+msgstr "הצג תעודה"
 
 msgid "View roster"
 msgstr ""
@@ -26757,7 +26757,7 @@ msgid "View syllabus"
 msgstr ""
 
 msgid "View teacher attendance"
-msgstr ""
+msgstr "הצג נוכחות מורים"
 
 msgid ""
 "View the full report card with subject breakdowns and teacher comments:"
@@ -26986,7 +26986,7 @@ msgid "We'll send a verification link here. This becomes your sign-in."
 msgstr ""
 
 msgid "We're glad to help — flexible payment plans are available on request."
-msgstr ""
+msgstr "נשמח לעזור — תוכניות תשלום גמישות זמינות לפי בקשה."
 
 msgid ""
 "We're the spine: configure integration → SSO → roster sync (OneRoster) → "
@@ -27171,7 +27171,7 @@ msgid ""
 msgstr ""
 
 msgid "Weekly schedule"
-msgstr ""
+msgstr "לוח זמנים שבועי"
 
 msgid "Weight"
 msgstr ""
@@ -27186,7 +27186,7 @@ msgid "Welcome back"
 msgstr ""
 
 msgid "Welcome back to RunMyCampus"
-msgstr ""
+msgstr "ברוך שובך ל-RunMyCampus"
 
 msgid "Welcome back, {{ name }}."
 msgstr ""
@@ -27203,7 +27203,7 @@ msgid ""
 msgstr ""
 
 msgid "Welcome to RunMyCampus"
-msgstr ""
+msgstr "ברוך הבא ל-RunMyCampus"
 
 msgid "Welcome, {{ name }}."
 msgstr ""
@@ -27364,7 +27364,7 @@ msgid ""
 msgstr ""
 
 msgid "Where Term 2 stands"
-msgstr ""
+msgstr "היכן עומד סמסטר 2"
 
 msgid ""
 "Where data lives; region-specific compliance (GDPR, FERPA). Region packs "
@@ -27481,7 +27481,7 @@ msgid ""
 msgstr ""
 
 msgid "Will be extracted from receipt if not provided"
-msgstr ""
+msgstr "יחולץ מהקבלה אם לא יסופק"
 
 msgid "Willow Field"
 msgstr ""
@@ -27579,7 +27579,7 @@ msgid "Workflow depth & audits"
 msgstr ""
 
 msgid "Workflow examples"
-msgstr ""
+msgstr "דוגמאות לתהליכי עבודה"
 
 msgid "Workflow families"
 msgstr ""
@@ -27597,10 +27597,10 @@ msgid "Workflow guide"
 msgstr ""
 
 msgid "Workflow health"
-msgstr ""
+msgstr "בריאות תהליכי עבודה"
 
 msgid "Workflow health metrics"
-msgstr ""
+msgstr "מדדי בריאות של תהליכי עבודה"
 
 msgid "Workflow hub"
 msgstr ""
@@ -27675,7 +27675,7 @@ msgid "WorkflowPack — workflow pack catalog"
 msgstr ""
 
 msgid "WorkflowPackAssignment — tenant workflow bindings"
-msgstr ""
+msgstr "WorkflowPackAssignment — קישורי תהליכי עבודה של דייר"
 
 msgid "WorkflowRunLog — workflow execution audit"
 msgstr ""
@@ -27721,7 +27721,7 @@ msgid "Write your first article!"
 msgstr ""
 
 msgid "Y9 parent meeting"
-msgstr ""
+msgstr "מפגש הורים כיתה ט'"
 
 msgid "Yanked"
 msgstr ""
@@ -27807,7 +27807,7 @@ msgid ""
 msgstr ""
 
 msgid "You don't have a wallet yet. Top up or pay an invoice to create one."
-msgstr ""
+msgstr "עדיין אין לך ארנק. טען יתרה או שלם חשבונית כדי ליצור אחד."
 
 msgid "You don't have any classes yet."
 msgstr ""
@@ -27842,7 +27842,7 @@ msgid ""
 msgstr ""
 
 msgid "You must set a new password to continue."
-msgstr ""
+msgstr "עליך להגדיר סיסמה חדשה כדי להמשיך."
 
 msgid ""
 "You need permission to manage site settings to open bulk letters and pack "
@@ -27935,7 +27935,7 @@ msgid "Your changes affect this area"
 msgstr ""
 
 msgid "Your children's status, fees, and school messages in one place."
-msgstr ""
+msgstr "הסטטוס של ילדיך, התשלומים והודעות בית הספר במקום אחד."
 
 msgid ""
 "Your children, school status, and the next step to take — in one calm view."
@@ -28038,7 +28038,7 @@ msgid ""
 msgstr ""
 
 msgid "Your schedule and class list for the current day."
-msgstr ""
+msgstr "לוח הזמנים ורשימת הכיתה שלך ליום הנוכחי."
 
 msgid ""
 "Your school has disabled this feature. Please upload a photo on this device "
@@ -32596,7 +32596,7 @@ msgid "SIS vendor whose synthetic fixture exercises the pipeline."
 msgstr ""
 
 msgid "SSE transport"
-msgstr ""
+msgstr "תעבורת SSE"
 
 msgid "SSO blip detected"
 msgstr ""
@@ -32984,10 +32984,10 @@ msgid "Start consent campaign"
 msgstr ""
 
 msgid "Start guardian consent campaign"
-msgstr ""
+msgstr "התחל קמפיין הסכמת אפוטרופוסים"
 
 msgid "Start setup"
-msgstr ""
+msgstr "התחל הגדרה"
 
 msgid ""
 "Start with the display name and a short web address. We suggest slug and "
@@ -33132,7 +33132,7 @@ msgid "Tenant analytics overview"
 msgstr ""
 
 msgid "Tenant login"
-msgstr ""
+msgstr "התחברות דייר"
 
 msgid "Tenant prefix"
 msgstr ""
@@ -33147,7 +33147,7 @@ msgid "Tenant subscriptions"
 msgstr ""
 
 msgid "Tenant-scoped live metrics (attendance, revenue, allocation)."
-msgstr ""
+msgstr "מדדים חיים ברמת הדייר (נוכחות, הכנסות, הקצאה)."
 
 msgid "Tenants signed (active)"
 msgstr ""
@@ -33159,10 +33159,10 @@ msgid "Tenants w/ signed MAA"
 msgstr ""
 
 msgid "Term 2 tuition"
-msgstr ""
+msgstr "שכר לימוד סמסטר 2"
 
 msgid "Term trend"
-msgstr ""
+msgstr "מגמת סמסטר"
 
 msgid "Terms"
 msgstr ""
@@ -33260,7 +33260,7 @@ msgid "This is a transactional email tied to your migration intake."
 msgstr ""
 
 msgid "This is how login and portal chrome will approximate your choices."
-msgstr ""
+msgstr "כך ייראו מסך ההתחברות ומעטפת הפורטל בקירוב לבחירות שלך."
 
 msgid ""
 "This link is no longer active. If you reached this page in error, please "
@@ -33346,7 +33346,7 @@ msgid "Translation of"
 msgstr ""
 
 msgid "Transport levy"
-msgstr ""
+msgstr "היטל הסעות"
 
 msgid "Trust & security"
 msgstr ""
@@ -33645,7 +33645,7 @@ msgid "What data is involved"
 msgstr ""
 
 msgid "What does health score mean?"
-msgstr ""
+msgstr "מה משמעות ציון הבריאות?"
 
 msgid "What happens after submit:"
 msgstr ""
@@ -40034,7 +40034,7 @@ msgid "Sovereign kernel"
 msgstr ""
 
 msgid "Sparklines and trend deltas appear when parents submit portal surveys."
-msgstr ""
+msgstr "גרפים זעירים ושינויי מגמה מופיעים כאשר הורים ממלאים סקרים בפורטל."
 
 msgid ""
 "Spin up a demo-N school with the K-12 template — no name or slug needed."
@@ -40118,10 +40118,10 @@ msgid "Step 2a — Language of instruction"
 msgstr ""
 
 msgid "Step 3 — Calendar"
-msgstr ""
+msgstr "שלב 3 — לוח שנה"
 
 msgid "Step 3 — Schedule auto-purge (optional)"
-msgstr ""
+msgstr "שלב 3 — תזמון ניקוי אוטומטי (אופציונלי)"
 
 msgid "Step 3: Verify with a code"
 msgstr ""
@@ -40186,13 +40186,13 @@ msgid ""
 msgstr ""
 
 msgid "Student enrollment"
-msgstr ""
+msgstr "הרשמת תלמידים"
 
 msgid "Student of the month"
 msgstr ""
 
 msgid "Student portal accent"
-msgstr ""
+msgstr "צבע הדגשה לפורטל תלמידים"
 
 msgid "Student roster"
 msgstr ""
@@ -40233,7 +40233,7 @@ msgid ""
 msgstr ""
 
 msgid "Subscribe calendar (.ics)"
-msgstr ""
+msgstr "הירשם ללוח שנה (.ics)"
 
 msgid "Subscribe to family digest"
 msgstr ""
@@ -40259,7 +40259,7 @@ msgid "Suggested actions"
 msgstr ""
 
 msgid "Suggested next actions from interventions, risk alerts, and health."
-msgstr ""
+msgstr "פעולות המשך מומלצות מתוך התערבויות, התראות סיכון ובריאות."
 
 msgid "Suggested next step from activation engine."
 msgstr ""
@@ -40330,10 +40330,10 @@ msgid "Teacher (hashed)"
 msgstr ""
 
 msgid "Teacher portal"
-msgstr ""
+msgstr "פורטל מורים"
 
 msgid "Teacher portal accent"
-msgstr ""
+msgstr "צבע הדגשה לפורטל מורים"
 
 msgid "Teacher spotlight"
 msgstr ""
@@ -40402,7 +40402,7 @@ msgid "Tenant heatmap (content)"
 msgstr ""
 
 msgid "Tenant heatmap by health"
-msgstr ""
+msgstr "מפת חום של דיירים לפי בריאות"
 
 msgid "Tenant host"
 msgstr ""
@@ -40411,7 +40411,7 @@ msgid "Tenant journey"
 msgstr ""
 
 msgid "Tenant logins limited to export-only when wind-down is active."
-msgstr ""
+msgstr "התחברויות דייר מוגבלות לייצוא בלבד כאשר תהליך הסגירה פעיל."
 
 msgid "Tenant readiness"
 msgstr ""
@@ -40449,16 +40449,16 @@ msgid "Tenants waiting to go live."
 msgstr ""
 
 msgid "Tenants · health grid"
-msgstr ""
+msgstr "דיירים · רשת בריאות"
 
 msgid "Term"
 msgstr ""
 
 msgid "Term fees invoice"
-msgstr ""
+msgstr "חשבונית תשלומי סמסטר"
 
 msgid "Term highlights · upcoming events · 1 email every Sunday"
-msgstr ""
+msgstr "עיקרי הסמסטר · אירועים קרובים · מייל אחד בכל יום ראשון"
 
 msgid "Term:"
 msgstr ""
@@ -40546,7 +40546,7 @@ msgid "Theme personality cascade"
 msgstr ""
 
 msgid "Theme personality reset to defaults."
-msgstr ""
+msgstr "אישיות ערכת הנושא אופסה לברירות המחדל."
 
 msgid "Theme personality saved."
 msgstr ""
@@ -40756,7 +40756,7 @@ msgid "Today · live"
 msgstr ""
 
 msgid "Today's lesson"
-msgstr ""
+msgstr "השיעור של היום"
 
 msgid "Today: operator"
 msgstr ""
@@ -40780,7 +40780,7 @@ msgid "Total sections"
 msgstr ""
 
 msgid "Transactional fee notification."
-msgstr ""
+msgstr "התראת תשלום עסקתית."
 
 msgid "Transactional notification."
 msgstr ""
@@ -40830,10 +40830,10 @@ msgid "Tuition"
 msgstr ""
 
 msgid "Tuition and school fees"
-msgstr ""
+msgstr "שכר לימוד ותשלומי בית ספר"
 
 msgid "Tuition vs activity split (illustrative)"
-msgstr ""
+msgstr "חלוקה בין שכר לימוד לפעילויות (להמחשה)"
 
 msgid "Two operators must approve before permanent delete."
 msgstr ""
@@ -40923,7 +40923,7 @@ msgid ""
 msgstr ""
 
 msgid "Use a unique password and change it if you suspect compromise."
-msgstr ""
+msgstr "השתמש בסיסמה ייחודית ושנה אותה אם אתה חושד בפריצה."
 
 msgid ""
 "Use a verified authenticator, store backup codes offline, and keep your "
@@ -40962,7 +40962,7 @@ msgid "User must be a school member before regulator access can be granted."
 msgstr ""
 
 msgid "Username and password (8+ chars) required."
-msgstr ""
+msgstr "נדרשים שם משתמש וסיסמה (8+ תווים)."
 
 msgid "Username exists with a different email. Contact platform admin."
 msgstr ""
@@ -41031,10 +41031,10 @@ msgid "View full audit log"
 msgstr ""
 
 msgid "View report card:"
-msgstr ""
+msgstr "הצג תעודה:"
 
 msgid "View runbook"
-msgstr ""
+msgstr "הצג ספר הפעלה"
 
 msgid "View statement:"
 msgstr ""
@@ -41049,7 +41049,7 @@ msgid "Waiting for first provisioning event…"
 msgstr ""
 
 msgid "Wallet balance is insufficient for pay-all."
-msgstr ""
+msgstr "יתרת הארנק אינה מספיקה לתשלום הכולל."
 
 msgid ""
 "Wallet balance {{ bal }} is below the family total. Top up your wallet or "
@@ -41112,16 +41112,16 @@ msgid ""
 msgstr ""
 
 msgid "Welcome — let's get you live"
-msgstr ""
+msgstr "ברוך הבא — בוא נעלה אותך לאוויר"
 
 msgid "Welcome — let's get you signed in"
-msgstr ""
+msgstr "ברוך הבא — בוא נחבר אותך"
 
 msgid "Welcome — sent on account creation."
-msgstr ""
+msgstr "ברוך הבא — נשלח בעת יצירת החשבון."
 
 msgid "Welcome — your account is ready"
-msgstr ""
+msgstr "ברוך הבא — החשבון שלך מוכן"
 
 msgid "West Africa"
 msgstr ""
@@ -41151,7 +41151,7 @@ msgid "Wind-down mode"
 msgstr ""
 
 msgid "Wizard progress"
-msgstr ""
+msgstr "התקדמות אשף"
 
 msgid "Workbench actions"
 msgstr ""
@@ -42312,13 +42312,13 @@ msgid "Widget id"
 msgstr ""
 
 msgid "Wizard"
-msgstr ""
+msgstr "אשף"
 
 msgid "Wizard activation"
-msgstr ""
+msgstr "הפעלת אשף"
 
 msgid "Wizard stats"
-msgstr ""
+msgstr "סטטיסטיקות אשף"
 
 msgid "Admissions queue depth"
 msgstr ""
@@ -42342,10 +42342,10 @@ msgid "Suggested next steps:"
 msgstr ""
 
 msgid "Try: gradebook, attendance, payment, password…"
-msgstr ""
+msgstr "נסה: יומן ציונים, נוכחות, תשלום, סיסמה…"
 
 msgid "Wizards in progress"
-msgstr ""
+msgstr "אשפים בתהליך"
 
 msgid ""
 "You have {{ counter }} wizard in progress.{% plural %}You have {{ counter }}"
@@ -43399,7 +43399,7 @@ msgid "Student @ university"
 msgstr ""
 
 msgid "Subject assignment"
-msgstr ""
+msgstr "שיוך מקצוע"
 
 msgid "Succeeded"
 msgstr ""
@@ -43440,7 +43440,7 @@ msgid "Total queries"
 msgstr ""
 
 msgid "Touch-optimized attendance swipe"
-msgstr ""
+msgstr "החלקת נוכחות ממוטבת למגע"
 
 msgid "Type a school command"
 msgstr ""
@@ -43449,7 +43449,7 @@ msgid "Types"
 msgstr ""
 
 msgid "Unified login"
-msgstr ""
+msgstr "התחברות מאוחדת"
 
 msgid "University"
 msgstr ""
@@ -44470,7 +44470,7 @@ msgid "Tenant v3 100x"
 msgstr ""
 
 msgid "Term-over-term deltas appear once at least two terms have been graded."
-msgstr ""
+msgstr "הפרשים בין סמסטרים מופיעים לאחר שלפחות שני סמסטרים קיבלו ציונים."
 
 msgid ""
 "The nightly Celery task writes results to var/smoke-results/ once enabled. "
@@ -44778,10 +44778,10 @@ msgid "Workflow Flight Deck"
 msgstr ""
 
 msgid "Your dispute was resolved and a refund was issued."
-msgstr ""
+msgstr "הערעור שלך נפתר וזוכה החזר כספי."
 
 msgid "Your dispute was reviewed and closed without a refund."
-msgstr ""
+msgstr "הערעור שלך נבדק ונסגר ללא החזר כספי."
 
 msgid "broken proof(s)"
 msgstr ""
@@ -45467,7 +45467,7 @@ msgid "Tour steps"
 msgstr ""
 
 msgid "US letters · GPA"
-msgstr ""
+msgstr "ציוני אותיות אמריקאיים · GPA"
 
 msgid "USSD fallback · no data plan"
 msgstr ""
@@ -45493,7 +45493,7 @@ msgid "Workspace preview"
 msgstr ""
 
 msgid "Year 9 — B guardians"
-msgstr ""
+msgstr "כיתה ט' — אפוטרופוסים של קבוצה B"
 
 msgid "Zero-UI Lab"
 msgstr ""
@@ -45568,7 +45568,7 @@ msgid "See pricing"
 msgstr ""
 
 msgid "Transparent, indicative pricing"
-msgstr ""
+msgstr "תמחור שקוף ומנחה"
 
 msgid "Approve / Reject"
 msgstr ""
@@ -45831,7 +45831,7 @@ msgid ""
 msgstr ""
 
 msgid "You can still sign up your school here"
-msgstr ""
+msgstr "עדיין תוכל לרשום את בית הספר שלך כאן"
 
 msgid "You're invited to RunMyCampus"
 msgstr ""
@@ -46048,7 +46048,7 @@ msgid ""
 msgstr ""
 
 msgid "Workflows healthy"
-msgstr ""
+msgstr "תהליכי העבודה תקינים"
 
 msgid "Writer file (ODT, DOCX, RTF, TXT)"
 msgstr ""
@@ -46443,7 +46443,7 @@ msgid "Tenant action"
 msgstr ""
 
 msgid "That signup verification no longer exists."
-msgstr ""
+msgstr "אימות ההרשמה הזה כבר אינו קיים."
 
 msgid ""
 "This view exposes masked, read-only data only. Every access is recorded "
@@ -46457,7 +46457,7 @@ msgid ""
 msgstr ""
 
 msgid "Total signups"
-msgstr ""
+msgstr "סך הרשמות"
 
 msgid "Tour"
 msgstr ""
@@ -46630,7 +46630,7 @@ msgid "Step {{ step }} of {{ total_steps }}"
 msgstr ""
 
 msgid "This setup link has expired."
-msgstr ""
+msgstr "קישור ההגדרה הזה פג תוקף."
 
 msgid ""
 "Use the language-neutral REST contract from Python, JavaScript, mobile, "
@@ -46641,7 +46641,7 @@ msgid "Welcome to {{ name }}!"
 msgstr ""
 
 msgid "Welcome — finish setting up your account"
-msgstr ""
+msgstr "ברוך הבא — סיים להגדיר את החשבון שלך"
 
 msgid ""
 "Your account is set up. Here are a couple of good next steps — or jump "
@@ -46851,7 +46851,7 @@ msgid "Totals"
 msgstr ""
 
 msgid "Verify the signup before resending the portal email."
-msgstr ""
+msgstr "אמת את ההרשמה לפני שליחה חוזרת של מייל הפורטל."
 
 msgid ""
 "Verify the signup first — provisioning starts after email verification."
@@ -46868,7 +46868,7 @@ msgid ""
 msgstr ""
 
 msgid "We received your signup — verify your email to continue."
-msgstr ""
+msgstr "קיבלנו את ההרשמה שלך — אמת את כתובת המייל כדי להמשיך."
 
 msgid ""
 "We're finishing the last setup steps for your campus. This page refreshes "
@@ -53433,7 +53433,7 @@ msgid "Sovereign deployment matrix"
 msgstr ""
 
 msgid "Sovereign wizard"
-msgstr ""
+msgstr "אשף ריבוני"
 
 msgid "Sovereign · Clinical · Rugged · Fluid — tap through."
 msgstr ""
@@ -53448,7 +53448,7 @@ msgid "Split ledger, real rails"
 msgstr ""
 
 msgid "Sponsored hero slots require Login canvas Pro."
-msgstr ""
+msgstr "משבצות באנר ממומנות דורשות Login canvas Pro."
 
 msgid "Sponsored slots: {{ count }}"
 msgstr ""
@@ -53561,7 +53561,7 @@ msgid "Student identity & records"
 msgstr ""
 
 msgid "Student portal is disabled"
-msgstr ""
+msgstr "פורטל התלמידים מושבת"
 
 msgid "Student profile ID"
 msgstr ""
@@ -53573,7 +53573,7 @@ msgid "Student results on dashboard"
 msgstr ""
 
 msgid "Student route assignments"
-msgstr ""
+msgstr "שיוך תלמידים למסלולים"
 
 msgid "Student transfers"
 msgstr ""
@@ -53638,7 +53638,7 @@ msgid "Submit for security review"
 msgstr ""
 
 msgid "Submit homework"
-msgstr ""
+msgstr "הגש שיעורי בית"
 
 msgid "Submit offboarding request"
 msgstr ""
@@ -53746,7 +53746,7 @@ msgid "Syllabus hub"
 msgstr ""
 
 msgid "Sync health"
-msgstr ""
+msgstr "בריאות סנכרון"
 
 msgid "T-score"
 msgstr ""
@@ -53785,7 +53785,7 @@ msgid "Teacher + admin accounts"
 msgstr ""
 
 msgid "Teacher portal is disabled"
-msgstr ""
+msgstr "פורטל המורים מושבת"
 
 msgid "Teacher workspace preview"
 msgstr ""
@@ -53796,7 +53796,7 @@ msgid ""
 msgstr ""
 
 msgid "Teachers land on the teacher dashboard with gradebook and class tools."
-msgstr ""
+msgstr "מורים מגיעים ללוח הבקרה של המורה עם יומן ציונים וכלי כיתה."
 
 msgid "Teachers, leadership, finance, and IT"
 msgstr ""
@@ -53857,7 +53857,7 @@ msgid "Tenant model catalog"
 msgstr ""
 
 msgid "Tenant portal · floating copilot"
-msgstr ""
+msgstr "פורטל דייר · עוזר צף"
 
 msgid "Tenant preview"
 msgstr ""
@@ -53927,7 +53927,7 @@ msgid "That notification is no longer available."
 msgstr ""
 
 msgid "That password is incorrect. Please try again."
-msgstr ""
+msgstr "הסיסמה שגויה. אנא נסה שוב."
 
 msgid "The Owner Console is available to school owners."
 msgstr ""
@@ -53955,7 +53955,7 @@ msgid ""
 msgstr ""
 
 msgid "The message a parent opens before coffee cools"
-msgstr ""
+msgstr "ההודעה שהורה פותח לפני שהקפה מתקרר"
 
 msgid ""
 "The most recent security and ownership events for your school — who did "
@@ -53963,7 +53963,7 @@ msgid ""
 msgstr ""
 
 msgid "The parent gets a secure link to sign electronically."
-msgstr ""
+msgstr "ההורה מקבל קישור מאובטח לחתימה אלקטרונית."
 
 msgid ""
 "The preview will compare the current dashboard against the proposed "
@@ -53983,7 +53983,7 @@ msgid "Theme live preview frame"
 msgstr ""
 
 msgid "Then return here and choose Parent."
-msgstr ""
+msgstr "לאחר מכן חזור לכאן ובחר הורה."
 
 msgid "They need a"
 msgstr ""
@@ -53996,10 +53996,10 @@ msgid ""
 msgstr ""
 
 msgid "This assignment is a draft"
-msgstr ""
+msgstr "מטלה זו היא טיוטה"
 
 msgid "This assignment is not open for submissions."
-msgstr ""
+msgstr "מטלה זו אינה פתוחה להגשות."
 
 msgid ""
 "This consent link is not available. It may have expired, already been "
@@ -54063,7 +54063,7 @@ msgid ""
 msgstr ""
 
 msgid "This resource is already booked for that time."
-msgstr ""
+msgstr "משאב זה כבר מוזמן לשעה זו."
 
 msgid "This school now inherits the platform MFA default."
 msgstr ""
@@ -54078,10 +54078,10 @@ msgid "This school's override"
 msgstr ""
 
 msgid "This timetable is ready to publish."
-msgstr ""
+msgstr "מערכת השעות מוכנה לפרסום."
 
 msgid "This venue is already booked for that time."
-msgstr ""
+msgstr "המקום הזה כבר מוזמן לשעה זו."
 
 msgid "This week's deadlines"
 msgstr ""
@@ -54118,16 +54118,16 @@ msgid "Time remaining"
 msgstr ""
 
 msgid "Timetable + gradebook shell"
-msgstr ""
+msgstr "שלד מערכת שעות + יומן ציונים"
 
 msgid "Timetable grid: periods by day."
-msgstr ""
+msgstr "רשת מערכת שעות: שיעורים לפי יום."
 
 msgid "Timetable published. Teachers now see it in their portal."
-msgstr ""
+msgstr "מערכת השעות פורסמה. המורים רואים אותה כעת בפורטל שלהם."
 
 msgid "Timetable shell"
-msgstr ""
+msgstr "שלד מערכת שעות"
 
 msgid ""
 "Tip: users who already have 2FA are never affected by this setting. It only "
@@ -54141,7 +54141,7 @@ msgid "Today at your school"
 msgstr ""
 
 msgid "Today's timetable"
-msgstr ""
+msgstr "מערכת השעות של היום"
 
 msgid ""
 "Toddle owns IB workflows but stops at the wall. Arbor excels at UK "
@@ -54194,7 +54194,7 @@ msgid "Transfer ownership to this member and step yourself down?"
 msgstr ""
 
 msgid "Transport assignments"
-msgstr ""
+msgstr "שיבוצי הסעות"
 
 msgid "Triage Queue"
 msgstr ""
@@ -54228,7 +54228,7 @@ msgid ""
 msgstr ""
 
 msgid "Turned in, not graded"
-msgstr ""
+msgstr "הוגש, ללא ציון"
 
 msgid ""
 "Turning a module on only changes what your team can see — no data is ever "
@@ -54279,7 +54279,7 @@ msgid "Unexcused absence"
 msgstr ""
 
 msgid "Unknown portal experience preset."
-msgstr ""
+msgstr "הגדרה מוקדמת לא ידועה של חוויית הפורטל."
 
 msgid "Unknown school"
 msgstr ""
@@ -54364,7 +54364,7 @@ msgid ""
 msgstr ""
 
 msgid "Use recommended setup"
-msgstr ""
+msgstr "השתמש בהגדרה המומלצת"
 
 msgid "Use the dashboard your school assigned for your role."
 msgstr ""
@@ -54440,7 +54440,7 @@ msgid "View plans"
 msgstr ""
 
 msgid "View setup progress"
-msgstr ""
+msgstr "הצג התקדמות הגדרה"
 
 msgid "View usage"
 msgstr ""
@@ -54515,7 +54515,7 @@ msgid ""
 msgstr ""
 
 msgid "We're still finishing your campus setup"
-msgstr ""
+msgstr "אנחנו עדיין משלימים את הגדרת הקמפוס שלך"
 
 msgid "Webhook delivery failures"
 msgstr ""
@@ -54524,31 +54524,31 @@ msgid "Webhook drift groups: %(count)s"
 msgstr ""
 
 msgid "Welcome back — check today's priorities in your dashboard."
-msgstr ""
+msgstr "ברוך שובך — בדוק את סדרי העדיפויות של היום בלוח הבקרה שלך."
 
 msgid "Welcome to your portal"
-msgstr ""
+msgstr "ברוך הבא לפורטל שלך"
 
 msgid "Welcome to your school portal"
-msgstr ""
+msgstr "ברוך הבא לפורטל בית הספר שלך"
 
 msgid "Welcome to your workspace"
-msgstr ""
+msgstr "ברוך הבא למרחב העבודה שלך"
 
 msgid "Welcome — let's set up billing"
-msgstr ""
+msgstr "ברוך הבא — בוא נגדיר חיוב"
 
 msgid "Welcome — let's set up your school"
-msgstr ""
+msgstr "ברוך הבא — בוא נגדיר את בית הספר שלך"
 
 msgid "Welcome — sign in to reach your school workspace."
-msgstr ""
+msgstr "ברוך הבא — התחבר כדי להגיע למרחב העבודה של בית הספר שלך."
 
 msgid "Welcome — your student home is getting ready"
-msgstr ""
+msgstr "ברוך הבא — בית התלמיד שלך בהכנה"
 
 msgid "Welcome! Let's link your child"
-msgstr ""
+msgstr "ברוך הבא! בוא נקשר את ילדך"
 
 msgid "What is blocking launch?"
 msgstr ""
@@ -54704,7 +54704,7 @@ msgid ""
 msgstr ""
 
 msgid "You can resubmit until the assignment closes."
-msgstr ""
+msgstr "תוכל להגיש מחדש עד לסגירת המטלה."
 
 msgid ""
 "You can view platform superadmins here, but only an existing superuser can "
@@ -54832,7 +54832,7 @@ msgid "You've seen the day."
 msgstr ""
 
 msgid "Your academic year and terms are set in their own editor:"
-msgstr ""
+msgstr "שנת הלימודים והסמסטרים שלך מוגדרים בעורך ייעודי:"
 
 msgid "Your answer"
 msgstr ""
@@ -54867,7 +54867,7 @@ msgid ""
 msgstr ""
 
 msgid "Your campus portal is ready. Sign in below to get started."
-msgstr ""
+msgstr "פורטל הקמפוס שלך מוכן. התחבר למטה כדי להתחיל."
 
 msgid ""
 "Your classes, gradebook, and attendance appear here once your school assigns"
@@ -54921,10 +54921,10 @@ msgid "Your grade entry is due in {{ days }} day(s)."
 msgstr ""
 
 msgid "Your grade entry is due today."
-msgstr ""
+msgstr "הזנת הציונים שלך אמורה להסתיים היום."
 
 msgid "Your grade entry is due tomorrow."
-msgstr ""
+msgstr "הזנת הציונים שלך אמורה להסתיים מחר."
 
 msgid ""
 "Your grades, assignments, and timetable show up here as your teachers add "
@@ -54987,7 +54987,7 @@ msgid ""
 msgstr ""
 
 msgid "Your school has been activated. Redirecting to login…"
-msgstr ""
+msgstr "בית הספר שלך הופעל. מפנה להתחברות…"
 
 msgid ""
 "Your school has not published this term's results yet. Grades are recorded "
@@ -55001,7 +55001,7 @@ msgid "Your support request has been received — an operator will respond."
 msgstr ""
 
 msgid "Your timetable"
-msgstr ""
+msgstr "מערכת השעות שלך"
 
 msgid "Zero re-entry."
 msgstr ""
@@ -55979,7 +55979,7 @@ msgid "Tenant index"
 msgstr ""
 
 msgid "Textbooks, devices, and other items checked out to your children."
-msgstr ""
+msgstr "ספרי לימוד, מכשירים ופריטים נוספים שהושאלו לילדיך."
 
 msgid "That placement is already cancelled."
 msgstr ""
@@ -56893,7 +56893,7 @@ msgid "This is a credential."
 msgstr ""
 
 msgid "This is taking longer than usual — you can retry setup."
-msgstr ""
+msgstr "זה לוקח יותר זמן מהרגיל — אפשר לנסות שוב את ההגדרה."
 
 msgid ""
 "This legacy wizard is kept for older runs. For new school imports, use "
@@ -61454,7 +61454,7 @@ msgid "Specialties (optional)"
 msgstr ""
 
 msgid "Split payment"
-msgstr ""
+msgstr "תשלום מפוצל"
 
 msgid "Sponsors"
 msgstr ""
@@ -61484,10 +61484,10 @@ msgid "Started → first action"
 msgstr ""
 
 msgid "Started → onboarding complete"
-msgstr ""
+msgstr "התחיל → ההגדרה הושלמה"
 
 msgid "Started → subscription/payment"
-msgstr ""
+msgstr "התחיל → מנוי/תשלום"
 
 msgid "Starting fresh / unsure"
 msgstr ""
@@ -61532,7 +61532,7 @@ msgid "Step 3: Additional Details (Optional)"
 msgstr ""
 
 msgid "Step 3: Parent/Guardian Information"
-msgstr ""
+msgstr "שלב 3: פרטי הורה/אפוטרופוס"
 
 msgid "Step 3: Preferences"
 msgstr ""
@@ -61547,7 +61547,7 @@ msgid "Step 4: Importing..."
 msgstr ""
 
 msgid "Step 4: Payment & Referral"
-msgstr ""
+msgstr "שלב 4: תשלום והפניה"
 
 msgid "Step 4: Your photo"
 msgstr ""
@@ -61619,7 +61619,7 @@ msgid "Submitted marks for approval: student and score components"
 msgstr ""
 
 msgid "Subscriptions, invoices, and regional pricing"
-msgstr ""
+msgstr "מנויים, חשבוניות ותמחור אזורי"
 
 msgid "Success %"
 msgstr ""
@@ -61694,13 +61694,13 @@ msgid "Teacher Dashboard"
 msgstr ""
 
 msgid "Teacher Onboarding"
-msgstr ""
+msgstr "הגדרת מורים"
 
 msgid "Teachers – {{ date_value }}"
 msgstr ""
 
 msgid "Teaching assignments"
-msgstr ""
+msgstr "שיבוצי הוראה"
 
 msgid "Template not applied — {{ template_key }}"
 msgstr ""
@@ -61759,7 +61759,7 @@ msgid ""
 msgstr ""
 
 msgid "The full school-year lifecycle: setup → onboarding → marks → reports."
-msgstr ""
+msgstr "מחזור החיים המלא של שנת הלימודים: הגדרה → קליטה → ציונים → דוחות."
 
 msgid ""
 "The governed installation is active. Tenant runtime, role targeting, Setup "
@@ -61863,7 +61863,7 @@ msgid "Title *"
 msgstr ""
 
 msgid "Today's Attendance"
-msgstr ""
+msgstr "הנוכחות של היום"
 
 msgid "Today's Classes"
 msgstr ""
@@ -61878,7 +61878,7 @@ msgid "Tool secret (shown once)"
 msgstr ""
 
 msgid "Top students (term)"
-msgstr ""
+msgstr "תלמידים מצטיינים (סמסטר)"
 
 msgid "Top subject"
 msgstr ""
@@ -61896,7 +61896,7 @@ msgid "Track and action requests routed to you and your team."
 msgstr ""
 
 msgid "Transcript &amp; archive"
-msgstr ""
+msgstr "גיליון ציונים וארכיון"
 
 msgid "Transcript archive — {{ value }}"
 msgstr ""
@@ -61911,7 +61911,7 @@ msgid "Triage"
 msgstr ""
 
 msgid "Trigger automatic grade conversions (letter grades, GPA)"
-msgstr ""
+msgstr "הפעל המרות ציונים אוטומטיות (ציוני אותיות, GPA)"
 
 msgid "Trigger overlaps"
 msgstr ""
@@ -62086,7 +62086,7 @@ msgid "View Knowledge Base"
 msgstr ""
 
 msgid "View Reports Report library"
-msgstr ""
+msgstr "הצג דוחות · ספריית דוחות"
 
 msgid "View detail →"
 msgstr ""
@@ -62098,7 +62098,7 @@ msgid "View execution log"
 msgstr ""
 
 msgid "View invoices"
-msgstr ""
+msgstr "הצג חשבוניות"
 
 msgid "View policy"
 msgstr ""
@@ -62158,10 +62158,10 @@ msgid "Welcome to RunMyCampus, {{ name }}!"
 msgstr ""
 
 msgid "Welcome 👋"
-msgstr ""
+msgstr "ברוך הבא 👋"
 
 msgid "Welcome! Your account is ready."
-msgstr ""
+msgstr "ברוך הבא! החשבון שלך מוכן."
 
 msgid "What changes"
 msgstr ""
@@ -62187,7 +62187,7 @@ msgid "Where are you migrating from?"
 msgstr ""
 
 msgid "Which curriculum or examination board do you follow?"
-msgstr ""
+msgstr "לפי איזו תוכנית לימודים או מועצת בחינות אתה פועל?"
 
 msgid "Who (acting)"
 msgstr ""
@@ -62226,7 +62226,7 @@ msgid "You Said / We Did"
 msgstr ""
 
 msgid "You are about to import grades into the database. This will:"
-msgstr ""
+msgstr "אתה עומד לייבא ציונים למסד הנתונים. פעולה זו:"
 
 msgid "You can choose to import the offline entry."
 msgstr ""
@@ -62274,7 +62274,7 @@ msgid "Your Question Required"
 msgstr ""
 
 msgid "Your account is ready — please sign in with your new password."
-msgstr ""
+msgstr "החשבון שלך מוכן — אנא התחבר עם הסיסמה החדשה שלך."
 
 msgid ""
 "Your activation checklist will appear here as setup steps are detected."
@@ -62305,7 +62305,7 @@ msgid "Your operating policy"
 msgstr ""
 
 msgid "Your profile is set up. Welcome aboard!"
-msgstr ""
+msgstr "הפרופיל שלך הוגדר. ברוך הבא!"
 
 msgid "Your role requires two-factor authentication and can't be skipped."
 msgstr ""
