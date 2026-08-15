@@ -3,21 +3,28 @@
 Gives each ``Subject`` a national / country-standard code so a school's report
 cards, transcripts, and government exports carry the identifiers examiners and
 ministries expect (a Cameroon GCE-style code, a national curriculum code, …)
-instead of a bare name. Local-first minimum default:
+instead of a bare name. Local-first minimum default — a four-layer cascade, the
+read-side twin of the term-window cascade in ``country_term_calendars``:
 
-    curated  _NATIONAL_SUBJECT_CODES[country][name]   (official codes live here)
-      ⊕ deterministic mnemonic fallback                (every subject gets SOME code)
+    per-school   settings['subject_codes'][name]              (this school's edit)
+      ▸ per-profile config['subject_codes'][name]             (region-wide, one edit)
+      ▸ curated _NATIONAL_SUBJECT_CODES[country][name]        (shipped official codes)
+      ▸ deterministic mnemonic fallback                       (every subject gets SOME code)
 
-so a school is never left with code-less subjects, and an admin refines the exact
-official codes afterward. ``Subject.code`` is a plain admin-editable string, NOT
-unique-enforced — a first-run default, never a lock. The curated tables are
-seeded with sensible mnemonics; swapping in a country's real numeric board codes
-is a data edit, not a code change.
+so a school is never left with code-less subjects, AND an operator can enter a
+country's real official codes ONCE at the profile level and every school in that
+country inherits them — no code change, no deploy (the same
+``EducationSystemProfile.config`` home term windows already use). ``Subject.code``
+is also a plain admin-editable string, NOT unique-enforced — a first-run default,
+never a lock. Swapping in a country's real numeric board codes is a data edit.
 """
 
 from __future__ import annotations
 
+import logging
 import re
+
+logger = logging.getLogger(__name__)
 
 # Shared WASSCE code set for Anglophone West Africa (WAEC-examined countries). The
 # board's real per-diet numeric codes are not stable identifiers a school carries,
@@ -185,16 +192,109 @@ def _mnemonic(subject_name: str) -> str:
     return "".join(w[0] for w in words[:8]).upper()
 
 
+def _code_from_override_map(raw, name: str) -> str:
+    """Return a non-empty override code for ``name`` from a ``{name: code}`` map.
+
+    Case-insensitive on the subject name (admins type keys however they like);
+    ignores non-string / blank values. Returns ``""`` when the map supplies
+    nothing usable, so callers fall through to the next cascade layer."""
+    if not isinstance(raw, dict):
+        return ""
+    target = (name or "").strip().lower()
+    if not target:
+        return ""
+    for key, value in raw.items():
+        if not isinstance(key, str) or not isinstance(value, str):
+            continue
+        if key.strip().lower() == target and value.strip():
+            return value.strip()
+    return ""
+
+
+def _profile_subject_codes(school) -> dict:
+    """Return the education-system profile's ``config['subject_codes']`` map, or {}.
+
+    Best-effort and never raises — mirrors the profile layer of
+    :func:`apps.academics.country_term_calendars._lookup_windows`, so subject codes
+    and term windows share ONE region-level override home
+    (``EducationSystemProfile.config``)."""
+    # An unsaved school cannot carry a persisted profile — short-circuit so the
+    # pure-resolution paths (e.g. the country-coverage ratchet) never touch the DB.
+    if getattr(getattr(school, "_state", None), "adding", True):
+        return {}
+    try:
+        from apps.policies.policy_registry import get_effective_policy
+        from apps.siteconfig.education_profile_engine import resolve_profile_for_school
+
+        policy = get_effective_policy(school) or {}
+        profile = resolve_profile_for_school(
+            school,
+            requested_profile_code=str(policy.get("education_profile_code") or "").strip(),
+            auto_create=False,
+        )
+        cfg = getattr(profile, "config", None) or {}
+        codes = cfg.get("subject_codes") if isinstance(cfg, dict) else None
+        return codes if isinstance(codes, dict) else {}
+    except Exception:  # noqa: BLE001 — profile layer is best-effort
+        logger.debug("_profile_subject_codes: profile resolve failed", exc_info=True)
+        return {}
+
+
+def _override_code(school, name: str) -> str:
+    """Return an admin/operator override code for a subject, or ``""``.
+
+    Cascade (highest precedence first), the read-side twin of term windows:
+    per-school ``settings['subject_codes']`` → per-education-system
+    ``EducationSystemProfile.config['subject_codes']``."""
+    settings_map = getattr(school, "settings", None)
+    school_codes = settings_map.get("subject_codes") if isinstance(settings_map, dict) else None
+    code = _code_from_override_map(school_codes, name)
+    if code:
+        return code
+    return _code_from_override_map(_profile_subject_codes(school), name)
+
+
 def resolve_subject_code(school, subject_name: str) -> str:
     """Return the national/standard code for a subject at a school.
 
-    Curated country table first (official codes), then the deterministic mnemonic
-    fallback. Never raises — an unknown country simply gets the mnemonic."""
+    Cascade: admin/operator override (per-school ``settings['subject_codes']`` →
+    per-profile ``config['subject_codes']``) → curated country table (shipped
+    official codes) → deterministic mnemonic fallback. Never raises — an unknown
+    country with no override simply gets the mnemonic, so every subject is always
+    coded."""
     name = (subject_name or "").strip().lower()
     if not name:
         return ""
+    override = _override_code(school, name)
+    if override:
+        return override
     iso = (getattr(school, "country_code", None) or "").strip().upper()[:2]
     table = _NATIONAL_SUBJECT_CODES.get(iso, {})
     if name in table:
         return table[name]
     return _mnemonic(subject_name)
+
+
+def effective_subject_code_map(school) -> dict[str, str]:
+    """Return the merged ``{subject_name: code}`` a school would resolve, by layer.
+
+    Curated national table for the school's country, overlaid with the profile
+    override, overlaid with the per-school override (each higher layer wins). Keys
+    are the lowercase normalized names used throughout this module. Handy for an
+    admin preview surface and for the official-catalog importer to see what a
+    country already resolves. Read-only."""
+    iso = (getattr(school, "country_code", None) or "").strip().upper()[:2]
+    merged: dict[str, str] = {}
+
+    def _overlay(layer) -> None:
+        if not isinstance(layer, dict):
+            return
+        for key, value in layer.items():
+            if isinstance(key, str) and isinstance(value, str) and value.strip():
+                merged[key.strip().lower()] = value.strip()
+
+    _overlay(_NATIONAL_SUBJECT_CODES.get(iso, {}))
+    _overlay(_profile_subject_codes(school))
+    settings_map = getattr(school, "settings", None)
+    _overlay(settings_map.get("subject_codes") if isinstance(settings_map, dict) else None)
+    return merged
