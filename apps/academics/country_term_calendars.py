@@ -323,6 +323,60 @@ def _lookup_windows(school, term_count: int):
     return None
 
 
+def term_windows_source(school, term_count: int) -> str | None:
+    """Return WHICH cascade layer supplies this school's term windows.
+
+    One of ``"school"`` (per-school ``settings['term_windows']`` override),
+    ``"profile"`` (per-education-system ``config['term_windows']`` override),
+    ``"curated"`` (a shipped default calendar), or ``None`` (no calendar of the
+    requested shape — the caller uses the even split). Same layer order as
+    :func:`_lookup_windows`; used to record whether a seeded calendar is a
+    *representative default* (curated / even-split) or a *real, admin/operator
+    supplied* one (school / profile), so a school can be nudged to confirm the
+    former before go-live. Never raises."""
+    def _valid(seq) -> bool:
+        if not isinstance(seq, (list, tuple)) or len(seq) != term_count:
+            return False
+        for item in seq:
+            if not isinstance(item, (list, tuple)) or len(item) != 4:
+                return False
+            try:
+                tuple(int(x) for x in item)
+            except (TypeError, ValueError):
+                return False
+        return True
+
+    settings_map = getattr(school, "settings", None)
+    if isinstance(settings_map, dict) and _valid(settings_map.get("term_windows")):
+        return "school"
+
+    iso = (getattr(school, "country_code", None) or "").strip().upper()[:2]
+    sub = (getattr(school, "sub_system", None) or "").strip().upper()
+
+    try:
+        from apps.policies.policy_registry import get_effective_policy
+        from apps.siteconfig.education_profile_engine import resolve_profile_for_school
+
+        if not getattr(getattr(school, "_state", None), "adding", True):
+            policy = get_effective_policy(school) or {}
+            profile = resolve_profile_for_school(
+                school,
+                requested_profile_code=str(policy.get("education_profile_code") or "").strip(),
+                auto_create=False,
+            )
+            cfg = getattr(profile, "config", None) or {}
+            if isinstance(cfg, dict) and _valid(cfg.get("term_windows")):
+                return "profile"
+    except Exception:  # noqa: BLE001 — profile layer is best-effort
+        logger.debug("term_windows_source: profile resolve failed", exc_info=True)
+
+    if iso and sub and _valid(_TERM_CALENDARS.get(f"{iso}-{sub}")):
+        return "curated"
+    if iso and _valid(_TERM_CALENDARS.get(iso)):
+        return "curated"
+    return None
+
+
 def resolve_term_windows(
     school,
     term_count: int,

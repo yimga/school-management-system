@@ -58,8 +58,15 @@ def academics_hub(request):
         {"title": title, "description": description, "url": _tenant_url(route_name), "count": model_counts[count_key]}
         for title, description, route_name, count_key in actions
     ]
+    from apps.academics.academic_calendar import calendar_confirmation_state
+
     return render(
         request,
         "academics/hub.html",
-        {"school": school, "model_counts": model_counts, "academic_actions": cards},
+        {
+            "school": school,
+            "model_counts": model_counts,
+            "academic_actions": cards,
+            "calendar_advisory": calendar_confirmation_state(school),
+        },
     )

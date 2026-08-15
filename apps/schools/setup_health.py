@@ -4,9 +4,12 @@ D3: Setup health score. D5: Next-best-action guidance per step.
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from apps.platform_runtime.role_registry import ROLE_ADMIN
+
+logger = logging.getLogger(__name__)
 
 
 def setup_health_score(school: Any, *, user: Any = None) -> dict[str, Any]:
@@ -17,6 +20,9 @@ def setup_health_score(school: Any, *, user: Any = None) -> dict[str, Any]:
     score = 0
     max_score = 0
     checks = []
+    # Advisories are surfaced, actionable nudges that do NOT affect the 0-100 score
+    # (so existing score contracts are untouched). Non-blocking by design.
+    advisories: list[dict[str, Any]] = []
     if school:
         max_score += 25
         if getattr(school, "name", None) and getattr(school, "slug", None):
@@ -62,11 +68,34 @@ def setup_health_score(school: Any, *, user: Any = None) -> dict[str, Any]:
             checks.append(
                 ("owner", False, "No owner assigned — assign an owner to enable login")
             )
+        # Representative term-date calendar awaiting confirm-before-go-live. Advisory
+        # only — never gates the score (dates are always editable). See
+        # apps.academics.academic_calendar.
+        try:
+            from apps.academics.academic_calendar import calendar_confirmation_state
+
+            cal = calendar_confirmation_state(school)
+            if cal.get("needs_confirmation"):
+                advisories.append(
+                    {
+                        "key": "confirm_academic_calendar",
+                        "label": "Confirm your term dates",
+                        "detail": (
+                            "Term dates are a representative default for your country, "
+                            "not official ministry dates — confirm or adjust them."
+                        ),
+                        "action": "academics:calendar_confirm",
+                        "severity": "info",
+                    }
+                )
+        except Exception:  # noqa: BLE001 — advisory is best-effort, never load-bearing
+            logger.debug("setup_health_score: calendar advisory failed", exc_info=True)
     if max_score == 0:
         max_score = 1
     return {
         "score": round((score / max_score) * 100) if max_score else 0,
         "checks": checks,
+        "advisories": advisories,
         "max_score": max_score,
         "runtime_evidence": runtime_evidence if school else {
             "passed": False,

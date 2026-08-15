@@ -17,6 +17,25 @@
     <a class="btn btn-primary" href="{% url 'siteconfig:academic_years_setup_evidence' %}">{% trans "Review academic year" %}</a>
   </section>
 
+  {% if calendar_advisory.needs_confirmation %}
+  <section class="rmc-ops-callout" aria-labelledby="calendar-confirm-title">
+    <div class="alert alert-info d-flex flex-wrap justify-content-between align-items-center gap-3" role="status">
+      <div>
+        <strong id="calendar-confirm-title">{% trans "Confirm your term dates" %}</strong>
+        <p class="mb-0">{% trans "Your term dates are a representative default for your country, not official ministry dates. Confirm they are correct for your school, or adjust them on the academic year page — you can change them anytime." %}</p>
+      </div>
+      <div class="d-flex gap-2 flex-shrink-0">
+        <a class="btn btn-outline-primary" href="{% url 'siteconfig:academic_years_setup_evidence' %}">{% trans "Adjust dates" %}</a>
+        <form method="post" action="{% url 'academics:calendar_confirm' %}">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.get_full_path }}">
+          <button type="submit" class="btn btn-primary">{% trans "Confirm dates" %}</button>
+        </form>
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
   <section class="rmc-ops-kpis" aria-label="{% trans 'Academic record counts' %}">
     <article><span>{% trans "Academic years" %}</span><strong>{{ model_counts.academic_years }}</strong></article>
     <article><span>{% trans "Classes" %}</span><strong>{{ model_counts.classes }}</strong></article>

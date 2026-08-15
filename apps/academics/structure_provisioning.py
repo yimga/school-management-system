@@ -350,7 +350,33 @@ def ensure_terms(school, academic_year) -> dict[str, Any]:
         )
         if first is not None:
             Term.objects.filter(pk=first.pk).update(is_active=True)
-    return {"created_terms": created, "term_count": term_count}
+
+    # Record whether this calendar is a representative default (curated / even
+    # split) or a real admin/operator-supplied one (school / profile override), so
+    # a representative calendar can be surfaced for confirm-before-go-live. Purely
+    # informational — a failure here never affects the seeded terms.
+    calendar_source: str | None = "even_split"
+    try:
+        from apps.academics.country_term_calendars import term_windows_source
+        from apps.academics.academic_calendar import record_calendar_provenance
+
+        # ``windows is None`` means the alignment guard rejected every calendar and
+        # the even split was used, regardless of what layer exists — so it is a
+        # representative default. Otherwise the layer that supplied the windows
+        # (school/profile override vs curated) decides representativeness.
+        if windows is None:
+            calendar_source = "even_split"
+        else:
+            calendar_source = term_windows_source(school, term_count) or "curated"
+        record_calendar_provenance(school, calendar_source)
+    except Exception:  # noqa: BLE001 — provenance is best-effort, never load-bearing
+        logger.debug("ensure_terms: calendar provenance record failed", exc_info=True)
+
+    return {
+        "created_terms": created,
+        "term_count": term_count,
+        "calendar_source": calendar_source,
+    }
 
 
 def provision_teaching_grid_for_school(
