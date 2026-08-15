@@ -1,8 +1,24 @@
 # A+ PROGRESS SCOREBOARD (A0 Coordinator)
 
-**Last refreshed:** 2026-08-15 (Claude Code · "KEEP GOING A+" → **M21 i18n Phase 1 `5914759cf`** (hygiene+seal) → **Phase 2 `f1b8e5174`** (French, fr **5.3%→13.3%**, +self-host `.mo`-compile parity) → **Phase 3 `d2420dc75`/`aa003f178`** (Spanish + Portuguese content on the same first-touch surfaces → **es 1.4%→9.3%**, **pt_BR 1.4%→9.3%**: THREE usable locales). Prior: binding-constraint audit + isolation seal `8a0051bfb`; 08-13 M29/M30/W22/W24/M32)  
-**Loop:** Under the 9.8 lowest-dimension regime, GO = raise the MINIMUM metric. Isolation clean (off ≤4.9). **Floor = M21 i18n**; content phases shipping steadily — fr/es/pt_BR now translated on auth/onboarding/portals/attendance/grades/fees/timetable. Audit-by-running confirmed i18n **infra is complete** (RTL wired, switcher, locale formatting) → the constraint is CONTENT everywhere. **Next on M21:** native-review depth toward the 60% 'full' bar; RTL/calendar CONTENT for ar/fa/he (infra ready, 0% translated). Remaining beyond M21: M31/M33, W21/W23/W25–W31.  
+**Last refreshed:** 2026-08-15 (Claude Code · "KEEP GOING A+" → **M21 i18n Phase 1 `5914759cf`** (hygiene+seal) → **Phase 2 `f1b8e5174`** (French, fr **5.3%→13.3%**, +self-host `.mo`-compile parity) → **Phase 3 `d2420dc75`/`aa003f178`** (Spanish + Portuguese → **es/pt_BR 1.4%→9.3%**) → **Phase 4 `116417e22`** ("a+b": RTL floor **ar 0.9%→8.9%**, **fa 0%→8.0%**, **he 0%→6.7%** + depth **es/pt_BR 9.3%→16.6%**). Prior: binding-constraint audit + isolation seal `8a0051bfb`; 08-13 M29/M30/W22/W24/M32)  
+**Loop:** Under the 9.8 lowest-dimension regime, GO = raise the MINIMUM metric. Isolation clean (off ≤4.9). **Floor = M21 i18n** — Phase 4 moved the true floor (the RTL locales) OFF ZERO: **six usable locales now** (fr 13.3 · es/pt_BR 16.6 · ar 8.9 · fa 8.0 · he 6.7). Audit-by-running confirmed i18n **infra is complete** (RTL wired, switcher, locale formatting) → the constraint is CONTENT everywhere, all AI-drafted → needs native review. **Next on M21 (blocked only by the shared session limit, resets 10:30am ET):** finish he tail + redo fr depth; then native-review toward the 60% 'full' bar; extend RTL to ur (0%). Beyond M21: M31/M33, W21/W23/W25–W31.  
 **Tree:** HEAD = `origin/main`
+
+---
+
+## M21 i18n — Phase 4: RTL first-touch (ar/fa/he) + depth (es/pt_BR) — SHIPPED — 2026-08-15
+
+**Commit `116417e22`** (off-tree, 5 `.po` paths in ONE commit; 12 boundary gates green; verified by content on origin — every count exact). **"a+b"** = do BOTH remaining M21 levers at once: **(a)** raise the FLOOR by translating the RTL locales that were the true minimum, and **(b)** deepen the Romance locales toward the 60% 'full' bar. Six general-purpose subagents authored in parallel; five sets landed (one lost to the shared session limit).
+
+**Result — the platform i18n FLOOR moved off zero:**
+- **RTL first-touch** (reuses the same 1,561-key fr set): **ar 0.9%→8.9%** (+1527), **fa 0.0%→8.0%** (+1524), **he 0.0%→6.7%** (+1271, **PARTIAL** — tail lines 1301-1561 pending). All three RTL locales that shipped English-for-everyone now render their first-touch surfaces (auth/onboarding/portals/attendance/grades/fees/timetable) in Arabic / Persian / Hebrew. Layout already flipped — infra was complete; the constraint was CONTENT.
+- **Depth** (1,400 representative user-facing keys untranslated across all three): **es 9.3%→16.6%** (+1400), **pt_BR 9.3%→16.6%** (+1400). A concrete step toward 60%.
+
+**Method (same proven playbook, parallelized):** extracted the 1,561 English keys (RTL) + a de-noised 1,400-key common-untranslated set (depth); subagents authored exact-match `MSGID ||| translation` pairs (per-language education glossary + strict RTL token-preservation: placeholders/brand/numbers/→/… untouched); `apply_fr.py` exact-match (self-correcting — LHS drift can't corrupt, only lowers yield). 100% depth yield; RTL yield 1527/1524/1271 (the ~34-37 unmatched are keys genuinely ABSENT from the RTL catalogs — those carry fewer msgids than fr — not typos). Applied from FRESH origin baseline at ship time; one ottpush (raced once on a peer country-catalog push, re-ran clean; peer never touched locale files).
+
+**Gate safety (verified):** ar/fa/he/es/pt_BR all declared `stub` (no floor); counts only rise → coverage `--compare` green, no regression, no re-baseline; none nears the 60% stale-stub ceiling. en.po untouched → freshness gate unaffected. Ships LF-safe `.po` only; `.mo` compiles at deploy (build.sh + selfhost Dockerfile). **All AI-drafted → NEEDS NATIVE REVIEW** (coverage-gate stub reasons updated for fa/he via `_STUB_FIRSTTOUCH_REASON`; `var/i18n-review-status.json` is a separate marketing surface, not touched).
+
+**REMAINING (blocked ONLY by the shared session limit — resets 10:30am ET, not by the work):** finish **he tail** (lines 1301-1561 → ~8%) and redo **fr depth** (its agent flushed no files to disk). Then native-review all six toward 60%; extend RTL to **ur** (still 0%). Beyond M21: M31/M33, W21/W23/W25–W31.
 
 ---
 
