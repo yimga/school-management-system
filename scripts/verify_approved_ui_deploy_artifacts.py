@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -20,9 +21,22 @@ ASSETS = (
     "css/rmc-tenant-dashboard-balance.css",
 )
 
+MINIMUM_APPROVED_UI_CACHE_VERSION = (4, 6, 40)
+CACHE_VERSION_RE = re.compile(
+    r'const\s+CACHE_VERSION\s*=\s*"sms-v(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)[^"]*"\s*;'
+)
+
 
 def read(path: str) -> str:
     return (ROOT / path).read_text(encoding="utf-8", errors="replace")
+
+
+def parse_cache_version(source: str) -> tuple[int, int, int] | None:
+    """Return the numeric service-worker version without pinning a release slug."""
+    match = CACHE_VERSION_RE.search(source)
+    if match is None:
+        return None
+    return tuple(int(match.group(part)) for part in ("major", "minor", "patch"))
 
 
 def verify_source(failures: list[str]) -> None:
@@ -49,7 +63,8 @@ def verify_source(failures: list[str]) -> None:
         failures.append("canonical user dropdown does not mount Account Center")
     if 'include "components/user_dropdown.html"' not in admin_bridge:
         failures.append("tenant admin does not mount canonical user dropdown")
-    if "sms-v4.06.40-governed-outcome-surfaces" not in sw:
+    cache_version = parse_cache_version(sw)
+    if cache_version is None or cache_version < MINIMUM_APPROVED_UI_CACHE_VERSION:
         failures.append("service-worker cache version was not advanced for approved UI")
     if "rmc-service-worker-registration.js" not in base or "rmc-service-worker-url" not in base:
         failures.append("admin shell cannot update a root-scope service worker")
