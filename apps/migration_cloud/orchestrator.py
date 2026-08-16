@@ -537,14 +537,21 @@ def _maybe_check_financial_guardrail(
     bundle: MigrationBundle, outcomes: list["ArtifactApplyOutcome"],
 ) -> None:
     """Run the financial guardrail if any finance domain landed and expected_totals is set."""
-    if not bundle.expected_totals:
-        return
     finance_landed = any(
         o.domain == "finance" and o.status in ("SUCCESS", "PARTIAL") for o in outcomes
     )
     students_landed = any(
         o.domain == "students" and o.status in ("SUCCESS", "PARTIAL") for o in outcomes
     )
+    if not bundle.expected_totals:
+        # #4b: money landed with NO operator control totals = UNVERIFIED. Don't pass
+        # it off silently. Warn loudly by default (recorded on the bundle + logged);
+        # a deployment can hard-require totals on sensitive tenants via the settings
+        # flag, in which case an unverified finance import is refused (FAILED + rolled
+        # back through the orchestrator's FinancialMismatchError handler).
+        if finance_landed:
+            _handle_unverified_finance(bundle)
+        return
     # Only enforce when something happened in a domain the guardrail observes.
     if not (finance_landed or students_landed):
         return
@@ -555,6 +562,37 @@ def _maybe_check_financial_guardrail(
         "financial_guardrail": report.to_dict(),
     }
     bundle.save(update_fields=["mapping_summary", "updated_at"])
+
+
+def _handle_unverified_finance(bundle: MigrationBundle) -> None:
+    """Finance landed with no operator control totals (#4b).
+
+    Default: WARN — record it on the bundle (visible to the operator) and log it, so
+    "money landed unverified" is never silent, but the import still applies (matching
+    prior behaviour for the many finance imports that don't supply totals). When
+    ``RMC_MIGRATION_REQUIRE_FINANCE_TOTALS`` is on, REFUSE instead: raise
+    FinancialMismatchError so the orchestrator marks the bundle FAILED and rolls back.
+    """
+    from django.conf import settings
+
+    require = bool(getattr(settings, "RMC_MIGRATION_REQUIRE_FINANCE_TOTALS", False))
+    message = (
+        "Finance rows landed but no expected_totals control totals were provided — "
+        "the money was NOT verified against operator-supplied totals."
+    )
+    if require:
+        raise FinancialMismatchError(
+            f"Bundle {bundle.pk}: {message} (RMC_MIGRATION_REQUIRE_FINANCE_TOTALS is enabled)."
+        )
+    logger.warning("orchestrator: bundle %s — %s", bundle.pk, message)
+    try:
+        bundle.mapping_summary = {
+            **(bundle.mapping_summary or {}),
+            "finance_landed_unverified": True,
+        }
+        bundle.save(update_fields=["mapping_summary", "updated_at"])
+    except Exception:  # noqa: BLE001 — surfacing the warning must never break the apply
+        logger.debug("orchestrator: could not record finance_landed_unverified", exc_info=True)
 
 
 def _rollback_all_runs(outcomes: list["ArtifactApplyOutcome"]) -> None:

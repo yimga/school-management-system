@@ -148,20 +148,53 @@ def evaluate_expected_totals(
     return report
 
 
+def _bundle_canonical_pks(bundle: Any, domain: str) -> list[str]:
+    """The canonical PKs THIS bundle landed for ``domain``, from the id-mapping audit.
+
+    Import-delta scoping (#4a): the guardrail must compare the operator's control
+    totals against only the rows this import actually landed — NOT every row in the
+    school — so pre-existing invoices/students never skew the totals and roll back a
+    correct import. Each lander records a MigrationIdMapping(bundle, domain,
+    canonical_pk) per row it upserts (finance / students / guardians), so this is the
+    authoritative "what did THIS bundle touch" set. Best-effort: on any failure the
+    caller falls back to an empty scope (observed 0), which fails closed against a
+    non-zero expected total rather than silently passing.
+    """
+    try:
+        from apps.migration_cloud.models import MigrationIdMapping
+
+        return list(
+            MigrationIdMapping.objects.filter(  # tenant-isolation-allow: scoped by bundle FK (bundle.school)
+                bundle=bundle, domain=domain,
+            ).values_list("canonical_pk", flat=True)
+        )
+    except Exception:  # noqa: BLE001
+        return []
+
+
 def compute_observed_totals(*, bundle: Any) -> dict[str, str]:
     """Compute the standard observed totals from the bundle's post-apply state.
 
+    Scoped to THIS bundle's landed rows (import-delta, #4a) via the id-mapping audit,
+    so pre-existing rows in the school never skew the operator's control totals.
+
     Standard keys:
-        finance.invoice_total_amount  — sum of Invoice.amount for the school
-        finance.invoice_count         — count of Invoice rows for the school
-        students.count                — count of StudentProfile rows for the school
-        guardians.count               — count of StudentGuardian rows for the school
+        finance.invoice_total_amount  — sum of Invoice.total_amount for this bundle
+        finance.invoice_count         — count of Invoice rows this bundle landed
+        students.count                — count of StudentProfile rows this bundle landed
+        guardians.count               — count of StudentGuardian rows this bundle landed
     """
     totals: dict[str, str] = {}
     school = getattr(bundle, "school", None)
     if school is None:
         return totals
     schema_name = getattr(bundle, "schema_name", "") or ""
+
+    # Resolve the bundle's landed PKs in the public schema BEFORE entering the tenant
+    # schema_context below (MigrationIdMapping is a shared/public model).
+    invoice_pks = _bundle_canonical_pks(bundle, "finance")
+    student_pks = _bundle_canonical_pks(bundle, "students")
+    guardian_pks = _bundle_canonical_pks(bundle, "guardians")
 
     def _run_under_schema(fn):
         if not schema_name:
@@ -186,15 +219,11 @@ def compute_observed_totals(*, bundle: Any) -> dict[str, str]:
         Invoice = None
     if Invoice is not None:
         def _finance():
-            _inv_fields = {f.name for f in Invoice._meta.get_fields()}
-            if "school" in _inv_fields:
-                qs = Invoice.objects.filter(school=school)  # tenant-isolation-allow: scoped by the invoice's own school FK (matches finance_lander)
-            elif "student" in _inv_fields:
-                qs = Invoice.objects.filter(student__school=school)  # tenant-isolation-allow: scoped via student__school=school
-            else:
-                qs = Invoice.objects.all()  # tenant-isolation-allow: no school field; schema-context isolates
-            from django.db.models import Sum, Count
+            from django.db.models import Count, Sum
 
+            # Import-delta scope: ONLY the invoices this bundle landed (#4a). An empty
+            # scope aggregates to 0, which fails closed against a non-zero expected.
+            qs = Invoice.objects.filter(pk__in=invoice_pks)  # tenant-isolation-allow: pks are THIS bundle's own landed rows (id-mapping audit)
             # Field is ``total_amount`` (NOT ``amount``); Sum("amount") raised
             # FieldError that the caller's broad except swallowed, so the control
             # total was silently never computed.
@@ -213,9 +242,7 @@ def compute_observed_totals(*, bundle: Any) -> dict[str, str]:
     if StudentProfile is not None:
         def _students():
             totals["students.count"] = str(
-                StudentProfile.objects.filter(school=school).count()
-                if "school" in {f.name for f in StudentProfile._meta.get_fields()}
-                else StudentProfile.objects.count()
+                StudentProfile.objects.filter(pk__in=student_pks).count()  # tenant-isolation-allow: THIS bundle's landed rows (id-mapping audit)
             )
         try:
             _run_under_schema(_students)
@@ -228,12 +255,9 @@ def compute_observed_totals(*, bundle: Any) -> dict[str, str]:
         StudentGuardian = None
     if StudentGuardian is not None:
         def _guardians():
-            _g_fields = {f.name for f in StudentGuardian._meta.get_fields()}
-            if "student" in _g_fields:
-                qs = StudentGuardian.objects.filter(student__school=school)  # tenant-isolation-allow: scoped via student__school=school
-            else:
-                qs = StudentGuardian.objects.all()  # tenant-isolation-allow: no student link; schema-context isolates
-            totals["guardians.count"] = str(qs.count())
+            totals["guardians.count"] = str(
+                StudentGuardian.objects.filter(pk__in=guardian_pks).count()  # tenant-isolation-allow: THIS bundle's landed rows (id-mapping audit)
+            )
         try:
             _run_under_schema(_guardians)
         except Exception:  # noqa: BLE001
