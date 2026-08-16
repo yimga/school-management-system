@@ -367,17 +367,43 @@ def _seed_for_bundle(idempotency_key: str) -> int:
 
 
 def _domain_run_stats(bundle: MigrationBundle) -> dict[str, dict[str, int]]:
-    """Aggregate MigrationRun counts per domain for this bundle."""
+    """Aggregate MigrationRun counts per domain for this bundle.
+
+    Counts ONLY the latest live (non-dry-run) run per artifact. Every apply attempt
+    creates a fresh MigrationRun per (domain, artifact), so a re-apply — repair, or a
+    rollback + reapply — leaves the prior attempt's run behind. Blindly summing
+    created_count across all of them double-counts: reconciliation then sees more
+    "created" than are visible in the school, raises a phantom drift note, and wedges
+    the bundle at APPLIED forever (it can never seal RECONCILED) (#6). Dry-run preview
+    runs report would-create counts that never landed, so they are excluded too.
+
+    Keyed by artifact_id (present since audit runs were introduced); a legacy run
+    without it falls back to migration_type (``domain:path`` — still per-artifact), so
+    two files in one domain are never collapsed. Ascending-pk iteration means the last
+    write per key wins = the latest attempt.
+    """
     try:
         from apps.automation.models import MigrationRun
     except ImportError:
         return {}
 
-    stats: dict[str, dict[str, int]] = {}
-    runs = MigrationRun.objects.filter(  # tenant-isolation-allow: scoped via bundle.pk (bundle.school)
-        execution_summary__bundle_id=bundle.pk,
+    latest_run_by_artifact: dict[Any, Any] = {}
+    runs = (
+        MigrationRun.objects.filter(  # tenant-isolation-allow: scoped via bundle.pk (bundle.school)
+            execution_summary__bundle_id=bundle.pk,
+        )
+        .exclude(dry_run=True)
+        .order_by("pk")
     )
     for run in runs:
+        summary = run.execution_summary or {}
+        artifact_key = summary.get("artifact_id")
+        if artifact_key is None:
+            artifact_key = run.migration_type  # legacy fallback: domain:path
+        latest_run_by_artifact[artifact_key] = run
+
+    stats: dict[str, dict[str, int]] = {}
+    for run in latest_run_by_artifact.values():
         summary = run.execution_summary or {}
         domain = (summary.get("domain") or "").strip() or "custom_fields"
         bucket = stats.setdefault(domain, {"created": 0, "updated": 0, "errors": 0})
