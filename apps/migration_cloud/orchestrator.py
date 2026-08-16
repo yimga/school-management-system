@@ -710,6 +710,15 @@ def _apply_artifact(
 
 # --- Row iteration + transformer application ----------------------------
 
+# Formats we CAN stream into rows. A row-bearing artifact that reaches apply with
+# NO readable bytes (no captured blob, no top-level source file) is a genuine
+# source-availability failure, not an empty success — see _iter_canonical_rows.
+# Container / non-tabular formats (archive is dropped in _build_jobs; image / sql /
+# sqlite / parquet do not stream rows through this path) are deliberately excluded
+# so they keep the lenient empty-yield instead of false-failing.
+_ROW_BEARING_FORMATS = frozenset({"csv", "tsv", "unknown", "json", "jsonl", "xlsx", "xls", "pdf"})
+
+
 def _iter_canonical_rows(job: _ArtifactJob) -> Iterator[dict[str, Any]]:
     """Stream the artifact's bytes, apply mappings + transformers, yield canonical rows.
 
@@ -787,9 +796,23 @@ def _iter_canonical_rows(job: _ArtifactJob) -> Iterator[dict[str, Any]]:
     bundle_uri = artifact.bundle.intake_source_uri or ""
     path = Path(bundle_uri) if bundle_uri else None
     if path is None or not path.exists() or artifact.path_within_bundle != path.name:
-        # No blob + not the single top-level local file: nothing readable here
-        # (should be rare now the content store captures at ingest). Yield
-        # nothing rather than error.
+        # No captured blob AND no top-level local file to fall back to: we have NO
+        # bytes for this artifact. Silently yielding nothing here stamped the
+        # artifact a green SUCCESS with 0 rows, so the operator believed a file
+        # imported when nothing was even readable (#5 — "no source-blob reports
+        # SUCCESS"). For a row-bearing format that is a real, repairable failure —
+        # the file's contents never reached apply (ingest blob-capture gap / lost
+        # local file) — so raise; _apply_artifact marks the outcome FAILED with an
+        # honest message and the bundle stays repairable (re-ingest, then retry).
+        # Non-row / container formats keep the lenient empty-yield: they were never
+        # going to produce rows through this path, so failing them would be noise.
+        if artifact.detected_format in _ROW_BEARING_FORMATS:
+            raise LanderError(
+                f"No source data available for {artifact.path_within_bundle!r}: its "
+                "bytes were not captured at ingest and no source file is present, so "
+                "nothing could be imported. Re-ingest the bundle to re-capture the "
+                "file's contents, then retry the import."
+            )
         return iter(())
 
     encoding = artifact.encoding or "utf-8"
