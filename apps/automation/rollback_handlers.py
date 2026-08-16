@@ -286,25 +286,32 @@ def _rollback_staff(run, rollback_run) -> dict[str, Any]:
 
 @register_rollback_handler("enrollment")
 def _rollback_enrollment(run, rollback_run) -> dict[str, Any]:
-    """
-    Enrollment is NOT auto-revertible, and this handler says so honestly rather
-    than claim a revert that did not happen.
+    """Revert an enrollment apply — RESTORES the snapshotted prior field values
+    for in-place updates (and deletes any genuinely-created rows).
 
     The enrollment lander MUTATES existing ``StudentProfile`` rows in place
-    (grade_level / status / section / classroom / academic_year) and creates
-    NOTHING — so there are no created_ids to delete, and deleting the student
-    would destroy a record that predates this run. The apply captured no
-    pre-update values (``old`` is empty in the snapshot), so the prior
-    enrollment state cannot be restored.
+    (status / section / joined_date / classroom / academic_year) and normally
+    creates nothing. But BEFORE each overwrite it snapshots the OLD non-empty
+    value of every field it is about to change into
+    ``rollback_snapshot['updated_ids_with_old_values']`` as
+    ``{"pk": ..., "old": {field: prior_value}}`` — so an in-place apply IS
+    reversible after all: re-``setattr`` each recorded prior value and save it
+    back, school-scoped so a rollback can never touch another school's student.
+
+    Only fields present in ``old`` are restored (a field that was an empty
+    fill-in rather than an overwrite was never recorded and is left as-is). A
+    stringified FK old value that can no longer be assigned back is skipped
+    rather than aborting the whole rollback. The created_ids branch below stays
+    for a future lander revision that genuinely inserts students.
     """
     snapshot = run.rollback_snapshot or {}
     created_ids = snapshot.get("created_ids") or []
     updated = snapshot.get("updated_ids_with_old_values") or []
+    school = getattr(run, "school", None)
 
     # Defensive: if a future lander revision ever records genuinely-created rows,
     # delete only those, school-scoped — never touch pre-existing students.
     if created_ids:
-        school = getattr(run, "school", None)
         if not school:
             return {"success": False, "message": "Run has no school.", "reverted_count": 0}
         from apps.people.models import StudentProfile
@@ -324,15 +331,42 @@ def _rollback_enrollment(run, rollback_run) -> dict[str, Any]:
             "message": "No created_ids/updated rows in snapshot; nothing to revert.",
             "reverted_count": 0,
         }
+
+    # Restore the snapshotted prior values captured before each in-place
+    # overwrite. School-scope every fetch so a rollback can never reach another
+    # school's student.
+    if not school:
+        return {"success": False, "message": "Run has no school.", "reverted_count": 0}
+    from apps.people.models import StudentProfile
+
+    restored = 0
+    for entry in updated:
+        old = (entry or {}).get("old") or {}
+        pk = (entry or {}).get("pk")
+        if not old or pk is None:
+            continue
+        student = StudentProfile.objects.filter(pk=pk, school=school).first()
+        if student is None:
+            continue
+        restore_fields: list[str] = []
+        for field_name, prior_value in old.items():
+            try:
+                setattr(student, field_name, prior_value)
+            except Exception:  # noqa: BLE001 — a stringified FK old value can't be re-assigned; skip it, keep the rest
+                continue
+            restore_fields.append(field_name)
+        if not restore_fields:
+            continue
+        try:
+            student.save(update_fields=restore_fields)
+        except Exception:  # noqa: BLE001 — a value that won't round-trip must not abort the whole rollback
+            continue
+        restored += 1
+
     return {
-        "success": False,
-        "message": (
-            f"Enrollment rollback is not automatic: {len(updated)} student record(s) "
-            "were updated in place and their prior grade/status/section values were "
-            "not snapshotted, so they cannot be safely restored. Re-import the correct "
-            "enrollment state to fix these fields."
-        ),
-        "reverted_count": 0,
+        "success": True,
+        "message": f"Restored prior enrollment values on {restored} student record(s).",
+        "reverted_count": restored,
     }
 
 

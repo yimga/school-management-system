@@ -380,6 +380,19 @@ def _apply_bundle_inner(
         bundle.mark_status(BundleStatus.MAPPED, summary_patch={"last_dry_run": totals})
     else:
         bundle.mark_status(new_status, summary_patch={"apply_totals": totals})
+        # A non-atomic bundle where one artifact COMMITTED rows (autocommit) and
+        # another FAILED would otherwise read FAILED while the committed rows
+        # stayed LIVE — breaking the "FAILED = nothing landed" contract the
+        # atomic path guarantees (and the except handlers above already honour).
+        # Roll the succeeded runs back CHILD-FIRST so a FAILED bundle really
+        # leaves nothing behind. Gated on ``not atomic_mode`` to mirror those
+        # handlers: atomic mode is the finance / all-or-nothing lane whose
+        # boundary the audit deemed solid and which this fix must not touch. This
+        # normal-return branch is mutually exclusive with the except handlers
+        # (no exception propagated to reach here), so their _rollback_all_runs
+        # never double-fires with this one.
+        if failed and not atomic_mode:
+            _rollback_all_runs(outcomes)
         # Partner lifecycle event (G-5): emitted here at the SERVICE layer so a
         # migration run from the connector/customer UI fires the same webhook an
         # API-driven apply does (the REST viewset no longer emits — avoids double).
