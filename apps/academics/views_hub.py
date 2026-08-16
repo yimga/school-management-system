@@ -59,6 +59,7 @@ def academics_hub(request):
         for title, description, route_name, count_key in actions
     ]
     from apps.academics.academic_calendar import calendar_confirmation_state
+    from apps.academics.country_subject_codes import subject_code_report
 
     return render(
         request,
@@ -68,5 +69,6 @@ def academics_hub(request):
             "model_counts": model_counts,
             "academic_actions": cards,
             "calendar_advisory": calendar_confirmation_state(school),
+            "subject_codes": subject_code_report(school),
         },
     )

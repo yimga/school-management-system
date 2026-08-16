@@ -24,7 +24,29 @@ per-school   settings['subject_codes'][name]          (this school's edit)
 An operator enters a country's real codes **once** at the profile level
 (`EducationSystemProfile.config['subject_codes']`) and every school in that
 country inherits them — no code change, no deploy. `effective_subject_code_map`
-returns the merged view for admin preview.
+returns the merged view; `subject_code_report(school)` returns the per-subject
+resolved code + which layer supplied it (`school` / `profile` / `curated` /
+`mnemonic`) + drift flags, and is surfaced read-only on the academics hub so an
+admin can *see* which codes are real and which are generated placeholders.
+
+### Propagating an import to already-seeded subjects (resync)
+
+`Subject.code` is a stored column set at seed time, and report cards render the
+stored value — so importing a country's real codes into the profile config reaches
+**new** subjects immediately, but a subject seeded *before* the import keeps its old
+default code. `backfill_subject_codes` only fills **blank** codes, so it does not
+touch those. `resync_subject_codes(school)` closes the gap: it re-resolves every
+subject and updates the ones whose stored code is a recognizable **system default**
+(the curated value or the mnemonic) to the freshly-imported code — while leaving an
+admin's explicit edit and an already-correct code untouched. Run it after an import:
+
+```bash
+python manage.py backfill_country_baseline --resync-codes            # every school
+python manage.py backfill_country_baseline --school <id> --resync-codes --dry-run
+```
+
+The importer prints this exact follow-up command whenever an import changes codes,
+so the propagation step is never silently skipped.
 
 ## 2. Representative calendars are labelled and confirmable
 
@@ -52,8 +74,24 @@ python manage.py import_country_official_catalog --file apps/academics/data/offi
 python manage.py import_country_official_catalog --dry-run  # report only
 ```
 
-Idempotent and additive. See `apps/academics/data/official_catalogs/README.md`
-for the file format and the honesty rule.
+Idempotent and additive. Every applied import is **conflict-aware** — the summary
+(and `--dry-run`) reports each code as *added* or *overwritten* with the exact
+`old → new` diff, so replacing a pre-existing code is never silent — and records a
+**provenance** entry (`source` + timestamp + counts) into
+`config['catalog_provenance']` for the audit trail. See
+`apps/academics/data/official_catalogs/README.md` for the file format and the
+honesty rule.
+
+### Known limitation — one term-window structure per country
+
+`config['term_windows']` holds a **single** list of `[sm, sd, em, ed]` tuples, and
+`country_term_calendars._lookup_windows` reads it as one bare list matched to a
+school's term count. A country whose schools run **different** term structures
+(e.g. a 2-term and a 3-term system side by side) can therefore have only one of
+them represented in the shared profile at a time; a school on the other structure
+falls through to the representative even-split default (still fully editable per
+school). Per-term-count keying (`term_windows_by_count`) is a deliberate future
+extension, not shipped — flagged here rather than pretended.
 
 To onboard a new country without starting from a blank file, export a pre-filled
 template from the curated defaults, edit in the official values, then import it —

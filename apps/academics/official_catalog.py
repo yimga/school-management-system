@@ -99,22 +99,50 @@ def parse_catalog(data: dict[str, Any]) -> dict[str, Any]:
     return parsed
 
 
-def _merge_into_config(config: dict[str, Any], parsed: dict[str, Any]) -> tuple[dict[str, Any], dict[str, int]]:
+def _merge_into_config(config: dict[str, Any], parsed: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
     """Return ``(new_config, changes)`` — additive merge that never clobbers keys
     the catalog does not mention. ``subject_codes`` overlays key-by-key;
-    ``term_windows`` (a whole-calendar value) is replaced."""
+    ``term_windows`` (a whole-calendar value) is replaced.
+
+    ``changes`` keeps the integer counts callers already rely on
+    (``changes['subject_codes']`` / ``changes['term_windows']``) AND adds a
+    conflict-aware breakdown: ``subject_added`` / ``subject_overwritten`` counts, a
+    ``subject_diffs`` list of ``{name, old, new, kind}`` (only the codes that
+    actually change), and a ``term_window_diff`` of ``{old, new}`` — so an operator
+    (and ``--dry-run``) sees exactly what an import would change before applying,
+    and an overwrite of a pre-existing code is never silent."""
     new_config = dict(config or {})
-    changes = {"subject_codes": 0, "term_windows": 0}
+    changes: dict[str, Any] = {
+        "subject_codes": 0,
+        "term_windows": 0,
+        "subject_added": 0,
+        "subject_overwritten": 0,
+        "subject_diffs": [],
+        "term_window_diff": None,
+    }
     if "subject_codes" in parsed:
         existing = dict(new_config.get("subject_codes") or {}) if isinstance(new_config.get("subject_codes"), dict) else {}
         for name, code in parsed["subject_codes"].items():
-            if existing.get(name) != code:
-                changes["subject_codes"] += 1
+            old = existing.get(name)
+            if old == code:
+                existing[name] = code
+                continue
+            kind = "added" if old is None else "overwritten"
+            if kind == "added":
+                changes["subject_added"] += 1
+            else:
+                changes["subject_overwritten"] += 1
+            changes["subject_codes"] += 1
+            changes["subject_diffs"].append(
+                {"name": name, "old": old or "", "new": code, "kind": kind}
+            )
             existing[name] = code
         new_config["subject_codes"] = existing
     if "term_windows" in parsed:
-        if new_config.get("term_windows") != parsed["term_windows"]:
+        old_windows = new_config.get("term_windows")
+        if old_windows != parsed["term_windows"]:
             changes["term_windows"] = 1
+            changes["term_window_diff"] = {"old": old_windows, "new": parsed["term_windows"]}
         new_config["term_windows"] = parsed["term_windows"]
     return new_config, changes
 
@@ -160,60 +188,84 @@ def _existing_country_profile(country: str, sub_system: str):
     )
 
 
-def import_catalog(parsed: dict[str, Any], *, dry_run: bool = False) -> dict[str, Any]:
-    """Write a parsed catalog into the shared country ``EducationSystemProfile.config``.
+# Cap the persisted import log so config never grows unbounded on repeated imports.
+_MAX_PROVENANCE_ENTRIES = 20
 
-    Resolves (creating if needed, unless ``dry_run``) the country/region profile the
-    resolver already reads (``_lookup_windows`` / ``_profile_subject_codes``), so
-    imported data is live for every school in that country. Idempotent. ``dry_run``
-    writes nothing and creates no rows; returns a summary dict."""
-    from apps.siteconfig.education_profile_engine import ensure_country_profile
 
-    subject_add = len(parsed.get("subject_codes", {}) or {})
-    term_add = 1 if "term_windows" in parsed else 0
+def _provenance_entry(parsed: dict[str, Any], changes: dict[str, Any]) -> dict[str, Any]:
+    """A single audit record of one applied catalog import (WHO/WHAT/WHEN source)."""
+    from django.utils import timezone
 
-    profile = _existing_country_profile(parsed["country"], parsed["sub_system"])
-    if profile is None:
-        if dry_run:
-            return {
-                "country": parsed["country"],
-                "profile": "(would create)",
-                "status": "dry-run",
-                "subject_codes_changed": subject_add,
-                "term_windows_changed": term_add,
-                "source": parsed.get("source", ""),
-            }
-        profile = ensure_country_profile(
-            region_code=parsed["country"],
-            sub_system=parsed["sub_system"] or None,
-        )
-        if profile is None:
-            return {
-                "country": parsed["country"],
-                "status": "skipped",
-                "reason": "no_region_or_profile",
-                "subject_codes_changed": 0,
-                "term_windows_changed": 0,
-            }
+    return {
+        "source": parsed.get("source", ""),
+        "notes": parsed.get("notes", ""),
+        "when": timezone.now().isoformat(),
+        "subject_codes_changed": changes["subject_codes"],
+        "subject_added": changes.get("subject_added", 0),
+        "subject_overwritten": changes.get("subject_overwritten", 0),
+        "term_windows_changed": changes["term_windows"],
+    }
 
-    # Profile exists — report the real delta (whether applying or dry-running).
-    new_config, changes = _merge_into_config(getattr(profile, "config", None) or {}, parsed)
-    applied = bool(changes["subject_codes"] or changes["term_windows"])
-    if applied and not dry_run:
-        profile.config = new_config
-        profile.save(update_fields=["config", "updated_at"])
-    if dry_run:
-        status = "dry-run"
-    else:
-        status = "applied" if applied else "unchanged"
+
+def _summary(parsed, profile, status, changes) -> dict[str, Any]:
+    """Assemble the caller-facing import summary (counts + conflict-aware diffs)."""
     return {
         "country": parsed["country"],
         "profile": str(profile),
         "status": status,
         "subject_codes_changed": changes["subject_codes"],
         "term_windows_changed": changes["term_windows"],
+        "subject_added": changes.get("subject_added", 0),
+        "subject_overwritten": changes.get("subject_overwritten", 0),
+        "diffs": changes.get("subject_diffs", []),
+        "term_window_diff": changes.get("term_window_diff"),
         "source": parsed.get("source", ""),
     }
+
+
+def import_catalog(parsed: dict[str, Any], *, dry_run: bool = False) -> dict[str, Any]:
+    """Write a parsed catalog into the shared country ``EducationSystemProfile.config``.
+
+    Resolves (creating if needed, unless ``dry_run``) the country/region profile the
+    resolver already reads (``_lookup_windows`` / ``_profile_subject_codes``), so
+    imported data is live for every school in that country. Idempotent. ``dry_run``
+    writes nothing and creates no rows; returns a summary dict that includes the
+    conflict-aware ``diffs`` (each ``{name, old, new, kind}``) so a caller sees the
+    exact ``old → new`` changes — including overwrites of a pre-existing code —
+    before applying. An applied import appends a provenance record (source + when +
+    counts) to ``config['catalog_provenance']`` for the audit trail."""
+    from apps.siteconfig.education_profile_engine import ensure_country_profile
+
+    profile = _existing_country_profile(parsed["country"], parsed["sub_system"])
+
+    if profile is None:
+        # No profile yet — compute the delta against an empty config so a dry-run of
+        # a brand-new country still reports exactly what WOULD be added.
+        _new_config, changes = _merge_into_config({}, parsed)
+        if dry_run:
+            return _summary(parsed, "(would create)", "dry-run", changes)
+        profile = ensure_country_profile(
+            region_code=parsed["country"],
+            sub_system=parsed["sub_system"] or None,
+        )
+        if profile is None:
+            summary = _summary(parsed, "(none)", "skipped", changes)
+            summary["reason"] = "no_region_or_profile"
+            summary["subject_codes_changed"] = 0
+            summary["term_windows_changed"] = 0
+            return summary
+
+    # Profile exists — report the real delta (whether applying or dry-running).
+    new_config, changes = _merge_into_config(getattr(profile, "config", None) or {}, parsed)
+    applied = bool(changes["subject_codes"] or changes["term_windows"])
+    if applied and not dry_run:
+        log = list(new_config.get("catalog_provenance") or [])
+        log.append(_provenance_entry(parsed, changes))
+        new_config["catalog_provenance"] = log[-_MAX_PROVENANCE_ENTRIES:]
+        profile.config = new_config
+        profile.save(update_fields=["config", "updated_at"])
+    status = "dry-run" if dry_run else ("applied" if applied else "unchanged")
+    return _summary(parsed, profile, status, changes)
 
 
 def load_catalog_file(path: str | Path) -> dict[str, Any]:

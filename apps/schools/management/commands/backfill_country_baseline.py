@@ -19,6 +19,12 @@ Usage::
     manage.py backfill_country_baseline --dry-run        # report only, change nothing
     manage.py backfill_country_baseline --school <id|subdomain|slug>
     manage.py backfill_country_baseline --limit 200 --include-inactive
+    manage.py backfill_country_baseline --resync-codes    # after an official-catalog import
+
+``--resync-codes`` additionally re-resolves subjects that were seeded with the OLD
+mnemonic default and updates them to a country's real official codes once those
+have been imported into the shared education-system profile
+(``import_country_official_catalog``). Admin-edited codes are never touched.
 """
 
 from __future__ import annotations
@@ -43,9 +49,20 @@ class Command(BaseCommand):
             "--include-inactive", action="store_true",
             help="Also process schools with is_active=False (husks/pending).",
         )
+        parser.add_argument(
+            "--resync-codes", action="store_true",
+            help=(
+                "Also re-resolve existing subjects to a country's real official "
+                "codes imported into the shared profile (system defaults only; "
+                "admin edits preserved)."
+            ),
+        )
 
     def handle(self, *args, **opts):
-        from apps.academics.structure_provisioning import provision_country_baseline
+        from apps.academics.structure_provisioning import (
+            provision_country_baseline,
+            resync_subject_codes,
+        )
         from apps.schools.models import School
 
         qs = School.objects.all()
@@ -68,11 +85,22 @@ class Command(BaseCommand):
         if opts["limit"]:
             qs = qs[: opts["limit"]]
 
-        processed = ok = failed = 0
+        resync = opts["resync_codes"]
+        processed = ok = failed = resynced = 0
         for school in qs:
             processed += 1
             if opts["dry_run"]:
                 self.stdout.write(f"[dry-run] would backfill {school.id}  {school.name}")
+                if resync:
+                    try:
+                        preview = resync_subject_codes(school, dry_run=True)
+                    except Exception as exc:  # noqa: BLE001 — preview never aborts the sweep
+                        self.stderr.write(f"  resync preview failed for {school.id}: {exc}")
+                    else:
+                        for chg in preview.get("changes", []):
+                            self.stdout.write(
+                                f"  [dry-run] code {chg['subject']}: {chg['old']} -> {chg['new']}"
+                            )
                 continue
             try:
                 summary = provision_country_baseline(school)
@@ -85,6 +113,12 @@ class Command(BaseCommand):
                     )
                 }
                 self.stdout.write(f"OK   {school.id}  {school.name}: {highlights}")
+                if resync:
+                    result = resync_subject_codes(school)
+                    n = result.get("resynced_subjects", 0)
+                    resynced += n
+                    if n:
+                        self.stdout.write(f"     resynced {n} subject code(s) to imported official codes")
             except Exception as exc:  # noqa: BLE001 — one school never aborts the sweep
                 failed += 1
                 self.stderr.write(f"FAIL {school.id}  {school.name}: {type(exc).__name__}: {exc}")
@@ -92,6 +126,9 @@ class Command(BaseCommand):
         if opts["dry_run"]:
             self.stdout.write(self.style.WARNING(f"Dry run: {processed} school(s) would be backfilled."))
         else:
+            tail = f", {resynced} code(s) resynced" if resync else ""
             self.stdout.write(
-                self.style.SUCCESS(f"Backfill complete: {processed} processed, {ok} ok, {failed} failed.")
+                self.style.SUCCESS(
+                    f"Backfill complete: {processed} processed, {ok} ok, {failed} failed{tail}."
+                )
             )

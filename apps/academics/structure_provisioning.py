@@ -652,8 +652,11 @@ def seed_country_subjects(school) -> dict[str, Any]:
     if not subject_seed:
         return {"created_subjects": 0, "skipped": "no_seed"}
 
-    from apps.academics.country_subject_codes import resolve_subject_code
+    from apps.academics.country_subject_codes import build_override_map, resolve_subject_code
 
+    # Resolve the DB-backed override layer (profile + school) ONCE for the whole
+    # catalog rather than re-resolving the education-system profile per subject.
+    override_map = build_override_map(school)
     valid_categories = {choice[0] for choice in Subject.Category.choices}
     created = 0
     names: list[str] = []
@@ -671,7 +674,7 @@ def seed_country_subjects(school) -> dict[str, Any]:
             _, was_created = Subject.objects.get_or_create(
                 school=school,
                 name=name,
-                defaults={"category": category, "code": resolve_subject_code(school, name)},
+                defaults={"category": category, "code": resolve_subject_code(school, name, override_map=override_map)},
             )
             if was_created:
                 created += 1
@@ -692,12 +695,13 @@ def backfill_subject_codes(school) -> dict[str, Any]:
     :func:`apps.academics.country_subject_codes.resolve_subject_code`."""
     if school is None:
         return {"coded_subjects": 0, "skipped": "no_school"}
-    from apps.academics.country_subject_codes import resolve_subject_code
+    from apps.academics.country_subject_codes import build_override_map, resolve_subject_code
     from apps.academics.models import Subject
 
+    override_map = build_override_map(school)
     coded = 0
     for subject in Subject.objects.filter(school=school).filter(code=""):
-        code = resolve_subject_code(school, subject.name)
+        code = resolve_subject_code(school, subject.name, override_map=override_map)
         if not code:
             continue
         try:
@@ -706,6 +710,52 @@ def backfill_subject_codes(school) -> dict[str, Any]:
         except Exception:  # noqa: BLE001 — one subject never aborts the rest
             logger.debug("backfill_subject_codes: subject %s failed", subject.name, exc_info=True)
     return {"coded_subjects": coded}
+
+
+def resync_subject_codes(school, *, dry_run: bool = False) -> dict[str, Any]:
+    """Propagate a newly-imported official code to subjects seeded BEFORE the import.
+
+    ``backfill_subject_codes`` only fills BLANK codes, so a subject seeded with the
+    old mnemonic default keeps it even after an operator imports a country's real
+    official codes into the shared profile — the report card would still show the
+    mnemonic. This closes that gap: it re-resolves every non-blank subject and, when
+    the stored code is a recognizable SYSTEM DEFAULT (the curated table value or the
+    mnemonic) that no longer matches the resolved code, updates it to the new value.
+
+    An admin's explicit custom code (which matches no default) and an
+    already-correct code are both left untouched, so this is safe and idempotent —
+    the ``code``-write twin of the term-window override cascade. ``dry_run`` reports
+    the exact ``old → new`` diffs without writing."""
+    if school is None:
+        return {"resynced_subjects": 0, "skipped": "no_school", "changes": []}
+    from apps.academics.country_subject_codes import (
+        build_override_map,
+        is_default_subject_code,
+        resolve_subject_code,
+    )
+    from apps.academics.models import Subject
+
+    override_map = build_override_map(school)
+    if not override_map:
+        # No override layer to propagate — nothing an import could have changed.
+        return {"resynced_subjects": 0, "changes": []}
+    resynced = 0
+    changes: list[dict[str, str]] = []
+    for subject in Subject.objects.filter(school=school).exclude(code=""):
+        resolved = resolve_subject_code(school, subject.name, override_map=override_map)
+        if not resolved or resolved == subject.code:
+            continue
+        if not is_default_subject_code(school, subject.name, subject.code):
+            continue  # an admin's explicit edit — never clobber
+        changes.append({"subject": subject.name, "old": subject.code, "new": resolved})
+        if not dry_run:
+            try:
+                Subject.objects.filter(pk=subject.pk).update(code=resolved)
+            except Exception:  # noqa: BLE001 — one subject never aborts the rest
+                logger.debug("resync_subject_codes: subject %s failed", subject.name, exc_info=True)
+                continue
+        resynced += 1
+    return {"resynced_subjects": resynced, "changes": changes}
 
 
 def ensure_admission_template(school) -> dict[str, Any]:

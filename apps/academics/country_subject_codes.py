@@ -240,6 +240,33 @@ def _profile_subject_codes(school) -> dict:
         return {}
 
 
+def _overlay_codes(dest: dict[str, str], layer) -> None:
+    """Overlay a ``{name: code}`` map onto ``dest`` in place (higher layer wins).
+
+    Keys are lowercased/stripped and non-string / blank values are dropped, so the
+    result is the same normalized shape :func:`_code_from_override_map` matches."""
+    if not isinstance(layer, dict):
+        return
+    for key, value in layer.items():
+        if isinstance(key, str) and isinstance(value, str) and value.strip():
+            dest[key.strip().lower()] = value.strip()
+
+
+def build_override_map(school) -> dict[str, str]:
+    """Return the merged OVERRIDE map (profile → school, school wins), lowercase-keyed.
+
+    This is the DB-touching half of the cascade resolved ONCE, so a caller iterating
+    many subjects (seeding / backfill / resync) can pass it to
+    :func:`resolve_subject_code` as ``override_map=`` and avoid re-resolving the
+    education-system profile per subject. Excludes the curated table and the
+    mnemonic fallback — it is only the admin/operator override layers."""
+    merged: dict[str, str] = {}
+    _overlay_codes(merged, _profile_subject_codes(school))
+    settings_map = getattr(school, "settings", None)
+    _overlay_codes(merged, settings_map.get("subject_codes") if isinstance(settings_map, dict) else None)
+    return merged
+
+
 def _override_code(school, name: str) -> str:
     """Return an admin/operator override code for a subject, or ``""``.
 
@@ -254,25 +281,57 @@ def _override_code(school, name: str) -> str:
     return _code_from_override_map(_profile_subject_codes(school), name)
 
 
-def resolve_subject_code(school, subject_name: str) -> str:
+def resolve_subject_code(school, subject_name: str, *, override_map: dict[str, str] | None = None) -> str:
     """Return the national/standard code for a subject at a school.
 
     Cascade: admin/operator override (per-school ``settings['subject_codes']`` →
     per-profile ``config['subject_codes']``) → curated country table (shipped
     official codes) → deterministic mnemonic fallback. Never raises — an unknown
     country with no override simply gets the mnemonic, so every subject is always
-    coded."""
+    coded.
+
+    ``override_map`` is an optional pre-resolved override map from
+    :func:`build_override_map`; pass it when resolving many subjects for one school
+    so the education-system profile is looked up ONCE, not per subject."""
     name = (subject_name or "").strip().lower()
     if not name:
         return ""
-    override = _override_code(school, name)
+    if override_map is not None:
+        override = (override_map.get(name) or "").strip()
+    else:
+        override = _override_code(school, name)
     if override:
         return override
+    return _baseline_code(school, subject_name)
+
+
+def _baseline_code(school, subject_name: str) -> str:
+    """The code the cascade yields with NO override layer: curated table → mnemonic.
+
+    This is the system-generated default for a subject — what seeding writes when no
+    admin/operator override exists — so it is the reference a resync compares against
+    to tell a stale default apart from an admin's own edit."""
+    name = (subject_name or "").strip().lower()
+    if not name:
+        return ""
     iso = (getattr(school, "country_code", None) or "").strip().upper()[:2]
     table = _NATIONAL_SUBJECT_CODES.get(iso, {})
     if name in table:
         return table[name]
     return _mnemonic(subject_name)
+
+
+def is_default_subject_code(school, subject_name: str, code: str) -> bool:
+    """True when ``code`` is a system-generated default (curated value or mnemonic).
+
+    A resync may safely replace such a code with a freshly-resolved override; an
+    admin's explicit custom code (which matches no default) is left untouched. A
+    blank code is NOT a default here — filling blanks is
+    :func:`apps.academics.structure_provisioning.backfill_subject_codes`' job."""
+    code = (code or "").strip()
+    if not code:
+        return False
+    return code == _baseline_code(school, subject_name)
 
 
 def effective_subject_code_map(school) -> dict[str, str]:
@@ -285,16 +344,82 @@ def effective_subject_code_map(school) -> dict[str, str]:
     country already resolves. Read-only."""
     iso = (getattr(school, "country_code", None) or "").strip().upper()[:2]
     merged: dict[str, str] = {}
-
-    def _overlay(layer) -> None:
-        if not isinstance(layer, dict):
-            return
-        for key, value in layer.items():
-            if isinstance(key, str) and isinstance(value, str) and value.strip():
-                merged[key.strip().lower()] = value.strip()
-
-    _overlay(_NATIONAL_SUBJECT_CODES.get(iso, {}))
-    _overlay(_profile_subject_codes(school))
+    _overlay_codes(merged, _NATIONAL_SUBJECT_CODES.get(iso, {}))
+    _overlay_codes(merged, _profile_subject_codes(school))
     settings_map = getattr(school, "settings", None)
-    _overlay(settings_map.get("subject_codes") if isinstance(settings_map, dict) else None)
+    _overlay_codes(merged, settings_map.get("subject_codes") if isinstance(settings_map, dict) else None)
     return merged
+
+
+def _empty_code_report() -> dict[str, Any]:
+    return {
+        "total": 0,
+        "by_source": {"school": 0, "profile": 0, "curated": 0, "mnemonic": 0},
+        "mnemonic_count": 0,
+        "drift_count": 0,
+        "rows": [],
+    }
+
+
+def subject_code_report(school) -> dict[str, Any]:
+    """A read-only summary of every subject's resolved code and which cascade layer
+    supplied it — the discoverable surface behind :func:`effective_subject_code_map`.
+
+    For each ``Subject`` of the school it reports the STORED ``code`` (what report
+    cards render today), the freshly RESOLVED code, the winning cascade layer
+    (``school`` / ``profile`` / ``curated`` / ``mnemonic``), and whether the two
+    have drifted apart. Two headline numbers make the state actionable:
+
+    * ``mnemonic_count`` — subjects whose code is a generated mnemonic (no official
+      or curated code), i.e. the ones a country-catalog import could give real codes.
+    * ``drift_count`` — subjects whose stored code is out of date with the resolved
+      code, i.e. a ``backfill_country_baseline --resync-codes`` would refresh them.
+
+    Best-effort and DB-guarded: an unsaved school or a query failure returns the
+    well-formed empty report, never raises."""
+    if school is None:
+        return _empty_code_report()
+    if getattr(getattr(school, "_state", None), "adding", True):
+        return _empty_code_report()
+    try:
+        from apps.academics.models import Subject
+
+        profile_codes = _profile_subject_codes(school)
+        override_map = build_override_map(school)
+        iso = (getattr(school, "country_code", None) or "").strip().upper()[:2]
+        curated = _NATIONAL_SUBJECT_CODES.get(iso, {})
+        settings_map = getattr(school, "settings", None)
+        school_codes = settings_map.get("subject_codes") if isinstance(settings_map, dict) else None
+
+        report = _empty_code_report()
+        rows = report["rows"]
+        by_source = report["by_source"]
+        for subject in Subject.objects.filter(school=school).order_by("name"):
+            name = subject.name or ""
+            nl = name.strip().lower()
+            if not nl:
+                continue
+            resolved = resolve_subject_code(school, name, override_map=override_map)
+            if _code_from_override_map(school_codes, nl):
+                source = "school"
+            elif _code_from_override_map(profile_codes, nl):
+                source = "profile"
+            elif nl in curated:
+                source = "curated"
+            else:
+                source = "mnemonic"
+            by_source[source] += 1
+            if source == "mnemonic":
+                report["mnemonic_count"] += 1
+            stored = subject.code or ""
+            drift = bool(stored) and stored != resolved
+            if drift:
+                report["drift_count"] += 1
+            rows.append(
+                {"name": name, "stored": stored, "resolved": resolved, "source": source, "drift": drift}
+            )
+        report["total"] = len(rows)
+        return report
+    except Exception:  # noqa: BLE001 — a read-only report never breaks a page render
+        logger.debug("subject_code_report: build failed", exc_info=True)
+        return _empty_code_report()

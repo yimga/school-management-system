@@ -90,6 +90,40 @@ def setup_health_score(school: Any, *, user: Any = None) -> dict[str, Any]:
                 )
         except Exception:  # noqa: BLE001 — advisory is best-effort, never load-bearing
             logger.debug("setup_health_score: calendar advisory failed", exc_info=True)
+        # Subjects on a generated placeholder code, or codes out of date with an
+        # imported official catalog. Advisory only — codes are always editable and a
+        # generated code is a valid default, so this never gates the score. See
+        # apps.academics.country_subject_codes.subject_code_report.
+        try:
+            from apps.academics.country_subject_codes import subject_code_report
+
+            codes = subject_code_report(school)
+            if codes.get("drift_count"):
+                advisories.append(
+                    {
+                        "key": "resync_subject_codes",
+                        "label": "Refresh subject codes",
+                        "detail": (
+                            f"{codes['drift_count']} subject code(s) are out of date with your "
+                            "imported official codes — run backfill_country_baseline --resync-codes."
+                        ),
+                        "severity": "info",
+                    }
+                )
+            elif codes.get("mnemonic_count"):
+                advisories.append(
+                    {
+                        "key": "import_official_subject_codes",
+                        "label": "Add official subject codes",
+                        "detail": (
+                            f"{codes['mnemonic_count']} subject(s) use a generated placeholder code. "
+                            "Import your country/board's official codes once for every school."
+                        ),
+                        "severity": "info",
+                    }
+                )
+        except Exception:  # noqa: BLE001 — advisory is best-effort, never load-bearing
+            logger.debug("setup_health_score: subject-code advisory failed", exc_info=True)
     if max_score == 0:
         max_score = 1
     return {

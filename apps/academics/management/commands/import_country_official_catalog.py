@@ -57,6 +57,7 @@ class Command(BaseCommand):
                 raise CommandError(f"No *.json catalogs found in {directory}")
 
         applied = unchanged = skipped = failed = 0
+        any_change = False
         for path in paths:
             try:
                 parsed = load_catalog_file(path)
@@ -72,12 +73,22 @@ class Command(BaseCommand):
                 unchanged += 1
             else:
                 skipped += 1
+            overwritten = summary.get("subject_overwritten", 0)
             self.stdout.write(
                 f"{status.upper():9} {summary.get('country')}  "
                 f"subjects+{summary.get('subject_codes_changed', 0)} "
+                f"(added {summary.get('subject_added', 0)}, overwrote {overwritten}) "
                 f"terms+{summary.get('term_windows_changed', 0)}  "
                 f"[{summary.get('source', '')}]"
             )
+            # Surface the exact old→new diffs — overwrites of an existing code are
+            # never silent; a dry-run shows precisely what an apply would change.
+            for diff in summary.get("diffs", []):
+                old = diff.get("old") or "—"
+                marker = "OVERWRITE" if diff.get("kind") == "overwritten" else "add"
+                self.stdout.write(f"    {marker:9} {diff.get('name')}: {old} -> {diff.get('new')}")
+            if summary.get("subject_codes_changed") or summary.get("term_windows_changed"):
+                any_change = True
 
         tail = "Dry run — nothing written." if dry else "Import complete."
         self.stdout.write(
@@ -86,3 +97,14 @@ class Command(BaseCommand):
                 f"{skipped} skipped, {failed} failed."
             )
         )
+        # A profile-config import is live for NEW subjects immediately, but subjects
+        # seeded before the import keep their old default code. Point the operator at
+        # the one command that propagates the new codes to those existing rows.
+        if any_change and not dry:
+            self.stdout.write(
+                self.style.WARNING(
+                    "Imported codes apply to newly-seeded subjects immediately. To "
+                    "update subjects that already exist (seeded with the old default "
+                    "code), run:  manage.py backfill_country_baseline --resync-codes"
+                )
+            )

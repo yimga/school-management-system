@@ -53,5 +53,29 @@
     </article>
     {% endfor %}
   </section>
+
+  {% if subject_codes.total %}
+  <section class="rmc-ops-callout" aria-labelledby="subject-codes-title">
+    <div class="alert alert-light border" role="region">
+      <div class="d-flex flex-wrap justify-content-between align-items-baseline gap-2">
+        <strong id="subject-codes-title">{% trans "Subject codes" %}</strong>
+        <span class="text-muted small">{% blocktrans count total=subject_codes.total %}{{ total }} subject{% plural %}{{ total }} subjects{% endblocktrans %}</span>
+      </div>
+      <p class="text-muted small mb-2">{% trans "The national/standard code carried by report cards, transcripts and government exports. Every code is admin-editable — a default is never a lock." %}</p>
+      <div class="d-flex flex-wrap gap-2 mb-2">
+        {% if subject_codes.by_source.school %}<span class="badge bg-primary-subtle text-primary-emphasis border border-primary-subtle">{% blocktrans count n=subject_codes.by_source.school %}{{ n }} school override{% plural %}{{ n }} school overrides{% endblocktrans %}</span>{% endif %}
+        {% if subject_codes.by_source.profile %}<span class="badge bg-info-subtle text-info-emphasis border border-info-subtle">{% blocktrans count n=subject_codes.by_source.profile %}{{ n }} official (country){% plural %}{{ n }} official (country){% endblocktrans %}</span>{% endif %}
+        {% if subject_codes.by_source.curated %}<span class="badge bg-success-subtle text-success-emphasis border border-success-subtle">{% blocktrans count n=subject_codes.by_source.curated %}{{ n }} country standard{% plural %}{{ n }} country standard{% endblocktrans %}</span>{% endif %}
+        {% if subject_codes.by_source.mnemonic %}<span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle">{% blocktrans count n=subject_codes.by_source.mnemonic %}{{ n }} generated{% plural %}{{ n }} generated{% endblocktrans %}</span>{% endif %}
+      </div>
+      {% if subject_codes.mnemonic_count %}
+      <p class="mb-1 small">{% blocktrans count n=subject_codes.mnemonic_count %}{{ n }} subject uses a generated placeholder code. If your country or board publishes official codes, an operator can import them once for every school in your country.{% plural %}{{ n }} subjects use generated placeholder codes. If your country or board publishes official codes, an operator can import them once for every school in your country.{% endblocktrans %}</p>
+      {% endif %}
+      {% if subject_codes.drift_count %}
+      <p class="mb-0 small text-warning-emphasis">{% blocktrans count n=subject_codes.drift_count %}{{ n }} subject code is out of date with your imported codes — run backfill with resync to refresh it.{% plural %}{{ n }} subject codes are out of date with your imported codes — run backfill with resync to refresh them.{% endblocktrans %}</p>
+      {% endif %}
+    </div>
+  </section>
+  {% endif %}
 </main>
 {% endblock %}
