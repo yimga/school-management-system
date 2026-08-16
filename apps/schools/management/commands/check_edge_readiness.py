@@ -56,6 +56,41 @@ class Command(BaseCommand):
         elif not debug:
             findings.append((OK, f"ALLOWED_HOSTS has {len(allowed_hosts)} entr(y/ies)."))
 
+        # --- LAN hostname reachability (the .school.lan / base-domain trap) --
+        # A stable LAN name like <slug>.school.lan only works if ALLOWED_HOSTS
+        # accepts it. The default ALLOWED_HOSTS covers `.local`, NOT `.lan`; the
+        # `.school.lan` wildcard is only injected when MULTI_TENANT_BASE_DOMAIN is
+        # set (config/settings.py). So an unset base domain silently 400s every
+        # `.school.lan` request. See docs/EDGE_LAN_HOSTNAME_DNS.md + the runbook's
+        # configure_lan_hostname step.
+        lowered_hosts = [str(h).strip().lower() for h in allowed_hosts]
+        base_domain = (getattr(settings, "MULTI_TENANT_BASE_DOMAIN", "") or "").strip().lower()
+        if not debug and allowed_hosts and "*" not in lowered_hosts:
+            if not base_domain:
+                findings.append((
+                    WARN,
+                    "MULTI_TENANT_BASE_DOMAIN is unset — ALLOWED_HOSTS covers only its exact "
+                    "entries (the default adds .local, NOT .lan). A LAN hostname like "
+                    "'<slug>.school.lan' will 400. Set MULTI_TENANT_BASE_DOMAIN=school.lan to "
+                    "accept *.school.lan (or reach the box by IP: http://<box-ip>:<web-port>/).",
+                ))
+            else:
+                dotted = f".{base_domain}"
+                if base_domain in lowered_hosts or dotted in lowered_hosts:
+                    findings.append((
+                        OK,
+                        f"ALLOWED_HOSTS covers *.{base_domain} — a LAN hostname like "
+                        f"'<slug>.{base_domain}' is accepted. Reach the box over "
+                        "http://<host>:<web-port>/ (plain HTTP; the box has no TLS).",
+                    ))
+                else:
+                    findings.append((
+                        WARN,
+                        f"MULTI_TENANT_BASE_DOMAIN={base_domain} but ALLOWED_HOSTS has neither "
+                        f"'{base_domain}' nor the wildcard '{dotted}' — a '{dotted}' hostname will "
+                        f"400. Add '{dotted}' to ALLOWED_HOSTS.",
+                    ))
+
         # --- Single-tenant / tenancy coherence ------------------------------
         if single_tenant and use_django_tenants:
             findings.append((

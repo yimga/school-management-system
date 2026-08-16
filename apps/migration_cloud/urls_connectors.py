@@ -58,6 +58,14 @@ urlpatterns = [
         views_tenant_upload.TenantMigrationRepairView.as_view(),
         name="bundle-repair",
     ),
+    # Full-bundle rollback (child-first, honest not-reverted reporting) — the tenant
+    # half of resume+rollback parity. See TenantMigrationRollbackView +
+    # connector_rollback.rollback_bundle. DESTRUCTIVE: requires confirm=1.
+    path(
+        "bundle/<int:bundle_id>/rollback/",
+        views_tenant_upload.TenantMigrationRollbackView.as_view(),
+        name="bundle-rollback",
+    ),
     # ── Self-serve provisioning (G-4) — tenant-admin gated. Lets a partner /
     # district mint a Migration Cloud scoped API token FORCE-BOUND to their own
     # school and register/deactivate outbound webhook subscriptions, without an

@@ -151,6 +151,25 @@ def _tenant_scoped_bundle(request, bundle_id: int, shell: str):
     return bundle
 
 
+def _bundle_detail_url(shell: str, bundle_id: int) -> str:
+    """Reverse the bundle-detail URL for the acting shell (operator ``super`` vs
+    tenant ``portal``) — the redirect target for the operator repair / rollback POSTs."""
+    from django.urls import reverse
+
+    ns = "migration_cloud_portal" if shell == "portal" else "migration_cloud_super"
+    return reverse(f"{ns}:bundle_detail", kwargs={"bundle_id": bundle_id})
+
+
+def _bundle_repairable(bundle) -> bool:
+    """Whether the operator ``Resume`` control should show — cheap, never raises."""
+    try:
+        from .repair import repair_readiness
+
+        return bool(repair_readiness(bundle).repairable)
+    except Exception:  # noqa: BLE001 — a readiness hiccup must never break the detail page
+        return False
+
+
 class MigrationCloudIntakeView(LoginRequiredMixin, View):
     """GET → render intake wizard. POST → create the bundle and ingest artifacts.
 
@@ -883,6 +902,8 @@ class MigrationCloudBundleDetailView(LoginRequiredMixin, View):
                 "needs_school_binding": bundle.school_id is None and shell == "super",
                 # Rollback surface: this bundle's still-revertible apply runs.
                 "rollback_runs": _rollback_runs_for_bundle(bundle),
+                # Operator RESUME control: is a safe re-apply available for this bundle?
+                "can_repair": _bundle_repairable(bundle),
             },
         )
 
@@ -1311,6 +1332,81 @@ class MigrationCloudRollbackView(LoginRequiredMixin, View):
             "rollback_run_id": getattr(rollback_run, "pk", None),
             "result": result,
         })
+
+
+class MigrationCloudBundleRepairView(LoginRequiredMixin, View):
+    """POST → operator RESUME: safely re-apply a failed / held bundle idempotently.
+
+    The operator half of resume parity (the tenant has ``TenantMigrationRepairView``).
+    Scoped via ``_tenant_scoped_bundle``; ALL the safety judgement lives in
+    ``repair.repair_bundle`` / ``repair_readiness`` (refuses a financial-guardrail
+    lock, non-atomic finance, and reconciled / in-flight / not-yet-applied bundles).
+    Never runs the apply on the HTTP thread — ``off_http=True`` lands it on the durable
+    outbox. Redirects back to the bundle detail with a message.
+    """
+
+    @idempotent_post
+    @safe_500
+    def post(self, request, bundle_id: int, shell: str = "super"):
+        from django.contrib import messages
+        from django.shortcuts import redirect
+
+        from .repair import repair_bundle
+
+        gate = _enforce_portal_entitlement(request, shell)
+        if gate is not None:
+            return gate
+        bundle = _tenant_scoped_bundle(request, bundle_id, shell)
+        result = repair_bundle(bundle_id=bundle.pk, off_http=True)
+        if result.ok or result.queued:
+            messages.success(request, result.message)
+        elif not result.ran:
+            messages.info(request, result.message)
+        else:
+            messages.error(request, result.message)
+        return redirect(_bundle_detail_url(shell, bundle.pk))
+
+
+class MigrationCloudBundleRollbackView(LoginRequiredMixin, View):
+    """POST → operator FULL-bundle rollback: revert EVERY apply run of a bundle.
+
+    The operator half of rollback parity — ``MigrationCloudRollbackView`` above is
+    PER-RUN, so an operator previously had to revert one run at a time. DESTRUCTIVE:
+    requires an explicit ``confirm=1``. Scoped via ``_tenant_scoped_bundle``; delegates
+    to ``connector_rollback.rollback_bundle`` — the shared, child-first, school-scoped
+    revert that reports HONESTLY which domains it could not auto-revert
+    (``not_reverted``). Redirects back to the bundle detail with a message.
+    """
+
+    @idempotent_post
+    @safe_500
+    def post(self, request, bundle_id: int, shell: str = "super"):
+        from django.contrib import messages
+        from django.shortcuts import redirect
+
+        from .services.connector_rollback import rollback_bundle
+
+        gate = _enforce_portal_entitlement(request, shell)
+        if gate is not None:
+            return gate
+        bundle = _tenant_scoped_bundle(request, bundle_id, shell)
+        confirmed = str(request.POST.get("confirm", "")).lower() in ("1", "true", "yes", "on")
+        if not confirmed:
+            messages.info(
+                request, "Rollback needs confirmation — tick the confirm box, then revert."
+            )
+            return redirect(_bundle_detail_url(shell, bundle.pk))
+        result = rollback_bundle(bundle=bundle, actor=request.user, confirm=True)
+        if not result.get("applied"):
+            messages.info(request, result.get("message") or "Nothing to roll back.")
+        elif result.get("ok"):
+            messages.success(request, result.get("message") or "Import reverted.")
+        else:
+            messages.warning(
+                request,
+                result.get("message") or "Rollback partly completed; some rows were left in place.",
+            )
+        return redirect(_bundle_detail_url(shell, bundle.pk))
 
 
 class MigrationCloudSaveProfileView(LoginRequiredMixin, View):

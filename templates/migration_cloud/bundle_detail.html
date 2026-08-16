@@ -360,6 +360,12 @@
         <button type="submit" class="rmc-btn rmc-btn--primary">{% trans "Reconcile" %}</button>
       </form>
       {% endif %}
+      {% if can_repair %}
+      <form method="post" action="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_repair' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_repair' bundle_id=bundle.pk %}{% endif %}">
+        {% csrf_token %}
+        <button type="submit" class="rmc-btn rmc-btn--ghost" title="{% trans 'Safe idempotent re-import: records that already imported are updated in place, never duplicated.' %}">{% trans "Resume (safe re-import)" %}</button>
+      </form>
+      {% endif %}
       {% if per_artifact_mappings %}
       <button type="button" class="rmc-btn rmc-btn--ghost" data-mc-save-profile>
         {% trans "Save mappings as profile" %}
@@ -401,6 +407,14 @@
         </li>
         {% endfor %}
       </ul>
+      <form method="post" class="mt-2 d-flex align-items-center gap-2 flex-wrap"
+            action="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_rollback_all' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_rollback_all' bundle_id=bundle.pk %}{% endif %}"
+            data-mc-confirm="{% trans 'This reverts the ENTIRE import — every run above — deleting the rows it created on the tenant. Continue?' %}">
+        {% csrf_token %}
+        <input type="hidden" name="confirm" value="1">
+        <button type="submit" class="rmc-btn rmc-btn--sm rmc-btn--danger">{% trans "Revert the entire import" %}</button>
+        <span class="rmc-muted">{% trans "Child-first revert; you will be told which domains (shared academic scaffold / in-place updates) could not be auto-reverted." %}</span>
+      </form>
     </div>
     {% endif %}
     <p class="rmc-mapping__status" data-mc-status role="status" aria-live="polite"></p>
