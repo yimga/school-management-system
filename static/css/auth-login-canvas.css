@@ -1522,7 +1522,7 @@ body:has(.rmc-auth-immersive) [data-shell-chrome="django-messages"] {
     padding-inline: clamp(14px, 1.6vw, 26px);
     border: 1px solid var(--rmc-auth-hair);
     border-radius: 24px 10px 10px 24px;
-    background: color-mix(in srgb, var(--surface-bg, #050810) 76%, transparent);
+    background: color-mix(in srgb, var(--surface-bg) 76%, transparent);
   }
 
   .rmc-auth-immersive__auth {
@@ -1551,10 +1551,10 @@ body:has(.rmc-auth-immersive) [data-shell-chrome="django-messages"] {
   align-items: center;
   gap: 6px;
   padding: 6px 9px;
-  border: 1px solid color-mix(in srgb, var(--color-success, #22c55e) 45%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-success) 45%, transparent);
   border-radius: 999px;
-  color: var(--color-success, #6ee7b7);
-  background: color-mix(in srgb, var(--color-success, #22c55e) 13%, transparent);
+  color: var(--color-success);
+  background: color-mix(in srgb, var(--color-success) 13%, transparent);
   font-size: 10px;
   font-weight: 800;
   text-transform: uppercase;
@@ -1575,9 +1575,9 @@ body:has(.rmc-auth-immersive) [data-shell-chrome="django-messages"] {
   gap: 9px;
   align-items: center;
   padding: 8px 11px;
-  border: 1px solid color-mix(in srgb, var(--color-success, #22c55e) 38%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-success) 38%, transparent);
   border-radius: 12px;
-  background: linear-gradient(90deg, rgba(13, 61, 54, .65), rgba(20, 31, 53, .75));
+  background: linear-gradient(90deg, color-mix(in srgb, var(--color-success) 18%, var(--surface-bg)), var(--surface-elevated));
 }
 
 .rmc-auth-immersive__local-state strong,
@@ -1585,16 +1585,16 @@ body:has(.rmc-auth-immersive) [data-shell-chrome="django-messages"] {
   display: block;
 }
 
-.rmc-auth-immersive__local-state strong { font-size: 11px; color: #86efc1; }
+.rmc-auth-immersive__local-state strong { font-size: 11px; color: var(--color-success); }
 .rmc-auth-immersive__local-state small { font-size: 10px; color: var(--rmc-auth-muted); }
-.rmc-auth-immersive__local-dot { width: 7px; height: 7px; border-radius: 50%; background: #45dda3; box-shadow: 0 0 0 4px rgba(69, 221, 163, .1); }
-.rmc-auth-immersive__network-copy { font-size: 10px; font-weight: 800; color: #a7f3d0; }
+.rmc-auth-immersive__local-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--color-success); box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-success) 10%, transparent); }
+.rmc-auth-immersive__network-copy { font-size: 10px; font-weight: 800; color: var(--color-success); }
 
 .rmc-auth-immersive__offline-note {
   padding: 9px 11px;
-  border: 1px solid #536483;
+  border: 1px solid var(--hairline-strong);
   border-radius: 12px;
-  background: #172238;
+  background: var(--surface-elevated);
 }
 .rmc-auth-immersive__offline-note strong,
 .rmc-auth-immersive__offline-note span { display: block; }
@@ -1610,19 +1610,19 @@ body:has(.rmc-auth-immersive) [data-shell-chrome="django-messages"] {
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 2px 12px;
   padding: 10px 38px 10px 12px;
-  border: 1px solid rgba(244, 199, 104, .28);
+  border: 1px solid color-mix(in srgb, var(--color-warning) 28%, transparent);
   border-radius: 12px;
-  background: linear-gradient(120deg, rgba(64, 50, 23, .52), rgba(18, 27, 48, .86));
+  background: linear-gradient(120deg, color-mix(in srgb, var(--color-warning) 16%, var(--surface-bg)), var(--surface-elevated));
 }
-.rmc-auth-immersive__sponsor-mark { grid-column: 1 / -1; color: #e6ce94; font-size: 8px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.rmc-auth-immersive__sponsor-mark { grid-column: 1 / -1; color: var(--color-warning); font-size: 8px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
 .rmc-auth-immersive__sponsor strong { font-size: 12px; }
 .rmc-auth-immersive__sponsor small { color: var(--rmc-auth-muted); font-size: 10px; }
-.rmc-auth-immersive__sponsor a { color: #f8d98e; font-size: 10px; font-weight: 750; }
+.rmc-auth-immersive__sponsor a { color: var(--color-warning); font-size: 10px; font-weight: 750; }
 .rmc-auth-immersive__sponsor button { position: absolute; top: 7px; right: 8px; width: 24px; height: 24px; border: 0; border-radius: 7px; background: transparent; color: var(--rmc-auth-muted); }
 
 .rmc-auth-immersive.is-offline [data-rmc-sponsored-region] { display: none !important; }
-.rmc-auth-immersive.is-offline .rmc-auth-immersive__secure-state { color: #f8d98e; border-color: rgba(244, 199, 104, .35); background: rgba(244, 199, 104, .1); }
-.rmc-auth-immersive.is-offline .rmc-auth-immersive__local-dot { background: #f4c768; box-shadow: 0 0 0 4px rgba(244, 199, 104, .1); }
+.rmc-auth-immersive.is-offline .rmc-auth-immersive__secure-state { color: var(--color-warning); border-color: color-mix(in srgb, var(--color-warning) 35%, transparent); background: color-mix(in srgb, var(--color-warning) 10%, transparent); }
+.rmc-auth-immersive.is-offline .rmc-auth-immersive__local-dot { background: var(--color-warning); box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-warning) 10%, transparent); }
 
 @media (max-height: 590px) and (min-width: 981px) {
   .rmc-auth-immersive__local-state { padding-block: 5px; }
@@ -1677,8 +1677,8 @@ body:has(.rmc-auth-immersive) [data-shell-chrome="django-messages"] {
     padding: clamp(1.15rem, 2.5vw, 2rem);
     justify-content: flex-end;
     background:
-      linear-gradient(130deg, color-mix(in srgb, var(--school-primary, #2563eb) 13%, transparent), transparent 58%),
-      color-mix(in srgb, var(--surface-bg, #080d1b) 36%, transparent);
+      linear-gradient(130deg, color-mix(in srgb, var(--school-primary) 13%, transparent), transparent 58%),
+      color-mix(in srgb, var(--surface-bg) 36%, transparent);
   }
 
   .rmc-auth-immersive__slide strong {
@@ -1711,7 +1711,7 @@ body:has(.rmc-auth-immersive) [data-shell-chrome="django-messages"] {
     min-height: 100%;
     display: flex;
     align-items: stretch;
-    background: linear-gradient(160deg, color-mix(in srgb, var(--surface-elevated, #111a31) 94%, transparent), color-mix(in srgb, var(--surface-bg, #080d1b) 96%, transparent));
+    background: linear-gradient(160deg, color-mix(in srgb, var(--surface-elevated) 94%, transparent), color-mix(in srgb, var(--surface-bg) 96%, transparent));
   }
   .rmc-auth-immersive__glass-inner { width: 100%; }
 }
@@ -1719,7 +1719,7 @@ body:has(.rmc-auth-immersive) [data-shell-chrome="django-messages"] {
 .rmc-auth-immersive__recommended {
   display: inline-flex;
   margin-inline-start: 6px;
-  color: color-mix(in srgb, var(--school-accent, #38bdf8) 72%, white);
+  color: color-mix(in srgb, var(--school-accent) 72%, var(--text-primary));
   font-size: 8px;
   font-weight: 800;
   letter-spacing: .06em;
