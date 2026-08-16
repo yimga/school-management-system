@@ -45,6 +45,6 @@ class Command(BaseCommand):
 
         self.stdout.write(
             self.style.SUCCESS(
-                f"Exported {school.slug} branding → {out} ({len(data):,} bytes, encrypted + signed)."
+                f"Exported {school.slug} branding -> {out} ({len(data):,} bytes, encrypted + signed)."
             )
         )
