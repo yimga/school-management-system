@@ -36,6 +36,7 @@ from typing import Any
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.utils.translation import gettext_lazy as _
+from django.urls import NoReverseMatch, reverse
 from django.views.generic import TemplateView
 
 
@@ -106,18 +107,18 @@ _REQUIRED_CONTENT_KEYS: dict[str, tuple[str, ...]] = {
 }
 
 _LOGIN_FRONT_DOOR_CAPABILITIES: tuple[tuple[int, str, str], ...] = (
-    (1, "Passkeys and trusted devices", "/authentication/security/"),
-    (2, "Returning-user entrance", "/authentication/login/"),
-    (3, "Role-aware sign-in methods", "/authentication/login/"),
-    (4, "Offline continuity", "/authentication/offline/devices/"),
-    (5, "School-day information", "/communication/announcements/"),
-    (6, "Tenant front-door publisher", "/communication/announcements/create/"),
-    (7, "Governed local partners", "/siteconfig/super/configure/cockpit/"),
-    (8, "Guided recovery", "/authentication/password-reset/"),
+    (1, "Passkeys and trusted devices", "accounts:security_trust_hub"),
+    (2, "Returning-user entrance", "accounts:login"),
+    (3, "Role-aware sign-in methods", "accounts:login"),
+    (4, "Offline continuity", "portal:device_registrations_index"),
+    (5, "School-day information", "communication:announcement_list_pending"),
+    (6, "Tenant front-door publisher", "communication:announcement_create"),
+    (7, "Governed local partners", "siteconfig:cockpit_configure"),
+    (8, "Guided recovery", "accounts:password_reset"),
     (9, "Verified-school protection", "/school/configuration/?focus=school-profile#configuration-school-profile"),
-    (10, "Accessible authentication", "/authentication/login/"),
-    (11, "Public-data access assistant", "/authentication/login/"),
-    (12, "Front-door health and diagnostics", "/siteconfig/super/configure/cockpit/health/"),
+    (10, "Accessible authentication", "accounts:login"),
+    (11, "Public-data access assistant", "accounts:login"),
+    (12, "Front-door health and diagnostics", "siteconfig:cockpit_health"),
 )
 
 _LOGIN_FRONT_DOOR_MARKERS: dict[int, tuple[tuple[str, str], ...]] = {
@@ -126,11 +127,19 @@ _LOGIN_FRONT_DOOR_MARKERS: dict[int, tuple[tuple[str, str], ...]] = {
     3: (("templates/auth/login.html", "data-rmc-auth-role"),),
     4: (("static/js/rmc-offline-login-unlock.js", "rmc_offline_active_capability"), ("static/js/rmc-offline-auth-enrollment.js", "sealCapability")),
     5: (("apps/accounts/login_immersive_canvas.py", "dash_feed"), ("templates/auth/partials/login_immersive_dash_panels.html", "LOGIN_IMMERSIVE.dash_feed")),
-    6: (("apps/communication/forms_announcements.py", "AnnouncementCreateForm"),),
+    6: (
+        ("apps/communication/forms_announcements.py", '"scheduled_at"'),
+        ("templates/communication/announcement_create.html", "form.scheduled_at"),
+        ("apps/communication/models.py", "AnnouncementAuditLog"),
+    ),
     7: (("apps/siteconfig/forms_cockpit.py", "lic_sponsored_lines"),),
     8: (("apps/accounts/views_magic_link.py", "magic_link_request"), ("apps/accounts/password_reset.py", "PortalPasswordResetForm")),
     9: (("apps/accounts/views_passkey.py", "tenant mismatch"),),
-    10: (("templates/auth/login.html", "aria-live"),),
+    10: (
+        ("templates/auth/login.html", "data-rmc-auth-contrast"),
+        ("templates/auth/login.html", "data-rmc-auth-motion"),
+        ("static/css/auth-login-canvas.css", "data-rmc-auth-reduce-motion"),
+    ),
     11: (("templates/auth/login.html", "data-rmc-access-assistant"),),
     12: (("templates/siteconfig/super/cockpit_health.html", "data-rmc-login-front-door-health"),),
 }
@@ -140,7 +149,7 @@ def _build_login_front_door_health() -> tuple[list[dict[str, Any]], int]:
     """Verify shipped wiring without reading or exposing tenant/user content."""
     base = Path(settings.BASE_DIR)
     rows: list[dict[str, Any]] = []
-    for number, label, action_url in _LOGIN_FRONT_DOOR_CAPABILITIES:
+    for number, label, action_target in _LOGIN_FRONT_DOOR_CAPABILITIES:
         checks = _LOGIN_FRONT_DOOR_MARKERS.get(number, ())
         ready = bool(checks)
         for relative_path, marker in checks:
@@ -148,6 +157,11 @@ def _build_login_front_door_health() -> tuple[list[dict[str, Any]], int]:
                 ready = ready and marker in (base / relative_path).read_text(encoding="utf-8")
             except (OSError, UnicodeError):
                 ready = False
+        try:
+            action_url = reverse(action_target) if ":" in action_target else action_target
+        except NoReverseMatch:
+            action_url = ""
+            ready = False
         rows.append({"number": number, "label": label, "status": "ready" if ready else "attention", "action_url": action_url})
     ready_count = sum(row["status"] == "ready" for row in rows)
     return rows, round((ready_count / len(rows)) * 100) if rows else 0

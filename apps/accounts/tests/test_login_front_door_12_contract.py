@@ -9,6 +9,7 @@ from django.urls import reverse
 
 from apps.accounts.views_passkey import passkey_login_options
 from apps.siteconfig.views_cockpit_health import _build_login_front_door_health
+from apps.communication.forms_announcements import AnnouncementCreateForm
 
 
 class LoginFrontDoorTwelveContractTests(SimpleTestCase):
@@ -59,6 +60,10 @@ class LoginFrontDoorTwelveContractTests(SimpleTestCase):
         self.assertIn("AES-GCM", offline)
         self.assertIn("PBKDF2", offline)
         self.assertIn("scrollbar-gutter: stable", css)
+        self.assertIn("data-rmc-auth-high-contrast", css)
+        self.assertIn("data-rmc-auth-reduce-motion", css)
+        self.assertIn("data-rmc-auth-contrast", login)
+        self.assertIn("data-rmc-auth-motion", login)
         self.assertNotIn(
             ".rmc-auth-immersive__dash,\n  .rmc-auth-immersive__moments { display: none; }",
             css,
@@ -69,6 +74,19 @@ class LoginFrontDoorTwelveContractTests(SimpleTestCase):
         self.assertEqual(len(rows), 12)
         self.assertEqual(score, 100)
         self.assertTrue(all(row["status"] == "ready" for row in rows))
+        self.assertTrue(all(row["action_url"].startswith("/") for row in rows))
+        self.assertEqual(
+            rows[3]["action_url"], reverse("portal:device_registrations_index")
+        )
+        self.assertEqual(
+            rows[5]["action_url"], reverse("communication:announcement_create")
+        )
+
+    def test_tenant_publisher_exposes_start_and_expiry_controls(self):
+        form = AnnouncementCreateForm()
+        self.assertIn("scheduled_at", form.fields)
+        self.assertEqual(form.fields["scheduled_at"].widget.input_type, "datetime-local")
+        self.assertIn("expiry_date", form.fields)
 
     def test_offline_enrollment_and_unlock_are_both_wired(self):
         base = Path(settings.BASE_DIR)

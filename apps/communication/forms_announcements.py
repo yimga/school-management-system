@@ -53,6 +53,7 @@ class AnnouncementCreateForm(forms.ModelForm):
             "specific_recipients",
             "is_urgent",
             "is_active",
+            "scheduled_at",
             "expiry_date",
         ]
         widgets = {
@@ -71,6 +72,9 @@ class AnnouncementCreateForm(forms.ModelForm):
             "is_urgent": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "expiry_date": forms.DateTimeInput(
+                attrs={"class": "form-control", "type": "datetime-local"}
+            ),
+            "scheduled_at": forms.DateTimeInput(
                 attrs={"class": "form-control", "type": "datetime-local"}
             ),
         }

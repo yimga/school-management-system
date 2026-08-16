@@ -34,6 +34,28 @@
   var sponsoredRegion = root.querySelector("[data-rmc-sponsored-region]");
   var cacheKey = "rmc:login-front-door:" + window.location.host;
   var roleMemoryKey = cacheKey + ":last-role";
+  var contrastKey = cacheKey + ":high-contrast";
+  var motionKey = cacheKey + ":reduce-motion";
+
+  function applyAccessPreference(button, key, attribute) {
+    var active = false;
+    try { active = window.localStorage.getItem(key) === "1"; } catch (_e) { /* optional */ }
+    document.documentElement.toggleAttribute(attribute, active);
+    button.setAttribute("aria-pressed", active ? "true" : "false");
+    button.addEventListener("click", function () {
+      active = !active;
+      document.documentElement.toggleAttribute(attribute, active);
+      button.setAttribute("aria-pressed", active ? "true" : "false");
+      try { window.localStorage.setItem(key, active ? "1" : "0"); } catch (_e) { /* optional */ }
+    });
+  }
+
+  root.querySelectorAll("[data-rmc-auth-contrast]").forEach(function (button) {
+    applyAccessPreference(button, contrastKey, "data-rmc-auth-high-contrast");
+  });
+  root.querySelectorAll("[data-rmc-auth-motion]").forEach(function (button) {
+    applyAccessPreference(button, motionKey, "data-rmc-auth-reduce-motion");
+  });
 
   function b64urlToBuffer(value) {
     var b64 = String(value || "").replace(/-/g, "+").replace(/_/g, "/");

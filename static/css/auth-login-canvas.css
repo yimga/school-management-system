@@ -1835,6 +1835,19 @@ body:has(.rmc-auth-immersive) [data-shell-chrome="django-messages"] {
   color: var(--text-primary);
   padding: 10px 12px;
 }
+html[data-rmc-auth-high-contrast] .rmc-auth-immersive {
+  --rmc-auth-hair: currentColor;
+  --rmc-auth-muted: var(--text-primary);
+  filter: contrast(1.2);
+}
+html[data-rmc-auth-reduce-motion] .rmc-auth-immersive *,
+html[data-rmc-auth-reduce-motion] .rmc-auth-immersive *::before,
+html[data-rmc-auth-reduce-motion] .rmc-auth-immersive *::after {
+  animation-duration: .001ms !important;
+  animation-iteration-count: 1 !important;
+  scroll-behavior: auto !important;
+  transition-duration: .001ms !important;
+}
 
 @media (max-width: 1180px) and (min-width: 981px) {
   .rmc-auth-immersive {

@@ -70,6 +70,9 @@
                 </div>
               </div>
               <div class="col-md-6">
+                {% include "components/form_field.html" with field=form.scheduled_at %}
+              </div>
+              <div class="col-md-6">
                 {% include "components/form_field.html" with field=form.expiry_date %}
               </div>
             </div>
