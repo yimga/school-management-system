@@ -76,33 +76,52 @@ _ES_CODES: dict[str, str] = {
 
 # country (ISO alpha-2) -> {normalized subject name: standard code}
 _NATIONAL_SUBJECT_CODES: dict[str, dict[str, str]] = {
-    # Cameroon (bilingual GCE / francophone). Mnemonic defaults — an admin can
-    # replace these with the exact GCE Board / MINESEC numeric codes.
+    # Cameroon — REAL Cameroon GCE Board subject codes (English/anglophone
+    # subsystem). Ordinary Level (05xx) is the mainstream secondary code space;
+    # Advanced-Level-only subjects (07xx, distinct names) are added so A-Level
+    # records are covered too. Codes are 4-digit, zero-padded, stable across
+    # diets. Source: camgceb.org (official GCE Board Ordinary/Advanced Level
+    # subject lists). Francophone (Baccalauréat) subjects, keyed by their French
+    # names, keep the shared francophone mnemonic default — the GCE Board does not
+    # code them. Subject.code stays admin-editable; this is a first-run default.
     "CM": {
-        "mathematics": "MATH",
-        "further mathematics": "FMTH",
-        "additional mathematics": "AMTH",
-        "english language": "ENGL",
-        "english": "ENGL",
-        "literature in english": "LITE",
-        "french": "FREN",
-        "french language": "FREN",
-        "français": "FREN",
-        "biology": "BIOL",
-        "chemistry": "CHEM",
-        "physics": "PHYS",
-        "history": "HIST",
-        "geography": "GEOG",
-        "citizenship": "CITZ",
-        "citizenship education": "CITZ",
-        "computer science": "CMSC",
-        "information technology": "ICTN",
-        "economics": "ECON",
-        "commerce": "COMM",
-        "accounting": "ACCT",
-        "religious studies": "RELS",
-        "food science": "FOOD",
-        "physical education": "PHED",
+        # --- GCE Ordinary Level (mainstream secondary) ------------------------
+        "accounting": "0505",
+        "biology": "0510",
+        "chemistry": "0515",
+        "commerce": "0520",
+        "economics": "0525",
+        "english language": "0530",
+        "english": "0530",
+        "literature in english": "0535",
+        "food and nutrition": "0540",
+        "french": "0545",
+        "french language": "0545",
+        "special bilingual education french": "0546",
+        "geography": "0550",
+        "geology": "0555",
+        "history": "0560",
+        "citizenship education": "0562",
+        "citizenship": "0562",
+        "human biology": "0565",
+        "mathematics": "0570",
+        "additional mathematics": "0575",
+        "additional maths": "0575",
+        "physics": "0580",
+        "religious studies": "0585",
+        "logic": "0590",
+        "computer science": "0595",
+        # --- GCE Advanced-Level-only subjects (distinct names, no O/L clash) ---
+        "food science and nutrition": "0740",
+        "food science": "0740",
+        "pure mathematics with mechanics": "0765",
+        "pure mathematics with statistics": "0770",
+        "further mathematics": "0775",
+        "further maths": "0775",
+        "philosophy": "0790",
+        "information and communication technology": "0796",
+        "information technology": "0796",
+        "ict": "0796",
     },
 
     # Kenya — REAL KNEC / KCSE numeric subject codes.

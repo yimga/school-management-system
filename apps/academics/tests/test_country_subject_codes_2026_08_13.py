@@ -21,12 +21,15 @@ from apps.schools.models import School
 
 class ResolveCodeTests(TestCase):
     def test_curated_cameroon_codes(self):
+        # REAL Cameroon GCE Board Ordinary-Level codes (camgceb.org).
         cm = School(country_code="CM")
-        self.assertEqual(resolve_subject_code(cm, "Mathematics"), "MATH")
-        self.assertEqual(resolve_subject_code(cm, "English Language"), "ENGL")
-        self.assertEqual(resolve_subject_code(cm, "French"), "FREN")
+        self.assertEqual(resolve_subject_code(cm, "Mathematics"), "0570")
+        self.assertEqual(resolve_subject_code(cm, "English Language"), "0530")
+        self.assertEqual(resolve_subject_code(cm, "French"), "0545")
         # case-insensitive lookup
-        self.assertEqual(resolve_subject_code(cm, "  biology "), "BIOL")
+        self.assertEqual(resolve_subject_code(cm, "  biology "), "0510")
+        # Advanced-Level-only subject (distinct name, real A/L code)
+        self.assertEqual(resolve_subject_code(cm, "Further Mathematics"), "0775")
 
     def test_mnemonic_fallback_for_unknown_subject_or_country(self):
         # single word -> first four letters
@@ -74,4 +77,5 @@ class SeedAndBackfillTests(TestCase):
         second = backfill_subject_codes(school)
         # nothing left blank to code on the second pass
         self.assertEqual(second.get("coded_subjects", 0), 0)
-        self.assertEqual(Subject.objects.get(school=school, name="History").code, "HIST")
+        # History resolves to the REAL Cameroon GCE Board code (0560), not a mnemonic.
+        self.assertEqual(Subject.objects.get(school=school, name="History").code, "0560")

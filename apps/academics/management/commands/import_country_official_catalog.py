@@ -74,11 +74,13 @@ class Command(BaseCommand):
             else:
                 skipped += 1
             overwritten = summary.get("subject_overwritten", 0)
+            by_count_changed = summary.get("term_windows_by_count_changed", 0)
+            by_count_str = f" by_count+{by_count_changed}" if by_count_changed else ""
             self.stdout.write(
                 f"{status.upper():9} {summary.get('country')}  "
                 f"subjects+{summary.get('subject_codes_changed', 0)} "
                 f"(added {summary.get('subject_added', 0)}, overwrote {overwritten}) "
-                f"terms+{summary.get('term_windows_changed', 0)}  "
+                f"terms+{summary.get('term_windows_changed', 0)}{by_count_str}  "
                 f"[{summary.get('source', '')}]"
             )
             # Surface the exact old→new diffs — overwrites of an existing code are
@@ -87,7 +89,11 @@ class Command(BaseCommand):
                 old = diff.get("old") or "—"
                 marker = "OVERWRITE" if diff.get("kind") == "overwritten" else "add"
                 self.stdout.write(f"    {marker:9} {diff.get('name')}: {old} -> {diff.get('new')}")
-            if summary.get("subject_codes_changed") or summary.get("term_windows_changed"):
+            if (
+                summary.get("subject_codes_changed")
+                or summary.get("term_windows_changed")
+                or summary.get("term_windows_by_count_changed")
+            ):
                 any_change = True
 
         tail = "Dry run — nothing written." if dry else "Import complete."

@@ -20,14 +20,22 @@ Catalog file shape (one JSON object per country)::
       "sub_system": "",             # optional education sub-system code
       "source": "KNEC KCSE 2024",   # provenance, for the audit trail
       "term_windows": [[1,8,4,10],[5,2,8,8],[9,2,11,28]],   # optional
+      "term_windows_by_count": {    # optional — more than one real structure
+        "2": [[9,1,1,31],[2,1,6,30]],
+        "3": [[9,1,12,15],[1,8,4,10],[4,25,7,25]]
+      },
       "subject_codes": {"english": "101", "mathematics": "121"},  # optional
       "notes": "..."
     }
 
 ``subject_codes`` keys are subject names (matched case-insensitively at resolve
 time); ``term_windows`` is a single list of ``[start_month, start_day, end_month,
-end_day]`` tuples for the country's term structure. Merging is additive — existing
-config keys the catalog does not mention are preserved — and idempotent.
+end_day]`` tuples for the country's term structure. ``term_windows_by_count`` is
+optional and lets a country carry MORE THAN ONE real structure (keyed by term
+count, e.g. a 2-semester AND a 3-trimester calendar) — the resolver prefers the
+entry matching a school's requested term count, then falls back to the single
+``term_windows``. Merging is additive — existing config keys the catalog does not
+mention are preserved — and idempotent.
 """
 
 from __future__ import annotations
@@ -77,6 +85,34 @@ def _normalized_term_windows(raw: Any) -> list[list[int]]:
     return out
 
 
+def _normalized_term_windows_by_count(raw: Any) -> dict[str, list[list[int]]]:
+    """Coerce a ``{term_count: [[sm,sd,em,ed], ...]}`` map to str-keyed int-count →
+    validated window lists. Each list's length MUST equal its term count (that is
+    the whole point — a 3-term entry has 3 windows). Lets a country carry more than
+    one real term structure (e.g. a 2-semester AND a 3-trimester calendar)."""
+    if not isinstance(raw, dict):
+        raise OfficialCatalogError("term_windows_by_count must be an object of count -> windows")
+    out: dict[str, list[list[int]]] = {}
+    for key, value in raw.items():
+        try:
+            count = int(key)
+        except (TypeError, ValueError) as exc:
+            raise OfficialCatalogError(
+                f"term_windows_by_count key {key!r} must be an integer term count"
+            ) from exc
+        if count < 1:
+            raise OfficialCatalogError(
+                f"term_windows_by_count key {key!r} must be a positive term count"
+            )
+        windows = _normalized_term_windows(value)
+        if len(windows) != count:
+            raise OfficialCatalogError(
+                f"term_windows_by_count[{count}] must have exactly {count} window(s), got {len(windows)}"
+            )
+        out[str(count)] = windows
+    return out
+
+
 def parse_catalog(data: dict[str, Any]) -> dict[str, Any]:
     """Validate + normalize a raw catalog dict. Raises ``OfficialCatalogError``."""
     if not isinstance(data, dict):
@@ -94,8 +130,14 @@ def parse_catalog(data: dict[str, Any]) -> dict[str, Any]:
         parsed["subject_codes"] = _normalized_subject_codes(data.get("subject_codes"))
     if "term_windows" in data and data.get("term_windows") is not None:
         parsed["term_windows"] = _normalized_term_windows(data.get("term_windows"))
-    if "subject_codes" not in parsed and "term_windows" not in parsed:
-        raise OfficialCatalogError("catalog has neither subject_codes nor term_windows")
+    if "term_windows_by_count" in data and data.get("term_windows_by_count") is not None:
+        parsed["term_windows_by_count"] = _normalized_term_windows_by_count(
+            data.get("term_windows_by_count")
+        )
+    if not any(k in parsed for k in ("subject_codes", "term_windows", "term_windows_by_count")):
+        raise OfficialCatalogError(
+            "catalog has none of subject_codes / term_windows / term_windows_by_count"
+        )
     return parsed
 
 
@@ -115,6 +157,7 @@ def _merge_into_config(config: dict[str, Any], parsed: dict[str, Any]) -> tuple[
     changes: dict[str, Any] = {
         "subject_codes": 0,
         "term_windows": 0,
+        "term_windows_by_count": 0,
         "subject_added": 0,
         "subject_overwritten": 0,
         "subject_diffs": [],
@@ -144,6 +187,17 @@ def _merge_into_config(config: dict[str, Any], parsed: dict[str, Any]) -> tuple[
             changes["term_windows"] = 1
             changes["term_window_diff"] = {"old": old_windows, "new": parsed["term_windows"]}
         new_config["term_windows"] = parsed["term_windows"]
+    if "term_windows_by_count" in parsed:
+        existing = (
+            dict(new_config.get("term_windows_by_count") or {})
+            if isinstance(new_config.get("term_windows_by_count"), dict)
+            else {}
+        )
+        for count, windows in parsed["term_windows_by_count"].items():
+            if existing.get(count) != windows:
+                changes["term_windows_by_count"] += 1
+            existing[count] = windows
+        new_config["term_windows_by_count"] = existing
     return new_config, changes
 
 
@@ -204,6 +258,7 @@ def _provenance_entry(parsed: dict[str, Any], changes: dict[str, Any]) -> dict[s
         "subject_added": changes.get("subject_added", 0),
         "subject_overwritten": changes.get("subject_overwritten", 0),
         "term_windows_changed": changes["term_windows"],
+        "term_windows_by_count_changed": changes.get("term_windows_by_count", 0),
     }
 
 
@@ -215,6 +270,7 @@ def _summary(parsed, profile, status, changes) -> dict[str, Any]:
         "status": status,
         "subject_codes_changed": changes["subject_codes"],
         "term_windows_changed": changes["term_windows"],
+        "term_windows_by_count_changed": changes.get("term_windows_by_count", 0),
         "subject_added": changes.get("subject_added", 0),
         "subject_overwritten": changes.get("subject_overwritten", 0),
         "diffs": changes.get("subject_diffs", []),
@@ -257,7 +313,9 @@ def import_catalog(parsed: dict[str, Any], *, dry_run: bool = False) -> dict[str
 
     # Profile exists — report the real delta (whether applying or dry-running).
     new_config, changes = _merge_into_config(getattr(profile, "config", None) or {}, parsed)
-    applied = bool(changes["subject_codes"] or changes["term_windows"])
+    applied = bool(
+        changes["subject_codes"] or changes["term_windows"] or changes["term_windows_by_count"]
+    )
     if applied and not dry_run:
         log = list(new_config.get("catalog_provenance") or [])
         log.append(_provenance_entry(parsed, changes))
@@ -325,7 +383,11 @@ def build_catalog_template(country: str) -> dict[str, Any]:
     Round-trips through :func:`parse_catalog` / :func:`import_catalog`. Raises
     ``OfficialCatalogError`` when the country has no curated data to seed from."""
     from apps.academics.country_subject_codes import _NATIONAL_SUBJECT_CODES
-    from apps.academics.country_term_calendars import _TERM_CALENDARS, _to_alpha2
+    from apps.academics.country_term_calendars import (
+        _TERM_CALENDARS,
+        _TERM_CALENDARS_BY_COUNT,
+        _to_alpha2,
+    )
 
     raw = (country or "").strip().upper()
     iso2 = raw if len(raw) == 2 else _to_alpha2(raw)
@@ -333,7 +395,8 @@ def build_catalog_template(country: str) -> dict[str, Any]:
         raise OfficialCatalogError(f"unknown country code: {country!r}")
     codes = _NATIONAL_SUBJECT_CODES.get(iso2)
     windows = _TERM_CALENDARS.get(iso2)
-    if not codes and not windows:
+    by_count = _TERM_CALENDARS_BY_COUNT.get(iso2)
+    if not codes and not windows and not by_count:
         raise OfficialCatalogError(f"no curated data for {iso2} to build a template from")
     template: dict[str, Any] = {
         "country": iso2,
@@ -345,6 +408,10 @@ def build_catalog_template(country: str) -> dict[str, Any]:
         template["subject_codes"] = {str(k): str(v) for k, v in codes.items()}
     if windows:
         template["term_windows"] = [list(w) for w in windows]
+    if by_count:
+        template["term_windows_by_count"] = {
+            str(count): [list(w) for w in wins] for count, wins in by_count.items()
+        }
     return template
 
 

@@ -52,10 +52,14 @@ _SEM_AUG = [(8, 15, 12, 20), (1, 8, 5, 30)]                        # 2 semesters
 # (start_month, start_day, end_month, end_day) per term, in teaching order.
 # Keyed by ISO alpha-2 country, with optional "<CC>-<SUBSYS>" specialization.
 _TERM_CALENDARS: dict[str, list[tuple[int, int, int, int]]] = {
-    # --- Cameroon: 3 trimesters, year starts September, ends ~July -------------
-    "CM": [(9, 1, 12, 15), (1, 5, 4, 5), (4, 15, 7, 10)],
-    "CM-FR": [(9, 1, 12, 15), (1, 5, 4, 5), (4, 15, 7, 10)],
-    "CM-EN": [(9, 1, 12, 15), (1, 5, 4, 5), (4, 15, 7, 10)],
+    # --- Cameroon: 3 trimesters, Sept start (MINESEC national calendar). Both
+    # subsystems follow the same ministry calendar. Boundaries track the MINESEC
+    # 2025/2026 school year (start 8 Sept; breaks 19 Dec–5 Jan and 2–20 Apr; end
+    # 31 Jul). Dates shift a little each year, so these are representative — a
+    # school confirms its own real dates before go-live.
+    "CM": [(9, 8, 12, 19), (1, 5, 4, 2), (4, 20, 7, 31)],
+    "CM-FR": [(9, 8, 12, 19), (1, 5, 4, 2), (4, 20, 7, 31)],
+    "CM-EN": [(9, 8, 12, 19), (1, 5, 4, 2), (4, 20, 7, 31)],
     # --- West/Central Africa (3 terms, Sep start) ------------------------------
     "NG": [(9, 1, 12, 15), (1, 8, 4, 10), (4, 25, 7, 25)],
     "GH": [(9, 1, 12, 15), (1, 8, 4, 10), (4, 25, 7, 25)],
@@ -253,6 +257,51 @@ _TERM_CALENDARS: dict[str, list[tuple[int, int, int, int]]] = {
     "VU": _TRI_FEB,
 }
 
+# Countries whose schools genuinely run MORE THAN ONE term structure (e.g. a
+# 3-term primary sector alongside a 2-semester secondary sector). ``_TERM_CALENDARS``
+# holds a single structure per country; this optional map holds extra ones keyed by
+# term count, so a country can carry both a real 2-term AND a real 3-term calendar.
+# The resolver prefers the by-count entry matching the school's requested term
+# count, then falls back to the single ``_TERM_CALENDARS`` shape. Empty by default —
+# a country only appears here when its real multi-structure data is populated (via
+# curated data or, more usually, an operator's per-profile ``term_windows_by_count``
+# config / an official catalog import). No fabrication.
+#   { ISO2 (or "<CC>-<SUBSYS>") : { term_count : [(sm, sd, em, ed), ...] } }
+_TERM_CALENDARS_BY_COUNT: dict[str, dict[int, list[tuple[int, int, int, int]]]] = {}
+
+
+def _container_windows(container, term_count: int):
+    """Raw window sequence for a term count from a settings/config-style dict.
+
+    Prefers ``container['term_windows_by_count'][str(count)]`` (the C1 multi-count
+    home — JSON object keys are strings, int keys tolerated) and falls back to the
+    single ``container['term_windows']``. Returns the RAW sequence (the caller
+    validates), or ``None``. Additive: absent the by-count key this behaves exactly
+    as reading ``term_windows`` did before."""
+    if not isinstance(container, dict):
+        return None
+    by_count = container.get("term_windows_by_count")
+    if isinstance(by_count, dict):
+        seq = by_count.get(str(term_count))
+        if seq is None:
+            seq = by_count.get(term_count)
+        if seq is not None:
+            return seq
+    return container.get("term_windows")
+
+
+def _curated_windows(key: str, term_count: int):
+    """Raw curated window sequence for a term count: the ``_TERM_CALENDARS_BY_COUNT``
+    entry for this count if present, else the single ``_TERM_CALENDARS`` shape."""
+    by_count = _TERM_CALENDARS_BY_COUNT.get(key)
+    if isinstance(by_count, dict):
+        seq = by_count.get(term_count)
+        if seq is None:
+            seq = by_count.get(str(term_count))
+        if seq is not None:
+            return seq
+    return _TERM_CALENDARS.get(key)
+
 
 def _safe_date(year: int, month: int, day: int) -> _dt.date | None:
     """Build a date, backing the day off to the month's last valid day if needed
@@ -286,9 +335,9 @@ def _lookup_windows(school, term_count: int):
                 return None
         return out
 
-    # 1. per-school override
+    # 1. per-school override (by-count entry preferred, then the single shape)
     settings_map = getattr(school, "settings", None) or {}
-    override = _valid(settings_map.get("term_windows"))
+    override = _valid(_container_windows(settings_map, term_count))
     if override:
         return override
 
@@ -306,8 +355,8 @@ def _lookup_windows(school, term_count: int):
             requested_profile_code=str(policy.get("education_profile_code") or "").strip(),
             auto_create=False,
         )
-        cfg = getattr(profile, "config", None) or {}
-        prof_windows = _valid(cfg.get("term_windows") if isinstance(cfg, dict) else None)
+        cfg = getattr(profile, "config", None)
+        prof_windows = _valid(_container_windows(cfg, term_count))
         if prof_windows:
             return prof_windows
     except Exception:  # noqa: BLE001 — profile layer is best-effort
@@ -315,11 +364,11 @@ def _lookup_windows(school, term_count: int):
 
     # 3. curated code module (country-subsystem, then bare country)
     if iso and sub:
-        curated = _valid(_TERM_CALENDARS.get(f"{iso}-{sub}"))
+        curated = _valid(_curated_windows(f"{iso}-{sub}", term_count))
         if curated:
             return curated
     if iso:
-        return _valid(_TERM_CALENDARS.get(iso))
+        return _valid(_curated_windows(iso, term_count))
     return None
 
 
@@ -347,7 +396,7 @@ def term_windows_source(school, term_count: int) -> str | None:
         return True
 
     settings_map = getattr(school, "settings", None)
-    if isinstance(settings_map, dict) and _valid(settings_map.get("term_windows")):
+    if _valid(_container_windows(settings_map, term_count)):
         return "school"
 
     iso = (getattr(school, "country_code", None) or "").strip().upper()[:2]
@@ -364,15 +413,15 @@ def term_windows_source(school, term_count: int) -> str | None:
                 requested_profile_code=str(policy.get("education_profile_code") or "").strip(),
                 auto_create=False,
             )
-            cfg = getattr(profile, "config", None) or {}
-            if isinstance(cfg, dict) and _valid(cfg.get("term_windows")):
+            cfg = getattr(profile, "config", None)
+            if _valid(_container_windows(cfg, term_count)):
                 return "profile"
     except Exception:  # noqa: BLE001 — profile layer is best-effort
         logger.debug("term_windows_source: profile resolve failed", exc_info=True)
 
-    if iso and sub and _valid(_TERM_CALENDARS.get(f"{iso}-{sub}")):
+    if iso and sub and _valid(_curated_windows(f"{iso}-{sub}", term_count)):
         return "curated"
-    if iso and _valid(_TERM_CALENDARS.get(iso)):
+    if iso and _valid(_curated_windows(iso, term_count)):
         return "curated"
     return None
 

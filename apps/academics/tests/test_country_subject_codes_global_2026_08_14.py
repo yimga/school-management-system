@@ -54,9 +54,10 @@ class SharedMnemonicSetTests(SimpleTestCase):
 
 class FallbackAndBackwardCompatTests(SimpleTestCase):
     def test_cameroon_still_curated(self):
+        # Cameroon curated codes are the REAL GCE Board numerics (camgceb.org).
         cm = School(country_code="CM")
-        self.assertEqual(resolve_subject_code(cm, "Mathematics"), "MATH")
-        self.assertEqual(resolve_subject_code(cm, "French"), "FREN")
+        self.assertEqual(resolve_subject_code(cm, "Mathematics"), "0570")
+        self.assertEqual(resolve_subject_code(cm, "French"), "0545")
 
     def test_unknown_country_or_subject_uses_mnemonic(self):
         # un-curated country → mnemonic

@@ -114,7 +114,7 @@ class NoRegressionTests(SimpleTestCase):
         self.assertEqual(resolve_subject_code(ke, "Biology"), "231")          # KNEC numeric
         self.assertEqual(resolve_subject_code(ke, "Basket Weaving"), "BW")    # mnemonic initials
         self.assertEqual(resolve_subject_code(School(country_code="IN"), "Mathematics"), "041")  # CBSE
-        self.assertEqual(resolve_subject_code(School(country_code="CM"), "French"), "FREN")       # curated
+        self.assertEqual(resolve_subject_code(School(country_code="CM"), "French"), "0545")       # curated GCE
 
 
 class EffectiveMapTests(SimpleTestCase):

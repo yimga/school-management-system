@@ -55,7 +55,13 @@ The import is **idempotent** (re-running changes nothing) and **additive**
   for the country's term structure. These are almost always **representative**
   (dates are set annually and per-school), so say so in `notes`; each school
   confirms or adjusts its own real dates in-app.
-- At least one of `subject_codes` / `term_windows` is required.
+- `term_windows_by_count` — *optional*. An object keyed by term count
+  (`"2"`, `"3"`, …), each value a `term_windows` list of exactly that length. Use
+  it when a country genuinely runs **more than one term structure** (e.g. a
+  2-semester sector alongside a 3-trimester one). The resolver prefers the entry
+  matching a school's requested term count, then falls back to the single
+  `term_windows`. Most countries need only `term_windows`.
+- At least one of `subject_codes` / `term_windows` / `term_windows_by_count` is required.
 
 ## Honesty rule
 
@@ -68,3 +74,6 @@ mnemonic. Say what is real vs representative in `notes`.
 
 - `KE.json` — real KNEC/KCSE numeric subject codes + representative Jan 3-term calendar.
 - `IN.json` — real CBSE numeric subject codes + representative Apr 2-semester calendar.
+- `CM.json` — real Cameroon GCE Board subject codes (O-Level 05xx + A-Level 07xx,
+  from camgceb.org) + representative Sept 3-term calendar derived from the MINESEC
+  2025/2026 national school-year calendar.

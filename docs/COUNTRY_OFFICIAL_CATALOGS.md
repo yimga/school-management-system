@@ -82,16 +82,28 @@ Idempotent and additive. Every applied import is **conflict-aware** — the summ
 `apps/academics/data/official_catalogs/README.md` for the file format and the
 honesty rule.
 
-### Known limitation — one term-window structure per country
+### Multiple term structures per country (`term_windows_by_count`)
 
-`config['term_windows']` holds a **single** list of `[sm, sd, em, ed]` tuples, and
-`country_term_calendars._lookup_windows` reads it as one bare list matched to a
-school's term count. A country whose schools run **different** term structures
-(e.g. a 2-term and a 3-term system side by side) can therefore have only one of
-them represented in the shared profile at a time; a school on the other structure
-falls through to the representative even-split default (still fully editable per
-school). Per-term-count keying (`term_windows_by_count`) is a deliberate future
-extension, not shipped — flagged here rather than pretended.
+`config['term_windows']` holds a **single** list of `[sm, sd, em, ed]` tuples for a
+country's term structure. A country whose schools run **different** term structures
+(e.g. a 2-semester sector alongside a 3-trimester one) uses the optional
+`term_windows_by_count` key — an object keyed by term count, each value a
+`term_windows` list of exactly that length:
+
+```json
+"term_windows_by_count": {
+  "2": [[9, 1, 1, 31], [2, 1, 6, 30]],
+  "3": [[9, 1, 12, 15], [1, 8, 4, 10], [4, 25, 7, 25]]
+}
+```
+
+`country_term_calendars._lookup_windows` prefers the `term_windows_by_count` entry
+matching the school's requested term count (at every layer — per-school
+`settings`, per-profile `config`, and curated `_TERM_CALENDARS_BY_COUNT`), then
+falls back to the single `term_windows`. It is fully additive: a catalog or config
+without the key behaves exactly as before, so a school on the other structure no
+longer silently falls through to the even-split default when its real windows are
+supplied. Most countries need only `term_windows`.
 
 To onboard a new country without starting from a blank file, export a pre-filled
 template from the curated defaults, edit in the official values, then import it —
@@ -108,6 +120,7 @@ python manage.py export_country_catalog_template --all --out-dir templates/  # e
 |---|---|---|
 | Kenya (`KE.json`) | **Real** KNEC/KCSE numeric | Representative Jan 3-term |
 | India (`IN.json`) | **Real** CBSE numeric | Representative Apr 2-semester |
+| Cameroon (`CM.json`) | **Real** GCE Board numeric (O-Level 05xx + A-Level 07xx, camgceb.org) | Representative Sept 3-term (from MINESEC 2025/2026 calendar) |
 | Everywhere else | Curated mnemonic default (real codes only where a country publishes stable ones) | Representative regional calendar |
 
 ## The honesty rule
