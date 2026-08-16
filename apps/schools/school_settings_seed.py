@@ -19,6 +19,9 @@ def build_initial_localization_settings(
     education_cycles: list[str] | None = None,
     calendar_code: str = "",
     seed_marker: str = "_seeded_at_signup",
+    operational_strands: list[str] | None = None,
+    curriculum_tracks: list[str] | None = None,
+    code_prefix: str = "",
 ) -> dict[str, Any]:
     """Signup-shaped ``settings["localization"]`` block."""
     from apps.siteconfig.country_localization_service import get_default_calendar_code
@@ -30,6 +33,22 @@ def build_initial_localization_settings(
     cal = (calendar_code or "").strip() or (
         get_default_calendar_code(cc) if cc else ""
     )
+    from apps.schools.onboarding_strands import (
+        canonicalize_strand_code,
+        curriculum_tracks_for_strands,
+        normalize_code_prefix,
+        parse_operational_strands,
+    )
+
+    strands = parse_operational_strands(operational_strands)
+    tracks: list[str] = []
+    for item in curriculum_tracks or []:
+        code = canonicalize_strand_code(item)
+        if code and code not in tracks:
+            tracks.append(code)
+    if not tracks:
+        tracks = curriculum_tracks_for_strands(strands)
+    prefix = normalize_code_prefix(code_prefix)
     block: dict[str, Any] = {
         "country_code": cc,
         "calendar_code": cal,
@@ -38,6 +57,9 @@ def build_initial_localization_settings(
         "language_code": lang,
         "primary_language_code": lang,
         "language_codes": langs,
+        "operational_strands": strands,
+        "curriculum_tracks": tracks,
+        "code_prefix": prefix,
         seed_marker: True,
     }
     return block
@@ -65,6 +87,9 @@ def build_initial_school_settings(
     seed_marker: str = "_seeded_at_signup",
     include_governance: bool = True,
     extra: dict[str, Any] | None = None,
+    operational_strands: list[str] | None = None,
+    curriculum_tracks: list[str] | None = None,
+    code_prefix: str = "",
 ) -> dict[str, Any]:
     """Full initial ``School.settings`` dict (localization + optional governance)."""
     settings: dict[str, Any] = {}
@@ -75,6 +100,9 @@ def build_initial_school_settings(
         or language_codes
         or education_cycles
         or calendar_code
+        or operational_strands
+        or curriculum_tracks
+        or code_prefix
     ):
         settings["localization"] = build_initial_localization_settings(
             country_code=country_code,
@@ -84,6 +112,9 @@ def build_initial_school_settings(
             education_cycles=education_cycles,
             calendar_code=calendar_code,
             seed_marker=seed_marker,
+            operational_strands=operational_strands,
+            curriculum_tracks=curriculum_tracks,
+            code_prefix=code_prefix,
         )
     if include_governance and country_code:
         gov = build_initial_governance_settings(country_code)

@@ -5594,6 +5594,37 @@ body:has([data-rmc-flow-launchpad]) .rmc-page__header::after {
 .rmc-provision-progress__error {
   /* surface via Bootstrap .alert utilities on the element */
 }
+.rmc-provision-progress__log {
+  margin-block-start: var(--space-3, 0.75rem);
+  max-block-size: 10rem;
+  overflow-y: auto;
+  padding: var(--space-3, 0.75rem);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg, 0.75rem);
+  background: var(--surface-canvas, var(--surface-bg));
+  color: var(--text-secondary);
+  font-family: ui-monospace, "Cascadia Code", "SFMono-Regular", Menlo, Consolas, monospace;
+  font-size: var(--type-size-sm, 0.8125rem);
+}
+.rmc-provision-progress__log-title {
+  margin: 0 0 var(--space-2, 0.5rem);
+  color: var(--text-primary);
+  font-weight: 600;
+  font-family: inherit;
+}
+.rmc-provision-progress__log-lines {
+  display: grid;
+  gap: var(--space-1, 0.25rem);
+}
+.rmc-provision-progress__log-line {
+  color: var(--text-secondary);
+}
+.rmc-provision-progress__log-line--success {
+  color: var(--success);
+}
+.rmc-provision-progress__log-line--error {
+  color: var(--danger, var(--destructive));
+}
 
 /* Dashboard Packs revival: per-user "Choose your dashboard" switcher (all shells).
    Phase 4b: grouped preview-card grammar. Token-only so tenant brand + dark/light

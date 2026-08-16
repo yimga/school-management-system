@@ -485,6 +485,50 @@
         </div>
       </div>
 
+      <div class="mb-3 rmc-signup-field" data-rmc-signup-field="operational_strands">
+        <div class="rmc-signup-field__label-row">
+          <span class="rmc-signup-field__label-text">{% trans "Operational strands" %}</span>
+          <span class="rmc-signup-field__optional">({% trans "select all that apply" %})</span>
+        </div>
+        <p class="rmc-signup-field__help small text-muted mb-2">
+          {% trans "Hybrid campuses can run several tracks at once — for example academic K-12 beside TVET or special education." %}
+        </p>
+        <div class="rmc-signup-type-cards"
+             role="group"
+             aria-label="{% trans 'Operational strands' %}"
+             data-rmc-multi-select="1">
+          {% with chosen_csv=operational_strands_csv|default:'' %}
+            {% for st in operational_strand_options %}
+              {% with code_marker="|"|add:st.code|add:"|" chosen_marker="|"|add:chosen_csv|add:"|" %}{# default-fallback-allow: chosen_csv bound by enclosing with #}
+              <label class="rmc-signup-type-card {% if code_marker in chosen_marker or st.default and not chosen_csv %}rmc-signup-type-card--selected{% endif %}">
+                <input type="checkbox" name="operational_strands" value="{{ st.code }}"
+                       class="rmc-signup-type-card__input"
+                       {% if code_marker in chosen_marker or st.default and not chosen_csv %}checked{% endif %}>
+                <span class="rmc-signup-type-card__glyph" aria-hidden="true">{{ st.glyph }}</span>
+                <span class="rmc-signup-type-card__title">{{ st.label }}</span>
+                {% if st.hint %}
+                <span class="rmc-signup-type-card__sub">{{ st.hint }}</span>
+                {% endif %}
+                <span class="rmc-signup-type-card__check" aria-hidden="true">✓</span>
+              </label>
+              {% endwith %}
+            {% endfor %}
+          {% endwith %}
+        </div>
+      </div>
+
+      <div class="mb-3 rmc-signup-field" data-rmc-signup-field="code_prefix">
+        <label class="form-label" for="code_prefix">{% trans "Custom department / subject code prefix" %}</label>
+        <input class="form-control" type="text" id="code_prefix" name="code_prefix"
+               maxlength="8" autocapitalize="characters" spellcheck="false"
+               pattern="[A-Za-z0-9]*"
+               value="{{ code_prefix|default:'' }}"
+               placeholder="{% trans 'Auto-generated if blank' %}"
+               data-rmc-signup-code-prefix
+               autocomplete="off">
+        <div class="form-text">{% trans "Optional. Letters and numbers only (2–8). Used as the start of department and classroom codes." %}</div>
+      </div>
+
       {% comment %}Wave L7 (v3.61.8 — 2026-05-22): migration vendor picker.
          Captures intent at signup so apps.lifecycle.signals auto-drafts
          a MigrationBundle the moment the school row lands. Powers the

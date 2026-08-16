@@ -149,6 +149,13 @@ from apps.siteconfig.country_localization_service import (
     validate_school_type,
 )
 from apps.governance.country_matrix_service import signup_governance_defaults
+from apps.schools.onboarding_strands import (
+    curriculum_tracks_for_board,
+    curriculum_tracks_for_strands,
+    normalize_code_prefix,
+    parse_operational_strands,
+    signup_operational_strand_options,
+)
 # v3.17 (2026-05-17): public onboarding gained a Migration step.
 # Order: 1 Region/type → 2 Plan/look → 3 Migration → 4 Review → signup.
 ONBOARDING_TOTAL_STEPS = 4
@@ -164,6 +171,21 @@ except ImportError:
             return f
 
         return dec
+
+
+def _signup_strand_template_context(
+    *,
+    operational_strands: list[str] | None = None,
+    code_prefix: str = "",
+) -> dict:
+    """Shared GET / validation-bounce keys for multi-strand + code prefix."""
+    selected = list(operational_strands or [])
+    return {
+        "operational_strand_options": signup_operational_strand_options(),
+        "operational_strands": selected,
+        "operational_strands_csv": "|".join(selected),
+        "code_prefix": (code_prefix or "").strip().upper()[:8],
+    }
 
 
 def _slug_from_name(name: str) -> str:
@@ -207,6 +229,7 @@ def _signup_decisions_model(
     cycles: list[str] | None = None,
     funding: str = "",
     campus_count: int = 0,
+    operational_strands: list[str] | None = None,
 ) -> dict:
     """Progressive decision model for the setup step — recommended option per
     decision, auto-applied defaults, and which questions to even ask.
@@ -222,13 +245,19 @@ def _signup_decisions_model(
     source = str((country_pack or {}).get("_source") or "")
     if source.startswith("regional:"):
         region_key = source.split(":", 1)[1]
-    return build_onboarding_decisions(
+    strands = parse_operational_strands(operational_strands)
+    model = build_onboarding_decisions(
         country_code=country_code or "",
         region_key=region_key,
         education_cycles=list(cycles or []),
         funding_type=funding or "",
-        institution_profile={"campus_count": campus_count or 0},
+        institution_profile={
+            "campus_count": campus_count or 0,
+            "operational_strands": strands,
+        },
     )
+    model["operational_strands"] = strands
+    return model
 
 
 # Wave L7 (v3.61.8 — 2026-05-22): public signup 2.0.
@@ -456,7 +485,11 @@ def signup_school(request: HttpRequest):
         if not tp:
             tp = get_default_calendar_code(cc)
         signup_localization_json = _signup_localization_json(request, cc, country_pack)
-        decisions_model = _signup_decisions_model(cc, country_pack)
+        decisions_model = _signup_decisions_model(
+            cc,
+            country_pack,
+            operational_strands=request.GET.getlist("operational_strands"),
+        )
         return render(
             request,
             "schools/signup_school.html",
@@ -499,6 +532,7 @@ def signup_school(request: HttpRequest):
                 # the calendar radio when the operator picks their state.
                 "india_state_options": get_india_state_options(),
                 "governance_matrix_hint": signup_governance_defaults(cc),
+                **_signup_strand_template_context(),
             },
         )
 
@@ -587,6 +621,11 @@ def signup_school(request: HttpRequest):
 
     from apps.schools.onboarding_profile import normalize_institution_profile
 
+    operational_strands = parse_operational_strands(
+        request.POST.getlist("operational_strands")
+    )
+    code_prefix = normalize_code_prefix(request.POST.get("code_prefix") or "")
+
     profile_result = normalize_institution_profile(
         {
             "funding_type": request.POST.get("funding_type"),
@@ -638,6 +677,12 @@ def signup_school(request: HttpRequest):
     curriculum_board = institution_profile["curriculum_board"]
     governance_profile = institution_profile["governance_profile"]
     migration_domains = institution_profile["migration_domains"]
+    institution_profile["operational_strands"] = list(operational_strands)
+    institution_profile["code_prefix"] = code_prefix
+    curriculum_tracks = curriculum_tracks_for_strands(operational_strands)
+    for extra_track in curriculum_tracks_for_board(curriculum_board):
+        if extra_track not in curriculum_tracks:
+            curriculum_tracks.append(extra_track)
 
     errors = [issue.message for issue in profile_result.errors]
     if migration_vendor_invalid:
@@ -669,6 +714,7 @@ def signup_school(request: HttpRequest):
             cycles=list(validated_types),
             funding=funding_type,
             campus_count=campus_count,
+            operational_strands=operational_strands,
         )
         return render(
             request,
@@ -698,6 +744,10 @@ def signup_school(request: HttpRequest):
                 "language_code": primary_language_code,
                 **institution_profile,
                 "profile_validation_issues": profile_result.issue_payload(),
+                **_signup_strand_template_context(
+                    operational_strands=operational_strands,
+                    code_prefix=code_prefix,
+                ),
             },
         )
     if (
@@ -725,6 +775,7 @@ def signup_school(request: HttpRequest):
             cycles=list(validated_types),
             funding=funding_type,
             campus_count=campus_count,
+            operational_strands=operational_strands,
         )
         return render(
             request,
@@ -759,6 +810,10 @@ def signup_school(request: HttpRequest):
                 "language_code": primary_language_code,
                 **institution_profile,
                 "profile_validation_issues": profile_result.issue_payload(),
+                **_signup_strand_template_context(
+                    operational_strands=operational_strands,
+                    code_prefix=code_prefix,
+                ),
             },
         )
 
@@ -783,7 +838,15 @@ def signup_school(request: HttpRequest):
         resolve_school_geo_create_fields,
     )
 
-    if country_code or term_preset or school_type or language_code or validated_types:
+    if (
+        country_code
+        or term_preset
+        or school_type
+        or language_code
+        or validated_types
+        or operational_strands
+        or code_prefix
+    ):
         school_settings = build_initial_school_settings(
             country_code=country_code or "",
             school_type_code=school_type or "",
@@ -793,6 +856,9 @@ def signup_school(request: HttpRequest):
             calendar_code=term_preset or "",
             seed_marker="_seeded_at_signup",
             include_governance=bool(country_code),
+            operational_strands=list(operational_strands),
+            curriculum_tracks=list(curriculum_tracks),
+            code_prefix=code_prefix,
         )
     # Backwards compatibility: keep the v3.61 term_preset hint for any code
     # path still reading school.settings["term_preset"] directly.
@@ -801,11 +867,16 @@ def signup_school(request: HttpRequest):
     # ``institution_profile`` is already normalized by the typed boundary above.
     # Keeping the complete v4 answer set together makes recommendation
     # recomputation deterministic and day-two review/audit possible.
+    institution_profile["operational_strands"] = list(operational_strands)
+    institution_profile["code_prefix"] = code_prefix
     school_settings["onboarding_intent"] = {
         "country_code": country_code,
         "education_cycles": list(validated_types),
         "language_codes": list(language_codes),
         "calendar_code": term_preset,
+        "operational_strands": list(operational_strands),
+        "curriculum_tracks": list(curriculum_tracks),
+        "code_prefix": code_prefix,
         "institution_profile": institution_profile,
     }
     from apps.schools.onboarding_recommendations import build_onboarding_recommendations
@@ -916,6 +987,25 @@ def signup_school(request: HttpRequest):
         if sector:
             create_kwargs["primary_sector"] = sector[:64]
     school = School.objects.create(**create_kwargs)
+    logger.info(
+        "signup persisted operational strands",
+        extra={
+            "school_id": str(school.id),
+            "strand_count": len(operational_strands),
+            "has_code_prefix": bool(code_prefix),
+            "track_count": len(curriculum_tracks),
+        },
+    )
+    try:
+        from apps.observability.tracing import set_tags
+
+        set_tags(
+            school_id=str(school.id),
+            onboarding_strand_count=len(operational_strands),
+            onboarding_has_code_prefix=bool(code_prefix),
+        )
+    except (ImportError, AttributeError, TypeError, ValueError):
+        pass
 
     # A public-onboarding user who chose "We have no data to migrate" (a durable
     # WAIVE, distinct from "set up later" = defer) gets that recorded now that
@@ -2778,6 +2868,14 @@ def signup_decisions_preview(request: HttpRequest) -> JsonResponse:
         campus_count = min(10_000, max(0, int(request.GET.get("campus_count") or 0)))
     except (TypeError, ValueError):
         campus_count = 0
+    strands_raw = (request.GET.get("strands") or "").strip()
+    operational_strands = parse_operational_strands(
+        [
+            token.strip()
+            for token in strands_raw.replace("|", ",").split(",")
+            if token.strip()
+        ][:12]
+    )
     # Region key sharpens connectivity/governance defaults when the specific
     # country code is unlisted. Resolved in-memory from the country pack, never
     # from the DB, so this stays a zero-query endpoint.
@@ -2797,8 +2895,12 @@ def signup_decisions_preview(request: HttpRequest) -> JsonResponse:
         region_key=region_key,
         education_cycles=cycles,
         funding_type=funding,
-        institution_profile={"campus_count": campus_count},
+        institution_profile={
+            "campus_count": campus_count,
+            "operational_strands": operational_strands,
+        },
     )
+    model["operational_strands"] = operational_strands
     return JsonResponse(model)
 
 

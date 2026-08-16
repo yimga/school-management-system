@@ -83,6 +83,50 @@
         .join("");
     }
 
+    function renderLog(data) {
+      var panel = root.querySelector("[data-rmc-provision-log]");
+      var list = root.querySelector("[data-rmc-provision-log-lines]");
+      if (!panel || !list) return;
+      var frames = data.recent_log || [];
+      if (!frames.length) {
+        panel.hidden = true;
+        list.innerHTML = "";
+        return;
+      }
+      panel.hidden = false;
+      list.innerHTML = frames
+        .map(function (frame) {
+          var status = String(frame.status || "").toUpperCase();
+          var tone = "";
+          if (status === "ERROR" || status === "FAILED") {
+            tone = " rmc-provision-progress__log-line--error";
+          } else if (status === "SUCCESS") {
+            tone = " rmc-provision-progress__log-line--success";
+          }
+          var label = frame.message || frame.event_type || "";
+          var prefix = frame.event_type ? "[" + frame.event_type + "] " : "";
+          return (
+            '<li class="rmc-provision-progress__log-line' +
+            tone +
+            '">' +
+            escapeHtml(prefix + label) +
+            "</li>"
+          );
+        })
+        .join("");
+      panel.scrollTop = panel.scrollHeight;
+      if (data.log_complete === true) {
+        var done = document.createElement("li");
+        done.className =
+          "rmc-provision-progress__log-line rmc-provision-progress__log-line--success";
+        done.textContent =
+          panel.getAttribute("data-rmc-provision-log-complete") ||
+          "Workspace initialized.";
+        list.appendChild(done);
+        panel.scrollTop = panel.scrollHeight;
+      }
+    }
+
     function renderSummary(data) {
       var el = root.querySelector("[data-rmc-provision-summary]");
       if (!el) return;
@@ -165,6 +209,7 @@
           : data.steps || []
       );
       renderSummary(data);
+      renderLog(data);
       updateCopilotContext(data);
 
       var failed = data.status === "failed";

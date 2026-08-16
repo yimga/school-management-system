@@ -17,6 +17,7 @@ from django.utils.translation import gettext_lazy as _
 logger = logging.getLogger(__name__)
 
 PROVISION_WORKFLOW_KEY = "tenant_school_provision"
+RECENT_PROVISION_LOG_LIMIT = 24
 
 # Registry step keys (SOT: workflow_registry.tenant_school_provision)
 PROVISION_STEP_KEYS: tuple[str, ...] = (
@@ -690,6 +691,35 @@ def _phase_descriptor(flags: dict[str, Any], status: str) -> tuple[str, str]:
     return "queued", str(_("Getting your setup started…"))
 
 
+def _recent_provision_log(school) -> list[dict[str, Any]]:
+    """Bounded chronological log frames from school-scoped provisioning events."""
+    if school is None or not getattr(school, "pk", None):
+        return []
+    try:
+        from apps.schools.models import SchoolProvisioningEvent
+
+        rows = list(
+            SchoolProvisioningEvent.objects.filter(school=school)
+            .order_by("-created_at", "-id")[:RECENT_PROVISION_LOG_LIMIT]
+            .values("event_type", "status", "message", "created_at")
+        )
+    except (DatabaseError, AttributeError, TypeError, ValueError):
+        return []
+    rows.reverse()
+    frames: list[dict[str, Any]] = []
+    for row in rows:
+        created = row.get("created_at")
+        frames.append(
+            {
+                "event_type": str(row.get("event_type") or ""),
+                "status": str(row.get("status") or ""),
+                "message": str(row.get("message") or ""),
+                "at": created.isoformat() if created is not None else None,
+            }
+        )
+    return frames
+
+
 def resolve_provisioning_progress(
     school,
     *,
@@ -830,6 +860,10 @@ def resolve_provisioning_progress(
         "phase_message": phase_message,
         "completion_summary": completion_summary,
         "completion_summary_text": _completion_summary_text(completion_summary),
+        "recent_log": _recent_provision_log(school),
+        "log_complete": bool(
+            status == "succeeded" or flags.get("phase_b_complete")
+        ),
         "unified": {
             "state": unified.get("state"),
             "label": unified.get("label"),

@@ -315,6 +315,14 @@ def build_onboarding_recommendations(
     governance_profile = profile["governance_profile"]
     migration_vendor = profile["migration_vendor"]
     migration_domains = profile["migration_domains"]
+    from apps.schools.onboarding_strands import parse_operational_strands
+
+    operational_strands = parse_operational_strands(
+        (institution_profile or {}).get("operational_strands")
+        if isinstance(institution_profile, dict)
+        else None
+    )
+    profile["operational_strands"] = operational_strands
 
     blueprint = _resolve_blueprints(
         country=country,
@@ -368,6 +376,13 @@ def build_onboarding_recommendations(
         modules += ["multi-session-timetable"]
     if curriculum_board in {"cambridge", "ib"}:
         modules += ["international-curriculum"]
+    if any(
+        code in {"vocational_trade", "vocational_apprenticeship", "w32_tvet"}
+        for code in operational_strands
+    ):
+        modules += ["vocational-pathways"]
+    if "special_education" in operational_strands:
+        modules += ["special-education-support"]
     if governance_profile == "strict":
         modules += ["compliance-governance", "data-residency-controls"]
     if migration_complexity != "none" or migration_vendor or migration_domains:
@@ -449,6 +464,7 @@ def build_onboarding_recommendations(
         "local_first": "offline-first" if connectivity == "offline-first" else "offline-ready",
         "session_pattern": session_pattern,
         "curriculum_board": curriculum_board or "national-default",
+        "operational_strands": operational_strands,
         "governance": "strict-compliance-profile" if governance_profile == "strict" else "standard-compliance-profile",
         "compliance_profiles": compliance_profiles,
         "identity": identity,

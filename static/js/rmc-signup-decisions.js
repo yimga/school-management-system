@@ -36,6 +36,14 @@
     });
     return out.join(",");
   }
+  function strandsCsv() {
+    var out = [];
+    var boxes = form.querySelectorAll('input[name="operational_strands"]:checked');
+    Array.prototype.forEach.call(boxes, function (b) {
+      if (b.value) out.push(b.value);
+    });
+    return out.join(",");
+  }
   function cell(key) {
     return root.querySelector('[data-rmc-decision="' + key + '"]');
   }
@@ -123,6 +131,7 @@
     params.set("country_code", val("country_code"));
     params.set("funding", val("funding_type"));
     params.set("cycles", cyclesCsv());
+    params.set("strands", strandsCsv());
     params.set("campus_count", val("campus_count"));
     if (controller) {
       try { controller.abort(); } catch (e) { /* noop */ }
@@ -160,7 +169,7 @@
   });
   form.addEventListener("change", function (e) {
     var t = e.target;
-    if (t && (t.name === "country_code" || t.name === "school_type" || t.name === "funding_type")) {
+    if (t && (t.name === "country_code" || t.name === "school_type" || t.name === "funding_type" || t.name === "operational_strands")) {
       schedule();
     }
   });

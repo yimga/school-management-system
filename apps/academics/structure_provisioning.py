@@ -16,6 +16,11 @@ from apps.academics.academic_structure import AcademicStructureNode
 from apps.academics.models import AcademicYear, Classroom, Department
 from apps.academics.scheduling import InstructionShift
 from apps.governance.academic_pack_bridge import resolve_academic_pack_context
+from apps.schools.onboarding_strands import (
+    namespaced_structure_code,
+    resolve_provision_seed_inputs,
+    strand_specialty_specs,
+)
 
 
 def _slug_code(prefix: str, label: str, idx: int) -> str:
@@ -36,10 +41,15 @@ def ensure_general_department(school):
     """
     if school is None:
         return None
-    canonical_code = f"GEN-{str(school.id)[:8]}"
+    canonical_code = namespaced_structure_code(school, "GEN")
+    legacy_code = f"GEN-{str(school.id)[:8]}"
     dept = Department.objects.filter(school=school, code=canonical_code).first()
     if dept is not None:
         return dept
+    if legacy_code != canonical_code:
+        dept = Department.objects.filter(school=school, code=legacy_code).first()
+        if dept is not None:
+            return dept
     # Adopt a legacy "General" department (e.g. the old <slug>-GEN one) rather
     # than minting a duplicate. Oldest wins for determinism.
     dept = (
@@ -49,11 +59,22 @@ def ensure_general_department(school):
     )
     if dept is not None:
         return dept
-    return Department.objects.create(
+    dept = Department.objects.create(
         school=school,
         code=canonical_code,
         name="General",
     )
+    prefix = resolve_provision_seed_inputs(school).code_prefix
+    if prefix:
+        logger.info(
+            "structure code prefix applied",
+            extra={
+                "school_id": str(getattr(school, "id", "")),
+                "code_prefix": prefix,
+                "department_code": dept.code,
+            },
+        )
+    return dept
 
 
 def ensure_general_specialty(school):
@@ -78,10 +99,15 @@ def ensure_general_specialty(school):
         return None
     from apps.academics.models import Specialty
 
-    canonical_code = f"SPEC-GEN-{str(school.id)[:8]}"[:30]
+    canonical_code = namespaced_structure_code(school, "SPEC", "GEN")
+    legacy_code = f"SPEC-GEN-{str(school.id)[:8]}"[:30]
     specialty = Specialty.objects.filter(school=school, code=canonical_code).first()
     if specialty is not None:
         return specialty
+    if legacy_code != canonical_code:
+        specialty = Specialty.objects.filter(school=school, code=legacy_code).first()
+        if specialty is not None:
+            return specialty
     specialty = (
         Specialty.objects.filter(school=school, name="General").order_by("id").first()
     )
@@ -93,6 +119,62 @@ def ensure_general_specialty(school):
         code=canonical_code,
         name="General",
     )
+
+
+def ensure_strand_specialties(school, *, strand_codes: list[str] | None = None) -> dict[str, Any]:
+    """Seed Specialty rows for hybrid operational strands (TVET, SEND, tracks)."""
+    if school is None:
+        return {"created": 0, "skipped": "no_school"}
+    from apps.academics.models import Specialty
+    from apps.observability.tracing import set_tags
+
+    inputs = resolve_provision_seed_inputs(school)
+    codes = list(strand_codes or inputs.strands)
+    dept = ensure_general_department(school)
+    ensure_general_specialty(school)
+    created = 0
+    codes_created: list[str] = []
+    for slug, display_name in strand_specialty_specs(codes):
+        canonical = namespaced_structure_code(school, "SP", slug)
+        existing = Specialty.objects.filter(school=school, code=canonical).first()
+        if existing is None:
+            existing = (
+                Specialty.objects.filter(school=school, name=display_name)
+                .order_by("id")
+                .first()
+            )
+        if existing is not None:
+            continue
+        Specialty.objects.create(
+            school=school,
+            department=dept,
+            code=canonical,
+            name=display_name,
+        )
+        created += 1
+        codes_created.append(slug)
+    logger.info(
+        "strand specialties seeded",
+        extra={
+            "school_id": str(getattr(school, "id", "")),
+            "strand_specialty_created": created,
+            "strand_count": len(codes),
+            "has_code_prefix": bool(inputs.code_prefix),
+        },
+    )
+    try:
+        set_tags(
+            school_id=str(getattr(school, "id", "")),
+            onboarding_strand_specialties=created,
+        )
+    except (ImportError, AttributeError, TypeError, ValueError):
+        pass
+    return {
+        "created": created,
+        "strand_codes": list(codes),
+        "created_slugs": codes_created,
+        "code_prefix": inputs.code_prefix,
+    }
 
 
 def ensure_school_region(school):
@@ -349,7 +431,7 @@ def ensure_terms(school, academic_year) -> dict[str, Any]:
             .first()
         )
         if first is not None:
-            Term.objects.filter(pk=first.pk).update(is_active=True)
+            Term.objects.filter(school=school, pk=first.pk).update(is_active=True)
 
     # Record whether this calendar is a representative default (curated / even
     # split) or a real admin/operator-supplied one (school / profile override), so
@@ -498,6 +580,7 @@ def provision_academic_structure_for_school(
         return {"created_nodes": 0, "created_classrooms": 0, "skipped": "no_academic_year"}
 
     dept = ensure_general_department(school)
+    strand_payload = ensure_strand_specialties(school)
 
     created_nodes = 0
     created_classrooms = 0
@@ -534,7 +617,11 @@ def provision_academic_structure_for_school(
                 # UNIQUE collision (the "provisioning fails for the next school"
                 # bug). Mirrors the school-scoped dept_code above.
                 sid = str(getattr(school, "id", "")).replace("-", "")[:8]
-                room_code = _slug_code(f"{sid}-{code}", label, 0)
+                prefix = resolve_provision_seed_inputs(school).code_prefix
+                room_stem = (
+                    f"{sid}-{prefix}-{code}" if prefix else f"{sid}-{code}"
+                )
+                room_code = _slug_code(room_stem, label, 0)
                 classroom = Classroom.objects.filter(
                     school=school, academic_year=year, code=room_code
                 ).first()
@@ -570,6 +657,7 @@ def provision_academic_structure_for_school(
         "created_classrooms": created_classrooms,
         "school_types_processed": len(types),
         "shifts_created": shifts_created,
+        "strand_specialties": strand_payload,
     }
 
 

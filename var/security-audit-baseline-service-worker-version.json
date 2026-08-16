@@ -1,12 +1,12 @@
 {
-  "date": "2026-08-11",
-  "generated_at": "2026-08-11T22:04:28+00:00",
+  "date": "2026-08-16",
+  "generated_at": "2026-08-16T18:50:00+00:00",
   "major": 4,
   "minor": 6,
-  "patch": 34,
-  "raw": "sms-v4.06.34-experience-runtime-2026-08-11",
+  "patch": 48,
+  "raw": "sms-v4.06.48-onboarding-strands-prefix-2026-08-16",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "experience-runtime",
+  "slug": "onboarding-strands-prefix",
   "valid": true
 }

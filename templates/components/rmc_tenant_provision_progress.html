@@ -35,6 +35,10 @@
       {% endfor %}
     {% endif %}
   </ol>
+  <div class="rmc-provision-progress__log" data-rmc-provision-log data-rmc-provision-log-complete="{% trans 'Workspace initialized.' %}" hidden>
+    <p class="rmc-provision-progress__log-title">{% trans "Setup log" %}</p>
+    <ol class="rmc-provision-progress__log-lines list-unstyled mb-0" data-rmc-provision-log-lines></ol>
+  </div>
   {# Final summary report — what provisioning actually created (filled by JS on completion). #}
   <p class="rmc-provision-progress__summary small text-success fw-semibold mt-3 mb-0" data-rmc-provision-summary hidden></p>
   <div class="rmc-banner rmc-banner--warning rmc-provision-progress__error small mt-3 d-none" role="alert" data-rmc-provision-error-panel>

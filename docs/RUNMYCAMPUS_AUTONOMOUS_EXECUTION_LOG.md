@@ -1,5 +1,19 @@
 # RunMyCampus autonomous execution log
 
+## Slice — Multi-system onboarding strands / prefix / provision log (batch 1790 - 2026-08-16)
+
+**A. Scope:** Grounded Phases 1–4 of the multi-system onboarding plan: hybrid strand selection, optional structure code prefix, richer HTTP provision log, tokenized UI — on the existing signup/provisioner, not a greenfield OS rewrite.
+
+**B. Shipped:** `onboarding_strands.py` catalog + prefix helpers; signup POST persist into localization / onboarding_intent; `ensure_strand_specialties` + prefix-aware department/specialty codes; `recent_log` on `resolve_provisioning_progress`; signup cards + tokenized log panel; Django tests + observability tags.
+
+**C. Proof:** sqlite-memory **38/38 OK** (onboarding strands/prefix/progress + seed/decisions/structure/recommendations/progress-api); pre-push `--strict` green; tenant queryset `--compare` 0 new; PII 0; i18n compare OK; inline handlers 0. SW `sms-v4.06.48-onboarding-strands-prefix-2026-08-16`.
+
+**D. Honest:** No live Render worker proof this batch. Rejected paste samples (Shadow DOM canvases, `ws://localhost:8080`, parallel ledger tables). LMS vendor option labels on signup wrapped in `{% trans %}` so the 0-baseline i18n ratchet stays green. `Subject` has no `code` field — prefix is department/specialty/classroom. Audit closeout added seed normalize, failure `set_tags`, decisions `strands` param, SEND specialty + recommendation modules, school-scoped `recent_log` HTTP proof.
+
+**E. Files:** `onboarding_strands.py`, `signup_views.py`, `school_settings_seed.py`, `structure_provisioning.py`, `provisioning_progress.py`, `tasks.py`, signup/progress templates + JS/CSS, `test_onboarding_strands.py`, SW + baseline, SOT/log.
+
+**F. Next:** Optional live signup with K-12+TVET + prefix to confirm Celery seed on Render.
+
 ## Slice — operator `/admin/` re-sweep + tenant sidebar v2 (batch 1789 - 2026-08-13)
 
 **Scope:** Every shared operator `/admin/` archetype was re-audited; operator navigation remains the control-plane sidebar. Tenant-only upgrade is host-gated in `base_site.html` and JS mounting requires `data-rmc-app-shell-host=tenant`.

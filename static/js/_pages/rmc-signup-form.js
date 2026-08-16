@@ -160,6 +160,12 @@
         }
       }
 
+      var prefixInput = form.querySelector('[data-rmc-signup-code-prefix]');
+      if (prefixInput && prefixInput.dataset.rmcUserTouched !== '1') {
+        var iso = (pick.code || '').toString().toUpperCase();
+        prefixInput.placeholder = iso ? iso + '-EDU' : '';
+      }
+
       // Curriculum hint maps to the term_preset radios. We only flip
       // UK ↔ default; anything else leaves the operator's choice alone.
       // The radios are rendered by Django when
@@ -195,6 +201,28 @@
 
     // Fire once on init in case the page loaded with a country preselected.
     applyCountryHints();
+
+    var prefixField = form.querySelector('[data-rmc-signup-code-prefix]');
+    if (prefixField) {
+      prefixField.addEventListener('input', function (ev) {
+        ev.target.dataset.rmcUserTouched = '1';
+      });
+    }
+  }
+
+  function bindOperationalStrandCards(form) {
+    var inputs = form.querySelectorAll('input[name="operational_strands"]');
+    for (var i = 0; i < inputs.length; i++) {
+      inputs[i].addEventListener('change', function (ev) {
+        var lbl = ev.target.closest('.rmc-signup-type-card');
+        if (!lbl) return;
+        if (ev.target.checked) {
+          lbl.classList.add('rmc-signup-type-card--selected');
+        } else {
+          lbl.classList.remove('rmc-signup-type-card--selected');
+        }
+      });
+    }
   }
 
   function initForm(form) {
@@ -205,6 +233,7 @@
     // server-side preselection populates the timezone hidden input
     // before the user starts editing other fields.
     initCountryAutoSuggest(form);
+    bindOperationalStrandCards(form);
 
     var nameInput = form.querySelector('[data-rmc-signup-name]')
       || document.getElementById('name');

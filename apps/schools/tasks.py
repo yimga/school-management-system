@@ -608,6 +608,15 @@ def provision_school_sync(school_id: str, contact_email: str = "", **kwargs):
             payload={"error": str(exc)},
         )
         try:
+            from apps.observability.tracing import set_tags
+
+            set_tags(
+                school_id=str(school_id),
+                onboarding_provision_failed="1",
+            )
+        except (ImportError, AttributeError, TypeError, ValueError):
+            pass
+        try:
             from apps.schools.models import School
 
             school = School.objects.filter(id=school_id).first()
@@ -1734,23 +1743,43 @@ def _do_provision_tracked(
             )
 
             school_settings = getattr(school, "settings", None) or {}
-            raw_types = ""
-            if isinstance(school_settings, dict):
+            from apps.schools.onboarding_strands import resolve_provision_seed_inputs
+
+            seed_inputs = resolve_provision_seed_inputs(school)
+            school_type_codes = list(seed_inputs.education_cycles)
+            if not school_type_codes and isinstance(school_settings, dict):
                 raw_types = str(
                     school_settings.get("school_type")
                     or school_settings.get("school_type_raw")
                     or ""
                 ).strip()
-            school_type_codes = [
-                t.strip()
-                for t in raw_types.replace(",", "|").split("|")
-                if t.strip()
-            ]
+                school_type_codes = [
+                    t.strip()
+                    for t in raw_types.replace(",", "|").split("|")
+                    if t.strip()
+                ]
             structure_payload = provision_academic_structure_for_school(
                 school,
                 school_type_codes=school_type_codes or None,
                 academic_year=ay,
             )
+            if seed_inputs.curriculum_tracks:
+                try:
+                    from apps.evals.grading_wizard_kernel import apply_curriculum_tracks
+
+                    apply_curriculum_tracks(
+                        school=school,
+                        payload={"tracks": list(seed_inputs.curriculum_tracks)},
+                    )
+                    structure_payload = dict(structure_payload or {})
+                    structure_payload["curriculum_tracks"] = list(
+                        seed_inputs.curriculum_tracks
+                    )
+                except (ImportError, AttributeError, TypeError, ValueError, DatabaseError):
+                    logger.debug(
+                        "Curriculum track apply skipped during provisioning for %s",
+                        school_id,
+                    )
             try:
                 from apps.policies.grading_nuance_templates import (
                     sync_grading_nuance_from_policy,
@@ -1762,11 +1791,18 @@ def _do_provision_tracked(
                     "Grading nuance sync skipped during provisioning for %s",
                     school_id,
                 )
+            structure_bits: list[str] = [
+                "Academic structure nodes provisioned from country pack"
+            ]
+            if seed_inputs.strands:
+                structure_bits.append("strands=" + ",".join(seed_inputs.strands))
+            if seed_inputs.code_prefix:
+                structure_bits.append("prefix=" + seed_inputs.code_prefix)
             _record_school_event(
                 school,
                 event_type="ACADEMIC_STRUCTURE_READY",
                 status="SUCCESS",
-                message="Academic structure nodes provisioned from country pack.",
+                message=". ".join(structure_bits) + ".",
                 payload=structure_payload,
             )
         except (
@@ -1779,6 +1815,15 @@ def _do_provision_tracked(
             logger.exception(
                 "Academic structure provisioning failed for school %s", school_id
             )
+            try:
+                from apps.observability.tracing import set_tags
+
+                set_tags(
+                    school_id=str(school_id),
+                    onboarding_structure_failed="1",
+                )
+            except (ImportError, AttributeError, TypeError, ValueError):
+                pass
             phase_b_failed_steps.append("academic_structure")
 
         # Optional: seed default subjects. Subject name is unique per school (school_id, name).
