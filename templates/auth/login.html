@@ -16,7 +16,7 @@
 {% block footer %}{% endblock %}
 
 {% block extrastyle_tail %}
-  <link rel="stylesheet" href="{% static 'css/auth-login-canvas.css' %}?v=20260816.3">
+  <link rel="stylesheet" href="{% static 'css/auth-login-canvas.css' %}?v=20260816.4">
 {% endblock %}
 
 {% block content %}
@@ -38,6 +38,8 @@
      data-rmc-local-first="{% if immersive.local_first_enabled %}1{% else %}0{% endif %}"
      data-rmc-cache-safe="{% if immersive.local_first_cache_safe %}1{% else %}0{% endif %}"
      data-rmc-hide-sponsored-offline="{% if immersive.hide_sponsored_offline %}1{% else %}0{% endif %}"
+     data-rmc-passkey-options-url="{% url 'accounts:passkey_login_options' %}"
+     data-rmc-passkey-verify-url="{% url 'accounts:passkey_login_verify' %}"
      {% if immersive.compact_on_short_viewport %}data-rmc-login-compact="1"{% endif %}
      data-preview-label="{% trans 'Immersive login' %}"
      data-preview-default-label="{{ immersive.role_preview_labels.default }}"
@@ -114,7 +116,7 @@
               {% if is_manager_host %}RunMyCampus{% elif PUBLIC_BRAND_MODE %}{{ PUBLIC_BRAND_NAME }}{% elif LOGIN_SCHOOL_NAME %}{{ LOGIN_SCHOOL_NAME }}{% else %}{{ SITE.site_name|default:"School portal" }}{% endif %}
             </p>
           </div>
-          <span class="rmc-auth-immersive__secure-state" data-rmc-auth-network-status role="status">{% trans "Secure" %}</span>
+          <span class="rmc-auth-immersive__secure-state" data-rmc-auth-network-status role="status">{% if LOGIN_SCHOOL_NAME %}{% trans "Verified school" %}{% else %}{% trans "Secure" %}{% endif %}</span>
         </header>
 
         <div class="rmc-auth-immersive__step-labels" aria-hidden="true">
@@ -130,6 +132,15 @@
         <div class="rmc-auth-immersive__step{% if request.method != 'POST' %} is-on{% endif %}" data-rmc-auth-step="role">
           <h2 class="rmc-auth-immersive__step-title">{% trans "How are you joining today?" %}</h2>
           <p class="rmc-auth-immersive__sub">{% trans "Pick the door that matches you — the preview on the left updates as you hover." %}</p>
+          <div class="rmc-auth-immersive__returning" data-rmc-returning-user hidden>
+            <span><small>{% trans "Saved on this device" %}</small><strong data-rmc-returning-label>{% trans "Continue with your last role" %}</strong></span>
+            <button type="button" data-rmc-returning-continue>{% trans "Continue" %}</button>
+          </div>
+          <button type="button" class="rmc-auth-immersive__passkey-primary" data-rmc-passkey-login>
+            <span aria-hidden="true">â—ˆ</span>
+            <span><strong>{% trans "Sign in with this device" %}</strong><small>{% trans "Passkey â€” no password to type" %}</small></span>
+          </button>
+          <p class="rmc-auth-immersive__passkey-status" data-rmc-passkey-status role="status" aria-live="polite"></p>
           <div class="rmc-auth-immersive__role-list" role="group" aria-label="{% trans 'Sign-in role' %}">
             <button type="button" class="rmc-auth-immersive__role-row{% if post_role == 'staff' %} is-picked{% endif %}" data-rmc-auth-role="staff" data-rmc-auth-role-title="{{ TENANT_LABELS.staff|default:'Staff' }}">
               <span class="rmc-auth-immersive__role-row-ico" aria-hidden="true">🎓</span>
@@ -217,6 +228,11 @@
           </div>
           {% trans "Password" as login_password_label %}
           {% include "components/rmc_password_field.html" with field_id="login-password" field_name="password" label=login_password_label autocomplete="current-password" %}
+          <button type="button" class="rmc-auth-immersive__passkey-primary" data-rmc-passkey-login>
+            <span aria-hidden="true">â—ˆ</span>
+            <span><strong>{% trans "Use a passkey instead" %}</strong><small>{% trans "Phishing-resistant sign-in on a trusted device" %}</small></span>
+          </button>
+          <p class="rmc-auth-immersive__passkey-status" data-rmc-passkey-status role="status" aria-live="polite"></p>
 
           {% if pow_required and pow_challenge %}
           <div class="mb-3" id="rmc-pow"
@@ -253,6 +269,12 @@
           {% endif %}
         </div>
       </form>
+      <section class="rmc-auth-immersive__access-help" aria-label="{% trans 'Sign-in help' %}">
+        <a href="{% url 'accounts:magic_link_request' %}">{% trans "Email me a sign-in link" %}</a>
+        <a href="{{ password_reset_url }}">{% trans "Recover my account" %}</a>
+        <button type="button" data-rmc-access-assistant-open>{% trans "Ask access support" %}</button>
+        {% if LOGIN_SCHOOL_NAME %}<button type="button" data-rmc-access-assistant-open>{% trans "Wrong school?" %}</button>{% endif %}
+      </section>
 
       <div class="rmc-auth-immersive__tabs" role="tablist">
         <button type="button" class="is-on" data-rmc-auth-tab="signin" role="tab" aria-selected="true">{% trans "Sign in help" %}</button>
@@ -310,6 +332,18 @@
 </div>
 {% endwith %}
 
+<dialog class="rmc-auth-assistant" data-rmc-access-assistant aria-labelledby="rmc-access-assistant-title">
+  <form method="dialog" class="rmc-auth-assistant__head"><strong id="rmc-access-assistant-title">{% trans "School access support" %}</strong><button value="close" aria-label="{% trans 'Close' %}">Ã—</button></form>
+  <div class="rmc-auth-assistant__body">
+    <p>{% trans "Choose the issue you want to solve. No private account or student information is exposed before sign-in." %}</p>
+    <a href="{% url 'accounts:magic_link_request' %}">{% trans "I need a passwordless email link" %}</a>
+    <a href="{{ password_reset_url }}">{% trans "I forgot my password or changed devices" %}</a>
+    {% if portal_claim_url %}<a href="{{ portal_claim_url }}">{% trans "My child is not linked / claim an invite" %}</a>{% endif %}
+    <button type="button" data-rmc-offline-continuity>{% trans "Can I continue during an outage?" %}</button>
+    <p class="rmc-auth-assistant__answer" data-rmc-assistant-answer role="status"></p>
+  </div>
+</dialog>
+
 {% include "components/rmc_password_toggle_script.html" %}
-<script src="{% static 'js/rmc-auth-login-immersive.js' %}?v=20260816.3" defer></script>
+<script src="{% static 'js/rmc-auth-login-immersive.js' %}?v=20260816.4" defer></script>
 {% endblock %}

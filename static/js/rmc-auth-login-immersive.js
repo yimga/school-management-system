@@ -33,6 +33,28 @@
   var offlineNote = root.querySelector("[data-rmc-offline-note]");
   var sponsoredRegion = root.querySelector("[data-rmc-sponsored-region]");
   var cacheKey = "rmc:login-front-door:" + window.location.host;
+  var roleMemoryKey = cacheKey + ":last-role";
+
+  function b64urlToBuffer(value) {
+    var b64 = String(value || "").replace(/-/g, "+").replace(/_/g, "/");
+    while (b64.length % 4) b64 += "=";
+    var raw = window.atob(b64);
+    var out = new Uint8Array(raw.length);
+    for (var i = 0; i < raw.length; i += 1) out[i] = raw.charCodeAt(i);
+    return out.buffer;
+  }
+
+  function bufferToB64url(value) {
+    var bytes = new Uint8Array(value);
+    var raw = "";
+    for (var i = 0; i < bytes.length; i += 1) raw += String.fromCharCode(bytes[i]);
+    return window.btoa(raw).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  }
+
+  function csrfToken() {
+    var input = root.querySelector("input[name='csrfmiddlewaretoken']");
+    return input ? input.value : "";
+  }
 
   var previewMeta = {
     staff: { pill: root.getAttribute("data-preview-staff-label") || "Staff" },
@@ -82,6 +104,7 @@
       });
       btn.classList.add("is-picked");
       if (roleInput) roleInput.value = role;
+      try { window.localStorage.setItem(roleMemoryKey, role); } catch (_e) { /* optional */ }
       if (pickedRoleEl) {
         pickedRoleEl.textContent =
           btn.getAttribute("data-rmc-auth-role-title") || role;
@@ -98,6 +121,92 @@
       setPreview("default");
     });
   });
+
+  (function restoreRoleHint() {
+    try {
+      var savedRole = window.localStorage.getItem(roleMemoryKey);
+      var savedButton = savedRole && root.querySelector("[data-rmc-auth-role='" + savedRole + "']");
+      var returning = root.querySelector("[data-rmc-returning-user]");
+      var label = root.querySelector("[data-rmc-returning-label]");
+      var go = root.querySelector("[data-rmc-returning-continue]");
+      if (!savedButton || !returning || !go) return;
+      returning.hidden = false;
+      if (label) label.textContent = "Continue as " + (savedButton.getAttribute("data-rmc-auth-role-title") || savedRole);
+      go.addEventListener("click", function () { savedButton.click(); });
+    } catch (_e) { /* storage is an optional convenience */ }
+  })();
+
+  root.querySelectorAll("[data-rmc-passkey-login]").forEach(function (button) {
+    button.addEventListener("click", async function () {
+      var statuses = root.querySelectorAll("[data-rmc-passkey-status]");
+      function announce(message, failed) {
+        statuses.forEach(function (node) {
+          node.textContent = message;
+          node.classList.toggle("is-error", !!failed);
+        });
+      }
+      if (!window.PublicKeyCredential || !navigator.credentials) {
+        announce("This browser does not support passkeys. Use email, SSO, or password.", true);
+        return;
+      }
+      button.disabled = true;
+      announce("Waiting for your deviceâ€¦", false);
+      try {
+        var optionsResponse = await fetch(root.getAttribute("data-rmc-passkey-options-url"), { credentials: "same-origin" });
+        var options = await optionsResponse.json();
+        if (!optionsResponse.ok || options.error) throw new Error(options.error || "Passkey sign-in is unavailable.");
+        options.challenge = b64urlToBuffer(options.challenge);
+        if (options.allowCredentials) {
+          options.allowCredentials = options.allowCredentials.map(function (item) {
+            item.id = b64urlToBuffer(item.id);
+            return item;
+          });
+        }
+        var credential = await navigator.credentials.get({ publicKey: options });
+        if (!credential) throw new Error("No passkey was selected.");
+        var response = credential.response;
+        var payload = {
+          id: credential.id,
+          rawId: bufferToB64url(credential.rawId),
+          type: credential.type,
+          role: roleInput ? roleInput.value : "",
+          response: {
+            clientDataJSON: bufferToB64url(response.clientDataJSON),
+            authenticatorData: bufferToB64url(response.authenticatorData),
+            signature: bufferToB64url(response.signature),
+            userHandle: response.userHandle ? bufferToB64url(response.userHandle) : null
+          }
+        };
+        var verifyResponse = await fetch(root.getAttribute("data-rmc-passkey-verify-url"), {
+          method: "POST",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken() },
+          body: JSON.stringify(payload)
+        });
+        var result = await verifyResponse.json();
+        if (!verifyResponse.ok || !result.ok) throw new Error(result.error || "Passkey verification failed.");
+        announce("Verified. Opening your school workspaceâ€¦", false);
+        window.location.assign(result.redirect_url || "/authentication/redirect/");
+      } catch (error) {
+        announce((error && error.message) || "Passkey sign-in was cancelled.", true);
+        button.disabled = false;
+      }
+    });
+  });
+
+  var assistant = document.querySelector("[data-rmc-access-assistant]");
+  root.querySelectorAll("[data-rmc-access-assistant-open]").forEach(function (button) {
+    button.addEventListener("click", function () {
+      if (assistant && assistant.showModal) assistant.showModal();
+    });
+  });
+  if (assistant) {
+    var offlineHelp = assistant.querySelector("[data-rmc-offline-continuity]");
+    var answer = assistant.querySelector("[data-rmc-assistant-answer]");
+    if (offlineHelp && answer) offlineHelp.addEventListener("click", function () {
+      answer.textContent = "Previously authorized devices can use cached notices and approved local tools. Finance, payroll, configuration, and private records require a verified online session.";
+    });
+  }
 
   if (backBtn) {
     backBtn.addEventListener("click", function (e) {

@@ -247,8 +247,11 @@ class LoginImmersiveTemplateContractTests(SimpleTestCase):
         self.assertIn("login_immersive_canvas.html", html)
         self.assertIn("data-rmc-login-layout", html)
         self.assertIn("data-rmc-local-first", html)
-        self.assertIn("auth-login-canvas.css' %}?v=20260816.3", html)
-        self.assertIn("rmc-auth-login-immersive.js' %}?v=20260816.3", html)
+        self.assertIn("auth-login-canvas.css' %}?v=20260816.4", html)
+        self.assertIn("rmc-auth-login-immersive.js' %}?v=20260816.4", html)
+        self.assertIn("data-rmc-passkey-options-url", html)
+        self.assertIn("data-rmc-returning-user", html)
+        self.assertIn("data-rmc-access-assistant", html)
 
     def test_local_front_door_keeps_promotions_away_from_credentials(self):
         canvas_tpl = Path(settings.BASE_DIR) / "templates" / "auth" / "partials" / "login_immersive_canvas.html"

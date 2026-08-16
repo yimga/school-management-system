@@ -124,6 +124,8 @@ from .views_passkey import (
     passkey_registration_verify,
     passkey_authentication_options,
     passkey_authentication_verify,
+    passkey_login_options,
+    passkey_login_verify,
 )
 from .views_security import (
     api_security_strength,
@@ -272,6 +274,8 @@ app_name = "accounts"
 urlpatterns = [
     path("", auth_root_redirect, name="root"),  # rbac-allow: pre-auth dispatcher
     path("login/", login_view, name="login"),  # rbac-allow: login page must be anonymous-reachable
+    path("login/passkey/options/", passkey_login_options, name="passkey_login_options"),  # rbac-allow: anonymous WebAuthn ceremony
+    path("login/passkey/verify/", passkey_login_verify, name="passkey_login_verify"),  # rbac-allow: anonymous WebAuthn ceremony
     # Passwordless sign-in (magic link). Both must be anonymous-reachable.
     path("magic-link/", magic_link_request, name="magic_link_request"),  # rbac-allow: passwordless request page
     path("magic-link/<uuid:token>/", magic_link_login, name="magic_link_login"),  # rbac-allow: passwordless consume link

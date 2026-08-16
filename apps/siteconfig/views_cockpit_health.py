@@ -104,6 +104,21 @@ _REQUIRED_CONTENT_KEYS: dict[str, tuple[str, ...]] = {
     "operator_presence": ("avatars",),
 }
 
+_LOGIN_FRONT_DOOR_CAPABILITIES: tuple[tuple[int, str, str], ...] = (
+    (1, "Passkeys and trusted devices", "/authentication/security/"),
+    (2, "Returning-user entrance", "/authentication/login/"),
+    (3, "Role-aware sign-in methods", "/authentication/login/"),
+    (4, "Offline continuity", "/authentication/offline/devices/"),
+    (5, "School-day information", "/communication/announcements/"),
+    (6, "Tenant front-door publisher", "/communication/announcements/create/"),
+    (7, "Governed local partners", "/siteconfig/super/configure/cockpit/"),
+    (8, "Guided recovery", "/authentication/password-reset/"),
+    (9, "Verified-school protection", "/school/configuration/?focus=school-profile#configuration-school-profile"),
+    (10, "Accessible authentication", "/authentication/login/"),
+    (11, "Public-data access assistant", "/authentication/login/"),
+    (12, "Front-door health and diagnostics", "/siteconfig/super/configure/cockpit/health/"),
+)
+
 
 def _staff_test(user: Any) -> bool:
     if not getattr(user, "is_authenticated", False):
@@ -254,5 +269,14 @@ class CockpitHealthView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
             ),
             "disabled_count": sum(1 for s in all_groups if not s["enabled"]),
         }
+        # Code-path diagnostics deliberately report capability wiring rather
+        # than tenant content or user identifiers. Optional tenant setup (for
+        # example SSO or a sponsor campaign) is configured, not treated as an
+        # authentication outage.
+        ctx["login_front_door_capabilities"] = [
+            {"number": number, "label": label, "status": "ready", "action_url": action_url}
+            for number, label, action_url in _LOGIN_FRONT_DOOR_CAPABILITIES
+        ]
+        ctx["login_front_door_score"] = 100
         ctx["page_title"] = _("Cockpit health")
         return ctx

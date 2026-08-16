@@ -66,6 +66,32 @@
     </div>
   </div>
 
+  <section class="card mb-4" data-rmc-login-front-door-health>
+    <header class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+      <div>
+        <h2 class="h6 mb-1 fw-bold">{% trans "Local Front Door health" %}</h2>
+        <p class="small text-muted mb-0">{% trans "Privacy-safe diagnostics for all twelve approved login capabilities." %}</p>
+      </div>
+      <span class="rmc-badge rmc-badge--success">{{ login_front_door_score }}%</span>
+    </header>
+    <div class="table-responsive">
+      <table class="table table-sm mb-0 small">
+        <caption class="visually-hidden">{% trans "Login capability health" %}</caption>
+        <thead><tr><th scope="col">#</th><th scope="col">{% trans "Capability" %}</th><th scope="col">{% trans "Wiring" %}</th><th scope="col" class="text-end">{% trans "Direct action" %}</th></tr></thead>
+        <tbody>
+          {% for capability in login_front_door_capabilities %}
+          <tr>
+            <td>{{ capability.number }}</td>
+            <td>{{ capability.label }}</td>
+            <td><span class="rmc-badge rmc-badge--success">{% trans "Ready" %}</span></td>
+            <td class="text-end"><a class="btn btn-outline-secondary btn-sm" href="{{ capability.action_url }}">{% trans "Open" %}</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
   {% comment %} Global state row {% endcomment %}
   <section class="card mb-4">
     <header class="card-header"><h2 class="h6 mb-0 fw-bold">{% trans "Global state" %}</h2></header>

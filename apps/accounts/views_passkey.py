@@ -9,11 +9,13 @@ import json
 import secrets
 
 from django.conf import settings
+from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.views.decorators.http import require_GET, require_POST
 from django.views.decorators.csrf import ensure_csrf_cookie
+from django_ratelimit.decorators import ratelimit
 
 from .models import UserPasskey
 
@@ -53,6 +55,11 @@ def passkey_registration_options(request):
         return JsonResponse({"error": "WebAuthn not available"}, status=501)
     try:
         from webauthn import generate_registration_options, options_to_json
+        from webauthn.helpers.structs import (
+            AuthenticatorSelectionCriteria,
+            ResidentKeyRequirement,
+            UserVerificationRequirement,
+        )
 
         user = request.user
         challenge = secrets.token_urlsafe(32)
@@ -68,6 +75,10 @@ def passkey_registration_options(request):
                 or user.get_username()
             ),
             challenge=_challenge_bytes(challenge),
+            authenticator_selection=AuthenticatorSelectionCriteria(
+                resident_key=ResidentKeyRequirement.PREFERRED,
+                user_verification=UserVerificationRequirement.PREFERRED,
+            ),
         )
         return JsonResponse(json.loads(options_to_json(options)))
     except (ValueError, TypeError, KeyError, json.JSONDecodeError, AttributeError) as e:
@@ -242,3 +253,93 @@ def passkey_verify_page(request):
             "mfa_trust_default_days": device_trust_default_days(),
         },
     )
+
+
+@ensure_csrf_cookie
+@require_GET
+@ratelimit(key="ip", rate="10/m", method="GET", block=True)
+def passkey_login_options(request):
+    """Start an anonymous, discoverable-credential WebAuthn sign-in.
+
+    No username is requested and no credential identifiers are disclosed. The
+    authenticator selects a resident credential bound to this RP ID.
+    """
+    if not _webauthn_available():
+        return JsonResponse({"error": "Passkey sign-in is unavailable."}, status=503)
+    try:
+        from webauthn import generate_authentication_options, options_to_json
+        from webauthn.helpers.structs import UserVerificationRequirement
+
+        challenge = secrets.token_urlsafe(32)
+        request.session["webauthn_login_challenge"] = challenge
+        options = generate_authentication_options(
+            rp_id=_rp_id(request),
+            challenge=_challenge_bytes(challenge),
+            # No allow-list means the authenticator can select a discoverable
+            # credential without revealing account identifiers to the page.
+            user_verification=UserVerificationRequirement.PREFERRED,
+        )
+        return JsonResponse(json.loads(options_to_json(options)))
+    except (ValueError, TypeError, KeyError, json.JSONDecodeError, AttributeError):
+        return JsonResponse({"error": "Passkey sign-in could not be started."}, status=400)
+
+
+@require_POST
+@ratelimit(key="ip", rate="10/m", method="POST", block=True)
+def passkey_login_verify(request):
+    """Complete primary passkey sign-in with strict tenant-host binding."""
+    if not _webauthn_available():
+        return JsonResponse({"error": "Passkey sign-in is unavailable."}, status=503)
+    try:
+        from webauthn import verify_authentication_response
+        from apps.schools.models import SchoolMembership
+
+        data = json.loads(request.body)
+        challenge = request.session.pop("webauthn_login_challenge", None)
+        if not challenge:
+            raise ValueError("missing challenge")
+        credential_id = str(data.get("id") or "")[:255]
+        passkey = UserPasskey.objects.select_related("user").filter(
+            credential_id=credential_id
+        ).first()
+        if passkey is None or not passkey.user.is_active:
+            raise ValueError("unknown credential")
+
+        school = getattr(request, "school", None)
+        membership = None
+        if school is not None:
+            membership = SchoolMembership.objects.filter(
+                school=school, user=passkey.user
+            ).first()
+            if membership is None and not passkey.user.is_superuser:
+                raise ValueError("tenant mismatch")
+        else:
+            membership = SchoolMembership.objects.filter(user=passkey.user).first()
+
+        public_key = base64.urlsafe_b64decode(
+            (passkey.public_key + "==").encode("utf-8")
+        )
+        verification = verify_authentication_response(
+            credential=data,
+            expected_challenge=_challenge_bytes(challenge),
+            expected_rp_id=_rp_id(request),
+            expected_origin=_origin(request),
+            credential_public_key=public_key,
+            credential_current_sign_count=passkey.sign_count,
+        )
+        passkey.sign_count = verification.new_sign_count
+        passkey.save(update_fields=["sign_count"])
+        login(request, passkey.user, backend=settings.AUTHENTICATION_BACKENDS[0])
+        request.session["mfa_verified"] = True
+        if school is not None:
+            request.session["school_id"] = str(school.pk)
+        elif membership is not None:
+            request.session["school_id"] = str(membership.school_id)
+        request.session["login_intent_role"] = str(
+            data.get("role") or getattr(passkey.user, "role", "staff") or "staff"
+        ).lower()[:20]
+        return JsonResponse({"ok": True, "redirect_url": "/authentication/redirect/"})
+    except (ValueError, TypeError, KeyError, json.JSONDecodeError, AttributeError):
+        # Deliberately generic: anonymous callers must not learn whether a
+        # credential or account exists on this tenant.
+        return JsonResponse({"error": "Passkey verification failed."}, status=400)
