@@ -431,6 +431,24 @@ body.control-plane-shell #cp-main-content .cp-page-body:has(.rmc-page--migration
 
 .rmc-page--migration-cloud-detail .rmc-mapping__table { min-inline-size: 64rem; }
 
+.rmc-page--migration-cloud-detail .rmc-mapping-workbench {
+  display: block;
+  padding: clamp(1rem, 1.8vw, 1.5rem);
+}
+
+.rmc-page--migration-cloud-detail .rmc-mapping-workbench > .rmc-mapping__header,
+.rmc-page--migration-cloud-detail .rmc-mapping-workbench > .rmc-collapsible,
+.rmc-page--migration-cloud-detail .rmc-mapping-workbench > .rmc-empty {
+  display: block;
+  inline-size: 100%;
+  max-inline-size: 100%;
+  margin-inline: 0;
+}
+
+.rmc-page--migration-cloud-detail .rmc-mapping-workbench > .rmc-collapsible + .rmc-collapsible {
+  margin-block-start: 1rem;
+}
+
 .rmc-page--migration-cloud-detail .rmc-data-table :is(th, td) {
   min-inline-size: 0;
   word-break: normal;
