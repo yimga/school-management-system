@@ -157,16 +157,31 @@ def _apply_in_flight(bundle: MigrationBundle) -> bool:
         return False
 
 
-def _applying_is_stale(bundle: MigrationBundle) -> bool:
-    """A bundle stuck at APPLYING with no in-flight apply job, past the threshold."""
+def applying_stale_by_time(bundle: MigrationBundle) -> bool:
+    """A bundle stuck at APPLYING with no heartbeat past the stale threshold.
+
+    Time-only — it does NOT consult the HeavyWorkOutbox in-flight signal. A LIVE
+    apply heartbeats ``updated_at`` every wave/artifact (orchestrator
+    ``_heartbeat_apply``), so a stale ``updated_at`` here means the apply's worker
+    stopped writing. This is the single source of truth for "wedged apply"
+    staleness; :func:`_applying_is_stale` layers the in-flight guard on top for the
+    manual repair path, and ``orchestrator._apply_bundle_inner`` uses THIS one for
+    the durable-retry self-heal (where the retry's own outbox row would otherwise
+    read as in-flight and mask a genuinely dead prior apply).
+    """
     if bundle.status != BundleStatus.APPLYING:
-        return False
-    if _apply_in_flight(bundle):
         return False
     updated = getattr(bundle, "updated_at", None)
     if updated is None:
         return True
     return (timezone.now() - updated).total_seconds() > _APPLYING_STALE_SECONDS
+
+
+def _applying_is_stale(bundle: MigrationBundle) -> bool:
+    """A bundle stuck at APPLYING with no in-flight apply job, past the threshold."""
+    if _apply_in_flight(bundle):
+        return False
+    return applying_stale_by_time(bundle)
 
 
 def repair_readiness(bundle: MigrationBundle) -> RepairReadiness:

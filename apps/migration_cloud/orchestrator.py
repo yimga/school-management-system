@@ -85,6 +85,25 @@ class ApplyResult:
     status: str = ""
 
 
+def _heartbeat_apply(bundle_id: int) -> None:
+    """Prove a live apply is still making progress by bumping ``updated_at``.
+
+    A running apply otherwise leaves ``updated_at`` frozen at the MAPPED->APPLYING
+    flip for its whole duration (progress lands on the MigrationProgressEvent stream
+    and the once-at-the-end snapshot, never the bundle row). Without this pulse a
+    large-but-healthy apply would look identical to a crashed one, and the
+    durable-retry self-heal (which reclaims a stale APPLYING) could reclaim a still-
+    running import into a concurrent second apply. A direct UPDATE (not save) keeps
+    it cheap and side-effect-free — no auto_now surprise, no signals, no lock.
+    """
+    try:
+        MigrationBundle.objects.filter(  # tenant-isolation-allow: heartbeat bumps updated_at on the bundle already being applied by this worker
+            pk=bundle_id, status=BundleStatus.APPLYING
+        ).update(updated_at=timezone.now())
+    except Exception:  # noqa: BLE001 — a heartbeat write must never break the apply
+        logger.debug("orchestrator: apply heartbeat failed for bundle %s", bundle_id, exc_info=True)
+
+
 def apply_bundle(
     *,
     bundle_id: int,
@@ -149,6 +168,35 @@ def _apply_bundle_inner(
         if bundle.status == BundleStatus.APPLIED and not dry_run:
             logger.info("migration_cloud.apply: bundle %s already APPLIED — no-op", bundle_id)
             return _empty_result(bundle, dry_run, BundleStatus.APPLIED)
+
+        # Self-heal a WEDGED apply. A prior worker died mid-apply (SIGKILL / OOM /
+        # deploy restart) before the except-handler below could mark it FAILED, so
+        # the durable retry (HeavyWorkOutbox re-dispatch) re-enters here with the
+        # bundle still APPLYING — which the MAPPED guard would reject with a
+        # ValueError, dead-lettering the retry and stranding the import forever
+        # (only a manual repair click could rescue it). Reclaim it: a LIVE apply
+        # heartbeats updated_at every wave/artifact, so an APPLYING bundle whose
+        # updated_at is stale past the threshold means its worker stopped writing —
+        # reset to MAPPED and fall through to apply. Under the select_for_update row
+        # lock a genuinely concurrent apply is still refused below, because its
+        # updated_at is fresh (< threshold). Apply is upsert-by-external-id, so
+        # re-applying never duplicates already-landed rows. Time-only staleness (not
+        # repair.py's in-flight variant): the retry's OWN outbox row reads as
+        # in-flight here and would mask the dead prior apply.
+        if not dry_run and bundle.status == BundleStatus.APPLYING:
+            from .repair import applying_stale_by_time
+
+            if applying_stale_by_time(bundle):
+                logger.warning(
+                    "orchestrator: bundle %s wedged at APPLYING with no heartbeat past "
+                    "the stale threshold (prior worker died mid-apply) — reclaiming to "
+                    "MAPPED for retry",
+                    bundle_id,
+                )
+                bundle.mark_status(
+                    BundleStatus.MAPPED,
+                    summary_patch={"reclaimed_wedged_apply_at": timezone.now().isoformat()},
+                )
 
         if bundle.status != BundleStatus.MAPPED:
             raise ValueError(
@@ -232,6 +280,12 @@ def _apply_bundle_inner(
         for wave_index, wave_jobs in enumerate(waves):
             if not wave_jobs:
                 continue
+            # Liveness pulse: a real (live=persisted) apply keeps updated_at fresh so
+            # the wedged-apply reclaim never mistakes a slow-but-healthy import for a
+            # dead worker. Skipped for dry runs (the bundle stays MAPPED — nothing to
+            # heartbeat). See _heartbeat_apply.
+            if not dry_run:
+                _heartbeat_apply(bundle_id)
             _emit_progress(
                 bundle_id=bundle_id, kind="artifact_progress", stage="APPLYING",
                 message=f"Wave {wave_index} starting ({len(wave_jobs)} artifact(s))",
@@ -253,6 +307,8 @@ def _apply_bundle_inner(
             if worker_count <= 1 or len(wave_jobs) <= 1:
                 for job in wave_jobs:
                     outcomes.append(_apply_artifact(bundle, job, dry_run=dry_run))
+                    if not dry_run:
+                        _heartbeat_apply(bundle_id)
             else:
                 with ThreadPoolExecutor(max_workers=worker_count) as pool:
                     futures = {
@@ -261,6 +317,8 @@ def _apply_bundle_inner(
                     }
                     for future in as_completed(futures):
                         outcomes.append(future.result())
+                        if not dry_run:
+                            _heartbeat_apply(bundle_id)
 
     # Finance MUST be all-or-nothing. In non-atomic mode finance rows commit
     # (autocommit) BEFORE the financial guardrail runs; a control-total mismatch
