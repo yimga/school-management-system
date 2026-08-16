@@ -2122,6 +2122,7 @@ class MarketingFunnelEvent(models.Model):
         ("discovery", "Discovery (find school / discover)"),
         ("signup", "Signup (form submitted)"),
         ("signup_started", "Signup flow opened (landing on self-service form)"),
+        ("signup_journey", "Signup wizard journey interaction"),
         ("activation", "Activation (school verified / live)"),
         ("onboarding_start", "Public onboarding wizard opened (step 1)"),
         ("onboarding_complete", "Public onboarding wizard finished (review / signup)"),

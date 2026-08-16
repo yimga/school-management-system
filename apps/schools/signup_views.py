@@ -2909,7 +2909,7 @@ def signup_journey_event(request: HttpRequest) -> JsonResponse:
     from apps.schools.funnel_events import record_marketing_funnel_event
 
     record_marketing_funnel_event(
-        "signup_started",
+        "signup_journey",
         request,
         metadata={"journey_version": 4, "stage": stage, "action": action},
     )

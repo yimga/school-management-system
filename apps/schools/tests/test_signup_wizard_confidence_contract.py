@@ -85,6 +85,7 @@ class SignupRecommendationPreviewTests(SimpleTestCase):
         )
         response = signup_journey_event(request)
         self.assertEqual(response.status_code, 202)
+        self.assertEqual(record.call_args.args[0], "signup_journey")
         metadata = record.call_args.kwargs["metadata"]
         self.assertEqual(metadata, {"journey_version": 4, "stage": 3, "action": "continue"})
         self.assertNotIn("email", metadata)
@@ -118,6 +119,8 @@ class SignupWizardStaticContractTests(SimpleTestCase):
             "high_confidence_eligible",
             "panels.slice(1).findIndex",
             "validatePanel(panels[invalidStep + 1])",
+            "Secure device drafts are unavailable",
+            'if (queuedSubmission) emitJourney(current, "submit-queued")',
         ):
             self.assertIn(marker, source)
         self.assertIn("rmc-signup-wizard-v4.js", template)

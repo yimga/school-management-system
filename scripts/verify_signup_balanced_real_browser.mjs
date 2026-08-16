@@ -55,15 +55,10 @@ for (const item of cases) {
     timeout: 120_000,
   });
   await page.waitForTimeout(500);
-  await page.locator(".rmc-signup-fine-tune > summary").click();
-  await page.locator('[name="campus_count"]').fill("4");
-  await page.locator('[name="staff_count"]').fill("300");
   await page.waitForTimeout(100);
   const dom = await page.evaluate(({ expectedTheme, width }) => {
     const form = document.querySelector('[data-rmc-signup-form="1"]');
     const card = document.querySelector('[data-rmc-signup-balanced="v3"]');
-    const grid = form ? getComputedStyle(form).gridTemplateColumns : "";
-    const tracks = (grid.match(/-?\d+(?:\.\d+)?px/g) || []).length;
     const rect = card?.getBoundingClientRect();
     const bodyLinks = document.querySelectorAll('body link[rel~="stylesheet"]').length;
     return {
@@ -73,7 +68,9 @@ for (const item of cases) {
       }).length,
       pageOverflow: Math.max(0, document.documentElement.scrollWidth - width),
       bodyLinks,
-      tracks,
+      wizardPanels: document.querySelectorAll("[data-rmc-wizard-panel]").length,
+      visibleWizardPanels: [...document.querySelectorAll("[data-rmc-wizard-panel]")].filter((node) => !node.hidden).length,
+      progressSteps: document.querySelectorAll("[data-rmc-wizard-step-indicator]").length,
       cardWidthRatio: rect ? rect.width / width : 0,
       balanced: Boolean(card && form),
       optionalInputs: [
@@ -95,10 +92,12 @@ for (const item of cases) {
   if (dom.pageOverflow > 1) findings.push(`overflow:${dom.pageOverflow}`);
   if (dom.bodyLinks) findings.push(`body-stylesheets:${dom.bodyLinks}`);
   if (!dom.balanced || !dom.optionalInputs) findings.push("balanced-contract-missing");
-  if (item.width <= 1024 ? dom.tracks !== 1 : dom.tracks !== 12) findings.push(`grid-tracks:${dom.tracks}`);
+  if (dom.wizardPanels !== 5 || dom.visibleWizardPanels !== 1 || dom.progressSteps !== 5) {
+    findings.push(`wizard:${dom.wizardPanels}/${dom.visibleWizardPanels}/${dom.progressSteps}`);
+  }
   if (dom.cardWidthRatio < (item.width <= 390 ? 0.92 : 0.72)) findings.push(`card-width:${dom.cardWidthRatio}`);
   if (!dom.recommendationOnly) findings.push("recommendation-disclaimer-missing");
-  if (!/campus enterprise/i.test(dom.plan)) findings.push(`live-plan:${dom.plan}`);
+  if (!dom.plan) findings.push("live-plan:missing");
   if (failedResources.length) findings.push(`failed-resources:${failedResources.join(",")}`);
   if (consoleErrors.length) findings.push(`console:${consoleErrors.join("|")}`);
   results.push({ ...item, pass: !findings.length, findings, dom, failedResources, consoleErrors });

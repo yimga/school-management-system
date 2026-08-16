@@ -98,7 +98,11 @@
       item.classList.toggle("rmc-signup-progress--done", step < current);
     });
     if (current === total) renderReview();
-    sessionStorage.setItem("rmc-signup-current-step", String(current));
+    try {
+      sessionStorage.setItem("rmc-signup-current-step", String(current));
+    } catch (_storageError) {
+      /* A privacy-restricted browser can deny storage; the server form remains usable. */
+    }
     emitJourney(current, current > previous ? "continue" : current < previous ? "back" : "view");
     if (focus) panels[current].querySelector("h2").focus({ preventScroll: true });
     panels[current].scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
@@ -259,7 +263,10 @@
   }
 
   async function saveDraft(pendingSubmit) {
-    if (!window.indexedDB || !window.crypto || !crypto.subtle) return;
+    if (!window.indexedDB || !window.crypto || !crypto.subtle) {
+      status.textContent = "Secure device drafts are unavailable in this browser; keep this page open or continue online.";
+      return;
+    }
     var data = {};
     new FormData(form).forEach(function (value, key) {
       if (key === "csrfmiddlewaretoken" || key === "email") return;
@@ -277,7 +284,10 @@
   }
 
   async function restoreDraft() {
-    if (!window.indexedDB || !window.crypto || !crypto.subtle) return;
+    if (!window.indexedDB || !window.crypto || !crypto.subtle) {
+      status.textContent = "Secure device drafts are unavailable in this browser; the online signup remains available.";
+      return;
+    }
     try {
       var db = await openDraftDatabase();
       var sealed = await dbGet(db, "draft");
@@ -332,6 +342,7 @@
   });
   window.addEventListener("online", function () {
     status.textContent = queuedSubmission ? "Back online · resuming your queued submission." : "Back online · review and submit when ready.";
+    if (queuedSubmission) emitJourney(current, "submit-queued");
     emitJourney(current, "offline-recovered");
     refreshRecommendation();
     if (queuedSubmission) {

@@ -28,3 +28,14 @@ The twelve bound capabilities are a five-stage adaptive journey, encrypted devic
 - `python scripts/verify_service_worker_version.py`
 
 The broader database-backed onboarding group timed out during test-database setup on the Windows workstation on 2026-08-16. A timeout is not represented as a passing result; CI or a migrated integration environment must execute that group before production promotion.
+
+## Final re-audit corrections
+
+The final promise-to-production audit found and corrected four gaps rather than preserving a false completion claim:
+
+- wizard journey interactions now use their own `signup_journey` event type and migration instead of inflating `signup_started`;
+- queued-offline submission recovery emits the delayed queue measurement after connectivity returns;
+- storage-restricted browsers receive an explicit graceful-degradation message instead of silent draft failure;
+- two login strings with broken character encoding were corrected, and the real-browser verifier now asserts the approved five-stage wizard rather than the retired one-page grid.
+
+“Implemented” means the production route, template, engine, persistence contract, migration, cache release and regression guard exist. Provider- or tenant-dependent activation (for example passkey browser support, tenant sponsor content, or a trusted-device offline grant) remains correctly conditional and is not represented as globally active without its required configuration.

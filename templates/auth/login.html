@@ -138,7 +138,7 @@
           </div>
           <button type="button" class="rmc-auth-immersive__passkey-primary" data-rmc-passkey-login>
             <span aria-hidden="true">â—ˆ</span>
-            <span><strong>{% trans "Sign in with this device" %}</strong><small>{% trans "Passkey â€” no password to type" %}</small></span>
+            <span><strong>{% trans "Sign in with this device" %}</strong><small>{% trans "Passkey — no password to type" %}</small></span>
           </button>
           <p class="rmc-auth-immersive__passkey-status" data-rmc-passkey-status role="status" aria-live="polite"></p>
           <div class="rmc-auth-immersive__role-list" role="group" aria-label="{% trans 'Sign-in role' %}">
@@ -335,7 +335,7 @@
 {% endwith %}
 
 <dialog class="rmc-auth-assistant" data-rmc-access-assistant aria-labelledby="rmc-access-assistant-title">
-  <form method="dialog" class="rmc-auth-assistant__head"><strong id="rmc-access-assistant-title">{% trans "School access support" %}</strong><button value="close" aria-label="{% trans 'Close' %}">Ã—</button></form>
+  <form method="dialog" class="rmc-auth-assistant__head"><strong id="rmc-access-assistant-title">{% trans "School access support" %}</strong><button value="close" aria-label="{% trans 'Close' %}">&times;</button></form>
   <div class="rmc-auth-assistant__body">
     <p>{% trans "Choose the issue you want to solve. No private account or student information is exposed before sign-in." %}</p>
     <a href="{% url 'accounts:magic_link_request' %}">{% trans "I need a passwordless email link" %}</a>
