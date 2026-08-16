@@ -793,7 +793,7 @@ def backfill_subject_codes(school) -> dict[str, Any]:
         if not code:
             continue
         try:
-            Subject.objects.filter(pk=subject.pk).update(code=code)
+            Subject.objects.filter(school=school, pk=subject.pk).update(code=code)
             coded += 1
         except Exception:  # noqa: BLE001 — one subject never aborts the rest
             logger.debug("backfill_subject_codes: subject %s failed", subject.name, exc_info=True)
@@ -838,7 +838,7 @@ def resync_subject_codes(school, *, dry_run: bool = False) -> dict[str, Any]:
         changes.append({"subject": subject.name, "old": subject.code, "new": resolved})
         if not dry_run:
             try:
-                Subject.objects.filter(pk=subject.pk).update(code=resolved)
+                Subject.objects.filter(school=school, pk=subject.pk).update(code=resolved)
             except Exception:  # noqa: BLE001 — one subject never aborts the rest
                 logger.debug("resync_subject_codes: subject %s failed", subject.name, exc_info=True)
                 continue
