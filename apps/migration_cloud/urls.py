@@ -59,6 +59,10 @@ urlpatterns = [
     path("<int:bundle_id>/review/", views.MigrationCloudAnomalyNudgeView.as_view(), name="bundle_review"),
     path("<int:bundle_id>/shadow/", views.MigrationCloudShadowView.as_view(), name="bundle_shadow"),
     path("<int:bundle_id>/runs/<int:run_id>/rollback/", views.MigrationCloudRollbackView.as_view(), name="run_rollback"),
+    # Operator resume + FULL-bundle rollback (parity with the tenant flow). Repair =
+    # safe idempotent re-apply; rollback-all = revert every apply run (confirm=1).
+    path("<int:bundle_id>/repair/", views.MigrationCloudBundleRepairView.as_view(), name="bundle_repair"),
+    path("<int:bundle_id>/rollback-all/", views.MigrationCloudBundleRollbackView.as_view(), name="bundle_rollback_all"),
     # sms-v3.7 — Tier 1 / Tier 2 / Tier 3
     path("<int:bundle_id>/expected-totals/", views.MigrationCloudExpectedTotalsView.as_view(), name="bundle_expected_totals"),
     path("<int:bundle_id>/guardrail-check/", views.MigrationCloudGuardrailCheckView.as_view(), name="bundle_guardrail_check"),
