@@ -2,6 +2,6 @@
 {% comment %}
 v4.02.0 — Operator Tools edge-tray styles (manager host only).
 {% endcomment %}
-{% if request.public_host_kind == 'manager' and cockpit.operator_tools.enabled|default:False %}
+{% if request.user.is_authenticated and request.public_host_kind == 'manager' %}
 <link rel="stylesheet" href="{% static 'css/rmc-operator-tools-tray.css' %}">
 {% endif %}

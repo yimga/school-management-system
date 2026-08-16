@@ -49,16 +49,11 @@
               <input type="search" id="cpSearchInputAdmin" class="admin-nav-bridge__search form-control form-control-sm" placeholder="{% trans 'Search school settings, people, academics…' %}" autocomplete="off" aria-label="{% trans 'Search school settings, people, academics' %}" aria-haspopup="listbox">
               <div id="cpSearchResultsAdmin" class="dropdown-menu position-absolute start-0 top-100 mt-1 shadow cp-search-results-panel cp-search-results-panel--sized" role="listbox" aria-label="{% trans 'Search results' %}" aria-hidden="true"></div>
             </div>
-            <button type="button" class="admin-nav-bridge__shortcuts-btn" id="cpShowShortcutsHelpAdmin" data-rmc-kbd-cheatsheet-trigger aria-label="{% trans 'Keyboard shortcuts' %}" title="{% trans 'Keyboard shortcuts' %}">
-                <span aria-hidden="true">⌘?</span>
-            </button>
             {% if is_manager_host %}
                 <a href="{% url 'super:dashboard' %}" class="admin-nav-bridge__home-btn">{% trans "Control plane" %}</a>
                 <a href="{{ public_site_url|default:'https://runmycampus.com' }}" class="admin-nav-bridge__switch-btn" target="_blank" rel="noopener noreferrer">{% trans "Public site" %}</a>
             {% else %}
-                <a href="{% url 'siteconfig:console_domains_hub' %}" class="admin-nav-bridge__home-btn admin-nav-bridge__escape--primary">{% trans "Config center" %}</a>
-                <a href="{% url 'siteconfig:feature_control_panel' %}" class="admin-nav-bridge__switch-btn">{% trans "Feature control" %}</a>
-                <a href="{{ portal_home_url|default:'/' }}" class="admin-nav-bridge__switch-btn">{% trans "Portal" %}</a>
+                {% include "components/rmc_tenant_header_utilities.html" %}
                 {% if has_permission %}
                 <div class="admin-nav-bridge__usertools" data-rmc-tenant-admin-usertools="1">
                   {% include "components/user_dropdown.html" %}

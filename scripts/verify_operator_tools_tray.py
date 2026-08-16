@@ -64,16 +64,14 @@ def main() -> int:
     if "request.public_host_kind == 'manager'" not in operator_scripts:
         failures.append("rmc_operator_tools_scripts.html missing manager host gate")
 
-    if "cockpit.operator_tools.enabled" not in operator_scripts:
-        failures.append("rmc_operator_tools_scripts.html missing operator_tools cockpit gate")
-    if "cockpit.operator_tools.enabled" not in operator_styles:
-        failures.append("rmc_operator_tools_styles.html missing operator_tools cockpit gate")
+    if "cockpit.operator_tools.enabled" in operator_scripts or "cockpit.operator_tools.enabled" in operator_styles:
+        failures.append("operator Tools rail must be always available on authenticated manager surfaces")
 
     if "request.public_host_kind != 'manager'" not in tenant_scripts:
         failures.append("rmc_tenant_tools_scripts.html missing tenant host gate")
 
-    if "cockpit.tenant_tools.enabled" not in tenant_scripts:
-        failures.append("rmc_tenant_tools_scripts.html missing tenant_tools cockpit gate")
+    if "cockpit.tenant_tools.enabled" in tenant_scripts or "cockpit.tenant_tools.enabled" in tenant_styles:
+        failures.append("tenant Tools rail must be always available on authenticated tenant surfaces")
 
     if 'data-rmc-back-to-top-policy="always"' in skeleton:
         failures.append("control_plane_skeleton still uses always-on back-to-top policy")

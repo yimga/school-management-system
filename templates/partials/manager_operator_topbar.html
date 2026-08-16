@@ -76,16 +76,13 @@
           {% comment %} Incident / all-clear status chip — relocated UP from the former nav row
              (control_plane_unified_header inline-chrome) so the single compact band keeps the
              at-a-glance system signal. Control-plane only; /admin/ surfaces incidents via the bell. {% endcomment %}
-          {% if cp_command_center_url %}
+          {% if cp_command_center_url and platform_incidents|length %}
           <a href="{{ cp_command_center_url }}" class="cp-nav-status-chip cp-nav-status-chip--header d-none d-xl-inline-flex{% if platform_incidents|length %} cp-nav-status-chip--alert{% endif %}" title="{% if platform_incidents|length %}{% trans 'Open incidents' %}{% else %}{% trans 'All systems operational' %}{% endif %}">
             <span class="cp-nav-status-chip__dot" aria-hidden="true"></span>
             <span class="cp-nav-status-chip__text">{% if platform_incidents|length %}{% blocktrans count count=platform_incidents|length %}{{ count }} incident{% plural %}{{ count }} incidents{% endblocktrans %}{% else %}{% trans "All systems operational" %}{% endif %}</span>
           </a>
           {% endif %}
           {% comment %} Operator presence — CONFIGURABLE via cockpit_shell.presence_enabled. {% endcomment %}
-          {% if cockpit_shell.presence_enabled or not cockpit_shell %}
-          {% include "partials/cockpit/_operator_presence.html" %}
-          {% endif %}
           {% endif %}
           <div class="cp-header-search cp-topbar-search-wrap position-relative d-md-none flex-grow-1 w-100">
             <input type="search" class="cp-topbar-search-input form-control form-control-sm w-100" id="cpSearchInputMobile" placeholder="{% trans 'Search…' %}" aria-label="{% trans 'Search' %}" autocomplete="off" data-cp-search-mobile="1" aria-haspopup="listbox">
@@ -101,36 +98,18 @@
                  ok       -> steady green, no animation
                Click opens the security posture review surface instead of
                firing the (now-disabled) post-login modal. {% endcomment %}
-            {% if account_security_score is not None %}
-              {% include "partials/rmc_security_posture_nav_button.html" %}
-            {% elif show_mfa_header_icon %}
-              <a href="{% if mfa_enrolled %}{{ mfa_profile_url }}{% else %}{{ mfa_setup_url }}?next={{ request.get_full_path|urlencode }}{% endif %}" class="btn btn-sm btn-outline-light rmc-platform-header__icon-btn{% if mfa_setup_needed %} rmc-platform-header__icon-btn--mfa-warn{% endif %}" aria-label="{% if mfa_enrolled %}{% trans 'MFA enrolled — manage in profile' %}{% else %}{% trans 'Set up MFA' %}{% endif %}" title="{% if mfa_enrolled %}{% trans 'MFA enrolled' %}{% else %}{% trans 'Set up MFA' %}{% endif %}">
-                <i class="bi bi-shield{% if mfa_enrolled %}-check{% endif %}" aria-hidden="true"></i>
-              </a>
-            {% endif %}
             {% comment %} v4.02.x: the standalone ⌘ Keyboard-shortcuts icon button was REMOVED from
                the header — it duplicated the avatar menu's "Keyboard shortcuts" item and is still
                reachable via the `?` key, the avatar menu, the operator tools tray, and (on /super/)
                the Workspace dropdown's Operator-tools section. window.cpShowShortcutsHelp() + the
                [data-rmc-kbd-cheatsheet-trigger] delegation keep working without this button. {% endcomment %}
-            {% comment %} v4.00.24 Studio chip removed from manager header (Workspace + Cmd+K).
+            {% comment %} v4.00.24 Studio chip removed from manager header (Utilities + Cmd+K).
                Config Control Center — CONFIGURABLE via cockpit_shell.show.config_chip (per-surface).
                v4.02.x: on the manager /admin/ BACKOFFICE shell (which has no Workspace dropdown) it
                stays as a direct ICON button (text label dropped — icon-only, matches the cluster).
                On /super/ it's folded into the Workspace dropdown's Operator-tools section instead,
                so it no longer sits as a loose standalone button in that cluster. {% endcomment %}
-            {% if MANAGER_PLATFORM_ADMIN_SHELL %}
-            {% if cockpit_shell.show.config_chip or not cockpit_shell %}
-            {% if not rmc_shell.manager_header_hide_config_chip %}
-            <a href="{% url 'siteconfig:console_domains_hub' %}" class="btn btn-sm btn-outline-light rmc-platform-header__icon-btn d-none d-lg-inline-flex" title="{% trans 'Configuration Control Center' %}" aria-label="{% trans 'Configuration Control Center' %}" data-rmc-header-config-chip="1">
-              <i class="bi bi-gear-wide-connected" aria-hidden="true"></i>
-            </a>
-            {% endif %}
-            {% endif %}
-            {% endif %}
-            {% if not MANAGER_PLATFORM_ADMIN_SHELL %}
             {% include "components/rmc_operator_workspace_dropdown.html" %}
-            {% endif %}
             {% comment %} v4.05 (2026-08-03): the ONE notifications bell — the operator's own
                finance.Notification inbox (bi-bell-fill → accounts:user_notifications), matching the
                tenant header so the whole platform has a single, consistent bell. Config/page-aware via

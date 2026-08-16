@@ -1,5 +1,5 @@
 {% load static %}
 {% comment %}v4.02.8 — Tenant workspace Tools edge-tray styles (tenant host only).{% endcomment %}
-{% if request.user.is_authenticated and request.public_host_kind != 'manager' and cockpit.tenant_tools.enabled|default:False %}
+{% if request.user.is_authenticated and request.public_host_kind != 'manager' %}
 <link rel="stylesheet" href="{% static 'css/rmc-operator-tools-tray.css' %}">
 {% endif %}

@@ -3,7 +3,7 @@
 v4.02.8 — Tenant workspace Tools edge-tray configuration island.
 Pairs with rmc-operator-tools-tray.js on tenant portal shells (not manager host).
 {% endcomment %}
-{% if request.user.is_authenticated and request.public_host_kind != 'manager' and cockpit.tenant_tools.enabled|default:False %}
+{% if request.user.is_authenticated and request.public_host_kind != 'manager' %}
 <script type="application/json" id="page-data-rmc-tenant-tools" nonce="{{ csp_nonce }}">{
   "enabled": true,
   "surface": "tenant",

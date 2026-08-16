@@ -1,0 +1,11 @@
+/* Shared quiet-header Utilities menu: tenant, operator and both /admin/ shells. */
+[data-rmc-header-utilities-root], [data-rmc-operator-workspace-dropdown] { position: relative; flex: 0 0 auto; }
+[data-rmc-header-utilities-root] > .dropdown-toggle, [data-rmc-operator-workspace-dropdown] > .dropdown-toggle { min-height: 2.25rem; border-color: color-mix(in srgb, var(--rmc-accent, #7768f5) 48%, transparent); border-radius: .72rem; background: color-mix(in srgb, #151d35 88%, transparent); font-weight: 800; white-space: nowrap; }
+[data-rmc-header-utilities] { width: min(24rem, calc(100vw - 1rem)); max-height: min(72vh, 38rem); overflow-x: hidden; overflow-y: auto; padding: .55rem; border: 1px solid color-mix(in srgb, #8fa3c7 28%, transparent); border-radius: 1rem; background: linear-gradient(145deg, #14213a, #0c1628); box-shadow: 0 1.5rem 5rem rgb(0 0 0 / .52); }
+[data-rmc-header-utilities] .dropdown-header { color: #97a6bd; letter-spacing: .08em; }
+[data-rmc-header-utilities] .dropdown-item { min-height: 2.5rem; padding: .62rem .7rem; border-radius: .65rem; color: #eef2f8; white-space: normal; }
+[data-rmc-header-utilities] .dropdown-item:hover, [data-rmc-header-utilities] .dropdown-item:focus { background: #21304d; color: #fff; }
+[data-rmc-header-utilities] .dropdown-item.active { background: #292851; }
+[data-rmc-quiet-header] { flex-wrap: nowrap; }
+[data-rmc-quiet-header] .tp-primary-nav__item:nth-of-type(n+3) { display: none !important; }
+@media (max-width: 991.98px) { [data-rmc-quiet-header] { justify-content: flex-start; overflow-x: auto; } [data-rmc-header-utilities-root] > .dropdown-toggle span { display: none !important; } }

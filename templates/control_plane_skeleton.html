@@ -96,6 +96,7 @@
     <link rel="stylesheet" href="{% static 'css/dashboard-responsive.css' %}">
     <link rel="stylesheet" href="{% static 'css/accessibility.css' %}">
     <link rel="stylesheet" href="{% static 'css/header-no-spillage.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-header-utilities.css' %}">
     <link rel="stylesheet" href="{% static 'css/control-plane-primary-nav.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-horizontal-nav-rail.css' %}">
     <link rel="stylesheet" href="{% static 'css/control-plane-phase1-shell.css' %}">
@@ -272,10 +273,10 @@
       {% endblock %}
       {% endblock %}
     </div>
-    {% if proactive_help_nudge %}
+    {% if proactive_help_nudge and not request.user.is_authenticated %}
     {% include "partials/help_proactive_nudge.html" %}
     {% endif %}
-    {% include "partials/help_contextual_drawer.html" %}
+    {% if not request.user.is_authenticated %}{% include "partials/help_contextual_drawer.html" %}{% endif %}
     {% block cp_shell_after %}{% endblock %}
     {% if request.user.is_authenticated and request.public_host_kind == 'manager' %}
     {% include "partials/cockpit/_activity_ticker_drawer.html" %}

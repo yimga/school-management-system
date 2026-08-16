@@ -121,6 +121,7 @@
   <link rel="stylesheet" href="{% static 'css/patterns.css' %}">
   <link rel="stylesheet" href="{% static 'css/bootstrap-theme-bridge.css' %}">
   <link rel="stylesheet" href="{% static 'css/header-no-spillage.css' %}">
+  <link rel="stylesheet" href="{% static 'css/rmc-header-utilities.css' %}">
   <link rel="stylesheet" href="{% static 'css/statement-header.css' %}">
   <link rel="stylesheet" href="{% static 'css/design-system-unified.css' %}">
   <link rel="stylesheet" href="{% static 'css/admin-components.css' %}">
@@ -765,7 +766,7 @@
      group → "help" chip). Only fall back to the floating contextual drawer when NEITHER
      tools tray is present, so /admin/ no longer double-renders page help. Mirrors
      portal_base.html:837. {% endcomment %}
-  {% if not cockpit.tenant_tools.enabled|default:False and not cockpit.operator_tools.enabled|default:False %}
+  {% if not request.user.is_authenticated %}
   {% include "partials/help_contextual_drawer.html" %}
   {% endif %}
   {% include 'components/toast_notifications.html' %}

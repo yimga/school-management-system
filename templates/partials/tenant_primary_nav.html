@@ -1,45 +1,27 @@
 {% load i18n %}
 {% comment %}
-  v3.62.12 — Tenant portal primary nav row (rmc-shell-preview-tenant-portal-v3-100x.html).
-  Role-aware pills via EFFECTIVE_PORTAL_ROLE (nav hat: session + primary role).
+Quiet-header primary navigation. Home and one role-primary destination are the
+only persistent tenant links. All other authorized destinations live in the
+shared header Utilities menu.
 {% endcomment %}
 {% if request.user.is_authenticated and request.public_host_kind != 'manager' %}
-<nav class="tp-primary-nav" aria-label="{% trans 'Primary portal navigation' %}" data-rmc-tenant-primary-nav="1">
+<nav class="tp-primary-nav tp-primary-nav--essential" aria-label="{% trans 'Essential portal navigation' %}" data-rmc-tenant-primary-nav="1" data-rmc-quiet-header="1">
   {% if EFFECTIVE_PORTAL_ROLE == 'PARENT' %}
-  <a href="{% url 'portal:parent_dashboard' %}" class="tp-primary-nav__item"{% if 'parent' in request.path %} aria-current="page"{% endif %}>🏠 {% trans "Home" %}</a>
-  <a href="{% url 'portal:parent_finance' %}" class="tp-primary-nav__item"{% if 'finance' in request.path %} aria-current="page"{% endif %}>💳 {% trans "Finance" %}</a>
-  <a href="{% url 'accounts:user_messages' %}" class="tp-primary-nav__item">💬 {% trans "Messages" %}{% if messages_unread_count %}<span class="tp-nav-count">{{ messages_unread_count }}</span>{% endif %}</a>
-  <a href="{% url 'portal:parent_workflow' %}" class="tp-primary-nav__item">⚡ {% trans "Workflow" %}</a>
-  <a href="{% url 'portal:portal_stats' %}" class="tp-primary-nav__item">📊 {% trans "Progress" %}</a>
+    <a href="{% url 'portal:parent_dashboard' %}" class="tp-primary-nav__item"{% if 'parent' in request.path and 'finance' not in request.path %} aria-current="page"{% endif %}><i class="bi bi-house" aria-hidden="true"></i> {% trans "Home" %}</a>
+    <a href="{% url 'portal:parent_finance' %}" class="tp-primary-nav__item"{% if 'finance' in request.path %} aria-current="page"{% endif %}><i class="bi bi-wallet2" aria-hidden="true"></i> {% trans "Family portal" %}</a>
   {% elif EFFECTIVE_PORTAL_ROLE == 'TEACHER' %}
-  <a href="{% url 'portal:teacher_dashboard_alias' %}" class="tp-primary-nav__item"{% if 'teacher' in request.path %} aria-current="page"{% endif %}>🏠 {% trans "Home" %}</a>
-  <a href="{% url 'evals:teacher_dashboard' %}" class="tp-primary-nav__item">📚 {% trans "Academics" %}</a>
-  <a href="{% url 'accounts:user_messages' %}" class="tp-primary-nav__item">💬 {% trans "Messages" %}</a>
-  <a href="{% url 'portal:teacher_workflow' %}" class="tp-primary-nav__item">⚡ {% trans "Workflow" %}</a>
+    <a href="{% url 'portal:teacher_dashboard_alias' %}" class="tp-primary-nav__item"{% if 'teacher' in request.path %} aria-current="page"{% endif %}><i class="bi bi-house" aria-hidden="true"></i> {% trans "Home" %}</a>
+    <a href="{% url 'evals:teacher_dashboard' %}" class="tp-primary-nav__item"><i class="bi bi-journal-bookmark" aria-hidden="true"></i> {% trans "Classes" %}</a>
   {% elif EFFECTIVE_PORTAL_ROLE == 'STUDENT' %}
-  <a href="{% url 'portal:student_portal_grades' %}" class="tp-primary-nav__item"{% if 'student' in request.path or 'grades' in request.path %} aria-current="page"{% endif %}>🏠 {% trans "Home" %}</a>
-  <a href="{% url 'portal:student_workflow' %}" class="tp-primary-nav__item">⚡ {% trans "Workflow" %}</a>
-  <a href="{% url 'accounts:user_messages' %}" class="tp-primary-nav__item">💬 {% trans "Messages" %}</a>
-  <a href="{% url 'feedback:help_center' %}" class="tp-primary-nav__item">❓ {% trans "Help" %}</a>
+    <a href="{% url 'portal:student_portal_grades' %}" class="tp-primary-nav__item" aria-current="page"><i class="bi bi-house" aria-hidden="true"></i> {% trans "Home" %}</a>
+    <a href="{% url 'portal:student_workflow' %}" class="tp-primary-nav__item"><i class="bi bi-book" aria-hidden="true"></i> {% trans "Learning" %}</a>
   {% elif request.user.is_staff or request.user.is_superuser or EFFECTIVE_PORTAL_ROLE == 'ADMIN' %}
-  <a href="{% url 'accounts:backend_dashboard' %}" class="tp-primary-nav__item"{% if request.path|slice:':18' == '/accounts/backend' or '/portal/backend' in request.path %} aria-current="page"{% endif %}>🏠 {% trans "Home" %}</a>
-  <a href="{% url 'finance:dashboard' %}" class="tp-primary-nav__item">💳 {% trans "Finance" %}</a>
-  <a href="{% url 'accounts:staff_workflow' %}" class="tp-primary-nav__item">⚡ {% trans "Workflow" %}</a>
-  <a href="{% url 'accounts:user_messages' %}" class="tp-primary-nav__item">💬 {% trans "Messages" %}{% if messages_unread_count %}<span class="tp-nav-count">{{ messages_unread_count }}</span>{% endif %}</a>
-  <a href="{% url 'analytics:dashboard' %}" class="tp-primary-nav__item">📊 {% trans "Analytics" %}</a>
+    <a href="{% url 'accounts:backend_dashboard' %}" class="tp-primary-nav__item"{% if '/accounts/backend' in request.path or '/portal/backend' in request.path %} aria-current="page"{% endif %}><i class="bi bi-house" aria-hidden="true"></i> {% trans "Home" %}</a>
+    <a href="{% url 'accounts:staff_workflow' %}" class="tp-primary-nav__item"{% if 'workflow' in request.path %} aria-current="page"{% endif %}><i class="bi bi-lightning-charge" aria-hidden="true"></i> {% trans "Workflow" %}</a>
   {% else %}
-  <a href="{% url 'accounts:redirect' %}" class="tp-primary-nav__item">🏠 {% trans "Home" %}</a>
-  <a href="{% url 'accounts:staff_workflow' %}" class="tp-primary-nav__item">⚡ {% trans "Workflow" %}</a>
-  <a href="{% url 'accounts:user_messages' %}" class="tp-primary-nav__item">💬 {% trans "Messages" %}{% if messages_unread_count %}<span class="tp-nav-count">{{ messages_unread_count }}</span>{% endif %}</a>
+    <a href="{% url 'accounts:redirect' %}" class="tp-primary-nav__item"><i class="bi bi-house" aria-hidden="true"></i> {% trans "Home" %}</a>
+    <a href="{% url 'accounts:staff_workflow' %}" class="tp-primary-nav__item"><i class="bi bi-lightning-charge" aria-hidden="true"></i> {% trans "Workflow" %}</a>
   {% endif %}
-  <div class="dropdown tp-primary-nav__more">
-    <button class="tp-primary-nav__item dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false" aria-label="{% trans 'More options' %}">⋯ {% trans "More" %}</button>
-    <ul class="dropdown-menu">
-      <li><a class="dropdown-item" href="{% url 'accounts:user_profile' %}">👤 {% trans "Profile" %}</a></li>
-      <li><a class="dropdown-item" href="{% url 'accounts:user_notifications' %}">🔔 {% trans "Notifications" %}</a></li>
-      <li><a class="dropdown-item" href="{% url 'feedback:help_center' %}">❓ {% trans "Help center" %}</a></li>
-    </ul>
-  </div>
 </nav>
 {% endif %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>

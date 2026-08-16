@@ -1,10 +1,10 @@
 {% load i18n %}
-{% if RMC_OPERATOR_SURFACE_IA and RMC_OPERATOR_SURFACE_SPINE %}
+{% if request.user.is_authenticated %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="dropdown rmc-operator-workspace-dropdown" data-rmc-operator-workspace-dropdown data-rmc-shell-viewport-safe="1">
   <button type="button"
           class="btn btn-sm btn-outline-light dropdown-toggle rmc-platform-header__chip rmc-platform-header__more-chip d-inline-flex align-items-center gap-1"
-          id="rmcWorkspaceDropdown"
+          id="rmcUtilitiesDropdown"
           data-bs-toggle="dropdown"
           data-bs-auto-close="outside"
           data-bs-boundary="viewport"
@@ -12,11 +12,20 @@
           data-bs-offset="0,8"
           aria-expanded="false"
           aria-haspopup="true"
-          aria-label="{% trans 'More operator options' %}">
-    <span aria-hidden="true">...</span>
-    <span class="d-none d-md-inline">{% trans "More" %}</span>
+          aria-label="{% trans 'Open utilities' %}">
+    <i class="bi bi-grid-3x3-gap" aria-hidden="true"></i>
+    <span class="d-none d-md-inline">{% trans "Utilities" %}</span>
   </button>
-  <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow" aria-labelledby="rmcWorkspaceDropdown">
+  <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow" aria-labelledby="rmcUtilitiesDropdown" data-rmc-header-utilities="operator">
+    <li><h6 class="dropdown-header text-uppercase small">{% trans "Navigation" %}</h6></li>
+    {% for item in PRIMARY_CONTROL_PLANE_NAV %}
+    <li><a class="dropdown-item d-flex align-items-center gap-2{% if item.is_current %} active{% endif %}" href="{{ item.url }}"{% if item.is_current %} aria-current="page"{% endif %}>
+      {% if item.icon %}<i class="bi {{ item.icon }}" aria-hidden="true"></i>{% elif item.glyph %}<span aria-hidden="true">{{ item.glyph }}</span>{% endif %}<span>{{ item.label }}</span>
+    </a></li>
+    {% endfor %}
+    {% if RMC_OPERATOR_SURFACE_SPINE %}
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header text-uppercase small">{% trans "Operator workspaces" %}</h6></li>
     {% for link in RMC_OPERATOR_SURFACE_SPINE %}
     <li>
       <a class="dropdown-item d-flex align-items-center gap-2{% if link.active %} active{% endif %}"
@@ -28,6 +37,7 @@
       </a>
     </li>
     {% endfor %}
+    {% endif %}
     {% comment %} v4.02.x: the loose standalone header buttons (Config chip, ⌘ shortcuts) are
        integrated here as an Operator-tools section, decluttering the utility cluster while keeping
        everything one menu away. {% endcomment %}
@@ -45,6 +55,7 @@
         <span>{% trans "System Health" %}</span>
       </a>
     </li>
+    <li><a class="dropdown-item d-flex align-items-center gap-2" href="{% url 'accounts:security_posture_review' %}"><i class="bi bi-shield-check" aria-hidden="true"></i><span>{% trans "Security posture" %}</span></a></li>
     <li>
       <button type="button" class="dropdown-item d-flex align-items-center gap-2" data-rmc-kbd-cheatsheet-trigger aria-label="{% trans 'Keyboard shortcuts' %}">
         <i class="bi bi-keyboard" aria-hidden="true"></i>
@@ -52,6 +63,7 @@
         <kbd class="ms-auto">?</kbd>
       </button>
     </li>
+    <li><a class="dropdown-item d-flex align-items-center gap-2" href="{% url 'manager_help_center' %}"><i class="bi bi-question-circle" aria-hidden="true"></i><span>{% trans "Help center" %}</span></a></li>
   </ul>
 </div>
 {% endif %}

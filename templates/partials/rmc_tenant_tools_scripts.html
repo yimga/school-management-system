@@ -2,7 +2,7 @@
 {% comment %}
 v4.02.8 — Tenant workspace Tools edge-tray boot (tenant subdomains only).
 {% endcomment %}
-{% if request.user.is_authenticated and request.public_host_kind != 'manager' and cockpit.tenant_tools.enabled|default:False %}
+{% if request.user.is_authenticated and request.public_host_kind != 'manager' %}
 {% include "partials/rmc_tenant_tools_page_data.html" %}
 {% include "partials/rmc_tools_tray_context_stack.html" %}
 <script src="{% static 'js/rmc-operator-tools-tray.js' %}" defer></script>

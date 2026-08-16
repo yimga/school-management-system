@@ -233,6 +233,7 @@
     <link rel="stylesheet" href="{% static 'css/rmc-header-super-chrome-parity.css' %}">
     {% comment %} 2026-07-22: header/footer/copilot/density finish seals (beats deferred bundles). {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-tenant-chrome-finish.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-header-utilities.css' %}">
     {% if request.user.is_authenticated and cockpit.ai_copilot_rail.enabled %}
     {% comment %} 2026-07-25: CRITICAL INLINE PIN for the tenant copilot rail — the /super/
        parity the operator shell already ships (control_plane_skeleton.html
@@ -435,23 +436,8 @@
             {% endif %}
 
             <div class="topbar-controls d-flex align-items-center gap-2">
-              {% if request.public_host_kind != 'manager' %}
-              {% include "partials/cockpit/_activity_ticker_inline.html" %}
-              {% endif %}
-              {% if SHOW_OFFLINE_STATUS_BAR %}
-              {% include 'components/offline_status_bar.html' %}
-              {% endif %}
               {% comment %} v4.02.x (2026-06-07): clock/weather moved out of the header to the centered
                  footer dock (partials/cockpit/_footer_temporal_dock.html) — reclaim header height. {% endcomment %}
-              {% if SHOW_ROLE_SWITCHER and EFFECTIVE_PORTAL_ROLE %}
-              <span class="badge bg-light text-dark opacity-90 small" aria-label="{% trans 'Current portal view' %}">{% trans 'Viewing as' %}: {{ EFFECTIVE_PORTAL_ROLE }}</span>
-              {% endif %}
-              {% if not PRIMARY_CONTROL_PLANE_NAV %}
-              {% include "partials/rmc_security_posture_nav_button.html" %}
-              {% endif %}
-              {% if available_languages %}
-              {% include "partials/language_switcher.html" %}
-              {% endif %}
               {% comment %} v4.05 (2026-08-03): discrete Messages + Notifications icons on the tenant
                  header. Reverses the v4.00.17 de-duplication that had folded the bell into the avatar
                  corner badge only — invisible on a platform this size. RBAC: Messages is a UNIVERSAL
@@ -462,12 +448,6 @@
                  (rmc-tenant-chrome-finish.css) reclaims the room. The bell badge reuses
                  data-rmc-unread-badge so rmc-notification-bell-poll.js (shipped with user_dropdown.html)
                  keeps it live in place, and it links to the full inbox. {% endcomment %}
-              <a class="btn btn-link p-0 position-relative topbar-icon-btn" href="{% url 'accounts:user_messages' %}" title="{% trans 'Messages' %}" aria-label="{% trans 'Open Messages' %}">
-                <i class="bi bi-chat-dots-fill"></i>
-                {% if messages_unread_count %}
-                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger topbar-icon-badge">{{ messages_unread_count }}</span>
-                {% endif %}
-              </a>
               {% if SHOW_HEADER_NOTIFICATIONS %}
               <a class="btn btn-link p-0 position-relative topbar-icon-btn" href="{% url 'accounts:user_notifications' %}" title="{% trans 'Notifications' %}" aria-label="{% trans 'Notifications' %}" data-rmc-header-bell="1">
                 <i class="bi bi-bell-fill"></i>
@@ -482,13 +462,7 @@
                  visible in every authenticated portal page so operators can toggle modes
                  from anywhere. Hidden below xl via .d-none .d-xl-inline-flex so the
                  row never wraps on lg-class viewports. {% endcomment %}
-              {% if request.user.is_authenticated and not request.public_host_kind == 'manager' %}
-                <span class="d-none d-xl-inline-flex align-items-center gap-2">
-                  {% include "components/guardian_student_links.html" %}
-                  {% include "components/rmc_campus_switcher.html" %}
-                  {% include "components/rmc_shell_switcher.html" %}
-                </span>
-              {% endif %}
+              {% include "components/rmc_tenant_header_utilities.html" %}
 
               {% comment %} Phase D end-to-end (2026-05-12): portal topbar now uses the same rich
                  user_dropdown.html as control plane and admin. The component already
@@ -904,10 +878,12 @@
     <script src="{% static 'js/_pages/rmc-copilot-rail.js' %}" defer></script>
     <script src="{% static 'js/rmc-local-ai-accessibility.js' %}" defer></script>
     {% endif %}
-    {% if proactive_help_nudge and not tp_v3_tenant_shell %}
+    {% if proactive_help_nudge and not tp_v3_tenant_shell and not request.user.is_authenticated %}
     {% include "partials/help_proactive_nudge.html" %}
     {% endif %}
-    {% if request.public_host_kind == 'manager' or not cockpit.tenant_tools.enabled|default:False %}{% include "partials/help_contextual_drawer.html" %}{% endif %}
+    {% comment %} Contextual Help is owned by the authenticated Tools rail. Anonymous
+       fallbacks retain the inline drawer without creating a floating duplicate. {% endcomment %}
+    {% if not request.user.is_authenticated %}{% include "partials/help_contextual_drawer.html" %}{% endif %}
     {% if request.user.is_authenticated %}
     {% include "partials/cockpit/_activity_ticker_drawer.html" %}
     <script src="{% static 'js/rmc-cp-activity-drawer.js' %}" defer></script>
