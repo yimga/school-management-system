@@ -293,6 +293,9 @@ class LoginImmersiveTemplateContractTests(SimpleTestCase):
         self.assertGreater(dash_end, sponsor)
         self.assertIn('.rmc-auth-dash-panel[data-rmc-auth-preview="default"] .rmc-auth-dash-grid3 { display: none; }', css)
         self.assertIn(".rmc-auth-immersive__dash { overflow: visible; }", css)
+        self.assertIn("grid-template-columns: repeat(4, minmax(0, 1fr));", css)
+        self.assertIn("overflow-y: auto;", css)
+        self.assertIn(".rmc-auth-immersive__sponsor--empty {", css)
 
     def test_tenant_cockpit_exposes_local_front_door_governance(self):
         forms_source = (

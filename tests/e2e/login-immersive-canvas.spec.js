@@ -97,6 +97,8 @@ test.describe('Immersive login canvas', () => {
     await expect(pulse).toBeVisible();
     await expect(announcements).toBeVisible();
     await expect(partner).toBeVisible();
+    await expect(page.locator('[data-rmc-metric-key="portal_secure"]')).toBeVisible();
+    await expect(page.locator('[data-rmc-metric-key="support_help"]')).toBeVisible();
 
     const containment = await page.evaluate(() => {
       const pulse = document.querySelector('.rmc-auth-immersive__dash');
@@ -106,13 +108,19 @@ test.describe('Immersive login canvas', () => {
       const pulseBox = pulse?.getBoundingClientRect();
       const announcementBox = announcement?.getBoundingClientRect();
       const partnerBox = partner?.getBoundingClientRect();
+      const portal = document.querySelector('[data-rmc-metric-key="portal_secure"]');
+      const support = document.querySelector('[data-rmc-metric-key="support_help"]');
       return {
         announcementInside: !!pulseBox && !!announcementBox && announcementBox.bottom <= pulseBox.bottom + 1,
         partnerInside: !!pulseBox && !!partnerBox && partnerBox.bottom <= pulseBox.bottom + 1,
+        portalHasWidth: (portal?.getBoundingClientRect().width || 0) > 100,
+        supportHasWidth: (support?.getBoundingClientRect().width || 0) > 100,
       };
     });
     expect(containment.announcementInside).toBe(true);
     expect(containment.partnerInside).toBe(true);
+    expect(containment.portalHasWidth).toBe(true);
+    expect(containment.supportHasWidth).toBe(true);
   });
 
   test('extreme-short desktop keeps hero copy and credential entry reachable', async ({ page }) => {

@@ -1440,10 +1440,6 @@ body:has(.rmc-auth-immersive) [data-shell-chrome="django-messages"] {
     display: none;
   }
 
-  .rmc-auth-immersive__bento {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
   /* Short viewports: keep the hero compact by TIGHTENING type, not by capping
      height + clipping. The grid-stacked carousel sizes to content, so a cap here
      would re-introduce the cut-text bug on exactly the screens that showed it. */
@@ -1620,9 +1616,14 @@ body:has(.rmc-auth-immersive) [data-shell-chrome="django-messages"] {
 .rmc-auth-immersive__sponsor a { color: var(--color-warning); font-size: 10px; font-weight: 750; }
 .rmc-auth-immersive__sponsor button { position: absolute; top: 7px; right: 8px; width: 24px; height: 24px; border: 0; border-radius: 7px; background: transparent; color: var(--rmc-auth-muted); }
 .rmc-auth-immersive__sponsor--empty {
+  display: block;
   padding-inline-end: 12px;
   border-style: dashed;
 }
+.rmc-auth-immersive__sponsor--empty strong,
+.rmc-auth-immersive__sponsor--empty small { display: block; }
+.rmc-auth-immersive__sponsor--empty strong { margin-top: 3px; }
+.rmc-auth-immersive__sponsor--empty small { margin-top: 2px; }
 
 .rmc-auth-immersive.is-offline [data-rmc-sponsored-region] { display: none !important; }
 .rmc-auth-immersive.is-offline .rmc-auth-immersive__secure-state { color: var(--color-warning); border-color: color-mix(in srgb, var(--color-warning) 35%, transparent); background: color-mix(in srgb, var(--color-warning) 10%, transparent); }
@@ -1641,8 +1642,18 @@ body:has(.rmc-auth-immersive) [data-shell-chrome="django-messages"] {
 /* Approved V3 parity: compose the school story, pulse, metrics, and sign-in as
    one balanced front door instead of a long left-aligned stack. */
 @media (min-width: 981px) {
+  .rmc-auth-immersive__canvas {
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+  }
+
   .rmc-auth-immersive__canvas-body {
+    flex: 0 0 auto;
+    min-height: 100%;
     display: grid;
+    overflow: visible;
     grid-template-columns: minmax(0, 1.15fr) minmax(260px, .85fr);
     grid-template-areas:
       "head head"
@@ -1710,7 +1721,7 @@ body:has(.rmc-auth-immersive) [data-shell-chrome="django-messages"] {
   .rmc-auth-dash-row { padding: 10px; }
   .rmc-auth-immersive__sponsors { margin-top: 2px; }
 
-  .rmc-auth-immersive__bento { gap: 10px; }
+  .rmc-auth-immersive__bento { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
   .rmc-auth-immersive__tile { padding: 12px 14px; }
 
   .rmc-auth-immersive__glass {
