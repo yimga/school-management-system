@@ -391,7 +391,7 @@ msgid "A day for the head →"
 msgstr ""
 
 msgid "A day for the parent →"
-msgstr ""
+msgstr "家長的一天 →"
 
 msgid "A day for the teacher →"
 msgstr ""
@@ -408,7 +408,7 @@ msgid ""
 msgstr ""
 
 msgid "A parent's phone with a school message and fee reminder"
-msgstr ""
+msgstr "家長手機上顯示學校訊息與費用提醒"
 
 msgid "A practical path your teams follow inside the platform."
 msgstr ""
@@ -457,7 +457,7 @@ msgid ""
 msgstr ""
 
 msgid "A. Mensah — Grade 8 — Pending documents"
-msgstr ""
+msgstr "A. Mensah — 八年級 — 待處理文件"
 
 msgid "AI / heuristic suggest"
 msgstr ""
@@ -671,7 +671,7 @@ msgid ""
 msgstr ""
 
 msgid "Absences & tardies"
-msgstr ""
+msgstr "缺席與遲到"
 
 msgid "Absent"
 msgstr "缺席"
@@ -704,13 +704,13 @@ msgid "Academic years"
 msgstr ""
 
 msgid "Academic years (read-only)"
-msgstr ""
+msgstr "學年（唯讀）"
 
 msgid "Academic years (setup evidence)"
-msgstr ""
+msgstr "學年（設定佐證）"
 
 msgid "Academic years (setup)"
-msgstr ""
+msgstr "學年（設定）"
 
 msgid "Academics"
 msgstr ""
@@ -795,13 +795,13 @@ msgid "Accesses"
 msgstr ""
 
 msgid "Accessible on low bandwidth — same thread as parents."
-msgstr ""
+msgstr "低頻寬也能存取 — 與家長同一對話串。"
 
 msgid "Account"
 msgstr "帳戶"
 
 msgid "Account balance summary"
-msgstr ""
+msgstr "帳戶餘額摘要"
 
 msgid "Account on hold"
 msgstr ""
@@ -959,7 +959,7 @@ msgid "Active temporary grants"
 msgstr ""
 
 msgid "Active term:"
-msgstr ""
+msgstr "目前學期："
 
 msgid "Active terminology resolution"
 msgstr ""
@@ -1126,16 +1126,16 @@ msgid "Adjust communication tone and notification styles."
 msgstr ""
 
 msgid "Adjust dashboard layout and visual presets."
-msgstr ""
+msgstr "調整儀表板版面與視覺預設。"
 
 msgid "Adjust deadlines"
 msgstr ""
 
 msgid "Adjust portal shell layout and visibility."
-msgstr ""
+msgstr "調整入口網站外框版面與顯示。"
 
 msgid "Adjust school website blocks and visual presets."
-msgstr ""
+msgstr "調整學校網站區塊與視覺預設。"
 
 msgid "Admin"
 msgstr "管理"
@@ -1155,7 +1155,7 @@ msgid "Admin Panel"
 msgstr ""
 
 msgid "Admin Portal"
-msgstr ""
+msgstr "管理入口網站"
 
 msgid "Admin Tools"
 msgstr ""
@@ -1182,7 +1182,7 @@ msgid "Admin pack:"
 msgstr ""
 
 msgid "Admin, teacher, parent"
-msgstr ""
+msgstr "管理員、教師、家長"
 
 msgid ""
 "Admin/site color lock is ON: pack clicks will keep Site theme pack aligned "
@@ -1248,7 +1248,7 @@ msgid ""
 msgstr ""
 
 msgid "Admissions, fees, comms, workflows — the working school."
-msgstr ""
+msgstr "招生、費用、通訊、工作流程 — 運作中的學校。"
 
 msgid "Admit"
 msgstr ""
@@ -1280,7 +1280,7 @@ msgid ""
 msgstr ""
 
 msgid "Advanced setup"
-msgstr ""
+msgstr "進階設定"
 
 msgid "Advanced — remaining platform model changelists"
 msgstr ""
@@ -1289,7 +1289,7 @@ msgid "Advanced/Admin: Site Settings in tenant admin"
 msgstr ""
 
 msgid "Advanced/Admin: academic year rows"
-msgstr ""
+msgstr "進階/管理：學年資料列"
 
 msgid "Advanced/Admin: audit log rows"
 msgstr ""
@@ -1301,13 +1301,13 @@ msgid "Advanced/Admin: department rows"
 msgstr ""
 
 msgid "Advanced/Admin: open schedules in Django admin (full CRUD)"
-msgstr ""
+msgstr "進階/管理：在 Django admin 中開啟排程（完整 CRUD）"
 
 msgid "Advanced/Admin: plan catalog (platform)"
 msgstr ""
 
 msgid "Advanced/Admin: report card rows"
-msgstr ""
+msgstr "進階/管理：成績單資料列"
 
 msgid "Advanced/Admin: report template rows"
 msgstr ""
@@ -1316,7 +1316,7 @@ msgid "Advanced/Admin: reports app index"
 msgstr ""
 
 msgid "Advanced/Admin: schedule rows"
-msgstr ""
+msgstr "進階/管理：排程資料列"
 
 msgid "Advanced/Admin: student row"
 msgstr ""
@@ -1343,7 +1343,7 @@ msgid "Advanced: Admin field values"
 msgstr ""
 
 msgid "Advanced: Admin term publish rows"
-msgstr ""
+msgstr "進階：管理員學期發布資料列"
 
 msgid "Advanced: Config audit (admin)"
 msgstr ""
@@ -1409,7 +1409,7 @@ msgid "Aggregated counts (your access scope only)"
 msgstr ""
 
 msgid "Aggregates from tickets with a submitted 1–5 score (portal flow)."
-msgstr ""
+msgstr "彙整已提交 1–5 分評分的工單（入口網站流程）。"
 
 msgid "Aid & awards"
 msgstr ""
@@ -1495,7 +1495,7 @@ msgid "All integrity checks passed."
 msgstr ""
 
 msgid "All invoices"
-msgstr ""
+msgstr "所有發票"
 
 msgid "All keyboard shortcuts"
 msgstr ""
@@ -1512,7 +1512,7 @@ msgid ""
 msgstr ""
 
 msgid "All playbooks"
-msgstr ""
+msgstr "所有作業手冊"
 
 msgid "All priorities"
 msgstr ""
@@ -1678,7 +1678,7 @@ msgid "Announcement"
 msgstr "公告"
 
 msgid "Announcement published successfully."
-msgstr ""
+msgstr "公告發布成功。"
 
 msgid ""
 "Announcement submitted for approval. It will be visible after an "
@@ -1686,22 +1686,22 @@ msgid ""
 msgstr ""
 
 msgid "Announcement updated successfully."
-msgstr ""
+msgstr "公告更新成功。"
 
 msgid "Announcements"
 msgstr "公告"
 
 msgid "Announcements get lost across groups and email"
-msgstr ""
+msgstr "公告在群組與電子郵件間遺失"
 
 msgid "Announcements inbox"
-msgstr ""
+msgstr "公告收件匣"
 
 msgid "Announcements, achievements, and interventions."
-msgstr ""
+msgstr "公告、成就與輔導措施。"
 
 msgid "Announcements, achievements, and updates for your children."
-msgstr ""
+msgstr "關於您孩子的公告、成就與最新動態。"
 
 msgid "Annual"
 msgstr ""
@@ -1716,10 +1716,10 @@ msgid "Annual academic report"
 msgstr ""
 
 msgid "Annual average"
-msgstr ""
+msgstr "年度平均"
 
 msgid "Annual results by term — average, class rank, and promotion decision"
-msgstr ""
+msgstr "依學期呈現的年度成績 — 平均、班級排名與升級決定"
 
 msgid "Anomalies"
 msgstr ""
@@ -1763,7 +1763,7 @@ msgid ""
 msgstr ""
 
 msgid "Any term"
-msgstr ""
+msgstr "任何學期"
 
 msgid "Any year"
 msgstr ""
@@ -1909,7 +1909,7 @@ msgid "Apply import"
 msgstr ""
 
 msgid "Apply invoice filters"
-msgstr ""
+msgstr "套用發票篩選"
 
 msgid "Apply period"
 msgstr ""
@@ -1935,7 +1935,7 @@ msgid "Apply to tenant"
 msgstr ""
 
 msgid "Applying templates requires a future guided setup flow."
-msgstr ""
+msgstr "套用範本需要未來的引導式設定流程。"
 
 msgid "Apprentice placement"
 msgstr ""
@@ -1991,7 +1991,7 @@ msgid "Approve"
 msgstr ""
 
 msgid "Approve message to parent"
-msgstr ""
+msgstr "核准給家長的訊息"
 
 msgid "Approve pending scopes"
 msgstr ""
@@ -2104,10 +2104,10 @@ msgid "Assessment Weights (Theory vs Practical)"
 msgstr ""
 
 msgid "Assessment ladder parents can follow in the portal."
-msgstr ""
+msgstr "家長可在入口網站追蹤的評量進程。"
 
 msgid "Assessment ladder parents can follow."
-msgstr ""
+msgstr "家長可追蹤的評量進程。"
 
 msgid "Assets"
 msgstr ""
@@ -2149,10 +2149,10 @@ msgid "Assigned to"
 msgstr ""
 
 msgid "Assignment ID"
-msgstr ""
+msgstr "作業 ID"
 
 msgid "Assignments and tasks surfaced by your teachers."
-msgstr ""
+msgstr "由教師提供的作業與任務。"
 
 msgid "Assistant"
 msgstr ""
@@ -2215,40 +2215,40 @@ msgid "Attendance"
 msgstr "出勤"
 
 msgid "Attendance & Discipline"
-msgstr ""
+msgstr "出勤與紀律"
 
 msgid "Attendance & class context"
-msgstr ""
+msgstr "出勤與班級情境"
 
 msgid "Attendance & discipline"
-msgstr ""
+msgstr "出勤與紀律"
 
 msgid "Attendance & leave"
-msgstr ""
+msgstr "出勤與請假"
 
 msgid "Attendance & marks"
-msgstr ""
+msgstr "出勤與分數"
 
 msgid "Attendance and grades queue locally, reconcile on reconnect."
-msgstr ""
+msgstr "出勤與成績會在本地排隊，重新連線後對帳。"
 
 msgid "Attendance context is unclear between paper and chat"
-msgstr ""
+msgstr "出勤情境在紙本與聊天之間不明確"
 
 msgid "Attendance is captured in context with the class list"
-msgstr ""
+msgstr "出勤會結合班級名單一併登錄"
 
 msgid "Attendance pattern"
-msgstr ""
+msgstr "出勤模式"
 
 msgid "Attendance records in scope"
-msgstr ""
+msgstr "範圍內的出勤紀錄"
 
 msgid "Attendance signals are easier to understand at a glance"
-msgstr ""
+msgstr "出勤訊號一目了然更易理解"
 
 msgid "Attendance status"
-msgstr ""
+msgstr "出勤狀態"
 
 msgid ""
 "Attendance, fees, behaviour, staffing — the front page tells you what "
@@ -2451,7 +2451,7 @@ msgid "Average"
 msgstr ""
 
 msgid "Average score"
-msgstr ""
+msgstr "平均分數"
 
 msgid "Avg"
 msgstr ""
@@ -2541,7 +2541,7 @@ msgid "Back to Launch"
 msgstr ""
 
 msgid "Back to Lesson Notes"
-msgstr ""
+msgstr "返回課程筆記"
 
 msgid "Back to Manager"
 msgstr ""
@@ -2553,7 +2553,7 @@ msgid "Back to Outputs"
 msgstr ""
 
 msgid "Back to Payments"
-msgstr ""
+msgstr "返回付款"
 
 msgid "Back to Run →"
 msgstr ""
@@ -2713,7 +2713,7 @@ msgid "Backup rails:"
 msgstr ""
 
 msgid "Backups & restore: docs/DR_BACKUP_RESTORE_RUNBOOK.md"
-msgstr ""
+msgstr "備份與還原：docs/DR_BACKUP_RESTORE_RUNBOOK.md"
 
 msgid "Badge #"
 msgstr ""
@@ -2734,10 +2734,10 @@ msgid "Balance"
 msgstr "餘額"
 
 msgid "Balance after"
-msgstr ""
+msgstr "之後餘額"
 
 msgid "Balances visible to families through the parent portal"
-msgstr ""
+msgstr "家庭可透過家長入口網站查看餘額"
 
 msgid "Band"
 msgstr ""
@@ -2761,7 +2761,7 @@ msgid "Based on selected deadline mode."
 msgstr ""
 
 msgid "Based on your setup progress"
-msgstr ""
+msgstr "根據您的設定進度"
 
 msgid "Baseline median clicks"
 msgstr ""
@@ -2819,7 +2819,7 @@ msgid ""
 msgstr ""
 
 msgid "Behaviour, interventions, parent-evening booking"
-msgstr ""
+msgstr "行為、輔導措施、親師晚會預約"
 
 msgid "Bell by bell, class by class"
 msgstr ""
@@ -3063,7 +3063,7 @@ msgid "Bonus per referral"
 msgstr ""
 
 msgid "Book a Growth demo →"
-msgstr ""
+msgstr "預約成長方案示範 →"
 
 msgid "Book a demo"
 msgstr ""
@@ -3080,7 +3080,7 @@ msgid "Book a migration consult"
 msgstr ""
 
 msgid "Book a pricing walkthrough"
-msgstr ""
+msgstr "預約定價導覽"
 
 msgid ""
 "Book a walkthrough to map rollout, integrations, and honest payment posture "
@@ -3088,10 +3088,10 @@ msgid ""
 msgstr ""
 
 msgid "Book launch walkthrough"
-msgstr ""
+msgstr "預約啟用導覽"
 
 msgid "Both portals enabled"
-msgstr ""
+msgstr "兩個入口網站皆已啟用"
 
 msgid "Boundary"
 msgstr ""
@@ -3123,7 +3123,7 @@ msgid "Brand, runtime, policies, plans, registries, integrations."
 msgstr ""
 
 msgid "Branded badge with QR verify link (teacher portal)."
-msgstr ""
+msgstr "附 QR 驗證連結的品牌徽章（教師入口網站）。"
 
 msgid "Branding"
 msgstr ""
@@ -3249,7 +3249,7 @@ msgid "Bulk finance access"
 msgstr ""
 
 msgid "Bulk grade import"
-msgstr ""
+msgstr "批次匯入成績"
 
 msgid "Bulk letters"
 msgstr ""
@@ -3281,7 +3281,7 @@ msgid "Bursar Entries Report"
 msgstr ""
 
 msgid "Bursar receipts captured without waiting for fibre."
-msgstr ""
+msgstr "出納收據無需等待光纖網路即可登錄。"
 
 msgid "Bursar reconciles last week's deposits on a Tuesday morning."
 msgstr ""
@@ -3290,7 +3290,7 @@ msgid "Bursar's daily dashboard."
 msgstr ""
 
 msgid "Buses out, parents notified"
-msgstr ""
+msgstr "校車發車，已通知家長"
 
 msgid "Buyer procurement checklist"
 msgstr ""
@@ -3373,7 +3373,7 @@ msgid "Calendar"
 msgstr "行事曆"
 
 msgid "Calendar & Homework"
-msgstr ""
+msgstr "行事曆與作業"
 
 msgid ""
 "Calendar and scheduling workflows are easier to review in the unified "
@@ -3381,7 +3381,7 @@ msgid ""
 msgstr ""
 
 msgid "Calendar system"
-msgstr ""
+msgstr "行事曆系統"
 
 msgid "Calendar system registry (platform admin)"
 msgstr ""
@@ -3446,7 +3446,7 @@ msgid "Canteen"
 msgstr ""
 
 msgid "Canteen meals"
-msgstr ""
+msgstr "餐廳餐點"
 
 msgid "Canvas"
 msgstr ""
@@ -3551,7 +3551,7 @@ msgid "Catalog version"
 msgstr ""
 
 msgid "Catalog, assignments & workflow"
-msgstr ""
+msgstr "型錄、指派與工作流程"
 
 msgid ""
 "Catalog, enrollment, degree audit; semester/term; months-not-years "
@@ -3580,7 +3580,7 @@ msgid "Certification"
 msgstr ""
 
 msgid "Certification & Exams"
-msgstr ""
+msgstr "認證與考試"
 
 msgid "Certification passed"
 msgstr ""
@@ -3616,7 +3616,7 @@ msgid "Change queue"
 msgstr ""
 
 msgid "Change your password"
-msgstr ""
+msgstr "變更您的密碼"
 
 msgid "Changed fields"
 msgstr ""
@@ -3661,7 +3661,7 @@ msgid ""
 msgstr ""
 
 msgid "Check guardian contact and excused vs unexcused."
-msgstr ""
+msgstr "查看監護人聯絡資訊及請假與曠課情形。"
 
 msgid "Check in"
 msgstr ""
@@ -3708,7 +3708,7 @@ msgid "Children"
 msgstr ""
 
 msgid "Choose a new password"
-msgstr ""
+msgstr "選擇新密碼"
 
 msgid ""
 "Choose a pack to style admin/backend consistently. Click a card to select "
@@ -3719,7 +3719,7 @@ msgid "Choose a plan that fits your school. You can change later."
 msgstr ""
 
 msgid "Choose a preset..."
-msgstr ""
+msgstr "選擇預設..."
 
 msgid ""
 "Choose a production template to preview workflow, dashboard, and theme packs"
@@ -3841,10 +3841,10 @@ msgid "Class Syllabus"
 msgstr ""
 
 msgid "Class cards tied to live enrollments — no re-keying."
-msgstr ""
+msgstr "班級卡片連動即時註冊資料 — 無需重新輸入。"
 
 msgid "Class cards tied to live enrollments."
-msgstr ""
+msgstr "班級卡片連動即時註冊資料。"
 
 msgid "Class overview"
 msgstr ""
@@ -3927,7 +3927,7 @@ msgid ""
 msgstr ""
 
 msgid "Clear next actions from attendance, academics, and finance signals"
-msgstr ""
+msgstr "從出勤、學務與財務訊號中釐清後續行動"
 
 msgid "Clear preview"
 msgstr ""
@@ -4177,7 +4177,7 @@ msgid "Common questions"
 msgstr "常見問題"
 
 msgid "Communicate with parents and staff at scale"
-msgstr ""
+msgstr "大規模與家長及教職員溝通"
 
 msgid "Communication"
 msgstr ""
@@ -4262,7 +4262,7 @@ msgid "Complete Live preview and confirm to publish."
 msgstr ""
 
 msgid "Complete PSP setup or enable manual fallback"
-msgstr ""
+msgstr "完成 PSP 設定或啟用手動備援"
 
 msgid ""
 "Complete a quick action for <strong>{{ name }}</strong> so your workspace is"
@@ -4275,13 +4275,13 @@ msgid ""
 msgstr ""
 
 msgid "Complete payment setup"
-msgstr ""
+msgstr "完成付款設定"
 
 msgid "Complete setup steps and preview by role. Execute launch when ready."
-msgstr ""
+msgstr "完成設定步驟並依角色預覽。就緒後即可執行啟用。"
 
 msgid "Complete setup steps to improve launch confidence."
-msgstr ""
+msgstr "完成設定步驟以提升啟用信心。"
 
 msgid ""
 "Complete these steps to get your school up and running (same as Setup "
@@ -4359,7 +4359,7 @@ msgid "Compliance posture"
 msgstr ""
 
 msgid "Compliance, health, intake, fees, and outreach at a glance."
-msgstr ""
+msgstr "法遵、健康、招收、費用與外展一目了然。"
 
 msgid ""
 "Composite view of leadership analytics, administration, teacher workspace, "
@@ -4486,7 +4486,7 @@ msgid "Confirm install to sandbox"
 msgstr ""
 
 msgid "Confirm new password"
-msgstr ""
+msgstr "確認新密碼"
 
 msgid "Confirm rollback"
 msgstr ""
@@ -4724,13 +4724,13 @@ msgid "Control Plane"
 msgstr ""
 
 msgid "Control Plane Health"
-msgstr ""
+msgstr "控制平面健康"
 
 msgid "Control Studio"
 msgstr ""
 
 msgid "Control health hub"
-msgstr ""
+msgstr "控制健康中心"
 
 msgid "Control modules"
 msgstr ""
@@ -4762,7 +4762,7 @@ msgid ""
 msgstr ""
 
 msgid "Conversation closed. Parent can no longer reply."
-msgstr ""
+msgstr "對話已關閉。家長無法再回覆。"
 
 msgid "Conversation thread"
 msgstr ""
@@ -4786,10 +4786,10 @@ msgid "Conversion path"
 msgstr ""
 
 msgid "Conversion rate (started → onboarding complete)"
-msgstr ""
+msgstr "轉換率（已開始 → 設定完成）"
 
 msgid "Conversion-grade CTA"
-msgstr ""
+msgstr "轉換級行動呼籲"
 
 msgid "Cookie Policy"
 msgstr ""
@@ -4960,16 +4960,16 @@ msgid "Create and manage workflows."
 msgstr ""
 
 msgid "Create announcement"
-msgstr ""
+msgstr "建立公告"
 
 msgid "Create bundle and start"
 msgstr ""
 
 msgid "Create class announcement"
-msgstr ""
+msgstr "建立班級公告"
 
 msgid "Create department announcement"
-msgstr ""
+msgstr "建立部門公告"
 
 msgid "Create donor"
 msgstr ""
@@ -4978,7 +4978,7 @@ msgid "Create evaluations in bulk and track missing scores."
 msgstr ""
 
 msgid "Create guardian invites"
-msgstr ""
+msgstr "建立監護人邀請"
 
 msgid "Create key"
 msgstr ""
@@ -5036,7 +5036,7 @@ msgid ""
 msgstr ""
 
 msgid "Create, assign, and publish report card styles with one workflow."
-msgstr ""
+msgstr "以單一工作流程建立、指派並發布成績單樣式。"
 
 msgid ""
 "Create/link group and campuses in school admin; shared reporting and "
@@ -5129,7 +5129,7 @@ msgid "Currency registry (platform admin)"
 msgstr ""
 
 msgid "Current academic year"
-msgstr ""
+msgstr "目前學年"
 
 msgid "Current blueprint (reference)"
 msgstr ""
@@ -5148,7 +5148,7 @@ msgid "Current period"
 msgstr ""
 
 msgid "Current portal view"
-msgstr ""
+msgstr "目前入口網站檢視"
 
 msgid "Current profile photo"
 msgstr ""
@@ -5219,7 +5219,7 @@ msgid "Custom nuance (platform admin)"
 msgstr ""
 
 msgid "Custom report card packs + branding"
-msgstr ""
+msgstr "自訂成績單套件 + 品牌"
 
 msgid "CustomFeatureTicket — bespoke feature requests"
 msgstr ""
@@ -5234,7 +5234,7 @@ msgid "Customer record linked (managed in Stripe)."
 msgstr ""
 
 msgid "Customer success playbooks"
-msgstr ""
+msgstr "客戶成功作業手冊"
 
 msgid "Customers"
 msgstr ""
@@ -5386,7 +5386,7 @@ msgid "DashboardPack — dashboard pack catalog"
 msgstr ""
 
 msgid "DashboardPackAssignment — tenant bindings"
-msgstr ""
+msgstr "DashboardPackAssignment — 租戶繫結"
 
 msgid "DashboardTemplate — widget templates"
 msgstr ""
@@ -5500,7 +5500,7 @@ msgid "Deactivate tag"
 msgstr ""
 
 msgid "Deactivate this tag? It will no longer appear for new assignments."
-msgstr ""
+msgstr "停用此標籤？它將不再出現於新的指派中。"
 
 msgid "Deadline"
 msgstr ""
@@ -5587,7 +5587,7 @@ msgid "Default annual"
 msgstr ""
 
 msgid "Default choices that compress setup time."
-msgstr ""
+msgstr "縮短設定時間的預設選項。"
 
 msgid "Default declaration"
 msgstr ""
@@ -5618,7 +5618,7 @@ msgid "Default styles saved."
 msgstr ""
 
 msgid "Default term"
-msgstr ""
+msgstr "預設學期"
 
 msgid ""
 "Defaults from REGIONAL_POLICY_PACKS; tenants can override after "
@@ -5650,7 +5650,7 @@ msgid "Delay"
 msgstr ""
 
 msgid "Delayed parent follow-up and unclear next steps"
-msgstr ""
+msgstr "家長跟進延遲且後續步驟不明"
 
 msgid "Delete"
 msgstr "刪除"
@@ -5739,13 +5739,13 @@ msgid "Demo — Generate report"
 msgstr ""
 
 msgid "Demo — Take attendance"
-msgstr ""
+msgstr "示範 — 登記出勤"
 
 msgid "Demos completed"
 msgstr ""
 
 msgid "Demos scheduled"
-msgstr ""
+msgstr "已排定的示範"
 
 msgid "Denials"
 msgstr ""
@@ -5763,10 +5763,10 @@ msgid "Departments (read-only)"
 msgstr ""
 
 msgid "Departments (setup evidence)"
-msgstr ""
+msgstr "部門（設定佐證）"
 
 msgid "Departments (setup)"
-msgstr ""
+msgstr "部門（設定）"
 
 msgid "Dependencies"
 msgstr ""
@@ -5787,7 +5787,7 @@ msgid "Dependency graph"
 msgstr ""
 
 msgid "Derived from funnel + billing + health; not a billing ledger."
-msgstr ""
+msgstr "由漏斗 + 帳務 + 健康推導而來；並非帳務分類帳。"
 
 msgid "Descendant campuses"
 msgstr ""
@@ -5909,7 +5909,7 @@ msgid ""
 msgstr ""
 
 msgid "Developer portal"
-msgstr ""
+msgstr "開發者入口網站"
 
 msgid "Developer public API"
 msgstr ""
@@ -5992,7 +5992,7 @@ msgid "Direct child campuses"
 msgstr ""
 
 msgid "Direct login"
-msgstr ""
+msgstr "直接登入"
 
 msgid "Direction"
 msgstr ""
@@ -6047,7 +6047,7 @@ msgid "Disciplinary Incidents"
 msgstr ""
 
 msgid "Discipline incidents"
-msgstr ""
+msgstr "紀律事件"
 
 msgid "Disclosed by"
 msgstr ""
@@ -6110,7 +6110,7 @@ msgid "Display name"
 msgstr ""
 
 msgid "Distinct guardian users"
-msgstr ""
+msgstr "不重複的監護人使用者"
 
 msgid "District & ERP integrations"
 msgstr ""
@@ -6187,10 +6187,10 @@ msgid "Docs:"
 msgstr ""
 
 msgid "Document Library"
-msgstr ""
+msgstr "文件庫"
 
 msgid "Document Library Manager"
-msgstr ""
+msgstr "文件庫管理員"
 
 msgid "Document Pack"
 msgstr ""
@@ -6202,7 +6202,7 @@ msgid "Document checklists visible to staff and families"
 msgstr ""
 
 msgid "Document library"
-msgstr ""
+msgstr "文件庫"
 
 msgid ""
 "Document library and portal packs are managed from product UIs; use this "
@@ -6310,7 +6310,7 @@ msgid "Download implementation checklist (HTML)"
 msgstr ""
 
 msgid "Download receipt"
-msgstr ""
+msgstr "下載收據"
 
 msgid "Download report"
 msgstr ""
@@ -6325,7 +6325,7 @@ msgid ""
 msgstr ""
 
 msgid "Download term"
-msgstr ""
+msgstr "下載學期"
 
 msgid ""
 "Download term planners, subject outlines, and classroom agendas curated by "
@@ -6471,7 +6471,7 @@ msgid "Dual (academic + vocational)"
 msgstr ""
 
 msgid "Dual transcript (academic + vocational)."
-msgstr ""
+msgstr "雙軌成績單（學術 + 職業）。"
 
 msgid ""
 "Dual-control schools require a peer approver on switch; consent + "
@@ -6485,7 +6485,7 @@ msgid "Due Mon 24 Mar"
 msgstr ""
 
 msgid "Due Mon 24 Mar · invoice INV-2403"
-msgstr ""
+msgstr "到期日 3 月 24 日星期一 · 發票 INV-2403"
 
 msgid "Due date"
 msgstr "截止日期"
@@ -6527,7 +6527,7 @@ msgid "ERP coexistence patterns"
 msgstr ""
 
 msgid "EWS signals (portal-linked students)"
-msgstr ""
+msgstr "EWS 訊號（已連結入口網站的學生）"
 
 msgid ""
 "Each active report pack exposes seeded preview rows for stakeholder review. "
@@ -6620,7 +6620,7 @@ msgid ""
 msgstr ""
 
 msgid "Edit announcement"
-msgstr ""
+msgstr "編輯公告"
 
 msgid "Edit country multiplier %s"
 msgstr ""
@@ -6659,7 +6659,7 @@ msgid "Editable keys are allow-listed in the app manifest only."
 msgstr ""
 
 msgid "Editorial advisor — storybook"
-msgstr ""
+msgstr "編輯顧問 — 故事書"
 
 msgid "Editorial rhythm without Mailchimp."
 msgstr ""
@@ -6748,7 +6748,7 @@ msgid "Eight modules. One operating rhythm."
 msgstr ""
 
 msgid "Eight steps, no hidden setup debt."
-msgstr ""
+msgstr "八個步驟，沒有隱藏的設定負擔。"
 
 msgid "Elevates risk"
 msgstr ""
@@ -6852,7 +6852,7 @@ msgid "English-language learner plan"
 msgstr ""
 
 msgid "Enrollment Trends"
-msgstr ""
+msgstr "註冊趨勢"
 
 msgid ""
 "Enrollment velocity, premium parent experience, and fee collection that "
@@ -6864,7 +6864,7 @@ msgid ""
 msgstr ""
 
 msgid "Enrollment, guardians, and class context stay linked."
-msgstr ""
+msgstr "註冊、監護人與班級情境保持連結。"
 
 msgid "Enter 6-digit code"
 msgstr ""
@@ -6891,10 +6891,10 @@ msgid "Enter marks for any class with auto-save"
 msgstr ""
 
 msgid "Enter the 6-digit code from your authenticator app to complete setup."
-msgstr ""
+msgstr "輸入驗證器應用程式中的 6 位數代碼以完成設定。"
 
 msgid "Enter the 6-digit code to verify and finish setup."
-msgstr ""
+msgstr "輸入 6 位數代碼以驗證並完成設定。"
 
 msgid ""
 "Enter the 6-digit invite code from the school email or SMS. After claiming, "
@@ -6916,7 +6916,7 @@ msgid ""
 msgstr ""
 
 msgid "Enter your current password and choose a new one."
-msgstr ""
+msgstr "輸入您目前的密碼並選擇新密碼。"
 
 msgid ""
 "Enter your school's website URL to fetch site name and primary color. We "
@@ -7011,7 +7011,7 @@ msgid "Errors"
 msgstr ""
 
 msgid "Escalate to bursar if balance aged beyond policy."
-msgstr ""
+msgstr "若餘額逾期超過政策規定，請上呈出納。"
 
 msgid "Escalation"
 msgstr ""
@@ -7247,7 +7247,7 @@ msgid "Exit impersonation"
 msgstr ""
 
 msgid "Expand alert, workflow, and health tables"
-msgstr ""
+msgstr "展開警示、工作流程與健康表格"
 
 msgid "Expand all integrations"
 msgstr ""
@@ -7409,7 +7409,7 @@ msgid "Export PDF"
 msgstr ""
 
 msgid "Export attendance (CSV)"
-msgstr ""
+msgstr "匯出出勤（CSV）"
 
 msgid "Export audit"
 msgstr ""
@@ -7474,7 +7474,7 @@ msgid "Export shortcuts:"
 msgstr ""
 
 msgid "Export student attendance (CSV)"
-msgstr ""
+msgstr "匯出學生出勤（CSV）"
 
 msgid "Export timeline (compliance log + integrity)"
 msgstr ""
@@ -7610,7 +7610,7 @@ msgid "Failed Accesses (Week)"
 msgstr ""
 
 msgid "Failed logins by role"
-msgstr ""
+msgstr "依角色分類的失敗登入"
 
 msgid ""
 "Failed webhook deliveries and platform DLQ rows — retry, resolve, or ignore "
@@ -7642,7 +7642,7 @@ msgid "Fallback only"
 msgstr ""
 
 msgid "Families & guardians"
-msgstr ""
+msgstr "家庭與監護人"
 
 msgid "Families informed with consistent messaging"
 msgstr ""
@@ -7669,7 +7669,7 @@ msgid "Fast workflows"
 msgstr ""
 
 msgid "Favicon present"
-msgstr ""
+msgstr "已有網站圖示"
 
 msgid "Feature"
 msgstr ""
@@ -7771,7 +7771,7 @@ msgid "Features:"
 msgstr ""
 
 msgid "Federation health rows"
-msgstr ""
+msgstr "聯盟健康資料列"
 
 msgid ""
 "Federation integrations tracked: {{ t }}. Successful logins (7d): {{ ok }}. "
@@ -7782,25 +7782,25 @@ msgid "Fee category registry (platform admin)"
 msgstr ""
 
 msgid "Fee ledger"
-msgstr ""
+msgstr "費用分類帳"
 
 msgid "Fee percentage must be between 0 and 100"
-msgstr ""
+msgstr "費用百分比必須介於 0 到 100 之間"
 
 msgid "Fee plan"
-msgstr ""
+msgstr "費用方案"
 
 msgid "Fee plans, receipts, and arrears on one ledger."
-msgstr ""
+msgstr "費用方案、收據與欠款集中於單一分類帳。"
 
 msgid "Fee records scattered across spreadsheets and inboxes"
-msgstr ""
+msgstr "費用紀錄散落於試算表與收件匣"
 
 msgid "Fee reminder"
-msgstr ""
+msgstr "費用提醒"
 
 msgid "Fee status"
-msgstr ""
+msgstr "費用狀態"
 
 msgid "Feed"
 msgstr ""
@@ -7818,31 +7818,31 @@ msgid "Feedback submissions"
 msgstr ""
 
 msgid "Feeds attendance, fees, and reports without re-keying."
-msgstr ""
+msgstr "供應出勤、費用與報表，無需重新輸入。"
 
 msgid "Fees"
 msgstr "費用"
 
 msgid "Fees & Payments"
-msgstr ""
+msgstr "費用與付款"
 
 msgid "Fees & invoicing"
-msgstr ""
+msgstr "費用與開立發票"
 
 msgid "Fees & payments"
-msgstr ""
+msgstr "費用與付款"
 
 msgid "Fees + Stripe / GoCardless / bank transfer"
-msgstr ""
+msgstr "費用 + Stripe / GoCardless / 銀行轉帳"
 
 msgid "Fees / payments"
-msgstr ""
+msgstr "費用 / 付款"
 
 msgid "Fees overdue"
-msgstr ""
+msgstr "費用逾期"
 
 msgid "Fees, reconciliation, and the bursar's daily cockpit."
-msgstr ""
+msgstr "費用、對帳與出納的每日駕駛艙。"
 
 msgid "Fetch"
 msgstr ""
@@ -7870,7 +7870,7 @@ msgid "Field mapping"
 msgstr ""
 
 msgid "Field mapping examples"
-msgstr ""
+msgstr "欄位對應範例"
 
 msgid "Field name"
 msgstr ""
@@ -7935,7 +7935,7 @@ msgid "Filter packs by name, group, or description"
 msgstr ""
 
 msgid "Filter playbook execution logs"
-msgstr ""
+msgstr "篩選作業手冊執行記錄"
 
 msgid "Filter shortcuts"
 msgstr ""
@@ -8034,7 +8034,7 @@ msgid "Finance pulse"
 msgstr ""
 
 msgid "Finance questions drop when balances and receipts are visible"
-msgstr ""
+msgstr "當餘額與收據可見時，財務詢問隨之減少"
 
 msgid "Finance reporting delayed or rebuilt by hand"
 msgstr ""
@@ -8092,7 +8092,7 @@ msgid "Financial guardrail"
 msgstr ""
 
 msgid "Financial health: Good"
-msgstr ""
+msgstr "財務健康：良好"
 
 msgid "Find My School"
 msgstr ""
@@ -8169,7 +8169,7 @@ msgid ""
 msgstr ""
 
 msgid "Five logins for SIS, attendance, fees, comms, reports."
-msgstr ""
+msgstr "SIS、出勤、費用、通訊、報表五個登入。"
 
 msgid "Five roles"
 msgstr ""
@@ -8195,7 +8195,7 @@ msgid ""
 msgstr ""
 
 msgid "Fixed fee cannot be negative"
-msgstr ""
+msgstr "固定費用不可為負數"
 
 msgid "Fixes without proof"
 msgstr ""
@@ -8239,7 +8239,7 @@ msgid "Fleet governed changes (platform admin)"
 msgstr ""
 
 msgid "Fleet health"
-msgstr ""
+msgstr "車隊健康"
 
 msgid "Fleet: region grading matrix"
 msgstr ""
@@ -8261,16 +8261,16 @@ msgid "Focus applicant search"
 msgstr ""
 
 msgid "Focus invoice search"
-msgstr ""
+msgstr "聚焦發票搜尋"
 
 msgid "Focus next gradebook row"
-msgstr ""
+msgstr "聚焦下一列成績簿"
 
 msgid "Focus on graph"
 msgstr ""
 
 msgid "Focus previous gradebook row"
-msgstr ""
+msgstr "聚焦上一列成績簿"
 
 msgid "Focus search field"
 msgstr ""
@@ -8279,10 +8279,10 @@ msgid "Focus:"
 msgstr ""
 
 msgid "Focus: Setup — Complete your school setup for the best experience."
-msgstr ""
+msgstr "重點：設定 — 完成學校設定以獲得最佳體驗。"
 
 msgid "Focused guidance from attendance, marks, and workflow signals"
-msgstr ""
+msgstr "來自出勤、分數與工作流程訊號的聚焦指引"
 
 msgid ""
 "Follow the year lifecycle: setup → onboarding → marks → reports → documents."
@@ -8323,7 +8323,7 @@ msgid ""
 msgstr ""
 
 msgid "For parents"
-msgstr ""
+msgstr "給家長"
 
 msgid "For per-school resolution traces, use"
 msgstr ""
@@ -8342,7 +8342,7 @@ msgid "For your role"
 msgstr ""
 
 msgid "Forgotten your password or username?"
-msgstr ""
+msgstr "忘記您的密碼或使用者名稱？"
 
 msgid "Form drafts (platform admin)"
 msgstr ""
@@ -8384,7 +8384,7 @@ msgid ""
 msgstr ""
 
 msgid "Fragmented parent comms"
-msgstr ""
+msgstr "零散的家長通訊"
 
 msgid ""
 "Francophone template maps generic defaults to localized labels (examples)"
@@ -8436,7 +8436,7 @@ msgid "From overwhelmed admin to calm operator"
 msgstr ""
 
 msgid "From signup to launch with health score and role preview."
-msgstr ""
+msgstr "從註冊到啟用，附健康分數與角色預覽。"
 
 msgid "From single school to enterprise"
 msgstr ""
@@ -8476,7 +8476,7 @@ msgid "Full pricing comparison"
 msgstr ""
 
 msgid "Full report card PDF can be generated by staff from Reports."
-msgstr ""
+msgstr "完整成績單 PDF 可由教職員從報表產生。"
 
 msgid "Funnel and conversion signals without manual rollups across campuses."
 msgstr ""
@@ -8549,13 +8549,13 @@ msgid "Generate a report"
 msgstr ""
 
 msgid "Generate fee invoices"
-msgstr ""
+msgstr "產生費用發票"
 
 msgid "Generate narrative"
 msgstr ""
 
 msgid "Generate parent message"
-msgstr ""
+msgstr "產生家長訊息"
 
 msgid "Generate report"
 msgstr ""
@@ -8564,7 +8564,7 @@ msgid "Generate report summary"
 msgstr ""
 
 msgid "Generate term reports and export to Ministry format"
-msgstr ""
+msgstr "產生學期報表並匯出為部會格式"
 
 msgid "Generate zip"
 msgstr ""
@@ -8627,7 +8627,7 @@ msgid ""
 msgstr ""
 
 msgid "Get notified instantly when grades are published"
-msgstr ""
+msgstr "成績發布時立即收到通知"
 
 msgid "Get oriented"
 msgstr ""
@@ -8780,7 +8780,7 @@ msgid "Go to pulse"
 msgstr ""
 
 msgid "Go to school health"
-msgstr ""
+msgstr "前往學校健康"
 
 msgid "Go to support"
 msgstr ""
@@ -8798,7 +8798,7 @@ msgid "Good"
 msgstr ""
 
 msgid "Good (Attendance)"
-msgstr ""
+msgstr "良好（出勤）"
 
 msgid "Good morning, Olu"
 msgstr ""
@@ -8899,13 +8899,13 @@ msgid "Governor limits"
 msgstr ""
 
 msgid "Grade 8A · 32 students"
-msgstr ""
+msgstr "8A 班 · 32 名學生"
 
 msgid "Grade Audit Trail"
-msgstr ""
+msgstr "成績稽核軌跡"
 
 msgid "Grade approval"
-msgstr ""
+msgstr "成績核准"
 
 msgid ""
 "Grade approvals, access requests, contact requests, and other approval "
@@ -8913,22 +8913,22 @@ msgid ""
 msgstr ""
 
 msgid "Grade drop + attendance correlation"
-msgstr ""
+msgstr "成績下滑 + 出勤關聯"
 
 msgid "Grade drops"
-msgstr ""
+msgstr "成績下滑"
 
 msgid "Grade import"
-msgstr ""
+msgstr "成績匯入"
 
 msgid "Grade outlook"
-msgstr ""
+msgstr "成績展望"
 
 msgid "Grade passback (LTI 1.3 AGS)"
-msgstr ""
+msgstr "成績回傳（LTI 1.3 AGS）"
 
 msgid "Grade point"
-msgstr ""
+msgstr "成績積點"
 
 msgid "Grade scale registry (platform admin)"
 msgstr ""
@@ -8937,34 +8937,34 @@ msgid "Gradebook"
 msgstr ""
 
 msgid "Gradebook & report cards"
-msgstr ""
+msgstr "成績簿與成績單"
 
 msgid "Gradebook / Marks"
-msgstr ""
+msgstr "成績簿 / 分數"
 
 msgid "Graded"
-msgstr ""
+msgstr "已評分"
 
 msgid "Grades & results"
-msgstr ""
+msgstr "成績與結果"
 
 msgid "Grades and comments without leaving the class view."
-msgstr ""
+msgstr "無需離開班級檢視即可輸入成績與評語。"
 
 msgid "Grades flow back into the LMS via LTI Assignment and Grade Services."
-msgstr ""
+msgstr "成績透過 LTI Assignment and Grade Services 回流至 LMS。"
 
 msgid "Grading"
 msgstr ""
 
 msgid "Grading & Report Cards"
-msgstr ""
+msgstr "評分與成績單"
 
 msgid "Grading & language"
 msgstr ""
 
 msgid "Grading / report cards"
-msgstr ""
+msgstr "評分 / 成績單"
 
 msgid "Grading catalog"
 msgstr ""
@@ -9015,7 +9015,7 @@ msgid "Grant finance access"
 msgstr ""
 
 msgid "Grant guardian access"
-msgstr ""
+msgstr "授予監護人存取權"
 
 msgid "Grant role"
 msgstr ""
@@ -9099,10 +9099,10 @@ msgid "Growth readiness"
 msgstr ""
 
 msgid "Guardian links"
-msgstr ""
+msgstr "監護人連結"
 
 msgid "Guardians CSV"
-msgstr ""
+msgstr "監護人 CSV"
 
 msgid "Guide topics"
 msgstr ""
@@ -9114,13 +9114,13 @@ msgid "Guided configuration workflows"
 msgstr ""
 
 msgid "Guided onboarding"
-msgstr ""
+msgstr "引導式設定"
 
 msgid "Guided setup"
-msgstr ""
+msgstr "引導式設定"
 
 msgid "Guided setup for academics, people, and go-live readiness."
-msgstr ""
+msgstr "針對學務、人員與上線準備的引導式設定。"
 
 msgid "Guided tip"
 msgstr ""
@@ -9155,10 +9155,10 @@ msgid "HTTP mutation audit for /super/ is ON (ENTERPRISE_SUPER_HTTP_AUDIT)."
 msgstr ""
 
 msgid "Handle guardian access requests without leaving the dashboard."
-msgstr ""
+msgstr "無需離開儀表板即可處理監護人存取請求。"
 
 msgid "Handle guardian approvals without leaving the admin hub."
-msgstr ""
+msgstr "無需離開管理中心即可處理監護人核准。"
 
 msgid "Handoff doc"
 msgstr ""
@@ -9200,34 +9200,34 @@ msgid "Health"
 msgstr ""
 
 msgid "Health and delivery drift"
-msgstr ""
+msgstr "健康與送達偏移"
 
 msgid "Health check alert (platform admin)"
 msgstr ""
 
 msgid "Health mix"
-msgstr ""
+msgstr "健康組成"
 
 msgid "Health records"
-msgstr ""
+msgstr "健康紀錄"
 
 msgid "Health score"
-msgstr ""
+msgstr "健康分數"
 
 msgid "Health status"
-msgstr ""
+msgstr "健康狀態"
 
 msgid "Health status mix"
-msgstr ""
+msgstr "健康狀態組成"
 
 msgid "Health, rollback posture, and external blockers stay visible."
-msgstr ""
+msgstr "健康、回滾狀態與外部阻礙因素保持可見。"
 
 msgid "Health:"
 msgstr ""
 
 msgid "Healthy"
-msgstr ""
+msgstr "健康"
 
 msgid "Hello {{ name }},"
 msgstr ""
@@ -9236,10 +9236,10 @@ msgid "Hello, I have an admissions question for my child."
 msgstr ""
 
 msgid "Hello, I need help with my parent portal access."
-msgstr ""
+msgstr "您好，我需要協助存取家長入口網站。"
 
 msgid "Hello, I need help with the school portal."
-msgstr ""
+msgstr "您好，我需要學校入口網站的協助。"
 
 msgid "Help"
 msgstr "說明"
@@ -9306,7 +9306,7 @@ msgid "Hidden"
 msgstr ""
 
 msgid "Hierarchy (parent_school_id, hierarchy_path)."
-msgstr ""
+msgstr "階層（parent_school_id、hierarchy_path）。"
 
 msgid "High"
 msgstr ""
@@ -9363,7 +9363,7 @@ msgid "Homework"
 msgstr "家庭作業"
 
 msgid "Homework & Upcoming"
-msgstr ""
+msgstr "作業與即將到來"
 
 msgid "Honest boundaries"
 msgstr ""
@@ -9448,7 +9448,7 @@ msgid "How to submit"
 msgstr ""
 
 msgid "Hub linking pack graph, bulk letters, and report card builder."
-msgstr ""
+msgstr "連結套件圖、批次信函與成績單建立器的中心。"
 
 msgid ""
 "Hybrid accountability — statutory reporting templates and funding "
@@ -9477,7 +9477,7 @@ msgid "I reviewed this draft; I will edit before using it in a real workflow."
 msgstr ""
 
 msgid "I took attendance"
-msgstr ""
+msgstr "我已登記出勤"
 
 msgid "I've previewed and want to publish (required for high-impact changes)"
 msgstr ""
@@ -9567,7 +9567,7 @@ msgid ""
 msgstr ""
 
 msgid "If blank, we'll reuse the first guardian phone on save."
-msgstr ""
+msgstr "若留空，儲存時我們會沿用第一位監護人的電話。"
 
 msgid "If drift appears after SiteSettings.save, use the button above or open"
 msgstr ""
@@ -10024,7 +10024,7 @@ msgid "Institution profile"
 msgstr ""
 
 msgid "Institution profile wizard"
-msgstr ""
+msgstr "機構檔案精靈"
 
 msgid "Institution type"
 msgstr ""
@@ -10089,7 +10089,7 @@ msgid "Integrations & API Center"
 msgstr ""
 
 msgid "Integrations & health"
-msgstr ""
+msgstr "整合與健康"
 
 msgid "Integrations (API Center)"
 msgstr ""
@@ -10127,7 +10127,7 @@ msgid "Integrity check"
 msgstr ""
 
 msgid "Integrity, access, and playbook links."
-msgstr ""
+msgstr "完整性、存取與作業手冊連結。"
 
 msgid "Intelligence suggestions (draft)"
 msgstr ""
@@ -10209,7 +10209,7 @@ msgid "Invalid amount format"
 msgstr ""
 
 msgid "Invalid fee format"
-msgstr ""
+msgstr "費用格式無效"
 
 msgid "Invalid or expired"
 msgstr ""
@@ -10221,7 +10221,7 @@ msgid "Invalid token. Please try again."
 msgstr ""
 
 msgid "Invalid username or password."
-msgstr ""
+msgstr "使用者名稱或密碼無效。"
 
 msgid "Inventory"
 msgstr ""
@@ -10236,28 +10236,28 @@ msgid "Invites (admin)"
 msgstr ""
 
 msgid "Invoice #2841 · Tuition term 2"
-msgstr ""
+msgstr "發票 #2841 · 第二學期學費"
 
 msgid "Invoice Detail"
-msgstr ""
+msgstr "發票明細"
 
 msgid "Invoice attachments"
-msgstr ""
+msgstr "發票附件"
 
 msgid "Invoice filters"
-msgstr ""
+msgstr "發票篩選"
 
 msgid "Invoice line items and amount paid"
-msgstr ""
+msgstr "發票明細項目與已付金額"
 
 msgid "Invoice list"
-msgstr ""
+msgstr "發票清單"
 
 msgid "Invoice reference"
-msgstr ""
+msgstr "發票參考編號"
 
 msgid "Invoice status"
-msgstr ""
+msgstr "發票狀態"
 
 msgid "Invoice {{ ref }}"
 msgstr ""
@@ -10266,16 +10266,16 @@ msgid "Invoice: {{ ref }} for {{ student }}"
 msgstr ""
 
 msgid "Invoiced"
-msgstr ""
+msgstr "已開立發票"
 
 msgid "Invoices"
 msgstr ""
 
 msgid "Invoices and fee structures generated from the same academic context"
-msgstr ""
+msgstr "發票與費用結構皆由同一學務情境產生"
 
 msgid "Invoices list (no results)"
-msgstr ""
+msgstr "發票清單（無結果）"
 
 msgid ""
 "Invoices list: reference, type, status, due date, student, total, balance, "
@@ -10376,7 +10376,7 @@ msgid "Jump to frequent tasks without leaving the dashboard."
 msgstr ""
 
 msgid "Jump to invoices"
-msgstr ""
+msgstr "跳至發票"
 
 msgid "Jump to native Studio pages in this shell (no embedded school site)."
 msgstr ""
@@ -10444,7 +10444,7 @@ msgid "Keep school operations moving, even when connectivity is unreliable."
 msgstr ""
 
 msgid "Keep selected ThemePack assignments"
-msgstr ""
+msgstr "保留選取的 ThemePack 指派"
 
 msgid "Keep server"
 msgstr ""
@@ -10547,10 +10547,10 @@ msgid "LMS / roster"
 msgstr ""
 
 msgid "LMS assignment"
-msgstr ""
+msgstr "LMS 作業"
 
 msgid "LMS assignments"
-msgstr ""
+msgstr "LMS 作業"
 
 msgid "LMS certification status"
 msgstr ""
@@ -10705,7 +10705,7 @@ msgid "Latest class update"
 msgstr ""
 
 msgid "Latest playbook run started"
-msgstr ""
+msgstr "最新作業手冊執行已開始"
 
 msgid "Latest posts"
 msgstr ""
@@ -10743,7 +10743,7 @@ msgid "Launch checklist"
 msgstr ""
 
 msgid "Launch checklist and health score before go-live."
-msgstr ""
+msgstr "上線前的啟用檢查清單與健康分數。"
 
 msgid "Launch checklist pane"
 msgstr ""
@@ -10841,7 +10841,7 @@ msgid "Learning passports (platform admin)"
 msgstr ""
 
 msgid "LearningPassport — learner credentials"
-msgstr ""
+msgstr "LearningPassport — 學員憑證"
 
 msgid ""
 "Least-privilege support access; audit of data access; trust-center-grade "
@@ -10867,10 +10867,10 @@ msgid "Leave blank to keep current"
 msgstr ""
 
 msgid "Leave blank to use Portal theme for parents."
-msgstr ""
+msgstr "留空則家長使用入口網站主題。"
 
 msgid "Leave blank to use Portal theme for teachers."
-msgstr ""
+msgstr "留空則教師使用入口網站主題。"
 
 msgid "Leave group"
 msgstr ""
@@ -10938,13 +10938,13 @@ msgid "Less tab sprawl during prep and during class-adjacent workflows."
 msgstr ""
 
 msgid "Lesson Notes"
-msgstr ""
+msgstr "課程筆記"
 
 msgid "Letter body (HTML)"
 msgstr ""
 
 msgid "Letter grade"
-msgstr ""
+msgstr "等第成績"
 
 msgid "Letter title (optional)"
 msgstr ""
@@ -10956,7 +10956,7 @@ msgid "Libraries & help"
 msgstr ""
 
 msgid "Library catalog"
-msgstr ""
+msgstr "圖書館型錄"
 
 msgid ""
 "Library defaults, media tagging, and document-adjacent integration hooks."
@@ -11181,7 +11181,7 @@ msgid "Load suggestion"
 msgstr ""
 
 msgid "Load term in live preview"
-msgstr ""
+msgstr "在即時預覽中載入學期"
 
 msgid "Load theme & experience in the canvas."
 msgstr ""
@@ -11252,31 +11252,31 @@ msgid "Log in"
 msgstr "登入"
 
 msgid "Log intervention"
-msgstr ""
+msgstr "記錄輔導措施"
 
 msgid "Logged in as {{ name }}"
 msgstr ""
 
 msgid "Login Activity"
-msgstr ""
+msgstr "登入活動"
 
 msgid "Login Activity Heatmap ({{ period }})"
 msgstr ""
 
 msgid "Login hero (colors & branding)"
-msgstr ""
+msgstr "登入主視覺（顏色與品牌）"
 
 msgid "Logins"
-msgstr ""
+msgstr "登入次數"
 
 msgid "Logins (Month)"
-msgstr ""
+msgstr "登入次數（月）"
 
 msgid "Logo & site name"
 msgstr ""
 
 msgid "Logo present"
-msgstr ""
+msgstr "已有標誌"
 
 msgid "Logout"
 msgstr "登出"
@@ -11301,7 +11301,7 @@ msgid "Low"
 msgstr ""
 
 msgid "Low recent average"
-msgstr ""
+msgstr "近期平均偏低"
 
 msgid "Low-confidence mappings"
 msgstr ""
@@ -11334,7 +11334,7 @@ msgid "MFA settings"
 msgstr ""
 
 msgid "MFA setup"
-msgstr ""
+msgstr "MFA 設定"
 
 msgid "MFA type"
 msgstr ""
@@ -11403,7 +11403,7 @@ msgid "Manage Users"
 msgstr ""
 
 msgid "Manage billing (Stripe portal)"
-msgstr ""
+msgstr "管理帳務（Stripe 入口網站）"
 
 msgid "Manage config & scopes"
 msgstr ""
@@ -11474,13 +11474,13 @@ msgid "Manual builder"
 msgstr ""
 
 msgid "Manual enrollment handoff into records and billing"
-msgstr ""
+msgstr "手動將註冊交接至紀錄與帳務"
 
 msgid "Manual fee tracking"
-msgstr ""
+msgstr "手動費用追蹤"
 
 msgid "Manual receipts and weak payment status visibility"
-msgstr ""
+msgstr "手動收據且付款狀態能見度低"
 
 msgid ""
 "Many JSON endpoints return a machine-readable backoff hint. Prefer Retry-"
@@ -11672,13 +11672,13 @@ msgid "Marks"
 msgstr ""
 
 msgid "Marks and comments between lessons."
-msgstr ""
+msgstr "課間輸入分數與評語。"
 
 msgid "Marks and feedback are delayed or inconsistent"
 msgstr ""
 
 msgid "Marks and fees when the link drops"
-msgstr ""
+msgstr "連線中斷時的分數與費用"
 
 msgid "Marks entered"
 msgstr ""
@@ -11696,10 +11696,10 @@ msgid "Marks to reports without Friday-night exports"
 msgstr ""
 
 msgid "Marks, attendance, and workflow signals prioritized for today."
-msgstr ""
+msgstr "今日優先呈現的分數、出勤與工作流程訊號。"
 
 msgid "Mascot storybook"
-msgstr ""
+msgstr "吉祥物故事書"
 
 msgid "Master Sheet"
 msgstr ""
@@ -11729,7 +11729,7 @@ msgid "Maya, Year 5B"
 msgstr ""
 
 msgid "Meal"
-msgstr ""
+msgstr "餐點"
 
 msgid "Measured status"
 msgstr ""
@@ -11750,7 +11750,7 @@ msgid ""
 msgstr ""
 
 msgid "Median time onboarding_start → first_action (seconds):"
-msgstr ""
+msgstr "onboarding_start → first_action 的中位時間（秒）："
 
 msgid "Median time to value (min)"
 msgstr ""
@@ -11800,7 +11800,7 @@ msgid "Message groups"
 msgstr ""
 
 msgid "Message guardians directly from a student's profile"
-msgstr ""
+msgstr "直接從學生檔案傳訊給監護人"
 
 msgid "Message orchestration across channels."
 msgstr ""
@@ -11886,13 +11886,13 @@ msgid "Metrics, SLO, and audit"
 msgstr ""
 
 msgid "Mid-term reports auto-deliver at 3 p.m., footnoted and signed."
-msgstr ""
+msgstr "期中報告於下午 3 點自動送出，附註腳並簽署。"
 
 msgid "Mid-term reports issued"
-msgstr ""
+msgstr "期中報告已發出"
 
 msgid "Mid-term reports leave the building at 11 p.m. on Friday."
-msgstr ""
+msgstr "期中報告於週五晚上 11 點送出。"
 
 msgid "Migrate with confidence"
 msgstr ""
@@ -12078,7 +12078,7 @@ msgid "Missing pieces"
 msgstr ""
 
 msgid "Missing setup"
-msgstr ""
+msgstr "缺少設定"
 
 msgid "Missing statutory"
 msgstr ""
@@ -12105,7 +12105,7 @@ msgid "Mobile layout stacks modules and keeps primary actions reachable."
 msgstr ""
 
 msgid "Mobile setup keeps actions stacked with large touch targets."
-msgstr ""
+msgstr "行動裝置設定將動作垂直堆疊並提供大型觸控目標。"
 
 msgid "Mock"
 msgstr ""
@@ -12191,7 +12191,7 @@ msgid "Morning bell → stand-up → lunch → dismissal → close"
 msgstr ""
 
 msgid "Morning brief with live attendance and fee posture."
-msgstr ""
+msgstr "附即時出勤與費用狀態的晨間簡報。"
 
 msgid "Morning plan staged before first bell."
 msgstr ""
@@ -12248,7 +12248,7 @@ msgid "Multi-country, multi-curriculum"
 msgstr ""
 
 msgid "Multi-currency fee ledger"
-msgstr ""
+msgstr "多幣別費用分類帳"
 
 msgid "Multi-factor authentication"
 msgstr ""
@@ -12499,7 +12499,7 @@ msgid "Needs revision"
 msgstr ""
 
 msgid "Needs setup"
-msgstr ""
+msgstr "需要設定"
 
 msgid "Needs work"
 msgstr ""
@@ -12535,10 +12535,10 @@ msgid "New if empty"
 msgstr ""
 
 msgid "New parents can claim an invite"
-msgstr ""
+msgstr "新家長可領取邀請"
 
 msgid "New password"
-msgstr ""
+msgstr "新密碼"
 
 msgid "New reply on \"{{ subject }}\". Open the ticket to view the full thread."
 msgstr ""
@@ -12616,7 +12616,7 @@ msgid "Next step"
 msgstr ""
 
 msgid "Next step: no dead ends — every path has setup, pack, or export."
-msgstr ""
+msgstr "下一步：沒有死路 — 每條路徑都有設定、套件或匯出。"
 
 msgid "Next steps"
 msgstr ""
@@ -12686,10 +12686,10 @@ msgid "No TenantBlueprint linked for this school."
 msgstr ""
 
 msgid "No absences or tardies recorded."
-msgstr ""
+msgstr "未記錄任何缺席或遲到。"
 
 msgid "No academic years for this school yet."
-msgstr ""
+msgstr "本學校尚無學年。"
 
 msgid "No access logs yet."
 msgstr ""
@@ -12698,7 +12698,7 @@ msgid "No accounts yet."
 msgstr ""
 
 msgid "No active academic year"
-msgstr ""
+msgstr "沒有進行中的學年"
 
 msgid "No active class threads."
 msgstr ""
@@ -12719,7 +12719,7 @@ msgid ""
 msgstr ""
 
 msgid "No active term"
-msgstr ""
+msgstr "沒有進行中的學期"
 
 msgid "No activity recorded in the last 90 days."
 msgstr ""
@@ -12737,7 +12737,7 @@ msgid "No admin theme packs available."
 msgstr ""
 
 msgid "No announcements right now."
-msgstr ""
+msgstr "目前沒有公告。"
 
 msgid "No anomalies detected — all activity within expected patterns."
 msgstr ""
@@ -12766,7 +12766,7 @@ msgid "No at-risk students."
 msgstr ""
 
 msgid "No attendance records yet."
-msgstr ""
+msgstr "尚無出勤紀錄。"
 
 msgid "No audit entries yet."
 msgstr ""
@@ -12847,10 +12847,10 @@ msgid "No classes are available for export in your current access scope."
 msgstr ""
 
 msgid "No classroom assignments yet."
-msgstr ""
+msgstr "尚無教室指派。"
 
 msgid "No classrooms found. Add an academic year and classrooms in"
-msgstr ""
+msgstr "找不到教室。請新增學年與教室於"
 
 msgid "No completeness or reachability issues detected. Data looks clean."
 msgstr ""
@@ -12890,10 +12890,10 @@ msgid "No data for specialties."
 msgstr ""
 
 msgid "No data for this class/term."
-msgstr ""
+msgstr "此班級/學期沒有資料。"
 
 msgid "No data for this term."
-msgstr ""
+msgstr "此學期沒有資料。"
 
 msgid "No data yet"
 msgstr ""
@@ -12966,7 +12966,7 @@ msgid "No failed items."
 msgstr ""
 
 msgid "No failed logins."
-msgstr ""
+msgstr "沒有失敗登入。"
 
 msgid "No feature toggle definitions."
 msgstr ""
@@ -12975,7 +12975,7 @@ msgid "No feature toggle overrides for this school (or registry not in use)."
 msgstr ""
 
 msgid "No fee status data yet. Create invoices to see breakdown here."
-msgstr ""
+msgstr "尚無費用狀態資料。建立發票即可在此查看明細。"
 
 msgid "No feed items yet."
 msgstr ""
@@ -13012,7 +13012,7 @@ msgid "No groups with campuses yet."
 msgstr ""
 
 msgid "No guardians"
-msgstr ""
+msgstr "沒有監護人"
 
 msgid "No guided workflows available."
 msgstr ""
@@ -13021,10 +13021,10 @@ msgid "No hardcoded columns — all nuance is data-driven."
 msgstr ""
 
 msgid "No health rows - configure compliance country."
-msgstr ""
+msgstr "沒有健康資料列 - 請設定法遵國家。"
 
 msgid "No hidden setup backlog"
-msgstr ""
+msgstr "沒有隱藏的設定待辦"
 
 msgid "No immediate operator flags."
 msgstr ""
@@ -13081,7 +13081,7 @@ msgid "No leads yet. Add a lead to start."
 msgstr ""
 
 msgid "No lesson plans uploaded yet."
-msgstr ""
+msgstr "尚未上傳任何教案。"
 
 msgid "No lines yet."
 msgstr ""
@@ -13126,7 +13126,7 @@ msgid "No matching section"
 msgstr ""
 
 msgid "No meals."
-msgstr ""
+msgstr "沒有餐點。"
 
 msgid "No migration runs."
 msgstr ""
@@ -13141,7 +13141,7 @@ msgid "No object specified or not found."
 msgstr ""
 
 msgid "No open balances."
-msgstr ""
+msgstr "沒有未結餘額。"
 
 msgid "No open domain DLQ rows."
 msgstr ""
@@ -13173,10 +13173,10 @@ msgid "No pay records yet."
 msgstr ""
 
 msgid "No payment integration configured."
-msgstr ""
+msgstr "未設定付款整合。"
 
 msgid "No payments recorded yet."
-msgstr ""
+msgstr "尚未記錄任何付款。"
 
 msgid "No pending conflicts."
 msgstr ""
@@ -13238,7 +13238,7 @@ msgid "No posts published yet. Run seed_marketing_cms or add posts in admin."
 msgstr ""
 
 msgid "No preset selected."
-msgstr ""
+msgstr "未選取任何預設。"
 
 msgid "No processor sync events yet."
 msgstr ""
@@ -13274,10 +13274,10 @@ msgid "No recent finance requests."
 msgstr ""
 
 msgid "No recent messages linked to this student's guardians."
-msgstr ""
+msgstr "沒有與此學生監護人相關的近期訊息。"
 
 msgid "No recent payments recorded."
-msgstr ""
+msgstr "未記錄近期付款。"
 
 msgid "No recent synced entries."
 msgstr ""
@@ -13348,7 +13348,7 @@ msgid "No reverse"
 msgstr ""
 
 msgid "No reward created (no guardians or rewards already exist)."
-msgstr ""
+msgstr "未建立獎勵（沒有監護人或獎勵已存在）。"
 
 msgid ""
 "No risk score has been computed for this student yet. The nightly scorer "
@@ -13391,16 +13391,16 @@ msgid "No scales for this region."
 msgstr ""
 
 msgid "No scheduled payouts."
-msgstr ""
+msgstr "沒有已排定的撥款。"
 
 msgid "No scheduled report rows for this school yet."
-msgstr ""
+msgstr "本學校尚無已排定的報表資料列。"
 
 msgid "No schedules for this tenant yet."
-msgstr ""
+msgstr "此租戶尚無排程。"
 
 msgid "No schedules yet."
-msgstr ""
+msgstr "尚無排程。"
 
 msgid "No school context"
 msgstr ""
@@ -13435,7 +13435,7 @@ msgid "No sessions."
 msgstr ""
 
 msgid "No setup gaps detected."
-msgstr ""
+msgstr "未偵測到設定缺口。"
 
 msgid "No shared view of application stage"
 msgstr ""
@@ -13494,7 +13494,7 @@ msgid "No tasks for today."
 msgstr ""
 
 msgid "No teacher data for this term."
-msgstr ""
+msgstr "此學期沒有教師資料。"
 
 msgid "No teachers linked to this school yet. Add staff in People first."
 msgstr ""
@@ -13540,7 +13540,7 @@ msgid ""
 msgstr ""
 
 msgid "No term publish status rows for this school yet."
-msgstr ""
+msgstr "本學校尚無學期發布狀態資料列。"
 
 msgid "No textual diff (payloads are identical)."
 msgstr ""
@@ -13558,7 +13558,7 @@ msgid "No training entries yet."
 msgstr ""
 
 msgid "No transaction fees configured"
-msgstr ""
+msgstr "未設定交易手續費"
 
 msgid "No trial schools."
 msgstr ""
@@ -13720,7 +13720,7 @@ msgid "Not required"
 msgstr ""
 
 msgid "Not scheduled"
-msgstr ""
+msgstr "未排程"
 
 msgid "Not set"
 msgstr ""
@@ -13789,7 +13789,7 @@ msgid "Notify"
 msgstr ""
 
 msgid "Notify parent"
-msgstr ""
+msgstr "通知家長"
 
 msgid "Notify teacher"
 msgstr ""
@@ -13904,7 +13904,7 @@ msgid "Offline sync"
 msgstr ""
 
 msgid "Offline sync and setup flow diagram"
-msgstr ""
+msgstr "離線同步與設定流程圖"
 
 msgid ""
 "Offline sync is tenant-scoped because queues contain tenant data. Select a "
@@ -14015,10 +14015,10 @@ msgid "On-time %"
 msgstr ""
 
 msgid "Onboard Your Campus"
-msgstr ""
+msgstr "設定您的校園"
 
 msgid "Onboarding (embedded)"
-msgstr ""
+msgstr "設定（嵌入式）"
 
 msgid "Onboarding in progress"
 msgstr ""
@@ -27013,7 +27013,7 @@ msgid "● Strong · ◐ Partial · ○ Limited (illustrative)"
 msgstr ""
 
 msgid "Academic years setup"
-msgstr ""
+msgstr "學年設定"
 
 msgid "Adjust anything below before you create the bundle, or"
 msgstr ""
@@ -27027,7 +27027,7 @@ msgid "Audit trails for sensitive operations"
 msgstr ""
 
 msgid "Before and after disciplined school data stewardship"
-msgstr ""
+msgstr "嚴謹管理學校資料前後對照"
 
 msgid "Before and after governed school intelligence"
 msgstr ""
@@ -27101,7 +27101,7 @@ msgid "Data handled with policies the institution can stand behind."
 msgstr ""
 
 msgid "Departments setup"
-msgstr ""
+msgstr "部門設定"
 
 msgid "Detailed"
 msgstr ""
@@ -27129,7 +27129,7 @@ msgid ""
 msgstr ""
 
 msgid "Export discipline for reviews that expect traceable source data."
-msgstr ""
+msgstr "為需要可追溯來源資料的審查匯出紀律紀錄。"
 
 msgid "Export-ready summaries for leadership forums"
 msgstr ""
@@ -27152,7 +27152,7 @@ msgid "Finance and academic narratives that do not reconcile"
 msgstr ""
 
 msgid "Finance and academic signals in one disciplined view"
-msgstr ""
+msgstr "財務與學務訊號集中於一個嚴謹的檢視畫面"
 
 msgid "Governance operators can demonstrate"
 msgstr ""
@@ -27161,7 +27161,7 @@ msgid "Integrations with unclear data boundaries"
 msgstr ""
 
 msgid "Late visibility into enrollment or collection drift"
-msgstr ""
+msgstr "太晚察覺註冊或收款的偏移"
 
 msgid "Leadership dashboards built on live operations"
 msgstr ""
@@ -27193,7 +27193,7 @@ msgid "Next: Migration"
 msgstr ""
 
 msgid "Onboarding"
-msgstr ""
+msgstr "設定"
 
 msgid "Onboarding step"
 msgstr ""
@@ -27668,7 +27668,7 @@ msgid "Complimentary (waived)"
 msgstr ""
 
 msgid "Component health"
-msgstr ""
+msgstr "元件健康"
 
 msgid ""
 "Configure RunMyCampus Manager chrome, platform defaults, Studio Experience, "
@@ -27688,7 +27688,7 @@ msgid "Contact email"
 msgstr ""
 
 msgid "Continue to my portal"
-msgstr ""
+msgstr "前往我的入口網站"
 
 msgid "Contrast surface"
 msgstr ""
@@ -27831,7 +27831,7 @@ msgid "Email discovery"
 msgstr ""
 
 msgid "Email discovery login"
-msgstr ""
+msgstr "電子郵件探索登入"
 
 msgid "Email must be verified first"
 msgstr ""
@@ -27901,13 +27901,13 @@ msgid "Find your campus"
 msgstr ""
 
 msgid "Find your campus portal"
-msgstr ""
+msgstr "尋找您的校園入口網站"
 
 msgid "Find your school login"
-msgstr ""
+msgstr "尋找您的學校登入"
 
 msgid "Finish setup & sign in"
-msgstr ""
+msgstr "完成設定並登入"
 
 msgid "Footer navigation"
 msgstr ""
@@ -27937,7 +27937,7 @@ msgid "Global brand registry"
 msgstr ""
 
 msgid "Go to portal login"
-msgstr ""
+msgstr "前往入口網站登入"
 
 msgid "Grace until"
 msgstr ""
@@ -28026,7 +28026,7 @@ msgid "Legal entity name (optional)"
 msgstr ""
 
 msgid "Lesson planning templates"
-msgstr ""
+msgstr "備課範本"
 
 msgid "Live API check"
 msgstr ""
@@ -28057,10 +28057,10 @@ msgid "Long-tail intake"
 msgstr ""
 
 msgid "Low meal plan balance"
-msgstr ""
+msgstr "餐飲方案餘額不足"
 
 msgid "Low-balance notifications (window)"
-msgstr ""
+msgstr "低餘額通知（時段）"
 
 msgid "MRR"
 msgstr ""
@@ -28079,7 +28079,7 @@ msgid ""
 msgstr ""
 
 msgid "Meal plan low-balance analytics"
-msgstr ""
+msgstr "餐飲方案低餘額分析"
 
 msgid "Migration guide"
 msgstr ""
@@ -28097,7 +28097,7 @@ msgid "Mint token"
 msgstr ""
 
 msgid "Mint your first token to get started."
-msgstr ""
+msgstr "鑄造您的第一個權杖即可開始。"
 
 msgid "Mode preview"
 msgstr ""
@@ -28156,13 +28156,13 @@ msgid "No endpoints registered."
 msgstr ""
 
 msgid "No health score available yet."
-msgstr ""
+msgstr "尚無可用的健康分數。"
 
 msgid "No incidents in the last 7 days."
 msgstr ""
 
 msgid "No low-balance notifications in the current window."
-msgstr ""
+msgstr "目前時段內沒有低餘額通知。"
 
 msgid "No maintenance windows published."
 msgstr ""
@@ -29252,10 +29252,10 @@ msgid "Department"
 msgstr ""
 
 msgid "Employer portal — Apprentice progress"
-msgstr ""
+msgstr "雇主入口網站 — 學徒進度"
 
 msgid "Guardian or student name, email…"
-msgstr ""
+msgstr "監護人或學生姓名、電子郵件…"
 
 msgid "Hours to add"
 msgstr ""
@@ -29329,7 +29329,7 @@ msgid "Gender"
 msgstr "性別"
 
 msgid "Login credentials"
-msgstr ""
+msgstr "登入憑證"
 
 msgid "Parent Email"
 msgstr ""
@@ -29447,13 +29447,13 @@ msgid "About blueprint packs"
 msgstr ""
 
 msgid "Absent flagged"
-msgstr ""
+msgstr "已標記缺席"
 
 msgid "Academic year"
 msgstr ""
 
 msgid "Academic year, people, classes, and guided configuration."
-msgstr ""
+msgstr "學年、人員、班級與引導式設定。"
 
 msgid "Accent color"
 msgstr ""
@@ -29518,7 +29518,7 @@ msgid "Activity timeline"
 msgstr ""
 
 msgid "Add at least one academic year before importing classes."
-msgstr ""
+msgstr "匯入班級前請先新增至少一個學年。"
 
 msgid "Add variant"
 msgstr ""
@@ -29628,7 +29628,7 @@ msgid "Apr"
 msgstr ""
 
 msgid "Architecture review grade"
-msgstr ""
+msgstr "架構審查評分"
 
 msgid "Archived at (UTC)"
 msgstr ""
@@ -29645,7 +29645,7 @@ msgid "Ask a platform question"
 msgstr ""
 
 msgid "Ask about setup"
-msgstr ""
+msgstr "詢問設定相關問題"
 
 msgid ""
 "Ask about workflows on this dashboard. Answers use published KB articles for"
@@ -29665,10 +29665,10 @@ msgid "At a glance"
 msgstr ""
 
 msgid "Attendance and discipline history"
-msgstr ""
+msgstr "出勤與紀律紀錄"
 
 msgid "Attendance climbing"
-msgstr ""
+msgstr "出勤率上升"
 
 msgid ""
 "Attendance, marks, and interventions in one timetable — not three "
@@ -29719,7 +29719,7 @@ msgid "BCP-47 language tag (e.g. en, fr). Blank = all locales."
 msgstr ""
 
 msgid "BUS ROUTES"
-msgstr ""
+msgstr "校車路線"
 
 msgid "Back to all migrations"
 msgstr ""
@@ -29788,7 +29788,7 @@ msgid "Blueprint packs"
 msgstr ""
 
 msgid "Book demo →"
-msgstr ""
+msgstr "預約示範 →"
 
 msgid "Brand contrast"
 msgstr ""
@@ -29942,7 +29942,7 @@ msgid "Changelist"
 msgstr ""
 
 msgid "Changes apply only to this school's portals and staff dashboards."
-msgstr ""
+msgstr "變更僅套用於本學校的入口網站與教職員儀表板。"
 
 msgid "Check guided help before opening a ticket."
 msgstr ""
@@ -29995,7 +29995,7 @@ msgid "Collabora is not configured (COLLABORA_BASE_URL)."
 msgstr ""
 
 msgid "Collabora-hosted runbooks when configured."
-msgstr ""
+msgstr "設定後由 Collabora 託管的作業手冊。"
 
 msgid ""
 "Colors, typography, logos, and portal layout. Changes flow to parent, "
@@ -30042,7 +30042,7 @@ msgid "Compliance reference"
 msgstr ""
 
 msgid "Configurable forms, document uploads, and fee schedules per program."
-msgstr ""
+msgstr "可依課程設定的表單、文件上傳與費用時程。"
 
 msgid "Configuration area restricted"
 msgstr ""
@@ -30218,7 +30218,7 @@ msgid "DRAFT — counsel signoff pending"
 msgstr ""
 
 msgid "DSAR runbook"
-msgstr ""
+msgstr "DSAR 作業手冊"
 
 msgid ""
 "DashboardLayout and DashboardUserPreference still apply for per-user "
@@ -30337,7 +30337,7 @@ msgid ""
 msgstr ""
 
 msgid "Discuss school life with parents, teachers, and staff."
-msgstr ""
+msgstr "與家長、教師及教職員討論校園生活。"
 
 msgid "Discuss your rollout"
 msgstr ""
@@ -30427,13 +30427,13 @@ msgid "Enquiry"
 msgstr ""
 
 msgid "Enquiry to enrolled"
-msgstr ""
+msgstr "從詢問到註冊"
 
 msgid "Enrollment status and historical academic records"
-msgstr ""
+msgstr "註冊狀態與歷史學業紀錄"
 
 msgid "Enter a search term to find published guides."
-msgstr ""
+msgstr "輸入搜尋字詞以尋找已發布的指南。"
 
 msgid "Escalate to Campus Helpdesk"
 msgstr ""
@@ -30464,19 +30464,19 @@ msgid "Exact intake method"
 msgstr ""
 
 msgid "Execute guided launch when checklist and health allow."
-msgstr ""
+msgstr "當檢查清單與健康狀況允許時執行引導式啟用。"
 
 msgid "Exit"
 msgstr ""
 
 msgid "Expected guardians"
-msgstr ""
+msgstr "預期的監護人"
 
 msgid "Expected invoice total"
-msgstr ""
+msgstr "預期發票總額"
 
 msgid "Expected invoices"
-msgstr ""
+msgstr "預期發票"
 
 msgid "Expected row totals"
 msgstr ""
@@ -30525,7 +30525,7 @@ msgid ""
 msgstr ""
 
 msgid "Failed logins (24h)"
-msgstr ""
+msgstr "失敗登入（24 小時）"
 
 msgid "Failed support AI sessions — resolve, draft, and publish KB."
 msgstr ""
@@ -30569,13 +30569,13 @@ msgid "Featured"
 msgstr ""
 
 msgid "Featured runbooks"
-msgstr ""
+msgstr "精選作業手冊"
 
 msgid "Feb"
 msgstr ""
 
 msgid "Fee posture at a glance"
-msgstr ""
+msgstr "費用狀態一目了然"
 
 msgid "Feedback (7d)"
 msgstr ""
@@ -30584,10 +30584,10 @@ msgid "Feedback center"
 msgstr ""
 
 msgid "Fees collected by week 3"
-msgstr ""
+msgstr "第 3 週前收取的費用"
 
 msgid "Fees control visual"
-msgstr ""
+msgstr "費用控制視覺圖"
 
 msgid "Fewer assistants"
 msgstr ""
@@ -30733,7 +30733,7 @@ msgid "Full feature center"
 msgstr ""
 
 msgid "Full portal"
-msgstr ""
+msgstr "完整入口網站"
 
 msgid "Full product tour"
 msgstr ""
@@ -30745,7 +30745,7 @@ msgid "GDPR pack"
 msgstr ""
 
 msgid "GRADE DISTRIBUTION"
-msgstr ""
+msgstr "成績分布"
 
 msgid "Generate"
 msgstr ""
@@ -30821,10 +30821,10 @@ msgid "Guardian"
 msgstr ""
 
 msgid "Guardian consent campaign"
-msgstr ""
+msgstr "監護人同意宣導"
 
 msgid "Guardians receive an email containing their URL."
-msgstr ""
+msgstr "監護人會收到包含其 URL 的電子郵件。"
 
 msgid "Guardrails"
 msgstr ""
@@ -30836,7 +30836,7 @@ msgid "Guide"
 msgstr ""
 
 msgid "Guided onboarding vs checklist?"
-msgstr ""
+msgstr "引導式設定或檢查清單？"
 
 msgid "Guides, tutorials, and step-by-step operator runbooks."
 msgstr ""
@@ -30851,10 +30851,10 @@ msgid "Head of school / principal"
 msgstr ""
 
 msgid "Health of workflows and links to Workflow center."
-msgstr ""
+msgstr "工作流程健康與連至工作流程中心的連結。"
 
 msgid "Health score, blockers, and launch checklist."
-msgstr ""
+msgstr "健康分數、阻礙因素與啟用檢查清單。"
 
 msgid ""
 "Hello from RunMyCampus, We've recorded the migration intake from {{ vendor "
@@ -31005,7 +31005,7 @@ msgid ""
 msgstr ""
 
 msgid "Illustrative preset"
-msgstr ""
+msgstr "預設示意"
 
 msgid "Illustrative product diagrams — not customer-specific data"
 msgstr ""
@@ -31043,7 +31043,7 @@ msgid "Import data"
 msgstr ""
 
 msgid "Import or enroll students from the student roster."
-msgstr ""
+msgstr "從學生名冊匯入或註冊學生。"
 
 msgid "Import status"
 msgstr ""
@@ -31077,7 +31077,7 @@ msgid "Install never goes live until the school validates the experience."
 msgstr ""
 
 msgid "Installation health"
-msgstr ""
+msgstr "安裝健康"
 
 msgid "Installations"
 msgstr ""
@@ -31109,7 +31109,7 @@ msgid "Interop readiness"
 msgstr ""
 
 msgid "Intervention scheduled"
-msgstr ""
+msgstr "已排定輔導措施"
 
 msgid "Invite teaching staff before assigning classes."
 msgstr ""
@@ -31211,7 +31211,7 @@ msgid "Last attempted"
 msgstr ""
 
 msgid "Last health at"
-msgstr ""
+msgstr "上次健康檢查時間"
 
 msgid "Last publish"
 msgstr ""
@@ -31436,7 +31436,7 @@ msgid "May"
 msgstr ""
 
 msgid "Meal plan"
-msgstr ""
+msgstr "餐飲方案"
 
 msgid "Mechanism"
 msgstr ""
@@ -31577,7 +31577,7 @@ msgid "New forum topic"
 msgstr ""
 
 msgid "New logins (24h)"
-msgstr ""
+msgstr "新登入（24 小時）"
 
 msgid "New topic"
 msgstr ""
@@ -31807,7 +31807,7 @@ msgid "Observability"
 msgstr ""
 
 msgid "Offer & enroll"
-msgstr ""
+msgstr "錄取與註冊"
 
 msgid "Office documents"
 msgstr ""
@@ -34448,7 +34448,7 @@ msgid "K-12 Schools"
 msgstr ""
 
 msgid "Launch health"
-msgstr ""
+msgstr "啟用健康"
 
 msgid ""
 "Let's start with how your school looks across the platform — your logo, your"
@@ -34465,7 +34465,7 @@ msgid "Lock in this palette"
 msgstr ""
 
 msgid "Login chip preview"
-msgstr ""
+msgstr "登入標籤預覽"
 
 msgid "MAA v2.0 — counsel-activate"
 msgstr ""
@@ -34670,7 +34670,7 @@ msgid ""
 msgstr ""
 
 msgid "Book a buyer-world walkthrough"
-msgstr ""
+msgstr "預約買家導覽"
 
 msgid "Checking..."
 msgstr ""
@@ -34712,7 +34712,7 @@ msgid ""
 msgstr ""
 
 msgid "Growth, fee confidence, and parent trust without disconnected tools."
-msgstr ""
+msgstr "成長、費用信心與家長信任，無需彼此脫節的工具。"
 
 msgid ""
 "International school model visual with programs, currencies, and calendars."
@@ -35030,10 +35030,10 @@ msgid "AI-suggested fixes feed"
 msgstr ""
 
 msgid "AI_TEACHER_COMMS entitlement required for lesson outlines."
-msgstr ""
+msgstr "課程大綱需要 AI_TEACHER_COMMS 權限。"
 
 msgid "AI_TEACHER_COMMS entitlement required for parent drafts."
-msgstr ""
+msgstr "家長訊息草稿需要 AI_TEACHER_COMMS 權限。"
 
 msgid "ATTENDANCE"
 msgstr ""
@@ -35065,7 +35065,7 @@ msgid "Accept staff invite"
 msgstr ""
 
 msgid "Accepted or enrolled applicant linked to a student profile."
-msgstr ""
+msgstr "已錄取或已註冊並連結至學生檔案的申請人。"
 
 msgid "Account actions and details"
 msgstr ""
@@ -35077,7 +35077,7 @@ msgid "Account protection"
 msgstr ""
 
 msgid "Account ready. Sign in on the manager host and enroll MFA."
-msgstr ""
+msgstr "帳戶已就緒。請在管理主機登入並註冊 MFA。"
 
 msgid "Account ready. Sign in to access %(school)s."
 msgstr ""
@@ -35196,7 +35196,7 @@ msgid ""
 msgstr ""
 
 msgid "Add at least one academic year before roster import."
-msgstr ""
+msgstr "匯入名冊前請先新增至少一個學年。"
 
 msgid "Add child"
 msgstr ""
@@ -35208,10 +35208,10 @@ msgid "Add school"
 msgstr ""
 
 msgid "Add the school calendar to your phone, Outlook, or Google Calendar."
-msgstr ""
+msgstr "將學校行事曆加入您的手機、Outlook 或 Google Calendar。"
 
 msgid "Add to notebook"
-msgstr ""
+msgstr "加入筆記本"
 
 msgid "Add {{ t }}"
 msgstr ""
@@ -35229,7 +35229,7 @@ msgid "Admin workspace"
 msgstr ""
 
 msgid "Admissions through fees for enrolled learners."
-msgstr ""
+msgstr "從招生到費用，服務已註冊的學員。"
 
 msgid "Affected dependencies"
 msgstr ""
@@ -35244,7 +35244,7 @@ msgid "After this payment, %(n)s more open invoice(s) remain on your account."
 msgstr ""
 
 msgid "Aleksandra had a great week — top score on the quiz."
-msgstr ""
+msgstr "Aleksandra 這週表現優異 — 小考拿下最高分。"
 
 msgid "All AI surfaces"
 msgstr ""
@@ -35319,7 +35319,7 @@ msgid "Approve go-live once readiness reaches 100%."
 msgstr ""
 
 msgid "Approve queued proofs before balances update."
-msgstr ""
+msgstr "在餘額更新前核准佇列中的憑證。"
 
 msgid "Approve selected (max 50)"
 msgstr ""
@@ -35338,7 +35338,7 @@ msgid "Ask AI about this workflow"
 msgstr ""
 
 msgid "Ask anything about today's lessons."
-msgstr ""
+msgstr "詢問任何關於今日課程的問題。"
 
 msgid "Ask anything about your platform…"
 msgstr ""
@@ -35370,13 +35370,13 @@ msgid "Attendance below 85%"
 msgstr ""
 
 msgid "Attendance heatmap"
-msgstr ""
+msgstr "出勤熱區圖"
 
 msgid "Attendance heatmap (content)"
-msgstr ""
+msgstr "出勤熱區圖（內容）"
 
 msgid "Attendance · this term"
-msgstr ""
+msgstr "出勤 · 本學期"
 
 msgid ""
 "Attendance, marks, syllabus, messages, and personal admin in one focused "
@@ -35414,7 +35414,7 @@ msgid "Audit-trail entry"
 msgstr ""
 
 msgid "Auth / login"
-msgstr ""
+msgstr "驗證 / 登入"
 
 msgid "Auth accent"
 msgstr ""
@@ -35423,7 +35423,7 @@ msgid "Authenticator enabled"
 msgstr ""
 
 msgid "Authorize payment"
-msgstr ""
+msgstr "授權付款"
 
 msgid "Authorized"
 msgstr ""
@@ -35455,7 +35455,7 @@ msgid "Automation summary tiles"
 msgstr ""
 
 msgid "Average score:"
-msgstr ""
+msgstr "平均分數："
 
 msgid "Avg p95 latency · api"
 msgstr ""
@@ -35476,16 +35476,16 @@ msgid "Back to cockpit"
 msgstr ""
 
 msgid "Back to email health dashboard"
-msgstr ""
+msgstr "返回電子郵件健康儀表板"
 
 msgid "Back to finances"
 msgstr ""
 
 msgid "Back to onboarding"
-msgstr ""
+msgstr "返回設定"
 
 msgid "Back to portal"
-msgstr ""
+msgstr "返回入口網站"
 
 msgid "Back to roster"
 msgstr ""
@@ -35633,16 +35633,16 @@ msgid "CSV import or Migration Cloud — minimum viable student set."
 msgstr ""
 
 msgid "CSV import, guardian invites, fees, and data export."
-msgstr ""
+msgstr "CSV 匯入、監護人邀請、費用與資料匯出。"
 
 msgid "Calendar preset"
-msgstr ""
+msgstr "行事曆預設"
 
 msgid "Calendar weather (content)"
-msgstr ""
+msgstr "行事曆天氣（內容）"
 
 msgid "Calendar · weather"
-msgstr ""
+msgstr "行事曆 · 天氣"
 
 msgid "Campus tracking without phones in pockets."
 msgstr ""
@@ -35654,7 +35654,7 @@ msgid "Cancel closure"
 msgstr ""
 
 msgid "Cancel scheduled closure"
-msgstr ""
+msgstr "取消已排定的關閉"
 
 msgid "Cannot be changed after first migration."
 msgstr ""
@@ -35675,7 +35675,7 @@ msgid "Catalog actions"
 msgstr ""
 
 msgid "Catalog warnings present"
-msgstr ""
+msgstr "存在型錄警告"
 
 msgid "Celery broker (Redis)"
 msgstr ""
@@ -35730,7 +35730,7 @@ msgid ""
 msgstr ""
 
 msgid "Choose a stronger password (score at least 3 of 4)."
-msgstr ""
+msgstr "選擇更強的密碼（至少達到 4 分中的 3 分）。"
 
 msgid "Churn"
 msgstr ""
@@ -35747,7 +35747,7 @@ msgid "Class"
 msgstr "班級"
 
 msgid "Class 5B reached 30-day perfect attendance"
-msgstr ""
+msgstr "5B 班達成 30 天全勤"
 
 msgid "Class rank:"
 msgstr ""
@@ -35765,7 +35765,7 @@ msgid "Classmates online"
 msgstr ""
 
 msgid "Classrooms and teaching assignments ready."
-msgstr ""
+msgstr "教室與教學指派已就緒。"
 
 msgid "Clear hold"
 msgstr ""
@@ -35802,7 +35802,7 @@ msgid "Closure requested"
 msgstr ""
 
 msgid "Closure scheduled for:"
-msgstr ""
+msgstr "關閉排定於："
 
 msgid "Cloud"
 msgstr ""
@@ -35823,7 +35823,7 @@ msgid "Cockpit configuration"
 msgstr ""
 
 msgid "Cockpit configuration reset to defaults."
-msgstr ""
+msgstr "駕駛艙設定已重設為預設值。"
 
 msgid "Cockpit configuration saved."
 msgstr ""
@@ -35832,7 +35832,7 @@ msgid "Cockpit design previews"
 msgstr ""
 
 msgid "Cockpit health"
-msgstr ""
+msgstr "駕駛艙健康"
 
 msgid "Cockpit resolution error:"
 msgstr ""
@@ -35860,7 +35860,7 @@ msgid "Coming soon"
 msgstr ""
 
 msgid "Commerce and enrollments paused."
-msgstr ""
+msgstr "商務與註冊已暫停。"
 
 msgid "Common blockers"
 msgstr ""
@@ -35896,10 +35896,10 @@ msgid ""
 msgstr ""
 
 msgid "Complete academic year, staff, and students before imports."
-msgstr ""
+msgstr "匯入前請先完成學年、教職員與學生設定。"
 
 msgid "Complete guided onboarding (school profile, term, roles)."
-msgstr ""
+msgstr "完成引導式設定（學校檔案、學期、角色）。"
 
 msgid "Complete quarterly review"
 msgstr ""
@@ -35957,7 +35957,7 @@ msgid "Confirm password"
 msgstr "確認密碼"
 
 msgid "Confirm password, MFA, and contact details for this quarter."
-msgstr ""
+msgstr "確認本季的密碼、MFA 與聯絡資訊。"
 
 msgid ""
 "Confirm your password, MFA, and contact details for this quarter before you "
@@ -35985,7 +35985,7 @@ msgid "Context processor"
 msgstr ""
 
 msgid "Continue Stripe onboarding"
-msgstr ""
+msgstr "繼續 Stripe 設定"
 
 msgid "Continue fast path"
 msgstr ""
@@ -36045,7 +36045,7 @@ msgid "Country code or name"
 msgstr ""
 
 msgid "Country, calendar, language, and sector on public signup."
-msgstr ""
+msgstr "公開註冊時的國家、行事曆、語言與領域。"
 
 msgid "Counts derived from the active report pack graph."
 msgstr ""
@@ -36095,7 +36095,7 @@ msgid ""
 msgstr ""
 
 msgid "Current term"
-msgstr ""
+msgstr "目前學期"
 
 msgid "Customer experience (CEZGP)"
 msgstr ""
@@ -36230,7 +36230,7 @@ msgid "Dismiss for this session"
 msgstr ""
 
 msgid "Dismiss local welcome"
-msgstr ""
+msgstr "關閉本地歡迎訊息"
 
 msgid "Dispute closed — contact the bursar"
 msgstr ""
@@ -36301,7 +36301,7 @@ msgid ""
 msgstr ""
 
 msgid "Dry-run scheduled purges"
-msgstr ""
+msgstr "試運行已排定的清除"
 
 msgid "Dry-run, no writes"
 msgstr ""
@@ -36380,7 +36380,7 @@ msgid "Email delivery configuration"
 msgstr ""
 
 msgid "Email delivery health"
-msgstr ""
+msgstr "電子郵件送達健康"
 
 msgid "Email is verified and up to date"
 msgstr ""
@@ -36392,7 +36392,7 @@ msgid "Email verification"
 msgstr ""
 
 msgid "Employer transcript"
-msgstr ""
+msgstr "雇主成績單"
 
 msgid "Empty"
 msgstr ""
@@ -36446,7 +36446,7 @@ msgid "Enrollment"
 msgstr ""
 
 msgid "Enrollment peak mode"
-msgstr ""
+msgstr "註冊尖峰模式"
 
 msgid "Enter a valid hex color."
 msgstr ""
@@ -36491,10 +36491,10 @@ msgid "Every school,"
 msgstr ""
 
 msgid "Examined:"
-msgstr ""
+msgstr "已檢視："
 
 msgid "Example academy"
-msgstr ""
+msgstr "範例學院"
 
 msgid "Expansion"
 msgstr ""
@@ -36513,7 +36513,7 @@ msgid "Experience templates"
 msgstr ""
 
 msgid "Explain today's math lesson"
-msgstr ""
+msgstr "說明今日的數學課程"
 
 msgid "Export and close"
 msgstr ""
@@ -36594,7 +36594,7 @@ msgid "Family billing"
 msgstr ""
 
 msgid "Family portal"
-msgstr ""
+msgstr "家庭入口網站"
 
 msgid "Family total due"
 msgstr ""
@@ -36623,35 +36623,35 @@ msgid "Feature flags"
 msgstr ""
 
 msgid "Fee batch / OCR captures awaiting online apply"
-msgstr ""
+msgstr "待線上套用的費用批次 / OCR 擷取"
 
 msgid "Fee catalog"
-msgstr ""
+msgstr "費用型錄"
 
 msgid ""
 "Fee generation choices stay on this device until you reconnect and sync."
 msgstr ""
 
 msgid "Fee payment received · term 2"
-msgstr ""
+msgstr "已收到費用付款 · 第二學期"
 
 msgid "Fees & finance"
-msgstr ""
+msgstr "費用與財務"
 
 msgid "Fees need attention"
-msgstr ""
+msgstr "費用需要留意"
 
 msgid "Fees overdue — action required"
-msgstr ""
+msgstr "費用逾期 — 需採取行動"
 
 msgid "Fees that reconcile like a ledger, not a spreadsheet."
-msgstr ""
+msgstr "像分類帳一樣對帳的費用，而非試算表。"
 
 msgid "Field day"
 msgstr ""
 
 msgid "Field trip fee"
-msgstr ""
+msgstr "校外教學費用"
 
 msgid "Field trip · Lagos Museum"
 msgstr ""
@@ -36702,7 +36702,7 @@ msgid "First approval:"
 msgstr ""
 
 msgid "First day of term"
-msgstr ""
+msgstr "學期第一天"
 
 msgid "First win"
 msgstr ""
@@ -36713,7 +36713,7 @@ msgid ""
 msgstr ""
 
 msgid "Fix password"
-msgstr ""
+msgstr "修正密碼"
 
 msgid "Fix this"
 msgstr ""
@@ -36722,7 +36722,7 @@ msgid "Flat vs prior 30d"
 msgstr ""
 
 msgid "Flip runbook"
-msgstr ""
+msgstr "切換作業手冊"
 
 msgid "Fluid classroom"
 msgstr ""
@@ -36760,7 +36760,7 @@ msgid "Freeze tenant"
 msgstr ""
 
 msgid "Friendly fee reminder"
-msgstr ""
+msgstr "友善的費用提醒"
 
 msgid "From email"
 msgstr ""
@@ -36806,7 +36806,7 @@ msgid ""
 msgstr ""
 
 msgid "Full-page setup"
-msgstr ""
+msgstr "全頁設定"
 
 msgid "GDPR Art. 28"
 msgstr ""
@@ -36869,7 +36869,7 @@ msgid "Global baseline"
 msgstr ""
 
 msgid "Global payment command center"
-msgstr ""
+msgstr "全球付款指揮中心"
 
 msgid "Global state"
 msgstr ""
@@ -36896,16 +36896,16 @@ msgid "Grade"
 msgstr "成績"
 
 msgid "Grade / level"
-msgstr ""
+msgstr "年級 / 級別"
 
 msgid "Gradebook trend"
-msgstr ""
+msgstr "成績簿趨勢"
 
 msgid "Gradebook trend (content)"
-msgstr ""
+msgstr "成績簿趨勢（內容）"
 
 msgid "Gradebooks that morph to your framework."
-msgstr ""
+msgstr "可依您的框架變化的成績簿。"
 
 msgid "Grades"
 msgstr "成績"
@@ -36944,22 +36944,22 @@ msgid "Group ID must be lowercase kebab-case (no spaces, no upper)."
 msgstr ""
 
 msgid "Guardian approval"
-msgstr ""
+msgstr "監護人核准"
 
 msgid "Guardian approval stays on this device until you reconnect and sync."
-msgstr ""
+msgstr "監護人核准會保留在此裝置上，直到您重新連線並同步。"
 
 msgid "Guardian invites"
-msgstr ""
+msgstr "監護人邀請"
 
 msgid "Guardian portal access"
-msgstr ""
+msgstr "監護人入口網站存取權"
 
 msgid "Guardian-only access"
-msgstr ""
+msgstr "僅監護人存取"
 
 msgid "Guardians linked to students with active portal users."
-msgstr ""
+msgstr "已連結至擁有啟用入口網站使用者之學生的監護人。"
 
 msgid "Guidance actions"
 msgstr ""
@@ -36980,13 +36980,13 @@ msgid "Headroom"
 msgstr ""
 
 msgid "Health canvas"
-msgstr ""
+msgstr "健康畫布"
 
 msgid "Health diagnostic →"
-msgstr ""
+msgstr "健康診斷 →"
 
 msgid "Health score suggests configuration or data gaps."
-msgstr ""
+msgstr "健康分數顯示存在設定或資料缺口。"
 
 msgid "Heatmap legend"
 msgstr ""
@@ -37009,7 +37009,7 @@ msgid ""
 msgstr ""
 
 msgid "Here's your family portal home for today."
-msgstr ""
+msgstr "這是您今天的家庭入口網站首頁。"
 
 msgid "Here's your learning home for today."
 msgstr ""
@@ -37096,16 +37096,16 @@ msgid "Illustrative campus operations loop"
 msgstr ""
 
 msgid "Illustrative fee split ledger"
-msgstr ""
+msgstr "費用拆分分類帳示意"
 
 msgid "Illustrative gradebook frameworks"
-msgstr ""
+msgstr "成績簿框架示意"
 
 msgid "Illustrative offline sync beacon"
 msgstr ""
 
 msgid "Illustrative payment methods"
-msgstr ""
+msgstr "付款方式示意"
 
 msgid "Illustrative product loop"
 msgstr ""
@@ -37207,7 +37207,7 @@ msgid "Invite"
 msgstr ""
 
 msgid "Invite an admin, record attendance, or post a fee."
-msgstr ""
+msgstr "邀請管理員、記錄出勤或張貼費用。"
 
 msgid "Invite created. Share this link with the operator: %(url)s"
 msgstr ""
@@ -37228,22 +37228,22 @@ msgid "Invite staff"
 msgstr ""
 
 msgid "Invoice label"
-msgstr ""
+msgstr "發票標籤"
 
 msgid "Invoice:"
 msgstr ""
 
 msgid "Invoices or fee structures configured for enrolled learners."
-msgstr ""
+msgstr "為已註冊學員設定的發票或費用結構。"
 
 msgid "Invoices use different currencies. Pay each invoice individually."
-msgstr ""
+msgstr "發票使用不同幣別。請個別支付每張發票。"
 
 msgid "Issue"
 msgstr ""
 
 msgid "Issue and claim parent portal invites."
-msgstr ""
+msgstr "發出並領取家長入口網站邀請。"
 
 msgid "Items blocking launch or rollout."
 msgstr ""
@@ -37325,7 +37325,7 @@ msgid "Languages"
 msgstr ""
 
 msgid "Last 10 signup verification emails"
-msgstr ""
+msgstr "最近 10 封註冊驗證電子郵件"
 
 msgid "Last 15"
 msgstr ""
@@ -37387,19 +37387,19 @@ msgid "Legal hold cleared"
 msgstr ""
 
 msgid "Lesson focus"
-msgstr ""
+msgstr "課程重點"
 
 msgid "Lesson of the day"
-msgstr ""
+msgstr "每日課程"
 
 msgid "Lesson of the day (content)"
-msgstr ""
+msgstr "每日課程（內容）"
 
 msgid "Lesson outline"
-msgstr ""
+msgstr "課程大綱"
 
 msgid "Lesson plan outline"
-msgstr ""
+msgstr "教案大綱"
 
 msgid ""
 "Lesson support, family communication drafts, and at-risk insights — tenant-"
@@ -37407,7 +37407,7 @@ msgid ""
 msgstr ""
 
 msgid "Library entries"
-msgstr ""
+msgstr "圖書館項目"
 
 msgid "Life event timeline (content)"
 msgstr ""
@@ -37422,7 +37422,7 @@ msgid "Lifecycle command center"
 msgstr ""
 
 msgid "Lifecycle playbook"
-msgstr ""
+msgstr "生命週期作業手冊"
 
 msgid "Limited"
 msgstr ""
@@ -37555,10 +37555,10 @@ msgid "MFA enforcement"
 msgstr ""
 
 msgid "MFA enrolled"
-msgstr ""
+msgstr "已註冊 MFA"
 
 msgid "MFA enrolled — manage in profile"
-msgstr ""
+msgstr "已註冊 MFA — 可在個人檔案中管理"
 
 msgid ""
 "MFA enrolled: <strong>{{ enrolled }}</strong> / {{ total }} staff with "
@@ -37648,7 +37648,7 @@ msgid "Math"
 msgstr ""
 
 msgid "Math quiz"
-msgstr ""
+msgstr "數學小考"
 
 msgid "Mathematics · Period 2"
 msgstr ""
@@ -37702,7 +37702,7 @@ msgid "Migration sync complete for 12 schools"
 msgstr ""
 
 msgid "Minimize notebook"
-msgstr ""
+msgstr "縮小筆記本"
 
 msgid "Minimum required"
 msgstr ""
@@ -37797,7 +37797,7 @@ msgid "Need help? Reply to this email or contact"
 msgstr ""
 
 msgid "Need to discuss? Flexible payment plans available."
-msgstr ""
+msgstr "需要討論嗎？提供彈性付款方案。"
 
 msgid "Need to start a new import?"
 msgstr ""
@@ -37844,7 +37844,7 @@ msgid "New slug (lowercase alnum+hyphens)"
 msgstr ""
 
 msgid "New student enrolled in Year 4"
-msgstr ""
+msgstr "新學生已註冊至四年級"
 
 msgid "New subdomain (optional — defaults to slug)"
 msgstr ""
@@ -37865,7 +37865,7 @@ msgid "Next step in this workflow"
 msgstr ""
 
 msgid "Next: check var/dr-drill-schedule.json"
-msgstr ""
+msgstr "下一步：檢查 var/dr-drill-schedule.json"
 
 msgid "Nigeria"
 msgstr ""
@@ -37877,10 +37877,10 @@ msgid "No actions queued. Open a mode to begin."
 msgstr ""
 
 msgid "No active assignment found for this template."
-msgstr ""
+msgstr "找不到此範本的作用中指派。"
 
 msgid "No active assignment found. Apply the template first."
-msgstr ""
+msgstr "找不到作用中的指派。請先套用範本。"
 
 msgid "No active packs yet"
 msgstr ""
@@ -37934,7 +37934,7 @@ msgid "No hold"
 msgstr ""
 
 msgid "No invoices to pay."
-msgstr ""
+msgstr "沒有待付發票。"
 
 msgid "No lifecycle events yet"
 msgstr ""
@@ -37952,7 +37952,7 @@ msgid "No migration bundles for this school."
 msgstr ""
 
 msgid "No open balances to pay."
-msgstr ""
+msgstr "沒有待付的未結餘額。"
 
 msgid "No operators match the roster filter."
 msgstr ""
@@ -37967,13 +37967,13 @@ msgid "No outputs to preview yet"
 msgstr ""
 
 msgid "No outstanding balance."
-msgstr ""
+msgstr "沒有未償餘額。"
 
 msgid "No password set"
-msgstr ""
+msgstr "未設定密碼"
 
 msgid "No payments waiting for review."
-msgstr ""
+msgstr "沒有待審查的付款。"
 
 msgid "No payroll runs yet."
 msgstr ""
@@ -38030,7 +38030,7 @@ msgid ""
 msgstr ""
 
 msgid "No signup verification attempts recorded yet."
-msgstr ""
+msgstr "尚未記錄任何註冊驗證嘗試。"
 
 msgid ""
 "No simulation has been recorded for this workspace. Run a simulation from "
@@ -38055,10 +38055,10 @@ msgid ""
 msgstr ""
 
 msgid "No wizards are configured yet."
-msgstr ""
+msgstr "尚未設定任何精靈。"
 
 msgid "No wizards available yet."
-msgstr ""
+msgstr "尚無可用的精靈。"
 
 msgid "No — starting fresh"
 msgstr ""
@@ -38082,7 +38082,7 @@ msgid "Not yet"
 msgstr ""
 
 msgid "Notebook entry"
-msgstr ""
+msgstr "筆記本項目"
 
 msgid "Notes (redacted)"
 msgstr ""
@@ -38118,7 +38118,7 @@ msgid "Offline bursar queue"
 msgstr ""
 
 msgid "Offline payment review queue"
-msgstr ""
+msgstr "離線付款審查佇列"
 
 msgid "Offline-first"
 msgstr ""
@@ -38134,10 +38134,10 @@ msgid "Okay"
 msgstr ""
 
 msgid "Onboarding & launch"
-msgstr ""
+msgstr "設定與啟用"
 
 msgid "Onboarding checklist"
-msgstr ""
+msgstr "設定檢查清單"
 
 msgid "Onboarding concierge"
 msgstr ""
@@ -41980,10 +41980,10 @@ msgid "Dates"
 msgstr ""
 
 msgid "Gradebook framework"
-msgstr ""
+msgstr "成績簿框架"
 
 msgid "Illustrative fee split"
-msgstr ""
+msgstr "費用拆分示意"
 
 msgid "Play animated product preview"
 msgstr ""
@@ -42119,7 +42119,7 @@ msgid "e.g. Example Academy"
 msgstr ""
 
 msgid "Admin portal"
-msgstr ""
+msgstr "管理入口網站"
 
 msgid "Backend - operations and workflows"
 msgstr ""
@@ -42140,7 +42140,7 @@ msgid "Weather"
 msgstr ""
 
 msgid "Back to top | Right-click to reset position"
-msgstr ""
+msgstr "返回頂端 | 右鍵點擊可重設位置"
 
 msgid "Admission number"
 msgstr ""
@@ -42345,7 +42345,7 @@ msgid "Defaults saved."
 msgstr ""
 
 msgid "No CTA configured. Set cockpit.signup_form.cta_url via SiteSettings."
-msgstr ""
+msgstr "未設定 CTA。請透過 SiteSettings 設定 cockpit.signup_form.cta_url。"
 
 msgid ""
 "No audit terms configured. Set cockpit.audit_wordcloud.terms via "
@@ -42414,10 +42414,10 @@ msgid "Biggest drop-off"
 msgstr ""
 
 msgid "Cockpit promote presets"
-msgstr ""
+msgstr "駕駛艙推廣預設"
 
 msgid "No SetupProgress data yet."
-msgstr ""
+msgstr "尚無 SetupProgress 資料。"
 
 msgid "No layout data yet."
 msgstr ""
@@ -42461,7 +42461,7 @@ msgid "Awaiting review"
 msgstr ""
 
 msgid "Find a wizard"
-msgstr ""
+msgstr "尋找精靈"
 
 msgid "No applicants yet."
 msgstr ""
@@ -42502,10 +42502,10 @@ msgid "Applicants by stage"
 msgstr ""
 
 msgid "Enrollment forecast"
-msgstr ""
+msgstr "註冊預測"
 
 msgid "Not enough enrollment history to project yet."
-msgstr ""
+msgstr "註冊歷史不足，尚無法預測。"
 
 msgid "Students by status"
 msgstr ""
@@ -42523,10 +42523,10 @@ msgid "Auto-build"
 msgstr ""
 
 msgid "Auto-build timetable"
-msgstr ""
+msgstr "自動建立課程表"
 
 msgid "Build timetable"
-msgstr ""
+msgstr "建立課程表"
 
 msgid "CA marks input"
 msgstr ""
@@ -42741,7 +42741,7 @@ msgid "Buffer empty."
 msgstr ""
 
 msgid "Bulk grade entry"
-msgstr ""
+msgstr "批次輸入成績"
 
 msgid "Bulk update failed."
 msgstr ""
@@ -42786,10 +42786,10 @@ msgid "Child incidents"
 msgstr ""
 
 msgid "Child of parent incident"
-msgstr ""
+msgstr "家長事件的子項"
 
 msgid "Choose a subject assignment and term, then load the roster to begin."
-msgstr ""
+msgstr "選擇科目指派與學期，然後載入名冊即可開始。"
 
 msgid "Chromebook"
 msgstr ""
@@ -42899,16 +42899,16 @@ msgid "Evaluations"
 msgstr ""
 
 msgid "Example"
-msgstr ""
+msgstr "範例"
 
 msgid "Example commands"
-msgstr ""
+msgstr "範例指令"
 
 msgid "Exempt John from final math"
 msgstr ""
 
 msgid "Exempt John from the final math exam"
-msgstr ""
+msgstr "讓 John 免除期末數學考試"
 
 msgid "Existing rules"
 msgstr ""
@@ -42917,10 +42917,10 @@ msgid "Facets"
 msgstr ""
 
 msgid "Fee collection"
-msgstr ""
+msgstr "費用收取"
 
 msgid "Fee receipt · Term 2"
-msgstr ""
+msgstr "費用收據 · 第二學期"
 
 msgid "Filter cohort"
 msgstr ""
@@ -42958,7 +42958,7 @@ msgid "Go to…"
 msgstr ""
 
 msgid "Grades locked"
-msgstr ""
+msgstr "成績已鎖定"
 
 msgid "Grading scales — wedge-scoped"
 msgstr ""
@@ -43015,7 +43015,7 @@ msgid "Inherit from group"
 msgstr ""
 
 msgid "Institution type assignment"
-msgstr ""
+msgstr "機構類型指派"
 
 msgid "Institution types"
 msgstr ""
@@ -43056,10 +43056,10 @@ msgid "LMS integrations"
 msgstr ""
 
 msgid "LMS push-grade audit"
-msgstr ""
+msgstr "LMS 成績推送稽核"
 
 msgid "Last 12 months — average CSAT trend"
-msgstr ""
+msgstr "過去 12 個月 — 平均 CSAT 趨勢"
 
 msgid ""
 "Last {{ snapshot_count }} of {{ buffer_cap }} command-palette AI-line "
@@ -43085,7 +43085,7 @@ msgid ""
 msgstr ""
 
 msgid "Link to parent"
-msgstr ""
+msgstr "連結至家長"
 
 msgid "Live on-call right now"
 msgstr ""
@@ -43111,7 +43111,7 @@ msgid "Mark duplicate"
 msgstr ""
 
 msgid "Mark present: Room 4B"
-msgstr ""
+msgstr "標記出席：4B 教室"
 
 msgid "Marked duplicate of"
 msgstr ""
@@ -43166,7 +43166,7 @@ msgid "Multi-wallet rollup (illustrative)"
 msgstr ""
 
 msgid "My grades"
-msgstr ""
+msgstr "我的成績"
 
 msgid "Neutral"
 msgstr ""
@@ -43202,10 +43202,10 @@ msgid "No deep links wired yet."
 msgstr ""
 
 msgid "No evaluations match the chosen subject + term."
-msgstr ""
+msgstr "沒有符合所選科目 + 學期的評量。"
 
 msgid "No events on the schedule yet today."
-msgstr ""
+msgstr "今天行程上尚無活動。"
 
 msgid "No grading scales match this filter."
 msgstr ""
@@ -44369,7 +44369,7 @@ msgid "No clinic records yet"
 msgstr ""
 
 msgid "No cover assignments yet"
-msgstr ""
+msgstr "尚無代課指派"
 
 msgid "No evaluation records yet"
 msgstr ""
@@ -44399,10 +44399,10 @@ msgid "No maintenance requests yet"
 msgstr ""
 
 msgid "No master schedules yet"
-msgstr ""
+msgstr "尚無主排程"
 
 msgid "No meals on the menu yet"
-msgstr ""
+msgstr "菜單上尚無餐點"
 
 msgid "No recent grants."
 msgstr ""
@@ -44426,7 +44426,7 @@ msgid "No tenant scope detected."
 msgstr ""
 
 msgid "No term rankings yet"
-msgstr ""
+msgstr "尚無學期排名"
 
 msgid "No titles in the catalog yet"
 msgstr ""
@@ -44704,10 +44704,10 @@ msgid "Checklist pulse"
 msgstr ""
 
 msgid "Class attendance"
-msgstr ""
+msgstr "班級出勤"
 
 msgid "Closed without refund — document rationale for audit."
-msgstr ""
+msgstr "結案未退款 — 記錄理由以供稽核。"
 
 msgid "Column"
 msgstr ""
@@ -44792,7 +44792,7 @@ msgid "My groups"
 msgstr ""
 
 msgid "New dispute — assign reviewer and gather payment evidence."
-msgstr ""
+msgstr "新爭議 — 指派審查者並蒐集付款證據。"
 
 msgid "No active step yet."
 msgstr ""
@@ -44935,19 +44935,19 @@ msgid "Communication preferences"
 msgstr ""
 
 msgid "Delivery-receipt model not loadable in this environment."
-msgstr ""
+msgstr "此環境無法載入送達回條模型。"
 
 msgid "Marketing &amp; newsletter email to your account address."
 msgstr ""
 
 msgid "Message delivery receipts"
-msgstr ""
+msgstr "訊息送達回條"
 
 msgid "Message id"
 msgstr ""
 
 msgid "No delivery receipts in the last 7 days."
-msgstr ""
+msgstr "過去 7 天內沒有送達回條。"
 
 msgid "No failed or undelivered messages recorded."
 msgstr ""
@@ -45038,7 +45038,7 @@ msgid "Cockpit shell chrome"
 msgstr ""
 
 msgid "Cockpit shell settings reset to defaults."
-msgstr ""
+msgstr "駕駛艙外框設定已重設為預設值。"
 
 msgid "Cockpit shell settings saved."
 msgstr ""
@@ -45353,7 +45353,7 @@ msgid "reversed"
 msgstr ""
 
 msgid "Accepted payment rails"
-msgstr ""
+msgstr "接受的支付管道"
 
 msgid "Active classes"
 msgstr ""
@@ -45364,10 +45364,10 @@ msgid ""
 msgstr ""
 
 msgid "Attendance capture log"
-msgstr ""
+msgstr "出勤登錄紀錄"
 
 msgid "Attendance today"
-msgstr ""
+msgstr "今日出勤"
 
 msgid "Brazil — NF-e (SEFAZ)"
 msgstr ""
@@ -45391,7 +45391,7 @@ msgid "Class teachers"
 msgstr ""
 
 msgid "Collections this term"
-msgstr ""
+msgstr "本學期收款"
 
 msgid "Competency"
 msgstr ""
@@ -45429,7 +45429,7 @@ msgid "IB 1–7"
 msgstr ""
 
 msgid "Illustrative split + e-invoice stamp. No real charge."
-msgstr ""
+msgstr "拆分與電子發票戳記示意。不會實際收費。"
 
 msgid "India — GST (GSTN)"
 msgstr ""
@@ -45438,13 +45438,13 @@ msgid "Indonesia — PPN (DJP)"
 msgstr ""
 
 msgid "Invoice amount"
-msgstr ""
+msgstr "發票金額"
 
 msgid "Kenya — VAT (KRA)"
 msgstr ""
 
 msgid "Lab fee"
-msgstr ""
+msgstr "實驗室費用"
 
 msgid "Line item"
 msgstr ""
@@ -45829,7 +45829,7 @@ msgid ""
 msgstr ""
 
 msgid "Go to login"
-msgstr ""
+msgstr "前往登入"
 
 msgid "Languages of instruction"
 msgstr ""
@@ -45919,7 +45919,7 @@ msgid "No invitations yet."
 msgstr ""
 
 msgid "No signup verifications match this filter."
-msgstr ""
+msgstr "沒有符合此篩選的註冊驗證。"
 
 msgid ""
 "Pending school signups and their email-verification status. Resend an "
@@ -45980,7 +45980,7 @@ msgid "Adapters"
 msgstr ""
 
 msgid "Back to payment setup"
-msgstr ""
+msgstr "返回付款設定"
 
 msgid ""
 "Enter Paystack, SMS, and SIS bridge secrets for apps activated from the "
@@ -46279,7 +46279,7 @@ msgid "Edited document"
 msgstr ""
 
 msgid "Email health"
-msgstr ""
+msgstr "電子郵件健康"
 
 msgid "Engine"
 msgstr ""
@@ -46318,7 +46318,7 @@ msgid "Grant details"
 msgstr ""
 
 msgid "Guardian contact"
-msgstr ""
+msgstr "監護人聯絡資訊"
 
 msgid "Highest-leverage adapters (countries unblocked if promoted to live)"
 msgstr ""
@@ -46712,7 +46712,7 @@ msgid ""
 msgstr ""
 
 msgid "Create a password"
-msgstr ""
+msgstr "建立密碼"
 
 msgid "Email or username"
 msgstr ""
@@ -46795,7 +46795,7 @@ msgid "About this page"
 msgstr ""
 
 msgid "Admissions pipeline from enquiry through enrollment."
-msgstr ""
+msgstr "從詢問到註冊的招生流程。"
 
 msgid "Almost there — finishing setup for {{ name }}"
 msgstr ""
@@ -46804,7 +46804,7 @@ msgid "Annual avg"
 msgstr ""
 
 msgid "Campus setup in progress"
-msgstr ""
+msgstr "校園設定進行中"
 
 msgid "Check again"
 msgstr ""
@@ -46813,7 +46813,7 @@ msgid "Check provisioning status"
 msgstr ""
 
 msgid "Check setup status"
-msgstr ""
+msgstr "查看設定狀態"
 
 msgid "Client secret"
 msgstr ""
@@ -46822,13 +46822,13 @@ msgid "Confirmed hours"
 msgstr ""
 
 msgid "Continue setup"
-msgstr ""
+msgstr "繼續設定"
 
 msgid "Could not run provisioning — check worker logs and try again."
 msgstr ""
 
 msgid "Could not send the portal email — check SMTP / worker logs."
-msgstr ""
+msgstr "無法傳送入口網站電子郵件 — 請檢查 SMTP / worker 記錄。"
 
 msgid "Current class"
 msgstr ""
@@ -46854,7 +46854,7 @@ msgid "Forgot your password?"
 msgstr "忘記密碼？"
 
 msgid "Hide password"
-msgstr ""
+msgstr "隱藏密碼"
 
 msgid "Hide secret"
 msgstr ""
@@ -47304,7 +47304,7 @@ msgid "A fee balance of {{ amt }} is due"
 msgstr ""
 
 msgid "A guided path from first login to a fully running school."
-msgstr ""
+msgstr "從首次登入到學校完整運作的引導式路徑。"
 
 msgid "A guided path through the school year."
 msgstr ""
@@ -47391,7 +47391,7 @@ msgid "Academic terms"
 msgstr ""
 
 msgid "Academic year close"
-msgstr ""
+msgstr "學年結算"
 
 msgid "Accepted:"
 msgstr ""
@@ -47424,7 +47424,7 @@ msgid "Account recovery"
 msgstr ""
 
 msgid "Account setup"
-msgstr ""
+msgstr "帳戶設定"
 
 msgid "Acknowledgments queue offline when connectivity is limited."
 msgstr ""
@@ -47462,7 +47462,7 @@ msgid "Activated workflow"
 msgstr ""
 
 msgid "Activating your portal"
-msgstr ""
+msgstr "正在啟用您的入口網站"
 
 msgid "Activation journey"
 msgstr ""
@@ -47509,16 +47509,16 @@ msgid "Add an athlete"
 msgstr ""
 
 msgid "Add attendance"
-msgstr ""
+msgstr "新增出勤"
 
 msgid "Add finance"
 msgstr ""
 
 msgid "Add grades domain"
-msgstr ""
+msgstr "新增成績領域"
 
 msgid "Add guardians"
-msgstr ""
+msgstr "新增監護人"
 
 msgid "Add item"
 msgstr ""
@@ -47547,7 +47547,7 @@ msgid "Additive — existing roles on the selected members are kept."
 msgstr ""
 
 msgid "Adds guardians and grades for gradebook-ready data"
-msgstr ""
+msgstr "新增監護人與成績，讓資料可供成績簿使用"
 
 msgid "Adjust"
 msgstr ""
@@ -47579,7 +47579,7 @@ msgid "Advanced globe controls"
 msgstr ""
 
 msgid "After assignment"
-msgstr ""
+msgstr "指派後"
 
 msgid ""
 "After operator approval, your school enters the grace period before "
@@ -47635,7 +47635,7 @@ msgid ""
 msgstr ""
 
 msgid "All wizards"
-msgstr ""
+msgstr "所有精靈"
 
 msgid "All workflow steps"
 msgstr ""
@@ -47759,7 +47759,7 @@ msgid "Approved interaction model"
 msgstr ""
 
 msgid "Approved marks publish as report cards to the parent portal."
-msgstr ""
+msgstr "核准的分數會以成績單形式發布至家長入口網站。"
 
 msgid "Artifact filename (optional)"
 msgstr ""
@@ -47837,7 +47837,7 @@ msgid ""
 msgstr ""
 
 msgid "Assignment impact"
-msgstr ""
+msgstr "作業影響"
 
 msgid "Assignments"
 msgstr ""
@@ -47887,22 +47887,22 @@ msgid "Attachment (optional)"
 msgstr ""
 
 msgid "Attendance history"
-msgstr ""
+msgstr "出勤紀錄"
 
 msgid "Attendance milestones"
-msgstr ""
+msgstr "出勤里程碑"
 
 msgid "Attendance register"
 msgstr ""
 
 msgid "Attendance rhythm"
-msgstr ""
+msgstr "出勤節奏"
 
 msgid "Attendance watch · {{ pct }}%"
 msgstr ""
 
 msgid "Attendance, marks, fees, and messages — one secure place."
-msgstr ""
+msgstr "出勤、分數、費用與訊息 — 集中於一個安全之處。"
 
 msgid "Attention needed"
 msgstr ""
@@ -47994,7 +47994,7 @@ msgid "Back to school catalog"
 msgstr ""
 
 msgid "Back to setup wizards"
-msgstr ""
+msgstr "返回設定精靈"
 
 msgid "Back to table"
 msgstr ""
@@ -48012,10 +48012,10 @@ msgid "Backup codes — store offline:"
 msgstr ""
 
 msgid "Balance due"
-msgstr ""
+msgstr "應繳餘額"
 
 msgid "Balance due · tap to pay"
-msgstr ""
+msgstr "應繳餘額 · 點擊付款"
 
 msgid "Balance due · {{ amt }}"
 msgstr ""
@@ -48030,7 +48030,7 @@ msgid "Beat"
 msgstr ""
 
 msgid "Bed assignments"
-msgstr ""
+msgstr "床位分配"
 
 msgid "Before publish"
 msgstr ""
@@ -48048,10 +48048,10 @@ msgid "Behavior"
 msgstr ""
 
 msgid "Behavior / incidents"
-msgstr ""
+msgstr "行為 / 事件"
 
 msgid "Behavior points"
-msgstr ""
+msgstr "行為點數"
 
 msgid ""
 "Behavior points accrue automatically when incidents are recorded. "
@@ -48066,7 +48066,7 @@ msgid "Billing & plan"
 msgstr ""
 
 msgid "Billing + invoices"
-msgstr ""
+msgstr "帳務 + 發票"
 
 msgid "Billing by currency"
 msgstr ""
@@ -48081,10 +48081,10 @@ msgid "Billing exception"
 msgstr ""
 
 msgid "Billing history &amp; receipts"
-msgstr ""
+msgstr "帳務紀錄與收據"
 
 msgid "Billing history and receipts"
-msgstr ""
+msgstr "帳務紀錄與收據"
 
 msgid "Billing statement"
 msgstr ""
@@ -48127,7 +48127,7 @@ msgid "Book"
 msgstr ""
 
 msgid "Book a resource using the form above."
-msgstr ""
+msgstr "使用上方表單預約資源。"
 
 msgid ""
 "Book labs, halls, and shared spaces. Overlapping bookings are blocked "
@@ -48135,13 +48135,13 @@ msgid ""
 msgstr ""
 
 msgid "Book venue"
-msgstr ""
+msgstr "預約場地"
 
 msgid "Booked by"
-msgstr ""
+msgstr "預約人"
 
 msgid "Booking"
-msgstr ""
+msgstr "預約"
 
 msgid "Brand colors"
 msgstr ""
@@ -48189,7 +48189,7 @@ msgid "Building class structure"
 msgstr ""
 
 msgid "Building your timetable grid"
-msgstr ""
+msgstr "正在建立您的課程表格線"
 
 msgid "Built-in role home until a dashboard template is assigned."
 msgstr ""
@@ -48218,7 +48218,7 @@ msgid ""
 msgstr ""
 
 msgid "Bus routes + stops"
-msgstr ""
+msgstr "校車路線 + 站點"
 
 msgid "Buyer-ready evidence"
 msgstr ""
@@ -48239,10 +48239,10 @@ msgid "Cached surfaces"
 msgstr ""
 
 msgid "Cafeteria / meal plans"
-msgstr ""
+msgstr "餐廳 / 餐飲方案"
 
 msgid "Cafeteria assignments"
-msgstr ""
+msgstr "餐廳分配"
 
 msgid "Calm scenery means all clear. Tap a clouded pane to pay or follow up."
 msgstr ""
@@ -48272,7 +48272,7 @@ msgid "Cancel this fixture and release its venue?"
 msgstr ""
 
 msgid "Cannot enroll yet:"
-msgstr ""
+msgstr "尚無法註冊："
 
 msgid ""
 "Cannot publish: %(n)d unresolved clash(es). Resolve the conflicts and "
@@ -48388,7 +48388,7 @@ msgid ""
 msgstr ""
 
 msgid "Choose a preset for one-click scope, or tap domains below."
-msgstr ""
+msgstr "選擇預設以一鍵設定範圍，或點擊下方領域。"
 
 msgid "Choose a primary color that stands out from the background."
 msgstr ""
@@ -48411,7 +48411,7 @@ msgid "Choose role"
 msgstr ""
 
 msgid "Choose the student and the parent who will sign."
-msgstr ""
+msgstr "選擇學生與將簽署的家長。"
 
 msgid "Choose this plan"
 msgstr ""
@@ -48459,10 +48459,10 @@ msgid "Claim your invite"
 msgstr ""
 
 msgid "Claim your invite code from email or SMS, then pick Parent above."
-msgstr ""
+msgstr "從電子郵件或簡訊取得您的邀請碼，然後在上方選擇家長。"
 
 msgid "Claim your parent account"
-msgstr ""
+msgstr "領取您的家長帳戶"
 
 msgid "Clash panel"
 msgstr ""
@@ -48648,7 +48648,7 @@ msgid "Confirmed"
 msgstr ""
 
 msgid "Confirmed bookings"
-msgstr ""
+msgstr "已確認的預約"
 
 msgid "Conflict"
 msgstr ""
@@ -48800,7 +48800,7 @@ msgid "Country (ISO code, e.g. NG, KE, US)"
 msgstr ""
 
 msgid "Country billing setup"
-msgstr ""
+msgstr "國家帳務設定"
 
 msgid "Country set — unlock local currency rails in School Studio."
 msgstr ""
@@ -48826,7 +48826,7 @@ msgid "Create classroom"
 msgstr ""
 
 msgid "Create homework and grade what students submit."
-msgstr ""
+msgstr "建立作業並為學生繳交的內容評分。"
 
 msgid "Create or select a report style to enable direct previews."
 msgstr ""
@@ -48839,7 +48839,7 @@ msgid ""
 msgstr ""
 
 msgid "Create your first homework assignment for a class."
-msgstr ""
+msgstr "為班級建立您的第一份作業。"
 
 msgid "Created the “%(name)s” bundle."
 msgstr ""
@@ -48850,7 +48850,7 @@ msgid ""
 msgstr ""
 
 msgid "Creating your academic year"
-msgstr ""
+msgstr "正在建立您的學年"
 
 msgid "Creating your administrator account"
 msgstr ""
@@ -48874,7 +48874,7 @@ msgid "Cross the threshold · education OS"
 msgstr ""
 
 msgid "Cross-rail sync health"
-msgstr ""
+msgstr "跨管道同步健康"
 
 msgid "Curated remediation catalog"
 msgstr ""
@@ -48942,7 +48942,7 @@ msgid "Daily 04:30 UTC via Celery — holding-currency-rollup-daily"
 msgstr ""
 
 msgid "Daily attendance module"
-msgstr ""
+msgstr "每日出勤模組"
 
 msgid "Daily operations"
 msgstr ""
@@ -49077,7 +49077,7 @@ msgid "Detail-view defaults saved for this school."
 msgstr ""
 
 msgid "Detailed setup log"
-msgstr ""
+msgstr "詳細設定記錄"
 
 msgid "Detected record type"
 msgstr ""
@@ -49136,7 +49136,7 @@ msgid "Don't forget"
 msgstr ""
 
 msgid "Donation receipt"
-msgstr ""
+msgstr "捐款收據"
 
 msgid "Donations & funding"
 msgstr ""
@@ -49187,7 +49187,7 @@ msgid ""
 msgstr ""
 
 msgid "Draft emergency announcement"
-msgstr ""
+msgstr "草擬緊急公告"
 
 msgid "Draft or live source"
 msgstr ""
@@ -49327,22 +49327,22 @@ msgid "Enforcement mode"
 msgstr ""
 
 msgid "Enroll MFA"
-msgstr ""
+msgstr "註冊 MFA"
 
 msgid "Enroll as student"
-msgstr ""
+msgstr "以學生身分註冊"
 
 msgid "Enroll student"
-msgstr ""
+msgstr "註冊學生"
 
 msgid "Enrolled into the system."
-msgstr ""
+msgstr "已註冊至系統。"
 
 msgid "Enrollments"
 msgstr ""
 
 msgid "Ensure invoices or fee notices are visible"
-msgstr ""
+msgstr "確保發票或費用通知可見"
 
 msgid "Enter a current code from your authenticator (or a backup code)."
 msgstr ""
@@ -49354,17 +49354,17 @@ msgid "Enter and approve marks — type them in or upload marksheets for OCR."
 msgstr ""
 
 msgid "Enter grades"
-msgstr ""
+msgstr "輸入成績"
 
 msgid "Enter grades:"
-msgstr ""
+msgstr "輸入成績："
 
 msgid ""
 "Enter the 6-digit code from your authenticator app. Backup codes also work."
 msgstr ""
 
 msgid "Enter your email to be redirected to your school portal."
-msgstr ""
+msgstr "輸入您的電子郵件以重新導向至您的學校入口網站。"
 
 msgid "Enter · run the sims"
 msgstr ""
@@ -49421,10 +49421,10 @@ msgid "Experience live preview"
 msgstr ""
 
 msgid "Explain clearly why the subscription fee should be waived."
-msgstr ""
+msgstr "清楚說明為何應豁免訂閱費。"
 
 msgid "Explore my portal"
-msgstr ""
+msgstr "探索我的入口網站"
 
 msgid "Explore my workflow"
 msgstr ""
@@ -49477,7 +49477,7 @@ msgid "Family invite"
 msgstr ""
 
 msgid "Family portal preview"
-msgstr ""
+msgstr "家庭入口網站預覽"
 
 msgid "Family window view"
 msgstr ""
@@ -49509,28 +49509,28 @@ msgid ""
 msgstr ""
 
 msgid "Fee ledger import"
-msgstr ""
+msgstr "費用分類帳匯入"
 
 msgid "Fee payments received"
-msgstr ""
+msgstr "已收到費用付款"
 
 msgid "Feedback loop"
 msgstr ""
 
 msgid "Fees &amp; finance"
-msgstr ""
+msgstr "費用與財務"
 
 msgid "Fees due"
-msgstr ""
+msgstr "應繳費用"
 
 msgid "Fees split the way your region actually pays"
-msgstr ""
+msgstr "費用依您所在地區的實際付款方式拆分"
 
 msgid "Fees, report cards, and messages — invite required first time"
-msgstr ""
+msgstr "費用、成績單與訊息 — 首次需要邀請"
 
 msgid "Fees, report cards, and teacher messages after you sign in."
-msgstr ""
+msgstr "登入後即可查看費用、成績單與教師訊息。"
 
 msgid "Fiber · sync queue idle"
 msgstr ""
@@ -49566,10 +49566,10 @@ msgid "Filters available"
 msgstr ""
 
 msgid "Finalize term grades"
-msgstr ""
+msgstr "確定學期成績"
 
 msgid "Finance / fees"
-msgstr ""
+msgstr "財務 / 費用"
 
 msgid "Finance Notifications"
 msgstr ""
@@ -49578,7 +49578,7 @@ msgid "Finance attention needed"
 msgstr ""
 
 msgid "Finance setup"
-msgstr ""
+msgstr "財務設定"
 
 msgid "Find a user (username or email)"
 msgstr ""
@@ -49587,16 +49587,16 @@ msgid "Find an answer"
 msgstr ""
 
 msgid "Finish account setup"
-msgstr ""
+msgstr "完成帳戶設定"
 
 msgid "Finishing optional setup"
-msgstr ""
+msgstr "正在完成選填設定"
 
 msgid "First 7 days"
 msgstr ""
 
 msgid "First time as a parent?"
-msgstr ""
+msgstr "第一次以家長身分使用？"
 
 msgid "First time? Use Family invite below to claim your school token."
 msgstr ""
@@ -49638,7 +49638,7 @@ msgid "Fleet focus ready"
 msgstr ""
 
 msgid "Fleet healthy · pan to explore pins"
-msgstr ""
+msgstr "車隊健康 · 平移以探索圖釘"
 
 msgid "Fleet pulse"
 msgstr ""
@@ -49662,13 +49662,13 @@ msgid "Fleet wall"
 msgstr ""
 
 msgid "Fleet wall by school health"
-msgstr ""
+msgstr "依學校健康分類的車隊牆"
 
 msgid "Fleet-wide items that need attention now"
 msgstr ""
 
 msgid "Fluid gradebook"
-msgstr ""
+msgstr "靈活成績簿"
 
 msgid "Fly West Africa"
 msgstr ""
@@ -49767,7 +49767,7 @@ msgid "Fund"
 msgstr ""
 
 msgid "Fund health"
-msgstr ""
+msgstr "資金健康"
 
 msgid "Funder"
 msgstr ""
@@ -49797,7 +49797,7 @@ msgid "Generate live banner program"
 msgstr ""
 
 msgid "Generate timetable"
-msgstr ""
+msgstr "產生課程表"
 
 msgid ""
 "Generative surfaces route through the model gateway when AI is enabled "
@@ -49813,13 +49813,13 @@ msgid "Getting started"
 msgstr ""
 
 msgid "Getting your setup started…"
-msgstr ""
+msgstr "正在開始您的設定…"
 
 msgid "Gift"
 msgstr ""
 
 msgid "Gifts & receipts"
-msgstr ""
+msgstr "捐贈與收據"
 
 msgid "Give the bundle a name and pick at least one role."
 msgstr ""
@@ -49889,28 +49889,28 @@ msgid ""
 msgstr ""
 
 msgid "Grade scale preview"
-msgstr ""
+msgstr "成績級距預覽"
 
 msgid "Grade trend"
-msgstr ""
+msgstr "成績趨勢"
 
 msgid "Gradebook & attendance"
-msgstr ""
+msgstr "成績簿與出勤"
 
 msgid "Gradebook + report cards"
-msgstr ""
+msgstr "成績簿 + 成績單"
 
 msgid "Gradebook import"
-msgstr ""
+msgstr "成績簿匯入"
 
 msgid "Gradebook, attendance, and announcements in one workspace."
-msgstr ""
+msgstr "成績簿、出勤與公告集中於一個工作區。"
 
 msgid "Grades &amp; marks"
-msgstr ""
+msgstr "成績與分數"
 
 msgid "Grades after sign-in"
-msgstr ""
+msgstr "登入後的成績"
 
 msgid "Grading & assessment"
 msgstr ""
@@ -49981,13 +49981,13 @@ msgid "Grow · 17:30"
 msgstr ""
 
 msgid "Guardian consent"
-msgstr ""
+msgstr "監護人同意"
 
 msgid "Guardian email"
-msgstr ""
+msgstr "監護人電子郵件"
 
 msgid "Guardian link"
-msgstr ""
+msgstr "監護人連結"
 
 msgid "Guardian name"
 msgstr ""
@@ -50022,7 +50022,7 @@ msgid "Healing"
 msgstr ""
 
 msgid "Health hub"
-msgstr ""
+msgstr "健康中心"
 
 msgid "Held"
 msgstr ""
@@ -50051,7 +50051,7 @@ msgid "Hi {{ name }} — you're on track"
 msgstr ""
 
 msgid "Hidden — no grades on student dashboard"
-msgstr ""
+msgstr "隱藏 — 學生儀表板上不顯示成績"
 
 msgid "Historical academic records"
 msgstr ""
@@ -50072,19 +50072,19 @@ msgid "Home score"
 msgstr ""
 
 msgid "Homework and results in one place"
-msgstr ""
+msgstr "作業與成績集中一處"
 
 msgid "Homework gradebook"
-msgstr ""
+msgstr "作業成績簿"
 
 msgid "Homework grading"
-msgstr ""
+msgstr "作業評分"
 
 msgid "Homework in the gradebook"
-msgstr ""
+msgstr "成績簿中的作業"
 
 msgid "Homework, schedule, and report cards"
-msgstr ""
+msgstr "作業、行程與成績單"
 
 msgid "Honest multi-currency rollup"
 msgstr ""
@@ -50109,10 +50109,10 @@ msgid "Hostel / boarding"
 msgstr ""
 
 msgid "Hostel assignments"
-msgstr ""
+msgstr "宿舍分配"
 
 msgid "How does your school grade?"
-msgstr ""
+msgstr "貴校如何評分？"
 
 msgid "How the Workflow Center works"
 msgstr ""
@@ -50142,7 +50142,7 @@ msgid "Illustrative · not a legal claim · run the sims below for proof"
 msgstr ""
 
 msgid "Immersive login"
-msgstr ""
+msgstr "沉浸式登入"
 
 msgid "Import and export remain tenant-scoped evidence flows."
 msgstr ""
@@ -50230,7 +50230,7 @@ msgid "Inline triage"
 msgstr ""
 
 msgid "Inquiry becomes enrollment — no re-entry"
-msgstr ""
+msgstr "詢問轉為註冊 — 無需重新輸入"
 
 msgid "Inspect billing"
 msgstr ""
@@ -50301,7 +50301,7 @@ msgid "Invite a person"
 msgstr ""
 
 msgid "Invite parents"
-msgstr ""
+msgstr "邀請家長"
 
 msgid "Invite someone to run the backend; you stay owner"
 msgstr ""
@@ -50313,19 +50313,19 @@ msgid "Invite-based access"
 msgstr ""
 
 msgid "Invoice locale"
-msgstr ""
+msgstr "發票地區設定"
 
 msgid "Invoice no."
-msgstr ""
+msgstr "發票編號"
 
 msgid "Invoice not found."
-msgstr ""
+msgstr "找不到發票。"
 
 msgid "Invoice rollup"
-msgstr ""
+msgstr "發票彙總"
 
 msgid "Invoices past their due date"
-msgstr ""
+msgstr "已過到期日的發票"
 
 msgid "Issue API keys and webhooks from the API Center after you sign in."
 msgstr ""
@@ -50467,14 +50467,14 @@ msgid ""
 msgstr ""
 
 msgid "Link a child to get started"
-msgstr ""
+msgstr "連結孩子即可開始"
 
 msgid ""
 "Link a {{ t }} to your parent account before requesting exports or erasure."
 msgstr ""
 
 msgid "Link it to the right academic year so rosters and reports line up."
-msgstr ""
+msgstr "將其連結至正確的學年，讓名冊與報表一致。"
 
 msgid "Link unavailable"
 msgstr ""
@@ -50510,7 +50510,7 @@ msgid "Live console"
 msgstr ""
 
 msgid "Live dashboard assignment preview"
-msgstr ""
+msgstr "即時儀表板指派預覽"
 
 msgid "Live data after sign-in"
 msgstr ""
@@ -50606,7 +50606,7 @@ msgid "Locales"
 msgstr ""
 
 msgid "Lock attendance registers"
-msgstr ""
+msgstr "鎖定出勤登記簿"
 
 msgid ""
 "Lock the submit button with a spinner while a form is sending, so a double-"
@@ -50626,16 +50626,16 @@ msgid ""
 msgstr ""
 
 msgid "Login Canvas Pro"
-msgstr ""
+msgstr "登入畫布 Pro"
 
 msgid "Login canvas"
-msgstr ""
+msgstr "登入畫布"
 
 msgid "Login canvas (tenant sign-in)"
-msgstr ""
+msgstr "登入畫布（租戶登入）"
 
 msgid "Login canvas preview"
-msgstr ""
+msgstr "登入畫布預覽"
 
 msgid "Logo colour"
 msgstr ""
@@ -50705,7 +50705,7 @@ msgid "Mark done"
 msgstr ""
 
 msgid "Mark playbook complete or request CS help"
-msgstr ""
+msgstr "將作業手冊標記為完成或請求客服協助"
 
 msgid "Mark reviewed"
 msgstr ""
@@ -50714,7 +50714,7 @@ msgid "Mark this run paid? Payslips will be locked from regeneration."
 msgstr ""
 
 msgid "Marquee and hybrid hero modes require Login canvas Pro."
-msgstr ""
+msgstr "跑馬燈與混合主視覺模式需要登入畫布 Pro。"
 
 msgid "Master preview — all layers"
 msgstr ""
@@ -50767,7 +50767,7 @@ msgid ""
 msgstr ""
 
 msgid "Meal plan balances"
-msgstr ""
+msgstr "餐飲方案餘額"
 
 msgid "Medical clearance"
 msgstr ""
@@ -50897,7 +50897,7 @@ msgid "Native table"
 msgstr ""
 
 msgid "Need help with grade entry? Contact the school office."
-msgstr ""
+msgstr "需要輸入成績的協助嗎？請聯絡學校辦公室。"
 
 msgid "Needs eyes"
 msgstr ""
@@ -50909,7 +50909,7 @@ msgid "Net renewal"
 msgstr ""
 
 msgid "New assignment"
-msgstr ""
+msgstr "新作業"
 
 msgid ""
 "New athletes join as Pending until a guardian signs the participation "
@@ -50917,7 +50917,7 @@ msgid ""
 msgstr ""
 
 msgid "New enrollments"
-msgstr ""
+msgstr "新註冊"
 
 msgid "New record"
 msgstr ""
@@ -50947,7 +50947,7 @@ msgid "Next actions"
 msgstr ""
 
 msgid "Next wizard step"
-msgstr ""
+msgstr "下一個精靈步驟"
 
 msgid "No AI surfaces registered."
 msgstr ""
@@ -50974,10 +50974,10 @@ msgid "No active promotions, waivers, credits, or sponsorships are applied."
 msgstr ""
 
 msgid "No active students are enrolled in this class yet."
-msgstr ""
+msgstr "此班級尚無在籍學生註冊。"
 
 msgid "No anomaly risk nudges right now — sampled tenants look healthy."
-msgstr ""
+msgstr "目前沒有異常風險提示 — 抽樣的租戶看來健康。"
 
 msgid ""
 "No apply policies — the engine is shadow-only. Create a "
@@ -50986,7 +50986,7 @@ msgid ""
 msgstr ""
 
 msgid "No assignments yet"
-msgstr ""
+msgstr "尚無指派"
 
 msgid "No athletes on this roster yet."
 msgstr ""
@@ -51001,7 +51001,7 @@ msgid "No blockers — you can launch."
 msgstr ""
 
 msgid "No bookable resources yet"
-msgstr ""
+msgstr "尚無可預約的資源"
 
 msgid ""
 "No bundles yet — create one above, then you'll be able to apply it to your "
@@ -51055,7 +51055,7 @@ msgid "No finance notifications yet."
 msgstr ""
 
 msgid "No fixtures scheduled yet."
-msgstr ""
+msgstr "尚未排定任何賽程。"
 
 msgid "No gifts recorded across any tenant yet."
 msgstr ""
@@ -51069,7 +51069,7 @@ msgid ""
 msgstr ""
 
 msgid "No gradebook yet"
-msgstr ""
+msgstr "尚無成績簿"
 
 msgid ""
 "No grant applications yet. Create one in the admin to start tracking the "
@@ -51077,10 +51077,10 @@ msgid ""
 msgstr ""
 
 msgid "No health signals right now — nothing to propose."
-msgstr ""
+msgstr "目前沒有健康訊號 — 無可建議事項。"
 
 msgid "No homework right now"
-msgstr ""
+msgstr "目前沒有作業"
 
 msgid "No incidents recorded yet"
 msgstr ""
@@ -51105,7 +51105,7 @@ msgid "No live schools on the map yet"
 msgstr ""
 
 msgid "No members yet — invite your team to get started."
-msgstr ""
+msgstr "尚無成員 — 邀請您的團隊即可開始。"
 
 msgid "No members yet."
 msgstr ""
@@ -51143,7 +51143,7 @@ msgid ""
 msgstr ""
 
 msgid "No published homework or no students in this class yet."
-msgstr ""
+msgstr "此班級尚無已發布的作業或尚無學生。"
 
 msgid "No regions in school hours"
 msgstr ""
@@ -51229,10 +51229,10 @@ msgid "No transfer cases yet."
 msgstr ""
 
 msgid "No upcoming bookings"
-msgstr ""
+msgstr "沒有即將到來的預約"
 
 msgid "No urgent items — check today's timetable and this week's work below."
-msgstr ""
+msgstr "沒有緊急事項 — 請查看下方今日課程表與本週作業。"
 
 msgid "No users matched that search."
 msgstr ""
@@ -51300,7 +51300,7 @@ msgid "Notify me by"
 msgstr ""
 
 msgid "Notify parent when synced"
-msgstr ""
+msgstr "同步後通知家長"
 
 msgid "Now"
 msgstr ""
@@ -51317,7 +51317,7 @@ msgid ""
 msgstr ""
 
 msgid "Nurse / clinic module"
-msgstr ""
+msgstr "護理師 / 診所模組"
 
 msgid "OAuth access token"
 msgstr ""
@@ -51385,7 +51385,7 @@ msgid ""
 msgstr ""
 
 msgid "Onboard students and teachers, then link guardians."
-msgstr ""
+msgstr "加入學生與教師，然後連結監護人。"
 
 msgid "Onboarding sections"
 msgstr ""
@@ -55773,7 +55773,7 @@ msgid "Create a club"
 msgstr ""
 
 msgid "Create a debate, robotics, or service club to get started."
-msgstr ""
+msgstr "建立辯論、機器人或服務社團即可開始。"
 
 msgid "Create club"
 msgstr ""
@@ -55785,13 +55785,13 @@ msgid "Editing"
 msgstr ""
 
 msgid "Enroll"
-msgstr ""
+msgstr "註冊"
 
 msgid "Enroll a student"
-msgstr ""
+msgstr "註冊學生"
 
 msgid "Enroll students above to build the club roster."
-msgstr ""
+msgstr "在上方註冊學生以建立社團名冊。"
 
 msgid "Event Detail"
 msgstr ""
@@ -55820,7 +55820,7 @@ msgid "Fundraising goal"
 msgstr ""
 
 msgid "Guardian user ID"
-msgstr ""
+msgstr "監護人使用者 ID"
 
 msgid "Guidance & tips"
 msgstr ""
@@ -55913,7 +55913,7 @@ msgid "No clubs yet"
 msgstr ""
 
 msgid "No discipline incidents have been shared with you yet."
-msgstr ""
+msgstr "尚未有紀律事件與您分享。"
 
 msgid "No marks found for this selection."
 msgstr ""
@@ -55931,7 +55931,7 @@ msgid "No ticket tiers configured."
 msgstr ""
 
 msgid "Notified discipline incidents"
-msgstr ""
+msgstr "已通知的紀律事件"
 
 msgid "Open a changelist to see page-aware list context."
 msgstr ""
@@ -56361,7 +56361,7 @@ msgid "Continue — set up two-factor authentication"
 msgstr ""
 
 msgid "Copy owner setup link"
-msgstr ""
+msgstr "複製擁有者設定連結"
 
 msgid ""
 "Copy this signing secret now — it is shown only once. Use it to verify the "
@@ -56380,7 +56380,7 @@ msgid ""
 msgstr ""
 
 msgid "Create a runbook"
-msgstr ""
+msgstr "建立作業手冊"
 
 msgid "Create token"
 msgstr ""
@@ -56389,7 +56389,7 @@ msgid "Credits"
 msgstr ""
 
 msgid "Cutover runbooks"
-msgstr ""
+msgstr "切換作業手冊"
 
 msgid "DSL safeguarding inbox"
 msgstr ""
@@ -56522,7 +56522,7 @@ msgid ""
 msgstr ""
 
 msgid "Guardian consent:"
-msgstr ""
+msgstr "監護人同意："
 
 msgid ""
 "Guided domains via Config center. Model catalog below is for direct school-"
@@ -56673,7 +56673,7 @@ msgid "No configuration sections available."
 msgstr ""
 
 msgid "No cutover runbooks yet. Create one above."
-msgstr ""
+msgstr "尚無切換作業手冊。請在上方建立一個。"
 
 msgid "No files detected yet."
 msgstr ""
@@ -57403,7 +57403,7 @@ msgid "<strong>Start searching</strong> to find FAQs and articles"
 msgstr ""
 
 msgid "A balanced school workspace with local-first operations."
-msgstr ""
+msgstr "兼顧本地優先運作的均衡學校工作區。"
 
 msgid "A client ID is required for an OIDC connection."
 msgstr ""
@@ -57437,7 +57437,7 @@ msgid ""
 msgstr ""
 
 msgid "A verified payment rail is available to this school."
-msgstr ""
+msgstr "本學校可使用已驗證的支付管道。"
 
 msgid "ADMIN"
 msgstr ""
@@ -57506,7 +57506,7 @@ msgid "Account review available"
 msgstr ""
 
 msgid "Account setup steps"
-msgstr ""
+msgstr "帳戶設定步驟"
 
 msgid "Acknowledge"
 msgstr ""
@@ -57589,7 +57589,7 @@ msgid "Add multi-factor authentication to strengthen sign-in."
 msgstr ""
 
 msgid "Add residence, welfare, transport and duty operations."
-msgstr ""
+msgstr "新增住宿、福利、交通與值勤作業。"
 
 msgid "Add school staff or parent"
 msgstr ""
@@ -57646,7 +57646,7 @@ msgid "All Terms"
 msgstr ""
 
 msgid "All marks by term, class, subject, and teacher."
-msgstr ""
+msgstr "依學期、班級、科目與教師分類的所有分數。"
 
 msgid "All outcomes"
 msgstr ""
@@ -57679,7 +57679,7 @@ msgid "Annual (whole year)"
 msgstr ""
 
 msgid "Any member of this school — staff, parent, or student."
-msgstr ""
+msgstr "本學校的任何成員 — 教職員、家長或學生。"
 
 msgid "App install lifecycle"
 msgstr ""
@@ -57780,7 +57780,7 @@ msgid "Attendance snapshot"
 msgstr ""
 
 msgid "Attendance streak"
-msgstr ""
+msgstr "連續出勤"
 
 msgid "Audit Log"
 msgstr ""
@@ -57792,7 +57792,7 @@ msgid "Auto"
 msgstr ""
 
 msgid "Automate safe setup"
-msgstr ""
+msgstr "自動化安全設定"
 
 msgid "Automatic restore point available"
 msgstr ""
@@ -57810,7 +57810,7 @@ msgid "Back to Analytics"
 msgstr ""
 
 msgid "Back to Developer portal"
-msgstr ""
+msgstr "返回開發者入口網站"
 
 msgid "Back to Evaluations"
 msgstr ""
@@ -57819,10 +57819,10 @@ msgid "Back to Feature Control"
 msgstr ""
 
 msgid "Back to Invoices"
-msgstr ""
+msgstr "返回發票"
 
 msgid "Back to Library"
-msgstr ""
+msgstr "返回圖書館"
 
 msgid "Back to builder"
 msgstr ""
@@ -57849,7 +57849,7 @@ msgid "Backend list density"
 msgstr ""
 
 msgid "Balance outstanding"
-msgstr ""
+msgstr "未結餘額"
 
 msgid "Bank account"
 msgstr ""
@@ -57902,7 +57902,7 @@ msgid "Boarding"
 msgstr ""
 
 msgid "Boarding / transport"
-msgstr ""
+msgstr "住宿 / 交通"
 
 msgid "Body"
 msgstr ""
@@ -57941,13 +57941,13 @@ msgid "Bulk Finance Access"
 msgstr ""
 
 msgid "Bulk Grade Import"
-msgstr ""
+msgstr "批次匯入成績"
 
 msgid "Bulk Grade Import - Upload & Validate"
-msgstr ""
+msgstr "批次匯入成績 - 上傳與驗證"
 
 msgid "Bulk Report Cards"
-msgstr ""
+msgstr "批次成績單"
 
 msgid "Bulk add candidates"
 msgstr ""
@@ -57956,10 +57956,10 @@ msgid "Bulk entry — select your class and subject to begin."
 msgstr ""
 
 msgid "Bulk grade import validation preview"
-msgstr ""
+msgstr "批次匯入成績驗證預覽"
 
 msgid "Bulk report cards"
-msgstr ""
+msgstr "批次成績單"
 
 msgid "Button label"
 msgstr ""
@@ -58143,7 +58143,7 @@ msgid "Client ID"
 msgstr ""
 
 msgid "Clinic / health"
-msgstr ""
+msgstr "診所 / 健康"
 
 msgid "Clone"
 msgstr ""
@@ -58217,7 +58217,7 @@ msgid "Complete Registration"
 msgstr ""
 
 msgid "Complete Setup"
-msgstr ""
+msgstr "完成設定"
 
 msgid "Complete activation"
 msgstr ""
@@ -58240,7 +58240,7 @@ msgid "Completion Rate"
 msgstr ""
 
 msgid "Completion spotlight appears once assignments are active."
-msgstr ""
+msgstr "指派啟用後即會顯示完成度焦點。"
 
 msgid "Complex aid and scholarships"
 msgstr ""
@@ -58321,7 +58321,7 @@ msgid "Context help, support and keyboard map"
 msgstr ""
 
 msgid "Continue your setup"
-msgstr ""
+msgstr "繼續您的設定"
 
 msgid "Continuous / flexible"
 msgstr ""
@@ -58342,7 +58342,7 @@ msgid "Core academics, people and finance."
 msgstr ""
 
 msgid "Core records, attendance and communication"
-msgstr ""
+msgstr "核心紀錄、出勤與溝通"
 
 msgid "Corridor profile"
 msgstr ""
@@ -58375,7 +58375,7 @@ msgid "Create Exam Session"
 msgstr ""
 
 msgid "Create Invoice New billing"
-msgstr ""
+msgstr "建立發票 新帳務"
 
 msgid "Create Payroll Run"
 msgstr ""
@@ -58405,7 +58405,7 @@ msgid "Create code"
 msgstr ""
 
 msgid "Create new evaluations for students with no existing grade"
-msgstr ""
+msgstr "為尚無成績的學生建立新評量"
 
 msgid "Create now with a temporary password"
 msgstr ""
@@ -58456,7 +58456,7 @@ msgid "Currently applied"
 msgstr ""
 
 msgid "Curriculum / exam board"
-msgstr ""
+msgstr "課程 / 考試委員會"
 
 msgid "Customize experience"
 msgstr ""
@@ -58609,7 +58609,7 @@ msgid "District / authority"
 msgstr ""
 
 msgid "Document Library Management"
-msgstr ""
+msgstr "文件庫管理"
 
 msgid "Document Type *"
 msgstr ""
@@ -58737,10 +58737,10 @@ msgid "Enhanced accommodations"
 msgstr ""
 
 msgid "Enrollment configuration & records"
-msgstr ""
+msgstr "註冊設定與紀錄"
 
 msgid "Enrollment operations"
-msgstr ""
+msgstr "註冊作業"
 
 msgid "Enter a discovery URL or issuer to test."
 msgstr ""
@@ -58930,16 +58930,16 @@ msgid "Federated identity"
 msgstr ""
 
 msgid "Fee Status"
-msgstr ""
+msgstr "費用狀態"
 
 msgid "Fee collection posture"
-msgstr ""
+msgstr "費用收取狀態"
 
 msgid "Fee-collection posture recorded."
-msgstr ""
+msgstr "已記錄費用收取狀態。"
 
 msgid "Fees, invoices & payments"
-msgstr ""
+msgstr "費用、發票與付款"
 
 msgid ""
 "Fees, payments, settlement, and reconciliation — your school's money "
@@ -58989,7 +58989,7 @@ msgid "Fine-tune my recommendation"
 msgstr ""
 
 msgid "Finish the remaining setup evidence"
-msgstr ""
+msgstr "完成剩餘的設定佐證"
 
 msgid "First"
 msgstr ""
@@ -59034,10 +59034,10 @@ msgid "Four quick decisions · progressive"
 msgstr ""
 
 msgid "Freeze transcript"
-msgstr ""
+msgstr "凍結成績單"
 
 msgid "Freeze transcript for year"
-msgstr ""
+msgstr "凍結該學年的成績單"
 
 msgid "Frequently Asked Questions"
 msgstr ""
@@ -59058,7 +59058,7 @@ msgid "Generate EMIS Export"
 msgstr ""
 
 msgid "Generate Fee"
-msgstr ""
+msgstr "產生費用"
 
 msgid "Generate Payslips"
 msgstr ""
@@ -59110,13 +59110,13 @@ msgid "Governor"
 msgstr ""
 
 msgid "Grade Approval"
-msgstr ""
+msgstr "成績核准"
 
 msgid "Grade Approval Request"
-msgstr ""
+msgstr "成績核准請求"
 
 msgid "Grade Approval Requests"
-msgstr ""
+msgstr "成績核准請求"
 
 msgid "Grade Approvals"
 msgstr ""
@@ -59128,13 +59128,13 @@ msgid "Grade Template"
 msgstr ""
 
 msgid "Grade approval requests: subject, teacher, status, and actions"
-msgstr ""
+msgstr "成績核准請求：科目、教師、狀態與動作"
 
 msgid "Grade approvals, access requests and contact requests waiting on you."
-msgstr ""
+msgstr "等待您處理的成績核准、存取請求與聯絡請求。"
 
 msgid "Grades and balances in one place"
-msgstr ""
+msgstr "成績與餘額集中一處"
 
 msgid "Grading Compliance Dashboard"
 msgstr ""
@@ -59228,13 +59228,13 @@ msgid "High-volume data, workflow and governance controls."
 msgstr ""
 
 msgid "How are teaching sessions scheduled?"
-msgstr ""
+msgstr "教學課節如何排程？"
 
 msgid "How does the school day work?"
 msgstr ""
 
 msgid "How fees are collected (optional note)"
-msgstr ""
+msgstr "費用如何收取（選填備註）"
 
 msgid "How is your institution organized?"
 msgstr ""
@@ -59254,7 +59254,7 @@ msgid "How will this school operate?"
 msgstr ""
 
 msgid "How will you collect fees?"
-msgstr ""
+msgstr "您將如何收取費用？"
 
 msgid "I already have an account"
 msgstr ""
@@ -59599,13 +59599,13 @@ msgid ""
 msgstr ""
 
 msgid "Login & Contribute"
-msgstr ""
+msgstr "登入並貢獻"
 
 msgid "Login & Submit"
-msgstr ""
+msgstr "登入並提交"
 
 msgid "Login to vote"
-msgstr ""
+msgstr "登入以投票"
 
 msgid "London"
 msgstr ""
@@ -59645,7 +59645,7 @@ msgid "Manage groups"
 msgstr ""
 
 msgid "Manage library"
-msgstr ""
+msgstr "管理圖書館"
 
 msgid ""
 "Manage school-scoped finance records, controls, and integrations from this "
@@ -59676,7 +59676,7 @@ msgid "Maps to field"
 msgstr ""
 
 msgid "Mark all present"
-msgstr ""
+msgstr "全部標記出席"
 
 msgid "Mark resolved with audit note"
 msgstr ""
@@ -59709,7 +59709,7 @@ msgid "Max uses"
 msgstr ""
 
 msgid "Meals"
-msgstr ""
+msgstr "餐點"
 
 msgid "Media Type"
 msgstr ""
@@ -59806,7 +59806,7 @@ msgid "Mutating /super/ audit"
 msgstr ""
 
 msgid "My Timetable"
-msgstr ""
+msgstr "我的課程表"
 
 msgid "My and School Requests"
 msgstr ""
@@ -59821,10 +59821,10 @@ msgid "National curriculum"
 msgstr ""
 
 msgid "National examination board"
-msgstr ""
+msgstr "國家考試委員會"
 
 msgid "National examinations"
-msgstr ""
+msgstr "國家考試"
 
 msgid "Native / recommend for me"
 msgstr ""
@@ -59845,7 +59845,7 @@ msgid "New York"
 msgstr ""
 
 msgid "New enrollment"
-msgstr ""
+msgstr "新註冊"
 
 msgid "New entry"
 msgstr ""
@@ -59863,10 +59863,10 @@ msgid "New message"
 msgstr ""
 
 msgid "New school signup on RunMyCampus"
-msgstr ""
+msgstr "在 RunMyCampus 上的新學校註冊"
 
 msgid "New schools onboarded in minutes"
-msgstr ""
+msgstr "新學校可於數分鐘內完成設定"
 
 msgid "New staff member"
 msgstr ""
@@ -59888,7 +59888,7 @@ msgid "No active students in {{ year }}."
 msgstr ""
 
 msgid "No active year/term."
-msgstr ""
+msgstr "沒有進行中的學年/學期。"
 
 msgid "No attendance data available."
 msgstr ""
@@ -60033,7 +60033,7 @@ msgid "Not ready yet? Skip for"
 msgstr ""
 
 msgid "Notify guardians"
-msgstr ""
+msgstr "通知監護人"
 
 msgid "Notify parents"
 msgstr ""
