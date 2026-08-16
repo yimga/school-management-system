@@ -1,8 +1,27 @@
 # A+ PROGRESS SCOREBOARD (A0 Coordinator)
 
-**Last refreshed:** 2026-08-15 (Claude Code · "KEEP GOING A+" → **M21 i18n Phase 1 `5914759cf`** (hygiene+seal) → **Phase 2 `f1b8e5174`** (French, fr **5.3%→13.3%**, +self-host `.mo`-compile parity) → **Phase 3 `d2420dc75`/`aa003f178`** (Spanish + Portuguese → **es/pt_BR 1.4%→9.3%**) → **Phase 4 `116417e22`→`4db46782e`** ("a+b" — RTL floor + depth, 6 locales) → **Phase 5 `33652878f`+`e279337c6`** (locale FLOOR SWEEP — 9 more locales off the ~1% floor: ur/hi/zh_Hans/ru/de/tr complete ~9%, ja/zh_Hant/it partial). Prior: binding-constraint audit + isolation seal `8a0051bfb`; 08-13 M29/M30/W22/W24/M32)  
-**Loop:** Under the 9.8 lowest-dimension regime, GO = raise the MINIMUM metric. Isolation clean (off ≤4.9). **Floor = M21 i18n** — Phases 4+5 took the platform from **3 → 15 materially-translated locales** (fr 20.5 · es/pt_BR 16.6 · de/tr/ru 9.1 · zh_Hans/hi 9.0 · ar 8.9 · ur/he/fa 8.0 · ja 6.4* · zh_Hant 5.1* · it 3.8*; *=partial). Audit-by-running confirmed i18n **infra is complete** → constraint is CONTENT everywhere, all AI-drafted → needs native review. **The residual M21 floor is now HUMAN-bounded:** ha/pid/yo (0%) + sw (0.7%) are human-only translation-request packets (AI drafts disallowed by policy), and native-review is a human gate. **Next on M21:** finish ja/zh_Hant/it tails (post-3:30pm ET reset); native-review toward the 60% 'full' bar; hand human packets to translators. Beyond M21: M31/M33, W21/W23/W25–W31.  
+**Last refreshed:** 2026-08-16 (Claude Code · "KEEP GOING A+" → **M21 i18n Phase 1 `5914759cf`** (hygiene+seal) → **Phase 2 `f1b8e5174`** (French, fr **5.3%→13.3%**, +self-host `.mo`-compile parity) → **Phase 3 `d2420dc75`/`aa003f178`** (Spanish + Portuguese → **es/pt_BR 1.4%→9.3%**) → **Phase 4 `116417e22`→`4db46782e`** ("a+b" — RTL floor + depth, 6 locales) → **Phase 5 `33652878f`+`e279337c6`** (locale FLOOR SWEEP — 9 more locales off the ~1% floor) → **Phase 5 tails `32affbbc8`** ("complete end to end" — ja/zh_Hant/it finished to 9.1%, closing every AI-addressable locale). Prior: binding-constraint audit + isolation seal `8a0051bfb`; 08-13 M29/M30/W22/W24/M32)  
+**Loop:** Under the 9.8 lowest-dimension regime, GO = raise the MINIMUM metric. Isolation clean (off ≤4.9). **Floor = M21 i18n** — Phases 4+5 took the platform from **3 → 15 materially-translated locales** (fr 20.5 · es/pt_BR 16.6 · de/tr/ru/ja/it/zh_Hant 9.1 · zh_Hans/hi 9.0 · ar 8.9 · ur/he/fa 8.0 — **no partials left; all twelve AI-addressable first-touch locales complete**). Audit-by-running confirmed i18n **infra is complete** → constraint is CONTENT everywhere, all AI-drafted → needs native review. **The residual M21 floor is now HUMAN-bounded:** ha/pid/yo (0%) + sw (0.7%) are human-only translation-request packets (AI drafts disallowed by policy), and native-review is a human gate. **Next on M21 (people-gated only):** native-review toward the 60% 'full' bar; hand human packets to translators. Beyond M21: M31/M33, W21/W23/W25–W31.  
 **Tree:** HEAD = `origin/main`
+
+---
+
+## M21 i18n — Phase 5 tails: ja/zh_Hant/it first-touch packs COMPLETED — SHIPPED — 2026-08-16
+
+**Commit `32affbbc8`.** "complete all this work end to end" → finished the three partial locales the Wave-2 session limit had cut short, using the identical exact-match playbook (3 parallel authoring subagents, `english_keys.txt` tail slices, per-language glossaries, `apply_fr` exact-match, applied from fresh origin baselines).
+
+**Result — the three partials closed, verified on origin by content:**
+- **ja** 6.4% → **9.1%** (tail lines 1041–1561; 509 applied)
+- **zh_Hant** 5.1% → **9.1%** (tail lines 781–1561; 763 applied — Traditional glyphs throughout, spot-checked)
+- **it** 3.8% → **9.1%** (tail lines 521–1561; 1020 applied)
+
+**No partials remain.** All twelve AI-addressable first-touch locales are now complete at ~8–20% (fr/es/pt_BR deeper). ~18–21 unmatched/locale = the identical marketing/landing-key set genuinely absent from those catalogs (self-correcting, not typos).
+
+**Honesty-trail upgrade (same commit):** `scan_locale_coverage.py` declarations reconciled to reality — every AI-drafted locale now carries `_STUB_FIRSTTOUCH_REASON` (was the stale "critical-UI pack only" `_STUB_BULK_REASON` for de/es/fr/hi/it/ja/pt_BR/ru/tr/zh_Hans/zh_Hant/ar), and the four **human-only** locales (ha/pid/yo/sw) carry a new explicit `_STUB_HUMANONLY_REASON` (AI drafts forbidden by policy). Obsolete `_STUB_BULK_REASON`/`_STUB_ZERO_REASON` constants removed (no dead code). Gate green (`LOCALE_COVERAGE_PASS`), its 13-test suite green, en.po untouched → freshness gate unaffected.
+
+**Ship discipline:** one lock-race (origin advanced `891fec469`→`8de8c312a` mid-push, a peer auth commit touching none of my 3 locale files) — ottpush rebuilt on the fresh tip and landed clean; all 12 boundary gates green.
+
+**REMAINING on M21 — now purely people-gated:** native-review of every AI-drafted locale toward the 60% 'full' bar; hand ha/pid/yo/sw packets to human translators. No further AI drafting can move the floor. Beyond M21: M31/M33, W21/W23/W25–W31.
 
 ---
 
@@ -12,7 +31,7 @@
 
 **Result — from 6 usable locales to 15** (materially translated; the platform had just 3 at session start):
 - **Complete first-touch (~8–9%):** ur 0→8.0 (RTL — the last RTL locale off zero), hi 1.1→9.0, zh_Hans 1.1→9.0, ru 1.1→9.1, de 1.1→9.1, tr 1.1→9.1 — joining ar/fa/he (~8) and fr/es/pt_BR (16.6–20.5) from Phase 4.
-- **Partial (Wave 2 tails cut by the session limit):** ja 1.1→6.4, zh_Hant 1.1→5.1, it 1.1→3.8 — tails finish after the 3:30pm ET reset.
+- **Partial (Wave 2 tails cut by the session limit):** ja 1.1→6.4, zh_Hant 1.1→5.1, it 1.1→3.8 — **tails since COMPLETED to 9.1% each in `32affbbc8` (see the Phase 5 tails block above).**
 
 **Method:** identical parallel-subagent playbook (1 lang/agent → 6 part-files → `apply_fr` exact-match), reusing the SAME 1,561 English first-touch keys; per-language education glossaries; **write-part-files-immediately** (Phase 4 lesson — no more total-loss on interrupt). Yield ~1527/locale (~34 unmatched = keys genuinely absent from that catalog, not typos). Applied from FRESH origin baseline at ship; ottpush per wave; every push verified by content.
 

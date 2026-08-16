@@ -98,23 +98,21 @@ EXPECTED_LOCALES = (
 MINIMUM_COVERAGE_PCT = 60.0
 SOURCE_MINIMUM_PCT = 99.0
 
-_STUB_BULK_REASON = (
-    "Bulk catalog is untranslated; only the Wave 21-23 critical-UI msgid pack "
-    "is filled (see scripts/verify_critical_msgid_depth.py). Untranslated "
-    "msgids fall back to English. Promote to 'full' when a translation vendor "
-    "lands and the floor becomes protective rather than blocking."
-)
-_STUB_ZERO_REASON = (
-    "Catalog is generated but 0 msgids are translated; the locale ships as a "
-    "pure English fallback so the language chooser and RTL/plural plumbing can "
-    "be exercised before translation is funded."
-)
 _STUB_FIRSTTOUCH_REASON = (
     "AI-drafted first-touch pack shipped (auth / onboarding / portals / "
     "attendance / grades / fees / timetable); the bulk catalog is still "
     "untranslated and falls back to English. NEEDS NATIVE REVIEW before the "
     "coverage claim is production-grade. Promote to 'full' once native review "
     "lands and coverage reaches the floor."
+)
+_STUB_HUMANONLY_REASON = (
+    "HUMAN-ONLY by policy (docs/i18n/TRANSLATION_REQUEST_PACKETS.md): AI drafts "
+    "are forbidden for this locale -- a wrong term users accept as canonical is "
+    "worse than an English fallback, and some of these languages have no settled "
+    "software orthography. A translation-request packet is staged for native "
+    "speakers; ships as English fallback until human translation lands. Promote "
+    "to 'full' only when a native translator delivers and coverage reaches the "
+    "floor. Do NOT AI-draft to raise this number."
 )
 
 LOCALE_DECLARATIONS: dict[str, tuple[str, str]] = {
@@ -123,28 +121,30 @@ LOCALE_DECLARATIONS: dict[str, tuple[str, str]] = {
         "Source catalog: msgid == msgstr identity. Everything else falls back "
         "to this, so it must stay effectively complete.",
     ),
-    # -- partially translated bulk catalogs (critical-UI pack only) ---------
-    "ar": ("stub", _STUB_BULK_REASON),
-    "de": ("stub", _STUB_BULK_REASON),
-    "es": ("stub", _STUB_BULK_REASON),
-    "fr": ("stub", _STUB_BULK_REASON),
-    "hi": ("stub", _STUB_BULK_REASON),
-    "it": ("stub", _STUB_BULK_REASON),
-    "ja": ("stub", _STUB_BULK_REASON),
-    "pt_BR": ("stub", _STUB_BULK_REASON),
-    "ru": ("stub", _STUB_BULK_REASON),
-    "sw": ("stub", _STUB_BULK_REASON),
-    "tr": ("stub", _STUB_BULK_REASON),
-    "zh_Hans": ("stub", _STUB_BULK_REASON),
-    "zh_Hant": ("stub", _STUB_BULK_REASON),
-    # -- RTL first-touch AI-draft (Phase 4, 2026-08-15) --------------------
+    # -- AI-drafted first-touch packs (Phases 2-5, 2026-08-14 -> 08-16). ----
+    #    LTR locales; fr/es/pt_BR carry added depth (16-20%). ALL still need
+    #    NATIVE REVIEW before any 'full' claim -- see _STUB_FIRSTTOUCH_REASON.
+    "de": ("stub", _STUB_FIRSTTOUCH_REASON),
+    "es": ("stub", _STUB_FIRSTTOUCH_REASON),
+    "fr": ("stub", _STUB_FIRSTTOUCH_REASON),
+    "hi": ("stub", _STUB_FIRSTTOUCH_REASON),
+    "it": ("stub", _STUB_FIRSTTOUCH_REASON),
+    "ja": ("stub", _STUB_FIRSTTOUCH_REASON),
+    "pt_BR": ("stub", _STUB_FIRSTTOUCH_REASON),
+    "ru": ("stub", _STUB_FIRSTTOUCH_REASON),
+    "tr": ("stub", _STUB_FIRSTTOUCH_REASON),
+    "zh_Hans": ("stub", _STUB_FIRSTTOUCH_REASON),
+    "zh_Hant": ("stub", _STUB_FIRSTTOUCH_REASON),
+    # -- AI-drafted first-touch packs, RTL (Phases 4-5, 2026-08-15). --------
+    "ar": ("stub", _STUB_FIRSTTOUCH_REASON + " RTL locale."),
     "fa": ("stub", _STUB_FIRSTTOUCH_REASON + " RTL locale."),
     "he": ("stub", _STUB_FIRSTTOUCH_REASON + " RTL locale."),
-    # -- zero-translation locales ------------------------------------------
     "ur": ("stub", _STUB_FIRSTTOUCH_REASON + " RTL locale."),
-    "ha": ("stub", _STUB_ZERO_REASON),
-    "pid": ("stub", _STUB_ZERO_REASON),
-    "yo": ("stub", _STUB_ZERO_REASON),
+    # -- HUMAN-ONLY by policy: AI drafts forbidden (packets staged). --------
+    "ha": ("stub", _STUB_HUMANONLY_REASON),
+    "pid": ("stub", _STUB_HUMANONLY_REASON),
+    "sw": ("stub", _STUB_HUMANONLY_REASON),
+    "yo": ("stub", _STUB_HUMANONLY_REASON),
     # -- tracked but never activated ---------------------------------------
     "pt": (
         "unserved",
