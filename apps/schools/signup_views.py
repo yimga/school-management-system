@@ -388,6 +388,7 @@ def _signup_rate_limited_response(request, scope: str, *, json_response: bool):
 
 
 @require_http_methods(["GET", "POST"])
+@transaction.atomic
 def signup_school(request: HttpRequest):
     """
     Public form: school name, subdomain/slug, admin email, country (optional).
@@ -1008,7 +1009,12 @@ def signup_school(request: HttpRequest):
         request.session.pop(key, None)
     request.session.modified = True
 
-    _send_signup_verification_email(request, verification)
+    # The verification worker must not observe a school before its creation
+    # transaction commits. This also prevents partial School rows when any
+    # required verification/audit write fails above.
+    transaction.on_commit(
+        lambda: _send_signup_verification_email(request, verification)
+    )
 
     t1 = time.monotonic()
     request_latency_ms = int((t1 - t0) * 1000)
@@ -2794,3 +2800,117 @@ def signup_decisions_preview(request: HttpRequest) -> JsonResponse:
         institution_profile={"campus_count": campus_count},
     )
     return JsonResponse(model)
+
+
+@require_GET
+@ratelimit(key="ip", rate="90/m", method="GET", block=True)
+def signup_recommendations_preview(request: HttpRequest) -> JsonResponse:
+    """Return the canonical explainable recommendation preview.
+
+    This endpoint intentionally calls the same deterministic engine persisted
+    at signup.  It is DB-free, AI-free and safe for local-first clients to
+    cache.  The response distinguishes evidence readiness from statistical
+    probability so the UI cannot manufacture a high-confidence claim.
+    """
+
+    from apps.schools.onboarding_recommendations import (
+        build_onboarding_recommendations,
+    )
+
+    def values(name: str, *, limit: int = 24) -> list[str]:
+        raw = request.GET.getlist(name)
+        if len(raw) == 1 and "," in raw[0]:
+            raw = raw[0].split(",")
+        return [str(value).strip().lower()[:64] for value in raw if str(value).strip()][
+            :limit
+        ]
+
+    profile_keys = (
+        "organization_scope",
+        "learner_scale",
+        "operating_model",
+        "connectivity_profile",
+        "funding_type",
+        "session_pattern",
+        "curriculum_board",
+        "governance_profile",
+        "payment_profile",
+        "assessment_profile",
+        "identity_profile",
+        "data_residency_requirement",
+        "accessibility_profile",
+        "migration_complexity",
+        "automation_preference",
+        "lms_preference",
+        "migration_vendor",
+    )
+    profile = {
+        key: (request.GET.get(key) or "").strip()[:128]
+        for key in profile_keys
+        if request.GET.get(key) not in (None, "")
+    }
+    for key in ("student_capacity", "campus_count", "staff_count"):
+        raw = (request.GET.get(key) or "").strip()
+        if raw:
+            try:
+                profile[key] = min(1_000_000, max(0, int(raw)))
+            except ValueError:
+                profile[key] = 0
+    profile["operational_services"] = values("operational_services")
+    profile["migration_domains"] = values("migration_domains")
+    manifest = build_onboarding_recommendations(
+        country_code=(request.GET.get("country_code") or "").strip()[:2],
+        education_cycles=values("school_type"),
+        language_codes=values("language_codes"),
+        institution_profile=profile,
+    )
+    response = JsonResponse(
+        {
+            "ok": True,
+            "engine": manifest["engine"],
+            "version": manifest["version"],
+            "fingerprint": manifest["fingerprint"],
+            "confidence": manifest["confidence_envelope"],
+            "recommendations": manifest["recommendations"],
+            "cards": manifest["recommendation_cards"],
+            "missing_inputs": manifest["missing_inputs"],
+            "validation_issues": manifest["validation_issues"],
+            "review_state": manifest["review_state"],
+        }
+    )
+    response["Cache-Control"] = "private, max-age=60"
+    return response
+
+
+@require_http_methods(["POST"])
+@ratelimit(key="ip", rate="60/m", method="POST", block=True)
+def signup_journey_event(request: HttpRequest) -> JsonResponse:
+    """Record a privacy-minimized signup journey event.
+
+    Only a bounded stage number and categorical action are accepted. No form
+    value, school name, email, free text or recommendation payload crosses this
+    endpoint.
+    """
+
+    try:
+        stage = int(request.POST.get("stage") or 0)
+    except (TypeError, ValueError):
+        stage = 0
+    action = (request.POST.get("action") or "").strip().lower()
+    if stage not in range(1, 6) or action not in {
+        "view",
+        "continue",
+        "back",
+        "offline-save",
+        "offline-recovered",
+        "submit-queued",
+    }:
+        return JsonResponse({"ok": False, "error": "invalid_event"}, status=400)
+    from apps.schools.funnel_events import record_marketing_funnel_event
+
+    record_marketing_funnel_event(
+        "signup_started",
+        request,
+        metadata={"journey_version": 4, "stage": stage, "action": action},
+    )
+    return JsonResponse({"ok": True}, status=202)

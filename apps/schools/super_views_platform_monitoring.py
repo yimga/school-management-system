@@ -382,6 +382,20 @@ def super_tenant_360(request, school_id):
 
     owner_users = _active_owner_users(school)
     member_options, member_options_truncated = addressable_member_options(school)
+    school_settings = dict(getattr(school, "settings", None) or {})
+    recommendation_manifest = dict(
+        school_settings.get("recommendation_manifest") or {}
+    )
+    onboarding_intent = dict(school_settings.get("onboarding_intent") or {})
+    confidence_envelope = dict(
+        recommendation_manifest.get("confidence_envelope") or {}
+    )
+    evidence = dict(confidence_envelope.get("critical_evidence") or {})
+    signup_completion_percent = (
+        round(100 * sum(bool(value) for value in evidence.values()) / len(evidence))
+        if evidence
+        else 0
+    )
     return render(
         request,
         "schools/super_tenant_360.html",
@@ -402,6 +416,10 @@ def super_tenant_360(request, school_id):
             "support_configuration_freshness": getattr(
                 getattr(runtime, "debug", None), "compilation_timestamp", None
             ) if runtime else None,
+            "recommendation_manifest": recommendation_manifest,
+            "onboarding_intent": onboarding_intent,
+            "signup_confidence": confidence_envelope,
+            "signup_completion_percent": signup_completion_percent,
             "dashboard_url": reverse("super:dashboard"),
             "offboarding": offboarding,
             "offboarding_checklist": offboarding_checklist,

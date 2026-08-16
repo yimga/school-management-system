@@ -14,8 +14,111 @@ from typing import Any, NotRequired, TypedDict
 
 from apps.schools.onboarding_profile import normalize_institution_profile
 
-MANIFEST_VERSION = 4
-ENGINE_ID = "tenant-configuration-autopilot-v4"
+MANIFEST_VERSION = 5
+ENGINE_ID = "tenant-configuration-autopilot-v5"
+
+
+def _build_confidence_envelope(
+    *,
+    country: str,
+    cycles: list[str],
+    languages: list[str],
+    profile: dict[str, Any],
+    explicit_inputs: set[str] | list[str],
+    warnings: list[Any],
+    blueprint: dict[str, Any],
+) -> dict[str, Any]:
+    """Return an explainable evidence score, never a fabricated probability.
+
+    ``overall_score`` measures recommendation readiness.  It is deliberately
+    decomposed so the UI cannot imply statistical accuracy from a count of
+    fields.  A high-confidence label is gated by complete critical evidence,
+    resolved registries, contradiction-free inputs and stable deterministic
+    rules.  Statistical calibration is reported separately and remains
+    ``not-applicable`` while the engine is rules-based.
+    """
+
+    explicit = set(explicit_inputs)
+    critical = {
+        "country": bool(country),
+        "education_cycles": bool(cycles),
+        "languages": bool(languages),
+        "funding_type": bool(profile.get("funding_type")),
+        "learner_scale": bool(profile.get("student_capacity"))
+        or "learner_scale" in explicit,
+        "campus_structure": "organization_scope" in explicit
+        or bool(profile.get("organization_scope")),
+        "connectivity": "connectivity_profile" in explicit,
+        "operating_model": "operating_model" in explicit,
+        "migration_scope": bool(profile.get("migration_vendor"))
+        or bool(profile.get("migration_domains"))
+        or profile.get("migration_complexity") == "none",
+    }
+    missing = [key for key, present in critical.items() if not present]
+    completeness = round(100 * (len(critical) - len(missing)) / len(critical))
+    registries_resolved = bool(country) and bool(
+        blueprint.get("all_contracts_resolved")
+    )
+    registry_coverage = 100 if registries_resolved else 45 if country else 0
+    contradiction_count = len(warnings)
+    consistency = max(0, 100 - contradiction_count * 25)
+    # Deterministic recommendations are stable for an identical normalized
+    # payload.  Missing critical inputs reduce sensitivity stability because a
+    # default change can legitimately alter the result.
+    stability = max(0, 100 - len(missing) * 12)
+    provenance = 100 if registries_resolved and blueprint.get("rule_ids") else 55
+    components = {
+        "input_completeness": completeness,
+        "registry_coverage": registry_coverage,
+        "input_consistency": consistency,
+        "recommendation_stability": stability,
+        "provenance_coverage": provenance,
+    }
+    weights = {
+        "input_completeness": 30,
+        "registry_coverage": 25,
+        "input_consistency": 20,
+        "recommendation_stability": 15,
+        "provenance_coverage": 10,
+    }
+    overall = round(
+        sum(components[key] * weights[key] for key in components) / 100
+    )
+    high_confidence_eligible = bool(
+        overall >= 90
+        and not missing
+        and not contradiction_count
+        and registries_resolved
+    )
+    if high_confidence_eligible:
+        label = "high"
+        status = "eligible"
+    elif overall >= 70:
+        label = "provisional"
+        status = "needs-confirmation"
+    else:
+        label = "low"
+        status = "insufficient-evidence"
+    return {
+        "schema_version": 1,
+        "score_kind": "recommendation-readiness-not-prediction-probability",
+        "overall_score": overall,
+        "label": label,
+        "status": status,
+        "high_confidence_eligible": high_confidence_eligible,
+        "components": components,
+        "weights": weights,
+        "critical_evidence": critical,
+        "missing_critical_evidence": missing,
+        "contradiction_count": contradiction_count,
+        "registry_status": "resolved" if registries_resolved else "incomplete",
+        "calibration": {
+            "method": "deterministic-rules",
+            "statistical_probability": False,
+            "status": "not-applicable",
+            "statement": "This score measures evidence readiness, not outcome probability.",
+        },
+    }
 
 
 class RecommendationCard(TypedDict):
@@ -370,10 +473,16 @@ def build_onboarding_recommendations(
         if not present
     ]
     missing_inputs = [row["field"] for row in missing_details]
-    explicit_signal_count = len(normalized.explicit_inputs) + bool(country) + bool(cycles) + bool(languages)
-    confidence_score = min(96, max(35, 48 + explicit_signal_count * 3 - len(missing_inputs) * 9))
-    if normalized.warnings:
-        confidence_score = max(30, confidence_score - len(normalized.warnings) * 3)
+    confidence_envelope = _build_confidence_envelope(
+        country=country,
+        cycles=cycles,
+        languages=languages,
+        profile=profile,
+        explicit_inputs=normalized.explicit_inputs,
+        warnings=normalized.warnings,
+        blueprint=blueprint,
+    )
+    confidence_score = confidence_envelope["overall_score"]
 
     cards: list[RecommendationCard] = [
         _recommendation(
@@ -471,8 +580,9 @@ def build_onboarding_recommendations(
         ),
         "missing_inputs": missing_inputs,
         "missing_input_details": missing_details,
-        "confidence": "high" if confidence_score >= 80 else "medium" if confidence_score >= 55 else "low",
+        "confidence": confidence_envelope["label"],
         "confidence_score": confidence_score,
+        "confidence_envelope": confidence_envelope,
         "validation_issues": normalized.issue_payload(),
         "source": "signup-intent",
         "offline_safe": True,

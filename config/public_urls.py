@@ -82,6 +82,8 @@ from apps.schools.signup_views import (
     signup_slug_check,
     signup_slug_suggest,
     signup_decisions_preview,
+    signup_recommendations_preview,
+    signup_journey_event,
     verify_signup,
     resend_signup_verification,
     api_trial_school,
@@ -1245,6 +1247,8 @@ urlpatterns = [
     # Live recommended-option / auto-applied decision model for the setup step.
     # Public host, so registered here as well as in config/urls.py.
     path("signup/decisions/", signup_decisions_preview, name="signup_decisions_preview"),
+    path("signup/recommendations/", signup_recommendations_preview, name="signup_recommendations_preview"),
+    path("signup/journey-event/", signup_journey_event, name="signup_journey_event"),
     path(
         "verify-signup/resend/",
         resend_signup_verification,

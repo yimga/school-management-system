@@ -130,6 +130,8 @@ from apps.schools.signup_views import (
     signup_slug_check,
     signup_slug_suggest,
     signup_decisions_preview,
+    signup_recommendations_preview,
+    signup_journey_event,
     verify_signup,
     resend_signup_verification,
     accept_school_invite,
@@ -1778,6 +1780,8 @@ urlpatterns = [
     path("signup/slug-check/", signup_slug_check, name="signup_slug_check"),
     path("signup/slug-suggest/", signup_slug_suggest, name="signup_slug_suggest"),
     path("signup/decisions/", signup_decisions_preview, name="signup_decisions_preview"),
+    path("signup/recommendations/", signup_recommendations_preview, name="signup_recommendations_preview"),
+    path("signup/journey-event/", signup_journey_event, name="signup_journey_event"),
     *[
         path(
             f"{prefix}/",

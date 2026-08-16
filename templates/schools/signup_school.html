@@ -18,6 +18,7 @@
 <script defer src="{% static 'js/_pages/rmc-signup-country-adapter.js' %}"></script>
 <script defer src="{% static 'js/rmc-signup-balanced-v3.js' %}?v=20260811-experience-runtime-v172"></script>
 <script defer src="{% static 'js/rmc-signup-decisions.js' %}?v=20260809-progressive-decisions-v1"></script>
+<script defer src="{% static 'js/rmc-signup-wizard-v4.js' %}?v=20260816-approved-a-z-v1"></script>
 {% endblock %}
 
 {% block content %}
@@ -69,14 +70,15 @@
     {% endif %}
     {% for message in messages %}<div class="alert alert-{{ message.tags|default:'info' }} mb-3">{{ message }}</div>{% endfor %}
 
-    <ol class="rmc-signup-progress" aria-label="{% trans 'Account setup steps' %}">
-      <li aria-current="step"><span>1</span><strong>{% trans "School profile" %}</strong></li>
-      <li><span>2</span><strong>{% trans "Recommendations" %}</strong></li>
-      <li><span>3</span><strong>{% trans "Verify email" %}</strong></li>
-      <li><span>4</span><strong>{% trans "Password & MFA" %}</strong></li>
+    <ol class="rmc-signup-progress" aria-label="{% trans 'School setup steps' %}" data-rmc-signup-progress>
+      <li aria-current="step" data-rmc-wizard-step-indicator="1"><span>1</span><strong>{% trans "Identity" %}</strong></li>
+      <li data-rmc-wizard-step-indicator="2"><span>2</span><strong>{% trans "How you operate" %}</strong></li>
+      <li data-rmc-wizard-step-indicator="3"><span>3</span><strong>{% trans "Education" %}</strong></li>
+      <li data-rmc-wizard-step-indicator="4"><span>4</span><strong>{% trans "Data & launch" %}</strong></li>
+      <li data-rmc-wizard-step-indicator="5"><span>5</span><strong>{% trans "Review" %}</strong></li>
     </ol>
 
-    <form method="post" action="{% url 'signup_school' %}" data-rmc-signup-form="1" data-rmc-signup-layout="balanced" novalidate>
+    <form method="post" action="{% url 'signup_school' %}" data-rmc-signup-form="1" data-rmc-signup-layout="balanced" data-rmc-recommendations-url="{% url 'signup_recommendations_preview' %}" data-rmc-journey-event-url="{% url 'signup_journey_event' %}" data-rmc-signup-wizard="1" novalidate>
       {% csrf_token %}
       {% if signup_ref == 'demo' %}<input type="hidden" name="signup_ref" value="demo" data-rmc-signup-ref-preserve="1">{% endif %}
 
@@ -337,6 +339,8 @@
           <p data-rmc-recommendation-copy>{% trans "A balanced school workspace with local-first operations." %}</p>
           <div class="rmc-signup-confidence"><i data-rmc-recommendation-confidence-bar></i></div>
           <small data-rmc-recommendation-confidence>{% trans "Building confidence from your answers" %}</small>
+          <div class="rmc-signup-confidence-breakdown" data-rmc-confidence-breakdown hidden></div>
+          <div class="rmc-signup-confidence-next" data-rmc-confidence-next hidden></div>
           <ul class="rmc-signup-recommendation__facts">
             <li><strong>{% trans "Blueprint" %}:</strong> <span data-rmc-recommendation-blueprint>{% trans "Country and school-type matched" %}</span></li>
             <li data-rmc-recommendation-scope>{% trans "Single-campus operations" %}</li>
@@ -344,6 +348,10 @@
             <li data-rmc-recommendation-compliance>{% trans "Country-default compliance and accessibility" %}</li>
           </ul>
           <small>{% trans "Recommendation only. You review the blueprint, modules, compliance profiles, migration path and plan before anything paid or governed is activated." %}</small>
+          <details class="rmc-signup-recommendation__alternatives" data-rmc-recommendation-alternatives>
+            <summary>{% trans "Compare alternatives and evidence" %}</summary>
+            <div data-rmc-recommendation-alternatives-body>{% trans "Complete the essential answers to compare best-fit, simpler and growth-ready choices." %}</div>
+          </details>
           {% if decision_auto %}
           <small class="d-block mt-2" data-rmc-decision-autosummary>
             {% blocktrans count auto_count=decision_auto|length trimmed %}
