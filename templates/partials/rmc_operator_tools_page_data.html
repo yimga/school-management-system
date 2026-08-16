@@ -4,10 +4,11 @@ v4.02.0 — Operator Tools edge-tray configuration island.
 Pairs with rmc-operator-tools-tray.js on manager / control-plane shells.
 {% endcomment %}
 {% if request.user.is_authenticated and request.public_host_kind == 'manager' %}
+{% trans "Tools" as rmc_tools_label %}
 <script type="application/json" id="page-data-rmc-operator-tools" nonce="{{ csp_nonce }}">{
   "enabled": true,
   "layout": "{{ cockpit.operator_tools.layout|default:'edge-tray'|escapejs }}",
-  "tab_label": "{% filter escapejs %}{{ cockpit.operator_tools.tab_label|default:_('Tools') }}{% endfilter %}",
+  "tab_label": "{{ rmc_tools_label|escapejs }}",
   "tray_notebook": {% if cockpit.operator_tools.tray_notebook|default:True %}true{% else %}false{% endif %},
   "hide_floating_notebook": {% if cockpit.operator_tools.hide_floating_notebook|default:True %}true{% else %}false{% endif %},
   "workflow_header_only": {% if cockpit.operator_tools.workflow_header_only|default:True %}true{% else %}false{% endif %},

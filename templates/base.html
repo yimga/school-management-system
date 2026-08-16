@@ -227,7 +227,7 @@
     <link rel="stylesheet" href="{% static 'css/rmc-theme-surface-safety-v1.css' %}?v=20260811-experience-runtime-v172">
     {% block extrastyle_tail %}{% endblock %}
     {% if request.resolver_match.url_name == 'signup_school' or request.resolver_match.url_name == 'verify_signup' or request.resolver_match.url_name == 'resend_signup_verification' or request and '/onboard' in request.path or request and request.path|slice:':14' == '/setup-studio/' %}
-    <link rel="stylesheet" href="{% static 'css/rmc-signup-balanced-v3.css' %}?v=20260811-experience-runtime-v172">
+    <link rel="stylesheet" href="{% static 'css/rmc-signup-balanced-v3.css' %}?v=20260816-step-aware-workspace-v5">
     {% endif %}
   </head>
 

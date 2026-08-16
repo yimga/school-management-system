@@ -235,25 +235,9 @@
 
       <li><hr class="dropdown-divider"></li>
 
-      <!-- Help & Support -->
+      <!-- Resources & feedback; contextual Help is owned by the Tools rail. -->
       <li class="dropdown-section-header">
-        <i class="bi bi-question-circle"></i> {% trans "Help & Support" %}
-      </li>
-      <li>
-        {% comment %} feedback: is absent from the public-host urlconf — resolve into a var and {% endcomment %}
-        {% comment %} only render when it exists, so this can't 500 base.html on the public host. {% endcomment %}
-        {% if request.public_host_kind == 'manager' %}
-          {% url 'manager_help_center' as help_center_url %}
-        {% else %}
-          {% url 'feedback:help_center' as help_center_url %}
-        {% endif %}
-        {% if help_center_url %}
-        <a class="dropdown-item" href="{{ help_center_url }}">
-          <i class="bi bi-life-preserver"></i>
-          <span>{% trans "Help Center" %}</span>
-          <kbd>?</kbd>
-        </a>
-        {% endif %}
+        <i class="bi bi-journal-bookmark"></i> {% trans "Resources & Feedback" %}
       </li>
       <li>
         {% url 'kb:kb_home' as kb_home_url %}
@@ -375,8 +359,7 @@ JSON data island so the inline executable script can be removed
 <script type="application/json" id="user-dropdown-config">{
   "profileUrl": "{% url 'accounts:user_profile' %}",
   "preferencesUrl": "{% url 'siteconfig:user_preferences' as p %}{{ p }}",
-  "logoutUrl": "{% url 'accounts:logout' %}",
-  "helpUrl": "{% if request.public_host_kind == 'manager' %}{% url 'manager_help_center' as mh %}{{ mh }}{% else %}{% url 'feedback:help_center' as h %}{{ h }}{% endif %}"
+  "logoutUrl": "{% url 'accounts:logout' %}"
 }</script>
 <script src="{% static 'js/_pages/components__user_dropdown.js' %}"></script>
 <script src="{% static 'js/rmc-user-account-center.js' %}" defer></script>

@@ -30,10 +30,6 @@
         }
       }
 
-      if (e.key === '?') {
-        e.preventDefault();
-        if (cfg.helpUrl) window.location.href = cfg.helpUrl;
-      }
     });
 
     function updateUserStatus() {
