@@ -25,7 +25,7 @@ from contextlib import contextmanager
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
-from django.db import transaction
+from django.db import IntegrityError, transaction
 
 
 @contextmanager
@@ -613,8 +613,22 @@ def get_or_create_named(*, model, school, name, create_kwargs=None, result=None)
     if create_kwargs is not None:
         kwargs.update(create_kwargs())
     # Per-row savepoint so a parent-provision failure doesn't poison the atomic apply.
-    with row_savepoint():
-        obj = model.objects.create(**kwargs)
+    try:
+        with row_savepoint():
+            obj = model.objects.create(**kwargs)
+    except IntegrityError:
+        # Lost a create race with a concurrent wave-thread that provisioned the SAME
+        # shared parent (same school+name) — parallel artifacts in one wave run on
+        # separate DB connections, so both can miss the filter above and both try to
+        # create. The savepoint rolled back only this create and left the outer
+        # transaction intact, so re-fetch the winner by its identity (school, name —
+        # this helper's contract) instead of spuriously quarantining the child row
+        # that needed this parent (#8). A miss on re-fetch is a real integrity failure,
+        # not a benign create race — surface it.
+        obj = qs.filter(name=name).order_by("pk").first()
+        if obj is None:
+            raise
+        return obj, False
     if result is not None:
         result.created_ids.append(obj.pk)
     return obj, True
@@ -661,17 +675,29 @@ def resolve_or_provision_user(
     # needs_rollback, aborting the entire finance-bearing bundle instead of
     # quarantining this one row. The savepoint rolls back only this provisioning
     # and re-raises to the caller's per-row except.
-    with row_savepoint():
-        user = User.objects.create_user(
-            username=username,
-            email=email,
-            first_name=first_name,
-            last_name=last_name,
-        )
-        if role and hasattr(user, "role"):
-            user.role = role
-        user.set_unusable_password()
-        user.save()
+    try:
+        with row_savepoint():
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                first_name=first_name,
+                last_name=last_name,
+            )
+            if role and hasattr(user, "role"):
+                user.role = role
+            user.set_unusable_password()
+            user.save()
+    except IntegrityError:
+        # Lost a create race with a concurrent wave-thread provisioning the SAME
+        # person (parallel artifacts, separate connections, same email-derived
+        # username). Re-resolve by EMAIL — the identity — so the child row binds to the
+        # winner instead of being spuriously quarantined (#8). Deliberately NOT by the
+        # bare username: two DIFFERENT people can collide on a username derivation, and
+        # merging them would be a data-integrity bug worse than a quarantine — so with
+        # no email match we re-raise and quarantine honestly.
+        user = User.objects.filter(email__iexact=email).first() if email else None
+        if user is None:
+            raise
     return user, ""
 
 
