@@ -100,7 +100,8 @@ class EdgeOnboardingOperatorUITests(TestCase):
         self.assertIn('id="edge-onboarding-sync-gate"', body)
         self.assertIn("Runs on the box", body)
         self.assertNotIn("Cleared for offline", body)
-        # Readiness preview (steps 1-6) rendered; a bare school fails several checks.
+        # Readiness preview (all steps except the box-side gate) rendered; a bare
+        # school fails several checks.
         self.assertIn('id="edge-onboarding-verification"', body)
         self.assertIn("Readiness preview", body)
         self.assertIn("FAIL", body)
