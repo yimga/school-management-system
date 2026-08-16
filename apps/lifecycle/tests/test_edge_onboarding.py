@@ -1,4 +1,4 @@
-"""Edge Onboarding Runbook engine — proves the seven-step bring-up model.
+"""Edge Onboarding Runbook engine — proves the ordered bring-up model.
 
 Each test FAILS without ``apps.lifecycle.edge_onboarding`` (import error) and PASSES
 once the engine lands. The engine is entirely self-healing, so the suite also proves
@@ -33,9 +33,11 @@ _EXPECTED_KEYS = (
     "seed_baseline",
     "media_branding",
     "configure_box_env",
+    "configure_lan_hostname",
     "enable_configure_sync",
     "verify_and_sync_gate",
 )
+_STEP_COUNT = len(_EXPECTED_KEYS)
 
 
 class EdgeOnboardingEngineTests(TestCase):
@@ -56,13 +58,13 @@ class EdgeOnboardingEngineTests(TestCase):
         )
 
     # --- generate_runbook -------------------------------------------------- #
-    def test_generate_runbook_returns_seven_ordered_filled_steps(self):
+    def test_generate_runbook_returns_all_ordered_filled_steps(self):
         school = self._make_school()
         runbook = generate_runbook(school)
         steps = runbook["steps"]
 
-        self.assertEqual(runbook["total"], 7)
-        self.assertEqual(len(steps), 7)
+        self.assertEqual(runbook["total"], _STEP_COUNT)
+        self.assertEqual(len(steps), _STEP_COUNT)
         self.assertEqual(tuple(s["key"] for s in steps), _EXPECTED_KEYS)
 
         for s in steps:
@@ -85,13 +87,13 @@ class EdgeOnboardingEngineTests(TestCase):
         self.assertEqual(generate_runbook(school), generate_runbook(school))
 
     # --- run_verification_suite ------------------------------------------- #
-    def test_verification_suite_total_seven_and_never_raises_on_fresh_school(self):
+    def test_verification_suite_covers_all_steps_and_never_raises_on_fresh_school(self):
         # A fresh, un-provisioned school: no owner, no academics, no branding.
         school = self._make_school(active=False)
         res = run_verification_suite(school)
 
-        self.assertEqual(res["total"], 7)
-        self.assertEqual(len(res["steps"]), 7)
+        self.assertEqual(res["total"], _STEP_COUNT)
+        self.assertEqual(len(res["steps"]), _STEP_COUNT)
         self.assertIsInstance(res["ok"], bool)
         self.assertFalse(res["ok"])  # a fresh box is not "done"
         self.assertIsInstance(res["passed"], int)
@@ -117,8 +119,8 @@ class EdgeOnboardingEngineTests(TestCase):
         school = self._make_school(active=False)
         before = EdgeSyncRun.objects.count()
         res = run_verification_suite(school, include_gate=False)
-        self.assertEqual(res["total"], 6)
-        self.assertEqual(len(res["steps"]), 6)
+        self.assertEqual(res["total"], _STEP_COUNT - 1)
+        self.assertEqual(len(res["steps"]), _STEP_COUNT - 1)
         self.assertNotIn("verify_and_sync_gate", tuple(s["key"] for s in res["steps"]))
         self.assertEqual(EdgeSyncRun.objects.count(), before)
 
@@ -133,7 +135,7 @@ class EdgeOnboardingEngineTests(TestCase):
         with mock.patch.object(edge_onboarding, "EDGE_ONBOARDING_STEPS", tuple(patched)):
             res = run_verification_suite(school)
 
-        self.assertEqual(res["total"], 7)  # suite ran every step despite the raise
+        self.assertEqual(res["total"], _STEP_COUNT)  # suite ran every step despite the raise
         self.assertFalse(res["steps"][0]["ok"])
         self.assertIn("kaboom", res["steps"][0]["detail"])
 

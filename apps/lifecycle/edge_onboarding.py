@@ -229,6 +229,50 @@ def _validate_configure_box_env(school) -> "tuple[bool, str]":
         return False, f"box-env check failed: {exc}"
 
 
+def _validate_lan_hostname(school) -> "tuple[bool, str]":
+    """The BOX side of LAN-hostname reachability is ready.
+
+    Client-side DNS (does ``{slug}.school.lan`` resolve to the box?) is the
+    operator's network job and cannot be seen from here. What the box CAN prove is
+    that it would ACCEPT that hostname instead of 400-ing on it: ALLOWED_HOSTS must
+    cover the tenant's LAN host, which on this platform comes from setting
+    ``MULTI_TENANT_BASE_DOMAIN`` (it injects a leading-dot ``.<base>`` wildcard into
+    ALLOWED_HOSTS). Pure settings — no tenant tables. The box is served over plain
+    HTTP on the LAN, so the working URL is ``http://<host>:<web-port>/`` (not https)."""
+    try:
+        hosts = [str(h).strip().lower() for h in (getattr(settings, "ALLOWED_HOSTS", []) or [])]
+        if "*" in hosts:
+            return True, "ALLOWED_HOSTS is '*' — any hostname is accepted (open dev config)."
+        base = (getattr(settings, "MULTI_TENANT_BASE_DOMAIN", "") or "").strip().lower()
+        if not base:
+            return (
+                False,
+                "MULTI_TENANT_BASE_DOMAIN is unset, so a '.school.lan' hostname is not "
+                "covered by ALLOWED_HOSTS (default covers .local, not .lan). Set "
+                "MULTI_TENANT_BASE_DOMAIN=school.lan on the box.",
+            )
+        slug = _slug(school)
+        lan_host = f"{slug}.{base}" if slug else base
+        # Django treats a leading-dot ALLOWED_HOSTS entry as "this host + all subdomains".
+        covered = any(
+            h == lan_host or (h.startswith(".") and (lan_host == h[1:] or lan_host.endswith(h)))
+            for h in hosts
+        )
+        if covered:
+            return True, (
+                f"ALLOWED_HOSTS accepts {lan_host}. Reach the box at "
+                f"http://{lan_host}:<web-port>/ (plain HTTP — the box has no TLS; "
+                "an https:// URL is the 'no lock' failure)."
+            )
+        return (
+            False,
+            f"ALLOWED_HOSTS does not cover {lan_host}. Add '.{base}' (wildcard) or "
+            f"'{lan_host}', and set MULTI_TENANT_BASE_DOMAIN={base}.",
+        )
+    except Exception as exc:  # noqa: BLE001
+        return False, f"LAN hostname check failed: {exc}"
+
+
 def _validate_enable_configure_sync(school) -> "tuple[bool, str]":
     try:
         if not bool(getattr(settings, "RMC_EDGE_SYNC_ENABLED", False)):
@@ -384,6 +428,48 @@ EDGE_ONBOARDING_STEPS: "tuple[EdgeOnboardingStep, ...]" = (
             "Address each FAIL/WARN check_edge_readiness prints. For a plain-HTTP LAN "
             "box set SECURE_SSL_REDIRECT / SESSION_COOKIE_SECURE / CSRF_COOKIE_SECURE / "
             "HSTS all to 0, and schedule run_periodic_jobs on cron when there is no broker."
+        ),
+    ),
+    EdgeOnboardingStep(
+        key="configure_lan_hostname",
+        title="Give the box a stable LAN hostname (DNS)",
+        purpose=(
+            "Map a stable name — {slug}.school.lan — to the box's FIXED LAN IP so "
+            "clients reach it by name: the address can move, browsers can't cleanly "
+            "TLS a bare IP, and the app (django-tenants) routes each tenant by "
+            "hostname. The box serves plain HTTP on its LAN port, so the working URL "
+            "is http://{slug}.school.lan:<web-port>/ — NOT https:// (the box has no "
+            "TLS; an https:// URL is the 'no lock' failure)."
+        ),
+        category="network",
+        command_template=(
+            "# 0) Fix the box IP first (DHCP reservation on the router), then map the\n"
+            "#    name. Pick ONE reach method by how big your LAN is:\n"
+            "#  a. Router DNS (OpenWrt / pfSense / prosumer) — every LAN client, cleanest.\n"
+            "#  b. Pi-hole / dnsmasq on the box — whole-LAN + logging:\n"
+            "#       echo 'address=/{slug}.school.lan/<BOX_LAN_IP>' | sudo tee /etc/dnsmasq.d/rmc-edge.conf\n"
+            "#       sudo systemctl restart dnsmasq   # then point the router's DHCP DNS at the box\n"
+            "#  c. Per-client hosts file (fast test; only edited devices):\n"
+            "#       Linux/macOS: echo '<BOX_LAN_IP>  {slug}.school.lan' | sudo tee -a /etc/hosts\n"
+            "#       Windows (admin): add '<BOX_LAN_IP>  {slug}.school.lan' to\n"
+            "#         C:\\Windows\\System32\\drivers\\etc\\hosts\n"
+            "# 1) On the box, make sure the host is accepted (settings):\n"
+            "#     MULTI_TENANT_BASE_DOMAIN=school.lan   (injects the .school.lan wildcard)\n"
+            "#     ALLOWED_HOSTS=...,school.lan,{slug}.school.lan,<BOX_LAN_IP>\n"
+            "#     CSRF_TRUSTED_ORIGINS=http://{slug}.school.lan:<web-port>\n"
+            "# 2) Verify it resolves to the box, then open the login page:\n"
+            "getent hosts {slug}.school.lan   # must print <BOX_LAN_IP>\n"
+            "#   Open:  http://{slug}.school.lan:<web-port>/authentication/login/"
+        ),
+        validate=_validate_lan_hostname,
+        workaround=(
+            "No LAN DNS yet? The box is reachable by IP RIGHT NOW — "
+            "http://<BOX_LAN_IP>:<web-port>/ — because SINGLE_TENANT routes any host "
+            "to the sole school. Never use https:// on the box (no TLS = the 'no "
+            "lock'); use http:// with the explicit port (default 10000). For a real "
+            "browser lock + a clean https://{slug}.school.lan (no port), front the box "
+            "with a reverse proxy (Caddy / nginx + a local CA) and flip the "
+            "secure-cookie flags back to 1. See docs/EDGE_LAN_HOSTNAME_DNS.md."
         ),
     ),
     EdgeOnboardingStep(
