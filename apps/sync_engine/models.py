@@ -68,6 +68,67 @@ class SyncApplyLedger(models.Model):
         return f"{self.entity_type}:{self.local_pk}@{self.applied_updated_at}"
 
 
+class EdgeSyncRun(models.Model):
+    """One row per edge<->cloud sync CYCLE, so the Sync Center can show the latest outcome.
+
+    The observability companion to :class:`SyncApplyLedger`. The self-healing
+    :func:`apps.sync_engine.sync_runner.run_sync_cycle` records EXACTLY ONE of these per
+    cycle it drives — INCLUDING cycles that ran with the edge flag off, hit an unreachable
+    operator, or were rejected — so a "Sync now" click surfaces as a visible ok/fail row
+    instead of a crashed tenant page. This table is observability only; it changes no
+    conflict/money policy and money stays cloud-authoritative.
+
+    TENANCY mirrors ``SyncApplyLedger`` — a SHARED/public-schema table discriminated by the
+    ``school`` FK. On the single-tenant edge box there is only ever one school's rows here.
+    """
+
+    school = models.ForeignKey(
+        "schools.School", on_delete=models.CASCADE, related_name="edge_sync_runs"
+    )
+    # "dry" (pull-only, never posts local changes up) | "live" (push then pull).
+    mode = models.CharField(max_length=8, default="live")
+    pushed = models.IntegerField(default=0)
+    pulled = models.IntegerField(default=0)
+    conflicts = models.IntegerField(default=0)
+    created = models.IntegerField(default=0)
+    upserted = models.IntegerField(default=0)
+    ok = models.BooleanField(default=False)
+    message = models.TextField(blank=True, default="")
+    error = models.TextField(blank=True, default="")
+    started_at = models.DateTimeField(null=True, blank=True)
+    finished_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        app_label = "sync_engine"
+        ordering = ["-created_at"]
+        verbose_name = "Edge sync run"
+        verbose_name_plural = "Edge sync runs"
+        indexes = [models.Index(fields=["school", "-created_at"])]
+
+    def __str__(self) -> str:  # pragma: no cover - admin/debug convenience
+        return f"EdgeSyncRun({self.mode},{'ok' if self.ok else 'fail'})#{self.pk}"
+
+    @classmethod
+    def record(cls, school, **kw):
+        """Create one summarizing run row for ``school``.
+
+        Self-healing: stray keys (e.g. the runner's whole result dict, which carries
+        ``enabled``/``mode``) are dropped rather than raised on, so the caller can hand
+        over its result without shape-coupling to this model.
+        """
+        valid = {f.name for f in cls._meta.concrete_fields}
+        clean = {k: v for k, v in kw.items() if k in valid and k != "school"}
+        return cls.objects.create(school=school, **clean)
+
+    @classmethod
+    def latest_for(cls, school):
+        """The most recent run for ``school`` (``Meta.ordering`` is newest-first), or None."""
+        if school is None:
+            return None
+        return cls.objects.filter(school=school).first()
+
+
 def record_sync_apply(school_id, entity_type, pk, applied_updated_at, origin=""):
     """Upsert the provenance marker for a row just written by the sync apply path.
 
@@ -99,4 +160,10 @@ def sync_echo_updated_at_map(school, entity_type) -> dict:
     )
 
 
-__all__ = ["SyncApplyLedger", "record_sync_apply", "sync_echo_updated_at_map", "_MISSING"]
+__all__ = [
+    "SyncApplyLedger",
+    "EdgeSyncRun",
+    "record_sync_apply",
+    "sync_echo_updated_at_map",
+    "_MISSING",
+]

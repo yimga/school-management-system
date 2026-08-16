@@ -62,6 +62,18 @@ def sync_center(request):
             message="Select your school to view sync conflicts.",
         )
     pref_url = reverse("siteconfig:user_preferences")
+    # Edge<->cloud "Sync now" status panel context (feature ②). Never let a missing model
+    # / stray error on this observability read break the conflicts page.
+    from django.conf import settings
+
+    edge_sync_enabled = bool(getattr(settings, "RMC_EDGE_SYNC_ENABLED", False))
+    latest_sync_run = None
+    try:
+        from apps.sync_engine.models import EdgeSyncRun
+
+        latest_sync_run = EdgeSyncRun.latest_for(school)
+    except Exception:  # noqa: BLE001 — panel is best-effort; conflicts page must still render
+        latest_sync_run = None
     try:
         from .models import SyncConflict
     except ImportError:
@@ -81,6 +93,8 @@ def sync_center(request):
                 ),
                 "console_url": _safe_sync_reverse("siteconfig:console_domains_hub"),
                 "admin_sync_conflict_url": None,
+                "edge_sync_enabled": edge_sync_enabled,
+                "latest_sync_run": latest_sync_run,
             },
         )
     stats = (
@@ -115,6 +129,8 @@ def sync_center(request):
             ),
             "console_url": _safe_sync_reverse("siteconfig:console_domains_hub"),
             "admin_sync_conflict_url": admin_sync_url,
+            "edge_sync_enabled": edge_sync_enabled,
+            "latest_sync_run": latest_sync_run,
         },
     )
 
@@ -156,4 +172,49 @@ def sync_center_resolve(request, conflict_id):
         return redirect("siteconfig:sync_center")
     _resolve_sync_conflict(conflict, resolution, request.user)
     messages.success(request, f"Conflict resolved ({resolution_str}).")
+    return redirect("siteconfig:sync_center")
+
+
+@login_required
+@permission_required("settings.manage")
+@require_http_methods(["POST"])
+def sync_now(request):
+    """Run one edge<->cloud sync cycle now, from the Sync Center button.
+
+    Self-healing wrapper: ``run_sync_cycle`` never raises and always records one
+    ``EdgeSyncRun``, so a network outage or a disabled deployment surfaces as a flash
+    message and a visible run row rather than a crashed page. ``mode`` defaults to
+    ``dry`` — a no-write connectivity check (neither pushes nor applies) — for safety;
+    ``mode=live`` performs the full push-up-then-pull-down-and-apply cycle.
+    """
+    school = getattr(request, "school", None)
+    if not school:
+        return redirect_staff_without_school(
+            request,
+            message="Select your school to run a sync.",
+        )
+    from apps.sync_engine import sync_runner
+
+    mode = "live" if (request.POST.get("mode") or "").strip().lower() == "live" else "dry"
+    result = sync_runner.run_sync_cycle(school, mode=mode)
+    if not result.get("enabled", True):
+        messages.error(request, result.get("message") or "Edge sync is not enabled.")
+    elif result.get("ok"):
+        messages.success(
+            request,
+            _("Sync complete (%(mode)s): pushed %(pushed)s, pulled %(pulled)s, "
+              "conflicts %(conflicts)s.")
+            % {
+                "mode": result["mode"],
+                "pushed": result["pushed"],
+                "pulled": result["pulled"],
+                "conflicts": result["conflicts"],
+            },
+        )
+    else:
+        messages.error(
+            request,
+            _("Sync finished with errors (%(mode)s): %(error)s")
+            % {"mode": result["mode"], "error": result.get("error") or result.get("message") or ""},
+        )
     return redirect("siteconfig:sync_center")
