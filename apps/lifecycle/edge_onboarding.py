@@ -172,7 +172,7 @@ def _validate_seed_baseline(school) -> "tuple[bool, str]":
         return (
             False,
             "No academic year / term / subject — run backfill_country_baseline "
-            "(provision_country_baseline).",
+            "--school <slug> (underlying SoT: the provision_country_baseline() function).",
         )
     except Exception as exc:  # noqa: BLE001
         return False, f"baseline check failed: {exc}"
@@ -322,8 +322,8 @@ EDGE_ONBOARDING_STEPS: "tuple[EdgeOnboardingStep, ...]" = (
         validate=_validate_migrate_identities,
         workaround=(
             "No identity bundle? Create the owner directly with "
-            "ensure_admin_user_for_school (or the shell import already made one) and "
-            "have members reset passwords + re-enroll MFA on the box."
+            "ensure_default_tenant_admin --slug <slug> (or the shell import already made "
+            "one) and have members reset passwords + re-enroll MFA on the box."
         ),
     ),
     EdgeOnboardingStep(
@@ -401,9 +401,9 @@ EDGE_ONBOARDING_STEPS: "tuple[EdgeOnboardingStep, ...]" = (
         ),
         validate=_validate_enable_configure_sync,
         workaround=(
-            "Mint the credential on the OPERATOR (cloud) side and copy the one-time token "
-            "onto the box as RMC_EDGE_CREDENTIAL; if the box has no outbound reach yet, "
-            "leave sync off and re-run this step once connectivity exists."
+            "Mint the credential (mint_edge_credential) on the OPERATOR (cloud) side and "
+            "copy the one-time token onto the box as RMC_EDGE_CREDENTIAL; if the box has no "
+            "outbound reach yet, leave sync off and re-run this step once connectivity exists."
         ),
     ),
     EdgeOnboardingStep(
