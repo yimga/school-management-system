@@ -108,6 +108,20 @@ class EdgeOnboardingEngineTests(TestCase):
         # branding (no logo), enable-sync (off), sync-gate (off) all fail.
         self.assertGreaterEqual(len(failing), 3)
 
+    def test_verification_suite_excludes_gate_when_include_gate_false(self):
+        # The cloud console previews readiness WITHOUT the box-side gate: steps 1-6
+        # only, no network probe, and NO EdgeSyncRun recorded (the gate is the only
+        # step that records one).
+        from apps.sync_engine.models import EdgeSyncRun
+
+        school = self._make_school(active=False)
+        before = EdgeSyncRun.objects.count()
+        res = run_verification_suite(school, include_gate=False)
+        self.assertEqual(res["total"], 6)
+        self.assertEqual(len(res["steps"]), 6)
+        self.assertNotIn("verify_and_sync_gate", tuple(s["key"] for s in res["steps"]))
+        self.assertEqual(EdgeSyncRun.objects.count(), before)
+
     def test_verification_suite_catches_a_raising_validate(self):
         school = self._make_school()
 

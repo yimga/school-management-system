@@ -76,6 +76,7 @@ from .super_views_remote_support import (
 )
 from apps.lifecycle.views import LifecycleTimelineView
 from apps.lifecycle.views_bulk import BulkSchoolCreateView
+from apps.lifecycle.views_edge_onboarding import super_edge_onboarding_runbook
 from apps.lifecycle.views_clone import CloneSchoolView
 from apps.lifecycle.views_jobs import ProvisioningJobsDashboardView
 from apps.lifecycle.views_migration_intent import SchoolMigrationIntentView
@@ -549,6 +550,13 @@ urlpatterns = [
         "provisioning/jobs/",
         require_super_access_with_host(ProvisioningJobsDashboardView.as_view()),
         name="provisioning_jobs",
+    ),
+    # Feature ③ — Edge Onboarding Runbook: pick a school, get its offline edge-box
+    # bring-up runbook + verification suite + pre-offline sync gate to hand off.
+    path(
+        "edge-onboarding/",
+        require_super_access_with_host(super_edge_onboarding_runbook),
+        name="edge_onboarding_runbook",
     ),
     path(
         "health/",

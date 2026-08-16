@@ -448,16 +448,27 @@ def generate_runbook(school) -> dict:
     }
 
 
-def run_verification_suite(school) -> dict:
+def run_verification_suite(school, *, include_gate: bool = True) -> dict:
     """Run every step's ``validate(school)`` — the final test suite that proves the box
     is done.
 
     Returns ``{steps: [{key, ok, detail}], ok, passed, total}``. A single validate()
     that RAISES is caught and recorded as ``ok=False`` — the suite is never aborted.
+
+    ``include_gate=False`` runs steps 1-6 ONLY (skips ``verify_and_sync_gate``): a
+    READ-ONLY readiness preview that touches no network and records NO ``EdgeSyncRun``.
+    The pre-offline sync gate is a BOX-SIDE check (it must run on the box, where the
+    sync flag + credential live), so a cloud-side preview must never fake-run it. Run
+    the gate on the box via :func:`run_sync_gate` (the runbook's final step).
     """
+    steps = (
+        EDGE_ONBOARDING_STEPS
+        if include_gate
+        else tuple(s for s in EDGE_ONBOARDING_STEPS if s.key != "verify_and_sync_gate")
+    )
     results: list[dict] = []
     passed = 0
-    for step in EDGE_ONBOARDING_STEPS:
+    for step in steps:
         try:
             outcome = step.validate(school)
             ok, detail = bool(outcome[0]), str(outcome[1])

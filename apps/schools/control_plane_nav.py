@@ -708,6 +708,12 @@ def build_control_plane_nav(request, surface=None):
                 "icon": "bi-heart-pulse",
             },
             {
+                "id": "super_edge_onboarding_runbook",
+                "label": "Edge onboarding runbook",
+                "url_name": "super:edge_onboarding_runbook",
+                "icon": "bi-hdd-network",
+            },
+            {
                 "id": "super_district_enterprise",
                 "label": "District & enterprise",
                 "url_name": "super:district_enterprise",
