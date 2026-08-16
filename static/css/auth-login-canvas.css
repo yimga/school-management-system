@@ -1619,6 +1619,10 @@ body:has(.rmc-auth-immersive) [data-shell-chrome="django-messages"] {
 .rmc-auth-immersive__sponsor small { color: var(--rmc-auth-muted); font-size: 10px; }
 .rmc-auth-immersive__sponsor a { color: var(--color-warning); font-size: 10px; font-weight: 750; }
 .rmc-auth-immersive__sponsor button { position: absolute; top: 7px; right: 8px; width: 24px; height: 24px; border: 0; border-radius: 7px; background: transparent; color: var(--rmc-auth-muted); }
+.rmc-auth-immersive__sponsor--empty {
+  padding-inline-end: 12px;
+  border-style: dashed;
+}
 
 .rmc-auth-immersive.is-offline [data-rmc-sponsored-region] { display: none !important; }
 .rmc-auth-immersive.is-offline .rmc-auth-immersive__secure-state { color: var(--color-warning); border-color: color-mix(in srgb, var(--color-warning) 35%, transparent); background: color-mix(in srgb, var(--color-warning) 10%, transparent); }
@@ -1650,7 +1654,7 @@ body:has(.rmc-auth-immersive) [data-shell-chrome="django-messages"] {
       "gallery gallery"
       "trust trust"
       "pro pro";
-    grid-template-rows: auto auto auto minmax(0, auto) minmax(0, 1fr) auto auto auto auto;
+    grid-template-rows: auto auto auto minmax(0, auto) auto auto auto auto auto;
     gap: clamp(8px, 1.2vh, 14px) clamp(12px, 1.3vw, 20px);
   }
 
@@ -1697,7 +1701,9 @@ body:has(.rmc-auth-immersive) [data-shell-chrome="django-messages"] {
     display: none;
   }
 
-  .rmc-auth-immersive__dash-body { overflow: auto; }
+  .rmc-auth-immersive__dash-body { overflow: visible; }
+  .rmc-auth-immersive__dash { overflow: visible; }
+  .rmc-auth-dash-panel[data-rmc-auth-preview="default"] .rmc-auth-dash-grid3 { display: none; }
   .rmc-auth-dash-grid3 { grid-template-columns: 1fr; }
   .rmc-auth-mini-card { display: grid; grid-template-columns: 1fr auto; align-items: center; }
   .rmc-auth-mini-card__s { grid-column: 1 / -1; }

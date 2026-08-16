@@ -119,6 +119,13 @@ class LoginImmersiveContextTests(SimpleTestCase):
         self.assertIn("dash_preview", ctx)
         self.assertIn("mini_cards", ctx["dash_preview"]["default"])
         self.assertTrue(ctx["local_first_enabled"])
+        self.assertTrue(ctx["partner_surface_enabled"])
+
+    def test_operator_render_context_keeps_partner_surface_disabled(self):
+        request = RequestFactory().get("/authentication/login/")
+        request.public_host_kind = "manager"
+        ctx = build_login_immersive_render_context(request)
+        self.assertFalse(ctx["partner_surface_enabled"])
 
     def test_sponsored_slots_are_separate_from_hero_and_unsafe_urls_are_dropped(self):
         request = RequestFactory().get("/authentication/login/")
@@ -144,6 +151,7 @@ class LoginImmersiveContextTests(SimpleTestCase):
         self.assertEqual([slot["title"] for slot in ctx["sponsored_slots"]], ["Safe local fair"])
         self.assertFalse(any(slide.get("sponsored") for slide in ctx["carousel_slides"]))
         self.assertTrue(ctx["hide_sponsored_offline"])
+        self.assertTrue(ctx["partner_surface_enabled"])
 
     def test_has_feature_enables_pro(self):
         request = RequestFactory().get("/authentication/login/")
@@ -244,6 +252,8 @@ class LoginImmersiveTemplateContractTests(SimpleTestCase):
         canvas_tpl = Path(settings.BASE_DIR) / "templates" / "auth" / "partials" / "login_immersive_canvas.html"
         html = canvas_tpl.read_text(encoding="utf-8")
         self.assertIn("data-rmc-sponsored-region", html)
+        self.assertIn("data-rmc-sponsored-empty", html)
+        self.assertIn("Local partner", html)
         self.assertIn("data-rmc-offline-note", html)
         login_tpl = (Path(settings.BASE_DIR) / "templates" / "auth" / "login.html").read_text(encoding="utf-8")
         credentials = login_tpl.split('data-rmc-auth-step="creds"', 1)[1]
@@ -281,6 +291,8 @@ class LoginImmersiveTemplateContractTests(SimpleTestCase):
         sponsor = canvas_html.index("data-rmc-sponsored-region")
         self.assertGreater(sponsor, dash_start)
         self.assertGreater(dash_end, sponsor)
+        self.assertIn('.rmc-auth-dash-panel[data-rmc-auth-preview="default"] .rmc-auth-dash-grid3 { display: none; }', css)
+        self.assertIn(".rmc-auth-immersive__dash { overflow: visible; }", css)
 
     def test_tenant_cockpit_exposes_local_front_door_governance(self):
         forms_source = (

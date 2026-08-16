@@ -820,6 +820,9 @@ def build_login_immersive_render_context(request: Any) -> dict[str, Any]:
         "moments": gallery_items if zones.get("show_gallery", True) else [],
         "trust_chips": trust_chips if zones.get("show_trust", True) else [],
         "sponsored_slots": section.get("resolved_sponsored_slots") or [],
+        # Tenant front doors may advertise the governed placement even before
+        # a campaign exists. Operator authentication remains promotion-free.
+        "partner_surface_enabled": not is_manager,
         "hide_sponsored_offline": bool(monetization.get("hide_when_offline", True)),
         "local_first_enabled": bool(local_first.get("enabled", True)),
         "local_first_cache_safe": bool(local_first.get("cache_safe_content", True)),

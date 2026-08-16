@@ -150,6 +150,14 @@
         </article>
         {% endfor %}
       </div>
+      {% elif lic.partner_surface_enabled and lic.local_first_enabled %}
+      <div class="rmc-auth-immersive__sponsors" data-rmc-sponsored-region data-rmc-sponsored-empty aria-label="{% trans 'Local partner information' %}">
+        <article class="rmc-auth-immersive__sponsor rmc-auth-immersive__sponsor--empty">
+          <span class="rmc-auth-immersive__sponsor-mark">{% trans "Local partner · Tenant controlled" %}</span>
+          <strong>{% trans "Community partner space" %}</strong>
+          <small>{% trans "Only school-approved local information appears here." %}</small>
+        </article>
+      </div>
       {% endif %}
     </div>
   </div>

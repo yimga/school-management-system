@@ -87,6 +87,34 @@ test.describe('Immersive login canvas', () => {
     await expect(page.locator('[data-rmc-local-state]')).toBeVisible();
   });
 
+  test('school pulse keeps announcements and the local partner placement visible', async ({ page }) => {
+    await page.setViewportSize({ width: 1600, height: 900 });
+    await page.goto(`${BASE}${loginPath()}`, { waitUntil: 'domcontentloaded' });
+
+    const pulse = page.locator('.rmc-auth-immersive__dash');
+    const announcements = pulse.getByText('Announcements', { exact: true });
+    const partner = pulse.locator('[data-rmc-sponsored-region]');
+    await expect(pulse).toBeVisible();
+    await expect(announcements).toBeVisible();
+    await expect(partner).toBeVisible();
+
+    const containment = await page.evaluate(() => {
+      const pulse = document.querySelector('.rmc-auth-immersive__dash');
+      const announcement = Array.from(pulse?.querySelectorAll('b') || [])
+        .find((node) => node.textContent?.trim() === 'Announcements');
+      const partner = pulse?.querySelector('[data-rmc-sponsored-region]');
+      const pulseBox = pulse?.getBoundingClientRect();
+      const announcementBox = announcement?.getBoundingClientRect();
+      const partnerBox = partner?.getBoundingClientRect();
+      return {
+        announcementInside: !!pulseBox && !!announcementBox && announcementBox.bottom <= pulseBox.bottom + 1,
+        partnerInside: !!pulseBox && !!partnerBox && partnerBox.bottom <= pulseBox.bottom + 1,
+      };
+    });
+    expect(containment.announcementInside).toBe(true);
+    expect(containment.partnerInside).toBe(true);
+  });
+
   test('extreme-short desktop keeps hero copy and credential entry reachable', async ({ page }) => {
     await page.setViewportSize({ width: 1024, height: 354 });
     await page.goto(`${BASE}${loginPath()}`, { waitUntil: 'domcontentloaded' });
