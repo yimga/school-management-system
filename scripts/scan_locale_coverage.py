@@ -141,7 +141,7 @@ LOCALE_DECLARATIONS: dict[str, tuple[str, str]] = {
     "fa": ("stub", _STUB_FIRSTTOUCH_REASON + " RTL locale."),
     "he": ("stub", _STUB_FIRSTTOUCH_REASON + " RTL locale."),
     # -- zero-translation locales ------------------------------------------
-    "ur": ("stub", _STUB_ZERO_REASON + " RTL locale."),
+    "ur": ("stub", _STUB_FIRSTTOUCH_REASON + " RTL locale."),
     "ha": ("stub", _STUB_ZERO_REASON),
     "pid": ("stub", _STUB_ZERO_REASON),
     "yo": ("stub", _STUB_ZERO_REASON),

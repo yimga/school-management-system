@@ -1,8 +1,26 @@
 # A+ PROGRESS SCOREBOARD (A0 Coordinator)
 
-**Last refreshed:** 2026-08-15 (Claude Code · "KEEP GOING A+" → **M21 i18n Phase 1 `5914759cf`** (hygiene+seal) → **Phase 2 `f1b8e5174`** (French, fr **5.3%→13.3%**, +self-host `.mo`-compile parity) → **Phase 3 `d2420dc75`/`aa003f178`** (Spanish + Portuguese → **es/pt_BR 1.4%→9.3%**) → **Phase 4 `116417e22`→`2f51ac682`→`4db46782e`** ("a+b" — RTL floor COMPLETE **ar 0.9→8.9 · fa 0→8.0 · he 0→8.0**, + depth **fr 13.3→20.5 · es/pt_BR 9.3→16.6**). Prior: binding-constraint audit + isolation seal `8a0051bfb`; 08-13 M29/M30/W22/W24/M32)  
-**Loop:** Under the 9.8 lowest-dimension regime, GO = raise the MINIMUM metric. Isolation clean (off ≤4.9). **Floor = M21 i18n** — Phase 4 moved the true floor (the RTL locales) OFF ZERO: **six usable locales now** (fr 20.5 · es 16.6 · pt_BR 16.6 · ar 8.9 · fa 8.0 · he 8.0). Audit-by-running confirmed i18n **infra is complete** (RTL wired, switcher, locale formatting) → the constraint is CONTENT everywhere, all AI-drafted → needs native review. **Next on M21:** native-review all six toward the 60% 'full' bar; extend RTL to ur (0%). Beyond M21: M31/M33, W21/W23/W25–W31.  
+**Last refreshed:** 2026-08-15 (Claude Code · "KEEP GOING A+" → **M21 i18n Phase 1 `5914759cf`** (hygiene+seal) → **Phase 2 `f1b8e5174`** (French, fr **5.3%→13.3%**, +self-host `.mo`-compile parity) → **Phase 3 `d2420dc75`/`aa003f178`** (Spanish + Portuguese → **es/pt_BR 1.4%→9.3%**) → **Phase 4 `116417e22`→`4db46782e`** ("a+b" — RTL floor + depth, 6 locales) → **Phase 5 `33652878f`+`e279337c6`** (locale FLOOR SWEEP — 9 more locales off the ~1% floor: ur/hi/zh_Hans/ru/de/tr complete ~9%, ja/zh_Hant/it partial). Prior: binding-constraint audit + isolation seal `8a0051bfb`; 08-13 M29/M30/W22/W24/M32)  
+**Loop:** Under the 9.8 lowest-dimension regime, GO = raise the MINIMUM metric. Isolation clean (off ≤4.9). **Floor = M21 i18n** — Phases 4+5 took the platform from **3 → 15 materially-translated locales** (fr 20.5 · es/pt_BR 16.6 · de/tr/ru 9.1 · zh_Hans/hi 9.0 · ar 8.9 · ur/he/fa 8.0 · ja 6.4* · zh_Hant 5.1* · it 3.8*; *=partial). Audit-by-running confirmed i18n **infra is complete** → constraint is CONTENT everywhere, all AI-drafted → needs native review. **The residual M21 floor is now HUMAN-bounded:** ha/pid/yo (0%) + sw (0.7%) are human-only translation-request packets (AI drafts disallowed by policy), and native-review is a human gate. **Next on M21:** finish ja/zh_Hant/it tails (post-3:30pm ET reset); native-review toward the 60% 'full' bar; hand human packets to translators. Beyond M21: M31/M33, W21/W23/W25–W31.  
 **Tree:** HEAD = `origin/main`
+
+---
+
+## M21 i18n — Phase 5: locale FLOOR SWEEP — 9 more locales off the ~1% floor — 2026-08-15
+
+**Commits `33652878f` (Wave 1: ur/hi/zh_Hans/ru/de) + `e279337c6` (Wave 2: tr complete; ja/zh_Hant/it partial).** "take care of it next" → extend the exact Phase 4 first-touch playbook to every AI-addressable locale still on the floor. **Audit-by-running found the true floor was broader than the two items named:** nine locales sat at ~1.1% django.po (just the old ~200-string marketing/critical-UI subset) — de/it/ru/tr/ja/zh_Hans/zh_Hant/hi — plus ur (RTL, 0%).
+
+**Result — from 6 usable locales to 15** (materially translated; the platform had just 3 at session start):
+- **Complete first-touch (~8–9%):** ur 0→8.0 (RTL — the last RTL locale off zero), hi 1.1→9.0, zh_Hans 1.1→9.0, ru 1.1→9.1, de 1.1→9.1, tr 1.1→9.1 — joining ar/fa/he (~8) and fr/es/pt_BR (16.6–20.5) from Phase 4.
+- **Partial (Wave 2 tails cut by the session limit):** ja 1.1→6.4, zh_Hant 1.1→5.1, it 1.1→3.8 — tails finish after the 3:30pm ET reset.
+
+**Method:** identical parallel-subagent playbook (1 lang/agent → 6 part-files → `apply_fr` exact-match), reusing the SAME 1,561 English first-touch keys; per-language education glossaries; **write-part-files-immediately** (Phase 4 lesson — no more total-loss on interrupt). Yield ~1527/locale (~34 unmatched = keys genuinely absent from that catalog, not typos). Applied from FRESH origin baseline at ship; ottpush per wave; every push verified by content.
+
+**HONEST FLOOR (durable):** ha/pid/yo (0%) + sw (0.7%) stay untranslated **by policy** — human-only translation-request packets (`docs/i18n/translation_requests/`), because a wrong AI term users accept as canonical is worse than English (esp. Pidgin: no standard orthography). I did NOT AI-draft them. **Native review of every AI-drafted locale remains a human gate** I enable/hand off but cannot perform. So the platform's ultimate M21 minimum is now HUMAN-bounded: (a) the human-gated African locales and (b) native-review depth — both need people, not more AI drafting.
+
+**Gate safety:** all `stub` (no floor); counts only rise → coverage `--compare` green, no re-baseline; ur reason moved to `_STUB_FIRSTTOUCH_REASON`. en.po untouched → freshness gate unaffected. 🚨 The shared session limit hit TWICE (10:30am + 3:30pm ET windows) across Phases 4–5; **triage-by-disk** salvaged every partial and nothing was lost after the write-early fix.
+
+**REMAINING on M21:** finish ja/zh_Hant/it tails (post-3:30pm reset, same playbook); native-review all AI-drafted locales toward the 60% 'full' bar; hand ha/pid/yo/sw packets to human translators. Beyond M21: M31/M33, W21/W23/W25–W31.
 
 ---
 
