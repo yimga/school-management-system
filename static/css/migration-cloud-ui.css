@@ -399,6 +399,118 @@ body.control-plane-shell #cp-main-content .cp-page-body:has(.rmc-page--migration
 }
 
 /* Connector wizard (source platform selection) — allow long forms to scroll. */
+/* Bundle workbench integrity layer. The detail screen is a dense desktop
+   workbench, not a stacked row-detail surface. */
+.rmc-page--migration-cloud-detail {
+  inline-size: min(100%, 92rem);
+  max-inline-size: 92rem;
+  min-inline-size: 0;
+  margin-inline: auto;
+  padding-inline: clamp(0.75rem, 1.6vw, 1.5rem);
+  overflow: visible;
+}
+
+.rmc-page--migration-cloud-detail > *,
+.rmc-page--migration-cloud-detail .rmc-card,
+.rmc-page--migration-cloud-detail .rmc-collapsible {
+  min-inline-size: 0;
+  max-inline-size: 100%;
+}
+
+.rmc-page--migration-cloud-detail .rmc-card,
+.rmc-page--migration-cloud-detail .rmc-collapsible {
+  overflow-x: auto;
+  overflow-y: visible;
+}
+
+.rmc-page--migration-cloud-detail .rmc-data-table {
+  inline-size: 100%;
+  min-inline-size: 48rem;
+  table-layout: auto;
+}
+
+.rmc-page--migration-cloud-detail .rmc-mapping__table { min-inline-size: 64rem; }
+
+.rmc-page--migration-cloud-detail .rmc-data-table :is(th, td) {
+  min-inline-size: 0;
+  word-break: normal;
+  overflow-wrap: normal;
+  hyphens: none;
+  vertical-align: middle;
+}
+
+.rmc-page--migration-cloud-detail .rmc-data-table :is(th, td):first-child,
+.rmc-page--migration-cloud-detail .rmc-mapping__canonical { overflow-wrap: anywhere; }
+
+.rmc-page--migration-cloud-detail .rmc-mapping__actions {
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.4rem;
+  min-inline-size: 14rem;
+  white-space: nowrap;
+}
+
+.rmc-page--migration-cloud-detail .rmc-mapping__actions > * {
+  flex: 0 0 auto;
+  margin: 0;
+}
+
+.rmc-page--migration-cloud-detail .rmc-mapping__explain {
+  display: inline-block;
+  inline-size: auto;
+  min-block-size: auto;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.rmc-page--migration-cloud-detail .rmc-mapping__explain > summary {
+  min-block-size: 2.25rem;
+  padding: 0.45rem 0.65rem;
+  border: 1px solid var(--mc-border);
+  border-radius: 0.5rem;
+  white-space: nowrap;
+}
+
+.rmc-page--migration-cloud-detail .rmc-button-row {
+  display: flex;
+  flex-flow: row wrap;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.rmc-page--migration-cloud-detail .rmc-button-row > :is(form, button, a) {
+  display: inline-flex;
+  flex: 0 0 auto;
+  inline-size: auto;
+  margin: 0;
+}
+
+.rmc-page--migration-cloud-detail .rmc-button-row form > .rmc-btn {
+  inline-size: auto;
+  white-space: nowrap;
+}
+
+.rmc-page--migration-cloud-detail .rmc-section-nav,
+.rmc-page--migration-cloud-detail .rmc-surface-subnav {
+  display: flex;
+  flex-flow: row wrap;
+  align-items: center;
+  gap: 0.45rem;
+  max-inline-size: 100%;
+}
+
+@media (max-width: 720px) {
+  .rmc-page--migration-cloud-detail { padding-inline: 0.5rem; }
+  .rmc-page--migration-cloud-detail .rmc-data-table { min-inline-size: 42rem; }
+  .rmc-page--migration-cloud-detail .rmc-button-row > :is(form, button, a) { flex: 1 1 12rem; }
+  .rmc-page--migration-cloud-detail .rmc-button-row :is(.rmc-btn, form > .rmc-btn) { inline-size: 100%; }
+}
+
 :where(.rmc-page--migration-connector, [data-rmc-migration-connector-wizard]) {
   overflow-y: auto;
   overflow-x: hidden;
