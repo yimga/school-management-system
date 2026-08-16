@@ -40,6 +40,28 @@ class CheckEdgeReadinessTests(TestCase):
         self.assertIn("plain-HTTP LAN serving", output)  # secure-hardening-off OK line
 
     @override_settings(
+        SECRET_KEY=_LONG_SECRET, DEBUG=False,
+        MULTI_TENANT_BASE_DOMAIN="",  # unset → the ".lan" wildcard is never injected
+        ALLOWED_HOSTS=["school.lan"],
+    )
+    def test_lan_base_domain_unset_warns(self):
+        # A '<slug>.school.lan' host would 400 because the default ALLOWED_HOSTS
+        # covers .local, not .lan, and no MULTI_TENANT_BASE_DOMAIN wildcard is set.
+        output, err = self._run(strict=True)  # a WARN must NOT trip --strict
+        self.assertIsNone(err)
+        self.assertIn("MULTI_TENANT_BASE_DOMAIN is unset", output)
+
+    @override_settings(
+        SECRET_KEY=_LONG_SECRET, DEBUG=False,
+        MULTI_TENANT_BASE_DOMAIN="school.lan",
+        ALLOWED_HOSTS=[".school.lan", "10.10.20.137"],
+    )
+    def test_lan_base_domain_wildcard_covered_ok(self):
+        output, err = self._run()
+        self.assertIsNone(err)
+        self.assertIn("covers *.school.lan", output)
+
+    @override_settings(
         SECRET_KEY=_LONG_SECRET,
         DEBUG=False,
         SINGLE_TENANT=True,
