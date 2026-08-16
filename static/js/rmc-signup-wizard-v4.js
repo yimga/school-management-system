@@ -49,6 +49,7 @@
     move(directField("name"), identity);
     move(directField("slug"), identity);
     move(directField("email"), identity);
+    if (countryRow) countryRow.classList.add("rmc-signup-identity-locality");
     move(countryRow, identity);
 
     var operations = makePanel(2, "How will this school operate?", "Only decisions that materially change your setup are shown.");

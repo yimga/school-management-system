@@ -60,6 +60,14 @@ for (const item of cases) {
     const form = document.querySelector('[data-rmc-signup-form="1"]');
     const card = document.querySelector('[data-rmc-signup-balanced="v3"]');
     const rect = card?.getBoundingClientRect();
+    const box = (selector) => document.querySelector(selector)?.getBoundingClientRect() || null;
+    const nameBox = box('[data-rmc-signup-field="name"]');
+    const slugBox = box('[data-rmc-signup-field="slug"]');
+    const emailBox = box('[data-rmc-signup-field="email"]');
+    const localityBox = box('.rmc-signup-identity-locality');
+    const countryBox = document.querySelector('#country_code')?.closest('[class*="col-"]')?.getBoundingClientRect() || null;
+    const calendarBox = document.querySelector('#term_preset')?.closest('[class*="col-"]')?.getBoundingClientRect() ||
+      document.querySelector('[data-rmc-country-cards="calendar"]')?.closest('[class*="col-"]')?.getBoundingClientRect() || null;
     const bodyLinks = document.querySelectorAll('body link[rel~="stylesheet"]').length;
     return {
       h1: [...document.querySelectorAll("h1")].filter((node) => {
@@ -71,6 +79,13 @@ for (const item of cases) {
       wizardPanels: document.querySelectorAll("[data-rmc-wizard-panel]").length,
       visibleWizardPanels: [...document.querySelectorAll("[data-rmc-wizard-panel]")].filter((node) => !node.hidden).length,
       progressSteps: document.querySelectorAll("[data-rmc-wizard-step-indicator]").length,
+      identityBalanced: width <= 768 || Boolean(
+        nameBox && slugBox && emailBox && localityBox && countryBox && calendarBox &&
+        Math.abs(nameBox.top - slugBox.top) < 4 &&
+        Math.abs(emailBox.top - localityBox.top) < 4 &&
+        Math.abs(countryBox.top - calendarBox.top) < 4 &&
+        localityBox.width > width * 0.3
+      ),
       cardWidthRatio: rect ? rect.width / width : 0,
       balanced: Boolean(card && form),
       optionalInputs: [
@@ -95,6 +110,7 @@ for (const item of cases) {
   if (dom.wizardPanels !== 5 || dom.visibleWizardPanels !== 1 || dom.progressSteps !== 5) {
     findings.push(`wizard:${dom.wizardPanels}/${dom.visibleWizardPanels}/${dom.progressSteps}`);
   }
+  if (!dom.identityBalanced) findings.push("identity-horizontal-balance-missing");
   if (dom.cardWidthRatio < (item.width <= 390 ? 0.92 : 0.72)) findings.push(`card-width:${dom.cardWidthRatio}`);
   if (!dom.recommendationOnly) findings.push("recommendation-disclaimer-missing");
   if (!dom.plan) findings.push("live-plan:missing");

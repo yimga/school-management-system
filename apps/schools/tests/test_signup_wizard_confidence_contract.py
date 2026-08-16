@@ -121,8 +121,14 @@ class SignupWizardStaticContractTests(SimpleTestCase):
             "validatePanel(panels[invalidStep + 1])",
             "Secure device drafts are unavailable",
             'if (queuedSubmission) emitJourney(current, "submit-queued")',
+            'countryRow.classList.add("rmc-signup-identity-locality")',
         ):
             self.assertIn(marker, source)
         self.assertIn("rmc-signup-wizard-v4.js", template)
         self.assertIn("rmc-signup-confidence-breakdown", css)
+        self.assertIn(".rmc-signup-identity-locality", css)
+        self.assertNotIn(
+            '.rmc-signup-wizard-panel__body > [data-rmc-signup-field="migration_domains"],',
+            css,
+        )
         self.assertIn("prefers-reduced-motion", source)

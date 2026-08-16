@@ -292,12 +292,23 @@ html[data-rmc-isomorphic-template="onboarding-wizard"] [data-shell-page="onboard
   align-items: start;
 }
 .rmc-signup-wizard-panel__body > [data-rmc-signup-field="institution_profile"],
-.rmc-signup-wizard-panel__body > [data-rmc-signup-field="language"],
-.rmc-signup-wizard-panel__body > [data-rmc-signup-field="school_type"],
-.rmc-signup-wizard-panel__body > [data-rmc-signup-field="migration_domains"],
-.rmc-signup-wizard-panel__body > .row,
 .rmc-signup-wizard-panel__body > [data-rmc-signup-submit],
 .rmc-signup-review { grid-column: 1 / -1; }
+.rmc-signup-identity-locality {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  align-items: start;
+  min-inline-size: 0;
+  margin: 0 !important;
+}
+.rmc-signup-identity-locality > [class*="col-"] {
+  inline-size: auto !important;
+  max-inline-size: none !important;
+  min-inline-size: 0;
+  padding: 0 !important;
+}
+.rmc-signup-identity-locality > [data-rmc-india-state-block] { grid-column: 1 / -1; }
 .rmc-signup-wizard-actions {
   display: flex;
   justify-content: space-between;
@@ -360,6 +371,7 @@ html[data-rmc-isomorphic-template="onboarding-wizard"] [data-shell-page="onboard
   .rmc-signup-wizard-panel__body,
   .rmc-signup-review { grid-template-columns: minmax(0, 1fr); }
   .rmc-signup-wizard-panel__body > * { grid-column: 1 !important; }
+  .rmc-signup-identity-locality { grid-template-columns: minmax(0, 1fr); }
   .rmc-signup-wizard-panel__header { display: block; }
   .rmc-signup-wizard-panel__header > small { display: block; margin-block-start: 0.35rem; }
 }

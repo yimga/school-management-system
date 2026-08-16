@@ -209,7 +209,7 @@
 // cache-busts rmc-tenant-workspace-canvas.css for deployed tenants.
 // v4.06.41: login canvas parity cache-bust; releases the stale two-row metric
 // layout that could leave Portal and Support below the locked viewport.
-const CACHE_VERSION = "sms-v4.06.46-approved-ui-final-audit-2026-08-16";
+const CACHE_VERSION = "sms-v4.06.47-signup-horizontal-balance-2026-08-16";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 
