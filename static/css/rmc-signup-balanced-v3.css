@@ -287,21 +287,71 @@ html[data-rmc-isomorphic-template="onboarding-wizard"] [data-shell-page="onboard
 .rmc-signup-wizard-panel__header small { margin: 0; color: var(--rmc-safe-muted); }
 .rmc-signup-wizard-panel__body {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(12, minmax(0, 1fr));
   gap: 1rem;
   align-items: start;
 }
+.rmc-signup-wizard-panel__workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(14rem, 1fr);
+  gap: clamp(1rem, 2vw, 1.5rem);
+  align-items: stretch;
+}
+.rmc-signup-wizard-panel__body > * { grid-column: 1 / -1; }
+.rmc-signup-wizard-panel__body > [data-rmc-wizard-width="wide"] { grid-column: span 7; }
+.rmc-signup-wizard-panel__body > [data-rmc-wizard-width="standard"] { grid-column: span 5; }
 .rmc-signup-wizard-panel__body > [data-rmc-signup-field="institution_profile"],
 .rmc-signup-wizard-panel__body > [data-rmc-signup-submit],
 .rmc-signup-review { grid-column: 1 / -1; }
 .rmc-signup-identity-locality {
   display: grid !important;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: 1rem;
   align-items: start;
   min-inline-size: 0;
   margin: 0 !important;
 }
+.rmc-signup-wizard-guide {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  min-inline-size: 0;
+  padding: 1rem;
+  border: 1px solid color-mix(in srgb, var(--rmc-safe-accent) 34%, var(--rmc-safe-border));
+  border-radius: 0.9rem;
+  background: linear-gradient(155deg, color-mix(in srgb, var(--rmc-safe-accent) 10%, var(--rmc-safe-surface)), var(--rmc-safe-surface-soft));
+}
+.rmc-signup-wizard-guide__eyebrow {
+  color: var(--rmc-safe-accent);
+  font-size: 0.67rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.rmc-signup-wizard-guide > strong { font-size: 1rem; }
+.rmc-signup-wizard-guide > p { margin: 0; color: var(--rmc-safe-muted); font-size: 0.82rem; line-height: 1.5; }
+.rmc-signup-wizard-guide__note {
+  display: grid;
+  grid-template-columns: 1.35rem minmax(0, 1fr);
+  gap: 0.5rem;
+  align-items: start;
+  margin-block-start: 0.25rem;
+  padding-block-start: 0.75rem;
+  border-block-start: 1px solid var(--rmc-safe-border);
+  color: var(--rmc-safe-muted);
+  font-size: 0.76rem;
+}
+.rmc-signup-wizard-guide__note i { display: grid; place-items: center; block-size: 1.35rem; border-radius: 50%; background: color-mix(in srgb, var(--rmc-safe-success, #16a34a) 14%, transparent); color: var(--rmc-safe-success, #16a34a); font-style: normal; }
+.rmc-signup-wizard-guide__completion {
+  margin-block-start: auto;
+  padding: 0.6rem 0.7rem;
+  border-radius: 0.65rem;
+  background: color-mix(in srgb, var(--rmc-safe-warning, #f59e0b) 10%, var(--rmc-safe-surface));
+  color: var(--rmc-safe-text);
+  font-size: 0.75rem;
+  font-weight: 750;
+}
+.rmc-signup-wizard-guide__completion.is-ready { background: color-mix(in srgb, var(--rmc-safe-success, #16a34a) 12%, var(--rmc-safe-surface)); }
 .rmc-signup-identity-locality > [class*="col-"] {
   inline-size: auto !important;
   max-inline-size: none !important;
@@ -370,8 +420,18 @@ html[data-rmc-isomorphic-template="onboarding-wizard"] [data-shell-page="onboard
   .rmc-signup-progress { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .rmc-signup-wizard-panel__body,
   .rmc-signup-review { grid-template-columns: minmax(0, 1fr); }
+  .rmc-signup-wizard-panel__workspace { grid-template-columns: minmax(0, 1fr); }
   .rmc-signup-wizard-panel__body > * { grid-column: 1 !important; }
   .rmc-signup-identity-locality { grid-template-columns: minmax(0, 1fr); }
   .rmc-signup-wizard-panel__header { display: block; }
   .rmc-signup-wizard-panel__header > small { display: block; margin-block-start: 0.35rem; }
+}
+@media (min-width: 769px) and (max-width: 1120px) {
+  .rmc-signup-wizard-panel__workspace { grid-template-columns: minmax(0, 1fr); }
+  .rmc-signup-wizard-guide { display: grid; grid-template-columns: minmax(9rem, 0.7fr) minmax(0, 1.5fr); align-items: center; }
+  .rmc-signup-wizard-guide__eyebrow,
+  .rmc-signup-wizard-guide__completion { grid-column: 1; }
+  .rmc-signup-wizard-guide > strong,
+  .rmc-signup-wizard-guide > p,
+  .rmc-signup-wizard-guide__note { grid-column: 2; }
 }

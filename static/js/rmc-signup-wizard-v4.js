@@ -13,6 +13,13 @@
   var draftTimer;
   var recommendationTimer;
   var queuedSubmission = false;
+  var STEP_GUIDANCE = {
+    1: ["Reserve your workspace", "Country choices preload local calendars and terminology.", "Only school name, country and admin email are required."],
+    2: ["Shape the right setup", "Your answers tune modules, blueprint and offline defaults.", "Every recommendation remains reviewable before launch."],
+    3: ["Match local education", "Languages, cycles and grading vocabulary follow your region.", "Choose every education cycle your school currently serves."],
+    4: ["Start clean or migrate", "Import choices prepare the Migration Cloud without blocking signup.", "You can skip migration and connect data after verification."],
+    5: ["You remain in control", "Nothing is provisioned until you confirm this review.", "Recommendations include evidence, confidence and alternatives."]
+  };
 
   function directField(name) {
     return form.querySelector(':scope > [data-rmc-signup-field="' + name + '"]');
@@ -23,11 +30,19 @@
     panel.className = "rmc-signup-wizard-panel";
     panel.dataset.rmcWizardPanel = String(number);
     panel.setAttribute("aria-labelledby", "rmc-signup-step-title-" + number);
+    var guidance = STEP_GUIDANCE[number];
     panel.innerHTML = '<header class="rmc-signup-wizard-panel__header">' +
       '<div><span>Step ' + number + ' of ' + total + '</span>' +
       '<h2 id="rmc-signup-step-title-' + number + '">' + title + '</h2>' +
       '<p>' + copy + '</p></div><small>Progress saves locally</small></header>' +
-      '<div class="rmc-signup-wizard-panel__body"></div>';
+      '<div class="rmc-signup-wizard-panel__workspace">' +
+      '<div class="rmc-signup-wizard-panel__body"></div>' +
+      '<aside class="rmc-signup-wizard-guide" aria-label="Step guidance">' +
+      '<span class="rmc-signup-wizard-guide__eyebrow">Recommended path</span>' +
+      '<strong>' + guidance[0] + '</strong><p>' + guidance[1] + '</p>' +
+      '<div class="rmc-signup-wizard-guide__note"><i aria-hidden="true">✓</i><span>' + guidance[2] + '</span></div>' +
+      '<div class="rmc-signup-wizard-guide__completion" data-rmc-step-completion>Ready to begin</div>' +
+      '</aside></div>';
     form.appendChild(panel);
     panels[number] = panel;
     return panel.querySelector(".rmc-signup-wizard-panel__body");
@@ -35,6 +50,11 @@
 
   function move(node, body) {
     if (node) body.appendChild(node);
+  }
+
+  function size(node, value) {
+    if (node) node.dataset.rmcWizardWidth = value;
+    return node;
   }
 
   function controlsFor(panel) {
@@ -46,22 +66,22 @@
     var submit = form.querySelector(':scope > [data-rmc-signup-submit]');
     var countryRow = form.querySelector(":scope > .row");
     var identity = makePanel(1, "School identity", "The essentials needed to reserve and verify your workspace.");
-    move(directField("name"), identity);
-    move(directField("slug"), identity);
-    move(directField("email"), identity);
+    move(size(directField("name"), "wide"), identity);
+    move(size(directField("slug"), "standard"), identity);
+    move(size(directField("email"), "wide"), identity);
     if (countryRow) countryRow.classList.add("rmc-signup-identity-locality");
-    move(countryRow, identity);
+    move(size(countryRow, "standard"), identity);
 
     var operations = makePanel(2, "How will this school operate?", "Only decisions that materially change your setup are shown.");
     move(directField("institution_profile"), operations);
 
     var education = makePanel(3, "Education and local context", "Confirm languages, education cycles and country-matched terminology.");
-    move(directField("language"), education);
-    move(directField("school_type"), education);
+    move(size(directField("language"), "standard"), education);
+    move(size(directField("school_type"), "wide"), education);
 
     var launch = makePanel(4, "Data and launch", "Tell us what should be ready on day one. You can safely start fresh.");
-    move(directField("migration_vendor"), launch);
-    move(directField("migration_domains"), launch);
+    move(size(directField("migration_vendor"), "standard"), launch);
+    move(size(directField("migration_domains"), "wide"), launch);
 
     var finalBody = makePanel(5, "Review before anything is applied", "Compare the recommendation, evidence and alternatives. You remain in control.");
     review = document.createElement("div");
@@ -99,6 +119,7 @@
       item.classList.toggle("rmc-signup-progress--done", step < current);
     });
     if (current === total) renderReview();
+    updateCompletion(panels[current]);
     try {
       sessionStorage.setItem("rmc-signup-current-step", String(current));
     } catch (_storageError) {
@@ -107,6 +128,22 @@
     emitJourney(current, current > previous ? "continue" : current < previous ? "back" : "view");
     if (focus) panels[current].querySelector("h2").focus({ preventScroll: true });
     panels[current].scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+  }
+
+  function updateCompletion(panel) {
+    if (!panel) return;
+    var controls = controlsFor(panel).filter(function (node) { return node.type !== "radio" || node.checked; });
+    var meaningful = controls.filter(function (node) {
+      return (node.type === "checkbox" || node.type === "radio") ? node.checked : String(node.value || "").trim();
+    });
+    var required = controlsFor(panel).filter(function (node) { return node.required; });
+    var validRequired = required.filter(function (node) { return node.checkValidity(); });
+    var output = panel.querySelector("[data-rmc-step-completion]");
+    if (!output) return;
+    output.textContent = required.length && validRequired.length < required.length
+      ? validRequired.length + " of " + required.length + " essentials ready"
+      : meaningful.length ? "Step is ready to continue" : "Optional choices can be skipped";
+    output.classList.toggle("is-ready", !required.length || validRequired.length === required.length);
   }
 
   function validatePanel(panel) {
@@ -319,11 +356,15 @@
     if (event.target.closest("[data-rmc-wizard-back]")) setStep(current - 1, true);
   });
   form.addEventListener("input", function () {
+    updateCompletion(panels[current]);
     clearTimeout(draftTimer);
     draftTimer = setTimeout(function () { saveDraft().catch(function () {}); }, 450);
     refreshRecommendation();
   });
-  form.addEventListener("change", refreshRecommendation);
+  form.addEventListener("change", function () {
+    updateCompletion(panels[current]);
+    refreshRecommendation();
+  });
   form.addEventListener("submit", function (event) {
     if (!navigator.onLine) {
       event.preventDefault();
