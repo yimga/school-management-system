@@ -260,10 +260,20 @@
                 {{ m.canonical_field }}
               </td>
               <td>
+                {% if m.method == 'custom_field' %}
+                {# A custom field has no canonical target, so a confidence % is meaningless — #}
+                {# it is captured verbatim as a tracked custom field and imported without loss, #}
+                {# NOT a failed mapping. Show that honestly instead of a red 0%. #}
+                <span class="rmc-pill rmc-pill--info"
+                      title="{% trans 'No standard field matched — captured as a tracked custom field and imported without loss.' %}">
+                  {% trans "Tracked · will import" %}
+                </span>
+                {% else %}
                 <span class="rmc-pill rmc-pill--confidence
                   {% if conf >= 0.9 %}rmc-pill--success{% elif conf >= 0.7 %}rmc-pill--warning{% else %}rmc-pill--danger{% endif %}">
                   {% widthratio conf 1 100 %}%
                 </span>
+                {% endif %}
               </td>
               <td><span class="rmc-mapping__method-tag">{{ m.method }}</span></td>
               <td>{{ m.transformer|default:"—" }}</td>

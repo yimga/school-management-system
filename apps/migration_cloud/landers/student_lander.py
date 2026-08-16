@@ -72,21 +72,45 @@ class StudentLander(Lander):
             # stores it on ``status`` (a constrained choice), NOT a field named
             # ``enrollment_status`` — writing that key silently dropped the state.
             mapped_status = map_enrollment_status(row.get("enrollment_status"))
+            phone_val = (row.get("phone") or "").strip()
+            parent_phone_val = (row.get("parent_phone") or "").strip()
             defaults = {
                 "first_name": first_name,
                 "last_name": last_name,
                 "middle_name": middle_name,
                 "admission_number": (row.get("admission_number") or "").strip(),
                 "email": (row.get("email") or "").strip(),
-                "phone": (row.get("phone") or "").strip(),
+                "phone": phone_val,
                 "date_of_birth": row.get("date_of_birth") or None,
                 "gender": (row.get("gender") or "").strip(),
                 "grade_level": (row.get("grade_level") or "").strip(),
                 "status": mapped_status,
                 "address": (row.get("address") or "").strip(),
+                # Real StudentProfile columns most SIS exports carry inline —
+                # these used to quarantine as 0%-confidence custom fields (no
+                # ontology entry). Now mapped + landed into their proper home.
+                "place_of_birth": (row.get("place_of_birth") or "").strip(),
+                "joined_date": row.get("joined_date") or None,
+                "joined_term": (row.get("joined_term") or "").strip(),
+                "section": (row.get("section") or "").strip(),
+                "parent_phone": parent_phone_val,
+                "exam_candidate_number": (row.get("exam_candidate_number") or "").strip(),
+                "exam_center_code": (row.get("exam_center_code") or "").strip(),
             }
             # Filter to fields the model actually has, to be schema-tolerant.
             model_fields = {f.name for f in StudentProfile._meta.get_fields()}
+            # Closest-real-home fallback: this StudentProfile has no student
+            # ``phone`` column but does have ``parent_phone``. On a student
+            # roster the lone "Mobile Number" is the contact number, so land it
+            # in the real column rather than as an inert custom field (operator
+            # can re-map). Only when parent_phone wasn't itself provided.
+            if (
+                phone_val
+                and "phone" not in model_fields
+                and "parent_phone" in model_fields
+                and not defaults.get("parent_phone")
+            ):
+                defaults["parent_phone"] = phone_val
             # Canonical columns this tenant's StudentProfile doesn't model
             # (middle_name/email/phone/grade_level/address vary by deployment) —
             # preserved as custom fields after the upsert so no source data is
@@ -94,12 +118,16 @@ class StudentLander(Lander):
             extras = {
                 "middle_name": middle_name,
                 "email": (row.get("email") or "").strip(),
-                "phone": (row.get("phone") or "").strip(),
+                "phone": phone_val,
                 "grade_level": (row.get("grade_level") or "").strip(),
                 "address": (row.get("address") or "").strip(),
                 "enrollment_status": (row.get("enrollment_status") or "").strip(),
             }
             extras = {k: v for k, v in extras.items() if k not in model_fields and v}
+            # If phone was folded into the real parent_phone column above, don't
+            # ALSO duplicate it as a custom field.
+            if defaults.get("parent_phone") == phone_val and phone_val:
+                extras.pop("phone", None)
             defaults = {k: v for k, v in defaults.items() if k in model_fields and v not in (None, "")}
 
             # Bind created/updated rows to the bundle's school, and scope the
@@ -254,6 +282,13 @@ class StudentLander(Lander):
                 # StudentGuardian at ingest (COPPA-safe). A parent who later links
                 # this child sees it surfaced for confirmation.
                 _link_student_guardian_hint(obj, row, ctx, result)
+                # Sweep EVERY still-unmapped column into the student's own
+                # ``custom_attributes`` JSON so nothing on the roster is lost AND
+                # it stays joined to the student (unlike the generic DFV path,
+                # which keys to a synthetic migration_artifact row). This is what
+                # makes "always ingest everything" true even for columns with no
+                # canonical home. Best-effort — never quarantines the landed row.
+                _sweep_custom_attributes(obj, row, model_fields, result)
             except Exception as exc:  # noqa: BLE001 — per-row quarantine
                 result.quarantined += 1
                 result.errors.append(f"upsert failed for {external_id}: {type(exc).__name__}: {exc}")
@@ -491,6 +526,66 @@ def _link_student_guardian_hint(obj, row: dict[str, Any], ctx, result) -> None:
     persist_dfv_extras(
         ctx=ctx, entity_type="student", entity_id=obj.pk, extras=extras, result=result,
     )
+
+
+# Cap on how many still-unmapped columns are folded into one student's
+# custom_attributes — guards against a pathologically wide roster bloating the
+# JSON blob. A real roster carries far fewer than this.
+_CUSTOM_ATTR_MAX_KEYS = 60
+_CUSTOM_ATTR_KEY_CAP = 120
+_CUSTOM_ATTR_VALUE_CAP = 500
+_CUSTOM_FIELD_KEY_RE = re.compile(r"^(?:custom_fields|_unmapped)\.(.+)$")
+_CUSTOM_ATTR_NULL_LITERALS = frozenset({"", "none", "nan", "n/a", "na", "null", "-"})
+
+
+def _sweep_custom_attributes(obj, row: dict[str, Any], model_fields, result) -> None:
+    """Fold every still-unmapped roster column into ``StudentProfile.custom_attributes``.
+
+    Columns with no canonical home arrive on the row as ``custom_fields.<slug>``
+    (below-threshold) or ``_unmapped.<col>`` (no candidate). Inside a students
+    artifact only THIS lander runs, so those keys would otherwise never be
+    persisted — the row would land with its first-class fields but silently drop
+    its custom columns. Writing them to the student's own ``custom_attributes``
+    JSON keeps the no-data-loss invariant AND keeps the values joined to the
+    student (queryable in reports/exports), unlike the generic DFV path that
+    keys to a synthetic ``migration_artifact`` row. Best-effort; existing keys
+    are preserved (incoming fills/refreshes, never wipes). Never raises."""
+    if "custom_attributes" not in model_fields:
+        return
+    swept: dict[str, str] = {}
+    for key, value in row.items():
+        if not isinstance(key, str):
+            continue
+        m = _CUSTOM_FIELD_KEY_RE.match(key)
+        if not m:
+            continue
+        if value is None:
+            continue
+        text = str(value).strip()
+        if text.lower() in _CUSTOM_ATTR_NULL_LITERALS:
+            continue
+        swept[m.group(1)[:_CUSTOM_ATTR_KEY_CAP]] = text[:_CUSTOM_ATTR_VALUE_CAP]
+        if len(swept) >= _CUSTOM_ATTR_MAX_KEYS:
+            break
+    if not swept:
+        return
+    try:
+        current = dict(getattr(obj, "custom_attributes", None) or {})
+        changed = False
+        for k, v in swept.items():
+            if current.get(k) != v:
+                current[k] = v
+                changed = True
+        if not changed:
+            return
+        with row_savepoint():
+            obj.custom_attributes = current
+            obj.save(update_fields=["custom_attributes"])
+    except Exception:  # noqa: BLE001 — enrichment is best-effort; student already landed
+        if result is not None:
+            result.errors.append(
+                f"custom_attributes sweep failed for student {getattr(obj, 'pk', '?')}"
+            )
 
 
 def _surface_dedup_candidates(model, new_obj, row: dict[str, Any], ctx: "LanderContext") -> None:

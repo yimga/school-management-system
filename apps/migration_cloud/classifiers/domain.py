@@ -148,23 +148,33 @@ def _score_domains(normalized_headers: set[str]) -> list[DomainCandidate]:
         if domain == "custom_fields":
             continue
         matched_fields: list[str] = []
-        total_synonyms = 0
-        hits = 0
+        matched_headers: set[str] = set()
         for cf in iter_canonical_fields(domain):
             syns = {s.lower() for s in all_synonyms(cf["canonical_field"], domain=domain)}
-            total_synonyms += len(syns)
             overlap = normalized_headers & syns
             if overlap:
-                hits += len(overlap)
+                matched_headers |= overlap
                 matched_fields.append(cf["canonical_field"])
 
-        if hits == 0:
+        if not matched_fields:
             continue
 
-        # Confidence: matched canonical fields / total canonical fields in domain,
-        # capped at 0.99. Bonus when a "required_for" field is matched (proves the domain).
+        # Confidence blends two signals so the score is robust to ontology size:
+        #   * field_coverage — how much of the DOMAIN this file exercises
+        #     (matched fields / total domain fields);
+        #   * header_fraction — how much of THIS FILE the domain explains
+        #     (distinct headers matched / total headers).
+        # field_coverage alone PENALISES rich domains — adding real columns to
+        # `students` used to dilute it below a tiny domain that matched one shared
+        # header + its required-field bonus (e.g. specialties on a "Name" column),
+        # flipping a plain student roster to the wrong lander. Weighting the two
+        # equally keeps "the domain that explains the most of the file" on top no
+        # matter how many fields a domain grows to. Bonus when a "required_for"
+        # field is matched (proves the domain).
         domain_fields = list(CANONICAL_ONTOLOGY[domain].keys())
-        coverage = len(matched_fields) / max(len(domain_fields), 1)
+        field_coverage = len(matched_fields) / max(len(domain_fields), 1)
+        header_fraction = len(matched_headers) / max(len(normalized_headers), 1)
+        coverage = 0.5 * field_coverage + 0.5 * header_fraction
         required_match_bonus = 0.0
         for cf_name in matched_fields:
             if CANONICAL_ONTOLOGY[domain][cf_name].get("required_for"):
@@ -176,7 +186,10 @@ def _score_domains(normalized_headers: set[str]) -> list[DomainCandidate]:
             domain=domain,
             confidence=round(confidence, 3),
             matched_canonical_fields=matched_fields,
-            reasoning=f"{len(matched_fields)}/{len(domain_fields)} canonical fields matched",
+            reasoning=(
+                f"{len(matched_fields)}/{len(domain_fields)} canonical fields matched; "
+                f"{len(matched_headers)}/{len(normalized_headers)} headers explained"
+            ),
         ))
 
     scored.sort(key=lambda c: c.confidence, reverse=True)

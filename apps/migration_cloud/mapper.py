@@ -333,6 +333,69 @@ def _map_one_column(
 
 # --- Scoring helpers ---------------------------------------------------
 
+# Generic "filler" tokens a real header pads a synonym with without changing its
+# meaning: "Mobile NUMBER", "Parent CONTACT NO", "STUDENT id". A header that is
+# just [specific synonym token] + these fillers still means the synonym — so the
+# containment scorer treats them as noise. Tokens that DO carry meaning ("class",
+# "form", "teacher", "year", "date", "name") are deliberately absent so a
+# "Class TEACHER" never collapses onto grade_level's generic "class" synonym.
+_GENERIC_HEADER_TOKENS: frozenset[str] = frozenset({
+    "number", "no", "num", "code", "id", "the", "of", "a", "an", "and", "or",
+    "for", "student", "students", "learner", "pupil", "child", "s", "details",
+    "detail", "info", "information", "field", "value", "primary", "main",
+})
+
+# The confidence a full "specific synonym ⊆ header, rest is filler" containment
+# match yields BEFORE the value-shape bonus. Chosen so it clears the 0.80
+# field_min_confidence default even under the -0.05 shape penalty (0.92 - 0.05 =
+# 0.87), while a header carrying an unrelated meaningful token scores well below.
+_CONTAINMENT_STRONG = 0.92
+_CONTAINMENT_WEAK = 0.70
+
+
+def _containment_strength(
+    source_tokens: set[str], syns: list[str]
+) -> tuple[float, str]:
+    """How strongly a header CONTAINS one of a field's synonyms.
+
+    Jaccard punishes a header for padding a synonym with extra words ("Mobile
+    Number" vs "mobile" scores 0.5), so a real synonym never clears the 0.80
+    threshold. This directional scorer rewards the opposite: when a synonym's
+    tokens all appear in the header AND the leftover header tokens are only
+    filler (generic words, or OTHER synonyms of the same field), the header IS
+    that field with noise around it — a strong match. A leftover token that is
+    neither filler nor same-field vocabulary means the header is about something
+    else, so the match is weak.
+
+    Guard against false positives: a synonym made ONLY of generic tokens (e.g.
+    grade_level's "class") can never anchor a containment match — otherwise
+    "Class Teacher" would map to grade_level. Returns ``(strength, matched_syn)``.
+    """
+    if not source_tokens:
+        return 0.0, ""
+    field_vocab: set[str] = set()
+    for syn in syns:
+        field_vocab.update(t for t in syn.replace("-", "_").split("_") if t)
+    best = 0.0
+    best_syn = ""
+    for syn in syns:
+        syn_tokens = {t for t in syn.replace("-", "_").split("_") if t}
+        if not syn_tokens or not syn_tokens <= source_tokens:
+            continue
+        if not (syn_tokens - _GENERIC_HEADER_TOKENS):
+            continue  # all-generic synonym cannot anchor a match
+        extra = source_tokens - syn_tokens
+        extra_meaningful = extra - _GENERIC_HEADER_TOKENS - field_vocab
+        if not extra_meaningful:
+            strength = _CONTAINMENT_STRONG
+        else:
+            strength = _CONTAINMENT_WEAK * (len(syn_tokens) / len(source_tokens))
+        if strength > best:
+            best = strength
+            best_syn = syn
+    return best, best_syn
+
+
 def _score_token_similarity(
     normalized: str,
     canonical_fields: list[dict[str, Any]],
@@ -368,21 +431,35 @@ def _score_token_similarity(
                 best_jaccard = jaccard
                 best_syn = syn
 
-        if best_jaccard == 0.0:
+        # Containment: a multi-word header that fully wraps a specific synonym
+        # ("Mobile Number" -> phone) is a strong match Jaccard alone misses.
+        contain_strength, contain_syn = _containment_strength(source_tokens, syns)
+
+        jaccard_component = best_jaccard * 0.85
+        if best_jaccard == 0.0 and contain_strength == 0.0:
             continue
 
         # Value-shape sanity multiplier.
         shape_bonus = _value_shape_bonus(cf.get("value_type", "string"), inferred_type)
-        score = min(0.99, best_jaccard * 0.85 + shape_bonus)
+        if contain_strength > jaccard_component:
+            base, method = contain_strength, "phrase"
+            reasoning = (
+                f"header contains synonym {contain_syn!r} (rest is filler); "
+                f"value-type shape bonus {shape_bonus:.2f}"
+            )
+        else:
+            base, method = jaccard_component, "token"
+            reasoning = (
+                f"token similarity {best_jaccard:.2f} vs {best_syn!r}; "
+                f"value-type shape bonus {shape_bonus:.2f}"
+            )
+        score = min(0.99, base + shape_bonus)
 
         ranked.append({
             "cf": cf,
             "score": round(score, 3),
-            "method": "token",
-            "reasoning": (
-                f"token similarity {best_jaccard:.2f} vs {best_syn!r}; "
-                f"value-type shape bonus {shape_bonus:.2f}"
-            ),
+            "method": method,
+            "reasoning": reasoning,
         })
 
     ranked.sort(key=lambda x: x["score"], reverse=True)

@@ -386,7 +386,7 @@ persistent data failure routes to correction rather than an endless retry.
                             {% endif %}
                           </select>
                         </td>
-                        <td class="text-muted small">{% if m.confidence_pct is not None %}{{ m.confidence_pct }}%{% else %}—{% endif %}{% if m.is_custom %} · {% trans "custom" %}{% endif %}</td>
+                        <td class="text-muted small">{% if m.is_custom %}{% trans "tracked · will import" %}{% elif m.confidence_pct is not None %}{{ m.confidence_pct }}%{% else %}—{% endif %}</td>
                       </tr>
                       {% endfor %}
                     </tbody>

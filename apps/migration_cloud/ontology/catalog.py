@@ -215,15 +215,23 @@ CANONICAL_ONTOLOGY: dict[str, dict[str, dict]] = {
             sensitivity="pii",
         ),
         "phone": _field(
-            description="Student phone (E.164 on apply).",
+            description="Student / primary contact phone (E.164 on apply).",
             value_type="phone",
             value_examples=["+254712345678", "0712345678"],
             synonyms={
-                "en": ["phone", "phone_number", "mobile", "cell", "telephone"],
-                "fr": ["telephone", "portable"],
-                "es": ["telefono", "movil", "celular"],
+                # Multi-word normalized forms ("Mobile Number" -> "mobile_number")
+                # are enumerated so they hit the exact-alias layer directly; the
+                # mapper's containment scorer also catches un-enumerated variants.
+                "en": [
+                    "phone", "phone_number", "phone_no", "mobile", "mobile_number",
+                    "mobile_no", "cell", "cell_number", "cell_phone", "telephone",
+                    "telephone_number", "telephone_no", "tel", "tel_no", "gsm",
+                    "msisdn", "whatsapp", "whatsapp_number",
+                ],
+                "fr": ["telephone", "portable", "numero_de_telephone", "gsm"],
+                "es": ["telefono", "movil", "celular", "numero_de_telefono"],
                 "ar": ["الهاتف"],
-                "pt": ["telefone", "celular"],
+                "pt": ["telefone", "celular", "telemovel", "numero_de_telefone"],
             },
             sensitivity="pii",
         ),
@@ -252,6 +260,132 @@ CANONICAL_ONTOLOGY: dict[str, dict[str, dict]] = {
                 "fr": ["filiere", "specialite", "serie"],
                 "es": ["especialidad"],
                 "pt": ["especialidade"],
+            },
+        ),
+        # ---- Real StudentProfile columns the importer used to quarantine -----
+        # apps.people.StudentProfile carries first-class columns for these; the
+        # student lander writes them into the real column at apply time, so a
+        # "Place of Birth" / "Joining Date" from any SIS export lands in its
+        # proper home instead of an inert 0%-confidence custom field.
+        "place_of_birth": _field(
+            description="Town / city of birth (StudentProfile.place_of_birth).",
+            value_type="string",
+            value_examples=["Buea", "Yaoundé", "Nairobi"],
+            synonyms={
+                "en": [
+                    "place_of_birth", "birthplace", "birth_place", "pob",
+                    "town_of_birth", "city_of_birth", "place_born",
+                ],
+                "fr": ["lieu_de_naissance", "lieu_naissance"],
+                "es": ["lugar_de_nacimiento"],
+                "pt": ["naturalidade", "local_de_nascimento"],
+            },
+            sensitivity="pii",
+        ),
+        "joined_date": _field(
+            description=(
+                "Date the student joined / was admitted to the school "
+                "(StudentProfile.joined_date)."
+            ),
+            value_type="date",
+            value_examples=["2025-09-04", "04/09/2025"],
+            synonyms={
+                "en": [
+                    "joined_date", "joining_date", "join_date", "date_joined",
+                    "date_of_joining", "admission_date", "date_of_admission",
+                    "admitted_on", "date_admitted", "date_of_entry", "entry_date",
+                    "date_enrolled", "date_of_enrollment", "enrolment_date",
+                ],
+                "fr": ["date_admission", "date_d_admission", "date_inscription"],
+                "es": ["fecha_de_admision", "fecha_de_ingreso"],
+                "pt": ["data_de_admissao", "data_de_matricula"],
+            },
+        ),
+        "joined_term": _field(
+            description="Term the student joined in (StudentProfile.joined_term).",
+            value_type="string",
+            value_examples=["Term 1", "First Term"],
+            synonyms={
+                "en": [
+                    "joined_term", "joining_term", "admission_term",
+                    "term_admitted", "entry_term",
+                ],
+                "fr": ["trimestre_admission"],
+                "es": ["trimestre_de_admision", "periodo_de_ingreso"],
+                "pt": ["trimestre_de_admissao", "periodo_de_ingresso"],
+            },
+        ),
+        "section": _field(
+            description=(
+                "Class section / arm within a grade — the sub-group label, NOT "
+                "the grade itself (StudentProfile.section)."
+            ),
+            value_type="string",
+            value_examples=["A", "Blue", "9-Blue"],
+            synonyms={
+                "en": [
+                    "section", "class_section", "class_arm", "arm", "homeroom",
+                    "home_room",
+                ],
+                "fr": ["section"],
+                "es": ["seccion"],
+                "pt": ["turma", "secao"],
+            },
+        ),
+        "parent_phone": _field(
+            description=(
+                "Parent / guardian contact phone carried inline on a student "
+                "roster (StudentProfile.parent_phone)."
+            ),
+            value_type="phone",
+            value_examples=["+237677000000", "0677000000"],
+            synonyms={
+                "en": [
+                    "parent_phone", "guardian_phone", "parent_mobile",
+                    "guardian_mobile", "parent_contact", "guardian_contact",
+                    "parent_number", "guardian_number", "parent_cell",
+                    "next_of_kin_phone", "nok_phone", "mother_phone",
+                    "father_phone", "parents_phone",
+                ],
+                "fr": ["telephone_parent", "telephone_tuteur"],
+                "es": ["telefono_padre", "telefono_tutor"],
+                "pt": ["telefone_do_responsavel", "telefone_dos_pais"],
+            },
+            sensitivity="pii",
+        ),
+        "exam_candidate_number": _field(
+            description=(
+                "National exam candidate / index number (GCE / WAEC / etc.) — "
+                "StudentProfile.exam_candidate_number."
+            ),
+            value_type="string",
+            value_examples=["1234567", "CM-0505-001"],
+            synonyms={
+                "en": [
+                    "exam_candidate_number", "candidate_number", "exam_number",
+                    "examination_number", "index_number", "gce_number",
+                    "waec_number", "exam_index", "candidate_no",
+                ],
+                "fr": ["numero_candidat", "numero_de_candidat"],
+                "es": ["numero_de_candidato", "numero_de_examen"],
+                "pt": ["numero_de_candidato", "numero_de_exame"],
+            },
+        ),
+        "exam_center_code": _field(
+            description=(
+                "National exam centre code (StudentProfile.exam_center_code)."
+            ),
+            value_type="string",
+            value_examples=["0505", "GCE-BUE-01"],
+            synonyms={
+                "en": [
+                    "exam_center_code", "exam_centre_code", "center_code",
+                    "centre_code", "exam_center", "exam_centre",
+                    "examination_center_code",
+                ],
+                "fr": ["code_centre", "code_centre_examen"],
+                "es": ["codigo_de_centro", "codigo_del_centro"],
+                "pt": ["codigo_do_centro", "codigo_de_centro"],
             },
         ),
     },
