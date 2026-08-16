@@ -417,6 +417,17 @@ def _apply_bundle_inner(
             )
 
     totals = _summarize_outcomes(outcomes)
+    # Landers wrote operator-review data (dedup_candidates / dedup_links) STRAIGHT to
+    # the bundle row's mapping_summary during the waves, using their OWN re-fetched
+    # bundle instance (LanderContext carries bundle_id, not this object — see
+    # student_lander._surface_dedup_candidates / staff_lander). This in-memory instance
+    # still holds the PRE-wave mapping_summary, so rebuilding from it and saving
+    # update_fields=["mapping_summary"] would clobber those DB writes and lose the
+    # operator's duplicate-review queue (#7). Refresh first so the merge preserves them;
+    # apply_totals + gap_fill are layered on top. Only this one field is refreshed, so
+    # the orchestrator's other in-memory state (status, size_summary) is untouched.
+    if not dry_run:
+        bundle.refresh_from_db(fields=["mapping_summary"])
     bundle.mapping_summary = {
         **(bundle.mapping_summary or {}),
         "apply_totals": {
