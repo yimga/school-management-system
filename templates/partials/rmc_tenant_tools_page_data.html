@@ -4,11 +4,12 @@ v4.02.8 — Tenant workspace Tools edge-tray configuration island.
 Pairs with rmc-operator-tools-tray.js on tenant portal shells (not manager host).
 {% endcomment %}
 {% if request.user.is_authenticated and request.public_host_kind != 'manager' %}
+{% trans "Tools" as rmc_tools_label %}
 <script type="application/json" id="page-data-rmc-tenant-tools" nonce="{{ csp_nonce }}">{
   "enabled": true,
   "surface": "tenant",
   "layout": "{{ cockpit.tenant_tools.layout|default:'edge-tray'|escapejs }}",
-  "tab_label": "{% filter escapejs %}{{ cockpit.tenant_tools.tab_label|default:_('Tools') }}{% endfilter %}",
+  "tab_label": "{{ rmc_tools_label|escapejs }}",
   "tray_notebook": {% if cockpit.tenant_tools.tray_notebook|default:False %}true{% else %}false{% endif %},
   "hide_floating_notebook": {% if cockpit.tenant_tools.hide_floating_notebook|default:False %}true{% else %}false{% endif %},
   "workflow_header_only": {% if cockpit.tenant_tools.workflow_header_only|default:True %}true{% else %}false{% endif %},

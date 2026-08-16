@@ -53,6 +53,10 @@
                 <a href="{% url 'super:dashboard' %}" class="admin-nav-bridge__home-btn">{% trans "Control plane" %}</a>
                 <a href="{{ public_site_url|default:'https://runmycampus.com' }}" class="admin-nav-bridge__switch-btn" target="_blank" rel="noopener noreferrer">{% trans "Public site" %}</a>
             {% else %}
+                <a href="{{ portal_home_url|default:'/' }}" class="admin-nav-bridge__home-btn">
+                  <i class="bi bi-house-door" aria-hidden="true"></i>
+                  <span>{% trans "Home" %}</span>
+                </a>
                 {% include "components/rmc_tenant_header_utilities.html" %}
                 {% if has_permission %}
                 <div class="admin-nav-bridge__usertools" data-rmc-tenant-admin-usertools="1">

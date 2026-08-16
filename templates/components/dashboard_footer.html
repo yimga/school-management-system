@@ -132,10 +132,6 @@ Falls back to SITE-model values when cockpit.footer.* is empty.
       {% comment %} Tier 4 — single-line legal {% endcomment %}
       <div class="rmc-civic-footer__legal">
         <span class="rmc-civic-footer__legal-copy">&copy; {% now "Y" %} {{ cockpit.footer.copyright_holder|default:SITE.company_name|default:SITE.site_name|default:"School" }}</span>
-        {% if request.public_host_kind != 'manager' %}
-          <span class="rmc-civic-footer__legal-sep">·</span>
-          <a href="{% url 'feedback:help_center' %}">{% trans "Help center" %}</a>
-        {% endif %}
         {% with legal_links=cockpit.footer.legal_links %}
           {% if legal_links %}
             {% for link in legal_links %}
