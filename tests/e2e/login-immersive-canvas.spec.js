@@ -5,7 +5,7 @@ const TENANT_SLUG = process.env.E2E_TENANT_SLUG || 'demo-school';
 const BASE =
   process.env.E2E_TENANT_BASE_URL ||
   process.env.PLAYWRIGHT_BASE_URL ||
-  `http://${TENANT_SLUG}.runmycampus.com:8000`;
+  `http://127.0.0.1:${process.env.VISUAL_QA_TENANT_PHASE_PORT || '8013'}`;
 
 function loginPath() {
   return `/t/${TENANT_SLUG}/authentication/login/`;
@@ -54,6 +54,49 @@ test.describe('Immersive login canvas', () => {
     expect(metrics.shellOff).toBe("off");
     expect(metrics.immersiveWidth).toBeGreaterThan(900);
     expect(metrics.glassWidth).toBeGreaterThan(280);
+  });
+
+  test('approved V3 uses a tight composed seam and balanced school pulse', async ({ page }) => {
+    await page.setViewportSize({ width: 1600, height: 900 });
+    await page.goto(`${BASE}${loginPath()}`, { waitUntil: 'domcontentloaded' });
+
+    const layout = await page.evaluate(() => {
+      const canvas = document.querySelector('[data-rmc-login-canvas]');
+      const auth = document.querySelector('.rmc-auth-immersive__auth');
+      const hero = document.querySelector('.rmc-auth-immersive__carousel');
+      const pulse = document.querySelector('.rmc-auth-immersive__dash');
+      const bento = document.querySelector('.rmc-auth-immersive__bento');
+      const canvasBox = canvas?.getBoundingClientRect();
+      const authBox = auth?.getBoundingClientRect();
+      const heroBox = hero?.getBoundingClientRect();
+      const pulseBox = pulse?.getBoundingClientRect();
+      const bentoBox = bento?.getBoundingClientRect();
+      return {
+        seam: canvasBox && authBox ? authBox.left - canvasBox.right : 999,
+        heroAndPulseShareRow:
+          !!heroBox && !!pulseBox && Math.abs(heroBox.top - pulseBox.top) < 90,
+        bentoSpansStory:
+          !!bentoBox && !!canvasBox && bentoBox.width > canvasBox.width * 0.75,
+      };
+    });
+    expect(layout.seam).toBeLessThanOrEqual(24);
+    expect(layout.heroAndPulseShareRow).toBe(true);
+    expect(layout.bentoSpansStory).toBe(true);
+    await expect(page.getByText('Welcome back')).toBeVisible();
+    await expect(page.locator('.rmc-auth-immersive__recommended')).toBeVisible();
+    await expect(page.locator('[data-rmc-local-state]')).toBeVisible();
+  });
+
+  test('extreme-short desktop keeps hero copy and credential entry reachable', async ({ page }) => {
+    await page.setViewportSize({ width: 1024, height: 354 });
+    await page.goto(`${BASE}${loginPath()}`, { waitUntil: 'domcontentloaded' });
+    const hero = page.locator('[data-rmc-auth-carousel-slide].is-on');
+    await expect(hero).toBeVisible();
+    const box = await hero.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box.height).toBeGreaterThan(45);
+    await page.locator("[data-rmc-auth-role='staff']").click();
+    await expect(page.locator('#login-username')).toBeVisible();
   });
 
   test('mobile shows brand strip above sign-in card', async ({ page }) => {

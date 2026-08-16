@@ -131,28 +131,27 @@
 
   {% if lic.dash_feed %}
   <div class="rmc-auth-immersive__preview-head rmc-auth-immersive__zone" data-rmc-login-zone="feed-head">
-    <span>{{ lic.feed_section_label }}</span>
+    <span>{{ lic.dash_title }}</span>
     <span class="rmc-auth-immersive__pill" data-rmc-auth-preview-pill>{{ lic.role_preview_labels.default }}</span>
   </div>
   <div class="rmc-auth-immersive__dash rmc-auth-immersive__zone" data-rmc-login-zone="feed">
-    <div class="rmc-auth-immersive__dash-top">{{ lic.dash_title }}</div>
+    <div class="rmc-auth-immersive__dash-top">{{ lic.feed_section_label }}</div>
     <div class="rmc-auth-immersive__dash-body">
       {% include "auth/partials/login_immersive_dash_panels.html" %}
+      {% if lic.sponsored_slots %}
+      <div class="rmc-auth-immersive__sponsors" data-rmc-sponsored-region aria-label="{% trans 'Sponsored community information' %}">
+        {% for slot in lic.sponsored_slots %}
+        <article class="rmc-auth-immersive__sponsor" data-rmc-sponsored-slot data-rmc-sponsored-id="{{ forloop.counter }}">
+          <span class="rmc-auth-immersive__sponsor-mark">{% trans "Local partner · Sponsored" %}</span>
+          <strong>{{ slot.title }}</strong>
+          {% if slot.body %}<small>{{ slot.body }}</small>{% endif %}
+          {% if slot.cta_url and slot.cta_label %}<a href="{{ slot.cta_url }}" rel="noopener sponsored">{{ slot.cta_label }}</a>{% endif %}
+          <button type="button" data-rmc-dismiss-sponsored aria-label="{% trans 'Hide sponsored information' %}">×</button>
+        </article>
+        {% endfor %}
+      </div>
+      {% endif %}
     </div>
-  </div>
-  {% endif %}
-
-  {% if lic.sponsored_slots %}
-  <div class="rmc-auth-immersive__sponsors rmc-auth-immersive__zone" data-rmc-sponsored-region aria-label="{% trans 'Sponsored community information' %}">
-    {% for slot in lic.sponsored_slots %}
-    <article class="rmc-auth-immersive__sponsor" data-rmc-sponsored-slot data-rmc-sponsored-id="{{ forloop.counter }}">
-      <span class="rmc-auth-immersive__sponsor-mark">{% trans "Local partner · Sponsored" %}</span>
-      <strong>{{ slot.title }}</strong>
-      {% if slot.body %}<small>{{ slot.body }}</small>{% endif %}
-      {% if slot.cta_url and slot.cta_label %}<a href="{{ slot.cta_url }}" rel="noopener sponsored">{{ slot.cta_label }}</a>{% endif %}
-      <button type="button" data-rmc-dismiss-sponsored aria-label="{% trans 'Hide sponsored information' %}">×</button>
-    </article>
-    {% endfor %}
   </div>
   {% endif %}
 

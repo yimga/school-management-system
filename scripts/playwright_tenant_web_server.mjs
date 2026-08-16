@@ -18,9 +18,9 @@ function resolvePython() {
   const candidates = [
     path.join(repo, '.venv', 'Scripts', 'python.exe'),
     path.join(repo, '.venv', 'bin', 'python'),
-    'python3',
-    'python',
-    'py',
+    ...(process.platform === 'win32'
+      ? ['python', 'py', 'python3']
+      : ['python3', 'python', 'py']),
   ];
   for (const candidate of candidates) {
     if (candidate.includes(path.sep) || candidate.endsWith('.exe')) {

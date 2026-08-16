@@ -109,7 +109,10 @@
         <header class="rmc-auth-immersive__card-head">
           <div>
             <h2 class="rmc-auth-immersive__card-title">{% trans "Welcome back" %}</h2>
-            <p class="rmc-auth-immersive__card-meta">{% trans "Secure portal" %} · {{ immersive.date_label }}</p>
+            <p class="rmc-auth-immersive__card-meta">
+              {% trans "Sign in to" %}
+              {% if is_manager_host %}RunMyCampus{% elif PUBLIC_BRAND_MODE %}{{ PUBLIC_BRAND_NAME }}{% elif LOGIN_SCHOOL_NAME %}{{ LOGIN_SCHOOL_NAME }}{% else %}{{ SITE.site_name|default:"School portal" }}{% endif %}
+            </p>
           </div>
           <span class="rmc-auth-immersive__secure-state" data-rmc-auth-network-status role="status">{% trans "Secure" %}</span>
         </header>
@@ -131,7 +134,7 @@
             <button type="button" class="rmc-auth-immersive__role-row{% if post_role == 'staff' %} is-picked{% endif %}" data-rmc-auth-role="staff" data-rmc-auth-role-title="{{ TENANT_LABELS.staff|default:'Staff' }}">
               <span class="rmc-auth-immersive__role-row-ico" aria-hidden="true">🎓</span>
               <span class="rmc-auth-immersive__role-row-txt">
-                <strong>{{ TENANT_LABELS.staff|default:"Staff" }} &amp; {% trans "admin" %}</strong>
+                <strong>{{ TENANT_LABELS.staff|default:"Staff" }} &amp; {% trans "admin" %} <span class="rmc-auth-immersive__recommended">{% trans "Recommended" %}</span></strong>
                 <small>{% trans "Teachers, leadership, finance, and IT" %}</small>
               </span>
               <span class="rmc-auth-immersive__role-row-chev" aria-hidden="true">›</span>

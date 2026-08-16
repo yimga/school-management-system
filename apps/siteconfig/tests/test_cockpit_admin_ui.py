@@ -95,6 +95,39 @@ class CockpitFormSchemaTests(SimpleTestCase):
     # the DB; allow queries against the (empty) test DB so it does not raise.
     databases = {"default"}
 
+    def test_local_front_door_controls_round_trip_into_canonical_payload(self) -> None:
+        instance = SiteSettings(pk=1)
+        instance.cockpit_payload = {}
+        data = _flat_form_payload()
+        data.update(
+            {
+                "lic_local_first_enabled": "on",
+                "lic_local_status_label": "Campus-ready access",
+                "lic_local_status_detail": "Verified guidance remains available locally.",
+                "lic_pro_enabled": "on",
+                "lic_allow_sponsored_slot": "on",
+                "lic_hide_sponsored_offline": "on",
+                "lic_sponsored_max_visible": "1",
+                "lic_sponsored_lines": (
+                    "Community | Book fair | Saturday at the library | Details | /events/fair/"
+                ),
+            }
+        )
+        form = CockpitPayloadForm(
+            data=data,
+            instance=instance,
+            configure_request=RequestFactory().get("/school/configure/"),
+        )
+        self.assertTrue(form.is_valid(), msg=form.errors)
+        canvas = form.cleaned_data["cockpit_payload"]["login_immersive_canvas"]
+        self.assertTrue(canvas["local_first"]["enabled"])
+        self.assertEqual(canvas["local_first"]["status_label"], "Campus-ready access")
+        self.assertTrue(canvas["monetization"]["hide_when_offline"])
+        self.assertEqual(canvas["monetization"]["max_visible"], 1)
+        self.assertEqual(
+            canvas["monetization"]["sponsored_slots"][0]["title"], "Book fair"
+        )
+
     def test_form_builds_nested_payload_matching_cockpit_context_schema(self) -> None:
         instance = SiteSettings(pk=1)
         instance.cockpit_payload = {}  # Phase B: in-memory seed (no DB column); form reads via __dict__

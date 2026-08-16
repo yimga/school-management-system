@@ -1633,3 +1633,121 @@ body:has(.rmc-auth-immersive) [data-shell-chrome="django-messages"] {
   .rmc-auth-immersive__slide { padding-block: .45rem; }
   .rmc-auth-immersive__glass { padding: 1rem 1.25rem; }
 }
+
+/* Approved V3 parity: compose the school story, pulse, metrics, and sign-in as
+   one balanced front door instead of a long left-aligned stack. */
+@media (min-width: 981px) {
+  .rmc-auth-immersive__canvas-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(260px, .85fr);
+    grid-template-areas:
+      "head head"
+      "local local"
+      "marquee marquee"
+      "hero pulse-head"
+      "hero pulse"
+      "bento bento"
+      "gallery gallery"
+      "trust trust"
+      "pro pro";
+    grid-template-rows: auto auto auto minmax(0, auto) minmax(0, 1fr) auto auto auto auto;
+    gap: clamp(8px, 1.2vh, 14px) clamp(12px, 1.3vw, 20px);
+  }
+
+  .rmc-auth-immersive__head { grid-area: head; }
+  .rmc-auth-immersive__local-state,
+  .rmc-auth-immersive__offline-note { grid-area: local; }
+  .rmc-auth-immersive__hero-marquee { grid-area: marquee; }
+  .rmc-auth-immersive__canvas-body > .rmc-auth-immersive__carousel { grid-area: hero; min-height: clamp(190px, 30vh, 330px); }
+  .rmc-auth-immersive__preview-head { grid-area: pulse-head; margin-top: 0; }
+  .rmc-auth-immersive__dash { grid-area: pulse; min-height: 0; }
+  .rmc-auth-immersive__bento { grid-area: bento; }
+  .rmc-auth-immersive__moments { grid-area: gallery; }
+  .rmc-auth-immersive__trust { grid-area: trust; }
+  .rmc-auth-immersive__pro-badge { grid-area: pro; }
+
+  .rmc-auth-immersive__carousel--bleed,
+  .rmc-auth-immersive__hero-marquee--bleed {
+    margin-inline: 0;
+    border-inline: 1px solid var(--rmc-auth-hair);
+    border-radius: 18px;
+  }
+
+  .rmc-auth-immersive__slide {
+    padding: clamp(1.15rem, 2.5vw, 2rem);
+    justify-content: flex-end;
+    background:
+      linear-gradient(130deg, color-mix(in srgb, var(--school-primary, #2563eb) 13%, transparent), transparent 58%),
+      color-mix(in srgb, var(--surface-bg, #080d1b) 36%, transparent);
+  }
+
+  .rmc-auth-immersive__slide strong {
+    max-width: 22ch;
+    font-size: clamp(1.65rem, 2.7vw, 3.25rem);
+    line-height: 1.04;
+    letter-spacing: -.04em;
+  }
+
+  .rmc-auth-immersive__slide p {
+    max-width: 58ch;
+    font-size: clamp(11px, 1vw, 14px);
+  }
+
+  .rmc-auth-immersive__dash-top {
+    display: none;
+  }
+
+  .rmc-auth-immersive__dash-body { overflow: auto; }
+  .rmc-auth-dash-grid3 { grid-template-columns: 1fr; }
+  .rmc-auth-mini-card { display: grid; grid-template-columns: 1fr auto; align-items: center; }
+  .rmc-auth-mini-card__s { grid-column: 1 / -1; }
+  .rmc-auth-dash-row { padding: 10px; }
+  .rmc-auth-immersive__sponsors { margin-top: 2px; }
+
+  .rmc-auth-immersive__bento { gap: 10px; }
+  .rmc-auth-immersive__tile { padding: 12px 14px; }
+
+  .rmc-auth-immersive__glass {
+    min-height: 100%;
+    display: flex;
+    align-items: stretch;
+    background: linear-gradient(160deg, color-mix(in srgb, var(--surface-elevated, #111a31) 94%, transparent), color-mix(in srgb, var(--surface-bg, #080d1b) 96%, transparent));
+  }
+  .rmc-auth-immersive__glass-inner { width: 100%; }
+}
+
+.rmc-auth-immersive__recommended {
+  display: inline-flex;
+  margin-inline-start: 6px;
+  color: color-mix(in srgb, var(--school-accent, #38bdf8) 72%, white);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 1180px) and (min-width: 981px) {
+  .rmc-auth-immersive {
+    grid-template-columns: minmax(0, 1.15fr) minmax(390px, .85fr);
+    column-gap: 10px;
+    padding-inline: 12px;
+  }
+  .rmc-auth-immersive__canvas-body { grid-template-columns: minmax(0, 1fr); grid-template-areas: "head" "local" "marquee" "hero" "bento" "trust" "pro"; }
+  .rmc-auth-immersive__preview-head,
+  .rmc-auth-immersive__dash,
+  .rmc-auth-immersive__moments { display: none; }
+}
+
+@media (max-height: 590px) and (min-width: 981px) {
+  .rmc-auth-immersive__canvas-body {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "head" "local" "marquee" "hero" "trust" "pro";
+    grid-template-rows: auto auto auto minmax(0, 1fr) auto auto;
+  }
+  .rmc-auth-immersive__preview-head,
+  .rmc-auth-immersive__dash,
+  .rmc-auth-immersive__bento,
+  .rmc-auth-immersive__moments { display: none; }
+  .rmc-auth-immersive__canvas-body > .rmc-auth-immersive__carousel { min-height: 0; }
+  .rmc-auth-immersive__slide strong { font-size: clamp(1.15rem, 4vh, 1.8rem); }
+}

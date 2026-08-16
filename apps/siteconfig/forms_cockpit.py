@@ -4393,7 +4393,11 @@ class CockpitPayloadForm(forms.ModelForm):
     lic_allow_sponsored_slot = forms.BooleanField(
         required=False,
         widget=_CHECK,
-        label=_("Login canvas: allow sponsored hero slots"),
+        label=_("Local Front Door: allow sponsored community placement"),
+        help_text=_(
+            "Optional Pro add-on. Placements stay inside the school-information rail "
+            "and never appear beside credentials, MFA, recovery, or errors."
+        ),
     )
     lic_sponsored_lines = forms.CharField(
         required=False,
@@ -4407,7 +4411,10 @@ class CockpitPayloadForm(forms.ModelForm):
         required=False,
         widget=_CHECK,
         label=_("Login canvas: hide sponsored content offline"),
-        help_text=_("Recommended. Essential school notices remain visible; promotions pause until reconnection."),
+        help_text=_(
+            "Recommended. Essential school notices remain visible; promotions pause "
+            "until reconnection."
+        ),
     )
     lic_sponsored_max_visible = forms.IntegerField(
         required=False,
@@ -4415,7 +4422,31 @@ class CockpitPayloadForm(forms.ModelForm):
         max_value=2,
         widget=_NUMBER,
         label=_("Login canvas: maximum visible sponsored placements"),
-        help_text=_("Use 0 to pause placements, 1 for the recommended restrained layout, or 2 maximum."),
+        help_text=_(
+            "Use 0 to pause placements, 1 for the recommended restrained layout, "
+            "or 2 maximum."
+        ),
+    )
+    lic_local_first_enabled = forms.BooleanField(
+        required=False,
+        widget=_CHECK,
+        label=_("Local Front Door: show offline readiness"),
+        help_text=_(
+            "Keeps verified school identity and safe public guidance available from "
+            "the locally cached login shell."
+        ),
+    )
+    lic_local_status_label = forms.CharField(
+        required=False,
+        max_length=80,
+        widget=_TEXT,
+        label=_("Local Front Door: status label"),
+    )
+    lic_local_status_detail = forms.CharField(
+        required=False,
+        max_length=220,
+        widget=_TEXTAREA_SMALL,
+        label=_("Local Front Door: offline-ready explanation"),
     )
     lic_dash_staff_note = forms.CharField(
         required=False,
@@ -4825,6 +4856,9 @@ class CockpitPayloadForm(forms.ModelForm):
         "lic_sponsored_lines",
         "lic_hide_sponsored_offline",
         "lic_sponsored_max_visible",
+        "lic_local_first_enabled",
+        "lic_local_status_label",
+        "lic_local_status_detail",
         "lic_dash_staff_note",
         "lic_dash_parent_note",
         "lic_dash_student_note",
@@ -5507,6 +5541,16 @@ class CockpitPayloadForm(forms.ModelForm):
         )
         self.fields["lic_sponsored_max_visible"].initial = monetization.get(
             "max_visible", 1
+        )
+        local_first = lic.get("local_first") or {}
+        self.fields["lic_local_first_enabled"].initial = bool(
+            local_first.get("enabled", True)
+        )
+        self.fields["lic_local_status_label"].initial = local_first.get(
+            "status_label", ""
+        )
+        self.fields["lic_local_status_detail"].initial = local_first.get(
+            "status_detail", ""
         )
         dash_preview = lic.get("dash_preview") or {}
         self.fields["lic_dash_staff_note"].initial = (dash_preview.get("staff") or {}).get(
@@ -6288,6 +6332,17 @@ class CockpitPayloadForm(forms.ModelForm):
         if sponsored:
             monetization_overlay["sponsored_slots"] = sponsored
         lic_overlay["monetization"] = monetization_overlay
+        local_first_overlay: dict[str, Any] = {
+            "enabled": bool(cleaned.get("lic_local_first_enabled")),
+            "cache_safe_content": True,
+        }
+        local_status_label = (cleaned.get("lic_local_status_label") or "").strip()
+        local_status_detail = (cleaned.get("lic_local_status_detail") or "").strip()
+        if local_status_label:
+            local_first_overlay["status_label"] = local_status_label
+        if local_status_detail:
+            local_first_overlay["status_detail"] = local_status_detail
+        lic_overlay["local_first"] = local_first_overlay
         feed_label = (cleaned.get("lic_feed_section_label") or "").strip()
         dash_title = (cleaned.get("lic_dash_title") or "").strip()
         feed_overlay: dict[str, Any] = {}

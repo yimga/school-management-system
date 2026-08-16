@@ -259,3 +259,38 @@ class LoginImmersiveTemplateContractTests(SimpleTestCase):
         self.assertIn('data-rmc-local-first-login="operator-admin"', operator_admin)
         self.assertIn("promotion-free", operator)
         self.assertIn("promotion-free", operator_admin)
+
+    def test_approved_v3_visual_structure_is_in_production_assets(self):
+        base = Path(settings.BASE_DIR)
+        login_html = (base / "templates" / "auth" / "login.html").read_text(
+            encoding="utf-8"
+        )
+        canvas_html = (
+            base / "templates" / "auth" / "partials" / "login_immersive_canvas.html"
+        ).read_text(encoding="utf-8")
+        css = (base / "static" / "css" / "auth-login-canvas.css").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("Sign in to", login_html)
+        self.assertIn("rmc-auth-immersive__recommended", login_html)
+        self.assertIn('grid-template-areas:', css)
+        self.assertIn('"hero pulse-head"', css)
+        self.assertIn('"hero pulse"', css)
+        dash_start = canvas_html.index('class="rmc-auth-immersive__dash ')
+        dash_end = canvas_html.index("{% endif %}", dash_start)
+        sponsor = canvas_html.index("data-rmc-sponsored-region")
+        self.assertGreater(sponsor, dash_start)
+        self.assertGreater(dash_end, sponsor)
+
+    def test_tenant_cockpit_exposes_local_front_door_governance(self):
+        forms_source = (
+            Path(settings.BASE_DIR) / "apps" / "siteconfig" / "forms_cockpit.py"
+        ).read_text(encoding="utf-8")
+        for field in (
+            "lic_local_first_enabled",
+            "lic_local_status_label",
+            "lic_local_status_detail",
+            "lic_hide_sponsored_offline",
+            "lic_sponsored_max_visible",
+        ):
+            self.assertIn(field, forms_source)

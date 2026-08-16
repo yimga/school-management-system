@@ -170,6 +170,25 @@
     }
   }
 
+  function restoreAnonymousFrontDoorMetadata() {
+    if (window.navigator.onLine || root.getAttribute("data-rmc-cache-safe") !== "1") return;
+    try {
+      var cached = JSON.parse(window.localStorage.getItem(cacheKey) || "null");
+      if (!cached || cached.version !== 1 || !cached.savedAt) return;
+      var saved = new Date(cached.savedAt);
+      if (Number.isNaN(saved.getTime())) return;
+      root.setAttribute("data-rmc-local-snapshot", "restored");
+      if (networkCopy) {
+        networkCopy.textContent = "Saved " + saved.toLocaleDateString([], {
+          month: "short",
+          day: "numeric",
+        });
+      }
+    } catch (e) {
+      /* Corrupt or unavailable storage never blocks authentication. */
+    }
+  }
+
   root.querySelectorAll("[data-rmc-dismiss-sponsored]").forEach(function (button) {
     button.addEventListener("click", function () {
       var slot = button.closest("[data-rmc-sponsored-slot]");
@@ -192,6 +211,7 @@
   window.addEventListener("online", setNetworkState);
   window.addEventListener("offline", setNetworkState);
   setNetworkState();
+  restoreAnonymousFrontDoorMetadata();
   cacheAnonymousFrontDoor();
 
   var ci = 0;
