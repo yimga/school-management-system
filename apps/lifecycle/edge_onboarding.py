@@ -179,11 +179,35 @@ def _validate_seed_baseline(school) -> "tuple[bool, str]":
 
 
 def _validate_media_branding(school) -> "tuple[bool, str]":
+    """Pass only when the logo will actually RESOLVE on the box.
+
+    The old check accepted any non-empty ``logo_url`` — including the
+    ``https://{slug}.school.lan/…`` URL the old runbook set, which does not resolve
+    on a box with no LAN DNS. A logo is genuinely offline-safe when either the
+    DB-resident data URI is present (renders with no media server at all) or the
+    referenced media file exists on disk. An absolute off-box URL alone is NOT
+    enough on an offline box.
+    """
     try:
+        metadata = getattr(school, "branding_metadata", None) or {}
+        data_uri = str(metadata.get("logo_data_uri") or "")
+        if data_uri.startswith("data:"):
+            return True, "Logo is offline-safe (DB-resident data URI — renders with no media server)."
+
+        from apps.lifecycle.branding_portability import _media_relpath, _read_storage
+
         logo = (getattr(school, "logo_url", "") or "").strip()
-        if logo:
-            return True, f"Branding logo is set ({logo})."
-        return False, "logo_url is empty — set the school logo / branding."
+        rel = _media_relpath(logo) or _media_relpath(str(metadata.get("logo_storage_path") or ""))
+        if rel and _read_storage(rel) is not None:
+            return True, f"Logo file present on the box ({rel})."
+
+        if logo.startswith("http://") or logo.startswith("https://"):
+            return False, (
+                f"logo_url is an off-box URL ({logo}) with no on-disk file or data URI — "
+                "it will not resolve offline. Import the branding bundle "
+                "(import_school_branding) so the logo travels as a data URI + local file."
+            )
+        return False, "No offline logo — import the branding bundle or upload a logo on the box."
     except Exception as exc:  # noqa: BLE001
         return False, f"branding check failed: {exc}"
 
@@ -329,15 +353,20 @@ EDGE_ONBOARDING_STEPS: "tuple[EdgeOnboardingStep, ...]" = (
         ),
         category="branding",
         command_template=(
-            "python manage.py shell -c \"from apps.schools.models import School; "
-            "s=School.objects.get(slug='{slug}'); "
-            "s.logo_url='https://{slug}.school.lan/media/tenants/{school_id}/logo.png'; "
-            "s.save(update_fields=['logo_url'])\""
+            # On the CLOUD: package the logo (as a DB-resident data URI + raw bytes),
+            # colours, and brand profile. On the BOX: apply it — the logo renders with
+            # no internet and logo_url is set to a box-resolvable /media/… path.
+            "# On the cloud, export the branding:\n"
+            "python manage.py export_school_branding --slug {slug} --out {slug}.rmcbrand\n"
+            "# Copy {slug}.rmcbrand to the box, then on the box:\n"
+            "python manage.py import_school_branding --in {slug}.rmcbrand --slug {slug}"
         ),
         validate=_validate_media_branding,
         workaround=(
-            "Upload the logo through the tenant admin branding screen instead, or leave "
-            "logo_url blank — the platform falls back to a neutral mark (never a crash)."
+            "If there is no logo to carry, upload one through the tenant admin branding "
+            "screen on the box — the platform falls back to a neutral mark until then "
+            "(never a crash). Do NOT hand-set logo_url to an off-box https URL: it will "
+            "not resolve on an offline box."
         ),
     ),
     EdgeOnboardingStep(
