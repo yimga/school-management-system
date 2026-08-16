@@ -745,6 +745,8 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
             "last_import": _last_import_summary(bundle),
             "repair": _build_repair(bundle),
             "repair_url": _connector_reverse(request, "bundle-repair", bundle_id=bundle.pk),
+            "rollback": _build_rollback(bundle),
+            "rollback_url": _connector_reverse(request, "bundle-rollback", bundle_id=bundle.pk),
             "retry_url": _connector_reverse(request, "bundle-retry", bundle_id=bundle.pk),
             "advance_error": (bundle.size_summary or {}).get("error") or "",
             "detection_failed": bundle.status in _FAILED_STATUSES,
@@ -998,3 +1000,76 @@ class TenantMigrationRepairView(_TenantAdminWriteRequiredMixin, View):
             request, bundle, apply_result=apply_result
         )
         return render(request, self.template_name, context)
+
+
+def _build_rollback(bundle):
+    """Compact rollback affordance for the review page.
+
+    Shows a "Revert this import" control once a LIVE apply has landed rows into the
+    school. Returns ``None`` (panel hidden) when nothing has been applied yet — a
+    fresh upload or a dry-run preview — so the panel only appears when there is
+    something to revert. Honest by construction: it names how many rows the import
+    created and flags that in-place updates / shared academic scaffold may not be
+    auto-reverted (the precise per-domain "what was left in place" comes back on the
+    rollback result). Cheap read-only; never raises.
+    """
+    try:
+        totals = (getattr(bundle, "mapping_summary", None) or {}).get("apply_totals") or {}
+        if totals.get("dry_run"):
+            return None
+        created = int(totals.get("created") or 0)
+        updated = int(totals.get("updated") or 0)
+        if created == 0 and updated == 0:
+            return None
+        return {"created": created, "updated": updated, "has_updates": updated > 0}
+    except Exception:  # noqa: BLE001 — a posture hiccup must never break the page
+        logger.debug("tenant rollback: posture failed for %s", bundle.pk, exc_info=True)
+        return None
+
+
+class TenantMigrationRollbackView(_TenantAdminWriteRequiredMixin, View):
+    """POST → revert everything an import applied into the caller's OWN school.
+
+    Tenant-admin gated (write + DESTRUCTIVE): a full-bundle rollback DELETES the rows
+    this import created, so a non-admin member is refused (403). Requires an explicit
+    ``confirm=1`` (the review page's rollback control is a two-step confirm), exactly
+    like the live-import guard. Tenant-scoped (cross-tenant id → 404);
+    ``@idempotent_post`` collapses an accidental double-submit into one rollback.
+
+    All the revert judgement lives in
+    :func:`services.connector_rollback.rollback_bundle` — the shared, child-first,
+    HONEST revert that reports which domains it could NOT auto-revert (shared academic
+    scaffold, in-place updates, PROTECT-blocked rows). The source data is never
+    touched — only rows this import created in the school are removed.
+    """
+
+    template_name = "migration_cloud/connector/bundle_review.html"
+
+    @idempotent_post
+    @safe_500
+    def post(self, request, bundle_id: int):
+        from .services.connector_rollback import rollback_bundle
+
+        bundle = _tenant_bundle_or_404(request, bundle_id)
+        confirmed = str(request.POST.get("confirm", "")).lower() in ("1", "true", "yes", "on")
+        if not confirmed:
+            messages.info(
+                request,
+                "Rollback needs confirmation — tick the confirm box, then revert.",
+            )
+            return redirect(_connector_reverse(request, "bundle-review", bundle_id=bundle.pk))
+
+        result = rollback_bundle(bundle=bundle, actor=request.user, confirm=True)
+
+        if not result.get("applied"):
+            messages.info(request, result.get("message") or "Nothing to roll back.")
+        elif result.get("ok"):
+            messages.success(request, result.get("message") or "Import reverted.")
+        else:
+            # Applied but not a clean slate (some domains left in place). Warn — this
+            # is an honest partial outcome, not an error; result.message says what.
+            messages.warning(
+                request,
+                result.get("message") or "Rollback partly completed; some rows were left in place.",
+            )
+        return redirect(_connector_reverse(request, "bundle-review", bundle_id=bundle.pk))

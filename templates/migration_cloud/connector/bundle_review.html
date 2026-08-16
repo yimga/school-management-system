@@ -474,4 +474,28 @@ repair.repair_readiness — the button is only a trigger.
   {% endif %}
 </section>
 {% endif %}
+
+{% if rollback and not importing %}
+{% comment %}
+Full-bundle rollback. Appears once a LIVE import has landed rows. DESTRUCTIVE — deletes
+the rows THIS import created (the original source is never touched). Two-step: the
+confirm checkbox must be ticked or the server refuses. connector_rollback.rollback_bundle
+reverts child-first and reports honestly which domains it could not auto-revert.
+{% endcomment %}
+<section class="rmc-card mt-4" aria-labelledby="mc-rollback-heading">
+  <h2 id="mc-rollback-heading" class="h5">{% trans "Revert this import" %}</h2>
+  <p class="text-muted small mb-2">
+    {% blocktrans count count=rollback.created %}This import created {{ count }} record. Reverting deletes it from your school.{% plural %}This import created {{ count }} records. Reverting deletes them from your school.{% endblocktrans %}
+  </p>
+  <p class="text-muted small mb-2">{% trans "The original source is never touched. Shared academic scaffold (years / terms / classes) and in-place updates to existing records may not be auto-reverted — you will be told exactly what was left in place." %}</p>
+  <form method="post" action="{{ rollback_url }}" class="d-flex gap-2 flex-wrap align-items-center">
+    {% csrf_token %}
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" name="confirm" value="1" id="mc-rollback-confirm">
+      <label class="form-check-label small" for="mc-rollback-confirm">{% trans "Yes, delete the records this import created" %}</label>
+    </div>
+    <button type="submit" class="btn btn-outline-danger"><i class="bi bi-arrow-counterclockwise me-1" aria-hidden="true"></i>{% trans "Revert this import" %}</button>
+  </form>
+</section>
+{% endif %}
 {% endblock %}
