@@ -60,7 +60,8 @@
   </div>
   <div class="rmc-auth-immersive__offline-note rmc-auth-immersive__zone" data-rmc-offline-note role="status" hidden>
     <strong>{% trans "You are offline, but your school doorway is ready." %}</strong>
-    <span>{% trans "Verified school identity and locally saved guidance remain available. Connect to complete online authentication." %}</span>
+    <span>{% trans "Verified school identity and locally saved guidance remain available. Previously authorized devices can open read-only local tools." %}</span>
+    <button type="button" data-rmc-local-mode-open hidden>{% trans "Continue in local mode" %}</button>
   </div>
   {% endif %}
 

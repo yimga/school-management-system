@@ -344,6 +344,20 @@
   </div>
 </dialog>
 
+<dialog class="rmc-auth-assistant rmc-auth-local-mode" data-rmc-local-mode-dialog>
+  <form method="dialog">
+    <div class="rmc-auth-assistant__head"><strong>{% trans "Unlock local access" %}</strong><button value="cancel" aria-label="{% trans 'Close' %}">×</button></div>
+    <div class="rmc-auth-assistant__body">
+      <p>{% trans "Enter the device PIN created when local access was enabled. Sensitive online modules remain locked." %}</p>
+      <label>{% trans "Device PIN" %}<input name="pin" type="password" inputmode="numeric" minlength="6" maxlength="64" autocomplete="off" required></label>
+      <p data-rmc-local-mode-status role="status" aria-live="polite"></p>
+      <button value="default" data-rmc-local-mode-unlock>{% trans "Unlock local tools" %}</button>
+    </div>
+  </form>
+</dialog>
+
 {% include "components/rmc_password_toggle_script.html" %}
+<script src="{% static 'js/rmc-offline-auth-vault.js' %}"></script>
+<script src="{% static 'js/rmc-offline-login-unlock.js' %}" defer></script>
 <script src="{% static 'js/rmc-auth-login-immersive.js' %}?v=20260816.4" defer></script>
 {% endblock %}

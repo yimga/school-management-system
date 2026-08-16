@@ -8,6 +8,7 @@ from django.test import RequestFactory, SimpleTestCase
 from django.urls import reverse
 
 from apps.accounts.views_passkey import passkey_login_options
+from apps.siteconfig.views_cockpit_health import _build_login_front_door_health
 
 
 class LoginFrontDoorTwelveContractTests(SimpleTestCase):
@@ -62,3 +63,24 @@ class LoginFrontDoorTwelveContractTests(SimpleTestCase):
             ".rmc-auth-immersive__dash,\n  .rmc-auth-immersive__moments { display: none; }",
             css,
         )
+
+    def test_all_twelve_health_checks_use_real_shipped_markers(self):
+        rows, score = _build_login_front_door_health()
+        self.assertEqual(len(rows), 12)
+        self.assertEqual(score, 100)
+        self.assertTrue(all(row["status"] == "ready" for row in rows))
+
+    def test_offline_enrollment_and_unlock_are_both_wired(self):
+        base = Path(settings.BASE_DIR)
+        portal = (base / "templates/portal_base.html").read_text(encoding="utf-8")
+        login = (base / "templates/auth/login.html").read_text(encoding="utf-8")
+        canvas = (base / "templates/auth/partials/login_immersive_canvas.html").read_text(encoding="utf-8")
+        enrollment = (base / "static/js/rmc-offline-auth-enrollment.js").read_text(encoding="utf-8")
+        unlock = (base / "static/js/rmc-offline-login-unlock.js").read_text(encoding="utf-8")
+        self.assertIn("rmc-offline-auth-enrollment.js", portal)
+        self.assertIn("rmc-offline-login-unlock.js", login)
+        self.assertIn("data-rmc-local-mode-open", canvas)
+        self.assertIn("sealCapability", enrollment)
+        self.assertIn("openCapability", unlock)
+        self.assertIn("expires <= Date.now()", unlock)
+        self.assertIn("capability.school_host !== window.location.host", unlock)

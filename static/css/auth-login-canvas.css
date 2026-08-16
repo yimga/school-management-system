@@ -1813,6 +1813,28 @@ body:has(.rmc-auth-immersive) [data-shell-chrome="django-messages"] {
 .rmc-auth-assistant__body a,
 .rmc-auth-assistant__body button { display: block; width: 100%; text-align: left; }
 .rmc-auth-assistant__answer { min-height: 1.3em; font-size: 11px; }
+.rmc-auth-immersive__offline-note [data-rmc-local-mode-open] {
+  min-height: 40px;
+  margin-inline-start: auto;
+  border: 1px solid color-mix(in srgb, var(--color-success) 50%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--color-success) 14%, var(--surface-elevated));
+  color: var(--text-primary);
+  padding: 8px 12px;
+  font: inherit;
+  font-weight: 800;
+}
+.rmc-auth-local-mode input {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  margin-top: 6px;
+  border: 1px solid var(--rmc-auth-hair);
+  border-radius: 10px;
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  padding: 10px 12px;
+}
 
 @media (max-width: 1180px) and (min-width: 981px) {
   .rmc-auth-immersive {

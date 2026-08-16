@@ -30,6 +30,7 @@ actual operator-saved values (operator content stays in cockpit_payload).
 from __future__ import annotations
 
 import importlib
+from pathlib import Path
 from typing import Any
 
 from django.conf import settings
@@ -118,6 +119,38 @@ _LOGIN_FRONT_DOOR_CAPABILITIES: tuple[tuple[int, str, str], ...] = (
     (11, "Public-data access assistant", "/authentication/login/"),
     (12, "Front-door health and diagnostics", "/siteconfig/super/configure/cockpit/health/"),
 )
+
+_LOGIN_FRONT_DOOR_MARKERS: dict[int, tuple[tuple[str, str], ...]] = {
+    1: (("apps/accounts/views_passkey.py", "passkey_login_verify"),),
+    2: (("static/js/rmc-auth-login-immersive.js", "roleMemoryKey"),),
+    3: (("templates/auth/login.html", "data-rmc-auth-role"),),
+    4: (("static/js/rmc-offline-login-unlock.js", "rmc_offline_active_capability"), ("static/js/rmc-offline-auth-enrollment.js", "sealCapability")),
+    5: (("apps/accounts/login_immersive_canvas.py", "dash_feed"), ("templates/auth/partials/login_immersive_dash_panels.html", "LOGIN_IMMERSIVE.dash_feed")),
+    6: (("apps/communication/forms_announcements.py", "AnnouncementCreateForm"),),
+    7: (("apps/siteconfig/forms_cockpit.py", "lic_sponsored_lines"),),
+    8: (("apps/accounts/views_magic_link.py", "magic_link_request"), ("apps/accounts/password_reset.py", "PortalPasswordResetForm")),
+    9: (("apps/accounts/views_passkey.py", "tenant mismatch"),),
+    10: (("templates/auth/login.html", "aria-live"),),
+    11: (("templates/auth/login.html", "data-rmc-access-assistant"),),
+    12: (("templates/siteconfig/super/cockpit_health.html", "data-rmc-login-front-door-health"),),
+}
+
+
+def _build_login_front_door_health() -> tuple[list[dict[str, Any]], int]:
+    """Verify shipped wiring without reading or exposing tenant/user content."""
+    base = Path(settings.BASE_DIR)
+    rows: list[dict[str, Any]] = []
+    for number, label, action_url in _LOGIN_FRONT_DOOR_CAPABILITIES:
+        checks = _LOGIN_FRONT_DOOR_MARKERS.get(number, ())
+        ready = bool(checks)
+        for relative_path, marker in checks:
+            try:
+                ready = ready and marker in (base / relative_path).read_text(encoding="utf-8")
+            except (OSError, UnicodeError):
+                ready = False
+        rows.append({"number": number, "label": label, "status": "ready" if ready else "attention", "action_url": action_url})
+    ready_count = sum(row["status"] == "ready" for row in rows)
+    return rows, round((ready_count / len(rows)) * 100) if rows else 0
 
 
 def _staff_test(user: Any) -> bool:
@@ -273,10 +306,8 @@ class CockpitHealthView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         # than tenant content or user identifiers. Optional tenant setup (for
         # example SSO or a sponsor campaign) is configured, not treated as an
         # authentication outage.
-        ctx["login_front_door_capabilities"] = [
-            {"number": number, "label": label, "status": "ready", "action_url": action_url}
-            for number, label, action_url in _LOGIN_FRONT_DOOR_CAPABILITIES
-        ]
-        ctx["login_front_door_score"] = 100
+        capabilities, score = _build_login_front_door_health()
+        ctx["login_front_door_capabilities"] = capabilities
+        ctx["login_front_door_score"] = score
         ctx["page_title"] = _("Cockpit health")
         return ctx

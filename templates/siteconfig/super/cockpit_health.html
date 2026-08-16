@@ -83,7 +83,7 @@
           <tr>
             <td>{{ capability.number }}</td>
             <td>{{ capability.label }}</td>
-            <td><span class="rmc-badge rmc-badge--success">{% trans "Ready" %}</span></td>
+            <td>{% if capability.status == "ready" %}<span class="rmc-badge rmc-badge--success">{% trans "Ready" %}</span>{% else %}<span class="rmc-badge rmc-badge--danger">{% trans "Attention" %}</span>{% endif %}</td>
             <td class="text-end"><a class="btn btn-outline-secondary btn-sm" href="{{ capability.action_url }}">{% trans "Open" %}</a></td>
           </tr>
           {% endfor %}
