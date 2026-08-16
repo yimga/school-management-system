@@ -16,7 +16,7 @@
 {% block footer %}{% endblock %}
 
 {% block extrastyle_tail %}
-  <link rel="stylesheet" href="{% static 'css/auth-login-canvas.css' %}">
+  <link rel="stylesheet" href="{% static 'css/auth-login-canvas.css' %}?v=20260816.3">
 {% endblock %}
 
 {% block content %}
@@ -311,5 +311,5 @@
 {% endwith %}
 
 {% include "components/rmc_password_toggle_script.html" %}
-<script src="{% static 'js/rmc-auth-login-immersive.js' %}" defer></script>
+<script src="{% static 'js/rmc-auth-login-immersive.js' %}?v=20260816.3" defer></script>
 {% endblock %}
