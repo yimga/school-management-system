@@ -121,6 +121,21 @@ POLICIES: dict[str, SyncPolicy] = {
             "survives any future change to that default."
         ),
     ),
+    "teacher": SyncPolicy(
+        entity="teacher",
+        strategy=MergeStrategy.CAUSAL_LWW,
+        protected=False,
+        rationale=(
+            "The staff ROSTER converges two-way — a phone number or position corrected "
+            "offline should just merge. Safety on this entity is per-FIELD, not "
+            "entity-level: compensation, the payroll/leave authorization switches, and "
+            "the offboarding + merge pointers are all DOWN-ONLY (see "
+            "sync_services._DOWN_ONLY_FIELDS_PER_ENTITY['teacher']), and a box-CREATED "
+            "teacher is refused because minting an accounts.User is an authentication "
+            "decision, not a data merge. Declared EXPLICITLY so this stays true if the "
+            "_LWW_SAFE_ENTITIES fallback ever changes."
+        ),
+    ),
     "grade_entry": SyncPolicy(
         entity="grade_entry",
         strategy=MergeStrategy.MANUAL_REVIEW,

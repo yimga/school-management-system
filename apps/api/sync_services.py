@@ -69,11 +69,42 @@ _DERIVED_ENTITY_SPECS: list[tuple[str, str, str]] = [
     #     Putting that on a sync rail would contradict the platform's own rule.
     # Rationale + the conditions to revisit: docs/EDGE_SYNC_FINANCE_HOLD.md.
     ("invoice", "finance", "Invoice"),
-    # DEFERRED — people.TeacherProfile is CLASS-A master data but carries compensation
-    # fields (salary_amount, pay_grade, next_pay_date, …). Two-way LWW on those would let
-    # a box salary edit override the cloud, against the money=cloud-authoritative rule.
-    # It joins once Phase 4 gives per-field direction policy (compensation = down-only).
+    # Slice 7 — staff identity, MIXED DIRECTION (edge parity, 2026-08-17). people.
+    # TeacherProfile is the staff master record. It was deferred while per-field direction
+    # policy was a single-field seed; now that the policy is general AND enforced on the
+    # insert path as well as the update path, the profile can converge two-way while
+    # COMPENSATION rides down-only (see _DOWN_ONLY_FIELDS_PER_ENTITY["teacher"]). A
+    # bursar's salary edit on the cloud reaches the box; a stale box can never move pay.
+    #
+    # IDENTITY (the reason this was the hard one). `user` is a non-nullable OneToOneField
+    # to the SHARED accounts.User, whose pk differs box↔cloud, so `_derive_sync_fields`
+    # already drops `user_id` as non-portable — verified by running it, not assumed. The
+    # consequence is asymmetric and deliberate:
+    #   * UPDATE of an existing profile is safe and is what this registration buys. The
+    #     clone is pk-preserving, so the row matches by pk on both sides and each side
+    #     keeps its OWN user link untouched.
+    #   * INSERT of a box-created teacher is REFUSED, not attempted (see
+    #     _INSERT_HELD_ENTITIES). Landing one would require the sync rail to mint an
+    #     accounts.User on the cloud, and provisioning a login is an authentication
+    #     decision — who may sign in, with what role, under whose authorization — not a
+    #     data merge. A rail that creates identities is a rail that can grant access.
+    # Rationale + the conditions to revisit: docs/EDGE_SYNC_IDENTITY_HOLD.md.
+    ("teacher", "people", "TeacherProfile"),
 ]
+
+# Entities that sync as UPDATES but whose offline-CREATED rows are refused outright.
+# Distinct from "not registered at all": the entity converges, but a NEW row cannot be
+# manufactured on the far side because something non-data (here, an identity/login) would
+# have to be invented to satisfy a required non-portable relation. Refusing explicitly
+# beats letting the insert reach the database and die on an IntegrityError every cycle,
+# which reports a confusing constraint error instead of the actual reason.
+_INSERT_HELD_ENTITIES: dict[str, str] = {
+    "teacher": (
+        "a teacher record requires an accounts.User, and provisioning a login is an "
+        "authentication decision the sync rail must not make; create the staff member on "
+        "the cloud and the profile will sync down"
+    ),
+}
 
 # Field names never synced as a value: the tenant scope, the identity anchor, and the
 # auto timestamps (handled by the engine, not carried as data).
@@ -103,11 +134,52 @@ _SYNC_FIELD_EXCLUDE_PER_ENTITY: dict[str, set] = {
 #     grade_entry policy), so letting a stale box overwrite the WEIGHT would move every
 #     computed average by the back door while each individual mark stayed authoritative.
 #     The box still needs the value to grade offline, so excluding it is not an option.
-# A field listed here must also be in the entity's synced set — it is a direction rule,
-# not an exclusion. When per-field direction policy grows up (the same Phase 4 gap that
-# defers TeacherProfile compensation), this map is what it generalizes.
+#   * teacher.<compensation> — pay grade, pay scale, salary, salary cap, pay date and
+#     paystub text. Payroll is cloud-authoritative for the same reason money is: it is
+#     computed and approved centrally, and a box that has been offline for a week holds a
+#     stale figure. The box still RECEIVES the current values so a head teacher can see
+#     accurate staffing costs offline; it simply cannot push a pay change up.
+#     `payment_method` rides down-only too — it decides where money is SENT, so a box edit
+#     to it is a payment-redirection vector, not a profile preference.
+#   * teacher.allow_finance_panel / allow_paystub_access / allow_leave_approvals — these
+#     read like preferences and are NOT: `allow_finance_panel` is the gate on the teacher
+#     payroll block (PayrollEmployee, payslips, net pay — apps/portal/services.py
+#     ::_teacher_finance_block), and `allow_leave_approvals` confers approval authority. A
+#     box able to push these upward could grant payroll visibility or approval rights on
+#     the cloud. POLICIES already states the rule for this class — `permission_grant` is
+#     SERVER_AUTHORITATIVE because "authorization changes must be validated by the server"
+#     — so these follow it.
+#   * teacher.is_active / merged_into_id — offboarding and duplicate-merge are governance
+#     actions, not roster edits. A stale box must not reinstate a staff member the cloud
+#     deactivated, nor redirect a merge pointer.
+#
+# ENFORCEMENT IS ON EVERY INBOUND PATH. Direction is a property of the FIELD, so both
+# _apply_changes_inner (update-by-pk) and apply_edge_inserts (upsert-by-client_offline_id)
+# apply this map. Guarding only the update path made the whole policy bypassable by
+# presenting an edit as a new row.
+#
+# A field listed here must also be in the entity's synced set — it is a direction rule, not
+# an exclusion. Use it (rather than _SYNC_FIELD_EXCLUDE_PER_ENTITY) whenever the box needs
+# to READ the value to behave correctly offline.
 _DOWN_ONLY_FIELDS_PER_ENTITY: dict[str, set] = {
     "subject_assignment": {"coefficient"},
+    "teacher": {
+        # compensation
+        "pay_grade",
+        "pay_scale_id",
+        "salary_amount",
+        "salary_cap",
+        "next_pay_date",
+        "paystub_notes",
+        "payment_method",
+        # authorization
+        "allow_finance_panel",
+        "allow_paystub_access",
+        "allow_leave_approvals",
+        # governance
+        "is_active",
+        "merged_into_id",
+    },
 }
 
 # Registered entities that are SAFE to converge by last-writer-wins and are NOT already
@@ -127,6 +199,15 @@ _LWW_SAFE_ENTITIES = frozenset(
         # term. It carries no marks (an Evaluation points AT a slot; grades ride their own
         # down-only rail), so a later admin edit winning is correct.
         "subject_assignment",
+        # Staff roster (Slice 7): LWW-safe *because* the sensitive columns are handled by
+        # per-FIELD direction rather than entity-level protection. What converges two-way
+        # is genuinely benign roster/preference data — staff_id, phone, position_title,
+        # department, reports_to, custom_attributes, dashboard + reminder preferences. Pay,
+        # authorization and governance columns are in _DOWN_ONLY_FIELDS_PER_ENTITY, and a
+        # box-created teacher is refused outright (_INSERT_HELD_ENTITIES). Marking the
+        # whole entity protected instead would make every offline phone-number correction a
+        # manual conflict while buying no additional safety.
+        "teacher",
     }
 )
 
@@ -840,14 +921,44 @@ def apply_edge_inserts(school_id, user, rows, *, sync_origin=None):
         if not any(getattr(f, "name", "") == "client_offline_id" for f in model._meta.get_fields()):
             results_by_index[idx] = {"index": idx, "status": 422, "data": {"error": "entity_not_insertable"}}
             continue
+        # Entities that converge as UPDATES but may not be CREATED across the rail. Refused
+        # here, with the reason, rather than being attempted and dying on a required
+        # non-portable relation — which would report an opaque IntegrityError every cycle.
+        if entity_type in _INSERT_HELD_ENTITIES:
+            results_by_index[idx] = {
+                "index": idx,
+                "status": 409,
+                "data": {
+                    "error": "insert_held_for_entity",
+                    "entity_type": entity_type,
+                    "reason": _INSERT_HELD_ENTITIES[entity_type],
+                },
+            }
+            continue
 
         valid_fields = _settable_field_names(model)
         ent_targets = fk_targets.get(entity_type, {})
         updates = {}
         dropped_fks = []
+        # Per-FIELD direction guard, same policy as the UPDATE path (_apply_changes_inner).
+        # It has to be applied HERE too: direction is a property of the field, so without
+        # this the whole policy is bypassable by presenting an edit as a new row —
+        # the value the update path refuses with 409 would land cleanly as an insert.
+        rejected_down_only = []
+        down_only = (
+            set(_DOWN_ONLY_FIELDS_PER_ENTITY.get(entity_type, ()))
+            if sync_origin != "cloud-pull"
+            else set()
+        )
         for key, value in changes.items():
             if key not in allowed or key not in valid_fields:
                 continue  # not editable, or a phantom allow-list entry not on the model
+            if key in down_only:
+                # Dropped, not fatal: the row still lands, minus the cloud-owned column,
+                # which then arrives on the next cloud->box pull. Reported so a discarded
+                # write is visible rather than vanishing.
+                rejected_down_only.append(key)
+                continue
             target = ent_targets.get(key)
             if target and value is not None:
                 if value in new_local_pks.get(target, set()):
@@ -914,6 +1025,9 @@ def apply_edge_inserts(school_id, user, rows, *, sync_origin=None):
         data = {"id": obj.pk, "created": was_created}
         if dropped_fks:
             data["dropped_fks"] = dropped_fks  # links that pointed at an uncreated new row
+        if rejected_down_only:
+            # Same key the UPDATE path reports, so a caller reconciles one contract.
+            data["rejected_down_only_fields"] = rejected_down_only
         results_by_index[idx] = {"index": idx, "status": 201 if was_created else 200, "data": data}
 
     results = [results_by_index[i] for i in range(len(rows))]

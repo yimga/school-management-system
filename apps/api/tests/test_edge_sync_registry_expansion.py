@@ -55,8 +55,17 @@ class SyncRegistryExpansionTests(TestCase):
         cfg = _get_entity_config(include_derived=True)
         self.assertIn("applicant", cfg)
         self.assertIn("student_note", cfg)
-        # teacher is intentionally DEFERRED (compensation fields need Phase-4 policy).
-        self.assertNotIn("teacher", cfg)
+        # `teacher` WAS deferred here pending per-field direction policy; that policy now
+        # exists and is enforced on both inbound paths, so TeacherProfile is registered
+        # (Wave 5). Its safety is per-FIELD, not by exclusion — compensation, the
+        # payroll/leave authorization switches and the offboarding/merge pointers are
+        # down-only, and a box-CREATED teacher is refused because minting an accounts.User
+        # is an authentication decision. Asserted in detail by
+        # apps/sync_engine/tests/test_edge_sync_teacher_identity_2026_08_17.py; the
+        # assertion kept here is the one this test is about — the identity FK to the SHARED
+        # accounts.User must never be a synced field.
+        self.assertIn("teacher", cfg)
+        self.assertFalse(cfg["teacher"][1] & {"user", "user_id"})
         # Original curated field sets must be untouched by the generalized registry.
         self.assertEqual(cfg["classroom"][1], {"name", "academic_year_id"})
         self.assertEqual(
