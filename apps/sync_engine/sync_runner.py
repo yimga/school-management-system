@@ -56,6 +56,54 @@ def _endpoint(base: str, url_name: str, fallback_path: str) -> str:
     return base + path
 
 
+def _page_size() -> int:
+    """Rows per pushed bundle — the receiver's own cap, which it rejects ABOVE, whole.
+
+    Defaults to the same 500 ``SyncBundleUploadView`` uses. Floored at 1 so a
+    misconfigured 0 cannot produce an infinite loop of empty pages.
+    """
+    # magic-number-allow: mirrors SyncBundleUploadView's own RMC_SYNC_BUNDLE_MAX_ROWS default
+    default_cap = 500
+    return max(1, int(getattr(settings, "RMC_SYNC_BUNDLE_MAX_ROWS", default_cap) or default_cap))
+
+
+def _max_pages_per_cycle() -> int:
+    """Ceiling on bundles POSTed in ONE cycle, so a tick stays bounded.
+
+    Hitting it is NOT a failure: the cursor advances over every page that landed, so the
+    next cycle resumes exactly where this one stopped. That is what lets a box with a
+    huge backlog converge in steps instead of timing out forever on one giant attempt.
+    """
+    return max(1, int(getattr(settings, "RMC_EDGE_SYNC_MAX_PAGES_PER_CYCLE", 20) or 20))
+
+
+def _chunk(rows, size):
+    for start in range(0, len(rows), size):
+        yield rows[start : start + size]
+
+
+def _row_high_water(rows):
+    """Newest ``updated_at`` in ``rows`` as a datetime, or None.
+
+    Rows carry ISO strings (that is what goes on the wire), so this parses rather than
+    assuming; an unparseable/absent stamp yields None and simply does not advance a
+    cursor, which is the safe direction.
+    """
+    from django.utils.dateparse import parse_datetime
+
+    best = None
+    for row in rows:
+        raw = row.get("updated_at")
+        parsed = parse_datetime(raw) if isinstance(raw, str) else raw
+        if parsed is None:
+            continue
+        if timezone.is_naive(parsed):
+            parsed = timezone.make_aware(parsed, timezone.get_current_timezone())
+        if best is None or parsed > best:
+            best = parsed
+    return best
+
+
 def _resolve_principal(school):
     """Local admin principal to apply pulled rows as — mirrors ``pull_edge_inbox``'s
     resolver (school owner, else any superuser)."""
@@ -122,10 +170,30 @@ def run_sync_cycle(school, *, mode="live") -> dict:
 
     from apps.sync_engine import edge_outbox
 
-    # 1) PUSH local changes UP. In dry mode we build the delta to preview the count but
-    #    NEVER post it (no cloud-bound write). A failure here does NOT abort the pull.
+    # 1) PUSH local changes UP, IN PAGES, from the durable push cursor. A failure here
+    #    does NOT abort the pull. In dry mode we build the delta to preview the count but
+    #    NEVER post it and never move a cursor (no cloud-bound write).
+    #
+    #    Paging is not an optimisation, it is the difference between working and not: the
+    #    receiver caps one bundle at RMC_SYNC_BUNDLE_MAX_ROWS and rejects an oversized one
+    #    WHOLE (400 bundle_too_large), so the single unbounded bundle this used to send
+    #    made a large backlog permanently unpushable — the further behind a box fell, the
+    #    more certain every future attempt was to fail.
     try:
-        data, meta = edge_outbox.build_edge_delta_bundle(school, since=None, entities=None)
+        from apps.sync_engine.delta_bundle import export_delta_bundle
+        from apps.sync_engine.models import EdgeSyncCursor, get_sync_cursor, set_sync_cursor
+
+        push_since = get_sync_cursor(school, EdgeSyncCursor.PUSH)
+        rows, meta = edge_outbox.build_edge_delta_rows(school, since=push_since, entities=None)
+
+        # Offline-CREATED rows travel TOGETHER. apply_edge_inserts remaps a
+        # new-references-new FK using an in-bundle (entity_type, local_pk) -> operator_pk
+        # map and DROPS the FK when the referent is not in the same bundle, so splitting
+        # them would silently unlink a child from the parent it was created with. Updates
+        # are keyed by pk and order-independent, so they page freely.
+        inserts = [r for r in rows if (r.get("client_offline_id") or "").strip()]
+        updates = [r for r in rows if not (r.get("client_offline_id") or "").strip()]
+
         if mode == "dry":
             notes.append(f"dry run: {meta['row_count']} local change(s) NOT pushed")
         elif meta["row_count"] == 0:
@@ -134,13 +202,69 @@ def run_sync_cycle(school, *, mode="live") -> dict:
             endpoint = _endpoint(
                 base, "api:sync-bundle-upload", "/api/v1/sync/bundle/upload/"
             )
-            status, body = edge_outbox.post_bundle(endpoint, token, data)
-            if status == 200 and body.get("ok"):
-                result["pushed"] = meta["row_count"]
+            page_size = _page_size()
+            max_pages = _max_pages_per_cycle()
+
+            # Inserts go FIRST and, wherever they fit, whole. Sending them ahead of the
+            # updates is what makes an update page's high-water a valid cursor: every
+            # older row — insert or update — is already on the wire by then.
+            insert_pages = list(_chunk(inserts, page_size)) if inserts else []
+            if len(insert_pages) > 1:
+                notes.append(
+                    f"WARNING: {len(inserts)} offline-created rows exceed the "
+                    f"{page_size}-row bundle cap and had to be split across "
+                    f"{len(insert_pages)} bundles; a new-references-new link whose "
+                    "target lands in another bundle is dropped rather than mis-linked"
+                )
+            pages = insert_pages + list(_chunk(updates, page_size))
+
+            posted_pages = 0
+            drained_updates = True
+            for index, page in enumerate(pages):
+                if posted_pages >= max_pages:
+                    drained_updates = False
+                    remaining = sum(len(p) for p in pages[index:])
+                    notes.append(
+                        f"{remaining} row(s) deferred to the next cycle "
+                        f"(page ceiling {max_pages} reached)"
+                    )
+                    break
+                data = export_delta_bundle(
+                    school_id=str(school.id), rows=page, device_id="edge"
+                )
+                status, body = edge_outbox.post_bundle(endpoint, token, data)
+                if status == 400 and "bundle_too_large" in (body.get("errors") or []):
+                    # The operator's cap is lower than ours. It tells us its real limit;
+                    # believe IT rather than our local setting, and stop this cycle so the
+                    # next one re-pages the remainder from the unmoved cursor.
+                    errors.append(
+                        f"push page rejected as too large; operator cap is "
+                        f"{body.get('max_rows')} rows (local page size {page_size}) — "
+                        "set RMC_SYNC_BUNDLE_MAX_ROWS to match"
+                    )
+                    drained_updates = False
+                    break
+                if not (status == 200 and body.get("ok")):
+                    errors.append(f"push rejected (HTTP {status})")
+                    drained_updates = False
+                    break
+                posted_pages += 1
+                result["pushed"] += len(page)
                 result["conflicts"] += int(body.get("conflicts") or 0)
-                notes.append(f"pushed {result['pushed']}")
-            else:
-                errors.append(f"push rejected (HTTP {status})")
+                # Advance only over the ground actually covered. Inserts carry no safe
+                # global position on their own (an insert may be older than an update we
+                # have not sent yet), so the cursor moves on UPDATE pages only — by which
+                # point every insert is already delivered.
+                if index >= len(insert_pages):
+                    set_sync_cursor(school, EdgeSyncCursor.PUSH, _row_high_water(page))
+
+            if drained_updates and not errors:
+                # Everything in this window landed: park the cursor on the window's own
+                # high-water so an echo-suppressed row (scanned but deliberately not sent)
+                # cannot be re-scanned forever.
+                set_sync_cursor(school, EdgeSyncCursor.PUSH, meta.get("high_water"))
+            if result["pushed"]:
+                notes.append(f"pushed {result['pushed']} in {posted_pages} bundle(s)")
     except Exception as exc:  # noqa: BLE001 — never crash the tenant page
         errors.append(f"push failed: {exc}")
 
@@ -149,12 +273,35 @@ def run_sync_cycle(school, *, mode="live") -> dict:
     #    accepted (HTTP 200) and applies NOTHING — a true no-write probe. Independent of
     #    the push result either way.
     try:
+        from django.utils.dateparse import parse_datetime
+
+        from apps.sync_engine.models import EdgeSyncCursor, get_sync_cursor, set_sync_cursor
+
         endpoint = _endpoint(
             base, "api:sync-bundle-download", "/api/v1/sync/bundle/download/"
         )
-        status, body, _high_water = edge_outbox.pull_bundle(
-            endpoint, token, since=None, entities=None
+        pull_since = get_sync_cursor(school, EdgeSyncCursor.PULL)
+        collected: dict = {}
+        status, body, high_water = edge_outbox.pull_bundle(
+            endpoint, token, since=pull_since, entities=None, collect=collected
         )
+
+        # A cloud operator cannot reach into this box, so a "resync everything" request
+        # arrives as a header on the box's OWN download. Honour it by rewinding both
+        # cursors: the NEXT cycle then replays the whole corpus through the ordinary,
+        # idempotent apply path. Deliberately not applied to this cycle's bundle, which was
+        # already built against the old cursor and is only a delta.
+        directive = (collected.get("directive") or "").strip()
+        resyncing = directive == "full-resync" and mode != "dry"
+        if resyncing:
+            from apps.sync_engine.models import reset_sync_cursors
+
+            rewound = reset_sync_cursors(school)
+            notes.append(
+                f"full resync requested by the cloud: rewound {rewound} cursor(s); "
+                "the next cycle replays the entire corpus"
+            )
+
         if status != 200:
             errors.append(f"pull rejected (HTTP {status})")
         elif mode == "dry":
@@ -174,6 +321,21 @@ def run_sync_cycle(school, *, mode="live") -> dict:
                     result["created"] += int(applied.get("created") or 0)
                     result["upserted"] += int(applied.get("upserted") or 0)
                     result["conflicts"] += int(applied.get("conflicts") or 0)
+                    # The download endpoint has always stamped the new high-water in
+                    # X-RMC-Sync-High-Water so the box can advance; the runner used to
+                    # throw it away and re-request the whole corpus every 180s. Advance
+                    # only AFTER a verified apply, so a rejected or unverifiable bundle
+                    # leaves the position put and the rows are re-offered next cycle.
+                    # Do NOT advance when a resync was just requested: this bundle is only
+                    # the delta from the OLD cursor, so recording its high-water here would
+                    # silently cancel the rewind we performed moments ago.
+                    parsed = parse_datetime(high_water) if (high_water and not resyncing) else None
+                    if parsed is not None:
+                        if timezone.is_naive(parsed):
+                            parsed = timezone.make_aware(
+                                parsed, timezone.get_current_timezone()
+                            )
+                        set_sync_cursor(school, EdgeSyncCursor.PULL, parsed)
                     notes.append(
                         f"pulled {result['pulled']} (created {result['created']}, "
                         f"upserted {result['upserted']}, conflicts {result['conflicts']})"

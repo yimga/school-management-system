@@ -87,7 +87,12 @@ from .views_notifications_engine import notification_settings_view
 from .views_modals_engine import modal_settings_view
 from .views_detail_engine import detail_settings_view
 from .views_custom_requirement import request_custom_requirement
-from .views_sync_center import sync_center, sync_center_resolve, sync_now
+from .views_sync_center import (
+    sync_center,
+    sync_center_resolve,
+    sync_now,
+    sync_request_resync,
+)
 from .views_school_theme import school_theme_settings
 from .views_theme_experience_hub import theme_experience_hub
 from .views_theme_builder import (
@@ -566,6 +571,11 @@ urlpatterns = [
     ),
     path("sync-center/", sync_center, name="sync_center"),
     path("sync-center/sync-now/", sync_now, name="sync_center_sync_now"),
+    path(
+        "sync-center/request-resync/",
+        sync_request_resync,
+        name="sync_center_request_resync",
+    ),
     path(
         "sync-center/resolve/<int:conflict_id>/",
         sync_center_resolve,

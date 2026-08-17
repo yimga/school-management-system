@@ -49,7 +49,11 @@
           {% endif %}
         </div>
         {% if not edge_sync_enabled %}
-          <p class="text-warning mb-2 small">{% trans "Sync is not enabled on this deployment." %}</p>
+          {# The cloud cannot open a connection to a box on a private network, so the #}
+          {# box-initiated controls below are hidden here rather than offered and failed. #}
+          <p class="text-body-secondary mb-2 small">
+            {% trans "This is the cloud side. Your box syncs by calling out on its own schedule — the cloud cannot reach into its network, so there is nothing to start from here." %}
+          </p>
         {% endif %}
         {% if latest_sync_run %}
           <div class="d-flex flex-wrap gap-2 mb-2">
@@ -73,11 +77,37 @@
         {% else %}
           <p class="text-muted small mb-2">{% trans "No sync has run yet." %}</p>
         {% endif %}
-        <form method="post" action="{% url 'siteconfig:sync_center_sync_now' %}" class="d-flex flex-wrap gap-2">
-          {% csrf_token %}
-          <button type="submit" name="mode" value="dry" class="btn btn-sm btn-outline-primary">{% trans "Dry-run sync" %}</button>
-          <button type="submit" name="mode" value="live" class="btn btn-sm btn-primary">{% trans "Sync now" %}</button>
-        </form>
+        {% if edge_sync_enabled %}
+          {# On the box itself: it CAN call out, so these do real work. #}
+          <form method="post" action="{% url 'siteconfig:sync_center_sync_now' %}" class="d-flex flex-wrap gap-2">
+            {% csrf_token %}
+            <button type="submit" name="mode" value="dry" class="btn btn-sm btn-outline-primary">{% trans "Dry-run sync" %}</button>
+            <button type="submit" name="mode" value="live" class="btn btn-sm btn-primary">{% trans "Sync now" %}</button>
+          </form>
+          {% if sync_interval_seconds %}
+            <p class="text-body-secondary small mb-0 mt-2">
+              {% blocktrans with seconds=sync_interval_seconds %}Syncing automatically every {{ seconds }} seconds whenever this box has a connection.{% endblocktrans %}
+            </p>
+          {% endif %}
+        {% else %}
+          {# Cloud side: queue work the box collects on its next call-out. #}
+          {% if pending_resync %}
+            <p class="text-warning small mb-2">
+              {% blocktrans with when=pending_resync.requested_at|date:"Y-m-d H:i" %}Full resync queued {{ when }} — waiting for the box to connect.{% endblocktrans %}
+            </p>
+          {% elif last_served_resync %}
+            <p class="text-success small mb-2">
+              {% blocktrans with when=last_served_resync.served_at|date:"Y-m-d H:i" %}Last full resync collected by the box {{ when }}.{% endblocktrans %}
+            </p>
+          {% endif %}
+          <form method="post" action="{% url 'siteconfig:sync_center_request_resync' %}" class="d-flex flex-wrap gap-2 align-items-center">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm btn-primary" {% if pending_resync %}disabled{% endif %}>{% trans "Queue full resync" %}</button>
+            <span class="text-body-secondary small">
+              {% trans "Has the box missed a lot of changes? This makes it replay every record on its next connection. Safe to press while it is offline." %}
+            </span>
+          </form>
+        {% endif %}
       </div>
     </div>
     <div class="card shadow-sm">

@@ -35,6 +35,7 @@ from apps.schools.tenant_api_guards import user_may_operate_on_school
 from apps.sync_engine.delta_bundle import verify_and_parse_bundle
 from apps.sync_engine.edge_outbox import (
     BUNDLE_CONTENT_TYPE,
+    SYNC_DIRECTIVE_HEADER,
     SYNC_HIGH_WATER_HEADER,
     SYNC_ROW_COUNT_HEADER,
     build_edge_delta_bundle,
@@ -184,6 +185,16 @@ class SyncBundleDownloadView(APIView):
         if meta.get("high_water_iso"):
             resp[SYNC_HIGH_WATER_HEADER] = meta["high_water_iso"]
         resp[SYNC_ROW_COUNT_HEADER] = str(meta.get("row_count", 0))
+        # The box is behind NAT, so this response is the only moment the cloud can hand it
+        # an instruction. Best-effort: a directive failure must never cost the box its data.
+        try:
+            from apps.sync_engine.models import claim_pending_directive
+
+            directive = claim_pending_directive(school)
+            if directive is not None:
+                resp[SYNC_DIRECTIVE_HEADER] = directive.kind
+        except Exception:  # noqa: BLE001 — the bundle is the payload; a directive is a bonus
+            pass
         return resp
 
 

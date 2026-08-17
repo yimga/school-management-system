@@ -199,7 +199,8 @@ class SyncNowViewTests(TestCase):
         self.assertEqual(resp.status_code, 302)
         self.assertEqual(EdgeSyncRun.objects.filter(school=self.school).count(), 1)
 
-    def test_sync_center_page_renders_status_card_and_both_buttons(self):
+    @override_settings(RMC_EDGE_SYNC_ENABLED=True)
+    def test_on_a_box_the_panel_offers_the_box_initiated_controls(self):
         resp = self.client.get(reverse("siteconfig:sync_center"))
         self.assertEqual(resp.status_code, 200)
         body = resp.content.decode("utf-8")
@@ -207,5 +208,49 @@ class SyncNowViewTests(TestCase):
         self.assertIn(reverse("siteconfig:sync_center_sync_now"), body)
         self.assertIn("Dry-run sync", body)
         self.assertIn("Sync now", body)
-        # Flag defaults OFF in tests -> the "not enabled" note is shown.
-        self.assertIn("Sync is not enabled on this deployment.", body)
+
+    def test_on_the_cloud_the_panel_offers_a_resync_queue_not_a_dead_sync_button(self):
+        """This assertion used to be the inverse, and it locked in a live defect.
+
+        The page previously rendered "Sync now" / "Dry-run sync" on EVERY deployment. On
+        the cloud those cannot work at all — the box is behind NAT, so nothing there can
+        be reached — so every click produced a failed cycle and a red EdgeSyncRun row.
+        (The flag defaults OFF in tests, which is the cloud shape.) The cloud gets the
+        control it can actually honour instead: queue a resync the box collects itself.
+        """
+        resp = self.client.get(reverse("siteconfig:sync_center"))
+        self.assertEqual(resp.status_code, 200)
+        body = resp.content.decode("utf-8")
+        self.assertIn("data-rmc-edge-sync-panel", body)
+        self.assertNotIn("Sync now", body)
+        self.assertNotIn("Dry-run sync", body)
+        self.assertIn(reverse("siteconfig:sync_center_request_resync"), body)
+        self.assertIn("Queue full resync", body)
+
+    def test_posting_sync_now_on_the_cloud_refuses_without_recording_a_failed_run(self):
+        """The screenshot symptom: a red "Last sync failed" row created by the UI itself."""
+        url = reverse("siteconfig:sync_center_sync_now")
+        with patch(_POST) as post, patch(_PULL) as pull:
+            resp = self.client.post(url, data={"mode": "live"})
+        self.assertEqual(resp.status_code, 302)
+        post.assert_not_called()
+        pull.assert_not_called()
+        self.assertEqual(
+            EdgeSyncRun.objects.filter(school=self.school).count(),
+            0,
+            "a guaranteed-impossible action still wrote a failed run row",
+        )
+
+    def test_queue_full_resync_is_idempotent_and_visible(self):
+        from apps.sync_engine.models import EdgeSyncDirective
+
+        url = reverse("siteconfig:sync_center_request_resync")
+        self.assertEqual(self.client.post(url).status_code, 302)
+        self.assertEqual(self.client.post(url).status_code, 302)
+        self.assertEqual(
+            EdgeSyncDirective.objects.filter(school=self.school, served_at__isnull=True).count(),
+            1,
+            "pressing twice while the box is offline queued two resyncs",
+        )
+        body = self.client.get(reverse("siteconfig:sync_center")).content.decode("utf-8")
+        self.assertIn("waiting for the box to connect", body)
