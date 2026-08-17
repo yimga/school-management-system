@@ -34,6 +34,15 @@ _DERIVED_ENTITY_SPECS: list[tuple[str, str, str]] = [
     ("specialty", "academics", "Specialty"),
     ("subject", "academics", "Subject"),
     ("specialty_subject", "academics", "SpecialtySubject"),
+    # Slice 4 — the teaching grid (edge parity, 2026-08-17). SubjectAssignment is the
+    # join the box needs so a term's gradeable slots exist offline: academic_year + term
+    # + classroom + specialty + subject (+ coefficient). Anchor added by academics
+    # migration 0081. All five FKs point at entities registered ABOVE, so a
+    # new-references-new insert remaps cleanly onto the operator's pks.
+    # NOTE: the `teachers` M2M does NOT ride — it targets the SHARED accounts.User,
+    # whose pk is not portable box↔cloud (the same reason a FK to User is excluded), and
+    # an M2M cannot appear in `save(update_fields=...)`. `_derive_sync_fields` drops it.
+    ("subject_assignment", "academics", "SubjectAssignment"),
     # DEFERRED — people.TeacherProfile is CLASS-A master data but carries compensation
     # fields (salary_amount, pay_grade, next_pay_date, …). Two-way LWW on those would let
     # a box salary edit override the cloud, against the money=cloud-authoritative rule.
@@ -69,6 +78,10 @@ _LWW_SAFE_ENTITIES = frozenset(
         # Curriculum catalog (Slice 3): benign master data, safe to converge by
         # timestamp — a later admin edit wins, same as the other master-data rows.
         "specialty", "subject", "specialty_subject",
+        # Teaching grid (Slice 4): benign master data — WHICH gradeable slots exist for a
+        # term. It carries no marks (an Evaluation points AT a slot; grades ride their own
+        # down-only rail), so a later admin edit winning is correct.
+        "subject_assignment",
     }
 )
 
@@ -98,6 +111,18 @@ def _derive_sync_fields(model) -> set:
         if getattr(f, "auto_now", False) or getattr(f, "auto_now_add", False):
             continue
         if f.name in _SYNC_FIELD_EXCLUDE_NAMES:
+            continue
+        # MANY-TO-MANY IS NEVER A SYNCED FIELD. Django reports an M2M as concrete+editable,
+        # so without this guard it lands in the set and breaks BOTH directions: the outbox
+        # does ``getattr(instance, f)`` per allowed field, which for an M2M yields a
+        # ManyRelatedManager that ``export_delta_bundle`` cannot JSON-serialize — and
+        # because a bundle packs EVERY registered entity into ONE payload, that single bad
+        # column takes down the whole push/pull cycle, not just its own entity. On the
+        # inbound side an M2M cannot appear in ``save(update_fields=[...])`` either
+        # (FieldError — the same phantom-field crash the curated ``classroom`` set warns
+        # about above). A through-table link is its own relation and, when one is genuinely
+        # needed on the rail, must be registered as its own entity with its own anchor.
+        if getattr(f, "many_to_many", False):
             continue
         if getattr(f, "many_to_one", False) or getattr(f, "one_to_one", False):
             # Resolve a possibly lazy-string related_model to its class first (same guard
