@@ -1223,6 +1223,84 @@ def _transform_row(
 
 # --- Tenant-schema wrapper ---------------------------------------------
 
+# Upper bound on residual (custom_fields.*/_unmapped.*) values the no-loss net
+# buffers per artifact before it stops accumulating. A guard against a pathological
+# file; overflow is reported on the LanderResult (never silently dropped-and-hidden).
+_RESIDUAL_MAX_ENTRIES = 200_000
+
+
+class _ResidualCapture:
+    """No-data-loss net behind a non-sweeping lander.
+
+    The orchestrator emits every unmapped/below-threshold source column as a
+    ``_unmapped.<col>`` / ``custom_fields.<slug>`` key on the canonical row
+    (``_transform_row``). A lander that does not read those keys would drop them
+    — and ``_apply_artifact`` runs exactly ONE lander per artifact with no
+    fallback (``get_lander(domain) or get_lander("custom_fields")`` only reaches
+    the fallback for domains with no registered lander). This tee captures those
+    residual values as the rows stream to the lander, then persists them to
+    ``DynamicFieldValue`` under ``migration_residual:<domain>`` so "ingest
+    everything" holds for EVERY domain — including ones added in the future,
+    which default to ``sweeps_custom_columns = False``.
+
+    It is additive, not duplicative: the landers that call ``persist_dfv_extras``
+    directly persist only *canonical* extras (e.g. ``grade_level``), never the
+    ``custom_fields.*``/``_unmapped.*`` residual keys captured here.
+    """
+
+    def __init__(self, domain: str) -> None:
+        self.domain = domain
+        self._buffer: list[tuple[int, str, dict[str, Any]]] = []
+        self._row_index = 0
+        self.truncated = 0
+
+    def wrap(self, rows_iter: Iterator[dict[str, Any]]) -> Iterator[dict[str, Any]]:
+        for row in rows_iter:
+            self._capture(row)
+            yield row
+
+    def _capture(self, row: dict[str, Any]) -> None:
+        self._row_index += 1
+        residual: dict[str, Any] = {}
+        external_id = ""
+        for key, value in row.items():
+            if value in (None, ""):
+                continue
+            if key.startswith("custom_fields.") or key.startswith("_unmapped."):
+                clean_key = key.split(".", 1)[1] if "." in key else key
+                if clean_key:
+                    residual[clean_key] = value
+            elif not external_id and (key == "external_id" or key.endswith("_external_id")):
+                external_id = str(value)
+        if not residual:
+            return
+        if len(self._buffer) >= _RESIDUAL_MAX_ENTRIES:
+            self.truncated += 1
+            return
+        self._buffer.append((self._row_index, external_id, residual))
+
+    def flush(self, *, ctx, result: LanderResult) -> None:
+        if not self._buffer and not self.truncated:
+            return
+        from .landers._helpers import persist_dfv_extras
+
+        entity_type = f"migration_residual:{self.domain}"
+        for row_index, external_id, residual in self._buffer:
+            entity_id = external_id or f"a{ctx.artifact_id}r{row_index}"
+            persist_dfv_extras(
+                ctx=ctx,
+                entity_type=entity_type,
+                entity_id=entity_id,
+                extras=residual,
+                result=result,
+            )
+        if self.truncated and result is not None:
+            result.errors.append(
+                f"residual-capture: {self.truncated} rows exceeded the "
+                f"{_RESIDUAL_MAX_ENTRIES}-entry cap and were not swept"
+            )
+
+
 def _run_lander_under_schema(
     *,
     lander,
@@ -1231,7 +1309,12 @@ def _run_lander_under_schema(
     artifact: MigrationArtifact,
     dry_run: bool,
 ) -> LanderResult:
-    """Wrap the lander call in ``schema_context(bundle.schema_name)`` for tenant scoping."""
+    """Wrap the lander call in ``schema_context(bundle.schema_name)`` for tenant scoping.
+
+    A residual-capture net runs behind any lander that does not itself sweep the
+    ``custom_fields.*``/``_unmapped.*`` pass-through keys, so no source column is
+    ever dropped regardless of which domain (or a future lander) processes it.
+    """
     from .landers.base import LanderContext  # local to keep import surface clean
 
     ctx = LanderContext(
@@ -1242,14 +1325,25 @@ def _run_lander_under_schema(
         dry_run=dry_run,
     )
 
+    capture: _ResidualCapture | None = None
+    if not dry_run and not getattr(lander, "sweeps_custom_columns", False):
+        capture = _ResidualCapture(lander.domain or "unknown")
+        rows_iter = capture.wrap(rows_iter)
+
+    def _land() -> LanderResult:
+        result = lander.land(canonical_rows=rows_iter, ctx=ctx)
+        if capture is not None:
+            capture.flush(ctx=ctx, result=result)
+        return result
+
     if not bundle.schema_name:
         # Public-schema apply (e.g. signup-time staged bundle without tenant yet).
-        return lander.land(canonical_rows=rows_iter, ctx=ctx)
+        return _land()
 
     try:
         from django_tenants.utils import schema_context
     except ImportError:
-        return lander.land(canonical_rows=rows_iter, ctx=ctx)
+        return _land()
 
     from django.db import connection
 
@@ -1258,10 +1352,10 @@ def _run_lander_under_schema(
         # no schema to switch, and entering schema_context raises
         # AttributeError ('DatabaseWrapper' has no 'tenant') — which failed
         # every artifact instead of applying it.
-        return lander.land(canonical_rows=rows_iter, ctx=ctx)
+        return _land()
 
     with schema_context(bundle.schema_name):
-        return lander.land(canonical_rows=rows_iter, ctx=ctx)
+        return _land()
 
 
 # --- Audit + quarantine -------------------------------------------------

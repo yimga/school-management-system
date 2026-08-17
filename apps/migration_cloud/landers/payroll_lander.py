@@ -33,6 +33,9 @@ from .base import Lander, LanderContext, LanderResult, register
 
 class PayrollLander(Lander):
     domain = "payroll"
+    # Persists the ENTIRE row (every non-empty key) to DynamicFieldValue, so it
+    # already captures all custom_fields.*/_unmapped.* residuals itself.
+    sweeps_custom_columns = True
 
     def land(
         self,

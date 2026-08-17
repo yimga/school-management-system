@@ -52,6 +52,17 @@ class Lander(ABC):
 
     domain: str = ""
 
+    # Whether THIS lander already persists every ``custom_fields.*`` /
+    # ``_unmapped.*`` pass-through column itself (e.g. by sweeping them into a
+    # JSON attrs bag or writing the whole row to ``DynamicFieldValue``). The
+    # orchestrator's residual-capture net (``_run_lander_under_schema``) runs a
+    # no-data-loss sweep behind EVERY lander that leaves this False, so a lander
+    # that neither sweeps nor sets this flag still cannot drop a column. Set True
+    # ONLY when the lander genuinely captures all residual keys — otherwise the
+    # net is skipped and columns the lander ignores are lost. See the cross-lander
+    # guardrail in ``tests/test_lander_no_column_left_behind_2026_08_16.py``.
+    sweeps_custom_columns: bool = False
+
     @abstractmethod
     def land(
         self,

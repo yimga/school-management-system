@@ -388,6 +388,23 @@ CANONICAL_ONTOLOGY: dict[str, dict[str, dict]] = {
                 "pt": ["codigo_do_centro", "codigo_de_centro"],
             },
         ),
+        "exam_system": _field(
+            description=(
+                "National exam system / board the student sits: GCE, WAEC, IB, "
+                "Baccalauréat (StudentProfile.exam_system)."
+            ),
+            value_type="string",
+            value_examples=["GCE", "WAEC", "IB", "Baccalaureat"],
+            synonyms={
+                "en": [
+                    "exam_system", "exam_board", "examination_board",
+                    "examination_system", "exam_type", "board_of_examination",
+                ],
+                "fr": ["systeme_examen", "systeme_d_examen", "type_examen"],
+                "es": ["sistema_de_examen", "tipo_de_examen"],
+                "pt": ["sistema_de_exame", "tipo_de_exame"],
+            },
+        ),
     },
     # ----------------------------------------------------------------- guardians
     "guardians": {
@@ -450,6 +467,41 @@ CANONICAL_ONTOLOGY: dict[str, dict[str, dict]] = {
             value_type="bool",
             value_examples=["true", "false", "1", "0"],
             synonyms={"en": ["primary", "is_primary", "main_contact"]},
+        ),
+        "address": _field(
+            description="Guardian home / residential address (StudentGuardian.address).",
+            value_type="string",
+            value_examples=["Molyko, Buea", "12 Rue de la Paix"],
+            synonyms={
+                "en": ["address", "home_address", "residential_address", "guardian_address", "parent_address"],
+                "fr": ["adresse", "adresse_domicile", "adresse_du_parent"],
+                "es": ["direccion", "domicilio", "direccion_del_tutor"],
+                "pt": ["endereco", "endereco_residencial", "endereco_do_responsavel"],
+            },
+            sensitivity="pii",
+        ),
+        "whatsapp_number": _field(
+            description="Guardian WhatsApp number — a primary comms channel in-market (StudentGuardian.whatsapp_number).",
+            value_type="phone",
+            value_examples=["+237650000000"],
+            synonyms={
+                "en": ["whatsapp", "whatsapp_number", "whatsapp_no", "wa_number", "whatsapp_contact"],
+                "fr": ["numero_whatsapp", "whatsapp"],
+                "es": ["numero_whatsapp", "whatsapp"],
+                "pt": ["numero_whatsapp", "whatsapp"],
+            },
+            sensitivity="pii",
+        ),
+        "preferred_contact": _field(
+            description="Preferred contact channel: EMAIL / SMS / WHATSAPP / PHONE (StudentGuardian.preferred_contact).",
+            value_type="enum",
+            value_examples=["EMAIL", "SMS", "WHATSAPP", "PHONE"],
+            synonyms={
+                "en": ["preferred_contact", "preferred_contact_method", "contact_preference", "preferred_channel"],
+                "fr": ["contact_prefere", "moyen_de_contact_prefere"],
+                "es": ["contacto_preferido", "medio_de_contacto_preferido"],
+                "pt": ["contato_preferido", "meio_de_contato_preferido"],
+            },
         ),
     },
     # --------------------------------------------------------------------- staff
@@ -819,6 +871,72 @@ CANONICAL_ONTOLOGY: dict[str, dict[str, dict]] = {
             value_type="decimal",
             value_examples=["87.5"],
             synonyms={"en": ["score", "mark", "points"]},
+        ),
+        "seq1_score": _field(
+            description="First sequence / CA1 continuous-assessment mark (Evaluation.seq1_score).",
+            value_type="decimal",
+            value_examples=["14", "16.5"],
+            synonyms={
+                "en": ["seq1", "seq_1", "seq1_score", "sequence_1", "first_sequence", "ca1", "continuous_assessment_1"],
+                "fr": ["premiere_sequence", "note_sequence_1"],
+                "es": ["secuencia_1", "evaluacion_continua_1"],
+                "pt": ["sequencia_1", "avaliacao_continua_1"],
+            },
+        ),
+        "seq2_score": _field(
+            description="Second sequence / CA2 continuous-assessment mark (Evaluation.seq2_score).",
+            value_type="decimal",
+            value_examples=["12", "18"],
+            synonyms={
+                "en": ["seq2", "seq_2", "seq2_score", "sequence_2", "second_sequence", "ca2", "continuous_assessment_2"],
+                "fr": ["deuxieme_sequence", "note_sequence_2"],
+                "es": ["secuencia_2", "evaluacion_continua_2"],
+                "pt": ["sequencia_2", "avaliacao_continua_2"],
+            },
+        ),
+        "exam_score": _field(
+            description="Terminal / end-of-term examination mark (Evaluation.exam_score).",
+            value_type="decimal",
+            value_examples=["15", "20"],
+            synonyms={
+                "en": ["exam_score", "exam", "examination", "exam_mark", "terminal_exam", "end_of_term_exam"],
+                "fr": ["note_examen", "examen_terminal"],
+                "es": ["nota_de_examen", "examen_final"],
+                "pt": ["nota_do_exame", "exame_final"],
+            },
+        ),
+        "mock_score": _field(
+            description="Mock / trial examination mark (Evaluation.mock_score).",
+            value_type="decimal",
+            value_examples=["13.5"],
+            synonyms={
+                "en": ["mock", "mock_score", "mock_exam", "trial_exam", "mock_mark"],
+                "fr": ["examen_blanc", "note_examen_blanc"],
+                "es": ["simulacro", "examen_de_prueba"],
+                "pt": ["simulado", "exame_simulado"],
+            },
+        ),
+        "practical_score": _field(
+            description="Practical / TP mark for technical & science subjects (Evaluation.practical_score).",
+            value_type="decimal",
+            value_examples=["17"],
+            synonyms={
+                "en": ["practical", "practical_score", "practical_mark", "tp", "lab_score"],
+                "fr": ["pratique", "travaux_pratiques", "note_tp"],
+                "es": ["practica", "nota_practica"],
+                "pt": ["pratica", "nota_pratica"],
+            },
+        ),
+        "internship_score": _field(
+            description="Industrial attachment / internship mark (Evaluation.internship_score).",
+            value_type="decimal",
+            value_examples=["16"],
+            synonyms={
+                "en": ["internship", "internship_score", "industrial_attachment", "attachment_score", "stage_score"],
+                "fr": ["stage", "note_stage", "stage_industriel"],
+                "es": ["pasantia", "nota_de_pasantia"],
+                "pt": ["estagio", "nota_de_estagio"],
+            },
         ),
         "max_score": _field(
             description="Score out of (denominator).",
