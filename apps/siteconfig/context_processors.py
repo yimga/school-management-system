@@ -893,6 +893,12 @@ def site_settings(request):
         ctx["HAS_PARENT_HAT"] = False
     # Multi-tenant: when request.school is set, use school branding for logo and colors (Phase 2).
     school = _request_school(request)
+    try:
+        from apps.accounts.header_utilities import attach_quiet_header_context
+
+        attach_quiet_header_context(request, ctx, school=school)
+    except OPTIONAL_CONTEXT_ERRORS:
+        ctx.setdefault("QUIET_HEADER_FINANCE_PRIMARY", False)
     if school:
         try:
             from .branding import brand_css_vars, resolve_brand_profile

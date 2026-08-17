@@ -4,6 +4,10 @@
 {% url 'health' as health_url %}
 {% url 'accounts:security_posture_review' as security_posture_url %}
 {% url 'super:command_center' as incidents_url %}
+{% url 'manager_offline_sync_center' as offline_sync_url %}
+{% url 'super:billing_dashboard' as subscriptions_url %}
+{% url 'super:tenant_health' as tenant_360_url %}
+{% url 'super:analytics_overview' as platform_analytics_url %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="dropdown rmc-operator-workspace-dropdown rmc-header-utilities" data-rmc-operator-workspace-dropdown data-rmc-header-utilities-root="operator" data-rmc-shell-viewport-safe="1">
   <button type="button"
@@ -16,34 +20,43 @@
           data-bs-offset="0,8"
           aria-expanded="false"
           aria-haspopup="true"
+          aria-controls="rmcOperatorUtilitiesMenu"
           aria-label="{% trans 'Open utilities' %}">
     <i class="bi bi-grid-3x3-gap" aria-hidden="true"></i>
     <span>{% trans "Utilities" %}</span>
     {% if platform_incidents %}<span class="rmc-header-utilities__count">{{ platform_incidents|length }}</span>{% elif attention_school_count %}<span class="rmc-header-utilities__count">{{ attention_school_count }}</span>{% endif %}
   </button>
-  <div class="dropdown-menu dropdown-menu-end rmc-header-utilities__menu" aria-labelledby="rmcUtilitiesDropdown" data-rmc-header-utilities="operator" role="menu">
+  <div class="dropdown-menu dropdown-menu-end rmc-header-utilities__menu" id="rmcOperatorUtilitiesMenu" aria-labelledby="rmcUtilitiesDropdown" data-rmc-header-utilities="operator" role="menu">
     <header class="rmc-header-utilities__head">
       <div>
         <h2>{% trans "Operator tools" %}</h2>
         <small>{% trans "Global control plane" %}</small>
       </div>
       {% if platform_incidents or attention_school_count %}
-      <span class="rmc-header-utilities__online rmc-header-utilities__online--action">{% trans "Need action" %}</span>
+      <span class="rmc-header-utilities__online rmc-header-utilities__online--action">{% if platform_incidents %}{% blocktrans count counter=platform_incidents|length %}{{ counter }} need action{% plural %}{{ counter }} need action{% endblocktrans %}{% else %}{% trans "Need action" %}{% endif %}</span>
       {% else %}
       <span class="rmc-header-utilities__online">{% trans "Online" %}</span>
       {% endif %}
     </header>
+    <div class="rmc-header-utilities__search-wrap">
+      <label class="visually-hidden" for="rmcOperatorUtilSearch">{% trans "Search utilities" %}</label>
+      <input type="search" id="rmcOperatorUtilSearch" class="rmc-header-utilities__search" data-rmc-util-search autocomplete="off" placeholder="{% trans 'Search utilities' %}">
+    </div>
+    <section class="rmc-header-utilities__section" data-rmc-util-recents hidden>
+      <div class="rmc-header-utilities__section-title"><span>{% trans "Recent tools" %}</span><span>{% trans "Adapted" %}</span></div>
+      <div class="rmc-header-utilities__grid" data-rmc-util-recents-grid></div>
+    </section>
     <section class="rmc-header-utilities__section">
       <div class="rmc-header-utilities__section-title"><span>{% trans "Operations now" %}</span><span>{% trans "Live" %}</span></div>
       <div class="rmc-header-utilities__grid">
         {% if incidents_url %}
-        <a class="rmc-header-utilities__tile rmc-header-utilities__tile--alert" href="{{ incidents_url }}" role="menuitem">
+        <a class="rmc-header-utilities__tile rmc-header-utilities__tile--alert" href="{{ incidents_url }}" role="menuitem" data-rmc-util-key="incidents">
           <i class="bi bi-lightning-charge" aria-hidden="true"></i>
-          <span><b>{% trans "Incidents" %}</b><small>{% trans "Need action" %}</small></span>
+          <span><b>{% trans "Incidents" %}</b><small>{% if platform_incidents %}{% blocktrans count counter=platform_incidents|length %}{{ counter }} need action{% plural %}{{ counter }} need action{% endblocktrans %}{% else %}{% trans "Need action" %}{% endif %}</small></span>
         </a>
         {% endif %}
         {% if health_url %}
-        <a class="rmc-header-utilities__tile" href="{{ health_url }}" role="menuitem">
+        <a class="rmc-header-utilities__tile" href="{{ health_url }}" role="menuitem" data-rmc-util-key="health">
           <i class="bi bi-heart-pulse" aria-hidden="true"></i>
           <span><b>{% trans "System health" %}</b><small>{% trans "All regions" %}</small></span>
         </a>
@@ -52,32 +65,52 @@
     </section>
     <section class="rmc-header-utilities__section">
       <div class="rmc-header-utilities__section-title"><span>{% trans "Platform" %}</span><span>{% trans "Role filtered" %}</span></div>
-      <div class="rmc-header-utilities__grid">
-        {% for item in PRIMARY_CONTROL_PLANE_NAV %}
-        <a class="rmc-header-utilities__tile{% if item.is_current %} active{% endif %}" href="{{ item.url }}" role="menuitem"{% if item.is_current %} aria-current="page"{% endif %}>
-          {% if item.icon %}<i class="bi {{ item.icon }}" aria-hidden="true"></i>{% elif item.glyph %}<span class="rmc-header-utilities__glyph" aria-hidden="true">{{ item.glyph }}</span>{% else %}<i class="bi bi-grid" aria-hidden="true"></i>{% endif %}
-          <span><b>{{ item.label }}</b><small>{% trans "Control plane" %}</small></span>
+      <div class="rmc-header-utilities__grid" data-rmc-util-workspace>
+        {% if offline_sync_url %}
+        <a class="rmc-header-utilities__tile" href="{{ offline_sync_url }}" role="menuitem" data-rmc-util-key="offline-sync">
+          <i class="bi bi-arrow-repeat" aria-hidden="true"></i>
+          <span><b>{% trans "Offline sync" %}</b><small>{% trans "Fleet posture" %}</small></span>
         </a>
-        {% endfor %}
-        {% if RMC_OPERATOR_SURFACE_SPINE %}
-          {% for link in RMC_OPERATOR_SURFACE_SPINE %}
-          <a class="rmc-header-utilities__tile{% if link.active %} active{% endif %}" href="{{ link.url }}" data-rmc-surface="{{ link.surface }}" role="menuitem"{% if link.active %} aria-current="true"{% endif %}>
-            {% if link.icon %}<i class="bi {{ link.icon }}" aria-hidden="true"></i>{% else %}<i class="bi bi-layers" aria-hidden="true"></i>{% endif %}
-            <span><b>{{ link.label }}</b><small>{% trans "Operator workspace" %}</small></span>
-          </a>
-          {% endfor %}
+        {% endif %}
+        {% if subscriptions_url %}
+        <a class="rmc-header-utilities__tile" href="{{ subscriptions_url }}" role="menuitem" data-rmc-util-key="subscriptions">
+          <i class="bi bi-credit-card" aria-hidden="true"></i>
+          <span><b>{% trans "Subscriptions" %}</b><small>{% trans "Billing operations" %}</small></span>
+        </a>
         {% endif %}
         {% if configure_url %}
-        <a class="rmc-header-utilities__tile" href="{{ configure_url }}" role="menuitem">
+        <a class="rmc-header-utilities__tile" href="{{ configure_url }}" role="menuitem" data-rmc-util-key="configuration">
           <i class="bi bi-gear-wide-connected" aria-hidden="true"></i>
           <span><b>{% trans "Configuration" %}</b><small>{% trans "Registries and flags" %}</small></span>
+        </a>
+        {% endif %}
+        {% if tenant_360_url %}
+        <a class="rmc-header-utilities__tile" href="{{ tenant_360_url }}" role="menuitem" data-rmc-util-key="tenant-360">
+          <i class="bi bi-building" aria-hidden="true"></i>
+          <span><b>{% trans "Tenant 360" %}</b><small>{% trans "Support workspace" %}</small></span>
+        </a>
+        {% endif %}
+        {% if platform_analytics_url %}
+        <a class="rmc-header-utilities__tile" href="{{ platform_analytics_url }}" role="menuitem" data-rmc-util-key="analytics">
+          <i class="bi bi-graph-up" aria-hidden="true"></i>
+          <span><b>{% trans "Analytics" %}</b><small>{% trans "Platform reports" %}</small></span>
+        </a>
+        {% endif %}
+        <button type="button" class="rmc-header-utilities__tile" data-rmc-util-open-copilot data-rmc-util-key="copilot" role="menuitem">
+          <i class="bi bi-stars" aria-hidden="true"></i>
+          <span><b>{% trans "Copilot" %}</b><small>{% trans "Operator assistance" %}</small></span>
+        </button>
+        {% if incidents_url %}
+        <a class="rmc-header-utilities__tile" href="{{ incidents_url }}" role="menuitem" data-rmc-util-key="all-platform">
+          <i class="bi bi-grid-3x3-gap" aria-hidden="true"></i>
+          <span><b>{% trans "All platform tools" %}</b><small>{% trans "Former More destinations" %}</small></span>
         </a>
         {% endif %}
       </div>
     </section>
     <section class="rmc-header-utilities__section">
-      {% if security_posture_url %}<a class="rmc-header-utilities__row" href="{{ security_posture_url }}" role="menuitem"><i class="bi bi-shield-check" aria-hidden="true"></i><span>{% trans "Compliance and audit" %}</span><small aria-hidden="true">›</small></a>{% endif %}
-      <button type="button" class="rmc-header-utilities__row" data-rmc-kbd-cheatsheet-trigger aria-label="{% trans 'Keyboard shortcuts' %}" role="menuitem"><i class="bi bi-question-circle" aria-hidden="true"></i><span>{% trans "Help and shortcuts" %}</span><small aria-hidden="true">›</small></button>
+      {% if security_posture_url %}<a class="rmc-header-utilities__row" href="{{ security_posture_url }}" role="menuitem" data-rmc-util-key="compliance"><i class="bi bi-shield-check" aria-hidden="true"></i><span>{% trans "Compliance and audit" %}</span><small aria-hidden="true">›</small></a>{% endif %}
+      <button type="button" class="rmc-header-utilities__row" data-rmc-kbd-cheatsheet-trigger data-rmc-util-key="help-shortcuts" aria-label="{% trans 'Keyboard shortcuts' %}" role="menuitem"><i class="bi bi-question-circle" aria-hidden="true"></i><span>{% trans "Help and shortcuts" %}</span><small aria-hidden="true">›</small></button>
     </section>
   </div>
 </div>

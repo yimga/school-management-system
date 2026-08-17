@@ -9,6 +9,9 @@ shared header Utilities menu.
   {% if EFFECTIVE_PORTAL_ROLE == 'PARENT' %}
     <a href="{% url 'portal:parent_dashboard' %}" class="tp-primary-nav__item"{% if 'parent' in request.path and 'finance' not in request.path %} aria-current="page"{% endif %}><i class="bi bi-house" aria-hidden="true"></i> {% trans "Home" %}</a>
     <a href="{% url 'portal:parent_finance' %}" class="tp-primary-nav__item"{% if 'finance' in request.path %} aria-current="page"{% endif %}><i class="bi bi-wallet2" aria-hidden="true"></i> {% trans "Family portal" %}</a>
+  {% elif QUIET_HEADER_FINANCE_PRIMARY %}
+    <a href="{% url 'accounts:backend_dashboard' %}" class="tp-primary-nav__item"{% if '/accounts/backend' in request.path or '/portal/backend' in request.path %} aria-current="page"{% endif %}><i class="bi bi-house" aria-hidden="true"></i> {% trans "Home" %}</a>
+    <a href="{% url 'finance:dashboard' %}" class="tp-primary-nav__item"{% if 'finance' in request.path %} aria-current="page"{% endif %}><i class="bi bi-wallet2" aria-hidden="true"></i> {% trans "Finance" %}</a>
   {% elif EFFECTIVE_PORTAL_ROLE == 'TEACHER' %}
     <a href="{% url 'portal:teacher_dashboard_alias' %}" class="tp-primary-nav__item"{% if 'teacher' in request.path %} aria-current="page"{% endif %}><i class="bi bi-house" aria-hidden="true"></i> {% trans "Home" %}</a>
     <a href="{% url 'evals:teacher_dashboard' %}" class="tp-primary-nav__item"><i class="bi bi-journal-bookmark" aria-hidden="true"></i> {% trans "Classes" %}</a>

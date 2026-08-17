@@ -1,12 +1,12 @@
 {
-  "date": "2026-08-16",
-  "generated_at": "2026-08-16T23:59:00+00:00",
+  "date": "2026-08-17",
+  "generated_at": "2026-08-17T11:40:00+00:00",
   "major": 4,
   "minor": 6,
-  "patch": 49,
-  "raw": "sms-v4.06.49-quiet-header-front-door-2026-08-16",
+  "patch": 50,
+  "raw": "sms-v4.06.50-quiet-header-v2-complete-2026-08-17",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "quiet-header-front-door",
+  "slug": "quiet-header-v2-complete",
   "valid": true
 }
