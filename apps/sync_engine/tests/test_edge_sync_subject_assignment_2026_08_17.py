@@ -106,6 +106,25 @@ class SubjectAssignmentRegistrationTests(TestCase):
             "own entity with its own anchor instead",
         )
 
+    def test_no_registered_entity_leaks_a_file_field(self):
+        """A delta bundle carries column values, never file BYTES — so a synced FileField
+        path would point the box at a file that does not exist there and still report a
+        clean apply. Latent today; every finance candidate owns one."""
+        from django.db.models import FileField
+
+        offenders = {}
+        for entity_type, (model, fields) in _get_entity_config(include_derived=True).items():
+            ff = {f.name for f in model._meta.get_fields() if isinstance(f, FileField)}
+            leaked = sorted(ff & set(fields))
+            if leaked:
+                offenders[entity_type] = leaked
+        self.assertEqual(
+            offenders,
+            {},
+            "a FileField reached a synced field set; ship the file over its own upload "
+            "channel instead of syncing the stored path",
+        )
+
     def test_entity_is_benign_lww_not_protected(self):
         strategy, protected = _sync_conflict_policy(_ENTITY)
         self.assertEqual(strategy, MergeStrategy.CAUSAL_LWW)

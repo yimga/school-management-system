@@ -153,6 +153,17 @@ def _derive_sync_fields(model) -> set:
         # needed on the rail, must be registered as its own entity with its own anchor.
         if getattr(f, "many_to_many", False):
             continue
+        # A FileField/ImageField NEVER rides either. A delta bundle carries column VALUES
+        # only — never file bytes — so shipping the stored path would point the box at a
+        # file that does not exist on it, and the apply would report a clean 200 over a
+        # broken reference. Files must travel by their own upload/artifact channel. This is
+        # latent today (only `student` owns one, and it keeps a CURATED field set) but every
+        # finance candidate — Invoice.attachment/payment_proof, Payment.receipt_file,
+        # PaymentProofUpload.receipt_file — would hit it the moment money joins the rail.
+        from django.db.models import FileField
+
+        if isinstance(f, FileField):
+            continue
         if getattr(f, "many_to_one", False) or getattr(f, "one_to_one", False):
             # Resolve a possibly lazy-string related_model to its class first (same guard
             # tenant_portability._rel_model adds) so a string ref never AttributeErrors here.
