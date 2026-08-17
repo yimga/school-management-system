@@ -609,6 +609,16 @@
       helpChip.addEventListener("click", function (ev) {
         ev.preventDefault();
         dismissTrayForOverlay();
+        if (typeof window.rmcOpenToolsHelpPanel === "function") {
+          window.rmcOpenToolsHelpPanel();
+          return;
+        }
+        var panel = document.querySelector("[data-rmc-tools-help-panel]");
+        if (panel) {
+          panel.hidden = false;
+          panel.classList.add("is-open");
+          return;
+        }
         var railHelp = document.querySelector(
           ".rmc-app-shell__copilot [data-rmc-page-help], .lx-copilot__page-help"
         );

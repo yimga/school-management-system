@@ -1,0 +1,19 @@
+{% load i18n %}
+{% if request.user.is_authenticated %}
+<section class="rmc-tools-help-panel" data-rmc-tools-help-panel hidden>
+  <h3>{% trans "Help for this page" %}</h3>
+  <p>{% trans "Page-aware guidance without covering content or creating another floating surface." %}</p>
+  <button type="button" class="rmc-tools-help-panel__action" data-rmc-tools-help-copilot>
+    <b>{% trans "Ask Copilot" %}</b>
+    <small>{% trans "Get contextual assistance" %}</small>
+  </button>
+  <button type="button" class="rmc-tools-help-panel__action" data-rmc-tools-help-tour>
+    <b>{% trans "Guided walkthrough" %}</b>
+    <small>{% trans "Complete this task step by step" %}</small>
+  </button>
+  <button type="button" class="rmc-tools-help-panel__action" data-rmc-tools-help-support>
+    <b>{% trans "Contact support" %}</b>
+    <small>{% trans "Share page context securely" %}</small>
+  </button>
+</section>
+{% endif %}

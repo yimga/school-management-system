@@ -1,5 +1,19 @@
 # RunMyCampus autonomous execution log
 
+## Slice — Quiet-header approval v2 100% contract (batch 1792 - 2026-08-17)
+
+**A. Scope:** Finish every remaining row in `docs/generated/platform-clean-header-approval-v2.html` on live tenant, operator, tenant `/admin/`, and Studio (via `portal_base`).
+
+**B. Shipped:** Header cap (no extra Home / incident chip); bursar Finance primary; mobile collapse; searchable Utilities + recents; Copilot + All modules/platform tiles; live approval/sync copy; named operator tiles; Tools Help panel; focus trap/Escape; SW `sms-v4.06.50-quiet-header-v2-complete-2026-08-17`.
+
+**C. Proof:** header utilities contract PASS; sqlite-memory **10/10 OK**; undefined-css 0; off-token 0; theme-locked 0; inline-handlers 0; template-render-safety 0.
+
+**D. Honest:** Recents use localStorage (anchors stay put). Guided walkthrough needs an `RMCTour` page context. Live screenshots not captured. Pre-existing i18n leftovers (Alt+L, edge runbook) and unrelated tenant/role `--compare` hits in other agents' files were not absorbed.
+
+**E. Files:** tenant/operator Utilities templates, `rmc-header-utilities.css`/`js`, Tools help panel, portal/operator/admin chrome, `header_utilities.py`, verifier + tests, SW + baseline, SOT/log.
+
+**F. Next:** Hard-refresh tenant + operator + `/admin/` and confirm Utilities search, Help panel, and bursar Finance primary.
+
 ## Slice — Quiet header + front-door theme (batch 1791 - 2026-08-16)
 
 **A. Scope:** Implement platform-clean-header-approval-v2 and tenant-login-12-upgrades-approval-v1 visual contract on live tenant, operator, and tenant `/admin/` shells. Same grey-dropdown class of bug elsewhere in chrome.

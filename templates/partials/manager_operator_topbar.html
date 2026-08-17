@@ -1,6 +1,6 @@
 {% load i18n static %}
 {% comment %} Manager operator header — platform brand, command search, utility cluster (one control row). {% endcomment %}
-<header class="rmc-platform-header rmc-control-plane-chrome__top" role="banner" data-rmc-platform-header="manager">
+<header class="rmc-platform-header rmc-control-plane-chrome__top" role="banner" data-rmc-platform-header="manager" data-rmc-quiet-header-root="1" data-rmc-header-control-cap="7">
   <nav class="navbar navbar-expand-lg navbar-dark cp-navbar cp-navbar--surface statement-header flex-shrink-0 w-100" data-rmc-shell-header="control-plane" data-shell-nav-bridge="manager-operator" aria-label="{% trans 'Platform manager header' %}">
     <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="container-fluid px-3 rmc-platform-header__inner">
@@ -44,7 +44,7 @@
       <div class="rmc-platform-header__toolbar" id="cpNavbarToolbar">
         {% comment %} Command search — CONFIGURABLE via cockpit_shell.search_enabled (per-surface). {% endcomment %}
         {% if cockpit_shell.search_enabled or not cockpit_shell %}
-        <div class="rmc-platform-header__command d-none d-md-flex" id="cpNavbarContent">
+        <div class="rmc-platform-header__command d-none d-md-flex rmc-quiet-header-search" id="cpNavbarContent">
           <div class="cp-header-search cp-topbar-search-wrap position-relative w-100">
             <label class="visually-hidden" for="cpSearchInput">{% if MANAGER_PLATFORM_ADMIN_SHELL %}{% trans "Search models and records" %}{% else %}{% trans "Search schools and incidents" %}{% endif %}</label>
             <input type="search" class="cp-topbar-search-input form-control form-control-sm w-100" placeholder="{% if MANAGER_PLATFORM_ADMIN_SHELL %}{% trans 'Search models, fields, records, audit events…' %}{% else %}{% trans 'Search tenants, incidents, commands…' %}{% endif %}" id="cpSearchInput" autocomplete="off" aria-haspopup="listbox">
@@ -76,15 +76,10 @@
           {% comment %} Incident / all-clear status chip — relocated UP from the former nav row
              (control_plane_unified_header inline-chrome) so the single compact band keeps the
              at-a-glance system signal. Control-plane only; /admin/ surfaces incidents via the bell. {% endcomment %}
-          {% if cp_command_center_url and platform_incidents|length %}
-          <a href="{{ cp_command_center_url }}" class="cp-nav-status-chip cp-nav-status-chip--header d-none d-xl-inline-flex{% if platform_incidents|length %} cp-nav-status-chip--alert{% endif %}" title="{% if platform_incidents|length %}{% trans 'Open incidents' %}{% else %}{% trans 'All systems operational' %}{% endif %}">
-            <span class="cp-nav-status-chip__dot" aria-hidden="true"></span>
-            <span class="cp-nav-status-chip__text">{% if platform_incidents|length %}{% blocktrans count count=platform_incidents|length %}{{ count }} incident{% plural %}{{ count }} incidents{% endblocktrans %}{% else %}{% trans "All systems operational" %}{% endif %}</span>
-          </a>
-          {% endif %}
+          {% comment %} Quiet-header v2: incidents live in Utilities, not a seventh header chip. {% endcomment %}
           {% comment %} Operator presence — CONFIGURABLE via cockpit_shell.presence_enabled. {% endcomment %}
           {% endif %}
-          <div class="cp-header-search cp-topbar-search-wrap position-relative d-md-none flex-grow-1 w-100">
+          <div class="cp-header-search cp-topbar-search-wrap position-relative d-md-none flex-grow-1 w-100" hidden>
             <input type="search" class="cp-topbar-search-input form-control form-control-sm w-100" id="cpSearchInputMobile" placeholder="{% trans 'Search…' %}" aria-label="{% trans 'Search' %}" autocomplete="off" data-cp-search-mobile="1" aria-haspopup="listbox">
             <div id="cpSearchResultsMobile" class="dropdown-menu position-absolute start-0 top-100 mt-1 shadow cp-search-results-panel cp-search-results-panel--sized" role="listbox" aria-label="{% trans 'Search results' %}" aria-hidden="true"></div>
           </div>

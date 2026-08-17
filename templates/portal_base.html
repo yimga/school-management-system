@@ -335,7 +335,7 @@
     {% comment %} v4.05 (2026-06-25): LIVE banner relocated to the BOTTOM of the header
        stack (operator-parity) — it now renders as the last sub-bar of .tp-header below,
        and rmc-tenant-app-shell-100x.css keeps the whole stack sticky. {% endcomment %}
-    <div id="portalHeader" class="tp-header__row" role="banner" aria-label="{% trans 'Main navigation' %}" data-rmc-shell-header="portal">
+    <div id="portalHeader" class="tp-header__row" role="banner" aria-label="{% trans 'Main navigation' %}" data-rmc-shell-header="portal" data-rmc-quiet-header-root="1" data-rmc-header-control-cap="7">
       <div class="container-fluid px-3 tp-header__row-inner" id="preview-header-bar" data-preview-label="{% trans 'Header bar (background & colors)' %}">
         <button class="btn btn-sm btn-outline-secondary d-lg-none me-2 tp-header__menu-btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#portalSidebar" aria-controls="portalSidebar" aria-label="{% trans 'Open sidebar menu' %}">
           <i class="bi bi-list" aria-hidden="true"></i>
@@ -388,13 +388,11 @@
           {% include "components/rmc_brand_mark.html" with size=34 variant="lockup" href=parent_url label=SITE.site_name|default:"School System" %}
         {% endif %}
         </div>
+        {% if request.user.is_authenticated and EFFECTIVE_PORTAL_ROLE %}
+          <span class="rmc-quiet-header-role" aria-label="{% trans 'Current role' %}">{{ EFFECTIVE_PORTAL_ROLE }}</span>
+        {% endif %}
 
-        {% if request.user.is_authenticated and not tp_v3_tenant_shell %}
-          <a class="btn btn-sm btn-outline-secondary d-none d-md-inline-flex align-items-center gap-1 ms-2" href="{{ portal_home_url }}" aria-label="{% trans 'Home' %}">
-            <i class="bi bi-house" aria-hidden="true"></i>
-            <span class="d-none d-sm-inline">{% trans 'Home' %}</span>
-          </a>
-        {% elif not request.user.is_authenticated %}
+        {% if not request.user.is_authenticated %}
           <a class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1 ms-2" href="{% url 'home' %}" aria-label="{% trans 'Home' %}">
             <i class="bi bi-house" aria-hidden="true"></i>
             <span class="d-none d-sm-inline">{% trans 'Home' %}</span>
@@ -419,7 +417,7 @@
           {% if request.user.is_authenticated %}
             {% if SHOW_HEADER_SEARCH %}
             <!-- Header typeahead — under-input results. ⌘K opens Spotlight (#rmc-cmdk), not this panel. -->
-            <div class="topbar-search search-bar-wrapper header-search-container position-relative">
+            <div class="topbar-search search-bar-wrapper header-search-container position-relative rmc-quiet-header-search">
               <label for="headerSearchInput" class="visually-hidden">{% trans "Global search" %}</label>
               <input 
                 type="search" 
@@ -485,7 +483,7 @@
     </div>
     {% comment %} Band-row primary nav: the full-width row fallback, shown only below lg
        (at lg+ the inline copy in the header line takes over — see tp-primary-nav-inline). {% endcomment %}
-    <div class="tp-primary-nav-bandrow d-lg-none">{% include "partials/tenant_primary_nav.html" %}</div>
+    <div class="tp-primary-nav-bandrow d-lg-none rmc-quiet-header-primary-band">{% include "partials/tenant_primary_nav.html" %}</div>
       {% comment %} v4.05.73: mission strip lives in dashboard surface (portal-page-body),
          not header chrome — keeps header compact; see tp-mission-surface below. {% endcomment %}
       {% block portal_shell_header_ticker_tenant %}
@@ -918,6 +916,8 @@
     {% include "assist_dock/partials/impersonation_banner.html" %}
     <script src="{% static 'js/rmc-assist-dock.js' %}" defer></script>
     {% comment %} v4.02.9: Tools edge-tray — tenant workspace + manager portal bridge (partials self-gate by host). {% endcomment %}
+    {% include "partials/rmc_tools_help_panel.html" %}
+    <script src="{% static 'js/rmc-header-utilities.js' %}" defer></script>
     {% include "partials/rmc_tenant_tools_scripts.html" %}
     {% include "partials/rmc_operator_tools_scripts.html" %}
     {% comment %} v4.01.03: g-chord → chip click bridge — closes advertised-but-unbound shortcut gap. {% endcomment %}
