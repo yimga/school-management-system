@@ -596,9 +596,23 @@ class Invoice(models.Model):
         blank=True,
         help_text="Soft delete timestamp - set instead of deleting",
     )
+    # Client-generated id for an invoice surfaced on an edge box; lets the operator upsert
+    # it by (school, client_offline_id) without pk collisions. The row is DOWN-ONLY (the
+    # `invoice` policy is protected): a box RECEIVES what is owed so a bursar can work
+    # offline, but it can never push a money change up — that raises a Sync Center
+    # conflict instead. Payment/PaymentProofUpload deliberately do NOT ride at all; see
+    # docs/EDGE_SYNC_FINANCE_HOLD.md.
+    client_offline_id = models.CharField(max_length=128, blank=True, db_index=True)
 
     class Meta:
         ordering = ["-issued_date", "-id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["school", "client_offline_id"],
+                condition=~models.Q(client_offline_id=""),
+                name="uniq_invoice_school_offline_id",
+            ),
+        ]
 
     def clean(self):
         """Validate invoice data before saving."""

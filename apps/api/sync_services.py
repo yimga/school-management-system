@@ -53,6 +53,22 @@ _DERIVED_ENTITY_SPECS: list[tuple[str, str, str]] = [
     # `student`. created_by/updated_by are FKs to the SHARED accounts.User and are dropped
     # automatically as non-portable.
     ("evaluation", "evals", "Evaluation"),
+    # Slice 6 — finance, DOWN-ONLY and DELIBERATELY PARTIAL (edge parity, 2026-08-17).
+    # Only the Invoice rides: the box learns what is OWED so a bursar can work through an
+    # outage, and the protected `invoice` policy means it can never push a money change
+    # back up. Its FileFields (attachment, payment_proof) are dropped by the FileField
+    # guard — the bundle carries no bytes, so a synced path would dangle.
+    #
+    # finance.Payment and finance.PaymentProofUpload are HELD OUT, not overlooked:
+    #   * neither has an `updated_at` column at all, so the incremental delta cannot even
+    #     query them (`filter(updated_at__gt=since)` -> FieldError). Adding auto_now to the
+    #     money ledger changes write behaviour on the platform's most sensitive tables.
+    #   * Payment carries live settlement state (gateway_transaction_id, gateway_response,
+    #     completed_at, failed_at), and POLICIES already declares `payment_settlement`
+    #     ONLINE_REQUIRED — "executing a charge against a gateway is a live transaction".
+    #     Putting that on a sync rail would contradict the platform's own rule.
+    # Rationale + the conditions to revisit: docs/EDGE_SYNC_FINANCE_HOLD.md.
+    ("invoice", "finance", "Invoice"),
     # DEFERRED — people.TeacherProfile is CLASS-A master data but carries compensation
     # fields (salary_amount, pay_grade, next_pay_date, …). Two-way LWW on those would let
     # a box salary edit override the cloud, against the money=cloud-authoritative rule.

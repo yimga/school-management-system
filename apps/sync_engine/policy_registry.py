@@ -109,6 +109,18 @@ POLICIES: dict[str, SyncPolicy] = {
         protected=True,
         rationale="An accepted server submission is authoritative.",
     ),
+    "invoice": SyncPolicy(
+        entity="invoice",
+        strategy=MergeStrategy.MANUAL_REVIEW,
+        protected=True,
+        rationale=(
+            "An invoice is what a family OWES. The box receives it so a bursar can work "
+            "offline, but money is cloud-authoritative: an upward change needs an "
+            "accountable human decision, never last-writer-wins. Declared EXPLICITLY "
+            "rather than left to get_policy's fail-closed default, so the guarantee "
+            "survives any future change to that default."
+        ),
+    ),
     "grade_entry": SyncPolicy(
         entity="grade_entry",
         strategy=MergeStrategy.MANUAL_REVIEW,
