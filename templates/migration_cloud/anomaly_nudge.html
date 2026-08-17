@@ -59,6 +59,41 @@
 
   <section class="rmc-card rmc-reveal">
     <h2 class="rmc-h2">
+      {% trans "Tracked custom fields" %}
+      <span class="rmc-muted">({{ tracked_custom_mappings|length }} {% trans "captured · will import" %})</span>
+    </h2>
+    {% if tracked_custom_mappings %}
+      <p class="rmc-muted">{% trans "These columns have no standard field in RunMyCampus, so they are captured verbatim and imported as tracked custom fields — nothing is dropped." %}</p>
+      <table class="rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
+        <caption class="visually-hidden">{% trans "Tracked custom fields" %}</caption>
+        <thead>
+          <tr>
+            <th scope="col">{% trans "Artifact" %}</th>
+            <th scope="col">{% trans "Source column" %}</th>
+            <th scope="col">{% trans "Status" %}</th>
+            <th scope="col">{% trans "Reasoning" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for m in tracked_custom_mappings %}
+          <tr>
+            <td>{{ m.artifact }}</td>
+            <td>{{ m.source_column }}</td>
+            <td><span class="rmc-pill rmc-pill--info" title="{% trans 'Captured verbatim and imported as a tracked custom field' %}">{% trans "Tracked · will import" %}</span></td>
+            <td class="rmc-muted">{{ m.reasoning|default:"—" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="rmc-empty rmc-empty--inline">
+        <p>{% trans "No custom fields — every column mapped to a standard field." %}</p>
+      </div>
+    {% endif %}
+  </section>
+
+  <section class="rmc-card rmc-reveal">
+    <h2 class="rmc-h2">
       {% trans "Quarantine" %}
       <span class="rmc-muted">({{ quarantine_rows|length }})</span>
     </h2>

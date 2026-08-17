@@ -104,6 +104,15 @@ DOMAIN_CANONICAL_HEADERS: dict[str, set[str]] = {
         "external_id", "first_name", "last_name", "middle_name",
         "date_of_birth", "gender", "email", "phone", "grade_level",
         "enrollment_status", "admission_number", "address",
+        # 2026-08-16 gap-analysis: real StudentProfile columns now in the
+        # ontology AND landed by StudentLander. Expose them in the downloadable
+        # canonical template so a school migrating from an old SIS knows these
+        # are understood (they were invisible before -> never exported). Order
+        # is load-bearing: keep the companion JSON mirrors in the SAME order
+        # (scan_companion_canonical_headers_drift is order-sensitive).
+        "place_of_birth", "joined_date", "joined_term", "section",
+        "parent_phone", "exam_candidate_number", "exam_center_code",
+        "exam_system",
     },
     "staff": {
         "staff_external_id", "first_name", "last_name", "email",

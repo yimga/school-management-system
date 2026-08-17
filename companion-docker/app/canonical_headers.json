@@ -12,7 +12,15 @@
     "grade_level",
     "enrollment_status",
     "admission_number",
-    "address"
+    "address",
+    "place_of_birth",
+    "joined_date",
+    "joined_term",
+    "section",
+    "parent_phone",
+    "exam_candidate_number",
+    "exam_center_code",
+    "exam_system"
   ],
   "staff": [
     "staff_external_id",
