@@ -37,9 +37,11 @@ from apps.academics.models import (
 )
 from apps.accounts.models import User
 from apps.api.sync_services import (
+    _DOWN_ONLY_FIELDS_PER_ENTITY,
     _get_entity_config,
     _insert_fk_targets,
     _sync_conflict_policy,
+    apply_changes,
 )
 from apps.schools.models import School, SchoolMembership
 from apps.sync_engine.delta_bundle import verify_and_parse_bundle
@@ -227,3 +229,79 @@ class SubjectAssignmentRoundTripTests(TestCase):
         rows, errors = verify_and_parse_bundle(data, expected_school_id=self.school.id)
         self.assertFalse(errors, errors)
         self.assertTrue(rows)
+
+    # --- per-field direction policy: coefficient is DOWN-ONLY -------------------- #
+    # The grid is benign two-way LWW, but `coefficient` weights a mark into the term
+    # average. Marks are down-only (protected grade_entry), so a stale box moving the
+    # WEIGHT would shift every computed average while each mark stayed authoritative.
+
+    def test_coefficient_is_still_synced_so_the_box_receives_it(self):
+        """It is a DIRECTION rule, not an exclusion — the box must still get the value."""
+        _model, fields = _get_entity_config(include_derived=True)[_ENTITY]
+        self.assertIn("coefficient", fields)
+        self.assertEqual(_DOWN_ONLY_FIELDS_PER_ENTITY[_ENTITY], {"coefficient"})
+
+    def test_box_push_cannot_move_the_coefficient(self):
+        assignment = self._assignment(coefficient="4.00")
+        rows = [
+            {
+                "entity_type": _ENTITY,
+                "id": assignment.pk,
+                "changes": {"coefficient": "9.00"},
+                "updated_at": (timezone.now() + timezone.timedelta(days=1)).isoformat(),
+            }
+        ]
+        out = apply_changes(
+            str(self.school.id), self.user, rows, persist_conflicts=True, sync_origin="edge-push"
+        )
+        self.assertEqual(out["results"][0]["status"], 409, out)
+        self.assertEqual(out["results"][0]["data"]["error"], "down_only_fields_rejected")
+        self.assertEqual(out["results"][0]["data"]["fields"], ["coefficient"])
+        assignment.refresh_from_db()
+        self.assertEqual(
+            assignment.coefficient, Decimal("4.00"), "a box push moved a grade weight"
+        )
+
+    def test_box_push_applies_benign_fields_and_reports_the_refusal(self):
+        assignment = self._assignment(coefficient="4.00")
+        deadline = timezone.now().replace(microsecond=0) + timezone.timedelta(days=7)
+        rows = [
+            {
+                "entity_type": _ENTITY,
+                "id": assignment.pk,
+                "changes": {
+                    "coefficient": "9.00",          # refused
+                    "grading_deadline_at": deadline.isoformat(),  # benign, applies
+                },
+                "updated_at": (timezone.now() + timezone.timedelta(days=1)).isoformat(),
+            }
+        ]
+        out = apply_changes(
+            str(self.school.id), self.user, rows, persist_conflicts=True, sync_origin="edge-push"
+        )
+        self.assertEqual(out["results"][0]["status"], 200, out)
+        self.assertEqual(
+            out["results"][0]["data"]["rejected_down_only_fields"], ["coefficient"]
+        )
+        assignment.refresh_from_db()
+        self.assertEqual(assignment.coefficient, Decimal("4.00"))
+        self.assertIsNotNone(assignment.grading_deadline_at)
+
+    def test_cloud_pull_may_still_move_the_coefficient(self):
+        """Down is the whole point — the cloud remains able to set the weight."""
+        assignment = self._assignment(coefficient="4.00")
+        rows = [
+            {
+                "entity_type": _ENTITY,
+                "id": assignment.pk,
+                "changes": {"coefficient": "6.00"},
+                "updated_at": (timezone.now() + timezone.timedelta(days=1)).isoformat(),
+            }
+        ]
+        out = apply_changes(
+            str(self.school.id), self.user, rows, persist_conflicts=True, sync_origin="cloud-pull"
+        )
+        self.assertEqual(out["success_count"], 1, out)
+        self.assertNotIn("rejected_down_only_fields", out["results"][0]["data"])
+        assignment.refresh_from_db()
+        self.assertEqual(assignment.coefficient, Decimal("6.00"))

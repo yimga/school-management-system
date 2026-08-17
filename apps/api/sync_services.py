@@ -75,6 +75,25 @@ _SYNC_FIELD_EXCLUDE_PER_ENTITY: dict[str, set] = {
     "academic_year": {"is_locked", "enable_gce_registration"},
 }
 
+# Per-FIELD direction policy: columns that ride DOWN (cloud→box) but are NEVER accepted
+# UPWARD, on an entity that is otherwise benign two-way LWW. `_conflict_decision` grades a
+# whole ENTITY, so a single cloud-governed column previously had only two bad options —
+# leave the entity two-way (a stale box can move it) or drop the column off the rail
+# entirely (the box never receives it, so it cannot compute correctly offline). This gives
+# the third, correct option: the box RECEIVES the cloud's value, and an upward write to it
+# is refused and REPORTED rather than silently discarded.
+#   * subject_assignment.coefficient — the per-subject weight that multiplies a mark into
+#     the term average and the report card. Marks themselves are down-only (the protected
+#     grade_entry policy), so letting a stale box overwrite the WEIGHT would move every
+#     computed average by the back door while each individual mark stayed authoritative.
+#     The box still needs the value to grade offline, so excluding it is not an option.
+# A field listed here must also be in the entity's synced set — it is a direction rule,
+# not an exclusion. When per-field direction policy grows up (the same Phase 4 gap that
+# defers TeacherProfile compensation), this map is what it generalizes.
+_DOWN_ONLY_FIELDS_PER_ENTITY: dict[str, set] = {
+    "subject_assignment": {"coefficient"},
+}
+
 # Registered entities that are SAFE to converge by last-writer-wins and are NOT already
 # classified in policy_registry.POLICIES. Kept EXPLICIT (not derived from the registry) so
 # that adding a new entity to _DERIVED_ENTITY_SPECS without consciously listing it here —
@@ -584,6 +603,30 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
                 )
                 continue
 
+            # Per-FIELD direction guard (see _DOWN_ONLY_FIELDS_PER_ENTITY). The entity-level
+            # decision above already said "apply", but a cloud-governed column must still not
+            # travel upward. Strip it from a box push / online edit and REPORT the refusal, so
+            # a discarded write is visible instead of vanishing.
+            rejected_down_only = []
+            if sync_origin != "cloud-pull":
+                for _f in sorted(_DOWN_ONLY_FIELDS_PER_ENTITY.get(entity_type, ())):
+                    if _f in updates:
+                        updates.pop(_f)
+                        rejected_down_only.append(_f)
+            if rejected_down_only and not updates:
+                # The row carried nothing BUT down-only fields: refuse it outright rather than
+                # bumping updated_at for a write that changed nothing (which would also re-ship
+                # the row on the next delta).
+                results.append({
+                    "index": idx,
+                    "status": 409,
+                    "data": {
+                        "error": "down_only_fields_rejected",
+                        "fields": rejected_down_only,
+                    },
+                })
+                continue
+
             try:
                 # Apply updates INSIDE the per-row guard. A bad value raises at ASSIGNMENT
                 # time, before any save — a non-assignable descriptor raises TypeError, a
@@ -622,18 +665,16 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
                 })
                 continue
             success_count += 1
-            results.append(
-                {
-                    "index": idx,
-                    "status": 200,
-                    "data": {
-                        "id": instance.pk,
-                        "updated_at": new_updated_at.isoformat()
-                        if new_updated_at
-                        else None,
-                    },
-                }
-            )
+            _data = {
+                "id": instance.pk,
+                "updated_at": new_updated_at.isoformat() if new_updated_at else None,
+            }
+            if rejected_down_only:
+                # Partial acceptance: the benign fields landed, the cloud-governed ones did
+                # not. Surfaced so the caller can reconcile rather than read a 200 as "all of
+                # my changes were taken".
+                _data["rejected_down_only_fields"] = rejected_down_only
+            results.append({"index": idx, "status": 200, "data": _data})
 
     return {
         "success_count": success_count,
