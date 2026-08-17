@@ -591,7 +591,52 @@ def ensure_default_jobs() -> None:
             auto_eligible=False,
             tags=("finance", "automation", "executor"),
         )
+        # --- Edge auto-sync (2026-08-16) -----------------------------------------
+        # Registered ONLY on a sovereign edge box (RMC_EDGE_SYNC_ENABLED); on the
+        # cloud it is never installed, so it adds zero overhead there. auto_eligible
+        # so it runs off the constantly-pinged /health/ tick with NO worker / beat /
+        # cron — the box auto-syncs simply by being up and reachable. The cycle is
+        # cursor-based and offline-safe, so an offline tick is a harmless no-op and
+        # the FIRST tick after the network returns reconciles both directions: that
+        # is "auto-sync when the box has internet" + "resync once the network is
+        # stable again" (incl. after a power loss, since /health/ resumes being
+        # pinged on reboot). The claim lock + last_run gate keep the boot reconcile,
+        # the beat task, and the health tick from double-running.
+        _maybe_register_edge_sync_job(_REGISTRY)
         _DEFAULTS_INSTALLED = True
+
+
+def _maybe_register_edge_sync_job(registry: dict) -> None:
+    """Register the edge auto-sync job into ``registry`` iff this is an edge box.
+
+    Split out (and taking the registry as an argument) so it can be unit-tested
+    against a fresh dict without mutating the process-global ``_REGISTRY`` or
+    tripping the ``_DEFAULTS_INSTALLED`` cache.
+    """
+    from django.conf import settings as _dj_settings
+
+    if not getattr(_dj_settings, "RMC_EDGE_SYNC_ENABLED", False):
+        return
+    from apps.sync_engine.edge_scheduler import edge_sync_interval_seconds
+
+    registry["sync_engine.edge_sync_cycle"] = PeriodicJob(
+        name="sync_engine.edge_sync_cycle",
+        interval_seconds=edge_sync_interval_seconds(),
+        func=_run_edge_sync_cycle,
+        description="Auto edge<->cloud sync (push up + pull down); offline-safe no-op, resumes when online.",
+        lock_ttl_seconds=HEAVY_JOB_LOCK_TTL_SECONDS,
+        auto_eligible=True,
+        tags=("sync", "edge"),
+    )
+
+
+def _run_edge_sync_cycle() -> object:
+    # Zero-config automatic edge<->cloud sync. Gated + never-raising; resolves the
+    # box's sole school itself and records one EdgeSyncRun per attempt. Delegates to
+    # the SAME callable the Celery-beat task and the edge_autosync command run.
+    from apps.sync_engine.edge_scheduler import run_edge_sync_now
+
+    return run_edge_sync_now(mode="live")
 
 
 def _run_continue_applying_transfers() -> object:

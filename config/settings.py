@@ -2206,9 +2206,27 @@ try:
 except ImportError:  # pragma: no cover - celery is in requirements.txt
     _celery_crontab = None  # type: ignore[assignment]
 
+# Edge auto-sync cadence (seconds) for the beat entry below + the in-process
+# scheduler (apps.sync_engine.edge_scheduler.edge_sync_interval_seconds reads the
+# same env). Default 180s, floor 60s. The task self-gates on RMC_EDGE_SYNC_ENABLED,
+# so this entry is inert on the cloud (and wherever no beat runs) — only a sovereign
+# edge box with a worker+beat fires it; the broker-less box uses the /health/ tick.
+try:
+    _EDGE_SYNC_INTERVAL = max(60, int(os.getenv("RMC_EDGE_SYNC_INTERVAL_SECONDS", "") or 180))
+except (TypeError, ValueError):
+    _EDGE_SYNC_INTERVAL = 180
+
 # Celery Beat schedule for periodic tasks
 # Optional tasks (requests reminder, deadline reminder) respect Site Settings: 0 = no-op
 CELERY_BEAT_SCHEDULE = {
+    # Edge<->cloud auto-sync (2026-08-16). Beat path for boxes running a worker+beat;
+    # broker-less boxes drive the identical code off the /health/ tick instead. The
+    # task is a hard no-op unless RMC_EDGE_SYNC_ENABLED, so this is inert elsewhere.
+    "edge-sync-cycle": {
+        "task": "sync_engine.edge_sync_cycle",
+        "schedule": _EDGE_SYNC_INTERVAL,
+        "options": {"expires": _EDGE_SYNC_INTERVAL},
+    },
     # v4.00.0: WAL stream drainer beat. Worker code is in apps.wal_stream.tasks.
     # Periodic fan-out lives in a tiny dispatch task that walks the active tenant
     # set and queues drain_tenant_stream per tenant_hash. Defaults every 30s when

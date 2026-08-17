@@ -47,5 +47,14 @@ else
   python manage.py check_edge_readiness || true
 fi
 
+# Edge auto-sync: one reconcile on boot so a power-loss / crash / abrupt-disconnect
+# recovery pushes & pulls IMMEDIATELY, without waiting for the first scheduled
+# interval. Backgrounded and swallowed — edge_autosync is flag-gated + offline-safe,
+# so it must never delay or block boot (a no-op when RMC_EDGE_SYNC_ENABLED is unset).
+if [[ "${RMC_EDGE_SYNC_ENABLED:-0}" == "1" ]]; then
+  echo "[selfhost] edge auto-sync: initial reconcile on boot (backgrounded)"
+  ( python manage.py edge_autosync >/dev/null 2>&1 || true ) &
+fi
+
 echo "[selfhost] starting gunicorn"
 exec gunicorn -c config/gunicorn.conf.py config.wsgi:application
