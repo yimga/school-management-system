@@ -25,6 +25,15 @@ _DERIVED_ENTITY_SPECS: list[tuple[str, str, str]] = [
     ("academic_year", "academics", "AcademicYear"),
     ("term", "academics", "Term"),
     ("department", "academics", "Department"),
+    # Slice 3 — curriculum catalog (edge parity, 2026-08-16). Benign master data the
+    # box needs to mirror the cloud: subjects, specialties (trades), and the
+    # specialty↔subject curriculum links. Anchor (client_offline_id + updated_at)
+    # added by academics migration 0080. FK remap: specialty.department_id →
+    # department, and specialty_subject.{specialty,subject}_id → the entities below
+    # (all registered), so a new-references-new insert resolves onto operator pks.
+    ("specialty", "academics", "Specialty"),
+    ("subject", "academics", "Subject"),
+    ("specialty_subject", "academics", "SpecialtySubject"),
     # DEFERRED — people.TeacherProfile is CLASS-A master data but carries compensation
     # fields (salary_amount, pay_grade, next_pay_date, …). Two-way LWW on those would let
     # a box salary edit override the cloud, against the money=cloud-authoritative rule.
@@ -55,7 +64,12 @@ _SYNC_FIELD_EXCLUDE_PER_ENTITY: dict[str, set] = {
 # When you add a benign master-data entity, add it here; a money/grade/identity entity must
 # instead get a protected POLICIES row.
 _LWW_SAFE_ENTITIES = frozenset(
-    {"student", "classroom", "applicant", "academic_year", "term", "department"}
+    {
+        "student", "classroom", "applicant", "academic_year", "term", "department",
+        # Curriculum catalog (Slice 3): benign master data, safe to converge by
+        # timestamp — a later admin edit wins, same as the other master-data rows.
+        "specialty", "subject", "specialty_subject",
+    }
 )
 
 

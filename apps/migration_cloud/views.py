@@ -1530,22 +1530,35 @@ class MigrationCloudAnomalyNudgeView(LoginRequiredMixin, View):
         bundle = _tenant_scoped_bundle(request, bundle_id, shell)
         threshold = float(mc_defaults.get("migration_cloud.mapper.field_min_confidence"))
 
+        # A custom-field capture (method 'custom_field' / canonical starts with
+        # 'custom_fields.') has confidence 0.0 because it has no *standard* target
+        # — but it is captured verbatim and imported, NOT a failed mapping. Keep it
+        # OUT of the low-confidence review queue (which is for genuinely uncertain
+        # mappings an operator must fix) and list it separately as "Tracked · will
+        # import", so a lossless capture never reads as a red 0% failure.
         low_conf_mappings: list[dict[str, Any]] = []
+        tracked_custom_mappings: list[dict[str, Any]] = []
         per_artifact = (bundle.mapping_summary or {}).get("per_artifact") or {}
         for path, mappings in per_artifact.items():
             for m in (mappings or []):
                 conf = float(m.get("confidence") or 0.0)
-                if conf < threshold or str(m.get("canonical_field") or "").startswith("custom_fields."):
-                    low_conf_mappings.append({
-                        "artifact": path,
-                        "source_column": m.get("source_column"),
-                        "canonical_field": m.get("canonical_field"),
-                        "confidence": conf,
-                        "method": m.get("method"),
-                        "transformer": m.get("transformer"),
-                        "reasoning": m.get("reasoning"),
-                        "domain": m.get("domain"),
-                    })
+                canonical = str(m.get("canonical_field") or "")
+                is_custom = m.get("method") == "custom_field" or canonical.startswith("custom_fields.")
+                entry = {
+                    "artifact": path,
+                    "source_column": m.get("source_column"),
+                    "canonical_field": m.get("canonical_field"),
+                    "confidence": conf,
+                    "method": m.get("method"),
+                    "transformer": m.get("transformer"),
+                    "reasoning": m.get("reasoning"),
+                    "domain": m.get("domain"),
+                    "is_custom": is_custom,
+                }
+                if is_custom:
+                    tracked_custom_mappings.append(entry)
+                elif conf < threshold:
+                    low_conf_mappings.append(entry)
 
         quarantine_rows: list[dict[str, Any]] = []
         try:
@@ -1593,6 +1606,7 @@ class MigrationCloudAnomalyNudgeView(LoginRequiredMixin, View):
                 "shell": shell,
                 "bundle": bundle,
                 "low_conf_mappings": low_conf_mappings,
+                "tracked_custom_mappings": tracked_custom_mappings,
                 "quarantine_rows": quarantine_rows,
                 "drift_domains": drift_domains,
                 "threshold": threshold,

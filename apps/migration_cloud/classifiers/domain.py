@@ -143,6 +143,15 @@ def _reconcile_with_filename(filename: str, content_domain: str | None) -> str:
 
 
 def _score_domains(normalized_headers: set[str]) -> list[DomainCandidate]:
+    # Reuse the mapper's directional containment scorer so the classifier and the
+    # field mapper agree on what "this header IS that synonym" means (same generic-
+    # token guard, so "Class Teacher" never anchors grade_level). Peer import — the
+    # mapper does not import this module, so there is no cycle.
+    from apps.migration_cloud.mapper import _CONTAINMENT_STRONG, _containment_strength
+
+    # Pre-tokenize once; containment is checked per (field, header) below.
+    header_tokens = {h: set(h.split("_")) for h in normalized_headers}
+
     scored: list[DomainCandidate] = []
     for domain in DOMAINS:
         if domain == "custom_fields":
@@ -150,10 +159,28 @@ def _score_domains(normalized_headers: set[str]) -> list[DomainCandidate]:
         matched_fields: list[str] = []
         matched_headers: set[str] = set()
         for cf in iter_canonical_fields(domain):
-            syns = {s.lower() for s in all_synonyms(cf["canonical_field"], domain=domain)}
+            syns_list = [s.lower() for s in all_synonyms(cf["canonical_field"], domain=domain)]
+            syns = set(syns_list)
             overlap = normalized_headers & syns
+            field_matched = bool(overlap)
             if overlap:
                 matched_headers |= overlap
+            # Containment recall (Gap B2): exact set-intersection alone misses
+            # padded/qualified real headers ("Student Mobile Number", "Parent
+            # Contact No", "Date of Admission"). Without this a messy-but-valid
+            # roster scores zero on every domain -> classified `custom_fields` ->
+            # `map_artifact` short-circuits and quarantines EVERY column before the
+            # field mapper's own containment ever runs. Only a STRONG containment
+            # (synonym tokens fully inside the header, remainder pure filler/same-
+            # field vocab) counts here, so it lifts recall without dragging a file
+            # into the wrong domain. The mapper still gates each field at
+            # field_min_confidence afterwards.
+            for h in normalized_headers - matched_headers:
+                strength, _ = _containment_strength(header_tokens[h], syns_list)
+                if strength >= _CONTAINMENT_STRONG:
+                    matched_headers.add(h)
+                    field_matched = True
+            if field_matched:
                 matched_fields.append(cf["canonical_field"])
 
         if not matched_fields:

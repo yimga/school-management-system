@@ -158,9 +158,16 @@ def _score_signatures(headers: list[str]) -> list[SourceCandidate]:
         if req_hits == 0 and sug_hits == 0:
             continue
 
-        # Confidence: heavy weight on required hits, light weight on suggested.
-        denom = max(len(required) + len(suggested), 1)
-        confidence = (req_hits * 1.5 + sug_hits) / (denom * 1.5)
+        # Confidence blends two COVERAGE ratios rather than dividing by the total
+        # signature size (Gap B1 — the same dilution class fixed in domain.py):
+        # `(req*1.5 + sug)/(denom*1.5)` meant a rich signature could never clear
+        # `source_min_confidence` on required hits alone — a perfect required match
+        # on PowerSchool (3 required + 7 suggested) scored (3*1.5)/(10*1.5)=0.30,
+        # so the vendor accelerator was skipped and its exact mappings forfeited.
+        # Full required coverage is the strong signal; suggested only tops it up.
+        req_coverage = req_hits / max(len(required), 1)
+        sug_coverage = sug_hits / max(len(suggested), 1)
+        confidence = 0.7 * req_coverage + 0.3 * sug_coverage
         confidence = min(0.99, confidence)
         scored.append(SourceCandidate(
             source=source,

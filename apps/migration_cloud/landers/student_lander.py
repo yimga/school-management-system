@@ -25,6 +25,10 @@ from .base import Lander, LanderContext, LanderError, LanderResult, register
 
 class StudentLander(Lander):
     domain = "students"
+    # Sweeps every custom_fields.*/_unmapped.* key into StudentProfile
+    # .custom_attributes (see _sweep_custom_attributes), so the orchestrator's
+    # residual net must NOT double-capture behind it.
+    sweeps_custom_columns = True
 
     def land(
         self,
@@ -96,6 +100,7 @@ class StudentLander(Lander):
                 "parent_phone": parent_phone_val,
                 "exam_candidate_number": (row.get("exam_candidate_number") or "").strip(),
                 "exam_center_code": (row.get("exam_center_code") or "").strip(),
+                "exam_system": (row.get("exam_system") or "").strip(),
             }
             # Filter to fields the model actually has, to be schema-tolerant.
             model_fields = {f.name for f in StudentProfile._meta.get_fields()}

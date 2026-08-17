@@ -160,11 +160,28 @@ def _header_match_keys(col: dict[str, Any]) -> list[str]:
     raw = (col.get("name") or "").strip()
     if normalized:
         keys.append(normalized)
+        # Gap B3: punctuated acronyms ("D.O.B." -> "d_o_b", "S/N" -> "s_n")
+        # normalize with separators that hide them from the compact synonym they
+        # actually mean ("dob", "sn"). Offer a separator-stripped compact key so
+        # the exact-alias layer can still reach the synonym.
+        compact = normalized.replace("_", "")
+        if compact and compact != normalized and compact not in keys:
+            keys.append(compact)
     raw_lower = raw.lower()
     if raw_lower and raw_lower not in keys:
         keys.append(raw_lower)
     if raw and raw not in keys:
         keys.append(raw)
+    # Gap B4: a trailing parenthetical unit ("Amount (USD)", "Weight (kg)",
+    # "Fee (NGN)") turns a real header into "amount_usd" that no synonym equals.
+    # Offer the header with a trailing (...) removed so the base field ("amount",
+    # "weight", "fee") still matches exactly.
+    deparenthesized = re.sub(r"\s*\([^)]*\)\s*$", "", raw).strip()
+    if deparenthesized and deparenthesized != raw:
+        dep_norm = re.sub(r"[^a-z0-9]+", "_", deparenthesized.lower()).strip("_")
+        for candidate in (dep_norm, deparenthesized.lower(), deparenthesized):
+            if candidate and candidate not in keys:
+                keys.append(candidate)
     return keys
 
 
@@ -343,6 +360,12 @@ _GENERIC_HEADER_TOKENS: frozenset[str] = frozenset({
     "number", "no", "num", "code", "id", "the", "of", "a", "an", "and", "or",
     "for", "student", "students", "learner", "pupil", "child", "s", "details",
     "detail", "info", "information", "field", "value", "primary", "main",
+    # Gap B4: currency/measure unit tokens a header appends to a real field
+    # ("Amount USD", "Fee FCFA", "Weight kg") are noise, not meaning. Listing
+    # them as filler lets containment still resolve the base field. Units can
+    # never ANCHOR a match (they are not synonyms), so this only lifts recall.
+    "usd", "eur", "gbp", "ngn", "xaf", "xof", "kes", "ghs", "zar", "cfa",
+    "fcfa", "frs", "kg", "cm", "mm", "yrs", "yr", "pct", "percent",
 })
 
 # The confidence a full "specific synonym ⊆ header, rest is filler" containment

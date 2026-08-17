@@ -40,6 +40,9 @@ class DynamicFieldLander(Lander):
     """Generic per-row writer to the platform's metadata DynamicField storage."""
 
     domain = "custom_fields"
+    # Writes every key of every row to DynamicFieldValue — it IS the catch-all
+    # sweep, so the residual net must not run a second time behind it.
+    sweeps_custom_columns = True
 
     def land(
         self,
