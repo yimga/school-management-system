@@ -1,12 +1,12 @@
 {
   "date": "2026-08-16",
-  "generated_at": "2026-08-16T18:50:00+00:00",
+  "generated_at": "2026-08-16T23:59:00+00:00",
   "major": 4,
   "minor": 6,
-  "patch": 48,
-  "raw": "sms-v4.06.48-onboarding-strands-prefix-2026-08-16",
+  "patch": 49,
+  "raw": "sms-v4.06.49-quiet-header-front-door-2026-08-16",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "onboarding-strands-prefix",
+  "slug": "quiet-header-front-door",
   "valid": true
 }

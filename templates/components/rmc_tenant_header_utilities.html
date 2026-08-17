@@ -1,45 +1,108 @@
 {% load i18n accounts_extras %}
 {% if request.user.is_authenticated and request.public_host_kind != 'manager' %}
+{% url 'accounts:approval_workflow_hub' as approval_hub_url %}
+{% url 'evals:grade_approval_list' as grade_approvals_url %}
+{% url 'siteconfig:sync_center' as sync_center_url %}
+{% url 'accounts:user_messages' as user_messages_url %}
+{% url 'analytics:dashboard' as analytics_url %}
+{% url 'finance:dashboard' as finance_url %}
+{% url 'accounts:staff_workflow' as staff_workflow_url %}
+{% url 'siteconfig:console_domains_hub' as configure_url %}
+{% url 'portal_console' as portal_console_url %}
+{% url 'portal_configure' as portal_configure_url %}
+{% url 'accounts:user_profile' as user_profile_url %}
+{% url 'accounts:security_posture_review' as security_posture_url %}
+{% url 'api_v1:me-schools' as campus_me_schools_url %}
+{% url 'api_v1:me-switch-school' as campus_me_switch_url %}
 <div class="dropdown rmc-header-utilities" data-rmc-header-utilities-root="tenant" data-rmc-shell-viewport-safe="1">
-  <button class="btn btn-sm btn-outline-light dropdown-toggle d-inline-flex align-items-center gap-1"
+  <button class="rmc-header-utilities__trigger dropdown-toggle"
           type="button" id="rmcTenantUtilitiesDropdown" data-bs-toggle="dropdown"
           data-bs-auto-close="outside" data-bs-boundary="viewport" data-bs-display="dynamic"
           aria-expanded="false" aria-haspopup="true" aria-label="{% trans 'Open utilities' %}">
-    <i class="bi bi-grid-3x3-gap" aria-hidden="true"></i><span class="d-none d-md-inline">{% trans "Utilities" %}</span>
+    <i class="bi bi-grid-3x3-gap" aria-hidden="true"></i>
+    <span>{% trans "Utilities" %}</span>
+    {% if messages_unread_count %}<span class="rmc-header-utilities__count">{{ messages_unread_count }}</span>{% endif %}
   </button>
-  <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow rmc-header-utilities__menu" aria-labelledby="rmcTenantUtilitiesDropdown" data-rmc-header-utilities="tenant">
-    <li><h6 class="dropdown-header text-uppercase small">{% trans "Your workspace" %}</h6></li>
-    {% if EFFECTIVE_PORTAL_ROLE == 'PARENT' %}
-      <li><a class="dropdown-item" href="{% url 'portal:parent_finance' %}"><i class="bi bi-wallet2 me-2" aria-hidden="true"></i>{% trans "Finance" %}</a></li>
-      <li><a class="dropdown-item" href="{% url 'portal:parent_workflow' %}"><i class="bi bi-lightning-charge me-2" aria-hidden="true"></i>{% trans "Workflow" %}</a></li>
-      <li><a class="dropdown-item" href="{% url 'portal:portal_stats' %}"><i class="bi bi-graph-up me-2" aria-hidden="true"></i>{% trans "Progress" %}</a></li>
-    {% elif EFFECTIVE_PORTAL_ROLE == 'TEACHER' %}
-      <li><a class="dropdown-item" href="{% url 'evals:teacher_dashboard' %}"><i class="bi bi-journal-bookmark me-2" aria-hidden="true"></i>{% trans "Academics" %}</a></li>
-      <li><a class="dropdown-item" href="{% url 'portal:teacher_workflow' %}"><i class="bi bi-lightning-charge me-2" aria-hidden="true"></i>{% trans "Workflow" %}</a></li>
-    {% elif EFFECTIVE_PORTAL_ROLE == 'STUDENT' %}
-      <li><a class="dropdown-item" href="{% url 'portal:student_workflow' %}"><i class="bi bi-book me-2" aria-hidden="true"></i>{% trans "Learning" %}</a></li>
-    {% else %}
-      <li><a class="dropdown-item" href="{% url 'finance:dashboard' %}"><i class="bi bi-wallet2 me-2" aria-hidden="true"></i>{% trans "Finance" %}</a></li>
-      <li><a class="dropdown-item" href="{% url 'accounts:staff_workflow' %}"><i class="bi bi-lightning-charge me-2" aria-hidden="true"></i>{% trans "Workflow" %}</a></li>
-      <li><a class="dropdown-item" href="{% url 'analytics:dashboard' %}"><i class="bi bi-graph-up me-2" aria-hidden="true"></i>{% trans "Analytics" %}</a></li>
-      <li><a class="dropdown-item" href="{% url 'siteconfig:console_domains_hub' %}"><i class="bi bi-sliders me-2" aria-hidden="true"></i>{% trans "Configure" %}</a></li>
-      <li><a class="dropdown-item" href="{% url 'siteconfig:sync_center' %}"><i class="bi bi-arrow-repeat me-2" aria-hidden="true"></i>{% trans "Box ↔ Cloud sync" %}</a></li>
-    {% endif %}
-    <li><a class="dropdown-item" href="{% url 'accounts:user_messages' %}"><i class="bi bi-chat-dots me-2" aria-hidden="true"></i>{% trans "Messages" %}{% if messages_unread_count %}<span class="badge bg-danger ms-2">{{ messages_unread_count }}</span>{% endif %}</a></li>
-    {% if guardian_student_links_chrome.enabled %}
-      {% for link in guardian_student_links_chrome.links %}<li><a class="dropdown-item" href="{% url 'portal:parent_dashboard' %}?student={{ link.student_id }}"><i class="bi bi-person-heart me-2" aria-hidden="true"></i>{{ link.label }}</a></li>{% endfor %}
-    {% endif %}
-    {% if request.user|tenant_operator_hub_visible %}
-      <li><a class="dropdown-item" href="{% url 'portal_console' %}"><i class="bi bi-speedometer2 me-2" aria-hidden="true"></i>{% trans "Console" %}</a></li>
-      <li><a class="dropdown-item" href="{% url 'portal_configure' %}"><i class="bi bi-sliders me-2" aria-hidden="true"></i>{% trans "Configure workspace" %}</a></li>
-    {% endif %}
-    {% url 'api_v1:me-schools' as campus_me_schools_url %}{% url 'api_v1:me-switch-school' as campus_me_switch_url %}
-    <li class="px-3 py-2"><div class="rmc-campus-switcher d-none" id="rmc-campus-switcher" data-rmc-campus-switcher="1" data-schools-url="{{ campus_me_schools_url|escape }}" data-switch-url="{{ campus_me_switch_url|escape }}"><label class="visually-hidden" for="rmc-campus-select">{% trans "School workspace" %}</label><select id="rmc-campus-select" class="form-select form-select-sm" disabled><option value="">{% trans "Loading schools…" %}</option></select><span class="visually-hidden" data-campus-switcher-live aria-live="polite"></span></div></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header text-uppercase small">{% trans "Preferences and support" %}</h6></li>
-    <li><a class="dropdown-item" href="{% url 'accounts:user_profile' %}"><i class="bi bi-person me-2" aria-hidden="true"></i>{% trans "Profile, language and appearance" %}</a></li>
-    <li><a class="dropdown-item" href="{% url 'accounts:security_posture_review' %}"><i class="bi bi-shield-check me-2" aria-hidden="true"></i>{% trans "Security posture" %}</a></li>
-    <li><button type="button" class="dropdown-item" data-rmc-kbd-cheatsheet-trigger><i class="bi bi-keyboard me-2" aria-hidden="true"></i>{% trans "Keyboard shortcuts" %}</button></li>
-  </ul>
+  <div class="dropdown-menu dropdown-menu-end rmc-header-utilities__menu" aria-labelledby="rmcTenantUtilitiesDropdown" data-rmc-header-utilities="tenant" role="menu">
+    <header class="rmc-header-utilities__head">
+      <div>
+        <h2>{% trans "Workspace tools" %}</h2>
+        <small>{% trans "Recommended for" %} {% firstof EFFECTIVE_PORTAL_ROLE _("your role") %}</small>
+      </div>
+      <span class="rmc-header-utilities__online">{% trans "Online" %}</span>
+    </header>
+    <section class="rmc-header-utilities__section">
+      <div class="rmc-header-utilities__section-title"><span>{% trans "Recommended now" %}</span><span>{% trans "Live" %}</span></div>
+      <div class="rmc-header-utilities__grid">
+        {% if approval_hub_url %}
+        <a class="rmc-header-utilities__tile rmc-header-utilities__tile--alert" href="{{ approval_hub_url }}" role="menuitem">
+          <i class="bi bi-check2-square" aria-hidden="true"></i>
+          <span><b>{% trans "Approvals" %}</b><small>{% trans "Waiting actions" %}</small></span>
+        </a>
+        {% elif grade_approvals_url %}
+        <a class="rmc-header-utilities__tile rmc-header-utilities__tile--alert" href="{{ grade_approvals_url }}" role="menuitem">
+          <i class="bi bi-check2-square" aria-hidden="true"></i>
+          <span><b>{% trans "Approvals" %}</b><small>{% trans "Waiting actions" %}</small></span>
+        </a>
+        {% endif %}
+        {% if sync_center_url %}
+        <a class="rmc-header-utilities__tile rmc-header-utilities__tile--sync" href="{{ sync_center_url }}" role="menuitem">
+          <i class="bi bi-arrow-repeat" aria-hidden="true"></i>
+          <span><b>{% trans "Box ↔ Cloud" %}</b><small>{% trans "Sync status" %}</small></span>
+        </a>
+        {% endif %}
+      </div>
+    </section>
+    <section class="rmc-header-utilities__section">
+      <div class="rmc-header-utilities__section-title"><span>{% trans "Your workspace" %}</span><span>{% trans "Permission filtered" %}</span></div>
+      <div class="rmc-header-utilities__grid">
+        {% if EFFECTIVE_PORTAL_ROLE == 'PARENT' %}
+          <a class="rmc-header-utilities__tile" href="{% url 'portal:parent_finance' %}" role="menuitem"><i class="bi bi-wallet2" aria-hidden="true"></i><span><b>{% trans "Finance" %}</b><small>{% trans "Fees and balances" %}</small></span></a>
+          <a class="rmc-header-utilities__tile" href="{% url 'portal:parent_workflow' %}" role="menuitem"><i class="bi bi-lightning-charge" aria-hidden="true"></i><span><b>{% trans "Workflow" %}</b><small>{% trans "Family tasks" %}</small></span></a>
+          <a class="rmc-header-utilities__tile" href="{% url 'portal:portal_stats' %}" role="menuitem"><i class="bi bi-graph-up" aria-hidden="true"></i><span><b>{% trans "Progress" %}</b><small>{% trans "Reports and insight" %}</small></span></a>
+        {% elif EFFECTIVE_PORTAL_ROLE == 'TEACHER' %}
+          <a class="rmc-header-utilities__tile" href="{% url 'evals:teacher_dashboard' %}" role="menuitem"><i class="bi bi-journal-bookmark" aria-hidden="true"></i><span><b>{% trans "Academics" %}</b><small>{% trans "Classes and grades" %}</small></span></a>
+          <a class="rmc-header-utilities__tile" href="{% url 'portal:teacher_workflow' %}" role="menuitem"><i class="bi bi-lightning-charge" aria-hidden="true"></i><span><b>{% trans "Workflow" %}</b><small>{% trans "Daily teaching" %}</small></span></a>
+        {% elif EFFECTIVE_PORTAL_ROLE == 'STUDENT' %}
+          <a class="rmc-header-utilities__tile" href="{% url 'portal:student_workflow' %}" role="menuitem"><i class="bi bi-book" aria-hidden="true"></i><span><b>{% trans "Learning" %}</b><small>{% trans "Assignments and schedule" %}</small></span></a>
+        {% else %}
+          {% if finance_url %}<a class="rmc-header-utilities__tile" href="{{ finance_url }}" role="menuitem"><i class="bi bi-wallet2" aria-hidden="true"></i><span><b>{% trans "Finance" %}</b><small>{% trans "Fees and payroll" %}</small></span></a>{% endif %}
+          {% if staff_workflow_url %}<a class="rmc-header-utilities__tile" href="{{ staff_workflow_url }}" role="menuitem"><i class="bi bi-lightning-charge" aria-hidden="true"></i><span><b>{% trans "Workflow" %}</b><small>{% trans "Daily operations" %}</small></span></a>{% endif %}
+          {% if analytics_url %}<a class="rmc-header-utilities__tile" href="{{ analytics_url }}" role="menuitem"><i class="bi bi-graph-up" aria-hidden="true"></i><span><b>{% trans "Analytics" %}</b><small>{% trans "Reports and insight" %}</small></span></a>{% endif %}
+          {% if configure_url %}<a class="rmc-header-utilities__tile" href="{{ configure_url }}" role="menuitem"><i class="bi bi-sliders" aria-hidden="true"></i><span><b>{% trans "Configure" %}</b><small>{% trans "Settings and Studio" %}</small></span></a>{% endif %}
+        {% endif %}
+        {% if user_messages_url %}
+        <a class="rmc-header-utilities__tile" href="{{ user_messages_url }}" role="menuitem">
+          <i class="bi bi-chat-dots" aria-hidden="true"></i>
+          <span><b>{% trans "Messages" %}</b><small>{% trans "Communication" %}{% if messages_unread_count %} · {{ messages_unread_count }}{% endif %}</small></span>
+        </a>
+        {% endif %}
+        {% if request.user|tenant_operator_hub_visible %}
+          {% if portal_console_url %}<a class="rmc-header-utilities__tile" href="{{ portal_console_url }}" role="menuitem"><i class="bi bi-speedometer2" aria-hidden="true"></i><span><b>{% trans "Console" %}</b><small>{% trans "Daily operations" %}</small></span></a>{% endif %}
+          {% if portal_configure_url %}<a class="rmc-header-utilities__tile" href="{{ portal_configure_url }}" role="menuitem"><i class="bi bi-gear" aria-hidden="true"></i><span><b>{% trans "Configure workspace" %}</b><small>{% trans "Settings and Studio" %}</small></span></a>{% endif %}
+        {% endif %}
+        {% if guardian_student_links_chrome.enabled %}
+          {% for link in guardian_student_links_chrome.links %}
+          <a class="rmc-header-utilities__tile" href="{% url 'portal:parent_dashboard' %}?student={{ link.student_id }}" role="menuitem"><i class="bi bi-person-heart" aria-hidden="true"></i><span><b>{{ link.label }}</b><small>{% trans "Linked student" %}</small></span></a>
+          {% endfor %}
+        {% endif %}
+      </div>
+      {% if campus_me_schools_url %}
+      <div class="rmc-header-utilities__campus">
+        <div class="rmc-campus-switcher d-none" id="rmc-campus-switcher" data-rmc-campus-switcher="1" data-schools-url="{{ campus_me_schools_url|escape }}" data-switch-url="{{ campus_me_switch_url|escape }}">
+          <label class="visually-hidden" for="rmc-campus-select">{% trans "School workspace" %}</label>
+          <select id="rmc-campus-select" class="form-select form-select-sm" disabled><option value="">{% trans "Loading schools…" %}</option></select>
+          <span class="visually-hidden" data-campus-switcher-live aria-live="polite"></span>
+        </div>
+      </div>
+      {% endif %}
+    </section>
+    <section class="rmc-header-utilities__section">
+      {% if user_profile_url %}<a class="rmc-header-utilities__row" href="{{ user_profile_url }}" role="menuitem"><i class="bi bi-globe" aria-hidden="true"></i><span>{% trans "Language and region" %}</span><small aria-hidden="true">›</small></a>{% endif %}
+      {% if user_profile_url %}<a class="rmc-header-utilities__row" href="{{ user_profile_url }}" role="menuitem"><i class="bi bi-circle-half" aria-hidden="true"></i><span>{% trans "Appearance" %}</span><small aria-hidden="true">›</small></a>{% endif %}
+      <button type="button" class="rmc-header-utilities__row" data-rmc-kbd-cheatsheet-trigger role="menuitem"><i class="bi bi-question-circle" aria-hidden="true"></i><span>{% trans "Help and shortcuts" %}</span><small aria-hidden="true">›</small></button>
+      {% if security_posture_url %}<a class="rmc-header-utilities__row" href="{{ security_posture_url }}" role="menuitem"><i class="bi bi-shield-check" aria-hidden="true"></i><span>{% trans "Security posture" %}</span><small aria-hidden="true">›</small></a>{% endif %}
+    </section>
+  </div>
 </div>
 {% endif %}

@@ -1,5 +1,19 @@
 # RunMyCampus autonomous execution log
 
+## Slice — Quiet header + front-door theme (batch 1791 - 2026-08-16)
+
+**A. Scope:** Implement platform-clean-header-approval-v2 and tenant-login-12-upgrades-approval-v1 visual contract on live tenant, operator, and tenant `/admin/` shells. Same grey-dropdown class of bug elsewhere in chrome.
+
+**B. Shipped:** Utilities menus rebuilt as navy tile grids with violet triggers; quiet-header current underline; Tools help chip; account-center dark wash; immersive login `--front-door` (radial mesh, large Welcome back, verified badge, role/passkey/submit); search Ctrl K; SW bump.
+
+**C. Proof:** header utilities contract PASS; 9/9 Django contract tests OK; undefined-css 0; off-token 0; theme-locked 0; template-render-safety 0.
+
+**D. Honest:** Manager/tenant-admin login canvases already navy-styled. Live browser screenshot of every role not captured in this pass. i18n leftovers (Alt+L, edge runbook) out of slice.
+
+**E. Files:** `rmc-header-utilities.css`, tenant/operator Utilities templates, `auth-login-canvas.css`, `login.html`, portal/manager search kbd, header contract verifier + tests, SW + baseline, SOT/log.
+
+**F. Next:** Hard-refresh tenant and operator hosts and confirm Utilities + login match the approval HTML (navy/violet/cyan, not flat grey).
+
 ## Slice — Multi-system onboarding strands / prefix / provision log (batch 1790 - 2026-08-16)
 
 **A. Scope:** Grounded Phases 1–4 of the multi-system onboarding plan: hybrid strand selection, optional structure code prefix, richer HTTP provision log, tokenized UI — on the existing signup/provisioner, not a greenfield OS rewrite.

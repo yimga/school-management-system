@@ -16,7 +16,7 @@
 {% block footer %}{% endblock %}
 
 {% block extrastyle_tail %}
-  <link rel="stylesheet" href="{% static 'css/auth-login-canvas.css' %}?v=20260816.4">
+  <link rel="stylesheet" href="{% static 'css/auth-login-canvas.css' %}?v=20260816.5">
 {% endblock %}
 
 {% block content %}
@@ -28,7 +28,7 @@
 {% url 'resend_signup_verification' as resend_url %}
 
 {% with immersive=LOGIN_IMMERSIVE %}
-<div class="rmc-auth-immersive"
+<div class="rmc-auth-immersive rmc-auth-immersive--front-door"
      id="preview-login-page"
      data-rmc-auth-immersive
      data-rmc-login-layout="{{ immersive.layout_preset }}"
@@ -137,7 +137,7 @@
             <button type="button" data-rmc-returning-continue>{% trans "Continue" %}</button>
           </div>
           <button type="button" class="rmc-auth-immersive__passkey-primary" data-rmc-passkey-login>
-            <span aria-hidden="true">â—ˆ</span>
+            <span aria-hidden="true"><i class="bi bi-fingerprint"></i></span>
             <span><strong>{% trans "Sign in with this device" %}</strong><small>{% trans "Passkey — no password to type" %}</small></span>
           </button>
           <p class="rmc-auth-immersive__passkey-status" data-rmc-passkey-status role="status" aria-live="polite"></p>
@@ -229,7 +229,7 @@
           {% trans "Password" as login_password_label %}
           {% include "components/rmc_password_field.html" with field_id="login-password" field_name="password" label=login_password_label autocomplete="current-password" %}
           <button type="button" class="rmc-auth-immersive__passkey-primary" data-rmc-passkey-login>
-            <span aria-hidden="true">â—ˆ</span>
+            <span aria-hidden="true"><i class="bi bi-fingerprint"></i></span>
             <span><strong>{% trans "Use a passkey instead" %}</strong><small>{% trans "Phishing-resistant sign-in on a trusted device" %}</small></span>
           </button>
           <p class="rmc-auth-immersive__passkey-status" data-rmc-passkey-status role="status" aria-live="polite"></p>

@@ -1869,3 +1869,125 @@ html[data-rmc-auth-reduce-motion] .rmc-auth-immersive *::after {
   .rmc-auth-immersive__canvas-body > .rmc-auth-immersive__carousel { min-height: 180px; }
   .rmc-auth-immersive__slide strong { font-size: clamp(1.15rem, 4vh, 1.8rem); }
 }
+
+/* Front-door approval v1 — isolate the live login from generic grey dark shells. */
+.rmc-auth-immersive--front-door {
+  --rmc-auth-glass: color-mix(in srgb, var(--surface-elevated) 70%, var(--surface-canvas) 30%);
+}
+
+.rmc-auth-immersive--front-door .rmc-auth-immersive__bg {
+  background:
+    radial-gradient(circle at 8% 15%, color-mix(in srgb, var(--school-primary) 28%, transparent), transparent 25%),
+    radial-gradient(circle at 90% 80%, color-mix(in srgb, var(--school-accent) 22%, transparent), transparent 30%),
+    var(--surface-canvas, var(--surface-bg));
+}
+
+.rmc-auth-immersive--front-door .rmc-auth-immersive__mesh {
+  background:
+    radial-gradient(ellipse 70% 50% at 12% 18%, color-mix(in srgb, var(--school-primary) 38%, transparent), transparent 55%),
+    radial-gradient(ellipse 50% 42% at 88% 82%, color-mix(in srgb, var(--school-accent) 24%, transparent), transparent 50%),
+    linear-gradient(145deg, color-mix(in srgb, var(--surface-canvas) 92%, transparent), color-mix(in srgb, var(--surface-bg) 70%, transparent));
+}
+
+.rmc-auth-immersive--front-door .rmc-auth-immersive__glass {
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--surface-elevated) 82%, transparent),
+    color-mix(in srgb, var(--surface-canvas) 92%, transparent)
+  );
+  border-color: var(--hairline-strong, var(--hairline));
+}
+
+.rmc-auth-immersive--front-door .rmc-auth-immersive__card-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: 0.65rem;
+}
+
+.rmc-auth-immersive--front-door .rmc-auth-immersive__secure-state {
+  justify-self: start;
+  order: -1;
+}
+
+.rmc-auth-immersive--front-door .rmc-auth-immersive__card-title {
+  font-size: clamp(1.85rem, 3.4vw, 2.15rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+
+.rmc-auth-immersive--front-door .rmc-auth-immersive__role-row {
+  display: grid;
+  grid-template-columns: 2.9rem minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  padding: 0.85rem 0.9rem;
+  border-radius: 0.95rem;
+  background: color-mix(in srgb, var(--surface-elevated) 88%, var(--surface-canvas));
+}
+
+.rmc-auth-immersive--front-door .rmc-auth-immersive__role-row.is-picked,
+.rmc-auth-immersive--front-door .rmc-auth-immersive__role-row:hover {
+  border-color: var(--school-primary);
+  background: color-mix(in srgb, var(--school-primary) 16%, var(--surface-elevated));
+  transform: none;
+}
+
+.rmc-auth-immersive--front-door .rmc-auth-immersive__role-row-ico {
+  width: 2.9rem;
+  height: 2.9rem;
+  border-radius: 0.8rem;
+  background: color-mix(in srgb, var(--surface-canvas) 70%, var(--school-accent) 30%);
+}
+
+.rmc-auth-immersive--front-door .rmc-auth-immersive__submit {
+  background: linear-gradient(90deg, var(--school-primary), color-mix(in srgb, var(--school-primary) 55%, var(--school-accent, var(--school-primary))));
+}
+
+.rmc-auth-immersive--front-door .rmc-auth-immersive__slide {
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--school-primary) 32%, var(--surface-canvas)),
+    var(--surface-canvas) 58%
+  );
+  border: 1px solid var(--hairline-strong, var(--hairline));
+}
+
+.rmc-auth-immersive--front-door .rmc-auth-immersive__slide em {
+  color: color-mix(in srgb, var(--school-primary) 70%, var(--text-primary));
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.rmc-auth-immersive--front-door .rmc-auth-immersive__dash-body article,
+.rmc-auth-immersive--front-door .rmc-auth-mini-card {
+  display: grid;
+  grid-template-columns: 2.25rem minmax(0, 1fr) auto;
+  gap: 0.65rem;
+  align-items: center;
+  padding: 0.7rem 0.75rem;
+  border: 1px solid var(--hairline);
+  border-radius: 0.8rem;
+  background: color-mix(in srgb, var(--surface-elevated) 86%, var(--surface-canvas));
+}
+
+.rmc-auth-immersive--front-door .rmc-auth-immersive__sponsor {
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--color-warning) 55%, var(--hairline));
+  background: color-mix(in srgb, var(--color-warning) 12%, var(--surface-elevated));
+}
+
+.rmc-auth-immersive--front-door .rmc-auth-immersive__tile {
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--hairline);
+  border-radius: 0.8rem;
+  background: color-mix(in srgb, var(--surface-elevated) 80%, var(--surface-canvas));
+}
+
+.rmc-auth-immersive--front-door .rmc-auth-assistant {
+  border-radius: 1.05rem;
+  background: linear-gradient(145deg, var(--surface-elevated), var(--surface-canvas));
+  box-shadow: var(--elev-3, 0 20px 70px rgb(0 0 0 / 0.45));
+}

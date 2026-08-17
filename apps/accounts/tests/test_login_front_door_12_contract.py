@@ -62,6 +62,8 @@ class LoginFrontDoorTwelveContractTests(SimpleTestCase):
         self.assertIn("scrollbar-gutter: stable", css)
         self.assertIn("data-rmc-auth-high-contrast", css)
         self.assertIn("data-rmc-auth-reduce-motion", css)
+        self.assertIn("rmc-auth-immersive--front-door", login)
+        self.assertIn(".rmc-auth-immersive--front-door", css)
         self.assertIn("data-rmc-auth-contrast", login)
         self.assertIn("data-rmc-auth-motion", login)
         self.assertNotIn(

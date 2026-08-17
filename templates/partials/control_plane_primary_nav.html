@@ -13,7 +13,7 @@
    hide_security → skip the trailing security-posture pill (it already lives in the
                    header actions cluster, so we don't want it twice on one row). {% endcomment %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<nav class="cp-primary-nav rmc-horizontal-nav-rail{% if MANAGER_PLATFORM_ADMIN_SHELL %} cp-primary-nav--admin-backoffice{% endif %}{% if not MANAGER_PLATFORM_ADMIN_SHELL %} cp-primary-nav--control-plane{% endif %}{% if rail %} cp-primary-nav--rail{% endif %} px-3 py-2 border-bottom"{% if rail %} data-rmc-proximity-reveal="1"{% endif %} aria-label="{% if MANAGER_PLATFORM_ADMIN_SHELL %}{% trans 'Platform backoffice navigation' %}{% else %}{% trans 'Primary product navigation' %}{% endif %}">
+<nav class="cp-primary-nav rmc-horizontal-nav-rail{% if MANAGER_PLATFORM_ADMIN_SHELL %} cp-primary-nav--admin-backoffice{% endif %}{% if not MANAGER_PLATFORM_ADMIN_SHELL %} cp-primary-nav--control-plane{% endif %}{% if rail %} cp-primary-nav--rail{% endif %} px-3 py-2 border-bottom" data-rmc-quiet-header="1"{% if rail %} data-rmc-proximity-reveal="1"{% endif %} aria-label="{% if MANAGER_PLATFORM_ADMIN_SHELL %}{% trans 'Platform backoffice navigation' %}{% else %}{% trans 'Primary product navigation' %}{% endif %}">
   {% comment %} v4.11: quiet-header contract — keep two stable operator
      destinations inline; all remaining authorized navigation lives in Utilities. {% endcomment %}
   {% for item in PRIMARY_CONTROL_PLANE_NAV %}
