@@ -754,6 +754,7 @@ SETTINGS_REGISTRY: tuple[SettingSpec, ...] = (
     SettingSpec("RMC_AUTO_APPLY_OFFLINE_BUNDLE_ON_PROVISION", "str", '"1"', "ops", "Auto-apply the offline bundle when provisioning an edge tenant."),
     SettingSpec("RMC_DEPLOYMENT_PROFILE", "str", '"online"', "ops", "Deployment profile selector (online / edge / offline)."),
     SettingSpec("RMC_EDGE_FALLBACK_ENABLED", "str", '""', "ops", "Enable edge-fallback middleware behavior when truthy."),
+    SettingSpec("RMC_EDGE_OPERATOR_BASE", "str", '""', "ops", "Cloud base URL a sovereign edge box syncs against; falls back to RMC_HUB_BASE_URL. Use the TENANT host."),
     SettingSpec("RMC_GENERATED_DOCS_DIR", "str", "None", "ops", "Override directory for generated trust-center / evidence docs."),
     SettingSpec("RMC_HUB_BASE_URL", "str", '""', "ops", "Base URL of the central RMC hub for offline-bundle sync."),
     # RMC IAM snapshot

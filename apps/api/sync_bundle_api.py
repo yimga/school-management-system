@@ -19,12 +19,15 @@ See docs/plans/TIER3_TENANT_PORTABILITY_AND_EDGE_SYNC.md (Slice 1).
 
 from __future__ import annotations
 
+import json
+
 from django.conf import settings
 from django.http import HttpResponse
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.renderers import BaseRenderer
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
 from rest_framework.views import APIView
@@ -40,6 +43,35 @@ from apps.sync_engine.edge_outbox import (
     SYNC_ROW_COUNT_HEADER,
     build_edge_delta_bundle,
 )
+
+
+class SyncBundleRenderer(BaseRenderer):
+    """Make the bundle media type NEGOTIABLE so the box's pull is not rejected 406.
+
+    The box asks for exactly what this endpoint produces
+    (``Accept: application/x-rmc-sync-bundle+ndjson``, see
+    ``apps.sync_engine.edge_outbox.pull_bundle``). DRF picks a renderer in
+    ``APIView.initial()`` -- BEFORE ``get()`` runs -- so with only the default JSON
+    renderers registered, content negotiation raises ``NotAcceptable`` and every pull
+    dies with a 406 the view never sees. The download's success path returns a plain
+    ``HttpResponse``, so this renderer does no real work on it; it exists so the
+    negotiation step can succeed. It is registered LAST, after the defaults, so a
+    request with ``Accept: */*`` still resolves to JSON and the ``Response``-based
+    400/403 branches render normally.
+    """
+
+    media_type = BUNDLE_CONTENT_TYPE
+    format = "rmc-sync-bundle"
+    charset = None
+
+    def render(self, data, accepted_media_type=None, renderer_context=None):
+        # Reached only if a DRF Response (an error branch) is returned while this
+        # renderer is the negotiated one -- serve the payload rather than 500.
+        if isinstance(data, (bytes, bytearray)):
+            return bytes(data)
+        if data is None:
+            return b""
+        return json.dumps(data, default=str).encode("utf-8")
 
 
 @extend_schema_view(
@@ -150,6 +182,10 @@ class SyncBundleDownloadView(APIView):
 
     authentication_classes = [EdgeCredentialAuthentication, *api_settings.DEFAULT_AUTHENTICATION_CLASSES]
     permission_classes = [IsAuthenticated]
+    # Defaults FIRST so `Accept: */*` still resolves to JSON for the error branches;
+    # the bundle renderer only wins on the box's explicit Accept. Without it here,
+    # negotiation 406s before get() is entered. See SyncBundleRenderer.
+    renderer_classes = [*api_settings.DEFAULT_RENDERER_CLASSES, SyncBundleRenderer]
 
     def get(self, request):
         school = getattr(request, "school", None)
