@@ -43,6 +43,16 @@ _DERIVED_ENTITY_SPECS: list[tuple[str, str, str]] = [
     # whose pk is not portable box↔cloud (the same reason a FK to User is excluded), and
     # an M2M cannot appear in `save(update_fields=...)`. `_derive_sync_fields` drops it.
     ("subject_assignment", "academics", "SubjectAssignment"),
+    # Slice 5 — grades, DOWN-ONLY (edge parity, 2026-08-17). evals.Evaluation is the mark
+    # row. It is deliberately NOT in _LWW_SAFE_ENTITIES: `evaluation` aliases to the
+    # protected `grade_entry` policy, so _conflict_decision applies it on a cloud-pull and
+    # raises a Sync Center CONFLICT for a box push — a box can never silently overwrite a
+    # mark the cloud holds. Anchor added by evals migration 0039 (it already had
+    # updated_at). Its subject_assignment_id resolves onto the entity registered directly
+    # above, which is why the teaching grid had to land first; student_id resolves onto
+    # `student`. created_by/updated_by are FKs to the SHARED accounts.User and are dropped
+    # automatically as non-portable.
+    ("evaluation", "evals", "Evaluation"),
     # DEFERRED — people.TeacherProfile is CLASS-A master data but carries compensation
     # fields (salary_amount, pay_grade, next_pay_date, …). Two-way LWW on those would let
     # a box salary edit override the cloud, against the money=cloud-authoritative rule.
@@ -322,7 +332,21 @@ def _conflict_decision(entity_type, sync_origin, client_updated_at, server_dt):
 
 
 def _serialize_instance_for_conflict(instance, entity_type, fields_subset):
-    """Build server_data snapshot for conflict record (only allowed/relevant fields)."""
+    """Build server_data snapshot for conflict record (only allowed/relevant fields).
+
+    Every value MUST survive ``json.dumps``: the snapshot lands in a JSONField, and if it
+    cannot be encoded the CONFLICT RECORD ITSELF fails to save. That failure mode is worse
+    than it looks — the row is then neither applied nor reviewable (it returns
+    ``conflict_persist_failed`` instead of a 409 with a ``conflict_id``), which silently
+    defeats MANUAL_REVIEW for exactly the protected entities that depend on it. ``Decimal``
+    is the offender: a grade or money snapshot is full of them. Decimals are stringified,
+    matching how the delta wire already ships them (``json.dumps(default=str)``), and a
+    final encodability probe catches any other exotic type rather than letting one field
+    lose a whole conflict.
+    """
+    import json
+    from decimal import Decimal
+
     data = {}
     for f in fields_subset:
         if hasattr(instance, f):
@@ -331,8 +355,14 @@ def _serialize_instance_for_conflict(instance, entity_type, fields_subset):
                 data[f] = v.pk
             elif hasattr(v, "isoformat"):
                 data[f] = v.isoformat() if v else None
+            elif isinstance(v, Decimal):
+                data[f] = str(v)
             else:
-                data[f] = v
+                try:
+                    json.dumps(v)
+                    data[f] = v
+                except (TypeError, ValueError):
+                    data[f] = str(v)
     return data
 
 
@@ -554,13 +584,19 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
                 )
                 continue
 
-            # Apply updates
-            for key, value in updates.items():
-                setattr(instance, key, value)
-            update_fields = list(updates.keys())
-            if hasattr(instance, "updated_at"):
-                update_fields.append("updated_at")
             try:
+                # Apply updates INSIDE the per-row guard. A bad value raises at ASSIGNMENT
+                # time, before any save — a non-assignable descriptor raises TypeError, a
+                # malformed value ValueError/ValidationError. While this loop sat outside
+                # the try, such a row escaped `apply_changes` altogether and killed the
+                # WHOLE bundle apply (every entity in it, not just the offending row),
+                # instead of degrading this ONE row to the 422 the handler below already
+                # returns. Keep assignment and save under the same guard.
+                for key, value in updates.items():
+                    setattr(instance, key, value)
+                update_fields = list(updates.keys())
+                if hasattr(instance, "updated_at"):
+                    update_fields.append("updated_at")
                 # Per-row savepoint: one un-appliable row (FK to a deleted parent, a
                 # unique/not-null collision — SQLite doesn't enforce these, only prod
                 # Postgres does) must roll back ONLY this row, never the whole bundle. The

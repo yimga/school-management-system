@@ -778,6 +778,11 @@ class Evaluation(models.Model):
         blank=True,
         help_text="Soft delete timestamp - preserves evaluation history",
     )
+    # Client-generated id for a mark entered offline on an edge box; lets the operator
+    # upsert it by (school, client_offline_id) on sync without pk collisions. The row
+    # itself is DOWN-ONLY (grade_entry is a protected policy) — a box push never
+    # silently overwrites the cloud's mark; it raises a Sync Center conflict.
+    client_offline_id = models.CharField(max_length=128, blank=True, db_index=True)
 
     @property
     def total_score(self) -> float:
@@ -817,6 +822,13 @@ class Evaluation(models.Model):
 
     class Meta:
         unique_together = ("academic_year", "term", "subject_assignment", "student")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["school", "client_offline_id"],
+                condition=~models.Q(client_offline_id=""),
+                name="uniq_evaluation_school_offline_id",
+            ),
+        ]
 
     def _resolve_grading_school(self):
         """The school whose grading scale bounds this row's scores.

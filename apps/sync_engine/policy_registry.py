@@ -35,6 +35,12 @@ ENTITY_ALIASES = {
     "attendance": "attendance_record",
     "grade": "grade_entry",
     "grading": "grade_entry",
+    # evals.Evaluation IS the platform's grade row (its scores feed final_score and the
+    # report card), so the edge rail registers it as `evaluation` and it must inherit the
+    # protected grade_entry policy. Without this alias it was protected only INCIDENTALLY,
+    # by get_policy's fail-closed default for unknown entities — declaring it makes the
+    # down-only guarantee explicit and survives any future change to that default.
+    "evaluation": "grade_entry",
     "payment": "fee_payment",
     "payment_proof": "payment_proof_upload",
     "profile": "user_profile",
