@@ -220,11 +220,22 @@ class Specialty(models.Model):
     )
     name = models.CharField(max_length=120)
     code = models.CharField(max_length=30, unique=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+    # Client-generated id for a specialty created offline on an edge box; lets the
+    # operator upsert it by (school, client_offline_id) on sync without pk collisions.
+    client_offline_id = models.CharField(max_length=128, blank=True, db_index=True)
 
     class Meta:
         ordering = ["name"]
         verbose_name = "Specialty"
         verbose_name_plural = "Specialties"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["school", "client_offline_id"],
+                condition=~models.Q(client_offline_id=""),
+                name="uniq_specialty_school_offline_id",
+            ),
+        ]
 
     def __str__(self):
         return self.name
@@ -354,6 +365,10 @@ class Subject(models.Model):
         blank=True,
         help_text="Optional: credit units for Higher Ed degree audit (e.g. 3.0).",
     )
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+    # Client-generated id for a subject created offline on an edge box; lets the
+    # operator upsert it by (school, client_offline_id) on sync without pk collisions.
+    client_offline_id = models.CharField(max_length=128, blank=True, db_index=True)
 
     class Meta:
         ordering = ["name"]
@@ -361,6 +376,11 @@ class Subject(models.Model):
             models.UniqueConstraint(
                 fields=["school", "name"],
                 name="academics_subject_school_name_uniq",
+            ),
+            models.UniqueConstraint(
+                fields=["school", "client_offline_id"],
+                condition=~models.Q(client_offline_id=""),
+                name="uniq_subject_school_offline_id",
             ),
         ]
 
@@ -462,12 +482,21 @@ class SpecialtySubject(models.Model):
     is_core = models.BooleanField(
         default=True, help_text="Core (vs elective) subject for this specialty."
     )
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+    # Client-generated id for a curriculum link created offline on an edge box; lets
+    # the operator upsert it by (school, client_offline_id) on sync without pk collisions.
+    client_offline_id = models.CharField(max_length=128, blank=True, db_index=True)
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
                 fields=["specialty", "subject"],
                 name="academics_specialtysubject_uniq",
+            ),
+            models.UniqueConstraint(
+                fields=["school", "client_offline_id"],
+                condition=~models.Q(client_offline_id=""),
+                name="uniq_specialtysubject_school_offline_id",
             ),
         ]
         ordering = ["specialty__name", "subject__name"]
