@@ -3927,6 +3927,16 @@ RMC_DEPLOYMENT_PROFILE = (
     os.getenv("RMC_DEPLOYMENT_PROFILE", "online").strip().lower() or "online"
 )
 RMC_HUB_BASE_URL = (os.getenv("RMC_HUB_BASE_URL", "") or "").strip().rstrip("/")
+# Cloud base URL a sovereign box syncs against. apps.sync_engine.sync_runner._operator_base
+# reads it as a SETTING and falls back to RMC_HUB_BASE_URL, so it must be defined here —
+# without this the documented RMC_EDGE_OPERATOR_BASE env var is read by nothing, the base
+# resolves to "", and the transport is handed a bare path ("unknown url type: '/api/...'").
+# Point it at the TENANT host (https://<subdomain>.<base-domain>): under django-tenants the
+# Postgres schema is chosen from the hostname before auth runs, so the apex would
+# authenticate correctly and then query the wrong schema.
+RMC_EDGE_OPERATOR_BASE = (
+    os.getenv("RMC_EDGE_OPERATOR_BASE", "") or ""
+).strip().rstrip("/")
 # Edge<->cloud BIDIRECTIONAL sync AUTO-RUN switch (Phase 5). OFF everywhere by default; the
 # sovereign edge box sets it (RMC_EDGE_SYNC_ENABLED=1) so its scheduled edge_sync_cycle
 # actually pushes/pulls — on every other deployment the cycle is a hard no-op.

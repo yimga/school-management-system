@@ -35,6 +35,12 @@ ENTITY_ALIASES = {
     "attendance": "attendance_record",
     "grade": "grade_entry",
     "grading": "grade_entry",
+    # evals.Evaluation IS the platform's grade row (its scores feed final_score and the
+    # report card), so the edge rail registers it as `evaluation` and it must inherit the
+    # protected grade_entry policy. Without this alias it was protected only INCIDENTALLY,
+    # by get_policy's fail-closed default for unknown entities — declaring it makes the
+    # down-only guarantee explicit and survives any future change to that default.
+    "evaluation": "grade_entry",
     "payment": "fee_payment",
     "payment_proof": "payment_proof_upload",
     "profile": "user_profile",
@@ -102,6 +108,33 @@ POLICIES: dict[str, SyncPolicy] = {
         strategy=MergeStrategy.SERVER_AUTHORITATIVE,
         protected=True,
         rationale="An accepted server submission is authoritative.",
+    ),
+    "invoice": SyncPolicy(
+        entity="invoice",
+        strategy=MergeStrategy.MANUAL_REVIEW,
+        protected=True,
+        rationale=(
+            "An invoice is what a family OWES. The box receives it so a bursar can work "
+            "offline, but money is cloud-authoritative: an upward change needs an "
+            "accountable human decision, never last-writer-wins. Declared EXPLICITLY "
+            "rather than left to get_policy's fail-closed default, so the guarantee "
+            "survives any future change to that default."
+        ),
+    ),
+    "teacher": SyncPolicy(
+        entity="teacher",
+        strategy=MergeStrategy.CAUSAL_LWW,
+        protected=False,
+        rationale=(
+            "The staff ROSTER converges two-way — a phone number or position corrected "
+            "offline should just merge. Safety on this entity is per-FIELD, not "
+            "entity-level: compensation, the payroll/leave authorization switches, and "
+            "the offboarding + merge pointers are all DOWN-ONLY (see "
+            "sync_services._DOWN_ONLY_FIELDS_PER_ENTITY['teacher']), and a box-CREATED "
+            "teacher is refused because minting an accounts.User is an authentication "
+            "decision, not a data merge. Declared EXPLICITLY so this stays true if the "
+            "_LWW_SAFE_ENTITIES fallback ever changes."
+        ),
     ),
     "grade_entry": SyncPolicy(
         entity="grade_entry",

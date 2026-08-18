@@ -429,10 +429,21 @@ class SubjectAssignment(models.Model):
         related_name="taught_subject_assignments",
         help_text="Users (with TeacherProfile) responsible for teaching this assignment slot.",
     )
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+    # Client-generated id for a teaching-grid slot created offline on an edge box; lets
+    # the operator upsert it by (school, client_offline_id) on sync without pk collisions.
+    client_offline_id = models.CharField(max_length=128, blank=True, db_index=True)
 
     class Meta:
         unique_together = ("academic_year", "term", "classroom", "specialty", "subject")
         ordering = ["classroom__name", "specialty__name", "subject__name"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["school", "client_offline_id"],
+                condition=~models.Q(client_offline_id=""),
+                name="uniq_subjectassignment_school_offline_id",
+            ),
+        ]
 
     def __str__(self):
         return f"{self.academic_year} | {self.term.label} | {self.classroom} | {self.specialty} | {self.subject} (coef {self.coefficient})"

@@ -9,6 +9,7 @@ from typing import Any
 from django.utils import timezone
 
 from apps.migration_cloud.connectors import get_connector
+from apps.migration_cloud.connectors.base import resolve_entity_type
 from apps.migration_cloud.models_connectors import (
     DiscoveryRunStatus,
     MigrationDiscoveryRun,
@@ -107,16 +108,27 @@ def discover_entities(*, connection: MigrationSourceConnection) -> dict[str, Any
     )
     external_blockers.extend(caps.external_blockers)
 
-    for entity_type in caps.supported_entities:
-        if not adapter.supports_entity(entity_type):
+    for reported_entity in caps.supported_entities:
+        # Resolve the SOURCE's own spelling onto our canonical key. An unresolvable name is
+        # WARNED about, never silently dropped: this loop used to `continue` past anything
+        # that failed exact membership, so a vendor calling its roster "Students" lost the
+        # whole domain and the operator saw a clean result with data quietly missing.
+        canonical = resolve_entity_type(reported_entity)
+        if canonical is None or not adapter.supports_entity(reported_entity):
+            warnings.append(
+                f"Source reported entity '{reported_entity}' which does not map to a known "
+                f"domain; it was NOT imported. Map it explicitly if it holds data you need."
+            )
             continue
         preview = adapter.extract_entity(
-            entity_type,
+            canonical,
             source_url=connection.source_url,
             credentials=credentials,
         )
-        entities.append(entity_type)
-        counts[entity_type] = preview.estimated_count
+        # Record the CANONICAL key — downstream lookups use it, so echoing the vendor's
+        # spelling would defer the failure instead of resolving it.
+        entities.append(canonical)
+        counts[canonical] = preview.estimated_count
         warnings.extend(preview.warnings)
 
     return {

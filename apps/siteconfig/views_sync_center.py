@@ -62,18 +62,9 @@ def sync_center(request):
             message="Select your school to view sync conflicts.",
         )
     pref_url = reverse("siteconfig:user_preferences")
-    # Edge<->cloud "Sync now" status panel context (feature ②). Never let a missing model
-    # / stray error on this observability read break the conflicts page.
-    from django.conf import settings
-
-    edge_sync_enabled = bool(getattr(settings, "RMC_EDGE_SYNC_ENABLED", False))
-    latest_sync_run = None
-    try:
-        from apps.sync_engine.models import EdgeSyncRun
-
-        latest_sync_run = EdgeSyncRun.latest_for(school)
-    except Exception:  # noqa: BLE001 — panel is best-effort; conflicts page must still render
-        latest_sync_run = None
+    # Edge<->cloud sync status panel context (feature ②). Never let a missing model /
+    # stray error on this observability read break the conflicts page.
+    panel = _edge_sync_panel_context(school)
     try:
         from .models import SyncConflict
     except ImportError:
@@ -93,8 +84,7 @@ def sync_center(request):
                 ),
                 "console_url": _safe_sync_reverse("siteconfig:console_domains_hub"),
                 "admin_sync_conflict_url": None,
-                "edge_sync_enabled": edge_sync_enabled,
-                "latest_sync_run": latest_sync_run,
+                **panel,
             },
         )
     stats = (
@@ -129,8 +119,7 @@ def sync_center(request):
             ),
             "console_url": _safe_sync_reverse("siteconfig:console_domains_hub"),
             "admin_sync_conflict_url": admin_sync_url,
-            "edge_sync_enabled": edge_sync_enabled,
-            "latest_sync_run": latest_sync_run,
+            **panel,
         },
     )
 
@@ -175,6 +164,82 @@ def sync_center_resolve(request, conflict_id):
     return redirect("siteconfig:sync_center")
 
 
+def _edge_sync_panel_context(school):
+    """Shared Sync Center panel context for both render paths.
+
+    ``edge_sync_enabled`` distinguishes the two deployments this ONE page serves, and the
+    distinction is not cosmetic — it decides which actions are even physically possible:
+
+      * On a BOX (flag on) the box can call out, so "Sync now" / "Dry-run sync" work.
+      * On the CLOUD (flag off — its normal, correct state) the box sits behind NAT and
+        the cloud cannot open a connection to it. Offering "Sync now" there produced a
+        guaranteed failure on every click plus a red EdgeSyncRun row; what the cloud can
+        actually do is QUEUE a full-resync the box collects on its next poll.
+
+    Everything here is best-effort: the conflicts page must still render if the sync
+    models are unavailable.
+    """
+    from django.conf import settings
+
+    ctx = {
+        "edge_sync_enabled": bool(getattr(settings, "RMC_EDGE_SYNC_ENABLED", False)),
+        "latest_sync_run": None,
+        "pending_resync": None,
+        "last_served_resync": None,
+        "sync_interval_seconds": None,
+    }
+    try:
+        from apps.sync_engine.edge_scheduler import edge_sync_interval_seconds
+        from apps.sync_engine.models import EdgeSyncDirective, EdgeSyncRun
+
+        ctx["latest_sync_run"] = EdgeSyncRun.latest_for(school)
+        ctx["sync_interval_seconds"] = edge_sync_interval_seconds()
+        directives = EdgeSyncDirective.objects.filter(
+            school=school, kind=EdgeSyncDirective.FULL_RESYNC
+        )
+        ctx["pending_resync"] = directives.filter(served_at__isnull=True).first()
+        ctx["last_served_resync"] = directives.filter(served_at__isnull=False).first()
+    except Exception:  # noqa: BLE001 — panel is observability; never break the page
+        pass
+    return ctx
+
+
+@login_required
+@permission_required("settings.manage")
+@require_http_methods(["POST"])
+def sync_request_resync(request):
+    """Queue a full resync for this school's edge box (cloud-side action).
+
+    The honest cloud->box control: the cloud records the request and the box acts on it
+    the next time it calls out. Safe to press while the box is offline — the directive
+    simply waits, and pressing again does not queue a second one.
+    """
+    school = getattr(request, "school", None)
+    if not school:
+        return redirect_staff_without_school(
+            request,
+            message="Select your school to request a resync.",
+        )
+    try:
+        from apps.sync_engine.models import request_full_resync
+
+        directive = request_full_resync(school, request.user)
+    except Exception:  # noqa: BLE001 — surface as a message, never a 500
+        messages.error(request, _("Could not queue the resync request."))
+        return redirect("siteconfig:sync_center")
+    if directive.served_at is None:
+        messages.success(
+            request,
+            _(
+                "Full resync queued. The box replays every record the next time it "
+                "connects — it does not need to be online right now."
+            ),
+        )
+    else:
+        messages.info(request, _("A resync was already queued."))
+    return redirect("siteconfig:sync_center")
+
+
 @login_required
 @permission_required("settings.manage")
 @require_http_methods(["POST"])
@@ -193,7 +258,26 @@ def sync_now(request):
             request,
             message="Select your school to run a sync.",
         )
+    from django.conf import settings
+
     from apps.sync_engine import sync_runner
+
+    # Refuse BEFORE recording anything on a deployment that cannot perform this action.
+    # The box-initiated cycle is meaningless on the cloud (there is no operator for the
+    # cloud to call out to, and it cannot reach into the box's LAN), so running it here
+    # only manufactured a red run row on every click. Point the operator at the control
+    # that does work from this side.
+    if not bool(getattr(settings, "RMC_EDGE_SYNC_ENABLED", False)):
+        messages.error(
+            request,
+            _(
+                "This deployment does not run edge sync. A box on a private network "
+                "cannot be reached from the cloud — it syncs by calling out on its own "
+                "schedule. Use “Queue full resync” to have it replay everything "
+                "on its next connection."
+            ),
+        )
+        return redirect("siteconfig:sync_center")
 
     mode = "live" if (request.POST.get("mode") or "").strip().lower() == "live" else "dry"
     result = sync_runner.run_sync_cycle(school, mode=mode)

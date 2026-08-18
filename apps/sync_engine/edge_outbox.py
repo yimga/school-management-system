@@ -17,11 +17,14 @@ import json
 import secrets
 import urllib.error
 import urllib.request
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone as _dt_timezone
 
 from django.utils import timezone
 
 BUNDLE_CONTENT_TYPE = "application/x-rmc-sync-bundle+ndjson"
+
+# Sentinel that sorts before every real timestamp, for rows whose updated_at is null.
+_EPOCH = datetime.min.replace(tzinfo=_dt_timezone.utc)
 
 # Marker stamped into an edge credential's permission_bitmap. resolve_edge_credential
 # REQUIRES it, so a plain offline capability token can't authenticate the sync POST.
@@ -31,16 +34,23 @@ EDGE_SYNC_SCOPE = "edge-sync-machine"
 # --------------------------------------------------------------------------- #
 # Bundle building (shared by export_edge_delta_bundle + post_edge_outbox)
 # --------------------------------------------------------------------------- #
-def build_edge_delta_bundle(school, *, since=None, entities=None, device_id="edge"):
-    """Package the school's records changed since ``since`` into a signed delta bundle.
+def build_edge_delta_rows(school, *, since=None, entities=None):
+    """The school's changed ROWS since ``since``, plus meta — unsigned and unpackaged.
 
-    Returns ``(bundle_bytes, meta)`` where ``meta`` is
-    ``{"counts", "row_count", "high_water_iso"}``. UPDATE-only rows for the
-    ``apply_changes`` entity set (identity holds because the clone is pk-preserving).
-    Raises ``ValueError('unknown_entities:...')`` for an unknown entity filter.
+    Split out of :func:`build_edge_delta_bundle` so a caller that must PAGE the work can
+    sign each page separately. The receiver caps a single bundle at
+    ``RMC_SYNC_BUNDLE_MAX_ROWS`` and rejects an oversized one WHOLE, so a box with a
+    real backlog has to send several bundles — which is impossible if the only entry
+    point hands back pre-signed bytes.
+
+    Returns ``(rows, meta)`` with ``meta = {"counts", "row_count", "high_water_iso",
+    "high_water"}``. Rows are sorted by ``updated_at`` ACROSS entities so that a caller
+    paging them can treat the last row of a page as a safe global cursor: everything
+    older has already been sent. (The per-entity grouping the builder scans in is not a
+    safe paging order — truncating it would strand older rows in later entities behind
+    an advanced cursor.)
     """
     from apps.api.sync_services import _get_entity_config  # SOT: (model, allowed fields)
-    from apps.sync_engine.delta_bundle import export_delta_bundle
     from apps.sync_engine.models import _MISSING, sync_echo_updated_at_map
 
     # Building a delta bundle is always an EDGE sync operation (box push / operator
@@ -52,6 +62,7 @@ def build_edge_delta_bundle(school, *, since=None, entities=None, device_id="edg
         raise ValueError(f"unknown_entities:{sorted(unknown)}")
 
     rows: list[dict] = []
+    sort_keys: list = []
     counts: dict[str, int] = {}
     high_water = None
     for entity_type, (model, allowed) in config.items():
@@ -90,16 +101,47 @@ def build_edge_delta_bundle(school, *, since=None, entities=None, device_id="edg
                     "updated_at": updated_at.isoformat() if updated_at else None,
                 }
             )
+            # Sort key kept alongside as a real datetime, then stripped below. Sorting the
+            # ISO STRING would only be chronological while every row shares one UTC offset,
+            # and a mis-ordered page boundary is a mis-placed cursor — i.e. skipped rows.
+            sort_keys.append(updated_at)
             n += 1
         if n:
             counts[entity_type] = n
 
-    data = export_delta_bundle(school_id=str(school.id), rows=rows, device_id=device_id or "edge")
+    # Global updated_at order so a page boundary is a valid cursor position: everything
+    # older than the last row of a page has, by construction, already been sent. The
+    # per-entity scan order the builder walks in is NOT safe to page — truncating it would
+    # strand older rows of later entities behind an advanced cursor.
+    #
+    # Rows with a null updated_at sort FIRST: they carry no position at all, so they must
+    # ship before any cursor moves past them rather than being stranded after it.
+    order = sorted(
+        range(len(rows)),
+        key=lambda i: (sort_keys[i] is not None, sort_keys[i] or _EPOCH),
+    )
+    rows = [rows[i] for i in order]
     meta = {
         "counts": counts,
         "row_count": len(rows),
         "high_water_iso": high_water.isoformat() if high_water else None,
+        "high_water": high_water,
     }
+    return rows, meta
+
+
+def build_edge_delta_bundle(school, *, since=None, entities=None, device_id="edge"):
+    """Package the school's records changed since ``since`` into a signed delta bundle.
+
+    Returns ``(bundle_bytes, meta)`` where ``meta`` is
+    ``{"counts", "row_count", "high_water_iso"}``. UPDATE-only rows for the
+    ``apply_changes`` entity set (identity holds because the clone is pk-preserving).
+    Raises ``ValueError('unknown_entities:...')`` for an unknown entity filter.
+    """
+    from apps.sync_engine.delta_bundle import export_delta_bundle
+
+    rows, meta = build_edge_delta_rows(school, since=since, entities=entities)
+    data = export_delta_bundle(school_id=str(school.id), rows=rows, device_id=device_id or "edge")
     return data, meta
 
 
@@ -214,9 +256,20 @@ def post_bundle(endpoint: str, token: str, data: bytes, *, timeout: float = 30.0
 # pull cursor without re-parsing the bundle body. Row-count is informational.
 SYNC_HIGH_WATER_HEADER = "X-RMC-Sync-High-Water"
 SYNC_ROW_COUNT_HEADER = "X-RMC-Sync-Row-Count"
+# Cloud->box instruction channel. The cloud cannot reach a box behind NAT, so an operator
+# request (currently only "full-resync") rides back on the box's own next download.
+SYNC_DIRECTIVE_HEADER = "X-RMC-Sync-Directive"
 
 
-def pull_bundle(endpoint: str, token: str, *, since=None, entities=None, timeout: float = 30.0):
+def pull_bundle(
+    endpoint: str,
+    token: str,
+    *,
+    since=None,
+    entities=None,
+    timeout: float = 30.0,
+    collect: dict | None = None,
+):
     """GET a signed delta bundle DOWN from the operator (cloud->box pull, box side).
 
     The mirror of :func:`post_bundle`: the box calls OUT to the operator's download
@@ -227,6 +280,10 @@ def pull_bundle(endpoint: str, token: str, *, since=None, entities=None, timeout
     (returned, not raised) so the caller can tell "operator rejected" from "couldn't
     reach the operator"; a connectivity failure (``URLError``/``OSError``, e.g. offline)
     PROPAGATES so the caller leaves its cursor put and retries later.
+
+    Pass ``collect=`` a mutable dict to also receive out-of-band response metadata (the
+    cloud->box directive). Kept out of the return tuple so existing 3-tuple callers —
+    including the tested pull command — are untouched.
     """
     from urllib.parse import urlencode
 
@@ -244,18 +301,23 @@ def pull_bundle(endpoint: str, token: str, *, since=None, entities=None, timeout
         headers={"Authorization": f"Bearer {token}", "Accept": BUNDLE_CONTENT_TYPE},
     )
     high_water = None
+    directive = None
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310 — operator URL, not user input
             status = resp.getcode()
             body = resp.read()
             high_water = resp.headers.get(SYNC_HIGH_WATER_HEADER)
+            directive = resp.headers.get(SYNC_DIRECTIVE_HEADER)
     except urllib.error.HTTPError as exc:  # a response with a 4xx/5xx status, not a connectivity failure
         status = exc.code
         try:
             body = exc.read()
             high_water = exc.headers.get(SYNC_HIGH_WATER_HEADER) if exc.headers else None
+            directive = exc.headers.get(SYNC_DIRECTIVE_HEADER) if exc.headers else None
         except (OSError, AttributeError):
             body = b""
+    if collect is not None:
+        collect["directive"] = (directive or "").strip()
     return status, body, high_water
 
 
@@ -264,6 +326,8 @@ __all__ = [
     "BUNDLE_CONTENT_TYPE",
     "SYNC_HIGH_WATER_HEADER",
     "SYNC_ROW_COUNT_HEADER",
+    "SYNC_DIRECTIVE_HEADER",
+    "build_edge_delta_rows",
     "build_edge_delta_bundle",
     "mint_edge_credential",
     "resolve_edge_credential",
