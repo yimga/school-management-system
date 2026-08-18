@@ -35,6 +35,7 @@ from typing import Any, Iterator
 from ._helpers import (
     coerce_int,
     derive_external_id,
+    split_name_for,
     detect_and_register_assets,
     filter_to_model_fields,
     model_field_names,
@@ -77,10 +78,7 @@ class AlumniLander(Lander):
             # graduation list, and without this every such row quarantined.
             full_name = (row.get("full_name") or "").strip()
             if full_name and (not first_name or not last_name):
-                from apps.migration_cloud.transformers.name_split import split_full_name
-
-                country = getattr(ctx.school, "country_code", "") if ctx.school else ""
-                fn, _mn, ln = split_full_name(full_name, country=country)
+                fn, _mn, ln = split_name_for(ctx, full_name)
                 first_name = first_name or fn
                 last_name = last_name or ln
             # Alumni are the least likely records to carry a source-system id --

@@ -749,7 +749,26 @@ def _apply_artifact(
         return outcome
 
     outcome.result = result
-    outcome.status = "PARTIAL" if result.quarantined else "SUCCESS"
+    # Total rejection is a FAILURE, not a partial success. An artifact that
+    # quarantined rows and landed NOTHING wrote nothing at all, yet the old
+    # `PARTIAL if quarantined else SUCCESS` reported it green: a live tenant saw
+    # five consecutive repairs report `succeeded` while every one of them wrote
+    # 0 created / 0 updated / 431 quarantined, so nobody looked for hours. Zero
+    # rows landed against a non-empty input is exactly the signal an operator
+    # needs raised, and marking it FAILED also makes repair_readiness treat the
+    # bundle as repairable once the source is corrected.
+    #
+    # `quarantined` is required for this branch: an artifact that legitimately had
+    # nothing to do (header-only file, every row already current) reports 0/0/0 and
+    # must stay SUCCESS rather than being called a failure.
+    if result.quarantined and not (result.created or result.updated):
+        outcome.status = "FAILED"
+        outcome.error = (
+            f"Every row was rejected ({result.quarantined} of {result.quarantined}); "
+            "nothing was imported from this file."
+        )
+    else:
+        outcome.status = "PARTIAL" if result.quarantined else "SUCCESS"
     _finalize_audit_run(run, outcome, status=outcome.status)
     _quarantine_errors(
         bundle=bundle, run=run, artifact=job.artifact, domain=job.domain, result=result
@@ -1323,6 +1342,16 @@ def _run_lander_under_schema(
         bundle_id=bundle.pk,
         artifact_id=artifact.pk,
         dry_run=dry_run,
+        # Operator transform preferences chosen on the review page (currently the
+        # combined-name order). LanderContext has always carried this field; it
+        # was never populated, so a school could not correct a mis-split name --
+        # e.g. a roster written surname-first, where auto-detection reads the
+        # family name as the given name for every student in the file.
+        # getattr: the residual-net tests hand in a lightweight bundle stub, and a
+        # missing mapping_summary must degrade to "no preference", never raise.
+        transformer_options=dict(
+            (getattr(bundle, "mapping_summary", None) or {}).get("transform_prefs") or {}
+        ),
     )
 
     capture: _ResidualCapture | None = None

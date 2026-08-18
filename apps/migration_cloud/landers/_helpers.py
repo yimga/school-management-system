@@ -789,3 +789,30 @@ def persist_dfv_extras(
         except Exception as exc:  # noqa: BLE001 — extras are best-effort, recorded
             if result is not None:
                 result.errors.append(f"{entity_type} extras write failed for {field_key}: {type(exc).__name__}")
+
+
+def resolve_name_order(ctx) -> str:
+    """The operator's chosen combined-name order, or "" to auto-detect.
+
+    Returned as the ``order`` argument for
+    :func:`apps.migration_cloud.transformers.name_split.split_full_name`. Empty
+    keeps the existing locale/country heuristic, so an unset preference behaves
+    exactly as before.
+    """
+    options = getattr(ctx, "transformer_options", None) or {}
+    order = str(options.get("name_order") or "").strip().lower()
+    return order if order in {"first_last", "last_first", "spanish_double"} else ""
+
+
+def split_name_for(ctx, full_name: str) -> tuple[str, str, str]:
+    """Split a combined name honouring the operator's choice, then the locale.
+
+    Every person lander splits combined names the same way, and each had grown
+    its own copy of this call; centralising it means a preference chosen once on
+    the review page applies identically to students, staff and alumni.
+    """
+    from apps.migration_cloud.transformers.name_split import split_full_name
+
+    school = getattr(ctx, "school", None)
+    country = getattr(school, "country_code", "") if school is not None else ""
+    return split_full_name(full_name, order=resolve_name_order(ctx) or None, country=country)
