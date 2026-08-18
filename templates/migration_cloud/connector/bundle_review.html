@@ -127,6 +127,7 @@ says so honestly instead of spinning forever. Copy travels via data-* attributes
          data-msg-queued="{% trans 'Queued — waiting for the importer…' %}"
          data-msg-running="{% trans 'Writing records into your school…' %}"
          data-msg-slow="{% trans 'Still queued — the importer will pick this up shortly.' %}"
+         data-msg-wedged="{% trans 'This import stopped responding before it finished — it was interrupted, not rejected. Use Repair below to resume it safely.' %}"
          data-msg-timeout="{% trans 'Still working. Refresh this page in a moment to see your results.' %}">
   <h2 class="h5">
     {% if import_flight.dry_run %}{% trans "Previewing your import…" %}{% else %}{% trans "Importing your data…" %}{% endif %}
@@ -135,7 +136,7 @@ says so honestly instead of spinning forever. Copy travels via data-* attributes
   <div class="progress" role="progressbar" aria-label="{% trans 'Import progress' %}" aria-valuemin="0" aria-valuemax="100">
     <div class="progress-bar progress-bar-striped progress-bar-animated" id="mc-import-bar" style="width: 30%"></div>
   </div>
-  <p class="small text-muted mt-2 mb-0" id="mc-import-note">{% if import_flight.stuck %}{% trans "Still queued — the importer will pick this up shortly." %}{% else %}{% trans "Working…" %}{% endif %}</p>
+  <p class="small text-muted mt-2 mb-0" id="mc-import-note">{% if import_flight.stuck %}{% if import_flight.phase == 'running' %}{% trans "This import stopped responding before it finished — it was interrupted, not rejected. Use Repair below to resume it safely." %}{% else %}{% trans "Still queued — the importer will pick this up shortly." %}{% endif %}{% else %}{% trans "Working…" %}{% endif %}</p>
 </section>
 <script nonce="{{ csp_nonce }}">
 (function () {
@@ -165,8 +166,16 @@ says so honestly instead of spinning forever. Copy travels via data-* attributes
         if (bar) { bar.style.width = running ? '70%' : '30%'; }
         if (note) {
           note.textContent = data.import_stuck
-            ? el.getAttribute('data-msg-slow')
+            ? el.getAttribute(running ? 'data-msg-wedged' : 'data-msg-slow')
             : (running ? el.getAttribute('data-msg-running') : el.getAttribute('data-msg-queued'));
+        }
+        if (data.import_stuck && running) {
+          // Claimed but no longer heartbeating: nothing is coming. Drop the
+          // animation so the page stops implying progress, and reveal the
+          // recovery affordance instead of polling on forever.
+          stop();
+          window.setTimeout(function () { window.location.reload(); }, 1200);
+          return;
         }
         if (tries > 160) {
           stop();

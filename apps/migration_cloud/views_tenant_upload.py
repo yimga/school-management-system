@@ -344,6 +344,21 @@ def _import_flight(bundle) -> dict:
             ).total_seconds() > _IMPORT_QUEUE_STUCK_SECONDS
         except Exception:  # noqa: BLE001 — a clock/None hiccup must not stick the page
             stuck = False
+    elif running or processing:
+        # A CLAIMED apply that stopped heartbeating is wedged, not working. Checking
+        # only the PENDING branch above made this page spin forever on the single
+        # commonest failure -- a worker killed mid-apply (deploy, OOM, connection
+        # exhaustion) -- because that leaves the bundle at APPLYING (running=True) or
+        # the row at PROCESSING, and neither is `pending`, so `stuck` stayed False and
+        # the tenant saw "Working..." indefinitely. The orchestrator heartbeats the
+        # bundle at every wave/artifact, so a stale heartbeat is the honest signal;
+        # repair.applying_stale_by_time is the project's single source of truth for it.
+        try:
+            from .repair import applying_stale_by_time
+
+            stuck = applying_stale_by_time(bundle)
+        except Exception:  # noqa: BLE001 — never break the review page on this probe
+            stuck = False
     return {
         "in_flight": True,
         "phase": "running" if (running or processing) else "queued",
