@@ -18,6 +18,57 @@ Three pieces of shared plumbing every per-domain lander uses:
 
 from __future__ import annotations
 
+import hashlib
+
+
+def derive_external_id(
+    *,
+    first_name: str = "",
+    middle_name: str = "",
+    last_name: str = "",
+    date_of_birth=None,
+    place_of_birth: str = "",
+    prefix: str = "auto",
+) -> str:
+    """Deterministic surrogate upsert key for a source row carrying no external id.
+
+    ``external_id`` is the landers' upsert key -- it is what makes re-running a
+    bundle UPDATE an existing person instead of duplicating them. Plenty of real
+    rosters carry no source-system id column at all (a plain name/DOB/class
+    spreadsheet is the norm for a school migrating off paper), and those rows were
+    quarantined ``missing_required`` and NOTHING landed -- on an atomic bundle that
+    also rolls back the perfectly valid files beside them.
+
+    Minting a RANDOM id would land the row once and then duplicate it on every
+    re-apply, breaking the single most-asked-for property of a migration. Hashing
+    the row's stable identity keeps the upsert idempotent across re-runs and across
+    two bundles carrying the same roster.
+
+    Only identity-STABLE fields participate. Name, date of birth and place of birth
+    do not change between exports; grade_level / section / status do, and folding
+    those in would make a promoted student hash to a new id and duplicate at exactly
+    the moment the school most needs continuity.
+
+    Returns "" when there is no name to key on -- such a row is genuinely
+    unidentifiable and must still be quarantined rather than silently invented.
+    """
+    parts = [
+        str(first_name or "").strip(),
+        str(middle_name or "").strip(),
+        str(last_name or "").strip(),
+    ]
+    name = " ".join(" ".join(parts).split()).casefold()
+    if not name:
+        return ""
+    seed = "|".join(
+        (
+            name,
+            str(date_of_birth or "").strip(),
+            str(place_of_birth or "").strip().casefold(),
+        )
+    )
+    return f"{prefix}-{hashlib.sha256(seed.encode('utf-8')).hexdigest()[:20]}"
+
 import datetime as _dt
 import hashlib
 import re
