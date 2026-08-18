@@ -270,3 +270,40 @@ body:not(.control-plane-shell):has(.admin-nav-bridge) {
     justify-content: center;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Closed dropdowns must stay out of the layout.
+
+   Tenant /admin/ loads Bootstrap's JAVASCRIPT unconditionally
+   (vendor/bootstrap/js/bootstrap.bundle.min.js) but its CSS only when
+   is_manager_host — see templates/admin/base_site.html. Bootstrap's dropdown
+   contract is split across both halves: the JS toggles the `.show` class, and
+   the CSS is what keeps a menu `display:none; position:absolute` until then.
+
+   With the CSS half absent every `.dropdown-menu` on this surface rendered
+   OPEN and STATIC, i.e. in normal flow. Measured on the rendered page:
+   #rmcTenantUtilitiesMenu was 410x608 and inflated .rmc-header-utilities ->
+   .admin-nav-bridge__actions -> .admin-nav-bridge__row -> .admin-nav-bridge,
+   which set the shell's first grid track to 668px. That is the tall empty band
+   above the header, and it is why the sidebar and canvas started at y=672
+   instead of sitting under a ~64px header.
+
+   Restoring the three declarations Bootstrap would have supplied is enough: the
+   JS is already present, so the menus open and Popper positions them exactly as
+   on the operator host. Scoped to the tenant shell so nothing else can be
+   caught by it; the same reasoning as the typeahead guard above.
+   --------------------------------------------------------------------------- */
+[data-rmc-app-shell-host="tenant"] .dropdown-menu {
+  position: absolute;
+  z-index: var(--bs-dropdown-zindex, 1000);
+  display: none;
+}
+
+[data-rmc-app-shell-host="tenant"] .dropdown-menu.show {
+  display: block;
+}
+
+[data-rmc-app-shell-host="tenant"] .dropdown-menu-end {
+  right: 0;
+  left: auto;
+}

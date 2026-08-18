@@ -49,9 +49,37 @@ _ADMIN_BASE = Path("templates/admin/base.html")
 _UTILITIES = Path("templates/components/rmc_tenant_header_utilities.html")
 
 _STATIC_RE = re.compile(r"""\{%\s*static\s+['"]([^'"]+\.css)['"]""")
+_ASSET_RE = re.compile(r"""\{%\s*static\s+['"]([^'"]+\.(?:css|js))['"]""")
 _IF_RE = re.compile(r"\{%\s*if\s+(.+?)\s*%\}")
 _ELSE_RE = re.compile(r"\{%\s*else\s*%\}")
 _ENDIF_RE = re.compile(r"\{%\s*endif\s*%\}")
+
+
+def _walk_branches(template: Path, pattern: re.Pattern) -> list[str]:
+    """Assets matched by ``pattern`` that survive when ``is_manager_host`` is falsey."""
+    found: list[str] = []
+    stack: list[bool] = []  # True while inside a manager-only branch
+    for raw in template.read_text(encoding="utf-8").splitlines():
+        if _ENDIF_RE.search(raw):
+            if stack:
+                stack.pop()
+            continue
+        if _ELSE_RE.search(raw) and stack:
+            stack[-1] = not stack[-1]
+            continue
+        match = _IF_RE.search(raw)
+        if match:
+            stack.append(match.group(1).strip() == "is_manager_host")
+            continue
+        if any(stack):
+            continue
+        found.extend(pattern.findall(raw))
+    return found
+
+
+def _tenant_reachable_assets(template: Path) -> list[str]:
+    """Both CSS and JS reachable on the tenant host — used to state the asymmetry."""
+    return _walk_branches(template, _ASSET_RE)
 
 
 def _tenant_reachable_stylesheets(template: Path) -> list[str]:
@@ -220,6 +248,83 @@ class TenantAdminUtilityClassesTests(SimpleTestCase):
             "vendor/bootstrap/css/bootstrap.min.css",
             source,
             "operator /admin/ lost its Bootstrap link",
+        )
+
+
+class ClosedDropdownsStayOutOfLayoutTests(SimpleTestCase):
+    """Bootstrap's dropdown contract is split across its JS and its CSS.
+
+    ``base_site.html`` loads ``vendor/bootstrap/js/bootstrap.bundle.min.js``
+    UNCONDITIONALLY but the matching CSS only when ``is_manager_host``. The JS
+    half toggles ``.show``; the CSS half is what holds a menu at
+    ``display:none; position:absolute`` until then. With only the JS present,
+    every ``.dropdown-menu`` on tenant ``/admin/`` rendered open AND static —
+    in normal flow.
+
+    Measured in Chromium on the rendered page before the fix:
+    ``#rmcTenantUtilitiesMenu`` was 410x608 and static, which inflated
+    ``.rmc-header-utilities`` -> ``.admin-nav-bridge__actions`` ->
+    ``.admin-nav-bridge__row`` -> ``.admin-nav-bridge``, setting the shell's
+    first grid track to **668px**. That was the tall empty band above the
+    header, and why the sidebar and canvas began at y=672 rather than under a
+    ~72px header. After the fix the same measurement reads 72px, and clicking
+    the trigger still yields ``display:block`` with ``.show`` applied.
+    """
+
+    def setUp(self):
+        self.sheets = _tenant_reachable_stylesheets(_BASE_SITE)
+        chunks = []
+        for rel in self.sheets:
+            path = Path("static") / rel
+            if path.exists():
+                chunks.append(path.read_text(encoding="utf-8", errors="ignore"))
+        self.css = _CSS_COMMENT.sub(" ", "\n".join(chunks))
+
+    def test_bootstrap_js_reaches_tenant_admin_while_its_css_does_not(self):
+        """The premise, stated as the asymmetry itself.
+
+        Uses the same branch-walking parser as the stylesheet check rather than
+        counting braces — ``base_site.html`` is full of unrelated ``{% if %}``
+        blocks, so a naive count misreads which guard a tag sits in.
+        """
+        assets = _tenant_reachable_assets(_BASE_SITE)
+        self.assertIn(
+            "vendor/bootstrap/js/bootstrap.bundle.min.js",
+            assets,
+            "Bootstrap JS no longer reaches tenant /admin/ — if BOTH halves are now "
+            "absent the dropdown contract is consistent again and this module should "
+            "be revisited rather than kept green",
+        )
+        self.assertNotIn(
+            "vendor/bootstrap/css/bootstrap.min.css",
+            assets,
+            "tenant /admin/ now loads Bootstrap CSS too, so the split that caused "
+            "this defect is closed at the source — revisit this module",
+        )
+
+    def test_a_closed_dropdown_is_hidden_on_tenant_admin(self):
+        self.assertRegex(
+            self.css,
+            r"\.dropdown-menu(?:\.[\w-]+|:not\([^)]*\))?\s*\{[^}]*display:\s*none",
+            "no rule keeps a closed .dropdown-menu out of the layout on tenant "
+            "/admin/, so every menu renders open and in normal flow",
+        )
+
+    def test_an_opened_dropdown_can_still_show(self):
+        """The fix must not make the Utilities button dead."""
+        self.assertRegex(
+            self.css,
+            r"\.dropdown-menu\.show\s*\{[^}]*display:\s*block",
+            "closed dropdowns are hidden but nothing re-shows them on .show, so "
+            "Bootstrap's JS would toggle a class with no visual effect",
+        )
+
+    def test_dropdowns_are_taken_out_of_flow(self):
+        self.assertRegex(
+            self.css,
+            r"\.dropdown-menu[^{]*\{[^}]*position:\s*absolute",
+            "a .dropdown-menu without position:absolute inflates its ancestors "
+            "even when it is only briefly open",
         )
 
 
