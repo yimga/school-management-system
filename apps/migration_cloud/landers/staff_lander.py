@@ -33,6 +33,7 @@ import re
 from typing import Any, Iterator
 
 from ._helpers import (
+    derive_external_id,
     detect_and_register_assets,
     get_or_create_named,
     mint_scoped_code,
@@ -102,6 +103,17 @@ class StaffLander(Lander):
                 last_name = last_name or ln
             email = (row.get("email") or "").strip()
             user_ref = (row.get("staff_user_ref") or "").strip()
+            # A teacher roster off a payroll sheet or a printed staff list carries
+            # no employee id. Derive a stable one so the row lands and re-applies
+            # idempotently, exactly as for students.
+            if not external_id and (first_name or last_name):
+                external_id = derive_external_id(
+                    first_name=first_name,
+                    last_name=last_name,
+                    date_of_birth=row.get("date_of_birth"),
+                    place_of_birth=row.get("place_of_birth"),
+                    prefix="auto-staff",
+                )
             if not external_id or not (first_name or last_name or user_ref or email):
                 result.quarantined += 1
                 result.errors.append(f"Missing required staff fields in row {row!r}")

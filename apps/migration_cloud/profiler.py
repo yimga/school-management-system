@@ -48,12 +48,16 @@ it has and the classifier sees the partial profile.
 from __future__ import annotations
 
 import csv
+import hashlib
 import io
 import json
 import logging
 import re
+import tarfile
 import unicodedata
+import zipfile
 from collections import Counter
+from pathlib import PurePosixPath
 from typing import IO, Any, Iterable
 
 from django.db import transaction
@@ -83,6 +87,208 @@ _PII_NAME_HINTS = (
 )
 
 
+_PROFILER_REASON_MAX = 400  # magic-number-allow: quarantine-reason-detail-cap-chars
+
+# Parser exceptions are structural ("File is not a zip file", "Bad magic number"),
+# so the operator-facing hint below turns them into something a school can act on
+# without needing the traceback.
+_PROFILER_HINTS = (
+    ("not a zip file", "This file is not a valid archive — it may have been renamed to .zip, or the download was truncated. Re-export it, or upload the CSV/Excel files directly."),
+    ("bad magic number", "The file is corrupt or incomplete — re-download it from the source system and upload again."),
+    ("encrypted", "This file is password-protected. Remove the password and upload it again."),
+    ("password", "This file is password-protected. Remove the password and upload it again."),
+    ("no such file", "The uploaded file could not be read back from storage — please upload it again."),
+)
+
+
+def _profiler_failure_reason(exc: Exception) -> str:
+    """Operator-readable quarantine reason for a file the profiler could not read.
+
+    Keeps the machine-readable ``profiler_error`` prefix (nothing else in the tree
+    matches on it, but callers may) and appends the real cause plus, where the
+    message is recognisable, a plain-language next step.
+    """
+    detail = " ".join(str(exc).split())[:_PROFILER_REASON_MAX]
+    label = f"profiler_error: {type(exc).__name__}"
+    if detail:
+        label = f"{label}: {detail}"
+    lowered = detail.casefold()
+    for needle, hint in _PROFILER_HINTS:
+        if needle in lowered:
+            return f"{label} — {hint}"
+    return label
+
+
+# --------------------------------------------------------------------------- #
+# Archive expansion (every intake method, not just the ARCHIVE adapter)
+# --------------------------------------------------------------------------- #
+# A school's most natural way to send its data is one .zip of its exports. That
+# only ever worked through the dedicated ARCHIVE intake adapter: on the ordinary
+# file-upload path the zip was registered as a single opaque artifact,
+# _sniff_format returned ARCHIVE ("handled by archive_intake" -- which never runs
+# on that path), no reader matched it, and it quarantined. ``has_workable`` then
+# EXCLUDES archive artifacts, so the bundle failed "No workable artifacts after
+# profiling" and the upload could never succeed. Expanding here closes that hole
+# for every intake method at once.
+#
+# This reads operator-supplied bytes, so the caps below are load-bearing rather
+# than decorative: an unbounded expander turns a small upload into an unbounded
+# write (zip bomb), and member names are attacker-controlled input.
+_ARCHIVE_MAX_MEMBERS = 2000  # magic-number-allow: archive-expansion-member-cap
+_ARCHIVE_MAX_MEMBER_BYTES = 256 * 1024 * 1024  # magic-number-allow: archive-expansion-per-member-cap
+_ARCHIVE_MAX_TOTAL_BYTES = 1024 * 1024 * 1024  # magic-number-allow: archive-expansion-total-cap
+_TAR_SUFFIXES = (".tar", ".tar.gz", ".tgz", ".tar.bz2", ".tbz", ".tar.xz")
+
+
+class _ArchiveMemberPayload:
+    """Payload adapter for :func:`artifact_blob_store.capture_artifact_blob`.
+
+    That function takes an ingest *payload* and calls ``payload.content_opener()``
+    for a fresh stream -- it does NOT accept raw bytes, and handed bytes it quietly
+    records the artifact as "no content stream" and captures nothing. An archive
+    member is already in memory, so this wraps it in the same shape the intake
+    adapters present.
+    """
+
+    __slots__ = ("_data",)
+
+    def __init__(self, data: bytes) -> None:
+        self._data = data
+
+    def content_opener(self):
+        return io.BytesIO(self._data)
+
+
+def _is_safe_archive_member(name: str) -> bool:
+    """Reject directory entries and any name that escapes the archive root.
+
+    Member names come from an uploaded file, so ``../../secrets`` and absolute
+    paths are untrusted input even when the uploader is. The name is only ever
+    stored (never used to open a path), but a traversal name would still let one
+    archive's member masquerade as another bundle's on ``path_within_bundle``.
+    """
+    if not name or name.endswith("/"):
+        return False
+    pure = PurePosixPath(name.replace("\\", "/"))
+    if pure.is_absolute():
+        return False
+    return not any(part == ".." for part in pure.parts)
+
+
+def _iter_archive_members(stream, filename):
+    """Yield ``(member_name, bytes)`` for a zip/tar, honouring the safety caps.
+
+    Encrypted members and unsupported archive types raise; the caller turns that
+    into a real operator-facing reason via ``_profiler_failure_reason``.
+    """
+    data = stream.read()
+    total = 0
+
+    if zipfile.is_zipfile(io.BytesIO(data)):
+        with zipfile.ZipFile(io.BytesIO(data)) as zf:
+            for info in zf.infolist()[:_ARCHIVE_MAX_MEMBERS]:
+                if info.is_dir() or not _is_safe_archive_member(info.filename):
+                    continue
+                if info.file_size > _ARCHIVE_MAX_MEMBER_BYTES:
+                    continue
+                total += info.file_size
+                if total > _ARCHIVE_MAX_TOTAL_BYTES:
+                    break
+                yield info.filename, zf.read(info)
+        return
+
+    if (filename or "").lower().endswith(_TAR_SUFFIXES):
+        with tarfile.open(fileobj=io.BytesIO(data)) as tf:
+            for count, member in enumerate(tf):
+                if count >= _ARCHIVE_MAX_MEMBERS:
+                    break
+                if not member.isfile() or not _is_safe_archive_member(member.name):
+                    continue
+                if member.size > _ARCHIVE_MAX_MEMBER_BYTES:
+                    continue
+                total += member.size
+                if total > _ARCHIVE_MAX_TOTAL_BYTES:
+                    break
+                handle = tf.extractfile(member)
+                if handle is not None:
+                    yield member.name, handle.read()
+        return
+
+    raise ValueError("Unsupported archive type - upload the CSV/Excel files directly.")
+
+
+def expand_archive_artifacts(bundle: MigrationBundle) -> int:
+    """Register each member of an uploaded archive as its own child artifact.
+
+    Idempotent: an archive that already has children is skipped, and a duplicate
+    member on a re-run is swallowed rather than duplicated. Returns the number of
+    child artifacts created.
+    """
+    from .artifact_blob_store import capture_artifact_blob
+
+    created = 0
+    for artifact in bundle.artifacts.filter(quarantined=False).order_by("id"):
+        if artifact.profile or artifact.children.exists():
+            continue
+        stream, _encoding = _resolve_stream(artifact)
+        if stream is None:
+            continue
+        members = []
+        try:
+            if _sniff_format(artifact, [], []) != ArtifactFormat.ARCHIVE:
+                continue
+            members = list(_iter_archive_members(stream, artifact.filename))
+        except Exception as exc:  # noqa: BLE001 - a bad archive must not block the bundle
+            logger.exception(
+                "migration_cloud.profiler: failed to expand archive artifact %s",
+                artifact.pk,
+            )
+            artifact.quarantined = True
+            artifact.quarantine_reason = _profiler_failure_reason(exc)
+            artifact.detected_format = ArtifactFormat.ARCHIVE
+            artifact.save(
+                update_fields=[
+                    "quarantined",
+                    "quarantine_reason",
+                    "detected_format",
+                    "updated_at",
+                ]
+            )
+            continue
+        finally:
+            try:
+                stream.close()
+            except Exception:  # noqa: BLE001
+                pass
+
+        for name, payload in members:
+            try:
+                with transaction.atomic():
+                    child = MigrationArtifact.objects.create(
+                        bundle=bundle,
+                        parent_archive=artifact,
+                        path_within_bundle=(
+                            artifact.path_within_bundle + "/" + name
+                        ),
+                        filename=PurePosixPath(name).name,
+                        byte_size=len(payload),
+                        sha256=hashlib.sha256(payload).hexdigest(),
+                        locale_hints={},
+                        profile={},
+                    )
+            except Exception:  # noqa: BLE001 - duplicate member on a re-run
+                continue
+            capture_artifact_blob(child, _ArchiveMemberPayload(payload))
+            created += 1
+
+        # The archive is a container, not a data file: stamp the format so
+        # ``has_workable`` keeps excluding it, and leave it UNquarantined so the
+        # bundle is judged on its children.
+        artifact.detected_format = ArtifactFormat.ARCHIVE
+        artifact.save(update_fields=["detected_format", "updated_at"])
+    return created
+
+
 def profile_bundle(bundle: MigrationBundle) -> int:
     """Profile every un-profiled artifact in a bundle. Returns count profiled.
 
@@ -90,6 +296,10 @@ def profile_bundle(bundle: MigrationBundle) -> int:
     non-empty) are skipped. To re-profile, clear the profile and call again.
     Transitions the bundle status to PROFILED when all artifacts have a profile.
     """
+    # Expand any uploaded archive into real child artifacts BEFORE profiling,
+    # so members are profiled by the ordinary loop below on every intake method.
+    expand_archive_artifacts(bundle)
+
     candidates = bundle.artifacts.filter(quarantined=False).order_by("id")
     profiled = 0
     for artifact in candidates:
@@ -98,12 +308,20 @@ def profile_bundle(bundle: MigrationBundle) -> int:
         try:
             with transaction.atomic():
                 _profile_one(artifact)
-        except Exception:  # noqa: BLE001 — never let one artifact block the bundle
+        except Exception as exc:  # noqa: BLE001 — never let one artifact block the bundle
             logger.exception(
                 "migration_cloud.profiler: failed to profile artifact %s", artifact.pk
             )
             artifact.quarantined = True
-            artifact.quarantine_reason = "profiler_error"
+            # Record WHY, not just THAT. This reason is the operator's only
+            # explanation on the review page: a bare "profiler_error" told a
+            # school its upload had failed while withholding the one fact that
+            # would let them fix it (a renamed .zip, a password-protected
+            # workbook, a truncated download all look identical). The stable
+            # ``profiler_error`` prefix is kept so anything matching on it still
+            # does; the cause is appended, bounded so a pathological parser
+            # message cannot bloat the row.
+            artifact.quarantine_reason = _profiler_failure_reason(exc)
             artifact.save(update_fields=["quarantined", "quarantine_reason", "updated_at"])
             continue
         profiled += 1
