@@ -95,6 +95,7 @@ from .views_sync_center import (
     sync_now,
     sync_request_resync,
 )
+from .views_school_region_settings import school_region_settings
 from .views_school_theme import school_theme_settings
 from .views_theme_experience_hub import theme_experience_hub
 from .views_theme_builder import (
@@ -325,6 +326,7 @@ urlpatterns = [
     ),
     path("grading-settings/", grading_settings, name="grading_settings"),
     path("currency-settings/", currency_settings, name="currency_settings"),
+    path("school-region-settings/", school_region_settings, name="school_region_settings"),
     path(
         "grading-scales/bands/",
         grading_scale_bands_operator_view,

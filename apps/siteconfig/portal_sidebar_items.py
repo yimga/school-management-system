@@ -1601,6 +1601,18 @@ def build_portal_sidebar_items(request, site):
                         "badge": None,
                     }
                 )
+            _srs_url = _safe_reverse("siteconfig:school_region_settings")
+            if _srs_url:
+                items.append(
+                    {
+                        "id": "school_region_settings",
+                        "label": "School & region",
+                        "url": _srs_url,
+                        "icon": "bi-geo-alt",
+                        "section": "Configuration",
+                        "badge": None,
+                    }
+                )
         if is_superuser and not in_backend:
             site_pk = getattr(site, "pk", 1)
             from apps.siteconfig.staff_navigation import site_settings_change_url

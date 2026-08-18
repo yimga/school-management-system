@@ -1,5 +1,19 @@
 # RunMyCampus autonomous execution log
 
+## Slice — School & region tenant editor (batch 1797 - 2026-08-18)
+
+**A. Scope:** Clean leftover dirty trees. Land the only product files not already on `origin/main`. Do not commit stale copies that would regress telemetry / quiet-header.
+
+**B. Shipped:** Tenant School & region settings editor (`siteconfig:school_region_settings`) wired to URL, sidebar, command bar, and grading-settings cross-link; i18n catalog +31.
+
+**C. Proof:** sqlite-memory **5/5 OK**; template-render-safety 0; tenant-queryset `--compare` clean.
+
+**D. Honest:** Cursor checkout was 165 behind with duplicate MC ingest commits already on main. Restored line-ending-only login files. Left edge-runbook i18n labels (known 1791 leftover).
+
+**E. Files:** `views_school_region_settings.py`, test, template, `urls.py`, `portal_sidebar_items.py`, `command_bar_registry.py`, `views_console_domains.py`, `grading_settings.html`, locale catalogs, SOT/log.
+
+**F. Next:** Open `/siteconfig/school-region-settings/` as a tenant admin and save education system / timezone; confirm Setup Studio registry alignment clears.
+
 ## Slice — Sync Center validation audit (batch 1796 - 2026-08-18)
 
 **A. Scope:** Adversarial validation of Sync Center live status + Sync now enqueue. Fix every gap/discrepancy found by running the path, not by rereading the claim.

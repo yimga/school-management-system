@@ -64117,3 +64117,105 @@ msgstr ""
 
 msgid "{{ total }} subject{% plural %}{{ total }} subjects"
 msgstr ""
+
+msgid "Additional education-system types (optional)"
+msgstr ""
+
+msgid "Calendar used for terms, holidays, and reports."
+msgstr ""
+
+msgid "Combined-name split options previewed against your data"
+msgstr ""
+
+msgid ""
+"Curriculum, delivery, or pedagogy types this school offers (in addition to "
+"the sector above)."
+msgstr ""
+
+msgid "Default interface language for this school."
+msgstr ""
+
+msgid "For bilingual countries: the anglophone / francophone sub-system."
+msgstr ""
+
+msgid "How should combined names be split?"
+msgstr ""
+
+msgid "Language sub-system"
+msgstr ""
+
+msgid "Middle"
+msgstr ""
+
+msgid "No options seeded yet"
+msgstr ""
+
+msgid ""
+"Only valid registry options are accepted; policy-locked settings are left "
+"unchanged."
+msgstr ""
+
+msgid "Option"
+msgstr ""
+
+msgid "Preview from your file"
+msgstr ""
+
+msgid "Region / subdivision"
+msgstr ""
+
+msgid "Save settings"
+msgstr ""
+
+msgid "School & region"
+msgstr ""
+
+msgid "School & region settings"
+msgstr ""
+
+msgid "School & region settings updated."
+msgstr ""
+
+msgid "Select a school (use your school subdomain) to manage its settings."
+msgstr ""
+
+msgid "Some settings are managed by policy and were not changed: %(keys)s"
+msgstr ""
+
+msgid "State, region, or province within your country."
+msgstr ""
+
+msgid "The currency for fees, invoices, and statements."
+msgstr ""
+
+msgid "The grading scale used on report cards and evaluations."
+msgstr ""
+
+msgid "The kind of institution (school, college, academy…)."
+msgstr ""
+
+msgid ""
+"This import stopped responding before it finished — it was interrupted, not "
+"rejected. Use Repair below to resume it safely."
+msgstr ""
+
+msgid "Used for schedules, attendance, and timestamps."
+msgstr ""
+
+msgid "You do not have permission to change school & region settings."
+msgstr ""
+
+msgid ""
+"Your file has one name column. Pick the reading that matches your records — "
+"the preview uses real names from your own upload, so you can confirm before "
+"importing."
+msgstr ""
+
+msgid "Your school's country. Drives regional defaults."
+msgstr ""
+
+msgid "Your school's sector — Public, Private, International, and so on."
+msgstr ""
+
+msgid "— Not set —"
+msgstr ""

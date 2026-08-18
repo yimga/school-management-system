@@ -150,6 +150,7 @@ CONSOLE_DOMAINS = [
         "name": "Global registries",
         "outcome": "Region, grading, calendar",
         "links": [
+            ("School & region settings", "siteconfig:school_region_settings"),
             ("Grading settings", "siteconfig:grading_settings"),
             (
                 "Grading scale bands (tenant DB)",

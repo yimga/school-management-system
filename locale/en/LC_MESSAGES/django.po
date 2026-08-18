@@ -70534,3 +70534,114 @@ msgstr ""
 
 msgid "{{ total }} subject{% plural %}{{ total }} subjects"
 msgstr "{{ total }} subject{% plural %}{{ total }} subjects"
+
+msgid "Additional education-system types (optional)"
+msgstr "Additional education-system types (optional)"
+
+msgid "Calendar used for terms, holidays, and reports."
+msgstr "Calendar used for terms, holidays, and reports."
+
+msgid "Combined-name split options previewed against your data"
+msgstr "Combined-name split options previewed against your data"
+
+msgid ""
+"Curriculum, delivery, or pedagogy types this school offers (in addition to "
+"the sector above)."
+msgstr ""
+"Curriculum, delivery, or pedagogy types this school offers (in addition to "
+"the sector above)."
+
+msgid "Default interface language for this school."
+msgstr "Default interface language for this school."
+
+msgid "For bilingual countries: the anglophone / francophone sub-system."
+msgstr "For bilingual countries: the anglophone / francophone sub-system."
+
+msgid "How should combined names be split?"
+msgstr "How should combined names be split?"
+
+msgid "Language sub-system"
+msgstr "Language sub-system"
+
+msgid "Middle"
+msgstr "Middle"
+
+msgid "No options seeded yet"
+msgstr "No options seeded yet"
+
+msgid ""
+"Only valid registry options are accepted; policy-locked settings are left "
+"unchanged."
+msgstr ""
+"Only valid registry options are accepted; policy-locked settings are left "
+"unchanged."
+
+msgid "Option"
+msgstr "Option"
+
+msgid "Preview from your file"
+msgstr "Preview from your file"
+
+msgid "Region / subdivision"
+msgstr "Region / subdivision"
+
+msgid "Save settings"
+msgstr "Save settings"
+
+msgid "School & region"
+msgstr "School & region"
+
+msgid "School & region settings"
+msgstr "School & region settings"
+
+msgid "School & region settings updated."
+msgstr "School & region settings updated."
+
+msgid "Select a school (use your school subdomain) to manage its settings."
+msgstr "Select a school (use your school subdomain) to manage its settings."
+
+msgid "Some settings are managed by policy and were not changed: %(keys)s"
+msgstr "Some settings are managed by policy and were not changed: %(keys)s"
+
+msgid "State, region, or province within your country."
+msgstr "State, region, or province within your country."
+
+msgid "The currency for fees, invoices, and statements."
+msgstr "The currency for fees, invoices, and statements."
+
+msgid "The grading scale used on report cards and evaluations."
+msgstr "The grading scale used on report cards and evaluations."
+
+msgid "The kind of institution (school, college, academy…)."
+msgstr "The kind of institution (school, college, academy…)."
+
+msgid ""
+"This import stopped responding before it finished — it was interrupted, not "
+"rejected. Use Repair below to resume it safely."
+msgstr ""
+"This import stopped responding before it finished — it was interrupted, not "
+"rejected. Use Repair below to resume it safely."
+
+msgid "Used for schedules, attendance, and timestamps."
+msgstr "Used for schedules, attendance, and timestamps."
+
+msgid "You do not have permission to change school & region settings."
+msgstr "You do not have permission to change school & region settings."
+
+msgid ""
+"Your file has one name column. Pick the reading that matches your records — "
+"the preview uses real names from your own upload, so you can confirm before "
+"importing."
+msgstr ""
+"Your file has one name column. Pick the reading that matches your records — "
+"the preview uses real names from your own upload, so you can confirm before "
+"importing."
+
+msgid "Your school's country. Drives regional defaults."
+msgstr "Your school's country. Drives regional defaults."
+
+msgid "Your school's sector — Public, Private, International, and so on."
+msgstr "Your school's sector — Public, Private, International, and so on."
+
+msgid "— Not set —"
+msgstr "— Not set —"
