@@ -1,5 +1,19 @@
 # RunMyCampus autonomous execution log
 
+## Slice — Workflow telemetry engine on existing spine (batch 1793 - 2026-08-17)
+
+**A. Scope:** Stream record-level percent + logs for migration, timetable solver, EOY rollover, and tenant inventory procurement — on `WorkflowRun` + Channels + SSE, not a greenfield task table.
+
+**B. Shipped:** Telemetry service (Decimal, log cap 10, school-scoped room); listen-only consumer; four job wires; page canvas (tokens, `{% trans %}`, `textContent`); SSE `rmc:workflow-progress` fan-out; Celery explicit-task denylist for rollover + solver + procurement scan; HTTP timetable generate and inventory scan enqueue so the same-tab canvas can paint; proposal apply stays on the detail page; sync rollover hold-submit; SW `sms-v4.06.51-workflow-telemetry-2026-08-17`. Also fixed `_try_ai_diagnosis` class-body `NameError` so smoke can pass the unknown-error path.
+
+**C. Proof:** sqlite-memory **16/16 OK**; timetable generate HTTP test OK; `WORKFLOW_TELEMETRY_COVERAGE_PASS` (17 sites); `WORKFLOW_PROGRESS_10X_PASS`; undefined-css 0; inline-style 0; inline-handlers 0; template safety 0; page-fold 42/42.
+
+**D. Honest:** Same-tab live bar needs a Channels layer; sync `rollover_year` still runs in the request (hold-submit keeps the page mounted — gunicorn + daphne can paint, a single ASGI loop cannot). i18n catalog `--compare` already missing prior chrome strings. Paste manifesto (`.cursorrules`, Shadow DOM, localhost WS) rejected.
+
+**E. Files:** `workflow_telemetry.py`, consumers/routing, rollover/timetable/migration/procurement, canvas template/CSS/JS, tests + verifier, SW + baseline, SOT/log.
+
+**F. Next:** Hard-refresh rollover / timetable / inventory / migration pages with Celery worker + Channels Redis up; start a generate/scan/apply and watch the canvas on the same tab.
+
 ## Slice — Quiet-header approval v2 100% contract (batch 1792 - 2026-08-17)
 
 **A. Scope:** Finish every remaining row in `docs/generated/platform-clean-header-approval-v2.html` on live tenant, operator, tenant `/admin/`, and Studio (via `portal_base`).

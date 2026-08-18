@@ -708,6 +708,31 @@ def sweep_low_inventory_stock() -> dict[str, Any]:
         return summary
 
 
+@shared_task(name="schoolops.run_procurement_scan")
+def run_procurement_scan_task(school_id: int) -> dict[str, Any]:
+    """School-scoped reorder scan with live workflow telemetry."""
+    from apps.schools.celery_tasks import _run_with_tenant_context
+
+    def _run() -> dict[str, Any]:
+        from apps.schoolops.procurement_loop import run_school_procurement_scan
+        from apps.schools.models import School
+
+        school = School.objects.filter(pk=school_id).first()
+        if school is None:
+            return {"ok": False, "error": "school_not_found", "scanned": 0, "low": 0}
+        return run_school_procurement_scan(school)
+
+    try:
+        return _run_with_tenant_context(school_id=str(school_id), runnable=_run) or {}
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(
+            "schoolops.run_procurement_scan tenant_context_failed school=%s err=%s",
+            school_id,
+            type(exc).__name__,
+        )
+        return _run()
+
+
 @shared_task(name="schoolops.deliver_notification_intent")
 def deliver_notification_intent_task(
     *,

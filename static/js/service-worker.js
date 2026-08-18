@@ -210,7 +210,9 @@
 // v4.06.41: login canvas parity cache-bust; releases the stale two-row metric
 // layout that could leave Portal and Support below the locked viewport.
 // v4.06.48: onboarding strands + code prefix + provision log on live signup.
-const CACHE_VERSION = "sms-v4.06.50-quiet-header-v2-complete-2026-08-17";
+// v4.06.51: record-level workflow telemetry canvas (rollover, timetable,
+// migration, inventory) over existing WorkflowRun + Channels rooms.
+const CACHE_VERSION = "sms-v4.06.51-workflow-telemetry-2026-08-17";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 

@@ -81,6 +81,9 @@ _EXPLICIT_CELERY_TASKS = frozenset(
         "finance.auto_generate_fee_invoices",
         "finance.auto_copy_fee_plans",
         "marketplace.webhook_deliver_due",
+        "accounts.apply_rollover_proposal",
+        "academics.run_scheduling_solver",
+        "schoolops.run_procurement_scan",
     }
 )
 

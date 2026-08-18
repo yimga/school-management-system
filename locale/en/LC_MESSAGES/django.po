@@ -69672,3 +69672,41 @@ msgstr "✓ Completed"
 
 msgid "✗ Failed"
 msgstr "✗ Failed"
+
+# templates/components/rmc_workflow_progress_canvas.html
+msgid "Migration pipeline progress"
+msgstr "Migration pipeline progress"
+
+msgid "Timetable generation progress"
+msgstr "Timetable generation progress"
+
+msgid "Year-end rollover progress"
+msgstr "Year-end rollover progress"
+
+msgid "Inventory reorder scan progress"
+msgstr "Inventory reorder scan progress"
+
+msgid "Workflow progress"
+msgstr "Workflow progress"
+
+msgid "Start a job on this page, or keep this tab open while a background job runs, to watch percent, counts, and logs."
+msgstr "Start a job on this page, or keep this tab open while a background job runs, to watch percent, counts, and logs."
+
+# templates/schoolops/ops_inventory.html + apps/schoolops/views_tenant_ops.py
+msgid "Scan reorder levels"
+msgstr "Scan reorder levels"
+
+msgid "Could not run the reorder scan."
+msgstr "Could not run the reorder scan."
+
+msgid "Reorder scan started. Watch live progress on this page."
+msgstr "Reorder scan started. Watch live progress on this page."
+
+msgid "Timetable generation started. Watch live progress on this page."
+msgstr "Timetable generation started. Watch live progress on this page."
+
+msgid "Timetable generation failed. Check assignments, rooms, and time slots."
+msgstr "Timetable generation failed. Check assignments, rooms, and time slots."
+
+msgid "Reorder scan finished: %(scanned)s items checked, %(low)s at or below reorder level."
+msgstr "Reorder scan finished: %(scanned)s items checked, %(low)s at or below reorder level."

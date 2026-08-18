@@ -18,6 +18,8 @@
     <h1 class="rmc-h1">{% trans "Pipeline progress" %}</h1>
   </header>
 
+  {% include "components/rmc_workflow_progress_canvas.html" with workflow_key="migration_bundle_apply" task_type="MIGRATION_INGESTION" %}
+
   {% if degraded_status %}
   {% comment %}v3.17 (2026-05-17) — fallback surface engaged. The snapshot
      computation raised; the view's `with_progress_fallback` decorator

@@ -1,12 +1,12 @@
 {
   "date": "2026-08-17",
-  "generated_at": "2026-08-17T11:40:00+00:00",
+  "generated_at": "2026-08-17T23:20:00+00:00",
   "major": 4,
   "minor": 6,
-  "patch": 50,
-  "raw": "sms-v4.06.50-quiet-header-v2-complete-2026-08-17",
+  "patch": 51,
+  "raw": "sms-v4.06.51-workflow-telemetry-2026-08-17",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "quiet-header-v2-complete",
+  "slug": "workflow-telemetry",
   "valid": true
 }

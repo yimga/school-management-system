@@ -16,6 +16,7 @@
       <button type="submit" class="btn btn-primary btn-sm">{% trans "Generate timetable" %}</button>
     </form>
   </div>
+  {% include "components/rmc_workflow_progress_canvas.html" with workflow_key="academics-timetable-generate" task_type="TIMETABLE_SOLVER" %}
   <p class="small text-muted">{% trans "Draft and published master schedules. Generate a conflict-free draft, review clashes, then publish — teachers only ever see the published schedule." %}</p>
   <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1">
     <caption class="visually-hidden">{% trans "Timetabling" %} — {{ school.name }}</caption>

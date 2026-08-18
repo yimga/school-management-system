@@ -64,6 +64,8 @@
     </div>
   </div>
 
+  {% include "components/rmc_workflow_progress_canvas.html" with workflow_key="accounts-rollover" task_type="EOY_ROLLOVER" %}
+
   {% if source_year and target_year %}
   {% if checklist %}
   <div class="card shadow-sm mb-3 border-info">
@@ -88,7 +90,7 @@
     </div>
   </div>
   {% endif %}
-  <form method="post" action="">
+  <form method="post" action="" data-rmc-wfp-hold="1">
     {% csrf_token %}
     <input type="hidden" name="source_year" value="{{ source_year.id }}">
     <input type="hidden" name="target_year" value="{{ target_year.id }}">

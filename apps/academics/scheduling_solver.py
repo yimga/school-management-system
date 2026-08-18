@@ -68,6 +68,7 @@ def generate_timetable_with_solver(
     term,
     created_by,
     use_ortools: bool = True,
+    on_progress=None,
 ) -> Schedule:
     """
     Generate a timetable.
@@ -82,7 +83,9 @@ def generate_timetable_with_solver(
     try:
         if use_ortools and _ortools_available():
             # Build a minimal CP-SAT model: assign (classroom, subject) to (room, slot) with no conflicts.
-            schedule = _solve_with_ortools(academic_year, term, created_by)
+            schedule = _solve_with_ortools(
+                academic_year, term, created_by, on_progress=on_progress
+            )
             if schedule is not None:
                 return schedule
         elif use_ortools:
@@ -98,10 +101,12 @@ def generate_timetable_with_solver(
             "using TimetableGenerator (CSP)."
         )
     gen = TimetableGenerator(academic_year=academic_year, term=term)
-    return gen.generate_schedule(created_by=created_by)
+    return gen.generate_schedule(created_by=created_by, on_progress=on_progress)
 
 
-def _solve_with_ortools(academic_year, term, created_by) -> Optional[Schedule]:
+def _solve_with_ortools(
+    academic_year, term, created_by, *, on_progress=None
+) -> Optional[Schedule]:
     """Use OR-Tools CP-SAT to assign classes to (room, time_slot). Returns Schedule or None.
 
     Only callable when ortools is installed. ``generate_timetable_with_solver``
@@ -156,6 +161,14 @@ def _solve_with_ortools(academic_year, term, created_by) -> Optional[Schedule]:
 
     if not demands:
         return None
+
+    def _pulse(processed: int, expected: int, message: str) -> None:
+        if on_progress is None:
+            return
+        try:
+            on_progress(processed, expected, message)
+        except Exception:  # noqa: BLE001 — progress is best-effort
+            pass
 
     cp_model = __import__(
         "ortools.sat.python.cp_model", fromlist=["cp_model"]
@@ -272,9 +285,12 @@ def _solve_with_ortools(academic_year, term, created_by) -> Optional[Schedule]:
     if preference_terms:
         model.Maximize(sum(preference_terms))
 
+    expected_units = num_demands + 2
+    _pulse(1, expected_units, "Loaded timetable demands")
     solver = cp_model.CpSolver()
     solver.parameters.max_time_in_seconds = 30.0
     status = solver.Solve(model)
+    _pulse(2, expected_units, "Constraint solver finished")
 
     logger.info(
         "cp_sat_solver_run status=%s demands=%d slots=%d rooms=%d "
@@ -317,4 +333,9 @@ def _solve_with_ortools(academic_year, term, created_by) -> Optional[Schedule]:
             else:
                 continue
             break
+        _pulse(
+            d + 3,
+            expected_units,
+            f"Placed demand {d + 1} of {num_demands}",
+        )
     return schedule

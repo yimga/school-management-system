@@ -365,8 +365,14 @@ import apps.schools.super_views_provisioning as provisioning
 
 expect("T9.1 oneroster classes_bulk_post wrapped", getattr(orw1.classes_bulk_post, "__wrapped__", None) is not None)
 expect("T9.2 oneroster enrollments_bulk_post wrapped", getattr(orw1.enrollments_bulk_post, "__wrapped__", None) is not None)
-expect("T9.3 oneroster staff_delta wrapped", getattr(orw1.staff_delta, "__wrapped__", None) is not None)
-expect("T9.4 oneroster demographics_delta wrapped", getattr(orw1.demographics_delta, "__wrapped__", None) is not None)
+expect(
+    "T9.3 oneroster staff_delta retired",
+    not hasattr(orw1, "staff_delta"),
+)
+expect(
+    "T9.4 oneroster demographics_delta retired",
+    not hasattr(orw1, "demographics_delta"),
+)
 expect("T9.5 LMS dispatcher.call exists", callable(getattr(dispatcher, "call", None)))
 expect("T9.6 schools api_create_school wrapped", getattr(provisioning.api_create_school, "__wrapped__", None) is not None)
 

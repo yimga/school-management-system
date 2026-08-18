@@ -572,3 +572,109 @@ body[data-rmc-assist-dock="mounted"] .rmc-wfp-card {
     transition: none;
   }
 }
+
+/* ───── Page-local telemetry canvas (centered, token-only) ───── */
+.rmc-wfp-canvas {
+  margin: 0 0 1.25rem;
+}
+
+.rmc-wfp-canvas__shell {
+  max-width: 48rem;
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.rmc-wfp-canvas__card {
+  background: var(--surface-elevated, var(--surface-bg));
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-xl, 1rem);
+  padding: 1.5rem;
+  box-shadow: var(--elev-1, 0 1px 3px rgba(0, 0, 0, 0.05));
+}
+
+.rmc-wfp-canvas__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.rmc-wfp-canvas__title {
+  margin: 0;
+  font-size: var(--type-size-lg, 1.125rem);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.rmc-wfp-canvas__pct {
+  color: var(--brand-accent, var(--text-primary));
+  font-size: var(--type-size-lg, 1.125rem);
+}
+
+.rmc-wfp-canvas__track {
+  background: var(--surface-muted, var(--hairline));
+  border-radius: 999px;
+  height: 0.75rem;
+  width: 100%;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.rmc-wfp-canvas__fill {
+  background: var(--brand-accent, var(--text-primary));
+  width: 0%;
+  height: 100%;
+  border-radius: 999px;
+  transition: width var(--motion-fast, 150ms) var(--ease-standard, ease-out);
+}
+
+.rmc-wfp-canvas__terminal {
+  background: var(--surface-canvas, var(--surface-bg));
+  color: var(--text-secondary);
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  padding: 1rem;
+  border-radius: var(--radius-lg, 0.5rem);
+  border: 1px solid var(--hairline);
+  font-size: var(--type-size-xs, 0.75rem);
+  height: 7.5rem;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.rmc-wfp-canvas__log-line {
+  margin: 0 0 0.25rem;
+  color: var(--text-primary);
+}
+
+.rmc-wfp-canvas__empty {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.rmc-wfp-canvas__stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  font-size: var(--type-size-sm, 0.875rem);
+  color: var(--text-secondary);
+  border-top: 1px solid var(--hairline);
+  padding-top: 0.875rem;
+  margin-top: 0.875rem;
+}
+
+.rmc-wfp-canvas__stat {
+  color: var(--text-secondary);
+}
+
+.rmc-wfp-canvas__stat--end {
+  text-align: end;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rmc-wfp-canvas__fill {
+    transition: none;
+  }
+}

@@ -26,6 +26,7 @@
         Proposals prepared for year-end rollover. Open a proposal to review suggested classes, override if needed, then Approve and Apply.
       </p>
       <a href="{% url 'accounts:rollover_year' %}" class="btn btn-outline-primary mb-3">{% trans "Back to rollover" %}</a>
+      {% include "components/rmc_workflow_progress_canvas.html" with workflow_key="accounts-rollover" task_type="EOY_ROLLOVER" %}
       <div class="table-responsive">
         <table class="table table-sm table-hover mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
           <caption class="visually-hidden">{% trans "Rollover queue" %}</caption>

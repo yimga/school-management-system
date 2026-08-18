@@ -1,0 +1,48 @@
+{% load i18n %}
+{% comment %}
+  Page-local record-level progress canvas. Distinct from rmc_workflow_progress_strip
+  (tools-tray only). Filters live frames by workflow_key and/or task_type.
+{% endcomment %}
+<section
+  class="rmc-wfp-canvas"
+  data-rmc-wfp-canvas="1"
+  data-rmc-workflow-key="{{ workflow_key|default:'' }}"
+  data-rmc-workflow-task="{{ task_type|default:'' }}"
+  data-rmc-scroll-policy="paginate"
+  aria-live="polite"
+>
+  <div class="rmc-wfp-canvas__shell">
+    <div class="rmc-wfp-canvas__card">
+      <div class="rmc-wfp-canvas__header">
+        <h2 class="rmc-wfp-canvas__title">
+          {% if task_type == "MIGRATION_INGESTION" %}
+            {% trans "Migration pipeline progress" %}
+          {% elif task_type == "TIMETABLE_SOLVER" %}
+            {% trans "Timetable generation progress" %}
+          {% elif task_type == "EOY_ROLLOVER" %}
+            {% trans "Year-end rollover progress" %}
+          {% elif task_type == "PROCUREMENT_LOOP" %}
+            {% trans "Inventory reorder scan progress" %}
+          {% else %}
+            {% trans "Workflow progress" %}
+          {% endif %}
+        </h2>
+        <strong class="rmc-wfp-canvas__pct" data-rmc-wfp-pct>0.00%</strong>
+      </div>
+      <div class="rmc-wfp-canvas__track" aria-hidden="true">
+        <div class="rmc-wfp-canvas__fill" data-rmc-wfp-fill></div>
+      </div>
+      <div class="rmc-wfp-canvas__terminal" data-rmc-wfp-log>
+        <p class="rmc-wfp-canvas__empty" data-rmc-wfp-empty>{% trans "Start a job on this page, or keep this tab open while a background job runs, to watch percent, counts, and logs." %}</p>
+      </div>
+      <div class="rmc-wfp-canvas__stats">
+        <div class="rmc-wfp-canvas__stat">
+          {% trans "Processed" %}: <strong data-rmc-wfp-processed>0</strong>
+        </div>
+        <div class="rmc-wfp-canvas__stat rmc-wfp-canvas__stat--end">
+          {% trans "Expected" %}: <strong data-rmc-wfp-expected>0</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

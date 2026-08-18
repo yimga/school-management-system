@@ -757,6 +757,38 @@ WORKFLOWS: dict[str, WorkflowDefinition] = {
         slo_seconds=1200,
         owner_team="platform-provisioning",
     ),
+    "academics-timetable-generate": WorkflowDefinition(
+        key="academics-timetable-generate",
+        title="Generate master timetable",
+        audience=AUDIENCE_TENANT_ADMIN,
+        module="academics",
+        route="accounts:ops_timetabling",
+        purpose="Constraint-satisfaction timetable generation with live record progress.",
+        steps=(
+            WorkflowStep("load_constraints", "Load constraints"),
+            WorkflowStep("place_demands", "Place demands"),
+        ),
+        success_state="Draft schedule persisted for review and publish.",
+        default_tags=(TAG_TENANT_SAFE, TAG_AUDIT_LOGGED),
+        slo_seconds=300,
+        owner_team="academics",
+    ),
+    "schoolops-procurement-scan": WorkflowDefinition(
+        key="schoolops-procurement-scan",
+        title="Inventory reorder scan",
+        audience=AUDIENCE_TENANT_ADMIN,
+        module="schoolops",
+        route="accounts:ops_inventory",
+        purpose="School-scoped low-stock scan with live telemetry and reorder alerts.",
+        steps=(
+            WorkflowStep("scan", "Scan inventory"),
+            WorkflowStep("alert", "Enqueue low-stock alerts"),
+        ),
+        success_state="Low-stock items flagged and notifications queued.",
+        default_tags=(TAG_TENANT_SAFE,),
+        slo_seconds=120,
+        owner_team="school-operations",
+    ),
 }
 
 

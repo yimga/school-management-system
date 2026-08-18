@@ -14,6 +14,7 @@ SUBPROCESS_SCRIPTS = (
     "scripts/verify_workflow_progress_coverage.py",
     "scripts/verify_workflow_10x_waves_complete.py",
     "scripts/verify_workflow_progress_shell_strip.py",
+    "scripts/verify_workflow_telemetry_coverage.py",
 )
 
 STATIC_MARKERS = (
@@ -48,6 +49,9 @@ STATIC_MARKERS = (
     ("static/js/rmc-workflow-track-headers.js", "X-RMC-Workflow-Track"),
     ("apps/platform_runtime/workflow_tracker.py", "active_workflow_run"),
     ("apps/platform_runtime/workflow_celery_bridge.py", "_CELERY_WORKFLOW_KEY_OVERRIDES"),
+    ("apps/platform_runtime/workflow_telemetry.py", "update_and_broadcast_progress"),
+    ("templates/components/rmc_workflow_progress_canvas.html", "rmc-wfp-canvas"),
+    ("static/js/rmc-workflow-progress-canvas.js", "ws/workflow-progress/"),
     ("apps/migration_cloud/celery_tasks.py", "migration_bundle_apply"),
     ("apps/evals/tasks.py", "evals_bulk_grades"),
     ("apps/finance/tasks.py", "finance_auto_generate_fee_invoices"),

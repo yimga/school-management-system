@@ -122,28 +122,55 @@ def timetable_generate(request):
         status="DRAFT",
     ).delete()
 
-    generator = TimetableGenerator(year, term)
-    schedule = generator.generate_schedule(created_by=request.user)
+    from apps.academics.tasks_scheduling import run_scheduling_solver_task
+    from apps.platform_runtime.workflow_telemetry import (
+        background_job_payload,
+        enqueue_background_job,
+    )
 
-    placed = evaluate_schedule(schedule)["entry_count"]
-    if placed == 0:
-        messages.warning(
-            request,
-            _(
-                "No classes could be placed. Add subject assignments (class + "
-                "subject + teacher), rooms, and active time slots, then try again."
-            ),
+    async_result = enqueue_background_job(
+        run_scheduling_solver_task,
+        school.pk,
+        use_ortools=True,
+        created_by_id=int(request.user.pk),
+    )
+    payload = background_job_payload(async_result)
+    if isinstance(payload, dict) and payload.get("ok") and payload.get("schedule_id"):
+        schedule = get_object_or_404(
+            Schedule.objects.select_related("academic_year"),
+            pk=payload["schedule_id"],
+            academic_year__school=school,
         )
-    else:
-        messages.success(
-            request,
-            _(
-                "Draft timetable generated with %(n)d placed classes. "
-                "Review clashes below before publishing."
+        placed = evaluate_schedule(schedule)["entry_count"]
+        if placed == 0:
+            messages.warning(
+                request,
+                _(
+                    "No classes could be placed. Add subject assignments (class + "
+                    "subject + teacher), rooms, and active time slots, then try again."
+                ),
             )
-            % {"n": placed},
+        else:
+            messages.success(
+                request,
+                _(
+                    "Draft timetable generated with %(n)d placed classes. "
+                    "Review clashes below before publishing."
+                )
+                % {"n": placed},
+            )
+        return redirect("academics:timetable_review", schedule_id=schedule.id)
+    if isinstance(payload, dict) and not payload.get("ok"):
+        messages.error(
+            request,
+            _("Timetable generation failed. Check assignments, rooms, and time slots."),
         )
-    return redirect("academics:timetable_review", schedule_id=schedule.id)
+        return redirect("accounts:ops_timetabling")
+    messages.success(
+        request,
+        _("Timetable generation started. Watch live progress on this page."),
+    )
+    return redirect("accounts:ops_timetabling")
 
 
 @login_required
