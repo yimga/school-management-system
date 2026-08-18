@@ -75,7 +75,9 @@ class GuardianLander(Lander):
             last_name = (row.get("last_name") or "").strip()
             user_ref = (row.get("guardian_user_ref") or "").strip()
             email = (row.get("email") or "").strip()
-            if not student_external_id or not (first_name or last_name or user_ref):
+            if not (student_external_id or student_name_from_row(row)) or not (
+                first_name or last_name or user_ref
+            ):
                 result.quarantined += 1
                 result.errors.append(
                     f"Missing student_external_id or identity in guardian row {row!r}"
@@ -91,6 +93,7 @@ class GuardianLander(Lander):
                     student_model=StudentProfile,
                     lookup_field=student_lookup_field,
                     external_id=student_external_id,
+                    row=row,
                 )
             except Exception as exc:  # noqa: BLE001
                 result.quarantined += 1
@@ -169,6 +172,7 @@ class GuardianLander(Lander):
 
             try:
                 from ._helpers import (
+    student_name_from_row,
                     record_id_mapping,
                     upsert_with_conflict_detection,
                 )

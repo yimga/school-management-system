@@ -119,7 +119,159 @@ def model_field_names(model) -> set[str]:
     return {f.name for f in model._meta.get_fields()}
 
 
-def resolve_student(*, ctx, student_model, lookup_field: str, external_id: str):
+# Row keys a history file may use to name the student it refers to. Ordered by
+# how specific the key is, so an explicitly student-scoped column beats a bare
+# "name" column on a file that also names somebody else (a guardian, a teacher).
+_STUDENT_NAME_KEYS = (
+    "student_name",
+    "student_full_name",
+    "child_name",
+    "ward_name",
+    "learner_name",
+    "pupil_name",
+    "full_name",
+    "name",
+)
+_STUDENT_DOB_KEYS = ("student_date_of_birth", "student_dob", "date_of_birth", "dob")
+_STUDENT_INDEX_ATTR = "_rmc_student_identity_index"
+
+
+def student_name_from_row(row) -> str:
+    """The student's name as written on a history row, or ""."""
+    for key in _STUDENT_NAME_KEYS:
+        value = " ".join(str((row or {}).get(key) or "").split())
+        if value:
+            return value
+    return ""
+
+
+def name_tokens(*parts: Any) -> frozenset:
+    """The set of name tokens, casefolded, punctuation-normalised.
+
+    A SET rather than a sequence because the whole reason a school lands here is
+    that nobody can be sure whether its files are written given-name-first or
+    family-name-first -- and the roster may have been split one way while the
+    attendance sheet is written the other. Comparing sets makes the match immune
+    to that ordering, to comma forms ("Lovelace, Ada") and to double spacing,
+    without guessing at either order.
+    """
+    out: list[str] = []
+    for part in parts:
+        cleaned = str(part or "").replace(",", " ").replace(".", " ").replace("-", " ")
+        out.extend(t.casefold() for t in cleaned.split() if t)
+    return frozenset(out)
+
+
+def name_identity_key(*parts: Any) -> str:
+    """Order-independent identity key for a person's name.
+
+    Deliberately a SORTED token set rather than a formatted string: the whole
+    reason a school lands here is that nobody can be sure whether its files are
+    written given-name-first or family-name-first, and the roster may have been
+    split one way while the attendance sheet is written the other. Comparing the
+    set of name tokens makes the match immune to that ordering, to comma forms
+    ("Lovelace, Ada") and to double spacing, without guessing at either order.
+    """
+    tokens: list[str] = []
+    for part in parts:
+        tokens.extend(str(part or "").replace(",", " ").split())
+    return " ".join(sorted(t.casefold() for t in tokens if t))
+
+
+def _student_identity_index(ctx, student_model) -> dict:
+    """Name -> candidate pks for this school's students, built once per artifact.
+
+    Cached on the LanderContext, which the orchestrator creates fresh per
+    artifact, so a file with 40,000 attendance rows costs ONE query rather than
+    one per row. Nothing in the history landers creates students, so the index
+    cannot go stale within the artifact it serves.
+    """
+    cached = getattr(ctx, _STUDENT_INDEX_ATTR, None)
+    if cached is not None:
+        return cached
+
+    fields = model_field_names(student_model)
+    name_fields = [f for f in ("first_name", "middle_name", "last_name") if f in fields]
+    by_name: dict = {}
+    by_name_dob: dict = {}
+    by_pair: dict = {}
+    index = {
+        "by_name": by_name,
+        "by_name_dob": by_name_dob,
+        "by_pair": by_pair,
+        "tokens": {},
+        "dob": {},
+        "usable": bool(name_fields),
+    }
+    try:
+        setattr(ctx, _STUDENT_INDEX_ATTR, index)
+    except Exception:  # noqa: BLE001 - a frozen/slotted ctx just costs us the cache
+        pass
+    if not name_fields:
+        return index
+
+    has_dob = "date_of_birth" in fields
+    columns = ["pk", *name_fields] + (["date_of_birth"] if has_dob else [])
+    qs = student_model.objects.all()  # tenant-isolation-allow: scoped-below-via-ctx-school-when-model-has-school-field
+    school = getattr(ctx, "school", None)
+    if school is not None and "school" in fields:
+        qs = qs.filter(school=school)
+    for values in qs.values_list(*columns).iterator():
+        pk, name_parts = values[0], values[1 : 1 + len(name_fields)]
+        tokens = name_tokens(*name_parts)
+        if not tokens:
+            continue
+        by_name.setdefault(" ".join(sorted(tokens)), set()).add(pk)
+        index["tokens"][pk] = tokens
+        index["dob"][pk] = str(values[-1] or "") if has_dob else ""
+        for pair in _token_pairs(tokens):
+            by_pair.setdefault(pair, set()).add(pk)
+    return index
+
+
+def _token_pairs(tokens: frozenset) -> list[tuple]:
+    """Every 2-token combination, the index's coarse bucket key.
+
+    Two tokens is the smallest a real name gets (given + family), so pairing
+    finds every candidate whose stored name overlaps the row's by at least that
+    much, without scanning the roster once per row.
+    """
+    ordered = sorted(tokens)
+    return [
+        (ordered[i], ordered[j])
+        for i in range(len(ordered))
+        for j in range(i + 1, len(ordered))
+    ]
+
+
+def _name_candidates(index: dict, tokens: frozenset) -> set:
+    """Students whose stored name is compatible with the row's name.
+
+    Compatible means one token set CONTAINS the other. Containment rather than
+    equality is load-bearing in both directions: ``StudentProfile`` has no
+    middle-name column, so a roster row "ANDONGMAD FAVOUR ANGU" is stored as two
+    tokens and would never match its own file again; and a history file that
+    writes only "ANDONGMAD ANGU" for a pupil recorded with a middle name should
+    still find them. Uniqueness is enforced by the caller, so a loosened match
+    that pulls in two pupils resolves to nobody rather than to a guess.
+    """
+    exact = index["by_name"].get(" ".join(sorted(tokens))) or set()
+    if len(exact) == 1:
+        return set(exact)
+    pool: set = set(exact)
+    for pair in _token_pairs(tokens):
+        pool |= index["by_pair"].get(pair, set())
+    stored = index["tokens"]
+    return {
+        pk
+        for pk in pool
+        if stored.get(pk, frozenset()) <= tokens or tokens <= stored.get(pk, frozenset())
+    }
+
+
+def resolve_student(
+    *, ctx, student_model, lookup_field: str, external_id: str, row=None
+):
     """School-scoped student resolution shared by the history landers.
 
     On schema-per-tenant deployments the surrounding schema_context already
@@ -128,12 +280,77 @@ def resolve_student(*, ctx, student_model, lookup_field: str, external_id: str):
     same-id student from ANOTHER school — exactly the hazard of an
     inter-school transfer, where source and target share the external id
     by design. Scope by the bundle's school whenever the model carries one.
+
+    An explicit id always wins. When the row carries no id — or an id that
+    matches nobody — fall back to the student's NAME, because the schools whose
+    roster has no id column also have no id in their attendance, grades or fee
+    files: they identify pupils by name in every file they own, and an id-only
+    resolver rejects every row they will ever upload.
+
+    Ambiguity is never guessed. A name shared by two pupils resolves to None and
+    the caller quarantines the row with a reason the school can act on, rather
+    than silently attaching one child's attendance record to their namesake.
     """
     qs = student_model.objects.all()  # tenant-isolation-allow: scoped-below-via-ctx-school-when-model-has-school-field
     school = getattr(ctx, "school", None)
     if school is not None and "school" in model_field_names(student_model):
         qs = qs.filter(school=school)
-    return qs.filter(**{lookup_field: external_id}).first()
+
+    external_id = str(external_id or "").strip()
+    if external_id:
+        found = qs.filter(**{lookup_field: external_id}).first()
+        if found is not None:
+            return found
+
+    name = student_name_from_row(row)
+    if not name:
+        return None
+    index = _student_identity_index(ctx, student_model)
+    if not index["usable"]:
+        return None
+    tokens = name_tokens(name)
+    if not tokens:
+        return None
+
+    candidates = _name_candidates(index, tokens)
+    if len(candidates) > 1:
+        # Two pupils answer to this name; a date of birth on the row separates
+        # them. Without one the row is genuinely ambiguous and stays unresolved.
+        dob = _row_dob(row)
+        if dob:
+            narrowed = {pk for pk in candidates if index["dob"].get(pk) == dob}
+            if len(narrowed) == 1:
+                candidates = narrowed
+    if len(candidates) == 1:
+        return qs.filter(pk=next(iter(candidates))).first()
+    return None
+
+
+def _row_dob(row) -> str:
+    """The student's date of birth as written on a history row, ISO-normalised."""
+    for dob_key in _STUDENT_DOB_KEYS:
+        raw = (row or {}).get(dob_key)
+        if raw:
+            parsed = coerce_date(raw)
+            return str(parsed or "").strip() or str(raw).strip()
+    return ""
+
+
+def ambiguous_student_name(*, ctx, student_model, row=None) -> bool:
+    """True when the row's name matches SEVERAL of this school's students.
+
+    Lets a lander tell "we have never heard of this pupil" apart from "two of
+    your pupils share this name" — different problems needing different fixes,
+    and a quarantine reason that says which is the difference between a school
+    fixing its file in ten minutes and giving up on the migration.
+    """
+    name = student_name_from_row(row)
+    if not name:
+        return False
+    index = _student_identity_index(ctx, student_model)
+    if not index["usable"]:
+        return False
+    return len(_name_candidates(index, name_tokens(name))) > 1
 
 
 def filter_to_model_fields(defaults: dict[str, Any], model) -> dict[str, Any]:
@@ -816,3 +1033,49 @@ def split_name_for(ctx, full_name: str) -> tuple[str, str, str]:
     school = getattr(ctx, "school", None)
     country = getattr(school, "country_code", "") if school is not None else ""
     return split_full_name(full_name, order=resolve_name_order(ctx) or None, country=country)
+
+
+def unresolved_student_reason(
+    *,
+    domain: str,
+    ctx,
+    student_model,
+    row=None,
+    external_id: str = "",
+    lookup_field: str = "",
+) -> str:
+    """A quarantine reason that names the fix, not the internal column.
+
+    Four distinct situations hid behind one message. A school reading "no student
+    with admission_number=''" cannot tell whether it uploaded the files in the
+    wrong order, misspelled a name, has two pupils who share one, or simply has
+    no column identifying anybody -- and each needs a different correction.
+    """
+    name = student_name_from_row(row)
+    ext = str(external_id or "").strip()
+    if name and ambiguous_student_name(ctx=ctx, student_model=student_model, row=row):
+        return (
+            f"{domain}: more than one of your pupils is named '{name}', so this row "
+            f"is ambiguous. Add a date of birth column, or a student id column, to "
+            f"say which one it belongs to."
+        )
+    if name and ext:
+        return (
+            f"{domain}: no pupil matches the id '{ext}' or the name '{name}'. Import "
+            f"your student list before this file, or correct the row."
+        )
+    if name:
+        return (
+            f"{domain}: no pupil named '{name}' has been imported yet. Import your "
+            f"student list before this file, or correct the spelling on this row."
+        )
+    if ext:
+        return (
+            f"{domain}: no pupil carries the id '{ext}'. Import your student list "
+            f"before this file, or add a student name column so the row can be "
+            f"matched by name instead."
+        )
+    return (
+        f"{domain}: this row does not say which pupil it belongs to. Add a student "
+        f"id column or a student name column."
+    )

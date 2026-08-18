@@ -299,6 +299,10 @@ def profile_bundle(bundle: MigrationBundle) -> int:
     # Expand any uploaded archive into real child artifacts BEFORE profiling,
     # so members are profiled by the ordinary loop below on every intake method.
     expand_archive_artifacts(bundle)
+    # Then the same for an uploaded database file, whose tables become CSV
+    # children. Runs AFTER archive expansion so a .db inside a .zip is expanded
+    # too -- the shape a school actually sends when IT hands over "the database".
+    expand_tabular_source_artifacts(bundle)
 
     candidates = bundle.artifacts.filter(quarantined=False).order_by("id")
     profiled = 0
@@ -380,7 +384,15 @@ def _profile_one(artifact: MigrationArtifact) -> None:
         # UNKNOWN here and are still resolved by the header heuristic after the
         # CSV-like read below, so the existing CSV/JSON paths are unchanged.
         signature = _sniff_format(artifact, [], [])
-        if signature in (ArtifactFormat.XLSX, ArtifactFormat.XLS, ArtifactFormat.PDF):
+        # XML joins the binary formats here: it has a dedicated reader, and
+        # letting it fall through to the CSV-like read profiles an XML export as
+        # a single garbage column whose header is the first line of markup.
+        if signature in (
+            ArtifactFormat.XLSX,
+            ArtifactFormat.XLS,
+            ArtifactFormat.PDF,
+            ArtifactFormat.XML,
+        ):
             artifact.detected_format = signature
             fmt = signature
     rows, headers, encoding = _read_sample(artifact)
@@ -400,6 +412,16 @@ def _profile_one(artifact: MigrationArtifact) -> None:
         "locale_hints": locale_hints,
     }
 
+    # A file that yields nothing AND has no working reader must say so. Left
+    # silent, it profiles as a valid empty file and the school is never told why
+    # its upload contributed nothing.
+    if not headers and not rows:
+        reason = unreadable_format_reason(fmt, artifact.filename)
+        if reason:
+            profile["unreadable_reason"] = reason
+            artifact.quarantined = True
+            artifact.quarantine_reason = reason[:500]
+
     artifact.profile = profile
     artifact.detected_format = fmt
     artifact.encoding = encoding or artifact.encoding
@@ -414,6 +436,8 @@ def _profile_one(artifact: MigrationArtifact) -> None:
             "row_count",
             "column_count",
             "locale_hints",
+            "quarantined",
+            "quarantine_reason",
             "updated_at",
         ]
     )
@@ -453,6 +477,8 @@ def _read_sample(artifact: MigrationArtifact) -> tuple[list[list[Any]], list[str
             return _read_xls(stream, encoding)
         if artifact.detected_format == ArtifactFormat.PDF:
             return _read_pdf(stream, encoding)
+        if artifact.detected_format == ArtifactFormat.XML:
+            return _read_xml(stream, encoding)
     finally:
         try:
             stream.close()
@@ -960,3 +986,215 @@ def _read_pdf(stream, encoding: str) -> tuple[list[list[Any]], list[str], str]:
     if not tsv.strip():
         return [], [], encoding
     return _read_csv_like(io.BytesIO(tsv.encode("utf-8")), "utf-8")
+
+
+# Formats whose bytes we can detect but not turn into rows, and the shortest
+# honest instruction for each. A file that profiles empty in silence tells the
+# school nothing; a file that says "save it as CSV" is a five-minute fix.
+_UNREADABLE_FORMAT_HINTS = {
+    ArtifactFormat.PARQUET: (
+        "Parquet files need a converter this server does not carry. Export the "
+        "same data as CSV or Excel (.xlsx) and upload that instead."
+    ),
+    ArtifactFormat.SQL: (
+        "This is a SQL dump, which has to be restored into a database before its "
+        "tables can be read. Restore it, then export each table as CSV -- or "
+        "upload the database file itself (.db / .sqlite3), which we expand for you."
+    ),
+    ArtifactFormat.IMAGE: (
+        "This is a picture of data rather than data. Upload the spreadsheet it "
+        "was taken from, or save it as CSV or Excel (.xlsx)."
+    ),
+}
+
+
+def unreadable_format_reason(detected_format: str, filename: str = "") -> str:
+    """Why this artifact will profile empty, and what to send instead.
+
+    Returns "" for every format the profiler can actually read, so callers can
+    treat a non-empty string as "this file will contribute nothing".
+    """
+    if detected_format == ArtifactFormat.XLS:
+        try:
+            import xlrd  # noqa: F401
+        except Exception:  # noqa: BLE001
+            return (
+                "Legacy .xls workbooks need a reader this server does not carry. "
+                "Save it as Excel (.xlsx) or CSV and upload that instead."
+            )
+        return ""
+    return _UNREADABLE_FORMAT_HINTS.get(detected_format, "")
+
+
+def _xml_localname(tag) -> str:
+    """``{http://ns}student`` -> ``student``."""
+    text = str(tag or "")
+    return text.rsplit("}", 1)[-1] if "}" in text else text
+
+
+def _xml_record_parent(root):
+    """Descend to the element whose children are the repeated records.
+
+    Real exports wrap their rows to different depths -- ``<students><student/>``
+    but also ``<export><data><students><student/>``. Walking down through
+    single-child wrappers finds the record list in both without the caller
+    having to describe their file's shape.
+    """
+    node = root
+    for _ in range(8):  # magic-number-allow: xml-wrapper-descent-depth
+        children = list(node)
+        if len(children) == 1 and len(children[0]):
+            node = children[0]
+            continue
+        return node
+    return node
+
+
+def _read_xml(stream, encoding: str) -> tuple[list[list[Any]], list[str], str]:
+    """Sample an XML export as rows + headers.
+
+    XML is what older on-premise SIS packages emit, and it detected correctly
+    but had no reader, so it profiled as an empty file with no complaint.
+
+    Parsed through ``defusedxml``: these are operator-supplied bytes, so entity
+    expansion (billion laughs) and external-entity fetches must be refused
+    rather than served. Without defusedxml installed the reader declines to
+    parse at all rather than falling back to the unsafe stdlib parser.
+    """
+    try:
+        from defusedxml.ElementTree import fromstring as _safe_fromstring
+    except Exception:  # noqa: BLE001 - no safe parser, so no parsing
+        return [], [], encoding
+    try:
+        root = _safe_fromstring(stream.read())
+    except Exception:  # noqa: BLE001 - malformed or hostile XML
+        return [], [], encoding
+
+    records = list(_xml_record_parent(root))
+    if not records:
+        return [], [], encoding
+
+    headers: list[str] = []
+    flattened: list[dict[str, Any]] = []
+    for record in records[:201]:  # magic-number-allow: profiler-sample-rows
+        flat: dict[str, Any] = {
+            _xml_localname(k): v for k, v in (record.attrib or {}).items()
+        }
+        for sub in record:
+            name = _xml_localname(sub.tag)
+            if name in flat:
+                continue
+            if len(sub):
+                flat[name] = " ".join(t.strip() for t in sub.itertext() if t.strip())
+            else:
+                flat[name] = (sub.text or "").strip()
+        if not flat and (record.text or "").strip():
+            flat[_xml_localname(record.tag)] = record.text.strip()
+        for key in flat:
+            if key not in headers:
+                headers.append(key)
+        flattened.append(flat)
+
+    rows = [[flat.get(h, "") for h in headers] for flat in flattened]
+    return rows, headers, encoding
+
+
+def expand_tabular_source_artifacts(bundle: MigrationBundle) -> int:
+    """Turn an uploaded database file into one CSV artifact per table.
+
+    ``DatabaseIntakeAdapter`` has always been able to do this, but only via the
+    DATABASE intake method. A school that asks its IT person for "the database"
+    and uploads the ``.db`` through the ordinary web form hit a detected format
+    with no reader -- the same shape as the archive.zip defect, and just as
+    silent. Expanding here covers every intake method at once.
+
+    Idempotent: a source that already has children is skipped, and a duplicate
+    table on a re-run is swallowed. Returns the number of child artifacts made.
+    """
+    import sqlite3
+    import tempfile
+    from pathlib import Path
+
+    from .artifact_blob_store import capture_artifact_blob
+
+    created = 0
+    for artifact in bundle.artifacts.filter(quarantined=False).order_by("id"):
+        if artifact.profile or artifact.children.exists():
+            continue
+        stream, _encoding = _resolve_stream(artifact)
+        if stream is None:
+            continue
+        try:
+            if _sniff_format(artifact, [], []) != ArtifactFormat.SQLITE:
+                continue
+            data = stream.read()
+        except Exception:  # noqa: BLE001
+            continue
+        finally:
+            try:
+                stream.close()
+            except Exception:  # noqa: BLE001
+                pass
+
+        tables: list[tuple[str, bytes]] = []
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                # sqlite3 needs a real path; the uploaded bytes live in the blob
+                # store, so they are materialised for exactly this call.
+                path = Path(tmp) / "source.sqlite3"
+                path.write_bytes(data)
+                from .intake.database_intake import (
+                    _resolve_tables,
+                    _table_to_csv_bytes,
+                )
+
+                for table in _resolve_tables(None, path):
+                    tables.append((table, _table_to_csv_bytes(path, table)))
+        except Exception as exc:  # noqa: BLE001 - a bad db must not block the bundle
+            logger.exception(
+                "migration_cloud.profiler: failed to expand database artifact %s",
+                artifact.pk,
+            )
+            artifact.quarantined = True
+            artifact.quarantine_reason = _profiler_failure_reason(exc)
+            artifact.detected_format = ArtifactFormat.SQLITE
+            artifact.save(
+                update_fields=[
+                    "quarantined",
+                    "quarantine_reason",
+                    "detected_format",
+                    "updated_at",
+                ]
+            )
+            continue
+
+        for table, payload in tables:
+            name = f"{table}.csv"
+            try:
+                with transaction.atomic():
+                    child = MigrationArtifact.objects.create(
+                        bundle=bundle,
+                        parent_archive=artifact,
+                        path_within_bundle=artifact.path_within_bundle + "/" + name,
+                        filename=name,
+                        byte_size=len(payload),
+                        sha256=hashlib.sha256(payload).hexdigest(),
+                        locale_hints={},
+                        profile={},
+                    )
+            except Exception:  # noqa: BLE001 - duplicate table on a re-run
+                continue
+            try:
+                capture_artifact_blob(child, _ArchiveMemberPayload(payload))
+            except Exception:  # noqa: BLE001
+                logger.exception(
+                    "migration_cloud.profiler: could not store table %s", name
+                )
+                continue
+            created += 1
+
+        if tables:
+            artifact.detected_format = ArtifactFormat.SQLITE
+            artifact.save(update_fields=["detected_format", "updated_at"])
+
+    return created

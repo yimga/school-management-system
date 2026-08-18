@@ -43,6 +43,8 @@ import re
 from typing import Any, Iterator
 
 from ._helpers import (
+    unresolved_student_reason,
+    student_name_from_row,
     coerce_decimal,
     filter_to_model_fields,
     model_field_names,
@@ -127,7 +129,7 @@ class GradesLander(Lander):
             }
             aggregate = coerce_decimal(row.get("score"))
             letter = (row.get("grade_letter") or row.get("letter_grade") or "").strip()
-            if not external_id or not term_label or not subject_label:
+            if not (external_id or student_name_from_row(row)) or not term_label or not subject_label:
                 result.quarantined += 1
                 result.errors.append(
                     f"grades: missing student/term/subject in {row!r}"
@@ -146,11 +148,19 @@ class GradesLander(Lander):
                 student_model=StudentProfile,
                 lookup_field=student_lookup,
                 external_id=external_id,
+                row=row,
             )
             if student is None:
                 result.quarantined += 1
                 result.errors.append(
-                    f"grades: no student with {student_lookup}={external_id!r}"
+                    unresolved_student_reason(
+                        domain="grades",
+                        ctx=ctx,
+                        student_model=StudentProfile,
+                        row=row,
+                        external_id=external_id,
+                        lookup_field=student_lookup,
+                    )
                 )
                 continue
 
@@ -273,7 +283,7 @@ class GradesLander(Lander):
             subject = (row.get("subject_code") or row.get("subject") or "").strip()
             score = coerce_decimal(row.get("score"))
             letter = (row.get("grade_letter") or "").strip()
-            if not external_id or not term or (score is None and not letter):
+            if not (external_id or student_name_from_row(row)) or not term or (score is None and not letter):
                 result.quarantined += 1
                 result.errors.append(
                     f"grades: missing student/term/score in {row!r}"
@@ -284,11 +294,19 @@ class GradesLander(Lander):
                 student_model=StudentProfile,
                 lookup_field=student_lookup,
                 external_id=external_id,
+                row=row,
             )
             if student is None:
                 result.quarantined += 1
                 result.errors.append(
-                    f"grades: no student with {student_lookup}={external_id!r}"
+                    unresolved_student_reason(
+                        domain="grades",
+                        ctx=ctx,
+                        student_model=StudentProfile,
+                        row=row,
+                        external_id=external_id,
+                        lookup_field=student_lookup,
+                    )
                 )
                 continue
 

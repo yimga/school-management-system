@@ -20,6 +20,8 @@ from __future__ import annotations
 from typing import Any, Iterator
 
 from ._helpers import (
+    unresolved_student_reason,
+    student_name_from_row,
     coerce_date,
     filter_to_model_fields,
     model_field_names,
@@ -57,7 +59,7 @@ class HealthLander(Lander):
             external_id = (row.get("student_external_id") or "").strip()
             date_val = coerce_date(row.get("record_date") or row.get("date"))
             category = (row.get("category") or row.get("record_type") or "").strip().lower()
-            if not external_id or not category:
+            if not (external_id or student_name_from_row(row)) or not category:
                 result.quarantined += 1
                 result.errors.append(
                     f"health: missing student/category in {row!r}"
@@ -68,11 +70,19 @@ class HealthLander(Lander):
                 student_model=StudentProfile,
                 lookup_field=student_lookup,
                 external_id=external_id,
+                row=row,
             )
             if student is None:
                 result.quarantined += 1
                 result.errors.append(
-                    f"health: no student with {student_lookup}={external_id!r}"
+                    unresolved_student_reason(
+                        domain="health",
+                        ctx=ctx,
+                        student_model=StudentProfile,
+                        row=row,
+                        external_id=external_id,
+                        lookup_field=student_lookup,
+                    )
                 )
                 continue
 

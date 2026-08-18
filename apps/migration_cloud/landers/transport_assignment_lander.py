@@ -52,6 +52,8 @@ import logging
 from typing import Any, Iterator
 
 from ._helpers import (
+    unresolved_student_reason,
+    student_name_from_row,
     coerce_date,
     filter_to_model_fields,
     model_field_names,
@@ -101,7 +103,7 @@ class TransportAssignmentLander(Lander):
         for row_index, row in enumerate(canonical_rows):
             external_id = (row.get("student_external_id") or "").strip()
             route_name = (row.get("route") or "").strip()
-            if not external_id or not route_name:
+            if not (external_id or student_name_from_row(row)) or not route_name:
                 result.quarantined += 1
                 result.errors.append(
                     f"transport_assignments[row={row_index}]: "
@@ -114,12 +116,20 @@ class TransportAssignmentLander(Lander):
                 student_model=StudentProfile,
                 lookup_field=student_lookup,
                 external_id=external_id,
+                row=row,
             )
             if student is None:
                 result.quarantined += 1
                 result.errors.append(
-                    f"transport_assignments[row={row_index}]: "
-                    f"no student with {student_lookup}=<redacted>"
+                    f"[row={row_index}] "
+                    + unresolved_student_reason(
+                        domain="transport_assignments",
+                        ctx=ctx,
+                        student_model=StudentProfile,
+                        row=row,
+                        external_id=external_id,
+                        lookup_field=student_lookup,
+                    )
                 )
                 logger.info(
                     "transport_assignments quarantine row=%d reason=student_unresolved",

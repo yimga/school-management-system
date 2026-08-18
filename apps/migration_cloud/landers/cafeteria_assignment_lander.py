@@ -49,6 +49,8 @@ from typing import Any, Iterator
 from django.utils import timezone
 
 from ._helpers import (
+    unresolved_student_reason,
+    student_name_from_row,
     coerce_decimal,
     filter_to_model_fields,
     model_field_names,
@@ -104,7 +106,7 @@ class CafeteriaAssignmentLander(Lander):
             meal_plan_name = (row.get("meal_plan") or "").strip()
             # NOTE: meal_plan is optional for first-class MealPlanBalance
             # (null FK = generic credit). Only student_external_id is required.
-            if not external_id:
+            if not (external_id or student_name_from_row(row)):
                 result.quarantined += 1
                 result.errors.append(
                     f"cafeteria_assignments[row={row_index}]: "
@@ -117,12 +119,20 @@ class CafeteriaAssignmentLander(Lander):
                 student_model=StudentProfile,
                 lookup_field=student_lookup,
                 external_id=external_id,
+                row=row,
             )
             if student is None:
                 result.quarantined += 1
                 result.errors.append(
-                    f"cafeteria_assignments[row={row_index}]: "
-                    f"no student with {student_lookup}=<redacted>"
+                    f"[row={row_index}] "
+                    + unresolved_student_reason(
+                        domain="cafeteria_assignments",
+                        ctx=ctx,
+                        student_model=StudentProfile,
+                        row=row,
+                        external_id=external_id,
+                        lookup_field=student_lookup,
+                    )
                 )
                 logger.info(
                     "cafeteria_assignments quarantine row=%d reason=student_unresolved",
