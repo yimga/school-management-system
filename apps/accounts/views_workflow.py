@@ -103,15 +103,147 @@ def _workflow_progress(year):
         return {}
 
 
+def _viewer_is_teacher(request) -> bool:
+    """Does this user actually pass the TEACHER-only gate on the marks surfaces?"""
+    user = getattr(request, "user", None)
+    if not user or not getattr(user, "is_authenticated", False):
+        return False
+    if getattr(user, "is_superuser", False):
+        return True
+    # Cheap in-memory check first: the common case needs no query at all.
+    if (getattr(user, "role", "") or "").upper() == User.Role.TEACHER:
+        return True
+    # Dual-role staff carry a teacher "hat" without TEACHER as their primary role.
+    # This one touches the DB, so a lookup failure must not 500 the hub — fall back
+    # to "not a teacher", which merely hides a row rather than breaking the page.
+    try:
+        from apps.accounts.portal_roles import has_teacher_hat
+
+        return bool(has_teacher_hat(user))
+    except ACCOUNTS_SOFT_FAILURES:
+        return False
+    except ImportError:
+        return False
+
+
+def _viewer_can_review_grades(request) -> bool:
+    """Mirror evals._user_can_review_grades — the approver set is school policy."""
+    user = getattr(request, "user", None)
+    if not user or not getattr(user, "is_authenticated", False):
+        return False
+    try:
+        from apps.evals.views import _user_can_review_grades
+
+        return bool(_user_can_review_grades(user, getattr(request, "school", None)))
+    except ACCOUNTS_SOFT_FAILURES:
+        # Unknown -> keep the row. A visible link that MIGHT work beats silently
+        # hiding a surface the operator is entitled to.
+        return True
+
+
+def _viewer_has_permission(code: str):
+    def _check(request) -> bool:
+        user = getattr(request, "user", None)
+        if not user or not getattr(user, "is_authenticated", False):
+            return False
+        if getattr(user, "is_superuser", False):
+            return True
+        school = getattr(request, "school", None)
+        try:
+            return bool(user.has_feature_permission(code, school=school))
+        except TypeError:
+            try:
+                return bool(user.has_feature_permission(code))
+            except ACCOUNTS_SOFT_FAILURES:
+                return True
+        except ACCOUNTS_SOFT_FAILURES:
+            return True
+
+    return _check
+
+
+def _viewer_can_open_admin_changelist(url_name: str):
+    """Can this viewer open the Django-admin page ``url_name`` points at?
+
+    ``TenantAdminSite`` deliberately does NOT override per-model permissions — it
+    scopes querysets and form FKs, then defers to stock ``ModelAdmin`` checks, i.e.
+    ``user.has_perm("<app>.view_<model>")``. A tenant admin's permission set is not
+    uniform across apps, so some `admin:` rows open fine while others raise
+    ``PermissionDenied``. Confirmed live: with every academics/people changelist
+    returning 200 for a real school admin, ``admin:portal_pendingguardianinvite_changelist``
+    (step 2 "Guardian invites") still raised PermissionDenied.
+
+    Deriving the permission from the URL name covers every current and future
+    `admin:` row without a per-link entry.
+    """
+    # "admin:<app_label>_<modelname>_<action>"
+    try:
+        _, remainder = url_name.split(":", 1)
+        parts = remainder.rsplit("_", 1)
+        if len(parts) != 2:
+            return None
+        app_model, action = parts
+        app_label, model_name = app_model.split("_", 1)
+    except ValueError:
+        return None
+    codename = {
+        "changelist": "view",
+        "add": "add",
+        "change": "change",
+        "delete": "delete",
+    }.get(action)
+    if not codename:
+        return None
+    perm = f"{app_label}.{codename}_{model_name}"
+
+    def _check(request) -> bool:
+        user = getattr(request, "user", None)
+        if not user or not getattr(user, "is_authenticated", False):
+            return False
+        if getattr(user, "is_superuser", False):
+            return True
+        try:
+            # Django grants view via either view_* or change_*.
+            if user.has_perm(perm):
+                return True
+            if codename == "view":
+                return bool(user.has_perm(f"{app_label}.change_{model_name}"))
+            return False
+        except ACCOUNTS_SOFT_FAILURES:
+            # Unknown -> keep the row rather than hiding a surface they may hold.
+            return True
+
+    return _check
+
+
+#: URL name -> predicate(request) -> bool.
+#:
+#: The Workflow Center is admin-gated and bills itself as the operator's entry point
+#: to the whole platform, so an advertised row that 403s (or bounces an already
+#: signed-in admin to the login page) is worse than no row at all: it reads as the
+#: platform being broken. Every entry below was CONFIRMED by sweeping all 44
+#: destinations as a real tenant admin, not inferred from reading the gates.
+_LINK_VISIBILITY = {
+    # @role_required(TEACHER) — user_passes_test, so an admin is 302'd to login
+    # while already signed in.
+    "evals:teacher_marks_entry": _viewer_is_teacher,
+    "evals:teacher_marks_list": _viewer_is_teacher,
+    # Second gate inside the view: the approver role set is per-school policy, so
+    # holding grades.manage is not sufficient.
+    "evals:grade_approval_list": _viewer_can_review_grades,
+    # portal:portal_feature gates on documents.view.
+    "portal:portal_feature": _viewer_has_permission("documents.view"),
+}
+
+
 def _workflow_link(label, url_name, primary=False, args=None, kwargs=None):
     """Build a workflow step link; return None if URL resolution fails so the button is skipped."""
     try:
         url = reverse(url_name, args=args or (), kwargs=kwargs or {})
-        return (
-            {"label": label, "url": url, "primary": primary}
-            if primary
-            else {"label": label, "url": url}
-        )
+        link = {"label": label, "url": url, "url_name": url_name}
+        if primary:
+            link["primary"] = True
+        return link
     except NoReverseMatch:
         return None
 
@@ -438,9 +570,13 @@ def workflow_center(request):
     marks_links = [
         _workflow_link("Teacher marks entry", "evals:teacher_marks_entry"),
         _workflow_link("Marks history", "evals:teacher_marks_list"),
-        _workflow_link(
-            "Approval requests", "admin:evals_gradeapprovalrequest_changelist"
-        ),
+        # evals.GradeApprovalRequest is NOT registered in apps/evals/admin.py, so
+        # "admin:evals_gradeapprovalrequest_changelist" reversed to nothing and
+        # _workflow_link silently dropped this row — step 3 shipped with 2 of its 3
+        # links on every host, while the step's own tip told operators to "use
+        # approval requests". evals:grade_approval_list is the real, purpose-built
+        # operator surface; the admin changelist was never the right destination.
+        _workflow_link("Approval requests", "evals:grade_approval_list"),
     ]
     reports_links = [
         _workflow_link("Publish term results", "reports:publish_term_results"),
@@ -510,7 +646,19 @@ def workflow_center(request):
     )
 
     def _filter_links(links):
-        return [lnk for lnk in links if lnk is not None and lnk.get("url")]
+        """Drop rows that do not resolve AND rows this viewer cannot actually open."""
+        kept = []
+        for lnk in links:
+            if lnk is None or not lnk.get("url"):
+                continue
+            url_name = lnk.get("url_name") or ""
+            predicate = _LINK_VISIBILITY.get(url_name)
+            if predicate is None and url_name.startswith("admin:"):
+                predicate = _viewer_can_open_admin_changelist(url_name)
+            if predicate is not None and not predicate(request):
+                continue
+            kept.append(lnk)
+        return kept
 
     gce_enabled = (
         year and getattr(year, "enable_gce_registration", False) if year else False

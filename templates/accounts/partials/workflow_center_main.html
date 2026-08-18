@@ -64,6 +64,13 @@
               {% else %}
               <a class="btn btn-sm btn-outline-primary truncate" href="{{ link.url }}">{{ link.label }}</a>
               {% endif %}
+            {% empty %}
+            {% comment %} Rows this viewer cannot actually open are filtered out in
+               workflow_center()._filter_links, so a step can legitimately end up with
+               nothing. Say so — a silently blank card reads as a broken page. {% endcomment %}
+            <p class="workflow-subtitle wrap mb-0 text-muted">
+              {% trans "Nothing here for your role — this step is handled by other staff." %}
+            </p>
             {% endfor %}
           </div>
         </div>

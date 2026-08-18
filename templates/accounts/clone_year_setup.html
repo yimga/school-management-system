@@ -1,7 +1,7 @@
 {% extends "backend_base.html" %}
-{% load static  i18n%}
+{% load static i18n %}
 
-{% block title %}Clone previous year{% endblock %}
+{% block title %}{% trans "Clone previous year" %}{% endblock %}
 
 {% block backend_page %}
 {% include "components/next_action_strip.html" %}
@@ -12,23 +12,70 @@
     <ol class="breadcrumb mb-0">
       <li class="breadcrumb-item"><a href="{% url 'accounts:backend_dashboard' %}">{% trans "Backend" %}</a></li>
       <li class="breadcrumb-item"><a href="{% url 'studio_os:workflow_center' %}">{% trans "Workflow Center" %}</a></li>
-      <li class="breadcrumb-item active" aria-current="page">Clone previous year</li>
+      <li class="breadcrumb-item active" aria-current="page">{% trans "Clone previous year" %}</li>
     </ol>
   </nav>
 
+  {% comment %} A school in its first year has exactly ONE academic year, so both selects
+     used to offer the same single option and the only reachable outcome was the
+     "Source and target year must be different" error. Create the target here instead of
+     bouncing the operator out to the Django admin. {% endcomment %}
+  {% if not has_clonable_pair %}
+  <div class="card shadow-sm mb-3" data-rmc-clone-year-bootstrap="1">
+    <div class="card-body">
+      <h1 class="h5 mb-2">{% trans "Create the year you want to copy into" %}</h1>
+      <p class="text-muted small mb-3">
+        {% if years %}
+          {% blocktrans with existing=years.0.name %}Cloning copies structure from one academic year into another, so you need a second year first. {{ existing }} is the only year set up so far.{% endblocktrans %}
+        {% else %}
+          {% trans "There are no academic years yet. Create the first one, then come back to clone its structure forward." %}
+        {% endif %}
+      </p>
+      <form method="post" action="" class="row g-3">
+        {% csrf_token %}
+        <input type="hidden" name="create_target_year" value="1">
+        <div class="col-md-4">
+          <label for="new_year_name" class="form-label">{% trans "Academic year name" %}</label>
+          <input type="text" class="form-control" id="new_year_name" name="new_year_name"
+                 value="{{ suggested_next_year_name }}" placeholder="2026/2027" required>
+        </div>
+        <div class="col-md-3">
+          <label for="new_year_start" class="form-label">{% trans "Start date" %}</label>
+          <input type="date" class="form-control" id="new_year_start" name="new_year_start"
+                 {% if not years %}required{% endif %}>
+          {% if years %}<div class="form-text">{% trans "Leave blank to reuse last year's dates, shifted by a year." %}</div>{% endif %}
+        </div>
+        <div class="col-md-3">
+          <label for="new_year_end" class="form-label">{% trans "End date" %}</label>
+          <input type="date" class="form-control" id="new_year_end" name="new_year_end"
+                 {% if not years %}required{% endif %}>
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+          <button type="submit" class="btn btn-primary w-100">{% trans "Create year" %}</button>
+        </div>
+      </form>
+      {% if academic_year_admin_url %}
+      <p class="small text-muted mt-3 mb-0">
+        {% trans "Need more control?" %}
+        <a href="{{ academic_year_admin_url }}">{% trans "Manage academic years" %}</a>
+      </p>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
   <div class="card shadow-sm">
     <div class="card-body">
-      <h1 class="h5 mb-3">{% trans "Clone previous year" %}</h1>
+      <h2 class="h5 mb-3">{% trans "Clone previous year" %}</h2>
       <p class="text-muted small mb-3">
-        Copy terms, classrooms, subject assignments, and promotion rules from one academic year to another.
-        The target year must already exist; create it under Academic years first if needed.
+        {% trans "Copy terms, classrooms, subject assignments, and promotion rules from one academic year into another. Existing rows in the target year are kept — cloning never overwrites them." %}
       </p>
-      <form method="post" action="">
+      <form method="post" action="" data-rmc-clone-year-form="1">
         {% csrf_token %}
         <div class="row g-3">
           <div class="col-md-5">
             <label for="source_year" class="form-label">{% trans "Source year (copy from)" %}</label>
-            <select name="source_year" id="source_year" class="form-select" required>
+            <select name="source_year" id="source_year" class="form-select" data-rmc-clone-year-source required {% if not has_clonable_pair %}disabled{% endif %}>
               <option value="">{% trans "— Select —" %}</option>
               {% for y in years %}
               <option value="{{ y.id }}">{{ y.name }}</option>
@@ -37,19 +84,50 @@
           </div>
           <div class="col-md-5">
             <label for="target_year" class="form-label">{% trans "Target year (copy to)" %}</label>
-            <select name="target_year" id="target_year" class="form-select" required>
+            <select name="target_year" id="target_year" class="form-select" data-rmc-clone-year-target required {% if not has_clonable_pair %}disabled{% endif %}>
               <option value="">{% trans "— Select —" %}</option>
               {% for y in years %}
-              <option value="{{ y.id }}">{{ y.name }}</option>
+              <option value="{{ y.id }}"{% if preselect_target_year_id == y.id %} selected{% endif %}>{{ y.name }}</option>
               {% endfor %}
             </select>
           </div>
           <div class="col-md-2 d-flex align-items-end">
-            <button type="submit" class="btn btn-primary w-100">{% trans "Clone" %}</button>
+            <button type="submit" class="btn btn-primary w-100" {% if not has_clonable_pair %}disabled{% endif %}>{% trans "Clone" %}</button>
           </div>
         </div>
+        {% if not has_clonable_pair %}
+        <p class="small text-muted mt-3 mb-0">{% trans "Cloning unlocks once a second academic year exists." %}</p>
+        {% endif %}
       </form>
     </div>
   </div>
 </div>
+
+{% comment %} Keep the two selects mutually exclusive in the browser so the operator can
+   never assemble the "must be different" error in the first place. The server still
+   rejects an equal pair — this is convenience, not the guard. {% endcomment %}
+<script nonce="{{ csp_nonce }}">
+(function () {
+  var form = document.querySelector('[data-rmc-clone-year-form="1"]');
+  if (!form) { return; }
+  var source = form.querySelector('[data-rmc-clone-year-source]');
+  var target = form.querySelector('[data-rmc-clone-year-target]');
+  if (!source || !target) { return; }
+
+  function sync(changed, other) {
+    var picked = changed.value;
+    Array.prototype.forEach.call(other.options, function (option) {
+      if (!option.value) { return; }
+      var clash = option.value === picked;
+      option.disabled = clash;
+      if (clash && option.selected) { other.value = ''; }
+    });
+  }
+
+  source.addEventListener('change', function () { sync(source, target); });
+  target.addEventListener('change', function () { sync(target, source); });
+  if (source.value) { sync(source, target); }
+  if (target.value) { sync(target, source); }
+})();
+</script>
 {% endblock %}

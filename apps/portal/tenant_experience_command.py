@@ -182,7 +182,11 @@ def _role_actions(role: str) -> list[ExperienceAction]:
             ("School Studio", "school_studio", "bi-grid-1x2", "Configure the tenant", "primary"),
             ("Import setup", "school_setup_imports", "bi-cloud-arrow-up", "Move data in", "warning"),
             ("Template marketplace", "template_marketplace:browse", "bi-stars", "Upgrade the experience", "primary"),
-            ("Finance setup", "finance:dashboard", "bi-wallet2", "Money and fees", "neutral"),
+            # "/finance/" (the root dashboard) is deliberately OUTSIDE the strict
+            # conversion-lock allowlist, so pointing the CTA there bounced the
+            # operator straight back to /activation/first-action/. Invoices IS a
+            # first-value surface and IS allowlisted.
+            ("Finance setup", "finance:invoices", "bi-wallet2", "Money and fees", "neutral"),
             ("Help center", "feedback:help_center", "bi-life-preserver", "Self-serve support", "neutral"),
         ]
     elif role_upper == User.Role.TEACHER:
@@ -217,6 +221,47 @@ def _role_actions(role: str) -> list[ExperienceAction]:
     ]
 
 
+def _conversion_lock_active(request: HttpRequest) -> bool:
+    """Is the strict conversion lock currently walling this request's school?"""
+    try:
+        from apps.schools.conversion_lock_state import (
+            school_conversion_is_locked,
+            school_first_action_completed,
+        )
+    except ImportError:
+        return False
+    school = getattr(request, "school", None)
+    user = getattr(request, "user", None)
+    if school is None or user is None:
+        return False
+    try:
+        if school_first_action_completed(school):
+            return False
+        return bool(school_conversion_is_locked(school, user=user))
+    except (AttributeError, TypeError, ValueError):
+        return False
+
+
+def _mark_reachability(
+    actions: list[dict[str, str]], *, locked: bool
+) -> list[dict[str, Any]]:
+    """Tag each action with whether the active lock lets the operator through.
+
+    ``_role_actions`` already drops actions whose URL does not reverse. This closes
+    the SECOND way a CTA can be a dead end: the URL resolves fine, but the strict
+    conversion lock refuses the path and 302s back to the activation landing. That
+    is the "Next: Finance setup -> Do it now -> buffers -> same page" deadlock.
+    """
+    if not locked:
+        return [{**action, "reachable": True} for action in actions]
+    from apps.schools.conversion_lock_paths import conversion_allows_path
+
+    return [
+        {**action, "reachable": bool(conversion_allows_path(action.get("url") or ""))}
+        for action in actions
+    ]
+
+
 def build_tenant_experience_command(request: HttpRequest, role: str) -> dict[str, Any]:
     """Return the tenant command payload used by all role-home dashboards."""
     from apps.siteconfig.tenant_experience_policy import (
@@ -230,7 +275,11 @@ def build_tenant_experience_command(request: HttpRequest, role: str) -> dict[str
     country_ctx = country_readiness_context(request)
     profile = _profile_payload(request)
     school = _school_readiness_payload(request)
-    actions = [action.as_dict() for action in _role_actions(role)]
+    locked = _conversion_lock_active(request)
+    actions = _mark_reachability(
+        [action.as_dict() for action in _role_actions(role)], locked=locked
+    )
+    reachable = [action for action in actions if action.get("reachable")]
     score = compute_weighted_experience_score(
         int(profile["score"]),
         int(school["score"]),
@@ -269,7 +318,11 @@ def build_tenant_experience_command(request: HttpRequest, role: str) -> dict[str
         "local_global": local_global,
         "profile": profile,
         "school": school,
-        "actions": actions,
-        "primary_action": actions[0] if actions else {},
-        "secondary_actions": actions[1:5],
+        "conversion_locked": locked,
+        # Never advertise a destination the lock will bounce: prefer the first
+        # REACHABLE action, and only fall back to the raw first action when the
+        # lock leaves nothing at all (so the strip degrades rather than vanishing).
+        "actions": reachable or actions,
+        "primary_action": (reachable or actions or [{}])[0],
+        "secondary_actions": (reachable or actions)[1:5],
     }
