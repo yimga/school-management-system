@@ -67,6 +67,37 @@ def emit(
         )
     except Exception:  # noqa: BLE001
         logger.debug("progress.emit failed", exc_info=True)
+        return
+    try:
+        from apps.platform_runtime.workflow_telemetry import (
+            TASK_MIGRATION_INGESTION,
+            update_and_broadcast_progress,
+        )
+
+        detail = detail or {}
+        processed = int(detail.get("rows") or detail.get("processed") or 0)
+        expected = int(detail.get("expected") or detail.get("total") or 0)
+        if expected <= 0 and stage in _STANDARD_STAGES:
+            expected = len(_STANDARD_STAGES)
+            processed = _STANDARD_STAGES.index(stage) + 1
+        if expected <= 0:
+            expected = 1
+            processed = max(processed, 1 if kind == "stage_finished" else processed)
+        bundle = (
+            # tenant-isolation-allow: migration-progress-pk-lookup-for-school-scoped-telemetry-fanout
+            MigrationBundle.objects.filter(pk=bundle_id).only("school_id").first()
+        )
+        school_id = str(getattr(bundle, "school_id", "") or "") if bundle else ""
+        update_and_broadcast_progress(
+            school_id=school_id,
+            task_type=TASK_MIGRATION_INGESTION,
+            workflow_key="migration_bundle_apply",
+            processed=processed,
+            expected=expected,
+            log_message=message or kind or stage,
+        )
+    except Exception:  # noqa: BLE001
+        logger.debug("progress.telemetry_broadcast failed", exc_info=True)
 
 
 def refresh_snapshot(*, bundle: MigrationBundle, persist: bool = True) -> dict[str, Any]:

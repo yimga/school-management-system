@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import logging
 import re
+from types import SimpleNamespace
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -324,13 +325,14 @@ def _try_ai_diagnosis(
         confidence="low",
     )
 
-    class _RunStub:
-        workflow_key = workflow_key
-        error_summary = {"type": error_type, "message": error_message}
-        suggested_remediation = {}
-        payload_summary = {}
+    run_stub = SimpleNamespace(
+        workflow_key=workflow_key,
+        error_summary={"type": error_type, "message": error_message},
+        suggested_remediation={},
+        payload_summary={},
+    )
 
-    ai = ai_diagnosis_for_run(run=_RunStub(), fingerprint=stub, request=request)
+    ai = ai_diagnosis_for_run(run=run_stub, fingerprint=stub, request=request)
     if not ai:
         return None
 

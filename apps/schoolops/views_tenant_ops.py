@@ -399,6 +399,39 @@ def ops_inventory(request):
                     messages.error(request, str(exc))
                 except (DatabaseError, TypeError, ValueError):
                     messages.error(request, "Could not record stock event.")
+        elif intent == "scan_reorder":
+            try:
+                from apps.platform_runtime.workflow_telemetry import (
+                    background_job_payload,
+                    enqueue_background_job,
+                )
+                from apps.schoolops.tasks import run_procurement_scan_task
+
+                async_result = enqueue_background_job(
+                    run_procurement_scan_task,
+                    int(school.pk),
+                )
+                payload = background_job_payload(async_result)
+                if isinstance(payload, dict) and "scanned" in payload:
+                    messages.success(
+                        request,
+                        _(
+                            "Reorder scan finished: %(scanned)s items checked, "
+                            "%(low)s at or below reorder level."
+                        )
+                        % {
+                            "scanned": payload.get("scanned", 0),
+                            "low": payload.get("low", 0),
+                        },
+                    )
+                else:
+                    messages.success(
+                        request,
+                        _("Reorder scan started. Watch live progress on this page."),
+                    )
+                return _ops_save_redirect(request, "accounts:ops_inventory")
+            except (DatabaseError, TypeError, ValueError):
+                messages.error(request, _("Could not run the reorder scan."))
         elif intent == "set_reorder":
             pk_raw = (request.POST.get("reorder_item_id") or "").strip()
             if not pk_raw.isdigit():

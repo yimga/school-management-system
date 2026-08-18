@@ -27,6 +27,8 @@
     </div>
   </div>
 
+  {% include "components/rmc_workflow_progress_canvas.html" with workflow_key="accounts-rollover" task_type="EOY_ROLLOVER" %}
+
   {% if proposal.status == 'PENDING' %}
   <form method="post" action="">
     {% csrf_token %}

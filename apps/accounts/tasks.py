@@ -345,119 +345,192 @@ def _apply_rollover_proposal_impl(
     graduation_blocked = 0
     blocked_graduates: list = []
     rolled_students = []
-    for item in proposal.items.select_related(
-        "student", "suggested_next_classroom", "approved_next_classroom"
-    ).all():
-        student = item.student
-        if (
-            block_outstanding
-            and not allow_outstanding_returns
-            and (item.outstanding_returns or 0) > 0
-        ):
-            skipped += 1
-            continue
-        if getattr(item, "is_graduate", False):
-            # W22 graduation gate — verify the student actually meets the school's
-            # configured graduation requirements BEFORE graduating them (grades are
-            # read from the SOURCE year being closed). Mirrors the outstanding-returns
-            # skip precedent above: when requirements are configured and the student
-            # is off-track and the operator did NOT override, skip + count and leave
-            # the student on the active roll. Absent config → requirements_configured
-            # is False → this never bites (behaviour-preserving).
-            grad_audit = audit_graduation_eligibility(student, source_year)
+    items = list(
+        proposal.items.select_related(
+            "student", "suggested_next_classroom", "approved_next_classroom"
+        ).all()
+    )
+    expected = max(len(items), 1)
+    school = getattr(proposal, "school", None)
+    from django.db import connection
+
+    from apps.platform_runtime.workflow_telemetry import (
+        TASK_EOY_ROLLOVER,
+        update_and_broadcast_progress,
+    )
+    from apps.platform_runtime.workflow_tracker import ensure_workflow_run
+
+    schema = str(getattr(connection, "schema_name", "") or "")
+    with ensure_workflow_run(
+        "accounts-rollover",
+        steps=("place_students", "finalize"),
+        expected_duration_seconds=900,  # magic-number-allow: workflow-expected-duration-seconds
+        school_id=str(getattr(school, "pk", "") or ""),
+        tenant_schema=schema,
+        payload={"proposal_id": proposal_id, "task_type": TASK_EOY_ROLLOVER},
+    ):
+        update_and_broadcast_progress(
+            school=school,
+            task_type=TASK_EOY_ROLLOVER,
+            processed=0,
+            expected=expected,
+            log_message="Rollover apply started",
+        )
+        for index, item in enumerate(items, start=1):
+            student = item.student
             if (
-                grad_audit.requirements_configured
-                and not grad_audit.is_eligible
-                and not override_graduation_gate
+                block_outstanding
+                and not allow_outstanding_returns
+                and (item.outstanding_returns or 0) > 0
             ):
-                graduation_blocked += 1
-                blocked_graduates.append(getattr(student, "pk", None))
+                skipped += 1
+                update_and_broadcast_progress(
+                    school=school,
+                    task_type=TASK_EOY_ROLLOVER,
+                    processed=index,
+                    expected=expected,
+                    log_message=f"Processed student record {index} of {expected}",
+                )
                 continue
-            # Close the enrollment BEFORE the legacy fields are cleared, so the
-            # leaving year is preserved in history rather than blanked (2.2).
-            graduate_student(student, target_year)
-            student.academic_year = target_year
-            student.classroom = None
-            student.status = StudentProfile.Status.ALUMNI
-            student.is_active = False
-            student.save(
-                update_fields=["academic_year", "classroom", "status", "is_active"]
+            if getattr(item, "is_graduate", False):
+                # W22 graduation gate — verify the student actually meets the school's
+                # configured graduation requirements BEFORE graduating them (grades are
+                # read from the SOURCE year being closed). Mirrors the outstanding-returns
+                # skip precedent above: when requirements are configured and the student
+                # is off-track and the operator did NOT override, skip + count and leave
+                # the student on the active roll. Absent config → requirements_configured
+                # is False → this never bites (behaviour-preserving).
+                grad_audit = audit_graduation_eligibility(student, source_year)
+                if (
+                    grad_audit.requirements_configured
+                    and not grad_audit.is_eligible
+                    and not override_graduation_gate
+                ):
+                    graduation_blocked += 1
+                    blocked_graduates.append(getattr(student, "pk", None))
+                    update_and_broadcast_progress(
+                        school=school,
+                        task_type=TASK_EOY_ROLLOVER,
+                        processed=index,
+                        expected=expected,
+                        log_message=f"Processed student record {index} of {expected}",
+                    )
+                    continue
+                # Close the enrollment BEFORE the legacy fields are cleared, so the
+                # leaving year is preserved in history rather than blanked (2.2).
+                graduate_student(student, target_year)
+                student.academic_year = target_year
+                student.classroom = None
+                student.status = StudentProfile.Status.ALUMNI
+                student.is_active = False
+                student.save(
+                    update_fields=["academic_year", "classroom", "status", "is_active"]
+                )
+                graduated += 1
+                update_and_broadcast_progress(
+                    school=school,
+                    task_type=TASK_EOY_ROLLOVER,
+                    processed=index,
+                    expected=expected,
+                    log_message=f"Processed student record {index} of {expected}",
+                )
+                continue
+            next_class = item.approved_next_classroom or item.suggested_next_classroom
+            if next_class is None:
+                skipped += 1
+                update_and_broadcast_progress(
+                    school=school,
+                    task_type=TASK_EOY_ROLLOVER,
+                    processed=index,
+                    expected=expected,
+                    log_message=f"Processed student record {index} of {expected}",
+                )
+                continue
+            # 2.2: open a NEW enrollment and close the prior one instead of
+            # overwriting the student row. The operator's approved classroom still
+            # wins; only the recorded OUTCOME is derived (same grade => RETAINED).
+            source_enrollment = student.enrollment_for_year(source_year)
+            source_classroom = (
+                source_enrollment.classroom
+                if source_enrollment is not None and source_enrollment.classroom_id
+                else student.classroom
             )
-            graduated += 1
-            continue
-        next_class = item.approved_next_classroom or item.suggested_next_classroom
-        if next_class is None:
-            skipped += 1
-            continue
-        # 2.2: open a NEW enrollment and close the prior one instead of
-        # overwriting the student row. The operator's approved classroom still
-        # wins; only the recorded OUTCOME is derived (same grade => RETAINED).
-        source_enrollment = student.enrollment_for_year(source_year)
-        source_classroom = (
-            source_enrollment.classroom
-            if source_enrollment is not None and source_enrollment.classroom_id
-            else student.classroom
-        )
-        open_enrollment(
-            student,
-            target_year,
-            next_class,
-            entry_date=getattr(target_year, "start_date", None),
-            close_outcome=outcome_for_manual_placement(
-                source_classroom, next_class, item.promotion_status or ""
-            ),
-        )
-        updated += 1
-        rolled_students.append((student, next_class))
-
-    # Notify-parity with the synchronous rollover view: when the operator asked
-    # to notify parents, send the SAME per-guardian in-app notification (and
-    # optional SMS) that ``rollover_year`` sends. Previously this task accepted
-    # ``notify_parents`` and silently ignored it.
-    if notify_parents and rolled_students:
-        try:
-            from apps.accounts.views_rollover import _notify_guardians_of_rollover
-
-            _notify_guardians_of_rollover(
-                rolled_students,
+            open_enrollment(
+                student,
                 target_year,
-                created_by=getattr(proposal, "approved_by", None)
-                or getattr(proposal, "created_by", None),
+                next_class,
+                entry_date=getattr(target_year, "start_date", None),
+                close_outcome=outcome_for_manual_placement(
+                    source_classroom, next_class, item.promotion_status or ""
+                ),
             )
-        except (ImportError, AttributeError, TypeError, ValueError) as e:
-            logger.warning(
-                "apply_rollover_proposal: guardian notify failed: %s", e
+            updated += 1
+            rolled_students.append((student, next_class))
+            update_and_broadcast_progress(
+                school=school,
+                task_type=TASK_EOY_ROLLOVER,
+                processed=index,
+                expected=expected,
+                log_message=f"Processed student record {index} of {expected}",
             )
 
-    proposal.status = RolloverProposal.Status.APPLIED
-    proposal.applied_at = timezone.now()
-    proposal.save(update_fields=["status", "applied_at"])
+        # Notify-parity with the synchronous rollover view: when the operator asked
+        # to notify parents, send the SAME per-guardian in-app notification (and
+        # optional SMS) that ``rollover_year`` sends. Previously this task accepted
+        # ``notify_parents`` and silently ignored it.
+        if notify_parents and rolled_students:
+            try:
+                from apps.accounts.views_rollover import _notify_guardians_of_rollover
 
-    if lock_source:
-        source_year.is_locked = True
-        source_year.save(update_fields=["is_locked"])
+                _notify_guardians_of_rollover(
+                    rolled_students,
+                    target_year,
+                    created_by=getattr(proposal, "approved_by", None)
+                    or getattr(proposal, "created_by", None),
+                )
+            except (ImportError, AttributeError, TypeError, ValueError) as e:
+                logger.warning(
+                    "apply_rollover_proposal: guardian notify failed: %s", e
+                )
 
-    if carry_forward_arrears and flags.get("carry_forward_arrears_on_rollover", True):
-        try:
-            from apps.finance.services import carry_forward_arrears
+        proposal.status = RolloverProposal.Status.APPLIED
+        proposal.applied_at = timezone.now()
+        proposal.save(update_fields=["status", "applied_at"])
 
-            carry_forward_arrears(source_year, target_year)
-        except (ValueError, TypeError, ImportError, AttributeError) as e:
-            _school_id = (
-                str(proposal.school_id)
-                if getattr(proposal, "school_id", None)
-                else None
-            )
-            log_exception_with_context(
-                "apply_rollover_proposal: carry_forward_arrears failed",
-                school_id=_school_id,
-                extra={
-                    "task": "apply_rollover_proposal",
-                    "proposal_id": proposal_id,
-                    "error": str(e),
-                },
-            )
-            logger.warning("apply_rollover_proposal: carry_forward_arrears: %s", e)
+        if lock_source:
+            source_year.is_locked = True
+            source_year.save(update_fields=["is_locked"])
+
+        if carry_forward_arrears and flags.get("carry_forward_arrears_on_rollover", True):
+            try:
+                from apps.finance.services import carry_forward_arrears
+
+                carry_forward_arrears(source_year, target_year)
+            except (ValueError, TypeError, ImportError, AttributeError) as e:
+                _school_id = (
+                    str(proposal.school_id)
+                    if getattr(proposal, "school_id", None)
+                    else None
+                )
+                log_exception_with_context(
+                    "apply_rollover_proposal: carry_forward_arrears failed",
+                    school_id=_school_id,
+                    extra={
+                        "task": "apply_rollover_proposal",
+                        "proposal_id": proposal_id,
+                        "error": str(e),
+                    },
+                )
+                logger.warning("apply_rollover_proposal: carry_forward_arrears: %s", e)
+
+        update_and_broadcast_progress(
+            school=school,
+            task_type=TASK_EOY_ROLLOVER,
+            processed=expected,
+            expected=expected,
+            log_message="Rollover apply finished",
+            status="succeeded",
+        )
 
     logger.info(
         "apply_rollover_proposal: proposal %s applied; updated=%d graduated=%d "

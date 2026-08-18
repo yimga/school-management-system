@@ -635,7 +635,7 @@ class TimetableGenerator:
             )
         return True
 
-    def generate_schedule(self, created_by) -> Schedule:
+    def generate_schedule(self, created_by, *, on_progress=None) -> Schedule:
         """
         Generate optimized schedule for term
 
@@ -714,6 +714,8 @@ class TimetableGenerator:
         # subject simply recurs in every week of that rotation.
         cycle_weeks = plan_cycle_length(spec for _sa, _t, spec in demands)
 
+        total_units = max(len(demands) * max(cycle_weeks, 1), 1)
+        placed_units = 0
         for cycle_week in range(1, cycle_weeks + 1):
             # Rotation offset — see _block_windows. Zero on week 1, so a
             # one-week timetable is scanned exactly as it was pre-2.3.
@@ -732,6 +734,16 @@ class TimetableGenerator:
                             cycle_week,
                         ):
                             break  # Block placed; on to the next block.
+                placed_units += 1
+                if on_progress is not None:
+                    try:
+                        on_progress(
+                            placed_units,
+                            total_units,
+                            f"Placed demand {placed_units} of {total_units}",
+                        )
+                    except Exception:  # noqa: BLE001 — progress is best-effort
+                        pass
 
         return schedule
 

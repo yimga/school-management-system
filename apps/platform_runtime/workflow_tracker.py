@@ -266,6 +266,30 @@ def serialize_workflow_run(run: Any, *, status_override: str = "") -> dict:
         p95 = get_p95_seconds(run.workflow_key or "")
     except Exception:
         p95 = 0
+    telemetry: dict[str, Any] = {}
+    try:
+        from apps.platform_runtime.workflow_telemetry import telemetry_from_payload
+
+        telemetry = telemetry_from_payload(getattr(run, "payload_summary", None))
+    except Exception:
+        telemetry = {}
+    records_expected = int(telemetry.get("records_expected") or 0)
+    records_processed = int(telemetry.get("records_processed") or 0)
+    percent_complete = str(telemetry.get("percent_complete") or "")
+    progress_percent = compute_progress_percent(
+        current_step_ordinal=ordinal,
+        total_steps=total,
+        age_seconds=age_seconds,
+        expected_duration_seconds=expected,
+    )
+    if records_expected > 0 and percent_complete:
+        try:
+            from decimal import Decimal
+
+            progress_percent = int(Decimal(percent_complete).quantize(Decimal("1")))
+            progress_percent = max(0, min(100, progress_percent))
+        except Exception:
+            pass
     return {
         "id": run.pk,
         "workflow_key": run.workflow_key,
@@ -279,12 +303,12 @@ def serialize_workflow_run(run: Any, *, status_override: str = "") -> dict:
         "current_step_ordinal": ordinal,
         "current_step_name": run.current_step_name,
         "total_steps": total,
-        "progress_percent": compute_progress_percent(
-            current_step_ordinal=ordinal,
-            total_steps=total,
-            age_seconds=age_seconds,
-            expected_duration_seconds=expected,
-        ),
+        "progress_percent": progress_percent,
+        "records_expected": records_expected,
+        "records_processed": records_processed,
+        "percent_complete": percent_complete,
+        "log_history": list(telemetry.get("log_history") or [])[-10:],
+        "task_type": str(telemetry.get("task_type") or ""),
         "started_at": run.started_at.isoformat() if run.started_at else "",
         "expected_duration_seconds": expected,
         "tenant_schema": run.tenant_schema,
@@ -339,6 +363,25 @@ def pulse_workflow_step(run: Any, name: str, *, payload: Optional[dict] = None) 
                 current_step_name=step.name,
                 last_heartbeat_at=timezone.now(),
             )
+        payload = payload or {}
+        processed = payload.get("records_processed")
+        expected = payload.get("records_expected")
+        if processed is not None and expected is not None:
+            try:
+                from apps.platform_runtime.workflow_telemetry import (
+                    update_and_broadcast_progress,
+                )
+
+                update_and_broadcast_progress(
+                    run=run,
+                    processed=int(processed),
+                    expected=int(expected),
+                    log_message=str(payload.get("log_message") or name),
+                    task_type=str(payload.get("task_type") or ""),
+                    school_id=str(getattr(run, "school_id", "") or ""),
+                )
+            except Exception:  # noqa: BLE001 — telemetry is best-effort
+                logger.debug("workflow_pulse_telemetry_failed", exc_info=True)
     except Exception:
         logger.exception("workflow_pulse_step_failed run_id=%s name=%s", getattr(run, "pk", "-"), name)
 

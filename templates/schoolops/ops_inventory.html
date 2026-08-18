@@ -17,6 +17,13 @@
   </div>
   {% endif %}
 
+  <form method="post" class="mb-3">
+    {% csrf_token %}
+    <input type="hidden" name="intent" value="scan_reorder">
+    <button type="submit" class="btn btn-outline-primary btn-sm">{% trans "Scan reorder levels" %}</button>
+  </form>
+  {% include "components/rmc_workflow_progress_canvas.html" with workflow_key="schoolops-procurement-scan" task_type="PROCUREMENT_LOOP" %}
+
   <div class="card shadow-sm mb-4">
     <div class="card-header">{% trans "Add item" %}</div>
     <div class="card-body">

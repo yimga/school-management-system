@@ -201,6 +201,44 @@ class SubstituteMarketConsumer(_TenantScopedSyncConsumer):
         )
 
 
+class WorkflowTelemetryConsumer(_TenantScopedSyncConsumer):
+    """Listen-only live workflow percent + log frames for the bound school.
+
+    Joins ``school-{school_id}-workflow-telemetry``. ``school_id`` is taken from
+    TenantChannelsMiddleware — never from the client — so one tenant cannot
+    subscribe to another tenant's jobs.
+    """
+
+    room_prefix = "workflow_telemetry"
+
+    def resolve_room_group_name(self):
+        if self.scope.get("school_access_denied"):
+            return None
+        school_id = self.scope.get("school_id")
+        user = self.scope.get("user")
+        if not school_id or user is None or not getattr(user, "is_authenticated", False):
+            return None
+        from apps.platform_runtime.workflow_telemetry import workflow_telemetry_room_name
+
+        return workflow_telemetry_room_name(school_id)
+
+    async def receive(self, text_data):
+        # Listen-only: administrators never push job state from the browser.
+        return
+
+    async def workflow_progress_update(self, event):
+        payload = event.get("payload") or {}
+        await self.send(
+            text_data=json.dumps(
+                {
+                    "event_type": event.get("event_type") or "WORKFLOW_PROGRESS_UPDATE",
+                    "emitted_at": event.get("emitted_at") or "",
+                    "payload": payload,
+                }
+            )
+        )
+
+
 class AIChatConsumer(AsyncWebsocketConsumer):
     """
     World Engine B.3: Real-time AI chat over WebSocket.

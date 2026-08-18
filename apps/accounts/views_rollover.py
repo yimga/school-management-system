@@ -41,10 +41,9 @@ from apps.reports.services import get_promotion_status, _annual_average_for_stud
 
 def _enqueue_rollover_task(task, *args, **kwargs):
     """Prefer async Celery; fall back to in-process apply when broker is unavailable."""
-    try:
-        return task.apply_async(args=args, kwargs=kwargs)
-    except Exception:
-        return task.apply(args=args, kwargs=kwargs)
+    from apps.platform_runtime.workflow_telemetry import enqueue_background_job
+
+    return enqueue_background_job(task, *args, **kwargs)
 
 
 def _is_admin_user(user):
@@ -328,71 +327,111 @@ def rollover_year(request):
         graduation_blocked = 0
         rolled_students = []
         GRADUATE_VALUE = "__graduate__"
-        for s in students:
-            key = f"classroom_{s.id}"
-            classroom_id = request.POST.get(key)
-            if not classroom_id:
-                continue
-            outstanding = outstanding_by_student.get(s.id, 0)
-            if (
-                block_if_outstanding
-                and not allow_outstanding_returns
-                and outstanding > 0
-            ):
-                skipped_outstanding += 1
-                continue
-            if classroom_id == GRADUATE_VALUE:
-                # W22 graduation gate (async/sync parity with the proposal apply
-                # path): don't graduate an off-track student when requirements are
-                # configured and the operator did not override. Absent config →
-                # requirements_configured is False → this never bites.
-                grad_audit = audit_graduation_eligibility(s, source_year)
-                if (
-                    grad_audit.requirements_configured
-                    and not grad_audit.is_eligible
-                    and not override_graduation_gate
-                ):
-                    graduation_blocked += 1
-                    continue
-                # Close the enrollment BEFORE blanking the legacy fields so the
-                # leaving year survives in history (2.2).
-                graduate_student(s, target_year)
-                s.academic_year = target_year
-                s.classroom = None
-                s.status = StudentProfile.Status.ALUMNI
-                s.is_active = False
-                s.save(
-                    update_fields=["academic_year", "classroom", "status", "is_active"]
-                )
-                graduated += 1
-                continue
-            try:
-                new_class = target_classrooms_by_id.get(int(classroom_id))
-            except (ValueError, TypeError):
-                continue
-            if not new_class:
-                continue
-            # 2.2: open a new enrollment and close the prior one. The operator's
-            # chosen class still wins; the OUTCOME is derived from it, so a
-            # student left in the same grade is recorded as RETAINED rather than
-            # indistinguishable from a promotion.
-            source_enrollment = s.enrollment_for_year(source_year)
-            source_classroom = (
-                source_enrollment.classroom
-                if source_enrollment is not None and source_enrollment.classroom_id
-                else s.classroom
+        from django.db import connection
+
+        from apps.platform_runtime.workflow_telemetry import (
+            TASK_EOY_ROLLOVER,
+            update_and_broadcast_progress,
+        )
+        from apps.platform_runtime.workflow_tracker import ensure_workflow_run
+
+        expected = max(len(students), 1)
+        schema = str(getattr(connection, "schema_name", "") or "")
+        with ensure_workflow_run(
+            "accounts-rollover",
+            steps=("place_students", "finalize"),
+            expected_duration_seconds=900,  # magic-number-allow: workflow-expected-duration-seconds
+            school_id=str(getattr(school, "pk", "") or ""),
+            tenant_schema=schema,
+            payload={"task_type": TASK_EOY_ROLLOVER},
+        ):
+            update_and_broadcast_progress(
+                school=school,
+                task_type=TASK_EOY_ROLLOVER,
+                processed=0,
+                expected=expected,
+                log_message="Rollover apply started",
             )
-            open_enrollment(
-                s,
-                target_year,
-                new_class,
-                entry_date=getattr(target_year, "start_date", None),
-                close_outcome=outcome_for_manual_placement(
-                    source_classroom, new_class
-                ),
-            )
-            updated += 1
-            rolled_students.append((s, new_class))
+            for index, s in enumerate(students, start=1):
+                try:
+                    key = f"classroom_{s.id}"
+                    classroom_id = request.POST.get(key)
+                    if not classroom_id:
+                        continue
+                    outstanding = outstanding_by_student.get(s.id, 0)
+                    if (
+                        block_if_outstanding
+                        and not allow_outstanding_returns
+                        and outstanding > 0
+                    ):
+                        skipped_outstanding += 1
+                        continue
+                    if classroom_id == GRADUATE_VALUE:
+                        # W22 graduation gate (async/sync parity with the proposal apply
+                        # path): don't graduate an off-track student when requirements are
+                        # configured and the operator did not override. Absent config →
+                        # requirements_configured is False → this never bites.
+                        grad_audit = audit_graduation_eligibility(s, source_year)
+                        if (
+                            grad_audit.requirements_configured
+                            and not grad_audit.is_eligible
+                            and not override_graduation_gate
+                        ):
+                            graduation_blocked += 1
+                            continue
+                        # Close the enrollment BEFORE blanking the legacy fields so the
+                        # leaving year survives in history (2.2).
+                        graduate_student(s, target_year)
+                        s.academic_year = target_year
+                        s.classroom = None
+                        s.status = StudentProfile.Status.ALUMNI
+                        s.is_active = False
+                        s.save(
+                            update_fields=[
+                                "academic_year",
+                                "classroom",
+                                "status",
+                                "is_active",
+                            ]
+                        )
+                        graduated += 1
+                        continue
+                    try:
+                        new_class = target_classrooms_by_id.get(int(classroom_id))
+                    except (ValueError, TypeError):
+                        continue
+                    if not new_class:
+                        continue
+                    # 2.2: open a new enrollment and close the prior one. The operator's
+                    # chosen class still wins; the OUTCOME is derived from it, so a
+                    # student left in the same grade is recorded as RETAINED rather than
+                    # indistinguishable from a promotion.
+                    source_enrollment = s.enrollment_for_year(source_year)
+                    source_classroom = (
+                        source_enrollment.classroom
+                        if source_enrollment is not None
+                        and source_enrollment.classroom_id
+                        else s.classroom
+                    )
+                    open_enrollment(
+                        s,
+                        target_year,
+                        new_class,
+                        entry_date=getattr(target_year, "start_date", None),
+                        close_outcome=outcome_for_manual_placement(
+                            source_classroom, new_class
+                        ),
+                    )
+                    updated += 1
+                    rolled_students.append((s, new_class))
+                finally:
+                    update_and_broadcast_progress(
+                        school=school,
+                        task_type=TASK_EOY_ROLLOVER,
+                        processed=index,
+                        expected=expected,
+                        log_message=f"Processed student record {index} of {expected}",
+                    )
         if notify_parents and rolled_students:
             _notify_guardians_of_rollover(
                 rolled_students, target_year, created_by=request.user
@@ -712,21 +751,28 @@ def rollover_proposal_detail(request, proposal_id):
                 )
             from apps.accounts.tasks import apply_rollover_proposal
 
+            enqueue_kwargs = {
+                "lock_source": lock_source,
+                "notify_parents": notify_parents,
+                "allow_outstanding_returns": allow_outstanding,
+                "carry_forward_arrears": carry_arrears,
+                "override_backup_gate": override_backup,
+                "override_graduation_gate": override_graduation,
+            }
+            if getattr(school, "pk", None):
+                enqueue_kwargs["school_id"] = str(school.pk)
             _enqueue_rollover_task(
                 apply_rollover_proposal,
                 proposal_id,
-                lock_source=lock_source,
-                notify_parents=notify_parents,
-                allow_outstanding_returns=allow_outstanding,
-                carry_forward_arrears=carry_arrears,
-                override_backup_gate=override_backup,
-                override_graduation_gate=override_graduation,
+                **enqueue_kwargs,
             )
             messages.success(
                 request,
-                "Rollover is running. Students will be moved to the target year shortly.",
+                "Rollover is running. Watch live progress on this page.",
             )
-            return redirect("accounts:rollover_queue")
+            return redirect(
+                "accounts:rollover_proposal_detail", proposal_id=proposal_id
+            )
     # When the proposal is APPROVED the apply form is shown — surface a per-graduate
     # eligibility check (W22) so the operator sees who is off-track before applying,
     # and gate the override checkbox on there being at least one ineligible graduate.

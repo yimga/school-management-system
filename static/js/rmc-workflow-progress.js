@@ -204,6 +204,15 @@
     }
     var bar = renderProgressBar(pct, status);
     var train = renderTrain(ordinal, total, status);
+    var recordsLine = "";
+    if (run.records_expected > 0) {
+      recordsLine =
+        '<div class="rmc-wfp-run__meta">' +
+        escapeHtml(String(run.records_processed || 0)) +
+        " / " +
+        escapeHtml(String(run.records_expected)) +
+        " records</div>";
+    }
     var fix = run.suggested_remediation && Object.keys(run.suggested_remediation).length
       ? renderFix(run)
       : "";
@@ -218,6 +227,7 @@
       '<span class="rmc-wfp-run__pill ' + pillClass + '">' + escapeHtml(status) + "</span>" +
       "</div>" +
       bar +
+      recordsLine +
       '<div class="rmc-wfp-train">' + train + "</div>" +
       '<div class="rmc-wfp-run__step-row">' +
       "<span>Step " + ordinal + (total ? " / " + total : "") + ": <strong>" + current + "</strong></span>" +
@@ -463,6 +473,11 @@
     } else if (state.open) {
       renderCard();
     }
+    try {
+      document.dispatchEvent(
+        new CustomEvent("rmc:workflow-progress", { detail: payload })
+      );
+    } catch (_) {}
   }
 
   function autoPopupDisabled() {
