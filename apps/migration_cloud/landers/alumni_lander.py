@@ -34,6 +34,8 @@ from typing import Any, Iterator
 
 from ._helpers import (
     coerce_int,
+    derive_external_id,
+    split_name_for,
     detect_and_register_assets,
     filter_to_model_fields,
     model_field_names,
@@ -70,6 +72,25 @@ class AlumniLander(Lander):
             external_id = (row.get("external_id") or "").strip()
             first_name = (row.get("first_name") or "").strip()
             last_name = (row.get("last_name") or "").strip()
+            # Combined-name fallback (mirrors student_lander / staff_lander,
+            # which alumni never received): an alumni roster is the MOST likely
+            # of the three to arrive as one "Name" column off a printed
+            # graduation list, and without this every such row quarantined.
+            full_name = (row.get("full_name") or "").strip()
+            if full_name and (not first_name or not last_name):
+                fn, _mn, ln = split_name_for(ctx, full_name)
+                first_name = first_name or fn
+                last_name = last_name or ln
+            # Alumni are the least likely records to carry a source-system id --
+            # they predate the SIS being migrated. Derive a stable key so the
+            # roster lands and stays idempotent on re-apply.
+            if not external_id:
+                external_id = derive_external_id(
+                    first_name=first_name,
+                    last_name=last_name,
+                    date_of_birth=row.get("date_of_birth"),
+                    place_of_birth=row.get("place_of_birth"),
+                )
             if not external_id or not first_name or not last_name:
                 result.quarantined += 1
                 result.errors.append(

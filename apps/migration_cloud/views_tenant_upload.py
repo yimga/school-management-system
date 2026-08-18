@@ -344,6 +344,21 @@ def _import_flight(bundle) -> dict:
             ).total_seconds() > _IMPORT_QUEUE_STUCK_SECONDS
         except Exception:  # noqa: BLE001 — a clock/None hiccup must not stick the page
             stuck = False
+    elif running or processing:
+        # A CLAIMED apply that stopped heartbeating is wedged, not working. Checking
+        # only the PENDING branch above made this page spin forever on the single
+        # commonest failure -- a worker killed mid-apply (deploy, OOM, connection
+        # exhaustion) -- because that leaves the bundle at APPLYING (running=True) or
+        # the row at PROCESSING, and neither is `pending`, so `stuck` stayed False and
+        # the tenant saw "Working..." indefinitely. The orchestrator heartbeats the
+        # bundle at every wave/artifact, so a stale heartbeat is the honest signal;
+        # repair.applying_stale_by_time is the project's single source of truth for it.
+        try:
+            from .repair import applying_stale_by_time
+
+            stuck = applying_stale_by_time(bundle)
+        except Exception:  # noqa: BLE001 — never break the review page on this probe
+            stuck = False
     return {
         "in_flight": True,
         "phase": "running" if (running or processing) else "queued",
@@ -589,6 +604,93 @@ def _column_mapping_rows(artifact_maps) -> list[dict]:
     return out
 
 
+# Combined-name split orders offered on the review page. "" keeps the existing
+# locale/country auto-detection.
+NAME_ORDER_CHOICES = (
+    ("", "Detect automatically"),
+    ("first_last", "Given name first (Ada Lovelace)"),
+    ("last_first", "Family name first (Lovelace Ada)"),
+    ("spanish_double", "Two family names (Garcia Marquez Gabriel)"),
+)
+_NAME_ORDER_VALUES = {value for value, _label in NAME_ORDER_CHOICES}
+_NAME_PREVIEW_SAMPLES = 5  # magic-number-allow: name-order-preview-sample-count
+_NAME_COLUMN_HINTS = ("full_name", "name", "student_name", "staff_name", "nom", "noms")
+
+
+def selected_name_order(bundle) -> str:
+    prefs = (getattr(bundle, "mapping_summary", None) or {}).get("transform_prefs") or {}
+    order = str(prefs.get("name_order") or "").strip().lower()
+    return order if order in _NAME_ORDER_VALUES else ""
+
+
+def _combined_name_samples(bundle) -> list[str]:
+    """Real combined-name values from the profiled sample, for the preview.
+
+    Previewing the school's OWN names is the point: "ANDONGMAD FAVOUR ANGU" is
+    only ambiguous until you see which way each option reads it. Falls back to
+    nothing (preview hidden) rather than inventing example names, which would
+    tell the operator nothing about their file.
+    """
+    seen: list[str] = []
+    for artifact in bundle.artifacts.filter(quarantined=False):
+        for column in ((artifact.profile or {}).get("columns") or []):
+            normalized = str(column.get("normalized") or column.get("name") or "").lower()
+            if not any(hint in normalized for hint in _NAME_COLUMN_HINTS):
+                continue
+            for sample in (column.get("samples") or []):
+                text = " ".join(str(sample or "").split())
+                if len(text.split()) >= 2 and text not in seen:
+                    seen.append(text)
+                if len(seen) >= _NAME_PREVIEW_SAMPLES:
+                    return seen
+    return seen
+
+
+def name_order_preview(bundle) -> list[dict]:
+    """For each offered order, how this school's own names would actually split.
+
+    Read-only: computed for the page, never persisted. A transformer failure on
+    one sample degrades that cell rather than breaking the review page.
+    """
+    samples = _combined_name_samples(bundle)
+    if not samples:
+        return []
+    try:
+        from apps.migration_cloud.transformers.name_split import split_full_name
+    except Exception:  # noqa: BLE001 - never break the review page on a preview
+        return []
+
+    country = getattr(getattr(bundle, "school", None), "country_code", "") or ""
+    current = selected_name_order(bundle)
+    out = []
+    for value, label in NAME_ORDER_CHOICES:
+        rendered = []
+        for raw in samples:
+            try:
+                first, middle, last = split_full_name(
+                    raw, order=value or None, country=country
+                )
+            except Exception:  # noqa: BLE001 - one bad sample must not hide the option
+                first, middle, last = "", "", ""
+            rendered.append(
+                {
+                    "source": raw,
+                    "first": first,
+                    "middle": middle,
+                    "last": last,
+                }
+            )
+        out.append(
+            {
+                "value": value,
+                "label": label,
+                "selected": value == current,
+                "rows": rendered,
+            }
+        )
+    return out
+
+
 class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
     """GET → per-file detected format + entity + confidence, with override.
     POST → save per-file entity overrides and re-detect.
@@ -636,6 +738,7 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
         # place. This rewrites the SAME mapping_summary the apply reads; it does
         # NOT rewind/re-map (that would throw the tenant's choices away).
         mapping_changed = self._apply_column_overrides(request, bundle)
+        mapping_changed += self._apply_name_order(request, bundle)
         if mapping_changed:
             messages.success(
                 request,
@@ -645,6 +748,30 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
         else:
             messages.info(request, "No changes to apply.")
         return redirect(_connector_reverse(request, "bundle-review", bundle_id=bundle.pk))
+
+    def _apply_name_order(self, request, bundle) -> int:
+        """Persist the combined-name split order chosen on the review page.
+
+        Stored on ``mapping_summary['transform_prefs']`` -- the same JSON the
+        orchestrator already reads -- so the choice reaches every person lander
+        through ``LanderContext.transformer_options`` without a new model field or
+        a second source of truth. Absent from the POST means "not on this form",
+        which must not silently reset an existing preference.
+        """
+        if "name_order" not in request.POST:
+            return 0
+        chosen = (request.POST.get("name_order") or "").strip().lower()
+        if chosen not in _NAME_ORDER_VALUES:
+            return 0
+        if chosen == selected_name_order(bundle):
+            return 0
+        summary = dict(bundle.mapping_summary or {})
+        prefs = dict(summary.get("transform_prefs") or {})
+        prefs["name_order"] = chosen
+        summary["transform_prefs"] = prefs
+        bundle.mapping_summary = summary
+        bundle.save(update_fields=["mapping_summary", "updated_at"])
+        return 1
 
     def _apply_column_overrides(self, request, bundle) -> int:
         """Rewrite ``mapping_summary['per_artifact']`` from the review form's selects.
@@ -735,6 +862,9 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
             "bundle": bundle,
             "artifact_rows": rows,
             "domain_choices": canonical_domain_choices(),
+            "name_order_choices": NAME_ORDER_CHOICES,
+            "name_order_selected": selected_name_order(bundle),
+            "name_order_preview": name_order_preview(bundle),
             "apply_result": apply_result,
             "verification": _build_verification(bundle),
             # Live import/repair state: the review page shows a polling progress
