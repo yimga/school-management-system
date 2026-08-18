@@ -75,6 +75,10 @@
                 {% if run.in_progress %}{% trans "Running" %}{% elif run.ok %}{% trans "OK" %}{% else %}{% trans "Failed" %}{% endif %}
                 — {{ run.created_at }}
                 ({% trans "pushed" %} {{ run.pushed }}, {% trans "pulled" %} {{ run.pulled }})
+                {# The reason is stored on every row and was being thrown away, so five #}
+                {# consecutive "Failed" lines told a school nothing it could act on. #}
+                {% if run.error %}<div class="text-danger-emphasis">{{ run.error }}</div>
+                {% elif run.message %}<div class="text-body-secondary">{{ run.message }}</div>{% endif %}
               </li>
             {% endfor %}
           </ul>

@@ -237,24 +237,37 @@ class SyncBundleDownloadView(APIView):
         resp[SYNC_ROW_COUNT_HEADER] = str(meta.get("row_count", 0))
         # The box is behind NAT, so this response is the only moment the cloud can hand it
         # an instruction. Best-effort: a directive failure must never cost the box its data.
+        directive_kind = ""
         try:
             from apps.sync_engine.models import claim_pending_directive
 
             directive = claim_pending_directive(school)
             if directive is not None:
                 resp[SYNC_DIRECTIVE_HEADER] = directive.kind
-                try:
-                    from apps.sync_engine.sync_status import record_observed_cycle
-
-                    record_observed_cycle(
-                        school,
-                        ok=True,
-                        pulled=int(meta.get("row_count") or 0),
-                        message=f"directive served: {directive.kind}",
-                    )
-                except Exception:  # noqa: BLE001 — bundle is the payload
-                    pass
+                directive_kind = directive.kind
         except Exception:  # noqa: BLE001 — the bundle is the payload; a directive is a bonus
+            pass
+
+        # EVERY served bundle is a real cloud<->box transfer, so every one is
+        # recorded. This used to sit inside the directive branch, which meant an
+        # ordinary pull -- a box polling with nothing to push, the overwhelmingly
+        # common case -- recorded nothing at all. A healthy box was therefore
+        # invisible on the Sync Center, which kept showing whatever last went
+        # wrong until something else happened to write a row.
+        try:
+            from apps.sync_engine.sync_status import record_observed_cycle
+
+            record_observed_cycle(
+                school,
+                ok=True,
+                pulled=int(meta.get("row_count") or 0),
+                message=(
+                    f"bundle served to box; directive served: {directive_kind}"
+                    if directive_kind
+                    else "bundle served to box"
+                ),
+            )
+        except Exception:  # noqa: BLE001 — observability must never cost the box its data
             pass
         return resp
 

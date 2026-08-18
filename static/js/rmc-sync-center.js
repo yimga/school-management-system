@@ -97,6 +97,16 @@
         ", pulled " +
         (run.pulled || 0) +
         ")";
+      // The reason ships in the payload already. Rendering only the state left a
+      // school staring at "Failed" with nothing to act on. textContent, not
+      // innerHTML: this string is server data and must never be parsed as markup.
+      var reason = run.error || run.message || "";
+      if (reason) {
+        var note = document.createElement("div");
+        note.className = run.error ? "text-danger-emphasis" : "text-body-secondary";
+        note.textContent = reason;
+        li.appendChild(note);
+      }
       list.appendChild(li);
     });
   }
