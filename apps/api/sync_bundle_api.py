@@ -139,6 +139,20 @@ class SyncBundleUploadView(APIView):
             if insert_rows
             else {"created": 0, "updated": 0, "results": []}
         )
+        try:
+            from apps.sync_engine.sync_status import record_observed_cycle
+
+            record_observed_cycle(
+                school,
+                ok=True,
+                pushed=len(rows),
+                conflicts=len(out["conflicts"]),
+                created=int(inserted["created"] or 0),
+                upserted=int(inserted["updated"] or 0),
+                message="inbound edge-push applied",
+            )
+        except Exception:  # noqa: BLE001 — observability must never fail the upload
+            pass
         return Response(
             {
                 "ok": True,
@@ -229,6 +243,17 @@ class SyncBundleDownloadView(APIView):
             directive = claim_pending_directive(school)
             if directive is not None:
                 resp[SYNC_DIRECTIVE_HEADER] = directive.kind
+                try:
+                    from apps.sync_engine.sync_status import record_observed_cycle
+
+                    record_observed_cycle(
+                        school,
+                        ok=True,
+                        pulled=int(meta.get("row_count") or 0),
+                        message=f"directive served: {directive.kind}",
+                    )
+                except Exception:  # noqa: BLE001 — bundle is the payload
+                    pass
         except Exception:  # noqa: BLE001 — the bundle is the payload; a directive is a bonus
             pass
         return resp

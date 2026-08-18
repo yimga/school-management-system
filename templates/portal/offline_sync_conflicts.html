@@ -1,6 +1,6 @@
 {% extends "portal_base.html" %}
 {% block rmc_workspace_os_header %}{% endblock %}
-{% load i18n glocal_tags %}
+{% load i18n static glocal_tags %}
 
 {% block title %}{% trans "Sync conflicts" %} — {{ block.super }}{% endblock %}
 
@@ -23,6 +23,17 @@
   </p>
 
   {% if conflict_cards %}
+  <form method="post" id="offline-conflict-bulk" class="d-flex flex-wrap gap-2 align-items-center mb-3">
+    {% csrf_token %}
+    <span class="small">{% trans "Bulk" %}:</span>
+    <button type="submit" name="resolution" value="keep_mine" class="btn btn-sm btn-primary">{% trans "Keep mine" %}</button>
+    <button type="submit" name="resolution" value="use_latest" class="btn btn-sm btn-outline-secondary">{% trans "Use latest" %}</button>
+    <button type="submit" name="resolution" value="review_manual" class="btn btn-sm btn-outline-warning">{% trans "Review manually" %}</button>
+  </form>
+  <label class="small d-flex align-items-center gap-2 mb-3">
+    <input type="checkbox" data-rmc-offline-select-all>
+    {% trans "Select all on this page" %}
+  </label>
   <div class="vstack gap-4" data-rmc-row-detail-cards="1">
     {% for card in conflict_cards %}
     {% with c=card.row %}
@@ -34,6 +45,10 @@
          data-rmc-row-subtitle="{{ c.updated_at }}"
          data-rmc-row-meta='{"{% trans "Conflict reason" %}":"{{ c.conflict_reason|default:"—"|escapejs }}"}'>
       <div class="card-body">
+        <label class="small d-flex align-items-center gap-2 mb-2">
+          <input type="checkbox" name="action_ids" value="{{ c.pk }}" form="offline-conflict-bulk">
+          {% trans "Include in bulk" %}
+        </label>
         <div class="d-flex justify-content-between flex-wrap gap-2 mb-2">
           <strong>{{ c.get_action_type_display }}</strong>
           <span class="small text-body-secondary">{{ c.updated_at }}</span>
@@ -134,4 +149,9 @@
 
 </div>
 {% include "partials/portal_row_detail_drawer_bundle.html" %}
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="{% static 'js/rmc-offline-conflicts.js' %}" defer></script>
 {% endblock %}

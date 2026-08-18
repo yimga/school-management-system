@@ -23,6 +23,8 @@
             {% trans "Year-end rollover progress" %}
           {% elif task_type == "PROCUREMENT_LOOP" %}
             {% trans "Inventory reorder scan progress" %}
+          {% elif task_type == "EDGE_SYNC" %}
+            {% trans "Edge sync progress" %}
           {% else %}
             {% trans "Workflow progress" %}
           {% endif %}

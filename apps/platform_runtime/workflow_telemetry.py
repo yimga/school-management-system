@@ -22,6 +22,7 @@ TASK_MIGRATION_INGESTION = "MIGRATION_INGESTION"
 TASK_TIMETABLE_SOLVER = "TIMETABLE_SOLVER"
 TASK_EOY_ROLLOVER = "EOY_ROLLOVER"
 TASK_PROCUREMENT_LOOP = "PROCUREMENT_LOOP"
+TASK_EDGE_SYNC = "EDGE_SYNC"
 
 LOG_HISTORY_CAP = 10
 
@@ -214,18 +215,46 @@ def update_and_broadcast_progress(
     return frame
 
 
-def enqueue_background_job(task, *args, **kwargs):
-    """Prefer Celery ``apply_async``; fall back to in-process ``apply``.
+class _PendingBackgroundJob:
+    """Stand-in when work was handed to a thread because the broker is down."""
+
+    def ready(self):
+        return False
+
+    def get(self, propagate=False):  # noqa: ARG002
+        return None
+
+
+def enqueue_background_job(task, *args, block_in_process=True, **kwargs):
+    """Prefer Celery ``apply_async``; optionally fall back to in-process ``apply``.
 
     Long jobs must leave the HTTP worker so the same-tab canvas (and the
     Channels consumer) can paint. Tests with ``CELERY_TASK_ALWAYS_EAGER``
     still finish before the view returns.
+
+    ``block_in_process=False`` never runs the job on the HTTP worker: if the
+    broker is unreachable a daemon thread takes it so status polling can run.
     """
     try:
         return task.apply_async(args=args, kwargs=kwargs)
     except Exception:  # noqa: BLE001
         logger.debug("workflow_telemetry_enqueue_async_failed", exc_info=True)
-        return task.apply(args=args, kwargs=kwargs)
+        if block_in_process:
+            return task.apply(args=args, kwargs=kwargs)
+        import threading
+
+        def _run_detached():
+            try:
+                task.apply(args=args, kwargs=kwargs)
+            except Exception:  # noqa: BLE001
+                logger.exception("workflow_telemetry_detached_job_failed")
+
+        threading.Thread(
+            target=_run_detached,
+            daemon=True,
+            name="rmc-bg-job",
+        ).start()
+        return _PendingBackgroundJob()
 
 
 def background_job_payload(async_result) -> Any:

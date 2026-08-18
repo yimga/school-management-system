@@ -208,6 +208,7 @@ class SyncNowViewTests(TestCase):
         self.assertIn(reverse("siteconfig:sync_center_sync_now"), body)
         self.assertIn("Dry-run sync", body)
         self.assertIn("Sync now", body)
+        self.assertIn("data-rmc-wfp-stay", body)
 
     def test_on_the_cloud_the_panel_offers_a_resync_queue_not_a_dead_sync_button(self):
         """This assertion used to be the inverse, and it locked in a live defect.
@@ -254,3 +255,52 @@ class SyncNowViewTests(TestCase):
         )
         body = self.client.get(reverse("siteconfig:sync_center")).content.decode("utf-8")
         self.assertIn("waiting for the box to connect", body)
+
+    @override_settings(RMC_EDGE_SYNC_ENABLED=True)
+    def test_sync_now_leaves_http_worker_with_running_row(self):
+        """Same-tab leftover: POST must return while the cycle is still open."""
+
+        class Pending:
+            def ready(self):
+                return False
+
+        url = reverse("siteconfig:sync_center_sync_now")
+        with patch(
+            "apps.platform_runtime.workflow_telemetry.enqueue_background_job",
+            return_value=Pending(),
+        ) as enqueued:
+            resp = self.client.post(url, data={"mode": "dry"})
+        self.assertEqual(resp.status_code, 302)
+        enqueued.assert_called_once()
+        running = EdgeSyncRun.in_progress_for(self.school)
+        self.assertIsNotNone(running)
+        self.assertIsNone(running.finished_at)
+        kwargs = enqueued.call_args.kwargs
+        self.assertEqual(kwargs.get("run_id"), running.pk)
+        self.assertEqual(kwargs.get("mode"), "dry")
+        self.assertFalse(kwargs.get("block_in_process", True))
+
+    @override_settings(RMC_EDGE_SYNC_ENABLED=True)
+    def test_sync_now_xhr_returns_running_json_without_redirect(self):
+        from apps.sync_engine.sync_status import PHASE_RUNNING
+
+        class Pending:
+            def ready(self):
+                return False
+
+        url = reverse("siteconfig:sync_center_sync_now")
+        with patch(
+            "apps.platform_runtime.workflow_telemetry.enqueue_background_job",
+            return_value=Pending(),
+        ):
+            resp = self.client.post(
+                url,
+                data={"mode": "live"},
+                HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+            )
+        self.assertEqual(resp.status_code, 200)
+        body = resp.json()
+        self.assertTrue(body["ok"])
+        self.assertEqual(body["phase"], PHASE_RUNNING)
+        self.assertTrue(body["queued"])
+        self.assertIsNotNone(EdgeSyncRun.in_progress_for(self.school))

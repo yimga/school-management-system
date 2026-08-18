@@ -89,7 +89,9 @@ from .views_detail_engine import detail_settings_view
 from .views_custom_requirement import request_custom_requirement
 from .views_sync_center import (
     sync_center,
+    sync_center_bulk_resolve,
     sync_center_resolve,
+    sync_center_status,
     sync_now,
     sync_request_resync,
 )
@@ -575,6 +577,12 @@ urlpatterns = [
         "sync-center/request-resync/",
         sync_request_resync,
         name="sync_center_request_resync",
+    ),
+    path("sync-center/status/", sync_center_status, name="sync_center_status"),
+    path(
+        "sync-center/bulk-resolve/",
+        sync_center_bulk_resolve,
+        name="sync_center_bulk_resolve",
     ),
     path(
         "sync-center/resolve/<int:conflict_id>/",

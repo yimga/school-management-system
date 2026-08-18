@@ -125,11 +125,36 @@ def _resolve_principal(school):
     return User.objects.filter(is_superuser=True).order_by("pk").first()
 
 
-def run_sync_cycle(school, *, mode="live") -> dict:
+def _pulse_sync(school, *, processed: int, expected: int, log_message: str, status: str = ""):
+    """Best-effort live canvas pulse. Never raises, never uses float()."""
+    try:
+        from apps.platform_runtime.workflow_telemetry import (
+            TASK_EDGE_SYNC,
+            update_and_broadcast_progress,
+        )
+
+        update_and_broadcast_progress(
+            school=school,
+            workflow_key="siteconfig-edge-sync",
+            task_type=TASK_EDGE_SYNC,
+            processed=processed,
+            expected=max(int(expected or 0), 1),
+            log_message=log_message,
+            status=status,
+        )
+    except Exception:  # noqa: BLE001 — telemetry must never break a sync cycle
+        pass
+
+
+def run_sync_cycle(school, *, mode="live", run_row=None) -> dict:
     """Run one edge<->cloud sync cycle for ``school`` and record exactly one EdgeSyncRun.
 
     NEVER raises. Returns a result dict:
     ``{enabled, mode, ok, pushed, pulled, conflicts, created, upserted, message, error}``.
+
+    Pass ``run_row`` when the HTTP view already opened the in-progress row so
+    status polling can see **running** before the worker starts. A row that
+    another click already abandoned (``finished_at`` set) is a no-op.
     """
     from apps.sync_engine.models import EdgeSyncRun
 
@@ -148,21 +173,101 @@ def run_sync_cycle(school, *, mode="live") -> dict:
         "error": "",
     }
 
+    if run_row is not None:
+        try:
+            run_row.refresh_from_db()
+        except Exception:  # noqa: BLE001 — missing row is treated as a fresh begin
+            run_row = None
+        if run_row is not None and run_row.finished_at is not None:
+            result["ok"] = True
+            result["message"] = "superseded by a newer cycle"
+            return result
+
     # Flag-gated exactly like edge_sync_cycle: off => a hard no-op (no network), but we
     # still record a visible ok=False row so the UI can explain why nothing happened.
     if not getattr(settings, "RMC_EDGE_SYNC_ENABLED", False):
         result["enabled"] = False
         result["message"] = "Edge sync is not enabled on this deployment"
-        EdgeSyncRun.record(
-            school,
-            mode=mode,
-            ok=False,
-            message=result["message"],
-            started_at=started,
-            finished_at=timezone.now(),
-        )
+        if run_row is not None:
+            run_row.complete(
+                mode=mode,
+                ok=False,
+                message=result["message"],
+                started_at=getattr(run_row, "started_at", None) or started,
+            )
+        else:
+            EdgeSyncRun.record(
+                school,
+                mode=mode,
+                ok=False,
+                message=result["message"],
+                started_at=started,
+                finished_at=timezone.now(),
+            )
         return result
 
+    if run_row is None:
+        run_row = EdgeSyncRun.begin(school, mode=mode)
+    try:
+        _run_sync_cycle_body(school, mode=mode, result=result, run_row=run_row)
+    except Exception as exc:  # noqa: BLE001 — the public runner never raises
+        result["ok"] = False
+        result["error"] = str(exc)
+        result["message"] = result["message"] or "Sync finished with errors"
+    finally:
+        if run_row.finished_at is None:
+            run_row.complete(
+                mode=mode,
+                ok=result["ok"],
+                pushed=result["pushed"],
+                pulled=result["pulled"],
+                conflicts=result["conflicts"],
+                created=result["created"],
+                upserted=result["upserted"],
+                message=result["message"],
+                error=result["error"],
+            )
+    return result
+
+
+def _run_sync_cycle_body(school, *, mode, result, run_row) -> None:
+    from contextlib import nullcontext
+
+    from django.db import connection
+
+    try:
+        from apps.platform_runtime.workflow_tracker import ensure_workflow_run
+
+        schema = str(getattr(connection, "schema_name", "") or "")
+        tracker = ensure_workflow_run(
+            "siteconfig-edge-sync",
+            steps=("push", "pull"),
+            expected_duration_seconds=180,
+            school_id=str(getattr(school, "pk", "") or ""),
+            tenant_schema=schema,
+            payload={"task_type": "EDGE_SYNC"},
+        )
+    except Exception:  # noqa: BLE001 — tracking must never block the cycle
+        tracker = nullcontext()
+    with tracker:
+        _pulse_sync(
+            school,
+            processed=0,
+            expected=2,
+            log_message="Starting edge sync cycle",
+            status="running",
+        )
+        _execute_sync_transport(school, mode=mode, result=result, run_row=run_row)
+        _pulse_sync(
+            school,
+            processed=2,
+            expected=2,
+            log_message=result.get("message") or "Sync cycle finished",
+            status="succeeded" if result.get("ok") else "failed",
+        )
+
+
+def _execute_sync_transport(school, *, mode, result, run_row) -> None:
     base = _operator_base()
     token = _edge_token()
     errors: list[str] = []
@@ -265,6 +370,21 @@ def run_sync_cycle(school, *, mode="live") -> dict:
                 set_sync_cursor(school, EdgeSyncCursor.PUSH, meta.get("high_water"))
             if result["pushed"]:
                 notes.append(f"pushed {result['pushed']} in {posted_pages} bundle(s)")
+        # Dry, empty, and live push all share the same 1/2 pulse so the poll bar
+        # matches telemetry (row counts stay on pushed/pulled, not percent).
+        push_note = notes[-1] if notes else "Push phase finished"
+        run_row.checkpoint(
+            pushed=result["pushed"],
+            conflicts=result["conflicts"],
+            message=push_note,
+        )
+        _pulse_sync(
+            school,
+            processed=1,
+            expected=2,
+            log_message=push_note,
+            status="running",
+        )
     except Exception as exc:  # noqa: BLE001 — never crash the tenant page
         errors.append(f"push failed: {exc}")
 
@@ -348,11 +468,7 @@ def run_sync_cycle(school, *, mode="live") -> dict:
     result["message"] = "; ".join(notes) or (
         "Sync complete" if result["ok"] else "Sync finished with errors"
     )
-
-    EdgeSyncRun.record(
-        school,
-        mode=mode,
-        ok=result["ok"],
+    run_row.checkpoint(
         pushed=result["pushed"],
         pulled=result["pulled"],
         conflicts=result["conflicts"],
@@ -360,10 +476,7 @@ def run_sync_cycle(school, *, mode="live") -> dict:
         upserted=result["upserted"],
         message=result["message"],
         error=result["error"],
-        started_at=started,
-        finished_at=timezone.now(),
     )
-    return result
 
 
 __all__ = ["run_sync_cycle"]
