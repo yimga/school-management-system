@@ -789,6 +789,23 @@ WORKFLOWS: dict[str, WorkflowDefinition] = {
         slo_seconds=120,
         owner_team="school-operations",
     ),
+    "siteconfig-edge-sync": WorkflowDefinition(
+        key="siteconfig-edge-sync",
+        title="Edge sync cycle",
+        audience=AUDIENCE_TENANT_ADMIN,
+        module="sync_engine",
+        route="siteconfig:sync_center",
+        purpose="Push local changes up and pull cloud changes down with live percent on Sync Center.",
+        steps=(
+            WorkflowStep("push", "Push local delta"),
+            WorkflowStep("pull", "Pull cloud delta"),
+        ),
+        success_state="Cycle recorded with pushed, pulled, and conflict counts.",
+        default_tags=(TAG_TENANT_SAFE, TAG_AUDIT_LOGGED),
+        slo_seconds=180,
+        owner_team="sync-engine",
+        entry_path="/siteconfig/sync-center/",
+    ),
 }
 
 

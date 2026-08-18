@@ -162,6 +162,10 @@ class EdgeSyncSchedulingWiringTests(SimpleTestCase):
         if tasks.shared_task is None:  # celery absent (not the case here) -> skip
             self.skipTest("celery not installed")
         self.assertEqual(tasks.edge_sync_cycle_task.name, "sync_engine.edge_sync_cycle")
+        self.assertEqual(
+            tasks.run_sync_cycle_for_school_task.name,
+            "sync_engine.run_sync_cycle_for_school",
+        )
 
     def test_inprocess_registration_only_on_edge_box(self):
         from apps.platform_runtime import periodic

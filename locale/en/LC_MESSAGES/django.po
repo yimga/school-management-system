@@ -15701,6 +15701,48 @@ msgstr "Sync Center"
 msgid "Sync center"
 msgstr "Sync center"
 
+msgid "Sync queued"
+msgstr "Sync queued"
+
+msgid "Sync running"
+msgstr "Sync running"
+
+msgid "Last sync OK"
+msgstr "Last sync OK"
+
+msgid "Last sync failed"
+msgstr "Last sync failed"
+
+msgid "Apply school policy"
+msgstr "Apply school policy"
+
+msgid "Apply policy"
+msgstr "Apply policy"
+
+msgid "Edge sync progress"
+msgstr "Edge sync progress"
+
+msgid "Select all conflicts on this page"
+msgstr "Select all conflicts on this page"
+
+msgid "Select all on this page"
+msgstr "Select all on this page"
+
+msgid "Include in bulk"
+msgstr "Include in bulk"
+
+msgid "Recent cycles"
+msgstr "Recent cycles"
+
+msgid "Resync collected"
+msgstr "Resync collected"
+
+msgid "No pending conflicts"
+msgstr "No pending conflicts"
+
+msgid "Conflict filters"
+msgstr "Conflict filters"
+
 msgid "Sync conflict model not available."
 msgstr "Sync conflict model not available."
 
@@ -69689,8 +69731,12 @@ msgstr "Inventory reorder scan progress"
 msgid "Workflow progress"
 msgstr "Workflow progress"
 
-msgid "Start a job on this page, or keep this tab open while a background job runs, to watch percent, counts, and logs."
-msgstr "Start a job on this page, or keep this tab open while a background job runs, to watch percent, counts, and logs."
+msgid ""
+"Start a job on this page, or keep this tab open while a background job runs,"
+" to watch percent, counts, and logs."
+msgstr ""
+"Start a job on this page, or keep this tab open while a background job runs,"
+" to watch percent, counts, and logs."
 
 # templates/schoolops/ops_inventory.html + apps/schoolops/views_tenant_ops.py
 msgid "Scan reorder levels"
@@ -69706,7 +69752,896 @@ msgid "Timetable generation started. Watch live progress on this page."
 msgstr "Timetable generation started. Watch live progress on this page."
 
 msgid "Timetable generation failed. Check assignments, rooms, and time slots."
-msgstr "Timetable generation failed. Check assignments, rooms, and time slots."
+msgstr ""
+"Timetable generation failed. Check assignments, rooms, and time slots."
 
-msgid "Reorder scan finished: %(scanned)s items checked, %(low)s at or below reorder level."
-msgstr "Reorder scan finished: %(scanned)s items checked, %(low)s at or below reorder level."
+msgid ""
+"Reorder scan finished: %(scanned)s items checked, %(low)s at or below "
+"reorder level."
+msgstr ""
+"Reorder scan finished: %(scanned)s items checked, %(low)s at or below "
+"reorder level."
+
+msgid "A resync was already queued."
+msgstr "A resync was already queued."
+
+msgid "A sync cycle is already running. Watch live progress on this page."
+msgstr "A sync cycle is already running. Watch live progress on this page."
+
+msgid "Accommodations and specialised support tracks."
+msgstr "Accommodations and specialised support tracks."
+
+msgid "Adapted"
+msgstr "Adapted"
+
+msgid "Adjust dates"
+msgstr "Adjust dates"
+
+msgid "All modules"
+msgstr "All modules"
+
+msgid "All platform tools"
+msgstr "All platform tools"
+
+msgid "All regions"
+msgstr "All regions"
+
+msgid "Ask Copilot"
+msgstr "Ask Copilot"
+
+msgid "Ask access support"
+msgstr "Ask access support"
+
+msgid "Assignments and schedule"
+msgstr "Assignments and schedule"
+
+msgid "Auto-generated if blank"
+msgstr "Auto-generated if blank"
+
+msgid "Baseline academic programme."
+msgstr "Baseline academic programme."
+
+msgid "Billing operations"
+msgstr "Billing operations"
+
+msgid "Box collected the queued full resync."
+msgstr "Box collected the queued full resync."
+
+msgid "Box ↔ Cloud"
+msgstr "Box ↔ Cloud"
+
+msgid "Bulk"
+msgstr "Bulk"
+
+msgid "Can I continue during an outage?"
+msgstr "Can I continue during an outage?"
+
+msgid "Captured verbatim and imported as a tracked custom field"
+msgstr "Captured verbatim and imported as a tracked custom field"
+
+msgid ""
+"Child-first revert; you will be told which domains (shared academic scaffold"
+" / in-place updates) could not be auto-reverted."
+msgstr ""
+"Child-first revert; you will be told which domains (shared academic scaffold"
+" / in-place updates) could not be auto-reverted."
+
+msgid ""
+"Choose the issue you want to solve. No private account or student "
+"information is exposed before sign-in."
+msgstr ""
+"Choose the issue you want to solve. No private account or student "
+"information is exposed before sign-in."
+
+msgid "Classes and grades"
+msgstr "Classes and grades"
+
+msgid "Community partner space"
+msgstr "Community partner space"
+
+msgid "Compare alternatives and evidence"
+msgstr "Compare alternatives and evidence"
+
+msgid ""
+"Complete the essential answers to compare best-fit, simpler and growth-ready"
+" choices."
+msgstr ""
+"Complete the essential answers to compare best-fit, simpler and growth-ready"
+" choices."
+
+msgid "Complete this task step by step"
+msgstr "Complete this task step by step"
+
+msgid "Compliance and audit"
+msgstr "Compliance and audit"
+
+msgid "Configure workspace"
+msgstr "Configure workspace"
+
+msgid "Confirm dates"
+msgstr "Confirm dates"
+
+msgid "Confirm your term dates"
+msgstr "Confirm your term dates"
+
+msgid "Conflict resolved (%(resolution)s)."
+msgstr "Conflict resolved (%(resolution)s)."
+
+msgid "Conflicts resolved."
+msgstr "Conflicts resolved."
+
+msgid "Conflicts waiting"
+msgstr "Conflicts waiting"
+
+msgid "Continue in local mode"
+msgstr "Continue in local mode"
+
+msgid "Continue with your last role"
+msgstr "Continue with your last role"
+
+msgid "Continuity"
+msgstr "Continuity"
+
+msgid "Could not auto-resolve the selected conflicts."
+msgstr "Could not auto-resolve the selected conflicts."
+
+msgid "Could not confirm term dates. Please try again."
+msgstr "Could not confirm term dates. Please try again."
+
+msgid "Could not queue the resync request."
+msgstr "Could not queue the resync request."
+
+msgid "Could not resolve conflicts."
+msgstr "Could not resolve conflicts."
+
+msgid "Could not resolve the selected conflicts."
+msgstr "Could not resolve the selected conflicts."
+
+msgid "Current role"
+msgstr "Current role"
+
+msgid "Custom department / subject code prefix"
+msgstr "Custom department / subject code prefix"
+
+msgid "Daily teaching"
+msgstr "Daily teaching"
+
+msgid "Data & launch"
+msgstr "Data & launch"
+
+msgid "Device PIN"
+msgstr "Device PIN"
+
+msgid "Direct action"
+msgstr "Direct action"
+
+msgid "Dry-run sync"
+msgstr "Dry-run sync"
+
+msgid "Dual apprenticeship / workplace training."
+msgstr "Dual apprenticeship / workplace training."
+
+msgid "Edge sync"
+msgstr "Edge sync"
+
+msgid "Edge sync is not enabled."
+msgstr "Edge sync is not enabled."
+
+msgid "Education"
+msgstr "Education"
+
+msgid ""
+"Enter the device PIN created when local access was enabled. Sensitive online"
+" modules remain locked."
+msgstr ""
+"Enter the device PIN created when local access was enabled. Sensitive online"
+" modules remain locked."
+
+msgid "Essential portal navigation"
+msgstr "Essential portal navigation"
+
+msgid "Exact next confirmations"
+msgstr "Exact next confirmations"
+
+msgid "Family tasks"
+msgstr "Family tasks"
+
+msgid "Fees and balances"
+msgstr "Fees and balances"
+
+msgid "Fees and payroll"
+msgstr "Fees and payroll"
+
+msgid "Fleet posture"
+msgstr "Fleet posture"
+
+msgid "Former More destinations"
+msgstr "Former More destinations"
+
+msgid "Full resync queued {{ when }} — waiting for the box to connect."
+msgstr "Full resync queued {{ when }} — waiting for the box to connect."
+
+msgid "Full resync queued — waiting for the box to connect."
+msgstr "Full resync queued — waiting for the box to connect."
+
+msgid ""
+"Full resync queued. The box replays every record the next time it connects —"
+" it does not need to be online right now."
+msgstr ""
+"Full resync queued. The box replays every record the next time it connects —"
+" it does not need to be online right now."
+
+msgid "General Academic K-12"
+msgstr "General Academic K-12"
+
+msgid "Get contextual assistance"
+msgstr "Get contextual assistance"
+
+msgid "Global control plane"
+msgstr "Global control plane"
+
+msgid "Google Classroom"
+msgstr "Google Classroom"
+
+msgid "Google SSO"
+msgstr "Google SSO"
+
+msgid "Guided walkthrough"
+msgstr "Guided walkthrough"
+
+msgid ""
+"Has the box missed a lot of changes? This makes it replay every record on "
+"its next connection. Safe to press while it is offline."
+msgstr ""
+"Has the box missed a lot of changes? This makes it replay every record on "
+"its next connection. Safe to press while it is offline."
+
+msgid "Hide sponsored information"
+msgstr "Hide sponsored information"
+
+msgid "High contrast"
+msgstr "High contrast"
+
+msgid "How are you joining today?"
+msgstr "How are you joining today?"
+
+msgid "How you operate"
+msgstr "How you operate"
+
+msgid ""
+"Hybrid campuses can run several tracks at once — for example academic K-12 "
+"beside TVET or special education."
+msgstr ""
+"Hybrid campuses can run several tracks at once — for example academic K-12 "
+"beside TVET or special education."
+
+msgid "I forgot my password or changed devices"
+msgstr "I forgot my password or changed devices"
+
+msgid "I joined the wrong school"
+msgstr "I joined the wrong school"
+
+msgid "I need a passwordless email link"
+msgstr "I need a passwordless email link"
+
+msgid "Invalid resolution."
+msgstr "Invalid resolution."
+
+msgid "Language and region"
+msgstr "Language and region"
+
+msgid "Last full resync collected by the box {{ when }}."
+msgstr "Last full resync collected by the box {{ when }}."
+
+msgid "Last sync completed."
+msgstr "Last sync completed."
+
+msgid "Last sync finished with errors."
+msgstr "Last sync finished with errors."
+
+msgid "Linked student"
+msgstr "Linked student"
+
+msgid "Local Front Door health"
+msgstr "Local Front Door health"
+
+msgid "Local partner information"
+msgstr "Local partner information"
+
+msgid "Local partner · Sponsored"
+msgstr "Local partner · Sponsored"
+
+msgid "Local partner · Tenant controlled"
+msgstr "Local partner · Tenant controlled"
+
+msgid "Local-first administration"
+msgstr "Local-first administration"
+
+msgid "Local-first front door"
+msgstr "Local-first front door"
+
+msgid "Login capability health"
+msgstr "Login capability health"
+
+msgid "Microsoft SSO"
+msgstr "Microsoft SSO"
+
+msgid "Microsoft Teams"
+msgstr "Microsoft Teams"
+
+msgid "Moodle"
+msgstr "Moodle"
+
+msgid "My child is not linked / claim an invite"
+msgstr "My child is not linked / claim an invite"
+
+msgid "Need action"
+msgstr "Need action"
+
+msgid "No custom fields — every column mapped to a standard field."
+msgstr "No custom fields — every column mapped to a standard field."
+
+msgid "No override recorded"
+msgstr "No override recorded"
+
+msgid "No pending conflicts matched."
+msgstr "No pending conflicts matched."
+
+msgid ""
+"No standard field matched — captured as a tracked custom field and imported "
+"without loss."
+msgstr ""
+"No standard field matched — captured as a tracked custom field and imported "
+"without loss."
+
+msgid "No sync has run yet."
+msgstr "No sync has run yet."
+
+msgid "Only school-approved local information appears here."
+msgstr "Only school-approved local information appears here."
+
+msgid "Open utilities"
+msgstr "Open utilities"
+
+msgid "Operational strands"
+msgstr "Operational strands"
+
+msgid "Operations now"
+msgstr "Operations now"
+
+msgid "Operator assistance"
+msgstr "Operator assistance"
+
+msgid ""
+"Operator authentication is secure, auditable, and always promotion-free."
+msgstr ""
+"Operator authentication is secure, auditable, and always promotion-free."
+
+msgid ""
+"Optional. Letters and numbers only (2–8). Used as the start of department "
+"and classroom codes."
+msgstr ""
+"Optional. Letters and numbers only (2–8). Used as the start of department "
+"and classroom codes."
+
+msgid "Overrides"
+msgstr "Overrides"
+
+msgid ""
+"Page-aware guidance without covering content or creating another floating "
+"surface."
+msgstr ""
+"Page-aware guidance without covering content or creating another floating "
+"surface."
+
+msgid "Page-aware help"
+msgstr "Page-aware help"
+
+msgid "Passkey — no password to type"
+msgstr "Passkey — no password to type"
+
+msgid "Permission filtered"
+msgstr "Permission filtered"
+
+msgid "Phishing-resistant sign-in on a trusted device"
+msgstr "Phishing-resistant sign-in on a trusted device"
+
+msgid "Platform reports"
+msgstr "Platform reports"
+
+msgid "Press / to focus search · Ctrl K for commands"
+msgstr "Press / to focus search · Ctrl K for commands"
+
+msgid "Press / to focus · Ctrl K for commands"
+msgstr "Press / to focus · Ctrl K for commands"
+
+msgid "Privacy-safe diagnostics for all twelve approved login capabilities."
+msgstr "Privacy-safe diagnostics for all twelve approved login capabilities."
+
+msgid "Pulled"
+msgstr "Pulled"
+
+msgid ""
+"Push local changes up to the cloud and pull cloud changes down. Money stays "
+"cloud-authoritative."
+msgstr ""
+"Push local changes up to the cloud and pull cloud changes down. Money stays "
+"cloud-authoritative."
+
+msgid "Pushed"
+msgstr "Pushed"
+
+msgid "Queue full resync"
+msgstr "Queue full resync"
+
+msgid "Recent tools"
+msgstr "Recent tools"
+
+msgid "Recommended configuration"
+msgstr "Recommended configuration"
+
+msgid "Recommended for"
+msgstr "Recommended for"
+
+msgid "Recover my account"
+msgstr "Recover my account"
+
+msgid "Reduce motion"
+msgstr "Reduce motion"
+
+msgid "Registries and flags"
+msgstr "Registries and flags"
+
+msgid "Reports and insight"
+msgstr "Reports and insight"
+
+msgid "Resolve {{ n }} {{ entity }} by policy"
+msgstr "Resolve {{ n }} {{ entity }} by policy"
+
+msgid "Resolved %(count)s conflict(s)."
+msgstr "Resolved %(count)s conflict(s)."
+
+msgid "Resources & Feedback"
+msgstr "Resources & Feedback"
+
+msgid "Resume (safe re-import)"
+msgstr "Resume (safe re-import)"
+
+msgid "Revert the entire import"
+msgstr "Revert the entire import"
+
+msgid "Revert this import"
+msgstr "Revert this import"
+
+msgid "Review state"
+msgstr "Review state"
+
+msgid "Role filtered"
+msgstr "Role filtered"
+
+msgid ""
+"Safe idempotent re-import: records that already imported are updated in "
+"place, never duplicated."
+msgstr ""
+"Safe idempotent re-import: records that already imported are updated in "
+"place, never duplicated."
+
+msgid "Saved on this device"
+msgstr "Saved on this device"
+
+msgid "School access support"
+msgstr "School access support"
+
+msgid ""
+"School identity and essential notices remain available during an outage"
+msgstr ""
+"School identity and essential notices remain available during an outage"
+
+msgid "School setup steps"
+msgstr "School setup steps"
+
+msgid "Score meaning"
+msgstr "Score meaning"
+
+msgid "Search anything…"
+msgstr "Search anything…"
+
+msgid "Search tenants, incidents, commands…"
+msgstr "Search tenants, incidents, commands…"
+
+msgid "Search utilities"
+msgstr "Search utilities"
+
+msgid "Secure local-first access for staff, families, and students."
+msgstr "Secure local-first access for staff, families, and students."
+
+msgid "Secure · promotion-free"
+msgstr "Secure · promotion-free"
+
+msgid "Select at least one conflict."
+msgstr "Select at least one conflict."
+
+msgid "Select conflict"
+msgstr "Select conflict"
+
+msgid ""
+"Select several rows, or resolve a whole entity type with school policy. Keep"
+" server, keep client, discard, or let the registered merge policy decide."
+msgstr ""
+"Select several rows, or resolve a whole entity type with school policy. Keep"
+" server, keep client, discard, or let the registered merge policy decide."
+
+msgid "Settings and Studio"
+msgstr "Settings and Studio"
+
+msgid "Setup log"
+msgstr "Setup log"
+
+msgid "Share page context securely"
+msgstr "Share page context securely"
+
+msgid "Sign in to"
+msgstr "Sign in to"
+
+msgid "Sign in with this device"
+msgstr "Sign in with this device"
+
+msgid "Sign-in help"
+msgstr "Sign-in help"
+
+msgid "Signup evidence"
+msgstr "Signup evidence"
+
+msgid "Signup intelligence"
+msgstr "Signup intelligence"
+
+msgid "Signup intelligence & recommendation evidence"
+msgstr "Signup intelligence & recommendation evidence"
+
+msgid "Special Education (IEP/SEND)"
+msgstr "Special Education (IEP/SEND)"
+
+msgid "Sponsored community information"
+msgstr "Sponsored community information"
+
+msgid "Subject codes"
+msgstr "Subject codes"
+
+msgid "Support workspace"
+msgstr "Support workspace"
+
+msgid ""
+"Sync complete (%(mode)s): pushed %(pushed)s, pulled %(pulled)s, conflicts "
+"%(conflicts)s."
+msgstr ""
+"Sync complete (%(mode)s): pushed %(pushed)s, pulled %(pulled)s, conflicts "
+"%(conflicts)s."
+
+msgid "Sync cycle in progress."
+msgstr "Sync cycle in progress."
+
+msgid "Sync finished with errors (%(mode)s): %(error)s"
+msgstr "Sync finished with errors (%(mode)s): %(error)s"
+
+msgid "Sync started. Watch live progress on this page."
+msgstr "Sync started. Watch live progress on this page."
+
+msgid "Sync status"
+msgstr "Sync status"
+
+msgid "Synced {{ when }} ago"
+msgstr "Synced {{ when }} ago"
+
+msgid ""
+"Syncing automatically every {{ seconds }} seconds whenever this box has a "
+"connection."
+msgstr ""
+"Syncing automatically every {{ seconds }} seconds whenever this box has a "
+"connection."
+
+msgid "Technical / Vocational (TVET)"
+msgstr "Technical / Vocational (TVET)"
+
+msgid "Tenant override recorded"
+msgstr "Tenant override recorded"
+
+msgid "Term dates confirmed. You can still edit them anytime."
+msgstr "Term dates confirmed. You can still edit them anytime."
+
+msgid ""
+"The national/standard code carried by report cards, transcripts and "
+"government exports. Every code is admin-editable — a default is never a "
+"lock."
+msgstr ""
+"The national/standard code carried by report cards, transcripts and "
+"government exports. Every code is admin-editable — a default is never a "
+"lock."
+
+msgid ""
+"The original source is never touched. Shared academic scaffold (years / "
+"terms / classes) and in-place updates to existing records may not be auto-"
+"reverted — you will be told exactly what was left in place."
+msgstr ""
+"The original source is never touched. Shared academic scaffold (years / "
+"terms / classes) and in-place updates to existing records may not be auto-"
+"reverted — you will be told exactly what was left in place."
+
+msgid ""
+"These columns have no standard field in RunMyCampus, so they are captured "
+"verbatim and imported as tracked custom fields — nothing is dropped."
+msgstr ""
+"These columns have no standard field in RunMyCampus, so they are captured "
+"verbatim and imported as tracked custom fields — nothing is dropped."
+
+msgid ""
+"This deployment does not run edge sync. A box on a private network cannot be"
+" reached from the cloud — it syncs by calling out on its own schedule. Use "
+"“Queue full resync” to have it replay everything on its next connection."
+msgstr ""
+"This deployment does not run edge sync. A box on a private network cannot be"
+" reached from the cloud — it syncs by calling out on its own schedule. Use "
+"“Queue full resync” to have it replay everything on its next connection."
+
+msgid ""
+"This import created {{ count }} record. Reverting deletes it from your "
+"school.{% plural %}This import created {{ count }} records. Reverting "
+"deletes them from your school."
+msgstr ""
+"This import created {{ count }} record. Reverting deletes it from your "
+"school.{% plural %}This import created {{ count }} records. Reverting "
+"deletes them from your school."
+
+msgid ""
+"This is the cloud side. Your box syncs by calling out on its own schedule — "
+"the cloud cannot reach into its network, so there is nothing to start from "
+"here."
+msgstr ""
+"This is the cloud side. Your box syncs by calling out on its own schedule — "
+"the cloud cannot reach into its network, so there is nothing to start from "
+"here."
+
+msgid ""
+"This reverts the ENTIRE import — every run above — deleting the rows it "
+"created on the tenant. Continue?"
+msgstr ""
+"This reverts the ENTIRE import — every run above — deleting the rows it "
+"created on the tenant. Continue?"
+
+msgid "Traceability"
+msgstr "Traceability"
+
+msgid "Tracked custom fields"
+msgstr "Tracked custom fields"
+
+msgid "Tracked · will import"
+msgstr "Tracked · will import"
+
+msgid "Trade Apprenticeship"
+msgstr "Trade Apprenticeship"
+
+msgid "Trade and technical pathways alongside academics."
+msgstr "Trade and technical pathways alongside academics."
+
+msgid "Unlock local access"
+msgstr "Unlock local access"
+
+msgid "Unlock local tools"
+msgstr "Unlock local tools"
+
+msgid "Utilities"
+msgstr "Utilities"
+
+msgid "Verified school"
+msgstr "Verified school"
+
+msgid ""
+"Verified school identity and locally saved guidance remain available. "
+"Previously authorized devices can open read-only local tools."
+msgstr ""
+"Verified school identity and locally saved guidance remain available. "
+"Previously authorized devices can open read-only local tools."
+
+msgid "Waiting actions"
+msgstr "Waiting actions"
+
+msgid "Wiring"
+msgstr "Wiring"
+
+msgid "Workspace initialized."
+msgstr "Workspace initialized."
+
+msgid "Wrong school?"
+msgstr "Wrong school?"
+
+msgid "Yes, delete the records this import created"
+msgstr "Yes, delete the records this import created"
+
+msgid "You are offline, but your school doorway is ready."
+msgstr "You are offline, but your school doorway is ready."
+
+msgid ""
+"Your school's verified identity and recovery guidance remain available on "
+"unstable connections. Administrative changes require a verified session and "
+"sync safely."
+msgstr ""
+"Your school's verified identity and recovery guidance remain available on "
+"unstable connections. Administrative changes require a verified session and "
+"sync safely."
+
+msgid ""
+"Your term dates are a representative default for your country, not official "
+"ministry dates. Confirm they are correct for your school, or adjust them on "
+"the academic year page — you can change them anytime."
+msgstr ""
+"Your term dates are a representative default for your country, not official "
+"ministry dates. Confirm they are correct for your school, or adjust them on "
+"the academic year page — you can change them anytime."
+
+msgid "Your workspace"
+msgstr "Your workspace"
+
+msgid "captured · will import"
+msgstr "captured · will import"
+
+msgid "pulled"
+msgstr "pulled"
+
+msgid "pushed"
+msgstr "pushed"
+
+msgid "tracked · will import"
+msgstr "tracked · will import"
+
+msgid "{{ counter }} need action{% plural %}{{ counter }} need action"
+msgstr "{{ counter }} need action{% plural %}{{ counter }} need action"
+
+msgid "{{ counter }} waiting{% plural %}{{ counter }} waiting"
+msgstr "{{ counter }} waiting{% plural %}{{ counter }} waiting"
+
+msgid "{{ n }} country standard{% plural %}{{ n }} country standard"
+msgstr "{{ n }} country standard{% plural %}{{ n }} country standard"
+
+msgid "{{ n }} generated{% plural %}{{ n }} generated"
+msgstr "{{ n }} generated{% plural %}{{ n }} generated"
+
+msgid "{{ n }} official (country){% plural %}{{ n }} official (country)"
+msgstr "{{ n }} official (country){% plural %}{{ n }} official (country)"
+
+msgid "{{ n }} school override{% plural %}{{ n }} school overrides"
+msgstr "{{ n }} school override{% plural %}{{ n }} school overrides"
+
+msgid ""
+"{{ n }} subject code is out of date with your imported codes — run backfill "
+"with resync to refresh it.{% plural %}{{ n }} subject codes are out of date "
+"with your imported codes — run backfill with resync to refresh them."
+msgstr ""
+"{{ n }} subject code is out of date with your imported codes — run backfill "
+"with resync to refresh it.{% plural %}{{ n }} subject codes are out of date "
+"with your imported codes — run backfill with resync to refresh them."
+
+msgid ""
+"{{ n }} subject uses a generated placeholder code. If your country or board "
+"publishes official codes, an operator can import them once for every school "
+"in your country.{% plural %}{{ n }} subjects use generated placeholder "
+"codes. If your country or board publishes official codes, an operator can "
+"import them once for every school in your country."
+msgstr ""
+"{{ n }} subject uses a generated placeholder code. If your country or board "
+"publishes official codes, an operator can import them once for every school "
+"in your country.{% plural %}{{ n }} subjects use generated placeholder "
+"codes. If your country or board publishes official codes, an operator can "
+"import them once for every school in your country."
+
+msgid "{{ total }} subject{% plural %}{{ total }} subjects"
+msgstr "{{ total }} subject{% plural %}{{ total }} subjects"
+
+msgid "Additional education-system types (optional)"
+msgstr "Additional education-system types (optional)"
+
+msgid "Calendar used for terms, holidays, and reports."
+msgstr "Calendar used for terms, holidays, and reports."
+
+msgid "Combined-name split options previewed against your data"
+msgstr "Combined-name split options previewed against your data"
+
+msgid ""
+"Curriculum, delivery, or pedagogy types this school offers (in addition to "
+"the sector above)."
+msgstr ""
+"Curriculum, delivery, or pedagogy types this school offers (in addition to "
+"the sector above)."
+
+msgid "Default interface language for this school."
+msgstr "Default interface language for this school."
+
+msgid "For bilingual countries: the anglophone / francophone sub-system."
+msgstr "For bilingual countries: the anglophone / francophone sub-system."
+
+msgid "How should combined names be split?"
+msgstr "How should combined names be split?"
+
+msgid "Language sub-system"
+msgstr "Language sub-system"
+
+msgid "Middle"
+msgstr "Middle"
+
+msgid "No options seeded yet"
+msgstr "No options seeded yet"
+
+msgid ""
+"Only valid registry options are accepted; policy-locked settings are left "
+"unchanged."
+msgstr ""
+"Only valid registry options are accepted; policy-locked settings are left "
+"unchanged."
+
+msgid "Option"
+msgstr "Option"
+
+msgid "Preview from your file"
+msgstr "Preview from your file"
+
+msgid "Region / subdivision"
+msgstr "Region / subdivision"
+
+msgid "Save settings"
+msgstr "Save settings"
+
+msgid "School & region"
+msgstr "School & region"
+
+msgid "School & region settings"
+msgstr "School & region settings"
+
+msgid "School & region settings updated."
+msgstr "School & region settings updated."
+
+msgid "Select a school (use your school subdomain) to manage its settings."
+msgstr "Select a school (use your school subdomain) to manage its settings."
+
+msgid "Some settings are managed by policy and were not changed: %(keys)s"
+msgstr "Some settings are managed by policy and were not changed: %(keys)s"
+
+msgid "State, region, or province within your country."
+msgstr "State, region, or province within your country."
+
+msgid "The currency for fees, invoices, and statements."
+msgstr "The currency for fees, invoices, and statements."
+
+msgid "The grading scale used on report cards and evaluations."
+msgstr "The grading scale used on report cards and evaluations."
+
+msgid "The kind of institution (school, college, academy…)."
+msgstr "The kind of institution (school, college, academy…)."
+
+msgid ""
+"This import stopped responding before it finished — it was interrupted, not "
+"rejected. Use Repair below to resume it safely."
+msgstr ""
+"This import stopped responding before it finished — it was interrupted, not "
+"rejected. Use Repair below to resume it safely."
+
+msgid "Used for schedules, attendance, and timestamps."
+msgstr "Used for schedules, attendance, and timestamps."
+
+msgid "You do not have permission to change school & region settings."
+msgstr "You do not have permission to change school & region settings."
+
+msgid ""
+"Your file has one name column. Pick the reading that matches your records — "
+"the preview uses real names from your own upload, so you can confirm before "
+"importing."
+msgstr ""
+"Your file has one name column. Pick the reading that matches your records — "
+"the preview uses real names from your own upload, so you can confirm before "
+"importing."
+
+msgid "Your school's country. Drives regional defaults."
+msgstr "Your school's country. Drives regional defaults."
+
+msgid "Your school's sector — Public, Private, International, and so on."
+msgstr "Your school's sector — Public, Private, International, and so on."
+
+msgid "— Not set —"
+msgstr "— Not set —"

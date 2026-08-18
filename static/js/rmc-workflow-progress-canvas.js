@@ -195,6 +195,25 @@
         redirect: "manual",
       })
       .then(function (resp) {
+        var stay = form.hasAttribute("data-rmc-wfp-stay");
+        if (stay) {
+          var ctype = (resp.headers.get("Content-Type") || "").toLowerCase();
+          if (ctype.indexOf("application/json") >= 0) {
+            return resp.json().then(function (body) {
+              document.dispatchEvent(
+                new CustomEvent("rmc:sync-center-status", { detail: body || {} })
+              );
+              var phase = body && body.phase;
+              if (phase !== "running") {
+                buttons.forEach(function (btn) {
+                  btn.disabled = false;
+                });
+              }
+            });
+          }
+          document.dispatchEvent(new CustomEvent("rmc:sync-center-poll"));
+          return;
+        }
         var loc = resp.headers.get("Location");
         if (loc) {
           window.location.assign(loc);

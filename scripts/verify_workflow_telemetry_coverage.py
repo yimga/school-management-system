@@ -25,8 +25,13 @@ REQUIRED_CALLSITES = (
     ("apps/platform_runtime/workflow_telemetry.py", "compute_percent_complete"),
     ("templates/components/rmc_workflow_progress_canvas.html", "rmc-wfp-canvas"),
     ("templates/accounts/rollover_queue.html", "rmc_workflow_progress_canvas.html"),
+    ("templates/siteconfig/sync_center.html", "rmc_workflow_progress_canvas.html"),
+    ("apps/sync_engine/sync_runner.py", "update_and_broadcast_progress"),
+    ("apps/siteconfig/views_sync_center.py", "enqueue_background_job"),
+    ("apps/sync_engine/tasks.py", "run_sync_cycle_for_school_task"),
     ("static/js/rmc-workflow-progress-canvas.js", "ws/workflow-progress/"),
     ("static/js/rmc-workflow-progress-canvas.js", "data-rmc-wfp-hold"),
+    ("static/js/rmc-workflow-progress-canvas.js", "data-rmc-wfp-stay"),
 )
 
 

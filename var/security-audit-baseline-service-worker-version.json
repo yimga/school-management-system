@@ -1,12 +1,12 @@
 {
-  "date": "2026-08-17",
-  "generated_at": "2026-08-17T23:20:00+00:00",
+  "date": "2026-08-18",
+  "generated_at": "2026-08-18T13:00:44+00:00",
   "major": 4,
   "minor": 6,
-  "patch": 51,
-  "raw": "sms-v4.06.51-workflow-telemetry-2026-08-17",
+  "patch": 54,
+  "raw": "sms-v4.06.54-sync-now-audit-2026-08-18",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "workflow-telemetry",
+  "slug": "sync-now-audit",
   "valid": true
 }

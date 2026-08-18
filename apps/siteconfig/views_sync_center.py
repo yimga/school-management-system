@@ -1,5 +1,8 @@
 # Phase G optional: Sync Center UI – list SyncConflict for school, resolve server/client/discard
+import json
+
 from django.contrib import messages
+from django.core.paginator import Paginator
 from django.db.models import Q, Count
 from django.shortcuts import redirect, render, get_object_or_404
 from django.urls import NoReverseMatch, reverse
@@ -9,6 +12,16 @@ from django.http import JsonResponse
 
 from apps.accounts.decorators import login_required, permission_required
 from apps.siteconfig.staff_context_redirects import redirect_staff_without_school
+from apps.sync_engine.conflict_actions import (
+    apply_resolution,
+    bulk_resolve,
+    resolve_sync_conflict_row,
+)
+
+# Back-compat alias for admin + tests that imported the view helper.
+_resolve_sync_conflict = resolve_sync_conflict_row
+
+_CONFLICT_PAGE_SIZE = 25
 
 
 def _safe_sync_reverse(name: str):
@@ -18,36 +31,14 @@ def _safe_sync_reverse(name: str):
         return None
 
 
-def _resolve_sync_conflict(conflict, resolution, resolved_by):
-    from django.utils import timezone
-    from .models import SyncConflict
-
-    conflict.resolved_by = resolved_by
-    conflict.resolved_at = timezone.now()
-    conflict.status = resolution
-    if resolution == SyncConflict.Status.RESOLVED_CLIENT:
-        from apps.api.sync_services import _get_entity_config
-
-        # Resolving an edge-sync conflict is itself an edge-scoped operation, so it must
-        # use the FULL two-way registry — otherwise "keep client version" silently writes
-        # NOTHING for a derived entity (applicant/student_note/academic_year/term/department)
-        # while still stamping the record RESOLVED_CLIENT (the operator is told the client
-        # won but the server value is kept). See _get_entity_config(include_derived=...).
-        config = _get_entity_config(include_derived=True)
-        if conflict.entity_type in config:
-            model, allowed = config[conflict.entity_type]
-            updates = {
-                k: v for k, v in (conflict.client_data or {}).items() if k in allowed
-            }
-            if updates:
-                try:
-                    instance = model.objects.get(pk=conflict.entity_id)
-                    for key, value in updates.items():
-                        setattr(instance, key, value)
-                    instance.save(update_fields=list(updates.keys()) + ["updated_at"])
-                except model.DoesNotExist:
-                    pass
-    conflict.save(update_fields=["status", "resolved_at", "resolved_by"])
+def _parse_json_body(request):
+    if not request.body:
+        return {}
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+        return data if isinstance(data, dict) else {}
+    except (UnicodeDecodeError, json.JSONDecodeError, TypeError, ValueError):
+        return {}
 
 
 @login_required
@@ -65,28 +56,29 @@ def sync_center(request):
     # Edge<->cloud sync status panel context (feature ②). Never let a missing model /
     # stray error on this observability read break the conflicts page.
     panel = _edge_sync_panel_context(school)
+    empty_ctx = {
+        "school": school,
+        "conflicts": [],
+        "page_obj": None,
+        "sync_available": False,
+        "action_url": pref_url,
+        "action_text": _("Back to preferences"),
+        "sync_stats_total": 0,
+        "sync_stats_pending": 0,
+        "conflict_status_filter": "pending",
+        "conflict_groups": [],
+        "bulk_actions": _conflict_bulk_actions(),
+        "scheduled_hub_url": _safe_sync_reverse(
+            "siteconfig:scheduled_reports_delivery_hub"
+        ),
+        "console_url": _safe_sync_reverse("siteconfig:console_domains_hub"),
+        "admin_sync_conflict_url": None,
+        **panel,
+    }
     try:
         from .models import SyncConflict
     except ImportError:
-        return render(
-            request,
-            "siteconfig/sync_center.html",
-            {
-                "school": school,
-                "conflicts": [],
-                "sync_available": False,
-                "action_url": pref_url,
-                "action_text": _("Back to preferences"),
-                "sync_stats_total": 0,
-                "sync_stats_pending": 0,
-                "scheduled_hub_url": _safe_sync_reverse(
-                    "siteconfig:scheduled_reports_delivery_hub"
-                ),
-                "console_url": _safe_sync_reverse("siteconfig:console_domains_hub"),
-                "admin_sync_conflict_url": None,
-                **panel,
-            },
-        )
+        return render(request, "siteconfig/sync_center.html", empty_ctx)
     stats = (
         SyncConflict.objects.filter(school=school)
         .aggregate(
@@ -96,7 +88,29 @@ def sync_center(request):
             ),
         )
     )
-    conflicts = SyncConflict.objects.filter(school=school).order_by("-created_at")[:50]
+    status_filter = (request.GET.get("status") or "pending").strip().lower()
+    if status_filter not in {"pending", "all", "resolved"}:
+        status_filter = "pending"
+    qs = SyncConflict.objects.filter(school=school).order_by("-created_at")
+    if status_filter == "pending":
+        qs = qs.filter(status=SyncConflict.Status.PENDING)
+    elif status_filter == "resolved":
+        qs = qs.exclude(status=SyncConflict.Status.PENDING)
+    entity_filter = (request.GET.get("entity_type") or "").strip()
+    if entity_filter:
+        qs = qs.filter(entity_type=entity_filter)
+    paginator = Paginator(qs, _CONFLICT_PAGE_SIZE)
+    page_obj = paginator.get_page(request.GET.get("page") or 1)
+    groups = list(
+        SyncConflict.objects.filter(
+            school=school, status=SyncConflict.Status.PENDING
+        )
+        .values("entity_type")
+        .annotate(pending_count=Count("id"))
+        .order_by("entity_type")
+    )
+    extra = request.GET.copy()
+    extra.pop("page", None)
     admin_sync_url = None
     if getattr(request.user, "is_superuser", False):
         try:
@@ -107,19 +121,17 @@ def sync_center(request):
         request,
         "siteconfig/sync_center.html",
         {
-            "school": school,
-            "conflicts": conflicts,
+            **empty_ctx,
+            "conflicts": list(page_obj.object_list),
+            "page_obj": page_obj,
+            "pagination_extra_query": extra.urlencode(),
             "sync_available": True,
-            "action_url": pref_url,
-            "action_text": _("Back to preferences"),
             "sync_stats_total": stats.get("total") or 0,
             "sync_stats_pending": stats.get("pending") or 0,
-            "scheduled_hub_url": _safe_sync_reverse(
-                "siteconfig:scheduled_reports_delivery_hub"
-            ),
-            "console_url": _safe_sync_reverse("siteconfig:console_domains_hub"),
+            "conflict_status_filter": status_filter,
+            "conflict_entity_filter": entity_filter,
+            "conflict_groups": groups,
             "admin_sync_conflict_url": admin_sync_url,
-            **panel,
         },
     )
 
@@ -150,18 +162,24 @@ def sync_center_resolve(request, conflict_id):
         messages.info(request, "Conflict already resolved.")
         return redirect("siteconfig:sync_center")
     resolution_str = (request.POST.get("resolution") or "").strip().lower()
-    if resolution_str == "server":
-        resolution = SyncConflict.Status.RESOLVED_SERVER
-    elif resolution_str == "client":
-        resolution = SyncConflict.Status.RESOLVED_CLIENT
-    elif resolution_str == "discard":
-        resolution = SyncConflict.Status.DISCARDED
-    else:
-        messages.error(request, "Invalid resolution.")
+    ok, reason = apply_resolution(conflict, resolution_str, request.user)
+    if not ok:
+        messages.error(request, reason or _("Invalid resolution."))
         return redirect("siteconfig:sync_center")
-    _resolve_sync_conflict(conflict, resolution, request.user)
-    messages.success(request, f"Conflict resolved ({resolution_str}).")
+    messages.success(
+        request,
+        _("Conflict resolved (%(resolution)s).") % {"resolution": resolution_str},
+    )
     return redirect("siteconfig:sync_center")
+
+
+def _conflict_bulk_actions():
+    return [
+        {"slug": "server", "label": str(_("Keep server")), "variant": "default"},
+        {"slug": "client", "label": str(_("Keep client")), "variant": "default"},
+        {"slug": "policy", "label": str(_("Apply school policy")), "variant": "default"},
+        {"slug": "discard", "label": str(_("Discard")), "variant": "danger"},
+    ]
 
 
 def _edge_sync_panel_context(school):
@@ -176,8 +194,9 @@ def _edge_sync_panel_context(school):
         guaranteed failure on every click plus a red EdgeSyncRun row; what the cloud can
         actually do is QUEUE a full-resync the box collects on its next poll.
 
-    Everything here is best-effort: the conflicts page must still render if the sync
-    models are unavailable.
+    Live phase comes from ``serialize_live_status`` so a queued resync is never
+    hidden behind an older failed run. Best-effort: the conflicts page must
+    still render if the sync models are unavailable.
     """
     from django.conf import settings
 
@@ -187,21 +206,85 @@ def _edge_sync_panel_context(school):
         "pending_resync": None,
         "last_served_resync": None,
         "sync_interval_seconds": None,
+        "sync_live": {},
     }
     try:
-        from apps.sync_engine.edge_scheduler import edge_sync_interval_seconds
         from apps.sync_engine.models import EdgeSyncDirective, EdgeSyncRun
+        from apps.sync_engine.sync_status import serialize_live_status
 
+        ctx["sync_live"] = serialize_live_status(school)
         ctx["latest_sync_run"] = EdgeSyncRun.latest_for(school)
-        ctx["sync_interval_seconds"] = edge_sync_interval_seconds()
-        directives = EdgeSyncDirective.objects.filter(
-            school=school, kind=EdgeSyncDirective.FULL_RESYNC
-        )
-        ctx["pending_resync"] = directives.filter(served_at__isnull=True).first()
-        ctx["last_served_resync"] = directives.filter(served_at__isnull=False).first()
+        ctx["sync_interval_seconds"] = ctx["sync_live"].get("sync_interval_seconds")
+        ctx["edge_sync_enabled"] = bool(ctx["sync_live"].get("edge_sync_enabled"))
+        pending_id = (ctx["sync_live"].get("pending_resync") or {}).get("id")
+        served_id = (ctx["sync_live"].get("last_served_resync") or {}).get("id")
+        if pending_id:
+            ctx["pending_resync"] = EdgeSyncDirective.objects.filter(
+                pk=pending_id, school=school
+            ).first()
+        if served_id:
+            ctx["last_served_resync"] = EdgeSyncDirective.objects.filter(
+                pk=served_id, school=school
+            ).first()
     except Exception:  # noqa: BLE001 — panel is observability; never break the page
         pass
     return ctx
+
+
+@login_required
+@permission_required("settings.manage")
+@require_http_methods(["GET"])
+def sync_center_status(request):
+    """JSON snapshot of live edge-sync phase for the bound school."""
+    school = getattr(request, "school", None)
+    if not school:
+        return JsonResponse({"ok": False, "error": "No school"}, status=403)
+    try:
+        from apps.sync_engine.sync_status import serialize_live_status
+
+        payload = serialize_live_status(school)
+    except Exception:  # noqa: BLE001 — poll must degrade, never 500 the page JS
+        return JsonResponse({"ok": False, "error": "status_unavailable"}, status=503)
+    payload["ok"] = True
+    return JsonResponse(payload)
+
+
+@login_required
+@permission_required("settings.manage")
+@require_http_methods(["POST"])
+def sync_center_bulk_resolve(request):
+    """Resolve many PENDING conflicts for request.school only."""
+    school = getattr(request, "school", None)
+    wants_json = request.headers.get("X-Requested-With") == "XMLHttpRequest" or (
+        request.content_type or ""
+    ).startswith("application/json")
+    if not school:
+        if wants_json:
+            return JsonResponse({"ok": False, "error": "No school"}, status=403)
+        return redirect_staff_without_school(
+            request,
+            message="Select your school to resolve sync conflicts.",
+        )
+    body = _parse_json_body(request)
+    ids = body.get("ids") or request.POST.getlist("ids")
+    resolution = (body.get("resolution") or request.POST.get("resolution") or "").strip()
+    entity_type = (
+        body.get("entity_type") or request.POST.get("entity_type") or ""
+    ).strip()
+    result = bulk_resolve(
+        school=school,
+        ids=ids,
+        resolution=resolution,
+        resolved_by=request.user,
+        entity_type=entity_type,
+    )
+    if wants_json:
+        return JsonResponse(result, status=200 if result.get("ok") else 400)
+    if result.get("ok"):
+        messages.success(request, result.get("message") or _("Conflicts resolved."))
+    else:
+        messages.error(request, result.get("message") or _("Could not resolve conflicts."))
+    return redirect("siteconfig:sync_center")
 
 
 @login_required
@@ -244,13 +327,12 @@ def sync_request_resync(request):
 @permission_required("settings.manage")
 @require_http_methods(["POST"])
 def sync_now(request):
-    """Run one edge<->cloud sync cycle now, from the Sync Center button.
+    """Queue one edge<->cloud sync cycle from the Sync Center button.
 
-    Self-healing wrapper: ``run_sync_cycle`` never raises and always records one
-    ``EdgeSyncRun``, so a network outage or a disabled deployment surfaces as a flash
-    message and a visible run row rather than a crashed page. ``mode`` defaults to
-    ``dry`` — a no-write connectivity check (neither pushes nor applies) — for safety;
-    ``mode=live`` performs the full push-up-then-pull-down-and-apply cycle.
+    The HTTP worker opens the in-progress ``EdgeSyncRun`` then enqueues Celery so
+    the same tab can poll live percent. ``run_sync_cycle`` never raises; eager
+    tests still finish in-request. ``mode`` defaults to ``dry``; ``mode=live``
+    is the full push-then-pull cycle.
     """
     school = getattr(request, "school", None)
     if not school:
@@ -280,25 +362,94 @@ def sync_now(request):
         return redirect("siteconfig:sync_center")
 
     mode = "live" if (request.POST.get("mode") or "").strip().lower() == "live" else "dry"
-    result = sync_runner.run_sync_cycle(school, mode=mode)
-    if not result.get("enabled", True):
-        messages.error(request, result.get("message") or "Edge sync is not enabled.")
-    elif result.get("ok"):
-        messages.success(
-            request,
-            _("Sync complete (%(mode)s): pushed %(pushed)s, pulled %(pulled)s, "
-              "conflicts %(conflicts)s.")
-            % {
-                "mode": result["mode"],
-                "pushed": result["pushed"],
-                "pulled": result["pulled"],
-                "conflicts": result["conflicts"],
-            },
-        )
-    else:
-        messages.error(
-            request,
-            _("Sync finished with errors (%(mode)s): %(error)s")
-            % {"mode": result["mode"], "error": result.get("error") or result.get("message") or ""},
-        )
-    return redirect("siteconfig:sync_center")
+
+    from apps.platform_runtime.workflow_telemetry import (
+        background_job_payload,
+        enqueue_background_job,
+    )
+    from apps.sync_engine.models import EdgeSyncRun
+    from apps.sync_engine.tasks import run_sync_cycle_for_school_task
+
+    already = EdgeSyncRun.in_progress_for(school)
+    if already is not None:
+        notice = _("A sync cycle is already running. Watch live progress on this page.")
+        messages.info(request, notice)
+        return _sync_now_reply(request, school, queued=True, message=notice)
+
+    # Open the live row on the HTTP worker so the next status poll sees
+    # **running** even before Celery picks the job up.
+    run_row = EdgeSyncRun.begin(school, mode=mode)
+    sync_runner._pulse_sync(
+        school,
+        processed=0,
+        expected=2,
+        log_message="Sync queued",
+        status="running",
+    )
+    async_result = enqueue_background_job(
+        run_sync_cycle_for_school_task,
+        int(school.pk),
+        block_in_process=False,
+        mode=mode,
+        run_id=int(run_row.pk),
+    )
+    result = background_job_payload(async_result)
+    if isinstance(result, dict) and result.get("enabled") is False:
+        messages.error(request, result.get("message") or _("Edge sync is not enabled."))
+        return _sync_now_reply(request, school, result=result)
+    if isinstance(result, dict) and "ok" in result:
+        if result.get("ok"):
+            messages.success(
+                request,
+                _(
+                    "Sync complete (%(mode)s): pushed %(pushed)s, pulled %(pulled)s, "
+                    "conflicts %(conflicts)s."
+                )
+                % {
+                    "mode": result.get("mode") or mode,
+                    "pushed": result.get("pushed") or 0,
+                    "pulled": result.get("pulled") or 0,
+                    "conflicts": result.get("conflicts") or 0,
+                },
+            )
+        else:
+            messages.error(
+                request,
+                _("Sync finished with errors (%(mode)s): %(error)s")
+                % {
+                    "mode": result.get("mode") or mode,
+                    "error": result.get("error") or result.get("message") or "",
+                },
+            )
+        return _sync_now_reply(request, school, result=result)
+
+    started = _("Sync started. Watch live progress on this page.")
+    messages.success(request, started)
+    return _sync_now_reply(request, school, queued=True, message=started)
+
+
+def _sync_now_reply(request, school, *, queued=False, message="", result=None):
+    """JSON for hold-submit (same tab stays mounted); 302 for a normal POST."""
+    xhr = (request.headers.get("X-Requested-With") or "") == "XMLHttpRequest"
+    if not xhr:
+        return redirect("siteconfig:sync_center")
+
+    from apps.sync_engine.sync_status import serialize_live_status
+
+    payload = serialize_live_status(school)
+    payload["ok"] = True
+    payload["accepted"] = True
+    payload["queued"] = bool(queued) or payload.get("phase") == "running"
+    if isinstance(result, dict):
+        payload["result"] = {
+            "ok": result.get("ok"),
+            "mode": result.get("mode"),
+            "pushed": result.get("pushed") or 0,
+            "pulled": result.get("pulled") or 0,
+            "conflicts": result.get("conflicts") or 0,
+            "error": result.get("error") or "",
+            "message": result.get("message") or "",
+        }
+    if message:
+        payload["flash"] = str(message)
+    return JsonResponse(payload)

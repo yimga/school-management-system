@@ -117,8 +117,13 @@ class EdgeSyncRun(models.Model):
         ``enabled``/``mode``) are dropped rather than raised on, so the caller can hand
         over its result without shape-coupling to this model.
         """
+        from django.utils import timezone as _tz
+
         valid = {f.name for f in cls._meta.concrete_fields}
         clean = {k: v for k, v in kw.items() if k in valid and k != "school"}
+        now = _tz.now()
+        clean.setdefault("started_at", now)
+        clean.setdefault("finished_at", now)
         return cls.objects.create(school=school, **clean)
 
     @classmethod
@@ -127,6 +132,72 @@ class EdgeSyncRun(models.Model):
         if school is None:
             return None
         return cls.objects.filter(school=school).first()
+
+    @classmethod
+    def in_progress_for(cls, school):
+        """The newest unfinished cycle for ``school``, or None.
+
+        ``finished_at`` is the live signal — a cycle that has started but not
+        recorded an outcome yet. Used by Sync Center so a queued/running cycle
+        is not hidden behind an older failed row.
+        """
+        if school is None:
+            return None
+        return (
+            cls.objects.filter(school=school, finished_at__isnull=True)
+            .order_by("-created_at")
+            .first()
+        )
+
+    @classmethod
+    def begin(cls, school, *, mode="live"):
+        """Open one in-progress row. Stale unfinished rows are closed first.
+
+        Exactly one cycle is meant to run at a time per school on a box. A
+        previous row left with ``finished_at`` NULL (crash, SIGKILL) would
+        otherwise pin the UI on "running" forever.
+        """
+        from django.utils import timezone as _tz
+
+        now = _tz.now()
+        cls.objects.filter(school=school, finished_at__isnull=True).update(
+            finished_at=now,
+            ok=False,
+            error="abandoned: a newer cycle started",
+        )
+        return cls.objects.create(
+            school=school,
+            mode=mode,
+            ok=False,
+            message="running",
+            started_at=now,
+            finished_at=None,
+        )
+
+    def checkpoint(self, **kw):
+        """Persist mid-cycle counts so status polling can read real progress."""
+        valid = {f.name for f in self._meta.concrete_fields}
+        dirty = []
+        for key, value in kw.items():
+            if key in valid and key not in {"school", "id", "pk", "created_at"}:
+                setattr(self, key, value)
+                dirty.append(key)
+        if dirty:
+            self.save(update_fields=dirty)
+        return self
+
+    def complete(self, **kw):
+        """Stamp the outcome onto THIS row so tests still see exactly one run."""
+        from django.utils import timezone as _tz
+
+        valid = {f.name for f in self._meta.concrete_fields}
+        for key, value in kw.items():
+            if key in valid and key not in {"school", "id", "pk", "created_at"}:
+                setattr(self, key, value)
+        if self.finished_at is None:
+            self.finished_at = _tz.now()
+        self.save()
+        return self
 
 
 class EdgeSyncCursor(models.Model):

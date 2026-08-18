@@ -1,0 +1,59 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "School & region settings" %} – {{ school.name }}{% endblock %}
+{% block backend_title %}{% trans "School & region settings" %}{% endblock %}
+
+{% block backend_page %}
+{% include "components/next_action_strip.html" %}
+
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-command-workspace="school-region-settings" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
+  {% include "studio_os/components/page_header.html" with title=_("School & region settings") subtitle=_("Set your school's country, region, language, currency, calendar, institution type, education system, and grading scale. These drive the registry alignment shown on Setup & launch.") action_url=action_url action_text=action_text %}
+
+  <form method="post" class="card border shadow-sm" data-rmc-command-workspace="school-region-settings-form">
+    {% csrf_token %}
+    <div class="card-body">
+      <div class="row g-3">
+        {% for field in fields %}
+        <div class="col-12 col-md-6 col-xl-4">
+          <label class="form-label small fw-semibold mb-1" for="rmc-srs-{{ field.name }}">{{ field.label }}</label>
+          <select class="form-select form-select-sm" id="rmc-srs-{{ field.name }}" name="{{ field.name }}" aria-describedby="rmc-srs-help-{{ field.name }}">
+            <option value="">{% trans "— Not set —" %}</option>
+            {% for code, label in field.choices %}
+            <option value="{{ code }}"{% if code == field.current %} selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+          <div class="form-text small" id="rmc-srs-help-{{ field.name }}">{{ field.help }}</div>
+          {% if not field.choices %}
+          <div class="small mt-1"><span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">{% trans "No options seeded yet" %}</span></div>
+          {% endif %}
+        </div>
+        {% endfor %}
+
+        {% if education_type_choices %}
+        <div class="col-12">
+          <span class="form-label small fw-semibold d-block mb-1">{% trans "Additional education-system types (optional)" %}</span>
+          <p class="form-text small mt-0 mb-2">{% trans "Curriculum, delivery, or pedagogy types this school offers (in addition to the sector above)." %}</p>
+          <div class="d-flex flex-wrap gap-3">
+            {% for code, label in education_type_choices %}
+            <label class="d-flex align-items-center gap-1 small mb-0">
+              <input type="checkbox" name="education_system_types" value="{{ code }}"{% if code in current_education_types %} checked{% endif %}>
+              <span>{{ label }}</span>
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    <div class="card-footer d-flex flex-wrap align-items-center gap-2">
+      <button type="submit" class="btn btn-primary btn-sm rmc-cta--gradient-indigo">{% trans "Save settings" %}</button>
+      <a href="{% url 'siteconfig:grading_settings' %}" class="btn btn-outline-secondary btn-sm">{% trans "Grading & language" %}</a>
+      <a href="{% url 'siteconfig:currency_settings' %}" class="btn btn-outline-secondary btn-sm">{% trans "Currency" %}</a>
+      <a href="{{ action_url }}" class="btn btn-outline-secondary btn-sm">{{ action_text }}</a>
+      <span class="small text-muted ms-auto">{% trans "Only valid registry options are accepted; policy-locked settings are left unchanged." %}</span>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -110,6 +110,7 @@ _PLATFORM_ACTION_DEFS: tuple[tuple, ...] = (
     ("settings", "Template gallery", "🗂", "siteconfig:template_gallery", "tenant_admin", None),
     ("settings", "Brand import from URL", "🌐", "siteconfig:brand_import_from_url", "tenant_admin", None),
     ("settings", "Grading settings", "📊", "siteconfig:grading_settings", "tenant_admin", None),
+    ("settings", "School & region settings", "🌍", "siteconfig:school_region_settings", "tenant_admin", None),
     ("settings", "Module market", "🧱", "siteconfig:module_market", "tenant_admin", None),
     ("settings", "Command palette settings", "⌘", "siteconfig:command_palette_settings", "tenant_admin", None),
     ("settings", "Sidebar settings", "🧭", "siteconfig:sidebar_settings", "tenant_admin", None),

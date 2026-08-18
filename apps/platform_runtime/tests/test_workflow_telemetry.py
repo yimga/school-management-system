@@ -317,3 +317,23 @@ class WorkflowTelemetryJobHookTests(SimpleTestCase):
         self.assertIn("enqueue_background_job", timetable_names)
         self.assertIn("run_scheduling_solver_task", timetable_names)
         self.assertIn("run_procurement_scan_task", inventory_names)
+        sync_center = ast.parse(
+            (root / "apps" / "siteconfig" / "views_sync_center.py").read_text(
+                encoding="utf-8"
+            )
+        )
+        sync_names = {
+            node.id for node in ast.walk(sync_center) if isinstance(node, ast.Name)
+        }
+        self.assertIn("enqueue_background_job", sync_names)
+        self.assertIn("run_sync_cycle_for_school_task", sync_names)
+
+    def test_enqueue_nonblocking_fallback_does_not_apply_on_http_worker(self):
+        task = mock.Mock()
+        task.apply_async.side_effect = RuntimeError("broker down")
+        with mock.patch("threading.Thread") as thread_cls:
+            result = enqueue_background_job(task, 9, block_in_process=False, mode="dry")
+        thread_cls.assert_called_once()
+        thread_cls.return_value.start.assert_called_once()
+        task.apply.assert_not_called()
+        self.assertFalse(result.ready())

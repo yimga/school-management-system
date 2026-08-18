@@ -84,6 +84,8 @@ _EXPLICIT_CELERY_TASKS = frozenset(
         "accounts.apply_rollover_proposal",
         "academics.run_scheduling_solver",
         "schoolops.run_procurement_scan",
+        "sync_engine.run_sync_cycle_for_school",
+        "sync_engine.edge_sync_cycle",
     }
 )
 

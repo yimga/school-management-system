@@ -89,10 +89,13 @@ from .views_detail_engine import detail_settings_view
 from .views_custom_requirement import request_custom_requirement
 from .views_sync_center import (
     sync_center,
+    sync_center_bulk_resolve,
     sync_center_resolve,
+    sync_center_status,
     sync_now,
     sync_request_resync,
 )
+from .views_school_region_settings import school_region_settings
 from .views_school_theme import school_theme_settings
 from .views_theme_experience_hub import theme_experience_hub
 from .views_theme_builder import (
@@ -323,6 +326,7 @@ urlpatterns = [
     ),
     path("grading-settings/", grading_settings, name="grading_settings"),
     path("currency-settings/", currency_settings, name="currency_settings"),
+    path("school-region-settings/", school_region_settings, name="school_region_settings"),
     path(
         "grading-scales/bands/",
         grading_scale_bands_operator_view,
@@ -575,6 +579,12 @@ urlpatterns = [
         "sync-center/request-resync/",
         sync_request_resync,
         name="sync_center_request_resync",
+    ),
+    path("sync-center/status/", sync_center_status, name="sync_center_status"),
+    path(
+        "sync-center/bulk-resolve/",
+        sync_center_bulk_resolve,
+        name="sync_center_bulk_resolve",
     ),
     path(
         "sync-center/resolve/<int:conflict_id>/",

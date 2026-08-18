@@ -17,6 +17,7 @@ from django.http import (
     JsonResponse,
 )
 from django.shortcuts import redirect, render
+from django.utils.translation import gettext as _
 from django.views.decorators.http import require_http_methods
 
 from apps.accounts.permissions import tenant_operator_hub_eligible
@@ -234,8 +235,31 @@ def offline_sync_conflicts(request: HttpRequest) -> HttpResponse:
     operator_scope = _school_operator_scope(request)
 
     if request.method == "POST":
-        action_id = request.POST.get("action_id")
         choice = request.POST.get("resolution")
+        bulk_ids = request.POST.getlist("action_ids")
+        if bulk_ids and choice:
+            resolved = 0
+            for raw_id in bulk_ids:
+                if not str(raw_id).isdigit():
+                    continue
+                result = resolve_conflict_choice(
+                    action_id=int(raw_id),
+                    school_id=school.pk,
+                    user_id=request.user.pk,
+                    choice=str(choice),
+                    school_operator=operator_scope,
+                )
+                if result.get("ok"):
+                    resolved += 1
+            if resolved:
+                messages.success(
+                    request,
+                    _("Resolved %(count)s conflict(s).") % {"count": resolved},
+                )
+            else:
+                messages.error(request, _("Could not resolve the selected conflicts."))
+            return redirect("portal:offline_sync_conflicts")
+        action_id = request.POST.get("action_id")
         if action_id and choice:
             result = resolve_conflict_choice(
                 action_id=int(action_id),

@@ -1,5 +1,61 @@
 # RunMyCampus autonomous execution log
 
+## Slice — School & region tenant editor (batch 1797 - 2026-08-18)
+
+**A. Scope:** Clean leftover dirty trees. Land the only product files not already on `origin/main`. Do not commit stale copies that would regress telemetry / quiet-header.
+
+**B. Shipped:** Tenant School & region settings editor (`siteconfig:school_region_settings`) wired to URL, sidebar, command bar, and grading-settings cross-link; i18n catalog +31.
+
+**C. Proof:** sqlite-memory **5/5 OK**; template-render-safety 0; tenant-queryset `--compare` clean.
+
+**D. Honest:** Cursor checkout was 165 behind with duplicate MC ingest commits already on main. Restored line-ending-only login files. Left edge-runbook i18n labels (known 1791 leftover).
+
+**E. Files:** `views_school_region_settings.py`, test, template, `urls.py`, `portal_sidebar_items.py`, `command_bar_registry.py`, `views_console_domains.py`, `grading_settings.html`, locale catalogs, SOT/log.
+
+**F. Next:** Open `/siteconfig/school-region-settings/` as a tenant admin and save education system / timezone; confirm Setup Studio registry alignment clears.
+
+## Slice — Sync Center validation audit (batch 1796 - 2026-08-18)
+
+**A. Scope:** Adversarial validation of Sync Center live status + Sync now enqueue. Fix every gap/discrepancy found by running the path, not by rereading the claim.
+
+**B. Shipped:** Percent bar is the 2-step cycle (not pushed+pulled); dry/empty push pulses 1/2; Sync now stays clickable while a resync is only queued; missing `run_id` retries instead of opening a second row; beat `edge_sync_cycle` marked explicit; poll labels from `{% trans %}`; SW `sms-v4.06.54-sync-now-audit-2026-08-18`.
+
+**C. Proof:** sqlite-memory **62/62 OK**; telemetry 22 sites; template safety 0; inline-handlers 0; undefined-css 0; page-fold 42/42.
+
+**D. Honest:** MQTT screenshot dashboard is not this product. Celery worker required to finish a cycle.
+
+**E. Files:** `sync_status.py`, `sync_runner.py`, `tasks.py`, `workflow_celery_bridge.py`, `sync_center.html`, `rmc-sync-center.js`, `rmc-workflow-progress-canvas.js`, tests, SW + baseline, SOT/log.
+
+**F. Next:** Hard-refresh Sync Center on a box with Celery; Sync now should show 0% → 50% after push → complete, without pinning 100% mid-cycle.
+
+## Slice — Sync now same-tab live percent (batch 1795 - 2026-08-18)
+
+**A. Scope:** Finish the Sync Center E2E leftover: same-tab live percent during box **Sync now**, and absorb the i18n `--compare` catalog gap. No residual “needs a second worker” note.
+
+**B. Shipped:** `sync_now` opens `EdgeSyncRun.begin` then enqueues `run_sync_cycle_for_school_task` off the HTTP worker; `enqueue_background_job(..., block_in_process=False)` never blocks the request (thread fallback if the broker is down); hold-submit stay + JSON so the canvas is not killed by a Location redirect; `run_sync_cycle(run_row=)` reuses the open row / no-ops if superseded; catalog sync across locales; SW `sms-v4.06.53-sync-now-live-2026-08-18`.
+
+**C. Proof:** sqlite-memory **60/60 OK**; telemetry coverage **22** sites; i18n `--compare` OK; locale coverage PASS; template safety 0; inline-handlers 0; undefined-css 0; page-fold 42/42.
+
+**D. Honest:** MQTT mock dashboard is not this product. Celery worker on the box is required to *finish* the cycle; until then the UI shows **running**, which is the real state. Validation gaps (percent vs row counts, queued disabling Sync now, duplicate beat chips) **closed in batch 1796**.
+
+**E. Files:** `views_sync_center.py`, `sync_engine/tasks.py`, `sync_runner.py`, `workflow_telemetry.py`, `workflow_celery_bridge.py`, `sync_center.html`, `rmc-sync-center.js`, `rmc-workflow-progress-canvas.js`, locale catalogs, tests, SW + baseline, SOT/log.
+
+**F. Next:** Hard-refresh Sync Center on a box with Celery worker; click **Sync now** and confirm the badge reads running and the percent bar moves without a full page reload.
+
+## Slice — Sync Center live status + bulk conflicts (batch 1794 - 2026-08-18)
+
+**A. Scope:** Upgrade tenant Sync Center so queued/running edge sync is the live headline (not the last failed row), conflicts support bulk + policy, and the workflow percent canvas shows on this page.
+
+**B. Shipped:** `serialize_live_status` phase order; status JSON poll; `EdgeSyncRun.begin`/`complete`/`record` stamps `finished_at`; cloud upload + directive-serve observed cycles; bulk resolve (school-scoped, other-tenant IDs ignored); policy skip for `manual_review`; portal offline bulk `action_ids`; canvas + `run_sync_cycle` pulses; SW `sms-v4.06.52-sync-center-live-2026-08-18`.
+
+**C. Proof:** sqlite-memory **9/9 OK** (`test_sync_center_live`); **8/8 OK** (SyncNowViewTests + mutating policy); telemetry coverage 19 sites; template safety 0; inline-handlers 0; undefined-css 0; page-fold 42/42.
+
+**D. Honest:** Leftover (same-tab Sync now + i18n catalog) **closed in batch 1795**. Screenshot MQTT dashboard is not this product.
+
+**E. Files:** `sync_status.py`, `conflict_actions.py`, `sync_runner.py`, `views_sync_center.py`, `sync_center.html`, `rmc-sync-center.js`, portal conflicts, workflow registry + telemetry task type, tests, SW + baseline, SOT/log.
+
+**F. Next:** Hard-refresh Sync Center; queue a full resync after a failed cycle and confirm the badge reads queued; select several pending conflicts and apply policy.
+
 ## Slice — Workflow telemetry engine on existing spine (batch 1793 - 2026-08-17)
 
 **A. Scope:** Stream record-level percent + logs for migration, timetable solver, EOY rollover, and tenant inventory procurement — on `WorkflowRun` + Channels + SSE, not a greenfield task table.
