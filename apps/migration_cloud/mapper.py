@@ -597,6 +597,13 @@ def _suggest_transformer(cf: dict[str, Any], inferred_type: str, samples: list[A
     if _is_grade_field(cf):
         return "grading_scale_to_canonical"
     if field in _NAME_COMPONENT_FIELDS:
+        # Nothing to split when the column is already atomic. Judged from the
+        # column's OWN values rather than its header, because a header called
+        # "name" can hold either shape. With no samples to judge by, keep the
+        # splitter -- absence of evidence is not evidence of an atomic column.
+        judged = [str(v).strip() for v in (samples or []) if str(v or "").strip()]
+        if judged and all(len(v.split()) == 1 for v in judged):
+            return None
         # Locale-aware splitter — dispatches last-first / spanish-double by
         # destination country (and the comma heuristic) internally (B-3).
         return "name_split_locale"

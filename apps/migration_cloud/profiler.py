@@ -137,6 +137,10 @@ def _profiler_failure_reason(exc: Exception) -> str:
 _ARCHIVE_MAX_MEMBERS = 2000  # magic-number-allow: archive-expansion-member-cap
 _ARCHIVE_MAX_MEMBER_BYTES = 256 * 1024 * 1024  # magic-number-allow: archive-expansion-per-member-cap
 _ARCHIVE_MAX_TOTAL_BYTES = 1024 * 1024 * 1024  # magic-number-allow: archive-expansion-total-cap
+# A database is materialised to a temp file to be read, so an unbounded upload
+# would OOM the worker -- which surfaces to the school as an import that spins
+# forever rather than as an error. Refuse it with an instruction instead.
+_DATABASE_MAX_BYTES = 1024 * 1024 * 1024  # magic-number-allow: database-expansion-cap
 _TAR_SUFFIXES = (".tar", ".tar.gz", ".tgz", ".tar.bz2", ".tbz", ".tar.xz")
 
 
@@ -1126,6 +1130,23 @@ def expand_tabular_source_artifacts(bundle: MigrationBundle) -> int:
             continue
         try:
             if _sniff_format(artifact, [], []) != ArtifactFormat.SQLITE:
+                continue
+            if (artifact.byte_size or 0) > _DATABASE_MAX_BYTES:
+                artifact.quarantined = True
+                artifact.quarantine_reason = (
+                    "This database is too large to expand here "
+                    f"({artifact.byte_size} bytes). Export the tables you need "
+                    "as CSV and upload those instead."
+                )
+                artifact.detected_format = ArtifactFormat.SQLITE
+                artifact.save(
+                    update_fields=[
+                        "quarantined",
+                        "quarantine_reason",
+                        "detected_format",
+                        "updated_at",
+                    ]
+                )
                 continue
             data = stream.read()
         except Exception:  # noqa: BLE001

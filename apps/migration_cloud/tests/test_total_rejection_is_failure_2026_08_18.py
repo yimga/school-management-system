@@ -14,6 +14,14 @@ The guard is deliberately narrow. It fires only when rows were REJECTED, so an
 artifact that legitimately had nothing to do -- a header-only file, or a re-run
 where every record was already current -- still reports success rather than being
 called a failure for landing zero rows.
+
+SUPERSEDED IN PART (2026-08-18): the verdict is now the file-level status
+``REJECTED`` rather than ``FAILED``. The distinction matters because the
+bundle-level rule treats FAILED as "roll everything back", so marking a single
+unimportable file FAILED discarded the files that imported cleanly beside it.
+The run it writes still reads Failed to the operator, which is what this test
+was protecting. See
+``test_rejection_does_not_roll_back_good_files_2026_08_18`` for the split.
 """
 
 from __future__ import annotations
@@ -24,15 +32,14 @@ from apps.migration_cloud.landers.base import LanderResult
 
 
 def _classify(result: LanderResult) -> str:
-    """Mirror of the orchestrator's outcome-status rule, kept in one place.
+    """The orchestrator's real per-artifact rule, imported rather than mirrored.
 
-    Asserting the rule directly keeps this test honest about WHAT is being pinned
-    (the semantic) without standing up a whole bundle apply, which needs tenant
-    schemas this suite does not have.
+    This was a hand-copy of the rule, which is how it survived a change to the
+    rule it was pinning. Importing the real function means it cannot drift again.
     """
-    if result.quarantined and not (result.created or result.updated):
-        return "FAILED"
-    return "PARTIAL" if result.quarantined else "SUCCESS"
+    from apps.migration_cloud.orchestrator import artifact_outcome_status
+
+    return artifact_outcome_status(result)
 
 
 class TotalRejectionIsFailureTests(SimpleTestCase):
@@ -47,7 +54,7 @@ class TotalRejectionIsFailureTests(SimpleTestCase):
         """The production case: 0 created, 0 updated, 431 quarantined."""
         self.assertEqual(
             _classify(self._result(quarantined=431)),
-            "FAILED",
+            "REJECTED",
             "an import that wrote nothing at all still reported success",
         )
 
@@ -82,5 +89,10 @@ class OrchestratorRuleIsWiredTests(SimpleTestCase):
         self.assertIn(
             "if result.quarantined and not (result.created or result.updated):",
             source,
-            "the orchestrator no longer classifies total rejection as a failure",
+            "the orchestrator no longer distinguishes total rejection at all",
+        )
+        self.assertIn(
+            "def bundle_apply_failed(",
+            source,
+            "the bundle-level rule that keeps good files must exist",
         )

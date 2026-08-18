@@ -459,6 +459,7 @@ CANONICAL_ONTOLOGY: dict[str, dict[str, dict]] = {
                 "en": ["student_dob", "child_dob", "student_date_of_birth"],
                 "fr": ["date_de_naissance_eleve"],
                 "es": ["fecha_de_nacimiento_del_alumno"],
+                "pt": ["data_de_nascimento_do_aluno"],
             },
             sensitivity="pii",
         ),
@@ -1481,6 +1482,25 @@ CANONICAL_ONTOLOGY: dict[str, dict[str, dict]] = {
     },
     # ------------------------------------------------------------------- payroll
     "payroll": {
+        "staff_name": _field(
+            description=(
+                "The staff member's name as written on this row, for schools "
+                "whose payroll was kept by name rather than by an employee "
+                "number. Used as the record's identity when no id is present."
+            ),
+            value_type="string",
+            value_examples=["NGONO Marie", "Ada Lovelace"],
+            synonyms={
+                "en": [
+                    "staff_name", "employee_name", "teacher_name", "name",
+                    "full_name", "employee",
+                ],
+                "fr": ["nom", "nom_complet", "nom_de_l_employe", "employe"],
+                "es": ["nombre", "nombre_completo", "empleado"],
+                "pt": ["nome", "nome_completo"],
+            },
+            sensitivity="pii",
+        ),
         "staff_external_id": _field(
             description="Staff member.",
             value_type="string",
