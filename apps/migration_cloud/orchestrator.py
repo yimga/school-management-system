@@ -628,6 +628,41 @@ def _rollback_all_runs(outcomes: list["ArtifactApplyOutcome"]) -> None:
             )
 
 
+# Operator-chosen date reading -> the strptime format the date transformer uses.
+# "" means "leave the existing inference alone" (profiler vote, then country
+# profile), so an unset preference behaves exactly as before.
+_DATE_ORDER_FORMATS = {
+    "day_first": "%d/%m/%Y",
+    "month_first": "%m/%d/%Y",
+    "year_first": "%Y-%m-%d",
+}
+
+
+def operator_date_format(bundle) -> str:
+    """The date format the operator explicitly chose on the review page, or "".
+
+    An unrecognised value is ignored rather than trusted -- a bad preference
+    must never become a strptime format that silently misreads every date.
+    """
+    prefs = (getattr(bundle, "mapping_summary", None) or {}).get("transform_prefs") or {}
+    order = str(prefs.get("date_order") or "").strip().lower()
+    return _DATE_ORDER_FORMATS.get(order, "")
+
+
+def apply_operator_date_override(locale_hints: dict, bundle) -> None:
+    """Let an explicit operator choice outrank every inferred date format.
+
+    The profiler's per-column vote and the country profile are both inferences;
+    this is the school telling us what its file actually is. A wrong date reading
+    is the worst class of import defect because it is SILENT -- every row lands,
+    every date is wrong, and nothing is quarantined to hint at it -- so the one
+    party who can actually know must be able to say.
+    """
+    chosen = operator_date_format(bundle)
+    if chosen:
+        locale_hints["date_format"] = chosen
+
+
 # --- Dependency-DAG wave partitioning ------------------------------------
 
 # Ordered waves; jobs within a wave run in parallel, waves run serially so
@@ -804,6 +839,11 @@ def _iter_canonical_rows(job: _ArtifactJob) -> Iterator[dict[str, Any]]:
     # transformers (grading_scale_to_canonical, name_split_locale,
     # attendance_code_rewrite) can resolve scale / dialect / name-order
     # without needing per-mapping options.
+    # An explicit operator choice outranks BOTH the profiler's vote and the
+    # country default below -- it is the only one of the three that is knowledge
+    # rather than inference.
+    apply_operator_date_override(locale_hints, artifact.bundle)
+
     school = getattr(artifact.bundle, "school", None)
     country = str(getattr(school, "country_code", "") or "").upper()
     if country:
