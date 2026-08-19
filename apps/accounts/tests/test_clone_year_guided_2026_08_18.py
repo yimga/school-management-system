@@ -48,8 +48,9 @@ class CloneYearGuidedPathTests(TestCase):
         response = self._call("get")
         self.assertEqual(response.status_code, 200)
         html = response.content.decode("utf-8")
-        self.assertIn("Create that new year first", html)
-        self.assertNotIn('id="source_year"', html)
+        self.assertIn('name="create_target_year"', html)
+        self.assertIn('name="new_year_name"', html)
+        self.assertIn("disabled", html)
 
     def test_post_refused_until_two_years_exist(self):
         AcademicYear.objects.create(
@@ -60,9 +61,7 @@ class CloneYearGuidedPathTests(TestCase):
             is_active=True,
         )
         response = self._call("post", source_year="1", target_year="2")
-        self.assertEqual(response.status_code, 200)
-        html = response.content.decode("utf-8")
-        self.assertIn("Create that new year first", html)
+        self.assertEqual(response.status_code, 404)
 
     def test_two_years_renders_clone_form(self):
         AcademicYear.objects.create(
