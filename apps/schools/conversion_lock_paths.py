@@ -68,7 +68,13 @@ CONVERSION_LOCK_WORKFLOW_PREFIXES: tuple[str, ...] = (
 # Reports: exclude blanket ``/reports/`` — allow publish/export/report-card workflow URLs only.
 CONVERSION_LOCK_WORKFLOW_PREFIXES_NARROW: tuple[str, ...] = (
     "/portal/attendance/",
-    "/portal/parent/attendance-discipline",
+    # Families are not the conversion target — the lock exists to make the SCHOOL
+    # record its first value, and a parent cannot clear it. Walling "/portal/parent/"
+    # therefore bought nothing and trapped every guardian on the activation landing
+    # with no reachable link at all. It also contradicted the landing's own copy: a
+    # PAYMENT counts as first value, and parents pay from /portal/parent/finance/.
+    # Supersedes the narrower "/portal/parent/attendance-discipline" entry.
+    "/portal/parent/",
     "/portal/teacher/attendance",
     "/evals/teacher/marks/",
     "/evals/teacher/marks/entry",
@@ -93,6 +99,14 @@ CONVERSION_LOCK_WORKFLOW_PREFIXES_NARROW: tuple[str, ...] = (
     "/kb/",
     "/siteconfig/reports/",
     "/demo/flow/",
+    # A locked-out operator must still be able to (a) get help and (b) bring their
+    # data in — both are dead ends otherwise. "/kb/" was already open but "/help/"
+    # (feedback:help_center, the surface every CTA actually links to) was not, and
+    # "/school/setup/" hosts the Migration Cloud import wizard that IS the first
+    # value action for a migrating school. Advertised-CTA reachability is enforced
+    # by apps/schools/tests/test_conversion_lock_cta_reachability.py.
+    "/help/",
+    "/school/setup/",
 )
 
 
@@ -136,6 +150,20 @@ def _workflow_prefixes() -> tuple[str, ...]:
     if getattr(settings, "CONVERSION_LOCK_USE_NARROW_WORKFLOW_PATHS", False):
         return CONVERSION_LOCK_WORKFLOW_PREFIXES_NARROW
     return CONVERSION_LOCK_WORKFLOW_PREFIXES
+
+
+def conversion_allows_path(path: str) -> bool:
+    """Would ``path`` stay reachable if the conversion lock were active?
+
+    The canonical reachability question, settings plumbing included. Surfaces that
+    ADVERTISE a next action (the tenant mission strip, the activation landing) call
+    this so they can never hand the operator a CTA the lock will bounce — the
+    "Do it now -> 302 -> back to /activation/first-action/" deadlock.
+    """
+    from django.conf import settings
+
+    extra = getattr(settings, "CONVERSION_LOCK_ALLOWED_PREFIXES", ()) or ()
+    return path_matches_conversion_allowlist(path, tuple(extra))
 
 
 def path_matches_conversion_allowlist(path: str, extra_prefixes: tuple[str, ...]) -> bool:

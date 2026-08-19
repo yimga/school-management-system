@@ -24,12 +24,19 @@
       <a class="btn btn-sm btn-outline-secondary" href="{% url 'studio_os:workflow_center' %}">
         {% trans "Workflow Center" %}
       </a>
+      {% comment %} Both URLs come from _safe_admin_url(), which returns "" on a host that
+         does not mount django.contrib.admin (config.urls). Render the button only when
+         there is somewhere for it to go — an empty href is a dead control. {% endcomment %}
+      {% if admin_year_url %}
       <a class="btn btn-sm btn-outline-secondary" href="{{ admin_year_url }}" title="Configuration Engine">
         {% trans "Academic Years" %}
       </a>
+      {% endif %}
+      {% if admin_session_url %}
       <a class="btn btn-sm btn-primary" href="{{ admin_session_url }}" title="Configuration Engine">
         {% trans "Create Exam Session" %}
       </a>
+      {% endif %}
     </div>
   </div>
 

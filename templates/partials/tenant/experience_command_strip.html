@@ -46,12 +46,35 @@
         <small>{{ tenant_experience_command.primary_action.meta }}</small>
       </span>
     </a>
-    {% for action in tenant_experience_command.secondary_actions %}
+    {% comment %} Single-action discipline for the v3 role homes. This strip owns
+       guidance on the tp_v3 tenant shell -- that shell SUPPRESSES
+       components/next_action_strip.html, which is where strict mode was handled --
+       so without this branch CONVERSION_SINGLE_ACTION_ENFORCED had no effect at all
+       on the parent/teacher/admin role homes: strict and relaxed rendered
+       byte-identically. Collapse the secondaries into the platform's standard
+       rmc-conversion-more-actions disclosure so exactly one dominant CTA remains. {% endcomment %}
+    {% if tenant_experience_command.secondary_actions %}
+      {% if rmc_conversion_single_action_enforced|default:False %}
+    <details class="rmc-conversion-more-actions" data-rmc-experience-more-actions="1">
+      <summary class="tp-experience-action">{% trans "More actions" %}</summary>
+      <div class="tp-experience-command__more">
+        {% for action in tenant_experience_command.secondary_actions %}
+        <a class="tp-experience-action" href="{{ action.url }}" data-tone="{{ action.tone }}">
+          <i class="bi {{ action.icon }}" aria-hidden="true"></i>
+          <span>{{ action.label }}</span>
+        </a>
+        {% endfor %}
+      </div>
+    </details>
+      {% else %}
+        {% for action in tenant_experience_command.secondary_actions %}
     <a class="tp-experience-action" href="{{ action.url }}" data-tone="{{ action.tone }}">
       <i class="bi {{ action.icon }}" aria-hidden="true"></i>
       <span>{{ action.label }}</span>
     </a>
-    {% endfor %}
+        {% endfor %}
+      {% endif %}
+    {% endif %}
   </div>
   {% endif %}
 </section>

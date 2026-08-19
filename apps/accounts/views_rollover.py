@@ -7,10 +7,11 @@ from django.contrib import messages
 from django.contrib.auth.decorators import user_passes_test
 from django.core.exceptions import ValidationError
 from django.db import DatabaseError
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.shortcuts import redirect, render, get_object_or_404
-from django.urls import reverse, NoReverseMatch
+from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_http_methods
 
 from apps.academics.models import AcademicYear, Classroom, Term
@@ -116,7 +117,7 @@ def _years_for_clone(request):
     qs = AcademicYear.objects.all().order_by("-start_date")
     school = getattr(request, "school", None)
     if school is not None and getattr(school, "pk", None):
-        qs = qs.filter(school=school)  # tenant-isolation-allow: clone-year-scoped-to-request-school
+        qs = qs.filter(Q(school=school) | Q(school__isnull=True))  # tenant-isolation-allow: clone-year-scoped-to-request-school-plus-legacy-null-rows
     return list(qs)
 
 
@@ -145,6 +146,7 @@ def _clone_year_context(request, years):
 
 @permission_required("settings.manage")
 @user_passes_test(_is_admin_user)
+@require_http_methods(["GET", "POST"])
 def clone_year_setup(request):
     """
     Clone structure from a previous academic year to a target year (terms, classrooms, subject assignments, promotion rules).
@@ -169,15 +171,9 @@ def clone_year_setup(request):
             messages.error(request, "Source and target year must be different.")
             return render(request, "accounts/clone_year_setup.html", ctx)
 
-        source_year = get_object_or_404(AcademicYear, id=source_id)
-        target_year = get_object_or_404(AcademicYear, id=target_id)
-        school = getattr(request, "school", None)
-        if school is not None:
-            if getattr(source_year, "school_id", None) not in (None, school.pk) or getattr(
-                target_year, "school_id", None
-            ) not in (None, school.pk):
-                messages.error(request, "Those academic years are not part of this school.")
-                return render(request, "accounts/clone_year_setup.html", ctx)
+        scoped = AcademicYear.objects.filter(pk__in=[y.pk for y in years])  # tenant-isolation-allow: clone-year-post-restricted-to-already-scoped-year-ids
+        source_year = get_object_or_404(scoped, id=source_id)
+        target_year = get_object_or_404(scoped, id=target_id)
         try:
             stats = clone_academic_year(source_year, target_year)
             messages.success(
@@ -203,6 +199,8 @@ def clone_year_setup(request):
             return render(request, "accounts/clone_year_setup.html", ctx)
 
     return render(request, "accounts/clone_year_setup.html", ctx)
+
+
 
 
 @permission_required("settings.manage")

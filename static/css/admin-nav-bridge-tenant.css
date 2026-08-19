@@ -343,3 +343,45 @@ body:not(.control-plane-shell):has(.admin-nav-bridge) {
   right: 0;
   left: auto;
 }
+
+/* ---------------------------------------------------------------------------
+   Bootstrap LAYOUT primitives the tenant /admin/ shell must supply itself.
+
+   `templates/admin/base_site.html` loads `vendor/bootstrap/css/bootstrap.min.css`
+   ONLY under `{% if is_manager_host %}` — deliberately, so Bootstrap's Reboot never
+   fights Unfold/Tailwind on the tenant backoffice. But the shared header chrome
+   (`components/admin_nav_bridge.html` + the partials it includes) is written against
+   Bootstrap utility classes, so on this one shell those classes resolved to NOTHING:
+   `.d-none` stopped hiding, and the search-results panel lost `position: absolute`
+   and flowed inline inside the pinned `<header>`.
+
+   This file is loaded by base_site.html under `{% if not is_manager_host %}`, i.e.
+   exactly and only where Bootstrap's CSS is absent, so these declarations can never
+   double up with (or drift from) the real Bootstrap on the manager shell. Keep this
+   list to LAYOUT only — colour, spacing and type stay on the token system.
+   Sealed by apps/accounts/tests/test_tenant_admin_header_chrome.py.
+   --------------------------------------------------------------------------- */
+.admin-nav-bridge .d-none,
+.rmc-app-shell__header .d-none {
+  display: none !important;
+}
+
+.admin-nav-bridge .position-relative,
+.rmc-app-shell__header .position-relative {
+  position: relative;
+}
+
+.admin-nav-bridge .position-absolute,
+.rmc-app-shell__header .position-absolute {
+  position: absolute;
+}
+
+.admin-nav-bridge .start-0,
+.rmc-app-shell__header .start-0 {
+  left: 0;
+}
+
+.admin-nav-bridge .top-100,
+.rmc-app-shell__header .top-100 {
+  top: 100%;
+}

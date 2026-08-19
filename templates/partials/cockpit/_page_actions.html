@@ -29,16 +29,24 @@
     {% endif %}
   {% endif %}
   {% if cockpit_shell.actions.quick_action %}
+    {% comment %} This partial is included INSIDE single-primary toolbars (e.g. the
+       founder dashboard's data-rmc-founder-toolbar-actions nav, which already
+       collapses its secondary CTA into rmc-conversion-more-actions under strict).
+       Rendering the quick action as cp-btn-primary there put a SECOND dominant CTA
+       in the same toolbar, defeating the single-action contract. Under strict it
+       takes the same secondary treatment as Export PDF above. {% endcomment %}
+    {% with qa_class=rmc_conversion_single_action_enforced|default:False|yesno:"cp-detailed-board-btn,cp-btn-primary" %}
     {% if cockpit_shell.actions.quick_action_mode == 'menu' and cockpit_quick_action_url %}
-  <a class="cp-btn-primary" href="{{ cockpit_quick_action_url }}" data-rmc-quick-action="menu">
+  <a class="{{ qa_class }}" href="{{ cockpit_quick_action_url }}" data-rmc-quick-action="menu">
     <span aria-hidden="true">＋</span> {% trans "Quick action" %}
   </a>
     {% else %}
-  <button type="button" class="cp-btn-primary" data-rmc-quick-action="command-palette"
+  <button type="button" class="{{ qa_class }}" data-rmc-quick-action="command-palette"
           aria-label="{% trans 'Open quick actions' %} (Ctrl+K)">
     <span aria-hidden="true">＋</span> {% trans "Quick action" %}
   </button>
     {% endif %}
+    {% endwith %}
   {% endif %}
 </div>
 {% endif %}

@@ -2719,11 +2719,24 @@ def backend_dashboard(request):
         },
         {"label": "Modules", "value": modules, "meta": "Registered apps"},
     ]
-    hero_actions = [
-        {"label": "Open parent portal", "url": reverse("portal:parent_dashboard")},
-        {"label": "Backend config", "url": reverse("accounts:backend_dashboard")},
-        {"label": "Frontend admin", "url": reverse("admin:index")},
-    ]
+    # "Frontend admin" points at admin:index, but config.urls (the base/public host)
+    # does NOT mount django.contrib.admin while it DOES route
+    # accounts:backend_dashboard at /authentication/backend/ — so the bare reverse
+    # raised an uncaught NoReverseMatch and 500'd this dashboard on that host.
+    # verify_url_name_integrity cannot see it: that gate unions registered names
+    # across every host urlconf, so "admin:index" passes because the tenant and
+    # manager urlconfs mount it. Drop an action whose host cannot serve it rather
+    # than rendering a dead control.
+    hero_actions = []
+    for _label, _url_name in (
+        ("Open parent portal", "portal:parent_dashboard"),
+        ("Backend config", "accounts:backend_dashboard"),
+        ("Frontend admin", "admin:index"),
+    ):
+        try:
+            hero_actions.append({"label": _label, "url": reverse(_url_name)})
+        except NoReverseMatch:
+            continue
     if can_manage_settings:
         hero_actions.append(
             {

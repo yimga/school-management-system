@@ -74,8 +74,12 @@ _HOST_GUARD_TOKENS = (
     "control_plane_shell",
 )
 
-_URL_RE = re.compile(r"""\{%\s*url\s+["']([a-zA-Z_][\w]*):([^"']+)["']""")
+_URL_RE = re.compile(r"""\{%\s*url\s+["']([a-zA-Z_][\w]*):([^"']+)["']([^%]*)%\}""")
 _TAG_RE = re.compile(r"\{%\s*(if|elif|else|endif)\b([^%]*)%\}", re.IGNORECASE)
+_CHILD_RE = re.compile(r"""\{%\s*(?:extends|include)\s+["']([^"']+\.html?)["']""")
+
+#: Depth cap for the extends/include walk (cycle + runaway guard).
+_MAX_TEMPLATE_DEPTH = 12
 
 
 def _flat_namespaces(resolver) -> set[str]:
@@ -232,6 +236,11 @@ def _unguarded_ns_refs(text: str) -> list[tuple[int, str, str]]:
     for m in _TAG_RE.finditer(text):
         events.append((m.start(), "tag", m.group(1).lower(), m.group(2)))
     for m in _URL_RE.finditer(text):
+        # `{% url 'ns:name' as var %}` cannot raise - URLNode re-raises only when
+        # asvar is None; otherwise it sets the var to "". Flagging it would
+        # penalise the very idiom this gate wants authors to adopt.
+        if re.search(r"\bas\s+\w+\s*$", m.group(3).strip()):
+            continue
         events.append((m.start(), "ref", m.group(1), m.group(2)))
     events.sort(key=lambda e: e[0])
 
@@ -258,6 +267,90 @@ def _unguarded_ns_refs(text: str) -> list[tuple[int, str, str]]:
     return out
 
 
+_TEXT_CACHE: dict[str, str | None] = {}
+
+
+def _template_text(name: str) -> str | None:
+    """Read a template's raw source once, by resolved origin. None when absent."""
+    if name in _TEXT_CACHE:
+        return _TEXT_CACHE[name]
+    text: str | None = None
+    try:
+        origin = get_template(name).origin.name
+        if origin and os.path.isfile(origin):
+            with open(origin, encoding="utf-8") as fh:
+                text = fh.read()
+    except Exception:  # noqa: BLE001 - dynamic/absent names are out of scope
+        text = None
+    _TEXT_CACHE[name] = text
+    return text
+
+
+def _unguarded_children(text: str) -> set[str]:
+    """Literal extends/include targets that are NOT inside a host-branch guard.
+
+    A host-guarded include already selects the host-correct child, so propagating the
+    parent's full host set through it would manufacture a false finding. Non-literal
+    targets are skipped - false-negative biased, as everywhere else in this gate.
+    """
+    events: list[tuple[int, str, str, str]] = []
+    for m in _TAG_RE.finditer(text):
+        events.append((m.start(), "tag", m.group(1).lower(), m.group(2)))
+    for m in _CHILD_RE.finditer(text):
+        events.append((m.start(), "child", "", m.group(1)))
+    events.sort(key=lambda e: e[0])
+
+    stack: list[bool] = []
+    out: set[str] = set()
+    for _offset, kind, a, b in events:
+        if kind == "tag":
+            if a == "if":
+                stack.append(_is_host_guard(b))
+            elif a == "elif":
+                if stack and _is_host_guard(b):
+                    stack[-1] = True
+            elif a == "endif":
+                if stack:
+                    stack.pop()
+        elif not any(stack):
+            out.add(b)
+    return out
+
+
+def _propagate_hosts(host_map: dict[str, set[str]]) -> None:
+    """Propagate each root's host set down its extends/include closure, IN PLACE.
+
+    The gate used to scan a root template's OWN source only, so a bare reverse
+    INHERITED from a shared parent or partial was invisible. That is how the
+    command-palette 500 shipped: components/rmc_command_palette.html reversed
+    kb: and siteconfig: - both absent from config.public_urls - and base.html
+    includes it on every authenticated page, but the palette is include-only so it
+    is never a CBV template_name nor a function-view render() literal.
+
+    Called SEPARATELY for the CBV map and the function-view map so the caller keeps
+    the gate's two-tier sensitivity. Merging them would let a loose function-view
+    host attribution ("shared app-includes attribute a page to hosts it never
+    serves") inherit the strict CBV tier and manufacture false findings.
+    """
+    queue: list[tuple[str, int]] = [(name, 0) for name in list(host_map)]
+    while queue:
+        name, depth = queue.pop()
+        if depth >= _MAX_TEMPLATE_DEPTH:
+            continue
+        text = _template_text(name)
+        if not text:
+            continue
+        hosts = host_map.get(name, set())
+        if not hosts:
+            continue
+        for child in _unguarded_children(text):
+            before = host_map.get(child)
+            after = (before or set()) | hosts
+            if before is None or after != before:
+                host_map[child] = after
+                queue.append((child, depth + 1))
+
+
 def scan() -> list[dict]:
     per_host_ns: dict[str, set[str]] = {}
     per_host_cbv: dict[str, set[str]] = {}
@@ -271,16 +364,25 @@ def scan() -> list[dict]:
         per_host_cbv[uc] = _cbv_template_names(resolver)
         per_host_fv[uc] = _function_view_template_names(resolver)
 
-    # template_name -> set of hosts it renders on (CBV ∪ function-view discovery),
-    # and the set of templates that ANY CBV renders (they get the sensitive check).
-    template_hosts: dict[str, set[str]] = {}
-    cbv_templates: set[str] = set()
+    # Two INDEPENDENT maps: template -> hosts, by discovery kind. A CBV
+    # template_name maps to hosts exactly; function-view discovery is looser. Each
+    # is propagated down its own extends/include closure so a partial inherits the
+    # tier of the roots that actually reach it (see _propagate_hosts).
+    cbv_hosts: dict[str, set[str]] = {}
+    fv_hosts: dict[str, set[str]] = {}
     for uc in per_host_ns:
         for name in per_host_cbv.get(uc, set()):
-            template_hosts.setdefault(name, set()).add(uc)
-            cbv_templates.add(name)
+            cbv_hosts.setdefault(name, set()).add(uc)
         for name in per_host_fv.get(uc, set()):
-            template_hosts.setdefault(name, set()).add(uc)
+            fv_hosts.setdefault(name, set()).add(uc)
+
+    root_templates = set(cbv_hosts) | set(fv_hosts)
+    _propagate_hosts(cbv_hosts)
+    _propagate_hosts(fv_hosts)
+
+    template_hosts: dict[str, set[str]] = {}
+    for name in set(cbv_hosts) | set(fv_hosts):
+        template_hosts[name] = cbv_hosts.get(name, set()) | fv_hosts.get(name, set())
 
     findings: list[dict] = []
     for name, hosts in sorted(template_hosts.items()):
@@ -305,12 +407,17 @@ def scan() -> list[dict]:
         # absent on EVERY host the page renders on: that is a guaranteed 500 wherever
         # it renders (the /help/ class), which verify_url_name_integrity misses
         # because it unions names across all hosts. This keeps the gate zero-FP.
-        is_cbv = name in cbv_templates
+        strict_hosts = cbv_hosts.get(name, set())
         rel = os.path.relpath(origin, REPO_ROOT).replace(os.sep, "/")
         for lineno, ns, ref_name in _unguarded_ns_refs(text):
             missing_on = sorted(
                 uc for uc in hosts if ns not in per_host_ns.get(uc, set())
             )
+            missing_strict = {uc for uc in strict_hosts if uc in set(missing_on)}
+            # Strict: a CBV template_name maps to hosts exactly, so absent on ANY
+            # host it renders on is a real conditional 500. Loose: absent on EVERY
+            # host is a guaranteed 500 wherever it renders.
+            is_cbv = bool(missing_strict)
             if not _is_finding(is_cbv, set(missing_on), hosts):
                 continue
             findings.append(
@@ -322,6 +429,7 @@ def scan() -> list[dict]:
                     "renders_on": sorted(hosts),
                     "missing_on": missing_on,
                     "discovery": "cbv" if is_cbv else "function_view",
+                    "via": "root" if name in root_templates else "include_chain",
                     "reason": (
                         f"'{ns}' is absent on {missing_on} but this template also "
                         f"renders there; resolve the URL host-aware in the view "
