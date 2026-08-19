@@ -9,6 +9,10 @@
 
 {% url 'finance:dashboard' as ov_finance_url %}
 {% url 'accounts:backend_dashboard' as ov_home_url %}
+{# Every "What needs you" row below must name the page that RESOLVES it. #}
+{# A count with no destination makes the reader hunt for the screen themselves. #}
+{% url 'requests:dashboard' as ov_requests_url %}
+{% url 'analytics:at_risk_dashboard' as ov_at_risk_url %}
 
 <div class="rmc-dh mt-3" data-rmc-ux-section="school-overview">
   {% if rmc_school_onboarding.percent != None and not show_setup_landing %}
@@ -49,8 +53,8 @@
   <div class="rmc-dh-attention">
     <h2 class="rmc-dh-attention__title"><i class="bi bi-exclamation-octagon" aria-hidden="true"></i> {% trans "What needs you" %}</h2>
     {% if finance_summary.overdue %}{% blocktrans count n=finance_summary.overdue asvar ov_od %}{{ n }} invoice overdue{% plural %}{{ n }} invoices overdue{% endblocktrans %}{% include "components/dashboard/rmc_dh_attn_row.html" with dh_icon="bi-cash-coin" dh_text=ov_od dh_go_label=_("Chase") dh_go_href=ov_finance_url %}{% endif %}
-    {% if pending_approvals_count %}{% blocktrans count n=pending_approvals_count asvar ov_ap %}{{ n }} access request awaiting approval{% plural %}{{ n }} access requests awaiting approval{% endblocktrans %}{% include "components/dashboard/rmc_dh_attn_row.html" with dh_icon="bi-person-check" dh_text=ov_ap %}{% endif %}
-    {% if at_risk_students %}{% blocktrans count n=at_risk_students|length asvar ov_ar %}{{ n }} student needs attention{% plural %}{{ n }} students need attention{% endblocktrans %}{% include "components/dashboard/rmc_dh_attn_row.html" with dh_icon="bi-people" dh_text=ov_ar %}{% endif %}
+    {% if pending_approvals_count %}{% blocktrans count n=pending_approvals_count asvar ov_ap %}{{ n }} access request awaiting approval{% plural %}{{ n }} access requests awaiting approval{% endblocktrans %}{% include "components/dashboard/rmc_dh_attn_row.html" with dh_icon="bi-person-check" dh_text=ov_ap dh_go_label=_("Review") dh_go_href=ov_requests_url %}{% endif %}
+    {% if at_risk_students %}{% blocktrans count n=at_risk_students|length asvar ov_ar %}{{ n }} student needs attention{% plural %}{{ n }} students need attention{% endblocktrans %}{% include "components/dashboard/rmc_dh_attn_row.html" with dh_icon="bi-people" dh_text=ov_ar dh_go_label=_("Review") dh_go_href=ov_at_risk_url %}{% endif %}
   </div>
   {% endif %}
 

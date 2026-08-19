@@ -77,6 +77,11 @@ GATES: list[tuple[str, list[str]]] = [
     # real gate on direct pushes — and mirrored as the architectural-boundaries
     # `upload-validation-coverage` job for pull_request runs.
     ("upload-validation-coverage", ["scan_upload_validation_coverage.py", "--compare"]),
+    # "6 access requests awaiting approval" with no link. An attention row must
+    # carry the page that RESOLVES it, or say why it has none. Runs WITHOUT
+    # --compare on purpose: the class is at zero, so there is no baseline to hide
+    # behind and the very next dead end blocks the push.
+    ("actionless-attention-surfaces", ["scan_actionless_attention_surfaces.py"]),
 ]
 
 _PER_GATE_TIMEOUT_S = 120

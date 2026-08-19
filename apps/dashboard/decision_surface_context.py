@@ -39,6 +39,20 @@ def build_backend_dashboard_phase7_de(
             }
         )
 
+    # A queue row means one of two opposite things, and ``url`` alone cannot tell
+    # them apart: "here is work for you" versus "there is nothing to do". Consumers
+    # rendered a missing url as the reassuring variant, so a REAL alert whose
+    # producer forgot a url was displayed as if everything were fine — the worst
+    # possible failure for an attention surface. ``cleared`` states which one it is,
+    # and an actionable row always carries a destination: when the producer gives
+    # none we fall back to the role's own home rather than emit a dead end.
+    fallback_url = str((role_home_primary_action or {}).get("url", "") or "").strip()
+    if not fallback_url:
+        for _dest in role_home_destinations or []:
+            if isinstance(_dest, dict) and str(_dest.get("url", "") or "").strip():
+                fallback_url = str(_dest["url"]).strip()
+                break
+
     urgent: List[Dict[str, Any]] = []
     for item in dashboard_priority_queue or []:
         if not isinstance(item, dict):
@@ -46,8 +60,9 @@ def build_backend_dashboard_phase7_de(
         urgent.append(
             {
                 "title": str(item.get("label", "") or "Item"),
-                "url": str(item.get("url", "") or "") or None,
+                "url": str(item.get("url", "") or "").strip() or fallback_url or None,
                 "hint": str(item.get("meta", "") or ""),
+                "cleared": False,
             }
         )
     if not urgent:
@@ -56,6 +71,7 @@ def build_backend_dashboard_phase7_de(
                 "title": "Queue clear",
                 "url": None,
                 "hint": "No operational alerts in the current snapshot.",
+                "cleared": True,
             }
         )
 
@@ -188,6 +204,7 @@ def build_teacher_dashboard_phase7_de(
                 "title": f"{pending_evaluations} mark entries pending",
                 "url": _rev("evals:teacher_marks_entry"),
                 "hint": "Enter scores while context is fresh.",
+                "cleared": False,
             }
         )
     else:
@@ -196,6 +213,7 @@ def build_teacher_dashboard_phase7_de(
                 "title": "Marks queue clear",
                 "url": None,
                 "hint": "No pending evaluations in the current snapshot.",
+                "cleared": True,
             }
         )
 
