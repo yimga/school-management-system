@@ -34,6 +34,8 @@ import logging
 from typing import Any, Iterator
 
 from ._helpers import (
+    unresolved_student_reason,
+    student_name_from_row,
     coerce_date,
     coerce_int,
     filter_to_model_fields,
@@ -80,7 +82,7 @@ class AthleticsMembershipsLander(Lander):
         for row_index, row in enumerate(canonical_rows):
             external_id = (row.get("student_external_id") or "").strip()
             team_name = (row.get("team_name") or row.get("team") or "").strip()
-            if not external_id or not team_name:
+            if not (external_id or student_name_from_row(row)) or not team_name:
                 result.quarantined += 1
                 result.errors.append(
                     f"athletics_memberships[row={row_index}]: "
@@ -93,12 +95,20 @@ class AthleticsMembershipsLander(Lander):
                 student_model=StudentProfile,
                 lookup_field=student_lookup,
                 external_id=external_id,
+                row=row,
             )
             if student is None:
                 result.quarantined += 1
                 result.errors.append(
-                    f"athletics_memberships[row={row_index}]: "
-                    f"no student with {student_lookup}=<redacted>"
+                    f"[row={row_index}] "
+                    + unresolved_student_reason(
+                        domain="athletics_memberships",
+                        ctx=ctx,
+                        student_model=StudentProfile,
+                        row=row,
+                        external_id=external_id,
+                        lookup_field=student_lookup,
+                    )
                 )
                 logger.info(
                     "athletics_memberships quarantine row=%d reason=student_unresolved",

@@ -3622,6 +3622,63 @@ a.card:hover {
   white-space: normal !important;
 }
 
+/* Display utility — required on tenant /admin/ for the same reason as
+   .visually-hidden above: Bootstrap is loaded only for the manager host
+   (templates/admin/base_site.html), so components shared between the portal and
+   the tenant backoffice arrive with .d-none and nothing to honour it. The
+   campus switcher ships hidden and is un-hidden by JS only when the user has
+   more than one school; without this rule a single-school tenant sees its
+   disabled "Loading schools…" placeholder permanently. Matches Bootstrap's own
+   declaration so both hosts behave identically. */
+.d-none {
+  display: none !important;
+}
+
+/* Layout primitives from the same gap. Shared components (portal + tenant
+   backoffice) reach for these Bootstrap utilities freely; without a definition
+   a flex row lays out as a block and an absolutely-positioned panel drops into
+   normal flow and shoves the page down. Declarations are copied verbatim from
+   the vendored bootstrap.min.css so both hosts agree.
+
+   Deliberately NOT shimmed here: component-level classes (.form-select-sm,
+   .dropdown-menu-end, .modal-dialog-centered, .fade, .offcanvas-body,
+   .btn-group-sm, .navbar-*, .border-light/.border-secondary, .btn-close-white,
+   .h5). Those depend on Bootstrap's --bs-* variable system or its component
+   bundle, and a half-shimmed component looks more broken than an unstyled one.
+   Where they matter on tenant /admin/ the surface already carries its own CSS
+   (e.g. rmc-header-utilities.css owns the Utilities panel). */
+.align-items-center { align-items: center !important; }
+.flex-column { flex-direction: column !important; }
+.flex-grow-1 { flex-grow: 1 !important; }
+.d-inline { display: inline !important; }
+.d-inline-flex { display: inline-flex !important; }
+.position-absolute { position: absolute !important; }
+.position-relative { position: relative !important; }
+.start-0 { left: 0 !important; }
+.top-100 { top: 100% !important; }
+.ms-auto { margin-left: auto !important; }
+.ms-2 { margin-left: .5rem !important; }
+.me-1 { margin-right: .25rem !important; }
+.me-2 { margin-right: .5rem !important; }
+.text-decoration-none { text-decoration: none !important; }
+.fw-semibold { font-weight: 600 !important; }
+
+@media (min-width: 576px) {
+  .mt-sm-0 { margin-top: 0 !important; }
+}
+@media (min-width: 768px) {
+  .d-md-flex { display: flex !important; }
+  .d-md-none { display: none !important; }
+}
+@media (min-width: 992px) {
+  .d-lg-block { display: block !important; }
+  .d-lg-none { display: none !important; }
+}
+@media (min-width: 1200px) {
+  .d-xl-flex { display: flex !important; }
+  .d-xl-none { display: none !important; }
+}
+
 /* Required-field marker via aria-required */
 [aria-required="true"] + .form-label::after,
 .form-label[data-required]::after {

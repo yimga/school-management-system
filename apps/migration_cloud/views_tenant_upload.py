@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import hashlib
 import logging
+import re
 import secrets
 from datetime import date
 from pathlib import Path
@@ -859,6 +860,93 @@ def name_order_preview(bundle) -> list[dict]:
     return out
 
 
+# Date readings offered on the review page. "" keeps the existing inference
+# (the profiler's per-column vote, then the tenant's country profile).
+DATE_ORDER_CHOICES = (
+    ("", "Detect automatically"),
+    ("day_first", "Day first (03/04/2010 is 3 April)"),
+    ("month_first", "Month first (03/04/2010 is 4 March)"),
+    ("year_first", "Year first (2010-04-03)"),
+)
+_DATE_ORDER_VALUES = {value for value, _label in DATE_ORDER_CHOICES}
+_DATE_PREVIEW_SAMPLES = 4  # magic-number-allow: date-order-preview-sample-count
+_AMBIGUOUS_DATE_RE = re.compile(r"^(\d{1,2})[./-](\d{1,2})[./-](\d{4})$")
+
+
+def selected_date_order(bundle) -> str:
+    prefs = (getattr(bundle, "mapping_summary", None) or {}).get("transform_prefs") or {}
+    order = str(prefs.get("date_order") or "").strip().lower()
+    return order if order in _DATE_ORDER_VALUES else ""
+
+
+def _ambiguous_date_samples(bundle) -> list[str]:
+    """Real date values from this school's files that could be read either way.
+
+    Only genuinely AMBIGUOUS values qualify: ``25/12/2010`` has a 25 in it and
+    can only be day-first, so asking about it would be noise. An ISO column is
+    never ambiguous either. If nothing here is in doubt the picker stays hidden
+    rather than inviting the operator to change something already correct.
+    """
+    seen: list[str] = []
+    for artifact in bundle.artifacts.filter(quarantined=False):
+        for column in ((artifact.profile or {}).get("columns") or []):
+            for sample in (column.get("samples") or []):
+                text = str(sample or "").strip()
+                match = _AMBIGUOUS_DATE_RE.match(text)
+                if not match:
+                    continue
+                first, second = int(match.group(1)), int(match.group(2))
+                if first > 12 or second > 12:
+                    continue  # decisive on its own
+                if text not in seen:
+                    seen.append(text)
+                if len(seen) >= _DATE_PREVIEW_SAMPLES:
+                    return seen
+    return seen
+
+
+def date_order_preview(bundle) -> list[dict]:
+    """How each offered reading would interpret this school's own dates.
+
+    The month is spelled out on purpose: "3 April 2010" is unmistakable, while
+    "03/04/2010" is the entire problem being solved.
+    """
+    samples = _ambiguous_date_samples(bundle)
+    if not samples:
+        return []
+    import datetime as _dt
+
+    current = selected_date_order(bundle)
+    out = []
+    for value, label in DATE_ORDER_CHOICES:
+        fmt = {"day_first": "%d/%m/%Y", "month_first": "%m/%d/%Y"}.get(value)
+        rows = []
+        for raw in samples:
+            reading = ""
+            if fmt:
+                try:
+                    parsed = _dt.datetime.strptime(raw, fmt).date()
+                    # Built by hand rather than via "%-d", which is a glibc
+                    # extension and raises on Windows.
+                    reading = f"{parsed.day} {parsed.strftime('%B')} {parsed.year}"
+                except ValueError:
+                    reading = "Not a valid date read this way"
+            elif value == "year_first":
+                reading = "Not applicable to this value"
+            else:
+                reading = "Whatever the file itself indicates"
+            rows.append({"source": raw, "reading": reading})
+        out.append(
+            {
+                "value": value,
+                "label": label,
+                "selected": value == current,
+                "rows": rows,
+            }
+        )
+    return out
+
+
 class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
     """GET → per-file detected format + entity + confidence, with override.
     POST → save per-file entity overrides and re-detect.
@@ -907,6 +995,7 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
         # NOT rewind/re-map (that would throw the tenant's choices away).
         mapping_changed = self._apply_column_overrides(request, bundle)
         mapping_changed += self._apply_name_order(request, bundle)
+        mapping_changed += self._apply_date_order(request, bundle)
         if mapping_changed:
             messages.success(
                 request,
@@ -936,6 +1025,29 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
         summary = dict(bundle.mapping_summary or {})
         prefs = dict(summary.get("transform_prefs") or {})
         prefs["name_order"] = chosen
+        summary["transform_prefs"] = prefs
+        bundle.mapping_summary = summary
+        bundle.save(update_fields=["mapping_summary", "updated_at"])
+        return 1
+
+    def _apply_date_order(self, request, bundle) -> int:
+        """Persist the chosen date reading beside the name order.
+
+        Both preferences live in the same ``transform_prefs`` dict, so this
+        merges rather than replaces -- writing one must never drop the other.
+        Absent from the POST means "not on this form" and leaves the stored
+        choice alone.
+        """
+        if "date_order" not in request.POST:
+            return 0
+        chosen = (request.POST.get("date_order") or "").strip().lower()
+        if chosen not in _DATE_ORDER_VALUES:
+            return 0
+        if chosen == selected_date_order(bundle):
+            return 0
+        summary = dict(bundle.mapping_summary or {})
+        prefs = dict(summary.get("transform_prefs") or {})
+        prefs["date_order"] = chosen
         summary["transform_prefs"] = prefs
         bundle.mapping_summary = summary
         bundle.save(update_fields=["mapping_summary", "updated_at"])
@@ -1033,6 +1145,9 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
             "name_order_choices": NAME_ORDER_CHOICES,
             "name_order_selected": selected_name_order(bundle),
             "name_order_preview": name_order_preview(bundle),
+            "date_order_choices": DATE_ORDER_CHOICES,
+            "date_order_selected": selected_date_order(bundle),
+            "date_order_preview": date_order_preview(bundle),
             "apply_result": apply_result,
             "verification": _build_verification(bundle),
             # Live import/repair state: the review page shows a polling progress

@@ -498,6 +498,49 @@ persistent data failure routes to correction rather than an endless retry.
       </div>
     </fieldset>
     {% endif %}
+    {% if date_order_preview %}
+    <fieldset class="mt-4">
+      <legend class="h6">{% trans "How should these dates be read?" %}</legend>
+      <p class="text-muted small">{% trans "Some dates in your file could be read two ways, and we cannot tell which from the value alone. Pick the reading that matches your records — the preview uses real dates from your own upload." %}</p>
+      <div class="table-responsive">
+        <table class="table table-sm align-middle">
+          <caption class="visually-hidden">{% trans "Date reading options previewed against your data" %}</caption>
+          <thead>
+            <tr>
+              <th scope="col">{% trans "Option" %}</th>
+              <th scope="col">{% trans "Preview from your file" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for option in date_order_preview %}
+            <tr>
+              <td>
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="date_order"
+                         id="date-order-{{ forloop.counter0 }}"
+                         value="{{ option.value }}"
+                         {% if option.selected %}checked{% endif %}>
+                  <label class="form-check-label" for="date-order-{{ forloop.counter0 }}">{{ option.label }}</label>
+                </div>
+              </td>
+              <td>
+                <ul class="list-unstyled mb-0 small">
+                  {% for r in option.rows %}
+                  <li>
+                    <span class="text-muted">{{ r.source }}</span>
+                    <span aria-hidden="true">&rarr;</span>
+                    <strong>{{ r.reading|default:"—" }}</strong>
+                  </li>
+                  {% endfor %}
+                </ul>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </fieldset>
+    {% endif %}
     <button type="submit" class="rmc-btn rmc-btn--primary">{% trans "Save changes" %}</button>
   </form>
   {% else %}

@@ -24,6 +24,8 @@ import hashlib
 from typing import Any, Iterator
 
 from ._helpers import (
+    unresolved_student_reason,
+    student_name_from_row,
     coerce_date,
     filter_to_model_fields,
     model_field_names,
@@ -91,7 +93,7 @@ class BehaviorLander(Lander):
             external_id = (row.get("student_external_id") or "").strip()
             date_val = coerce_date(row.get("date"))
             description = (row.get("description") or "").strip()
-            if not external_id or date_val is None or not description:
+            if not (external_id or student_name_from_row(row)) or date_val is None or not description:
                 record_row_error(
                     result, row, "behavior: missing student/date/description"
                 )
@@ -101,10 +103,18 @@ class BehaviorLander(Lander):
                 student_model=StudentProfile,
                 lookup_field=student_lookup,
                 external_id=external_id,
+                row=row,
             )
             if student is None:
                 record_row_error(
-                    result, row, f"behavior: no student with {student_lookup}={external_id!r}"
+                    result, row, unresolved_student_reason(
+                        domain="behavior",
+                        ctx=ctx,
+                        student_model=StudentProfile,
+                        row=row,
+                        external_id=external_id,
+                        lookup_field=student_lookup,
+                    )
                 )
                 continue
 

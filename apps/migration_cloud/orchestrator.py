@@ -476,7 +476,7 @@ def _apply_bundle_inner(
     }
     bundle.save(update_fields=["mapping_summary", "updated_at"])
 
-    failed = any(o.status == "FAILED" for o in outcomes)
+    failed = bundle_apply_failed(outcomes=outcomes, totals=totals)
     new_status = BundleStatus.FAILED if failed else BundleStatus.APPLIED
     if dry_run:
         # Dry-run never advances past MAPPED — operator still needs to apply.
@@ -662,6 +662,114 @@ def _rollback_all_runs(outcomes: list["ArtifactApplyOutcome"]) -> None:
             )
 
 
+# Operator-chosen date reading -> the strptime format the date transformer uses.
+# "" means "leave the existing inference alone" (profiler vote, then country
+# profile), so an unset preference behaves exactly as before.
+_DATE_ORDER_FORMATS = {
+    "day_first": "%d/%m/%Y",
+    "month_first": "%m/%d/%Y",
+    "year_first": "%Y-%m-%d",
+}
+
+
+def operator_date_format(bundle) -> str:
+    """The date format the operator explicitly chose on the review page, or "".
+
+    An unrecognised value is ignored rather than trusted -- a bad preference
+    must never become a strptime format that silently misreads every date.
+    """
+    prefs = (getattr(bundle, "mapping_summary", None) or {}).get("transform_prefs") or {}
+    order = str(prefs.get("date_order") or "").strip().lower()
+    return _DATE_ORDER_FORMATS.get(order, "")
+
+
+def apply_operator_date_override(locale_hints: dict, bundle) -> None:
+    """Let an explicit operator choice outrank every inferred date format.
+
+    The profiler's per-column vote and the country profile are both inferences;
+    this is the school telling us what its file actually is. A wrong date reading
+    is the worst class of import defect because it is SILENT -- every row lands,
+    every date is wrong, and nothing is quarantined to hint at it -- so the one
+    party who can actually know must be able to say.
+    """
+    chosen = operator_date_format(bundle)
+    if chosen:
+        locale_hints["date_format"] = chosen
+
+
+def artifact_outcome_status(result) -> str:
+    """The verdict for ONE artifact: SUCCESS, PARTIAL or REJECTED.
+
+    REJECTED means rows were rejected and nothing landed at all. It is
+    deliberately NOT "FAILED": the run it writes still reads Failed to the
+    operator (see ``_RUN_STATUS_MAP``), which is what stops a 0-created import
+    reporting "succeeded" -- but the bundle-level rule treats FAILED as
+    "everything must be rolled back", and one unimportable file must never
+    discard the files that imported cleanly beside it.
+
+    ``quarantined`` is required for REJECTED: an artifact that legitimately had
+    nothing to do -- a header-only file, or a re-run where every record was
+    already current -- reports 0/0/0 and stays SUCCESS.
+    """
+    if result.quarantined and not (result.created or result.updated):
+        return "REJECTED"
+    return "PARTIAL" if result.quarantined else "SUCCESS"
+
+
+def bundle_apply_failed(*, outcomes, totals) -> bool:
+    """Whether the BUNDLE failed — which also decides whether rows get rolled back.
+
+    Two ways to fail, and rejecting some rows is not one of them:
+
+      * a hard failure in any artifact (a lander crash, a DB error), which the
+        rollback contract exists for; or
+      * nothing landed ANYWHERE while rows were rejected -- the 431-of-431 case,
+        where reporting success is what cost a live tenant hours.
+
+    A bundle that imported four files and could not import a fifth keeps the
+    four. It stays repairable regardless: ``repair._has_unresolved_issues``
+    already returns True for any bundle carrying quarantined rows, so
+    repairability never depended on the FAILED status.
+    """
+    if any(getattr(o, "status", "") == "FAILED" for o in outcomes):
+        return True
+    landed = int(totals.get("created") or 0) + int(totals.get("updated") or 0)
+    rejected = int(totals.get("quarantined") or 0)
+    return bool(outcomes) and landed == 0 and rejected > 0
+
+
+def _run_status_map():
+    from apps.automation.models import MigrationRun
+
+    return {
+        "SUCCESS": MigrationRun.Status.SUCCESS,
+        "PARTIAL": MigrationRun.Status.PARTIAL,
+        "FAILED": MigrationRun.Status.FAILED,
+        # No REJECTED member on the model, and none is needed: a file that
+        # imported nothing should read "Failed" to whoever is looking.
+        "REJECTED": MigrationRun.Status.FAILED,
+    }
+
+
+class _LazyRunStatusMap(dict):
+    """Populated on first use — the model import must stay lazy in this module."""
+
+    def _ensure(self):
+        if not self:
+            self.update(_run_status_map())
+
+    def get(self, key, default=None):
+        self._ensure()
+        return dict.get(self, key, default)
+
+    def __getitem__(self, key):
+        self._ensure()
+        return dict.__getitem__(self, key)
+
+
+_RUN_STATUS_MAP = _LazyRunStatusMap()
+
+
 # --- Dependency-DAG wave partitioning ------------------------------------
 
 # Ordered waves; jobs within a wave run in parallel, waves run serially so
@@ -795,14 +903,12 @@ def _apply_artifact(
     # `quarantined` is required for this branch: an artifact that legitimately had
     # nothing to do (header-only file, every row already current) reports 0/0/0 and
     # must stay SUCCESS rather than being called a failure.
-    if result.quarantined and not (result.created or result.updated):
-        outcome.status = "FAILED"
+    outcome.status = artifact_outcome_status(result)
+    if outcome.status == "REJECTED":
         outcome.error = (
             f"Every row was rejected ({result.quarantined} of {result.quarantined}); "
             "nothing was imported from this file."
         )
-    else:
-        outcome.status = "PARTIAL" if result.quarantined else "SUCCESS"
     _finalize_audit_run(run, outcome, status=outcome.status)
     _quarantine_errors(
         bundle=bundle, run=run, artifact=job.artifact, domain=job.domain, result=result
@@ -838,6 +944,11 @@ def _iter_canonical_rows(job: _ArtifactJob) -> Iterator[dict[str, Any]]:
     # transformers (grading_scale_to_canonical, name_split_locale,
     # attendance_code_rewrite) can resolve scale / dialect / name-order
     # without needing per-mapping options.
+    # An explicit operator choice outranks BOTH the profiler's vote and the
+    # country default below -- it is the only one of the three that is knowledge
+    # rather than inference.
+    apply_operator_date_override(locale_hints, artifact.bundle)
+
     school = getattr(artifact.bundle, "school", None)
     country = str(getattr(school, "country_code", "") or "").upper()
     if country:
@@ -1471,13 +1582,8 @@ def _finalize_audit_run(run, outcome: ArtifactApplyOutcome, *, status: str) -> N
     except ImportError:
         return
 
-    status_map = {
-        "SUCCESS": MigrationRun.Status.SUCCESS,
-        "PARTIAL": MigrationRun.Status.PARTIAL,
-        "FAILED": MigrationRun.Status.FAILED,
-    }
     run.mark_completed(
-        status=status_map.get(status, MigrationRun.Status.FAILED),
+        status=_RUN_STATUS_MAP.get(status, MigrationRun.Status.FAILED),
         created_count=outcome.result.created,
         updated_count=outcome.result.updated,
         error_count=outcome.result.quarantined,

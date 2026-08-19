@@ -22,6 +22,8 @@ from __future__ import annotations
 from typing import Any, Iterator
 
 from ._helpers import (
+    unresolved_student_reason,
+    student_name_from_row,
     coerce_date,
     conflict_resolution_for,
     detect_conflict,
@@ -58,7 +60,7 @@ class EnrollmentLander(Lander):
 
         for row in canonical_rows:
             external_id = (row.get("student_external_id") or "").strip()
-            if not external_id:
+            if not (external_id or student_name_from_row(row)):
                 result.quarantined += 1
                 result.errors.append(f"enrollment: missing student_external_id in {row!r}")
                 continue
@@ -67,11 +69,19 @@ class EnrollmentLander(Lander):
                 student_model=StudentProfile,
                 lookup_field=student_lookup,
                 external_id=external_id,
+                row=row,
             )
             if student is None:
                 result.quarantined += 1
                 result.errors.append(
-                    f"enrollment: no student with {student_lookup}={external_id!r}"
+                    unresolved_student_reason(
+                        domain="enrollment",
+                        ctx=ctx,
+                        student_model=StudentProfile,
+                        row=row,
+                        external_id=external_id,
+                        lookup_field=student_lookup,
+                    )
                 )
                 continue
 

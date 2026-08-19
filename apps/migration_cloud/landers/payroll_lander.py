@@ -46,16 +46,30 @@ class PayrollLander(Lander):
         result = LanderResult()
         for row in canonical_rows:
             external_id = (row.get("staff_external_id") or row.get("external_id") or "").strip()
-            if not external_id:
+            # Schools that kept payroll by name rather than by employee number
+            # had every row rejected. The name is a perfectly good identity for
+            # a record keyed on (person, pay period) -- it just was not accepted.
+            staff_name = " ".join(
+                str(
+                    row.get("staff_name")
+                    or row.get("employee_name")
+                    or row.get("full_name")
+                    or row.get("name")
+                    or ""
+                ).split()
+            )
+            if not external_id and not staff_name:
                 result.quarantined += 1
                 result.errors.append(
-                    f"payroll: missing staff_external_id in {row!r}"
+                    "payroll: this row does not say which staff member it "
+                    "belongs to. Add an employee id column or a staff name column."
                 )
                 continue
+            identity = external_id or staff_name
             reference = (row.get("reference") or "").strip()
             pay_period = (row.get("pay_period") or "").strip()
             # Stable per-record identity → re-runs update the same custom record.
-            record_key = (reference or f"{external_id}:{pay_period or 'na'}")[:64]
+            record_key = (reference or f"{identity}:{pay_period or 'na'}")[:64]
             record = {k: str(v) for k, v in row.items() if v not in (None, "")}
 
             if ctx.dry_run:

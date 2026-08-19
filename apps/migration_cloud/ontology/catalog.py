@@ -423,6 +423,46 @@ CANONICAL_ONTOLOGY: dict[str, dict[str, dict]] = {
             sensitivity="pii",
             required_for=["apply_guardian_link"],
         ),
+        "student_name": _field(
+            description=(
+                "The student's name as written on THIS row. Schools whose source "
+                "system never issued student ids -- the same schools whose roster "
+                "carries no id column -- identify pupils by name in every history "
+                "file they own, so an id-only reference makes their attendance, "
+                "grades and fees impossible to import at all. Resolved against the "
+                "already-imported roster at apply time; an explicit id always wins, "
+                "and an ambiguous name is reported rather than guessed."
+            ),
+            value_type="string",
+            value_examples=["ANDONGMAD FAVOUR ANGU", "Ada Lovelace", "Lovelace, Ada"],
+            synonyms={
+                "en": [
+                    "student_name", "child_name", "ward_name", "learner_name",
+                    "pupil_name", "student_full_name",
+                ],
+                "fr": ["nom_de_l_eleve", "nom_eleve", "nom_de_l_enfant"],
+                "es": ["nombre_del_alumno"],
+                "pt": ["nome_do_aluno"],
+                "ar": ["الاسم", "اسم_الطالب"],
+            },
+            sensitivity="pii",
+        ),
+        "student_date_of_birth": _field(
+            description=(
+                "The student's date of birth, used ONLY to tell two same-named "
+                "pupils apart when the row identifies the student by name. Never "
+                "written back onto the student record from a history file."
+            ),
+            value_type="date",
+            value_examples=["2012-01-25"],
+            synonyms={
+                "en": ["student_dob", "child_dob", "student_date_of_birth"],
+                "fr": ["date_de_naissance_eleve"],
+                "es": ["fecha_de_nacimiento_del_alumno"],
+                "pt": ["data_de_nascimento_do_aluno"],
+            },
+            sensitivity="pii",
+        ),
         "relationship": _field(
             description="Father / mother / step-parent / legal-guardian / sibling / other.",
             value_type="enum",
@@ -622,6 +662,49 @@ CANONICAL_ONTOLOGY: dict[str, dict[str, dict]] = {
             value_examples=["PS-10293"],
             synonyms={"en": ["student_id", "sis_id"]},
             required_for=["apply_enrollment"],
+        ),
+        "student_name": _field(
+            description=(
+                "The student's name as written on THIS row. Schools whose source "
+                "system never issued student ids -- the same schools whose roster "
+                "carries no id column -- identify pupils by name in every history "
+                "file they own, so an id-only reference makes their attendance, "
+                "grades and fees impossible to import at all. Resolved against the "
+                "already-imported roster at apply time; an explicit id always wins, "
+                "and an ambiguous name is reported rather than guessed."
+            ),
+            value_type="string",
+            value_examples=["ANDONGMAD FAVOUR ANGU", "Ada Lovelace", "Lovelace, Ada"],
+            synonyms={
+                "en": [
+                    "student_name", "name", "names", "full_name", "fullname",
+                    "learner_name", "pupil_name", "child_name", "student",
+                ],
+                "fr": [
+                    "nom", "noms", "nom_complet", "nom_de_l_eleve",
+                    "nom_et_prenoms", "eleve",
+                ],
+                "es": ["nombre", "nombre_completo", "alumno"],
+                "pt": ["nome", "nome_completo", "aluno"],
+                "ar": ["الاسم", "اسم_الطالب"],
+            },
+            sensitivity="pii",
+        ),
+        "student_date_of_birth": _field(
+            description=(
+                "The student's date of birth, used ONLY to tell two same-named "
+                "pupils apart when the row identifies the student by name. Never "
+                "written back onto the student record from a history file."
+            ),
+            value_type="date",
+            value_examples=["2012-01-25"],
+            synonyms={
+                "en": ["dob", "date_of_birth", "birth_date", "student_dob"],
+                "fr": ["date_de_naissance"],
+                "es": ["fecha_de_nacimiento"],
+                "pt": ["data_de_nascimento"],
+            },
+            sensitivity="pii",
         ),
         "academic_year": _field(
             description="Academic year (e.g. '2025-2026' or '2026').",
@@ -835,6 +918,49 @@ CANONICAL_ONTOLOGY: dict[str, dict[str, dict]] = {
             synonyms={"en": ["student_id", "sis_id"]},
             required_for=["apply_attendance"],
         ),
+        "student_name": _field(
+            description=(
+                "The student's name as written on THIS row. Schools whose source "
+                "system never issued student ids -- the same schools whose roster "
+                "carries no id column -- identify pupils by name in every history "
+                "file they own, so an id-only reference makes their attendance, "
+                "grades and fees impossible to import at all. Resolved against the "
+                "already-imported roster at apply time; an explicit id always wins, "
+                "and an ambiguous name is reported rather than guessed."
+            ),
+            value_type="string",
+            value_examples=["ANDONGMAD FAVOUR ANGU", "Ada Lovelace", "Lovelace, Ada"],
+            synonyms={
+                "en": [
+                    "student_name", "name", "names", "full_name", "fullname",
+                    "learner_name", "pupil_name", "child_name", "student",
+                ],
+                "fr": [
+                    "nom", "noms", "nom_complet", "nom_de_l_eleve",
+                    "nom_et_prenoms", "eleve",
+                ],
+                "es": ["nombre", "nombre_completo", "alumno"],
+                "pt": ["nome", "nome_completo", "aluno"],
+                "ar": ["الاسم", "اسم_الطالب"],
+            },
+            sensitivity="pii",
+        ),
+        "student_date_of_birth": _field(
+            description=(
+                "The student's date of birth, used ONLY to tell two same-named "
+                "pupils apart when the row identifies the student by name. Never "
+                "written back onto the student record from a history file."
+            ),
+            value_type="date",
+            value_examples=["2012-01-25"],
+            synonyms={
+                "en": ["dob", "date_of_birth", "birth_date", "student_dob"],
+                "fr": ["date_de_naissance"],
+                "es": ["fecha_de_nacimiento"],
+                "pt": ["data_de_nascimento"],
+            },
+            sensitivity="pii",
+        ),
         "date": _field(
             description="Date of attendance.",
             value_type="date",
@@ -871,6 +997,49 @@ CANONICAL_ONTOLOGY: dict[str, dict[str, dict]] = {
             value_examples=["PS-10293"],
             synonyms={"en": ["student_id"]},
             required_for=["apply_grade"],
+        ),
+        "student_name": _field(
+            description=(
+                "The student's name as written on THIS row. Schools whose source "
+                "system never issued student ids -- the same schools whose roster "
+                "carries no id column -- identify pupils by name in every history "
+                "file they own, so an id-only reference makes their attendance, "
+                "grades and fees impossible to import at all. Resolved against the "
+                "already-imported roster at apply time; an explicit id always wins, "
+                "and an ambiguous name is reported rather than guessed."
+            ),
+            value_type="string",
+            value_examples=["ANDONGMAD FAVOUR ANGU", "Ada Lovelace", "Lovelace, Ada"],
+            synonyms={
+                "en": [
+                    "student_name", "name", "names", "full_name", "fullname",
+                    "learner_name", "pupil_name", "child_name", "student",
+                ],
+                "fr": [
+                    "nom", "noms", "nom_complet", "nom_de_l_eleve",
+                    "nom_et_prenoms", "eleve",
+                ],
+                "es": ["nombre", "nombre_completo", "alumno"],
+                "pt": ["nome", "nome_completo", "aluno"],
+                "ar": ["الاسم", "اسم_الطالب"],
+            },
+            sensitivity="pii",
+        ),
+        "student_date_of_birth": _field(
+            description=(
+                "The student's date of birth, used ONLY to tell two same-named "
+                "pupils apart when the row identifies the student by name. Never "
+                "written back onto the student record from a history file."
+            ),
+            value_type="date",
+            value_examples=["2012-01-25"],
+            synonyms={
+                "en": ["dob", "date_of_birth", "birth_date", "student_dob"],
+                "fr": ["date_de_naissance"],
+                "es": ["fecha_de_nacimiento"],
+                "pt": ["data_de_nascimento"],
+            },
+            sensitivity="pii",
         ),
         "section_external_id": _field(
             description="Section / class the grade is for.",
@@ -991,6 +1160,49 @@ CANONICAL_ONTOLOGY: dict[str, dict[str, dict]] = {
             synonyms={"en": ["student_id"]},
             required_for=["apply_transcript"],
         ),
+        "student_name": _field(
+            description=(
+                "The student's name as written on THIS row. Schools whose source "
+                "system never issued student ids -- the same schools whose roster "
+                "carries no id column -- identify pupils by name in every history "
+                "file they own, so an id-only reference makes their attendance, "
+                "grades and fees impossible to import at all. Resolved against the "
+                "already-imported roster at apply time; an explicit id always wins, "
+                "and an ambiguous name is reported rather than guessed."
+            ),
+            value_type="string",
+            value_examples=["ANDONGMAD FAVOUR ANGU", "Ada Lovelace", "Lovelace, Ada"],
+            synonyms={
+                "en": [
+                    "student_name", "name", "names", "full_name", "fullname",
+                    "learner_name", "pupil_name", "child_name", "student",
+                ],
+                "fr": [
+                    "nom", "noms", "nom_complet", "nom_de_l_eleve",
+                    "nom_et_prenoms", "eleve",
+                ],
+                "es": ["nombre", "nombre_completo", "alumno"],
+                "pt": ["nome", "nome_completo", "aluno"],
+                "ar": ["الاسم", "اسم_الطالب"],
+            },
+            sensitivity="pii",
+        ),
+        "student_date_of_birth": _field(
+            description=(
+                "The student's date of birth, used ONLY to tell two same-named "
+                "pupils apart when the row identifies the student by name. Never "
+                "written back onto the student record from a history file."
+            ),
+            value_type="date",
+            value_examples=["2012-01-25"],
+            synonyms={
+                "en": ["dob", "date_of_birth", "birth_date", "student_dob"],
+                "fr": ["date_de_naissance"],
+                "es": ["fecha_de_nacimiento"],
+                "pt": ["data_de_nascimento"],
+            },
+            sensitivity="pii",
+        ),
         "academic_year": _field(
             description="Year the transcript line covers.",
             value_type="string",
@@ -1030,6 +1242,49 @@ CANONICAL_ONTOLOGY: dict[str, dict[str, dict]] = {
             value_examples=["PS-10293"],
             synonyms={"en": ["student_id"]},
         ),
+        "student_name": _field(
+            description=(
+                "The student's name as written on THIS row. Schools whose source "
+                "system never issued student ids -- the same schools whose roster "
+                "carries no id column -- identify pupils by name in every history "
+                "file they own, so an id-only reference makes their attendance, "
+                "grades and fees impossible to import at all. Resolved against the "
+                "already-imported roster at apply time; an explicit id always wins, "
+                "and an ambiguous name is reported rather than guessed."
+            ),
+            value_type="string",
+            value_examples=["ANDONGMAD FAVOUR ANGU", "Ada Lovelace", "Lovelace, Ada"],
+            synonyms={
+                "en": [
+                    "student_name", "name", "names", "full_name", "fullname",
+                    "learner_name", "pupil_name", "child_name", "student",
+                ],
+                "fr": [
+                    "nom", "noms", "nom_complet", "nom_de_l_eleve",
+                    "nom_et_prenoms", "eleve",
+                ],
+                "es": ["nombre", "nombre_completo", "alumno"],
+                "pt": ["nome", "nome_completo", "aluno"],
+                "ar": ["الاسم", "اسم_الطالب"],
+            },
+            sensitivity="pii",
+        ),
+        "student_date_of_birth": _field(
+            description=(
+                "The student's date of birth, used ONLY to tell two same-named "
+                "pupils apart when the row identifies the student by name. Never "
+                "written back onto the student record from a history file."
+            ),
+            value_type="date",
+            value_examples=["2012-01-25"],
+            synonyms={
+                "en": ["dob", "date_of_birth", "birth_date", "student_dob"],
+                "fr": ["date_de_naissance"],
+                "es": ["fecha_de_nacimiento"],
+                "pt": ["data_de_nascimento"],
+            },
+            sensitivity="pii",
+        ),
         "date": _field(
             description="Incident date.",
             value_type="date",
@@ -1063,6 +1318,49 @@ CANONICAL_ONTOLOGY: dict[str, dict[str, dict]] = {
             value_type="string",
             value_examples=["PS-10293"],
             synonyms={"en": ["student_id"]},
+        ),
+        "student_name": _field(
+            description=(
+                "The student's name as written on THIS row. Schools whose source "
+                "system never issued student ids -- the same schools whose roster "
+                "carries no id column -- identify pupils by name in every history "
+                "file they own, so an id-only reference makes their attendance, "
+                "grades and fees impossible to import at all. Resolved against the "
+                "already-imported roster at apply time; an explicit id always wins, "
+                "and an ambiguous name is reported rather than guessed."
+            ),
+            value_type="string",
+            value_examples=["ANDONGMAD FAVOUR ANGU", "Ada Lovelace", "Lovelace, Ada"],
+            synonyms={
+                "en": [
+                    "student_name", "name", "names", "full_name", "fullname",
+                    "learner_name", "pupil_name", "child_name", "student",
+                ],
+                "fr": [
+                    "nom", "noms", "nom_complet", "nom_de_l_eleve",
+                    "nom_et_prenoms", "eleve",
+                ],
+                "es": ["nombre", "nombre_completo", "alumno"],
+                "pt": ["nome", "nome_completo", "aluno"],
+                "ar": ["الاسم", "اسم_الطالب"],
+            },
+            sensitivity="pii",
+        ),
+        "student_date_of_birth": _field(
+            description=(
+                "The student's date of birth, used ONLY to tell two same-named "
+                "pupils apart when the row identifies the student by name. Never "
+                "written back onto the student record from a history file."
+            ),
+            value_type="date",
+            value_examples=["2012-01-25"],
+            synonyms={
+                "en": ["dob", "date_of_birth", "birth_date", "student_dob"],
+                "fr": ["date_de_naissance"],
+                "es": ["fecha_de_nacimiento"],
+                "pt": ["data_de_nascimento"],
+            },
+            sensitivity="pii",
         ),
         "blood_type": _field(
             description="Blood type / group.",
@@ -1115,6 +1413,49 @@ CANONICAL_ONTOLOGY: dict[str, dict[str, dict]] = {
             value_examples=["PS-10293"],
             synonyms={"en": ["student_id"]},
         ),
+        "student_name": _field(
+            description=(
+                "The student's name as written on THIS row. Schools whose source "
+                "system never issued student ids -- the same schools whose roster "
+                "carries no id column -- identify pupils by name in every history "
+                "file they own, so an id-only reference makes their attendance, "
+                "grades and fees impossible to import at all. Resolved against the "
+                "already-imported roster at apply time; an explicit id always wins, "
+                "and an ambiguous name is reported rather than guessed."
+            ),
+            value_type="string",
+            value_examples=["ANDONGMAD FAVOUR ANGU", "Ada Lovelace", "Lovelace, Ada"],
+            synonyms={
+                "en": [
+                    "student_name", "name", "names", "full_name", "fullname",
+                    "learner_name", "pupil_name", "child_name", "student",
+                ],
+                "fr": [
+                    "nom", "noms", "nom_complet", "nom_de_l_eleve",
+                    "nom_et_prenoms", "eleve",
+                ],
+                "es": ["nombre", "nombre_completo", "alumno"],
+                "pt": ["nome", "nome_completo", "aluno"],
+                "ar": ["الاسم", "اسم_الطالب"],
+            },
+            sensitivity="pii",
+        ),
+        "student_date_of_birth": _field(
+            description=(
+                "The student's date of birth, used ONLY to tell two same-named "
+                "pupils apart when the row identifies the student by name. Never "
+                "written back onto the student record from a history file."
+            ),
+            value_type="date",
+            value_examples=["2012-01-25"],
+            synonyms={
+                "en": ["dob", "date_of_birth", "birth_date", "student_dob"],
+                "fr": ["date_de_naissance"],
+                "es": ["fecha_de_nacimiento"],
+                "pt": ["data_de_nascimento"],
+            },
+            sensitivity="pii",
+        ),
         "invoice_number": _field(
             description="Source invoice / bill identifier.",
             value_type="string",
@@ -1160,6 +1501,25 @@ CANONICAL_ONTOLOGY: dict[str, dict[str, dict]] = {
     },
     # ------------------------------------------------------------------- payroll
     "payroll": {
+        "staff_name": _field(
+            description=(
+                "The staff member's name as written on this row, for schools "
+                "whose payroll was kept by name rather than by an employee "
+                "number. Used as the record's identity when no id is present."
+            ),
+            value_type="string",
+            value_examples=["NGONO Marie", "Ada Lovelace"],
+            synonyms={
+                "en": [
+                    "staff_name", "employee_name", "teacher_name", "name",
+                    "full_name", "employee",
+                ],
+                "fr": ["nom", "nom_complet", "nom_de_l_employe", "employe"],
+                "es": ["nombre", "nombre_completo", "empleado"],
+                "pt": ["nome", "nome_completo"],
+            },
+            sensitivity="pii",
+        ),
         "staff_external_id": _field(
             description="Staff member.",
             value_type="string",
@@ -1307,6 +1667,49 @@ CANONICAL_ONTOLOGY: dict[str, dict[str, dict]] = {
             value_examples=["PS-10293"],
             synonyms={"en": ["student_id"]},
         ),
+        "student_name": _field(
+            description=(
+                "The student's name as written on THIS row. Schools whose source "
+                "system never issued student ids -- the same schools whose roster "
+                "carries no id column -- identify pupils by name in every history "
+                "file they own, so an id-only reference makes their attendance, "
+                "grades and fees impossible to import at all. Resolved against the "
+                "already-imported roster at apply time; an explicit id always wins, "
+                "and an ambiguous name is reported rather than guessed."
+            ),
+            value_type="string",
+            value_examples=["ANDONGMAD FAVOUR ANGU", "Ada Lovelace", "Lovelace, Ada"],
+            synonyms={
+                "en": [
+                    "student_name", "name", "names", "full_name", "fullname",
+                    "learner_name", "pupil_name", "child_name", "student",
+                ],
+                "fr": [
+                    "nom", "noms", "nom_complet", "nom_de_l_eleve",
+                    "nom_et_prenoms", "eleve",
+                ],
+                "es": ["nombre", "nombre_completo", "alumno"],
+                "pt": ["nome", "nome_completo", "aluno"],
+                "ar": ["الاسم", "اسم_الطالب"],
+            },
+            sensitivity="pii",
+        ),
+        "student_date_of_birth": _field(
+            description=(
+                "The student's date of birth, used ONLY to tell two same-named "
+                "pupils apart when the row identifies the student by name. Never "
+                "written back onto the student record from a history file."
+            ),
+            value_type="date",
+            value_examples=["2012-01-25"],
+            synonyms={
+                "en": ["dob", "date_of_birth", "birth_date", "student_dob"],
+                "fr": ["date_de_naissance"],
+                "es": ["fecha_de_nacimiento"],
+                "pt": ["data_de_nascimento"],
+            },
+            sensitivity="pii",
+        ),
         "bus_label": _field(
             description="Bus identifier / plate.",
             value_type="string",
@@ -1334,6 +1737,49 @@ CANONICAL_ONTOLOGY: dict[str, dict[str, dict]] = {
             value_examples=["PS-10293"],
             synonyms={"en": ["student_id"]},
         ),
+        "student_name": _field(
+            description=(
+                "The student's name as written on THIS row. Schools whose source "
+                "system never issued student ids -- the same schools whose roster "
+                "carries no id column -- identify pupils by name in every history "
+                "file they own, so an id-only reference makes their attendance, "
+                "grades and fees impossible to import at all. Resolved against the "
+                "already-imported roster at apply time; an explicit id always wins, "
+                "and an ambiguous name is reported rather than guessed."
+            ),
+            value_type="string",
+            value_examples=["ANDONGMAD FAVOUR ANGU", "Ada Lovelace", "Lovelace, Ada"],
+            synonyms={
+                "en": [
+                    "student_name", "name", "names", "full_name", "fullname",
+                    "learner_name", "pupil_name", "child_name", "student",
+                ],
+                "fr": [
+                    "nom", "noms", "nom_complet", "nom_de_l_eleve",
+                    "nom_et_prenoms", "eleve",
+                ],
+                "es": ["nombre", "nombre_completo", "alumno"],
+                "pt": ["nome", "nome_completo", "aluno"],
+                "ar": ["الاسم", "اسم_الطالب"],
+            },
+            sensitivity="pii",
+        ),
+        "student_date_of_birth": _field(
+            description=(
+                "The student's date of birth, used ONLY to tell two same-named "
+                "pupils apart when the row identifies the student by name. Never "
+                "written back onto the student record from a history file."
+            ),
+            value_type="date",
+            value_examples=["2012-01-25"],
+            synonyms={
+                "en": ["dob", "date_of_birth", "birth_date", "student_dob"],
+                "fr": ["date_de_naissance"],
+                "es": ["fecha_de_nacimiento"],
+                "pt": ["data_de_nascimento"],
+            },
+            sensitivity="pii",
+        ),
     },
     # ----------------------------------------------------------------- cafeteria
     "cafeteria": {
@@ -1342,6 +1788,49 @@ CANONICAL_ONTOLOGY: dict[str, dict[str, dict]] = {
             value_type="string",
             value_examples=["PS-10293"],
             synonyms={"en": ["student_id"]},
+        ),
+        "student_name": _field(
+            description=(
+                "The student's name as written on THIS row. Schools whose source "
+                "system never issued student ids -- the same schools whose roster "
+                "carries no id column -- identify pupils by name in every history "
+                "file they own, so an id-only reference makes their attendance, "
+                "grades and fees impossible to import at all. Resolved against the "
+                "already-imported roster at apply time; an explicit id always wins, "
+                "and an ambiguous name is reported rather than guessed."
+            ),
+            value_type="string",
+            value_examples=["ANDONGMAD FAVOUR ANGU", "Ada Lovelace", "Lovelace, Ada"],
+            synonyms={
+                "en": [
+                    "student_name", "name", "names", "full_name", "fullname",
+                    "learner_name", "pupil_name", "child_name", "student",
+                ],
+                "fr": [
+                    "nom", "noms", "nom_complet", "nom_de_l_eleve",
+                    "nom_et_prenoms", "eleve",
+                ],
+                "es": ["nombre", "nombre_completo", "alumno"],
+                "pt": ["nome", "nome_completo", "aluno"],
+                "ar": ["الاسم", "اسم_الطالب"],
+            },
+            sensitivity="pii",
+        ),
+        "student_date_of_birth": _field(
+            description=(
+                "The student's date of birth, used ONLY to tell two same-named "
+                "pupils apart when the row identifies the student by name. Never "
+                "written back onto the student record from a history file."
+            ),
+            value_type="date",
+            value_examples=["2012-01-25"],
+            synonyms={
+                "en": ["dob", "date_of_birth", "birth_date", "student_dob"],
+                "fr": ["date_de_naissance"],
+                "es": ["fecha_de_nacimiento"],
+                "pt": ["data_de_nascimento"],
+            },
+            sensitivity="pii",
         ),
         "meal_plan": _field(
             description="Meal plan label.",
@@ -1397,6 +1886,49 @@ CANONICAL_ONTOLOGY: dict[str, dict[str, dict]] = {
             value_type="string",
             value_examples=["PS-10293"],
             synonyms={"en": ["student_id"]},
+            sensitivity="pii",
+        ),
+        "student_name": _field(
+            description=(
+                "The student's name as written on THIS row. Schools whose source "
+                "system never issued student ids -- the same schools whose roster "
+                "carries no id column -- identify pupils by name in every history "
+                "file they own, so an id-only reference makes their attendance, "
+                "grades and fees impossible to import at all. Resolved against the "
+                "already-imported roster at apply time; an explicit id always wins, "
+                "and an ambiguous name is reported rather than guessed."
+            ),
+            value_type="string",
+            value_examples=["ANDONGMAD FAVOUR ANGU", "Ada Lovelace", "Lovelace, Ada"],
+            synonyms={
+                "en": [
+                    "student_name", "name", "names", "full_name", "fullname",
+                    "learner_name", "pupil_name", "child_name", "student",
+                ],
+                "fr": [
+                    "nom", "noms", "nom_complet", "nom_de_l_eleve",
+                    "nom_et_prenoms", "eleve",
+                ],
+                "es": ["nombre", "nombre_completo", "alumno"],
+                "pt": ["nome", "nome_completo", "aluno"],
+                "ar": ["الاسم", "اسم_الطالب"],
+            },
+            sensitivity="pii",
+        ),
+        "student_date_of_birth": _field(
+            description=(
+                "The student's date of birth, used ONLY to tell two same-named "
+                "pupils apart when the row identifies the student by name. Never "
+                "written back onto the student record from a history file."
+            ),
+            value_type="date",
+            value_examples=["2012-01-25"],
+            synonyms={
+                "en": ["dob", "date_of_birth", "birth_date", "student_dob"],
+                "fr": ["date_de_naissance"],
+                "es": ["fecha_de_nacimiento"],
+                "pt": ["data_de_nascimento"],
+            },
             sensitivity="pii",
         ),
         "granted": _field(

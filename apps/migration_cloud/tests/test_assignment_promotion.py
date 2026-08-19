@@ -287,7 +287,11 @@ class TransportAssignmentLanderTests(_TenantFixtureMixin, TestCase):
         )
         self.assertEqual(result.created, 0)
         self.assertEqual(result.quarantined, 1)
-        self.assertTrue(any("no student" in e for e in result.errors))
+        # The reason must name the unmatched id and the next step, rather than an
+        # internal column — the row is still quarantined either way.
+        joined = " ".join(result.errors)
+        self.assertIn("PS-DOES-NOT-EXIST", joined)
+        self.assertIn("student list", joined)
 
 
 class HostelAssignmentLanderTests(_TenantFixtureMixin, TestCase):

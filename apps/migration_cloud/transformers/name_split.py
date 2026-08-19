@@ -185,6 +185,18 @@ def _pick(
         else:
             component = "full"
 
+    # A single token cannot be split, and it IS the component being asked for.
+    # Without this, an already-split column is DESTROYED: the best-formed roster a
+    # school can send is first_name,last_name with one word in each, and the
+    # mapper attaches this splitter to every name-component field, so
+    # last_name="Hopper" split to ("Hopper", "", "") and the "last" component
+    # came back empty -- failing the lander's first/last requirement and
+    # quarantining the entire roster. A transformer may reshape a value; it must
+    # never erase one. ``middle`` is exempt because a one-token name genuinely
+    # has no middle name.
+    if len(full.split()) == 1 and component in ("first", "last"):
+        return full
+
     if component == "first":
         return first
     if component == "middle":

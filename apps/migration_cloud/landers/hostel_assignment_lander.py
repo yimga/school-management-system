@@ -36,6 +36,8 @@ import logging
 from typing import Any, Iterator
 
 from ._helpers import (
+    unresolved_student_reason,
+    student_name_from_row,
     coerce_date,
     filter_to_model_fields,
     model_field_names,
@@ -95,7 +97,7 @@ class HostelAssignmentLander(Lander):
             checkin_date = coerce_date(
                 row.get("checkin_date") or row.get("effective_from")
             )
-            if not external_id or not room_name or checkin_date is None:
+            if not (external_id or student_name_from_row(row)) or not room_name or checkin_date is None:
                 result.quarantined += 1
                 result.errors.append(
                     f"hostel_assignments[row={row_index}]: "
@@ -108,12 +110,20 @@ class HostelAssignmentLander(Lander):
                 student_model=StudentProfile,
                 lookup_field=student_lookup,
                 external_id=external_id,
+                row=row,
             )
             if student is None:
                 result.quarantined += 1
                 result.errors.append(
-                    f"hostel_assignments[row={row_index}]: "
-                    f"no student with {student_lookup}=<redacted>"
+                    f"[row={row_index}] "
+                    + unresolved_student_reason(
+                        domain="hostel_assignments",
+                        ctx=ctx,
+                        student_model=StudentProfile,
+                        row=row,
+                        external_id=external_id,
+                        lookup_field=student_lookup,
+                    )
                 )
                 logger.info(
                     "hostel_assignments quarantine row=%d reason=student_unresolved",
