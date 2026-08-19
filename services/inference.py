@@ -456,6 +456,49 @@ def _request_timeout_seconds() -> int:
         return 20
 
 
+def _ollama_generation_options() -> dict:
+    """Extra Ollama payload keys: model residency and a generation-length bound.
+
+    The payload used to be `{model, prompt, stream}` only, which cost us twice on
+    CPU-only boxes:
+
+      * no ``keep_alive`` -> Ollama unloads the model after its 5-minute default,
+        so the next request pays a cold load (measured 17s for an 8B model) on top
+        of generation, and _request_timeout_seconds() fires before it answers.
+      * no ``num_predict`` -> output length is unbounded, so latency is unbounded.
+        Measured on an 8B CPU box: 93.5s for 392 tokens (~4.2 tok/s), far past the
+        60s ceiling that _request_timeout_seconds() allows.
+
+    ``keep_alive`` defaults ON because it is a pure win. ``num_predict`` is OPT-IN:
+    capping it trades answer completeness for bounded latency, which is right for a
+    slow CPU box and wrong for a GPU deployment, so it stays unset unless configured.
+    """
+    opts: dict = {}
+
+    keep_alive = (
+        getattr(settings, "AI_OLLAMA_KEEP_ALIVE", None)
+        or os.environ.get("AI_OLLAMA_KEEP_ALIVE")
+        or "30m"
+    )
+    keep_alive = str(keep_alive).strip()
+    if keep_alive and keep_alive.lower() not in {"off", "none", "disabled"}:
+        opts["keep_alive"] = keep_alive
+
+    raw_predict = (
+        getattr(settings, "AI_OLLAMA_NUM_PREDICT", None)
+        or os.environ.get("AI_OLLAMA_NUM_PREDICT")
+        or ""
+    )
+    try:
+        num_predict = int(str(raw_predict).strip())
+    except (TypeError, ValueError):
+        num_predict = 0
+    if num_predict > 0:
+        opts["options"] = {"num_predict": num_predict}
+
+    return opts
+
+
 def _cache_get(key: str) -> str | None:
     try:
         from django.core.cache import cache
@@ -549,6 +592,7 @@ class OllamaInferenceService:
             "model": default_model,
             "prompt": prompt_for_model,
             "stream": False,
+            **_ollama_generation_options(),
         }
 
         def do_request(url: str, model: str) -> str | None:
@@ -618,6 +662,7 @@ class OllamaInferenceService:
                 "model": model,
                 "prompt": prompt_for_model,
                 "stream": True,
+                **_ollama_generation_options(),
             }
             req = urllib.request.Request(
                 endpoint,
