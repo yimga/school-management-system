@@ -19,6 +19,35 @@ logger = logging.getLogger(__name__)
 
 RMC_CONVERSION = "rmc_conversion"
 
+#: Roles the conversion lock must never wall, because no first-value action is
+#: reachable to them in the first place. ``record_conversion_first_action`` is
+#: only ever called from attendance, marks, report and payment paths — every one
+#: a staff or guardian surface. A learner therefore cannot clear this lock no
+#: matter what they do, so locking them buys the funnel nothing and instead
+#: leaves them on /activation/first-action/ with a portal where the only
+#: reachable link is /help/ (measured: 1 of 7 advertised actions).
+#:
+#: This is the same reasoning that opened "/portal/parent/" in
+#: ``conversion_lock_paths`` — "the lock exists to make the SCHOOL record its
+#: first value, and a <user> cannot clear it" — applied to the one role that
+#: precedent missed. Parents stay locked here because they CAN clear it: a
+#: payment counts, and they pay from an allowlisted path.
+CONVERSION_LOCK_EXEMPT_ROLES: frozenset[str] = frozenset({"STUDENT"})
+
+
+def user_is_conversion_lock_exempt(user) -> bool:
+    """Is ``user`` in a role the lock cannot meaningfully apply to?
+
+    Staff and superusers are never exempt regardless of the ``role`` column —
+    an elevated account carries operator surfaces the funnel is aimed at.
+    """
+    if user is None:
+        return False
+    if getattr(user, "is_staff", False) or getattr(user, "is_superuser", False):
+        return False
+    role = str(getattr(user, "role", "") or "").upper()
+    return role in CONVERSION_LOCK_EXEMPT_ROLES
+
 
 def _conv(school) -> dict[str, Any]:
     st: dict[str, Any] = dict(getattr(school, "settings", None) or {})
@@ -38,10 +67,17 @@ def school_conversion_is_locked(school, *, user) -> bool:
     Modes:
     - CONVERSION_LOCK_ALL_SCHOOLS: every tenant without first_action is locked.
     - else: only schools with activation gate pending (post-provision path).
+
+    Roles in ``CONVERSION_LOCK_EXEMPT_ROLES`` are never locked — see that
+    constant for why. Both production callers (the middleware and the tenant
+    experience strip's ``_conversion_lock_active``) route through here, so the
+    exemption keeps enforcement and the advertised CTAs in agreement.
     """
     if not getattr(settings, "CONVERSION_LOCK_STRICT", False):
         return False
     if not school or not user or not getattr(user, "is_authenticated", False):
+        return False
+    if user_is_conversion_lock_exempt(user):
         return False
     if school_first_action_completed(school):
         return False

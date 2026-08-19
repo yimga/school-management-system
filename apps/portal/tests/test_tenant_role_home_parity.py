@@ -31,7 +31,20 @@ class TenantRoleHomeHelperTests(TestCase):
 
         self.assertTrue(role_home_show_legacy(_Req()))
 
-    def test_v3_role_home_shell_context(self):
+    @patch(
+        "apps.portal.tenant_role_home.get_effective_config",
+        # The shell resolves the academic-year badge through the config
+        # resolver, which reads the RuntimeDefaults singleton from the DB.
+        # get_effective_site_settings is fail-soft against a real outage
+        # (it catches DatabaseError), but SimpleTestCase raises
+        # DatabaseOperationForbidden, which subclasses AssertionError
+        # precisely so that guard cannot absorb it. Stub the seam so the
+        # shell flags below stay the subject of this test.
+        side_effect=lambda key="", **kw: (
+            "2025/2026" if key == "active_academic_year_name" else None
+        ),
+    )
+    def test_v3_role_home_shell_context(self, _cfg):
         class _Match:
             url_name = "backend_dashboard"
 
@@ -56,6 +69,8 @@ class TenantRoleHomeHelperTests(TestCase):
         self.assertTrue(ctx["page_provides_own_h1"])
         self.assertIn("tp_brand_surface_pill", ctx)
         self.assertIn("tp_brand_tagline", ctx)
+        # tp_header_brand.html renders this as the year badge.
+        self.assertEqual(ctx["tp_brand_year_label"], "2025/2026")
         _Req.GET = {"simple": "legacy"}
         self.assertFalse(is_tp_v3_role_home_request(_Req()))
         ctx_legacy = tp_v3_role_home_shell_context(_Req())
@@ -69,7 +84,14 @@ class TenantRoleHomeHelperTests(TestCase):
         self.assertNotIn("http", line.lower())
         self.assertNotIn("@", line)
 
-    def test_build_tp_hero_context_keys(self):
+    @patch(
+        # Same DB seam as above: the hero reads portal_quick_actions through
+        # the config resolver. An empty list keeps filter_portal_items honest
+        # while the assertions below stay about the context shape.
+        "apps.portal.tenant_role_home.get_effective_config",
+        return_value=[],
+    )
+    def test_build_tp_hero_context_keys(self, _cfg):
         class _Req:
             GET = {}
 
