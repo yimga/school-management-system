@@ -6,6 +6,7 @@ from datetime import date
 
 from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
+from django.http import Http404
 from django.test import RequestFactory, TestCase, override_settings
 
 from apps.academics.models import AcademicYear
@@ -60,8 +61,8 @@ class CloneYearGuidedPathTests(TestCase):
             end_date=date(2026, 6, 30),
             is_active=True,
         )
-        response = self._call("post", source_year="1", target_year="2")
-        self.assertEqual(response.status_code, 404)
+        with self.assertRaises(Http404):
+            self._call("post", source_year="1", target_year="2")
 
     def test_two_years_renders_clone_form(self):
         AcademicYear.objects.create(
