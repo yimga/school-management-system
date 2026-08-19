@@ -1,5 +1,47 @@
 # RunMyCampus autonomous execution log
 
+## Slice — sync_engine + EdgeOnboardingRun RLS (batch 1806 - 2026-08-19)
+
+**A. Scope:** Close `scan_rls_force_coverage` NEW gaps on four public-schema sync_engine models (school FK, created after schools/0083) and the 1804 `EdgeOnboardingRun` table.
+
+**B. Shipped:** ENABLE+FORCE + default-deny pair on sync_engine; one-pass ENABLE+policy+FORCE on `lifecycle_edgeonboardingrun`; table-coverage scanner credits scalar `TABLE=` and nested `_TABLES`.
+
+**C. Proof:** sqlite-memory **9/9 OK**; scanner unit **1/1 OK**; force-coverage **0**; table-coverage **PASS**; policy-coverage **OK**.
+
+**D. Honest:** RLS is a no-op under deployed `USE_DJANGO_TENANTS=1`; Postgres FORCE live-proof is the `tenants_rls` job.
+
+**E. Files:** `sync_engine/migrations/0005_enable_rls_postgresql.py`, `0006_rls_policy_default_deny.py`, `lifecycle/migrations/0007_enable_rls_edgeonboardingrun.py`, `test_rls_coverage.py`, `scan_rls_table_coverage.py`, SOT/log.
+
+**F. Next:** Apply these migrations on single-schema Postgres (`USE_DJANGO_TENANTS=0`) so ENABLE/FORCE actually run.
+
+## Slice — Platform Nav Engine (batch 1805 - 2026-08-19)
+
+**A. Scope:** One nav catalog for tenant staff ops + operator hubs + Cmd+K; fill missing destinations; include HOD; kill the portal HTML role-tree fork; fix the lying `/admin/` ≡ `/super/` verifier. No operator chrome restyle.
+
+**B. Shipped:** `nav_engine.py` catalog; tenant `TENANT_STAFF_SPINE` into `portal_sidebar_items`; operator extras merged into existing CP groups; Cmd+K federation; HOD in staff primary + baseline admin floor; compact empty-state instead of hardcoded `{% else %}` tree.
+
+**C. Proof:** Django SimpleTestCase **19/19 OK**; `NAV_ENGINE_COVERAGE_PASS`; `MANAGER_COMPLETE_SIDEBAR_PASS`; template-render-safety **0**. Re-audit: baseline hats = `STAFF_PRIMARY_ROLES`; no duplicate student Help; operator group labels gated.
+
+**D. Honest:** Hostel has no named URL. Tenant 360 and sync repair need a school id so they are not spine rows. CRUD `super:` routes stay off the rail. Empty-sidebar Help/KB HTML is last-resort only.
+
+**E. Files:** `nav_engine.py`, `portal_sidebar_items.py`, `control_plane_nav.py`, `command_bar_registry.py`, `sidebar_organizer.py`, `portal_sidebar.html`, `verify_nav_engine_coverage.py`, `verify_manager_nav_convergence.py`, tests, SOT/log.
+
+**F. Next:** From a school row on the fleet wall, open Tenant 360; HOD should see Teachers/Classrooms; parents/teachers should not.
+
+## Slice — Edge Onboarding Runbook 10× (batch 1804 - 2026-08-19)
+
+**A. Scope:** Unify the empty-shell UI engine with the markdown data-path SOP so operators cannot skip Migration Cloud / pk-preserving seed / conversion lock, and cannot treat Sync now as a bulk loader.
+
+**B. Shipped:** 15-step `EDGE_ONBOARDING_STEPS` with `runs_on` + evidence; `edge_onboarding_verify`; MC skip ≥12 chars; operator console (paginated picker, progress rail, copy, skip POST, `EdgeOnboardingRun`); manager GET never writes `EdgeSyncRun`; SOP points at the engine.
+
+**C. Proof:** sqlite-memory **47/47 OK** (engine + operator UI 26/26, command integrity + bringup + branding 21/21); dead-hrefs 0; page-fold 42/42; inline-style 0; undefined-css 0; inline-handlers 0; SW `sms-v4.06.60-edge-onboarding-runbook-2026-08-19`.
+
+**D. Honest:** Export artifacts live on operator disk; manager live-sync rows are not box proof; no two-way finance; no MFA year unlock.
+
+**E. Files:** `edge_onboarding.py`, `edge_onboarding_verify.py`, `edge_bringup.py`, `views_edge_onboarding.py`, `models_edge_onboarding.py`, `0006_edgeonboardingrun.py`, `super_edge_onboarding_runbook.html`, `rmc-csp-handlers.js`, tests, `EDGE_CLOUD_SYNC_OPERATOR_RUNBOOK.md`, SW + baseline, SOT/log.
+
+**F. Next:** Run the box-side `edge_onboarding_verify --include-gate` in the field after the data seed; keep finance cloud-authoritative.
+
 ## Slice — Migration leftovers: staff-role backfill + residual columns + mail-fail CSV (batch 1803 - 2026-08-18)
 
 **A. Scope:** Close the three 1801 leftovers: already-imported staff stuck on TEACHER, leftover connector columns sitting in notes, and activation that stalls when SMTP is down.

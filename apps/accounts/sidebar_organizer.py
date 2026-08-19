@@ -32,8 +32,17 @@ def organize_sidebar_items(items: List[Dict], user: User) -> Dict[str, List[Dict
 
     # Category mappings
     quick_action_ids = {"backend", "workflow", "portal"}
-    people_ids = {"students", "teachers", "parents", "guardians"}
-    academic_ids = {"classrooms", "subjects", "years", "terms", "certification"}
+    people_ids = {"students", "teachers", "parents", "guardians", "classrooms"}
+    academic_ids = {
+        "classrooms",
+        "subjects",
+        "years",
+        "terms",
+        "certification",
+        "academic_years",
+        "timetable_generate",
+        "ops_timetabling",
+    }
     reports_ids = {
         "reports",
         "report_builder",
@@ -42,7 +51,18 @@ def organize_sidebar_items(items: List[Dict], user: User) -> Dict[str, List[Dict
         "analytics",
     }
     communication_ids = {"messages", "notifications", "groups", "announcements"}
-    settings_ids = {"preferences", "admin", "kb", "documents", "signatures"}
+    settings_ids = {
+        "preferences",
+        "admin",
+        "kb",
+        "documents",
+        "signatures",
+        "ops_hub",
+        "ops_inventory",
+        "ops_transport",
+        "sync_center",
+        "migration_wizard",
+    }
 
     for item in items:
         item_id = item.get("id", "").lower()

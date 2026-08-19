@@ -1,23 +1,14 @@
-"""Sidebar SOT — collapses 5 reinvented sidebar systems into one registry.
+"""Sidebar SOT for **Studio focus** rails only.
 
-The codebase ships 5 sidebar implementations (portal_sidebar / control_plane /
-manager_platform_admin / studio_focus / Django Unfold). Each was built
-independently and diverged on:
+Portal and operator live membership is NOT this module. Those rails are:
 
-- which items appear (a role might see "Reports" in one shell, "Analytics" in
-  another for the same destination)
-- item ordering (Dashboard sometimes top, sometimes after Search)
-- icon vocabulary (some use bi-bootstrap-icons, some emoji, some lucide)
-- active-state markers (data-active vs aria-current vs CSS class)
-- mobile collapse behavior (offcanvas vs slide-in vs hidden)
+- tenant: ``apps.siteconfig.portal_sidebar_items``
+- operator: ``apps.schools.control_plane_nav`` + ``manager_nav_convergence``
+- new spine rows: ``apps.platform_runtime.nav_engine``
 
-This module is the SOT for nav items. Each shell template renders from here so
-adding an item is one change, not four. Migration is gradual — shells can opt in
-via the `render_for_shell()` helper.
-
-Items are role-scoped using the platform's role registry (`apps.platform_runtime
-.role_registry`) so a parent never sees an admin item even if the shell template
-forgets to gate it.
+``for_shell(SHELL_STUDIO_FOCUS)`` is the only production consumer. Portal seed
+rows below (grades/attendance/finance) use url_names that do not exist; they
+are not rendered on the live tenant rail.
 """
 from __future__ import annotations
 

@@ -78,20 +78,18 @@ class TenantWorkflowPortalTests(SimpleTestCase):
         sidebar = (ROOT / "templates/partials/portal_sidebar.html").read_text(
             encoding="utf-8"
         )
+        builder = (ROOT / "apps/siteconfig/portal_sidebar_items.py").read_text(
+            encoding="utf-8"
+        )
         command_registry = (
             ROOT / "apps/siteconfig/command_bar_registry.py"
         ).read_text(encoding="utf-8")
 
-        # The sidebar branches on `nav_role` (the EFFECTIVE portal role), not on
-        # `request.user.role`. That distinction is load-bearing: a staff member
-        # wearing a parent/teacher hat has request.user.role == ADMIN while
-        # nav_role is the hat they picked, so keying the nav off the column
-        # would show them the wrong sidebar for the role they are acting as.
-        self.assertIn("nav_role == 'STUDENT'", sidebar)
+        # Role hats live in the Python projector (nav_role / get_nav_portal_role).
+        # The template no longer forks a second hardcoded role tree.
+        self.assertIn("get_nav_portal_role", builder)
+        self.assertIn("User.Role.STUDENT", builder)
         self.assertIn("nav_role != 'STUDENT'", sidebar)
-        # The one legitimate raw-column read is the SUPERADMIN check on the
-        # manager host (line ~302), where no tenant hat applies. Every
-        # hat-affected role must keep going through nav_role.
         for hat_role in ("STUDENT", "TEACHER", "PARENT", "ADMIN"):
             for quote in ("'", '"'):
                 self.assertNotIn(
@@ -100,8 +98,8 @@ class TenantWorkflowPortalTests(SimpleTestCase):
                     f"sidebar branches on the raw role column for {hat_role}; "
                     "that ignores the portal role hat the user actually picked",
                 )
-        self.assertIn("portal:student_workflow", sidebar)
-        self.assertNotIn("portal:student_learning_home", sidebar)
+        self.assertIn("portal:student_workflow", builder)
+        self.assertNotIn("portal:student_learning_home", builder)
         for token in (
             "portal:teacher_workflow",
             "portal:parent_workflow",

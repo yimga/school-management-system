@@ -211,6 +211,31 @@ def all_registered() -> list[CommandAction]:
                 destructive=destructive,
             )
         )
+    try:
+        from apps.platform_runtime.nav_engine import command_bar_extra_defs
+    except ImportError:
+        extra = ()
+    else:
+        extra = command_bar_extra_defs()
+    seen_urls = {row.url for row in out}
+    seen_labels = {row.label for row in out}
+    for entry in extra:
+        kind, label, icon, viewname, scope, role_required = entry[:6]
+        url = _safe_reverse(viewname)
+        if not url or url in seen_urls or label in seen_labels:
+            continue
+        seen_urls.add(url)
+        seen_labels.add(label)
+        out.append(
+            CommandAction(
+                kind=kind,
+                label=label,
+                icon=icon,
+                url=url,
+                scope=scope,
+                role_required=role_required,
+            )
+        )
     return out
 
 

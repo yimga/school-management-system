@@ -22,18 +22,15 @@ class PremiumDashboardLabelTests(SimpleTestCase):
                 self.assertIn(label, body)
 
     def test_fallback_navigation_uses_premium_labels(self):
-        sidebar = (ROOT / "templates" / "partials" / "portal_sidebar.html").read_text(
+        builder = (ROOT / "apps" / "siteconfig" / "portal_sidebar_items.py").read_text(
             encoding="utf-8"
         )
         for label in (
-            "Command Center",
             "Family Home",
             "Money Center",
-            "Insights Center",
             "Admin Home",
-            "Automation Studio",
+            "Workflow Center",
         ):
             with self.subTest(label=label):
-                self.assertIn(label, sidebar)
-        # Teacher workspace is composed via terminology tags, not a fixed string.
-        self.assertIn("Workspace", sidebar)
+                self.assertIn(label, builder)
+        self.assertIn("Workspace", builder)
