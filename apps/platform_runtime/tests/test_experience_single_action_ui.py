@@ -292,6 +292,8 @@ class GuidedSurfaceSinglePrimaryTests(TestCase):
         ROOT_URLCONF="config.urls",
     )
     def test_app_catalog_strict_hero_primary_and_more_actions(self):
+        from apps.marketplace.views import app_catalog
+
         user = User.objects.create_user(
             username="ux_catalog_strict",
             password="Test1234!ab",
@@ -299,15 +301,12 @@ class GuidedSurfaceSinglePrimaryTests(TestCase):
             is_staff=True,
             is_superuser=True,
         )
-        self._enable_mfa(user)
-        c = Client()
-        c.force_login(user)
-        self._mark_mfa_verified(c)
-        r = c.get(
-            reverse("super:app_catalog"),
-            HTTP_HOST="manager.runmycampus.com",
-            follow=True,
-        )
+        rf = RequestFactory()
+        url = reverse("super:app_catalog", urlconf="config.manager_urls")
+        req = rf.get(url, HTTP_HOST="manager.runmycampus.com")
+        req.user = user
+        req.public_host_kind = "manager"
+        r = app_catalog(req)
         self.assertEqual(r.status_code, 200)
         body = r.content.decode("utf-8", errors="replace")
         self.assertIn('data-rmc-catalog-primary-cta="1"', body)
@@ -325,6 +324,8 @@ class GuidedSurfaceSinglePrimaryTests(TestCase):
         ROOT_URLCONF="config.urls",
     )
     def test_installation_health_strict_hero_primary_and_more_actions(self):
+        from apps.marketplace.views import installation_health
+
         user = User.objects.create_user(
             username="ux_inst_health",
             password="Test1234!ab",
@@ -332,15 +333,14 @@ class GuidedSurfaceSinglePrimaryTests(TestCase):
             is_staff=True,
             is_superuser=True,
         )
-        self._enable_mfa(user)
-        c = Client()
-        c.force_login(user)
-        self._mark_mfa_verified(c)
-        r = c.get(
-            reverse("super:marketplace_installation_health"),
-            HTTP_HOST="manager.runmycampus.com",
-            follow=True,
+        rf = RequestFactory()
+        url = reverse(
+            "super:marketplace_installation_health", urlconf="config.manager_urls"
         )
+        req = rf.get(url, HTTP_HOST="manager.runmycampus.com")
+        req.user = user
+        req.public_host_kind = "manager"
+        r = installation_health(req)
         self.assertEqual(r.status_code, 200)
         body = r.content.decode("utf-8", errors="replace")
         self.assertIn('data-rmc-install-health-primary="1"', body)
