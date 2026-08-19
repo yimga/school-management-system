@@ -47,7 +47,27 @@ def main() -> int:
         forbid(text, "data-rmc-cp-nav-more", source, findings)
 
     require(tenant_nav, "data-rmc-quiet-header", tenant_nav_path, findings)
+    require(portal, "data-rmc-header-control-cap=\"6\"", portal_path, findings)
+    require(portal, "_activity_ticker_inline.html", portal_path, findings)
+    require(admin, "data-rmc-header-control-cap=\"6\"", admin_path, findings)
     require(operator_nav, "data-rmc-quiet-header", operator_nav_path, findings)
+    forbid(portal, "data-rmc-header-control-cap=\"7\"", portal_path, findings)
+    forbid(admin, "data-rmc-header-control-cap=\"7\"", admin_path, findings)
+    forbid(portal, 'class="portal-chathead"', portal_path, findings)
+    forbid(portal, "tp-primary-nav-bandrow", portal_path, findings)
+    unified_header = read("templates/partials/control_plane_unified_header.html")
+    forbid(
+        unified_header,
+        "cp-header__row--inline-chrome",
+        "templates/partials/control_plane_unified_header.html",
+        findings,
+    )
+    forbid(
+        unified_header,
+        "cp-header__row--live",
+        "templates/partials/control_plane_unified_header.html",
+        findings,
+    )
     require(operator_nav, "forloop.counter <= 2", operator_nav_path, findings)
     require(tenant_util, 'trans "Utilities"', tenant_util_path, findings)
     require(operator_util, 'trans "Utilities"', operator_util_path, findings)
@@ -67,7 +87,11 @@ def main() -> int:
     require(portal, 'include "components/rmc_tenant_header_utilities.html"', portal_path, findings)
     require(admin, 'include "components/rmc_tenant_header_utilities.html"', admin_path, findings)
     require(admin, "admin-nav-bridge__home-btn", admin_path, findings)
-    require(admin, "portal_home_url", admin_path, findings)
+    # v2 (2026-08-18): tenant /admin/ Home now comes from the SHARED quiet-header
+    # primary nav (Home + one role-primary), the same partial the tenant/portal shells
+    # use — this is the "same shell on every surface" contract. It supersedes the old
+    # bespoke `portal_home_url` home button, which was tenant-admin-only.
+    require(admin, 'include "partials/tenant_primary_nav.html"', admin_path, findings)
     require(tenant_tools, '"page": ["help"', tenant_tools_path, findings)
     require(operator_tools, '"page": ["help"', operator_tools_path, findings)
     require(portal, "if not request.user.is_authenticated", portal_path, findings)

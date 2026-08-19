@@ -45,9 +45,18 @@ def main() -> int:
     if css and "--rmc-cp-unified-header-h" not in css:
         findings.append("rmc-cp-consolidated-operator-shell.css: missing header height token")
 
+    # Shells that inherit the consolidated CSS from a parent template via
+    # {{ block.super }} rather than declaring the <link> themselves. Requiring a
+    # literal second <link> here would double-load the stylesheet and trip the
+    # "no duplicate CSS URL" chrome checks. admin/base.html and control_plane_base.html
+    # both {% extends %} a parent (base_site / control_plane_skeleton) that carries it.
+    css_inherited_shells = {
+        "templates/admin/base.html",
+        "templates/control_plane_base.html",
+    }
     for rel in SHELLS:
         text = (REPO / rel).read_text(encoding="utf-8")
-        if "rmc-cp-consolidated-operator-shell.css" not in text and rel != "templates/admin/base.html":
+        if "rmc-cp-consolidated-operator-shell.css" not in text and rel not in css_inherited_shells:
             findings.append(f"{rel}: missing consolidated shell CSS")
         if rel == "templates/control_plane_base.html":
             if "control_plane_unified_header.html" not in text:

@@ -1,10 +1,10 @@
 {% load i18n static %}
 {% load terminology_tags %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="container py-3 cp-evidence-page ui-premium-surface" style="max-width: var(--rmc-report-measure);" data-rmc-scroll-policy="paginate" data-page-archetype="operator-report" data-shell-surface="academic-years-setup-evidence" data-cp-evidence-surface="academic-years-setup" data-rmc-operator-evidence-surface="1" data-admin-replacement-category="academic_setup_evidence" data-rmc-report-bulk-evidence="1084" data-rmc-component-audit="1">
-  <h1 class="h3 mb-2">{% trans "Academic years (read-only)" %}</h1>
+<div class="container py-3 cp-evidence-page ui-premium-surface" style="max-width: var(--rmc-report-measure);" data-rmc-scroll-policy="paginate" data-page-archetype="operator-report" data-shell-surface="academic-years-setup-evidence" data-cp-evidence-surface="academic-years-setup" data-rmc-operator-evidence-surface="1" data-admin-replacement-category="academic_setup_evidence" data-rmc-report-bulk-evidence="1084" data-rmc-component-audit="1" data-rmc-lifecycle-control="1">
+  <h1 class="h3 mb-2">{% trans "Academic years lifecycle" %}</h1>
   <p class="text-muted small mb-2">
-    {% trans "Tenant academic years with start/end dates and lock flags. Changes belong in academic setup workflows or Django admin; this page is evidence only." %}
+    {% trans "Soft Close blocks teacher grade entry while registrars can still correct. Hard Close seals the year. Active pins the tenant default year — locking does not make a year the default." %}
   </p>
   {% if school %}
   <div class="d-flex flex-wrap align-items-stretch gap-2 mb-3" data-rmc-operator-evidence-summary="1" aria-label="{% trans 'Summary' %}">
@@ -17,7 +17,11 @@
       <div class="fw-semibold text-body fs-6">{{ year_active }}</div>
     </div>
     <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
-      <div class="text-uppercase" style="font-size:var(--type-size-micro); letter-spacing:0.04em;">{% trans "Locked" %}</div>
+      <div class="text-uppercase" style="font-size:var(--type-size-micro); letter-spacing:0.04em;">{% trans "Soft closed" %}</div>
+      <div class="fw-semibold text-body fs-6">{{ year_soft_closed|default:0 }}</div>
+    </div>
+    <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
+      <div class="text-uppercase" style="font-size:var(--type-size-micro); letter-spacing:0.04em;">{% trans "Hard closed" %}</div>
       <div class="fw-semibold text-body fs-6">{{ year_locked }}</div>
     </div>
   </div>
@@ -37,6 +41,9 @@
     {% if term_publish_status_evidence_url %}
     <a class="btn btn-sm btn-outline-primary" href="{{ term_publish_status_evidence_url }}">{% trans "Term publish status" %}</a>
     {% endif %}
+    {% if rollover_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ rollover_url }}">{% trans "Year-end rollover" %}</a>
+    {% endif %}
   </div>
   <div class="table-responsive">
     <table class="table table-sm align-middle table-family table-sticky-head rmc-data-table" aria-label="{% trans 'Academic years' %}" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
@@ -46,7 +53,8 @@
           <th scope="col">{% trans "Start" %}</th>
           <th scope="col">{% trans "End" %}</th>
           <th scope="col">{% trans "Active" %}</th>
-          <th scope="col">{% trans "Locked" %}</th>
+          <th scope="col">{% trans "Close tier" %}</th>
+          <th scope="col">{% trans "Lifecycle" %}</th>
         </tr>
       </thead>
       <tbody>
@@ -56,17 +64,60 @@
           <td class="text-nowrap">{{ y.start_date|default:"—" }}</td>
           <td class="text-nowrap">{{ y.end_date|default:"—" }}</td>
           <td>{% if y.is_active %}<span class="rmc-badge rmc-badge--success">{% trans "Yes" %}</span>{% else %}<span class="rmc-badge">{% trans "No" %}</span>{% endif %}</td>
-          <td>{% if y.is_locked %}<span class="rmc-badge rmc-badge--warning">{% trans "Yes" %}</span>{% else %}<span class="rmc-badge">{% trans "No" %}</span>{% endif %}</td>
+          <td>
+            {% if y.is_locked %}
+            <span class="rmc-badge rmc-badge--danger">{% trans "Hard closed" %}</span>
+            {% elif y.is_soft_closed %}
+            <span class="rmc-badge rmc-badge--warning">{% trans "Soft closed" %}</span>
+            {% else %}
+            <span class="rmc-badge rmc-badge--success">{% trans "Open" %}</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if lifecycle_control and school and not y.is_locked %}
+            <div class="d-flex flex-wrap gap-1">
+              {% if not y.is_active %}
+              <form method="post" class="d-inline">
+                {% csrf_token %}
+                <input type="hidden" name="lifecycle_action" value="activate">
+                <input type="hidden" name="year_id" value="{{ y.pk }}">
+                <button type="submit" class="btn btn-sm btn-outline-primary">{% trans "Set active" %}</button>
+              </form>
+              {% endif %}
+              {% if not y.is_soft_closed %}
+              <form method="post" class="d-inline">
+                {% csrf_token %}
+                <input type="hidden" name="lifecycle_action" value="soft_close">
+                <input type="hidden" name="year_id" value="{{ y.pk }}">
+                <input type="hidden" name="reason" value="lifecycle soft close from configuration engine">
+                <button type="submit" class="btn btn-sm btn-outline-warning">{% trans "Soft close" %}</button>
+              </form>
+              {% else %}
+              <form method="post" class="d-inline">
+                {% csrf_token %}
+                <input type="hidden" name="lifecycle_action" value="soft_reopen">
+                <input type="hidden" name="year_id" value="{{ y.pk }}">
+                <input type="hidden" name="reason" value="lifecycle soft reopen from configuration engine">
+                <button type="submit" class="btn btn-sm btn-outline-success">{% trans "Reopen soft" %}</button>
+              </form>
+              {% endif %}
+            </div>
+            {% elif y.is_locked %}
+            <span class="small text-muted">{% trans "Hard closed — unlock in Admin" %}</span>
+            {% else %}
+            <span class="text-muted">—</span>
+            {% endif %}
+          </td>
         </tr>
         {% empty %}
-        <tr><td colspan="5" class="text-muted">{% trans "No academic years for this school yet." %}</td></tr>
+        <tr><td colspan="6" class="text-muted">{% trans "No academic years for this school yet." %}</td></tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
   {% if user.is_superuser and admin_academic_year_changelist_url %}
   <div class="cp-evidence-advanced border-top pt-3 mt-3" data-rmc-evidence-advanced="1">
-    <a class="btn btn-sm btn-outline-secondary" href="{{ admin_academic_year_changelist_url }}">{% trans "Advanced/Admin: academic year rows" %}</a>
+    <a class="btn btn-sm btn-outline-secondary" href="{{ admin_academic_year_changelist_url }}">{% trans "Advanced/Admin: hard-close unlock &amp; rows" %}</a>
   </div>
   {% endif %}
 </div>

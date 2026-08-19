@@ -120,7 +120,7 @@ def tp_v3_role_home_shell_context(request: HttpRequest) -> dict[str, object]:
         ) or get_effective_config(key="current_academic_year_label", request=request)
         if year_name:
             year_label = str(year_name)
-    except (AttributeError, ImportError, TypeError, ValueError):
+    except Exception:
         year_label = ""
     chrome_flags: dict[str, object] = {}
     policy: dict[str, object] = {}

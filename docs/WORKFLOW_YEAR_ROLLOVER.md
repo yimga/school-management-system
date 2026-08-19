@@ -49,7 +49,7 @@ This document describes how the system supports **rolling over** from one academ
 - On **Apply rollover** (synchronous path, `rollover_year`):
   - For each student, a **new `Enrollment`** is opened in the target year (`apps.people.enrollment_services.open_enrollment`) and the prior year's enrollment is **closed** with a recorded outcome — nothing is overwritten, so the leaving year survives as history. The legacy `StudentProfile.academic_year`/`classroom` fields are kept in step as a synchronised **projection** of the active enrollment (`apps.people.models.Enrollment.sync_student_row`), so the existing readers of `student.classroom` keep working.
   - A student sent to "— Graduate (Alumni) —" has their enrollment closed as `GRADUATED` (`graduate_student`) and is marked `status=ALUMNI`, `is_active=False`.
-  - Optionally, **Lock source year** sets `AcademicYear.is_locked = True` on the source year **after** the move so further rollover from that year is refused. The lock is enforced at the **application layer** (view/service checks), not by a database constraint.
+  - Optionally, **Lock source year** hard-closes the source (`AcademicYear.is_locked`, with `locked_at`/`locked_by`/`lock_reason`) **and activates the target year** as the tenant default (`is_active`). Locking does **not** make the source year the default. Unlock is break-glass via `unlock_academic_year` (reason required) or Django admin unlock action — not a silent checkbox. Enforcement is application-layer (`assert_period_writable` / enrollment + grades), not a DB constraint.
 
 **Code**
 
@@ -68,14 +68,16 @@ This document describes how the system supports **rolling over** from one academ
 
 | Piece | Role |
 |-------|------|
-| **AcademicYear** | `is_locked`: prevents rollover from and edits to a closed year. |
+| **AcademicYear** | `is_active` = tenant default. `is_soft_closed` = Soft Close (teachers blocked on grades; registrars may correct). `is_locked` = Hard Close. Independent flags. |
 | **PromotionRule** | Per-year (and optional per-classroom) promotion/demotion thresholds (e.g. 10/20). Used to compute PROMOTED / REPEAT / DEMOTED. |
 | **reports.services** | `get_promotion_status()`, `_annual_average_for_student()`, `terms_for_student()`: drive the rollover table and suggestions. |
 | **academics.services_year_setup** | `clone_academic_year()`: builds the next year’s terms, classrooms, subject assignments, and promotion rules so the target year is ready for rollover. |
-| **apps.accounts.views_rollover.rollover_year** | Renders the student list with promotion status and next-class dropdowns; on POST, opens a new `Enrollment` per student and closes the prior one (`open_enrollment`), keeps `StudentProfile.academic_year`/`classroom` as a synced projection, and optionally sets `source_year.is_locked`. |
+| **academics.year_close** | Soft/Hard Close entrypoints: `soft_close_academic_year`, `reopen_soft_closed_year`, `lock_source_year`, `unlock_academic_year`, `activate_academic_year`, `assert_period_writable`. |
+| **siteconfig academic years lifecycle** | `/siteconfig/reports/academic-years-setup/` — Set active / Soft close / Reopen soft (settings.manage). |
+| **apps.accounts.views_rollover.rollover_year** | Renders the student list with promotion status and next-class dropdowns; on POST, opens a new `Enrollment` per student and closes the prior one (`open_enrollment`), keeps `StudentProfile.academic_year`/`classroom` as a synced projection, and optionally hard-closes source + activates target. |
 | **Workflow Center** | Links to “Clone previous year” and “Year-end rollover” so operators can run both from one place. |
 
-So: **clone** prepares the next year’s structure; **rollover** moves students into that year and assigns their next class, with promotion status and optional year lock.
+So: **clone** prepares the next year’s structure; **rollover** moves students into that year and assigns their next class, with promotion status and optional year hard-close + target activation. Soft Close is the grading review window before Hard Close.
 
 ---
 

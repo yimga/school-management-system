@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, TestCase
 
 from apps.portal.tenant_experience_command import build_tenant_experience_command
 from apps.portal.context_processors import tenant_experience_command
@@ -24,7 +24,7 @@ from apps.accounts.models import User
 ROOT = Path(__file__).resolve().parents[3]
 
 
-class TenantRoleHomeHelperTests(SimpleTestCase):
+class TenantRoleHomeHelperTests(TestCase):
     def test_legacy_flag_simple_query(self):
         class _Req:
             GET = {"simple": "1"}
@@ -211,9 +211,8 @@ class TenantRoleHomeTemplateTests(SimpleTestCase):
         self.assertIn("rmc-tenant-v3-100x-role-home.css", text)
         self.assertIn("not tp_v3_tenant_shell", text)
         self.assertIn("rmc-tp-pulse-sheet.js", text)
-        idx = text.find("portal-chathead")
-        self.assertGreater(idx, 0)
-        self.assertIn("not tp_v3_tenant_shell", text[max(0, idx - 400) : idx])
+        self.assertNotIn('class="portal-chathead"', text)
+        self.assertIn('include "components/rmc_tenant_header_utilities.html"', text)
 
     def test_tenant_shell_covers_inner_portal_route(self):
         class _Match:
@@ -297,7 +296,7 @@ class TenantRoleHomeTemplateTests(SimpleTestCase):
     def test_mission_strip_lives_in_dashboard_surface_not_header(self):
         portal = (ROOT / "templates/portal_base.html").read_text(encoding="utf-8")
         self.assertIn('data-rmc-tp-mission-surface="1"', portal)
-        header_chunk = portal.split("tp-primary-nav-bandrow", 1)[1].split(
+        header_chunk = portal.split('id="portalHeader"', 1)[1].split(
             "portal_shell_header_ticker_tenant", 1
         )[0]
         self.assertNotIn("tp_mission_strip.html", header_chunk)

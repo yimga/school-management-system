@@ -66,6 +66,11 @@ urlpatterns = [
         views_tenant_upload.TenantMigrationRollbackView.as_view(),
         name="bundle-rollback",
     ),
+    path(
+        "bundle/<int:bundle_id>/activate-people/",
+        views_tenant_upload.TenantMigrationPeopleActivateView.as_view(),
+        name="bundle-activate-people",
+    ),
     # ── Self-serve provisioning (G-4) — tenant-admin gated. Lets a partner /
     # district mint a Migration Cloud scoped API token FORCE-BOUND to their own
     # school and register/deactivate outbound webhook subscriptions, without an

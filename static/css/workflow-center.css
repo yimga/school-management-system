@@ -141,8 +141,26 @@
   flex-shrink: 0;
 }
 
-.workflow-progress-train__bead[data-status="done"] {
+.workflow-progress-train__bead[data-status="next"] {
+  background: var(--brand-primary);
+}
+.workflow-progress-train__bead[data-status="ready"] {
   background: var(--brand-accent, var(--brand-primary));
+  opacity: 0.55;
+}
+.workflow-progress-train__bead[data-status="blocked"] {
+  background: var(--admin-muted);
+}
+.workflow-card[data-status="next"] {
+  border-color: var(--brand-primary);
+}
+.workflow-card[data-status="blocked"] {
+  opacity: 0.78;
+}
+.workflow-blocked-reason {
+  font-size: var(--type-size-caption);
+  color: var(--admin-muted);
+  margin: 0.35rem 0 0.55rem;
 }
 
 .workflow-progress-train__rule {

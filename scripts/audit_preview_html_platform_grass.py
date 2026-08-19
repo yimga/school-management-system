@@ -33,7 +33,7 @@ PRODUCTION_WIRING: dict[str, list[tuple[str, tuple[str, ...]]]] = {
     "manager-v8-200x": [
         ("docs/generated/preview_app_shell_manager_v8_200x.html", ("cp-activity-ticker", "cp-primary-nav", "rmc-app-shell__copilot")),
         ("templates/control_plane_base.html", ("control_plane_unified_header.html", "shell_chrome_security_posture", "rmc_security_posture_layout_styles")),
-        ("templates/partials/control_plane_unified_header.html", ("cp_shell_header_ticker", "cp-header__row--live", "cp-header__row--inline-chrome")),
+        ("templates/partials/control_plane_unified_header.html", ("cp_shell_header_ticker", "cp-header--consolidated")),
         ("templates/partials/control_plane_primary_nav.html", ("cp-primary-nav", "rmc_security_posture_nav_button")),
         ("templates/partials/cockpit/_activity_ticker.html", ("cp-live-strip", "cp-activity-ticker")),
         ("templates/partials/rmc_security_posture_layout_styles.html", ("rmc-canvas-chrome-compact.css",)),
@@ -64,13 +64,13 @@ PREVIEW_BODY_ORDER: dict[str, tuple[str, str]] = {
 PRODUCTION_ORDER: dict[str, tuple[str, str, str]] = {
     "manager-v8-200x": (
         "templates/partials/control_plane_unified_header.html",
-        "cp-header__row--live",
-        "cp-header__row--inline-chrome",
+        "cp-header__row--utility",
+        "cp_shell_header_ticker",
     ),
     "admin-v1-200x": (
         "templates/partials/control_plane_unified_header.html",
-        "cp-header__row--live",
-        "cp-header__row--inline-chrome",
+        "cp-header__row--utility",
+        "cp_shell_header_ticker",
     ),
 }
 

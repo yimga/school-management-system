@@ -100,7 +100,7 @@ class AcademicYearsSetupEvidenceTests(TestCase):
         path = reverse("siteconfig:academic_years_setup_evidence", urlconf="config.tenant_urls")
         body = c.get(path).content.decode("utf-8", errors="replace")
         p = body.find("Scheduled report delivery")
-        a = body.find("Advanced/Admin: academic year rows")
+        a = body.find("Advanced/Admin: hard-close unlock")
         self.assertNotEqual(p, -1)
         self.assertNotEqual(a, -1)
         self.assertLess(p, a)
@@ -119,7 +119,7 @@ class AcademicYearsSetupEvidenceTests(TestCase):
         path = reverse("siteconfig:academic_years_setup_evidence", urlconf="config.tenant_urls")
         body = c.get(path).content.decode("utf-8", errors="replace")
         d = body.find("Departments (setup)")
-        a = body.find("Advanced/Admin: academic year rows")
+        a = body.find("Advanced/Admin: hard-close unlock")
         self.assertNotEqual(d, -1)
         self.assertNotEqual(a, -1)
         self.assertLess(d, a)
@@ -151,4 +151,33 @@ class AcademicYearsSetupEvidenceTests(TestCase):
         resp = c.get(path)
         self.assertEqual(resp.status_code, 200, msg=resp.content[:300])
         body = resp.content.decode("utf-8", errors="replace")
-        self.assertNotIn("Advanced/Admin: academic year rows", body)
+        self.assertNotIn("Advanced/Admin: hard-close unlock", body)
+
+    def test_soft_close_lifecycle_post(self) -> None:
+        u = User.objects.create_user(
+            username="ay_soft",
+            password="x" * 8,
+            role=User.Role.ADMIN,
+            is_staff=True,
+            is_superuser=False,
+        )
+        u.feature_permissions.add(self.perm_settings)
+        c = Client(HTTP_HOST=_T_HOST)
+        c.login(username="ay_soft", password="x" * 8)
+        self._arm(u, c)
+        path = reverse("siteconfig:academic_years_setup_evidence", urlconf="config.tenant_urls")
+        resp = c.post(
+            path,
+            {
+                "lifecycle_action": "soft_close",
+                "year_id": str(self.year.pk),
+                "reason": "lifecycle soft close from test",
+            },
+        )
+        self.assertEqual(resp.status_code, 302)
+        self.year.refresh_from_db()
+        self.assertTrue(self.year.is_soft_closed)
+        self.assertEqual(self.year.close_tier, "SOFT_CLOSED")
+        body = c.get(path).content.decode("utf-8", errors="replace")
+        self.assertIn("data-rmc-lifecycle-control", body)
+        self.assertIn("Soft closed", body)

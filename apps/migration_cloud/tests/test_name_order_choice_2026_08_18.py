@@ -15,7 +15,10 @@ nothing ever populated. No new model, no second source of truth.
 
 from __future__ import annotations
 
-from django.test import TestCase
+from pathlib import Path
+
+from django.conf import settings
+from django.test import RequestFactory, SimpleTestCase, TestCase
 
 from apps.migration_cloud.landers.base import LanderContext
 from apps.migration_cloud.landers.student_lander import StudentLander
@@ -23,6 +26,7 @@ from apps.migration_cloud.landers._helpers import resolve_name_order, split_name
 from apps.migration_cloud.models import MigrationArtifact, MigrationBundle
 from apps.migration_cloud.views_tenant_upload import (
     NAME_ORDER_CHOICES,
+    TenantMigrationReviewView,
     name_order_preview,
     selected_name_order,
 )
@@ -113,7 +117,91 @@ class NameOrderPreviewTests(TestCase):
             "the two orders previewed identically — the preview cannot inform a choice",
         )
 
-    def test_preview_is_empty_when_there_is_no_combined_name_column(self):
+    def test_program_name_columns_are_not_previewed_as_people(self):
+        MigrationArtifact.objects.filter(bundle=self.bundle).update(
+            assigned_domain="programs",
+            profile={
+                "columns": [
+                    {
+                        "name": "Name",
+                        "normalized": "name",
+                        "samples": ["ELECTRICAL POWER SYSTEMS", "FASHION DESIGN"],
+                    }
+                ]
+            },
+        )
+        self.assertEqual(name_order_preview(self.bundle), [])
+
+    def test_program_titles_are_skipped_even_on_a_student_sheet(self):
+        """The live screenshot: a Name column of TVET titles, mis-typed as students."""
+        MigrationArtifact.objects.filter(bundle=self.bundle).update(
+            assigned_domain="students",
+            filename="students.xlsx",
+            path_within_bundle="students.xlsx",
+            profile={
+                "columns": [
+                    {
+                        "name": "Name",
+                        "normalized": "name",
+                        "samples": [
+                            "ELECTRICAL POWER SYSTEMS",
+                            "FASHION DESIGN",
+                            "BUILDING CONSTRUCTION",
+                            "CARPENTRY AND JOINERY",
+                            "MOTOR MECHANICS",
+                        ],
+                    }
+                ]
+            },
+        )
+        self.assertEqual(name_order_preview(self.bundle), [])
+
+    def test_trade_filename_is_not_previewed_as_people(self):
+        artifact = MigrationArtifact.objects.get(bundle=self.bundle)
+        artifact.filename = "trades.xlsx"
+        artifact.path_within_bundle = "trades.xlsx"
+        artifact.assigned_domain = "students"
+        artifact.profile = {
+            "columns": [
+                {
+                    "name": "Full Name",
+                    "normalized": "full_name",
+                    "samples": ["ELECTRICAL POWER SYSTEMS"],
+                }
+            ]
+        }
+        artifact.save()
+        self.assertEqual(name_order_preview(self.bundle), [])
+
+    def test_mapped_full_name_column_is_used_even_when_header_is_name(self):
+        artifact = MigrationArtifact.objects.get(bundle=self.bundle)
+        artifact.filename = "students.xlsx"
+        artifact.path_within_bundle = "students.xlsx"
+        artifact.assigned_domain = "students"
+        artifact.profile = {
+            "columns": [
+                {
+                    "name": "Name",
+                    "normalized": "name",
+                    "samples": ["ANDONGMAD FAVOUR ANGU"],
+                }
+            ]
+        }
+        artifact.save()
+        self.bundle.mapping_summary = {
+            "per_artifact": {
+                "students.xlsx": [
+                    {
+                        "source_column": "Name",
+                        "canonical_field": "full_name",
+                        "confidence": 0.9,
+                    }
+                ]
+            }
+        }
+        self.bundle.save(update_fields=["mapping_summary"])
+        sources = {r["source"] for option in name_order_preview(self.bundle) for r in option["rows"]}
+        self.assertIn("ANDONGMAD FAVOUR ANGU", sources)
         MigrationArtifact.objects.filter(bundle=self.bundle).update(
             profile={"columns": [{"name": "Score", "normalized": "score", "samples": ["12"]}]}
         )
@@ -130,3 +218,36 @@ class NameOrderPreviewTests(TestCase):
                 "selected"
             ]
         )
+
+    def test_review_post_persists_the_chosen_order(self):
+        request = RequestFactory().post("/review/", {"name_order": "last_first"})
+        changed = TenantMigrationReviewView()._apply_name_order(request, self.bundle)
+        self.assertEqual(changed, 1)
+        self.bundle.refresh_from_db()
+        self.assertEqual(selected_name_order(self.bundle), "last_first")
+        self.assertEqual(
+            (self.bundle.mapping_summary or {}).get("transform_prefs", {}).get("name_order"),
+            "last_first",
+        )
+
+
+class NameOrderSurfaceContractTests(SimpleTestCase):
+    def test_review_template_does_not_clip_radios_in_a_responsive_table(self):
+        html = (Path(settings.BASE_DIR) / "templates/migration_cloud/connector/bundle_review.html").read_text(
+            encoding="utf-8"
+        )
+        css = (Path(settings.BASE_DIR) / "static/css/migration-cloud-ui.css").read_text(
+            encoding="utf-8"
+        )
+        start = html.find("data-rmc-name-order")
+        self.assertGreater(start, 0)
+        block = html[start : html.find("</fieldset>", start)]
+        self.assertIn('class="rmc-name-order__option"', block)
+        self.assertIn('class="rmc-name-order__control"', block)
+        self.assertNotIn("form-check", block)
+        self.assertIn(".rmc-name-order__control > input[type=\"radio\"]", css)
+        self.assertIn("appearance: none", css)
+        self.assertIn("overflow: visible", css)
+        self.assertIn("min-height: 44px", css)
+        self.assertIn("opacity: 0", css)
+        self.assertIn(".rmc-name-order__control::after", css)

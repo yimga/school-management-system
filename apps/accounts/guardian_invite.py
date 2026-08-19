@@ -23,6 +23,8 @@ from django.urls import reverse, reverse_lazy
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 
+from apps.accounts.email_delivery_policy import is_deliverable_email
+
 logger = logging.getLogger(__name__)
 
 
@@ -71,6 +73,8 @@ def send_guardian_invite(user, *, request=None, school=None) -> dict:
     email = (getattr(user, "email", "") or "").strip()
     if not email:
         return {"sent": False, "link": "", "reason": "no_email"}
+    if not is_deliverable_email(email):
+        return {"sent": False, "link": "", "reason": "undeliverable_email"}
 
     link = build_guardian_setup_link(
         user, request=request, base_url=_resolve_base_url(request)
@@ -147,6 +151,106 @@ class GuardianSetupView(PasswordResetConfirmView):
         if user is not None:
             logger.info(
                 "guardian_setup_complete",
+                extra={"user_id": user.pk, "result": "password_set"},
+            )
+        return response
+
+
+def build_staff_setup_link(user, *, request=None, base_url: str = "") -> str:
+    """Set-password URL for a migrated teacher (unusable password until first login)."""
+    uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
+    token = default_token_generator.make_token(user)
+    path = reverse(
+        "accounts:staff_setup", kwargs={"uidb64": uidb64, "token": token}
+    )
+    if request is not None:
+        return request.build_absolute_uri(path)
+    if base_url:
+        return base_url.rstrip("/") + path
+    return path
+
+
+def send_staff_setup_invite(user, *, request=None, school=None) -> dict:
+    """Email a migrated teacher a one-time set-password link. Never raises."""
+    if user is None or not getattr(user, "pk", None):
+        return {"sent": False, "link": "", "reason": "no_user"}
+    email = (getattr(user, "email", "") or "").strip()
+    if not email:
+        return {"sent": False, "link": "", "reason": "no_email"}
+    if not is_deliverable_email(email):
+        return {"sent": False, "link": "", "reason": "undeliverable_email"}
+
+    link = build_staff_setup_link(
+        user, request=request, base_url=_resolve_base_url(request)
+    )
+    school_name = (getattr(school, "name", "") or "Your school").strip() or "Your school"
+    subject = "Set up your RunMyCampus staff account"
+    body = (
+        f"{school_name} created a staff account for you on RunMyCampus.\n\n"
+        f"Set your password to sign in, then complete your profile:\n{link}\n\n"
+        "This link is valid for a limited time and can be used once."
+    )
+    try:
+        from apps.schoolops.email_delivery import send_transactional
+
+        send_transactional(
+            subject=subject,
+            body=body,
+            to=[email],
+            priority="transactional",
+            allow_suppressed=True,
+        )
+        logger.info("accounts.staff_setup_invite.sent user_id=%s", user.pk)
+        return {"sent": True, "link": link, "reason": "queued"}
+    except Exception as exc:  # noqa: BLE001 — delivery must never break activation
+        logger.warning(
+            "accounts.staff_setup_invite.send_failed user_id=%s err_type=%s",
+            user.pk,
+            type(exc).__name__,
+        )
+        return {"sent": False, "link": link, "reason": "send_failed"}
+
+
+class StaffSetupView(PasswordResetConfirmView):
+    """Set-password landing for invited/migrated staff. Parents/students refused."""
+
+    template_name = "accounts/staff_setup.html"
+    success_url = reverse_lazy("accounts:login")
+
+    def get_user(self, uidb64):
+        user = super().get_user(uidb64)
+        if user is not None:
+            from apps.migration_cloud.staff_role_map import is_staff_setup_role
+
+            if not is_staff_setup_role(getattr(user, "role", None)):
+                logger.warning(
+                    "staff_setup_role_refused",
+                    extra={"user_id": getattr(user, "pk", None)},
+                )
+                return None
+        return user
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        user = getattr(self, "user", None)
+        if user is not None and not user.is_active:
+            user.is_active = True
+            try:
+                user.save(update_fields=["is_active"])
+            except Exception:  # noqa: BLE001
+                logger.exception(
+                    "staff_setup_activate_failed", extra={"user_id": user.pk}
+                )
+        if user is not None:
+            try:
+                user.requires_password_change = False
+                user.save(update_fields=["requires_password_change"])
+            except Exception:  # noqa: BLE001
+                logger.exception(
+                    "staff_setup_flag_failed", extra={"user_id": user.pk}
+                )
+            logger.info(
+                "staff_setup_complete",
                 extra={"user_id": user.pk, "result": "password_set"},
             )
         return response

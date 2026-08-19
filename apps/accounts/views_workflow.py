@@ -77,7 +77,13 @@ def _workflow_progress(year):
             academic_year=year, is_active=True
         # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
         ).count()
-        teachers = TeacherProfile.objects.filter(is_active=True).count()
+        school_id = getattr(year, "school_id", None)
+        if school_id:
+            teachers = TeacherProfile.objects.filter(  # tenant-isolation-allow: workflow-progress-teachers-scoped-to-active-year-school
+                school_id=school_id, is_active=True
+            ).count()
+        else:
+            teachers = 0
         return {
             "classrooms": classrooms,
             "students": students,
@@ -101,6 +107,65 @@ def _workflow_progress(year):
             extra={"view": "_workflow_progress", "error": str(e)},
         )
         return {}
+
+
+def _first_named_url(*names: str) -> str:
+    for name in names:
+        try:
+            return reverse(name)
+        except NoReverseMatch:
+            continue
+    return ""
+
+
+def _academic_year_create_url() -> str:
+    return _first_named_url(
+        "admin:academics_academicyear_add",
+        "siteconfig:academic_years_setup_evidence",
+        "academics:hub",
+        "admin:academics_academicyear_changelist",
+    )
+
+
+def _school_academic_year_count(request, year) -> int:
+    school = getattr(request, "school", None) or getattr(year, "school", None)
+    if school is None:
+        return 1 if year else 0
+    try:
+        from apps.academics.models import AcademicYear
+
+        return AcademicYear.objects.filter(  # tenant-isolation-allow: workflow-center-year-count-scoped-to-request-school
+            school=school
+        ).count()
+    except ACCOUNTS_SOFT_FAILURES:
+        return 1 if year else 0
+
+
+def _annotate_workflow_step_status(steps, *, has_year: bool, has_classrooms: bool) -> None:
+    """Mark each step blocked / next / ready so operators follow a logical path."""
+    first_next = True
+    for step in steps:
+        key = step.get("step_key")
+        blocked = False
+        reason = ""
+        if key in {"onboarding", "reports", "certification"} and not has_year:
+            blocked = True
+            reason = _("Set the academic year first, then continue.")
+        elif key == "marks" and not has_year:
+            blocked = True
+            reason = _("Set the academic year first, then continue.")
+        elif key == "marks" and has_year and not has_classrooms:
+            blocked = True
+            reason = _("Create classrooms in Year setup before entering marks.")
+        if blocked:
+            step["status"] = "blocked"
+            step["blocked_reason"] = reason
+            continue
+        if first_next:
+            step["status"] = "next"
+            first_next = False
+        else:
+            step["status"] = "ready"
 
 
 def _workflow_link(label, url_name, primary=False, args=None, kwargs=None):
@@ -332,14 +397,18 @@ def import_hub(request):
     )
 
 
-def build_workflow_help_panel(*, has_active_year: bool, academic_year_url: str = "") -> dict:
+def build_workflow_help_panel(
+    *,
+    has_active_year: bool,
+    academic_year_url: str = "",
+    year_count: int = 0,
+) -> dict:
     """Build the Workflow Center contextual help-panel payload.
 
     Pure + deterministic so the conditional blocker logic is unit-testable. The
     "no active academic year" blocker surfaces only when there is no active year.
-    The panel deliberately omits a Help/KB footer link and the "use the steps"
-    framing — the page hero already owns both, so repeating them here would just
-    duplicate the intro that renders directly below the panel.
+    Clone needs two years (source + target); that blocker surfaces when fewer
+    than two years exist.
     """
     common_blockers = []
     if not has_active_year:
@@ -347,6 +416,15 @@ def build_workflow_help_panel(*, has_active_year: bool, academic_year_url: str =
             {
                 "label": _(
                     "No active academic year is set — most steps stay empty until one exists."
+                ),
+                "fix_url": academic_year_url,
+            }
+        )
+    if year_count < 2:
+        common_blockers.append(
+            {
+                "label": _(
+                    "Clone needs a new target year first — create the year, then copy last year's classrooms into it."
                 ),
                 "fix_url": academic_year_url,
             }
@@ -406,8 +484,29 @@ def workflow_center(request):
         _teacher_list_url = reverse("admin:people_teacherprofile_changelist")
         teacher_create_url = reverse("admin:people_teacherprofile_add")
 
+    year_count = _school_academic_year_count(request, year)
+    can_clone = year_count >= 2
+    create_year_primary = not year or not can_clone
+    create_year_link = _workflow_link(
+        "Create academic year",
+        "admin:academics_academicyear_add",
+        primary=create_year_primary,
+    )
+    if create_year_link is None:
+        create_url = _academic_year_create_url()
+        if create_url:
+            create_year_link = {
+                "label": "Create academic year",
+                "url": create_url,
+                "primary": create_year_primary,
+            }
     year_setup_links = [
-        _workflow_link("Clone previous year", "accounts:clone_year_setup"),
+        create_year_link,
+        _workflow_link(
+            "Clone previous year",
+            "accounts:clone_year_setup",
+            primary=can_clone,
+        ),
         _workflow_link(
             "Promotion mapping (next class)",
             "admin:academics_classroompromotionmapping_changelist",
@@ -594,7 +693,7 @@ def workflow_center(request):
             "links": _filter_links(communication_links),
         },
         {
-            "title": "5b) Documents & forms",
+            "title": "6) Documents & forms",
             "subtitle": "Document library, upload forms, and electronic signature requests.",
             "step_key": "documents",
             "icon": "bi-folder2-open",
@@ -603,7 +702,7 @@ def workflow_center(request):
             "links": _filter_links(documents_links),
         },
         {
-            "title": "6) Certification & exams (optional)",
+            "title": "7) Certification & exams (optional)",
             "subtitle": "General & technical: GCE, BAC, BEPC, CAP, etc. Enable per year; manage candidates, deadlines, exports.",
             "step_key": "certification",
             "icon": "bi-award",
@@ -612,7 +711,7 @@ def workflow_center(request):
             "links": _filter_links(certification_links),
         },
         {
-            "title": "7) Settings & theme",
+            "title": "8) Settings & theme",
             "subtitle": "Site settings, preferences, preview/sandbox, and role access.",
             "step_key": "settings",
             "icon": "bi-gear",
@@ -621,7 +720,7 @@ def workflow_center(request):
             "links": _filter_links(settings_links),
         },
         {
-            "title": "8) Automation",
+            "title": "9) Automation",
             "subtitle": "Execution log, approval queue, and schedule configuration (reminders, invoices, receipts).",
             "step_key": "automation",
             "icon": "bi-robot",
@@ -640,16 +739,24 @@ def workflow_center(request):
     for i, s in enumerate(steps, start=1):
         s["step_index"] = i
         s["total_steps"] = total_steps
+    _annotate_workflow_step_status(
+        steps,
+        has_year=bool(year),
+        has_classrooms=bool(progress.get("has_classrooms")),
+    )
 
     # Contextual "how this works" help panel (templates/components/workflow_help_panel.html),
     # built by build_workflow_help_panel() so the conditional blocker logic is unit-testable.
-    try:
-        _academic_year_url = reverse("admin:academics_academicyear_changelist")
-    except ACCOUNTS_SOFT_FAILURES:
-        _academic_year_url = ""
+    _academic_year_url = _academic_year_create_url()
+    if not _academic_year_url:
+        try:
+            _academic_year_url = reverse("admin:academics_academicyear_changelist")
+        except ACCOUNTS_SOFT_FAILURES:
+            _academic_year_url = ""
     workflow_help = build_workflow_help_panel(
         has_active_year=bool(year),
         academic_year_url=_academic_year_url,
+        year_count=year_count,
     )
 
     studio_pack_catalog_strip = None

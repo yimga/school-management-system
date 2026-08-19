@@ -1,7 +1,7 @@
 {% extends "backend_base.html" %}
 {% load static  i18n%}
 
-{% block title %}Clone previous year{% endblock %}
+{% block title %}{% trans "Clone previous year" %}{% endblock %}
 
 {% block backend_page %}
 {% include "components/next_action_strip.html" %}
@@ -12,16 +12,26 @@
     <ol class="breadcrumb mb-0">
       <li class="breadcrumb-item"><a href="{% url 'accounts:backend_dashboard' %}">{% trans "Backend" %}</a></li>
       <li class="breadcrumb-item"><a href="{% url 'studio_os:workflow_center' %}">{% trans "Workflow Center" %}</a></li>
-      <li class="breadcrumb-item active" aria-current="page">Clone previous year</li>
+      <li class="breadcrumb-item active" aria-current="page">{% trans "Clone previous year" %}</li>
     </ol>
   </nav>
 
   <div class="card shadow-sm">
     <div class="card-body">
       <h1 class="h5 mb-3">{% trans "Clone previous year" %}</h1>
+      {% if not can_clone %}
+      <div class="rmc-empty-state" data-rmc-scroll-policy="paginate">
+        <p class="text-muted">
+          {% trans "Clone copies last year's terms and classrooms into a new academic year. Create that new year first, then return here to copy into it." %}
+        </p>
+        {% if create_year_url %}
+        <a class="btn btn-primary" href="{{ create_year_url }}">{% trans "Create academic year" %}</a>
+        {% endif %}
+        <a class="btn btn-outline-primary" href="{% url 'studio_os:workflow_center' %}">{% trans "Back to Workflow Center" %}</a>
+      </div>
+      {% else %}
       <p class="text-muted small mb-3">
-        Copy terms, classrooms, subject assignments, and promotion rules from one academic year to another.
-        The target year must already exist; create it under Academic years first if needed.
+        {% trans "Copy terms, classrooms, subject assignments, and promotion rules from one academic year to another. The target year must already exist." %}
       </p>
       <form method="post" action="">
         {% csrf_token %}
@@ -49,6 +59,7 @@
           </div>
         </div>
       </form>
+      {% endif %}
     </div>
   </div>
 </div>

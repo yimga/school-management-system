@@ -90,16 +90,25 @@ def main() -> int:
     add(
         "manager",
         "skeleton_unified_header",
-        "control_plane_skeleton defaults unified header (utility + LIVE ticker + nav)",
+        "control_plane_skeleton defaults to the consolidated single-band unified header (Clean Header v2)",
         _contains(
             "templates/control_plane_skeleton.html",
             "control_plane_unified_header.html",
         )
-        and _contains(
-            "templates/partials/control_plane_unified_header.html",
-            "cockpit/_activity_ticker.html",
+        # Clean Header v2: the persistent full-width LIVE marquee row was retired; the
+        # activity feed is now the compact inline ticker badge inside the single band
+        # (unified header or the manager topbar), opening the existing activity drawer.
+        and (
+            _contains(
+                "templates/partials/control_plane_unified_header.html",
+                "_activity_ticker_inline.html",
+            )
+            or _contains(
+                "templates/partials/manager_operator_topbar.html",
+                "_activity_ticker_inline.html",
+            )
         ),
-        "control_plane_skeleton + control_plane_unified_header",
+        "control_plane_skeleton + control_plane_unified_header (single-band inline ticker)",
     )
     add(
         "manager",
@@ -339,10 +348,13 @@ def main() -> int:
             )
         )
         and _contains("apps/schools/middleware.py", "/authentication/documentation/")
-        and _contains("templates/components/user_dropdown.html", "manager_help_center")
-        and _contains("templates/components/user_dropdown.html", "kb:kb_home")
+        # Clean Header v2: Help moved off the user dropdown onto the Tools rail, so the
+        # dropdown no longer routes manager_help_center / kb:kb_home. The manager help
+        # hub route itself is still asserted by the separate "manager-help-hub" check
+        # (config/manager_urls.py). Here we assert the Tools-rail help panel instead.
+        and _contains("templates/partials/rmc_tools_help_panel.html", 'trans "Ask Copilot"')
         and _exists("apps/accounts/operator_account_render.py"),
-        "rmc-platform-header + middleware + user_dropdown + operator_account_render",
+        "rmc-platform-header + middleware + tools-rail help + operator_account_render",
     )
 
     if args.run_tests:

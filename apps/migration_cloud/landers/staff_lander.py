@@ -7,9 +7,10 @@ the profile), keyed the upsert on ``staff_external_id`` (not a real field →
 (→ ``IntegrityError``). Every staff/teacher row therefore quarantined and the
 imported count was pinned to 0 — the same class already fixed for guardians.
 
-The lander now RESOLVES-or-PROVISIONS the teacher's ``User`` (role TEACHER,
-unusable password — activation rides the normal invite/reset flow, no credential
-is minted) exactly as ``guardian_lander`` does, then creates the
+The lander now RESOLVES-or-PROVISIONS the staff ``User`` (workbook ``role``
+mapped onto ``User.Role`` — bursar/HOD/admin/… — with TEACHER as the safe
+fallback; SUPERADMIN is never granted). Password stays unusable so activation
+rides invite/reset. Then it creates the
 ``TeacherProfile(user=…, school=…, staff_id=external_id)`` keyed on the OneToOne
 user. Real profile fields (``staff_id``/``position_title``/``phone``/
 ``department`` FK) are written; source-only columns (``hire_date``, the raw
@@ -43,6 +44,7 @@ from ._helpers import (
     record_id_mapping,
     resolve_canonical_pk_by_legacy,
     resolve_or_provision_user,
+    row_savepoint,
     upsert_with_conflict_detection,
 )
 from .base import Lander, LanderContext, LanderError, LanderResult, register
@@ -51,13 +53,92 @@ from .base import Lander, LanderContext, LanderError, LanderResult, register
 # unlike the ORM imports below). The bare "TEACHER" literal must not be inlined:
 # scan_role_strings.py enforces that the token comes from here or User.Role.
 from apps.platform_runtime.role_registry import ROLE_TEACHER
+from apps.migration_cloud.staff_role_map import (
+    apply_imported_staff_role,
+    resolve_staff_role,
+)
 
 # OneRoster/SIS role tokens that must NEVER be provisioned as teachers.
 _NON_STAFF_ROLES = {"student", "guardian", "parent", "relative"}
+_CUSTOM_ATTR_MAX_KEYS = 60  # magic-number-allow: staff-custom-attributes-key-ceiling
+_CUSTOM_ATTR_KEY_CAP = 120  # magic-number-allow: staff-custom-attributes-key-length
+_CUSTOM_ATTR_VALUE_CAP = 500  # magic-number-allow: staff-custom-attributes-value-length
+_CUSTOM_FIELD_KEY_RE = re.compile(r"^(?:custom_fields|_unmapped)\.(.+)$")
+_CUSTOM_ATTR_NULL_LITERALS = frozenset({"", "none", "nan", "n/a", "na", "null", "-"})
+
+
+def _compact_header(raw: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "", (raw or "").lower())
+
+
+def _staff_field_from_row(row: dict[str, Any], field: str) -> str:
+    """Canonical value, or a leftover column whose header is a known synonym."""
+    direct = str(row.get(field) or "").strip()
+    if direct:
+        return direct
+    try:
+        from apps.migration_cloud.ontology import all_synonyms
+
+        wanted = {_compact_header(field)}
+        wanted.update(_compact_header(s) for s in all_synonyms(field, domain="staff"))
+    except Exception:  # noqa: BLE001
+        wanted = {_compact_header(field)}
+    for key, value in row.items():
+        if not isinstance(key, str):
+            continue
+        m = _CUSTOM_FIELD_KEY_RE.match(key)
+        label = m.group(1) if m else key
+        if _compact_header(label) not in wanted:
+            continue
+        text = str(value or "").strip()
+        if text and text.lower() not in _CUSTOM_ATTR_NULL_LITERALS:
+            return text
+    return ""
+
+
+def _sweep_custom_attributes(obj, row: dict[str, Any], model_fields, result) -> None:
+    """Fold leftover staff columns into ``TeacherProfile.custom_attributes``."""
+    if "custom_attributes" not in model_fields:
+        return
+    swept: dict[str, str] = {}
+    for key, value in row.items():
+        if not isinstance(key, str):
+            continue
+        m = _CUSTOM_FIELD_KEY_RE.match(key)
+        if not m:
+            continue
+        if value is None:
+            continue
+        text = str(value).strip()
+        if text.lower() in _CUSTOM_ATTR_NULL_LITERALS:
+            continue
+        swept[m.group(1)[:_CUSTOM_ATTR_KEY_CAP]] = text[:_CUSTOM_ATTR_VALUE_CAP]
+        if len(swept) >= _CUSTOM_ATTR_MAX_KEYS:
+            break
+    if not swept:
+        return
+    try:
+        current = dict(getattr(obj, "custom_attributes", None) or {})
+        changed = False
+        for k, v in swept.items():
+            if current.get(k) != v:
+                current[k] = v
+                changed = True
+        if not changed:
+            return
+        with row_savepoint():
+            obj.custom_attributes = current
+            obj.save(update_fields=["custom_attributes"])
+    except Exception:  # noqa: BLE001 — enrichment is best-effort; staff already landed
+        if result is not None:
+            result.errors.append(
+                f"custom_attributes sweep failed for staff {getattr(obj, 'pk', '?')}"
+            )
 
 
 class StaffLander(Lander):
     domain = "staff"
+    sweeps_custom_columns = True
 
     def land(
         self,
@@ -79,7 +160,7 @@ class StaffLander(Lander):
         # Prefer the ORM-layer SOT (User.Role TextChoices); fall back to the
         # registry constant if a swapped user model has no Role enum. Mirrors
         # guardian_lander's hasattr idiom -- neither branch inlines the token.
-        teacher_role = User.Role.TEACHER if hasattr(User, "Role") else ROLE_TEACHER
+        default_staff_role = User.Role.TEACHER if hasattr(User, "Role") else ROLE_TEACHER
 
         for row in canonical_rows:
             external_id = (
@@ -121,10 +202,14 @@ class StaffLander(Lander):
             # ``staff`` but carries every role. NEVER provision a student/parent/
             # guardian as a teacher — skip them here (they land via their own
             # domain). Blank/teacher/admin/aide/proctor roles fall through.
-            role_raw = (row.get("role") or "").strip().lower()
+            role_label = _staff_field_from_row(row, "role")
+            role_raw = role_label.strip().lower()
             if role_raw in _NON_STAFF_ROLES:
                 result.skipped += 1
                 continue
+            staff_role = resolve_staff_role(
+                role_label, default=default_staff_role
+            )
 
             if ctx.dry_run:
                 result.created += 1
@@ -156,7 +241,7 @@ class StaffLander(Lander):
                         email=email,
                         first_name=first_name,
                         last_name=last_name,
-                        role=teacher_role,
+                        role=staff_role,
                         dry_run=ctx.dry_run,
                     )
                     if teacher_user is None:
@@ -168,7 +253,7 @@ class StaffLander(Lander):
                 # (school, name); mint a target-scoped code on create so we never
                 # reuse the source's globally-unique department code.
                 department = None
-                dept_name = (row.get("department") or "").strip()
+                dept_name = _staff_field_from_row(row, "department")
                 if dept_name and "department" in model_fields:
                     department, _ = get_or_create_named(
                         model=Department,
@@ -184,8 +269,8 @@ class StaffLander(Lander):
 
                 defaults: dict[str, Any] = {
                     "staff_id": external_id,
-                    "position_title": (row.get("role") or "").strip()[:120],  # magic-number-allow: position_title CharField max_length
-                    "phone": (row.get("phone") or "").strip()[:50],
+                    "position_title": role_label[:120],  # magic-number-allow: position_title CharField max_length
+                    "phone": _staff_field_from_row(row, "phone")[:50],
                     "department": department,
                 }
                 if "school" in model_fields and ctx.school is not None:
@@ -213,10 +298,11 @@ class StaffLander(Lander):
                 # Source-only columns with no TeacherProfile home → DFV (no data loss).
                 persist_dfv_extras(
                     ctx=ctx, entity_type="staff", entity_id=obj.pk,
-                    extras={"hire_date": (row.get("hire_date") or "").strip(),
-                            "source_role": (row.get("role") or "").strip()},
+                    extras={"hire_date": _staff_field_from_row(row, "hire_date"),
+                            "source_role": role_label},
                     result=result,
                 )
+                _sweep_custom_attributes(obj, row, model_fields, result)
                 record_id_mapping(ctx=ctx, legacy_id=external_id, canonical_obj=obj, domain="staff")
                 detect_and_register_assets(ctx=ctx, legacy_id=external_id, entity_kind="staff", row=row)
                 # G8: a teacher row often carries the SOURCE system's cross-refs as
@@ -224,6 +310,17 @@ class StaffLander(Lander):
                 # Preserve them verbatim (no data loss) AND resolve them to canonical
                 # names via the id-mapping layer where those entities landed.
                 _link_teacher_teaching_hints(obj, row, ctx, result)
+                try:
+                    apply_imported_staff_role(
+                        user=teacher_user,
+                        school=ctx.school,
+                        role=staff_role,
+                    )
+                except Exception:  # noqa: BLE001 — membership is additive; staff already landed
+                    if result is not None:
+                        result.errors.append(
+                            f"staff membership attach failed for {external_id}"
+                        )
             except Exception as exc:  # noqa: BLE001
                 result.quarantined += 1
                 result.errors.append(f"staff upsert failed for {external_id}: {type(exc).__name__}: {exc}")

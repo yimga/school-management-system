@@ -31,34 +31,11 @@
 <div class="container-fluid py-2 px-0 px-md-2 rmc-shell-content-grid rmc-max-suppress-meta-option-a" data-rmc-page="studio-os" data-rmc-studio-workspace="1" data-page-archetype="setup" data-rmc-operational-workbench="1" data-shell-layout="{{ rmc_shell.layout_token|default:'studio-os' }}" data-shell-host="{{ rmc_shell.shell_data_studio_host|default:'tenant' }}" data-rmc-nav-family="{{ rmc_shell.nav_family }}" data-studio-os-surface="tenant-shell" data-rmc-shell-content-grid="1" data-rmc-scroll-policy="paginate" data-page-critical-read="1" data-rmc-work-root="1">
   {% include "components/rmc_page_masthead.html" with page_archetype="setup" page_host="tenant" masthead_eyebrow=_("Setup · this school") masthead_title=_("School Studio") masthead_purpose=_("Configure experience, workflows, and school-facing output for this tenant — work starts in the canvas below.") %}
   <a href="#studio-canvas" class="visually-hidden-focusable btn btn-sm btn-outline-primary position-absolute top-0 start-0 m-2 px-3 py-2 rounded z-1" style="z-index: 1060;">{% trans "Skip to Studio content" %}</a>
-    {% comment %} Quiet-header v2 lives on portal_base (Home + role-primary + Utilities).
-       This toolbar is page work, not a second platform header. {% endcomment %}
-  <div class="ds-action-bar d-flex align-items-center gap-2 mb-3 flex-wrap" role="toolbar" aria-label="{% trans 'Studio toolbar' %}" data-rmc-studio-toolbar="1" data-tour="studio-toolbar">
-    {% if rmc_conversion_single_action_enforced|default:False %}
-    <a href="{% url 'studio_os:experience' %}" class="btn btn-sm btn-primary" data-task="studio_os" data-task-step="studio:open-experience">{% trans "Open Experience" %}</a>
-    <details class="rmc-conversion-more-actions border rounded px-2 py-1">
-      <summary class="btn btn-sm btn-outline-secondary mb-0">{% trans "Studio tools" %}</summary>
-      <div class="pt-2 d-flex flex-wrap gap-2 align-items-center">
-    {% endif %}
-    {% if request.public_host_kind == 'manager' and not request.school %}
-    <a href="{% url 'super:dashboard' %}" class="btn btn-sm btn-outline-secondary" aria-label="{% trans 'Home — control plane' %}"><i class="bi bi-house-door me-1"></i>{% trans "Home" %}</a>
-    {% endif %}
-    <a href="{% url 'studio_os:shell' %}" class="btn btn-sm btn-outline-secondary" aria-label="{% trans 'Studio home' %}">
-      <i class="bi bi-grid-3x3-gap"></i>
-    </a>
-    {% include "studio_os/partials/studio_command_pill.html" %}
-    {% if rmc_conversion_single_action_enforced|default:False %}
-      </div>
-    </details>
-    {% endif %}
-    <div class="h5 mb-0 ms-auto" data-rmc-studio-context-title="1">
-      {% if current_mode %}
-        {% for m in studio_modes %}{% if m.id == current_mode %}{{ m.label }}{% endif %}{% endfor %} – {% trans "Studio" %}
-      {% else %}
-        {% trans "Studio" %}
-      {% endif %}
-    </div>
-  </div>
+    {% comment %} Quiet-header v2 (Home + role-primary + Utilities) lives on portal_base.
+       Studio no longer injects a second header-like toolbar band here; its page
+       commands (Cmd+K palette, conversion CTA, control-plane Home) are relocated
+       into the in-content command surface below — a page action bar beneath the
+       shared header, never a second platform header. {% endcomment %}
 
   {% include "components/ai_guided_assistant_card.html" with assistant_key="studio_os_assistant" card_title=_("Studio guided assistant") card_hint=_("Suggests next steps across Studio modes. Apply packages and automations only through existing preview and rollback flows.") %}
 
@@ -66,7 +43,7 @@
   {% include "studio_os/partials/studio_guidance_panel.html" %}
   {% endif %}
 
-  <section class="rmc-command-surface rmc-command-header rmc-studio-command-header" aria-label="{% trans 'Studio command surface' %}" data-rmc-studio-command-header="1">
+  <section class="rmc-command-surface rmc-command-header rmc-studio-command-header" aria-label="{% trans 'Studio command surface' %}" data-rmc-studio-command-header="1" data-tour="studio-toolbar">
     <div>
       <div class="small text-muted text-uppercase fw-semibold mb-1">{% trans "Studio command surface" %}</div>
       <h2 class="h4 mb-0">
@@ -78,7 +55,24 @@
       </h2>
       <p>{% trans "Configure, preview, audit, and publish tenant changes from one compact workspace." %}</p>
     </div>
-    <div class="rmc-command-actions" aria-label="{% trans 'Studio scope and safety' %}">
+    <div class="rmc-command-actions" aria-label="{% trans 'Studio commands, scope and safety' %}" role="toolbar">
+      {% comment %} Relocated page commands (were the second header-like toolbar): the
+         Cmd+K palette pill, the conversion single-action CTA, and the control-plane
+         Home escape. These are page-scoped actions below the shared header. {% endcomment %}
+      {% if rmc_conversion_single_action_enforced|default:False %}
+      <a href="{% url 'studio_os:experience' %}" class="btn btn-sm btn-primary" data-task="studio_os" data-task-step="studio:open-experience">{% trans "Open Experience" %}</a>
+      <details class="rmc-conversion-more-actions border rounded px-2 py-1">
+        <summary class="btn btn-sm btn-outline-secondary mb-0">{% trans "Studio tools" %}</summary>
+        <div class="pt-2 d-flex flex-wrap gap-2 align-items-center">
+      {% endif %}
+      {% include "studio_os/partials/studio_command_pill.html" %}
+      {% if request.public_host_kind == 'manager' and not request.school %}
+      <a href="{% url 'super:dashboard' %}" class="btn btn-sm btn-outline-secondary" aria-label="{% trans 'Home — control plane' %}"><i class="bi bi-house-door me-1"></i>{% trans "Home" %}</a>
+      {% endif %}
+      {% if rmc_conversion_single_action_enforced|default:False %}
+        </div>
+      </details>
+      {% endif %}
       <span class="rmc-badge rmc-badge--muted">{% trans "Host mode" %}: {{ rmc_shell.shell_data_studio_host|default:"tenant"|title }}</span>
       {% if current_mode %}
       <span class="rmc-badge rmc-badge--brand">{% trans "Mode" %}: {% for m in studio_modes %}{% if m.id == current_mode %}{{ m.label }}{% endif %}{% endfor %}</span>

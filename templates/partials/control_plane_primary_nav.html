@@ -32,6 +32,14 @@
   </a>
   {% endif %}
   {% endfor %}
+  {% comment %} Quiet-header v2 (docs/generated/platform-clean-header-approval-v2.html,
+     Operator desktop, user-approved SOT batch 1791–1792): the consolidated operator
+     band shows ONLY the two stable inline pills above and routes every remaining
+     authorized destination through the Utilities dropdown — there is no overflow menu on
+     the primary nav on ANY surface. The former overflow-safe dropdown is retired here
+     because it is superseded by Utilities-as-overflow; keeping it would both re-introduce
+     the forbidden legacy affordance (verify_header_utilities_contract) and render only as
+     dead markup, since every include is rail=True. {% endcomment %}
   {% if not hide_security %}{% include "partials/rmc_security_posture_nav_button.html" %}{% endif %}
 </nav>
 {% if rail %}

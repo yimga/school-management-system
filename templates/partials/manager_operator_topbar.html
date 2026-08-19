@@ -1,6 +1,6 @@
 {% load i18n static %}
 {% comment %} Manager operator header — platform brand, command search, utility cluster (one control row). {% endcomment %}
-<header class="rmc-platform-header rmc-control-plane-chrome__top" role="banner" data-rmc-platform-header="manager" data-rmc-quiet-header-root="1" data-rmc-header-control-cap="7">
+<header class="rmc-platform-header rmc-control-plane-chrome__top" role="banner" data-rmc-platform-header="manager" data-rmc-quiet-header-root="1" data-rmc-header-control-cap="6">
   <nav class="navbar navbar-expand-lg navbar-dark cp-navbar cp-navbar--surface statement-header flex-shrink-0 w-100" data-rmc-shell-header="control-plane" data-shell-nav-bridge="manager-operator" aria-label="{% trans 'Platform manager header' %}">
     <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="container-fluid px-3 rmc-platform-header__inner">
@@ -98,6 +98,12 @@
                reachable via the `?` key, the avatar menu, the operator tools tray, and (on /super/)
                the Workspace dropdown's Operator-tools section. window.cpShowShortcutsHelp() + the
                [data-rmc-kbd-cheatsheet-trigger] delegation keep working without this button. {% endcomment %}
+            {% comment %} v4.11 (quiet-header v2): the LIVE activity feed is no longer a persistent
+               full-width marquee ROW under the band. It collapses to this compact Tier-1 inline badge
+               (self-gating on auth + activity) that opens the #rmcCpActivityDrawer offcanvas
+               (rmc-cp-activity-drawer.js) — a dismissible affordance, not a second header row. Satisfies
+               the consolidated single-band contract (verify_cp_consolidated_operator_shell.py). {% endcomment %}
+            {% include "partials/cockpit/_activity_ticker_inline.html" %}
             {% comment %} v4.00.24 Studio chip removed from manager header (Utilities + Cmd+K).
                Config Control Center — CONFIGURABLE via cockpit_shell.show.config_chip (per-surface).
                v4.02.x: on the manager /admin/ BACKOFFICE shell (which has no Workspace dropdown) it
@@ -120,11 +126,8 @@
               <span class="cp-topbar-bell__badge" data-rmc-unread-badge data-rmc-unread-badge-style="avatar" aria-hidden="true"{% if not NOTIFICATIONS_UNREAD_COUNT %} hidden{% endif %}>{% if NOTIFICATIONS_UNREAD_COUNT > 99 %}99+{% else %}{{ NOTIFICATIONS_UNREAD_COUNT|default:0 }}{% endif %}</span>
             </a>
             {% endif %}
-            {% comment %} v4.02.x: the inline Tier-1 LIVE badge that used to sit by the bell
-               ("LIVE New school provisioned …") was REMOVED platform-wide per owner. The live
-               feed now renders as the full scrolling marquee ROW embedded in the header
-               (cp-header__row--live in control_plane_unified_header.html), matching the v8 200x
-               preview. {% endcomment %}
+            {% comment %} Quiet-header v2: the LIVE feed is the compact inline badge included
+               above, not a second marquee row. {% endcomment %}
             {% comment %} v4.01.43: theme + aesthetic controls moved to user profile dropdown. {% endcomment %}
             {% comment %} v4.02.16: workflow progress chip + inline strip live in Tools tray only. {% endcomment %}
             {% include "components/user_dropdown.html" %}

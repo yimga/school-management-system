@@ -67,11 +67,23 @@ class InteractionIntegrityContractTests(SimpleTestCase):
         self.assertIn("--rmc-header-control-height", css)
         self.assertIn(".cp-navbar .user-dropdown-trigger", css)
 
-    def test_user_dropdown_points_to_help_surfaces(self):
+    def test_user_dropdown_defers_help_to_tools_rail(self):
+        # Platform Clean Header Approval v2 (user-approved SOT batch 1791-1792):
+        # Help is a first-class Tools-rail item, NOT a user-dropdown link. The header
+        # utilities contract (scripts/verify_header_utilities_contract.py) forbids
+        # help-center links in the user dropdown; this test locks the same v2 direction
+        # so the two gates cannot contradict each other. Supersedes the prior
+        # test_user_dropdown_points_to_help_surfaces assertion.
         text = (ROOT / "templates/components/user_dropdown.html").read_text(encoding="utf-8")
-        self.assertIn("manager_help_center", text)
-        self.assertIn("feedback:help_center", text)
-        self.assertIn("feature_center_url", text)
+        self.assertNotIn("manager_help_center", text)
+        self.assertNotIn("feedback:help_center", text)
+        self.assertNotIn("helpUrl", text)
+        # Help lives on the shared Tools-rail help panel instead.
+        help_panel = (ROOT / "templates/partials/rmc_tools_help_panel.html").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn('trans "Ask Copilot"', help_panel)
+        self.assertIn('trans "Contact support"', help_panel)
 
     def test_tenant_sidebar_points_to_help_center_not_kb_only(self):
         text = (ROOT / "templates/partials/portal_sidebar.html").read_text(encoding="utf-8")

@@ -24,9 +24,9 @@ NAV_ROW_MARKERS = ("cp-nav-row", "cp-header__row--inline-chrome")
 
 TEMPLATE_CHECKS: tuple[tuple[str, str, str], ...] = (
     (CONSOLIDATED_HEADER_PARTIAL, "cp_shell_header_ticker", "consolidated header ticker block"),
-    (CONSOLIDATED_HEADER_PARTIAL, "cp-header__row--live", "consolidated header live row"),
+    (CONSOLIDATED_HEADER_PARTIAL, "cp-header--consolidated", "consolidated single-band header"),
     (ACTIVITY_TICKER_PARTIAL, "cp-live-strip", "activity ticker live strip"),
-    (CONSOLIDATED_HEADER_PARTIAL, "cp-header__row--inline-chrome", "consolidated header nav fallback row"),
+    ("templates/partials/manager_operator_topbar.html", "_activity_ticker_inline.html", "Tier-1 inline ticker in the utility band"),
     ("templates/control_plane_base.html", "control_plane_unified_header.html", "manager unified header include"),
     ("templates/admin/base.html", "control_plane_unified_header.html", "admin manager unified header include"),
     ("templates/portal_base.html", "tenant_primary_nav.html", "tenant primary nav include"),
@@ -73,19 +73,15 @@ def main() -> int:
 
     header = _read(CONSOLIDATED_HEADER_PARTIAL)
     ticker = _read(ACTIVITY_TICKER_PARTIAL)
+    topbar = _read("templates/partials/manager_operator_topbar.html")
     if "cp-live-strip" not in ticker:
         errors.append("consolidated operator stack: missing cp-live-strip (_activity_ticker partial)")
-    live_row = header.find("cp-header__row--live")
-    nav_pos = _nav_row_pos(header)
-    if nav_pos < 0:
+    if "_activity_ticker_inline.html" not in topbar and "_activity_ticker_inline.html" not in header:
+        errors.append("consolidated operator stack: missing Tier-1 inline ticker in the utility band")
+    if "cp-header__row--inline-chrome" in header or "cp-header__row--live" in header:
         errors.append(
-            "consolidated operator stack: missing nav row "
-            "(cp-nav-row legacy or cp-header__row--inline-chrome consolidated fallback)"
-        )
-    elif live_row < 0 or live_row > nav_pos:
-        errors.append(
-            "consolidated operator header: cp-header__row--live must precede nav fallback row "
-            "(v4.02.x consolidated header: utility → live marquee → <xl nav fallback)"
+            "consolidated operator header: forbidden second-row LIVE/nav stack "
+            "(Clean Header v2 — one utility band + inline ticker)"
         )
 
     cp_base = _read("templates/control_plane_base.html")

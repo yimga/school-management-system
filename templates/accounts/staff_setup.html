@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Set up your staff account" %}{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/rmc-mfa-checkpoint.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+
+{% include "components/security_checkpoint_page_open.html" with checkpoint_flow="invite" %}
+<section class="auth-shell" aria-labelledby="staff-setup-title">
+  <div data-rmc-scroll-policy="paginate" class="auth-card">
+    {% if validlink %}
+      <div class="rmc-security-checkpoint__head">
+        <span class="rmc-security-checkpoint__icon" aria-hidden="true"><i class="bi bi-person-badge"></i></span>
+        <div>
+          <div class="rmc-security-checkpoint__eyebrow">{% trans "Staff account" %}</div>
+          <h1 id="staff-setup-title">{% trans "Welcome to RunMyCampus" %}</h1>
+        </div>
+      </div>
+      <div class="rmc-security-checkpoint__body">
+      <p class="rmc-security-checkpoint__sub">
+        {% blocktrans %}
+        Your school created a staff account for you. Choose a password to finish
+        setting it up — after this you will complete your profile on first sign-in.
+        {% endblocktrans %}
+      </p>
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+          <div class="rmc-banner rmc-banner--error mb-3">{{ form.non_field_errors }}</div>
+        {% endif %}
+        {% trans "New password" as staff_pwd1_label %}
+        {% trans "Confirm new password" as staff_pwd2_label %}
+        {% include "components/rmc_password_field.html" with field_id="id_new_password1" field_name="new_password1" label=staff_pwd1_label autocomplete="new-password" autofocus=True help_text=form.new_password1.help_text error=form.new_password1.errors.0 %}
+        {% include "components/rmc_password_field.html" with field_id="id_new_password2" field_name="new_password2" label=staff_pwd2_label autocomplete="new-password" wrap_class="mb-4" error=form.new_password2.errors.0 %}
+        <button type="submit" class="btn btn-primary w-100 auth-submit">
+          <i class="bi bi-check2-circle me-1"></i>
+          {% trans "Finish setup & sign in" %}
+        </button>
+      </form>
+      </div>
+    {% else %}
+      <div class="rmc-security-checkpoint__icon mx-auto mb-3" aria-hidden="true"><i class="bi bi-exclamation-circle"></i></div>
+      <h2 id="staff-setup-title">{% trans "This link has expired." %}</h2>
+      <p class="rmc-security-checkpoint__sub">
+        {% blocktrans %}
+        Setup links are valid for a limited time and can only be used once. Ask your
+        school administrator for a new invite or a one-time password.
+        {% endblocktrans %}
+      </p>
+      <a href="{% url 'accounts:login' %}" class="btn btn-primary w-100 auth-submit">
+        <i class="bi bi-arrow-clockwise me-1"></i>
+        {% trans "Back to sign in" %}
+      </a>
+    {% endif %}
+  </div>
+</section>
+{% include "components/security_checkpoint_page_close.html" %}
+{% if validlink %}{% include "components/rmc_password_toggle_script.html" %}{% endif %}
+{% endblock %}

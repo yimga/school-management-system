@@ -101,6 +101,81 @@ def map_artifact(
     return _dedupe_canonical_collisions(mappings)
 
 
+def bind_residual_headers(canonical: dict[str, Any], domain: str) -> dict[str, Any]:
+    """Promote leftover ``_unmapped.*`` / ``custom_fields.*`` keys onto empty canonical fields.
+
+    Apply-time safety net for columns the stored mapping left as custom/unmapped
+    even though the ontology now knows them (French ``Fonction``, ``Designation``,
+    a header the Jaccard layer missed). Collision-safe: never overwrites a
+    canonical value already on the row; ambiguous synonyms are skipped.
+    Unknown leftovers stay on the residual keys so landers / the DFV net keep them.
+    """
+    if not canonical or not domain or domain == "custom_fields":
+        return canonical
+    index = _domain_synonym_index(domain)
+    if not index:
+        return canonical
+    residual_keys = [
+        key
+        for key in list(canonical.keys())
+        if isinstance(key, str)
+        and (key.startswith("_unmapped.") or key.startswith("custom_fields."))
+    ]
+    claimed: set[str] = set()
+    for key in residual_keys:
+        value = canonical.get(key)
+        if value in (None, ""):
+            continue
+        label = key.split(".", 1)[1] if "." in key else key
+        field = _lookup_synonym_field(label, index)
+        if not field or field in claimed:
+            continue
+        existing = canonical.get(field)
+        if existing not in (None, ""):
+            continue
+        canonical[field] = value
+        claimed.add(field)
+        canonical.pop(key, None)
+    return canonical
+
+
+def _lookup_synonym_field(label: str, index: dict[str, str]) -> str:
+    for candidate in _header_match_keys({"name": label, "normalized": _slug(label)}):
+        field = index.get((candidate or "").strip().lower())
+        if field:
+            return field
+        compact = re.sub(r"[^a-z0-9]+", "", (candidate or "").lower())
+        field = index.get(compact)
+        if field:
+            return field
+    return ""
+
+
+def _domain_synonym_index(domain: str) -> dict[str, str]:
+    """Exact-synonym reverse map for one domain. Colliding synonyms are dropped."""
+    index: dict[str, str] = {}
+    collisions: set[str] = set()
+    for cf in iter_canonical_fields(domain):
+        field = cf.get("canonical_field") or ""
+        if not field:
+            continue
+        for syn in all_synonyms(field, domain=domain):
+            keys = {(syn or "").strip().lower()}
+            compact = re.sub(r"[^a-z0-9]+", "", (syn or "").lower())
+            if compact:
+                keys.add(compact)
+            for key in keys:
+                if not key or key in collisions:
+                    continue
+                existing = index.get(key)
+                if existing and existing != field:
+                    collisions.add(key)
+                    index.pop(key, None)
+                    continue
+                index[key] = field
+    return index
+
+
 def _dedupe_canonical_collisions(mappings: list[ColumnMapping]) -> list[ColumnMapping]:
     """Guard against two source columns resolving to one canonical field.
 

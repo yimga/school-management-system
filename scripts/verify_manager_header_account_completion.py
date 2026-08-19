@@ -157,11 +157,21 @@ def main() -> int:
         )
 
     dropdown = _read("templates/components/user_dropdown.html")
+    help_panel = _read("templates/partials/rmc_tools_help_panel.html")
+    # Clean Header v2 (SOT batch 1791-1792): Help is a first-class Tools-rail item,
+    # NOT a user-dropdown link. This gate previously required manager_help_center in
+    # the user dropdown, which directly contradicted verify_header_utilities_contract
+    # (which forbids it) and had been red since Help moved to the Tools rail. Reconciled
+    # to assert the v2 direction: no help-center link in the dropdown; help lives on the
+    # Tools-rail help panel.
     add(
         "dropdown-help-center",
-        "User dropdown Help uses manager_help_center on manager",
-        "manager_help_center" in dropdown and 'href="#"' not in dropdown,
-        "user_dropdown.html",
+        "Help lives on the Tools rail, not the user dropdown (Clean Header v2)",
+        "manager_help_center" not in dropdown
+        and "feedback:help_center" not in dropdown
+        and 'href="#"' not in dropdown
+        and 'trans "Ask Copilot"' in help_panel,
+        "user_dropdown.html + rmc_tools_help_panel.html",
     )
 
     manager_urls_src = _read("config/manager_urls.py")

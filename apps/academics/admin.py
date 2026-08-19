@@ -45,11 +45,188 @@ class AcademicYearAdmin(ModelAdmin):
         "start_date",
         "end_date",
         "is_active",
+        "is_soft_closed",
+        "is_locked",
+        "locked_at",
+        "enable_gce_registration",
+    )
+    list_filter = (
+        "is_active",
+        "is_soft_closed",
         "is_locked",
         "enable_gce_registration",
     )
-    list_filter = ("is_active", "is_locked", "enable_gce_registration")
     search_fields = ("name",)
+    readonly_fields = (
+        "locked_at",
+        "locked_by",
+        "lock_reason",
+        "unlocked_at",
+        "unlocked_by",
+        "unlock_reason",
+        "soft_closed_at",
+        "soft_closed_by",
+        "soft_close_reason",
+        "soft_reopened_at",
+        "soft_reopened_by",
+        "soft_reopen_reason",
+    )
+    actions = (
+        "activate_selected_years",
+        "soft_close_selected_years",
+        "reopen_soft_selected_years",
+        "unlock_selected_years",
+    )
+
+    @admin.action(description="Set as active (tenant default) year")
+    def activate_selected_years(self, request, queryset):
+        from apps.academics.year_close import activate_academic_year
+
+        ok = 0
+        for year in queryset.select_related("school"):
+            if year.school_id is None:
+                continue
+            activate_academic_year(year.school, year, actor=request.user)
+            ok += 1
+        self.message_user(request, f"Activated {ok} academic year(s) as tenant default.")
+
+    @admin.action(description="Soft-close selected years (teachers blocked on grades)")
+    def soft_close_selected_years(self, request, queryset):
+        from apps.academics.year_close import soft_close_academic_year
+
+        ok = 0
+        skipped = 0
+        for year in queryset.select_related("school"):
+            if year.school_id is None or year.is_locked:
+                skipped += 1
+                continue
+            try:
+                soft_close_academic_year(
+                    year.school,
+                    year,
+                    actor=request.user,
+                    reason="django-admin soft-close action",
+                )
+                ok += 1
+            except ValueError:
+                skipped += 1
+        self.message_user(
+            request,
+            f"Soft-closed {ok} year(s); skipped {skipped}.",
+        )
+
+    @admin.action(description="Reopen soft-closed years (teachers may enter grades)")
+    def reopen_soft_selected_years(self, request, queryset):
+        from apps.academics.year_close import reopen_soft_closed_year
+
+        ok = 0
+        skipped = 0
+        for year in queryset.select_related("school"):
+            if year.school_id is None or not year.is_soft_closed or year.is_locked:
+                skipped += 1
+                continue
+            try:
+                reopen_soft_closed_year(
+                    year.school,
+                    year,
+                    actor=request.user,
+                    reason="django-admin soft reopen action",
+                )
+                ok += 1
+            except ValueError:
+                skipped += 1
+        self.message_user(
+            request,
+            f"Reopened soft-close on {ok} year(s); skipped {skipped}.",
+        )
+
+    @admin.action(description="Unlock (break-glass reopen) selected years")
+    def unlock_selected_years(self, request, queryset):
+        from apps.academics.year_close import unlock_academic_year
+
+        ok = 0
+        skipped = 0
+        for year in queryset.select_related("school"):
+            if year.school_id is None or not year.is_locked:
+                skipped += 1
+                continue
+            unlock_academic_year(
+                year.school,
+                year,
+                actor=request.user,
+                reason="django-admin unlock action (break-glass)",
+            )
+            ok += 1
+        self.message_user(
+            request,
+            f"Unlocked {ok} year(s); skipped {skipped} (not locked or missing school).",
+        )
+
+    def save_model(self, request, obj, form, change):
+        """Route lock/unlock/soft flips through audited services; never treat lock as default."""
+        from apps.academics.year_close import (
+            lock_source_year,
+            reopen_soft_closed_year,
+            soft_close_academic_year,
+            unlock_academic_year,
+        )
+
+        if change and obj.pk and obj.school_id:
+            prior = (
+                AcademicYear.objects.filter(pk=obj.pk)
+                .only("is_locked", "is_soft_closed")
+                .first()
+            )
+            if prior is not None:
+                if prior.is_locked and not obj.is_locked:
+                    unlock_academic_year(
+                        obj.school,
+                        obj,
+                        actor=request.user,
+                        reason="django-admin form unlock (break-glass)",
+                    )
+                    refreshed = AcademicYear.objects.get(pk=obj.pk)
+                    for field in form.changed_data:
+                        if field in ("is_locked", "is_soft_closed"):
+                            continue
+                        setattr(refreshed, field, getattr(obj, field))
+                    super().save_model(request, refreshed, form, change)
+                    return
+                if (not prior.is_locked) and obj.is_locked:
+                    obj.is_locked = False
+                    super().save_model(request, obj, form, change)
+                    lock_source_year(
+                        obj.school,
+                        obj,
+                        actor=request.user,
+                        reason="django-admin form lock",
+                    )
+                    return
+                if (not prior.is_soft_closed) and obj.is_soft_closed and not obj.is_locked:
+                    obj.is_soft_closed = False
+                    super().save_model(request, obj, form, change)
+                    soft_close_academic_year(
+                        obj.school,
+                        obj,
+                        actor=request.user,
+                        reason="django-admin form soft close",
+                    )
+                    return
+                if prior.is_soft_closed and not obj.is_soft_closed and not obj.is_locked:
+                    reopen_soft_closed_year(
+                        obj.school,
+                        obj,
+                        actor=request.user,
+                        reason="django-admin form soft reopen",
+                    )
+                    refreshed = AcademicYear.objects.get(pk=obj.pk)
+                    for field in form.changed_data:
+                        if field in ("is_locked", "is_soft_closed"):
+                            continue
+                        setattr(refreshed, field, getattr(obj, field))
+                    super().save_model(request, refreshed, form, change)
+                    return
+        super().save_model(request, obj, form, change)
 
 
 class TermAdmin(ModelAdmin):

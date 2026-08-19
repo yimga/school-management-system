@@ -163,7 +163,15 @@ class TenantMigrationApplyAdminGateTests(TestCase):
         with self.assertRaises(PermissionDenied):
             TenantMigrationUploadView.as_view()(request)
 
-    def test_repair_write_surface_denied_for_non_admin(self):
+    def test_repair_get_renders_the_review_surface(self):
+        """Refreshing /repair/ must not 405 — it is the same review canvas."""
+        request = self.factory.get("/school/setup/migration-cloud/bundle/repair/")
+        request.user = self.admin
+        request.school = self.school
+        request.session = {}
+        request._messages = FallbackStorage(request)
+        resp = TenantMigrationRepairView.as_view()(request, bundle_id=self.bundle.pk)
+        self.assertEqual(resp.status_code, 200)
         request = self._post(self.member, {})
         with self.assertRaises(PermissionDenied):
             TenantMigrationRepairView.as_view()(request, bundle_id=self.bundle.pk)

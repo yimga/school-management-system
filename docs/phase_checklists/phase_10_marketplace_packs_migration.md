@@ -28,3 +28,4 @@
 
 - [x] Install / rollback expectations documented in UI copy where applicable
 - [x] Interop health surfaces reachable from operator nav where productized
+- [x] **1799:** student-sheet Parent columns land in Guardians (`StudentGuardian`); post-import activate panel invites parents/teachers or issues one-time handover passwords (`bundle-activate-people`)

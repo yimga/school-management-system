@@ -1,12 +1,12 @@
 {
   "date": "2026-08-18",
-  "generated_at": "2026-08-18T13:00:44+00:00",
+  "generated_at": "2026-08-18T22:09:56+00:00",
   "major": 4,
   "minor": 6,
-  "patch": 54,
-  "raw": "sms-v4.06.54-sync-now-audit-2026-08-18",
+  "patch": 59,
+  "raw": "sms-v4.06.59-staff-roles-workflow-guide-2026-08-18",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "sync-now-audit",
+  "slug": "staff-roles-workflow-guide",
   "valid": true
 }

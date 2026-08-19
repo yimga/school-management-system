@@ -305,6 +305,64 @@ persistent data failure routes to correction rather than an endless retry.
 </section>
 {% endif %}
 
+{% if people_activation and not importing %}
+<section class="rmc-card mb-4" aria-labelledby="mc-activate-people-heading" data-rmc-scroll-policy="paginate">
+  <h2 id="mc-activate-people-heading" class="h5">{% trans "Activate parents and teachers" %}</h2>
+  <p class="text-muted small">
+    {% trans "Imported people are in the directory with no password yet. We email a set-password link when mail can be delivered. If mail fails or there is no mailbox, this page downloads one-time passwords instead — nobody is left waiting on SMTP. On first sign-in they set a new password and complete their profile." %}
+  </p>
+  <p class="mb-3">
+    {% if people_activation.parent_count %}
+    <span class="rmc-badge">{% trans "Parents" %}: {{ people_activation.parent_count }}</span>
+    <span class="rmc-badge">{% trans "Can email" %}: {{ people_activation.parent_inviteable }}</span>
+    {% endif %}
+    {% if people_activation.staff_count %}
+    <span class="rmc-badge">{% trans "Teachers" %}: {{ people_activation.staff_count }}</span>
+    <span class="rmc-badge">{% trans "Can email" %}: {{ people_activation.staff_inviteable }}</span>
+    {% endif %}
+  </p>
+  <div class="d-flex flex-wrap gap-2">
+    {% if people_activation.parent_inviteable %}
+    <form method="post" action="{{ activate_url }}">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="invite_parents">
+      <button type="submit" class="btn btn-primary">{% trans "Email parent invites — passwords download if mail fails" %}</button>
+    </form>
+    {% endif %}
+    {% if people_activation.parent_count %}
+    <form method="post" action="{{ activate_url }}">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="handover_parents">
+      <button type="submit" class="btn btn-outline-primary" data-rmc-confirm="{% trans 'This creates one-time passwords shown only in the downloaded file. Share it securely, then delete the file.' %}">{% trans "Download parent passwords" %}</button>
+    </form>
+    {% endif %}
+    {% if people_activation.staff_inviteable %}
+    <form method="post" action="{{ activate_url }}">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="invite_staff">
+      <button type="submit" class="btn btn-primary">{% trans "Email teacher invites — passwords download if mail fails" %}</button>
+    </form>
+    {% endif %}
+    {% if people_activation.staff_count %}
+    <form method="post" action="{{ activate_url }}">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="handover_staff">
+      <button type="submit" class="btn btn-outline-primary" data-rmc-confirm="{% trans 'This creates one-time passwords shown only in the downloaded file. Share it securely, then delete the file.' %}">{% trans "Download teacher passwords" %}</button>
+    </form>
+    {% endif %}
+  </div>
+  <p class="text-muted small mb-0 mt-3">
+    {% if guardians_url %}
+    <a href="{{ guardians_url }}">{% trans "Open Guardians" %}</a>
+    {% endif %}
+    {% if guardians_url and staff_identity_url %} · {% endif %}
+    {% if staff_identity_url %}
+    <a href="{{ staff_identity_url }}">{% trans "Open Staff Identity" %}</a>
+    {% endif %}
+  </p>
+</section>
+{% endif %}
+
 <section class="rmc-card mb-4" aria-labelledby="mc-review-heading">
   <h2 id="mc-review-heading" class="h5">{% trans "We detected these files" %}</h2>
   <p class="text-muted small">{% trans "Auto-detected from your upload. If a record type is wrong, correct it below and we'll re-detect." %}</p>
@@ -411,51 +469,36 @@ persistent data failure routes to correction rather than an endless retry.
       </table>
     </div>
     {% if name_order_preview %}
-    <fieldset class="mt-4">
+    <fieldset class="rmc-name-order mt-4" data-rmc-name-order>
       <legend class="h6">{% trans "How should combined names be split?" %}</legend>
       <p class="text-muted small">{% trans "Your file has one name column. Pick the reading that matches your records — the preview uses real names from your own upload, so you can confirm before importing." %}</p>
-      <div class="table-responsive">
-        <table class="table table-sm align-middle">
-          <caption class="visually-hidden">{% trans "Combined-name split options previewed against your data" %}</caption>
-          <thead>
-            <tr>
-              <th scope="col">{% trans "Option" %}</th>
-              <th scope="col">{% trans "Preview from your file" %}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for option in name_order_preview %}
-            <tr>
-              <td>
-                <div class="form-check">
-                  <input class="form-check-input" type="radio" name="name_order"
-                         id="name-order-{{ forloop.counter0 }}"
-                         value="{{ option.value }}"
-                         {% if option.selected %}checked{% endif %}>
-                  <label class="form-check-label" for="name-order-{{ forloop.counter0 }}">{{ option.label }}</label>
-                </div>
-              </td>
-              <td>
-                <ul class="list-unstyled mb-0 small">
-                  {% for r in option.rows %}
-                  <li>
-                    <span class="text-muted">{{ r.source }}</span>
-                    <span aria-hidden="true">&rarr;</span>
-                    <strong>{% trans "First" %}:</strong> {{ r.first|default:"—" }}
-                    {% if r.middle %}<strong>{% trans "Middle" %}:</strong> {{ r.middle }}{% endif %}
-                    <strong>{% trans "Last" %}:</strong> {{ r.last|default:"—" }}
-                  </li>
-                  {% endfor %}
-                </ul>
-              </td>
-            </tr>
+      <p class="rmc-name-order__cols" aria-hidden="true"><span>{% trans "Option" %}</span><span>{% trans "Preview from your file" %}</span></p>
+      <div class="rmc-name-order__list" role="radiogroup" aria-label="{% trans 'Combined-name split options previewed against your data' %}">
+        {% for option in name_order_preview %}
+        <label class="rmc-name-order__option"{% if option.selected %} data-rmc-name-order-selected="1"{% endif %}>
+          <span class="rmc-name-order__control">
+            <input type="radio" name="name_order" value="{{ option.value }}"{% if option.selected %} checked{% endif %}>
+          </span>
+          <span class="rmc-name-order__copy">
+            <strong>{{ option.label }}</strong>
+          </span>
+          <ul class="rmc-name-order__preview">
+            {% for r in option.rows %}
+            <li>
+              <span class="text-muted">{{ r.source }}</span>
+              <span aria-hidden="true">&rarr;</span>
+              <strong>{% trans "First" %}:</strong> {{ r.first|default:"—" }}
+              {% if r.middle %}<strong>{% trans "Middle" %}:</strong> {{ r.middle }}{% endif %}
+              <strong>{% trans "Last" %}:</strong> {{ r.last|default:"—" }}
+            </li>
             {% endfor %}
-          </tbody>
-        </table>
+          </ul>
+        </label>
+        {% endfor %}
       </div>
     </fieldset>
     {% endif %}
-    <button type="submit" class="btn btn-outline-secondary btn-sm">{% trans "Save changes" %}</button>
+    <button type="submit" class="rmc-btn rmc-btn--primary">{% trans "Save changes" %}</button>
   </form>
   {% else %}
   <div class="rmc-empty mb-0" role="status">

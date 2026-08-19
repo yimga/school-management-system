@@ -75,6 +75,42 @@ body:not(.control-plane-shell):has(.admin-nav-bridge) {
   gap: 0.75rem;
 }
 
+/* Quiet-header primary nav (Home + one role-primary) shares the tenant grammar
+   from rmc-header-utilities.css (.tp-primary-nav). On the /super/-parity dark
+   admin chrome we only need to guarantee legible contrast and sit it inline
+   between the brand and the actions. */
+.admin-nav-bridge .tp-primary-nav {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin: 0;
+}
+
+.admin-nav-bridge .tp-primary-nav__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.7rem;
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.9); /* off-token-allow: white-overlay */
+  text-decoration: none;
+  font-size: var(--type-size-caption);
+  font-weight: 500;
+}
+
+.admin-nav-bridge .tp-primary-nav__item:hover,
+.admin-nav-bridge .tp-primary-nav__item:focus-visible {
+  color: rgba(255, 255, 255, 1); /* off-token-allow: white-overlay */
+  background: rgba(255, 255, 255, 0.12); /* off-token-allow: white-overlay */
+  text-decoration: none;
+}
+
+.admin-nav-bridge .tp-primary-nav__item[aria-current="page"] {
+  color: rgba(255, 255, 255, 1); /* off-token-allow: white-overlay */
+  background: rgba(255, 255, 255, 0.16); /* off-token-allow: white-overlay */
+}
+
 /* Tenant admin does not load Bootstrap's full dropdown bundle. Keep the
    empty typeahead panel out of layout until the shared search runtime opens it. */
 .admin-nav-bridge .cp-search-results-panel:not(.show) {

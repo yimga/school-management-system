@@ -23,11 +23,65 @@ class AcademicYear(models.Model):
     name = models.CharField(max_length=50)  # e.g. "2025/2026"
     start_date = models.DateField()
     end_date = models.DateField()
-    is_active = models.BooleanField(default=False)
+    is_active = models.BooleanField(
+        default=False,
+        help_text=(
+            "Tenant default / operating year (exactly one should be active per school). "
+            "Independent of is_locked — locking a year does NOT make it the default."
+        ),
+    )
     is_locked = models.BooleanField(
         default=False,
-        help_text="When set, no further grade edits or rollover from this year (year-end lock).",
+        help_text=(
+            "Hard-close (year-end seal). When set, grade edits, new enrollments, and "
+            "rollover-from this year are blocked. Does not change is_active; after "
+            "rollover, activate the target year separately."
+        ),
     )
+    is_soft_closed = models.BooleanField(
+        default=False,
+        help_text=(
+            "Soft-close (Salesforce Soft Close). Teachers cannot enter grades; "
+            "registrars/admins with grades.manage may still correct. Independent of "
+            "is_locked (hard-close) and is_active (default year)."
+        ),
+    )
+    soft_closed_at = models.DateTimeField(null=True, blank=True)
+    soft_closed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="academic_years_soft_closed",
+    )
+    soft_close_reason = models.CharField(max_length=255, blank=True, default="")
+    soft_reopened_at = models.DateTimeField(null=True, blank=True)
+    soft_reopened_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="academic_years_soft_reopened",
+    )
+    soft_reopen_reason = models.CharField(max_length=255, blank=True, default="")
+    locked_at = models.DateTimeField(null=True, blank=True)
+    locked_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="academic_years_locked",
+    )
+    lock_reason = models.CharField(max_length=255, blank=True, default="")
+    unlocked_at = models.DateTimeField(null=True, blank=True)
+    unlocked_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="academic_years_unlocked",
+    )
+    unlock_reason = models.CharField(max_length=255, blank=True, default="")
     enable_gce_registration = models.BooleanField(
         default=False,
         help_text="Enable the GCE/certification registration workflow for this academic year.",
@@ -76,6 +130,15 @@ class AcademicYear(models.Model):
         from apps.platform_runtime.calendar_display import format_dual_calendar_date
 
         return format_dual_calendar_date(self.end_date, school=self.school)
+
+    @property
+    def close_tier(self) -> str:
+        """OPEN | SOFT_CLOSED | HARD_CLOSED — display helper for lifecycle UI."""
+        if self.is_locked:
+            return "HARD_CLOSED"
+        if self.is_soft_closed:
+            return "SOFT_CLOSED"
+        return "OPEN"
 
 
 class Term(models.Model):

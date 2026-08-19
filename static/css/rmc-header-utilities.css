@@ -365,6 +365,28 @@ button.rmc-header-utilities__tile {
   text-transform: uppercase;
 }
 
+/* ── Platform Clean Header Approval v2 — control-cap guard (tenant) ──────────
+   The tenant header declares data-rmc-header-control-cap="6". These rules make
+   the cap self-enforcing so no page or module can push the header past it. Scoped
+   to #portalHeader (tenant-only id) so operator/admin shells are untouched. */
+
+/* (a) ONE notification entry point. The header bell (data-rmc-header-bell) is the
+   single visible notification surface; the avatar corner unread badge is a redundant
+   second surface driven by the SAME poller — collapse it whenever the bell renders. */
+#portalHeader [data-rmc-header-bell] ~ .user-dropdown-wrapper [data-rmc-unread-badge][data-rmc-unread-badge-style="avatar"] {
+  display: none !important;
+}
+
+/* (b) .topbar-controls carries exactly the sanctioned trio — notifications,
+   Utilities, profile. Defensively hide any EXTRA interactive control injected as a
+   direct child so the sanctioned count can never exceed the approval cap. The
+   Utilities trigger and profile trigger are nested inside their wrapper <div>s (not
+   direct children), so they are never matched here. */
+#portalHeader .topbar-controls > a:not([data-rmc-header-bell]),
+#portalHeader .topbar-controls > button {
+  display: none !important;
+}
+
 .admin-nav-bridge__search {
   padding-right: 3.25rem;
 }

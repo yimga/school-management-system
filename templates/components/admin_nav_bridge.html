@@ -12,7 +12,7 @@
    when PRIMARY_CONTROL_PLANE_NAV is populated.{% endcomment %}
 {% else %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="admin-nav-bridge" data-shell-nav-bridge="tenant-admin" data-rmc-quiet-header-root="1" data-rmc-header-control-cap="7">
+<div class="admin-nav-bridge" data-shell-nav-bridge="tenant-admin" data-rmc-quiet-header-root="1" data-rmc-header-control-cap="6">
     <div class="admin-nav-bridge__row">
         <div class="admin-nav-bridge__brand">
             <div class="admin-nav-bridge__brand-icon">
@@ -38,7 +38,12 @@
                 </div>
             </div>
         </div>
-        
+
+        {% comment %} Shared quiet-header primary nav: Home + one role-primary destination.
+           Aligns tenant /admin/ with the tenant/portal quiet-header grammar; all other
+           authorized destinations live in the Utilities menu below. {% endcomment %}
+        {% include "partials/tenant_primary_nav.html" %}
+
         <div class="admin-nav-bridge__actions">
             {% comment %}Tenant-admin command palette anchor: keyboard shortcut help + command search input.
                Mirrors the manager-host topbar contract (cpSearchInput / cpShowShortcutsHelp)
@@ -54,10 +59,7 @@
                 <a href="{% url 'super:dashboard' %}" class="admin-nav-bridge__home-btn">{% trans "Control plane" %}</a>
                 <a href="{{ public_site_url|default:'https://runmycampus.com' }}" class="admin-nav-bridge__switch-btn" target="_blank" rel="noopener noreferrer">{% trans "Public site" %}</a>
             {% else %}
-                <a href="{{ portal_home_url|default:'/' }}" class="admin-nav-bridge__home-btn">
-                  <i class="bi bi-house-door" aria-hidden="true"></i>
-                  <span>{% trans "Home" %}</span>
-                </a>
+                {# Home now lives in the shared quiet-header primary nav row above. #}
                 {% include "components/rmc_tenant_header_utilities.html" %}
                 {% if has_permission %}
                 <div class="admin-nav-bridge__usertools" data-rmc-tenant-admin-usertools="1">
@@ -68,22 +70,23 @@
         </div>
     </div>
 
-    {% if admin_portal_stats and not is_manager_host %}
-    <div class="admin-nav-bridge__stats">
-        {% for section, stats in admin_portal_stats.items %}
-        <div class="admin-nav-bridge__stat-card">
-            <div class="admin-nav-bridge__stat-title">{{ section|title }}</div>
-            {% for label, value in stats.items %}
-            <div class="admin-nav-bridge__stat-row">
-                <span>{{ label }}</span>
-                <span class="admin-nav-bridge__stat-value">{{ value }}</span>
-            </div>
-            {% endfor %}
+</div>
+{% if admin_portal_stats and not is_manager_host %}
+{% comment %} Quiet-header v2: stats are page chrome, never a second header band. {% endcomment %}
+<div class="admin-nav-bridge__stats" data-rmc-admin-bridge-stats="1">
+    {% for section, stats in admin_portal_stats.items %}
+    <div class="admin-nav-bridge__stat-card">
+        <div class="admin-nav-bridge__stat-title">{{ section|title }}</div>
+        {% for label, value in stats.items %}
+        <div class="admin-nav-bridge__stat-row">
+            <span>{{ label }}</span>
+            <span class="admin-nav-bridge__stat-value">{{ value }}</span>
         </div>
         {% endfor %}
     </div>
-    {% endif %}
+    {% endfor %}
 </div>
+{% endif %}
 {% endif %}
 {% comment %}
   Tenant /admin/ is the school configuration engine — never inject control-plane
