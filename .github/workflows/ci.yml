@@ -76,6 +76,10 @@ jobs:
         # Must print EAGER_FILTER_ARG_COMPLETION_PASS. Static-only subset also
         # runs in architectural-boundaries.yml.
         run: python scripts/verify_eager_filter_arg_completion.py
+      - name: Nav Engine coverage (static + reverse)
+        # Catalog ids reverse on tenant + manager urlconfs; static wiring is
+        # also gated in architectural-boundaries.yml.
+        run: python scripts/verify_nav_engine_coverage.py
       - name: Run Django tests
         run: python manage.py test --noinput -v 0
 

@@ -75,6 +75,9 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # Full completion (Django sparse renders + regression module) in ci.yml;
     # static-only subset also runs in architectural-boundaries.yml.
     ("scripts/verify_eager_filter_arg_completion.py", "ci.yml"),
+    # Platform nav catalog: static projector wiring in architectural-boundaries;
+    # full reverse() of spine url_names in ci.yml.
+    ("scripts/verify_nav_engine_coverage.py", "architectural-boundaries.yml"),
     # Money never float; tenant rows always scoped; offline label has code.
     ("scripts/scan_wallpaper_status_badges.py", "architectural-boundaries.yml"),
     ("scripts/verify_page_masthead_twin_contract.py", "architectural-boundaries.yml"),

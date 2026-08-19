@@ -1386,6 +1386,24 @@ jobs:
           python -m unittest scripts.tests.test_verify_eager_filter_arg_completion -v
           python scripts/verify_eager_filter_arg_completion.py --static-only
 
+  nav-engine-coverage:
+    name: "Nav Engine coverage (static catalog + projector wiring)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Static projector + group-label wiring
+        # Spine reverse() needs Django (ci.yml). This job only proves the
+        # catalog is still consumed by portal / CP / Cmd+K and that the HTML
+        # role-tree fork did not return.
+        run: |
+          python -m unittest scripts.tests.test_verify_nav_engine_coverage -v
+          python scripts/verify_nav_engine_coverage.py --static-only
+
   template-tag-loads:
     name: "Template custom tag {% load %} integrity"
     runs-on: ubuntu-latest

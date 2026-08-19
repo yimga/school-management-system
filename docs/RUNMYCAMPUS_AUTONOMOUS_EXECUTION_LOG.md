@@ -1,5 +1,19 @@
 # RunMyCampus autonomous execution log
 
+## Slice — Nav Engine CI seal (batch 1807 - 2026-08-19)
+
+**A. Scope:** Re-audit leftover after 1805: catalog gate was local-pre-push only.
+
+**B. Shipped:** `nav-engine-coverage` job in architectural-boundaries (static + unittest); full `verify_nav_engine_coverage.py` in `ci.yml`; `REQUIRED_GATES` row.
+
+**C. Proof:** `NAV_ENGINE_COVERAGE_PASS`; `verify_ci_gate_wiring` 46 gates / 0 unwired.
+
+**D. Honest:** Same off-spine leftovers as 1805 (hostel URL; kwargs Tenant 360 / sync repair).
+
+**E. Files:** `architectural-boundaries.yml`, `ci.yml`, `verify_ci_gate_wiring.py`, SOT/log.
+
+**F. Next:** From fleet wall, open Tenant 360; HOD should see Teachers/Classrooms.
+
 ## Slice — sync_engine + EdgeOnboardingRun RLS (batch 1806 - 2026-08-19)
 
 **A. Scope:** Close `scan_rls_force_coverage` NEW gaps on four public-schema sync_engine models (school FK, created after schools/0083) and the 1804 `EdgeOnboardingRun` table.
