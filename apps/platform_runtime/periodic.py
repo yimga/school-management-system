@@ -65,6 +65,21 @@ logger = logging.getLogger(__name__)
 
 # --- tunables (module-level named constants; env-overridable) ----------------
 SCAN_THROTTLE_SECONDS = int(os.getenv("RMC_PERIODIC_SCAN_THROTTLE", "60"))
+# On a sovereign edge box the /health/ tick is the ONLY thing driving sync (no broker, no
+# beat), so a 60s scan floor puts a 60s floor under edge<->cloud convergence however fast
+# the job itself is registered. Scanning is a monotonic compare plus, at most, one daemon
+# thread doing cache reads — cheap enough to do often on a single-tenant appliance, and
+# every job still honours its OWN interval, so nothing else runs more than it used to.
+_EDGE_SCAN_THROTTLE_SECONDS = int(os.getenv("RMC_EDGE_PERIODIC_SCAN_THROTTLE", "5"))
+
+
+def _scan_throttle_seconds() -> int:
+    """Seconds between scans for THIS process. Shorter on an edge box (see above)."""
+    from django.conf import settings as _dj_settings
+
+    if getattr(_dj_settings, "RMC_EDGE_SYNC_ENABLED", False):
+        return max(1, min(SCAN_THROTTLE_SECONDS, _EDGE_SCAN_THROTTLE_SECONDS))
+    return SCAN_THROTTLE_SECONDS
 DEFAULT_LOCK_TTL_SECONDS = 600  # magic-number-allow: default per-job lock TTL (seconds)
 WEEKLY_SECONDS = 7 * 24 * 60 * 60
 DAILY_SECONDS = 24 * 60 * 60
@@ -617,11 +632,15 @@ def _maybe_register_edge_sync_job(registry: dict) -> None:
 
     if not getattr(_dj_settings, "RMC_EDGE_SYNC_ENABLED", False):
         return
-    from apps.sync_engine.edge_scheduler import edge_sync_interval_seconds
+    # Registered at the fast TICK cadence, NOT the sync interval. The cadence decision
+    # moved into ``run_edge_sync_now`` (apps.sync_engine.cadence) so a wake — the network
+    # coming back, a local write, an operator click — is acted on at the next tick instead
+    # of waiting out a 180s registration. A tick that is not due costs a cache read.
+    from apps.sync_engine.edge_scheduler import edge_sync_tick_seconds
 
     registry["sync_engine.edge_sync_cycle"] = PeriodicJob(
         name="sync_engine.edge_sync_cycle",
-        interval_seconds=edge_sync_interval_seconds(),
+        interval_seconds=edge_sync_tick_seconds(),
         func=_run_edge_sync_cycle,
         description="Auto edge<->cloud sync (push up + pull down); offline-safe no-op, resumes when online.",
         lock_ttl_seconds=HEAVY_JOB_LOCK_TTL_SECONDS,
@@ -1220,14 +1239,15 @@ def maybe_run_due_jobs() -> None:
         if not inprocess_scheduler_enabled():
             return
 
+        throttle = _scan_throttle_seconds()
         now_m = time.monotonic()
-        if (now_m - _last_scan_monotonic) < SCAN_THROTTLE_SECONDS:
+        if (now_m - _last_scan_monotonic) < throttle:
             return
         # Only one thread per process advances the gate per window.
         if not _scan_gate.acquire(blocking=False):
             return
         try:
-            if (now_m - _last_scan_monotonic) < SCAN_THROTTLE_SECONDS:
+            if (now_m - _last_scan_monotonic) < throttle:
                 return
             _last_scan_monotonic = now_m
         finally:

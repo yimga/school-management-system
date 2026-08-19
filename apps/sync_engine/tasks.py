@@ -14,10 +14,17 @@ except ImportError:  # pragma: no cover - celery is always installed in this pro
 
 
 def run_edge_sync_cycle() -> dict:
-    """Plain (broker-free) entry the beat task and any caller can invoke."""
+    """Plain (broker-free) entry the beat task and any caller can invoke.
+
+    Deliberately NOT forced. Beat is a timer, not an intent — letting it bypass the
+    adaptive cadence would reintroduce the fixed-interval behaviour the cadence exists to
+    replace, and would keep building bundles at full rate while the box is offline. The
+    beat entry ticks fast (see ``CELERY_BEAT_SCHEDULE["edge-sync-cycle"]``) and the
+    cadence decides which ticks become real cycles.
+    """
     from apps.sync_engine.edge_scheduler import run_edge_sync_now
 
-    return run_edge_sync_now(mode="live")
+    return run_edge_sync_now(mode="live", trigger="celery-beat")
 
 
 if shared_task is not None:
