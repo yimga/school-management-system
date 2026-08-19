@@ -191,7 +191,7 @@
       <summary><i class="bi bi-calendar-week" aria-hidden="true"></i> {% trans "This week's deadlines" %}</summary>
       <div class="rmc-preview-live-section__body">
         {% for ev in teacher_deadline_items|slice:":4" %}
-        {% include "components/dashboard/rmc_dh_due_item.html" with dh_icon="bi-flag" dh_text=ev.title dh_cd=ev.when|date:"M j" %}
+        {% include "components/dashboard/rmc_dh_due_item.html" with dh_icon="bi-flag" dh_text=ev.title dh_cd=ev.when|date:"M j" dh_href=teacher_action_links.enter_marks %}
         {% endfor %}
       </div>
     </details>

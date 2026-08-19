@@ -61,7 +61,7 @@
       <h2 class="rmc-dh-attention__title"><i class="bi bi-exclamation-octagon" aria-hidden="true"></i> {% trans "Don't forget" %}</h2>
       {% for item in phase7_de.urgent_queue %}
       {% if item.url %}{% include "components/dashboard/rmc_dh_attn_row.html" with dh_icon="bi-arrow-right-circle" dh_text=item.title dh_go_label=_("Open") dh_go_href=item.url %}
-      {% else %}{% include "components/dashboard/rmc_dh_attn_row.html" with dh_icon="bi-check-circle" dh_text=item.title %}{% endif %}
+      {% else %}{% include "components/dashboard/rmc_dh_attn_row.html" with dh_icon="bi-check-circle" dh_text=item.title dh_no_action_reason="cleared-queue-row" %}{% endif %}
       {% endfor %}
     </div>
     {% elif not student_onboarding %}

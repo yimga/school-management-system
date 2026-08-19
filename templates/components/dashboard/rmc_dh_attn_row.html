@@ -1,7 +1,17 @@
 {% comment %}
   rmc-dh "what needs you" row. Wrap rows in
   <div class="rmc-dh-attention"><h2 class="rmc-dh-attention__title">…</h2> {rows} </div>.
-  Params: dh_icon (bi-*), dh_text, dh_go_label (opt), dh_go_href (opt).
+  Params: dh_icon (bi-*), dh_text, dh_go_label (opt), dh_go_href (opt),
+          dh_no_action_reason (opt).
+
+  A row in "What needs you" states that something needs the reader. It must
+  therefore say WHERE to go: pass dh_go_href (with dh_go_label). Reporting a
+  backlog with no destination makes the reader hunt for the screen themselves,
+  which is the dead end scan_actionless_attention_surfaces.py exists to stop.
+
+  The one legitimate exception is a row that reports the ABSENCE of work
+  ("Queue clear"). Mark those with dh_no_action_reason so the intent is stated
+  in the template rather than suppressed in a scanner baseline.
 {% endcomment %}
 <div class="rmc-dh-attn-row">
   {% if dh_icon %}<i class="bi {{ dh_icon }}" aria-hidden="true"></i>{% endif %} <span>{{ dh_text }}</span>
