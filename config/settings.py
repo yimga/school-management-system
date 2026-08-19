@@ -2206,22 +2206,35 @@ try:
 except ImportError:  # pragma: no cover - celery is in requirements.txt
     _celery_crontab = None  # type: ignore[assignment]
 
-# Edge auto-sync cadence (seconds) for the beat entry below + the in-process
-# scheduler (apps.sync_engine.edge_scheduler.edge_sync_interval_seconds reads the
-# same env). Default 180s, floor 60s. The task self-gates on RMC_EDGE_SYNC_ENABLED,
-# so this entry is inert on the cloud (and wherever no beat runs) — only a sovereign
-# edge box with a worker+beat fires it; the broker-less box uses the /health/ tick.
+# Edge auto-sync TICK cadence (seconds) for the beat entry below. This is how often the
+# box CONSIDERS a sync, not how often one runs: the decision moved into the adaptive
+# cadence (apps.sync_engine.cadence) so a wake — the network returning, a local write, an
+# operator click — is acted on at the next tick rather than after a fixed interval. A tick
+# that is not due costs one cache read and no network. The task self-gates on
+# RMC_EDGE_SYNC_ENABLED, so this entry is inert on the cloud (and wherever no beat runs) —
+# only a sovereign edge box with a worker+beat fires it; the broker-less box uses the
+# /health/ tick.
+#
+# An operator who PINS RMC_EDGE_SYNC_INTERVAL_SECONDS (metered link, bandwidth window)
+# still gets exactly that cadence — cadence.pinned_interval_seconds() honours the pin and
+# there is no point ticking faster than it.
 try:
-    _EDGE_SYNC_INTERVAL = max(60, int(os.getenv("RMC_EDGE_SYNC_INTERVAL_SECONDS", "") or 180))
+    _EDGE_SYNC_TICK = max(5, int(os.getenv("RMC_EDGE_SYNC_TICK_SECONDS", "") or 5))
 except (TypeError, ValueError):
-    _EDGE_SYNC_INTERVAL = 180
+    _EDGE_SYNC_TICK = 5
+try:
+    _EDGE_SYNC_PIN = int(os.getenv("RMC_EDGE_SYNC_INTERVAL_SECONDS", "") or 0)
+except (TypeError, ValueError):
+    _EDGE_SYNC_PIN = 0
+_EDGE_SYNC_INTERVAL = min(_EDGE_SYNC_TICK, _EDGE_SYNC_PIN) if _EDGE_SYNC_PIN > 0 else _EDGE_SYNC_TICK
 
 # Celery Beat schedule for periodic tasks
 # Optional tasks (requests reminder, deadline reminder) respect Site Settings: 0 = no-op
 CELERY_BEAT_SCHEDULE = {
-    # Edge<->cloud auto-sync (2026-08-16). Beat path for boxes running a worker+beat;
-    # broker-less boxes drive the identical code off the /health/ tick instead. The
-    # task is a hard no-op unless RMC_EDGE_SYNC_ENABLED, so this is inert elsewhere.
+    # Edge<->cloud auto-sync (2026-08-16; adaptive cadence 2026-08-19). Beat path for
+    # boxes running a worker+beat; broker-less boxes drive the identical code off the
+    # /health/ tick instead. The task is a hard no-op unless RMC_EDGE_SYNC_ENABLED, so
+    # this is inert elsewhere. The schedule is the TICK, not the sync interval.
     "edge-sync-cycle": {
         "task": "sync_engine.edge_sync_cycle",
         "schedule": _EDGE_SYNC_INTERVAL,
