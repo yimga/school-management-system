@@ -605,13 +605,29 @@ CANONICAL_ONTOLOGY: dict[str, dict[str, dict]] = {
             description="Teacher / admin / nurse / counselor / coach / other.",
             value_type="enum",
             value_examples=["Teacher", "Administrator", "Counselor"],
-            synonyms={"en": ["role", "position", "title", "job_title"]},
+            synonyms={
+                "en": [
+                    "role", "position", "title", "job_title", "job",
+                    "designation", "rank", "post", "job_role",
+                ],
+                "fr": [
+                    "fonction", "poste", "titre", "intitule_poste",
+                    "qualite", "cadre", "emploi",
+                ],
+                "es": ["cargo", "puesto", "funcion", "rol"],
+                "pt": ["cargo", "funcao", "papel"],
+            },
         ),
         "department": _field(
             description="Department / faculty.",
             value_type="string",
             value_examples=["Mathematics", "Languages"],
-            synonyms={"en": ["department", "dept", "faculty"]},
+            synonyms={
+                "en": ["department", "dept", "faculty"],
+                "fr": ["departement", "service", "filiere"],
+                "es": ["departamento", "facultad"],
+                "pt": ["departamento", "faculdade"],
+            },
         ),
         "phone": _field(
             description="Staff phone / contact number.",
@@ -632,7 +648,10 @@ CANONICAL_ONTOLOGY: dict[str, dict[str, dict]] = {
             description="ISO hire date.",
             value_type="date",
             value_examples=["2018-09-01"],
-            synonyms={"en": ["hire_date", "start_date", "employment_start"]},
+            synonyms={
+                "en": ["hire_date", "start_date", "employment_start", "date_hired"],
+                "fr": ["date_embauche", "date_d_embauche", "date_engagement"],
+            },
         ),
     },
     # ---------------------------------------------------------------- enrollment

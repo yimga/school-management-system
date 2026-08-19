@@ -116,7 +116,7 @@ from .views_owner_onboarding import (
     owner_onboarding_provision_status,
     owner_onboarding_school,
 )
-from .guardian_invite import GuardianSetupView
+from .guardian_invite import GuardianSetupView, StaffSetupView
 from apps.schools.super_views_operator_team import operator_invite_accept
 from .views_mfa import mfa_setup, mfa_verify, dismiss_mfa_banner, mfa_defer
 from .views_passkey import (
@@ -883,6 +883,12 @@ urlpatterns = [
         "guardian-setup/<uidb64>/<token>/",
         GuardianSetupView.as_view(),
         name="guardian_setup",
+    ),
+    # rbac-allow: token-authenticated one-time staff set-password; must be anonymous-reachable
+    path(
+        "staff-setup/<uidb64>/<token>/",
+        StaffSetupView.as_view(),
+        name="staff_setup",
     ),
     path("mfa/setup/", mfa_setup, name="mfa_setup"),
     path("mfa/defer/", mfa_defer, name="mfa_defer"),

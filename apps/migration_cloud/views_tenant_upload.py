@@ -37,6 +37,7 @@ from django.core.exceptions import PermissionDenied
 from django.http import Http404, JsonResponse
 from django.shortcuts import redirect, render
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 from django.views import View
 
 from . import defaults as mc_defaults
@@ -608,20 +609,169 @@ def _column_mapping_rows(artifact_maps) -> list[dict]:
 # Combined-name split orders offered on the review page. "" keeps the existing
 # locale/country auto-detection.
 NAME_ORDER_CHOICES = (
-    ("", "Detect automatically"),
-    ("first_last", "Given name first (Ada Lovelace)"),
-    ("last_first", "Family name first (Lovelace Ada)"),
-    ("spanish_double", "Two family names (Garcia Marquez Gabriel)"),
+    ("", _("Detect automatically")),
+    ("first_last", _("Given name first (Ada Lovelace)")),
+    ("last_first", _("Family name first (Lovelace Ada)")),
+    ("spanish_double", _("Two family names (Garcia Marquez Gabriel)")),
 )
 _NAME_ORDER_VALUES = {value for value, _label in NAME_ORDER_CHOICES}
 _NAME_PREVIEW_SAMPLES = 5  # magic-number-allow: name-order-preview-sample-count
-_NAME_COLUMN_HINTS = ("full_name", "name", "student_name", "staff_name", "nom", "noms")
+_PERSON_NAME_FIELDS = (
+    "full_name",
+    "student_name",
+    "staff_name",
+    "legal_name",
+    "display_name",
+)
+_NAME_COLUMN_HINTS = (
+    "full_name",
+    "student_name",
+    "staff_name",
+    "legal_name",
+    "nom_complet",
+    "noms",
+)
+_NAME_COLUMN_EXCLUDE = (
+    "program",
+    "programme",
+    "trade",
+    "course",
+    "subject",
+    "specialty",
+    "speciality",
+    "department",
+    "school_name",
+    "filename",
+    "file_name",
+    "campus_name",
+    "class_name",
+)
+_PERSON_DOMAINS = frozenset(
+    {"students", "staff", "alumni", "guardians", "parents", "people"}
+)
+_PROGRAM_DOMAINS = frozenset(
+    {
+        "programs",
+        "programmes",
+        "trades",
+        "courses",
+        "subjects",
+        "specialties",
+        "specialities",
+        "departments",
+    }
+)
+_PROGRAM_FILENAME_HINTS = (
+    "program",
+    "programme",
+    "trade",
+    "course",
+    "specialty",
+    "speciality",
+    "tvet",
+    "vocational",
+)
+# Phrase markers from real TVET "Name" columns (ELECTRICAL POWER SYSTEMS, …).
+# A person roster must not be previewed as First/Middle/Last from these titles.
+_PROGRAM_TITLE_PHRASES = (
+    "electrical power",
+    "power systems",
+    "fashion design",
+    "building construction",
+    "carpentry and joinery",
+    "carpentry & joinery",
+    "motor mechanics",
+    "motor vehicle",
+    "automobile mechanic",
+    "electrical installation",
+    "air conditioning",
+    "metal fabrication",
+    "office practice",
+    "hairdressing",
+    "welding",
+    "plumbing",
+    "masonry",
+    "bricklaying",
+    "refrigeration",
+    "secretarial",
+    "catering",
+    "cosmetology",
+)
 
 
 def selected_name_order(bundle) -> str:
     prefs = (getattr(bundle, "mapping_summary", None) or {}).get("transform_prefs") or {}
     order = str(prefs.get("name_order") or "").strip().lower()
     return order if order in _NAME_ORDER_VALUES else ""
+
+
+def _artifact_path_blob(artifact) -> str:
+    return f"{getattr(artifact, 'filename', '') or ''} {getattr(artifact, 'path_within_bundle', '') or ''}".lower()
+
+
+def _looks_like_program_sheet(*, domain: str, artifact) -> bool:
+    """True for a trades / programmes file even if it was labelled students."""
+    if domain in _PROGRAM_DOMAINS:
+        return True
+    blob = _artifact_path_blob(artifact)
+    return any(hint in blob for hint in _PROGRAM_FILENAME_HINTS)
+
+
+def _looks_like_program_title(text: str) -> bool:
+    """TVET course titles must not preview as a person's First / Middle / Last."""
+    lowered = " ".join(str(text or "").lower().split())
+    if not lowered:
+        return False
+    return any(phrase in lowered for phrase in _PROGRAM_TITLE_PHRASES)
+
+
+def _mapped_person_name_columns(bundle) -> set[str]:
+    """Source headers already mapped to a person-name field on this bundle."""
+    mapped: set[str] = set()
+    per_artifact = (getattr(bundle, "mapping_summary", None) or {}).get("per_artifact") or {}
+    for mappings in per_artifact.values():
+        for item in mappings or []:
+            if not isinstance(item, dict):
+                continue
+            canon = str(item.get("canonical_field") or "").strip().lower()
+            leaf = canon.rsplit(".", 1)[-1]
+            if leaf not in _PERSON_NAME_FIELDS:
+                continue
+            source = str(item.get("source_column") or "").strip().lower()
+            if source:
+                mapped.add(source)
+    return mapped
+
+
+def _is_person_name_column(
+    *,
+    header: str,
+    normalized: str,
+    mapped_headers: set[str],
+    domain: str,
+    program_sheet: bool,
+) -> bool:
+    """True only for combined *people* names — not program / trade / file names.
+
+    A bare ``Name`` header on a specialty sheet was previewing "ELECTRICAL POWER
+    SYSTEMS" as if it were a student. Prefer mapped ``full_name`` columns; otherwise
+    require a person-name hint and refuse program/trade headers. A trades file
+    mapped to ``full_name`` is still refused — that mapping is the bug.
+    """
+    if program_sheet:
+        return False
+    header_l = header.strip().lower()
+    normalized_l = normalized.strip().lower()
+    tokens = f"{header_l} {normalized_l}"
+    if any(token in tokens for token in _NAME_COLUMN_EXCLUDE):
+        return False
+    if header_l in mapped_headers or normalized_l in mapped_headers:
+        return True
+    if any(hint in normalized_l or hint in header_l for hint in _NAME_COLUMN_HINTS):
+        return True
+    if header_l in {"name", "noms"} or normalized_l in {"name", "noms"}:
+        return domain in _PERSON_DOMAINS
+    return False
 
 
 def _combined_name_samples(bundle) -> list[str]:
@@ -633,15 +783,33 @@ def _combined_name_samples(bundle) -> list[str]:
     tell the operator nothing about their file.
     """
     seen: list[str] = []
-    for artifact in bundle.artifacts.filter(quarantined=False):
+    mapped_headers = _mapped_person_name_columns(bundle)
+    for artifact in bundle.artifacts.filter(quarantined=False):  # tenant-isolation-allow: bundle-scoped-related-manager-already-tenant-bound
+        top = artifact.inferred_domain[0] if isinstance(artifact.inferred_domain, list) and artifact.inferred_domain else {}
+        domain = str(
+            artifact.assigned_domain
+            or (top.get("domain") if isinstance(top, dict) else "")
+            or ""
+        ).strip().lower()
+        program_sheet = _looks_like_program_sheet(domain=domain, artifact=artifact)
         for column in ((artifact.profile or {}).get("columns") or []):
-            normalized = str(column.get("normalized") or column.get("name") or "").lower()
-            if not any(hint in normalized for hint in _NAME_COLUMN_HINTS):
+            header = str(column.get("name") or "")
+            normalized = str(column.get("normalized") or header)
+            if not _is_person_name_column(
+                header=header,
+                normalized=normalized,
+                mapped_headers=mapped_headers,
+                domain=domain,
+                program_sheet=program_sheet,
+            ):
                 continue
             for sample in (column.get("samples") or []):
                 text = " ".join(str(sample or "").split())
-                if len(text.split()) >= 2 and text not in seen:
-                    seen.append(text)
+                if len(text.split()) < 2 or text in seen:
+                    continue
+                if _looks_like_program_title(text):
+                    continue
+                seen.append(text)
                 if len(seen) >= _NAME_PREVIEW_SAMPLES:
                     return seen
     return seen
@@ -1000,7 +1168,12 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
             "upload_url": _connector_reverse(request, "upload"),
             "review_url": _connector_reverse(request, "bundle-review", bundle_id=bundle.pk),
             "apply_url": _connector_reverse(request, "bundle-apply", bundle_id=bundle.pk),
+            "activate_url": _connector_reverse(
+                request, "bundle-activate-people", bundle_id=bundle.pk
+            ),
             "home_url": _connector_reverse(request, "connector-home"),
+            "people_activation": _build_people_activation(bundle),
+            **_people_directory_urls(),
         }
 
 
@@ -1209,6 +1382,14 @@ class TenantMigrationRepairView(_TenantAdminWriteRequiredMixin, View):
 
     template_name = "migration_cloud/connector/bundle_review.html"
 
+    def get(self, request, bundle_id: int):
+        bundle = _tenant_bundle_or_404(request, bundle_id)
+        return render(
+            request,
+            self.template_name,
+            TenantMigrationReviewView().build_context(request, bundle),
+        )
+
     @idempotent_post
     @safe_500
     def post(self, request, bundle_id: int):
@@ -1318,3 +1499,88 @@ class TenantMigrationRollbackView(_TenantAdminWriteRequiredMixin, View):
                 result.get("message") or "Rollback partly completed; some rows were left in place.",
             )
         return redirect(_connector_reverse(request, "bundle-review", bundle_id=bundle.pk))
+
+
+def _people_directory_urls() -> dict[str, str]:
+    """Tenant-host named URLs for Guardians + Staff Identity (empty if unresolved)."""
+    from django.urls import NoReverseMatch, reverse
+
+    out = {"guardians_url": "", "staff_identity_url": ""}
+    try:
+        out["guardians_url"] = reverse("accounts:backend_guardian_list")
+    except NoReverseMatch:
+        pass
+    try:
+        out["staff_identity_url"] = reverse("accounts:tenant_identity_roster")
+    except NoReverseMatch:
+        pass
+    return out
+
+
+def _build_people_activation(bundle):
+    """Invite / one-time-password panel after people have landed in the school."""
+    try:
+        from .people_activation import activation_snapshot
+
+        return activation_snapshot(getattr(bundle, "school", None))
+    except Exception:  # noqa: BLE001 — panel is additive; never 500 the review page
+        return None
+
+
+class TenantMigrationPeopleActivateView(_TenantAdminWriteRequiredMixin, View):
+    """POST → invite parents/teachers or download a one-time password sheet.
+
+    Tenant-admin gated and tenant-scoped. Invite emails only go to deliverable
+    mailboxes. Handover CSVs mint temporary passwords (forced change + profile
+    setup on first login) and are shown once — never logged.
+    """
+
+    @safe_500
+    def post(self, request, bundle_id: int):
+        bundle = _tenant_bundle_or_404(request, bundle_id)
+        action = (request.POST.get("action") or "").strip().lower()
+        school = getattr(bundle, "school", None)
+        review = _connector_reverse(request, "bundle-review", bundle_id=bundle.pk)
+        if school is None:
+            messages.error(request, _("This upload is not bound to a school."))
+            return redirect(review)
+        from .people_activation import (
+            activate_mail_then_handover,
+            handover_csv_response,
+        )
+
+        if action == "invite_parents":
+            csv_response = activate_mail_then_handover(
+                school=school, kind="parents", request=request
+            )
+            if csv_response is not None:
+                messages.success(
+                    request,
+                    _(
+                        "Parent invites: emailed where mail worked. "
+                        "This download has one-time passwords for everyone mail could not reach."
+                    ),
+                )
+                return csv_response
+            messages.success(request, _("Parent invites sent to every deliverable mailbox."))
+            return redirect(review)
+        if action == "invite_staff":
+            csv_response = activate_mail_then_handover(
+                school=school, kind="staff", request=request
+            )
+            if csv_response is not None:
+                messages.success(
+                    request,
+                    _(
+                        "Teacher invites: emailed where mail worked. "
+                        "This download has one-time passwords for everyone mail could not reach."
+                    ),
+                )
+                return csv_response
+            messages.success(request, _("Teacher invites sent to every deliverable mailbox."))
+            return redirect(review)
+        if action in ("handover_parents", "handover_staff"):
+            kind = "parents" if action == "handover_parents" else "staff"
+            return handover_csv_response(school=school, kind=kind)
+        messages.info(request, _("Choose an activation action."))
+        return redirect(review)

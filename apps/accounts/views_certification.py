@@ -7,7 +7,7 @@ from django import forms
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import reverse
+from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
 from django.db import transaction
 
@@ -29,6 +29,33 @@ from apps.accounts.models import User
 from apps.people.models import StudentProfile
 
 
+def _safe_admin_url(name: str) -> str:
+    """Reverse a Django-admin route, or "" where the admin is not mounted.
+
+    `config.urls` (the base/public host) does NOT mount `django.contrib.admin`, so a
+    bare `reverse("admin:...")` here is an uncaught NoReverseMatch -> 500 on that host.
+    `verify_url_name_integrity` cannot catch it because that gate UNIONS registered
+    names across every host urlconf, so an `admin:` name resolves as long as SOME host
+    mounts it; `verify_cross_host_template_reverse` only inspects `{% url %}` in
+    templates, not `reverse()` in a view. This is the seam between the two.
+    """
+    try:
+        return reverse(name)
+    except NoReverseMatch:
+        return ""
+
+
+def _certification_setup_redirect_target() -> str:
+    """Where to send an operator who must enable GCE on the academic year.
+
+    Prefer the admin changelist; fall back to the Workflow Center, which is reachable
+    on every tenant host and carries the same "1) Year setup" entry point.
+    """
+    return _safe_admin_url("admin:academics_academicyear_changelist") or (
+        _safe_admin_url("studio_os:workflow_center") or "/"
+    )
+
+
 def _is_admin_user(user):
     return user.is_authenticated and (
         user.is_superuser or user.is_staff or user.role == User.Role.ADMIN
@@ -45,7 +72,7 @@ def _year_gce_enabled_or_forbidden(request, year: AcademicYear | None):
             request,
             "Certification/GCE workflow is disabled for the active year. Enable it in Academic Year settings to proceed.",
         )
-        return redirect(reverse("admin:academics_academicyear_changelist"))
+        return redirect(_certification_setup_redirect_target())
     return None
 
 
@@ -130,8 +157,10 @@ def certification_home(request):
             "active_year": year,
             "active_term": term,
             "sessions": sessions,
-            "admin_year_url": reverse("admin:academics_academicyear_changelist"),
-            "admin_session_url": reverse(
+            "admin_year_url": _safe_admin_url(
+                "admin:academics_academicyear_changelist"
+            ),
+            "admin_session_url": _safe_admin_url(
                 "admin:academics_certificationexamsession_changelist"
             ),
         },

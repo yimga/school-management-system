@@ -207,6 +207,19 @@ class GuardianLander(Lander):
                     ctx=ctx, legacy_id=legacy_id,
                     canonical_obj=obj, domain="guardians",
                 )
+                try:
+                    from apps.migration_cloud.guardian_directory import (
+                        ensure_school_membership,
+                    )
+
+                    parent_role = User.Role.PARENT
+                    ensure_school_membership(
+                        user=guardian_user,
+                        school=ctx.school,
+                        role=parent_role,
+                    )
+                except Exception:  # noqa: BLE001 — membership is additive; link already landed
+                    pass
             except Exception as exc:  # noqa: BLE001
                 result.quarantined += 1
                 result.errors.append(f"guardian upsert failed: {type(exc).__name__}: {exc}")
@@ -243,10 +256,19 @@ def _resolve_or_provision_user(
     if matched is not None:
         return matched, ""
     if not email:
-        return None, (
-            "no guardian_user_ref / phone match and no email to resolve or "
-            "provision a user"
+        if not (first_name or last_name):
+            return None, (
+                "no guardian_user_ref / phone match and no email or name to "
+                "resolve or provision a user"
+            )
+        from apps.accounts.email_delivery_policy import synthetic_unclaimed_email
+
+        school_pk = getattr(school, "pk", "") or ""
+        seed = (
+            f"{school_pk}|{(phone or '').strip().lower()}|"
+            f"{(first_name or '').casefold()}|{(last_name or '').casefold()}"
         )
+        email = synthetic_unclaimed_email(seed)
     if dry_run:
         return None, ""  # would provision — preview counts it as landable
     username = _free_username(User, email)

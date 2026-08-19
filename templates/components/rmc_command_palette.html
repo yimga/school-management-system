@@ -92,8 +92,16 @@
           {% if cmdk_data_quality_url %}{"label": "{% trans 'Data Quality Center' %}", "url": "{{ cmdk_data_quality_url }}", "icon": "bi-shield-check", "keywords": "data quality completeness reachability issues"},{% endif %}
           {% url 'siteconfig:ai_center' as cmdk_ai_center_url %}
           {% if cmdk_ai_center_url %}{"label": "{% trans 'AI Center' %}", "url": "{{ cmdk_ai_center_url }}", "icon": "bi-stars", "keywords": "ai assistant chat copilot domain help"},{% endif %}
-          {"label": "{% trans 'Knowledge base' %}", "url": "{% url 'kb:kb_home' %}", "icon": "bi-book", "keywords": "docs guide articles runbooks"},
-          {% if request.public_host_kind == 'manager' %}{"label": "{% trans 'Search help (KB)' %}", "url": "{% url 'kb:kb_search' %}?q=", "icon": "bi-search", "keywords": "search help faq articles"},
+          {# `kb` is mounted on config/{urls,tenant_urls,manager_urls}.py but NOT on
+             config/public_urls.py, which serves the base/verify/support hosts and any
+             unknown school subdomain. base.html includes this palette for every
+             authenticated request, so a bare reverse here turned the branded
+             school-not-found page into a 500 for signed-in visitors. Use the same
+             guarded idiom as every neighbouring entry. #}
+          {% url 'kb:kb_home' as cmdk_kb_home_url %}
+          {% if cmdk_kb_home_url %}{"label": "{% trans 'Knowledge base' %}", "url": "{{ cmdk_kb_home_url }}", "icon": "bi-book", "keywords": "docs guide articles runbooks"},{% endif %}
+          {% url 'kb:kb_search' as cmdk_kb_search_url %}
+          {% if request.public_host_kind == 'manager' and cmdk_kb_search_url %}{"label": "{% trans 'Search help (KB)' %}", "url": "{{ cmdk_kb_search_url }}?q=", "icon": "bi-search", "keywords": "search help faq articles"},
           {% url 'manager_help_analytics' as cmdk_help_analytics_url %}
           {% if cmdk_help_analytics_url %}{"label": "{% trans 'Help analytics' %}", "url": "{{ cmdk_help_analytics_url }}", "icon": "bi-graph-up", "keywords": "deflection csat north star metrics export"},{% endif %}
           {% url 'manager_ai_review_queue' as cmdk_ai_review_url %}
@@ -109,7 +117,8 @@
       "items": [
         {"label": "{% trans 'Toggle theme' %}", "action": "rmc:cmdk:toggle-theme", "icon": "bi-circle-half", "keywords": "dark light system appearance"},
         {"label": "{% trans 'Open AI Copilot' %}", "action": "rmc:cmdk:open-ai", "icon": "bi-stars", "keywords": "assistant chat"},
-        {"label": "{% trans 'Open AI Center (all assistants)' %}", "url": "{% url 'siteconfig:ai_center' %}", "icon": "bi-stars", "keywords": "ai center gateway assistants engine room"},
+        {% url 'siteconfig:ai_center' as cmdk_ai_center_action_url %}
+        {% if cmdk_ai_center_action_url %}{"label": "{% trans 'Open AI Center (all assistants)' %}", "url": "{{ cmdk_ai_center_action_url }}", "icon": "bi-stars", "keywords": "ai center gateway assistants engine room"},{% endif %}
         {% if cmdk_gw %}{"label": "{% trans 'AI Gateway Console (operators)' %}", "url": "{{ cmdk_gw }}", "icon": "bi-cpu", "keywords": "ai gateway console operator ollama audit metrics"},{% endif %}
       ]
     }

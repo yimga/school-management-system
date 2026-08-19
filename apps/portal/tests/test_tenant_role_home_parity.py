@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, TestCase
 
 from apps.portal.tenant_experience_command import build_tenant_experience_command
 from apps.portal.context_processors import tenant_experience_command
@@ -24,14 +24,27 @@ from apps.accounts.models import User
 ROOT = Path(__file__).resolve().parents[3]
 
 
-class TenantRoleHomeHelperTests(SimpleTestCase):
+class TenantRoleHomeHelperTests(TestCase):
     def test_legacy_flag_simple_query(self):
         class _Req:
             GET = {"simple": "1"}
 
         self.assertTrue(role_home_show_legacy(_Req()))
 
-    def test_v3_role_home_shell_context(self):
+    @patch(
+        "apps.portal.tenant_role_home.get_effective_config",
+        # The shell resolves the academic-year badge through the config
+        # resolver, which reads the RuntimeDefaults singleton from the DB.
+        # get_effective_site_settings is fail-soft against a real outage
+        # (it catches DatabaseError), but SimpleTestCase raises
+        # DatabaseOperationForbidden, which subclasses AssertionError
+        # precisely so that guard cannot absorb it. Stub the seam so the
+        # shell flags below stay the subject of this test.
+        side_effect=lambda key="", **kw: (
+            "2025/2026" if key == "active_academic_year_name" else None
+        ),
+    )
+    def test_v3_role_home_shell_context(self, _cfg):
         class _Match:
             url_name = "backend_dashboard"
 
@@ -56,6 +69,8 @@ class TenantRoleHomeHelperTests(SimpleTestCase):
         self.assertTrue(ctx["page_provides_own_h1"])
         self.assertIn("tp_brand_surface_pill", ctx)
         self.assertIn("tp_brand_tagline", ctx)
+        # tp_header_brand.html renders this as the year badge.
+        self.assertEqual(ctx["tp_brand_year_label"], "2025/2026")
         _Req.GET = {"simple": "legacy"}
         self.assertFalse(is_tp_v3_role_home_request(_Req()))
         ctx_legacy = tp_v3_role_home_shell_context(_Req())
@@ -69,7 +84,14 @@ class TenantRoleHomeHelperTests(SimpleTestCase):
         self.assertNotIn("http", line.lower())
         self.assertNotIn("@", line)
 
-    def test_build_tp_hero_context_keys(self):
+    @patch(
+        # Same DB seam as above: the hero reads portal_quick_actions through
+        # the config resolver. An empty list keeps filter_portal_items honest
+        # while the assertions below stay about the context shape.
+        "apps.portal.tenant_role_home.get_effective_config",
+        return_value=[],
+    )
+    def test_build_tp_hero_context_keys(self, _cfg):
         class _Req:
             GET = {}
 
@@ -211,9 +233,8 @@ class TenantRoleHomeTemplateTests(SimpleTestCase):
         self.assertIn("rmc-tenant-v3-100x-role-home.css", text)
         self.assertIn("not tp_v3_tenant_shell", text)
         self.assertIn("rmc-tp-pulse-sheet.js", text)
-        idx = text.find("portal-chathead")
-        self.assertGreater(idx, 0)
-        self.assertIn("not tp_v3_tenant_shell", text[max(0, idx - 400) : idx])
+        self.assertNotIn('class="portal-chathead"', text)
+        self.assertIn('include "components/rmc_tenant_header_utilities.html"', text)
 
     def test_tenant_shell_covers_inner_portal_route(self):
         class _Match:
@@ -297,7 +318,7 @@ class TenantRoleHomeTemplateTests(SimpleTestCase):
     def test_mission_strip_lives_in_dashboard_surface_not_header(self):
         portal = (ROOT / "templates/portal_base.html").read_text(encoding="utf-8")
         self.assertIn('data-rmc-tp-mission-surface="1"', portal)
-        header_chunk = portal.split("tp-primary-nav-bandrow", 1)[1].split(
+        header_chunk = portal.split('id="portalHeader"', 1)[1].split(
             "portal_shell_header_ticker_tenant", 1
         )[0]
         self.assertNotIn("tp_mission_strip.html", header_chunk)

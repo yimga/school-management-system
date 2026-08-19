@@ -160,5 +160,77 @@ class TwoTierFindingTests(unittest.TestCase):
         self.assertFalse(v._is_finding(False, set(), {"config.tenant_urls"}))
 
 
+
+# --- closure walk (added with the extends/include expansion) -----------------
+#
+# The gate used to scan a root template's OWN source only, so a bare reverse
+# INHERITED from a shared parent/partial was invisible. That is how the
+# command-palette 500 shipped: the palette reverses kb: and siteconfig: (absent
+# from config.public_urls) and base.html includes it on every authenticated page,
+# but an include-only partial is never a CBV template_name.
+
+
+class AsFormIsNotAFindingTests(unittest.TestCase):
+    """`{% url ... as var %}` cannot raise -- URLNode re-raises only when asvar is
+    None. Flagging it would penalise the idiom this gate wants authors to adopt."""
+
+    def test_bare_tag_is_reported(self):
+        self.assertEqual(
+            [(1, "kb", "kb_home")],
+            v._unguarded_ns_refs("""<a href="{% url 'kb:kb_home' %}">x</a>"""),
+        )
+
+    def test_as_capture_is_skipped(self):
+        self.assertEqual([], v._unguarded_ns_refs("{% url 'kb:kb_home' as kb_url %}"))
+
+    def test_as_capture_with_args_is_skipped(self):
+        self.assertEqual(
+            [], v._unguarded_ns_refs("{% url 'kb:kb_article' slug as article_url %}")
+        )
+
+
+class UnguardedChildrenTests(unittest.TestCase):
+    def test_extends_and_include_are_collected(self):
+        text = '{% extends "base.html" %}{% include "components/palette.html" %}'
+        self.assertEqual(
+            {"base.html", "components/palette.html"}, v._unguarded_children(text)
+        )
+
+    def test_include_with_context_is_collected(self):
+        self.assertEqual(
+            {"partials/x.html"},
+            v._unguarded_children('{% include "partials/x.html" with a=b only %}'),
+        )
+
+    def test_host_guarded_include_does_not_propagate(self):
+        text = '{% if is_manager_host %}{% include "partials/m.html" %}{% endif %}'
+        self.assertEqual(set(), v._unguarded_children(text))
+
+    def test_non_host_condition_still_propagates(self):
+        """base.html includes the palette under is_authenticated -- not a host
+        guard, and the palette really does render on every host."""
+        text = (
+            "{% if request.user.is_authenticated %}"
+            '{% include "components/rmc_command_palette.html" %}{% endif %}'
+        )
+        self.assertEqual(
+            {"components/rmc_command_palette.html"}, v._unguarded_children(text)
+        )
+
+    def test_non_literal_include_is_skipped(self):
+        self.assertEqual(set(), v._unguarded_children("{% include some_var %}"))
+
+
+class PropagationTerminatesTests(unittest.TestCase):
+    def test_depth_cap_is_defined_and_sane(self):
+        self.assertGreaterEqual(v._MAX_TEMPLATE_DEPTH, 4)
+
+    def test_propagate_is_a_noop_without_readable_templates(self):
+        """A cycle or unreadable template must not hang or raise."""
+        host_map = {"nonexistent-template-xyz.html": {"config.urls"}}
+        v._propagate_hosts(host_map)
+        self.assertEqual({"config.urls"}, host_map["nonexistent-template-xyz.html"])
+
+
 if __name__ == "__main__":
     unittest.main()

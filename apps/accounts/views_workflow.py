@@ -77,7 +77,13 @@ def _workflow_progress(year):
             academic_year=year, is_active=True
         # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
         ).count()
-        teachers = TeacherProfile.objects.filter(is_active=True).count()
+        school_id = getattr(year, "school_id", None)
+        if school_id:
+            teachers = TeacherProfile.objects.filter(  # tenant-isolation-allow: workflow-progress-teachers-scoped-to-active-year-school
+                school_id=school_id, is_active=True
+            ).count()
+        else:
+            teachers = 0
         return {
             "classrooms": classrooms,
             "students": students,
@@ -103,15 +109,206 @@ def _workflow_progress(year):
         return {}
 
 
+def _first_named_url(*names: str) -> str:
+    for name in names:
+        try:
+            return reverse(name)
+        except NoReverseMatch:
+            continue
+    return ""
+
+
+def _academic_year_create_url() -> str:
+    return _first_named_url(
+        "admin:academics_academicyear_add",
+        "siteconfig:academic_years_setup_evidence",
+        "academics:hub",
+        "admin:academics_academicyear_changelist",
+    )
+
+
+def _school_academic_year_count(request, year) -> int:
+    school = getattr(request, "school", None) or getattr(year, "school", None)
+    if school is None:
+        return 1 if year else 0
+    try:
+        from apps.academics.models import AcademicYear
+
+        return AcademicYear.objects.filter(  # tenant-isolation-allow: workflow-center-year-count-scoped-to-request-school
+            school=school
+        ).count()
+    except ACCOUNTS_SOFT_FAILURES:
+        return 1 if year else 0
+
+
+def _annotate_workflow_step_status(steps, *, has_year: bool, has_classrooms: bool) -> None:
+    """Mark each step blocked / next / ready so operators follow a logical path."""
+    first_next = True
+    for step in steps:
+        key = step.get("step_key")
+        blocked = False
+        reason = ""
+        if key in {"onboarding", "reports", "certification"} and not has_year:
+            blocked = True
+            reason = _("Set the academic year first, then continue.")
+        elif key == "marks" and not has_year:
+            blocked = True
+            reason = _("Set the academic year first, then continue.")
+        elif key == "marks" and has_year and not has_classrooms:
+            blocked = True
+            reason = _("Create classrooms in Year setup before entering marks.")
+        if blocked:
+            step["status"] = "blocked"
+            step["blocked_reason"] = reason
+            continue
+        if first_next:
+            step["status"] = "next"
+            first_next = False
+        else:
+            step["status"] = "ready"
+
+
+def _viewer_is_teacher(request) -> bool:
+    """Does this user actually pass the TEACHER-only gate on the marks surfaces?"""
+    user = getattr(request, "user", None)
+    if not user or not getattr(user, "is_authenticated", False):
+        return False
+    if getattr(user, "is_superuser", False):
+        return True
+    # Cheap in-memory check first: the common case needs no query at all.
+    if (getattr(user, "role", "") or "").upper() == User.Role.TEACHER:
+        return True
+    # Dual-role staff carry a teacher "hat" without TEACHER as their primary role.
+    # This one touches the DB, so a lookup failure must not 500 the hub — fall back
+    # to "not a teacher", which merely hides a row rather than breaking the page.
+    try:
+        from apps.accounts.portal_roles import has_teacher_hat
+
+        return bool(has_teacher_hat(user))
+    except ACCOUNTS_SOFT_FAILURES:
+        return False
+    except ImportError:
+        return False
+
+
+def _viewer_can_review_grades(request) -> bool:
+    """Mirror evals._user_can_review_grades — the approver set is school policy."""
+    user = getattr(request, "user", None)
+    if not user or not getattr(user, "is_authenticated", False):
+        return False
+    try:
+        from apps.evals.views import _user_can_review_grades
+
+        return bool(_user_can_review_grades(user, getattr(request, "school", None)))
+    except ACCOUNTS_SOFT_FAILURES:
+        # Unknown -> keep the row. A visible link that MIGHT work beats silently
+        # hiding a surface the operator is entitled to.
+        return True
+
+
+def _viewer_has_permission(code: str):
+    def _check(request) -> bool:
+        user = getattr(request, "user", None)
+        if not user or not getattr(user, "is_authenticated", False):
+            return False
+        if getattr(user, "is_superuser", False):
+            return True
+        school = getattr(request, "school", None)
+        try:
+            return bool(user.has_feature_permission(code, school=school))
+        except TypeError:
+            try:
+                return bool(user.has_feature_permission(code))
+            except ACCOUNTS_SOFT_FAILURES:
+                return True
+        except ACCOUNTS_SOFT_FAILURES:
+            return True
+
+    return _check
+
+
+def _viewer_can_open_admin_changelist(url_name: str):
+    """Can this viewer open the Django-admin page ``url_name`` points at?
+
+    ``TenantAdminSite`` deliberately does NOT override per-model permissions — it
+    scopes querysets and form FKs, then defers to stock ``ModelAdmin`` checks, i.e.
+    ``user.has_perm("<app>.view_<model>")``. A tenant admin's permission set is not
+    uniform across apps, so some `admin:` rows open fine while others raise
+    ``PermissionDenied``. Confirmed live: with every academics/people changelist
+    returning 200 for a real school admin, ``admin:portal_pendingguardianinvite_changelist``
+    (step 2 "Guardian invites") still raised PermissionDenied.
+
+    Deriving the permission from the URL name covers every current and future
+    `admin:` row without a per-link entry.
+    """
+    # "admin:<app_label>_<modelname>_<action>"
+    try:
+        _, remainder = url_name.split(":", 1)
+        parts = remainder.rsplit("_", 1)
+        if len(parts) != 2:
+            return None
+        app_model, action = parts
+        app_label, model_name = app_model.split("_", 1)
+    except ValueError:
+        return None
+    codename = {
+        "changelist": "view",
+        "add": "add",
+        "change": "change",
+        "delete": "delete",
+    }.get(action)
+    if not codename:
+        return None
+    perm = f"{app_label}.{codename}_{model_name}"
+
+    def _check(request) -> bool:
+        user = getattr(request, "user", None)
+        if not user or not getattr(user, "is_authenticated", False):
+            return False
+        if getattr(user, "is_superuser", False):
+            return True
+        try:
+            # Django grants view via either view_* or change_*.
+            if user.has_perm(perm):
+                return True
+            if codename == "view":
+                return bool(user.has_perm(f"{app_label}.change_{model_name}"))
+            return False
+        except ACCOUNTS_SOFT_FAILURES:
+            # Unknown -> keep the row rather than hiding a surface they may hold.
+            return True
+
+    return _check
+
+
+#: URL name -> predicate(request) -> bool.
+#:
+#: The Workflow Center is admin-gated and bills itself as the operator's entry point
+#: to the whole platform, so an advertised row that 403s (or bounces an already
+#: signed-in admin to the login page) is worse than no row at all: it reads as the
+#: platform being broken. Every entry below was CONFIRMED by sweeping all 44
+#: destinations as a real tenant admin, not inferred from reading the gates.
+_LINK_VISIBILITY = {
+    # @role_required(TEACHER) — user_passes_test, so an admin is 302'd to login
+    # while already signed in.
+    "evals:teacher_marks_entry": _viewer_is_teacher,
+    "evals:teacher_marks_list": _viewer_is_teacher,
+    # Second gate inside the view: the approver role set is per-school policy, so
+    # holding grades.manage is not sufficient.
+    "evals:grade_approval_list": _viewer_can_review_grades,
+    # portal:portal_feature gates on documents.view.
+    "portal:portal_feature": _viewer_has_permission("documents.view"),
+}
+
+
 def _workflow_link(label, url_name, primary=False, args=None, kwargs=None):
     """Build a workflow step link; return None if URL resolution fails so the button is skipped."""
     try:
         url = reverse(url_name, args=args or (), kwargs=kwargs or {})
-        return (
-            {"label": label, "url": url, "primary": primary}
-            if primary
-            else {"label": label, "url": url}
-        )
+        link = {"label": label, "url": url, "url_name": url_name}
+        if primary:
+            link["primary"] = True
+        return link
     except NoReverseMatch:
         return None
 
@@ -332,14 +529,18 @@ def import_hub(request):
     )
 
 
-def build_workflow_help_panel(*, has_active_year: bool, academic_year_url: str = "") -> dict:
+def build_workflow_help_panel(
+    *,
+    has_active_year: bool,
+    academic_year_url: str = "",
+    year_count: int = 0,
+) -> dict:
     """Build the Workflow Center contextual help-panel payload.
 
     Pure + deterministic so the conditional blocker logic is unit-testable. The
     "no active academic year" blocker surfaces only when there is no active year.
-    The panel deliberately omits a Help/KB footer link and the "use the steps"
-    framing — the page hero already owns both, so repeating them here would just
-    duplicate the intro that renders directly below the panel.
+    Clone needs two years (source + target); that blocker surfaces when fewer
+    than two years exist.
     """
     common_blockers = []
     if not has_active_year:
@@ -347,6 +548,15 @@ def build_workflow_help_panel(*, has_active_year: bool, academic_year_url: str =
             {
                 "label": _(
                     "No active academic year is set — most steps stay empty until one exists."
+                ),
+                "fix_url": academic_year_url,
+            }
+        )
+    if year_count < 2:
+        common_blockers.append(
+            {
+                "label": _(
+                    "Clone needs a new target year first — create the year, then copy last year's classrooms into it."
                 ),
                 "fix_url": academic_year_url,
             }
@@ -406,8 +616,29 @@ def workflow_center(request):
         _teacher_list_url = reverse("admin:people_teacherprofile_changelist")
         teacher_create_url = reverse("admin:people_teacherprofile_add")
 
+    year_count = _school_academic_year_count(request, year)
+    can_clone = year_count >= 2
+    create_year_primary = not year or not can_clone
+    create_year_link = _workflow_link(
+        "Create academic year",
+        "admin:academics_academicyear_add",
+        primary=create_year_primary,
+    )
+    if create_year_link is None:
+        create_url = _academic_year_create_url()
+        if create_url:
+            create_year_link = {
+                "label": "Create academic year",
+                "url": create_url,
+                "primary": create_year_primary,
+            }
     year_setup_links = [
-        _workflow_link("Clone previous year", "accounts:clone_year_setup"),
+        create_year_link,
+        _workflow_link(
+            "Clone previous year",
+            "accounts:clone_year_setup",
+            primary=can_clone,
+        ),
         _workflow_link(
             "Promotion mapping (next class)",
             "admin:academics_classroompromotionmapping_changelist",
@@ -438,9 +669,13 @@ def workflow_center(request):
     marks_links = [
         _workflow_link("Teacher marks entry", "evals:teacher_marks_entry"),
         _workflow_link("Marks history", "evals:teacher_marks_list"),
-        _workflow_link(
-            "Approval requests", "admin:evals_gradeapprovalrequest_changelist"
-        ),
+        # evals.GradeApprovalRequest is NOT registered in apps/evals/admin.py, so
+        # "admin:evals_gradeapprovalrequest_changelist" reversed to nothing and
+        # _workflow_link silently dropped this row — step 3 shipped with 2 of its 3
+        # links on every host, while the step's own tip told operators to "use
+        # approval requests". evals:grade_approval_list is the real, purpose-built
+        # operator surface; the admin changelist was never the right destination.
+        _workflow_link("Approval requests", "evals:grade_approval_list"),
     ]
     reports_links = [
         _workflow_link("Publish term results", "reports:publish_term_results"),
@@ -510,7 +745,19 @@ def workflow_center(request):
     )
 
     def _filter_links(links):
-        return [lnk for lnk in links if lnk is not None and lnk.get("url")]
+        """Drop rows that do not resolve AND rows this viewer cannot actually open."""
+        kept = []
+        for lnk in links:
+            if lnk is None or not lnk.get("url"):
+                continue
+            url_name = lnk.get("url_name") or ""
+            predicate = _LINK_VISIBILITY.get(url_name)
+            if predicate is None and url_name.startswith("admin:"):
+                predicate = _viewer_can_open_admin_changelist(url_name)
+            if predicate is not None and not predicate(request):
+                continue
+            kept.append(lnk)
+        return kept
 
     gce_enabled = (
         year and getattr(year, "enable_gce_registration", False) if year else False
@@ -594,7 +841,7 @@ def workflow_center(request):
             "links": _filter_links(communication_links),
         },
         {
-            "title": "5b) Documents & forms",
+            "title": "6) Documents & forms",
             "subtitle": "Document library, upload forms, and electronic signature requests.",
             "step_key": "documents",
             "icon": "bi-folder2-open",
@@ -603,7 +850,7 @@ def workflow_center(request):
             "links": _filter_links(documents_links),
         },
         {
-            "title": "6) Certification & exams (optional)",
+            "title": "7) Certification & exams (optional)",
             "subtitle": "General & technical: GCE, BAC, BEPC, CAP, etc. Enable per year; manage candidates, deadlines, exports.",
             "step_key": "certification",
             "icon": "bi-award",
@@ -612,7 +859,7 @@ def workflow_center(request):
             "links": _filter_links(certification_links),
         },
         {
-            "title": "7) Settings & theme",
+            "title": "8) Settings & theme",
             "subtitle": "Site settings, preferences, preview/sandbox, and role access.",
             "step_key": "settings",
             "icon": "bi-gear",
@@ -621,7 +868,7 @@ def workflow_center(request):
             "links": _filter_links(settings_links),
         },
         {
-            "title": "8) Automation",
+            "title": "9) Automation",
             "subtitle": "Execution log, approval queue, and schedule configuration (reminders, invoices, receipts).",
             "step_key": "automation",
             "icon": "bi-robot",
@@ -640,16 +887,24 @@ def workflow_center(request):
     for i, s in enumerate(steps, start=1):
         s["step_index"] = i
         s["total_steps"] = total_steps
+    _annotate_workflow_step_status(
+        steps,
+        has_year=bool(year),
+        has_classrooms=bool(progress.get("has_classrooms")),
+    )
 
     # Contextual "how this works" help panel (templates/components/workflow_help_panel.html),
     # built by build_workflow_help_panel() so the conditional blocker logic is unit-testable.
-    try:
-        _academic_year_url = reverse("admin:academics_academicyear_changelist")
-    except ACCOUNTS_SOFT_FAILURES:
-        _academic_year_url = ""
+    _academic_year_url = _academic_year_create_url()
+    if not _academic_year_url:
+        try:
+            _academic_year_url = reverse("admin:academics_academicyear_changelist")
+        except ACCOUNTS_SOFT_FAILURES:
+            _academic_year_url = ""
     workflow_help = build_workflow_help_panel(
         has_active_year=bool(year),
         academic_year_url=_academic_year_url,
+        year_count=year_count,
     )
 
     studio_pack_catalog_strip = None

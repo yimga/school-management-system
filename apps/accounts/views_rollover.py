@@ -7,10 +7,11 @@ from django.contrib import messages
 from django.contrib.auth.decorators import user_passes_test
 from django.core.exceptions import ValidationError
 from django.db import DatabaseError
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.shortcuts import redirect, render, get_object_or_404
-from django.urls import reverse
+from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_http_methods
 
 from apps.academics.models import AcademicYear, Classroom, Term
@@ -112,57 +113,221 @@ def _notify_guardians_of_rollover(rolled_students, target_year, *, created_by=No
     return notified
 
 
+def _clone_year_school(request):
+    """The school whose years this operator may clone between."""
+    return getattr(request, "school", None) or getattr(request.user, "school", None)
+
+
+def _clone_year_queryset(request):
+    """Academic years this operator may pick, newest first.
+
+    Previously ``AcademicYear.objects.all()``. A tenant SCHEMA can hold several
+    Schools (multi-campus), and RLS deployments share one schema outright, so an
+    unfiltered read let one campus see - and clone into - another's years. Scoping
+    here also turns the ``get_object_or_404`` below into an ownership check rather
+    than a bare id lookup, closing the matching POST-side IDOR.
+    """
+    school = _clone_year_school(request)
+    qs = AcademicYear.objects.all()
+    if school is not None and getattr(school, "pk", None):
+        # tenant-isolation-allow: explicitly-scoped-to-request-school-plus-legacy-null-rows
+        qs = qs.filter(Q(school=school) | Q(school__isnull=True))
+    return qs.order_by("-start_date")
+
+
+def _suggest_next_year_name(years):
+    """Propose the next year's label from the newest existing one.
+
+    Turns "no target year exists" from a dead end into one click: a brand-new school
+    has exactly ONE academic year, so both selects offered the same single option and
+    the only reachable outcome was the "must be different" error.
+    """
+    if not years:
+        return ""
+    newest = years[0]
+    digits = "".join(ch for ch in (newest.name or "") if ch.isdigit())
+    try:
+        if len(digits) == 8:  # e.g. 2025/2026
+            first, second = int(digits[:4]), int(digits[4:])
+            return "%d/%d" % (first + 1, second + 1)
+        if len(digits) == 4:  # e.g. 2025
+            return str(int(digits) + 1)
+    except ValueError:
+        pass
+    start_date = getattr(newest, "start_date", None)
+    end_date = getattr(newest, "end_date", None)
+    if start_date and end_date:
+        return "%d/%d" % (start_date.year + 1, end_date.year + 1)
+    return ""
+
+
+def _clone_year_admin_url():
+    try:
+        return reverse("admin:academics_academicyear_changelist")
+    except NoReverseMatch:
+        return ""
+
+
+def _clone_year_context(years):
+    return {
+        "years": years,
+        "has_clonable_pair": len(years) >= 2,
+        "suggested_next_year_name": _suggest_next_year_name(years),
+        "academic_year_admin_url": _clone_year_admin_url(),
+    }
+
+
+def _bumped_year_date(value):
+    """Same day/month, one year later - or "" when there is nothing to bump."""
+    if not value:
+        return ""
+    try:
+        return value.replace(year=value.year + 1)
+    except ValueError:
+        # 29 Feb in a non-leap target year.
+        return value.replace(year=value.year + 1, day=28)
+
+
 @permission_required("settings.manage")
 @user_passes_test(_is_admin_user)
+@require_http_methods(["GET", "POST"])
 def clone_year_setup(request):
     """
-    Clone structure from a previous academic year to a target year (terms, classrooms, subject assignments, promotion rules).
-    Target year must already exist; create it in admin first if needed.
+    Clone structure from a previous academic year into a target year (terms,
+    classrooms, subject assignments, promotion rules).
+
+    The target year must exist before structure can be copied into it. When the school
+    has fewer than two years this page now CREATES the target inline (pre-filled from
+    the newest year's label and dates) instead of sending the operator out to the
+    Django admin and back - on a one-year school the old flow's only reachable outcome
+    was the "Source and target year must be different" error.
     """
-    # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
-    years = list(AcademicYear.objects.all().order_by("-start_date"))
-    if request.method == "POST":
-        source_id = request.POST.get("source_year")
-        target_id = request.POST.get("target_year")
-        if not source_id or not target_id:
-            messages.error(request, "Please select both source and target year.")
-            return render(request, "accounts/clone_year_setup.html", {"years": years})
 
-        if source_id == target_id:
-            messages.error(request, "Source and target year must be different.")
-            return render(request, "accounts/clone_year_setup.html", {"years": years})
+    def _render(extra=None):
+        ctx = _clone_year_context(list(_clone_year_queryset(request)))
+        ctx.update(extra or {})
+        return render(request, "accounts/clone_year_setup.html", ctx)
 
-        source_year = get_object_or_404(AcademicYear, id=source_id)
-        target_year = get_object_or_404(AcademicYear, id=target_id)
-        try:
-            stats = clone_academic_year(source_year, target_year)
-            messages.success(
-                request,
-                f"Cloned {source_year.name} → {target_year.name}: "
-                f"{stats['terms_created']} terms, {stats['classrooms_created']} classrooms, "
-                f"{stats['subject_assignments_created']} subject assignments, {stats['promotion_rules_created']} promotion rules.",
-            )
-            return redirect("studio_os:workflow_center")
-        except (DatabaseError, RuntimeError, TypeError, ValueError) as e:
-            school_id = str(getattr(getattr(request, "school", None), "pk", None) or "")
-            log_exception_with_context(
-                "accounts clone_year_setup: clone_academic_year failed",
-                school_id=school_id,
-                extra={
-                    "view": "clone_year_setup",
-                    "source_year_id": source_year.id,
-                    "target_year_id": target_year.id,
-                    "error": str(e),
-                },
-            )
-            messages.error(request, f"Clone failed: {e}")
-            return render(request, "accounts/clone_year_setup.html", {"years": years})
+    if request.method != "POST":
+        return _render()
 
-    return render(request, "accounts/clone_year_setup.html", {"years": years})
+    if request.POST.get("create_target_year"):
+        return _create_clone_target_year(request, _render)
+
+    source_id = request.POST.get("source_year")
+    target_id = request.POST.get("target_year")
+    if not source_id or not target_id:
+        messages.error(request, _("Please select both source and target year."))
+        return _render()
+
+    if source_id == target_id:
+        messages.error(
+            request,
+            _(
+                "Source and target year must be different. Create the year you want "
+                "to copy into, then run the clone."
+            ),
+        )
+        return _render()
+
+    scoped = _clone_year_queryset(request)
+    source_year = get_object_or_404(scoped, id=source_id)
+    target_year = get_object_or_404(scoped, id=target_id)
+    try:
+        stats = clone_academic_year(source_year, target_year)
+        messages.success(
+            request,
+            f"Cloned {source_year.name} -> {target_year.name}: "
+            f"{stats['terms_created']} terms, {stats['classrooms_created']} classrooms, "
+            f"{stats['subject_assignments_created']} subject assignments, "
+            f"{stats['promotion_rules_created']} promotion rules.",
+        )
+        return redirect("studio_os:workflow_center")
+    except (DatabaseError, RuntimeError, TypeError, ValueError) as e:
+        school_id = str(getattr(getattr(request, "school", None), "pk", None) or "")
+        log_exception_with_context(
+            "accounts clone_year_setup: clone_academic_year failed",
+            school_id=school_id,
+            extra={
+                "view": "clone_year_setup",
+                "source_year_id": source_year.id,
+                "target_year_id": target_year.id,
+                "error": str(e),
+            },
+        )
+        messages.error(request, f"Clone failed: {e}")
+        return _render()
+
+
+def _create_clone_target_year(request, _render):
+    """Create the target academic year inline, then return to the clone form."""
+    name = (request.POST.get("new_year_name") or "").strip()
+    if not name:
+        messages.error(request, _("Give the new academic year a name."))
+        return _render()
+
+    years = list(_clone_year_queryset(request))
+    newest = years[0] if years else None
+    start_date = (request.POST.get("new_year_start") or "").strip()
+    end_date = (request.POST.get("new_year_end") or "").strip()
+    if not start_date and newest is not None:
+        start_date = _bumped_year_date(newest.start_date)
+    if not end_date and newest is not None:
+        end_date = _bumped_year_date(newest.end_date)
+    if not start_date or not end_date:
+        messages.error(
+            request, _("Give the new academic year a start date and an end date.")
+        )
+        return _render()
+
+    if _clone_year_queryset(request).filter(name=name).exists():
+        messages.error(
+            request,
+            _("An academic year named %(name)s already exists.") % {"name": name},
+        )
+        return _render()
+
+    school = _clone_year_school(request)
+    created = AcademicYear(
+        name=name, start_date=start_date, end_date=end_date, is_active=False
+    )
+    if school is not None and getattr(school, "pk", None):
+        created.school = school
+    try:
+        created.full_clean()
+        created.save()
+    except ValidationError as e:
+        messages.error(
+            request,
+            "; ".join(
+                "%s: %s" % (field, " ".join(errors))
+                for field, errors in e.message_dict.items()
+            ),
+        )
+        return _render()
+    except (DatabaseError, TypeError, ValueError) as e:
+        log_exception_with_context(
+            "accounts clone_year_setup: inline target-year create failed",
+            school_id=str(getattr(school, "pk", "") or ""),
+            extra={"view": "clone_year_setup", "error": str(e)},
+        )
+        messages.error(
+            request, _("Could not create the academic year: %(err)s") % {"err": e}
+        )
+        return _render()
+
+    messages.success(
+        request,
+        _("Created %(name)s. Now pick the year to copy from and clone into it.")
+        % {"name": created.name},
+    )
+    return _render({"preselect_target_year_id": created.pk})
 
 
 @permission_required("settings.manage")
 @user_passes_test(_is_admin_user)
+
+
 def rollover_year(request):
     """
     Year-end rollover: move students from source year to target year and assign next classroom.
@@ -473,11 +638,19 @@ def rollover_year(request):
                     f"Arrears carry-forward failed: {e}. Please check Finance configuration.",
                 )
         if lock_source:
-            source_year.is_locked = True
-            source_year.save(update_fields=["is_locked"])
+            from apps.academics.year_close import lock_source_year
+
+            lock_source_year(
+                school,
+                source_year,
+                actor=request.user,
+                reason="rollover_year lock_source",
+                activate_target=target_year,
+            )
             messages.success(
                 request,
-                f"Rolled over {updated} students to {target_year.name} and locked {source_year.name}.",
+                f"Rolled over {updated} students to {target_year.name}, "
+                f"hard-closed {source_year.name}, and set {target_year.name} as the active year.",
             )
         else:
             messages.success(

@@ -36,6 +36,50 @@ body.portal-body-with-layout:not(.control-plane-shell) .tp-header__live-banner .
   margin: 0;
 }
 
+/* Platform Clean Header Approval v2: below lg the live strip is a QUIET, dismissible
+   single line — not a second header row (at lg+ it is display:none, below). The dismiss
+   control sits at the trailing edge; rmc-header-utilities.js remembers dismissal for the
+   session. Scoped to <lg so it never re-enables the lg+ hide. */
+@media (max-width: 991.98px) {
+  body.portal-body-with-layout:not(.control-plane-shell) .tp-header__live-banner--quiet {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  body.portal-body-with-layout:not(.control-plane-shell) .tp-header__live-banner--quiet > :first-child {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  body.portal-body-with-layout:not(.control-plane-shell) .tp-header__live-banner-dismiss {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    margin-right: 10px;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-pill, 999px);
+    background: var(--surface-elevated);
+    color: var(--text-secondary);
+    font-size: 11px;
+    line-height: 1;
+    cursor: pointer;
+    transition: color var(--motion-fast, 150ms ease), border-color var(--motion-fast, 150ms ease);
+  }
+  body.portal-body-with-layout:not(.control-plane-shell) .tp-header__live-banner-dismiss:hover,
+  body.portal-body-with-layout:not(.control-plane-shell) .tp-header__live-banner-dismiss:focus-visible {
+    color: var(--text-primary);
+    border-color: var(--hairline-strong, var(--hairline));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.portal-body-with-layout:not(.control-plane-shell) .tp-header__live-banner-dismiss {
+    transition: none;
+  }
+}
+
 /* Operator-matched single band (2026-06-22). On desktop (lg+) the tenant header
    collapses to ONE band like /super/ and /admin/ (cp-header--consolidated): the
    separate LIVE-ticker band is hidden because the SAME feed already renders inline

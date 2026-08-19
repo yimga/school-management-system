@@ -50,6 +50,14 @@ class GuardianInviteSendTests(SimpleTestCase):
         self.assertFalse(out["sent"])
         self.assertEqual(out["reason"], "no_email")
 
+    def test_synthetic_email_is_not_sent(self):
+        from apps.accounts.email_delivery_policy import synthetic_unclaimed_email
+        from apps.accounts.guardian_invite import send_guardian_invite
+
+        out = send_guardian_invite(_fake_user(email=synthetic_unclaimed_email("x")))
+        self.assertFalse(out["sent"])
+        self.assertEqual(out["reason"], "undeliverable_email")
+
     def test_queues_via_send_transactional(self):
         import apps.accounts.guardian_invite as gi
 

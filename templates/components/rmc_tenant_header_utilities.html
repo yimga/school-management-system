@@ -62,18 +62,35 @@
         {% endif %}
       </div>
     </section>
+    {% comment %} RESIDUAL #3 DECISION (Platform Clean Header Approval v2, Lane 1):
+       Utilities "Your workspace" tiles are kept HAND-CODED (not projected from
+       PORTAL_SIDEBAR_ITEMS) — a live projection is a large, high-risk diff (sidebar
+       item schema → tile shape → per-permission filter → recents/copilot interleave)
+       and out of scope for a minimal residual-close pass. To prevent drift/dead tiles,
+       EVERY tile below is guarded by a resolvable-URL check (`{% url … as x %}{% if x %}`),
+       so a tile only renders when its destination reverses — the same "no dead reach"
+       guarantee the sidebar SOT gives. Canonical sidebar SOT for future projection:
+       apps/siteconfig/context_processors.py (PORTAL_SIDEBAR_ITEMS) +
+       apps/siteconfig/portal_sidebar_items.py. See docs verifier
+       scripts/verify_header_utilities_contract.py for the enforced contract strings. {% endcomment %}
     <section class="rmc-header-utilities__section">
       <div class="rmc-header-utilities__section-title"><span>{% trans "Your workspace" %}</span><span>{% trans "Permission filtered" %}</span></div>
       <div class="rmc-header-utilities__grid" data-rmc-util-workspace>
         {% if EFFECTIVE_PORTAL_ROLE == 'PARENT' %}
-          <a class="rmc-header-utilities__tile" href="{% url 'portal:parent_finance' %}" role="menuitem" data-rmc-util-key="finance"><i class="bi bi-wallet2" aria-hidden="true"></i><span><b>{% trans "Finance" %}</b><small>{% trans "Fees and balances" %}</small></span></a>
-          <a class="rmc-header-utilities__tile" href="{% url 'portal:parent_workflow' %}" role="menuitem" data-rmc-util-key="workflow"><i class="bi bi-lightning-charge" aria-hidden="true"></i><span><b>{% trans "Workflow" %}</b><small>{% trans "Family tasks" %}</small></span></a>
-          <a class="rmc-header-utilities__tile" href="{% url 'portal:portal_stats' %}" role="menuitem" data-rmc-util-key="progress"><i class="bi bi-graph-up" aria-hidden="true"></i><span><b>{% trans "Progress" %}</b><small>{% trans "Reports and insight" %}</small></span></a>
+          {% url 'portal:parent_finance' as parent_finance_url %}
+          {% if parent_finance_url %}<a class="rmc-header-utilities__tile" href="{{ parent_finance_url }}" role="menuitem" data-rmc-util-key="finance"><i class="bi bi-wallet2" aria-hidden="true"></i><span><b>{% trans "Finance" %}</b><small>{% trans "Fees and balances" %}</small></span></a>{% endif %}
+          {% url 'portal:parent_workflow' as parent_workflow_url %}
+          {% if parent_workflow_url %}<a class="rmc-header-utilities__tile" href="{{ parent_workflow_url }}" role="menuitem" data-rmc-util-key="workflow"><i class="bi bi-lightning-charge" aria-hidden="true"></i><span><b>{% trans "Workflow" %}</b><small>{% trans "Family tasks" %}</small></span></a>{% endif %}
+          {% url 'portal:portal_stats' as parent_stats_url %}
+          {% if parent_stats_url %}<a class="rmc-header-utilities__tile" href="{{ parent_stats_url }}" role="menuitem" data-rmc-util-key="progress"><i class="bi bi-graph-up" aria-hidden="true"></i><span><b>{% trans "Progress" %}</b><small>{% trans "Reports and insight" %}</small></span></a>{% endif %}
         {% elif EFFECTIVE_PORTAL_ROLE == 'TEACHER' %}
-          <a class="rmc-header-utilities__tile" href="{% url 'evals:teacher_dashboard' %}" role="menuitem" data-rmc-util-key="academics"><i class="bi bi-journal-bookmark" aria-hidden="true"></i><span><b>{% trans "Academics" %}</b><small>{% trans "Classes and grades" %}</small></span></a>
-          <a class="rmc-header-utilities__tile" href="{% url 'portal:teacher_workflow' %}" role="menuitem" data-rmc-util-key="workflow"><i class="bi bi-lightning-charge" aria-hidden="true"></i><span><b>{% trans "Workflow" %}</b><small>{% trans "Daily teaching" %}</small></span></a>
+          {% url 'evals:teacher_dashboard' as teacher_academics_url %}
+          {% if teacher_academics_url %}<a class="rmc-header-utilities__tile" href="{{ teacher_academics_url }}" role="menuitem" data-rmc-util-key="academics"><i class="bi bi-journal-bookmark" aria-hidden="true"></i><span><b>{% trans "Academics" %}</b><small>{% trans "Classes and grades" %}</small></span></a>{% endif %}
+          {% url 'portal:teacher_workflow' as teacher_workflow_url %}
+          {% if teacher_workflow_url %}<a class="rmc-header-utilities__tile" href="{{ teacher_workflow_url }}" role="menuitem" data-rmc-util-key="workflow"><i class="bi bi-lightning-charge" aria-hidden="true"></i><span><b>{% trans "Workflow" %}</b><small>{% trans "Daily teaching" %}</small></span></a>{% endif %}
         {% elif EFFECTIVE_PORTAL_ROLE == 'STUDENT' %}
-          <a class="rmc-header-utilities__tile" href="{% url 'portal:student_workflow' %}" role="menuitem" data-rmc-util-key="learning"><i class="bi bi-book" aria-hidden="true"></i><span><b>{% trans "Learning" %}</b><small>{% trans "Assignments and schedule" %}</small></span></a>
+          {% url 'portal:student_workflow' as student_learning_url %}
+          {% if student_learning_url %}<a class="rmc-header-utilities__tile" href="{{ student_learning_url }}" role="menuitem" data-rmc-util-key="learning"><i class="bi bi-book" aria-hidden="true"></i><span><b>{% trans "Learning" %}</b><small>{% trans "Assignments and schedule" %}</small></span></a>{% endif %}
         {% else %}
           {% if finance_url %}<a class="rmc-header-utilities__tile" href="{{ finance_url }}" role="menuitem" data-rmc-util-key="finance"><i class="bi bi-wallet2" aria-hidden="true"></i><span><b>{% trans "Finance" %}</b><small>{% trans "Fees and payroll" %}</small></span></a>{% endif %}
           {% if staff_workflow_url %}<a class="rmc-header-utilities__tile" href="{{ staff_workflow_url }}" role="menuitem" data-rmc-util-key="workflow"><i class="bi bi-lightning-charge" aria-hidden="true"></i><span><b>{% trans "Workflow" %}</b><small>{% trans "Daily operations" %}</small></span></a>{% endif %}

@@ -218,8 +218,18 @@ def _serialize_evaluation(evaluation: Evaluation) -> dict[str, str]:
 def _update_evaluations_from_entries(
     entries, students_map, teacher, year, term, subject_assignment
 ) -> int:
-    if getattr(year, "is_locked", False):
-        return 0  # Year hard lock: no grade edits after rollover
+    from apps.academics.year_close import assert_period_writable
+
+    actor = getattr(teacher, "user", None)
+    try:
+        assert_period_writable(
+            year,
+            domain="grades",
+            actor=actor,
+            school=getattr(year, "school", None),
+        )
+    except ValidationError:
+        return 0  # Soft/Hard Close: no grade edits
     updated = 0
     for entry in entries:
         student = students_map.get(entry["student_id"])
@@ -286,8 +296,19 @@ def _apply_ocr_entries(
         delta_mode: If True, only fill missing marks (skip if field already has a value).
                     If False, update all fields even if they already have values.
     """
-    if getattr(year, "is_locked", False):
-        return []  # Year hard lock: no grade edits after rollover
+    if getattr(year, "is_locked", False) or getattr(year, "is_soft_closed", False):
+        from apps.academics.year_close import assert_period_writable
+
+        actor = getattr(teacher, "user", None)
+        try:
+            assert_period_writable(
+                year,
+                domain="grades",
+                actor=actor,
+                school=getattr(year, "school", None),
+            )
+        except ValidationError:
+            return []  # Soft/Hard Close: no OCR grade applies
     updated = []
     for entry in entries:
         student = student_lookup.get(entry.get("student_code", "").upper())
@@ -1715,11 +1736,22 @@ def teacher_marks_entry(request: HttpRequest):
             # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
             )
 
-        # Publish lock check (term published) or year hard lock (rollover finalization)
-        locked = is_term_published(year.id, active_term.id, sa.classroom_id) or getattr(
-            # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
-            year, "is_locked", False
-        )
+        # Term publish locks everyone; Soft/Hard Close uses assert_period_writable.
+        term_locked = is_term_published(year.id, active_term.id, sa.classroom_id)
+        period_locked = False
+        try:
+            from apps.academics.year_close import assert_period_writable
+
+            assert_period_writable(
+                year,
+                domain="grades",
+                actor=request.user,
+                school=getattr(request, "school", None)
+                or getattr(year, "school", None),
+            )
+        except ValidationError:
+            period_locked = True
+        locked = term_locked or period_locked
 
         # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
         # Load students for this class/specialty/year

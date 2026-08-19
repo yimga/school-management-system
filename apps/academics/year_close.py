@@ -164,21 +164,351 @@ def run_year_close_dry_run(
     )
 
 
-def lock_source_year(school, source_year) -> dict[str, Any]:
-    """Lock source academic year after close (tenant-scoped)."""
+#: Domains that hard-closed years refuse by default (Salesforce Soft/Hard Close parity).
+PERIOD_WRITE_DOMAINS = frozenset(
+    {
+        "grades",
+        "enrollment",
+        "rollover_source",
+        "attendance",
+        "timetable",
+        "finance_charges",
+    }
+)
+
+#: Soft Close only constrains these domains for non-elevated actors (P1 = grades).
+SOFT_CLOSE_DOMAINS = frozenset({"grades"})
+
+_MIN_UNLOCK_REASON_CHARS = 12
+_MIN_SOFT_REASON_CHARS = 8
+
+
+def _actor_may_write_soft_closed_grades(actor, school) -> bool:
+    """Registrars / grades.manage / tenant admin may correct during Soft Close."""
+    if actor is None or not getattr(actor, "is_authenticated", False):
+        return False
+    if getattr(actor, "is_superuser", False) or getattr(actor, "is_staff", False):
+        return True
+    try:
+        from apps.accounts.decorators import user_has_permission
+
+        return bool(
+            user_has_permission(
+                actor,
+                school,
+                codes=("grades.manage",),
+                allow_admin=True,
+            )
+        )
+    except (ImportError, TypeError, AttributeError):
+        return False
+
+
+def _refresh_close_flags(academic_year) -> tuple[bool, bool]:
+    """Return (is_locked, is_soft_closed).
+
+    Trusts in-memory True flags (callers that set attributes without save).
+    Re-reads the DB only to catch stale False after ``lock_source_year`` /
+    soft-close services updated another copy of the same PK.
+    """
+    locked = bool(getattr(academic_year, "is_locked", False))
+    soft = bool(getattr(academic_year, "is_soft_closed", False))
+    pk = getattr(academic_year, "pk", None)
+    if not pk or (locked and soft):
+        return locked, soft
+    from apps.academics.models import AcademicYear
+
+    row = (
+        AcademicYear.objects.filter(pk=pk)
+        .values_list("is_locked", "is_soft_closed")
+        .first()
+    )
+    if row is None:
+        return locked, soft
+    return locked or bool(row[0]), soft or bool(row[1])
+
+
+def assert_period_writable(
+    academic_year,
+    *,
+    domain: str = "grades",
+    actor=None,
+    school=None,
+) -> None:
+    """Central Soft/Hard Close write guard (entrypoints + APIs should call this).
+
+    - Hard Close (``is_locked``): all listed domains blocked for everyone.
+    - Soft Close (``is_soft_closed``): ``grades`` blocked for teachers; elevated
+      ``grades.manage`` / admin / staff / superuser may still write.
+    - Lock does **not** control the tenant default year — that is ``is_active``.
+
+    Re-reads close flags from the DB when a PK is present so callers with a
+    stale in-memory instance cannot bypass.
+    """
+    from django.core.exceptions import ValidationError
+
+    if academic_year is None:
+        return
+    if domain not in PERIOD_WRITE_DOMAINS:
+        domain = "grades"
+    locked, soft = _refresh_close_flags(academic_year)
+    name = getattr(academic_year, "name", None) or academic_year
+    if locked:
+        raise ValidationError(
+            f"Academic year '{name}' is hard-closed ({domain}); "
+            "use audited unlock (break-glass) before writing."
+        )
+    if soft and domain in SOFT_CLOSE_DOMAINS:
+        sch = school or getattr(academic_year, "school", None)
+        if not _actor_may_write_soft_closed_grades(actor, sch):
+            raise ValidationError(
+                f"Academic year '{name}' is soft-closed ({domain}); "
+                "teachers cannot edit — contact a registrar with grades.manage."
+            )
+
+
+def soft_close_academic_year(
+    school,
+    academic_year,
+    *,
+    actor=None,
+    reason: str = "",
+) -> dict[str, Any]:
+    """Soft-close a year (teachers blocked on grades; admins may still correct)."""
     from django.db import transaction
+    from django.utils import timezone
+
+    from apps.academics.models import AcademicYear
+
+    if getattr(academic_year, "school_id", None) != getattr(school, "pk", None):
+        raise ValueError("Academic year does not belong to this school.")
+    reason_text = (reason or "soft close — grading review window").strip()[:255]
+    if len(reason_text) < _MIN_SOFT_REASON_CHARS:
+        raise ValueError(
+            f"Soft-close reason must be at least {_MIN_SOFT_REASON_CHARS} characters."
+        )
+    with transaction.atomic():
+        year = AcademicYear.objects.select_for_update().get(pk=academic_year.pk)
+        if year.is_locked:
+            raise ValueError(
+                "Year is hard-closed; unlock before changing soft-close state."
+            )
+        already = bool(year.is_soft_closed)
+        if not already:
+            year.is_soft_closed = True
+            year.soft_closed_at = timezone.now()
+            year.soft_closed_by = actor if getattr(actor, "pk", None) else None
+            year.soft_close_reason = reason_text
+            year.save(
+                update_fields=[
+                    "is_soft_closed",
+                    "soft_closed_at",
+                    "soft_closed_by",
+                    "soft_close_reason",
+                    "updated_at",
+                ]
+            )
+    return {
+        "ok": True,
+        "already_soft_closed": already,
+        "year_id": str(academic_year.pk),
+        "actor_id": getattr(actor, "pk", None),
+    }
+
+
+def reopen_soft_closed_year(
+    school,
+    academic_year,
+    *,
+    actor=None,
+    reason: str = "",
+) -> dict[str, Any]:
+    """Reopen Soft Close (audited). Does not clear Hard Close."""
+    from django.db import transaction
+    from django.utils import timezone
+
+    from apps.academics.models import AcademicYear
+
+    if getattr(academic_year, "school_id", None) != getattr(school, "pk", None):
+        raise ValueError("Academic year does not belong to this school.")
+    reason_text = (reason or "").strip()
+    if len(reason_text) < _MIN_SOFT_REASON_CHARS:
+        raise ValueError(
+            f"Reopen reason must be at least {_MIN_SOFT_REASON_CHARS} characters."
+        )
+    reason_text = reason_text[:255]
+    with transaction.atomic():
+        year = AcademicYear.objects.select_for_update().get(pk=academic_year.pk)
+        if year.is_locked:
+            raise ValueError(
+                "Year is hard-closed; use unlock_academic_year (break-glass) first."
+            )
+        if not year.is_soft_closed:
+            return {
+                "ok": True,
+                "already_open": True,
+                "year_id": str(year.pk),
+            }
+        year.is_soft_closed = False
+        year.soft_reopened_at = timezone.now()
+        year.soft_reopened_by = actor if getattr(actor, "pk", None) else None
+        year.soft_reopen_reason = reason_text
+        year.save(
+            update_fields=[
+                "is_soft_closed",
+                "soft_reopened_at",
+                "soft_reopened_by",
+                "soft_reopen_reason",
+                "updated_at",
+            ]
+        )
+    return {
+        "ok": True,
+        "already_open": False,
+        "year_id": str(academic_year.pk),
+        "actor_id": getattr(actor, "pk", None),
+    }
+
+
+def activate_academic_year(school, academic_year, *, actor=None) -> dict[str, Any]:
+    """Pin the tenant default year (``is_active``) — exclusive per school.
+
+    PowerSchool / FACTS / Infinite Campus parity: the operating year is an
+    explicit pin, never implied by lock state.
+    """
+    from django.db import transaction
+
+    from apps.academics.models import AcademicYear
+
+    if getattr(academic_year, "school_id", None) != getattr(school, "pk", None):
+        raise ValueError("Academic year does not belong to this school.")
+    with transaction.atomic():
+        year = AcademicYear.objects.select_for_update().get(pk=academic_year.pk)
+        AcademicYear.objects.filter(school=school, is_active=True).exclude(
+            pk=year.pk
+        ).update(is_active=False)
+        if not year.is_active:
+            year.is_active = True
+            year.save(update_fields=["is_active", "updated_at"])
+            already = False
+        else:
+            already = True
+    return {
+        "ok": True,
+        "already_active": already,
+        "year_id": str(year.pk),
+        "actor_id": getattr(actor, "pk", None),
+    }
+
+
+def lock_source_year(
+    school,
+    source_year,
+    *,
+    actor=None,
+    reason: str = "",
+    activate_target=None,
+) -> dict[str, Any]:
+    """Hard-close source academic year (tenant-scoped) with provenance.
+
+    Optionally activate ``activate_target`` as the new tenant default — the
+    correct post-rollover contract (lock source ≠ make source default).
+    """
+    from django.db import transaction
+    from django.utils import timezone
 
     from apps.academics.models import AcademicYear
 
     if getattr(source_year, "school_id", None) != getattr(school, "pk", None):
         raise ValueError("Academic year does not belong to this school.")
+    if activate_target is not None and getattr(
+        activate_target, "school_id", None
+    ) != getattr(school, "pk", None):
+        raise ValueError("Target academic year does not belong to this school.")
+
+    reason_text = (reason or "year-end hard close").strip()[:255]
     with transaction.atomic():
         year = AcademicYear.objects.select_for_update().get(pk=source_year.pk)
-        if year.is_locked:
-            return {"ok": True, "already_locked": True, "year_id": str(year.pk)}
-        year.is_locked = True
-        year.save(update_fields=["is_locked"])
-    return {"ok": True, "already_locked": False, "year_id": str(source_year.pk)}
+        already = bool(year.is_locked)
+        if not already:
+            year.is_locked = True
+            year.locked_at = timezone.now()
+            year.locked_by = actor if getattr(actor, "pk", None) else None
+            year.lock_reason = reason_text
+            year.save(
+                update_fields=[
+                    "is_locked",
+                    "locked_at",
+                    "locked_by",
+                    "lock_reason",
+                    "updated_at",
+                ]
+            )
+        activate_result = None
+        if activate_target is not None:
+            activate_result = activate_academic_year(
+                school, activate_target, actor=actor
+            )
+    return {
+        "ok": True,
+        "already_locked": already,
+        "year_id": str(source_year.pk),
+        "activate": activate_result,
+    }
+
+
+def unlock_academic_year(
+    school,
+    academic_year,
+    *,
+    actor=None,
+    reason: str = "",
+) -> dict[str, Any]:
+    """Break-glass reopen of a hard-closed year (tenant admin / superuser path).
+
+    Requires a non-trivial reason. Does **not** change ``is_active`` — the
+    operating default stays on whatever year is currently pinned.
+    """
+    from django.db import transaction
+    from django.utils import timezone
+
+    from apps.academics.models import AcademicYear
+
+    if getattr(academic_year, "school_id", None) != getattr(school, "pk", None):
+        raise ValueError("Academic year does not belong to this school.")
+    reason_text = (reason or "").strip()
+    if len(reason_text) < _MIN_UNLOCK_REASON_CHARS:
+        raise ValueError(
+            f"Unlock reason must be at least {_MIN_UNLOCK_REASON_CHARS} characters."
+        )
+    reason_text = reason_text[:255]
+    with transaction.atomic():
+        year = AcademicYear.objects.select_for_update().get(pk=academic_year.pk)
+        if not year.is_locked:
+            return {
+                "ok": True,
+                "already_unlocked": True,
+                "year_id": str(year.pk),
+            }
+        year.is_locked = False
+        year.unlocked_at = timezone.now()
+        year.unlocked_by = actor if getattr(actor, "pk", None) else None
+        year.unlock_reason = reason_text
+        year.save(
+            update_fields=[
+                "is_locked",
+                "unlocked_at",
+                "unlocked_by",
+                "unlock_reason",
+                "updated_at",
+            ]
+        )
+    return {
+        "ok": True,
+        "already_unlocked": False,
+        "year_id": str(academic_year.pk),
+        "actor_id": getattr(actor, "pk", None),
+    }
 
 
 def batch_freeze_transcripts(school, source_year) -> dict[str, Any]:
@@ -206,9 +536,16 @@ def execute_year_close(
     require_financial_clearance: bool = False,
     lock_on_success: bool = False,
     freeze_transcripts: bool = False,
+    activate_target_on_lock: bool = True,
+    actor=None,
+    lock_reason: str = "",
 ) -> dict[str, Any]:
     """
     Top-level year-close orchestrator — dry-run by default (no writes).
+
+    When ``lock_on_success`` and ``activate_target_on_lock``, hard-closes the
+    source year and pins the target as the tenant default (competitor EOY
+    parity). Lock alone never makes the source year the default.
     """
     scorecard = evaluate_year_close_blockers(
         school,
@@ -224,5 +561,11 @@ def execute_year_close(
     if freeze_transcripts:
         steps["transcripts"] = batch_freeze_transcripts(school, source_year)
     if lock_on_success:
-        steps["lock"] = lock_source_year(school, source_year)
+        steps["lock"] = lock_source_year(
+            school,
+            source_year,
+            actor=actor,
+            reason=lock_reason or "execute_year_close lock_on_success",
+            activate_target=target_year if activate_target_on_lock else None,
+        )
     return {"ok": True, "dry_run": False, "scorecard": scorecard, "steps": steps}

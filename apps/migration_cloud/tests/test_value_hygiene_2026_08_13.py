@@ -50,3 +50,33 @@ class TransformRowHygieneTests(SimpleTestCase):
         out = _transform_row(raw_row, mapping_index, {})
         self.assertEqual(out.get("external_id"), "241904748")
         self.assertEqual(out.get("custom_fields.parent"), "")
+
+
+class ResidualHeaderBindTests(SimpleTestCase):
+    def test_fonction_promotes_onto_empty_role(self):
+        from apps.migration_cloud.mapper import bind_residual_headers
+
+        row = {
+            "staff_external_id": "EMP-1",
+            "_unmapped.Fonction": "Bursar",
+            "custom_fields.badge": "keep-me",
+        }
+        out = bind_residual_headers(row, "staff")
+        self.assertEqual(out.get("role"), "Bursar")
+        self.assertNotIn("_unmapped.Fonction", out)
+        self.assertEqual(out.get("custom_fields.badge"), "keep-me")
+
+    def test_does_not_overwrite_existing_canonical(self):
+        from apps.migration_cloud.mapper import bind_residual_headers
+
+        row = {"role": "Teacher", "_unmapped.Fonction": "Bursar"}
+        out = bind_residual_headers(row, "staff")
+        self.assertEqual(out.get("role"), "Teacher")
+        self.assertEqual(out.get("_unmapped.Fonction"), "Bursar")
+
+    def test_designation_is_staff_role_synonym(self):
+        from apps.migration_cloud.ontology import all_synonyms
+
+        syns = all_synonyms("role", domain="staff")
+        self.assertIn("designation", syns)
+        self.assertIn("fonction", syns)

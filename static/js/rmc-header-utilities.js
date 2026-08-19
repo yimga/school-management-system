@@ -229,9 +229,39 @@
     });
   }
 
+  var LIVE_BANNER_KEY = "rmc.headerLiveBanner.dismissed.v1";
+
+  function liveBannerDismissed() {
+    try {
+      return window.sessionStorage.getItem(LIVE_BANNER_KEY) === "1";
+    } catch (_err) {
+      return false;
+    }
+  }
+
+  function bindLiveBanners() {
+    var banners = document.querySelectorAll("[data-rmc-header-live-dismissible]");
+    if (!banners.length) return;
+    banners.forEach(function (banner) {
+      if (liveBannerDismissed()) {
+        banner.hidden = true;
+        return;
+      }
+      var btn = banner.querySelector("[data-rmc-header-live-dismiss]");
+      if (!btn) return;
+      btn.addEventListener("click", function () {
+        banner.hidden = true;
+        try {
+          window.sessionStorage.setItem(LIVE_BANNER_KEY, "1");
+        } catch (_err) {}
+      });
+    });
+  }
+
   function init() {
     document.querySelectorAll("[data-rmc-header-utilities-root]").forEach(bindRoot);
     bindHelpPanel();
+    bindLiveBanners();
     window.rmcOpenToolsHelpPanel = openHelpPanel;
   }
 

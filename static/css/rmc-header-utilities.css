@@ -46,6 +46,37 @@
   font-weight: 900;
 }
 
+/* ---------------------------------------------------------------------------
+   Self-sufficient open/closed geometry (do NOT delete — see the /admin/ note).
+
+   This component is shared chrome: it renders in the portal shell (Bootstrap CSS
+   present) AND in the tenant Django-admin shell, where `templates/admin/base_site.html`
+   loads `vendor/bootstrap/css/bootstrap.min.css` ONLY under `{% if is_manager_host %}`
+   while `vendor/bootstrap/js/bootstrap.bundle.min.js` loads unconditionally.
+   With the JS but not the CSS, Bootstrap's own `.dropdown-menu { position: absolute;
+   display: none }` / `.dropdown-menu.show { display: block }` never apply, so the
+   ~600px panel rendered permanently OPEN and IN NORMAL FLOW inside
+   `<header class="rmc-app-shell__header">`. The header's `auto` grid row then grew to
+   the panel's height (~80% of the viewport) and vertically centred the brand / search /
+   Home / avatar row inside it — the "header and utility button statically displayed,
+   covering 80% of the screen" break on EVERY page under tenant /admin/.
+
+   Owning the geometry here (rather than borrowing Bootstrap's) makes the component
+   correct on any shell. Where Bootstrap IS loaded these declarations are equivalent to
+   its defaults, and Popper still wins at open time via inline styles on the element.
+   Sealed by apps/accounts/tests/test_tenant_admin_header_chrome.py.
+   --------------------------------------------------------------------------- */
+.rmc-header-utilities__menu {
+  position: absolute;
+  inset: 100% 0 auto auto;
+  z-index: var(--rmc-dropdown-z, 1060);
+  display: none;
+}
+
+.rmc-header-utilities__menu.show {
+  display: block;
+}
+
 .rmc-header-utilities__menu,
 .dropdown-menu.rmc-header-utilities__menu,
 [data-rmc-header-utilities] {
@@ -363,6 +394,28 @@ button.rmc-header-utilities__tile {
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+/* ── Platform Clean Header Approval v2 — control-cap guard (tenant) ──────────
+   The tenant header declares data-rmc-header-control-cap="6". These rules make
+   the cap self-enforcing so no page or module can push the header past it. Scoped
+   to #portalHeader (tenant-only id) so operator/admin shells are untouched. */
+
+/* (a) ONE notification entry point. The header bell (data-rmc-header-bell) is the
+   single visible notification surface; the avatar corner unread badge is a redundant
+   second surface driven by the SAME poller — collapse it whenever the bell renders. */
+#portalHeader [data-rmc-header-bell] ~ .user-dropdown-wrapper [data-rmc-unread-badge][data-rmc-unread-badge-style="avatar"] {
+  display: none !important;
+}
+
+/* (b) .topbar-controls carries exactly the sanctioned trio — notifications,
+   Utilities, profile. Defensively hide any EXTRA interactive control injected as a
+   direct child so the sanctioned count can never exceed the approval cap. The
+   Utilities trigger and profile trigger are nested inside their wrapper <div>s (not
+   direct children), so they are never matched here. */
+#portalHeader .topbar-controls > a:not([data-rmc-header-bell]),
+#portalHeader .topbar-controls > button {
+  display: none !important;
 }
 
 .admin-nav-bridge__search {

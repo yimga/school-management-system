@@ -71,7 +71,7 @@ def main() -> int:
         findings.append("portal_base.html: legacy role-home Tier-2 must use tenant_role_home_landing")
     if 'data-rmc-tp-mission-surface="1"' not in portal:
         findings.append("portal_base.html: mission strip must render in tp-mission-surface (dashboard body)")
-    header_chunk = portal.split("tp-primary-nav-bandrow", 1)[1].split("portal_shell_header_ticker_tenant", 1)[0]
+    header_chunk = portal.split('id="portalHeader"', 1)[1].split("portal_shell_header_ticker_tenant", 1)[0]
     if "tp_mission_strip.html" in header_chunk:
         findings.append("portal_base.html: tp_mission_strip must not live in header chrome")
 

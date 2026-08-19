@@ -231,6 +231,13 @@
     {% comment %} 2026-07-22: full-bleed seal + /super/ header chrome seal LAST. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-platform-workspace-edge-fit.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-header-super-chrome-parity.css' %}">
+    {% if request.public_host_kind == 'manager' %}
+    {% comment %} Manager host renders the consolidated operator unified header (see the
+       public_host_kind == 'manager' branch below). Load its single-band shell CSS only
+       there so the operator quiet header is styled identically to /super/ — never on
+       tenant subdomains. Contract: scripts/verify_cp_consolidated_operator_shell.py. {% endcomment %}
+    <link rel="stylesheet" href="{% static 'css/rmc-cp-consolidated-operator-shell.css' %}">
+    {% endif %}
     {% comment %} 2026-07-22: header/footer/copilot/density finish seals (beats deferred bundles). {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-tenant-chrome-finish.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-header-utilities.css' %}">
@@ -335,7 +342,7 @@
     {% comment %} v4.05 (2026-06-25): LIVE banner relocated to the BOTTOM of the header
        stack (operator-parity) — it now renders as the last sub-bar of .tp-header below,
        and rmc-tenant-app-shell-100x.css keeps the whole stack sticky. {% endcomment %}
-    <div id="portalHeader" class="tp-header__row" role="banner" aria-label="{% trans 'Main navigation' %}" data-rmc-shell-header="portal" data-rmc-quiet-header-root="1" data-rmc-header-control-cap="7">
+    <div id="portalHeader" class="tp-header__row" role="banner" aria-label="{% trans 'Main navigation' %}" data-rmc-shell-header="portal" data-rmc-quiet-header-root="1" data-rmc-header-control-cap="6">
       <div class="container-fluid px-3 tp-header__row-inner" id="preview-header-bar" data-preview-label="{% trans 'Header bar (background & colors)' %}">
         <button class="btn btn-sm btn-outline-secondary d-lg-none me-2 tp-header__menu-btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#portalSidebar" aria-controls="portalSidebar" aria-label="{% trans 'Open sidebar menu' %}">
           <i class="bi bi-list" aria-hidden="true"></i>
@@ -389,7 +396,10 @@
         {% endif %}
         </div>
         {% if request.user.is_authenticated and EFFECTIVE_PORTAL_ROLE %}
-          <span class="rmc-quiet-header-role" aria-label="{% trans 'Current role' %}">{{ EFFECTIVE_PORTAL_ROLE }}</span>
+          {% comment %} Non-interactive role label folded beside the brand lockup. role="note"
+             + data-rmc-header-noncontrol make it unambiguously NOT one of the 6 approved
+             interactive controls, so it can never push the header past the v2 cap. {% endcomment %}
+          <span class="rmc-quiet-header-role" role="note" data-rmc-header-noncontrol="1" aria-label="{% trans 'Current role' %}">{{ EFFECTIVE_PORTAL_ROLE }}</span>
         {% endif %}
 
         {% if not request.user.is_authenticated %}
@@ -399,14 +409,10 @@
           </a>
         {% endif %}
 
-        {% comment %} v4.04.x: tenant primary nav pulled ONTO the header line at lg+ so
-           the four pills share the row with the search bar (reclaims the full-width band
-           row's vertical height). The lg breakpoint (≥992px) matches the preview across all
-           desktop widths AND aligns with the existing 991.98px band-restyle boundary; at lg
-           the d-xl-only campus/shell switchers are hidden, so the row has room. Below lg the
-           band row still renders (tp-primary-nav-bandrow wrapper, d-lg-none) — display:none
-           guarantees exactly one nav is in the a11y tree at any breakpoint, so there is no
-           duplicate-landmark cost. {% endcomment %}
+        {% comment %} Quiet-header v2: tenant primary nav (Home + one role-primary) lives on
+           the header line at lg+. Below lg the mock hides primary pills — hamburger, brand,
+           alerts, Utilities and avatar remain; remaining destinations live in Utilities and
+           the sidebar. There is no second header bandrow. {% endcomment %}
         <div class="tp-primary-nav-inline d-none d-lg-flex align-items-center" data-rmc-tenant-primary-nav-inline="1">
           {% include "partials/tenant_primary_nav.html" %}
         </div>
@@ -446,6 +452,9 @@
                  (rmc-tenant-chrome-finish.css) reclaims the room. The bell badge reuses
                  data-rmc-unread-badge so rmc-notification-bell-poll.js (shipped with user_dropdown.html)
                  keeps it live in place, and it links to the full inbox. {% endcomment %}
+              {% comment %} Quiet-header v2: compact LIVE badge in the band (opens the
+                 activity drawer). Not a second header row. {% endcomment %}
+              {% include "partials/cockpit/_activity_ticker_inline.html" %}
               {% if SHOW_HEADER_NOTIFICATIONS %}
               <a class="btn btn-link p-0 position-relative topbar-icon-btn" href="{% url 'accounts:user_notifications' %}" title="{% trans 'Notifications' %}" aria-label="{% trans 'Notifications' %}" data-rmc-header-bell="1">
                 <i class="bi bi-bell-fill"></i>
@@ -481,17 +490,12 @@
         </div>
       </div>
     </div>
-    {% comment %} Band-row primary nav: the full-width row fallback, shown only below lg
-       (at lg+ the inline copy in the header line takes over — see tp-primary-nav-inline). {% endcomment %}
-    <div class="tp-primary-nav-bandrow d-lg-none rmc-quiet-header-primary-band">{% include "partials/tenant_primary_nav.html" %}</div>
       {% comment %} v4.05.73: mission strip lives in dashboard surface (portal-page-body),
          not header chrome — keeps header compact; see tp-mission-surface below. {% endcomment %}
       {% block portal_shell_header_ticker_tenant %}
-        {% if tenant_role_home_landing and request.public_host_kind != 'manager' %}
-        <div class="tp-header__live-banner" data-rmc-tenant-header-live="1">
-          {% include "partials/cockpit/_activity_ticker_landing_strip.html" %}
-        </div>
-        {% endif %}
+        {% comment %} Quiet-header v2: no second header row. Role-home / tenant_role_home_landing
+           activity lives in the in-band inline badge (_activity_ticker_inline.html) and the
+           activity drawer. Landing-strip chrome is retired from the header stack. {% endcomment %}
       {% endblock %}
     </div>
     {% endif %}
@@ -776,13 +780,9 @@
     }</script>
     <script src="{% static 'js/rmc-service-worker-registration.js' %}"></script>
     
-    {% comment %} Messages chathead: staff/teacher only (RBAC); parents use Contact School. Hidden on v3 tenant shell (header + ⌘K). {% endcomment %}
-    {% if request.user.is_authenticated and EFFECTIVE_PORTAL_ROLE|default:request.user.role != 'PARENT' and EFFECTIVE_PORTAL_ROLE|default:request.user.role != 'STUDENT' and not tp_v3_tenant_shell %}
-    <a href="{% url 'accounts:user_messages' %}" class="portal-chathead" aria-label="{% trans 'Open Messages' %}" title="{% trans 'Messages' %}">
-      <i class="bi bi-chat-dots-fill"></i>
-      {% if messages_unread_count %}<span class="portal-chathead-badge">{{ messages_unread_count }}</span>{% endif %}
-    </a>
-    {% endif %}
+    {% comment %} Quiet-header v2: Messages is a Utilities tile + Tools-rail chip
+       (urls.messages). The floating portal-chathead FAB is retired on every tenant
+       shell — it was a competing header-like control. {% endcomment %}
 
     {% comment %} v3.60: AI copilot restored for assist-dock when tenant AI policy allows (staff/teacher/admin). {% endcomment %}
     {% if request.user.is_authenticated and show_kb_ai_assistant_panel|default:False and not tp_v3_tenant_shell %}

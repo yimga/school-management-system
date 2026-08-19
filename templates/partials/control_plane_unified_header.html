@@ -1,11 +1,10 @@
 {% load i18n %}
-{% if request.public_host_kind == 'manager' and not request.school %}
-{% url 'super:command_center' as cp_command_center_url %}
-{% url 'super:dashboard' as cp_super_dashboard_url %}
-{% endif %}
 {% comment %}
-Consolidated operator header — one high-density band (utility + inline ticker + primary nav).
-Replaces the former triple stack: utility row + marquee ticker + canvas primary nav.
+Consolidated operator header — ONE quiet band (utility row + Tier-1 inline LIVE badge + primary nav rail).
+Replaces the former triple stack (utility row + full-width marquee ticker + flanked <xl nav row):
+ · the LIVE marquee collapses to the inline badge in the utility band (opens #rmcCpActivityDrawer);
+ · below xl the band collapses responsively (hamburger + search + Utilities + bell + avatar) with a
+   slim nav fallback only — urgency (incidents / schools needing attention) surfaces via Utilities.
 {% endcomment %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="cp-header cp-header--consolidated" data-rmc-cp-header-200x="1" data-rmc-cp-header-mode="consolidated">
@@ -14,65 +13,17 @@ Replaces the former triple stack: utility row + marquee ticker + canvas primary 
       <div class="cp-header__row cp-header__row--utility">
         {% include "partials/manager_operator_topbar.html" %}
       </div>
-      {% comment %} v4.02.x: full-width scrolling LIVE marquee row embedded in the header
-         (v8 200x preview parity). Now the DEFAULT on EVERY operator page — not just the
-         dashboards that used to inject it (those overrides are removed to avoid a double row).
-         Self-gating via _activity_ticker_landing_strip (auth + activity cards present). {% endcomment %}
-      {% block cp_shell_header_ticker %}
-      {% block portal_shell_header_ticker %}
-      <div class="cp-header__row cp-header__row--live" data-rmc-cp-live-row="1">
-        {% comment %} Include the base ticker DIRECTLY (not the landing strip): the strip gates
-           on cockpit.activity_ticker.cards and so blocks the legacy activity_feed.events
-           fallback. _activity_ticker.html self-gates + falls back, so the marquee shows the
-           live feed whenever ANY activity exists (matching the old inline badge). {% endcomment %}
-        <div class="rmc-cp-landing-ticker rmc-cp-header-ticker" data-rmc-cp-landing-ticker="1">
-          {% include "partials/cockpit/_activity_ticker.html" %}
-        </div>
-        {% comment %} v4.02.x (2026-06-06): clock / weather moved OUT of the header entirely and
-           centered on the operator civic footer ribbon (see partials/cockpit/_footer_temporal_dock.html).
-           Owner request: reclaim header vertical height; the ambient temporal belongs on the footer. {% endcomment %}
-      </div>
-      {% endblock %}
-      {% endblock %}
-      {% comment %} v4.02.x (2026-06-06): this dedicated nav row is now a NARROW-SCREEN FALLBACK on
-         BOTH shells — at xl+ the nav renders as a compact icon rail inside the utility row
-         (manager_operator_topbar.html), so the row is d-xl-none everywhere to reclaim its height.
-         /super/ keeps the cp-header__row--nav-flanked treatment (status chip + Command flanks) for
-         the <xl fallback only; at xl+ the relocated status chip lives in the utility band. {% endcomment %}
-      <div class="cp-header__row cp-header__row--inline-chrome d-xl-none{% if not MANAGER_PLATFORM_ADMIN_SHELL %} cp-header__row--nav-flanked{% endif %}" data-rmc-cp-inline-chrome="1">
-        {% if PRIMARY_CONTROL_PLANE_NAV %}
-        {% comment %} v4.02.x: the nav row used to be JUST centred pills with big dead flanks.
-           On the control-plane (/super/) we now claim the flanks with VALUE — a live system-status
-           chip (left) and quick operator actions (right) — so the row earns its width. Backoffice
-           /admin/ keeps the plain centred nav (this whole row is its <xl fallback). The redundant
-           "Security" pill is dropped from the nav (hide_security) since the security shield already
-           lives in the utility row above. {% endcomment %}
-        {% if not MANAGER_PLATFORM_ADMIN_SHELL and cp_command_center_url %}
-        <div class="cp-header__nav-flank cp-header__nav-flank--start" data-rmc-cp-nav-flank="start">
-          <a href="{{ cp_command_center_url }}" class="cp-nav-status-chip{% if platform_incidents|length %} cp-nav-status-chip--alert{% endif %}" title="{% if platform_incidents|length %}{% trans 'Open incidents' %}{% else %}{% trans 'All systems operational' %}{% endif %}">
-            <span class="cp-nav-status-chip__dot" aria-hidden="true"></span>
-            <span class="cp-nav-status-chip__text">{% if platform_incidents|length %}{% blocktrans count count=platform_incidents|length %}{{ count }} incident{% plural %}{{ count }} incidents{% endblocktrans %}{% else %}{% trans "All systems operational" %}{% endif %}</span>
-          </a>
-        </div>
-        {% endif %}
-        <div class="cp-header__nav-slot" data-rmc-cp-nav-slot="1">
-          {% include "partials/control_plane_primary_nav.html" with rail=True hide_security=True %}
-        </div>
-        {% if not MANAGER_PLATFORM_ADMIN_SHELL and cp_command_center_url %}
-        <div class="cp-header__nav-flank cp-header__nav-flank--end" data-rmc-cp-nav-flank="end">
-          {% if attention_school_count and cp_super_dashboard_url %}
-          <a href="{{ cp_super_dashboard_url }}" class="cp-nav-flank-stat" title="{% trans 'Schools needing attention' %}">
-            <span class="cp-nav-flank-stat__value">{{ attention_school_count }}</span>
-            <span class="cp-nav-flank-stat__label">{% trans "need attention" %}</span>
-          </a>
-          {% endif %}
-          <a href="{{ cp_command_center_url }}" class="cp-nav-flank-action" title="{% trans 'Command center' %}">
-            <span aria-hidden="true">⌘</span><span class="cp-nav-flank-action__label">{% trans "Command" %}</span>
-          </a>
-        </div>
-        {% endif %}
-        {% endif %}
-      </div>
+      {% comment %} quiet-header v2: the persistent full-width LIVE marquee ROW is removed so the
+         operator header is ONE quiet band. The live feed collapses to the Tier-1 inline badge in the
+         utility band (manager_operator_topbar.html → partials/cockpit/_activity_ticker_inline.html),
+         which opens the #rmcCpActivityDrawer offcanvas (rmc-cp-activity-drawer.js) — a dismissible
+         affordance, not a second row. These blocks remain as empty extension points so a landing page
+         may still inject a Tier-2 banner below the band without a default marquee row. {% endcomment %}
+      {% block cp_shell_header_ticker %}{% block portal_shell_header_ticker %}{% endblock %}{% endblock %}
+      {% comment %} Quiet-header v2 mobile/tablet: the operator band collapses to hamburger +
+         search + Utilities + alerts + avatar. Primary destinations stay in the xl+ rail inside
+         the utility band (manager_operator_topbar.html, rail=True). There is no second nav row
+         below xl — remaining destinations live in Utilities. {% endcomment %}
     </div>
   </div>
 </div>

@@ -41,12 +41,17 @@
       <div class="list-group my-4"
            data-rmc-activation-actions="1"
            data-rmc-activation-single-action="{% if activation_single_action %}1{% else %}0{% endif %}">
+        {% comment %} Every href here is filtered through the conversion-lock allowlist in
+           apps/schools/activation_views.py, so this page can never advertise a CTA the
+           gate will 302 straight back to this same page. {% endcomment %}
         {% if activation_single_action %}
         <a class="list-group-item list-group-item-action list-group-item-primary fw-semibold" href="{{ primary_action_url }}">{% trans "Do your next action" %}</a>
         {% else %}
-        <a class="list-group-item list-group-item-action" href="{{ portal_take_url }}">{% trans "Take attendance" %}</a>
-        <a class="list-group-item list-group-item-action" href="{{ marks_url }}">{% trans "Enter marks" %}</a>
-        <a class="list-group-item list-group-item-action" href="{{ backend_url }}">{% trans "Open operator dashboard" %}</a>
+        {% for choice in activation_choices %}
+        <a class="list-group-item list-group-item-action" href="{{ choice.url }}">{{ choice.label }}</a>
+        {% empty %}
+        <a class="list-group-item list-group-item-action list-group-item-primary fw-semibold" href="{{ primary_action_url }}">{% trans "Do your next action" %}</a>
+        {% endfor %}
         {% endif %}
       </div>
       <p class="small text-muted mb-3">

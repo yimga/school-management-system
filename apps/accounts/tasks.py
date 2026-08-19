@@ -498,8 +498,18 @@ def _apply_rollover_proposal_impl(
         proposal.save(update_fields=["status", "applied_at"])
 
         if lock_source:
-            source_year.is_locked = True
-            source_year.save(update_fields=["is_locked"])
+            from apps.academics.year_close import lock_source_year
+
+            _lock_school = getattr(proposal, "school", None)
+            if _lock_school is not None:
+                lock_source_year(
+                    _lock_school,
+                    source_year,
+                    actor=getattr(proposal, "approved_by", None)
+                    or getattr(proposal, "created_by", None),
+                    reason="rollover_proposal lock_source",
+                    activate_target=target_year,
+                )
 
         if carry_forward_arrears and flags.get("carry_forward_arrears_on_rollover", True):
             try:
@@ -695,6 +705,4 @@ def watch_django_cryptography_upstream() -> dict:
     return {
         "ok": exit_code == 0,
         "exit_code": exit_code,
-        "compat_candidate_count": len(compat_lines),
-        "audit_path": str(latest) if latest else None,
-    }
+  

@@ -1,5 +1,5 @@
-"""G6 — parent/guardian NAME preserved as a student-scoped, account-free claimable
-hint, surfaced in the child-link claim flow (never a User/StudentGuardian at ingest).
+"""G6 — parent/guardian NAME preserved as a student-scoped claimable hint AND
+promoted into the live Guardian directory (unusable-password PARENT account).
 """
 
 from __future__ import annotations
@@ -123,13 +123,13 @@ def _xlsx_bytes(headers, rows):
 
 
 class GuardianHintIngestEndToEndTests(TransactionTestCase):
-    def test_parent_name_persists_student_scoped_no_account(self):
+    def test_parent_name_persists_and_lands_in_guardian_directory(self):
         from apps.accounts.models import User
         from apps.metadata.models import DynamicFieldValue
         from apps.migration_cloud.orchestrator import apply_bundle
         from apps.migration_cloud.pipeline import advance_bundle
         from apps.people.models import StudentGuardian, StudentProfile
-        from apps.schools.models import School
+        from apps.schools.models import School, SchoolMembership
 
         school = School.objects.create(
             name="TVET Hint", subdomain="tvet-hint", country_code="CM",
@@ -161,10 +161,16 @@ class GuardianHintIngestEndToEndTests(TransactionTestCase):
             ).exists(),
             "parent name should persist as a student-scoped hint",
         )
-        # ZERO accounts / guardian links created at ingest (consent-first, COPPA).
-        self.assertFalse(StudentGuardian.objects.filter(student__school=school).exists())
-        self.assertFalse(User.objects.filter(first_name="Andoh").exists())
-        # The 'None' literal is NOT stored as a hint.
+        link = StudentGuardian.objects.filter(student=andoh).select_related("guardian_user").first()
+        self.assertIsNotNone(link, "Parent column must appear in the Guardians directory")
+        self.assertEqual(link.guardian_user.role, User.Role.PARENT)
+        self.assertFalse(link.guardian_user.has_usable_password())
+        self.assertTrue(
+            SchoolMembership.objects.filter(
+                school=school, user=link.guardian_user, role=User.Role.PARENT,
+            ).exists()
+        )
+        # The 'None' literal is NOT stored as a hint and must not mint a guardian.
         sharon = StudentProfile.objects.filter(school=school, first_name="EYONG").first()
         self.assertIsNotNone(sharon)
         self.assertFalse(
@@ -173,3 +179,4 @@ class GuardianHintIngestEndToEndTests(TransactionTestCase):
             ).exists(),
             "a 'None' literal must not become a hint",
         )
+        self.assertFalse(StudentGuardian.objects.filter(student=sharon).exists())

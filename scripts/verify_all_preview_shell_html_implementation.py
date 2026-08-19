@@ -41,7 +41,8 @@ IMPLEMENTATION: dict[str, dict] = {
         "label": "Platform /admin/ (manager host)",
         "templates": (
             ("templates/admin/base.html", ("control_plane_unified_header.html",)),
-            ("templates/partials/control_plane_unified_header.html", ("cp-header", "cp_shell_header_ticker", "cp-header__row--live", "cp-header__row--inline-chrome", "_activity_ticker.html", 'data-rmc-cp-header-200x="1"')),
+            ("templates/partials/control_plane_unified_header.html", ("cp-header", "cp_shell_header_ticker", "cp-header--consolidated", 'data-rmc-cp-header-200x="1"')),
+            ("templates/partials/manager_operator_topbar.html", ("_activity_ticker_inline.html", "control_plane_primary_nav.html")),
             ("templates/admin/base_site.html", ("rmc-admin-v1-200x.css", "rmc-cp-header-200x.css", "rmc-cp-sidebar-200x.css")),
             ("templates/admin/index_superadmin.html", ("rmc-django-command-band", "rmc-admin-discover-canvas", "cp-catalog-card", "data-rmc-admin-catalog-index", "admin_v1_index_surface_previews", "rmc-page-fold-nav", "rmc-admin-catalog-section")),
             ("templates/admin/partials/admin_v1_index_surface_previews.html", ("cp-changelist", "cp-form-frame", "cp-platform-tag-row")),
@@ -50,7 +51,7 @@ IMPLEMENTATION: dict[str, dict] = {
             ("templates/partials/manager_platform_admin_sidebar.html", ("cp-sidebar-platform-admin", "data-rmc-platform-admin-sidebar")),
         ),
         "order_checks": (
-            ("templates/partials/control_plane_unified_header.html", "cp-header__row--live", "cp-header__row--inline-chrome"),
+            ("templates/partials/manager_operator_topbar.html", "rmc-platform-header", "_activity_ticker_inline.html"),
         ),
         "css_files": (
             "static/css/rmc-admin-v1-200x.css",
@@ -67,7 +68,7 @@ IMPLEMENTATION: dict[str, dict] = {
         "label": "Control plane /super/ (manager host)",
         "templates": (
             ("templates/control_plane_base.html", ("control_plane_unified_header.html", "cp_shell_canvas_chrome")),
-            ("templates/partials/control_plane_unified_header.html", ("cp-header", "cp_shell_header_ticker", "cp-header__row--live", "cp-header__row--inline-chrome", 'data-rmc-cp-header-200x="1"')),
+            ("templates/partials/control_plane_unified_header.html", ("cp-header", "cp_shell_header_ticker", "cp-header--consolidated", 'data-rmc-cp-header-200x="1"')),
             ("templates/control_plane_skeleton.html", ("rmc-cp-header-200x.css", "rmc-cp-sidebar-200x.css", "rmc-platform-inner-pages.css")),
             ("templates/partials/control_plane_sidebar.html", ("cp-sidebar__group", "cp-sidebar__item", "cp-sidebar__section")),
             ("templates/partials/control_plane_primary_nav.html", ("cp-primary-nav",)),
@@ -76,7 +77,7 @@ IMPLEMENTATION: dict[str, dict] = {
             ("templates/partials/manager_operator_topbar.html", ("cp-brand__tagline", "cp-header-search")),
         ),
         "order_checks": (
-            ("templates/partials/control_plane_unified_header.html", "cp-header__row--live", "cp-header__row--inline-chrome"),
+            ("templates/partials/manager_operator_topbar.html", "rmc-platform-header", "_activity_ticker_inline.html"),
         ),
         "css_files": (
             "static/css/rmc-cp-header-200x.css",

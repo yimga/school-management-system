@@ -1,5 +1,89 @@
 # RunMyCampus autonomous execution log
 
+## Slice — Migration leftovers: staff-role backfill + residual columns + mail-fail CSV (batch 1803 - 2026-08-18)
+
+**A. Scope:** Close the three 1801 leftovers: already-imported staff stuck on TEACHER, leftover connector columns sitting in notes, and activation that stalls when SMTP is down.
+
+**B. Shipped:** `promote_imported_staff_roles` on post-apply and the review snapshot; residual header bind at apply; staff synonym expansion + lander residual role + custom_attributes sweep; `activate_mail_then_handover` emails who it can and downloads passwords for the rest.
+
+**C. Proof:** sqlite-memory **38/38 OK** then french coverage **7/7 OK**; template-render-safety 0; inline-handlers 0; pii-logging 0.
+
+**D. Honest:** Unknown titles stay TEACHER. Headers with no synonym still persist (custom_attributes / DFV), not a first-class column. Successfully emailed users are not given CSV passwords (that would invalidate the invite).
+
+**E. Files:** `staff_role_map.py`, `orchestrator.py`, `mapper.py`, `ontology/catalog.py`, `staff_lander.py`, `people_activation.py`, `views_tenant_upload.py`, `bundle_review.html`, tests, SOT/log.
+
+**F. Next:** Open review (or apply) so bursars already in the directory get BURSAR; use Email invites — if mail fails the password CSV downloads automatically.
+
+## Slice — Soft Close + Configuration Engine lifecycle UI (batch 1802 - 2026-08-18)
+
+**A. Scope:** Salesforce Soft Close (teachers blocked, registrars can correct) + Stage 08 lifecycle control on academic-years evidence.
+
+**B. Shipped:** `is_soft_closed` + migration `0083`; soft-close/reopen services; role-aware `assert_period_writable`; evals wiring; lifecycle POST actions on `/siteconfig/reports/academic-years-setup/`; admin soft-close actions.
+
+**C. Proof:** sqlite-memory **19/19 OK**.
+
+**D. Honest:** Soft Close is grades-domain only for now; hard unlock still Admin break-glass; no MFA dual-control / finance soft-close / year switcher yet.
+
+**E. Files:** `academics/models.py`, `year_close.py`, `admin.py`, `0083_*`, `evals/views.py`, `views_academic_years_evidence.py`, evidence templates, tests, SOT/log.
+
+**F. Next:** term auto-lock scheduler + finance soft-close + broader write-path adoption.
+
+## Slice — Staff workbook roles + Workflow Center 1–9 guided path (batch 1801 - 2026-08-18)
+
+**A. Scope:** Audit Migration Cloud staff roles from the workbook, duplicate/delta apply, and Workflow Center steps 1–9 so clone/year/marks cannot strand operators.
+
+**B. Shipped:** Workbook Bursar/HOD/Principal/… map onto `User.role` + membership; SUPERADMIN never granted; re-apply stays delta; clone refuses until a target year exists; Workflow Center 1–9 with next/blocked beads and Create academic year as the first action.
+
+**C. Proof:** sqlite-memory **21/21 OK** (role map + clone guided + person landers) + help-panel re-audit **9/9 OK**; template-render-safety 0; undefined-css 0; inline-handlers 0; inline-style 0; pii-logging 0; SW `sms-v4.06.59-staff-roles-workflow-guide-2026-08-18`.
+
+**D. Honest:** Staff already imported as TEACHER need Repair/re-apply. Unknown titles stay TEACHER. Full connector-column coverage is a later mapper wave.
+
+**E. Files:** `staff_role_map.py`, `staff_lander.py`, `guardian_directory.py`, `people_activation.py`, `guardian_invite.py`, `views_workflow.py`, `views_rollover.py`, `clone_year_setup.html`, `workflow_center_main.html`, `workflow-center.css`, tests, SW + baseline, SOT/log.
+
+**F. Next:** Hard-refresh Workflow Center; create the new year before clone; Repair/re-apply staff sheets so bursars get BURSAR.
+
+## Slice — Academic year period governance P0 (batch 1800 - 2026-08-18)
+
+**A. Scope:** Audit lock/default/unlock vs competitor Soft/Hard Close; close P0 gaps so lock ≠ default and admin unlock is audited.
+
+**B. Shipped:** provenance fields + migration `0082`; `unlock_academic_year` / `activate_academic_year` / `assert_period_writable`; rollover lock activates target; Django admin unlock + activate actions; enrollment guard shared helper; governance tests.
+
+**C. Proof:** sqlite-memory **14/14 OK**.
+
+**D. Honest:** Soft Close residual **closed in batch 1802**. MFA dual-control, finance close, year switcher UI, append-only governance ledger remain later.
+
+**E. Files:** `apps/academics/models.py`, `year_close.py`, `admin.py`, `migrations/0082_*`, `views_rollover.py`, `accounts/tasks.py`, `enrollment_services.py`, tests, SOT.
+
+**F. Next:** Closed by batch 1802 Soft Close + lifecycle UI.
+
+## Slice — Guardian directory + parent/teacher activation (batch 1799 - 2026-08-18)
+
+**A. Scope:** Audit why imported Parent/guardian columns never showed in Guardians, then land directory promote plus invite-or-handover activation for parents and teachers after Migration Cloud apply.
+
+**B. Shipped:** `guardian_directory.py` promotes student-sheet Parent hints to PARENT `User` + `StudentGuardian` + membership (synthetic undeliverable email when needed); landers + post-apply backfill; review **Activate parents and teachers** panel (email invites or one-shot password CSV); `send_staff_setup_invite` / `StaffSetupView`; first-login password change + profile setup unchanged.
+
+**C. Proof:** sqlite-memory **18/18 OK** (directory/invite) + **7/7 OK** (G6 hint now lands in `StudentGuardian`); template-render-safety 0; undefined-css 0; inline-handlers 0; pii-logging 0; inline-style 0; SW `sms-v4.06.58-guardian-directory-activation-2026-08-18`.
+
+**D. Honest:** Schools that applied before this code must Repair/re-apply. Invites need a working mail relay. Phone-only parents use handover CSV. Synthetic `@unclaimed.invalid` addresses are not emailed.
+
+**E. Files:** `guardian_directory.py`, `people_activation.py`, `student_lander.py`, `guardian_lander.py`, `staff_lander.py`, `orchestrator.py`, `views_tenant_upload.py`, `urls_connectors.py`, `bundle_review.html`, `guardian_invite.py`, `email_delivery_policy.py`, staff setup view/template/URL, tests, SW + baseline, SOT/log.
+
+**F. Next:** Hard-refresh the bundle review page; Repair/re-apply if Guardians is still empty; use **Email parent/teacher invites** or **Download passwords**; confirm first login forces a new password and profile setup.
+
+## Slice — Combined-name split radios + people-only preview (batch 1798 - 2026-08-18)
+
+**A. Scope:** Fix clipped radios and program-title previews on Migration Cloud “How should combined names be split?” (`/school/setup/migration-cloud/bundle/<id>/repair/` and review). No leftover Bootstrap `.form-check` sliver.
+
+**B. Shipped:** Custom 44px radio well (opacity-0 native input + `::after` circle); Option | Preview grid; skip TVET titles and trade filenames even on a students-labelled sheet; persist `name_order` on `transform_prefs`; Repair GET renders the review canvas.
+
+**C. Proof:** sqlite-memory **14/14 OK**; Repair GET **1/1 OK**; template-render-safety 0; undefined-css 0; off-token 0; inline-style 0.
+
+**D. Honest:** Hard-refresh once for SW `sms-v4.06.56-name-split-radios-2026-08-18`. When the Name column is only course titles, the picker is hidden (there are no people names to split).
+
+**E. Files:** `bundle_review.html`, `migration-cloud-ui.css`, `views_tenant_upload.py`, `test_name_order_choice_2026_08_18.py`, `service-worker.js` + baseline, SOT/log.
+
+**F. Next:** Hard-refresh the repair URL; confirm full radio circles and that ELECTRICAL POWER SYSTEMS no longer appears as a person-name preview.
+
 ## Slice — School & region tenant editor (batch 1797 - 2026-08-18)
 
 **A. Scope:** Clean leftover dirty trees. Land the only product files not already on `origin/main`. Do not commit stale copies that would regress telemetry / quiet-header.

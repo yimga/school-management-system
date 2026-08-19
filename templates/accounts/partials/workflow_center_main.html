@@ -10,7 +10,7 @@
   <div class="d-flex align-items-center gap-2 mb-2">
     <span class="visually-hidden">{{ page_subtitle }}</span>
     {% rmc_info_tag title=page_title body=page_subtitle surface="workflow" placement="bottom" %}
-    <span class="small text-muted truncate">{% trans "Open any step — no rigid sequence." %}</span>
+    <span class="small text-muted truncate">{% trans "Follow the highlighted next step — later steps wait until the year is ready." %}</span>
   </div>
   {% endif %}
 
@@ -32,11 +32,11 @@
   <div class="mb-3 workflow-progress-overview" role="region" aria-label="{% trans 'Workflow progress' %}">
     <div class="d-flex justify-content-between align-items-center small text-muted mb-2">
       <span>{% trans "Workflow overview" %} — {{ steps|length }} {% trans "steps" %}</span>
-      <span class="workflow-progress-overview__hint">{% trans "Pick any step below" %}</span>
+      <span class="workflow-progress-overview__hint">{% trans "Start with the highlighted step" %}</span>
     </div>
     <div class="workflow-progress-train" role="list" aria-label="{% trans 'Workflow step map' %}">
       {% for step in steps %}
-      <span class="workflow-progress-train__bead" role="listitem" title="{{ step.title }}" data-status="pending"></span>
+      <span class="workflow-progress-train__bead" role="listitem" title="{{ step.title }}" data-status="{{ step.status|default:'pending' }}"></span>
       {% if not forloop.last %}<span class="workflow-progress-train__rule" aria-hidden="true"></span>{% endif %}
       {% endfor %}
     </div>
@@ -45,7 +45,7 @@
 
   <div class="workflow-grid" role="list" aria-label="{% trans 'Workflow steps' %}">
     {% for step in steps %}
-      <article class="workflow-card" id="step-{{ step.step_key }}" aria-labelledby="step-title-{{ step.step_key }}">
+      <article class="workflow-card" id="step-{{ step.step_key }}" data-status="{{ step.status|default:'ready' }}" aria-labelledby="step-title-{{ step.step_key }}">
         <div class="card-body">
           <div class="workflow-step-meta">{% trans "Step" %} {{ step.step_index }} {% trans "of" %} {{ step.total_steps }}</div>
           <h3 id="step-title-{{ step.step_key }}" class="workflow-title d-flex align-items-center h6 mb-0 gap-1">
@@ -57,6 +57,9 @@
           {% if step.progress_label %}
           <div class="workflow-progress-label">{{ step.progress_label }}</div>
           {% endif %}
+          {% if step.blocked_reason %}
+          <p class="workflow-blocked-reason">{{ step.blocked_reason }}</p>
+          {% endif %}
           <div class="workflow-links">
             {% for link in step.links %}
               {% if link.primary %}
@@ -64,6 +67,13 @@
               {% else %}
               <a class="btn btn-sm btn-outline-primary truncate" href="{{ link.url }}">{{ link.label }}</a>
               {% endif %}
+            {% empty %}
+            {% comment %} Rows this viewer cannot actually open are filtered out in
+               workflow_center()._filter_links, so a step can legitimately end up with
+               nothing. Say so — a silently blank card reads as a broken page. {% endcomment %}
+            <p class="workflow-subtitle wrap mb-0 text-muted">
+              {% trans "Nothing here for your role — this step is handled by other staff." %}
+            </p>
             {% endfor %}
           </div>
         </div>

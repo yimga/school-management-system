@@ -40,6 +40,24 @@ def clone_academic_year(
 
     Returns dict with counts: terms_created, classrooms_created, subject_assignments_created, promotion_rules_created.
     """
+    # Defence in depth against a cross-school clone. The view scopes both years to
+    # request.school, but this service is also reachable from management commands and
+    # future callers; a tenant SCHEMA can hold several Schools (multi-campus) and RLS
+    # deployments share one schema outright, so "same tenant" does not imply "same
+    # school". Copying one school's structure into another's year would be silent,
+    # irreversible data contamination - refuse loudly instead.
+    from_school_id = getattr(from_year, "school_id", None)
+    to_school_id = getattr(to_year, "school_id", None)
+    if from_school_id is not None and to_school_id is not None:
+        if from_school_id != to_school_id:
+            raise ValueError(
+                "Cannot clone across schools: "
+                f"{from_year.name} belongs to school {from_school_id} but "
+                f"{to_year.name} belongs to school {to_school_id}."
+            )
+    if from_year.pk is not None and from_year.pk == to_year.pk:
+        raise ValueError("Source and target academic year must be different.")
+
     suffix = _year_suffix(to_year)
     old_to_new_classroom: dict[int, Classroom] = {}
     old_to_new_term: dict[int, Term] = {}

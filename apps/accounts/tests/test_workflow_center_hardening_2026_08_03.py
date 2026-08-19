@@ -16,7 +16,9 @@ the pre-2026-08-03 code (must-fire).
       in-process scheduler (were beat-only).
   #6  Seed definitions match runners (student_transfer seeded, migration_run
       dropped) + a run with no runner is FAILED, not left PENDING forever.
-  #7  Parents get a Workflow nav pill (teacher/student already had one).
+  #7  Every tenant role keeps a route to its own workflow page. The pill
+      itself moved into the Utilities menu / command palette when the
+      quiet header capped the primary nav at two links per role.
 """
 
 from __future__ import annotations
@@ -25,6 +27,7 @@ import re
 from pathlib import Path
 from types import SimpleNamespace
 
+from django.core.exceptions import PermissionDenied
 from django.template.loader import get_template
 from django.test import RequestFactory, SimpleTestCase, TestCase
 
@@ -111,12 +114,13 @@ class OrchestrationWorkbenchGateTests(SimpleTestCase):
         req.user = SimpleNamespace(
             is_authenticated=True, is_staff=True, is_superuser=False, role="ADMIN"
         )
-        resp = operator_workbench(req)
-        self.assertEqual(
-            resp.status_code,
-            403,
-            "operator workbench must refuse a tenant-host (non-super) surface",
-        )
+        # require_super_access_with_host RAISES rather than returning a 403
+        # body, so no view code runs and no orchestration row is read on a
+        # tenant-host surface. Django's exception middleware is what turns
+        # this into the 403 a browser sees; calling the view directly must
+        # therefore assert the raise, not a status code.
+        with self.assertRaises(PermissionDenied):
+            operator_workbench(req)
 
     def test_no_staff_member_required_left(self):
         import apps.orchestration.views as ov
@@ -192,7 +196,50 @@ class NoRunnerRunFailedTests(TestCase):
 
 # ── #7 — parent workflow nav pill ───────────────────────────────────────────
 class ParentWorkflowNavTests(SimpleTestCase):
-    def test_parent_nav_has_workflow_pill(self):
+    """Each tenant role must keep a route to its own workflow page.
+
+    The quiet-header redesign caps the primary nav at Home plus ONE
+    role-primary destination (templates/partials/tenant_primary_nav.html),
+    so the workflow pill no longer lives there for every role. That is
+    deliberate, but it makes orphaning a workflow page a one-line mistake.
+    Assert the destination survives in the shared chrome registries the
+    Utilities menu and command palette are built from.
+    """
+
+    ROLE_WORKFLOWS = {
+        "PARENT": "portal:parent_workflow",
+        "TEACHER": "portal:teacher_workflow",
+        "STUDENT": "portal:student_workflow",
+    }
+
+    def test_role_workflow_is_in_the_utilities_baseline(self):
+        from apps.siteconfig.portal_sidebar_items import _BASELINE_BY_ROLE
+
+        for role, url_name in self.ROLE_WORKFLOWS.items():
+            with self.subTest(role=role):
+                url_names = {item[2] for item in _BASELINE_BY_ROLE.get(role, ())}
+                self.assertIn(
+                    url_name,
+                    url_names,
+                    f"{role} lost its workflow entry in the Utilities baseline",
+                )
+
+    def test_role_workflow_is_in_the_command_palette(self):
+        from apps.siteconfig.command_bar_registry import _PLATFORM_ACTION_DEFS
+
+        for role, url_name in self.ROLE_WORKFLOWS.items():
+            with self.subTest(role=role):
+                self.assertTrue(
+                    any(
+                        d[3] == url_name and d[5] == role
+                        for d in _PLATFORM_ACTION_DEFS
+                    ),
+                    f"{role} lost its workflow entry in the command palette",
+                )
+
+    def test_primary_nav_still_offers_a_second_destination_per_role(self):
         tpl = get_template("partials/tenant_primary_nav.html")
         src = Path(tpl.origin.name).read_text(encoding="utf-8")
-        self.assertIn("portal:parent_workflow", src)
+        for role in self.ROLE_WORKFLOWS:
+            with self.subTest(role=role):
+                self.assertIn(f"EFFECTIVE_PORTAL_ROLE == '{role}'", src)

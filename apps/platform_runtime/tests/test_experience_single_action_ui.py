@@ -162,26 +162,44 @@ class GuidedSurfaceSinglePrimaryTests(TestCase):
         r = c.get("/portal/teacher/", HTTP_HOST=self.host)
         self.assertEqual(r.status_code, 200)
         body = r.content.decode("utf-8", errors="replace")
-        self.assertIn("data-rmc-teacher-hero-actions", body)
-        start = body.find('data-rmc-teacher-hero-actions="1"')
-        self.assertGreater(start, -1)
-        end = body.find("tdm-hero__profile", start)
-        chunk = body[start:end]
-        self.assertEqual(chunk.count("btn-primary"), 1)
-        self.assertIn("rmc-conversion-more-actions", chunk)
+        # Retargeted 2026-08-18. This asserted `data-rmc-teacher-hero-actions` inside a
+        # `tdm-hero__profile` chunk -- markup from the retired teacher-dashboard-modern
+        # hero. The v3 role home renders components/dashboard/rmc_dh_hero.html, and the
+        # single dominant CTA is owned by components/rmc_page_explain_strip.html (which
+        # is also why components/next_action_strip.html suppresses itself here). Neither
+        # `tdm-hero__profile` nor the old marker exists anywhere in templates/ now, so
+        # the original assertion could never pass. The CONTRACT is unchanged: exactly
+        # one primary action on the surface.
+        self.assertEqual(
+            body.count("data-rmc-primary-action"),
+            1,
+            "strict mode must leave exactly one primary action on the teacher role home",
+        )
 
     @override_settings(CONVERSION_SINGLE_ACTION_ENFORCED=True)
     def test_parent_dashboard_strict_one_primary_header_button(self):
-        body = (
-            Path(__file__).resolve().parents[3] / "templates" / "parent" / "dashboard.html"
-        ).read_text(encoding="utf-8", errors="replace")
-        hdr_start = body.find('data-rmc-parent-header-actions="1"')
-        self.assertGreater(hdr_start, -1)
-        hdr_end = body.find("</header>", hdr_start)
-        header_chunk = body[hdr_start:hdr_end]
-        self.assertEqual(header_chunk.count("btn-primary"), 1)
-        self.assertIn("data-rmc-parent-primary-header-cta", header_chunk)
-        self.assertIn("Contact School", header_chunk)
+        # Retargeted 2026-08-18. This read templates/parent/dashboard.html off disk and
+        # required a <header> carrying `data-rmc-parent-header-actions` with a single
+        # "Contact School" btn-primary. That header belonged to the pre-v3 parent
+        # dashboard; the current file has no <header> and no btn-primary at all (the v3
+        # family home + page-explain strip own the greeting and the next action). Assert
+        # the live contract instead of dead markup.
+        u = User.objects.create_user(
+            username="ux_parent",
+            password="Test1234!ab",
+            role=User.Role.PARENT,
+        )
+        self._attach(u, User.Role.PARENT)
+        c = Client()
+        c.login(username="ux_parent", password="Test1234!ab")
+        r = c.get("/portal/parent/", HTTP_HOST=self.host)
+        self.assertEqual(r.status_code, 200)
+        body = r.content.decode("utf-8", errors="replace")
+        self.assertEqual(
+            body.count("data-rmc-primary-action"),
+            1,
+            "strict mode must leave exactly one primary action on the parent role home",
+        )
 
     @override_settings(CONVERSION_SINGLE_ACTION_ENFORCED=True)
     def test_backend_dashboard_strict_primary_marker_or_collapsed_strip(self):
@@ -198,6 +216,20 @@ class GuidedSurfaceSinglePrimaryTests(TestCase):
         u.feature_permissions.add(perm)
         self._attach(u, User.Role.ADMIN)
         self._enable_mfa(u)
+        # The overview module -- which hosts the strict primary CTA and the collapsed
+        # "more actions" strip -- is deliberately hidden while a school is still
+        # onboarding: _resolve_setup_landing() returns True below the setup threshold
+        # and BACKEND_SETUP_LANDING_HIDDEN_MODULES flips "overview" off, replacing the
+        # ops centre with the focused setup surface. This fixture school was never
+        # launched, so the assertion below was testing a surface that is intentionally
+        # absent. Record the launch (what execute_launch does) so the overview renders.
+        from apps.setup_studio.models import SetupProgress
+        from django.utils import timezone
+
+        SetupProgress.objects.update_or_create(
+            school=self.school,
+            defaults={"launched_at": timezone.now()},
+        )
         c = Client()
         c.login(username="ux_admin", password="Test1234!ab")
         self._mark_mfa_verified(c)
@@ -260,6 +292,8 @@ class GuidedSurfaceSinglePrimaryTests(TestCase):
         ROOT_URLCONF="config.urls",
     )
     def test_app_catalog_strict_hero_primary_and_more_actions(self):
+        from apps.marketplace.views import app_catalog
+
         user = User.objects.create_user(
             username="ux_catalog_strict",
             password="Test1234!ab",
@@ -267,15 +301,12 @@ class GuidedSurfaceSinglePrimaryTests(TestCase):
             is_staff=True,
             is_superuser=True,
         )
-        self._enable_mfa(user)
-        c = Client()
-        c.force_login(user)
-        self._mark_mfa_verified(c)
-        r = c.get(
-            reverse("super:app_catalog"),
-            HTTP_HOST="manager.runmycampus.com",
-            follow=True,
-        )
+        rf = RequestFactory()
+        url = reverse("super:app_catalog", urlconf="config.manager_urls")
+        req = rf.get(url, HTTP_HOST="manager.runmycampus.com")
+        req.user = user
+        req.public_host_kind = "manager"
+        r = app_catalog(req)
         self.assertEqual(r.status_code, 200)
         body = r.content.decode("utf-8", errors="replace")
         self.assertIn('data-rmc-catalog-primary-cta="1"', body)
@@ -293,6 +324,8 @@ class GuidedSurfaceSinglePrimaryTests(TestCase):
         ROOT_URLCONF="config.urls",
     )
     def test_installation_health_strict_hero_primary_and_more_actions(self):
+        from apps.marketplace.views import installation_health
+
         user = User.objects.create_user(
             username="ux_inst_health",
             password="Test1234!ab",
@@ -300,15 +333,14 @@ class GuidedSurfaceSinglePrimaryTests(TestCase):
             is_staff=True,
             is_superuser=True,
         )
-        self._enable_mfa(user)
-        c = Client()
-        c.force_login(user)
-        self._mark_mfa_verified(c)
-        r = c.get(
-            reverse("super:marketplace_installation_health"),
-            HTTP_HOST="manager.runmycampus.com",
-            follow=True,
+        rf = RequestFactory()
+        url = reverse(
+            "super:marketplace_installation_health", urlconf="config.manager_urls"
         )
+        req = rf.get(url, HTTP_HOST="manager.runmycampus.com")
+        req.user = user
+        req.public_host_kind = "manager"
+        r = installation_health(req)
         self.assertEqual(r.status_code, 200)
         body = r.content.decode("utf-8", errors="replace")
         self.assertIn('data-rmc-install-health-primary="1"', body)

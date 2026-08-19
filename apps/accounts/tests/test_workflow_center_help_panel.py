@@ -32,13 +32,34 @@ class BuildWorkflowHelpPanelTests(SimpleTestCase):
         self.assertTrue(any("No active academic year" in label for label in labels))
         self.assertEqual(panel["common_blockers"][0]["fix_url"], "/admin/year/")
 
-    def test_active_year_has_no_blocker(self):
+    def test_active_year_has_no_year_blocker(self):
         panel = build_workflow_help_panel(
-            has_active_year=True, academic_year_url="/admin/year/"
+            has_active_year=True, academic_year_url="/admin/year/", year_count=2
         )
-        self.assertEqual(panel["common_blockers"], [])
+        labels = [str(b["label"]) for b in panel["common_blockers"]]
+        self.assertFalse(any("No active academic year" in label for label in labels))
 
-    def test_panel_omits_kb_footer(self):
+    def test_one_year_blocks_clone_until_target_exists(self):
+        panel = build_workflow_help_panel(
+            has_active_year=True, academic_year_url="/admin/year/add/", year_count=1
+        )
+        labels = [str(b["label"]) for b in panel["common_blockers"]]
+        self.assertTrue(any("Clone needs a new target year" in label for label in labels))
+        self.assertEqual(panel["common_blockers"][0]["fix_url"], "/admin/year/add/")
+
+    def test_annotate_blocks_marks_until_classrooms_exist(self):
+        from apps.accounts.views_workflow import _annotate_workflow_step_status
+
+        steps = [
+            {"step_key": "year_setup", "title": "1) Year setup"},
+            {"step_key": "onboarding", "title": "2) Onboarding"},
+            {"step_key": "marks", "title": "3) Marks"},
+        ]
+        _annotate_workflow_step_status(steps, has_year=True, has_classrooms=False)
+        self.assertEqual(steps[0]["status"], "next")
+        self.assertEqual(steps[1]["status"], "ready")
+        self.assertEqual(steps[2]["status"], "blocked")
+        self.assertIn("classrooms", str(steps[2]["blocked_reason"]))
         # De-dup: the page hero owns the Help/KB link, so the panel has none.
         panel = build_workflow_help_panel(has_active_year=True)
         self.assertIsNone(panel.get("need_help"))
@@ -150,3 +171,6 @@ class WorkflowCenterPageHelpPanelTests(TestCase):
         html = self._render_page()
         self.assertIn("No active academic year is set", html)
         self.assertIn("rmc-workflow-help__list--blockers", html)
+        self.assertIn("Create academic year", html)
+        self.assertIn("Clone needs a new target year", html)
+        self.assertIn("Follow the highlighted next step", html)

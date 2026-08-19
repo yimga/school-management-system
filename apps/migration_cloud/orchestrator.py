@@ -415,6 +415,40 @@ def _apply_bundle_inner(
                 bundle_id,
                 exc_info=True,
             )
+        try:
+            from apps.migration_cloud.guardian_directory import (
+                promote_unlinked_guardian_hints,
+            )
+
+            directory_summary = promote_unlinked_guardian_hints(
+                school=getattr(bundle, "school", None),
+            )
+            if gap_fill_summary is None:
+                gap_fill_summary = {}
+            if isinstance(gap_fill_summary, dict):
+                gap_fill_summary["guardian_directory"] = directory_summary
+        except Exception:  # noqa: BLE001 — directory promote is additive; never break apply
+            logger.warning(
+                "orchestrator: guardian-directory promote errored for bundle %s",
+                bundle_id,
+                exc_info=True,
+            )
+        try:
+            from apps.migration_cloud.staff_role_map import promote_imported_staff_roles
+
+            role_summary = promote_imported_staff_roles(
+                school=getattr(bundle, "school", None),
+            )
+            if gap_fill_summary is None:
+                gap_fill_summary = {}
+            if isinstance(gap_fill_summary, dict):
+                gap_fill_summary["staff_role_backfill"] = role_summary
+        except Exception:  # noqa: BLE001 — role backfill is additive; never break apply
+            logger.warning(
+                "orchestrator: staff-role backfill errored for bundle %s",
+                bundle_id,
+                exc_info=True,
+            )
 
     totals = _summarize_outcomes(outcomes)
     # Landers wrote operator-review data (dedup_candidates / dedup_links) STRAIGHT to
@@ -967,10 +1001,7 @@ def _iter_canonical_rows(job: _ArtifactJob) -> Iterator[dict[str, Any]]:
             raw_iter = _iter_pdf_rows_bytes(raw_bytes, mapping_index, locale_hints)
         else:
             return iter(())
-        if diff_threshold is not None:
-            from .diff_mode import row_passes_diff_filter
-            raw_iter = (row for row in raw_iter if row_passes_diff_filter(row=row, threshold=diff_threshold))
-        return raw_iter
+        return _emit_canonical_rows(raw_iter, domain=job.domain, diff_threshold=diff_threshold)
 
     bundle_uri = artifact.bundle.intake_source_uri or ""
     path = Path(bundle_uri) if bundle_uri else None
@@ -1010,10 +1041,23 @@ def _iter_canonical_rows(job: _ArtifactJob) -> Iterator[dict[str, Any]]:
         raw_iter = _iter_pdf_rows_bytes(path.read_bytes(), mapping_index, locale_hints)
     else:
         return iter(())
+    return _emit_canonical_rows(raw_iter, domain=job.domain, diff_threshold=diff_threshold)
+
+
+def _emit_canonical_rows(raw_iter, *, domain: str, diff_threshold):
+    """Apply diff filter then promote leftover headers onto empty canonical fields."""
     if diff_threshold is not None:
         from .diff_mode import row_passes_diff_filter
-        raw_iter = (row for row in raw_iter if row_passes_diff_filter(row=row, threshold=diff_threshold))
-    return raw_iter
+
+        raw_iter = (
+            row for row in raw_iter if row_passes_diff_filter(row=row, threshold=diff_threshold)
+        )
+    domain = (domain or "").strip()
+    if not domain or domain == "custom_fields":
+        return raw_iter
+    from .mapper import bind_residual_headers
+
+    return (bind_residual_headers(row, domain) for row in raw_iter)
 
 
 def _iter_csv_rows(

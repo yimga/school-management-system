@@ -526,25 +526,67 @@ def _extract_guardian_hint(row: dict[str, Any]) -> tuple[str, str]:
     return name, phone
 
 
+def _extract_guardian_email(row: dict[str, Any]) -> str:
+    """Parent/guardian email from a student-roster pass-through column."""
+    mapped = (row.get("parent_email") or row.get("guardian_email") or "").strip()
+    if mapped:
+        return mapped
+    for key, value in row.items():
+        if not isinstance(key, str):
+            continue
+        m = re.match(r"^(?:custom_fields|_unmapped)\.(.+)$", key)
+        if not m:
+            continue
+        col = m.group(1)
+        if not _GUARDIAN_NAME_HINT_RE.search(col):
+            continue
+        if not re.search(r"(email|mail)", col, re.IGNORECASE):
+            continue
+        v = str(value).strip() if value is not None else ""
+        if v.lower() in _HINT_NULL_LITERALS:
+            continue
+        return v
+    return ""
+
+
 def _link_student_guardian_hint(obj, row: dict[str, Any], ctx, result) -> None:
-    """Persist a roster's parent/guardian NAME as a student-scoped, account-free
-    claimable hint (G6). NEVER creates a ``User`` or ``StudentGuardian`` — those
-    are minted only when a real parent claims the child (guardian self-onboarding),
-    the platform's consent-first, COPPA-safe rule. Stored on ``DynamicFieldValue``
-    keyed to the student pk (unlike the generic custom-field path, which keys to a
-    synthetic ``migration_artifact`` row and is not student-joinable), so the claim
-    flow can read it back. Best-effort; never raises/quarantines."""
+    """Persist the roster parent name as a student-scoped hint AND promote it
+    into the live Guardian directory (``StudentGuardian`` + PARENT user).
+
+    Login stays consent-first: the account is created with an UNUSABLE password.
+    Activation is invite or a handed one-time password after apply — never a
+    credential minted here. The DFV hint is kept so the claim UX can still show
+    the source name. Best-effort; never raises/quarantines."""
     name, phone = _extract_guardian_hint(row)
+    phone = phone or (row.get("parent_phone") or "").strip()
+    email = _extract_guardian_email(row)
     extras: dict[str, Any] = {}
     if name:
         extras["parent_name"] = name[:120]
     if phone:
         extras["parent_phone"] = phone[:40]
-    if not extras:
+    if extras:
+        persist_dfv_extras(
+            ctx=ctx, entity_type="student", entity_id=obj.pk, extras=extras, result=result,
+        )
+    if not (name or phone or email):
         return
-    persist_dfv_extras(
-        ctx=ctx, entity_type="student", entity_id=obj.pk, extras=extras, result=result,
-    )
+    try:
+        from apps.migration_cloud.guardian_directory import promote_guardian_directory_link
+
+        promote_guardian_directory_link(
+            student=obj,
+            name=name,
+            phone=phone,
+            email=email,
+            school=getattr(ctx, "school", None),
+            dry_run=bool(getattr(ctx, "dry_run", False)),
+        )
+    except Exception:  # noqa: BLE001 — directory promote must not quarantine the student
+        if result is not None:
+            result.errors.append(
+                f"guardian directory promote failed for student {getattr(obj, 'pk', '?')}"
+            )
 
 
 # Cap on how many still-unmapped columns are folded into one student's

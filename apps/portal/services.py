@@ -42,10 +42,11 @@ def unclaimed_guardian_hint(student) -> dict | None:
     with NO account yet (G6). Returns ``{"name": str, "phone": str}`` (either key
     optional) or ``None``.
 
-    The migration deliberately creates no ``User``/``StudentGuardian`` for a bare
-    roster name — this hint is surfaced when a real parent claims the child (by
-    admission number) so they can confirm the school has them on record; the
-    account is minted only then, only by the parent (consent-first, COPPA-safe).
+    The migration stores the roster parent NAME as a student-scoped hint AND
+    creates a directory ``StudentGuardian`` with an unusable-password PARENT
+    account (no login until invite or a handed one-time password). This hint is
+    still surfaced when a parent claims the child so they can confirm the school
+    has them on record.
     Read-only; never raises."""
     if student is None:
         return None

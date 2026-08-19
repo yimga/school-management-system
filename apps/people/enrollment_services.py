@@ -33,24 +33,17 @@ from apps.people.models import Enrollment, StudentProfile
 
 
 def assert_year_writable(academic_year) -> None:
-    """Refuse a deliberate enrollment write into a LOCKED academic year.
+    """Refuse a deliberate enrollment write into a hard-closed academic year.
 
-    Run-observed gap: an enrollment could be opened into a year already locked
-    by a prior rollover — and the student row mutated inside it — with nothing
-    objecting. This is the service-layer guard for the deliberate write
-    entrypoints (``open_enrollment`` and everything routed through it).
-
-    It is intentionally NOT wired into ``Enrollment.save()`` /
-    ``AcademicYear.save()``: rollover locks the SOURCE year *after* moving the
-    cohort, and relock/unlock, fixtures, and admin all legitimately save into a
-    locked year — a blanket raise would break every one of those. Scope is the
-    entrypoints, where "opening a new placement in a closed year" is always wrong.
+    Delegates to ``apps.academics.year_close.assert_period_writable`` so grades,
+    enrollment, and rollover share one Soft/Hard Close contract. Intentionally
+    NOT wired into ``Enrollment.save()`` / ``AcademicYear.save()`` — rollover
+    locks the SOURCE year *after* moving the cohort; unlock/fixtures/admin
+    must still save rows.
     """
-    if academic_year is not None and getattr(academic_year, "is_locked", False):
-        name = getattr(academic_year, "name", None) or academic_year
-        raise ValidationError(
-            f"Academic year '{name}' is locked; enrollment changes are not allowed."
-        )
+    from apps.academics.year_close import assert_period_writable
+
+    assert_period_writable(academic_year, domain="enrollment")
 
 
 #: What to do with a student the rules cannot decide on — either no
