@@ -56,7 +56,14 @@
   function readData() {
     var node = document.getElementById(DATA_ID);
     if (!node || !node.textContent) { return { groups: [] }; }
-    try { return JSON.parse(node.textContent); } catch (_) { return { groups: [] }; }
+    try { return JSON.parse(node.textContent); } catch (err) {
+      try {
+        if (typeof console !== "undefined" && console.warn) {
+          console.warn("rmc-cmdk: invalid #rmc-cmdk-data JSON — static navigate items unavailable", err);
+        }
+      } catch (_) {}
+      return { groups: [] };
+    }
   }
 
   function readFlags() {
@@ -71,6 +78,24 @@
     cfg.fuzzy = on("data-rmc-cmdk-fuzzy", true);
     cfg.adaptive = on("data-rmc-cmdk-adaptive", true);
     cfg.federateSidebar = on("data-rmc-cmdk-federate-sidebar", true);
+  }
+
+  function isOpen() {
+    var root = document.getElementById(ROOT_ID);
+    return !!(state.open && root && !root.hidden);
+  }
+
+  function reloadCatalog() {
+    config = readData();
+    state.staticItems = flattenItems(config.groups);
+    if (cfg.federateSidebar) {
+      try { state.sidebarItems = harvestSidebar(); } catch (_) { state.sidebarItems = []; }
+    }
+  }
+
+  function scrollListToTop() {
+    var list = document.getElementById(LIST_ID);
+    if (list) { list.scrollTop = 0; }
   }
 
   function csrfToken() {
@@ -419,6 +444,7 @@
     }
     state.activeIndex = state.filtered.length ? 0 : -1;
     syncActive();
+    scrollListToTop();
   }
 
   function emptySections(pool) {
@@ -500,13 +526,14 @@
     state.open = true;
     root.hidden = false;
     document.body.classList.add("rmc-cmdk-open");
+    reloadCatalog();
+    state.query = "";
+    state.remoteItems = [];
     var input = document.getElementById(INPUT_ID);
     if (input) {
       input.value = "";
-      state.query = "";
-      state.remoteItems = [];
       refilter();
-      setTimeout(function () { input.focus(); }, 0);
+      setTimeout(function () { input.focus(); input.select(); }, 0);
     }
   }
 
@@ -587,6 +614,16 @@
       if (state.open) { close(); } else { open(); }
       return;
     }
+    if (isMod && e.key === "/") {
+      e.preventDefault();
+      if (!state.open) { open(); }
+      var slashInput = document.getElementById(INPUT_ID);
+      if (slashInput) {
+        slashInput.focus();
+        slashInput.select();
+      }
+      return;
+    }
     if (!state.open) { return; }
     if (e.key === "Escape") { e.preventDefault(); close(); return; }
     if (e.key === "ArrowDown") {
@@ -624,6 +661,13 @@
     if (!isNaN(idx)) { activate(state.filtered[idx]); }
   }
 
+  function onListWheel(e) {
+    if (!isOpen()) { return; }
+    var list = document.getElementById(LIST_ID);
+    if (!list || !e.target || !list.contains(e.target)) { return; }
+    e.stopPropagation();
+  }
+
   function init() {
     config = readData();
     readFlags();
@@ -631,7 +675,7 @@
       // Operator disabled the palette platform-wide. Keep ⌘K bound to a no-op
       // (open() early-returns) so nothing else hijacks it, but build nothing.
       document.addEventListener("keydown", onKeydown, false);
-      window.RMCCommandPalette = { open: open, close: close, disabled: true };
+      window.RMCCommandPalette = { open: open, close: close, disabled: true, isOpen: function () { return false; } };
       return;
     }
 
@@ -644,7 +688,10 @@
     var input = document.getElementById(INPUT_ID);
     if (input) { input.addEventListener("input", onInput); }
     var list = document.getElementById(LIST_ID);
-    if (list) { list.addEventListener("click", onListClick); }
+    if (list) {
+      list.addEventListener("click", onListClick);
+      list.addEventListener("wheel", onListWheel, { passive: true });
+    }
     var backdrop = document.querySelector("[data-rmc-cmdk-dismiss]");
     if (backdrop) { backdrop.addEventListener("click", close); }
 
@@ -686,7 +733,9 @@
     /* Quick-action chips ([data-rmc-cmdk-open] + optional [data-rmc-cmdk-prefix]
        mode token like ":new ") open the palette and seed a plain search term. */
     document.addEventListener("click", function (e) {
-      var chip = e.target && e.target.closest ? e.target.closest("[data-rmc-cmdk-open]") : null;
+      var chip = e.target && e.target.closest
+        ? e.target.closest("[data-rmc-cmdk-open], [data-rmc-cmdk-trigger]")
+        : null;
       if (!chip) { return; }
       e.preventDefault();
       open();
@@ -699,7 +748,7 @@
       }
     }, false);
 
-    window.RMCCommandPalette = { open: open, close: close };
+    window.RMCCommandPalette = { open: open, close: close, isOpen: isOpen };
   }
 
   if (document.readyState === "loading") {

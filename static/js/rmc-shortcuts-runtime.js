@@ -26,6 +26,14 @@
     return false;
   }
 
+  function isCmdkOpen() {
+    if (window.RMCCommandPalette && typeof window.RMCCommandPalette.isOpen === "function") {
+      return window.RMCCommandPalette.isOpen();
+    }
+    var root = document.getElementById("rmc-cmdk");
+    return !!(root && !root.hidden) || document.body.classList.contains("rmc-cmdk-open");
+  }
+
   function readNav() {
     var node = document.getElementById("rmc-shortcuts-nav");
     if (!node || !node.textContent) return null;
@@ -53,11 +61,20 @@
 
   function focusSearch() {
     var el = document.querySelector(
-      "[data-rmc-cmdk-input], #rmc-cmdk-input, input[type=search]:not([disabled]), .cp-topbar-search-input"
+      "#rmc-cmdk-input, [data-rmc-cmdk-input], input[type=search]:not([disabled]), .cp-topbar-search-input"
     );
     if (!el) return false;
     el.focus();
     if (typeof el.select === "function" && el.value) el.select();
+    return true;
+  }
+
+  function openCommandPalette() {
+    if (!window.RMCCommandPalette || typeof window.RMCCommandPalette.open !== "function") {
+      return false;
+    }
+    if (window.RMCCommandPalette.disabled) { return false; }
+    window.RMCCommandPalette.open();
     return true;
   }
 
@@ -114,6 +131,7 @@
   }
 
   function handlePageShortcut(e) {
+    if (isTypingTarget(e.target)) return false;
     var page = getPage();
     if (!singleCharEnabled()) return false;
     if (e.ctrlKey || e.metaKey || e.altKey) return false;
@@ -236,17 +254,10 @@
   document.addEventListener("keydown", function (e) {
     if (e.defaultPrevented) return;
 
+    if (isCmdkOpen()) return;
+
     if ((e.ctrlKey || e.metaKey) && (e.key === "s" || e.key === "S")) {
       if (getPage() === "teacher-gradebook" && handlePageShortcut(e)) return;
-    }
-
-    if ((e.ctrlKey || e.metaKey) && (e.key === "k" || e.key === "K")) {
-      if (getPage() === "studio-os") {
-        if (clickSelector("#studio-command-palette-btn")) {
-          e.preventDefault();
-          return;
-        }
-      }
     }
 
     if (handlePageShortcut(e)) return;
@@ -257,6 +268,10 @@
 
     if (e.key === "/" && !e.shiftKey) {
       if (isTypingTarget(e.target)) return;
+      if (openCommandPalette()) {
+        e.preventDefault();
+        return;
+      }
       if (focusSearch()) e.preventDefault();
       return;
     }

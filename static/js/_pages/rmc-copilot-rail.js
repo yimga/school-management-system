@@ -854,6 +854,8 @@
     if (key !== "k") { return; }
     if (!(ev.metaKey || ev.ctrlKey)) { return; }
     if (ev.altKey || ev.shiftKey) { return; }
+    /* Unified command palette (#rmc-cmdk) owns Ctrl+K platform-wide. */
+    if (document.getElementById("rmc-cmdk")) { return; }
     var rail = findRail();
     if (!rail) { return; }
     ev.preventDefault();

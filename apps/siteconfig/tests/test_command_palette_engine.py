@@ -101,6 +101,50 @@ class PaletteEngineContractTests(SimpleTestCase):
         self.assertIn("actions_url", tpl)
         self.assertIn("command_bar_actions", tpl)
 
+    def test_engine_supports_search_scroll_contract(self):
+        js = _read("static/js/rmc-command-palette.js")
+        self.assertIn("reloadCatalog", js)
+        self.assertIn("scrollListToTop", js)
+        self.assertIn("isOpen", js)
+        self.assertIn('e.key === "/"', js)
+
+    def test_scroll_css_contract(self):
+        css = _read("static/css/rmc-long-page-grammar.css")
+        self.assertIn(".rmc-cmdk__list", css)
+        self.assertIn("overflow-y: auto", css)
+        self.assertIn("min-height: 0", css)
+        self.assertIn("flex-shrink: 0", css)
+
+    def test_shortcuts_yield_when_cmdk_open(self):
+        js = _read("static/js/rmc-shortcuts-runtime.js")
+        self.assertIn("isCmdkOpen", js)
+        self.assertIn("rmc-cmdk-open", js)
+        self.assertIn("isTypingTarget(e.target)", js)
+        self.assertIn("openCommandPalette", js)
+
+    def test_copilot_yields_ctrl_k_to_palette(self):
+        js = _read("static/js/_pages/rmc-copilot-rail.js")
+        self.assertIn('getElementById("rmc-cmdk")', js)
+
+    def test_manager_nav_json_no_trailing_comma_block(self):
+        tpl = _read("templates/components/rmc_command_palette.html")
+        self.assertNotIn('"keywords": "search help faq articles"},', tpl)
+        self.assertIn('"keywords": "search help faq articles"}', tpl)
+        self.assertIn("{% if request.public_host_kind == 'manager' and cmdk_help_analytics_url %},{", tpl)
+
+    def test_search_kbd_chips_open_palette(self):
+        for path in (
+            "templates/portal_base.html",
+            "templates/partials/manager_operator_topbar.html",
+            "templates/components/admin_nav_bridge.html",
+        ):
+            html = _read(path)
+            self.assertIn("data-rmc-cmdk-open", html, path)
+
+    def test_palette_trigger_delegate(self):
+        js = _read("static/js/rmc-command-palette.js")
+        self.assertIn("[data-rmc-cmdk-trigger]", js)
+
     def test_css_grammar_defined(self):
         css = _read("static/css/rmc-class-grammar.css")
         for cls in (".rmc-cmdk__band", ".rmc-cmdk__mark", ".rmc-cmdk__src", ".rmc-cmdk__pin"):

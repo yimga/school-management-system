@@ -48,7 +48,7 @@
           <div class="cp-header-search cp-topbar-search-wrap position-relative w-100">
             <label class="visually-hidden" for="cpSearchInput">{% if MANAGER_PLATFORM_ADMIN_SHELL %}{% trans "Search models and records" %}{% else %}{% trans "Search schools and incidents" %}{% endif %}</label>
             <input type="search" class="cp-topbar-search-input form-control form-control-sm w-100" placeholder="{% if MANAGER_PLATFORM_ADMIN_SHELL %}{% trans 'Search models, fields, records, audit events…' %}{% else %}{% trans 'Search tenants, incidents, commands…' %}{% endif %}" id="cpSearchInput" autocomplete="off" aria-haspopup="listbox">
-            <kbd class="cp-search-kbd" aria-hidden="true" data-rmc-hide-when-focused title="{% trans 'Press / to focus · Ctrl K for commands' %}">Ctrl K</kbd>
+            <kbd class="cp-search-kbd" aria-hidden="true" data-rmc-cmdk-open data-rmc-hide-when-focused title="{% trans 'Ctrl K opens command search' %}">Ctrl K</kbd>
             <div id="cpSearchResults" class="dropdown-menu position-absolute start-0 top-100 mt-1 shadow cp-search-results-panel cp-search-results-panel--sized" role="listbox" aria-label="{% trans 'Search results' %}" aria-hidden="true"></div>
           </div>
         </div>
@@ -106,11 +106,8 @@
             {% include "partials/cockpit/_activity_ticker_inline.html" %}
             {% comment %} v4.00.24 Studio chip removed from manager header (Utilities + Cmd+K).
                Config Control Center — CONFIGURABLE via cockpit_shell.show.config_chip (per-surface).
-               v4.02.x: on the manager /admin/ BACKOFFICE shell (which has no Workspace dropdown) it
-               stays as a direct ICON button (text label dropped — icon-only, matches the cluster).
-               On /super/ it's folded into the Workspace dropdown's Operator-tools section instead,
-               so it no longer sits as a loose standalone button in that cluster. {% endcomment %}
-            {% include "components/rmc_operator_workspace_dropdown.html" %}
+               Topology: manager_header_hide_config_chip (rmc_shell) hides Config on Studio/Operations. {% endcomment %}
+            {% include "components/rmc_operator_workspace_dropdown.html" with hide_config_chip=rmc_shell.manager_header_hide_config_chip %}
             {% comment %} v4.05 (2026-08-03): the ONE notifications bell — the operator's own
                finance.Notification inbox (bi-bell-fill → accounts:user_notifications), matching the
                tenant header so the whole platform has a single, consistent bell. Config/page-aware via

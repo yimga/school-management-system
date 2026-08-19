@@ -434,7 +434,7 @@
                 autocomplete="off"
                 aria-haspopup="listbox"
               />
-              <span class="topbar-search-kbd" aria-hidden="true" title="{% trans 'Press / to focus search · Ctrl K for commands' %}">Ctrl K</span>
+              <span class="topbar-search-kbd" aria-hidden="true" data-rmc-cmdk-open title="{% trans 'Ctrl K opens command search' %}">Ctrl K</span>
               <div id="headerSearchResults" class="header-search-dropdown header-search-dropdown--hidden" role="listbox" aria-label="{% trans 'Search results' %}" aria-live="polite"></div>
             </div>
             {% endif %}
@@ -764,6 +764,9 @@
     {% endif %}
     <script src="{% static 'js/platform_behavior_track.js' %}"></script>
     <script src="{% static 'js/offline-queue-client.js' %}"></script>
+    {% if edge_sync_chrome.enabled %}
+    <script src="{% static 'js/rmc-edge-sync-chrome.js' %}"></script>
+    {% endif %}
     <script src="{% static 'js/form-draft-save.js' %}"></script>
     <script src="{% static 'js/rmc-offline-auth-vault.js' %}"></script>
     <script src="{% static 'js/rmc-offline-auth-bootstrap.js' %}"></script>

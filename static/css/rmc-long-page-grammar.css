@@ -34,7 +34,7 @@
 .rmc-cmdk__panel {
   position: relative;
   width: min(640px, 92vw);
-  max-height: 70vh;
+  max-height: min(70vh, 42rem);
   display: flex;
   flex-direction: column;
   background: var(--surface-popover, var(--surface-elevated));
@@ -57,6 +57,7 @@
   gap: 0.6rem;
   padding: 0.85rem 1rem;
   border-bottom: var(--border-width-hairline, 0.5px) solid var(--hairline);
+  flex-shrink: 0;
 }
 .rmc-cmdk__icon { font-size: var(--type-size-body-l); color: var(--text-tertiary); }
 .rmc-cmdk__input {
@@ -83,8 +84,25 @@
   margin: 0;
   padding: 0.35rem;
   overflow-y: auto;
-  flex: 1;
+  overflow-x: hidden;
+  flex: 1 1 auto;
   min-height: 0;
+  max-height: calc(min(70vh, 42rem) - 7.25rem);
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--text-tertiary) 55%, transparent) transparent;
+}
+.rmc-cmdk__list::-webkit-scrollbar {
+  width: 8px;
+}
+.rmc-cmdk__list::-webkit-scrollbar-thumb {
+  background: color-mix(in oklab, var(--text-tertiary) 45%, transparent);
+  border-radius: 999px;
+}
+.rmc-cmdk__list::-webkit-scrollbar-track {
+  background: transparent;
 }
 .rmc-cmdk__item {
   display: flex;
@@ -134,6 +152,7 @@
   color: var(--text-tertiary);
   border-top: var(--border-width-hairline, 0.5px) solid var(--hairline);
   background: var(--surface-overlay);
+  flex-shrink: 0;
 }
 .rmc-cmdk__hint kbd {
   background: var(--surface-elevated);
