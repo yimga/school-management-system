@@ -21,10 +21,17 @@ logger = logging.getLogger(__name__)
 
 
 def run_edge_sync_cycle() -> dict:
-    """Plain (broker-free) entry the beat task and any caller can invoke."""
+    """Plain (broker-free) entry the beat task and any caller can invoke.
+
+    Deliberately NOT forced. Beat is a timer, not an intent — letting it bypass the
+    adaptive cadence would reintroduce the fixed-interval behaviour the cadence exists to
+    replace, and would keep building bundles at full rate while the box is offline. The
+    beat entry ticks fast (see ``CELERY_BEAT_SCHEDULE["edge-sync-cycle"]``) and the
+    cadence decides which ticks become real cycles.
+    """
     from apps.sync_engine.edge_scheduler import run_edge_sync_now
 
-    return run_edge_sync_now(mode="live")
+    return run_edge_sync_now(mode="live", trigger="celery-beat")
 
 
 def run_sync_cycle_for_school(
@@ -63,7 +70,21 @@ def run_sync_cycle_for_school(
                 "enabled": True,
                 "mode": mode,
             }
-    return run_sync_cycle(school, mode=mode, run_row=run_row)
+    result = run_sync_cycle(school, mode=mode, run_row=run_row)
+    # Fold the operator's own cycle into the adaptive cadence, exactly as an automatic one
+    # is. Without this the "Sync now" button is invisible to the scheduler: a click that
+    # moved a hundred rows would leave the box STEADY (or still counting failures from an
+    # outage that has plainly just ended), so the follow-up changes the operator is about
+    # to make would crawl. A dry run is excluded — it writes nothing in either direction
+    # and so proves no throughput and clears no real backoff.
+    if mode == "live":
+        try:
+            from apps.sync_engine import cadence
+
+            cadence.record_cycle(result)
+        except Exception:  # noqa: BLE001 — cadence is an optimisation, never the request
+            logger.debug("cadence record after operator sync failed", exc_info=True)
+    return result
 
 
 if shared_task is not None:

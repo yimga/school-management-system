@@ -74,19 +74,52 @@ class TenantWorkflowPortalTests(SimpleTestCase):
             "/portal/student/workflow/",
         )
 
+    #: Every tenant role and the workflow destination it must be able to find.
+    ROLE_WORKFLOW_ITEMS = {
+        User.Role.STUDENT: ("student_workflow", "/portal/student/workflow/"),
+        User.Role.TEACHER: ("teacher_workflow", "/portal/teacher/workflow/"),
+        User.Role.PARENT: ("parent_workflow", "/portal/parent/workflow/"),
+    }
+
     def test_workflow_discovery_is_role_complete(self):
+        """Discovery is asserted against the sidebar BUILDER, not template text.
+
+        This test used to read partials/portal_sidebar.html looking for
+        ``portal:student_workflow`` and a hardcoded role branch. Both have moved
+        twice already - first from ``request.user.role`` to ``nav_role`` when
+        role hats landed, then again as the markup was reorganised. Each move
+        broke the assertion with nothing wrong in the product, which is the
+        signature of testing at the wrong level. What actually has to hold is
+        that ``build_portal_sidebar_items`` offers every role its own workflow
+        page; that survives any amount of template reshuffling.
+        """
+        for role, (item_id, url) in self.ROLE_WORKFLOW_ITEMS.items():
+            with self.subTest(role=role):
+                by_id = {item["id"]: item for item in self._sidebar_items_for(role)}
+                self.assertIn(
+                    item_id,
+                    by_id,
+                    f"{role} can no longer discover its workflow page from the sidebar",
+                )
+                self.assertEqual(by_id[item_id]["url"], url)
+
+    def test_sidebar_never_branches_on_the_raw_role_column(self):
+        """Role hats are only honoured if the nav reads the EFFECTIVE role.
+
+        A staff member wearing a parent or teacher hat still has
+        ``request.user.role == ADMIN``, so a template that branches on the
+        column shows them the wrong sidebar for the role they are acting as.
+        The one legitimate raw-column read is the SUPERADMIN check on the
+        manager host, where no tenant hat applies.
+        """
         sidebar = (ROOT / "templates/partials/portal_sidebar.html").read_text(
             encoding="utf-8"
         )
         builder = (ROOT / "apps/siteconfig/portal_sidebar_items.py").read_text(
             encoding="utf-8"
         )
-        command_registry = (
-            ROOT / "apps/siteconfig/command_bar_registry.py"
-        ).read_text(encoding="utf-8")
-
-        # Role hats live in the Python projector (nav_role / get_nav_portal_role).
-        # The template no longer forks a second hardcoded role tree.
+        # Hats are resolved in the Python projector, not a second hardcoded
+        # role tree in the template.
         self.assertIn("get_nav_portal_role", builder)
         self.assertIn("User.Role.STUDENT", builder)
         self.assertIn("nav_role != 'STUDENT'", sidebar)
@@ -98,8 +131,19 @@ class TenantWorkflowPortalTests(SimpleTestCase):
                     f"sidebar branches on the raw role column for {hat_role}; "
                     "that ignores the portal role hat the user actually picked",
                 )
-        self.assertIn("portal:student_workflow", builder)
-        self.assertNotIn("portal:student_learning_home", builder)
+        self.assertNotIn(
+            "portal:student_learning_home",
+            (ROOT / "apps/siteconfig/portal_sidebar_items.py").read_text(
+                encoding="utf-8"
+            ),
+            "the retired student_learning_home route is back in the sidebar builder",
+        )
+
+
+    def test_command_palette_carries_every_role_workflow(self):
+        command_registry = (
+            ROOT / "apps/siteconfig/command_bar_registry.py"
+        ).read_text(encoding="utf-8")
         for token in (
             "portal:teacher_workflow",
             "portal:parent_workflow",
@@ -107,13 +151,15 @@ class TenantWorkflowPortalTests(SimpleTestCase):
         ):
             self.assertIn(token, command_registry)
 
-    def test_config_driven_sidebar_includes_student_workflow(self):
+    @staticmethod
+    def _sidebar_items_for(role):
+        """Build the real sidebar for ``role`` with only the DB seams stubbed."""
         request = MagicMock()
         request.session = {}
         request.messages_unread_count = 0
         request.user = SimpleNamespace(
             is_authenticated=True,
-            role=User.Role.STUDENT,
+            role=role,
             is_staff=False,
             is_superuser=False,
             pk=None,
@@ -129,10 +175,14 @@ class TenantWorkflowPortalTests(SimpleTestCase):
             return_value=(None, None, None),
         ), patch(
             "apps.accounts.portal_roles.get_effective_portal_role",
-            return_value=User.Role.STUDENT,
+            return_value=role,
         ):
-            items = build_portal_sidebar_items(request, site)
-        by_id = {item["id"]: item for item in items}
+            return build_portal_sidebar_items(request, site)
+
+    def test_config_driven_sidebar_includes_student_workflow(self):
+        by_id = {
+            item["id"]: item for item in self._sidebar_items_for(User.Role.STUDENT)
+        }
 
         self.assertEqual(by_id["student_workflow"]["url"], "/portal/student/workflow/")
         self.assertEqual(by_id["student_home"]["url"], "/portal/student-portal/grades/")
