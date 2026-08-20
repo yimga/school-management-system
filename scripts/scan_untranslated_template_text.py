@@ -53,8 +53,16 @@ _ELEMENT_RE = re.compile(
 )
 
 # Blocks whose inner text must be ignored entirely.
+#
+# `kbd` belongs with `code`/`pre`: it marks literal keyboard input, which is
+# never translated. Without it the shortcut hint in
+# `components/user_account_center_menu.html` ("Alt+L", inside the Sign-out
+# anchor) reads as an untranslated <a> label, because "Alt" is three letters
+# with a vowel and so clears the natural-language heuristic. Translating a
+# keycap would be a bug, not a fix — and a gate whose only finding must never
+# be acted on is one people learn to override.
 _SKIP_BLOCK_RE = re.compile(
-    r"<(script|style|pre|code|textarea)\b.*?</\1>"
+    r"<(script|style|pre|code|kbd|textarea)\b.*?</\1>"
     r"|<!--.*?-->"
     r"|{%\s*comment\s*%}.*?{%\s*endcomment\s*%}"
     r"|{%\s*(?:blocktrans|blocktranslate)\b.*?{%\s*(?:endblocktrans|endblocktranslate)\s*%}"

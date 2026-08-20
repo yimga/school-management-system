@@ -18,6 +18,13 @@
         {% trans "The platform is temporarily unavailable due to maintenance or high load. Your data is safe — please retry in a few minutes." %}
       {% endif %}
     </p>
+    {% if error_reference %}
+      {# Correlator for the log line — see errors/500.html for why this exists. #}
+      <p class="error-reference">
+        {% trans "Reference" %}:
+        <code data-error-reference="{{ error_reference }}">{{ error_reference }}</code>
+      </p>
+    {% endif %}
     <div class="error-actions">
       {% render_smart_links state="error.503" %}
       {% if PUBLIC_BRAND_MODE %}

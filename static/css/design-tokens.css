@@ -2635,6 +2635,29 @@ body.error-page {
   justify-content: center;
 }
 
+/* Incident correlator on error pages (500/503). Deliberately quieter than the
+   message: it is for the one reader who is about to paste it into a support
+   note, not something to compete with the recovery actions. The id is a UUID,
+   so it must be allowed to break rather than force the card to scroll. */
+.error-page .error-reference {
+  margin: 0 auto 16px;
+  font-size: 0.8125rem;
+  color: var(--admin-content-text-muted);
+}
+.error-page .error-reference code {
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: inherit;
+  padding: 2px 6px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm, 6px);
+  background: var(--surface-sunken, transparent);
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+:is(#main-content, #cp-main-content, [data-rmc-shell-main]) .error-page .error-reference {
+  color: var(--text-secondary);
+}
+
 /* In-shell error states (500/403 inside portal chrome) — card surface + readable copy. */
 :is(#main-content, #cp-main-content, [data-rmc-shell-main]) .error-page {
   min-height: auto;

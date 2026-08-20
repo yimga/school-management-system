@@ -506,6 +506,32 @@ def _queue_depth_warn_threshold() -> int:
     return value if value > 0 else 1000  # magic-number-allow: env-tunable backlog alert default
 
 
+def _is_absent_queue_error(exc: Exception, queue_name: str) -> bool:
+    """True when a passive queue_declare failed only because the queue is EMPTY.
+
+    kombu's virtual transports (Redis / Valkey — what `deploy/selfhost` ships)
+    back a queue with a plain Redis key, so a queue holding no messages does not
+    exist as a key at all. `queue_declare(passive=True)` then raises
+    ``ChannelError: NOT_FOUND - no queue 'celery' in vhost '1'`` — the literal
+    response observed on a healthy self-host box, where "vhost '1'" is the Redis
+    DB index from ``redis://valkey:6379/1``, not a RabbitMQ vhost.
+
+    A working worker drains the queue to empty and KEEPS it there, so treating
+    that as a probe failure made /healthz report
+    ``celery_queue_depth: {"status": "unavailable", "error": "... NOT_FOUND ..."}``
+    permanently on a perfectly healthy deployment. An operator who sees an error
+    on every healthy check learns to ignore the endpoint, which costs more than
+    the probe is worth. Absent queue + no messages is depth 0.
+
+    Deliberately narrow: the error must name a missing queue AND name THIS queue,
+    so a genuine broker fault (auth, connection reset, timeout) still surfaces.
+    """
+    code = str(getattr(exc, "code", "") or "")
+    text = str(exc)
+    looks_missing = code == "404" or "NOT_FOUND" in text or "no queue" in text
+    return looks_missing and queue_name in text
+
+
 def _check_celery_queue_depth() -> dict:
     """Best-effort BROKER queue-depth (backlog) probe for /healthz/.
 
@@ -517,7 +543,10 @@ def _check_celery_queue_depth() -> dict:
     primary queue (`queue_declare(passive=True).message_count`), which is the
     AMQP-compatible call kombu maps to BOTH Redis/Valkey (LLEN) and RabbitMQ —
     so it works for whichever broker is configured and reports the TRUE backlog
-    a down/saturated worker would let pile up.
+    a down/saturated worker would let pile up. On a virtual (Redis/Valkey)
+    transport an EMPTY queue does not exist as a key and the passive declare
+    raises NOT_FOUND; see `_is_absent_queue_error` — that is depth 0, not a
+    probe failure.
 
     Fail-SOFT contract: never raises; on any failure (broker unreachable, probe
     error, transport without a depth API) it returns a benign status
@@ -545,8 +574,13 @@ def _check_celery_queue_depth() -> dict:
             channel = conn.default_channel
             # passive=True: never CREATE the queue, only read its current
             # message_count. Works on Redis/Valkey + RabbitMQ via kombu.
-            declared = channel.queue_declare(queue=queue_name, passive=True)
-            depth = int(getattr(declared, "message_count", 0))
+            try:
+                declared = channel.queue_declare(queue=queue_name, passive=True)
+                depth = int(getattr(declared, "message_count", 0))
+            except Exception as exc:  # noqa: BLE001 - re-raised unless it means "empty"
+                if not _is_absent_queue_error(exc, queue_name):
+                    raise
+                depth = 0
         finally:
             try:
                 conn.release()

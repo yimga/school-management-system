@@ -233,14 +233,21 @@ def server_error(request):
     crashes. Reference incident: `example-school.runmycampus.com/school/settings/`
     returning 500 with no operator-friendly recovery (2026-05-07).
     """
-    context = {"user": getattr(request, "user", None)}
+    from config.error_handlers import error_reference
+
+    context = {
+        "user": getattr(request, "user", None),
+        "error_reference": error_reference(request),
+    }
     try:
         return render(request, "errors/500.html", context, status=500)
     except Exception:
         from django.http import HttpResponse
         from django.template.loader import get_template
         try:
-            html = get_template("errors/500_minimal.html").render({})
+            html = get_template("errors/500_minimal.html").render(
+                {"error_reference": error_reference(request)}
+            )
         except Exception:
             html = (
                 "<!doctype html><meta charset=utf-8>"

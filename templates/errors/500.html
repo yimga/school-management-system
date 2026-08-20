@@ -12,6 +12,22 @@
     <div class="error-code-display" aria-hidden="true">500</div>
     <h1 id="error-title" class="error-title">{% trans "Service interrupted." %}</h1>
     <p class="error-message">{% trans "The page didn't complete successfully. Your session is still safe — retry, or return to a stable workspace." %}</p>
+    {% if error_reference %}
+      {% comment %}
+        The server stamps X-Request-ID on every response and prints request_id
+        on every log line, but the error PAGE never showed it — so "I got a 500"
+        arrived with nothing an operator could search. Quoting this turns finding
+        the traceback into one grep. Omitted entirely when no id was stamped.
+
+        Block tag, not a multi-line hash comment: Django's hash form is
+        single-line only, so spanning it across lines is not a comment at all —
+        it renders verbatim onto the page. Caught by audit_template_render_safety.
+      {% endcomment %}
+      <p class="error-reference">
+        {% trans "Reference" %}:
+        <code data-error-reference="{{ error_reference }}">{{ error_reference }}</code>
+      </p>
+    {% endif %}
     <div class="error-actions">
       {% render_smart_links state="error.500" %}
       {% if PUBLIC_BRAND_MODE %}
