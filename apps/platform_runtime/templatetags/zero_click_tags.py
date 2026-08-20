@@ -8,14 +8,17 @@ load-bearing APIs, so a stale registry must never crash a page.
 
 from __future__ import annotations
 
+import logging
+
 from django import template
-from django.urls import NoReverseMatch, reverse
+from django.urls import NoReverseMatch, Resolver404, resolve, reverse
 from django.utils.html import escape, format_html, format_html_join
 from django.utils.safestring import mark_safe
 
 from apps.platform_runtime.action_hub_kernel import ActionHub, HubAction
+from apps.platform_runtime.click_budget import clicks_saved_for_path
 from apps.platform_runtime.empty_state_kernel import EmptyStateCard, get_empty_state
-from apps.platform_runtime.smart_links_kernel import get_smart_links
+from apps.platform_runtime.smart_links_kernel import PERSONA_ANY, get_smart_links
 from apps.platform_runtime.table_grammar_kernel import (
     Column,
     MAX_PRIMARY_COLUMNS,
@@ -23,30 +26,70 @@ from apps.platform_runtime.table_grammar_kernel import (
     truncate_columns,
 )
 
+logger = logging.getLogger(__name__)
+
 register = template.Library()
+
+
+def _with_query(path: str, query: str) -> str:
+    """Append a querystring to a reversed path, so the path stays out of source."""
+    if not query:
+        return path
+    return f"{path}{'&' if '?' in path else '?'}{query}"
 
 
 # --- Action Hub -----------------------------------------------------------
 
 
-def _resolve_hub_href(action: HubAction) -> str | None:
-    """Pick the first resolvable target from the HubAction."""
+def _resolve_hub_href(action: HubAction, persona: str = "") -> str | None:
+    """Pick the first resolvable target from the HubAction.
+
+    A ``url_name`` is reversed against the request's urlconf, so a chip whose
+    route is absent on this host is dropped rather than rendered. A literal
+    ``href`` used to be returned unchecked, which is how six chips shipped
+    pointing at paths that only exist on ``config.urls``: a 404 wearing a
+    button. Literal paths are now resolved before use and dropped if they
+    lead nowhere — the same treatment the named route already got.
+    """
     if action.url_name:
         try:
-            return reverse(action.url_name)
+            return _with_query(reverse(action.url_name), action.query)
         except NoReverseMatch:
             pass
     if action.href:
-        return action.href
+        try:
+            resolve(action.href.split("?")[0])
+        except Resolver404:
+            logger.warning(
+                "action hub: dropping %r — %r resolves on no route for this host",
+                action.key,
+                action.href,
+            )
+        else:
+            return action.href
     if action.state_token:
         # Defer to the smart_links registry: take the first resolvable link.
-        for link in get_smart_links(action.state_token):
+        # "Resolvable" has to mean resolvable, including for literal paths —
+        # the admissions chip reached this branch and handed back a path that
+        # existed on no host at all.
+        #
+        # The persona MUST be passed. `_REGISTRY` is keyed by (state, persona)
+        # and `get_smart_links` defaults to persona="any", whose fallback is a
+        # no-op; every entry these chips need is filed under a real persona.
+        # Called without it, this branch had never once returned a link, so the
+        # safeguarding, admissions, overdue-balance and transcript-hold chips —
+        # the danger-severity ones — were dropped on the floor in silence.
+        for link in get_smart_links(action.state_token, persona or PERSONA_ANY):
             if link.url_name:
                 try:
                     return reverse(link.url_name, kwargs=link.kwargs or None)
                 except NoReverseMatch:
                     continue
             if link.href:
+                try:
+                    resolve(link.href.split("?")[0])
+                except Resolver404:
+                    continue
                 return link.href
             if link.mailto:
                 return f"mailto:{link.mailto}"
@@ -62,9 +105,9 @@ def render_action_hub(hub: ActionHub | None) -> str:
     if not actions:
         return ""
 
-    rows: list[tuple[str, str, str, str, str]] = []
+    rows: list[tuple[str, str, str, str, str, int]] = []
     for action in actions:
-        href = _resolve_hub_href(action)
+        href = _resolve_hub_href(action, hub.persona)
         if not href:
             continue
         count_html = ""
@@ -78,17 +121,28 @@ def render_action_hub(hub: ActionHub | None) -> str:
             icon_html = format_html(
                 '<i class="bi {}" aria-hidden="true"></i>', action.icon,
             )
-        rows.append((href, action.severity, str(icon_html), action.label, str(count_html)))
+        rows.append((
+            href,
+            action.severity,
+            str(icon_html),
+            action.label,
+            str(count_html),
+            clicks_saved_for_path(href),
+        ))
     if not rows:
         return ""
 
+    # data-rmc-clicks-saved is the chip's own claim about what it spared the
+    # reader, derived from its destination. It sits next to the click-tracking
+    # instrumentation that records what readers actually did, so the claim and
+    # the evidence can be compared instead of the claim being taken on trust.
     chips_html = format_html_join(
         "",
         (
-            '<a class="rmc-action-hub__chip" href="{}" data-rmc-severity="{}">'
-            "{}<span>{}</span>{}</a>"
+            '<a class="rmc-action-hub__chip" href="{}" data-rmc-severity="{}"'
+            ' data-rmc-clicks-saved="{}">{}<span>{}</span>{}</a>'
         ),
-        rows,
+        [(r[0], r[1], r[5], r[2], r[3], r[4]) for r in rows],
     )
     return mark_safe(
         format_html(

@@ -46,6 +46,20 @@ def _num(value) -> float:
             return 0.0
 
 
+@register.filter(name="dh_clicks_saved")
+def dh_clicks_saved(href) -> int:
+    """Clicks this row's destination spares the reader (0 when it has none).
+
+    Single definition lives in ``apps.platform_runtime.click_budget`` — derived
+    from the path, never hand-assigned, so it cannot drift from the route it
+    describes. Rendered as ``data-rmc-clicks-saved`` so a "what needs you" row
+    states what it saved rather than implying it.
+    """
+    from apps.platform_runtime.click_budget import clicks_saved_for_path
+
+    return clicks_saved_for_path(str(href or ""))
+
+
 @register.filter(name="dh_ratio")
 def dh_ratio(value, maximum) -> int:
     """Return ``value`` as an integer 0–100 percent of ``maximum`` (clamped).

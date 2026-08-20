@@ -67,6 +67,12 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
 
     ("scripts/verify_get_model_integrity.py", "ci.yml"),
     ("scripts/verify_url_name_integrity.py", "ci.yml"),
+    # The literal-path twin of the url-name gate: reverse() cannot see a path
+    # written as a string, and a local dev host mounts config.urls (the full
+    # surface) while a real tenant gets config.tenant_urls, so a dead path is
+    # invisible until production. Added 2026-08-20 after six always-rendered
+    # Action Hub chips were found 404ing on every tenant portal page.
+    ("scripts/scan_hardcoded_dead_paths.py", "ci.yml"),
     ("scripts/verify_template_reference_integrity.py", "ci.yml"),
     # Compile sibling of the two template gates above: a balanced-but-invalid
     # tag argument ({% trans 'a'b' %}) compiles-fail without being a missing
