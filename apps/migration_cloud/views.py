@@ -1513,6 +1513,32 @@ class MigrationCloudSaveProfileView(LoginRequiredMixin, View):
         })
 
 
+# Quarantine review vocabulary (tenant-facing).
+#
+# A held row is the TENANT's to judge, not an operator's: only the person running
+# the migration knows what the data set represents. So the review surface has to
+# say, in their language, which held rows actually want a decision.
+#
+# `source_deletion` is the one class that needs NOBODY: it means the source system
+# marked the row deleted, so it was deliberately not imported. Counting it beside
+# real failures is what turned a correct outcome into an alarming "442 held".
+QUARANTINE_ISSUE_LABELS = {
+    "source_deletion": "Deleted in your old system — not imported (no action needed)",
+    "duplicate": "Already exists here — skipped to avoid a double record",
+    "invalid_ref": "Points at something we could not find (e.g. a missing class)",
+    "missing_required": "A required value was empty in the source file",
+    "lander_error": "Could not be imported — see the reason",
+}
+
+# Classes that are a correct outcome rather than a problem to fix.
+QUARANTINE_NO_ACTION_CLASSES = {"source_deletion", "duplicate"}
+
+# The table is bounded so one huge bundle cannot render a million rows into a
+# page. The COUNT above is never bounded — the tenant is always told the true
+# total and how many of it they are looking at.
+QUARANTINE_TABLE_LIMIT = 200  # magic-number-allow: review-table-render-cap
+
+
 class MigrationCloudAnomalyNudgeView(LoginRequiredMixin, View):
     """GET endpoint: operator review queue for a bundle.
 
@@ -1561,7 +1587,12 @@ class MigrationCloudAnomalyNudgeView(LoginRequiredMixin, View):
                     low_conf_mappings.append(entry)
 
         quarantine_rows: list[dict[str, Any]] = []
+        quarantine_total = 0
+        quarantine_breakdown: list[dict[str, Any]] = []
+        quarantine_action_needed = 0
         try:
+            from django.db.models import Count
+
             from apps.automation.models import MigrationQuarantineRecord, MigrationRun
 
             run_ids = list(
@@ -1575,9 +1606,39 @@ class MigrationCloudAnomalyNudgeView(LoginRequiredMixin, View):
                 ).values_list("pk", flat=True)
             )
             # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
-            for q in MigrationQuarantineRecord.objects.filter(
+            _held = MigrationQuarantineRecord.objects.filter(
                 migration_run_id__in=run_ids
-            ).order_by("-id")[:200]:
+            )
+            # The board reports the TRUE held count (442 on the bundle that
+            # prompted this), but the table below is capped, so the page used to
+            # show "Quarantine (200)" beside a banner saying 442 — two numbers for
+            # the same thing, and 242 rows the tenant could not see at all.
+            quarantine_total = _held.count()
+            # A bare total is not reviewable. `issue_class` is what decides whether
+            # a human is needed at all: `source_deletion` means "the source marked
+            # this row deleted, so we deliberately did not import it" — a correct
+            # outcome, not a failure. Grouping first tells the tenant admin how many
+            # of the held rows actually want their attention before they scroll.
+            quarantine_breakdown = [
+                {
+                    "issue_class": row["issue_class"],
+                    "label": QUARANTINE_ISSUE_LABELS.get(
+                        row["issue_class"],
+                        (row["issue_class"] or "unknown").replace("_", " ").title(),
+                    ),
+                    "count": row["n"],
+                    "needs_action": row["issue_class"] not in QUARANTINE_NO_ACTION_CLASSES,
+                }
+                for row in (
+                    _held.values("issue_class")
+                    .annotate(n=Count("id"))
+                    .order_by("-n")
+                )
+            ]
+            quarantine_action_needed = sum(
+                b["count"] for b in quarantine_breakdown if b["needs_action"]
+            )
+            for q in _held.order_by("-id")[:QUARANTINE_TABLE_LIMIT]:
                 payload = q.payload if isinstance(q.payload, dict) else {}
                 quarantine_rows.append({
                     "id": q.pk,
@@ -1608,6 +1669,11 @@ class MigrationCloudAnomalyNudgeView(LoginRequiredMixin, View):
                 "low_conf_mappings": low_conf_mappings,
                 "tracked_custom_mappings": tracked_custom_mappings,
                 "quarantine_rows": quarantine_rows,
+                "quarantine_total": quarantine_total,
+                "quarantine_shown": len(quarantine_rows),
+                "quarantine_breakdown": quarantine_breakdown,
+                "quarantine_action_needed": quarantine_action_needed,
+                "quarantine_table_limit": QUARANTINE_TABLE_LIMIT,
                 "drift_domains": drift_domains,
                 "threshold": threshold,
                 "page_title": f"Review queue — {bundle.label or bundle.idempotency_key}",

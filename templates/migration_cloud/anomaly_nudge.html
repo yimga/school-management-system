@@ -94,15 +94,48 @@
 
   <section class="rmc-card rmc-reveal">
     <h2 class="rmc-h2">
-      {% trans "Quarantine" %}
-      <span class="rmc-muted">({{ quarantine_rows|length }})</span>
+      {% trans "Held for review" %}
+      <span class="rmc-muted">({{ quarantine_total }})</span>
     </h2>
-    {% if quarantine_rows %}
+    {% if quarantine_total %}
+      {% comment %}
+        Lead with the triage, not the list. "442 held" is unreadable; "38 need a
+        decision, 404 were deleted in your old system" is a morning's work or none.
+        This is the tenant's call to make — they are the only ones who know what
+        the data set represents — so the page has to hand them the shape of it.
+      {% endcomment %}
+      <p class="rmc-lede">
+        {% blocktrans count counter=quarantine_action_needed trimmed %}
+          <strong>{{ counter }}</strong> of these needs a decision from you.
+        {% plural %}
+          <strong>{{ counter }}</strong> of these need a decision from you.
+        {% endblocktrans %}
+      </p>
+      <ul class="rmc-quarantine-breakdown">
+        {% for b in quarantine_breakdown %}
+          <li>
+            <span class="rmc-pill {% if b.needs_action %}rmc-pill--warn{% else %}rmc-pill--info{% endif %}">
+              {{ b.count }}
+            </span>
+            {{ b.label }}
+          </li>
+        {% endfor %}
+      </ul>
+      {% if quarantine_shown < quarantine_total %}
+        <p class="rmc-muted">
+          {% blocktrans trimmed %}
+            Showing the most recent {{ quarantine_shown }} of {{ quarantine_total }}.
+            Export the full list to work through the rest.
+          {% endblocktrans %}
+        </p>
+      {% endif %}
       <table class="rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
         <caption class="visually-hidden">{{ page_title }}</caption>
         <thead>
           <tr>
-            <th scope="col">{% trans "Run" %}</th>
+            <th scope="col">{% trans "What" %}</th>
+            <th scope="col">{% trans "Row" %}</th>
+            <th scope="col">{% trans "Why it was held" %}</th>
             <th scope="col">{% trans "Reason" %}</th>
             <th scope="col">{% trans "Acknowledged?" %}</th>
           </tr>
@@ -110,7 +143,9 @@
         <tbody>
           {% for q in quarantine_rows %}
           <tr>
-            <td>#{{ q.run_id }}</td>
+            <td>{{ q.domain|default:"—" }}</td>
+            <td>{{ q.row_index|default:"—" }}</td>
+            <td>{{ q.issue_class|default:"—" }}</td>
             <td>{{ q.reason|default:"—"|truncatechars:140 }}</td>
             <td>{{ q.ack_status|default:"—" }}</td>
           </tr>
