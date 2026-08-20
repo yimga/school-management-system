@@ -755,8 +755,10 @@ SETTINGS_REGISTRY: tuple[SettingSpec, ...] = (
     SettingSpec("RMC_DEPLOYMENT_PROFILE", "str", '"online"', "ops", "Deployment profile selector (online / edge / offline)."),
     SettingSpec("RMC_EDGE_FALLBACK_ENABLED", "str", '""', "ops", "Enable edge-fallback middleware behavior when truthy."),
     SettingSpec("RMC_EDGE_OPERATOR_BASE", "str", '""', "ops", "Cloud base URL a sovereign edge box syncs against; falls back to RMC_HUB_BASE_URL. Use the TENANT host."),
+    SettingSpec("RMC_EDGE_PAIRING_TTL_HOURS", "int", "72", "ops", "Hours a box<->cloud pairing request stays open for an admin to approve."),
     SettingSpec("RMC_GENERATED_DOCS_DIR", "str", "None", "ops", "Override directory for generated trust-center / evidence docs."),
     SettingSpec("RMC_HUB_BASE_URL", "str", '""', "ops", "Base URL of the central RMC hub for offline-bundle sync."),
+    SettingSpec("RMC_MC_APPLY_NO_PROGRESS_LIMIT", "int", "3", "ops", "Consecutive no-progress Migration Cloud applies before automatic re-apply is refused."),
     # RMC IAM snapshot
     SettingSpec("RMC_IAM_SNAPSHOT_OFFLINE_TOKEN_TTL_HOURS", "int", "12", "identity", "TTL (hours) of offline IAM-snapshot tokens."),
     SettingSpec("RMC_IAM_SNAPSHOT_SIGNING_KEY", "str", "None", "identity", "Signing key for IAM snapshot tokens."),

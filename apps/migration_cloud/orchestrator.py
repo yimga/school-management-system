@@ -624,6 +624,22 @@ def _apply_bundle_inner(
             exc_info=True,
         )
 
+    if not dry_run:
+        # Did this apply actually move anything? A live apply whose totals are
+        # identical to the previous one, having created no rows, is the livelock
+        # signature that pinned a worker for four days on bundle 84. Recorded here
+        # -- the single point every apply path returns through -- so the enqueue
+        # guard sees it no matter which of the seven callers queued the work.
+        from .apply_progress_guard import record_apply_outcome
+
+        record_apply_outcome(
+            bundle,
+            created=totals["created"],
+            updated=totals["updated"],
+            quarantined=totals["quarantined"],
+            status=new_status,
+        )
+
     return ApplyResult(
         bundle_id=bundle.pk,
         dry_run=dry_run,
