@@ -21,6 +21,7 @@ and this system already has one button that failed every time it was pressed.
 """
 from __future__ import annotations
 
+from datetime import timedelta
 from unittest import mock
 
 from django.test import SimpleTestCase, TestCase
@@ -69,6 +70,32 @@ class DirectiveWakesTheChangesFeedTests(TestCase):
 
         request_full_resync(self.school)
         self.assertTrue(self._has_changes(since=timezone.now()))
+
+    def test_a_stale_uncollected_directive_stops_waking_the_feed(self):
+        """Bounded on purpose: the watcher's floor between cycles is ONE second.
+
+        Serving a directive is best-effort inside the download endpoint, so one CAN
+        stay pending across an otherwise successful cycle. Unbounded, that is a box
+        hammering the cloud at 1Hz forever. Past the window it falls back to the
+        ordinary cadence, which still collects it on the next pull.
+        """
+        from django.utils import timezone
+
+        from apps.api.sync_changes_api import _directive_wake_window_seconds
+
+        request_full_resync(self.school)
+        self.assertTrue(self._has_changes())
+        stale = timezone.now() - timedelta(
+            seconds=_directive_wake_window_seconds() + 60
+        )
+        EdgeSyncDirective.objects.filter(school=self.school).update(requested_at=stale)
+        self.assertFalse(self._has_changes())
+        self.assertTrue(
+            EdgeSyncDirective.objects.filter(
+                school=self.school, served_at__isnull=True
+            ).exists(),
+            "the directive must still be pending — it is not lost, only quiet",
+        )
 
     def test_queueing_a_resync_nudges_the_beacon(self):
         with mock.patch("apps.sync_engine.change_beacon.bump") as bumped:
