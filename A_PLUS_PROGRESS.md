@@ -1,8 +1,45 @@
 # A+ PROGRESS SCOREBOARD (A0 Coordinator)
 
-**Last refreshed:** 2026-08-20 (Claude Code · **PROMPT B full audit** on `418c5d2bd` -> **NO-GO**, then **PROMPT A waves 1-4**: `eb26554b7` -> `896db99ed` -> `8046fdab7` -> `1cbc19d5c` -> `a668338ed`, each content-verified on origin). Red gates **17 -> 9**; `pre_deploy_gate.sh` **gate 4/80 -> 9/80**; forbidden patterns **9 -> 4**; **120 tests green**. 🔑 Six gates were failing on raw TEXT, not defects - **11 false findings vs 2 real**; five now structural (ast/tokenize/statement-span/comment-masking).  
-**Loop:** Under the 9.8 lowest-dimension regime, GO = raise the MINIMUM metric. **M33 B2B Procurement is no longer the floor** — wave 4 built it (10 -> **~55**, first vertical slice; see below). **The floor is now M16 at 20** -> M26 **45** (0 of >=3 payment rails LIVE; all 11 gateways are honestly-labelled stubs) -> M21 **50** -> M31 **60**. **GitHub Actions has run ZERO jobs since 2026-08-15 (billing)** -> platform-wide **<=8.9 cap**, so no metric can reach 98 regardless of feature work. That, not any feature, is the binding constraint.  
+**Last refreshed:** 2026-08-20 (Claude Code · **PROMPT B full audit** on `418c5d2bd` -> **NO-GO**, then **PROMPT A waves 1-5** + a second **PROMPT B** pass: `eb26554b7` -> `896db99ed` -> `8046fdab7` -> `1cbc19d5c` -> `a668338ed` -> `7d820cbcb` -> `4d9ac3487`, each content-verified on origin). `pre_deploy_gate.sh` **check 4/80 -> check 10/80**; forbidden patterns **9 -> 4**; **122 tests green**. ⚠️ **"Red gates 17 -> 9" was only ever knowable up to the halt at check 8** — checks 9-80 had never run; past that point the board was UNMEASURED, not green. 🔑 Six gates were failing on raw TEXT, not defects - **11 false findings vs 2 real**; five now structural (ast/tokenize/statement-span/comment-masking).  
+**Loop:** Under the 9.8 lowest-dimension regime, GO = raise the MINIMUM metric. **M33 B2B Procurement is no longer the floor** — wave 4 built it and wave 5's B pass caught it unreachable (10 -> ~55 -> **~35** -> **~60**; see below). **The floor is now M16 at 20** -> M26 **45** (0 of >=3 payment rails LIVE; all 11 gateways are honestly-labelled stubs) -> M21 **50** -> M31 **60**. **GitHub Actions has run ZERO jobs since 2026-08-15 (billing)** -> platform-wide **<=8.9 cap**, so no metric can reach 98 regardless of feature work. That, not any feature, is the binding constraint.  
 **Tree:** HEAD = `origin/main`
+
+---
+
+## PROMPT B → PROMPT A — Wave 5: the feature passed every test and was dead — 2026-08-20
+
+**Audited `7d820cbcb` → NO-GO. Shipped `4d9ac3487`.** The B pass ran against the M33 build from one hour earlier, and its sharpest finding was against my own work.
+
+### 🔑 M33 PASSED ALL 13 TESTS WHILE BEING UNUSABLE
+
+I scored M33 at **~55** having shipped models, migrations, RLS, a service, a view, a route, a template and 13 green tests. B asked the question the tests structurally cannot: **can anyone actually use it?**
+
+- `apps/schoolops/admin.py` registers **21** models. I registered **zero** of the five procurement models — so no operator could create a `Vendor`, a `VendorProduct`, or a `SupplyRequirement`.
+- **Nothing linked to `ops_procurement`.** `urls.py` was the only file in the tree that mentioned it. The page was reachable only by typing the URL.
+
+Together: `generate_purchase_orders_from_class_config` reads a `SupplyRequirement` table that nothing can populate, so the button is **correct and permanently returns `[]`**. Every test still passed — **because the tests create their own rows.** That is the "tables that ship empty" failure mode the mandate names by name, and it is the whole argument for auditing your *newest* work hardest rather than last.
+
+Fixed: five admin registrations (matching the file's own convention) + a `Procurement` card in `MODULE_CODES`, keyed to the same `inventory` feature code the view already gates on. `PurchaseOrder` totals and `PurchaseOrderLine.line_total` are **read-only in admin** — computed by `procurement_services`, and hand-editing them would silently desynchronise an order from its own lines. `test_procurement_reachable.py` seals both; verified failing against the prior commit (`origin/main` had 0 hits for `accounts:ops_procurement` and 0 for `register(Vendor`).
+
+**M33: ~55 → ~35 (B finding) → ~60.** Still missing in-page create forms (the ops convention is an in-page form, as `ops_library` does), vendor certification, receiving/reconciliation — and still under the platform-wide `≤8.9` runtime-proof cap.
+
+### 🔑 ONE GATE WAS HIDING THE STATE OF 72 OTHERS
+
+`pre_deploy_gate.sh` **halted at check 8 of 80** on `verify_<brand>_full_tree_classification`. Checks 9–80 had **never executed**. Every "red gates 17 → 9" claim on this scoreboard was therefore only ever knowable *up to that halt* — the board past check 8 was not green, it was **unmeasured**.
+
+It failed on ~50 `artifacts/**` files + 2 code files.
+
+The `artifacts/` half was a bucket **the gate already described and never implemented** — its own bucket-6 comment reads *"Tooling scripts and generated audit artifacts"* while the code covered only `scripts/`. Those files are recorded audit evidence (admin-canvas JSON, design-approval snapshots) captured by running audits against a real tenant; the tenant's name in them is the capture's **provenance**, and scrubbing it would falsify the evidence rather than clean the product. Wired the bucket + updated `docs/<BRAND>_REFERENCE_CLASSIFICATION.md`, which its own policy requires when a bucket is added. **Widens bar B only** — bar A (`lint_<brand>_residue`, runtime-visible copy) untouched and green.
+
+The 2 code files I had previously left alone, arguing that deleting engineering history to satisfy a regex is the wrong fix. **Learning they blocked 72 other gates changed the balance.** All three sites used the tenant name as a *provenance label* — "the exact `<tenant>` dead-end", "the exact report on `<tenant>`", "validated end-to-end on the `<tenant>` tenant". What is load-bearing is **that the failure was really observed, not hypothesised**; the tenant's identity carries none of it. Reworded to "a live tenant" — keeps the history, drops the customer name, which is what wave 3 concluded should happen tree-wide.
+
+### Board movement — and the next blocker
+
+`pre_deploy_gate.sh` **check 8 → check 10 of 80.** Checks 8 (branding classification) and 9 (no `print()`) now pass. It now stops on **check 10, Ruff F401/F841: 63 pre-existing findings** (39 unused imports, 24 unused variables) across ~40 files, **19 of them in `apps/schools/signup_views.py`**. None are in procurement code. Deliberately not folded into this commit — three unrelated concerns in one commit is how a diff stops being reviewable.
+
+**Standing NO-GO blockers, unchanged:** 4 × `continue-on-error` in `ci.yml` (user-deferred until billing is fixed — still a PART 0 forbidden pattern), and **GitHub Actions has run zero jobs since 2026-08-15**, which caps every metric at `≤8.9` regardless of feature work.
+
+Verified: 15 tests green, `manage.py check` clean, both brand gates PASS post-rebase (`files_with_hit=484`), 18/18 boundary gates green, content-verified on origin.
 
 ---
 
