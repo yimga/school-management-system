@@ -214,7 +214,7 @@
 // migration, inventory) over existing WorkflowRun + Channels rooms.
 // v4.06.62: Migration Cloud Review & Import kickoff live pipeline + held honesty.
 // v4.06.66: platform-wide Ctrl+K search seal (palette scroll, shortcut yield, unified /).
-const CACHE_VERSION = "sms-v4.06.66-cmdk-platform-search-audit-2026-08-19";
+const CACHE_VERSION = "sms-v4.06.67-sync-referential-integrity-2026-08-19";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 

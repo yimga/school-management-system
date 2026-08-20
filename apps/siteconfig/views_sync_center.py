@@ -54,6 +54,10 @@ def _run_row(run, now) -> dict:
         "conflicts": run.conflicts,
         "created": run.created,
         "upserted": run.upserted,
+        # Rows the cycle RECEIVED but could not apply. Carried separately from `pulled`
+        # (a received count) because a pull that refused every row would otherwise render
+        # as a perfectly healthy green cycle.
+        "skipped": getattr(run, "skipped", 0) or 0,
         "message": run.message or "",
         "error": run.error or "",
         "finished_at": finished.isoformat() if finished else None,
@@ -237,6 +241,12 @@ def _sync_live_strings() -> dict:
         "unit_h": gettext("h"),
         "unit_d": gettext("d"),
         "unit_ms": gettext("ms"),
+        "not_applied": gettext("Not applied"),
+        "explain_skipped": gettext(
+            "Some records could not be applied on this box - most often a record that "
+            "references a parent this box has not received yet. They are named in the "
+            "cycle detail below and are retried automatically."
+        ),
         "dir_down": gettext("cloud → box"),
         "dir_up": gettext("box → cloud"),
         "ok": gettext("OK"),
@@ -633,6 +643,7 @@ def sync_center_status(request):
             pushed=Sum("pushed"),
             pulled=Sum("pulled"),
             conflicts=Sum("conflicts"),
+            skipped=Sum("skipped"),
             failed=Count("id", filter=Q(ok=False)),
         )
         payload["totals"] = {
@@ -641,6 +652,7 @@ def sync_center_status(request):
             "pushed": agg.get("pushed") or 0,
             "pulled": agg.get("pulled") or 0,
             "conflicts": agg.get("conflicts") or 0,
+            "skipped": agg.get("skipped") or 0,
             "failed": agg.get("failed") or 0,
         }
     except Exception:  # noqa: BLE001

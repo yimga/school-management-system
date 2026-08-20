@@ -162,6 +162,11 @@
       cell(row, String(run.pulled === null ? "—" : run.pulled));
       cell(
         row,
+        String(run.skipped || 0),
+        run.skipped ? "text-warning-emphasis fw-semibold" : "text-body-secondary"
+      );
+      cell(
+        row,
         run.duration_ms === null || run.duration_ms === undefined
           ? "—"
           : run.duration_ms + t("unit_ms", "ms"),
@@ -201,6 +206,15 @@
       return t(
         "explain_backoff",
         "Recent attempts failed, so retries are spacing out. A restored connection cancels the wait immediately."
+      );
+    }
+    // Checked before the healthy states: a cycle can be green, connected and idle while
+    // still having refused rows, and reporting that as "up to date" is the exact failure
+    // this panel exists to prevent.
+    if ((data.totals || {}).skipped) {
+      return t(
+        "explain_skipped",
+        "Some records could not be applied on this box - most often a record that references a parent this box has not received yet. They are named in the cycle detail below and are retried automatically."
       );
     }
     if (cadence.state === "hot") {
@@ -254,6 +268,13 @@
     setText("total-pulled", String(totals.pulled === undefined ? "—" : totals.pulled));
     setText("total-runs", String(totals.runs === undefined ? "—" : totals.runs));
     setText("total-failed", String(totals.failed === undefined ? "—" : totals.failed));
+    setText("total-skipped", String(totals.skipped === undefined ? "—" : totals.skipped));
+
+    var skippedNode = q("total-skipped");
+    if (skippedNode) {
+      skippedNode.className =
+        "fw-semibold fs-6 " + (totals.skipped ? "text-warning-emphasis" : "text-body");
+    }
 
     var failedNode = q("total-failed");
     if (failedNode) {
