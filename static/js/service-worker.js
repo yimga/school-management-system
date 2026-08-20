@@ -216,7 +216,7 @@
 // v4.06.66: platform-wide Ctrl+K search seal (palette scroll, shortcut yield, unified /).
 // v4.06.68: tenant/operator admin form intelligence and server-owned preferences.
 // v4.06.71: tenant admin sidebar server-owned, host-isolated preferences.
-const CACHE_VERSION = "sms-v4.06.71-tenant-admin-sidebar-server-preferences-2026-08-20";
+const CACHE_VERSION = "sms-v4.06.73-edge-tick-and-secure-context-2026-08-20";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 

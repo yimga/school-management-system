@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 import secrets
 import urllib.error
 import urllib.request
@@ -21,6 +22,10 @@ from datetime import datetime, timedelta, timezone as _dt_timezone
 
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
+
+from apps.sync_engine.gateway_retry import call_with_gateway_retry
+
+logger = logging.getLogger(__name__)
 
 BUNDLE_CONTENT_TYPE = "application/x-rmc-sync-bundle+ndjson"
 
@@ -303,17 +308,29 @@ def post_bundle(endpoint: str, token: str, data: bytes, *, timeout: float = 30.0
     schema_head = local_schema_head_header()
     if schema_head:
         headers[SYNC_SCHEMA_HEAD_HEADER] = schema_head
-    req = urllib.request.Request(endpoint, data=data, method="POST", headers=headers)
-    try:
-        with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310 — operator URL, not user input
-            status = resp.getcode()
-            body = resp.read().decode("utf-8", "replace")
-    except urllib.error.HTTPError as exc:  # a response with a 4xx/5xx status, not a connectivity failure
-        status = exc.code
+    def _attempt():
+        req = urllib.request.Request(endpoint, data=data, method="POST", headers=headers)
         try:
-            body = exc.read().decode("utf-8", "replace")
-        except (OSError, AttributeError):
-            body = ""
+            with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310 — operator URL, not user input
+                return resp.getcode(), resp.read().decode("utf-8", "replace")
+        except urllib.error.HTTPError as exc:  # a response with a 4xx/5xx status, not a connectivity failure
+            try:
+                return exc.code, exc.read().decode("utf-8", "replace")
+            except (OSError, AttributeError):
+                return exc.code, ""
+
+    # A 502/503/504 here is the cloud's PROXY answering while its application did not,
+    # and the commonest cause is simply that the service is cold — measured recovering
+    # inside a minute. Without this retry a box on a cadence records a failed push for a
+    # cloud that is merely waking up, and the operator, whose own browser warmed it,
+    # sees a healthy site and no explanation. 4xx is untouched: that is a decision the
+    # cloud made and must surface immediately.
+    status, body = call_with_gateway_retry(
+        _attempt,
+        on_retry=lambda attempt, total, wait: logger.info(
+            "edge push hit HTTP gateway error; retry %s/%s in %.0fs", attempt + 1, total, wait
+        ),
+    )
     try:
         parsed = json.loads(body) if body else {}
     except ValueError:
@@ -390,22 +407,32 @@ def pull_bundle(
         advice = source.get(SYNC_SCHEMA_ADVICE_HEADER)
         withheld = source.get(SYNC_WITHHELD_HEADER)
 
-    try:
-        with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310 — operator URL, not user input
-            status = resp.getcode()
-            body = resp.read()
-            high_water = resp.headers.get(SYNC_HIGH_WATER_HEADER)
-            directive = resp.headers.get(SYNC_DIRECTIVE_HEADER)
-            _read_meta(resp.headers)
-    except urllib.error.HTTPError as exc:  # a response with a 4xx/5xx status, not a connectivity failure
-        status = exc.code
+    def _attempt():
+        nonlocal high_water, directive
         try:
-            body = exc.read()
-            high_water = exc.headers.get(SYNC_HIGH_WATER_HEADER) if exc.headers else None
-            directive = exc.headers.get(SYNC_DIRECTIVE_HEADER) if exc.headers else None
-            _read_meta(exc.headers)
-        except (OSError, AttributeError):
-            body = b""
+            with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310 — operator URL, not user input
+                high_water = resp.headers.get(SYNC_HIGH_WATER_HEADER)
+                directive = resp.headers.get(SYNC_DIRECTIVE_HEADER)
+                _read_meta(resp.headers)
+                return resp.getcode(), resp.read()
+        except urllib.error.HTTPError as exc:  # a response with a 4xx/5xx status, not a connectivity failure
+            try:
+                high_water = exc.headers.get(SYNC_HIGH_WATER_HEADER) if exc.headers else None
+                directive = exc.headers.get(SYNC_DIRECTIVE_HEADER) if exc.headers else None
+                _read_meta(exc.headers)
+                return exc.code, exc.read()
+            except (OSError, AttributeError):
+                return exc.code, b""
+
+    # Same reasoning as the push path: a cold cloud 502s every route, including static
+    # files, and recovers within a minute. Pulling is the data path, so a spurious
+    # failure here costs the box a whole interval of convergence.
+    status, body = call_with_gateway_retry(
+        _attempt,
+        on_retry=lambda attempt, total, wait: logger.info(
+            "edge pull hit HTTP gateway error; retry %s/%s in %.0fs", attempt + 1, total, wait
+        ),
+    )
     if collect is not None:
         collect["directive"] = (directive or "").strip()
         collect["schema_advice"] = (advice or "").strip()

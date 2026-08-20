@@ -67,6 +67,12 @@ GATES: list[tuple[str, list[str]]] = [
     # reparents everything after the unclosed element. Nine served templates were
     # found this way on 2026-08-20, one of them shipping a </motion> end tag.
     ("template-html-structure", ["verify_template_html_structure.py"]),
+    # And the fourth floor gate, for code that parses, imports, and never runs.
+    # EdgeAutosyncMiddleware was defined, correct, and referenced NOWHERE but its own
+    # class statement — written to keep a LAN box syncing when nothing pings /health/,
+    # and never added to MIDDLEWARE, so the box it existed for never synced. Nothing
+    # else can see this: it imports cleanly and has no unused-import warning.
+    ("unregistered-middleware", ["scan_unregistered_middleware.py", "--strict"]),
     ("undefined-css-classes", ["scan_undefined_css_classes.py", "--compare"]),
     ("off-token-colors", ["scan_off_token_colors.py", "--strict"]),
     ("theme-locked-token-text", ["scan_theme_locked_token_text.py", "--strict"]),

@@ -378,6 +378,13 @@ MIDDLEWARE = [
     "apps.api.middleware_edge_fallback.EdgeSWRFallbackMiddleware",  # v4.00.0: Django-side SWR for /api/v1/runtime/* when no CDN is in front
     "config.middleware.BlockScannerPathsMiddleware",  # 404 for .git, terraform, wp-config, etc.
     "whitenoise.middleware.WhiteNoiseMiddleware",
+    # Drive the in-process periodic scheduler from ordinary page loads. Placed here —
+    # after WhiteNoise, so static requests are already served and never reach it, and
+    # before every gate/redirect middleware, so a login redirect still advances the
+    # tick. On a LAN box nothing pings /health/, which is the only other AUTO driver;
+    # without this a paired, correctly configured box never runs a sync cycle at all.
+    # Self-gating and never-raising: see the module docstring.
+    "apps.sync_engine.middleware_edge_autosync.EdgeAutosyncMiddleware",
     "apps.accounts.middleware.ManagerCookieIsolationMiddleware",  # Manager host gets separate session/csrf cookie names
     "django.contrib.sessions.middleware.SessionMiddleware",
     "apps.schools.middleware.LegacyBaseDomainRedirectMiddleware",  # Optional legacy-domain redirect middleware
@@ -1439,6 +1446,21 @@ IMPERSONATION_READ_ONLY_ENFORCED = (
     os.getenv("IMPERSONATION_READ_ONLY_ENFORCED", "0").strip().lower()
     in {"1", "true", "yes"}
 )
+# WebAuthn / passkey relying party. Declared in config/settings_registry.py since it
+# was written, but never DEFINED here or in any deploy env file, so
+# apps/accounts/views_passkey.py always fell through to `request.get_host()`. That
+# fallback has two consequences nobody chose:
+#   * multi-tenant — the RP ID becomes the tenant hostname, so a passkey registered on
+#     one tenant host is invisible on another and comes back as "Unknown credential";
+#   * sovereign box — the RP ID becomes an IP literal, which is not a registrable
+#     domain, and browsers refuse the ceremony outright.
+# Empty (the default) preserves the historical host-derived behaviour, so existing
+# passkeys keep working; set it to the apex domain (e.g. "runmycampus.com") to make
+# passkeys portable across tenant hosts. Changing it INVALIDATES passkeys registered
+# under the previous value — they are scoped to the RP ID they were created with — so
+# treat a change as a credential migration, not a config tweak.
+WEBAUTHN_RP_ID = os.getenv("WEBAUTHN_RP_ID", "").strip()
+WEBAUTHN_RP_NAME = os.getenv("WEBAUTHN_RP_NAME", "RunMyCampus").strip()
 # When true on manager host, operators must enroll MFA before /super/ or /admin/.
 OPERATOR_MFA_REQUIRED_ON_MANAGER = (
     os.getenv("OPERATOR_MFA_REQUIRED_ON_MANAGER", "1").strip().lower()

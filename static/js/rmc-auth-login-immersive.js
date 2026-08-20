@@ -168,7 +168,17 @@
         });
       }
       if (!window.PublicKeyCredential || !navigator.credentials) {
-        announce("This browser does not support passkeys. Use email, SSO, or password.", true);
+        // Distinguish "the browser cannot" from "this origin is not allowed to".
+        // Browsers withhold PublicKeyCredential from insecure contexts by spec, so on a
+        // box served over plain HTTP this fires on browsers that support passkeys
+        // perfectly well. Naming the browser sends the user to reinstall software that
+        // was never the problem.
+        announce(
+          window.isSecureContext === false
+            ? "Passkeys need a secure (HTTPS) connection. This server is reached over plain HTTP. Use email, SSO, or password."
+            : "This browser does not support passkeys. Use email, SSO, or password.",
+          true
+        );
         return;
       }
       button.disabled = true;

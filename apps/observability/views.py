@@ -441,13 +441,31 @@ def _check_celery_beat() -> dict:
             "detail": "broker not configured (in-process heal owns schedule)",
         }
     try:
-        from apps.platform_runtime.periodic import celery_beat_appears_alive
+        from apps.platform_runtime.periodic import (
+            celery_beat_appears_alive,
+            inprocess_scheduler_enabled,
+        )
 
         if celery_beat_appears_alive():
             return {"status": "ok", "detail": "provision-heal canary fresh"}
+        # Report what is ACTUALLY true, not what ought to follow. This branch used to
+        # say "in-process heal should re-enable" unconditionally, and on a sovereign box
+        # /healthz printed exactly that while /health reported
+        # ``inprocess_scheduler: false`` — two endpoints in one process contradicting
+        # each other about the same fact, which is how a box with no scheduler at all
+        # read as merely "degraded" for weeks (measured 2026-08-20).
+        if inprocess_scheduler_enabled():
+            return {
+                "status": "degraded",
+                "detail": "beat canary stale — in-process heal has taken over",
+            }
         return {
             "status": "degraded",
-            "detail": "beat canary stale — in-process heal should re-enable",
+            "detail": (
+                "beat canary stale AND the in-process heal is off "
+                "(RMC_INPROCESS_SCHEDULER) — NOTHING is running periodic jobs on this "
+                "deployment; edge sync, provisioning heals and digests are all stopped"
+            ),
         }
     except Exception as exc:  # noqa: BLE001 - liveness check must never crash the probe
         return {"status": "degraded", "error": str(exc)[:120]}

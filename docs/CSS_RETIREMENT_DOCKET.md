@@ -2,6 +2,60 @@
 
 **Last updated:** 2026-08-20
 
+## 2026-08-20 (latest) — v4.06.73: the box could not run a sync cycle, and the PIN dialog blamed the browser
+
+SW `sms-v4.06.73-edge-tick-and-secure-context-2026-08-20`. Python, JS, compose and
+docs; no CSS changes.
+
+**How this was found.** Not by reading. The box at `10.10.20.137:10000` and the cloud
+at `gilead-tech.runmycampus.com` were probed live, and the two health endpoints
+disagreed with each other:
+
+```
+box   /health/   "celery_broker_configured": true,  "inprocess_scheduler": false
+box   /healthz/  "celery_beat": degraded — "in-process heal should re-enable"
+box   /healthz/  "celery_queue_depth": no queue 'celery' in vhost '1'
+cloud /health/   "celery_broker_configured": false, "inprocess_scheduler": true
+```
+
+One process, two endpoints, opposite answers about the same fact. That contradiction
+was the whole finding.
+
+**What landed**
+
+| Area | Change |
+|---|---|
+| `config/settings.py` | **`EdgeAutosyncMiddleware` is now registered.** It was written to drive the periodic tick from ordinary page loads because a LAN box has nothing pinging `/health/` — its docstring says *"without this middleware a box with internet still waits forever"* — and a repo-wide search for the class name returned exactly ONE hit: its own `class` statement. It had never run. Placed after WhiteNoise (static requests never reach it) and before every gate/redirect middleware, so a login redirect still advances the tick — which on a box that mostly shows a login page is most requests. |
+| `apps/sync_engine/middleware_edge_autosync.py` | Gate widened from `RMC_EDGE_SYNC_ENABLED` to "does this deployment run the in-process scheduler?". The narrow flag was wrong twice: a self-hosted box that is not an edge box has the same dead-tick problem and loses provisioning heals and digests with it, and the flag lives in a host `.env` nobody editing the pairing screen can see. `maybe_run_due_jobs` already makes the real decision and is a monotonic compare in memory. |
+| `apps/platform_runtime/periodic.py` | **The grace window that re-armed itself.** `celery_beat_appears_alive()` anchored its grace to a cache key with a 24-hour TTL; on expiry it re-seeded with `now` and returned True, so a beat that had never ticked was declared alive again every 24 hours — and any Valkey restart did it immediately. Observed flipping degraded → ok in 20 minutes with no beat running. The anchor is now `ScheduledJobHeartbeat.created_at` (durable, already used by `run_health_monitor` as `watched_for_seconds`), and an unknown anchor now returns False — failing toward RUNNING the scheduler, which is safe because `run_job`'s per-job claim lock makes a double-run a no-op. |
+| `apps/observability/views.py` | `/healthz/` no longer promises a heal that is not happening. It reports whether the in-process scheduler ACTUALLY took over, and says plainly when nothing is running periodic jobs at all. |
+| `deploy/selfhost/docker-compose.yml` | Healthchecks on `web` (urllib against `/health/` every 30s — **load-bearing**, since that path is the AUTO driver of the scheduler and Render supplies it for free while a LAN box gets nothing), `worker` (`inspect ping`, the only check that proves it is CONSUMING), and `beat`. The only healthcheck in this file was on `db`. |
+| `apps/platform_runtime/management/commands/check_beat_publishing.py` (new) | Beat has no HTTP surface and no inspect protocol, and the failure here was a beat that was **up and publishing nothing** — so a process check would have proved nothing. Reuses the canary the application already reads, so there is one definition of "beat is alive" instead of two that can disagree. |
+| `apps/sync_engine/gateway_retry.py` (new) + `edge_outbox.py` | A cold cloud 502s **every** path. Measured at 21:07 UTC with no deploy running: `/healthz/`, `/`, a static file, and `/api/nonexistent-route-xyz/` all 502; 60s later all correct. A static asset cannot 502 from schema drift and a nonexistent route cannot 502 from app code. Push and pull now retry 502/503/504 with backoff. **4xx is deliberately untouched** — retrying a 401 hammers the cloud with a credential that will never work, and retrying a 404 hides a path bug behind latency. |
+| `static/js/rmc-offline-auth-vault.js` + `-enrollment.js` + `rmc-offline-login-unlock.js` | **"Local access could not be enabled on this browser."** The vault derives its PIN key with `crypto.subtle`, which browsers expose only in a secure context; the box is `http://<ip>:10000`, so the call threw `TypeError` and a bare `catch` blamed the browser. Chrome implements WebCrypto correctly — the ORIGIN does not qualify, and changing browsers can never help. New `availability()` is checked BEFORE the dialog opens (asking someone to choose and confirm a PIN and only then saying it cannot work is the worst possible order), the message names HTTPS, and the swallowed error is finally logged. Because sealing could never succeed, `loadSealed()` was always null and "Continue in local mode" stayed hidden forever — offline continuity has never worked on any HTTP box. |
+| `static/js/rmc-auth-login-immersive.js` | Same misattribution for passkeys: says "needs a secure (HTTPS) connection" when `isSecureContext` is false, instead of "this browser does not support passkeys". |
+| `config/settings.py` + `apps/accounts/views_passkey.py` | `WEBAUTHN_RP_ID` was declared in `settings_registry.py` and **defined nowhere** (two hits repo-wide), so `_rp_id` always fell back to `request.get_host()` — an IP literal on the box (not a registrable domain; browsers refuse the ceremony) and the TENANT hostname on the cloud (a passkey registered on one tenant host is invisible on another). Now settable, default unchanged so existing passkeys keep working, and the options endpoints return a readable 409 naming the deployment property instead of handing the browser a ceremony it cannot complete. |
+| `apps/migration_cloud/services/legacy_hash_intake.py` | Three of the four `INTAKE_FIELDS` are `EncryptedCharField`s, and a bad `DJANGO_CRYPTOGRAPHY_KEY` raises **`ValueError`** from `get_prep_value` — not a `DatabaseError`, so it sailed past the guard and became a 500. Reads never fail and empty values short-circuit before the Fernet is built, which is why a box with a broken key looks healthy until the first import carrying legacy passwords. Now caught, logged with the env var and the command that checks it, and the user is skipped rather than the migration lost. |
+| `scripts/scan_unregistered_middleware.py` (new) | The gate. Every `class *Middleware` under `apps/` must be referenced from `config/`. No baseline; 4 genuinely-unwired classes carry written reasons. Mutation-proven. |
+| `apps/sync_engine/tests/test_connectivity_probe_2026_08_19.py` | Corrected a test that had been RED since PR #183 because it pinned `/api/v1/sync/bundle/download/` — the exact 404 that fix removed. Now asserts against `reverse()`. Verified live: `/api/sync/bundle/upload/` → 401 clean JSON, `/api/v1/sync/bundle/download/` → 404 with a page of tenant HTML. |
+
+**Tests.** 74 new (11 stdlib + 63 Django). Verified against a `main` worktree: 627 tests
+/ 6 failures at base, 679 / 5 after — all 5 proven pre-existing and identical at base
+(2 local `EMAIL_BACKEND`, 1 `assertLogs` vs `settings_test`'s `logging.disable`, 1
+order-dependent that passes alone, 1 unrelated 403-vs-409). 19/19 boundary gates green,
+`makemigrations --check` clean.
+
+**Deploy.** No configuration required. The compose healthchecks apply on the next
+`docker compose up -d`. On the box afterwards: `python manage.py check_beat_publishing`
+should exit 0, and `/health/` should report `inprocess_scheduler: true` if beat is still
+not publishing.
+
+**Still open, honestly.** Why beat publishes nothing (`no queue 'celery' in vhost '1'`)
+needs that box's container logs — the fix here makes the in-process scheduler take over
+correctly rather than repairing beat. Offline continuity and passkeys on the box remain
+unavailable until it is served over HTTPS; the product now says so instead of blaming
+the browser.
+
 ## 2026-08-20 (later) — Nine served pages had markup that never closed, and one of them shipped an element that does not exist
 
 Started from a narrower question — *are there other guard tests that never collected?* A repo-wide sweep imported all 2,736 collectable test modules and found **zero** import failures, so that class is clean. But the sweep's own output carried something else: `scripts/dev/test_backend_dashboard.py`, one of five files under `scripts/dev/` that match pytest's `test_*.py` glob while defining no tests and executing their whole body at import, printed **`[WARN] div tags are not balanced`** for the tenant admin home. It had been printing that into a script nobody runs.
