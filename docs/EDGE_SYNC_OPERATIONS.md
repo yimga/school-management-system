@@ -144,6 +144,88 @@ Read-only, safe on production. It checks the two things a green test suite canno
    applied, table at 0 rows, while the ordinary dev database has all 25 rows. Use
    `--strict-seeds` to make this fail rather than warn.
 
+## Deletions now cross the boundary
+
+Until 2026-08-20 a deletion was the one change the engine could not carry: the delta scans
+`updated_at__gt=since`, and a deleted row leaves nothing to scan. A withdrawn student stayed
+enrolled on the appliance forever.
+
+Deletions ride the ordinary rail now, as `op="delete"` rows built from
+`sync_engine.SyncTombstone` (written by a `post_delete` receiver, so cascades and queryset
+deletes travel too). What an operator needs to know:
+
+* **The Sync Center has a "Deleted (24h)" tile.** It is the only count whose meaning is
+  *records were destroyed*, so it is deliberately not folded into "pulled".
+* **A money/grade deletion cannot travel upward.** The cloud refuses it and then RE-ASSERTS
+  its own row, so the appliance receives the record back on its next pull instead of the two
+  sides diverging silently. Expect to see the row's `updated_at` move; nothing else changed.
+* **A flood is refused whole.** More than `RMC_SYNC_MAX_DELETES_PER_BUNDLE` (default 500)
+  deletions in one bundle are all refused and reported. If the deletions are genuinely
+  intended, raise the cap for one cycle — nothing is lost by the refusal, because the far
+  side keeps its tombstones.
+* **The kill switch is `RMC_SYNC_DELETE_PROPAGATION_ENABLED=0`,** which restores the previous
+  behaviour exactly. Turning propagation ON is never retroactive: the tombstone table starts
+  empty, so only deletions from that point forward travel.
+* **`prune_tombstones()`** trims past `RMC_SYNC_TOMBSTONE_RETENTION_DAYS` (default 365). A box
+  dark for longer than the window should be reconciled with a full resync, which compares by
+  content rather than replaying history.
+
+## Files: their own channel, their own command
+
+A delta bundle carries column values, never bytes, so `FileField`s are dropped from the row
+rail. Files move separately:
+
+```bash
+python manage.py edge_sync_files              # one bounded pass
+python manage.py edge_sync_files --passes 4   # keep going while there is budget
+```
+
+Resumable from a durable offset, sha256-verified before anything is committed to storage, and
+bounded per pass by `RMC_SYNC_FILE_BUDGET_BYTES` / `RMC_SYNC_FILE_MAX_PER_PASS`. Stopping
+mid-queue is normal — the next pass resumes mid-file. Run it on its own schedule: keeping it
+off the data cycle is what stops a 50 MB scan delaying attendance.
+
+## Near-real-time: the long-poll watcher
+
+```bash
+python manage.py edge_sync_watch     # run as a service alongside the box
+```
+
+Holds one ordinary HTTP request open against the cloud and syncs the instant something
+changes, collapsing cloud→box latency from the cadence interval to about a second. It is a
+pure accelerator — it carries no data and moves no cursor — so stopping it simply returns the
+box to its normal cadence with nothing lost.
+
+## Proving convergence
+
+```bash
+python manage.py verify_edge_sync_convergence            # this box / this cloud
+python manage.py verify_edge_sync_convergence --school gilead-tech
+```
+
+Runs the scenarios that matter — a clean sync, a 14-day outage with writes on both sides, a
+mid-bundle drop, a power cut between apply and cursor advance, a ten-minute clock skew, a
+duplicate bundle, and the authority invariants — **inside a transaction that is always rolled
+back**, so it is safe to point at a live box. Exit code 0 means every scenario converged.
+
+### The drill this command cannot run for you
+
+The harness proves the PROTOCOL converges against one database and a modelled peer. It cannot
+prove two independent PostgreSQL databases agreeing, and that gap is not academic: the one
+property where the environments differ is deferred foreign keys, where SQLite is the WEAKER
+one — which is exactly how the 2026-08-19 production wedge stayed invisible behind a green
+suite. Once per release, against a real box:
+
+1. Note `EdgeSyncCursor` on both sides and take a row count per synced entity.
+2. Disconnect the box. Make changes on BOTH sides, including a deletion on each.
+3. Reconnect. Run one `edge_sync_cycle`, then a second.
+4. Compare row counts and spot-check the changed records in both databases.
+5. Confirm the Sync Center shows the deletions in its "Deleted (24h)" tile, and that no
+   `SyncConflict` was raised for a record neither side actually edited.
+
+Step 5 is the one worth doing carefully — a retried cycle used to manufacture conflicts out
+of its own writes, and that class of bug reads as "sync is working, operators are just busy".
+
 ## Money and marks stay cloud-authoritative
 
 Nothing here changes conflict or direction policy. Invoices and Evaluations are `protected`

@@ -106,16 +106,161 @@ def drift_note() -> str:
     )
 
 
+# --------------------------------------------------------------------------- #
+# G4 - the cross-deployment half: a schema handshake between box and cloud
+# --------------------------------------------------------------------------- #
+# The local half above answers "is THIS deployment migrated?". It cannot answer the
+# question that actually breaks a sync cycle: "is the deployment I am talking to running
+# a DIFFERENT schema from mine?" A box a month behind receives rows referencing columns
+# it does not have. Those degrade per row now rather than killing the bundle - but the
+# box still silently fails to receive whole entities, and nobody is told why.
+#
+# The handshake is deliberately per-APP rather than a single global version. A box behind
+# only on `finance` must still get its attendance: refusing everything because one app is
+# stale would take a school offline for a migration it does not need.
+
+_HEADS_CACHE_KEY = "rmc:sync_engine:schema_guard:heads"
+
+
+def local_migration_heads(app_labels=()) -> dict:
+    """``{app_label: newest APPLIED migration name}`` for the given apps.
+
+    The newest APPLIED one, not the newest on disk: what matters to the far side is which
+    columns this database actually has. Returns ``{}`` on any failure - the handshake then
+    degrades to "unknown", which is treated as compatible, because refusing to sync
+    because a diagnostic failed would be worse than the drift it guards against.
+    """
+    wanted = {str(a).strip() for a in app_labels if str(a).strip()}
+    if not wanted:
+        return {}
+    # Cached like pending_migrations, and for the same reason: the answer only changes
+    # when someone runs migrate, and the download endpoint would otherwise issue this
+    # query on every single poll of every box.
+    cache_key = f"{_HEADS_CACHE_KEY}:{','.join(sorted(wanted))}"
+    try:
+        cached = _cache().get(cache_key)
+        if isinstance(cached, dict):
+            return dict(cached)
+    except Exception:  # noqa: BLE001
+        pass
+    try:
+        from django.db.migrations.recorder import MigrationRecorder
+
+        heads: dict = {}
+        rows = MigrationRecorder.Migration.objects.filter(app__in=sorted(wanted)).values_list(
+            "app", "name"
+        )
+        for app, name in rows:
+            current = heads.get(app)
+            # Migration names sort lexicographically by their numeric prefix, which is
+            # how Django itself orders them on disk.
+            if current is None or name > current:
+                heads[app] = name
+        try:
+            _cache().set(cache_key, heads, _TTL_SECONDS)
+        except Exception:  # noqa: BLE001
+            pass
+        return heads
+    except Exception:  # noqa: BLE001 - a handshake must never break a cycle
+        logger.debug("could not read local migration heads", exc_info=True)
+        return {}
+
+
+def encode_heads(heads: dict) -> str:
+    """``{"academics": "0083_x"}`` -> ``"academics=0083_x"``, sorted and header-safe.
+
+    A compact ``app=name`` list rather than JSON: it rides in an HTTP header, and only
+    the apps owning synced entities are ever included, so it stays short and readable in
+    a proxy log.
+    """
+    parts = []
+    for app in sorted(heads or {}):
+        name = str(heads[app] or "").strip()
+        if not name or "=" in app or "," in name:
+            continue
+        parts.append(f"{app}={name}")
+    return ",".join(parts)
+
+
+def decode_heads(raw: str) -> dict:
+    out: dict = {}
+    for chunk in str(raw or "").split(","):
+        chunk = chunk.strip()
+        if not chunk or "=" not in chunk:
+            continue
+        app, _sep, name = chunk.partition("=")
+        app, name = app.strip(), name.strip()
+        if app and name:
+            out[app] = name[:255]
+    return out
+
+
+def compare_heads(peer_heads: dict, local_heads: dict) -> dict:
+    """Which apps the PEER is behind / ahead of us on.
+
+    ``{"behind": {app: (peer, local)}, "ahead": {app: (peer, local)}}``. An app the peer
+    did not report is absent from both: unknown is treated as compatible on purpose, so a
+    sender that predates the handshake keeps working exactly as before.
+    """
+    behind, ahead = {}, {}
+    for app, local_name in (local_heads or {}).items():
+        peer_name = (peer_heads or {}).get(app)
+        if not peer_name or not local_name:
+            continue
+        if peer_name < local_name:
+            behind[app] = (peer_name, local_name)
+        elif peer_name > local_name:
+            ahead[app] = (peer_name, local_name)
+    return {"behind": behind, "ahead": ahead}
+
+
+def describe_skew(comparison: dict) -> str:
+    """One operator-readable sentence naming the app and both versions, or ""."""
+    behind = (comparison or {}).get("behind") or {}
+    ahead = (comparison or {}).get("ahead") or {}
+    parts = []
+    if behind:
+        detail = ", ".join(
+            f"{app} {peer} < {local}" for app, (peer, local) in sorted(behind.items())
+        )
+        parts.append(
+            f"this box is behind the cloud on {len(behind)} app(s) ({detail}); those "
+            "entities were withheld from the bundle - run `python manage.py migrate` here"
+        )
+    if ahead:
+        detail = ", ".join(
+            f"{app} {peer} > {local}" for app, (peer, local) in sorted(ahead.items())
+        )
+        parts.append(
+            f"this box is AHEAD of the cloud on {len(ahead)} app(s) ({detail}); the cloud "
+            "has not been migrated yet, so some columns cannot be accepted upward"
+        )
+    return "; ".join(parts)
+
+
 def reset() -> None:
     """Forget the cached answer — used by tests and right after a deploy/migrate."""
     try:
         _cache().delete(_CACHE_KEY)
+        # The heads cache is keyed by the app SET requested, so there is no single key to
+        # drop. delete_pattern exists only on some backends; falling back to expiring the
+        # one key the platform actually uses (all synced apps) keeps reset() honest for
+        # tests without pretending to a guarantee the cache API does not give.
+        from apps.api.sync_services import entity_app_labels
+
+        apps_key = ",".join(sorted(set(entity_app_labels().values())))
+        _cache().delete(f"{_HEADS_CACHE_KEY}:{apps_key}")
     except Exception:  # noqa: BLE001
         pass
 
 
 __all__ = [
+    "compare_heads",
+    "decode_heads",
+    "describe_skew",
     "drift_note",
+    "encode_heads",
+    "local_migration_heads",
     "pending_migrations",
     "reset",
     "schema_is_current",

@@ -12,6 +12,33 @@ here opens an inbound port on the box.
 from __future__ import annotations
 
 from apps.sync_engine.delta_bundle import verify_and_parse_bundle
+from apps.sync_engine.tombstones import DELETE_OP
+
+
+def split_bundle_rows(rows):
+    """Split bundle rows into ``(updates, inserts, deletes, malformed)``.
+
+    Shared by BOTH receivers (the box's pull inbox and the cloud's upload view) so the
+    two can never disagree about what a row is. They previously each open-coded a
+    two-way split, which is exactly how a third row kind - the deletion - could be added
+    to the wire and be silently applied as an UPDATE-with-no-fields on one side.
+
+    A signed bundle line is raw ``json.loads`` output, so a scalar or array line would
+    ``AttributeError`` on ``.get(...)``; those are counted as malformed rather than
+    allowed to take down the batch.
+    """
+    updates, inserts, deletes, malformed = [], [], [], 0
+    for row in rows:
+        if not isinstance(row, dict):
+            malformed += 1
+            continue
+        if str(row.get("op") or "").strip().lower() == DELETE_OP:
+            deletes.append(row)
+        elif (row.get("client_offline_id") or "").strip():
+            inserts.append(row)
+        else:
+            updates.append(row)
+    return updates, inserts, deletes, malformed
 
 
 def apply_pulled_bundle(school, user, body_bytes: bytes, *, origin: str = "cloud-pull") -> dict:
@@ -25,18 +52,25 @@ def apply_pulled_bundle(school, user, body_bytes: bytes, *, origin: str = "cloud
     Returns a result dict; ``{"ok": False, "errors": [...]}`` if the signature / school
     binding fails (nothing is applied).
     """
-    from apps.api.sync_services import apply_changes, apply_edge_inserts
+    from apps.api.sync_services import apply_changes, apply_deletes, apply_edge_inserts
 
-    rows, errors = verify_and_parse_bundle(body_bytes, expected_school_id=school.pk)
+    collected: dict = {}
+    rows, errors = verify_and_parse_bundle(
+        body_bytes, expected_school_id=school.pk, collect=collected
+    )
     if errors:
         return {"ok": False, "errors": errors}
 
-    update_rows, insert_rows, malformed = [], [], 0
-    for row in rows:
-        if not isinstance(row, dict):
-            malformed += 1
-            continue
-        (insert_rows if (row.get("client_offline_id") or "").strip() else update_rows).append(row)
+    # Replay defence applies in BOTH directions. The cloud->box leg is the one where a
+    # replay is most damaging, because the box treats a pulled bundle as authoritative:
+    # re-presenting a bundle captured before a deletion resurrects the row.
+    from apps.sync_engine.replay_guard import register_bundle
+
+    replay = register_bundle(school, collected, direction=origin, row_count=len(rows))
+    if replay:
+        return {"ok": False, "errors": [replay]}
+
+    update_rows, insert_rows, delete_rows, malformed = split_bundle_rows(rows)
 
     out = apply_changes(
         str(school.id), user, update_rows, persist_conflicts=True, sync_origin=origin
@@ -45,6 +79,14 @@ def apply_pulled_bundle(school, user, body_bytes: bytes, *, origin: str = "cloud
         apply_edge_inserts(str(school.id), user, insert_rows, sync_origin=origin)
         if insert_rows
         else {"created": 0, "updated": 0, "results": []}
+    )
+    # Deletions apply LAST. A bundle can legitimately carry an update AND a later deletion
+    # of the same row (two changes, one window); applying the deletion last is what makes
+    # the end state match the far side's rather than depending on wire order.
+    removed = (
+        apply_deletes(str(school.id), user, delete_rows, sync_origin=origin)
+        if delete_rows
+        else {"deleted": 0, "results": []}
     )
     # A row that was neither applied nor raised as a conflict is SKIPPED, and until now it
     # was invisible: the caller saw "received N" and reported that as pulled, so a bundle
@@ -69,6 +111,7 @@ def apply_pulled_bundle(school, user, body_bytes: bytes, *, origin: str = "cloud
     # must not be matched against the insert results as well.
     _tally(out["results"], {c.get("index") for c in out["conflicts"]})
     _tally(inserted["results"])
+    _tally(removed["results"])
 
     return {
         "ok": True,
@@ -78,12 +121,14 @@ def apply_pulled_bundle(school, user, body_bytes: bytes, *, origin: str = "cloud
         "conflicts": len(out["conflicts"]),
         "created": inserted["created"],
         "upserted": inserted["updated"],
+        "deleted": removed["deleted"],
         "skipped": sum(skipped_reasons.values()),
         "skipped_reasons": skipped_reasons,
         "conflict_details": out["conflicts"],
         "results": out["results"],
         "insert_results": inserted["results"],
+        "delete_results": removed["results"],
     }
 
 
-__all__ = ["apply_pulled_bundle"]
+__all__ = ["apply_pulled_bundle", "split_bundle_rows"]

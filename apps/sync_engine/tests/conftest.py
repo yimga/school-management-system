@@ -44,6 +44,24 @@ def _reset_edge_sync_cache_state():
             connectivity.reset()
         except Exception:  # noqa: BLE001
             pass
+        try:
+            # The change beacon COALESCES writes in-process (one per school per half
+            # second), and a rolled-back TestCase reuses primary keys — so without this a
+            # school created in one test can inherit the previous test's coalescing
+            # timestamp for the same pk and silently skip its beacon write.
+            from apps.sync_engine import change_beacon
+
+            change_beacon.reset()
+        except Exception:  # noqa: BLE001
+            pass
+        try:
+            # Sent-row memory for the push leg lives in the cache and would otherwise
+            # suppress a legitimate delta in the next test.
+            from apps.sync_engine import push_ledger
+
+            push_ledger.reset()
+        except Exception:  # noqa: BLE001
+            pass
 
     _clear()
     yield

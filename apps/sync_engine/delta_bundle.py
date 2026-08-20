@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import hmac
 import json
+import secrets
 import time
 from typing import Any, Iterator
 
@@ -37,6 +38,13 @@ def export_delta_bundle(*, school_id: str | int, rows: list[dict[str, Any]], dev
         "exported_at": int(time.time()),
         "row_count": len(rows),
         "policy_version": POLICY_VERSION,
+        # Replay defence. The nonce is INSIDE the signed payload, so it cannot be
+        # rewritten to disguise a captured bundle as a new one. A signature alone proves
+        # who built a bundle, never that this is the first time you have been handed it -
+        # see sync_engine.models.SyncBundleReceipt. It is regenerated per BUILD, so a
+        # legitimate retry after a network timeout rebuilds with a fresh nonce and is
+        # accepted (and applied idempotently), while replaying the captured bytes is not.
+        "nonce": secrets.token_hex(16),
     }
     body_lines = [json.dumps(header, separators=(",", ":"), sort_keys=True)]
     for row in rows:
@@ -57,8 +65,19 @@ def iter_bundle_lines(data: bytes) -> Iterator[dict[str, Any]]:
         yield json.loads(line)
 
 
-def verify_and_parse_bundle(data: bytes, *, expected_school_id: str | int | None = None) -> tuple[list[dict[str, Any]], list[str]]:
-    """Verify HMAC trailer and return (rows, errors)."""
+def verify_and_parse_bundle(
+    data: bytes,
+    *,
+    expected_school_id: str | int | None = None,
+    collect: dict | None = None,
+) -> tuple[list[dict[str, Any]], list[str]]:
+    """Verify HMAC trailer and return (rows, errors).
+
+    Pass ``collect=`` a mutable dict to also receive the verified ``header`` and the
+    ``payload_digest``. Kept out of the return tuple so every existing 2-tuple caller is
+    untouched. The header is only ever placed there AFTER the signature checks out, so a
+    caller cannot accidentally trust an unverified nonce.
+    """
     errors: list[str] = []
     raw_lines = [ln for ln in data.decode("utf-8").splitlines() if ln.strip()]
     if len(raw_lines) < 2:
@@ -90,6 +109,9 @@ def verify_and_parse_bundle(data: bytes, *, expected_school_id: str | int | None
         return [], ["invalid_row_count"]
     if declared_count != len(rows):
         return [], ["row_count_mismatch"]
+    if collect is not None:
+        collect["header"] = header
+        collect["payload_digest"] = hashlib.sha256(payload_text).hexdigest()
     return rows, errors
 
 

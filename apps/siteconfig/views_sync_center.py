@@ -20,6 +20,8 @@ from apps.siteconfig.staff_context_redirects import redirect_staff_without_schoo
 from apps.sync_engine.conflict_actions import (
     apply_resolution,
     bulk_resolve,
+    field_comparison,
+    may_resolve,
     resolve_sync_conflict_row,
 )
 
@@ -58,6 +60,10 @@ def _run_row(run, now) -> dict:
         "conflicts": run.conflicts,
         "created": run.created,
         "upserted": run.upserted,
+        # Rows the cycle REMOVED. Surfaced separately from every other count because it
+        # is the only one that destroys data — an operator has to be able to see, at a
+        # glance, that a cycle deleted things.
+        "deleted": getattr(run, "deleted", 0) or 0,
         # Rows the cycle RECEIVED but could not apply. Carried separately from `pulled`
         # (a received count) because a pull that refused every row would otherwise render
         # as a perfectly healthy green cycle.
@@ -163,12 +169,29 @@ def sync_center(request):
             admin_sync_url = reverse("admin:siteconfig_syncconflict_changelist")
         except NoReverseMatch:
             admin_sync_url = None
+    # Attach the aligned field-by-field comparison and whether THIS viewer may settle
+    # the conflict in the client's favour. Both are computed here rather than in the
+    # template because the template cannot call a function with arguments — and a button
+    # that is going to be refused should not be offered in the first place (the same
+    # lesson as the admin index: a control that exists only to refuse you is worse than
+    # no control).
+    conflict_rows = list(page_obj.object_list)
+    for _c in conflict_rows:
+        try:
+            _c.field_rows = field_comparison(_c)
+            _c.may_keep_client, _c.keep_client_refusal = may_resolve(
+                request.user, _c, "client"
+            )
+        except Exception:  # noqa: BLE001 — a display aid must never break the page
+            _logger.debug("could not build the conflict comparison", exc_info=True)
+            _c.field_rows = []
+            _c.may_keep_client, _c.keep_client_refusal = True, ""
     return render(
         request,
         "siteconfig/sync_center.html",
         {
             **empty_ctx,
-            "conflicts": list(page_obj.object_list),
+            "conflicts": conflict_rows,
             "page_obj": page_obj,
             "pagination_extra_query": extra.urlencode(),
             "sync_available": True,
@@ -208,7 +231,11 @@ def sync_center_resolve(request, conflict_id):
         messages.info(request, "Conflict already resolved.")
         return redirect("siteconfig:sync_center")
     resolution_str = (request.POST.get("resolution") or "").strip().lower()
-    ok, reason = apply_resolution(conflict, resolution_str, request.user)
+    # WHY, captured with the decision. resolution_note is the audit trail alongside
+    # resolved_by/resolved_at, and a resolution nobody can explain later is not a
+    # resolution — especially on a money or grade record.
+    note = (request.POST.get("note") or "").strip()[:255]
+    ok, reason = apply_resolution(conflict, resolution_str, request.user, note=note)
     if not ok:
         messages.error(request, reason or _("Invalid resolution."))
         return redirect("siteconfig:sync_center")
@@ -375,12 +402,14 @@ def sync_center_bulk_resolve(request):
     entity_type = (
         body.get("entity_type") or request.POST.get("entity_type") or ""
     ).strip()
+    note = (body.get("note") or request.POST.get("note") or "").strip()[:255]
     result = bulk_resolve(
         school=school,
         ids=ids,
         resolution=resolution,
         resolved_by=request.user,
         entity_type=entity_type,
+        note=note,
     )
     if wants_json:
         return JsonResponse(result, status=200 if result.get("ok") else 400)
@@ -665,6 +694,7 @@ def sync_center_status(request):
             pulled=Sum("pulled"),
             conflicts=Sum("conflicts"),
             skipped=Sum("skipped"),
+            deleted=Sum("deleted"),
             failed=Count("id", filter=Q(ok=False)),
         )
         payload["totals"] = {
@@ -674,6 +704,10 @@ def sync_center_status(request):
             "pulled": agg.get("pulled") or 0,
             "conflicts": agg.get("conflicts") or 0,
             "skipped": agg.get("skipped") or 0,
+            # Deletions now cross the boundary (G1). This is the one total whose meaning
+            # is "records were destroyed", so it gets its own number rather than hiding
+            # inside `pulled` — the same reasoning that gave `skipped` a tile.
+            "deleted": agg.get("deleted") or 0,
             "failed": agg.get("failed") or 0,
         }
     except Exception:  # noqa: BLE001

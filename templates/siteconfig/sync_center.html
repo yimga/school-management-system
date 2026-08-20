@@ -190,16 +190,30 @@
                           <button type="button" class="btn btn-sm btn-outline-info me-1" data-bs-toggle="collapse" data-bs-target="#sync-payload-{{ c.id }}" aria-expanded="false">{% trans "Side-by-side" %}</button>
                         {% endif %}
                         {% if c.status == "PENDING" %}
-                          <form method="post" action="{% url 'siteconfig:sync_center_resolve' c.id %}" class="d-inline">
+                          {# Why, captured with the decision: resolution_note is the audit #}
+                          {# trail beside resolved_by/resolved_at. A money or grade record #}
+                          {# settled for a reason nobody can recover later is not settled. #}
+                          <label class="visually-hidden" for="sync-note-{{ c.id }}">{% trans "Reason" %}</label>
+                          <input type="text" form="sync-keep-server-{{ c.id }}" id="sync-note-{{ c.id }}"
+                                 class="form-control form-control-sm d-inline-block mb-1" style="max-width:22rem"
+                                 name="note" placeholder="{% trans 'Reason (recorded with your name)' %}">
+                          <form method="post" id="sync-keep-server-{{ c.id }}" action="{% url 'siteconfig:sync_center_resolve' c.id %}" class="d-inline">
                             {% csrf_token %}
                             <input type="hidden" name="resolution" value="server">
-                            <button type="submit" class="btn btn-sm btn-outline-primary">{% trans "Keep server" %}</button>
+                            <button type="submit" class="btn btn-sm btn-outline-primary">{% trans "Keep cloud version" %}</button>
                           </form>
+                          {% if c.may_keep_client %}
                           <form method="post" action="{% url 'siteconfig:sync_center_resolve' c.id %}" class="d-inline">
                             {% csrf_token %}
                             <input type="hidden" name="resolution" value="client">
-                            <button type="submit" class="btn btn-sm btn-outline-secondary">{% trans "Keep client" %}</button>
+                            <button type="submit" class="btn btn-sm btn-outline-secondary">{% trans "Keep local (offline) version" %}</button>
                           </form>
+                          {% else %}
+                          {# Not offered rather than offered-and-refused: this record is #}
+                          {# cloud-authoritative, and a button that always fails is worse #}
+                          {# than no button. The reason is stated instead of hidden. #}
+                          <span class="badge bg-light text-dark border" title="{{ c.keep_client_refusal }}">{% trans "Cloud-authoritative" %}</span>
+                          {% endif %}
                           <form method="post" action="{% url 'siteconfig:sync_center_resolve' c.id %}" class="d-inline">
                             {% csrf_token %}
                             <input type="hidden" name="resolution" value="policy">
@@ -208,10 +222,13 @@
                           <form method="post" action="{% url 'siteconfig:sync_center_resolve' c.id %}" class="d-inline">
                             {% csrf_token %}
                             <input type="hidden" name="resolution" value="discard">
-                            <button type="submit" class="btn btn-sm btn-outline-danger">{% trans "Discard" %}</button>
+                            <button type="submit" class="btn btn-sm btn-outline-danger">{% trans "Skip &amp; log" %}</button>
                           </form>
+                          {% if not c.may_keep_client and c.keep_client_refusal %}
+                            <div class="small text-muted mt-1">{{ c.keep_client_refusal }}</div>
+                          {% endif %}
                         {% else %}
-                          —
+                          {% if c.resolution_note %}<span class="small text-muted">{{ c.resolution_note }}</span>{% else %}—{% endif %}
                         {% endif %}
               </div>
             </details></td>
@@ -219,14 +236,38 @@
                     {% if c.client_data or c.server_data %}
                     <tr class="collapse" id="sync-payload-{{ c.id }}">
                       <td colspan="6" class="p-0">
-                        <div class="row g-0 border-top bg-light small">
-                          <div class="col-md-6 p-2 border-end">
-                            <strong>{% trans "Server version" %}</strong>
-                            <pre class="mb-0 mt-1 small">{{ c.server_data }}</pre>
+                        {# Field by field, aligned, with WHICH side and WHEN. Two raw dict #}
+                        {# dumps side by side made the reviewer diff blobs by eye, and the #}
+                        {# one field that actually differs is what they most reliably miss. #}
+                        <div class="border-top bg-light small p-2">
+                          <div class="d-flex flex-wrap gap-3 mb-2 text-muted">
+                            <span>{% trans "Cloud updated" %}: <strong>{{ c.server_updated_at|date:"Y-m-d H:i"|default:"—" }}</strong></span>
+                            <span>{% trans "Local/offline updated" %}: <strong>{{ c.client_updated_at|date:"Y-m-d H:i"|default:"—" }}</strong></span>
                           </div>
-                          <div class="col-md-6 p-2">
-                            <strong>{% trans "Client/offline version" %}</strong>
-                            <pre class="mb-0 mt-1 small">{{ c.client_data }}</pre>
+                          <div class="table-responsive">
+                            <table class="table table-sm mb-0">
+                              <thead>
+                                <tr>
+                                  <th scope="col">{% trans "Field" %}</th>
+                                  <th scope="col">{% trans "Cloud version" %}</th>
+                                  <th scope="col">{% trans "Local (offline) version" %}</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {% for f in c.field_rows %}
+                                  <tr{% if f.differs %} class="table-warning"{% endif %}>
+                                    <th scope="row" class="fw-normal">
+                                      {{ f.name }}
+                                      {% if f.down_only %}<span class="badge bg-secondary ms-1" title="{% trans 'Cloud-governed: this column never travels upward, and is not applied even if you keep the local version.' %}">{% trans "cloud-only" %}</span>{% endif %}
+                                    </th>
+                                    <td><code>{{ f.server|default_if_none:"—" }}</code></td>
+                                    <td><code>{{ f.client|default_if_none:"—" }}</code></td>
+                                  </tr>
+                                {% empty %}
+                                  <tr><td colspan="3" class="text-muted">{% trans "No comparable fields were recorded." %}</td></tr>
+                                {% endfor %}
+                              </tbody>
+                            </table>
                           </div>
                         </div>
                       </td>

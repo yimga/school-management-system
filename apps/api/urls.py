@@ -95,6 +95,8 @@ from apps.api.sync_delta_api import DeltaSyncAPI
 from apps.api.offline_device_api import OfflineTokenMintView
 from apps.api.iam_offline_api import OfflineIamIntentAPI, PermissionSnapshotAPI
 from apps.api.sync_bundle_api import SyncBundleDownloadView, SyncBundleUploadView
+from apps.api.sync_changes_api import SyncChangesFeedView
+from apps.api.sync_files_api import SyncFileChunkView, SyncFileManifestView
 from apps.portal.views_command_bar import api_command_bar_search
 from apps.portal.views_ai_line import api_ai_line_interpret
 from apps.portal.views_admissions_intake import (
@@ -896,6 +898,26 @@ urlpatterns = [
         "sync/bundle/download/",
         SyncBundleDownloadView.as_view(),
         name="sync-bundle-download",
+    ),
+    # Long-poll "is there anything new?" (G6). Carries no row data — it only collapses
+    # cloud->box latency from the polling cadence to about a second, over plain HTTP,
+    # through NAT. The box then runs its ordinary sync cycle.
+    path(
+        "sync/changes/",
+        SyncChangesFeedView.as_view(),
+        name="sync-changes-feed",
+    ),
+    # File channel (G3). Deliberately separate endpoints from the bundle rail: a 50 MB
+    # scan on a village link must never be able to delay or fail a data cycle.
+    path(
+        "sync/files/manifest/",
+        SyncFileManifestView.as_view(),
+        name="sync-file-manifest",
+    ),
+    path(
+        "sync/files/chunk/",
+        SyncFileChunkView.as_view(),
+        name="sync-file-chunk",
     ),
     # Roadmap due-today implementations (ROADMAP_DUE_TODAY.md) — 16.x, 17.x, 29.x, 30/31, section_11, TENANT_MEDIA, gap ledger
     path(
