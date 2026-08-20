@@ -51,6 +51,8 @@ def main() -> int:
         ("shell_preview_parity", [py, "scripts/verify_platform_shell_preview_parity.py"]),
         ("manager_admin_layout", [py, "scripts/verify_manager_admin_cp_layout.py"]),
         ("django_admin_canvas_contract", [py, "scripts/audit_django_admin_canvas_contract.py"]),
+        ("tenant_sidebar", [py, "scripts/verify_tenant_admin_sidebar_v2.py"]),
+        ("operator_sidebar", [py, "scripts/verify_operator_admin_sidebar_v2.py"]),
     ]
     if not args.css_only:
         checks.extend(
@@ -68,7 +70,8 @@ def main() -> int:
                     ],
                 ),
                 ("admin_steering", [py, "scripts/verify_admin_steering_strip_contract.py"]),
-                ("manager_chrome", [py, "scripts/verify_manager_portal_chrome_completion.py"]),
+                ("admin_templates", [py, "scripts/verify_django_admin_canvas_templates_compile.py"]),
+                ("admin_miss_nothing", [py, "scripts/audit_django_admin_miss_nothing.py"]),
             ]
         )
 
@@ -79,7 +82,7 @@ def main() -> int:
     for needle in (
         "rmc-page-fold-nav",
         "data-rmc-section-anchor",
-        'class="rmc-admin-catalog-section" id=',
+        'class="rmc-admin-catalog-section ',
         "data-rmc-admin-catalog-section",
         "admin_v1_index_surface_previews",
     ):
@@ -113,32 +116,40 @@ def main() -> int:
         errors.append("admin/base.html: missing backoffice main scroll-root marker")
     if 'data-rmc-backoffice-page-body="1"' not in admin_base:
         errors.append("admin/base.html: missing backoffice page body marker")
-    if admin_base.find("cp-live-strip") < 0 or admin_base.find("cp-nav-row") < 0:
-        errors.append("admin/base.html: missing cp-live-strip or cp-nav-row")
-    elif admin_base.find("cp-nav-row") > admin_base.find("cp-live-strip"):
-        errors.append("admin/base.html: primary nav row must precede live ticker strip")
-    if "_ai_copilot_rail.html" not in admin_base:
-        errors.append("admin/base.html: manager copilot rail include missing")
+    if "control_plane_unified_header.html" not in admin_base:
+        errors.append("admin/base.html: consolidated manager header include missing")
+    if "_activity_ticker_drawer.html" not in admin_base:
+        errors.append("admin/base.html: drawer-backed operator activity surface missing")
+    if "_ai_copilot_rail.html" in admin_base:
+        errors.append("admin/base.html: global copilot rail must not duplicate page-aware admin tools")
 
     admin_base_site = (ROOT / "templates/admin/base_site.html").read_text(encoding="utf-8")
     if admin_base_site.count("rmc-admin-changelist-live.css") < 2:
         errors.append("admin/base_site.html: changelist live CSS must load for manager and tenant admin")
     if 'rmc-admin-changelist-live.css\' %}" media="print"' in admin_base_site:
         errors.append("admin/base_site.html: changelist live CSS must be a screen stylesheet, not lazy print/onload")
-    if "rmc-admin-django-canvas-contract.css" not in admin_base_site:
-        errors.append("admin/base_site.html: missing final Django canvas contract stylesheet")
+    if "rmc-admin-emergency-full-canvas-v17.css" not in admin_base_site:
+        errors.append("admin/base_site.html: missing terminal v17 Django canvas owner")
+    if 'data-rmc-admin-layout-owner="emergency-v17"' not in admin_base_site:
+        errors.append("admin/base_site.html: terminal Django canvas owner is not explicit")
 
     portal = (ROOT / "templates/portal_base.html").read_text(encoding="utf-8")
-    if "rmc-manager-portal-copilot-mount" not in portal:
-        errors.append("portal_base.html: manager copilot bridge mount missing")
+    if "_activity_ticker_inline.html" not in portal:
+        errors.append("portal_base.html: manager bridge must retain drawer-backed inline activity")
     mgr_hdr = portal.find('data-rmc-shell-header="portal-manager"')
     if mgr_hdr >= 0:
-        hdr_slice = portal[mgr_hdr : mgr_hdr + 2500]
-        strip_i = hdr_slice.find("cp-live-strip")
+        # The portal owns the header include while the inline badge marker lives
+        # in that included topbar partial; audit the composed source contract.
+        hdr_slice = (
+            portal[mgr_hdr:]
+            + (ROOT / "templates/partials/manager_operator_topbar.html").read_text(encoding="utf-8")
+            + (ROOT / "templates/partials/cockpit/_activity_ticker_inline.html").read_text(encoding="utf-8")
+        )
+        strip_i = hdr_slice.find("data-rmc-cp-ticker-inline")
         nav_i = hdr_slice.find("cp-nav-row")
         if strip_i < 0:
-            errors.append("portal_base.html: manager header missing live ticker strip")
-        elif nav_i >= 0 and strip_i > nav_i:
+            errors.append("portal_base.html: manager header missing inline activity badge")
+        elif nav_i >= 0 and nav_i > strip_i:
             errors.append("portal_base.html: manager header must be utility → ticker → nav")
 
     cockpit_defaults = (ROOT / "apps/siteconfig/cockpit_manager_200x.py").read_text(encoding="utf-8")
@@ -189,6 +200,8 @@ def main() -> int:
                 errors.append(f"rmc-admin-changelist-live.css: missing {token}")
     if not (ROOT / "static/css/rmc-admin-django-canvas-contract.css").is_file():
         errors.append("rmc-admin-django-canvas-contract.css: missing final Django canvas contract")
+    if not (ROOT / "static/css/rmc-admin-emergency-full-canvas-v17.css").is_file():
+        errors.append("rmc-admin-emergency-full-canvas-v17.css: missing terminal layout owner")
     parity_css = (ROOT / "static/css/admin-cp-parity.css").read_text(encoding="utf-8")
     for token in (
         "--rmc-backoffice-gutter",

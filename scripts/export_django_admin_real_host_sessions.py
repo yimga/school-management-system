@@ -52,7 +52,7 @@ def _tenant_session(user, school):
     from django.test import Client
 
     client = Client(HTTP_HOST=TENANT_HOST, HTTP_USER_AGENT=USER_AGENT)
-    client.get("/authentication/login/")
+    client.get("/authentication/login/", secure=True)
     client.force_login(user, backend="django.contrib.auth.backends.ModelBackend")
     session = client.session
     session["mfa_verified"] = True
@@ -60,7 +60,7 @@ def _tenant_session(user, school):
     session["school_id"] = str(school.pk)
     session.save()
     client.cookies[settings.SESSION_COOKIE_NAME] = session.session_key
-    response = client.get("/admin/", follow=False)
+    response = client.get("/admin/", follow=False, secure=True)
     if response.status_code != 200:
         raise RuntimeError(
             f"tenant session probe failed: HTTP {response.status_code} "
@@ -79,11 +79,11 @@ def _manager_session(user):
     )
 
     client = Client(HTTP_HOST=MANAGER_HOST, HTTP_USER_AGENT=USER_AGENT)
-    client.get("/authentication/login/")
+    client.get("/authentication/login/", secure=True)
     client.force_login(user, backend="django.contrib.auth.backends.ModelBackend")
     bind_manager_session(client)
     mark_manager_mfa_verified(client)
-    response = client.get("/admin/", follow=False)
+    response = client.get("/admin/", follow=False, secure=True)
     if response.status_code != 200:
         raise RuntimeError(
             f"manager session probe failed: HTTP {response.status_code} "

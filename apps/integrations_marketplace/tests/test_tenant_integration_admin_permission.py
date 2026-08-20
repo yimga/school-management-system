@@ -12,6 +12,7 @@ from django.test import SimpleTestCase
 
 from apps.integrations_marketplace.admin import IntegrationMarketplaceAdmin
 from apps.integrations_marketplace.models import Integration
+from config.admin import platform_admin_site
 
 
 def _req(user, school=None):
@@ -60,3 +61,22 @@ class IntegrationMarketplaceAdminPermissionTests(SimpleTestCase):
     def test_anonymous_denied(self):
         req = _req(SimpleNamespace(is_authenticated=False, is_active=False))
         self.assertFalse(self.admin.has_module_permission(req))
+
+    def test_platform_registration_uses_normal_model_permissions(self):
+        """The tenant owner gate must not deny the manager-host registration."""
+        admin_instance = platform_admin_site._registry[Integration]
+        user = SimpleNamespace(
+            is_authenticated=True,
+            is_active=True,
+            is_superuser=True,
+            is_staff=True,
+            has_module_perms=lambda _app_label: True,
+            has_perm=lambda _permission, _obj=None: True,
+        )
+        request = _req(user, school=None)
+        request.school = None
+        self.assertTrue(admin_instance.has_module_permission(request))
+        self.assertTrue(admin_instance.has_view_permission(request))
+        self.assertTrue(admin_instance.has_change_permission(request))
+        self.assertTrue(admin_instance.has_add_permission(request))
+        self.assertTrue(admin_instance.has_delete_permission(request))

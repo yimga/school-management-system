@@ -1,7 +1,7 @@
 {
   "pass": true,
-  "expected_cache_bust": "20260820-admin-automation-v21",
-  "expected_sw": "sms-v4.06.70-admin-automation-edge-sync-final-audit-2026-08-20",
+  "expected_cache_bust": "20260820-tenant-admin-sidebar-v22",
+  "expected_sw": "sms-v4.06.71-tenant-admin-sidebar-server-preferences-2026-08-20",
   "content_pages": 11,
   "findings": []
 }

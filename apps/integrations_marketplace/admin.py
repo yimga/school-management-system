@@ -36,22 +36,36 @@ class ProxyOwnerAdmin(admin.ModelAdmin):
 class TenantIntegrationAdminMixin:
     """Tenant /admin/ integration models: owners and admin-like roles may view/change."""
 
+    def _uses_platform_admin_site(self):
+        detector = getattr(self.admin_site, "is_platform_site", None)
+        return bool(callable(detector) and detector())
+
     def _tenant_integration_access(self, request):
         return tenant_admin_user_has_access(request)
 
     def has_module_permission(self, request):
+        if self._uses_platform_admin_site():
+            return super().has_module_permission(request)
         return self._tenant_integration_access(request)
 
     def has_view_permission(self, request, obj=None):
+        if self._uses_platform_admin_site():
+            return super().has_view_permission(request, obj)
         return self._tenant_integration_access(request)
 
     def has_change_permission(self, request, obj=None):
+        if self._uses_platform_admin_site():
+            return super().has_change_permission(request, obj)
         return self._tenant_integration_access(request)
 
     def has_add_permission(self, request):
+        if self._uses_platform_admin_site():
+            return super().has_add_permission(request)
         return self._tenant_integration_access(request)
 
     def has_delete_permission(self, request, obj=None):
+        if self._uses_platform_admin_site():
+            return super().has_delete_permission(request, obj)
         return False
 
 

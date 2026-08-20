@@ -34,6 +34,7 @@ Logo: SITE_ADMIN_LOGO_URL (ThemePack) or SITE_LOGO_URL (SiteSettings) or static 
     </div>
 
     {% if not is_manager_host %}
+    {{ admin_navigation_contract|json_script:"rmcAdminNavigationContract" }}
     <section class="rmc-tenant-admin-sidebar-context" aria-label="{% trans 'Current admin workspace' %}">
       <div class="rmc-tenant-admin-sidebar-context__copy">
         <span class="rmc-tenant-admin-sidebar-context__eyebrow">{% trans "School workspace" %}</span>
@@ -46,11 +47,12 @@ Logo: SITE_ADMIN_LOGO_URL (ThemePack) or SITE_LOGO_URL (SiteSettings) or static 
     <div class="rmc-tenant-admin-sidebar-search" role="search">
       <label for="rmcTenantAdminNavSearch">{% trans "Find a page or record type" %}</label>
       <div class="rmc-tenant-admin-sidebar-search__control">
-        <span aria-hidden="true">⌕</span>
-        <input id="rmcTenantAdminNavSearch" type="search" autocomplete="off" spellcheck="false" placeholder="{% trans 'Search admin navigation…' %}" aria-controls="nav-sidebar-apps" aria-describedby="rmcTenantAdminNavSearchStatus">
+        <span aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></span>
+        <input id="rmcTenantAdminNavSearch" type="search" autocomplete="off" spellcheck="false" placeholder="{% trans 'Search admin navigation...' %}" aria-controls="nav-sidebar-apps" aria-describedby="rmcTenantAdminNavSearchStatus">
         <kbd aria-hidden="true">/</kbd>
       </div>
       <p id="rmcTenantAdminNavSearchStatus" class="rmc-tenant-admin-sidebar-search__status" aria-live="polite"></p>
+      <button type="button" class="rmc-tenant-admin-sidebar-search__reset" data-rmc-admin-search-reset hidden>{% trans "Clear search" %}</button>
     </div>
     {% else %}
     {% include "unfold/helpers/navigation_header.html" %}

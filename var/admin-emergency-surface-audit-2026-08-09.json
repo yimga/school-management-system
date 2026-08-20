@@ -1,18 +1,20 @@
 {
   "browser_evidence": {
     "browser_report_files": [
-      "artifacts/django-admin-canvas-live/real-host-core-both-dark-1024-operator-index-tenant-index.json",
-      "artifacts/django-admin-canvas-live/real-host-core-both-dark-1440-operator-index-tenant-index.json",
-      "artifacts/django-admin-canvas-live/real-host-core-both-dark-390-operator-index-tenant-index.json",
-      "artifacts/django-admin-canvas-live/real-host-core-both-dark-768-operator-index-tenant-index.json",
-      "artifacts/django-admin-canvas-live/real-host-core-both-light-1024-operator-index-tenant-index.json",
+      "artifacts/django-admin-canvas-live/real-host-core-both-dark-1024.json",
+      "artifacts/django-admin-canvas-live/real-host-core-both-dark-1440-operator-index-operator-user-list-operator-user-add-operator-user-history-tenant-index-tenant-user-list-tenant-academic-year-add--29c98cd9bd.json",
+      "artifacts/django-admin-canvas-live/real-host-core-both-dark-390-operator-index-operator-user-list-operator-user-add-operator-user-history-tenant-index-tenant-user-list-tenant-academic-year-add--29c98cd9bd.json",
+      "artifacts/django-admin-canvas-live/real-host-core-both-dark-768-operator-index-operator-user-list-operator-user-add-operator-user-history-tenant-index-tenant-user-list-tenant-academic-year-add--29c98cd9bd.json",
+      "artifacts/django-admin-canvas-live/real-host-core-both-light-1024.json",
       "artifacts/django-admin-canvas-live/real-host-core-both-light-1440-operator-index-tenant-index.json",
-      "artifacts/django-admin-canvas-live/real-host-core-both-light-390-operator-index-tenant-index.json",
-      "artifacts/django-admin-canvas-live/real-host-core-both-light-768-operator-index-tenant-index.json",
-      "artifacts/django-admin-canvas-live/real-host-core-tenant-light-1440-tenant-site-settings-change.json"
+      "artifacts/django-admin-canvas-live/real-host-core-both-light-1440.json",
+      "artifacts/django-admin-canvas-live/real-host-core-both-light-390-operator-index-operator-user-list-operator-user-add-operator-user-history-tenant-index-tenant-user-list-tenant-academic-year-add--29c98cd9bd.json",
+      "artifacts/django-admin-canvas-live/real-host-core-both-light-768-operator-index-operator-user-list-operator-user-add-operator-user-history-tenant-index-tenant-user-list-tenant-academic-year-add--29c98cd9bd.json",
+      "artifacts/django-admin-canvas-live/real-host-core-tenant-dark-390-tenant-user-list.json",
+      "artifacts/django-admin-canvas-live/real-host-core-tenant-light-1440-tenant-user-list-tenant-user-add-tenant-site-settings-change.json"
     ],
-    "build_id": "2026-08-20-v21.0",
-    "cache_bust": "20260820-admin-automation-v21",
+    "build_id": "2026-08-20-v22.0",
+    "cache_bust": "20260820-tenant-admin-sidebar-v22",
     "failed_report_files": [],
     "matrix": [
       "1024:dark",
@@ -26,15 +28,15 @@
     ],
     "max_stylesheet_count": {
       "operator": 121,
-      "tenant": 92
+      "tenant": 93
     },
-    "service_worker_version": "sms-v4.06.70-admin-automation-edge-sync-final-audit-2026-08-20",
-    "unique_surface_evidence": 3
+    "service_worker_version": "sms-v4.06.71-tenant-admin-sidebar-server-preferences-2026-08-20",
+    "unique_surface_evidence": 28
   },
-  "content_sha256": "872d9e04a327c9e5ea01d4c054df48bf24e2fbabc797f2feb79ad80e2ef98ce8",
+  "content_sha256": "50381da97c933a5c716d9633bb7929c36217905345fec990ff43d5a157e7099b",
   "contract_satisfied": true,
   "findings": [],
-  "generated_at": "2026-08-20T13:05:25.195036+00:00",
+  "generated_at": "2026-08-20T19:17:43.824427+00:00",
   "registry": {
     "operator": {
       "custom_change_forms": 14,
@@ -421,7 +423,7 @@
   },
   "summary": {
     "admin_templates": 91,
-    "all_templates": 1892,
+    "all_templates": 1893,
     "copied_theme_coupled_admin_guidance_cards": 0,
     "critical": 0,
     "css_files": 326,
