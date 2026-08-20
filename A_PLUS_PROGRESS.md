@@ -1,8 +1,59 @@
 # A+ PROGRESS SCOREBOARD (A0 Coordinator)
 
-**Last refreshed:** 2026-08-20 (Claude Code · **PROMPT B full audit** on `418c5d2bd` -> **NO-GO**, then **PROMPT A waves 1-3**: `eb26554b7` -> `896db99ed` -> `8046fdab7`, each content-verified on origin). Red gates **17 -> 9**; `pre_deploy_gate.sh` **gate 4/80 -> 9/80**; forbidden patterns **9 -> 4**; **107 tests green**. 🔑 Six gates were failing on raw TEXT, not defects - **11 false findings vs 2 real**; five now structural (ast/tokenize/statement-span/comment-masking).  
-**Loop:** Under the 9.8 lowest-dimension regime, GO = raise the MINIMUM metric. **The floor is NOT M21 i18n** (this header's prior claim): **M33 B2B Procurement 10/100 (unbuilt)** -> M16 **20** -> M26 **45** (0 of >=3 payment rails LIVE; all 11 gateways are honestly-labelled stubs) -> M21 **50** -> M31 **60**. **GitHub Actions has run ZERO jobs since 2026-08-15 (billing)** -> platform-wide **<=8.9 cap**, so no metric can reach 98 regardless of feature work. That, not any feature, is the binding constraint.  
+**Last refreshed:** 2026-08-20 (Claude Code · **PROMPT B full audit** on `418c5d2bd` -> **NO-GO**, then **PROMPT A waves 1-4**: `eb26554b7` -> `896db99ed` -> `8046fdab7` -> `1cbc19d5c` -> `a668338ed`, each content-verified on origin). Red gates **17 -> 9**; `pre_deploy_gate.sh` **gate 4/80 -> 9/80**; forbidden patterns **9 -> 4**; **120 tests green**. 🔑 Six gates were failing on raw TEXT, not defects - **11 false findings vs 2 real**; five now structural (ast/tokenize/statement-span/comment-masking).  
+**Loop:** Under the 9.8 lowest-dimension regime, GO = raise the MINIMUM metric. **M33 B2B Procurement is no longer the floor** — wave 4 built it (10 -> **~55**, first vertical slice; see below). **The floor is now M16 at 20** -> M26 **45** (0 of >=3 payment rails LIVE; all 11 gateways are honestly-labelled stubs) -> M21 **50** -> M31 **60**. **GitHub Actions has run ZERO jobs since 2026-08-15 (billing)** -> platform-wide **<=8.9 cap**, so no metric can reach 98 regardless of feature work. That, not any feature, is the binding constraint.  
 **Tree:** HEAD = `origin/main`
+
+---
+
+## PROMPT A — Wave 4: the floor metric had no floor — 2026-08-20
+
+**Shipped `a668338ed`.** M33 "B2B Procurement & Supply Marketplace" scored **10/100** because the tree contained no procurement. Under the lowest-dimension regime it was *the* number holding the platform down, so it was the only correct thing to build. This is the first vertical slice: models → migrations → RLS → service → view → route → template → tests.
+
+### The claim of M33 is that an order is DERIVED, not typed in
+
+    SupplyRequirement    "Chemistry needs 1 goggle per student"
+      × SubjectAssignment  "Chemistry is taught to Form 4B this term"
+      × Enrollment(ACTIVE) "Form 4B has 24 students"
+      − InventoryItem      "we already hold 6 goggles"
+      → PurchaseOrderLine  "order 18, because Chemistry / Form 4B"
+
+Every quantity traces to a row the school already maintains, and each line keeps the `SubjectAssignment` that produced it, so an operator can see **why** a number was proposed rather than being asked to trust it.
+
+### 🔑 THE MIGRATION THAT WOULD HAVE LEAKED EVERY PRICE
+
+`0040` does **ENABLE + CREATE POLICY + FORCE in one pass per table**. The five tables are created in `0039`, which lands *after* **both** global FORCE sweeps (`schools/0048`, `schools/0083`).
+
+The obvious precedent — `schoolops/0033`, which did ENABLE + POLICY for `inventorymovement` and let the later sweep FORCE it — **is the wrong one to copy now**, because there is no later sweep. It would have left the tables enabled and policied but **un-FORCE'd**, and an un-FORCE'd policy exempts the table owner, **which is the role Django runs as in RLS mode**. Every school would have read every other school's vendors, prices and orders. `0038` (W24 immunization) is the correct precedent and this follows it.
+
+Related, and the reason the isolation is expressible at all: **all five models carry their own `school_id`**, including `purchaseorderline` and `vendorproduct`, which could each have reached a school through a parent FK. The policy is a **per-table column check** — a table without `school_id` cannot be protected. The denormalization is not redundancy; it is the security boundary.
+
+### Three judgement calls where the safe direction is not the obvious one
+
+- **`Enrollment(ACTIVE)` is the head-count, not `StudentProfile.classroom`.** The profile field is a *synchronised projection* of enrolment, so counting profiles would drift the moment a year rollover was mid-flight — silently changing what a school orders.
+- **Stock nets off only on an exact name match.** A fuzzy match would silently **under**-order, which is the one failure mode a school cannot recover from on the morning a lab starts. Conservative here means ordering too much, never too little.
+- **Generation always produces DRAFTs, and `tenant_gmv()` counts only SUBMITTED + RECEIVED.** GMV that included proposals a school never agreed to would flatter the platform instead of describing it — the metric would go up while nothing real happened.
+
+### 13 tests, in two layers — because a service no request can reach is not a feature
+
+**8 service tests** assert the arithmetic: quantity from enrolment, the driving assignment recorded, stock netted off, fully-stocked generating nothing, empty class inventing no demand, one order per vendor, GMV excluding drafts, second school untouched.
+
+**5 view tests** assert it is reachable — and the sharpest one hands the view **another school's order id**. That is the test that catches a `filter(pk=…)` that forgot `school=`. They resolve against **`config.tenant_urls`, not the dev urlconf**, because dev exposes a wider URL surface than a real tenant gets; a route that only works there is a route that does not work.
+
+I added the view layer **after** the service tests were already green, because "the route resolves" is not "the page renders" — PART 0 rule 2 is end-to-end or it does not count, and I had been one `manage.py check` away from claiming a vertical slice on the strength of a URL lookup.
+
+### 🔑 RE-GREPPING AFTER THE REBASE FOUND MY OWN GATE FIX WAS TOO GENEROUS
+
+Two findings from the post-rebase sweep, neither blocking, both mine:
+
+1. **`docs/generated/tenant_isolation_audit.json` still names the pre-rename `ensure_<brand>_sovereignty_entitlements.py`** — the file wave 3 renamed away. A generated artifact currently describing a tree that does not exist. Fix is a regeneration, not a hand-edit.
+2. **Ten brand-residue sites in `sync_engine/management/commands/` that `lint_<brand>_residue` cannot see**, because the wave-3 masking exempts **module docstrings wholesale**. The peer commit did not introduce them — the diff added and removed zero brand lines. **This is wave 3's fix pointing the other way:** I widened masking to kill 3 false positives and took real findings out of scope with them. Same failure mode I spent wave 3 arguing against.
+
+### Honest re-score
+
+**M33 10 → ~55.** All four legs of the bar now have a real implementation (auto-generation from class config, certified-vendor catalog, tenant-scoped ordering with localized tax from `billing.tax_engine`, GMV tracking). **Not** 98, and not claimed: no seed/demo command, no vendor certification workflow, no receiving/reconciliation flow — and **the RLS migration above is reasoned and precedent-matched but has never been observed executing against a real Postgres**, because Actions has run zero jobs since 2026-08-15. That is a `≤8.9` cap on this metric exactly as on every other one.
+
+**The floor moves to M16 at 20.** Verified: 13 tests green, 18/18 boundary gates green, `manage.py check` clean, `makemigrations --check` no drift, `scan_money_float` + `scan_tenant_queryset_safety` PASS.
 
 ---
 
@@ -17,7 +68,7 @@
 Renamed the command to **`ensure_showcase_tenant_entitlements`** (hard rename, no alias, per explicit user instruction). All 20 references across 8 files updated.
 
 - 🔑 **The riskiest reference was `scripts/release/render_predeploy.sh:142`** — it runs on **every production deploy** and is wrapped in `|| true`. A missed reference would not have failed the deploy; it would have **silently stopped entitling the tenant**.
-- 🔑 **Named "showcase tenant", not "sovereignty".** The command is **not generic** — it hardcodes `GILEAD_SLUGS = (…)` and grants that one tenant every feature the platform has. A generic-sounding name over tenant-specific logic would have been *worse than the leak*, hiding the specificity from the next reader. Whether it should be parameterised at all is a separate, unanswered question.
+- 🔑 **Named "showcase tenant", not "sovereignty".** The command is **not generic** — it hardcodes a module-level tuple of ONE tenant's slugs and grants that tenant every feature the platform has. A generic-sounding name over tenant-specific logic would have been *worse than the leak*, hiding the specificity from the next reader. Whether it should be parameterised at all is a separate, unanswered question.
 
 ### The other three — the gate was reading documentation
 
