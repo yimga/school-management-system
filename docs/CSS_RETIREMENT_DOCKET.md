@@ -31,6 +31,17 @@ unauthenticated write surface on a cleartext LAN. The short code is not a secret
 boundary gates green; `manage.py check` clean; `makemigrations --check` reports no
 changes.
 
+**Follow-up in the same wave.** Both items originally listed as deferred were then
+built, at the operator's direction:
+
+| Area | Change |
+|---|---|
+| `apps/api/sync_receipt_api.py` + `apps/sync_engine/push_confirmation.py` (new) | `GET /api/sync/bundle/receipt/?nonce=` answers "did you already take this bundle?". A push that dies in a 502/timeout is AMBIGUOUS — the cloud may have applied it — so the box records the nonce and asks next cycle instead of re-shipping the page. **A 400/403 is not ambiguous** (the cloud answered, and the answer was no) and is deliberately not recorded. Correcting an earlier claim of mine: the re-ship was always CORRECT, because `export_delta_bundle` regenerates the nonce per build and the apply is idempotent — this saves bandwidth on a bad link, it does not fix a correctness bug. Receipts are pruned to the replay window, so "not seen" outside it reports UNKNOWN rather than a confident no. |
+| `EdgeClaimTicket` + `mint_claim_ticket` + `pair_box --claim` | Pre-authorises ONE adoption of ONE school for a scheduled install where nobody with cloud admin is reachable. Single-use (consumed inside the locked transaction that checks it), self-invalidating, days-lived. Every attempt to reuse a spent ticket is COUNTED and logged at error level — the real box redeems once, so a second attempt means the ticket is in someone else's hands. That alarm is the property a long-lived `RMC_EDGE_CREDENTIAL` cannot provide. Redemption flows through the ordinary `EdgePairingRequest`, so an operator-issued box shares the audit trail with a human-approved one. |
+| `apps/sync_engine/pairing_service.py` | Platform staff may approve on a school's behalf — the backstop for "the school never responds". Recorded in `approved_by`, and the credential binds to them, so an operator-approved box stays visibly operator-approved. |
+
+Migration chain single-leaf through `0013`.
+
 **Honest deferred.** The 502 / read-timeout on sync is NOT fixed here. The working
 hypothesis is that it is downstream of the livelock saturating the Render instance;
 that is a hypothesis and should be re-tested after this deploys, not assumed. A

@@ -1021,6 +1021,19 @@ class MigrationCloudApplyView(LoginRequiredMixin, View):
             from .celery_tasks import enqueue_apply
 
             result = enqueue_apply(bundle_id, dry_run=dry_run)
+            if getattr(result, "refused", False):
+                # Report the refusal honestly rather than claiming a queue position
+                # that does not exist. See apps/migration_cloud/apply_progress_guard.py.
+                return JsonResponse(
+                    {
+                        "ok": False,
+                        "queued": False,
+                        "refused": True,
+                        "reason": getattr(result, "reason", ""),
+                        "bundle_id": bundle_id,
+                    },
+                    status=409,
+                )
             return JsonResponse(
                 {
                     "ok": True,

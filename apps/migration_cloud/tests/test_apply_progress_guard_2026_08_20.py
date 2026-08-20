@@ -314,3 +314,49 @@ class RepairReArmsTheBreakerTests(SimpleTestCase):
         source = inspect.getsource(repair)
         self.assertIn("reset_apply_progress(bundle)", source)
         self.assertIn("force=True", source)
+
+
+class RefusalIsVisibleToTheOperatorTests(SimpleTestCase):
+    """A silent refusal is its own bug.
+
+    This subsystem already carries scar tissue for exactly this shape: a caller told
+    "queued" while nothing was queued, with the real reason sitting in a log nobody
+    reads. That is the reported "Repair does nothing". The breaker must not recreate it.
+    """
+
+    def test_the_refusal_handle_carries_a_readable_reason(self):
+        from apps.migration_cloud.celery_tasks import RefusedApply
+
+        refusal = RefusedApply("442 records are held for review")
+        self.assertTrue(refusal.refused)
+        self.assertFalse(refusal.queued)
+        self.assertIn("442", refusal.reason)
+
+    def test_the_refusal_handle_is_shaped_like_a_success_handle(self):
+        """No caller should crash on attribute access when work is declined."""
+        from apps.migration_cloud.celery_tasks import RefusedApply
+
+        refusal = RefusedApply("nope")
+        for attr in ("id", "outbox_id", "durable_outbox"):
+            self.assertTrue(hasattr(refusal, attr), attr)
+
+    def test_the_tenant_apply_view_reports_the_refusal(self):
+        import inspect
+
+        from apps.migration_cloud import views_tenant_upload
+
+        source = inspect.getsource(views_tenant_upload.TenantMigrationApplyView)
+        self.assertIn('getattr(result, "refused", False)', source)
+        # ...and does NOT fall through to the "queued" message.
+        refusal_branch = source.split('getattr(result, "refused", False)', 1)[1][:600]
+        self.assertIn("messages.warning", refusal_branch)
+        self.assertIn("return redirect", refusal_branch)
+
+    def test_the_operator_apply_view_reports_the_refusal(self):
+        import inspect
+
+        from apps.migration_cloud import views
+
+        source = inspect.getsource(views)
+        self.assertIn('"refused": True', source)
+        self.assertIn("status=409", source)
