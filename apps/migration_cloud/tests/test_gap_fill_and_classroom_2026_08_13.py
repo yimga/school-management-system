@@ -124,7 +124,7 @@ def _add_artifact(bundle, path, filename, headers, rows, sha):
 
 class GapFillAndClassroomEndToEndTests(TransactionTestCase):
     def test_student_placed_in_created_classroom_and_gap_fill_scaffolds(self):
-        from apps.academics.models import AcademicYear, Classroom, Department, Specialty
+        from apps.academics.models import AcademicYear, Department, Specialty
         from apps.migration_cloud.orchestrator import apply_bundle
         from apps.migration_cloud.pipeline import advance_bundle
         from apps.people.models import StudentProfile

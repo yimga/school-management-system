@@ -24,7 +24,6 @@ from apps.academics.models import (
     Classroom,
     Department,
     Specialty,
-    Term,
 )
 from apps.finance.models import ComplianceProfile, Invoice
 from apps.people.models import StudentProfile

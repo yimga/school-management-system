@@ -3,7 +3,6 @@ from django.urls import path, reverse, reverse_lazy
 from django.contrib.auth.views import (
     PasswordChangeDoneView,
     PasswordResetCompleteView,
-    PasswordResetConfirmView,
     PasswordResetDoneView,
     PasswordResetView,
 )

@@ -10,7 +10,6 @@ one-row feed, and the missing is_manager parameter).
 
 from __future__ import annotations
 
-import re
 from pathlib import Path
 
 from django.test import RequestFactory, SimpleTestCase

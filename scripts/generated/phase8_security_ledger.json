@@ -465,8 +465,13 @@
       "verdict": "keep_with_hardening"
     }
   },
-  "generated_at": "2026-08-20T12:20:06.392840+00:00",
+  "generated_at": "2026-08-20T21:25:13.957580+00:00",
   "raw_sql": {
+    "apps/academics/schema_repair.py": {
+      "expected_count": 3,
+      "last_reviewed": "2026-08-20",
+      "reason": "Schema repair is DDL and has no ORM equivalent: ADD COLUMN IF NOT EXISTS / DROP DEFAULT / CREATE UNIQUE INDEX. Every interpolated identifier is passed through connection.ops.quote_name() and originates from module constants and model._meta.db_table -- never request data -- because SQL identifiers cannot be parameterized. Each site carries an rls-bypass-allow marker."
+    },
     "apps/accounts/legacy_hashes/key_rotation.py": {
       "expected_count": 1,
       "last_reviewed": "2026-05-27",
@@ -496,6 +501,11 @@
       "expected_count": 1,
       "last_reviewed": "2026-05-27",
       "reason": "Vector similarity query uses pgvector distance operator with parameterized query and bounded result limit."
+    },
+    "apps/api/sync_services.py": {
+      "expected_count": 1,
+      "last_reviewed": "2026-08-20",
+      "reason": "Single constant statement, SET CONSTRAINTS ALL IMMEDIATE, with no interpolation. Django FKs are DEFERRABLE INITIALLY DEFERRED on PostgreSQL, so a per-row savepoint cannot observe a violation until COMMIT; flushing constraints is what makes a bad edge-sync row fail on the row that caused it instead of at the end of the batch."
     },
     "apps/compliance/audit_retention.py": {
       "expected_count": 1,
@@ -597,6 +607,11 @@
       "last_reviewed": "2026-05-27",
       "reason": "RLS readiness preflight verifies PostgreSQL GUC support and pg_policies catalog state; read-only except SET/RESET session variable."
     },
+    "apps/schools/schema_repair.py": {
+      "expected_count": 3,
+      "last_reviewed": "2026-08-20",
+      "reason": "Same shape as apps/academics/schema_repair.py: offline-sync anchor column + partial unique index repaired via quote_name()-quoted DDL over module-constant identifiers. No ORM equivalent for IF NOT EXISTS DDL."
+    },
     "apps/schools/tasks.py": {
       "expected_count": 2,
       "last_reviewed": "2026-07-18",
@@ -616,6 +631,11 @@
       "expected_count": 1,
       "last_reviewed": "2026-04-24",
       "reason": "Section 2.4 Read-only PostgreSQL GUC app.current_school_id via current_setting(..., true) for tenant cache prefix; no ORM equivalent; consumed from cache_utils."
+    },
+    "apps/sync_engine/management/commands/check_edge_sync_deploy_readiness.py": {
+      "expected_count": 4,
+      "last_reviewed": "2026-08-20",
+      "reason": "Read-only deploy-readiness introspection. The two PostgreSQL catalog queries (information_schema.columns, pg_indexes) are parameterized with %s; the two SQLite PRAGMAs cannot be parameterized by design and interpolate only _ANCHOR_COLUMNS / _ANCHOR_CONSTRAINTS module constants. Writes nothing."
     }
   },
   "schema_version": 1,
@@ -627,6 +647,6 @@
   "summary": {
     "allow_any_files": 4,
     "csrf_exempt_files": 38,
-    "raw_sql_files": 30
+    "raw_sql_files": 34
   }
 }

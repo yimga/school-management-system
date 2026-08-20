@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from django.test import Client, TestCase, override_settings
+from django.test import TestCase, override_settings
 
 from apps.accounts.models import User
 from apps.test_utils.http_clients import login_manager_client

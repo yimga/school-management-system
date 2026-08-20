@@ -11,7 +11,7 @@ from apps.academics.models import Department, Specialty
 from apps.accounts.models import User
 from apps.api.sync_services import enrich_delta_rows_with_fk_referents, _get_entity_config
 from apps.schools.models import School, SchoolMembership
-from apps.sync_engine.delta_bundle import export_delta_bundle, verify_and_parse_bundle
+from apps.sync_engine.delta_bundle import export_delta_bundle
 from apps.sync_engine.edge_inbox import apply_pulled_bundle
 from apps.sync_engine.edge_outbox import build_edge_delta_rows
 

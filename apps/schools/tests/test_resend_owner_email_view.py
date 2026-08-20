@@ -183,7 +183,8 @@ class ResendSetupEmailViewTests(TestCase):
         self.assertEqual(claim.call_args.args[1], teacher)
 
     def test_default_no_selection_sends_to_owners_only(self):
-        owner = self._member(owner=True, email="owner@x.com")
+        # Must exist to be mailed; the assertion inspects the mock, not this row.
+        self._member(owner=True, email="owner@x.com")
         self._member(owner=False, role=User.Role.TEACHER)  # must NOT be mailed
         req = self._post(self.school.pk)  # nothing selected, no typed address
         with mock.patch(_WELCOME, return_value=True) as welcome, mock.patch(

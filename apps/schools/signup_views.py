@@ -33,7 +33,6 @@ from django.views.decorators.http import require_GET, require_http_methods, requ
 from django.views.decorators.cache import never_cache
 
 from apps.platform_runtime.helpers import get_platform_defaults
-from apps.schools.compliance_region import derive_compliance_region
 from apps.schools.marketing_settings_helpers import derive_marketing_demo_tenant_url
 
 
@@ -656,26 +655,8 @@ def signup_school(request: HttpRequest):
     )
     institution_profile = dict(profile_result.values)
     funding_type = institution_profile["funding_type"]
-    organization_scope = institution_profile["organization_scope"]
-    learner_scale = institution_profile["learner_scale"]
-    student_capacity = institution_profile["student_capacity"]
-    lms_preference = institution_profile["lms_preference"]
     campus_count = institution_profile["campus_count"]
-    staff_count = institution_profile["staff_count"]
-    operating_model = institution_profile["operating_model"]
-    operational_services = institution_profile["operational_services"]
-    connectivity_profile = institution_profile["connectivity_profile"]
-    payment_profile = institution_profile["payment_profile"]
-    assessment_profile = institution_profile["assessment_profile"]
-    identity_profile = institution_profile["identity_profile"]
-    data_residency_requirement = institution_profile["data_residency_requirement"]
-    accessibility_profile = institution_profile["accessibility_profile"]
-    migration_complexity = institution_profile["migration_complexity"]
-    automation_preference = institution_profile["automation_preference"]
-    go_live_timeline = institution_profile["go_live_timeline"]
-    session_pattern = institution_profile["session_pattern"]
     curriculum_board = institution_profile["curriculum_board"]
-    governance_profile = institution_profile["governance_profile"]
     migration_domains = institution_profile["migration_domains"]
     institution_profile["operational_strands"] = list(operational_strands)
     institution_profile["code_prefix"] = code_prefix

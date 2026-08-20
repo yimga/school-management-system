@@ -53,7 +53,6 @@ from apps.siteconfig.config_service import (
     get_effective_flags,
     get_effective_site_settings,
 )
-from apps.platform_runtime.config_resolver import get_effective_config
 
 from .forms import (
     BulkUserRolesForm,

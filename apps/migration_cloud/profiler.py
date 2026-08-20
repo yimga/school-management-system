@@ -1115,7 +1115,6 @@ def expand_tabular_source_artifacts(bundle: MigrationBundle) -> int:
     Idempotent: a source that already has children is skipped, and a duplicate
     table on a re-run is swallowed. Returns the number of child artifacts made.
     """
-    import sqlite3
     import tempfile
     from pathlib import Path
 

@@ -1,6 +1,6 @@
 """Configuration integrations hub links to API Center."""
 
-from django.test import Client, TestCase, override_settings
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from apps.accounts.models import User

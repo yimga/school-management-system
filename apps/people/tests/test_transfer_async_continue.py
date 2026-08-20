@@ -5,13 +5,11 @@ from __future__ import annotations
 from unittest.mock import MagicMock, patch
 
 from django.test import SimpleTestCase, TestCase
-from django.utils import timezone
 
 from apps.people.models_transfer import TransferCase
 from apps.people.transfer_service import (
     continue_applying_transfers,
     continue_transfer_case_if_ready,
-    run_transfer_case,
 )
 from apps.schools.models import School
 
