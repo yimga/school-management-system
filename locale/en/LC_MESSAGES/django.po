@@ -71175,3 +71175,523 @@ msgstr "ms"
 
 msgid "s"
 msgstr "s"
+
+msgid "%(count)s records are held for review and were not imported."
+msgstr "%(count)s records are held for review and were not imported."
+
+msgid ""
+"1 import needs your attention{% plural %}{{ counter }} imports need your "
+"attention"
+msgstr ""
+"1 import needs your attention{% plural %}{{ counter }} imports need your "
+"attention"
+
+msgid "1 record is held for review and was not imported."
+msgstr "1 record is held for review and was not imported."
+
+msgid ""
+"502 on push and pull usually means RMC_EDGE_OPERATOR_BASE points at the "
+"wrong host (must be your cloud tenant URL, not this LAN box). Fix "
+"deploy/selfhost/.env and restart the web container."
+msgstr ""
+"502 on push and pull usually means RMC_EDGE_OPERATOR_BASE points at the "
+"wrong host (must be your cloud tenant URL, not this LAN box). Fix "
+"deploy/selfhost/.env and restart the web container."
+
+msgid "A later successful run of the same process clears this alert."
+msgstr "A later successful run of the same process clears this alert."
+
+msgid "A later successful run of this workflow clears this alert."
+msgstr "A later successful run of this workflow clears this alert."
+
+msgid "A workflow failed and is waiting for operator action."
+msgstr "A workflow failed and is waiting for operator action."
+
+msgid "Academic year lock is owned by the cloud."
+msgstr "Academic year lock is owned by the cloud."
+
+msgid "Action Required"
+msgstr "Action Required"
+
+msgid ""
+"An import that stopped responding was interrupted, not rejected — Repair "
+"resumes it safely. Records that already imported are updated in place, never"
+" duplicated."
+msgstr ""
+"An import that stopped responding was interrupted, not rejected — Repair "
+"resumes it safely. Records that already imported are updated in place, never"
+" duplicated."
+
+msgid "Automation progress"
+msgstr "Automation progress"
+
+msgid "Back to Super Dashboard"
+msgstr "Back to Super Dashboard"
+
+msgid "Box gate"
+msgstr "Box gate"
+
+msgid "Bring-up runbook"
+msgstr "Bring-up runbook"
+
+msgid "Bulk grades progress"
+msgstr "Bulk grades progress"
+
+msgid "Check"
+msgstr "Check"
+
+msgid "Checking sync status…"
+msgstr "Checking sync status…"
+
+msgid "Clear pending approvals in the Approval Hub."
+msgstr "Clear pending approvals in the Approval Hub."
+
+msgid "Cloud connection"
+msgstr "Cloud connection"
+
+msgid "Cloud sync"
+msgstr "Cloud sync"
+
+msgid "Command (copy-pasteable)"
+msgstr "Command (copy-pasteable)"
+
+msgid "Copy command"
+msgstr "Copy command"
+
+msgid ""
+"Correct the data on the files below, then Repair to re-attempt just those. "
+"Already-imported records are never duplicated."
+msgstr ""
+"Correct the data on the files below, then Repair to re-attempt just those. "
+"Already-imported records are never duplicated."
+
+msgid "Credential"
+msgstr "Credential"
+
+msgid ""
+"Delta sync is not a bulk loader — do not Sync now to seed students, staff, "
+"or finance."
+msgstr ""
+"Delta sync is not a bulk loader — do not Sync now to seed students, staff, "
+"or finance."
+
+msgid "Deploy proof — Admin OS v20.0 on operator /admin/"
+msgstr "Deploy proof — Admin OS v20.0 on operator /admin/"
+
+msgid "Deploy proof — Admin OS v20.0 on tenant /admin/"
+msgstr "Deploy proof — Admin OS v20.0 on tenant /admin/"
+
+msgid "Download as text (hand-off)"
+msgstr "Download as text (hand-off)"
+
+msgid "Edge Onboarding Runbook"
+msgstr "Edge Onboarding Runbook"
+
+msgid ""
+"Every import you've started, with its live status. Anything that needs you "
+"is listed first."
+msgstr ""
+"Every import you've started, with its live status. Anything that needs you "
+"is listed first."
+
+msgid "FAIL"
+msgstr "FAIL"
+
+msgid "Failed (Stuck)"
+msgstr "Failed (Stuck)"
+
+msgid "Failure simulation started."
+msgstr "Failure simulation started."
+
+msgid "Fee invoice progress"
+msgstr "Fee invoice progress"
+
+msgid "Field presets"
+msgstr "Field presets"
+
+msgid "Fields on this form"
+msgstr "Fields on this form"
+
+msgid "Hard-closed years:"
+msgstr "Hard-closed years:"
+
+msgid "Health Index"
+msgstr "Health Index"
+
+msgid ""
+"Held records did not pass validation and were not imported. Correct the "
+"data, then Repair to re-attempt just those."
+msgstr ""
+"Held records did not pass validation and were not imported. Correct the "
+"data, then Repair to re-attempt just those."
+
+msgid "Help:"
+msgstr "Help:"
+
+msgid "If this step can't complete"
+msgstr "If this step can't complete"
+
+msgid "Import #{{ id }}"
+msgstr "Import #{{ id }}"
+
+msgid ""
+"Import complete — every record landed in your school. Nothing further is "
+"needed."
+msgstr ""
+"Import complete — every record landed in your school. Nothing further is "
+"needed."
+
+msgid "In progress and recent"
+msgstr "In progress and recent"
+
+msgid ""
+"Inspect the failed step, apply the suggested fix, then resume from that "
+"point."
+msgstr ""
+"Inspect the failed step, apply the suggested fix, then resume from that "
+"point."
+
+msgid "Inspect the failed step, then retry this run from the workbench."
+msgstr "Inspect the failed step, then retry this run from the workbench."
+
+msgid "Issue Remediator — %(code)s stuck"
+msgstr "Issue Remediator — %(code)s stuck"
+
+msgid "Issue Remediator — %(n)s open workflow issue(s)"
+msgstr "Issue Remediator — %(n)s open workflow issue(s)"
+
+msgid "Issue Remediator — Import failed"
+msgstr "Issue Remediator — Import failed"
+
+msgid "Issue Remediator — Import stopped responding"
+msgstr "Issue Remediator — Import stopped responding"
+
+msgid "Issue Remediator — Pipeline stuck at %(step)s"
+msgstr "Issue Remediator — Pipeline stuck at %(step)s"
+
+msgid "Issue Remediator — Records held for review"
+msgstr "Issue Remediator — Records held for review"
+
+msgid "Issue Remediator — automation action failed"
+msgstr "Issue Remediator — automation action failed"
+
+msgid "Jobs"
+msgstr "Jobs"
+
+msgid ""
+"Last live EdgeSyncRun on this host (not box proof if you are on manager):"
+msgstr ""
+"Last live EdgeSyncRun on this host (not box proof if you are on manager):"
+
+msgid "Last sync failed."
+msgstr "Last sync failed."
+
+msgid ""
+"Live counts from this import. Issues leave this card as soon as they are "
+"actually cleared."
+msgstr ""
+"Live counts from this import. Issues leave this card as soon as they are "
+"actually cleared."
+
+msgid "Live execution"
+msgstr "Live execution"
+
+msgid "Live logs"
+msgstr "Live logs"
+
+msgid "Live progress"
+msgstr "Live progress"
+
+msgid "Migration Cloud skip recorded."
+msgstr "Migration Cloud skip recorded."
+
+msgid "Migration inbox"
+msgstr "Migration inbox"
+
+msgid "Missing — mint RMC_EDGE_CREDENTIAL on the cloud."
+msgstr "Missing — mint RMC_EDGE_CREDENTIAL on the cloud."
+
+msgid "Name or slug"
+msgstr "Name or slug"
+
+msgid "No archived successes yet."
+msgstr "No archived successes yet."
+
+msgid ""
+"No imports in progress. Start one whenever you're ready — you can upload an "
+"export file with no connection needed."
+msgstr ""
+"No imports in progress. Start one whenever you're ready — you can upload an "
+"export file with no connection needed."
+
+msgid "No runbook steps generated."
+msgstr "No runbook steps generated."
+
+msgid "No schools match"
+msgstr "No schools match"
+
+msgid "No verification results."
+msgstr "No verification results."
+
+msgid "Not configured — set RMC_EDGE_OPERATOR_BASE to your TENANT cloud host."
+msgstr ""
+"Not configured — set RMC_EDGE_OPERATOR_BASE to your TENANT cloud host."
+
+msgid "Nothing needs attention. Completed work stays in the logs."
+msgstr "Nothing needs attention. Completed work stays in the logs."
+
+msgid "Nothing needs attention. Successful runs are archived below."
+msgstr "Nothing needs attention. Successful runs are archived below."
+
+msgid "Open issues"
+msgstr "Open issues"
+
+msgid "Open related console"
+msgstr "Open related console"
+
+msgid "Open the Flight Deck remediator for the failed platform job."
+msgstr "Open the Flight Deck remediator for the failed platform job."
+
+msgid "Open workflow issues"
+msgstr "Open workflow issues"
+
+msgid "Operator base"
+msgstr "Operator base"
+
+msgid "Optional form fields"
+msgstr "Optional form fields"
+
+msgid "Orchestration progress"
+msgstr "Orchestration progress"
+
+msgid ""
+"Ordered bring-up for an offline / sovereign box. This page previews the "
+"source tenant — it is not the box."
+msgstr ""
+"Ordered bring-up for an offline / sovereign box. This page previews the "
+"source tenant — it is not the box."
+
+msgid "Overall Progress"
+msgstr "Overall Progress"
+
+msgid "PASS"
+msgstr "PASS"
+
+msgid ""
+"Pick a source tenant to generate its edge-box runbook. Delta sync will not "
+"load the initial roster."
+msgstr ""
+"Pick a source tenant to generate its edge-box runbook. Delta sync will not "
+"load the initial roster."
+
+msgid "Pre-offline sync gate"
+msgstr "Pre-offline sync gate"
+
+msgid "Print / save as PDF"
+msgstr "Print / save as PDF"
+
+msgid ""
+"Prove live progress, failure isolation with a remediator, then automatic "
+"archive of a successful run."
+msgstr ""
+"Prove live progress, failure isolation with a remediator, then automatic "
+"archive of a successful run."
+
+msgid "Reading upload"
+msgstr "Reading upload"
+
+msgid "Ready to import"
+msgstr "Ready to import"
+
+msgid "Recommended fields"
+msgstr "Recommended fields"
+
+msgid "Record skip"
+msgstr "Record skip"
+
+msgid "Required fields always stay visible."
+msgstr "Required fields always stay visible."
+
+msgid "Resume from failure point"
+msgstr "Resume from failure point"
+
+msgid "Retry failed automation actions — a later success hides the alert."
+msgstr "Retry failed automation actions — a later success hides the alert."
+
+msgid "Retry from failure point"
+msgstr "Retry from failure point"
+
+msgid "Retry the failed actions from the automation builder."
+msgstr "Retry the failed actions from the automation builder."
+
+msgid ""
+"Retry the open orchestration process — completed retries clear this count."
+msgstr ""
+"Retry the open orchestration process — completed retries clear this count."
+
+msgid "Review and repair"
+msgstr "Review and repair"
+
+msgid "Review open issues"
+msgstr "Review open issues"
+
+msgid ""
+"Run sync from this page — no command line needed. Dry-run checks cloud "
+"reachability without applying changes; Sync now runs the full push-then-pull"
+" cycle."
+msgstr ""
+"Run sync from this page — no command line needed. Dry-run checks cloud "
+"reachability without applying changes; Sync now runs the full push-then-pull"
+" cycle."
+
+msgid "Runbook"
+msgstr "Runbook"
+
+msgid "Runs on the box."
+msgstr "Runs on the box."
+
+msgid "SKIP"
+msgstr "SKIP"
+
+msgid "Scenario Simulation Flow Preset"
+msgstr "Scenario Simulation Flow Preset"
+
+msgid "School pin"
+msgstr "School pin"
+
+msgid "See all imports"
+msgstr "See all imports"
+
+msgid "Showing your most recent imports only."
+msgstr "Showing your most recent imports only."
+
+msgid "Simulate Failure Path"
+msgstr "Simulate Failure Path"
+
+msgid "Simulate Success Path"
+msgstr "Simulate Success Path"
+
+msgid "Skip Migration Cloud (reason, 12+ characters)"
+msgstr "Skip Migration Cloud (reason, 12+ characters)"
+
+msgid "Skip reason was too short."
+msgstr "Skip reason was too short."
+
+msgid "Soft-closed years:"
+msgstr "Soft-closed years:"
+
+msgid "Source-tenant readiness"
+msgstr "Source-tenant readiness"
+
+msgid "Start a new import"
+msgstr "Start a new import"
+
+msgid "Step progress"
+msgstr "Step progress"
+
+msgid "Success Logs"
+msgstr "Success Logs"
+
+msgid "Success simulation started."
+msgstr "Success simulation started."
+
+msgid "Sync in progress…"
+msgstr "Sync in progress…"
+
+msgid "Sync queued — waiting to connect."
+msgstr "Sync queued — waiting to connect."
+
+msgid "Test cloud connection"
+msgstr "Test cloud connection"
+
+msgid ""
+"The box cannot reopen a cloud lock. Finance stays cloud-authoritative / "
+"down-only."
+msgstr ""
+"The box cannot reopen a cloud lock. Finance stays cloud-authoritative / "
+"down-only."
+
+msgid ""
+"The last import failed part-way. Repair re-attempts the failed records only."
+msgstr ""
+"The last import failed part-way. Repair re-attempts the failed records only."
+
+msgid ""
+"This console shows source-tenant readiness only. The dry gate, live Class-A "
+"proof, and go-dark checklist must run on the edge box with:"
+msgstr ""
+"This console shows source-tenant readiness only. The dry gate, live Class-A "
+"proof, and go-dark checklist must run on the edge box with:"
+
+msgid ""
+"This import was interrupted, not rejected. Use Repair to resume. Records "
+"that already imported are updated in place, never duplicated."
+msgstr ""
+"This import was interrupted, not rejected. Use Repair to resume. Records "
+"that already imported are updated in place, never duplicated."
+
+msgid ""
+"This runs in the background and this page updates on its own — no need to "
+"open Workflow Flight Deck."
+msgstr ""
+"This runs in the background and this page updates on its own — no need to "
+"open Workflow Flight Deck."
+
+msgid "Try a different name or slug."
+msgstr "Try a different name or slug."
+
+msgid "Workflow State"
+msgstr "Workflow State"
+
+msgid "conflicts"
+msgstr "conflicts"
+
+msgid "country"
+msgstr "country"
+
+msgid "id"
+msgstr "id"
+
+msgid "of evaluated source-tenant checks"
+msgstr "of evaluated source-tenant checks"
+
+msgid "ordered step(s)"
+msgstr "ordered step(s)"
+
+msgid "passing"
+msgstr "passing"
+
+msgid "process"
+msgstr "process"
+
+msgid "slug"
+msgstr "slug"
+
+msgid "source tenant"
+msgstr "source tenant"
+
+msgid "{{ count }} approval{% plural %}{{ count }} approvals"
+msgstr "{{ count }} approval{% plural %}{{ count }} approvals"
+
+msgid "{{ count }} automation{% plural %}{{ count }} automations"
+msgstr "{{ count }} automation{% plural %}{{ count }} automations"
+
+msgid "{{ count }} job{% plural %}{{ count }} jobs"
+msgstr "{{ count }} job{% plural %}{{ count }} jobs"
+
+msgid "{{ count }} process{% plural %}{{ count }} processes"
+msgstr "{{ count }} process{% plural %}{{ count }} processes"
+
+msgid ""
+"{{ count }} record held for review{% plural %}{{ count }} records held for "
+"review"
+msgstr ""
+"{{ count }} record held for review{% plural %}{{ count }} records held for "
+"review"
+
+msgid "{{ counter }} held for review{% plural %}{{ counter }} held for review"
+msgstr ""
+"{{ counter }} held for review{% plural %}{{ counter }} held for review"
+
+msgid "{{ created }} added · {{ updated }} updated"
+msgstr "{{ created }} added · {{ updated }} updated"
