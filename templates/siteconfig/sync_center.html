@@ -11,7 +11,7 @@
 {% include "components/next_action_strip.html" %}
 
   <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="container-fluid py-3 cp-evidence-page" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-shell-surface="sync-center" data-cp-evidence-surface="sync-center" data-rmc-scroll-policy="paginate" data-page-critical-read="1" data-rmc-page-fold-nav="required" data-rmc-sync-center="1" data-status-url="{% url 'siteconfig:sync_center_status' %}" data-bulk-url="{% url 'siteconfig:sync_center_bulk_resolve' %}" data-poll-ms="3000" data-rmc-label-running="{% trans 'Running' %}" data-rmc-label-ok="{% trans 'OK' %}" data-rmc-label-failed="{% trans 'Failed' %}" data-rmc-bulk-error="{% trans 'Could not resolve conflicts.' %}">
+<div class="container-fluid py-3 cp-evidence-page" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-shell-surface="sync-center" data-cp-evidence-surface="sync-center" data-rmc-scroll-policy="paginate" data-page-critical-read="1" data-rmc-page-fold-nav="required" data-rmc-sync-center="1" data-status-url="{% url 'siteconfig:sync_center_status' %}" data-probe-url="{% url 'siteconfig:sync_center_probe' %}" data-bulk-url="{% url 'siteconfig:sync_center_bulk_resolve' %}" data-poll-ms="3000" data-rmc-label-running="{% trans 'Running' %}" data-rmc-label-ok="{% trans 'OK' %}" data-rmc-label-failed="{% trans 'Failed' %}" data-rmc-bulk-error="{% trans 'Could not resolve conflicts.' %}">
     {% include "studio_os/components/page_header.html" with title=_("Sync Center") subtitle=_("Live edge sync status, plus bulk tools for resolving offline conflicts.") action_url=action_url|default:None action_text=action_text|default:None %}
     <nav class="rmc-page-fold-nav rmc-section-nav mb-3" aria-label="{% trans 'On this page' %}">
       <a href="#edge-sync">{% trans "Edge sync" %}</a>
@@ -86,15 +86,55 @@
           <ul class="small mb-2 d-none" data-rmc-sync-recent></ul>
         {% endif %}
         {% if edge_sync_enabled %}
-          <form method="post" action="{% url 'siteconfig:sync_center_sync_now' %}" class="d-flex flex-wrap gap-2" data-rmc-wfp-hold="1" data-rmc-wfp-stay="1">
+          <p class="text-body-secondary small mb-2">
+            {% trans "Run sync from this page — no command line needed. Dry-run checks cloud reachability without applying changes; Sync now runs the full push-then-pull cycle." %}
+          </p>
+          <form method="post" action="{% url 'siteconfig:sync_center_sync_now' %}" class="d-flex flex-wrap gap-2 align-items-center" data-rmc-wfp-hold="1" data-rmc-wfp-stay="1">
             {% csrf_token %}
             <button type="submit" name="mode" value="dry" class="btn btn-sm btn-outline-primary">{% trans "Dry-run sync" %}</button>
             <button type="submit" name="mode" value="live" class="btn btn-sm btn-primary">{% trans "Sync now" %}</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" data-rmc-sync-probe-btn>{% trans "Test cloud connection" %}</button>
           </form>
+          <p class="small mb-0 mt-2 d-none" data-rmc-sync-probe-result role="status"></p>
           {% if sync_interval_seconds %}
             <p class="text-body-secondary small mb-0 mt-2">
               {% blocktrans with seconds=sync_interval_seconds %}Syncing automatically every {{ seconds }} seconds whenever this box has a connection.{% endblocktrans %}
             </p>
+          {% endif %}
+          {% if edge_connectivity %}
+            <div class="border rounded-2 p-3 mt-3 small bg-body-tertiary" data-rmc-sync-connectivity>
+              <h3 class="h6 mb-2">{% trans "Cloud connection" %}</h3>
+              <dl class="row mb-0 g-1">
+                <dt class="col-sm-4 text-body-secondary">{% trans "Profile" %}</dt>
+                <dd class="col-sm-8 mb-1">{{ edge_connectivity.deployment_profile|default:"—" }}</dd>
+                <dt class="col-sm-4 text-body-secondary">{% trans "Operator base" %}</dt>
+                <dd class="col-sm-8 mb-1 text-break">
+                  {% if edge_connectivity.operator_base_configured %}
+                    {{ edge_connectivity.operator_base }}
+                  {% else %}
+                    <span class="text-danger-emphasis">{% trans "Not configured — set RMC_EDGE_OPERATOR_BASE to your TENANT cloud host." %}</span>
+                  {% endif %}
+                </dd>
+                <dt class="col-sm-4 text-body-secondary">{% trans "Credential" %}</dt>
+                <dd class="col-sm-8 mb-1">
+                  {% if edge_connectivity.credential_configured %}
+                    <span class="text-success-emphasis">{% trans "Configured" %}</span>
+                  {% else %}
+                    <span class="text-danger-emphasis">{% trans "Missing — mint RMC_EDGE_CREDENTIAL on the cloud." %}</span>
+                  {% endif %}
+                </dd>
+                {% if edge_connectivity.school_slug_pin %}
+                  <dt class="col-sm-4 text-body-secondary">{% trans "School pin" %}</dt>
+                  <dd class="col-sm-8 mb-1">{{ edge_connectivity.school_slug_pin }}</dd>
+                {% endif %}
+              </dl>
+              {% if sync_live.phase == 'failed' and sync_live.error %}
+                <p class="text-danger-emphasis mb-0 mt-2" data-rmc-sync-error-detail>{{ sync_live.error }}</p>
+              {% endif %}
+              <p class="text-body-secondary mb-0 mt-2">
+                {% trans "502 on push and pull usually means RMC_EDGE_OPERATOR_BASE points at the wrong host (must be your cloud tenant URL, not this LAN box). Fix deploy/selfhost/.env and restart the web container." %}
+              </p>
+            </div>
           {% endif %}
         {% else %}
           {% if pending_resync %}
@@ -119,7 +159,7 @@
       </div>
     </div>
     <section id="sync-progress" data-rmc-section-anchor="1">
-      {% include "components/rmc_workflow_progress_canvas.html" with workflow_key="siteconfig-edge-sync" task_type="EDGE_SYNC" %}
+      {% include "components/rmc_workflow_kickoff_live.html" with workflow_key="siteconfig-edge-sync" task_type="EDGE_SYNC" %}
     </section>
 
     {# Live evidence sits BELOW the static summary: that summary renders with JS off, so #}

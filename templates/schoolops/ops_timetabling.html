@@ -11,12 +11,12 @@
 <div class="container-fluid py-2" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
   <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
     <p class="mb-0"><a href="{{ hub_url }}" class="small">{% trans "← Operations hub" %}</a></p>
-    <form method="post" action="{% url 'academics:timetable_generate' %}" class="mb-0">
+    <form method="post" action="{% url 'academics:timetable_generate' %}" class="mb-0" data-rmc-wfp-stay="1">
       {% csrf_token %}
       <button type="submit" class="btn btn-primary btn-sm">{% trans "Generate timetable" %}</button>
     </form>
   </div>
-  {% include "components/rmc_workflow_progress_canvas.html" with workflow_key="academics-timetable-generate" task_type="TIMETABLE_SOLVER" %}
+  {% include "components/rmc_workflow_kickoff_live.html" with workflow_key="academics-timetable-generate" task_type="TIMETABLE_SOLVER" %}
   <p class="small text-muted">{% trans "Draft and published master schedules. Generate a conflict-free draft, review clashes, then publish — teachers only ever see the published schedule." %}</p>
   <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1">
     <caption class="visually-hidden">{% trans "Timetabling" %} — {{ school.name }}</caption>

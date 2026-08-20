@@ -38,7 +38,12 @@ def operator_workbench(request):
             "-created_at"
         )[:100]
         runs = list(qs)
-        runs_overdue = [r for r in runs if getattr(r, "sla_overdue", False)]
+        from apps.platform_runtime.workflow_kickoff_live import (
+            mark_orchestration_open_failures,
+        )
+
+        mark_orchestration_open_failures(runs)
+        runs_overdue = [r for r in runs if getattr(r, "open_failure", False) and getattr(r, "sla_overdue", False)]
     except ProgrammingError:
         # Table not created yet (migrations not applied) — show empty workbench until migrate runs
         pass

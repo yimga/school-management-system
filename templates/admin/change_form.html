@@ -44,6 +44,7 @@
                 </h1>
             </div>
             <div class="rmc-django-command-band__meta" aria-label="{% trans 'Form actions' %}">
+                {% include "admin/includes/admin_field_visibility.html" %}
                 {% if change and original %}
                   {% url opts|admin_urlname:'history' original.pk|admin_urlquote as history_url %}
                   {% if history_url %}
@@ -127,6 +128,9 @@
                 {% include adminform.model_admin.change_form_after_template %}
             {% endif %}
         </form>
+        {% if admin_field_contract %}
+            {{ admin_field_contract|json_script:"rmc-admin-field-contract" }}
+        {% endif %}
 
         {% if datasets %}
             <div class="flex flex-col">

@@ -331,25 +331,42 @@ def _edge_sync_panel_context(school):
             ).first()
     except Exception:  # noqa: BLE001 — panel is observability; never break the page
         pass
+    try:
+        from apps.sync_engine.connectivity_probe import connectivity_snapshot
+
+        ctx["edge_connectivity"] = connectivity_snapshot()
+    except Exception:  # noqa: BLE001
+        ctx["edge_connectivity"] = {}
     return ctx
 
 
 @login_required
-@permission_required("settings.manage")
-@require_http_methods(["GET"])
-def sync_center_status(request):
-    """JSON snapshot of live edge-sync phase for the bound school."""
+@require_http_methods(["GET", "POST"])
+def sync_center_probe(request):
+    """JSON HTTP probe for cloud pull/push — Sync Center “Test cloud connection”."""
+    from django.conf import settings
+
+    from apps.accounts.decorators import user_has_permission
+
     school = getattr(request, "school", None)
     if not school:
         return JsonResponse({"ok": False, "error": "No school"}, status=403)
+    edge_enabled = bool(getattr(settings, "RMC_EDGE_SYNC_ENABLED", False))
+    if not edge_enabled and not user_has_permission(
+        request.user, school=school, codes="settings.manage"
+    ):
+        return JsonResponse({"ok": False, "error": "Forbidden"}, status=403)
     try:
-        from apps.sync_engine.sync_status import serialize_live_status
+        from apps.sync_engine.connectivity_probe import probe_cloud_http
 
-        payload = serialize_live_status(school)
-    except Exception:  # noqa: BLE001 — poll must degrade, never 500 the page JS
-        return JsonResponse({"ok": False, "error": "status_unavailable"}, status=503)
-    payload["ok"] = True
-    return JsonResponse(payload)
+        payload = probe_cloud_http()
+    except Exception as exc:  # noqa: BLE001
+        return JsonResponse(
+            {"ok": False, "error": "probe_failed", "detail": str(exc)[:240]},
+            status=503,
+        )
+    status = 200 if payload.get("ok") else 503
+    return JsonResponse(payload, status=status)
 
 
 @login_required
@@ -558,7 +575,6 @@ def _sync_now_reply(request, school, *, queued=False, message="", result=None):
 
 
 @login_required
-@permission_required("settings.manage")
 @require_http_methods(["GET"])
 def sync_center_status(request):
     """Live sync evidence as JSON — the payload the Sync Center panel polls.
@@ -587,15 +603,30 @@ def sync_center_status(request):
     from django.conf import settings
     from django.utils import timezone
 
+    from apps.accounts.decorators import user_has_permission
+
     school = getattr(request, "school", None)
     if not school:
-        return JsonResponse({"ok": False, "reason": "no school in context"}, status=409)
+        return JsonResponse({"ok": False, "error": "No school"}, status=403)
+
+    edge_enabled = bool(getattr(settings, "RMC_EDGE_SYNC_ENABLED", False))
+    if not edge_enabled and not user_has_permission(
+        request.user, school=school, codes="settings.manage"
+    ):
+        return JsonResponse({"ok": False, "error": "Forbidden"}, status=403)
+
+    try:
+        from apps.sync_engine.sync_status import serialize_live_status
+
+        payload = serialize_live_status(school)
+    except Exception:  # noqa: BLE001 — polling must fail explicitly, never as HTML/500
+        return JsonResponse({"ok": False, "error": "status_unavailable"}, status=503)
 
     now = timezone.now()
-    payload = {
+    payload.update({
         "ok": True,
         "generated_at": now.isoformat(),
-        "edge_sync_enabled": bool(getattr(settings, "RMC_EDGE_SYNC_ENABLED", False)),
+        "edge_sync_enabled": edge_enabled,
         "link": None,
         "cadence": None,
         "latest_run": None,
@@ -603,7 +634,14 @@ def sync_center_status(request):
         "recent_records": [],
         "totals": {},
         "pending_conflicts": None,
-    }
+    })
+
+    try:
+        from apps.sync_engine.connectivity_probe import connectivity_snapshot
+
+        payload["connectivity"] = connectivity_snapshot()
+    except Exception:  # noqa: BLE001 — evidence is additive to the canonical phase
+        payload["connectivity"] = None
 
     try:
         from apps.sync_engine import cadence as _cadence

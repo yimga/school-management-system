@@ -27,6 +27,7 @@ _CHAIN_OVERRIDES: dict[str, list[str]] = {
     "orchestration_process_due": ["retry_failed_step"],
     "tenant_school_purge": ["retry_failed_step"],
     "tenant_school_offboard_purge": ["retry_failed_step"],
+    "workflow_flight_deck_simulation": ["resume_from_checkpoint"],
 }
 
 # Module-level defaults when no explicit override exists.

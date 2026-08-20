@@ -72,6 +72,13 @@ class BaseRunMyCampusAdminSite(UnfoldAdminSite):
         context = super().each_context(request)
         context["is_manager_host"] = self.is_platform_site()
         try:
+            context["admin_field_preferences_url"] = reverse(
+                f"{self.name}:field_preferences",
+                urlconf=getattr(request, "urlconf", None),
+            )
+        except NoReverseMatch:
+            context["admin_field_preferences_url"] = ""
+        try:
             from apps.siteconfig.admin_surface_intelligence import build_admin_surface_profile
             context["admin_surface_profile"] = build_admin_surface_profile(
                 user=getattr(request, "user", None), is_platform=self.is_platform_site()
@@ -202,8 +209,21 @@ class BaseRunMyCampusAdminSite(UnfoldAdminSite):
         return redirect("healthz")
 
     def get_urls(self):
+        from apps.siteconfig.admin_form_intelligence import (
+            admin_field_preferences_view,
+        )
+
         urls = super().get_urls()
         custom_urls = [
+            path(
+                "field-preferences/",
+                self.admin_view(
+                    lambda request: admin_field_preferences_view(
+                        request, admin_site=self
+                    )
+                ),
+                name="field_preferences",
+            ),
             path(
                 "dashboard/", self.admin_view(self.dashboard_redirect), name="dashboard"
             ),
@@ -212,6 +232,20 @@ class BaseRunMyCampusAdminSite(UnfoldAdminSite):
             path("system-health/", self.system_health_redirect, name="system_health"),
         ]
         return custom_urls + urls
+
+    def register(self, model_or_iterable, admin_class=None, **options):
+        """Give every operator and tenant registration one form policy owner."""
+        from django.contrib.admin import ModelAdmin as _DjangoModelAdmin
+        from apps.siteconfig.admin_form_intelligence import AdminFormAutomationMixin
+
+        base_class = admin_class or _DjangoModelAdmin
+        if not getattr(base_class, "_rmc_admin_form_automation", False):
+            base_class = type(
+                base_class.__name__,
+                (AdminFormAutomationMixin, base_class),
+                {"__module__": getattr(base_class, "__module__", __name__)},
+            )
+        return super().register(model_or_iterable, base_class, **options)
 
     def get_app_list(self, request, app_label=None):
         request_urlconf = getattr(request, "urlconf", None)
@@ -515,6 +549,24 @@ class _TenantFormFKScopeMixin:
         related = getattr(db_field, "related_model", None)
         if qs is None or related is None:
             return formfield
+        if isinstance(related, str):
+            # A few legacy lazy relations retain their string declaration on
+            # the field while Django has already built a usable form queryset.
+            # Resolve those safely; an unresolved optional integration must not
+            # make the entire tenant admin form return HTTP 500.
+            from django.apps import apps as django_apps
+
+            try:
+                if "." in related:
+                    related = django_apps.get_model(related, require_ready=False)
+                else:
+                    related = django_apps.get_model(
+                        db_field.model._meta.app_label,
+                        related,
+                        require_ready=False,
+                    )
+            except (LookupError, ValueError):
+                return formfield
 
         is_school = related._meta.label_lower == "schools.school"
         is_school_bearing = TenantAdminSite._model_has_concrete_school_field(related)

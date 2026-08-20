@@ -1,7 +1,7 @@
 {
   "pass": true,
-  "expected_cache_bust": "20260813-admin-production-v18",
-  "expected_sw": "sms-v4.06.40-governed-outcome-surfaces-2026-08-13",
+  "expected_cache_bust": "20260820-admin-automation-v20",
+  "expected_sw": "sms-v4.06.68-admin-form-intelligence-2026-08-20",
   "content_pages": 11,
   "findings": []
 }

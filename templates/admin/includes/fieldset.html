@@ -2,6 +2,8 @@
 
 <fieldset class="module relative rmc-admin-fieldset{% if fieldset.classes %} {{ fieldset.classes }}{% endif %}"
           data-rmc-admin-fieldset="1"
+          data-rmc-admin-form-contract="editable-suggestions-optional-visibility-system-evidence"
+          data-rmc-fieldset-span="auto"
           data-rmc-fieldset-row-count="{{ fieldset|length }}"
           {% if stacked != 1 %}x-show="activeTab == 'general'"{% endif %}>
     {% if fieldset.is_collapsible %}<details><summary>{% endif %}

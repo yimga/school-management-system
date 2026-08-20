@@ -111,6 +111,7 @@ const HOSTS = {
 const HOSTNAMES = new Set([operatorHostname, tenantHostname]);
 
 const SPECIALIZED_MODELS = [
+  ["academics", "academicyear"],
   ["automation", "migrationrun"],
   ["brand_experience", "themepack"],
   ["compliance", "compliancerule"],
@@ -373,6 +374,34 @@ async function collectDom(page) {
         );
       const searchPanel = document.querySelector(".admin-nav-bridge .cp-search-results-panel");
       const formElement = primaryPanel?.querySelector(":scope > form") || null;
+      let fieldContract = null;
+      const fieldContractNode = document.getElementById("rmc-admin-field-contract");
+      if (fieldContractNode) {
+        try {
+          fieldContract = JSON.parse(fieldContractNode.textContent || "{}");
+        } catch (_) {
+          fieldContract = { parseError: true };
+        }
+      }
+      const fieldNodesByName = (name) =>
+        [...document.querySelectorAll("[data-rmc-admin-field-name]")].filter(
+          (element) => element.dataset.rmcAdminFieldName === name,
+        );
+      const declaredRecommended = fieldContract?.recommended || [];
+      const markedRecommended = [
+        ...new Set(
+          [...document.querySelectorAll('[data-rmc-field-recommended="true"]')]
+            .map((element) => element.dataset.rmcAdminFieldName)
+            .filter(Boolean),
+        ),
+      ];
+      const requiredHidden = (fieldContract?.required || []).filter((name) =>
+        fieldNodesByName(name).some((element) => element.hidden || !visible(element)),
+      );
+      const systemFieldsRendered = (fieldContract?.systemHidden || []).filter(
+        (name) => fieldNodesByName(name).length > 0,
+      );
+      const fieldPicker = document.querySelector("[data-rmc-admin-field-picker]");
       const formBody = primaryPanel?.querySelector("[data-rmc-django-form-body]") || null;
       const actionsSlot = primaryPanel?.querySelector("[data-rmc-django-actions-slot]") || null;
       const formRect = formElement?.getBoundingClientRect() || null;
@@ -554,6 +583,41 @@ async function collectDom(page) {
               redundantSectionNavCount: formElement.querySelectorAll(".rmc-fi-nav").length,
               sectionLabels,
               uniqueSectionLabelCount: new Set(sectionLabels).size,
+            }
+          : null,
+        formIntelligence: fieldContract
+          ? {
+              parseError: Boolean(fieldContract.parseError),
+              model: fieldContract.model || "",
+              mode: fieldContract.mode || "",
+              endpoint: fieldContract.endpoint || "",
+              requiredCount: (fieldContract.required || []).length,
+              optionalCount: (fieldContract.optional || []).length,
+              recommendedCount: declaredRecommended.length,
+              systemHiddenCount: (fieldContract.systemHidden || []).length,
+              missingRecommendedMarkers: declaredRecommended.filter(
+                (name) => !markedRecommended.includes(name),
+              ),
+              recommendedBadgeCount: document.querySelectorAll(
+                "[data-rmc-recommended-badge]",
+              ).length,
+              recommendedFields: declaredRecommended.map((name) => {
+                const node = fieldNodesByName(name)[0] || null;
+                const input = node?.querySelector("input, select, textarea") || null;
+                return {
+                  name,
+                  value: input?.value || "",
+                  type: input?.getAttribute("type") || input?.tagName.toLowerCase() || "",
+                };
+              }),
+              requiredHidden,
+              systemFieldsRendered,
+              pickerPresent: Boolean(fieldPicker),
+              presets: fieldPicker
+                ? [...fieldPicker.querySelectorAll("[data-rmc-field-preset]")].map(
+                    (element) => element.dataset.rmcFieldPreset,
+                  )
+                : [],
             }
           : null,
         tenantSearchPanelInitiallyVisible: Boolean(searchPanel && visible(searchPanel)),
@@ -754,6 +818,56 @@ function auditResult(result, surface) {
       expect(dom.save.menuOperable, "save_split_menu_not_operable");
       expect(dom.save.menuClosesOnEscape, "save_split_menu_escape_broken");
     }
+    expect(Boolean(dom.formIntelligence), "form_intelligence_contract_missing");
+    if (dom.formIntelligence) {
+      const intelligence = dom.formIntelligence;
+      expect(!intelligence.parseError, "form_intelligence_contract_invalid_json");
+      expect(Boolean(intelligence.model), "form_intelligence_model_missing");
+      expect(Boolean(intelligence.endpoint), "form_intelligence_endpoint_missing");
+      expect(
+        intelligence.requiredHidden.length === 0,
+        "required_field_hidden",
+        JSON.stringify(intelligence.requiredHidden),
+      );
+      expect(
+        intelligence.systemFieldsRendered.length === 0,
+        "system_owned_field_rendered",
+        JSON.stringify(intelligence.systemFieldsRendered),
+      );
+      expect(
+        intelligence.missingRecommendedMarkers.length === 0,
+        "recommended_field_not_decorated",
+        JSON.stringify(intelligence.missingRecommendedMarkers),
+      );
+      expect(
+        intelligence.recommendedBadgeCount >= intelligence.recommendedCount,
+        "recommended_badge_missing",
+        JSON.stringify(intelligence),
+      );
+      if (intelligence.optionalCount > 0) {
+        expect(intelligence.pickerPresent, "optional_field_picker_missing");
+        expect(
+          ["recommended", "all", "reset"].every((preset) =>
+            intelligence.presets.includes(preset),
+          ),
+          "optional_field_presets_incomplete",
+          JSON.stringify(intelligence.presets),
+        );
+      }
+      for (const expectedField of surface.expectSuggestedFields || []) {
+        const suggested = intelligence.recommendedFields.find(
+          (item) => item.name === expectedField,
+        );
+        expect(Boolean(suggested), "suggested_field_missing", expectedField);
+        expect(Boolean(suggested?.value), "suggested_field_not_prefilled", expectedField);
+      }
+      for (const expectedField of surface.expectNativeDateFields || []) {
+        const suggested = intelligence.recommendedFields.find(
+          (item) => item.name === expectedField,
+        );
+        expect(suggested?.type === "date", "native_date_input_missing", JSON.stringify(suggested));
+      }
+    }
   }
   if (["index", "app-index"].includes(surface.kind)) {
     expect(
@@ -947,6 +1061,7 @@ async function probe(page, surface) {
         internalScrollTraps: [],
         rawIcons: [],
         interactiveText: [],
+        formIntelligence: null,
         loginVisible: false,
       }
     : await collectDom(page);
@@ -1164,6 +1279,17 @@ async function discoverCoreSurfaces(page) {
       screenshot: options.width === 1440,
       expectInlineTable: true,
     });
+    add(
+      "tenant-academic-year-add",
+      "tenant",
+      "form",
+      "/admin/academics/academicyear/add/",
+      {
+        screenshot: true,
+        expectSuggestedFields: ["name", "start_date", "end_date"],
+        expectNativeDateFields: ["start_date", "end_date"],
+      },
+    );
     add("tenant-user-change", "tenant", "form", `${tenantUserBase}change/`, {
       screenshot: true,
     });

@@ -90,6 +90,7 @@ from .views_custom_requirement import request_custom_requirement
 from .views_sync_center import (
     sync_center,
     sync_center_bulk_resolve,
+    sync_center_probe,
     sync_center_resolve,
     sync_center_status,
     sync_now,
@@ -582,7 +583,7 @@ urlpatterns = [
         sync_request_resync,
         name="sync_center_request_resync",
     ),
-    path("sync-center/status/", sync_center_status, name="sync_center_status"),
+    path("sync-center/probe/", sync_center_probe, name="sync_center_probe"),
     path(
         "sync-center/bulk-resolve/",
         sync_center_bulk_resolve,

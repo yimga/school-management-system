@@ -253,7 +253,16 @@ def school_automation_execution_logs_api(request):
         except ValueError:
             return JsonResponse({"error": "invalid workflow_id"}, status=400)
     rows = []
-    for lg in qs.order_by("-created_at")[:80]:
+    logs = list(qs.order_by("-created_at")[:80])
+    latest_failed = set()
+    seen_wf = set()
+    for lg in logs:
+        if lg.workflow_id in seen_wf:
+            continue
+        seen_wf.add(lg.workflow_id)
+        if lg.run_status == SchoolWorkflowExecutionLog.RunStatus.FAILED:
+            latest_failed.add(lg.id)
+    for lg in logs:
         rows.append(
             {
                 "id": lg.id,
@@ -266,6 +275,7 @@ def school_automation_execution_logs_api(request):
                 "has_action_errors": any(
                     isinstance(r, dict) and r.get("error") for r in (lg.actions_run or [])
                 ),
+                "needs_attention": lg.id in latest_failed,
             }
         )
     return JsonResponse({"logs": rows})

@@ -25,6 +25,16 @@
             {% trans "Inventory reorder scan progress" %}
           {% elif task_type == "EDGE_SYNC" %}
             {% trans "Edge sync progress" %}
+          {% elif task_type == "ORCHESTRATION_RUN" %}
+            {% trans "Orchestration progress" %}
+          {% elif task_type == "AUTOMATION_DISPATCH" %}
+            {% trans "Automation progress" %}
+          {% elif task_type == "FEE_GENERATE" %}
+            {% trans "Fee invoice progress" %}
+          {% elif task_type == "BULK_GRADES" %}
+            {% trans "Bulk grades progress" %}
+          {% elif task_type == "WORKFLOW_CENTER" %}
+            {% trans "Workflow progress" %}
           {% else %}
             {% trans "Workflow progress" %}
           {% endif %}

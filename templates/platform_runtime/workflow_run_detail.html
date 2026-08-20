@@ -23,6 +23,8 @@
     </div>
   </header>
 
+  {% include "components/rmc_workflow_kickoff_live.html" with workflow_key=detail.workflow_key task_type="WORKFLOW_CENTER" %}
+
   {% if request.GET.applied %}
   <div class="rmc-banner rmc-banner--success" role="alert">{% trans "Fix applied successfully." %}</div>
   {% elif request.GET.error %}

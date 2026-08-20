@@ -375,25 +375,68 @@ class AdminDashboardView:
 
 
 class AdminCustomizationService:
-    """Service for admin customization"""
+    """Server-persisted admin customization backed by the local database."""
+
+    _namespace = "_rmc_admin_customization_v1"
+    _defaults = {
+        "dashboard_layout": "default",
+        "default_view": "overview",
+        "notifications_enabled": True,
+        "auto_refresh": True,
+        "refresh_interval": 300,
+    }
+    _allowed = frozenset(_defaults)
 
     @staticmethod
     def get_admin_preferences(user_id):
-        """Get admin preferences"""
-        return {
-            "dashboard_layout": "default",
-            "default_view": "overview",
-            "notifications_enabled": True,
-            "auto_refresh": True,
-            "refresh_interval": 300,  # seconds
-        }
+        """Get validated preferences; defaults survive a missing local row."""
+        from apps.siteconfig.models_dashboard import DashboardUserPreference
+
+        result = dict(AdminCustomizationService._defaults)
+        preference = DashboardUserPreference.objects.filter(user_id=user_id).only(
+            "dashboard_layout"
+        ).first()
+        if preference and isinstance(preference.dashboard_layout, dict):
+            stored = preference.dashboard_layout.get(
+                AdminCustomizationService._namespace, {}
+            )
+            if isinstance(stored, dict):
+                result.update(
+                    {key: value for key, value in stored.items() if key in result}
+                )
+        return result
 
     @staticmethod
     def save_admin_preferences(user_id, preferences):
-        """Save admin preferences"""
+        """Persist a constrained preference payload in the edge/local database."""
+        from django.core.exceptions import ValidationError
+        from apps.siteconfig.models_dashboard import DashboardUserPreference
+
+        if not isinstance(preferences, dict):
+            raise ValidationError("Admin preferences must be an object.")
+        invalid = set(preferences) - AdminCustomizationService._allowed
+        if invalid:
+            raise ValidationError(
+                f"Unknown admin preferences: {', '.join(sorted(invalid))}"
+            )
+        merged = AdminCustomizationService.get_admin_preferences(user_id)
+        merged.update(preferences)
+        try:
+            refresh_interval = int(merged["refresh_interval"])
+        except (TypeError, ValueError) as exc:
+            raise ValidationError("Refresh interval must be an integer.") from exc
+        if not 15 <= refresh_interval <= 3600:
+            raise ValidationError("Refresh interval must be between 15 and 3600 seconds.")
+        merged["refresh_interval"] = refresh_interval
+
+        preference, _ = DashboardUserPreference.objects.get_or_create(user_id=user_id)
+        layout = dict(preference.dashboard_layout or {})
+        layout[AdminCustomizationService._namespace] = merged
+        preference.dashboard_layout = layout
+        preference.save(update_fields=["dashboard_layout", "updated_at"])
         return {
             "status": "saved",
-            "preferences": preferences,
+            "preferences": merged,
         }
 
     @staticmethod

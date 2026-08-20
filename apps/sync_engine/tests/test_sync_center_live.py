@@ -8,7 +8,7 @@ from datetime import timedelta
 from unittest.mock import MagicMock, patch
 
 from django.test import Client, TestCase, override_settings
-from django.urls import reverse
+from django.urls import get_resolver, reverse
 from django.utils import timezone
 
 from apps.accounts.models import Permission as FeaturePermission, User
@@ -141,6 +141,14 @@ class SyncCenterLiveViewTests(TestCase):
         self.assertContains(page, "Sync queued")
         self.assertContains(page, "data-rmc-wfp-canvas")
         self.assertContains(page, "data-rmc-bulk-table")
+
+    def test_status_route_has_one_owner(self):
+        matching = [
+            pattern
+            for pattern in get_resolver().reverse_dict.getlist("siteconfig:sync_center_status")
+            if pattern
+        ]
+        self.assertEqual(len(matching), 1)
 
     def test_bulk_resolve_keeps_server_and_ignores_other_school(self):
         mine = SyncConflict.objects.create(

@@ -1,8 +1,8 @@
 {
-  "build_id": "2026-08-11-v17.2",
-  "cache_bust": "20260813-admin-production-v18",
-  "sw_version": "sms-v4.06.40-governed-outcome-surfaces-2026-08-13",
-  "seal": "2026-08-13-admin-production-v18",
+  "build_id": "2026-08-20-v20.0",
+  "cache_bust": "20260820-admin-automation-v20",
+  "sw_version": "sms-v4.06.68-admin-form-intelligence-2026-08-20",
+  "seal": "2026-08-20-admin-automation-v20",
   "approval_previews": [
     "var/design-previews/django-admin-os-top-tier-approval-v15-2026-07-21.html",
     "var/design-previews/django-admin-page-aware-full-fill-approval-2026-07-19.html",
@@ -11,8 +11,8 @@
     "var/design-previews/admin-emergency-full-canvas-and-provisioning-before-after-approval-2026-08-09.html"
   ],
   "visible_proofs": [
-    "data-rmc-admin-approval-build=\"2026-08-11-v17.2\"",
-    "v17.2 · Full canvas · operator+tenant",
+    "data-rmc-admin-approval-build=\"2026-08-20-v20.0\"",
+    "v20.0 · Full canvas · operator+tenant",
     "data-rmc-admin-archetype=\"discover\"",
     "data-rmc-admin-archetype=\"scan\"",
     "data-rmc-admin-archetype=\"edit\"",

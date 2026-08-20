@@ -1270,7 +1270,7 @@ def get_automation_workflow_health_summary(
     - pack_count: number of WorkflowPack records (tenant: assigned packs)
     - template_count: number of WorkflowTemplate records
     - paused_count: inactive packs (tenant: assigned inactive packs)
-    - failing_count: ProcessRun rows in failed terminal state (tenant-scoped when school set)
+    - failing_count: current open orchestration + automation failures (latest state only)
     - service_online: True when at least one metric source resolved (False = unknown, not zero)
     """
     empty: dict[str, Any] = {
@@ -1301,12 +1301,14 @@ def get_automation_workflow_health_summary(
             template_count = int(WorkflowTemplate.objects.all().count())
             failing_count = 0
             try:
-                from apps.orchestration.models import OrchestrationRun
+                from apps.platform_runtime.workflow_kickoff_live import (
+                    open_automation_failure_count,
+                    open_orchestration_failure_count,
+                )
 
                 failing_count = int(
-                    OrchestrationRun.objects.filter(
-                        school=school, status__iexact="failed"
-                    ).count()
+                    open_orchestration_failure_count(school=school)
+                    + open_automation_failure_count(school=school)
                 )
             except _STUDIO_SOFT_FAILURES:
                 failing_count = 0
@@ -1329,10 +1331,14 @@ def get_automation_workflow_health_summary(
             paused_count = 0
         failing_count = 0
         try:
-            from apps.orchestration.models import OrchestrationRun
+            from apps.platform_runtime.workflow_kickoff_live import (
+                open_automation_failure_count,
+                open_orchestration_failure_count,
+            )
 
             failing_count = int(
-                OrchestrationRun.objects.filter(status__iexact="failed").count()  # tenant-isolation-allow: studio-platform-wide-orchestration-failure-count
+                open_orchestration_failure_count(school=None)
+                + open_automation_failure_count(school=None)
             )
         except _STUDIO_SOFT_FAILURES:
             failing_count = 0

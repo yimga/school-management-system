@@ -11,6 +11,8 @@
   {% url 'studio_os:workflow_center' as workflow_center_url %}
   {% include "studio_os/components/page_header.html" with title=_("Automation Hub") subtitle=_("Execution logs, approval queue, and schedule configuration.") action_url=workflow_center_url action_text=_("Workflow Center") %}
 
+  {% include "components/rmc_workflow_kickoff_live.html" with workflow_key="" task_type="AUTOMATION_DISPATCH" kickoff_attention=1 %}
+
   <div class="row g-4 rmc-reveal-stagger">
     <div class="col-md-6 col-lg-4 rmc-reveal">
       <div class="card shadow-sm h-100">

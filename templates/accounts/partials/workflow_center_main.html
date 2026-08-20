@@ -28,6 +28,8 @@
 
   {% include "accounts/partials/workflow_center_builder_strip.html" %}
 
+  {% include "components/rmc_workflow_kickoff_live.html" with workflow_key="" task_type="WORKFLOW_CENTER" kickoff_attention=1 %}
+
   {% if steps %}
   <div class="mb-3 workflow-progress-overview" role="region" aria-label="{% trans 'Workflow progress' %}">
     <div class="d-flex justify-content-between align-items-center small text-muted mb-2">
@@ -96,6 +98,24 @@
           <p class="small text-muted mb-0 mt-2">{% trans "Active year:" %} <strong>{{ active_year.name|default:"-" }}</strong> · {% trans "Active term:" %} <strong>{% firstof active_term.name active_term "-" %}</strong></p>
         </div>
       </section>
+      {% if engine_attention %}
+      <section class="rmc-command-panel" aria-label="{% trans 'Open workflow issues' %}">
+        <div class="rmc-command-panel__body">
+          <h2 class="h6 mb-2">{% trans "Action required" %}</h2>
+          {% if engine_attention.needs_attention %}
+          <p class="mb-2">
+            <span class="rmc-badge rmc-badge--danger">{% trans "Open issues" %}</span>
+            {% if engine_attention.orchestration_open %}<span class="rmc-badge rmc-badge--danger">{% blocktrans count count=engine_attention.orchestration_open %}{{ count }} process{% plural %}{{ count }} processes{% endblocktrans %}</span>{% endif %}
+            {% if engine_attention.automation_open %}<span class="rmc-badge rmc-badge--danger">{% blocktrans count count=engine_attention.automation_open %}{{ count }} automation{% plural %}{{ count }} automations{% endblocktrans %}</span>{% endif %}
+            {% if engine_attention.progress_bus_open %}<span class="rmc-badge rmc-badge--danger">{% blocktrans count count=engine_attention.progress_bus_open %}{{ count }} job{% plural %}{{ count }} jobs{% endblocktrans %}</span>{% endif %}
+            {% if engine_attention.approvals_pending %}<span class="rmc-badge rmc-badge--warning">{% blocktrans count count=engine_attention.approvals_pending %}{{ count }} approval{% plural %}{{ count }} approvals{% endblocktrans %}</span>{% endif %}
+          </p>
+          {% else %}
+          <p class="small text-muted mb-0">{% trans "Nothing needs attention. Completed work stays in the logs." %}</p>
+          {% endif %}
+        </div>
+      </section>
+      {% endif %}
       {% if migration_status %}
       <section class="rmc-command-panel" aria-label="{% trans 'Data migration status' %}">
         <div class="rmc-command-panel__body">
@@ -103,7 +123,10 @@
           {% if migration_status.bundle %}
           <p class="small mb-1"><strong>{{ migration_status.bundle.label }}</strong></p>
           <p class="mb-2">
-            <span class="rmc-badge{% if migration_status.bundle.applied %} rmc-badge--success{% elif migration_status.bundle.needs_attention %} rmc-badge--danger{% elif migration_status.bundle.detecting %} rmc-badge--info{% endif %}">{{ migration_status.bundle.status_label }}</span>
+            <span class="rmc-badge{% if migration_status.bundle.needs_attention %} rmc-badge--danger{% elif migration_status.bundle.importing %} rmc-badge--info{% elif migration_status.bundle.applied %} rmc-badge--success{% elif migration_status.bundle.detecting %} rmc-badge--info{% endif %}">{{ migration_status.bundle.status_label }}</span>
+            {% if migration_status.bundle.held %}
+            <span class="rmc-badge rmc-badge--danger">{% blocktrans count count=migration_status.bundle.held %}{{ count }} record held for review{% plural %}{{ count }} records held for review{% endblocktrans %}</span>
+            {% endif %}
           </p>
           <div class="d-grid gap-2">
             {% if migration_status.bundle.review_url %}
