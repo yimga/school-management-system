@@ -4,37 +4,40 @@ Expand tenant daily ops — per-workflow next-best actions with resolved URLs.
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from django.urls import NoReverseMatch, reverse
 
+logger = logging.getLogger(__name__)
+
 WORKFLOW_ACTIONS: dict[str, list[dict[str, Any]]] = {
     "ADMIN": [
-        {"key": "attendance", "label": "Take attendance today", "url_name": "accounts:attendance_dashboard", "clicks_saved": 2},
+        {"key": "attendance", "label": "Take attendance today", "url_name": "portal:take_student_attendance", "clicks_saved": 2},
         {"key": "announcement", "label": "Send announcement", "url_name": "communication:announcement_create", "clicks_saved": 1},
         {"key": "fees", "label": "Review unpaid invoices", "url_name": "finance:invoices", "clicks_saved": 2},
-        {"key": "reports", "label": "Open reports hub", "url_name": "reports:home", "clicks_saved": 1},
+        {"key": "reports", "label": "Open reports hub", "url_name": "reports:bulk_report_console", "clicks_saved": 1},
     ],
     "LEADERSHIP": [
-        {"key": "attendance", "label": "Attendance overview", "url_name": "accounts:attendance_dashboard", "clicks_saved": 2},
+        {"key": "attendance", "label": "Attendance overview", "url_name": "portal:take_student_attendance", "clicks_saved": 2},
         {"key": "staff_tasks", "label": "Staff tasks", "url_name": "accounts:backend_dashboard", "clicks_saved": 1},
     ],
     "PRINCIPAL": [
-        {"key": "attendance", "label": "Take attendance today", "url_name": "accounts:attendance_dashboard", "clicks_saved": 2},
-        {"key": "discipline", "label": "Behavior incidents", "url_name": "people:student_list", "clicks_saved": 2},
+        {"key": "attendance", "label": "Take attendance today", "url_name": "portal:take_student_attendance", "clicks_saved": 2},
+        {"key": "discipline", "label": "Behavior incidents", "url_name": "portal:discipline_incidents_list", "clicks_saved": 2},
     ],
     "TEACHER": [
-        {"key": "gradebook", "label": "Open gradebook", "url_name": "evals:teacher_gradebook", "clicks_saved": 2},
-        {"key": "attendance", "label": "Mark attendance", "url_name": "accounts:attendance_dashboard", "clicks_saved": 1},
-        {"key": "assignments", "label": "Post assignment", "url_name": "evals:assignment_create", "clicks_saved": 2},
+        {"key": "gradebook", "label": "Open gradebook", "url_name": "portal:teacher_gradebook", "clicks_saved": 2},
+        {"key": "attendance", "label": "Mark attendance", "url_name": "portal:take_student_attendance", "clicks_saved": 1},
+        {"key": "assignments", "label": "Post assignment", "url_name": "portal:teacher_assignment_create", "clicks_saved": 2},
     ],
     "PARENT": [
-        {"key": "messages", "label": "Message school", "url_name": "communication:parent_inbox", "clicks_saved": 1},
-        {"key": "fees", "label": "Pay fees", "url_name": "finance:parent_payments", "clicks_saved": 2},
-        {"key": "student360", "label": "Student overview", "url_name": "student360:parent_dashboard", "clicks_saved": 1},
+        {"key": "messages", "label": "Message school", "url_name": "accounts:user_messages", "clicks_saved": 1},
+        {"key": "fees", "label": "Pay fees", "url_name": "portal:parent_finance", "clicks_saved": 2},
+        {"key": "student360", "label": "Student overview", "url_name": "portal:parent_dashboard", "clicks_saved": 1},
     ],
     "STUDENT": [
-        {"key": "assignments", "label": "My assignments", "url_name": "evals:student_assignments", "clicks_saved": 1},
+        {"key": "assignments", "label": "My assignments", "url_name": "portal:student_assignments", "clicks_saved": 1},
     ],
 }
 
@@ -50,15 +53,32 @@ def next_best_actions_for_role(school, user) -> list[dict[str, Any]]:
 
 
 def resolve_action_urls(actions: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Resolve each action's destination, DROPPING any that has none.
+
+    This used to emit ``url: ""`` when a name would not reverse, so a caller
+    rendered a button that goes nowhere — a dead end produced by the very engine
+    whose job is to save clicks. Twelve of the fifteen registry entries were in
+    that state (every teacher, parent and student action), because the names had
+    drifted as apps were reorganised and nothing ever checked them.
+
+    Dropping is the safe direction: showing one fewer action costs a click,
+    while showing a broken one costs trust. ``test_every_daily_ops_action_resolves``
+    keeps the registry honest so this branch stays theoretical.
+    """
     resolved: list[dict[str, Any]] = []
     for action in actions:
         row = dict(action)
         url_name = row.pop("url_name", "")
-        row["url"] = ""
-        if url_name:
-            try:
-                row["url"] = reverse(url_name)
-            except NoReverseMatch:
-                row["url"] = ""
+        if not url_name:
+            continue
+        try:
+            row["url"] = reverse(url_name)
+        except NoReverseMatch:
+            logger.warning(
+                "tenant_daily_ops: dropping action %r — %r does not reverse",
+                row.get("key", ""),
+                url_name,
+            )
+            continue
         resolved.append(row)
     return resolved
