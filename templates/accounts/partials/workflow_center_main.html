@@ -99,9 +99,20 @@
         </div>
       </section>
       {% if engine_attention %}
+      {% comment %}
+      Resolved with `as` rather than inline: platform_runtime is registered on the
+      tenant URLconf, and this partial also renders on the manager and public hosts,
+      where an inline url tag would raise instead of degrading to no link.
+      {% endcomment %}
+      {% url 'platform_runtime:workflow_progress_flight_deck' as flight_deck_url %}
       <section class="rmc-command-panel" aria-label="{% trans 'Open workflow issues' %}">
         <div class="rmc-command-panel__body">
-          <h2 class="h6 mb-2">{% trans "Action required" %}</h2>
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+            <h2 class="h6 mb-0">{% trans "Action required" %}</h2>
+            {% if engine_attention.needs_attention and flight_deck_url %}
+            <a class="btn btn-sm btn-primary" href="{{ flight_deck_url }}">{% trans "Review open issues" %}</a>
+            {% endif %}
+          </div>
           {% if engine_attention.needs_attention %}
           <p class="mb-2">
             <span class="rmc-badge rmc-badge--danger">{% trans "Open issues" %}</span>
@@ -111,6 +122,7 @@
             {% if engine_attention.approvals_pending %}<span class="rmc-badge rmc-badge--warning">{% blocktrans count count=engine_attention.approvals_pending %}{{ count }} approval{% plural %}{{ count }} approvals{% endblocktrans %}</span>{% endif %}
           </p>
           {% else %}
+          {# attention-allow: empty-state — the counts above are all zero here; there is nothing to act on, so there is nothing to link to. #}
           <p class="small text-muted mb-0">{% trans "Nothing needs attention. Completed work stays in the logs." %}</p>
           {% endif %}
         </div>

@@ -22,7 +22,7 @@ Polls sync_center_status via rmc-edge-sync-chrome.js; server seeds initial perce
       <span data-rmc-edge-sync-headline>{% if headline %}{{ headline }}{% elif phase == 'running' %}{% trans "Sync in progress…" %}{% elif phase == 'queued' %}{% trans "Sync queued — waiting to connect." %}{% elif phase == 'failed' %}{% trans "Last sync failed." %}{% else %}{% trans "Checking sync status…" %}{% endif %}</span>
     </div>
     <div class="d-flex flex-wrap gap-2 align-items-center" style="min-width: 10rem;">
-      <div class="progress flex-grow-1 rmc-edge-sync-bar__track" style="height: 0.5rem; min-width: 6rem;" aria-hidden="true">
+      <div class="progress flex-grow-1 rmc-edge-sync-bar__track" aria-hidden="true">
         <div class="progress-bar progress-bar-striped{% if phase == 'running' %} progress-bar-animated{% endif %}"
              role="progressbar"
              data-rmc-edge-sync-fill

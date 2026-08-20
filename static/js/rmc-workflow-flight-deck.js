@@ -394,6 +394,7 @@
       "</section>"
     );
   }
+  function renderHealth(health) {
     if (!health) return "";
     var state = health.workflow_state || "Healthy";
     var stateClass =
