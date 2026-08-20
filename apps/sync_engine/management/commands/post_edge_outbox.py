@@ -24,7 +24,7 @@ import urllib.error
 from pathlib import Path
 
 from django.core.management.base import BaseCommand, CommandError
-from django.urls import NoReverseMatch, reverse
+from apps.sync_engine.cloud_endpoints import cloud_endpoint
 from django.utils.dateparse import parse_datetime
 
 
@@ -70,11 +70,7 @@ class Command(BaseCommand):
             base = (options.get("operator_base") or "").strip()
             if not base:
                 raise CommandError("Provide --endpoint or --operator-base.")
-            try:
-                path = reverse("api:sync-bundle-upload")
-            except NoReverseMatch:
-                path = "/api/v1/sync/bundle/upload/"
-            endpoint = base.rstrip("/") + path
+            endpoint = cloud_endpoint(base, "api:sync-bundle-upload")
 
         cursor_file = (options.get("cursor_file") or "").strip()
         raw_since = (options.get("since") or "").strip()

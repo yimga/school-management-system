@@ -5,7 +5,7 @@ A sovereign edge box runs this to collect UPDATES to records that already exist
 upstream on the operator -- identity guaranteed by Slice 0's pk-preserving clone,
 so a row edited on the box carries the same pk on the operator -- since a cursor,
 and writes a signed delta bundle. The bundle is exactly what the operator's
-``/api/v1/sync/bundle/upload/`` receiver (Slice 1) consumes; the authenticated
+``/api/sync/bundle/upload/`` receiver (Slice 1) consumes; the authenticated
 upload over the network is Slice 3 (it needs the per-box machine credential).
 
 Scope / semantics (honest limits):

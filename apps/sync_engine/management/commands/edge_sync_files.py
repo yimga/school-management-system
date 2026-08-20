@@ -21,6 +21,7 @@ import os
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.urls import NoReverseMatch, reverse
+from apps.sync_engine.cloud_endpoints import CLOUD_SYNC_PATHS
 
 
 class Command(BaseCommand):
@@ -46,9 +47,11 @@ class Command(BaseCommand):
         base = self._operator_base()
         token = (os.getenv("RMC_EDGE_CREDENTIAL") or "").strip()
         manifest_endpoint = base + self._path(
-            "api:sync-file-manifest", "/api/v1/sync/files/manifest/"
+            "api:sync-file-manifest", CLOUD_SYNC_PATHS["api:sync-file-manifest"]
         )
-        chunk_endpoint = base + self._path("api:sync-file-chunk", "/api/v1/sync/files/chunk/")
+        chunk_endpoint = base + self._path(
+            "api:sync-file-chunk", CLOUD_SYNC_PATHS["api:sync-file-chunk"]
+        )
 
         pull = not options.get("push_only")
         push = not options.get("pull_only")
