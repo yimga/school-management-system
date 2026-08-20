@@ -432,10 +432,13 @@ def _edge_sync_panel_context(school):
     hidden behind an older failed run. Best-effort: the conflicts page must
     still render if the sync models are unavailable.
     """
-    from django.conf import settings
+
+    from apps.sync_engine.edge_enabled import edge_sync_enabled
 
     ctx = {
-        "edge_sync_enabled": bool(getattr(settings, "RMC_EDGE_SYNC_ENABLED", False)),
+        # Resolved, not the raw env flag: a paired box IS an edge box, and a panel
+        # that said otherwise while the box was happily syncing would be lying.
+        "edge_sync_enabled": edge_sync_enabled(),
         "latest_sync_run": None,
         "pending_resync": None,
         "last_served_resync": None,
@@ -487,6 +490,11 @@ def sync_center_probe(request):
     school = getattr(request, "school", None)
     if not school:
         return JsonResponse({"ok": False, "error": "No school"}, status=403)
+    # DELIBERATELY the raw env flag, not the resolved edge_sync_enabled(). This is an
+    # authorization bypass ("on a box, let the box's own screens probe without a tenant
+    # permission"), not a question about whether sync runs. Widening it on the strength
+    # of a database row would let a pairing quietly change who may call this. A paired
+    # box without the flag simply asks for settings.manage, which its admins hold.
     edge_enabled = bool(getattr(settings, "RMC_EDGE_SYNC_ENABLED", False))
     if not edge_enabled and not user_has_permission(
         request.user, school=school, codes="settings.manage"
@@ -598,7 +606,6 @@ def sync_now(request):
             request,
             message="Select your school to run a sync.",
         )
-    from django.conf import settings
 
     from apps.sync_engine import sync_runner
 
@@ -607,7 +614,9 @@ def sync_now(request):
     # cloud to call out to, and it cannot reach into the box's LAN), so running it here
     # only manufactured a red run row on every click. Point the operator at the control
     # that does work from this side.
-    if not bool(getattr(settings, "RMC_EDGE_SYNC_ENABLED", False)):
+    from apps.sync_engine.edge_enabled import edge_sync_enabled as _edge_sync_enabled
+
+    if not _edge_sync_enabled():
         messages.error(
             request,
             _(
@@ -753,6 +762,11 @@ def sync_center_status(request):
     if not school:
         return JsonResponse({"ok": False, "error": "No school"}, status=403)
 
+    # DELIBERATELY the raw env flag, not the resolved edge_sync_enabled(). This is an
+    # authorization bypass ("on a box, let the box's own screens probe without a tenant
+    # permission"), not a question about whether sync runs. Widening it on the strength
+    # of a database row would let a pairing quietly change who may call this. A paired
+    # box without the flag simply asks for settings.manage, which its admins hold.
     edge_enabled = bool(getattr(settings, "RMC_EDGE_SYNC_ENABLED", False))
     if not edge_enabled and not user_has_permission(
         request.user, school=school, codes="settings.manage"

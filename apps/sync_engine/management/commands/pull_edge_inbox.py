@@ -17,7 +17,6 @@ inbound port is opened on a box behind a private LAN.
 """
 from __future__ import annotations
 
-import os
 import urllib.error
 from pathlib import Path
 
@@ -58,15 +57,27 @@ class Command(BaseCommand):
         if school is None:
             raise CommandError(f"School not found ({slug or school_id}).")
 
-        token = (options.get("token") or os.getenv("RMC_EDGE_CREDENTIAL") or "").strip()
+        # --token wins (an operator testing a specific credential), then the paired
+        # binding, then the environment for a box that was never paired.
+        from apps.sync_engine.edge_binding import edge_credential
+
+        token = (options.get("token") or "").strip() or edge_credential()
         if not token:
-            raise CommandError("No credential: pass --token or set RMC_EDGE_CREDENTIAL.")
+            raise CommandError(
+                "No credential: pair this box (manage.py pair_box), pass --token, "
+                "or set RMC_EDGE_CREDENTIAL."
+            )
 
         endpoint = (options.get("endpoint") or "").strip()
         if not endpoint:
-            base = (options.get("operator_base") or "").strip()
+            from apps.sync_engine.edge_binding import operator_base
+
+            base = (options.get("operator_base") or "").strip() or operator_base()
             if not base:
-                raise CommandError("Provide --endpoint or --operator-base.")
+                raise CommandError(
+                    "No cloud address: pair this box (manage.py pair_box), or pass "
+                    "--endpoint / --operator-base."
+                )
             endpoint = cloud_endpoint(base, "api:sync-bundle-download")
 
         cursor_file = (options.get("cursor_file") or "").strip()

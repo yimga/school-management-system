@@ -20,7 +20,9 @@ class EdgeAutosyncMiddleware:
         return self.get_response(request)
 
     def _maybe_tick(self, request) -> None:
-        if not bool(getattr(settings, "RMC_EDGE_SYNC_ENABLED", False)):
+        from apps.sync_engine.edge_enabled import edge_sync_enabled
+
+        if not edge_sync_enabled():
             return
         if getattr(settings, "RUNNING_TESTS", False):
             return

@@ -24,7 +24,6 @@ where those tables are FORCE RLS + default-deny (the ``School`` parent itself is
 """
 from __future__ import annotations
 
-import os
 from dataclasses import dataclass, field
 from typing import Any, Callable, Optional
 
@@ -114,15 +113,22 @@ def _fill_command(template: str, school) -> str:
 
 
 def _operator_base() -> str:
-    """Operator (cloud) base URL — the same knobs the sync runner reads."""
-    base = (getattr(settings, "RMC_EDGE_OPERATOR_BASE", "") or "").strip()
-    if not base:
-        base = (getattr(settings, "RMC_HUB_BASE_URL", "") or "").strip()
-    return base.rstrip("/")
+    """Operator (cloud) base URL — resolved exactly as the sync runner resolves it.
+
+    Via ``edge_binding`` rather than straight off the environment, so a box that was
+    PAIRED validates against the address it will actually call. Reading the env here
+    while the runner read the binding is how a runbook step reports "not configured"
+    on a box that is syncing perfectly well.
+    """
+    from apps.sync_engine.edge_binding import operator_base
+
+    return operator_base()
 
 
 def _edge_token() -> str:
-    return (os.getenv("RMC_EDGE_CREDENTIAL") or "").strip()
+    from apps.sync_engine.edge_binding import edge_credential
+
+    return edge_credential()
 
 
 def _onboarding_state(school) -> dict:
@@ -341,8 +347,13 @@ def _validate_lan_hostname(school) -> "tuple[bool, str]":
 
 def _validate_enable_configure_sync(school) -> "tuple[bool, str]":
     try:
-        if not bool(getattr(settings, "RMC_EDGE_SYNC_ENABLED", False)):
-            return False, "RMC_EDGE_SYNC_ENABLED is off — the box cannot sync to the operator."
+        from apps.sync_engine.edge_enabled import edge_sync_enabled, why
+
+        if not edge_sync_enabled():
+            return False, (
+                f"Edge sync is off — {why()['reason']}. Pair this box "
+                "(manage.py pair_box, or the /pair/ screen) or set RMC_EDGE_SYNC_ENABLED=1."
+            )
         base = _operator_base()
         token = _edge_token()
         if not base and not token:
@@ -905,23 +916,34 @@ EDGE_ONBOARDING_STEPS: "tuple[EdgeOnboardingStep, ...]" = (
     ),
     EdgeOnboardingStep(
         key="enable_configure_sync",
-        title="Enable + configure edge sync",
+        title="Pair the box with its cloud tenant",
         purpose=(
-            "Turn on RMC_EDGE_SYNC_ENABLED and configure the operator base URL + a minted "
-            "per-box edge credential so the box can push local changes up and pull cloud "
-            "changes down (money stays cloud-authoritative). This keeps both sides "
-            "converged AFTER the data seed — it does not load the initial roster."
+            "Adopt this box into the school's cloud tenant. Run pair_box on the box (or "
+            "open its /edge/pair-this-box/ screen); it displays a short code, and an "
+            "administrator of "
+            "that school approves the code in the cloud Sync Center. The box then "
+            "collects a machine credential over the SAME outbound path it will use to "
+            "sync, so a successful pairing is itself proof the network path works. "
+            "Nothing else has to be configured. The credential is stored in the box's own "
+            "database (so it survives a container rebuild, unlike an .env file), and a "
+            "paired box counts as edge-sync-enabled on its own — there is no separate "
+            "flag to remember. This keeps both sides converged AFTER the data seed; it "
+            "does not load the initial roster."
         ),
         category="sync",
-        command_template=(
-            "export RMC_EDGE_SYNC_ENABLED=1 RMC_EDGE_OPERATOR_BASE=https://hub.runmycampus.app && "
-            "python manage.py mint_edge_credential --slug {slug} --user <owner-username> --days 365"
-        ),
+        command_template="python manage.py pair_box --wait",
         validate=_validate_enable_configure_sync,
         workaround=(
-            "Mint the credential (mint_edge_credential) on the OPERATOR (cloud) side and "
-            "copy the one-time token onto the box as RMC_EDGE_CREDENTIAL; if the box has no "
-            "outbound reach yet, leave sync off and re-run this step once connectivity exists."
+            "Nobody available to approve? Mint a claim ticket on the cloud "
+            "(python manage.py mint_claim_ticket --slug {slug}) and pass it to the box as "
+            "`pair_box --claim <ticket>`; it pre-authorises exactly ONE adoption of that "
+            "one school and every reuse is counted as misuse. Platform staff can also "
+            "approve on the school's behalf, and a request stays open for days, so an "
+            "installer can leave and it can be approved later. "
+            "Legacy path (still supported, nothing to migrate): mint_edge_credential on "
+            "the cloud and copy the token onto the box as RMC_EDGE_CREDENTIAL with "
+            "RMC_EDGE_OPERATOR_BASE and RMC_EDGE_SYNC_ENABLED=1. A stored pairing always "
+            "wins over these; clear it with `pair_box --unpair --yes` to go back."
         ),
         runs_on=RUNS_ON_BOX,
         evidence=EVIDENCE_BOX_SETTINGS,
@@ -936,12 +958,18 @@ EDGE_ONBOARDING_STEPS: "tuple[EdgeOnboardingStep, ...]" = (
             "before the box may go offline. Runs on the box only — never from a cloud GET."
         ),
         category="verification",
-        command_template="python manage.py edge_onboarding_verify --slug {slug} --include-gate",
+        command_template=(
+            "python manage.py verify_edge_link --http && "
+            "python manage.py edge_onboarding_verify --slug {slug} --include-gate"
+        ),
         validate=_validate_verify_and_sync_gate,
         workaround=(
-            "If the dry sync gate does not clear, the box is NOT cleared to go offline: "
-            "fix connectivity to the operator base URL and re-mint/re-set the edge "
-            "credential, then re-run. Never take a box dark on a red gate."
+            "If the gate does not clear, the box is NOT cleared to go offline. Run "
+            "`python manage.py verify_edge_link --http` first: it walks the whole chain "
+            "(deployment, address, credential, school, scheduler, reachability) and names "
+            "the FIRST broken link with the command that fixes it. Fix that one and "
+            "re-run — the later failures are usually consequences of it. Never take a box "
+            "dark on a red gate."
         ),
         runs_on=RUNS_ON_BOX,
         evidence=EVIDENCE_NETWORK,

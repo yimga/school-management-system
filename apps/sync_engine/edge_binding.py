@@ -116,6 +116,16 @@ def is_sealed() -> bool:
     return bool(_env_base() and (os.getenv("RMC_EDGE_CREDENTIAL") or "").strip())
 
 
+def _invalidate_enabled_memo() -> None:
+    """Tell :mod:`edge_enabled` its cached answer is stale. Never raises."""
+    try:
+        from apps.sync_engine.edge_enabled import invalidate
+
+        invalidate()
+    except Exception:  # noqa: BLE001 — a stale memo must not fail a pairing
+        logger.debug("edge_binding: could not invalidate the enabled memo", exc_info=True)
+
+
 def save_binding(
     *,
     operator_base: str,
@@ -144,6 +154,10 @@ def save_binding(
     row.paired_via = via
     row.sealed = True
     row.save()
+    # A paired box IS an enabled box (see edge_enabled). Bust the memo now so sync
+    # starts on the next tick instead of at the next container restart — the pairing
+    # screen the installer is watching is the wrong place to learn about a TTL.
+    _invalidate_enabled_memo()
     logger.info(
         "edge_binding: box paired to %s as %s", row.operator_base, row.school_slug
     )
@@ -161,6 +175,7 @@ def clear_binding() -> bool:
     if row is None:
         return False
     row.delete()
+    _invalidate_enabled_memo()
     logger.warning("edge_binding: binding cleared; box is unpaired")
     return True
 

@@ -47,14 +47,25 @@ else
   python manage.py check_edge_readiness || true
 fi
 
+# Report the box<->cloud link in the boot logs. Deliberately NOT gated on
+# RMC_EDGE_SYNC_ENABLED: a PAIRED box is an enabled box, and the state most worth
+# printing is the one where the operator believes sync is on and it is not. Offline
+# checks only (no --http) so boot never waits on the network. Advisory always.
+echo "[selfhost] box <-> cloud link"
+python manage.py verify_edge_link || true
+
 # Edge auto-sync: one reconcile on boot so a power-loss / crash / abrupt-disconnect
 # recovery pushes & pulls IMMEDIATELY, without waiting for the first scheduled
-# interval. Backgrounded and swallowed — edge_autosync is flag-gated + offline-safe,
-# so it must never delay or block boot (a no-op when RMC_EDGE_SYNC_ENABLED is unset).
-if [[ "${RMC_EDGE_SYNC_ENABLED:-0}" == "1" ]]; then
-  echo "[selfhost] edge auto-sync: initial reconcile on boot (backgrounded)"
-  ( python manage.py edge_autosync >/dev/null 2>&1 || true ) &
-fi
+# interval. Backgrounded and swallowed — edge_autosync is offline-safe and self-gating
+# (it no-ops unless this box is paired or RMC_EDGE_SYNC_ENABLED is set), so it must
+# never delay or block boot.
+#
+# The shell condition was removed on purpose: it tested only the env var, so a box
+# adopted through the pairing screen skipped its boot reconcile entirely. The command
+# already makes this decision correctly, and it makes it the same way everything else
+# does.
+echo "[selfhost] edge auto-sync: initial reconcile on boot (backgrounded)"
+( python manage.py edge_autosync >/dev/null 2>&1 || true ) &
 
 echo "[selfhost] starting gunicorn"
 exec gunicorn -c config/gunicorn.conf.py config.wsgi:application
