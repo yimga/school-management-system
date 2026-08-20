@@ -17,6 +17,16 @@ from apps.schools.onboarding_profile import normalize_institution_profile
 MANIFEST_VERSION = 5
 ENGINE_ID = "tenant-configuration-autopilot-v5"
 
+#: Country-specific secondary-cycle blueprints, keyed by ISO-3166-1 alpha-2.
+#: A registry rather than an inline per-country equality branch, so that adding a
+#: country is a data edit, not a change to the resolution logic
+#: (scripts/check_no_hardcoding.py). Countries absent here fall through to the
+#: generic secondary/primary blueprints below, which is the pre-existing
+#: behaviour for every country except CM.
+COUNTRY_SECONDARY_BLUEPRINTS: dict[str, tuple[str, str]] = {
+    "CM": ("cameroon-gce-school", "BP-CM-GCE-001"),
+}
+
 
 def _build_confidence_envelope(
     *,
@@ -245,9 +255,8 @@ def _resolve_blueprints(
     elif assessment in {"international", "mixed"}:
         primary_key = "international-school"
         primary_rule = "BP-INTERNATIONAL-001"
-    elif country == "CM" and has_secondary:
-        primary_key = "cameroon-gce-school"
-        primary_rule = "BP-CM-GCE-001"
+    elif has_secondary and country in COUNTRY_SECONDARY_BLUEPRINTS:
+        primary_key, primary_rule = COUNTRY_SECONDARY_BLUEPRINTS[country]
     elif has_secondary:
         primary_key = "private-secondary-school"
         primary_rule = "BP-SECONDARY-001"

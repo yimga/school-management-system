@@ -846,7 +846,7 @@ def _step_state_for_school(school) -> dict[str, dict[str, Any]]:
     has_addons = any(bool(value) for value in features.values())
     if not has_addons:
         try:
-            from apps.siteconfig.models import FeatureToggleState
+            from apps.policies_rules.models import FeatureToggleState
 
             has_addons = FeatureToggleState.objects.filter(
                 school=school,
