@@ -224,6 +224,9 @@ def approve_pairing(*, code: str, approver, school=None) -> dict:
 
     target = request.school
     if target is None:
+        # Nobody administers a school that does not exist, so there is no one to
+        # approve this and no school to bind a credential to. Reported rather than
+        # silently dropped so a mistyped slug is diagnosable from the operator side.
         return {
             "ok": False,
             "error": "unknown_school",
@@ -232,7 +235,15 @@ def approve_pairing(*, code: str, approver, school=None) -> dict:
         }
     if school is not None and str(getattr(school, "pk", "")) != str(target.pk):
         return {"ok": False, "error": "wrong_tenant", "user_code": request.user_code}
-    if not user_is_tenant_admin(approver, target):
+    # Platform staff are the backstop for the case this whole deferred-approval design
+    # exists to survive: nobody at the school responds. They already hold control-plane
+    # access to every tenant, so approving on a school's behalf grants them nothing new
+    # -- but it is recorded in ``approved_by``, and the minted credential is bound to
+    # THEM, so an operator-approved box is visibly operator-approved forever after.
+    is_platform_staff = bool(
+        getattr(approver, "is_superuser", False) or getattr(approver, "is_staff", False)
+    )
+    if not (is_platform_staff or user_is_tenant_admin(approver, target)):
         return {"ok": False, "error": "forbidden", "user_code": request.user_code}
 
     request.status = EdgePairingRequest.Status.APPROVED

@@ -356,3 +356,57 @@ class DerivedOperatorBaseTests(SimpleTestCase):
         from apps.sync_engine.edge_binding import derive_operator_base
 
         self.assertEqual(derive_operator_base(""), "")
+
+
+class PlatformStaffBackstopTests(TestCase):
+    """The answer to 'nobody at the school is available to approve'."""
+
+    def setUp(self):
+        from django.contrib.auth import get_user_model
+
+        from apps.schools.models import School
+
+        self.school = School.objects.create(name="Gilead Tech", slug="gilead-tech")
+        User = get_user_model()
+        self.staff = User.objects.create_user(
+            username="platform_ops", password="x", is_staff=True
+        )
+        self.nobody = User.objects.create_user(username="random", password="x")
+
+    def _start(self):
+        from apps.sync_engine.pairing_service import start_pairing
+
+        with mock.patch(
+            "apps.sync_engine.pairing_service.notify_admins_of_pending_pairing"
+        ):
+            return start_pairing(claimed_slug="gilead-tech")
+
+    def test_platform_staff_can_approve_on_the_schools_behalf(self):
+        from apps.sync_engine.pairing_service import approve_pairing
+
+        started = self._start()
+        result = approve_pairing(code=started["user_code"], approver=self.staff)
+        self.assertTrue(result["ok"], result)
+
+    def test_the_credential_is_bound_to_the_staff_member_who_approved(self):
+        """An operator-approved box stays visibly operator-approved."""
+        from apps.sync_engine.edge_outbox import resolve_edge_credential
+        from apps.sync_engine.pairing_service import approve_pairing, collect_pairing
+
+        started = self._start()
+        approve_pairing(code=started["user_code"], approver=self.staff)
+        out = collect_pairing(
+            request_id=started["request_id"], poll_secret=started["poll_secret"]
+        )
+        user, _school = resolve_edge_credential(out["credential"])
+        self.assertEqual(user.pk, self.staff.pk)
+        row = EdgePairingRequest.objects.get(pk=started["request_id"])
+        self.assertEqual(row.approved_by_id, self.staff.pk)
+
+    def test_an_ordinary_user_is_still_refused(self):
+        from apps.sync_engine.pairing_service import approve_pairing
+
+        started = self._start()
+        result = approve_pairing(code=started["user_code"], approver=self.nobody)
+        self.assertFalse(result["ok"])
+        self.assertEqual(result["error"], "forbidden")
