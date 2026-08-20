@@ -28,6 +28,13 @@ urlpatterns = [
         views_tenant_upload.TenantMigrationUploadView.as_view(),
         name="upload",
     ),
+    # One tray for every import this school has started. Exists so a wedged or
+    # held import is visible without opening each bundle's own review page.
+    path(
+        "inbox/",
+        views_tenant_upload.TenantMigrationInboxView.as_view(),
+        name="migration-inbox",
+    ),
     path(
         "bundle/<int:bundle_id>/review/",
         views_tenant_upload.TenantMigrationReviewView.as_view(),

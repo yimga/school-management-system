@@ -46,6 +46,8 @@ def _fake_bundle(status, artifacts=None):
         # the progress payload reads bundle.size_summary for advance_error, so
         # the fake must supply it too (else AttributeError on a namespace stub).
         size_summary={},
+        mapping_summary={},
+        reconciliation_summary={},
         artifacts=_FakeArtifactManager(artifacts or []),
     )
 

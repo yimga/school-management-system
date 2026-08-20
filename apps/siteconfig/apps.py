@@ -58,6 +58,12 @@ class SiteconfigConfig(AppConfig):
             ValueError,
         ) as exc:
             logger.warning("Siteconfig signal wiring skipped: %s", exc)
+        try:
+            from .range_validation import connect_range_validation
+
+            connect_range_validation()
+        except (AttributeError, ImportError, RuntimeError, TypeError, ValueError) as exc:
+            logger.warning("Siteconfig range-validation wiring skipped: %s", exc)
         # v4.00.45 — public status page subscriber fan-out on PublicIncident save.
         try:
             from .signals_public_status import _connect_public_incident_signals

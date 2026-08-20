@@ -8,6 +8,8 @@
 
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="container-fluid py-2" data-page="campus-workflow-canvas" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
+  {% include "components/rmc_workflow_kickoff_live.html" with workflow_key="" task_type="AUTOMATION_DISPATCH" kickoff_attention=1 %}
+
   <header class="mb-4">
     <h1 class="h3 mb-1">{% trans "Campus Workflow Canvas" %}</h1>
     <p class="text-secondary mb-0">

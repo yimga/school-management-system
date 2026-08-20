@@ -29,8 +29,11 @@ ADMIN = ROOT / "templates" / "admin"
 UNFOLD = ROOT / "templates" / "unfold"
 REPORT = ROOT / "var" / "django_admin_miss_nothing_audit.json"
 
-EXPECTED_CACHE_BUST = "20260813-admin-production-v18"
-EXPECTED_SW = "sms-v4.06.40-governed-outcome-surfaces-2026-08-13"
+BUILD_LOCK = json.loads(
+    (ROOT / "var" / "admin-approval-build-lock.json").read_text(encoding="utf-8")
+)
+EXPECTED_CACHE_BUST = BUILD_LOCK["cache_bust"]
+EXPECTED_SW = BUILD_LOCK["sw_version"]
 
 REQUIRED_SEALS = (
     "2026-07-19-tools-no-span-explode",

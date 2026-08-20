@@ -52,7 +52,20 @@ def apply_pulled_bundle(school, user, body_bytes: bytes, *, origin: str = "cloud
     Returns a result dict; ``{"ok": False, "errors": [...]}`` if the signature / school
     binding fails (nothing is applied).
     """
-    from apps.api.sync_services import apply_changes, apply_deletes, apply_edge_inserts
+    try:
+        return _apply_pulled_bundle_inner(school, user, body_bytes, origin=origin)
+    except Exception as exc:  # noqa: BLE001 — never abort the sync runner mid-cycle
+        return {"ok": False, "errors": [str(exc)[:500]]}
+
+
+def _apply_pulled_bundle_inner(school, user, body_bytes: bytes, *, origin: str = "cloud-pull") -> dict:
+    from apps.api.sync_services import (
+        _get_entity_config,
+        _insert_dependency_order,
+        apply_changes,
+        apply_deletes,
+        apply_edge_inserts,
+    )
 
     collected: dict = {}
     rows, errors = verify_and_parse_bundle(
@@ -71,6 +84,16 @@ def apply_pulled_bundle(school, user, body_bytes: bytes, *, origin: str = "cloud
         return {"ok": False, "errors": [replay]}
 
     update_rows, insert_rows, delete_rows, malformed = split_bundle_rows(rows)
+
+    config = _get_entity_config(include_derived=True)
+    dep_order = _insert_dependency_order(config)
+
+    def _dep_rank(row):
+        et = (row.get("entity_type") or "").strip().lower()
+        return dep_order.index(et) if et in dep_order else len(dep_order)
+
+    update_rows.sort(key=_dep_rank)
+    insert_rows.sort(key=_dep_rank)
 
     out = apply_changes(
         str(school.id), user, update_rows, persist_conflicts=True, sync_origin=origin

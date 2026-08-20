@@ -107,6 +107,70 @@ class EdgeOnboardingOperatorUITests(TestCase):
         self.assertIn("FAIL", body)
         # A cloud GET must record NO EdgeSyncRun — the writing gate never runs here.
         self.assertEqual(EdgeSyncRun.objects.count(), before)
+        from apps.lifecycle.models_edge_onboarding import EdgeOnboardingRun
+
+        self.assertEqual(EdgeOnboardingRun.objects.count(), 0)
+
+    def test_live_sync_row_on_manager_renders_as_host_observability_not_box_proof(self):
+        EdgeSyncRun.objects.create(
+            school=self.school, mode="live", ok=True, conflicts=0, pushed=2, pulled=3
+        )
+        response = self.client.get(
+            self.url, {"school": self.SLUG}, HTTP_HOST=MANAGER_HOST
+        )
+        self.assertEqual(response.status_code, 200)
+        body = response.content.decode("utf-8")
+        self.assertIn("not box proof", body.lower())
+        self.assertIn("conflicts", body.lower())
+        self.assertEqual(EdgeSyncRun.objects.filter(mode="live").count(), 1)
+
+    def test_runbook_names_runs_on_and_data_seed_without_fresh(self):
+        response = self.client.get(
+            self.url, {"school": self.SLUG}, HTTP_HOST=MANAGER_HOST
+        )
+        self.assertEqual(response.status_code, 200)
+        body = response.content.decode("utf-8")
+        self.assertIn("cloud", body)
+        self.assertIn("box", body)
+        self.assertIn("lan", body)
+        self.assertIn("seed_operational_data", body)
+        self.assertIn("import_tenant_bundle", body)
+        self.assertIn("edge_onboarding_verify", body)
+        self.assertNotIn("shell -c", body)
+        self.assertIn("Copy command", body)
+        self.assertIn("source tenant", body.lower())
+
+    def test_text_export_includes_runs_on(self):
+        response = self.client.get(
+            self.url, {"school": self.SLUG, "format": "txt"}, HTTP_HOST=MANAGER_HOST
+        )
+        body = response.content.decode("utf-8")
+        self.assertIn("runs_on=", body)
+        self.assertIn("seed_operational_data", body)
+        self.assertIn("Delta sync is not a bulk loader", body)
+
+    def test_skip_migration_cloud_post_requires_12_char_reason(self):
+        from apps.lifecycle.models_edge_onboarding import EdgeOnboardingRun
+
+        short = self.client.post(
+            self.url,
+            {"school": self.SLUG, "lifecycle_action": "skip_migration_cloud", "skip_reason": "nope"},
+            HTTP_HOST=MANAGER_HOST,
+        )
+        self.assertIn(short.status_code, (302, 200))
+        self.assertEqual(EdgeOnboardingRun.objects.filter(kind="skip_mc").count(), 0)
+
+        ok = self.client.post(
+            self.url,
+            {
+                "school": self.SLUG,
+                "lifecycle_action": "skip_migration_cloud",
+                "skip_reason": "Empty shell — no SIS files for this campus.",
+            },
+            HTTP_HOST=MANAGER_HOST,
+        )
+        self.assertEqual(ok.status_code, 302)
+        self.assertEqual(EdgeOnboardingRun.objects.filter(kind="skip_mc").count(), 1)
 
     # (c') a school with failures renders the failures, never 500 --------------
     def test_school_with_failures_renders_without_500(self):

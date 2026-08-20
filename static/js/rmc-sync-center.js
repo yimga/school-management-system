@@ -158,6 +158,78 @@
       });
   }
 
+  function wireProbe() {
+    var host = root();
+    if (!host) return;
+    var btn = document.querySelector("[data-rmc-sync-probe-btn]");
+    var out = document.querySelector("[data-rmc-sync-probe-result]");
+    var url = host.getAttribute("data-probe-url");
+    if (!btn || !url || typeof window.fetch !== "function") return;
+    btn.addEventListener("click", function () {
+      btn.disabled = true;
+      if (out) {
+        out.textContent = "…";
+        out.classList.remove("d-none", "text-danger-emphasis", "text-success-emphasis");
+        out.classList.add("text-body-secondary");
+      }
+      var csrfEl = document.querySelector("[name=csrfmiddlewaretoken]");
+      var csrf = csrfEl ? csrfEl.value : "";
+      window
+        .fetch(url, {
+          method: "POST",
+          credentials: "same-origin",
+          headers: {
+            "X-Requested-With": "XMLHttpRequest",
+            "X-CSRFToken": csrf,
+            Accept: "application/json",
+          },
+        })
+        .then(function (resp) {
+          return resp.json().then(function (body) {
+            return { body: body };
+          });
+        })
+        .then(function (pack) {
+          var body = pack.body || {};
+          var lines = [];
+          if (body.probes && body.probes.pull) {
+            lines.push(
+              "Pull: HTTP " +
+                String(body.probes.pull.status || "?") +
+                " — " +
+                (body.probes.pull.detail || "")
+            );
+          }
+          if (body.probes && body.probes.push) {
+            lines.push(
+              "Push: HTTP " +
+                String(body.probes.push.status || "?") +
+                " — " +
+                (body.probes.push.detail || "")
+            );
+          }
+          (body.problems || []).forEach(function (p) {
+            if (lines.indexOf(p) < 0) lines.push(p);
+          });
+          if (out) {
+            out.textContent = lines.length ? lines.join(" ") : body.error || "Done.";
+            out.classList.toggle("text-success-emphasis", !!body.ok);
+            out.classList.toggle("text-danger-emphasis", !body.ok);
+            out.classList.remove("text-body-secondary");
+          }
+        })
+        .catch(function () {
+          if (out) {
+            out.textContent = "Could not run cloud probe.";
+            out.classList.add("text-danger-emphasis");
+          }
+        })
+        .finally(function () {
+          btn.disabled = false;
+        });
+    });
+  }
+
   function wireBulk() {
     var table = document.getElementById("sync-conflicts-table");
     var host = root();
@@ -192,6 +264,7 @@
 
   function start() {
     wireBulk();
+    wireProbe();
     var host = root();
     if (!host) return;
     poll();

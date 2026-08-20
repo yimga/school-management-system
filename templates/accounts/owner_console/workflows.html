@@ -5,6 +5,8 @@
 {% block oc_sub %}{% trans "Every automation running for your school — what it does, when it runs, and where to change it." %}{% endblock %}
 {% block oc_body %}
 
+{% include "components/rmc_workflow_kickoff_live.html" with workflow_key="" task_type="AUTOMATION_DISPATCH" kickoff_attention=1 %}
+
 <div class="rmc-oc-tiles">
   <div class="rmc-oc-tile">
     <span class="rmc-oc-k">{% trans "Workflows" %}</span>

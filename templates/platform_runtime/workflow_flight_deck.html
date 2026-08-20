@@ -7,7 +7,7 @@
 
 {% include "components/next_action_strip.html" %}
 
-<div class="container-fluid py-2" data-rmc-page="workflow-flight-deck" data-rmc-scroll-policy="paginate" data-rmc-core-context="1">
+<div class="container-fluid py-2" data-rmc-page="workflow-flight-deck" data-rmc-scroll-policy="paginate" data-rmc-core-context="1" data-rmc-page-fold-nav="required">
   <header class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4{% if rmc_page_explain_enabled and rmc_system_actions_available and not rmc_conversion_single_action_enforced and rmc_system_actions|length > 1 %} rmc-flow-leadin{% endif %}">
     <div class="d-flex align-items-center gap-2 min-w-0">
       <h1 class="h3 mb-0 truncate">{% trans "Workflow Flight Deck" %}</h1>
@@ -24,15 +24,39 @@
     </div>
   </header>
 
+  <nav class="rmc-page-fold-nav rmc-section-nav mb-3" aria-label="{% trans 'On this page' %}">
+    <a href="#rmc-wfp-flight-deck-live" data-rmc-section-anchor>{% trans "Live execution" %}</a>
+    <a href="#rmc-wfp-flight-deck-queue" data-rmc-section-anchor>{% trans "Action Required" %}</a>
+    {% if simulation_enabled %}<a href="#rmc-wfp-flight-deck-sim" data-rmc-section-anchor>{% trans "Simulation" %}</a>{% endif %}
+  </nav>
+
   <div
     id="rmc-wfp-flight-deck"
     class="rmc-wfp-flight-deck"
     data-api-url="{{ flight_deck_api_url }}"
+    {% if simulation_enabled %}data-simulation-enabled="1"{% endif %}
   >
     {{ flight_deck_endpoints_json|json_script:"page-data-rmc-flight-deck-endpoints" }}
     {{ flight_deck_labels|json_script:"page-data-rmc-flight-deck-labels" }}
-    <div class="rmc-wfp-flight-deck__loading rmc-skeleton" aria-live="polite">{% trans "Loading workflows…" %}</div>
+    <div id="rmc-wfp-flight-deck-body" class="rmc-wfp-flight-deck__body">
+      <div class="rmc-wfp-flight-deck__loading rmc-skeleton" aria-live="polite"></div>
+    </div>
   </div>
+
+  {% if simulation_enabled %}
+  <section id="rmc-wfp-flight-deck-sim" class="rmc-wfp-flight-deck__sim rmc-wfp-flight-deck__panel mt-3" data-rmc-section-anchor>
+    <h2 class="h6 mb-2">{% trans "Scenario Simulation Flow Preset" %}</h2>
+    <p class="small text-muted mb-3">{% trans "Prove live progress, failure isolation with a remediator, then automatic archive of a successful run." %}</p>
+    <div class="d-flex flex-wrap gap-2">
+      <button type="button" class="btn btn-primary" data-rmc-flight-simulate="failure">
+        {% trans "Simulate Failure Path" %}
+      </button>
+      <button type="button" class="btn btn-outline-secondary" data-rmc-flight-simulate="success">
+        {% trans "Simulate Success Path" %}
+      </button>
+    </div>
+  </section>
+  {% endif %}
 </div>
 <link rel="stylesheet" href="{% static 'css/rmc-workflow-flight-deck.css' %}">
 <script src="{% static 'js/runmycampus-toast.js' %}" defer nonce="{{ csp_nonce }}"></script>

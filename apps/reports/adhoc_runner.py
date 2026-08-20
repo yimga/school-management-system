@@ -127,109 +127,43 @@ def _build_queryset(
 ):
     """Build Django queryset and column list from entity_type and filters."""
 
+    from apps.reports.report_entity_registry import (
+        queryset_for_code,
+        resolve_entity,
+    )
+
     if not columns:
         columns = ["id"]
     if not school_id and not allow_global:
         raise ValueError("school_id required for tenant-scoped ad-hoc report execution")
 
-    if entity_type == "STUDENTS":
-        from apps.people.models import StudentProfile
+    filters = dict(filters or {})
+    raw_type = str(entity_type or "").strip()
+    lookup = raw_type
+    if raw_type.upper() == "CUSTOM":
+        lookup = str(
+            filters.get("entity_code")
+            or filters.get("catalog_code")
+            or filters.get("model_label")
+            or ""
+        ).strip()
+        if not lookup:
+            raise ValueError(
+                "CUSTOM reports require filters.entity_code (catalog code) "
+                "or filters.model_label; unknown entities fail closed"
+            )
+    if raw_type.upper() == "ENROLLMENT":
+        filters.setdefault("is_active", True)
 
-        # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
-        qs = StudentProfile.objects.all().order_by("id")
-        if school_id:
-            qs = qs.filter(school_id=school_id)
-        for key, val in filters.items():
-            if key == "classroom_id":
-                qs = qs.filter(classroom_id=val)
-            elif key == "is_active":
-                qs = qs.filter(is_active=bool(val))
-            elif key == "academic_year_id":
-                qs = qs.filter(academic_year_id=val)
-        # Ensure only valid field names
-        allowed = {f.name for f in StudentProfile._meta.get_fields()}
-        headers = [c for c in columns if c in allowed or c.startswith("classroom__")]
-        if not headers:
-            headers = ["id"]
-        return qs, headers
-
-    if entity_type == "ATTENDANCE":
-        from apps.academics.models import Attendance
-
-        # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
-        qs = (
-            Attendance.objects.all()
-            .select_related("student", "classroom")
-            .order_by("-date", "student_id")
-        )
-        if school_id:
-            qs = qs.filter(school_id=school_id)
-        if date_from:
-            qs = qs.filter(date__gte=date_from)
-        if date_to:
-            qs = qs.filter(date__lte=date_to)
-        for key, val in filters.items():
-            if key == "classroom_id":
-                qs = qs.filter(classroom_id=val)
-            elif key == "status":
-                qs = qs.filter(status=val)
-        allowed = {f.name for f in Attendance._meta.get_fields()}
-        headers = [
-            c
-            for c in columns
-            if c in allowed
-            or any(c.startswith(p) for p in ("student__", "classroom__"))
-        ]
-        if not headers:
-            headers = ["id", "date", "status", "student_id", "classroom_id"]
-        return qs, headers
-
-    if entity_type == "FINANCE":
-        from apps.finance.models import Invoice
-# tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
-
-        qs = Invoice.objects.all().order_by("-created_at")
-        if school_id:
-            qs = qs.filter(school_id=school_id)
-        if date_from:
-            qs = qs.filter(created_at__date__gte=date_from)
-        if date_to:
-            qs = qs.filter(created_at__date__lte=date_to)
-        for key, val in filters.items():
-            if hasattr(Invoice, key):
-                qs = qs.filter(**{key: val})
-        allowed = {f.name for f in Invoice._meta.get_fields()}
-        headers = [c for c in columns if c in allowed]
-        if not headers:
-            headers = ["id", "student_id", "total_amount", "status", "created_at"]
-        return qs, headers
-
-    if entity_type == "ENROLLMENT":
-        # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
-        from apps.people.models import StudentProfile
-
-        # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
-        qs = StudentProfile.objects.filter(is_active=True).order_by("id")
-        if school_id:
-            qs = qs.filter(school_id=school_id)
-        for key, val in filters.items():
-            if key == "classroom_id":
-                qs = qs.filter(classroom_id=val)
-            elif key == "academic_year_id":
-                qs = qs.filter(academic_year_id=val)
-        allowed = {f.name for f in StudentProfile._meta.get_fields()}
-        headers = [c for c in columns if c in allowed or c.startswith("classroom__")]
-        if not headers:
-            headers = ["id", "first_name", "last_name", "classroom_id"]
-        return qs, headers
-
-    # CUSTOM / fallback: minimal students list
-    from apps.people.models import StudentProfile
-
-    # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
-    qs = StudentProfile.objects.all().order_by("id")
-    if school_id:
-        qs = qs.filter(school_id=school_id)
-    qs = qs[:1000]
-    headers = ["id", "first_name", "last_name"]
-    return qs, headers
+    entity = resolve_entity(lookup)
+    if entity is None:
+        raise ValueError(f"unknown report entity {lookup!r}")
+    return queryset_for_code(
+        lookup,
+        columns=columns,
+        filters=filters,
+        date_from=date_from,
+        date_to=date_to,
+        school_id=school_id,
+        allow_global=allow_global,
+    )

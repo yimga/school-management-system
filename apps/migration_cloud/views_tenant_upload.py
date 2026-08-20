@@ -398,6 +398,10 @@ def _progress_payload(bundle) -> dict:
         top = candidates[0] if candidates and isinstance(candidates[0], dict) else {}
         if top.get("domain"):
             detected.append({"filename": art.filename, "domain": top.get("domain")})
+    from .live_import_attention import compose_live_import
+
+    live = compose_live_import(bundle, snapshot=snapshot, flight=flight)
+    repair = _build_repair(bundle) if not flight["in_flight"] else None
     return {
         "bundle_id": bundle.pk,
         "status": bundle.status,
@@ -417,6 +421,21 @@ def _progress_payload(bundle) -> dict:
         "advance_error": (bundle.size_summary or {}).get("error") or "",
         "snapshot": snapshot,
         "detected": detected,
+        "percent": live["percent"],
+        "succeeded": live["succeeded"],
+        "pipeline": live["pipeline"],
+        "workflow_state": live["workflow_state"],
+        "created": live["created"],
+        "updated": live["updated"],
+        "held": live["held"],
+        "issues_open": live["issues_open"],
+        "issue_count": live["issue_count"],
+        "last_import": live["last_import"],
+        "remediator": live["remediator"],
+        "repair": repair,
+        "needs_attention": live["needs_attention"],
+        "processed": live["created"] + live["updated"] + live["held"],
+        "expected": int((snapshot.get("live_totals") or {}).get("expected") or 0),
     }
 
 
@@ -1137,6 +1156,13 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
                 }
             )
         flight = _import_flight(bundle)
+        from .live_import_attention import compose_live_import
+
+        live_import = compose_live_import(
+            bundle,
+            snapshot=getattr(bundle, "progress_snapshot", None) or {},
+            flight=flight,
+        )
         return {
             "page_title": "Review & import",
             "bundle": bundle,
@@ -1155,8 +1181,9 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
             # then reveals the outcome (last_import) once it settles.
             "importing": flight["in_flight"],
             "import_flight": flight,
-            "last_import": _last_import_summary(bundle),
-            "repair": _build_repair(bundle),
+            "live_import": live_import,
+            "last_import": live_import.get("last_import"),
+            "repair": _build_repair(bundle) if not flight["in_flight"] else None,
             "repair_url": _connector_reverse(request, "bundle-repair", bundle_id=bundle.pk),
             "rollback": _build_rollback(bundle),
             "rollback_url": _connector_reverse(request, "bundle-rollback", bundle_id=bundle.pk),
@@ -1584,3 +1611,90 @@ class TenantMigrationPeopleActivateView(_TenantAdminWriteRequiredMixin, View):
             return handover_csv_response(school=school, kind=kind)
         messages.info(request, _("Choose an activation action."))
         return redirect(review)
+
+
+# Statuses that mean "this bundle's work is over" — used to split the inbox into
+# an active tray and a finished tray.
+_INBOX_SETTLED_STATUSES = frozenset(
+    {BundleStatus.RECONCILED, BundleStatus.ABORTED}
+)
+
+# Rows rendered on the inbox. Each row costs a small number of extra queries
+# (outbox in-flight probe + progress-event staleness probe), so the tray is
+# bounded rather than unbounded-per-tenant.
+_INBOX_PAGE_SIZE = 25  # magic-number-allow: migration-inbox-tray-size
+
+
+class TenantMigrationInboxView(_TenantAdminWriteRequiredMixin, View):
+    """One tray listing every import this school has started, with honest state.
+
+    Before this existed the only way to learn what an import was doing was to
+    open its own review page. An apply whose worker had died therefore stayed
+    invisible: nothing on any landing surface said "this one needs you". That is
+    how a wedged import ran for a day without anyone being told.
+
+    Each row is composed from the SAME helpers the review page uses
+    (``_import_flight`` + ``compose_live_import``), so the inbox cannot drift
+    from the detail view or invent a state of its own. Rows that need a human
+    (stuck / failed / held for review) are surfaced first and counted in the
+    header, so the tray answers "is anything wrong?" without opening anything.
+
+    Read-only, but gated on the tenant-admin tier like the other Migration Cloud
+    tenant surfaces: it lists the school's migration history, which is not
+    something every authenticated member should enumerate. ``_request_school``
+    scopes the query, so a member of another school sees only their own.
+    """
+
+    template_name = "migration_cloud/connector/inbox.html"
+
+    def get(self, request):
+        school = _request_school(request)
+        if school is None:
+            raise Http404()
+        from .live_import_attention import compose_live_import
+
+        bundles = list(
+            # tenant-isolation-allow: migration-inbox-list-for-tenant-school
+            MigrationBundle.objects.filter(school=school).order_by("-created_at")[
+                :_INBOX_PAGE_SIZE
+            ]
+        )
+        active, settled, attention = [], [], 0
+        for bundle in bundles:
+            flight = _import_flight(bundle)
+            live = compose_live_import(
+                bundle,
+                snapshot=getattr(bundle, "progress_snapshot", None) or {},
+                flight=flight,
+            )
+            needs = bool(live["needs_attention"]) or bool(flight["stuck"])
+            if needs:
+                attention += 1
+            row = {
+                "bundle": bundle,
+                "live": live,
+                "flight": flight,
+                "needs_attention": needs,
+                "review_url": _connector_reverse(
+                    request, "bundle-review", bundle_id=bundle.pk
+                ),
+            }
+            if flight["in_flight"] or bundle.status not in _INBOX_SETTLED_STATUSES:
+                active.append(row)
+            else:
+                settled.append(row)
+        # Anything asking for a human floats to the top of the active tray.
+        active.sort(key=lambda r: (not r["needs_attention"], -r["bundle"].pk))
+        return render(
+            request,
+            self.template_name,
+            {
+                "page_title": _("Migration inbox"),
+                "school": school,
+                "active_rows": active,
+                "settled_rows": settled,
+                "attention_count": attention,
+                "upload_url": _connector_reverse(request, "upload"),
+                "truncated": len(bundles) >= _INBOX_PAGE_SIZE,
+            },
+        )

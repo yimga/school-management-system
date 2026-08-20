@@ -34,7 +34,8 @@ class BringupInputs:
     slug: str
     country: str = ""
     owner_email: str = ""
-    bundle_path: str = ""      # .rmcbundle -> import_sovereign_tenant
+    bundle_path: str = ""      # .rmcbundle -> import_sovereign_tenant --fresh
+    data_bundle_path: str = ""  # .rmcbundle -> import_tenant_bundle (NOT --fresh)
     identity_path: str = ""    # .rmcidentity -> import_tenant_identities
     brand_path: str = ""       # .rmcbrand -> import_school_branding
     mint_credential: bool = False
@@ -75,6 +76,12 @@ def plan_prep_actions(inputs: BringupInputs) -> list[dict]:
         actions.append({
             "key": "media_branding", "cmd": "import_school_branding",
             "args": ["--in", inputs.brand_path, "--slug", slug],
+        })
+
+    if inputs.data_bundle_path:
+        actions.append({
+            "key": "seed_operational_data", "cmd": "import_tenant_bundle",
+            "args": ["--in", inputs.data_bundle_path],
         })
 
     if inputs.mint_credential and inputs.credential_user:

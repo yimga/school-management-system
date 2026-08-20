@@ -53,6 +53,7 @@ def _fake_bundle(status, *, mapping=None, artifacts=None):
         progress_snapshot={"stages": []},
         size_summary={},
         mapping_summary=mapping or {},
+        reconciliation_summary={},
         artifacts=_FakeArtifactManager(artifacts or []),
     )
 

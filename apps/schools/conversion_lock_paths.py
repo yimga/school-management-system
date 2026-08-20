@@ -107,6 +107,10 @@ CONVERSION_LOCK_WORKFLOW_PREFIXES_NARROW: tuple[str, ...] = (
     # by apps/schools/tests/test_conversion_lock_cta_reachability.py.
     "/help/",
     "/school/setup/",
+    # A locked box cannot reach Sync Center, so it cannot even press Sync now
+    # while conversion is on. Defense-in-depth: edge replicas skip the lock
+    # entirely (conversion_lock_state.deployment_is_edge_replica).
+    "/siteconfig/sync-center/",
 )
 
 

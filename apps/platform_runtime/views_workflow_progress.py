@@ -468,7 +468,8 @@ def apply_fix_view(request, run_id: int):
     )
 
     # Clear-after-success must never enter a requeue healing chain.
-    if kind in ("clear_after_success", "mark_superseded"):
+    # Resume-from-checkpoint is a pinpoint retry, not the full classified chain.
+    if kind in ("clear_after_success", "mark_superseded", "resume_from_checkpoint"):
         result = apply_auto_fix_kind(run=run, kind=kind)
     elif healing_supported_for_run(run, kind=kind):
         result = apply_healing_for_run(
@@ -681,3 +682,42 @@ def e2e_demo_start_view(request):
             "workflow_key": E2E_DEMO_WORKFLOW_KEY,
         }
     )
+
+
+@login_required_api
+@require_GET
+def kickoff_live_view(request):
+    """JSON live board for the page that started the job (any workflow engine).
+
+    Query: ``workflow_key`` (optional) and ``attention=1`` for the cross-engine
+    Action Required summary. Tenant-host callers are scoped to ``request.school``.
+    """
+
+    from apps.platform_runtime.workflow_kickoff_live import compose_kickoff_live
+
+    schema, _actor_id = _resolve_scope(request)
+    school = getattr(request, "school", None)
+    school_id = str(getattr(school, "pk", "") or "")
+    host_kind = (getattr(request, "public_host_kind", None) or "").lower()
+    control_plane = host_kind == "manager"
+    key = str(request.GET.get("workflow_key") or "").strip()[:80]
+    attention = str(request.GET.get("attention") or "").lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+    try:
+        payload = compose_kickoff_live(
+            workflow_key=key,
+            school=school,
+            tenant_schema=schema,
+            school_id=school_id,
+            attention=attention or not key,
+            control_plane=control_plane,
+        )
+    except Exception:
+        logger.exception("workflow_kickoff_live_failed key=%s", key)
+        return JsonResponse({"error": "kickoff_unavailable", "retryable": True}, status=503)
+    payload["generated_at"] = timezone.now().isoformat()
+    return JsonResponse(payload)

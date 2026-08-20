@@ -1,12 +1,16 @@
 from __future__ import annotations
 
+import json
 import re
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-BUILD = "2026-08-11-v17.2"
-CACHE_BUST = "20260813-admin-production-v18"
+BUILD_LOCK = json.loads(
+    (ROOT / "var" / "admin-approval-build-lock.json").read_text(encoding="utf-8")
+)
+BUILD = BUILD_LOCK["build_id"]
+CACHE_BUST = BUILD_LOCK["cache_bust"]
 OWNER = "emergency-v17"
 
 

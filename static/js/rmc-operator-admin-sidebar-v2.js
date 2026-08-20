@@ -45,7 +45,13 @@
     var list = root.querySelector("[data-operator-recent-list]");
     if (!wrap || !list) return;
     var currentPath = window.location.pathname + window.location.search;
-    var entries = readRecent().filter(function (entry) { return entry && entry.path !== currentPath; }).slice(0,recentLimit);
+    var canonicalPaths = new Set();
+    root.querySelectorAll("a.cp-sidebar__item[href]").forEach(function (link) {
+      canonicalPaths.add(link.pathname + link.search);
+    });
+    var entries = readRecent().filter(function (entry) {
+      return entry && entry.path !== currentPath && !canonicalPaths.has(entry.path);
+    }).slice(0,recentLimit);
     list.textContent = "";
     entries.forEach(function (entry) {
       var link=document.createElement("a"), icon=document.createElement("i"), label=document.createElement("span");

@@ -82,6 +82,7 @@ GATES: list[tuple[str, list[str]]] = [
     ("include-with-default-context-var", ["scan_include_with_default_context_var.py", "--strict"]),
     ("eager-filter-arg-completion-static", ["verify_eager_filter_arg_completion.py", "--static-only"]),
     ("nav-engine-coverage-static", ["verify_nav_engine_coverage.py", "--static-only"]),
+    ("report-entity-coverage", ["verify_report_entity_coverage.py"]),
     ("service-worker-version", ["verify_service_worker_version.py", "--check-monotonic"]),
     # Approval HTML → live admin: fails if build lock / visible chip / grid drift.
     # Prevents another "CSS-only commit looks unchanged after deploy" silent miss.

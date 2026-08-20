@@ -1,5 +1,75 @@
 # RunMyCampus autonomous execution log
 
+## Slice — Edge sync chrome + simulation tenant leak (batch 1812 - 2026-08-19)
+
+**A. Scope:** Platform-wide box ↔ cloud sync UX (progress to 100% on every page when online), stop Flight Deck simulation from polluting tenant kickoff boards, and clarify conversion lock vs edge env.
+
+**B. Shipped:** Tenant-hidden `workflow_flight_deck_simulation` on non-manager hosts; `edge_sync_chrome` wired into settings; global Cloud sync bar + poller; edge-only status poll for all authenticated roles; module bypass for status JSON; SW bump.
+
+**C. Proof:** sqlite-memory **14/14 OK**; `verify_service_worker_version --check-monotonic` OK; `node --check rmc-edge-sync-chrome.js`.
+
+**D. Honest:** Cloud/box data parity still needs operator env + live cycle; delta sync does not bulk-load specialties/grades; activation wall on box means `RMC_EDGE_SYNC_ENABLED` likely unset.
+
+**E. Files:** `workflow_kickoff_live.py`, `views_workflow_progress.py`, `context.py`, `edge_sync_status_bar.html`, `rmc-edge-sync-chrome.js`, `rmc_os_status_strip.html`, `portal_base.html`, `views_sync_center.py`, `middleware.py`, tests, SW + baseline, SOT/log.
+
+**F. Next:** On the Gilead box set edge env, run `edge_sync_cycle --slug gilead-tech`, confirm bar hits 100% and simulation card disappears on tenant pages.
+
+## Slice — Operational report entity coverage (batch 1811 - 2026-08-19)
+
+**A. Scope:** Make named platform entities reportable without a new hand-written exporter, and stop CUSTOM from silently dumping students.
+
+**B. Shipped:** `report_entity_registry` (11 runnable + 2 denies); ad-hoc `queryset_for_code`; CUSTOM fail-closed; `verify_report_entity_coverage.py` wired into architectural-boundaries + `REQUIRED_GATES` + pre-push.
+
+**C. Proof:** sqlite-memory **9/9 OK**; `REPORT_ENTITY_COVERAGE_PASS` (catalog 12 / registry 13); `verify_ci_gate_wiring` 47 gates / 0 unwired; verifier + wiring unittests **6/6 OK**.
+
+**D. Honest:** operational CSV/JSON only — not report cards or ministry packs; Report Library still 4 slugs; DLP sensitivity tiers not on the generic exporter; payroll/events/marketplace not in the registry yet.
+
+**E. Files:** `apps/reports/report_entity_registry.py`, `adhoc_runner.py`, `test_report_entity_registry_2026_08_19.py`, `scripts/verify_report_entity_coverage.py`, architectural-boundaries + `verify_ci_gate_wiring.py`, SOT/log.
+
+**F. Next:** Register remaining tenant models (incidents, subjects, payroll-via-profile). Ad-hoc UI should pick catalog codes, not a free-text CUSTOM that used to dump students.
+
+## Slice — Cross-engine workflow kickoff live (batch 1810 - 2026-08-19)
+
+**A. Scope:** Same live-progress + current-issues-only contract as Flight Deck (1808) and Migration Cloud (1809), applied to every product workflow engine (catalog, automation, orchestration, progress bus) on the page that starts the job.
+
+**B. Shipped:** `workflow_kickoff_live` + kickoff JSON; remediator hidden when `issues_open==0`; Studio failing_count and workbench Retry use latest state; kickoff board mounted on tenant/operator hubs and job kickoff pages; restored marks-entry `{% if year and term %}`.
+
+**C. Proof:** sqlite-memory **11/11 OK**; `WORKFLOW_PROGRESS_10X_PASS`; telemetry coverage PASS; 10x waves complete PASS; template-render-safety 0; page-fold 42/42; SW `sms-v4.06.63-workflow-kickoff-live-engines-2026-08-19`.
+
+**D. Honest:** domain-event automations are not `@track_workflow` runs; generate-fees HTTP is still sync; MC Review uses the 1809 poller; GitHub Actions YAML and Temporal are out of scope; `accounts/tasks.py` remains a peer syntax break.
+
+**E. Files:** `workflow_kickoff_live.py`, `views_workflow_progress.py`, kickoff partial/JS/CSS, Studio failing_count, orchestration workbench, workflow/automation/staff/gallery templates, tests, verifiers, SW + baseline, SOT/log.
+
+**F. Next:** Hard-refresh a kickoff page (Sync, marks, fees, or Workflow Center). After a later success, Action Required and the remediator must disappear without opening Flight Deck.
+
+## Slice — Migration Cloud kickoff live progress (batch 1809 - 2026-08-19)
+
+**A. Scope:** Show import/repair progress on the Review & Import kickoff page (not only Flight Deck), and drop held/repair chrome the moment the current apply has no open issues.
+
+**B. Shipped:** `live_import_attention` SOT; live board + poller on `bundle_review.html`; running created/updated/held pulses; stale recon notes ignored; Workflow Center held/danger only when current.
+
+**C. Proof:** sqlite-memory **8/8 OK** (`test_live_import_attention_2026_08_19`) + **90/90** related regression; template-render-safety 0; undefined-css 0; inline-handlers 0; inline-style 0; page-fold 42/42; SW `sms-v4.06.62-mc-kickoff-live-progress-2026-08-19`.
+
+**D. Honest:** Detection chip poller unchanged; canvas logs still prefer Channels; Your Flow launchpad is the action engine, not MC held counts.
+
+**E. Files:** `live_import_attention.py`, `repair.py`, `progress.py`, `orchestrator.py`, `views_tenant_upload.py`, `views_workflow.py`, `bundle_review.html`, `_wizard_base.html`, `workflow_center_main.html`, `rmc-migration-live-import.js`, tests, SW + baseline, SOT/log.
+
+**F. Next:** Hard-refresh Review & Import, click Import or Repair, watch the pipeline and held count move on that page; after a clean repair the remediator and “N records need another attempt” must disappear without opening Flight Deck.
+
+## Slice — Flight Deck attention gateway (batch 1808 - 2026-08-19)
+
+**A. Scope:** Real-time Flight Deck pass/fail gateway: isolate the failed step, show a remediator, archive successes out of Action Required, and ship a staff simulation preset.
+
+**B. Shipped:** Attention gateway + simulation worker; simulate URL; Action Required / Success Logs tabs; pipeline + health + Issue Remediator; resume-from-checkpoint for the simulation key.
+
+**C. Proof:** sqlite-memory **10/10 OK**; `WORKFLOW_10X_WAVES_COMPLETE_PASS`; undefined-css 0; template-render-safety 0; inline-handlers 0; page-fold 42/42; SW monotonic `sms-v4.06.61-flight-deck-attention-gateway-2026-08-19`.
+
+**D. Honest:** Simulation requires DEBUG or `RMC_ALLOW_WORKFLOW_E2E_DEMO`. Other workflow engines (automation, orchestration) unchanged. No Slack/Teams webhook.
+
+**E. Files:** `workflow_attention_gateway.py`, `workflow_simulation.py`, `views_workflow_flight_deck.py`, `rmc-workflow-flight-deck.js/.css`, `workflow_flight_deck.html`, tests, SOT/log.
+
+**F. Next:** On manager Flight Deck with DEBUG, Simulate Failure Path → remediator → Address & Patch Token Issue → row moves to Success Logs.
+
 ## Slice — Nav Engine CI seal (batch 1807 - 2026-08-19)
 
 **A. Scope:** Re-audit leftover after 1805: catalog gate was local-pre-push only.

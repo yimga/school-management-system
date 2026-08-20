@@ -11,6 +11,7 @@
   {% trans "Automation Studio" as aw_eyebrow %}
   {% trans "Visual graph: trigger → condition → action. Validate before publish; simulate to dry-run without side effects." as aw_purpose %}
   {% include "components/rmc_os_page_header.html" with os_center_key="automation_studio_canvas" center_eyebrow=aw_eyebrow center_title=page_title center_purpose=aw_purpose %}
+  {% include "components/rmc_workflow_kickoff_live.html" with workflow_key="" task_type="AUTOMATION_DISPATCH" kickoff_attention=1 %}
   <div class="d-flex flex-wrap gap-2 mb-2">
     <a class="btn btn-sm btn-outline-secondary" href="{{ school_automation_url }}">{% trans "Classic automation builder" %}</a>
   </div>

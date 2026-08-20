@@ -1,0 +1,440 @@
+{
+  "browser_evidence": {
+    "browser_report_files": [
+      "artifacts/django-admin-canvas-live/real-host-core-both-dark-1024-operator-user-add-tenant-user-add.json",
+      "artifacts/django-admin-canvas-live/real-host-core-both-dark-1440-operator-user-add-tenant-user-add.json",
+      "artifacts/django-admin-canvas-live/real-host-core-both-dark-390-operator-user-add-tenant-user-add.json",
+      "artifacts/django-admin-canvas-live/real-host-core-both-dark-768-operator-user-add-tenant-user-add.json",
+      "artifacts/django-admin-canvas-live/real-host-core-both-light-1024-operator-user-add-tenant-user-add.json",
+      "artifacts/django-admin-canvas-live/real-host-core-both-light-1440-operator-user-add-tenant-user-add.json",
+      "artifacts/django-admin-canvas-live/real-host-core-both-light-390-operator-user-add-tenant-user-add.json",
+      "artifacts/django-admin-canvas-live/real-host-core-both-light-768-operator-user-add-tenant-user-add.json",
+      "artifacts/django-admin-canvas-live/real-host-core-tenant-dark-1024-tenant-academic-year-add.json",
+      "artifacts/django-admin-canvas-live/real-host-core-tenant-dark-1440-tenant-academic-year-add.json",
+      "artifacts/django-admin-canvas-live/real-host-core-tenant-dark-390-tenant-academic-year-add.json",
+      "artifacts/django-admin-canvas-live/real-host-core-tenant-dark-768-tenant-academic-year-add.json",
+      "artifacts/django-admin-canvas-live/real-host-core-tenant-light-1024-tenant-academic-year-add.json",
+      "artifacts/django-admin-canvas-live/real-host-core-tenant-light-1440-tenant-academic-year-add.json",
+      "artifacts/django-admin-canvas-live/real-host-core-tenant-light-390-tenant-academic-year-add.json",
+      "artifacts/django-admin-canvas-live/real-host-core-tenant-light-768-tenant-academic-year-add.json"
+    ],
+    "build_id": "2026-08-20-v20.0",
+    "cache_bust": "20260820-admin-automation-v20",
+    "failed_report_files": [],
+    "matrix": [
+      "1024:dark",
+      "1024:light",
+      "1440:dark",
+      "1440:light",
+      "390:dark",
+      "390:light",
+      "768:dark",
+      "768:light"
+    ],
+    "max_stylesheet_count": {
+      "operator": 121,
+      "tenant": 91
+    },
+    "service_worker_version": "sms-v4.06.68-admin-form-intelligence-2026-08-20",
+    "unique_surface_evidence": 3
+  },
+  "content_sha256": "d70941472fafe4919b7489095a49cda3fcf252ddb01512c579fa5c95f9222ef9",
+  "contract_satisfied": true,
+  "findings": [],
+  "generated_at": "2026-08-20T10:46:49.138665+00:00",
+  "registry": {
+    "operator": {
+      "custom_change_forms": 14,
+      "custom_change_lists": 0,
+      "largest_forms": [
+        {
+          "custom_change_form": false,
+          "custom_change_list": false,
+          "fields": 119,
+          "filter_horizontal": 0,
+          "inlines": 0,
+          "model": "platform_runtime.runtimedefaults"
+        },
+        {
+          "custom_change_form": false,
+          "custom_change_list": false,
+          "fields": 58,
+          "filter_horizontal": 2,
+          "inlines": 0,
+          "model": "schools.school"
+        },
+        {
+          "custom_change_form": false,
+          "custom_change_list": false,
+          "fields": 31,
+          "filter_horizontal": 2,
+          "inlines": 0,
+          "model": "accounts.user"
+        },
+        {
+          "custom_change_form": false,
+          "custom_change_list": false,
+          "fields": 27,
+          "filter_horizontal": 0,
+          "inlines": 0,
+          "model": "migration_cloud.migrationbundle"
+        },
+        {
+          "custom_change_form": false,
+          "custom_change_list": false,
+          "fields": 27,
+          "filter_horizontal": 0,
+          "inlines": 0,
+          "model": "runtime_blueprints.blueprintpack"
+        },
+        {
+          "custom_change_form": false,
+          "custom_change_list": false,
+          "fields": 24,
+          "filter_horizontal": 0,
+          "inlines": 0,
+          "model": "global_registries.educationsystemprofile"
+        },
+        {
+          "custom_change_form": true,
+          "custom_change_list": false,
+          "fields": 23,
+          "filter_horizontal": 0,
+          "inlines": 0,
+          "model": "brand_experience.themepack"
+        },
+        {
+          "custom_change_form": false,
+          "custom_change_list": false,
+          "fields": 22,
+          "filter_horizontal": 0,
+          "inlines": 0,
+          "model": "siteconfig.marketingtestimonial"
+        },
+        {
+          "custom_change_form": true,
+          "custom_change_list": false,
+          "fields": 21,
+          "filter_horizontal": 0,
+          "inlines": 0,
+          "model": "automation.migrationrun"
+        },
+        {
+          "custom_change_form": false,
+          "custom_change_list": false,
+          "fields": 21,
+          "filter_horizontal": 0,
+          "inlines": 0,
+          "model": "billing.subscriptiongrant"
+        },
+        {
+          "custom_change_form": false,
+          "custom_change_list": false,
+          "fields": 21,
+          "filter_horizontal": 0,
+          "inlines": 0,
+          "model": "billing.tenantsubscription"
+        },
+        {
+          "custom_change_form": false,
+          "custom_change_list": false,
+          "fields": 21,
+          "filter_horizontal": 0,
+          "inlines": 0,
+          "model": "brand_experience.brandprofile"
+        },
+        {
+          "custom_change_form": false,
+          "custom_change_list": false,
+          "fields": 21,
+          "filter_horizontal": 0,
+          "inlines": 0,
+          "model": "migration_cloud.migrationartifact"
+        },
+        {
+          "custom_change_form": true,
+          "custom_change_list": false,
+          "fields": 21,
+          "filter_horizontal": 0,
+          "inlines": 0,
+          "model": "siteconfig.reportcardstyle"
+        },
+        {
+          "custom_change_form": true,
+          "custom_change_list": false,
+          "fields": 20,
+          "filter_horizontal": 0,
+          "inlines": 0,
+          "model": "integrations_marketplace.marketplaceapp"
+        },
+        {
+          "custom_change_form": false,
+          "custom_change_list": false,
+          "fields": 20,
+          "filter_horizontal": 0,
+          "inlines": 0,
+          "model": "marketplace.marketplaceapp"
+        },
+        {
+          "custom_change_form": false,
+          "custom_change_list": false,
+          "fields": 19,
+          "filter_horizontal": 0,
+          "inlines": 0,
+          "model": "billing.countrybillingprofile"
+        },
+        {
+          "custom_change_form": false,
+          "custom_change_list": false,
+          "fields": 19,
+          "filter_horizontal": 0,
+          "inlines": 0,
+          "model": "billing.revenuesharepayout"
+        },
+        {
+          "custom_change_form": false,
+          "custom_change_list": false,
+          "fields": 19,
+          "filter_horizontal": 0,
+          "inlines": 0,
+          "model": "platform_runtime.workflowrun"
+        },
+        {
+          "custom_change_form": true,
+          "custom_change_list": false,
+          "fields": 19,
+          "filter_horizontal": 0,
+          "inlines": 0,
+          "model": "runtime_blueprints.dashboardwidget"
+        }
+      ],
+      "models_with_15_plus_fields": 41,
+      "models_with_filter_horizontal": 2,
+      "models_with_inlines": 2,
+      "registered_models": 197
+    },
+    "tenant": {
+      "custom_change_forms": 25,
+      "custom_change_lists": 0,
+      "largest_forms": [
+        {
+          "custom_change_form": true,
+          "custom_change_list": false,
+          "fields": 38,
+          "filter_horizontal": 2,
+          "inlines": 0,
+          "model": "portal.kbarticle"
+        },
+        {
+          "custom_change_form": false,
+          "custom_change_list": false,
+          "fields": 36,
+          "filter_horizontal": 1,
+          "inlines": 1,
+          "model": "people.studentprofile"
+        },
+        {
+          "custom_change_form": false,
+          "custom_change_list": false,
+          "fields": 35,
+          "filter_horizontal": 0,
+          "inlines": 0,
+          "model": "finance.payment"
+        },
+        {
+          "custom_change_form": false,
+          "custom_change_list": false,
+          "fields": 35,
+          "filter_horizontal": 0,
+          "inlines": 0,
+          "model": "finance.paymentproofupload"
+        },
+        {
+          "custom_change_form": false,
+          "custom_change_list": false,
+          "fields": 32,
+          "filter_horizontal": 0,
+          "inlines": 0,
+          "model": "feedback.feedbacksubmission"
+        },
+        {
+          "custom_change_form": false,
+          "custom_change_list": false,
+          "fields": 31,
+          "filter_horizontal": 2,
+          "inlines": 0,
+          "model": "accounts.user"
+        },
+        {
+          "custom_change_form": false,
+          "custom_change_list": false,
+          "fields": 30,
+          "filter_horizontal": 0,
+          "inlines": 0,
+          "model": "evals.evaluation"
+        },
+        {
+          "custom_change_form": false,
+          "custom_change_list": false,
+          "fields": 28,
+          "filter_horizontal": 0,
+          "inlines": 1,
+          "model": "finance.invoice"
+        },
+        {
+          "custom_change_form": false,
+          "custom_change_list": false,
+          "fields": 26,
+          "filter_horizontal": 0,
+          "inlines": 0,
+          "model": "people.teacherprofile"
+        },
+        {
+          "custom_change_form": false,
+          "custom_change_list": false,
+          "fields": 24,
+          "filter_horizontal": 0,
+          "inlines": 0,
+          "model": "feedback.featurerequest"
+        },
+        {
+          "custom_change_form": false,
+          "custom_change_list": false,
+          "fields": 23,
+          "filter_horizontal": 0,
+          "inlines": 0,
+          "model": "academics.academicyear"
+        },
+        {
+          "custom_change_form": true,
+          "custom_change_list": false,
+          "fields": 23,
+          "filter_horizontal": 0,
+          "inlines": 0,
+          "model": "brand_experience.themepack"
+        },
+        {
+          "custom_change_form": true,
+          "custom_change_list": false,
+          "fields": 23,
+          "filter_horizontal": 0,
+          "inlines": 0,
+          "model": "portal.faq"
+        },
+        {
+          "custom_change_form": false,
+          "custom_change_list": false,
+          "fields": 21,
+          "filter_horizontal": 0,
+          "inlines": 0,
+          "model": "brand_experience.brandprofile"
+        },
+        {
+          "custom_change_form": true,
+          "custom_change_list": false,
+          "fields": 21,
+          "filter_horizontal": 0,
+          "inlines": 0,
+          "model": "portal.portalfeatureitem"
+        },
+        {
+          "custom_change_form": true,
+          "custom_change_list": false,
+          "fields": 21,
+          "filter_horizontal": 0,
+          "inlines": 0,
+          "model": "siteconfig.reportcardstyle"
+        },
+        {
+          "custom_change_form": false,
+          "custom_change_list": false,
+          "fields": 20,
+          "filter_horizontal": 0,
+          "inlines": 0,
+          "model": "academics.certificationexamsession"
+        },
+        {
+          "custom_change_form": false,
+          "custom_change_list": false,
+          "fields": 20,
+          "filter_horizontal": 0,
+          "inlines": 0,
+          "model": "evals.gradeaudit"
+        },
+        {
+          "custom_change_form": false,
+          "custom_change_list": false,
+          "fields": 20,
+          "filter_horizontal": 0,
+          "inlines": 0,
+          "model": "runtime_blueprints.dashboarduserpreference"
+        },
+        {
+          "custom_change_form": true,
+          "custom_change_list": false,
+          "fields": 20,
+          "filter_horizontal": 0,
+          "inlines": 0,
+          "model": "siteconfig.dashboarduserpreference"
+        }
+      ],
+      "models_with_15_plus_fields": 56,
+      "models_with_filter_horizontal": 6,
+      "models_with_inlines": 22,
+      "registered_models": 277
+    }
+  },
+  "root": "C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system",
+  "schema": "rmc.admin-emergency-surface-audit.v1",
+  "signup": {
+    "captured_count": 32,
+    "captured_or_derived": {
+      "balanced_signup_contract": true,
+      "blueprint_recommendation": true,
+      "campus_count": true,
+      "confidence_and_reasons": true,
+      "connectivity_profile": true,
+      "country": true,
+      "education_cycles": true,
+      "funding_type": true,
+      "go_live_timeline": true,
+      "grading_recommendation": true,
+      "guided_onboarding_uses_balanced_contract": true,
+      "languages": true,
+      "live_recommendation_card": true,
+      "lms_preference": true,
+      "migration_domains": true,
+      "migration_vendor": true,
+      "module_recommendation": true,
+      "nuanced_operations": true,
+      "offline_recommendation": true,
+      "operating_model": true,
+      "organization_scope": true,
+      "payment_profile": true,
+      "recommendation_manifest_persisted": true,
+      "recommendation_manifest_v4": true,
+      "review_candidate_preserves_confirmed_decision": true,
+      "staff_count": true,
+      "strict_input_validation": true,
+      "student_capacity": true,
+      "subscription_does_not_auto_entitle": true,
+      "subscription_requires_confirmation": true,
+      "typed_profile_boundary": true,
+      "versioned_blueprint_catalog": true
+    },
+    "decision_gaps": [],
+    "plan_is_platform_default_not_auto_granted": true,
+    "recommendation_engine_is_local_and_deterministic": true
+  },
+  "summary": {
+    "admin_templates": 91,
+    "all_templates": 1892,
+    "copied_theme_coupled_admin_guidance_cards": 0,
+    "critical": 0,
+    "css_files": 326,
+    "findings": 0,
+    "hard_white_template_lines": 0,
+    "inline_admin_scripts_without_nonce": 0,
+    "registered_admin_models": 474
+  }
+}

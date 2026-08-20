@@ -351,7 +351,9 @@ def enrich_run_payload(serialized: dict[str, Any], *, run: Any | None = None) ->
         action_count=len(out["operator_actions"]),
         remediated=remediated,
     )
-    return out
+    from apps.platform_runtime.workflow_attention_gateway import attach_attention_fields
+
+    return attach_attention_fields(out, run=run)
 
 
 def _can_requeue_provision(school_id: str) -> bool:

@@ -2671,11 +2671,12 @@ class FeatureFragmentAdmin(ModelAdmin):
     raw_id_fields = ("school", "ticket")
 
     def formfield_for_dbfield(self, db_field, request, **kwargs):
-        if db_field.name == "target_hook":
+        formfield = super().formfield_for_dbfield(db_field, request, **kwargs)
+        if db_field.name == "target_hook" and formfield is not None:
             from .hooks import get_hook_choices
 
-            kwargs["choices"] = get_hook_choices()
-        return super().formfield_for_dbfield(db_field, request, **kwargs)
+            formfield.choices = get_hook_choices()
+        return formfield
 
 
 register_platform_admin(CustomFeatureTicket, CustomFeatureTicketAdmin)

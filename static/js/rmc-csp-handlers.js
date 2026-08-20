@@ -18,6 +18,7 @@
  *   <el     data-rmc-popup [-url|-name|-features]> -> window.open(...) popup       (was onclick="window.open(...)")
  *   <el     data-rmc-click-target="#sel">     -> proxies its click to #sel        (was onclick="document.getElementById('x').click()")
  *   <select data-rmc-navigate-param="k" [data-rmc-navigate-reset="p"]> -> sets ?k=value (resetting p=1) and navigates (was onchange="...searchParams.set(...);window.location=...")
+ *   <el     data-rmc-copy-from="#sel">        -> copies #sel text to clipboard
  *   <el     data-rmc-set-and-submit data-rmc-set-field="#f" data-rmc-set-value="v" data-rmc-submit-form="#form"> -> sets #f.value then submits #form (was onclick="document.getElementById('f').value='v';document.getElementById('form').submit()")
  *
  * NOTE: `data-rmc-confirm` (confirm-before-submit) is intentionally NOT handled
@@ -90,7 +91,7 @@
     var el = target.closest(
       '[data-rmc-print],[data-rmc-reload],[data-rmc-select-on-click],' +
       '[data-rmc-popup],[data-rmc-click-target],[data-rmc-set-and-submit],' +
-      '[data-rmc-open-shortcuts]'
+      '[data-rmc-open-shortcuts],[data-rmc-copy-from]'
     );
     if (!el) {
       return;
@@ -119,6 +120,17 @@
       e.preventDefault();
       if (window.RMCShortcuts && typeof window.RMCShortcuts.open === 'function') {
         window.RMCShortcuts.open();
+      }
+    } else if (el.hasAttribute('data-rmc-copy-from')) {
+      e.preventDefault();
+      var fromSel = el.getAttribute('data-rmc-copy-from');
+      var fromEl = fromSel ? document.querySelector(fromSel) : null;
+      var copyText = fromEl ? (fromEl.innerText || fromEl.textContent || '') : '';
+      if (copyText && navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(copyText).then(function () {
+          el.classList.add('is-copied');
+          window.setTimeout(function () { el.classList.remove('is-copied'); }, 1600);
+        }, function () {});
       }
     }
   });

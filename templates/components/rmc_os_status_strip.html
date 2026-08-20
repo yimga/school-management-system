@@ -20,6 +20,7 @@ semantic elements are preferred when an equivalent role exists.
   <div data-rmc-payment-readiness-slot="1" class="rmc-os-payment-readiness-slot"></div>
   {% if request.user.is_authenticated %}
     {% include "components/offline_sync_status_bar.html" %}
+    {% include "components/edge_sync_status_bar.html" %}
   {% endif %}
 </section>
 {% endif %}

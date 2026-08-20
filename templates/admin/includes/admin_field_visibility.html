@@ -1,0 +1,32 @@
+{% load i18n %}
+{% if admin_field_contract.optional %}
+<details class="rmc-admin-field-picker" data-rmc-admin-field-picker="1">
+  <summary class="rmc-django-band-action" role="button">
+    {% trans "Fields" %}
+  </summary>
+  <div class="rmc-admin-field-picker__panel" role="group" aria-label="{% trans 'Optional form fields' %}">
+    <div class="rmc-admin-field-picker__heading">
+      <strong>{% trans "Fields on this form" %}</strong>
+      <span>{% trans "Required fields always stay visible." %}</span>
+    </div>
+    <div class="rmc-admin-field-picker__presets" aria-label="{% trans 'Field presets' %}">
+      <button type="button" data-rmc-field-preset="recommended">{% trans "Recommended fields" %}</button>
+      <button type="button" data-rmc-field-preset="all">{% trans "Show all" %}</button>
+      <button type="button" data-rmc-field-preset="reset">{% trans "Reset" %}</button>
+    </div>
+    <div class="rmc-admin-field-picker__list">
+      {% for item in admin_field_contract.optional %}
+      <label>
+        <input type="checkbox"
+               value="{{ item.name }}"
+               data-rmc-optional-field="{{ item.name }}"
+               {% if item.name not in admin_field_contract.hidden %}checked{% endif %}>
+        <span>{{ item.label }}</span>
+        {% if item.recommended %}<em>{% trans "Recommended" %}</em>{% endif %}
+      </label>
+      {% endfor %}
+    </div>
+    <p class="rmc-admin-field-picker__status" data-rmc-field-picker-status aria-live="polite"></p>
+  </div>
+</details>
+{% endif %}

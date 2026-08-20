@@ -300,3 +300,79 @@ html[data-rmc-admin-html="unfold"] body,
  * for scripts/scan_undefined_css_classes.py. */
 .rmc-admin-fieldset__heading { --rmc-admin-fieldset-heading: 1; }
 .rmc-admin-fieldset__description { --rmc-admin-fieldset-description: 1; }
+
+/* v19 form intelligence is a component inside the approved command band; it is
+ * not a second layout owner. Optional fields remain normal Django controls. */
+.rmc-admin-field-picker { position: relative; }
+.rmc-admin-field-picker > summary { cursor: pointer; list-style: none; }
+.rmc-admin-field-picker > summary::-webkit-details-marker { display: none; }
+.rmc-admin-field-picker__panel {
+  background: var(--body-bg, #0f172a);
+  border: 1px solid color-mix(in srgb, var(--border-color, #334155) 88%, transparent);
+  border-radius: 0.85rem;
+  box-shadow: 0 1rem 2.8rem rgb(2 6 23 / 0.36);
+  color: var(--body-fg, #e5e7eb);
+  inline-size: min(26rem, calc(100vw - 2rem));
+  inset-block-start: calc(100% + 0.55rem);
+  inset-inline-end: 0;
+  max-block-size: min(34rem, 70vh);
+  overflow: auto;
+  padding: 0.85rem;
+  position: absolute;
+  z-index: 90;
+}
+.rmc-admin-field-picker__heading { display: grid; gap: 0.2rem; }
+.rmc-admin-field-picker__heading span,
+.rmc-admin-field-picker__status { color: var(--body-quiet-color, #94a3b8); font-size: 0.76rem; }
+.rmc-admin-field-picker__presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-block: 0.75rem;
+}
+.rmc-admin-field-picker__presets button {
+  background: color-mix(in srgb, var(--primary, #22c55e) 13%, transparent);
+  border: 1px solid color-mix(in srgb, var(--primary, #22c55e) 50%, var(--border-color, #334155));
+  border-radius: 999px;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  min-block-size: 2rem;
+  padding-inline: 0.7rem;
+}
+.rmc-admin-field-picker__list { display: grid; gap: 0.3rem; }
+.rmc-admin-field-picker__list label {
+  align-items: center;
+  border-radius: 0.55rem;
+  cursor: pointer;
+  display: grid;
+  gap: 0.55rem;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  min-block-size: 2.35rem;
+  padding-inline: 0.45rem;
+}
+/* Tinted from the admin foreground token, like the checked state above, so the
+   hover follows the theme instead of pinning one slate literal in both. */
+.rmc-admin-field-picker__list label:hover { background: color-mix(in srgb, var(--body-fg, #e5e7eb) 8%, transparent); }
+.rmc-admin-field-picker__list em { color: var(--primary, #22c55e); font-size: 0.68rem; font-style: normal; }
+.rmc-admin-field-picker__status[data-state="pending"] { color: var(--warning-fg, #fbbf24); }
+[data-rmc-field-preference-hidden] { display: none !important; }
+.rmc-admin-field-recommended-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-inline-start: 0.45rem;
+  padding: 0.1rem 0.38rem;
+  border: 1px solid color-mix(in srgb, var(--primary, #22c55e) 42%, transparent);
+  border-radius: 999px;
+  color: var(--primary, #22c55e);
+  font-size: 0.62rem;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
+@media (max-width: 1024px) {
+  .rmc-admin-field-picker__panel { inset-inline-end: auto; inset-inline-start: 0; }
+}

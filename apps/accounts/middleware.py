@@ -227,6 +227,8 @@ class ModuleAccessMiddleware:
         "/admin/",
         "/siteconfig/preferences",  # Any authenticated user can manage own preferences (theme, dashboard, etc.)
         "/siteconfig/api/tour-",  # Guided tour + info-tag helpers (all portal roles)
+        "/siteconfig/sync-center/status",  # Edge box chrome polls live sync percent (all roles)
+        "/siteconfig/sync-center/probe",  # Edge box HTTP probe (same access as status poll)
     )
     BYPASS_PATHS = {
         "/authentication/login/",

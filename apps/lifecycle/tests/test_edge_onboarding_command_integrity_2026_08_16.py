@@ -42,6 +42,7 @@ _PROSE_COMMANDS_BY_STEP = {
     "migrate_identities": ("ensure_default_tenant_admin",),
     "configure_box_env": ("check_edge_readiness", "run_periodic_jobs"),
     "enable_configure_sync": ("mint_edge_credential",),
+    "seed_operational_data": ("import_sovereign_tenant",),
 }
 
 
@@ -89,3 +90,11 @@ class RunbookCommandIntegrityTests(SimpleTestCase):
         workaround = by_key["migrate_identities"].workaround
         self.assertNotIn("ensure_admin_user_for_school", workaround)
         self.assertIn("ensure_default_tenant_admin", workaround)
+
+    def test_verify_step_uses_management_command_not_shell_dash_c(self):
+        by_key = {s.key: s for s in EDGE_ONBOARDING_STEPS}
+        cmd = by_key["verify_and_sync_gate"].command_template
+        self.assertIn("edge_onboarding_verify", cmd)
+        self.assertNotIn("shell -c", cmd)
+        data = by_key["seed_operational_data"].command_template
+        self.assertNotIn("--fresh", data)

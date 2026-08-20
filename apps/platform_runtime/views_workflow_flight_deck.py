@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import json
+import threading
 
 
 from apps.schools.control_plane import require_control_plane_access
@@ -54,6 +54,21 @@ def flight_deck_labels() -> dict[str, str]:
         "clear_requires_success": _(
             "Can only clear after provisioning has succeeded."
         ),
+        "action_required": _("Action Required"),
+        "success_logs": _("Success Logs"),
+        "workflow_state": _("Workflow State"),
+        "overall_progress": _("Overall Progress"),
+        "health_index": _("Health Index"),
+        "live_logs": _("Live logs"),
+        "simulate_failure": _("Simulate Failure Path"),
+        "simulate_success": _("Simulate Success Path"),
+        "simulation_preset": _("Scenario Simulation Flow Preset"),
+        "no_action_required": _("Nothing needs attention. Successful runs are archived below."),
+        "no_success_logs": _("No archived successes yet."),
+        "resume_from_failure": _("Resume from failure point"),
+        "alert_failed": _("A workflow failed and is waiting for operator action."),
+        "simulate_failure_started": _("Failure simulation started."),
+        "simulate_success_started": _("Success simulation started."),
     }
 
 
@@ -77,6 +92,7 @@ def _flight_deck_endpoints() -> dict[str, str]:
             "platform_runtime:workflow_progress_healing_status",
             kwargs={"run_id": 0},
         ).replace("/0/", "/{run_id}/"),
+        "simulate": reverse("platform_runtime:workflow_progress_simulate"),
     }
 
 
@@ -100,6 +116,8 @@ def flight_deck_view(request):
     # @track_workflow platform runs shown here. Guarded so it degrades if unrouted.
     from django.urls import NoReverseMatch
 
+    from apps.platform_runtime.workflow_simulation import simulation_enabled
+
     orchestration_workbench_url = ""
     try:
         orchestration_workbench_url = reverse("super:orchestration_workbench")
@@ -113,9 +131,10 @@ def flight_deck_view(request):
             "page_title": "Workflow Flight Deck",
             "flight_deck_api_url": reverse("platform_runtime:workflow_progress_flight_deck_json"),
             "flight_deck_page_url": reverse("platform_runtime:workflow_progress_flight_deck"),
-            "flight_deck_endpoints_json": json.dumps(_flight_deck_endpoints()),
+            "flight_deck_endpoints_json": _flight_deck_endpoints(),
             "flight_deck_labels": flight_deck_labels(),
             "orchestration_workbench_url": orchestration_workbench_url,
+            "simulation_enabled": simulation_enabled(),
         },
     )
 
@@ -141,6 +160,11 @@ def flight_deck_json_view(request):
     is_staff = bool(getattr(request.user, "is_staff", False))
     if not is_staff:
         return JsonResponse({"error": "forbidden"}, status=403)
+
+    from apps.platform_runtime.workflow_attention_gateway import (
+        compute_health,
+        list_success_logs,
+    )
 
     active_rows = list(list_active_runs(tenant_schema=schema, actor_user_id="", limit=50))
     active_ids = [row.get("id") for row in active_rows if row.get("id")]
@@ -178,6 +202,22 @@ def flight_deck_json_view(request):
         if len(recent_failed) >= 20:
             break
 
+    success_logs = []
+    for run in list_success_logs(tenant_schema=schema, limit=20):
+        success_logs.append(enrich_run_payload(serialize_workflow_run(run), run=run))
+
+    action_required = list(active) + list(recent_failed)
+    health = compute_health(action_required=action_required, success_logs=success_logs)
+    featured_failure = next(
+        (
+            row
+            for row in action_required
+            if row.get("remediator")
+            and str(row.get("status") or "") in ("failed", "stuck", "cancelled")
+        ),
+        None,
+    )
+
     incidents = [
         enrich_incident_row(row)
         for row in (cluster_recent_incidents() if is_staff and not schema else [])
@@ -204,6 +244,7 @@ def flight_deck_json_view(request):
         not in ("succeeded", "failed", "cancelled", "")
     )
     from apps.platform_runtime.workflow_healing_chains import healing_coverage_report
+    from apps.platform_runtime.workflow_simulation import simulation_enabled
 
     healing_report = healing_coverage_report()
     recovery_coverage = workflow_recovery_coverage()
@@ -217,6 +258,11 @@ def flight_deck_json_view(request):
             "status_taxonomy": status_taxonomy_payload(),
             "active": active,
             "recent_failed": recent_failed,
+            "action_required": action_required,
+            "success_logs": success_logs,
+            "health": health,
+            "featured_failure": featured_failure,
+            "simulation_enabled": simulation_enabled(),
             "incidents": incidents,
             "summary": {
                 "active_count": len(active),
@@ -225,6 +271,10 @@ def flight_deck_json_view(request):
                 "stopped_count": stopped_count,
                 "needs_operator_count": needs_operator,
                 "healing_count": healing_count,
+                "success_count": len(success_logs),
+                "workflow_state": health.get("workflow_state"),
+                "overall_progress": health.get("overall_progress"),
+                "health_index": health.get("health_index"),
             },
             "copilot_context": {
                 "active_run_ids": [r.get("id") for r in active if r.get("id")],
@@ -278,3 +328,63 @@ def incident_bulk_apply_view(request):
     if result.get("reason") == "missing_remediation_key":
         status = 400
     return JsonResponse(result, status=status)
+
+
+@login_required_api
+@require_POST
+def simulate_scenario_view(request):
+    """Staff-only Flight Deck failure/success simulation preset."""
+
+    if not bool(getattr(request.user, "is_staff", False)):
+        return JsonResponse({"error": "forbidden"}, status=403)
+
+    from apps.platform_runtime.workflow_simulation import (
+        begin_simulation_run,
+        run_simulation_worker,
+        simulation_enabled,
+        simulation_step_delay_seconds,
+    )
+
+    if not simulation_enabled():
+        return JsonResponse({"error": "forbidden", "reason": "simulation_disabled"}, status=403)
+
+    path = (
+        request.POST.get("path")
+        or request.GET.get("path")
+        or ""
+    ).strip().lower()
+    if path not in ("failure", "success"):
+        return JsonResponse({"ok": False, "reason": "invalid_path"}, status=400)
+
+    run = begin_simulation_run(request=request, path=path)
+    if run is None:
+        return JsonResponse({"ok": False, "reason": "begin_failed"}, status=500)
+
+    delay = simulation_step_delay_seconds()
+    sync = (request.POST.get("sync") or request.GET.get("sync") or "").strip() in (
+        "1",
+        "true",
+        "yes",
+    )
+    if sync:
+        run_simulation_worker(run, path=path, delay_seconds=0.0)
+        try:
+            run.refresh_from_db()
+        except Exception:
+            pass
+    else:
+        threading.Thread(
+            target=run_simulation_worker,
+            args=(run,),
+            kwargs={"path": path, "delay_seconds": delay},
+            daemon=True,
+        ).start()
+    return JsonResponse(
+        {
+            "ok": True,
+            "run_id": run.pk,
+            "path": path,
+            "status": getattr(run, "status", "running"),
+            "workflow_key": getattr(run, "workflow_key", ""),
+        }
+    )

@@ -3,6 +3,11 @@
 {% block page_title %}{{ page_title }}{% endblock %}
 {% block extrastyle %}
 {{ block.super }}
+<link rel="stylesheet" href="{% static 'css/rmc-workflow-flight-deck.css' %}">
+{% endblock %}
+{% block extra_js %}
+{{ block.super }}
+<script src="{% static 'js/rmc-migration-live-import.js' %}" defer></script>
 {% endblock %}
 {% block content %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>

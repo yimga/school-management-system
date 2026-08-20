@@ -1769,12 +1769,13 @@ def platform_surface_settings(request):
             policy_offline = False
     else:
         policy_offline = True
-    offline_runtime = (
-        site.get_offline_runtime_settings()
-        if site is not None
-        and callable(getattr(site, "get_offline_runtime_settings", None))
-        else {"enable_offline_mode": bool(getattr(site, "enable_offline_mode", False))}
-    )
+    # Keep the browser config and the encryption-key API on the same
+    # owner-scoped resolver.  Using request.site directly can select a broad
+    # shell default while the endpoint correctly resolves offline mode as off,
+    # producing a forbidden background request on every admin page.
+    from apps.platform_runtime.helpers import get_effective_offline_runtime_settings
+
+    offline_runtime = get_effective_offline_runtime_settings(request=request)
     offline_enabled = bool(offline_runtime.get("enable_offline_mode", False)) and bool(
         policy_offline
     )

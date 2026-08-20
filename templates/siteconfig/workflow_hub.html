@@ -18,6 +18,8 @@
     <a href="{{ backend_url }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i>{% trans "Back to backend" %}</a>
   </p>
   {% endif %}
+  {% include "components/rmc_workflow_kickoff_live.html" with workflow_key="" task_type="WORKFLOW_CENTER" kickoff_attention=1 %}
+
   <header class="hub-hero">
     <span class="hub-eyebrow">{% trans "Platform hub" %}</span>
     <h1 class="hub-title">{% trans "Workflow Hub" %}</h1>
