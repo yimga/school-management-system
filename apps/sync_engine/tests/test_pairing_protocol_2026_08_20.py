@@ -79,13 +79,13 @@ class PairingProtocolTests(TestCase):
             username="gilead_admin", password="x", email="a@example.com"
         )
         SchoolMembership.objects.create(
-            user=self.admin, school=self.school, role="ADMIN"
+            user=self.admin, school=self.school, role="ADMIN", is_school_owner=True
         )
         self.outsider = User.objects.create_user(
             username="other_admin", password="x", email="b@example.com"
         )
         SchoolMembership.objects.create(
-            user=self.outsider, school=self.other, role="ADMIN"
+            user=self.outsider, school=self.other, role="ADMIN", is_school_owner=True
         )
 
     # ------------------------------------------------------------------ start --
@@ -200,6 +200,37 @@ class PairingProtocolTests(TestCase):
         row = EdgePairingRequest.objects.get(pk=started["request_id"])
         self.assertEqual(row.status, EdgePairingRequest.Status.PENDING)
 
+    def test_a_global_admin_role_elsewhere_cannot_adopt_this_box(self):
+        """The sharp one: approval must be SCHOOL-SCOPED, not merely admin-ish.
+
+        ``user_is_tenant_admin`` returns True for anyone carrying ``User.role="ADMIN"``
+        REGARDLESS of school — that branch is not school-scoped, and it is how every
+        real tenant admin is minted. For most surfaces that is harmless because the
+        view already resolved ``request.school``. Here it is not harmless: approving a
+        pairing MINTS A CREDENTIAL for the claimed school, so a school-blind check
+        would let an admin of any tenant adopt a box into a tenant they do not
+        administer, given only the code. The ``school=`` argument is a guard the
+        CALLER may forget; standing must be checked against the target regardless.
+        """
+        from apps.sync_engine.pairing_service import approve_pairing
+
+        self.outsider.role = "ADMIN"
+        self.outsider.save(update_fields=["role"])
+        started = self._start()
+        result = approve_pairing(code=started["user_code"], approver=self.outsider)
+        self.assertFalse(result["ok"], "an admin elsewhere adopted a box into Gilead")
+        self.assertEqual(result["error"], "forbidden")
+        row = EdgePairingRequest.objects.get(pk=started["request_id"])
+        self.assertEqual(row.status, EdgePairingRequest.Status.PENDING)
+
+    def test_the_schools_own_owner_is_still_allowed_without_a_school_argument(self):
+        """The scoping fix must not break the ordinary case it protects."""
+        from apps.sync_engine.pairing_service import approve_pairing
+
+        started = self._start()
+        result = approve_pairing(code=started["user_code"], approver=self.admin)
+        self.assertTrue(result["ok"], result.get("error"))
+
     def test_a_non_admin_of_the_right_school_cannot_approve(self):
         from django.contrib.auth import get_user_model
 
@@ -313,12 +344,17 @@ class EdgeBindingPrecedenceTests(TestCase):
         row = EdgeCloudBinding.objects.create(
             operator_base="https://c.example.com", credential="super-secret-token"
         )
+        # Read the raw column, not the model attribute — the whole point is what a
+        # backup or a stolen disk would show. No WHERE clause: SQLite stores a
+        # UUIDField as dash-less hex while Postgres stores a native uuid, so binding
+        # the pk here would silently match nothing on one of the two backends and the
+        # assertion would pass against an empty result. This test has exactly one row.
         with connection.cursor() as cur:
-            cur.execute(
-                "SELECT credential FROM sync_engine_edgecloudbinding WHERE id = %s",
-                [str(row.pk)],
-            )
-            stored = cur.fetchone()[0]
+            cur.execute("SELECT credential FROM sync_engine_edgecloudbinding")
+            stored_values = [r[0] for r in cur.fetchall()]
+        self.assertEqual(len(stored_values), 1)
+        stored = stored_values[0]
+        self.assertTrue(stored, "the column is empty — nothing was actually stored")
         self.assertNotIn("super-secret-token", stored or "")
         self.assertEqual(
             EdgeCloudBinding.objects.get(pk=row.pk).credential, "super-secret-token"

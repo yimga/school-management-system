@@ -38,7 +38,7 @@ class ClaimTicketTests(TestCase):
         User = get_user_model()
         self.admin = User.objects.create_user(username="gilead_admin", password="x")
         SchoolMembership.objects.create(
-            user=self.admin, school=self.school, role="ADMIN"
+            user=self.admin, school=self.school, role="ADMIN", is_school_owner=True
         )
         self.nobody = User.objects.create_user(username="nobody", password="x")
 
@@ -118,7 +118,7 @@ class ClaimTicketTests(TestCase):
         from apps.schools.models import SchoolMembership
 
         SchoolMembership.objects.create(
-            user=self.admin, school=self.other, role="ADMIN"
+            user=self.admin, school=self.other, role="ADMIN", is_school_owner=True
         )
         result = self._mint(school=self.other)
         started = self._start(ticket=result["ticket"], slug="gilead-tech")

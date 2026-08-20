@@ -290,15 +290,72 @@ def find_pending_by_code(code: str):
     return request
 
 
+def is_platform_staff(user) -> bool:
+    """Control-plane staff. The deliberate backstop when a school does not respond."""
+    return bool(
+        getattr(user, "is_superuser", False) or getattr(user, "is_staff", False)
+    )
+
+
+def may_adopt_for(user, school) -> bool:
+    """May ``user`` adopt a box INTO ``school``? School-scoped, deliberately.
+
+    ``user_is_tenant_admin`` is the right canonical check for a tenant surface, but one
+    of its branches — ``User.role in ADMIN_LIKE_ROLES`` — is not school-scoped, and it
+    is the branch every real tenant admin matches. On an ordinary settings page that is
+    harmless: the view already resolved ``request.school``, so the school is not the
+    caller's to choose. Approving a pairing is not that shape. It MINTS A CREDENTIAL for
+    whichever school the box named, and the ``school=`` argument is a guard a caller can
+    forget, so a school-blind check would let an admin of any tenant adopt a box into a
+    tenant they have no standing in, given only the displayed code.
+
+    So standing is re-checked against the target here, through the two school-scoped
+    routes: a live membership in that school, or an explicitly school-scoped feature
+    permission. Platform staff pass by design and are recorded in ``approved_by``.
+    """
+    if school is None:
+        return False
+    if is_platform_staff(user):
+        return True
+    if not getattr(user, "is_authenticated", False):
+        return False
+
+    from apps.accounts.decorators import user_is_tenant_admin
+
+    if not user_is_tenant_admin(user, school):
+        return False
+    try:
+        from apps.schools.models import SchoolMembership
+
+        # tenant-isolation-allow: pairing-standing-check-is-explicitly-school-scoped
+        if SchoolMembership.objects.filter(
+            school=school,
+            user_id=getattr(user, "pk", None),
+            suspended_at__isnull=True,
+        ).exists():
+            return True
+    except (AttributeError, ImportError, TypeError, ValueError):
+        return False
+    try:
+        return bool(user.has_feature_permission("settings.manage", school=school))
+    except (AttributeError, TypeError, ValueError):
+        return False
+
+
 def approve_pairing(*, code: str, approver, school=None) -> dict:
     """A cloud admin says yes. This is the whole authorization decision.
 
-    ``school``, when given, is the tenant the approver is signed in to; the request's
-    claimed school must match it. That is what stops an admin of school A approving a
-    box that claimed school B — the check is not "is this person an admin" but "is
-    this person an admin OF THE SCHOOL THIS BOX ASKED FOR".
+    The check is not "is this person an admin" but "is this person an admin OF THE
+    SCHOOL THIS BOX ASKED FOR". Two independent things enforce that, because either
+    one alone has a gap:
+
+      * ``school``, when given, is the tenant the approver is signed in to, and the
+        request's claimed school must match it. This is the caller's guard — and a
+        caller can forget to pass it.
+      * :func:`may_adopt_for` re-derives standing against the request's OWN school
+        regardless of what the caller passed, which is what actually closes the
+        not-school-scoped ``User.role`` branch inside ``user_is_tenant_admin``.
     """
-    from apps.accounts.decorators import user_is_tenant_admin
 
     request = find_pending_by_code(code)
     if request is None:
@@ -329,10 +386,7 @@ def approve_pairing(*, code: str, approver, school=None) -> dict:
     # access to every tenant, so approving on a school's behalf grants them nothing new
     # -- but it is recorded in ``approved_by``, and the minted credential is bound to
     # THEM, so an operator-approved box is visibly operator-approved forever after.
-    is_platform_staff = bool(
-        getattr(approver, "is_superuser", False) or getattr(approver, "is_staff", False)
-    )
-    if not (is_platform_staff or user_is_tenant_admin(approver, target)):
+    if not may_adopt_for(approver, target):
         return {"ok": False, "error": "forbidden", "user_code": request.user_code}
 
     request.status = EdgePairingRequest.Status.APPROVED
@@ -350,7 +404,6 @@ def approve_pairing(*, code: str, approver, school=None) -> dict:
 
 def deny_pairing(*, code: str, approver, school=None, reason: str = "") -> dict:
     """Refuse a request. Terminal — the box is told, and stops polling."""
-    from apps.accounts.decorators import user_is_tenant_admin
 
     request = find_pending_by_code(code)
     if request is None:
@@ -361,7 +414,7 @@ def deny_pairing(*, code: str, approver, school=None, reason: str = "") -> dict:
     if target is not None:
         if school is not None and str(getattr(school, "pk", "")) != str(target.pk):
             return {"ok": False, "error": "wrong_tenant"}
-        if not user_is_tenant_admin(approver, target):
+        if not may_adopt_for(approver, target):
             return {"ok": False, "error": "forbidden"}
     elif not getattr(approver, "is_staff", False):
         # Nobody is an admin of a school that does not exist, so only platform staff
@@ -434,15 +487,11 @@ def mint_claim_ticket(*, school, minted_by, days: int = 14, label: str = "") -> 
     Only a tenant admin of that school or platform staff may mint — the same gate as
     approving, because a ticket IS an approval, merely made ahead of time.
     """
-    from apps.accounts.decorators import user_is_tenant_admin
     from apps.sync_engine.models_pairing import EdgeClaimTicket
 
     if school is None:
         return {"ok": False, "error": "school_required"}
-    is_platform_staff = bool(
-        getattr(minted_by, "is_superuser", False) or getattr(minted_by, "is_staff", False)
-    )
-    if not (is_platform_staff or user_is_tenant_admin(minted_by, school)):
+    if not may_adopt_for(minted_by, school):
         return {"ok": False, "error": "forbidden"}
 
     raw, row = EdgeClaimTicket.mint(
