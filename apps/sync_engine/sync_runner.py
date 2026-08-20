@@ -326,6 +326,21 @@ def _execute_sync_transport(school, *, mode, result, run_row) -> None:
     errors: list[str] = []
     notes: list[str] = []
 
+    # A box that pulled new code but never ran migrate cannot apply rows for any column it
+    # does not have yet. Those rows now degrade individually (sync_services catches
+    # OperationalError/ProgrammingError per row) instead of killing the bundle - but the
+    # operator still has to be TOLD, or they see "12 NOT applied" with no cause. Named
+    # first so it heads the run message.
+    try:
+        from apps.sync_engine import schema_guard
+
+        drift = schema_guard.drift_note()
+        if drift:
+            notes.append(f"WARNING: {drift}")
+            result["schema_behind"] = True
+    except Exception:  # noqa: BLE001 - a diagnostic must never break the cycle
+        logger.debug("schema drift check failed", exc_info=True)
+
     from apps.sync_engine import edge_outbox
 
     # 1) PUSH local changes UP, IN PAGES, from the durable push cursor. A failure here

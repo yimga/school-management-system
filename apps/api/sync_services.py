@@ -478,7 +478,13 @@ def _create_from_cloud_pull(
     Returns ``(instance, None)`` or ``(None, {"status": int, "data": {...}})``.
     """
     from django.core.exceptions import FieldError, ValidationError
-    from django.db import DataError, IntegrityError, transaction
+    from django.db import (
+        DataError,
+        IntegrityError,
+        OperationalError,
+        ProgrammingError,
+        transaction,
+    )
 
     from apps.api.entity_api import _is_admin_like
 
@@ -541,6 +547,7 @@ def _create_from_cloud_pull(
             instance.save(force_insert=True)
     except (
         IntegrityError, DataError, ValidationError, ValueError, TypeError, FieldError,
+        OperationalError, ProgrammingError,  # a column this schema does not have yet
     ) as exc:
         # Usually a NOT NULL column that is not on the rail, so the bundle carried no value
         # for it. Reported per row rather than raised, so the rest of the pull still lands.
@@ -734,7 +741,13 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
                               "client_updated_at", "server_updated_at", "conflict_id" }
     """
     from django.core.exceptions import FieldError, ValidationError
-    from django.db import DataError, IntegrityError, transaction
+    from django.db import (
+        DataError,
+        IntegrityError,
+        OperationalError,
+        ProgrammingError,
+        transaction,
+    )
 
     # Edge sync operations (sync_origin set) get the expanded registry; an online
     # DeltaSyncAPI call (sync_origin None) gets only the original three — other tenants
@@ -1047,6 +1060,10 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
             except (
                 IntegrityError, DataError, ValidationError,
                 ValueError, TypeError, FieldError,
+                # A column this deployment's schema does not have yet. Without these two
+                # the error escapes the savepoint and kills the WHOLE bundle; the run
+                # message names the pending migrations (see sync_engine.schema_guard).
+                OperationalError, ProgrammingError,
             ) as exc:
                 _emit({
                     "index": idx, "status": 422,
@@ -1143,7 +1160,13 @@ def apply_edge_inserts(school_id, user, rows, *, sync_origin=None):
     Returns ``{"created", "updated", "results"}`` (results carry per-row index/status).
     """
     from django.core.exceptions import FieldError, ValidationError
-    from django.db import DataError, IntegrityError, transaction
+    from django.db import (
+        DataError,
+        IntegrityError,
+        OperationalError,
+        ProgrammingError,
+        transaction,
+    )
 
     from apps.api.entity_api import _is_admin_like
     from apps.schools.models import School
@@ -1307,7 +1330,10 @@ def apply_edge_inserts(school_id, user, rows, *, sync_origin=None):
                         # invisible to the incremental delta (filter(updated_at__gt=since)).
                         update_fields.append("updated_at")
                     obj.save(update_fields=update_fields)
-        except (IntegrityError, DataError, ValidationError, ValueError, TypeError, FieldError) as exc:
+        except (
+            IntegrityError, DataError, ValidationError, ValueError, TypeError, FieldError,
+            OperationalError, ProgrammingError,  # a column this schema does not have yet
+        ) as exc:
             # DataError (value too long / out of range on Postgres) is a DatabaseError
             # sibling of IntegrityError; catching it keeps the per-row savepoint from
             # escaping and rolling back the whole batch (SQLite doesn't enforce

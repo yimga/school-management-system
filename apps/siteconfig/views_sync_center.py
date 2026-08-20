@@ -246,6 +246,11 @@ def _sync_live_strings() -> dict:
         "unit_d": gettext("d"),
         "unit_ms": gettext("ms"),
         "not_applied": gettext("Not applied"),
+        "explain_schema_behind": gettext(
+            "This box is behind on database migrations, so records using newer fields "
+            "cannot be applied. Run migrations on the box; sync resumes automatically. "
+            "Pending: "
+        ),
         "explain_skipped": gettext(
             "Some records could not be applied on this box - most often a record that "
             "references a parent this box has not received yet. They are named in the "
@@ -618,7 +623,18 @@ def sync_center_status(request):
         "recent_records": [],
         "totals": {},
         "pending_conflicts": None,
+        # Whether THIS deployment's schema is current. A box behind on migrations cannot
+        # apply rows for the new columns, and the raw OperationalError names a column,
+        # never the cause.
+        "schema": None,
     })
+
+    try:
+        from apps.sync_engine import schema_guard
+
+        payload["schema"] = schema_guard.summary()
+    except Exception:  # noqa: BLE001
+        _logger.debug("schema summary failed for the status poll", exc_info=True)
 
     try:
         from apps.sync_engine import cadence as _cadence

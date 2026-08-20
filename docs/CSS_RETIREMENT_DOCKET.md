@@ -2,6 +2,28 @@
 
 **Last updated:** 2026-08-19
 
+## 2026-08-19 (later) — Sync audit pass: a shadowed endpoint, a button that 500s, cadence that blames the wrong thing, and a box nobody told to migrate
+
+Continuation of the referential-integrity fix earlier the same day. Everything below was found by RUNNING the suites and the views, not by reading them. The sync suites went from **51 failing / 374 passing** to **469 passing / 0 failing** (4 skips are the documented Postgres-only CRDT convergence proofs).
+
+**1. Two functions named `sync_center_status`, and the same route registered twice.** A previous merge appended a second definition with the same name into `views_sync_center.py`; Python keeps the last one, so the live-evidence view silently shadowed the phase view — and `static/js/rmc-edge-sync-chrome.js`, the global edge-sync progress bar mounted on **every tenant page of a box**, polls that URL for `phase` / `percent_complete` / `headline` and had been getting a payload without them. Now ONE view serving the union: seeded from `serialize_live_status`, with the evidence keys taking precedence where the two overlap (`recent_runs` especially, whose richer shape the live panel's JS reads). `urls.py` lost the duplicate registration.
+
+**2. `_sync_now_reply` built its JSON payload and never returned it.** The view returned `None`, Django raised *"didn't return an HttpResponse object"*, and **every XHR "Sync now" click 500'd** — which is the only path the button uses (the form holds the tab open to watch live progress). The non-XHR branch returns a redirect, which is why nothing else ever saw it.
+
+**3. Removing the shadowed function orphaned its three decorators** onto `sync_center_bulk_resolve`, which then required GET *and* POST and answered 405. Caught by its own test within one run.
+
+**4. The cadence gate ran before school resolution,** so a box that could never sync at all reported *"not due for 44s (steady)"* instead of *"no unambiguous edge school"*. Resolution is one local query and its failure is permanent, so it now runs first and is reported regardless of cadence. This restored a contract that predated the adaptive-cadence work and had been silently broken by it.
+
+**5. The probe veto fired on `online is False` even when `host` was `""`** — which is exactly what `connectivity.check()` returns when **nothing is configured**. A settings error was being reported as *"operator unreachable"* while silently suppressing up to `MAX_CONSECUTIVE_PROBE_SKIPS` cycles, sending the operator to check their internet instead of their settings. The veto now requires a configured host.
+
+**6. Cadence and connectivity keep all their state in the cache, which `TestCase` does not roll back,** so it leaked between tests and made the suite order-dependent — two scheduling tests were failing for reasons that had nothing to do with what they tested. New `apps/sync_engine/tests/conftest.py` clears both around every test, and `connectivity` gained a real `reset()` (the fixture had been silently no-oping on it, the same do-nothing-guard pattern this pass exists to remove).
+
+**7. SCHEMA DRIFT — the cause of the reported box 500.** A box at `10.10.20.137:10000` threw a bare branded 500 on `/authentication/backend/`. Reproduced locally: `OperationalError: no such column: academics_academicyear.is_soft_closed` — the deployment had pulled code carrying `academics.0082` and `0083` and had never run `migrate`. Nothing named that; the operator saw "Service interrupted." and had no path to the fix. Worse on the rail: an inbound bundle carries whatever columns the CLOUD declares, and `OperationalError` was in **none** of the per-row except tuples, so it escaped `apply_changes` and took the whole bundle down — the same wedge the morning's fix closed for foreign keys, arriving through a different door. Both halves closed: `OperationalError`/`ProgrammingError` now degrade the ROW (422 with the column in the detail) on all three inbound write paths, and new `apps/sync_engine/schema_guard.py` names the actual cause and the actual remedy in the run message, the status payload and the live panel — where it outranks every other explanation, because nothing else is actionable until the box is migrated. Proven against a real database by un-recording two migrations inside a rolled-back transaction: the guard names exactly those two and the `migrate` command.
+
+**Also landed `static/js/rmc-edge-sync-chrome.js`,** which `templates/portal_base.html` had referenced on main since `83a3372b2` while the file itself was never pushed — a 404 script tag on every portal page and a red `template-render-safety` gate. Committed byte-identical and unmodified.
+
+**Not reproduced, and stated as such:** the 500 on `gilead-tech.runmycampus.com/siteconfig/guided-onboarding/execute-launch/` and the 403 on that tenant's admin user changelist. Both are specific to that tenant's data, which this dev database does not hold; the same routes answer 302/200 here. SW `sms-v4.06.68-sync-schema-drift-guard-2026-08-19`.
+
 ## 2026-08-19 — Edge sync: the pull that could never succeed (a child, a parent the box never had, and a savepoint that does nothing on Postgres)
 
 **Reported symptom:** `pull failed: insert or update on table "academics_specialty" violates foreign key constraint "academics_specialty_department_id_e1b16347_fk_academics" DETAIL: Key (department_id)=(2) is not present in table "academics_department".` Three separate defects stacked into one permanent wedge; each was proven by running it, not by reading it.

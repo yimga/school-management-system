@@ -208,6 +208,17 @@
         "Recent attempts failed, so retries are spacing out. A restored connection cancels the wait immediately."
       );
     }
+    // Outranks everything else: a box behind on migrations cannot apply rows for the new
+    // columns at all, so no other explanation on this panel is actionable until it is
+    // migrated. This is the cause behind the bare 500s an un-migrated box throws.
+    var schema = data.schema || {};
+    if (schema.current === false) {
+        return (
+          t("explain_schema_behind", "This box is behind on database migrations, so records using newer fields cannot be applied. Run migrations on the box; sync resumes automatically. Pending: ") +
+          (schema.pending || []).slice(0, 3).join(", ") +
+          (schema.truncated ? "…" : "")
+        );
+    }
     // Checked before the healthy states: a cycle can be green, connected and idle while
     // still having refused rows, and reporting that as "up to date" is the exact failure
     // this panel exists to prevent.
