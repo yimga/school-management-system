@@ -11,7 +11,7 @@ have to remember the order or look up a UUID:
      it synchronously + proves the owner can authenticate before returning.
   1. ensure the plan catalog exists (seed_subscription_catalog) if the
      ``sovereign-self-hosted`` plan is missing;
-  2. ensure_gilead_sovereignty_entitlements — COMPLIMENTARY billing + every
+  2. ensure_showcase_tenant_entitlements — COMPLIMENTARY billing + every
      feature/module code + entitlement rows (Gilead-scoped, cannot leak);
   3. apply_offline_mode_bundle for that school — enable_offline_mode + the offline
      backend flags for field-work resilience.
@@ -37,7 +37,7 @@ from django.core.management import call_command
 from django.core.management.base import BaseCommand
 
 # Same allow-list the sovereignty entitlements command uses.
-from apps.billing.management.commands.ensure_gilead_sovereignty_entitlements import (
+from apps.billing.management.commands.ensure_showcase_tenant_entitlements import (
     GILEAD_SLUGS,
 )
 
@@ -171,7 +171,7 @@ class Command(BaseCommand):
             self.stdout.write(
                 f"  1. {'skip (plan present)' if plan_present else 'seed_subscription_catalog (plan missing)'}"
             )
-            self.stdout.write(f"  2. ensure_gilead_sovereignty_entitlements  → {school.slug} COMPLIMENTARY + all features")
+            self.stdout.write(f"  2. ensure_showcase_tenant_entitlements  → {school.slug} COMPLIMENTARY + all features")
             self.stdout.write(
                 "  3. " + ("skip offline bundle (--no-offline)" if no_offline
                           else f"apply_offline_mode_bundle --school-id {school.id}")
@@ -183,7 +183,7 @@ class Command(BaseCommand):
             call_command("seed_subscription_catalog")
 
         self.stdout.write("→ ensuring sovereignty entitlements (every feature)…")
-        call_command("ensure_gilead_sovereignty_entitlements")
+        call_command("ensure_showcase_tenant_entitlements")
 
         if not no_offline:
             self.stdout.write("→ applying offline-mode bundle…")

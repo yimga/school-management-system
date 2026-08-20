@@ -258,7 +258,7 @@ class Command(BaseCommand):
             try:
                 from django.core.management import call_command
 
-                call_command("ensure_gilead_sovereignty_entitlements")
+                call_command("ensure_showcase_tenant_entitlements")
             except Exception as exc:  # noqa: BLE001 — report, never fail the seed
                 self.stdout.write(
                     self.style.WARNING(

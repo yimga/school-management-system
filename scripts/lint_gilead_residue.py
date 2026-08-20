@@ -61,6 +61,62 @@ def _tracked_file_relpaths(root: Path) -> frozenset[str] | None:
     return frozenset(relpaths)
 
 
+def _mask_python_noncode(source: str) -> str:
+    """Blank `#` comments and docstrings; keep every other string literal.
+
+    Returns text of identical shape (non-newline chars become spaces) so the
+    reported line numbers still match the file on disk. On any tokenize/parse
+    error the source is returned unchanged -- this gate must never go quiet
+    because a file was hard to parse.
+    """
+    try:
+        lines = source.splitlines(keepends=True)
+        grid = [list(line) for line in lines]
+
+        def _blank(lineno: int, col_start: int, end_lineno: int, col_end: int) -> None:
+            for ln in range(lineno, end_lineno + 1):
+                if not (1 <= ln <= len(grid)):
+                    continue
+                row = grid[ln - 1]
+                start = col_start if ln == lineno else 0
+                stop = col_end if ln == end_lineno else len(row)
+                for c in range(start, min(stop, len(row))):
+                    if row[c] != "\n":
+                        row[c] = " "
+
+        # 1) comments
+        import io
+        import tokenize
+
+        for tok in tokenize.generate_tokens(io.StringIO(source).readline):
+            if tok.type == tokenize.COMMENT:
+                _blank(tok.start[0], tok.start[1], tok.end[0], tok.end[1])
+
+        # 2) docstrings (module / class / function) -- NOT other strings
+        import ast
+
+        tree = ast.parse(source)
+        targets = (ast.Module, ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)
+        for node in ast.walk(tree):
+            if not isinstance(node, targets):
+                continue
+            body = getattr(node, "body", None)
+            if not body:
+                continue
+            first = body[0]
+            if (
+                isinstance(first, ast.Expr)
+                and isinstance(first.value, ast.Constant)
+                and isinstance(first.value.value, str)
+            ):
+                s = first.value
+                _blank(s.lineno, s.col_offset, s.end_lineno, s.end_col_offset)
+
+        return "".join("".join(row) for row in grid)
+    except (SyntaxError, tokenize.TokenError, ValueError, IndentationError):
+        return source
+
+
 def _path_skipped(path: Path, root: Path) -> bool:
     if any(part in SKIP_PARTS for part in path.parts):
         return True
@@ -133,7 +189,10 @@ def main(argv: list[str] | None = None) -> int:
         return 1
     violations: list[str] = []
     for path in sorted(set(_iter_candidate_files(root))):
-        for line_no, line in enumerate(_safe_text(path).splitlines(), start=1):
+        _text = _safe_text(path)
+        if path.suffix == ".py":
+            _text = _mask_python_noncode(_text)
+        for line_no, line in enumerate(_text.splitlines(), start=1):
             if PATTERN.search(line):
                 rel = path.relative_to(root).as_posix()
                 violations.append(f"{rel}:{line_no}: {line.strip()}")

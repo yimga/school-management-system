@@ -58,7 +58,7 @@ def format_http_rejection(phase: str, status: int, body: Any) -> str:
         msg += (
             " — cloud gateway error (502): the box reached a proxy but not a healthy "
             "Django response. Set RMC_EDGE_OPERATOR_BASE to the TENANT host "
-            "(e.g. https://gilead-tech.<your-domain>), confirm the cloud tenant is up, "
+            "(e.g. https://<your-tenant>.<your-domain>), confirm the cloud tenant is up, "
             "and do not point at manager/marketing hosts."
         )
     elif status in (401, 403):
@@ -104,12 +104,12 @@ def probe_cloud_http(*, timeout: float = 20.0) -> dict[str, Any]:
     if not snap.get("operator_base_configured"):
         problems.append(
             "Set RMC_EDGE_OPERATOR_BASE to the TENANT cloud host "
-            "(e.g. https://gilead-tech.<your-domain>) — not this LAN box, not manager/marketing."
+            "(e.g. https://<your-tenant>.<your-domain>) — not this LAN box, not manager/marketing."
         )
     if not snap.get("credential_configured"):
         problems.append(
             "Set RMC_EDGE_CREDENTIAL (mint on cloud: "
-            "python manage.py mint_edge_credential --slug gilead-tech --user <admin>)."
+            "python manage.py mint_edge_credential --slug <your-tenant> --user <admin>)."
         )
 
     result: dict[str, Any] = {

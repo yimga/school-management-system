@@ -33,7 +33,7 @@ operation:
   3. refuse a non-empty target (unless --allow-nonempty) so a re-run can't collide;
   4. seed the sovereign plan catalog if missing;
   5. import the bundle (RLS-bypassed, pk-preserving);
-  6. entitle (ensure_gilead_sovereignty_entitlements) + optional offline bundle;
+  6. entitle (ensure_showcase_tenant_entitlements) + optional offline bundle;
   7. create the owner (ensure_admin_user_for_school) with a real password;
   8. activate, then SELF-VERIFY: active, slug resolves, owner authenticates.
 
@@ -150,7 +150,7 @@ class Command(BaseCommand):
     # ------------------------------------------------------------------ #
 
     def handle(self, *args, **opts):
-        from apps.billing.management.commands.ensure_gilead_sovereignty_entitlements import (
+        from apps.billing.management.commands.ensure_showcase_tenant_entitlements import (
             GILEAD_SLUGS,
         )
         from apps.schools.models import School
@@ -290,7 +290,7 @@ class Command(BaseCommand):
                     )
 
                 self.stdout.write("  Entitling (sovereignty: every feature)...")
-                call_command("ensure_gilead_sovereignty_entitlements")
+                call_command("ensure_showcase_tenant_entitlements")
                 if not no_offline:
                     call_command("apply_offline_mode_bundle", school_id=str(school.id))
 
