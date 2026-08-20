@@ -92,6 +92,11 @@ class EdgeSyncRun(models.Model):
     conflicts = models.IntegerField(default=0)
     created = models.IntegerField(default=0)
     upserted = models.IntegerField(default=0)
+    # Rows the far side sent that this side could NOT apply: an absent parent, an entity
+    # held from creation, a value the local schema refuses. Distinct from `conflicts`
+    # (where a human is being asked to choose) and NOT visible in `pulled`, which counts
+    # rows RECEIVED. Without it a pull that refused every row rendered as a green cycle.
+    skipped = models.IntegerField(default=0)
     ok = models.BooleanField(default=False)
     message = models.TextField(blank=True, default="")
     error = models.TextField(blank=True, default="")

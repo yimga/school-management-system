@@ -575,12 +575,13 @@ urlpatterns = [
     ),
     path("sync-center/", sync_center, name="sync_center"),
     path("sync-center/sync-now/", sync_now, name="sync_center_sync_now"),
+    # Polled by the Sync Center live panel; read-only JSON evidence.
+    path("sync-center/status/", sync_center_status, name="sync_center_status"),
     path(
         "sync-center/request-resync/",
         sync_request_resync,
         name="sync_center_request_resync",
     ),
-    path("sync-center/status/", sync_center_status, name="sync_center_status"),
     path(
         "sync-center/bulk-resolve/",
         sync_center_bulk_resolve,

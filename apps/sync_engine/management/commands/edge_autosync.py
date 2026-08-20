@@ -31,7 +31,11 @@ class Command(BaseCommand):
         from apps.sync_engine.edge_scheduler import run_edge_sync_now
 
         mode = "dry" if options.get("dry") else "live"
-        result = run_edge_sync_now(mode=mode)
+        # force=True: this command IS the explicit trigger (boot entrypoint, the
+        # on-connectivity host hook, an operator at a shell, a broker-less cron). Letting
+        # the adaptive cadence answer "not due for 40s" would make every one of those
+        # callers silently unreliable.
+        result = run_edge_sync_now(mode=mode, force=True, trigger="edge_autosync")
 
         if not result.get("enabled", True):
             self.stdout.write("edge_autosync: RMC_EDGE_SYNC_ENABLED is off — no-op.")

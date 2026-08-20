@@ -426,7 +426,10 @@
         <h3 class="app-title">{% trans "People & Access Controls" %}</h3>
         <p class="app-meta">{% trans "Users, roles, authentication, and entity orchestration" %}</p>
         <div class="app-actions">
-          <a href="{% url 'admin:accounts_user_changelist' %}" class="app-btn">{% trans "Users" %}</a>
+          {# Rendered only when the viewer can actually open it. Ungated, this was a #}
+          {# guaranteed 403 for any admin without accounts.view_user - a control that #}
+          {# exists solely to refuse you. Same for the app_list buttons below.        #}
+          {% if perms.accounts.view_user %}<a href="{% url 'admin:accounts_user_changelist' %}" class="app-btn">{% trans "Users" %}</a>{% endif %}
           <a href="{% url 'accounts:rbac' %}" class="app-btn">{% trans "Roles" %}</a>
           <a href="{% url 'accounts:rbac' %}" class="app-btn">{% trans "Groups" %}</a>
         </div>
@@ -452,7 +455,7 @@
         <h3 class="app-title">{% trans "Academic Structure" %}</h3>
         <p class="app-meta">{% trans "7 sections" %}</p>
         <div class="app-actions">
-          <a href="{% url 'admin:app_list' 'academics' %}" class="app-btn">{% trans "Open" %}</a>
+          {% if perms.academics %}<a href="{% url 'admin:app_list' 'academics' %}" class="app-btn">{% trans "Open" %}</a>{% endif %}
         </div>
       </div>
 
@@ -461,7 +464,7 @@
         <h3 class="app-title">{% trans "Evaluations & Grading" %}</h3>
         <p class="app-meta">{% trans "6 sections" %}</p>
         <div class="app-actions">
-          <a href="{% url 'admin:app_list' 'evals' %}" class="app-btn">{% trans "Open" %}</a>
+          {% if perms.evals %}<a href="{% url 'admin:app_list' 'evals' %}" class="app-btn">{% trans "Open" %}</a>{% endif %}
         </div>
       </div>
 
@@ -470,7 +473,7 @@
         <h3 class="app-title">{% trans "Reports & Transcripts" %}</h3>
         <p class="app-meta">{% trans "3 sections" %}</p>
         <div class="app-actions">
-          <a href="{% url 'admin:app_list' 'reports' %}" class="app-btn">{% trans "Open" %}</a>
+          {% if perms.reports %}<a href="{% url 'admin:app_list' 'reports' %}" class="app-btn">{% trans "Open" %}</a>{% endif %}
         </div>
       </div>
 
@@ -479,7 +482,7 @@
         <h3 class="app-title">{% trans "Finance & Billing" %}</h3>
         <p class="app-meta">{% trans "20 sections" %}</p>
         <div class="app-actions">
-          <a href="{% url 'admin:app_list' 'finance' %}" class="app-btn">{% trans "Open" %}</a>
+          {% if perms.finance %}<a href="{% url 'admin:app_list' 'finance' %}" class="app-btn">{% trans "Open" %}</a>{% endif %}
         </div>
       </div>
 
@@ -488,7 +491,7 @@
         <h3 class="app-title">{% trans "Payroll & Leave" %}</h3>
         <p class="app-meta">{% trans "7 sections" %}</p>
         <div class="app-actions">
-          <a href="{% url 'admin:app_list' 'payroll' %}" class="app-btn">{% trans "Open" %}</a>
+          {% if perms.payroll %}<a href="{% url 'admin:app_list' 'payroll' %}" class="app-btn">{% trans "Open" %}</a>{% endif %}
         </div>
       </div>
 
@@ -497,7 +500,7 @@
         <h3 class="app-title">{% trans "Portal & Communication" %}</h3>
         <p class="app-meta">{% trans "Portal content & notices" %}</p>
         <div class="app-actions">
-          <a href="{% url 'admin:app_list' 'portal' %}" class="app-btn">{% trans "Open" %}</a>
+          {% if perms.portal %}<a href="{% url 'admin:app_list' 'portal' %}" class="app-btn">{% trans "Open" %}</a>{% endif %}
         </div>
       </div>
 
@@ -506,7 +509,7 @@
         <h3 class="app-title">{% trans "Analytics & Insights" %}</h3>
         <p class="app-meta">{% trans "1 sections" %}</p>
         <div class="app-actions">
-          <a href="{% url 'admin:app_list' 'analytics' %}" class="app-btn">{% trans "Open" %}</a>
+          {% if perms.analytics %}<a href="{% url 'admin:app_list' 'analytics' %}" class="app-btn">{% trans "Open" %}</a>{% endif %}
         </div>
       </div>
 
@@ -515,7 +518,7 @@
         <h3 class="app-title">{% trans "Compliance & Audit" %}</h3>
         <p class="app-meta">{% trans "7 sections" %}</p>
         <div class="app-actions">
-          <a href="{% url 'admin:app_list' 'compliance' %}" class="app-btn">{% trans "Open" %}</a>
+          {% if perms.compliance %}<a href="{% url 'admin:app_list' 'compliance' %}" class="app-btn">{% trans "Open" %}</a>{% endif %}
         </div>
       </div>
 

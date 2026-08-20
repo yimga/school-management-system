@@ -15,6 +15,7 @@ from django.utils.translation import gettext_lazy as _
 # Cockpit shell (v8 200x): default emoji glyph per primary-nav id. SOT lives in
 # apps/siteconfig/cockpit_config.py; imported lazily-safe at module load.
 from apps.siteconfig.cockpit_config import DEFAULT_COCKPIT_NAV_GLYPHS as _DEFAULT_COCKPIT_NAV_GLYPHS
+from apps.platform_runtime.nav_engine import operator_items_for_group
 
 
 def _safe_reverse(url_name, urlconf=None, kwargs=None, args=None):
@@ -575,8 +576,17 @@ def build_control_plane_nav(request, surface=None):
         )
 
     def add_group(label, items, group_surface="ops"):
+        merged = list(items)
+        seen = {row.get("id") for row in merged if row.get("id")}
+        for extra in operator_items_for_group(label):
+            eid = extra.get("id")
+            if eid and eid in seen:
+                continue
+            merged.append(extra)
+            if eid:
+                seen.add(eid)
         resolved = []
-        for item in items:
+        for item in merged:
             url = _safe_reverse(
                 item["url_name"],
                 urlconf=urlconf,

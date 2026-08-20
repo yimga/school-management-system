@@ -353,7 +353,7 @@
       group: "Studio OS",
       pages: ["studio-os"],
       when: function () {
-        return !!document.querySelector("#studio-command-palette-btn");
+        return !!document.querySelector("[data-rmc-cmdk-trigger], #rmc-cmdk");
       },
       showUnavailable: true,
     },

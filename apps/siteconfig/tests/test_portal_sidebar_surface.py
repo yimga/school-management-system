@@ -33,6 +33,7 @@ class PortalSidebarSurfaceUnitTests(SimpleTestCase):
             "Learning Management",
             "Analytics & Reports",
             "Workflows & Approvals",
+            "Operations",
             "",
         ):
             self.assertEqual(_portal_item_surface(sec), "ops", msg=sec)

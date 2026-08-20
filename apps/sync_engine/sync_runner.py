@@ -27,11 +27,57 @@ conflict/money policy.
 """
 from __future__ import annotations
 
+import logging
 import os
 
 from django.conf import settings
 from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
+
+logger = logging.getLogger(__name__)
+
+# How long to wait before requesting ANOTHER full replay for the same school. A replay is
+# expensive, and a reference a replay cannot satisfy (a parent belonging to another tenant,
+# a parent genuinely deleted upstream) would otherwise rewind the cursor on every cycle
+# forever. One rewind per window; the decision is reported either way.
+_MISSING_REF_REPLAY_COOLDOWN_SECONDS = 6 * 3600  # magic-number-allow: replay cooldown (6h, seconds)
+_MISSING_REF_REPLAY_KEY = "rmc:edge_sync:missing_ref_replay:%s"
+
+
+def _request_replay_for_missing_parents(school) -> str:
+    """Rewind the PULL cursor so the next cycle replays the whole corpus.
+
+    A ``missing_reference`` means the bundle carried a CHILD whose PARENT this box does not
+    have. The parent is absent from the delta because its own ``updated_at`` is older than
+    the pull cursor, so an incremental delta will never offer it again — the child would be
+    refused on every future cycle and the two sides would stay silently divergent. Rewinding
+    to "no position" makes the next cycle request the corpus from the beginning, which DOES
+    contain the parent; the cloud-authored create path lands it, and the child follows.
+
+    Returns the note to show the operator. Never raises: a healing step must not be the
+    thing that breaks a sync cycle.
+    """
+    from django.core.cache import cache
+
+    from apps.sync_engine.models import EdgeSyncCursor, reset_sync_cursors
+
+    try:
+        key = _MISSING_REF_REPLAY_KEY % school.pk
+        # cache.add only succeeds when the key is absent, so the cooldown is atomic even if
+        # two cycles overlap.
+        if not cache.add(key, 1, _MISSING_REF_REPLAY_COOLDOWN_SECONDS):
+            return (
+                "records are still waiting on a parent this box has not received; a full "
+                "replay was requested recently, so this cycle did not request another"
+            )
+        reset_sync_cursors(school, direction=EdgeSyncCursor.PULL)
+        return (
+            "records referenced a parent this box does not have; rewound the pull cursor "
+            "so the next cycle replays the full corpus and collects the missing parents"
+        )
+    except Exception as exc:  # noqa: BLE001 - healing must never break the cycle
+        logger.debug("replay request for missing parents failed", exc_info=True)
+        return f"could not request a replay for the missing parents: {exc}"
 
 
 def _operator_base() -> str:
@@ -169,6 +215,12 @@ def run_sync_cycle(school, *, mode="live", run_row=None) -> dict:
         "conflicts": 0,
         "created": 0,
         "upserted": 0,
+        # Rows the far side accepted into the bundle but this side could NOT apply (an
+        # absent parent, a held entity, a value the local schema refuses). Counted
+        # separately from conflicts because nobody is being asked to choose - the row
+        # simply did not land, and a cycle that reports only "pulled N" would present that
+        # as success.
+        "skipped": 0,
         "message": "",
         "error": "",
     }
@@ -224,6 +276,7 @@ def run_sync_cycle(school, *, mode="live", run_row=None) -> dict:
                 conflicts=result["conflicts"],
                 created=result["created"],
                 upserted=result["upserted"],
+                skipped=result["skipped"],
                 message=result["message"],
                 error=result["error"],
             )
@@ -272,6 +325,21 @@ def _execute_sync_transport(school, *, mode, result, run_row) -> None:
     token = _edge_token()
     errors: list[str] = []
     notes: list[str] = []
+
+    # A box that pulled new code but never ran migrate cannot apply rows for any column it
+    # does not have yet. Those rows now degrade individually (sync_services catches
+    # OperationalError/ProgrammingError per row) instead of killing the bundle - but the
+    # operator still has to be TOLD, or they see "12 NOT applied" with no cause. Named
+    # first so it heads the run message.
+    try:
+        from apps.sync_engine import schema_guard
+
+        drift = schema_guard.drift_note()
+        if drift:
+            notes.append(f"WARNING: {drift}")
+            result["schema_behind"] = True
+    except Exception:  # noqa: BLE001 - a diagnostic must never break the cycle
+        logger.debug("schema drift check failed", exc_info=True)
 
     from apps.sync_engine import edge_outbox
 
@@ -441,6 +509,7 @@ def _execute_sync_transport(school, *, mode, result, run_row) -> None:
                     result["created"] += int(applied.get("created") or 0)
                     result["upserted"] += int(applied.get("upserted") or 0)
                     result["conflicts"] += int(applied.get("conflicts") or 0)
+                    result["skipped"] += int(applied.get("skipped") or 0)
                     # The download endpoint has always stamped the new high-water in
                     # X-RMC-Sync-High-Water so the box can advance; the runner used to
                     # throw it away and re-request the whole corpus every 180s. Advance
@@ -456,10 +525,25 @@ def _execute_sync_transport(school, *, mode, result, run_row) -> None:
                                 parsed, timezone.get_current_timezone()
                             )
                         set_sync_cursor(school, EdgeSyncCursor.PULL, parsed)
-                    notes.append(
+                    note = (
                         f"pulled {result['pulled']} (created {result['created']}, "
                         f"upserted {result['upserted']}, conflicts {result['conflicts']})"
                     )
+                    if result["skipped"]:
+                        # Named reasons, not just a count: "3 not applied" sends an operator
+                        # hunting, "missing_reference x3" says which rail is broken and why.
+                        reasons = applied.get("skipped_reasons") or {}
+                        detail = ", ".join(
+                            f"{k} x{v}" for k, v in sorted(reasons.items())
+                        )
+                        note += f"; {result['skipped']} NOT applied"
+                        if detail:
+                            note += f" ({detail})"
+                    notes.append(note)
+                    if (applied.get("skipped_reasons") or {}).get("missing_reference"):
+                        # Rewinding LAST, after the high-water advance above, so the rewind
+                        # is what survives this cycle.
+                        notes.append(_request_replay_for_missing_parents(school))
     except Exception as exc:  # noqa: BLE001 — never crash the tenant page
         errors.append(f"pull failed: {exc}")
 
@@ -474,6 +558,7 @@ def _execute_sync_transport(school, *, mode, result, run_row) -> None:
         conflicts=result["conflicts"],
         created=result["created"],
         upserted=result["upserted"],
+        skipped=result["skipped"],
         message=result["message"],
         error=result["error"],
     )

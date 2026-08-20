@@ -212,7 +212,9 @@
 // v4.06.48: onboarding strands + code prefix + provision log on live signup.
 // v4.06.51: record-level workflow telemetry canvas (rollover, timetable,
 // migration, inventory) over existing WorkflowRun + Channels rooms.
-const CACHE_VERSION = "sms-v4.06.59-staff-roles-workflow-guide-2026-08-18";
+// v4.06.62: Migration Cloud Review & Import kickoff live pipeline + held honesty.
+// v4.06.66: platform-wide Ctrl+K search seal (palette scroll, shortcut yield, unified /).
+const CACHE_VERSION = "sms-v4.06.68-sync-schema-drift-guard-2026-08-19";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 

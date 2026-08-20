@@ -7,8 +7,12 @@ Frontend MUST use tenant-scoped cache: IndexedDB key e.g. sync_queue_${school_id
 so that no cross-tenant data is ever visible (one school per device/session).
 """
 
+import logging
+
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
+
+logger = logging.getLogger(__name__)
 
 
 # CLASS-A master-data models wired with AUTO-DERIVED syncable fields (Phase 3, staged
@@ -350,6 +354,207 @@ def _insert_fk_targets(config) -> dict:
     return targets
 
 
+def _fk_reference_targets(model, allowed) -> dict:
+    """``{fk_attname: target_model}`` for every concrete FK inside ``allowed``.
+
+    Deliberately broader than :func:`_insert_fk_targets`, which maps only the FKs pointing
+    at ANOTHER REGISTERED entity because its job is remapping new-references-new pks.
+    Referential integrity is not scoped to the rail: a pulled row can just as easily point
+    at a parent living in a table sync never carries, and the database rejects that with
+    exactly the same constraint error. Every FK that carries a value has to be checked.
+    """
+    from apps.lifecycle.tenant_portability import _rel_model
+
+    targets: dict = {}
+    for f in model._meta.get_fields():
+        if not getattr(f, "concrete", False):
+            continue
+        if not (getattr(f, "many_to_one", False) or getattr(f, "one_to_one", False)):
+            continue
+        attname = getattr(f, "attname", None)
+        if attname in allowed:
+            targets[attname] = _rel_model(f)
+    return targets
+
+
+def _unresolvable_fk(model, allowed, payload, seen=None):
+    """The first FK in ``payload`` whose parent row is absent - ``(attname, label, value)``.
+
+    ``None`` when every reference resolves. ``seen`` is a caller-owned memo
+    ``{(label, pk): bool}``: one bundle repeats the same handful of parents across hundreds
+    of rows, so without it this would issue a query per FK per row.
+
+    THE CHECK HAS TO HAPPEN BEFORE THE WRITE, because on PostgreSQL it cannot be caught
+    after it. Django creates every foreign key as DEFERRABLE INITIALLY DEFERRED, so a
+    violation is not raised by ``save()`` - it is raised by the COMMIT of the OUTERMOST
+    transaction, long after the per-row savepoint written to contain it has been released.
+    The whole bundle then dies together and the error escapes ``apply_changes`` entirely,
+    surfacing as a cycle-level ``pull failed: ...``. SQLite checks immediately, which is
+    precisely why the test suite never saw this and production did.
+
+    Uses ``_base_manager``: the constraint cares whether the ROW exists, not whether a
+    model's default manager chooses to show it (a soft-deleted parent still satisfies it).
+    """
+    if seen is None:
+        seen = {}
+    try:
+        targets = _fk_reference_targets(model, allowed)
+    except Exception:  # noqa: BLE001 - see below; a preflight must never be the crash
+        logger.debug("could not derive FK targets for %s", model, exc_info=True)
+        return None
+    for attname, target_model in targets.items():
+        if attname not in payload:
+            continue
+        value = payload[attname]
+        if value is None:
+            continue
+        try:
+            label = target_model._meta.label
+            key = (label, value)
+            exists = seen.get(key)
+            if exists is None:
+                exists = target_model._base_manager.filter(pk=value).exists()
+                seen[key] = exists
+        except Exception:  # noqa: BLE001
+            # The lookup ITSELF failed — typically a value the pk column cannot even parse
+            # (a string where a UUID/int is expected), which Django raises as
+            # ValueError/ValidationError. Treat it as unresolvable rather than letting it
+            # propagate: a preflight that can crash the bundle would reintroduce the exact
+            # failure it exists to prevent.
+            logger.debug("FK preflight lookup failed for %s.%s", model, attname, exc_info=True)
+            return (attname, getattr(target_model._meta, "label", str(target_model)), value)
+        if not exists:
+            return (attname, label, value)
+    return None
+
+
+def _force_immediate_constraints():
+    """Make deferred FK checks fire at statement time for the rest of this transaction.
+
+    Django creates every foreign key on PostgreSQL as DEFERRABLE INITIALLY DEFERRED, so a
+    violation surfaces at COMMIT instead of at ``save()``. That silently defeats every
+    per-row savepoint in this module - they release cleanly, and the error then takes down
+    the entire batch from OUTSIDE the handlers written to contain it. Switching the
+    transaction to IMMEDIATE restores the behaviour those savepoints were always documented
+    to provide: one un-appliable row degrades to a per-row status and the rest still lands.
+
+    Belt to :func:`_unresolvable_fk`'s braces. The preflight prevents the case we understand;
+    this bounds the blast radius of the one we have not thought of yet. No-op on backends
+    that already check immediately (SQLite) or that lack SET CONSTRAINTS.
+    """
+    from django.db import connection, transaction
+
+    if connection.vendor != "postgresql":
+        return
+    try:
+        # Its own savepoint: a hardening step must never be the thing that aborts an apply.
+        with transaction.atomic():
+            with connection.cursor() as cur:
+                cur.execute("SET CONSTRAINTS ALL IMMEDIATE")
+    except Exception:  # noqa: BLE001
+        logger.warning("could not switch FK constraints to IMMEDIATE", exc_info=True)
+
+
+def _create_from_cloud_pull(
+    school_id, user, entity_type, model, allowed, pk, changes, client_updated_at, fk_seen
+):
+    """Create a cloud-authored row on the box, PRESERVING the operator's pk.
+
+    Cloud->box had no create path at all. A cloud-authored row carries an EMPTY
+    ``client_offline_id`` (that column marks rows created offline ON A BOX), so
+    :func:`apps.sync_engine.edge_inbox.apply_pulled_bundle` routes it to the update-by-pk
+    path - which answered 404 and moved on. The practical effect: every record created on
+    the cloud AFTER a box was cloned could never reach that box. Departments, subjects,
+    specialties, terms, classrooms, all of it. Nothing reported a problem; the box quietly
+    diverged, and then failed outright on the first child row that referenced one of the
+    parents it had never been given.
+
+    Creating BY PK is correct in this direction and only this direction: the clone is
+    pk-preserving, the cloud is authoritative on a pull, and the pk being absent locally is
+    exactly what the caller just established. The reverse - a box minting pks on the
+    operator - stays refused; that is what ``client_offline_id`` and
+    :func:`apply_edge_inserts` exist for.
+
+    Returns ``(instance, None)`` or ``(None, {"status": int, "data": {...}})``.
+    """
+    from django.core.exceptions import FieldError, ValidationError
+    from django.db import (
+        DataError,
+        IntegrityError,
+        OperationalError,
+        ProgrammingError,
+        transaction,
+    )
+
+    from apps.api.entity_api import _is_admin_like
+
+    # A create is a WRITE, so it answers to the same two gates every other inbound write
+    # does. Skipping them because there is no existing row to compare against would make
+    # this path the way AROUND them.
+    #
+    # 1) PRINCIPAL. Same bar as apply_edge_inserts: the box acts as a bound school admin.
+    if not (
+        getattr(user, "is_superuser", False)
+        or getattr(user, "is_staff", False)
+        or _is_admin_like(user)
+    ):
+        return None, {"status": 403, "data": {"error": "forbidden"}}
+
+    # 2) POLICY. `_conflict_decision` with no server row still answers the question that
+    #    matters here: an ONLINE_REQUIRED domain (credentials, lifecycle, payment
+    #    settlement) is NEVER applied through the sync path, and that must hold whether the
+    #    row already exists or not. Protected entities resolve to "apply" on a cloud-pull,
+    #    which is the money = cloud-authoritative rule working as intended.
+    decision = _conflict_decision(entity_type, "cloud-pull", client_updated_at, None)
+    if decision != "apply":
+        return None, {
+            "status": 409,
+            "data": {"error": "online_required" if decision == "reject" else decision,
+                     "entity_type": entity_type},
+        }
+
+    if entity_type in _INSERT_HELD_ENTITIES:
+        # The same rule the box-push insert path applies: an entity that must not be CREATED
+        # across the rail is refused with its reason, in EITHER direction.
+        return None, {
+            "status": 409,
+            "data": {
+                "error": "insert_held_for_entity",
+                "entity_type": entity_type,
+                "reason": _INSERT_HELD_ENTITIES[entity_type],
+            },
+        }
+
+    settable = _settable_field_names(model)
+    values = {k: v for k, v in changes.items() if k in allowed and k in settable}
+    missing = _unresolvable_fk(model, allowed, values, fk_seen)
+    if missing is not None:
+        return None, {
+            "status": 409,
+            "data": {
+                "error": "missing_reference",
+                "field": missing[0],
+                "references": missing[1],
+                "referenced_id": missing[2],
+            },
+        }
+    values[model._meta.pk.attname] = pk
+    if any(getattr(f, "attname", "") == "school_id" for f in model._meta.get_fields()):
+        values["school_id"] = school_id
+    try:
+        with transaction.atomic():  # savepoint: a row we cannot build must not kill the batch
+            instance = model(**values)
+            instance.save(force_insert=True)
+    except (
+        IntegrityError, DataError, ValidationError, ValueError, TypeError, FieldError,
+        OperationalError, ProgrammingError,  # a column this schema does not have yet
+    ) as exc:
+        # Usually a NOT NULL column that is not on the rail, so the bundle carried no value
+        # for it. Reported per row rather than raised, so the rest of the pull still lands.
+        return None, {"status": 422, "data": {"error": "create_failed", "detail": str(exc)[:200]}}
+    return instance, None
+
+
 def _parse_client_updated_at(raw):
     if not raw:
         return None
@@ -536,15 +741,32 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
                               "client_updated_at", "server_updated_at", "conflict_id" }
     """
     from django.core.exceptions import FieldError, ValidationError
-    from django.db import DataError, IntegrityError, transaction
+    from django.db import (
+        DataError,
+        IntegrityError,
+        OperationalError,
+        ProgrammingError,
+        transaction,
+    )
 
     # Edge sync operations (sync_origin set) get the expanded registry; an online
     # DeltaSyncAPI call (sync_origin None) gets only the original three — other tenants
     # untouched.
     config = _get_entity_config(include_derived=sync_origin is not None)
-    results = []
     conflicts = []
     success_count = 0
+
+    # Results are stored BY ORIGINAL INDEX and emitted in the caller's order at the end,
+    # because rows are no longer processed in the order they arrived (see the dependency
+    # sort below). Same contract apply_edge_inserts already keeps.
+    results_by_index: dict[int, dict] = {}
+
+    def _emit(row):
+        results_by_index[row["index"]] = row
+
+    # Parents this bundle has already proved present or absent, shared across every row so
+    # a bundle with hundreds of children costs one existence query per DISTINCT parent.
+    fk_seen: dict = {}
 
     if not school_id:
         return {
@@ -560,15 +782,31 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
             "conflicts": [],
         }
 
+    # Apply REFERENTS BEFORE DEPENDENTS. The bundle is ordered by updated_at because that
+    # is what makes a page boundary a safe cursor (edge_outbox.build_edge_delta_rows), and
+    # updated_at order says nothing about dependency - a specialty can arrive ahead of the
+    # department it points at and fail on a parent sitting later in the very same bundle.
+    # Reordering the APPLY is free: the pull cursor comes from the bundle's high-water
+    # header, never from the order rows were applied in.
+    _order = _insert_dependency_order(config)
+
+    def _rank(pair):
+        _idx, _item = pair
+        _et = (_item.get("entity_type") or "").strip().lower()
+        # Stable within a rank: same-entity rows keep the order the caller sent them in, so
+        # two edits to one record still apply oldest-first.
+        return (_order.index(_et) if _et in _order else len(_order), _idx)
+
     with transaction.atomic():
-        for idx, item in enumerate(items):
+        _force_immediate_constraints()
+        for idx, item in sorted(enumerate(items), key=_rank):
             entity_type = (item.get("entity_type") or "").strip().lower()
             pk = item.get("id")
             changes = item.get("changes") or {}
             client_updated_at = _parse_client_updated_at(item.get("updated_at"))
 
             if entity_type not in config or pk is None:
-                results.append(
+                _emit(
                     {
                         "index": idx,
                         "status": 400,
@@ -579,7 +817,7 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
 
             model, allowed = config[entity_type]
             if not isinstance(changes, dict):
-                results.append(
+                _emit(
                     {
                         "index": idx,
                         "status": 400,
@@ -589,7 +827,7 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
                 continue
             updates = {k: v for k, v in changes.items() if k in allowed}
             if not updates:
-                results.append(
+                _emit(
                     {
                         "index": idx,
                         "status": 400,
@@ -601,13 +839,48 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
             try:
                 instance = model.objects.get(pk=pk)
             except model.DoesNotExist:
-                results.append(
-                    {"index": idx, "status": 404, "data": {"error": "Not found"}}
+                # A PULLED row whose pk this box has never seen is a row CREATED ON THE
+                # CLOUD after the box was cloned. It carries no client_offline_id (that
+                # column marks box-created rows), so the insert path will never see it
+                # either - answering 404 here is what made every post-clone cloud record
+                # permanently invisible to the box, and what left children pointing at
+                # parents that could never arrive. Any OTHER caller keeps the 404: only a
+                # cloud-pull may create by pk (see _create_from_cloud_pull).
+                if sync_origin != "cloud-pull":
+                    _emit({"index": idx, "status": 404, "data": {"error": "Not found"}})
+                    continue
+                created_obj, create_err = _create_from_cloud_pull(
+                    school_id, user, entity_type, model, allowed, pk, changes,
+                    client_updated_at, fk_seen,
                 )
+                if create_err is not None:
+                    _emit({"index": idx, **create_err})
+                    continue
+                # The memo may hold a negative for this pk from a child processed
+                # earlier; it is a parent now.
+                fk_seen.pop((model._meta.label, created_obj.pk), None)
+                created_at_value = getattr(created_obj, "updated_at", None)
+                # Provenance, exactly as on the update path: without it the box would push
+                # the row it just received straight back up on the next cycle.
+                from apps.sync_engine.models import record_sync_apply
+
+                record_sync_apply(
+                    school_id, entity_type, created_obj.pk, created_at_value, sync_origin
+                )
+                success_count += 1
+                _emit({
+                    "index": idx,
+                    "status": 201,
+                    "data": {
+                        "id": created_obj.pk,
+                        "created": True,
+                        "updated_at": created_at_value.isoformat() if created_at_value else None,
+                    },
+                })
                 continue
 
             if not _user_can_edit_entity(user, entity_type, instance):
-                results.append(
+                _emit(
                     {"index": idx, "status": 403, "data": {"error": "Forbidden"}}
                 )
                 continue
@@ -617,7 +890,7 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
                 if instance_school_id is None or str(instance_school_id) != str(
                     school_id
                 ):
-                    results.append(
+                    _emit(
                         {"index": idx, "status": 403, "data": {"error": "Forbidden"}}
                     )
                     continue
@@ -630,7 +903,7 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
             if decision == "reject":
                 # Domain may only change through a live online transaction (policy
                 # ONLINE_REQUIRED); an offline/sync replay must never apply it.
-                results.append(
+                _emit(
                     {
                         "index": idx,
                         "status": 409,
@@ -678,7 +951,7 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
                             IntegrityError, DataError, ValidationError,
                             ValueError, TypeError, FieldError,
                         ) as exc:
-                            results.append({
+                            _emit({
                                 "index": idx, "status": 422,
                                 "data": {"error": "conflict_persist_failed", "detail": str(exc)[:200]},
                             })
@@ -697,7 +970,7 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
                         "conflict_id": conflict_id,
                     }
                 )
-                results.append(
+                _emit(
                     {
                         "index": idx,
                         "status": 409,
@@ -725,12 +998,33 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
                 # The row carried nothing BUT down-only fields: refuse it outright rather than
                 # bumping updated_at for a write that changed nothing (which would also re-ship
                 # the row on the next delta).
-                results.append({
+                _emit({
                     "index": idx,
                     "status": 409,
                     "data": {
                         "error": "down_only_fields_rejected",
                         "fields": rejected_down_only,
+                    },
+                })
+                continue
+
+            # Referential preflight. A pulled row can point at a parent this box has
+            # never been given; on PostgreSQL that failure CANNOT be caught after the write
+            # (Django's FKs are DEFERRABLE INITIALLY DEFERRED, so the violation is raised by
+            # the outermost COMMIT, outside every per-row savepoint below), so it has to be
+            # caught before it. Reported as a distinct 409 rather than an opaque constraint
+            # string, and self-healing: the parent now arrives on a pull too, so the row
+            # applies on a later cycle instead of poisoning every cycle forever.
+            missing_ref = _unresolvable_fk(model, allowed, updates, fk_seen)
+            if missing_ref is not None:
+                _emit({
+                    "index": idx,
+                    "status": 409,
+                    "data": {
+                        "error": "missing_reference",
+                        "field": missing_ref[0],
+                        "references": missing_ref[1],
+                        "referenced_id": missing_ref[2],
                     },
                 })
                 continue
@@ -766,8 +1060,12 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
             except (
                 IntegrityError, DataError, ValidationError,
                 ValueError, TypeError, FieldError,
+                # A column this deployment's schema does not have yet. Without these two
+                # the error escapes the savepoint and kills the WHOLE bundle; the run
+                # message names the pending migrations (see sync_engine.schema_guard).
+                OperationalError, ProgrammingError,
             ) as exc:
-                results.append({
+                _emit({
                     "index": idx, "status": 422,
                     "data": {"error": "apply_failed", "detail": str(exc)[:200]},
                 })
@@ -782,8 +1080,11 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
                 # not. Surfaced so the caller can reconcile rather than read a 200 as "all of
                 # my changes were taken".
                 _data["rejected_down_only_fields"] = rejected_down_only
-            results.append({"index": idx, "status": 200, "data": _data})
+            _emit({"index": idx, "status": 200, "data": _data})
 
+    # Caller's ORIGINAL order, whatever dependency order the rows were processed in.
+    results = [results_by_index[i] for i in sorted(results_by_index)]
+    conflicts.sort(key=lambda c: c["index"])
     return {
         "success_count": success_count,
         "results": results,
@@ -859,7 +1160,13 @@ def apply_edge_inserts(school_id, user, rows, *, sync_origin=None):
     Returns ``{"created", "updated", "results"}`` (results carry per-row index/status).
     """
     from django.core.exceptions import FieldError, ValidationError
-    from django.db import DataError, IntegrityError, transaction
+    from django.db import (
+        DataError,
+        IntegrityError,
+        OperationalError,
+        ProgrammingError,
+        transaction,
+    )
 
     from apps.api.entity_api import _is_admin_like
     from apps.schools.models import School
@@ -897,6 +1204,8 @@ def apply_edge_inserts(school_id, user, rows, *, sync_origin=None):
     # (entity_type, box-local pk) -> assigned operator pk, filled as referents are created
     # so a later dependent row can substitute the real pk for the box's local one.
     remap: dict[tuple, object] = {}
+    # Parents already proved present/absent, shared across rows (see _unresolvable_fk).
+    fk_seen: dict = {}
     order = _insert_dependency_order(config)
     fk_targets = _insert_fk_targets(config)  # {entity_type: {fk_attname: target_entity_type}}
 
@@ -984,6 +1293,28 @@ def apply_edge_inserts(school_id, user, rows, *, sync_origin=None):
                         continue
             updates[key] = value
 
+        # Referential preflight for the FKs the remap loop above does NOT cover: it only
+        # knows FKs pointing at another REGISTERED entity (its job is remapping
+        # new-references-new pks), and a derived field set can carry a FK to a tenant model
+        # that is not itself on the rail. Reported as a precise 409 rather than an opaque
+        # constraint string. (Unlike _apply_changes_inner this function runs in autocommit -
+        # one real transaction per row - so its savepoint genuinely does see a deferred FK
+        # error at its own COMMIT. A caller that ever wraps this loop in an OUTER atomic
+        # must call _force_immediate_constraints() first, or that stops being true.)
+        missing_ref = _unresolvable_fk(model, allowed, updates, fk_seen)
+        if missing_ref is not None:
+            results_by_index[idx] = {
+                "index": idx,
+                "status": 409,
+                "data": {
+                    "error": "missing_reference",
+                    "field": missing_ref[0],
+                    "references": missing_ref[1],
+                    "referenced_id": missing_ref[2],
+                },
+            }
+            continue
+
         try:
             with transaction.atomic():  # savepoint: isolate a bad row from the batch
                 obj, was_created = model.objects.get_or_create(
@@ -999,7 +1330,10 @@ def apply_edge_inserts(school_id, user, rows, *, sync_origin=None):
                         # invisible to the incremental delta (filter(updated_at__gt=since)).
                         update_fields.append("updated_at")
                     obj.save(update_fields=update_fields)
-        except (IntegrityError, DataError, ValidationError, ValueError, TypeError, FieldError) as exc:
+        except (
+            IntegrityError, DataError, ValidationError, ValueError, TypeError, FieldError,
+            OperationalError, ProgrammingError,  # a column this schema does not have yet
+        ) as exc:
             # DataError (value too long / out of range on Postgres) is a DatabaseError
             # sibling of IntegrityError; catching it keeps the per-row savepoint from
             # escaping and rolling back the whole batch (SQLite doesn't enforce
@@ -1007,6 +1341,7 @@ def apply_edge_inserts(school_id, user, rows, *, sync_origin=None):
             results_by_index[idx] = {"index": idx, "status": 422, "data": {"error": "insert_failed", "detail": str(exc)[:200]}}
             continue
 
+        fk_seen.pop((model._meta.label, obj.pk), None)  # it is a valid parent now
         # Record the operator pk so later dependent rows can remap their FK onto it.
         if local_pk is not None:
             remap[(entity_type, local_pk)] = obj.pk

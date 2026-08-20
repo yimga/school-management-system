@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 
 from django.contrib.auth import get_user_model
 from django.http import HttpResponseForbidden
-from django.test import RequestFactory, SimpleTestCase, TestCase
+from django.test import RequestFactory, SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 
 from apps.accounts.models import User
@@ -40,6 +40,7 @@ class StudentPortalViewGateTests(TestCase):
 
 
 class StudentPortalSidebarGateTests(SimpleTestCase):
+    @override_settings(ROOT_URLCONF="config.tenant_urls")
     def test_sidebar_hides_workflow_when_portal_disabled(self):
         request = MagicMock()
         request.session = {}
@@ -64,7 +65,7 @@ class StudentPortalSidebarGateTests(SimpleTestCase):
             "apps.siteconfig.portal_sidebar_items._cached_sidebar_badge_counts",
             return_value=(None, None, None),
         ), patch(
-            "apps.accounts.portal_roles.get_effective_portal_role",
+            "apps.accounts.portal_roles.get_nav_portal_role",
             return_value=User.Role.STUDENT,
         ):
             items = build_portal_sidebar_items(request, site)
@@ -73,14 +74,14 @@ class StudentPortalSidebarGateTests(SimpleTestCase):
         self.assertNotIn("student_workflow", ids)
         self.assertNotIn("student_home", ids)
         self.assertNotIn("student_syllabus", ids)
-        self.assertIn("student_help", ids)
+        self.assertIn("help_center", ids)
 
     def test_template_gates_student_portal_nav(self):
-        sidebar = (ROOT / "templates/partials/portal_sidebar.html").read_text(
+        builder = (ROOT / "apps/siteconfig/portal_sidebar_items.py").read_text(
             encoding="utf-8"
         )
-        self.assertIn("SITE.enable_student_portal", sidebar)
-        self.assertIn("portal:student_workflow", sidebar)
+        self.assertIn("enable_student_portal", builder)
+        self.assertIn("portal:student_workflow", builder)
 
 
 class StudentWorkflowRouteTests(TestCase):

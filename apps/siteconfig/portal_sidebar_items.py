@@ -373,21 +373,7 @@ def build_portal_sidebar_items(request, site):
     is_staff = getattr(user, "is_staff", False)
     is_superuser = getattr(user, "is_superuser", False)
     messages_unread_count = getattr(request, "messages_unread_count", None)
-    _STAFF_PRIMARY_ROLES = frozenset(
-        {
-            "ADMIN",
-            "LEADERSHIP",
-            "IT_ADMIN",
-            "PRINCIPAL",
-            "VICE_PRINCIPAL",
-            "DEAN",
-            "BURSAR",
-            "ACCOUNTANT",
-            "PROPRIETOR",
-            "DISCIPLINE_MASTER",
-            "SECRETARY",
-        }
-    )
+    from apps.platform_runtime.nav_engine import STAFF_PRIMARY_ROLES as _STAFF_PRIMARY_ROLES
     # Privileged for badges / studio shell — independent of active portal hat.
     staff_privileged = (
         is_staff or is_superuser or primary_role in _STAFF_PRIMARY_ROLES
@@ -888,16 +874,8 @@ def build_portal_sidebar_items(request, site):
                     "badge": None,
                 }
             )
-        items.append(
-            {
-                "id": "student_help",
-                "label": "Help Center",
-                "url": _safe_reverse("feedback:help_center"),
-                "icon": "bi-life-preserver",
-                "section": "Support",
-                "badge": None,
-            }
-        )
+        # Help Center is already on the Account spine (help_center); do not emit a
+        # second "Help Center" row — _dedupe_sidebar_items would drop it anyway.
 
     # --- Portal Tools (per-feature RBAC). Documents goes under Content & Documents; for staff it's added in staff block to avoid duplicate section. ---
     if callable(getattr(site, "get_feature_control_settings", None)):
@@ -1097,6 +1075,12 @@ def build_portal_sidebar_items(request, site):
                     "badge": None,
                 }
             )
+        from apps.platform_runtime.nav_engine import (
+            TENANT_STAFF_SPINE,
+            resolve_specs,
+        )
+
+        items.extend(resolve_specs(TENANT_STAFF_SPINE, _safe_reverse))
         guardian_list_url = _safe_reverse("accounts:backend_guardian_list")
         if guardian_list_url:
             items.append(
@@ -1886,16 +1870,16 @@ _BASELINE_ADMIN = (
     ("backend_dashboard", "Admin Home", "accounts:backend_dashboard", "bi-gear-fill", "Admin Panel", None),
     ("setup_wizards", "Setup wizards", "setup_studio:tenant_wizard_index", "bi-magic", "Admin Panel", None),
     ("people", "Student Profiles", "accounts:backend_student_list", "bi-person-lines-fill", "People & Access", None),
+    ("teachers", "Teachers", "accounts:backend_teacher_list", "bi-person-badge", "People & Access", None),
+    ("classrooms", "Classrooms", "accounts:backend_classroom_list", "bi-building", "People & Access", None),
+    ("academic_years", "Academic years", "siteconfig:academic_years_setup_evidence", "bi-calendar3", "Academic Management", None),
     ("rbac", "RBAC & Access Control", "accounts:rbac", "bi-diagram-3", "People & Access", None),
     ("finance", "Money Center", "finance:dashboard", "bi-currency-exchange", "Financial Management", "settings.manage"),
     ("config", "School Configuration", "school_configuration_center_canonical", "bi-sliders", "Configuration", "settings.manage"),
 )
 
-# ADMIN is canonical (User.Role); LEADERSHIP/IT_ADMIN/PRINCIPAL/BURSAR are extended
-# tenant roles not present in User.Role TextChoices (see role_registry).
-_BASELINE_ADMIN_ROLES = frozenset(
-    {User.Role.ADMIN.value, "LEADERSHIP", "IT_ADMIN", "PRINCIPAL", "BURSAR"}  # role-string-allow: sidebar-baseline-admin-floor-extended-roles
-)
+# ADMIN is canonical (User.Role); remaining hats match nav_engine.STAFF_PRIMARY_ROLES.
+from apps.platform_runtime.nav_engine import STAFF_PRIMARY_ROLES as _BASELINE_ADMIN_ROLES
 
 
 def _safe_has_feature_permission(user, codename):

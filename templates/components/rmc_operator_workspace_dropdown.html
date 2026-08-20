@@ -78,7 +78,7 @@
           <span><b>{% trans "Subscriptions" %}</b><small>{% trans "Billing operations" %}</small></span>
         </a>
         {% endif %}
-        {% if configure_url %}
+        {% if configure_url and not hide_config_chip %}
         <a class="rmc-header-utilities__tile" href="{{ configure_url }}" role="menuitem" data-rmc-util-key="configuration">
           <i class="bi bi-gear-wide-connected" aria-hidden="true"></i>
           <span><b>{% trans "Configuration" %}</b><small>{% trans "Registries and flags" %}</small></span>

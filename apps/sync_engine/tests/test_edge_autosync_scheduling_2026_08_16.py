@@ -176,7 +176,20 @@ class EdgeSyncSchedulingWiringTests(SimpleTestCase):
         self.assertIn("sync_engine.edge_sync_cycle", on)
         job = on["sync_engine.edge_sync_cycle"]
         self.assertTrue(job.auto_eligible)
-        self.assertGreaterEqual(job.interval_seconds, 60)
+        # The job is now registered at the fast TICK cadence, not the sync interval:
+        # registering at 180s put a 180s floor under reacting to a wake (the network
+        # returning, a local write, an operator click).
+        self.assertLessEqual(job.interval_seconds, 15)
+        # What the old ">= 60" assertion was really protecting is that a misconfigured
+        # box cannot hammer the cloud. That guarantee MOVED rather than disappeared: a
+        # fast tick is not a fast cycle, because apps.sync_engine.cadence gates whether
+        # each tick becomes real work. Assert the guarantee where it now lives.
+        from apps.sync_engine import cadence
+
+        self.assertGreaterEqual(cadence.steady_seconds(), 30)
+        self.assertGreaterEqual(
+            cadence.backoff_cap_seconds(), cadence.steady_seconds()
+        )
 
         off = {}
         with override_settings(RMC_EDGE_SYNC_ENABLED=False):

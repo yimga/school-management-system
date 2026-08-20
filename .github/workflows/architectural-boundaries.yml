@@ -83,6 +83,7 @@ on:
       - "scripts/scan_inline_style_off_token.py"
       - "scripts/scan_inline_event_handlers.py"
       - "scripts/scan_undefined_css_classes.py"
+      - "scripts/verify_python_files_parse.py"
       - "scripts/scan_off_token_colors.py"
       - "scripts/scan_theme_locked_token_text.py"
       - "var/security-audit-baseline-theme-locked-token-text.json"
@@ -1386,6 +1387,24 @@ jobs:
           python -m unittest scripts.tests.test_verify_eager_filter_arg_completion -v
           python scripts/verify_eager_filter_arg_completion.py --static-only
 
+  nav-engine-coverage:
+    name: "Nav Engine coverage (static catalog + projector wiring)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Static projector + group-label wiring
+        # Spine reverse() needs Django (ci.yml). This job only proves the
+        # catalog is still consumed by portal / CP / Cmd+K and that the HTML
+        # role-tree fork did not return.
+        run: |
+          python -m unittest scripts.tests.test_verify_nav_engine_coverage -v
+          python scripts/verify_nav_engine_coverage.py --static-only
+
   template-tag-loads:
     name: "Template custom tag {% load %} integrity"
     runs-on: ubuntu-latest
@@ -1508,6 +1527,27 @@ jobs:
         # undefined class.
         run: |
           python scripts/scan_undefined_css_classes.py --compare
+
+  python-files-parse:
+    name: "Every Python file parses (zero tolerance)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Every Python file must compile
+        # The floor. A module that does not compile cannot be imported at all -
+        # Celery autodiscovers <app>.tasks, Django imports <app>.models at
+        # startup, and any `from apps.x import y` against it is an ImportError
+        # 500. Added 2026-08-19 after apps/accounts/tasks.py was found TRUNCATED
+        # mid-statement on main: the reference-integrity gates treat an
+        # unparseable file as opaque and skip it, so nothing reported it and it
+        # surfaced only as unrelated test-collection errors. Stdlib only, no
+        # baseline, no allow-marker - a file that does not parse is never
+        # intentional.
+        run: |
+          python scripts/verify_python_files_parse.py
 
   real-migration-drift:
     name: "Real migration drift (cosmetic F2 drift filtered)"

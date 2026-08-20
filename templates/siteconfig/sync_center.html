@@ -121,6 +121,11 @@
     <section id="sync-progress" data-rmc-section-anchor="1">
       {% include "components/rmc_workflow_progress_canvas.html" with workflow_key="siteconfig-edge-sync" task_type="EDGE_SYNC" %}
     </section>
+
+    {# Live evidence sits BELOW the static summary: that summary renders with JS off, so #}
+    {# the no-JS reader still gets the last outcome before this augments it. #}
+    {% include "siteconfig/partials/_sync_live_panel.html" %}
+
     <div class="card shadow-sm" id="sync-conflicts" data-rmc-section-anchor="1">
       <div class="card-body">
         <h1 class="h5 mb-3">{% trans "Sync conflicts" %}</h1>
@@ -243,6 +248,7 @@
     {% endif %}
   </div>
 {% include "partials/portal_row_detail_drawer_bundle.html" %}
+<script src="{% static 'js/_pages/siteconfig__sync_center_live.js' %}" defer></script>
 {% endblock %}
 
 {% block extra_js %}

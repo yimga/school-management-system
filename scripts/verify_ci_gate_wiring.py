@@ -40,6 +40,11 @@ WORKFLOWS_DIR = REPO_ROOT / ".github" / "workflows"
 # is "present in SOME workflow"). Removing a gate from CI is a reviewed edit
 # to this tuple.
 REQUIRED_GATES: tuple[tuple[str, str], ...] = (
+    # The floor: a module that does not compile cannot be imported at all, and every
+    # other gate is then answering about a tree that does not run. Added 2026-08-19 after
+    # apps/accounts/tasks.py was found TRUNCATED mid-statement on main - the reference
+    # gates treat an unparseable file as opaque and skip it, so nothing reported it.
+    ("scripts/verify_python_files_parse.py", "architectural-boundaries.yml"),
     # Reference-integrity family — the "literal string -> runtime registry ->
     # 500/silent" loophole class. All members must always run.
     ("scripts/scan_import_reference_integrity.py", "architectural-boundaries.yml"),
@@ -75,6 +80,9 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # Full completion (Django sparse renders + regression module) in ci.yml;
     # static-only subset also runs in architectural-boundaries.yml.
     ("scripts/verify_eager_filter_arg_completion.py", "ci.yml"),
+    # Platform nav catalog: static projector wiring in architectural-boundaries;
+    # full reverse() of spine url_names in ci.yml.
+    ("scripts/verify_nav_engine_coverage.py", "architectural-boundaries.yml"),
     # Money never float; tenant rows always scoped; offline label has code.
     ("scripts/scan_wallpaper_status_badges.py", "architectural-boundaries.yml"),
     ("scripts/verify_page_masthead_twin_contract.py", "architectural-boundaries.yml"),
