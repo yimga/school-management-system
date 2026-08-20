@@ -81,17 +81,22 @@ def _request_replay_for_missing_parents(school) -> str:
 
 
 def _operator_base() -> str:
-    """Operator (cloud) base URL the box pushes/pulls against, same knobs the box uses
-    elsewhere. Empty is tolerated — the transport call simply fails and is recorded."""
-    base = (getattr(settings, "RMC_EDGE_OPERATOR_BASE", "") or "").strip()
-    if not base:
-        base = (getattr(settings, "RMC_HUB_BASE_URL", "") or "").strip()
-    return base.rstrip("/")
+    """Operator (cloud) base URL the box pushes/pulls against.
+
+    Resolved by ``edge_binding``: the durable pairing binding first, then the
+    environment for boxes that were never paired, then derived from the school slug.
+    Empty is tolerated — the transport call simply fails and is recorded.
+    """
+    from apps.sync_engine.edge_binding import operator_base
+
+    return operator_base()
 
 
 def _edge_token() -> str:
-    """Edge machine credential — the same env var the commands read (RMC_EDGE_CREDENTIAL)."""
-    return (os.getenv("RMC_EDGE_CREDENTIAL") or "").strip()
+    """Edge machine credential, from the pairing binding or the legacy env var."""
+    from apps.sync_engine.edge_binding import edge_credential
+
+    return edge_credential()
 
 
 def _endpoint(base: str, url_name: str) -> str:

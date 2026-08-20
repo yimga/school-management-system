@@ -215,7 +215,7 @@
 // v4.06.62: Migration Cloud Review & Import kickoff live pipeline + held honesty.
 // v4.06.66: platform-wide Ctrl+K search seal (palette scroll, shortcut yield, unified /).
 // v4.06.68: tenant/operator admin form intelligence and server-owned preferences.
-const CACHE_VERSION = "sms-v4.06.70-admin-automation-edge-sync-final-audit-2026-08-20";
+const CACHE_VERSION = "sms-v4.06.71-edge-pairing-and-apply-breaker-2026-08-20";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 

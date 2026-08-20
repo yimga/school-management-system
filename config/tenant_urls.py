@@ -649,6 +649,10 @@ urlpatterns = [
         name="verify_student_id",
     ),
     path("api/", include(("apps.api.urls", "api"), namespace="api")),
+    # Box pairing screen. Mounted on BOTH host urlconfs because a sovereign box may
+    # serve either — it runs SINGLE_TENANT with a bare LAN hostname, and a cloud
+    # tenant host needs the same reverse() targets for template resolution.
+    path("edge/", include(("apps.sync_engine.urls", "sync_engine"), namespace="sync_engine")),
     path("api/v1/", include(("apps.api.urls_v1", "api_v1"), namespace="api_v1")),
     # v4.02.13: assist-dock client endpoints on the tenant host (portal + tenant
     # admin render the dock) so dock actions are not silently dead.

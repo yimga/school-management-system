@@ -659,7 +659,16 @@ def sync_echo_updated_at_map(school, entity_type) -> dict:
     )
 
 
+# Pairing lives in its own module (it is a protocol, not sync state) but must be
+# imported here so Django's app registry discovers the model and makemigrations sees it.
+from .models_pairing import (  # noqa: E402  (re-export for the registry)
+    EdgeCloudBinding,
+    EdgePairingRequest,
+)
+
 __all__ = [
+    "EdgeCloudBinding",
+    "EdgePairingRequest",
     "SyncApplyLedger",
     "SyncTombstone",
     "SyncBundleReceipt",

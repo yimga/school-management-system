@@ -94,6 +94,7 @@ from apps.api.proximity_attendance_api import ProximityAttendanceIngestAPI
 from apps.api.sync_delta_api import DeltaSyncAPI
 from apps.api.offline_device_api import OfflineTokenMintView
 from apps.api.iam_offline_api import OfflineIamIntentAPI, PermissionSnapshotAPI
+from apps.api.pairing_api import PairingPollView, PairingStartView
 from apps.api.sync_bundle_api import SyncBundleDownloadView, SyncBundleUploadView
 from apps.api.sync_changes_api import SyncChangesFeedView
 from apps.api.sync_files_api import SyncFileChunkView, SyncFileManifestView
@@ -918,6 +919,21 @@ urlpatterns = [
         "sync/files/chunk/",
         SyncFileChunkView.as_view(),
         name="sync-file-chunk",
+    ),
+    # Pairing (box adoption). Anonymous by necessity — an unpaired box holds no
+    # credential — and safe because approval happens in an authenticated cloud
+    # session and the credential is minted only on a poll carrying the one-time
+    # secret. See apps/sync_engine/models_pairing.py for why the code travels
+    # box -> cloud rather than the other way.
+    path(
+        "sync/pair/start/",
+        PairingStartView.as_view(),
+        name="sync-pair-start",
+    ),
+    path(
+        "sync/pair/poll/",
+        PairingPollView.as_view(),
+        name="sync-pair-poll",
     ),
     # Roadmap due-today implementations (ROADMAP_DUE_TODAY.md) — 16.x, 17.x, 29.x, 30/31, section_11, TENANT_MEDIA, gap ledger
     path(

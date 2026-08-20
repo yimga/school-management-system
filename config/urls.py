@@ -619,6 +619,10 @@ urlpatterns = [
         name="verify_student_id",
     ),
     path("api/", include(("apps.api.urls", "api"), namespace="api")),
+    # Box pairing screen. Mounted on BOTH host urlconfs because a sovereign box may
+    # serve either — it runs SINGLE_TENANT with a bare LAN hostname, and a cloud
+    # tenant host needs the same reverse() targets for template resolution.
+    path("edge/", include(("apps.sync_engine.urls", "sync_engine"), namespace="sync_engine")),
     path("api/v1/", include(("apps.api.urls_v1", "api_v1"), namespace="api_v1")),
     path("api/v1/oauth/", include(("apps.apicenter.oauth_urls", "oauth"), namespace="oauth")),
     path("api/v2/", include(("apps.api.urls_v2", "api_v2"), namespace="api_v2")),

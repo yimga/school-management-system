@@ -11,14 +11,18 @@ from apps.sync_engine.cloud_endpoints import cloud_endpoint
 def operator_base() -> str:
     from django.conf import settings
 
-    base = (getattr(settings, "RMC_EDGE_OPERATOR_BASE", "") or "").strip()
+    from apps.sync_engine.edge_binding import operator_base
+
+    base = operator_base()
     if not base:
         base = (getattr(settings, "RMC_HUB_BASE_URL", "") or "").strip()
     return base.rstrip("/")
 
 
 def credential_configured() -> bool:
-    return bool((os.getenv("RMC_EDGE_CREDENTIAL") or "").strip())
+    from apps.sync_engine.edge_binding import edge_credential
+
+    return bool(edge_credential())
 
 
 def extract_http_error_detail(body: Any) -> str:
@@ -123,7 +127,9 @@ def probe_cloud_http(*, timeout: float = 20.0) -> dict[str, Any]:
         result["ok"] = False
         return result
 
-    token = (os.getenv("RMC_EDGE_CREDENTIAL") or "").strip()
+    from apps.sync_engine.edge_binding import edge_credential
+
+    token = edge_credential()
     base = operator_base()
     headers_base = {"Authorization": f"Bearer {token}"} if token else {}
 

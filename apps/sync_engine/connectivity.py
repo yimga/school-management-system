@@ -98,7 +98,9 @@ def operator_target() -> tuple[str, int]:
     Mirrors ``sync_runner._operator_base`` so the probe can never end up checking a
     different endpoint than the one the cycle actually uses.
     """
-    base = (getattr(settings, "RMC_EDGE_OPERATOR_BASE", "") or "").strip()
+    from apps.sync_engine.edge_binding import operator_base
+
+    base = operator_base()
     if not base:
         base = (getattr(settings, "RMC_HUB_BASE_URL", "") or "").strip()
     base = base.strip().rstrip("/")

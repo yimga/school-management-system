@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% load i18n static %}
+{% block title %}{% trans "Pair this box" %}{% endblock %}
+{% block content %}
+<div class="container py-4" data-rmc-command-workspace="edge-pairing">
+  <h1 class="h4 mb-3">{% trans "Pair this box with its cloud" %}</h1>
+
+  {% if binding.paired %}
+    <section class="rmc-command-panel mb-3" aria-label="{% trans 'Current pairing' %}">
+      <div class="rmc-command-panel__body">
+        <p class="mb-2">
+          <span class="rmc-badge rmc-badge--success">{% trans "Paired" %}</span>
+        </p>
+        <dl class="row mb-0 small">
+          <dt class="col-sm-3">{% trans "School" %}</dt>
+          <dd class="col-sm-9">{{ binding.school_name|default:binding.school_slug|default:"—" }}</dd>
+          <dt class="col-sm-3">{% trans "Cloud" %}</dt>
+          <dd class="col-sm-9 text-break">{{ binding.operator_base|default:"—" }}</dd>
+          <dt class="col-sm-3">{% trans "Paired" %}</dt>
+          <dd class="col-sm-9">{{ binding.paired_at|date:"Y-m-d H:i"|default:"—" }}</dd>
+          <dt class="col-sm-3">{% trans "Source" %}</dt>
+          <dd class="col-sm-9">{{ binding.source }}</dd>
+        </dl>
+        <p class="small text-body-secondary mb-0 mt-2">
+          {% trans "To pair this box with a different school, run" %}
+          <code>manage.py pair_box --unpair --yes</code>
+          {% trans "on the box. That requires shell access on this machine — being on the network is not enough." %}
+        </p>
+      </div>
+    </section>
+  {% else %}
+    <section class="rmc-command-panel mb-3" aria-label="{% trans 'Pairing code' %}">
+      <div class="rmc-command-panel__body">
+        {% if pending.user_code %}
+          <p class="small text-body-secondary mb-1">{% trans "Enter this code in the school's cloud Sync Center:" %}</p>
+          <p class="display-6 font-monospace mb-2" data-rmc-pairing-code>{{ pending.user_code }}</p>
+          <p class="small text-body-secondary mb-2">
+            {% blocktrans with expires=pending.expires_at %}This code expires {{ expires }}. Nothing is configured until an administrator approves it.{% endblocktrans %}
+          </p>
+          {% if not pending.school_resolved %}
+          <p class="rmc-badge rmc-badge--warning">{% trans "The cloud does not recognise this box's school. Check the slug configured on this box." %}</p>
+          {% endif %}
+          <p class="mb-0" data-rmc-pairing-status aria-live="polite">{% trans "Waiting for approval…" %}</p>
+        {% else %}
+          <p class="mb-2">{% trans "This box is not yet paired with a cloud tenant." %}</p>
+          <button type="button" class="btn btn-primary btn-sm" data-rmc-pairing-start>
+            {% trans "Get a pairing code" %}
+          </button>
+          <p class="small text-body-secondary mb-0 mt-2">
+            {% trans "This screen never asks for a password or a token. It shows a code that an administrator approves on the cloud." %}
+          </p>
+        {% endif %}
+      </div>
+    </section>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% comment %}
+Endpoints ride data attributes rather than an inline script literal: a strict
+script-src CSP admits a nonced <script> ELEMENT but never an inline handler, and
+`scan_inline_event_handlers` holds that line for the whole platform.
+{% endcomment %}
+<div hidden data-rmc-pairing-endpoints
+     data-start-url="{% url 'sync_engine:pair_this_box_start' %}"
+     data-poll-url="{% url 'sync_engine:pair_this_box_poll' %}"></div>
+<script nonce="{{ csp_nonce }}" src="{% static 'js/rmc-edge-pairing.js' %}"></script>
+{% endblock %}

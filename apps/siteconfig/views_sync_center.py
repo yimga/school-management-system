@@ -109,6 +109,7 @@ def sync_center(request):
     # stray error on this observability read break the conflicts page.
     panel = _edge_sync_panel_context(school)
     empty_ctx = {
+        "pairing_requests": _pending_pairing_requests(school),
         "school": school,
         "conflicts": [],
         "page_obj": None,
@@ -203,6 +204,95 @@ def sync_center(request):
             "admin_sync_conflict_url": admin_sync_url,
         },
     )
+
+
+def _pending_pairing_requests(school):
+    """Boxes waiting to be adopted by THIS school. Never breaks the page."""
+    try:
+        from apps.sync_engine.pairing_service import pending_requests_for_school
+
+        return list(pending_requests_for_school(school)[:20])
+    except Exception:  # noqa: BLE001 — an empty panel beats a 500 on the conflicts page
+        _logger.debug("could not load pending pairing requests", exc_info=True)
+        return []
+
+
+@login_required
+@permission_required("settings.manage")
+@require_http_methods(["POST"])
+def sync_center_pair_approve(request):
+    """Adopt a box. THE authorization decision in the whole pairing protocol.
+
+    Deliberately a plain authenticated POST on the tenant host: the point of the
+    box->cloud direction is that approving happens inside a session that already
+    proved who the admin is, against the school they are already signed in to.
+    ``approve_pairing`` re-checks both — that the code belongs to this tenant, and
+    that this user administers it — so a stolen code is worth nothing on its own.
+    """
+    school = getattr(request, "school", None)
+    code = (request.POST.get("user_code") or "").strip()
+    if not school:
+        return redirect_staff_without_school(
+            request, message="Select your school to approve a box."
+        )
+    from apps.sync_engine.pairing_service import approve_pairing
+
+    result = approve_pairing(code=code, approver=request.user, school=school)
+    if result.get("ok"):
+        messages.success(
+            request,
+            _("Box approved. It will finish pairing within a few seconds."),
+        )
+    else:
+        messages.error(request, _pairing_error_message(result))
+    return redirect(f"{reverse('siteconfig:sync_center')}#pairing")
+
+
+@login_required
+@permission_required("settings.manage")
+@require_http_methods(["POST"])
+def sync_center_pair_deny(request):
+    """Refuse a box. Terminal — it is told, and stops asking."""
+    school = getattr(request, "school", None)
+    code = (request.POST.get("user_code") or "").strip()
+    if not school:
+        return redirect_staff_without_school(
+            request, message="Select your school to manage box pairing."
+        )
+    from apps.sync_engine.pairing_service import deny_pairing
+
+    result = deny_pairing(
+        code=code,
+        approver=request.user,
+        school=school,
+        reason=(request.POST.get("reason") or "").strip(),
+    )
+    if result.get("ok"):
+        messages.success(request, _("Pairing request denied."))
+    else:
+        messages.error(request, _pairing_error_message(result))
+    return redirect(f"{reverse('siteconfig:sync_center')}#pairing")
+
+
+def _pairing_error_message(result: dict) -> str:
+    """Say what went wrong in words an administrator can act on."""
+    error = result.get("error") or ""
+    if error == "unknown_code":
+        return _("That pairing code does not match any request. Check the box's screen.")
+    if error == "expired":
+        return _("That request has expired. Start pairing again on the box.")
+    if error == "wrong_tenant":
+        return _("That code belongs to a different school.")
+    if error == "forbidden":
+        return _("You do not have permission to approve a box for this school.")
+    if error == "unknown_school":
+        return _(
+            "That box asked for a school this cloud does not recognise. Check the "
+            "slug configured on the box."
+        )
+    if error.startswith("not_pending"):
+        return _("That request has already been handled.")
+    return _("The pairing request could not be updated.")
 
 
 @login_required

@@ -3107,6 +3107,18 @@ body:has([data-rmc-flow-launchpad]) .rmc-page__header::after {
   border-color: var(--status-danger, var(--text-danger, #ef4444));
 }
 
+/* Base row for a short, scannable list inside a command panel — the pairing
+   queue, and anything else that is a list of things to act on rather than a
+   data table. Semantic tokens only, so it inherits the active theme instead of
+   pinning a literal (see the off-token-colors gate). */
+.rmc-list-item {
+  padding: var(--space-3, 0.75rem);
+  border: 1px solid var(--hairline, var(--border-subtle, rgba(148, 163, 184, 0.25)));
+  border-radius: var(--radius-md, 0.5rem);
+  background: var(--surface-elevated, var(--surface-canvas, transparent));
+  color: var(--text-primary, inherit);
+}
+
 .rmc-list-item--danger {
   background: var(--status-danger-bg, color-mix(in srgb, var(--status-danger, var(--text-danger, #ef4444)) 8%, transparent));
   /* An inset edge rather than a full border: the row sits in a

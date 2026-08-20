@@ -158,6 +158,8 @@
         {% endif %}
       </div>
     </div>
+    {% include "siteconfig/partials/_sync_pairing_panel.html" %}
+
     <section id="sync-progress" data-rmc-section-anchor="1">
       {% include "components/rmc_workflow_kickoff_live.html" with workflow_key="siteconfig-edge-sync" task_type="EDGE_SYNC" %}
     </section>
