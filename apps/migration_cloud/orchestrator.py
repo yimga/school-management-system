@@ -228,15 +228,45 @@ def _apply_bundle_inner(
             from .repair import applying_stale_by_time
 
             if applying_stale_by_time(bundle):
+                # Count the attempts. Retrying a dead worker is right; retrying
+                # forever hides a bundle that finishes and never settles, which
+                # is indistinguishable from a hang to everyone watching it.
+                _reclaims = wedged_reclaims_so_far(bundle.size_summary)
+                if wedged_reclaim_budget_exhausted(bundle.size_summary):
+                    logger.error(
+                        "orchestrator: bundle %s has been reclaimed from a wedged APPLYING "
+                        "state %s times without ever settling — refusing to retry again and "
+                        "marking FAILED so it stops looping and becomes repairable",
+                        bundle_id,
+                        _reclaims,
+                    )
+                    bundle.mark_status(
+                        BundleStatus.FAILED,
+                        summary_patch={
+                            "error": (
+                                "This import kept restarting without ever finishing. It has "
+                                "been stopped so it cannot loop. Your data is unchanged — "
+                                "records already imported were updated in place, never "
+                                "duplicated. Use Repair to try again."
+                            ),
+                            "wedged_apply_reclaim_ceiling_hit_at": timezone.now().isoformat(),
+                        },
+                    )
+                    return _empty_result(bundle, dry_run, BundleStatus.FAILED)
                 logger.warning(
                     "orchestrator: bundle %s wedged at APPLYING with no heartbeat past "
                     "the stale threshold (prior worker died mid-apply) — reclaiming to "
-                    "MAPPED for retry",
+                    "MAPPED for retry (attempt %s of %s)",
                     bundle_id,
+                    _reclaims + 1,
+                    _MAX_WEDGED_APPLY_RECLAIMS,
                 )
                 bundle.mark_status(
                     BundleStatus.MAPPED,
-                    summary_patch={"reclaimed_wedged_apply_at": timezone.now().isoformat()},
+                    summary_patch={
+                        "reclaimed_wedged_apply_at": timezone.now().isoformat(),
+                        "wedged_apply_reclaims": _reclaims + 1,
+                    },
                 )
 
         if bundle.status != BundleStatus.MAPPED:
@@ -550,7 +580,13 @@ def _apply_bundle_inner(
         # Dry-run never advances past MAPPED — operator still needs to apply.
         bundle.mark_status(BundleStatus.MAPPED, summary_patch={"last_dry_run": totals})
     else:
-        bundle.mark_status(new_status, summary_patch={"apply_totals": totals})
+        # wedged_apply_reclaims resets here: a bundle that settles has, by
+        # definition, stopped being wedged, so a later genuine worker death gets
+        # the full retry budget again rather than inheriting an old tally.
+        bundle.mark_status(
+            new_status,
+            summary_patch={"apply_totals": totals, "wedged_apply_reclaims": 0},
+        )
         # A non-atomic bundle where one artifact COMMITTED rows (autocommit) and
         # another FAILED would otherwise read FAILED while the committed rows
         # stayed LIVE — breaking the "FAILED = nothing landed" contract the
@@ -585,6 +621,38 @@ def _apply_bundle_inner(
         detail={"totals": totals},
     )
     refresh_snapshot(bundle=bundle)
+
+    if not dry_run:
+        # Re-read the status instead of trusting the write above. An apply that
+        # announces "finished" and leaves the bundle at APPLYING is completely
+        # silent: no exception, no failed row, nothing in the log. Thirty minutes
+        # later the stale detector reclaims it and the entire import runs again.
+        # One live bundle re-ran a 44-second import roughly 48 times in 24 hours
+        # this way. Verifying here turns that into a single loud line naming the
+        # status that actually survived, and forces the terminal state so the
+        # loop cannot start.
+        _settled = (
+            MigrationBundle.objects.filter(pk=bundle.pk)  # tenant-isolation-allow: PK re-read of the bundle this apply already holds
+            .values_list("status", flat=True)
+            .first()
+        )
+        if _settled not in _TERMINAL_BUNDLE_STATUSES:
+            logger.error(
+                "orchestrator: bundle %s finished its apply (%s created, %s updated, "
+                "%s quarantined) but the persisted status is %r instead of the %r just "
+                "written — something overwrote it. Forcing the terminal status so the "
+                "bundle cannot be reclaimed into an endless re-apply loop.",
+                bundle.pk,
+                totals.get("created"),
+                totals.get("updated"),
+                totals.get("quarantined"),
+                _settled,
+                str(new_status),
+            )
+            # .update() deliberately: it bypasses the in-memory instance (whose
+            # state we have just proved untrustworthy) and does not re-stamp
+            # updated_at, so it cannot re-arm the staleness heartbeat.
+            MigrationBundle.objects.filter(pk=bundle.pk).update(status=new_status)  # tenant-isolation-allow: PK forced settle of the bundle this apply already holds
 
     try:
         from apps.platform_runtime.workflow_tracker import active_workflow_run, pulse_workflow_step
@@ -1821,6 +1889,43 @@ def _field_level_apply_summary(
             }
         )
     return summary
+
+
+# A wedged apply is reclaimed to MAPPED and retried. That self-heal is correct
+# for a worker that genuinely died, but it had no ceiling: a bundle whose apply
+# COMPLETES and still does not settle gets reclaimed every _APPLYING_STALE_SECONDS
+# forever. One live bundle re-ran a 44-second import ~48 times in 24 hours. A
+# self-heal that cannot give up is not a self-heal, it is a loop.
+_MAX_WEDGED_APPLY_RECLAIMS = 3  # magic-number-allow: wedged-apply-reclaim-ceiling
+
+def wedged_reclaims_so_far(size_summary) -> int:
+    """How many times this bundle has already been reclaimed from a wedged apply.
+
+    Tolerant by design: the counter lives in a free-form JSON summary, so a
+    missing / null / non-numeric value must read as zero rather than raise and
+    take down an apply.
+    """
+    if not isinstance(size_summary, dict):
+        # size_summary is a free-form JSONField: a string or list is a possible
+        # (if wrong) shape, and .get would AttributeError inside a live apply.
+        return 0
+    try:
+        return max(0, int(size_summary.get("wedged_apply_reclaims") or 0))
+    except (TypeError, ValueError):
+        return 0
+
+
+def wedged_reclaim_budget_exhausted(size_summary) -> bool:
+    """True when this bundle has used up its wedged-apply retries."""
+    return wedged_reclaims_so_far(size_summary) >= _MAX_WEDGED_APPLY_RECLAIMS
+
+
+_TERMINAL_BUNDLE_STATUSES = frozenset({
+    BundleStatus.APPLIED,
+    BundleStatus.RECONCILED,
+    BundleStatus.FAILED,
+    BundleStatus.ABORTED,
+})
 
 
 def _empty_result(bundle: MigrationBundle, dry_run: bool, status: str) -> ApplyResult:
