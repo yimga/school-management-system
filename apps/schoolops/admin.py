@@ -19,11 +19,16 @@ from .models import (
     LostBelongingsCustodyEventRecord,
     LostBelongingsTagRecord,
     MealPlanBalance,
+    PurchaseOrder,
+    PurchaseOrderLine,
     Route,
     Stop,
     SubstituteHandoverPacketRecord,
+    SupplyRequirement,
     TransportAssignment,
     VaccineRequirement,
+    Vendor,
+    VendorProduct,
 )
 
 
@@ -324,3 +329,55 @@ class LostBelongingsCustodyEventRecordAdmin(admin.ModelAdmin):
     search_fields = ("event_id", "notes_redacted")
     readonly_fields = ("event_id", "staff_id_hash", "occurred_at", "created_at")
     raw_id_fields = ("school", "tag")
+
+
+# --- M33 procurement -------------------------------------------------------
+# Without these, a school has no way to create a Vendor, a VendorProduct or a
+# SupplyRequirement, so the "generate orders from class configuration" button
+# would compute forever over an empty table. Registration is what makes the
+# derived-order engine reachable by an actual operator.
+
+
+@admin.register(Vendor, site=tenant_admin_site)
+class VendorAdmin(admin.ModelAdmin):
+    list_display = ("name", "school", "is_certified", "currency", "is_active")
+    list_filter = ("is_certified", "is_active", "school")
+    search_fields = ("name", "contact_email")
+    raw_id_fields = ("school",)
+
+
+@admin.register(VendorProduct, site=tenant_admin_site)
+class VendorProductAdmin(admin.ModelAdmin):
+    list_display = ("name", "sku", "vendor", "unit_price", "unit", "is_active")
+    list_filter = ("is_active", "school", "vendor")
+    search_fields = ("name", "sku")
+    raw_id_fields = ("school", "vendor")
+
+
+@admin.register(SupplyRequirement, site=tenant_admin_site)
+class SupplyRequirementAdmin(admin.ModelAdmin):
+    """The class configuration that drives every generated order."""
+
+    list_display = ("subject", "product", "quantity_per_student", "school", "is_active")
+    list_filter = ("is_active", "school")
+    search_fields = ("subject__name", "product__name", "product__sku")
+    raw_id_fields = ("school", "subject", "product")
+
+
+class PurchaseOrderLineInline(admin.TabularInline):
+    model = PurchaseOrderLine
+    extra = 0
+    raw_id_fields = ("school", "product", "subject_assignment")
+    # Totals are computed by procurement_services; editing them by hand would
+    # silently desynchronise the order from its own lines.
+    readonly_fields = ("line_total",)
+
+
+@admin.register(PurchaseOrder, site=tenant_admin_site)
+class PurchaseOrderAdmin(admin.ModelAdmin):
+    list_display = ("id", "vendor", "school", "status", "source", "total", "currency", "created_at")
+    list_filter = ("status", "source", "school")
+    search_fields = ("vendor__name",)
+    raw_id_fields = ("school", "vendor")
+    readonly_fields = ("subtotal", "tax_amount", "total", "created_at", "updated_at")
+    inlines = [PurchaseOrderLineInline]

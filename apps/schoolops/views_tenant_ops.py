@@ -106,6 +106,9 @@ MODULE_CODES = (
     ("library", "Library", "accounts:ops_library"),
     ("transport", "Transport", "accounts:ops_transport"),
     ("inventory", "Inventory", "accounts:ops_inventory"),
+    # Procurement is the ordering half of inventory, so it rides the same
+    # feature code its view already gates on (require_feature("inventory")).
+    ("inventory", "Procurement", "accounts:ops_procurement"),
     ("canteen", "Canteen", "accounts:ops_canteen"),
     ("clinic", "Clinic / health log", "accounts:ops_clinic"),
     ("timetabling", "Timetabling", "accounts:ops_timetabling"),

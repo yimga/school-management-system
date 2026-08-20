@@ -25,7 +25,9 @@ Premium maturity treats **Gilead** as **PARTIAL** until optional corpus shrink i
 | Bar | Meaning | Gate |
 |-----|---------|------|
 | **A. Lint-scoped runtime** | No `gilead` substring on live product paths (apps/templates/config/fixtures/render, etc., per script). | `python scripts/lint_gilead_residue.py` → **PASS** (merge/release). |
-| **B. Full-tree buckets** | Every text hit lives in an **allowed path class** (docs, migrations, tests, scripts, CI, `.cursor`, commands, fixtures, locale). | `python scripts/verify_gilead_full_tree_classification.py` → **PASS**. |
+| **B. Full-tree buckets** | Every text hit lives in an **allowed path class** (docs, migrations, tests, scripts, `artifacts/`, CI, `.cursor`, commands, fixtures, locale, `var/`, `static/vendor/`). | `python scripts/verify_gilead_full_tree_classification.py` → **PASS**. |
+
+> **`artifacts/` (added 2026-08-20).** Recorded audit evidence — admin-canvas JSON, design-approval snapshots, contract dumps — captured by running audits against a REAL tenant. The tenant's name in those files is the capture's *provenance*; editing it out would falsify the evidence rather than clean the product. The verifier's bucket-6 comment already claimed "generated audit artifacts" but only implemented `scripts/`, so this wires the bucket the policy already described. Runtime copy remains covered by bar **A** (`lint_gilead_residue.py`), which is green — this bucket widens **B only**, and never excuses a live product surface.
 | **C. Gross inventory** | Repo-wide count in `docs/generated/platform_inventory.json` / MD. | **Trend only** — not the same as A or B; use for honesty, not “done.” |
 
 **Hygiene phases (sequenced; do not rewrite shipped migrations for branding alone):**

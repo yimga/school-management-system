@@ -22,7 +22,7 @@ class PortalPasswordResetConfirmView(PasswordResetConfirmView):
     now issues such an account a reset/claim link, but Django's stock confirm
     view only SETS the password — it never flips ``is_active`` — so the owner
     could set a password and STILL be bounced at ``/login/`` by ``is_active`` (the
-    exact gilead-tech dead-end: "we sent a link, you clicked it, and it still says
+    exact dead-end reported on a live tenant: "we sent a link, you clicked it, and it still says
     invalid"). Setting a password via the token IS the activation: the link
     proved control of the on-file address.
 
@@ -190,8 +190,8 @@ class PortalPasswordResetForm(PasswordResetForm):
         # when is_active=False. Django's default filter — and the prior
         # is_active=True filter here — drops them, which silently strands exactly
         # the new-user population: login shows the generic "invalid username or
-        # password" wall and the reset email NEVER arrives (the exact report on
-        # gilead-tech). A never-claimed account has no password to protect and the
+        # password" wall and the reset email NEVER arrives (the exact report
+        # from a live tenant). A never-claimed account has no password to protect and the
         # reset-confirm view is its intended claim path, so this is safe. A
         # DEACTIVATED account WITH a real usable password stays excluded, so
         # disabling an established account still fully locks it (and blocks reset).

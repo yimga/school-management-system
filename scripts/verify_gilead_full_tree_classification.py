@@ -172,6 +172,14 @@ def _is_allowed_reference_path(rel: str) -> bool:
     # 6) Tooling scripts and generated audit artifacts
     if rel.startswith("scripts/"):
         return True
+    # 6b) Recorded audit evidence. These are captures (admin canvas JSON, design
+    # approval snapshots, contract dumps) taken by running audits against a REAL
+    # tenant, so the tenant's name is the finding's provenance -- editing it out
+    # would falsify the evidence rather than clean the product. This is the
+    # bucket the comment above already claimed but never implemented; runtime
+    # copy stays covered by lint_gilead_residue.py, which is green.
+    if rel.startswith("artifacts/"):
+        return True
     # 7) CI workflows (may invoke audit scripts whose paths contain "gilead")
     if rel.startswith(".github/workflows/"):
         return True

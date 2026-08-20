@@ -1,7 +1,7 @@
 """Edge Onboarding Runbook — the backend engine (feature ③ of the RMC Edge initiative).
 
 We stand up an offline / sovereign edge box via a standardized, proven sequence
-(validated end-to-end on the Gilead tenant): pin the School parent at the bundle's
+(validated end-to-end on a live tenant): pin the School parent at the bundle's
 UUID and provision a clean, entitled, loginable shell; recreate the user identities;
 seed the country academic baseline; set branding; sanity-check the box environment;
 enable + configure edge<->cloud sync; and — the MANDATORY final gate — prove the box
