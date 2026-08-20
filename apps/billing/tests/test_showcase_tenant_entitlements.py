@@ -9,7 +9,7 @@ from __future__ import annotations
 from django.core.management import call_command
 from django.test import TestCase
 
-from apps.billing.management.commands.ensure_gilead_sovereignty_entitlements import (
+from apps.billing.management.commands.ensure_showcase_tenant_entitlements import (
     _collect_platform_feature_codes,
 )
 from apps.billing.models import Entitlement
@@ -32,7 +32,7 @@ class GileadSovereigntyEntitlementsTests(TestCase):
         self.assertGreater(len(codes), 0)
 
     def test_grants_every_feature_to_gilead(self):
-        call_command("ensure_gilead_sovereignty_entitlements")
+        call_command("ensure_showcase_tenant_entitlements")
         self.gilead.refresh_from_db()
         codes = _collect_platform_feature_codes()
 
@@ -54,15 +54,15 @@ class GileadSovereigntyEntitlementsTests(TestCase):
         self.assertEqual(self.gilead.billing_type, "COMPLIMENTARY")
 
     def test_other_tenant_is_untouched(self):
-        call_command("ensure_gilead_sovereignty_entitlements")
+        call_command("ensure_showcase_tenant_entitlements")
         self.other.refresh_from_db()
         # No features flipped and no entitlements minted for a non-gilead tenant.
         self.assertFalse(self.other.features)
         self.assertEqual(Entitlement.objects.filter(school=self.other).count(), 0)
 
     def test_idempotent_second_run(self):
-        call_command("ensure_gilead_sovereignty_entitlements")
-        call_command("ensure_gilead_sovereignty_entitlements")  # must not raise / duplicate
+        call_command("ensure_showcase_tenant_entitlements")
+        call_command("ensure_showcase_tenant_entitlements")  # must not raise / duplicate
         codes = _collect_platform_feature_codes()
         manual = Entitlement.objects.filter(
             school=self.gilead, source=Entitlement.Source.MANUAL, is_enabled=True

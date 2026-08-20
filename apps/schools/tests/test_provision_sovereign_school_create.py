@@ -2,7 +2,7 @@
 
 The fresh-edge-box gap (2026-08-01 self-host audit): an empty database has no
 School and no login. `provision_sovereign_school` used to REQUIRE the school to
-already exist ("Create the tenant first") and `ensure_gilead_sovereignty_entitlements`
+already exist ("Create the tenant first") and `ensure_showcase_tenant_entitlements`
 fails closed when it is absent — so a first-time self-host operator following the
 docs got an empty, un-loginable box. The `--create` path closes that: it invokes
 the real, self-verifying `create_school` engine under the canonical `gilead-tech`
@@ -22,7 +22,7 @@ from django.contrib.auth import authenticate, get_user_model
 from django.core.management import call_command
 from django.test import TestCase, override_settings
 
-from apps.billing.management.commands.ensure_gilead_sovereignty_entitlements import (
+from apps.billing.management.commands.ensure_showcase_tenant_entitlements import (
     GILEAD_SLUGS,
 )
 from apps.schools.models import School

@@ -196,7 +196,7 @@ def _validate_provision_shell(school) -> "tuple[bool, str]":
             return (
                 False,
                 "School is active but carries no entitlements — run "
-                "ensure_gilead_sovereignty_entitlements.",
+                "ensure_showcase_tenant_entitlements.",
             )
         return True, "School parent is active and entitled."
     except Exception as exc:  # noqa: BLE001
@@ -625,12 +625,12 @@ EDGE_ONBOARDING_STEPS: "tuple[EdgeOnboardingStep, ...]" = (
         ),
         category="provision",
         command_template=(
-            "python manage.py ensure_gilead_sovereignty_entitlements   "
+            "python manage.py ensure_showcase_tenant_entitlements   "
             "# tenant {slug} pin UUID {school_id} ({country})"
         ),
         validate=_validate_cloud_entitle_pin,
         workaround=(
-            "If entitlements are missing, run ensure_gilead_sovereignty_entitlements. "
+            "If entitlements are missing, run ensure_showcase_tenant_entitlements. "
             "If the school is inactive, activate it on the cloud before any box import."
         ),
         runs_on=RUNS_ON_CLOUD,
@@ -725,7 +725,7 @@ EDGE_ONBOARDING_STEPS: "tuple[EdgeOnboardingStep, ...]" = (
         workaround=(
             "If no cloud bundle exists, provision from scratch with "
             "provision_sovereign_school --create, then entitle via "
-            "ensure_gilead_sovereignty_entitlements. If the slug already resolves to a "
+            "ensure_showcase_tenant_entitlements. If the slug already resolves to a "
             "DIFFERENT UUID, rename/remove that school first — the importer refuses to guess."
         ),
         runs_on=RUNS_ON_BOX,
