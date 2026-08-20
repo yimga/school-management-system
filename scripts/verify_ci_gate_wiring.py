@@ -40,6 +40,11 @@ WORKFLOWS_DIR = REPO_ROOT / ".github" / "workflows"
 # is "present in SOME workflow"). Removing a gate from CI is a reviewed edit
 # to this tuple.
 REQUIRED_GATES: tuple[tuple[str, str], ...] = (
+    # The floor: a module that does not compile cannot be imported at all, and every
+    # other gate is then answering about a tree that does not run. Added 2026-08-19 after
+    # apps/accounts/tasks.py was found TRUNCATED mid-statement on main - the reference
+    # gates treat an unparseable file as opaque and skip it, so nothing reported it.
+    ("scripts/verify_python_files_parse.py", "architectural-boundaries.yml"),
     # Reference-integrity family — the "literal string -> runtime registry ->
     # 500/silent" loophole class. All members must always run.
     ("scripts/scan_import_reference_integrity.py", "architectural-boundaries.yml"),

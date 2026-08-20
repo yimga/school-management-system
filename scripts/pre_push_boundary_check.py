@@ -54,6 +54,9 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 # with that workflow's stdlib-only jobs; the whole point is byte-for-byte parity
 # with what CI would say.
 GATES: list[tuple[str, list[str]]] = [
+    # First: a module that does not compile cannot be imported at all, and every
+    # gate below it is answering about a tree that does not run.
+    ("python-files-parse", ["verify_python_files_parse.py"]),
     ("undefined-css-classes", ["scan_undefined_css_classes.py", "--compare"]),
     ("off-token-colors", ["scan_off_token_colors.py", "--strict"]),
     ("theme-locked-token-text", ["scan_theme_locked_token_text.py", "--strict"]),
