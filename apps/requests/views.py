@@ -12,6 +12,7 @@ from services.post_delete_navigation import safe_next_url as _safe_next_url
 
 from apps.accounts.models import User
 from apps.accounts.utils import get_user_role
+from apps.schools.models import SchoolMembership
 
 from .models import AccessRequest, RequestDecision
 from .services import apply_request_decision, create_access_request
@@ -280,3 +281,105 @@ def request_module_access(request: HttpRequest):
         request, "Access request submitted. You will be notified when it is reviewed."
     )
     return redirect(next_url)
+
+
+# Approving six access requests used to cost six page loads and six posts, one
+# detail page at a time. That is the "fewer clicks" complaint in its purest form:
+# the work is identical for every row, and the platform made the reader repeat it.
+#
+# Deliberately JavaScript-free. Checkboxes plus two submit buttons is enough, it
+# survives an offline box with a flaky bundle, and it keeps the surface clear of
+# the inline-handler rule the CSP seal enforces. A select-all convenience is not
+# worth a script tag here.
+_BULK_DECISION_CAP = 100  # magic-number-allow: one screenful of requests per post
+
+
+@login_required
+@user_passes_test(_can_manage_requests)
+def bulk_decide(request: HttpRequest):
+    """Apply one decision to every selected access request, atomically."""
+    if request.method != "POST":
+        return redirect("requests:dashboard")
+
+    back = _safe_next_url(
+        request, request.POST.get("next"), reverse("requests:dashboard")
+    )
+    action = (request.POST.get("action") or "").upper()
+    if action not in {
+        RequestDecision.Decision.APPROVED,
+        RequestDecision.Decision.DENIED,
+        RequestDecision.Decision.CLARIFY,
+    }:
+        messages.error(request, "Unknown action.")
+        return redirect(back)
+
+    raw_ids = request.POST.getlist("request_ids")
+    if not raw_ids:
+        messages.info(request, "Select at least one request first.")
+        return redirect(back)
+    if len(raw_ids) > _BULK_DECISION_CAP:
+        messages.error(
+            request,
+            f"Select at most {_BULK_DECISION_CAP} requests at once.",
+        )
+        return redirect(back)
+
+    # Scope BEFORE touching anything: ids arrive from the client, so the queryset
+    # is the only thing keeping one school from deciding another's requests.
+    #
+    # This endpoint FAILS CLOSED where the read paths fail open. `requests_dashboard`
+    # deliberately lists unscoped when no school resolves (a reviewed decision, marked
+    # in place), which is defensible for a read — but the same shape on a batch WRITE
+    # means one post settles every school's requests at once. A test caught exactly
+    # that, because `request.school` is set by middleware and is absent on other
+    # entry points.
+    school = _request_school(request)
+    if school is None:
+        # Fall back to the acting user's own membership rather than to "everything".
+        membership = (
+            SchoolMembership.objects.filter(user=request.user)
+            .select_related("school")
+            .order_by("-is_primary")
+            .first()
+        )
+        school = membership.school if membership else None
+    if school is None:
+        messages.error(
+            request,
+            "No active school for this session — open a school workspace, or decide "
+            "requests individually.",
+        )
+        return redirect(back)
+
+    qs = AccessRequest.objects.filter(id__in=raw_ids, school=school)
+    # Only pending rows are actionable; re-posting a stale page must not silently
+    # overturn a decision someone else already made.
+    targets = list(qs.filter(status=AccessRequest.Status.PENDING))
+
+    if not targets:
+        messages.info(request, "Nothing to do — those requests are no longer pending.")
+        return redirect(back)
+
+    reason = (request.POST.get("reason") or "").strip()
+    from django.db import transaction
+
+    with transaction.atomic():
+        for access_request in targets:
+            apply_request_decision(
+                request=access_request,
+                decision=action,
+                reason=reason,
+                actor=request.user,
+            )
+
+    skipped = len(raw_ids) - len(targets)
+    label = {
+        RequestDecision.Decision.APPROVED: "approved",
+        RequestDecision.Decision.DENIED: "denied",
+        RequestDecision.Decision.CLARIFY: "sent back for clarification",
+    }[action]
+    note = f"{len(targets)} request(s) {label}."
+    if skipped > 0:
+        note += f" {skipped} skipped — no longer pending or not yours."
+    messages.success(request, note)
+    return redirect(back)
