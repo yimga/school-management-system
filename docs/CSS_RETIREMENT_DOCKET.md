@@ -2,6 +2,42 @@
 
 **Last updated:** 2026-08-20
 
+## 2026-08-20 (latest) — v4.06.71: box pairing replaces a hand-copied credential, and an apply that changed nothing stops re-queueing itself
+
+SW `sms-v4.06.71-edge-pairing-and-apply-breaker-2026-08-20`. PR #184. Three
+independent fixes; only the pairing one touches CSS/JS.
+
+**What landed**
+
+| Area | Change |
+|---|---|
+| `apps/migration_cloud/apply_progress_guard.py` (new) | Forward-progress breaker. A LIVE apply returning the same `(created, updated, quarantined, status)` as the previous one AND creating no rows counts as no progress; `RMC_MC_APPLY_NO_PROGRESS_LIMIT` (default 3) consecutive and automatic re-apply is refused. Bundle 84 of gilead-tech had re-applied an identical `0 created, 105 updated, 442 quarantined` since 2026-08-16 — 85 outbox rows, 84 succeeded, a new one 1–2s after each finished. `enqueue_heavy_work` dedupes only against `pending`/`processing`, so the key frees the moment a row succeeds. **An epoch-scoped idempotency key does NOT fix this** — `mark_apply_run_start` fires on *entry* to APPLYING, so the epoch differs every run. |
+| `apps/sync_engine/models_pairing.py` (new) | `EdgePairingRequest` + `EdgeCloudBinding`. Both SHARED, both FK only to SHARED (`schools.School`, `accounts.User`) — the `cross-tenancy-fk` gate is satisfied by construction. Migrations `0010`, `0011`; chain single-leaf. |
+| `apps/sync_engine/edge_binding.py` (new) | One resolver for the box's cloud coordinates: durable binding → env → derived from slug. The runner, both probes and the commands all read it, replacing three env reads across six modules. A paired box now survives a container rebuild; a `.env` did not. |
+| `apps/api/pairing_api.py` + 2 routes | `sync/pair/start/`, `sync/pair/poll/`, pinned in `CLOUD_SYNC_PATHS` so the drift test from #183 covers them. Anonymous by necessity (an unpaired box holds no credential); the credential is minted inside `poll` and exists only in that response. |
+| `templates/siteconfig/partials/_sync_pairing_panel.html` (new) | Cloud approval queue in the Sync Center. Shown only when a box is waiting. |
+| `templates/sync_engine/pair_this_box.html` + `static/js/rmc-edge-pairing.js` (new) | Box screen. Displays a code and accepts nothing; the JS never handles a credential (the poll response is consumed server-side). Endpoints ride `data-` attributes, so `scan_inline_event_handlers` stays at 0. |
+| `static/css/rmc-class-grammar.css` | Added the base `.rmc-list-item` — only the `--danger` modifier existed, so the pairing panel tripped `scan_undefined_css_classes`. Semantic tokens only. |
+| `apps/sync_engine/ownership_repair.py` | Both entry points now run inside `_school_schema(school)`. The audit had been reading `public` on any `USE_DJANGO_TENANTS` deployment: it reported 572 unowned rows for gilead-tech against a schema holding 420 correctly-owned students and exactly one unowned row. `--apply` writes, so this was not cosmetic. |
+
+**Direction of the pairing code, and why.** The box DISPLAYS a code; a cloud admin
+approves it. The mirror design fails specifically here: the edge profile serves a
+school LAN over plain HTTP by design (`SECURE_SSL_REDIRECT=0`,
+`SESSION_COOKIE_SECURE=0`), so a form on the box that accepts a credential is an
+unauthenticated write surface on a cleartext LAN. The short code is not a secret —
+`poll_secret` is, and it never leaves the box.
+
+**Deploy** — SW bumped (monotonic OK vs v4.6.70). 47 fast tests + 18/18 pre-push
+boundary gates green; `manage.py check` clean; `makemigrations --check` reports no
+changes.
+
+**Honest deferred.** The 502 / read-timeout on sync is NOT fixed here. The working
+hypothesis is that it is downstream of the livelock saturating the Render instance;
+that is a hypothesis and should be re-tested after this deploys, not assumed. A
+resumable/chunked bundle upload and a UI for the existing sneakernet export
+(`export_edge_delta_bundle` already writes exactly what `/api/sync/bundle/upload/`
+consumes) were scoped and deliberately not built — see the PR discussion.
+
 ## 2026-08-20 (later) — Nine served pages had markup that never closed, and one of them shipped an element that does not exist
 
 Started from a narrower question — *are there other guard tests that never collected?* A repo-wide sweep imported all 2,736 collectable test modules and found **zero** import failures, so that class is clean. But the sweep's own output carried something else: `scripts/dev/test_backend_dashboard.py`, one of five files under `scripts/dev/` that match pytest's `test_*.py` glob while defining no tests and executing their whole body at import, printed **`[WARN] div tags are not balanced`** for the tenant admin home. It had been printing that into a script nobody runs.
