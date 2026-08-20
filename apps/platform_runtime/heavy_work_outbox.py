@@ -113,8 +113,18 @@ def enqueue_heavy_work(
     return row
 
 
-def kick_heavy_work_drain() -> None:
-    """Ask a worker (or a short-lived thread) to drain pending rows."""
+def kick_heavy_work_drain(*, force_local: bool = False) -> None:
+    """Ask a worker (or a short-lived thread) to drain pending rows.
+
+    ``force_local`` skips the broker entirely and drains in-process. It exists for
+    one specific, provable situation: the row has been PENDING long past the point
+    where a healthy queue would have claimed it. A configured-but-unconsumed broker
+    is the silent version of that — ``.delay()`` SUCCEEDS (the message is accepted)
+    with no worker to run it, so the normal ``except`` below never fires and the
+    row sits PENDING forever with nothing reporting a problem. Callers that can see
+    the row is stranded use this to make progress locally rather than wait on a
+    queue that has already proven it is not moving.
+    """
     from django.conf import settings
 
     def _spawn_thread() -> None:
@@ -132,7 +142,7 @@ def kick_heavy_work_drain() -> None:
             name="heavy-work-outbox-drain",
         ).start()
 
-    if getattr(settings, "CELERY_TASK_ALWAYS_EAGER", False):
+    if force_local or getattr(settings, "CELERY_TASK_ALWAYS_EAGER", False):
         _spawn_thread()
         return
 

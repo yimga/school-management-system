@@ -392,6 +392,18 @@ def _progress_payload(bundle) -> dict:
 
     detecting = _is_detecting(bundle)
     flight = _import_flight(bundle)
+    if flight.get("stuck"):
+        # SELF-HEAL. This poller is the only heartbeat guaranteed to be running
+        # while a tenant watches an import: it needs no Celery worker and no beat.
+        # A queued apply nothing has claimed is drained in-process here (rate
+        # limited per bundle) instead of leaving the tenant on a frozen bar with
+        # nothing behind it. Best-effort — the recovery must never break the read.
+        try:
+            from .repair import nudge_stuck_apply
+
+            nudge_stuck_apply(bundle)
+        except Exception:  # noqa: BLE001
+            logger.debug("tenant progress: stuck-apply nudge failed for %s", bundle.pk, exc_info=True)
     detected = []
     for art in bundle.artifacts.all():
         candidates = art.inferred_domain if isinstance(art.inferred_domain, list) else []
@@ -435,8 +447,28 @@ def _progress_payload(bundle) -> dict:
         "repair": repair,
         "needs_attention": live["needs_attention"],
         "processed": live["created"] + live["updated"] + live["held"],
-        "expected": int((snapshot.get("live_totals") or {}).get("expected") or 0),
+        # Total rows the upload actually contains. This used to read
+        # snapshot["live_totals"]["expected"], a key `progress.refresh_snapshot`
+        # never writes, so the pipeline card rendered a permanent "Expected: 0"
+        # next to a real Processed count. row_count is null for archives and
+        # binaries, so summing the non-null values counts each tabular file once
+        # and never double-counts an archive alongside its children.
+        "expected": _expected_row_total(bundle),
     }
+
+
+def _expected_row_total(bundle) -> int:
+    """Sum of profiled row counts across the bundle's tabular artifacts."""
+    from django.db.models import Sum
+
+    try:
+        total = bundle.artifacts.filter(row_count__isnull=False).aggregate(
+            n=Sum("row_count")
+        )["n"]
+    except Exception:  # noqa: BLE001 — the poller must never 500 on a count
+        logger.debug("tenant progress: expected-row total failed for %s", bundle.pk, exc_info=True)
+        return 0
+    return int(total or 0)
 
 
 class _TenantAdminWriteRequiredMixin(LoginRequiredMixin):

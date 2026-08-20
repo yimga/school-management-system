@@ -40,6 +40,7 @@ from dataclasses import dataclass, field
 from django.utils import timezone
 
 from .models import BundleStatus, FinancialMismatchError, MigrationBundle
+from .progress import APPLY_RUN_EPOCH_KEY
 
 logger = logging.getLogger(__name__)
 
@@ -246,6 +247,143 @@ def _applying_is_stale(bundle: MigrationBundle) -> bool:
     return applying_stale_by_time(bundle)
 
 
+# A queued apply row this old has not been claimed by any drain, which means the
+# queue is not moving for it (no worker consuming the broker, or the in-process
+# drain never ran). Matches the threshold the review page uses to stop calling a
+# queued import "working" — the tenant is told it is stuck, so the recovery path
+# must agree with what they were told.
+_QUEUED_APPLY_STUCK_SECONDS = 90  # magic-number-allow: queued-apply-wedged-threshold-seconds
+
+
+def _apply_rows(bundle: MigrationBundle):
+    """Open (PENDING / PROCESSING) apply outbox rows for this bundle, newest first."""
+    from apps.platform_runtime.models_heavy_work_outbox import HeavyWorkOutbox
+
+    return list(
+        HeavyWorkOutbox.objects.filter(  # tenant-isolation-allow: bundle_id is the globally-unique shared MigrationBundle pk; the bundle is already tenant-scoped by the caller
+            bundle_id=bundle.pk,
+            kind=HeavyWorkOutbox.Kind.MC_APPLY_BUNDLE,
+            status__in=(
+                HeavyWorkOutbox.Status.PENDING,
+                HeavyWorkOutbox.Status.PROCESSING,
+            ),
+        ).order_by("-created_at")
+    )
+
+
+def _row_is_wedged(bundle: MigrationBundle, row) -> bool:
+    """True when this apply row cannot be making progress.
+
+    PENDING past the threshold  → nothing ever claimed it.
+    PROCESSING but the bundle's apply signal is stale → the worker that claimed it
+    stopped heartbeating (killed mid-run), and the outbox reclaim window is far
+    longer than a tenant can reasonably be asked to stare at a frozen bar.
+    """
+    from apps.platform_runtime.models_heavy_work_outbox import HeavyWorkOutbox
+
+    now = timezone.now()
+    if row.status == HeavyWorkOutbox.Status.PENDING:
+        created = getattr(row, "created_at", None)
+        if created is None:
+            return False
+        return (now - created).total_seconds() > _QUEUED_APPLY_STUCK_SECONDS
+    return _seconds_since_apply_signal(bundle) > _APPLYING_STALE_SECONDS
+
+
+def live_apply_in_flight(bundle: MigrationBundle) -> bool:
+    """An apply that is genuinely moving — not merely an open outbox row.
+
+    ``_apply_in_flight`` answers "is there an open row", which a wedged row also
+    satisfies; that is what pinned a stranded repair as "still running" forever.
+    """
+    return any(not _row_is_wedged(bundle, row) for row in _apply_rows(bundle))
+
+
+# How often one bundle may trigger a local drain nudge. The review page polls
+# every ~2.5s per viewer, so without a cooldown a stuck import would spawn a drain
+# thread on every poll from every open tab.
+_NUDGE_COOLDOWN_SECONDS = 60  # magic-number-allow: stuck-apply-nudge-cooldown-seconds
+
+
+def nudge_stuck_apply(bundle: MigrationBundle) -> bool:
+    """Self-heal a queued apply that no drain has claimed. True if a nudge fired.
+
+    Called from the tenant progress poller, which is the only heartbeat that is
+    guaranteed to exist: it runs in the web process, needs no worker, and fires
+    precisely while a human is watching the import that is stuck.
+
+    The nudge drains IN-PROCESS on purpose. A row PENDING past
+    :data:`_QUEUED_APPLY_STUCK_SECONDS` has already demonstrated that whatever was
+    supposed to claim it is not claiming it — re-publishing to the same broker
+    would be asking the mechanism that failed to try again. Idempotent: the drain
+    claims rows with a conditional UPDATE, so a nudge that races a real worker
+    loses the claim harmlessly.
+    """
+    from django.core.cache import cache
+
+    rows = _apply_rows(bundle)
+    if not rows or not any(_row_is_wedged(bundle, row) for row in rows):
+        return False
+    key = f"mc:nudge-apply:{bundle.pk}"
+    try:
+        if not cache.add(key, "1", _NUDGE_COOLDOWN_SECONDS):
+            return False
+    except Exception:  # noqa: BLE001 — a cache outage must not disable the self-heal
+        logger.debug("repair: nudge cooldown unavailable for %s", bundle.pk, exc_info=True)
+    try:
+        from apps.platform_runtime.heavy_work_outbox import kick_heavy_work_drain
+
+        kick_heavy_work_drain(force_local=True)
+    except Exception:  # noqa: BLE001 — never break the poller on a self-heal attempt
+        logger.warning("repair: local drain nudge failed for %s", bundle.pk, exc_info=True)
+        return False
+    logger.info(
+        "migration_cloud.repair: nudged a local drain for stranded apply on bundle %s",
+        bundle.pk,
+    )
+    return True
+
+
+def supersede_wedged_apply(bundle: MigrationBundle) -> int:
+    """Retire wedged apply rows and return how many were retired.
+
+    The apply idempotency key is ``mc-apply:<id>:live:active`` and
+    ``enqueue_heavy_work`` reuses any PENDING/PROCESSING row carrying it. So once a
+    row wedges, every later enqueue is handed that same dead row and the caller is
+    told "queued" while nothing was queued — pressing Repair again could never
+    change anything. Retiring the row frees the key so the next enqueue creates
+    real work.
+
+    Safe by construction: only rows :func:`_row_is_wedged` accepts are touched, so
+    a live apply is never cancelled out from under itself.
+    """
+    from apps.platform_runtime.models_heavy_work_outbox import HeavyWorkOutbox
+
+    retired = 0
+    for row in _apply_rows(bundle):
+        if not _row_is_wedged(bundle, row):
+            continue
+        updated = HeavyWorkOutbox.objects.filter(  # tenant-isolation-allow: platform-heavy-work-outbox-supersede-by-pk
+            pk=row.pk, status=row.status
+        ).update(
+            status=HeavyWorkOutbox.Status.FAILED,
+            last_error=(
+                "superseded: the apply was never picked up (or its worker stopped "
+                "heartbeating) and a repair re-queued it"
+            ),
+            finished_at=timezone.now(),
+        )
+        if updated:
+            retired += 1
+            logger.warning(
+                "migration_cloud.repair: superseded wedged apply row %s (%s) for bundle %s",
+                row.pk,
+                row.status,
+                bundle.pk,
+            )
+    return retired
+
+
 def repair_readiness(bundle: MigrationBundle) -> RepairReadiness:
     """Decide — conservatively — whether re-applying this bundle is safe."""
     status = bundle.status
@@ -276,6 +414,24 @@ def repair_readiness(bundle: MigrationBundle) -> RepairReadiness:
         reason = (
             "Some records were held for review or didn't fully land. Retrying "
             "re-attempts just those, without duplicating what already imported."
+        )
+    elif (
+        status == BundleStatus.MAPPED
+        and _has_unresolved_issues(bundle)
+        and not live_apply_in_flight(bundle)
+    ):
+        # A repair that was queued and never drained. ``repair_bundle`` resets the
+        # bundle to MAPPED *before* enqueuing, so a queue that never moves strands
+        # it here — and MAPPED used to fall through to "this upload hasn't been
+        # imported yet", which WITHDREW the only recovery control on the page while
+        # the board still said "Queued". Nothing else could see it either: the
+        # wedge probe only inspects APPLYING and the outbox reclaim only inspects
+        # PROCESSING. Requiring unresolved issues keeps a genuinely fresh,
+        # never-applied MAPPED upload on the honest "import it first" path.
+        reason = (
+            "The repair you started was never picked up by the importer. Retrying "
+            "is safe: records that already imported are updated in place, never "
+            "duplicated, and the rest get another attempt."
         )
     elif status == BundleStatus.APPLYING and _applying_is_stale(bundle):
         # Reclaim a wedged apply — the worker was interrupted and no apply is in
@@ -367,13 +523,29 @@ def repair_bundle(*, bundle_id: int, off_http: bool = False) -> RepairResult:
     )
     # Reset to MAPPED so apply_bundle (which requires MAPPED) can re-run. Idempotent
     # upsert means landed rows are updated in place, never duplicated.
+    #
+    # The same write opens a NEW progress run. Without it the board replays the
+    # previous apply: stage pct only ratchets up, so it showed the last run's 100%
+    # for APPLYING (a frozen 75% overall) and reported the last run's created /
+    # updated / held as though this repair had already produced them.
+    now_iso = timezone.now().isoformat()
     bundle.mark_status(
         BundleStatus.MAPPED,
-        summary_patch={"repair_requested_at": timezone.now().isoformat()},
+        summary_patch={
+            "repair_requested_at": now_iso,
+            APPLY_RUN_EPOCH_KEY: now_iso,
+        },
     )
 
     if off_http:
         from .celery_tasks import enqueue_apply
+
+        # Free the apply idempotency key before enqueuing. Without this a wedged
+        # PENDING/PROCESSING row is handed straight back by enqueue_heavy_work and
+        # the tenant is told "queued" while nothing was queued — the reported
+        # "Repair does nothing". Only rows proven wedged are retired, so a live
+        # apply is never cancelled.
+        superseded = supersede_wedged_apply(bundle)
 
         queued = enqueue_apply(
             bundle_id,
@@ -383,15 +555,22 @@ def repair_bundle(*, bundle_id: int, off_http: bool = False) -> RepairResult:
         oid = str(
             getattr(queued, "outbox_id", None) or getattr(queued, "id", "") or ""
         )
+        message = (
+            "Repair is queued in the background. Refresh this page in a "
+            "moment to see updated import results."
+        )
+        if superseded:
+            message = (
+                "The previous attempt had stopped without finishing, so it was "
+                "cleared and a fresh repair is queued. Refresh this page in a "
+                "moment to see updated import results."
+            )
         return RepairResult(
             ok=True,
             ran=False,
             queued=True,
             outbox_id=oid,
-            message=(
-                "Repair is queued in the background. Refresh this page in a "
-                "moment to see updated import results."
-            ),
+            message=message,
             before_status=before,
             after_status=BundleStatus.MAPPED,
         )

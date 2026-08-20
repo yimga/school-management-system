@@ -260,6 +260,13 @@ def _apply_bundle_inner(
             shadow = prior_recon.get("shadow")
             bundle.reconciliation_summary = {"shadow": shadow} if shadow else {}
             bundle.save(update_fields=["reconciliation_summary", "updated_at"])
+            # Open a new progress run at the same moment the status flips. The
+            # event stream is append-only for the life of the bundle and APPLYING
+            # is the stage a retry RE-RUNS, so without this boundary the snapshot
+            # keeps serving the previous apply's ratcheted pct and live totals.
+            from .progress import mark_apply_run_start
+
+            mark_apply_run_start(bundle)
             bundle.mark_status(BundleStatus.APPLYING)
     bundle.refresh_from_db()
     _emit_progress(bundle_id=bundle_id, kind="stage_started", stage="APPLYING",
