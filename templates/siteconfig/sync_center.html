@@ -131,8 +131,15 @@
               {% if sync_live.phase == 'failed' and sync_live.error %}
                 <p class="text-danger-emphasis mb-0 mt-2" data-rmc-sync-error-detail>{{ sync_live.error }}</p>
               {% endif %}
+              {# This used to assert that a 502 meant RMC_EDGE_OPERATOR_BASE was wrong, #}
+              {# and told the operator to edit .env and restart. That was a guess stated #}
+              {# as a diagnosis, and it was wrong: a 502 is the cloud's PROXY answering #}
+              {# because the application behind it did not, so the box's configuration #}
+              {# is not implicated at all. It also no longer matches how a paired box is #}
+              {# configured, which is not in .env. Point at the command that actually #}
+              {# distinguishes the cases instead of naming a suspect. #}
               <p class="text-body-secondary mb-0 mt-2">
-                {% trans "502 on push and pull usually means RMC_EDGE_OPERATOR_BASE points at the wrong host (must be your cloud tenant URL, not this LAN box). Fix deploy/selfhost/.env and restart the web container." %}
+                {% trans "A 502 or 504 means the cloud's proxy answered but the application behind it did not — check the cloud's application logs. Run “python manage.py verify_edge_link --http” on the box to tell that apart from an unreachable host, a refused credential, or a missing endpoint." %}
               </p>
             </div>
           {% endif %}
