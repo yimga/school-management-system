@@ -952,6 +952,32 @@ def _dlq_enabled() -> bool:
     ) or _offline_email_queue_enabled()
 
 
+# Backends that accept a message, report success, and deliver it to nobody.
+# Django ships all three for development; each one silently satisfies
+# ``msg.send()``.
+_NON_DELIVERING_EMAIL_BACKENDS = ("console", "locmem", "dummy")
+
+
+def _email_backend_can_deliver() -> tuple[bool, str]:
+    """Whether the ACTIVE backend can actually put mail on the wire.
+
+    The offline queue parks mail proactively on an edge box, so nothing is lost
+    at send time. But the drain re-attempts delivery through
+    ``mail.get_connection(backend=settings.EMAIL_BACKEND)`` — and the shipped
+    edge template sets that to the console backend. Without this check the cron
+    that exists to RESCUE parked mail is the thing that discards it, marking
+    each row ``redriven`` on the way out.
+
+    Returns ``(can_deliver, backend_token)``; the token names which
+    non-delivering backend matched, for the log line.
+    """
+    backend = str(getattr(settings, "EMAIL_BACKEND", "") or "").lower()
+    for token in _NON_DELIVERING_EMAIL_BACKENDS:
+        if token in backend:
+            return False, token
+    return True, ""
+
+
 def _dlq_max_redrives() -> int:
     """Resolve the per-row redrive ceiling (default 5)."""
     raw = getattr(settings, "SCHOOLOPS_EMAIL_DLQ_MAX_REDRIVES", None)
@@ -1045,6 +1071,7 @@ def redrive_dead_letters(limit: int = 50) -> dict:
     summary = {
         "scanned": 0, "redriven": 0, "still_pending": 0,
         "exhausted": 0, "abandoned": 0, "enabled": _dlq_enabled(),
+        "blocked_no_backend": 0,
     }
     try:
         from django.utils import timezone
@@ -1058,6 +1085,31 @@ def redrive_dead_letters(limit: int = 50) -> dict:
         logger.warning(
             "schoolops.email_delivery.redrive_import_failed err_type=%s",
             type(exc).__name__,
+        )
+        return summary
+
+    # Refuse to "deliver" through a backend that cannot deliver. Bailing BEFORE
+    # the row loop is deliberate: attempting and failing would bump
+    # ``redrive_count`` toward the ceiling (default 5) and convert a queue that
+    # is merely waiting for configuration into ``exhausted`` rows nobody will
+    # look at again. Parked-and-visible beats discarded-and-marked-sent, so the
+    # rows stay PENDING and the operator gets a count.
+    _can_deliver, _dead_backend = _email_backend_can_deliver()
+    if not _can_deliver:
+        try:
+            # tenant-isolation-allow: platform-email-dead-letter-no-tenant-scope
+            summary["blocked_no_backend"] = EmailDeadLetter.objects.filter(
+                status=DeadLetterStatus.PENDING
+            ).count()
+        except Exception:  # noqa: BLE001 - reporting must never break the drain
+            summary["blocked_no_backend"] = 0
+        logger.warning(
+            "schoolops.email_delivery.redrive_blocked_no_delivering_backend "
+            "backend_kind=%s parked=%s — EMAIL_BACKEND cannot deliver, so parked "
+            "mail was left PENDING rather than discarded. Configure an SMTP relay "
+            "or a local MTA; these rows forward as soon as one exists.",
+            _dead_backend,
+            summary["blocked_no_backend"],
         )
         return summary
 
