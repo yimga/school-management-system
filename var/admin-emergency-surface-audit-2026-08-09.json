@@ -31,10 +31,10 @@
     "service_worker_version": "sms-v4.06.70-admin-automation-edge-sync-final-audit-2026-08-20",
     "unique_surface_evidence": 3
   },
-  "content_sha256": "6cff8c8f4568252c8878083777973ece21e9db7bab29ac1789dc1b4d777bc1f7",
+  "content_sha256": "872d9e04a327c9e5ea01d4c054df48bf24e2fbabc797f2feb79ad80e2ef98ce8",
   "contract_satisfied": true,
   "findings": [],
-  "generated_at": "2026-08-20T12:45:42.648967+00:00",
+  "generated_at": "2026-08-20T13:05:25.195036+00:00",
   "registry": {
     "operator": {
       "custom_change_forms": 14,
