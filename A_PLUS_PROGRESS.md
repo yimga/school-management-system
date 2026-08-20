@@ -1,8 +1,55 @@
 # A+ PROGRESS SCOREBOARD (A0 Coordinator)
 
-**Last refreshed:** 2026-08-20 (Claude Code · **PROMPT B full audit** on `418c5d2bd` -> **NO-GO**, then **PROMPT A waves 1+2** `eb26554b7`+). Root cause is not a feature gap: **GitHub Actions has not run since 2026-08-15 (billing failure)** - last 40 runs 100% failure, 0-6s, jobs never start. `pre_deploy_gate.sh` was RED at gate 4 of ~80 and is now past gate 5; red gates **17 -> 11**; forbidden patterns **9 -> 4**.
-**Loop:** Under the 9.8 lowest-dimension regime, GO = raise the MINIMUM metric. **The floor is NOT M21 i18n** (this header's prior claim) - re-derivation puts **M33 B2B Procurement at 10/100 (unbuilt)** and **M16 Testing & CI at 20/100**. The CI outage imposes a platform-wide **<=8.9 cap** (missing runtime proof), so *no* metric can reach 98 until billing is restored - that is the single binding constraint on the whole board.
+**Last refreshed:** 2026-08-20 (Claude Code · **PROMPT B full audit** on `418c5d2bd` -> **NO-GO**, then **PROMPT A waves 1-3**: `eb26554b7` -> `896db99ed` -> `8046fdab7`, each content-verified on origin). Red gates **17 -> 9**; `pre_deploy_gate.sh` **gate 4/80 -> 9/80**; forbidden patterns **9 -> 4**; **107 tests green**. 🔑 Six gates were failing on raw TEXT, not defects - **11 false findings vs 2 real**; five now structural (ast/tokenize/statement-span/comment-masking).  
+**Loop:** Under the 9.8 lowest-dimension regime, GO = raise the MINIMUM metric. **The floor is NOT M21 i18n** (this header's prior claim): **M33 B2B Procurement 10/100 (unbuilt)** -> M16 **20** -> M26 **45** (0 of >=3 payment rails LIVE; all 11 gateways are honestly-labelled stubs) -> M21 **50** -> M31 **60**. **GitHub Actions has run ZERO jobs since 2026-08-15 (billing)** -> platform-wide **<=8.9 cap**, so no metric can reach 98 regardless of feature work. That, not any feature, is the binding constraint.  
 **Tree:** HEAD = `origin/main`
+
+---
+
+## PROMPT A — Wave 3: a customer's name was on an operator page — 2026-08-20
+
+**Shipped `8046fdab7`.** `lint_<brand>_residue` reported five findings. **Two were real, three were the gate reading documentation** — and separating them mattered more than clearing the count.
+
+### The real two — and the rename
+
+`apps/lifecycle/edge_onboarding.py` returned operator-facing strings naming a management command by its brand-bearing name. They are the return values of `_validate_provision_shell()` and an `EdgeOnboardingStep` workaround, **rendered in `templates/schools/super_edge_onboarding_runbook.html`** — a customer's name printed on an operator page in a white-label product.
+
+Renamed the command to **`ensure_showcase_tenant_entitlements`** (hard rename, no alias, per explicit user instruction). All 20 references across 8 files updated.
+
+- 🔑 **The riskiest reference was `scripts/release/render_predeploy.sh:142`** — it runs on **every production deploy** and is wrapped in `|| true`. A missed reference would not have failed the deploy; it would have **silently stopped entitling the tenant**.
+- 🔑 **Named "showcase tenant", not "sovereignty".** The command is **not generic** — it hardcodes `GILEAD_SLUGS = (…)` and grants that one tenant every feature the platform has. A generic-sounding name over tenant-specific logic would have been *worse than the leak*, hiding the specificity from the next reader. Whether it should be parameterised at all is a separate, unanswered question.
+
+### The other three — the gate was reading documentation
+
+`password_reset.py:25` is a docstring explaining the exact failure observed on that tenant ("we sent a link, you clicked it, and it still says invalid") — **which is the reason the surrounding code exists**; `:194` is a `#` comment doing the same; `edge_onboarding.py:4` is a module docstring. None is rendered, logged, or shown to anyone. Deleting engineering history to satisfy a regex would have been the wrong fix.
+
+The gate matched `re.compile(r"…")` line-by-line — even though its own `_path_skipped()` already excludes `management/commands/` as *"CLI-only; not user-facing"*, i.e. it already meant runtime-visible literally. It now blanks `#` comments (`tokenize`) and module/class/function docstrings (`ast`), and **deliberately keeps every OTHER string literal in scope**, because an operator-facing message is exactly the class of finding that was real. Falls back to raw source on any parse error — this gate must never go quiet because a file was hard to read.
+
+**Mutation-proven three ways:** brand token in a user-facing string **fires** with the right `file:line`; in a `#` comment **does not**; in a docstring **does not**.
+
+### 🔑 THE REBASE IS THE POINT
+
+Between my base and `origin/main`, peers pushed **16 commits — two of which added FRESH references to the old command name** (`edge_onboarding.py:628`, `:633`; one a `command_template`, the exact line an operator copy-pastes into a shell). **The rebase merged cleanly and said nothing about it.** Only re-grepping for the old name *after* rebasing caught it. Pushed as-is, the runbook would have told operators to run a command that no longer exists.
+
+The same pass surfaced **three more real ones** in `apps/sync_engine/connectivity_probe.py:61,107,112` — operator error text using a customer's slug as the worked example (`https://<slug>.<your-domain>`, `--slug <slug>`). Those are **wrong for every other tenant**, not merely off-brand; now `<your-tenant>`. **These were found by the REPAIRED gate** — under the old regex they'd have been three more lines in a five-line pile that was already 60% false positives.
+
+Also avoided: those 16 commits added **6 new migrations**, so reusing the freshly-built test DB via `--keepdb` would have been **stale** — the known false-red trap. Rebuilt from scratch. **19 tests OK** (`test_showcase_tenant_entitlements`, `test_provision_sovereign_school_create`, `test_edge_onboarding_command_integrity`, `test_connectivity_probe`).
+
+### 🔑 SIX GATES, 11 FALSE FINDINGS, 2 REAL ONES
+
+`lint_no_print_in_apps` · `audit_celery_tenant_task_scoping` · `check_no_hardcoding` · `verify_no_defeated_default_fallback` · `lint_<brand>_residue` · and `check_no_hardcoding` again **on the comment written to explain its own fix**. All matched raw text with no awareness of strings, comments, or multi-line statements. Five are now structural (`ast` / `tokenize` / statement-span / comment-masking).
+
+**Why this is the session's most important finding:** a gate that is usually wrong when red teaches a tree to ignore red — which is exactly how `apps/accounts/tasks.py` reached main **not compiling**. The repaired brand gate proved the value immediately by catching three genuine peer-introduced violations in its first run.
+
+**Deliberately left red:** `verify_<brand>_full_tree_classification` is a stricter, different rule (the token may live only in documented historical/tooling buckets; `apps/` is not one), so those same comments still violate it. Clearing it means **rewording engineering history — a judgement call, not a gate fix**, and it is queued for the user.
+
+### Board after waves 1–3
+
+Red gates **17 → 9** · `pre_deploy_gate.sh` **gate 4/80 → gate 9/80** · forbidden patterns **9 → 4** (all the held `ci.yml` flags) · **107 tests green**, zero regressions · commits `eb26554b7` → `896db99ed` → `8046fdab7`, each content-verified on origin.
+
+**Floor unchanged and untouched by any of this:** M33 **10** → M16 **20** → M26 **45** → M21 **50** → M31 **60**. Re-derived healthy this session: M23 **89** · M1 **85** · M3 **85** (`GRADING_SCALE_REGISTRY_PASS`, engine live at `apps/evals/models.py:794`) · M28 **85**.
+
+**And the constraint none of this moves:** GitHub Actions has still run **zero** jobs since 2026-08-15. Every metric stays capped at **≤8.9**. Peers are introducing brand residue and stale command references faster than single fixes clear them — the durable fix is these gates running in CI again, not more patches.
 
 ---
 

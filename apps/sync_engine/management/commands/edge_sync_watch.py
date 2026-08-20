@@ -4,7 +4,7 @@ The appliance sits behind NAT, so the cloud can never call it. Every transfer is
 box-initiated, which makes cloud->box latency equal to the polling cadence - and the
 adaptive cadence deliberately BACKS OFF on a quiet school, so an idle box can sit minutes
 behind. This command closes that to about a second by holding one ordinary HTTP request
-open against ``/api/v1/sync/changes/`` and running a cycle the moment the cloud answers.
+open against ``/api/sync/changes/`` and running a cycle the moment the cloud answers.
 
 WHY A DEDICATED PROCESS AND NOT THE BEAT TASK. A long-poll blocks for up to 25 seconds by
 design. Doing that inside the Celery beat tick would occupy a worker that other periodic
@@ -29,6 +29,7 @@ import time
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.urls import NoReverseMatch, reverse
+from apps.sync_engine.cloud_endpoints import CLOUD_SYNC_PATHS
 
 # Never hammer the cloud when it is unhappy. Both are seconds.
 _ERROR_BACKOFF_SECONDS = 30  # magic-number-allow: pause after a failed hold
@@ -61,7 +62,9 @@ class Command(BaseCommand):
 
         base = self._operator_base()
         token = self._edge_token()
-        endpoint = base + self._path("api:sync-changes-feed", "/api/v1/sync/changes/")
+        endpoint = base + self._path(
+            "api:sync-changes-feed", CLOUD_SYNC_PATHS["api:sync-changes-feed"]
+        )
         wait = int(options.get("wait") or 0) or int(
             getattr(settings, "RMC_SYNC_CHANGES_FEED_MAX_WAIT_SECONDS", 25)
         )
