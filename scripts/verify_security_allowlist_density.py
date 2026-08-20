@@ -41,12 +41,18 @@ ROOT = Path(__file__).resolve().parent.parent
 # 2026-07-18 Prompt A Wave 31 — classify internal cron CSRF (37->38); schema-repair +
 # tenant-workspace/onboarding/e2e raw SQL surfaces (22->28); sync tracked_root cap to
 # already-committed A+ root docs (41->44; allowlist was 44 at HEAD, density lagging).
+# 2026-08-20 Prompt A — classify playwright.offline-indexeddb.config.js: the dedicated
+# offline-E2E Playwright config (Playwright 1.58 ignores project-level `webServer`, so the
+# offline harness needs its own top-level config). Same class as the already-allowlisted
+# playwright.config.js it sits beside; npm script test:e2e:offline-multiday targets it by
+# root-relative path, and its `testDir: 'tests/e2e'` resolves from the config's own dir.
+# Classified growth, not silent expansion (44->45).
 MAX_COUNTS: dict[str, tuple[str, int]] = {
     "raw_sql_allowlist.json": ("files", 28),
     "csrf_exempt_allowlist.json": ("files", 38),
     "allow_any_allowlist.json": ("files", 4),
     "broad_except_allowlist.json": ("allowed_counts", 189),
-    "tracked_root_allowlist.json": ("allowed", 44),
+    "tracked_root_allowlist.json": ("allowed", 45),
 }
 
 _CLASSIFICATION_LINTS: tuple[tuple[str, str], ...] = (

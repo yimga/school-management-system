@@ -1,5 +1,5 @@
 {
-  "last_reviewed": "2026-06-26",
+  "last_reviewed": "2026-08-20",
   "allowed": [
     "AGENTS.md",
     "A_PLUS_PROGRESS.md",
@@ -30,6 +30,7 @@
     "package-lock.json",
     "package.json",
     "playwright.config.js",
+    "playwright.offline-indexeddb.config.js",
     "Procfile",
     "pytest.ini",
     "push-all.sh",
