@@ -9,7 +9,11 @@ from django.shortcuts import redirect, render, get_object_or_404
 from django.urls import NoReverseMatch, reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_http_methods
+import logging
+
 from django.http import JsonResponse
+
+_logger = logging.getLogger(__name__)
 
 from apps.accounts.decorators import login_required, permission_required
 from apps.siteconfig.staff_context_redirects import redirect_staff_without_school
@@ -346,24 +350,6 @@ def _edge_sync_panel_context(school):
 
 @login_required
 @permission_required("settings.manage")
-@require_http_methods(["GET"])
-def sync_center_status(request):
-    """JSON snapshot of live edge-sync phase for the bound school."""
-    school = getattr(request, "school", None)
-    if not school:
-        return JsonResponse({"ok": False, "error": "No school"}, status=403)
-    try:
-        from apps.sync_engine.sync_status import serialize_live_status
-
-        payload = serialize_live_status(school)
-    except Exception:  # noqa: BLE001 — poll must degrade, never 500 the page JS
-        return JsonResponse({"ok": False, "error": "status_unavailable"}, status=503)
-    payload["ok"] = True
-    return JsonResponse(payload)
-
-
-@login_required
-@permission_required("settings.manage")
 @require_http_methods(["POST"])
 def sync_center_bulk_resolve(request):
     """Resolve many PENDING conflicts for request.school only."""
@@ -565,6 +551,12 @@ def _sync_now_reply(request, school, *, queued=False, message="", result=None):
         }
     if message:
         payload["flash"] = str(message)
+    # Without this the view returns None and Django raises
+    # "didn't return an HttpResponse object" - a 500 on EVERY XHR "Sync now" click, which
+    # is the only path the button actually uses (the form holds the tab open to watch
+    # live progress). The non-XHR branch above returns a redirect, so the bug was
+    # invisible to anything that submitted the form normally.
+    return JsonResponse(payload)
 
 
 @login_required
@@ -602,7 +594,20 @@ def sync_center_status(request):
         return JsonResponse({"ok": False, "reason": "no school in context"}, status=409)
 
     now = timezone.now()
-    payload = {
+
+    # Seed from the PHASE composer so this one endpoint also answers the global progress
+    # bar (static/js/rmc-edge-sync-chrome.js reads phase / percent_complete / headline).
+    # The evidence keys below deliberately overwrite where the two overlap - `recent_runs`
+    # especially, whose richer shape the live panel's JS depends on.
+    payload: dict = {}
+    try:
+        from apps.sync_engine.sync_status import serialize_live_status
+
+        payload.update(serialize_live_status(school) or {})
+    except Exception:  # noqa: BLE001 - a poll must degrade, never 500 the page JS
+        _logger.debug("serialize_live_status failed for the status poll", exc_info=True)
+
+    payload.update({
         "ok": True,
         "generated_at": now.isoformat(),
         "edge_sync_enabled": bool(getattr(settings, "RMC_EDGE_SYNC_ENABLED", False)),
@@ -613,7 +618,7 @@ def sync_center_status(request):
         "recent_records": [],
         "totals": {},
         "pending_conflicts": None,
-    }
+    })
 
     try:
         from apps.sync_engine import cadence as _cadence
