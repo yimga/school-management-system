@@ -48,23 +48,24 @@
       <p>{{ listing.short_description|default:app.description|linebreaksbr }}</p>
       {% if is_installed_here %}
         <button class="btn btn-outline-secondary" disabled>{% trans "Already installed at this school" %}</button>
+      {% elif install_url %}
+        {# This page is served from the base domain, which cannot install anything: #}
+        {# the install surface lives on the reader's own school host. Send them there #}
+        {# rather than posting to a path that does not exist here. #}
+        <a class="btn btn-primary" href="{{ install_url }}">
+          {% blocktrans with school=install_school.name %}Install at {{ school }}{% endblocktrans %}
+        </a>
+        {% if latest_version %}
+          <span class="ms-2 small text-muted">
+            {% blocktrans with version=latest_version.version %}Latest version {{ version }}{% endblocktrans %}
+          </span>
+        {% endif %}
       {% elif user.is_authenticated %}
-        <form method="post" action="/marketplace/settings/install-impact-preview/" class="d-inline">
-          {% csrf_token %}
-          <input type="hidden" name="app_id" value="{{ app.id }}">
-          {% if versions %}
-          <label class="me-2 small">{% trans "Version:" %}
-            <select name="target_version" class="form-select form-select-sm d-inline-block w-auto">
-              {% for v in versions %}
-                <option value="{{ v.version }}" {% if forloop.first %}selected{% endif %}>
-                  {{ v.version }}{% if v.channel != 'stable' %} ({{ v.get_channel_display }}){% endif %}
-                </option>
-              {% endfor %}
-            </select>
-          </label>
-          {% endif %}
-          <button class="btn btn-primary" type="submit">{% trans "Install" %}</button>
-        </form>
+        {# Signed in, but no school resolves for this reader — degrade to text. A #}
+        {# button here would be the dead end this whole surface class is about. #}
+        <p class="small text-muted mb-0">
+          {% trans "Open your school workspace to install this app." %}
+        </p>
       {% else %}
         <a href="/accounts/login/?next={{ request.path }}" class="btn btn-primary">{% trans "Sign in to install" %}</a>
       {% endif %}

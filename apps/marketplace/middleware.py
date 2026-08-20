@@ -16,8 +16,8 @@ from django.utils import timezone
 from django.utils.deprecation import MiddlewareMixin
 
 from apps.apicenter.models import APIKey, OAuthTokenPair, _hash_secret
-from apps.marketplace.models import AppInstallation
 from apps.marketplace.permissions_runtime import (
+    active_installation_for,
     effective_scopes_for_api_key,
     effective_scopes_for_oauth_pair,
 )
@@ -60,11 +60,9 @@ class AppApiContextMiddleware(MiddlewareMixin):
                 or not application.is_active
             ):
                 return None
-            inst = AppInstallation.objects.filter(
-                school=school,
-                app_id=application.marketplace_app_id,
-                status=AppInstallation.Status.ACTIVE,
-            ).first()
+            inst = active_installation_for(
+                school, application.marketplace_app_id
+            )
             if inst is None:
                 return None
             request.oauth_access_pair = pair

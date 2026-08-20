@@ -3098,6 +3098,28 @@ body:has([data-rmc-flow-launchpad]) .rmc-page__header::after {
   color: var(--status-danger-fg, var(--text-danger, #b91c1c));
 }
 
+/* A card or list row that is asking for a human -- a wedged import in the
+   migration inbox, today. Same --status-danger-* tokens as .rmc-badge--danger
+   above so the card, the row and the badge inside it cannot drift apart, and
+   so the whole set flips with the theme instead of pinning one literal. */
+.rmc-card--danger {
+  background: var(--status-danger-bg, color-mix(in srgb, var(--status-danger, var(--text-danger, #ef4444)) 8%, transparent));
+  border-color: var(--status-danger, var(--text-danger, #ef4444));
+}
+
+.rmc-list-item--danger {
+  background: var(--status-danger-bg, color-mix(in srgb, var(--status-danger, var(--text-danger, #ef4444)) 8%, transparent));
+  /* An inset edge rather than a full border: the row sits in a
+     .list-group-flush, where a real border would fight its siblings. */
+  box-shadow: inset 3px 0 0 0 var(--status-danger, var(--text-danger, #ef4444));
+}
+
+/* Progress track inside the edge-sync status bar. Geometry lives here rather
+   than inline on the element so the class is defined, not just referenced. */
+.rmc-edge-sync-bar__track {
+  height: 0.5rem;
+  min-width: 6rem;
+}
 .rmc-list {
   list-style: none;
   margin: 0;

@@ -863,8 +863,11 @@ EDGE_ONBOARDING_STEPS: "tuple[EdgeOnboardingStep, ...]" = (
         title="Give the box a stable LAN hostname (DNS)",
         purpose=(
             "Map a stable name — {slug}.school.lan — to the box's FIXED LAN IP so "
-            "clients reach it by name. The box serves plain HTTP, so the working URL "
-            "is http://{slug}.school.lan:<web-port>/ — NOT https://."
+            "clients reach it by name: the address can move, browsers can't cleanly "
+            "TLS a bare IP, and the app (django-tenants) routes each tenant by "
+            "hostname. The box serves plain HTTP on its LAN port, so the working URL "
+            "is http://{slug}.school.lan:<web-port>/ — NOT https:// (the box has no "
+            "TLS; an https:// URL is the 'no lock' failure)."
         ),
         category="network",
         command_template=(

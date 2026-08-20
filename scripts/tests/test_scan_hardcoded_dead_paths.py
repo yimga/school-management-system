@@ -107,6 +107,74 @@ class TheDetectorStaysSilentTests(unittest.TestCase):
             gate.REPO_ROOT = original
 
 
+def _template_paths(source: str, tmp, name: str = "page.html"):
+    """Run the template extractor over one synthetic template."""
+    root = tmp / "templates"
+    root.mkdir(parents=True, exist_ok=True)
+    (root / name).write_text(source, encoding="utf-8")
+    original = gate.REPO_ROOT
+    gate.REPO_ROOT = tmp
+    try:
+        return [target for _rel, _line, target in gate._template_candidates()]
+    finally:
+        gate.REPO_ROOT = original
+
+
+class TemplateLiteralsAreCoveredTests(unittest.TestCase):
+    """{% url %} gates never see a path written as a plain string."""
+
+    def setUp(self):
+        self._tmp = Path(__file__).parent / "_tmp_dead_paths_tpl"
+
+    def tearDown(self):
+        import shutil
+
+        shutil.rmtree(self._tmp, ignore_errors=True)
+
+    def test_an_href_is_a_candidate(self):
+        found = _template_paths('<a href="/nowhere/">x</a>\n', self._tmp)
+        self.assertIn("/nowhere/", found)
+
+    def test_a_form_action_is_a_candidate(self):
+        """The real bug: a POST target that existed on no host."""
+        found = _template_paths('<form action="/nowhere/" method="post">\n', self._tmp)
+        self.assertIn("/nowhere/", found)
+
+    def test_a_django_variable_is_not_a_literal(self):
+        found = _template_paths('<a href="/x/{{ obj.pk }}/">x</a>\n', self._tmp)
+        self.assertEqual(found, [])
+
+    def test_a_static_asset_is_skipped(self):
+        found = _template_paths('<a href="/static/x.css">x</a>\n', self._tmp)
+        self.assertEqual(found, [])
+
+    def test_the_marker_excuses_the_line_above(self):
+        source = ("<!-- dead-path-allow: external -->\n"
+                  '<a href="/nowhere/">x</a>\n')
+        self.assertEqual(_template_paths(source, self._tmp), [])
+
+    def test_the_live_tree_still_yields_template_candidates(self):
+        found = [t for _r, _l, t in gate._template_candidates()]
+        self.assertGreater(
+            len(found), 5, "the template arm stopped finding anything"
+        )
+
+
+class TheCatchAllHostStaysOutTests(unittest.TestCase):
+    """config.docs_urls ends in <path:_unused> and matches ANY path.
+
+    Adding it to HOST_URLCONFS would make every literal resolve, so the gate
+    would report zero forever while detecting nothing. A green gate and a dead
+    gate look identical from the outside; this test is the difference.
+    """
+
+    def test_docs_urls_is_not_a_host_we_resolve_against(self):
+        self.assertNotIn("config.docs_urls", gate.HOST_URLCONFS)
+
+    def test_api_urls_is_not_a_host_we_resolve_against(self):
+        self.assertNotIn("config.api_urls", gate.HOST_URLCONFS)
+
+
 class TheLiveTreeIsCleanTests(unittest.TestCase):
     """Calibration: proves 0 means clean, not that the scanner found nothing."""
 

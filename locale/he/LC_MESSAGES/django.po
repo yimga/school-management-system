@@ -63470,3 +63470,947 @@ msgstr ""
 
 msgid "— Not set —"
 msgstr ""
+
+msgid ""
+". The box keeps checking cheaply and syncs the moment the link returns."
+msgstr ""
+
+msgid "Academic year name"
+msgstr ""
+
+msgid "Academic year not found for this school."
+msgstr ""
+
+msgid "Academic years lifecycle"
+msgstr ""
+
+msgid "Activate parents and teachers"
+msgstr ""
+
+msgid "Advanced/Admin: hard-close unlock &amp; rows"
+msgstr ""
+
+msgid "An academic year named %(name)s already exists."
+msgstr ""
+
+msgid "Approve selected"
+msgstr ""
+
+msgid "Ask for clarification"
+msgstr ""
+
+msgid "Backing off"
+msgstr ""
+
+msgid "Box calls out"
+msgstr ""
+
+msgid "Cadence"
+msgstr ""
+
+msgid "Can email"
+msgstr ""
+
+msgid "Choose an activation action."
+msgstr ""
+
+msgid ""
+"Clone needs a new target year first — create the year, then copy last year's"
+" classrooms into it."
+msgstr ""
+
+msgid ""
+"Cloning copies structure from one academic year into another, so you need a "
+"second year first. {{ existing }} is the only year set up so far."
+msgstr ""
+
+msgid "Cloning unlocks once a second academic year exists."
+msgstr ""
+
+msgid "Close tier"
+msgstr ""
+
+msgid "Cloud side"
+msgstr ""
+
+msgid "Cloud updated"
+msgstr ""
+
+msgid "Cloud version"
+msgstr ""
+
+msgid "Cloud-authoritative"
+msgstr ""
+
+msgid ""
+"Cloud-governed: this column never travels upward, and is not applied even if"
+" you keep the local version."
+msgstr ""
+
+msgid ""
+"Connected and up to date. The box is idling on a relaxed schedule and will "
+"speed up the moment anything changes."
+msgstr ""
+
+msgid ""
+"Copy terms, classrooms, subject assignments, and promotion rules from one "
+"academic year into another. Existing rows in the target year are kept — "
+"cloning never overwrites them."
+msgstr ""
+
+msgid "Could not apply lifecycle action."
+msgstr ""
+
+msgid "Could not create the academic year: %(err)s"
+msgstr ""
+
+msgid ""
+"Could not read sync status just now. Syncing itself is unaffected — this "
+"panel will keep trying."
+msgstr ""
+
+msgid "Create classrooms in Year setup before entering marks."
+msgstr ""
+
+msgid "Create the year you want to copy into"
+msgstr ""
+
+msgid "Create year"
+msgstr ""
+
+msgid "Created %(name)s. Now pick the year to copy from and clone into it."
+msgstr ""
+
+msgid "Ctrl K opens command search"
+msgstr ""
+
+msgid "Cycles (24h)"
+msgstr ""
+
+msgid ""
+"Data is flowing, so the box is staying close behind — cycles run every few "
+"seconds while changes keep arriving."
+msgstr ""
+
+msgid "Date reading options previewed against your data"
+msgstr ""
+
+msgid "Deleted (24h)"
+msgstr ""
+
+msgid "Deny selected"
+msgstr ""
+
+msgid "Detect automatically"
+msgstr ""
+
+msgid "Download parent passwords"
+msgstr ""
+
+msgid "Download teacher passwords"
+msgstr ""
+
+msgid "Email parent invites — passwords download if mail fails"
+msgstr ""
+
+msgid "Email teacher invites — passwords download if mail fails"
+msgstr ""
+
+msgid "Family name first (Lovelace Ada)"
+msgstr ""
+
+msgid ""
+"Follow the highlighted next step — later steps wait until the year is ready."
+msgstr ""
+
+msgid "Give the new academic year a name."
+msgstr ""
+
+msgid "Give the new academic year a start date and an end date."
+msgstr ""
+
+msgid "Given name first (Ada Lovelace)"
+msgstr ""
+
+msgid "Governance console"
+msgstr ""
+
+msgid "Hard closed"
+msgstr ""
+
+msgid "Hard closed — unlock in Admin"
+msgstr ""
+
+msgid "How should these dates be read?"
+msgstr ""
+
+msgid ""
+"Imported people are in the directory with no password yet. We email a set-"
+"password link when mail can be delivered. If mail fails or there is no "
+"mailbox, this page downloads one-time passwords instead — nobody is left "
+"waiting on SMTP. On first sign-in they set a new password and complete their"
+" profile."
+msgstr ""
+
+msgid "Install at {{ school }}"
+msgstr ""
+
+msgid "Keep cloud version"
+msgstr ""
+
+msgid "Keep local (offline) version"
+msgstr ""
+
+msgid "Keeping up"
+msgstr ""
+
+msgid "Last sync"
+msgstr ""
+
+msgid "Latest version {{ version }}"
+msgstr ""
+
+msgid "Leave blank to reuse last year's dates, shifted by a year."
+msgstr ""
+
+msgid "Link unknown"
+msgstr ""
+
+msgid "Live sync activity"
+msgstr ""
+
+msgid "Local (offline) version"
+msgstr ""
+
+msgid "Local/offline updated"
+msgstr ""
+
+msgid "Manage academic years"
+msgstr ""
+
+msgid "Migration guide:"
+msgstr ""
+
+msgid "Need more control?"
+msgstr ""
+
+msgid "Next attempt"
+msgstr ""
+
+msgid "No comparable fields were recorded."
+msgstr ""
+
+msgid ""
+"No connection to the cloud. Work continues locally and is queued. Last "
+"reached: "
+msgstr ""
+
+msgid ""
+"No records have been applied by sync yet. Once a cycle carries data, each "
+"row appears here with the direction it travelled."
+msgstr ""
+
+msgid "Not applied"
+msgstr ""
+
+msgid "Not applied (24h)"
+msgstr ""
+
+msgid "Nothing here for your role — this step is handled by other staff."
+msgstr ""
+
+msgid "Open Guardians"
+msgstr ""
+
+msgid "Open Help if navigation did not load."
+msgstr ""
+
+msgid "Open Staff Identity"
+msgstr ""
+
+msgid "Open at-risk dashboard"
+msgstr ""
+
+msgid "Open your school workspace to install this app."
+msgstr ""
+
+msgid "Parent invites sent to every deliverable mailbox."
+msgstr ""
+
+msgid ""
+"Parent invites: emailed where mail worked. This download has one-time "
+"passwords for everyone mail could not reach."
+msgstr ""
+
+msgid "Pinned schedule"
+msgstr ""
+
+msgid "Please select both source and target year."
+msgstr ""
+
+msgid "Pulled down (24h)"
+msgstr ""
+
+msgid "Pushed up (24h)"
+msgstr ""
+
+msgid "Reason (optional, applies to all selected)"
+msgstr ""
+
+msgid "Reason (recorded with your name)"
+msgstr ""
+
+msgid ""
+"Recent attempts failed, so retries are spacing out. A restored connection "
+"cancels the wait immediately."
+msgstr ""
+
+msgid "Recent sync cycles, newest first"
+msgstr ""
+
+msgid "Records applied by sync, newest first"
+msgstr ""
+
+msgid "Records that landed"
+msgstr ""
+
+msgid "Reopen soft"
+msgstr ""
+
+msgid "Reopened soft-close on %(name)s."
+msgstr ""
+
+msgid "Select request {{ ref }}"
+msgstr ""
+
+msgid "Set %(name)s as the active (default) year."
+msgstr ""
+
+msgid "Set active"
+msgstr ""
+
+msgid "Set the academic year first, then continue."
+msgstr ""
+
+msgid "Set up your staff account"
+msgstr ""
+
+msgid "Settle now"
+msgstr ""
+
+msgid ""
+"Setup links are valid for a limited time and can only be used once. Ask your"
+" school administrator for a new invite or a one-time password."
+msgstr ""
+
+msgid "Skip &amp; log"
+msgstr ""
+
+msgid ""
+"Soft Close blocks teacher grade entry while registrars can still correct. "
+"Hard Close seals the year. Active pins the tenant default year — locking "
+"does not make a year the default."
+msgstr ""
+
+msgid "Soft close"
+msgstr ""
+
+msgid "Soft closed"
+msgstr ""
+
+msgid "Soft-closed %(name)s — teachers cannot enter grades."
+msgstr ""
+
+msgid ""
+"Some dates in your file could be read two ways, and we cannot tell which "
+"from the value alone. Pick the reading that matches your records — the "
+"preview uses real dates from your own upload."
+msgstr ""
+
+msgid ""
+"Some records could not be applied on this box - most often a record that "
+"references a parent this box has not received yet. They are named in the "
+"cycle detail below and are retried automatically."
+msgstr ""
+
+msgid ""
+"Source and target year must be different. Create the year you want to copy "
+"into, then run the clone."
+msgstr ""
+
+msgid "Staff account"
+msgstr ""
+
+msgid "Start with the highlighted step"
+msgstr ""
+
+msgid "Status unavailable"
+msgstr ""
+
+msgid "Studio commands, scope and safety"
+msgstr ""
+
+msgid "Teacher invites sent to every deliverable mailbox."
+msgstr ""
+
+msgid ""
+"Teacher invites: emailed where mail worked. This download has one-time "
+"passwords for everyone mail could not reach."
+msgstr ""
+
+msgid ""
+"There are no academic years yet. Create the first one, then come back to "
+"clone its structure forward."
+msgstr ""
+
+msgid ""
+"This box is behind on database migrations, so records using newer fields "
+"cannot be applied. Run migrations on the box; sync resumes automatically. "
+"Pending: "
+msgstr ""
+
+msgid ""
+"This creates one-time passwords shown only in the downloaded file. Share it "
+"securely, then delete the file."
+msgstr ""
+
+msgid ""
+"This is the cloud side. The box calls out on its own schedule; queue a full "
+"resync and it collects it on the next connection."
+msgstr ""
+
+msgid "This upload is not bound to a school."
+msgstr ""
+
+msgid "Took"
+msgstr ""
+
+msgid "Two family names (Garcia Marquez Gabriel)"
+msgstr ""
+
+msgid "Unknown lifecycle action."
+msgstr ""
+
+msgid "Up"
+msgstr ""
+
+msgid ""
+"Updates on its own. Every record below actually landed — this is the "
+"receipt, not a summary."
+msgstr ""
+
+msgid "View health"
+msgstr ""
+
+msgid ""
+"Your school created a staff account for you. Choose a password to finish "
+"setting it up — after this you will complete your profile on first sign-in."
+msgstr ""
+
+msgid "ago"
+msgstr ""
+
+msgid "any moment"
+msgstr ""
+
+msgid "box → cloud"
+msgstr ""
+
+msgid "cloud → box"
+msgstr ""
+
+msgid "cloud-only"
+msgstr ""
+
+msgid "d"
+msgstr ""
+
+msgid "e.g. matches existing staff record"
+msgstr ""
+
+msgid "h"
+msgstr ""
+
+msgid "in "
+msgstr ""
+
+msgid "m"
+msgstr ""
+
+msgid "ms"
+msgstr ""
+
+msgid "s"
+msgstr ""
+
+msgid "%(count)s records are held for review and were not imported."
+msgstr ""
+
+msgid ""
+"1 import needs your attention{% plural %}{{ counter }} imports need your "
+"attention"
+msgstr ""
+
+msgid "1 record is held for review and was not imported."
+msgstr ""
+
+msgid ""
+"502 on push and pull usually means RMC_EDGE_OPERATOR_BASE points at the "
+"wrong host (must be your cloud tenant URL, not this LAN box). Fix "
+"deploy/selfhost/.env and restart the web container."
+msgstr ""
+
+msgid "A later successful run of the same process clears this alert."
+msgstr ""
+
+msgid "A later successful run of this workflow clears this alert."
+msgstr ""
+
+msgid "A workflow failed and is waiting for operator action."
+msgstr ""
+
+msgid "Academic year lock is owned by the cloud."
+msgstr ""
+
+msgid "Action Required"
+msgstr ""
+
+msgid ""
+"An import that stopped responding was interrupted, not rejected — Repair "
+"resumes it safely. Records that already imported are updated in place, never"
+" duplicated."
+msgstr ""
+
+msgid "Automation progress"
+msgstr ""
+
+msgid "Back to Super Dashboard"
+msgstr ""
+
+msgid "Box gate"
+msgstr ""
+
+msgid "Bring-up runbook"
+msgstr ""
+
+msgid "Bulk grades progress"
+msgstr ""
+
+msgid "Check"
+msgstr ""
+
+msgid "Checking sync status…"
+msgstr ""
+
+msgid "Clear pending approvals in the Approval Hub."
+msgstr ""
+
+msgid "Cloud connection"
+msgstr ""
+
+msgid "Cloud sync"
+msgstr ""
+
+msgid "Command (copy-pasteable)"
+msgstr ""
+
+msgid "Copy command"
+msgstr ""
+
+msgid ""
+"Correct the data on the files below, then Repair to re-attempt just those. "
+"Already-imported records are never duplicated."
+msgstr ""
+
+msgid "Credential"
+msgstr ""
+
+msgid ""
+"Delta sync is not a bulk loader — do not Sync now to seed students, staff, "
+"or finance."
+msgstr ""
+
+msgid "Deploy proof — Admin OS v20.0 on operator /admin/"
+msgstr ""
+
+msgid "Deploy proof — Admin OS v20.0 on tenant /admin/"
+msgstr ""
+
+msgid "Download as text (hand-off)"
+msgstr ""
+
+msgid "Edge Onboarding Runbook"
+msgstr ""
+
+msgid ""
+"Every import you've started, with its live status. Anything that needs you "
+"is listed first."
+msgstr ""
+
+msgid "FAIL"
+msgstr ""
+
+msgid "Failed (Stuck)"
+msgstr ""
+
+msgid "Failure simulation started."
+msgstr ""
+
+msgid "Fee invoice progress"
+msgstr ""
+
+msgid "Field presets"
+msgstr ""
+
+msgid "Fields on this form"
+msgstr ""
+
+msgid "Hard-closed years:"
+msgstr ""
+
+msgid "Health Index"
+msgstr ""
+
+msgid ""
+"Held records did not pass validation and were not imported. Correct the "
+"data, then Repair to re-attempt just those."
+msgstr ""
+
+msgid "Help:"
+msgstr ""
+
+msgid "If this step can't complete"
+msgstr ""
+
+msgid "Import #{{ id }}"
+msgstr ""
+
+msgid ""
+"Import complete — every record landed in your school. Nothing further is "
+"needed."
+msgstr ""
+
+msgid "In progress and recent"
+msgstr ""
+
+msgid ""
+"Inspect the failed step, apply the suggested fix, then resume from that "
+"point."
+msgstr ""
+
+msgid "Inspect the failed step, then retry this run from the workbench."
+msgstr ""
+
+msgid "Issue Remediator — %(code)s stuck"
+msgstr ""
+
+msgid "Issue Remediator — %(n)s open workflow issue(s)"
+msgstr ""
+
+msgid "Issue Remediator — Import failed"
+msgstr ""
+
+msgid "Issue Remediator — Import stopped responding"
+msgstr ""
+
+msgid "Issue Remediator — Pipeline stuck at %(step)s"
+msgstr ""
+
+msgid "Issue Remediator — Records held for review"
+msgstr ""
+
+msgid "Issue Remediator — automation action failed"
+msgstr ""
+
+msgid "Jobs"
+msgstr ""
+
+msgid ""
+"Last live EdgeSyncRun on this host (not box proof if you are on manager):"
+msgstr ""
+
+msgid "Last sync failed."
+msgstr ""
+
+msgid ""
+"Live counts from this import. Issues leave this card as soon as they are "
+"actually cleared."
+msgstr ""
+
+msgid "Live execution"
+msgstr ""
+
+msgid "Live logs"
+msgstr ""
+
+msgid "Live progress"
+msgstr ""
+
+msgid "Migration Cloud skip recorded."
+msgstr ""
+
+msgid "Migration inbox"
+msgstr ""
+
+msgid "Missing — mint RMC_EDGE_CREDENTIAL on the cloud."
+msgstr ""
+
+msgid "Name or slug"
+msgstr ""
+
+msgid "No archived successes yet."
+msgstr ""
+
+msgid ""
+"No imports in progress. Start one whenever you're ready — you can upload an "
+"export file with no connection needed."
+msgstr ""
+
+msgid "No runbook steps generated."
+msgstr ""
+
+msgid "No schools match"
+msgstr ""
+
+msgid "No verification results."
+msgstr ""
+
+msgid "Not configured — set RMC_EDGE_OPERATOR_BASE to your TENANT cloud host."
+msgstr ""
+
+msgid "Nothing needs attention. Completed work stays in the logs."
+msgstr ""
+
+msgid "Nothing needs attention. Successful runs are archived below."
+msgstr ""
+
+msgid "Open issues"
+msgstr ""
+
+msgid "Open related console"
+msgstr ""
+
+msgid "Open the Flight Deck remediator for the failed platform job."
+msgstr ""
+
+msgid "Open workflow issues"
+msgstr ""
+
+msgid "Operator base"
+msgstr ""
+
+msgid "Optional form fields"
+msgstr ""
+
+msgid "Orchestration progress"
+msgstr ""
+
+msgid ""
+"Ordered bring-up for an offline / sovereign box. This page previews the "
+"source tenant — it is not the box."
+msgstr ""
+
+msgid "Overall Progress"
+msgstr ""
+
+msgid "PASS"
+msgstr ""
+
+msgid ""
+"Pick a source tenant to generate its edge-box runbook. Delta sync will not "
+"load the initial roster."
+msgstr ""
+
+msgid "Pre-offline sync gate"
+msgstr ""
+
+msgid "Print / save as PDF"
+msgstr ""
+
+msgid ""
+"Prove live progress, failure isolation with a remediator, then automatic "
+"archive of a successful run."
+msgstr ""
+
+msgid "Reading upload"
+msgstr ""
+
+msgid "Ready to import"
+msgstr ""
+
+msgid "Recommended fields"
+msgstr ""
+
+msgid "Record skip"
+msgstr ""
+
+msgid "Required fields always stay visible."
+msgstr ""
+
+msgid "Resume from failure point"
+msgstr ""
+
+msgid "Retry failed automation actions — a later success hides the alert."
+msgstr ""
+
+msgid "Retry from failure point"
+msgstr ""
+
+msgid "Retry the failed actions from the automation builder."
+msgstr ""
+
+msgid ""
+"Retry the open orchestration process — completed retries clear this count."
+msgstr ""
+
+msgid "Review and repair"
+msgstr ""
+
+msgid "Review open issues"
+msgstr ""
+
+msgid ""
+"Run sync from this page — no command line needed. Dry-run checks cloud "
+"reachability without applying changes; Sync now runs the full push-then-pull"
+" cycle."
+msgstr ""
+
+msgid "Runbook"
+msgstr ""
+
+msgid "Runs on the box."
+msgstr ""
+
+msgid "SKIP"
+msgstr ""
+
+msgid "Scenario Simulation Flow Preset"
+msgstr ""
+
+msgid "School pin"
+msgstr ""
+
+msgid "See all imports"
+msgstr ""
+
+msgid "Showing your most recent imports only."
+msgstr ""
+
+msgid "Simulate Failure Path"
+msgstr ""
+
+msgid "Simulate Success Path"
+msgstr ""
+
+msgid "Skip Migration Cloud (reason, 12+ characters)"
+msgstr ""
+
+msgid "Skip reason was too short."
+msgstr ""
+
+msgid "Soft-closed years:"
+msgstr ""
+
+msgid "Source-tenant readiness"
+msgstr ""
+
+msgid "Start a new import"
+msgstr ""
+
+msgid "Step progress"
+msgstr ""
+
+msgid "Success Logs"
+msgstr ""
+
+msgid "Success simulation started."
+msgstr ""
+
+msgid "Sync in progress…"
+msgstr ""
+
+msgid "Sync queued — waiting to connect."
+msgstr ""
+
+msgid "Test cloud connection"
+msgstr ""
+
+msgid ""
+"The box cannot reopen a cloud lock. Finance stays cloud-authoritative / "
+"down-only."
+msgstr ""
+
+msgid ""
+"The last import failed part-way. Repair re-attempts the failed records only."
+msgstr ""
+
+msgid ""
+"This console shows source-tenant readiness only. The dry gate, live Class-A "
+"proof, and go-dark checklist must run on the edge box with:"
+msgstr ""
+
+msgid ""
+"This import was interrupted, not rejected. Use Repair to resume. Records "
+"that already imported are updated in place, never duplicated."
+msgstr ""
+
+msgid ""
+"This runs in the background and this page updates on its own — no need to "
+"open Workflow Flight Deck."
+msgstr ""
+
+msgid "Try a different name or slug."
+msgstr ""
+
+msgid "Workflow State"
+msgstr ""
+
+msgid "conflicts"
+msgstr ""
+
+msgid "country"
+msgstr ""
+
+msgid "id"
+msgstr ""
+
+msgid "of evaluated source-tenant checks"
+msgstr ""
+
+msgid "ordered step(s)"
+msgstr ""
+
+msgid "passing"
+msgstr ""
+
+msgid "process"
+msgstr ""
+
+msgid "slug"
+msgstr ""
+
+msgid "source tenant"
+msgstr ""
+
+msgid "{{ count }} approval{% plural %}{{ count }} approvals"
+msgstr ""
+
+msgid "{{ count }} automation{% plural %}{{ count }} automations"
+msgstr ""
+
+msgid "{{ count }} job{% plural %}{{ count }} jobs"
+msgstr ""
+
+msgid "{{ count }} process{% plural %}{{ count }} processes"
+msgstr ""
+
+msgid ""
+"{{ count }} record held for review{% plural %}{{ count }} records held for "
+"review"
+msgstr ""
+
+msgid "{{ counter }} held for review{% plural %}{{ counter }} held for review"
+msgstr ""
+
+msgid "{{ created }} added · {{ updated }} updated"
+msgstr ""

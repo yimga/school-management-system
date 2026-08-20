@@ -227,5 +227,76 @@ class DriftDetectorTests(unittest.TestCase):
             self.assertIn("non-numeric", drift[0][1])
 
 
+
+class UnregisteredGatesAreStillCheckedTests(unittest.TestCase):
+    """A gate missing from SCANNER_BASELINE_MAP used to be invisible.
+
+    `SCANNER_BASELINE_MAP.get(scanner)` returns None both for a filter script
+    that legitimately keeps no baseline AND for a real gate nobody registered.
+    Those look identical, so an unregistered gate documenting "0" was read as
+    zero-tolerance and skipped. That is how verify_cross_host_template_reverse
+    stayed documented as 0 while its baseline held 22 frozen findings, with 68
+    of the 96 baseline files on disk unmapped the same way.
+    """
+
+    def setUp(self):
+        self.mod = _load_module()
+        self.tmp = Path(__file__).parent / "_tmp_baselines"
+        self.tmp.mkdir(exist_ok=True)
+        self._original_dir = self.mod.BASELINE_DIR
+        self.mod.BASELINE_DIR = self.tmp
+
+    def tearDown(self):
+        self.mod.BASELINE_DIR = self._original_dir
+        import shutil
+
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def _row(self, scanner, documented):
+        return self.mod.BaselineRow(
+            scanner=scanner,
+            documented=documented,
+            json_baseline=None,
+            raw_baseline_text="(test)",
+        )
+
+    def _write(self, name, count):
+        (self.tmp / name).write_text(
+            json.dumps({"finding_count": count}), encoding="utf-8"
+        )
+
+    def test_an_unregistered_gate_whose_doc_is_wrong_is_drift(self):
+        self._write("security-audit-baseline-ghost-gate.json", 22)
+        with mock.patch.dict(self.mod.SCANNER_BASELINE_MAP, {}, clear=False):
+            drift = self.mod.find_drift([self._row("verify_ghost_gate.py", 0)])
+        self.assertEqual(len(drift), 1, "a lying doc row was skipped again")
+        self.assertIn("22", drift[0][1])
+
+    def test_an_unregistered_gate_whose_doc_agrees_is_not_a_finding(self):
+        """Housekeeping, not a defect — and reporting it would bury the real one."""
+        self._write("security-audit-baseline-ghost-gate.json", 0)
+        with mock.patch.dict(self.mod.SCANNER_BASELINE_MAP, {}, clear=False):
+            drift = self.mod.find_drift([self._row("verify_ghost_gate.py", 0)])
+        self.assertEqual(drift, [])
+
+    def test_a_genuine_filter_script_is_still_excused(self):
+        """No baseline file on disk: the original behaviour must survive."""
+        with mock.patch.dict(self.mod.SCANNER_BASELINE_MAP, {}, clear=False):
+            drift = self.mod.find_drift([self._row("check_nothing.py", 0)])
+        self.assertEqual(drift, [])
+
+    def test_the_filename_convention_derives_correctly(self):
+        for scanner, expected in (
+            ("scan_foo_bar.py", "security-audit-baseline-foo-bar.json"),
+            ("verify_foo_bar.py", "security-audit-baseline-foo-bar.json"),
+            ("audit_foo.py", "security-audit-baseline-foo.json"),
+        ):
+            with self.subTest(scanner=scanner):
+                self._write(expected, 0)
+                self.assertIsNotNone(
+                    self.mod._unmapped_baseline_file(scanner), scanner
+                )
+
+
 if __name__ == "__main__":
     unittest.main()

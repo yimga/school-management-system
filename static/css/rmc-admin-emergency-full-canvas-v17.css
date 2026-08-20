@@ -351,7 +351,9 @@ html[data-rmc-admin-html="unfold"] body,
   min-block-size: 2.35rem;
   padding-inline: 0.45rem;
 }
-.rmc-admin-field-picker__list label:hover { background: rgb(148 163 184 / 0.08); }
+/* Tinted from the admin foreground token, like the checked state above, so the
+   hover follows the theme instead of pinning one slate literal in both. */
+.rmc-admin-field-picker__list label:hover { background: color-mix(in srgb, var(--body-fg, #e5e7eb) 8%, transparent); }
 .rmc-admin-field-picker__list em { color: var(--primary, #22c55e); font-size: 0.68rem; font-style: normal; }
 .rmc-admin-field-picker__status[data-state="pending"] { color: var(--warning-fg, #fbbf24); }
 [data-rmc-field-preference-hidden] { display: none !important; }

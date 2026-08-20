@@ -47,6 +47,29 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 TEMPLATES = ROOT / "templates"
 
 
+_COMMENT_BLOCK = re.compile(
+    r"\{%-?\s*comment\b.*?-?%\}.*?\{%-?\s*endcomment\s*-?%\}",
+    re.DOTALL | re.IGNORECASE,
+)
+_COMMENT_INLINE = re.compile(r"\{#.*?#\}", re.DOTALL)
+
+
+def _mask_comments(text: str) -> str:
+    """Blank out Django template comments, preserving line structure.
+
+    ``{% comment %}`` blocks and ``{# ... #}`` are documentation, never a render
+    path, so a ``|default:bare_var`` inside one cannot raise
+    VariableDoesNotExist. Non-newline characters become spaces so that reported
+    line numbers still match the file on disk.
+    """
+
+    def _blank(match: re.Match[str]) -> str:
+        return re.sub(r"[^\n]", " ", match.group(0))
+
+    text = _COMMENT_BLOCK.sub(_blank, text)
+    return _COMMENT_INLINE.sub(_blank, text)
+
+
 def main() -> int:
     offenders: list[str] = []
     for path in sorted(TEMPLATES.rglob("*.html")):
@@ -54,8 +77,12 @@ def main() -> int:
             text = path.read_text(encoding="utf-8", errors="ignore")
         except OSError:
             continue
-        for lineno, line in enumerate(text.splitlines(), 1):
-            if ALLOW in line:
+        # Marker check reads the RAW line: `default-fallback-allow:` markers live
+        # in `{# ... #}` comments, which masking blanks. Pattern check reads the
+        # MASKED line so documentation inside {% comment %} is not a finding.
+        masked = _mask_comments(text).splitlines()
+        for lineno, (raw_line, line) in enumerate(zip(text.splitlines(), masked), 1):
+            if ALLOW in raw_line:
                 continue
             m = PATTERN.search(line)
             if m:
