@@ -125,8 +125,12 @@ one click in the cloud, and there is **nothing to type into a `.env` file**.
 **On the box** (shell, or open `http://<box-host>:10000/edge/pair-this-box/` in a browser):
 
 ```bash
-python manage.py pair_box --wait
+python manage.py pair_box --slug gilead-tech --wait
 ```
+
+`--slug` is optional — the box resolves its school from its binding or
+`RMC_EDGE_SCHOOL_SLUG` — but naming it lets a technician pair a box whose
+environment names neither, and the cloud address is derived from it.
 
 It prints a short code and holds:
 

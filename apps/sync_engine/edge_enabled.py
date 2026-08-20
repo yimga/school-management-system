@@ -87,6 +87,14 @@ def edge_sync_enabled() -> bool:
     if not is_sovereign_box():
         return False
 
+    # Inert under the test runner, for the same reason the binding memo is: a
+    # process-global answer with a 15s TTL outlives an individual test, so one test
+    # that runs with no binding decides the answer for the next test that writes one.
+    # That produced a failure visible ONLY in the full-suite run and not in isolation
+    # — the worst kind to chase — so the cache is simply not in play under tests.
+    if getattr(settings, "RUNNING_TESTS", False):
+        return _paired_uncached()
+
     global _memo_value, _memo_stamped_at
     now = time.monotonic()
     with _memo_lock:

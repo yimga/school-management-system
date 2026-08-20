@@ -309,9 +309,20 @@ def may_adopt_for(user, school) -> bool:
     forget, so a school-blind check would let an admin of any tenant adopt a box into a
     tenant they have no standing in, given only the displayed code.
 
-    So standing is re-checked against the target here, through the two school-scoped
-    routes: a live membership in that school, or an explicitly school-scoped feature
-    permission. Platform staff pass by design and are recorded in ``approved_by``.
+    So standing is re-checked against the target here, and the check that does it is
+    a LIVE, non-suspended membership in that school. Platform staff pass by design and
+    are recorded in ``approved_by``.
+
+    A ``has_feature_permission("settings.manage", school=target)`` fallback was tried
+    and REMOVED, because it does not mean what its signature suggests: it grants
+    through a globally-scoped ``AccessRole`` (``school__isnull=True``) and through the
+    direct ``feature_permissions`` M2M, neither of which is scoped to a school at all.
+    Measured, it returned True for a user whose only membership was in a DIFFERENT
+    school — so as an ``or`` it re-opened the exact hole this function exists to close.
+
+    Requiring the membership is fail-closed. Every tenant admin the platform mints has
+    one (``apps/schools/tasks.py`` creates it alongside the role), and an administrator
+    who somehow has none can still be served by the platform-staff backstop.
     """
     if school is None:
         return False
@@ -328,17 +339,12 @@ def may_adopt_for(user, school) -> bool:
         from apps.schools.models import SchoolMembership
 
         # tenant-isolation-allow: pairing-standing-check-is-explicitly-school-scoped
-        if SchoolMembership.objects.filter(
+        return SchoolMembership.objects.filter(
             school=school,
             user_id=getattr(user, "pk", None),
             suspended_at__isnull=True,
-        ).exists():
-            return True
+        ).exists()
     except (AttributeError, ImportError, TypeError, ValueError):
-        return False
-    try:
-        return bool(user.has_feature_permission("settings.manage", school=school))
-    except (AttributeError, TypeError, ValueError):
         return False
 
 

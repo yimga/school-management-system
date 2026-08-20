@@ -37,6 +37,16 @@ class Command(BaseCommand):
         parser.add_argument("--yes", action="store_true", help="Confirm --unpair without prompting.")
         parser.add_argument("--base", default="", help="Override the cloud base URL for this attempt.")
         parser.add_argument(
+            "--slug",
+            default="",
+            help=(
+                "The school this box serves. Optional — the box resolves it from its "
+                "binding or RMC_EDGE_SCHOOL_SLUG — but naming it here lets a technician "
+                "pair a box whose environment names neither, and makes a copy-pasted "
+                "runbook command unambiguous about WHICH school it adopts."
+            ),
+        )
+        parser.add_argument(
             "--claim",
             default="",
             help=(
@@ -78,7 +88,11 @@ class Command(BaseCommand):
             )
             return
 
-        result = pairing_client.start(base=options["base"], claim_ticket=options["claim"])
+        result = pairing_client.start(
+            base=options["base"],
+            claim_ticket=options["claim"],
+            school_slug=options["slug"],
+        )
         if not result.get("ok"):
             raise CommandError(result.get("message") or result.get("error") or "pairing failed")
 

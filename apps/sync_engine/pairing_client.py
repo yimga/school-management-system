@@ -106,29 +106,32 @@ def _post(url: str, payload: dict) -> tuple[int, dict]:
         return 0, {"error": "unreachable", "detail": str(exc)}
 
 
-def _box_identity() -> dict:
+def _box_identity(*, school_slug_override: str = "") -> dict:
     from apps.sync_engine.edge_binding import school_slug
 
+    slug = (school_slug_override or "").strip().lower() or school_slug()
     return {
-        "school_slug": school_slug(),
+        "school_slug": slug,
         "device_id": (os.getenv("RMC_EDGE_DEVICE_ID") or "").strip()
-        or f"edge-{school_slug() or socket.gethostname()}",
+        or f"edge-{slug or socket.gethostname()}",
         "box_label": (os.getenv("RMC_EDGE_BOX_LABEL") or "").strip(),
         "hostname": socket.gethostname(),
         "version": (getattr(settings, "RMC_RELEASE_VERSION", "") or "").strip(),
     }
 
 
-def start(*, base: str = "", claim_ticket: str = "") -> dict:
+def start(*, base: str = "", claim_ticket: str = "", school_slug: str = "") -> dict:
     """Open a pairing request against the cloud and remember it.
 
     Returns a dict with ``user_code`` for the screen, or ``error`` describing why the
     cloud could not be reached — which is a diagnosis, not a failure to be retried
     silently.
     """
-    from apps.sync_engine.edge_binding import operator_base
+    from apps.sync_engine.edge_binding import derive_operator_base, operator_base
 
-    base = (base or operator_base() or "").rstrip("/")
+    # An explicit slug also gives us an address to derive, so a technician can pair a
+    # box whose environment names neither — which is the whole point of passing it.
+    base = (base or operator_base() or derive_operator_base(school_slug) or "").rstrip("/")
     if not base:
         return {
             "ok": False,
@@ -139,7 +142,7 @@ def start(*, base: str = "", claim_ticket: str = "") -> dict:
             ),
         }
     url = cloud_endpoint(base, "api:sync-pair-start")
-    identity = _box_identity()
+    identity = _box_identity(school_slug_override=school_slug)
     if claim_ticket:
         identity["claim_ticket"] = claim_ticket
     status, body = _post(url, identity)
@@ -151,6 +154,7 @@ def start(*, base: str = "", claim_ticket: str = "") -> dict:
             "endpoint": url,
         }
     state = {
+        "school_slug": identity["school_slug"],
         "request_id": body.get("request_id"),
         "poll_secret": body.get("poll_secret"),
         "user_code": body.get("user_code"),

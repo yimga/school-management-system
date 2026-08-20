@@ -931,7 +931,7 @@ EDGE_ONBOARDING_STEPS: "tuple[EdgeOnboardingStep, ...]" = (
             "does not load the initial roster."
         ),
         category="sync",
-        command_template="python manage.py pair_box --wait",
+        command_template="python manage.py pair_box --slug {slug} --wait",
         validate=_validate_enable_configure_sync,
         workaround=(
             "Nobody available to approve? Mint a claim ticket on the cloud "
