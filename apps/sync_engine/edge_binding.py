@@ -28,22 +28,78 @@ from __future__ import annotations
 
 import logging
 import os
+import threading
+import time
 
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
 
-def _binding():
-    """The single binding row, or None. Never raises."""
+# The binding is read several times to answer one question — ``binding_summary`` alone
+# reaches ``operator_base`` / ``edge_credential`` / ``school_slug`` / ``is_sealed``, each
+# of which used to issue its OWN query — and it is read on the scheduler tick, which
+# runs every few seconds on a box. It is a single row that changes when a human pairs
+# or unpairs, so a short memo costs nothing in freshness. Both WRITE paths bypass it
+# (see ``_binding(fresh=True)``): re-saving a cached model instance is how a stale
+# in-memory copy clobbers a column somebody else just wrote.
+_BINDING_MEMO_TTL_SECONDS = 10
+_binding_lock = threading.Lock()
+_binding_memo = None  # the row, or None
+_binding_memo_stamped_at = 0.0
+_binding_memo_valid = False
+
+
+def _binding(*, fresh: bool = False):
+    """The single binding row, or None. Never raises.
+
+    ``fresh=True`` skips the memo and refreshes it — used by every path that is about
+    to WRITE, so a save never operates on a cached instance.
+    """
+    global _binding_memo, _binding_memo_stamped_at, _binding_memo_valid
+
+    # Inert under the test runner. A process-global memo that survives between tests
+    # would make a test that writes a binding directly (rather than through
+    # save_binding) read whatever the PREVIOUS test left behind — an order-dependent
+    # failure that costs far more to diagnose than the queries it saves.
+    if getattr(settings, "RUNNING_TESTS", False):
+        fresh = True
+
+    now = time.monotonic()
+    if not fresh:
+        with _binding_lock:
+            if (
+                _binding_memo_valid
+                and (now - _binding_memo_stamped_at) < _BINDING_MEMO_TTL_SECONDS
+            ):
+                return _binding_memo
+
     try:
         from apps.sync_engine.models_pairing import EdgeCloudBinding
 
         # tenant-isolation-allow: single-row-box-local-binding-there-is-exactly-one-cloud-per-box
-        return EdgeCloudBinding.objects.order_by("-updated_at").first()
+        row = EdgeCloudBinding.objects.order_by("-updated_at").first()
     except Exception:  # noqa: BLE001 — no table yet, no DB, or app not ready
         logger.debug("edge_binding: binding lookup unavailable", exc_info=True)
+        # Deliberately NOT memoised: a box mid-migration would otherwise answer
+        # "unpaired" for the whole TTL after its table appeared.
         return None
+
+    if not getattr(settings, "RUNNING_TESTS", False):
+        with _binding_lock:
+            _binding_memo = row
+            _binding_memo_stamped_at = now
+            _binding_memo_valid = True
+    return row
+
+
+def _forget_binding_memo() -> None:
+    global _binding_memo, _binding_memo_stamped_at, _binding_memo_valid
+
+    with _binding_lock:
+        _binding_memo = None
+        _binding_memo_stamped_at = 0.0
+        _binding_memo_valid = False
 
 
 def _env_base() -> str:
@@ -117,7 +173,8 @@ def is_sealed() -> bool:
 
 
 def _invalidate_enabled_memo() -> None:
-    """Tell :mod:`edge_enabled` its cached answer is stale. Never raises."""
+    """Forget both memos after a pair/unpair. Never raises."""
+    _forget_binding_memo()
     try:
         from apps.sync_engine.edge_enabled import invalidate
 
@@ -141,7 +198,7 @@ def save_binding(
 
     from apps.sync_engine.models_pairing import EdgeCloudBinding
 
-    row = _binding()
+    row = _binding(fresh=True)
     if row is None:
         row = EdgeCloudBinding()
     row.operator_base = (operator_base or "").strip().rstrip("/")
@@ -171,7 +228,7 @@ def clear_binding() -> bool:
     also has env vars set gets the env behaviour back, which is the documented
     fallback rather than a surprise.
     """
-    row = _binding()
+    row = _binding(fresh=True)
     if row is None:
         return False
     row.delete()

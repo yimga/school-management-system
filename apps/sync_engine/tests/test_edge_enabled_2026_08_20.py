@@ -116,6 +116,43 @@ class EdgeEnabledResolutionTests(TestCase):
             self.assertFalse(edge_enabled.edge_sync_enabled())
 
 
+class SchoolResolutionHonoursThePairingTests(TestCase):
+    """Which school does this box serve? The pairing already answered that."""
+
+    def setUp(self):
+        edge_enabled.invalidate()
+        self.addCleanup(edge_enabled.invalidate)
+        from apps.schools.models import School
+
+        self.gilead = School.objects.create(
+            name="Gilead Tech", slug="gilead-tech", subdomain="gilead-tech"
+        )
+        self.other = School.objects.create(
+            name="Other", slug="other-school", subdomain="other-school"
+        )
+
+    def test_the_paired_slug_wins_over_guessing(self):
+        """With TWO local schools the old env-only path resolved None and no-opped."""
+        from apps.sync_engine.edge_scheduler import resolve_edge_school
+        from apps.sync_engine.models_pairing import EdgeCloudBinding
+
+        self.assertIsNone(resolve_edge_school(), "fixture must start ambiguous")
+        EdgeCloudBinding.objects.create(
+            operator_base="https://gilead-tech.runmycampus.com",
+            credential="tok",
+            school_slug="gilead-tech",
+        )
+        self.assertEqual(resolve_edge_school(), self.gilead)
+
+    def test_the_environment_still_answers_for_an_unpaired_box(self):
+        from unittest import mock
+
+        from apps.sync_engine.edge_scheduler import resolve_edge_school
+
+        with mock.patch.dict("os.environ", {"RMC_EDGE_SCHOOL_SLUG": "other-school"}):
+            self.assertEqual(resolve_edge_school(), self.other)
+
+
 class LateJobRegistrationTests(TestCase):
     """A box adopted at RUNTIME must not wait for a container restart to sync.
 
@@ -153,9 +190,54 @@ class LateJobRegistrationTests(TestCase):
     def test_the_late_hook_is_idempotent_and_cheap_when_present(self):
         from apps.platform_runtime import periodic
 
+        # The hook mutates the PROCESS-GLOBAL registry, so restore it — a test that
+        # leaves the edge job registered would change what unrelated scheduler tests
+        # see, and that kind of order-dependent failure is miserable to trace back.
+        had = periodic.EDGE_SYNC_JOB_NAME in periodic._REGISTRY
+        self.addCleanup(
+            lambda: None
+            if had
+            else periodic._REGISTRY.pop(periodic.EDGE_SYNC_JOB_NAME, None)
+        )
         with self.settings(RMC_EDGE_SYNC_ENABLED=True):
             self.assertTrue(periodic.ensure_edge_sync_job_registered())
             self.assertTrue(periodic.ensure_edge_sync_job_registered())
+
+    @override_settings(RMC_EDGE_SYNC_ENABLED=False, USE_DJANGO_TENANTS=False)
+    def test_startup_registration_does_not_touch_the_database(self):
+        """ensure_default_jobs runs inside AppConfig.ready(); a query there is exactly
+        what Django's APPS_NOT_READY warning is about, and on some deployments opens a
+        connection per worker before the app is ready. The paired-box half of the
+        answer is picked up moments later on the scan thread instead.
+        """
+        from unittest import mock
+
+        from apps.platform_runtime import periodic
+
+        registry = {}
+        with mock.patch(
+            "apps.sync_engine.edge_binding._binding",
+            side_effect=AssertionError("app-init must not query the database"),
+        ):
+            periodic._maybe_register_edge_sync_job(registry, allow_db=False)
+        self.assertEqual(registry, {})
+
+    @override_settings(RMC_EDGE_SYNC_ENABLED=True)
+    def test_startup_still_registers_on_the_plain_env_flag(self):
+        from apps.platform_runtime import periodic
+
+        registry = {}
+        periodic._maybe_register_edge_sync_job(registry, allow_db=False)
+        self.assertIn(periodic.EDGE_SYNC_JOB_NAME, registry)
+
+    def test_the_startup_path_passes_allow_db_false(self):
+        """Pinned at the source level — it is the only thing keeping ready() clean."""
+        import inspect
+
+        from apps.platform_runtime import periodic
+
+        source = inspect.getsource(periodic.ensure_default_jobs)
+        self.assertIn("_maybe_register_edge_sync_job(_REGISTRY, allow_db=False)", source)
 
     def test_the_scan_thread_calls_the_late_hook(self):
         """Pinned at the source level: this is the ONLY thing that closes the gap."""

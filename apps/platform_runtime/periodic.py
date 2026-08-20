@@ -620,20 +620,37 @@ def ensure_default_jobs() -> None:
         # stable again" (incl. after a power loss, since /health/ resumes being
         # pinged on reboot). The claim lock + last_run gate keep the boot reconcile,
         # the beat task, and the health tick from double-running.
-        _maybe_register_edge_sync_job(_REGISTRY)
+        # allow_db=False: this runs inside AppConfig.ready(), where touching the
+        # database is discouraged (and on some deployments actively harmful — a
+        # connection opened per worker before the app is ready). The env flag is a
+        # settings read and costs nothing; a PAIRED box is picked up moments later
+        # by ensure_edge_sync_job_registered() on the scan thread.
+        _maybe_register_edge_sync_job(_REGISTRY, allow_db=False)
         _DEFAULTS_INSTALLED = True
 
 
-def _maybe_register_edge_sync_job(registry: dict) -> None:
+def _maybe_register_edge_sync_job(registry: dict, *, allow_db: bool = True) -> None:
     """Register the edge auto-sync job into ``registry`` iff this is an edge box.
 
     Split out (and taking the registry as an argument) so it can be unit-tested
     against a fresh dict without mutating the process-global ``_REGISTRY`` or
     tripping the ``_DEFAULTS_INSTALLED`` cache.
-    """
-    from apps.sync_engine.edge_enabled import edge_sync_enabled
 
-    if not edge_sync_enabled():
+    ``allow_db=False`` answers using only the environment flag. Startup passes it
+    because this is reached from ``AppConfig.ready()``; the durable-binding half of
+    the answer needs a query, and a query at app-init time is exactly what Django
+    warns about. Nothing is lost — the scan thread calls
+    :func:`ensure_edge_sync_job_registered` seconds later with the full answer.
+    """
+    if allow_db:
+        from apps.sync_engine.edge_enabled import edge_sync_enabled
+
+        enabled = edge_sync_enabled()
+    else:
+        from apps.sync_engine.edge_enabled import env_flag_enabled
+
+        enabled = env_flag_enabled()
+    if not enabled:
         return
     # Registered at the fast TICK cadence, NOT the sync interval. The cadence decision
     # moved into ``run_edge_sync_now`` (apps.sync_engine.cadence) so a wake — the network

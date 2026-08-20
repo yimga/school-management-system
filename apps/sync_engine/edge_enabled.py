@@ -130,6 +130,15 @@ def invalidate() -> None:
         _memo_value = None
         _memo_stamped_at = 0.0
     try:
+        from apps.sync_engine.edge_binding import _forget_binding_memo
+
+        # One call, one meaning: "forget everything cached about this box's pairing".
+        # Leaving the binding memo behind would let this answer False from a row that
+        # no longer exists (or True from one that does not yet).
+        _forget_binding_memo()
+    except Exception:  # noqa: BLE001
+        logger.debug("edge_enabled: could not forget the binding memo", exc_info=True)
+    try:
         from django.core.cache import cache
 
         cache.delete(_CACHE_KEY)

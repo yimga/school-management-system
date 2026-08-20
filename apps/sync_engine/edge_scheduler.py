@@ -87,15 +87,24 @@ def resolve_edge_school():
     """The single school this edge box serves, or ``None``.
 
     Resolution order:
-      1. an explicit ``RMC_EDGE_SCHOOL_SLUG`` (wins if set), else
+      1. the slug this box is PAIRED to, else an explicit ``RMC_EDGE_SCHOOL_SLUG``
+         (both via ``edge_binding.school_slug``), else
       2. the sole active school (an edge box serves exactly one).
+
+    Step 1 goes through the binding rather than reading the environment directly.
+    Pairing already records which school the cloud adopted this box INTO, and that
+    is a better answer than an env var — it is the school the credential is scoped
+    to, so any other choice would push rows the cloud will reject. Reading the env
+    here also meant a paired box serving more than one local school still resolved
+    to ``None`` and silently no-opped, with nothing anywhere saying why.
 
     Ambiguous — no slug and 0 or >1 active schools — returns ``None`` so the caller
     no-ops instead of guessing which tenant to sync.
     """
     from apps.schools.models import School
+    from apps.sync_engine.edge_binding import school_slug
 
-    slug = (os.getenv("RMC_EDGE_SCHOOL_SLUG", "") or "").strip().lower()
+    slug = (school_slug() or "").strip().lower()
     if slug:
         return School.objects.filter(slug=slug).first()
     # Pull two so we can distinguish "exactly one" from "more than one" cheaply.

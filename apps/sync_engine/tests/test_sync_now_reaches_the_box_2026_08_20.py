@@ -106,18 +106,12 @@ class DirectiveWakesTheChangesFeedTests(TestCase):
         )
 
     def test_a_broken_directive_lookup_never_breaks_the_feed(self):
-        from apps.api import sync_changes_api
-
-        with mock.patch.object(
-            sync_changes_api,
-            "_database_has_changes",
-            wraps=sync_changes_api._database_has_changes,
+        """The directive check is a bonus on top of the feed; it may never break it."""
+        with mock.patch(
+            "apps.sync_engine.models.EdgeSyncDirective.objects.filter",
+            side_effect=RuntimeError("boom"),
         ):
-            with mock.patch(
-                "apps.sync_engine.models.EdgeSyncDirective.objects.filter",
-                side_effect=RuntimeError("boom"),
-            ):
-                self.assertFalse(self._has_changes())
+            self.assertFalse(self._has_changes())
 
 
 class ResyncRaisesAWakeTests(SimpleTestCase):

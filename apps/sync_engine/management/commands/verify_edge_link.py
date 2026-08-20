@@ -17,9 +17,11 @@ interesting once an earlier one fails -- a credential check is noise when the ho
 not resolve. Every failure carries the command that fixes it, because a diagnosis an
 operator cannot act on is just a more precise way of being stuck.
 
-Read-only. ``--http`` makes real requests to the cloud but writes nothing on either
-side; the pull probe is an ordinary bundle GET and the push probe is an empty body the
-cloud rejects by design.
+Writes nothing, on either side. ``--http`` makes real requests to the cloud: the pull
+probe is an ordinary bundle GET and the push probe is an empty body the cloud rejects
+by design. The one thing this command can CHANGE is process-local and deliberate —
+the scheduler check registers the sync job if this box became an edge box after the
+process started, which is the same thing the next scan tick would have done anyway.
 """
 from __future__ import annotations
 
