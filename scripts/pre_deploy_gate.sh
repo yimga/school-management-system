@@ -182,14 +182,14 @@ run_django_tests \
 echo "[pre_deploy_gate] Phase H static audit (viewport, error templates, control-plane errors)"
 python scripts/phase_h_audit.py
 echo "[pre_deploy_gate] Phases 3–11 non-DB bundle → apps.platform_runtime.tests.test_tenant_settings_lint (Targeted hardening below; avoids duplicate verify_phases_3_11_gates.py)"
-echo "[pre_deploy_gate] §8.0.6 responsive lint (fixed-px layout; advisory, no fail)"
-python scripts/lint_section8_responsive.py || true
-echo "[pre_deploy_gate] §8.0.11 template audit (inline px / placeholders; advisory)"
-python scripts/audit_section8_11_templates.py || true
+echo "[pre_deploy_gate] §8.0.6 responsive lint (fixed-px layout)"
+python scripts/lint_section8_responsive.py
+echo "[pre_deploy_gate] §8.0.11 template audit (inline px / placeholders)"
+python scripts/audit_section8_11_templates.py
 echo "[pre_deploy_gate] North star a11y (accessibility.css in bases)"
-python scripts/lint_north_star_a11y.py || true
+python scripts/lint_north_star_a11y.py
 echo "[pre_deploy_gate] North star i18n (key templates)"
-python scripts/lint_north_star_i18n.py || true
+python scripts/lint_north_star_i18n.py
 
 echo "[pre_deploy_gate] i18n catalog drift (scanned strings vs locale/en/LC_MESSAGES/django.po)"
 python scripts/verify_i18n_catalog_fresh.py
@@ -323,7 +323,7 @@ if [[ "${POWERHOUSE_WAVE0_STRICT:-0}" == "1" ]]; then
 fi
 
 echo "[pre_deploy_gate] Performance budgets (North star N9/N10; strict when PERF_BUDGET_STRICT=1)"
-python scripts/check_performance_budgets.py 2>/dev/null || true
+python scripts/check_performance_budgets.py
 if [[ "${PERF_BUDGET_STRICT:-0}" == "1" ]]; then
   python scripts/check_performance_budgets.py
 fi
