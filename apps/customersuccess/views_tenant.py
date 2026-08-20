@@ -2,6 +2,8 @@
 Section 11.4: Tenant-facing customer success - support co-pilot, guided onboarding.
 """
 
+import logging
+import uuid
 import math
 from collections.abc import Mapping
 
@@ -17,6 +19,8 @@ from apps.setup_studio.services import execute_launch, get_setup_studio_payload
 
 from .bulk_csv_student_import import apply_bulk_csv, parse_and_validate_csv
 from .services import get_guided_onboarding_steps, get_support_copilot_suggestions
+
+logger = logging.getLogger(__name__)
 
 TENANT_CUSTOMER_SUCCESS_SOFT_FAILURES = (
     AttributeError,
@@ -1163,9 +1167,39 @@ def execute_launch_view(request):
         ok = _normalized_launch_ok(result.get("ok"))
         errors = _normalized_launch_errors(result.get("errors"))
     except TENANT_CUSTOMER_SUCCESS_SOFT_FAILURES:
+        logger.warning(
+            "customersuccess.execute_launch soft failure school_id=%s",
+            getattr(school, "pk", ""),
+            exc_info=True,
+        )
         messages.error(
             request,
             "Launch could not be executed right now. Please try again.",
+        )
+        return redirect("siteconfig:guided_onboarding")
+    except AssertionError:
+        # MUST come before the catch-all: DatabaseOperationForbidden subclasses
+        # AssertionError precisely so a fail-soft guard cannot swallow a forbidden write,
+        # and `except Exception` would happily swallow it.
+        raise
+    except Exception:  # noqa: BLE001
+        # Anything the tuple above does not name - a KeyError, a ValidationError, an
+        # ImportError from an optional integration - used to be a bare 500 on the ONE
+        # button an activating school cannot route around. Logged in full so it is never
+        # silent, surfaced with a reference so it is reportable, and returned to a page the
+        # operator can act on.
+        ref = uuid.uuid4().hex[:8]
+        logger.error(
+            "customersuccess.execute_launch unexpected failure ref=%s school_id=%s",
+            ref,
+            getattr(school, "pk", ""),
+            exc_info=True,
+        )
+        messages.error(
+            request,
+            "Launch hit an unexpected error and was not completed. Nothing was "
+            f"half-applied that we could detect. Reference {ref} - please share it if you "
+            "report this.",
         )
         return redirect("siteconfig:guided_onboarding")
     if ok and not errors:
