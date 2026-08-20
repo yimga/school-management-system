@@ -84,6 +84,8 @@ on:
       - "scripts/scan_inline_event_handlers.py"
       - "scripts/scan_undefined_css_classes.py"
       - "scripts/verify_python_files_parse.py"
+      - "scripts/verify_javascript_files_parse.py"
+      - "static/js/**/*.js"
       - "scripts/scan_off_token_colors.py"
       - "scripts/scan_theme_locked_token_text.py"
       - "var/security-audit-baseline-theme-locked-token-text.json"
@@ -1548,6 +1550,30 @@ jobs:
         # intentional.
         run: |
           python scripts/verify_python_files_parse.py
+
+  javascript-files-parse:
+    name: "Every shipped JavaScript file parses (zero tolerance)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Every shipped JavaScript file must parse
+        # The same floor as python-files-parse, for a QUIETER failure. A Python module
+        # that does not compile fails loudly at import; a JavaScript file that does not
+        # parse fails silently in the user's browser - the script tag 200s, the engine
+        # throws into a console nobody is watching, and the page renders looking normal
+        # with one feature simply dead. No server log, no Sentry event by default.
+        # static/js/service-worker.js is the worst case: a SyntaxError there kills
+        # registration, so the offline shell an appliance depends on stops updating and
+        # nothing says so. Uses `node`'s own parser (not a regex) so it cannot disagree
+        # with the engine that will actually run the file. No baseline, no allow-marker.
+        run: |
+          python scripts/verify_javascript_files_parse.py
 
   real-migration-drift:
     name: "Real migration drift (cosmetic F2 drift filtered)"
