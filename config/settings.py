@@ -3227,7 +3227,14 @@ REST_FRAMEWORK = {
     "ALLOWED_VERSIONS": ("api", "api_v1", "api_v2"),
     # Pass 12: cursor pagination is opaque (clients can't skip pages or guess IDs)
     # and stable under inserts — better default for our high-write tenant tables.
-    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.CursorPagination",
+    #
+    # 2026-08-20: this was DRF's raw ``CursorPagination``, whose ordering default
+    # is ``"-created"`` — a field on 1 of this project's 794 models. Every list
+    # endpoint that did not override ``pagination_class`` returned 500
+    # ("Cannot resolve keyword 'created' into field"), observed live as
+    # GET /api/attendance/ failing on every Sync Center poll. RMCCursorPagination
+    # resolves the ordering against the model instead of hardcoding a column name.
+    "DEFAULT_PAGINATION_CLASS": "apps.api.pagination.RMCCursorPagination",
     "PAGE_SIZE": int(os.getenv("API_DEFAULT_PAGE_SIZE", "50")),
     # Pass 12: RFC 7807 problem+json envelope on every error response.
     "EXCEPTION_HANDLER": "apps.api.exception_handler.rfc7807_exception_handler",
