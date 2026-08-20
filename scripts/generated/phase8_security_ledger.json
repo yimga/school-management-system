@@ -465,7 +465,7 @@
       "verdict": "keep_with_hardening"
     }
   },
-  "generated_at": "2026-07-19T03:14:00.153202+00:00",
+  "generated_at": "2026-08-20T12:20:06.392840+00:00",
   "raw_sql": {
     "apps/accounts/legacy_hashes/key_rotation.py": {
       "expected_count": 1,
@@ -557,6 +557,11 @@
       "last_reviewed": "2026-07-18",
       "reason": "Schoolops schema repair DDL/backfill using quoted identifiers during controlled startup repair."
     },
+    "apps/schools/deletion.py": {
+      "expected_count": 1,
+      "last_reviewed": "2026-07-26",
+      "reason": "Tenant deletion probes schema existence via a fully parameterized SELECT 1 FROM information_schema.schemata WHERE schema_name = %s (bound param, no string interpolation) before tearing down a tenant workspace."
+    },
     "apps/schools/management/commands/e2e_lifecycle.py": {
       "expected_count": 1,
       "last_reviewed": "2026-07-18",
@@ -566,6 +571,11 @@
       "expected_count": 2,
       "last_reviewed": "2026-07-18",
       "reason": "Onboarding provisioning probes/repairs schema readiness with bounded catalog SQL; no user-supplied identifiers."
+    },
+    "apps/schools/provision_watchdog.py": {
+      "expected_count": 1,
+      "last_reviewed": "2026-07-26",
+      "reason": "Provisioning watchdog counts applied migrations in a tenant schema (SELECT count(*) FROM \"<schema>\".django_migrations); the schema is the Client row's own schema_name validated against _SCHEMA_NAME_RE, so no user input reaches the query."
     },
     "apps/schools/repositories/health_repository.py": {
       "expected_count": 3,
@@ -593,9 +603,9 @@
       "reason": "Celery provisioning healers probe tenant schema table presence via catalog SQL; no user input."
     },
     "apps/schools/tenant_workspace.py": {
-      "expected_count": 1,
-      "last_reviewed": "2026-07-18",
-      "reason": "Workspace existence probe: SELECT 1 FROM information_schema/sqlite_master for schema table presence; no user input."
+      "expected_count": 3,
+      "last_reviewed": "2026-07-26",
+      "reason": "Tenant workspace introspection: SELECT 1 FROM information_schema/sqlite_master for table presence, plus reading applied migrations from \"<schema>\".django_migrations (schema name quoted as an identifier, not user input) for readiness/repair."
     },
     "apps/siteconfig/repositories/database_recovery_repository.py": {
       "expected_count": 1,
@@ -617,6 +627,6 @@
   "summary": {
     "allow_any_files": 4,
     "csrf_exempt_files": 38,
-    "raw_sql_files": 28
+    "raw_sql_files": 30
   }
 }

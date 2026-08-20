@@ -64971,3 +64971,475 @@ msgstr ""
 
 msgid "— Not set —"
 msgstr ""
+
+msgid ""
+". The box keeps checking cheaply and syncs the moment the link returns."
+msgstr ""
+
+msgid "Academic year name"
+msgstr ""
+
+msgid "Academic year not found for this school."
+msgstr ""
+
+msgid "Academic years lifecycle"
+msgstr ""
+
+msgid "Activate parents and teachers"
+msgstr ""
+
+msgid "Advanced/Admin: hard-close unlock &amp; rows"
+msgstr ""
+
+msgid "An academic year named %(name)s already exists."
+msgstr ""
+
+msgid "Approve selected"
+msgstr ""
+
+msgid "Ask for clarification"
+msgstr ""
+
+msgid "Backing off"
+msgstr ""
+
+msgid "Box calls out"
+msgstr ""
+
+msgid "Cadence"
+msgstr ""
+
+msgid "Can email"
+msgstr ""
+
+msgid "Choose an activation action."
+msgstr ""
+
+msgid ""
+"Clone needs a new target year first — create the year, then copy last year's"
+" classrooms into it."
+msgstr ""
+
+msgid ""
+"Cloning copies structure from one academic year into another, so you need a "
+"second year first. {{ existing }} is the only year set up so far."
+msgstr ""
+
+msgid "Cloning unlocks once a second academic year exists."
+msgstr ""
+
+msgid "Close tier"
+msgstr ""
+
+msgid "Cloud side"
+msgstr ""
+
+msgid "Cloud updated"
+msgstr ""
+
+msgid "Cloud version"
+msgstr ""
+
+msgid "Cloud-authoritative"
+msgstr ""
+
+msgid ""
+"Cloud-governed: this column never travels upward, and is not applied even if"
+" you keep the local version."
+msgstr ""
+
+msgid ""
+"Connected and up to date. The box is idling on a relaxed schedule and will "
+"speed up the moment anything changes."
+msgstr ""
+
+msgid ""
+"Copy terms, classrooms, subject assignments, and promotion rules from one "
+"academic year into another. Existing rows in the target year are kept — "
+"cloning never overwrites them."
+msgstr ""
+
+msgid "Could not apply lifecycle action."
+msgstr ""
+
+msgid "Could not create the academic year: %(err)s"
+msgstr ""
+
+msgid ""
+"Could not read sync status just now. Syncing itself is unaffected — this "
+"panel will keep trying."
+msgstr ""
+
+msgid "Create classrooms in Year setup before entering marks."
+msgstr ""
+
+msgid "Create the year you want to copy into"
+msgstr ""
+
+msgid "Create year"
+msgstr ""
+
+msgid "Created %(name)s. Now pick the year to copy from and clone into it."
+msgstr ""
+
+msgid "Ctrl K opens command search"
+msgstr ""
+
+msgid "Cycles (24h)"
+msgstr ""
+
+msgid ""
+"Data is flowing, so the box is staying close behind — cycles run every few "
+"seconds while changes keep arriving."
+msgstr ""
+
+msgid "Date reading options previewed against your data"
+msgstr ""
+
+msgid "Deleted (24h)"
+msgstr ""
+
+msgid "Deny selected"
+msgstr ""
+
+msgid "Detect automatically"
+msgstr ""
+
+msgid "Download parent passwords"
+msgstr ""
+
+msgid "Download teacher passwords"
+msgstr ""
+
+msgid "Email parent invites — passwords download if mail fails"
+msgstr ""
+
+msgid "Email teacher invites — passwords download if mail fails"
+msgstr ""
+
+msgid "Family name first (Lovelace Ada)"
+msgstr ""
+
+msgid ""
+"Follow the highlighted next step — later steps wait until the year is ready."
+msgstr ""
+
+msgid "Give the new academic year a name."
+msgstr ""
+
+msgid "Give the new academic year a start date and an end date."
+msgstr ""
+
+msgid "Given name first (Ada Lovelace)"
+msgstr ""
+
+msgid "Governance console"
+msgstr ""
+
+msgid "Hard closed"
+msgstr ""
+
+msgid "Hard closed — unlock in Admin"
+msgstr ""
+
+msgid "How should these dates be read?"
+msgstr ""
+
+msgid ""
+"Imported people are in the directory with no password yet. We email a set-"
+"password link when mail can be delivered. If mail fails or there is no "
+"mailbox, this page downloads one-time passwords instead — nobody is left "
+"waiting on SMTP. On first sign-in they set a new password and complete their"
+" profile."
+msgstr ""
+
+msgid "Install at {{ school }}"
+msgstr ""
+
+msgid "Keep cloud version"
+msgstr ""
+
+msgid "Keep local (offline) version"
+msgstr ""
+
+msgid "Keeping up"
+msgstr ""
+
+msgid "Last sync"
+msgstr ""
+
+msgid "Latest version {{ version }}"
+msgstr ""
+
+msgid "Leave blank to reuse last year's dates, shifted by a year."
+msgstr ""
+
+msgid "Link unknown"
+msgstr ""
+
+msgid "Live sync activity"
+msgstr ""
+
+msgid "Local (offline) version"
+msgstr ""
+
+msgid "Local/offline updated"
+msgstr ""
+
+msgid "Manage academic years"
+msgstr ""
+
+msgid "Migration guide:"
+msgstr ""
+
+msgid "Need more control?"
+msgstr ""
+
+msgid "Next attempt"
+msgstr ""
+
+msgid "No comparable fields were recorded."
+msgstr ""
+
+msgid ""
+"No connection to the cloud. Work continues locally and is queued. Last "
+"reached: "
+msgstr ""
+
+msgid ""
+"No records have been applied by sync yet. Once a cycle carries data, each "
+"row appears here with the direction it travelled."
+msgstr ""
+
+msgid "Not applied"
+msgstr ""
+
+msgid "Not applied (24h)"
+msgstr ""
+
+msgid "Nothing here for your role — this step is handled by other staff."
+msgstr ""
+
+msgid "Open Guardians"
+msgstr ""
+
+msgid "Open Help if navigation did not load."
+msgstr ""
+
+msgid "Open Staff Identity"
+msgstr ""
+
+msgid "Open at-risk dashboard"
+msgstr ""
+
+msgid "Open your school workspace to install this app."
+msgstr ""
+
+msgid "Parent invites sent to every deliverable mailbox."
+msgstr ""
+
+msgid ""
+"Parent invites: emailed where mail worked. This download has one-time "
+"passwords for everyone mail could not reach."
+msgstr ""
+
+msgid "Pinned schedule"
+msgstr ""
+
+msgid "Please select both source and target year."
+msgstr ""
+
+msgid "Pulled down (24h)"
+msgstr ""
+
+msgid "Pushed up (24h)"
+msgstr ""
+
+msgid "Reason (optional, applies to all selected)"
+msgstr ""
+
+msgid "Reason (recorded with your name)"
+msgstr ""
+
+msgid ""
+"Recent attempts failed, so retries are spacing out. A restored connection "
+"cancels the wait immediately."
+msgstr ""
+
+msgid "Recent sync cycles, newest first"
+msgstr ""
+
+msgid "Records applied by sync, newest first"
+msgstr ""
+
+msgid "Records that landed"
+msgstr ""
+
+msgid "Reopen soft"
+msgstr ""
+
+msgid "Reopened soft-close on %(name)s."
+msgstr ""
+
+msgid "Select request {{ ref }}"
+msgstr ""
+
+msgid "Set %(name)s as the active (default) year."
+msgstr ""
+
+msgid "Set active"
+msgstr ""
+
+msgid "Set the academic year first, then continue."
+msgstr ""
+
+msgid "Set up your staff account"
+msgstr ""
+
+msgid "Settle now"
+msgstr ""
+
+msgid ""
+"Setup links are valid for a limited time and can only be used once. Ask your"
+" school administrator for a new invite or a one-time password."
+msgstr ""
+
+msgid "Skip &amp; log"
+msgstr ""
+
+msgid ""
+"Soft Close blocks teacher grade entry while registrars can still correct. "
+"Hard Close seals the year. Active pins the tenant default year — locking "
+"does not make a year the default."
+msgstr ""
+
+msgid "Soft close"
+msgstr ""
+
+msgid "Soft closed"
+msgstr ""
+
+msgid "Soft-closed %(name)s — teachers cannot enter grades."
+msgstr ""
+
+msgid ""
+"Some dates in your file could be read two ways, and we cannot tell which "
+"from the value alone. Pick the reading that matches your records — the "
+"preview uses real dates from your own upload."
+msgstr ""
+
+msgid ""
+"Some records could not be applied on this box - most often a record that "
+"references a parent this box has not received yet. They are named in the "
+"cycle detail below and are retried automatically."
+msgstr ""
+
+msgid ""
+"Source and target year must be different. Create the year you want to copy "
+"into, then run the clone."
+msgstr ""
+
+msgid "Staff account"
+msgstr ""
+
+msgid "Start with the highlighted step"
+msgstr ""
+
+msgid "Status unavailable"
+msgstr ""
+
+msgid "Studio commands, scope and safety"
+msgstr ""
+
+msgid "Teacher invites sent to every deliverable mailbox."
+msgstr ""
+
+msgid ""
+"Teacher invites: emailed where mail worked. This download has one-time "
+"passwords for everyone mail could not reach."
+msgstr ""
+
+msgid ""
+"There are no academic years yet. Create the first one, then come back to "
+"clone its structure forward."
+msgstr ""
+
+msgid ""
+"This box is behind on database migrations, so records using newer fields "
+"cannot be applied. Run migrations on the box; sync resumes automatically. "
+"Pending: "
+msgstr ""
+
+msgid ""
+"This creates one-time passwords shown only in the downloaded file. Share it "
+"securely, then delete the file."
+msgstr ""
+
+msgid ""
+"This is the cloud side. The box calls out on its own schedule; queue a full "
+"resync and it collects it on the next connection."
+msgstr ""
+
+msgid "This upload is not bound to a school."
+msgstr ""
+
+msgid "Took"
+msgstr ""
+
+msgid "Two family names (Garcia Marquez Gabriel)"
+msgstr ""
+
+msgid "Unknown lifecycle action."
+msgstr ""
+
+msgid "Up"
+msgstr ""
+
+msgid ""
+"Updates on its own. Every record below actually landed — this is the "
+"receipt, not a summary."
+msgstr ""
+
+msgid "View health"
+msgstr ""
+
+msgid ""
+"Your school created a staff account for you. Choose a password to finish "
+"setting it up — after this you will complete your profile on first sign-in."
+msgstr ""
+
+msgid "ago"
+msgstr ""
+
+msgid "any moment"
+msgstr ""
+
+msgid "box → cloud"
+msgstr ""
+
+msgid "cloud → box"
+msgstr ""
+
+msgid "cloud-only"
+msgstr ""
+
+msgid "d"
+msgstr ""
+
+msgid "e.g. matches existing staff record"
+msgstr ""
+
+msgid "h"
+msgstr ""
+
+msgid "in "
+msgstr ""
+
+msgid "m"
+msgstr ""
+
+msgid "ms"
+msgstr ""
+
+msgid "s"
+msgstr ""

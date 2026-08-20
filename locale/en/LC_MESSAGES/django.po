@@ -70645,3 +70645,533 @@ msgstr "Your school's sector — Public, Private, International, and so on."
 
 msgid "— Not set —"
 msgstr "— Not set —"
+
+msgid ""
+". The box keeps checking cheaply and syncs the moment the link returns."
+msgstr ""
+". The box keeps checking cheaply and syncs the moment the link returns."
+
+msgid "Academic year name"
+msgstr "Academic year name"
+
+msgid "Academic year not found for this school."
+msgstr "Academic year not found for this school."
+
+msgid "Academic years lifecycle"
+msgstr "Academic years lifecycle"
+
+msgid "Activate parents and teachers"
+msgstr "Activate parents and teachers"
+
+msgid "Advanced/Admin: hard-close unlock &amp; rows"
+msgstr "Advanced/Admin: hard-close unlock &amp; rows"
+
+msgid "An academic year named %(name)s already exists."
+msgstr "An academic year named %(name)s already exists."
+
+msgid "Approve selected"
+msgstr "Approve selected"
+
+msgid "Ask for clarification"
+msgstr "Ask for clarification"
+
+msgid "Backing off"
+msgstr "Backing off"
+
+msgid "Box calls out"
+msgstr "Box calls out"
+
+msgid "Cadence"
+msgstr "Cadence"
+
+msgid "Can email"
+msgstr "Can email"
+
+msgid "Choose an activation action."
+msgstr "Choose an activation action."
+
+msgid ""
+"Clone needs a new target year first — create the year, then copy last year's"
+" classrooms into it."
+msgstr ""
+"Clone needs a new target year first — create the year, then copy last year's"
+" classrooms into it."
+
+msgid ""
+"Cloning copies structure from one academic year into another, so you need a "
+"second year first. {{ existing }} is the only year set up so far."
+msgstr ""
+"Cloning copies structure from one academic year into another, so you need a "
+"second year first. {{ existing }} is the only year set up so far."
+
+msgid "Cloning unlocks once a second academic year exists."
+msgstr "Cloning unlocks once a second academic year exists."
+
+msgid "Close tier"
+msgstr "Close tier"
+
+msgid "Cloud side"
+msgstr "Cloud side"
+
+msgid "Cloud updated"
+msgstr "Cloud updated"
+
+msgid "Cloud version"
+msgstr "Cloud version"
+
+msgid "Cloud-authoritative"
+msgstr "Cloud-authoritative"
+
+msgid ""
+"Cloud-governed: this column never travels upward, and is not applied even if"
+" you keep the local version."
+msgstr ""
+"Cloud-governed: this column never travels upward, and is not applied even if"
+" you keep the local version."
+
+msgid ""
+"Connected and up to date. The box is idling on a relaxed schedule and will "
+"speed up the moment anything changes."
+msgstr ""
+"Connected and up to date. The box is idling on a relaxed schedule and will "
+"speed up the moment anything changes."
+
+msgid ""
+"Copy terms, classrooms, subject assignments, and promotion rules from one "
+"academic year into another. Existing rows in the target year are kept — "
+"cloning never overwrites them."
+msgstr ""
+"Copy terms, classrooms, subject assignments, and promotion rules from one "
+"academic year into another. Existing rows in the target year are kept — "
+"cloning never overwrites them."
+
+msgid "Could not apply lifecycle action."
+msgstr "Could not apply lifecycle action."
+
+msgid "Could not create the academic year: %(err)s"
+msgstr "Could not create the academic year: %(err)s"
+
+msgid ""
+"Could not read sync status just now. Syncing itself is unaffected — this "
+"panel will keep trying."
+msgstr ""
+"Could not read sync status just now. Syncing itself is unaffected — this "
+"panel will keep trying."
+
+msgid "Create classrooms in Year setup before entering marks."
+msgstr "Create classrooms in Year setup before entering marks."
+
+msgid "Create the year you want to copy into"
+msgstr "Create the year you want to copy into"
+
+msgid "Create year"
+msgstr "Create year"
+
+msgid "Created %(name)s. Now pick the year to copy from and clone into it."
+msgstr "Created %(name)s. Now pick the year to copy from and clone into it."
+
+msgid "Ctrl K opens command search"
+msgstr "Ctrl K opens command search"
+
+msgid "Cycles (24h)"
+msgstr "Cycles (24h)"
+
+msgid ""
+"Data is flowing, so the box is staying close behind — cycles run every few "
+"seconds while changes keep arriving."
+msgstr ""
+"Data is flowing, so the box is staying close behind — cycles run every few "
+"seconds while changes keep arriving."
+
+msgid "Date reading options previewed against your data"
+msgstr "Date reading options previewed against your data"
+
+msgid "Deleted (24h)"
+msgstr "Deleted (24h)"
+
+msgid "Deny selected"
+msgstr "Deny selected"
+
+msgid "Detect automatically"
+msgstr "Detect automatically"
+
+msgid "Download parent passwords"
+msgstr "Download parent passwords"
+
+msgid "Download teacher passwords"
+msgstr "Download teacher passwords"
+
+msgid "Email parent invites — passwords download if mail fails"
+msgstr "Email parent invites — passwords download if mail fails"
+
+msgid "Email teacher invites — passwords download if mail fails"
+msgstr "Email teacher invites — passwords download if mail fails"
+
+msgid "Family name first (Lovelace Ada)"
+msgstr "Family name first (Lovelace Ada)"
+
+msgid ""
+"Follow the highlighted next step — later steps wait until the year is ready."
+msgstr ""
+"Follow the highlighted next step — later steps wait until the year is ready."
+
+msgid "Give the new academic year a name."
+msgstr "Give the new academic year a name."
+
+msgid "Give the new academic year a start date and an end date."
+msgstr "Give the new academic year a start date and an end date."
+
+msgid "Given name first (Ada Lovelace)"
+msgstr "Given name first (Ada Lovelace)"
+
+msgid "Governance console"
+msgstr "Governance console"
+
+msgid "Hard closed"
+msgstr "Hard closed"
+
+msgid "Hard closed — unlock in Admin"
+msgstr "Hard closed — unlock in Admin"
+
+msgid "How should these dates be read?"
+msgstr "How should these dates be read?"
+
+msgid ""
+"Imported people are in the directory with no password yet. We email a set-"
+"password link when mail can be delivered. If mail fails or there is no "
+"mailbox, this page downloads one-time passwords instead — nobody is left "
+"waiting on SMTP. On first sign-in they set a new password and complete their"
+" profile."
+msgstr ""
+"Imported people are in the directory with no password yet. We email a set-"
+"password link when mail can be delivered. If mail fails or there is no "
+"mailbox, this page downloads one-time passwords instead — nobody is left "
+"waiting on SMTP. On first sign-in they set a new password and complete their"
+" profile."
+
+msgid "Install at {{ school }}"
+msgstr "Install at {{ school }}"
+
+msgid "Keep cloud version"
+msgstr "Keep cloud version"
+
+msgid "Keep local (offline) version"
+msgstr "Keep local (offline) version"
+
+msgid "Keeping up"
+msgstr "Keeping up"
+
+msgid "Last sync"
+msgstr "Last sync"
+
+msgid "Latest version {{ version }}"
+msgstr "Latest version {{ version }}"
+
+msgid "Leave blank to reuse last year's dates, shifted by a year."
+msgstr "Leave blank to reuse last year's dates, shifted by a year."
+
+msgid "Link unknown"
+msgstr "Link unknown"
+
+msgid "Live sync activity"
+msgstr "Live sync activity"
+
+msgid "Local (offline) version"
+msgstr "Local (offline) version"
+
+msgid "Local/offline updated"
+msgstr "Local/offline updated"
+
+msgid "Manage academic years"
+msgstr "Manage academic years"
+
+msgid "Migration guide:"
+msgstr "Migration guide:"
+
+msgid "Need more control?"
+msgstr "Need more control?"
+
+msgid "Next attempt"
+msgstr "Next attempt"
+
+msgid "No comparable fields were recorded."
+msgstr "No comparable fields were recorded."
+
+msgid ""
+"No connection to the cloud. Work continues locally and is queued. Last "
+"reached: "
+msgstr ""
+"No connection to the cloud. Work continues locally and is queued. Last "
+"reached: "
+
+msgid ""
+"No records have been applied by sync yet. Once a cycle carries data, each "
+"row appears here with the direction it travelled."
+msgstr ""
+"No records have been applied by sync yet. Once a cycle carries data, each "
+"row appears here with the direction it travelled."
+
+msgid "Not applied"
+msgstr "Not applied"
+
+msgid "Not applied (24h)"
+msgstr "Not applied (24h)"
+
+msgid "Nothing here for your role — this step is handled by other staff."
+msgstr "Nothing here for your role — this step is handled by other staff."
+
+msgid "Open Guardians"
+msgstr "Open Guardians"
+
+msgid "Open Help if navigation did not load."
+msgstr "Open Help if navigation did not load."
+
+msgid "Open Staff Identity"
+msgstr "Open Staff Identity"
+
+msgid "Open at-risk dashboard"
+msgstr "Open at-risk dashboard"
+
+msgid "Open your school workspace to install this app."
+msgstr "Open your school workspace to install this app."
+
+msgid "Parent invites sent to every deliverable mailbox."
+msgstr "Parent invites sent to every deliverable mailbox."
+
+msgid ""
+"Parent invites: emailed where mail worked. This download has one-time "
+"passwords for everyone mail could not reach."
+msgstr ""
+"Parent invites: emailed where mail worked. This download has one-time "
+"passwords for everyone mail could not reach."
+
+msgid "Pinned schedule"
+msgstr "Pinned schedule"
+
+msgid "Please select both source and target year."
+msgstr "Please select both source and target year."
+
+msgid "Pulled down (24h)"
+msgstr "Pulled down (24h)"
+
+msgid "Pushed up (24h)"
+msgstr "Pushed up (24h)"
+
+msgid "Reason (optional, applies to all selected)"
+msgstr "Reason (optional, applies to all selected)"
+
+msgid "Reason (recorded with your name)"
+msgstr "Reason (recorded with your name)"
+
+msgid ""
+"Recent attempts failed, so retries are spacing out. A restored connection "
+"cancels the wait immediately."
+msgstr ""
+"Recent attempts failed, so retries are spacing out. A restored connection "
+"cancels the wait immediately."
+
+msgid "Recent sync cycles, newest first"
+msgstr "Recent sync cycles, newest first"
+
+msgid "Records applied by sync, newest first"
+msgstr "Records applied by sync, newest first"
+
+msgid "Records that landed"
+msgstr "Records that landed"
+
+msgid "Reopen soft"
+msgstr "Reopen soft"
+
+msgid "Reopened soft-close on %(name)s."
+msgstr "Reopened soft-close on %(name)s."
+
+msgid "Select request {{ ref }}"
+msgstr "Select request {{ ref }}"
+
+msgid "Set %(name)s as the active (default) year."
+msgstr "Set %(name)s as the active (default) year."
+
+msgid "Set active"
+msgstr "Set active"
+
+msgid "Set the academic year first, then continue."
+msgstr "Set the academic year first, then continue."
+
+msgid "Set up your staff account"
+msgstr "Set up your staff account"
+
+msgid "Settle now"
+msgstr "Settle now"
+
+msgid ""
+"Setup links are valid for a limited time and can only be used once. Ask your"
+" school administrator for a new invite or a one-time password."
+msgstr ""
+"Setup links are valid for a limited time and can only be used once. Ask your"
+" school administrator for a new invite or a one-time password."
+
+msgid "Skip &amp; log"
+msgstr "Skip &amp; log"
+
+msgid ""
+"Soft Close blocks teacher grade entry while registrars can still correct. "
+"Hard Close seals the year. Active pins the tenant default year — locking "
+"does not make a year the default."
+msgstr ""
+"Soft Close blocks teacher grade entry while registrars can still correct. "
+"Hard Close seals the year. Active pins the tenant default year — locking "
+"does not make a year the default."
+
+msgid "Soft close"
+msgstr "Soft close"
+
+msgid "Soft closed"
+msgstr "Soft closed"
+
+msgid "Soft-closed %(name)s — teachers cannot enter grades."
+msgstr "Soft-closed %(name)s — teachers cannot enter grades."
+
+msgid ""
+"Some dates in your file could be read two ways, and we cannot tell which "
+"from the value alone. Pick the reading that matches your records — the "
+"preview uses real dates from your own upload."
+msgstr ""
+"Some dates in your file could be read two ways, and we cannot tell which "
+"from the value alone. Pick the reading that matches your records — the "
+"preview uses real dates from your own upload."
+
+msgid ""
+"Some records could not be applied on this box - most often a record that "
+"references a parent this box has not received yet. They are named in the "
+"cycle detail below and are retried automatically."
+msgstr ""
+"Some records could not be applied on this box - most often a record that "
+"references a parent this box has not received yet. They are named in the "
+"cycle detail below and are retried automatically."
+
+msgid ""
+"Source and target year must be different. Create the year you want to copy "
+"into, then run the clone."
+msgstr ""
+"Source and target year must be different. Create the year you want to copy "
+"into, then run the clone."
+
+msgid "Staff account"
+msgstr "Staff account"
+
+msgid "Start with the highlighted step"
+msgstr "Start with the highlighted step"
+
+msgid "Status unavailable"
+msgstr "Status unavailable"
+
+msgid "Studio commands, scope and safety"
+msgstr "Studio commands, scope and safety"
+
+msgid "Teacher invites sent to every deliverable mailbox."
+msgstr "Teacher invites sent to every deliverable mailbox."
+
+msgid ""
+"Teacher invites: emailed where mail worked. This download has one-time "
+"passwords for everyone mail could not reach."
+msgstr ""
+"Teacher invites: emailed where mail worked. This download has one-time "
+"passwords for everyone mail could not reach."
+
+msgid ""
+"There are no academic years yet. Create the first one, then come back to "
+"clone its structure forward."
+msgstr ""
+"There are no academic years yet. Create the first one, then come back to "
+"clone its structure forward."
+
+msgid ""
+"This box is behind on database migrations, so records using newer fields "
+"cannot be applied. Run migrations on the box; sync resumes automatically. "
+"Pending: "
+msgstr ""
+"This box is behind on database migrations, so records using newer fields "
+"cannot be applied. Run migrations on the box; sync resumes automatically. "
+"Pending: "
+
+msgid ""
+"This creates one-time passwords shown only in the downloaded file. Share it "
+"securely, then delete the file."
+msgstr ""
+"This creates one-time passwords shown only in the downloaded file. Share it "
+"securely, then delete the file."
+
+msgid ""
+"This is the cloud side. The box calls out on its own schedule; queue a full "
+"resync and it collects it on the next connection."
+msgstr ""
+"This is the cloud side. The box calls out on its own schedule; queue a full "
+"resync and it collects it on the next connection."
+
+msgid "This upload is not bound to a school."
+msgstr "This upload is not bound to a school."
+
+msgid "Took"
+msgstr "Took"
+
+msgid "Two family names (Garcia Marquez Gabriel)"
+msgstr "Two family names (Garcia Marquez Gabriel)"
+
+msgid "Unknown lifecycle action."
+msgstr "Unknown lifecycle action."
+
+msgid "Up"
+msgstr "Up"
+
+msgid ""
+"Updates on its own. Every record below actually landed — this is the "
+"receipt, not a summary."
+msgstr ""
+"Updates on its own. Every record below actually landed — this is the "
+"receipt, not a summary."
+
+msgid "View health"
+msgstr "View health"
+
+msgid ""
+"Your school created a staff account for you. Choose a password to finish "
+"setting it up — after this you will complete your profile on first sign-in."
+msgstr ""
+"Your school created a staff account for you. Choose a password to finish "
+"setting it up — after this you will complete your profile on first sign-in."
+
+msgid "ago"
+msgstr "ago"
+
+msgid "any moment"
+msgstr "any moment"
+
+msgid "box → cloud"
+msgstr "box → cloud"
+
+msgid "cloud → box"
+msgstr "cloud → box"
+
+msgid "cloud-only"
+msgstr "cloud-only"
+
+msgid "d"
+msgstr "d"
+
+msgid "e.g. matches existing staff record"
+msgstr "e.g. matches existing staff record"
+
+msgid "h"
+msgstr "h"
+
+msgid "in "
+msgstr "in "
+
+msgid "m"
+msgstr "m"
+
+msgid "ms"
+msgstr "ms"
+
+msgid "s"
+msgstr "s"
