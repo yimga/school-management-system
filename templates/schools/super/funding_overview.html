@@ -35,7 +35,9 @@
     </div>
     <div class="col-6 col-md-3">
       <div class="card card-body">
+        {# attention-allow: resolver-surface — funding overview; the outstanding figure is the report itself #}
         <p class="text-muted small mb-1">{% trans "Pledges outstanding" %}</p>
+        {# attention-allow: resolver-surface — value for the label above #}
         <p class="h4 mb-0">{{ pledged_outstanding }}</p>
         <p class="small text-muted mb-0">{{ open_pledge_count }} {% trans "open" %}</p>
       </div>

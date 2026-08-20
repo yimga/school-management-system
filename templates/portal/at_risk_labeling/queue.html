@@ -14,7 +14,9 @@
     <div class="eyebrow">{{ academic_year.name }}</div>
     <h1 class="page-h1 mb-0">{% trans "At-risk outcome labeling" %}</h1>
     <p class="page-sub mb-0">
+      {# attention-allow: descriptive-copy — instructions for using the queue, not a count of work #}
       Mark each {% term_lower "student" %} with their actual at-risk outcome for {{ academic_year.name }}.
+      {# attention-allow: descriptive-copy — explains what the labels feed; prose, not a backlog #}
       Labels feed the next training run of the at-risk model.
     </p>
   </div>

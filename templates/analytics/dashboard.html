@@ -331,6 +331,7 @@
           <h5 class="mb-0">{% trans "Weak subjects" %}</h5>
           <span class="rmc-badge rmc-badge--warning">{{ weak_subjects|length }}</span>
         </div>
+        {# attention-allow: descriptive-copy — section blurb about subject performance, not a count of pending work #}
         <p class="small text-muted mb-2">{% trans "Subjects that need attention this term." %}</p>
         <ul class="list-group list-group-flush">
           {% for subject in weak_subjects|slice:":3" %}

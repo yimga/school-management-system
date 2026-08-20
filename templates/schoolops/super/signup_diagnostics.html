@@ -133,6 +133,7 @@
     <p class="rmc-signup-diag__metric">{{ counters.window_label }}</p>
     <p class="rmc-signup-diag__metric">{% trans "Examined:" %} <span class="rmc-signup-diag__mono">{{ counters.total_examined }}</span></p>
     <p class="rmc-signup-diag__metric">{% trans "Sent:" %} <span class="rmc-signup-diag__mono">{{ counters.sent_count }}</span></p>
+    {# attention-allow: resolver-surface — the diagnostics page is the surface for a failed signup #}
     <p class="rmc-signup-diag__metric">{% trans "Failed:" %} <span class="rmc-signup-diag__mono">{{ counters.failed_count }}</span></p>
     <p class="rmc-signup-diag__metric">{% trans "Queued (async path):" %} <span class="rmc-signup-diag__mono">{{ counters.queued_count }}</span></p>
   </section>

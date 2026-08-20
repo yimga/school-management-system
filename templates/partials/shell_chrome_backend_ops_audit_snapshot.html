@@ -1,5 +1,18 @@
 {% load i18n %}
 {% comment %} 1019: Compact audit/system snapshot from existing backend_dashboard context (counts only). {% endcomment %}
+{% comment %}
+Each count states that work is waiting, so each one names the page that clears it.
+Reporting "3 overdue invoices" with no destination makes the reader hunt for the
+screen themselves — the dead end scan_actionless_attention_surfaces.py exists to stop.
+
+finance/requests/analytics are absent from config.manager_urls, and `{% url … as %}`
+yields "" rather than raising there, so a bare <a href=""> would be a focusable link
+to nowhere — the same defect wearing a link. Each metric therefore renders as a link
+ONLY when its destination actually resolved, and as plain text otherwise.
+{% endcomment %}
+{% url 'accounts:backend_guardian_list' as ops_invites_url %}
+{% url 'finance:dashboard' as ops_finance_url %}
+{% url 'requests:dashboard' as ops_approvals_url %}
 <section
   class="card border-0 shadow-sm mb-3 backend-ops-audit-snapshot"
   data-shell-chrome="backend-audit-snapshot"
@@ -9,18 +22,40 @@
   <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="card-body py-2 px-3">
     <div class="d-flex flex-wrap align-items-center gap-4 small">
+      {% if ops_invites_url %}
+      <a class="d-flex align-items-center gap-2 text-reset text-decoration-none" href="{{ ops_invites_url }}" data-shell-ops-metric="pending-invites">
+        <span class="text-muted text-uppercase fw-semibold" style="letter-spacing:0.03em;">{% trans "Pending invites" %}</span>
+        <strong class="fs-6" data-ops-count="pending-invites">{{ stats.pending_invites|default:0 }}</strong>
+      </a>
+      {% else %}
       <div class="d-flex align-items-center gap-2" data-shell-ops-metric="pending-invites">
         <span class="text-muted text-uppercase fw-semibold" style="letter-spacing:0.03em;">{% trans "Pending invites" %}</span>
         <strong class="fs-6" data-ops-count="pending-invites">{{ stats.pending_invites|default:0 }}</strong>
       </div>
+      {% endif %}
+      {% if ops_finance_url %}
+      <a class="d-flex align-items-center gap-2 text-reset text-decoration-none" href="{{ ops_finance_url }}" data-shell-ops-metric="overdue-invoices">
+        <span class="text-muted text-uppercase fw-semibold" style="letter-spacing:0.03em;">{% trans "Overdue invoices" %}</span>
+        <strong class="fs-6" data-ops-count="overdue-invoices">{{ stats.overdue_invoices|default:0 }}</strong>
+      </a>
+      {% else %}
       <div class="d-flex align-items-center gap-2" data-shell-ops-metric="overdue-invoices">
         <span class="text-muted text-uppercase fw-semibold" style="letter-spacing:0.03em;">{% trans "Overdue invoices" %}</span>
         <strong class="fs-6" data-ops-count="overdue-invoices">{{ stats.overdue_invoices|default:0 }}</strong>
       </div>
+      {% endif %}
+      {% if ops_approvals_url %}
+      <a class="d-flex align-items-center gap-2 text-reset text-decoration-none" href="{{ ops_approvals_url }}" data-shell-ops-metric="pending-approvals">
+        <span class="text-muted text-uppercase fw-semibold" style="letter-spacing:0.03em;">{% trans "Pending approvals" %}</span>
+        <strong class="fs-6" data-ops-count="pending-approvals">{{ pending_approvals_count|default:0 }}</strong>
+      </a>
+      {% else %}
       <div class="d-flex align-items-center gap-2" data-shell-ops-metric="pending-approvals">
+        {# attention-allow: no-destination-on-host — requests: is tenant-only; plain text beats a href="" link to nowhere #}
         <span class="text-muted text-uppercase fw-semibold" style="letter-spacing:0.03em;">{% trans "Pending approvals" %}</span>
         <strong class="fs-6" data-ops-count="pending-approvals">{{ pending_approvals_count|default:0 }}</strong>
       </div>
+      {% endif %}
     </div>
   </div>
 </section>

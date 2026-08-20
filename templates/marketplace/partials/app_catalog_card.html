@@ -74,6 +74,7 @@
         <p class="mb-0 text-muted"><strong>{% trans "Rollback" %}:</strong> {{ cd.rollback_summary }}</p>
         {% endwith %}
         {% if listing.sandbox_installations %}
+        {# attention-allow: status-label — install count on one catalogue card, not a backlog #}
         <p class="mb-0 mt-2 text-muted">{% blocktrans count counter=listing.sandbox_installations %}{{ counter }} sandbox install pending review{% plural %}{{ counter }} sandbox installs pending review{% endblocktrans %}</p>
         {% endif %}
       </div>

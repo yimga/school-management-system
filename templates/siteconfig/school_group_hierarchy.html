@@ -78,6 +78,7 @@
       <p class="mb-1 text-muted">{% trans "Health mix" %}: {{ hl.health_status_counts }}</p>
       {% endif %}
       {% if risks %}
+      {# attention-allow: descriptive-copy — explicitly a recent sample readout, not a work queue #}
       <p class="mb-0 text-muted">{% trans "At-risk signals (recent, sample)" %}: {{ risks|length }}</p>
       {% endif %}
       {% endwith %}

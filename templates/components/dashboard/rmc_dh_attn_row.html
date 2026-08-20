@@ -15,5 +15,8 @@
 {% endcomment %}
 <div class="rmc-dh-attn-row">
   {% if dh_icon %}<i class="bi {{ dh_icon }}" aria-hidden="true"></i>{% endif %} <span>{{ dh_text }}</span>
-  {% if dh_go_label %}<a class="rmc-dh-attn-row__go" href="{{ dh_go_href|default:'#' }}">{{ dh_go_label }}</a>{% endif %}
+  {# Both, or neither. `{% url 'x' as y %}` yields "" on a host where the namespace #}
+  {# is absent, and `|default:'#'` turned that into href="#" — a focusable link that #}
+  {# goes nowhere, which is the dead end wearing a link. Degrade to plain text. #}
+  {% if dh_go_label and dh_go_href %}<a class="rmc-dh-attn-row__go" href="{{ dh_go_href }}">{{ dh_go_label }}</a>{% endif %}
 </div>

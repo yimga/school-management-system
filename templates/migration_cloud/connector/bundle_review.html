@@ -597,6 +597,7 @@ finance-needs-atomic). All the safety judgement is server-side in
 repair.repair_readiness — the button is only a trigger.
 {% endcomment %}
 <section class="rmc-card mt-4" aria-labelledby="mc-repair-heading">
+  {# attention-allow: resolver-surface — the repair controls for a failed import are on this page #}
   <h2 id="mc-repair-heading" class="h5">{% trans "Fix a failed or incomplete import" %}</h2>
   {% if repair.repairable %}
   <p class="text-muted small">{{ repair.reason }}</p>

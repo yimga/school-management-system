@@ -29,6 +29,7 @@
   {% if billing_outstanding_count %}
   <div class="rmc-banner rmc-banner--warning py-2 small mb-3" role="status">
     <strong>{% trans "Billing alert:" %}</strong>
+    {# attention-allow: resolver-surface — the offboarding queue lists every outstanding school below #}
     {% blocktrans count counter=billing_outstanding_count %}{{ counter }} school has an outstanding billing balance — purge may require dual-approval.{% plural %}{{ counter }} schools have outstanding billing balances — purge may require dual-approval.{% endblocktrans %}
   </div>
   {% endif %}

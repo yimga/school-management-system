@@ -183,6 +183,7 @@
                         {{ inv.split_payer_count }} {% trans "payers" %}
                       {% endif %}
                     </div>
+                    {# attention-allow: resolver-surface — the invoice list below is the surface that settles this #}
                     <div class="text-muted">{% blocktrans with amt=inv.split_outstanding_total|format_currency %}Due {{ amt }}{% endblocktrans %}</div>
                   {% else %}
                     <span class="text-muted">{% trans "Split configured" %}</span>

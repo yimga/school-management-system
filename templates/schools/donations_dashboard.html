@@ -96,12 +96,14 @@
   {% endif %}
 
   {% if overview.pledges.total_outstanding %}
+  {# attention-allow: resolver-surface — pledge ageing on the donations dashboard that manages pledges #}
   <h6 class="mb-2">{% trans "Pledges outstanding" %}</h6>
   <div class="row g-3 mb-4">
     <div class="col-6 col-md-3">
       <div class="card card-body"><p class="text-muted small mb-1">{% trans "Current" %}</p><p class="h5 mb-0">{{ overview.pledges.buckets.current }}</p><p class="small text-muted mb-0">{{ overview.pledges.counts.current }}</p></div>
     </div>
     <div class="col-6 col-md-3">
+      {# attention-allow: resolver-surface — one ageing bucket of the readout above #}
       <div class="card card-body"><p class="text-muted small mb-1">{% trans "1–30 days overdue" %}</p><p class="h5 mb-0">{{ overview.pledges.buckets.d1_30 }}</p><p class="small text-muted mb-0">{{ overview.pledges.counts.d1_30 }}</p></div>
     </div>
     <div class="col-6 col-md-3">
