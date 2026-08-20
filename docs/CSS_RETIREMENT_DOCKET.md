@@ -2,6 +2,30 @@
 
 **Last updated:** 2026-08-20
 
+## 2026-08-20 (later) — Nine served pages had markup that never closed, and one of them shipped an element that does not exist
+
+Started from a narrower question — *are there other guard tests that never collected?* A repo-wide sweep imported all 2,736 collectable test modules and found **zero** import failures, so that class is clean. But the sweep's own output carried something else: `scripts/dev/test_backend_dashboard.py`, one of five files under `scripts/dev/` that match pytest's `test_*.py` glob while defining no tests and executing their whole body at import, printed **`[WARN] div tags are not balanced`** for the tenant admin home. It had been printing that into a script nobody runs.
+
+It was right. A branch-aware checker (Django templates are not HTML until rendered, so every `{% if %}` branch has to be measured separately) then found **nine served templates** with unbalanced markup:
+
+**1. `accounts/backend_dashboard.html` — `#section-today` never closed.** Introduced 2026-05-12 in the same commit that added the sticky section-nav, and live for three months. The nav links to `#section-today`, `#section-attention` and `#section-readiness` as three siblings; because the first never closed, the other two became its **children**, so the section-nav's own scroll-spy could never resolve a correct active section. The page container was left open at `{% endblock %}` too, so whatever the base renders after the block was absorbed into `.backend-admin-role-home` — which carries `data-rmc-scroll-policy="paginate"`.
+
+**2. `accounts/profile.html` — a surplus `</div>` closed the grid early.** `.rmc-account-layout-grid` (`data-rmc-balanced-layout="account-profile"`) shut at the identity card, so the Badges, Finance and Console cards fell **out of the balanced grid** and rendered full-width beneath it.
+
+**3. `emis/dashboard.html` — "Recent Exports" fell outside `.emis-dashboard-widgets`.** That matters because the styling is a *descendant* selector (`.emis-dashboard-widgets .card`), so the card silently lost it while looking almost right.
+
+**4–5. `marketplace/signup_review_queue.html` and `marketplace/webhook_endpoints.html` shipped `</motion>`.** There is no `<motion>` element in HTML, and no `<motion` open tag anywhere in the tree — it stood where `</div>` belonged, closing `rmc-row-disclosure__body`. A browser **discards an unknown end tag**, so the disclosure body stayed open once per table row. Almost certainly the residue of a bulk edit that injected the row-disclosure component; the same edit left several `<form>` and `<a>` tags flattened to column 0.
+
+**6. `compliance/data_rights_queue.html` — broken markup in the empty state only.** The same bulk edit dropped an "Actions" `<details>` and a `rmc-row-disclosure__body` into the `{% empty %}` placeholder row — a disclosure for a row that by definition has nothing to act on — and closed neither. It rendered correctly whenever the queue had entries and broke when it was empty, which is the harder case to notice.
+
+**7. `siteconfig/report_library.html` — a `<details>` per row in a file with zero `</details>`.** Opened inline alongside `rmc-row-disclosure__body`; neither closed.
+
+**8–9. `analytics/dashboard.html`** carried both defects at once — a surplus `</div>` inside the collapsible KPI grid *and* two missing closers at the end — and a comment claiming to close `analytics-dashboard-widgets` on a line that actually closed the tertiary row, which is part of why it stayed hidden. Its tail now names what each closer closes.
+
+**Sealed, not just fixed:** `scripts/verify_template_html_structure.py` — the third floor gate after Python-parses and JavaScript-parses, and the quietest of the three. Python fails loudly at import; JavaScript fails silently in the console; **unbalanced markup does not fail anywhere** — the template compiles, `manage.py check` is clean, the view returns 200, and the browser repairs the document by reparenting everything after the unclosed element. Three checks: unknown end tags, net `<div>` balance, and balance for 21 containers whose end tag is required. Elements with *optional* end tags (`<li>`, `<td>`, `<tr>`, `<p>`) are excluded on purpose — omitting those is legal HTML, and flagging them is the noise that gets a gate ignored. Deliberate `_open`/`_close` partial pairs (6 files) now carry `{# html-structure-allow: <reason> #}` stating the coupling in the file rather than in someone's memory. 1,899 templates, ~7s, stdlib only, no baseline. **Proven by mutation against the pre-fix files from `HEAD`: 9 of 9 caught.** 22 tests; wired into `architectural-boundaries.yml`, `REQUIRED_GATES` (49 gates) and `pre_push_boundary_check.py` (17 gates).
+
+**Two false positives the gate had first, both now locked by tests.** Stripping `<style>` before `{% comment %}` let a comment whose prose *mentions* "&lt;style&gt;" swallow its own `{% endcomment %}` and every tag down to the next `</style>` — that reported four clean email templates as broken. And flagging `{% if %}` branches that disagree fired on the correct `{% if x %}<a>{% else %}<div>{% endif %}` wrapper idiom, so a disagreement is now reported only when the file is *also* net-unbalanced, where it serves as localization. Both were caught by checking the tool against templates it called broken instead of trusting it.
+
 ## 2026-08-20 — Executing the edge-sync upgrade brief end to end: deletions, files, long-poll, replay defence — and six live API endpoints that 500 on every GET
 
 `docs/EDGE_SYNC_UPGRADE_BRIEF.md` was written the day before as a *prompt*. This pass ran it. All seven gaps plus the replay-defence item are implemented, tested and landed; the brief now carries a `DONE` line per gap and a `## What shipped` section naming what is still deliberately open. Everything below was found or proven by RUNNING the code.
