@@ -19,6 +19,14 @@ env/
 # Environment and secrets
 .env
 .env.local
+# Backups of a live .env carry every secret it held -- DB password, SECRET_KEY,
+# encryption keys. The key-rotation runbook tells operators to snapshot .env
+# before editing, and a self-hosted box IS a git checkout, so an un-ignored
+# .env.bak is a committable secrets file. Tracked *.example templates are
+# unaffected: these patterns only match .bak names.
+.env.bak*
+*.env.bak*
+.env.backup*
 *.pem
 
 # Django
