@@ -350,7 +350,9 @@ def _execute_sync_transport(school, *, mode, result, run_row) -> None:
                     drained_updates = False
                     break
                 if not (status == 200 and body.get("ok")):
-                    errors.append(f"push rejected (HTTP {status})")
+                    from apps.sync_engine.connectivity_probe import format_http_rejection
+
+                    errors.append(format_http_rejection("push", status, body))
                     drained_updates = False
                     break
                 posted_pages += 1
@@ -423,7 +425,9 @@ def _execute_sync_transport(school, *, mode, result, run_row) -> None:
             )
 
         if status != 200:
-            errors.append(f"pull rejected (HTTP {status})")
+            from apps.sync_engine.connectivity_probe import format_http_rejection
+
+            errors.append(format_http_rejection("pull", status, body))
         elif mode == "dry":
             notes.append("cloud reachable, credential accepted (no changes applied)")
         else:

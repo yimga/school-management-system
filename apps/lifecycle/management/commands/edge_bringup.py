@@ -30,7 +30,13 @@ class Command(BaseCommand):
         parser.add_argument("--slug", required=True, help="Box-side school slug.")
         parser.add_argument("--country", default="", help="ISO country code (for provisioning).")
         parser.add_argument("--owner-email", dest="owner_email", default="", help="Owner email for the shell import.")
-        parser.add_argument("--bundle", default="", help="Path to the tenant data .rmcbundle.")
+        parser.add_argument("--bundle", default="", help="Path to the tenant SHELL .rmcbundle (imported with --fresh).")
+        parser.add_argument(
+            "--data-bundle",
+            dest="data_bundle",
+            default="",
+            help="Path to the pk-preserving DATA .rmcbundle (import_tenant_bundle, never --fresh).",
+        )
         parser.add_argument("--identity", default="", help="Path to the .rmcidentity bundle.")
         parser.add_argument("--brand", default="", help="Path to the .rmcbrand branding bundle.")
         parser.add_argument("--mint-credential", action="store_true", help="Mint a per-box edge sync credential.")
@@ -54,6 +60,7 @@ class Command(BaseCommand):
             country=(options.get("country") or "").strip(),
             owner_email=(options.get("owner_email") or "").strip(),
             bundle_path=(options.get("bundle") or "").strip(),
+            data_bundle_path=(options.get("data_bundle") or "").strip(),
             identity_path=(options.get("identity") or "").strip(),
             brand_path=(options.get("brand") or "").strip(),
             mint_credential=bool(options.get("mint_credential")),

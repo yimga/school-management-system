@@ -36,6 +36,23 @@ from apps.schools.rls_context import rls_bypass
 StepCheck = Callable[[Any], "tuple[bool, str]"]
 
 
+# Where the operator runs the step. Cloud GET must never pretend a box/LAN
+# settings check or a network probe ran on manager.runmycampus.com.
+RUNS_ON_CLOUD = "cloud"
+RUNS_ON_BOX = "box"
+RUNS_ON_LAN = "lan"
+
+# What the validate() call actually inspects.
+EVIDENCE_SOURCE_TENANT = "source_tenant"
+EVIDENCE_BOX_SETTINGS = "box_settings"
+EVIDENCE_OPERATOR_FILE = "operator_file"
+EVIDENCE_NETWORK = "network"
+EVIDENCE_COMPOSITE = "composite"
+
+ONBOARDING_SETTINGS_KEY = "rmc_edge_onboarding"
+MC_SKIP_REASON_MIN_LEN = 12
+
+
 @dataclass(frozen=True)
 class EdgeOnboardingStep:
     """One immutable, ordered step of the edge bring-up runbook.
@@ -46,6 +63,12 @@ class EdgeOnboardingStep:
     check (returns ``(ok, detail)``, never raises past its own guard); ``workaround``
     is the human fallback when a step can't complete; ``self_heal`` (optional) is an
     automated remediation the engine can attempt.
+
+    ``runs_on`` is ``cloud`` | ``box`` | ``lan``. ``evidence`` says what the
+    check inspects so a manager-host preview can skip box-settings/network
+    without faking a PASS. ``cloud_preview`` False means the step is omitted
+    from ``run_verification_suite(..., include_gate=False)`` (no network, no
+    EdgeSyncRun write).
     """
 
     key: str
@@ -56,6 +79,11 @@ class EdgeOnboardingStep:
     validate: StepCheck
     workaround: str
     self_heal: Optional[StepCheck] = field(default=None)
+    runs_on: str = RUNS_ON_BOX
+    evidence: str = EVIDENCE_SOURCE_TENANT
+    cloud_preview: bool = True
+    named_url_name: str = ""
+    help_doc: str = ""
 
 
 # --------------------------------------------------------------------------- #
@@ -95,6 +123,44 @@ def _operator_base() -> str:
 
 def _edge_token() -> str:
     return (os.getenv("RMC_EDGE_CREDENTIAL") or "").strip()
+
+
+def _onboarding_state(school) -> dict:
+    """Tenant-scoped onboarding overlay in ``school.settings``. Never raises."""
+    try:
+        settings_blob = getattr(school, "settings", None) or {}
+        if not isinstance(settings_blob, dict):
+            return {}
+        blob = settings_blob.get(ONBOARDING_SETTINGS_KEY) or {}
+        return dict(blob) if isinstance(blob, dict) else {}
+    except Exception:  # noqa: BLE001
+        return {}
+
+
+def migration_cloud_skip_reason(school) -> str:
+    return str(_onboarding_state(school).get("migration_cloud_skip_reason") or "").strip()
+
+
+def set_migration_cloud_skip_reason(school, reason: str) -> "tuple[bool, str]":
+    """Persist an operator skip (≥12 chars) on the source tenant. Never auto-applies MC."""
+    text = str(reason or "").strip()
+    if len(text) < MC_SKIP_REASON_MIN_LEN:
+        return False, (
+            f"Skip reason must be at least {MC_SKIP_REASON_MIN_LEN} characters "
+            "(explain why Migration Cloud does not apply)."
+        )
+    try:
+        from apps.schools.models import School
+
+        blob = dict(getattr(school, "settings", None) or {})
+        overlay = dict(blob.get(ONBOARDING_SETTINGS_KEY) or {})
+        overlay["migration_cloud_skip_reason"] = text[:500]
+        blob[ONBOARDING_SETTINGS_KEY] = overlay
+        School.objects.filter(pk=school.pk).update(settings=blob)
+        school.settings = blob
+        return True, "Migration Cloud skip recorded."
+    except Exception as exc:  # noqa: BLE001
+        return False, f"could not record skip: {exc}"
 
 
 def _school_has_entitlements(school) -> bool:
@@ -304,6 +370,225 @@ def _validate_verify_and_sync_gate(school) -> "tuple[bool, str]":
     return bool(gate.get("cleared")), str(gate.get("detail") or "")
 
 
+def _validate_cloud_entitle_pin(school) -> "tuple[bool, str]":
+    """Source tenant is active, entitled, and has a stable UUID to pin on the box."""
+    try:
+        if not _school_id(school):
+            return False, "School has no UUID — cannot pin the box parent."
+        ok, detail = _validate_provision_shell(school)
+        if not ok:
+            return False, detail
+        return True, f"Source tenant is active, entitled, and pinable at UUID {_school_id(school)}."
+    except Exception as exc:  # noqa: BLE001
+        return False, f"entitle/pin check failed: {exc}"
+
+
+def _validate_migration_cloud_apply(school) -> "tuple[bool, str]":
+    """Pass when an MC bundle is applied/reconciled, or an operator skip reason (≥12 chars) exists."""
+    try:
+        skip = migration_cloud_skip_reason(school)
+        if len(skip) >= MC_SKIP_REASON_MIN_LEN:
+            return True, f"Migration Cloud skipped by operator ({len(skip)}-char reason)."
+        from apps.migration_cloud.models import BundleStatus, MigrationBundle
+
+        applied = {BundleStatus.APPLIED, BundleStatus.RECONCILED}
+        with rls_bypass():
+            row = (
+                MigrationBundle.objects.filter(school=school, status__in=applied)
+                .order_by("-id")
+                .only("id", "status")
+                .first()
+            )
+        if row is not None:
+            return True, f"Migration Cloud bundle {row.id} is {row.status}."
+        return (
+            False,
+            "No applied Migration Cloud bundle on this source tenant. Apply the "
+            "connector import on the cloud (students/staff/finance), or record a "
+            f"skip reason of at least {MC_SKIP_REASON_MIN_LEN} characters. "
+            "Delta sync is not a bulk loader — do not Sync now to seed the box.",
+        )
+    except Exception as exc:  # noqa: BLE001
+        return False, f"migration-cloud check failed: {exc}"
+
+
+def _validate_sync_ownership(school) -> "tuple[bool, str]":
+    """No row that provably belongs to this school may be left unowned.
+
+    Edge sync ships ``filter(school=school)``, so a row with ``school_id`` NULL
+    reaches NO box, ever, and nothing reports it — the tenant simply never sees
+    that data on the box. Production hit exactly this: every academics row was
+    unowned, so the whole curriculum was structurally unsyncable while the
+    runbook looked green.
+
+    Only ASSIGNABLE rows fail this step. Foreign / ambiguous rows are somebody
+    else's problem to adjudicate and must never block or be auto-claimed here.
+    """
+    try:
+        from apps.sync_engine.ownership_repair import ASSIGNABLE, plan_ownership_repair
+
+        plan = plan_ownership_repair(school)
+        counts = plan.get("counts") or {}
+        claimable = int(counts.get(ASSIGNABLE) or 0)
+        if claimable:
+            return False, (
+                f"{claimable} row(s) have no school but provably belong to this one — "
+                "they can never sync until claimed. Run the self-heal, or "
+                "repair_sync_ownership --apply."
+            )
+        leftovers = {k: v for k, v in counts.items() if v}
+        if leftovers:
+            detail = ", ".join(f"{k}={v}" for k, v in sorted(leftovers.items()))
+            return True, f"No claimable rows. Unowned but not attributable: {detail}."
+        return True, "Every syncable row has an owner."
+    except Exception as exc:  # noqa: BLE001 — a check must never break the runbook
+        return False, f"Ownership audit could not run: {str(exc)[:160]}"
+
+
+def _heal_sync_ownership(school) -> "tuple[bool, str]":
+    """Claim only the rows whose owner was INFERRED from referring data."""
+    try:
+        from apps.sync_engine.ownership_repair import apply_ownership_repair
+
+        result = apply_ownership_repair(school)
+        total = int(result.get("total") or 0)
+        if not total:
+            return False, "Nothing was claimable — no evidence-backed rows to assign."
+        detail = ", ".join(f"{k}={v}" for k, v in sorted(result["updated"].items()))
+        return True, f"Claimed {total} unowned row(s): {detail}. They ship on the next delta."
+    except Exception as exc:  # noqa: BLE001 — self-heal never raises to the runbook
+        return False, f"Ownership repair failed: {str(exc)[:160]}"
+
+
+def _validate_export_cloud_artifacts(school) -> "tuple[bool, str]":
+    """The three export commands are real; this host can export if the school is active."""
+    try:
+        if not bool(getattr(school, "is_active", False)):
+            return False, "School is inactive — activate before exporting cloud artifacts."
+        if not _school_id(school):
+            return False, "School has no UUID — export would not pin."
+        return True, (
+            "Source tenant can be exported (identities + branding + sovereign data). "
+            "Confirm the three files exist on disk before the box import — the engine "
+            "cannot see /srv/rmc."
+        )
+    except Exception as exc:  # noqa: BLE001
+        return False, f"export-readiness check failed: {exc}"
+
+
+def _validate_seed_operational_data(school) -> "tuple[bool, str]":
+    """Students and/or classrooms exist — the pk-preserving data seed, not --fresh, not delta sync."""
+    try:
+        from apps.academics.models import Classroom
+        from apps.people.models import StudentProfile
+
+        with rls_bypass():
+            student_n = StudentProfile.objects.filter(school=school).count()
+            classroom_n = Classroom.objects.filter(school=school).count()
+        if student_n or classroom_n:
+            return True, (
+                f"Operational roster present ({student_n} student(s), "
+                f"{classroom_n} classroom(s))."
+            )
+        return (
+            False,
+            "No students or classrooms — import the pk-preserving data bundle "
+            "(import_tenant_bundle / import_sovereign_tenant WITHOUT --fresh). "
+            "Delta sync is not a bulk loader; Sync now will not carry the initial roster.",
+        )
+    except Exception as exc:  # noqa: BLE001
+        return False, f"operational-data check failed: {exc}"
+
+
+def _validate_conversion_first_action(school) -> "tuple[bool, str]":
+    try:
+        from apps.schools.conversion_lock_state import school_first_action_completed
+
+        if school_first_action_completed(school):
+            return True, "Conversion first-value recorded; workspace unlocked."
+        return (
+            False,
+            "Conversion lock still on — save one attendance, mark, report, or payment "
+            "(or the activation first-action CTA). Imports are not blocked; the UI is.",
+        )
+    except Exception as extra:  # noqa: BLE001
+        return False, f"conversion-lock check failed: {extra}"
+
+
+def _latest_sync_run(school, *, mode: str):
+    from apps.sync_engine.models import EdgeSyncRun
+
+    with rls_bypass():
+        return (
+            EdgeSyncRun.objects.filter(school=school, mode=mode)
+            .order_by("-created_at")
+            .first()
+        )
+
+
+def _validate_live_sync_proof(school) -> "tuple[bool, str]":
+    """Read-only: last successful LIVE EdgeSyncRun. Never calls run_sync_cycle."""
+    try:
+        row = _latest_sync_run(school, mode="live")
+        if row is None:
+            return (
+                False,
+                "No live Class-A sync recorded yet. After the dry gate, run a live "
+                "cycle ON THE BOX (edge_sync_resync / Sync Center). Never Sync now "
+                "from the manager console to seed data.",
+            )
+        if not bool(getattr(row, "ok", False)):
+            err = (getattr(row, "error", "") or getattr(row, "message", "") or "failed")[:180]
+            return False, f"Last live sync did not succeed: {err}"
+        conflicts = int(getattr(row, "conflicts", 0) or 0)
+        return True, (
+            f"Last live sync ok (pushed={getattr(row, 'pushed', 0)}, "
+            f"pulled={getattr(row, 'pulled', 0)}, conflicts={conflicts})."
+        )
+    except Exception as extra:  # noqa: BLE001
+        return False, f"live-sync proof failed: {extra}"
+
+
+def _validate_go_dark_checklist(school) -> "tuple[bool, str]":
+    """Composite pre-offline proof: dry gate row, live proof, zero conflicts, data, conversion."""
+    try:
+        parts: list[str] = []
+        dry = _latest_sync_run(school, mode="dry")
+        dry_ok = bool(dry and getattr(dry, "ok", False))
+        parts.append("dry-gate=" + ("ok" if dry_ok else "missing"))
+
+        live_ok, live_detail = _validate_live_sync_proof(school)
+        parts.append("live=" + ("ok" if live_ok else "not-ok"))
+
+        live_row = _latest_sync_run(school, mode="live")
+        conflicts = int(getattr(live_row, "conflicts", 0) or 0) if live_row is not None else -1
+        parts.append(f"conflicts={conflicts if conflicts >= 0 else 'n/a'}")
+
+        data_ok, _ = _validate_seed_operational_data(school)
+        conv_ok, _ = _validate_conversion_first_action(school)
+        parts.append("roster=" + ("ok" if data_ok else "empty"))
+        parts.append("conversion=" + ("unlocked" if conv_ok else "locked"))
+
+        from apps.academics.models import AcademicYear
+
+        with rls_bypass():
+            locked_n = AcademicYear.objects.filter(school=school, is_locked=True).count()
+            soft_n = AcademicYear.objects.filter(school=school, is_soft_closed=True).count()
+        parts.append(
+            f"year-governance: cloud owns hard-close ({locked_n} locked) and "
+            f"soft-close ({soft_n} soft-closed); the box cannot reopen a cloud lock. "
+            "Finance stays cloud-authoritative / down-only."
+        )
+
+        if dry_ok and live_ok and conflicts == 0 and data_ok and conv_ok:
+            return True, "Go-dark checklist cleared. " + " ".join(parts)
+        return False, "Go-dark checklist not cleared. " + " ".join(parts) + (
+            "" if live_ok else f" Live: {live_detail}"
+        )
+    except Exception as extra:  # noqa: BLE001
+        return False, f"go-dark checklist failed: {extra}"
+
+
 # --------------------------------------------------------------------------- #
 # Self-heal callables (optional) — also never raise past their guard.
 # --------------------------------------------------------------------------- #
@@ -327,15 +612,109 @@ def _heal_seed_baseline(school) -> "tuple[bool, str]":
 
 
 # --------------------------------------------------------------------------- #
-# The ORDERED runbook — seven steps, provisioning through the pre-offline gate.
+# The ORDERED runbook — cloud data path through go-dark. Delta sync is never
+# a bulk loader; --fresh never seeds roster/finance.
 # --------------------------------------------------------------------------- #
 EDGE_ONBOARDING_STEPS: "tuple[EdgeOnboardingStep, ...]" = (
+    EdgeOnboardingStep(
+        key="cloud_entitle_pin",
+        title="Entitle and pin the source tenant (cloud)",
+        purpose=(
+            "Confirm the cloud school is active, entitled, and has a stable UUID. "
+            "The box parent is pinned to this exact id so pk-preserving imports land."
+        ),
+        category="provision",
+        command_template=(
+            "python manage.py ensure_gilead_sovereignty_entitlements   "
+            "# tenant {slug} pin UUID {school_id} ({country})"
+        ),
+        validate=_validate_cloud_entitle_pin,
+        workaround=(
+            "If entitlements are missing, run ensure_gilead_sovereignty_entitlements. "
+            "If the school is inactive, activate it on the cloud before any box import."
+        ),
+        runs_on=RUNS_ON_CLOUD,
+        evidence=EVIDENCE_SOURCE_TENANT,
+        named_url_name="super:dashboard",
+        help_doc="docs/EDGE_CLOUD_SYNC_OPERATOR_RUNBOOK.md",
+    ),
+    EdgeOnboardingStep(
+        key="migration_cloud_apply",
+        title="Apply Migration Cloud on the cloud (or skip with a reason)",
+        purpose=(
+            "Bulk-load the school's real files (students, staff, finance) on the CLOUD. "
+            "Delta sync will not carry this initial import. Skip only with a written "
+            "reason of at least 12 characters (empty shell, already loaded, etc.)."
+        ),
+        category="migration",
+        command_template=(
+            "# On the cloud operator console — never 'Sync now' to seed data:\n"
+            "# Open Migration Cloud → upload → map → apply for {slug} (id {school_id})."
+        ),
+        validate=_validate_migration_cloud_apply,
+        workaround=(
+            "No SIS files? Record a skip reason (≥12 characters) on this runbook page. "
+            "Do not use Sync now as a substitute for Migration Cloud apply."
+        ),
+        runs_on=RUNS_ON_CLOUD,
+        evidence=EVIDENCE_SOURCE_TENANT,
+        named_url_name="migration_cloud_super:bundle_new",
+        help_doc="docs/EDGE_CLOUD_SYNC_OPERATOR_RUNBOOK.md",
+    ),
+    EdgeOnboardingStep(
+        key="sync_ownership_repair",
+        title="Give every syncable row an owner (cloud)",
+        purpose=(
+            "Edge sync ships rows with filter(school=school), so a row whose school_id "
+            "is NULL can never reach any box — silently, forever. This claims the rows "
+            "that provably belong to this tenant (inferred from the rows referencing "
+            "them) and reports any that are ambiguous or belong to another school."
+        ),
+        category="migration",
+        command_template=(
+            "python manage.py repair_sync_ownership --school {slug}   "
+            "# dry run; re-run with --apply once the verdicts look right"
+        ),
+        validate=_validate_sync_ownership,
+        self_heal=_heal_sync_ownership,
+        workaround=(
+            "Rows listed AMBIGUOUS or FOREIGN are never auto-claimed — they are "
+            "referenced by more than one school, or by a different one. Decide the "
+            "owner by hand before importing more data on top of them."
+        ),
+        runs_on=RUNS_ON_CLOUD,
+        evidence=EVIDENCE_SOURCE_TENANT,
+        help_doc="docs/EDGE_CLOUD_SYNC_OPERATOR_RUNBOOK.md",
+    ),
+    EdgeOnboardingStep(
+        key="export_cloud_artifacts",
+        title="Export identity, branding, and sovereign data (cloud)",
+        purpose=(
+            "Package three artifacts on the cloud: identities, branding, and the "
+            "pk-preserving operational data bundle. Copy them to the box before import."
+        ),
+        category="export",
+        command_template=(
+            "python manage.py export_tenant_identities --slug {slug} --out /srv/rmc/{slug}.rmcidentity\n"
+            "python manage.py export_school_branding --slug {slug} --out /srv/rmc/{slug}.rmcbrand\n"
+            "python manage.py export_tenant_bundle --slug {slug} --out /srv/rmc/{slug}.rmcbundle"
+        ),
+        validate=_validate_export_cloud_artifacts,
+        workaround=(
+            "If an export command is missing, you are on a build that cannot seed the box. "
+            "Do not invent a CSV copy — use these three commands."
+        ),
+        runs_on=RUNS_ON_CLOUD,
+        evidence=EVIDENCE_OPERATOR_FILE,
+        help_doc="docs/EDGE_CLOUD_SYNC_OPERATOR_RUNBOOK.md",
+    ),
     EdgeOnboardingStep(
         key="provision_shell",
         title="Provision the sovereign tenant shell",
         purpose=(
             "Pin the School parent at the cloud bundle's exact UUID and provision a "
-            "clean, RLS-safe, entitled, loginable shell (no bundle data load)."
+            "clean, RLS-safe, entitled, loginable shell (no bundle data load). "
+            "--fresh is the EMPTY-SHELL path only."
         ),
         category="provision",
         command_template=(
@@ -349,6 +728,9 @@ EDGE_ONBOARDING_STEPS: "tuple[EdgeOnboardingStep, ...]" = (
             "ensure_gilead_sovereignty_entitlements. If the slug already resolves to a "
             "DIFFERENT UUID, rename/remove that school first — the importer refuses to guess."
         ),
+        runs_on=RUNS_ON_BOX,
+        evidence=EVIDENCE_SOURCE_TENANT,
+        help_doc="docs/EDGE_CLOUD_SYNC_OPERATOR_RUNBOOK.md",
     ),
     EdgeOnboardingStep(
         key="migrate_identities",
@@ -369,24 +751,8 @@ EDGE_ONBOARDING_STEPS: "tuple[EdgeOnboardingStep, ...]" = (
             "ensure_default_tenant_admin --slug <slug> (or the shell import already made "
             "one) and have members reset passwords + re-enroll MFA on the box."
         ),
-    ),
-    EdgeOnboardingStep(
-        key="seed_baseline",
-        title="Seed the country academic baseline",
-        purpose=(
-            "Seed the country minimum defaults — academic year + terms (real dates), "
-            "grading scale, subjects + national codes, TVET trades, admission template, "
-            "curriculum, and grids. Idempotent."
-        ),
-        category="academics",
-        command_template="python manage.py backfill_country_baseline --school {slug}",
-        validate=_validate_seed_baseline,
-        workaround=(
-            "If the country catalog is missing, set the school's country_code (which "
-            "seeds region defaults) then re-run; or configure the term window + grading "
-            "scale manually in Academics settings."
-        ),
-        self_heal=_heal_seed_baseline,
+        runs_on=RUNS_ON_BOX,
+        evidence=EVIDENCE_SOURCE_TENANT,
     ),
     EdgeOnboardingStep(
         key="media_branding",
@@ -397,13 +763,7 @@ EDGE_ONBOARDING_STEPS: "tuple[EdgeOnboardingStep, ...]" = (
         ),
         category="branding",
         command_template=(
-            # On the CLOUD: package the logo (as a DB-resident data URI + raw bytes),
-            # colours, and brand profile. On the BOX: apply it — the logo renders with
-            # no internet and logo_url is set to a box-resolvable /media/… path.
-            "# On the cloud, export the branding:\n"
-            "python manage.py export_school_branding --slug {slug} --out {slug}.rmcbrand\n"
-            "# Copy {slug}.rmcbrand to the box, then on the box:\n"
-            "python manage.py import_school_branding --in {slug}.rmcbrand --slug {slug}"
+            "python manage.py import_school_branding --in /srv/rmc/{slug}.rmcbrand --slug {slug}"
         ),
         validate=_validate_media_branding,
         workaround=(
@@ -412,6 +772,72 @@ EDGE_ONBOARDING_STEPS: "tuple[EdgeOnboardingStep, ...]" = (
             "(never a crash). Do NOT hand-set logo_url to an off-box https URL: it will "
             "not resolve on an offline box."
         ),
+        runs_on=RUNS_ON_BOX,
+        evidence=EVIDENCE_SOURCE_TENANT,
+    ),
+    EdgeOnboardingStep(
+        key="seed_operational_data",
+        title="Import the pk-preserving operational data bundle (not --fresh, not Sync now)",
+        purpose=(
+            "Load students, classrooms, and other operational rows onto the box with "
+            "the SAME primary keys as the cloud. This is the initial data seed. "
+            "Never use --fresh here. Never use delta sync / Sync now as a bulk loader."
+        ),
+        category="data",
+        command_template=(
+            "python manage.py import_tenant_bundle --in /srv/rmc/{slug}.rmcbundle "
+            "--expect-school-id {school_id}"
+        ),
+        validate=_validate_seed_operational_data,
+        workaround=(
+            "Equivalent: import_sovereign_tenant WITHOUT --fresh after the shell exists. "
+            "If the target is not empty, the importer refuses — that is safety, not a bug. "
+            "Do not click Sync now to invent a roster."
+        ),
+        runs_on=RUNS_ON_BOX,
+        evidence=EVIDENCE_SOURCE_TENANT,
+        help_doc="docs/EDGE_CLOUD_SYNC_OPERATOR_RUNBOOK.md",
+    ),
+    EdgeOnboardingStep(
+        key="seed_baseline",
+        title="Seed the country academic baseline",
+        purpose=(
+            "Seed the country minimum defaults — academic year + terms (real dates), "
+            "grading scale, subjects + national codes, TVET trades, admission template, "
+            "curriculum, and grids. Idempotent; does not replace imported roster rows."
+        ),
+        category="academics",
+        command_template="python manage.py backfill_country_baseline --school {slug}",
+        validate=_validate_seed_baseline,
+        workaround=(
+            "If the country catalog is missing, set the school's country_code (which "
+            "seeds region defaults) then re-run; or configure the term window + grading "
+            "scale manually in Academics settings."
+        ),
+        self_heal=_heal_seed_baseline,
+        runs_on=RUNS_ON_BOX,
+        evidence=EVIDENCE_SOURCE_TENANT,
+    ),
+    EdgeOnboardingStep(
+        key="conversion_first_action",
+        title="Clear the conversion / first-value lock",
+        purpose=(
+            "The box UI stays gated until one first value is recorded (attendance, mark, "
+            "report, or payment). Imports are not blocked; operators still need the UI."
+        ),
+        category="activation",
+        command_template=(
+            "# On the box UI after login: complete Activation First Action for {slug}, "
+            "or save one attendance / mark / report / payment."
+        ),
+        validate=_validate_conversion_first_action,
+        workaround=(
+            "The pink first-action CTA on the activation screen records completion. "
+            "There is no manage.py skip — first value must be real."
+        ),
+        runs_on=RUNS_ON_BOX,
+        evidence=EVIDENCE_SOURCE_TENANT,
+        help_doc="docs/EDGE_CLOUD_SYNC_OPERATOR_RUNBOOK.md",
     ),
     EdgeOnboardingStep(
         key="configure_box_env",
@@ -429,17 +855,16 @@ EDGE_ONBOARDING_STEPS: "tuple[EdgeOnboardingStep, ...]" = (
             "box set SECURE_SSL_REDIRECT / SESSION_COOKIE_SECURE / CSRF_COOKIE_SECURE / "
             "HSTS all to 0, and schedule run_periodic_jobs on cron when there is no broker."
         ),
+        runs_on=RUNS_ON_BOX,
+        evidence=EVIDENCE_BOX_SETTINGS,
     ),
     EdgeOnboardingStep(
         key="configure_lan_hostname",
         title="Give the box a stable LAN hostname (DNS)",
         purpose=(
             "Map a stable name — {slug}.school.lan — to the box's FIXED LAN IP so "
-            "clients reach it by name: the address can move, browsers can't cleanly "
-            "TLS a bare IP, and the app (django-tenants) routes each tenant by "
-            "hostname. The box serves plain HTTP on its LAN port, so the working URL "
-            "is http://{slug}.school.lan:<web-port>/ — NOT https:// (the box has no "
-            "TLS; an https:// URL is the 'no lock' failure)."
+            "clients reach it by name. The box serves plain HTTP, so the working URL "
+            "is http://{slug}.school.lan:<web-port>/ — NOT https://."
         ),
         category="network",
         command_template=(
@@ -471,6 +896,9 @@ EDGE_ONBOARDING_STEPS: "tuple[EdgeOnboardingStep, ...]" = (
             "with a reverse proxy (Caddy / nginx + a local CA) and flip the "
             "secure-cookie flags back to 1. See docs/EDGE_LAN_HOSTNAME_DNS.md."
         ),
+        runs_on=RUNS_ON_LAN,
+        evidence=EVIDENCE_BOX_SETTINGS,
+        help_doc="docs/EDGE_LAN_HOSTNAME_DNS.md",
     ),
     EdgeOnboardingStep(
         key="enable_configure_sync",
@@ -478,7 +906,8 @@ EDGE_ONBOARDING_STEPS: "tuple[EdgeOnboardingStep, ...]" = (
         purpose=(
             "Turn on RMC_EDGE_SYNC_ENABLED and configure the operator base URL + a minted "
             "per-box edge credential so the box can push local changes up and pull cloud "
-            "changes down (money stays cloud-authoritative)."
+            "changes down (money stays cloud-authoritative). This keeps both sides "
+            "converged AFTER the data seed — it does not load the initial roster."
         ),
         category="sync",
         command_template=(
@@ -491,6 +920,9 @@ EDGE_ONBOARDING_STEPS: "tuple[EdgeOnboardingStep, ...]" = (
             "copy the one-time token onto the box as RMC_EDGE_CREDENTIAL; if the box has no "
             "outbound reach yet, leave sync off and re-run this step once connectivity exists."
         ),
+        runs_on=RUNS_ON_BOX,
+        evidence=EVIDENCE_BOX_SETTINGS,
+        named_url_name="siteconfig:sync_center",
     ),
     EdgeOnboardingStep(
         key="verify_and_sync_gate",
@@ -498,22 +930,59 @@ EDGE_ONBOARDING_STEPS: "tuple[EdgeOnboardingStep, ...]" = (
         purpose=(
             "Prove the box is done: run the full verification suite AND the MANDATORY "
             "no-write dry sync probe (connectivity + credential accepted) that must clear "
-            "before the box may go offline."
+            "before the box may go offline. Runs on the box only — never from a cloud GET."
         ),
         category="verification",
-        command_template=(
-            "python manage.py shell -c \"from apps.lifecycle import edge_onboarding as e; "
-            "from apps.schools.models import School; import json; "
-            "s=School.objects.get(slug='{slug}'); "
-            "print(json.dumps(e.run_verification_suite(s), default=str)); "
-            "print(json.dumps(e.run_sync_gate(s), default=str))\""
-        ),
+        command_template="python manage.py edge_onboarding_verify --slug {slug} --include-gate",
         validate=_validate_verify_and_sync_gate,
         workaround=(
             "If the dry sync gate does not clear, the box is NOT cleared to go offline: "
             "fix connectivity to the operator base URL and re-mint/re-set the edge "
             "credential, then re-run. Never take a box dark on a red gate."
         ),
+        runs_on=RUNS_ON_BOX,
+        evidence=EVIDENCE_NETWORK,
+        cloud_preview=False,
+    ),
+    EdgeOnboardingStep(
+        key="live_sync_proof",
+        title="Prove one live Class-A round-trip (after the dry gate)",
+        purpose=(
+            "After the dry gate, run one LIVE sync on the box and confirm it succeeded. "
+            "This is convergence proof, not a data loader."
+        ),
+        category="verification",
+        command_template="python manage.py edge_sync_cycle --slug {slug}",
+        validate=_validate_live_sync_proof,
+        workaround=(
+            "If live sync fails, read Sync Center conflicts. Money stays cloud-authoritative. "
+            "Do not retry from the manager host — the credential lives on the box."
+        ),
+        runs_on=RUNS_ON_BOX,
+        evidence=EVIDENCE_NETWORK,
+        cloud_preview=False,
+        named_url_name="siteconfig:sync_center",
+    ),
+    EdgeOnboardingStep(
+        key="go_dark_checklist",
+        title="Go-dark checklist (finance down-only, year lock owned by cloud)",
+        purpose=(
+            "Final composite: dry gate recorded ok, live sync ok with zero conflicts, "
+            "roster present, conversion unlocked. Finance is cloud-authoritative / down-only. "
+            "Academic year hard-close and soft-close are owned by the cloud; the box cannot reopen them."
+        ),
+        category="verification",
+        command_template="python manage.py edge_onboarding_verify --slug {slug} --include-gate",
+        validate=_validate_go_dark_checklist,
+        workaround=(
+            "Stay online until every go-dark line is green. A box with an empty roster "
+            "or a red live sync is not offline-ready."
+        ),
+        runs_on=RUNS_ON_BOX,
+        evidence=EVIDENCE_COMPOSITE,
+        cloud_preview=False,
+        named_url_name="super:dashboard",
+        help_doc="docs/EDGE_CLOUD_SYNC_OPERATOR_RUNBOOK.md",
     ),
 )
 
@@ -535,8 +1004,8 @@ def generate_runbook(school) -> dict:
     """A deterministic, ordered, per-school runbook.
 
     Returns ``{school_id, slug, country, total, steps}`` where each step is
-    ``{key, title, purpose, category, command, workaround}`` with the command's
-    ``{slug}`` / ``{school_id}`` / ``{country}`` placeholders filled from the school.
+    ``{key, title, purpose, category, command, workaround, runs_on, evidence,
+    named_url_name, help_doc, cloud_preview}`` with placeholders filled.
     """
     steps: list[dict] = []
     for step in EDGE_ONBOARDING_STEPS:
@@ -552,6 +1021,11 @@ def generate_runbook(school) -> dict:
                 "category": step.category,
                 "command": command,
                 "workaround": step.workaround,
+                "runs_on": step.runs_on,
+                "evidence": step.evidence,
+                "named_url_name": step.named_url_name,
+                "help_doc": step.help_doc,
+                "cloud_preview": bool(step.cloud_preview),
             }
         )
     return {
@@ -563,37 +1037,59 @@ def generate_runbook(school) -> dict:
     }
 
 
-def run_verification_suite(school, *, include_gate: bool = True) -> dict:
+def run_verification_suite(school, *, include_gate: bool = True, host_kind: Optional[str] = None) -> dict:
     """Run every step's ``validate(school)`` — the final test suite that proves the box
     is done.
 
     Returns ``{steps: [{key, ok, detail}], ok, passed, total}``. A single validate()
     that RAISES is caught and recorded as ``ok=False`` — the suite is never aborted.
 
-    ``include_gate=False`` runs steps 1-6 ONLY (skips ``verify_and_sync_gate``): a
-    READ-ONLY readiness preview that touches no network and records NO ``EdgeSyncRun``.
-    The pre-offline sync gate is a BOX-SIDE check (it must run on the box, where the
-    sync flag + credential live), so a cloud-side preview must never fake-run it. Run
-    the gate on the box via :func:`run_sync_gate` (the runbook's final step).
+    ``include_gate=False`` keeps only ``cloud_preview=True`` steps (omits the dry
+    gate, live Class-A proof, and go-dark checklist): a READ-ONLY readiness preview
+    that touches no network and records NO ``EdgeSyncRun``. Those three checks are
+    BOX-SIDE (credential + last cycle live on the box), so a cloud GET must never
+    fake-run them. On the box: ``edge_onboarding_verify --slug <slug> --include-gate``.
     """
     steps = (
         EDGE_ONBOARDING_STEPS
         if include_gate
-        else tuple(s for s in EDGE_ONBOARDING_STEPS if s.key != "verify_and_sync_gate")
+        else tuple(s for s in EDGE_ONBOARDING_STEPS if s.cloud_preview)
     )
     results: list[dict] = []
     passed = 0
+    skipped_n = 0
+    kind = (host_kind or "").strip().lower()
     for step in steps:
+        if kind == "manager" and step.evidence == EVIDENCE_BOX_SETTINGS:
+            skipped_n += 1
+            results.append(
+                {
+                    "key": step.key,
+                    "ok": False,
+                    "skipped": True,
+                    "detail": "Not evaluated on the manager host — run this check on the edge box.",
+                }
+            )
+            continue
         try:
             outcome = step.validate(school)
             ok, detail = bool(outcome[0]), str(outcome[1])
-        except Exception as exc:  # noqa: BLE001 — a raising check never aborts the suite
-            ok, detail = False, f"validation raised {type(exc).__name__}: {exc}"
+        except Exception as extra:  # noqa: BLE001 — a raising check never aborts the suite
+            ok, detail = False, f"validation raised {type(extra).__name__}: {extra}"
         if ok:
             passed += 1
-        results.append({"key": step.key, "ok": ok, "detail": detail})
+        results.append({"key": step.key, "ok": ok, "detail": detail, "skipped": False})
+    evaluated = [row for row in results if not row.get("skipped")]
     total = len(results)
-    return {"steps": results, "ok": passed == total and total > 0, "passed": passed, "total": total}
+    suite_ok = bool(evaluated) and all(row["ok"] for row in evaluated)
+    return {
+        "steps": results,
+        "ok": suite_ok,
+        "passed": passed,
+        "total": total,
+        "skipped": skipped_n,
+        "evaluated": len(evaluated),
+    }
 
 
 def run_sync_gate(school) -> dict:
@@ -651,8 +1147,14 @@ __all__ = [
     "EdgeOnboardingStep",
     "EDGE_ONBOARDING_STEPS",
     "EDGE_ONBOARDING_STEP_KEYS",
+    "RUNS_ON_CLOUD",
+    "RUNS_ON_BOX",
+    "RUNS_ON_LAN",
+    "MC_SKIP_REASON_MIN_LEN",
     "generate_runbook",
     "run_verification_suite",
     "run_sync_gate",
     "heal_step",
+    "migration_cloud_skip_reason",
+    "set_migration_cloud_skip_reason",
 ]

@@ -2502,7 +2502,15 @@ class MigrationCloudProgressView(LoginRequiredMixin, View):
         from .progress import refresh_snapshot
 
         bundle = _tenant_scoped_bundle(request, bundle_id, shell)
-        snapshot = refresh_snapshot(bundle=bundle)
+        # persist=False: this is a read-only poller. Persisting wrote
+        # bundle.save(update_fields=["progress_snapshot", "updated_at"]), and
+        # updated_at is auto_now -- so every poll of this endpoint re-stamped the
+        # apply heartbeat that repair.applying_stale_by_time reads. A dead apply
+        # then looked alive for as long as anyone had this page open, and the
+        # tenant's review page showed "Writing records into your school..."
+        # forever instead of surfacing Repair. The orchestrator and pipeline keep
+        # the stored snapshot fresh at each stage boundary; a viewer must not.
+        snapshot = refresh_snapshot(bundle=bundle, persist=False)
         recent_events = list(
             bundle.progress_events.order_by("-created_at").values(
                 "id", "kind", "stage", "message", "detail", "created_at",

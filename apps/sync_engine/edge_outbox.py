@@ -20,6 +20,7 @@ import urllib.request
 from datetime import datetime, timedelta, timezone as _dt_timezone
 
 from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 
 BUNDLE_CONTENT_TYPE = "application/x-rmc-sync-bundle+ndjson"
 
@@ -116,6 +117,22 @@ def build_edge_delta_rows(school, *, since=None, entities=None):
     #
     # Rows with a null updated_at sort FIRST: they carry no position at all, so they must
     # ship before any cursor moves past them rather than being stranded after it.
+    from apps.api.sync_services import enrich_delta_rows_with_fk_referents
+
+    rows = enrich_delta_rows_with_fk_referents(rows, school, config)
+    sort_keys = []
+    for row in rows:
+        raw = row.get("updated_at")
+        if not raw:
+            sort_keys.append(None)
+            continue
+        parsed = parse_datetime(str(raw))
+        if parsed is None:
+            sort_keys.append(None)
+            continue
+        if timezone.is_naive(parsed):
+            parsed = timezone.make_aware(parsed, timezone.get_current_timezone())
+        sort_keys.append(parsed)
     order = sorted(
         range(len(rows)),
         key=lambda i: (sort_keys[i] is not None, sort_keys[i] or _EPOCH),

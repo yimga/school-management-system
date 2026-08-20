@@ -7,8 +7,12 @@ Frontend MUST use tenant-scoped cache: IndexedDB key e.g. sync_queue_${school_id
 so that no cross-tenant data is ever visible (one school per device/session).
 """
 
+import logging
+
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
+
+logger = logging.getLogger(__name__)
 
 
 # CLASS-A master-data models wired with AUTO-DERIVED syncable fields (Phase 3, staged
@@ -350,6 +354,146 @@ def _insert_fk_targets(config) -> dict:
     return targets
 
 
+def _field_for_attname(model, attname: str):
+    for field in model._meta.get_fields():
+        if getattr(field, "attname", None) == attname:
+            return field
+    return None
+
+
+def _fk_attname_is_required(model, attname: str) -> bool:
+    field = _field_for_attname(model, attname)
+    if field is None:
+        return False
+    return not getattr(field, "null", True) and getattr(field, "blank", True) is False
+
+
+def enrich_delta_rows_with_fk_referents(rows, school, config) -> list:
+    """Attach referent rows referenced by FK fields so a box can apply dependents.
+
+    Delta bundles normally ship only rows with ``updated_at > since``. A specialty
+    edit therefore rides alone while its unchanged department does not — on a box
+    that never received that department (sovereign seed without pk alignment), the
+    apply dies on the FK. Pulling the referent's current snapshot closes the gap.
+
+    When a referent cannot be resolved for this school at all, the CHILD is dropped
+    rather than shipped with a reference the box can never satisfy — see the inline
+    note at the lookup. One residual case is not chased here: a child whose parent
+    is present in the bundle but is itself dropped. That is bounded, not fatal —
+    ``check_constraints_immediately`` makes the box isolate such a row per-row
+    instead of failing the whole pull — and it self-heals on the next cycle.
+    """
+    if not rows:
+        return rows
+    fk_targets = _insert_fk_targets(config)
+    present = {
+        ((r.get("entity_type") or "").strip().lower(), r.get("id"))
+        for r in rows
+        if r.get("id") is not None
+    }
+    extras: list[dict] = []
+    undeliverable: set[int] = set()
+    for index, row in enumerate(rows):
+        entity_type = (row.get("entity_type") or "").strip().lower()
+        if entity_type not in config:
+            continue
+        for fk_field, target_et in fk_targets.get(entity_type, {}).items():
+            fk_val = (row.get("changes") or {}).get(fk_field)
+            if fk_val is None:
+                continue
+            key = (target_et, fk_val)
+            if key in present:
+                continue
+            target_model, allowed = config[target_et]
+            # Match the school's OWN rows and unowned/global ones, but never
+            # another tenant's. ``school`` is nullable on several academics models
+            # (Department.school is null=True), and production carries real rows
+            # with school_id NULL -- e.g. Department pk=2 ("Science", SCI-2425).
+            # A strict ``school=school`` lookup can never match those, so every
+            # child pointing at an unowned parent looked unresolvable: before the
+            # drop below existed it shipped dangling and killed the pull, and with
+            # the drop alone it would silently never sync at all. Widening to
+            # "mine OR unowned" ships the parent the box actually needs while
+            # still refusing a parent owned by a DIFFERENT school.
+            from django.db.models import Q
+
+            ref = (
+                target_model._default_manager.filter(pk=fk_val)
+                .filter(Q(school=school) | Q(school__isnull=True))
+                .first()
+            )
+            if ref is None:
+                # The parent cannot be supplied to the box AT ALL -- it is absent
+                # for this school (deleted, or owned by a different tenant, since
+                # the lookup is school-scoped). Shipping the child anyway is what
+                # produced the production failure: the box wrote a row pointing at
+                # a parent it would never receive, and because Django defers FK
+                # checks on Postgres the violation surfaced at COMMIT and took the
+                # WHOLE pull with it -- every cycle, forever, because the cursor
+                # never advanced. Dropping one unshippable child instead costs that
+                # single row and lets the rest of the bundle land; it self-heals
+                # the moment the parent becomes syncable.
+                undeliverable.add(index)
+                logger.warning(
+                    "sync: dropping %s id=%s from bundle -- FK %s=%s has no "
+                    "syncable %s for school %s",
+                    entity_type, row.get("id"), fk_field, fk_val, target_et,
+                    getattr(school, "pk", school),
+                )
+                continue
+            extras.append(
+                {
+                    "entity_type": target_et,
+                    "id": ref.pk,
+                    "client_offline_id": getattr(ref, "client_offline_id", "") or "",
+                    "changes": {
+                        f: getattr(ref, f)
+                        for f in sorted(allowed)
+                        if hasattr(ref, f)
+                    },
+                    "updated_at": (
+                        ref.updated_at.isoformat()
+                        if getattr(ref, "updated_at", None)
+                        else None
+                    ),
+                }
+            )
+            present.add(key)
+    if undeliverable:
+        rows = [r for i, r in enumerate(rows) if i not in undeliverable]
+    if not extras:
+        return rows
+    order = _insert_dependency_order(config)
+
+    def _rank(row):
+        et = (row.get("entity_type") or "").strip().lower()
+        return order.index(et) if et in order else len(order)
+
+    combined = extras + rows
+    combined.sort(key=lambda r: (_rank(r), r.get("updated_at") or ""))
+    return combined
+
+
+def _sanitize_fk_updates(updates, entity_type, model, school, config, fk_targets):
+    """Drop FK values whose referent is absent locally; block required FK gaps."""
+    ent_targets = fk_targets.get(entity_type, {})
+    filtered = dict(updates)
+    dropped_fks: list[str] = []
+    missing_required: list[str] = []
+    for key, value in list(filtered.items()):
+        target_et = ent_targets.get(key)
+        if not target_et or value is None:
+            continue
+        target_model = config[target_et][0]
+        if target_model._default_manager.filter(pk=value, school=school).exists():
+            continue
+        filtered.pop(key, None)
+        dropped_fks.append(key)
+        if _fk_attname_is_required(model, key):
+            missing_required.append(f"{target_et}:{value}")
+    return filtered, dropped_fks, missing_required
+
+
 def _parse_client_updated_at(raw):
     if not raw:
         return None
@@ -545,6 +689,10 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
     results = []
     conflicts = []
     success_count = 0
+    fk_targets = _insert_fk_targets(config)
+    from apps.schools.models import School
+
+    school = School.objects.filter(pk=school_id).first() if school_id else None
 
     if not school_id:
         return {
@@ -561,11 +709,16 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
         }
 
     with transaction.atomic():
+        # Without this the per-row savepoints below cannot isolate a bad row on
+        # Postgres -- a dangling FK would surface only at COMMIT and abort the
+        # entire batch. See check_constraints_immediately.
+        check_constraints_immediately()
         for idx, item in enumerate(items):
             entity_type = (item.get("entity_type") or "").strip().lower()
             pk = item.get("id")
             changes = item.get("changes") or {}
             client_updated_at = _parse_client_updated_at(item.get("updated_at"))
+            dropped_fks: list[str] = []
 
             if entity_type not in config or pk is None:
                 results.append(
@@ -598,9 +751,102 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
                 )
                 continue
 
+            if school is not None:
+                updates, dropped_fks, missing_required = _sanitize_fk_updates(
+                    updates, entity_type, model, school, config, fk_targets
+                )
+                if missing_required:
+                    results.append(
+                        {
+                            "index": idx,
+                            "status": 422,
+                            "data": {
+                                "error": "missing_referent",
+                                "detail": (
+                                    "Required parent row(s) not on this box yet: "
+                                    + ", ".join(missing_required)
+                                    + ". Queue a full resync on the cloud or import "
+                                    "the sovereign bundle so pk-aligned parents land first."
+                                ),
+                                "missing": missing_required,
+                            },
+                        }
+                    )
+                    continue
+                if not updates:
+                    results.append(
+                        {
+                            "index": idx,
+                            "status": 422,
+                            "data": {
+                                "error": "missing_referent",
+                                "detail": "All FK fields pointed at rows absent on this box.",
+                                "dropped_fks": dropped_fks,
+                            },
+                        }
+                    )
+                    continue
+
             try:
                 instance = model.objects.get(pk=pk)
             except model.DoesNotExist:
+                if sync_origin == "cloud-pull" and school is not None:
+                    valid_fields = _settable_field_names(model)
+                    create_fields = {
+                        k: v for k, v in updates.items() if k in valid_fields
+                    }
+                    if hasattr(model, "school_id"):
+                        create_fields["school_id"] = school.pk
+                    try:
+                        with transaction.atomic():
+                            instance = model(pk=pk, **create_fields)
+                            instance.save(force_insert=True)
+                            new_updated_at = getattr(instance, "updated_at", None)
+                            from apps.sync_engine.models import record_sync_apply
+
+                            record_sync_apply(
+                                school_id,
+                                entity_type,
+                                instance.pk,
+                                new_updated_at,
+                                sync_origin,
+                            )
+                        success_count += 1
+                        results.append(
+                            {
+                                "index": idx,
+                                "status": 201,
+                                "data": {
+                                    "id": instance.pk,
+                                    "created": True,
+                                    "updated_at": (
+                                        new_updated_at.isoformat()
+                                        if new_updated_at
+                                        else None
+                                    ),
+                                },
+                            }
+                        )
+                        continue
+                    except (
+                        IntegrityError,
+                        DataError,
+                        ValidationError,
+                        ValueError,
+                        TypeError,
+                        FieldError,
+                    ) as exc:
+                        results.append(
+                            {
+                                "index": idx,
+                                "status": 422,
+                                "data": {
+                                    "error": "cloud_pull_insert_failed",
+                                    "detail": str(exc)[:200],
+                                },
+                            }
+                        )
+                        continue
                 results.append(
                     {"index": idx, "status": 404, "data": {"error": "Not found"}}
                 )
@@ -777,6 +1023,8 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
                 "id": instance.pk,
                 "updated_at": new_updated_at.isoformat() if new_updated_at else None,
             }
+            if dropped_fks:
+                _data["dropped_fks"] = dropped_fks
             if rejected_down_only:
                 # Partial acceptance: the benign fields landed, the cloud-governed ones did
                 # not. Surfaced so the caller can reconcile rather than read a 200 as "all of
@@ -789,6 +1037,38 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
         "results": results,
         "conflicts": conflicts,
     }
+
+
+def check_constraints_immediately() -> None:
+    """Make deferred FK checks fire at the offending statement, not at COMMIT.
+
+    Django creates EVERY foreign key on PostgreSQL as ``DEFERRABLE INITIALLY
+    DEFERRED`` (``connection.ops.deferrable_sql()``), so a dangling reference is
+    not raised when the row is written -- it is raised when the OUTERMOST
+    transaction commits.
+
+    That breaks the per-row ``transaction.atomic()`` savepoints in this module.
+    They exist to "roll back ONLY this row, never the whole bundle", but a
+    savepoint cannot catch a violation that has not fired yet: the error lands
+    after every row has been processed and takes the whole batch with it. A
+    pulled bundle containing ONE dangling FK therefore applied nothing at all,
+    the sync cursor never advanced, and the next cycle re-pulled the same doomed
+    bundle -- so a single bad row left the box permanently unsynced rather than
+    costing it that row. (Observed as: ``pull failed: insert or update on table
+    "academics_specialty" violates foreign key constraint ... Key
+    (department_id)=(2) is not present in table "academics_department"``.)
+
+    Switching the constraints to IMMEDIATE for the current transaction restores
+    the behaviour those savepoints already assume. SQLite -- which the test suite
+    runs on -- checks FKs eagerly regardless, which is precisely why this never
+    reproduced locally.
+    """
+    from django.db import connection
+
+    if connection.vendor != "postgresql":
+        return
+    with connection.cursor() as cursor:
+        cursor.execute("SET CONSTRAINTS ALL IMMEDIATE")
 
 
 def _insert_dependency_order(config) -> list:
@@ -983,6 +1263,28 @@ def apply_edge_inserts(school_id, user, rows, *, sync_origin=None):
                         dropped_fks.append(key)
                         continue
             updates[key] = value
+
+        missing_required = [
+            f"{ent_targets.get(k, 'unknown')}:{changes.get(k)}"
+            for k in dropped_fks
+            if _fk_attname_is_required(model, k)
+        ]
+        if missing_required:
+            results_by_index[idx] = {
+                "index": idx,
+                "status": 422,
+                "data": {
+                    "error": "missing_referent",
+                    "detail": (
+                        "Required parent row(s) not on this box yet: "
+                        + ", ".join(missing_required)
+                        + ". Queue a full resync on the cloud or import the "
+                        "sovereign bundle so pk-aligned parents land first."
+                    ),
+                    "missing": missing_required,
+                },
+            }
+            continue
 
         try:
             with transaction.atomic():  # savepoint: isolate a bad row from the batch

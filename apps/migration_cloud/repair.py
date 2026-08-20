@@ -80,7 +80,9 @@ class RepairResult:
 def _resolved_domains(bundle: MigrationBundle) -> set[str]:
     """Domains the bundle will actually apply (discovery result + tenant override)."""
     domains: set[str] = set()
-    per_artifact_domain = (bundle.discovery_summary or {}).get("per_artifact_domain") or {}
+    per_artifact_domain = (getattr(bundle, "discovery_summary", None) or {}).get(
+        "per_artifact_domain"
+    ) or {}
     for artifact in bundle.artifacts.all():
         entry = per_artifact_domain.get(artifact.path_within_bundle) or {}
         if entry.get("domain"):
@@ -95,20 +97,47 @@ def _has_finance(bundle: MigrationBundle) -> bool:
     return _FINANCE_DOMAIN in _resolved_domains(bundle)
 
 
+def _recon_notes_are_current(bundle: MigrationBundle) -> bool:
+    """True when stored recon notes describe *this* apply, not a previous one.
+
+    ``apply_totals.applied_at`` is rewritten at the end of every live apply.
+    ``reconciliation_summary.generated_at`` is rewritten only when reconcile
+    actually ran. If apply finished later than recon, the notes are leftovers
+    and must not keep a Repair card or a held-for-review badge.
+    """
+    totals = (getattr(bundle, "mapping_summary", None) or {}).get("apply_totals") or {}
+    applied_at = str(totals.get("applied_at") or "")
+    generated = str(
+        (getattr(bundle, "reconciliation_summary", None) or {}).get("generated_at") or ""
+    )
+    if applied_at and generated:
+        return generated >= applied_at
+    return True
+
+
 def _unresolved_issue_count(bundle: MigrationBundle) -> int:
-    """Rows still needing attention: those held for review + visible-drift signals."""
-    apply_totals = (bundle.mapping_summary or {}).get("apply_totals") or {}
+    """Rows still needing attention: current held rows + current visible-drift.
+
+    Informational recon notes (scoped drill-down, incomplete verification copy)
+    are not issues. Stale notes from a previous apply are ignored once a newer
+    ``apply_totals.applied_at`` lands.
+    """
+    apply_totals = (getattr(bundle, "mapping_summary", None) or {}).get("apply_totals") or {}
     quarantined = int(apply_totals.get("quarantined") or 0)
-    recon = bundle.reconciliation_summary or {}
+    if not _recon_notes_are_current(bundle):
+        return quarantined
+    recon = getattr(bundle, "reconciliation_summary", None) or {}
     drift_notes = [n for n in (recon.get("notes") or []) if "visible" in str(n).lower()]
     return quarantined + len(drift_notes)
 
 
+def unresolved_issue_count(bundle: MigrationBundle) -> int:
+    """Public alias used by the kickoff-page live attention composer."""
+    return _unresolved_issue_count(bundle)
+
+
 def _has_unresolved_issues(bundle: MigrationBundle) -> bool:
-    apply_totals = (bundle.mapping_summary or {}).get("apply_totals") or {}
-    if int(apply_totals.get("quarantined") or 0) > 0:
-        return True
-    return bool((bundle.reconciliation_summary or {}).get("notes"))
+    return _unresolved_issue_count(bundle) > 0
 
 
 def _financial_guardrail_locked(bundle: MigrationBundle) -> bool:
@@ -171,10 +200,43 @@ def applying_stale_by_time(bundle: MigrationBundle) -> bool:
     """
     if bundle.status != BundleStatus.APPLYING:
         return False
+    return _seconds_since_apply_signal(bundle) > _APPLYING_STALE_SECONDS
+
+
+def _seconds_since_apply_signal(bundle: MigrationBundle) -> float:
+    """Age of the newest signal that only a LIVE apply can produce.
+
+    ``updated_at`` alone is NOT trustworthy here: it is ``auto_now``, so *any*
+    save to the bundle re-stamps it, including saves made by read-only viewers.
+    A polled progress view that persisted its snapshot therefore kept re-arming
+    the heartbeat of an apply whose worker was already dead, and the tenant was
+    shown "Writing records into your school..." indefinitely.
+
+    The progress-event stream is the honest signal: while a bundle is APPLYING
+    only the orchestrator appends to it (stage_started, then a pulse per wave /
+    artifact). Prefer the newest event and fall back to ``updated_at`` only when
+    no event exists at all -- an apply always emits ``stage_started`` on entry,
+    so the fallback is the empty-stream edge case, not the normal path.
+    """
+    now = timezone.now()
+    try:
+        from .models import MigrationProgressEvent
+
+        latest = (
+            MigrationProgressEvent.objects.filter(bundle_id=bundle.pk)  # tenant-isolation-allow: bundle_id is the globally-unique shared MigrationBundle pk; the bundle is already tenant-scoped by the caller
+            .order_by("-created_at")
+            .values_list("created_at", flat=True)
+            .first()
+        )
+    except Exception:  # noqa: BLE001 — never let a staleness probe break the page
+        logger.debug("repair: could not read progress events for bundle %s", bundle.pk)
+        latest = None
+    if latest is not None:
+        return (now - latest).total_seconds()
     updated = getattr(bundle, "updated_at", None)
     if updated is None:
-        return True
-    return (timezone.now() - updated).total_seconds() > _APPLYING_STALE_SECONDS
+        return float("inf")
+    return (now - updated).total_seconds()
 
 
 def _applying_is_stale(bundle: MigrationBundle) -> bool:

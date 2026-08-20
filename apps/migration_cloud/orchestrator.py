@@ -104,6 +104,47 @@ def _heartbeat_apply(bundle_id: int) -> None:
         logger.debug("orchestrator: apply heartbeat failed for bundle %s", bundle_id, exc_info=True)
 
 
+def _pulse_apply_progress(
+    bundle_id: int,
+    outcomes: list,
+    *,
+    wave_index: int,
+    jobs_total: int,
+) -> None:
+    """Emit running created / updated / held so the kickoff page can paint live."""
+    try:
+        totals = _summarize_outcomes(outcomes)
+        done = len(outcomes)
+        total = max(int(jobs_total or 0), 1)
+        pct = int(round(100 * done / total))
+        rows = int(totals["created"]) + int(totals["updated"]) + int(totals["quarantined"])
+        _emit_progress(
+            bundle_id=bundle_id,
+            kind="artifact_progress",
+            stage="APPLYING",
+            message=(
+                f"Imported {totals['created']} new, {totals['updated']} updated, "
+                f"{totals['quarantined']} held ({done}/{total} files)"
+            ),
+            detail={
+                "pct": pct,
+                "rows": rows,
+                "created": totals["created"],
+                "updated": totals["updated"],
+                "quarantined": totals["quarantined"],
+                "wave": wave_index,
+                "artifacts_done": done,
+                "artifacts_total": total,
+            },
+        )
+    except Exception:  # noqa: BLE001 — live pulse must never break the apply
+        logger.debug(
+            "orchestrator: apply progress pulse failed for bundle %s",
+            bundle_id,
+            exc_info=True,
+        )
+
+
 def apply_bundle(
     *,
     bundle_id: int,
@@ -212,6 +253,13 @@ def _apply_bundle_inner(
             )
 
         if not dry_run:
+            # Drop per-domain / notes from a prior apply so a successful retry
+            # cannot keep showing stale "held for review" copy if reconcile is
+            # slow or fails. Preserve shadow-mode state nested under the same JSON.
+            prior_recon = dict(bundle.reconciliation_summary or {})
+            shadow = prior_recon.get("shadow")
+            bundle.reconciliation_summary = {"shadow": shadow} if shadow else {}
+            bundle.save(update_fields=["reconciliation_summary", "updated_at"])
             bundle.mark_status(BundleStatus.APPLYING)
     bundle.refresh_from_db()
     _emit_progress(bundle_id=bundle_id, kind="stage_started", stage="APPLYING",
@@ -304,11 +352,18 @@ def _apply_bundle_inner(
                 )
             except Exception:
                 pass
+            jobs_total = max(sum(len(w) for w in waves), 1)
             if worker_count <= 1 or len(wave_jobs) <= 1:
                 for job in wave_jobs:
                     outcomes.append(_apply_artifact(bundle, job, dry_run=dry_run))
                     if not dry_run:
                         _heartbeat_apply(bundle_id)
+                        _pulse_apply_progress(
+                            bundle_id,
+                            outcomes,
+                            wave_index=wave_index,
+                            jobs_total=jobs_total,
+                        )
             else:
                 with ThreadPoolExecutor(max_workers=worker_count) as pool:
                     futures = {
@@ -319,6 +374,12 @@ def _apply_bundle_inner(
                         outcomes.append(future.result())
                         if not dry_run:
                             _heartbeat_apply(bundle_id)
+                            _pulse_apply_progress(
+                                bundle_id,
+                                outcomes,
+                                wave_index=wave_index,
+                                jobs_total=jobs_total,
+                            )
 
     # Finance MUST be all-or-nothing. In non-atomic mode finance rows commit
     # (autocommit) BEFORE the financial guardrail runs; a control-total mismatch

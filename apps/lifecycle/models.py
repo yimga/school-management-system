@@ -97,3 +97,4 @@ def _settings_school_field() -> str:
 # the purge state machine doesn't entangle the append-only lifecycle timeline.
 from apps.lifecycle.models_purge import PurgeOperation  # noqa: E402,F401
 from apps.lifecycle.models_dr_snapshot import TenantImmutableSnapshot  # noqa: E402,F401
+from apps.lifecycle.models_edge_onboarding import EdgeOnboardingRun  # noqa: E402,F401

@@ -110,86 +110,83 @@ any locale can't break the inline script's string literals.
 </script>
 {% endif %}
 
-{% if importing and progress_url %}
+{% if progress_url and not detecting %}
 {% comment %}
-Live import / repair progress. A live apply (Import into my school) or a Repair
-runs on the durable background outbox, not the HTTP thread — before this the page
-reverted to a bare "ready to import" look with no feedback, so a working repair
-appeared to do nothing. This card polls the same tenant-scoped progress endpoint
-while the apply is in flight and reloads the page the moment it settles, revealing
-the result. If the queued work sits too long unclaimed (no worker draining), it
-says so honestly instead of spinning forever. Copy travels via data-* attributes
-(HTML-attribute-escaped) so an apostrophe in any locale can't break the script.
+Kickoff-page live board. Import / repair progress, pipeline, created/updated/held,
+and the Issue Remediator live here so the tenant does not have to open Flight Deck.
+The poller (rmc-migration-live-import.js) paints from the same JSON the detect
+widget uses, then hides remediator / repair / held-copy the moment issue_count is 0.
 {% endcomment %}
-<section class="rmc-card mb-4" id="mc-import-progress"
-         aria-live="polite"
+<section class="rmc-card mb-4" id="mc-live-board" aria-live="polite"
+         data-mc-live-board="1"
          data-progress-url="{{ progress_url }}"
+         data-repair-url="{{ repair_url }}"
+         data-importing="{% if importing %}1{% else %}0{% endif %}"
          data-msg-queued="{% trans 'Queued — waiting for the importer…' %}"
          data-msg-running="{% trans 'Writing records into your school…' %}"
          data-msg-slow="{% trans 'Still queued — the importer will pick this up shortly.' %}"
          data-msg-wedged="{% trans 'This import stopped responding before it finished — it was interrupted, not rejected. Use Repair below to resume it safely.' %}"
-         data-msg-timeout="{% trans 'Still working. Refresh this page in a moment to see your results.' %}">
-  <h2 class="h5">
-    {% if import_flight.dry_run %}{% trans "Previewing your import…" %}{% else %}{% trans "Importing your data…" %}{% endif %}
-  </h2>
-  <p class="text-muted small mb-2">{% trans "This runs in the background and the page updates on its own — no need to refresh. Records that already imported are updated in place, never duplicated." %}</p>
-  <div class="progress" role="progressbar" aria-label="{% trans 'Import progress' %}" aria-valuemin="0" aria-valuemax="100">
-    <div class="progress-bar progress-bar-striped progress-bar-animated" id="mc-import-bar" style="width: 30%"></div>
+         data-msg-held-zero="{% trans 'All records imported. Verify the counts below match your school.' %}"
+         data-msg-held="{% trans 'Held records did not pass validation and were not imported. Correct the data, then Repair to re-attempt just those.' %}"
+         data-msg-success="{% trans 'Import complete — every record landed in your school. Nothing further is needed.' %}">
+  {{ live_import|json_script:"mc-live-import-seed" }}
+  <h2 class="h5">{% trans "Import progress" %}</h2>
+  <p class="text-muted small mb-2" data-mc-live-note>
+    {% if importing %}
+      {% trans "This runs in the background and this page updates on its own — no need to open Workflow Flight Deck." %}
+    {% elif live_import.succeeded %}
+      {% trans "Import complete — every record landed in your school. Nothing further is needed." %}
+    {% else %}
+      {% trans "Live counts from this import. Issues leave this card as soon as they are actually cleared." %}
+    {% endif %}
+  </p>
+  <ol class="rmc-wfp-pipeline" data-mc-live-pipeline>
+    {% for stage in live_import.pipeline %}
+    <li class="rmc-wfp-pipeline__stage rmc-wfp-pipeline__stage--{{ stage.visual }}" data-mc-stage="{{ stage.key }}">
+      <span class="rmc-wfp-pipeline__bead" aria-hidden="true"></span>
+      <span class="rmc-wfp-pipeline__label">{{ stage.label }}</span>
+    </li>
+    {% endfor %}
+  </ol>
+  <p class="mb-2 mt-3 d-flex flex-wrap gap-2" data-mc-live-metrics>
+    <span class="rmc-badge" data-mc-live-state>{{ live_import.workflow_state }}</span>
+    <span class="rmc-badge">{% trans "Progress" %}: <strong data-mc-live-pct>{{ live_import.percent }}%</strong></span>
+    <span class="rmc-badge">{% trans "Created" %}: <strong data-mc-live-created>{{ live_import.created }}</strong></span>
+    <span class="rmc-badge">{% trans "Updated" %}: <strong data-mc-live-updated>{{ live_import.updated }}</strong></span>
+    <span class="rmc-badge{% if live_import.held %} rmc-badge--danger{% endif %}" data-mc-live-held-wrap>{% trans "Held for review" %}: <strong data-mc-live-held>{{ live_import.held }}</strong></span>
+  </p>
+  <div class="rmc-wfp-progress" aria-hidden="true"><span data-mc-live-fill></span></div>
+  {% if importing %}
+  {% include "components/rmc_workflow_progress_canvas.html" with workflow_key="migration_bundle_apply" task_type="MIGRATION_INGESTION" %}
+  {% endif %}
+  <div data-mc-live-remediator {% if not live_import.remediator %}hidden{% endif %}>
+    {% if live_import.remediator %}
+    <div class="rmc-wfp-remediator mt-3">
+      <h3 data-mc-remediator-title>{{ live_import.remediator.title }}</h3>
+      <ol class="rmc-wfp-remediator__steps" data-mc-remediator-steps>
+        {% for step in live_import.remediator.steps %}
+        <li>{{ step }}</li>
+        {% endfor %}
+      </ol>
+      {% if live_import.remediator.show_repair and repair_url %}
+      <form method="post" action="{{ repair_url }}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary rmc-wfp-remediator__action" data-mc-remediator-action>{{ live_import.remediator.action_label }}</button>
+      </form>
+      {% endif %}
+    </div>
+    {% endif %}
   </div>
-  <p class="small text-muted mt-2 mb-0" id="mc-import-note">{% if import_flight.stuck %}{% if import_flight.phase == 'running' %}{% trans "This import stopped responding before it finished — it was interrupted, not rejected. Use Repair below to resume it safely." %}{% else %}{% trans "Still queued — the importer will pick this up shortly." %}{% endif %}{% else %}{% trans "Working…" %}{% endif %}</p>
 </section>
-<script nonce="{{ csp_nonce }}">
-(function () {
-  var el = document.getElementById('mc-import-progress');
-  if (!el || !window.fetch) { return; }
-  var url = el.getAttribute('data-progress-url');
-  if (!url) { return; }
-  var bar = document.getElementById('mc-import-bar');
-  var note = document.getElementById('mc-import-note');
-  var tries = 0;
-  function schedule() { window.setTimeout(tick, 2500); }
-  function stop() { if (bar) { bar.classList.remove('progress-bar-striped', 'progress-bar-animated'); } }
-  function tick() {
-    tries += 1;
-    fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' })
-      .then(function (r) { return r.ok ? r.json() : null; })
-      .then(function (data) {
-        if (!data) { schedule(); return; }
-        if (!data.importing) {
-          // Apply settled (applied / failed / reverted): reload to reveal the
-          // outcome (created / updated / held) and the repair affordance.
-          stop();
-          window.location.reload();
-          return;
-        }
-        var running = data.import_phase === 'running';
-        if (bar) { bar.style.width = running ? '70%' : '30%'; }
-        if (note) {
-          note.textContent = data.import_stuck
-            ? el.getAttribute(running ? 'data-msg-wedged' : 'data-msg-slow')
-            : (running ? el.getAttribute('data-msg-running') : el.getAttribute('data-msg-queued'));
-        }
-        if (data.import_stuck && running) {
-          // Claimed but no longer heartbeating: nothing is coming. Drop the
-          // animation so the page stops implying progress, and reveal the
-          // recovery affordance instead of polling on forever.
-          stop();
-          window.setTimeout(function () { window.location.reload(); }, 1200);
-          return;
-        }
-        if (tries > 160) {
-          stop();
-          if (note) { note.textContent = el.getAttribute('data-msg-timeout'); }
-          window.setTimeout(function () { window.location.reload(); }, 800);
-          return;
-        }
-        schedule();
-      })
-      .catch(function () { schedule(); });
-  }
-  window.setTimeout(tick, 1800);
-})();
-</script>
+{% endif %}
+
+{% if importing and progress_url %}
+{% comment %}
+Import poller host kept for the existing progress_url contract; the live board
+above is what the tenant watches. This node is visually hidden so we do not
+show two bars, but data-progress-url remains for any leftover callers.
+{% endcomment %}
+<div id="mc-import-progress" class="visually-hidden" data-progress-url="{{ progress_url }}" hidden></div>
 {% endif %}
 
 {% if detection_failed or advance_error %}
@@ -290,17 +287,17 @@ finishes) sees created / updated / held — not a vanished button. When rows are
 still held, it points to the per-file reasons in the table below + Repair, so a
 persistent data failure routes to correction rather than an endless retry.
 {% endcomment %}
-<section class="rmc-card mb-4" aria-labelledby="mc-last-import-heading">
+<section class="rmc-card mb-4" aria-labelledby="mc-last-import-heading" id="mc-last-import" data-mc-last-import="1">
   <h2 id="mc-last-import-heading" class="h5">{% trans "Most recent import" %}</h2>
   <p class="mb-1">
-    <span class="rmc-badge">{% trans "Created" %}: {{ last_import.created }}</span>
-    <span class="rmc-badge">{% trans "Updated" %}: {{ last_import.updated }}</span>
-    <span class="rmc-badge">{% trans "Held for review" %}: {{ last_import.held }}</span>
+    <span class="rmc-badge">{% trans "Created" %}: <strong data-mc-last-created>{{ last_import.created }}</strong></span>
+    <span class="rmc-badge">{% trans "Updated" %}: <strong data-mc-last-updated>{{ last_import.updated }}</strong></span>
+    <span class="rmc-badge{% if last_import.held %} rmc-badge--danger{% endif %}" data-mc-last-held-wrap>{% trans "Held for review" %}: <strong data-mc-last-held>{{ last_import.held }}</strong></span>
   </p>
   {% if last_import.held %}
-  <p class="text-muted small mb-0">{% trans "Held records didn't pass validation and were not imported. Check the reason on each file below, correct the data, then use Repair to re-attempt just those — already-imported records are never duplicated." %}</p>
+  <p class="text-muted small mb-0" data-mc-last-held-note>{% trans "Held records didn't pass validation and were not imported. Check the reason on each file below, correct the data, then use Repair to re-attempt just those — already-imported records are never duplicated." %}</p>
   {% else %}
-  <p class="text-muted small mb-0">{% trans "All records imported. Verify the counts below match your school." %}</p>
+  <p class="text-muted small mb-0" data-mc-last-held-note>{% trans "All records imported. Verify the counts below match your school." %}</p>
   {% endif %}
 </section>
 {% endif %}
@@ -596,7 +593,7 @@ explanation when repair is deliberately withheld (financial control-total lock,
 finance-needs-atomic). All the safety judgement is server-side in
 repair.repair_readiness — the button is only a trigger.
 {% endcomment %}
-<section class="rmc-card mt-4" aria-labelledby="mc-repair-heading">
+<section class="rmc-card mt-4" aria-labelledby="mc-repair-heading" id="mc-repair-panel" data-mc-repair-panel="1">
   <h2 id="mc-repair-heading" class="h5">{% trans "Fix a failed or incomplete import" %}</h2>
   {% if repair.repairable %}
   <p class="text-muted small">{{ repair.reason }}</p>

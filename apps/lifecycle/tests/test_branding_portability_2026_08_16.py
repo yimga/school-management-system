@@ -169,9 +169,10 @@ class RunbookStep4Tests(_Base):
 
         school = self._school("gilead-tech")
         rb = generate_runbook(school)
-        step = next(s for s in rb["steps"] if s["key"] == "media_branding")
+        media = next(s for s in rb["steps"] if s["key"] == "media_branding")
+        export = next(s for s in rb["steps"] if s["key"] == "export_cloud_artifacts")
 
-        self.assertIn("export_school_branding", step["command"])
-        self.assertIn("import_school_branding", step["command"])
-        self.assertNotIn(".school.lan", step["command"])
-        self.assertIn(school.slug, step["command"])
+        self.assertIn("import_school_branding", media["command"])
+        self.assertIn("export_school_branding", export["command"])
+        self.assertNotIn(".school.lan", media["command"])
+        self.assertIn(school.slug, media["command"])
