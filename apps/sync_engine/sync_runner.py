@@ -27,11 +27,57 @@ conflict/money policy.
 """
 from __future__ import annotations
 
+import logging
 import os
 
 from django.conf import settings
 from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
+
+logger = logging.getLogger(__name__)
+
+# How long to wait before requesting ANOTHER full replay for the same school. A replay is
+# expensive, and a reference a replay cannot satisfy (a parent belonging to another tenant,
+# a parent genuinely deleted upstream) would otherwise rewind the cursor on every cycle
+# forever. One rewind per window; the decision is reported either way.
+_MISSING_REF_REPLAY_COOLDOWN_SECONDS = 6 * 3600  # magic-number-allow: replay cooldown (6h, seconds)
+_MISSING_REF_REPLAY_KEY = "rmc:edge_sync:missing_ref_replay:%s"
+
+
+def _request_replay_for_missing_parents(school) -> str:
+    """Rewind the PULL cursor so the next cycle replays the whole corpus.
+
+    A ``missing_reference`` means the bundle carried a CHILD whose PARENT this box does not
+    have. The parent is absent from the delta because its own ``updated_at`` is older than
+    the pull cursor, so an incremental delta will never offer it again — the child would be
+    refused on every future cycle and the two sides would stay silently divergent. Rewinding
+    to "no position" makes the next cycle request the corpus from the beginning, which DOES
+    contain the parent; the cloud-authored create path lands it, and the child follows.
+
+    Returns the note to show the operator. Never raises: a healing step must not be the
+    thing that breaks a sync cycle.
+    """
+    from django.core.cache import cache
+
+    from apps.sync_engine.models import EdgeSyncCursor, reset_sync_cursors
+
+    try:
+        key = _MISSING_REF_REPLAY_KEY % school.pk
+        # cache.add only succeeds when the key is absent, so the cooldown is atomic even if
+        # two cycles overlap.
+        if not cache.add(key, 1, _MISSING_REF_REPLAY_COOLDOWN_SECONDS):
+            return (
+                "records are still waiting on a parent this box has not received; a full "
+                "replay was requested recently, so this cycle did not request another"
+            )
+        reset_sync_cursors(school, direction=EdgeSyncCursor.PULL)
+        return (
+            "records referenced a parent this box does not have; rewound the pull cursor "
+            "so the next cycle replays the full corpus and collects the missing parents"
+        )
+    except Exception as exc:  # noqa: BLE001 - healing must never break the cycle
+        logger.debug("replay request for missing parents failed", exc_info=True)
+        return f"could not request a replay for the missing parents: {exc}"
 
 
 def _operator_base() -> str:
@@ -169,6 +215,15 @@ def run_sync_cycle(school, *, mode="live", run_row=None) -> dict:
         "conflicts": 0,
         "created": 0,
         "upserted": 0,
+        # Rows REMOVED because a deletion crossed the boundary. Reported separately from
+        # every other count because it is the only one that destroys data.
+        "deleted": 0,
+        # Rows the far side accepted into the bundle but this side could NOT apply (an
+        # absent parent, a held entity, a value the local schema refuses). Counted
+        # separately from conflicts because nobody is being asked to choose - the row
+        # simply did not land, and a cycle that reports only "pulled N" would present that
+        # as success.
+        "skipped": 0,
         "message": "",
         "error": "",
     }
@@ -224,6 +279,8 @@ def run_sync_cycle(school, *, mode="live", run_row=None) -> dict:
                 conflicts=result["conflicts"],
                 created=result["created"],
                 upserted=result["upserted"],
+                deleted=result["deleted"],
+                skipped=result["skipped"],
                 message=result["message"],
                 error=result["error"],
             )
@@ -273,6 +330,21 @@ def _execute_sync_transport(school, *, mode, result, run_row) -> None:
     errors: list[str] = []
     notes: list[str] = []
 
+    # A box that pulled new code but never ran migrate cannot apply rows for any column it
+    # does not have yet. Those rows now degrade individually (sync_services catches
+    # OperationalError/ProgrammingError per row) instead of killing the bundle - but the
+    # operator still has to be TOLD, or they see "12 NOT applied" with no cause. Named
+    # first so it heads the run message.
+    try:
+        from apps.sync_engine import schema_guard
+
+        drift = schema_guard.drift_note()
+        if drift:
+            notes.append(f"WARNING: {drift}")
+            result["schema_behind"] = True
+    except Exception:  # noqa: BLE001 - a diagnostic must never break the cycle
+        logger.debug("schema drift check failed", exc_info=True)
+
     from apps.sync_engine import edge_outbox
 
     # 1) PUSH local changes UP, IN PAGES, from the durable push cursor. A failure here
@@ -286,18 +358,55 @@ def _execute_sync_transport(school, *, mode, result, run_row) -> None:
     #    more certain every future attempt was to fail.
     try:
         from apps.sync_engine.delta_bundle import export_delta_bundle
-        from apps.sync_engine.models import EdgeSyncCursor, get_sync_cursor, set_sync_cursor
+        from apps.sync_engine.models import (
+            EdgeSyncCursor,
+            get_sync_cursor_for_request,
+            set_sync_cursor,
+        )
 
-        push_since = get_sync_cursor(school, EdgeSyncCursor.PUSH)
+        # Ask from slightly BEHIND the stored high-water. A transaction that commits
+        # after a concurrent cycle read the cursor stamps an updated_at already behind
+        # it and would otherwise never be offered again - lost, not delayed. Re-asking
+        # over a short overlap closes that (and the same-tick tie at a page boundary);
+        # every apply path is idempotent, so a re-shipped row costs bandwidth only.
+        # See models.get_sync_cursor_for_request for the bound this does NOT close.
+        push_since = get_sync_cursor_for_request(school, EdgeSyncCursor.PUSH)
         rows, meta = edge_outbox.build_edge_delta_rows(school, since=push_since, entities=None)
+
+        # The overlap re-offers everything changed inside the window. Paid for naively
+        # that would re-transmit each recent row on EVERY tick — six times per row at a
+        # 20s cadence, on a link a school may be paying for by the megabyte — and would
+        # undo the guarantee that a second cycle with no local change pushes nothing.
+        # So drop a re-offer whose exact version this side already delivered. A genuine
+        # edit carries a different updated_at and still ships; a row lost to the race the
+        # overlap exists for was never sent, so it is not in this memory at all.
+        from apps.sync_engine import push_ledger
+
+        _sent_memory = push_ledger.recent_sent(school)
+        if _sent_memory:
+            rows = [r for r in rows if not push_ledger.already_sent(_sent_memory, r)]
+            meta["row_count"] = len(rows)
 
         # Offline-CREATED rows travel TOGETHER. apply_edge_inserts remaps a
         # new-references-new FK using an in-bundle (entity_type, local_pk) -> operator_pk
         # map and DROPS the FK when the referent is not in the same bundle, so splitting
         # them would silently unlink a child from the parent it was created with. Updates
         # are keyed by pk and order-independent, so they page freely.
-        inserts = [r for r in rows if (r.get("client_offline_id") or "").strip()]
-        updates = [r for r in rows if not (r.get("client_offline_id") or "").strip()]
+        # A DELETION row is keyed by pk and is idempotent, so it pages with the updates
+        # even when it carries an anchor. Grouping it with the inserts instead would put
+        # it in the block that deliberately does NOT advance the cursor, so a cycle that
+        # shipped only deletions would re-ship them every time.
+        from apps.sync_engine.tombstones import DELETE_OP
+
+        def _is_delete(row):
+            return str(row.get("op") or "").strip().lower() == DELETE_OP
+
+        inserts, updates = [], []
+        for _row in rows:
+            if (_row.get("client_offline_id") or "").strip() and not _is_delete(_row):
+                inserts.append(_row)
+            else:
+                updates.append(_row)
 
         if mode == "dry":
             notes.append(f"dry run: {meta['row_count']} local change(s) NOT pushed")
@@ -356,6 +465,7 @@ def _execute_sync_transport(school, *, mode, result, run_row) -> None:
                     drained_updates = False
                     break
                 posted_pages += 1
+                push_ledger.record_sent(school, page)
                 result["pushed"] += len(page)
                 result["conflicts"] += int(body.get("conflicts") or 0)
                 # Advance only over the ground actually covered. Inserts carry no safe
@@ -397,12 +507,18 @@ def _execute_sync_transport(school, *, mode, result, run_row) -> None:
     try:
         from django.utils.dateparse import parse_datetime
 
-        from apps.sync_engine.models import EdgeSyncCursor, get_sync_cursor, set_sync_cursor
+        from apps.sync_engine.models import (
+            EdgeSyncCursor,
+            get_sync_cursor_for_request,
+            set_sync_cursor,
+        )
 
         endpoint = _endpoint(
             base, "api:sync-bundle-download", "/api/v1/sync/bundle/download/"
         )
-        pull_since = get_sync_cursor(school, EdgeSyncCursor.PULL)
+        # Same overlap as the push leg, for the same reason - a row written on the cloud
+        # while a cycle was in flight must not fall permanently behind the cursor.
+        pull_since = get_sync_cursor_for_request(school, EdgeSyncCursor.PULL)
         collected: dict = {}
         status, body, high_water = edge_outbox.pull_bundle(
             endpoint, token, since=pull_since, entities=None, collect=collected
@@ -413,12 +529,29 @@ def _execute_sync_transport(school, *, mode, result, run_row) -> None:
         # cursors: the NEXT cycle then replays the whole corpus through the ordinary,
         # idempotent apply path. Deliberately not applied to this cycle's bundle, which was
         # already built against the old cursor and is only a delta.
+        # G4: the cloud tells the box, on the same response, which entities it withheld
+        # because this box has not migrated yet. Named in the run message so an operator
+        # sees "attendance is frozen until you migrate" instead of silently missing data.
+        schema_advice = (collected.get("schema_advice") or "").strip()
+        withheld_entities = collected.get("withheld_entities") or []
+        if schema_advice or withheld_entities:
+            result["schema_behind"] = True
+            note = f"WARNING: {schema_advice}" if schema_advice else "WARNING: schema skew"
+            if withheld_entities:
+                note += f" [withheld: {', '.join(sorted(withheld_entities))}]"
+            notes.append(note)
+
         directive = (collected.get("directive") or "").strip()
         resyncing = directive == "full-resync" and mode != "dry"
         if resyncing:
             from apps.sync_engine.models import reset_sync_cursors
 
             rewound = reset_sync_cursors(school)
+            # A resync means "send everything again", so a memory of what was already
+            # sent is precisely the thing that would defeat it.
+            from apps.sync_engine import push_ledger as _push_ledger
+
+            _push_ledger.reset(school)
             notes.append(
                 f"full resync requested by the cloud: rewound {rewound} cursor(s); "
                 "the next cycle replays the entire corpus"
@@ -444,7 +577,9 @@ def _execute_sync_transport(school, *, mode, result, run_row) -> None:
                     result["pulled"] = int(applied.get("received") or 0)
                     result["created"] += int(applied.get("created") or 0)
                     result["upserted"] += int(applied.get("upserted") or 0)
+                    result["deleted"] += int(applied.get("deleted") or 0)
                     result["conflicts"] += int(applied.get("conflicts") or 0)
+                    result["skipped"] += int(applied.get("skipped") or 0)
                     # The download endpoint has always stamped the new high-water in
                     # X-RMC-Sync-High-Water so the box can advance; the runner used to
                     # throw it away and re-request the whole corpus every 180s. Advance
@@ -460,10 +595,30 @@ def _execute_sync_transport(school, *, mode, result, run_row) -> None:
                                 parsed, timezone.get_current_timezone()
                             )
                         set_sync_cursor(school, EdgeSyncCursor.PULL, parsed)
-                    notes.append(
+                    note = (
                         f"pulled {result['pulled']} (created {result['created']}, "
                         f"upserted {result['upserted']}, conflicts {result['conflicts']})"
                     )
+                    if result["deleted"]:
+                        # Named explicitly. A cycle that removed records must never be
+                        # summarised only as "pulled N" - the one number an operator has
+                        # to be able to see is how many rows this cycle destroyed.
+                        note += f"; DELETED {result['deleted']} record(s)"
+                    if result["skipped"]:
+                        # Named reasons, not just a count: "3 not applied" sends an operator
+                        # hunting, "missing_reference x3" says which rail is broken and why.
+                        reasons = applied.get("skipped_reasons") or {}
+                        detail = ", ".join(
+                            f"{k} x{v}" for k, v in sorted(reasons.items())
+                        )
+                        note += f"; {result['skipped']} NOT applied"
+                        if detail:
+                            note += f" ({detail})"
+                    notes.append(note)
+                    if (applied.get("skipped_reasons") or {}).get("missing_reference"):
+                        # Rewinding LAST, after the high-water advance above, so the rewind
+                        # is what survives this cycle.
+                        notes.append(_request_replay_for_missing_parents(school))
     except Exception as exc:  # noqa: BLE001 — never crash the tenant page
         errors.append(f"pull failed: {exc}")
 
@@ -478,6 +633,8 @@ def _execute_sync_transport(school, *, mode, result, run_row) -> None:
         conflicts=result["conflicts"],
         created=result["created"],
         upserted=result["upserted"],
+        deleted=result["deleted"],
+        skipped=result["skipped"],
         message=result["message"],
         error=result["error"],
     )

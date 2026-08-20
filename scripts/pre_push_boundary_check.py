@@ -54,6 +54,19 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 # with that workflow's stdlib-only jobs; the whole point is byte-for-byte parity
 # with what CI would say.
 GATES: list[tuple[str, list[str]]] = [
+    # First: a module that does not compile cannot be imported at all, and every
+    # gate below it is answering about a tree that does not run.
+    ("python-files-parse", ["verify_python_files_parse.py"]),
+    # Its sibling, and for a worse failure mode: a JavaScript file that does not parse
+    # fails SILENTLY in the browser - the tag 200s, the console throws, and the page
+    # renders normally with one feature dead. Skipped (not failed) when Node is absent,
+    # so a Python-only environment is not blocked by a toolchain it does not have.
+    ("javascript-files-parse", ["verify_javascript_files_parse.py"]),
+    # And the third: markup that does not close. Quieter than either of the above,
+    # because it does not fail anywhere - the page 200s and the browser silently
+    # reparents everything after the unclosed element. Nine served templates were
+    # found this way on 2026-08-20, one of them shipping a </motion> end tag.
+    ("template-html-structure", ["verify_template_html_structure.py"]),
     ("undefined-css-classes", ["scan_undefined_css_classes.py", "--compare"]),
     ("off-token-colors", ["scan_off_token_colors.py", "--strict"]),
     ("theme-locked-token-text", ["scan_theme_locked_token_text.py", "--strict"]),
@@ -93,8 +106,18 @@ def _truthy(value: str | None) -> bool:
     return (value or "").strip().lower() in {"1", "true", "yes", "on"}
 
 
-def _run_gate(label: str, argv: list[str]) -> tuple[bool, str]:
-    """Run one gate; return (passed, captured_output)."""
+# Exit code a gate uses to say "my toolchain is not installed here, so I did not run".
+# Distinct from pass and from fail: reporting SKIP is honest, while reporting PASS would
+# be a gate that silently stops gating, and reporting FAIL would block every developer
+# who does not have that toolchain.
+_SKIPPED_EXIT_CODE = 2
+
+
+def _run_gate(label: str, argv: list[str]) -> tuple[bool | None, str]:
+    """Run one gate; return ``(passed, captured_output)``.
+
+    ``passed`` is ``None`` when the gate reported that it could not run at all.
+    """
     script = REPO_ROOT / "scripts" / argv[0]
     if not script.is_file():
         # A missing gate script must not silently pass — report it as a failure
@@ -112,6 +135,8 @@ def _run_gate(label: str, argv: list[str]) -> tuple[bool, str]:
     except subprocess.TimeoutExpired:
         return False, f"gate timed out after {_PER_GATE_TIMEOUT_S}s"
     output = (proc.stdout or "") + (proc.stderr or "")
+    if proc.returncode == _SKIPPED_EXIT_CODE:
+        return None, output.strip()
     return proc.returncode == 0, output.strip()
 
 
@@ -144,13 +169,25 @@ def main(argv: list[str] | None = None) -> int:
 
     print("Pre-push boundary gates (fast, deps-free subset of CI)...")
     failures: list[tuple[str, str]] = []
+    skipped: list[tuple[str, str]] = []
     for label, gate_argv in GATES:
         passed, output = _run_gate(label, gate_argv)
-        if passed:
+        if passed is None:
+            # Said so out loud rather than counted as green: a gate that cannot run is
+            # not a gate that passed, and hiding that is how coverage quietly evaporates.
+            print(f"  SKIP  {label}")
+            skipped.append((label, output))
+        elif passed:
             print(f"  PASS  {label}")
         else:
             print(f"  FAIL  {label}")
             failures.append((label, output))
+
+    for label, output in skipped:
+        print("")
+        print(f"  -- {label} did NOT run --")
+        for row in _tail(output, 3).splitlines():
+            print(f"    {row}")
 
     if not failures:
         print("All boundary gates green - safe to push.")

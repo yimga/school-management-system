@@ -70,7 +70,9 @@ def _run_scheduling_solver_body(
 
     created_by = None
     if created_by_id:
-        created_by = User.objects.filter(pk=created_by_id).first()
+        created_by = User.objects.filter(
+            pk=created_by_id
+        ).first()  # tenant-isolation-allow: actor-attribution-lookup-of-one-global-auth-User-by-pk
     if created_by is None:
         created_by = User.objects.filter(is_staff=True).order_by(
             "pk"

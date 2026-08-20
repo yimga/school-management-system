@@ -1,6 +1,6 @@
 {
   "build_id": "2026-08-01-v1.1",
   "cache_bust_id": "20260801-tenant-configuration-operations-v2",
-  "service_worker_version": "sms-v4.06.68-admin-form-intelligence-2026-08-20",
+  "service_worker_version": "sms-v4.06.70-admin-automation-edge-sync-final-audit-2026-08-20",
   "approval_source": "var/design-previews/gilead-tenant-configuration-operations-before-after-approval-2026-08-01.html"
 }

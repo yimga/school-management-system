@@ -165,7 +165,6 @@
         <a class="btn btn-sm btn-outline-primary" href="{% url 'accounts:rbac' %}">{% trans "RBAC tools" %}</a>
         <a class="btn btn-sm btn-outline-secondary" href="{% url 'finance:dashboard' %}">{% trans "Finance console" %}</a>
       </div>
-    </div>
   </div>
   <div class="card shadow-sm p-3" data-widget-id="analytics-ai-insight">
       <h5 class="mb-2">{% trans "AI insight" %}</h5>
@@ -331,6 +330,7 @@
           <h5 class="mb-0">{% trans "Weak subjects" %}</h5>
           <span class="rmc-badge rmc-badge--warning">{{ weak_subjects|length }}</span>
         </div>
+        {# attention-allow: descriptive-copy — section blurb about subject performance, not a count of pending work #}
         <p class="small text-muted mb-2">{% trans "Subjects that need attention this term." %}</p>
         <ul class="list-group list-group-flush">
           {% for subject in weak_subjects|slice:":3" %}
@@ -679,6 +679,8 @@
       </div>
     </div>
   </div>
+</div> <!-- /.row tertiary -->
 </div> <!-- /analytics-dashboard-widgets -->
+</div> <!-- /.container-fluid -->
 {% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

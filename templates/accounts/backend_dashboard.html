@@ -270,6 +270,7 @@ backend-shell dashboard-page-backend
   {% if lifecycle_journey and lifecycle_journey.steps %}
   {% include "partials/lifecycle_journey_navigator.html" %}
   {% endif %}
+  </div><!-- #section-today -->
   <section id="section-attention" data-rmc-section-anchor class="mb-3" data-rmc-intelligent-insights="backend" data-rmc-ux-section="what-needs-attention" aria-label="{% trans 'What needs attention' %}">
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
       {% comment %} Pass 8 UX consistency: was <h1 class="h6">; the luxury_major_audit_contract partial
@@ -858,7 +859,14 @@ backend-shell dashboard-page-backend
           <div class="card-body">
             <div class="backend-v2-panel-head">
               <h5 class="backend-v2-panel-title mb-0">{% trans "At-Risk Students" %}</h5>
+              {# The panel names flagged learners but linked to nothing, so an admin #}
+              {# could read who needs help and had no way to reach the intervention screen. #}
+              {% url 'analytics:at_risk_dashboard' as at_risk_url %}
+              {% if at_risk_students and at_risk_url %}
+              <a class="rmc-badge rmc-badge--muted text-decoration-none" href="{{ at_risk_url }}">{{ at_risk_students|length }} <span aria-hidden="true">&rarr;</span><span class="visually-hidden"> {% trans "Open at-risk dashboard" %}</span></a>
+              {% else %}
               <span class="rmc-badge rmc-badge--muted">{{ at_risk_students|length }}</span>
+              {% endif %}
             </div>
             {% if backend_visual_settings.show_progress_rings %}
             <div class="backend-v2-progress-ring-wrap" aria-hidden="true">

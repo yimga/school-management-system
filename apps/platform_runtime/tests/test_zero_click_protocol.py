@@ -291,22 +291,48 @@ class ActionHubTests(SimpleTestCase):
         self.assertEqual(hub.actions[0].key, "safeguarding.urgent")
 
     def test_tenant_admin_hub_actions_land_on_routable_work_surfaces(self) -> None:
+        """The name promises routable. It used to compare a string to itself.
+
+        Both assertions were the literal path from the source repeated back,
+        which passes whether or not the path leads anywhere — and neither did,
+        in the way that mattered: ``?status=overdue`` is lowercase where the
+        model's choice is ``OVERDUE``, so the chip counted invoices and then
+        showed an empty list.
+        """
+        from django.urls import reverse
+
         hub = build_tenant_admin_hub(overdue_invoices=2, storage_warning=True)
         actions = {action.key: action for action in hub.actions}
-        self.assertEqual(
-            actions["finance.overdue"].href,
-            "/finance/invoices/?status=overdue",
-        )
-        self.assertEqual(
-            actions["storage.nearing_cap"].href,
-            "/siteconfig/billing/plan/?focus=storage",
-        )
-        self.assertNotIn("/school/settings/", actions["storage.nearing_cap"].href)
 
-    def test_tenant_admin_hub_skips_zero_counts(self) -> None:
+        for key in ("finance.overdue", "storage.nearing_cap"):
+            action = actions[key]
+            self.assertFalse(
+                action.href,
+                f"{key} carries a literal path; use url_name so a rename breaks a test",
+            )
+            reverse(action.url_name)  # raises NoReverseMatch if the route moved
+
+        self.assertEqual(actions["finance.overdue"].url_name, "finance:invoices")
+        self.assertIn(
+            "OVERDUE",
+            actions["finance.overdue"].query,
+            "invoice status is a case-sensitive TextChoices value",
+        )
+
+    def test_a_zero_count_alert_still_reaches_the_strip(self) -> None:
+        """Storage warnings, transcript holds and balances carry no count.
+
+        ``non_empty_actions`` used to drop anything with ``count == 0`` that
+        was not severity ``info``, which deleted exactly the boolean-state
+        alerts the strip exists for.
+        """
+        hub = build_tenant_admin_hub(storage_warning=True)
+        keys = {a.key for a in hub.non_empty_actions}
+        self.assertIn("storage.nearing_cap", keys)
+
+    def test_a_hub_with_nothing_to_say_stays_empty(self) -> None:
         hub = build_tenant_admin_hub()
-        non_empty = hub.non_empty_actions
-        self.assertEqual(non_empty, ())
+        self.assertEqual(hub.non_empty_actions, ())
 
     def test_teacher_hub_shows_all_clear_when_pending_zero(self) -> None:
         hub = build_teacher_hub(classes_today=3, attendance_pending_classes=0)

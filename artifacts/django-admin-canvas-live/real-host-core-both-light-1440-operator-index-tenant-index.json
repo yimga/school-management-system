@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-20T09:58:45.007Z",
+  "generatedAt": "2026-08-20T12:20:05.191Z",
   "suite": "core",
   "scope": "both",
   "only": "operator-index,tenant-index",
@@ -9,9 +9,9 @@
     "width": 1440,
     "height": 900
   },
-  "build": "2026-08-20-v19.0",
-  "cacheBust": "20260820-admin-automation-v19",
-  "serviceWorker": "sms-v4.06.67-admin-form-intelligence-2026-08-20",
+  "build": "2026-08-20-v21.0",
+  "cacheBust": "20260820-admin-automation-v21",
+  "serviceWorker": "sms-v4.06.70-admin-automation-edge-sync-final-audit-2026-08-20",
   "hosts": {
     "operator": "http://manager.runmycampus.com:8020",
     "tenant": "http://gilead-tech.runmycampus.com:8020"
@@ -37,7 +37,7 @@
         "path": "/admin/",
         "title": "RunMyCampus Admin",
         "scope": "operator",
-        "build": "2026-08-20-v19.0",
+        "build": "2026-08-20-v21.0",
         "buildMatches": true,
         "theme": "light",
         "h1": [
@@ -125,17 +125,17 @@
           "http://manager.runmycampus.com:8020/static/css/rmc-cp-consolidated-operator-shell.css",
           "http://manager.runmycampus.com:8020/static/css/rmc-cp-activity-tiers.css",
           "http://manager.runmycampus.com:8020/static/css/rmc-admin-modal-overlay-guard.css",
-          "http://manager.runmycampus.com:8020/static/css/admin-platform-catalog.css?v=20260820-admin-automation-v19",
+          "http://manager.runmycampus.com:8020/static/css/admin-platform-catalog.css?v=20260820-admin-automation-v21",
           "http://manager.runmycampus.com:8020/static/css/admin-200x-shell-overlay.css",
           "http://manager.runmycampus.com:8020/static/css/rmc-admin-v1-200x.css",
           "http://manager.runmycampus.com:8020/static/css/rmc-action-contract.css",
           "http://manager.runmycampus.com:8020/static/css/rmc-admin-changelist-live.css",
           "http://manager.runmycampus.com:8020/static/css/rmc-cp-sidebar-200x.css",
-          "http://manager.runmycampus.com:8020/static/css/rmc-operator-admin-sidebar-v2.css?v=20260820-admin-automation-v19",
+          "http://manager.runmycampus.com:8020/static/css/rmc-operator-admin-sidebar-v2.css?v=20260820-admin-automation-v21",
           "http://manager.runmycampus.com:8020/static/css/rmc-platform-inner-pages.css",
           "http://manager.runmycampus.com:8020/static/css/rmc-security-posture-nav.css",
           "http://manager.runmycampus.com:8020/static/css/rmc-canvas-chrome-compact.css",
-          "http://manager.runmycampus.com:8020/static/css/rmc-experience-template-runtime.css?v=20260820-admin-automation-v19",
+          "http://manager.runmycampus.com:8020/static/css/rmc-experience-template-runtime.css?v=20260820-admin-automation-v21",
           "http://manager.runmycampus.com:8020/static/css/rmc-print.css",
           "http://manager.runmycampus.com:8020/static/css/rmc-platform-header.css",
           "http://manager.runmycampus.com:8020/static/css/rmc-corporate-os.css",
@@ -163,10 +163,10 @@
           "http://manager.runmycampus.com:8020/static/css/rmc-theme-experience-dual-plane.css",
           "http://manager.runmycampus.com:8020/static/css/rmc-nav-sidebar.css",
           "http://manager.runmycampus.com:8020/static/css/rmc-platform-workspace-edge-fit.css",
-          "http://manager.runmycampus.com:8020/static/css/rmc-tenant-surface-scroll-contract.css?v=20260820-admin-automation-v19",
+          "http://manager.runmycampus.com:8020/static/css/rmc-tenant-surface-scroll-contract.css?v=20260820-admin-automation-v21",
           "http://manager.runmycampus.com:8020/static/css/rmc-tour.css",
-          "http://manager.runmycampus.com:8020/static/css/rmc-theme-surface-safety-v1.css?v=20260820-admin-automation-v19",
-          "http://manager.runmycampus.com:8020/static/css/rmc-admin-emergency-full-canvas-v17.css?v=20260820-admin-automation-v19",
+          "http://manager.runmycampus.com:8020/static/css/rmc-theme-surface-safety-v1.css?v=20260820-admin-automation-v21",
+          "http://manager.runmycampus.com:8020/static/css/rmc-admin-emergency-full-canvas-v17.css?v=20260820-admin-automation-v21",
           "http://manager.runmycampus.com:8020/static/css/rmc-operator-tools-tray.css"
         ],
         "duplicateStylesheets": [],
@@ -217,6 +217,7 @@
         },
         "formGeometry": null,
         "formNativeLayouts": null,
+        "formIntelligence": null,
         "tenantSearchPanelInitiallyVisible": false,
         "fixedOverlays": [],
         "wideFixedBands": [],
@@ -1029,7 +1030,7 @@
         "loginVisible": false
       },
       "findings": [],
-      "screenshot": "artifacts/django-admin-canvas-live/2026-08-20-v19.0-core-light-1440-operator-index.png"
+      "screenshot": "artifacts/django-admin-canvas-live/2026-08-20-v21.0-core-light-1440-operator-index.png"
     },
     {
       "name": "tenant-index",
@@ -1047,7 +1048,7 @@
         "path": "/admin/",
         "title": "Gilead Technical High School",
         "scope": "tenant",
-        "build": "2026-08-20-v19.0",
+        "build": "2026-08-20-v21.0",
         "buildMatches": true,
         "theme": "light",
         "h1": [
@@ -1062,7 +1063,7 @@
           "http://gilead-tech.runmycampus.com:8020/static/unfold/css/styles.css",
           "http://gilead-tech.runmycampus.com:8020/static/unfold/css/simplebar/simplebar.css",
           "http://gilead-tech.runmycampus.com:8020/static/vendor/bootstrap-icons/css/bootstrap-icons.min.css",
-          "http://gilead-tech.runmycampus.com:8020/static/css/admin-nav-bridge-tenant.css?v=20260820-admin-automation-v19",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-nav-bridge-tenant.css?v=20260820-admin-automation-v21",
           "http://gilead-tech.runmycampus.com:8020/static/css/design-tokens.css",
           "http://gilead-tech.runmycampus.com:8020/static/css/rmc-cockpit-skin-v8.css",
           "http://gilead-tech.runmycampus.com:8020/static/css/rmc-operator-theme-coherence.css",
@@ -1128,8 +1129,8 @@
           "http://gilead-tech.runmycampus.com:8020/static/css/rmc-platform-beautify-v4.css",
           "http://gilead-tech.runmycampus.com:8020/static/css/rmc-sidebar-rail-contract.css",
           "http://gilead-tech.runmycampus.com:8020/static/css/rmc-admin-changelist-live.css",
-          "http://gilead-tech.runmycampus.com:8020/static/css/admin-platform-catalog.css?v=20260820-admin-automation-v19",
-          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-experience-template-runtime.css?v=20260820-admin-automation-v19",
+          "http://gilead-tech.runmycampus.com:8020/static/css/admin-platform-catalog.css?v=20260820-admin-automation-v21",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-experience-template-runtime.css?v=20260820-admin-automation-v21",
           "http://gilead-tech.runmycampus.com:8020/static/css/rmc-print.css",
           "http://gilead-tech.runmycampus.com:8020/static/css/platform-responsive-touch.css",
           "http://gilead-tech.runmycampus.com:8020/static/css/dashboard-responsive.css",
@@ -1142,11 +1143,11 @@
           "http://gilead-tech.runmycampus.com:8020/static/css/rmc-backoffice-scroll-10x.css",
           "http://gilead-tech.runmycampus.com:8020/static/css/rmc-theme-experience-dual-plane.css",
           "http://gilead-tech.runmycampus.com:8020/static/css/rmc-header-super-chrome-parity.css",
-          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-tenant-surface-scroll-contract.css?v=20260820-admin-automation-v19",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-tenant-surface-scroll-contract.css?v=20260820-admin-automation-v21",
           "http://gilead-tech.runmycampus.com:8020/static/css/rmc-tour.css",
-          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-theme-surface-safety-v1.css?v=20260820-admin-automation-v19",
-          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-admin-emergency-full-canvas-v17.css?v=20260820-admin-automation-v19",
-          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-tenant-admin-sidebar-v2.css?v=20260820-admin-automation-v19",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-theme-surface-safety-v1.css?v=20260820-admin-automation-v21",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-admin-emergency-full-canvas-v17.css?v=20260820-admin-automation-v21",
+          "http://gilead-tech.runmycampus.com:8020/static/css/rmc-tenant-admin-sidebar-v2.css?v=20260820-admin-automation-v21",
           "http://gilead-tech.runmycampus.com:8020/static/css/rmc-operator-tools-tray.css"
         ],
         "duplicateStylesheets": [],
@@ -1197,6 +1198,7 @@
         },
         "formGeometry": null,
         "formNativeLayouts": null,
+        "formIntelligence": null,
         "tenantSearchPanelInitiallyVisible": false,
         "fixedOverlays": [],
         "wideFixedBands": [],
@@ -1616,7 +1618,7 @@
         "loginVisible": false
       },
       "findings": [],
-      "screenshot": "artifacts/django-admin-canvas-live/2026-08-20-v19.0-core-light-1440-tenant-index.png"
+      "screenshot": "artifacts/django-admin-canvas-live/2026-08-20-v21.0-core-light-1440-tenant-index.png"
     }
   ]
 }

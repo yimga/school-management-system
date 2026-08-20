@@ -3950,6 +3950,14 @@ OPEN_WEBUI_URL = os.getenv("OPEN_WEBUI_URL", "").strip() or None
 RMC_DEPLOYMENT_PROFILE = (
     os.getenv("RMC_DEPLOYMENT_PROFILE", "online").strip().lower() or "online"
 )
+# Ceiling on a CLIENT-supplied `?page_size=`. The list endpoints expose page_size so a
+# caller can pull sensibly sized pages, and a ceiling is what stops that becoming an
+# unbounded pull of a whole tenant's roster from a single request.
+try:
+    API_MAX_PAGE_SIZE = max(1, int(os.getenv("API_MAX_PAGE_SIZE", "200")))
+except ValueError:
+    API_MAX_PAGE_SIZE = 200
+
 RMC_HUB_BASE_URL = (os.getenv("RMC_HUB_BASE_URL", "") or "").strip().rstrip("/")
 # Cloud base URL a sovereign box syncs against. apps.sync_engine.sync_runner._operator_base
 # reads it as a SETTING and falls back to RMC_HUB_BASE_URL, so it must be defined here —
@@ -3972,6 +3980,124 @@ RMC_EDGE_OPERATOR_BASE = (
 RMC_EDGE_SYNC_ENABLED = os.getenv("RMC_EDGE_SYNC_ENABLED", "").strip().lower() in (
     "1", "true", "yes", "on",
 )
+# --------------------------------------------------------------------------- #
+# Edge sync: DELETION propagation (apps/sync_engine/tombstones.py)
+# --------------------------------------------------------------------------- #
+# A deleted row leaves nothing for `filter(updated_at__gt=since)` to scan, so until
+# tombstones existed a deletion was the one change the sync engine could not carry:
+# a withdrawn student stayed enrolled on the appliance forever. ON by default, and not
+# retroactive — the tombstone table starts empty, so only deletions from now on travel.
+RMC_SYNC_DELETE_PROPAGATION_ENABLED = os.getenv(
+    "RMC_SYNC_DELETE_PROPAGATION_ENABLED", "1"
+).strip().lower() in ("1", "true", "yes", "on")
+# Flood guard. Deletion is the only sync operation that is not self-healing — a wrongly
+# propagated delete destroys data the far side cannot re-offer — so one bundle may carry
+# at most this many. Above it the delete batch is refused WHOLE and reported, turning a
+# mistaken bulk action on one side into a loud refusal instead of a mirrored wipe.
+try:
+    RMC_SYNC_MAX_DELETES_PER_BUNDLE = max(
+        1, int(os.getenv("RMC_SYNC_MAX_DELETES_PER_BUNDLE", "500"))
+    )
+except ValueError:
+    RMC_SYNC_MAX_DELETES_PER_BUNDLE = 500
+# How long a tombstone is kept. It only has to outlive the longest outage a peer can
+# have and still converge by replay; past that a full resync (which reconciles by
+# CONTENT, not by replaying history) is the correct repair anyway.
+try:
+    RMC_SYNC_TOMBSTONE_RETENTION_DAYS = max(
+        1, int(os.getenv("RMC_SYNC_TOMBSTONE_RETENTION_DAYS", "365"))
+    )
+except ValueError:
+    RMC_SYNC_TOMBSTONE_RETENTION_DAYS = 365
+# File transfer (apps/sync_engine/file_sync.py, apps/api/sync_files_api.py). A delta
+# bundle carries column values, never bytes, so FileFields are dropped from the row rail —
+# which meant student photos, scanned report cards and payment proofs did not exist across
+# the boundary at all. Files move on their own resumable, hash-verified channel, driven by
+# their own command, so a large upload can never delay or fail a data cycle.
+RMC_SYNC_FILE_TRANSFER_ENABLED = os.getenv(
+    "RMC_SYNC_FILE_TRANSFER_ENABLED", "1"
+).strip().lower() in ("1", "true", "yes", "on")
+try:
+    RMC_SYNC_FILE_MAX_BYTES = max(
+        0, int(os.getenv("RMC_SYNC_FILE_MAX_BYTES", str(200 * 1024 * 1024)))
+    )
+except ValueError:
+    RMC_SYNC_FILE_MAX_BYTES = 200 * 1024 * 1024
+# Per-pass budgets. A school with a decade of scans converges over many passes rather
+# than pinning a metered link; durable offsets mean the next pass resumes mid-file.
+try:
+    RMC_SYNC_FILE_BUDGET_BYTES = max(
+        1, int(os.getenv("RMC_SYNC_FILE_BUDGET_BYTES", str(32 * 1024 * 1024)))
+    )
+except ValueError:
+    RMC_SYNC_FILE_BUDGET_BYTES = 32 * 1024 * 1024
+try:
+    RMC_SYNC_FILE_MAX_PER_PASS = max(1, int(os.getenv("RMC_SYNC_FILE_MAX_PER_PASS", "25")))
+except ValueError:
+    RMC_SYNC_FILE_MAX_PER_PASS = 25
+
+# Long-poll changes feed (apps/api/sync_changes_api.py). The appliance is behind NAT, so
+# the cloud cannot push; without this a cloud write waits out the box's cadence (and the
+# adaptive cadence deliberately backs off when a box looks idle). The feed carries no row
+# data — it only says "there is something for you", and the box then runs its ordinary
+# sync cycle, so every cursor/policy/replay guarantee is untouched by it.
+RMC_SYNC_CHANGES_FEED_ENABLED = os.getenv(
+    "RMC_SYNC_CHANGES_FEED_ENABLED", "1"
+).strip().lower() in ("1", "true", "yes", "on")
+# Shorter than the box's own 30s HTTP timeout and inside the idle timeout of the common
+# proxies, so an expiring hold is a clean 200 rather than a reset the box has to tell
+# apart from being offline.
+try:
+    RMC_SYNC_CHANGES_FEED_MAX_WAIT_SECONDS = max(
+        1, min(60, int(os.getenv("RMC_SYNC_CHANGES_FEED_MAX_WAIT_SECONDS", "25")))
+    )
+except ValueError:
+    RMC_SYNC_CHANGES_FEED_MAX_WAIT_SECONDS = 25
+try:
+    RMC_SYNC_CHANGES_FEED_POLL_STEP_SECONDS = max(
+        0.1, float(os.getenv("RMC_SYNC_CHANGES_FEED_POLL_STEP_SECONDS", "1.0"))
+    )
+except ValueError:
+    RMC_SYNC_CHANGES_FEED_POLL_STEP_SECONDS = 1.0
+# How often the hold falls back to a real database sweep. The in-memory beacon is the
+# cheap primary answer; with a per-process cache (LocMemCache) a write served by one
+# worker is invisible to a hold in another, and this sweep is what keeps the feed correct
+# on such a deployment rather than merely fast.
+try:
+    RMC_SYNC_CHANGES_FEED_DB_SWEEP_SECONDS = max(
+        1.0, float(os.getenv("RMC_SYNC_CHANGES_FEED_DB_SWEEP_SECONDS", "5.0"))
+    )
+except ValueError:
+    RMC_SYNC_CHANGES_FEED_DB_SWEEP_SECONDS = 5.0
+
+# Bundle replay defence (apps/sync_engine/replay_guard.py). An HMAC signature proves who
+# BUILT a bundle, never that this is the first time you have been handed it: a captured
+# bundle replayed later verifies perfectly and can resurrect a row the far side has since
+# deleted. Every bundle carries a signed nonce; a nonce already seen for this school is
+# refused. The window below is exactly how far back that protection reaches, which is why
+# a bundle older than it is refused rather than accepted with the guarantee lapsed.
+RMC_SYNC_BUNDLE_REPLAY_DEFENCE = os.getenv(
+    "RMC_SYNC_BUNDLE_REPLAY_DEFENCE", "1"
+).strip().lower() in ("1", "true", "yes", "on")
+try:
+    RMC_SYNC_BUNDLE_REPLAY_WINDOW_SECONDS = max(
+        60, int(os.getenv("RMC_SYNC_BUNDLE_REPLAY_WINDOW_SECONDS", str(7 * 24 * 3600)))
+    )
+except ValueError:
+    RMC_SYNC_BUNDLE_REPLAY_WINDOW_SECONDS = 7 * 24 * 3600
+# Cursor overlap. The delta cursors on wall-clock `updated_at`, which has two holes a
+# monotonic sequence would not: rows sharing one timestamp straddling a page boundary,
+# and a transaction that COMMITS after a concurrent cycle already read the high-water
+# (its updated_at is then older than the recorded position and is never re-offered).
+# Re-requesting a small overlap closes both for any transaction shorter than the window;
+# the apply path is idempotent, so a re-shipped row costs bandwidth, never correctness.
+try:
+    RMC_EDGE_SYNC_CURSOR_OVERLAP_SECONDS = max(
+        0, int(os.getenv("RMC_EDGE_SYNC_CURSOR_OVERLAP_SECONDS", "120"))
+    )
+except ValueError:
+    RMC_EDGE_SYNC_CURSOR_OVERLAP_SECONDS = 120
+
 RMC_AUTO_APPLY_OFFLINE_BUNDLE_ON_PROVISION = os.getenv(
     "RMC_AUTO_APPLY_OFFLINE_BUNDLE_ON_PROVISION", "1"
 ).strip().lower() in ("1", "true", "yes", "on")

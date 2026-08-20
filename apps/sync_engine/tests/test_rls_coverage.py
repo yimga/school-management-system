@@ -11,14 +11,17 @@ from pathlib import Path
 
 from django.test import SimpleTestCase
 
-_ENABLE_MOD = "apps.sync_engine.migrations.0005_enable_rls_postgresql"
-_DENY_MOD = "apps.sync_engine.migrations.0006_rls_policy_default_deny"
+_ENABLE_MOD = "apps.sync_engine.migrations.0008_enable_rls_postgresql"
+_DENY_MOD = "apps.sync_engine.migrations.0009_rls_policy_default_deny"
 
 _EXPECTED_TABLES = (
     "sync_engine_syncapplyledger",
     "sync_engine_edgesyncrun",
     "sync_engine_edgesynccursor",
     "sync_engine_edgesyncdirective",
+    "sync_engine_synctombstone",
+    "sync_engine_syncbundlereceipt",
+    "sync_engine_syncfiletransfer",
 )
 
 
@@ -52,7 +55,7 @@ class SyncEngineRlsCoverageTests(SimpleTestCase):
         self.assertTrue(any("enable_rls" in n for n in names), names)
         self.assertTrue(any("rls_policy_default_deny" in n for n in names), names)
 
-    def test_enable_migration_issues_force_and_enable_for_all_four_tables(self):
+    def test_enable_migration_issues_force_and_enable_for_all_tenant_tables(self):
         mod = importlib.import_module(_ENABLE_MOD)
         executed: list[str] = []
         orig_should, orig_conn = mod.should_apply_rls, mod.connection

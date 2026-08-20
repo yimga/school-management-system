@@ -25,6 +25,7 @@ import django  # noqa: E402
 
 django.setup()
 
+from django.contrib.admin.utils import flatten_fieldsets  # noqa: E402
 from django.contrib.auth import get_user_model  # noqa: E402
 from django.contrib.messages.middleware import MessageMiddleware  # noqa: E402
 from django.contrib.sessions.middleware import SessionMiddleware  # noqa: E402
@@ -143,7 +144,15 @@ def _audit_site(
                 continue
 
             metrics[f"{mode}_forms_resolved"] += 1
-            form_names = set(form_class.base_fields)
+            declared_form_names = set(form_class.base_fields)
+            rendered_form_names = set(
+                flatten_fieldsets(model_admin.get_fieldsets(request, None))
+            )
+            # A reusable ModelForm may intentionally declare fields that this
+            # specialized ModelAdmin does not render.  Audit the active
+            # fieldset allowlist so the release gate detects the same surface
+            # the browser receives instead of requiring phantom controls.
+            form_names = declared_form_names & rendered_form_names
             required = set(contract.required_fields)
             optional = {item["name"] for item in contract.optional_fields}
             recommended = set(contract.recommended_fields)
@@ -167,7 +176,7 @@ def _audit_site(
                 findings.append(f"{label}:{model_label}:{mode}:required-hidden")
             if system_hidden & optional:
                 findings.append(f"{label}:{model_label}:{mode}:system-optional")
-            if has_school and label == "tenant" and "school" in form_names:
+            if has_school and label == "tenant" and "school" in declared_form_names:
                 metrics["school_fields_exposed"] += 1
                 findings.append(f"{label}:{model_label}:{mode}:school-editable")
             if not contract.endpoint:

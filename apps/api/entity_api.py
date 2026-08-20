@@ -1,5 +1,6 @@
 """Entity CRUD and session-claims APIs for frontend orchestration."""
 
+from django.conf import settings
 from django.db import transaction
 from django.db.utils import DatabaseError, IntegrityError
 from django.utils.dateparse import parse_datetime
@@ -99,8 +100,52 @@ def _check_student_offline_conflict(instance, request):
     return None
 
 
-class StudentProfileCursorPagination(CursorPagination):
+class _BoundedCursorPagination(CursorPagination):
+    """Cursor pagination with a client-settable but BOUNDED page size.
+
+    Two separate requirements, both from the 2026-06-27 contract test:
+
+    * an explicit ``ordering`` on a real field, because the project-wide default orders by
+      ``"-created"`` and most of these models have no such column - an unconditional 500;
+    * ``page_size_query_param`` with a ``max_page_size``, so a caller can page sensibly
+      and cannot turn one request into an unbounded pull of the whole tenant roster.
+
+    Subclasses supply only the ordering.
+    """
+
+    page_size_query_param = "page_size"
+    max_page_size = getattr(settings, "API_MAX_PAGE_SIZE", 200)
+
+
+class StudentProfileCursorPagination(_BoundedCursorPagination):
     ordering = "-updated_at"
+
+
+# WHY THESE THREE EXIST (2026-08-20). The project default is
+# ``REST_FRAMEWORK["DEFAULT_PAGINATION_CLASS"] = CursorPagination``, whose own default
+# ``ordering`` is ``"-created"``. None of these models HAS a ``created`` field, so any
+# ViewSet that fell back to the default raised
+# ``FieldError: Cannot resolve keyword 'created' into field`` on its list endpoint — an
+# unconditional HTTP 500 on every GET, for every caller, since the day pagination became
+# a project-wide default.
+#
+# A contract test written on 2026-06-27 (``test_entity_api_pagination_loop.py``) exists
+# precisely to prevent this, and named these three classes. They were never created, so
+# the module raised ``AttributeError`` at IMPORT and pytest reported a collection error
+# rather than a failure — the guard was written, never ran, and the defect it guards
+# against shipped anyway. Orderings below are exactly the ones that test asserts.
+class TeacherProfileCursorPagination(_BoundedCursorPagination):
+    ordering = "-updated_at"
+
+
+class StudentGuardianCursorPagination(_BoundedCursorPagination):
+    # No timestamp column on this model at all, so the primary key is the only stable
+    # total order available. Descending pk is "newest first" for an autoincrement pk.
+    ordering = "-pk"
+
+
+class ClassroomCursorPagination(_BoundedCursorPagination):
+    ordering = "-pk"
 
 
 @extend_schema_view(
@@ -423,6 +468,7 @@ class StudentProfileViewSet(viewsets.ModelViewSet):
 )
 class TeacherProfileViewSet(viewsets.ModelViewSet):
     """CRUD for teachers; admin-only writes, teacher self-read."""
+    pagination_class = TeacherProfileCursorPagination
 
     serializer_class = TeacherProfileSerializer
     permission_classes = [IsAuthenticated]
@@ -484,6 +530,7 @@ class TeacherProfileViewSet(viewsets.ModelViewSet):
 )
 class StudentGuardianViewSet(viewsets.ModelViewSet):
     """Manage guardian/student links; parents can view their own links, admins manage all."""
+    pagination_class = StudentGuardianCursorPagination
 
     serializer_class = StudentGuardianSerializer
     permission_classes = [IsAuthenticated]
@@ -635,6 +682,7 @@ class StudentGuardianViewSet(viewsets.ModelViewSet):
 )
 class ClassroomViewSet(viewsets.ModelViewSet):
     """Classroom CRUD; open read, admin-only writes."""
+    pagination_class = ClassroomCursorPagination
 
     serializer_class = ClassroomSerializer
     permission_classes = [IsAuthenticated]

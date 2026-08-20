@@ -126,7 +126,14 @@
             <div class="text-muted small mb-1">{% trans "System status" %}</div>
             <ul class="list-unstyled small mb-2">
               <li>{% blocktrans with count=health.unpublished_terms %}Unpublished terms: {{ count }}{% endblocktrans %}</li>
+              {# Money owed is the one line here a reader will want to act on. #}
+              {% url 'finance:dashboard' as widget_finance_url %}
+              {% if health.overdue_invoices and widget_finance_url %}
+              <li><a href="{{ widget_finance_url }}">{% blocktrans with count=health.overdue_invoices %}Overdue invoices: {{ count }}{% endblocktrans %}</a></li>
+              {% else %}
+              {# attention-allow: no-destination-on-host — finance: is tenant-only; plain text beats href="" #}
               <li>{% blocktrans with count=health.overdue_invoices %}Overdue invoices: {{ count }}{% endblocktrans %}</li>
+              {% endif %}
               <li>{% blocktrans with count=health.draft_invoices %}Draft invoices: {{ count }}{% endblocktrans %}</li>
               <li>{% blocktrans with count=health.reminders_due %}Reminders due: {{ count }}{% endblocktrans %}</li>
               <li>{% trans "Parent portal:" %} {% if health.portal_parent_enabled %}{% trans "On" %}{% else %}{% trans "Off" %}{% endif %}</li>

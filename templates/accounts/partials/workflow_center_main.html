@@ -99,6 +99,7 @@
         </div>
       </section>
       {% if engine_attention %}
+      {# attention-allow: resolver-surface — this Workflow Center is where the listed issues are resolved #}
       <section class="rmc-command-panel" aria-label="{% trans 'Open workflow issues' %}">
         <div class="rmc-command-panel__body">
           <h2 class="h6 mb-2">{% trans "Action required" %}</h2>
@@ -111,6 +112,7 @@
             {% if engine_attention.approvals_pending %}<span class="rmc-badge rmc-badge--warning">{% blocktrans count count=engine_attention.approvals_pending %}{{ count }} approval{% plural %}{{ count }} approvals{% endblocktrans %}</span>{% endif %}
           </p>
           {% else %}
+          {# attention-allow: empty-state — explicitly reports that the issue queues are clear #}
           <p class="small text-muted mb-0">{% trans "Nothing needs attention. Completed work stays in the logs." %}</p>
           {% endif %}
         </div>

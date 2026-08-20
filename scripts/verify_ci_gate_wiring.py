@@ -40,6 +40,23 @@ WORKFLOWS_DIR = REPO_ROOT / ".github" / "workflows"
 # is "present in SOME workflow"). Removing a gate from CI is a reviewed edit
 # to this tuple.
 REQUIRED_GATES: tuple[tuple[str, str], ...] = (
+    # The floor: a module that does not compile cannot be imported at all, and every
+    # other gate is then answering about a tree that does not run. Added 2026-08-19 after
+    # apps/accounts/tasks.py was found TRUNCATED mid-statement on main - the reference
+    # gates treat an unparseable file as opaque and skip it, so nothing reported it.
+    ("scripts/verify_python_files_parse.py", "architectural-boundaries.yml"),
+    # The same floor for the code that runs in the BROWSER. Added 2026-08-20: the Python
+    # gate's own write-up named this hole and stopped there. A JavaScript SyntaxError is
+    # quieter than a Python one - no server log, no Sentry event, just a feature that
+    # does not work - and in static/js/service-worker.js it silently stops the offline
+    # shell an appliance depends on from ever updating.
+    ("scripts/verify_javascript_files_parse.py", "architectural-boundaries.yml"),
+    # The same floor for MARKUP, and the quietest of the three. An unclosed <div> does
+    # not raise, does not log, and does not fail a test: the page 200s and the browser
+    # silently reparents everything after it into a container it was never meant to be
+    # inside. Added 2026-08-20 after nine served templates were found unbalanced,
+    # including one that shipped a </motion> end tag - an element that does not exist.
+    ("scripts/verify_template_html_structure.py", "architectural-boundaries.yml"),
     # Reference-integrity family — the "literal string -> runtime registry ->
     # 500/silent" loophole class. All members must always run.
     ("scripts/scan_import_reference_integrity.py", "architectural-boundaries.yml"),
@@ -50,6 +67,12 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
 
     ("scripts/verify_get_model_integrity.py", "ci.yml"),
     ("scripts/verify_url_name_integrity.py", "ci.yml"),
+    # The literal-path twin of the url-name gate: reverse() cannot see a path
+    # written as a string, and a local dev host mounts config.urls (the full
+    # surface) while a real tenant gets config.tenant_urls, so a dead path is
+    # invisible until production. Added 2026-08-20 after six always-rendered
+    # Action Hub chips were found 404ing on every tenant portal page.
+    ("scripts/scan_hardcoded_dead_paths.py", "ci.yml"),
     ("scripts/verify_template_reference_integrity.py", "ci.yml"),
     # Compile sibling of the two template gates above: a balanced-but-invalid
     # tag argument ({% trans 'a'b' %}) compiles-fail without being a missing
@@ -174,6 +197,10 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # layout waves that pass narrative audits but leave tenant/operator /admin/
     # looking unchanged (missing build chip / cache bust / approval grid).
     ("scripts/verify_django_admin_preview_parity.py", "architectural-boundaries.yml"),
+    # The dynamic sibling: resolves add/change forms for every registration on both
+    # real AdminSite instances and proves field classification, ownership binding,
+    # evidence immutability, and optional-field preference metadata stay complete.
+    ("scripts/audit_admin_form_intelligence_contract.py", "ci.yml"),
 )
 
 

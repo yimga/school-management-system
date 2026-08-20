@@ -131,7 +131,9 @@
                                 <div class="stat-label">Updated</div>
                             </div>
                             <div class="stat-item">
+                                {# attention-allow: resolver-surface — the job monitor is where a failed import is inspected and retried #}
                                 <div class="stat-value text-danger">{{ job.failed_count }}</div>
+                                {# attention-allow: resolver-surface — label for the count above, same surface #}
                                 <div class="stat-label">Failed</div>
                             </div>
                             <div class="stat-item">

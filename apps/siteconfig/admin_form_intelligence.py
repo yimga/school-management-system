@@ -24,7 +24,13 @@ import json
 import logging
 from typing import Any, Iterable
 
-from django.core.exceptions import FieldDoesNotExist, RequestDataTooBig, ValidationError
+from django.contrib.admin.utils import flatten_fieldsets
+from django.core.exceptions import (
+    FieldDoesNotExist,
+    FieldError,
+    RequestDataTooBig,
+    ValidationError,
+)
 from django.db import DatabaseError, transaction
 from django.http import HttpRequest, JsonResponse
 from django.urls import NoReverseMatch, reverse
@@ -314,6 +320,32 @@ def _system_hidden_fields(model_admin) -> list[str]:
     return _ordered_unique(hidden)
 
 
+def _rendered_form_field_names(*, model_admin, request: HttpRequest, form, obj=None) -> tuple[str, ...]:
+    """Return editable fields owned by the active admin fieldsets.
+
+    A custom ``ModelForm`` may declare a broad reusable field surface while a
+    specialized ``ModelAdmin`` intentionally renders only a governed subset.
+    Advertising every declared form field in the visibility/recommendation
+    contract creates controls for fields that do not exist in the DOM.  Django's
+    resolved fieldsets are the authoritative render allowlist for that page.
+    """
+
+    fields = getattr(form, "fields", None) or getattr(form, "base_fields", {})
+    declared_names = tuple(fields)
+    try:
+        rendered = set(flatten_fieldsets(model_admin.get_fieldsets(request, obj)))
+    except (DatabaseError, FieldError, TypeError, ValueError):
+        logger.warning(
+            "admin rendered-field allowlist unavailable model=%s",
+            model_admin.model._meta.label_lower,
+            exc_info=True,
+        )
+        return declared_names
+    if not rendered:
+        return declared_names
+    return tuple(name for name in declared_names if name in rendered)
+
+
 def _contract_for_form(
     *,
     model_admin,
@@ -338,7 +370,17 @@ def _contract_for_form(
     recommended = set(getattr(model_admin, "rmc_recommended_fields", ()) or ())
 
     fields = getattr(form, "fields", None) or getattr(form, "base_fields", {})
+    rendered_names = set(
+        _rendered_form_field_names(
+            model_admin=model_admin,
+            request=request,
+            form=form,
+            obj=obj,
+        )
+    )
     for name, field in fields.items():
+        if name not in rendered_names:
+            continue
         if name in system_hidden or name in readonly:
             continue
         # Conditional fields remain visible to Alpine's dependency engine.  A

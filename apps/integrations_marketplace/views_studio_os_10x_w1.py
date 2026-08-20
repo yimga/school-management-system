@@ -5,7 +5,7 @@ Each view is a tight, read-only operator dashboard panel. All require
 existing SOT helper so the rendered values are derived, not hardcoded.
 
 URL prefix wired in :mod:`apps.integrations_marketplace.urls`:
-``/operator/studio-os-10x/``.
+``/integrations/studio-os-10x/``.
 
 A1  /studio/                            rmc-studio-home shell
 A2  /studio/quick-actions/              quick-actions bar
@@ -33,6 +33,7 @@ from typing import Any
 
 from django.contrib.auth.decorators import user_passes_test
 from django.http import HttpRequest, JsonResponse
+from django.urls import reverse
 from django.views.decorators.http import require_GET
 
 logger = logging.getLogger(__name__)
@@ -49,6 +50,37 @@ def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+# Panel slug -> route name. Every entry below was written as a literal
+# "/operator/studio-os-10x/<slug>/", a prefix mounted on no urlconf at all,
+# so all twelve operator panel links plus the home link and the
+# audit-packet-export endpoint returned 404. The surface is really mounted
+# under /integrations/.
+#
+# Reversing keeps them honest, and the mapping is not mechanical
+# (lms-provider-rollup -> s10x_lms_rollup) — exactly the drift that building
+# a path out of a slug hides and reverse() cannot.
+_S10X_ROUTES = {
+    "home": "s10x_home",
+    "quick-actions": "s10x_quick_actions",
+    "oauth-metrics": "s10x_oauth_metrics",
+    "saml-idp-registry": "s10x_saml_idp_registry",
+    "lms-provider-rollup": "s10x_lms_rollup",
+    "retention-preview": "s10x_retention_preview",
+    "dlq-filter-nav": "s10x_dlq_filter_nav",
+    "audit-packet-export": "s10x_audit_packet_export",
+    "diagnostics-alarms": "s10x_diagnostics_alarms",
+    "pki-bundle-viewer": "s10x_pki_bundle_viewer",
+    "tenant-retention-override": "s10x_tenant_retention_override",
+    "token-rotation-timeline": "s10x_token_rotation_timeline",
+    "billing-summary": "s10x_billing_summary",
+}
+
+
+def _s10x_href(slug: str) -> str:
+    """Resolve an operator panel slug to its real path."""
+    return reverse("integrations_marketplace:%s" % _S10X_ROUTES[slug])
+
+
 def _ok(payload: dict[str, Any], **extra) -> JsonResponse:
     payload = dict(payload)
     payload.update(extra)
@@ -63,18 +95,18 @@ def _ok(payload: dict[str, Any], **extra) -> JsonResponse:
 @staff_required
 def studio_home(request: HttpRequest) -> JsonResponse:
     panels = (
-        {"slug": "quick-actions", "title": "Quick actions", "href": "/operator/studio-os-10x/quick-actions/"},
-        {"slug": "oauth-metrics", "title": "OAuth metrics", "href": "/operator/studio-os-10x/oauth-metrics/"},
-        {"slug": "saml-idp-registry", "title": "SAML IdP registry", "href": "/operator/studio-os-10x/saml-idp-registry/"},
-        {"slug": "lms-provider-rollup", "title": "LMS provider rollup", "href": "/operator/studio-os-10x/lms-provider-rollup/"},
-        {"slug": "retention-preview", "title": "Retention preview", "href": "/operator/studio-os-10x/retention-preview/"},
-        {"slug": "dlq-filter-nav", "title": "DLQ filter nav", "href": "/operator/studio-os-10x/dlq-filter-nav/"},
-        {"slug": "audit-packet-export", "title": "Audit packet export", "href": "/operator/studio-os-10x/audit-packet-export/"},
-        {"slug": "diagnostics-alarms", "title": "Diagnostics alarms", "href": "/operator/studio-os-10x/diagnostics-alarms/"},
-        {"slug": "pki-bundle-viewer", "title": "PKI bundle viewer", "href": "/operator/studio-os-10x/pki-bundle-viewer/"},
-        {"slug": "tenant-retention-override", "title": "Tenant retention override", "href": "/operator/studio-os-10x/tenant-retention-override/"},
-        {"slug": "token-rotation-timeline", "title": "Token rotation timeline", "href": "/operator/studio-os-10x/token-rotation-timeline/"},
-        {"slug": "billing-summary", "title": "Billing summary", "href": "/operator/studio-os-10x/billing-summary/"},
+        {"slug": "quick-actions", "title": "Quick actions", "href": _s10x_href("quick-actions")},
+        {"slug": "oauth-metrics", "title": "OAuth metrics", "href": _s10x_href("oauth-metrics")},
+        {"slug": "saml-idp-registry", "title": "SAML IdP registry", "href": _s10x_href("saml-idp-registry")},
+        {"slug": "lms-provider-rollup", "title": "LMS provider rollup", "href": _s10x_href("lms-provider-rollup")},
+        {"slug": "retention-preview", "title": "Retention preview", "href": _s10x_href("retention-preview")},
+        {"slug": "dlq-filter-nav", "title": "DLQ filter nav", "href": _s10x_href("dlq-filter-nav")},
+        {"slug": "audit-packet-export", "title": "Audit packet export", "href": _s10x_href("audit-packet-export")},
+        {"slug": "diagnostics-alarms", "title": "Diagnostics alarms", "href": _s10x_href("diagnostics-alarms")},
+        {"slug": "pki-bundle-viewer", "title": "PKI bundle viewer", "href": _s10x_href("pki-bundle-viewer")},
+        {"slug": "tenant-retention-override", "title": "Tenant retention override", "href": _s10x_href("tenant-retention-override")},
+        {"slug": "token-rotation-timeline", "title": "Token rotation timeline", "href": _s10x_href("token-rotation-timeline")},
+        {"slug": "billing-summary", "title": "Billing summary", "href": _s10x_href("billing-summary")},
     )
     return _ok({"surface": "studio_home", "panels": list(panels), "panel_count": len(panels)})
 
@@ -89,7 +121,7 @@ def quick_actions(request: HttpRequest) -> JsonResponse:
         {"slug": "dlq-replay", "label": "Replay DLQ entry", "endpoint": "/super/migration/operator/dlq/", "method": "GET"},
         {"slug": "oauth-token-refresh", "label": "Refresh OAuth token", "endpoint": "/super/migration/lms/diagnostics/", "method": "GET"},
         {"slug": "retention-purge-dry-run", "label": "Retention purge dry-run", "endpoint": "/super/migration/lms/diagnostics/retention-preview/", "method": "GET"},
-        {"slug": "audit-packet-download", "label": "Download audit packet", "endpoint": "/operator/studio-os-10x/audit-packet-export/", "method": "GET"},
+        {"slug": "audit-packet-download", "label": "Download audit packet", "endpoint": _s10x_href("audit-packet-export"), "method": "GET"},
     )
     return _ok({"surface": "quick_actions", "actions": list(actions), "action_count": len(actions)})
 
@@ -376,33 +408,33 @@ def studio_nav_sidebar(request: HttpRequest) -> JsonResponse:
     sections = (
         {
             "label": "Studio home",
-            "items": [{"label": "Home", "href": "/operator/studio-os-10x/"}],
+            "items": [{"label": "Home", "href": _s10x_href("home")}],
         },
         {
             "label": "Diagnostics",
             "items": [
-                {"label": "OAuth metrics",     "href": "/operator/studio-os-10x/oauth-metrics/"},
-                {"label": "Provider rollup",   "href": "/operator/studio-os-10x/lms-provider-rollup/"},
-                {"label": "Alarm panel",       "href": "/operator/studio-os-10x/diagnostics-alarms/"},
-                {"label": "Retention preview", "href": "/operator/studio-os-10x/retention-preview/"},
+                {"label": "OAuth metrics",     "href": _s10x_href("oauth-metrics")},
+                {"label": "Provider rollup",   "href": _s10x_href("lms-provider-rollup")},
+                {"label": "Alarm panel",       "href": _s10x_href("diagnostics-alarms")},
+                {"label": "Retention preview", "href": _s10x_href("retention-preview")},
             ],
         },
         {
             "label": "Integrations",
             "items": [
-                {"label": "SAML IdP registry", "href": "/operator/studio-os-10x/saml-idp-registry/"},
-                {"label": "PKI bundle",        "href": "/operator/studio-os-10x/pki-bundle-viewer/"},
-                {"label": "Token rotation",    "href": "/operator/studio-os-10x/token-rotation-timeline/"},
+                {"label": "SAML IdP registry", "href": _s10x_href("saml-idp-registry")},
+                {"label": "PKI bundle",        "href": _s10x_href("pki-bundle-viewer")},
+                {"label": "Token rotation",    "href": _s10x_href("token-rotation-timeline")},
             ],
         },
         {
             "label": "Operator actions",
             "items": [
-                {"label": "Quick actions",      "href": "/operator/studio-os-10x/quick-actions/"},
-                {"label": "DLQ filter nav",     "href": "/operator/studio-os-10x/dlq-filter-nav/"},
-                {"label": "Audit packet export","href": "/operator/studio-os-10x/audit-packet-export/"},
-                {"label": "Tenant overrides",   "href": "/operator/studio-os-10x/tenant-retention-override/"},
-                {"label": "Billing summary",    "href": "/operator/studio-os-10x/billing-summary/"},
+                {"label": "Quick actions",      "href": _s10x_href("quick-actions")},
+                {"label": "DLQ filter nav",     "href": _s10x_href("dlq-filter-nav")},
+                {"label": "Audit packet export","href": _s10x_href("audit-packet-export")},
+                {"label": "Tenant overrides",   "href": _s10x_href("tenant-retention-override")},
+                {"label": "Billing summary",    "href": _s10x_href("billing-summary")},
             ],
         },
     )

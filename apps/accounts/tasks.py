@@ -705,4 +705,7 @@ def watch_django_cryptography_upstream() -> dict:
     return {
         "ok": exit_code == 0,
         "exit_code": exit_code,
+        "compat_candidate_count": len(compat_lines),
+        "audit_path": str(latest) if latest else None,
+    }
   

@@ -51,6 +51,7 @@
   </section>
 
   <section class="rmc-assist-power__section" data-rmc-impersonation-section="pending">
+    {# attention-allow: resolver-surface — this picker IS where a pending grant is approved #}
     <h2 class="h5">{% trans "Pending approval" %} <span class="text-secondary small">({{ pending_grants|length }})</span></h2>
     {% if pending_grants %}
       <ul class="list-group" data-rmc-impersonation-pending-list>
@@ -70,6 +71,7 @@
         {% endfor %}
       </ul>
     {% else %}
+      {# attention-allow: empty-state — reports that there is nothing to approve #}
       <p class="text-secondary">{% trans "No grants awaiting approval." %}</p>
     {% endif %}
   </section>

@@ -62,6 +62,20 @@ so they stay translatable.
         <div class="text-uppercase" style="font-size:var(--type-size-micro); letter-spacing:0.04em;">{% trans "Failed (24h)" %}</div>
         <div class="fw-semibold text-body fs-6" data-rmc-sync-total-failed="1">—</div>
       </div>
+      {# A row the box RECEIVED but could not apply: not a failure (the cycle ran) and #}
+      {# not a conflict (nobody is being asked to choose). Without its own tile it hid  #}
+      {# inside "pulled", so a pull that refused every row read as a healthy sync.      #}
+      <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary" style="min-width: 7rem;">
+        <div class="text-uppercase" style="font-size:var(--type-size-micro); letter-spacing:0.04em;">{% trans "Not applied (24h)" %}</div>
+        <div class="fw-semibold text-body fs-6" data-rmc-sync-total-skipped="1">—</div>
+      </div>
+      {# Deletions now cross the boundary. This is the only count whose meaning is       #}
+      {# "records were destroyed", so it gets its own tile rather than hiding inside     #}
+      {# "pulled" — the same reasoning that gave "not applied" one.                      #}
+      <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary" style="min-width: 7rem;">
+        <div class="text-uppercase" style="font-size:var(--type-size-micro); letter-spacing:0.04em;">{% trans "Deleted (24h)" %}</div>
+        <div class="fw-semibold text-body fs-6" data-rmc-sync-total-deleted="1">—</div>
+      </div>
     </div>
 
     <p class="small text-body-secondary mb-3" data-rmc-sync-explain="1"></p>
@@ -99,6 +113,7 @@ so they stay translatable.
               <th scope="col">{% trans "Result" %}</th>
               <th scope="col">{% trans "Up" %}</th>
               <th scope="col">{% trans "Down" %}</th>
+              <th scope="col">{% trans "Not applied" %}</th>
               <th scope="col">{% trans "Took" %}</th>
               <th scope="col">{% trans "Detail" %}</th>
             </tr>

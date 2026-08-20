@@ -75,6 +75,10 @@ def serialize_run(run) -> dict[str, Any] | None:
         "conflicts": int(run.conflicts or 0),
         "created": int(run.created or 0),
         "upserted": int(run.upserted or 0),
+        # Reported on its own because it is the only count that DESTROYS data. A cycle
+        # that removed records must never be summarised as "pulled N".
+        "deleted": int(getattr(run, "deleted", 0) or 0),
+        "skipped": int(getattr(run, "skipped", 0) or 0),
         "message": run.message or "",
         "error": run.error or "",
         "started_at": _iso(run.started_at),

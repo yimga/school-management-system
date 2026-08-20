@@ -300,6 +300,7 @@ class SchedulerIntegrationTests(_CleanCadence):
 
         cadence.schedule_next(3600)
         with mock.patch.object(connectivity, "check", return_value={"online": True}), \
+                mock.patch(self._RESOLVE, return_value=object()), \
                 mock.patch(self._RUN_CYCLE) as cycle:
             result = run_edge_sync_now()
         cycle.assert_not_called()
@@ -456,6 +457,7 @@ class OfflineCostTests(_CleanCadence):
         from apps.sync_engine.edge_scheduler import run_edge_sync_now
 
         with mock.patch.object(connectivity, "check", return_value={"online": False, "host": "h"}), \
+                mock.patch(self._RESOLVE, return_value=object()), \
                 mock.patch(self._RUN_CYCLE) as cycle:
             result = run_edge_sync_now()
         cycle.assert_not_called()
@@ -507,7 +509,8 @@ class OfflineCostTests(_CleanCadence):
     def test_a_real_cycle_clears_the_veto_counter(self):
         from apps.sync_engine.edge_scheduler import run_edge_sync_now
 
-        with mock.patch.object(connectivity, "check", return_value={"online": False, "host": "h"}):
+        with mock.patch.object(connectivity, "check", return_value={"online": False, "host": "h"}), \
+                mock.patch(self._RESOLVE, return_value=object()):
             run_edge_sync_now()
         self.assertEqual(cadence.probe_skips(), 1)
 
@@ -522,6 +525,7 @@ class OfflineCostTests(_CleanCadence):
         from apps.sync_engine.edge_scheduler import run_edge_sync_now
 
         with mock.patch.object(connectivity, "check", return_value={"online": False, "host": "h"}), \
+                mock.patch(self._RESOLVE, return_value=object()), \
                 mock.patch(self._RESOLVE, return_value=object()), \
                 mock.patch(self._RUN_CYCLE, return_value={"ok": False}) as cycle:
             run_edge_sync_now(force=True)
@@ -582,3 +586,64 @@ class TransitionDurabilityTests(_CleanCadence):
         with mock.patch.object(connectivity, "_tcp_reachable", return_value=False):
             result = connectivity.check(force=True)
         self.assertEqual(result["transition"], "lost")
+
+
+class MisdiagnosisTests(_CleanCadence):
+    """The cadence must never answer a question it was not asked.
+
+    Both defects below shipped in the first cut of the adaptive cadence and both have the
+    same shape: a CONFIGURATION error was reported as a TIMING or NETWORK condition, which
+    sends the operator to look in the wrong place and, in the second case, silently
+    suppresses cycles while doing it.
+    """
+
+    _RUN_CYCLE = "apps.sync_engine.sync_runner.run_sync_cycle"
+    _RESOLVE = "apps.sync_engine.edge_scheduler.resolve_edge_school"
+
+    @override_settings(RMC_EDGE_SYNC_ENABLED=True)
+    def test_a_box_with_no_school_is_told_that_even_when_not_due(self):
+        """Previously the gate ran first, so a box that could NEVER sync reported
+        'not due for 44s (steady)' — hiding the only fact its operator needed."""
+        from apps.sync_engine.edge_scheduler import run_edge_sync_now
+
+        cadence.schedule_next(3600)
+        with mock.patch.object(connectivity, "check", return_value={"online": True}), \
+                mock.patch(self._RESOLVE, return_value=None), \
+                mock.patch(self._RUN_CYCLE) as cycle:
+            result = run_edge_sync_now()
+        cycle.assert_not_called()
+        self.assertFalse(result["ran"])
+        self.assertIn("school", result["reason"])
+        self.assertNotIn("not due", result["reason"])
+
+    @override_settings(RMC_EDGE_SYNC_ENABLED=True)
+    def test_an_unconfigured_operator_base_does_not_trip_the_probe_veto(self):
+        """connectivity.check() reports online=False with host="" when nothing is
+        configured. That is a settings problem, not an outage: vetoing on it suppressed up
+        to MAX_CONSECUTIVE_PROBE_SKIPS cycles while blaming the network. The cycle must run
+        and fail on the real, named cause."""
+        from apps.sync_engine.edge_scheduler import run_edge_sync_now
+
+        unconfigured = {"online": False, "host": "", "port": 0,
+                        "reason": "no operator base configured (RMC_EDGE_OPERATOR_BASE)"}
+        with mock.patch.object(connectivity, "check", return_value=unconfigured), \
+                mock.patch(self._RESOLVE, return_value=object()), \
+                mock.patch(self._RUN_CYCLE, return_value={"ok": False}) as cycle:
+            result = run_edge_sync_now()
+        cycle.assert_called_once()
+        self.assertEqual(cadence.probe_skips(), 0, "an unconfigured box must not be vetoed")
+        self.assertNotIn("skipped", result)
+
+    @override_settings(RMC_EDGE_SYNC_ENABLED=True)
+    def test_a_configured_but_unreachable_operator_is_still_vetoed(self):
+        """The veto still does its job — this is the case it exists for."""
+        from apps.sync_engine.edge_scheduler import run_edge_sync_now
+
+        with mock.patch.object(
+            connectivity, "check", return_value={"online": False, "host": "ops.example"}
+        ), mock.patch(self._RESOLVE, return_value=object()), \
+                mock.patch(self._RUN_CYCLE) as cycle:
+            result = run_edge_sync_now()
+        cycle.assert_not_called()
+        self.assertTrue(result["skipped"])
+        self.assertEqual(result["probe_skips"], 1)

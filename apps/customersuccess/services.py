@@ -563,7 +563,12 @@ def get_support_copilot_suggestions(school):
             {
                 "title": "Health score below 50",
                 "description": "Consider checking workflow failures and recent activity.",
-                "link": "/siteconfig/",
+                # Was "/siteconfig/", which is mounted on no urlconf — the one
+                # suggestion in this list that skipped the reverse() helper
+                # right below, and the only one that led nowhere. The tenant
+                # performance dashboard is where the activity behind a health
+                # score actually is.
+                "link": _onboarding_step_link("accounts:tenant_performance_dashboard"),
                 "priority": 2,
             }
         )

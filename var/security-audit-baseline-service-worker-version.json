@@ -1,12 +1,12 @@
 {
-  "date": "2026-08-19",
-  "generated_at": "2026-08-19T17:24:50+00:00",
+  "date": "2026-08-20",
+  "generated_at": "2026-08-20T17:00:00+00:00",
   "major": 4,
   "minor": 6,
-  "patch": 66,
-  "raw": "sms-v4.06.66-cmdk-platform-search-audit-2026-08-19",
+  "patch": 70,
+  "raw": "sms-v4.06.70-admin-automation-edge-sync-final-audit-2026-08-20",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "cmdk-platform-search-audit",
+  "slug": "admin-automation-edge-sync-final-audit",
   "valid": true
 }

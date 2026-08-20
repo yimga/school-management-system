@@ -180,7 +180,14 @@
           <span class="kpi-icon warn" aria-hidden="true"><i class="bi bi-clock-history"></i></span>
         </div>
         <div class="value" data-kpi-count="parent-overdue">{{ overdue_count }}</div>
+        {# A parent told they owe money must be able to act on it here. #}
+        {# "Contact finance" sent them off-platform to resolve something we can settle in one click. #}
+        {% url 'portal:parent_finance_pay_all' as parent_pay_all_url %}
+        {% if overdue_count and parent_pay_all_url %}
+        <a class="btn btn-sm btn-primary mt-2" href="{{ parent_pay_all_url }}">{% trans "Settle now" %}</a>
+        {% else %}
         <div class="small text-muted">{% trans "Contact finance if this looks off." %}</div>
+        {% endif %}
       </div>
     </div>
   </section>

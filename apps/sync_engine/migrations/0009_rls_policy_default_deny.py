@@ -9,6 +9,9 @@ TABLES = [
     "sync_engine_edgesyncrun",
     "sync_engine_edgesynccursor",
     "sync_engine_edgesyncdirective",
+    "sync_engine_synctombstone",
+    "sync_engine_syncbundlereceipt",
+    "sync_engine_syncfiletransfer",
 ]
 USING_CLAUSE = """(
     current_setting('app.rls_bypass', true) = 'on'
@@ -49,7 +52,7 @@ def reverse_default_deny(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("sync_engine", "0005_enable_rls_postgresql"),
+        ("sync_engine", "0008_enable_rls_postgresql"),
     ]
 
     operations = [

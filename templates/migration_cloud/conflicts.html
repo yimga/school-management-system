@@ -25,6 +25,7 @@
 
   <section class="rmc-card">
     {% firstof pending_count pending as pending_src %}
+    {# attention-allow: resolver-surface — the conflicts page is where pending items are resolved #}
     <h2 class="rmc-h2">{% trans "Pending review" %} <span class="rmc-muted">({{ pending_src|length }})</span></h2>
     {% if not pending %}
       <p class="rmc-empty">{% trans "No pending conflicts. The apply step will overwrite cleanly." %}</p>

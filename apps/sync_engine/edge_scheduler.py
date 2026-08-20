@@ -138,6 +138,24 @@ def run_edge_sync_now(*, mode: str = "live", force: bool = False, trigger: str =
         logger.debug("connectivity probe failed", exc_info=True)
         link = {}
 
+    # Resolve the school BEFORE the cadence gate. Cheap (one local query) and its failure
+    # is a PERMANENT configuration error, so answering a misconfigured box with
+    # "not due for 44s (steady)" hides the only thing its operator needed to be told.
+    # Reported regardless of cadence, and without burning cadence state on a condition
+    # that can never succeed.
+    try:
+        school = resolve_edge_school()
+    except Exception:  # noqa: BLE001 - resolution must never crash a scheduler tick
+        logger.debug("resolve_edge_school failed", exc_info=True)
+        school = None
+    if school is None:
+        return {
+            "enabled": True,
+            "ran": False,
+            "reason": "no unambiguous edge school to sync (set RMC_EDGE_SCHOOL_SLUG)",
+            "online": link.get("online"),
+        }
+
     if not force:
         due, why = cadence.due_now()
         if not due:
@@ -158,8 +176,15 @@ def run_edge_sync_now(*, mode: str = "live", force: bool = False, trigger: str =
         # MAX_CONSECUTIVE_PROBE_SKIPS vetoes we run a real cycle regardless, so a
         # middlebox that blocks TCP while HTTP still works costs a few skipped ticks
         # rather than silently muting sync forever. A pending wake is never skipped.
+        # `link["host"]` must be truthy. With no operator base configured, check() reports
+        # online=False with host="" - that is a CONFIGURATION error, not a network one, and
+        # vetoing on it would suppress up to MAX_CONSECUTIVE_PROBE_SKIPS cycles while
+        # telling the operator "operator unreachable", sending them to check their internet
+        # instead of their settings. Let the cycle run: it fails on the same missing
+        # setting and names it.
         if (
             link.get("online") is False
+            and link.get("host")
             and not cadence.pending_wake()
             and cadence.probe_skips() < cadence.MAX_CONSECUTIVE_PROBE_SKIPS
         ):
@@ -178,20 +203,8 @@ def run_edge_sync_now(*, mode: str = "live", force: bool = False, trigger: str =
                 ),
             }
 
-    try:
-        school = resolve_edge_school()
-    except Exception:  # noqa: BLE001 — resolution must never crash a scheduler tick
-        logger.debug("resolve_edge_school failed", exc_info=True)
-        school = None
-    if school is None:
-        return {
-            "enabled": True,
-            "ran": False,
-            "reason": "no unambiguous edge school to sync (set RMC_EDGE_SCHOOL_SLUG)",
-        }
-
     # Committed to running: only now is the wake spent, so a tick that bailed above
-    # (no school, wrong mode) leaves it standing for the tick that can actually use it.
+    # (not due, operator unreachable) leaves it standing for the tick that can use it.
     wake_reason = cadence.consume_wake()
 
     from apps.sync_engine import sync_runner

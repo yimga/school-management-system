@@ -52,6 +52,7 @@
         <span class="rmc-metric-ticker__label">{% trans "reached a final state" %}</span>
       </p>
       <p class="rmc-meta">
+        {# attention-allow: resolver-surface — this page IS the delivery-receipts log the failures live in #}
         <span>{% blocktrans with n=totals.failed_7d %}{{ n }} failed / undelivered{% endblocktrans %}</span>
       </p>
     </section>

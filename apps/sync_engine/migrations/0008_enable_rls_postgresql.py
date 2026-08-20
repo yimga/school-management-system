@@ -1,7 +1,7 @@
 # RLS ENABLE + FORCE for tenant-scoped sync_engine tables (PostgreSQL only).
 #
 # SyncApplyLedger / EdgeSyncRun / EdgeSyncCursor / EdgeSyncDirective live in the
-# SHARED/public schema, discriminated by school_id. Creating migrations 0001–0004
+# SHARED/public schema, discriminated by school_id. Creating migrations 0001–0008
 # depend on schools/0083, so both global FORCE sweeps (0048, 0083) and the 0081
 # backfill already ran before these tables existed. Without this pair the
 # table-owner role (Django) would bypass any later policy.
@@ -17,6 +17,9 @@ TABLES = [
     "sync_engine_edgesyncrun",
     "sync_engine_edgesynccursor",
     "sync_engine_edgesyncdirective",
+    "sync_engine_synctombstone",
+    "sync_engine_syncbundlereceipt",
+    "sync_engine_syncfiletransfer",
 ]
 
 
@@ -40,7 +43,7 @@ def unforce_rls(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("sync_engine", "0004_edgesyncdirective"),
+        ("sync_engine", "0007_bundle_receipt_and_file_transfer"),
     ]
 
     operations = [

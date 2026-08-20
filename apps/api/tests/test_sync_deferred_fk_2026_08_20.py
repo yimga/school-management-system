@@ -17,8 +17,10 @@ every row has been processed, and it takes the entire batch down. Nothing
 applied, the sync cursor never advanced, and the next cycle re-pulled the same
 doomed bundle.
 
-``check_constraints_immediately`` switches the constraints to IMMEDIATE for that
-transaction so the savepoints behave the way the code already assumes.
+``_force_immediate_constraints`` switches the constraints to IMMEDIATE for that
+transaction so the savepoints behave the way the code already assumes. It runs in
+its own savepoint and swallows failures: a hardening step must never be the thing
+that aborts an apply.
 
 NOTE ON COVERAGE: this suite runs on SQLite, which checks FKs eagerly anyway, so
 it CANNOT demonstrate the Postgres failure or its repair. What it pins is the
@@ -29,21 +31,27 @@ Behavioural proof requires a Postgres-backed run.
 from __future__ import annotations
 
 import uuid
+from contextlib import nullcontext
 from unittest import mock
 
 from django.test import SimpleTestCase, TestCase
 
 from apps.schools.models import School
 
-from apps.api.sync_services import check_constraints_immediately
+from apps.api.sync_services import _force_immediate_constraints
+
+
+def _no_atomic():
+    """The guard wraps itself in a savepoint; these cases assert on the SQL only."""
+    return mock.patch("django.db.transaction.atomic", lambda *a, **k: nullcontext())
 
 
 class DeferredConstraintGuardTests(SimpleTestCase):
     def test_postgres_switches_constraints_to_immediate(self):
         conn = mock.MagicMock()
         conn.vendor = "postgresql"
-        with mock.patch("django.db.connection", conn):
-            check_constraints_immediately()
+        with mock.patch("django.db.connection", conn), _no_atomic():
+            _force_immediate_constraints()
         cursor = conn.cursor.return_value.__enter__.return_value
         cursor.execute.assert_called_once_with("SET CONSTRAINTS ALL IMMEDIATE")
 
@@ -51,8 +59,8 @@ class DeferredConstraintGuardTests(SimpleTestCase):
         """SQLite already checks eagerly; issuing the statement there would error."""
         conn = mock.MagicMock()
         conn.vendor = "sqlite"
-        with mock.patch("django.db.connection", conn):
-            check_constraints_immediately()
+        with mock.patch("django.db.connection", conn), _no_atomic():
+            _force_immediate_constraints()
         conn.cursor.assert_not_called()
 
     def test_django_still_defers_foreign_keys_on_postgres(self):
@@ -79,7 +87,7 @@ class BatchApplyArmsTheGuardTests(TestCase):
     def test_batch_transaction_arms_the_guard(self):
         import apps.api.sync_services as svc
 
-        with mock.patch.object(svc, "check_constraints_immediately") as guard:
+        with mock.patch.object(svc, "_force_immediate_constraints") as guard:
             svc.apply_changes(
                 str(self.school.id), None, [], persist_conflicts=False,
                 sync_origin="cloud-pull",
@@ -90,6 +98,6 @@ class BatchApplyArmsTheGuardTests(TestCase):
         """No school -> no batch transaction -> nothing to arm."""
         import apps.api.sync_services as svc
 
-        with mock.patch.object(svc, "check_constraints_immediately") as guard:
+        with mock.patch.object(svc, "_force_immediate_constraints") as guard:
             svc.apply_changes(None, None, [], persist_conflicts=False, sync_origin="cloud-pull")
         guard.assert_not_called()

@@ -22,6 +22,30 @@ _ALLOW_RE = re.compile(
 )
 
 
+def _statement_span(lines: list[str], idx: int, max_lines: int = 20) -> str:
+    """Text of the full logical statement starting at ``lines[idx]``.
+
+    A queryset call routinely wraps across lines::
+
+        StudentProfile.objects.filter(
+            school=school, is_active=True,
+        )
+
+    Scoping kwargs and ``# tenant-isolation-allow:`` markers therefore land on
+    continuation lines. Walk forward until parentheses balance so the scoping
+    check sees the same text a reader does.
+    """
+    depth = 0
+    collected: list[str] = []
+    for j in range(idx, min(len(lines), idx + max_lines)):
+        line = lines[j]
+        collected.append(line)
+        depth += line.count("(") - line.count(")")
+        if depth <= 0:
+            break
+    return "\n".join(collected)
+
+
 def _scan_file(path: Path) -> list[str]:
     rel = path.relative_to(ROOT).as_posix()
     if "/tests/" in rel or "/migrations/" in rel:
@@ -32,9 +56,12 @@ def _scan_file(path: Path) -> list[str]:
     for idx, line in enumerate(lines):
         if not _FILTER_RE.search(line):
             continue
-        if _SCHOOL_RE.search(line):
+        statement = _statement_span(lines, idx)
+        if _SCHOOL_RE.search(statement):
             continue
-        window = "\n".join(lines[max(0, idx - 2) : idx + 1])
+        # Marker may precede the call (idx-2..idx) or trail it on a continuation
+        # line, e.g. `).first()  # tenant-isolation-allow: ...`.
+        window = "\n".join(lines[max(0, idx - 2) : idx]) + "\n" + statement
         if _ALLOW_RE.search(window):
             continue
         findings.append(f"{rel}:{idx + 1}:{line.strip()[:100]}")

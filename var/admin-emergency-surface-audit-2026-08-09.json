@@ -1,18 +1,18 @@
 {
   "browser_evidence": {
     "browser_report_files": [
-      "artifacts/django-admin-canvas-live/real-host-core-both-dark-1024-operator-user-list-tenant-user-list.json",
-      "artifacts/django-admin-canvas-live/real-host-core-both-dark-1440-operator-user-list-tenant-user-list.json",
-      "artifacts/django-admin-canvas-live/real-host-core-both-dark-390-operator-user-list-tenant-user-list.json",
-      "artifacts/django-admin-canvas-live/real-host-core-both-dark-768-operator-user-list-tenant-user-list.json",
-      "artifacts/django-admin-canvas-live/real-host-core-both-light-1024-operator-user-list-tenant-user-list.json",
-      "artifacts/django-admin-canvas-live/real-host-core-both-light-1440-operator-user-list-tenant-user-list.json",
-      "artifacts/django-admin-canvas-live/real-host-core-both-light-390-operator-user-list-tenant-user-list.json",
-      "artifacts/django-admin-canvas-live/real-host-core-both-light-768-operator-user-list-tenant-user-list.json",
-      "artifacts/django-admin-canvas-live/real-host-core-tenant-dark-390-tenant-user-list.json"
+      "artifacts/django-admin-canvas-live/real-host-core-both-dark-1024-operator-index-tenant-index.json",
+      "artifacts/django-admin-canvas-live/real-host-core-both-dark-1440-operator-index-tenant-index.json",
+      "artifacts/django-admin-canvas-live/real-host-core-both-dark-390-operator-index-tenant-index.json",
+      "artifacts/django-admin-canvas-live/real-host-core-both-dark-768-operator-index-tenant-index.json",
+      "artifacts/django-admin-canvas-live/real-host-core-both-light-1024-operator-index-tenant-index.json",
+      "artifacts/django-admin-canvas-live/real-host-core-both-light-1440-operator-index-tenant-index.json",
+      "artifacts/django-admin-canvas-live/real-host-core-both-light-390-operator-index-tenant-index.json",
+      "artifacts/django-admin-canvas-live/real-host-core-both-light-768-operator-index-tenant-index.json",
+      "artifacts/django-admin-canvas-live/real-host-core-tenant-light-1440-tenant-site-settings-change.json"
     ],
-    "build_id": "2026-08-11-v17.2",
-    "cache_bust": "20260811-experience-runtime-v172",
+    "build_id": "2026-08-20-v21.0",
+    "cache_bust": "20260820-admin-automation-v21",
     "failed_report_files": [],
     "matrix": [
       "1024:dark",
@@ -25,16 +25,16 @@
       "768:light"
     ],
     "max_stylesheet_count": {
-      "operator": 118,
-      "tenant": 88
+      "operator": 121,
+      "tenant": 92
     },
-    "service_worker_version": "sms-v4.06.34-experience-runtime-2026-08-11",
-    "unique_surface_evidence": 2
+    "service_worker_version": "sms-v4.06.70-admin-automation-edge-sync-final-audit-2026-08-20",
+    "unique_surface_evidence": 3
   },
-  "content_sha256": "cb783cfc2dd82b5259b7bd193f96a0970b8b50a3b1ac9a4e3af5982f904265f5",
+  "content_sha256": "6cff8c8f4568252c8878083777973ece21e9db7bab29ac1789dc1b4d777bc1f7",
   "contract_satisfied": true,
   "findings": [],
-  "generated_at": "2026-08-11T22:03:08.072644+00:00",
+  "generated_at": "2026-08-20T12:45:42.648967+00:00",
   "registry": {
     "operator": {
       "custom_change_forms": 14,
@@ -261,7 +261,7 @@
         {
           "custom_change_form": false,
           "custom_change_list": false,
-          "fields": 29,
+          "fields": 30,
           "filter_horizontal": 0,
           "inlines": 0,
           "model": "evals.evaluation"
@@ -269,7 +269,7 @@
         {
           "custom_change_form": false,
           "custom_change_list": false,
-          "fields": 27,
+          "fields": 28,
           "filter_horizontal": 0,
           "inlines": 1,
           "model": "finance.invoice"
@@ -289,6 +289,14 @@
           "filter_horizontal": 0,
           "inlines": 0,
           "model": "feedback.featurerequest"
+        },
+        {
+          "custom_change_form": false,
+          "custom_change_list": false,
+          "fields": 23,
+          "filter_horizontal": 0,
+          "inlines": 0,
+          "model": "academics.academicyear"
         },
         {
           "custom_change_form": true,
@@ -361,23 +369,15 @@
           "filter_horizontal": 0,
           "inlines": 0,
           "model": "siteconfig.dashboarduserpreference"
-        },
-        {
-          "custom_change_form": false,
-          "custom_change_list": false,
-          "fields": 19,
-          "filter_horizontal": 0,
-          "inlines": 1,
-          "model": "finance.suspensepayment"
         }
       ],
-      "models_with_15_plus_fields": 55,
+      "models_with_15_plus_fields": 56,
       "models_with_filter_horizontal": 6,
-      "models_with_inlines": 21,
-      "registered_models": 274
+      "models_with_inlines": 22,
+      "registered_models": 277
     }
   },
-  "root": "C:\\Users\\yimga\\AppData\\Local\\Temp\\rmc-studio-launch-audit-20260811",
+  "root": "C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system",
   "schema": "rmc.admin-emergency-surface-audit.v1",
   "signup": {
     "captured_count": 32,
@@ -420,14 +420,14 @@
     "recommendation_engine_is_local_and_deterministic": true
   },
   "summary": {
-    "admin_templates": 89,
-    "all_templates": 1878,
+    "admin_templates": 91,
+    "all_templates": 1892,
     "copied_theme_coupled_admin_guidance_cards": 0,
     "critical": 0,
-    "css_files": 320,
+    "css_files": 326,
     "findings": 0,
     "hard_white_template_lines": 0,
     "inline_admin_scripts_without_nonce": 0,
-    "registered_admin_models": 471
+    "registered_admin_models": 474
   }
 }

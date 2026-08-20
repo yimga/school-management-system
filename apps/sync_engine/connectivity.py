@@ -235,6 +235,26 @@ def snapshot() -> dict:
     }
 
 
+def reset() -> None:
+    """Forget everything this module remembers about the link.
+
+    All three keys, not just the short-lived probe result: ``_LAST_STATE_KEY`` is
+    DURABLE (7 days) precisely so a long outage still produces a restore transition, which
+    means it is also the one most able to leak across a test boundary and make an
+    unrelated test see a phantom "connectivity restored" wake.
+
+    Used by the test isolation fixture in ``apps/sync_engine/tests/conftest.py`` and by
+    operators re-probing a box after changing its operator target.
+    """
+    from django.core.cache import cache
+
+    for key in (_RESULT_KEY, _LAST_ONLINE_KEY, _LAST_STATE_KEY):
+        try:
+            cache.delete(key)
+        except Exception:  # noqa: BLE001 - a reset must never raise
+            logger.debug("connectivity reset could not clear %s", key, exc_info=True)
+
+
 __all__ = [
     "check",
     "last_known",
@@ -242,5 +262,6 @@ __all__ = [
     "operator_target",
     "probe_timeout_seconds",
     "probe_ttl_seconds",
+    "reset",
     "snapshot",
 ]

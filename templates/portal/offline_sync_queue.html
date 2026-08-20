@@ -73,6 +73,7 @@
       <div class="d-flex flex-wrap gap-3 mt-3 small text-body-secondary">
         <span>{% trans "Queued" %}: <strong>{{ pending_count }}</strong></span>
         <span>{% trans "Syncing" %}: <strong>{{ syncing_count }}</strong></span>
+        {# attention-allow: resolver-surface — the sync queue itself, where a failed item is retried #}
         <span>{% trans "Failed" %}: <strong>{{ failed_count }}</strong></span>
         <span>{% trans "Conflicts" %}: <strong>{{ conflict_count }}</strong></span>
       </div>
