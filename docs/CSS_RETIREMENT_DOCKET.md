@@ -2,7 +2,64 @@
 
 **Last updated:** 2026-08-20
 
-## 2026-08-20 (latest) — v4.06.71: box pairing replaces a hand-copied credential, and an apply that changed nothing stops re-queueing itself
+## 2026-08-20 (latest) — v4.06.72: a paired box is an enabled box, and "Sync now" reaches a box that is sitting still
+
+SW `sms-v4.06.72-paired-box-is-an-enabled-box-2026-08-20`. PR #184. No CSS/JS
+changes; this wave is Python, shell and docs.
+
+**The finding this wave exists for.** v4.06.71 made adopting a box need nothing but
+a code on a screen and an admin clicking approve. It then still would not sync,
+because `RMC_EDGE_SYNC_ENABLED` lives in `deploy/selfhost/.env` on the host and
+nobody tells the installer to go and edit a file they cannot see from the pairing
+screen. Address right, credential right, box idle — the same silent
+misconfiguration that pairing was built to end, one layer further down.
+
+**What landed**
+
+| Area | Change |
+|---|---|
+| `apps/sync_engine/edge_enabled.py` (new) | One answer to "is sync live on this deployment?": the env flag **OR** (sovereign box **AND** a durable pairing binding). A binding is written by exactly one thing — `save_binding`, called because a named administrator approved this box — which is a stronger, auditable signal than an env var typed by whoever last touched the host. The sovereign-box condition is not decoration: `EdgeCloudBinding` is a SHARED app, so the table exists on the cloud too, and a cloud tenant must not be switchable into edge behaviour by a row appearing in a table. Memoised per process (15s) + shared through the cache (30s); pairing and unpairing bust it explicitly, so a box starts syncing within a tick of being adopted. |
+| 11 gate call sites | `edge_scheduler`, the autosync middleware, `edge_catchup`, `edge_sync_cycle`, `edge_sync_watch`, `connectivity_probe`, `probe_edge_cloud_sync`, `context`, `edge_onboarding`, and the Sync Center's panel + cycle-refusal now ask the resolver. **Two sites deliberately still read the raw flag** (`views_sync_center` probe endpoints): those are authorization bypasses — "on a box, let the box's own screens probe without a tenant permission" — not questions about whether sync runs, and widening them on the strength of a database row would let a pairing quietly change who may call them. |
+| `apps/platform_runtime/periodic.py` | `ensure_edge_sync_job_registered()` + a call from the scan thread. `ensure_default_jobs` is one-shot by design, which is right for every job whose eligibility is fixed at import and wrong for this one — a box becomes an edge box at RUNTIME, while it is already up and serving. Without this a freshly paired box did nothing until someone restarted the container. |
+| `apps/api/sync_changes_api.py` | An unserved directive now counts as "something for this box" in the long-poll feed, unfiltered by `since`. The feed answered only on ROW changes, so queueing a resync for a QUIET school woke nobody — the box stayed in its 25-second hold and the operator's click did nothing visible for minutes. Self-clearing: the cycle it triggers pulls a bundle and the download endpoint stamps `served_at`. |
+| `apps/sync_engine/models.py` | `request_full_resync` bumps the change beacon, including on the duplicate-collapse path — an operator who clicks twice because nothing seemed to happen is the person most likely to be waiting on that nudge. Best-effort: a beacon failure costs latency, never the directive. |
+| `apps/sync_engine/sync_runner.py` | After a full-resync rewind, raise a cadence wake. Rewinding was instant and the replay then waited out the adaptive cadence — which backs OFF for a quiet box, precisely the box being resynced. |
+| 5 binding bypasses | `edge_sync_watch`, `edge_sync_files`, `post_edge_outbox`, `pull_edge_inbox` and `edge_onboarding`'s validators read `RMC_EDGE_OPERATOR_BASE` / `RMC_EDGE_CREDENTIAL` straight from the environment, which on a paired box are empty by design. The long-poll watcher — the whole near-instant cloud→box path — was silently watching nothing. All now resolve through `edge_binding`. |
+| `apps/sync_engine/pairing_service.py` | `may_adopt_for()`: approving a pairing is now school-SCOPED. `user_is_tenant_admin` has a branch (`User.role in ADMIN_LIKE_ROLES`) that is not school-scoped and that every real tenant admin matches. On an ordinary settings page that is harmless — the view already resolved `request.school`. Here it is not: approving MINTS A CREDENTIAL for the school the box named, and the `school=` argument is a guard a caller can forget. Standing is re-derived against the request's own school regardless. |
+| `apps/sync_engine/management/commands/verify_edge_link.py` (new) | One command, run on the box, that walks deployment → address → credential → school → scheduler → recent activity → directives → reachability and names the FIRST broken link with the command that fixes it. `--http` probes live, `--json` for machine use, non-zero exit so it can gate a deploy step. The **scheduler** check is the one nothing else made: a box can hold a perfect address and a perfect credential and never sync because nothing is driving a cycle, which from the cloud is indistinguishable from a box that is switched off. |
+| `deploy/selfhost/entrypoint.web.sh` | Boot now prints the link report, and the boot reconcile is no longer wrapped in `if [[ "$RMC_EDGE_SYNC_ENABLED" == "1" ]]` — that shell test only knew about the env var, so a box adopted through the pairing screen skipped its boot reconcile entirely. `edge_autosync` already makes the decision correctly, and makes it the same way everything else does. |
+| `apps/lifecycle/edge_onboarding.py` | The `enable_configure_sync` step is now "Pair the box with its cloud tenant" — `pair_box --wait`, with claim tickets / deferred approval / staff backstop as the documented answer to "nobody is available to approve", and the env vars kept as an explicitly-supported legacy path. The step KEY is unchanged so no operator loses recorded progress. The verification step leads with `verify_edge_link --http`. |
+| `docs/EDGE_CLOUD_SYNC_OPERATOR_RUNBOOK.md` | Steps 3 and 4 rewritten pairing-first, plus a new section spelling out that the box's "Sync now" and the cloud's "Queue full resync" are **not the same button** — a box behind NAT cannot be reached from the cloud, so one runs a cycle and the other records an instruction. Five new gotchas, each mapped to a symptom someone will actually type into a search box. |
+
+**Correctness note on the tests.** 12 of the 56 pairing/claim-ticket tests failed
+on first DB-backed run. The cause was the FIXTURE, not the product:
+`user_is_tenant_admin` deliberately consults `User.role` and
+`SchoolMembership.is_school_owner`, and `apps/schools/tasks.py` mints owners with
+`is_school_owner=True` — the fixture set only `SchoolMembership.role="ADMIN"`, a
+shape the platform never creates. A 13th failure was a raw-SQL lookup binding
+`str(uuid)` against a column SQLite stores as dash-less hex, which matched nothing
+and made an "is it encrypted?" assertion pass against an empty result.
+
+**Deploy**
+
+1. Cloud first, then the box — a box on a newer build asking an older cloud for
+   `sync/pair/start/` gets a 404, which `verify_edge_link` reports as exactly that.
+2. Nothing to configure. `RMC_EDGE_SYNC_ENABLED` keeps working and stays in
+   `.env.edge.example`; a box that was never paired is untouched.
+3. On the box: `python manage.py verify_edge_link --http`. Every line `[ok]` means
+   the link is proven end to end, including that something is driving the cycle.
+
+**Still open, honestly.** The 502 on the Gilead box's push is unresolved and
+cannot be resolved from here — it needs this build deployed to both sides and a
+re-test. What changed is that it is no longer silent: an ambiguous push is
+recorded and asked about on the next cycle, and `verify_edge_link --http` reports
+a 502 as "the cloud's proxy answered, the app did not — check the cloud's
+application logs; this is not a box-side fault" rather than blaming the box's
+configuration.
+
+---
+
+## 2026-08-20 — v4.06.71: box pairing replaces a hand-copied credential, and an apply that changed nothing stops re-queueing itself
 
 SW `sms-v4.06.71-edge-pairing-and-apply-breaker-2026-08-20`. PR #184. Three
 independent fixes; only the pairing one touches CSS/JS.
