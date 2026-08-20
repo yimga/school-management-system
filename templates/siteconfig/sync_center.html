@@ -139,7 +139,7 @@
               {# configured, which is not in .env. Point at the command that actually #}
               {# distinguishes the cases instead of naming a suspect. #}
               <p class="text-body-secondary mb-0 mt-2">
-                {% trans "A 502 or 504 means the cloud's proxy answered but the application behind it did not — check the cloud's application logs. Run “python manage.py verify_edge_link --http” on the box to tell that apart from an unreachable host, a refused credential, or a missing endpoint." %}
+                {% trans "A 502 or 504 means the cloud's proxy answered but the application behind it did not. The usual cause is schema drift on THIS tenant: a synced table missing a column raises an error on every bundle build. On the cloud run “python manage.py check_edge_sync_deploy_readiness”, and on the box run “python manage.py verify_edge_link --http” to tell that apart from an unreachable host, a refused credential, or a missing endpoint." %}
               </p>
             </div>
           {% endif %}

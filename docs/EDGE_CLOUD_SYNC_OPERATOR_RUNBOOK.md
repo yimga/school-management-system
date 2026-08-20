@@ -323,6 +323,21 @@ Money never reaches here — it is cloud-authoritative by policy.
 - **Approved the code but the box did not notice?** It polls every few seconds; give it
   one interval. If it still has not collected, the box cannot reach the cloud — the
   pairing poll uses the same path as sync, so `verify_edge_link --http` will say why.
+- **Box reports a 502 on push and pull?** Almost certainly NOT the box. A 502 is the
+  cloud's proxy answering because the application behind it did not. The cause seen in
+  production is **schema drift on that one tenant**: `apps.academics` is a TENANT app,
+  so a column like `academics_academicyear.is_soft_closed` arrives per schema via
+  `migrate_schemas --tenant` and can land for some tenants and not others. Because
+  `academic_year` is a synced entity and building a bundle selects every field, one
+  missing column raises `ProgrammingError` on every bundle build → 500 → 502. On the
+  cloud run `python manage.py check_edge_sync_deploy_readiness`; it names the schema,
+  the table and the columns. Fix with `python manage.py migrate_schemas --tenant`.
+  Do **not** start by changing `RMC_EDGE_OPERATOR_BASE` — from the box, a tenant one
+  column behind is indistinguishable from a cloud that is down.
+- **Box reports a 404 with a page of HTML in it?** The path is wrong, not the host.
+  Every `sync-*` route lives in `apps.api.urls`, mounted at `/api/` — `/api/v1/` is a
+  different module with no sync routes. `verify_edge_link --http` reports this as
+  "reachable, but the sync endpoint is missing".
 - **Queued a resync and nothing happened?** The panel distinguishes *requested* from
   *delivered*. Still on "requested" means the box has not called home: it is off,
   offline, or cannot reach the cloud. It is not lost — the directive waits.

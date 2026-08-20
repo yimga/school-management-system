@@ -305,7 +305,14 @@ class Command(BaseCommand):
                     f"cloud {name}",
                     FAIL,
                     f"gateway error HTTP {status} - the cloud's proxy answered, the app did not",
-                    "check the cloud's application logs; this is not a box-side fault",
+                    # Named specifically because it is the one that has actually
+                    # happened, and because it is invisible from this side: a tenant
+                    # whose schema is one column behind raises ProgrammingError on
+                    # every bundle build, which surfaces here as a 502 and looks
+                    # exactly like the cloud being down.
+                    "on the CLOUD run: python manage.py check_edge_sync_deploy_readiness "
+                    "(a tenant schema missing a column presents as a 502), then check "
+                    "the cloud's application logs. Not a box-side fault.",
                 )
             elif status is None:
                 add(f"cloud {name}", WARN, "no result returned by the probe")
