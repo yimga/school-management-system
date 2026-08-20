@@ -58,7 +58,7 @@ def runtime_assignment_evidence(
             pass
 
     try:
-        from apps.siteconfig.models_dashboard import DashboardPackAssignment, TenantLayoutAssignment
+        from apps.runtime_blueprints.models import DashboardPackAssignment, TenantLayoutAssignment
 
         layouts = TenantLayoutAssignment.objects.filter(
             school=school,
@@ -95,7 +95,7 @@ def runtime_assignment_evidence(
         pass
 
     try:
-        from apps.siteconfig.models_workflow import TenantWorkflow, WorkflowPackAssignment
+        from apps.runtime_blueprints.models import TenantWorkflow, WorkflowPackAssignment
 
         workflow_packs = WorkflowPackAssignment.objects.filter(
             school=school, is_active=True, workflow_pack__is_active=True

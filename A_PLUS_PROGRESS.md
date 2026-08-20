@@ -1,8 +1,153 @@
 # A+ PROGRESS SCOREBOARD (A0 Coordinator)
 
-**Last refreshed:** 2026-08-16 (Claude Code · "KEEP GOING A+" → **M21 i18n Phase 1 `5914759cf`** (hygiene+seal) → **Phase 2 `f1b8e5174`** (French, fr **5.3%→13.3%**, +self-host `.mo`-compile parity) → **Phase 3 `d2420dc75`/`aa003f178`** (Spanish + Portuguese → **es/pt_BR 1.4%→9.3%**) → **Phase 4 `116417e22`→`4db46782e`** ("a+b" — RTL floor + depth, 6 locales) → **Phase 5 `33652878f`+`e279337c6`** (locale FLOOR SWEEP — 9 more locales off the ~1% floor) → **Phase 5 tails `32affbbc8`** ("complete end to end" — ja/zh_Hant/it finished to 9.1%, closing every AI-addressable locale). Prior: binding-constraint audit + isolation seal `8a0051bfb`; 08-13 M29/M30/W22/W24/M32)  
-**Loop:** Under the 9.8 lowest-dimension regime, GO = raise the MINIMUM metric. Isolation clean (off ≤4.9). **Floor = M21 i18n** — Phases 4+5 took the platform from **3 → 15 materially-translated locales** (fr 20.5 · es/pt_BR 16.6 · de/tr/ru/ja/it/zh_Hant 9.1 · zh_Hans/hi 9.0 · ar 8.9 · ur/he/fa 8.0 — **no partials left; all twelve AI-addressable first-touch locales complete**). Audit-by-running confirmed i18n **infra is complete** → constraint is CONTENT everywhere, all AI-drafted → needs native review. **The residual M21 floor is now HUMAN-bounded:** ha/pid/yo (0%) + sw (0.7%) are human-only translation-request packets (AI drafts disallowed by policy), and native-review is a human gate. **Next on M21 (people-gated only):** native-review toward the 60% 'full' bar; hand human packets to translators. Beyond M21: M31/M33, W21/W23/W25–W31.  
+**Last refreshed:** 2026-08-20 (Claude Code · **PROMPT B full audit** on `418c5d2bd` -> **NO-GO**, then **PROMPT A waves 1+2** `eb26554b7`+). Root cause is not a feature gap: **GitHub Actions has not run since 2026-08-15 (billing failure)** - last 40 runs 100% failure, 0-6s, jobs never start. `pre_deploy_gate.sh` was RED at gate 4 of ~80 and is now past gate 5; red gates **17 -> 11**; forbidden patterns **9 -> 4**.  
+**Loop:** Under the 9.8 lowest-dimension regime, GO = raise the MINIMUM metric. **The floor is NOT M21 i18n** (this header's prior claim) - re-derivation puts **M33 B2B Procurement at 10/100 (unbuilt)** and **M16 Testing & CI at 20/100**. The CI outage imposes a platform-wide **<=8.9 cap** (missing runtime proof), so *no* metric can reach 98 until billing is restored - that is the single binding constraint on the whole board.  
 **Tree:** HEAD = `origin/main`
+
+---
+
+## PROMPT A — Wave 1+2: unblock the sweep, and stop four gates crying wolf — 2026-08-20
+
+**Shipped `eb26554b7` (wave 1) + this commit (wave 2), off `origin/main`, content-verified.** Answering the Prompt-B gap list below, in its order. Every fix is proven **by mutation** — a green run alone was not accepted as evidence, because a gate that has stopped detecting also runs green.
+
+### Wave 1 — `eb26554b7`
+
+| # | Gap | Fix | Proof |
+|---|---|---|---|
+| 2 | `check_root_clutter` blocked the whole sweep at gate 4/80 | Classified `playwright.offline-indexeddb.config.js` in `tracked_root_allowlist.json`, density cap 44→45 with a dated justification. **Prompt B said "move it, do not allowlist" — that was wrong and is corrected here:** moving breaks its `testDir: 'tests/e2e'` (resolved from the config's own dir) and the npm script's root-relative path, and `verify_security_allowlist_density.py` documents commented cap bumps as the sanctioned mechanism for *reviewed* growth (see its own 2026-06-04 / 2026-07-18 precedents) | gate PASS; sweep advanced to gate 5 |
+| 3 | 5 × `\|\| true` masking real gates | Removed from `pre_deploy_gate.sh`. **Ran all five first — every one exits 0**, so promotion to blocking cost nothing | The other 5 `\|\| true` in the file audited and confirmed benign (`rm -f`, a `grep -c` counter, an inverted-logic migration guard) |
+| — | `lint_no_print_in_apps` RED | The "print" at `edge_onboarding.py:508` is the token `print(` **inside a string** — a `manage.py shell -c "…"` operator command template. Per-line regex → stdlib `ast`, a real `Call` to builtin `print` | Mutation: appending a genuine `print()` to an `apps/` module reports the right `file:line` and exits 1 |
+| 6 | `audit_celery_tenant_task_scoping` RED (4 "isolation findings") | All 4 phantom. Gate matched `.objects.filter(` on one line but looked for `school=`/`school_id=` only on **that** line, and for the allow-marker only **backwards**. Now spans the whole logical statement | Mutation: two genuinely unscoped `StudentProfile` querysets — one single-line, one multi-line — are **both** still caught. Detection strengthened, not blunted |
+
+### Wave 2 — this commit
+
+| # | Gap | Fix | Proof |
+|---|---|---|---|
+| 5 | `lint_bounded_context_imports --strict` RED | `apps/api/third_party_auth.py:173` imported the control-plane model `AppInstallation` directly; the gate has **no allow-marker escape hatch**, so it had to be structural. New `active_installation_for()` in `apps/marketplace/permissions_runtime.py` (which `apps/api` already imports legitimately). `apps/marketplace/middleware.py` carried the **identical** query — both now share one definition, so this tenant-binding rule cannot drift between two copies. Dead import removed | 56 tests OK across `test_third_party_credential_auth`, `test_developer_platform{,_v2}`, `test_developer_platform_e2e`, `test_app_scope_consent` |
+| 7a | `lint_siteconfig_legacy_imports` RED (4) | Swapped to the bounded-context surfaces: `runtime_assignment_evidence.py:61,:98` → `apps.runtime_blueprints.models`; `school_events/tests.py:294` → `apps.integrations_marketplace.models`; `setup_studio/services.py:849` → `apps.policies_rules.models` | **Verified rather than assumed:** all five renamed targets are `proxy=True` models of the **same concrete model** (identical `db_table`, FK/equality/manager compatible), so the swap is behaviour-preserving |
+| 7b | `check_no_hardcoding` RED | `country == "CM"` → `COUNTRY_SECONDARY_BLUEPRINTS` registry. CM resolves to the identical `("cameroon-gce-school", "BP-CM-GCE-001")`; every other country falls through exactly as before | gate PASS. (The gate first flagged **my own comment** explaining the fix — reworded; its comment-blindness is logged below) |
+| 9a | `verify_no_defeated_default_fallback` RED (2) | Both "footguns" were inside `{% comment %}` blocks **documenting the rule** ("never use `\|default:<var>` … Django resolves EVERY filter argument eagerly"). A comment is not a render path. Gate now masks `{% comment %}` and `{# … #}`, blanking (not deleting) so line numbers stay true | Mutation, 3 ways: real footgun outside a comment **fires**; the same text inside `{% comment %}` **does not**; clean tree green |
+
+**A regression I introduced and caught:** the first version of the 9a fix masked `{# … #}` — which is where the sanctioned `{# default-fallback-allow: … #}` markers live — so four legitimately-marked sites (`user_dropdown.html:104`, `tenant_blueprint_setup.html:115`, `get_blueprints_body.html:93`, `teacher/disciplinary.html:26`) turned into findings. The marker check now reads the **raw** line while the pattern check reads the **masked** line. Recorded because a gate fix that silently changes which sites are exempt is exactly the failure this board exists to catch.
+
+### 🔑 THE PATTERN THIS WAVE FOUND — four gates were failing on text, not on defects
+
+`lint_no_print_in_apps` · `audit_celery_tenant_task_scoping` · `check_no_hardcoding` · `verify_no_defeated_default_fallback` — **every one** matched raw text line-by-line with no awareness of strings, comments, or multi-line statements. Between them they produced **7 false findings and 0 real ones**. This matters beyond the individual fixes: red gates that are usually wrong train everyone to ignore red gates, which is precisely how `apps/accounts/tasks.py` shipped to main not compiling. Three are now structural (ast / statement-span / comment-masking); `check_no_hardcoding` remains comment-blind and is queued.
+
+### Deliberately NOT done, with reasons
+
+- **`ci.yml` 4 × `continue-on-error`** (Pa11y / Axe / Lighthouse / Playwright) — forbidden by the mandate, but flipping them blind while CI cannot run risks wedging every merge. Remove once billing is restored **and those jobs are observed passing**. User-confirmed to hold.
+- **`lint_<brand>_residue`, `lint_raw_sql_usage`** — their findings sit in `apps/lifecycle/edge_onboarding.py` and `apps/api/sync_services.py`, which a **peer session has uncommitted right now**. Partial fixes would not green either gate and would collide with live work.
+- **`verify_phase7_dashboard_markers`** (`finance/dashboard.html`) — needs a real `phase7_de` context (headline, metrics, urgent queue, next actions) built by the view. Adding a bare `data-decision-engine=` marker would be a flag with nothing behind it, which PART 0 rule 4 forbids. Queued as real work.
+
+### Sweep progress
+
+`pre_deploy_gate.sh` gate **4/80 → past gate 5**. Red gates **17 → 11**. Forbidden-pattern instances **9 → 4** (all 4 the held `continue-on-error`).
+
+**The ≤8.9 platform-wide cap is unchanged and unmovable by this work:** GitHub Actions still has not run a job since 2026-08-15.
+
+---
+
+## PROMPT B — FULL AUDIT — the verification system itself is down — 2026-08-20
+
+**Commit audited:** `418c5d2bd` (origin/main) · **Tree:** 15,948 · **Auditor:** Claude Opus 5, solo (no subagent fleet this wave) · **Method:** pristine detached worktree off `origin/main`; every verdict below is a command *I ran*, not a read.
+
+### 🔴 THE HEADLINE — CI HAS NOT RUN SINCE 2026-08-15 (billing)
+
+`gh run view 32345056547` annotation, verbatim:
+
+> *"The job was not started because recent account payments have failed or your spending limit needs to be increased. Please check the 'Billing & plans' section in your settings"*
+
+- **Last successful run of ANY workflow: `2026-08-15T10:09Z`.** The most recent **40 runs are 100% failure**, every one dying in **0–6 s** — they never start, so no gate inside them ever executes.
+- This is **not** a gate failure. It is the verification system being switched off. Every "gate green" claim made in this scoreboard since 08-15 — the M21 Phase-5 tail wave, the edge-sync waves, the MC gap-closure — was **local-only and never CI-verified**.
+- Under the 9.8 regime's *"missing runtime proof (PG / browser / offline / restore / a11y) → ≤8.9"* ceiling this applies **platform-wide**: no Postgres job, no Playwright job, no axe/pa11y/Lighthouse job can produce proof today. **Therefore no metric can be ≥98, and the platform cannot reach GO until billing is restored.** One root cause caps the entire board.
+- **USER ACTION REQUIRED — I cannot fix this.** GitHub → Settings → Billing & plans.
+
+### 🔴 SECOND FINDING — `pre_deploy_gate.sh` is RED on main
+
+The sweep **aborts at gate #4 of ~80**, so the other ~76 never run:
+
+```
+[pre_deploy_gate] Root clutter (generated artifacts must not live at repo root)
+check_root_clutter: tracked repo-root files must be moved or removed:
+  playwright.offline-indexeddb.config.js
+[exited with code 1]
+```
+
+Running the remaining gates individually anyway: **28 PASS / 17 RED** on `origin/main`.
+
+| # | RED gate | Evidence |
+|---|---|---|
+| 1 | `check_root_clutter` | `playwright.offline-indexeddb.config.js` tracked at root (added `a6a9dd09f`) |
+| 2 | `lint_bounded_context_imports --strict` | `apps/api/third_party_auth.py:173` → `apps.marketplace.models.AppInstallation` (`c9aefefb9`, 07-21) |
+| 3 | `lint_siteconfig_legacy_imports` | 4 hits: `runtime_assignment_evidence.py:61,:98`, `school_events/tests.py:294`, `setup_studio/services.py:849` |
+| 4 | `lint_raw_sql_usage` | 11 hits / 4 files: `academics/schema_repair.py`(3), `api/sync_services.py`(1), `schools/schema_repair.py`(3), `check_edge_sync_deploy_readiness.py`(4) |
+| 5 | `verify_security_allowlist_density` | `raw_sql_allowlist.json` grew 30 > 28; `phase8_security_ledger.json` says 28, allowlists imply 30 |
+| 6 | `lint_no_print_in_apps` | `apps/lifecycle/edge_onboarding.py:508` |
+| 7 | `check_no_hardcoding` | `apps/schools/onboarding_recommendations.py:248` — `elif country == "CM"` |
+| 8 | `lint_<brand>_residue` (name elided: this doc sits at repo root, outside the allowed buckets for that token) | 5+ hits in `accounts/password_reset.py`, `lifecycle/edge_onboarding.py` |
+| 9 | `verify_<brand>_full_tree_classification` | 13 unclassified `artifacts/django-admin-canvas-live/*.json` |
+| 10 | `verify_i18n_catalog_fresh` | catalog drift vs baseline |
+| 11 | `verify_ux_completion` | — |
+| 12 | `lint_mega_files` | — |
+| 13 | `verify_phase7_dashboard_markers` | — |
+| 14 | `verify_control_plane_hub_registry_drift` | — |
+| 15 | `verify_phase8_dashboard_density` | — |
+| 16 | `verify_no_defeated_default_fallback` | — |
+| 17 | `audit_celery_tenant_task_scoping` | **4 findings — all PHANTOM, see below** |
+
+### 🟠 THIRD FINDING — forbidden patterns (mandate PART 0 rule 4 = automatic NO-GO)
+
+- **`|| true` × 5 inside `scripts/pre_deploy_gate.sh`** (lines 186, 188, 190, 192, 326): `lint_section8_responsive`, `audit_section8_11_templates`, `lint_north_star_a11y`, `lint_north_star_i18n`, `check_performance_budgets`. **I ran all five directly: every one exits 0.** They mask nothing today — so removal is *free* and closes a blocker at zero risk.
+- **`continue-on-error: true` × 4 in `.github/workflows/ci.yml`** (lines 112, 115, 121, 151) sit on exactly the runtime proofs the rubric demands: **Pa11y**, **Axe**, **Lighthouse assert**, **Playwright chromium**. M2's "Lighthouse ≥98 / axe-pa11y 0 serious" and every browser E2E proof are non-blocking by construction — they can fail silently even once CI billing is restored. (+1 more in `help-center-gates.yml:61`.)
+
+### 🟢 WHAT I DISPROVED (adversarial in both directions)
+
+- **`audit_celery_tenant_task_scoping` is NOT an isolation hole.** All 4 findings are **PHANTOM** — the gate reports the *statement-start* line and never inspects continuation lines, so it cannot see scoping that is right there: `schoolops/tasks.py:869` is `StudentProfile.objects.filter(school=school, …)`; `sync_engine/tasks.py:50` is `EdgeSyncRun.objects.filter(pk=run_id, school_id=school_id, …)`; `tasks_scheduling.py:73` is a global-`User` pk lookup; `:75` **carries a `# tenant-isolation-allow:` marker on its continuation line** that the single-line regex at `scripts/audit_celery_tenant_task_scoping.py:21` never sees. **The real defect is a line-attribution bug in the gate, not a leak.** M1 does *not* take the ≤4.9 isolation ceiling.
+- **The "no compile gate" hole is already CLOSED** (`418c5d2bd`): I ran `scripts/verify_python_files_parse.py` → *8411 files checked, 0 do not parse*; `verify_ci_gate_wiring` → *47 required gates, 0 un-wired*.
+- **M23 Reference Integrity is genuinely A-grade:** all **8/8** integrity gates PASS (import / get_model / url-name / template / static / settings-key / field-ref / relation-path).
+- **M1 RLS family: 6/7 PASS** (`scan_rls_force_coverage`, `scan_rls_policy_coverage`, `scan_rls_bypass`, `scan_tenant_queryset_safety`, `verify_unscoped_tenant_writes`, `verify_websocket_tenant_scope`).
+- **M31 is NOT a stub** — I suspected it was and was wrong. `apps/marketplace/` is 30+ modules with a **real scoped-OAuth2 layer**: `middleware.py` resolves `rmc_at_…` → hashed token → expiry/revocation check → `DeveloperApplication` → **per-school ACTIVE `AppInstallation`** → scope resolution. That leg is strong.
+
+### 📉 THE FLOOR MOVED — this board's header was wrong
+
+The header has said **"Floor = M21 i18n"** since 08-16. Re-derived, that is **not** the minimum:
+
+| Metric | Score | Why |
+|---|---|---|
+| **M33 B2B Procurement** | **10** | **Unbuilt.** No `PurchaseOrder`, no `Requisition`, no vendor/supplier product model, no auto-PO from class config. `apps/platform_runtime/procurement_packet.py` is a **buyer-trust RFP packet for selling RunMyCampus** — unrelated to supply procurement. Added to the rubric 08-13, never started. **← TRUE FLOOR** |
+| **M16 Testing & CI** | **20** | CI dead 5 days; `pre_deploy_gate` red at gate 4; 5 `\|\| true` + 4 `continue-on-error` |
+| **M21 i18n** | **50** | Coverage gate green but `verify_i18n_catalog_fresh` now RED. Depth: fr 20.2 · es/pt_BR 16.4 · 12 locales ~8–9 · **ha/pid/yo 0.0 · sw 0.7**. No locale reaches the 60% 'full' bar. Residual is human-gated. |
+| **M31 Marketplace App-Injection** | **60** | Leg (b) scoped OAuth2 **real**. Leg (a) partial — apps inject **dashboard widgets only** (`get_installed_widgets` → `siteconfig/dashboard_registry.py:109`); there are **no manifest-declared contextual anchor slots** (`manifest_schema.py` has no slot/anchor field; zero slot rendering in `templates/`). Leg (c) **absent** — no `app_extensions` JSONB store. Leg (d) unverified. → ≤6.9 materially-incomplete ceiling |
+| **M2 Tenant Experience** | **65** | `verify_ux_completion` RED, and all a11y/perf proofs are non-blocking *and* not running |
+| **M9 Security** | **70** | `lint_raw_sql_usage` + `verify_security_allowlist_density` RED (secret scans green) |
+| **M24 Docs & Runbooks** | **70** | brand-residue + tree-classification + mega-files RED; the mandate cites `scripts/verify_crdt_convergence.py` (M25) **which does not exist in the repo** |
+| **M1 Tenant Isolation** | **85** | 6/7 green; the 7th is a gate bug, not a leak; no Postgres CI proof → ≤8.9 |
+| **M23 Reference Integrity** | **89** | 8/8 green — strongest metric on the board; capped only by the ≤8.9 no-CI-proof ceiling |
+
+**Audit-coverage honesty:** this wave re-derived the metrics above from live runs. **M3–M8, M10–M15, M17–M20, M22, M25–M30, M32 and S1–S8 were NOT independently re-derived** — they carry forward at their prior score with the platform-wide **≤8.9 CI-outage cap** applied, and are queued for the next B wave. They are not claimed as verified.
+
+### DECISION: **NO-GO**
+
+**OVERALL:** min **10** (M33) · **17 red gates** · **9 forbidden-pattern instances** · **CI: 0 successful runs since 08-15**
+
+**BLOCKERS:** CI billing outage · `pre_deploy_gate.sh` red at gate 4 · `|| true` ×5 · `continue-on-error` ×4
+
+### ORDERED GAP LIST → PROMPT A (strategic weight × score gap)
+
+1. **[USER] Restore GitHub Actions billing.** Nothing can be *proven* until this is done — it caps every metric at ≤8.9.
+2. **Un-block `pre_deploy_gate.sh`: MOVE `playwright.offline-indexeddb.config.js` out of repo root** — do **not** allowlist it. I tested allowlisting: it clears `check_root_clutter` but then trips `verify_security_allowlist_density` ("shrink/classify instead of silent expansion"). The two gates are in tension; moving satisfies both.
+3. **Delete the 5 `|| true` in `pre_deploy_gate.sh`** — all five gates pass; zero-risk blocker removal.
+4. **Delete the 4 `continue-on-error: true` in `ci.yml`** — restores M2/M17 runtime proof as blocking (land with #1 so the truth surfaces).
+5. **Fix `apps/api/third_party_auth.py:173`** — route `AppInstallation` through a marketplace service accessor, mirroring the already-clean `permissions_runtime` import at `:143`. The gate has **no allow-marker escape hatch**, so it must be fixed structurally.
+6. **Fix the `audit_celery_tenant_task_scoping` line-attribution bug** — inspect whole statements so scoping kwargs and continuation-line markers are seen; clears 4 phantoms and makes the gate trustworthy again.
+7. **Clear the cheap mechanical reds:** `lint_no_print_in_apps` (1) · `check_no_hardcoding` (1) · `lint_siteconfig_legacy_imports` (4) · `lint_<brand>_residue` · `verify_<brand>_full_tree_classification` (13 artifacts).
+8. **`lint_raw_sql_usage` (11 hits) + regenerate `phase8_security_ledger.json`** → also clears `verify_security_allowlist_density`.
+9. **Remaining reds:** `verify_i18n_catalog_fresh` · `verify_ux_completion` · `lint_mega_files` · `verify_phase7_dashboard_markers` · `verify_control_plane_hub_registry_drift` · `verify_phase8_dashboard_density` · `verify_no_defeated_default_fallback`.
+10. **Correct the mandate:** it requires `scripts/verify_crdt_convergence.py` (M25) which is **not in the repo** — build the gate or fix the doc (PART 0 rule 10: docs must not overstate).
+11. **M33 (10/100)** — the floor. Needs a real build: PO / vendor-catalog / requisition models + auto-PO from class configuration.
+12. **M31 legs (a)(c)(d)** — manifest-declared anchor slots, app-scoped `app_extensions` store, locale/RTL injection.
+13. **M21** — human-gated only (native review; ha/pid/yo/sw translator packets). No further AI drafting moves this floor.
 
 ---
 
