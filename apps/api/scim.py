@@ -306,7 +306,11 @@ def resource_types(request):
         "schemas": [_LIST_RESPONSE_SCHEMA],
         "totalResults": 2,
         "Resources": [
+            # RFC 7643 ResourceType.endpoint is relative to the SCIM base URL and
+            # its spelling is fixed by the spec, not by our urlconf.
+            # dead-path-allow: SCIM protocol constant (RFC 7643 6).
             {"id": "User", "name": "User", "endpoint": "/Users", "schema": _USER_SCHEMA},
+            # dead-path-allow: as above.
             {"id": "Group", "name": "Group", "endpoint": "/Groups", "schema": _GROUP_SCHEMA},
         ],
     })

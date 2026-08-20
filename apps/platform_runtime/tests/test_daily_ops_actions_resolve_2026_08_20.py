@@ -26,6 +26,7 @@ from django.urls import clear_url_caches, reverse
 
 from apps.platform_runtime.tenant_daily_ops import (
     WORKFLOW_ACTIONS,
+    next_best_actions_for_role,
     resolve_action_urls,
 )
 
@@ -53,15 +54,63 @@ class EveryRegisteredActionResolvesTests(SimpleTestCase):
         )
 
     def test_every_action_declares_the_clicks_it_saves(self):
-        """The metric is the point — an action without it cannot be measured."""
+        """The metric is the point — an action without it cannot be measured.
+
+        The number is attached at resolution, not in the registry: it is
+        derived from the destination that actually reversed on this host (see
+        ``apps.platform_runtime.click_budget``). Asserting it on the raw table
+        would only re-read a literal somebody typed, which is what the fifteen
+        hand-written values here used to be.
+        """
         for role, actions in WORKFLOW_ACTIONS.items():
-            for action in actions:
-                with self.subTest(role=role, key=action.get("key")):
+            for row in resolve_action_urls([dict(a) for a in actions]):
+                with self.subTest(role=role, key=row.get("key")):
                     self.assertGreaterEqual(
-                        int(action.get("clicks_saved", 0)),
+                        int(row.get("clicks_saved", 0)),
                         1,
                         "an action that saves no clicks does not belong in the registry",
                     )
+
+    def test_one_school_never_writes_its_id_into_the_shared_registry(self):
+        """WORKFLOW_ACTIONS is module-level; stamping it in place is a bleed.
+
+        ``list(WORKFLOW_ACTIONS[role])`` copies the list and not the dicts, so
+        the stamp landed on the shared table. It was overwritten by the next
+        caller, which hid it — and is precisely the interleaving that hands one
+        school another school's id under a threaded server.
+        """
+
+        class _School:
+            pk = "SCHOOL-A"
+
+        class _User:
+            role = "TEACHER"
+
+        before = [dict(row) for row in WORKFLOW_ACTIONS["TEACHER"]]
+        next_best_actions_for_role(_School(), _User())
+        self.assertEqual(
+            [dict(row) for row in WORKFLOW_ACTIONS["TEACHER"]],
+            before,
+            "a caller mutated the shared action registry",
+        )
+
+    def test_two_schools_do_not_see_each_other(self):
+        class _A:
+            pk = "SCHOOL-A"
+
+        class _B:
+            pk = "SCHOOL-B"
+
+        class _User:
+            role = "TEACHER"
+
+        rows_a = next_best_actions_for_role(_A(), _User())
+        next_best_actions_for_role(_B(), _User())
+        self.assertEqual(
+            {row["school_id"] for row in rows_a},
+            {"SCHOOL-A"},
+            "school A's rows changed when school B asked for its own",
+        )
 
     def test_every_role_keeps_at_least_one_working_action(self):
         """Dropping unresolvable actions must not silently empty a role."""

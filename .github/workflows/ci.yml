@@ -27,6 +27,8 @@ jobs:
         run: python scripts/verify_url_name_integrity.py --compare
       - name: Verify cross-host template reverse
         run: python scripts/verify_cross_host_template_reverse.py --compare
+      - name: Scan hardcoded dead paths
+        run: python scripts/scan_hardcoded_dead_paths.py
       - name: Verify template-reference integrity
         run: python scripts/verify_template_reference_integrity.py --compare
       - name: Verify every template compiles (TemplateSyntaxError gate)

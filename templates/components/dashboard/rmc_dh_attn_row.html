@@ -13,7 +13,8 @@
   ("Queue clear"). Mark those with dh_no_action_reason so the intent is stated
   in the template rather than suppressed in a scanner baseline.
 {% endcomment %}
-<div class="rmc-dh-attn-row">
+{% load rmc_dh %}
+<div class="rmc-dh-attn-row" data-rmc-clicks-saved="{{ dh_go_href|dh_clicks_saved }}">
   {% if dh_icon %}<i class="bi {{ dh_icon }}" aria-hidden="true"></i>{% endif %} <span>{{ dh_text }}</span>
   {# Both, or neither. A url-as assignment yields "" on a host where the namespace #}
   {# is absent, and the old default filter turned that into href="#" — a focusable #}
