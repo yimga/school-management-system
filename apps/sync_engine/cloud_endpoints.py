@@ -36,6 +36,7 @@ from django.urls import NoReverseMatch, reverse
 CLOUD_SYNC_PATHS: dict[str, str] = {
     "api:sync-bundle-upload": "/api/sync/bundle/upload/",
     "api:sync-bundle-download": "/api/sync/bundle/download/",
+    "api:sync-bundle-receipt": "/api/sync/bundle/receipt/",
     "api:sync-changes-feed": "/api/sync/changes/",
     "api:sync-file-manifest": "/api/sync/files/manifest/",
     "api:sync-file-chunk": "/api/sync/files/chunk/",

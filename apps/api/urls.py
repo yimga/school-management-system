@@ -95,6 +95,7 @@ from apps.api.sync_delta_api import DeltaSyncAPI
 from apps.api.offline_device_api import OfflineTokenMintView
 from apps.api.iam_offline_api import OfflineIamIntentAPI, PermissionSnapshotAPI
 from apps.api.pairing_api import PairingPollView, PairingStartView
+from apps.api.sync_receipt_api import SyncBundleReceiptView
 from apps.api.sync_bundle_api import SyncBundleDownloadView, SyncBundleUploadView
 from apps.api.sync_changes_api import SyncChangesFeedView
 from apps.api.sync_files_api import SyncFileChunkView, SyncFileManifestView
@@ -899,6 +900,13 @@ urlpatterns = [
         "sync/bundle/download/",
         SyncBundleDownloadView.as_view(),
         name="sync-bundle-download",
+    ),
+    # "Did you already get bundle <nonce>?" — resolves an ambiguous push timeout
+    # without re-shipping the page. See apps/api/sync_receipt_api.py for the limits.
+    path(
+        "sync/bundle/receipt/",
+        SyncBundleReceiptView.as_view(),
+        name="sync-bundle-receipt",
     ),
     # Long-poll "is there anything new?" (G6). Carries no row data — it only collapses
     # cloud->box latency from the polling cadence to about a second, over plain HTTP,
