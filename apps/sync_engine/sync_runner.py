@@ -28,7 +28,6 @@ conflict/money policy.
 from __future__ import annotations
 
 import logging
-import os
 
 from django.conf import settings
 from apps.sync_engine.cloud_endpoints import cloud_endpoint
@@ -597,6 +596,18 @@ def _execute_sync_transport(school, *, mode, result, run_row) -> None:
             from apps.sync_engine import push_ledger as _push_ledger
 
             _push_ledger.reset(school)
+            # Rewinding is only half of it. The replay happens on the NEXT cycle, and
+            # without a wake that cycle waits out the adaptive cadence — which backs OFF
+            # precisely for the quiet box an operator is most likely to be resyncing. So
+            # the operator pressed a button, the box obeyed instantly, and nothing
+            # visible happened for minutes. Raise the wake so the replay starts on the
+            # next tick (seconds), not the next interval.
+            try:
+                from apps.sync_engine import cadence
+
+                cadence.request_wake("cloud requested full resync")
+            except Exception:  # noqa: BLE001 — a missed wake costs latency, not data
+                logger.debug("sync_runner: could not raise the resync wake", exc_info=True)
             notes.append(
                 f"full resync requested by the cloud: rewound {rewound} cursor(s); "
                 "the next cycle replays the entire corpus"

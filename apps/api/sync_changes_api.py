@@ -89,6 +89,25 @@ def _database_has_changes(school, since) -> bool:
             return True
     except Exception:  # noqa: BLE001
         pass
+    try:
+        from apps.sync_engine.models import EdgeSyncDirective
+
+        # An UNSERVED DIRECTIVE is also "something for this box", and it is the one an
+        # operator is actually watching: they pressed a button and are waiting. It is
+        # deliberately NOT filtered by ``since`` — a directive is pending until the box
+        # collects it, and it has no place on the data timeline the cursor tracks.
+        #
+        # Without this the feed answered purely on row changes, so queueing a resync
+        # for a QUIET school woke nobody: the box stayed in its hold, and the operator's
+        # click did nothing visible until the next ordinary cadence poll minutes later.
+        # Self-clearing: the cycle this triggers pulls a bundle, and the download
+        # endpoint stamps ``served_at`` as it hands the directive over.
+        if EdgeSyncDirective.objects.filter(
+            school=school, served_at__isnull=True
+        ).exists():
+            return True
+    except Exception:  # noqa: BLE001 — a directive is a bonus; never break the feed
+        pass
     return False
 
 
