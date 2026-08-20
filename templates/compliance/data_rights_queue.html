@@ -98,11 +98,7 @@
           </details></td>
           </tr>
           {% empty %}
-          <tr><td colspan="7" class="text-muted text-center py-3">
-                <details class="rmc-row-disclosure">
-                  <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
-                  <div class="rmc-row-disclosure__body mt-1">
-{% trans "No erasure requests match." %}</td></tr>
+          <tr><td colspan="7" class="text-muted text-center py-3">{% trans "No erasure requests match." %}</td></tr>
           {% endfor %}
         </tbody>
       </table>

@@ -22,7 +22,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Avg, Count, Q
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import reverse
+from django.urls import NoReverseMatch, reverse
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
@@ -38,6 +38,8 @@ from apps.marketplace.models import (
     WebhookEndpoint,
 )
 from apps.marketplace import partner_metrics, publisher_signup, ratings
+from apps.schools.models import SchoolMembership
+from apps.schools.tenant_url import tenant_absolute_url
 from apps.marketplace.app_versions import list_versions
 
 
@@ -73,6 +75,49 @@ def _publisher_for_request_user(user) -> PublisherOrganization | None:
 
 
 @require_GET
+def _install_destination(request):
+    """Where an "Install" click on the PUBLIC listing should actually go.
+
+    This page is mounted on ``config.urls`` and ``config.public_urls`` — the base
+    domain — and never on a tenant host, so ``request.school`` is normally None
+    here and installing is not something this host can do.
+
+    The button used to post to a hardcoded ``/marketplace/settings/install-impact-preview/``,
+    which was broken four times over: that path exists only on ``config.tenant_urls``
+    (404 on the host serving this page); the view behind it is ``@require_GET``
+    against a ``method="post"`` form (405); it returns ``JsonResponse``, so a
+    working submit would show the reader raw JSON instead of an install flow; and
+    it needs a ``request.school`` that this host does not have.
+
+    So resolve the reader's own school and hand back an absolute URL to the app
+    catalog on THEIR host, where installing is a real, permissioned action.
+    Returns ``(None, "")`` when no school resolves — the caller degrades to text
+    rather than drawing a button that cannot work.
+    """
+    user = getattr(request, "user", None)
+    if not user or not user.is_authenticated:
+        return None, ""
+
+    school = getattr(request, "school", None)
+    if school is None:
+        membership = (
+            SchoolMembership.objects.filter(user=user)
+            .select_related("school")
+            .order_by("-is_primary")
+            .first()
+        )
+        school = membership.school if membership else None
+    if school is None:
+        return None, ""
+
+    try:
+        return school, tenant_absolute_url(
+            request, "tenant_app_catalog", school=school
+        )
+    except NoReverseMatch:
+        return None, ""
+
+
 def public_app_detail(request, slug: str):
     """Public listing detail page — gallery, README, changelog, version history, install button."""
 
@@ -94,6 +139,8 @@ def public_app_detail(request, slug: str):
             app=app,
             status=AppInstallation.Status.ACTIVE,
         ).exists()
+
+    install_school, install_url = _install_destination(request)
     return render(
         request,
         "marketplace/public_app_detail.html",
@@ -108,6 +155,8 @@ def public_app_detail(request, slug: str):
             "rating_stats": rating_stats,
             "recent_reviews": recent_reviews,
             "is_installed_here": is_installed_here,
+            "install_school": install_school,
+            "install_url": install_url,
         },
     )
 

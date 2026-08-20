@@ -24,7 +24,7 @@ from typing import Any
 
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from django.urls import NoReverseMatch, reverse
+from django.urls import NoReverseMatch, Resolver404, resolve, reverse
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_http_methods
 
@@ -326,6 +326,24 @@ def _llm_fallback(query: str, request: Any) -> dict[str, Any] | None:
     url = (obj.get("url") or "").strip()
     label = (obj.get("label") or "").strip() or "Open"
     if not url or not url.startswith("/"):
+        return None
+    # The model is asked for a path and will happily produce a plausible one
+    # that does not exist — /finance/outstanding-fees/ reads perfectly and is a
+    # 404. Starting with "/" only proved it was internal, not that it was real,
+    # so the palette would navigate the reader into a dead end that the AI had
+    # invented. A generated destination has to survive the URL resolver before
+    # anyone is sent to it; the deterministic intents above already reverse
+    # theirs, and this is the same standard applied to the fallback.
+    #
+    # Resolution proves the route EXISTS on this host, not that this reader may
+    # use it — the view keeps its own permission check, as it does for any link.
+    try:
+        resolve(url.split("?")[0], urlconf=getattr(request, "urlconf", None))
+    except Resolver404:
+        logger.info(
+            "ai-line: discarded a generated destination that resolves nowhere: %r",
+            url,
+        )
         return None
     return {
         "matched": True,

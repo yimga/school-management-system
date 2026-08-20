@@ -1,3 +1,4 @@
+{# html-structure-allow: opens .rmc-security-checkpoint-page, closed by components/security_checkpoint_page_close.html #}
 {% load i18n %}
 <div class="rmc-security-checkpoint-page{% if checkpoint_wide %} rmc-security-checkpoint-page--wide{% endif %}" data-rmc-security-checkpoint-page="1"{% if surface_density %} data-rmc-surface-density="{{ surface_density }}"{% endif %}>
 {% include "components/security_checkpoint_trail.html" with checkpoint_flow=checkpoint_flow %}

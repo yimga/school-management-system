@@ -49,7 +49,7 @@ def reverse_default_deny(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("sync_engine", "0005_enable_rls_postgresql"),
+        ("sync_engine", "0008_enable_rls_postgresql"),
     ]
 
     operations = [

@@ -102,6 +102,99 @@ class NoAttentionRowIsADeadEndTests(SimpleTestCase):
             )
 
 
+class CountedBacklogsOutsideTheComponentsTests(SimpleTestCase):
+    """Rule B — the same defect in hand-written markup.
+
+    Rule A only sees two components. A sweep of all 1,898 templates for "a count
+    of pending work with nothing to act on" found 38 more candidates. Triaging
+    them produced four honest categories that are NOT this defect, and the
+    single most common one was a surprise: the count sitting ON the page that
+    clears it. "Failed: 3" on the import monitor is not a dead end — the reader
+    is already where the work is done. A rule that demanded a link there would
+    have shipped noise and been switched off.
+    """
+
+    def _write_probe(self, body: str) -> Path:
+        probe = ROOT / "templates" / "_probe_attention_test.html"
+        probe.write_text(body, encoding="utf-8")
+        self.addCleanup(lambda: probe.exists() and probe.unlink())
+        return probe
+
+    def _flagged(self) -> bool:
+        return any("_probe_attention_test" in str(f["path"]) for f in scan())
+
+    BACKLOG = (
+        "<div><span>{% blocktrans count n=pending %}{{ n }} awaiting approval"
+        "{% endblocktrans %}</span></div>\n"
+    )
+
+    def test_a_counted_backlog_with_no_affordance_is_flagged(self):
+        self._write_probe(self.BACKLOG)
+        self.assertTrue(self._flagged(), "a counted backlog with no way to act went unreported")
+
+    def test_the_same_backlog_with_a_link_is_not_flagged(self):
+        self._write_probe('<div><a href="/x/">Review</a>' + self.BACKLOG)
+        self.assertFalse(self._flagged(), "a backlog that offers a destination is not a defect")
+
+    def test_a_declared_category_exempts_it(self):
+        self._write_probe(
+            "{# attention-allow: resolver-surface — this page is the queue #}\n" + self.BACKLOG
+        )
+        self.assertFalse(self._flagged())
+
+    def test_the_host_absent_category_is_refused_without_a_real_attempt(self):
+        """The one constrained category must not become a free escape hatch."""
+        self._write_probe(
+            "{# attention-allow: no-destination-on-host — unsubstantiated #}\n" + self.BACKLOG
+        )
+        self.assertTrue(
+            self._flagged(),
+            "claiming the destination is absent on this host, without ever trying "
+            "to resolve one, must not silence the gate",
+        )
+
+    def test_the_host_absent_category_holds_when_a_url_was_attempted(self):
+        self._write_probe(
+            "{% url 'finance:dashboard' as u %}\n"
+            "{# attention-allow: no-destination-on-host — finance: is tenant-only #}\n"
+            + self.BACKLOG
+        )
+        self.assertFalse(self._flagged())
+
+    def test_an_action_rendering_tag_counts_as_an_affordance(self):
+        """`{% render_smart_links %}` builds the buttons; no <a> appears in source."""
+        self._write_probe(self.BACKLOG + "{% render_smart_links state=x persona='y' %}\n")
+        self.assertFalse(
+            self._flagged(),
+            "a banner whose whole purpose is offering actions was reported as a dead end",
+        )
+
+    def test_a_bare_data_attribute_is_not_a_backlog(self):
+        self._write_probe('<div\n  data-server-failed="{{ failed_count }}">\n</div>\n')
+        self.assertFalse(self._flagged(), "attribute plumbing is not something a person reads")
+
+    def test_every_declared_category_is_one_of_the_known_ones(self):
+        """A typo'd category must fail loudly rather than silently exempt."""
+        import re as _re
+
+        from scan_actionless_attention_surfaces import (  # noqa: PLC0415
+            _ALLOW_CATEGORIES,
+            _HOST_ABSENT_CATEGORY,
+        )
+
+        known = set(_ALLOW_CATEGORIES) | {_HOST_ABSENT_CATEGORY}
+        used: set[str] = set()
+        for path in (ROOT / "templates").rglob("*.html"):
+            for match in _re.finditer(
+                r"attention-allow:\s*([a-z-]+)", path.read_text(encoding="utf-8", errors="ignore")
+            ):
+                used.add(match.group(1).lower())
+        self.assertTrue(used, "no categories in use — has the marker syntax changed?")
+        self.assertEqual(
+            used - known, set(), f"unknown attention-allow categories in templates: {used - known}"
+        )
+
+
 class DestinationsActuallyResolveTests(SimpleTestCase):
     """``{% url 'x' as y %}`` does NOT raise when the name is wrong — it sets "".
 

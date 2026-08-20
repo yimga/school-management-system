@@ -1,3 +1,4 @@
+{# html-structure-allow: opens the breadcrumb row and primary slot, closed by partials/shell_chrome_breadcrumb_row_close.html #}
 {% comment %} 1012: Opens breadcrumb chrome; close primary slot + actions in between/close partials so parent can keep {% block breadcrumb_actions %}. {% endcomment %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3{% if shell_chrome_breadcrumb_row_extra_class %} {{ shell_chrome_breadcrumb_row_extra_class }}{% endif %}" data-shell-chrome="breadcrumb-row" data-shell-chrome-breadcrumb-surface="{{ shell_chrome_breadcrumb_surface|default:'tenant-portal' }}">

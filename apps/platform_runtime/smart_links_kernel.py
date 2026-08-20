@@ -373,7 +373,7 @@ _REGISTRY: dict[tuple[str, str], tuple[SmartLink, ...]] = {
     (STATE_ADMISSION_PENDING, PERSONA_TENANT_ADMIN): (
         SmartLink(
             label="Open admissions queue",
-            href="/school/studio/workflow-center/?filter=admissions",
+            url_name="accounts:backend_applicant_list",
             icon="bi-inbox",
             severity="primary",
             helper_text="Review and approve pending applications.",
@@ -383,7 +383,7 @@ _REGISTRY: dict[tuple[str, str], tuple[SmartLink, ...]] = {
     (STATE_DSL_CONCERN_OPEN, PERSONA_TENANT_ADMIN): (
         SmartLink(
             label="Open safeguarding concern",
-            href="/authentication/backend/safeguarding/",
+            url_name="accounts:safeguarding_inbox",
             icon="bi-shield-exclamation",
             severity="danger",
             helper_text="DSL action required within KCSIE 2026 SLA.",

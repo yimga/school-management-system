@@ -162,6 +162,11 @@
       cell(row, String(run.pulled === null ? "—" : run.pulled));
       cell(
         row,
+        String(run.skipped || 0),
+        run.skipped ? "text-warning-emphasis fw-semibold" : "text-body-secondary"
+      );
+      cell(
+        row,
         run.duration_ms === null || run.duration_ms === undefined
           ? "—"
           : run.duration_ms + t("unit_ms", "ms"),
@@ -201,6 +206,26 @@
       return t(
         "explain_backoff",
         "Recent attempts failed, so retries are spacing out. A restored connection cancels the wait immediately."
+      );
+    }
+    // Outranks everything else: a box behind on migrations cannot apply rows for the new
+    // columns at all, so no other explanation on this panel is actionable until it is
+    // migrated. This is the cause behind the bare 500s an un-migrated box throws.
+    var schema = data.schema || {};
+    if (schema.current === false) {
+        return (
+          t("explain_schema_behind", "This box is behind on database migrations, so records using newer fields cannot be applied. Run migrations on the box; sync resumes automatically. Pending: ") +
+          (schema.pending || []).slice(0, 3).join(", ") +
+          (schema.truncated ? "…" : "")
+        );
+    }
+    // Checked before the healthy states: a cycle can be green, connected and idle while
+    // still having refused rows, and reporting that as "up to date" is the exact failure
+    // this panel exists to prevent.
+    if ((data.totals || {}).skipped) {
+      return t(
+        "explain_skipped",
+        "Some records could not be applied on this box - most often a record that references a parent this box has not received yet. They are named in the cycle detail below and are retried automatically."
       );
     }
     if (cadence.state === "hot") {
@@ -254,6 +279,23 @@
     setText("total-pulled", String(totals.pulled === undefined ? "—" : totals.pulled));
     setText("total-runs", String(totals.runs === undefined ? "—" : totals.runs));
     setText("total-failed", String(totals.failed === undefined ? "—" : totals.failed));
+    setText("total-skipped", String(totals.skipped === undefined ? "—" : totals.skipped));
+    setText("total-deleted", String(totals.deleted === undefined ? "—" : totals.deleted));
+
+    var deletedNode = q("total-deleted");
+    if (deletedNode) {
+      // Deletions destroy data on the far side. A non-zero count is worth a colour,
+      // because "12 records were removed by sync" is not something an operator should
+      // have to notice by reading a run message.
+      deletedNode.className =
+        "fw-semibold fs-6 " + (totals.deleted ? "text-warning-emphasis" : "text-body");
+    }
+
+    var skippedNode = q("total-skipped");
+    if (skippedNode) {
+      skippedNode.className =
+        "fw-semibold fs-6 " + (totals.skipped ? "text-warning-emphasis" : "text-body");
+    }
 
     var failedNode = q("total-failed");
     if (failedNode) {

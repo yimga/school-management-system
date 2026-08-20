@@ -87,6 +87,11 @@ on:
       - "scripts/scan_inline_style_off_token.py"
       - "scripts/scan_inline_event_handlers.py"
       - "scripts/scan_undefined_css_classes.py"
+      - "scripts/verify_python_files_parse.py"
+      - "scripts/verify_javascript_files_parse.py"
+      - "static/js/**/*.js"
+      - "scripts/verify_template_html_structure.py"
+      - "templates/**/*.html"
       - "scripts/scan_off_token_colors.py"
       - "scripts/scan_theme_locked_token_text.py"
       - "var/security-audit-baseline-theme-locked-token-text.json"
@@ -1544,6 +1549,77 @@ jobs:
         # undefined class.
         run: |
           python scripts/scan_undefined_css_classes.py --compare
+
+  python-files-parse:
+    name: "Every Python file parses (zero tolerance)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Every Python file must compile
+        # The floor. A module that does not compile cannot be imported at all -
+        # Celery autodiscovers <app>.tasks, Django imports <app>.models at
+        # startup, and any `from apps.x import y` against it is an ImportError
+        # 500. Added 2026-08-19 after apps/accounts/tasks.py was found TRUNCATED
+        # mid-statement on main: the reference-integrity gates treat an
+        # unparseable file as opaque and skip it, so nothing reported it and it
+        # surfaced only as unrelated test-collection errors. Stdlib only, no
+        # baseline, no allow-marker - a file that does not parse is never
+        # intentional.
+        run: |
+          python scripts/verify_python_files_parse.py
+
+  javascript-files-parse:
+    name: "Every shipped JavaScript file parses (zero tolerance)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Every shipped JavaScript file must parse
+        # The same floor as python-files-parse, for a QUIETER failure. A Python module
+        # that does not compile fails loudly at import; a JavaScript file that does not
+        # parse fails silently in the user's browser - the script tag 200s, the engine
+        # throws into a console nobody is watching, and the page renders looking normal
+        # with one feature simply dead. No server log, no Sentry event by default.
+        # static/js/service-worker.js is the worst case: a SyntaxError there kills
+        # registration, so the offline shell an appliance depends on stops updating and
+        # nothing says so. Uses `node`'s own parser (not a regex) so it cannot disagree
+        # with the engine that will actually run the file. No baseline, no allow-marker.
+        run: |
+          python scripts/verify_javascript_files_parse.py
+
+  template-html-structure:
+    name: "Every template closes what it opens (zero tolerance)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Every shipped template must close the elements it opens
+        # The third floor gate, and the QUIETEST of them. Python fails loudly at import;
+        # JavaScript fails silently in the console; unbalanced markup does not fail at
+        # all - the template compiles, the view returns 200, and the browser repairs the
+        # document by auto-closing the element at its parent's boundary, reparenting
+        # everything after it. Found this way on 2026-08-20: #section-today never closed
+        # on the admin home (so the sticky section-nav's own anchors became its
+        # children), a surplus </div> evicted three cards from the account grid, and two
+        # marketplace tables shipped </motion> - an element that does not exist, which
+        # browsers discard, leaving a <div> open once per row.
+        #
+        # Branch-aware: Django templates are not HTML until rendered, so every {% if %}
+        # branch is measured separately and the {% if x %}<a>{% else %}<div>{% endif %}
+        # wrapper idiom is correctly clean. Deliberate _open/_close partial pairs carry
+        # {# html-structure-allow: reason #}. Stdlib only, no baseline.
+        run: |
+          python scripts/verify_template_html_structure.py
 
   real-migration-drift:
     name: "Real migration drift (cosmetic F2 drift filtered)"

@@ -105,9 +105,13 @@
         <div class="border rounded p-3 h-100">
           <div class="text-muted small">{% trans "Stamp duty estimate" %}</div>
           <div class="fw-semibold">{{ dsf_report.annexes.estimated_stamp_duty_xaf|format_currency }}</div>
+          {# attention-allow: resolver-surface — a rendered report; the figure is the deliverable, not a queue #}
           <div class="text-muted small mt-2">{% trans "Unresolved suspense" %}</div>
+          {# attention-allow: resolver-surface — value for the annexe label above #}
           <div class="fw-semibold">{{ dsf_report.annexes.unresolved_suspense_count }}</div>
+          {# attention-allow: resolver-surface — a rendered report; the figure is the deliverable, not a queue #}
           <div class="text-muted small mt-2">{% trans "Outstanding AR" %}</div>
+          {# attention-allow: resolver-surface — value for the annexe label above #}
           <div class="fw-semibold">{{ dsf_report.annexes.outstanding_ar|format_currency }}</div>
         </div>
       </div>

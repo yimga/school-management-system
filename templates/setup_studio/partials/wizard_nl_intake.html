@@ -20,6 +20,7 @@ user reviews/edits and must still submit the step to save. Nothing is persisted 
       {% if nl_confidence %} · {% trans "confidence" %} {{ nl_confidence }}{% endif %}
     </p>
     {% if nl_unresolved %}
+      {# attention-allow: descriptive-copy — inline wizard feedback on terms it could not map #}
       <p class="rmc-wizard-field__helper">{% trans "Couldn't map" %}: {{ nl_unresolved|join:"; " }}</p>
     {% endif %}
   {% elif nl_intake_text %}

@@ -12,6 +12,23 @@ The kernel is pure-Python and composition-only — it doesn't read the DB.
 Callers (the view layer) collect counts via existing kernels (DSL inbox
 count, admissions queue count, overdue invoice aggregate, etc.) and pass
 the numbers in. This keeps the kernel ``SimpleTestCase``-friendly.
+
+Destinations are ``url_name``, never a literal path
+---------------------------------------------------
+Every chip here used to carry a hardcoded ``href``. Six of the ten chips
+that actually render — this strip is in ``portal_base.html``, so it is on
+every portal page for every persona — returned 404 on a real tenant host.
+The whole student strip was dead.
+
+The reason they survived is worth stating, because it will recur:
+``UrlConfSwitcherMiddleware`` gives a local/dev host ``config.urls``, which
+mounts the full URL surface, while a school on a subdomain gets
+``config.tenant_urls``, which does not. ``/parent/finance/`` resolves on the
+first and 404s on the second. A literal path never raises, so nothing ever
+noticed — ``reverse()`` on a moved route does.
+
+``test_action_hub_destinations_resolve`` renders every persona's hub under
+``config.tenant_urls`` and clicks every chip. Add chips with ``url_name``.
 """
 
 from __future__ import annotations
@@ -38,8 +55,9 @@ class HubAction:
     count: int = 0
     severity: str = "info"   # info | warning | danger | success
     icon: str = "bi-stars"
-    url_name: str = ""
-    href: str = ""
+    url_name: str = ""      # preferred: reverse() fails loudly when a route moves
+    href: str = ""          # literal path — see the warning in __post_init__
+    query: str = ""         # querystring appended to the reversed url_name
     state_token: str = ""   # optional smart_links_kernel state to use instead
     helper_text: str = ""
 
@@ -73,8 +91,23 @@ class ActionHub:
 
     @property
     def non_empty_actions(self) -> tuple[HubAction, ...]:
-        """Filter out zero-count chips so dashboards don't render noise."""
-        return tuple(a for a in self.actions if a.count > 0 or a.severity == "info")
+        """Every chip the assembler decided to show.
+
+        This used to drop anything with ``count == 0`` unless it was severity
+        ``info``, on the theory that a zero-count chip is noise. It isn't: a
+        count is not how most alerts are expressed. "Storage nearing capacity",
+        "Transcript hold active" and "Pay family balance" are boolean or
+        amount-driven states with no count at all, and the filter deleted all
+        three — a danger-severity transcript hold silently removed from the one
+        strip whose job is to surface it.
+
+        There is nothing to second-guess here. Every assembler below already
+        gates each append on the condition that makes the chip worth showing
+        (``if overdue_homework_review > 0``, ``if records_hold_active``), so a
+        chip that reached this tuple has already earned its place. The count is
+        a badge on the chip, not the reason for it.
+        """
+        return tuple(self.actions)
 
 
 _SEVERITY_RANK = {"danger": 0, "warning": 1, "info": 2, "success": 3}
@@ -138,7 +171,8 @@ def build_tenant_admin_hub(
             count=overdue_invoices,
             severity="warning",
             icon="bi-receipt",
-            href="/finance/invoices/?status=overdue",
+            url_name="finance:invoices",
+            query="status=OVERDUE",
         ))
     if storage_warning:
         actions.append(HubAction(
@@ -146,7 +180,8 @@ def build_tenant_admin_hub(
             label="Storage nearing capacity",
             severity="warning",
             icon="bi-hdd",
-            href="/siteconfig/billing/plan/?focus=storage",
+            url_name="siteconfig:billing_plan_readonly",
+            query="focus=storage",
             helper_text="Free up space or upgrade before write-blocking kicks in.",
         ))
     return ActionHub(persona=PERSONA_TENANT_ADMIN, actions=_sort_actions(actions))
@@ -168,7 +203,7 @@ def build_teacher_hub(
             count=attendance_pending_classes,
             severity="warning",
             icon="bi-clipboard-check",
-            href="/teacher/attendance/today/",
+            url_name="portal:take_student_attendance",
             helper_text="One-tap whole-class mark + exceptions.",
         ))
     if overdue_homework_review > 0:
@@ -178,7 +213,7 @@ def build_teacher_hub(
             count=overdue_homework_review,
             severity="info",
             icon="bi-journal-text",
-            href="/teacher/homework/?filter=needs_grade",
+            url_name="portal:teacher_gradebook",
         ))
     if pending_messages > 0:
         actions.append(HubAction(
@@ -187,7 +222,7 @@ def build_teacher_hub(
             count=pending_messages,
             severity="info",
             icon="bi-chat-square-text",
-            href="/teacher/messages/",
+            url_name="accounts:user_messages",
         ))
     if classes_today > 0 and attendance_pending_classes == 0:
         actions.append(HubAction(
@@ -195,7 +230,7 @@ def build_teacher_hub(
             label="All today's attendance is in",
             severity="success",
             icon="bi-check2-circle",
-            href="/teacher/dashboard/",
+            url_name="portal:teacher_dashboard_alias",
         ))
     return ActionHub(persona=PERSONA_TEACHER, actions=_sort_actions(actions))
 
@@ -240,7 +275,7 @@ def build_parent_hub(
             count=unread_messages,
             severity="info",
             icon="bi-chat-square-text",
-            href="/portal/messages/",
+            url_name="accounts:user_messages",
         ))
     if upcoming_events > 0:
         actions.append(HubAction(
@@ -249,7 +284,7 @@ def build_parent_hub(
             count=upcoming_events,
             severity="info",
             icon="bi-calendar-event",
-            href="/portal/calendar/",
+            url_name="portal:unified_calendar",
         ))
     return ActionHub(persona=PERSONA_PARENT, actions=_sort_actions(actions))
 
@@ -269,7 +304,7 @@ def build_student_hub(
             count=homework_due_count,
             severity="warning",
             icon="bi-journal-arrow-up",
-            href="/student/homework/",
+            url_name="portal:student_assignments",
         ))
     if upcoming_exams > 0:
         actions.append(HubAction(
@@ -278,7 +313,7 @@ def build_student_hub(
             count=upcoming_exams,
             severity="info",
             icon="bi-pencil-square",
-            href="/student/assessments/",
+            url_name="portal:student_portal_grades",
         ))
     if unread_messages > 0:
         actions.append(HubAction(
@@ -287,7 +322,7 @@ def build_student_hub(
             count=unread_messages,
             severity="info",
             icon="bi-chat-square-text",
-            href="/portal/messages/",
+            url_name="accounts:user_messages",
         ))
     return ActionHub(persona=PERSONA_STUDENT, actions=_sort_actions(actions))
 
@@ -320,7 +355,7 @@ def _baseline_navigation_actions(persona: str) -> tuple[HubAction, ...]:
                 label="Messages",
                 severity="info",
                 icon="bi-chat-square-text",
-                href="/portal/messages/",
+                url_name="accounts:user_messages",
             ),
         )
     if persona == PERSONA_PARENT:
@@ -330,21 +365,21 @@ def _baseline_navigation_actions(persona: str) -> tuple[HubAction, ...]:
                 label="Family finance",
                 severity="info",
                 icon="bi-receipt",
-                href="/parent/finance/",
+                url_name="portal:parent_finance",
             ),
             HubAction(
                 key="nav.messages",
                 label="School messages",
                 severity="info",
                 icon="bi-chat-square-text",
-                href="/portal/messages/",
+                url_name="accounts:user_messages",
             ),
             HubAction(
                 key="nav.calendar",
                 label="Calendar",
                 severity="info",
                 icon="bi-calendar-event",
-                href="/portal/calendar/",
+                url_name="portal:unified_calendar",
             ),
         )
     if persona == PERSONA_STUDENT:
@@ -354,14 +389,14 @@ def _baseline_navigation_actions(persona: str) -> tuple[HubAction, ...]:
                 label="Homework",
                 severity="info",
                 icon="bi-journal-arrow-up",
-                href="/student/homework/",
+                url_name="portal:student_assignments",
             ),
             HubAction(
                 key="nav.learning",
                 label="Learning home",
                 severity="info",
                 icon="bi-mortarboard",
-                href="/student/learning/",
+                url_name="portal:student_portal_grades",
             ),
         )
     if persona == PERSONA_TENANT_ADMIN:
@@ -378,7 +413,7 @@ def _baseline_navigation_actions(persona: str) -> tuple[HubAction, ...]:
                 label="People directory",
                 severity="info",
                 icon="bi-people",
-                href="/school/people/students/",
+                url_name="accounts:backend_student_list",
             ),
         )
     return ()

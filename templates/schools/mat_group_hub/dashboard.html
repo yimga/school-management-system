@@ -22,7 +22,9 @@
     <p>No MAT groups configured.</p>
     <p class="mat-hub-empty-hint">
       Add groups via operator SiteSettings <code>cockpit_payload["mat_groups"]</code>.
-      See <a href="/docs/MAT_GROUP_HUB.md">{% trans "docs/MAT_GROUP_HUB.md" %}</a>.
+      {# A repo file, not a served route: /docs/ 404s on every host but the docs #}
+      {# subdomain, whose catch-all just redirects home. Name it, do not link it. #}
+      See <code>docs/MAT_GROUP_HUB.md</code> in the repository.
     </p>
   </section>
 {% else %}

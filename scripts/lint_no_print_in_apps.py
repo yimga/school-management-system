@@ -10,6 +10,7 @@ Run: ``raise SystemExit(main(None))`` (default ``--base`` is this repository roo
 from __future__ import annotations
 
 import argparse
+import ast
 import re
 import subprocess
 import sys
@@ -99,19 +100,28 @@ def main(argv: list[str] | None = None) -> int:
         if any(d in parts for d in ALLOWLIST_DIRS):
             continue
         try:
-            lines = py.read_text(encoding="utf-8", errors="ignore").splitlines()
+            source = py.read_text(encoding="utf-8", errors="ignore")
         except OSError:
             continue
-        for i, line in enumerate(lines, 1):
-            stripped = line.strip()
+        try:
+            tree = ast.parse(source)
+        except SyntaxError:
+            # A file that does not parse is reported by verify_python_files_parse.py,
+            # which runs first in pre_push_boundary_check.py. Do not double-report it
+            # here, and do not fall back to text matching.
+            continue
+        # Structural detection: a real call to the builtin `print`, never the token
+        # `print(` sitting inside a string literal or comment. apps/lifecycle/
+        # edge_onboarding.py embeds `python manage.py shell -c "... print(...)"`
+        # operator command templates as STRING data; the old per-line regex counted
+        # those as application prints and made this gate red on a clean tree.
+        for node in ast.walk(tree):
             if (
-                stripped.startswith("#")
-                or stripped.startswith('"""')
-                or stripped.startswith("'''")
+                isinstance(node, ast.Call)
+                and isinstance(node.func, ast.Name)
+                and node.func.id == "print"
             ):
-                continue
-            if re.search(r"\bprint\s*\(", line):
-                found.append(f"{rel}:{i}")
+                found.append(f"{rel}:{node.lineno}")
                 break
     if not found:
         print(

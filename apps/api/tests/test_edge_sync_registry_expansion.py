@@ -66,8 +66,16 @@ class SyncRegistryExpansionTests(TestCase):
         # accounts.User must never be a synced field.
         self.assertIn("teacher", cfg)
         self.assertFalse(cfg["teacher"][1] & {"user", "user_id"})
-        # Original curated field sets must be untouched by the generalized registry.
-        self.assertEqual(cfg["classroom"][1], {"name", "academic_year_id"})
+        # The curated field sets must be untouched BY THE GENERALIZED REGISTRY - that is
+        # what this assertion is for, and it still holds. `classroom` gained
+        # `department_id` + `code` on 2026-08-20 as a deliberate, reviewed edit to the
+        # CURATED set, not as derived-registry leakage: `Classroom.department` is NOT NULL
+        # and `code` is a required UNIQUE column, so without them a classroom could never
+        # be CREATED across the sync boundary in either direction (see
+        # apps/sync_engine/tests/test_classroom_create_across_the_rail_2026_08_20.py).
+        self.assertEqual(
+            cfg["classroom"][1], {"name", "academic_year_id", "department_id", "code"}
+        )
         self.assertEqual(
             cfg["attendance"][1], {"student_id", "classroom_id", "date", "status", "remarks"}
         )

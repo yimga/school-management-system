@@ -7,7 +7,9 @@ Frontend MUST use tenant-scoped cache: IndexedDB key e.g. sync_queue_${school_id
 so that no cross-tenant data is ever visible (one school per device/session).
 """
 
+import decimal as _decimal
 import logging
+import uuid as _uuid
 
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
@@ -306,7 +308,21 @@ def _get_entity_config(include_derived=False):
         # NOTE: no "is_active" — Classroom has no such field. Leaving the phantom in
         # would crash the UPDATE path (`save(update_fields=["is_active"])` → FieldError)
         # whenever a classroom edit carried it.
-        "classroom": (Classroom, {"name", "academic_year_id"}),
+        #
+        # `department_id` and `code` are on the set because without them a classroom can
+        # never be CREATED across the boundary in EITHER direction — found by running the
+        # insert, 2026-08-20: `Classroom.department` is NOT NULL and `code` is a required
+        # UNIQUE column, so an insert carrying only {name, academic_year_id} dies on
+        # `NOT NULL constraint failed: academics_classroom.department_id`, and a second one
+        # would then collide on `code=""`. The practical effect was that a class created on
+        # the cloud in September simply did not exist on the appliance, and a class created
+        # offline could never be pushed up. Both are FKs/scalars to already-registered
+        # benign master data, so they remap and converge like every other classroom field.
+        # The exam/term governance booleans (gce_eligible, allows_third_term) deliberately
+        # stay OFF the rail — those decide who may be registered for a certification exam,
+        # which is the same class of cloud-governed switch as
+        # academic_year.enable_gce_registration.
+        "classroom": (Classroom, {"name", "academic_year_id", "department_id", "code"}),
     }
     # The expanded two-way registry is scoped to EDGE SYNC operations only — callers on
     # the edge push/pull paths pass include_derived=True. An ordinary online DeltaSyncAPI
@@ -325,6 +341,26 @@ def _get_entity_config(include_derived=False):
             )
             config[entity_type] = (model, fields)
     return config
+
+
+# Which Django app owns each synced entity. The schema handshake (G4) degrades to a
+# COMPATIBLE SUBSET rather than refusing a whole cycle, and this is what makes "subset"
+# expressible: a box behind only on `finance` still receives its attendance. Derived from
+# the same specs the registry is built from, plus the three curated entities, so a new
+# entity cannot be added without its app being known here.
+_CURATED_ENTITY_APPS = {
+    "student": "people",
+    "attendance": "academics",
+    "classroom": "academics",
+}
+
+
+def entity_app_labels() -> dict:
+    """``{entity_type: app_label}`` for every entity on the edge rail."""
+    labels = dict(_CURATED_ENTITY_APPS)
+    for entity_type, app_label, _model_name in _DERIVED_ENTITY_SPECS:
+        labels[entity_type] = app_label
+    return labels
 
 
 def _insert_fk_targets(config) -> dict:
@@ -354,18 +390,27 @@ def _insert_fk_targets(config) -> dict:
     return targets
 
 
-def _field_for_attname(model, attname: str):
-    for field in model._meta.get_fields():
-        if getattr(field, "attname", None) == attname:
-            return field
-    return None
+def _fk_reference_targets(model, allowed) -> dict:
+    """``{fk_attname: target_model}`` for every concrete FK inside ``allowed``.
 
+    Deliberately broader than :func:`_insert_fk_targets`, which maps only the FKs pointing
+    at ANOTHER REGISTERED entity because its job is remapping new-references-new pks.
+    Referential integrity is not scoped to the rail: a pulled row can just as easily point
+    at a parent living in a table sync never carries, and the database rejects that with
+    exactly the same constraint error. Every FK that carries a value has to be checked.
+    """
+    from apps.lifecycle.tenant_portability import _rel_model
 
-def _fk_attname_is_required(model, attname: str) -> bool:
-    field = _field_for_attname(model, attname)
-    if field is None:
-        return False
-    return not getattr(field, "null", True) and getattr(field, "blank", True) is False
+    targets: dict = {}
+    for f in model._meta.get_fields():
+        if not getattr(f, "concrete", False):
+            continue
+        if not (getattr(f, "many_to_one", False) or getattr(f, "one_to_one", False)):
+            continue
+        attname = getattr(f, "attname", None)
+        if attname in allowed:
+            targets[attname] = _rel_model(f)
+    return targets
 
 
 def enrich_delta_rows_with_fk_referents(rows, school, config) -> list:
@@ -380,7 +425,7 @@ def enrich_delta_rows_with_fk_referents(rows, school, config) -> list:
     rather than shipped with a reference the box can never satisfy — see the inline
     note at the lookup. One residual case is not chased here: a child whose parent
     is present in the bundle but is itself dropped. That is bounded, not fatal —
-    ``check_constraints_immediately`` makes the box isolate such a row per-row
+    ``_force_immediate_constraints`` makes the box isolate such a row per-row
     instead of failing the whole pull — and it self-heals on the next cycle.
     """
     if not rows:
@@ -474,24 +519,458 @@ def enrich_delta_rows_with_fk_referents(rows, school, config) -> list:
     return combined
 
 
-def _sanitize_fk_updates(updates, entity_type, model, school, config, fk_targets):
-    """Drop FK values whose referent is absent locally; block required FK gaps."""
-    ent_targets = fk_targets.get(entity_type, {})
-    filtered = dict(updates)
-    dropped_fks: list[str] = []
-    missing_required: list[str] = []
-    for key, value in list(filtered.items()):
-        target_et = ent_targets.get(key)
-        if not target_et or value is None:
+def _unresolvable_fk(model, allowed, payload, seen=None):
+    """The first FK in ``payload`` whose parent row is absent - ``(attname, label, value)``.
+
+    ``None`` when every reference resolves. ``seen`` is a caller-owned memo
+    ``{(label, pk): bool}``: one bundle repeats the same handful of parents across hundreds
+    of rows, so without it this would issue a query per FK per row.
+
+    THE CHECK HAS TO HAPPEN BEFORE THE WRITE, because on PostgreSQL it cannot be caught
+    after it. Django creates every foreign key as DEFERRABLE INITIALLY DEFERRED, so a
+    violation is not raised by ``save()`` - it is raised by the COMMIT of the OUTERMOST
+    transaction, long after the per-row savepoint written to contain it has been released.
+    The whole bundle then dies together and the error escapes ``apply_changes`` entirely,
+    surfacing as a cycle-level ``pull failed: ...``. SQLite checks immediately, which is
+    precisely why the test suite never saw this and production did.
+
+    Uses ``_base_manager``: the constraint cares whether the ROW exists, not whether a
+    model's default manager chooses to show it (a soft-deleted parent still satisfies it).
+    """
+    if seen is None:
+        seen = {}
+    try:
+        targets = _fk_reference_targets(model, allowed)
+    except Exception:  # noqa: BLE001 - see below; a preflight must never be the crash
+        logger.debug("could not derive FK targets for %s", model, exc_info=True)
+        return None
+    for attname, target_model in targets.items():
+        if attname not in payload:
             continue
-        target_model = config[target_et][0]
-        if target_model._default_manager.filter(pk=value, school=school).exists():
+        value = payload[attname]
+        if value is None:
             continue
-        filtered.pop(key, None)
-        dropped_fks.append(key)
-        if _fk_attname_is_required(model, key):
-            missing_required.append(f"{target_et}:{value}")
-    return filtered, dropped_fks, missing_required
+        try:
+            label = target_model._meta.label
+            key = (label, value)
+            exists = seen.get(key)
+            if exists is None:
+                exists = target_model._base_manager.filter(pk=value).exists()
+                seen[key] = exists
+        except Exception:  # noqa: BLE001
+            # The lookup ITSELF failed — typically a value the pk column cannot even parse
+            # (a string where a UUID/int is expected), which Django raises as
+            # ValueError/ValidationError. Treat it as unresolvable rather than letting it
+            # propagate: a preflight that can crash the bundle would reintroduce the exact
+            # failure it exists to prevent.
+            logger.debug("FK preflight lookup failed for %s.%s", model, attname, exc_info=True)
+            return (attname, getattr(target_model._meta, "label", str(target_model)), value)
+        if not exists:
+            return (attname, label, value)
+    return None
+
+
+def check_constraints_immediately() -> None:
+    """Switch PostgreSQL's deferred foreign-key checks to statement time.
+
+    Kept as the strict, directly testable primitive. SQLite and other backends already
+    enforce their own constraint timing and must not receive PostgreSQL-only SQL.
+    """
+    from django.db import connection
+
+    if connection.vendor != "postgresql":
+        return
+    with connection.cursor() as cursor:
+        cursor.execute("SET CONSTRAINTS ALL IMMEDIATE")
+
+
+def _force_immediate_constraints():
+    """Make deferred FK checks fire at statement time for the rest of this transaction.
+
+    Django creates every foreign key on PostgreSQL as DEFERRABLE INITIALLY DEFERRED, so a
+    violation surfaces at COMMIT instead of at ``save()``. That silently defeats every
+    per-row savepoint in this module - they release cleanly, and the error then takes down
+    the entire batch from OUTSIDE the handlers written to contain it. Switching the
+    transaction to IMMEDIATE restores the behaviour those savepoints were always documented
+    to provide: one un-appliable row degrades to a per-row status and the rest still lands.
+
+    Belt to :func:`_unresolvable_fk`'s braces. The preflight prevents the case we understand;
+    this bounds the blast radius of the one we have not thought of yet. No-op on backends
+    that already check immediately (SQLite) or that lack SET CONSTRAINTS.
+    """
+    try:
+        check_constraints_immediately()
+    except Exception:  # noqa: BLE001
+        logger.warning("could not switch FK constraints to IMMEDIATE", exc_info=True)
+
+
+def _create_from_cloud_pull(
+    school_id, user, entity_type, model, allowed, pk, changes, client_updated_at, fk_seen
+):
+    """Create a cloud-authored row on the box, PRESERVING the operator's pk.
+
+    Cloud->box had no create path at all. A cloud-authored row carries an EMPTY
+    ``client_offline_id`` (that column marks rows created offline ON A BOX), so
+    :func:`apps.sync_engine.edge_inbox.apply_pulled_bundle` routes it to the update-by-pk
+    path - which answered 404 and moved on. The practical effect: every record created on
+    the cloud AFTER a box was cloned could never reach that box. Departments, subjects,
+    specialties, terms, classrooms, all of it. Nothing reported a problem; the box quietly
+    diverged, and then failed outright on the first child row that referenced one of the
+    parents it had never been given.
+
+    Creating BY PK is correct in this direction and only this direction: the clone is
+    pk-preserving, the cloud is authoritative on a pull, and the pk being absent locally is
+    exactly what the caller just established. The reverse - a box minting pks on the
+    operator - stays refused; that is what ``client_offline_id`` and
+    :func:`apply_edge_inserts` exist for.
+
+    Returns ``(instance, None)`` or ``(None, {"status": int, "data": {...}})``.
+    """
+    from django.core.exceptions import FieldError, ValidationError
+    from django.db import (
+        DataError,
+        IntegrityError,
+        OperationalError,
+        ProgrammingError,
+        transaction,
+    )
+
+    from apps.api.entity_api import _is_admin_like
+
+    # A create is a WRITE, so it answers to the same two gates every other inbound write
+    # does. Skipping them because there is no existing row to compare against would make
+    # this path the way AROUND them.
+    #
+    # 1) PRINCIPAL. Same bar as apply_edge_inserts: the box acts as a bound school admin.
+    if not (
+        getattr(user, "is_superuser", False)
+        or getattr(user, "is_staff", False)
+        or _is_admin_like(user)
+    ):
+        return None, {"status": 403, "data": {"error": "forbidden"}}
+
+    # 2) POLICY. `_conflict_decision` with no server row still answers the question that
+    #    matters here: an ONLINE_REQUIRED domain (credentials, lifecycle, payment
+    #    settlement) is NEVER applied through the sync path, and that must hold whether the
+    #    row already exists or not. Protected entities resolve to "apply" on a cloud-pull,
+    #    which is the money = cloud-authoritative rule working as intended.
+    decision = _conflict_decision(entity_type, "cloud-pull", client_updated_at, None)
+    if decision != "apply":
+        return None, {
+            "status": 409,
+            "data": {"error": "online_required" if decision == "reject" else decision,
+                     "entity_type": entity_type},
+        }
+
+    if entity_type in _INSERT_HELD_ENTITIES:
+        # The same rule the box-push insert path applies: an entity that must not be CREATED
+        # across the rail is refused with its reason, in EITHER direction.
+        return None, {
+            "status": 409,
+            "data": {
+                "error": "insert_held_for_entity",
+                "entity_type": entity_type,
+                "reason": _INSERT_HELD_ENTITIES[entity_type],
+            },
+        }
+
+    settable = _settable_field_names(model)
+    values = {k: v for k, v in changes.items() if k in allowed and k in settable}
+    missing = _unresolvable_fk(model, allowed, values, fk_seen)
+    if missing is not None:
+        return None, {
+            "status": 409,
+            "data": {
+                "error": "missing_reference",
+                "field": missing[0],
+                "references": missing[1],
+                "referenced_id": missing[2],
+            },
+        }
+    values[model._meta.pk.attname] = pk
+    if any(getattr(f, "attname", "") == "school_id" for f in model._meta.get_fields()):
+        values["school_id"] = school_id
+    try:
+        with transaction.atomic():  # savepoint: a row we cannot build must not kill the batch
+            instance = model(**values)
+            instance.save(force_insert=True)
+    except (
+        IntegrityError, DataError, ValidationError, ValueError, TypeError, FieldError,
+        OperationalError, ProgrammingError,  # a column this schema does not have yet
+    ) as exc:
+        # Usually a NOT NULL column that is not on the rail, so the bundle carried no value
+        # for it. Reported per row rather than raised, so the rest of the pull still lands.
+        return None, {"status": 422, "data": {"error": "create_failed", "detail": str(exc)[:200]}}
+    return instance, None
+
+
+def _reassert_row_after_refused_delete(model, school_id, pk):
+    """Bump ``updated_at`` on a row whose DELETION this side refused.
+
+    Without this, refusing a delete guarantees permanent divergence: the appliance has
+    already removed the row locally, the cloud keeps it, and because the cloud copy's
+    ``updated_at`` is older than the box's pull cursor the incremental delta will never
+    offer it again. The row would be gone on one side and present on the other, forever,
+    with nothing reporting a problem.
+
+    Touching the timestamp puts the row back INSIDE the next pull window, where the
+    cloud-authored create path lands it again by pk. The cloud is not accepting the box's
+    change - it is re-asserting its own row, which is exactly what "money is
+    cloud-authoritative" means.
+
+    Uses ``.update()`` deliberately: it writes the column directly, without running
+    ``auto_now``, signals, or model save hooks, so re-asserting a row can never fire
+    another tombstone or a business side effect. Never raises.
+    """
+    if not any(getattr(f, "attname", "") == "updated_at" for f in model._meta.get_fields()):
+        return False
+    try:
+        qs = model._base_manager.filter(pk=pk)
+        if any(getattr(f, "attname", "") == "school_id" for f in model._meta.get_fields()):
+            qs = qs.filter(school_id=school_id)
+        return bool(qs.update(updated_at=timezone.now()))
+    except Exception:  # noqa: BLE001 - a repair step must never break the batch
+        logger.debug("could not re-assert %s:%s after a refused delete", model, pk, exc_info=True)
+        return False
+
+
+def apply_deletes(school_id, user, rows, *, sync_origin=None):
+    """Apply DELETION rows (``op="delete"``) from a delta bundle.
+
+    The third inbound path, alongside :func:`apply_changes` (update-by-pk) and
+    :func:`apply_edge_inserts` (upsert-by-anchor). Until it existed a deletion was the
+    one change the engine could not carry at all - see
+    :mod:`apps.sync_engine.tombstones`.
+
+    A delete is a WRITE, so it answers to every gate a write answers to:
+
+      * **principal** - the same admin-like bar the insert path applies;
+      * **policy** - via :func:`_conflict_decision`, so an ONLINE_REQUIRED domain is
+        never deleted through the sync rail, and a protected (money / grade / identity)
+        entity may be deleted DOWNWARD by the cloud but never UPWARD by a box. A refused
+        upward delete re-asserts the cloud row so the appliance gets it back rather than
+        the two sides diverging in silence;
+      * **flood guard** - a bundle carrying more than
+        ``RMC_SYNC_MAX_DELETES_PER_BUNDLE`` deletions is refused WHOLE. A mistaken bulk
+        action on one side is then a loud refusal instead of a mirrored wipe.
+
+    A tombstone is recorded on this side even when the row is already absent: knowing a
+    row is buried is what stops it being re-created by a later bundle, and it is what
+    makes delete-dominance answer the same way regardless of which side is asked first.
+
+    Returns ``{"deleted", "results"}``; results carry per-row ``index``/``status``.
+    """
+    from django.core.exceptions import FieldError, ValidationError
+    from django.db import (
+        DataError,
+        IntegrityError,
+        OperationalError,
+        ProgrammingError,
+        transaction,
+    )
+
+    from apps.api.entity_api import _is_admin_like
+    from apps.sync_engine import tombstones
+
+    rows = list(rows or [])
+    config = _get_entity_config(include_derived=sync_origin is not None)
+    can_delete = bool(
+        getattr(user, "is_superuser", False)
+        or getattr(user, "is_staff", False)
+        or _is_admin_like(user)
+    )
+    if not school_id or not can_delete:
+        reason = "tenant_context_required" if not school_id else "forbidden"
+        return {
+            "deleted": 0,
+            "results": [
+                {"index": i, "status": 403, "data": {"error": reason}}
+                for i, _ in enumerate(rows)
+            ],
+        }
+    if not tombstones.delete_propagation_enabled():
+        return {
+            "deleted": 0,
+            "results": [
+                {"index": i, "status": 409, "data": {"error": "delete_propagation_disabled"}}
+                for i, _ in enumerate(rows)
+            ],
+        }
+
+    cap = tombstones.max_deletes_per_bundle()
+    if len(rows) > cap:
+        # Refused WHOLE, on purpose. Applying the first `cap` and refusing the rest would
+        # be the worst of both: a partial wipe plus an error. The far side keeps its
+        # tombstones, so once an operator has decided the deletions are intended, raising
+        # the cap (or a full resync) applies them - nothing is lost by refusing.
+        return {
+            "deleted": 0,
+            "results": [
+                {
+                    "index": i,
+                    "status": 409,
+                    "data": {
+                        "error": "delete_flood_guard",
+                        "count": len(rows),
+                        "max_deletes": cap,
+                    },
+                }
+                for i, _ in enumerate(rows)
+            ],
+        }
+
+    deleted = 0
+    results: list[dict] = []
+    for idx, item in enumerate(rows):
+        entity_type = (item.get("entity_type") or "").strip().lower()
+        pk = item.get("id")
+        coid = (item.get("client_offline_id") or "").strip()
+        deleted_at = _parse_client_updated_at(item.get("updated_at")) or timezone.now()
+
+        if entity_type not in config or (pk is None and not coid):
+            results.append(
+                {"index": idx, "status": 400, "data": {"error": "entity_type_and_id_required"}}
+            )
+            continue
+        model, _allowed = config[entity_type]
+
+        decision = _conflict_decision(entity_type, sync_origin, deleted_at, None)
+        if decision == "reject":
+            results.append(
+                {
+                    "index": idx,
+                    "status": 409,
+                    "data": {"error": "online_required", "entity_type": entity_type},
+                }
+            )
+            continue
+        if decision == "conflict":
+            # Protected entity, deletion travelling the wrong way. Refuse it AND put the
+            # row back in the far side's next window, or the sides diverge for good.
+            reasserted = _reassert_row_after_refused_delete(model, school_id, pk)
+            results.append(
+                {
+                    "index": idx,
+                    "status": 409,
+                    "data": {
+                        "error": "delete_refused_protected",
+                        "entity_type": entity_type,
+                        "reasserted": reasserted,
+                    },
+                }
+            )
+            continue
+
+        # Record the burial FIRST. If the delete below fails we still know the row is
+        # meant to be gone, so a later bundle cannot quietly re-create it; and a row that
+        # is already absent locally still needs the tombstone for exactly that reason.
+        tombstones.record_tombstone(
+            school_id,
+            entity_type,
+            pk if pk is not None else coid,
+            deleted_at=deleted_at,
+            client_offline_id=coid,
+            origin=sync_origin or "",
+        )
+
+        try:
+            with transaction.atomic():  # savepoint: one undeletable row must not kill the batch
+                qs = model._base_manager.all()
+                if any(
+                    getattr(f, "attname", "") == "school_id" for f in model._meta.get_fields()
+                ):
+                    qs = qs.filter(school_id=school_id)
+                target = qs.filter(pk=pk).first() if pk is not None else None
+                if target is None and coid:
+                    target = qs.filter(client_offline_id=coid).first()
+                if target is None:
+                    results.append(
+                        {"index": idx, "status": 200, "data": {"deleted": False, "already_absent": True}}
+                    )
+                    continue
+                target_pk = target.pk
+                with tombstones.applying_remote_delete():
+                    # The INSTANCE's delete(), never a queryset delete. Several models
+                    # here override it - finance.Invoice soft-deletes for legal
+                    # traceability rather than removing the row - and a queryset delete
+                    # would silently bypass that override and hard-delete a record the
+                    # product deliberately keeps. The sync rail does not get to overrule a
+                    # model's own deletion semantics.
+                    target.delete()
+                if model._base_manager.filter(pk=target_pk).exists():
+                    # The model SOFT-deleted: the row is still there, marked void. It is
+                    # not a deletion the far side needs a tombstone for - the void state
+                    # is ordinary column data and travels on the update rail like any
+                    # other change. Leaving the tombstone would be actively wrong: it
+                    # would refuse every later update to a row that still exists.
+                    tombstones.clear_tombstone(
+                        school_id, entity_type, pk if pk is not None else coid
+                    )
+                    results.append(
+                        {"index": idx, "status": 200,
+                         "data": {"deleted": False, "soft_deleted": True}}
+                    )
+                    continue
+                # The echo-suppression marker describes a row that no longer exists.
+                from apps.sync_engine.models import SyncApplyLedger
+
+                SyncApplyLedger.objects.filter(
+                    school_id=school_id, entity_type=entity_type, local_pk=str(target_pk)
+                ).delete()
+        except (
+            IntegrityError, DataError, ValidationError, ValueError, TypeError, FieldError,
+            OperationalError, ProgrammingError,
+        ) as exc:
+            # A PROTECT/RESTRICT relation, or a schema this deployment has not migrated.
+            results.append(
+                {"index": idx, "status": 422, "data": {"error": "delete_failed", "detail": str(exc)[:200]}}
+            )
+            continue
+        deleted += 1
+        results.append({"index": idx, "status": 200, "data": {"deleted": True}})
+
+    return {"deleted": deleted, "results": results}
+
+
+# Distinguishable from a genuine ``None`` in the ledger lookup below.
+_UNSET = object()
+
+
+# Value types it is SAFE to compare by text. Anything else - a related manager, a file
+# descriptor, a model instance - is deliberately excluded: see _same_value.
+_COMPARABLE_SCALARS = (str, bytes, bool, int, float, _decimal.Decimal, _uuid.UUID)
+
+
+def _same_value(current, incoming) -> bool:
+    """Would writing ``incoming`` over ``current`` change anything?
+
+    Compared as TEXT, but ONLY for plain scalars. The two sides arrive by different routes
+    — a live model attribute and a JSON wire payload — so ``Decimal("1.00")`` vs
+    ``"1.00"``, ``3`` vs ``"3"`` and a ``date`` vs its ISO string are the same value
+    reported differently, and treating those as changes would defeat the check.
+
+    ANYTHING ELSE IS TREATED AS CHANGED, on purpose. Django's ``BaseManager.__str__``
+    returns ``"<app>.<Model>.<name>"``, so a many-to-many attribute stringifies to
+    something a wire value can genuinely equal — and this check would then SKIP a write
+    that was going to fail, converting a 422 into a green 200. A skip-the-redundant-write
+    optimisation must never be able to change an outcome; when it cannot be sure, it must
+    let the write happen and the real error surface.
+    """
+    if current is None or incoming is None:
+        return current is None and incoming is None
+    if current is incoming:
+        return True
+    if hasattr(current, "isoformat"):  # date / datetime / time
+        try:
+            return current.isoformat() == str(incoming)
+        except Exception:  # noqa: BLE001 - an optimisation must never be the failure
+            return False
+    if not isinstance(current, _COMPARABLE_SCALARS):
+        return False
+    try:
+        return str(current) == str(incoming)
+    except Exception:  # noqa: BLE001
+        return False
 
 
 def _parse_client_updated_at(raw):
@@ -680,19 +1159,32 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
                               "client_updated_at", "server_updated_at", "conflict_id" }
     """
     from django.core.exceptions import FieldError, ValidationError
-    from django.db import DataError, IntegrityError, transaction
+    from django.db import (
+        DataError,
+        IntegrityError,
+        OperationalError,
+        ProgrammingError,
+        transaction,
+    )
 
     # Edge sync operations (sync_origin set) get the expanded registry; an online
     # DeltaSyncAPI call (sync_origin None) gets only the original three — other tenants
     # untouched.
     config = _get_entity_config(include_derived=sync_origin is not None)
-    results = []
     conflicts = []
     success_count = 0
-    fk_targets = _insert_fk_targets(config)
-    from apps.schools.models import School
 
-    school = School.objects.filter(pk=school_id).first() if school_id else None
+    # Results are stored BY ORIGINAL INDEX and emitted in the caller's order at the end,
+    # because rows are no longer processed in the order they arrived (see the dependency
+    # sort below). Same contract apply_edge_inserts already keeps.
+    results_by_index: dict[int, dict] = {}
+
+    def _emit(row):
+        results_by_index[row["index"]] = row
+
+    # Parents this bundle has already proved present or absent, shared across every row so
+    # a bundle with hundreds of children costs one existence query per DISTINCT parent.
+    fk_seen: dict = {}
 
     if not school_id:
         return {
@@ -708,20 +1200,61 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
             "conflicts": [],
         }
 
+    # Apply REFERENTS BEFORE DEPENDENTS. The bundle is ordered by updated_at because that
+    # is what makes a page boundary a safe cursor (edge_outbox.build_edge_delta_rows), and
+    # updated_at order says nothing about dependency - a specialty can arrive ahead of the
+    # department it points at and fail on a parent sitting later in the very same bundle.
+    # Reordering the APPLY is free: the pull cursor comes from the bundle's high-water
+    # header, never from the order rows were applied in.
+    _order = _insert_dependency_order(config)
+
+    # Rows this side has BURIED. Loaded once for the whole bundle. Without it a deletion
+    # never really sticks: the far side, whose own copy is simply older than its cursor,
+    # keeps re-offering the row and the ordinary apply path faithfully re-creates it -
+    # a delete that undoes itself on the next cycle.
+    from apps.sync_engine.tombstones import clear_tombstone, tombstone_index
+
+    # Both preloads below are scoped to THIS bundle's keys. The ledger and the tombstone
+    # table both grow with the deployment's whole history, so reading them whole would
+    # make every apply slower the longer a school has been running - for an answer about
+    # at most a few hundred rows.
+    _bundle_pks = {str(i.get("id")) for i in items if i.get("id") is not None}
+
+    _buried = tombstone_index(school_id, tuple(config), local_pks=_bundle_pks)
+
+    # What SYNC last wrote, per row. Used below to stop this side mistaking its OWN
+    # previous apply for a local edit. Loaded once for the bundle.
+    _sync_applied: dict = {}
+    if sync_origin == "cloud-pull" and _bundle_pks:
+        try:
+            from apps.sync_engine.models import SyncApplyLedger
+
+            _sync_applied = {
+                (row[0], row[1]): row[2]
+                for row in SyncApplyLedger.objects.filter(
+                    school_id=school_id, local_pk__in=sorted(_bundle_pks)
+                ).values_list("entity_type", "local_pk", "applied_updated_at")
+            }
+        except Exception:  # noqa: BLE001 - a provenance read must never break an apply
+            logger.debug("could not load the sync-apply ledger", exc_info=True)
+
+    def _rank(pair):
+        _idx, _item = pair
+        _et = (_item.get("entity_type") or "").strip().lower()
+        # Stable within a rank: same-entity rows keep the order the caller sent them in, so
+        # two edits to one record still apply oldest-first.
+        return (_order.index(_et) if _et in _order else len(_order), _idx)
+
     with transaction.atomic():
-        # Without this the per-row savepoints below cannot isolate a bad row on
-        # Postgres -- a dangling FK would surface only at COMMIT and abort the
-        # entire batch. See check_constraints_immediately.
-        check_constraints_immediately()
-        for idx, item in enumerate(items):
+        _force_immediate_constraints()
+        for idx, item in sorted(enumerate(items), key=_rank):
             entity_type = (item.get("entity_type") or "").strip().lower()
             pk = item.get("id")
             changes = item.get("changes") or {}
             client_updated_at = _parse_client_updated_at(item.get("updated_at"))
-            dropped_fks: list[str] = []
 
             if entity_type not in config or pk is None:
-                results.append(
+                _emit(
                     {
                         "index": idx,
                         "status": 400,
@@ -731,8 +1264,30 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
                 continue
 
             model, allowed = config[entity_type]
+
+            # DELETE DOMINANCE, resolved by timestamp so both sides reach the same answer
+            # no matter which is asked first. An incoming change to a row this side buried
+            # is refused; a change that is strictly NEWER than the burial is the far side
+            # deliberately resurrecting the row, so it wins and the tombstone is dropped
+            # (leaving it would re-delete the row on the far side next cycle).
+            _buried_at = _buried.get((entity_type, str(pk)))
+            if _buried_at is not None:
+                if client_updated_at is None or client_updated_at <= _buried_at:
+                    _emit({
+                        "index": idx,
+                        "status": 409,
+                        "data": {
+                            "error": "deleted_upstream",
+                            "entity_type": entity_type,
+                            "deleted_at": _buried_at.isoformat(),
+                        },
+                    })
+                    continue
+                clear_tombstone(school_id, entity_type, pk)
+                _buried.pop((entity_type, str(pk)), None)
+
             if not isinstance(changes, dict):
-                results.append(
+                _emit(
                     {
                         "index": idx,
                         "status": 400,
@@ -742,7 +1297,7 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
                 continue
             updates = {k: v for k, v in changes.items() if k in allowed}
             if not updates:
-                results.append(
+                _emit(
                     {
                         "index": idx,
                         "status": 400,
@@ -751,109 +1306,51 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
                 )
                 continue
 
-            if school is not None:
-                updates, dropped_fks, missing_required = _sanitize_fk_updates(
-                    updates, entity_type, model, school, config, fk_targets
-                )
-                if missing_required:
-                    results.append(
-                        {
-                            "index": idx,
-                            "status": 422,
-                            "data": {
-                                "error": "missing_referent",
-                                "detail": (
-                                    "Required parent row(s) not on this box yet: "
-                                    + ", ".join(missing_required)
-                                    + ". Queue a full resync on the cloud or import "
-                                    "the sovereign bundle so pk-aligned parents land first."
-                                ),
-                                "missing": missing_required,
-                            },
-                        }
-                    )
-                    continue
-                if not updates:
-                    results.append(
-                        {
-                            "index": idx,
-                            "status": 422,
-                            "data": {
-                                "error": "missing_referent",
-                                "detail": "All FK fields pointed at rows absent on this box.",
-                                "dropped_fks": dropped_fks,
-                            },
-                        }
-                    )
-                    continue
-
             try:
                 instance = model.objects.get(pk=pk)
             except model.DoesNotExist:
-                if sync_origin == "cloud-pull" and school is not None:
-                    valid_fields = _settable_field_names(model)
-                    create_fields = {
-                        k: v for k, v in updates.items() if k in valid_fields
-                    }
-                    if hasattr(model, "school_id"):
-                        create_fields["school_id"] = school.pk
-                    try:
-                        with transaction.atomic():
-                            instance = model(pk=pk, **create_fields)
-                            instance.save(force_insert=True)
-                            new_updated_at = getattr(instance, "updated_at", None)
-                            from apps.sync_engine.models import record_sync_apply
-
-                            record_sync_apply(
-                                school_id,
-                                entity_type,
-                                instance.pk,
-                                new_updated_at,
-                                sync_origin,
-                            )
-                        success_count += 1
-                        results.append(
-                            {
-                                "index": idx,
-                                "status": 201,
-                                "data": {
-                                    "id": instance.pk,
-                                    "created": True,
-                                    "updated_at": (
-                                        new_updated_at.isoformat()
-                                        if new_updated_at
-                                        else None
-                                    ),
-                                },
-                            }
-                        )
-                        continue
-                    except (
-                        IntegrityError,
-                        DataError,
-                        ValidationError,
-                        ValueError,
-                        TypeError,
-                        FieldError,
-                    ) as exc:
-                        results.append(
-                            {
-                                "index": idx,
-                                "status": 422,
-                                "data": {
-                                    "error": "cloud_pull_insert_failed",
-                                    "detail": str(exc)[:200],
-                                },
-                            }
-                        )
-                        continue
-                results.append(
-                    {"index": idx, "status": 404, "data": {"error": "Not found"}}
+                # A PULLED row whose pk this box has never seen is a row CREATED ON THE
+                # CLOUD after the box was cloned. It carries no client_offline_id (that
+                # column marks box-created rows), so the insert path will never see it
+                # either - answering 404 here is what made every post-clone cloud record
+                # permanently invisible to the box, and what left children pointing at
+                # parents that could never arrive. Any OTHER caller keeps the 404: only a
+                # cloud-pull may create by pk (see _create_from_cloud_pull).
+                if sync_origin != "cloud-pull":
+                    _emit({"index": idx, "status": 404, "data": {"error": "Not found"}})
+                    continue
+                created_obj, create_err = _create_from_cloud_pull(
+                    school_id, user, entity_type, model, allowed, pk, changes,
+                    client_updated_at, fk_seen,
                 )
+                if create_err is not None:
+                    _emit({"index": idx, **create_err})
+                    continue
+                # The memo may hold a negative for this pk from a child processed
+                # earlier; it is a parent now.
+                fk_seen.pop((model._meta.label, created_obj.pk), None)
+                created_at_value = getattr(created_obj, "updated_at", None)
+                # Provenance, exactly as on the update path: without it the box would push
+                # the row it just received straight back up on the next cycle.
+                from apps.sync_engine.models import record_sync_apply
+
+                record_sync_apply(
+                    school_id, entity_type, created_obj.pk, created_at_value, sync_origin
+                )
+                success_count += 1
+                _emit({
+                    "index": idx,
+                    "status": 201,
+                    "data": {
+                        "id": created_obj.pk,
+                        "created": True,
+                        "updated_at": created_at_value.isoformat() if created_at_value else None,
+                    },
+                })
                 continue
 
             if not _user_can_edit_entity(user, entity_type, instance):
-                results.append(
+                _emit(
                     {"index": idx, "status": 403, "data": {"error": "Forbidden"}}
                 )
                 continue
@@ -863,7 +1360,7 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
                 if instance_school_id is None or str(instance_school_id) != str(
                     school_id
                 ):
-                    results.append(
+                    _emit(
                         {"index": idx, "status": 403, "data": {"error": "Forbidden"}}
                     )
                     continue
@@ -872,11 +1369,26 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
             if server_dt is not None and timezone.is_naive(server_dt):
                 server_dt = timezone.make_aware(server_dt, timezone.get_current_timezone())
 
-            decision = _conflict_decision(entity_type, sync_origin, client_updated_at, server_dt)
+            # A row this side last wrote through SYNC ITSELF is not a local edit, even
+            # though its updated_at is newer than the incoming one — the newer stamp came
+            # from the apply, not from a human. Grading it as a conflict is how a simple
+            # RETRY (a failed cycle, or the cursor overlap re-offering a row) manufactured
+            # SyncConflict rows out of the engine's own writes, then asked an operator to
+            # adjudicate between a value and itself.
+            _grade_against = server_dt
+            if (
+                sync_origin == "cloud-pull"
+                and _sync_applied.get((entity_type, str(pk)), _UNSET) == server_dt
+            ):
+                _grade_against = None
+
+            decision = _conflict_decision(
+                entity_type, sync_origin, client_updated_at, _grade_against
+            )
             if decision == "reject":
                 # Domain may only change through a live online transaction (policy
                 # ONLINE_REQUIRED); an offline/sync replay must never apply it.
-                results.append(
+                _emit(
                     {
                         "index": idx,
                         "status": 409,
@@ -924,7 +1436,7 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
                             IntegrityError, DataError, ValidationError,
                             ValueError, TypeError, FieldError,
                         ) as exc:
-                            results.append({
+                            _emit({
                                 "index": idx, "status": 422,
                                 "data": {"error": "conflict_persist_failed", "detail": str(exc)[:200]},
                             })
@@ -943,7 +1455,7 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
                         "conflict_id": conflict_id,
                     }
                 )
-                results.append(
+                _emit(
                     {
                         "index": idx,
                         "status": 409,
@@ -971,13 +1483,57 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
                 # The row carried nothing BUT down-only fields: refuse it outright rather than
                 # bumping updated_at for a write that changed nothing (which would also re-ship
                 # the row on the next delta).
-                results.append({
+                _emit({
                     "index": idx,
                     "status": 409,
                     "data": {
                         "error": "down_only_fields_rejected",
                         "fields": rejected_down_only,
                     },
+                })
+                continue
+
+            # Referential preflight. A pulled row can point at a parent this box has
+            # never been given; on PostgreSQL that failure CANNOT be caught after the write
+            # (Django's FKs are DEFERRABLE INITIALLY DEFERRED, so the violation is raised by
+            # the outermost COMMIT, outside every per-row savepoint below), so it has to be
+            # caught before it. Reported as a distinct 409 rather than an opaque constraint
+            # string, and self-healing: the parent now arrives on a pull too, so the row
+            # applies on a later cycle instead of poisoning every cycle forever.
+            missing_ref = _unresolvable_fk(model, allowed, updates, fk_seen)
+            if missing_ref is not None:
+                _emit({
+                    "index": idx,
+                    "status": 409,
+                    "data": {
+                        "error": "missing_reference",
+                        "field": missing_ref[0],
+                        "references": missing_ref[1],
+                        "referenced_id": missing_ref[2],
+                    },
+                })
+                continue
+
+            # Nothing to do: every incoming value already matches. Saving anyway would
+            # bump updated_at for a write that changed nothing, which re-enters this row
+            # into the next delta in the OTHER direction — churn manufactured by the
+            # engine, most visible now that the cursor overlap deliberately re-offers
+            # recent rows.
+            if all(
+                _same_value(getattr(instance, _k, None), _v) for _k, _v in updates.items()
+            ):
+                if sync_origin:
+                    from apps.sync_engine.models import record_sync_apply
+
+                    record_sync_apply(
+                        school_id, entity_type, instance.pk,
+                        getattr(instance, "updated_at", None), sync_origin,
+                    )
+                success_count += 1
+                _emit({
+                    "index": idx,
+                    "status": 200,
+                    "data": {"id": instance.pk, "unchanged": True},
                 })
                 continue
 
@@ -1012,8 +1568,12 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
             except (
                 IntegrityError, DataError, ValidationError,
                 ValueError, TypeError, FieldError,
+                # A column this deployment's schema does not have yet. Without these two
+                # the error escapes the savepoint and kills the WHOLE bundle; the run
+                # message names the pending migrations (see sync_engine.schema_guard).
+                OperationalError, ProgrammingError,
             ) as exc:
-                results.append({
+                _emit({
                     "index": idx, "status": 422,
                     "data": {"error": "apply_failed", "detail": str(exc)[:200]},
                 })
@@ -1023,52 +1583,21 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
                 "id": instance.pk,
                 "updated_at": new_updated_at.isoformat() if new_updated_at else None,
             }
-            if dropped_fks:
-                _data["dropped_fks"] = dropped_fks
             if rejected_down_only:
                 # Partial acceptance: the benign fields landed, the cloud-governed ones did
                 # not. Surfaced so the caller can reconcile rather than read a 200 as "all of
                 # my changes were taken".
                 _data["rejected_down_only_fields"] = rejected_down_only
-            results.append({"index": idx, "status": 200, "data": _data})
+            _emit({"index": idx, "status": 200, "data": _data})
 
+    # Caller's ORIGINAL order, whatever dependency order the rows were processed in.
+    results = [results_by_index[i] for i in sorted(results_by_index)]
+    conflicts.sort(key=lambda c: c["index"])
     return {
         "success_count": success_count,
         "results": results,
         "conflicts": conflicts,
     }
-
-
-def check_constraints_immediately() -> None:
-    """Make deferred FK checks fire at the offending statement, not at COMMIT.
-
-    Django creates EVERY foreign key on PostgreSQL as ``DEFERRABLE INITIALLY
-    DEFERRED`` (``connection.ops.deferrable_sql()``), so a dangling reference is
-    not raised when the row is written -- it is raised when the OUTERMOST
-    transaction commits.
-
-    That breaks the per-row ``transaction.atomic()`` savepoints in this module.
-    They exist to "roll back ONLY this row, never the whole bundle", but a
-    savepoint cannot catch a violation that has not fired yet: the error lands
-    after every row has been processed and takes the whole batch with it. A
-    pulled bundle containing ONE dangling FK therefore applied nothing at all,
-    the sync cursor never advanced, and the next cycle re-pulled the same doomed
-    bundle -- so a single bad row left the box permanently unsynced rather than
-    costing it that row. (Observed as: ``pull failed: insert or update on table
-    "academics_specialty" violates foreign key constraint ... Key
-    (department_id)=(2) is not present in table "academics_department"``.)
-
-    Switching the constraints to IMMEDIATE for the current transaction restores
-    the behaviour those savepoints already assume. SQLite -- which the test suite
-    runs on -- checks FKs eagerly regardless, which is precisely why this never
-    reproduced locally.
-    """
-    from django.db import connection
-
-    if connection.vendor != "postgresql":
-        return
-    with connection.cursor() as cursor:
-        cursor.execute("SET CONSTRAINTS ALL IMMEDIATE")
 
 
 def _insert_dependency_order(config) -> list:
@@ -1139,7 +1668,13 @@ def apply_edge_inserts(school_id, user, rows, *, sync_origin=None):
     Returns ``{"created", "updated", "results"}`` (results carry per-row index/status).
     """
     from django.core.exceptions import FieldError, ValidationError
-    from django.db import DataError, IntegrityError, transaction
+    from django.db import (
+        DataError,
+        IntegrityError,
+        OperationalError,
+        ProgrammingError,
+        transaction,
+    )
 
     from apps.api.entity_api import _is_admin_like
     from apps.schools.models import School
@@ -1177,8 +1712,25 @@ def apply_edge_inserts(school_id, user, rows, *, sync_origin=None):
     # (entity_type, box-local pk) -> assigned operator pk, filled as referents are created
     # so a later dependent row can substitute the real pk for the box's local one.
     remap: dict[tuple, object] = {}
+    # Parents already proved present/absent, shared across rows (see _unresolvable_fk).
+    fk_seen: dict = {}
     order = _insert_dependency_order(config)
     fk_targets = _insert_fk_targets(config)  # {entity_type: {fk_attname: target_entity_type}}
+
+    # Anchors this side has buried. An offline-created row is matched by
+    # (school, client_offline_id), never by pk, so the pk-keyed index cannot answer for
+    # it - and without this guard a box would re-create, on EVERY cycle, the very row the
+    # cloud had just deleted: the upsert finds nothing, inserts afresh, the cloud deletes
+    # it again, forever.
+    from apps.sync_engine.tombstones import (
+        clear_tombstone as _clear_tombstone,
+        tombstone_index_by_client_offline_id,
+    )
+
+    buried_anchors = tombstone_index_by_client_offline_id(
+        school_id,
+        anchors={(r.get("client_offline_id") or "").strip() for r in rows},
+    )
 
     def _rank(item):
         et = (item.get("entity_type") or "").strip().lower()
@@ -1198,6 +1750,25 @@ def apply_edge_inserts(school_id, user, rows, *, sync_origin=None):
             results_by_index[idx] = {"index": idx, "status": 400, "data": {"error": "entity_type_and_client_offline_id_required"}}
             continue
         model, allowed = config[entity_type]
+
+        # Delete dominance for anchored rows, same timestamp rule as the update path.
+        _incoming_at = _parse_client_updated_at(item.get("updated_at"))
+        _anchor_buried_at = buried_anchors.get((entity_type, coid))
+        if _anchor_buried_at is not None:
+            if _incoming_at is None or _incoming_at <= _anchor_buried_at:
+                results_by_index[idx] = {
+                    "index": idx,
+                    "status": 409,
+                    "data": {
+                        "error": "deleted_upstream",
+                        "entity_type": entity_type,
+                        "deleted_at": _anchor_buried_at.isoformat(),
+                    },
+                }
+                continue
+            buried_anchors.pop((entity_type, coid), None)
+            _clear_tombstone(school_id, entity_type, coid)
+
         if not any(getattr(f, "name", "") == "client_offline_id" for f in model._meta.get_fields()):
             results_by_index[idx] = {"index": idx, "status": 422, "data": {"error": "entity_not_insertable"}}
             continue
@@ -1264,24 +1835,24 @@ def apply_edge_inserts(school_id, user, rows, *, sync_origin=None):
                         continue
             updates[key] = value
 
-        missing_required = [
-            f"{ent_targets.get(k, 'unknown')}:{changes.get(k)}"
-            for k in dropped_fks
-            if _fk_attname_is_required(model, k)
-        ]
-        if missing_required:
+        # Referential preflight for the FKs the remap loop above does NOT cover: it only
+        # knows FKs pointing at another REGISTERED entity (its job is remapping
+        # new-references-new pks), and a derived field set can carry a FK to a tenant model
+        # that is not itself on the rail. Reported as a precise 409 rather than an opaque
+        # constraint string. (Unlike _apply_changes_inner this function runs in autocommit -
+        # one real transaction per row - so its savepoint genuinely does see a deferred FK
+        # error at its own COMMIT. A caller that ever wraps this loop in an OUTER atomic
+        # must call _force_immediate_constraints() first, or that stops being true.)
+        missing_ref = _unresolvable_fk(model, allowed, updates, fk_seen)
+        if missing_ref is not None:
             results_by_index[idx] = {
                 "index": idx,
-                "status": 422,
+                "status": 409,
                 "data": {
-                    "error": "missing_referent",
-                    "detail": (
-                        "Required parent row(s) not on this box yet: "
-                        + ", ".join(missing_required)
-                        + ". Queue a full resync on the cloud or import the "
-                        "sovereign bundle so pk-aligned parents land first."
-                    ),
-                    "missing": missing_required,
+                    "error": "missing_reference",
+                    "field": missing_ref[0],
+                    "references": missing_ref[1],
+                    "referenced_id": missing_ref[2],
                 },
             }
             continue
@@ -1301,7 +1872,10 @@ def apply_edge_inserts(school_id, user, rows, *, sync_origin=None):
                         # invisible to the incremental delta (filter(updated_at__gt=since)).
                         update_fields.append("updated_at")
                     obj.save(update_fields=update_fields)
-        except (IntegrityError, DataError, ValidationError, ValueError, TypeError, FieldError) as exc:
+        except (
+            IntegrityError, DataError, ValidationError, ValueError, TypeError, FieldError,
+            OperationalError, ProgrammingError,  # a column this schema does not have yet
+        ) as exc:
             # DataError (value too long / out of range on Postgres) is a DatabaseError
             # sibling of IntegrityError; catching it keeps the per-row savepoint from
             # escaping and rolling back the whole batch (SQLite doesn't enforce
@@ -1309,6 +1883,7 @@ def apply_edge_inserts(school_id, user, rows, *, sync_origin=None):
             results_by_index[idx] = {"index": idx, "status": 422, "data": {"error": "insert_failed", "detail": str(exc)[:200]}}
             continue
 
+        fk_seen.pop((model._meta.label, obj.pk), None)  # it is a valid parent now
         # Record the operator pk so later dependent rows can remap their FK onto it.
         if local_pk is not None:
             remap[(entity_type, local_pk)] = obj.pk
