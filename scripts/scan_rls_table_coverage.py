@@ -61,6 +61,23 @@ APPS_ROOT = REPO_ROOT / "apps"
 BASELINE_PATH = REPO_ROOT / "var" / "security-audit-baseline-rls-table-coverage.json"
 
 _DYNAMIC_MARKERS = ("get_models", "_meta.db_table", "introspection", "pg_class")
+_TABLE_ASSIGN_NAMES = frozenset({"TABLE", "TABLES", "_TABLES", "_TABLE"})
+
+
+def _string_literals(node: ast.AST) -> set[str]:
+    """Every string constant under ``node``, including nested list/tuple cells.
+
+    Covers ``TABLES = ["a", "b"]``, ``TABLE = "a"``, and
+    ``_TABLES = (("schools_immunizationrecord", "suffix"), ...)``.
+    """
+    found: set[str] = set()
+    if isinstance(node, ast.Constant) and isinstance(node.value, str):
+        found.add(node.value)
+        return found
+    if isinstance(node, (ast.List, ast.Tuple, ast.Set)):
+        for el in node.elts:
+            found.update(_string_literals(el))
+    return found
 
 
 def _enumerated_tables() -> set[str]:
@@ -80,12 +97,18 @@ def _enumerated_tables() -> set[str]:
         except (SyntaxError, ValueError):
             continue
         for node in ast.walk(tree):
-            if isinstance(node, ast.Assign) and isinstance(
-                node.value, (ast.List, ast.Tuple, ast.Set)
-            ):
-                for el in node.value.elts:
-                    if isinstance(el, ast.Constant) and isinstance(el.value, str):
-                        found.add(el.value)
+            if isinstance(node, ast.Assign):
+                names = {t.id for t in node.targets if isinstance(t, ast.Name)}
+                if names & _TABLE_ASSIGN_NAMES:
+                    found.update(
+                        s
+                        for s in _string_literals(node.value)
+                        if "_" in s and s.islower() and " " not in s
+                    )
+                elif isinstance(node.value, (ast.List, ast.Tuple, ast.Set)):
+                    for el in node.value.elts:
+                        if isinstance(el, ast.Constant) and isinstance(el.value, str):
+                            found.add(el.value)
             # Tables enabled by a bare literal in a cursor.execute(...) string.
             if isinstance(node, ast.Constant) and isinstance(node.value, str):
                 s = node.value

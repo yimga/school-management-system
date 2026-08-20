@@ -156,6 +156,20 @@ def _connector_reverse(request: HttpRequest, name: str, **kwargs) -> str:
         return reverse(f"migration_cloud_connector:{name}", kwargs=kwargs)
 
 
+def _resolve_connector_inbox_url(request: HttpRequest) -> str:
+    """Host-aware target for the "See all imports" CTA, or "" if not mounted.
+
+    Same cross-host hazard as :func:`_resolve_connector_upload_url`: the connector
+    home renders on the tenant host and both operator mounts, so the inbox link is
+    resolved against the request's active urlconf rather than hardcoded. Returning
+    "" simply hides the button instead of 500-ing a mount that lacks the route.
+    """
+    try:
+        return _connector_reverse(request, "migration-inbox")
+    except NoReverseMatch:
+        return ""
+
+
 def _connection_for_request(request: HttpRequest, connection_id: UUID) -> MigrationSourceConnection:
     school = _request_school(request)
     if school is None:
@@ -213,6 +227,7 @@ class MigrationCloudConnectorHomeView(_ConnectorTenantAdminRequiredMixin, Templa
                 "profiles": profiles,
                 "school": school,
                 "upload_url": _resolve_connector_upload_url(self.request),
+                "inbox_url": _resolve_connector_inbox_url(self.request),
                 "connector_ns": _connector_namespace(self.request),
             }
         )

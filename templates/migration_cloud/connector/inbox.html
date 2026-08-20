@@ -1,0 +1,88 @@
+{% extends "migration_cloud/connector/_wizard_base.html" %}
+{% load i18n %}
+{% comment %}
+Migration inbox (views_tenant_upload.TenantMigrationInboxView).
+
+One tray for every import this school has started. Each row is composed from the
+same helpers the review page uses, so the badge here and the badge there cannot
+disagree. Rows needing a human sort to the top and are counted in the header —
+the tray answers "is anything wrong?" without opening a single bundle.
+
+All hrefs are pre-resolved context vars (review_url / upload_url) — no cross-host
+{% templatetag openblock %} url {% templatetag closeblock %} reverse, matching the
+other tenant-shelled Migration Cloud surfaces.
+{% endcomment %}
+{% block connector_body %}
+<div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
+
+<div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+  <p class="text-muted mb-0">
+    {% blocktrans %}Every import you've started, with its live status. Anything that needs you is listed first.{% endblocktrans %}
+  </p>
+  {% if upload_url %}<a class="btn btn-primary" href="{{ upload_url }}">{% trans "Start a new import" %}</a>{% endif %}
+</div>
+
+{% if attention_count %}
+<div class="rmc-card rmc-card--danger mb-4" role="alert">
+  <h2 class="h6 mb-1">
+    {% blocktrans count counter=attention_count %}1 import needs your attention{% plural %}{{ counter }} imports need your attention{% endblocktrans %}
+  </h2>
+  <p class="text-muted small mb-0">{% trans "An import that stopped responding was interrupted, not rejected — Repair resumes it safely. Records that already imported are updated in place, never duplicated." %}</p>
+</div>
+{% endif %}
+
+<section class="rmc-card mb-4" aria-labelledby="mc-inbox-active-heading">
+  <h2 id="mc-inbox-active-heading" class="h5">{% trans "In progress and recent" %}</h2>
+  {% if active_rows %}
+  <ul class="list-group list-group-flush" data-mc-inbox-active>
+    {% for row in active_rows %}
+    <li class="list-group-item{% if row.needs_attention %} rmc-list-item--danger{% endif %}" data-mc-inbox-row="{{ row.bundle.pk }}">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <span>
+          <strong>{% blocktrans with id=row.bundle.pk %}Import #{{ id }}{% endblocktrans %}</strong>
+          <span class="text-muted small">{{ row.bundle.created_at|date:"j M Y, H:i" }}</span>
+        </span>
+        <span class="d-flex align-items-center gap-2 flex-wrap">
+          <span class="rmc-badge{% if row.needs_attention %} rmc-badge--danger{% endif %}">{{ row.live.workflow_state }}</span>
+          <a class="btn btn-sm btn-outline-secondary" href="{{ row.review_url }}">
+            {% if row.needs_attention %}{% trans "Review and repair" %}{% else %}{% trans "Open" %}{% endif %}
+          </a>
+        </span>
+      </div>
+      <div class="rmc-wfp-progress mt-2" aria-hidden="true"><span style="width: {{ row.live.percent }}%"></span></div>
+      <p class="text-muted small mb-0 mt-1">
+        {% blocktrans with created=row.live.created updated=row.live.updated %}{{ created }} added · {{ updated }} updated{% endblocktrans %}
+        {% if row.live.held %} · <span class="text-danger">{% blocktrans count counter=row.live.held %}{{ counter }} held for review{% plural %}{{ counter }} held for review{% endblocktrans %}</span>{% endif %}
+      </p>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="text-muted mb-0">{% trans "No imports in progress. Start one whenever you're ready — you can upload an export file with no connection needed." %}</p>
+  {% endif %}
+</section>
+
+{% if settled_rows %}
+<section class="rmc-card" aria-labelledby="mc-inbox-settled-heading">
+  <h2 id="mc-inbox-settled-heading" class="h6 text-muted">{% trans "Closed" %}</h2>
+  <ul class="list-group list-group-flush" data-mc-inbox-settled>
+    {% for row in settled_rows %}
+    <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <span class="small">
+        {% blocktrans with id=row.bundle.pk %}Import #{{ id }}{% endblocktrans %}
+        <span class="text-muted">{{ row.bundle.created_at|date:"j M Y" }}</span>
+      </span>
+      <span class="d-flex align-items-center gap-2">
+        <span class="rmc-badge">{{ row.live.workflow_state }}</span>
+        <a class="small" href="{{ row.review_url }}">{% trans "Open" %}</a>
+      </span>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+{% if truncated %}
+<p class="text-muted small mt-3 mb-0">{% trans "Showing your most recent imports only." %}</p>
+{% endif %}
+{% endblock %}

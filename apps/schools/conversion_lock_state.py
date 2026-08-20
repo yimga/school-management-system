@@ -35,6 +35,19 @@ RMC_CONVERSION = "rmc_conversion"
 CONVERSION_LOCK_EXEMPT_ROLES: frozenset[str] = frozenset({"STUDENT"})
 
 
+def deployment_is_edge_replica() -> bool:
+    """True on a sovereign box — conversion is a cloud SaaS funnel, not an ops gate.
+
+    An edge replica already exists as a live school in the cloud. Walling every
+    tenant page behind Activation First Action (including Sync Center) prevents
+    the box from converging even when the WAN is up. Cloud SaaS keeps the lock.
+    """
+    if bool(getattr(settings, "RMC_EDGE_SYNC_ENABLED", False)):
+        return True
+    profile = str(getattr(settings, "RMC_DEPLOYMENT_PROFILE", "") or "").strip().lower()
+    return profile in {"edge", "offline"}
+
+
 def user_is_conversion_lock_exempt(user) -> bool:
     """Is ``user`` in a role the lock cannot meaningfully apply to?
 
@@ -80,6 +93,8 @@ def school_conversion_is_locked(school, *, user) -> bool:
     if user_is_conversion_lock_exempt(user):
         return False
     if school_first_action_completed(school):
+        return False
+    if deployment_is_edge_replica():
         return False
     if getattr(settings, "CONVERSION_LOCK_ALL_SCHOOLS", False):
         return True

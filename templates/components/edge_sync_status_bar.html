@@ -1,0 +1,42 @@
+{% load i18n %}
+{% comment %}
+Platform-wide edge ↔ cloud sync progress (box deployments only).
+Polls sync_center_status via rmc-edge-sync-chrome.js; server seeds initial percent.
+{% endcomment %}
+{% if edge_sync_chrome.enabled and edge_sync_chrome.status_url and request.user.is_authenticated %}
+{% with phase=edge_sync_chrome.phase|default:"idle" pct=edge_sync_chrome.percent_complete|default:"0.00" headline=edge_sync_chrome.headline %}
+<div id="rmc-edge-sync-bar"
+     class="rmc-edge-sync-bar alert border-0 py-2 px-3 mb-3 shadow-sm sticky-top{% if phase == 'idle' %} d-none{% elif phase == 'ok' %} d-none{% endif %}"
+     style="z-index: 1019;"
+     role="status"
+     aria-live="polite"
+     data-rmc-edge-sync-bar="1"
+     data-status-url="{{ edge_sync_chrome.status_url|escape }}"
+     data-sync-now-url="{{ edge_sync_chrome.sync_now_url|default:''|escape }}"
+     data-poll-ms="3000"
+     data-phase="{{ phase }}"
+     data-percent="{{ pct }}">
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+    <div class="small flex-grow-1" style="min-width: 14rem;">
+      <strong class="text-uppercase me-2">{% trans "Cloud sync" %}</strong>
+      <span data-rmc-edge-sync-headline>{% if headline %}{{ headline }}{% elif phase == 'running' %}{% trans "Sync in progress…" %}{% elif phase == 'queued' %}{% trans "Sync queued — waiting to connect." %}{% elif phase == 'failed' %}{% trans "Last sync failed." %}{% else %}{% trans "Checking sync status…" %}{% endif %}</span>
+    </div>
+    <div class="d-flex flex-wrap gap-2 align-items-center" style="min-width: 10rem;">
+      <div class="progress flex-grow-1 rmc-edge-sync-bar__track" aria-hidden="true">
+        <div class="progress-bar progress-bar-striped{% if phase == 'running' %} progress-bar-animated{% endif %}"
+             role="progressbar"
+             data-rmc-edge-sync-fill
+             style="width: {{ pct }}%;"
+             aria-valuenow="{{ pct }}"
+             aria-valuemin="0"
+             aria-valuemax="100"></div>
+      </div>
+      <span class="badge rounded-pill bg-dark text-white tabular-nums" data-rmc-edge-sync-pct>{{ pct }}%</span>
+      {% if edge_sync_chrome.sync_now_url %}
+      <a href="{{ edge_sync_chrome.sync_now_url }}" class="btn btn-sm btn-outline-primary d-none" data-rmc-edge-sync-link>{% trans "Sync center" %}</a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endwith %}
+{% endif %}

@@ -78,6 +78,7 @@ SCANNER_BASELINE_MAP: dict[str, str | None] = {
     "scan_locale_coverage.py": None,
     "verify_service_worker_version.py": None,
     "verify_slo_registry.py": None,
+    "verify_report_entity_coverage.py": None,
     "verify_sentry_alert_rule_drift.py": None,
     "verify_dr_drill_schedule.py": None,
 }

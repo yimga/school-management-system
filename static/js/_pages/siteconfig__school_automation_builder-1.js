@@ -250,7 +250,8 @@
       (data.logs || []).forEach(function(lg) {
         const opt = document.createElement('option');
         opt.value = lg.id;
-        opt.textContent = '#' + lg.id + ' ' + lg.run_status + (lg.has_action_errors ? ' ERR' : '');
+        var tag = lg.needs_attention ? ' OPEN' : (lg.run_status === 'failed' ? ' archived' : '');
+        opt.textContent = '#' + lg.id + ' ' + lg.run_status + tag + (lg.has_action_errors ? ' ERR' : '');
         sel.appendChild(opt);
       });
       document.getElementById('wf-output').textContent = JSON.stringify(data, null, 2);

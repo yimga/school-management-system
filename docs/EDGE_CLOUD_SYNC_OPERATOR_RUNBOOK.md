@@ -3,8 +3,13 @@
 How to load a school's real data (student records, specialties/trades, staff, finance)
 and keep a self-hosted **edge box** and the **cloud** converged — in the correct order.
 
-Companion docs: `EDGE_LAN_HOSTNAME_DNS.md` (reaching the box) and the ordered onboarding
-engine in `apps/lifecycle/edge_onboarding.py`.
+Companion docs: `EDGE_LAN_HOSTNAME_DNS.md` (reaching the box).
+
+**Single source of truth for the ordered steps, `runs_on`, copy-paste commands, and
+validators:** `apps/lifecycle/edge_onboarding.py` (`EDGE_ONBOARDING_STEPS`).
+The operator console is `/super/edge-onboarding/` (`super:edge_onboarding_runbook`).
+Box verify command: `python manage.py edge_onboarding_verify --slug <slug> [--include-gate]`.
+This markdown is the narrative SOP; if it disagrees with the engine, the engine wins.
 
 ---
 
@@ -93,15 +98,15 @@ up on both sides and later delta sync converges cleanly.
 On the **cloud**, export the tenant bundle:
 
 ```bash
-python manage.py export_tenant_bundle --slug gilead-tech --output /path/gilead-bundle.zip
+python manage.py export_tenant_bundle --slug gilead-tech --out /srv/rmc/gilead-tech.rmcbundle
 ```
 
 Move the bundle to the box, then on the **box** import it (data-carrying, i.e. **without**
 `--fresh`):
 
 ```bash
-python manage.py import_sovereign_tenant --slug gilead-tech --bundle /path/gilead-bundle.zip
-# (import_tenant_bundle is the lower-level equivalent if you are not re-pinning identity)
+python manage.py import_tenant_bundle --in /srv/rmc/gilead-tech.rmcbundle --expect-school-id <school-uuid>
+# equivalent: import_sovereign_tenant WITHOUT --fresh after the shell exists
 ```
 
 > Confirm the exact flags with `--help` on the box's deployed build. `--fresh` is the

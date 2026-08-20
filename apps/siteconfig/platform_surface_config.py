@@ -287,6 +287,10 @@ def resolve_sms_offline_config(
     def _yn(key: str, default: bool = True) -> bool:
         return bool(_flag(flags, key, default))
 
+    queue_encryption_enabled = bool(offline_enabled_for_school) and _yn(
+        "enable_offline_queue_encryption", True
+    )
+
     delta_url = offline_urls.get("delta") or api_urls.get("offline_delta") or ""
 
     return {
@@ -351,11 +355,19 @@ def resolve_sms_offline_config(
         # the whole WAL rail is dead-on-arrival. The client cannot compute it from
         # the opaque rmc_rls_jwt cookie, so it reads this server-provided value.
         "tenantHash": wal_tenant_hash_for_request(request),
-        "encryptOutbox": _yn("enable_offline_queue_encryption", True),
-        "enableQueueEncryption": _yn("enable_offline_queue_encryption", True),
-        "encryptionKeyUrl": offline_urls.get("encryption_key")
-        or api_urls.get("offline_encryption_key")
-        or "",
+        # Do not ask for a session encryption key when the effective runtime
+        # has disabled offline mode.  The API enforces the same condition;
+        # emitting an unconditional URL made every authenticated shell issue a
+        # predictable 403 and report a broken resource.
+        "encryptOutbox": queue_encryption_enabled,
+        "enableQueueEncryption": queue_encryption_enabled,
+        "encryptionKeyUrl": (
+            offline_urls.get("encryption_key")
+            or api_urls.get("offline_encryption_key")
+            or ""
+        )
+        if queue_encryption_enabled
+        else "",
         "walStreamEnabled": _wal_stream_client_enabled(),
         "sseStreamsEnabled": _sse_streams_client_enabled(),
         "webServerMode": resolve_web_server_mode(),

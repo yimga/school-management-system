@@ -569,41 +569,6 @@ def _apply_auto_fix_kind_impl(*, run: Any, kind: str) -> dict[str, Any]:
             "capability": capability,
         }
 
-    if kind == "resume_from_checkpoint":
-        if workflow_key == "tenant_school_provision":
-            return _chain_to_kind(run, "requeue_provision", kind)
-        route_kind = str(
-            _payload_first(
-                payload,
-                "resume_auto_fix_kind",
-                "checkpoint_auto_fix_kind",
-                "recovery_auto_fix_kind",
-            )
-            or ""
-        ).strip()
-        return _chain_to_kind(run, route_kind, kind)
-
-    if kind == "retry_failed_step":
-        if workflow_key == "tenant_school_provision":
-            return _chain_to_kind(run, "requeue_provision", kind)
-        route_kind = str(
-            _payload_first(
-                payload,
-                "retry_step_auto_fix_kind",
-                "failed_step_auto_fix_kind",
-                "recovery_auto_fix_kind",
-            )
-            or ""
-        ).strip()
-        if route_kind:
-            return _chain_to_kind(run, route_kind, kind)
-        return _retry_failed_step_by_workflow(
-            run=run,
-            workflow_key=workflow_key,
-            payload=payload,
-            source_kind=kind,
-        )
-
     if kind == "replay_webhook":
         platform_event_id = _as_int(_payload_first(payload, "platform_event_id", "event_id"))
         if platform_event_id:
@@ -925,6 +890,16 @@ def _apply_auto_fix_kind_impl(*, run: Any, kind: str) -> dict[str, Any]:
         return result
 
     if kind == "resume_from_checkpoint":
+        from apps.platform_runtime.workflow_attention_gateway import (
+            SIMULATION_WORKFLOW_KEY,
+        )
+
+        if workflow_key == SIMULATION_WORKFLOW_KEY:
+            from apps.platform_runtime.workflow_simulation import (
+                resume_simulation_from_failure,
+            )
+
+            return resume_simulation_from_failure(run, delay_seconds=0.0)
         if workflow_key == "tenant_school_provision":
             return _chain_to_kind(
                 run=run,

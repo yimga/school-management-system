@@ -1,0 +1,726 @@
+"""Shared, local-first form intelligence for both RunMyCampus admin sites.
+
+The module deliberately keeps presentation, prediction, persistence and mutation
+protection separate:
+
+* :class:`AdminFormAutomationMixin` is inherited by every tenant and operator
+  ``ModelAdmin`` registration.
+* :class:`AdminFieldVisibilityService` stores optional-field choices in the
+  existing local ``DashboardUserPreference`` row.  The edge database is the
+  source of truth; the browser script only keeps a retry envelope while offline.
+* suggested business values are initial values only and therefore remain editable;
+* tenant ownership and lifecycle evidence are system-owned and read-only;
+* hidden optional values remain in the bound form for normal validation, while a
+  crafted POST is prevented from changing them.
+
+No model-specific visual classes or layout rules live here.  The approved admin
+canvas remains the sole layout owner.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+import json
+import logging
+from typing import Any, Iterable
+
+from django.core.exceptions import FieldDoesNotExist, RequestDataTooBig, ValidationError
+from django.db import DatabaseError, transaction
+from django.http import HttpRequest, JsonResponse
+from django.urls import NoReverseMatch, reverse
+from django.utils import timezone
+from django.utils.translation import gettext
+from django.views.decorators.http import require_http_methods
+
+
+logger = logging.getLogger(__name__)
+
+PREFERENCE_NAMESPACE = "_rmc_admin_field_visibility_v1"
+MAX_SURFACES_PER_USER = 600
+MAX_HIDDEN_FIELDS = 512
+MAX_PREFERENCE_PAYLOAD_BYTES = 64 * 1024
+
+# These values are evidence emitted by governed transitions, not business inputs.
+# The list is intentionally explicit: a blanket ``*_by``/``*_at`` rule would make
+# legitimate assignment and scheduling fields read-only.
+SYSTEM_EVIDENCE_FIELDS = frozenset(
+    {
+        "created_at",
+        "created_by",
+        "updated_at",
+        "updated_by",
+        "modified_at",
+        "modified_by",
+        "deleted_at",
+        "deleted_by",
+        "locked_at",
+        "locked_by",
+        "unlocked_at",
+        "unlocked_by",
+        "soft_closed_at",
+        "soft_closed_by",
+        "soft_reopened_at",
+        "soft_reopened_by",
+        "activated_at",
+        "activated_by",
+        "deactivated_at",
+        "deactivated_by",
+        "archived_at",
+        "archived_by",
+        "published_at",
+        "published_by",
+        "approved_at",
+        "approved_by",
+        "rejected_at",
+        "rejected_by",
+        "revoked_at",
+        "revoked_by",
+        "last_synced_at",
+        "client_offline_id",
+        "idempotency_key",
+        "access_token_hash",
+        "refresh_token_hash",
+        "client_secret_hash",
+        "code_hash",
+        "document_hash",
+        "file_hash",
+        "secret_hash",
+        "secret_key_hash",
+        "signature_hash",
+        "staff_id_hash",
+        "substitute_id_hash",
+        "teacher_id_hash",
+        "tenant_hash",
+        "tenant_id_hash",
+        "text_hash",
+        "training_dataset_hash",
+        "legacy_password_hash",
+        "payload_checksum",
+        "payload_key_checksums",
+        "device_fingerprint",
+        "draft_fingerprint",
+        "email_verify_token",
+        "rollback_token",
+        "signature_data",
+        "signature_ip",
+        "signature_user_agent",
+        "sync_hash",
+        "content_hash",
+        "checksum",
+    }
+)
+
+RANGE_FIELD_PAIRS = (
+    ("start_date", "end_date"),
+    ("starts_on", "ends_on"),
+    ("start_at", "end_at"),
+    ("starts_at", "ends_at"),
+    ("valid_from", "valid_to"),
+    ("effective_from", "effective_to"),
+    ("active_from", "active_until"),
+    ("available_from", "available_until"),
+    ("published_at", "expires_at"),
+)
+
+
+def _safe_host(request: HttpRequest) -> str:
+    try:
+        host = request.get_host()
+    except Exception:  # malformed/untrusted host: keep preferences isolated
+        host = "invalid-host"
+    return host.strip().lower()[:255] or "unknown-host"
+
+
+def _mode(*, obj: Any = None, raw: str | None = None) -> str:
+    if raw in {"add", "change"}:
+        return str(raw)
+    return "change" if obj is not None else "add"
+
+
+def _surface_key(
+    *, host: str, admin_site_name: str, model_label: str, mode: str
+) -> str:
+    return "|".join(
+        (
+            host.strip().lower()[:255],
+            admin_site_name.strip().lower()[:64],
+            model_label.strip().lower()[:160],
+            _mode(raw=mode),
+        )
+    )
+
+
+def _field_exists(model, name: str) -> bool:
+    try:
+        model._meta.get_field(name)
+    except FieldDoesNotExist:
+        return False
+    return True
+
+
+def _preference_endpoint(admin_site, request: HttpRequest | None = None) -> str:
+    try:
+        return reverse(
+            f"{admin_site.name}:field_preferences",
+            urlconf=getattr(request, "urlconf", None),
+        )
+    except NoReverseMatch:
+        return ""
+
+
+def _ordered_unique(values: Iterable[str]) -> list[str]:
+    return list(dict.fromkeys(str(value) for value in values if value))
+
+
+@dataclass(frozen=True)
+class AdminFieldContract:
+    model_label: str
+    mode: str
+    host: str
+    admin_site: str
+    endpoint: str
+    required_fields: tuple[str, ...]
+    optional_fields: tuple[dict[str, Any], ...]
+    recommended_fields: tuple[str, ...]
+    hidden_fields: tuple[str, ...]
+    system_hidden_fields: tuple[str, ...]
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "model": self.model_label,
+            "mode": self.mode,
+            "host": self.host,
+            "adminSite": self.admin_site,
+            "endpoint": self.endpoint,
+            "required": list(self.required_fields),
+            "optional": list(self.optional_fields),
+            "recommended": list(self.recommended_fields),
+            "recommendedLabel": gettext("Recommended"),
+            "hidden": list(self.hidden_fields),
+            "systemHidden": list(self.system_hidden_fields),
+        }
+
+
+class AdminFieldVisibilityService:
+    """Persist validated visibility choices in the local application database."""
+
+    @staticmethod
+    def _preference_model():
+        from apps.siteconfig.models_dashboard import DashboardUserPreference
+
+        return DashboardUserPreference
+
+    @classmethod
+    def read(cls, *, user, surface_key: str) -> dict[str, Any]:
+        if not getattr(user, "is_authenticated", False):
+            return {}
+        try:
+            preference = cls._preference_model().objects.filter(user=user).only(
+                "dashboard_layout"
+            ).first()
+        except DatabaseError:
+            logger.warning("admin field preferences unavailable", exc_info=True)
+            return {}
+        layout = preference.dashboard_layout if preference else {}
+        if not isinstance(layout, dict):
+            return {}
+        namespace = layout.get(PREFERENCE_NAMESPACE, {})
+        if not isinstance(namespace, dict):
+            return {}
+        value = namespace.get(surface_key, {})
+        return value if isinstance(value, dict) else {}
+
+    @classmethod
+    def write(
+        cls,
+        *,
+        user,
+        surface_key: str,
+        hidden_fields: Iterable[str],
+        allowed_optional_fields: Iterable[str],
+        reset: bool = False,
+    ) -> dict[str, Any]:
+        if not getattr(user, "is_authenticated", False):
+            raise ValidationError("Authentication is required.")
+        allowed = set(_ordered_unique(allowed_optional_fields))
+        hidden = _ordered_unique(hidden_fields)
+        if len(hidden) > MAX_HIDDEN_FIELDS:
+            logger.warning(
+                "admin_field_visibility_rejected user=%s surface=%s reason=too_many_fields count=%s",
+                getattr(user, "pk", None),
+                surface_key,
+                len(hidden),
+            )
+            raise ValidationError(
+                {
+                    "hidden": (
+                        f"At most {MAX_HIDDEN_FIELDS} optional fields can be hidden "
+                        "in one admin surface."
+                    )
+                }
+            )
+        invalid = [name for name in hidden if name not in allowed]
+        if invalid:
+            logger.warning(
+                "admin_field_visibility_rejected user=%s surface=%s reason=unknown_or_mandatory count=%s",
+                getattr(user, "pk", None),
+                surface_key,
+                len(invalid),
+            )
+            raise ValidationError(
+                {"hidden": f"Unknown or mandatory fields cannot be hidden: {', '.join(invalid[:10])}"}
+            )
+        Preference = cls._preference_model()
+        with transaction.atomic():
+            preference, _ = Preference.objects.select_for_update().get_or_create(user=user)
+            layout = dict(preference.dashboard_layout or {})
+            namespace = dict(layout.get(PREFERENCE_NAMESPACE) or {})
+            if reset:
+                namespace.pop(surface_key, None)
+                result: dict[str, Any] = {}
+            else:
+                result = {
+                    "hidden": hidden,
+                    "updated_at": timezone.now().isoformat(),
+                }
+                namespace[surface_key] = result
+            if len(namespace) > MAX_SURFACES_PER_USER:
+                ordered = sorted(
+                    namespace.items(),
+                    key=lambda item: str((item[1] or {}).get("updated_at", "")),
+                    reverse=True,
+                )[:MAX_SURFACES_PER_USER]
+                namespace = dict(ordered)
+            layout[PREFERENCE_NAMESPACE] = namespace
+            preference.dashboard_layout = layout
+            preference.save(update_fields=["dashboard_layout", "updated_at"])
+        logger.info(
+            "admin_field_visibility_saved user=%s surface=%s hidden=%s reset=%s",
+            getattr(user, "pk", None),
+            surface_key,
+            len(hidden),
+            reset,
+        )
+        return result
+
+
+def _system_hidden_fields(model_admin) -> list[str]:
+    hidden: list[str] = []
+    model = model_admin.model
+    if not model_admin.admin_site.is_platform_site() and _field_exists(model, "school"):
+        hidden.append("school")
+    configured = getattr(model_admin, "rmc_system_hidden_fields", ())
+    hidden.extend(name for name in configured if _field_exists(model, name))
+    return _ordered_unique(hidden)
+
+
+def _contract_for_form(
+    *,
+    model_admin,
+    request: HttpRequest,
+    form,
+    obj=None,
+    endpoint: str = "",
+    mode_override: str | None = None,
+) -> AdminFieldContract:
+    mode = _mode(raw=mode_override) if mode_override else _mode(obj=obj)
+    model_label = model_admin.model._meta.label_lower
+    host = _safe_host(request)
+    site_name = model_admin.admin_site.name
+    surface_key = _surface_key(
+        host=host, admin_site_name=site_name, model_label=model_label, mode=mode
+    )
+    conditional = set((getattr(model_admin, "conditional_fields", {}) or {}).keys())
+    required: list[str] = []
+    optional: list[dict[str, Any]] = []
+    system_hidden = set(_system_hidden_fields(model_admin))
+    readonly = set(model_admin.get_readonly_fields(request, obj))
+    recommended = set(getattr(model_admin, "rmc_recommended_fields", ()) or ())
+
+    fields = getattr(form, "fields", None) or getattr(form, "base_fields", {})
+    for name, field in fields.items():
+        if name in system_hidden or name in readonly:
+            continue
+        # Conditional fields remain visible to Alpine's dependency engine.  A
+        # field which can become required must never be hidden by a preference.
+        if bool(getattr(field, "required", False)) or name in conditional:
+            required.append(name)
+            continue
+        model_field = None
+        try:
+            model_field = model_admin.model._meta.get_field(name)
+        except FieldDoesNotExist:
+            pass
+        has_default = bool(model_field is not None and model_field.has_default())
+        if has_default or getattr(field, "initial", None) not in (None, ""):
+            recommended.add(name)
+        optional.append(
+            {
+                "name": name,
+                "label": str(getattr(field, "label", None) or name.replace("_", " ").title()),
+                "recommended": name in recommended,
+            }
+        )
+
+    optional_names = {item["name"] for item in optional}
+    stored = AdminFieldVisibilityService.read(user=request.user, surface_key=surface_key)
+    hidden = [
+        name
+        for name in _ordered_unique(stored.get("hidden", []))
+        if name in optional_names
+    ]
+    editable_names = set(required) | optional_names
+    return AdminFieldContract(
+        model_label=model_label,
+        mode=mode,
+        host=host,
+        admin_site=site_name,
+        endpoint=endpoint,
+        required_fields=tuple(required),
+        optional_fields=tuple(optional),
+        recommended_fields=tuple(name for name in recommended if name in editable_names),
+        hidden_fields=tuple(hidden),
+        system_hidden_fields=tuple(system_hidden),
+    )
+
+
+def _range_error(cleaned_data: dict[str, Any]) -> tuple[str, str] | None:
+    for start_name, end_name in RANGE_FIELD_PAIRS:
+        start = cleaned_data.get(start_name)
+        end = cleaned_data.get(end_name)
+        if start is not None and end is not None and end < start:
+            return end_name, f"Cannot be earlier than {start_name.replace('_', ' ')}."
+    return None
+
+
+def _bind_transition_evidence(model_admin, request, obj, form, *, change: bool) -> None:
+    user = request.user if getattr(request.user, "is_authenticated", False) else None
+    if user is None:
+        return
+    now = timezone.now()
+    before = None
+    if change and getattr(obj, "pk", None):
+        before = model_admin.model._default_manager.filter(pk=obj.pk).first()
+
+    for name in ("created_by", "updated_by", "modified_by"):
+        if not _field_exists(model_admin.model, name):
+            continue
+        if name == "created_by" and change:
+            continue
+        setattr(obj, name, user)
+
+    transitions = (
+        ("is_locked", True, "locked_at", "locked_by"),
+        ("is_locked", False, "unlocked_at", "unlocked_by"),
+        ("is_soft_closed", True, "soft_closed_at", "soft_closed_by"),
+        ("is_soft_closed", False, "soft_reopened_at", "soft_reopened_by"),
+        ("is_active", True, "activated_at", "activated_by"),
+        ("is_active", False, "deactivated_at", "deactivated_by"),
+        ("is_archived", True, "archived_at", "archived_by"),
+        ("is_published", True, "published_at", "published_by"),
+    )
+    for state_name, target, at_name, by_name in transitions:
+        if not _field_exists(model_admin.model, state_name):
+            continue
+        previous = getattr(before, state_name, None) if before is not None else None
+        current = getattr(obj, state_name, None)
+        if current is target and previous is not target:
+            if _field_exists(model_admin.model, at_name):
+                setattr(obj, at_name, now)
+            if _field_exists(model_admin.model, by_name):
+                setattr(obj, by_name, user)
+
+
+class AdminFormAutomationMixin:
+    """Shared behavior inherited by every tenant and operator ``ModelAdmin``."""
+
+    _rmc_admin_form_automation = True
+
+    def get_exclude(self, request, obj=None):
+        """Remove tenant ownership from client-controlled form data.
+
+        ``save_model`` binds the school from the resolved hostname/request.  An
+        excluded field is stronger than a hidden widget: it cannot be altered
+        by disabling JavaScript or by crafting a POST body.
+        """
+
+        excluded = list(super().get_exclude(request, obj) or ())
+        if not self.admin_site.is_platform_site() and _field_exists(
+            self.model, "school"
+        ):
+            excluded.append("school")
+        return tuple(_ordered_unique(excluded))
+
+    def get_readonly_fields(self, request, obj=None):
+        readonly = list(super().get_readonly_fields(request, obj))
+        for name in SYSTEM_EVIDENCE_FIELDS:
+            if _field_exists(self.model, name):
+                readonly.append(name)
+        return tuple(_ordered_unique(readonly))
+
+    def get_form(self, request, obj=None, change=False, **kwargs):
+        base_form = super().get_form(request, obj, change=change, **kwargs)
+        if getattr(base_form, "_rmc_range_validated", False):
+            return base_form
+
+        class RangeValidatedAdminForm(base_form):
+            _rmc_range_validated = True
+
+            def clean(inner_self):
+                cleaned = super().clean()
+                # Restore preference-hidden values before Django's ModelForm
+                # _post_clean() executes model and uniqueness validation.  The
+                # exact state that will be saved is therefore the state that is
+                # validated, including cross-field model rules.
+                self._rmc_restore_hidden_values(
+                    request,
+                    inner_self.instance,
+                    inner_self,
+                    change=change,
+                    apply_instance=False,
+                )
+                error = _range_error(cleaned)
+                if error:
+                    field_name, message = error
+                    inner_self.add_error(field_name, message)
+                return cleaned
+
+        RangeValidatedAdminForm.__name__ = f"RmcValidated{base_form.__name__}"
+        return RangeValidatedAdminForm
+
+    def get_changeform_initial_data(self, request):
+        initial: dict[str, Any] = {}
+        try:
+            from apps.siteconfig.admin_smart_initials import build_admin_smart_initials
+
+            initial.update(build_admin_smart_initials(self.model, request))
+        except (DatabaseError, ImportError, TypeError, ValueError):
+            logger.warning("admin smart initials unavailable", exc_info=True)
+        # Django's query-string initial values are explicit user input and win.
+        initial.update(super().get_changeform_initial_data(request))
+        if initial:
+            logger.info(
+                "admin_smart_initials model=%s fields=%s",
+                self.model._meta.label_lower,
+                ",".join(sorted(initial)),
+            )
+        return initial
+
+    def render_change_form(
+        self, request, context, add=False, change=False, form_url="", obj=None
+    ):
+        adminform = context.get("adminform")
+        form = getattr(adminform, "form", None)
+        endpoint = _preference_endpoint(self.admin_site, request)
+        if form is not None:
+            contract = _contract_for_form(
+                model_admin=self,
+                request=request,
+                form=form,
+                obj=obj,
+                endpoint=endpoint,
+            )
+            context["admin_field_contract"] = contract.as_dict()
+        return super().render_change_form(
+            request,
+            context,
+            add=add,
+            change=change,
+            form_url=form_url,
+            obj=obj,
+        )
+
+    def _rmc_contract_for_bound_form(self, request, form, obj=None) -> AdminFieldContract:
+        return _contract_for_form(
+            model_admin=self, request=request, form=form, obj=obj, endpoint=""
+        )
+
+    def _rmc_restore_hidden_values(
+        self,
+        request,
+        obj,
+        form,
+        *,
+        change: bool,
+        apply_instance: bool = True,
+    ) -> None:
+        contract = self._rmc_contract_for_bound_form(
+            request, form, obj=obj if change else None
+        )
+        hidden = set(contract.hidden_fields)
+        if not hidden:
+            return
+        before = None
+        if change and getattr(obj, "pk", None):
+            before = self.model._default_manager.filter(pk=obj.pk).first()
+        for name in hidden:
+            if name not in getattr(form, "cleaned_data", {}):
+                continue
+            try:
+                model_field = self.model._meta.get_field(name)
+            except FieldDoesNotExist:
+                continue
+            if getattr(model_field, "many_to_many", False):
+                if before is not None:
+                    form.cleaned_data[name] = getattr(before, name).all()
+                else:
+                    form.cleaned_data[name] = []
+                continue
+            if before is not None:
+                value = getattr(before, name)
+            elif model_field.has_default():
+                value = model_field.get_default()
+            else:
+                value = form.initial.get(name)
+            form.cleaned_data[name] = value
+            if apply_instance:
+                setattr(obj, name, value)
+
+    def save_model(self, request, obj, form, change):
+        # Tenant ownership is derived from the hostname/request, never a posted FK.
+        if not self.admin_site.is_platform_site() and _field_exists(self.model, "school"):
+            school = getattr(request, "school", None)
+            if school is None:
+                raise ValidationError("A tenant school is required for this admin form.")
+            obj.school = school
+        self._rmc_restore_hidden_values(request, obj, form, change=change)
+        _bind_transition_evidence(self, request, obj, form, change=change)
+        return super().save_model(request, obj, form, change)
+
+
+def build_admin_field_contract(
+    model_admin, request, *, obj=None, mode: str | None = None
+) -> AdminFieldContract:
+    requested_mode = _mode(raw=mode) if mode else _mode(obj=obj)
+    form_class = model_admin.get_form(
+        request, obj=obj, change=requested_mode == "change"
+    )
+    form = form_class(instance=obj)
+    endpoint = _preference_endpoint(model_admin.admin_site, request)
+    return _contract_for_form(
+        model_admin=model_admin,
+        request=request,
+        form=form,
+        obj=obj,
+        endpoint=endpoint,
+        mode_override=requested_mode,
+    )
+
+
+@require_http_methods(["GET", "POST"])
+def admin_field_preferences_view(request: HttpRequest, *, admin_site) -> JsonResponse:
+    """Read/write one validated form-visibility scope for the active admin site."""
+
+    try:
+        if request.method == "POST":
+            raw_body = request.body
+            if len(raw_body) > MAX_PREFERENCE_PAYLOAD_BYTES:
+                logger.warning(
+                    "admin_field_visibility_rejected user=%s reason=payload_too_large bytes=%s",
+                    getattr(request.user, "pk", None),
+                    len(raw_body),
+                )
+                return JsonResponse(
+                    {
+                        "ok": False,
+                        "error": (
+                            "The field-preference payload exceeds the "
+                            f"{MAX_PREFERENCE_PAYLOAD_BYTES}-byte limit."
+                        ),
+                    },
+                    status=413,
+                )
+            payload = json.loads(raw_body.decode("utf-8") or "{}")
+        else:
+            payload = request.GET
+    except RequestDataTooBig:
+        return JsonResponse(
+            {"ok": False, "error": "The field-preference payload is too large."},
+            status=413,
+        )
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        return JsonResponse({"ok": False, "error": "Invalid JSON payload."}, status=400)
+    if not hasattr(payload, "get"):
+        return JsonResponse(
+            {"ok": False, "error": "The request payload must be an object."},
+            status=400,
+        )
+    model_label = str(payload.get("model") or "").strip().lower()
+    raw_mode = str(payload.get("mode") or "").strip().lower()
+    if raw_mode not in {"add", "change"}:
+        return JsonResponse(
+            {"ok": False, "error": "Mode must be 'add' or 'change'."},
+            status=400,
+        )
+    mode = raw_mode
+    registered = {
+        model._meta.label_lower: model_admin
+        for model, model_admin in admin_site._registry.items()
+    }
+    model_admin = registered.get(model_label)
+    if model_admin is None:
+        return JsonResponse({"ok": False, "error": "Unknown admin model."}, status=404)
+    permitted = (
+        model_admin.has_add_permission(request)
+        if mode == "add"
+        else model_admin.has_change_permission(request)
+    )
+    if not permitted:
+        return JsonResponse({"ok": False, "error": "Permission denied."}, status=403)
+
+    contract = build_admin_field_contract(
+        model_admin, request, obj=None, mode=mode
+    )
+    # Endpoint requests carry mode explicitly; reconstruct the storage key for it.
+    surface_key = _surface_key(
+        host=_safe_host(request),
+        admin_site_name=admin_site.name,
+        model_label=model_label,
+        mode=mode,
+    )
+    optional_names = [item["name"] for item in contract.optional_fields]
+    if request.method == "POST":
+        hidden_fields = payload.get("hidden", [])
+        if not isinstance(hidden_fields, list) or not all(
+            isinstance(name, str) for name in hidden_fields
+        ):
+            return JsonResponse(
+                {"ok": False, "error": "Hidden fields must be a list of names."},
+                status=400,
+            )
+        if len(hidden_fields) > MAX_HIDDEN_FIELDS:
+            return JsonResponse(
+                {
+                    "ok": False,
+                    "error": (
+                        f"At most {MAX_HIDDEN_FIELDS} optional fields can be hidden "
+                        "in one admin surface."
+                    ),
+                },
+                status=400,
+            )
+        reset = payload.get("reset", False)
+        if not isinstance(reset, bool):
+            return JsonResponse(
+                {"ok": False, "error": "Reset must be a JSON boolean."},
+                status=400,
+            )
+        try:
+            AdminFieldVisibilityService.write(
+                user=request.user,
+                surface_key=surface_key,
+                hidden_fields=hidden_fields,
+                allowed_optional_fields=optional_names,
+                reset=reset,
+            )
+        except (DatabaseError, TypeError, ValidationError) as exc:
+            message = getattr(exc, "message_dict", None) or getattr(
+                exc, "messages", None
+            ) or [str(exc)]
+            return JsonResponse({"ok": False, "error": message}, status=400)
+
+    stored = AdminFieldVisibilityService.read(user=request.user, surface_key=surface_key)
+    hidden = [name for name in stored.get("hidden", []) if name in optional_names]
+    response = contract.as_dict()
+    response.update({"ok": True, "mode": mode, "hidden": hidden})
+    return JsonResponse(response)

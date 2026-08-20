@@ -156,11 +156,25 @@ def refresh_snapshot(*, bundle: MigrationBundle, persist: bool = True) -> dict[s
                 by_stage[s]["rows"] = max(by_stage[s].get("rows", 0), int(ev.detail["rows"]))
 
     stages = [by_stage[name] for name in _STANDARD_STAGES]
+    live_totals: dict[str, Any] = {}
+    for ev in reversed(events):
+        if ev.kind != "artifact_progress" or (ev.stage or "") != "APPLYING":
+            continue
+        detail = ev.detail or {}
+        if not any(k in detail for k in ("created", "updated", "quarantined", "held")):
+            continue
+        live_totals = {
+            "created": int(detail.get("created") or 0),
+            "updated": int(detail.get("updated") or 0),
+            "quarantined": int(detail.get("quarantined") or detail.get("held") or 0),
+        }
+        break
     snapshot = {
         "stages": stages,
         "graph": _stage_graph(stages),
         "updated_at": timezone.now().isoformat(),
         "current_status": bundle.status,
+        "live_totals": live_totals,
     }
     bundle.progress_snapshot = snapshot
     if persist:

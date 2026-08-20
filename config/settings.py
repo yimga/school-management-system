@@ -619,6 +619,7 @@ TEMPLATES = [
                 "apps.platform_runtime.context_processors.system_actions_context",
                 "apps.platform_runtime.context_processors.zero_click_hub_context",
                 "apps.platform_runtime.context_processors.offline_sync_bar_context",
+                "apps.sync_engine.context.edge_sync_chrome",
                 "apps.platform_runtime.context_processors.remote_support_context",  # Remote Support consent banner + poller config
                 "apps.platform_runtime.context_processors.operational_nav_groups",
                 # v3.62.5 Wave 2 local-first: emits `localization` dict
@@ -1592,10 +1593,20 @@ DISABLE_SCHOOL_ACTIVATION_GATE = os.getenv(
 ).strip().lower() in ("1", "true", "yes")
 # Conversion lock (apps.schools.middleware_conversion_lock): blocks tenant routes until first_action_completed.
 # Production / staging / cloud host: strict ON. Local dev (DEBUG=1, not Render, not RMC_ENV): permissive.
-# Override with CONVERSION_LOCK_STRICT=0.
-_default_conversion_strict = (
-    "" if RUNNING_TESTS else ("1" if ((not DEBUG) or _IS_CLOUD_DEPLOYED) else "")
+# Sovereign edge boxes default OFF — the cloud SaaS activation funnel is not an ops gate on LAN boxes.
+# Override with CONVERSION_LOCK_STRICT=0 or =1 explicitly.
+_edge_env_profile = os.getenv("RMC_DEPLOYMENT_PROFILE", "online").strip().lower()
+_edge_env_sync = os.getenv("RMC_EDGE_SYNC_ENABLED", "").strip().lower() in (
+    "1",
+    "true",
+    "yes",
 )
+if _edge_env_profile in ("edge", "offline") or _edge_env_sync:
+    _default_conversion_strict = os.getenv("CONVERSION_LOCK_STRICT", "0")
+else:
+    _default_conversion_strict = (
+        "" if RUNNING_TESTS else ("1" if ((not DEBUG) or _IS_CLOUD_DEPLOYED) else "")
+    )
 CONVERSION_LOCK_STRICT = (
     os.getenv("CONVERSION_LOCK_STRICT", _default_conversion_strict).strip().lower()
     in ("1", "true", "yes")

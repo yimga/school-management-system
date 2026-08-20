@@ -413,6 +413,112 @@ def _fk_reference_targets(model, allowed) -> dict:
     return targets
 
 
+def enrich_delta_rows_with_fk_referents(rows, school, config) -> list:
+    """Attach referent rows referenced by FK fields so a box can apply dependents.
+
+    Delta bundles normally ship only rows with ``updated_at > since``. A specialty
+    edit therefore rides alone while its unchanged department does not — on a box
+    that never received that department (sovereign seed without pk alignment), the
+    apply dies on the FK. Pulling the referent's current snapshot closes the gap.
+
+    When a referent cannot be resolved for this school at all, the CHILD is dropped
+    rather than shipped with a reference the box can never satisfy — see the inline
+    note at the lookup. One residual case is not chased here: a child whose parent
+    is present in the bundle but is itself dropped. That is bounded, not fatal —
+    ``_force_immediate_constraints`` makes the box isolate such a row per-row
+    instead of failing the whole pull — and it self-heals on the next cycle.
+    """
+    if not rows:
+        return rows
+    fk_targets = _insert_fk_targets(config)
+    present = {
+        ((r.get("entity_type") or "").strip().lower(), r.get("id"))
+        for r in rows
+        if r.get("id") is not None
+    }
+    extras: list[dict] = []
+    undeliverable: set[int] = set()
+    for index, row in enumerate(rows):
+        entity_type = (row.get("entity_type") or "").strip().lower()
+        if entity_type not in config:
+            continue
+        for fk_field, target_et in fk_targets.get(entity_type, {}).items():
+            fk_val = (row.get("changes") or {}).get(fk_field)
+            if fk_val is None:
+                continue
+            key = (target_et, fk_val)
+            if key in present:
+                continue
+            target_model, allowed = config[target_et]
+            # Match the school's OWN rows and unowned/global ones, but never
+            # another tenant's. ``school`` is nullable on several academics models
+            # (Department.school is null=True), and production carries real rows
+            # with school_id NULL -- e.g. Department pk=2 ("Science", SCI-2425).
+            # A strict ``school=school`` lookup can never match those, so every
+            # child pointing at an unowned parent looked unresolvable: before the
+            # drop below existed it shipped dangling and killed the pull, and with
+            # the drop alone it would silently never sync at all. Widening to
+            # "mine OR unowned" ships the parent the box actually needs while
+            # still refusing a parent owned by a DIFFERENT school.
+            from django.db.models import Q
+
+            ref = (
+                target_model._default_manager.filter(pk=fk_val)
+                .filter(Q(school=school) | Q(school__isnull=True))
+                .first()
+            )
+            if ref is None:
+                # The parent cannot be supplied to the box AT ALL -- it is absent
+                # for this school (deleted, or owned by a different tenant, since
+                # the lookup is school-scoped). Shipping the child anyway is what
+                # produced the production failure: the box wrote a row pointing at
+                # a parent it would never receive, and because Django defers FK
+                # checks on Postgres the violation surfaced at COMMIT and took the
+                # WHOLE pull with it -- every cycle, forever, because the cursor
+                # never advanced. Dropping one unshippable child instead costs that
+                # single row and lets the rest of the bundle land; it self-heals
+                # the moment the parent becomes syncable.
+                undeliverable.add(index)
+                logger.warning(
+                    "sync: dropping %s id=%s from bundle -- FK %s=%s has no "
+                    "syncable %s for school %s",
+                    entity_type, row.get("id"), fk_field, fk_val, target_et,
+                    getattr(school, "pk", school),
+                )
+                continue
+            extras.append(
+                {
+                    "entity_type": target_et,
+                    "id": ref.pk,
+                    "client_offline_id": getattr(ref, "client_offline_id", "") or "",
+                    "changes": {
+                        f: getattr(ref, f)
+                        for f in sorted(allowed)
+                        if hasattr(ref, f)
+                    },
+                    "updated_at": (
+                        ref.updated_at.isoformat()
+                        if getattr(ref, "updated_at", None)
+                        else None
+                    ),
+                }
+            )
+            present.add(key)
+    if undeliverable:
+        rows = [r for i, r in enumerate(rows) if i not in undeliverable]
+    if not extras:
+        return rows
+    order = _insert_dependency_order(config)
+
+    def _rank(row):
+        et = (row.get("entity_type") or "").strip().lower()
+        return order.index(et) if et in order else len(order)
+
+    combined = extras + rows
+    combined.sort(key=lambda r: (_rank(r), r.get("updated_at") or ""))
+    return combined
+
+
 def _unresolvable_fk(model, allowed, payload, seen=None):
     """The first FK in ``payload`` whose parent row is absent - ``(attname, label, value)``.
 
@@ -464,6 +570,20 @@ def _unresolvable_fk(model, allowed, payload, seen=None):
     return None
 
 
+def check_constraints_immediately() -> None:
+    """Switch PostgreSQL's deferred foreign-key checks to statement time.
+
+    Kept as the strict, directly testable primitive. SQLite and other backends already
+    enforce their own constraint timing and must not receive PostgreSQL-only SQL.
+    """
+    from django.db import connection
+
+    if connection.vendor != "postgresql":
+        return
+    with connection.cursor() as cursor:
+        cursor.execute("SET CONSTRAINTS ALL IMMEDIATE")
+
+
 def _force_immediate_constraints():
     """Make deferred FK checks fire at statement time for the rest of this transaction.
 
@@ -478,15 +598,8 @@ def _force_immediate_constraints():
     this bounds the blast radius of the one we have not thought of yet. No-op on backends
     that already check immediately (SQLite) or that lack SET CONSTRAINTS.
     """
-    from django.db import connection, transaction
-
-    if connection.vendor != "postgresql":
-        return
     try:
-        # Its own savepoint: a hardening step must never be the thing that aborts an apply.
-        with transaction.atomic():
-            with connection.cursor() as cur:
-                cur.execute("SET CONSTRAINTS ALL IMMEDIATE")
+        check_constraints_immediately()
     except Exception:  # noqa: BLE001
         logger.warning("could not switch FK constraints to IMMEDIATE", exc_info=True)
 

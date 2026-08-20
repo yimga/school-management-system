@@ -26,6 +26,8 @@
   </div>
 </div>
 
+{% include "components/rmc_workflow_kickoff_live.html" with workflow_key="evals_bulk_grades" task_type="BULK_GRADES" %}
+
 {% if year and term %}
   <div class="rmc-banner rmc-banner--info">
     <b>Active Year:</b> {{ year.name }} | <b>{% term "term" capitalize=True %}:</b> {{ term.get_name_display }}

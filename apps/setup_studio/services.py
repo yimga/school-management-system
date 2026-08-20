@@ -109,6 +109,36 @@ STEP_DEFINITIONS = (
     },
 )
 
+_REQUIREMENT_LABELS = {
+    "required": "Required to launch",
+    "required_with_waiver": "Required decision",
+    "recommended": "Recommended - finish later",
+    "optional": "Optional - finish later",
+}
+
+
+def _requirement_contract(
+    state: dict[str, Any], definition: dict[str, Any]
+) -> tuple[str, bool]:
+    """Return a safe requirement contract for compiled or restored step state.
+
+    Persisted progress, integrations and tests can supply an older step-state
+    shape.  Treat the immutable step definition as the fallback instead of
+    crashing the launch checklist with a missing or obsolete value.
+    """
+
+    default = str(definition.get("requirement_level") or "required")
+    requirement = str(state.get("requirement_level") or default)
+    if requirement not in _REQUIREMENT_LABELS:
+        requirement = default if default in _REQUIREMENT_LABELS else "required"
+    skippable = bool(
+        state.get(
+            "is_skippable",
+            requirement in {"recommended", "optional"},
+        )
+    )
+    return requirement, skippable
+
 
 def _safe_reverse(name: str) -> str:
     try:
@@ -846,7 +876,7 @@ def _step_state_for_school(school) -> dict[str, dict[str, Any]]:
     has_addons = any(bool(value) for value in features.values())
     if not has_addons:
         try:
-            from apps.siteconfig.models import FeatureToggleState
+            from apps.policies_rules.models import FeatureToggleState
 
             has_addons = FeatureToggleState.objects.filter(
                 school=school,
@@ -1046,6 +1076,7 @@ def _build_launch_checklist(
     checklist = []
     for definition in STEP_DEFINITIONS:
         state = step_state[definition["key"]]
+        requirement, is_skippable = _requirement_contract(state, definition)
         checklist.append(
             {
                 "key": state["key"],
@@ -1054,14 +1085,9 @@ def _build_launch_checklist(
                 "done": state["done"],
                 "status": "Ready" if state["done"] else "Needs action",
                 "is_blocker": state["is_blocker"],
-                "requirement_level": state["requirement_level"],
-                "is_skippable": state["is_skippable"],
-                "requirement_label": {
-                    "required": "Required to launch",
-                    "required_with_waiver": "Required decision",
-                    "recommended": "Recommended - finish later",
-                    "optional": "Optional - finish later",
-                }[state["requirement_level"]],
+                "requirement_level": requirement,
+                "is_skippable": is_skippable,
+                "requirement_label": _REQUIREMENT_LABELS[requirement],
                 "link": state["link"],
             }
         )
@@ -1795,6 +1821,7 @@ def get_setup_studio_payload(school) -> dict[str, Any]:
     steps = []
     for order, definition in enumerate(STEP_DEFINITIONS, start=1):
         state = payload["step_state"][definition["key"]]
+        requirement, is_skippable = _requirement_contract(state, definition)
         steps.append(
             {
                 "key": state["key"],
@@ -1807,8 +1834,8 @@ def get_setup_studio_payload(school) -> dict[str, Any]:
                 "link": state["link"],
                 "recommended_choice": state["recommended_choice"],
                 "evidence": state["evidence"],
-                "requirement_level": state["requirement_level"],
-                "is_skippable": state["is_skippable"],
+                "requirement_level": requirement,
+                "is_skippable": is_skippable,
             }
         )
     payload["steps"] = steps

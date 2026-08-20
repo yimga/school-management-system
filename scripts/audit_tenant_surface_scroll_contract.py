@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 
@@ -16,6 +17,10 @@ def main() -> int:
     portal_base = _read("templates/portal_base.html")
     control_plane_base = _read("templates/control_plane_base.html")
     admin_base_site = _read("templates/admin/base_site.html")
+    admin_layout_owner = _read("static/css/rmc-admin-emergency-full-canvas-v17.css")
+    admin_build_lock = json.loads(
+        _read("var/admin-approval-build-lock.json")
+    )
     studio_workspace = _read("templates/studio_os/components/workspace_layout.html")
     studio_css = _read("static/css/studio-workspace.css")
     tenant_canvas_css = _read("static/css/rmc-tenant-workspace-canvas.css")
@@ -49,13 +54,19 @@ def main() -> int:
 
     admin_tokens = (
         "rmc-tenant-surface-scroll-contract.css",
-        "?v=20260801-admin-os-v160-tenant-configuration-operations",
+        f"?v={admin_build_lock['cache_bust']}",
         "rmc-tenant-surface-paginator.js",
-        "rmc-admin-django-canvas-contract.css",
     )
     for token in admin_tokens:
         if token not in admin_base_site:
             errors.append(f"templates/admin/base_site.html missing {token}")
+    if (
+        "rmc-admin-django-canvas-contract.css" not in admin_base_site
+        and "rmc-admin-django-canvas-contract.css" not in admin_layout_owner
+    ):
+        errors.append(
+            "Django canvas contract is not owned by base_site or its terminal layout owner"
+        )
 
     css_tokens = (
         "rmc-tenant-surface-pages",

@@ -12,6 +12,7 @@
     liveSource: null,
     liveRefreshTimer: 0,
     healingTimer: 0,
+    queueTab: "action",
   };
 
   var defaultLabels = {
@@ -37,6 +38,20 @@
     preview_title: "Fix preview",
     live_connected: "Live updates connected",
     healing_mode: "Self-Healing is watching repaired runs",
+    action_required: "Action Required",
+    success_logs: "Success Logs",
+    workflow_state: "Workflow State",
+    overall_progress: "Overall Progress",
+    health_index: "Health Index",
+    live_logs: "Live logs",
+    simulate_failure: "Simulate Failure Path",
+    simulate_success: "Simulate Success Path",
+    no_action_required: "Nothing needs attention. Successful runs are archived below.",
+    no_success_logs: "No archived successes yet.",
+    resume_from_failure: "Resume from failure point",
+    alert_failed: "A workflow failed and is waiting for operator action.",
+    simulate_failure_started: "Failure simulation started.",
+    simulate_success_started: "Success simulation started.",
   };
 
   function label(key, fallback) {
@@ -63,7 +78,15 @@
     var el = document.getElementById("page-data-rmc-flight-deck-endpoints");
     if (!el) return {};
     try {
-      return JSON.parse(el.textContent || "{}");
+      var parsed = JSON.parse(el.textContent || "{}");
+      if (typeof parsed === "string") {
+        try {
+          parsed = JSON.parse(parsed);
+        } catch (_) {
+          return {};
+        }
+      }
+      return parsed && typeof parsed === "object" ? parsed : {};
     } catch (_) {
       return {};
     }
@@ -189,6 +212,9 @@
   }
 
   function renderActions(run) {
+    if (run.status === "succeeded" || run.attention_bucket === "success_logs") {
+      return "";
+    }
     var actions = run.operator_actions || [];
     if (!actions.length) {
       return (
@@ -284,16 +310,175 @@
     if (window.alert) window.alert(message);
   }
 
+  function renderPipeline(run) {
+    var stages = (run && run.pipeline) || [];
+    if (!stages.length) return "";
+    var html = '<ol class="rmc-wfp-pipeline" aria-label="Workflow pipeline">';
+    for (var i = 0; i < stages.length; i++) {
+      var stage = stages[i];
+      var visual = stage.visual || "pending";
+      html +=
+        '<li class="rmc-wfp-pipeline__stage rmc-wfp-pipeline__stage--' +
+        escapeHtml(visual) +
+        '">' +
+        '<span class="rmc-wfp-pipeline__bead" aria-hidden="true"></span>' +
+        '<span class="rmc-wfp-pipeline__label">' +
+        escapeHtml(stage.label || stage.name) +
+        "</span></li>";
+    }
+    html += "</ol>";
+    return html;
+  }
+
+  function renderLiveLogs(run) {
+    var logs = (run && run.log_history) || [];
+    if (!logs.length) return "";
+    var html =
+      '<div class="rmc-wfp-flight-deck__logs" aria-live="polite"><strong class="small d-block mb-1">' +
+      escapeHtml(label("live_logs")) +
+      "</strong>";
+    var start = Math.max(0, logs.length - 8);
+    for (var i = start; i < logs.length; i++) {
+      html += "<div>" + escapeHtml(logs[i]) + "</div>";
+    }
+    html += "</div>";
+    return html;
+  }
+
+  function renderRemediatorCard(run) {
+    var card = (run && run.remediator) || {};
+    if (!card.title && !(card.runbook_steps || []).length) return "";
+    var steps = card.runbook_steps || [];
+    var list = "";
+    for (var i = 0; i < steps.length; i++) {
+      list += "<li>" + escapeHtml(String(i + 1) + ". " + steps[i]) + "</li>";
+    }
+    var err = card.error_message
+      ? '<p class="rmc-wfp-remediator__error small mb-2">' +
+        escapeHtml(card.error_type ? card.error_type + ": " : "") +
+        escapeHtml(card.error_message) +
+        "</p>"
+      : "";
+    var actionBtn = "";
+    if (card.auto_fix_available) {
+      actionBtn =
+        '<button type="button" class="btn btn-primary rmc-wfp-remediator__action" data-rmc-flight-action="apply_fix" data-run-id="' +
+        escapeHtml(run.id) +
+        '" data-school-id="' +
+        escapeHtml(run.school_id || "") +
+        '">' +
+        escapeHtml(card.primary_action_label || label("resume_from_failure")) +
+        "</button>";
+    }
+    return (
+      '<aside class="rmc-wfp-remediator" aria-live="assertive">' +
+      "<h3>" +
+      escapeHtml(card.title || "Issue Remediator") +
+      "</h3>" +
+      err +
+      '<ol class="rmc-wfp-remediator__steps">' +
+      list +
+      "</ol>" +
+      actionBtn +
+      "</aside>"
+    );
+  }
+
+  function renderLiveStage(featured, activeRuns, actionRequired) {
+    var live = featured || (activeRuns && activeRuns[0]) || (actionRequired && actionRequired[0]);
+    if (!live) return "";
+    return (
+      '<section class="rmc-wfp-flight-deck__live-stage rmc-wfp-flight-deck__panel" data-rmc-section-anchor>' +
+      renderPipeline(live) +
+      renderLiveLogs(live) +
+      "</section>"
+    );
+  }
+  function renderHealth(health) {
+    if (!health) return "";
+    var state = health.workflow_state || "Healthy";
+    var stateClass =
+      state.indexOf("Fail") >= 0 || state === "Blocked"
+        ? "is-failed"
+        : state === "Running"
+          ? "is-running"
+          : "is-healthy";
+    return (
+      '<section id="rmc-wfp-flight-deck-live" class="rmc-wfp-health" data-rmc-section-anchor>' +
+      '<div class="rmc-wfp-health__metric"><span>' +
+      escapeHtml(label("workflow_state")) +
+      "</span><strong class=\"" +
+      stateClass +
+      '">' +
+      escapeHtml(state) +
+      "</strong></div>" +
+      '<div class="rmc-wfp-health__metric"><span>' +
+      escapeHtml(label("overall_progress")) +
+      "</span><strong>" +
+      escapeHtml(String(health.overall_progress || 0)) +
+      "%</strong></div>" +
+      '<div class="rmc-wfp-health__metric"><span>' +
+      escapeHtml(label("health_index")) +
+      '</span><strong class="' +
+      stateClass +
+      '">' +
+      escapeHtml(String(health.health_index || 0)) +
+      "%</strong></div></section>"
+    );
+  }
+
+  function renderAlert(featured) {
+    if (!featured) return "";
+    return (
+      '<div class="rmc-wfp-alert" role="alert">' +
+      escapeHtml(label("alert_failed")) +
+      " — " +
+      escapeHtml(featured.workflow_label || featured.workflow_key || "") +
+      "</div>"
+    );
+  }
+
+  function renderQueueTabs(actionRequired, successLogs) {
+    var actionOn = state.queueTab !== "success";
+    return (
+      '<div class="rmc-segmented rmc-wfp-flight-deck__tabs" role="tablist">' +
+      '<button type="button" class="rmc-segmented__btn' +
+      (actionOn ? " is-active" : "") +
+      '" role="tab" aria-selected="' +
+      (actionOn ? "true" : "false") +
+      '" data-rmc-flight-tab="action">' +
+      escapeHtml(label("action_required")) +
+      " (" +
+      escapeHtml(String((actionRequired || []).length)) +
+      ")</button>" +
+      '<button type="button" class="rmc-segmented__btn' +
+      (!actionOn ? " is-active" : "") +
+      '" role="tab" aria-selected="' +
+      (!actionOn ? "true" : "false") +
+      '" data-rmc-flight-tab="success">' +
+      escapeHtml(label("success_logs")) +
+      " (" +
+      escapeHtml(String((successLogs || []).length)) +
+      ")</button></div>"
+    );
+  }
+
   function renderRunContent(run) {
     var statusMeta = run.status_meta || {};
     var displayStatus = run.display_status || statusMeta.label || run.status || "waiting";
     var statusClass = statusMeta.css_class || "rmc-wf-status--" + (run.status || "waiting");
+    var progress = Number(run.progress_percent || 0);
+    var spinner =
+      run.status === "running" || run.status === "degrading" || run.status === "healing"
+        ? '<span class="rmc-wfp-spinner" aria-hidden="true"></span>'
+        : "";
     return (
       '<div class="d-flex flex-wrap justify-content-between align-items-start gap-2">' +
       "<div>" +
       "<strong>" +
       escapeHtml(run.workflow_label || run.workflow_key) +
       "</strong> " +
+      spinner +
       '<span class="rmc-wf-status ' +
       escapeHtml(statusClass) +
       '">' +
@@ -303,12 +488,19 @@
       (run.tenant_schema ? escapeHtml(run.tenant_schema) + " · " : "") +
       escapeHtml(run.current_step_name || "") +
       " · " +
-      escapeHtml(String(run.progress_percent || 0)) +
+      escapeHtml(String(progress)) +
       "%</div>" +
+      '<div class="rmc-wfp-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' +
+      escapeHtml(String(progress)) +
+      '"><span style="--wfp-pct:' +
+      escapeHtml(String(Math.max(4, progress))) +
+      '%"></span></div>' +
       "</div>" +
       "</div>" +
-      renderRemediation(run) +
-      renderHealingPanel(run) +
+      renderPipeline(run) +
+      renderLiveLogs(run) +
+      (run.status === "succeeded" ? "" : renderRemediation(run)) +
+      (run.status === "succeeded" ? "" : renderHealingPanel(run)) +
       renderActions(run)
     );
   }
@@ -661,7 +853,8 @@
   }
 
   function loadDeck() {
-    var root = document.getElementById("rmc-wfp-flight-deck");
+    var root = document.getElementById("rmc-wfp-flight-deck-body");
+    if (!root) root = document.getElementById("rmc-wfp-flight-deck");
     if (!root) return;
     if (state.loading) return;
     state.loading = true;
@@ -675,15 +868,50 @@
       .then(function (data) {
         if (data.endpoints) state.endpoints = data.endpoints;
         if (data.labels) state.labels = data.labels;
+        var actionRequired = data.action_required || [].concat(data.active || [], data.recent_failed || []);
+        var successLogs = data.success_logs || [];
+        var featured = data.featured_failure || null;
+        var queueHtml;
+        if (state.queueTab === "success") {
+          queueHtml = renderFailedRuns(label("success_logs"), successLogs);
+          if (!successLogs.length) {
+            queueHtml =
+              '<section id="rmc-wfp-flight-deck-queue" class="rmc-wfp-flight-deck__panel">' +
+              "<h2>" +
+              escapeHtml(label("success_logs")) +
+              "</h2>" +
+              '<p class="rmc-wfp-flight-deck__empty">' +
+              escapeHtml(label("no_success_logs")) +
+              "</p></section>";
+          }
+        } else {
+          queueHtml = renderFailedRuns(label("action_required"), actionRequired);
+          if (!actionRequired.length) {
+            queueHtml =
+              '<section id="rmc-wfp-flight-deck-queue" class="rmc-wfp-flight-deck__panel">' +
+              "<h2>" +
+              escapeHtml(label("action_required")) +
+              "</h2>" +
+              '<p class="rmc-wfp-flight-deck__empty">' +
+              escapeHtml(label("no_action_required")) +
+              "</p></section>";
+          }
+        }
         root.innerHTML =
           renderHealingCommand(data.summary) +
+          renderAlert(featured) +
+          renderLiveStage(featured, data.active, actionRequired) +
+          renderHealth(data.health || data.summary) +
+          (featured ? renderRemediatorCard(featured) : "") +
+          renderQueueTabs(actionRequired, successLogs) +
           '<div class="rmc-wfp-flight-deck__top">' +
           renderSummary(data.summary) +
           renderRuns(label("active"), data.active) +
           "</div>" +
-          renderFailedRuns(label("recent_failures"), data.recent_failed) +
+          queueHtml +
           renderIncidents(data.incidents);
         wireActions(root);
+        wireTabs(root);
         pushCopilotContext(data.copilot_context);
         state.loading = false;
       })
@@ -692,6 +920,56 @@
           '<p class="rmc-wfp-flight-deck__empty">' + escapeHtml(label("load_error")) + "</p>";
         state.loading = false;
       });
+  }
+
+  function wireTabs(root) {
+    var tabs = root.querySelectorAll("[data-rmc-flight-tab]");
+    for (var i = 0; i < tabs.length; i++) {
+      tabs[i].addEventListener("click", function (evt) {
+        var tab = evt.currentTarget.getAttribute("data-rmc-flight-tab");
+        if (tab) state.queueTab = tab;
+        loadDeck();
+      });
+    }
+  }
+
+  function wireSimulate() {
+    var buttons = document.querySelectorAll("[data-rmc-flight-simulate]");
+    for (var i = 0; i < buttons.length; i++) {
+      buttons[i].addEventListener("click", function (evt) {
+        var path = evt.currentTarget.getAttribute("data-rmc-flight-simulate");
+        var url = (state.endpoints || {}).simulate;
+        if (!url || !path) return;
+        evt.currentTarget.disabled = true;
+        var btn = evt.currentTarget;
+        postAction(url, { body: "path=" + encodeURIComponent(path) })
+          .then(function (result) {
+            btn.disabled = false;
+            if (result.json && result.json.ok) {
+              state.queueTab = path === "success" ? "success" : "action";
+              if (path === "success") {
+                window.setTimeout(function () {
+                  state.queueTab = "success";
+                  loadDeck();
+                }, 1600);
+              }
+              notify(
+                "success",
+                path === "failure"
+                  ? label("simulate_failure_started")
+                  : label("simulate_success_started")
+              );
+              scheduleHealingRefresh(900);
+              return;
+            }
+            notify("gentle", (result.json && (result.json.reason || result.json.error)) || label("action_failed"));
+          })
+          .catch(function () {
+            btn.disabled = false;
+            notify("gentle", label("action_unreachable"));
+          });
+      });
+    }
   }
 
   function connectLiveStream() {
@@ -727,6 +1005,7 @@
     state.labels = readLabels();
     loadDeck();
     connectLiveStream();
+    wireSimulate();
     var refreshBtn = document.getElementById("rmc-wfp-flight-deck-refresh");
     if (refreshBtn) {
       refreshBtn.addEventListener("click", function () {

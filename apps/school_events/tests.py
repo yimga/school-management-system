@@ -291,7 +291,7 @@ class SchoolEventsTests(TestCase):
         from apps.academics.models import AcademicYear
         from apps.finance.models import ComplianceProfile, Invoice
         from apps.school_events.services import create_ticket_invoice_for_registration
-        from apps.siteconfig.models import Integration
+        from apps.integrations_marketplace.models import Integration
 
         profile = ComplianceProfile.objects.create(
             name="Ticket PSP",

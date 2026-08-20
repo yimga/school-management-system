@@ -10,6 +10,7 @@
 <div data-rmc-scroll-policy="paginate" class="d-flex gap-2 mb-4 flex-wrap">
   {% if upload_url %}<a class="btn btn-primary" href="{{ upload_url }}">{% trans "Upload a file — no connection needed" %}</a>{% endif %}
   <a class="btn btn-outline-secondary" href="{% url connector_ns|add:':connector-connect' %}">{% trans "Connect a live system" %}</a>
+  {% if inbox_url %}<a class="btn btn-outline-secondary" href="{{ inbox_url }}">{% trans "See all imports" %}</a>{% endif %}
 </div>
 <section class="rmc-card mb-4" aria-labelledby="connections-heading">
   <h2 id="connections-heading" class="h5">{% trans "Source connections" %}</h2>

@@ -1,7 +1,9 @@
+from django import forms
 from django.contrib import admin
 from config.admin import register_tenant_admin
 
 from unfold.admin import ModelAdmin, TabularInline
+from unfold.widgets import UnfoldAdminSingleDateWidget
 from .models import (
     AcademicYear,
     Term,
@@ -39,7 +41,33 @@ from .scheduling import (
 )
 
 
+class NativeAdminDateWidget(UnfoldAdminSingleDateWidget):
+    """Unfold-compatible date input that still works when calendar JS fails."""
+
+    input_type = "date"
+
+    def __init__(self, attrs=None, format=None):
+        super().__init__(attrs=attrs, format=format or "%Y-%m-%d")
+
+
+class AcademicYearAdminForm(forms.ModelForm):
+    class Meta:
+        model = AcademicYear
+        fields = "__all__"
+        widgets = {
+            "start_date": NativeAdminDateWidget(),
+            "end_date": NativeAdminDateWidget(),
+        }
+
+
 class AcademicYearAdmin(ModelAdmin):
+    form = AcademicYearAdminForm
+    rmc_recommended_fields = (
+        "name",
+        "start_date",
+        "end_date",
+        "is_active",
+    )
     list_display = (
         "name",
         "start_date",
@@ -520,15 +548,12 @@ class CertificationCandidateDocumentStatusAdmin(ModelAdmin):
     )
 
 
-from django import forms
-
-
 class TermAdminForm(forms.ModelForm):
     class Meta:
         model = Term
         fields = "__all__"
         help_texts = {
-            "position": "Order of the term within the academic year (1–4).",
+            "position": "Order of the term within the academic year (1–12).",
             "custom_label": "Optional display name (e.g., Semester 1).",
         }
 
@@ -537,7 +562,7 @@ class TermAdminForm(forms.ModelForm):
         is_active = cleaned.get("is_active")
         position = cleaned.get("position")
         if is_active and not position:
-            self.add_error("position", "Active terms must have a position (1–4).")
+            self.add_error("position", "Active terms must have a position (1–12).")
         return cleaned
 
 
@@ -545,7 +570,7 @@ TermAdmin.form = TermAdminForm
 
 
 def assign_positions_to_year(modeladmin, request, queryset):
-    """Admin action to auto-assign positions 1–4 per year based on start_date order."""
+    """Admin action to auto-assign positions 1–12 per year by start date."""
     from django.contrib import messages
     from django.db import transaction
 
@@ -565,9 +590,9 @@ def assign_positions_to_year(modeladmin, request, queryset):
         for term in terms:
             if term.position:
                 continue
-            while next_pos in used_positions and next_pos <= 4:
+            while next_pos in used_positions and next_pos <= 12:
                 next_pos += 1
-            if next_pos > 4:
+            if next_pos > 12:
                 continue
             updates.append(term)
             used_positions.add(next_pos)
@@ -579,10 +604,10 @@ def assign_positions_to_year(modeladmin, request, queryset):
                 pos = 1
                 while pos in set(
                     Term.objects.filter(academic_year_id=year_id, position=pos).count()  # tenant-isolation-allow: django-admin-action-scoped-by-FK (same FK-scoping as above)
-                    for pos in range(1, 5)
+                for pos in range(1, 13)
                 ):
                     pos += 1
-                if pos <= 4:
+                if pos <= 12:
                     term.position = pos
                     term.save(update_fields=["position"])
                     total_assigned += 1
@@ -594,7 +619,7 @@ def assign_positions_to_year(modeladmin, request, queryset):
 
 
 assign_positions_to_year.short_description = (
-    "Assign positions 1–4 per year (start_date order)"
+    "Assign positions 1–12 per year (start_date order)"
 )
 TermAdmin.actions = [assign_positions_to_year]
 

@@ -45,9 +45,19 @@ class PlanPrepActionsTests(TestCase):
         self.assertIn("--fresh", provision["args"])
         self.assertIn("/srv/rmc/g.rmcbundle", provision["args"])
 
-    def test_minimal_inputs_plan_is_just_baseline(self):
-        keys = [a["key"] for a in plan_prep_actions(BringupInputs(slug="x"))]
-        self.assertEqual(keys, ["seed_baseline"])
+    def test_data_bundle_is_a_separate_non_fresh_prep_step(self):
+        inputs = BringupInputs(
+            slug="gilead-tech",
+            bundle_path="/srv/rmc/g.rmcbundle",
+            data_bundle_path="/srv/rmc/g-data.rmcbundle",
+        )
+        actions = plan_prep_actions(inputs)
+        keys = [a["key"] for a in actions]
+        self.assertIn("provision_shell", keys)
+        self.assertIn("seed_operational_data", keys)
+        data = next(a for a in actions if a["key"] == "seed_operational_data")
+        self.assertEqual(data["cmd"], "import_tenant_bundle")
+        self.assertNotIn("--fresh", data["args"])
 
 
 class RunEdgeBringupTests(TestCase):

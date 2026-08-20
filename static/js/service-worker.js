@@ -214,6 +214,7 @@
 // migration, inventory) over existing WorkflowRun + Channels rooms.
 // v4.06.62: Migration Cloud Review & Import kickoff live pipeline + held honesty.
 // v4.06.66: platform-wide Ctrl+K search seal (palette scroll, shortcut yield, unified /).
+// v4.06.68: tenant/operator admin form intelligence and server-owned preferences.
 const CACHE_VERSION = "sms-v4.06.69-edge-sync-deletes-files-longpoll-2026-08-20";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;

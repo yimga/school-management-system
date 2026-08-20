@@ -95,6 +95,21 @@ class PlatformSurfaceConfigTests(SimpleTestCase):
         self.assertFalse(payload["walStreamEnabled"])
         json.loads(json.dumps(payload))
 
+    @mock.patch("apps.siteconfig.platform_surface_config._hydrate_endpoints", return_value=[])
+    @mock.patch("apps.siteconfig.platform_surface_config._effective_flags", return_value={})
+    def test_disabled_offline_runtime_does_not_expose_encryption_key(
+        self, _mock_flags, _mock_hydrate
+    ):
+        req = self.rf.get("/admin/")
+        payload = resolve_sms_offline_config(
+            req,
+            offline_enabled_for_school=False,
+        )
+        self.assertFalse(payload["enabled"])
+        self.assertFalse(payload["encryptOutbox"])
+        self.assertFalse(payload["enableQueueEncryption"])
+        self.assertEqual(payload["encryptionKeyUrl"], "")
+
     @mock.patch.dict(
         "os.environ",
         {"RMC_WAL_STREAM_ENABLED": "1", "WEB_SERVER_MODE": "asgi"},

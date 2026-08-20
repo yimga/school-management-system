@@ -218,7 +218,9 @@ def signup_inventory() -> dict[str, Any]:
             and "rmc-signup-balanced-v3.css" in base_template
         ),
         "live_recommendation_card": "data-rmc-signup-recommendation" in template,
-        "recommendation_manifest_v4": "MANIFEST_VERSION = 4" in recommendations,
+        "recommendation_manifest_v4": bool(
+            re.search(r"MANIFEST_VERSION\s*=\s*(?:[4-9]|[1-9]\d+)", recommendations)
+        ),
         "typed_profile_boundary": (
             "class InstitutionProfile(TypedDict)" in profile_boundary
             and "class NormalizedInstitutionProfile" in profile_boundary

@@ -3,7 +3,23 @@
 from __future__ import annotations
 
 from apps.apicenter.models import APIKey, OAuthTokenPair
-from apps.marketplace.models import ScopeGrant
+from apps.marketplace.models import AppInstallation, ScopeGrant
+
+
+def active_installation_for(school, app_id):
+    """The ACTIVE installation binding ``app_id`` to ``school``, or ``None``.
+
+    This is the tenant gate for third-party credentials: an app may only act on a
+    school that currently has it installed and not suspended/killed. Defined once
+    here because ``apps/api`` must not import control-plane models directly
+    (scripts/lint_bounded_context_imports.py --strict, no allow-marker), and
+    because a second copy of this rule is a place for it to silently drift.
+    """
+    return AppInstallation.objects.filter(
+        school=school,
+        app_id=app_id,
+        status=AppInstallation.Status.ACTIVE,
+    ).first()
 
 
 def effective_scopes_for_api_key(key: APIKey) -> frozenset[str]:

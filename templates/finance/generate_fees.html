@@ -11,6 +11,7 @@
 <div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-scroll-policy="paginate" data-page-critical-read="1">
 {% url 'finance:dashboard' as generate_fees_back_url %}
 {% include "studio_os/components/page_header.html" with title="Generate Fee Invoices" subtitle="Create invoices for all students in a fee plan." action_url=generate_fees_back_url action_text="Back to Finance" %}
+{% include "components/rmc_workflow_kickoff_live.html" with workflow_key="finance_auto_generate_fee_invoices" task_type="FEE_GENERATE" %}
 <div class="d-flex justify-content-end mb-2">
   <a href="{% url 'kb:kb_home' %}" class="btn btn-sm btn-link text-muted p-0" title="{% trans 'Help & Knowledge Base' %}" aria-label="{% trans 'Help' %}"><i class="bi bi-question-circle" aria-hidden="true"></i></a>
 </div>

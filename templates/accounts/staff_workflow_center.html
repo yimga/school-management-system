@@ -11,6 +11,8 @@
   {% url 'accounts:redirect' as home_url %}
   {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=home_url action_text=_("Home") %}
 
+  {% include "components/rmc_workflow_kickoff_live.html" with workflow_key="" task_type="WORKFLOW_CENTER" kickoff_attention=1 %}
+
   {% if cards %}
   <div class="row g-4 rmc-reveal-stagger">
     {% for card in cards %}

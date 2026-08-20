@@ -56,7 +56,7 @@ class TenantAdminIndexContractTests(TestCase):
         self.assertNotIn("Raw model CRUD", html)
         self.assertIn("data-rmc-admin-archetype=\"discover\"", html)
         self.assertIn("data-rmc-admin-discover=\"1\"", html)
-        self.assertIn("2026-08-11-v17.2", html)
+        self.assertIn("2026-08-20-v19.0", html)
         self.assertIn("Model catalog", html)
         self.assertIn("rmc-admin-discover-canvas", html)
 

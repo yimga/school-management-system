@@ -1,0 +1,33 @@
+{% load i18n static %}
+{% comment %}
+  Shared kickoff live board (progress bus + automation + orchestration).
+  Mount on the page that starts the job. Remediator is omitted when issues_open is 0.
+{% endcomment %}
+<link rel="stylesheet" href="{% static 'css/rmc-workflow-flight-deck.css' %}">
+<section
+  class="rmc-wfp-kickoff"
+  data-rmc-kickoff-live="1"
+  data-rmc-workflow-key="{{ workflow_key|default:'' }}"
+  data-rmc-kickoff-attention="{% if kickoff_attention %}1{% else %}0{% endif %}"
+  data-rmc-kickoff-url="{% url 'platform_runtime:workflow_progress_kickoff_live' %}?workflow_key={{ workflow_key|default:''|urlencode }}{% if kickoff_attention %}&amp;attention=1{% endif %}"
+  aria-live="polite"
+>
+  <div class="rmc-wfp-kickoff__head">
+    <h2 class="rmc-wfp-kickoff__title">{% trans "Live progress" %}</h2>
+    <strong class="rmc-wfp-kickoff__pct" data-rmc-kickoff-pct>0%</strong>
+  </div>
+  <ol class="rmc-wfp-pipeline" data-rmc-kickoff-pipeline hidden></ol>
+  <div class="rmc-wfp-kickoff__metrics" data-rmc-kickoff-metrics hidden>
+    <div class="rmc-wfp-kickoff__metric"><span>{% trans "Orchestration" %}</span><strong data-rmc-kickoff-orch>0</strong></div>
+    <div class="rmc-wfp-kickoff__metric"><span>{% trans "Automation" %}</span><strong data-rmc-kickoff-auto>0</strong></div>
+    <div class="rmc-wfp-kickoff__metric"><span>{% trans "Jobs" %}</span><strong data-rmc-kickoff-bus>0</strong></div>
+    <div class="rmc-wfp-kickoff__metric"><span>{% trans "Approvals" %}</span><strong data-rmc-kickoff-appr>0</strong></div>
+  </div>
+  <aside class="rmc-wfp-remediator" data-rmc-kickoff-remediator hidden>
+    <h3 data-rmc-kickoff-rem-title></h3>
+    <p class="rmc-wfp-remediator__error" data-rmc-kickoff-rem-error></p>
+    <ol class="rmc-wfp-remediator__steps" data-rmc-kickoff-rem-steps></ol>
+  </aside>
+  {% include "components/rmc_workflow_progress_canvas.html" with workflow_key=workflow_key task_type=task_type %}
+</section>
+<script src="{% static 'js/rmc-workflow-kickoff-live.js' %}" defer></script>

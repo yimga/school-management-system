@@ -56,6 +56,15 @@ def recovery_strategy_for_workflow(workflow_key: str) -> dict[str, Any]:
 
     key = str(workflow_key or "").strip()
     definition = WORKFLOWS.get(key)
+    if key == "workflow_flight_deck_simulation":
+        return {
+            "workflow_key": key,
+            "lane": "simulation_resume",
+            "auto_fix_kind": "resume_from_checkpoint",
+            "primary_auto_fix_kind": "resume_from_checkpoint",
+            "summary": "Patch the Integration Test token and resume from the failed step.",
+            "covered": True,
+        }
     if key == "tenant_school_provision":
         return {
             "workflow_key": key,

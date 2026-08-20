@@ -357,17 +357,45 @@ def _migration_status_card(request):
             )
         except NoReverseMatch:
             review_url = ""
+        from apps.migration_cloud.live_import_attention import (
+            bundle_needs_attention,
+            unresolved_issue_count,
+        )
+
+        issues = unresolved_issue_count(bundle)
+        needs_attention = bundle_needs_attention(bundle)
+        importing = bundle.status == BundleStatus.APPLYING
         card["bundle"] = {
             "label": bundle.label or f"Upload #{bundle.pk}",
             "status": bundle.status,
             "status_label": bundle.get_status_display(),
             "detecting": detecting,
-            "applied": bundle.status in {BundleStatus.APPLIED, BundleStatus.RECONCILED},
-            "needs_attention": bundle.status == BundleStatus.FAILED,
+            "importing": importing,
+            "applied": (
+                bundle.status in {BundleStatus.APPLIED, BundleStatus.RECONCILED}
+                and not needs_attention
+            ),
+            "needs_attention": needs_attention,
+            "held": issues,
             "review_url": review_url,
             "created_at": bundle.created_at,
         }
     return card
+
+
+def _engine_attention_card(request):
+    """Cross-engine Action Required for Workflow Center / queues.
+
+    Counts only *current* failures (latest run per process / automation /
+    progress-bus key). A later success must drop the badge.
+    """
+    school = getattr(request, "school", None) or getattr(request, "tenant", None)
+    try:
+        from apps.platform_runtime.workflow_kickoff_live import compose_engine_attention
+
+        return compose_engine_attention(school)
+    except ACCOUNTS_SOFT_FAILURES:
+        return None
 
 
 def _can_access_approval_hub(user):
@@ -430,6 +458,7 @@ def approval_workflow_hub(request):
     if early is not None:
         return early
     urls = _approval_hub_urls(request)
+    engine_attention = _engine_attention_card(request)
     try:
         bc_backend = reverse("accounts:backend_dashboard")
     except NoReverseMatch:
@@ -445,6 +474,7 @@ def approval_workflow_hub(request):
             "grade_approvals_url": urls["grade_approvals"],
             "access_requests_url": urls["access_requests"],
             "contact_requests_url": urls["contact_requests"],
+            "engine_attention": engine_attention,
         },
     )
 
@@ -500,6 +530,7 @@ def automation_hub(request):
             "execution_log_url": execution_log_url,
             "approval_queue_url": approval_queue_url,
             "site_settings_url": site_settings_url,
+            "engine_attention": _engine_attention_card(request),
         },
     )
 
@@ -939,6 +970,7 @@ def workflow_center(request):
         "steps": steps,
         "workflow_progress": progress,
         "migration_status": _migration_status_card(request),
+        "engine_attention": _engine_attention_card(request),
         "workflow_help": workflow_help,
         "studio_pack_catalog_strip": studio_pack_catalog_strip,
         "studio_simulation_url": studio_simulation_url,

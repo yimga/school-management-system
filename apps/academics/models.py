@@ -107,9 +107,50 @@ class AcademicYear(models.Model):
     def ends_on(self):
         return self.end_date
 
+    def clean(self):
+        """Enforce the academic-calendar contract outside the admin as well."""
+        super().clean()
+        errors = {}
+        if self.start_date and self.end_date and self.end_date <= self.start_date:
+            errors["end_date"] = "End date must be later than start date."
+
+        if self.start_date and self.end_date:
+            overlapping = AcademicYear.objects.filter(
+                school=self.school,
+                start_date__lte=self.end_date,
+                end_date__gte=self.start_date,
+            )
+            if self.pk:
+                overlapping = overlapping.exclude(pk=self.pk)
+            if overlapping.exists():
+                errors["start_date"] = (
+                    "This academic-year window overlaps another year for the same school."
+                )
+
+        if self.is_active:
+            active = AcademicYear.objects.filter(school=self.school, is_active=True)
+            if self.pk:
+                active = active.exclude(pk=self.pk)
+            if active.exists():
+                errors["is_active"] = (
+                    "Only one academic year can be active for a school. "
+                    "Use the governed activation action to switch years."
+                )
+        if errors:
+            raise ValidationError(errors)
+
     class Meta:
         ordering = ["-start_date"]
         constraints = [
+            models.CheckConstraint(
+                check=Q(end_date__gt=models.F("start_date")),
+                name="academicyear_end_after_start",
+            ),
+            models.UniqueConstraint(
+                fields=["school"],
+                condition=Q(is_active=True),
+                name="uniq_active_academicyear_per_school",
+            ),
             models.UniqueConstraint(
                 fields=["school", "client_offline_id"],
                 condition=~models.Q(client_offline_id=""),

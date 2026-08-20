@@ -170,8 +170,8 @@ class ThirdPartyCredentialAuthentication(authentication.BaseAuthentication):
 
     def _authenticate_oauth(self, request, raw: str):
         from apps.apicenter.models import OAuthTokenPair, _hash_secret
-        from apps.marketplace.models import AppInstallation
         from apps.marketplace.permissions_runtime import (
+            active_installation_for,
             effective_scopes_for_oauth_pair,
         )
 
@@ -200,11 +200,9 @@ class ThirdPartyCredentialAuthentication(authentication.BaseAuthentication):
             # No catalog app => no installation => no tenant binding possible.
             _fail()
 
-        installation = AppInstallation.objects.filter(
-            school=school,
-            app_id=application.marketplace_app_id,
-            status=AppInstallation.Status.ACTIVE,
-        ).first()
+        installation = active_installation_for(
+            school, application.marketplace_app_id
+        )
         if installation is None:
             # Not installed (or install suspended/killed) at this tenant.
             _fail()

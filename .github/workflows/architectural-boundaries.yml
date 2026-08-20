@@ -69,6 +69,10 @@ on:
       - "var/admin-approval-build-lock.json"
       - "scripts/verify_deploy_cache_posture.py"
       - "scripts/verify_slo_registry.py"
+      - "scripts/verify_report_entity_coverage.py"
+      - "apps/reports/report_entity_registry.py"
+      - "apps/reports/adhoc_runner.py"
+      - "apps/metadata/management/commands/seed_entity_catalog.py"
       - "scripts/verify_intelligence_model_producers.py"
       - "apps/customersuccess/models.py"
       - "apps/customersuccess/services.py"
@@ -948,6 +952,20 @@ jobs:
         # targets, and threshold_ms only on latency SLOs.
         run: |
           python scripts/verify_slo_registry.py --strict
+
+  report-entity-coverage:
+    name: "Reports: entity catalog coverage"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run report entity coverage verifier
+        run: |
+          python scripts/verify_report_entity_coverage.py
 
   sri-required:
     name: "P1: Subresource Integrity required on third-party HTTPS assets"

@@ -35,6 +35,7 @@
   {% if flight_deck_url %}
   <p class="small text-secondary mb-3">{% trans "Looking for platform workflows (provisioning, imports, self-healing)?" %} <a href="{{ flight_deck_url }}">{% trans "Open the Workflow Flight Deck" %}</a>.</p>
   {% endif %}
+  {% include "components/rmc_workflow_kickoff_live.html" with workflow_key="orchestration_process_due" task_type="ORCHESTRATION_RUN" kickoff_attention=1 %}
   {% if operator_orchestration_workbench_links %}
   <div class="card shadow-sm border-0 mb-3">
     <div class="card-header bg-dark text-light">{% trans "Operator curated links" %}</div>
@@ -125,14 +126,15 @@
               <td>{{ run.definition.name|default:run.definition.code }}</td>
               <td>{% if run.school %}{{ run.school.name }}{% else %}—{% endif %}</td>
               <td>
-                <span class="badge {% if run.status == 'failed' %}bg-danger{% elif run.status == 'completed' %}bg-success{% elif run.status == 'running' %}bg-primary{% else %}bg-secondary{% endif %}">{{ run.get_status_display }}</span>
-                {% if run.sla_overdue %} <span class="rmc-badge rmc-badge--warning">{% trans "Overdue" %}</span>{% endif %}
+                <span class="badge {% if run.open_failure %}bg-danger{% elif run.superseded_failure %}bg-secondary{% elif run.status == 'failed' %}bg-danger{% elif run.status == 'completed' %}bg-success{% elif run.status == 'running' %}bg-primary{% else %}bg-secondary{% endif %}">{{ run.get_status_display }}</span>
+                {% if run.open_failure and run.sla_overdue %} <span class="rmc-badge rmc-badge--warning">{% trans "Overdue" %}</span>{% endif %}
+                {% if run.superseded_failure %}<span class="rmc-badge">{% trans "Archived" %}</span>{% endif %}
               </td>
               <td class="text-muted small">{% if run.sla_deadline %}{{ run.sla_deadline|format_date:"YYYY-MM-DD" }} {{ run.sla_deadline|time:"H:i" }}{% else %}—{% endif %}</td>
               <td>{{ run.retry_count }}</td>
               <td class="text-muted small">{{ run.created_at|format_date:"YYYY-MM-DD" }} {{ run.created_at|time:"H:i" }}</td>
               <td class="text-muted small">{% if run.completed_at %}{{ run.completed_at|format_date:"YYYY-MM-DD" }} {{ run.completed_at|time:"H:i" }}{% else %}—{% endif %}</td>
-              <td>{% if run.status == 'failed' %}<a href="{% url 'super:orchestration_retry_run' run.id %}" class="btn btn-outline-secondary btn-sm">{% trans "Retry" %}</a>{% else %}—{% endif %}</td>
+              <td>{% if run.open_failure %}<a href="{% url 'super:orchestration_retry_run' run.id %}" class="btn btn-outline-secondary btn-sm">{% trans "Retry" %}</a>{% else %}—{% endif %}</td>
             </tr>
             {% empty %}
             <tr>

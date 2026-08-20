@@ -273,6 +273,50 @@ def ensure_academic_year(school, *, name: str | None = None):
         return None, False
 
 
+def forecast_academic_year(school, *, today=None) -> dict[str, Any]:
+    """Predict the next editable academic-year values without writing data.
+
+    Existing history wins over a generic calendar: the next window begins the day
+    after the latest school's year ends.  A school with no history uses the same
+    country-aware start-month resolver as provisioning, so raw admin and automated
+    onboarding cannot suggest different calendars.
+    """
+    if school is None:
+        return {}
+    from apps.academics.models import AcademicYear
+
+    latest = (
+        AcademicYear.objects.filter(school=school)  # tenant-isolation-allow: explicit school
+        .order_by("-end_date", "-start_date")
+        .first()
+    )
+    if latest is not None and latest.end_date:
+        year_start = latest.end_date + timedelta(days=1)
+        try:
+            next_anniversary = year_start.replace(year=year_start.year + 1)
+        except ValueError:  # February 29 -> February 28 in a non-leap year
+            next_anniversary = year_start.replace(
+                year=year_start.year + 1, month=2, day=28
+            )
+        year_end = next_anniversary - timedelta(days=1)
+    else:
+        current = today or timezone.now().date()
+        start_month = _resolve_country_context(school)["start_month"]
+        start_year = (
+            current.year if current.month >= start_month else current.year - 1
+        )
+        year_start = date(start_year, start_month, 1)
+        year_end = date(start_year + 1, start_month, 1) - timedelta(days=1)
+    return {
+        "name": f"{year_start.year}/{year_end.year}",
+        "start_date": year_start,
+        "end_date": year_end,
+        # A first year is useful immediately.  Later years remain inactive until
+        # the governed activation action is explicitly chosen.
+        "is_active": latest is None,
+    }
+
+
 def _resolve_country_context(school) -> dict[str, Any]:
     """Resolve a school's country-derived provisioning context ONCE.
 

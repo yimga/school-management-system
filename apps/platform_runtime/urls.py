@@ -12,6 +12,7 @@ from apps.platform_runtime.views_workflow_flight_deck import (
     flight_deck_json_view as workflow_progress_flight_deck_json_view,
     flight_deck_view as workflow_progress_flight_deck_view,
     incident_bulk_apply_view as workflow_progress_incident_bulk_apply_view,
+    simulate_scenario_view as workflow_progress_simulate_view,
 )
 from apps.platform_runtime.views_workflow_progress import (
     active_runs_view as workflow_progress_active_runs_view,
@@ -20,6 +21,7 @@ from apps.platform_runtime.views_workflow_progress import (
     badge_view as workflow_progress_badge_view,
     cancel_view as workflow_progress_cancel_view,
     e2e_demo_start_view as workflow_progress_e2e_demo_start_view,
+    kickoff_live_view as workflow_progress_kickoff_live_view,
     run_detail_view as workflow_progress_run_detail_view,
     stream_view as workflow_progress_stream_view,
 )
@@ -151,6 +153,11 @@ urlpatterns = [
         workflow_progress_e2e_demo_start_view,
         name="workflow_progress_e2e_demo_start",
     ),
+    path(  # rbac-allow: auth-gated-via-login_required_api-401-on-anonymous
+        "workflow-progress/kickoff/",
+        workflow_progress_kickoff_live_view,
+        name="workflow_progress_kickoff_live",
+    ),
     path(  # rbac-allow: super-staff-workflow-flight-deck-mission-control
         "workflow-progress/flight-deck/",
         workflow_progress_flight_deck_view,
@@ -160,6 +167,11 @@ urlpatterns = [
         "workflow-progress/flight-deck.json",
         workflow_progress_flight_deck_json_view,
         name="workflow_progress_flight_deck_json",
+    ),
+    path(  # rbac-allow: auth-gated-via-login_required_api-staff-flight-deck-simulate
+        "workflow-progress/simulate/",
+        workflow_progress_simulate_view,
+        name="workflow_progress_simulate",
     ),
     path(  # rbac-allow: auth-gated-via-login_required_api-staff-incident-bulk-apply
         "workflow-progress/incidents/bulk-apply/",
