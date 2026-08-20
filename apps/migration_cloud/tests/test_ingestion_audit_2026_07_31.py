@@ -40,7 +40,6 @@ from apps.migration_cloud.models import (
     BundleStatus,
     IntakeMethod,
     MigrationArtifact,
-    MigrationArtifactBlob,
     MigrationBundle,
 )
 

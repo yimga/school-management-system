@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import hashlib
 import logging
-import uuid
 from dataclasses import asdict, dataclass, field
 from datetime import date, datetime, timezone
 from typing import Any, Callable
@@ -227,7 +226,9 @@ def open_shift(
     school_id = int(getattr(school, "pk"))
 
     # Fast-path cache fence (non-authoritative)
-    cache_locked = acquire_shift_slot_lock(
+    # Return deliberately unbound: acquiring the fence is the side effect, and
+    # the DB uniqueness check below is the authority.
+    acquire_shift_slot_lock(
         school_id=school_id, work_date=work_date, period_label=period_label
     )
 

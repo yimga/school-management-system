@@ -172,8 +172,7 @@ class GuardianLander(Lander):
 
             try:
                 from ._helpers import (
-    student_name_from_row,
-                    record_id_mapping,
+    record_id_mapping,
                     upsert_with_conflict_detection,
                 )
                 legacy_id = f"{student_external_id}:{user_ref or email}"

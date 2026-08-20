@@ -15,7 +15,7 @@ from types import SimpleNamespace
 
 from django.test import SimpleTestCase, TestCase
 
-from apps.automation.models import Workflow, WorkflowEdge, WorkflowNode, WorkflowRunLog
+from apps.automation.models import Workflow, WorkflowRunLog
 from apps.schools.models import School
 from apps.studio_os.automation_panes import (
     build_workflow_conflict_report,

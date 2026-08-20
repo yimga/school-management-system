@@ -8,7 +8,7 @@ import uuid
 from unittest.mock import patch
 
 from django.core.cache import cache
-from django.test import Client, TransactionTestCase, override_settings
+from django.test import TransactionTestCase, override_settings
 from django.urls import reverse
 
 from apps.accounts.models import User

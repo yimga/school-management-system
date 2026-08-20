@@ -22,7 +22,7 @@ import os
 
 from django.contrib.auth.models import AnonymousUser
 from django.template.loader import render_to_string
-from django.test import RequestFactory, SimpleTestCase, TestCase, override_settings
+from django.test import RequestFactory, SimpleTestCase, TestCase
 
 from apps.schools.models import School
 

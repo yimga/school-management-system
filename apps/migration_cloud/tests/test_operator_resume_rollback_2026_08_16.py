@@ -12,7 +12,6 @@ is mocked so the assertions isolate the confirm-gate + delegation, not URL rever
 """
 from __future__ import annotations
 
-from types import SimpleNamespace
 from unittest import mock
 
 from django.contrib.auth.models import AnonymousUser

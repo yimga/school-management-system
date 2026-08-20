@@ -5,7 +5,6 @@ from __future__ import annotations
 import os
 import re
 from datetime import date
-from pathlib import Path
 from unittest.mock import patch
 
 from django.contrib.auth.models import AnonymousUser
