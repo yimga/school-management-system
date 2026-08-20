@@ -51,6 +51,12 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # does not work - and in static/js/service-worker.js it silently stops the offline
     # shell an appliance depends on from ever updating.
     ("scripts/verify_javascript_files_parse.py", "architectural-boundaries.yml"),
+    # The same floor for MARKUP, and the quietest of the three. An unclosed <div> does
+    # not raise, does not log, and does not fail a test: the page 200s and the browser
+    # silently reparents everything after it into a container it was never meant to be
+    # inside. Added 2026-08-20 after nine served templates were found unbalanced,
+    # including one that shipped a </motion> end tag - an element that does not exist.
+    ("scripts/verify_template_html_structure.py", "architectural-boundaries.yml"),
     # Reference-integrity family — the "literal string -> runtime registry ->
     # 500/silent" loophole class. All members must always run.
     ("scripts/scan_import_reference_integrity.py", "architectural-boundaries.yml"),

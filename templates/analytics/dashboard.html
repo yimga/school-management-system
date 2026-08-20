@@ -165,7 +165,6 @@
         <a class="btn btn-sm btn-outline-primary" href="{% url 'accounts:rbac' %}">{% trans "RBAC tools" %}</a>
         <a class="btn btn-sm btn-outline-secondary" href="{% url 'finance:dashboard' %}">{% trans "Finance console" %}</a>
       </div>
-    </div>
   </div>
   <div class="card shadow-sm p-3" data-widget-id="analytics-ai-insight">
       <h5 class="mb-2">{% trans "AI insight" %}</h5>
@@ -680,6 +679,8 @@
       </div>
     </div>
   </div>
+</div> <!-- /.row tertiary -->
 </div> <!-- /analytics-dashboard-widgets -->
+</div> <!-- /.container-fluid -->
 {% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

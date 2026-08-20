@@ -62,6 +62,11 @@ GATES: list[tuple[str, list[str]]] = [
     # renders normally with one feature dead. Skipped (not failed) when Node is absent,
     # so a Python-only environment is not blocked by a toolchain it does not have.
     ("javascript-files-parse", ["verify_javascript_files_parse.py"]),
+    # And the third: markup that does not close. Quieter than either of the above,
+    # because it does not fail anywhere - the page 200s and the browser silently
+    # reparents everything after the unclosed element. Nine served templates were
+    # found this way on 2026-08-20, one of them shipping a </motion> end tag.
+    ("template-html-structure", ["verify_template_html_structure.py"]),
     ("undefined-css-classes", ["scan_undefined_css_classes.py", "--compare"]),
     ("off-token-colors", ["scan_off_token_colors.py", "--strict"]),
     ("theme-locked-token-text", ["scan_theme_locked_token_text.py", "--strict"]),
