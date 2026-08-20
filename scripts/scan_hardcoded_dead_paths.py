@@ -17,6 +17,12 @@ ones that resolve on none. Resolving *somewhere* is a deliberately weak bar —
 an operator path is expected to be absent from the tenant tree — but a path
 that exists nowhere at all is never anything but a 404 waiting for a click.
 
+Covers Python (``apps/``) and templates (``href``/``action`` attributes).
+``verify_url_name_integrity`` checks ``{% url %}`` NAMES and
+``verify_cross_host_template_reverse`` checks their host reachability; neither
+sees a path written as a plain string, which is how a form action pointing at a
+route that exists on no host survived on the public marketplace listing.
+
 Prefer ``reverse("namespace:name")``. When a literal is genuinely right (an
 external mount, a path built by another service), mark the line:
 
@@ -58,14 +64,30 @@ EXEMPTION = "dead-path-allow"
 
 SKIP_DIRS = ("/tests/", "/migrations/", "/__pycache__/", "/conftest")
 # Not navigation: served by the static/media pipeline or another service.
-SKIP_PREFIXES = ("/static/", "/media/", "/__debug__/")
+SKIP_PREFIXES = ("/static/", "/media/", "/__debug__/", "/api/")
 
+# The four hosts that serve real pages.
+#
+# ``config.docs_urls`` is DELIBERATELY absent and must stay absent: it ends in
+# ``path("<path:_unused>", lambda: redirect("docs_home"))``, a catch-all that
+# matches literally any path. Include it and every string resolves, so the gate
+# reports zero forever while detecting nothing — the failure mode where a green
+# gate and a dead gate look identical. ``config.api_urls`` is likewise excluded;
+# ``/api/`` paths are skipped outright below.
 HOST_URLCONFS = (
     "config.urls",
     "config.tenant_urls",
     "config.manager_urls",
     "config.public_urls",
 )
+
+# Literal paths in templates. `verify_url_name_integrity` checks {% url %} names
+# and `verify_cross_host_template_reverse` checks their host reachability, but
+# neither sees a path written as a plain string in an href or a form action.
+_TEMPLATE_ATTR = re.compile(
+    r'(?:href|action|data-rmc-href|data-href)\s*=\s*"(/[^"{}]*)"'
+)
+TEMPLATE_EXEMPTION = "dead-path-allow"
 
 
 def _django_ready():
@@ -102,11 +124,36 @@ def _candidates():
                 yield rel, number, path
 
 
+def _template_candidates():
+    """Literal href/action paths in every template the app can render."""
+    roots = [REPO_ROOT / "templates"] + sorted(
+        (REPO_ROOT / "apps").glob("*/templates")
+    )
+    for root in roots:
+        if not root.is_dir():
+            continue
+        for tpl in sorted(root.rglob("*.html")):
+            rel = tpl.relative_to(REPO_ROOT).as_posix()
+            try:
+                lines = tpl.read_text(encoding="utf-8").splitlines()
+            except (OSError, UnicodeDecodeError):
+                continue
+            for number, line in enumerate(lines, start=1):
+                previous = lines[number - 2] if number >= 2 else ""
+                if TEMPLATE_EXEMPTION in line or TEMPLATE_EXEMPTION in previous:
+                    continue
+                for match in _TEMPLATE_ATTR.finditer(line):
+                    path = match.group(1)
+                    if path.startswith(SKIP_PREFIXES) or _is_template(path):
+                        continue
+                    yield rel, number, path
+
+
 def _findings():
     from django.urls import Resolver404, resolve
 
     out = []
-    for rel, number, path in _candidates():
+    for rel, number, path in list(_candidates()) + list(_template_candidates()):
         base = path.split("?")[0].split("#")[0]
         for urlconf in HOST_URLCONFS:
             try:

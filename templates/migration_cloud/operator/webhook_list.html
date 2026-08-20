@@ -20,7 +20,8 @@
       {% trans "emit-legacy is OFF. Only X-RunMyCampus-* headers are sent; legacy headers are suppressed." %}
     {% endif %}
     {% blocktrans with deadline=header_migration_deadline %}Customer migration deadline {{ deadline }}.{% endblocktrans %}
-    <a class="rmc-link" href="/docs/WEBHOOK_HEADER_MIGRATION_2026.md">{% trans "Migration guide" %}</a>
+    {# Repo file, not a served route — see the note in mat_group_hub/dashboard.html. #}
+    {% trans "Migration guide:" %} <code>docs/WEBHOOK_HEADER_MIGRATION_2026.md</code>
   </aside>
   {% endif %}
   <header class="rmc-page__header">

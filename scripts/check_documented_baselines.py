@@ -171,6 +171,41 @@ def _read_json_baseline(scanner: str) -> int | None:
     return None
 
 
+def _read_baseline_count(path):
+    """finding_count from a baseline file, or None when it has no plain count."""
+    if path is None:
+        return None
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    count = data.get("finding_count")
+    if isinstance(count, int):
+        return count
+    if isinstance(data.get("findings"), list):
+        return len(data["findings"])
+    return None
+
+
+def _unmapped_baseline_file(scanner: str):
+    """The baseline this scanner would own by convention, if it exists.
+
+    Naming is ``scan_foo_bar.py`` -> ``security-audit-baseline-foo-bar.json``,
+    which holds for 26 of the 28 gates currently in the map. Used only to
+    DETECT an unregistered gate, never to resolve one, so the two exceptions
+    cost a false negative rather than a false alarm.
+    """
+    stem = scanner.replace(".py", "")
+    for prefix in ("scan_", "verify_", "audit_", "check_"):
+        if stem.startswith(prefix):
+            stem = stem[len(prefix):]
+            break
+    candidate = BASELINE_DIR / (
+        "security-audit-baseline-" + stem.replace("_", "-") + ".json"
+    )
+    return candidate if candidate.exists() else None
+
+
 def find_drift(rows: list[BaselineRow]) -> list[tuple[BaselineRow, str]]:
     """Return list of (row, reason) for rows whose doc vs JSON disagree."""
     drift: list[tuple[BaselineRow, str]] = []
@@ -181,6 +216,30 @@ def find_drift(rows: list[BaselineRow]) -> list[tuple[BaselineRow, str]]:
         # Filter scripts (json_baseline always None) are skipped when
         # the doc also says n/a OR documents the zero-tolerance state.
         if SCANNER_BASELINE_MAP.get(row.scanner) is None:
+            # ...but first: is it unmapped because it has no baseline, or
+            # unmapped because nobody added it to the map? Those look
+            # identical here and mean opposite things. A gate that HAS a
+            # baseline file and is missing from the map has its documented
+            # number checked by nothing, and documenting "0" then reads as
+            # zero-tolerance when the gate may be carrying a real backlog —
+            # which is exactly how verify_cross_host_template_reverse came to
+            # be documented as 0 while its baseline held 22 frozen findings.
+            orphan = _unmapped_baseline_file(row.scanner)
+            orphan_count = _read_baseline_count(orphan) if orphan else None
+            if orphan_count is not None and row.documented != orphan_count:
+                drift.append((
+                    row,
+                    f"doc says {row.documented} but {orphan.name} holds "
+                    f"{orphan_count}. The gate is absent from SCANNER_BASELINE_MAP, "
+                    "so nothing was comparing them.",
+                ))
+                continue
+            if orphan_count is not None:
+                # Agrees. Unregistered, but the doc is telling the truth, so
+                # this is a housekeeping item and not a finding — reporting it
+                # at the same volume as a real contradiction would bury the one
+                # row that matters under twenty that do not.
+                continue
             # Zero-tolerance gates legitimately document "0" even
             # though they keep no JSON baseline — that's the state
             # they enforce. Only non-zero ints are misleading.
