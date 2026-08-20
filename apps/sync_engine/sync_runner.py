@@ -31,7 +31,7 @@ import logging
 import os
 
 from django.conf import settings
-from django.urls import NoReverseMatch, reverse
+from apps.sync_engine.cloud_endpoints import cloud_endpoint
 from django.utils import timezone
 
 logger = logging.getLogger(__name__)
@@ -94,12 +94,15 @@ def _edge_token() -> str:
     return (os.getenv("RMC_EDGE_CREDENTIAL") or "").strip()
 
 
-def _endpoint(base: str, url_name: str, fallback_path: str) -> str:
-    try:
-        path = reverse(url_name)
-    except NoReverseMatch:
-        path = fallback_path
-    return base + path
+def _endpoint(base: str, url_name: str) -> str:
+    """Absolute url on the cloud. Fallback paths live in cloud_endpoints.
+
+    The literal used to be passed in per call site, and both of this module's
+    were wrong (``/api/v1/sync/...``, a prefix carrying no sync routes), so a
+    box that could not reverse asked the cloud for a nonexistent path and got
+    the tenant HTML catch-all back as a 404.
+    """
+    return cloud_endpoint(base, url_name)
 
 
 def _page_size() -> int:
@@ -413,9 +416,7 @@ def _execute_sync_transport(school, *, mode, result, run_row) -> None:
         elif meta["row_count"] == 0:
             notes.append("nothing to push")
         else:
-            endpoint = _endpoint(
-                base, "api:sync-bundle-upload", "/api/v1/sync/bundle/upload/"
-            )
+            endpoint = _endpoint(base, "api:sync-bundle-upload")
             page_size = _page_size()
             max_pages = _max_pages_per_cycle()
 
@@ -513,9 +514,7 @@ def _execute_sync_transport(school, *, mode, result, run_row) -> None:
             set_sync_cursor,
         )
 
-        endpoint = _endpoint(
-            base, "api:sync-bundle-download", "/api/v1/sync/bundle/download/"
-        )
+        endpoint = _endpoint(base, "api:sync-bundle-download")
         # Same overlap as the push leg, for the same reason - a row written on the cloud
         # while a cycle was in flight must not fall permanently behind the cursor.
         pull_since = get_sync_cursor_for_request(school, EdgeSyncCursor.PULL)

@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 from typing import Any
+from apps.sync_engine.cloud_endpoints import cloud_endpoint
 
 
 def operator_base() -> str:
@@ -84,8 +85,8 @@ def connectivity_snapshot() -> dict[str, Any]:
         "operator_base": base,
         "operator_base_configured": bool(base),
         "credential_configured": credential_configured(),
-        "pull_endpoint": f"{base}/api/v1/sync/bundle/download/" if base else "",
-        "upload_endpoint": f"{base}/api/v1/sync/bundle/upload/" if base else "",
+        "pull_endpoint": cloud_endpoint(base, "api:sync-bundle-download") if base else "",
+        "upload_endpoint": cloud_endpoint(base, "api:sync-bundle-upload") if base else "",
         "school_slug_pin": (os.getenv("RMC_EDGE_SCHOOL_SLUG") or "").strip(),
     }
 
@@ -146,10 +147,10 @@ def probe_cloud_http(*, timeout: float = 20.0) -> dict[str, Any]:
         except (urllib.error.URLError, OSError) as exc:
             return {"ok": False, "status": 0, "detail": f"unreachable: {exc}"}
 
-    pull = _http_probe("pull", f"{base}/api/v1/sync/bundle/download/")
+    pull = _http_probe("pull", cloud_endpoint(base, "api:sync-bundle-download"))
     push = _http_probe(
         "push",
-        f"{base}/api/v1/sync/bundle/upload/",
+        cloud_endpoint(base, "api:sync-bundle-upload"),
         method="POST",
         body=b"",
     )
