@@ -36,6 +36,14 @@ class Command(BaseCommand):
         parser.add_argument("--unpair", action="store_true", help="Forget the stored binding.")
         parser.add_argument("--yes", action="store_true", help="Confirm --unpair without prompting.")
         parser.add_argument("--base", default="", help="Override the cloud base URL for this attempt.")
+        parser.add_argument(
+            "--claim",
+            default="",
+            help=(
+                "Redeem a claim ticket minted on the cloud, so the box adopts itself "
+                "with no approval step. Single use."
+            ),
+        )
 
     def handle(self, *args, **options):
         from apps.sync_engine import pairing_client
@@ -70,9 +78,22 @@ class Command(BaseCommand):
             )
             return
 
-        result = pairing_client.start(base=options["base"])
+        result = pairing_client.start(base=options["base"], claim_ticket=options["claim"])
         if not result.get("ok"):
             raise CommandError(result.get("message") or result.get("error") or "pairing failed")
+
+        if options["claim"] and result.get("claim_ticket_error"):
+            self.stdout.write(self.style.ERROR(
+                "That claim ticket was not accepted (invalid, already used, expired, or "
+                "issued for a different school). A pairing request was still opened, so "
+                "it can be approved normally instead."
+            ))
+        if result.get("pre_approved"):
+            self.stdout.write("")
+            self.stdout.write(self.style.SUCCESS(
+                "Claim ticket accepted - this box is pre-approved and will collect "
+                "its credential on the next poll. No administrator action is needed."
+            ))
 
         code = result["user_code"]
         self.stdout.write("")

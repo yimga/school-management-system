@@ -109,6 +109,7 @@ class PairingStartView(APIView):
             box_hostname=str(payload.get("hostname") or "")[:253],
             box_ip=ip or None,
             box_version=str(payload.get("version") or "")[:64],
+            claim_ticket=str(payload.get("claim_ticket") or "")[:128],
         )
         # poll_interval tells the box how often to come back, so the cadence is the
         # cloud's to tune later without shipping a new box image.

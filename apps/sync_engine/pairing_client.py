@@ -119,7 +119,7 @@ def _box_identity() -> dict:
     }
 
 
-def start(*, base: str = "") -> dict:
+def start(*, base: str = "", claim_ticket: str = "") -> dict:
     """Open a pairing request against the cloud and remember it.
 
     Returns a dict with ``user_code`` for the screen, or ``error`` describing why the
@@ -139,7 +139,10 @@ def start(*, base: str = "") -> dict:
             ),
         }
     url = cloud_endpoint(base, "api:sync-pair-start")
-    status, body = _post(url, _box_identity())
+    identity = _box_identity()
+    if claim_ticket:
+        identity["claim_ticket"] = claim_ticket
+    status, body = _post(url, identity)
     if status != 200 or not body.get("ok"):
         return {
             "ok": False,
@@ -155,6 +158,8 @@ def start(*, base: str = "") -> dict:
         "operator_base": base,
         "school_resolved": bool(body.get("school_resolved")),
         "poll_interval_seconds": int(body.get("poll_interval_seconds") or 5),
+        "pre_approved": bool(body.get("pre_approved")),
+        "claim_ticket_error": body.get("claim_ticket_error") or "",
     }
     _save_state(state)
     logger.info("pairing_client: request opened, code %s", state["user_code"])

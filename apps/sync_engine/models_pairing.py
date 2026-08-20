@@ -275,8 +275,10 @@ class EdgePairingRequest(models.Model):
 
 __all__ = [
     "CODE_ALPHABET",
+    "EdgeClaimTicket",
     "EdgeCloudBinding",
     "EdgePairingRequest",
+    "PendingPushConfirmation",
     "generate_user_code",
     "hash_poll_secret",
     "normalize_user_code",
@@ -346,3 +348,158 @@ class EdgeCloudBinding(models.Model):
     @property
     def is_paired(self) -> bool:
         return bool(self.operator_base and self.credential)
+
+
+class PendingPushConfirmation(models.Model):
+    """A bundle this box pushed whose fate it never learned.
+
+    Recorded when a push fails AMBIGUOUSLY -- a read timeout, a connection reset, or a
+    gateway 502/503/504. Those all mean the request reached (or may have reached) the
+    cloud and the answer was lost on the way back, so the cloud may well have applied
+    the rows. A 400 or a 403 is NOT ambiguous: the cloud answered, and the answer was
+    no, so nothing is recorded for those.
+
+    On the next cycle the box asks ``/api/sync/bundle/receipt/`` whether this nonce was
+    accepted. Yes -> advance the cursor over that page and skip the re-push. No ->
+    re-ship exactly as before. Either way the row is deleted; it is a question waiting
+    to be asked, not a queue.
+
+    Note what this is NOT protecting against. Re-shipping was always CORRECT --
+    ``export_delta_bundle`` regenerates the nonce per build, so a rebuilt bundle is new
+    to the replay guard and the apply is idempotent. This saves the bandwidth of
+    re-sending a whole page over a link that has just demonstrated it is unreliable,
+    which on a metered village connection is the difference that matters.
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="pending_push_confirmations",
+    )
+    nonce = models.CharField(max_length=64, db_index=True)
+    # Where the cursor would move to if the cloud confirms it took this page.
+    high_water = models.CharField(max_length=64, blank=True, default="")
+    row_count = models.IntegerField(default=0)
+    # Unix seconds from the bundle header, so the cloud can tell us whether its
+    # "not seen" is confident or merely outside the pruning window.
+    built_at = models.BigIntegerField(default=0)
+    failure = models.CharField(max_length=120, blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    attempts = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        app_label = "sync_engine"
+        ordering = ["created_at"]
+        verbose_name = "Pending push confirmation"
+        verbose_name_plural = "Pending push confirmations"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["school", "nonce"], name="uq_pendingpushconfirmation_nonce"
+            )
+        ]
+
+    def __str__(self) -> str:  # pragma: no cover - admin/debug convenience
+        return f"PendingPushConfirmation({self.nonce[:12]},{self.row_count} rows)"
+
+
+class EdgeClaimTicket(models.Model):
+    """A pre-authorised adoption, minted BEFORE the box exists.
+
+    THE CASE THIS EXISTS FOR. A technician installs a box at a school with a scheduled
+    visit and no way to reach anyone holding cloud admin — the school's admin is
+    unreachable, or the school has just been provisioned and has no admin logged in
+    anywhere. Deferred approval (72h) plus an emailed nudge covers "nobody is at a
+    console right now"; it does not cover "the box must be syncing before I leave the
+    site."
+
+    HOW IT IS DIFFERENT FROM A CREDENTIAL, which is the whole reason it is acceptable
+    at all. A ticket is not a bearer token for the sync API. It buys exactly one thing:
+    the right to have ONE pairing request auto-approved for ONE named school. It is:
+
+      * single-use — ``redeemed_at`` is set inside the same locked transaction that
+        consumes it, so a second redemption cannot race the first;
+      * self-invalidating — once redeemed it is permanently spent, not merely expired;
+      * short-lived by comparison with a credential (days, against a credential's year);
+      * scoped to one school, so it cannot adopt a box into any other tenant;
+      * and — the property a leaked long-lived ``RMC_EDGE_CREDENTIAL`` can never give
+        you — a SECOND attempt to redeem a spent ticket is a high-quality intrusion
+        signal, because the legitimate box redeems exactly once and never again.
+
+    So the tradeoff is real but bounded: a leaked ticket is useful only until the real
+    box claims it, and its misuse is loud. A leaked credential is useful for a year and
+    silent. That asymmetry is why this exists and why it is not simply "the old way
+    with extra steps".
+
+    The redemption still flows through ``EdgePairingRequest``, so an operator-issued
+    box appears in the same audit trail as a human-approved one, carrying the name of
+    whoever minted the ticket in ``approved_by``.
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="edge_claim_tickets",
+    )
+    # Only the sha256 is stored, exactly as for the machine credential itself: an
+    # operator who loses the printed ticket mints a new one, and a database leak does
+    # not hand anyone a working ticket.
+    ticket_hash = models.CharField(max_length=64, unique=True, db_index=True)
+    label = models.CharField(max_length=120, blank=True, default="")
+
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+    expires_at = models.DateTimeField(db_index=True)
+
+    redeemed_at = models.DateTimeField(null=True, blank=True)
+    redeemed_by_request = models.ForeignKey(
+        "sync_engine.EdgePairingRequest",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+    revoked_at = models.DateTimeField(null=True, blank=True)
+    # Every attempt to use a spent or revoked ticket. Not a counter for its own sake:
+    # the legitimate box redeems once, so anything above zero here means someone else
+    # has the ticket.
+    misuse_attempts = models.PositiveIntegerField(default=0)
+    last_misuse_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        app_label = "sync_engine"
+        ordering = ["-created_at"]
+        verbose_name = "Edge claim ticket"
+        verbose_name_plural = "Edge claim tickets"
+        indexes = [models.Index(fields=["school", "redeemed_at"])]
+
+    def __str__(self) -> str:  # pragma: no cover - admin/debug convenience
+        return f"EdgeClaimTicket({self.school_id},{'spent' if self.redeemed_at else 'open'})"
+
+    @property
+    def is_usable(self) -> bool:
+        return (
+            self.redeemed_at is None
+            and self.revoked_at is None
+            and timezone.now() < self.expires_at
+        )
+
+    @classmethod
+    def mint(cls, *, school, created_by=None, days: int = 14, label: str = ""):
+        """Create a ticket. Returns ``(raw_ticket, row)``; the raw is shown ONCE."""
+        raw = f"RMC-{secrets.token_urlsafe(24)}"
+        row = cls.objects.create(
+            school=school,
+            ticket_hash=hash_poll_secret(raw),
+            label=(label or "")[:120],
+            created_by=created_by,
+            expires_at=timezone.now() + timedelta(days=max(1, int(days))),
+        )
+        return raw, row

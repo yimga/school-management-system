@@ -48,6 +48,7 @@ def start_pairing(
     box_hostname: str = "",
     box_ip: str | None = None,
     box_version: str = "",
+    claim_ticket: str = "",
 ) -> dict:
     """Open a pairing request. Called by an UNAUTHENTICATED box.
 
@@ -63,6 +64,7 @@ def start_pairing(
     than a 404 the box would report as a connectivity failure.
     """
     school = _school_for_slug(claimed_slug)
+    ticket_row = _consume_claim_ticket(claim_ticket, school) if claim_ticket else None
     request, raw_secret = EdgePairingRequest.open_request(
         school=school,
         claimed_slug=claimed_slug,
@@ -79,6 +81,24 @@ def start_pairing(
         bool(school),
         device_id,
     )
+    if ticket_row is not None:
+        # A valid ticket IS the approval — it was minted by an authorised human ahead
+        # of time, and consuming it is what that human authorised. Recorded through the
+        # ordinary approved_by field so an operator-issued box is indistinguishable in
+        # the audit trail from one a school admin clicked through, and so `collect`
+        # needs no special case.
+        request.status = EdgePairingRequest.Status.APPROVED
+        request.approved_at = timezone.now()
+        request.approved_by = ticket_row.created_by
+        request.save(update_fields=["status", "approved_at", "approved_by"])
+        ticket_row.redeemed_by_request = request
+        ticket_row.save(update_fields=["redeemed_by_request"])
+        logger.info(
+            "sync_engine.pairing: %s auto-approved by claim ticket %s",
+            request.user_code,
+            str(ticket_row.pk)[:8],
+        )
+
     notify_admins_of_pending_pairing(request)
     return {
         "ok": True,
@@ -87,7 +107,76 @@ def start_pairing(
         "poll_secret": raw_secret,
         "expires_at": request.expires_at.isoformat(),
         "school_resolved": bool(school),
+        "pre_approved": ticket_row is not None,
+        "claim_ticket_error": (
+            "" if (ticket_row is not None or not claim_ticket) else "invalid_or_spent"
+        ),
     }
+
+
+def _consume_claim_ticket(raw_ticket: str, school):
+    """Spend a claim ticket, exactly once. Returns the row, or None.
+
+    The single-use guarantee lives here, in a locked UPDATE that both checks and
+    consumes: two boxes presenting the same ticket concurrently cannot both win,
+    because the second one's filter no longer matches.
+
+    A presented-but-unusable ticket is COUNTED, not merely rejected. The legitimate box
+    redeems once and never again, so any misuse attempt means someone else has a copy —
+    which is the alarm a long-lived credential in a .env file can never raise.
+    """
+    from django.db import transaction
+
+    from apps.sync_engine.models_pairing import EdgeClaimTicket, hash_poll_secret
+
+    raw_ticket = (raw_ticket or "").strip()
+    if not raw_ticket or school is None:
+        return None
+    fingerprint = hash_poll_secret(raw_ticket)
+    try:
+        with transaction.atomic():
+            row = (
+                EdgeClaimTicket.objects.select_for_update()  # tenant-isolation-allow: claim-ticket-resolved-by-its-own-sha256-then-checked-against-the-claimed-school
+                .filter(ticket_hash=fingerprint)
+                .select_related("school", "created_by")
+                .first()
+            )
+            if row is None:
+                logger.warning(
+                    "sync_engine.pairing: claim ticket presented that matches nothing"
+                )
+                return None
+            if str(row.school_id) != str(getattr(school, "pk", "")):
+                row.misuse_attempts = (row.misuse_attempts or 0) + 1
+                row.last_misuse_at = timezone.now()
+                row.save(update_fields=["misuse_attempts", "last_misuse_at"])
+                logger.error(
+                    "sync_engine.pairing: claim ticket for school %s presented while "
+                    "claiming school %s — REFUSED",
+                    row.school_id,
+                    getattr(school, "pk", "?"),
+                )
+                return None
+            if not row.is_usable:
+                row.misuse_attempts = (row.misuse_attempts or 0) + 1
+                row.last_misuse_at = timezone.now()
+                row.save(update_fields=["misuse_attempts", "last_misuse_at"])
+                logger.error(
+                    "sync_engine.pairing: SPENT/expired claim ticket %s presented again "
+                    "(attempt %s) — the legitimate box redeems once, so this ticket is "
+                    "in someone else's hands",
+                    str(row.pk)[:8],
+                    row.misuse_attempts,
+                )
+                return None
+            # Consume inside the lock: the ticket is spent whether or not anything
+            # downstream succeeds, because a ticket that can be retried is not single-use.
+            row.redeemed_at = timezone.now()
+            row.save(update_fields=["redeemed_at"])
+            return row
+    except Exception:  # noqa: BLE001 — a broken ticket path must not break pairing
+        logger.debug("sync_engine.pairing: claim ticket consume failed", exc_info=True)
+        return None
 
 
 def collect_pairing(*, request_id: str, poll_secret: str) -> dict:
@@ -329,6 +418,7 @@ def notify_admins_of_pending_pairing(request) -> None:
 
 __all__ = [
     "approve_pairing",
+    "mint_claim_ticket",
     "collect_pairing",
     "deny_pairing",
     "find_pending_by_code",
@@ -336,3 +426,39 @@ __all__ = [
     "pending_requests_for_school",
     "start_pairing",
 ]
+
+
+def mint_claim_ticket(*, school, minted_by, days: int = 14, label: str = "") -> dict:
+    """Pre-authorise ONE adoption of ``school``. Returns the raw ticket ONCE.
+
+    Only a tenant admin of that school or platform staff may mint — the same gate as
+    approving, because a ticket IS an approval, merely made ahead of time.
+    """
+    from apps.accounts.decorators import user_is_tenant_admin
+    from apps.sync_engine.models_pairing import EdgeClaimTicket
+
+    if school is None:
+        return {"ok": False, "error": "school_required"}
+    is_platform_staff = bool(
+        getattr(minted_by, "is_superuser", False) or getattr(minted_by, "is_staff", False)
+    )
+    if not (is_platform_staff or user_is_tenant_admin(minted_by, school)):
+        return {"ok": False, "error": "forbidden"}
+
+    raw, row = EdgeClaimTicket.mint(
+        school=school, created_by=minted_by, days=days, label=label
+    )
+    logger.info(
+        "sync_engine.pairing: claim ticket %s minted for %s by %s (expires %s)",
+        str(row.pk)[:8],
+        school.slug,
+        getattr(minted_by, "username", "?"),
+        row.expires_at.isoformat(),
+    )
+    return {
+        "ok": True,
+        "ticket": raw,
+        "ticket_id": str(row.pk),
+        "expires_at": row.expires_at.isoformat(),
+        "school_slug": school.slug,
+    }

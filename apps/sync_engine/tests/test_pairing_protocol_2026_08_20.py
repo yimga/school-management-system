@@ -68,8 +68,12 @@ class PairingProtocolTests(TestCase):
 
         from apps.schools.models import School, SchoolMembership
 
-        self.school = School.objects.create(name="Gilead Tech", slug="gilead-tech")
-        self.other = School.objects.create(name="Other School", slug="other-school")
+        self.school = School.objects.create(
+            name="Gilead Tech", slug="gilead-tech", subdomain="gilead-tech"
+        )
+        self.other = School.objects.create(
+            name="Other School", slug="other-school", subdomain="other-school"
+        )
         User = get_user_model()
         self.admin = User.objects.create_user(
             username="gilead_admin", password="x", email="a@example.com"
@@ -366,7 +370,9 @@ class PlatformStaffBackstopTests(TestCase):
 
         from apps.schools.models import School
 
-        self.school = School.objects.create(name="Gilead Tech", slug="gilead-tech")
+        self.school = School.objects.create(
+            name="Gilead Tech", slug="gilead-tech", subdomain="gilead-tech"
+        )
         User = get_user_model()
         self.staff = User.objects.create_user(
             username="platform_ops", password="x", is_staff=True
