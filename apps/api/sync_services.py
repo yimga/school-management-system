@@ -7,7 +7,9 @@ Frontend MUST use tenant-scoped cache: IndexedDB key e.g. sync_queue_${school_id
 so that no cross-tenant data is ever visible (one school per device/session).
 """
 
+import decimal as _decimal
 import logging
+import uuid as _uuid
 
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
@@ -306,7 +308,21 @@ def _get_entity_config(include_derived=False):
         # NOTE: no "is_active" — Classroom has no such field. Leaving the phantom in
         # would crash the UPDATE path (`save(update_fields=["is_active"])` → FieldError)
         # whenever a classroom edit carried it.
-        "classroom": (Classroom, {"name", "academic_year_id"}),
+        #
+        # `department_id` and `code` are on the set because without them a classroom can
+        # never be CREATED across the boundary in EITHER direction — found by running the
+        # insert, 2026-08-20: `Classroom.department` is NOT NULL and `code` is a required
+        # UNIQUE column, so an insert carrying only {name, academic_year_id} dies on
+        # `NOT NULL constraint failed: academics_classroom.department_id`, and a second one
+        # would then collide on `code=""`. The practical effect was that a class created on
+        # the cloud in September simply did not exist on the appliance, and a class created
+        # offline could never be pushed up. Both are FKs/scalars to already-registered
+        # benign master data, so they remap and converge like every other classroom field.
+        # The exam/term governance booleans (gce_eligible, allows_third_term) deliberately
+        # stay OFF the rail — those decide who may be registered for a certification exam,
+        # which is the same class of cloud-governed switch as
+        # academic_year.enable_gce_registration.
+        "classroom": (Classroom, {"name", "academic_year_id", "department_id", "code"}),
     }
     # The expanded two-way registry is scoped to EDGE SYNC operations only — callers on
     # the edge push/pull paths pass include_derived=True. An ordinary online DeltaSyncAPI
@@ -325,6 +341,26 @@ def _get_entity_config(include_derived=False):
             )
             config[entity_type] = (model, fields)
     return config
+
+
+# Which Django app owns each synced entity. The schema handshake (G4) degrades to a
+# COMPATIBLE SUBSET rather than refusing a whole cycle, and this is what makes "subset"
+# expressible: a box behind only on `finance` still receives its attendance. Derived from
+# the same specs the registry is built from, plus the three curated entities, so a new
+# entity cannot be added without its app being known here.
+_CURATED_ENTITY_APPS = {
+    "student": "people",
+    "attendance": "academics",
+    "classroom": "academics",
+}
+
+
+def entity_app_labels() -> dict:
+    """``{entity_type: app_label}`` for every entity on the edge rail."""
+    labels = dict(_CURATED_ENTITY_APPS)
+    for entity_type, app_label, _model_name in _DERIVED_ENTITY_SPECS:
+        labels[entity_type] = app_label
+    return labels
 
 
 def _insert_fk_targets(config) -> dict:
@@ -553,6 +589,275 @@ def _create_from_cloud_pull(
         # for it. Reported per row rather than raised, so the rest of the pull still lands.
         return None, {"status": 422, "data": {"error": "create_failed", "detail": str(exc)[:200]}}
     return instance, None
+
+
+def _reassert_row_after_refused_delete(model, school_id, pk):
+    """Bump ``updated_at`` on a row whose DELETION this side refused.
+
+    Without this, refusing a delete guarantees permanent divergence: the appliance has
+    already removed the row locally, the cloud keeps it, and because the cloud copy's
+    ``updated_at`` is older than the box's pull cursor the incremental delta will never
+    offer it again. The row would be gone on one side and present on the other, forever,
+    with nothing reporting a problem.
+
+    Touching the timestamp puts the row back INSIDE the next pull window, where the
+    cloud-authored create path lands it again by pk. The cloud is not accepting the box's
+    change - it is re-asserting its own row, which is exactly what "money is
+    cloud-authoritative" means.
+
+    Uses ``.update()`` deliberately: it writes the column directly, without running
+    ``auto_now``, signals, or model save hooks, so re-asserting a row can never fire
+    another tombstone or a business side effect. Never raises.
+    """
+    if not any(getattr(f, "attname", "") == "updated_at" for f in model._meta.get_fields()):
+        return False
+    try:
+        qs = model._base_manager.filter(pk=pk)
+        if any(getattr(f, "attname", "") == "school_id" for f in model._meta.get_fields()):
+            qs = qs.filter(school_id=school_id)
+        return bool(qs.update(updated_at=timezone.now()))
+    except Exception:  # noqa: BLE001 - a repair step must never break the batch
+        logger.debug("could not re-assert %s:%s after a refused delete", model, pk, exc_info=True)
+        return False
+
+
+def apply_deletes(school_id, user, rows, *, sync_origin=None):
+    """Apply DELETION rows (``op="delete"``) from a delta bundle.
+
+    The third inbound path, alongside :func:`apply_changes` (update-by-pk) and
+    :func:`apply_edge_inserts` (upsert-by-anchor). Until it existed a deletion was the
+    one change the engine could not carry at all - see
+    :mod:`apps.sync_engine.tombstones`.
+
+    A delete is a WRITE, so it answers to every gate a write answers to:
+
+      * **principal** - the same admin-like bar the insert path applies;
+      * **policy** - via :func:`_conflict_decision`, so an ONLINE_REQUIRED domain is
+        never deleted through the sync rail, and a protected (money / grade / identity)
+        entity may be deleted DOWNWARD by the cloud but never UPWARD by a box. A refused
+        upward delete re-asserts the cloud row so the appliance gets it back rather than
+        the two sides diverging in silence;
+      * **flood guard** - a bundle carrying more than
+        ``RMC_SYNC_MAX_DELETES_PER_BUNDLE`` deletions is refused WHOLE. A mistaken bulk
+        action on one side is then a loud refusal instead of a mirrored wipe.
+
+    A tombstone is recorded on this side even when the row is already absent: knowing a
+    row is buried is what stops it being re-created by a later bundle, and it is what
+    makes delete-dominance answer the same way regardless of which side is asked first.
+
+    Returns ``{"deleted", "results"}``; results carry per-row ``index``/``status``.
+    """
+    from django.core.exceptions import FieldError, ValidationError
+    from django.db import (
+        DataError,
+        IntegrityError,
+        OperationalError,
+        ProgrammingError,
+        transaction,
+    )
+
+    from apps.api.entity_api import _is_admin_like
+    from apps.sync_engine import tombstones
+
+    rows = list(rows or [])
+    config = _get_entity_config(include_derived=sync_origin is not None)
+    can_delete = bool(
+        getattr(user, "is_superuser", False)
+        or getattr(user, "is_staff", False)
+        or _is_admin_like(user)
+    )
+    if not school_id or not can_delete:
+        reason = "tenant_context_required" if not school_id else "forbidden"
+        return {
+            "deleted": 0,
+            "results": [
+                {"index": i, "status": 403, "data": {"error": reason}}
+                for i, _ in enumerate(rows)
+            ],
+        }
+    if not tombstones.delete_propagation_enabled():
+        return {
+            "deleted": 0,
+            "results": [
+                {"index": i, "status": 409, "data": {"error": "delete_propagation_disabled"}}
+                for i, _ in enumerate(rows)
+            ],
+        }
+
+    cap = tombstones.max_deletes_per_bundle()
+    if len(rows) > cap:
+        # Refused WHOLE, on purpose. Applying the first `cap` and refusing the rest would
+        # be the worst of both: a partial wipe plus an error. The far side keeps its
+        # tombstones, so once an operator has decided the deletions are intended, raising
+        # the cap (or a full resync) applies them - nothing is lost by refusing.
+        return {
+            "deleted": 0,
+            "results": [
+                {
+                    "index": i,
+                    "status": 409,
+                    "data": {
+                        "error": "delete_flood_guard",
+                        "count": len(rows),
+                        "max_deletes": cap,
+                    },
+                }
+                for i, _ in enumerate(rows)
+            ],
+        }
+
+    deleted = 0
+    results: list[dict] = []
+    for idx, item in enumerate(rows):
+        entity_type = (item.get("entity_type") or "").strip().lower()
+        pk = item.get("id")
+        coid = (item.get("client_offline_id") or "").strip()
+        deleted_at = _parse_client_updated_at(item.get("updated_at")) or timezone.now()
+
+        if entity_type not in config or (pk is None and not coid):
+            results.append(
+                {"index": idx, "status": 400, "data": {"error": "entity_type_and_id_required"}}
+            )
+            continue
+        model, _allowed = config[entity_type]
+
+        decision = _conflict_decision(entity_type, sync_origin, deleted_at, None)
+        if decision == "reject":
+            results.append(
+                {
+                    "index": idx,
+                    "status": 409,
+                    "data": {"error": "online_required", "entity_type": entity_type},
+                }
+            )
+            continue
+        if decision == "conflict":
+            # Protected entity, deletion travelling the wrong way. Refuse it AND put the
+            # row back in the far side's next window, or the sides diverge for good.
+            reasserted = _reassert_row_after_refused_delete(model, school_id, pk)
+            results.append(
+                {
+                    "index": idx,
+                    "status": 409,
+                    "data": {
+                        "error": "delete_refused_protected",
+                        "entity_type": entity_type,
+                        "reasserted": reasserted,
+                    },
+                }
+            )
+            continue
+
+        # Record the burial FIRST. If the delete below fails we still know the row is
+        # meant to be gone, so a later bundle cannot quietly re-create it; and a row that
+        # is already absent locally still needs the tombstone for exactly that reason.
+        tombstones.record_tombstone(
+            school_id,
+            entity_type,
+            pk if pk is not None else coid,
+            deleted_at=deleted_at,
+            client_offline_id=coid,
+            origin=sync_origin or "",
+        )
+
+        try:
+            with transaction.atomic():  # savepoint: one undeletable row must not kill the batch
+                qs = model._base_manager.all()
+                if any(
+                    getattr(f, "attname", "") == "school_id" for f in model._meta.get_fields()
+                ):
+                    qs = qs.filter(school_id=school_id)
+                target = qs.filter(pk=pk).first() if pk is not None else None
+                if target is None and coid:
+                    target = qs.filter(client_offline_id=coid).first()
+                if target is None:
+                    results.append(
+                        {"index": idx, "status": 200, "data": {"deleted": False, "already_absent": True}}
+                    )
+                    continue
+                target_pk = target.pk
+                with tombstones.applying_remote_delete():
+                    # The INSTANCE's delete(), never a queryset delete. Several models
+                    # here override it - finance.Invoice soft-deletes for legal
+                    # traceability rather than removing the row - and a queryset delete
+                    # would silently bypass that override and hard-delete a record the
+                    # product deliberately keeps. The sync rail does not get to overrule a
+                    # model's own deletion semantics.
+                    target.delete()
+                if model._base_manager.filter(pk=target_pk).exists():
+                    # The model SOFT-deleted: the row is still there, marked void. It is
+                    # not a deletion the far side needs a tombstone for - the void state
+                    # is ordinary column data and travels on the update rail like any
+                    # other change. Leaving the tombstone would be actively wrong: it
+                    # would refuse every later update to a row that still exists.
+                    tombstones.clear_tombstone(
+                        school_id, entity_type, pk if pk is not None else coid
+                    )
+                    results.append(
+                        {"index": idx, "status": 200,
+                         "data": {"deleted": False, "soft_deleted": True}}
+                    )
+                    continue
+                # The echo-suppression marker describes a row that no longer exists.
+                from apps.sync_engine.models import SyncApplyLedger
+
+                SyncApplyLedger.objects.filter(
+                    school_id=school_id, entity_type=entity_type, local_pk=str(target_pk)
+                ).delete()
+        except (
+            IntegrityError, DataError, ValidationError, ValueError, TypeError, FieldError,
+            OperationalError, ProgrammingError,
+        ) as exc:
+            # A PROTECT/RESTRICT relation, or a schema this deployment has not migrated.
+            results.append(
+                {"index": idx, "status": 422, "data": {"error": "delete_failed", "detail": str(exc)[:200]}}
+            )
+            continue
+        deleted += 1
+        results.append({"index": idx, "status": 200, "data": {"deleted": True}})
+
+    return {"deleted": deleted, "results": results}
+
+
+# Distinguishable from a genuine ``None`` in the ledger lookup below.
+_UNSET = object()
+
+
+# Value types it is SAFE to compare by text. Anything else - a related manager, a file
+# descriptor, a model instance - is deliberately excluded: see _same_value.
+_COMPARABLE_SCALARS = (str, bytes, bool, int, float, _decimal.Decimal, _uuid.UUID)
+
+
+def _same_value(current, incoming) -> bool:
+    """Would writing ``incoming`` over ``current`` change anything?
+
+    Compared as TEXT, but ONLY for plain scalars. The two sides arrive by different routes
+    — a live model attribute and a JSON wire payload — so ``Decimal("1.00")`` vs
+    ``"1.00"``, ``3`` vs ``"3"`` and a ``date`` vs its ISO string are the same value
+    reported differently, and treating those as changes would defeat the check.
+
+    ANYTHING ELSE IS TREATED AS CHANGED, on purpose. Django's ``BaseManager.__str__``
+    returns ``"<app>.<Model>.<name>"``, so a many-to-many attribute stringifies to
+    something a wire value can genuinely equal — and this check would then SKIP a write
+    that was going to fail, converting a 422 into a green 200. A skip-the-redundant-write
+    optimisation must never be able to change an outcome; when it cannot be sure, it must
+    let the write happen and the real error surface.
+    """
+    if current is None or incoming is None:
+        return current is None and incoming is None
+    if current is incoming:
+        return True
+    if hasattr(current, "isoformat"):  # date / datetime / time
+        try:
+            return current.isoformat() == str(incoming)
+        except Exception:  # noqa: BLE001 - an optimisation must never be the failure
+            return False
+    if not isinstance(current, _COMPARABLE_SCALARS):
+        return False
+    try:
+        return str(current) == str(incoming)
+    except Exception:  # noqa: BLE001
+        return False
 
 
 def _parse_client_updated_at(raw):
@@ -790,6 +1095,36 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
     # header, never from the order rows were applied in.
     _order = _insert_dependency_order(config)
 
+    # Rows this side has BURIED. Loaded once for the whole bundle. Without it a deletion
+    # never really sticks: the far side, whose own copy is simply older than its cursor,
+    # keeps re-offering the row and the ordinary apply path faithfully re-creates it -
+    # a delete that undoes itself on the next cycle.
+    from apps.sync_engine.tombstones import clear_tombstone, tombstone_index
+
+    # Both preloads below are scoped to THIS bundle's keys. The ledger and the tombstone
+    # table both grow with the deployment's whole history, so reading them whole would
+    # make every apply slower the longer a school has been running - for an answer about
+    # at most a few hundred rows.
+    _bundle_pks = {str(i.get("id")) for i in items if i.get("id") is not None}
+
+    _buried = tombstone_index(school_id, tuple(config), local_pks=_bundle_pks)
+
+    # What SYNC last wrote, per row. Used below to stop this side mistaking its OWN
+    # previous apply for a local edit. Loaded once for the bundle.
+    _sync_applied: dict = {}
+    if sync_origin == "cloud-pull" and _bundle_pks:
+        try:
+            from apps.sync_engine.models import SyncApplyLedger
+
+            _sync_applied = {
+                (row[0], row[1]): row[2]
+                for row in SyncApplyLedger.objects.filter(
+                    school_id=school_id, local_pk__in=sorted(_bundle_pks)
+                ).values_list("entity_type", "local_pk", "applied_updated_at")
+            }
+        except Exception:  # noqa: BLE001 - a provenance read must never break an apply
+            logger.debug("could not load the sync-apply ledger", exc_info=True)
+
     def _rank(pair):
         _idx, _item = pair
         _et = (_item.get("entity_type") or "").strip().lower()
@@ -816,6 +1151,28 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
                 continue
 
             model, allowed = config[entity_type]
+
+            # DELETE DOMINANCE, resolved by timestamp so both sides reach the same answer
+            # no matter which is asked first. An incoming change to a row this side buried
+            # is refused; a change that is strictly NEWER than the burial is the far side
+            # deliberately resurrecting the row, so it wins and the tombstone is dropped
+            # (leaving it would re-delete the row on the far side next cycle).
+            _buried_at = _buried.get((entity_type, str(pk)))
+            if _buried_at is not None:
+                if client_updated_at is None or client_updated_at <= _buried_at:
+                    _emit({
+                        "index": idx,
+                        "status": 409,
+                        "data": {
+                            "error": "deleted_upstream",
+                            "entity_type": entity_type,
+                            "deleted_at": _buried_at.isoformat(),
+                        },
+                    })
+                    continue
+                clear_tombstone(school_id, entity_type, pk)
+                _buried.pop((entity_type, str(pk)), None)
+
             if not isinstance(changes, dict):
                 _emit(
                     {
@@ -899,7 +1256,22 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
             if server_dt is not None and timezone.is_naive(server_dt):
                 server_dt = timezone.make_aware(server_dt, timezone.get_current_timezone())
 
-            decision = _conflict_decision(entity_type, sync_origin, client_updated_at, server_dt)
+            # A row this side last wrote through SYNC ITSELF is not a local edit, even
+            # though its updated_at is newer than the incoming one — the newer stamp came
+            # from the apply, not from a human. Grading it as a conflict is how a simple
+            # RETRY (a failed cycle, or the cursor overlap re-offering a row) manufactured
+            # SyncConflict rows out of the engine's own writes, then asked an operator to
+            # adjudicate between a value and itself.
+            _grade_against = server_dt
+            if (
+                sync_origin == "cloud-pull"
+                and _sync_applied.get((entity_type, str(pk)), _UNSET) == server_dt
+            ):
+                _grade_against = None
+
+            decision = _conflict_decision(
+                entity_type, sync_origin, client_updated_at, _grade_against
+            )
             if decision == "reject":
                 # Domain may only change through a live online transaction (policy
                 # ONLINE_REQUIRED); an offline/sync replay must never apply it.
@@ -1026,6 +1398,29 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True, sync
                         "references": missing_ref[1],
                         "referenced_id": missing_ref[2],
                     },
+                })
+                continue
+
+            # Nothing to do: every incoming value already matches. Saving anyway would
+            # bump updated_at for a write that changed nothing, which re-enters this row
+            # into the next delta in the OTHER direction — churn manufactured by the
+            # engine, most visible now that the cursor overlap deliberately re-offers
+            # recent rows.
+            if all(
+                _same_value(getattr(instance, _k, None), _v) for _k, _v in updates.items()
+            ):
+                if sync_origin:
+                    from apps.sync_engine.models import record_sync_apply
+
+                    record_sync_apply(
+                        school_id, entity_type, instance.pk,
+                        getattr(instance, "updated_at", None), sync_origin,
+                    )
+                success_count += 1
+                _emit({
+                    "index": idx,
+                    "status": 200,
+                    "data": {"id": instance.pk, "unchanged": True},
                 })
                 continue
 
@@ -1209,6 +1604,21 @@ def apply_edge_inserts(school_id, user, rows, *, sync_origin=None):
     order = _insert_dependency_order(config)
     fk_targets = _insert_fk_targets(config)  # {entity_type: {fk_attname: target_entity_type}}
 
+    # Anchors this side has buried. An offline-created row is matched by
+    # (school, client_offline_id), never by pk, so the pk-keyed index cannot answer for
+    # it - and without this guard a box would re-create, on EVERY cycle, the very row the
+    # cloud had just deleted: the upsert finds nothing, inserts afresh, the cloud deletes
+    # it again, forever.
+    from apps.sync_engine.tombstones import (
+        clear_tombstone as _clear_tombstone,
+        tombstone_index_by_client_offline_id,
+    )
+
+    buried_anchors = tombstone_index_by_client_offline_id(
+        school_id,
+        anchors={(r.get("client_offline_id") or "").strip() for r in rows},
+    )
+
     def _rank(item):
         et = (item.get("entity_type") or "").strip().lower()
         return order.index(et) if et in order else len(order)
@@ -1227,6 +1637,25 @@ def apply_edge_inserts(school_id, user, rows, *, sync_origin=None):
             results_by_index[idx] = {"index": idx, "status": 400, "data": {"error": "entity_type_and_client_offline_id_required"}}
             continue
         model, allowed = config[entity_type]
+
+        # Delete dominance for anchored rows, same timestamp rule as the update path.
+        _incoming_at = _parse_client_updated_at(item.get("updated_at"))
+        _anchor_buried_at = buried_anchors.get((entity_type, coid))
+        if _anchor_buried_at is not None:
+            if _incoming_at is None or _incoming_at <= _anchor_buried_at:
+                results_by_index[idx] = {
+                    "index": idx,
+                    "status": 409,
+                    "data": {
+                        "error": "deleted_upstream",
+                        "entity_type": entity_type,
+                        "deleted_at": _anchor_buried_at.isoformat(),
+                    },
+                }
+                continue
+            buried_anchors.pop((entity_type, coid), None)
+            _clear_tombstone(school_id, entity_type, coid)
+
         if not any(getattr(f, "name", "") == "client_offline_id" for f in model._meta.get_fields()):
             results_by_index[idx] = {"index": idx, "status": 422, "data": {"error": "entity_not_insertable"}}
             continue

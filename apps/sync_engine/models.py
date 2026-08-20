@@ -68,6 +68,76 @@ class SyncApplyLedger(models.Model):
         return f"{self.entity_type}:{self.local_pk}@{self.applied_updated_at}"
 
 
+class SyncTombstone(models.Model):
+    """A row that was DELETED, recorded so the deletion can cross the sync boundary.
+
+    THE HOLE THIS CLOSES. The delta is built by scanning ``filter(updated_at__gt=since)``.
+    A deleted row leaves nothing to scan, so a deletion was the one change the engine
+    could never carry: a withdrawn student stayed enrolled on the appliance forever, a
+    revoked invoice stayed payable, a mis-created classroom could be removed on the cloud
+    and would silently come back to life on the box. Every other field converged; the
+    absence of a row did not.
+
+    WHY A TOMBSTONE TABLE AND NOT ``is_deleted`` COLUMNS. The obvious alternative is soft
+    deletion on each synced model. It is worse here for three concrete reasons:
+
+      * it would require a migration on fifteen live TENANT business tables, and every
+        existing ``.delete()`` call site in the product would have to be rewritten or the
+        column would simply never be set - a silent, partial rollout of the exact
+        guarantee we are trying to make total;
+      * a database-level CASCADE (deleting a department removes its specialties) fires
+        ``post_delete`` for every child but would never set anyone's ``is_deleted``, so
+        cascades - the most common way rows actually disappear - would still not travel;
+      * ``.delete()`` already happens throughout the product today. A ``post_delete``
+        receiver captures all of it, including cascades and queryset deletes, with no
+        change to a single call site.
+
+    The cost is honest and bounded: a tombstone is a fact about the past, so this table
+    only grows. :func:`prune_tombstones` trims rows older than the retention window - long
+    enough that a box offline for a term still learns about every deletion, after which a
+    full resync is the correct repair anyway.
+
+    ``deleted_at`` is SET, never ``auto_now``: when this side applies a tombstone that
+    arrived in a bundle it preserves the ORIGINAL deletion time. That is what makes
+    delete-dominance resolve to the same answer no matter which side is asked first, and
+    it is what lets the cloud re-assert authority over a refused delete by writing a
+    strictly newer row.
+
+    TENANCY mirrors :class:`SyncApplyLedger` - one SHARED/public-schema table
+    discriminated by the ``school`` FK.
+    """
+
+    school = models.ForeignKey(
+        "schools.School", on_delete=models.CASCADE, related_name="sync_tombstones"
+    )
+    entity_type = models.CharField(max_length=64)
+    # str(pk) for the same reason SyncApplyLedger.local_pk is a char column: entity pks
+    # are int on most models and uuid on some, and one column has to hold both.
+    local_pk = models.CharField(max_length=64)
+    # Carried so the far side can also match a row that was CREATED offline and never had
+    # a portable pk. Empty for cloud-authored rows.
+    client_offline_id = models.CharField(max_length=64, blank=True, default="")
+    deleted_at = models.DateTimeField(db_index=True)
+    # "" when this side deleted the row itself; "cloud-pull" / "edge-push" when the
+    # deletion arrived in a bundle. Observability - the rail does not branch on it.
+    origin = models.CharField(max_length=32, blank=True, default="")
+
+    class Meta:
+        app_label = "sync_engine"
+        ordering = ["deleted_at"]
+        verbose_name = "Sync tombstone"
+        verbose_name_plural = "Sync tombstones"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["school", "entity_type", "local_pk"], name="uq_synctombstone_row"
+            )
+        ]
+        indexes = [models.Index(fields=["school", "deleted_at"])]
+
+    def __str__(self) -> str:  # pragma: no cover - admin/debug convenience
+        return f"deleted {self.entity_type}:{self.local_pk}@{self.deleted_at}"
+
+
 class EdgeSyncRun(models.Model):
     """One row per edge<->cloud sync CYCLE, so the Sync Center can show the latest outcome.
 
@@ -97,6 +167,11 @@ class EdgeSyncRun(models.Model):
     # (where a human is being asked to choose) and NOT visible in `pulled`, which counts
     # rows RECEIVED. Without it a pull that refused every row rendered as a green cycle.
     skipped = models.IntegerField(default=0)
+    # Rows REMOVED by a deletion that crossed the boundary. Counted apart from every
+    # other number here because it is the only one that destroys data: an operator
+    # reading a cycle summary has to be able to see, at a glance, that this cycle
+    # deleted things.
+    deleted = models.IntegerField(default=0)
     ok = models.BooleanField(default=False)
     message = models.TextField(blank=True, default="")
     error = models.TextField(blank=True, default="")
@@ -254,6 +329,127 @@ class EdgeSyncCursor(models.Model):
         return f"EdgeSyncCursor({self.direction}@{self.high_water})"
 
 
+class SyncBundleReceipt(models.Model):
+    """One row per bundle this side has ALREADY accepted - the replay defence.
+
+    An HMAC signature proves a bundle was built by someone holding the signing key. It
+    proves nothing about whether this is the FIRST time you have been handed it. Anyone
+    who can observe or store a bundle - a LAN data-mule USB stick, a proxy, a backup of
+    the box's spool directory - can present the identical bytes again later, and the
+    signature verifies perfectly every time.
+
+    For most rows a replay is merely wasteful, because the apply path is idempotent. It
+    is NOT harmless for the ones that are not pure state: a replayed bundle can
+    resurrect a row the far side has since deleted (the bundle predates the tombstone),
+    or re-apply a value a human has since resolved a conflict away from. Replay defence
+    is what makes "the far side accepted this" a fact about one delivery rather than
+    about a payload.
+
+    Every bundle carries a random ``nonce`` in its (signed) header. Presenting a nonce
+    this school has already accepted is refused. A sender too old to emit one falls back
+    to the payload digest, so an unmodified appliance keeps working while still being
+    protected against a byte-identical replay.
+
+    The table is pruned to ``RMC_SYNC_BUNDLE_REPLAY_WINDOW_SECONDS``, which is therefore
+    exactly how far back the guarantee reaches - and why a bundle older than the window
+    is refused rather than accepted with lapsed protection.
+    """
+
+    school = models.ForeignKey(
+        "schools.School", on_delete=models.CASCADE, related_name="sync_bundle_receipts"
+    )
+    # The header nonce, or the sha256 of the payload for a sender that predates it.
+    nonce = models.CharField(max_length=64)
+    row_count = models.IntegerField(default=0)
+    # "edge-push" (a box's bundle, seen by the cloud) | "cloud-pull" (the reverse).
+    direction = models.CharField(max_length=16, blank=True, default="")
+    received_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        app_label = "sync_engine"
+        verbose_name = "Sync bundle receipt"
+        verbose_name_plural = "Sync bundle receipts"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["school", "nonce"], name="uq_syncbundlereceipt_school_nonce"
+            )
+        ]
+        indexes = [models.Index(fields=["school", "received_at"])]
+
+    def __str__(self) -> str:  # pragma: no cover - admin/debug convenience
+        return f"SyncBundleReceipt({self.direction},{self.nonce[:12]})"
+
+
+class SyncFileTransfer(models.Model):
+    """One file that has to cross the boundary, and how far it has got.
+
+    THE GAP. ``_derive_sync_fields`` drops every ``FileField``, correctly: a delta bundle
+    carries column VALUES, so shipping a stored path would point the far side at a file
+    that does not exist on it and the apply would report a clean 200 over a broken
+    reference. The consequence is that student photos, scanned report cards and payment
+    proofs simply do not exist across the boundary - a parent's payment proof uploaded
+    offline is invisible to the bursar on the cloud, and vice versa.
+
+    DELIBERATELY OFF THE ROW RAIL. Files move through their own endpoints, their own
+    queue and their own command. A 50 MB attachment on a village link takes minutes; if
+    that shared a cycle with the data rail, every data cycle would inherit the slowest
+    file on the box, and a failed upload would fail the cycle. Keeping them apart is what
+    lets attendance keep converging in seconds while a scan crawls up in the background.
+
+    RESUMABLE BY CONSTRUCTION. ``bytes_done`` is the durable offset, so a transfer that
+    dies at 80% resumes at 80% rather than starting over - the difference between "this
+    file will eventually arrive" and "this file never arrives" on an intermittent link.
+    ``sha256`` is verified before the file is committed to storage, so a truncated or
+    corrupted transfer can never be mistaken for a complete one.
+    """
+
+    PULL = "pull"
+    PUSH = "push"
+
+    class State(models.TextChoices):
+        PENDING = "PENDING", "Pending"
+        ACTIVE = "ACTIVE", "In progress"
+        DONE = "DONE", "Complete"
+        FAILED = "FAILED", "Failed"
+
+    school = models.ForeignKey(
+        "schools.School", on_delete=models.CASCADE, related_name="sync_file_transfers"
+    )
+    # "pull" (cloud -> box) | "push" (box -> cloud).
+    direction = models.CharField(max_length=8)
+    # The storage-relative name, identical on both sides because the appliance is a
+    # pk-preserving clone and stores under the same keys.
+    relative_path = models.CharField(max_length=500)
+    sha256 = models.CharField(max_length=64, blank=True, default="")
+    size_bytes = models.BigIntegerField(default=0)
+    bytes_done = models.BigIntegerField(default=0)
+    state = models.CharField(max_length=8, choices=State.choices, default=State.PENDING)
+    attempts = models.IntegerField(default=0)
+    last_error = models.CharField(max_length=255, blank=True, default="")
+    # Provenance, for the operator surface: which record's which field this file is.
+    entity_type = models.CharField(max_length=64, blank=True, default="")
+    local_pk = models.CharField(max_length=64, blank=True, default="")
+    field_name = models.CharField(max_length=64, blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "sync_engine"
+        ordering = ["created_at"]
+        verbose_name = "Sync file transfer"
+        verbose_name_plural = "Sync file transfers"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["school", "direction", "relative_path"],
+                name="uq_syncfiletransfer_target",
+            )
+        ]
+        indexes = [models.Index(fields=["school", "state"])]
+
+    def __str__(self) -> str:  # pragma: no cover - admin/debug convenience
+        return f"{self.direction} {self.relative_path} ({self.state})"
+
+
 class EdgeSyncDirective(models.Model):
     """A cloud-authored instruction the BOX collects on its next poll.
 
@@ -350,6 +546,57 @@ def get_sync_cursor(school, direction):
     return row.high_water if row is not None else None
 
 
+def cursor_overlap_seconds() -> int:
+    """How far BEHIND the stored high-water a cycle actually asks from.
+
+    ``RMC_EDGE_SYNC_CURSOR_OVERLAP_SECONDS`` (default 120). ``0`` restores the exact
+    previous behaviour. See :func:`get_sync_cursor_for_request` for why it exists.
+    """
+    from django.conf import settings
+
+    try:
+        return max(0, int(getattr(settings, "RMC_EDGE_SYNC_CURSOR_OVERLAP_SECONDS", 120)))
+    except (TypeError, ValueError):
+        return 120
+
+
+def get_sync_cursor_for_request(school, direction):
+    """The position a cycle should ASK from - the stored high-water, minus an overlap.
+
+    THE TWO HOLES IN A WALL-CLOCK CURSOR. ``updated_at``-scanning is not a transactional
+    outbox, and it misses changes in two ways that are invisible when they happen:
+
+      1. **The commit-after-read race.** A transaction that STARTS before a cycle reads
+         the high-water but COMMITS after it stamps an ``updated_at`` that is already
+         behind the recorded position. The next cycle asks for everything strictly newer
+         than that position, so the row is never offered again. Not delayed - lost, until
+         something unrelated touches it.
+      2. **Ties at a page boundary.** Two rows written inside the same clock tick, split
+         across a page: the cursor advances to that timestamp and ``__gt`` then excludes
+         the twin that has not shipped.
+
+    Re-asking from slightly BEHIND the cursor closes both, for any transaction shorter
+    than the overlap. That bound is real and worth stating plainly: a transaction that
+    stays open longer than the window can still slip through, and only a monotonic
+    sequence written in the same transaction as the business row would close it
+    completely. The trade is deliberate - the overlap costs a few re-shipped rows per
+    cycle, and every apply path here is idempotent (update-by-pk, upsert-by-anchor,
+    create-by-pk), so a re-shipped row costs bandwidth and never correctness. A sequence
+    column would cost a migration on fifteen live tenant tables.
+
+    Echo suppression keeps the cost near zero in practice: a row re-offered inside the
+    overlap that sync itself last wrote is dropped by the ledger before it is ever
+    serialized.
+    """
+    from datetime import timedelta
+
+    high_water = get_sync_cursor(school, direction)
+    if high_water is None:
+        return None
+    overlap = cursor_overlap_seconds()
+    return high_water - timedelta(seconds=overlap) if overlap else high_water
+
+
 def set_sync_cursor(school, direction, value):
     """Persist ``value`` as the high-water for ``school``/``direction``.
 
@@ -414,6 +661,11 @@ def sync_echo_updated_at_map(school, entity_type) -> dict:
 
 __all__ = [
     "SyncApplyLedger",
+    "SyncTombstone",
+    "SyncBundleReceipt",
+    "SyncFileTransfer",
+    "cursor_overlap_seconds",
+    "get_sync_cursor_for_request",
     "EdgeSyncRun",
     "EdgeSyncCursor",
     "EdgeSyncDirective",

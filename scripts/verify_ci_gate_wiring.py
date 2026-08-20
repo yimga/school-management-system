@@ -45,6 +45,12 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # apps/accounts/tasks.py was found TRUNCATED mid-statement on main - the reference
     # gates treat an unparseable file as opaque and skip it, so nothing reported it.
     ("scripts/verify_python_files_parse.py", "architectural-boundaries.yml"),
+    # The same floor for the code that runs in the BROWSER. Added 2026-08-20: the Python
+    # gate's own write-up named this hole and stopped there. A JavaScript SyntaxError is
+    # quieter than a Python one - no server log, no Sentry event, just a feature that
+    # does not work - and in static/js/service-worker.js it silently stops the offline
+    # shell an appliance depends on from ever updating.
+    ("scripts/verify_javascript_files_parse.py", "architectural-boundaries.yml"),
     # Reference-integrity family — the "literal string -> runtime registry ->
     # 500/silent" loophole class. All members must always run.
     ("scripts/scan_import_reference_integrity.py", "architectural-boundaries.yml"),

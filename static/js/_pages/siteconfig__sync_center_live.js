@@ -280,6 +280,16 @@
     setText("total-runs", String(totals.runs === undefined ? "—" : totals.runs));
     setText("total-failed", String(totals.failed === undefined ? "—" : totals.failed));
     setText("total-skipped", String(totals.skipped === undefined ? "—" : totals.skipped));
+    setText("total-deleted", String(totals.deleted === undefined ? "—" : totals.deleted));
+
+    var deletedNode = q("total-deleted");
+    if (deletedNode) {
+      // Deletions destroy data on the far side. A non-zero count is worth a colour,
+      // because "12 records were removed by sync" is not something an operator should
+      // have to notice by reading a run message.
+      deletedNode.className =
+        "fw-semibold fs-6 " + (totals.deleted ? "text-warning-emphasis" : "text-body");
+    }
 
     var skippedNode = q("total-skipped");
     if (skippedNode) {

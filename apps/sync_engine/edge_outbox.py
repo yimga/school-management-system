@@ -26,6 +26,23 @@ BUNDLE_CONTENT_TYPE = "application/x-rmc-sync-bundle+ndjson"
 # Sentinel that sorts before every real timestamp, for rows whose updated_at is null.
 _EPOCH = datetime.min.replace(tzinfo=_dt_timezone.utc)
 
+
+def _parse_iso(value):
+    """ISO string -> aware datetime, or ``None``. Used to give a tombstone row the same
+    real-datetime sort key every other row gets - sorting the ISO STRING would only be
+    chronological while every row shared one UTC offset, and a mis-ordered page boundary
+    is a mis-placed cursor."""
+    from django.utils.dateparse import parse_datetime
+
+    if not value:
+        return None
+    parsed = parse_datetime(value) if isinstance(value, str) else value
+    if parsed is None:
+        return None
+    if timezone.is_naive(parsed):
+        parsed = timezone.make_aware(parsed, timezone.get_current_timezone())
+    return parsed
+
 # Marker stamped into an edge credential's permission_bitmap. resolve_edge_credential
 # REQUIRES it, so a plain offline capability token can't authenticate the sync POST.
 EDGE_SYNC_SCOPE = "edge-sync-machine"
@@ -108,6 +125,24 @@ def build_edge_delta_rows(school, *, since=None, entities=None):
             n += 1
         if n:
             counts[entity_type] = n
+
+    # DELETIONS ride the same rail. A tombstone becomes an ordinary row carrying
+    # ``op="delete"`` and using ``deleted_at`` as its ``updated_at``, so it sorts into the
+    # same global chronological order as everything else and a page boundary stays a valid
+    # cursor position. Emitting them here rather than through a channel of their own is
+    # what makes deletion inherit - for free - the paging, signing, cursor, directive and
+    # replay machinery the row rail already has. See apps.sync_engine.tombstones.
+    from apps.sync_engine.tombstones import DELETE_OP, iter_tombstone_rows
+
+    tomb_rows, tomb_high_water = iter_tombstone_rows(school, since=since, entities=entities)
+    for row in tomb_rows:
+        rows.append(row)
+        sort_keys.append(row["updated_at"] and _parse_iso(row["updated_at"]))
+        counts[f"{row['entity_type']}:{DELETE_OP}"] = (
+            counts.get(f"{row['entity_type']}:{DELETE_OP}", 0) + 1
+        )
+    if tomb_high_water is not None and (high_water is None or tomb_high_water > high_water):
+        high_water = tomb_high_water
 
     # Global updated_at order so a page boundary is a valid cursor position: everything
     # older than the last row of a page has, by construction, already been sent. The
@@ -221,6 +256,21 @@ def resolve_edge_credential(raw_token: str):
 # --------------------------------------------------------------------------- #
 # Transport (box side) — POST a bundle to the operator receiver
 # --------------------------------------------------------------------------- #
+def local_schema_head_header() -> str:
+    """This deployment's per-app migration heads, encoded for the handshake header.
+
+    Only the apps that OWN synced entities, so the header stays short and says exactly
+    what the far side needs in order to decide what it may safely send.
+    """
+    try:
+        from apps.api.sync_services import entity_app_labels
+        from apps.sync_engine.schema_guard import encode_heads, local_migration_heads
+
+        return encode_heads(local_migration_heads(set(entity_app_labels().values())))
+    except Exception:  # noqa: BLE001 - the handshake is advisory; never break transport
+        return ""
+
+
 def post_bundle(endpoint: str, token: str, data: bytes, *, timeout: float = 30.0):
     """POST a signed bundle to the operator's receiver with a bearer credential.
 
@@ -229,12 +279,14 @@ def post_bundle(endpoint: str, token: str, data: bytes, *, timeout: float = 30.0
     "couldn't reach the operator". A connectivity failure (``URLError``/``OSError``,
     e.g. offline) PROPAGATES — the caller queues the bundle and retries later.
     """
-    req = urllib.request.Request(
-        endpoint,
-        data=data,
-        method="POST",
-        headers={"Authorization": f"Bearer {token}", "Content-Type": BUNDLE_CONTENT_TYPE},
-    )
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": BUNDLE_CONTENT_TYPE,
+    }
+    schema_head = local_schema_head_header()
+    if schema_head:
+        headers[SYNC_SCHEMA_HEAD_HEADER] = schema_head
+    req = urllib.request.Request(endpoint, data=data, method="POST", headers=headers)
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310 — operator URL, not user input
             status = resp.getcode()
@@ -256,6 +308,12 @@ def post_bundle(endpoint: str, token: str, data: bytes, *, timeout: float = 30.0
 # pull cursor without re-parsing the bundle body. Row-count is informational.
 SYNC_HIGH_WATER_HEADER = "X-RMC-Sync-High-Water"
 SYNC_ROW_COUNT_HEADER = "X-RMC-Sync-Row-Count"
+# Schema handshake (G4). The box states which migration each synced app is on; the cloud
+# answers with what it withheld and why. Both are advisory headers rather than a
+# negotiation round trip, so the handshake costs no extra request.
+SYNC_SCHEMA_HEAD_HEADER = "X-RMC-Sync-Schema-Head"
+SYNC_SCHEMA_ADVICE_HEADER = "X-RMC-Sync-Schema-Advice"
+SYNC_WITHHELD_HEADER = "X-RMC-Sync-Withheld-Entities"
 # Cloud->box instruction channel. The cloud cannot reach a box behind NAT, so an operator
 # request (currently only "full-resync") rides back on the box's own next download.
 SYNC_DIRECTIVE_HEADER = "X-RMC-Sync-Directive"
@@ -295,30 +353,91 @@ def pull_bundle(
         query["entities"] = ",".join(ents)
     url = endpoint + (("?" + urlencode(query)) if query else "")
 
-    req = urllib.request.Request(
-        url,
-        method="GET",
-        headers={"Authorization": f"Bearer {token}", "Accept": BUNDLE_CONTENT_TYPE},
-    )
+    headers = {"Authorization": f"Bearer {token}", "Accept": BUNDLE_CONTENT_TYPE}
+    # Tell the cloud which schema this box is on, so it can withhold the entities this
+    # box could not apply anyway INSTEAD of shipping rows that die per-row with no
+    # explanation. Advisory: a cloud that predates the handshake simply ignores it.
+    schema_head = local_schema_head_header()
+    if schema_head:
+        headers[SYNC_SCHEMA_HEAD_HEADER] = schema_head
+    req = urllib.request.Request(url, method="GET", headers=headers)
     high_water = None
     directive = None
+    advice = None
+    withheld = None
+
+    def _read_meta(source):
+        nonlocal advice, withheld
+        if not source:
+            return
+        advice = source.get(SYNC_SCHEMA_ADVICE_HEADER)
+        withheld = source.get(SYNC_WITHHELD_HEADER)
+
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310 — operator URL, not user input
             status = resp.getcode()
             body = resp.read()
             high_water = resp.headers.get(SYNC_HIGH_WATER_HEADER)
             directive = resp.headers.get(SYNC_DIRECTIVE_HEADER)
+            _read_meta(resp.headers)
     except urllib.error.HTTPError as exc:  # a response with a 4xx/5xx status, not a connectivity failure
         status = exc.code
         try:
             body = exc.read()
             high_water = exc.headers.get(SYNC_HIGH_WATER_HEADER) if exc.headers else None
             directive = exc.headers.get(SYNC_DIRECTIVE_HEADER) if exc.headers else None
+            _read_meta(exc.headers)
         except (OSError, AttributeError):
             body = b""
     if collect is not None:
         collect["directive"] = (directive or "").strip()
+        collect["schema_advice"] = (advice or "").strip()
+        collect["withheld_entities"] = [
+            e.strip() for e in (withheld or "").split(",") if e.strip()
+        ]
     return status, body, high_water
+
+
+def wait_for_changes(endpoint: str, token: str, *, since=None, wait: int = 25,
+                     timeout: float = 40.0):
+    """Hold one request open until the cloud has something for this box (G6).
+
+    Returns ``(status_code, payload_dict)``. ``payload["changed"]`` is the answer;
+    ``payload["supported"]`` is ``False`` when the cloud does not run the feed, which the
+    caller must treat as "fall back to the cadence" rather than as an error.
+
+    ``timeout`` is deliberately LONGER than ``wait``: the cloud intends to hold the
+    request for ``wait`` seconds, so a client timeout at or below that would abort every
+    hold at the moment it was about to answer, and read as a connectivity failure on a
+    perfectly healthy link.
+
+    A connectivity failure PROPAGATES, exactly as in :func:`pull_bundle`, so the caller
+    can tell "nothing to do" from "cannot reach the cloud" and back off accordingly.
+    """
+    from urllib.parse import urlencode
+
+    query = {"wait": int(max(0, wait))}
+    if since:
+        query["since"] = since if isinstance(since, str) else since.isoformat()
+    url = endpoint + "?" + urlencode(query)
+    req = urllib.request.Request(
+        url, method="GET", headers={"Authorization": f"Bearer {token}", "Accept": "application/json"}
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310 — operator URL, not user input
+            status = resp.getcode()
+            body = resp.read().decode("utf-8", "replace")
+    except urllib.error.HTTPError as exc:
+        status = exc.code
+        try:
+            body = exc.read().decode("utf-8", "replace")
+        except (OSError, AttributeError):
+            body = ""
+    try:
+        parsed = json.loads(body) if body else {}
+    except ValueError:
+        parsed = {"raw": body}
+    return status, parsed
 
 
 __all__ = [
@@ -327,6 +446,11 @@ __all__ = [
     "SYNC_HIGH_WATER_HEADER",
     "SYNC_ROW_COUNT_HEADER",
     "SYNC_DIRECTIVE_HEADER",
+    "SYNC_SCHEMA_HEAD_HEADER",
+    "SYNC_SCHEMA_ADVICE_HEADER",
+    "SYNC_WITHHELD_HEADER",
+    "local_schema_head_header",
+    "wait_for_changes",
     "build_edge_delta_rows",
     "build_edge_delta_bundle",
     "mint_edge_credential",

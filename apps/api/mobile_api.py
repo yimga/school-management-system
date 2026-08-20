@@ -3,6 +3,7 @@ Phase 9 Task 2: Mobile API Layer
 REST API for mobile applications with authentication, rate limiting, offline support
 """
 
+from django.conf import settings
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils import timezone
@@ -12,6 +13,7 @@ from drf_spectacular.utils import (
     extend_schema_view,
     inline_serializer,
 )
+from rest_framework.pagination import CursorPagination
 from rest_framework import serializers, viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -239,6 +241,40 @@ class OfflineSyncQueueSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "status", "conflict_data", "synced_at"]
 
 
+# The same defect as apps/api/entity_api.py, found the same way and on the same day: the
+# project-wide default ``CursorPagination`` orders by ``"-created"``, which none of these
+# models has, so every list GET was an unconditional HTTP 500. The companion contract test
+# (``test_mobile_api_pagination_loop.py``, 2026-06-27) named these classes; they were never
+# written, so the module failed to IMPORT and its guard never ran.
+class _BoundedCursorPagination(CursorPagination):
+    """Cursor pagination with a client-settable but BOUNDED page size.
+
+    Two separate requirements, both from the 2026-06-27 contract test:
+
+    * an explicit ``ordering`` on a real field, because the project-wide default orders by
+      ``"-created"`` and most of these models have no such column - an unconditional 500;
+    * ``page_size_query_param`` with a ``max_page_size``, so a caller can page sensibly
+      and cannot turn one request into an unbounded pull of the whole tenant roster.
+
+    Subclasses supply only the ordering.
+    """
+
+    page_size_query_param = "page_size"
+    max_page_size = getattr(settings, "API_MAX_PAGE_SIZE", 200)
+
+
+class MobileDeviceCursorPagination(_BoundedCursorPagination):
+    ordering = "-last_active"
+
+
+class PushNotificationCursorPagination(_BoundedCursorPagination):
+    ordering = "-created_at"
+
+
+class OfflineSyncCursorPagination(_BoundedCursorPagination):
+    ordering = "-created_at"
+
+
 # ViewSets
 
 
@@ -267,6 +303,7 @@ class OfflineSyncQueueSerializer(serializers.ModelSerializer):
 )
 class MobileDeviceViewSet(viewsets.ModelViewSet):
     """Mobile device registration and management"""
+    pagination_class = MobileDeviceCursorPagination
 
     serializer_class = MobileDeviceSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -322,15 +359,24 @@ class MobileDeviceViewSet(viewsets.ModelViewSet):
 )
 class PushNotificationViewSet(viewsets.ReadOnlyModelViewSet):
     """View push notifications"""
+    pagination_class = PushNotificationCursorPagination
 
     serializer_class = PushNotificationSerializer
     permission_classes = [permissions.IsAuthenticated]
     throttle_classes = [MobileRateThrottle]
 
     def get_queryset(self):
+        # NOT sliced. A sliced queryset cannot be filtered or re-ordered again, and
+        # pagination does exactly that - so the fifty-row slice this used to end with
+        # would turn every list GET into `TypeError: Cannot filter a query once a slice
+        # has been taken` the moment the view gained a pagination class. That window is
+        # now the paginator's job (`PAGE_SIZE`, bounded by `API_MAX_PAGE_SIZE`), which is
+        # also what lets a caller reach page two at all.
+        # (The contract test greps this function's source for the slice literal, so do
+        # not reintroduce it even inside a comment.)
         return PushNotification.objects.filter(device__user=self.request.user).order_by(
             "-created_at"
-        )[:50]
+        )
 
     @action(detail=True, methods=["post"])
     def mark_delivered(self, request, pk=None):
@@ -404,6 +450,7 @@ class PushNotificationViewSet(viewsets.ReadOnlyModelViewSet):
 )
 class OfflineSyncViewSet(viewsets.ModelViewSet):
     """Offline data synchronization"""
+    pagination_class = OfflineSyncCursorPagination
 
     serializer_class = OfflineSyncQueueSerializer
     permission_classes = [permissions.IsAuthenticated]
