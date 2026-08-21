@@ -1,5 +1,5 @@
 {
-  "manifest_last_reviewed": "2026-07-18",
+  "manifest_last_reviewed": "2026-08-21",
   "files": {
     "apps/accounts/views_saml.py": {
       "expected_count": 1,
@@ -75,7 +75,7 @@
       "replay_protection": "provider_signature_and_message_sid_manual_review_required",
       "rate_limiting": "manual_review_required",
       "audit_logging": "pii_minimized_hashed_phone_structured_logs",
-      "notes": "Two endpoints (inbound MO + status callback): SMS providers POST without browser CSRF. Every request is verified by _signature_ok() \u2014 a valid Twilio X-Twilio-Signature HMAC-SHA1 (constant-time compare) wins, else a valid Africa's Talking shared secret (AT has no request-signing scheme); bad signature -> 403, never 5xx.",
+      "notes": "Two endpoints (inbound MO + status callback): SMS providers POST without browser CSRF. Every request is verified by _signature_ok() — a valid Twilio X-Twilio-Signature HMAC-SHA1 (constant-time compare) wins, else a valid Africa's Talking shared secret (AT has no request-signing scheme); bad signature -> 403, never 5xx.",
       "last_reviewed": "2026-06-04"
     },
     "apps/finance/views_payments.py": {
@@ -306,7 +306,7 @@
       "replay_protection": "not_applicable",
       "rate_limiting": "manual_review_required",
       "audit_logging": "implemented",
-      "notes": "Two endpoints: (1) public newsletter subscribe POST from marketing/portal without browser CSRF (double opt-in service handles abuse); (2) RFC 8058 one-click List-Unsubscribe-Post \u2014 mail clients POST without a CSRF token and the opaque per-recipient token in the URL is the authenticator.",
+      "notes": "Two endpoints: (1) public newsletter subscribe POST from marketing/portal without browser CSRF (double opt-in service handles abuse); (2) RFC 8058 one-click List-Unsubscribe-Post — mail clients POST without a CSRF token and the opaque per-recipient token in the URL is the authenticator.",
       "last_reviewed": "2026-06-04"
     },
     "apps/platform_runtime/views_rum.py": {
@@ -418,6 +418,17 @@
       "audit_logging": "implemented",
       "notes": "Wizard localStorage cache telemetry beacon (204 no-content); sendBeacon POST without CSRF; event allowlist only.",
       "last_reviewed": "2026-06-02"
+    },
+    "apps/api/pairing_api.py": {
+      "expected_count": 2,
+      "owner": "edge_box_pairing_api",
+      "verdict": "keep",
+      "auth_model": "device_adoption_bootstrap_then_one_time_poll_secret",
+      "replay_protection": "poll_secret_redeemable_exactly_once_plus_request_expiry",
+      "rate_limiting": "implemented",
+      "audit_logging": "manual_review_required",
+      "notes": "Machine-to-machine: an edge box POSTs these with authentication_classes=[] and no cookie or session, so there is no ambient browser credential for a CSRF to ride on. Requiring a CSRF token would break adoption without adding a control. Added 2026-08-21 alongside the AllowAny entry for the same views.",
+      "last_reviewed": "2026-08-21"
     }
   }
 }
