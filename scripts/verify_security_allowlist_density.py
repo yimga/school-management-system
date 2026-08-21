@@ -62,10 +62,24 @@ ROOT = Path(__file__).resolve().parent.parent
 # expansion.
 MAX_COUNTS: dict[str, tuple[str, int]] = {
     "raw_sql_allowlist.json": ("files", 34),
-    "csrf_exempt_allowlist.json": ("files", 38),
-    "allow_any_allowlist.json": ("files", 4),
+    # 38 -> 39, reviewed 2026-08-21. Same two pairing views as the allow_any entry:
+    # machine-to-machine POSTs with authentication_classes=[] and no cookie, so
+    # there is no ambient browser credential for a CSRF to ride on.
+    "csrf_exempt_allowlist.json": ("files", 39),
+    # 4 -> 5, reviewed 2026-08-21. 70bddeded shipped apps/api/pairing_api.py with
+    # rbac-allow markers on both views but no entry here. Reviewed the flow rather
+    # than the markers: the start view CANNOT require auth (an unpaired box holds
+    # no credential), and the poll view authenticates on a one-time secret compared
+    # with secrets.compare_digest against its HASH. Both IP rate-limited.
+    "allow_any_allowlist.json": ("files", 5),
     "broad_except_allowlist.json": ("allowed_counts", 189),
-    "tracked_root_allowlist.json": ("allowed", 45),
+    # 45 -> 46, reviewed 2026-08-21. f46f81c74 added .dockerignore but not this
+    # entry, which halted the deploy sweep at check 3. The file CANNOT be moved:
+    # Docker reads .dockerignore only from the build-context root, and this one is
+    # load-bearing security -- without it `COPY . .` baked deploy/selfhost/.env,
+    # holding SECRET_KEY and POSTGRES_PASSWORD, into the image layer. Classified
+    # growth, not silent expansion.
+    "tracked_root_allowlist.json": ("allowed", 46),
 }
 
 _CLASSIFICATION_LINTS: tuple[tuple[str, str], ...] = (
