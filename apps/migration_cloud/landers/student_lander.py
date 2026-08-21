@@ -11,6 +11,7 @@ import re
 from typing import Any, Iterator
 
 from ._helpers import (
+    _clean_source_string,
     _jsonable,
     conflict_resolution_for,
     derive_external_id,
@@ -51,17 +52,17 @@ class StudentLander(Lander):
 
         result = LanderResult()
         for row in canonical_rows:
-            external_id = (row.get("external_id") or "").strip()
-            first_name = (row.get("first_name") or "").strip()
-            last_name = (row.get("last_name") or "").strip()
-            middle_name = (row.get("middle_name") or "").strip()
+            external_id = _clean_source_string(row.get("external_id"))
+            first_name = _clean_source_string(row.get("first_name"))
+            last_name = _clean_source_string(row.get("last_name"))
+            middle_name = _clean_source_string(row.get("middle_name"))
             # Combined-name fallback: many real exports (African / French-model
             # SIS) carry ONE "Name"/"NAME" column, not separate given/family
             # columns. When the source has no first/last, split the canonical
             # ``full_name`` locale-aware so the row is NOT quarantined for
             # "missing first/last" — historically the single biggest real-world
             # data-loss cause on these rosters (0/426 students landed).
-            full_name = (row.get("full_name") or "").strip()
+            full_name = _clean_source_string(row.get("full_name"))
             if full_name and (not first_name or not last_name):
                 fn, mn, ln = split_name_for(ctx, full_name)
                 first_name = first_name or fn
@@ -101,7 +102,7 @@ class StudentLander(Lander):
                 "first_name": first_name,
                 "last_name": last_name,
                 "middle_name": middle_name,
-                "admission_number": (row.get("admission_number") or "").strip(),
+                "admission_number": _clean_source_string(row.get("admission_number")),
                 "email": (row.get("email") or "").strip(),
                 "phone": phone_val,
                 "date_of_birth": row.get("date_of_birth") or None,

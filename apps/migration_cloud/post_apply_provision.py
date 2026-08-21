@@ -136,6 +136,57 @@ def _gap_fill_enabled(school) -> bool:
     return bool(settings_map.get("migration_gap_fill_provisioning", True))
 
 
+def _provision_country_baseline_for_bundle(school) -> dict[str, Any]:
+    """Shared country-aware baseline used by mid-apply and post-apply hooks."""
+    from apps.academics.structure_provisioning import provision_country_baseline
+
+    year, year_created = ensure_default_academic_year(school)
+    if year is None:
+        return {"skipped": "no_academic_year"}
+
+    summary = provision_country_baseline(
+        school,
+        academic_year=year,
+        school_type_codes=_derive_school_type_codes(school),
+    )
+    if isinstance(summary.get("academic_year"), dict):
+        summary["academic_year"]["created"] = bool(year_created)
+    return summary
+
+
+def provision_structure_before_dependent_domains(
+    *, bundle, dry_run: bool = False
+) -> dict[str, Any]:
+    """Scaffold teaching grid BEFORE grades/attendance/finance wave.
+
+    Post-apply gap-fill runs after wave 3, so the grades lander historically
+    quarantined every row with "no subject assignment" even though repair from
+    the UI re-ran the same wave order. This mid-apply hook runs after waves
+    0–2 (students, enrollment, catalog) so dependent domains can resolve FKs.
+    Idempotent and best-effort — never raises into the apply.
+    """
+    if dry_run:
+        return {"skipped": "dry_run"}
+    school = getattr(bundle, "school", None)
+    if school is None:
+        return {"skipped": "no_school"}
+    if not _gap_fill_enabled(school):
+        return {"skipped": "disabled"}
+
+    summary: dict[str, Any] = {"phase": "before_dependent_domains"}
+    try:
+        summary.update(_provision_country_baseline_for_bundle(school))
+    except Exception as exc:  # noqa: BLE001 — provisioning must never break apply
+        logger.warning(
+            "mid-apply structure provisioning failed for bundle %s: %s",
+            getattr(bundle, "pk", "?"),
+            exc,
+            exc_info=True,
+        )
+        summary["error"] = f"{type(exc).__name__}: {exc}"
+    return summary
+
+
 def gap_fill_after_apply(*, bundle, outcomes, dry_run: bool = False) -> dict[str, Any]:
     """Scaffold the structural gaps a running school needs after a real apply.
 
@@ -153,29 +204,9 @@ def gap_fill_after_apply(*, bundle, outcomes, dry_run: bool = False) -> dict[str
     if not _landed_structural_data(outcomes):
         return {"skipped": "no_structural_data"}
 
-    summary: dict[str, Any] = {}
+    summary: dict[str, Any] = {"phase": "after_apply"}
     try:
-        from apps.academics.structure_provisioning import provision_country_baseline
-
-        # Resolve the year on the migration side first so the tenant's
-        # ``default_academic_year_name`` override is honored, then hand the whole
-        # country-aware baseline to the shared orchestrator (region fallback →
-        # dept/specialty → terms → grading → structure → teaching grid). Both
-        # onboarding and migration now converge on this ONE function instead of
-        # each hand-listing the same calls in a slightly different order.
-        year, year_created = ensure_default_academic_year(school)
-        if year is None:
-            return {"skipped": "no_academic_year"}
-
-        summary = provision_country_baseline(
-            school,
-            academic_year=year,
-            school_type_codes=_derive_school_type_codes(school),
-        )
-        # The orchestrator sees a pre-supplied year (created=False); surface the
-        # fact that GAP-FILL is what actually minted it, for the bundle summary.
-        if isinstance(summary.get("academic_year"), dict):
-            summary["academic_year"]["created"] = bool(year_created)
+        summary.update(_provision_country_baseline_for_bundle(school))
     except Exception as exc:  # noqa: BLE001 — gap-fill must never break a successful apply
         logger.warning(
             "gap-fill provisioning failed for bundle %s: %s",

@@ -159,6 +159,11 @@ def _is_allowed_reference_path(rel: str) -> bool:
         return True
     if rel.startswith("apps/") and "/tests/" in rel:
         return True
+    # services/ has its own test package. The bucket above only matched apps/*/tests/,
+    # so a services test using a realistic school name as FIXTURE data read as residue.
+    # Same path class, same reasoning -- it was simply never listed.
+    if rel.startswith("services/") and "/tests/" in rel:
+        return True
     if rel.startswith("apps/") and "/fixtures/" in rel:
         return True
     if rel.endswith("/tests.py") or rel.endswith("tests.py"):

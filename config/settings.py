@@ -4119,9 +4119,42 @@ try:
     )
 except ValueError:
     RMC_SYNC_BUNDLE_REPLAY_WINDOW_SECONDS = 7 * 24 * 3600
+# --------------------------------------------------------------------------- #
+# Edge sync: PARITY seal (apps/sync_engine/parity.py)
+# --------------------------------------------------------------------------- #
+# Every other guarantee in the engine is about the journey — the cursor, the signature,
+# the replay nonce, the tombstone. None of them ever asks the far side what it actually
+# HOLDS, so a row lost to something the protocol does not model (an old restore, a
+# hand-run DELETE, an apply that failed on a column the handshake had not learned to
+# withhold) stays lost: an incremental delta only offers what changed since the cursor,
+# and an absent row has no updated_at to be newer than anything. The box digests the rail
+# fields per entity, the cloud answers with what disagrees, and the box re-pulls exactly
+# those entities. ON by default — it is read-only until something is actually wrong.
+RMC_SYNC_PARITY_ENABLED = os.getenv(
+    "RMC_SYNC_PARITY_ENABLED", "1"
+).strip().lower() in ("1", "true", "yes", "on")
+# A sweep READS EVERY ROW of every entity, unlike the delta a cycle normally builds, so it
+# is rate-limited independently of the sync cadence. At a 20-second tick an unthrottled
+# sweep would be a continuous table scan on hardware chosen for being small and silent.
+try:
+    RMC_SYNC_PARITY_INTERVAL_SECONDS = max(
+        60, int(os.getenv("RMC_SYNC_PARITY_INTERVAL_SECONDS", str(3600)))
+    )
+except ValueError:
+    RMC_SYNC_PARITY_INTERVAL_SECONDS = 3600
+# Entities auto-repaired in ONE cycle. A box that has genuinely lost its database reports
+# every entity as drifted, and flushing all of them at once is a full corpus re-pull
+# wearing a repair's clothes — on a link the school may be paying for by the megabyte.
+# Above the cap the cycle repairs the worst few and NAMES the rest as still drifted.
+try:
+    RMC_SYNC_PARITY_MAX_FLUSH_ENTITIES = max(
+        1, int(os.getenv("RMC_SYNC_PARITY_MAX_FLUSH_ENTITIES", "3"))
+    )
+except ValueError:
+    RMC_SYNC_PARITY_MAX_FLUSH_ENTITIES = 3
 # Migration Cloud apply forward-progress breaker (apps/migration_cloud/apply_progress_guard.py).
 # Consecutive LIVE applies of one bundle that return identical totals AND create no rows
-# before automatic re-apply is refused. Bundle 84 of gilead-tech re-ran an identical
+# before automatic re-apply is refused. Bundle 84 of a live tenant re-ran an identical
 # "0 created, 105 updated, 442 quarantined" apply for four days because the outbox
 # idempotency key frees the moment a row succeeds and nothing asked whether the previous
 # pass had accomplished anything. A human repair always re-arms the budget.

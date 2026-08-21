@@ -75,13 +75,26 @@ def derive_external_id(
     return f"{prefix}-{hashlib.sha256(seed.encode('utf-8')).hexdigest()[:20]}"
 
 import datetime as _dt
-import hashlib
 import re
 from contextlib import contextmanager
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
 from django.db import IntegrityError, transaction
+
+_SOURCE_NULL_LITERALS = frozenset({"", "none", "nan", "n/a", "na", "null", "-", "0"})
+
+
+def _clean_source_string(value: Any) -> str:
+    """Normalize spreadsheet null sentinels (``nan``, ``none``, …) to empty."""
+    if value is None:
+        return ""
+    if isinstance(value, float) and value != value:  # NaN
+        return ""
+    s = str(value).strip()
+    if s.lower() in _SOURCE_NULL_LITERALS:
+        return ""
+    return s
 
 
 @contextmanager

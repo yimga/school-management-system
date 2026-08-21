@@ -351,6 +351,13 @@ SYNC_WITHHELD_HEADER = "X-RMC-Sync-Withheld-Entities"
 # Cloud->box instruction channel. The cloud cannot reach a box behind NAT, so an operator
 # request (currently only "full-resync") rides back on the box's own next download.
 SYNC_DIRECTIVE_HEADER = "X-RMC-Sync-Directive"
+# Parity seal (G8). The box states a per-entity digest of what it HOLDS; the cloud answers
+# with the entities whose digest disagrees. Advisory and periodic (see sync_engine.parity):
+# a cloud that predates it ignores the request header, and a box that predates it ignores
+# the response one, so an un-upgraded peer on either side keeps syncing exactly as before.
+SYNC_PARITY_HEADER = "X-RMC-Sync-Parity"
+SYNC_PARITY_DRIFT_HEADER = "X-RMC-Sync-Parity-Drift"
+SYNC_PARITY_ADVICE_HEADER = "X-RMC-Sync-Parity-Advice"
 
 
 def pull_bundle(
@@ -361,6 +368,7 @@ def pull_bundle(
     entities=None,
     timeout: float = 30.0,
     collect: dict | None = None,
+    parity: str = "",
 ):
     """GET a signed delta bundle DOWN from the operator (cloud->box pull, box side).
 
@@ -376,6 +384,11 @@ def pull_bundle(
     Pass ``collect=`` a mutable dict to also receive out-of-band response metadata (the
     cloud->box directive). Kept out of the return tuple so existing 3-tuple callers —
     including the tested pull command — are untouched.
+
+    ``parity=`` is a PRE-COMPUTED digest header (``sync_engine.parity.encode_digests``).
+    It is passed in rather than computed here on purpose: this function is the transport,
+    and a full-corpus scan inside it would make every caller pay for a sweep whether or
+    not one is due. The caller owns the cadence; see ``sync_runner``.
     """
     from urllib.parse import urlencode
 
@@ -394,18 +407,26 @@ def pull_bundle(
     schema_head = local_schema_head_header()
     if schema_head:
         headers[SYNC_SCHEMA_HEAD_HEADER] = schema_head
+    # G8: what this box HOLDS, so the cloud can answer with what disagrees. Only present
+    # on the cycles the caller decided a sweep was due, so the ordinary pull is unchanged.
+    if parity:
+        headers[SYNC_PARITY_HEADER] = parity
     req = urllib.request.Request(url, method="GET", headers=headers)
     high_water = None
     directive = None
     advice = None
     withheld = None
+    parity_drift = None
+    parity_advice = None
 
     def _read_meta(source):
-        nonlocal advice, withheld
+        nonlocal advice, withheld, parity_drift, parity_advice
         if not source:
             return
         advice = source.get(SYNC_SCHEMA_ADVICE_HEADER)
         withheld = source.get(SYNC_WITHHELD_HEADER)
+        parity_drift = source.get(SYNC_PARITY_DRIFT_HEADER)
+        parity_advice = source.get(SYNC_PARITY_ADVICE_HEADER)
 
     def _attempt():
         nonlocal high_water, directive
@@ -439,6 +460,10 @@ def pull_bundle(
         collect["withheld_entities"] = [
             e.strip() for e in (withheld or "").split(",") if e.strip()
         ]
+        collect["parity_drift"] = [
+            e.strip() for e in (parity_drift or "").split(",") if e.strip()
+        ]
+        collect["parity_advice"] = (parity_advice or "").strip()
     return status, body, high_water
 
 
@@ -493,6 +518,9 @@ __all__ = [
     "SYNC_SCHEMA_HEAD_HEADER",
     "SYNC_SCHEMA_ADVICE_HEADER",
     "SYNC_WITHHELD_HEADER",
+    "SYNC_PARITY_HEADER",
+    "SYNC_PARITY_DRIFT_HEADER",
+    "SYNC_PARITY_ADVICE_HEADER",
     "local_schema_head_header",
     "wait_for_changes",
     "build_edge_delta_rows",

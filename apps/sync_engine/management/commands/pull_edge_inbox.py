@@ -96,9 +96,35 @@ class Command(BaseCommand):
 
         entities = [e.strip().lower() for e in (options.get("entities") or "").split(",") if e.strip()]
 
+        # G8 parity. This command is the pull half of ``edge_sync_cycle``, which is what a
+        # box scheduled by CRON runs — a different path from ``sync_runner.run_sync_cycle``
+        # (beat / in-process scheduler / autosync middleware / "Sync now"), which keeps its
+        # cursors in the database rather than in a file. Without this, a cron-scheduled box
+        # would never sweep, and parity would be a feature that silently depends on which
+        # scheduler the operator happened to choose.
+        #
+        # REPORTS, never repairs: this is a single-shot operator command with a file
+        # cursor, and a command that quietly re-pulled whole entities would be a surprise.
+        # The remediation is printed as the exact command to run.
+        parity_header = ""
+        try:
+            from apps.sync_engine import parity
+
+            if parity.due(school):
+                parity_header = parity.encode_digests(parity.parity_digests(school))
+        except Exception:  # noqa: BLE001 — a sweep must never cost the box its pull
+            parity_header = ""
+
+        collected: dict = {}
         try:
             status, body, high_water = edge_outbox.pull_bundle(
-                endpoint, token, since=since, entities=entities, timeout=float(options.get("timeout") or 30.0)
+                endpoint,
+                token,
+                since=since,
+                entities=entities,
+                timeout=float(options.get("timeout") or 30.0),
+                collect=collected,
+                parity=parity_header,
             )
         except (urllib.error.URLError, OSError) as exc:
             # Offline / unreachable: cursor stays put so the next run re-pulls this window.
@@ -128,6 +154,26 @@ class Command(BaseCommand):
         if cursor_file and high_water:
             Path(cursor_file).write_text(high_water, encoding="utf-8")
             self.stdout.write(f"Pull cursor advanced -> {high_water}")
+
+        # G8: the cloud's answer to this run's digest. Named loudly — the two sides
+        # holding different records is a bigger fact than how many rows this pull carried,
+        # and an operator who is not told cannot know the box was serving stale data.
+        drifted = collected.get("parity_drift") or []
+        if drifted:
+            advice = (collected.get("parity_advice") or "").strip()
+            self.stdout.write("")
+            self.stdout.write(self.style.WARNING(
+                advice or f"PARITY DRIFT: {', '.join(drifted)}"
+            ))
+            self.stdout.write(
+                "This box disagrees with the cloud on the entities above. Repair each by "
+                "re-pulling it WHOLE (no cursor, so the full entity is offered):"
+            )
+            for entity_type in drifted:
+                self.stdout.write(
+                    f"  python manage.py pull_edge_inbox --slug {school.slug} "
+                    f"--entities {entity_type} --since 1970-01-01T00:00:00+00:00"
+                )
 
     @staticmethod
     def _resolve_user(school, as_user_email: str):
