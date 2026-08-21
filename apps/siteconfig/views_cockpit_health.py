@@ -123,24 +123,49 @@ _LOGIN_FRONT_DOOR_CAPABILITIES: tuple[tuple[int, str, str], ...] = (
 
 _LOGIN_FRONT_DOOR_MARKERS: dict[int, tuple[tuple[str, str], ...]] = {
     1: (("apps/accounts/views_passkey.py", "passkey_login_verify"),),
-    2: (("static/js/rmc-auth-login-immersive.js", "roleMemoryKey"),),
-    3: (("templates/auth/login.html", "data-rmc-auth-role"),),
+    2: (
+        ("static/js/rmc-auth-login-immersive.js", "roleMemoryKey"),
+        ("templates/auth/login.html", "data-rmc-returning-continue"),
+        ("static/js/rmc-auth-login-immersive.js", "has-returning"),
+    ),
+    3: (
+        ("templates/auth/login.html", "data-rmc-auth-role"),
+        ("templates/auth/login.html", "data-rmc-role-methods"),
+        ("static/js/rmc-auth-login-immersive.js", "applyRoleSurface"),
+    ),
     4: (("static/js/rmc-offline-login-unlock.js", "rmc_offline_active_capability"), ("static/js/rmc-offline-auth-enrollment.js", "sealCapability")),
-    5: (("apps/accounts/login_immersive_canvas.py", "dash_feed"), ("templates/auth/partials/login_immersive_dash_panels.html", "LOGIN_IMMERSIVE.dash_feed")),
+    5: (
+        ("apps/accounts/login_immersive_canvas.py", "dash_feed"),
+        ("apps/accounts/login_immersive_canvas.py", "School announcements"),
+        ("templates/auth/partials/login_immersive_dash_panels.html", "LOGIN_IMMERSIVE.dash_feed"),
+    ),
     6: (
         ("apps/communication/forms_announcements.py", '"scheduled_at"'),
         ("templates/communication/announcement_create.html", "form.scheduled_at"),
         ("apps/communication/models.py", "AnnouncementAuditLog"),
     ),
     7: (("apps/siteconfig/forms_cockpit.py", "lic_sponsored_lines"),),
-    8: (("apps/accounts/views_magic_link.py", "magic_link_request"), ("apps/accounts/password_reset.py", "PortalPasswordResetForm")),
-    9: (("apps/accounts/views_passkey.py", "tenant mismatch"),),
+    8: (
+        ("apps/accounts/views_magic_link.py", "magic_link_request"),
+        ("apps/accounts/password_reset.py", "PortalPasswordResetForm"),
+        ("templates/auth/login.html", "data-rmc-recovery-problem"),
+    ),
+    9: (
+        ("apps/accounts/views_passkey.py", "tenant mismatch"),
+        ("templates/auth/login.html", "data-rmc-verified-host"),
+        ("templates/auth/login.html", "Why am I seeing this school?"),
+    ),
     10: (
         ("templates/auth/login.html", "data-rmc-auth-contrast"),
         ("templates/auth/login.html", "data-rmc-auth-motion"),
         ("static/css/auth-login-canvas.css", "data-rmc-auth-reduce-motion"),
+        ("static/css/auth-login-canvas.css", "min-height: 44px"),
     ),
-    11: (("templates/auth/login.html", "data-rmc-access-assistant"),),
+    11: (
+        ("templates/auth/login.html", "data-rmc-access-assistant"),
+        ("templates/auth/login.html", "data-rmc-assistant-ask"),
+        ("templates/auth/login.html", "data-rmc-assistant-prompt"),
+    ),
     12: (("templates/siteconfig/super/cockpit_health.html", "data-rmc-login-front-door-health"),),
 }
 

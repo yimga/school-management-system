@@ -254,6 +254,21 @@
 
 **F. Next:** Hard-refresh the repair URL; confirm full radio circles and that ELECTRICAL POWER SYSTEMS no longer appears as a person-name preview.
 
+## Slice — Tenant login 12-upgrade contract (batch 1798 - 2026-08-18)
+
+**A. Scope:** Make `tenant-login-12-upgrades-approval-v1.html` load-bearing on the live tenant login, using tokens / `.rmc-*` / existing front-door canvas.
+
+**B. Shipped:** Choose-role first visit; returning role card (no name/email); role-method rails; recovery select + actions; public assistant prompts + ask; verified-school why-host; 44px targets; school-day pulse fallback; health markers 12/12; SW `sms-v4.06.55-login-front-door-12-2026-08-18`; catalog +50.
+
+**C. Proof:** sqlite-memory **40/40 OK**; template-render-safety 0; inline-handlers 0; undefined-css 0; i18n catalog +50 synced.
+
+**D. Honest:** Did not clone mock hex or MQTT chrome. No QR-badge login. Publisher/partner remain announcement create + cockpit sponsor lines.
+
+**E. Files:** `templates/auth/login.html`, `static/js/rmc-auth-login-immersive.js`, `static/css/auth-login-canvas.css`, `apps/accounts/views.py`, `login_immersive_canvas.py`, `views_cockpit_health.py`, front-door tests, acceptance doc, locales, SW + baseline, SOT/log.
+
+**F. Next:** Hard-refresh tenant `/authentication/login/`; pick Parent vs Staff and confirm method rails + recovery actions; passkey still works on a capable browser.
+
+
 ## Slice — School & region tenant editor (batch 1797 - 2026-08-18)
 
 **A. Scope:** Clean leftover dirty trees. Land the only product files not already on `origin/main`. Do not commit stale copies that would regress telemetry / quiet-header.

@@ -101,6 +101,24 @@
     }
   }
 
+  function applyRoleSurface(role) {
+    root.querySelectorAll("[data-rmc-role-methods]").forEach(function (node) {
+      node.hidden = node.getAttribute("data-rmc-role-methods") !== role;
+    });
+    root.querySelectorAll("[data-rmc-staff-sso]").forEach(function (node) {
+      node.hidden = role !== "staff";
+    });
+    var user = root.querySelector("#login-username");
+    var label = root.querySelector("[data-rmc-username-label]");
+    if (user) {
+      var nextLabel = user.getAttribute("data-rmc-username-" + role) || user.getAttribute("data-rmc-username-staff");
+      if (nextLabel) {
+        user.setAttribute("placeholder", nextLabel);
+        if (label) label.textContent = nextLabel;
+      }
+    }
+  }
+
   function setStep(which) {
     var creds = which === "creds";
     if (stepRole) stepRole.classList.toggle("is-on", !creds);
@@ -132,6 +150,7 @@
           btn.getAttribute("data-rmc-auth-role-title") || role;
       }
       setPreview(role);
+      applyRoleSurface(role);
       setStep("creds");
     });
     btn.addEventListener("mouseenter", function () {
@@ -151,9 +170,14 @@
       var returning = root.querySelector("[data-rmc-returning-user]");
       var label = root.querySelector("[data-rmc-returning-label]");
       var go = root.querySelector("[data-rmc-returning-continue]");
+      var otherTitle = root.querySelector("[data-rmc-other-roles-title]");
+      var copyHost = document.querySelector("[data-rmc-access-assistant]");
       if (!savedButton || !returning || !go) return;
       returning.hidden = false;
-      if (label) label.textContent = "Continue as " + (savedButton.getAttribute("data-rmc-auth-role-title") || savedRole);
+      root.classList.add("has-returning");
+      if (otherTitle) otherTitle.hidden = false;
+      var prefix = (copyHost && copyHost.getAttribute("data-rmc-i18n-continue-as")) || "Continue as";
+      if (label) label.textContent = prefix + " " + (savedButton.getAttribute("data-rmc-auth-role-title") || savedRole);
       go.addEventListener("click", function () { savedButton.click(); });
     } catch (_e) { /* storage is an optional convenience */ }
   })();
@@ -167,22 +191,31 @@
           node.classList.toggle("is-error", !!failed);
         });
       }
+      var assistantCopy = document.querySelector("[data-rmc-access-assistant]");
       if (!window.PublicKeyCredential || !navigator.credentials) {
         // Distinguish "the browser cannot" from "this origin is not allowed to".
         // Browsers withhold PublicKeyCredential from insecure contexts by spec, so on a
         // box served over plain HTTP this fires on browsers that support passkeys
         // perfectly well. Naming the browser sends the user to reinstall software that
         // was never the problem.
+        //
+        // Both messages read through the template's data-rmc-i18n-* attributes so they
+        // are translatable, with the English kept inline as the fallback for a page that
+        // rendered without the assistant dialog.
         announce(
           window.isSecureContext === false
-            ? "Passkeys need a secure (HTTPS) connection. This server is reached over plain HTTP. Use email, SSO, or password."
-            : "This browser does not support passkeys. Use email, SSO, or password.",
+            ? (assistantCopy &&
+                assistantCopy.getAttribute("data-rmc-i18n-passkey-insecure")) ||
+              "Passkeys need a secure (HTTPS) connection. This server is reached over plain HTTP. Use email, SSO, or password."
+            : (assistantCopy &&
+                assistantCopy.getAttribute("data-rmc-i18n-passkey-unsupported")) ||
+              "This browser does not support passkeys. Use email, SSO, or password.",
           true
         );
         return;
       }
       button.disabled = true;
-      announce("Waiting for your deviceâ€¦", false);
+      announce((assistantCopy && assistantCopy.getAttribute("data-rmc-i18n-passkey-wait")) || "Waiting for your device…", false);
       try {
         var optionsResponse = await fetch(root.getAttribute("data-rmc-passkey-options-url"), { credentials: "same-origin" });
         var options = await optionsResponse.json();
@@ -217,7 +250,7 @@
         });
         var result = await verifyResponse.json();
         if (!verifyResponse.ok || !result.ok) throw new Error(result.error || "Passkey verification failed.");
-        announce("Verified. Opening your school workspaceâ€¦", false);
+        announce((assistantCopy && assistantCopy.getAttribute("data-rmc-i18n-passkey-ok")) || "Verified. Opening your school workspace…", false);
         window.location.assign(result.redirect_url || "/authentication/redirect/");
       } catch (error) {
         announce((error && error.message) || "Passkey sign-in was cancelled.", true);
@@ -233,11 +266,57 @@
     });
   });
   if (assistant) {
-    var offlineHelp = assistant.querySelector("[data-rmc-offline-continuity]");
     var answer = assistant.querySelector("[data-rmc-assistant-answer]");
-    if (offlineHelp && answer) offlineHelp.addEventListener("click", function () {
-      answer.textContent = "Previously authorized devices can use cached notices and approved local tools. Finance, payroll, configuration, and private records require a verified online session.";
+    function setAnswer(kind) {
+      if (!answer) return;
+      var school = root.getAttribute("data-rmc-verified-school") || "";
+      var host = root.getAttribute("data-rmc-verified-host") || window.location.host;
+      var mapped = kind === "why-school" ? "why" : kind;
+      var key = "data-rmc-answer-" + mapped;
+      var text = assistant.getAttribute(key) || assistant.getAttribute("data-rmc-answer-unknown") || "";
+      if (mapped === "why" && school) {
+        text = text + " " + school + " · " + host;
+      }
+      answer.textContent = text;
+    }
+    assistant.querySelectorAll("[data-rmc-assistant-prompt]").forEach(function (button) {
+      button.addEventListener("click", function () {
+        setAnswer(button.getAttribute("data-rmc-assistant-prompt") || "unknown");
+      });
     });
+    var recovery = assistant.querySelector("[data-rmc-recovery-problem]");
+    function showRecovery(value) {
+      assistant.querySelectorAll("[data-rmc-recovery-action]").forEach(function (node) {
+        node.hidden = !value || node.getAttribute("data-rmc-recovery-action") !== value;
+      });
+      if (value === "locked") setAnswer("locked");
+      if (value === "school") setAnswer("why");
+    }
+    if (recovery) {
+      showRecovery("");
+      recovery.addEventListener("change", function () {
+        showRecovery(recovery.value);
+      });
+    }
+    var locked = assistant.querySelector("[data-rmc-recovery-action='locked']");
+    if (locked) locked.addEventListener("click", function () { setAnswer("locked"); });
+    var offlineHelp = assistant.querySelector("[data-rmc-offline-continuity]");
+    if (offlineHelp) offlineHelp.addEventListener("click", function () { setAnswer("offline"); });
+    var ask = assistant.querySelector("[data-rmc-assistant-ask]");
+    if (ask) {
+      ask.addEventListener("keydown", function (event) {
+        if (event.key !== "Enter") return;
+        event.preventDefault();
+        var q = String(ask.value || "").toLowerCase();
+        if (q.indexOf("parent") >= 0 || q.indexOf("guardian") >= 0) setAnswer("parent");
+        else if (q.indexOf("invite") >= 0 || q.indexOf("child") >= 0) setAnswer("invite");
+        else if (q.indexOf("offline") >= 0 || q.indexOf("outage") >= 0) setAnswer("offline");
+        else if (q.indexOf("open") >= 0 || q.indexOf("hour") >= 0) setAnswer("hours");
+        else if (q.indexOf("school") >= 0 || q.indexOf("wrong") >= 0) setAnswer("why");
+        else if (q.indexOf("lock") >= 0) setAnswer("locked");
+        else setAnswer("unknown");
+      });
+    }
   }
 
   if (backBtn) {
@@ -284,10 +363,16 @@
     });
   });
 
+  var onlineStatusLabel = networkStatus ? networkStatus.textContent.trim() : "Secure";
+
   function setNetworkState() {
     var offline = !window.navigator.onLine;
     root.classList.toggle("is-offline", offline);
-    if (networkStatus) networkStatus.textContent = offline ? "Offline · local view" : "Secure";
+    if (networkStatus) {
+      networkStatus.textContent = offline
+        ? (networkStatus.getAttribute("data-rmc-offline-label") || "Offline · local view")
+        : onlineStatusLabel;
+    }
     if (networkCopy) networkCopy.textContent = offline ? "Offline-ready" : "Online";
     if (offlineNote) offlineNote.hidden = !offline;
     if (sponsoredRegion && root.getAttribute("data-rmc-hide-sponsored-offline") === "1") {
@@ -409,6 +494,7 @@
     var picked = roleInput && roleInput.value;
     if (picked) {
       setPreview(picked);
+      applyRoleSurface(picked);
       var pickedBtn = root.querySelector(
         "[data-rmc-auth-role='" + picked + "']"
       );
