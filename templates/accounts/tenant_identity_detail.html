@@ -156,9 +156,14 @@
   </div>
   {% endif %}
 
-  {# What this member actually holds. The page showed a single "Effective role"
-     and linked to the RBAC console, so there was nowhere to CONFIRM that a grant
-     had landed — same resolver and same partial as the member's own profile. #}
+  {% comment %}
+    What this member actually holds. The page showed a single "Effective role"
+    and linked to the RBAC console, so there was nowhere to CONFIRM that a grant
+    had landed — same resolver and same partial as the member's own profile.
+    Written as a comment TAG, not a hash comment: Django's hash comment is
+    single-line only, so a multi-line one is not a comment at all and its text
+    renders straight onto the page.
+  {% endcomment %}
   <div class="mt-3">
     {% include "accounts/partials/_access_summary_card.html" %}
   </div>
