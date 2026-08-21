@@ -67,9 +67,18 @@ def _roster_rows(school, *, limit: int = 200) -> list[dict]:
             .prefetch_related("user__roles")
             .order_by("-is_school_owner", "-is_primary", "user__username")[:limit]
         )
+        from apps.accounts.access_roles import role_applies_to_school
+
         for m in memberships:
+            # `school_id == school.pk` excluded every GLOBAL template row, and
+            # global is what the platform actually ships: TEACHER, ADMIN, BURSAR,
+            # IT_ADMIN and the rest are all school=NULL. The bulk form assigns
+            # from `roles_queryset_for_school`, which offers those globals — so
+            # this page, whose whole job is assigning roles, showed an empty chip
+            # list for every person no matter what an owner had just granted.
+            # `role_applies_to_school` is the canonical predicate and admits both.
             access_roles = [
-                r.name for r in m.user.roles.all() if getattr(r, "school_id", None) == school.pk
+                r.name for r in m.user.roles.all() if role_applies_to_school(r, school)
             ]
             rows.append(
                 {

@@ -71759,3 +71759,196 @@ msgstr "{{ counter }} permission {% plural %} {{ counter }} permissions"
 
 msgid "{{ counter }} role {% plural %} {{ counter }} roles"
 msgstr "{{ counter }} role {% plural %} {{ counter }} roles"
+
+msgid ""
+"<strong>{{ counter }}</strong> of these needs a decision from you. {% plural"
+" %} <strong>{{ counter }}</strong> of these need a decision from you."
+msgstr ""
+"<strong>{{ counter }}</strong> of these needs a decision from you. {% plural"
+" %} <strong>{{ counter }}</strong> of these need a decision from you."
+
+msgid ""
+"A scheduled sync was missed — the box was not reachable. It will catch up "
+"once on its next connection."
+msgstr ""
+"A scheduled sync was missed — the box was not reachable. It will catch up "
+"once on its next connection."
+
+msgid "Add a schedule rule"
+msgstr "Add a schedule rule"
+
+msgid "Add rule"
+msgstr "Add rule"
+
+msgid "Automatic"
+msgstr "Automatic"
+
+msgid "Automatic — as soon as there is anything to send"
+msgstr "Automatic — as soon as there is anything to send"
+
+msgid "Because"
+msgstr "Because"
+
+msgid "Choose one of the listed intervals."
+msgstr "Choose one of the listed intervals."
+
+msgid "Committed spend"
+msgstr "Committed spend"
+
+msgid "Could not generate orders: %(err)s"
+msgstr "Could not generate orders: %(err)s"
+
+msgid "Deploy proof — Admin OS v22.0 on operator /admin/"
+msgstr "Deploy proof — Admin OS v22.0 on operator /admin/"
+
+msgid "Deploy proof — Admin OS v22.0 on tenant /admin/"
+msgstr "Deploy proof — Admin OS v22.0 on tenant /admin/"
+
+msgid "Drafts are excluded — a draft is a proposal, not spend."
+msgstr "Drafts are excluded — a draft is a proposal, not spend."
+
+msgid "Edit this rule"
+msgstr "Edit this rule"
+
+msgid "Every 15 minutes"
+msgstr "Every 15 minutes"
+
+msgid "Every 2 hours"
+msgstr "Every 2 hours"
+
+msgid "Every 30 minutes"
+msgstr "Every 30 minutes"
+
+msgid "Every 4 hours"
+msgstr "Every 4 hours"
+
+msgid "Every 8 hours"
+msgstr "Every 8 hours"
+
+msgid "Every hour"
+msgstr "Every hour"
+
+msgid "Generate draft orders"
+msgstr "Generate draft orders"
+
+msgid "Generated %(count)s draft order(s) from class configuration."
+msgstr "Generated %(count)s draft order(s) from class configuration."
+
+msgid "Needed"
+msgstr "Needed"
+
+msgid "Next sync"
+msgstr "Next sync"
+
+msgid "No matching admin destination"
+msgstr "No matching admin destination"
+
+msgid "No purchase orders yet."
+msgstr "No purchase orders yet."
+
+msgid ""
+"No schedule set. This box syncs automatically — continuously, and faster "
+"when there are changes. Add a rule below to sync at particular times "
+"instead."
+msgstr ""
+"No schedule set. This box syncs automatically — continuously, and faster "
+"when there are changes. Add a rule below to sync at particular times "
+"instead."
+
+msgid ""
+"No supply requirements are configured yet. Add one against a subject to let "
+"orders generate themselves."
+msgstr ""
+"No supply requirements are configured yet. Add one against a subject to let "
+"orders generate themselves."
+
+msgid ""
+"Nothing to order — every configured supply requirement is already covered by"
+" stock on hand."
+msgstr ""
+"Nothing to order — every configured supply requirement is already covered by"
+" stock on hand."
+
+msgid "Order submitted to the vendor."
+msgstr "Order submitted to the vendor."
+
+msgid "Paused — this rule is not running."
+msgstr "Paused — this rule is not running."
+
+msgid "Purchase orders"
+msgstr "Purchase orders"
+
+msgid "Purchase orders for this school"
+msgstr "Purchase orders for this school"
+
+msgid "Remove this sync schedule rule?"
+msgstr "Remove this sync schedule rule?"
+
+msgid "Row"
+msgstr "Row"
+
+msgid ""
+"Schedule changes reach the box on its next sync — the cloud cannot contact a"
+" box directly."
+msgstr ""
+"Schedule changes reach the box on its next sync — the cloud cannot contact a"
+" box directly."
+
+msgid "Search admin navigation..."
+msgstr "Search admin navigation..."
+
+msgid "Select a valid order."
+msgstr "Select a valid order."
+
+msgid "Select your school to change the sync schedule."
+msgstr "Select your school to change the sync schedule."
+
+msgid ""
+"Showing the most recent {{ quarantine_shown }} of {{ quarantine_total }}. "
+"Export the full list to work through the rest."
+msgstr ""
+"Showing the most recent {{ quarantine_shown }} of {{ quarantine_total }}. "
+"Export the full list to work through the rest."
+
+msgid "Submitted and received orders total {{ amount }}."
+msgstr "Submitted and received orders total {{ amount }}."
+
+msgid "Supplies required by current class configuration"
+msgstr "Supplies required by current class configuration"
+
+msgid "Sync schedule"
+msgstr "Sync schedule"
+
+msgid "Sync schedule rule removed."
+msgstr "Sync schedule rule removed."
+
+msgid ""
+"Sync schedule saved. It takes effect on the box at its next sync — the cloud"
+" cannot contact a box directly."
+msgstr ""
+"Sync schedule saved. It takes effect on the box at its next sync — the cloud"
+" cannot contact a box directly."
+
+msgid "That order is not a draft for this school."
+msgstr "That order is not a draft for this school."
+
+msgid "That sync schedule rule no longer exists."
+msgstr "That sync schedule rule no longer exists."
+
+msgid "Times are shown in the school's timezone ({{ tz }})."
+msgstr "Times are shown in the school's timezone ({{ tz }})."
+
+msgid "Try an app, model, or task name."
+msgstr "Try an app, model, or task name."
+
+msgid "Use 24-hour times separated by commas, for example 06:00, 22:00."
+msgstr "Use 24-hour times separated by commas, for example 06:00, 22:00."
+
+msgid "What the timetable implies you need"
+msgstr "What the timetable implies you need"
+
+msgid "Why it was held"
+msgstr "Why it was held"
+
+msgid "class configuration"
+msgstr "class configuration"

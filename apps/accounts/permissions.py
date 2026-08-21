@@ -636,26 +636,50 @@ for _module_permissions in MODULE_ACCESS_DEFAULTS.values():
         _module_permissions[_action] = _strip_control_plane_roles(_roles)
 
 # Group permissions by module for RBAC UI (grouped display; additive only, do not remove).
+# NOTE: `_rbac_permissions_by_group` appends anything missing here to an "Other"
+# bucket, so an ungrouped code is still grantable — but 16 codes sitting in one
+# unlabelled pile is a picker an owner cannot use. Every catalog code now has a
+# home. Keep this in sync when a migration adds one; the RBAC console is the
+# only place an owner can see what a code IS.
 PERMISSION_GROUPS = {
-    "Discipline": ["discipline.manage"],
+    "Discipline": ["discipline.manage", "discipline.refer"],
     "Accounting": ["accounting.view", "accounting.manage"],
     "Stock": ["stock.view", "stock.manage"],
     "Strategic": ["strategic.report"],
     "Exam registration": ["exam_registration.manage"],
-    "Attendance": ["attendance.view", "attendance.manage"],
+    "Attendance": ["attendance.view", "attendance.manage", "attendance.mark"],
     "Cahier de Texte": ["cahier.verify"],
-    "Finance": ["finance.view", "finance.manage"],
+    "Finance": [
+        "finance.view",
+        "finance.manage",
+        "finance.access",
+        "finance.view_dashboard",
+        "finance.view_invoice",
+    ],
     "Payroll": ["payroll.view", "payroll.manage"],
-    "Grades": ["grades.enter", "grades.manage"],
+    "Grades": ["grades.enter", "grades.manage", "grade.submit"],
     "Analytics": ["analytics.view", "analytics.manage"],
     "Compliance": ["compliance.view", "compliance.manage"],
-    "Reports": ["reports.manage"],
-    "Settings": ["settings.manage"],
-    "Portal": ["portal.manage"],
+    "Reports": ["reports.manage", "reports.view"],
+    "Settings": ["settings.manage", "settings.feature_control"],
+    "Portal": [
+        "portal.manage",
+        "portal.documents",
+        "portal.forums",
+        "portal.video",
+    ],
     "Communication": ["communication.manage"],
     "Student": ["student.manage"],
     "Data": ["data.access"],
     "API Center": ["api_center.manage"],
+    "Athletics": [
+        "athletics.view",
+        "athletics.manage",
+        "athletics.eligibility.override",
+        "athletics.medical.manage",
+    ],
+    "Marketplace": ["marketplace.view"],
+    "Identity & access": ["identity.reset_credentials", "iam.request_access"],
 }
 
 # Role categories for RBAC UI (grouped display; additive only, do not remove).

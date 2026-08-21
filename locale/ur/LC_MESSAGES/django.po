@@ -64526,3 +64526,179 @@ msgstr ""
 
 msgid "{{ counter }} role {% plural %} {{ counter }} roles"
 msgstr ""
+
+msgid ""
+"<strong>{{ counter }}</strong> of these needs a decision from you. {% plural"
+" %} <strong>{{ counter }}</strong> of these need a decision from you."
+msgstr ""
+
+msgid ""
+"A scheduled sync was missed — the box was not reachable. It will catch up "
+"once on its next connection."
+msgstr ""
+
+msgid "Add a schedule rule"
+msgstr ""
+
+msgid "Add rule"
+msgstr ""
+
+msgid "Automatic"
+msgstr ""
+
+msgid "Automatic — as soon as there is anything to send"
+msgstr ""
+
+msgid "Because"
+msgstr ""
+
+msgid "Choose one of the listed intervals."
+msgstr ""
+
+msgid "Committed spend"
+msgstr ""
+
+msgid "Could not generate orders: %(err)s"
+msgstr ""
+
+msgid "Deploy proof — Admin OS v22.0 on operator /admin/"
+msgstr ""
+
+msgid "Deploy proof — Admin OS v22.0 on tenant /admin/"
+msgstr ""
+
+msgid "Drafts are excluded — a draft is a proposal, not spend."
+msgstr ""
+
+msgid "Edit this rule"
+msgstr ""
+
+msgid "Every 15 minutes"
+msgstr ""
+
+msgid "Every 2 hours"
+msgstr ""
+
+msgid "Every 30 minutes"
+msgstr ""
+
+msgid "Every 4 hours"
+msgstr ""
+
+msgid "Every 8 hours"
+msgstr ""
+
+msgid "Every hour"
+msgstr ""
+
+msgid "Generate draft orders"
+msgstr ""
+
+msgid "Generated %(count)s draft order(s) from class configuration."
+msgstr ""
+
+msgid "Needed"
+msgstr ""
+
+msgid "Next sync"
+msgstr ""
+
+msgid "No matching admin destination"
+msgstr ""
+
+msgid "No purchase orders yet."
+msgstr ""
+
+msgid ""
+"No schedule set. This box syncs automatically — continuously, and faster "
+"when there are changes. Add a rule below to sync at particular times "
+"instead."
+msgstr ""
+
+msgid ""
+"No supply requirements are configured yet. Add one against a subject to let "
+"orders generate themselves."
+msgstr ""
+
+msgid ""
+"Nothing to order — every configured supply requirement is already covered by"
+" stock on hand."
+msgstr ""
+
+msgid "Order submitted to the vendor."
+msgstr ""
+
+msgid "Paused — this rule is not running."
+msgstr ""
+
+msgid "Purchase orders"
+msgstr ""
+
+msgid "Purchase orders for this school"
+msgstr ""
+
+msgid "Remove this sync schedule rule?"
+msgstr ""
+
+msgid "Row"
+msgstr ""
+
+msgid ""
+"Schedule changes reach the box on its next sync — the cloud cannot contact a"
+" box directly."
+msgstr ""
+
+msgid "Search admin navigation..."
+msgstr ""
+
+msgid "Select a valid order."
+msgstr ""
+
+msgid "Select your school to change the sync schedule."
+msgstr ""
+
+msgid ""
+"Showing the most recent {{ quarantine_shown }} of {{ quarantine_total }}. "
+"Export the full list to work through the rest."
+msgstr ""
+
+msgid "Submitted and received orders total {{ amount }}."
+msgstr ""
+
+msgid "Supplies required by current class configuration"
+msgstr ""
+
+msgid "Sync schedule"
+msgstr ""
+
+msgid "Sync schedule rule removed."
+msgstr ""
+
+msgid ""
+"Sync schedule saved. It takes effect on the box at its next sync — the cloud"
+" cannot contact a box directly."
+msgstr ""
+
+msgid "That order is not a draft for this school."
+msgstr ""
+
+msgid "That sync schedule rule no longer exists."
+msgstr ""
+
+msgid "Times are shown in the school's timezone ({{ tz }})."
+msgstr ""
+
+msgid "Try an app, model, or task name."
+msgstr ""
+
+msgid "Use 24-hour times separated by commas, for example 06:00, 22:00."
+msgstr ""
+
+msgid "What the timetable implies you need"
+msgstr ""
+
+msgid "Why it was held"
+msgstr ""
+
+msgid "class configuration"
+msgstr ""

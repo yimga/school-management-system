@@ -52,7 +52,10 @@ EXEMPTION = "rbac-code-allow"
 
 #: Call sites that resolve a code through the tenant ``Permission`` catalog.
 CALL_PATTERN = re.compile(
-    r"\b("
+    # `_?` matters: apps/platform_runtime/action_engine.py wraps the resolver as
+    # a PRIVATE `_has_feature_permission`, and `\b` does not match between "_"
+    # and "h", so the four codes that motivated this gate were invisible to it.
+    r"\b_?("
     r"has_feature_permission"
     r"|require_permission"
     r"|permission_access"
@@ -60,11 +63,36 @@ CALL_PATTERN = re.compile(
     r"|enforce_permission_token"
     r"|check_permission_token"
     r"|feature_permission_allowed"
+    # DRF classes whose constructor argument becomes the enforced code.
+    r"|RebacPermissionOrReadOnly"
+    r"|RebacPermission"
     r")\s*\("
+)
+
+#: The defensive idiom ``getattr(user, "has_feature_permission", lambda _: False)("code")``.
+#: The method name is a STRING here, so it is never followed by "(" and CALL_PATTERN
+#: cannot see it. Two live codes (api_center.manage, cahier.verify) were gated this
+#: way and went unchecked until the 2026-08-21 audit.
+GETATTR_CALL_PATTERN = re.compile(
+    r"""getattr\s*\([^()]*["']has_feature_permission["'][^()]*(?:\([^()]*\))?[^()]*\)\s*\("""
+)
+
+#: Template filter form: ``{% if user|has_feature_permission:"settings.manage" %}``.
+#: ``{% url %}``-style gates live in HTML too, and a code that exists nowhere hides
+#: a whole panel from everyone with no error.
+TEMPLATE_CALL_PATTERN = re.compile(
+    r"""has_feature_permission:\s*["']([a-z_]+(?:\.[a-z_]+)+)["']"""
 )
 
 #: A colon-manifest code: dotted, lowercase, no spaces (``athletics.eligibility.override``).
 CODE_PATTERN = re.compile(r"""["']([a-z_]+(?:\.[a-z_]+)+)["']""")
+
+CATALOG_PATTERNS = (
+    # ("code", "Name", "Description") tuple — the dominant seeding form.
+    re.compile(r"""\(\s*["']([a-z_]+(?:\.[a-z_]+)+)["']\s*,\s*["']"""),
+    # get_or_create(code="thing.code", ...) / create(code="thing.code")
+    re.compile(r"""\bcode\s*=\s*["']([a-z_]+(?:\.[a-z_]+)+)["']"""),
+)
 
 #: Django's OWN permission strings are ``app_label.codename`` and are resolved by
 #: ``auth.Permission``, not by the tenant catalog. ``permission_required`` is
@@ -94,17 +122,18 @@ def _iter_python_files():
 def catalog_codes() -> set[str]:
     """Codes any accounts data migration defines as a ``Permission`` row.
 
-    Migrations declare them as ``("code", "Name", "Description")`` tuples, which
-    is stable across every seeding migration in the app (0004 through 0058).
+    Two forms are in use and BOTH must be read. Most migrations declare
+    ``("code", "Name", "Description")`` tuples; 0018 and 0019 instead call
+    ``get_or_create(code="cahier.verify", ...)`` directly. Reading only the tuple
+    form made this function under-report by two, which would have flagged a
+    correctly-seeded code as a finding the moment anyone gated on it.
     """
     codes: set[str] = set()
-    tuple_pattern = re.compile(
-        r"""\(\s*["']([a-z_]+(?:\.[a-z_]+)+)["']\s*,\s*["']""",
-    )
     migrations = REPO_ROOT / "apps" / "accounts" / "migrations"
     for path in sorted(migrations.glob("*.py")):
         text = path.read_text(encoding="utf-8", errors="replace")
-        codes.update(tuple_pattern.findall(text))
+        for pattern in CATALOG_PATTERNS:
+            codes.update(pattern.findall(text))
     return codes
 
 
@@ -130,24 +159,56 @@ def _exempt(lines: list[str], index: int) -> bool:
     return index > 0 and EXEMPTION in lines[index - 1]
 
 
+def _iter_template_files():
+    for root in ("templates", "apps"):
+        base = REPO_ROOT / root
+        if not base.exists():
+            continue
+        for path in sorted(base.rglob("*.html")):
+            rel = path.relative_to(REPO_ROOT).as_posix()
+            if "/__pycache__/" in f"/{rel}":
+                continue
+            yield path, rel
+
+
 def gated_codes() -> list[tuple[str, int, str]]:
-    """(relative path, 1-indexed line, code) for every catalog code that is gated on."""
+    """(relative path, 1-indexed line, code) for every catalog code gated on.
+
+    Three call shapes, all reaching the same resolver:
+
+    * the direct call, ``user.has_feature_permission("code")``;
+    * the defensive ``getattr(user, "has_feature_permission", ...)("code")``,
+      where the method name is a STRING and so is never followed by "(" — this
+      shape hid ``api_center.manage`` and ``cahier.verify`` from the gate;
+    * the template filter, ``{% if user|has_feature_permission:"code" %}``, which
+      no Python-only scan can see and which hides a whole panel when it is wrong.
+    """
     found: list[tuple[str, int, str]] = []
+
     for path, rel in _iter_python_files():
         text = path.read_text(encoding="utf-8", errors="replace")
-        if not CALL_PATTERN.search(text):
-            continue
         lines = text.splitlines()
-        for match in CALL_PATTERN.finditer(text):
+        for pattern in (CALL_PATTERN, GETATTR_CALL_PATTERN):
+            for match in pattern.finditer(text):
+                line_index = text.count("\n", 0, match.start())
+                if line_index < len(lines) and _exempt(lines, line_index):
+                    continue
+                for code in CODE_PATTERN.findall(
+                    _call_argument_span(text, match.end())
+                ):
+                    if code.split(".", 1)[0] in DJANGO_APP_LABELS:
+                        continue
+                    found.append((rel, line_index + 1, code))
+
+    for path, rel in _iter_template_files():
+        text = path.read_text(encoding="utf-8", errors="replace")
+        lines = text.splitlines()
+        for match in TEMPLATE_CALL_PATTERN.finditer(text):
             line_index = text.count("\n", 0, match.start())
             if line_index < len(lines) and _exempt(lines, line_index):
                 continue
-            for code in CODE_PATTERN.findall(
-                _call_argument_span(text, match.end())
-            ):
-                if code.split(".", 1)[0] in DJANGO_APP_LABELS:
-                    continue
-                found.append((rel, line_index + 1, code))
+            found.append((rel, line_index + 1, match.group(1)))
+
     return found
 
 

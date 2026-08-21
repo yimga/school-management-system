@@ -57,6 +57,15 @@ optionally `access_summary_rbac_url`.
               </div>
             {% endfor %}
           </div>
+        {% elif access_summary.is_superadmin %}
+          {% comment %}
+            The live superuser holds ZERO access-role rows and every permission.
+            "No roles assigned" beside 45 permissions reads like a contradiction;
+            it is not, and the reason is worth stating plainly.
+          {% endcomment %}
+          <div class="text-muted small">
+            {% trans "None needed — platform access is granted directly, not through a role." %}
+          </div>
         {% else %}
           <div class="text-muted small">
             {% trans "No access roles are assigned to this account yet." %}

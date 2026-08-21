@@ -206,12 +206,25 @@ def tuples_for_user(*, school, user) -> list[dict[str, str]]:
 
 
 def flatten_capabilities(user, *, school) -> list[str]:
-    """Colon tokens this user may exercise in ``school`` (from ``can`` tuples)."""
+    """Colon tokens this user may exercise in ``school`` (from ``can`` tuples).
+
+    A platform superadmin holds the whole catalog, and that has to hold OFFLINE
+    too. Reading only ``can`` tuples gave a superadmin an empty capability list
+    whenever no tuple had been written for them — which is the normal state for
+    an operator identity with no access-role rows. The bitmap this feeds is not
+    enforced yet, so the gap was latent rather than live; resolved here with the
+    same rule the online gate uses, so the two cannot disagree.
+    """
     from apps.accounts.models_rebac import RelationshipTuple
+    from apps.accounts.superadmin import is_platform_superadmin
 
     sid = _subject_user_id(user)
     if not sid or school is None:
         return []
+    if is_platform_superadmin(user):
+        from apps.accounts.models import Permission
+
+        return sorted(Permission.objects.values_list("code", flat=True))
     codes = (
         RelationshipTuple.objects.filter(
             school=school,
