@@ -84,7 +84,9 @@ def classify_domain(*, artifact: MigrationArtifact) -> dict[str, Any]:
         # header overlap, which cannot tell students/staff/guardians/alumni apart
         # (they share name/dob/gender/email/phone/address). Non-roster content
         # (grades, finance) is never overridden — see reconcile_domain_with_filename.
-        chosen = _reconcile_with_filename(filename, top.domain)
+        chosen = _reconcile_with_filename(
+            filename, top.domain, {c.domain: c.confidence for c in ranked}
+        )
         return {
             "chosen": chosen,
             "candidates": [c.__dict__ for c in ranked[:5]],
@@ -117,7 +119,13 @@ def classify_domain(*, artifact: MigrationArtifact) -> dict[str, Any]:
             "method": "ai_bridge",
         }
 
-    chosen = _reconcile_with_filename(filename, top.domain) if top else "custom_fields"
+    chosen = (
+        _reconcile_with_filename(
+            filename, top.domain, {c.domain: c.confidence for c in ranked}
+        )
+        if top
+        else "custom_fields"
+    )
     return {
         "chosen": chosen,
         "candidates": [c.__dict__ for c in (ranked or [
@@ -127,7 +135,11 @@ def classify_domain(*, artifact: MigrationArtifact) -> dict[str, Any]:
     }
 
 
-def _reconcile_with_filename(filename: str, content_domain: str | None) -> str:
+def _reconcile_with_filename(
+    filename: str,
+    content_domain: str | None,
+    scores: dict[str, float] | None = None,
+) -> str:
     """Let a filename entity-token break the person-roster tie the columns can't.
 
     Lazy import keeps the classifier free of an accelerator import at module load
@@ -137,9 +149,9 @@ def _reconcile_with_filename(filename: str, content_domain: str | None) -> str:
         reconcile_domain_with_filename,
     )
 
-    return reconcile_domain_with_filename(filename, content_domain) or (
-        content_domain or "custom_fields"
-    )
+    return reconcile_domain_with_filename(
+        filename, content_domain, scores=scores
+    ) or (content_domain or "custom_fields")
 
 
 def _score_domains(normalized_headers: set[str]) -> list[DomainCandidate]:
