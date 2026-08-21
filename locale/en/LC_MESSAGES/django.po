@@ -72186,3 +72186,694 @@ msgstr ""
 
 msgid "{{ count }} waiting{% plural %}{{ count }} waiting"
 msgstr "{{ count }} waiting{% plural %}{{ count }} waiting"
+
+msgid "24 hours"
+msgstr "24 hours"
+
+msgid "7 days"
+msgstr "7 days"
+
+msgid ""
+"<strong>{{ counter }}</strong> row needs your decision before this import is"
+" complete. {% plural %} <strong>{{ counter }}</strong> rows need your "
+"decision before this import is complete."
+msgstr ""
+"<strong>{{ counter }}</strong> row needs your decision before this import is"
+" complete. {% plural %} <strong>{{ counter }}</strong> rows need your "
+"decision before this import is complete."
+
+msgid ""
+"A 502 or 504 means the cloud's proxy answered but the application behind it "
+"did not — most often schema drift on this tenant, where a synced table is "
+"missing a column. On the cloud run “python manage.py "
+"check_edge_sync_deploy_readiness”; on the box run “python manage.py "
+"verify_edge_link --http” to tell that apart from an unreachable host, a "
+"refused credential or a missing endpoint."
+msgstr ""
+"A 502 or 504 means the cloud's proxy answered but the application behind it "
+"did not — most often schema drift on this tenant, where a synced table is "
+"missing a column. On the cloud run “python manage.py "
+"check_edge_sync_deploy_readiness”; on the box run “python manage.py "
+"verify_edge_link --http” to tell that apart from an unreachable host, a "
+"refused credential or a missing endpoint."
+
+msgid "A box is asking to pair"
+msgstr "A box is asking to pair"
+
+msgid ""
+"A dry run checks that the cloud is reachable without applying anything; a "
+"full run does the push-then-pull cycle."
+msgstr ""
+"A dry run checks that the cloud is reachable without applying anything; a "
+"full run does the push-then-pull cycle."
+
+msgid "A required value was empty or unreadable in the source file"
+msgstr "A required value was empty or unreadable in the source file"
+
+msgid "Accept & queue re-import"
+msgstr "Accept & queue re-import"
+
+msgid "Accept edits & re-import"
+msgstr "Accept edits & re-import"
+
+msgid "Accept with edits works one row at a time — open Edit on that row."
+msgstr "Accept with edits works one row at a time — open Edit on that row."
+
+msgid "All held rows have been reviewed. Re-import if you accepted edits."
+msgstr "All held rows have been reviewed. Re-import if you accepted edits."
+
+msgid "Already exists here — skipped to avoid a double record"
+msgstr "Already exists here — skipped to avoid a double record"
+
+msgid "Already on file — import skipped on purpose"
+msgstr "Already on file — import skipped on purpose"
+
+msgid ""
+"Approve it only if you recognise it — approving lets it read and write this "
+"school's records."
+msgstr ""
+"Approve it only if you recognise it — approving lets it read and write this "
+"school's records."
+
+msgid "Ask a public access question"
+msgstr "Ask a public access question"
+
+msgid "Ask a public access question…"
+msgstr "Ask a public access question…"
+
+msgid "Back to Sync Center"
+msgstr "Back to Sync Center"
+
+msgid "Blocked (Database update)"
+msgstr "Blocked (Database update)"
+
+msgid "Broken link"
+msgstr "Broken link"
+
+msgid "Call this rule"
+msgstr "Call this rule"
+
+msgid ""
+"Campus hours and closures that the school published for this doorway appear "
+"on the left. Private schedules stay behind sign-in."
+msgstr ""
+"Campus hours and closures that the school published for this doorway appear "
+"on the left. Private schedules stay behind sign-in."
+
+msgid "Campus routes and timing after sign-in"
+msgstr "Campus routes and timing after sign-in"
+
+msgid "Campus status"
+msgstr "Campus status"
+
+msgid "Can I continue offline?"
+msgstr "Can I continue offline?"
+
+msgid ""
+"Choose Parent / guardian, then use a magic link, invite, or passkey. Private"
+" fees and report cards appear only after sign-in."
+msgstr ""
+"Choose Parent / guardian, then use a magic link, invite, or passkey. Private"
+" fees and report cards appear only after sign-in."
+
+msgid "Class / form"
+msgstr "Class / form"
+
+msgid "Colour key:"
+msgstr "Colour key:"
+
+msgid "Conflict history"
+msgstr "Conflict history"
+
+msgid "Connection &amp; diagnostics"
+msgstr "Connection &amp; diagnostics"
+
+msgid "Continue as"
+msgstr "Continue as"
+
+msgid "Correct — row was marked deleted in the export"
+msgstr "Correct — row was marked deleted in the export"
+
+msgid "Could not apply that action. Try again."
+msgstr "Could not apply that action. Try again."
+
+msgid "Could not be imported — see the reason"
+msgstr "Could not be imported — see the reason"
+
+msgid "Could not dismiss informational rows. Try again."
+msgstr "Could not dismiss informational rows. Try again."
+
+msgid "Could not queue re-import. Try again."
+msgstr "Could not queue re-import. Try again."
+
+msgid "Could not reach the cloud from here."
+msgstr "Could not reach the cloud from here."
+
+msgid "Cross-file reference"
+msgstr "Cross-file reference"
+
+msgid "Current notices · cached locally when allowed"
+msgstr "Current notices · cached locally when allowed"
+
+msgid "Cycles per hour, oldest on the left."
+msgstr "Cycles per hour, oldest on the left."
+
+msgid "Date of birth"
+msgstr "Date of birth"
+
+msgid "Deleted in your old system — not imported (no action needed)"
+msgstr "Deleted in your old system — not imported (no action needed)"
+
+msgid "Deny permanently"
+msgstr "Deny permanently"
+
+msgid "Dismiss all informational"
+msgstr "Dismiss all informational"
+
+msgid "Dismiss every informational held row (deleted in source / duplicate)?"
+msgstr "Dismiss every informational held row (deleted in source / duplicate)?"
+
+msgid "Dismiss if you agree the existing record is the right one."
+msgstr "Dismiss if you agree the existing record is the right one."
+
+msgid "Dismiss selected"
+msgstr "Dismiss selected"
+
+msgid "Done."
+msgstr "Done."
+
+msgid "Down (cloud → box)"
+msgstr "Down (cloud → box)"
+
+msgid "Email a recovery link for this device"
+msgstr "Email a recovery link for this device"
+
+msgid "Face, fingerprint, or device PIN"
+msgstr "Face, fingerprint, or device PIN"
+
+msgid "Failed cycles"
+msgstr "Failed cycles"
+
+msgid ""
+"Fill in the highlighted fields (name, admission id, or date of birth), then "
+"Accept & re-import — or Waive to skip this row."
+msgstr ""
+"Fill in the highlighted fields (name, admission id, or date of birth), then "
+"Accept & re-import — or Waive to skip this row."
+
+msgid "Find the correct school workspace"
+msgstr "Find the correct school workspace"
+
+msgid "Guidance"
+msgstr "Guidance"
+
+msgid "Held rows"
+msgstr "Held rows"
+
+msgid "How do I sign in as a parent?"
+msgstr "How do I sign in as a parent?"
+
+msgid "How sync works here"
+msgstr "How sync works here"
+
+msgid "How to unlock a locked account"
+msgstr "How to unlock a locked account"
+
+msgid ""
+"I can help with sign-in, invites, offline access, and this school’s public "
+"doorway — not private student or account records."
+msgstr ""
+"I can help with sign-in, invites, offline access, and this school’s public "
+"doorway — not private student or account records."
+
+msgid "I cannot find my invitation"
+msgstr "I cannot find my invitation"
+
+msgid "I changed my phone"
+msgstr "I changed my phone"
+
+msgid "I lost my passkey device"
+msgstr "I lost my passkey device"
+
+msgid ""
+"If a school locks an account, only that school’s office can unlock it. This "
+"page will not confirm whether a username exists."
+msgstr ""
+"If a school locks an account, only that school’s office can unlock it. This "
+"page will not confirm whether a username exists."
+
+msgid "Import engine rejected this row"
+msgstr "Import engine rejected this row"
+
+msgid "Informational"
+msgstr "Informational"
+
+msgid "Is the school open today?"
+msgstr "Is the school open today?"
+
+msgid "Issue Remediator — Database update required"
+msgstr "Issue Remediator — Database update required"
+
+msgid "Issue type legend"
+msgstr "Issue type legend"
+
+msgid "Last cycle"
+msgstr "Last cycle"
+
+msgid "Last synced"
+msgstr "Last synced"
+
+msgid "Ledgers and payout queue"
+msgstr "Ledgers and payout queue"
+
+msgid "Linked record not found"
+msgstr "Linked record not found"
+
+msgid "Magic link · invite · passkey"
+msgstr "Magic link · invite · passkey"
+
+msgid "Magic link, passkey, or invite"
+msgstr "Magic link, passkey, or invite"
+
+msgid "Marked deleted in source export"
+msgstr "Marked deleted in source export"
+
+msgid "Matches an existing record"
+msgstr "Matches an existing record"
+
+msgid ""
+"Money stays cloud-authoritative. Financial records are settled on the cloud "
+"and travel downward only, so an offline edit to an invoice is never the "
+"version that wins."
+msgstr ""
+"Money stays cloud-authoritative. Financial records are settled on the cloud "
+"and travel downward only, so an offline edit to an invoice is never the "
+"version that wins."
+
+msgid "My account is locked"
+msgstr "My account is locked"
+
+msgid "My child is not linked"
+msgstr "My child is not linked"
+
+msgid "Needs you"
+msgstr "Needs you"
+
+msgid "Needs your attention"
+msgstr "Needs your attention"
+
+msgid "Never synced"
+msgstr "Never synced"
+
+msgid "Newest first · updates on its own"
+msgstr "Newest first · updates on its own"
+
+msgid "Next five syncs"
+msgstr "Next five syncs"
+
+msgid ""
+"No cycle has run yet. Once one does, each appears here with what it carried "
+"and how long it took."
+msgstr ""
+"No cycle has run yet. Once one does, each appears here with what it carried "
+"and how long it took."
+
+msgid "No gap longer than this schedule's threshold."
+msgstr "No gap longer than this schedule's threshold."
+
+msgid "No private student or account information is available before sign-in."
+msgstr ""
+"No private student or account information is available before sign-in."
+
+msgid "No rule fires — the adaptive cadence is in charge."
+msgstr "No rule fires — the adaptive cadence is in charge."
+
+msgid ""
+"No rules set — this box syncs on the adaptive cadence, continuously and "
+"faster when there are changes."
+msgstr ""
+"No rules set — this box syncs on the adaptive cadence, continuously and "
+"faster when there are changes."
+
+msgid ""
+"No rules. This box syncs on the adaptive cadence — continuously, and faster "
+"when there are changes. Add a rule to sync at particular times instead."
+msgstr ""
+"No rules. This box syncs on the adaptive cadence — continuously, and faster "
+"when there are changes. Add a rule to sync at particular times instead."
+
+msgid "No schedule set. This box syncs on the adaptive cadence."
+msgstr "No schedule set. This box syncs on the adaptive cadence."
+
+msgid "No source row captured — only the error message is available."
+msgstr "No source row captured — only the error message is available."
+
+msgid "No student data shown"
+msgstr "No student data shown"
+
+msgid "No sync has run yet"
+msgstr "No sync has run yet"
+
+msgid "Not configured — set RMC_EDGE_OPERATOR_BASE to your tenant cloud host."
+msgstr ""
+"Not configured — set RMC_EDGE_OPERATOR_BASE to your tenant cloud host."
+
+msgid "Not saved yet"
+msgstr "Not saved yet"
+
+msgid "Nothing needs your attention."
+msgstr "Nothing needs your attention."
+
+msgid "Nothing scheduled"
+msgstr "Nothing scheduled"
+
+msgid "Nothing to import. Dismiss to clear it from your queue."
+msgstr "Nothing to import. Dismiss to clear it from your queue."
+
+msgid "Offline · local view"
+msgstr "Offline · local view"
+
+msgid "Open guardian linking / claim an invite"
+msgstr "Open guardian linking / claim an invite"
+
+msgid "Open · support hours on this school"
+msgstr "Open · support hours on this school"
+
+msgid "Operator note (optional)"
+msgstr "Operator note (optional)"
+
+msgid "Or choose another role"
+msgstr "Or choose another role"
+
+msgid "Passkey · SSO · password · MFA when the school requires it"
+msgstr "Passkey · SSO · password · MFA when the school requires it"
+
+msgid ""
+"Passkeys need a secure (HTTPS) connection. This server is reached over plain"
+" HTTP. Use email, SSO, or password."
+msgstr ""
+"Passkeys need a secure (HTTPS) connection. This server is reached over plain"
+" HTTP. Use email, SSO, or password."
+
+msgid "Phishing resistant"
+msgstr "Phishing resistant"
+
+msgid "Points at something we could not find (class, subject, student link…)"
+msgstr "Points at something we could not find (class, subject, student link…)"
+
+msgid ""
+"Previously authorized devices can use cached notices and approved local "
+"tools. Finance, payroll, configuration, and private records require a "
+"verified online session."
+msgstr ""
+"Previously authorized devices can use cached notices and approved local "
+"tools. Finance, payroll, configuration, and private records require a "
+"verified online session."
+
+msgid "Re-import bundle"
+msgstr "Re-import bundle"
+
+msgid "Recognized trusted device — no name or email is stored here."
+msgstr "Recognized trusted device — no name or email is stored here."
+
+msgid "Records moved"
+msgstr "Records moved"
+
+msgid "Registration & enrollment detail"
+msgstr "Registration & enrollment detail"
+
+msgid "Related settings"
+msgstr "Related settings"
+
+msgid "Required identity missing"
+msgstr "Required identity missing"
+
+msgid "Review conflicts"
+msgstr "Review conflicts"
+
+msgid "Review the reason, edit source values if needed, or Waive to skip."
+msgstr "Review the reason, edit source values if needed, or Waive to skip."
+
+msgid "Revoke access and recover with a reset link"
+msgstr "Revoke access and recover with a reset link"
+
+msgid "Saving…"
+msgstr "Saving…"
+
+msgid "School ID or email"
+msgstr "School ID or email"
+
+msgid "School ID or email · passkey on a trusted device"
+msgstr "School ID or email · passkey on a trusted device"
+
+msgid "School ID, passkey, or email"
+msgstr "School ID, passkey, or email"
+
+msgid "School announcements"
+msgstr "School announcements"
+
+msgid "Select a problem"
+msgstr "Select a problem"
+
+msgid "Select all rows on this page"
+msgstr "Select all rows on this page"
+
+msgid "Select at least one row."
+msgstr "Select at least one row."
+
+msgid "Select row"
+msgstr "Select row"
+
+msgid "Skip import (waive)"
+msgstr "Skip import (waive)"
+
+msgid "Source values — edit then Accept"
+msgstr "Source values — edit then Accept"
+
+msgid "Staff single sign-on"
+msgstr "Staff single sign-on"
+
+msgid "Student id / admission number"
+msgstr "Student id / admission number"
+
+msgid "Student link"
+msgstr "Student link"
+
+msgid "Student name"
+msgstr "Student name"
+
+msgid "Subject / course"
+msgstr "Subject / course"
+
+msgid "Sync activity"
+msgstr "Sync activity"
+
+msgid "Synced"
+msgstr "Synced"
+
+msgid "Synced — {{ up }} up, {{ down }} down"
+msgstr "Synced — {{ up }} up, {{ down }} down"
+
+msgid "Syncing normally"
+msgstr "Syncing normally"
+
+msgid "Syncing now"
+msgstr "Syncing now"
+
+msgid "Term / academic year"
+msgstr "Term / academic year"
+
+msgid "That is longer than this schedule's own threshold — worth a look."
+msgstr "That is longer than this schedule's own threshold — worth a look."
+
+msgid ""
+"That is longer than {{ n }} minutes — past this schedule's own check-in "
+"floor by enough to be worth a look."
+msgstr ""
+"That is longer than {{ n }} minutes — past this schedule's own check-in "
+"floor by enough to be worth a look."
+
+msgid ""
+"The box calls out; the cloud never calls in. A box sits behind the school's "
+"network, so every transfer starts from the box — which is why a change you "
+"save here reaches it on its next sync rather than instantly."
+msgstr ""
+"The box calls out; the cloud never calls in. A box sits behind the school's "
+"network, so every transfer starts from the box — which is why a change you "
+"save here reaches it on its next sync rather than instantly."
+
+msgid "This browser does not support passkeys. Use email, SSO, or password."
+msgstr "This browser does not support passkeys. Use email, SSO, or password."
+
+msgid ""
+"This is the cloud side. The box calls out on its own schedule — the cloud "
+"cannot reach into its network, so a resync is queued here and collected on "
+"its next connection."
+msgstr ""
+"This is the cloud side. The box calls out on its own schedule — the cloud "
+"cannot reach into its network, so a resync is queued here and collected on "
+"its next connection."
+
+msgid ""
+"This page is the public doorway for the school bound to this web address. If"
+" it is the wrong school, use Find the correct school workspace."
+msgstr ""
+"This page is the public doorway for the school bound to this web address. If"
+" it is the wrong school, use Find the correct school workspace."
+
+msgid "Time window"
+msgstr "Time window"
+
+msgid ""
+"To tell an unreachable host apart from a refused credential or a missing "
+"endpoint: on the cloud run “python manage.py "
+"check_edge_sync_deploy_readiness”, and on the box run “python manage.py "
+"verify_edge_link --http”."
+msgstr ""
+"To tell an unreachable host apart from a refused credential or a missing "
+"endpoint: on the cloud run “python manage.py "
+"check_edge_sync_deploy_readiness”, and on the box run “python manage.py "
+"verify_edge_link --http”."
+
+msgid "Up (box → cloud)"
+msgstr "Up (box → cloud)"
+
+msgid ""
+"Use Claim an invite with the email, SMS, or WhatsApp token from the school. "
+"We never confirm whether an unrelated account exists."
+msgstr ""
+"Use Claim an invite with the email, SMS, or WhatsApp token from the school. "
+"We never confirm whether an unrelated account exists."
+
+msgid "Use passkey"
+msgstr "Use passkey"
+
+msgid ""
+"Usually means a class, subject, or student id in this row does not match "
+"what landed from your other files. Fix the reference or import the catalog "
+"file first, then Accept & re-import."
+msgstr ""
+"Usually means a class, subject, or student id in this row does not match "
+"what landed from your other files. Fix the reference or import the catalog "
+"file first, then Accept & re-import."
+
+msgid "Verified. Opening your school workspace…"
+msgstr "Verified. Opening your school workspace…"
+
+msgid "WCAG 2.2"
+msgstr "WCAG 2.2"
+
+msgid "Waiting for the box to call in"
+msgstr "Waiting for the box to call in"
+
+msgid "Waiting for your device…"
+msgstr "Waiting for your device…"
+
+msgid "Waive"
+msgstr "Waive"
+
+msgid "What moved"
+msgstr "What moved"
+
+msgid "What stopped you?"
+msgstr "What stopped you?"
+
+msgid "Why am I seeing this school?"
+msgstr "Why am I seeing this school?"
+
+msgid "Why it failed"
+msgstr "Why it failed"
+
+msgid "between"
+msgstr "between"
+
+msgid "check-in floor only"
+msgstr "check-in floor only"
+
+msgid "check-in floor, every {{ minutes }} min"
+msgstr "check-in floor, every {{ minutes }} min"
+
+msgid "cycles in"
+msgstr "cycles in"
+
+msgid "down"
+msgstr "down"
+
+msgid "expires {{ expires }}"
+msgstr "expires {{ expires }}"
+
+msgid "first at"
+msgstr "first at"
+
+msgid "hour(s) had a failure."
+msgstr "hour(s) had a failure."
+
+msgid "hour(s) with no cycle at all."
+msgstr "hour(s) with no cycle at all."
+
+msgid "hours"
+msgstr "hours"
+
+msgid "inside the longest gap"
+msgstr "inside the longest gap"
+
+msgid "inside the longest gap. Only the check-in floor covers this hour."
+msgstr "inside the longest gap. Only the check-in floor covers this hour."
+
+msgid "longest gap"
+msgstr "longest gap"
+
+msgid "longest gap {{ n }} min"
+msgstr "longest gap {{ n }} min"
+
+msgid "next check"
+msgstr "next check"
+
+msgid "next scheduled"
+msgstr "next scheduled"
+
+msgid "no scheduled sync"
+msgstr "no scheduled sync"
+
+msgid "no scheduled sync. The check-in floor still applies."
+msgstr "no scheduled sync. The check-in floor still applies."
+
+msgid "oldest {{ when }}"
+msgstr "oldest {{ when }}"
+
+msgid "on"
+msgstr "on"
+
+msgid "records"
+msgstr "records"
+
+msgid "scheduled syncs — darker where rules overlap"
+msgstr "scheduled syncs — darker where rules overlap"
+
+msgid "sync"
+msgstr "sync"
+
+msgid "syncs"
+msgstr "syncs"
+
+msgid "syncs a week"
+msgstr "syncs a week"
+
+msgid "the last day"
+msgstr "the last day"
+
+msgid "without checking in."
+msgstr "without checking in."
+
+msgid ""
+"{{ n }} conflict is waiting on a decision{% plural %}{{ n }} conflicts are "
+"waiting on a decision"
+msgstr ""
+"{{ n }} conflict is waiting on a decision{% plural %}{{ n }} conflicts are "
+"waiting on a decision"
+
+msgid "{{ n }} syncs a week"
+msgstr "{{ n }} syncs a week"
+
+msgid "…and never go longer than"
+msgstr "…and never go longer than"
