@@ -84,7 +84,24 @@ class RosterShowsAssignedRolesTests(TestCase):
         self.assertNotIn("Someone Else's", self._roles_shown())
 
     def test_a_member_with_no_access_roles_shows_none(self):
+        """Empty must still read as empty — but you have to MAKE it empty.
+
+        Creating a user with ``role=TEACHER`` does not leave them role-less:
+        ``_apply_role_template`` attaches the global TEACHER access role on save,
+        which is correct and is exactly what the roster was hiding before. So
+        the M2M is cleared here to test the genuinely-empty case.
+        """
+        self.member.roles.clear()
         self.assertEqual(self._roles_shown(), [])
+
+    def test_the_primary_role_template_is_visible_without_any_extra_grant(self):
+        """The commonest case of all, and it showed nothing.
+
+        A plain teacher with no bespoke grants still holds the global TEACHER
+        access role. Under the old predicate their chip list was empty, so the
+        roster implied they had no roles at all.
+        """
+        self.assertIn("Teacher", self._roles_shown())
 
     def test_the_canonical_predicate_is_used(self):
         """A hand-rolled scope check is what got this wrong the first time."""
