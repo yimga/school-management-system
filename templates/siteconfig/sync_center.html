@@ -15,6 +15,7 @@
     {% include "studio_os/components/page_header.html" with title=_("Sync Center") subtitle=_("Live edge sync status, plus bulk tools for resolving offline conflicts.") action_url=action_url|default:None action_text=action_text|default:None %}
     <nav class="rmc-page-fold-nav rmc-section-nav mb-3" aria-label="{% trans 'On this page' %}">
       <a href="#edge-sync">{% trans "Edge sync" %}</a>
+      <a href="#sync-schedule">{% trans "Schedule" %}</a>
       <a href="#sync-progress">{% trans "Progress" %}</a>
       <a href="#sync-conflicts">{% trans "Conflicts" %}</a>
     </nav>
@@ -158,6 +159,8 @@
         {% endif %}
       </div>
     </div>
+    {% include "siteconfig/partials/_sync_schedule_panel.html" %}
+
     <section id="sync-progress" data-rmc-section-anchor="1">
       {% include "components/rmc_workflow_kickoff_live.html" with workflow_key="siteconfig-edge-sync" task_type="EDGE_SYNC" %}
     </section>

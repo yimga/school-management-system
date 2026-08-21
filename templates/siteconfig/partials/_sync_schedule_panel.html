@@ -1,0 +1,102 @@
+{% load i18n %}
+{# Tenant sync schedule. The "next sync" line is filled by the status poll from the SAME  #}
+{# value the scheduler acts on (schedule_policy.schedule_summary), so the promise on the  #}
+{# screen and the behaviour of the box cannot drift apart.                                #}
+<div class="card shadow-sm mb-3" id="sync-schedule" data-rmc-section-anchor="1" data-rmc-sync-schedule-panel="1">
+  <div class="card-body">
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
+      <h2 class="h6 mb-0">{% trans "Sync schedule" %}</h2>
+      {% if sync_schedule_summary and sync_schedule_summary.configured %}
+        <span class="badge rounded-pill bg-success-subtle text-success-emphasis">{% trans "Scheduled" %}</span>
+      {% else %}
+        <span class="badge rounded-pill bg-body-secondary text-body-secondary">{% trans "Automatic" %}</span>
+      {% endif %}
+    </div>
+
+    {% if sync_schedule_summary %}
+      <div class="border rounded-2 p-3 mb-3 bg-body-tertiary small">
+        <div class="row g-3">
+          <div class="col-sm-6">
+            <div class="text-uppercase text-body-secondary">{% trans "Next sync" %}</div>
+            <div class="fw-semibold text-body" data-rmc-schedule-next>
+              {% if sync_schedule_summary.next_run_at %}{{ sync_schedule_summary.next_run_at }}{% else %}{% trans "Automatic — as soon as there is anything to send" %}{% endif %}
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div class="text-uppercase text-body-secondary">{% trans "Last sync" %}</div>
+            {# A next-run time on its own is only a promise. Shown beside the last ACTUAL #}
+            {# run, a box that stopped a week ago is visible instead of implied to be fine. #}
+            <div class="fw-semibold text-body" data-rmc-schedule-last>
+              {% if sync_schedule_summary.last_run_at %}{{ sync_schedule_summary.last_run_at }}{% else %}{% trans "Never" %}{% endif %}
+            </div>
+          </div>
+        </div>
+        {% if sync_schedule_summary.description %}
+          <p class="mb-0 mt-2 text-body-secondary" data-rmc-schedule-description>{{ sync_schedule_summary.description }}</p>
+        {% endif %}
+        {# Always rendered so the poll can show/hide it; hidden, not absent, when clear. #}
+        <p class="mb-0 mt-2 text-warning-emphasis{% if not sync_schedule_summary.missed_window %} d-none{% endif %}" data-rmc-schedule-missed role="status">
+          {% trans "A scheduled sync was missed — the box was not reachable. It will catch up once on its next connection." %}
+        </p>
+        <p class="mb-0 mt-2 text-body-secondary">
+          {% blocktrans with tz=sync_schedule_summary.timezone %}Times are shown in the school's timezone ({{ tz }}).{% endblocktrans %}
+        </p>
+      </div>
+    {% endif %}
+
+    {% if sync_schedule_save_url %}
+      {% if sync_schedule_rules %}
+        <ul class="list-unstyled mb-3">
+          {% for rule in sync_schedule_rules %}
+            <li class="border rounded-2 p-3 mb-2">
+              <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
+                <div>
+                  <div class="fw-semibold text-body">{{ rule.name|default:_("Untitled rule") }}</div>
+                  <div class="small text-body-secondary">{{ rule.human }}</div>
+                  {% if not rule.is_enabled %}
+                    <div class="small text-body-secondary">{% trans "Paused — this rule is not running." %}</div>
+                  {% endif %}
+                </div>
+                <form method="post" action="{{ sync_schedule_save_url }}">
+                  {% csrf_token %}
+                  <input type="hidden" name="rule_id" value="{{ rule.pk }}">
+                  <input type="hidden" name="action" value="delete">
+                  <button type="submit" class="btn btn-sm btn-outline-danger" data-rmc-confirm="{% trans 'Remove this sync schedule rule?' %}">{% trans "Remove" %}</button>
+                </form>
+              </div>
+              <details class="mt-2">
+                <summary class="small">{% trans "Edit this rule" %}</summary>
+                <form method="post" action="{{ sync_schedule_save_url }}" class="mt-2">
+                  {% csrf_token %}
+                  <input type="hidden" name="rule_id" value="{{ rule.pk }}">
+                  {{ rule.form.as_p }}
+                  <button type="submit" class="btn btn-sm btn-primary">{% trans "Save changes" %}</button>
+                </form>
+              </details>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="small text-body-secondary">
+          {% trans "No schedule set. This box syncs automatically — continuously, and faster when there are changes. Add a rule below to sync at particular times instead." %}
+        </p>
+      {% endif %}
+
+      <details>
+        <summary class="small">{% trans "Add a schedule rule" %}</summary>
+        <form method="post" action="{{ sync_schedule_save_url }}" class="mt-2">
+          {% csrf_token %}
+          {{ sync_schedule_new_form.as_p }}
+          <button type="submit" class="btn btn-sm btn-primary">{% trans "Add rule" %}</button>
+        </form>
+      </details>
+
+      {# Said plainly rather than implied. The cloud cannot open a connection to a box, so #}
+      {# a saved change lands on the next cycle — and an operator watching for something   #}
+      {# instant is an operator about to conclude that sync is broken.                     #}
+      <p class="small text-body-secondary mb-0 mt-3">
+        {% trans "Schedule changes reach the box on its next sync — the cloud cannot contact a box directly." %}
+      </p>
+    {% endif %}
+  </div>
+</div>

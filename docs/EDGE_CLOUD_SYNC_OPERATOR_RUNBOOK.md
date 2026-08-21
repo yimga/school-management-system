@@ -166,6 +166,32 @@ the bulk load travel over sync (it won't; see the exclusion table above).
 
 ---
 
+## Choosing when the box syncs
+
+By default the box syncs continuously and adapts — faster when there are changes, backing
+off when the cloud is unreachable. A school that wants specific times instead sets them in
+**Sync Center → Sync schedule**: *every 30 minutes, 7:00 AM to 6:00 PM, Monday to Friday*,
+or *at 6:00 AM and 10:00 PM, every day*, or both. Times are the SCHOOL's local time.
+
+Three things worth knowing before you promise anything to a school:
+
+1. **A schedule change lands on the box's NEXT cycle, not instantly.** The cloud cannot
+   open a connection to a box, so the schedule travels down as a row and the box evaluates
+   its own copy. Saving raises a wake, so it is usually seconds — but on a box that is
+   asleep or offline it is not, and the screen says so rather than pretending.
+2. **"Sync now" and a queued directive always run, schedule or no schedule.** An explicit
+   human action never waits for a window.
+3. **The box still checks in hourly even outside every window.** "Queue full resync" is
+   collected by the box ASKING, so a box that went twelve hours without asking could not be
+   given an instruction for twelve hours. Raise `RMC_EDGE_SYNC_IDLE_CEILING_SECONDS` if a
+   school genuinely wants nothing in between, and accept that operator instructions queue
+   for that long.
+
+If the panel shows a missed window, the box was not reachable when a scheduled moment
+passed. It catches up ONCE on its next connection — not once per missed moment.
+
+Full design and the DST rules: `docs/EDGE_SYNC_SCHEDULES.md`.
+
 ## Conflicts
 
 When both sides changed the same record, it lands as a **`SyncConflict`** in the Sync

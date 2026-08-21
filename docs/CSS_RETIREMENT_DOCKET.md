@@ -2,7 +2,61 @@
 
 **Last updated:** 2026-08-20
 
-## 2026-08-20 (latest) — v4.06.73: the box could not run a sync cycle, and the PIN dialog blamed the browser
+## 2026-08-20 (latest) — v4.06.74: a school can decide when its box syncs, and see when that will be
+
+SW `sms-v4.06.74-tenant-sync-schedules-2026-08-20`. Python, JS, one template partial and
+docs; no CSS changes. Full design: [`docs/EDGE_SYNC_SCHEDULES.md`](EDGE_SYNC_SCHEDULES.md).
+
+**The gap.** Cadence was an adaptive state machine — HOT/STEADY/BACKOFF — with exactly one
+knob (`RMC_EDGE_SYNC_INTERVAL_SECONDS`), global, in an env var on a host the school cannot
+see. There was no way for a tenant to say "sync every half hour during school hours and
+once at ten at night", and no way for anyone to find out when the next sync would be.
+
+**The constraint that shaped the design.** A sovereign box sits behind NAT: the cloud can
+never open a connection to it, so "the cloud triggers a sync at 09:00" is not implementable
+— at 09:00 nobody is going to tell the box anything. The schedule is therefore a ROW,
+replicated down the existing sync rail and evaluated LOCALLY by the box against its own
+copy, which is also what keeps it working while the cloud is unreachable.
+
+**What landed**
+
+| Area | Change |
+|---|---|
+| `apps/sync_engine/schedule.py` (new) | The evaluator. `next_run_at(rules, after, tz)` — pure, timezone-aware, no I/O, no cache, no request. Two shapes a human can read back: `INTERVAL` ("every 30 minutes, 07:00–18:00, Monday to Friday") and `AT_TIMES` ("at 06:00 and 22:00, every day"). Overnight windows are one window, not zero. `describe_rule()` renders plain English — never a cron string, because the person filling this in runs a school. |
+| DST | Decided, documented and asserted in BOTH directions. Spring forward: a rule at a wall time the day skips fires at the first instant that exists — never dropped, because a nightly report that silently missed one night a year would be blamed on anything but the clock. Fall back: a rule in the repeated hour fires ONCE. |
+| `apps/sync_engine/models_schedule.py` (new) | `SyncSchedule` — school-scoped, several rules per tenant (term time and holidays are two rules, not two products). Scalar CSV columns rather than JSON so every field survives `save(update_fields=...)` and a bundle round trip on SQLite and Postgres alike. `clean()` refuses the impossible and names the field: a schedule that saves cleanly and then silently never fires is the exact failure this feature exists to remove, and it would be indistinguishable from a broken box. |
+| `apps/api/sync_services.py` | Registered as the `sync_schedule` entity — the only entity on the rail that is ABOUT the rail. First spec pointing at a SHARED app, which the rail handles without a special case: `school` is excluded from the derived field set and the delta builder scopes by `school_id`, so what matters is the anchor + `updated_at`. `causal_lww`, not protected — it is the tenant's own configuration on their own deployment, and the worst a stale write can do is sync at the wrong time. |
+| `apps/sync_engine/schedule_policy.py` (new) | The precedence table, written into the module docstring because a rule that only exists in an `if` is one the next person will invert. Wake beats everything (a human asked); backoff beats the schedule (a schedule is not permission to hammer a cloud that is down); inside a window the tenant's interval wins; two overlapping windows use the SHORTER one so row order never decides behaviour; outside every window the **idle ceiling**, never zero. |
+| The idle ceiling | The one place the product does not do exactly what was typed, so it is stated rather than buried. `EdgeSyncDirective` is the only cloud→box channel and it is collected by the box ASKING — a box that goes twelve hours without asking cannot receive "Queue full resync" for twelve hours, and from the cloud that is indistinguishable from a box switched off. Default one hour, configurable. |
+| Missed windows | Catch up ONCE. `missed_run()` returns a single moment, so a weekend outage produces one Monday sync rather than forty-eight. |
+| `apps/siteconfig/views_sync_center.py` | `sync_schedule_save` (create / update / delete, school from the REQUEST and never from POST — an id in a URL is an argument, not a claim), plus a `schedule` block in the polled status payload. |
+| `apps/siteconfig/forms_sync_schedule.py` (new) | Named interval choices, day checkboxes, time pickers. Form fields are named after the MODEL's fields on purpose: Django maps a model `ValidationError` dict onto form fields by name and raises `ValueError` for a key the form lacks, so friendlier names would have turned "you picked no days" into a 500. |
+| `templates/siteconfig/partials/_sync_schedule_panel.html` (new) + `rmc-sync-center.js` | "Next sync" beside "Last sync" — a next-run time alone is only a promise, and shown next to a last run three days old a stale box becomes visible instead of implied to be fine. The instant comes from the server; only the human phrasing ("in 2h 14m") happens client-side, because a countdown computed against a skewed laptop clock is exactly the quietly-wrong number that destroys trust in a panel. |
+| Propagation honesty | "Schedule changes reach the box on its next sync — the cloud cannot contact a box directly." In the template AND in the status payload, so every surface tells the same truth. Saving also raises a wake and bumps the change beacon, so it is usually seconds — but the UI does not promise that, because on a sleeping box it is not true. |
+
+**One implementation of "when is the next run".** `schedule_policy.planned_next_run()` is
+what the scheduler acts on and what the screen displays. A next-run label computed by
+different code than the one that keeps it will drift, and a wrong label is worse than none
+— it is the thing the user is planning around. The test asserts the displayed value against
+the FUNCTION, never a hardcoded expectation.
+
+**The default is nothing.** A tenant who never opens the screen gets the adaptive cadence
+exactly as before. `rules_for(school) == []` means "fall back to the adaptive cadence" and
+every caller reads it that way; it never means "do not sync".
+
+**Tests.** 86 new (31 evaluator, 24 precedence, 31 model/rail/surface). `apps.sync_engine`
+719 tests with the same 5 pre-existing failures as at base. Two migrations
+(`0010_syncschedule`, `0011_syncschedule_rls`) — the RLS policy lands with the model rather
+than as a follow-up nobody writes, because `sync_engine` is a SHARED app and row-level
+security is the only thing keeping one school's configuration out of another's queries.
+19/19 boundary gates green, `makemigrations --check` clean.
+
+**Deliberately not built:** per-entity schedules, blackout windows, cloud→box push (it does
+not exist), and a `RuntimeDefaults` first-class field for the idle ceiling — it is an env
+var today, which is layer 2 of the cascade, and promoting it needs the full first-class
+chain.
+
+## 2026-08-20 (earlier) — v4.06.73: the box could not run a sync cycle, and the PIN dialog blamed the browser
 
 SW `sms-v4.06.73-edge-tick-and-secure-context-2026-08-20`. Python, JS, compose and
 docs; no CSS changes.

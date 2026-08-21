@@ -136,8 +136,48 @@
     var queueBtn = document.querySelector("[data-rmc-sync-queue-btn]");
     if (queueBtn) queueBtn.disabled = Boolean(payload.pending_resync);
     renderRecent(payload.recent_runs);
+    applySchedule(payload.schedule);
     applyCanvas(payload);
     setSyncButtonsDisabled(payload.phase === "running");
+  }
+
+  // "Next sync: in 2h 14m". The INSTANT comes from the server (schedule_policy), never
+  // from arithmetic here: a box and a laptop rarely agree on the clock, and a countdown
+  // computed against a skewed client clock is exactly the quietly-wrong number that
+  // destroys trust in the whole panel. Only the human phrasing happens client-side.
+  function humanizeSeconds(total) {
+    var seconds = Math.max(0, Math.round(Number(total) || 0));
+    if (seconds < 60) return "in less than a minute";
+    var minutes = Math.round(seconds / 60);
+    if (minutes < 60) return "in " + minutes + " min";
+    var hours = Math.floor(minutes / 60);
+    var rest = minutes % 60;
+    if (hours < 24) return rest ? "in " + hours + "h " + rest + "m" : "in " + hours + "h";
+    return "in " + Math.round(hours / 24) + " days";
+  }
+
+  function applySchedule(schedule) {
+    if (!schedule) return;
+    var next = document.querySelector("[data-rmc-schedule-next]");
+    if (next) {
+      if (schedule.next_run_at) {
+        var when = new Date(schedule.next_run_at);
+        var label = isNaN(when.getTime()) ? schedule.next_run_at : when.toLocaleString();
+        next.textContent = label + " (" + humanizeSeconds(schedule.next_run_in_seconds) + ")";
+      } else {
+        next.textContent = "Automatic — as soon as there is anything to send";
+      }
+    }
+    var last = document.querySelector("[data-rmc-schedule-last]");
+    if (last) {
+      var ran = schedule.last_run_at ? new Date(schedule.last_run_at) : null;
+      last.textContent = ran && !isNaN(ran.getTime()) ? ran.toLocaleString() : "Never";
+    }
+    setText("[data-rmc-schedule-description]", schedule.description || "");
+    // A missed window is the state a "next run" label would otherwise paper over, so it
+    // is shown or hidden on every poll rather than only at page load.
+    var missed = document.querySelector("[data-rmc-schedule-missed]");
+    if (missed) missed.classList.toggle("d-none", !schedule.missed_window);
   }
 
   function poll() {

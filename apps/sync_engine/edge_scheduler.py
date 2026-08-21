@@ -218,6 +218,18 @@ def run_edge_sync_now(*, mode: str = "live", force: bool = False, trigger: str =
     # allowed to drive the box HOT or to clear a real backoff.
     if mode == "live":
         result["cadence"] = cadence.record_cycle(result)
+        # Then let the TENANT's schedule re-arm the marker, if they have one. Order
+        # matters: record_cycle must run first so backoff state is current, and
+        # arm_next_cycle declines to override while the box is backing off — a schedule
+        # is not permission to hammer a cloud that is down. With no schedule configured
+        # this is a no-op and the adaptive cadence stands, which is the zero-configuration
+        # path every existing box is on.
+        try:
+            from apps.sync_engine import schedule_policy
+
+            result["schedule"] = schedule_policy.arm_next_cycle(school)
+        except Exception:  # noqa: BLE001 — a completed cycle must not fail on arming
+            logger.debug("schedule arming failed", exc_info=True)
     return result
 
 
