@@ -118,12 +118,30 @@ def _recon_notes_are_current(bundle: MigrationBundle) -> bool:
 
 
 def _unresolved_issue_count(bundle: MigrationBundle) -> int:
-    """Rows still needing attention: current held rows + current visible-drift.
+    """Rows still needing attention: pending held rows + current visible-drift.
 
-    Informational recon notes (scoped drill-down, incomplete verification copy)
-    are not issues. Stale notes from a previous apply are ignored once a newer
-    ``apply_totals.applied_at`` lands.
+    Prefer live ``MigrationQuarantineRecord`` PENDING rows tied to this bundle
+    so operator dismissals in the review queue immediately clear badges. Fall
+    back to the last apply's ``quarantined`` total when no run-linked rows exist.
     """
+    from .quarantine_resolution import pending_quarantine_count
+
+    try:
+        pending = pending_quarantine_count(bundle)
+    except Exception:  # noqa: BLE001 — SimpleTestCase / offline callers use apply_totals
+        logger.debug(
+            "repair: live pending quarantine count unavailable for bundle %s",
+            getattr(bundle, "pk", None),
+            exc_info=True,
+        )
+        pending = 0
+    if pending:
+        drift_notes = []
+        if _recon_notes_are_current(bundle):
+            recon = getattr(bundle, "reconciliation_summary", None) or {}
+            drift_notes = [n for n in (recon.get("notes") or []) if "visible" in str(n).lower()]
+        return pending + len(drift_notes)
+
     apply_totals = (getattr(bundle, "mapping_summary", None) or {}).get("apply_totals") or {}
     quarantined = int(apply_totals.get("quarantined") or 0)
     if not _recon_notes_are_current(bundle):
@@ -541,6 +559,16 @@ def repair_bundle(*, bundle_id: int, off_http: bool = False) -> RepairResult:
         readiness.issue_count,
         off_http,
     )
+    try:
+        from .pipeline import refresh_bundle_inference
+
+        refresh_bundle_inference(bundle_id=bundle_id, use_accelerator=True)
+    except Exception:  # noqa: BLE001 — stale inference must not block repair
+        logger.warning(
+            "migration_cloud.repair: inference refresh failed for bundle %s; continuing with stored mappings",
+            bundle_id,
+            exc_info=True,
+        )
     # Reset to MAPPED so apply_bundle (which requires MAPPED) can re-run. Idempotent
     # upsert means landed rows are updated in place, never duplicated.
     #

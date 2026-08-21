@@ -41,6 +41,16 @@ from apps.platform_runtime.workflow_tracker import track_workflow
 from apps.migration_cloud.schema_binding import resolve_school_schema_name
 
 from .ai_bridge import AIProposal, record_operator_feedback, remember_mapping_decision
+from .quarantine_resolution import (
+    QUARANTINE_ISSUE_LABELS,
+    QUARANTINE_NO_ACTION_CLASSES,
+    apply_quarantine_action,
+    enrich_quarantine_row,
+    export_quarantine_csv,
+    pending_quarantine_count,
+    quarantine_breakdown,
+    quarantine_queryset_for_bundle,
+)
 from .reliability import (
     idempotent_post,
     safe_500,
@@ -1526,30 +1536,9 @@ class MigrationCloudSaveProfileView(LoginRequiredMixin, View):
         })
 
 
-# Quarantine review vocabulary (tenant-facing).
-#
-# A held row is the TENANT's to judge, not an operator's: only the person running
-# the migration knows what the data set represents. So the review surface has to
-# say, in their language, which held rows actually want a decision.
-#
-# `source_deletion` is the one class that needs NOBODY: it means the source system
-# marked the row deleted, so it was deliberately not imported. Counting it beside
-# real failures is what turned a correct outcome into an alarming "442 held".
-QUARANTINE_ISSUE_LABELS = {
-    "source_deletion": "Deleted in your old system — not imported (no action needed)",
-    "duplicate": "Already exists here — skipped to avoid a double record",
-    "invalid_ref": "Points at something we could not find (e.g. a missing class)",
-    "missing_required": "A required value was empty in the source file",
-    "lander_error": "Could not be imported — see the reason",
-}
-
-# Classes that are a correct outcome rather than a problem to fix.
-QUARANTINE_NO_ACTION_CLASSES = {"source_deletion", "duplicate"}
-
-# The table is bounded so one huge bundle cannot render a million rows into a
-# page. The COUNT above is never bounded — the tenant is always told the true
-# total and how many of it they are looking at.
+# Quarantine review vocabulary (tenant-facing) — see ``quarantine_resolution``.
 QUARANTINE_TABLE_LIMIT = 200  # magic-number-allow: review-table-render-cap
+QUARANTINE_PAGE_SIZE = 50  # magic-number-allow: review-table-page-size
 
 
 class MigrationCloudAnomalyNudgeView(LoginRequiredMixin, View):
@@ -1564,6 +1553,9 @@ class MigrationCloudAnomalyNudgeView(LoginRequiredMixin, View):
     template_name = "migration_cloud/anomaly_nudge.html"
 
     def get(self, request, bundle_id: int, shell: str = "super"):
+        gate = _enforce_portal_entitlement(request, shell)
+        if gate is not None:
+            return gate
         from apps.migration_cloud import defaults as mc_defaults
 
         bundle = _tenant_scoped_bundle(request, bundle_id, shell)
@@ -1601,68 +1593,35 @@ class MigrationCloudAnomalyNudgeView(LoginRequiredMixin, View):
 
         quarantine_rows: list[dict[str, Any]] = []
         quarantine_total = 0
-        quarantine_breakdown: list[dict[str, Any]] = []
+        quarantine_pending = 0
+        quarantine_breakdown_list: list[dict[str, Any]] = []
         quarantine_action_needed = 0
+        quarantine_page_obj = None
+        quarantine_resolved: list[dict[str, Any]] = []
         try:
-            from django.db.models import Count
+            from apps.automation.models import MigrationQuarantineRecord
 
-            from apps.automation.models import MigrationQuarantineRecord, MigrationRun
-
-            run_ids = list(
-                # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
-                # Runs are linked to the bundle via execution_summary["bundle_id"]
-                # (orchestrator._create_audit_run) — there is no parent_bundle FK,
-                # so the old parent_bundle_id filter raised FieldError (swallowed)
-                # and this surface always rendered empty.
-                MigrationRun.objects.filter(
-                    execution_summary__bundle_id=bundle.pk
-                ).values_list("pk", flat=True)
-            )
-            # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
-            _held = MigrationQuarantineRecord.objects.filter(
-                migration_run_id__in=run_ids
-            )
-            # The board reports the TRUE held count (442 on the bundle that
-            # prompted this), but the table below is capped, so the page used to
-            # show "Quarantine (200)" beside a banner saying 442 — two numbers for
-            # the same thing, and 242 rows the tenant could not see at all.
-            quarantine_total = _held.count()
-            # A bare total is not reviewable. `issue_class` is what decides whether
-            # a human is needed at all: `source_deletion` means "the source marked
-            # this row deleted, so we deliberately did not import it" — a correct
-            # outcome, not a failure. Grouping first tells the tenant admin how many
-            # of the held rows actually want their attention before they scroll.
-            quarantine_breakdown = [
-                {
-                    "issue_class": row["issue_class"],
-                    "label": QUARANTINE_ISSUE_LABELS.get(
-                        row["issue_class"],
-                        (row["issue_class"] or "unknown").replace("_", " ").title(),
-                    ),
-                    "count": row["n"],
-                    "needs_action": row["issue_class"] not in QUARANTINE_NO_ACTION_CLASSES,
-                }
-                for row in (
-                    _held.values("issue_class")
-                    .annotate(n=Count("id"))
-                    .order_by("-n")
-                )
-            ]
+            quarantine_pending = pending_quarantine_count(bundle)
+            quarantine_total = quarantine_queryset_for_bundle(
+                bundle, pending_only=False
+            ).count()
+            quarantine_breakdown_list = quarantine_breakdown(bundle, pending_only=True)
             quarantine_action_needed = sum(
-                b["count"] for b in quarantine_breakdown if b["needs_action"]
+                b["count"] for b in quarantine_breakdown_list if b["needs_action"]
             )
-            for q in _held.order_by("-id")[:QUARANTINE_TABLE_LIMIT]:
-                payload = q.payload if isinstance(q.payload, dict) else {}
-                quarantine_rows.append({
-                    "id": q.pk,
-                    "run_id": q.migration_run_id,
-                    "domain": q.domain,
-                    "row_index": q.row_index,
-                    "issue_class": q.issue_class,
-                    "reason": payload.get("error", "") or q.issue_class,
-                    "raw_row": q.payload,
-                    "ack_status": q.status,
-                })
+            pending_qs = quarantine_queryset_for_bundle(bundle, pending_only=True).order_by(
+                "-id"
+            )
+            quarantine_page_obj = Paginator(
+                pending_qs, QUARANTINE_PAGE_SIZE
+            ).get_page(request.GET.get("q_page") or 1)
+            for q in quarantine_page_obj.object_list:
+                quarantine_rows.append(enrich_quarantine_row(q))
+
+            resolved_qs = quarantine_queryset_for_bundle(
+                bundle, pending_only=False
+            ).exclude(status=MigrationQuarantineRecord.Status.PENDING).order_by("-resolved_at")[:20]
+            quarantine_resolved = [enrich_quarantine_row(q) for q in resolved_qs]
         except Exception:  # noqa: BLE001
             logger.debug("anomaly_nudge: quarantine fetch failed", exc_info=True)
 
@@ -1683,15 +1642,113 @@ class MigrationCloudAnomalyNudgeView(LoginRequiredMixin, View):
                 "tracked_custom_mappings": tracked_custom_mappings,
                 "quarantine_rows": quarantine_rows,
                 "quarantine_total": quarantine_total,
+                "quarantine_pending": quarantine_pending,
                 "quarantine_shown": len(quarantine_rows),
-                "quarantine_breakdown": quarantine_breakdown,
+                "quarantine_breakdown": quarantine_breakdown_list,
                 "quarantine_action_needed": quarantine_action_needed,
                 "quarantine_table_limit": QUARANTINE_TABLE_LIMIT,
+                "quarantine_page_obj": quarantine_page_obj,
+                "quarantine_resolved": quarantine_resolved,
+                "quarantine_issue_labels": QUARANTINE_ISSUE_LABELS,
                 "drift_domains": drift_domains,
                 "threshold": threshold,
                 "page_title": f"Review queue — {bundle.label or bundle.idempotency_key}",
             },
         )
+
+
+class MigrationCloudQuarantineExportView(LoginRequiredMixin, View):
+    """CSV export of pending held rows for a bundle."""
+
+    def get(self, request, bundle_id: int, shell: str = "super"):
+        gate = _enforce_portal_entitlement(request, shell)
+        if gate is not None:
+            return gate
+        bundle = _tenant_scoped_bundle(request, bundle_id, shell)
+        pending = (request.GET.get("scope") or "pending").lower() != "all"
+        csv_text = export_quarantine_csv(bundle, pending_only=pending)
+        response = HttpResponse(csv_text, content_type="text/csv; charset=utf-8")
+        response["Content-Disposition"] = (
+            f'attachment; filename="bundle-{bundle.pk}-held-rows.csv"'
+        )
+        return response
+
+
+class MigrationCloudQuarantineResolveView(LoginRequiredMixin, View):
+    """POST: accept, waive, deny, dismiss, or bulk-resolve held rows.
+
+    Body (JSON)::
+
+        {"action": "dismiss|waive|deny|accept_edit|dismiss_informational|retry_import",
+         "record_ids": [1, 2],
+         "note": "...",
+         "edited_source_row": {...}}
+    """
+
+    @idempotent_post
+    @safe_500
+    def post(self, request, bundle_id: int, shell: str = "super"):
+        import json
+
+        gate = _enforce_portal_entitlement(request, shell)
+        if gate is not None:
+            return gate
+        try:
+            bundle = _tenant_scoped_bundle(request, bundle_id, shell)
+        except Exception:
+            return JsonResponse({"error": "bundle not found"}, status=404)
+
+        try:
+            payload = json.loads(request.body or b"{}")
+        except json.JSONDecodeError:
+            payload = request.POST.dict()
+
+        action = (payload.get("action") or "").strip().lower()
+        if action == "retry_import":
+            from .repair import repair_bundle
+
+            result = repair_bundle(bundle_id=bundle.pk, off_http=True)
+            return JsonResponse(
+                {
+                    "action": "retry_import",
+                    "ok": result.ok or result.queued,
+                    "queued": result.queued,
+                    "message": result.message,
+                }
+            )
+
+        record_ids = payload.get("record_ids") or []
+        if isinstance(record_ids, (str, int)):
+            record_ids = [record_ids]
+        edited = payload.get("edited_source_row")
+        if isinstance(edited, str):
+            try:
+                edited = json.loads(edited)
+            except json.JSONDecodeError:
+                edited = None
+        if edited is not None and not isinstance(edited, dict):
+            edited = None
+
+        outcome = apply_quarantine_action(
+            bundle=bundle,
+            user=request.user,
+            action=action,
+            record_ids=[int(x) for x in record_ids if str(x).isdigit()],
+            note=str(payload.get("note") or ""),
+            edited_source_row=edited,
+        )
+        if not outcome.get("ok"):
+            return JsonResponse(outcome, status=400)
+
+        if outcome.get("queue_reimport") and payload.get("auto_retry"):
+            from .repair import repair_bundle
+
+            repair_bundle(bundle_id=bundle.pk, off_http=True)
+            outcome["retry_queued"] = True
+        elif outcome.get("replay") and outcome["replay"].get("replayed"):
+            outcome["replay_landed"] = outcome["replay"]["replayed"]
+
+        return JsonResponse(outcome)
 
 
 class MigrationCloudAttachSourceView(LoginRequiredMixin, View):

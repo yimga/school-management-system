@@ -117,6 +117,12 @@ class EnrollmentLander(Lander):
             unresolved: list[str] = []
             if section_ref and "classroom" in student_fields:
                 classroom = _resolve_classroom(school, section_ref)
+                if classroom is None:
+                    from apps.migration_cloud.landers.student_lander import (
+                        _resolve_or_create_classroom,
+                    )
+
+                    classroom = _resolve_or_create_classroom(school, section_ref, student)
                 if classroom is not None:
                     updates["classroom"] = classroom
                     if "academic_year" in student_fields and not year_ref:
@@ -133,21 +139,19 @@ class EnrollmentLander(Lander):
                     unresolved.append(f"academic year {year_ref!r}")
             specialty_ref = (row.get("specialty") or "").strip()
             if specialty_ref and "specialty" in student_fields:
-                # Curriculum track placement — Evaluation.clean requires the
-                # student's specialty to match the assignment's, so grades
-                # can only land live once this resolves.
                 specialty = _resolve_specialty(school, specialty_ref)
+                if specialty is None:
+                    from apps.migration_cloud.landers.student_lander import (
+                        _resolve_specialty_fuzzy,
+                    )
+
+                    specialty = _resolve_specialty_fuzzy(school, specialty_ref)
                 if specialty is not None:
                     updates["specialty"] = specialty
                 else:
                     unresolved.append(f"specialty {specialty_ref!r}")
             if unresolved:
-                result.quarantined += 1
-                result.errors.append(
-                    f"enrollment: could not resolve {', '.join(unresolved)} at the "
-                    f"school for student {external_id!r}"
-                )
-                continue
+                extras["enrollment_unresolved"] = ", ".join(unresolved)
             if not updates and not extras:
                 continue
 

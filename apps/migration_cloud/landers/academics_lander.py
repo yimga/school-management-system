@@ -68,7 +68,7 @@ class AcademicsLander(Lander):
                     "referential safety (remove manually if intended).",
                 )
                 continue
-            name = (row.get("subject_name") or row.get("name") or "").strip()
+            name = (row.get("subject_name") or row.get("name") or row.get("title") or "").strip()
             code = (row.get("subject_code") or row.get("code") or "").strip()
             # ``Subject`` is keyed by name (unique per school); fall back to the
             # code when a source only carries a code.

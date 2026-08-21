@@ -394,6 +394,25 @@ def _apply_bundle_inner(
         for wave_index, wave_jobs in enumerate(waves):
             if not wave_jobs:
                 continue
+            if (
+                not dry_run
+                and any(job.domain in _DEPENDENT_STRUCTURE_DOMAINS for job in wave_jobs)
+            ):
+                with _bundle_schema_context(bundle):
+                    try:
+                        from apps.migration_cloud.post_apply_provision import (
+                            provision_structure_before_dependent_domains,
+                        )
+
+                        provision_structure_before_dependent_domains(bundle=bundle)
+                    except Exception as exc:  # noqa: BLE001 — never abort apply
+                        logger.warning(
+                            "orchestrator: mid-apply structure provision errored "
+                            "for bundle %s: %s",
+                            bundle_id,
+                            exc,
+                            exc_info=True,
+                        )
             # Liveness pulse: a real (live=persisted) apply keeps updated_at fresh so
             # the wedged-apply reclaim never mistakes a slow-but-healthy import for a
             # dead worker. Skipped for dry runs (the bundle stays MAPPED — nothing to
@@ -530,67 +549,71 @@ def _apply_bundle_inner(
     # it must never turn a successful apply into a failure.
     gap_fill_summary: dict | None = None
     if not dry_run:
-        try:
-            from apps.migration_cloud.post_apply_provision import gap_fill_after_apply
+        # Post-apply hooks query tenant models; without schema_context they hit
+        # public (stale shadow tables) and raise UndefinedColumn even when the
+        # tenant schema is healthy.
+        with _bundle_schema_context(bundle):
+            try:
+                from apps.migration_cloud.post_apply_provision import gap_fill_after_apply
 
-            gap_fill_summary = gap_fill_after_apply(
-                bundle=bundle, outcomes=outcomes, dry_run=dry_run
-            )
-        except Exception as exc:  # noqa: BLE001 — gap-fill is additive; never break apply
-            from .tenant_schema_readiness import post_apply_step_error
+                gap_fill_summary = gap_fill_after_apply(
+                    bundle=bundle, outcomes=outcomes, dry_run=dry_run
+                )
+            except Exception as exc:  # noqa: BLE001 — gap-fill is additive; never break apply
+                from .tenant_schema_readiness import post_apply_step_error
 
-            logger.warning(
-                "orchestrator: post-apply gap-fill errored for bundle %s",
-                bundle_id,
-                exc_info=True,
-            )
-            if gap_fill_summary is None:
-                gap_fill_summary = {}
-            gap_fill_summary["gap_fill_error"] = post_apply_step_error(exc)
-        try:
-            from apps.migration_cloud.guardian_directory import (
-                promote_unlinked_guardian_hints,
-            )
+                logger.warning(
+                    "orchestrator: post-apply gap-fill errored for bundle %s",
+                    bundle_id,
+                    exc_info=True,
+                )
+                if gap_fill_summary is None:
+                    gap_fill_summary = {}
+                gap_fill_summary["gap_fill_error"] = post_apply_step_error(exc)
+            try:
+                from apps.migration_cloud.guardian_directory import (
+                    promote_unlinked_guardian_hints,
+                )
 
-            directory_summary = promote_unlinked_guardian_hints(
-                school=getattr(bundle, "school", None),
-            )
-            if gap_fill_summary is None:
-                gap_fill_summary = {}
-            if isinstance(gap_fill_summary, dict):
-                gap_fill_summary["guardian_directory"] = directory_summary
-        except Exception as exc:  # noqa: BLE001 — directory promote is additive; never break apply
-            from .tenant_schema_readiness import post_apply_step_error
+                directory_summary = promote_unlinked_guardian_hints(
+                    school=getattr(bundle, "school", None),
+                )
+                if gap_fill_summary is None:
+                    gap_fill_summary = {}
+                if isinstance(gap_fill_summary, dict):
+                    gap_fill_summary["guardian_directory"] = directory_summary
+            except Exception as exc:  # noqa: BLE001 — directory promote is additive; never break apply
+                from .tenant_schema_readiness import post_apply_step_error
 
-            logger.warning(
-                "orchestrator: guardian-directory promote errored for bundle %s",
-                bundle_id,
-                exc_info=True,
-            )
-            if gap_fill_summary is None:
-                gap_fill_summary = {}
-            gap_fill_summary["guardian_directory"] = post_apply_step_error(exc)
-        try:
-            from apps.migration_cloud.staff_role_map import promote_imported_staff_roles
+                logger.warning(
+                    "orchestrator: guardian-directory promote errored for bundle %s",
+                    bundle_id,
+                    exc_info=True,
+                )
+                if gap_fill_summary is None:
+                    gap_fill_summary = {}
+                gap_fill_summary["guardian_directory"] = post_apply_step_error(exc)
+            try:
+                from apps.migration_cloud.staff_role_map import promote_imported_staff_roles
 
-            role_summary = promote_imported_staff_roles(
-                school=getattr(bundle, "school", None),
-            )
-            if gap_fill_summary is None:
-                gap_fill_summary = {}
-            if isinstance(gap_fill_summary, dict):
-                gap_fill_summary["staff_role_backfill"] = role_summary
-        except Exception as exc:  # noqa: BLE001 — role backfill is additive; never break apply
-            from .tenant_schema_readiness import post_apply_step_error
+                role_summary = promote_imported_staff_roles(
+                    school=getattr(bundle, "school", None),
+                )
+                if gap_fill_summary is None:
+                    gap_fill_summary = {}
+                if isinstance(gap_fill_summary, dict):
+                    gap_fill_summary["staff_role_backfill"] = role_summary
+            except Exception as exc:  # noqa: BLE001 — role backfill is additive; never break apply
+                from .tenant_schema_readiness import post_apply_step_error
 
-            logger.warning(
-                "orchestrator: staff-role backfill errored for bundle %s",
-                bundle_id,
-                exc_info=True,
-            )
-            if gap_fill_summary is None:
-                gap_fill_summary = {}
-            gap_fill_summary["staff_role_backfill"] = post_apply_step_error(exc)
+                logger.warning(
+                    "orchestrator: staff-role backfill errored for bundle %s",
+                    bundle_id,
+                    exc_info=True,
+                )
+                if gap_fill_summary is None:
+                    gap_fill_summary = {}
+                gap_fill_summary["staff_role_backfill"] = post_apply_step_error(exc)
 
     totals = _summarize_outcomes(outcomes)
     # Landers wrote operator-review data (dedup_candidates / dedup_links) STRAIGHT to
@@ -979,6 +1002,13 @@ _DEPENDENCY_WAVES: tuple[frozenset[str], ...] = (
                "athletics_teams"}),                                 # athletics_teams precedes its roster/fixtures
     frozenset({"custom_fields"}),                                   # wave 4: catch-all (athletics_memberships/fixtures, *_assignments) — after their parents
 )
+
+# Wave-3+ domains need SubjectAssignments / terms / classrooms that gap-fill used
+# to create only AFTER this wave finished — so Repair from the UI re-quarantined
+# the same rows every pass. Mid-apply provisioning runs once roster/catalog landed.
+_DEPENDENT_STRUCTURE_DOMAINS = frozenset({
+    "attendance", "grades", "behavior", "finance", "transcripts",
+})
 
 
 def _partition_jobs_by_dependency(jobs: list["_ArtifactJob"]) -> list[list["_ArtifactJob"]]:
@@ -1671,6 +1701,24 @@ class _ResidualCapture:
             )
 
 
+def _bundle_schema_context(bundle: MigrationBundle):
+    """Enter ``bundle.schema_name`` for tenant ORM writes (landers + post-apply hooks)."""
+    from contextlib import nullcontext
+
+    schema_name = (getattr(bundle, "schema_name", None) or "").strip()
+    if not schema_name:
+        return nullcontext()
+    try:
+        from django_tenants.utils import schema_context
+    except ImportError:
+        return nullcontext()
+    from django.db import connection
+
+    if not hasattr(connection, "set_schema"):
+        return nullcontext()
+    return schema_context(schema_name)
+
+
 def _run_lander_under_schema(
     *,
     lander,
@@ -1716,25 +1764,7 @@ def _run_lander_under_schema(
             capture.flush(ctx=ctx, result=result)
         return result
 
-    if not bundle.schema_name:
-        # Public-schema apply (e.g. signup-time staged bundle without tenant yet).
-        return _land()
-
-    try:
-        from django_tenants.utils import schema_context
-    except ImportError:
-        return _land()
-
-    from django.db import connection
-
-    if not hasattr(connection, "set_schema"):
-        # Non-tenant DB backend (single-schema sqlite dev/test lane): there is
-        # no schema to switch, and entering schema_context raises
-        # AttributeError ('DatabaseWrapper' has no 'tenant') — which failed
-        # every artifact instead of applying it.
-        return _land()
-
-    with schema_context(bundle.schema_name):
+    with _bundle_schema_context(bundle):
         return _land()
 
 
