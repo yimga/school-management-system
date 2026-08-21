@@ -48,6 +48,16 @@ checked and rejected rather than "fixed":
   editorial identity, chosen deliberately. Cross-role hue difference is not a defect; the
   comparison has to be surfaces-to-surfaces and text-to-text.
 
+**The tooling is kept, as reports rather than gates.**
+`scripts/audit_theme_palette_coherence.py` is the wide-angle companion to the
+zero-tolerance `scan_theme_hue_coherence.py`: it asks the same question of every palette
+block on the platform, including marketing and `:root`, and it is what found the three
+sites above. `scripts/audit_narrow_column_forms.py` finds the layout half. Both always
+exit 0 and are deliberately NOT wired into CI — each has known false-positive modes
+(paired `-inv`/`-deep` variants, cross-product pairing inside a large `:root`, `var()`
+fallbacks read as operative values, correct 1-3rem gutters), and every one of those is
+documented in the module docstring. Read it before acting on a row.
+
 **The layout half swept clean.** A search for the other scheduler defect — a form in a
 column that cannot grow — found 68 grids with a rigid track ≤17rem, of which 12 render
 forms. Every one but `.rmc-sc-sched` (already fixed) uses its narrow track as an icon or
