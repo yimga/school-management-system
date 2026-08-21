@@ -25,7 +25,13 @@ class Command(BaseCommand):
             role_codes = ROLE_TEMPLATES.get(user.role)
             if not role_codes:
                 continue
-            roles = AccessRole.objects.filter(code__in=role_codes)
+            # Global template rows only. Unscoped, this pulled in EVERY school's
+            # catalog row sharing the code (AccessRole is unique per school+code),
+            # which hands the account a role at a tenant it has no claim to.
+            # Matches the same fix in signals._apply_role_template.
+            roles = AccessRole.objects.filter(
+                code__in=role_codes, school__isnull=True
+            )
             if not roles.exists():
                 self.stdout.write(
                     self.style.WARNING(
@@ -40,7 +46,10 @@ class Command(BaseCommand):
                     )
                 )
             else:
-                user.roles.set(roles)
+                # Additive: this command only selects users with zero roles, so
+                # .set() was safe here — but .add() keeps the one contract
+                # ("templates never destroy a grant") true everywhere.
+                user.roles.add(*roles)
                 self.stdout.write(
                     self.style.SUCCESS(
                         f"Updated {user.username} (role={user.role}) -> {list(roles.values_list('code', flat=True))}"

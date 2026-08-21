@@ -359,7 +359,19 @@ class User(AbstractUser):
         )
 
     def has_feature_permission(self, code: str, *, school=None) -> bool:
-        if self.is_superuser:
+        """Does this account hold ``code`` (optionally scoped to ``school``)?
+
+        A platform superadmin holds EVERY code — including codes that do not
+        exist yet. That is resolved structurally here rather than by seeding a
+        role, because a seeded list drifts: every migration that added a code
+        had to remember to re-grant SUPERADMIN, and ``iam.request_access`` shows
+        what happens when one forgets. See ``apps.accounts.superadmin``.
+        """
+        from apps.accounts.superadmin import SUPERADMIN_ROLE_CODE, is_platform_superadmin
+
+        # DB-free signals first: is_superuser and role == SUPERADMIN cost nothing
+        # and must answer even when the connection is in a broken transaction.
+        if is_platform_superadmin(self, allow_queries=False):
             return True
         try:
             if connection.needs_rollback:
@@ -373,7 +385,15 @@ class User(AbstractUser):
                 return False
             if self.feature_permissions.filter(code=code).exists():
                 return True
-            roles_qs = self.roles.filter(permissions__code=code)
+            # `| global SUPERADMIN` folds god-mode into the SAME query rather
+            # than adding one: holding the platform's top access role grants the
+            # code whether or not the M2M row was ever seeded. Restricted to the
+            # global template (school IS NULL) — a tenant-minted catalog row
+            # coded SUPERADMIN must not confer platform god-mode.
+            roles_qs = self.roles.filter(
+                Q(permissions__code=code)
+                | Q(code=SUPERADMIN_ROLE_CODE, school__isnull=True)
+            )
             if school is not None:
                 roles_qs = roles_qs.filter(
                     Q(school__isnull=True) | Q(school_id=school.pk)
@@ -388,7 +408,10 @@ class User(AbstractUser):
                 grant_qs = grant_qs.filter(
                     Q(role__school__isnull=True) | Q(role__school_id=school.pk)
                 )
-            if grant_qs.filter(role__permissions__code=code).exists():
+            if grant_qs.filter(
+                Q(role__permissions__code=code)
+                | Q(role__code=SUPERADMIN_ROLE_CODE, role__school__isnull=True)
+            ).exists():
                 return True
             return False
         except (DatabaseError, TransactionManagementError):

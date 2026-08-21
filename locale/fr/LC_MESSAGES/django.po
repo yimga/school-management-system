@@ -67502,3 +67502,65 @@ msgstr ""
 
 msgid "{{ created }} added · {{ updated }} updated"
 msgstr ""
+
+msgid "A bundle is listed when every role it contains is held."
+msgstr ""
+
+msgid "Assigned role"
+msgstr ""
+
+msgid "Django superuser — every permission, present and future."
+msgstr ""
+
+msgid "Full platform access"
+msgstr ""
+
+msgid "Granted directly"
+msgstr ""
+
+msgid ""
+"Holds the Super Administrator role — every permission, present and future."
+msgstr ""
+
+msgid "Manage roles &amp; permissions"
+msgstr ""
+
+msgid "No access roles are assigned to this account yet."
+msgstr ""
+
+msgid "No permission codes are granted to this account."
+msgstr ""
+
+msgid "Primary role"
+msgstr ""
+
+msgid ""
+"Primary role is Super Administrator — every permission, present and future."
+msgstr ""
+
+msgid "Roles &amp; permissions"
+msgstr ""
+
+msgid "Roles held"
+msgstr ""
+
+msgid "Temporary grant"
+msgstr ""
+
+msgid "from"
+msgstr ""
+
+msgid "held as platform superadmin"
+msgstr ""
+
+msgid "this school only"
+msgstr ""
+
+msgid "until"
+msgstr ""
+
+msgid "{{ counter }} permission {% plural %} {{ counter }} permissions"
+msgstr ""
+
+msgid "{{ counter }} role {% plural %} {{ counter }} roles"
+msgstr ""

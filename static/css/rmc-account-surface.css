@@ -72,6 +72,25 @@ body.control-plane-shell #cp-main-content .rmc-account-shell[data-rmc-balanced-p
   padding: var(--space-5, 1.25rem) var(--space-6, 1.5rem);
 }
 
+/* Roles & permissions summary — templates/accounts/partials/_access_summary_card.html.
+   Rendered on BOTH the tenant profile and the operator profile from one partial,
+   so the two surfaces cannot drift apart again. The permission list is
+   legitimately long (a platform superadmin holds the entire catalog), so it
+   scrolls inside its own container rather than pushing the rest of the profile
+   off the page. Codes are set in the mono face because they are identifiers the
+   reader compares character by character, not prose. */
+.rmc-access-summary-card [data-rmc-access-permissions] {
+  max-height: 13rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.rmc-access-summary-card code,
+.rmc-access-summary-card [data-rmc-access-permissions] .rmc-badge {
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: var(--type-size-caption, 0.78rem);
+}
+
 .rmc-account-layout-grid .rmc-account-quick-links .btn,
 .rmc-account-layout-grid .rmc-profile-security-hub .btn,
 .rmc-account-layout-grid .rmc-security-gauge .btn {

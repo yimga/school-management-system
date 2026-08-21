@@ -78,6 +78,11 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # invisible until production. Added 2026-08-20 after six always-rendered
     # Action Hub chips were found 404ing on every tenant portal page.
     ("scripts/scan_hardcoded_dead_paths.py", "ci.yml"),
+    # A permission code gated on but never seeded denies EVERYONE, permanently
+    # and silently — has_feature_permission on an unknown code just returns
+    # False. Added 2026-08-20 after six such codes were found, including the
+    # pair guarding mobile offline grade/attendance sync for every teacher.
+    ("scripts/scan_rbac_permission_catalog.py", "ci.yml"),
     ("scripts/verify_template_reference_integrity.py", "ci.yml"),
     # Compile sibling of the two template gates above: a balanced-but-invalid
     # tag argument ({% trans 'a'b' %}) compiles-fail without being a missing

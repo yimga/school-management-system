@@ -62,11 +62,18 @@ GROUP_MESSAGING_ROLES = {
 def _can_access_group_messaging(user) -> bool:
     if not user or not getattr(user, "is_authenticated", False):
         return False
+    # Staff / superadmin resolve FIRST. This bypass used to sit below the
+    # PARENT/STUDENT deny, which made it unreachable for the accounts that need
+    # it most: ``User.role`` defaults to PARENT, so an account created with
+    # ``createsuperuser`` carries role=PARENT until something else changes it —
+    # and was refused group messaging on its own platform.
+    from apps.accounts.superadmin import is_platform_superadmin
+
+    if getattr(user, "is_staff", False) or is_platform_superadmin(user):
+        return True
     role = getattr(user, "role", None)
     if role in (User.Role.PARENT, User.Role.STUDENT):
         return False
-    if getattr(user, "is_staff", False) or getattr(user, "is_superuser", False):
-        return True
     if role in GROUP_MESSAGING_ROLES:
         return True
     has_perm = getattr(user, "has_feature_permission", None)

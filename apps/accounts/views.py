@@ -311,21 +311,17 @@ def _admin_context(user, request=None):
         rbac_url = reverse("accounts:rbac")
     except NoReverseMatch:
         rbac_url = None
-    permissions_summary = []
-    if hasattr(user, "feature_permissions"):
-        for p in user.feature_permissions.all().values_list("code", flat=True):
-            permissions_summary.append(p)
-    if hasattr(user, "roles"):
-        for role in user.roles.all().prefetch_related("permissions"):
-            for p in role.permissions.all().values_list("code", flat=True):
-                permissions_summary.append(p)
-    permissions_summary = sorted(set(permissions_summary))[:20]  # cap for display
+    # The flattened permission list that used to be built here has moved to
+    # ``apps.accounts.access_summary``. It lived behind this ADMIN-only gate, so a
+    # bursar or teacher granted a capability could not see it anywhere; it was
+    # sliced ``[:20]`` with no "and N more"; and it listed only explicit grant
+    # rows, so a superuser — who holds everything — was shown an empty list.
+    # This function is now only about the admin NAVIGATION links.
     return {
         "site_settings_url": site_settings_url,
         "backend_url": backend_url,
         "admin_url": admin_url,
         "rbac_url": rbac_url,
-        "permissions_summary": permissions_summary,
     }
 
 
@@ -384,6 +380,17 @@ def user_profile(request):
     admin_ctx = _admin_context(request.user, request)
     if admin_ctx:
         context["admin_context"] = admin_ctx
+    # Every persona sees what they actually hold — roles, bundles, temporary
+    # grants and permission codes — not just the single ``role`` string.
+    from apps.accounts.access_summary import effective_access_summary
+
+    context["access_summary"] = effective_access_summary(
+        request.user, school=getattr(request, "school", None)
+    )
+    try:
+        context["access_summary_rbac_url"] = reverse("accounts:rbac")
+    except NoReverseMatch:
+        context["access_summary_rbac_url"] = None
     # MFA status (only when django_otp is available)
     try:
         from django_otp import user_has_device
@@ -2147,7 +2154,21 @@ def rbac_dashboard(request):
                             % {"code": role.code},
                         )
                         return _rbac_redirect(request)
-                user.roles.set(roles)
+                # Replace only what THIS console can see (global templates plus
+                # this school's catalog). ``.set()`` replaced the user's entire
+                # roles M2M, so saving the form at one school silently stripped
+                # every role the same account held at another school — rows the
+                # operator was never shown and did not choose to remove.
+                visible_pks = set(
+                    roles_queryset_for_school(school).values_list("pk", flat=True)
+                )
+                keep_pks = {r.pk for r in roles}
+                stale = list(
+                    user.roles.filter(pk__in=visible_pks - keep_pks)
+                )
+                if stale:
+                    user.roles.remove(*stale)
+                user.roles.add(*roles)
                 messages.success(request, f"Roles updated for {user.username}.")
                 return _rbac_redirect(request)
             else:

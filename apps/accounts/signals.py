@@ -162,7 +162,16 @@ def alert_on_suspicious_login(sender, user, request, **kwargs):
 
 
 ROLE_TEMPLATES: dict[str, list[str]] = {
-    User.Role.SUPERADMIN: ["ADMIN"],
+    # SUPERADMIN mapped to ["ADMIN"] until 2026-08-20. The platform's TOP role
+    # was therefore materialised as the ADMIN access role, which does not carry
+    # settings.feature_control, api_center.manage, accounting.*, stock.*,
+    # discipline.manage, exam_registration.manage, cahier.verify or the
+    # portal.documents/forums/video codes — so a SUPERADMIN who was not also a
+    # Django superuser was denied roughly a dozen capabilities they own by
+    # definition. ``apps.accounts.superadmin`` now makes the grant structural,
+    # and this mapping makes the ROLE ROW agree with it so the RBAC console and
+    # the profile show the same truth the resolver enforces.
+    User.Role.SUPERADMIN: ["SUPERADMIN"],
     User.Role.ADMIN: ["ADMIN"],
     User.Role.LEADERSHIP: ["LEADERSHIP"],
     User.Role.PRINCIPAL: ["PRINCIPAL"],
@@ -186,6 +195,11 @@ ROLE_TEMPLATES: dict[str, list[str]] = {
     User.Role.VIRTUAL_ASSISTANT: ["VIRTUAL_ASSISTANT"],
     User.Role.PARENT: ["PARENT"],
     User.Role.STUDENT: ["STUDENT"],
+    # DPO and EMPLOYER are declared User.Role choices that had NO template, so
+    # those accounts were created with an empty ``roles`` M2M and resolved every
+    # granular check to False. The access roles are seeded alongside this map.
+    User.Role.DPO: ["DPO"],
+    User.Role.EMPLOYER: ["EMPLOYER"],
 }
 
 
@@ -271,6 +285,24 @@ def _ensure_preferences_on_user_create(sender, instance, created, **kwargs):
 
 @receiver(post_save, sender=User)
 def _apply_role_template(sender, instance, created, **kwargs):
+    """Materialise the primary ``role`` as access roles WITHOUT destroying the rest.
+
+    Two bugs lived in the one line this replaces (``instance.roles.set(roles)``):
+
+    1. ``.set()`` is a REPLACE. Any additional role an owner had granted — via the
+       RBAC console, ``views_owner_console_people`` (``roles.add(*roles)``), a
+       RoleGroup bundle, or SCIM — was silently deleted the next time anyone
+       edited that user's primary role. The platform advertises that a user may
+       hold several roles and then threw them away on an unrelated edit. Now only
+       the roles the PREVIOUS template contributed are withdrawn, and everything
+       granted deliberately survives.
+    2. The lookup had no school filter despite the marker above it saying
+       ``school-is-null``. ``AccessRole`` rows are unique per (school, code), so a
+       code like TEACHER exists once globally AND once per tenant catalog — the
+       unfiltered query attached EVERY tenant's row to the user, and
+       ``has_feature_permission(code, school=other)`` then resolved through the
+       other tenant's row. Templates now bind to the global template rows only.
+    """
     previous = getattr(instance, "_previous_role", None)
     if not created and previous == instance.role:
         return
@@ -278,8 +310,16 @@ def _apply_role_template(sender, instance, created, **kwargs):
     if not codes:
         return
     # tenant-isolation-allow: seed-lookup-of-platform-wide-template-roles-by-code-school-is-null
-    roles = AccessRole.objects.filter(code__in=codes)
-    if not roles.exists():
+    roles = list(AccessRole.objects.filter(code__in=codes, school__isnull=True))
+    if not roles:
         # Role templates may be evaluated before access roles are seeded in isolated setup flows.
         return
-    instance.roles.set(roles)
+    instance.roles.add(*roles)
+    stale_codes = set(ROLE_TEMPLATES.get(previous, ())) - set(codes)
+    if stale_codes:
+        # tenant-isolation-allow: seed-lookup-of-platform-wide-template-roles-by-code-school-is-null
+        stale = list(
+            AccessRole.objects.filter(code__in=stale_codes, school__isnull=True)
+        )
+        if stale:
+            instance.roles.remove(*stale)

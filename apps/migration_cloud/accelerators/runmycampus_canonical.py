@@ -514,6 +514,30 @@ def is_derived_report(headers: Any, filename: str = "") -> bool:
     return stat_hits >= _REPORT_MIN_STAT_HITS_ALONE
 
 
+# A spreadsheet nobody renamed. These are the DEFAULT workbook names Excel and
+# LibreOffice give a new file, per locale -- and several of them collide with
+# real entity tokens: "Book1" hits `book` -> library, and the French default
+# "Classeur1" hits `class` -> sections. On a francophone school's upload that
+# turns "the teacher never renamed the file" into a confident wrong domain.
+# A default name is the ABSENCE of a label, so it must produce no hint at all.
+_DEFAULT_WORKBOOK_STEMS: frozenset[str] = frozenset({
+    "book", "sheet", "workbook", "worksheet",       # en
+    "classeur", "feuille",                          # fr
+    "mappe", "tabelle",                             # de
+    "libro", "hoja",                                # es
+    "cartel", "foglio",                             # it
+    "pasta", "planilha",                            # pt
+    "untitled", "sansnom", "nuevo", "novo",         # generic "new/untitled"
+})
+
+
+def _is_default_workbook_name(name: str) -> bool:
+    """True when the filename is just an unrenamed spreadsheet default."""
+    stem = (name or "").rsplit(".", 1)[0]
+    stem = "".join(ch for ch in stem if ch.isalpha())
+    return stem in _DEFAULT_WORKBOOK_STEMS
+
+
 def guess_domain_from_filename(filename: str) -> str:
     """Best-effort canonical domain from a filename (server-side auto-detect).
 
@@ -522,6 +546,8 @@ def guess_domain_from_filename(filename: str) -> str:
     a sensible default.
     """
     name = (filename or "").rsplit("/", 1)[-1].rsplit("\\", 1)[-1].lower()
+    if _is_default_workbook_name(name):
+        return ""
     for token, domain in DOMAIN_FILENAME_HINTS:
         if token in name:
             return domain
