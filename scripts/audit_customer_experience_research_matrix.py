@@ -96,8 +96,19 @@ def _rows() -> list[dict]:
     password_reset = _contains("apps/accounts/urls.py", 'name="password_reset"') and _contains(
         "templates/auth/login.html", "data-rmc-parent-password-reset"
     )
-    guardian_chrome = _contains(
-        "templates/portal_base.html", "guardian_student_links.html"
+    # The chrome moved: it used to be its own {% include %} in portal_base.html and is now
+    # rendered inline by components/rmc_tenant_header_utilities.html (which portal_base
+    # includes). Accept EITHER, because a detector that only knows the old shape reports a
+    # refactor as a regression -- and a matrix that cries wolf is a matrix nobody reads.
+    guardian_chrome = (
+        _contains("templates/portal_base.html", "guardian_student_links.html")
+        or (
+            _contains("templates/portal_base.html", "rmc_tenant_header_utilities.html")
+            and _contains(
+                "templates/components/rmc_tenant_header_utilities.html",
+                "guardian_student_links_chrome",
+            )
+        )
     ) and _contains("apps/portal/parent_identity.py", "guardian_student_links_chrome")
     add(
         "P2",
