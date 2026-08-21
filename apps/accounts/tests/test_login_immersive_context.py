@@ -188,7 +188,24 @@ class LoginImmersiveContextTests(SimpleTestCase):
         with patch("apps.accounts.views.render") as mock_render:
             login_view(request)
             context = mock_render.call_args[0][2]
-        self.assertEqual(context["post_role"], "staff")
+        self.assertEqual(context["post_role"], "")
+
+    def test_post_role_honors_query_param(self):
+        request = RequestFactory().get("/authentication/login/", {"role": "parent"})
+        request.school = None
+        request.user = type("U", (), {"is_authenticated": False})()
+        request.session = {}
+        request.public_host_kind = None
+        request.META = {
+            "REMOTE_ADDR": "127.0.0.1",
+            "SERVER_NAME": "testserver",
+            "SERVER_PORT": "80",
+        }
+
+        with patch("apps.accounts.views.render") as mock_render:
+            login_view(request)
+            context = mock_render.call_args[0][2]
+        self.assertEqual(context["post_role"], "parent")
 
     def test_tenant_login_sets_auth_landing_lite_flag(self):
         request = RequestFactory().get("/authentication/login/")
@@ -247,8 +264,8 @@ class LoginImmersiveTemplateContractTests(SimpleTestCase):
         self.assertIn("login_immersive_canvas.html", html)
         self.assertIn("data-rmc-login-layout", html)
         self.assertIn("data-rmc-local-first", html)
-        self.assertIn("auth-login-canvas.css' %}?v=20260816.4", html)
-        self.assertIn("rmc-auth-login-immersive.js' %}?v=20260816.4", html)
+        self.assertIn("auth-login-canvas.css' %}?v=20260818.1", html)
+        self.assertIn("rmc-auth-login-immersive.js' %}?v=20260818.1", html)
         self.assertIn("data-rmc-passkey-options-url", html)
         self.assertIn("data-rmc-returning-user", html)
         self.assertIn("data-rmc-access-assistant", html)

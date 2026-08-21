@@ -1750,25 +1750,63 @@ body:has(.rmc-auth-immersive) [data-shell-chrome="django-messages"] {
 /* Local Front Door access layer: compact, reachable alternatives without
    crowding the credential form or placing partner content beside secrets. */
 .rmc-auth-immersive__returning {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  display: grid;
   gap: 12px;
   margin-bottom: 10px;
-  padding: 10px 12px;
+  padding: 14px;
   border: 1px solid color-mix(in srgb, var(--color-success) 35%, transparent);
-  border-radius: 12px;
+  border-radius: 15px;
   background: color-mix(in srgb, var(--color-success) 9%, transparent);
 }
 .rmc-auth-immersive__returning[hidden] { display: none; }
 .rmc-auth-immersive__returning small,
 .rmc-auth-immersive__returning strong { display: block; }
-.rmc-auth-immersive__returning small { color: var(--rmc-auth-muted); font-size: 9px; }
+.rmc-auth-immersive__returning small { color: var(--rmc-auth-muted); font-size: 11px; }
+.rmc-auth-immersive__returning-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+}
+.rmc-auth-immersive__returning-actions .rmc-auth-immersive__passkey-primary {
+  margin: 0;
+  min-height: 44px;
+}
+.rmc-auth-immersive__returning-actions [data-rmc-returning-continue] {
+  min-height: 44px;
+  border: 0;
+  border-radius: 11px;
+  background: linear-gradient(90deg, var(--school-primary), color-mix(in srgb, var(--school-primary) 55%, var(--school-accent, var(--school-primary))));
+  color: var(--text-on-primary, #fff);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+.rmc-auth-immersive.has-returning [data-rmc-passkey-standalone] { display: none; }
+.rmc-auth-immersive__other-roles {
+  margin: 16px 0 8px;
+  font-size: 1rem;
+  font-weight: 800;
+}
+.rmc-auth-immersive__other-roles[hidden] { display: none; }
+.rmc-auth-immersive__role-methods {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 12px;
+  padding: 12px;
+  border: 1px solid var(--rmc-auth-hair);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--surface-elevated) 88%, var(--surface-canvas));
+}
+.rmc-auth-immersive__role-methods[hidden] { display: none; }
+.rmc-auth-immersive__role-methods span { font-weight: 800; }
+.rmc-auth-immersive__role-methods small { color: var(--rmc-auth-muted); }
+.rmc-auth-immersive__role-methods a { min-height: 44px; display: inline-flex; align-items: center; }
 .rmc-auth-immersive__returning button,
+.rmc-auth-immersive__access-help a,
 .rmc-auth-immersive__access-help button,
 .rmc-auth-assistant button,
 .rmc-auth-assistant a {
-  min-height: 36px;
+  min-height: 44px;
   border: 1px solid var(--rmc-auth-hair);
   border-radius: 9px;
   background: var(--surface-elevated);
@@ -1807,14 +1845,28 @@ body:has(.rmc-auth-immersive) [data-shell-chrome="django-messages"] {
 .rmc-auth-assistant { width: min(460px, calc(100vw - 24px)); padding: 0; border: 1px solid var(--hairline-strong); border-radius: 18px; background: var(--surface-bg); color: var(--text-primary); box-shadow: var(--shadow-overlay); }
 .rmc-auth-assistant::backdrop { background: color-mix(in srgb, var(--surface-bg) 72%, transparent); backdrop-filter: blur(5px); }
 .rmc-auth-assistant__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--hairline); }
-.rmc-auth-assistant__head button { width: 36px; padding: 0; }
+.rmc-auth-assistant__head button { width: 44px; min-height: 44px; padding: 0; }
+.rmc-auth-assistant [data-rmc-recovery-action][hidden] { display: none !important; }
 .rmc-auth-assistant__body { display: grid; gap: 9px; padding: 16px; }
 .rmc-auth-assistant__body p { margin: 0 0 4px; color: var(--text-secondary); }
+.rmc-auth-assistant__prompts { display: grid; gap: 8px; }
+.rmc-auth-assistant__label { font-size: 11px; font-weight: 700; color: var(--text-secondary); }
+.rmc-auth-assistant select,
+.rmc-auth-assistant input {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--rmc-auth-hair);
+  border-radius: 10px;
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  padding: 10px 12px;
+}
+.rmc-auth-assistant__note { font-size: 11px; color: var(--text-secondary); }
 .rmc-auth-assistant__body a,
 .rmc-auth-assistant__body button { display: block; width: 100%; text-align: left; }
 .rmc-auth-assistant__answer { min-height: 1.3em; font-size: 11px; }
 .rmc-auth-immersive__offline-note [data-rmc-local-mode-open] {
-  min-height: 40px;
+  min-height: 44px;
   margin-inline-start: auto;
   border: 1px solid color-mix(in srgb, var(--color-success) 50%, transparent);
   border-radius: 10px;
@@ -1921,6 +1973,7 @@ html[data-rmc-auth-reduce-motion] .rmc-auth-immersive *::after {
   display: grid;
   grid-template-columns: 2.9rem minmax(0, 1fr) auto;
   gap: 0.75rem;
+  min-height: 44px;
   padding: 0.85rem 0.9rem;
   border-radius: 0.95rem;
   background: color-mix(in srgb, var(--surface-elevated) 88%, var(--surface-canvas));
