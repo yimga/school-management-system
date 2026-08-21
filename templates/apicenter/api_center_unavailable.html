@@ -1,0 +1,53 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+
+{% comment %}
+  The API Center's 403, worded for the reason it happened.
+
+  Every refusal on this surface used to read "API Center is disabled or you do
+  not have permission." -- one sentence for a tenant configuration fact and a
+  missing grant at once. A platform superadmin holds every permission code
+  there is, so the second half of that sentence was simply false for them, and
+  the first half was buried behind an "or".
+
+  A feature switch is not a permission. When the school has not enabled the API
+  Center, say that, and hand the switch to whoever can flip it.
+{% endcomment %}
+
+{% block title %}{% trans "API Center" %}{% endblock %}
+
+{% block backend_page %}
+<div class="container-fluid py-4">
+  <div class="card shadow-sm">
+    <div class="card-body">
+      {% if is_disabled %}
+        <h4 class="card-title mb-2">{% trans "This school has not enabled the API Center." %}</h4>
+        <p class="text-muted mb-3">
+          {% trans "Your account is entitled to this surface. The API Center is a tenant feature switch rather than a permission, and it is currently switched off for this school." %}
+        </p>
+        <div class="d-flex flex-wrap gap-2">
+          {% if feature_control_url %}
+            <a class="btn btn-primary" href="{{ feature_control_url }}">{% trans "Turn it on in Feature Control" %}</a>
+          {% endif %}
+          {% if back_url %}
+            <a class="btn btn-outline-secondary" href="{{ back_url }}">{% trans "Back to dashboard" %}</a>
+          {% endif %}
+        </div>
+        {% if not feature_control_url %}
+          <p class="text-muted mb-0 mt-3">
+            {% trans "Ask a school administrator to switch it on in Feature Control." %}
+          </p>
+        {% endif %}
+      {% else %}
+        <h4 class="card-title mb-2">{% trans "You do not have permission to open the API Center." %}</h4>
+        <p class="text-muted mb-3">
+          {% trans "Managing API keys, webhooks and integration credentials needs the Manage API Center permission. A school administrator can grant it from Roles & permissions." %}
+        </p>
+        {% if back_url %}
+          <a class="btn btn-outline-secondary" href="{{ back_url }}">{% trans "Back to dashboard" %}</a>
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -64902,3 +64902,200 @@ msgstr ""
 
 msgid "class configuration"
 msgstr ""
+
+msgid ""
+"A 502 or 504 means the cloud's proxy answered but the application behind it "
+"did not. The usual cause is schema drift on THIS tenant: a synced table "
+"missing a column raises an error on every bundle build. On the cloud run "
+"“python manage.py check_edge_sync_deploy_readiness”, and on the box run "
+"“python manage.py verify_edge_link --http” to tell that apart from an "
+"unreachable host, a refused credential, or a missing endpoint."
+msgstr ""
+
+msgid ""
+"A box on your school's network is asking to sync with this cloud. Approve it"
+" only if you recognise it — approving lets it read and write this school's "
+"records."
+msgstr ""
+
+msgid "An audited session is required for {{ school }}."
+msgstr ""
+
+msgid "Approve this box? It will be able to sync this school&#39;s records."
+msgstr ""
+
+msgid "Ask a school administrator to switch it on in Feature Control."
+msgstr ""
+
+msgid "Between scheduled syncs"
+msgstr ""
+
+msgid "Box approved. It will finish pairing within a few seconds."
+msgstr ""
+
+msgid "Boxes waiting to pair"
+msgstr ""
+
+msgid "Catch up after a missed time"
+msgstr ""
+
+msgid "Choose one of the listed check-in times."
+msgstr ""
+
+msgid "Control-plane access is required to open the API Center here."
+msgstr ""
+
+msgid "Current pairing"
+msgstr ""
+
+msgid "Enter this code in the school's cloud Sync Center:"
+msgstr ""
+
+msgid "Every 15 minutes — instructions arrive almost immediately"
+msgstr ""
+
+msgid "Every 3 hours"
+msgstr ""
+
+msgid "Every 6 hours — instructions can take that long to arrive"
+msgstr ""
+
+msgid "Every hour (recommended)"
+msgstr ""
+
+msgid "Get a pairing code"
+msgstr ""
+
+msgid ""
+"If the box was off or offline when a sync was due, sync once as soon as it "
+"is back instead of waiting for the next scheduled time."
+msgstr ""
+
+msgid ""
+"Managing API keys, webhooks and integration credentials needs the Manage API"
+" Center permission. A school administrator can grant it from Roles & "
+"permissions."
+msgstr ""
+
+msgid "None needed — platform access is granted directly, not through a role."
+msgstr ""
+
+msgid "Once a day — the longest allowed"
+msgstr ""
+
+msgid "Pair this box"
+msgstr ""
+
+msgid "Pair this box with its cloud"
+msgstr ""
+
+msgid "Paired"
+msgstr ""
+
+msgid "Pairing code"
+msgstr ""
+
+msgid "Pairing request denied."
+msgstr ""
+
+msgid "Requested {{ when }} · expires {{ expires }}"
+msgstr ""
+
+msgid "Save sync settings"
+msgstr ""
+
+msgid "Select your school to change sync settings."
+msgstr ""
+
+msgid "Start an audited session"
+msgstr ""
+
+msgid ""
+"Sync settings saved. They take effect on the box at its next sync — the "
+"cloud cannot contact a box directly."
+msgstr ""
+
+msgid ""
+"That box asked for a school this cloud does not recognise. Check the slug "
+"configured on the box."
+msgstr ""
+
+msgid "That code belongs to a different school."
+msgstr ""
+
+msgid "That pairing code does not match any request. Check the box's screen."
+msgstr ""
+
+msgid "That request has already been handled."
+msgstr ""
+
+msgid "That request has expired. Start pairing again on the box."
+msgstr ""
+
+msgid ""
+"The box always checks in from time to time, even outside your scheduled "
+"times. That is how instructions from support reach it — the cloud cannot "
+"contact a box directly."
+msgstr ""
+
+msgid ""
+"The cloud does not recognise this box's school. Check the slug configured on"
+" this box."
+msgstr ""
+
+msgid "The pairing request could not be updated."
+msgstr ""
+
+msgid "This box is not yet paired with a cloud tenant."
+msgstr ""
+
+msgid ""
+"This code expires {{ expires }}. Nothing is configured until an "
+"administrator approves it."
+msgstr ""
+
+msgid "This school has not enabled the API Center."
+msgstr ""
+
+msgid ""
+"This screen never asks for a password or a token. It shows a code that an "
+"administrator approves on the cloud."
+msgstr ""
+
+msgid "To pair this box with a different school, run"
+msgstr ""
+
+msgid "Turn it on in Feature Control"
+msgstr ""
+
+msgid "Twice a day — slowest; the box is nearly unreachable between check-ins"
+msgstr ""
+
+msgid "Waiting for approval…"
+msgstr ""
+
+msgid "You do not have permission to approve a box for this school."
+msgstr ""
+
+msgid "You do not have permission to open the API Center."
+msgstr ""
+
+msgid ""
+"You were sent back here from that tenant. Operator access to tenant data "
+"goes through the signed impersonation flow so it can be recorded — start a "
+"session and continue where you left off."
+msgstr ""
+
+msgid ""
+"Your account is entitled to this surface. The API Center is a tenant feature"
+" switch rather than a permission, and it is currently switched off for this "
+"school."
+msgstr ""
+
+msgid ""
+"on the box. That requires shell access on this machine — being on the "
+"network is not enough."
+msgstr ""
+
+msgid "{{ count }} waiting{% plural %}{{ count }} waiting"
+msgstr ""
