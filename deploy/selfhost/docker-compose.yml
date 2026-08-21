@@ -11,6 +11,15 @@ x-app: &app
   build:
     context: ../..
     dockerfile: deploy/selfhost/Dockerfile
+    args:
+      # Optional. Left empty, the image stamps itself from the .git in the build
+      # context, so a plain `docker compose build` already produces a box that can
+      # answer /-/version/. Set these when you build from a tarball (no .git) or
+      # want the stamp to name a CI run rather than a working copy:
+      #   GIT_COMMIT=$(git rev-parse HEAD) docker compose -f ... build
+      GIT_COMMIT: "${GIT_COMMIT:-}"
+      BUILD_TIME: "${BUILD_TIME:-}"
+      ENVIRONMENT: "${ENVIRONMENT:-}"
   image: runmycampus-selfhost:latest
   env_file: .env
   environment:
@@ -19,6 +28,13 @@ x-app: &app
     REDIS_URL: "redis://valkey:6379/0"
     # Broker is explicit + safe here because a worker service runs below.
     CELERY_BROKER_URL: "redis://valkey:6379/1"
+    # Display label for /-/version/, so a support engineer can tell a self-hosted
+    # box apart from Render at a glance. Deliberately ENVIRONMENT and NOT
+    # DJANGO_ENV: config/settings.py feeds DJANGO_ENV into _IS_CLOUD_DEPLOYED, so
+    # labelling an appliance `DJANGO_ENV=production` would silently flip it into
+    # hosted-cloud posture — dropping its local Ollama tier and switching on
+    # hosted conversion / paid-install enforcement. A label must not route.
+    ENVIRONMENT: "${ENVIRONMENT:-selfhost}"
   volumes:
     # PERSIST uploaded media (student/teacher photos, evaluation evidence, logos,
     # receipts, documents). MEDIA_ROOT is /app/media INSIDE the container; without a

@@ -16,6 +16,7 @@ from django.conf import settings
 from django.http import HttpResponse, JsonResponse, HttpResponseForbidden
 from apps.observability.db_liveness import check_db_liveness
 from apps.platform_runtime.structured_logging import log_view_exception
+from apps.siteconfig import deploy_meta
 from django.views.decorators.http import require_GET, require_POST, require_http_methods
 from django.shortcuts import redirect, render
 from django.urls import reverse, NoReverseMatch
@@ -746,14 +747,6 @@ def client_event_capture(request):
     return HttpResponse(status=204)
 
 
-def _safe_version_value(*names: str, default: str = "unknown") -> str:
-    for name in names:
-        value = (os.getenv(name) or "").strip()
-        if value:
-            return value[:128]
-    return default
-
-
 @require_GET
 def public_version(request):
     """
@@ -761,32 +754,20 @@ def public_version(request):
 
     This endpoint intentionally exposes only a small allowlisted payload. It does
     not dump environment variables or include any credentials.
+
+    Resolution lives in ``apps.siteconfig.deploy_meta`` so this endpoint and the
+    ``rmc-deploy-sha`` cache-busting meta tag can never disagree about what the
+    box is running -- and so a deployment that sets no commit env var (every
+    self-hosted Docker appliance) still answers with its build stamp instead of
+    ``unknown``.
     """
     del request
-    commit_sha = _safe_version_value(
-        "RENDER_GIT_COMMIT",
-        "GIT_COMMIT",
-        "SOURCE_VERSION",
-        "COMMIT_SHA",
-    )
-    if commit_sha != "unknown" and not re.fullmatch(r"[0-9a-fA-F]{7,64}", commit_sha):
-        commit_sha = "unknown"
-    build_time = _safe_version_value(
-        "BUILD_TIME",
-        "BUILD_TIMESTAMP",
-        "RENDER_CREATED_AT",
-    )
     return JsonResponse(
         {
-            "commit_sha": commit_sha,
-            "build_time": build_time,
+            "commit_sha": deploy_meta.resolve_deploy_commit_sha(),
+            "build_time": deploy_meta.resolve_build_time(),
             "app_version": str(getattr(settings, "APP_VERSION", "unknown")),
-            "environment": _safe_version_value(
-                "RENDER_SERVICE_NAME",
-                "DJANGO_ENV",
-                "ENVIRONMENT",
-                default="unknown",
-            ),
+            "environment": deploy_meta.resolve_deploy_environment(),
         }
     )
 

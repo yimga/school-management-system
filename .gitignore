@@ -200,3 +200,7 @@ var/*.partial.json
 # `git add -A` cannot commit it (which would also trip scan_locale_coverage,
 # since that gate walks the locale/ dir and demands a declaration per catalog).
 locale/en_XA/
+
+# Build stamp written at image build time by scripts/write_build_stamp.py so a
+# running box can answer /-/version/. Per-build and per-machine; never committed.
+.build-stamp.json
