@@ -4154,7 +4154,7 @@ except ValueError:
     RMC_SYNC_PARITY_MAX_FLUSH_ENTITIES = 3
 # Migration Cloud apply forward-progress breaker (apps/migration_cloud/apply_progress_guard.py).
 # Consecutive LIVE applies of one bundle that return identical totals AND create no rows
-# before automatic re-apply is refused. Bundle 84 of gilead-tech re-ran an identical
+# before automatic re-apply is refused. Bundle 84 of a live tenant re-ran an identical
 # "0 created, 105 updated, 442 quarantined" apply for four days because the outbox
 # idempotency key frees the moment a row succeeds and nothing asked whether the previous
 # pass had accomplished anything. A human repair always re-arms the budget.

@@ -140,7 +140,13 @@ class SyncCenterLiveViewTests(TestCase):
         page = self.client.get(reverse("siteconfig:sync_center"))
         self.assertContains(page, "Sync queued")
         self.assertContains(page, "data-rmc-wfp-canvas")
-        self.assertContains(page, "data-rmc-bulk-table")
+        # The bulk table moved to its own page on 2026-08-21. This assertion is about the
+        # FEATURE existing and being wired, not about which URL carries it, so it follows
+        # the table rather than being deleted -- and the Sync Center now has to prove it
+        # links to where the table went, or the conflict count becomes a dead end.
+        self.assertContains(page, reverse("siteconfig:sync_conflicts"))
+        conflicts = self.client.get(reverse("siteconfig:sync_conflicts"))
+        self.assertContains(conflicts, "data-rmc-bulk-table")
 
     def test_status_route_has_one_owner(self):
         from apps.siteconfig.urls import urlpatterns

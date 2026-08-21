@@ -1,139 +1,234 @@
 {% load i18n %}
-{# Tenant sync schedule. The "next sync" line is filled by the status poll from the SAME  #}
-{# value the scheduler acts on (schedule_policy.schedule_summary), so the promise on the  #}
-{# screen and the behaviour of the box cannot drift apart.                                #}
-<div class="card shadow-sm mb-3" id="sync-schedule" data-rmc-section-anchor="1" data-rmc-sync-schedule-panel="1">
-  <div class="card-body">
-    <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
-      <h2 class="h6 mb-0">{% trans "Sync schedule" %}</h2>
-      {% if sync_schedule_summary and sync_schedule_summary.configured %}
-        <span class="badge rounded-pill bg-success-subtle text-success-emphasis">{% trans "Scheduled" %}</span>
-      {% else %}
-        <span class="badge rounded-pill bg-body-secondary text-body-secondary">{% trans "Automatic" %}</span>
+{% comment %}
+BAND 3 — the schedule, and what it actually produces.
+
+WHAT WAS WRONG. The old panel showed a SENTENCE ("Every 30 minutes, 06:00 to 18:00,
+Monday to Friday. At 22:00, every day.") and nothing else, so a school could not see that
+those two rules leave Sunday with a fourteen-hour hole, that they overlap at 18:00, or
+that the hourly check-in was doing most of the real work. The add-rule editor was a raw
+{{ form.as_p }}: eight stacked controls, no preview, and a "Times" text box meaningful for
+only one of the two "Type" values with nothing on screen saying which. Below an <hr>, a
+SECOND form with a SECOND save button set the check-in ceiling — which also changes how
+often the box syncs. So "how often does this box sync?" was answered in two places, and
+neither mentioned the other.
+
+WHY THE STRIP IS SERVER-RENDERED. apps/sync_engine/schedule.py opens by saying the label
+on the screen and the moment the scheduler acts have to be the same computation. A strip
+drawn by a re-implementation in the browser would drift the first time either changed, and
+it would drift silently — a wrong strip still looks like a strip. So this renders from
+schedule_policy.coverage_for(), and the live preview POSTs a candidate rule set back to
+sync_schedule_preview rather than computing anything client-side.
+
+Progressive enhancement: strip, rules, next-five and both forms all work with JavaScript
+off. What JS adds is the hover readout and the preview-before-save.
+{% endcomment %}
+
+<section class="rmc-sc-band" id="sync-schedule" data-rmc-section-anchor="1"
+         data-rmc-sync-schedule-panel="1"
+         data-rmc-sc-preview-url="{% if sync_schedule_preview_url %}{{ sync_schedule_preview_url }}{% endif %}"
+         aria-label="{% trans 'Sync schedule' %}">
+  <div class="rmc-sc-band__head">
+    <h2 class="rmc-sc-band__title">{% trans "Schedule" %}</h2>
+    <span class="badge rounded-pill bg-body-secondary text-body-secondary">{{ sync_schedule_summary.timezone|default:"—" }}</span>
+  </div>
+
+  {% if sync_schedule_summary.coverage.available %}
+  <div class="rmc-sc-sched">
+    <div>
+      {# ---------------------------------------------------------- the week strip #}
+      <div data-rmc-sc-strip="1">
+        <div class="rmc-sc-strip__hours" aria-hidden="true">
+          <span class="rmc-sc-strip__hour"></span>
+          {% for hour in sync_schedule_hour_labels %}
+            <span class="rmc-sc-strip__hour">{{ hour }}</span>
+          {% endfor %}
+        </div>
+        <div class="rmc-sc-strip__grid">
+          {% for day in sync_schedule_summary.coverage.week.days %}
+            <div class="rmc-sc-strip__row">
+              <span class="rmc-sc-strip__day">{{ day.label|slice:":3" }}</span>
+              {% for cell in day.hours %}
+                <span class="rmc-sc-strip__cell"
+                      data-hits="{{ cell.level }}"
+                      data-gap="{% if cell.in_gap %}1{% else %}0{% endif %}"
+                      data-day="{{ day.label }}"
+                      data-hour="{{ forloop.counter0 }}"
+                      data-count="{{ cell.count }}"
+                      data-first="{{ cell.first|default:'' }}"></span>
+              {% endfor %}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <p class="rmc-sc-strip__readout" data-rmc-sc-readout="1" role="status">
+        {% if sync_schedule_summary.description %}
+          {{ sync_schedule_summary.description }}
+        {% else %}
+          {% trans "No rules set — this box syncs on the adaptive cadence, continuously and faster when there are changes." %}
+        {% endif %}
+      </p>
+
+      <div class="rmc-sc-strip__legend">
+        <span class="rmc-sc-strip__legend-item">
+          <span class="rmc-sc-swatch" data-kind="empty" aria-hidden="true"></span>{% trans "no scheduled sync" %}
+        </span>
+        <span class="rmc-sc-strip__legend-item">
+          <span class="rmc-sc-swatch" aria-hidden="true"></span>{% trans "scheduled syncs — darker where rules overlap" %}
+        </span>
+        <span class="rmc-sc-strip__legend-item">
+          <span class="rmc-sc-swatch" data-kind="floor" aria-hidden="true"></span>
+          {% blocktrans with minutes=sync_schedule_summary.coverage.floor_minutes %}check-in floor, every {{ minutes }} min{% endblocktrans %}
+        </span>
+        {% if sync_schedule_summary.coverage.gap_flagged %}
+          <span class="rmc-sc-strip__legend-item">
+            <span class="rmc-sc-swatch" data-kind="gap" aria-hidden="true"></span>{% trans "inside the longest gap" %}
+          </span>
+        {% endif %}
+      </div>
+
+      {% comment %}
+      The check-in ceiling, read as the closing clause of the schedule sentence rather
+      than as a second form below a rule. It still posts to its own view — these are
+      two audit trails and they stay two — but to the school it is one decision.
+      {% endcomment %}
+      {% if sync_policy_form and sync_policy_save_url %}
+        <form method="post" action="{{ sync_policy_save_url }}" class="rmc-sc-ceiling"
+              data-rmc-sc-policy-form="1">
+          {% csrf_token %}
+          <label for="{{ sync_policy_form.idle_ceiling_minutes.id_for_label }}">{% trans "…and never go longer than" %}</label>
+          {{ sync_policy_form.idle_ceiling_minutes }}
+          <span>{% trans "without checking in." %}</span>
+          <span class="form-check">
+            {{ sync_policy_form.catch_up_missed }}
+            <label class="form-check-label" for="{{ sync_policy_form.catch_up_missed.id_for_label }}">{{ sync_policy_form.catch_up_missed.label }}</label>
+          </span>
+          <button type="submit" class="btn btn-sm btn-outline-primary" data-rmc-sc-policy-save="1">{% trans "Save" %}</button>
+          <span class="rmc-sc-ceiling__status" data-rmc-sc-policy-status="1" role="status"></span>
+        </form>
+        <p class="rmc-sc-band__note">{{ sync_policy_form.idle_ceiling_minutes.help_text }}</p>
       {% endif %}
     </div>
 
-    {% if sync_schedule_summary %}
-      <div class="border rounded-2 p-3 mb-3 bg-body-tertiary small">
-        <div class="row g-3">
-          <div class="col-sm-6">
-            <div class="text-uppercase text-body-secondary">{% trans "Next sync" %}</div>
-            <div class="fw-semibold text-body" data-rmc-schedule-next>
-              {% if sync_schedule_summary.next_run_at %}{{ sync_schedule_summary.next_run_at }}{% else %}{% trans "Automatic — as soon as there is anything to send" %}{% endif %}
-            </div>
-          </div>
-          <div class="col-sm-6">
-            <div class="text-uppercase text-body-secondary">{% trans "Last sync" %}</div>
-            {# A next-run time on its own is only a promise. Shown beside the last ACTUAL #}
-            {# run, a box that stopped a week ago is visible instead of implied to be fine. #}
-            <div class="fw-semibold text-body" data-rmc-schedule-last>
-              {% if sync_schedule_summary.last_run_at %}{{ sync_schedule_summary.last_run_at }}{% else %}{% trans "Never" %}{% endif %}
-            </div>
-          </div>
-        </div>
-        {% if sync_schedule_summary.description %}
-          <p class="mb-0 mt-2 text-body-secondary" data-rmc-schedule-description>{{ sync_schedule_summary.description }}</p>
-        {% endif %}
-        {# Always rendered so the poll can show/hide it; hidden, not absent, when clear. #}
-        <p class="mb-0 mt-2 text-warning-emphasis{% if not sync_schedule_summary.missed_window %} d-none{% endif %}" data-rmc-schedule-missed role="status">
-          {% trans "A scheduled sync was missed — the box was not reachable. It will catch up once on its next connection." %}
-        </p>
-        <p class="mb-0 mt-2 text-body-secondary">
-          {% blocktrans with tz=sync_schedule_summary.timezone %}Times are shown in the school's timezone ({{ tz }}).{% endblocktrans %}
-        </p>
-        {# What happens when the clocks change is a DECISION, not a setting -- there is one #}
-        {# defensible answer in each direction. It was already made and tested; what was    #}
-        {# missing is that nobody could SEE it, so a school setting "02:30" had no way to   #}
-        {# learn that one night a year that time does not exist. Only rendered for zones    #}
-        {# that actually observe DST.                                                       #}
-        {% if sync_schedule_summary.dst and sync_schedule_summary.dst.observes %}
-          <p class="mb-0 mt-2 text-body-secondary" data-rmc-schedule-dst>{{ sync_schedule_summary.dst.note }}</p>
-        {% endif %}
-      </div>
-    {% endif %}
-
-    {% if sync_schedule_save_url %}
+    {# ------------------------------------------------------------------- aside #}
+    <aside>
+      <p class="rmc-sc-aside__label">{% trans "Rules" %}</p>
       {% if sync_schedule_rules %}
-        <ul class="list-unstyled mb-3">
+        <ul class="rmc-sc-rules" data-rmc-sc-rule-list="1">
           {% for rule in sync_schedule_rules %}
-            <li class="border rounded-2 p-3 mb-2">
-              <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
-                <div>
-                  <div class="fw-semibold text-body">{{ rule.name|default:_("Untitled rule") }}</div>
-                  <div class="small text-body-secondary">{{ rule.human }}</div>
-                  {% if not rule.is_enabled %}
-                    <div class="small text-body-secondary">{% trans "Paused — this rule is not running." %}</div>
-                  {% endif %}
-                </div>
-                <form method="post" action="{{ sync_schedule_save_url }}">
-                  {% csrf_token %}
-                  <input type="hidden" name="rule_id" value="{{ rule.pk }}">
-                  <input type="hidden" name="action" value="delete">
-                  <button type="submit" class="btn btn-sm btn-outline-danger" data-rmc-confirm="{% trans 'Remove this sync schedule rule?' %}">{% trans "Remove" %}</button>
-                </form>
+            <li class="rmc-sc-rule" data-enabled="{% if rule.is_enabled %}1{% else %}0{% endif %}" data-rule-id="{{ rule.pk }}">
+              <div class="rmc-sc-rule__top">
+                <span class="rmc-sc-swatch" data-rule="{{ forloop.counter }}"
+                      data-paused="{% if rule.is_enabled %}0{% else %}1{% endif %}" aria-hidden="true"></span>
+                <span class="rmc-sc-rule__name">{{ rule.name|default:_("Untitled rule") }}</span>
+                <span class="rmc-sc-rule__actions">
+                  <form method="post" action="{{ sync_schedule_save_url }}">
+                    {% csrf_token %}
+                    <input type="hidden" name="rule_id" value="{{ rule.pk }}">
+                    <input type="hidden" name="action" value="delete">
+                    <button type="submit" class="btn btn-sm btn-outline-danger"
+                            data-rmc-confirm="{% trans 'Remove this sync schedule rule?' %}">{% trans "Remove" %}</button>
+                  </form>
+                </span>
               </div>
-              <details class="mt-2">
-                <summary class="small">{% trans "Edit this rule" %}</summary>
-                <form method="post" action="{{ sync_schedule_save_url }}" class="mt-2">
+              <p class="rmc-sc-rule__human">
+                {{ rule.human }}
+                {% if not rule.is_enabled %} · {% trans "Paused — this rule is not running." %}{% endif %}
+              </p>
+              {% comment %}
+              The clock-change note lives on the rule it affects, so it is absent for
+              the other fifty-one weeks of the year.
+              {% endcomment %}
+              {% if rule.dst_note %}
+                <p class="rmc-sc-rule__dst">{{ rule.dst_note }}</p>
+              {% endif %}
+              <details>
+                <summary class="rmc-sc-band__note">{% trans "Edit this rule" %}</summary>
+                <form method="post" action="{{ sync_schedule_save_url }}" class="mt-2"
+                      data-rmc-sc-rule-form="1">
                   {% csrf_token %}
                   <input type="hidden" name="rule_id" value="{{ rule.pk }}">
-                  {{ rule.form.as_p }}
-                  <button type="submit" class="btn btn-sm btn-primary">{% trans "Save changes" %}</button>
+                  {% include "siteconfig/partials/_sync_rule_sentence.html" with form=rule.form %}
+                  <button type="submit" class="btn btn-sm btn-primary mt-2">{% trans "Save changes" %}</button>
                 </form>
               </details>
             </li>
           {% endfor %}
         </ul>
       {% else %}
-        <p class="small text-body-secondary">
-          {% trans "No schedule set. This box syncs automatically — continuously, and faster when there are changes. Add a rule below to sync at particular times instead." %}
+        <p class="rmc-sc-band__note">
+          {% trans "No rules. This box syncs on the adaptive cadence — continuously, and faster when there are changes. Add a rule to sync at particular times instead." %}
         </p>
       {% endif %}
 
-      <details>
-        <summary class="small">{% trans "Add a schedule rule" %}</summary>
-        <form method="post" action="{{ sync_schedule_save_url }}" class="mt-2">
-          {% csrf_token %}
-          {{ sync_schedule_new_form.as_p }}
-          <button type="submit" class="btn btn-sm btn-primary">{% trans "Add rule" %}</button>
-        </form>
-      </details>
+      {% if sync_schedule_save_url and sync_schedule_new_form %}
+        <details class="mt-2">
+          <summary class="rmc-sc-band__note">{% trans "Add a rule" %}</summary>
+          <form method="post" action="{{ sync_schedule_save_url }}" class="mt-2"
+                data-rmc-sc-rule-form="1">
+            {% csrf_token %}
+            {% include "siteconfig/partials/_sync_rule_sentence.html" with form=sync_schedule_new_form %}
+            <button type="submit" class="btn btn-sm btn-primary mt-2">{% trans "Add rule" %}</button>
+          </form>
+        </details>
+      {% endif %}
 
-      {# Said plainly rather than implied. The cloud cannot open a connection to a box, so #}
-      {# a saved change lands on the next cycle — and an operator watching for something   #}
-      {# instant is an operator about to conclude that sync is broken.                     #}
-      <p class="small text-body-secondary mb-0 mt-3">
-        {% trans "Schedule changes reach the box on its next sync — the cloud cannot contact a box directly." %}
-      </p>
-    {% endif %}
+      <p class="rmc-sc-aside__label mt-4">{% trans "Next five syncs" %}</p>
+      <ul class="rmc-sc-next" data-rmc-sc-next-list="1">
+        {% for run in sync_schedule_summary.coverage.next_runs %}
+          <li class="rmc-sc-next__item">
+            <span>{{ run.display }}</span>
+            <span class="rmc-sc-next__rule">{{ run.label|default:"—" }}</span>
+          </li>
+        {% empty %}
+          <li class="rmc-sc-next__item">
+            <span>{% trans "Nothing scheduled" %}</span>
+            <span class="rmc-sc-next__rule">{% trans "check-in floor only" %}</span>
+          </li>
+        {% endfor %}
+      </ul>
 
-    {# The policy AROUND the rules. Both of these were decisions the product used to make #}
-    {# silently: the check-in ceiling lived in an environment variable on a host the      #}
-    {# school cannot see, and catch-up was documented but not implemented.                #}
-    {% if sync_policy_form and sync_policy_save_url %}
-      <hr class="my-3">
-      <h3 class="h6 mb-1">{% trans "Between scheduled syncs" %}</h3>
-      <p class="small text-body-secondary">
-        {% trans "The box always checks in from time to time, even outside your scheduled times. That is how instructions from support reach it — the cloud cannot contact a box directly." %}
-      </p>
-      <form method="post" action="{{ sync_policy_save_url }}" class="row g-3 align-items-start">
-        {% csrf_token %}
-        <div class="col-sm-7">
-          <label class="form-label small fw-semibold" for="{{ sync_policy_form.idle_ceiling_minutes.id_for_label }}">{{ sync_policy_form.idle_ceiling_minutes.label }}</label>
-          {{ sync_policy_form.idle_ceiling_minutes }}
-          <div class="form-text">{{ sync_policy_form.idle_ceiling_minutes.help_text }}</div>
-        </div>
-        <div class="col-sm-5">
-          <div class="form-check mt-sm-4">
-            {{ sync_policy_form.catch_up_missed }}
-            <label class="form-check-label small" for="{{ sync_policy_form.catch_up_missed.id_for_label }}">{{ sync_policy_form.catch_up_missed.label }}</label>
+      <p class="rmc-sc-aside__label mt-4">{% trans "Coverage" %}</p>
+      <div class="rmc-sc-coverage" data-rmc-sc-coverage="1">
+        <div>{% blocktrans with n=sync_schedule_summary.coverage.week.total %}{{ n }} syncs a week{% endblocktrans %}</div>
+        {% if sync_schedule_summary.coverage.gap.unbounded %}
+          <div>{% trans "No rule fires — the adaptive cadence is in charge." %}</div>
+        {% else %}
+          <div>{% blocktrans with n=sync_schedule_summary.coverage.gap.minutes %}longest gap {{ n }} min{% endblocktrans %}</div>
+        {% endif %}
+        {% if sync_schedule_summary.coverage.gap_flagged %}
+          <div class="rmc-sc-coverage__flag">
+            {% blocktrans with n=sync_schedule_summary.coverage.gap_threshold_minutes %}That is longer than {{ n }} minutes — past this schedule's own check-in floor by enough to be worth a look.{% endblocktrans %}
           </div>
-          <div class="form-text">{{ sync_policy_form.catch_up_missed.help_text }}</div>
-        </div>
-        <div class="col-12">
-          <button type="submit" class="btn btn-sm btn-primary">{% trans "Save sync settings" %}</button>
-        </div>
-      </form>
-    {% endif %}
+        {% elif not sync_schedule_summary.coverage.gap.unbounded %}
+          <div class="rmc-sc-coverage__clear">{% trans "No gap longer than this schedule's threshold." %}</div>
+        {% endif %}
+      </div>
+    </aside>
   </div>
-</div>
+  {% else %}
+    {% comment %}
+    The strip could not be built. The rules and both forms still have to work — a
+    display aid must never take the editor down with it.
+    {% endcomment %}
+    <p class="rmc-sc-band__note">
+      {% if sync_schedule_summary.description %}{{ sync_schedule_summary.description }}
+      {% else %}{% trans "No schedule set. This box syncs on the adaptive cadence." %}{% endif %}
+    </p>
+  {% endif %}
+
+  {% if sync_schedule_summary.missed_window %}
+    <p class="rmc-sc-band__note text-warning-emphasis" data-rmc-schedule-missed role="status">
+      {% trans "A scheduled sync was missed — the box was not reachable. It will catch up once on its next connection." %}
+    </p>
+  {% endif %}
+
+  {% comment %}
+  Said plainly rather than implied: the cloud cannot open a connection to a box, so a
+  saved change lands on the next cycle, and an operator watching for something instant
+  is an operator about to conclude that sync is broken.
+  {% endcomment %}
+  <p class="rmc-sc-band__note mt-3">
+    {% trans "Schedule changes reach the box on its next sync — the cloud cannot contact a box directly." %}
+  </p>
+</section>

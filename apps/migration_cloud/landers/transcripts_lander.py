@@ -33,15 +33,17 @@ from __future__ import annotations
 from typing import Any, Iterator
 
 from ._helpers import (
-    unresolved_student_reason,
-    student_name_from_row,
     coerce_date,
     filter_to_model_fields,
     model_field_names,
     record_id_mapping,
+    record_row_error,
     student_lookup_field,
+    student_name_from_row,
+    unresolved_student_reason,
 )
 from .base import Lander, LanderContext, LanderError, LanderResult, register
+from .reason_codes import INVALID_REF, LANDER_ERROR, MISSING_REQUIRED
 
 
 class TranscriptsLander(Lander):
@@ -71,9 +73,11 @@ class TranscriptsLander(Lander):
             term = (row.get("term") or "").strip()
             subject_code = (row.get("subject_code") or "").strip()
             if not (external_id or student_name_from_row(row)):
-                result.quarantined += 1
-                result.errors.append(
-                    f"transcripts: missing student_external_id in {row!r}"
+                record_row_error(
+                    result,
+                    row,
+                    f"transcripts: missing student_external_id in {row!r}",
+                    reason_code=MISSING_REQUIRED, field="student_external_id",
                 )
                 continue
             # School-scoped via the shared helper: on single-schema
@@ -91,8 +95,9 @@ class TranscriptsLander(Lander):
                 row=row,
             )
             if student is None:
-                result.quarantined += 1
-                result.errors.append(
+                record_row_error(
+                    result,
+                    row,
                     unresolved_student_reason(
                         domain="transcripts",
                         ctx=ctx,
@@ -100,7 +105,8 @@ class TranscriptsLander(Lander):
                         row=row,
                         external_id=external_id,
                         lookup_field=student_lookup,
-                    )
+                    ),
+                    reason_code=INVALID_REF,
                 )
                 continue
 
@@ -131,10 +137,12 @@ class TranscriptsLander(Lander):
                         ctx=ctx,
                     )
                 except Exception as exc:  # noqa: BLE001 — per-row quarantine
-                    result.quarantined += 1
-                    result.errors.append(
+                    record_row_error(
+                        result,
+                        row,
                         f"transcripts: passport resolution failed for "
-                        f"{external_id}: {type(exc).__name__}: {exc}"
+                        f"{external_id}: {type(exc).__name__}: {exc}",
+                        reason_code=LANDER_ERROR,
                     )
                     continue
             # Pack the academic-year/term/subject/grade/credits into the
@@ -151,9 +159,11 @@ class TranscriptsLander(Lander):
                 "student" if "student" in item_fields else None
             )
             if student_link_field is None:
-                result.quarantined += 1
-                result.errors.append(
-                    "transcripts: TranscriptVaultItem has no student link field"
+                record_row_error(
+                    result,
+                    row,
+                    "transcripts: TranscriptVaultItem has no student link field",
+                    reason_code=LANDER_ERROR,
                 )
                 continue
 
@@ -195,10 +205,12 @@ class TranscriptsLander(Lander):
                     canonical_obj=obj, domain="transcripts",
                 )
             except Exception as exc:  # noqa: BLE001 — per-row quarantine
-                result.quarantined += 1
-                result.errors.append(
+                record_row_error(
+                    result,
+                    row,
                     f"transcripts upsert failed for {external_id} {academic_year}/{term}: "
-                    f"{type(exc).__name__}: {exc}"
+                    f"{type(exc).__name__}: {exc}",
+                    reason_code=LANDER_ERROR,
                 )
         return result
 

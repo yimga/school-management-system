@@ -1,0 +1,104 @@
+{% load i18n %}
+{% comment %}
+BAND 1 — the verdict. One line that answers the question people open this page to ask.
+
+It replaces five renderings of three facts: the phase badge, the free-text headline, the
+"Next sync / Last sync" pair in the schedule card, the "Last sync / Next attempt" tiles in
+the live card, and the "syncing automatically every N seconds" note.
+
+Two of those five could legitimately DISAGREE. The schedule card showed the next
+occurrence of a RULE; the live card showed the next moment CADENCE was due. Both correct,
+different questions, and nothing on screen said so — an operator seeing "18:00" beside
+"in 26 min" had to decide which one was lying. There is one next-attempt line here, and it
+names which of the two it is.
+
+Rendered server-side and refreshed by the poll, so the answer is there with JavaScript off.
+{% endcomment %}
+
+<section class="rmc-sc-band" data-rmc-section-anchor="1" data-rmc-edge-sync-panel="1"
+         data-rmc-sc-verdict="1" id="edge-sync"
+         aria-label="{% trans 'Sync status' %}">
+  <div class="rmc-sc-verdict">
+    <div class="rmc-sc-verdict__lead">
+      <span class="rmc-sc-verdict__dot" data-rmc-sc-dot="1"
+            data-phase="{{ sync_live.phase|default:'idle' }}" aria-hidden="true"></span>
+      <div class="rmc-sc-verdict__text">
+        <h2 class="rmc-sc-verdict__title" data-rmc-sc-title="1">
+          {% if sync_live.phase == 'ok' %}{% trans "Syncing normally" %}
+          {% elif sync_live.phase == 'failed' %}{% trans "Last sync failed" %}
+          {% elif sync_live.phase == 'running' %}{% trans "Syncing now" %}
+          {% elif sync_live.phase == 'queued' %}{% trans "Sync queued" %}
+          {% elif not edge_sync_enabled %}{% trans "Waiting for the box to call in" %}
+          {% else %}{% trans "No sync has run yet" %}{% endif %}
+        </h2>
+        {# Three facts on one line, each rendered ONCE on this page. #}
+        <p class="rmc-sc-verdict__meta" data-rmc-sc-meta="1">
+          <span data-rmc-sc-last="1">
+            {% if sync_schedule_summary.last_run_at %}
+              {% trans "Last synced" %} <strong>{{ sync_schedule_summary.last_run_display }}</strong>
+            {% else %}
+              {% trans "Never synced" %}
+            {% endif %}
+          </span>
+          <span data-rmc-sc-next="1">
+            {% if sync_schedule_summary.next_run_at %}
+              · {% trans "next scheduled" %} <strong>{{ sync_schedule_summary.next_run_display }}</strong>
+            {% endif %}
+          </span>
+          <span data-rmc-sc-cycles="1"></span>
+        </p>
+      </div>
+    </div>
+
+    <div class="rmc-sc-verdict__actions">
+      {% if edge_sync_enabled %}
+        {# The box can call out from here. On the cloud it cannot — see the else branch. #}
+        <form method="post" action="{% url 'siteconfig:sync_center_sync_now' %}"
+              class="rmc-sc-verdict__actions" data-rmc-wfp-hold="1" data-rmc-wfp-stay="1">
+          {% csrf_token %}
+          <button type="submit" name="mode" value="live" class="btn btn-sm btn-primary">{% trans "Sync now" %}</button>
+          <button type="submit" name="mode" value="dry" class="btn btn-sm btn-outline-secondary">{% trans "Dry-run sync" %}</button>
+        </form>
+        <button type="button" class="btn btn-sm btn-outline-secondary" data-rmc-sync-probe-btn>{% trans "Test connection" %}</button>
+      {% else %}
+        <form method="post" action="{% url 'siteconfig:sync_center_request_resync' %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-sm btn-primary" data-rmc-sync-queue-btn
+                  {% if pending_resync %}disabled{% endif %}>{% trans "Queue full resync" %}</button>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+
+  {% comment %}
+  The probe result and the resync queue note: both are ANSWERS to a button, so they
+  render where the button is and stay absent until there is something to say.
+  {% endcomment %}
+  <p class="rmc-sc-verdict__meta d-none" data-rmc-sync-probe-result role="status"></p>
+
+  {% if not edge_sync_enabled %}
+    <p class="rmc-sc-verdict__meta" data-rmc-sync-queue-note>
+      {% if pending_resync %}
+        {% blocktrans with when=pending_resync.requested_at|date:"Y-m-d H:i" %}Full resync queued {{ when }} — waiting for the box to connect.{% endblocktrans %}
+      {% elif last_served_resync %}
+        {% blocktrans with when=last_served_resync.served_at|date:"Y-m-d H:i" %}Last full resync collected by the box {{ when }}.{% endblocktrans %}
+      {% else %}
+        {% trans "This is the cloud side. The box calls out on its own schedule — the cloud cannot reach into its network, so a resync is queued here and collected on its next connection." %}
+      {% endif %}
+    </p>
+  {% endif %}
+
+  {% comment %}
+  THE FAILURE STATE CARRIES ITS OWN GUIDANCE. This paragraph used to render on every
+  visit, healthy or not: 120 words about 502s above a page reporting twelve clean
+  cycles. It is now inside the state it explains.
+  {% endcomment %}
+  <div class="rmc-sc-verdict__reason{% if sync_live.phase != 'failed' %} d-none{% endif %}"
+       data-rmc-sc-reason="1" role="status">
+    <span class="rmc-sc-verdict__reason-head" data-rmc-sc-reason-head="1">{% trans "Why it failed" %}</span>
+    <span data-rmc-sc-reason-text="1">{{ sync_live.error|default:"" }}</span>
+    <p class="mb-0 mt-2">
+      {% trans "A 502 or 504 means the cloud's proxy answered but the application behind it did not — most often schema drift on this tenant, where a synced table is missing a column. On the cloud run “python manage.py check_edge_sync_deploy_readiness”; on the box run “python manage.py verify_edge_link --http” to tell that apart from an unreachable host, a refused credential or a missing endpoint." %}
+    </p>
+  </div>
+</section>

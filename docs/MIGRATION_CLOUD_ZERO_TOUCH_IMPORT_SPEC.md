@@ -24,7 +24,7 @@ The review page is read-only. So the honest answer to "who reviews these — an
 automated pass or an admin?" is **neither**. Held rows sit forever, and the only
 way to retry one is to re-run the whole import.
 
-**2. Most landers throw away the row that failed.**
+**2. Most landers throw away the row that failed.** — *CLOSED 2026-08-21, see step 1.*
 `_quarantine_errors` can only attach `source_row` when a lander called
 `record_row_error`. **6 of 35 lander files do.** For the other 29, a held row is
 an English error string and a `row_index` that is *the position in the error
@@ -38,26 +38,75 @@ counted every one. One artifact in bundle 84 held 326 rows — 126 of them left 
 record at all. Now reported loudly (`QUARANTINE_RECORD_CAP`), but reporting a
 gap is not closing it.
 
-**4. Classification is substring-matching on English.**
+**4. Classification is substring-matching on English.** — *CLOSED 2026-08-21, see step 2.*
 `_classify_quarantine_issue` decides whether a row needs a human by searching the
 error text for `"duplicate"`, `"not found"`, `"missing"`. A lander that phrases an
 error differently lands in `lander_error` and is treated as needing a person. The
 single most consequential routing decision in the pipeline is made by
 `if "invalid" in e`.
 
+**5. A held row and a durable record were never the same number.** *(found while
+closing 1; CLOSED 2026-08-21)* — 12 lander sites appended to `result.errors`
+without incrementing `result.quarantined`. The board counts the second; the
+quarantine writer iterates the first. So partial-write diagnostics ("custom
+attributes sweep failed for staff 12") became "held for review" rows a school was
+asked to act on, and the two counts on the same page disagreed by construction.
+
 ## Required end state
 
 Ordered. Each is independently shippable and independently valuable.
 
-**1 — Every lander keeps the row it rejected.**
+**1 — Every lander keeps the row it rejected. ✅ DONE 2026-08-21**
 Extend the lander contract so a per-row failure carries `(source_row, reason_code,
 field)`. Enforce with a gate that fails when a lander appends a bare string. This
 is the prerequisite for everything below; without it, steps 3 and 4 cannot exist.
 
-**2 — Classification becomes structured.**
+> Shipped. `_helpers.record_row_error(result, row, msg, *, reason_code, field)` is
+> the whole contract, and **all 106 per-row failure sites across 33 lander files
+> now use it** (was 6 files). `scripts/scan_lander_row_error_contract.py` is a
+> zero-baseline gate on three shapes: a bare `result.errors.append`, a bare
+> `result.quarantined += 1`, and a `record_row_error` with no `reason_code`.
+>
+> Two defects surfaced while wiring it:
+>
+> * **Rows were paired to errors by MESSAGE.** `_quarantine_errors` built a
+>   `{error_string: row}` dict, so two rows failing with the same message
+>   collapsed onto one entry and every row but the last lost its snapshot. Most
+>   messages do not interpolate the row, so most multi-row failures hit it. Now
+>   paired by index, with a guarded fallback when the lists do not correspond.
+> * **12 sites appended to `errors` without incrementing `quarantined`.** Each
+>   minted a quarantine record the board's held count never included, so the
+>   banner and the table disagreed and a school was shown a partial-write warning
+>   as though a row had been rejected. Those are now `record_row_note` — still
+>   durable, still logged, no longer counted as rows anyone must review.
+
+**2 — Classification becomes structured. ✅ DONE 2026-08-21**
 Landers emit a `reason_code` enum. `_classify_quarantine_issue` becomes a mapping,
 and substring-matching survives only as a fallback for legacy landers, logged as
 such so the backlog is visible.
+
+> Shipped. `landers/reason_codes.py` holds the vocabulary — deliberately the same
+> five classes the review surface already speaks, so no tenant is shown a label
+> nobody wrote. `classify_message` survives as the fallback, has ONE
+> implementation now (the orchestrator delegates to it rather than keeping a
+> second copy), and every record stores `reason_source: declared | fallback` so a
+> remediation pass can refuse to act automatically on a guess.
+>
+> **What it changed, measured:** the matcher sent 60 of 106 sites to
+> `lander_error` — the bucket meaning "a person must look at this". Declaring the
+> codes moved **11 sites out of it** (60 → 49):
+>
+> | Class | matcher | declared |
+> |---|---|---|
+> | `source_deletion` | 2 | 2 |
+> | `duplicate` | 0 | 0 |
+> | `invalid_ref` | 13 | **22** |
+> | `missing_required` | 31 | **33** |
+> | `lander_error` | 60 | **49** |
+>
+> The clearest case: `no team named X (catalog not landed yet)` matched neither
+> `"not found"` nor `"no such"`, so a wave-ordering reference failure — the one
+> class step 3 can replay without asking anybody — read as a crash.
 
 **3 — A remediation pass runs before a human is ever shown anything.**
 Machine-resolvable classes resolve themselves:

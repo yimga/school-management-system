@@ -1,0 +1,83 @@
+{% load i18n %}
+{% comment %}
+BAND 6 — where the permanent explanations went.
+
+The old page carried twenty-two always-on paragraphs. Every one of them was written for a
+good reason: somebody was confused, and the fix was to explain. What was never done is
+make the explanation CONDITIONAL, so the page ended up teaching a fluent operator
+everything a first-time operator needed, on every single visit.
+
+Nothing here was deleted. The connectivity table, the 502 guidance, the two manage.py
+commands, the "the cloud cannot reach a box" primer and the admin link all still exist —
+closed until asked for. The connection block opens ITSELF when the last cycle failed,
+because then it is not background reading, it is the answer.
+{% endcomment %}
+
+<div class="rmc-sc-disclosures">
+  <details class="rmc-sc-disclosure"{% if sync_live.phase == 'failed' %} open{% endif %}>
+    <summary>{% trans "Connection &amp; diagnostics" %}</summary>
+    <div class="rmc-sc-disclosure__body">
+      {% if edge_connectivity %}
+        <dl class="rmc-sc-facts">
+          <dt>{% trans "Profile" %}</dt>
+          <dd>{{ edge_connectivity.deployment_profile|default:"—" }}</dd>
+          <dt>{% trans "Operator base" %}</dt>
+          <dd>
+            {% if edge_connectivity.operator_base_configured %}{{ edge_connectivity.operator_base }}
+            {% else %}<span class="rmc-sc-coverage__flag">{% trans "Not configured — set RMC_EDGE_OPERATOR_BASE to your tenant cloud host." %}</span>{% endif %}
+          </dd>
+          <dt>{% trans "Credential" %}</dt>
+          <dd data-tone="{% if edge_connectivity.credential_configured %}ok{% else %}bad{% endif %}">
+            {% if edge_connectivity.credential_configured %}{% trans "Configured" %}
+            {% else %}{% trans "Missing — mint RMC_EDGE_CREDENTIAL on the cloud." %}{% endif %}
+          </dd>
+          {% if edge_connectivity.school_slug_pin %}
+            <dt>{% trans "School pin" %}</dt>
+            <dd>{{ edge_connectivity.school_slug_pin }}</dd>
+          {% endif %}
+        </dl>
+      {% endif %}
+      <p>
+        {% trans "To tell an unreachable host apart from a refused credential or a missing endpoint: on the cloud run “python manage.py check_edge_sync_deploy_readiness”, and on the box run “python manage.py verify_edge_link --http”." %}
+      </p>
+      {% if user.is_superuser and admin_sync_conflict_url %}
+        <p><a href="{{ admin_sync_conflict_url }}">{% trans "Advanced/Admin: sync conflict rows" %}</a></p>
+      {% endif %}
+    </div>
+  </details>
+
+  <details class="rmc-sc-disclosure">
+    <summary>{% trans "How sync works here" %}</summary>
+    <div class="rmc-sc-disclosure__body">
+      <p>
+        {% trans "The box calls out; the cloud never calls in. A box sits behind the school's network, so every transfer starts from the box — which is why a change you save here reaches it on its next sync rather than instantly." %}
+      </p>
+      <p>
+        {% trans "Money stays cloud-authoritative. Financial records are settled on the cloud and travel downward only, so an offline edit to an invoice is never the version that wins." %}
+      </p>
+      {% if edge_sync_enabled %}
+        {% comment %}
+        Only where those controls exist. On the cloud the box calls out and neither
+        button is on the page, so explaining them would describe a screen the reader
+        is not looking at.
+        {% endcomment %}
+        <p>
+          {% trans "A dry run checks that the cloud is reachable without applying anything; a full run does the push-then-pull cycle." %}
+        </p>
+      {% endif %}
+      {% if sync_schedule_summary.dst and sync_schedule_summary.dst.observes %}
+        <p>{{ sync_schedule_summary.dst.note }}</p>
+      {% endif %}
+    </div>
+  </details>
+
+  {% if scheduled_hub_url or console_url %}
+  <details class="rmc-sc-disclosure">
+    <summary>{% trans "Related settings" %}</summary>
+    <div class="rmc-sc-disclosure__body">
+      {% if scheduled_hub_url %}<p><a href="{{ scheduled_hub_url }}">{% trans "Scheduled report delivery" %}</a></p>{% endif %}
+      {% if console_url %}<p><a href="{{ console_url }}">{% trans "Configuration control center" %}</a></p>{% endif %}
+    </div>
+  </details>
+  {% endif %}
+</div>

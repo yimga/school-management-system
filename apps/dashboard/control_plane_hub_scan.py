@@ -60,6 +60,16 @@ EXEMPT_CONTROL_PLANE_TEMPLATES: frozenset[str] = frozenset(
         # v8 configurable cockpit shell admin/config form — a CRUD/shell config
         # page, not a Phase 7 dashboard role-home surface, so it stays exempt.
         "siteconfig/super/cockpit_shell_configure.html",
+        # Operator RUNBOOKS and a credential display -- procedures and tools, not
+        # decision dashboards. Registering them in Phase 7 would demand a
+        # decision-engine surface and a Phase 8 declaration on a district-selector
+        # form and on a page whose whole content is one setup link. Checked their
+        # rendered headings, not just their filenames: "Create a runbook",
+        # "Box gate / Preview" steps, and "This is a credential." respectively;
+        # zero dashboard markers between the three.
+        "migration_cloud/operator/cutover_runbook.html",
+        "schools/super_edge_onboarding_runbook.html",
+        "schools/super_owner_setup_link.html",
         "schools/super_advancement_hub.html",
         "schools/super_advancement_phase2_placeholder.html",
         "schools/super_ai_gateway_console.html",

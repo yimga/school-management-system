@@ -9,6 +9,7 @@ from django.shortcuts import redirect, render
 from django.urls import resolve, reverse
 from django.urls.exceptions import Resolver404
 from django.utils import timezone
+from django.utils.http import urlencode
 
 from apps.schools.host_routing import public_host_kind
 from apps.schools.tenant_url import build_manager_absolute_url
@@ -525,7 +526,20 @@ class TenantHostControlPlaneIsolationMiddleware:
 
         # No live impersonation (missing, wrong school, or past its dedicated TTL, H7)
         # — a SUPERADMIN-role operator must (re-)enter through the signed flow.
-        return redirect(build_manager_absolute_url(request, "/super/"))
+        #
+        # Carry the reason across the hop. The manager host runs on its OWN session
+        # cookie (MANAGER_SESSION_COOKIE_NAME), so a django.contrib.messages entry
+        # set here does not survive the redirect: the operator simply arrived at
+        # /super/ with no explanation at all, which reads as "you are not allowed"
+        # when the truth is "not from here, and not without a record". Only the
+        # school pk travels — no return path — so this adds no redirect surface,
+        # and the destination resolves the school itself rather than trusting a
+        # name supplied in the query string.
+        target = "/super/"
+        school_pk = getattr(school, "pk", None)
+        if school_pk is not None:
+            target = "%s?%s" % (target, urlencode({"elevate": str(school_pk)}))
+        return redirect(build_manager_absolute_url(request, target))
 
     _BREAK_GLASS_AUDIT_THROTTLE_SECONDS = 3600  # magic-number-allow: break-glass-audit-dedupe-window-one-hour
 

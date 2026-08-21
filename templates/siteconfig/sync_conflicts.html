@@ -1,0 +1,197 @@
+{% extends "backend_base.html" %}
+{% load i18n static %}
+{% comment %}
+THE CONFLICT QUEUE, given its own page 2026-08-21.
+
+WHY IT MOVED OFF THE SYNC CENTER. Look at what it needs: six columns, a field-by-field
+comparison of two versions of every record, and four resolution forms per row. Folded into
+a status page it was simultaneously the LONGEST section there and the most CRAMPED one —
+the diff that decides which version of a grade survives was rendering inside a collapsed
+row of a table inside a card, and the Sync Center's own complaint was length.
+
+Given a page, the comparison gets the width it needs and the Sync Center gets to be short.
+It is linked from the work queue, which is where somebody looking for it already is.
+
+Everything else is unchanged: the same filters, the same bulk toolbar, the same four
+resolutions, the same audit note, the same refusal to offer "keep local" on a record the
+cloud governs.
+{% endcomment %}
+{% block title %}{% trans "Sync conflicts" %} – {{ school.name }}{% endblock %}
+{% block backend_title %}{% trans "Sync conflicts" %}{% endblock %}
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/rmc-sync-center.css' %}">
+{% endblock %}
+
+{% block backend_page %}
+<div class="container-fluid py-3" data-shell-surface="sync-conflicts"
+     data-rmc-sync-conflicts="1" data-bulk-url="{{ bulk_url }}"
+     data-rmc-bulk-error="{% trans 'Could not resolve conflicts.' %}">
+  {% include "studio_os/components/page_header.html" with title=_("Sync conflicts") subtitle=_("Two versions of the same record disagree. Keep one, or let school policy decide.") action_url=action_url|default:None action_text=action_text|default:None %}
+
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <p class="small text-danger d-none" data-rmc-sync-bulk-msg role="status"></p>
+      {% if not sync_available %}
+        <p class="text-warning">{% trans "Sync conflict model not available." %}</p>
+      {% else %}
+        <div class="d-flex flex-wrap gap-2 mb-3" role="navigation" aria-label="{% trans 'Conflict filters' %}">
+          <a class="btn btn-sm {% if conflict_status_filter == 'pending' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="?status=pending">{% trans "Pending" %}</a>
+          <a class="btn btn-sm {% if conflict_status_filter == 'all' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="?status=all">{% trans "All" %}</a>
+          <a class="btn btn-sm {% if conflict_status_filter == 'resolved' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="?status=resolved">{% trans "Resolved" %}</a>
+        </div>
+        {% if conflict_groups %}
+          <div class="d-flex flex-wrap gap-2 mb-3">
+            {% for group in conflict_groups %}
+              <form method="post" action="{% url 'siteconfig:sync_center_bulk_resolve' %}" class="d-inline">
+                {% csrf_token %}
+                <input type="hidden" name="entity_type" value="{{ group.entity_type }}">
+                <input type="hidden" name="resolution" value="policy">
+                <button type="submit" class="btn btn-sm btn-outline-secondary">
+                  {% blocktrans with entity=group.entity_type n=group.pending_count %}Resolve {{ n }} {{ entity }} by policy{% endblocktrans %}
+                </button>
+              </form>
+            {% endfor %}
+          </div>
+        {% endif %}
+        {% if not conflicts %}
+          {% include "components/dashboard_empty_state.html" with icon="bi-check2-circle" title=_("No pending conflicts") message=_("When offline edits disagree with the server, they appear here so you can keep a version or apply school policy in bulk.") purpose=_("Keep data trustworthy") %}
+        {% else %}
+          {% include "components/_bulk_actions_toolbar.html" with bulk_table_id="sync-conflicts-table" bulk_actions=bulk_actions %}
+          <div class="table-responsive">
+            <table id="sync-conflicts-table" class="table table-sm table-family align-middle rmc-data-table" data-rmc-bulk-table data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
+              <caption class="visually-hidden">{% trans "Sync conflicts" %}</caption>
+              <thead>
+                <tr>
+                  <th scope="col"><input type="checkbox" data-rmc-bulk-select-all aria-label="{% trans 'Select all conflicts on this page' %}"></th>
+                  <th scope="col">{% trans "Entity" %}</th>
+                  <th scope="col">{% trans "ID" %}</th>
+                  <th scope="col">{% trans "Status" %}</th>
+                  <th scope="col">{% trans "Created" %}</th>
+                  <th scope="col">{% trans "Actions" %}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for c in conflicts %}
+                  <tr>
+                    <td>
+                      {% if c.status == "PENDING" %}
+                        <input type="checkbox" data-rmc-bulk-checkbox value="{{ c.id }}" aria-label="{% trans 'Select conflict' %}">
+                      {% endif %}
+                    </td>
+                    <td>{{ c.entity_type }}</td>
+                    <td>{{ c.entity_id }}</td>
+                    <td>{{ c.get_status_display }}</td>
+                    <td>{{ c.created_at|date:"Y-m-d H:i" }}</td>
+                    <td>
+                      <div class="rmc-sc-conflict-actions">
+                        {% if c.client_data or c.server_data %}
+                          <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="collapse" data-bs-target="#sync-payload-{{ c.id }}" aria-expanded="false">{% trans "Side-by-side" %}</button>
+                        {% endif %}
+                        {% if c.status == "PENDING" %}
+                          {% comment %}
+                          Why, captured with the decision: resolution_note is the audit
+                          trail beside resolved_by/resolved_at. A money or grade record
+                          settled for a reason nobody can recover later is not settled.
+                          {% endcomment %}
+                          <label class="visually-hidden" for="sync-note-{{ c.id }}">{% trans "Reason" %}</label>
+                          <input type="text" form="sync-keep-server-{{ c.id }}" id="sync-note-{{ c.id }}"
+                                 class="form-control form-control-sm rmc-sc-conflict-note"
+                                 name="note" placeholder="{% trans 'Reason (recorded with your name)' %}">
+                          <form method="post" id="sync-keep-server-{{ c.id }}" action="{% url 'siteconfig:sync_center_resolve' c.id %}" class="d-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="resolution" value="server">
+                            <button type="submit" class="btn btn-sm btn-outline-primary">{% trans "Keep cloud version" %}</button>
+                          </form>
+                          {% if c.may_keep_client %}
+                            <form method="post" action="{% url 'siteconfig:sync_center_resolve' c.id %}" class="d-inline">
+                              {% csrf_token %}
+                              <input type="hidden" name="resolution" value="client">
+                              <button type="submit" class="btn btn-sm btn-outline-secondary">{% trans "Keep local (offline) version" %}</button>
+                            </form>
+                          {% else %}
+                            {% comment %}
+                            Not offered rather than offered-and-refused: this record is
+                            cloud-authoritative, and a button that always fails is worse
+                            than no button. The reason is stated instead of hidden.
+                            {% endcomment %}
+                            <span class="badge bg-light text-dark border" title="{{ c.keep_client_refusal }}">{% trans "Cloud-authoritative" %}</span>
+                          {% endif %}
+                          <form method="post" action="{% url 'siteconfig:sync_center_resolve' c.id %}" class="d-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="resolution" value="policy">
+                            <button type="submit" class="btn btn-sm btn-outline-secondary">{% trans "Apply policy" %}</button>
+                          </form>
+                          <form method="post" action="{% url 'siteconfig:sync_center_resolve' c.id %}" class="d-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="resolution" value="discard">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">{% trans "Skip &amp; log" %}</button>
+                          </form>
+                          {% if not c.may_keep_client and c.keep_client_refusal %}
+                            <div class="small text-muted">{{ c.keep_client_refusal }}</div>
+                          {% endif %}
+                        {% else %}
+                          {% if c.resolution_note %}<span class="small text-muted">{{ c.resolution_note }}</span>{% else %}—{% endif %}
+                        {% endif %}
+                      </div>
+                    </td>
+                  </tr>
+                  {% if c.client_data or c.server_data %}
+                  <tr class="collapse" id="sync-payload-{{ c.id }}">
+                    <td colspan="6" class="p-0">
+                      {% comment %}
+                      Field by field, aligned, with WHICH side and WHEN. Two raw dict
+                      dumps side by side made the reviewer diff blobs by eye, and the
+                      one field that actually differs is what they most reliably miss.
+                      {% endcomment %}
+                      <div class="rmc-sc-conflict-diff">
+                        <div class="rmc-sc-conflict-diff__when">
+                          <span>{% trans "Cloud updated" %}: <strong>{{ c.server_updated_at|date:"Y-m-d H:i"|default:"—" }}</strong></span>
+                          <span>{% trans "Local/offline updated" %}: <strong>{{ c.client_updated_at|date:"Y-m-d H:i"|default:"—" }}</strong></span>
+                        </div>
+                        <div class="table-responsive">
+                          <table class="table table-sm mb-0">
+                            <thead>
+                              <tr>
+                                <th scope="col">{% trans "Field" %}</th>
+                                <th scope="col">{% trans "Cloud version" %}</th>
+                                <th scope="col">{% trans "Local (offline) version" %}</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {% for f in c.field_rows %}
+                                <tr{% if f.differs %} class="rmc-sc-diff-changed"{% endif %}>
+                                  <th scope="row" class="fw-normal">
+                                    {{ f.name }}
+                                    {% if f.down_only %}<span class="badge bg-secondary ms-1" title="{% trans 'Cloud-governed: this column never travels upward, and is not applied even if you keep the local version.' %}">{% trans "cloud-only" %}</span>{% endif %}
+                                  </th>
+                                  <td><code>{{ f.server|default_if_none:"—" }}</code></td>
+                                  <td><code>{{ f.client|default_if_none:"—" }}</code></td>
+                                </tr>
+                              {% empty %}
+                                <tr><td colspan="3" class="text-muted">{% trans "No comparable fields were recorded." %}</td></tr>
+                              {% endfor %}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                  {% endif %}
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% include "components/pagination.html" %}
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="{% static 'js/rmc-sync-conflicts.js' %}" defer></script>
+{% endblock %}

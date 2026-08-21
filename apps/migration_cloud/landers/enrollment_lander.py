@@ -22,8 +22,6 @@ from __future__ import annotations
 from typing import Any, Iterator
 
 from ._helpers import (
-    unresolved_student_reason,
-    student_name_from_row,
     coerce_date,
     conflict_resolution_for,
     detect_conflict,
@@ -31,11 +29,15 @@ from ._helpers import (
     map_enrollment_status,
     model_field_names,
     persist_dfv_extras,
+    record_row_error,
     resolve_student,
     row_savepoint,
     student_lookup_field,
+    student_name_from_row,
+    unresolved_student_reason,
 )
 from .base import Lander, LanderContext, LanderError, LanderResult, register
+from .reason_codes import INVALID_REF, LANDER_ERROR, MISSING_REQUIRED
 
 
 class EnrollmentLander(Lander):
@@ -61,8 +63,12 @@ class EnrollmentLander(Lander):
         for row in canonical_rows:
             external_id = (row.get("student_external_id") or "").strip()
             if not (external_id or student_name_from_row(row)):
-                result.quarantined += 1
-                result.errors.append(f"enrollment: missing student_external_id in {row!r}")
+                record_row_error(
+                    result,
+                    row,
+                    f"enrollment: missing student_external_id in {row!r}",
+                    reason_code=MISSING_REQUIRED, field="student_external_id",
+                )
                 continue
             student = resolve_student(
                 ctx=ctx,
@@ -72,8 +78,9 @@ class EnrollmentLander(Lander):
                 row=row,
             )
             if student is None:
-                result.quarantined += 1
-                result.errors.append(
+                record_row_error(
+                    result,
+                    row,
                     unresolved_student_reason(
                         domain="enrollment",
                         ctx=ctx,
@@ -81,7 +88,8 @@ class EnrollmentLander(Lander):
                         row=row,
                         external_id=external_id,
                         lookup_field=student_lookup,
-                    )
+                    ),
+                    reason_code=INVALID_REF,
                 )
                 continue
 
@@ -151,7 +159,14 @@ class EnrollmentLander(Lander):
                 else:
                     unresolved.append(f"specialty {specialty_ref!r}")
             if unresolved:
-                extras["enrollment_unresolved"] = ", ".join(unresolved)
+                record_row_error(
+                    result,
+                    row,
+                    f"enrollment: could not resolve {', '.join(unresolved)} at the "
+                    f"school for student {external_id!r}",
+                    reason_code=INVALID_REF,
+                )
+                continue
             if not updates and not extras:
                 continue
 
@@ -213,9 +228,11 @@ class EnrollmentLander(Lander):
                     ctx=ctx, legacy_id=external_id, canonical_obj=student, domain="enrollment",
                 )
             except Exception as exc:  # noqa: BLE001
-                result.quarantined += 1
-                result.errors.append(
-                    f"enrollment update failed for {external_id}: {type(exc).__name__}: {exc}"
+                record_row_error(
+                    result,
+                    row,
+                    f"enrollment update failed for {external_id}: {type(exc).__name__}: {exc}",
+                    reason_code=LANDER_ERROR,
                 )
         return result
 

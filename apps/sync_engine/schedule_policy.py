@@ -42,11 +42,41 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from django.utils import timezone as dj_timezone
 
 from apps.sync_engine import cadence
-from apps.sync_engine.schedule import is_within_window, next_run_at
+from apps.sync_engine.schedule import (
+    is_within_window,
+    longest_gap,
+    next_run_at,
+    next_runs,
+    week_plan,
+)
 
 logger = logging.getLogger(__name__)
 
 _DEFAULT_IDLE_CEILING_SECONDS = 3600  # magic-number-allow: idle check-in ceiling (1h)
+
+# WHEN IS A HOLE WORTH FLAGGING. The strip always REPORTS the longest gap, because that
+# is a fact; it only paints it as a problem past this multiple of the check-in ceiling.
+# Expressed as a multiple rather than a fixed number of hours on purpose: a school on a
+# 15-minute ceiling and a school on a 12-hour one do not mean the same thing by "a long
+# silence", and a fixed threshold would nag the first and never fire for the second.
+_DEFAULT_GAP_FLAG_MULTIPLE = 4  # magic-number-allow: gap alarm, in check-in ceilings
+
+
+def _gap_flag_multiple() -> int:
+    """Operator override for the gap alarm, or the documented default.
+
+    Same shape as the idle-ceiling pin above and for the same reason: somebody running a
+    deployment with a deliberately sparse schedule has to be able to stop the panel
+    crying wolf, without a code change and without touching the tenant's data.
+    """
+    raw = (os.getenv("RMC_EDGE_SYNC_GAP_FLAG_MULTIPLE", "") or "").strip()
+    if not raw:
+        return _DEFAULT_GAP_FLAG_MULTIPLE
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        return _DEFAULT_GAP_FLAG_MULTIPLE
+    return value if value > 0 else _DEFAULT_GAP_FLAG_MULTIPLE
 
 
 def _env_idle_ceiling_seconds() -> int | None:
@@ -282,7 +312,115 @@ def missed_run(school, *, last_run_at, now=None):
     return None
 
 
-def schedule_summary(school, *, now=None) -> dict:
+def _stamp_gap_hours(plan, gap, tz) -> None:
+    """Mark the hour cells that fall inside the flagged gap.
+
+    Done here rather than in the template, which cannot compare instants, and rather than
+    in ``week_plan``, which is pure and does not know what a school considers too long a
+    silence. Only ever called for a gap already past the threshold, so an ordinary
+    overnight quiet period is never painted as a fault.
+    """
+    import datetime as _dt
+
+    start_raw = gap.get("start")
+    end_raw = gap.get("end")
+    if not start_raw or not end_raw:
+        return
+    try:
+        start = _dt.datetime.fromisoformat(start_raw).astimezone(tz)
+        end = _dt.datetime.fromisoformat(end_raw).astimezone(tz)
+    except (TypeError, ValueError):
+        return
+    for day in plan.get("days", []):
+        try:
+            day_date = _dt.date.fromisoformat(day["date"])
+        except (KeyError, TypeError, ValueError):
+            continue
+        for hour_index, cell in enumerate(day.get("hours", [])):
+            cell_start = _dt.datetime.combine(
+                day_date, _dt.time(hour=hour_index), tzinfo=tz
+            )
+            cell_end = cell_start + _dt.timedelta(hours=1)
+            # Half-open overlap: an hour containing the boundary occurrence is NOT in the
+            # gap, because a sync happened in it.
+            if cell_end > start and cell_start < end and not cell.get("count"):
+                cell["in_gap"] = True
+
+
+def _local_display(moment, tz) -> str:
+    """A wall-clock string in the tenant's zone, or ``""``.
+
+    Built by hand rather than with ``%-d``: that directive is glibc-only and raises on
+    Windows, where this code runs during development.
+    """
+    if moment is None:
+        return ""
+    try:
+        local = moment.astimezone(tz)
+    except (AttributeError, ValueError):  # pragma: no cover - defensive
+        return ""
+    return f"{local.day} {local.strftime('%b')} {local.strftime('%H:%M')}"
+
+
+def coverage_for(school, *, now=None, rules=None) -> dict:
+    """The week strip and the gap alarm, for the Sync Center's schedule panel.
+
+    ``rules`` lets a CANDIDATE set be costed without saving it -- that is the live
+    preview, and the reason it posts back here instead of being re-implemented in the
+    browser: the strip a school looks at before pressing Save is drawn by the same code
+    that will decide when the box actually runs. Passing ``None`` uses what is saved.
+
+    Never raises. A panel that cannot draw its strip still has to render the sentence,
+    the rules and the Save button.
+    """
+    now = now or dj_timezone.now()
+    if rules is None:
+        rules = active_rules(school)
+    tz = school_timezone(school)
+    multiple = _gap_flag_multiple()
+    ceiling_minutes = max(1, idle_ceiling_seconds(school) // 60)
+    try:
+        plan = week_plan(rules, start=now, tz=tz)
+        gap = longest_gap(rules, start=now, tz=tz)
+        upcoming = next_runs(rules, after=now, tz=tz)
+    except Exception:  # noqa: BLE001 -- the strip is a display aid, never a blocker
+        logger.debug("week coverage failed", exc_info=True)
+        return {
+            "available": False,
+            "week": None,
+            "gap": None,
+            "next_runs": [],
+            "gap_flagged": False,
+            "gap_threshold_minutes": ceiling_minutes * multiple,
+            "floor_minutes": ceiling_minutes,
+        }
+    threshold = ceiling_minutes * multiple
+    minutes = gap.get("minutes")
+    flagged = bool(minutes is not None and minutes > threshold)
+    if flagged:
+        _stamp_gap_hours(plan, gap, tz)
+    return {
+        "available": True,
+        "week": plan,
+        "gap": gap,
+        # The next five, not the next one. One answers "is it armed"; five answer "is it
+        # armed CORRECTLY" -- a rule that fires at 06:00 and then not again until Monday
+        # is indistinguishable from a healthy one until the second entry is visible.
+        "next_runs": upcoming,
+        # Reported always, painted as a problem only past the threshold. An unbounded
+        # gap (no rules at all) is NOT flagged: that tenant is on the adaptive cadence
+        # by choice, which is the zero-configuration default and not a hole.
+        "gap_flagged": flagged,
+        "gap_threshold_minutes": threshold,
+        "gap_flag_multiple": multiple,
+        # The check-in ceiling drawn as the floor UNDER the strip: the guarantee that
+        # holds even where no rule fires. Without it a school reads an empty Sunday as
+        # "the box is off all day", which is not what happens.
+        "floor_minutes": ceiling_minutes,
+    }
+
+
+def schedule_summary(school, *, now=None, include_coverage=False) -> dict:
     """What the Sync Center shows. Computed with :func:`planned_next_run`, deliberately.
 
     The build directive's R3 in one place: the label on the screen and the moment the
@@ -327,6 +465,12 @@ def schedule_summary(school, *, now=None) -> dict:
         "next_run_at": upcoming.isoformat() if upcoming else None,
         "next_run_in_seconds": int((upcoming - now).total_seconds()) if upcoming else None,
         "last_run_at": last_run_at.isoformat() if last_run_at else None,
+        # The ISO strings above are the wire format the poller reads. These are what the
+        # SERVER renders, in the tenant's own zone -- without them the no-JavaScript path
+        # shows a reader "2026-08-21T14:22:00+00:00", which is a machine's answer to a
+        # person's question.
+        "next_run_display": _local_display(upcoming, tz),
+        "last_run_display": _local_display(last_run_at, tz),
         "missed_window": stale,
         "idle_ceiling_seconds": idle_ceiling_seconds(school),
         # Said in the payload rather than only in a template, so every surface that reads
@@ -335,6 +479,12 @@ def schedule_summary(school, *, now=None) -> dict:
         "propagation_note": (
             "Schedule changes reach the box on its next sync — the cloud cannot contact "
             "a box directly."
+        ),
+        # OPT-IN, because it is the one expensive field here. The status endpoint is
+        # polled every few seconds by every open Sync Center; the strip changes only when
+        # a rule does, so the page render asks for it and the poll does not.
+        "coverage": (
+            coverage_for(school, now=now, rules=rules) if include_coverage else None
         ),
     }
 

@@ -1,5 +1,16 @@
 {
   "allow_any": {
+    "apps/api/pairing_api.py": {
+      "audit_logging": "manual_review_required",
+      "auth_model": "device_adoption_bootstrap_then_one_time_poll_secret",
+      "data_exposure": "pairing_status_and_a_single_machine_credential_redeemed_exactly_once",
+      "expected_count": 3,
+      "last_reviewed": "2026-08-21",
+      "notes": "Device-adoption bootstrap: an unpaired box holds no credential by definition, so PairingStartView cannot require one. PairingPollView is authenticated by the one-time poll_secret, not a session -- verify_poll_secret uses secrets.compare_digest against a HASH of the secret, so the comparison is constant-time and the secret is not stored raw. Both views are IP rate-limited and the credential is redeemable exactly once. Added 2026-08-21 after 70bddeded shipped the views with rbac-allow markers but no entry here.",
+      "owner": "edge_box_pairing_api",
+      "rate_limiting": "implemented",
+      "verdict": "keep"
+    },
     "apps/api/views_marketplace_catalog.py": {
       "audit_logging": "manual_review_required",
       "auth_model": "public_catalog_read_only",
@@ -198,6 +209,17 @@
       "owner": "interop_oneroster",
       "rate_limiting": "manual_review_required",
       "replay_protection": "token_auth_only",
+      "verdict": "keep"
+    },
+    "apps/api/pairing_api.py": {
+      "audit_logging": "manual_review_required",
+      "auth_model": "device_adoption_bootstrap_then_one_time_poll_secret",
+      "expected_count": 2,
+      "last_reviewed": "2026-08-21",
+      "notes": "Machine-to-machine: an edge box POSTs these with authentication_classes=[] and no cookie or session, so there is no ambient browser credential for a CSRF to ride on. Requiring a CSRF token would break adoption without adding a control. Added 2026-08-21 alongside the AllowAny entry for the same views.",
+      "owner": "edge_box_pairing_api",
+      "rate_limiting": "implemented",
+      "replay_protection": "poll_secret_redeemable_exactly_once_plus_request_expiry",
       "verdict": "keep"
     },
     "apps/api/saml.py": {
@@ -465,7 +487,7 @@
       "verdict": "keep_with_hardening"
     }
   },
-  "generated_at": "2026-08-20T21:25:13.957580+00:00",
+  "generated_at": "2026-08-21T15:20:49.193565+00:00",
   "raw_sql": {
     "apps/academics/schema_repair.py": {
       "expected_count": 3,
@@ -645,8 +667,8 @@
     "raw_sql_allowlist": "scripts/allowlists/raw_sql_allowlist.json"
   },
   "summary": {
-    "allow_any_files": 4,
-    "csrf_exempt_files": 38,
+    "allow_any_files": 5,
+    "csrf_exempt_files": 39,
     "raw_sql_files": 34
   }
 }

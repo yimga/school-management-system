@@ -90,12 +90,14 @@ from .views_custom_requirement import request_custom_requirement
 from .views_sync_center import (
     sync_center,
     sync_center_bulk_resolve,
+    sync_conflicts,
     sync_center_pair_approve,
     sync_center_pair_deny,
     sync_center_probe,
     sync_center_resolve,
     sync_center_status,
     sync_policy_save,
+    sync_schedule_preview,
     sync_schedule_save,
     sync_now,
     sync_request_resync,
@@ -579,6 +581,10 @@ urlpatterns = [
         name="request_custom_requirement",
     ),
     path("sync-center/", sync_center, name="sync_center"),
+    # The conflict queue, on its own page. It carries a field-by-field payload diff and
+    # four resolution forms per row -- folded into the Sync Center it was both the
+    # longest section and the most cramped one.
+    path("sync-center/conflicts/", sync_conflicts, name="sync_conflicts"),
     # Box adoption. POST-only: approving is a state change made inside an
     # authenticated session, which is the entire security model of pairing.
     path(
@@ -604,6 +610,13 @@ urlpatterns = [
         "sync-center/schedule/",
         sync_schedule_save,
         name="sync_schedule_save",
+    ),
+    # Read-only: costs a candidate rule set and returns the week strip. Exists so the
+    # browser never re-implements the scheduler in order to draw a preview.
+    path(
+        "sync-center/schedule/preview/",
+        sync_schedule_preview,
+        name="sync_schedule_preview",
     ),
     path(
         "sync-center/policy/",

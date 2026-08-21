@@ -1,8 +1,91 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-08-20
+**Last updated:** 2026-08-21
 
-## 2026-08-21 (latest) — A zero-baseline RLS gate went red on main, and nothing was left to notice
+## 2026-08-21 (latest) — The Sync Center was long because it taught on every render
+
+New CSS (`static/css/rmc-sync-center.css`), new JS (`rmc-sync-schedule-strip.js`,
+`rmc-sync-conflicts.js`), one JS file retired, two partials retired, one new page. SW
+bumped `sms-v4.06.75` → `sms-v4.06.76-sync-center-bands-and-week-strip-2026-08-21`. No
+model change, no migration.
+
+**The complaint was length. The cause was not size.** Every one of the page's explanatory
+paragraphs had been written because somebody was confused, and every counter answered a
+real question. What was never done is make any of it CONDITIONAL — so the page taught a
+fluent operator everything a first-time operator needed, on every visit. The 502 diagnosis
+rendered on a page reporting twelve clean cycles. *"The cloud cannot contact a box
+directly"* rendered three times, in three wordings.
+
+**And three panels had each been built to stand alone**, so each re-derived what its
+neighbour already showed. Five facts rendered twice:
+
+| Fact | Copy A | Copy B |
+|---|---|---|
+| last sync | absolute timestamp in Schedule | relative age in Live activity |
+| **next sync** | next occurrence of a **rule** | next moment **cadence** is due |
+| recent cycles | server-rendered `<ul>` | JS-polled `<table>` |
+| pushed / pulled | last cycle | 24 hours — only one named its window |
+| conflicts | page summary strip | an edge-sync tile, and the table itself |
+
+The second row is the one that matters: those two are **different questions** and can
+legitimately disagree, so an operator seeing `18:00` beside `in 26 min` had to decide
+which was lying. Nothing on screen said so. There were also **two independent pollers** on
+one endpoint — a fixed 3s `setInterval` that never stopped, and an adaptive
+visibility-aware timer — painting different halves of the same payload, which is how two
+formats of "last sync" came to exist without either author noticing the other.
+
+**Measured before and after**, same instrument (`scan_page_density_and_duplicate_facts.py`,
+which follows the include tree so a page built from partials is not scored as empty):
+
+| | before | after |
+|---|---|---|
+| density score | 111 (rank **7** of 884) | 72 (rank **22** of 885) |
+| cards / sections | 17 | 14 |
+| counter tiles | 18 | **5** |
+| paragraphs that render unconditionally | 12 | **4** |
+| forms | 13 | 8 |
+| tables | 4 | **0** |
+| expanded lines | 1242 | 796 |
+| polling scripts loaded | **3** | **1** |
+
+**What landed**
+
+| Area | Change |
+|---|---|
+| Six cards → three bands + a timeline + a queue | VERDICT (is it working), WHAT MOVED (how much crossed), SCHEDULE (when, and are there holes), ACTIVITY (what happened), NEEDS YOU (**absent** when nothing does), DISCLOSURES. |
+| `siteconfig:sync_conflicts` (new page) | Six columns, a field-by-field payload diff and four resolution forms per row. Folded into a status page it was simultaneously the longest section and the most cramped — the comparison deciding which version of a grade survives rendered inside a collapsed row of a table inside a card. Linked from the work queue, which is where someone looking for it already is. Its row-detail drawer bundle went with it, which is the third poller that left the Sync Center. |
+| `schedule.py::week_plan` / `longest_gap` / `next_runs` / `dst_note_for_rule` | Pure, bounded additions over the existing per-day occurrence helpers. Hourly buckets rather than raw instants: a 5-minute rule is 2016 instants a week; 7×24 cells is 168 whatever the interval. |
+| The week strip | Answers three questions nothing on the platform could answer before: are there gaps, do rules overlap, and what does the check-in ceiling actually buy. The gap audit becomes a permanent feature instead of a script somebody runs once. |
+| **`siteconfig:sync_schedule_preview`** (new, read-only) | Why the strip is trustworthy. The obvious live preview re-derives occurrences in JavaScript — a second scheduler that drifts from the first the moment either changes, *silently*, because a wrong strip still looks like a strip. The browser computes **nothing**: it posts the candidate rule set and renders what the real engine returns. |
+| `{{ form.as_p }}` → a sentence | Widget change only. `SyncSchedule.clean()` stays the single validation implementation and the field names stay matched to the model, per the constraint documented at the top of `forms_sync_schedule.py`. Day chips are real checkboxes styled through `:checked + label`, so every toggle works with JS off. |
+| One save, one place | The check-in ceiling used to sit below an `<hr>` in a second form with a second Save button — so *"how often does this box sync?"* was answered in two places that never mentioned each other. It now reads as the closing clause of the schedule sentence. Still posts to its own view: two settings, two audit trails. |
+| DST note moved onto its rule | `dst_note_for_rule` checks the rule's **configured** wall-clock values, not its resolved instants — by the time a spring-forward time is an instant, `_resolve_local` has already moved it past the gap and the evidence it was ever inside is gone. Absent for the other fifty-one weeks. |
+| Sparkline (new) | The one thing added rather than removed. "44 cycles, 2 failed" reads identically for a box that was steady all day and one that ran 44 cycles in ten minutes and then went silent — and that difference is the entire question. Zero-filled per hour, so silence cannot be compressed out of the shape. |
+| `_sync_live_panel.html`, `_sync_pairing_panel.html`, `_pages/siteconfig__sync_center_live.js` | Retired. The pairing panel became a work-queue row; the live panel's content split across the three bands; the second poller is gone. |
+| `scripts/scan_page_density_and_duplicate_facts.py` (new) | A REPORT, not a gate — density is a judgement call and a scanner pretending otherwise gets ignored. Two heuristics had to be fixed before it was worth shipping: "any repeated `data-` hook" put `data-rmc-scroll-policy` (53× on the admin dashboard, a structural marker on every scrollable container) at the top of every row, and "any script that calls fetch" reported 66 double-polling pages instead of 5. Count is the discriminator that survived contact with the tree — a fact drawn twice is 2, drawn three times is 3; nothing legitimately shows one value fifty-three times. |
+| `apps/sync_engine/tests/test_sync_center_bands_2026_08_21.py` (new) | 41 tests. The seal asserts the **negative** — the retired duplicate hooks are gone and the surviving ones appear exactly once — because a third copy is invisible in review: each copy looks correct on its own, and whoever adds it usually could not find the first. |
+
+**Platform-wide audit, same instrument.** The Sync Center is not special; this is what
+happens to any operational page that accretes panels. Ranked candidates:
+
+| score | page | cards | tiles | permanent explainers |
+|---|---|---|---|---|
+| 244 | `accounts/backend_dashboard.html` | 93 | 20 | 11 |
+| 158 | `schools/super_dashboard.html` | 67 | 0 | 9 |
+| 135 | `schools/super_trust_center.html` | 78 | 0 | **19** |
+| 128 | `super/founder_dashboard.html` | 82 | 9 | 8 |
+| 126 | `feedback/help_center.html` | 71 | 1 | 11 |
+
+Plus **five pages that genuinely load two or more re-arming pollers** — the same bug the
+Sync Center had: `accounts/backend_dashboard.html`, `accounts/entity_console.html`,
+`admin/base_site.html`, `communication/group_detail.html`, `accounts/direct_thread.html`.
+
+**Deploy.** No migration. The SW bump is monotonic and shape-valid. The new page needs no
+nav entry: it is a drill-down reached from the work queue, which is where the conflict
+count already lives.
+
+
+## 2026-08-21 — A zero-baseline RLS gate went red on main, and nothing was left to notice
 
 No CSS or JS; Python, one migration, one gate runner and docs. No SW bump.
 

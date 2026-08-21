@@ -20,19 +20,10 @@ from __future__ import annotations
 
 import hashlib
 
-_SOURCE_NULL_LITERALS = frozenset({"", "none", "nan", "n/a", "na", "null", "-", "0"})
-
-
-def _clean_source_string(value: Any) -> str:
-    """Normalize spreadsheet null sentinels (``nan``, ``none``, …) to empty."""
-    if value is None:
-        return ""
-    if isinstance(value, float) and value != value:  # NaN
-        return ""
-    s = str(value).strip()
-    if s.lower() in _SOURCE_NULL_LITERALS:
-        return ""
-    return s
+from apps.migration_cloud.landers.reason_codes import (
+    classify_message,
+    normalize_reason_code,
+)
 
 
 def derive_external_id(
@@ -84,13 +75,26 @@ def derive_external_id(
     return f"{prefix}-{hashlib.sha256(seed.encode('utf-8')).hexdigest()[:20]}"
 
 import datetime as _dt
-import hashlib
 import re
 from contextlib import contextmanager
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
 from django.db import IntegrityError, transaction
+
+_SOURCE_NULL_LITERALS = frozenset({"", "none", "nan", "n/a", "na", "null", "-", "0"})
+
+
+def _clean_source_string(value: Any) -> str:
+    """Normalize spreadsheet null sentinels (``nan``, ``none``, …) to empty."""
+    if value is None:
+        return ""
+    if isinstance(value, float) and value != value:  # NaN
+        return ""
+    s = str(value).strip()
+    if s.lower() in _SOURCE_NULL_LITERALS:
+        return ""
+    return s
 
 
 @contextmanager
@@ -739,22 +743,78 @@ def row_marks_deletion(row: Any) -> bool:
     return any(key in row and is_tombstone_status(row.get(key)) for key in _DELETE_MARKER_KEYS)
 
 
-def record_row_error(result, row: Any, message: str) -> None:
-    """Record a per-row lander failure that carries the SOURCE ROW (audit C-4).
+def record_row_error(
+    result,
+    row: Any,
+    message: str,
+    *,
+    reason_code: str | None = None,
+    field: str | None = None,
+) -> None:
+    """Hold one row, keeping the row itself and WHY it was held.
 
-    Increments ``result.quarantined`` and appends ``message`` to ``result.errors``
-    (the unchanged back-compat contract every consumer already relies on) AND
-    appends ``{"error", "row"}`` to ``result.error_rows`` so
-    ``orchestrator._quarantine_errors`` can thread the offending row into
-    ``MigrationQuarantineRecord.payload['source_row']`` — the operator sees WHAT
-    failed, not just an error string. A lander adopts this by replacing its
-    ``result.quarantined += 1; result.errors.append(msg)`` pair with one call.
+    This is the whole lander failure contract. It increments
+    ``result.quarantined``, appends ``message`` to ``result.errors`` (the
+    back-compat surface every consumer already reads), and appends the structured
+    twin to ``result.error_rows`` in LOCKSTEP so the orchestrator can pair them by
+    index.
+
+    Three things travel with the row, and each closes a specific hole:
+
+    ``row``
+        The bounded source-row snapshot. **You cannot replay a row you did not
+        keep**, so without this the automated remediation the zero-touch spec
+        describes cannot exist at all — no matter how good the remediator is.
+
+    ``reason_code``
+        A ``landers.reason_codes`` value. Omit it and the message is classified by
+        substring-matching English, which is how 68 of 108 failure sites ended up
+        in ``lander_error`` — the bucket that means "a person must look at this".
+        Declaring the code is how a row stops needing a person.
+
+    ``field``
+        The offending column, when the lander knows it. A school can act on
+        "``date_of_birth`` was empty" in a way they cannot act on "missing
+        student/date/status".
+
+    Bookkeeping never breaks a lander: the structured append is guarded, and a
+    failure there still leaves the count and the message intact.
     """
     result.quarantined += 1
     result.errors.append(message)
     try:
-        result.error_rows.append({"error": message, "row": _row_snapshot(row)})
+        declared = normalize_reason_code(reason_code)
+        result.error_rows.append({
+            "error": message,
+            "row": _row_snapshot(row),
+            "reason_code": declared or classify_message(message),
+            "reason_source": "declared" if declared else "fallback",
+            "field": str(field)[:64] if field else None,
+        })
     except Exception:  # noqa: BLE001 — quarantine bookkeeping never breaks a lander
+        pass
+
+
+def record_row_note(result, message: str, row: Any = None) -> None:
+    """Record a diagnostic that is NOT a held row.
+
+    The row LANDED; something attached to it did not — a custom-attributes sweep,
+    an extras write, an optional lookup. Ten such sites used to append to
+    ``result.errors`` without incrementing ``quarantined``, so each one minted a
+    "held for review" quarantine record that the board's count never included.
+    The tenant saw a partial-write warning presented as a rejected row, and the
+    banner and the table disagreed about how many rows were held.
+
+    These are still durable and still surfaced — the orchestrator logs them and
+    stores them on the run — they are simply not counted as rows anyone must
+    review. Nothing is hidden; it is filed under what it actually is.
+    """
+    try:
+        entry: dict[str, Any] = {"note": message}
+        if row is not None:
+            entry["row"] = _row_snapshot(row)
+        result.notes.append(entry)
+    except Exception:  # noqa: BLE001 — diagnostics never break a lander
         pass
 
 
@@ -997,7 +1057,10 @@ def persist_dfv_extras(
         from apps.metadata.models import DynamicFieldDefinition, DynamicFieldValue
     except Exception as exc:  # noqa: BLE001
         if result is not None:
-            result.errors.append(f"{entity_type} extras: metadata models unavailable: {type(exc).__name__}")
+            record_row_note(
+                result,
+                f"{entity_type} extras: metadata models unavailable: {type(exc).__name__}",
+            )
         return
     for field_key, value in clean.items():
         try:
@@ -1019,7 +1082,10 @@ def persist_dfv_extras(
                 )
         except Exception as exc:  # noqa: BLE001 — extras are best-effort, recorded
             if result is not None:
-                result.errors.append(f"{entity_type} extras write failed for {field_key}: {type(exc).__name__}")
+                record_row_note(
+                    result,
+                    f"{entity_type} extras write failed for {field_key}: {type(exc).__name__}",
+                )
 
 
 def resolve_name_order(ctx) -> str:
