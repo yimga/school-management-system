@@ -40,6 +40,9 @@ from apps.sync_engine.edge_outbox import (
     BUNDLE_CONTENT_TYPE,
     SYNC_DIRECTIVE_HEADER,
     SYNC_HIGH_WATER_HEADER,
+    SYNC_PARITY_ADVICE_HEADER,
+    SYNC_PARITY_DRIFT_HEADER,
+    SYNC_PARITY_HEADER,
     SYNC_ROW_COUNT_HEADER,
     SYNC_SCHEMA_ADVICE_HEADER,
     SYNC_SCHEMA_HEAD_HEADER,
@@ -84,6 +87,50 @@ def _schema_handshake(request):
         return withheld, describe_skew(comparison)
     except Exception:  # noqa: BLE001 - advisory only; never cost the box its data
         return set(), ""
+
+
+def _parity_handshake(request, school, withheld=()):
+    """G8: which entities does this box hold differently from the cloud?
+
+    Returns ``(drifted: list, advice: str)`` — both empty when the box sent no digest,
+    when parity is off, or when anything at all went wrong.
+
+    ``withheld`` (the schema handshake's answer) is excluded BEFORE the comparison is
+    described, not after: there the difference is already explained and re-pulling would
+    not fix it, so naming such an entity would point an operator at the wrong repair and
+    burn a full-entity re-pull on it.
+
+    COST IS OPT-IN AND BOUNDED. The cloud digests ONLY the entities the box actually
+    reported, and only when it reported any. A box that never sends the header (an older
+    appliance, or one whose sweep is not due) costs this endpoint a single dictionary
+    lookup — which matters, because the download endpoint is on the hot path of every
+    cycle for every box, while a sweep is hourly at most.
+
+    ADVISORY, exactly like the schema handshake above: the bundle is the payload, and a
+    parity answer is a bonus. Drift is REPORTED, never acted on here — the repair is the
+    box's to run, because the box is the side that can re-pull.
+    """
+    raw = (request.META.get("HTTP_" + SYNC_PARITY_HEADER.upper().replace("-", "_")) or "").strip()
+    if not raw:
+        return [], ""
+    try:
+        from apps.sync_engine import parity
+
+        if not parity.enabled():
+            return [], ""
+        skip = set(withheld or ())
+        remote = {k: v for k, v in parity.decode_digests(raw).items() if k not in skip}
+        if not remote:
+            return [], ""
+        # The BOX's digest is `remote` from the cloud's point of view. Compare in the
+        # box's own orientation (local=box, remote=cloud) so `row_delta` reads as "rows
+        # the cloud has that the box does not" on both sides of the wire — a sign flip
+        # here would send an operator hunting for extra rows when records are missing.
+        local = parity.parity_digests(school, entities=list(remote))
+        comparison = parity.compare_digests(remote, local)
+        return parity.rank_for_flush(comparison), parity.describe(comparison)
+    except Exception:  # noqa: BLE001 - advisory only; never cost the box its data
+        return [], ""
 
 
 class SyncBundleRenderer(BaseRenderer):
@@ -327,6 +374,17 @@ class SyncBundleDownloadView(APIView):
             # list so it can report exactly which entities are frozen until it migrates.
             resp[SYNC_SCHEMA_ADVICE_HEADER] = advice
             resp[SYNC_WITHHELD_HEADER] = ",".join(sorted(withheld))
+
+        # G8 parity seal. Answered on the same response for the same NAT reason as the
+        # directive: this is the only moment the cloud can tell the box anything.
+        try:
+            drifted, parity_advice = _parity_handshake(request, school, withheld=withheld)
+            if drifted:
+                resp[SYNC_PARITY_DRIFT_HEADER] = ",".join(drifted)
+                if parity_advice:
+                    resp[SYNC_PARITY_ADVICE_HEADER] = parity_advice
+        except Exception:  # noqa: BLE001 — the bundle is the payload; parity is a bonus
+            pass
         # The box is behind NAT, so this response is the only moment the cloud can hand it
         # an instruction. Best-effort: a directive failure must never cost the box its data.
         directive_kind = ""

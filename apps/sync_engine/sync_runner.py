@@ -79,6 +79,87 @@ def _request_replay_for_missing_parents(school) -> str:
         return f"could not request a replay for the missing parents: {exc}"
 
 
+def _flush_drifted_entities(school, endpoint, token, user, drifted) -> str:
+    """G8 repair: re-pull the drifted entities WHOLE, one entity at a time.
+
+    Targeted on purpose. The cursor is per ``(school, direction)``, so the existing
+    healing move — rewinding it — replays the ENTIRE corpus to repair one table, which on
+    a metered link is a bill and on a large school is an hour. Parity already knows which
+    entity is wrong, so the repair asks for exactly that one with ``since=None`` and
+    leaves the cursor alone: nothing else re-ships, and the pull cursor keeps meaning what
+    it meant before this ran.
+
+    Rides the ordinary rail end to end — the same download endpoint, the same signature,
+    the same idempotent apply — so a row that was merely stale is overwritten by the same
+    conflict policy as any other pull, a row that was missing is created by the ordinary
+    cloud-pull create path, and a row this side must not lose is protected by exactly the
+    guards that protect it on every other cycle. It is a normal pull with a narrow scope,
+    not a privileged repair channel.
+
+    ONE ENTITY PER REQUEST rather than one request for all of them, for PARTIAL PROGRESS.
+    (Not for the row cap — ``RMC_SYNC_BUNDLE_MAX_ROWS`` is enforced on the UPLOAD receiver
+    in ``sync_bundle_api``, and the pull side applies whatever it is handed; the existing
+    full-resync path relies on exactly that.) The reason is that a repair runs on the link
+    that was already unreliable enough to lose rows: batching three full entities into one
+    request means a drop at 90% repairs nothing, while three requests mean the first two
+    landed and the third is named as still drifted. It also keeps one entity's failure —
+    a missing reference, a policy refusal — from being reported as all three failing.
+
+    Returns the operator note. Never raises: a repair must not be the thing that breaks
+    the cycle it is repairing.
+    """
+    try:
+        from apps.sync_engine import edge_outbox, parity
+        from apps.sync_engine.edge_inbox import apply_pulled_bundle
+
+        cap = parity.max_flush_entities()
+        targets = list(drifted)[:cap]
+    except Exception as exc:  # noqa: BLE001 - the setup must be as safe as the loop
+        # The per-entity loop below is individually guarded, but the setup was not: an
+        # import that fails here would raise out of a repair whose whole contract is that
+        # it cannot break the cycle it is repairing — and it would surface as "pull
+        # failed" AFTER the pull had already succeeded and advanced the cursor.
+        logger.debug("parity flush could not start", exc_info=True)
+        return f"parity flush could not start: {exc}"
+    if not targets:
+        return ""
+    repaired, failed = [], []
+    for entity_type in targets:
+        try:
+            status, body, _hw = edge_outbox.pull_bundle(
+                endpoint, token, since=None, entities=[entity_type]
+            )
+            if status != 200:
+                failed.append(f"{entity_type} (HTTP {status})")
+                continue
+            applied = apply_pulled_bundle(school, user, body, origin="cloud-pull")
+            if not applied.get("ok"):
+                failed.append(f"{entity_type} ({applied.get('errors')})")
+                continue
+            repaired.append(
+                f"{entity_type} ({int(applied.get('created') or 0)} created, "
+                f"{int(applied.get('upserted') or 0)} updated)"
+            )
+        except Exception as exc:  # noqa: BLE001 - one bad entity must not stop the rest
+            logger.debug("parity flush failed for %s", entity_type, exc_info=True)
+            failed.append(f"{entity_type} ({exc})")
+
+    bits = []
+    if repaired:
+        bits.append("parity flush repaired " + ", ".join(repaired))
+    if failed:
+        bits.append("parity flush could NOT repair " + ", ".join(failed))
+    if len(drifted) > cap:
+        # Named, never silent. A capped repair that reports only what it fixed reads as
+        # "everything is fixed now", and the operator stops looking.
+        deferred = ", ".join(list(drifted)[cap:])
+        bits.append(
+            f"{len(drifted) - cap} more entit(ies) still drifted and NOT repaired this "
+            f"cycle ({deferred}); they follow on later cycles"
+        )
+    return "; ".join(bits)
+
+
 def _operator_base() -> str:
     """Operator (cloud) base URL the box pushes/pulls against.
 
@@ -564,8 +645,31 @@ def _execute_sync_transport(school, *, mode, result, run_row) -> None:
         # while a cycle was in flight must not fall permanently behind the cursor.
         pull_since = get_sync_cursor_for_request(school, EdgeSyncCursor.PULL)
         collected: dict = {}
+        # G8: on the cycles a parity sweep is due, state what this box HOLDS so the cloud
+        # can answer with what disagrees. Skipped in DRY mode — a dry run is a no-write
+        # reachability probe, and the repair it would discover is one it may not perform,
+        # so spending a full-corpus scan there buys an answer nothing can act on.
+        parity_header = ""
+        if mode != "dry":
+            try:
+                from apps.sync_engine import parity as _parity
+
+                if _parity.due(school):
+                    parity_header = _parity.encode_digests(_parity.parity_digests(school))
+                    logger.info(
+                        "edge sync: parity sweep for school=%s covering %s entities",
+                        school.pk,
+                        len(parity_header.split(",")) if parity_header else 0,
+                    )
+            except Exception:  # noqa: BLE001 — a sweep must never cost the box its pull
+                logger.debug("parity sweep skipped", exc_info=True)
         status, body, high_water = edge_outbox.pull_bundle(
-            endpoint, token, since=pull_since, entities=None, collect=collected
+            endpoint,
+            token,
+            since=pull_since,
+            entities=None,
+            collect=collected,
+            parity=parity_header,
         )
 
         # A cloud operator cannot reach into this box, so a "resync everything" request
@@ -675,6 +779,37 @@ def _execute_sync_transport(school, *, mode, result, run_row) -> None:
                         # Rewinding LAST, after the high-water advance above, so the rewind
                         # is what survives this cycle.
                         notes.append(_request_replay_for_missing_parents(school))
+
+                    # G8: the cloud answered this cycle's parity digest with the entities
+                    # whose contents disagree. Repair them, narrowly, and SAY so — an
+                    # operator who is never told the two sides had diverged cannot know
+                    # the box was serving stale records until now.
+                    drifted = collected.get("parity_drift") or []
+                    if drifted:
+                        result["parity_drift"] = list(drifted)
+                        advice = (collected.get("parity_advice") or "").strip()
+                        logger.warning(
+                            "edge sync: parity drift for school=%s entities=%s (%s)",
+                            school.pk,
+                            ",".join(drifted),
+                            advice or "no detail",
+                        )
+                        notes.append(advice or f"parity drift: {', '.join(drifted)}")
+                        flush_note = _flush_drifted_entities(
+                            school, endpoint, token, user, drifted
+                        )
+                        if flush_note:
+                            notes.append(flush_note)
+                        # Re-sweep on the NEXT cycle rather than in an hour: the repair
+                        # either worked or it did not, and that answer is worth having
+                        # promptly. It also closes the loop honestly — a flush that
+                        # silently failed would otherwise read as a fix for an hour.
+                        try:
+                            from apps.sync_engine import parity as _parity
+
+                            _parity.reset(school)
+                        except Exception:  # noqa: BLE001 — costs latency, not data
+                            logger.debug("could not re-arm the parity sweep", exc_info=True)
     except Exception as exc:  # noqa: BLE001 — never crash the tenant page
         errors.append(f"pull failed: {exc}")
 

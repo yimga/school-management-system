@@ -203,6 +203,76 @@ defects that were not on the list — three of them found only by RUNNING the ne
 | Replay defence | `sync_engine/replay_guard.py`, `SyncBundleReceipt` |
 | Convergence harness | `sync_engine/convergence_harness.py`, `verify_edge_sync_convergence` |
 
+---
+
+## G8: the parity seal (2026-08-21)
+
+Everything above is a guarantee about the JOURNEY — the cursor is honest, the bundle is
+signed, a replay is refused, a deletion does not come back, and the harness drives real
+bundles through the real apply path. What none of them do is ask the other side what it
+actually HOLDS. The harness drives ONE database against a modelled `Mirror` and says so in
+its own docstring.
+
+So a row that went missing for a reason the protocol does not model — a restore from an
+old dump, a hand-run `DELETE` on the box, an apply that failed on a column the handshake
+had not yet learned to withhold — stayed missing forever. An incremental delta only ever
+offers what changed since the cursor, and **an absent row has no `updated_at` to be
+greater than anything.** Every status screen read green while it was gone.
+
+| Area | Where it lives |
+|---|---|
+| Per-entity digest | `sync_engine/parity.py` |
+| Handshake (cloud half) | `api/sync_bundle_api.py::_parity_handshake` + `X-RMC-Sync-Parity*` |
+| Sweep + repair (box half) | `sync_engine/sync_runner.py::_flush_drifted_entities` |
+| Operator command | `verify_sync_parity` (read-only; exit 1 on drift, so it can gate a cutover) |
+
+### Four decisions worth not relitigating
+
+**Digest the RAIL FIELDS, never `updated_at`.** `updated_at` is `auto_now`, so when the
+box applies a row the cloud sent, the local save stamps a new timestamp: two perfectly
+converged sides hold different `updated_at` for the same row, permanently. A digest over
+it reports drift on every row on the first cycle and never stops, and a monitor that is
+always red is one nobody reads. Echo-suppression exists precisely because this skew is
+normal.
+
+**Identity is `client_offline_id` when set, else the pk.** A cloud-authored row is created
+on the box by `_create_from_cloud_pull`, which PRESERVES the operator's pk; a box-authored
+row is upserted by `(school, client_offline_id)` and the cloud mints its own pk. Keying on
+pk alone reports every offline-created row as drift forever; keying on the anchor alone
+collapses every cloud-authored row onto one empty key.
+
+**Hash one school's rail data, not "the database".** The two deployments do not have the
+same database — the cloud is schema-per-tenant (`USE_DJANGO_TENANTS=1`), a sovereign box
+is shared-DB + RLS with `SINGLE_TENANT`. Table sets, sequences and `django_migrations` all
+differ legitimately. Scoping by the same `school=` kwarg the delta builder uses is what
+makes this one piece of code correct on two different topologies.
+
+**Repair per entity, not by rewinding the cursor.** The cursor is per
+`(school, direction)`, so the existing healing move replays the ENTIRE corpus to fix one
+table — a bill on a metered link and an hour on a large school. Parity already knows which
+entity is wrong, so the repair re-pulls exactly that one with `since=None`, over the same
+endpoint, signature and idempotent apply as any other pull. One entity per request, for
+partial progress: a repair runs on the link that was unreliable enough to lose rows in the
+first place, so a drop mid-repair should cost the last entity, not all of them. (Not for
+the row cap — `RMC_SYNC_BUNDLE_MAX_ROWS` is enforced on the upload receiver, not the pull;
+the existing full-resync path depends on that.)
+
+### What it costs
+
+A sweep READS EVERY ROW of every entity, so it is rate-limited independently of the sync
+cadence (`RMC_SYNC_PARITY_INTERVAL_SECONDS`, default 1h; at a 20-second tick an
+unthrottled sweep is a continuous table scan on a mini-PC). A box that sends no digest
+costs the download endpoint one dictionary lookup, and the cloud digests only the entities
+the box actually reported. Measured against the dev corpus: 15 entities, 448-byte header.
+
+`RMC_SYNC_PARITY_MAX_FLUSH_ENTITIES` (default 3) caps auto-repair per cycle — a box that
+has lost its database reports everything as drifted, and flushing all of it at once is a
+full corpus re-pull wearing a repair's clothes. Above the cap the cycle repairs the worst
+few and NAMES the rest as still drifted; a silent truncation would read as "all fixed".
+
+Entities withheld by the G4 schema handshake are excluded from the parity answer: there
+the difference is already explained and re-pulling would not fix it.
+
 ### Why tombstones, not the `is_deleted` columns this brief first proposed
 
 The brief said soft deletion on each synced entity. Building it showed that to be the
@@ -252,6 +322,12 @@ flood cap, and a kill switch.
   database. The property it cannot show is deferred-FK behaviour, where SQLite is the
   WEAKER environment — which is precisely how the 2026-08-19 wedge stayed invisible. That
   drill belongs in `docs/EDGE_SYNC_OPERATIONS.md`, run against a real box.
+  **G8 narrows this but does not close it.** Parity answers "do the two databases hold the
+  same rows" continuously, in production, which is the part the harness structurally
+  cannot reach — and `verify_sync_parity --against` makes the drill's final assertion a
+  one-line command instead of a manual comparison. What it still does not exercise is the
+  deferred-FK behaviour itself: parity compares OUTCOMES, so it reports that a box is
+  short of rows without reproducing the constraint timing that lost them.
 * **Multi-box relay.** Echo suppression is peer-agnostic, so a hub relaying box A's change
   to box B can suppress it. Not a regression — it predates this work — and the deployment
   model is one appliance per school.
