@@ -345,6 +345,45 @@ def resolve_tenant_operational_health(
                 }
             )
 
+    if surface == "admin":
+        # Integration delivery. A school can attach its own mail server, have the
+        # form accept it, and never send anything — the backend CLASS is global
+        # while host/credentials are per-school, so a preview backend silently
+        # discards a perfectly good configuration. Nothing errors, so the only way
+        # an admin ever learns is if we tell them.
+        #
+        # Informational by decision: this degrades the tier so it is visible, and
+        # never blocks. A school that has deliberately chosen no email raises
+        # nothing at all (delivery_problems returns only real problems).
+        try:
+            from apps.schools.integration_delivery import delivery_problems
+
+            for status in delivery_problems(school):
+                tier = _merge_tier(tier, TIER_DEGRADED)
+                if status.config_ignored and status.blocked:
+                    text = _("{name} not sending — {n} waiting").format(
+                        name=status.name, n=status.blocked,
+                    )
+                elif status.config_ignored:
+                    text = _("{name} settings are not in use").format(name=status.name)
+                else:
+                    text = _("{name}: {n} waiting to send").format(
+                        name=status.name, n=status.blocked,
+                    )
+                signals.append(
+                    {
+                        "key": f"delivery_{status.key}",
+                        "label": str(text),
+                        "tone": "warning",
+                        # Carried for richer surfaces + the JSON API; the chip
+                        # template reads only label + tone, so this is additive.
+                        "detail": str(status.reason or ""),
+                        "remedy": str(status.remedy or ""),
+                    }
+                )
+        except Exception:  # noqa: BLE001 — a health probe must never break the dashboard
+            logger.debug("tenant health: delivery probes unavailable", exc_info=True)
+
     if not signals and tier == TIER_UP:
         signals.append(
             {"key": "ok", "label": str(_("No blockers detected")), "tone": "success"}
