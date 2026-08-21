@@ -1743,6 +1743,12 @@ def _finalize_audit_run(run, outcome: ArtifactApplyOutcome, *, status: str) -> N
     run.save(update_fields=["rollback_snapshot"])
 
 
+# Per-artifact ceiling on durable quarantine records. A runaway lander must not
+# be able to write a million rows, but exceeding this is a REPORTED event, never
+# a silent one — see _quarantine_errors.
+QUARANTINE_RECORD_CAP = 200  # magic-number-allow: quarantine-records-per-artifact
+
+
 def _classify_quarantine_issue(err: str) -> str:
     """Bucket a lander error string into a ``MigrationQuarantineRecord.issue_class``."""
     e = (err or "").lower()
@@ -1798,7 +1804,22 @@ def _quarantine_errors(
             row_by_error[str(er.get("error"))] = er.get("row")
 
     domain_label = ((domain or "") or (artifact.path_within_bundle or ""))[:32]
-    for idx, err in enumerate(result.errors[:200], start=1):  # cap runaway quarantine
+
+    # The cap is a runaway guard, not a review policy — but it was SILENT. The
+    # board counts every held row (totals["quarantined"]) while only the first
+    # QUARANTINE_RECORD_CAP per artifact were ever written, so a tenant is told
+    # "442 held for review" and can only ever see some of them. The rest are
+    # counted and gone. One live artifact held 326 rows: 126 of them left no
+    # record at all. Say so, loudly, rather than letting the two numbers drift.
+    _dropped = max(0, len(result.errors) - QUARANTINE_RECORD_CAP)
+    if _dropped:
+        logger.error(
+            "migration_cloud.apply: quarantine truncated for bundle=%s domain=%s — "
+            "%s row error(s) held but only %s recorded; %s have NO durable record "
+            "and cannot be reviewed or replayed",
+            bundle.pk, domain_label, len(result.errors), QUARANTINE_RECORD_CAP, _dropped,
+        )
+    for idx, err in enumerate(result.errors[:QUARANTINE_RECORD_CAP], start=1):
         payload = {"error": err, "artifact": artifact.path_within_bundle}
         source_row = row_by_error.get(str(err))
         if source_row is not None:
