@@ -101,6 +101,20 @@ db_*.sqlite3
 /artifacts/*.log.err
 /artifacts/*.txt
 /artifacts/*.cjs
+
+# Anything a human named ".local." is machine-local by intent, and some of it is
+# CREDENTIAL material. The known case -- real-host-sessions.local.json, which holds live
+# Django sessionids for manager.runmycampus.com and a tenant host -- already has its own
+# rule further down, added when someone noticed that specific file. This is the CLASS
+# rule, so the next such file is covered before anyone notices it: a session id is a
+# bearer token, and one blanket `git add -A` is all it takes to publish one to a shared
+# remote. The companion *-local.ps1 runner was NOT previously ignored; it carries no
+# secret itself, only reads that JSON, but it is still machine-local scratch.
+*.local.json
+*-local.ps1
+# ...except the one a human is meant to keep in the repo. Already tracked, so git would
+# honour it regardless; stated so the rule above cannot be read as retiring it.
+!.claude/settings.local.json
 /data/db_live.sqlite3
 db_fresh.sqlite3
 db_buea_seed.sqlite3
