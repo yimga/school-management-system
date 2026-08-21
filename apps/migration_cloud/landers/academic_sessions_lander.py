@@ -28,6 +28,7 @@ from typing import Any, Iterator
 
 from ._helpers import coerce_date, model_field_names, record_row_error, row_savepoint
 from .base import Lander, LanderContext, LanderError, LanderResult, register
+from .reason_codes import LANDER_ERROR, MISSING_REQUIRED
 
 # Session ``type`` tokens (normalised: lowercased, spaces stripped) that denote a
 # whole academic YEAR rather than a term/period within it.
@@ -132,7 +133,10 @@ class AcademicSessionsLander(Lander):
                 continue
             title = (row.get("session_title") or "").strip()
             if not title:
-                record_row_error(result, row, "academic_sessions: term row missing title")
+                record_row_error(
+                    result, row, "academic_sessions: term row missing title",
+                    reason_code=MISSING_REQUIRED, field="session_title",
+                )
                 continue
 
             parent_ext = (row.get("parent_session_external_id") or "").strip()
@@ -179,6 +183,7 @@ class AcademicSessionsLander(Lander):
                 record_row_error(
                     result, row,
                     f"academic_sessions: could not create term {name!r}: {type(exc).__name__}",
+                    reason_code=LANDER_ERROR,
                 )
                 continue
             result.created_ids.append(term.pk)

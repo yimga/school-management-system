@@ -26,8 +26,13 @@ from __future__ import annotations
 
 from typing import Any, Iterator
 
-from ._helpers import filter_to_model_fields, row_savepoint
+from ._helpers import (
+    filter_to_model_fields,
+    record_row_error,
+    row_savepoint,
+)
 from .base import Lander, LanderContext, LanderError, LanderResult, register
+from .reason_codes import LANDER_ERROR
 
 
 _ENTITY_TYPE = "migration_artifact"
@@ -94,10 +99,12 @@ class DynamicFieldLander(Lander):
                 if value in (None, ""):
                     continue
                 if key in definition_errors:
-                    result.quarantined += 1
-                    result.errors.append(
+                    record_row_error(
+                        result,
+                        row,
                         f"dynamic_field: definition failed for key={key!r}: "
-                        f"{definition_errors[key]}"
+                        f"{definition_errors[key]}",
+                        reason_code=LANDER_ERROR,
                     )
                     continue
                 try:
@@ -112,10 +119,12 @@ class DynamicFieldLander(Lander):
                             ),
                         )
                 except Exception as exc:  # noqa: BLE001 — per-row quarantine
-                    result.quarantined += 1
-                    result.errors.append(
+                    record_row_error(
+                        result,
+                        row,
                         f"dynamic_field write failed for {key}: "
-                        f"{type(exc).__name__}: {exc}"
+                        f"{type(exc).__name__}: {exc}",
+                        reason_code=LANDER_ERROR,
                     )
                     continue
                 if created:

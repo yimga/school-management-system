@@ -27,12 +27,30 @@ class LanderResult:
     errors: list[str] = field(default_factory=list)
     created_ids: list[Any] = field(default_factory=list)
     updated_ids_with_old_values: list[dict[str, Any]] = field(default_factory=list)
-    # Audit C-4: optional structured per-row failures. Each entry is
-    # ``{"error": str, "row": <bounded source-row snapshot>}`` so the orchestrator
-    # can thread the offending SOURCE ROW into the quarantine record (not just an
-    # error string). Populated by ``_helpers.record_row_error``; landers that only
-    # append to ``errors`` keep the string-only quarantine payload (no regression).
+    # Structured per-row failures, appended in LOCKSTEP with ``errors`` by
+    # ``_helpers.record_row_error``. Each entry is::
+    #
+    #     {"error": str,          # identical to the matching errors[i]
+    #      "row": {...},          # bounded source-row snapshot — replay needs this
+    #      "reason_code": str,    # a landers.reason_codes value
+    #      "reason_source": str,  # "declared" | "fallback"
+    #      "field": str | None}   # the offending column, when the lander knows it
+    #
+    # Lockstep matters: the orchestrator used to pair rows to errors through a
+    # ``{error_string: row}`` dict, so two rows failing with the SAME message
+    # collapsed onto one entry and every row but the last lost its snapshot. Any
+    # error message that does not interpolate the row hits that — which is most
+    # of them. Index alignment cannot collide.
     error_rows: list[dict[str, Any]] = field(default_factory=list)
+
+    # Advisory diagnostics that are NOT held rows: the row landed, but something
+    # attached to it did not (a custom-attributes sweep, an extras write). Ten
+    # such sites used to append to ``errors`` WITHOUT incrementing ``quarantined``,
+    # so each one minted a "held for review" record the board never counted — the
+    # table and the banner disagreed, and a school was shown a partial-write
+    # warning as though a row had been rejected. They are still durable and still
+    # surfaced; they are just not counted as rows anyone must review.
+    notes: list[dict[str, Any]] = field(default_factory=list)
 
 
 @dataclass

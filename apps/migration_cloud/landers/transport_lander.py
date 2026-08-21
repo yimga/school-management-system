@@ -26,8 +26,10 @@ from ._helpers import (
     filter_to_model_fields,
     model_field_names,
     record_id_mapping,
+    record_row_error,
 )
 from .base import Lander, LanderContext, LanderError, LanderResult, register
+from .reason_codes import LANDER_ERROR, MISSING_REQUIRED
 
 
 class TransportLander(Lander):
@@ -53,9 +55,11 @@ class TransportLander(Lander):
         for row in canonical_rows:
             route_name = (row.get("route") or row.get("name") or "").strip()
             if not route_name:
-                result.quarantined += 1
-                result.errors.append(
-                    f"transport: missing route name in {row!r}"
+                record_row_error(
+                    result,
+                    row,
+                    f"transport: missing route name in {row!r}",
+                    reason_code=MISSING_REQUIRED, field="name",
                 )
                 continue
             # Idempotent within the bundle (multiple rows may reference the
@@ -106,9 +110,11 @@ class TransportLander(Lander):
                     canonical_obj=obj, domain="transport",
                 )
             except Exception as exc:  # noqa: BLE001
-                result.quarantined += 1
-                result.errors.append(
-                    f"transport upsert failed for {route_name!r}: {type(exc).__name__}: {exc}"
+                record_row_error(
+                    result,
+                    row,
+                    f"transport upsert failed for {route_name!r}: {type(exc).__name__}: {exc}",
+                    reason_code=LANDER_ERROR,
                 )
         return result
 

@@ -112,6 +112,11 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # full reverse() of spine url_names in ci.yml.
     ("scripts/verify_nav_engine_coverage.py", "architectural-boundaries.yml"),
     ("scripts/verify_report_entity_coverage.py", "architectural-boundaries.yml"),
+    # A Migration Cloud lander must keep the row it rejected and declare why.
+    # Added 2026-08-21: 29 of 35 lander files threw the offending row away, which
+    # makes automated remediation impossible BY CONSTRUCTION — you cannot replay a
+    # row you did not keep. Every later step of the zero-touch spec depends on it.
+    ("scripts/scan_lander_row_error_contract.py", "architectural-boundaries.yml"),
     # Money never float; tenant rows always scoped; offline label has code.
     ("scripts/scan_wallpaper_status_badges.py", "architectural-boundaries.yml"),
     ("scripts/verify_page_masthead_twin_contract.py", "architectural-boundaries.yml"),

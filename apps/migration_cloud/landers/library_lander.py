@@ -24,8 +24,10 @@ from ._helpers import (
     filter_to_model_fields,
     model_field_names,
     record_id_mapping,
+    record_row_error,
 )
 from .base import Lander, LanderContext, LanderError, LanderResult, register
+from .reason_codes import LANDER_ERROR, MISSING_REQUIRED
 
 
 class LibraryLander(Lander):
@@ -52,9 +54,11 @@ class LibraryLander(Lander):
             isbn = (row.get("isbn") or "").strip()
             author = (row.get("author") or "").strip()
             if not title:
-                result.quarantined += 1
-                result.errors.append(
-                    f"library: missing title in {row!r}"
+                record_row_error(
+                    result,
+                    row,
+                    f"library: missing title in {row!r}",
+                    reason_code=MISSING_REQUIRED, field="title",
                 )
                 continue
 
@@ -116,9 +120,11 @@ class LibraryLander(Lander):
                     canonical_obj=obj, domain="library",
                 )
             except Exception as exc:  # noqa: BLE001
-                result.quarantined += 1
-                result.errors.append(
-                    f"library upsert failed for {title!r}: {type(exc).__name__}: {exc}"
+                record_row_error(
+                    result,
+                    row,
+                    f"library upsert failed for {title!r}: {type(exc).__name__}: {exc}",
+                    reason_code=LANDER_ERROR,
                 )
         return result
 

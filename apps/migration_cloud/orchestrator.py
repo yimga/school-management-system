@@ -46,6 +46,7 @@ from apps.migration_cloud import defaults as mc_defaults
 
 from .guardrails import enforce_financial_guardrail
 from .landers import LanderError, LanderResult, get_lander
+from .landers.reason_codes import classify_message, normalize_reason_code
 from .models import (
     BundleStatus,
     FinancialMismatchError,
@@ -1809,22 +1810,26 @@ def _finalize_audit_run(run, outcome: ArtifactApplyOutcome, *, status: str) -> N
 # Bundle 84 held 326 student row errors; the old cap of 200 dropped 126 with no record.
 QUARANTINE_RECORD_CAP = 2000  # magic-number-allow: quarantine-records-per-artifact
 
+# How many partial-write notes to name in one log line. The count is always
+# exact; this only bounds the sample, so one pathological artifact cannot write a
+# megabyte into the log.
+_LANDER_NOTE_LOG_CAP = 20  # magic-number-allow: log-line-sample-cap
+
 
 def _classify_quarantine_issue(err: str) -> str:
-    """Bucket a lander error string into a ``MigrationQuarantineRecord.issue_class``."""
-    e = (err or "").lower()
-    # D-3: a source-deletion HOLD is not a failure — it is a tobedeleted structural
-    # row we deliberately did not import as active. Classify it distinctly so the
-    # operator review surface can separate "held: source deleted" from real errors.
-    if "held for review" in e or ("marked this" in e and "deleted" in e):
-        return "source_deletion"
-    if "duplicate" in e or "unique" in e or "already exists" in e:
-        return "duplicate"
-    if "invalid" in e or "not found" in e or "unresolved" in e or "no such" in e:
-        return "invalid_ref"
-    if "missing" in e or "required" in e or "not provided" in e:
-        return "missing_required"
-    return "lander_error"
+    """Bucket a lander error STRING into a ``MigrationQuarantineRecord.issue_class``.
+
+    The legacy path, kept for rows that arrive without a declared reason code.
+    It now delegates to ``landers.reason_codes.classify_message`` so there is one
+    implementation of the rule rather than two that can drift — landers were
+    already classifying at the point of failure while this classified again at
+    write time, from the same string, with a copy of the same regex-free matcher.
+
+    Prefer the declared code. Substring-matching English is why 60 of 106 per-row
+    failure sites read as ``lander_error`` — "a person must look at this" — when
+    11 of them were plainly a missing field or an unresolvable reference.
+    """
+    return classify_message(err)
 
 
 def _clear_superseded_quarantine(bundle: MigrationBundle) -> int:
@@ -1883,17 +1888,28 @@ def _quarantine_errors(
 ) -> None:
     """Persist per-row failures to ``apps.automation.MigrationQuarantineRecord``.
 
-    Landers surface per-row problems as strings in ``result.errors`` (they do not
-    carry the source-row payload back), so each error is stored with its position
-    in the error list as ``row_index`` plus a classified ``issue_class`` — enough
-    to make "held for review" rows durable and inspectable instead of silently
-    dropped. Never blocks apply.
+    Every held row carries the SOURCE ROW that failed, the reason as a code, and
+    the offending field where the lander knew it — because a row you did not keep
+    is a row you cannot replay, and a reason you have to re-derive from English at
+    read time is a reason you will re-derive wrongly.
 
-    NOTE: the previous implementation wrote ``row_snapshot=``/``reason=`` — fields
+    **Rows are paired to errors BY INDEX, not by message.** The previous
+    implementation built a ``{error_string: row}`` dict, so two rows failing with
+    the same message collapsed onto one entry and every row but the last silently
+    lost its snapshot. Most messages do not interpolate the row, so most
+    multi-row failures hit exactly that. ``record_row_error`` appends to
+    ``errors`` and ``error_rows`` in lockstep; index alignment cannot collide.
+
+    A lander that appends a bare string still works — it just lands with no row,
+    no field, and a reason guessed from its text. Those are counted and logged so
+    the remaining backlog is a number rather than an impression.
+
+    NOTE: an older implementation wrote ``row_snapshot=``/``reason=`` — fields
     that do not exist on the model — so every ``create()`` raised ``TypeError``
     swallowed by the guard below, and quarantine rows were NEVER persisted (silent
     data loss). This writes the real model fields.
     """
+    _record_lander_notes(bundle=bundle, artifact=artifact, domain=domain, result=result)
     if not result.errors:
         return
     try:
@@ -1901,16 +1917,41 @@ def _quarantine_errors(
     except ImportError:
         return
 
-    # C-4: when a lander recorded the offending source row (via
-    # _helpers.record_row_error), thread it into the quarantine record so the
-    # operator sees WHAT failed, keyed by the exact error string. Landers that
-    # only append error strings keep the string-only payload — no regression.
+    # Positional pairing. Only trust it when the two lists actually correspond:
+    # a lander that mixes record_row_error with a bare append would otherwise
+    # shift every row onto the wrong error.
+    structured: list[dict[str, Any]] = [
+        er for er in (getattr(result, "error_rows", None) or []) if isinstance(er, dict)
+    ]
+    aligned = len(structured) == len(result.errors) and all(
+        str(er.get("error")) == str(err)
+        for er, err in zip(structured, result.errors)
+    )
+    if structured and not aligned:
+        logger.warning(
+            "migration_cloud.apply: %s structured row(s) do not align with %s error(s) "
+            "for bundle=%s domain=%s — falling back to message pairing, so rows that "
+            "share an error message will lose their snapshot",
+            len(structured), len(result.errors), bundle.pk, domain or "",
+        )
     row_by_error: dict[str, Any] = {}
-    for er in (getattr(result, "error_rows", None) or []):
-        if isinstance(er, dict) and "error" in er:
-            row_by_error[str(er.get("error"))] = er.get("row")
+    if not aligned:
+        for er in structured:
+            if "error" in er:
+                row_by_error[str(er.get("error"))] = er.get("row")
 
     domain_label = ((domain or "") or (artifact.path_within_bundle or ""))[:32]
+
+    _undeclared = sum(
+        1 for er in structured if (er.get("reason_source") or "fallback") != "declared"
+    ) + max(0, len(result.errors) - len(structured))
+    if _undeclared:
+        logger.info(
+            "migration_cloud.apply: %s of %s held row(s) for bundle=%s domain=%s were "
+            "classified by matching the error text rather than a declared reason_code "
+            "— that is the lander-contract backlog, not a per-run problem",
+            _undeclared, len(result.errors), bundle.pk, domain_label,
+        )
 
     # The cap is a runaway guard, not a review policy — but it was SILENT. The
     # board counts every held row (totals["quarantined"]) while only the first
@@ -1928,9 +1969,20 @@ def _quarantine_errors(
         )
     for idx, err in enumerate(result.errors[:QUARANTINE_RECORD_CAP], start=1):
         payload = {"error": err, "artifact": artifact.path_within_bundle}
-        source_row = row_by_error.get(str(err))
+        entry = structured[idx - 1] if aligned else {}
+        source_row = entry.get("row") if aligned else row_by_error.get(str(err))
         if source_row is not None:
             payload["source_row"] = source_row
+        if entry.get("field"):
+            payload["field"] = entry["field"]
+        # Record HOW the class was decided. A remediation pass must be able to
+        # tell a class the lander asserted from one a matcher guessed, and to
+        # refuse to act automatically on a guess.
+        payload["reason_source"] = entry.get("reason_source") or "fallback"
+        issue_class = (
+            normalize_reason_code(entry.get("reason_code"))
+            or _classify_quarantine_issue(err)
+        )
         try:
             # Savepoint: this runs INSIDE the forced-atomic finance apply, and the
             # swallow below would otherwise leave a failed create's needs_rollback set
@@ -1943,7 +1995,7 @@ def _quarantine_errors(
                     domain=domain_label,
                     row_index=idx,
                     payload=payload,
-                    issue_class=_classify_quarantine_issue(err),
+                    issue_class=issue_class,
                     status=MigrationQuarantineRecord.Status.PENDING,
                 )
         except Exception:  # noqa: BLE001 — quarantine writes never block apply
@@ -1953,6 +2005,40 @@ def _quarantine_errors(
                 idx,
                 exc_info=True,
             )
+
+
+def _record_lander_notes(
+    *,
+    bundle: MigrationBundle,
+    artifact: MigrationArtifact,
+    domain: str,
+    result: LanderResult,
+) -> None:
+    """Surface partial-write diagnostics WITHOUT counting them as held rows.
+
+    A note means the row landed but something attached to it did not — an extras
+    write, a custom-attributes sweep. Twelve such sites appended to
+    ``result.errors`` while never incrementing ``result.quarantined``, so each one
+    minted a quarantine record the board's "held for review" count did not
+    include. The banner and the table disagreed, and a school was shown a
+    partial-write warning as though a row had been rejected.
+
+    They are not hidden — that would be reducing a held count by concealing rows,
+    which is the one thing the zero-touch standard forbids. They are logged at
+    WARNING and stashed on the run's summary, filed as what they actually are.
+    """
+    notes = [n for n in (getattr(result, "notes", None) or []) if isinstance(n, dict)]
+    if not notes:
+        return
+    domain_label = ((domain or "") or (artifact.path_within_bundle or ""))[:32]
+    logger.warning(
+        "migration_cloud.apply: %s partial-write note(s) for bundle=%s domain=%s — "
+        "the row landed but an attached write did not: %s",
+        len(notes),
+        bundle.pk,
+        domain_label,
+        "; ".join(str(n.get("note", ""))[:200] for n in notes[:_LANDER_NOTE_LOG_CAP]),
+    )
 
 
 # --- Helpers ----------------------------------------------------------

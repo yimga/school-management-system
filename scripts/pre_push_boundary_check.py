@@ -103,6 +103,12 @@ GATES: list[tuple[str, list[str]]] = [
     # --compare on purpose: the class is at zero, so there is no baseline to hide
     # behind and the very next dead end blocks the push.
     ("actionless-attention-surfaces", ["scan_actionless_attention_surfaces.py"]),
+    # A Migration Cloud lander must KEEP the row it rejected and declare WHY.
+    # You cannot replay a row you did not keep, so this is the prerequisite for
+    # every automated-remediation step in the zero-touch spec. Zero-tolerance and
+    # deliberately WITHOUT --compare: there is no baseline to hide behind, and the
+    # next lander that throws a row away blocks the push.
+    ("lander-row-error-contract", ["scan_lander_row_error_contract.py", "--strict"]),
 ]
 
 # Gates that CANNOT answer without the live Django app registry, and are therefore not

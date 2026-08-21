@@ -58,8 +58,10 @@ from ._helpers import (
     mint_scoped_code,
     model_field_names,
     record_id_mapping,
+    record_row_error,
 )
 from .base import Lander, LanderContext, LanderError, LanderResult, register
+from .reason_codes import LANDER_ERROR, MISSING_REQUIRED
 
 
 def _truthy(v: Any) -> bool:
@@ -124,9 +126,11 @@ class StructureLander(Lander):
             specialty_name = (row.get("specialty") or "").strip()
             subject_name = (row.get("subject") or "").strip()
             if not (year_name and term_name and classroom_name and specialty_name and subject_name):
-                result.quarantined += 1
-                result.errors.append(
-                    f"structure: missing year/term/classroom/specialty/subject in {row!r}"
+                record_row_error(
+                    result,
+                    row,
+                    f"structure: missing year/term/classroom/specialty/subject in {row!r}",
+                    reason_code=MISSING_REQUIRED,
                 )
                 continue
 
@@ -153,10 +157,12 @@ class StructureLander(Lander):
                     names=(year_name, term_name, classroom_name, specialty_name, subject_name),
                 )
             except Exception as exc:  # noqa: BLE001 — per-row quarantine, never abort the scaffold
-                result.quarantined += 1
-                result.errors.append(
+                record_row_error(
+                    result,
+                    row,
                     f"structure provision failed for {classroom_name}/{term_name}/"
-                    f"{subject_name}: {type(exc).__name__}: {exc}"
+                    f"{subject_name}: {type(exc).__name__}: {exc}",
+                    reason_code=LANDER_ERROR,
                 )
         return result
 

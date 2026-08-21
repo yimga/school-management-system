@@ -25,8 +25,10 @@ from ._helpers import (
     filter_to_model_fields,
     model_field_names,
     record_id_mapping,
+    record_row_error,
 )
 from .base import Lander, LanderContext, LanderError, LanderResult, register
+from .reason_codes import LANDER_ERROR, MISSING_REQUIRED
 
 
 class CafeteriaLander(Lander):
@@ -52,9 +54,11 @@ class CafeteriaLander(Lander):
         for row in canonical_rows:
             meal_name = (row.get("meal_plan") or row.get("name") or "").strip()
             if not meal_name:
-                result.quarantined += 1
-                result.errors.append(
-                    f"cafeteria: missing meal name in {row!r}"
+                record_row_error(
+                    result,
+                    row,
+                    f"cafeteria: missing meal name in {row!r}",
+                    reason_code=MISSING_REQUIRED, field="name",
                 )
                 continue
             key = f"{getattr(ctx.school, 'pk', '')}:{meal_name.lower()}"
@@ -106,10 +110,12 @@ class CafeteriaLander(Lander):
                     canonical_obj=obj, domain="cafeteria",
                 )
             except Exception as exc:  # noqa: BLE001
-                result.quarantined += 1
-                result.errors.append(
+                record_row_error(
+                    result,
+                    row,
                     f"cafeteria upsert failed for {meal_name!r}: "
-                    f"{type(exc).__name__}: {exc}"
+                    f"{type(exc).__name__}: {exc}",
+                    reason_code=LANDER_ERROR,
                 )
         return result
 

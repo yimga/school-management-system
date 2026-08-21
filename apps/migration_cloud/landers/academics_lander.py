@@ -36,6 +36,8 @@ from ._helpers import (
     row_marks_deletion,
 )
 from .base import Lander, LanderContext, LanderError, LanderResult, register
+from .reason_codes import LANDER_ERROR, MISSING_REQUIRED
+from .reason_codes import SOURCE_DELETION
 
 
 class AcademicsLander(Lander):
@@ -66,6 +68,7 @@ class AcademicsLander(Lander):
                     "academics: source marked this course deleted — held for review, "
                     "not imported as active; any existing subject is left intact for "
                     "referential safety (remove manually if intended).",
+                    reason_code=SOURCE_DELETION,
                 )
                 continue
             name = (row.get("subject_name") or row.get("name") or "").strip()
@@ -74,8 +77,12 @@ class AcademicsLander(Lander):
             # code when a source only carries a code.
             name = name or code
             if not name:
-                result.quarantined += 1
-                result.errors.append(f"academics: missing subject_name/code in {row!r}")
+                record_row_error(
+                    result,
+                    row,
+                    f"academics: missing subject_name/code in {row!r}",
+                    reason_code=MISSING_REQUIRED, field="subject_name",
+                )
                 continue
 
             if ctx.dry_run:
@@ -101,9 +108,11 @@ class AcademicsLander(Lander):
                     result.skipped += 1
                 record_id_mapping(ctx=ctx, legacy_id=code or name, canonical_obj=obj, domain="academics")
             except Exception as exc:  # noqa: BLE001
-                result.quarantined += 1
-                result.errors.append(
-                    f"academics upsert failed for {name}: {type(exc).__name__}: {exc}"
+                record_row_error(
+                    result,
+                    row,
+                    f"academics upsert failed for {name}: {type(exc).__name__}: {exc}",
+                    reason_code=LANDER_ERROR,
                 )
         return result
 

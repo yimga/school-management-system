@@ -34,6 +34,7 @@ from ._helpers import (
     record_row_error,
 )
 from .base import Lander, LanderContext, LanderError, LanderResult, register
+from .reason_codes import LANDER_ERROR, MISSING_REQUIRED
 
 _NAME_MAX = 120  # magic-number-allow: Specialty/Department.name CharField max_length
 _CODE_MAX = 30   # magic-number-allow: Specialty/Department.code CharField max_length
@@ -59,7 +60,10 @@ class SpecialtyLander(Lander):
         for row in canonical_rows:
             name = (row.get("name") or "").strip()
             if not name:
-                record_row_error(result, row, f"specialty row missing name: {row!r}")
+                record_row_error(
+                    result, row, f"specialty row missing name: {row!r}",
+                    reason_code=MISSING_REQUIRED, field="name",
+                )
                 continue
             source_code = (row.get("code") or "").strip()
             # Trade files append the code to the department ("FASHION DESIGN - FD");
@@ -122,6 +126,7 @@ class SpecialtyLander(Lander):
                 record_row_error(
                     result, row,
                     f"specialty upsert failed for {name!r}: {type(exc).__name__}: {exc}",
+                    reason_code=LANDER_ERROR,
                 )
         return result
 

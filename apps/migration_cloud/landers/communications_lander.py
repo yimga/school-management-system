@@ -32,11 +32,13 @@ from ._helpers import (
     model_field_names,
     persist_dfv_extras,
     record_id_mapping,
+    record_row_error,
     resolve_student,
     staff_lookup_field,
     student_lookup_field,
 )
 from .base import Lander, LanderContext, LanderError, LanderResult, register
+from .reason_codes import INVALID_REF, LANDER_ERROR, MISSING_REQUIRED
 
 
 class CommunicationsLander(Lander):
@@ -69,9 +71,11 @@ class CommunicationsLander(Lander):
             subject = (row.get("subject") or "").strip()
             body = (row.get("body") or "").strip()
             if not recipient_ext or not body:
-                result.quarantined += 1
-                result.errors.append(
-                    f"communications: missing recipient/body in {row!r}"
+                record_row_error(
+                    result,
+                    row,
+                    f"communications: missing recipient/body in {row!r}",
+                    reason_code=MISSING_REQUIRED,
                 )
                 continue
 
@@ -101,10 +105,12 @@ class CommunicationsLander(Lander):
                 )
                 recipient = getattr(sp, "user", None) if sp else None
             if recipient is None:
-                result.quarantined += 1
-                result.errors.append(
+                record_row_error(
+                    result,
+                    row,
                     f"communications: no recipient resolved for {recipient_kind} "
-                    f"{recipient_ext!r}"
+                    f"{recipient_ext!r}",
+                    reason_code=INVALID_REF,
                 )
                 continue
 
@@ -192,10 +198,12 @@ class CommunicationsLander(Lander):
                     result=result,
                 )
             except Exception as exc:  # noqa: BLE001
-                result.quarantined += 1
-                result.errors.append(
+                record_row_error(
+                    result,
+                    row,
                     f"communications upsert failed for {recipient_ext}: "
-                    f"{type(exc).__name__}: {exc}"
+                    f"{type(exc).__name__}: {exc}",
+                    reason_code=LANDER_ERROR,
                 )
         return result
 
