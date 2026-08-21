@@ -14,57 +14,79 @@ values — with nothing on screen saying which. Read as a sentence, the shape of
 the shape of the words, and the irrelevant clause is hidden by JS (and merely labelled,
 not hidden, without it).
 
+WHY EVERY PAIR IS WRAPPED. The line is a flex row that wraps, and the first version let it
+wrap ANYWHERE — so at the width this editor actually renders at, "between" ended one line
+and its time box started the next, and the seven day chips broke 6 + 1. A label separated
+from its control is not a cosmetic problem: it is a label that no longer looks like it
+belongs to anything. Each label+control pair is now one flex item, so the line can only
+break BETWEEN pairs, and the day picker is a seven-column grid that fits seven at any
+width rather than a row that wraps.
+
 NO JAVASCRIPT REQUIRED. The days are real checkboxes styled as chips through
 :checked + label, not buttons that need a script to hold state. With JS off every control
 works and the form submits exactly as before.
 {% endcomment %}
 
 <div class="rmc-sc-sentence" data-rmc-sc-sentence="1">
-  <p class="rmc-sc-sentence__line">
-    <label for="{{ form.name.id_for_label }}">{% trans "Call this rule" %}</label>
-    {{ form.name }}
-  </p>
+  <div class="rmc-sc-sentence__line">
+    <span class="rmc-sc-field rmc-sc-field--grow">
+      <label class="rmc-sc-field__label" for="{{ form.name.id_for_label }}">{% trans "Call this rule" %}</label>
+      {{ form.name }}
+    </span>
+  </div>
 
-  <p class="rmc-sc-sentence__line">
-    <label for="{{ form.mode.id_for_label }}">{% trans "Sync" %}</label>
-    {{ form.mode }}
-
-    <span data-rmc-sc-when="INTERVAL">
-      <label for="{{ form.interval_minutes.id_for_label }}" class="visually-hidden">{{ form.interval_minutes.label }}</label>
-      {{ form.interval_minutes }}
-      <label for="{{ form.window_start.id_for_label }}">{% trans "between" %}</label>
-      {{ form.window_start }}
-      <label for="{{ form.window_end.id_for_label }}">{% trans "and" %}</label>
-      {{ form.window_end }}
+  <div class="rmc-sc-sentence__line">
+    <span class="rmc-sc-field">
+      <label class="rmc-sc-field__label" for="{{ form.mode.id_for_label }}">{% trans "Sync" %}</label>
+      {{ form.mode }}
     </span>
 
-    <span data-rmc-sc-when="AT_TIMES">
-      <label for="{{ form.at_times.id_for_label }}">{% trans "at" %}</label>
-      {{ form.at_times }}
+    <span class="rmc-sc-clause" data-rmc-sc-when="INTERVAL">
+      <span class="rmc-sc-field">
+        <label class="rmc-sc-field__label visually-hidden" for="{{ form.interval_minutes.id_for_label }}">{{ form.interval_minutes.label }}</label>
+        {{ form.interval_minutes }}
+      </span>
+      <span class="rmc-sc-field">
+        <label class="rmc-sc-field__label" for="{{ form.window_start.id_for_label }}">{% trans "between" %}</label>
+        {{ form.window_start }}
+      </span>
+      <span class="rmc-sc-field">
+        <label class="rmc-sc-field__label" for="{{ form.window_end.id_for_label }}">{% trans "and" %}</label>
+        {{ form.window_end }}
+      </span>
     </span>
-  </p>
 
-  <p class="rmc-sc-sentence__line">
-    <span id="{{ form.days_of_week.auto_id }}_label">{% trans "on" %}</span>
-    <span class="rmc-sc-daypick" role="group" aria-labelledby="{{ form.days_of_week.auto_id }}_label">
-      {% for day in form.days_of_week %}
-        <span class="rmc-sc-daypick__slot">
-          {{ day.tag }}
-          <label class="rmc-sc-daypick__day" for="{{ day.id_for_label }}" title="{{ day.choice_label }}">
-            <span aria-hidden="true">{{ day.choice_label|slice:":1" }}</span>
-            <span class="visually-hidden">{{ day.choice_label }}</span>
-          </label>
-        </span>
-      {% endfor %}
+    <span class="rmc-sc-clause" data-rmc-sc-when="AT_TIMES">
+      <span class="rmc-sc-field rmc-sc-field--grow">
+        <label class="rmc-sc-field__label" for="{{ form.at_times.id_for_label }}">{% trans "at" %}</label>
+        {{ form.at_times }}
+      </span>
     </span>
-  </p>
+  </div>
 
-  <p class="rmc-sc-sentence__line">
-    <span class="form-check">
+  <div class="rmc-sc-sentence__line">
+    <span class="rmc-sc-field rmc-sc-field--grow">
+      <span class="rmc-sc-field__label" id="{{ form.days_of_week.auto_id }}_label">{% trans "on" %}</span>
+      <span class="rmc-sc-daypick" role="group" aria-labelledby="{{ form.days_of_week.auto_id }}_label">
+        {% for day in form.days_of_week %}
+          <span class="rmc-sc-daypick__slot">
+            {{ day.tag }}
+            <label class="rmc-sc-daypick__day" for="{{ day.id_for_label }}" title="{{ day.choice_label }}">
+              <span aria-hidden="true">{{ day.choice_label|slice:":1" }}</span>
+              <span class="visually-hidden">{{ day.choice_label }}</span>
+            </label>
+          </span>
+        {% endfor %}
+      </span>
+    </span>
+  </div>
+
+  <div class="rmc-sc-sentence__line">
+    <span class="form-check rmc-sc-field">
       {{ form.is_enabled }}
       <label class="form-check-label" for="{{ form.is_enabled.id_for_label }}">{{ form.is_enabled.label }}</label>
     </span>
-  </p>
+  </div>
 
   {% if form.at_times.help_text %}
     <p class="rmc-sc-band__note" data-rmc-sc-when="AT_TIMES">{{ form.at_times.help_text }}</p>

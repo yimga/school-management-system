@@ -101,7 +101,7 @@ class BoxHonoursTheDirectiveTests(TestCase):
         from apps.sync_engine import sync_runner
         from apps.sync_engine.delta_bundle import export_delta_bundle
 
-        def _pull(endpoint, token, *, since=None, entities=None, timeout=30.0, collect=None):
+        def _pull(endpoint, token, *, since=None, entities=None, timeout=30.0, collect=None, **_kw):
             if collect is not None:
                 collect["directive"] = directive
             # A non-empty high-water: the pre-fix bug was that this value, recorded on the
@@ -139,7 +139,7 @@ class BoxHonoursTheDirectiveTests(TestCase):
         self._cycle(directive="full-resync")
         seen = {}
 
-        def _pull(endpoint, token, *, since=None, entities=None, timeout=30.0, collect=None):
+        def _pull(endpoint, token, *, since=None, entities=None, timeout=30.0, collect=None, **_kw):
             from apps.sync_engine.delta_bundle import export_delta_bundle
 
             seen["since"] = since

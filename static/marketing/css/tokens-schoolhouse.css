@@ -82,7 +82,12 @@ html[data-theme="dark"][data-mkt-edition="editorial"],
 html[data-theme="dark"][data-mkt-schoolhouse="true"] {
   --mkt-surface: #0C1422;
   --mkt-ink: #F5F1EA;
-  --mkt-ink-2: #94A3B8;
+  /* Was #94A3B8 -- cool slate (215deg) beside a warm ivory primary (38deg) on the same
+     ground. The LIGHT block above is coherent (#0F1B2D / #475569, both cool); dark
+     switched its primary to editorial ivory and left the secondary behind. It feeds
+     --mkt-edt-ink-muted, so it paints every muted line on the dark editorial surface.
+     Same lightness step below the primary, the ramp's own hue, 7.82:1 (was 7.19:1). */
+  --mkt-ink-2: #AFA89D;
   --mkt-edt-bg: var(--mkt-surface);
   --mkt-edt-ink: var(--mkt-ink);
   --mkt-edt-ink-muted: var(--mkt-ink-2);

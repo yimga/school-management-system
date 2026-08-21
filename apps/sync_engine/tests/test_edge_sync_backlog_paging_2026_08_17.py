@@ -77,9 +77,17 @@ def _empty_pull_for(school):
 
     The bundle must be signed for THIS school — ``verify_and_parse_bundle`` enforces the
     school binding, so a stub bound to anything else reads as ``school_mismatch``.
+
+    ``**_kw`` is load-bearing, not laziness. ``pull_bundle`` gains ADDITIVE keyword
+    arguments over time (``collect=`` for the directive, ``parity=`` for the G8 digest),
+    and each one is optional at the real call site. A stub that pins the signature turns
+    every such addition into a suite-wide failure that looks like a product regression:
+    the TypeError is swallowed by ``run_sync_cycle``'s never-raise wrapper and surfaces
+    as ``pull failed: ... unexpected keyword argument``, i.e. an assertion about cursors
+    failing for reasons that have nothing to do with cursors. Accept and ignore.
     """
 
-    def _pull(endpoint, token, *, since=None, entities=None, timeout=30.0, collect=None):
+    def _pull(endpoint, token, *, since=None, entities=None, timeout=30.0, collect=None, **_kw):
         from apps.sync_engine.delta_bundle import export_delta_bundle
 
         return 200, export_delta_bundle(
@@ -248,7 +256,7 @@ class PullCursorTests(TestCase):
 
         seen = {}
 
-        def _pull(endpoint, token, *, since=None, entities=None, timeout=30.0, collect=None):
+        def _pull(endpoint, token, *, since=None, entities=None, timeout=30.0, collect=None, **_kw):
             seen["since"] = since
             return _empty_pull_for(self.school)(endpoint, token, since=since, entities=entities)
 
@@ -264,7 +272,7 @@ class PullCursorTests(TestCase):
         stamp = timezone.now().replace(microsecond=0)
         calls = []
 
-        def _pull(endpoint, token, *, since=None, entities=None, timeout=30.0, collect=None):
+        def _pull(endpoint, token, *, since=None, entities=None, timeout=30.0, collect=None, **_kw):
             from apps.sync_engine.delta_bundle import export_delta_bundle
 
             calls.append(since)
@@ -292,7 +300,7 @@ class PullCursorTests(TestCase):
 
         calls = []
 
-        def _pull(endpoint, token, *, since=None, entities=None, timeout=30.0, collect=None):
+        def _pull(endpoint, token, *, since=None, entities=None, timeout=30.0, collect=None, **_kw):
             calls.append(since)
             return 503, b"", timezone.now().isoformat()
 

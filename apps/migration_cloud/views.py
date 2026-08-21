@@ -43,7 +43,11 @@ from apps.migration_cloud.schema_binding import resolve_school_schema_name
 from .ai_bridge import AIProposal, record_operator_feedback, remember_mapping_decision
 from .quarantine_resolution import (
     QUARANTINE_ISSUE_LABELS,
-    QUARANTINE_NO_ACTION_CLASSES,
+    # Deliberate re-export, not dead. reason_codes.py records that the lander
+    # mirrors this set, and test_no_action_classes_agree_with_the_view_layer
+    # imports it FROM HERE to assert the two never drift apart. `ruff --fix`
+    # would delete it and break that test with an ImportError.
+    QUARANTINE_NO_ACTION_CLASSES,  # noqa: F401
     apply_quarantine_action,
     enrich_quarantine_row,
     export_quarantine_csv,

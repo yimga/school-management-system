@@ -7,7 +7,15 @@
 :root {
   --rmc-premium-bg: #f7f9fc;
   --rmc-premium-ink: #111827;
-  --rmc-premium-muted: #857c70;
+  /* Was #857c70 -- warm taupe (34deg) in a ramp whose ground is 216deg and whose ink is
+     221deg, i.e. the same borrowed-ramp defect as `ink`/`midnight`, and worse here
+     because it also FAILED AA: 3.89:1 on --rmc-premium-bg and 4.11:1 on a white card.
+     This token is not decorative -- rmc-premium-polish.css paints marketing section
+     paragraphs, portal and control-plane page subtitles, and table `thead th` with it,
+     on both base.html and control_plane_base.html. Slate-600 matches the ramp and
+     clears AA with room (7.18:1 / 7.58:1); one step darker than slate-500 for the same
+     reason design-tokens.css moved --text-tertiary off stone-500. */
+  --rmc-premium-muted: #475569;
   --rmc-premium-line: rgba(26, 22, 18, 0.1);
   --rmc-premium-surface: rgba(255, 255, 255, 0.9);
   --rmc-premium-surface-strong: #ffffff;

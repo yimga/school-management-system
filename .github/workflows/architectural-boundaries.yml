@@ -383,6 +383,23 @@ jobs:
         run: |
           python -m unittest scripts.tests.test_scan_lander_row_error_contract -v
 
+  theme-hue-coherence:
+    name: A theme sits in one hue family
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run scanner --strict
+        run: |
+          python scripts/scan_theme_hue_coherence.py --strict
+      - name: Unit tests
+        run: |
+          python -m unittest scripts.tests.test_scan_theme_hue_coherence -v
+
   migration-cloud-provision-boundary:
     name: Migration Cloud must not dispatch school provision
     runs-on: ubuntu-latest

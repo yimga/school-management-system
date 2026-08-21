@@ -5,7 +5,6 @@ from django.test import SimpleTestCase, TestCase
 from apps.automation.models import MigrationQuarantineRecord, MigrationRun
 from apps.migration_cloud.models import BundleStatus, IntakeMethod, MigrationBundle
 from apps.migration_cloud.quarantine_resolution import (
-    QUARANTINE_NO_ACTION_CLASSES,
     apply_quarantine_action,
     enrich_quarantine_row,
     infer_field_flags,
