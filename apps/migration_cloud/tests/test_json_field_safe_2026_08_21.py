@@ -25,7 +25,7 @@ from apps.schools.models import School
 class JsonFieldSafeTests(TestCase):
     def test_jsonable_coerces_model_instances_to_pk(self):
         school = School.objects.create(name="JSON Safe School", slug="json-safe-school")
-        self.assertEqual(_jsonable(school), school.pk)
+        self.assertEqual(_jsonable(school), str(school.pk))
 
     def test_json_field_safe_nested_school_in_old_snapshot(self):
         school = School.objects.create(name="Rollback School", slug="rollback-school")
@@ -36,7 +36,9 @@ class JsonFieldSafeTests(TestCase):
         }
         safe = json_field_safe(payload)
         json.dumps(safe)  # must not raise
-        self.assertEqual(safe["updated_ids_with_old_values"][0]["old"]["school"], school.pk)
+        self.assertEqual(
+            safe["updated_ids_with_old_values"][0]["old"]["school"], str(school.pk)
+        )
 
     def test_finalize_audit_run_persists_rollback_snapshot_with_fk_old_values(self):
         school = School.objects.create(name="Audit Run School", slug="audit-run-school")
@@ -67,11 +69,11 @@ class JsonFieldSafeTests(TestCase):
         run.refresh_from_db()
         self.assertEqual(run.rollback_snapshot["created_ids"], [99])
         old = run.rollback_snapshot["updated_ids_with_old_values"][0]["old"]
-        self.assertEqual(old["school"], school.pk)
+        self.assertEqual(old["school"], str(school.pk))
         self.assertEqual(old["first_name"], "Before")
         json.dumps(run.rollback_snapshot)
 
     def test_orchestrator_json_safe_delegates_to_helper(self):
         school = School.objects.create(name="Delegate School", slug="delegate-school")
         out = _json_safe({"school": school})
-        self.assertEqual(out["school"], school.pk)
+        self.assertEqual(out["school"], str(school.pk))

@@ -688,7 +688,10 @@ def _jsonable(value: Any) -> Any:
         from django.db.models import Model
 
         if isinstance(value, Model):
-            return value.pk
+            pk = value.pk
+            if pk is None or isinstance(pk, (str, int, float, bool)):
+                return pk
+            return str(pk)
     except Exception:  # noqa: BLE001
         pass
     iso = getattr(value, "isoformat", None)
