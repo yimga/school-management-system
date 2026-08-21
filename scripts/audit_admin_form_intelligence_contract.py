@@ -5,6 +5,12 @@ This is a read-only release gate.  It resolves the add and change form class for
 every registered model on both real AdminSite instances and proves that field
 classification, tenant ownership, evidence ownership and preference metadata
 remain complete and disjoint.
+
+It also covers INLINE formsets, which are attached as a class attribute rather
+than registered and were therefore proven by nothing until 2026-08-21: 30 inline
+classes were attached across the two sites and none carried any of the policy, so
+system-evidence fields were editable there and tenant ownership was posted from
+the client.  A regression that reaches only the inlines now turns this gate red.
 """
 
 from __future__ import annotations
@@ -100,6 +106,10 @@ def _audit_site(
         "system_hidden_fields": 0,
         "models_with_school": 0,
         "school_fields_exposed": 0,
+        "inline_classes": 0,
+        "inline_classes_automated": 0,
+        "inline_school_fields_exposed": 0,
+        "inferred_hidden_fields": 0,
     }
 
     for model, model_admin in site._registry.items():
@@ -122,6 +132,52 @@ def _audit_site(
         has_school = any(field.name == "school" for field in model._meta.fields)
         if has_school:
             metrics["models_with_school"] += 1
+
+        # Inlines are where bulk entry happens and they are attached as a class
+        # attribute, not registered — so nothing else proves they are covered.
+        for inline_class in getattr(model_admin, "inlines", ()) or ():
+            metrics["inline_classes"] += 1
+            inline_label = getattr(
+                getattr(inline_class, "model", None), "_meta", None
+            )
+            inline_name = (
+                inline_label.label_lower if inline_label else inline_class.__name__
+            )
+            if not getattr(inline_class, "_rmc_admin_inline_automation", False):
+                findings.append(
+                    f"{label}:{model_label}:inline:{inline_name}:automation-missing"
+                )
+                continue
+            metrics["inline_classes_automated"] += 1
+            try:
+                inline = inline_class(model, site)
+                inline_excluded = set(inline.get_exclude(request, None) or ())
+                inline_readonly = set(inline.get_readonly_fields(request, None) or ())
+            except Exception as exc:  # pragma: no cover - release ledger
+                findings.append(
+                    f"{label}:{model_label}:inline:{inline_name}:"
+                    f"error:{type(exc).__name__}:{exc}"
+                )
+                continue
+            inline_model = inline_class.model
+            if (
+                label == "tenant"
+                and any(f.name == "school" for f in inline_model._meta.fields)
+                and "school" not in inline_excluded
+            ):
+                metrics["inline_school_fields_exposed"] += 1
+                findings.append(
+                    f"{label}:{model_label}:inline:{inline_name}:school-editable"
+                )
+            inline_evidence = {
+                name for name in SYSTEM_EVIDENCE_FIELDS if hasattr(inline_model, name)
+            }
+            inline_gap = inline_evidence - inline_readonly - inline_excluded
+            if inline_gap:
+                findings.append(
+                    f"{label}:{model_label}:inline:{inline_name}:"
+                    "system-evidence-editable:" + ",".join(sorted(inline_gap))
+                )
 
         for mode in ("add", "change"):
             try:
@@ -181,6 +237,22 @@ def _audit_site(
                 findings.append(f"{label}:{model_label}:{mode}:school-editable")
             if not contract.endpoint:
                 findings.append(f"{label}:{model_label}:{mode}:endpoint-missing")
+
+            # Usage-derived hiding must obey the same rules as chosen hiding: only
+            # optional fields, and every inferred name must also be in `hidden`.
+            inferred = set(getattr(contract, "inferred_hidden_fields", ()) or ())
+            if inferred - optional:
+                findings.append(
+                    f"{label}:{model_label}:{mode}:inferred-not-optional:"
+                    + ",".join(sorted(inferred - optional))
+                )
+            if inferred - set(contract.hidden_fields):
+                findings.append(
+                    f"{label}:{model_label}:{mode}:inferred-not-hidden:"
+                    + ",".join(sorted(inferred - set(contract.hidden_fields)))
+                )
+            if mode == "add":
+                metrics["inferred_hidden_fields"] += len(inferred)
 
             if mode == "add":
                 metrics["required_editable_fields"] += len(required)

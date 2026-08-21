@@ -2,7 +2,91 @@
 
 **Last updated:** 2026-08-21
 
-## 2026-08-21 (latest) — Platform palette sweep: three more borrowed ramps, and a hole in the gate
+## 2026-08-21 (latest) — The admin auto-fill engine was wired to 100% of the platform and the registry answered for 0.2% of it
+
+**No SW bump: this wave ships no CSS and no JS.** One template changed
+(`admin/includes/admin_field_visibility.html`) and it reuses the picker's existing
+classes deliberately, so there is nothing cached to invalidate. No model change, no
+migration. Full audit: [`docs/ADMIN_AUTOFILL_AUDIT_2026_08_21.md`](ADMIN_AUTOFILL_AUDIT_2026_08_21.md).
+
+**The finding that set the shape of the work.** `config/admin.py`'s
+`BaseRunMyCampusAdminSite.register()` rebuilds every incoming admin class as
+`type(name, (AdminFormAutomationMixin, base), ...)`, so `get_changeform_initial_data`
+called `build_admin_smart_initials` for **all 478 registrations across both sites**.
+`INITIAL_BUILDERS` held **one entry**. The engine reached the whole platform; the
+registry answered for 0.2% of it, and **961 required fields arrived empty on every
+add form** (579 tenant + 382 operator).
+
+**The number that lies, recorded so nobody acts on it twice.** A source-inheritance
+scan for the mixin reports **0 of 460** — it is injected at registration, so no admin
+class in `apps/` names it. Acting on that number means adding the mixin to hundreds
+of classes that already have it; the `_rmc_admin_form_automation` guard exists
+precisely to make that a no-op. Coverage is asserted against the live `_registry`,
+never searched for in source.
+
+**What landed**
+
+| | |
+|---|---|
+| Generic field resolvers | 9, matched by field SHAPE not name — relational resolvers compare `_meta.concrete_model`, so the `global_registries.RegionConfig` **proxy** resolves through to `siteconfig.RegionConfig` with no alias table; scalar resolvers check `choices` membership and `max_length` before offering a value. |
+| Reach | **0 → 123 registered models / 162 fields**; models receiving any suggestion **1 → 68**. |
+| Tenant scoping | `apps/automation/helpers.py::get_current_academic_year()` queried **all schools**; it gained an optional `school=` (existing callers unchanged) rather than being forked, which `scan_config_resolver_fragmentation` would have caught anyway. |
+| Usage-derived visibility | New `apps/siteconfig/admin_field_usage.py`. 3,642 fields are presented and only 1,608 are required; this counts, per model AND per school, which optional fields that school's own records never use, and starts them hidden. |
+| Cross-field consistency | A `Term` belongs to exactly one `AcademicYear` (13 registered models carry the pair); a disagreement is now rejected server-side. |
+| Inline formsets | **30 attached across both sites, 0 carried any policy** — system evidence was editable there and tenant ownership was posted from the client. Now **30/30** via the same registration-time injection, plus `save_formset` binding `school` from the request. |
+
+**What it deliberately refuses to fill.** `user` appears on 39 models and would have
+been the single largest coverage number in the wave. On `compliance.auditlog` it is
+the *subject* of an audited action; on `apicenter.oauthauthorizationcode` it is the
+token's resource owner; on neither is it "whoever opened the form". A wrong pre-fill
+is worse than a blank one because a person accepts it.
+
+**Honest measurement, and the gap in it.** Same instrument, same shared database,
+base `e984178bb` → this branch: required-and-empty **961 → 925 (−36)**. That is far
+short of the 162 fields now reachable, and the reason is the measuring tenant, not
+the code — `gilead-school` has `default_region=None`, `country_code=''`,
+`currency=''`, `default_language=''` and **zero** TeacherProfile rows, so five of the
+nine resolvers cannot fire at all. Separately, **not one of 141 tenant-scoped models
+has the 25 rows** the usage inference requires, so that feature is proven by test
+fixtures only and is unproven on real data. Roughly **two-thirds of the remaining
+925 is irreducible by pre-fill** anyway (305 are content a human writes, ~240 are
+relational choices) — pushing past that means guessing.
+
+**Sealing.** `audit_admin_form_intelligence_contract.py` extended to cover inlines +
+inferred-hidden disjointness (**mutation-proved**: disabling inline injection yields
+30 findings, exit 1). New `audit_admin_autofill_coverage.py` coverage ratchet
+(**mutation-proved**: deleting the `academic_year` resolver reports
+`resolver_reachable_models 90 -> 78`, exit 1), wired into `ci.yml` +
+`pre_push_boundary_check.py::DJANGO_GATES` + `REQUIRED_GATES` + the CLAUDE.md table —
+all four, because a gate wired into some of them reports green from the place nobody
+reads. The ratchet guards only STRUCTURAL metrics; `prefilled`/`builder_hits`/
+`required_empty` depend on the database and `ci.yml` seeds a single empty school, so
+ratcheting them would be a gate that proves nothing.
+
+**Twenty admin scripts were invoked by nothing, and running them was the finding.**
+`scripts/` held 20 `audit_*admin*` / `verify_*admin*` scripts wired into no workflow
+and no runner. Running all 19 runnable ones: **11 pass** in under a second each and
+are now wired into `architectural-boundaries.yml` + pre-push + `REQUIRED_GATES` (67
+required gates, 0 un-wired); **4 are RED on main**; **2 hang** with no output.
+
+The four red ones share one root cause and it is a **design fault, not an admin
+defect**: they assert an *exact* service-worker version and cache-bust string from
+`var/admin-approval-build-lock.json` (`sms-v4.06.71-…`, `?v=20260811-experience-runtime-v172`),
+while the deploy checklist requires bumping `CACHE_VERSION` every wave — so they go
+red on every wave by construction, which is why nobody wired them.
+`verify_service_worker_version.py` already asks this correctly (shape +
+monotonicity) and **is** wired; the four duplicate it in a form that cannot hold.
+**The approval lock was NOT bumped to make them green** — that lock records that a
+specific admin build was *approved*, and editing it would assert an approval nobody
+gave.
+
+**Also found, not fixed.** `apps/finance/tasks.py:1027` resolves the academic year
+**before** resolving `school` on line 1035, then generates invoices for that school
+against the globally-resolved year — in a multi-school deployment it can bill school
+B on school A's calendar. The fix is now available (`get_current_academic_year(school=…)`)
+but reordering money-generating code needs its own test and its own wave.
+
+## 2026-08-21 — Platform palette sweep: three more borrowed ramps, and a hole in the gate
 
 SW bumped `sms-v4.06.77` → `sms-v4.06.78-platform-palette-coherence-2026-08-21`. No model
 change, no migration.

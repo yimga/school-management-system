@@ -383,6 +383,37 @@ jobs:
         run: |
           python -m unittest scripts.tests.test_scan_lander_row_error_contract -v
 
+  admin-surface-contracts:
+    name: Admin surface contracts (previously invoked by nothing)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: admin-canvas-contract
+        run: python scripts/audit_django_admin_canvas_contract.py
+      - name: admin-surface-leftovers
+        run: python scripts/audit_django_admin_surface_leftovers.py
+      - name: admin-os-empty-space
+        run: python scripts/verify_admin_os_empty_space.py
+      - name: admin-os-sections-restore
+        run: python scripts/verify_admin_os_sections_restore.py
+      - name: admin-os-three-click-sla
+        run: python scripts/verify_admin_os_three_click_sla.py
+      - name: admin-production-upgrade
+        run: python scripts/verify_admin_production_upgrade.py
+      - name: admin-replacement-roadmap
+        run: python scripts/verify_admin_replacement_roadmap.py
+      - name: admin-super-help-nav-bridge
+        run: python scripts/verify_admin_super_help_nav_bridge.py
+      - name: operator-admin-sidebar-v2
+        run: python scripts/verify_operator_admin_sidebar_v2.py
+      - name: tenant-admin-sidebar-v2
+        run: python scripts/verify_tenant_admin_sidebar_v2.py
+
   theme-hue-coherence:
     name: A theme sits in one hue family
     runs-on: ubuntu-latest

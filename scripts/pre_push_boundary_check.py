@@ -57,6 +57,24 @@ GATES: list[tuple[str, list[str]]] = [
     # First: a module that does not compile cannot be imported at all, and every
     # gate below it is answering about a tree that does not run.
     ("python-files-parse", ["verify_python_files_parse.py"]),
+    # The admin-surface family. Every one of these was written as a pass/fail gate,
+    # passes on the current tree, and runs in under a second -- and until 2026-08-21
+    # not one was invoked by any workflow or by this runner, so nothing distinguished
+    # 'this area is covered' from 'nobody has looked'. Four SIBLINGS of these are
+    # deliberately absent because they are currently RED (they pin an exact
+    # service-worker version and cache-bust string from
+    # var/admin-approval-build-lock.json that peer waves have moved past) and two more
+    # hang; see docs/CSS_RETIREMENT_DOCKET.md.
+    ("admin-canvas-contract", ["audit_django_admin_canvas_contract.py"]),
+    ("admin-surface-leftovers", ["audit_django_admin_surface_leftovers.py"]),
+    ("admin-os-empty-space", ["verify_admin_os_empty_space.py"]),
+    ("admin-os-sections-restore", ["verify_admin_os_sections_restore.py"]),
+    ("admin-os-three-click-sla", ["verify_admin_os_three_click_sla.py"]),
+    ("admin-production-upgrade", ["verify_admin_production_upgrade.py"]),
+    ("admin-replacement-roadmap", ["verify_admin_replacement_roadmap.py"]),
+    ("admin-super-help-nav-bridge", ["verify_admin_super_help_nav_bridge.py"]),
+    ("operator-admin-sidebar-v2", ["verify_operator_admin_sidebar_v2.py"]),
+    ("tenant-admin-sidebar-v2", ["verify_tenant_admin_sidebar_v2.py"]),
     # Its sibling, and for a worse failure mode: a JavaScript file that does not parse
     # fails SILENTLY in the browser - the tag 200s, the console throws, and the page
     # renders normally with one feature dead. Skipped (not failed) when Node is absent,
@@ -133,6 +151,19 @@ GATES: list[tuple[str, list[str]]] = [
 # stdlib gate above.
 DJANGO_GATES: list[tuple[str, list[str]]] = [
     ("rls-table-coverage", ["scan_rls_table_coverage.py", "--compare"]),
+    # Structural floor only: how many models a resolver or builder can reach.
+    # The headline coverage numbers depend on the database and are deliberately
+    # NOT ratcheted -- see the script's docstring.
+    (
+        "admin-autofill-coverage",
+        [
+            "audit_admin_autofill_coverage.py",
+            "--compare",
+            "var/admin-autofill-coverage-baseline.json",
+            "--top",
+            "0",
+        ],
+    ),
 ]
 
 _PER_GATE_TIMEOUT_S = 120

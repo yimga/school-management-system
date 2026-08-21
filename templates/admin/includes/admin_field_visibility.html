@@ -8,6 +8,15 @@
     <div class="rmc-admin-field-picker__heading">
       <strong>{% trans "Fields on this form" %}</strong>
       <span>{% trans "Required fields always stay visible." %}</span>
+      {% if admin_field_contract.inferredHidden %}
+      <span data-rmc-field-inference-note>
+        {% blocktrans count rows=admin_field_contract.inferenceSampleRows trimmed %}
+        Some optional fields start hidden because none of this school's {{ rows }} existing record uses them. Show all brings them back.
+        {% plural %}
+        Some optional fields start hidden because none of this school's {{ rows }} existing records use them. Show all brings them back.
+        {% endblocktrans %}
+      </span>
+      {% endif %}
     </div>
     <div class="rmc-admin-field-picker__presets" aria-label="{% trans 'Field presets' %}">
       <button type="button" data-rmc-field-preset="recommended">{% trans "Recommended fields" %}</button>
@@ -23,6 +32,7 @@
                {% if item.name not in admin_field_contract.hidden %}checked{% endif %}>
         <span>{{ item.label }}</span>
         {% if item.recommended %}<em>{% trans "Recommended" %}</em>{% endif %}
+        {% if item.name in admin_field_contract.inferredHidden %}<em data-rmc-field-inferred-hidden>{% trans "Never used here" %}</em>{% endif %}
       </label>
       {% endfor %}
     </div>

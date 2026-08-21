@@ -21,17 +21,24 @@ def get_cached_site_settings(*, school=None):
     return site
 
 
-def get_current_academic_year() -> Optional[AcademicYear]:
+def get_current_academic_year(school=None) -> Optional[AcademicYear]:
     """
     Returns active academic year, or most recent if none active.
     Falls back to most recent year if no active year found.
+
+    ``school`` scopes every lookup to one tenant.  Callers that can name the
+    tenant MUST pass it: without it this resolver reads across all schools and
+    can return another tenant's year, which is why the Django-admin initial
+    builders always supply one.  The parameter defaults to ``None`` so existing
+    callers running inside a single-tenant context keep their behaviour.
     """
     now = timezone.now().date()
+    scope = {"school": school} if school is not None else {}
 
     # First try: active year that contains today's date
     # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
     active = AcademicYear.objects.filter(
-        start_date__lte=now, end_date__gte=now, is_active=True
+        start_date__lte=now, end_date__gte=now, is_active=True, **scope
     ).first()
 
     if active:
@@ -39,22 +46,33 @@ def get_current_academic_year() -> Optional[AcademicYear]:
 
     # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
     # Second try: any active year
-    active = AcademicYear.objects.filter(is_active=True).order_by("-start_date").first()
+    active = (
+        AcademicYear.objects.filter(is_active=True, **scope)
+        .order_by("-start_date")
+        .first()
+    )
 
     if active:
         return active
 
     # Fallback: most recent year by start date
-    return AcademicYear.objects.order_by("-start_date").first()
+    # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
+    return AcademicYear.objects.filter(**scope).order_by("-start_date").first()
 
 
-def get_current_term(academic_year: Optional[AcademicYear] = None) -> Optional[Term]:
+def get_current_term(
+    academic_year: Optional[AcademicYear] = None, school=None
+) -> Optional[Term]:
     """
     Returns current term based on today's date.
     If academic_year is provided, only searches within that year.
+
+    ``school`` is forwarded to :func:`get_current_academic_year` when the year
+    has to be resolved here, so a caller that names its tenant cannot be handed
+    another tenant's term.
     """
     if not academic_year:
-        academic_year = get_current_academic_year()
+        academic_year = get_current_academic_year(school=school)
 
     if not academic_year:
         return None

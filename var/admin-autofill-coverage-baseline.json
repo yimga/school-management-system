@@ -1,0 +1,46 @@
+{
+  "note": "Totals only. --compare reads sites.*.totals and registry_builders; per-model rows are reporting detail, not baseline state.",
+  "ok": true,
+  "registry_builders": 1,
+  "school_used": "gilead-school",
+  "sites": {
+    "operator": {
+      "totals": {
+        "builder_hits": 12,
+        "builder_models": 0,
+        "inferred_hidden": 0,
+        "models_fully_prefilled": 6,
+        "models_with_errors": 0,
+        "prefilled": 611,
+        "prefilled_pct": 38.74,
+        "presented": 1577,
+        "registered_models": 197,
+        "required": 659,
+        "required_empty": 381,
+        "resolver_reachable_fields": 40,
+        "resolver_reachable_models": 33,
+        "site": "operator",
+        "visible": 1577
+      }
+    },
+    "tenant": {
+      "totals": {
+        "builder_hits": 56,
+        "builder_models": 1,
+        "inferred_hidden": 0,
+        "models_fully_prefilled": 12,
+        "models_with_errors": 0,
+        "prefilled": 781,
+        "prefilled_pct": 37.82,
+        "presented": 2065,
+        "registered_models": 281,
+        "required": 949,
+        "required_empty": 544,
+        "resolver_reachable_fields": 122,
+        "resolver_reachable_models": 90,
+        "site": "tenant",
+        "visible": 2065
+      }
+    }
+  }
+}

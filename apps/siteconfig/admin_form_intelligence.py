@@ -116,6 +116,20 @@ SYSTEM_EVIDENCE_FIELDS = frozenset(
     }
 )
 
+#: (child, parent) pairs where the child record STRUCTURALLY belongs to exactly one
+#: parent, so the two selections disagreeing is unambiguously a data error rather
+#: than an unusual-but-legal combination.  A ``Term`` has one ``academic_year``; a
+#: ``SubjectAssignment`` has one of each.  Deliberately an explicit list and NOT a
+#: generic "child has an FK to parent's model" rule: ``student`` and ``classroom``
+#: are related that way too, and a student sitting an exam in another room is
+#: perfectly legal — a generic rule would reject real data, which is worse than not
+#: checking at all.  13 registered models carry the term/year pair.
+RELATION_CONTAINMENT_PAIRS = (
+    ("term", "academic_year"),
+    ("subject_assignment", "academic_year"),
+    ("subject_assignment", "term"),
+)
+
 RANGE_FIELD_PAIRS = (
     ("start_date", "end_date"),
     ("starts_on", "ends_on"),
@@ -190,6 +204,13 @@ class AdminFieldContract:
     recommended_fields: tuple[str, ...]
     hidden_fields: tuple[str, ...]
     system_hidden_fields: tuple[str, ...]
+    #: Fields hidden because THIS school's own records never use them, not because
+    #: the person chose to hide them.  Carried separately so the surface can say so.
+    inferred_hidden_fields: tuple[str, ...] = ()
+    #: Rows the usage inference was drawn from; 0 means no inference ran.
+    inference_sample_rows: int = 0
+    #: field name -> why its suggested value came from a fallback.
+    suggestion_notes: tuple[tuple[str, str], ...] = ()
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -204,6 +225,12 @@ class AdminFieldContract:
             "recommendedLabel": gettext("Recommended"),
             "hidden": list(self.hidden_fields),
             "systemHidden": list(self.system_hidden_fields),
+            "inferredHidden": list(self.inferred_hidden_fields),
+            "inferenceSampleRows": self.inference_sample_rows,
+            "inferenceReason": gettext(
+                "Hidden because this school's existing records have never used it."
+            ),
+            "suggestionNotes": dict(self.suggestion_notes),
         }
 
 
@@ -346,6 +373,40 @@ def _rendered_form_field_names(*, model_admin, request: HttpRequest, form, obj=N
     return tuple(name for name in declared_names if name in rendered)
 
 
+def _inferred_hidden_fields(*, model_admin, request, optional_names) -> tuple[tuple[str, ...], int]:
+    """Optional fields this school's own records have never used."""
+    if model_admin.admin_site.is_platform_site():
+        # The operator site is not looking at one school's records, so "this
+        # tenant never uses it" is not a question that has an answer here.
+        return (), 0
+    school = getattr(request, "school", None)
+    if school is None:
+        return (), 0
+    try:
+        from apps.siteconfig.admin_field_usage import derive_unused_optional_fields
+
+        unused, rows = derive_unused_optional_fields(
+            model_admin.model, school, optional_names
+        )
+    except (DatabaseError, ImportError, TypeError, ValueError):
+        logger.warning("admin field-usage inference unavailable", exc_info=True)
+        return (), 0
+    return tuple(sorted(unused & set(optional_names))), rows
+
+
+def _suggestion_notes(model_admin, request) -> dict[str, str]:
+    """Why a suggested value came from a fallback, for display beside the field."""
+    try:
+        from apps.siteconfig.admin_smart_initials import (
+            build_admin_smart_initials_detailed,
+        )
+
+        _values, notes = build_admin_smart_initials_detailed(model_admin.model, request)
+    except (DatabaseError, ImportError, TypeError, ValueError):
+        return {}
+    return notes
+
+
 def _contract_for_form(
     *,
     model_admin,
@@ -411,6 +472,15 @@ def _contract_for_form(
         for name in _ordered_unique(stored.get("hidden", []))
         if name in optional_names
     ]
+    # Usage inference is a STARTING position, not an override.  Once this person has
+    # curated this surface at all, their choice is the entire answer.
+    inferred: tuple[str, ...] = ()
+    sample_rows = 0
+    if not stored:
+        inferred, sample_rows = _inferred_hidden_fields(
+            model_admin=model_admin, request=request, optional_names=optional_names
+        )
+        hidden = _ordered_unique(list(hidden) + list(inferred))
     editable_names = set(required) | optional_names
     return AdminFieldContract(
         model_label=model_label,
@@ -423,6 +493,9 @@ def _contract_for_form(
         recommended_fields=tuple(name for name in recommended if name in editable_names),
         hidden_fields=tuple(hidden),
         system_hidden_fields=tuple(system_hidden),
+        inferred_hidden_fields=inferred,
+        inference_sample_rows=sample_rows,
+        suggestion_notes=tuple(sorted(_suggestion_notes(model_admin, request).items())),
     )
 
 
@@ -432,6 +505,44 @@ def _range_error(cleaned_data: dict[str, Any]) -> tuple[str, str] | None:
         end = cleaned_data.get(end_name)
         if start is not None and end is not None and end < start:
             return end_name, f"Cannot be earlier than {start_name.replace('_', ' ')}."
+    return None
+
+
+def _containment_error(cleaned_data: dict[str, Any]) -> tuple[str, str] | None:
+    """Reject a child whose parent contradicts the parent chosen on the same form.
+
+    Computed on the SERVER against the stored relation.  Deliberately not mirrored
+    in JavaScript: a second copy of this rule in the browser is a second thing that
+    can disagree with the database, and the browser's answer would not be the one
+    that decides whether the row saves.
+    """
+
+    for child_name, parent_name in RELATION_CONTAINMENT_PAIRS:
+        child = cleaned_data.get(child_name)
+        parent = cleaned_data.get(parent_name)
+        if child is None or parent is None:
+            continue
+        if not hasattr(child, "_meta") or getattr(parent, "pk", None) is None:
+            continue
+        try:
+            link = child._meta.get_field(parent_name)
+        except FieldDoesNotExist:
+            continue
+        if link.remote_field is None:
+            continue
+        actual = getattr(child, link.attname, None)
+        if actual is None or actual == parent.pk:
+            continue
+        return (
+            child_name,
+            gettext(
+                "This %(child)s belongs to a different %(parent)s than the one selected."
+            )
+            % {
+                "child": child._meta.verbose_name,
+                "parent": parent._meta.verbose_name,
+            },
+        )
     return None
 
 
@@ -521,10 +632,11 @@ class AdminFormAutomationMixin:
                     change=change,
                     apply_instance=False,
                 )
-                error = _range_error(cleaned)
-                if error:
-                    field_name, message = error
-                    inner_self.add_error(field_name, message)
+                for check in (_range_error, _containment_error):
+                    error = check(cleaned)
+                    if error:
+                        field_name, message = error
+                        inner_self.add_error(field_name, message)
                 return cleaned
 
         RangeValidatedAdminForm.__name__ = f"RmcValidated{base_form.__name__}"
@@ -563,6 +675,17 @@ class AdminFormAutomationMixin:
                 endpoint=endpoint,
             )
             context["admin_field_contract"] = contract.as_dict()
+            # A value derived from a fallback rather than an unambiguous active
+            # record has to say so where the person can read it.  `form.fields` is
+            # deep-copied per instance, so this annotation is request-local.
+            if add:
+                for name, note in contract.suggestion_notes:
+                    field = form.fields.get(name)
+                    if field is None or note in (field.help_text or ""):
+                        continue
+                    field.help_text = (
+                        f"{field.help_text} {note}".strip() if field.help_text else note
+                    )
         return super().render_change_form(
             request,
             context,
@@ -628,6 +751,81 @@ class AdminFormAutomationMixin:
         self._rmc_restore_hidden_values(request, obj, form, change=change)
         _bind_transition_evidence(self, request, obj, form, change=change)
         return super().save_model(request, obj, form, change)
+
+    def save_formset(self, request, form, formset, change):
+        """Bind tenant ownership onto inline rows, which `save_model` never sees.
+
+        `school` is excluded from the inline form for the same reason it is
+        excluded from the parent's: an excluded field cannot be altered by a
+        crafted POST.  Excluding it means nothing sets it, so it is set here from
+        the resolved request.
+        """
+        instances = formset.save(commit=False)
+        school = getattr(request, "school", None)
+        tenant_scoped = (
+            not self.admin_site.is_platform_site()
+            and instances
+            and _field_exists(instances[0].__class__, "school")
+        )
+        if tenant_scoped and school is None:
+            raise ValidationError("A tenant school is required for this admin form.")
+        for instance in instances:
+            if tenant_scoped:
+                instance.school = school
+            instance.save()
+        formset.save_m2m()
+        for obsolete in formset.deleted_objects:
+            obsolete.delete()
+
+
+class AdminInlineAutomationMixin:
+    """The same policy, applied to inline formsets.
+
+    Inlines are where bulk entry actually happens — a timetable's rows, a fee
+    plan's lines — and they were reached by none of this: 30 inline classes were
+    attached across both sites and none carried any of the policy above, so system
+    evidence fields were editable there and tenant ownership was posted from the
+    client.  ``InlineModelAdmin`` has a different API from ``ModelAdmin`` (a
+    formset, no changeform, no initial-data hook), so it needs its own mixin rather
+    than the same one, but the rules it enforces are identical.
+    """
+
+    _rmc_admin_inline_automation = True
+
+    def get_exclude(self, request, obj=None):
+        excluded = list(super().get_exclude(request, obj) or ())
+        if not self.admin_site.is_platform_site() and _field_exists(self.model, "school"):
+            excluded.append("school")
+        return tuple(_ordered_unique(excluded))
+
+    def get_readonly_fields(self, request, obj=None):
+        readonly = list(super().get_readonly_fields(request, obj))
+        for name in SYSTEM_EVIDENCE_FIELDS:
+            if _field_exists(self.model, name):
+                readonly.append(name)
+        return tuple(_ordered_unique(readonly))
+
+    def get_formset(self, request, obj=None, **kwargs):
+        formset = super().get_formset(request, obj, **kwargs)
+        base_form = getattr(formset, "form", None)
+        if base_form is None or getattr(base_form, "_rmc_range_validated", False):
+            return formset
+
+        class RangeValidatedInlineForm(base_form):
+            _rmc_range_validated = True
+
+            def clean(inner_self):
+                cleaned = super().clean()
+                for check in (_range_error, _containment_error):
+                    error = check(cleaned or {})
+                    if error:
+                        field_name, message = error
+                        inner_self.add_error(field_name, message)
+                return cleaned
+
+        RangeValidatedInlineForm.__name__ = f"RmcValidated{base_form.__name__}"
+        formset.form = RangeValidatedInlineForm
+        return formset
 
 
 def build_admin_field_contract(

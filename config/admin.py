@@ -267,7 +267,10 @@ class BaseRunMyCampusAdminSite(UnfoldAdminSite):
     def register(self, model_or_iterable, admin_class=None, **options):
         """Give every operator and tenant registration one form policy owner."""
         from django.contrib.admin import ModelAdmin as _DjangoModelAdmin
-        from apps.siteconfig.admin_form_intelligence import AdminFormAutomationMixin
+        from apps.siteconfig.admin_form_intelligence import (
+            AdminFormAutomationMixin,
+            AdminInlineAutomationMixin,
+        )
 
         base_class = admin_class or _DjangoModelAdmin
         if not getattr(base_class, "_rmc_admin_form_automation", False):
@@ -275,6 +278,29 @@ class BaseRunMyCampusAdminSite(UnfoldAdminSite):
                 base_class.__name__,
                 (AdminFormAutomationMixin, base_class),
                 {"__module__": getattr(base_class, "__module__", __name__)},
+            )
+        # Inlines are declared as a class attribute rather than registered, so the
+        # same injection has to reach them here or they are covered by nothing.
+        declared_inlines = list(getattr(base_class, "inlines", ()) or ())
+        if declared_inlines:
+            wrapped = []
+            for inline in declared_inlines:
+                if isinstance(inline, type) and not getattr(
+                    inline, "_rmc_admin_inline_automation", False
+                ):
+                    inline = type(
+                        inline.__name__,
+                        (AdminInlineAutomationMixin, inline),
+                        {"__module__": getattr(inline, "__module__", __name__)},
+                    )
+                wrapped.append(inline)
+            base_class = type(
+                base_class.__name__,
+                (base_class,),
+                {
+                    "inlines": wrapped,
+                    "__module__": getattr(base_class, "__module__", __name__),
+                },
             )
         return super().register(model_or_iterable, base_class, **options)
 

@@ -88,6 +88,26 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # False. Added 2026-08-20 after six such codes were found, including the
     # pair guarding mobile offline grade/attendance sync for every teacher.
     ("scripts/scan_rbac_permission_catalog.py", "ci.yml"),
+    # Added 2026-08-21. Its sibling audit_admin_form_intelligence_contract.py proves
+    # the field classification is complete and disjoint, and can be perfectly green
+    # while every add form on the platform is still an empty grid -- it never counts
+    # how much a person has to type. This one does, and freezes the structural floor
+    # so a deleted resolver or a shrunken INITIAL_BUILDERS cannot pass quietly.
+    ("scripts/audit_admin_autofill_coverage.py", "ci.yml"),
+    # Added 2026-08-21. These ten already existed as pass/fail gates and were
+    # invoked by NOTHING -- not a workflow, not the pre-push runner. Registering
+    # them here is what stops them drifting back out of CI unnoticed, which is the
+    # exact failure this meta-gate was built for.
+    ("scripts/audit_django_admin_canvas_contract.py", "architectural-boundaries.yml"),
+    ("scripts/audit_django_admin_surface_leftovers.py", "architectural-boundaries.yml"),
+    ("scripts/verify_admin_os_empty_space.py", "architectural-boundaries.yml"),
+    ("scripts/verify_admin_os_sections_restore.py", "architectural-boundaries.yml"),
+    ("scripts/verify_admin_os_three_click_sla.py", "architectural-boundaries.yml"),
+    ("scripts/verify_admin_production_upgrade.py", "architectural-boundaries.yml"),
+    ("scripts/verify_admin_replacement_roadmap.py", "architectural-boundaries.yml"),
+    ("scripts/verify_admin_super_help_nav_bridge.py", "architectural-boundaries.yml"),
+    ("scripts/verify_operator_admin_sidebar_v2.py", "architectural-boundaries.yml"),
+    ("scripts/verify_tenant_admin_sidebar_v2.py", "architectural-boundaries.yml"),
     ("scripts/verify_template_reference_integrity.py", "ci.yml"),
     # Compile sibling of the two template gates above: a balanced-but-invalid
     # tag argument ({% trans 'a'b' %}) compiles-fail without being a missing
