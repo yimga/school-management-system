@@ -73,10 +73,11 @@ def ensure_bundle_schema_name(bundle) -> str:
         except Exception:  # noqa: BLE001
             school = None
     resolved = resolve_school_schema_name(school)
-    if resolved and resolved != (bundle.schema_name or ""):
+    stored = (getattr(bundle, "schema_name", None) or "").strip()
+    if resolved and resolved != stored:
         bundle.schema_name = resolved
         try:
             bundle.save(update_fields=["schema_name", "updated_at"])
         except Exception:  # noqa: BLE001 — caller may hold unsaved instance
             bundle.schema_name = resolved
-    return (bundle.schema_name or "").strip()
+    return (getattr(bundle, "schema_name", None) or "").strip()

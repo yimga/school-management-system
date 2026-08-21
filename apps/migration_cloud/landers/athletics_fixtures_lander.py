@@ -50,9 +50,12 @@ from ._helpers import (
     filter_to_model_fields,
     model_field_names,
     record_id_mapping,
+    record_row_error,
+    record_row_note,
     row_savepoint,
 )
 from .base import Lander, LanderContext, LanderError, LanderResult, register
+from .reason_codes import INVALID_REF, LANDER_ERROR, MISSING_REQUIRED
 
 
 logger = logging.getLogger(__name__)
@@ -147,19 +150,23 @@ class AthleticsFixturesLander(Lander):
             opponent_name = (row.get("opponent_name") or "").strip()
             scheduled_start = _coerce_datetime(row.get("scheduled_start"))
             if not team_name or not opponent_name or scheduled_start is None:
-                result.quarantined += 1
-                result.errors.append(
+                record_row_error(
+                    result,
+                    row,
                     f"athletics_fixtures[row={row_index}]: "
-                    f"missing team_name / opponent_name / scheduled_start"
+                    f"missing team_name / opponent_name / scheduled_start",
+                    reason_code=MISSING_REQUIRED,
                 )
                 continue
 
             team = self._resolve_team(Team, team_fields, team_cache, ctx, team_name)
             if team is None:
-                result.quarantined += 1
-                result.errors.append(
+                record_row_error(
+                    result,
+                    row,
                     f"athletics_fixtures[row={row_index}]: "
-                    f"no team named <redacted> (catalog not landed yet)"
+                    f"no team named <redacted> (catalog not landed yet)",
+                    reason_code=INVALID_REF,
                 )
                 logger.info(
                     "athletics_fixtures quarantine row=%d reason=team_unresolved",
@@ -229,17 +236,21 @@ class AthleticsFixturesLander(Lander):
                         defaults=defaults, **lookup_kwargs,
                     )
             except (TypeError, ValueError) as exc:
-                result.quarantined += 1
-                result.errors.append(
+                record_row_error(
+                    result,
+                    row,
                     f"athletics_fixtures[row={row_index}]: "
-                    f"upsert input error: {type(exc).__name__}"
+                    f"upsert input error: {type(exc).__name__}",
+                    reason_code=LANDER_ERROR,
                 )
                 continue
             except Exception as exc:  # noqa: BLE001
-                result.quarantined += 1
-                result.errors.append(
+                record_row_error(
+                    result,
+                    row,
                     f"athletics_fixtures[row={row_index}] upsert failed: "
-                    f"{type(exc).__name__}: {exc}"
+                    f"{type(exc).__name__}: {exc}",
+                    reason_code=LANDER_ERROR,
                 )
                 continue
             if created:
@@ -311,9 +322,10 @@ class AthleticsFixturesLander(Lander):
                 fixture=fixture, defaults=defaults,
             )
         except Exception as exc:  # noqa: BLE001 — score is auxiliary; never abort
-            result.errors.append(
+            record_row_note(
+                result,
                 f"athletics_fixtures result upsert failed for fixture "
-                f"{getattr(fixture, 'pk', '?')}: {type(exc).__name__}"
+                f"{getattr(fixture, 'pk', '?')}: {type(exc).__name__}",
             )
 
     def _resolve_team(self, Team, team_fields, cache, ctx, name):

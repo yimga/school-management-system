@@ -1312,7 +1312,9 @@ def _build_verification(bundle):
 # Blockers worth surfacing to the tenant even when repair is withheld — a real,
 # actionable safety hold (vs. a benign "not applied yet / already clean" state,
 # for which the repair panel simply stays hidden on the normal review flow).
-_ACTIONABLE_REPAIR_BLOCKERS = frozenset({"financial_guardrail_failed", "finance_requires_atomic"})
+_ACTIONABLE_REPAIR_BLOCKERS = frozenset(
+    {"financial_guardrail_failed", "finance_requires_atomic", "tenant_schema_drift"}
+)
 
 
 def _last_import_summary(bundle):

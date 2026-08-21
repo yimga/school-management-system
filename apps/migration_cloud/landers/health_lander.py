@@ -20,17 +20,19 @@ from __future__ import annotations
 from typing import Any, Iterator
 
 from ._helpers import (
-    unresolved_student_reason,
-    student_name_from_row,
     coerce_date,
     filter_to_model_fields,
     model_field_names,
     record_id_mapping,
+    record_row_error,
     resolve_student,
     student_lookup_field,
+    student_name_from_row,
     truthy,
+    unresolved_student_reason,
 )
 from .base import Lander, LanderContext, LanderError, LanderResult, register
+from .reason_codes import INVALID_REF, LANDER_ERROR, MISSING_REQUIRED
 
 
 class HealthLander(Lander):
@@ -60,9 +62,11 @@ class HealthLander(Lander):
             date_val = coerce_date(row.get("record_date") or row.get("date"))
             category = (row.get("category") or row.get("record_type") or "").strip().lower()
             if not (external_id or student_name_from_row(row)) or not category:
-                result.quarantined += 1
-                result.errors.append(
-                    f"health: missing student/category in {row!r}"
+                record_row_error(
+                    result,
+                    row,
+                    f"health: missing student/category in {row!r}",
+                    reason_code=MISSING_REQUIRED,
                 )
                 continue
             student = resolve_student(
@@ -73,8 +77,9 @@ class HealthLander(Lander):
                 row=row,
             )
             if student is None:
-                result.quarantined += 1
-                result.errors.append(
+                record_row_error(
+                    result,
+                    row,
                     unresolved_student_reason(
                         domain="health",
                         ctx=ctx,
@@ -82,7 +87,8 @@ class HealthLander(Lander):
                         row=row,
                         external_id=external_id,
                         lookup_field=student_lookup,
-                    )
+                    ),
+                    reason_code=INVALID_REF,
                 )
                 continue
 
@@ -148,10 +154,12 @@ class HealthLander(Lander):
                     canonical_obj=obj, domain="health",
                 )
             except Exception as exc:  # noqa: BLE001
-                result.quarantined += 1
-                result.errors.append(
+                record_row_error(
+                    result,
+                    row,
                     f"health upsert failed for {external_id} @ {date_val}/{category}: "
-                    f"{type(exc).__name__}: {exc}"
+                    f"{type(exc).__name__}: {exc}",
+                    reason_code=LANDER_ERROR,
                 )
         return result
 

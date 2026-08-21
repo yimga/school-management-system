@@ -366,6 +366,23 @@ jobs:
         run: |
           python -m unittest scripts.tests.test_scan_lander_phantom_fields -v
 
+  lander-row-error-contract:
+    name: Migration Cloud landers keep the row they reject
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run scanner --strict
+        run: |
+          python scripts/scan_lander_row_error_contract.py --strict
+      - name: Unit tests
+        run: |
+          python -m unittest scripts.tests.test_scan_lander_row_error_contract -v
+
   migration-cloud-provision-boundary:
     name: Migration Cloud must not dispatch school provision
     runs-on: ubuntu-latest

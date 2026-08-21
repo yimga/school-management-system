@@ -35,14 +35,17 @@ from typing import Any, Iterator
 from ._helpers import (
     coerce_int,
     derive_external_id,
-    split_name_for,
     detect_and_register_assets,
     filter_to_model_fields,
     model_field_names,
     record_id_mapping,
+    record_row_error,
+    record_row_note,
+    split_name_for,
     student_lookup_field,
 )
 from .base import Lander, LanderContext, LanderError, LanderResult, register
+from .reason_codes import LANDER_ERROR, MISSING_REQUIRED
 
 
 _ALUMNI_EXTRA_KEYS = ("graduation_year", "current_employer", "current_role")
@@ -92,9 +95,11 @@ class AlumniLander(Lander):
                     place_of_birth=row.get("place_of_birth"),
                 )
             if not external_id or not first_name or not last_name:
-                result.quarantined += 1
-                result.errors.append(
-                    f"alumni: missing external_id/first/last in {row!r}"
+                record_row_error(
+                    result,
+                    row,
+                    f"alumni: missing external_id/first/last in {row!r}",
+                    reason_code=MISSING_REQUIRED,
                 )
                 continue
 
@@ -161,9 +166,11 @@ class AlumniLander(Lander):
                     student_fields=student_fields, result=result,
                 )
             except Exception as exc:  # noqa: BLE001
-                result.quarantined += 1
-                result.errors.append(
-                    f"alumni upsert failed for {external_id}: {type(exc).__name__}: {exc}"
+                record_row_error(
+                    result,
+                    row,
+                    f"alumni upsert failed for {external_id}: {type(exc).__name__}: {exc}",
+                    reason_code=LANDER_ERROR,
                 )
         return result
 
@@ -193,9 +200,7 @@ def _persist_alumni_extras(
     try:
         from apps.metadata.models import DynamicFieldDefinition, DynamicFieldValue
     except Exception as exc:  # noqa: BLE001
-        result.errors.append(
-            f"alumni extras: metadata models unavailable: {type(exc).__name__}"
-        )
+        record_row_note(result, f"alumni extras: metadata models unavailable: {type(exc).__name__}")
         return
     for key in _ALUMNI_EXTRA_KEYS:
         if key in student_fields:
@@ -220,8 +225,9 @@ def _persist_alumni_extras(
                 ),
             )
         except Exception as exc:  # noqa: BLE001 — best-effort, recorded
-            result.errors.append(
-                f"alumni extras write failed for {key}: {type(exc).__name__}: {exc}"
+            record_row_note(
+                result,
+                f"alumni extras write failed for {key}: {type(exc).__name__}: {exc}",
             )
             continue
 

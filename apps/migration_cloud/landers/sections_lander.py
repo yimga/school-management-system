@@ -38,6 +38,8 @@ from ._helpers import (
     row_marks_deletion,
 )
 from .base import Lander, LanderContext, LanderError, LanderResult, register
+from .reason_codes import LANDER_ERROR, MISSING_REQUIRED
+from .reason_codes import SOURCE_DELETION
 
 
 class SectionsLander(Lander):
@@ -70,13 +72,18 @@ class SectionsLander(Lander):
                     "sections: source marked this class deleted — held for review, "
                     "not imported as active; any existing classroom is left intact "
                     "for referential safety (remove manually if intended).",
+                    reason_code=SOURCE_DELETION,
                 )
                 continue
             code = (row.get("section_code") or row.get("code") or "").strip()
             name = (row.get("name") or code).strip()
             if not code and not name:
-                result.quarantined += 1
-                result.errors.append(f"sections: missing section_code/name in {row!r}")
+                record_row_error(
+                    result,
+                    row,
+                    f"sections: missing section_code/name in {row!r}",
+                    reason_code=MISSING_REQUIRED,
+                )
                 continue
 
             if ctx.dry_run:
@@ -121,9 +128,11 @@ class SectionsLander(Lander):
                 record_id_mapping(ctx=ctx, legacy_id=code or name, canonical_obj=obj, domain="sections")
                 self._persist_section_extras(ctx, obj, row, result)
             except Exception as exc:  # noqa: BLE001
-                result.quarantined += 1
-                result.errors.append(
-                    f"sections upsert failed for {code or name}: {type(exc).__name__}: {exc}"
+                record_row_error(
+                    result,
+                    row,
+                    f"sections upsert failed for {code or name}: {type(exc).__name__}: {exc}",
+                    reason_code=LANDER_ERROR,
                 )
         return result
 

@@ -43,17 +43,19 @@ import re
 from typing import Any, Iterator
 
 from ._helpers import (
-    unresolved_student_reason,
-    student_name_from_row,
     coerce_decimal,
     filter_to_model_fields,
     model_field_names,
     record_id_mapping,
+    record_row_error,
     resolve_student,
     student_lookup_field,
+    student_name_from_row,
+    unresolved_student_reason,
     upsert_with_conflict_detection,
 )
 from .base import Lander, LanderContext, LanderError, LanderResult, register
+from .reason_codes import INVALID_REF, LANDER_ERROR, MISSING_REQUIRED
 
 _COMPONENT_FIELDS = (
     "seq1_score",
@@ -130,16 +132,20 @@ class GradesLander(Lander):
             aggregate = coerce_decimal(row.get("score"))
             letter = (row.get("grade_letter") or row.get("letter_grade") or "").strip()
             if not (external_id or student_name_from_row(row)) or not term_label or not subject_label:
-                result.quarantined += 1
-                result.errors.append(
-                    f"grades: missing student/term/subject in {row!r}"
+                record_row_error(
+                    result,
+                    row,
+                    f"grades: missing student/term/subject in {row!r}",
+                    reason_code=MISSING_REQUIRED,
                 )
                 continue
             if not components and aggregate is None and not letter:
-                result.quarantined += 1
-                result.errors.append(
+                record_row_error(
+                    result,
+                    row,
                     f"grades: no score or letter for {external_id} / "
-                    f"{subject_label} / {term_label}"
+                    f"{subject_label} / {term_label}",
+                    reason_code=MISSING_REQUIRED,
                 )
                 continue
 
@@ -151,8 +157,9 @@ class GradesLander(Lander):
                 row=row,
             )
             if student is None:
-                result.quarantined += 1
-                result.errors.append(
+                record_row_error(
+                    result,
+                    row,
                     unresolved_student_reason(
                         domain="grades",
                         ctx=ctx,
@@ -160,7 +167,8 @@ class GradesLander(Lander):
                         row=row,
                         external_id=external_id,
                         lookup_field=student_lookup,
-                    )
+                    ),
+                    reason_code=INVALID_REF,
                 )
                 continue
 
@@ -171,19 +179,23 @@ class GradesLander(Lander):
                 student=student,
             )
             if resolved is None:
-                result.quarantined += 1
-                result.errors.append(
-                    f"grades: {reason} for {external_id} / {subject_label} / {term_label}"
+                record_row_error(
+                    result,
+                    row,
+                    f"grades: {reason} for {external_id} / {subject_label} / {term_label}",
+                    reason_code=INVALID_REF,
                 )
                 continue
             year, term, assignment = resolved
 
             teacher = self._assignment_teacher(assignment, TeacherProfile, ctx)
             if teacher is None:
-                result.quarantined += 1
-                result.errors.append(
+                record_row_error(
+                    result,
+                    row,
                     "grades: subject assignment has no teacher with a "
-                    f"TeacherProfile for {external_id} / {subject_label} / {term_label}"
+                    f"TeacherProfile for {external_id} / {subject_label} / {term_label}",
+                    reason_code=INVALID_REF,
                 )
                 continue
 
@@ -240,10 +252,12 @@ class GradesLander(Lander):
                     canonical_obj=obj, domain="grades",
                 )
             except Exception as exc:  # noqa: BLE001 — per-row quarantine
-                result.quarantined += 1
-                result.errors.append(
+                record_row_error(
+                    result,
+                    row,
                     f"grades upsert failed for {external_id} / {subject_label} / "
-                    f"{term_label}: {type(exc).__name__}: {exc}"
+                    f"{term_label}: {type(exc).__name__}: {exc}",
+                    reason_code=LANDER_ERROR,
                 )
         return result
 
@@ -284,9 +298,11 @@ class GradesLander(Lander):
             score = coerce_decimal(row.get("score"))
             letter = (row.get("grade_letter") or "").strip()
             if not (external_id or student_name_from_row(row)) or not term or (score is None and not letter):
-                result.quarantined += 1
-                result.errors.append(
-                    f"grades: missing student/term/score in {row!r}"
+                record_row_error(
+                    result,
+                    row,
+                    f"grades: missing student/term/score in {row!r}",
+                    reason_code=MISSING_REQUIRED,
                 )
                 continue
             student = resolve_student(
@@ -297,8 +313,9 @@ class GradesLander(Lander):
                 row=row,
             )
             if student is None:
-                result.quarantined += 1
-                result.errors.append(
+                record_row_error(
+                    result,
+                    row,
                     unresolved_student_reason(
                         domain="grades",
                         ctx=ctx,
@@ -306,7 +323,8 @@ class GradesLander(Lander):
                         row=row,
                         external_id=external_id,
                         lookup_field=student_lookup,
-                    )
+                    ),
+                    reason_code=INVALID_REF,
                 )
                 continue
 
@@ -360,9 +378,11 @@ class GradesLander(Lander):
                     canonical_obj=obj, domain="grades",
                 )
             except Exception as exc:  # noqa: BLE001
-                result.quarantined += 1
-                result.errors.append(
-                    f"grades upsert failed for {external_id} / {subject} / {term}: {type(exc).__name__}: {exc}"
+                record_row_error(
+                    result,
+                    row,
+                    f"grades upsert failed for {external_id} / {subject} / {term}: {type(exc).__name__}: {exc}",
+                    reason_code=LANDER_ERROR,
                 )
         return result
 

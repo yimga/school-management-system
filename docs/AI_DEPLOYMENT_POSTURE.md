@@ -24,6 +24,16 @@ guaranteed-dead hop that burns a connection attempt before reaching `rules`.
 deploy environment and overridable with `RMC_AI_CLOUD_HOST` for an on-prem
 server that is permanently online yet still hosts its own model.
 
+> **Do not label a box with `DJANGO_ENV`.** The inference above reads
+> `settings._IS_CLOUD_DEPLOYED`, which `config/settings.py` derives from
+> `RMC_ENVIRONMENT` / `DJANGO_ENV`. So `DJANGO_ENV=production` on a self-hosted
+> appliance — the obvious thing to type — silently makes `is_cloud_host()` true
+> and drops Ollama, the only provider that box has. (It also switches on hosted
+> conversion and paid-install enforcement.) Use `ENVIRONMENT` for a display
+> label; nothing routes on it, and `/-/version/` reports it. The self-host
+> compose does exactly that, pinned by
+> `apps/siteconfig/tests/test_build_identity_2026_08_21.py`.
+
 | Profile | Typical host | Default gateway tiers |
 | --- | --- | --- |
 | `online` + cloud host | Render SaaS | `litellm` → `rules` (`rules` alone when `LITELLM_PROXY_URL` is unset) |

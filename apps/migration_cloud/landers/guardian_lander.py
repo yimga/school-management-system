@@ -43,6 +43,8 @@ import hashlib
 from typing import Any, Iterator
 
 from .base import Lander, LanderContext, LanderError, LanderResult, register
+from ._helpers import record_row_error
+from .reason_codes import INVALID_REF, LANDER_ERROR, MISSING_REQUIRED
 
 
 class GuardianLander(Lander):
@@ -78,9 +80,11 @@ class GuardianLander(Lander):
             if not (student_external_id or student_name_from_row(row)) or not (
                 first_name or last_name or user_ref
             ):
-                result.quarantined += 1
-                result.errors.append(
-                    f"Missing student_external_id or identity in guardian row {row!r}"
+                record_row_error(
+                    result,
+                    row,
+                    f"Missing student_external_id or identity in guardian row {row!r}",
+                    reason_code=MISSING_REQUIRED,
                 )
                 continue
 
@@ -96,15 +100,19 @@ class GuardianLander(Lander):
                     row=row,
                 )
             except Exception as exc:  # noqa: BLE001
-                result.quarantined += 1
-                result.errors.append(
-                    f"student lookup failed for {student_external_id}: {type(exc).__name__}"
+                record_row_error(
+                    result,
+                    row,
+                    f"student lookup failed for {student_external_id}: {type(exc).__name__}",
+                    reason_code=LANDER_ERROR,
                 )
                 continue
             if student is None:
-                result.quarantined += 1
-                result.errors.append(
-                    f"No student with {student_lookup_field}={student_external_id!r} for guardian"
+                record_row_error(
+                    result,
+                    row,
+                    f"No student with {student_lookup_field}={student_external_id!r} for guardian",
+                    reason_code=INVALID_REF,
                 )
                 continue
 
@@ -119,9 +127,11 @@ class GuardianLander(Lander):
                 dry_run=ctx.dry_run,
             )
             if guardian_user is None and not (ctx.dry_run and provision_reason == ""):
-                result.quarantined += 1
-                result.errors.append(
-                    f"guardian for {student_external_id}: {provision_reason or 'no linkable user'}"
+                record_row_error(
+                    result,
+                    row,
+                    f"guardian for {student_external_id}: {provision_reason or 'no linkable user'}",
+                    reason_code=INVALID_REF,
                 )
                 continue
 
@@ -220,8 +230,12 @@ class GuardianLander(Lander):
                 except Exception:  # noqa: BLE001 — membership is additive; link already landed
                     pass
             except Exception as exc:  # noqa: BLE001
-                result.quarantined += 1
-                result.errors.append(f"guardian upsert failed: {type(exc).__name__}: {exc}")
+                record_row_error(
+                    result,
+                    row,
+                    f"guardian upsert failed: {type(exc).__name__}: {exc}",
+                    reason_code=LANDER_ERROR,
+                )
         return result
 
 

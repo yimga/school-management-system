@@ -26,8 +26,10 @@ from ._helpers import (
     filter_to_model_fields,
     model_field_names,
     record_id_mapping,
+    record_row_error,
 )
 from .base import Lander, LanderContext, LanderError, LanderResult, register
+from .reason_codes import LANDER_ERROR, MISSING_REQUIRED
 
 
 class EventsLander(Lander):
@@ -53,9 +55,11 @@ class EventsLander(Lander):
             title = (row.get("title") or "").strip()
             starts = coerce_date(row.get("starts_at") or row.get("start_date") or row.get("date"))
             if not title or starts is None:
-                result.quarantined += 1
-                result.errors.append(
-                    f"events: missing title/starts_at in {row!r}"
+                record_row_error(
+                    result,
+                    row,
+                    f"events: missing title/starts_at in {row!r}",
+                    reason_code=MISSING_REQUIRED,
                 )
                 continue
             ends = coerce_date(row.get("ends_at") or row.get("end_date")) or starts
@@ -139,10 +143,12 @@ class EventsLander(Lander):
                     canonical_obj=obj, domain="events",
                 )
             except Exception as exc:  # noqa: BLE001
-                result.quarantined += 1
-                result.errors.append(
+                record_row_error(
+                    result,
+                    row,
                     f"events upsert failed for {title!r} @ {starts}: "
-                    f"{type(exc).__name__}: {exc}"
+                    f"{type(exc).__name__}: {exc}",
+                    reason_code=LANDER_ERROR,
                 )
         return result
 

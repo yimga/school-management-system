@@ -13,8 +13,8 @@ regenerates its held rows from scratch every time, so the previous cycle's
 PENDING rows were never history; they were duplicates nobody would ever read.
 
 The counters told the same story twice over: 442 held was reported while only
-316 were persisted, because ``QUARANTINE_RECORD_CAP`` silently truncated the
-students artifact from 326 to 200.
+316 were persisted when ``QUARANTINE_RECORD_CAP`` was 200 (students artifact
+truncated from 326 to 200). The cap is now 2000 so a full held set persists.
 
 What must NOT be swept is a resolution. REPAIRED and FAILED rows are the audit
 trail the whole review surface depends on, and a sweep that ate them would
@@ -109,19 +109,19 @@ class SupersededQuarantineIsSweptTests(SimpleTestCase):
 class TruncationIsReportedTests(SimpleTestCase):
     def test_the_cap_is_a_named_constant_not_a_literal(self):
         # It was `result.errors[:200]` inline, which is how it stayed invisible.
-        self.assertEqual(QUARANTINE_RECORD_CAP, 200)
+        # Raised after bundle 84 dropped 126 of 326 student errors.
+        self.assertEqual(QUARANTINE_RECORD_CAP, 2000)
 
     def test_the_production_shape_is_the_one_that_was_truncated(self):
         # 326 students held, 200 recorded, 126 with no durable record at all.
+        # Cap raised to 2000 so this shape is no longer truncated.
         held = 326
-        self.assertGreater(held, QUARANTINE_RECORD_CAP)
-        self.assertEqual(held - QUARANTINE_RECORD_CAP, 126)
+        self.assertLessEqual(held, QUARANTINE_RECORD_CAP)
 
-    def test_the_persisted_total_explains_the_boards_two_numbers(self):
-        # 8 specialties + 200 students (capped from 326) + 108 sections = 316
-        # persisted, against 442 counted. Both numbers were on screen at once.
+    def test_the_persisted_total_matches_counted_when_under_cap(self):
+        # With cap >= held volume, persisted and counted align.
         specialties, sections, students_held = 8, 108, 326
         persisted = specialties + min(students_held, QUARANTINE_RECORD_CAP) + sections
         counted = specialties + students_held + sections
-        self.assertEqual(persisted, 316)
-        self.assertEqual(counted, 442)
+        self.assertEqual(persisted, counted)
+        self.assertEqual(persisted, 442)

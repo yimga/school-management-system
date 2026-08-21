@@ -93,6 +93,38 @@ class UnresolvedIssueHonestyTests(SimpleTestCase):
         self.assertIsNone(remediator_for(clean, issues=0, flight={}))
 
 
+class SchemaDriftRemediatorTests(SimpleTestCase):
+    @mock.patch("apps.migration_cloud.tenant_schema_readiness.readiness_for_bundle")
+    def test_schema_drift_hides_repair_button_even_when_stuck(self, readiness_for):
+        from apps.migration_cloud.tenant_schema_readiness import TenantSchemaReadiness
+
+        readiness_for.return_value = TenantSchemaReadiness(
+            schema_name="tenant_gilead",
+            ready=False,
+            missing_labels=("academics_academicyear.is_soft_closed",),
+        )
+        bundle = FakeBundle(status=BundleStatus.APPLIED, mapping=_quarantined(442))
+        rem = remediator_for(bundle, issues=442, flight={"stuck": True})
+        self.assertIsNotNone(rem)
+        self.assertFalse(rem["show_repair"])
+        self.assertIn("Database update", rem["title"])
+
+    @mock.patch("apps.migration_cloud.tenant_schema_readiness.readiness_for_bundle")
+    def test_compose_live_import_labels_schema_blocked(self, readiness_for):
+        from apps.migration_cloud.tenant_schema_readiness import TenantSchemaReadiness
+
+        readiness_for.return_value = TenantSchemaReadiness(
+            schema_name="tenant_gilead",
+            ready=False,
+            missing_labels=("people_studentprofile.search_index",),
+        )
+        bundle = FakeBundle(status=BundleStatus.APPLIED, mapping=_quarantined(442))
+        live = compose_live_import(bundle, flight={"in_flight": False, "stuck": True})
+        self.assertIn("Blocked", live["workflow_state"])
+        self.assertIsNotNone(live["remediator"])
+        self.assertFalse(live["remediator"]["show_repair"])
+
+
 class LiveImportComposeTests(SimpleTestCase):
     def test_in_flight_uses_snapshot_live_totals(self):
         bundle = FakeBundle(

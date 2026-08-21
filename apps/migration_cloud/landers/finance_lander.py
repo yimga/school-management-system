@@ -28,20 +28,23 @@ from __future__ import annotations
 from typing import Any, Iterator
 
 from ._helpers import (
-    unresolved_student_reason,
-    student_name_from_row,
     coerce_date,
     coerce_decimal,
     detect_and_register_assets,
     filter_to_model_fields,
     model_field_names,
     record_id_mapping,
+    record_row_error,
+    record_row_note,
     resolve_student,
     row_savepoint,
     student_lookup_field,
+    student_name_from_row,
+    unresolved_student_reason,
     upsert_with_conflict_detection,
 )
 from .base import Lander, LanderContext, LanderError, LanderResult, register
+from .reason_codes import INVALID_REF, LANDER_ERROR, MISSING_REQUIRED
 
 
 class FinanceLander(Lander):
@@ -76,22 +79,29 @@ class FinanceLander(Lander):
             try:
                 profile = ensure_tenant_compliance_profile(ctx.school)
             except Exception as exc:  # noqa: BLE001
-                result.errors.append(f"finance: could not resolve compliance profile: {type(exc).__name__}")
+                record_row_note(
+                    result,
+                    f"finance: could not resolve compliance profile: {type(exc).__name__}",
+                )
 
         for row in canonical_rows:
             external_id = (row.get("student_external_id") or "").strip()
             reference = (row.get("reference") or row.get("invoice_reference") or "").strip()
             amount = coerce_decimal(row.get("amount"))
             if not (external_id or student_name_from_row(row)) or not reference or amount is None:
-                result.quarantined += 1
-                result.errors.append(
-                    f"finance: missing student/reference/amount in {row!r}"
+                record_row_error(
+                    result,
+                    row,
+                    f"finance: missing student/reference/amount in {row!r}",
+                    reason_code=MISSING_REQUIRED,
                 )
                 continue
             if "profile" in invoice_fields and profile is None:
-                result.quarantined += 1
-                result.errors.append(
-                    f"finance: no compliance profile available for invoice {reference}"
+                record_row_error(
+                    result,
+                    row,
+                    f"finance: no compliance profile available for invoice {reference}",
+                    reason_code=INVALID_REF,
                 )
                 continue
             student = resolve_student(
@@ -102,8 +112,9 @@ class FinanceLander(Lander):
                 row=row,
             )
             if student is None:
-                result.quarantined += 1
-                result.errors.append(
+                record_row_error(
+                    result,
+                    row,
                     unresolved_student_reason(
                         domain="finance",
                         ctx=ctx,
@@ -111,7 +122,8 @@ class FinanceLander(Lander):
                         row=row,
                         external_id=external_id,
                         lookup_field=student_lookup,
-                    )
+                    ),
+                    reason_code=INVALID_REF,
                 )
                 continue
 
@@ -179,9 +191,11 @@ class FinanceLander(Lander):
                     ctx=ctx, legacy_id=reference, entity_kind="invoice", row=row,
                 )
             except Exception as exc:  # noqa: BLE001
-                result.quarantined += 1
-                result.errors.append(
-                    f"finance upsert failed for {reference}: {type(exc).__name__}: {exc}"
+                record_row_error(
+                    result,
+                    row,
+                    f"finance upsert failed for {reference}: {type(exc).__name__}: {exc}",
+                    reason_code=LANDER_ERROR,
                 )
         return result
 

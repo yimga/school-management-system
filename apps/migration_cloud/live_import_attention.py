@@ -188,6 +188,20 @@ def percent_complete(
     return round(min(score, 99.0 if flight.get("in_flight") else score), 2)
 
 
+def _schema_drift_remediator(bundle: Any) -> dict[str, Any] | None:
+    from .tenant_schema_readiness import format_schema_drift_reason, readiness_for_bundle
+
+    readiness = readiness_for_bundle(bundle, attempt_repair=False)
+    if readiness is None or readiness.ready:
+        return None
+    return {
+        "title": _("Issue Remediator — Database update required"),
+        "steps": [format_schema_drift_reason(readiness)],
+        "action_label": _("Repair this import"),
+        "show_repair": False,
+    }
+
+
 def remediator_for(
     bundle: Any,
     *,
@@ -197,6 +211,9 @@ def remediator_for(
     """Issue Remediator payload, or None when nothing is currently open."""
     flight = flight or {}
     status = getattr(bundle, "status", "") or ""
+    drift = _schema_drift_remediator(bundle)
+    if drift is not None:
+        return drift
     if flight.get("stuck"):
         return {
             "title": _("Issue Remediator — Import stopped responding"),
@@ -246,8 +263,11 @@ def workflow_state_label(
     status: str,
     flight: dict[str, Any] | None = None,
     issues: int = 0,
+    schema_drift_blocked: bool = False,
 ) -> str:
     flight = flight or {}
+    if schema_drift_blocked and not flight.get("in_flight"):
+        return _("Blocked (Database update)")
     if flight.get("stuck"):
         return _("Failed (Stuck)")
     if flight.get("in_flight") or status == BundleStatus.APPLYING:
@@ -298,6 +318,10 @@ def compose_live_import(
         bundle, snapshot=snap, flight=flight, issues=issues if not in_flight else 0
     )
     status = getattr(bundle, "status", "") or ""
+    from .tenant_schema_readiness import readiness_for_bundle
+
+    schema_readiness = readiness_for_bundle(bundle, attempt_repair=False)
+    schema_blocked = schema_readiness is not None and not schema_readiness.ready
     pct = percent_complete(stages, status=status, flight=flight)
     remediator = remediator_for(bundle, issues=0 if in_flight else issues, flight=flight)
     created = int((last or {}).get("created") or 0)
@@ -322,7 +346,10 @@ def compose_live_import(
         "status": status,
         "succeeded": succeeded,
         "workflow_state": workflow_state_label(
-            status=status, flight=flight, issues=0 if in_flight else issues
+            status=status,
+            flight=flight,
+            issues=0 if in_flight else issues,
+            schema_drift_blocked=schema_blocked,
         ),
         "percent": pct,
         "pipeline": stages,

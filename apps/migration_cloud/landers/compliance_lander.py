@@ -27,8 +27,13 @@ from __future__ import annotations
 import datetime as _dt
 from typing import Any, Iterator
 
-from ._helpers import coerce_date, persist_dfv_extras
+from ._helpers import (
+    coerce_date,
+    persist_dfv_extras,
+    record_row_error,
+)
 from .base import Lander, LanderContext, LanderResult, register
+from .reason_codes import LANDER_ERROR, MISSING_REQUIRED
 
 
 class ComplianceLander(Lander):
@@ -47,9 +52,11 @@ class ComplianceLander(Lander):
         for row in canonical_rows:
             category = (row.get("category") or row.get("check_type") or "").strip()
             if not category:
-                result.quarantined += 1
-                result.errors.append(
-                    f"compliance: missing category/check_type in {row!r}"
+                record_row_error(
+                    result,
+                    row,
+                    f"compliance: missing category/check_type in {row!r}",
+                    reason_code=MISSING_REQUIRED,
                 )
                 continue
             subject_ext = (row.get("subject_external_id") or "").strip()
@@ -74,10 +81,12 @@ class ComplianceLander(Lander):
                 )
                 result.created += 1
             except Exception as exc:  # noqa: BLE001
-                result.quarantined += 1
-                result.errors.append(
+                record_row_error(
+                    result,
+                    row,
                     f"compliance preserve failed for {category} @ {key_date}: "
-                    f"{type(exc).__name__}: {exc}"
+                    f"{type(exc).__name__}: {exc}",
+                    reason_code=LANDER_ERROR,
                 )
         return result
 

@@ -12,17 +12,20 @@ from typing import Any, Iterator
 
 from ._helpers import (
     _jsonable,
-    derive_external_id,
-    split_name_for,
     conflict_resolution_for,
+    derive_external_id,
     detect_and_register_assets,
     detect_conflict,
     map_enrollment_status,
     persist_dfv_extras,
     record_id_mapping,
+    record_row_error,
+    record_row_note,
     row_savepoint,
+    split_name_for,
 )
 from .base import Lander, LanderContext, LanderError, LanderResult, register
+from .reason_codes import LANDER_ERROR, MISSING_REQUIRED
 
 
 class StudentLander(Lander):
@@ -80,9 +83,11 @@ class StudentLander(Lander):
                     place_of_birth=row.get("place_of_birth"),
                 )
             if not external_id or not first_name or not last_name:
-                result.quarantined += 1
-                result.errors.append(
-                    f"Missing required fields (external_id/first/last) in row {row!r}"
+                record_row_error(
+                    result,
+                    row,
+                    f"Missing required fields (external_id/first/last) in row {row!r}",
+                    reason_code=MISSING_REQUIRED,
                 )
                 continue
 
@@ -309,8 +314,12 @@ class StudentLander(Lander):
                 # canonical home. Best-effort — never quarantines the landed row.
                 _sweep_custom_attributes(obj, row, model_fields, result)
             except Exception as exc:  # noqa: BLE001 — per-row quarantine
-                result.quarantined += 1
-                result.errors.append(f"upsert failed for {external_id}: {type(exc).__name__}: {exc}")
+                record_row_error(
+                    result,
+                    row,
+                    f"upsert failed for {external_id}: {type(exc).__name__}: {exc}",
+                    reason_code=LANDER_ERROR,
+                )
         return result
 
 
@@ -584,8 +593,9 @@ def _link_student_guardian_hint(obj, row: dict[str, Any], ctx, result) -> None:
         )
     except Exception:  # noqa: BLE001 — directory promote must not quarantine the student
         if result is not None:
-            result.errors.append(
-                f"guardian directory promote failed for student {getattr(obj, 'pk', '?')}"
+            record_row_note(
+                result,
+                f"guardian directory promote failed for student {getattr(obj, 'pk', '?')}",
             )
 
 
@@ -644,8 +654,9 @@ def _sweep_custom_attributes(obj, row: dict[str, Any], model_fields, result) -> 
             obj.save(update_fields=["custom_attributes"])
     except Exception:  # noqa: BLE001 — enrichment is best-effort; student already landed
         if result is not None:
-            result.errors.append(
-                f"custom_attributes sweep failed for student {getattr(obj, 'pk', '?')}"
+            record_row_note(
+                result,
+                f"custom_attributes sweep failed for student {getattr(obj, 'pk', '?')}",
             )
 
 

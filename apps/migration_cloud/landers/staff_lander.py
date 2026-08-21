@@ -35,16 +35,18 @@ from typing import Any, Iterator
 
 from ._helpers import (
     derive_external_id,
-    split_name_for,
     detect_and_register_assets,
     get_or_create_named,
     mint_scoped_code,
     model_field_names,
     persist_dfv_extras,
     record_id_mapping,
+    record_row_error,
+    record_row_note,
     resolve_canonical_pk_by_legacy,
     resolve_or_provision_user,
     row_savepoint,
+    split_name_for,
     upsert_with_conflict_detection,
 )
 from .base import Lander, LanderContext, LanderError, LanderResult, register
@@ -57,6 +59,7 @@ from apps.migration_cloud.staff_role_map import (
     apply_imported_staff_role,
     resolve_staff_role,
 )
+from .reason_codes import INVALID_REF, LANDER_ERROR, MISSING_REQUIRED
 
 # OneRoster/SIS role tokens that must NEVER be provisioned as teachers.
 _NON_STAFF_ROLES = {"student", "guardian", "parent", "relative"}
@@ -131,8 +134,9 @@ def _sweep_custom_attributes(obj, row: dict[str, Any], model_fields, result) -> 
             obj.save(update_fields=["custom_attributes"])
     except Exception:  # noqa: BLE001 — enrichment is best-effort; staff already landed
         if result is not None:
-            result.errors.append(
-                f"custom_attributes sweep failed for staff {getattr(obj, 'pk', '?')}"
+            record_row_note(
+                result,
+                f"custom_attributes sweep failed for staff {getattr(obj, 'pk', '?')}",
             )
 
 
@@ -194,8 +198,12 @@ class StaffLander(Lander):
                     prefix="auto-staff",
                 )
             if not external_id or not (first_name or last_name or user_ref or email):
-                result.quarantined += 1
-                result.errors.append(f"Missing required staff fields in row {row!r}")
+                record_row_error(
+                    result,
+                    row,
+                    f"Missing required staff fields in row {row!r}",
+                    reason_code=MISSING_REQUIRED,
+                )
                 continue
 
             # Role gate: a combined OneRoster ``users.csv`` is pre-classified to
@@ -245,8 +253,12 @@ class StaffLander(Lander):
                         dry_run=ctx.dry_run,
                     )
                     if teacher_user is None:
-                        result.quarantined += 1
-                        result.errors.append(f"staff {external_id}: {reason or 'no linkable user'}")
+                        record_row_error(
+                            result,
+                            row,
+                            f"staff {external_id}: {reason or 'no linkable user'}",
+                            reason_code=INVALID_REF,
+                        )
                         continue
 
                 # Optional Department FK (SET_NULL) — reuse an existing one by
@@ -318,12 +330,14 @@ class StaffLander(Lander):
                     )
                 except Exception:  # noqa: BLE001 — membership is additive; staff already landed
                     if result is not None:
-                        result.errors.append(
-                            f"staff membership attach failed for {external_id}"
-                        )
+                        record_row_note(result, f"staff membership attach failed for {external_id}")
             except Exception as exc:  # noqa: BLE001
-                result.quarantined += 1
-                result.errors.append(f"staff upsert failed for {external_id}: {type(exc).__name__}: {exc}")
+                record_row_error(
+                    result,
+                    row,
+                    f"staff upsert failed for {external_id}: {type(exc).__name__}: {exc}",
+                    reason_code=LANDER_ERROR,
+                )
         return result
 
 

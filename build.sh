@@ -80,6 +80,14 @@ python3 manage.py collectstatic --noinput
 python3 scripts/verify_approved_ui_deploy_artifacts.py --staticfiles
 python3 scripts/verify_world_globe_staticfiles_deploy.py --staticfiles
 
+# Stamp the build. Render supplies RENDER_GIT_COMMIT at runtime, so commit_sha
+# already resolved here — but it supplies no build timestamp, which is why
+# /-/version/ on the cloud reports `build_time: unknown`. The stamp fills that in
+# (the runtime resolver still prefers the env var for the commit, so this changes
+# nothing Render already answers correctly). Best-effort: the script never fails,
+# and a build must not die over a metadata file.
+python3 scripts/write_build_stamp.py || echo "write_build_stamp skipped"
+
 # Render dashboard often overrides startCommand to bare `.venv/bin/gunicorn ...`.
 # Wrap the venv entrypoint so every deploy still loads config/gunicorn.conf.py
 # (120s timeout, gthread workers, PORT bind) even when the dashboard omits -c.
