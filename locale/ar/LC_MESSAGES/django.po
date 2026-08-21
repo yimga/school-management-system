@@ -65640,3 +65640,11 @@ msgstr ""
 
 msgid "…and never go longer than"
 msgstr ""
+
+msgid ""
+"Showing {{ quarantine_shown }} of {{ quarantine_pending }} rows still "
+"awaiting review."
+msgstr ""
+
+msgid "Use the pages below to reach the rest."
+msgstr ""

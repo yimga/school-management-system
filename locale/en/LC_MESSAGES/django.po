@@ -72877,3 +72877,13 @@ msgstr "{{ n }} syncs a week"
 
 msgid "…and never go longer than"
 msgstr "…and never go longer than"
+
+msgid ""
+"Showing {{ quarantine_shown }} of {{ quarantine_pending }} rows still "
+"awaiting review."
+msgstr ""
+"Showing {{ quarantine_shown }} of {{ quarantine_pending }} rows still "
+"awaiting review."
+
+msgid "Use the pages below to reach the rest."
+msgstr "Use the pages below to reach the rest."

@@ -140,6 +140,10 @@
         <button type="button" class="rmc-btn rmc-btn--sm rmc-btn--ghost" data-rmc-q-retry>{% trans "Re-import bundle" %}</button>
       </div>
 
+      <p class="rmc-muted">
+        {% blocktrans %}Showing {{ quarantine_shown }} of {{ quarantine_pending }} rows still awaiting review.{% endblocktrans %}
+        {% if quarantine_page_obj.paginator.num_pages > 1 %}{% trans "Use the pages below to reach the rest." %}{% endif %}
+      </p>
       <table class="rmc-data-table rmc-quarantine-table" data-rmc-quarantine-table="1">
         <caption class="visually-hidden">{% trans "Held rows" %}</caption>
         <thead>
