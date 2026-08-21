@@ -299,6 +299,12 @@ def _apply_bundle_inner(
             mark_apply_run_start(bundle)
             bundle.mark_status(BundleStatus.APPLYING)
     bundle.refresh_from_db()
+    if not dry_run:
+        # This apply is about to regenerate every held row from scratch, so the
+        # previous apply's PENDING rows are superseded, not history. Without this
+        # each re-apply appended a fresh copy: one bundle re-applied 128 times and
+        # accumulated 40,448 records that were 128 copies of the same 316.
+        _clear_superseded_quarantine(bundle)
     _emit_progress(bundle_id=bundle_id, kind="stage_started", stage="APPLYING",
                    message=f"Apply started (dry_run={dry_run}, atomic={bundle.apply_atomic})")
 
@@ -1764,6 +1770,52 @@ def _classify_quarantine_issue(err: str) -> str:
     if "missing" in e or "required" in e or "not provided" in e:
         return "missing_required"
     return "lander_error"
+
+
+def _clear_superseded_quarantine(bundle: MigrationBundle) -> int:
+    """Drop PENDING quarantine rows from earlier applies of this same bundle.
+
+    An apply regenerates its held rows from scratch, so every re-apply used to
+    append a whole fresh copy. Bundle 84 re-applied 128 times and accumulated
+    40,448 quarantine records that were 128 identical copies of the same 316 --
+    growing by 316 every thirty minutes, with no upper bound.
+
+    Only PENDING rows from PRIOR runs are removed: anything already REPAIRED or
+    FAILED is a resolution someone or something reached, and deleting that would
+    destroy the audit trail the whole review surface depends on.
+    """
+    try:
+        from apps.automation.models import MigrationQuarantineRecord, MigrationRun
+
+        # Runs link to a bundle only through execution_summary["bundle_id"] --
+        # there is no FK (see views.py: the old parent_bundle_id filter raised a
+        # swallowed FieldError and left this surface permanently empty).
+        prior_run_ids = list(
+            MigrationRun.objects.filter(  # tenant-isolation-allow: bundle pk is globally unique and the bundle is already tenant-scoped
+                execution_summary__bundle_id=bundle.pk
+            ).values_list("pk", flat=True)
+        )
+        if not prior_run_ids:
+            return 0
+        deleted, _detail = MigrationQuarantineRecord.objects.filter(  # tenant-isolation-allow: scoped transitively by the bundle's own runs
+            migration_run_id__in=prior_run_ids,
+            status=MigrationQuarantineRecord.Status.PENDING,
+        ).delete()
+    except Exception:  # noqa: BLE001 - housekeeping must never block an apply
+        logger.warning(
+            "migration_cloud.apply: superseded-quarantine sweep failed for bundle %s",
+            bundle.pk,
+            exc_info=True,
+        )
+        return 0
+    if deleted:
+        logger.info(
+            "migration_cloud.apply: cleared %s superseded PENDING quarantine row(s) "
+            "for bundle %s before re-applying",
+            deleted,
+            bundle.pk,
+        )
+    return int(deleted or 0)
 
 
 def _quarantine_errors(
