@@ -39,6 +39,7 @@ from dataclasses import dataclass, field
 
 from django.utils import timezone
 
+from .apply_progress_guard import reset_apply_progress
 from .models import BundleStatus, FinancialMismatchError, MigrationBundle
 from .progress import APPLY_RUN_EPOCH_KEY
 
@@ -536,6 +537,11 @@ def repair_bundle(*, bundle_id: int, off_http: bool = False) -> RepairResult:
             APPLY_RUN_EPOCH_KEY: now_iso,
         },
     )
+    # A repair is a HUMAN deliberately asking for another attempt, so it re-arms the
+    # forward-progress breaker. Without this, a bundle that tripped the breaker could
+    # never be retried even after an operator resolved the held records that were
+    # blocking it. Bounding automatic re-entry is the point; bounding people is not.
+    reset_apply_progress(bundle)
 
     if off_http:
         from .celery_tasks import enqueue_apply
@@ -551,6 +557,7 @@ def repair_bundle(*, bundle_id: int, off_http: bool = False) -> RepairResult:
             bundle_id,
             dry_run=False,
             reconcile_after=True,
+            force=True,
         )
         oid = str(
             getattr(queued, "outbox_id", None) or getattr(queued, "id", "") or ""

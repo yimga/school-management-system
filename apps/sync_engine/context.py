@@ -4,10 +4,11 @@ from __future__ import annotations
 
 
 def edge_sync_chrome(request):
-    from django.conf import settings
     from django.urls import NoReverseMatch, reverse
 
-    enabled = bool(getattr(settings, "RMC_EDGE_SYNC_ENABLED", False))
+    from apps.sync_engine.edge_enabled import edge_sync_enabled
+
+    enabled = edge_sync_enabled()
     empty = {
         "enabled": enabled,
         "status": None,

@@ -38,7 +38,10 @@ class Command(BaseCommand):
         result = run_edge_sync_now(mode=mode, force=True, trigger="edge_autosync")
 
         if not result.get("enabled", True):
-            self.stdout.write("edge_autosync: RMC_EDGE_SYNC_ENABLED is off — no-op.")
+            self.stdout.write(
+                f"edge_autosync: no-op — {result.get('reason') or 'edge sync is off'}. "
+                "Pair this box (manage.py pair_box) or set RMC_EDGE_SYNC_ENABLED=1."
+            )
             return
         if not result.get("ran"):
             self.stdout.write(

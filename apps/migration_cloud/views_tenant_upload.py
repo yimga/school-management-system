@@ -1390,6 +1390,19 @@ class TenantMigrationApplyView(_TenantAdminWriteRequiredMixin, View):
             from .celery_tasks import enqueue_apply
 
             result = enqueue_apply(bundle.pk, dry_run=dry_run)
+            if getattr(result, "refused", False):
+                # The forward-progress breaker declined. Saying "queued" here would be
+                # the "Repair does nothing" complaint all over again: the tenant is told
+                # work was scheduled while nothing was, and the reason stays in a log
+                # they cannot read.
+                messages.warning(
+                    request,
+                    getattr(result, "reason", "")
+                    or "This import is not making progress, so it was not re-run.",
+                )
+                return redirect(
+                    _connector_reverse(request, "bundle-review", bundle_id=bundle.pk)
+                )
             messages.info(
                 request,
                 (

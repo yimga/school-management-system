@@ -7,7 +7,11 @@ infinite ping-pong of sync-applied rows.
 """
 from __future__ import annotations
 
+import logging
+
 from django.db import models
+
+logger = logging.getLogger(__name__)
 
 # Sentinel so ``None`` (a genuinely null updated_at) is distinguishable from
 # "no ledger entry for this row" when suppressing echoes.
@@ -503,12 +507,32 @@ def request_full_resync(school, user=None):
         school=school, kind=EdgeSyncDirective.FULL_RESYNC, served_at__isnull=True
     ).first()
     if pending is not None:
+        _wake_any_listening_box(school)
         return pending
-    return EdgeSyncDirective.objects.create(
+    directive = EdgeSyncDirective.objects.create(
         school=school,
         kind=EdgeSyncDirective.FULL_RESYNC,
         requested_by=user if getattr(user, "pk", None) else None,
     )
+    _wake_any_listening_box(school)
+    return directive
+
+
+def _wake_any_listening_box(school) -> None:
+    """Nudge the long-poll changes feed so a held-open box returns NOW.
+
+    The feed's in-loop check consults an in-memory beacon that only data writes bump,
+    so without this a box sitting in a 25-second hold would not notice a directive that
+    was queued one second into it. Best-effort by construction: if the beacon is
+    unavailable the box still collects the directive on its next ordinary poll, which
+    is the behaviour that existed before this call.
+    """
+    try:
+        from apps.sync_engine.change_beacon import bump
+
+        bump(getattr(school, "pk", None), force=True)
+    except Exception:  # noqa: BLE001 — a missed nudge costs latency, never correctness
+        logger.debug("request_full_resync: could not bump the change beacon", exc_info=True)
 
 
 def claim_pending_directive(school):
@@ -671,7 +695,20 @@ from apps.sync_engine.models_schedule import (  # noqa: E402
     rules_for,
 )
 
+# Pairing lives in its own module (it is a protocol, not sync state) but must be
+# imported here so Django's app registry discovers the model and makemigrations sees it.
+from .models_pairing import (  # noqa: E402  (re-export for the registry)
+    EdgeClaimTicket,
+    EdgeCloudBinding,
+    EdgePairingRequest,
+    PendingPushConfirmation,
+)
+
 __all__ = [
+    "EdgeClaimTicket",
+    "EdgeCloudBinding",
+    "PendingPushConfirmation",
+    "EdgePairingRequest",
     "SyncApplyLedger",
     "SyncSchedule",
     "rules_for",

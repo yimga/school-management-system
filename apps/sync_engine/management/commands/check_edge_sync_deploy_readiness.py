@@ -106,6 +106,67 @@ class Command(BaseCommand):
                 return set()
 
     # --------------------------------------------------------------------- run
+    def _model_column_drift(self, schema, label) -> list:
+        """Every column the SYNCED models declare must exist in this schema.
+
+        WHY THIS IS NOT COVERED BY _ANCHOR_COLUMNS. That list is hand-maintained and
+        names the columns the edge-sync work itself added. It cannot know about a
+        column some OTHER team adds to a synced model later — and a synced model is
+        exactly where that hurts, because building a bundle selects every concrete
+        field, so ONE missing column takes the whole sync endpoint down.
+
+        THE FAILURE THIS CATCHES, observed in production on 2026-08-20:
+        ``academics.AcademicYear`` is a synced entity and a TENANT app, so
+        ``is_soft_closed`` (migration ``academics.0083``) lands per schema via
+        ``migrate_schemas --tenant``. On the gilead-tech schema it had not landed.
+        Every query against that table therefore raised
+
+            ProgrammingError: column academics_academicyear.is_soft_closed does not exist
+
+        which Django turns into a 500 and the platform's proxy serves as a **502** —
+        so the box reported "cloud gateway error" and the operator was pointed at
+        RMC_EDGE_OPERATOR_BASE, a setting that had nothing to do with it. Schema drift
+        on ONE tenant is indistinguishable, from the box, from the cloud being down.
+
+        Read-only introspection; a table that is absent entirely is left to the anchor
+        check above rather than reported twice.
+        """
+        found: list = []
+        try:
+            from apps.api.sync_services import _get_entity_config
+
+            entities = _get_entity_config(include_derived=True)
+        except Exception as exc:  # noqa: BLE001 — never take the verifier down
+            self.stdout.write(
+                self.style.WARNING(f"[{label}] could not load the sync entity registry: {exc}")
+            )
+            return found
+
+        for entity, config in sorted(entities.items()):
+            model = config[0] if isinstance(config, (tuple, list)) else config
+            table = getattr(getattr(model, "_meta", None), "db_table", "")
+            if not table:
+                continue
+            present = self._columns(table, schema)
+            if not present:
+                # Absent table: the anchor check already speaks to that.
+                continue
+            expected = {
+                f.column
+                for f in model._meta.concrete_fields
+                if getattr(f, "column", None)
+            }
+            missing = sorted(expected - set(present))
+            if missing:
+                found.append(
+                    f"[{label}] {table} is MISSING column(s) {', '.join(missing)} "
+                    f"— the '{entity}' entity is synced, so every bundle build queries "
+                    f"this table and will raise ProgrammingError -> HTTP 500, which the "
+                    f"proxy serves to the box as a 502. Run: "
+                    f"python manage.py migrate_schemas --tenant"
+                )
+        return found
+
     def handle(self, *args, **options):
         problems: list[str] = []
         warnings: list[str] = []
@@ -144,6 +205,7 @@ class Command(BaseCommand):
                         "duplicate client_offline_id values would be accepted, splitting "
                         "one offline record into several"
                     )
+            problems.extend(self._model_column_drift(schema, label))
         if schemas:
             connection.set_schema_to_public()
 

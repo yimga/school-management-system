@@ -52,6 +52,14 @@ class EdgeAutosyncMiddleware:
         if getattr(settings, "RUNNING_TESTS", False):
             return
         try:
+            # Ordered cheapest-first: RUNNING_TESTS is a settings lookup, this one can
+            # reach the database. It sits INSIDE the try because the whole point of the
+            # broad except below is that a page load never dies for the scheduler --
+            # an unreachable database here must skip the tick, not 500 the request.
+            from apps.sync_engine.edge_enabled import edge_sync_enabled
+
+            if not edge_sync_enabled():
+                return
             from apps.schools.gate_request_kind import is_document_navigation
 
             # Subresources, XHR and fetch are excluded: a single page load already

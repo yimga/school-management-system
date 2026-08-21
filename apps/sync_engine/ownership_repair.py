@@ -22,6 +22,10 @@ onboarding runbook can run it for whichever school is being brought up.
 """
 from __future__ import annotations
 
+from contextlib import contextmanager
+
+from django.conf import settings
+
 import logging
 from dataclasses import dataclass, field
 
@@ -108,6 +112,40 @@ def _classify(model, pk, school_id) -> OwnershipCandidate:
     )
 
 
+@contextmanager
+def _school_schema(school):
+    """Run the body inside ``school``'s Postgres schema, when there is one.
+
+    THE BUG THIS FIXES. Under ``USE_DJANGO_TENANTS`` (what ``render.yaml`` sets)
+    every tenant table lives in ``s_<uuid-hex>``, and ``public`` holds only the shared
+    apps. Both entry points below query ``model._default_manager`` with no schema
+    switch, so on the cloud they inspected whichever schema the connection happened to
+    be on — ``public`` for a management command — where the tenant tables are either
+    absent or hold unrelated legacy rows.
+
+    That is not a subtle inaccuracy. Run live against gilead-tech on 2026-08-20 it
+    reported **572 unowned rows needing repair** while the tenant's real schema held
+    420 correctly-owned students and exactly ONE unowned row. An operator who had
+    passed ``--apply`` would have been writing school ownership onto rows in the
+    public schema on the strength of an audit that never looked at the school.
+
+    A box (``USE_DJANGO_TENANTS=0``, shared DB + RLS) has one schema and needs no
+    switch, so this is a no-op there — which is why the bug was invisible in the
+    place the code was written and tested.
+    """
+    schema = (getattr(school, "schema_name", "") or "").strip()
+    if not getattr(settings, "USE_DJANGO_TENANTS", False) or not schema:
+        yield
+        return
+    try:
+        from django_tenants.utils import schema_context
+    except ImportError:  # pragma: no cover - django_tenants absent on a box
+        yield
+        return
+    with schema_context(schema):
+        yield
+
+
 def plan_ownership_repair(school, *, config=None) -> dict:
     """Read-only audit: which unowned rows could be claimed by ``school``.
 
@@ -118,21 +156,24 @@ def plan_ownership_repair(school, *, config=None) -> dict:
     config = config if config is not None else _get_entity_config(include_derived=True)
     school_id = getattr(school, "pk", school)
     candidates: list[OwnershipCandidate] = []
-    for entity_type, (model, _allowed) in sorted(config.items()):
-        if not _has_school_field(model):
-            continue
-        try:
-            unowned = list(
-                model._default_manager.filter(school__isnull=True)
-                .values_list("pk", flat=True)[:500]
-            )
-        except Exception:  # noqa: BLE001 — never let one model break the whole audit
-            logger.debug("ownership_repair: scan failed for %s", entity_type, exc_info=True)
-            continue
-        for pk in unowned:
-            candidate = _classify(model, pk, school_id)
-            candidate.entity_type = entity_type
-            candidates.append(candidate)
+    with _school_schema(school):
+        for entity_type, (model, _allowed) in sorted(config.items()):
+            if not _has_school_field(model):
+                continue
+            try:
+                unowned = list(
+                    model._default_manager.filter(school__isnull=True)
+                    .values_list("pk", flat=True)[:500]
+                )
+            except Exception:  # noqa: BLE001 — never let one model break the whole audit
+                logger.debug(
+                    "ownership_repair: scan failed for %s", entity_type, exc_info=True
+                )
+                continue
+            for pk in unowned:
+                candidate = _classify(model, pk, school_id)
+                candidate.entity_type = entity_type
+                candidates.append(candidate)
 
     counts: dict[str, int] = {}
     for c in candidates:
@@ -162,7 +203,7 @@ def apply_ownership_repair(school, *, plan=None, include_orphans: bool = False) 
             by_entity.setdefault(c.entity_type, []).append(c.pk)
 
     updated: dict[str, int] = {}
-    with transaction.atomic():
+    with _school_schema(school), transaction.atomic():
         for entity_type, pks in by_entity.items():
             model, _allowed_fields = config[entity_type]
             n = (

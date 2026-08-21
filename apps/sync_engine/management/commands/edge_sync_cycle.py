@@ -12,7 +12,6 @@ put and simply retry next cycle), so a scheduled run during an outage is harmles
 """
 from __future__ import annotations
 
-from django.conf import settings
 from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 
@@ -32,9 +31,12 @@ class Command(BaseCommand):
         parser.add_argument("--timeout", type=float, default=30.0, help="HTTP timeout seconds.")
 
     def handle(self, *args, **options):
-        if not getattr(settings, "RMC_EDGE_SYNC_ENABLED", False):
+        from apps.sync_engine.edge_enabled import edge_sync_enabled
+
+        if not edge_sync_enabled():
             self.stdout.write(
-                "RMC_EDGE_SYNC_ENABLED is off — edge sync cycle is a no-op on this deployment."
+                "Edge sync is off on this deployment — pair this box "
+                "(manage.py pair_box) or set RMC_EDGE_SYNC_ENABLED=1."
             )
             return
 

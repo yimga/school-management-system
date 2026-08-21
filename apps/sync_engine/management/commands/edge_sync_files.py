@@ -16,9 +16,7 @@ resumes exactly where this one left off, mid-file if need be.
 """
 from __future__ import annotations
 
-import os
 
-from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.urls import NoReverseMatch, reverse
 from apps.sync_engine.cloud_endpoints import CLOUD_SYNC_PATHS
@@ -45,7 +43,9 @@ class Command(BaseCommand):
             return
 
         base = self._operator_base()
-        token = (os.getenv("RMC_EDGE_CREDENTIAL") or "").strip()
+        from apps.sync_engine.edge_binding import edge_credential
+
+        token = edge_credential()
         manifest_endpoint = base + self._path(
             "api:sync-file-manifest", CLOUD_SYNC_PATHS["api:sync-file-manifest"]
         )
@@ -94,10 +94,9 @@ class Command(BaseCommand):
 
     @staticmethod
     def _operator_base():
-        base = (getattr(settings, "RMC_EDGE_OPERATOR_BASE", "") or "").strip()
-        if not base:
-            base = (getattr(settings, "RMC_HUB_BASE_URL", "") or "").strip()
-        return base.rstrip("/")
+        from apps.sync_engine.edge_binding import operator_base
+
+        return operator_base()
 
     @staticmethod
     def _path(url_name, fallback):

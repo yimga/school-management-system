@@ -11,14 +11,18 @@ from apps.sync_engine.cloud_endpoints import cloud_endpoint
 def operator_base() -> str:
     from django.conf import settings
 
-    base = (getattr(settings, "RMC_EDGE_OPERATOR_BASE", "") or "").strip()
+    from apps.sync_engine.edge_binding import operator_base
+
+    base = operator_base()
     if not base:
         base = (getattr(settings, "RMC_HUB_BASE_URL", "") or "").strip()
     return base.rstrip("/")
 
 
 def credential_configured() -> bool:
-    return bool((os.getenv("RMC_EDGE_CREDENTIAL") or "").strip())
+    from apps.sync_engine.edge_binding import edge_credential
+
+    return bool(edge_credential())
 
 
 def extract_http_error_detail(body: Any) -> str:
@@ -78,9 +82,17 @@ def format_http_rejection(phase: str, status: int, body: Any) -> str:
 def connectivity_snapshot() -> dict[str, Any]:
     from django.conf import settings
 
+    from apps.sync_engine.edge_enabled import why as edge_enabled_why
+
     base = operator_base()
+    enabled = edge_enabled_why()
     return {
-        "edge_sync_enabled": bool(getattr(settings, "RMC_EDGE_SYNC_ENABLED", False)),
+        # The RESOLVED answer, not the raw env flag — a paired box is an enabled box,
+        # and a probe that reported otherwise would send an operator to edit a file
+        # that has nothing to do with why sync is or is not running.
+        "edge_sync_enabled": enabled["enabled"],
+        "edge_sync_enabled_reason": enabled["reason"],
+        "edge_sync_paired": enabled["paired"],
         "deployment_profile": getattr(settings, "RMC_DEPLOYMENT_PROFILE", "") or "",
         "operator_base": base,
         "operator_base_configured": bool(base),
@@ -101,7 +113,11 @@ def probe_cloud_http(*, timeout: float = 20.0) -> dict[str, Any]:
     snap = connectivity_snapshot()
     problems: list[str] = []
     if not snap.get("edge_sync_enabled"):
-        problems.append("RMC_EDGE_SYNC_ENABLED is off on this box.")
+        problems.append(
+            "Edge sync is off on this box: "
+            f"{snap.get('edge_sync_enabled_reason') or 'unknown reason'}. "
+            "Pair the box (manage.py pair_box) or set RMC_EDGE_SYNC_ENABLED=1."
+        )
     if not snap.get("operator_base_configured"):
         problems.append(
             "Set RMC_EDGE_OPERATOR_BASE to the TENANT cloud host "
@@ -123,7 +139,9 @@ def probe_cloud_http(*, timeout: float = 20.0) -> dict[str, Any]:
         result["ok"] = False
         return result
 
-    token = (os.getenv("RMC_EDGE_CREDENTIAL") or "").strip()
+    from apps.sync_engine.edge_binding import edge_credential
+
+    token = edge_credential()
     base = operator_base()
     headers_base = {"Authorization": f"Bearer {token}"} if token else {}
 

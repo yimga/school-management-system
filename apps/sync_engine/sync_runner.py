@@ -28,7 +28,6 @@ conflict/money policy.
 from __future__ import annotations
 
 import logging
-import os
 
 from django.conf import settings
 from apps.sync_engine.cloud_endpoints import cloud_endpoint
@@ -81,17 +80,22 @@ def _request_replay_for_missing_parents(school) -> str:
 
 
 def _operator_base() -> str:
-    """Operator (cloud) base URL the box pushes/pulls against, same knobs the box uses
-    elsewhere. Empty is tolerated — the transport call simply fails and is recorded."""
-    base = (getattr(settings, "RMC_EDGE_OPERATOR_BASE", "") or "").strip()
-    if not base:
-        base = (getattr(settings, "RMC_HUB_BASE_URL", "") or "").strip()
-    return base.rstrip("/")
+    """Operator (cloud) base URL the box pushes/pulls against.
+
+    Resolved by ``edge_binding``: the durable pairing binding first, then the
+    environment for boxes that were never paired, then derived from the school slug.
+    Empty is tolerated — the transport call simply fails and is recorded.
+    """
+    from apps.sync_engine.edge_binding import operator_base
+
+    return operator_base()
 
 
 def _edge_token() -> str:
-    """Edge machine credential — the same env var the commands read (RMC_EDGE_CREDENTIAL)."""
-    return (os.getenv("RMC_EDGE_CREDENTIAL") or "").strip()
+    """Edge machine credential, from the pairing binding or the legacy env var."""
+    from apps.sync_engine.edge_binding import edge_credential
+
+    return edge_credential()
 
 
 def _endpoint(base: str, url_name: str) -> str:
@@ -373,6 +377,28 @@ def _execute_sync_transport(school, *, mode, result, run_row) -> None:
         # over a short overlap closes that (and the same-tick tie at a page boundary);
         # every apply path is idempotent, so a re-shipped row costs bandwidth only.
         # See models.get_sync_cursor_for_request for the bound this does NOT close.
+        # Before rebuilding anything, settle any push whose outcome we never learned.
+        # A previous cycle that died on a timeout or a 502 may have been fully applied
+        # upstream; asking costs one small GET, while assuming the worst costs the whole
+        # page again over a link that has already proven unreliable. Confirmed pages
+        # advance the cursor here, so build_edge_delta_rows below does not re-offer them.
+        try:
+            from apps.sync_engine.push_confirmation import resolve_pending
+
+            settled = resolve_pending(
+                school,
+                base=base,
+                token=token,
+                set_cursor=lambda hw: set_sync_cursor(school, EdgeSyncCursor.PUSH, hw),
+            )
+            if settled.get("confirmed"):
+                notes.append(
+                    f"{settled['confirmed']} earlier push(es) confirmed already "
+                    f"applied upstream; not re-sent"
+                )
+        except Exception:  # noqa: BLE001 — never let the optimisation block the push
+            logger.debug("push confirmation sweep failed", exc_info=True)
+
         push_since = get_sync_cursor_for_request(school, EdgeSyncCursor.PUSH)
         rows, meta = edge_outbox.build_edge_delta_rows(school, since=push_since, entities=None)
 
@@ -461,8 +487,27 @@ def _execute_sync_transport(school, *, mode, result, run_row) -> None:
                     break
                 if not (status == 200 and body.get("ok")):
                     from apps.sync_engine.connectivity_probe import format_http_rejection
+                    from apps.sync_engine.push_confirmation import (
+                        is_ambiguous_failure,
+                        record_ambiguous_push,
+                    )
 
-                    errors.append(format_http_rejection("push", status, body))
+                    rejection = format_http_rejection("push", status, body)
+                    errors.append(rejection)
+                    if is_ambiguous_failure(status):
+                        # A timeout or a gateway error means the answer was LOST, not
+                        # that the answer was no — the cloud may have applied this
+                        # page. Remember the nonce so the next cycle can ask instead
+                        # of re-shipping the whole page over a link that just failed.
+                        record_ambiguous_push(
+                            school,
+                            data=data,
+                            high_water=(
+                                _row_high_water(page) if index >= len(insert_pages) else ""
+                            ),
+                            row_count=len(page),
+                            failure=rejection[:120],
+                        )
                     drained_updates = False
                     break
                 posted_pages += 1
@@ -551,6 +596,18 @@ def _execute_sync_transport(school, *, mode, result, run_row) -> None:
             from apps.sync_engine import push_ledger as _push_ledger
 
             _push_ledger.reset(school)
+            # Rewinding is only half of it. The replay happens on the NEXT cycle, and
+            # without a wake that cycle waits out the adaptive cadence — which backs OFF
+            # precisely for the quiet box an operator is most likely to be resyncing. So
+            # the operator pressed a button, the box obeyed instantly, and nothing
+            # visible happened for minutes. Raise the wake so the replay starts on the
+            # next tick (seconds), not the next interval.
+            try:
+                from apps.sync_engine import cadence
+
+                cadence.request_wake("cloud requested full resync")
+            except Exception:  # noqa: BLE001 — a missed wake costs latency, not data
+                logger.debug("sync_runner: could not raise the resync wake", exc_info=True)
             notes.append(
                 f"full resync requested by the cloud: rewound {rewound} cursor(s); "
                 "the next cycle replays the entire corpus"

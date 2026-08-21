@@ -29,6 +29,7 @@ net is required rather than optional.
 from __future__ import annotations
 
 import time
+from datetime import timedelta
 
 from django.conf import settings
 from django.utils import timezone
@@ -48,6 +49,17 @@ from apps.schools.tenant_api_guards import user_may_operate_on_school
 _DEFAULT_MAX_WAIT_SECONDS = 25
 _DEFAULT_POLL_STEP_SECONDS = 1.0
 _DEFAULT_DB_SWEEP_SECONDS = 5.0
+# How long a queued directive keeps waking a held-open feed. Generous enough to cover
+# a box that is offline when the operator clicks and returns a few minutes later;
+# bounded so an uncollectable directive cannot wake it forever. See the comment in
+# _database_has_changes for why an unbounded version is a 1Hz hammer.
+_DEFAULT_DIRECTIVE_WAKE_WINDOW_SECONDS = 900
+
+
+def _directive_wake_window_seconds() -> int:
+    return max(1, int(_setting(
+        "RMC_SYNC_DIRECTIVE_WAKE_WINDOW_SECONDS", _DEFAULT_DIRECTIVE_WAKE_WINDOW_SECONDS
+    )))
 
 
 def _setting(name, default):
@@ -88,6 +100,38 @@ def _database_has_changes(school, since) -> bool:
         if tombs.exists():
             return True
     except Exception:  # noqa: BLE001
+        pass
+    try:
+        from django.utils import timezone as _tz
+
+        from apps.sync_engine.models import EdgeSyncDirective
+
+        # An UNSERVED DIRECTIVE is also "something for this box", and it is the one an
+        # operator is actually watching: they pressed a button and are waiting. It is
+        # deliberately NOT filtered by ``since`` — a directive is pending until the box
+        # collects it, and it has no place on the data timeline the cursor tracks.
+        #
+        # Without this the feed answered purely on row changes, so queueing a resync
+        # for a QUIET school woke nobody: the box stayed in its hold, and the operator's
+        # click did nothing visible until the next ordinary cadence poll minutes later.
+        # Self-clearing in the normal case: the cycle this triggers pulls a bundle, and
+        # the download endpoint stamps ``served_at`` as it hands the directive over.
+        #
+        # THE AGE WINDOW IS LOAD-BEARING, not tidiness. Serving the directive is
+        # best-effort inside the download endpoint (a failure there is swallowed so a
+        # directive can never cost the box its data), so a directive CAN stay pending
+        # across an otherwise successful cycle. Unbounded, that turns into: feed says
+        # "changed", box cycles, directive still pending, repeat — and the watcher's
+        # floor between cycles is ONE SECOND, so every box in that state would hammer
+        # the cloud at 1Hz forever. Past the window the box falls back to its ordinary
+        # cadence, which still collects the directive on its next pull; all that is
+        # given up is the sub-second wake for a click nobody is watching any more.
+        cutoff = _tz.now() - timedelta(seconds=_directive_wake_window_seconds())
+        if EdgeSyncDirective.objects.filter(
+            school=school, served_at__isnull=True, requested_at__gte=cutoff
+        ).exists():
+            return True
+    except Exception:  # noqa: BLE001 — a directive is a bonus; never break the feed
         pass
     return False
 
