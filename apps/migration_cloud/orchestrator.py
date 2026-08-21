@@ -228,15 +228,45 @@ def _apply_bundle_inner(
             from .repair import applying_stale_by_time
 
             if applying_stale_by_time(bundle):
+                # Count the attempts. Retrying a dead worker is right; retrying
+                # forever hides a bundle that finishes and never settles, which
+                # is indistinguishable from a hang to everyone watching it.
+                _reclaims = wedged_reclaims_so_far(bundle.size_summary)
+                if wedged_reclaim_budget_exhausted(bundle.size_summary):
+                    logger.error(
+                        "orchestrator: bundle %s has been reclaimed from a wedged APPLYING "
+                        "state %s times without ever settling — refusing to retry again and "
+                        "marking FAILED so it stops looping and becomes repairable",
+                        bundle_id,
+                        _reclaims,
+                    )
+                    bundle.mark_status(
+                        BundleStatus.FAILED,
+                        summary_patch={
+                            "error": (
+                                "This import kept restarting without ever finishing. It has "
+                                "been stopped so it cannot loop. Your data is unchanged — "
+                                "records already imported were updated in place, never "
+                                "duplicated. Use Repair to try again."
+                            ),
+                            "wedged_apply_reclaim_ceiling_hit_at": timezone.now().isoformat(),
+                        },
+                    )
+                    return _empty_result(bundle, dry_run, BundleStatus.FAILED)
                 logger.warning(
                     "orchestrator: bundle %s wedged at APPLYING with no heartbeat past "
                     "the stale threshold (prior worker died mid-apply) — reclaiming to "
-                    "MAPPED for retry",
+                    "MAPPED for retry (attempt %s of %s)",
                     bundle_id,
+                    _reclaims + 1,
+                    _MAX_WEDGED_APPLY_RECLAIMS,
                 )
                 bundle.mark_status(
                     BundleStatus.MAPPED,
-                    summary_patch={"reclaimed_wedged_apply_at": timezone.now().isoformat()},
+                    summary_patch={
+                        "reclaimed_wedged_apply_at": timezone.now().isoformat(),
+                        "wedged_apply_reclaims": _reclaims + 1,
+                    },
                 )
 
         if bundle.status != BundleStatus.MAPPED:
@@ -260,8 +290,21 @@ def _apply_bundle_inner(
             shadow = prior_recon.get("shadow")
             bundle.reconciliation_summary = {"shadow": shadow} if shadow else {}
             bundle.save(update_fields=["reconciliation_summary", "updated_at"])
+            # Open a new progress run at the same moment the status flips. The
+            # event stream is append-only for the life of the bundle and APPLYING
+            # is the stage a retry RE-RUNS, so without this boundary the snapshot
+            # keeps serving the previous apply's ratcheted pct and live totals.
+            from .progress import mark_apply_run_start
+
+            mark_apply_run_start(bundle)
             bundle.mark_status(BundleStatus.APPLYING)
     bundle.refresh_from_db()
+    if not dry_run:
+        # This apply is about to regenerate every held row from scratch, so the
+        # previous apply's PENDING rows are superseded, not history. Without this
+        # each re-apply appended a fresh copy: one bundle re-applied 128 times and
+        # accumulated 40,448 records that were 128 copies of the same 316.
+        _clear_superseded_quarantine(bundle)
     _emit_progress(bundle_id=bundle_id, kind="stage_started", stage="APPLYING",
                    message=f"Apply started (dry_run={dry_run}, atomic={bundle.apply_atomic})")
 
@@ -543,7 +586,13 @@ def _apply_bundle_inner(
         # Dry-run never advances past MAPPED — operator still needs to apply.
         bundle.mark_status(BundleStatus.MAPPED, summary_patch={"last_dry_run": totals})
     else:
-        bundle.mark_status(new_status, summary_patch={"apply_totals": totals})
+        # wedged_apply_reclaims resets here: a bundle that settles has, by
+        # definition, stopped being wedged, so a later genuine worker death gets
+        # the full retry budget again rather than inheriting an old tally.
+        bundle.mark_status(
+            new_status,
+            summary_patch={"apply_totals": totals, "wedged_apply_reclaims": 0},
+        )
         # A non-atomic bundle where one artifact COMMITTED rows (autocommit) and
         # another FAILED would otherwise read FAILED while the committed rows
         # stayed LIVE — breaking the "FAILED = nothing landed" contract the
@@ -578,6 +627,38 @@ def _apply_bundle_inner(
         detail={"totals": totals},
     )
     refresh_snapshot(bundle=bundle)
+
+    if not dry_run:
+        # Re-read the status instead of trusting the write above. An apply that
+        # announces "finished" and leaves the bundle at APPLYING is completely
+        # silent: no exception, no failed row, nothing in the log. Thirty minutes
+        # later the stale detector reclaims it and the entire import runs again.
+        # One live bundle re-ran a 44-second import roughly 48 times in 24 hours
+        # this way. Verifying here turns that into a single loud line naming the
+        # status that actually survived, and forces the terminal state so the
+        # loop cannot start.
+        _settled = (
+            MigrationBundle.objects.filter(pk=bundle.pk)  # tenant-isolation-allow: PK re-read of the bundle this apply already holds
+            .values_list("status", flat=True)
+            .first()
+        )
+        if _settled not in _TERMINAL_BUNDLE_STATUSES:
+            logger.error(
+                "orchestrator: bundle %s finished its apply (%s created, %s updated, "
+                "%s quarantined) but the persisted status is %r instead of the %r just "
+                "written — something overwrote it. Forcing the terminal status so the "
+                "bundle cannot be reclaimed into an endless re-apply loop.",
+                bundle.pk,
+                totals.get("created"),
+                totals.get("updated"),
+                totals.get("quarantined"),
+                _settled,
+                str(new_status),
+            )
+            # .update() deliberately: it bypasses the in-memory instance (whose
+            # state we have just proved untrustworthy) and does not re-stamp
+            # updated_at, so it cannot re-arm the staleness heartbeat.
+            MigrationBundle.objects.filter(pk=bundle.pk).update(status=new_status)  # tenant-isolation-allow: PK forced settle of the bundle this apply already holds
 
     try:
         from apps.platform_runtime.workflow_tracker import active_workflow_run, pulse_workflow_step
@@ -1668,6 +1749,12 @@ def _finalize_audit_run(run, outcome: ArtifactApplyOutcome, *, status: str) -> N
     run.save(update_fields=["rollback_snapshot"])
 
 
+# Per-artifact ceiling on durable quarantine records. A runaway lander must not
+# be able to write a million rows, but exceeding this is a REPORTED event, never
+# a silent one — see _quarantine_errors.
+QUARANTINE_RECORD_CAP = 200  # magic-number-allow: quarantine-records-per-artifact
+
+
 def _classify_quarantine_issue(err: str) -> str:
     """Bucket a lander error string into a ``MigrationQuarantineRecord.issue_class``."""
     e = (err or "").lower()
@@ -1683,6 +1770,52 @@ def _classify_quarantine_issue(err: str) -> str:
     if "missing" in e or "required" in e or "not provided" in e:
         return "missing_required"
     return "lander_error"
+
+
+def _clear_superseded_quarantine(bundle: MigrationBundle) -> int:
+    """Drop PENDING quarantine rows from earlier applies of this same bundle.
+
+    An apply regenerates its held rows from scratch, so every re-apply used to
+    append a whole fresh copy. Bundle 84 re-applied 128 times and accumulated
+    40,448 quarantine records that were 128 identical copies of the same 316 --
+    growing by 316 every thirty minutes, with no upper bound.
+
+    Only PENDING rows from PRIOR runs are removed: anything already REPAIRED or
+    FAILED is a resolution someone or something reached, and deleting that would
+    destroy the audit trail the whole review surface depends on.
+    """
+    try:
+        from apps.automation.models import MigrationQuarantineRecord, MigrationRun
+
+        # Runs link to a bundle only through execution_summary["bundle_id"] --
+        # there is no FK (see views.py: the old parent_bundle_id filter raised a
+        # swallowed FieldError and left this surface permanently empty).
+        prior_run_ids = list(
+            MigrationRun.objects.filter(  # tenant-isolation-allow: bundle pk is globally unique and the bundle is already tenant-scoped
+                execution_summary__bundle_id=bundle.pk
+            ).values_list("pk", flat=True)
+        )
+        if not prior_run_ids:
+            return 0
+        deleted, _detail = MigrationQuarantineRecord.objects.filter(  # tenant-isolation-allow: scoped transitively by the bundle's own runs
+            migration_run_id__in=prior_run_ids,
+            status=MigrationQuarantineRecord.Status.PENDING,
+        ).delete()
+    except Exception:  # noqa: BLE001 - housekeeping must never block an apply
+        logger.warning(
+            "migration_cloud.apply: superseded-quarantine sweep failed for bundle %s",
+            bundle.pk,
+            exc_info=True,
+        )
+        return 0
+    if deleted:
+        logger.info(
+            "migration_cloud.apply: cleared %s superseded PENDING quarantine row(s) "
+            "for bundle %s before re-applying",
+            deleted,
+            bundle.pk,
+        )
+    return int(deleted or 0)
 
 
 def _quarantine_errors(
@@ -1723,7 +1856,22 @@ def _quarantine_errors(
             row_by_error[str(er.get("error"))] = er.get("row")
 
     domain_label = ((domain or "") or (artifact.path_within_bundle or ""))[:32]
-    for idx, err in enumerate(result.errors[:200], start=1):  # cap runaway quarantine
+
+    # The cap is a runaway guard, not a review policy — but it was SILENT. The
+    # board counts every held row (totals["quarantined"]) while only the first
+    # QUARANTINE_RECORD_CAP per artifact were ever written, so a tenant is told
+    # "442 held for review" and can only ever see some of them. The rest are
+    # counted and gone. One live artifact held 326 rows: 126 of them left no
+    # record at all. Say so, loudly, rather than letting the two numbers drift.
+    _dropped = max(0, len(result.errors) - QUARANTINE_RECORD_CAP)
+    if _dropped:
+        logger.error(
+            "migration_cloud.apply: quarantine truncated for bundle=%s domain=%s — "
+            "%s row error(s) held but only %s recorded; %s have NO durable record "
+            "and cannot be reviewed or replayed",
+            bundle.pk, domain_label, len(result.errors), QUARANTINE_RECORD_CAP, _dropped,
+        )
+    for idx, err in enumerate(result.errors[:QUARANTINE_RECORD_CAP], start=1):
         payload = {"error": err, "artifact": artifact.path_within_bundle}
         source_row = row_by_error.get(str(err))
         if source_row is not None:
@@ -1814,6 +1962,43 @@ def _field_level_apply_summary(
             }
         )
     return summary
+
+
+# A wedged apply is reclaimed to MAPPED and retried. That self-heal is correct
+# for a worker that genuinely died, but it had no ceiling: a bundle whose apply
+# COMPLETES and still does not settle gets reclaimed every _APPLYING_STALE_SECONDS
+# forever. One live bundle re-ran a 44-second import ~48 times in 24 hours. A
+# self-heal that cannot give up is not a self-heal, it is a loop.
+_MAX_WEDGED_APPLY_RECLAIMS = 3  # magic-number-allow: wedged-apply-reclaim-ceiling
+
+def wedged_reclaims_so_far(size_summary) -> int:
+    """How many times this bundle has already been reclaimed from a wedged apply.
+
+    Tolerant by design: the counter lives in a free-form JSON summary, so a
+    missing / null / non-numeric value must read as zero rather than raise and
+    take down an apply.
+    """
+    if not isinstance(size_summary, dict):
+        # size_summary is a free-form JSONField: a string or list is a possible
+        # (if wrong) shape, and .get would AttributeError inside a live apply.
+        return 0
+    try:
+        return max(0, int(size_summary.get("wedged_apply_reclaims") or 0))
+    except (TypeError, ValueError):
+        return 0
+
+
+def wedged_reclaim_budget_exhausted(size_summary) -> bool:
+    """True when this bundle has used up its wedged-apply retries."""
+    return wedged_reclaims_so_far(size_summary) >= _MAX_WEDGED_APPLY_RECLAIMS
+
+
+_TERMINAL_BUNDLE_STATUSES = frozenset({
+    BundleStatus.APPLIED,
+    BundleStatus.RECONCILED,
+    BundleStatus.FAILED,
+    BundleStatus.ABORTED,
+})
 
 
 def _empty_result(bundle: MigrationBundle, dry_run: bool, status: str) -> ApplyResult:

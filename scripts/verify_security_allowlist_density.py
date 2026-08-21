@@ -47,8 +47,21 @@ ROOT = Path(__file__).resolve().parent.parent
 # playwright.config.js it sits beside; npm script test:e2e:offline-multiday targets it by
 # root-relative path, and its `testDir: 'tests/e2e'` resolves from the config's own dir.
 # Classified growth, not silent expansion (44->45).
+# raw_sql_allowlist.json 28 -> 34, reviewed 2026-08-20. The gap is TWO separate
+# things and the split matters:
+#   * 28 -> 30 predates this change. c4753b6e6 ("raw-SQL allowlist reconcile")
+#     grew the file past the cap without bumping it, so this gate was already red
+#     for a reason nobody had recorded. Documenting rather than inheriting it.
+#   * 30 -> 34 is this pass: two schema_repair modules (quote_name()-quoted DDL
+#     over module constants), one constant SET CONSTRAINTS ALL IMMEDIATE, and one
+#     read-only introspection command whose only unparameterized SQL is a SQLite
+#     PRAGMA. Each was read line by line, not accepted by category, and each entry
+#     carries its reason.
+# Mutation-proven the underlying gate still bites: a fresh cursor.execute in a
+# non-allowlisted file turns lint_raw_sql_usage red. Classified growth, not silent
+# expansion.
 MAX_COUNTS: dict[str, tuple[str, int]] = {
-    "raw_sql_allowlist.json": ("files", 28),
+    "raw_sql_allowlist.json": ("files", 34),
     "csrf_exempt_allowlist.json": ("files", 38),
     "allow_any_allowlist.json": ("files", 4),
     "broad_except_allowlist.json": ("allowed_counts", 189),

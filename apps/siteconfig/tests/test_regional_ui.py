@@ -2,7 +2,7 @@
 
 import uuid
 
-from django.test import Client, TestCase, override_settings, RequestFactory
+from django.test import TestCase, override_settings, RequestFactory
 from django.urls import reverse, set_urlconf
 from django.utils import translation
 

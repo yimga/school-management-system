@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Mechanical contract: unified admin steering strip + paired changelist CTAs."""
+"""Mechanical contract: page-aware admin guidance + paired changelist CTAs.
+
+The approved v15/v22 catalog removed the global operator steering strip and
+duplicate KPI row from the fold. Guidance is now owned by the page-aware index
+intelligence partial and each page's command band.
+"""
 
 from __future__ import annotations
 
@@ -13,10 +18,10 @@ def main() -> int:
     findings: list[str] = []
 
     base = (ROOT / "templates/admin/base.html").read_text(encoding="utf-8")
-    if "block admin_operator_steering" not in base:
-        findings.append("base.html must define admin_operator_steering block")
-    if "admin_operator_steering_strip.html" not in base:
-        findings.append("base.html must include admin_operator_steering_strip.html")
+    if "admin_operator_steering_strip.html" in base:
+        findings.append("base.html must not restore the retired global steering strip")
+    if "block admin_operator_steering" in base:
+        findings.append("base.html must not restore the retired steering-strip block")
     banner = ROOT / "templates/admin/includes/operator_path_banner.html"
     if banner.is_file():
         findings.append("operator_path_banner.html must be deleted (use steering strip)")
@@ -48,12 +53,14 @@ def main() -> int:
         findings.append("super_admin_paired_surfaces must expose paired links on manager admin")
 
     index = (ROOT / "templates/admin/index_superadmin.html").read_text(encoding="utf-8")
-    if "admin_index_kpis" not in index:
-        findings.append("index_superadmin must render admin_index_kpis")
-    if "cp-hero__actions--toolbar" not in index:
-        findings.append("index_superadmin must use unified cp-hero__actions--toolbar")
-    if "</div>\n    <nav class=\"cp-hero__actions" in index.replace("\r\n", "\n"):
-        findings.append("index_superadmin must not split hero CTAs and section nav on two rows")
+    if "admin/includes/admin_index_intelligence.html" not in index:
+        findings.append("index_superadmin must render page-aware index intelligence")
+    if "rmc-django-command-band__meta rmc-django-command-band__actions" not in index:
+        findings.append("index_superadmin must keep catalog actions in the command band")
+    if "rmc-admin-section-jumps" not in index:
+        findings.append("index_superadmin must render curated section jumps")
+    if "admin_index_kpis" in index:
+        findings.append("index_superadmin must not restore the duplicate KPI row")
 
     app_index = (ROOT / "templates/admin/app_index.html").read_text(encoding="utf-8")
     if "admin_app_index_models" not in app_index or "super_url" not in app_index:

@@ -1,0 +1,28 @@
+{
+  "contract_satisfied": true,
+  "findings": [],
+  "sites": {
+    "operator": {
+      "add_forms_resolved": 197,
+      "change_forms_resolved": 197,
+      "models_with_school": 64,
+      "optional_editable_fields": 918,
+      "recommended_editable_fields": 321,
+      "registered_models": 197,
+      "required_editable_fields": 659,
+      "school_fields_exposed": 0,
+      "system_hidden_fields": 0
+    },
+    "tenant": {
+      "add_forms_resolved": 277,
+      "change_forms_resolved": 277,
+      "models_with_school": 137,
+      "optional_editable_fields": 1110,
+      "recommended_editable_fields": 344,
+      "registered_models": 277,
+      "required_editable_fields": 934,
+      "school_fields_exposed": 0,
+      "system_hidden_fields": 137
+    }
+  }
+}

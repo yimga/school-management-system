@@ -15,6 +15,8 @@ def main() -> int:
     base = read("templates/admin/base_site.html")
     inner = read("templates/admin/sidebar_inner.html")
     apps = read("templates/admin/app_list.html")
+    config_admin = read("config/admin.py")
+    preferences = read("apps/siteconfig/admin_navigation_preferences.py")
     css = read("static/css/rmc-tenant-admin-sidebar-v2.css")
     js = read("static/js/rmc-tenant-admin-sidebar-v2.js")
     required = {
@@ -28,6 +30,15 @@ def main() -> int:
         "safe storage": (js, "safeRead"),
         "dynamic keyboard": (js, "function focusables"),
         "offline events": (js, 'addEventListener("offline"'),
+        "server contract": (inner, "rmcAdminNavigationContract"),
+        "server endpoint": (config_admin, '"navigation-preferences/"'),
+        "host and site scope": (preferences, "_scope_key"),
+        "same-host admin allowlist": (preferences, 'parsed.path.startswith("/admin/")'),
+        "offline retry envelope": (js, "rmc-admin-navigation-pending-v1:"),
+        "pin capacity feedback": (js, "Pinned is full"),
+        "search empty state": (apps, "data-rmc-admin-search-empty"),
+        "current app expansion": (apps, "getAdminAppsState"),
+        "model search aliases": (apps, "data-admin-search="),
     }
     for label, (body, token) in required.items():
         if token not in body:
@@ -36,6 +47,10 @@ def main() -> int:
         failures.append("sidebar assets are not host-gated")
     if 'include "unfold/helpers/navigation_user.html"' in inner:
         failures.append("tenant admin sidebar duplicates the header Account Center")
+    if "runmycampus-admin-pinned" in base:
+        failures.append("legacy browser-global pin owner remains in base_site")
+    if "admin-qa-setup-advanced" in apps:
+        failures.append("legacy browser-global accordion state remains")
     if failures:
         print("TENANT_ADMIN_SIDEBAR_V2_FAIL")
         for failure in failures:

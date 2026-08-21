@@ -13,6 +13,7 @@ import logging
 from typing import Any
 
 from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 
 from .models import MigrationBundle, MigrationProgressEvent
 
@@ -100,6 +101,43 @@ def emit(
         logger.debug("progress.telemetry_broadcast failed", exc_info=True)
 
 
+# Key under ``MigrationBundle.size_summary`` marking when the CURRENT apply run
+# began. Written by the orchestrator on entry to APPLYING and by ``repair_bundle``
+# when it queues a re-apply, so both a first import and a repair get a boundary.
+APPLY_RUN_EPOCH_KEY = "apply_run_started_at"
+
+
+def _apply_run_epoch(bundle: MigrationBundle):
+    """Datetime the current apply run began, or ``None`` before the first one.
+
+    ``None`` means "no boundary recorded" and every event counts — the behaviour
+    for bundles that pre-date this field, so an in-flight import mid-upgrade is
+    never blanked.
+    """
+    raw = (getattr(bundle, "size_summary", None) or {}).get(APPLY_RUN_EPOCH_KEY)
+    if not raw:
+        return None
+    parsed = parse_datetime(str(raw))
+    if parsed is None:
+        return None
+    if timezone.is_naive(parsed):
+        parsed = timezone.make_aware(parsed, timezone.get_default_timezone())
+    return parsed
+
+
+def mark_apply_run_start(bundle: MigrationBundle) -> str:
+    """Stamp the start of a new apply run and return the ISO timestamp.
+
+    Saves only ``size_summary`` so it cannot disturb a status transition being
+    made by the caller.
+    """
+    stamp = timezone.now().isoformat()
+    summary = {**(getattr(bundle, "size_summary", None) or {}), APPLY_RUN_EPOCH_KEY: stamp}
+    bundle.size_summary = summary
+    bundle.save(update_fields=["size_summary", "updated_at"])
+    return stamp
+
+
 def refresh_snapshot(*, bundle: MigrationBundle, persist: bool = True) -> dict[str, Any]:
     """Recompute the live progress snapshot from the event stream.
 
@@ -124,6 +162,24 @@ def refresh_snapshot(*, bundle: MigrationBundle, persist: bool = True) -> dict[s
     events = list(
         MigrationProgressEvent.objects.filter(bundle=bundle).order_by("created_at")
     )
+    # RUN BOUNDARY. The event stream is append-only across the whole life of the
+    # bundle, and APPLYING is the one stage a repair RE-RUNS. Without a boundary a
+    # repair inherits the previous apply wholesale: stage pct only ever ratchets up
+    # (see the `pct >` below), so the bar sat at the last run's 100 before the new
+    # run had written a row, and `live_totals` reported the last run's counts as
+    # this run's. That is the frozen "75% / 0 created / 105 updated / 442 held"
+    # a tenant reported watching for an import that had not started.
+    #
+    # Scoped deliberately to APPLYING: earlier stages are already marked done from
+    # `bundle.status` (see `current_idx` below), and filtering them too would throw
+    # away their row counts for no benefit.
+    epoch = _apply_run_epoch(bundle)
+    if epoch is not None:
+        events = [
+            ev
+            for ev in events
+            if (ev.stage or "") != "APPLYING" or ev.created_at >= epoch
+        ]
     by_stage: dict[str, dict[str, Any]] = {
         name: {"name": name, "status": "pending", "pct": 0, "rows": 0}
         for name in _STANDARD_STAGES

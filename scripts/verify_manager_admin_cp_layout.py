@@ -226,8 +226,10 @@ def check_css() -> list[str]:
     if "cp-activity-ticker" not in ticker_partial:
         errors.append("_activity_ticker.html must expose cp-activity-ticker class for preview parity")
     topbar = (REPO_ROOT / "templates/partials/manager_operator_topbar.html").read_text(encoding="utf-8")
-    if "_operator_presence.html" not in topbar:
-        errors.append("manager_operator_topbar must include operator presence in utility row")
+    if 'data-rmc-header-control-cap="6"' not in topbar:
+        errors.append("manager_operator_topbar must retain the quiet-header control cap")
+    if "_activity_ticker_inline.html" not in topbar:
+        errors.append("manager_operator_topbar must expose the drawer-backed inline activity badge")
     if (
         "rmc-scroll-container.js" not in base_site
         and "rmc_platform_chrome_scripts.html" not in base_site
@@ -314,11 +316,12 @@ def check_render() -> list[str]:
                     "cp-admin-sidebar-apps",
                     "cp-sidebar__group-toggle",
                     "data-rmc-admin-catalog-index",
-                    "cp-hero__title",
+                    "data-rmc-django-command-band",
                     'data-rmc-cp-header-200x="1"',
                     "cp-primary-nav",
-                    "rmc-admin-v1-200x.css",
-                    "rmc-cp-header-200x.css",
+                    "rmc-admin-v1-200x",
+                    "rmc-cp-header-200x",
+                    "rmc-admin-emergency-full-canvas-v17",
                 ),
             ),
         (
@@ -337,7 +340,7 @@ def check_render() -> list[str]:
                 "Advanced",
                 'data-rmc-cp-header-200x="1"',
                 "cp-primary-nav",
-                "rmc-cp-header-200x.css",
+                "rmc-cp-header-200x",
             ),
         ),
     )

@@ -3120,7 +3120,6 @@ body:has([data-rmc-flow-launchpad]) .rmc-page__header::after {
   height: 0.5rem;
   min-width: 6rem;
 }
-
 .rmc-list {
   list-style: none;
   margin: 0;
@@ -3288,6 +3287,30 @@ body:has([data-rmc-flow-launchpad]) .rmc-page__header::after {
 .rmc-pill--muted {
   background: var(--surface-overlay, rgba(0, 0, 0, 0.04));
   color: var(--text-secondary, var(--text-primary));
+}
+
+/* Held-for-review triage list on the migration review page. A plain <ul> of
+   "<count> <plain-English reason>" rows: the tenant admin reads the counts, not
+   the bullets, so the marker is dropped and the pill carries the number. */
+.rmc-quarantine-breakdown {
+  list-style: none;
+  margin: 0 0 var(--space-3, 12px);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2, 8px);
+}
+.rmc-quarantine-breakdown li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+  color: var(--text-secondary);
+  font-size: 0.9375rem;
+}
+.rmc-quarantine-breakdown .rmc-pill {
+  min-width: 3ch;
+  justify-content: center;
+  font-variant-numeric: tabular-nums;
 }
 
 .rmc-pill--warn {

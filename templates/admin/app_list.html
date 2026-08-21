@@ -1,7 +1,7 @@
 {% load i18n static %}
 {% comment %}
-  Sidebar structure: Start → School setup (with Advanced collapsed) → Libraries & help → [All applications collapsed].
-  State: getQuickAccessState() for overview/setup/content; allAppsOpen false unless current path in app list.
+  Sidebar structure: Start, School setup, Libraries & help, then Apps.
+  Tenant state is initialized by the server-owned navigation preference contract.
 {% endcomment %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div id="nav-sidebar-apps" class="admin-sidebar-apps {% if platform_admin_sidebar_embed %}admin-sidebar-apps--embed{% else %}h-0 grow overflow-auto d-flex flex-column{% endif %}" role="navigation" aria-label="{% trans 'Applications' %}">
@@ -12,7 +12,7 @@
     <p class="rmc-tenant-admin-sidebar-empty" data-rmc-pinned-empty>{% trans "Pin frequently used pages for one-click access." %}</p>
     <p class="admin-sidebar-pin-this mb-0 mt-1">
       <button type="button" class="btn btn-link btn-sm p-0 text-muted admin-pin-this-page d-inline-flex align-items-center gap-1" id="admin-pin-this-page" aria-label="{% trans 'Pin this page' %}" title="{% trans 'Add this page to your Pinned list above' %}">
-        <span aria-hidden="true">📌</span>
+        <span aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 17v5"/><path d="m5 17 4-4V5l-2-2h10l-2 2v8l4 4z"/></svg></span>
         <span>{% trans "Pin this page" %}</span>
       </button>
     </p>
@@ -78,7 +78,7 @@
       </li>
     </ul>
     <div class="admin-sidebar-quick-group" role="group" aria-label="{% trans 'Advanced setup' %}">
-      <h3 class="admin-sidebar-quick-group-title" @click="setupAdvancedOpen = !setupAdvancedOpen; try { localStorage.setItem('admin-qa-setup-advanced', setupAdvancedOpen ? '1' : '0'); } catch(e) {}" :aria-expanded="setupAdvancedOpen" role="button" tabindex="0" aria-label="{% trans 'Toggle Advanced setup' %}" @keydown.enter.prevent="setupAdvancedOpen = !setupAdvancedOpen" @keydown.space.prevent="setupAdvancedOpen = !setupAdvancedOpen">
+      <h3 class="admin-sidebar-quick-group-title" @click="setupAdvancedOpen = !setupAdvancedOpen; window.rmcTenantAdminNavigationChanged({advancedOpen: setupAdvancedOpen})" :aria-expanded="setupAdvancedOpen" role="button" tabindex="0" aria-label="{% trans 'Toggle Advanced setup' %}" @keydown.enter.prevent="setupAdvancedOpen = !setupAdvancedOpen; window.rmcTenantAdminNavigationChanged({advancedOpen: setupAdvancedOpen})" @keydown.space.prevent="setupAdvancedOpen = !setupAdvancedOpen; window.rmcTenantAdminNavigationChanged({advancedOpen: setupAdvancedOpen})">
         <span class="admin-sidebar-quick-group-label">{% trans "Advanced" %}</span>
         <span class="admin-sidebar-chevron inline-flex items-center justify-center" :class="{ 'rotate-90': setupAdvancedOpen }" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg></span>
       </h3>
@@ -146,9 +146,9 @@
   {% if platform_admin_sidebar_embed %}
   <div class="admin-sidebar-app-groups admin-sidebar-app-groups--embed" role="group" aria-label="{% trans 'Apps' %}">
   {% else %}
-  <div class="admin-sidebar-all-apps" x-data="{ allAppsOpen: false }" role="group" aria-label="{% trans 'Apps' %}" data-rmc-admin-all-apps>
+  <div class="admin-sidebar-all-apps" x-data="{ allAppsOpen: (window.getAdminAppsState && window.getAdminAppsState({% if request.path != '/admin/' and request.path != '/admin' %}true{% else %}false{% endif %})) || {% if request.path != '/admin/' and request.path != '/admin' %}true{% else %}false{% endif %} }" role="group" aria-label="{% trans 'Apps' %}" data-rmc-admin-all-apps>
     <h2 class="admin-sidebar-section-title admin-sidebar-section-title--secondary">
-      <button type="button" class="admin-sidebar-all-apps-trigger" @click="allAppsOpen = !allAppsOpen" :aria-expanded="allAppsOpen" aria-label="{% trans 'Toggle Apps' %}" @keydown.enter.prevent="allAppsOpen = !allAppsOpen" @keydown.space.prevent="allAppsOpen = !allAppsOpen">
+      <button type="button" class="admin-sidebar-all-apps-trigger" @click="allAppsOpen = !allAppsOpen; window.rmcTenantAdminNavigationChanged({appsOpen: allAppsOpen})" :aria-expanded="allAppsOpen" aria-label="{% trans 'Toggle Apps' %}" @keydown.enter.prevent="allAppsOpen = !allAppsOpen; window.rmcTenantAdminNavigationChanged({appsOpen: allAppsOpen})" @keydown.space.prevent="allAppsOpen = !allAppsOpen; window.rmcTenantAdminNavigationChanged({appsOpen: allAppsOpen})">
         <span>{% trans "Apps" %}</span>
         <span class="admin-sidebar-chevron inline-flex items-center justify-center" :class="{ 'rotate-90': allAppsOpen }" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg></span>
       </button>
@@ -200,7 +200,7 @@
           <a href="{{ model.admin_url }}"
              id="link-{{ app.app_label }}-{{ model.object_name|lower }}"
              class="admin-sidebar-model-link truncate {% if model.admin_url in request.path %}active{% endif %}"
-             {% if platform_admin_sidebar_embed %}data-admin-search="{{ app.name|lower }} {{ app.app_label|lower }} {{ model.name|lower }} {{ model.object_name|lower }}"{% endif %}
+             data-admin-search="{{ app.name|lower }} {{ app.app_label|lower }} {{ model.name|lower }} {{ model.object_name|lower }}"
              {% if model.admin_url in request.path %}aria-current="page"{% endif %}>
             <span class="admin-sidebar-icon admin-sidebar-model-icon inline-flex shrink-0" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></span>
             <span class="admin-sidebar-model-link-text">{{ model.name }}</span>
@@ -225,5 +225,11 @@
     {% trans "You don't have permission to view or edit anything." as error_message %}
     {% include "unfold/helpers/messages/error.html" with error=error_message %}
   </p>
+  {% endif %}
+  {% if not platform_admin_sidebar_embed %}
+  <section class="rmc-tenant-admin-sidebar-no-results" data-rmc-admin-search-empty hidden aria-live="polite">
+    <strong>{% trans "No matching admin destination" %}</strong>
+    <span>{% trans "Try an app, model, or task name." %}</span>
+  </section>
   {% endif %}
 </div>

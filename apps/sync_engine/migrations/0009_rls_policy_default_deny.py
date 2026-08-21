@@ -9,6 +9,9 @@ TABLES = [
     "sync_engine_edgesyncrun",
     "sync_engine_edgesynccursor",
     "sync_engine_edgesyncdirective",
+    "sync_engine_synctombstone",
+    "sync_engine_syncbundlereceipt",
+    "sync_engine_syncfiletransfer",
 ]
 USING_CLAUSE = """(
     current_setting('app.rls_bypass', true) = 'on'

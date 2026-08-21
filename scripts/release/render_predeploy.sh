@@ -139,7 +139,7 @@ run "${PYTHON_BIN}" manage.py seed_subscription_catalog
 # no other tenant is touched). Runs after seed_subscription_catalog because it
 # needs the sovereign plan to exist. Fail-soft (|| true): a showcase-only setup
 # for one tenant must never abort a production deploy.
-run "${PYTHON_BIN}" manage.py ensure_gilead_sovereignty_entitlements || true
+run "${PYTHON_BIN}" manage.py ensure_showcase_tenant_entitlements || true
 
 # pgvector: post-5k-scale embedding store. Migrates JSON embeddings into a
 # pgvector column + tuned IVFFLAT index, then verifies the planner uses it.

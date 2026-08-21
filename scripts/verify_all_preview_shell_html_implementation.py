@@ -287,12 +287,15 @@ def _check_render_smoke() -> list[str]:
         (
             "/admin/",
             (
-                "cp-hero",
                 "cp-catalog-card",
                 "cp-header--consolidated",
-                "cp-live-strip",
+                # Quiet-header v2 retired the persistent marquee row. Activity
+                # remains available through the compact, drawer-backed badge.
+                "data-rmc-cp-ticker-inline",
+                "data-rmc-django-command-band",
                 # Production manifest storage inserts a content hash before .css.
                 "rmc-admin-v1-200x",
+                "rmc-admin-emergency-full-canvas-v17",
             ),
         ),
         (
@@ -300,8 +303,7 @@ def _check_render_smoke() -> list[str]:
             (
                 "cp-primary-nav",
                 "cp-header--consolidated",
-                "data-rmc-cp-live-row",
-                "rmc-cp-header-ticker",
+                "data-rmc-cp-ticker-inline",
             ),
         ),
         (

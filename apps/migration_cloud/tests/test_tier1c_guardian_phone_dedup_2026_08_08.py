@@ -21,7 +21,6 @@ from __future__ import annotations
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
-from apps.migration_cloud.landers.base import LanderContext
 from apps.migration_cloud.landers.guardian_lander import GuardianLander
 from apps.migration_cloud.tests.test_landers_fk_resolution import _GraphFixtureMixin
 from apps.people.models import StudentGuardian, StudentProfile

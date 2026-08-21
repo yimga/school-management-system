@@ -68,15 +68,58 @@ services:
     command: ["bash", "deploy/selfhost/entrypoint.web.sh"]
     ports:
       - "${WEB_PORT:-10000}:10000"
+    # This healthcheck is LOAD-BEARING, not just observability. `/health/` is the AUTO
+    # driver for the in-process periodic scheduler (apps.platform_runtime.periodic
+    # .maybe_run_due_jobs) — on Render the platform's own probe supplies that tick for
+    # free, and until 2026-08-20 nothing supplied it here, because the only healthcheck
+    # in this file was on `db`. A box could hold a perfect address, a perfect credential
+    # and a resolved school and still never run a single sync cycle, which from the
+    # cloud is indistinguishable from a box that is switched off.
+    #
+    # 30s matches the scheduler's own throttle floor closely enough that a job never
+    # waits materially longer than its interval, and is far too cheap to matter: the
+    # request thread does a monotonic compare and returns.
+    #
+    # urllib, not curl — the runtime image is not guaranteed to carry curl, and a
+    # healthcheck that fails because its own tool is missing marks a healthy box
+    # unhealthy. Python is guaranteed; this is a Django image.
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import sys,urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:10000/health/', timeout=5).status == 200 else 1)\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      # Migrations run on boot and can take minutes on a cold volume; do not let the
+      # container be declared unhealthy while it is legitimately still starting.
+      start_period: 180s
 
   worker:
     <<: *app
     command: ["celery", "-A", "config", "worker", "-l", "info", "--concurrency=${CELERY_WORKER_CONCURRENCY:-2}"]
     # The worker doesn't serve HTTP; it drains the task queue.
+    # `inspect ping` is the only check that proves the worker is CONSUMING rather than
+    # merely running — a worker attached to the wrong broker DB answers no ping.
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A config inspect ping -t 10 > /dev/null 2>&1 || exit 1"]
+      interval: 60s
+      timeout: 15s
+      retries: 3
+      start_period: 120s
 
   beat:
     <<: *app
     command: ["celery", "-A", "config", "beat", "-l", "info", "--scheduler", "django_celery_beat.schedulers:DatabaseScheduler"]
+    # No HTTP surface and no inspect protocol, so liveness is judged by the thing that
+    # actually matters: whether beat is PUBLISHING. `schools.resume_stuck_provisions`
+    # (CELERY_BEAT_SCHEDULE, every 120s) is the canary the application already reads to
+    # decide whether the in-process scheduler must take over; a beat process that is up
+    # but publishing nothing is exactly the state that stopped this box, so checking the
+    # process would have proved nothing.
+    healthcheck:
+      test: ["CMD-SHELL", "python manage.py check_beat_publishing || exit 1"]
+      interval: 120s
+      timeout: 30s
+      retries: 3
+      start_period: 180s
 
 volumes:
   pgdata:

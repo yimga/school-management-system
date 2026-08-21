@@ -37,7 +37,27 @@ class FormatHttpRejectionTests(SimpleTestCase):
 )
 class ConnectivitySnapshotTests(SimpleTestCase):
     def test_snapshot_includes_endpoints(self):
+        """The urlconf is the authority; this test must never be one again.
+
+        This assertion used to be the literal string ``/api/v1/sync/bundle/download/``
+        and had been RED since PR #183 corrected the paths — so it was pinning the exact
+        404 that fix removed. That 404 is a distinctive one: ``apps.api.urls`` (where
+        every ``sync-*`` route is declared) mounts at ``/api/``, while ``/api/v1/`` is
+        ``apps.api.urls_v1`` and carries no sync routes at all, so the box asked for a
+        path that exists on no urlconf, Django fell through to the tenant catch-all, and
+        the operator got a 404 with a page of tenant HTML in the body. Reproduced live
+        against the production cloud on 2026-08-20: ``/api/sync/bundle/upload/`` answers
+        ``401`` with clean problem+json, ``/api/v1/sync/bundle/download/`` answers
+        ``404`` with ``<!doctype html> … data-rmc-premium-shell="tenant"``.
+
+        Asserting against ``reverse()`` means a route that moves breaks this test
+        instead of a customer's sync.
+        """
+        from django.urls import reverse
+
         with self.settings(RMC_HUB_BASE_URL=""):
             snap = connectivity_snapshot()
         self.assertTrue(snap["operator_base_configured"])
-        self.assertIn("/api/v1/sync/bundle/download/", snap["pull_endpoint"])
+        self.assertIn(reverse("api:sync-bundle-download"), snap["pull_endpoint"])
+        # And the specific wrong prefix stays named, so a regression is unmistakable.
+        self.assertNotIn("/api/v1/", snap["pull_endpoint"])

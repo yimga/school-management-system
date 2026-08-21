@@ -113,8 +113,18 @@ def enqueue_heavy_work(
     return row
 
 
-def kick_heavy_work_drain() -> None:
-    """Ask a worker (or a short-lived thread) to drain pending rows."""
+def kick_heavy_work_drain(*, force_local: bool = False) -> None:
+    """Ask a worker (or a short-lived thread) to drain pending rows.
+
+    ``force_local`` skips the broker entirely and drains in-process. It exists for
+    one specific, provable situation: the row has been PENDING long past the point
+    where a healthy queue would have claimed it. A configured-but-unconsumed broker
+    is the silent version of that — ``.delay()`` SUCCEEDS (the message is accepted)
+    with no worker to run it, so the normal ``except`` below never fires and the
+    row sits PENDING forever with nothing reporting a problem. Callers that can see
+    the row is stranded use this to make progress locally rather than wait on a
+    queue that has already proven it is not moving.
+    """
     from django.conf import settings
 
     def _spawn_thread() -> None:
@@ -132,7 +142,7 @@ def kick_heavy_work_drain() -> None:
             name="heavy-work-outbox-drain",
         ).start()
 
-    if getattr(settings, "CELERY_TASK_ALWAYS_EAGER", False):
+    if force_local or getattr(settings, "CELERY_TASK_ALWAYS_EAGER", False):
         _spawn_thread()
         return
 
@@ -156,6 +166,7 @@ def drain_heavy_work_outbox(*, limit: int = _DEFAULT_DRAIN_LIMIT) -> dict[str, A
 
     limit = max(1, min(int(limit or _DEFAULT_DRAIN_LIMIT), 10))  # magic-number-allow: heavy-work-drain-cap
     _reclaim_stale_processing()
+    _reap_settled_rows()
     processed = 0
     failed = 0
     # tenant-isolation-allow: platform-heavy-work-outbox-global-drain-by-status
@@ -225,6 +236,33 @@ def _reclaim_or_dead_letter(base_qs, now) -> tuple[int, int]:
         )
     )
     return reclaimed, dead
+
+
+# Succeeded rows had no retention policy at all, so they accumulated for the life
+# of the deployment. One bundle carried five apply rows for a single import, which
+# reads to anyone inspecting it as five imports. Keep a day's worth for debugging,
+# then drop them; FAILED rows are deliberately kept, because those are evidence.
+_SETTLED_ROW_RETENTION_SECONDS = 24 * 3600  # magic-number-allow: outbox-succeeded-row-retention
+
+
+def _reap_settled_rows() -> int:
+    """Delete SUCCEEDED rows older than the retention window. Returns the count."""
+    from datetime import timedelta
+
+    from apps.platform_runtime.models_heavy_work_outbox import HeavyWorkOutbox
+
+    cutoff = timezone.now() - timedelta(seconds=_SETTLED_ROW_RETENTION_SECONDS)
+    try:
+        deleted, _detail = HeavyWorkOutbox.objects.filter(  # tenant-isolation-allow: platform-heavy-work-outbox-succeeded-row-retention
+            status=HeavyWorkOutbox.Status.SUCCEEDED,
+            created_at__lt=cutoff,
+        ).delete()
+    except Exception:  # noqa: BLE001 — housekeeping must never break the drain
+        logger.debug("heavy_work_outbox: settled-row reap failed", exc_info=True)
+        return 0
+    if deleted:
+        logger.info("heavy_work_outbox: reaped %s settled row(s)", deleted)
+    return int(deleted or 0)
 
 
 def _reclaim_stale_processing() -> int:

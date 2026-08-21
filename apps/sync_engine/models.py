@@ -659,8 +659,26 @@ def sync_echo_updated_at_map(school, entity_type) -> dict:
     )
 
 
+# Tenant-owned schedule rules. Defined in their own module for readability, re-exported
+# here because Django discovers models through ``<app>.models`` and the edge rail resolves
+# entities with ``get_model("sync_engine", "SyncSchedule")``.
+from apps.sync_engine.models_schedule import (  # noqa: E402
+    SyncSchedule,
+    format_days,
+    format_times,
+    parse_days,
+    parse_times,
+    rules_for,
+)
+
 __all__ = [
     "SyncApplyLedger",
+    "SyncSchedule",
+    "rules_for",
+    "parse_days",
+    "format_days",
+    "parse_times",
+    "format_times",
     "SyncTombstone",
     "SyncBundleReceipt",
     "SyncFileTransfer",

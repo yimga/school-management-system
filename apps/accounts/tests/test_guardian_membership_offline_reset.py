@@ -139,7 +139,8 @@ class InviteClaimCreatesMembershipTests(TestCase):
 class WizardLinkCreatesMembershipTests(TestCase):
     def test_admission_number_wizard_creates_membership(self):
         school = _school()
-        student = _student(school, admission_number="ADM-0001")
+        # Created for the wizard to find by admission number; never referenced.
+        _student(school, admission_number="ADM-0001")
         parent = _parent()
 
         result = link_guardian_to_student(

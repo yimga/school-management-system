@@ -24,7 +24,6 @@ from apps.schools.deletion import (
     PublicSchemaCollector,
     TenantSchemaStillPresent,
     assert_deletable,
-    is_tenant_only_model,
     tenant_only_app_labels,
 )
 from apps.schools.models import School

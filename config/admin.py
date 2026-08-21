@@ -72,6 +72,25 @@ class BaseRunMyCampusAdminSite(UnfoldAdminSite):
         context = super().each_context(request)
         context["is_manager_host"] = self.is_platform_site()
         try:
+            from apps.siteconfig.admin_navigation_preferences import (
+                build_admin_navigation_contract,
+            )
+
+            context["admin_navigation_contract"] = build_admin_navigation_contract(
+                request, self
+            )
+        except _ADMIN_CONTEXT_FALLBACK_ERRORS:
+            logging.getLogger(__name__).warning(
+                "admin navigation preference fallback", exc_info=True
+            )
+            context["admin_navigation_contract"] = {
+                "version": 1,
+                "scope": "unavailable",
+                "endpoint": "",
+                "preferences": {},
+                "limits": {"pinned": 8, "recent": 10},
+            }
+        try:
             context["admin_field_preferences_url"] = reverse(
                 f"{self.name}:field_preferences",
                 urlconf=getattr(request, "urlconf", None),
@@ -212,9 +231,21 @@ class BaseRunMyCampusAdminSite(UnfoldAdminSite):
         from apps.siteconfig.admin_form_intelligence import (
             admin_field_preferences_view,
         )
+        from apps.siteconfig.admin_navigation_preferences import (
+            admin_navigation_preferences_view,
+        )
 
         urls = super().get_urls()
         custom_urls = [
+            path(
+                "navigation-preferences/",
+                self.admin_view(
+                    lambda request: admin_navigation_preferences_view(
+                        request, admin_site=self
+                    )
+                ),
+                name="navigation_preferences",
+            ),
             path(
                 "field-preferences/",
                 self.admin_view(

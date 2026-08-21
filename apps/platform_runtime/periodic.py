@@ -966,6 +966,10 @@ def _run_send_parent_digests_weekly() -> object:
 # twin register. Fresh success proves beat (or heal fallback) is actually running.
 BEAT_LIVENESS_CANARY_JOB = "schools.resume_stuck_provisions"
 _BEAT_WATCH_CACHE_KEY = "rmc:beat_canary_watch_started"
+# Only the DB-less fallback path uses this. Long enough that an expiry cannot hand a
+# dead beat a fresh grace window on any realistic cadence; the durable anchor is
+# ``ScheduledJobHeartbeat.created_at`` and this is only reached when the DB is down.
+_BEAT_WATCH_TTL_SECONDS = 30 * 24 * 3600  # magic-number-allow: beat-watch fallback ttl
 
 
 def celery_beat_liveness_threshold_seconds() -> float:
@@ -1009,14 +1013,59 @@ def celery_beat_appears_alive(*, now: float | None = None) -> bool:
 
     # Grace from first observation so a fresh deploy does not flip red before beat's
     # first tick; past grace with no success ⇒ beat is dead.
+    anchor = _beat_watch_anchor_epoch(now)
+    if anchor is None:
+        # No durable anchor and no cache to fall back on. Do NOT claim beat is alive on
+        # no evidence: returning True here is what stands the in-process scheduler down,
+        # and standing it down for a beat that is not running stops every periodic job
+        # on the deployment. False keeps the in-process heal ON, which is the safe
+        # direction — the worst case is that beat and the heal both run a job, and
+        # ``run_job``'s per-job claim lock already makes that a no-op.
+        return False
+    return (now - anchor) < threshold
+
+
+def _beat_watch_anchor_epoch(now: float) -> float | None:
+    """Epoch seconds of the FIRST time this install noticed beat had not reported.
+
+    Must be durable. This anchor used to live in a cache key with a 24-hour TTL:
+    on expiry the next caller found it empty, re-seeded it with ``now`` and returned
+    "beat is alive" — so a beat that had never ticked was re-declared alive once a day,
+    forever, and any cache flush (a Valkey restart, a plan change) did the same thing
+    immediately. Measured on a sovereign box on 2026-08-20: the verdict flipped
+    degraded → ok inside 20 minutes with no beat running at all, which held
+    ``inprocess_scheduler`` at False and left NOTHING driving the periodic tick.
+
+    ``ScheduledJobHeartbeat.created_at`` is the right anchor and already exists for
+    precisely this purpose — ``run_health_monitor`` reads it as ``watched_for_seconds``.
+    It survives deploys, cache flushes and restarts, which is the whole point.
+
+    Returns None only when neither the database nor the cache can answer; callers must
+    treat that as "unknown", never as "alive".
+    """
+    try:
+        from apps.platform_runtime.models_scheduling import ScheduledJobHeartbeat
+
+        # tenant-isolation-allow: platform-level beat canary heartbeat not tenant-scoped
+        hb, _created = ScheduledJobHeartbeat.objects.get_or_create(
+            job_name=BEAT_LIVENESS_CANARY_JOB
+        )
+        if hb.created_at is not None:
+            return float(hb.created_at.timestamp())
+    except Exception:  # noqa: BLE001 — a box mid-migration still needs a verdict
+        logger.debug("beat watch anchor: durable read failed", exc_info=True)
+
+    # DB unavailable — fall back to the cache, but WITHOUT the self-healing reset.
+    # The anchor is written once and never refreshed, so an expiry cannot buy a dead
+    # beat another grace window; it degrades to "unknown", which is honest.
     try:
         started = cache.get(_BEAT_WATCH_CACHE_KEY)
         if started is None:
-            cache.add(_BEAT_WATCH_CACHE_KEY, now, timeout=86400)  # magic-number-allow: one-day beat-watch key
-            return True
-        return (now - float(started)) < threshold
+            cache.add(_BEAT_WATCH_CACHE_KEY, now, timeout=_BEAT_WATCH_TTL_SECONDS)
+            return float(now)
+        return float(started)
     except Exception:  # noqa: BLE001
-        return True
+        return None
 
 
 def inprocess_scheduler_enabled() -> bool:

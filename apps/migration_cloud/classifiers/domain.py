@@ -84,7 +84,9 @@ def classify_domain(*, artifact: MigrationArtifact) -> dict[str, Any]:
         # header overlap, which cannot tell students/staff/guardians/alumni apart
         # (they share name/dob/gender/email/phone/address). Non-roster content
         # (grades, finance) is never overridden — see reconcile_domain_with_filename.
-        chosen = _reconcile_with_filename(filename, top.domain)
+        chosen = _reconcile_with_filename(
+            filename, top.domain, {c.domain: c.confidence for c in ranked}
+        )
         return {
             "chosen": chosen,
             "candidates": [c.__dict__ for c in ranked[:5]],
@@ -117,7 +119,15 @@ def classify_domain(*, artifact: MigrationArtifact) -> dict[str, Any]:
             "method": "ai_bridge",
         }
 
-    chosen = _reconcile_with_filename(filename, top.domain) if top else "custom_fields"
+    chosen = _filename_led_fallback(filename, ranked or [])
+    if not chosen:
+        chosen = (
+            _reconcile_with_filename(
+                filename, top.domain, {c.domain: c.confidence for c in ranked}
+            )
+            if top
+            else "custom_fields"
+        )
     return {
         "chosen": chosen,
         "candidates": [c.__dict__ for c in (ranked or [
@@ -127,7 +137,66 @@ def classify_domain(*, artifact: MigrationArtifact) -> dict[str, Any]:
     }
 
 
-def _reconcile_with_filename(filename: str, content_domain: str | None) -> str:
+def _uniquely_owned_fields() -> dict[str, str]:
+    """Canonical field names that exactly ONE domain defines -> that domain.
+
+    ``subject_name`` belongs only to academics, so a header matching it is a
+    statement about the file. ``description`` belongs to behavior AND
+    specialties, ``student_external_id`` to half the ontology -- those say
+    almost nothing on their own.
+    """
+    from apps.migration_cloud.ontology.catalog import CANONICAL_ONTOLOGY
+
+    owners: dict[str, set[str]] = {}
+    for domain, fields in CANONICAL_ONTOLOGY.items():
+        for field in fields:
+            owners.setdefault(field, set()).add(domain)
+    return {f: next(iter(d)) for f, d in owners.items() if len(d) == 1}
+
+
+def _filename_led_fallback(filename: str, ranked: list[DomainCandidate]) -> str | None:
+    """The filename's domain, when the columns independently corroborate it.
+
+    Reaching the fallback means two things already happened: the column overlap
+    scored BELOW the confidence threshold (the columns themselves said "not
+    sure"), and the AI arbitrator did not resolve it. In that state the top
+    scorer is not a winner, it is merely the least-bad of several weak guesses --
+    and it can be a domain that matched only generic descriptive columns.
+
+    Live case: ``subjects_2026.xlsx`` with headers title / description / category
+    scored ``behavior`` 0.40 (on `category` + `description`, neither of which
+    identifies anything) over ``academics`` 0.25 (on `subject_name`, which does).
+    The file was named "subjects", the ontology maps `title` to
+    `academics.subject_name`, and the artifact still landed in the wrong domain --
+    then the sections lander rejected all 108 rows.
+
+    So: prefer the filename's domain ONLY when the columns back it with a field
+    that no other domain claims. Two independent signals agreeing beats one weak
+    signal alone. A filename with no corroboration changes nothing.
+    """
+    from apps.migration_cloud.accelerators.runmycampus_canonical import (
+        guess_domain_from_filename,
+    )
+
+    hint = guess_domain_from_filename(filename)
+    if not hint:
+        return None
+    unique = _uniquely_owned_fields()
+    for candidate in ranked:
+        if candidate.domain != hint:
+            continue
+        for field in candidate.matched_canonical_fields or []:
+            if unique.get(field) == hint:
+                return hint
+        return None
+    return None
+
+
+def _reconcile_with_filename(
+    filename: str,
+    content_domain: str | None,
+    scores: dict[str, float] | None = None,
+) -> str:
     """Let a filename entity-token break the person-roster tie the columns can't.
 
     Lazy import keeps the classifier free of an accelerator import at module load
@@ -137,9 +206,9 @@ def _reconcile_with_filename(filename: str, content_domain: str | None) -> str:
         reconcile_domain_with_filename,
     )
 
-    return reconcile_domain_with_filename(filename, content_domain) or (
-        content_domain or "custom_fields"
-    )
+    return reconcile_domain_with_filename(
+        filename, content_domain, scores=scores
+    ) or (content_domain or "custom_fields")
 
 
 def _score_domains(normalized_headers: set[str]) -> list[DomainCandidate]:

@@ -26,6 +26,34 @@ def _truthy(value) -> bool:
     return str(value if value is not None else "").strip().lower() in {"1", "true", "yes", "on"}
 
 
+def _fernet_key_defects(raw) -> list[str]:
+    """Name every configured key that cannot actually build a Fernet.
+
+    Presence is not usability. A 20-char key on a live box satisfied every
+    ``if key:`` test in the codebase while ``Fernet(key)`` raised ValueError,
+    because nothing ever tried to construct one at boot.
+
+    Returns a list of human-readable defects — lengths and exception types
+    only. Key material is NEVER included in the result.
+    """
+    entries = raw if isinstance(raw, (list, tuple)) else [raw]
+    defects: list[str] = []
+    for index, entry in enumerate(entries):
+        if isinstance(entry, bytes):
+            entry = entry.decode("ascii", "replace")
+        candidate = str(entry or "").strip()
+        if not candidate:
+            continue
+        try:
+            from cryptography.fernet import Fernet  # local: optional dependency
+            Fernet(candidate.encode("ascii"))
+        except Exception as exc:  # noqa: BLE001 - any failure means unusable
+            defects.append(
+                f"key #{index + 1} is {len(candidate)} chars (want 44): {type(exc).__name__}"
+            )
+    return defects
+
+
 class Command(BaseCommand):
     help = "Check a sovereign/offline edge deployment's settings for common misconfigurations."
 
@@ -221,7 +249,27 @@ class Command(BaseCommand):
         if crypto_source == "vault":
             findings.append((WARN, "DJANGO_CRYPTOGRAPHY_KEYS_SOURCE=vault is network-bound and fails offline — use the default env key source on the box."))
         elif crypto_keys:
-            findings.append((OK, "At-rest field-encryption key (Fernet) is set and offline."))
+            # A key being PRESENT is not a key being USABLE, and this line used to
+            # report OK for either. apps/accounts/legacy_hashes/encryption.py wraps
+            # decrypt in try/except but NOT encrypt, so an unusable key reads clean
+            # and 500s on write — a box can look healthy for months and then fail
+            # the first time Migration Cloud imports a user with a legacy password.
+            # Build the Fernet here so the boot check catches what boot-time silence
+            # otherwise hides.
+            _crypto_defects = _fernet_key_defects(crypto_keys)
+            if _crypto_defects:
+                findings.append((
+                    FAIL,
+                    "DJANGO_CRYPTOGRAPHY_KEY(S) is set but is NOT a usable Fernet key "
+                    f"({'; '.join(_crypto_defects)}). Reads fall back to the raw stored "
+                    "value, but EVERY non-empty write to an encrypted field — legacy "
+                    "password hashes, social OAuth tokens — raises ValueError. Generate "
+                    "a real one with: python -c \"from cryptography.fernet import Fernet; "
+                    "print(Fernet.generate_key().decode())\" — and count existing "
+                    "ciphertext before replacing a key that already encrypted data.",
+                ))
+            else:
+                findings.append((OK, "At-rest field-encryption key (Fernet) is set, well-formed and offline."))
         else:
             findings.append((WARN, "No explicit DJANGO_CRYPTOGRAPHY_KEY(S) — at-rest field encryption derives a key from SECRET_KEY (works, but set an explicit key so a SECRET_KEY rotation can't strand encrypted data)."))
 

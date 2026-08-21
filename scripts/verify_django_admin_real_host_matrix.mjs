@@ -1414,6 +1414,7 @@ async function main() {
   const browser = await chromium.launch({
     headless: true,
     args: [
+      "--no-proxy-server",
       `--host-resolver-rules=MAP ${operatorHostname} 127.0.0.1, MAP ${tenantHostname} 127.0.0.1`,
     ],
   });

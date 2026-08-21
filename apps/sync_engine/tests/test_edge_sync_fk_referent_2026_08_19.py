@@ -11,7 +11,7 @@ from apps.academics.models import Department, Specialty
 from apps.accounts.models import User
 from apps.api.sync_services import enrich_delta_rows_with_fk_referents, _get_entity_config
 from apps.schools.models import School, SchoolMembership
-from apps.sync_engine.delta_bundle import export_delta_bundle, verify_and_parse_bundle
+from apps.sync_engine.delta_bundle import export_delta_bundle
 from apps.sync_engine.edge_inbox import apply_pulled_bundle
 from apps.sync_engine.edge_outbox import build_edge_delta_rows
 
@@ -85,15 +85,22 @@ class FkReferentEnrichmentTests(TestCase):
         enriched = enrich_delta_rows_with_fk_referents(rows, self.school, config)
         self.assertTrue(any(r["entity_type"] == "department" for r in enriched))
 
-        Specialty.objects.filter(pk=spec_pk).delete()
-        Department.objects.filter(pk=dept_pk).delete()
+        # Model a box that never received these rows. A normal local delete now creates a
+        # tombstone, which correctly wins over an older pull; that is a different state
+        # from an absent-on-clone row and would turn this fixture into a delete-dominance
+        # test. Suppress propagation only while constructing the empty-box state.
+        with override_settings(RMC_SYNC_DELETE_PROPAGATION_ENABLED=False):
+            Specialty.objects.filter(pk=spec_pk).delete()
+            Department.objects.filter(pk=dept_pk).delete()
 
         bundle = export_delta_bundle(
             school_id=str(self.school.id), rows=enriched, device_id="test"
         )
         result = apply_pulled_bundle(self.school, self.user, bundle, origin="cloud-pull")
         self.assertTrue(result["ok"], result)
-        self.assertTrue(Department.objects.filter(pk=dept_pk, school=self.school).exists())
+        self.assertTrue(
+            Department.objects.filter(pk=dept_pk, school=self.school).exists(), result
+        )
         spec = Specialty.objects.get(pk=spec_pk)
         self.assertEqual(spec.department_id, dept_pk)
         self.assertEqual(spec.name, "Pure Science (synced)")

@@ -1,8 +1,143 @@
 # A+ PROGRESS SCOREBOARD (A0 Coordinator)
 
-**Last refreshed:** 2026-08-20 (Claude Code · **PROMPT B full audit** on `418c5d2bd` -> **NO-GO**, then **PROMPT A waves 1+2** `eb26554b7`+). Root cause is not a feature gap: **GitHub Actions has not run since 2026-08-15 (billing failure)** - last 40 runs 100% failure, 0-6s, jobs never start. `pre_deploy_gate.sh` was RED at gate 4 of ~80 and is now past gate 5; red gates **17 -> 11**; forbidden patterns **9 -> 4**.  
-**Loop:** Under the 9.8 lowest-dimension regime, GO = raise the MINIMUM metric. **The floor is NOT M21 i18n** (this header's prior claim) - re-derivation puts **M33 B2B Procurement at 10/100 (unbuilt)** and **M16 Testing & CI at 20/100**. The CI outage imposes a platform-wide **<=8.9 cap** (missing runtime proof), so *no* metric can reach 98 until billing is restored - that is the single binding constraint on the whole board.  
+**Last refreshed:** 2026-08-20 (Claude Code · **PROMPT B full audit** on `418c5d2bd` -> **NO-GO**, then **PROMPT A waves 1-5** + a second **PROMPT B** pass: `eb26554b7` -> `896db99ed` -> `8046fdab7` -> `1cbc19d5c` -> `a668338ed` -> `7d820cbcb` -> `4d9ac3487`, each content-verified on origin). `pre_deploy_gate.sh` **check 4/80 -> check 10/80**; forbidden patterns **9 -> 4**; **122 tests green**. ⚠️ **"Red gates 17 -> 9" was only ever knowable up to the halt at check 8** — checks 9-80 had never run; past that point the board was UNMEASURED, not green. 🔑 Six gates were failing on raw TEXT, not defects - **11 false findings vs 2 real**; five now structural (ast/tokenize/statement-span/comment-masking).  
+**Loop:** Under the 9.8 lowest-dimension regime, GO = raise the MINIMUM metric. **M33 B2B Procurement is no longer the floor** — wave 4 built it and wave 5's B pass caught it unreachable (10 -> ~55 -> **~35** -> **~60**; see below). **The floor is now M16 at 20** -> M26 **45** (0 of >=3 payment rails LIVE; all 11 gateways are honestly-labelled stubs) -> M21 **50** -> M31 **60**. **GitHub Actions has run ZERO jobs since 2026-08-15 (billing)** -> platform-wide **<=8.9 cap**, so no metric can reach 98 regardless of feature work. That, not any feature, is the binding constraint.  
 **Tree:** HEAD = `origin/main`
+
+---
+
+## PROMPT B → PROMPT A — Wave 5: the feature passed every test and was dead — 2026-08-20
+
+**Audited `7d820cbcb` → NO-GO. Shipped `4d9ac3487`.** The B pass ran against the M33 build from one hour earlier, and its sharpest finding was against my own work.
+
+### 🔑 M33 PASSED ALL 13 TESTS WHILE BEING UNUSABLE
+
+I scored M33 at **~55** having shipped models, migrations, RLS, a service, a view, a route, a template and 13 green tests. B asked the question the tests structurally cannot: **can anyone actually use it?**
+
+- `apps/schoolops/admin.py` registers **21** models. I registered **zero** of the five procurement models — so no operator could create a `Vendor`, a `VendorProduct`, or a `SupplyRequirement`.
+- **Nothing linked to `ops_procurement`.** `urls.py` was the only file in the tree that mentioned it. The page was reachable only by typing the URL.
+
+Together: `generate_purchase_orders_from_class_config` reads a `SupplyRequirement` table that nothing can populate, so the button is **correct and permanently returns `[]`**. Every test still passed — **because the tests create their own rows.** That is the "tables that ship empty" failure mode the mandate names by name, and it is the whole argument for auditing your *newest* work hardest rather than last.
+
+Fixed: five admin registrations (matching the file's own convention) + a `Procurement` card in `MODULE_CODES`, keyed to the same `inventory` feature code the view already gates on. `PurchaseOrder` totals and `PurchaseOrderLine.line_total` are **read-only in admin** — computed by `procurement_services`, and hand-editing them would silently desynchronise an order from its own lines. `test_procurement_reachable.py` seals both; verified failing against the prior commit (`origin/main` had 0 hits for `accounts:ops_procurement` and 0 for `register(Vendor`).
+
+**M33: ~55 → ~35 (B finding) → ~60.** Still missing in-page create forms (the ops convention is an in-page form, as `ops_library` does), vendor certification, receiving/reconciliation — and still under the platform-wide `≤8.9` runtime-proof cap.
+
+### 🔑 ONE GATE WAS HIDING THE STATE OF 72 OTHERS
+
+`pre_deploy_gate.sh` **halted at check 8 of 80** on `verify_<brand>_full_tree_classification`. Checks 9–80 had **never executed**. Every "red gates 17 → 9" claim on this scoreboard was therefore only ever knowable *up to that halt* — the board past check 8 was not green, it was **unmeasured**.
+
+It failed on ~50 `artifacts/**` files + 2 code files.
+
+The `artifacts/` half was a bucket **the gate already described and never implemented** — its own bucket-6 comment reads *"Tooling scripts and generated audit artifacts"* while the code covered only `scripts/`. Those files are recorded audit evidence (admin-canvas JSON, design-approval snapshots) captured by running audits against a real tenant; the tenant's name in them is the capture's **provenance**, and scrubbing it would falsify the evidence rather than clean the product. Wired the bucket + updated `docs/<BRAND>_REFERENCE_CLASSIFICATION.md`, which its own policy requires when a bucket is added. **Widens bar B only** — bar A (`lint_<brand>_residue`, runtime-visible copy) untouched and green.
+
+The 2 code files I had previously left alone, arguing that deleting engineering history to satisfy a regex is the wrong fix. **Learning they blocked 72 other gates changed the balance.** All three sites used the tenant name as a *provenance label* — "the exact `<tenant>` dead-end", "the exact report on `<tenant>`", "validated end-to-end on the `<tenant>` tenant". What is load-bearing is **that the failure was really observed, not hypothesised**; the tenant's identity carries none of it. Reworded to "a live tenant" — keeps the history, drops the customer name, which is what wave 3 concluded should happen tree-wide.
+
+### Board movement — and the next blocker
+
+`pre_deploy_gate.sh` **check 8 → check 10 of 80.** Checks 8 (branding classification) and 9 (no `print()`) now pass. It now stops on **check 10, Ruff F401/F841: 63 pre-existing findings** (39 unused imports, 24 unused variables) across ~40 files, **19 of them in `apps/schools/signup_views.py`**. None are in procurement code. Deliberately not folded into this commit — three unrelated concerns in one commit is how a diff stops being reviewable.
+
+**Standing NO-GO blockers, unchanged:** 4 × `continue-on-error` in `ci.yml` (user-deferred until billing is fixed — still a PART 0 forbidden pattern), and **GitHub Actions has run zero jobs since 2026-08-15**, which caps every metric at `≤8.9` regardless of feature work.
+
+Verified: 15 tests green, `manage.py check` clean, both brand gates PASS post-rebase (`files_with_hit=484`), 18/18 boundary gates green, content-verified on origin.
+
+---
+
+## PROMPT A — Wave 4: the floor metric had no floor — 2026-08-20
+
+**Shipped `a668338ed`.** M33 "B2B Procurement & Supply Marketplace" scored **10/100** because the tree contained no procurement. Under the lowest-dimension regime it was *the* number holding the platform down, so it was the only correct thing to build. This is the first vertical slice: models → migrations → RLS → service → view → route → template → tests.
+
+### The claim of M33 is that an order is DERIVED, not typed in
+
+    SupplyRequirement    "Chemistry needs 1 goggle per student"
+      × SubjectAssignment  "Chemistry is taught to Form 4B this term"
+      × Enrollment(ACTIVE) "Form 4B has 24 students"
+      − InventoryItem      "we already hold 6 goggles"
+      → PurchaseOrderLine  "order 18, because Chemistry / Form 4B"
+
+Every quantity traces to a row the school already maintains, and each line keeps the `SubjectAssignment` that produced it, so an operator can see **why** a number was proposed rather than being asked to trust it.
+
+### 🔑 THE MIGRATION THAT WOULD HAVE LEAKED EVERY PRICE
+
+`0040` does **ENABLE + CREATE POLICY + FORCE in one pass per table**. The five tables are created in `0039`, which lands *after* **both** global FORCE sweeps (`schools/0048`, `schools/0083`).
+
+The obvious precedent — `schoolops/0033`, which did ENABLE + POLICY for `inventorymovement` and let the later sweep FORCE it — **is the wrong one to copy now**, because there is no later sweep. It would have left the tables enabled and policied but **un-FORCE'd**, and an un-FORCE'd policy exempts the table owner, **which is the role Django runs as in RLS mode**. Every school would have read every other school's vendors, prices and orders. `0038` (W24 immunization) is the correct precedent and this follows it.
+
+Related, and the reason the isolation is expressible at all: **all five models carry their own `school_id`**, including `purchaseorderline` and `vendorproduct`, which could each have reached a school through a parent FK. The policy is a **per-table column check** — a table without `school_id` cannot be protected. The denormalization is not redundancy; it is the security boundary.
+
+### Three judgement calls where the safe direction is not the obvious one
+
+- **`Enrollment(ACTIVE)` is the head-count, not `StudentProfile.classroom`.** The profile field is a *synchronised projection* of enrolment, so counting profiles would drift the moment a year rollover was mid-flight — silently changing what a school orders.
+- **Stock nets off only on an exact name match.** A fuzzy match would silently **under**-order, which is the one failure mode a school cannot recover from on the morning a lab starts. Conservative here means ordering too much, never too little.
+- **Generation always produces DRAFTs, and `tenant_gmv()` counts only SUBMITTED + RECEIVED.** GMV that included proposals a school never agreed to would flatter the platform instead of describing it — the metric would go up while nothing real happened.
+
+### 13 tests, in two layers — because a service no request can reach is not a feature
+
+**8 service tests** assert the arithmetic: quantity from enrolment, the driving assignment recorded, stock netted off, fully-stocked generating nothing, empty class inventing no demand, one order per vendor, GMV excluding drafts, second school untouched.
+
+**5 view tests** assert it is reachable — and the sharpest one hands the view **another school's order id**. That is the test that catches a `filter(pk=…)` that forgot `school=`. They resolve against **`config.tenant_urls`, not the dev urlconf**, because dev exposes a wider URL surface than a real tenant gets; a route that only works there is a route that does not work.
+
+I added the view layer **after** the service tests were already green, because "the route resolves" is not "the page renders" — PART 0 rule 2 is end-to-end or it does not count, and I had been one `manage.py check` away from claiming a vertical slice on the strength of a URL lookup.
+
+### 🔑 RE-GREPPING AFTER THE REBASE FOUND MY OWN GATE FIX WAS TOO GENEROUS
+
+Two findings from the post-rebase sweep, neither blocking, both mine:
+
+1. **`docs/generated/tenant_isolation_audit.json` still names the pre-rename `ensure_<brand>_sovereignty_entitlements.py`** — the file wave 3 renamed away. A generated artifact currently describing a tree that does not exist. Fix is a regeneration, not a hand-edit.
+2. **Ten brand-residue sites in `sync_engine/management/commands/` that `lint_<brand>_residue` cannot see**, because the wave-3 masking exempts **module docstrings wholesale**. The peer commit did not introduce them — the diff added and removed zero brand lines. **This is wave 3's fix pointing the other way:** I widened masking to kill 3 false positives and took real findings out of scope with them. Same failure mode I spent wave 3 arguing against.
+
+### Honest re-score
+
+**M33 10 → ~55.** All four legs of the bar now have a real implementation (auto-generation from class config, certified-vendor catalog, tenant-scoped ordering with localized tax from `billing.tax_engine`, GMV tracking). **Not** 98, and not claimed: no seed/demo command, no vendor certification workflow, no receiving/reconciliation flow — and **the RLS migration above is reasoned and precedent-matched but has never been observed executing against a real Postgres**, because Actions has run zero jobs since 2026-08-15. That is a `≤8.9` cap on this metric exactly as on every other one.
+
+**The floor moves to M16 at 20.** Verified: 13 tests green, 18/18 boundary gates green, `manage.py check` clean, `makemigrations --check` no drift, `scan_money_float` + `scan_tenant_queryset_safety` PASS.
+
+---
+
+## PROMPT A — Wave 3: a customer's name was on an operator page — 2026-08-20
+
+**Shipped `8046fdab7`.** `lint_<brand>_residue` reported five findings. **Two were real, three were the gate reading documentation** — and separating them mattered more than clearing the count.
+
+### The real two — and the rename
+
+`apps/lifecycle/edge_onboarding.py` returned operator-facing strings naming a management command by its brand-bearing name. They are the return values of `_validate_provision_shell()` and an `EdgeOnboardingStep` workaround, **rendered in `templates/schools/super_edge_onboarding_runbook.html`** — a customer's name printed on an operator page in a white-label product.
+
+Renamed the command to **`ensure_showcase_tenant_entitlements`** (hard rename, no alias, per explicit user instruction). All 20 references across 8 files updated.
+
+- 🔑 **The riskiest reference was `scripts/release/render_predeploy.sh:142`** — it runs on **every production deploy** and is wrapped in `|| true`. A missed reference would not have failed the deploy; it would have **silently stopped entitling the tenant**.
+- 🔑 **Named "showcase tenant", not "sovereignty".** The command is **not generic** — it hardcodes a module-level tuple of ONE tenant's slugs and grants that tenant every feature the platform has. A generic-sounding name over tenant-specific logic would have been *worse than the leak*, hiding the specificity from the next reader. Whether it should be parameterised at all is a separate, unanswered question.
+
+### The other three — the gate was reading documentation
+
+`password_reset.py:25` is a docstring explaining the exact failure observed on that tenant ("we sent a link, you clicked it, and it still says invalid") — **which is the reason the surrounding code exists**; `:194` is a `#` comment doing the same; `edge_onboarding.py:4` is a module docstring. None is rendered, logged, or shown to anyone. Deleting engineering history to satisfy a regex would have been the wrong fix.
+
+The gate matched `re.compile(r"…")` line-by-line — even though its own `_path_skipped()` already excludes `management/commands/` as *"CLI-only; not user-facing"*, i.e. it already meant runtime-visible literally. It now blanks `#` comments (`tokenize`) and module/class/function docstrings (`ast`), and **deliberately keeps every OTHER string literal in scope**, because an operator-facing message is exactly the class of finding that was real. Falls back to raw source on any parse error — this gate must never go quiet because a file was hard to read.
+
+**Mutation-proven three ways:** brand token in a user-facing string **fires** with the right `file:line`; in a `#` comment **does not**; in a docstring **does not**.
+
+### 🔑 THE REBASE IS THE POINT
+
+Between my base and `origin/main`, peers pushed **16 commits — two of which added FRESH references to the old command name** (`edge_onboarding.py:628`, `:633`; one a `command_template`, the exact line an operator copy-pastes into a shell). **The rebase merged cleanly and said nothing about it.** Only re-grepping for the old name *after* rebasing caught it. Pushed as-is, the runbook would have told operators to run a command that no longer exists.
+
+The same pass surfaced **three more real ones** in `apps/sync_engine/connectivity_probe.py:61,107,112` — operator error text using a customer's slug as the worked example (`https://<slug>.<your-domain>`, `--slug <slug>`). Those are **wrong for every other tenant**, not merely off-brand; now `<your-tenant>`. **These were found by the REPAIRED gate** — under the old regex they'd have been three more lines in a five-line pile that was already 60% false positives.
+
+Also avoided: those 16 commits added **6 new migrations**, so reusing the freshly-built test DB via `--keepdb` would have been **stale** — the known false-red trap. Rebuilt from scratch. **19 tests OK** (`test_showcase_tenant_entitlements`, `test_provision_sovereign_school_create`, `test_edge_onboarding_command_integrity`, `test_connectivity_probe`).
+
+### 🔑 SIX GATES, 11 FALSE FINDINGS, 2 REAL ONES
+
+`lint_no_print_in_apps` · `audit_celery_tenant_task_scoping` · `check_no_hardcoding` · `verify_no_defeated_default_fallback` · `lint_<brand>_residue` · and `check_no_hardcoding` again **on the comment written to explain its own fix**. All matched raw text with no awareness of strings, comments, or multi-line statements. Five are now structural (`ast` / `tokenize` / statement-span / comment-masking).
+
+**Why this is the session's most important finding:** a gate that is usually wrong when red teaches a tree to ignore red — which is exactly how `apps/accounts/tasks.py` reached main **not compiling**. The repaired brand gate proved the value immediately by catching three genuine peer-introduced violations in its first run.
+
+**Deliberately left red:** `verify_<brand>_full_tree_classification` is a stricter, different rule (the token may live only in documented historical/tooling buckets; `apps/` is not one), so those same comments still violate it. Clearing it means **rewording engineering history — a judgement call, not a gate fix**, and it is queued for the user.
+
+### Board after waves 1–3
+
+Red gates **17 → 9** · `pre_deploy_gate.sh` **gate 4/80 → gate 9/80** · forbidden patterns **9 → 4** (all the held `ci.yml` flags) · **107 tests green**, zero regressions · commits `eb26554b7` → `896db99ed` → `8046fdab7`, each content-verified on origin.
+
+**Floor unchanged and untouched by any of this:** M33 **10** → M16 **20** → M26 **45** → M21 **50** → M31 **60**. Re-derived healthy this session: M23 **89** · M1 **85** · M3 **85** (`GRADING_SCALE_REGISTRY_PASS`, engine live at `apps/evals/models.py:794`) · M28 **85**.
+
+**And the constraint none of this moves:** GitHub Actions has still run **zero** jobs since 2026-08-15. Every metric stays capped at **≤8.9**. Peers are introducing brand residue and stale command references faster than single fixes clear them — the durable fix is these gates running in CI again, not more patches.
 
 ---
 

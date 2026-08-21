@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import tempfile
 from pathlib import Path
-from types import SimpleNamespace
 from unittest import mock
 
 from django.test import SimpleTestCase, TestCase, override_settings

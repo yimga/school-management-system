@@ -383,6 +383,30 @@ def _edge_sync_panel_context(school):
         ctx["edge_connectivity"] = connectivity_snapshot()
     except Exception:  # noqa: BLE001
         ctx["edge_connectivity"] = {}
+
+    # The tenant's schedule: the existing rules, a blank form to add one, and the summary
+    # (next run, last run, whether a window was missed) from schedule_policy — the same
+    # code the scheduler acts on, so the panel cannot promise a time the box will not keep.
+    try:
+        from apps.siteconfig.forms_sync_schedule import SyncScheduleForm
+        from apps.sync_engine import schedule_policy
+        from apps.sync_engine.models_schedule import SyncSchedule
+        from apps.sync_engine.schedule import describe_rule
+
+        rows = list(SyncSchedule.objects.filter(school=school))
+        for row in rows:
+            row.human = describe_rule(row.to_rule())
+            row.form = SyncScheduleForm(instance=row)
+        ctx["sync_schedule_rules"] = rows
+        ctx["sync_schedule_new_form"] = SyncScheduleForm(instance=SyncSchedule(school=school))
+        ctx["sync_schedule_summary"] = schedule_policy.schedule_summary(school)
+        ctx["sync_schedule_save_url"] = _safe_sync_reverse("siteconfig:sync_schedule_save")
+    except Exception:  # noqa: BLE001 — an unmigrated box must still render the page
+        _logger.debug("sync schedule panel context failed", exc_info=True)
+        ctx["sync_schedule_rules"] = []
+        ctx["sync_schedule_new_form"] = None
+        ctx["sync_schedule_summary"] = None
+        ctx["sync_schedule_save_url"] = None
     return ctx
 
 
@@ -701,6 +725,17 @@ def sync_center_status(request):
     except Exception:  # noqa: BLE001
         _logger.debug("schema summary failed for the status poll", exc_info=True)
 
+    # The tenant's schedule and — the part people actually came for — WHEN THE NEXT SYNC
+    # IS. Computed by schedule_policy, which is the same code the scheduler acts on, so
+    # the label and the behaviour cannot drift apart.
+    try:
+        from apps.sync_engine import schedule_policy
+
+        payload["schedule"] = schedule_policy.schedule_summary(school, now=now)
+    except Exception:  # noqa: BLE001 — a schedule panel must never break the poll
+        _logger.debug("schedule summary failed for the status poll", exc_info=True)
+        payload["schedule"] = None
+
     try:
         from apps.sync_engine.connectivity_probe import connectivity_snapshot
 
@@ -791,3 +826,90 @@ def sync_center_status(request):
         pass
 
     return JsonResponse(payload)
+
+
+# --------------------------------------------------------------- schedule editor --
+@login_required
+@permission_required("settings.manage")
+@require_http_methods(["POST"])
+def sync_schedule_save(request):
+    """Create or update one sync-schedule rule for ``request.school``.
+
+    WHY THE SCHOOL COMES FROM THE REQUEST AND NEVER THE FORM. The rule decides when a box
+    talks to the cloud; accepting a ``school`` from POST would let anyone who can reach
+    this endpoint retime another tenant's box. The instance is re-fetched scoped to
+    ``request.school`` for the same reason — an id in a URL is an argument, not a claim.
+
+    PROPAGATION IS STATED, NOT IMPLIED. The cloud cannot open a connection to a box, so a
+    saved change lands on the box's NEXT cycle. Saying "Saved" alone would leave the
+    operator watching for something that is minutes away by design, and that gap is where
+    people conclude sync is broken.
+    """
+    school = getattr(request, "school", None)
+    if not school:
+        return redirect_staff_without_school(
+            request, message=_("Select your school to change the sync schedule.")
+        )
+
+    from apps.siteconfig.forms_sync_schedule import SyncScheduleForm
+    from apps.sync_engine.models_schedule import SyncSchedule
+
+    back = _safe_sync_reverse("siteconfig:sync_center") or "/"
+    rule_id = (request.POST.get("rule_id") or "").strip()
+    instance = None
+    if rule_id.isdigit():
+        instance = SyncSchedule.objects.filter(pk=int(rule_id), school=school).first()
+        if instance is None:
+            messages.error(request, _("That sync schedule rule no longer exists."))
+            return redirect(back)
+
+    if (request.POST.get("action") or "").strip() == "delete":
+        if instance is not None:
+            instance.delete()
+            messages.success(request, _("Sync schedule rule removed."))
+            _wake_for_schedule_change(school)
+        return redirect(back)
+
+    form = SyncScheduleForm(request.POST, instance=instance or SyncSchedule(school=school))
+    if not form.is_valid():
+        # Surface the field-level reason rather than a generic failure: "this rule can
+        # never run" is only useful attached to the control that caused it.
+        for field, errors in form.errors.items():
+            label = form.fields[field].label if field in form.fields else ""
+            for error in errors:
+                messages.error(request, f"{label}: {error}" if label else str(error))
+        return redirect(back)
+
+    rule = form.save(commit=False)
+    rule.school = school
+    rule.save()
+    _wake_for_schedule_change(school)
+    messages.success(
+        request,
+        _(
+            "Sync schedule saved. It takes effect on the box at its next sync — the cloud "
+            "cannot contact a box directly."
+        ),
+    )
+    return redirect(back)
+
+
+def _wake_for_schedule_change(school):
+    """Nudge the box so a schedule change is picked up on the next tick, not the next hour.
+
+    Best effort by design: a failure here costs latency, never the saved rule. On the
+    cloud this bumps the change beacon so a box holding the long-poll open returns
+    immediately; on a box it raises the local cadence wake.
+    """
+    try:
+        from apps.sync_engine import cadence
+
+        cadence.request_wake("sync schedule changed")
+    except Exception:  # noqa: BLE001 — never fail a save on the nudge
+        _logger.debug("schedule change wake failed", exc_info=True)
+    try:
+        from apps.sync_engine import change_beacon
+
+        change_beacon.bump(getattr(school, "pk", school))
+    except Exception:  # noqa: BLE001
+        _logger.debug("schedule change beacon failed", exc_info=True)

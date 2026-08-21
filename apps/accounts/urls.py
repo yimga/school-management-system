@@ -3,7 +3,6 @@ from django.urls import path, reverse, reverse_lazy
 from django.contrib.auth.views import (
     PasswordChangeDoneView,
     PasswordResetCompleteView,
-    PasswordResetConfirmView,
     PasswordResetDoneView,
     PasswordResetView,
 )
@@ -223,6 +222,7 @@ from apps.safeguarding.views import (
     safeguarding_inbox,
     safeguarding_raise,
 )
+from apps.schoolops.views_procurement import ops_procurement
 from apps.schoolops.views_substitute_handover import substitute_handover_create
 from apps.schoolops.views_lost_belongings import (
     lost_belongings_mint,
@@ -551,6 +551,7 @@ urlpatterns = [
     path("backend/ops/library/", ops_library, name="ops_library"),
     path("backend/ops/transport/", ops_transport, name="ops_transport"),
     path("backend/ops/inventory/", ops_inventory, name="ops_inventory"),
+    path("backend/ops/procurement/", ops_procurement, name="ops_procurement"),
     path("backend/ops/canteen/", ops_canteen, name="ops_canteen"),
     path("backend/ops/clinic/", ops_clinic, name="ops_clinic"),
     path("backend/ops/timetabling/", ops_timetabling, name="ops_timetabling"),

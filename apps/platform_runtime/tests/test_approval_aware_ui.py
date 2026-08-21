@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from django.test import Client, TestCase, override_settings
+from django.test import TestCase, override_settings
 
 from apps.accounts.models import User
 from apps.platform_runtime.models import ConfigurationChangeRequest

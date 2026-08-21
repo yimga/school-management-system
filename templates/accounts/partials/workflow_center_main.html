@@ -103,6 +103,8 @@
       Resolved with `as` rather than inline: platform_runtime is registered on the
       tenant URLconf, and this partial also renders on the manager and public hosts,
       where an inline url tag would raise instead of degrading to no link.
+      attention-allow: resolver-surface — this Workflow Center is where the listed
+      issues are resolved.
       {% endcomment %}
       {% url 'platform_runtime:workflow_progress_flight_deck' as flight_deck_url %}
       <section class="rmc-command-panel" aria-label="{% trans 'Open workflow issues' %}">

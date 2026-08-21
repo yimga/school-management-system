@@ -1550,6 +1550,28 @@ jobs:
         run: |
           python scripts/scan_undefined_css_classes.py --compare
 
+  unregistered-middleware:
+    name: "Every middleware class is registered (zero tolerance)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Every middleware class under apps/ must be wired in config/
+        # The floor for code that compiles, imports, and still never runs.
+        # apps/sync_engine/middleware_edge_autosync.py was written to keep a LAN
+        # box syncing when nothing pings /health/ - its own docstring said "without
+        # this middleware a box with internet still waits forever" - and it was
+        # never added to MIDDLEWARE. For months it was referenced exactly once in
+        # the repository, at its own class statement, so it was dead during the
+        # precise failure it existed for and the sovereign box never synced.
+        # Nothing else sees this: it imports cleanly, parses, and raises no
+        # unused-import warning. Added 2026-08-20. No baseline; a deliberately
+        # unwired class is named in the script's ALLOWLIST with its reason.
+        run: |
+          python scripts/scan_unregistered_middleware.py --strict
+
   python-files-parse:
     name: "Every Python file parses (zero tolerance)"
     runs-on: ubuntu-latest

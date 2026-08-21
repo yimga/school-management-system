@@ -37,6 +37,37 @@ def _rp_id(request):
     return out
 
 
+def _rp_id_unusable_reason(rp_id, request):
+    """Why this relying-party ID cannot complete a ceremony, or "" when it can.
+
+    WebAuthn requires the RP ID to be a valid domain. An IP literal is not one, so a
+    sovereign box reached at ``http://10.10.20.137:10000`` derives an RP ID the browser
+    rejects outright — and, being served over plain HTTP, it is not a secure context
+    either, so ``navigator.credentials`` is absent before the request is even made.
+
+    Answering here turns two opaque client-side failures into one JSON sentence naming
+    the deployment property at fault. Returning the diagnosis is safe: it describes the
+    server's own address and TLS posture, both of which the caller already knows.
+    """
+    host = (rp_id or "").strip()
+    if not host:
+        return "This server could not determine its own hostname for passkeys."
+    # An RP ID that is all digits and dots, or contains a colon, is an address literal.
+    is_ipv4 = host.replace(".", "").isdigit() and host.count(".") == 3
+    if is_ipv4 or ":" in host:
+        return (
+            f"Passkeys need a domain name. This server is reached by IP address "
+            f"({host}), which browsers do not accept as a passkey domain. Reach it by "
+            f"hostname over HTTPS, or set WEBAUTHN_RP_ID."
+        )
+    if not request.is_secure() and host not in ("localhost", "127.0.0.1"):
+        return (
+            "Passkeys need a secure (HTTPS) connection. This server is reached over "
+            "plain HTTP, so the browser will not allow a passkey to be created or used."
+        )
+    return ""
+
+
 def _origin(request):
     return f"{request.scheme}://{request.get_host()}"
 
@@ -53,6 +84,9 @@ def passkey_registration_options(request):
     """Return WebAuthn registration options (JSON) for the client."""
     if not _webauthn_available():
         return JsonResponse({"error": "WebAuthn not available"}, status=501)
+    blocked = _rp_id_unusable_reason(_rp_id(request), request)
+    if blocked:
+        return JsonResponse({"error": blocked}, status=409)
     try:
         from webauthn import generate_registration_options, options_to_json
         from webauthn.helpers.structs import (
@@ -133,6 +167,9 @@ def passkey_authentication_options(request):
     """Return WebAuthn authentication options (JSON) for the client."""
     if not _webauthn_available():
         return JsonResponse({"error": "WebAuthn not available"}, status=501)
+    blocked = _rp_id_unusable_reason(_rp_id(request), request)
+    if blocked:
+        return JsonResponse({"error": blocked}, status=409)
     try:
         from webauthn import generate_authentication_options, options_to_json
         from webauthn.helpers.structs import PublicKeyCredentialDescriptor
@@ -266,6 +303,9 @@ def passkey_login_options(request):
     """
     if not _webauthn_available():
         return JsonResponse({"error": "Passkey sign-in is unavailable."}, status=503)
+    blocked = _rp_id_unusable_reason(_rp_id(request), request)
+    if blocked:
+        return JsonResponse({"error": blocked}, status=409)
     try:
         from webauthn import generate_authentication_options, options_to_json
         from webauthn.helpers.structs import UserVerificationRequirement

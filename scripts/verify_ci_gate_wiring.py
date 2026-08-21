@@ -45,6 +45,11 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # apps/accounts/tasks.py was found TRUNCATED mid-statement on main - the reference
     # gates treat an unparseable file as opaque and skip it, so nothing reported it.
     ("scripts/verify_python_files_parse.py", "architectural-boundaries.yml"),
+    # The floor for code that compiles, imports, and still never runs. Added 2026-08-20:
+    # EdgeAutosyncMiddleware existed to keep a LAN box syncing when nothing pings
+    # /health/, was never added to MIDDLEWARE, and so was dead during the exact failure
+    # it was written for. Registration is invisible to every other gate.
+    ("scripts/scan_unregistered_middleware.py", "architectural-boundaries.yml"),
     # The same floor for the code that runs in the BROWSER. Added 2026-08-20: the Python
     # gate's own write-up named this hole and stopped there. A JavaScript SyntaxError is
     # quieter than a Python one - no server log, no Sentry event, just a feature that
@@ -202,6 +207,10 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # layout waves that pass narrative audits but leave tenant/operator /admin/
     # looking unchanged (missing build chip / cache bust / approval grid).
     ("scripts/verify_django_admin_preview_parity.py", "architectural-boundaries.yml"),
+    # The dynamic sibling: resolves add/change forms for every registration on both
+    # real AdminSite instances and proves field classification, ownership binding,
+    # evidence immutability, and optional-field preference metadata stay complete.
+    ("scripts/audit_admin_form_intelligence_contract.py", "ci.yml"),
 )
 
 

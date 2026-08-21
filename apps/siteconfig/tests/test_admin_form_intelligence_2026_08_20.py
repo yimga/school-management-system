@@ -20,6 +20,7 @@ from apps.siteconfig.admin_form_intelligence import (
     admin_field_preferences_view,
     build_admin_field_contract,
 )
+from apps.siteconfig.models import SiteSettings
 from config.admin import platform_admin_site, tenant_admin_site
 
 
@@ -227,6 +228,21 @@ class AdminFormIntelligenceTests(TestCase):
             "client_offline_id", model_admin.get_readonly_fields(request, None)
         )
         self.assertIn("enable_gce_registration", optional_names)
+
+    def test_specialized_contract_only_advertises_fields_rendered_by_its_fieldsets(self):
+        model_admin = tenant_admin_site._registry[SiteSettings]
+        request = self._request()
+        form = model_admin.get_form(request)(instance=SiteSettings())
+        self.assertIn("txp_use_v3_shell", form.fields)
+
+        contract = build_admin_field_contract(model_admin, request, mode="change")
+        editable = set(contract.required_fields)
+        editable.update(item["name"] for item in contract.optional_fields)
+
+        self.assertNotIn("txp_use_v3_shell", editable)
+        self.assertNotIn("txp_use_v3_shell", contract.recommended_fields)
+        self.assertIn("maintenance_mode", editable)
+        self.assertTrue(set(contract.recommended_fields).issubset(editable))
 
     def test_endpoint_persists_only_valid_optional_fields(self):
         body = {

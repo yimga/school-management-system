@@ -406,8 +406,17 @@ _AMBIGUOUS_GROUPS: tuple[frozenset[str], ...] = (
 )
 
 
+# How far the filename's domain may trail the content winner and still be
+# allowed to override it. Beyond this the columns are not tied -- they disagree,
+# and the columns are the evidence.
+_FILENAME_OVERRIDE_MAX_MARGIN = 0.15  # magic-number-allow: filename-tiebreak-confidence-margin
+
+
 def reconcile_domain_with_filename(
-    filename: str, content_domain: str | None
+    filename: str,
+    content_domain: str | None,
+    *,
+    scores: dict[str, float] | None = None,
 ) -> str | None:
     """Prefer a filename entity-hint over a content guess ONLY when BOTH point
     at the SAME ambiguous group (which content-scoring cannot disambiguate).
@@ -418,11 +427,38 @@ def reconcile_domain_with_filename(
     ``student_grades.csv`` (filename hint ``students``, content ``grades``) is NOT
     overridden — ``grades`` is in no shared group with ``students``, so the columns
     are the reliable signal there. Content outside a shared group always wins.
+   
+    Pass ``scores`` (domain -> confidence, from the classifier's ranked
+    candidates) to enforce the "tie" half of that contract: a filename may only
+    break a tie it is actually part of. If the hinted domain trails the content
+    winner by more than :data:`_FILENAME_OVERRIDE_MAX_MARGIN`, the columns win.
     """
     hint = guess_domain_from_filename(filename)
     if hint and content_domain and hint != content_domain:
         for group in _AMBIGUOUS_GROUPS:
             if hint in group and content_domain in group:
+                # This is a TIE-BREAKER, and it used to fire without checking
+                # whether there was a tie. A live subjects file named for a class
+                # scored `academics` on real column evidence (title->subject_name,
+                # coef->credits) while `sections` matched almost nothing -- and the
+                # filename overrode it anyway. The sections lander then rejected all
+                # 108 rows for "missing section_code/name" while the name sat in
+                # custom_fields.title, and 326 students referencing those
+                # never-created sections were held as invalid_ref. One filename
+                # token, 434 held rows.
+                #
+                # When the caller can supply the scores, require an actual tie.
+                # Without scores the behaviour is unchanged, so existing callers
+                # keep the documented person-roster fix.
+                if scores is not None:
+                    content_score = float(scores.get(content_domain) or 0.0)
+                    hint_score = float(scores.get(hint) or 0.0)
+                    # Epsilon so the documented boundary is genuinely inclusive:
+                    # 0.70 - 0.15 is 0.5499999999999999 in binary floating point,
+                    # which would otherwise put an exactly-at-margin pair on the
+                    # wrong side of its own rule.
+                    if content_score - hint_score > _FILENAME_OVERRIDE_MAX_MARGIN + 1e-9:
+                        return content_domain
                 return hint
     return content_domain
 
@@ -478,6 +514,30 @@ def is_derived_report(headers: Any, filename: str = "") -> bool:
     return stat_hits >= _REPORT_MIN_STAT_HITS_ALONE
 
 
+# A spreadsheet nobody renamed. These are the DEFAULT workbook names Excel and
+# LibreOffice give a new file, per locale -- and several of them collide with
+# real entity tokens: "Book1" hits `book` -> library, and the French default
+# "Classeur1" hits `class` -> sections. On a francophone school's upload that
+# turns "the teacher never renamed the file" into a confident wrong domain.
+# A default name is the ABSENCE of a label, so it must produce no hint at all.
+_DEFAULT_WORKBOOK_STEMS: frozenset[str] = frozenset({
+    "book", "sheet", "workbook", "worksheet",       # en
+    "classeur", "feuille",                          # fr
+    "mappe", "tabelle",                             # de
+    "libro", "hoja",                                # es
+    "cartel", "foglio",                             # it
+    "pasta", "planilha",                            # pt
+    "untitled", "sansnom", "nuevo", "novo",         # generic "new/untitled"
+})
+
+
+def _is_default_workbook_name(name: str) -> bool:
+    """True when the filename is just an unrenamed spreadsheet default."""
+    stem = (name or "").rsplit(".", 1)[0]
+    stem = "".join(ch for ch in stem if ch.isalpha())
+    return stem in _DEFAULT_WORKBOOK_STEMS
+
+
 def guess_domain_from_filename(filename: str) -> str:
     """Best-effort canonical domain from a filename (server-side auto-detect).
 
@@ -486,6 +546,8 @@ def guess_domain_from_filename(filename: str) -> str:
     a sensible default.
     """
     name = (filename or "").rsplit("/", 1)[-1].rsplit("\\", 1)[-1].lower()
+    if _is_default_workbook_name(name):
+        return ""
     for token, domain in DOMAIN_FILENAME_HINTS:
         if token in name:
             return domain

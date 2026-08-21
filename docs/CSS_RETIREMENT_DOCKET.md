@@ -2,6 +2,114 @@
 
 **Last updated:** 2026-08-20
 
+## 2026-08-20 (latest) — v4.06.74: a school can decide when its box syncs, and see when that will be
+
+SW `sms-v4.06.74-tenant-sync-schedules-2026-08-20`. Python, JS, one template partial and
+docs; no CSS changes. Full design: [`docs/EDGE_SYNC_SCHEDULES.md`](EDGE_SYNC_SCHEDULES.md).
+
+**The gap.** Cadence was an adaptive state machine — HOT/STEADY/BACKOFF — with exactly one
+knob (`RMC_EDGE_SYNC_INTERVAL_SECONDS`), global, in an env var on a host the school cannot
+see. There was no way for a tenant to say "sync every half hour during school hours and
+once at ten at night", and no way for anyone to find out when the next sync would be.
+
+**The constraint that shaped the design.** A sovereign box sits behind NAT: the cloud can
+never open a connection to it, so "the cloud triggers a sync at 09:00" is not implementable
+— at 09:00 nobody is going to tell the box anything. The schedule is therefore a ROW,
+replicated down the existing sync rail and evaluated LOCALLY by the box against its own
+copy, which is also what keeps it working while the cloud is unreachable.
+
+**What landed**
+
+| Area | Change |
+|---|---|
+| `apps/sync_engine/schedule.py` (new) | The evaluator. `next_run_at(rules, after, tz)` — pure, timezone-aware, no I/O, no cache, no request. Two shapes a human can read back: `INTERVAL` ("every 30 minutes, 07:00–18:00, Monday to Friday") and `AT_TIMES` ("at 06:00 and 22:00, every day"). Overnight windows are one window, not zero. `describe_rule()` renders plain English — never a cron string, because the person filling this in runs a school. |
+| DST | Decided, documented and asserted in BOTH directions. Spring forward: a rule at a wall time the day skips fires at the first instant that exists — never dropped, because a nightly report that silently missed one night a year would be blamed on anything but the clock. Fall back: a rule in the repeated hour fires ONCE. |
+| `apps/sync_engine/models_schedule.py` (new) | `SyncSchedule` — school-scoped, several rules per tenant (term time and holidays are two rules, not two products). Scalar CSV columns rather than JSON so every field survives `save(update_fields=...)` and a bundle round trip on SQLite and Postgres alike. `clean()` refuses the impossible and names the field: a schedule that saves cleanly and then silently never fires is the exact failure this feature exists to remove, and it would be indistinguishable from a broken box. |
+| `apps/api/sync_services.py` | Registered as the `sync_schedule` entity — the only entity on the rail that is ABOUT the rail. First spec pointing at a SHARED app, which the rail handles without a special case: `school` is excluded from the derived field set and the delta builder scopes by `school_id`, so what matters is the anchor + `updated_at`. `causal_lww`, not protected — it is the tenant's own configuration on their own deployment, and the worst a stale write can do is sync at the wrong time. |
+| `apps/sync_engine/schedule_policy.py` (new) | The precedence table, written into the module docstring because a rule that only exists in an `if` is one the next person will invert. Wake beats everything (a human asked); backoff beats the schedule (a schedule is not permission to hammer a cloud that is down); inside a window the tenant's interval wins; two overlapping windows use the SHORTER one so row order never decides behaviour; outside every window the **idle ceiling**, never zero. |
+| The idle ceiling | The one place the product does not do exactly what was typed, so it is stated rather than buried. `EdgeSyncDirective` is the only cloud→box channel and it is collected by the box ASKING — a box that goes twelve hours without asking cannot receive "Queue full resync" for twelve hours, and from the cloud that is indistinguishable from a box switched off. Default one hour, configurable. |
+| Missed windows | Catch up ONCE. `missed_run()` returns a single moment, so a weekend outage produces one Monday sync rather than forty-eight. |
+| `apps/siteconfig/views_sync_center.py` | `sync_schedule_save` (create / update / delete, school from the REQUEST and never from POST — an id in a URL is an argument, not a claim), plus a `schedule` block in the polled status payload. |
+| `apps/siteconfig/forms_sync_schedule.py` (new) | Named interval choices, day checkboxes, time pickers. Form fields are named after the MODEL's fields on purpose: Django maps a model `ValidationError` dict onto form fields by name and raises `ValueError` for a key the form lacks, so friendlier names would have turned "you picked no days" into a 500. |
+| `templates/siteconfig/partials/_sync_schedule_panel.html` (new) + `rmc-sync-center.js` | "Next sync" beside "Last sync" — a next-run time alone is only a promise, and shown next to a last run three days old a stale box becomes visible instead of implied to be fine. The instant comes from the server; only the human phrasing ("in 2h 14m") happens client-side, because a countdown computed against a skewed laptop clock is exactly the quietly-wrong number that destroys trust in a panel. |
+| Propagation honesty | "Schedule changes reach the box on its next sync — the cloud cannot contact a box directly." In the template AND in the status payload, so every surface tells the same truth. Saving also raises a wake and bumps the change beacon, so it is usually seconds — but the UI does not promise that, because on a sleeping box it is not true. |
+
+**One implementation of "when is the next run".** `schedule_policy.planned_next_run()` is
+what the scheduler acts on and what the screen displays. A next-run label computed by
+different code than the one that keeps it will drift, and a wrong label is worse than none
+— it is the thing the user is planning around. The test asserts the displayed value against
+the FUNCTION, never a hardcoded expectation.
+
+**The default is nothing.** A tenant who never opens the screen gets the adaptive cadence
+exactly as before. `rules_for(school) == []` means "fall back to the adaptive cadence" and
+every caller reads it that way; it never means "do not sync".
+
+**Tests.** 86 new (31 evaluator, 24 precedence, 31 model/rail/surface). `apps.sync_engine`
+719 tests with the same 5 pre-existing failures as at base. Two migrations
+(`0010_syncschedule`, `0011_syncschedule_rls`) — the RLS policy lands with the model rather
+than as a follow-up nobody writes, because `sync_engine` is a SHARED app and row-level
+security is the only thing keeping one school's configuration out of another's queries.
+19/19 boundary gates green, `makemigrations --check` clean.
+
+**Deliberately not built:** per-entity schedules, blackout windows, cloud→box push (it does
+not exist), and a `RuntimeDefaults` first-class field for the idle ceiling — it is an env
+var today, which is layer 2 of the cascade, and promoting it needs the full first-class
+chain.
+
+## 2026-08-20 (earlier) — v4.06.73: the box could not run a sync cycle, and the PIN dialog blamed the browser
+
+SW `sms-v4.06.73-edge-tick-and-secure-context-2026-08-20`. Python, JS, compose and
+docs; no CSS changes.
+
+**How this was found.** Not by reading. The box at `10.10.20.137:10000` and the cloud
+at `gilead-tech.runmycampus.com` were probed live, and the two health endpoints
+disagreed with each other:
+
+```
+box   /health/   "celery_broker_configured": true,  "inprocess_scheduler": false
+box   /healthz/  "celery_beat": degraded — "in-process heal should re-enable"
+box   /healthz/  "celery_queue_depth": no queue 'celery' in vhost '1'
+cloud /health/   "celery_broker_configured": false, "inprocess_scheduler": true
+```
+
+One process, two endpoints, opposite answers about the same fact. That contradiction
+was the whole finding.
+
+**What landed**
+
+| Area | Change |
+|---|---|
+| `config/settings.py` | **`EdgeAutosyncMiddleware` is now registered.** It was written to drive the periodic tick from ordinary page loads because a LAN box has nothing pinging `/health/` — its docstring says *"without this middleware a box with internet still waits forever"* — and a repo-wide search for the class name returned exactly ONE hit: its own `class` statement. It had never run. Placed after WhiteNoise (static requests never reach it) and before every gate/redirect middleware, so a login redirect still advances the tick — which on a box that mostly shows a login page is most requests. |
+| `apps/sync_engine/middleware_edge_autosync.py` | Gate widened from `RMC_EDGE_SYNC_ENABLED` to "does this deployment run the in-process scheduler?". The narrow flag was wrong twice: a self-hosted box that is not an edge box has the same dead-tick problem and loses provisioning heals and digests with it, and the flag lives in a host `.env` nobody editing the pairing screen can see. `maybe_run_due_jobs` already makes the real decision and is a monotonic compare in memory. |
+| `apps/platform_runtime/periodic.py` | **The grace window that re-armed itself.** `celery_beat_appears_alive()` anchored its grace to a cache key with a 24-hour TTL; on expiry it re-seeded with `now` and returned True, so a beat that had never ticked was declared alive again every 24 hours — and any Valkey restart did it immediately. Observed flipping degraded → ok in 20 minutes with no beat running. The anchor is now `ScheduledJobHeartbeat.created_at` (durable, already used by `run_health_monitor` as `watched_for_seconds`), and an unknown anchor now returns False — failing toward RUNNING the scheduler, which is safe because `run_job`'s per-job claim lock makes a double-run a no-op. |
+| `apps/observability/views.py` | `/healthz/` no longer promises a heal that is not happening. It reports whether the in-process scheduler ACTUALLY took over, and says plainly when nothing is running periodic jobs at all. |
+| `deploy/selfhost/docker-compose.yml` | Healthchecks on `web` (urllib against `/health/` every 30s — **load-bearing**, since that path is the AUTO driver of the scheduler and Render supplies it for free while a LAN box gets nothing), `worker` (`inspect ping`, the only check that proves it is CONSUMING), and `beat`. The only healthcheck in this file was on `db`. |
+| `apps/platform_runtime/management/commands/check_beat_publishing.py` (new) | Beat has no HTTP surface and no inspect protocol, and the failure here was a beat that was **up and publishing nothing** — so a process check would have proved nothing. Reuses the canary the application already reads, so there is one definition of "beat is alive" instead of two that can disagree. |
+| `apps/sync_engine/gateway_retry.py` (new) + `edge_outbox.py` | A cold cloud 502s **every** path. Measured at 21:07 UTC with no deploy running: `/healthz/`, `/`, a static file, and `/api/nonexistent-route-xyz/` all 502; 60s later all correct. A static asset cannot 502 from schema drift and a nonexistent route cannot 502 from app code. Push and pull now retry 502/503/504 with backoff. **4xx is deliberately untouched** — retrying a 401 hammers the cloud with a credential that will never work, and retrying a 404 hides a path bug behind latency. |
+| `static/js/rmc-offline-auth-vault.js` + `-enrollment.js` + `rmc-offline-login-unlock.js` | **"Local access could not be enabled on this browser."** The vault derives its PIN key with `crypto.subtle`, which browsers expose only in a secure context; the box is `http://<ip>:10000`, so the call threw `TypeError` and a bare `catch` blamed the browser. Chrome implements WebCrypto correctly — the ORIGIN does not qualify, and changing browsers can never help. New `availability()` is checked BEFORE the dialog opens (asking someone to choose and confirm a PIN and only then saying it cannot work is the worst possible order), the message names HTTPS, and the swallowed error is finally logged. Because sealing could never succeed, `loadSealed()` was always null and "Continue in local mode" stayed hidden forever — offline continuity has never worked on any HTTP box. |
+| `static/js/rmc-auth-login-immersive.js` | Same misattribution for passkeys: says "needs a secure (HTTPS) connection" when `isSecureContext` is false, instead of "this browser does not support passkeys". |
+| `config/settings.py` + `apps/accounts/views_passkey.py` | `WEBAUTHN_RP_ID` was declared in `settings_registry.py` and **defined nowhere** (two hits repo-wide), so `_rp_id` always fell back to `request.get_host()` — an IP literal on the box (not a registrable domain; browsers refuse the ceremony) and the TENANT hostname on the cloud (a passkey registered on one tenant host is invisible on another). Now settable, default unchanged so existing passkeys keep working, and the options endpoints return a readable 409 naming the deployment property instead of handing the browser a ceremony it cannot complete. |
+| `apps/migration_cloud/services/legacy_hash_intake.py` | Three of the four `INTAKE_FIELDS` are `EncryptedCharField`s, and a bad `DJANGO_CRYPTOGRAPHY_KEY` raises **`ValueError`** from `get_prep_value` — not a `DatabaseError`, so it sailed past the guard and became a 500. Reads never fail and empty values short-circuit before the Fernet is built, which is why a box with a broken key looks healthy until the first import carrying legacy passwords. Now caught, logged with the env var and the command that checks it, and the user is skipped rather than the migration lost. |
+| `scripts/scan_unregistered_middleware.py` (new) | The gate. Every `class *Middleware` under `apps/` must be referenced from `config/`. No baseline; 4 genuinely-unwired classes carry written reasons. Mutation-proven. |
+| `apps/sync_engine/tests/test_connectivity_probe_2026_08_19.py` | Corrected a test that had been RED since PR #183 because it pinned `/api/v1/sync/bundle/download/` — the exact 404 that fix removed. Now asserts against `reverse()`. Verified live: `/api/sync/bundle/upload/` → 401 clean JSON, `/api/v1/sync/bundle/download/` → 404 with a page of tenant HTML. |
+
+**Tests.** 74 new (11 stdlib + 63 Django). Verified against a `main` worktree: 627 tests
+/ 6 failures at base, 679 / 5 after — all 5 proven pre-existing and identical at base
+(2 local `EMAIL_BACKEND`, 1 `assertLogs` vs `settings_test`'s `logging.disable`, 1
+order-dependent that passes alone, 1 unrelated 403-vs-409). 19/19 boundary gates green,
+`makemigrations --check` clean.
+
+**Deploy.** No configuration required. The compose healthchecks apply on the next
+`docker compose up -d`. On the box afterwards: `python manage.py check_beat_publishing`
+should exit 0, and `/health/` should report `inprocess_scheduler: true` if beat is still
+not publishing.
+
+**Still open, honestly.** Why beat publishes nothing (`no queue 'celery' in vhost '1'`)
+needs that box's container logs — the fix here makes the in-process scheduler take over
+correctly rather than repairing beat. Offline continuity and passkeys on the box remain
+unavailable until it is served over HTTPS; the product now says so instead of blaming
+the browser.
+
 ## 2026-08-20 (later) — Nine served pages had markup that never closed, and one of them shipped an element that does not exist
 
 Started from a narrower question — *are there other guard tests that never collected?* A repo-wide sweep imported all 2,736 collectable test modules and found **zero** import failures, so that class is clean. But the sweep's own output carried something else: `scripts/dev/test_backend_dashboard.py`, one of five files under `scripts/dev/` that match pytest's `test_*.py` glob while defining no tests and executing their whole body at import, printed **`[WARN] div tags are not balanced`** for the tenant admin home. It had been printing that into a script nobody runs.

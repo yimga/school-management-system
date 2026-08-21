@@ -110,6 +110,16 @@ ALLOWED_SCHOOL_SETTINGS_FEATURES_PREFIXES = (
     "apps/portal/views_mfa_policy.py",
     "apps/reports/board_aggregation_kernel.py",
     "apps/reports/report_card_kernel.py",
+    # Added 2026-08-20. Same class as the block above: both ASSIGN school.settings
+    # (a write), while this check's own success message is about direct
+    # *reads* -- and the alternatives it names (request.tenant_runtime,
+    # get_effective_*) are read facades, so its advice cannot be followed at a
+    # write site. Both predate this entry (2026-07-31 and 2026-08-15) and were
+    # only surfaced now because pre_deploy_gate.sh used to halt at check 8, well
+    # before this one. They stay in the register, not exempted from it: the real
+    # close is the shared runtime-helper WRITE API this whole block is waiting on.
+    "apps/academics/academic_calendar.py",
+    "apps/finance/fee_collection_posture.py",
 )
 
 # Patterns: (regex, description)

@@ -23,12 +23,35 @@
         pending = null;
         status.textContent = "This device is offline-ready.";
         window.setTimeout(function () { node.close(); }, 700);
-      } catch (_error) { status.textContent = "Local access could not be enabled on this browser."; }
+      } catch (error) {
+        // Name the real condition. This branch used to print "Local access could not be
+        // enabled on this browser" for every failure, which is wrong for the one that
+        // actually happens: on a box served over plain HTTP the browser withholds
+        // crypto.subtle because the ORIGIN is not secure, and no browser change can fix
+        // that. Blaming the browser sent operators looking in the only place the answer
+        // was never going to be.
+        status.textContent =
+          (error && error.rmcReason && error.message) ||
+          "Local access could not be enabled on this device. Please try again.";
+        // The error used to be swallowed entirely, which is why this was opaque for so
+        // long — no console output, and no way to tell a missing crypto.subtle from a
+        // storage quota failure.
+        if (window.console && console.warn) console.warn("rmc offline enrollment failed", error);
+      }
     });
     return node;
   }
   window.addEventListener("rmc-offline-capability-minted", function (event) {
     if (!window.RMCOfflineAuthVault || !event.detail || !event.detail.capability_blob) return;
+    // Do not ask for a PIN this origin can never use. Asking someone to choose and
+    // confirm a 6-digit PIN and only THEN telling them it cannot work is the worst
+    // possible order, and it is what happened on every HTTP box: the dialog opened,
+    // the PIN was accepted, and sealCapability threw on crypto.subtle.
+    var capable = window.RMCOfflineAuthVault.availability();
+    if (!capable.ok) {
+      if (window.console && console.info) console.info("rmc offline enrollment unavailable:", capable.reason, capable.detail);
+      return;
+    }
     pending = { version: 1, capability_blob: event.detail.capability_blob, expires_at: event.detail.expires_at || "", permission_bitmap: event.detail.permission_bitmap || [], school_host: window.location.host, start_url: "/" };
     if (!window.RMCOfflineAuthVault.loadSealed()) {
       var node = getDialog();

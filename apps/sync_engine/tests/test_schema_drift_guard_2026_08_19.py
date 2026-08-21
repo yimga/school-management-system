@@ -149,7 +149,6 @@ class SchemaErrorContainmentTests(TestCase):
         self.assertFalse(Department.objects.filter(pk=self.poison_pk).exists())
 
     def test_the_detail_carries_the_column_so_the_cause_is_recoverable(self):
-        real_save = Department.save
 
         def flaky_save(self_obj, *a, **kw):
             raise OperationalError("no such column: academics_department.blood_type")

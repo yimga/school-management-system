@@ -53,7 +53,6 @@ from apps.siteconfig.config_service import (
     get_effective_flags,
     get_effective_site_settings,
 )
-from apps.platform_runtime.config_resolver import get_effective_config
 
 from .forms import (
     BulkUserRolesForm,
@@ -4773,7 +4772,9 @@ def login_view(request):
             from apps.accounts.login_immersive_context import build_login_immersive_context
 
             context["LOGIN_IMMERSIVE"] = build_login_immersive_context(request)
-        except Exception:
+        except Exception:  # noqa: BLE001 — the login page must render even if the
+            # immersive-context builder fails; falling back to a static shell is
+            # strictly better than a 500 on the one page nobody can route around.
             context["LOGIN_IMMERSIVE"] = {
                 "ticker_items": [_("Welcome — sign in to reach your school workspace.")],
                 "carousel_slides": [],

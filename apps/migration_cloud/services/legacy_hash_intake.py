@@ -222,6 +222,37 @@ def store_legacy_hash(
             },
         )
         return False
+    except ValueError:
+        # Three of the four INTAKE_FIELDS are EncryptedCharFields, and
+        # ``EncryptedCharField.get_prep_value`` constructs a Fernet on every non-empty
+        # write. A DJANGO_CRYPTOGRAPHY_KEY that is not 32 url-safe base64 bytes raises
+        # ``ValueError`` there — which is NOT a DatabaseError, so it sailed past the
+        # handler above and became a 500 on the import.
+        #
+        # The failure is invisible until it is not: reads are safe (from_db_value
+        # catches and returns the raw value) and empty values short-circuit before the
+        # Fernet is built, so a deployment with a broken key looks completely healthy
+        # right up to the first import that carries legacy passwords. Measured on a
+        # sovereign box on 2026-08-20 whose key was 15 raw bytes.
+        #
+        # Returning False matches the DatabaseError contract: this user keeps no legacy
+        # hash and will have to reset their password, while the rest of the import
+        # proceeds. One misconfigured key must not cost the whole migration.
+        logger.exception(
+            "legacy_hash_intake_encryption_failed",
+            extra={
+                "user_id": getattr(user, "pk", None),
+                "algorithm": algorithm,
+                "source_vendor": source_vendor,
+                "result": "encryption_failed",
+                "remediation": (
+                    "DJANGO_CRYPTOGRAPHY_KEY must be a 44-character url-safe base64 "
+                    "Fernet key (32 raw bytes). Run: python manage.py "
+                    "check_edge_readiness"
+                ),
+            },
+        )
+        return False
 
     # Structured log — counts + algorithm name + vendor slug only. No
     # hash bytes, no salt, no password, no params content.

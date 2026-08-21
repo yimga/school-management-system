@@ -1,5 +1,49 @@
 # RunMyCampus autonomous execution log
 
+## Slice - Tenant admin sidebar server ownership and two-loop seal (batch 1816 - 2026-08-20)
+
+**A. Scope:** Execute the binding A-Z platform admin automation prompt with a tenant-wide `/admin/` sidebar upgrade, then run two independent post-implementation audit and validation loops.
+
+**B. Shipped:** Server-persisted, per-user/host/admin-site tenant navigation state; bounded authenticated preference endpoint; offline retry; alias-aware search, count/reset/empty state, recents, pin feedback and deduplication; current-app expansion; strict operator isolation; operator integration permission correction; synchronized v22 build/cache/SW; updated prompt and audit ledger.
+
+**C. Proof:** exhaustive manager changelist crawl **191 routes / 0 failures** (189 HTTP 200, 2 intentional redirects); admin intelligence **474/0/0**; emergency **474 models / 91 templates / 326 CSS / 28 browser surfaces / 1 owner / 0 findings**; manager + Gilead hosts at 1440/1024/768/390 light/dark with correct scope and zero overflow/resource/CSS/overlay/icon findings; **15/15** focused assertions; all framework, migration, static, template, preview, canvas, miss-nothing, footer and monotonic SW gates PASS.
+
+**D. Release boundary:** No migration was created. Apply any migrations still pending on the deployment database, collect static files, restart web/worker/beat, invalidate CDN/service-worker caches and rerun production-host smoke checks. Repository proof is not a deployment claim.
+
+## Slice — Post-merge release verification (batch 1815 - 2026-08-20)
+
+**A. Result:** PASS on the exact tree reconciled with `origin/main`.
+
+**B. Proof:** Django **415/415 OK**; JavaScript **433/433**, Python **8,489/8,489**, templates **1,904/1,904**; gate units **58/58**; admin intelligence **474 registrations / 0 findings / 0 tenant school selectors**; framework, migrations, static collection, admin surface, cache/SW, CI wiring, RLS, reporting, documentation and diff gates PASS.
+
+**C. Release boundary:** deploy migrations/static assets, restart web/worker/beat, then invalidate CDN and service-worker caches before production host smoke tests.
+
+## Slice — Django admin automation and final release seal (batch 1814 - 2026-08-20)
+
+**A. Scope:** Research-backed final audit of operator and tenant `/admin/` automation, field visibility, host routing, compiled browser behavior, static/cache ownership, and release readiness.
+
+**B. Shipped:** Active-fieldset allowlist in `admin_form_intelligence`; Site Settings regression coverage; matching audit semantics; restored `renderHealth()` declaration in the Workflow Flight Deck bundle; synchronized Admin build/cache/SW v21/v4.06.70; refreshed real-host evidence and audit artifacts.
+
+**C. Proof:** admin intelligence **474 registrations / 0 findings / 0 tenant school selectors**; changed-scope Django **398/398 OK**; JS parse **433/433**, Python parse **8,488/8,488**, templates **1,904/1,904**; admin canvas, miss-nothing, emergency, scroll, preview parity, service-worker monotonicity, CI wiring, RLS and report-entity gates PASS; `check`, migration drift/plan, collectstatic dry-run and diff-check PASS. Browser matrix: manager + Gilead tenant, 1440/1024/768/390, light/dark, correct host/scope, 200, no horizontal overflow; specialized tenant Site Settings rerun PASS.
+
+**D. Root causes:** reusable ModelForms could expose hundreds of fields while a specialized `ModelAdmin` rendered a governed subset, so the shared preference contract described controls absent from the DOM; one function declaration was dropped during a concurrent Flight Deck merge, causing a valid 200 resource to fail parsing and disable the whole script.
+
+**E. Research standard:** Django admin resolved fieldsets/forms and explicit ModelForm field allowlists; model validation plus transaction boundaries; OWASP allowlist validation and mass-assignment prevention. Suggestions remain editable, mandatory fields never hide, system/audit ownership stays server-controlled, and hidden values cannot be mass-assigned.
+
+**F. Deploy:** run migrations and collectstatic, restart web/worker/beat, clear CDN/service-worker caches, then rerun the real production host matrix. Repository PASS is not substituted for post-deploy process/static verification.
+
+## Slice — Edge↔cloud correctness upgrade (batch 1813 - 2026-08-20)
+
+**A. Scope:** Execute all G1–G7 items and replay defence in `EDGE_SYNC_UPGRADE_BRIEF.md`, then retest the complete changed rail.
+
+**B. Shipped:** tombstones/delete dominance; overlap cursor and push ledger; resumable verified file transfer; per-app schema handshake; authority-safe conflict resolution; long-poll change beacon; convergence harness; signed bundle nonce receipts; skipped/deleted evidence; RLS migrations for all new sync tables.
+
+**C. Proof:** changed-scope Django **398/398 OK**; RLS table scan **0 uncovered**; schema/model drift **0**; migration plan empty; CI wiring **52/52**; Python/JS/template parser gates clean.
+
+**D. Honest limits:** overlap is bounded by configured transaction duration; mTLS and two-real-Postgres convergence remain live/infrastructure certification; governed domains remain cloud/online authoritative.
+
+**E. Operations:** deploy migrations before code is considered active, provision the edge credential/env, run `edge_sync_cycle` and `verify_edge_sync_convergence`, and confirm Sync Center records real landed/skipped/deleted counts.
+
 ## Slice — Edge sync chrome + simulation tenant leak (batch 1812 - 2026-08-19)
 
 **A. Scope:** Platform-wide box ↔ cloud sync UX (progress to 100% on every page when online), stop Flight Deck simulation from polluting tenant kickoff boards, and clarify conversion lock vs edge env.

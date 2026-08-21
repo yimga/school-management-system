@@ -21,7 +21,6 @@ never double-invoices — asserted at the services layer elsewhere; here we mock
 """
 from __future__ import annotations
 
-from datetime import date
 from types import SimpleNamespace
 from unittest import mock
 

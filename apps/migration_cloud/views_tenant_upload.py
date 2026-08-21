@@ -285,6 +285,17 @@ def _sync_tenant_domain_overrides(bundle) -> None:
 _IMPORT_QUEUE_STUCK_SECONDS = 90  # magic-number-allow: import-queue-stuck-threshold-seconds
 
 
+# A bundle in one of these states has finished importing. Any PENDING/PROCESSING
+# apply row still sitting against it is an orphan — an apply cannot run on an
+# APPLIED bundle (the orchestrator no-ops it), so the row can only be residue.
+# FAILED / ABORTED are deliberately NOT here: a repair queued against a failed
+# bundle is real in-flight work the tenant must see.
+_SETTLED_BUNDLE_STATUSES = frozenset({
+    BundleStatus.APPLIED,
+    BundleStatus.RECONCILED,
+})
+
+
 def _import_flight(bundle) -> dict:
     """Whether a live import / repair is queued or running for this bundle.
 
@@ -300,6 +311,15 @@ def _import_flight(bundle) -> dict:
     Read-only + best-effort: an outbox lookup failure degrades to "not in flight"
     (the pre-existing behaviour) rather than breaking the review page.
     """
+    # A settled bundle is finished, full stop. An orphaned outbox row must never
+    # override that: `in_flight` on its own pins the board at "Running" and caps
+    # progress below 100 (live_import_attention lines 168/188/253), so one leftover
+    # row kept a COMPLETED import showing a spinner — and thirty minutes later the
+    # same row turned that spinner into "Failed (Stuck)" on an import that had
+    # actually succeeded.
+    if getattr(bundle, "status", "") in _SETTLED_BUNDLE_STATUSES:
+        return {"in_flight": False, "phase": "", "stuck": False, "dry_run": False}
+
     running = getattr(bundle, "status", "") == BundleStatus.APPLYING
     row = None
     try:
@@ -392,6 +412,18 @@ def _progress_payload(bundle) -> dict:
 
     detecting = _is_detecting(bundle)
     flight = _import_flight(bundle)
+    if flight.get("stuck"):
+        # SELF-HEAL. This poller is the only heartbeat guaranteed to be running
+        # while a tenant watches an import: it needs no Celery worker and no beat.
+        # A queued apply nothing has claimed is drained in-process here (rate
+        # limited per bundle) instead of leaving the tenant on a frozen bar with
+        # nothing behind it. Best-effort — the recovery must never break the read.
+        try:
+            from .repair import nudge_stuck_apply
+
+            nudge_stuck_apply(bundle)
+        except Exception:  # noqa: BLE001
+            logger.debug("tenant progress: stuck-apply nudge failed for %s", bundle.pk, exc_info=True)
     detected = []
     for art in bundle.artifacts.all():
         candidates = art.inferred_domain if isinstance(art.inferred_domain, list) else []
@@ -435,8 +467,28 @@ def _progress_payload(bundle) -> dict:
         "repair": repair,
         "needs_attention": live["needs_attention"],
         "processed": live["created"] + live["updated"] + live["held"],
-        "expected": int((snapshot.get("live_totals") or {}).get("expected") or 0),
+        # Total rows the upload actually contains. This used to read
+        # snapshot["live_totals"]["expected"], a key `progress.refresh_snapshot`
+        # never writes, so the pipeline card rendered a permanent "Expected: 0"
+        # next to a real Processed count. row_count is null for archives and
+        # binaries, so summing the non-null values counts each tabular file once
+        # and never double-counts an archive alongside its children.
+        "expected": _expected_row_total(bundle),
     }
+
+
+def _expected_row_total(bundle) -> int:
+    """Sum of profiled row counts across the bundle's tabular artifacts."""
+    from django.db.models import Sum
+
+    try:
+        total = bundle.artifacts.filter(row_count__isnull=False).aggregate(
+            n=Sum("row_count")
+        )["n"]
+    except Exception:  # noqa: BLE001 — the poller must never 500 on a count
+        logger.debug("tenant progress: expected-row total failed for %s", bundle.pk, exc_info=True)
+        return 0
+    return int(total or 0)
 
 
 class _TenantAdminWriteRequiredMixin(LoginRequiredMixin):

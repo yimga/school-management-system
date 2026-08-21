@@ -8,7 +8,7 @@ from datetime import timedelta
 from unittest.mock import MagicMock, patch
 
 from django.test import Client, TestCase, override_settings
-from django.urls import get_resolver, reverse
+from django.urls import reverse
 from django.utils import timezone
 
 from apps.accounts.models import Permission as FeaturePermission, User
@@ -143,10 +143,13 @@ class SyncCenterLiveViewTests(TestCase):
         self.assertContains(page, "data-rmc-bulk-table")
 
     def test_status_route_has_one_owner(self):
+        from apps.siteconfig.urls import urlpatterns
+
         matching = [
             pattern
-            for pattern in get_resolver().reverse_dict.getlist("siteconfig:sync_center_status")
-            if pattern
+            for pattern in urlpatterns
+            if str(pattern.pattern) == "sync-center/status/"
+            and pattern.name == "sync_center_status"
         ]
         self.assertEqual(len(matching), 1)
 

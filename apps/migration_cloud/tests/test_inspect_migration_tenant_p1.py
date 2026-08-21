@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from io import StringIO
 from pathlib import Path
-from unittest import mock
 
 from django.core.management import call_command
 from django.core.management.base import CommandError

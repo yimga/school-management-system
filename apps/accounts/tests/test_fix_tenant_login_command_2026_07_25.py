@@ -23,7 +23,7 @@ from io import StringIO
 from django.contrib.auth import authenticate
 from django.core.management import call_command
 from django.core.management.base import CommandError
-from django.test import TestCase, override_settings
+from django.test import TestCase
 
 from apps.accounts.models import User
 from apps.schools.models import School, SchoolMembership

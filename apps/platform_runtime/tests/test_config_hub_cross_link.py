@@ -44,7 +44,6 @@ class ConfigHubCrossLinkTests(SimpleTestCase):
     def test_every_setup_advanced_link_resolves(self):
         # Walk ALL entries of the new "Setup & Advanced" category — a dead entry
         # (e.g. a wrong reverse name) is silently dropped, so assert each resolved.
-        catalog = _build_catalog()
         setup_cat = next((c for c in _build_catalog() if c.slug == "setup"), None)
         self.assertIsNotNone(setup_cat, "the Setup & Advanced category is missing")
         for entry in setup_cat.entries:

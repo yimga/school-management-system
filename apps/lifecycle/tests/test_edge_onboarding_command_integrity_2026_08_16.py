@@ -38,7 +38,7 @@ _MANAGE_RE = re.compile(r"manage\.py\s+([a-z][a-z0-9_]+)")
 # listed — its workaround describes a different remedy (set country_code / configure
 # manually) and names no command.
 _PROSE_COMMANDS_BY_STEP = {
-    "provision_shell": ("provision_sovereign_school", "ensure_gilead_sovereignty_entitlements"),
+    "provision_shell": ("provision_sovereign_school", "ensure_showcase_tenant_entitlements"),
     "migrate_identities": ("ensure_default_tenant_admin",),
     "configure_box_env": ("check_edge_readiness", "run_periodic_jobs"),
     "enable_configure_sync": ("mint_edge_credential",),

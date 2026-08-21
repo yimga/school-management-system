@@ -1102,6 +1102,13 @@ from apps.schoolops.models_resource_booking import (  # noqa: E402
     ResourceBooking,
 )
 from apps.schoolops.models_inventory_movement import InventoryMovement  # noqa: E402
+from apps.schoolops.models_procurement import (  # noqa: E402
+    PurchaseOrder,
+    PurchaseOrderLine,
+    SupplyRequirement,
+    Vendor,
+    VendorProduct,
+)
 
 __all__ = [
     "EmailDeliveryEvent",
@@ -1116,4 +1123,9 @@ __all__ = [
     "BookableResource",
     "ResourceBooking",
     "InventoryMovement",
+    "Vendor",
+    "VendorProduct",
+    "SupplyRequirement",
+    "PurchaseOrder",
+    "PurchaseOrderLine",
 ]

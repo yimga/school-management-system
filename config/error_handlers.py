@@ -8,12 +8,39 @@ re-entering ``config.urls`` during urlconf load (avoids circular ImportError).
 from __future__ import annotations
 
 import logging
+import re
 
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.template.loader import get_template
 
 logger = logging.getLogger(__name__)
+
+
+def error_reference(request) -> str:
+    """Correlator a user can quote so an operator can find the log line.
+
+    ``ObservabilityMiddleware`` stamps ``request.request_id`` on every request and
+    echoes it as the ``X-Request-ID`` response header, and the structured log
+    formatter prints ``request_id=<id>`` on every line. The error PAGE never showed
+    it, so a tenant reporting "I got a 500" handed over nothing searchable and the
+    only way to find the traceback was to guess the timestamp. Surfacing it turns
+    that into one grep.
+
+    Never raises and never invents a value: an empty string means "no id on this
+    request", and the template simply omits the reference line.
+    """
+    try:
+        value = getattr(request, "request_id", "") or ""
+    except Exception:  # noqa: BLE001 - an error page must never fail
+        return ""
+    value = str(value).strip()
+    # Client-supplied (the middleware honours an inbound X-Request-ID header), so
+    # treat it as untrusted: bound the length and keep it to id-safe characters
+    # before it reaches a template or a log line.
+    if not value or len(value) > 64:
+        return ""
+    return value if re.fullmatch(r"[A-Za-z0-9._:-]+", value) else ""
 
 
 def _static_error_html(code: str, title: str, message: str) -> str:
@@ -113,7 +140,7 @@ def page_not_found(request, exception):
 def server_error(request):
     """Custom 500 page with minimal HTML fallback if template chain fails."""
     _coerce_request_user_for_error_pages(request)
-    context = {"user": request.user}
+    context = {"user": request.user, "error_reference": error_reference(request)}
     template = (
         "errors/500_control_plane.html"
         if getattr(request, "public_host_kind", None) == "manager"
@@ -123,7 +150,9 @@ def server_error(request):
         return render(request, template, context, status=500)
     except Exception:
         try:
-            html = get_template("errors/500_minimal.html").render({})
+            html = get_template("errors/500_minimal.html").render(
+                {"error_reference": error_reference(request)}
+            )
         except Exception:
             html = (
                 "<!doctype html><meta charset=utf-8>"
@@ -138,6 +167,7 @@ def server_error(request):
 def service_unavailable(request, exception=None):
     """Custom 503 page — maintenance mode and upstream overload."""
     _coerce_request_user_for_error_pages(request)
+    _context = {"error_reference": error_reference(request)}
     template = (
         "errors/503_control_plane.html"
         if getattr(request, "public_host_kind", None) == "manager"
@@ -152,4 +182,5 @@ def service_unavailable(request, exception=None):
             "Temporarily unavailable",
             "We're briefly offline for maintenance. Please retry shortly.",
         ),
+        context=_context,
     )

@@ -48,7 +48,11 @@ from apps.evals.importers import (
     IMPORT_ERROR_LOG_CAP as _IMPORT_ERROR_LOG_CAP,
     apply_grade_import_job,
     build_template_headers,
-    resolve_import_job_outcome as _resolve_import_job_outcome,
+    # Deliberate re-export, not dead: importers.py documents that this view
+    # re-exports it under its historical name, and
+    # test_grade_import_never_drops_rows_silently imports it from HERE.
+    # `ruff --fix` removed it once; the marker is what stops that recurring.
+    resolve_import_job_outcome as _resolve_import_job_outcome,  # noqa: F401
 )
 from apps.reports.services import is_term_published
 from apps.reports.weasy import render_pdf_bytes

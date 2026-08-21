@@ -38,7 +38,6 @@ class DarkModeCodeReadabilityTests(SimpleTestCase):
             "design-tokens.css lost the dark-mode code override",
         )
         # ... and repaint it with a token that FLIPS in dark mode (not --surface-bg-subtle).
-        block = css[css.index('code:not(pre code)') :]
         # Find the dark override block specifically.
         m = re.search(
             r'(html\[data-theme="dark"\][^}]*code:not\(pre code\)[^}]*\{[^}]*\})', css, re.S

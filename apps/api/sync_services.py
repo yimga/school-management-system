@@ -96,6 +96,24 @@ _DERIVED_ENTITY_SPECS: list[tuple[str, str, str]] = [
     #     data merge. A rail that creates identities is a rail that can grant access.
     # Rationale + the conditions to revisit: docs/EDGE_SYNC_IDENTITY_HOLD.md.
     ("teacher", "people", "TeacherProfile"),
+    # Slice 8 — the tenant's own sync schedule (2026-08-20). The only entity on this rail
+    # that is ABOUT the rail: it tells the box when to run a cycle.
+    #
+    # It has to ride the rail because of the NAT asymmetry. The cloud can never open a
+    # connection to a box, so "the cloud triggers a sync at 09:00" is not implementable —
+    # at 09:00 nobody is going to tell the box anything. The schedule is therefore
+    # replicated like any other row and EVALUATED LOCALLY against the box's own copy,
+    # which is also what keeps it working while the cloud is unreachable. A box that has
+    # never pulled one runs the default.
+    #
+    # Consequence stated plainly rather than hidden: a schedule change reaches the box on
+    # its NEXT cycle, not instantly. The Sync Center says so in those words.
+    #
+    # Unlike every other spec here this model lives in a SHARED app (sync_engine), which
+    # the rail handles without a special case: `school` is excluded from the derived field
+    # set and the delta builder scopes by `school_id`, so what actually matters is the
+    # anchor + `updated_at`, and SyncSchedule carries both.
+    ("sync_schedule", "sync_engine", "SyncSchedule"),
 ]
 
 # Entities that sync as UPDATES but whose offline-CREATED rows are refused outright.
@@ -214,6 +232,14 @@ _LWW_SAFE_ENTITIES = frozenset(
         # whole entity protected instead would make every offline phone-number correction a
         # manual conflict while buying no additional safety.
         "teacher",
+        # Sync schedule (Slice 8): the tenant's own configuration, on the tenant's own
+        # deployment, so a later edit winning is exactly right — and it is the behaviour a
+        # sovereign box needs, where the administrator may be sitting in front of the box
+        # rather than the cloud. Nothing here grants access, moves money or changes a
+        # mark; the worst a stale write can do is sync at the wrong time, which the next
+        # edit corrects. Protecting it instead would turn every schedule change made
+        # during an outage into a manual conflict for no safety gain.
+        "sync_schedule",
     }
 )
 

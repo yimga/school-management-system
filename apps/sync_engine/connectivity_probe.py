@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 from typing import Any
+from apps.sync_engine.cloud_endpoints import cloud_endpoint
 
 
 def operator_base() -> str:
@@ -58,7 +59,7 @@ def format_http_rejection(phase: str, status: int, body: Any) -> str:
         msg += (
             " — cloud gateway error (502): the box reached a proxy but not a healthy "
             "Django response. Set RMC_EDGE_OPERATOR_BASE to the TENANT host "
-            "(e.g. https://gilead-tech.<your-domain>), confirm the cloud tenant is up, "
+            "(e.g. https://<your-tenant>.<your-domain>), confirm the cloud tenant is up, "
             "and do not point at manager/marketing hosts."
         )
     elif status in (401, 403):
@@ -84,8 +85,8 @@ def connectivity_snapshot() -> dict[str, Any]:
         "operator_base": base,
         "operator_base_configured": bool(base),
         "credential_configured": credential_configured(),
-        "pull_endpoint": f"{base}/api/v1/sync/bundle/download/" if base else "",
-        "upload_endpoint": f"{base}/api/v1/sync/bundle/upload/" if base else "",
+        "pull_endpoint": cloud_endpoint(base, "api:sync-bundle-download") if base else "",
+        "upload_endpoint": cloud_endpoint(base, "api:sync-bundle-upload") if base else "",
         "school_slug_pin": (os.getenv("RMC_EDGE_SCHOOL_SLUG") or "").strip(),
     }
 
@@ -104,12 +105,12 @@ def probe_cloud_http(*, timeout: float = 20.0) -> dict[str, Any]:
     if not snap.get("operator_base_configured"):
         problems.append(
             "Set RMC_EDGE_OPERATOR_BASE to the TENANT cloud host "
-            "(e.g. https://gilead-tech.<your-domain>) — not this LAN box, not manager/marketing."
+            "(e.g. https://<your-tenant>.<your-domain>) — not this LAN box, not manager/marketing."
         )
     if not snap.get("credential_configured"):
         problems.append(
             "Set RMC_EDGE_CREDENTIAL (mint on cloud: "
-            "python manage.py mint_edge_credential --slug gilead-tech --user <admin>)."
+            "python manage.py mint_edge_credential --slug <your-tenant> --user <admin>)."
         )
 
     result: dict[str, Any] = {
@@ -146,10 +147,10 @@ def probe_cloud_http(*, timeout: float = 20.0) -> dict[str, Any]:
         except (urllib.error.URLError, OSError) as exc:
             return {"ok": False, "status": 0, "detail": f"unreachable: {exc}"}
 
-    pull = _http_probe("pull", f"{base}/api/v1/sync/bundle/download/")
+    pull = _http_probe("pull", cloud_endpoint(base, "api:sync-bundle-download"))
     push = _http_probe(
         "push",
-        f"{base}/api/v1/sync/bundle/upload/",
+        cloud_endpoint(base, "api:sync-bundle-upload"),
         method="POST",
         body=b"",
     )

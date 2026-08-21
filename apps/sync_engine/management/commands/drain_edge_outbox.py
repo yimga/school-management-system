@@ -78,6 +78,16 @@ class Command(BaseCommand):
                     enabled=email_summary.get("enabled", False),
                 )
             )
+            # A backend-blocked drain returns all-zero counters, which is exactly
+            # the shape of "queue was empty" — the failure mode this command's
+            # error handling already exists to prevent. Say it out loud instead.
+            blocked = int(email_summary.get("blocked_no_backend", 0) or 0)
+            if blocked:
+                parts.append(
+                    f"EMAIL NOT DELIVERED: {blocked} message(s) still parked because "
+                    "EMAIL_BACKEND cannot deliver (console/locmem/dummy). They are "
+                    "intact and forward once an SMTP relay or local MTA is configured."
+                )
         if sms_summary is not None:
             parts.append(
                 "sms_whatsapp(sent={sent} failed={failed} processed={processed})".format(
@@ -115,7 +125,8 @@ class Command(BaseCommand):
                 f"drain_edge_outbox: email drain error {type(exc).__name__}: {exc}"
             )
             return {"redriven": 0, "still_pending": 0, "exhausted": 0,
-                    "abandoned": 0, "enabled": False, "error": type(exc).__name__}
+                    "abandoned": 0, "enabled": False, "blocked_no_backend": 0,
+                    "error": type(exc).__name__}
 
     def _drain_sms(self, limit, school):
         try:
