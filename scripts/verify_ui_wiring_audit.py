@@ -58,6 +58,14 @@ JAVASCRIPT_ALLOWED_PREFIXES = (
 
 SCRIPT_BLOCK_RE = re.compile(r"<script\b[^>]*>.*?</script>", re.DOTALL | re.IGNORECASE)
 STYLE_BLOCK_RE = re.compile(r"<style\b[^>]*>.*?</style>", re.DOTALL | re.IGNORECASE)
+# Django template comments. A {# #} comment is single-line by definition;
+# {% comment %} spans lines. Both are stripped before hazard scanning, because a
+# comment that DOCUMENTS a hazard is not a hazard -- four sites here carry notes
+# like 'plain text beats a link to nowhere' and were flagged for saying so.
+DJANGO_HASH_COMMENT_RE = re.compile("[{]#.*?#[}]")
+DJANGO_COMMENT_BLOCK_RE = re.compile(
+    "[{]%[ ]*comment[ ]*%[}].*?[{]%[ ]*endcomment[ ]*%[}]", re.DOTALL | re.IGNORECASE
+)
 
 URLCONF_MODULES = (
     "config.urls",
@@ -176,10 +184,22 @@ def _collect_template_url_literals() -> dict[str, list[str]]:
     return by_file
 
 
+def _blank_keeping_lines(match):
+    """Replace a block with its own newlines so reported line numbers stay true.
+
+    The previous sub("") deleted the newlines too, shifting every line number
+    after an embedded <style>/<script>. That is how this gate reported
+    templates/errors/500_minimal.html:30 for a hazard that is on line 75.
+    """
+    return chr(10) * match.group(0).count(chr(10))
+
+
 def _strip_non_html_blocks(text: str) -> str:
-    """Avoid matching a.href / href= inside embedded JS/CSS."""
-    text = SCRIPT_BLOCK_RE.sub("", text)
-    text = STYLE_BLOCK_RE.sub("", text)
+    """Avoid matching href= inside embedded JS/CSS or Django template comments."""
+    text = SCRIPT_BLOCK_RE.sub(_blank_keeping_lines, text)
+    text = STYLE_BLOCK_RE.sub(_blank_keeping_lines, text)
+    text = DJANGO_COMMENT_BLOCK_RE.sub(_blank_keeping_lines, text)
+    text = DJANGO_HASH_COMMENT_RE.sub(_blank_keeping_lines, text)
     return text
 
 

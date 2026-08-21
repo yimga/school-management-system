@@ -216,10 +216,10 @@ class LiveProgressRunBoundaryTests(TestCase):
         snap = refresh_snapshot(bundle=b, persist=False)
         applying = next(s for s in snap["stages"] if s["name"] == "APPLYING")
         self.assertEqual(applying["pct"], 40)
-        self.assertEqual(
-            snap["live_totals"],
-            {"created": 12, "updated": 3, "quarantined": 1},
-        )
+        totals = snap["live_totals"]
+        self.assertEqual(totals["created"], 12)
+        self.assertEqual(totals["updated"], 3)
+        self.assertEqual(totals["quarantined"], 1)
 
 
 class StuckApplySelfHealTests(TestCase):

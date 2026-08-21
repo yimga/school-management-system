@@ -121,6 +121,7 @@ widget uses, then hides remediator / repair / held-copy the moment issue_count i
          data-mc-live-board="1"
          data-progress-url="{{ progress_url }}"
          data-repair-url="{{ repair_url }}"
+         data-resolve-url="{{ quarantine_resolve_url }}"
          data-importing="{% if importing %}1{% else %}0{% endif %}"
          data-msg-queued="{% trans 'Queued — waiting for the importer…' %}"
          data-msg-running="{% trans 'Writing records into your school…' %}"
@@ -156,7 +157,7 @@ widget uses, then hides remediator / repair / held-copy the moment issue_count i
     <span class="rmc-badge{% if live_import.held %} rmc-badge--danger{% endif %}" data-mc-live-held-wrap>{% trans "Held for review" %}: <strong data-mc-live-held>{{ live_import.held }}</strong></span>
   </p>
   <div class="rmc-wfp-progress" aria-hidden="true"><span data-mc-live-fill></span></div>
-  {% if importing %}
+  {% if importing or live_import.issues_open or live_import.held %}
   {% include "components/rmc_workflow_progress_canvas.html" with workflow_key="migration_bundle_apply" task_type="MIGRATION_INGESTION" %}
   {% endif %}
   <div data-mc-live-remediator {% if not live_import.remediator %}hidden{% endif %}>
@@ -169,10 +170,20 @@ widget uses, then hides remediator / repair / held-copy the moment issue_count i
         {% endfor %}
       </ol>
       {% if live_import.remediator.show_repair and repair_url %}
-      <form method="post" action="{{ repair_url }}">
+      <form method="post" action="{{ repair_url }}" class="d-flex gap-2 flex-wrap align-items-center" data-mc-repair-form="1">
         {% csrf_token %}
         <button type="submit" class="btn btn-primary rmc-wfp-remediator__action" data-mc-remediator-action>{{ live_import.remediator.action_label }}</button>
+        {% if live_import.remediator.held_review and held_review_url %}
+        <a class="btn btn-outline-primary" href="{{ held_review_url }}">{% trans "Review held rows" %}</a>
+        {% endif %}
+        {% if live_import.remediator.show_clear_queue and quarantine_resolve_url %}
+        <button type="button" class="btn btn-outline-warning" data-mc-clear-queue="1">{% trans "Clear held queue" %}</button>
+        {% endif %}
       </form>
+      {% elif live_import.remediator.show_start_fresh and upload_url %}
+      <a class="btn btn-primary" href="{{ upload_url }}">{% trans "Start a new import" %}</a>
+      {% elif live_import.remediator.held_review and held_review_url %}
+      <a class="btn btn-outline-primary" href="{{ held_review_url }}">{% trans "Review held rows" %}</a>
       {% endif %}
     </div>
     {% endif %}
@@ -585,7 +596,8 @@ persistent data failure routes to correction rather than an endless retry.
 </section>
 {% endif %}
 
-{% if repair and not importing %}
+{% if repair or live_import.issues_open or live_import.import_stuck %}
+{% if not importing or live_import.import_stuck %}
 {% comment %}
 Auto-repair affordance. Shows a one-click "Repair this import" when the bundle
 is safely re-appliable (a failed apply, or held / not-fully-landed rows), or a plain
@@ -596,32 +608,81 @@ repair.repair_readiness — the button is only a trigger.
 <section class="rmc-card mt-4" aria-labelledby="mc-repair-heading" id="mc-repair-panel" data-mc-repair-panel="1">
   {# attention-allow: resolver-surface — the repair controls for a failed import are on this page #}
   <h2 id="mc-repair-heading" class="h5">{% trans "Fix a failed or incomplete import" %}</h2>
-  {% if repair.repairable %}
+  {% if live_import.issues_open and held_review_url %}
+  <div class="mb-3">
+    <p class="small mb-2">
+      {% blocktrans count count=live_import.issue_count %}{{ count }} record is held for review.{% plural %}{{ count }} records are held for review.{% endblocktrans %}
+      {% if quarantine_pending != apply_held_total and apply_held_total %}
+      <span class="text-muted">{% blocktrans with reviewable=quarantine_pending total=apply_held_total %}({{ reviewable }} reviewable of {{ total }} reported held){% endblocktrans %}</span>
+      {% endif %}
+    </p>
+    {% if quarantine_breakdown %}
+    <ul class="small text-muted mb-2">
+      {% for row in quarantine_breakdown %}
+      <li>{{ row.label }} — {{ row.count }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+    <div class="d-flex gap-2 flex-wrap">
+      <a class="btn btn-outline-primary" href="{{ held_review_url }}"><i class="bi bi-list-check me-1" aria-hidden="true"></i>{% trans "Review held rows" %}</a>
+      {% if quarantine_resolve_url %}
+      <button type="button" class="btn btn-outline-warning" data-mc-clear-queue="1"><i class="bi bi-eraser me-1" aria-hidden="true"></i>{% trans "Clear held queue" %}</button>
+      {% endif %}
+      {% if repair.repairable %}
+      <form method="post" action="{{ repair_url }}" class="d-inline">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-warning"><i class="bi bi-magic me-1" aria-hidden="true"></i>{% trans "Auto-fix & re-import" %}</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+  {% if repair and repair.repairable %}
   <p class="text-muted small">{{ repair.reason }}</p>
   {% if repair.issue_count %}
   <p class="small mb-2"><span class="rmc-badge">{% blocktrans count count=repair.issue_count %}{{ count }} record needs another attempt{% plural %}{{ count }} records need another attempt{% endblocktrans %}</span></p>
   <p class="text-muted small mb-2">{% trans "If the same records stay held after a repair, they were rejected for a data reason (see the note on each file above) — fix the data and re-import, rather than repairing again." %}</p>
   {% endif %}
+  {% if not live_import.issues_open %}
   <form method="post" action="{{ repair_url }}" class="d-flex gap-2 flex-wrap">
     {% csrf_token %}
     <button type="submit" class="btn btn-warning"><i class="bi bi-arrow-repeat me-1" aria-hidden="true"></i>{% trans "Repair this import" %}</button>
   </form>
   <p class="text-muted small mt-2 mb-0">{% trans "Safe to run: records that already imported are updated in place, never duplicated." %}</p>
-  {% else %}
+  {% endif %}
+  {% elif repair %}
   <p class="text-muted small mb-0">{{ repair.reason }}</p>
   {% endif %}
 </section>
 {% endif %}
+{% endif %}
 
-{% if rollback and not importing %}
+{% if not importing %}
+{% if rollback or abandon_url %}
 {% comment %}
 Full-bundle rollback. Appears once a LIVE import has landed rows. DESTRUCTIVE — deletes
 the rows THIS import created (the original source is never touched). Two-step: the
 confirm checkbox must be ticked or the server refuses. connector_rollback.rollback_bundle
 reverts child-first and reports honestly which domains it could not auto-revert.
 {% endcomment %}
-<section class="rmc-card mt-4" aria-labelledby="mc-rollback-heading">
-  <h2 id="mc-rollback-heading" class="h5">{% trans "Revert this import" %}</h2>
+<section class="rmc-card mt-4" aria-labelledby="mc-recovery-heading" id="mc-recovery-hub">
+  <h2 id="mc-recovery-heading" class="h5">{% trans "Recovery options" %}</h2>
+  <p class="text-muted small mb-3">{% trans "Use these when an import has been stuck for a long time or you want to start over without losing work accidentally." %}</p>
+  <div class="d-flex flex-column gap-3">
+    {% if abandon_url and bundle.status != "ABORTED" %}
+    <div class="p-3 border rounded">
+      <h3 class="h6 mb-1">{% trans "Close this import" %}</h3>
+      <p class="text-muted small mb-2">{% trans "Marks this import closed so it stops asking for attention. Records already in your school are kept. Upload new files to try again." %}</p>
+      <form method="post" action="{{ abandon_url }}" class="d-flex gap-2 flex-wrap align-items-center">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-outline-secondary btn-sm">{% trans "Close import" %}</button>
+        <button type="submit" name="redirect" value="upload" class="btn btn-outline-primary btn-sm">{% trans "Close & upload new files" %}</button>
+      </form>
+    </div>
+    {% endif %}
+{% if rollback %}
+    <div class="p-3 border rounded border-danger-subtle">
+      <h3 id="mc-rollback-heading" class="h6 mb-1">{% trans "Revert this import" %}</h3>
   <p class="text-muted small mb-2">
     {% blocktrans count count=rollback.created %}This import created {{ count }} record. Reverting deletes it from your school.{% plural %}This import created {{ count }} records. Reverting deletes them from your school.{% endblocktrans %}
   </p>
@@ -634,6 +695,10 @@ reverts child-first and reports honestly which domains it could not auto-revert.
     </div>
     <button type="submit" class="btn btn-outline-danger"><i class="bi bi-arrow-counterclockwise me-1" aria-hidden="true"></i>{% trans "Revert this import" %}</button>
   </form>
+    </div>
+{% endif %}
+  </div>
 </section>
+{% endif %}
 {% endif %}
 {% endblock %}

@@ -25,16 +25,20 @@ change anything, and it acts on ONE explicit bundle id — never a bulk sweep::
     python manage.py mc_recover_import --school gilead        # ...for one school
     python manage.py mc_recover_import --bundle-id 42         # why / why not
     python manage.py mc_recover_import --bundle-id 42 --repair
+    python manage.py mc_recover_import --bundle-id 42 --repair --sync
 """
 from __future__ import annotations
 
 from django.core.management.base import BaseCommand, CommandError
+from django.utils import timezone
 
 from apps.migration_cloud.models import BundleStatus, MigrationBundle
 from apps.migration_cloud.repair import (
-    applying_stale_by_time,
+    live_apply_in_flight,
     repair_bundle,
     repair_readiness,
+    supersede_wedged_apply,
+    tenant_apply_stuck,
 )
 
 # Statuses worth listing: a wedged apply, plus the two states repair_readiness
@@ -68,6 +72,19 @@ class Command(BaseCommand):
             action="store_true",
             help="Re-run the bundle given by --bundle-id (durable/off-request).",
         )
+        parser.add_argument(
+            "--sync",
+            action="store_true",
+            help="With --repair, apply synchronously in this shell (no outbox queue).",
+        )
+        parser.add_argument(
+            "--force-reclaim",
+            action="store_true",
+            help=(
+                "With --repair on an APPLYING bundle: retire wedged outbox rows and "
+                "reset to MAPPED when repair_readiness refuses with status:APPLYING."
+            ),
+        )
 
     # ── helpers ──────────────────────────────────────────────────────────────
 
@@ -89,10 +106,21 @@ class Command(BaseCommand):
             qs = qs.filter(school=school)
         return qs.select_related("school").order_by("-created_at")
 
+    def _force_reclaim(self, bundle) -> int:
+        """Retire wedged apply rows; reset APPLYING→MAPPED when nothing is moving."""
+        retired = supersede_wedged_apply(bundle)
+        bundle.refresh_from_db()
+        if bundle.status == BundleStatus.APPLYING and not live_apply_in_flight(bundle):
+            bundle.mark_status(
+                BundleStatus.MAPPED,
+                summary_patch={"operator_force_reclaimed_at": timezone.now().isoformat()},
+            )
+        return retired
+
     def _describe(self, bundle) -> str:
         readiness = repair_readiness(bundle)
         if bundle.status == BundleStatus.APPLYING:
-            state = "WEDGED" if applying_stale_by_time(bundle) else "running"
+            state = "WEDGED" if tenant_apply_stuck(bundle) else "running"
         else:
             state = bundle.status
         school = getattr(bundle.school, "slug", None) or bundle.school_id or "-"
@@ -104,9 +132,15 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         bundle_id = options["bundle_id"]
         do_repair = options["repair"]
+        do_sync = options["sync"]
+        do_force = options["force_reclaim"]
 
         if do_repair and bundle_id is None:
             raise CommandError("--repair needs --bundle-id (it acts on one import).")
+        if do_sync and not do_repair:
+            raise CommandError("--sync requires --repair.")
+        if do_force and not do_repair:
+            raise CommandError("--force-reclaim requires --repair.")
 
         if bundle_id is not None:
             try:
@@ -117,6 +151,8 @@ class Command(BaseCommand):
             readiness = repair_readiness(bundle)
             self.stdout.write(f"Bundle #{bundle.pk} — status {bundle.status}")
             self.stdout.write(f"  school:     {getattr(bundle.school, 'slug', '-')}")
+            self.stdout.write(f"  stuck:      {tenant_apply_stuck(bundle)}")
+            self.stdout.write(f"  in_flight:  {live_apply_in_flight(bundle)}")
             self.stdout.write(f"  repairable: {readiness.repairable}")
             self.stdout.write(f"  reason:     {readiness.reason}")
             if readiness.blockers:
@@ -128,7 +164,19 @@ class Command(BaseCommand):
                 )
                 return
 
-            result = repair_bundle(bundle_id=bundle.pk, off_http=True)
+            if do_force or (
+                bundle.status == BundleStatus.APPLYING
+                and not readiness.repairable
+                and "status:APPLYING" in (readiness.blockers or [])
+            ):
+                retired = self._force_reclaim(bundle)
+                if retired:
+                    self.stdout.write(f"  reclaimed:  superseded {retired} wedged outbox row(s)")
+                bundle.refresh_from_db()
+                readiness = repair_readiness(bundle)
+                self.stdout.write(f"  after reclaim — repairable: {readiness.repairable}")
+
+            result = repair_bundle(bundle_id=bundle.pk, off_http=not do_sync)
             if not result.ok:
                 # A refusal is the guardrail doing its job — report it as such,
                 # not as a crash, so an operator can act on the reason.
@@ -136,15 +184,28 @@ class Command(BaseCommand):
                 if result.blockers:
                     self.stdout.write(f"blockers: {', '.join(result.blockers)}")
                 return
-            self.stdout.write(
-                self.style.SUCCESS(
-                    f"\nQueued: {result.message}"
-                    + (f" (outbox {result.outbox_id})" if result.outbox_id else "")
+            if result.ran:
+                self.stdout.write(
+                    self.style.SUCCESS(
+                        f"\nApplied: {result.message} "
+                        f"(created {result.created}, updated {result.updated}, "
+                        f"held {result.quarantined})"
+                    )
                 )
-            )
+            else:
+                self.stdout.write(
+                    self.style.SUCCESS(
+                        f"\nQueued: {result.message}"
+                        + (f" (outbox {result.outbox_id})" if result.outbox_id else "")
+                    )
+                )
             self.stdout.write(
                 f"status {result.before_status} -> {result.after_status}; "
-                "the worker will take it from here."
+                + (
+                    "repair finished in this shell."
+                    if result.ran
+                    else "the worker will take it from here."
+                )
             )
             return
 

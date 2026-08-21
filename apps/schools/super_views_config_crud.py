@@ -103,7 +103,77 @@ class GradingScaleConfigSuperForm(forms.ModelForm):
                 )
 
 
-class PlanSuperForm(forms.ModelForm):
+class _JsonShapeCleanMixin:
+    """Enforce the CONTAINER a ``JSONField`` column declares, not just that it parses.
+
+    ``forms.JSONField`` proves the operator typed something syntactically valid.
+    It does not prove the parsed value is the shape the column declares, and a
+    bare JSON scalar is perfectly valid JSON: typing ``"monthly"`` into
+    ``billing_cycle_options`` clears the form and is saved. The failure then
+    surfaces somewhere else entirely — ``apps/billing/tenant_pricing.py`` iterates
+    that column and subscripts ``regional_sku_overrides`` by country code — so a
+    tenant's pricing call breaks instead of the operator's save, with nothing
+    pointing back to the form that accepted it.
+
+    ``JSON_SHAPES`` mirrors each column's own ``default=list`` / ``default=dict``
+    declaration, which is the authority for what its readers expect;
+    ``PlanJsonShapeMapTests`` fails if the two ever drift apart. A declarative map
+    is used here rather than the file's per-field ``clean_<name>`` methods only
+    because these two forms carry ten such columns between them: ten near-identical
+    validators would bury the one thing that actually varies. The four hand-written
+    validators elsewhere in this module are left as they are.
+    """
+
+    #: ``{field_name: list | dict}`` — mirrors the model's ``default=``.
+    JSON_SHAPES: dict = {}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for name in self.JSON_SHAPES:
+            if name in self.fields:
+                self.fields[name].widget = forms.Textarea(
+                    attrs={"class": "form-control font-monospace", "rows": 4}
+                )
+
+    def clean(self):
+        cleaned = super().clean()
+        for name, expected in self.JSON_SHAPES.items():
+            # A field Django already rejected (unparseable JSON) has no entry in
+            # cleaned_data; re-reporting it would stack a second error on one input.
+            if name not in self.fields or name in self.errors:
+                continue
+            value = cleaned.get(name)
+            if value is None or value == "":
+                # blank=True + default=list/dict: store the empty container the
+                # readers expect, never None.
+                cleaned[name] = [] if expected is list else {}
+                continue
+            if not isinstance(value, expected):
+                self.add_error(name, self._json_shape_message(name, expected))
+        return cleaned
+
+    @staticmethod
+    def _json_shape_message(name, expected):
+        label = name.replace("_", " ").capitalize()
+        if expected is list:
+            return _('%(label)s must be a JSON array, e.g. ["monthly", "annual"].') % {
+                "label": label
+            }
+        return _('%(label)s must be a JSON object, e.g. {"students": 500}.') % {
+            "label": label
+        }
+
+
+class PlanSuperForm(_JsonShapeCleanMixin, forms.ModelForm):
+    JSON_SHAPES = {
+        "regional_sku_overrides": dict,
+        "billing_cycle_options": list,
+        "payment_method_options": list,
+        "included_usage": dict,
+        "support_policy": dict,
+        "configuration_schema": dict,
+    }
+
     class Meta:
         model = Plan
         exclude = ("created_at", "updated_at")
@@ -165,7 +235,14 @@ class PlanSuperForm(forms.ModelForm):
         return value
 
 
-class PlanAddonSuperForm(forms.ModelForm):
+class PlanAddonSuperForm(_JsonShapeCleanMixin, forms.ModelForm):
+    JSON_SHAPES = {
+        "included_in_plan_codes": list,
+        "available_to_plan_codes": list,
+        "regional_price_overrides": dict,
+        "configuration_schema": dict,
+    }
+
     class Meta:
         model = PlanAddon
         exclude = ("created_at", "updated_at")

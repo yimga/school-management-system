@@ -367,18 +367,10 @@ def _import_flight(bundle) -> dict:
         except Exception:  # noqa: BLE001 — a clock/None hiccup must not stick the page
             stuck = False
     elif running or processing:
-        # A CLAIMED apply that stopped heartbeating is wedged, not working. Checking
-        # only the PENDING branch above made this page spin forever on the single
-        # commonest failure -- a worker killed mid-apply (deploy, OOM, connection
-        # exhaustion) -- because that leaves the bundle at APPLYING (running=True) or
-        # the row at PROCESSING, and neither is `pending`, so `stuck` stayed False and
-        # the tenant saw "Working..." indefinitely. The orchestrator heartbeats the
-        # bundle at every wave/artifact, so a stale heartbeat is the honest signal;
-        # repair.applying_stale_by_time is the project's single source of truth for it.
         try:
-            from .repair import applying_stale_by_time
+            from .repair import tenant_apply_stuck
 
-            stuck = applying_stale_by_time(bundle)
+            stuck = tenant_apply_stuck(bundle)
         except Exception:  # noqa: BLE001 — never break the review page on this probe
             stuck = False
     return {
@@ -433,7 +425,18 @@ def _progress_payload(bundle) -> dict:
     from .live_import_attention import compose_live_import
 
     live = compose_live_import(bundle, snapshot=snapshot, flight=flight)
-    repair = _build_repair(bundle) if not flight["in_flight"] else None
+    repair = _build_repair(bundle) if (not flight["in_flight"] or flight.get("stuck")) else None
+    live_totals = (snapshot or {}).get("live_totals") or {}
+    rows_processed = int(live_totals.get("rows_processed") or 0)
+    rows_expected = int(live_totals.get("rows_expected") or 0) or _expected_row_total(bundle)
+    try:
+        from .progress import recent_log_lines
+
+        log_entries = recent_log_lines(bundle_id=bundle.pk, limit=40)
+    except Exception:  # noqa: BLE001
+        log_entries = []
+    log_lines = [entry.get("message") or "" for entry in log_entries if entry.get("message")]
+    log_cursor = int(log_entries[-1]["id"]) if log_entries else 0
     return {
         "bundle_id": bundle.pk,
         "status": bundle.status,
@@ -466,14 +469,21 @@ def _progress_payload(bundle) -> dict:
         "remediator": live["remediator"],
         "repair": repair,
         "needs_attention": live["needs_attention"],
-        "processed": live["created"] + live["updated"] + live["held"],
+        "processed": rows_processed if flight["in_flight"] and rows_processed else live["created"] + live["updated"] + live["held"],
         # Total rows the upload actually contains. This used to read
         # snapshot["live_totals"]["expected"], a key `progress.refresh_snapshot`
         # never writes, so the pipeline card rendered a permanent "Expected: 0"
         # next to a real Processed count. row_count is null for archives and
         # binaries, so summing the non-null values counts each tabular file once
         # and never double-counts an archive alongside its children.
-        "expected": _expected_row_total(bundle),
+        "expected": rows_expected if rows_expected else _expected_row_total(bundle),
+        "rows_processed": rows_processed,
+        "rows_expected": rows_expected if rows_expected else _expected_row_total(bundle),
+        "log_lines": log_lines,
+        "log_cursor": log_cursor,
+        "show_pipeline_canvas": bool(
+            flight["in_flight"] or live.get("issues_open") or int(live.get("held") or 0) > 0
+        ),
     }
 
 
@@ -1215,6 +1225,16 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
             snapshot=getattr(bundle, "progress_snapshot", None) or {},
             flight=flight,
         )
+        from .quarantine_resolution import (
+            pending_quarantine_count,
+            quarantine_breakdown,
+        )
+
+        q_pending = pending_quarantine_count(bundle)
+        q_breakdown = quarantine_breakdown(bundle, pending_only=True) if q_pending else []
+        apply_held = int(
+            ((bundle.mapping_summary or {}).get("apply_totals") or {}).get("quarantined") or 0
+        )
         return {
             "page_title": "Review & import",
             "bundle": bundle,
@@ -1235,8 +1255,22 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
             "import_flight": flight,
             "live_import": live_import,
             "last_import": live_import.get("last_import"),
-            "repair": _build_repair(bundle) if not flight["in_flight"] else None,
+            "repair": _build_repair(bundle) if (not flight["in_flight"] or flight.get("stuck")) else None,
             "repair_url": _connector_reverse(request, "bundle-repair", bundle_id=bundle.pk),
+            "held_review_url": _connector_reverse(
+                request, "bundle-held-review", bundle_id=bundle.pk
+            ),
+            "quarantine_resolve_url": _connector_reverse(
+                request, "bundle-quarantine-resolve", bundle_id=bundle.pk
+            ),
+            "quarantine_export_url": _connector_reverse(
+                request, "bundle-quarantine-export", bundle_id=bundle.pk
+            ),
+            "abandon_url": _connector_reverse(request, "bundle-abandon", bundle_id=bundle.pk),
+            "inbox_url": _connector_reverse(request, "migration-inbox"),
+            "quarantine_pending": q_pending,
+            "quarantine_breakdown": q_breakdown,
+            "apply_held_total": apply_held,
             "rollback": _build_rollback(bundle),
             "rollback_url": _connector_reverse(request, "bundle-rollback", bundle_id=bundle.pk),
             "retry_url": _connector_reverse(request, "bundle-retry", bundle_id=bundle.pk),
@@ -1405,6 +1439,17 @@ class TenantMigrationApplyView(_TenantAdminWriteRequiredMixin, View):
                 return redirect(
                     _connector_reverse(request, "bundle-review", bundle_id=bundle.pk)
                 )
+            if not dry_run:
+                try:
+                    from apps.platform_runtime.heavy_work_outbox import kick_heavy_work_drain
+
+                    kick_heavy_work_drain(force_local=True)
+                except Exception:  # noqa: BLE001 — enqueue succeeded; drain kick is best-effort
+                    logger.debug(
+                        "tenant apply: local drain kick failed for bundle %s",
+                        bundle.pk,
+                        exc_info=True,
+                    )
             messages.info(
                 request,
                 (
@@ -1765,3 +1810,162 @@ class TenantMigrationInboxView(_TenantAdminWriteRequiredMixin, View):
                 "truncated": len(bundles) >= _INBOX_PAGE_SIZE,
             },
         )
+
+
+class TenantMigrationHeldReviewView(LoginRequiredMixin, View):
+    """Row-level held-row review on the connector path (same workspace as wizard queue)."""
+
+    template_name = "migration_cloud/anomaly_nudge.html"
+
+    def get(self, request, bundle_id: int):
+        from .views import build_anomaly_nudge_context
+
+        bundle = _tenant_bundle_or_404(request, bundle_id)
+        ctx = build_anomaly_nudge_context(request, bundle, shell="portal")
+        ctx["mc_base"] = "migration_cloud/connector/_wizard_base.html"
+        ctx["back_url"] = _connector_reverse(request, "bundle-review", bundle_id=bundle.pk)
+        ctx["quarantine_resolve_url"] = _connector_reverse(
+            request, "bundle-quarantine-resolve", bundle_id=bundle.pk
+        )
+        ctx["quarantine_export_url"] = _connector_reverse(
+            request, "bundle-quarantine-export", bundle_id=bundle.pk
+        )
+        ctx["repair_url"] = _connector_reverse(request, "bundle-repair", bundle_id=bundle.pk)
+        ctx["review_url"] = _connector_reverse(request, "bundle-review", bundle_id=bundle.pk)
+        ctx["upload_url"] = _connector_reverse(request, "upload")
+        return render(request, self.template_name, ctx)
+
+
+class TenantMigrationQuarantineExportView(LoginRequiredMixin, View):
+    """CSV export of held rows on the tenant connector path."""
+
+    def get(self, request, bundle_id: int):
+        from django.http import HttpResponse
+
+        from .quarantine_resolution import export_quarantine_csv
+
+        bundle = _tenant_bundle_or_404(request, bundle_id)
+        pending = (request.GET.get("scope") or "pending").lower() != "all"
+        csv_text = export_quarantine_csv(bundle, pending_only=pending)
+        response = HttpResponse(csv_text, content_type="text/csv; charset=utf-8")
+        response["Content-Disposition"] = (
+            f'attachment; filename="bundle-{bundle.pk}-held-rows.csv"'
+        )
+        return response
+
+
+class TenantMigrationAbandonView(_TenantAdminWriteRequiredMixin, View):
+    """POST → close a stuck or unwanted import so the tenant can start fresh."""
+
+    @idempotent_post
+    @safe_500
+    def post(self, request, bundle_id: int):
+        from .repair import supersede_wedged_apply
+
+        bundle = _tenant_bundle_or_404(request, bundle_id)
+        if bundle.status == BundleStatus.RECONCILED:
+            messages.error(request, "This import is fully reconciled and cannot be closed.")
+            return redirect(_connector_reverse(request, "bundle-review", bundle_id=bundle.pk))
+
+        supersede_wedged_apply(bundle)
+        bundle.mark_status(
+            BundleStatus.ABORTED,
+            summary_patch={
+                "abandoned_at": timezone.now().isoformat(),
+                "abandoned_by": getattr(request.user, "pk", None),
+                "error": None,
+            },
+        )
+        messages.info(
+            request,
+            "This import was closed. Start a new upload whenever you are ready — "
+            "records already imported stay in your school.",
+        )
+        upload_url = _connector_reverse(request, "upload")
+        if request.POST.get("redirect") == "upload":
+            return redirect(upload_url)
+        return redirect(_connector_reverse(request, "bundle-review", bundle_id=bundle.pk))
+
+
+class TenantMigrationQuarantineResolveView(_TenantAdminWriteRequiredMixin, View):
+    """POST JSON: resolve held rows from the connector / held-review surfaces."""
+
+    @idempotent_post
+    @safe_500
+    def post(self, request, bundle_id: int):
+        import json
+
+        from .quarantine_resolution import apply_quarantine_action
+        from .repair import repair_bundle
+
+        bundle = _tenant_bundle_or_404(request, bundle_id)
+        try:
+            payload = json.loads(request.body or b"{}")
+        except json.JSONDecodeError:
+            payload = request.POST.dict()
+
+        action = (payload.get("action") or "").strip().lower()
+        if action in ("retry_import", "auto_repair", "smart_repair"):
+            result = repair_bundle(bundle_id=bundle.pk, off_http=True)
+            return JsonResponse(
+                {
+                    "action": action,
+                    "ok": result.ok or result.queued,
+                    "queued": result.queued,
+                    "ran": result.ran,
+                    "message": result.message,
+                    "created": result.created,
+                    "updated": result.updated,
+                    "quarantined": result.quarantined,
+                    "auto_remediate": result.auto_remediate,
+                }
+            )
+
+        bulk_actions = {
+            "dismiss_informational",
+            "waive_all_pending",
+            "deny_all_pending",
+            "clear_queue",
+        }
+        if action in bulk_actions:
+            outcome = apply_quarantine_action(
+                bundle=bundle,
+                user=request.user,
+                action=action,
+                note=str(payload.get("note") or ""),
+            )
+            if payload.get("auto_retry") or outcome.get("queue_reimport"):
+                repair_result = repair_bundle(bundle_id=bundle.pk, off_http=True)
+                outcome["retry_queued"] = repair_result.queued or repair_result.ran
+                outcome["retry_message"] = repair_result.message
+            return JsonResponse(outcome)
+
+        record_ids = payload.get("record_ids") or []
+        if isinstance(record_ids, (str, int)):
+            record_ids = [record_ids]
+        edited = payload.get("edited_source_row")
+        if isinstance(edited, str):
+            try:
+                edited = json.loads(edited)
+            except json.JSONDecodeError:
+                edited = None
+        if edited is not None and not isinstance(edited, dict):
+            edited = None
+
+        outcome = apply_quarantine_action(
+            bundle=bundle,
+            user=request.user,
+            action=action,
+            record_ids=[int(x) for x in record_ids if str(x).isdigit()],
+            note=str(payload.get("note") or ""),
+            edited_source_row=edited,
+        )
+        if not outcome.get("ok"):
+            return JsonResponse(outcome, status=400)
+
+        if payload.get("auto_retry") or outcome.get("queue_reimport"):
+            repair_result = repair_bundle(bundle_id=bundle.pk, off_http=True)
+            outcome["retry_queued"] = repair_result.queued or repair_result.ran
+            outcome["retry_message"] = repair_result.message
+        return JsonResponse(outcome)
+

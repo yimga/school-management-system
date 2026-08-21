@@ -132,7 +132,11 @@ def mark_apply_run_start(bundle: MigrationBundle) -> str:
     made by the caller.
     """
     stamp = timezone.now().isoformat()
-    summary = {**(getattr(bundle, "size_summary", None) or {}), APPLY_RUN_EPOCH_KEY: stamp}
+    summary = {
+        **(getattr(bundle, "size_summary", None) or {}),
+        APPLY_RUN_EPOCH_KEY: stamp,
+        "unified_progress_hwm": {"epoch": stamp, "pct": 0.0},
+    }
     bundle.size_summary = summary
     bundle.save(update_fields=["size_summary", "updated_at"])
     return stamp
@@ -223,14 +227,26 @@ def refresh_snapshot(*, bundle: MigrationBundle, persist: bool = True) -> dict[s
             "created": int(detail.get("created") or 0),
             "updated": int(detail.get("updated") or 0),
             "quarantined": int(detail.get("quarantined") or detail.get("held") or 0),
+            "rows_processed": int(detail.get("rows_processed") or detail.get("rows") or 0),
+            "rows_expected": int(detail.get("rows_expected") or 0),
+            "artifacts_done": int(detail.get("artifacts_done") or 0),
+            "artifacts_total": int(detail.get("artifacts_total") or 0),
         }
         break
+    unified: dict[str, Any] = {}
+    try:
+        from .unified_progress import compute_unified_percent
+
+        unified = compute_unified_percent(bundle, snapshot={"stages": stages, "live_totals": live_totals})
+    except Exception:  # noqa: BLE001
+        logger.debug("progress.refresh_snapshot unified percent failed", exc_info=True)
     snapshot = {
         "stages": stages,
         "graph": _stage_graph(stages),
         "updated_at": timezone.now().isoformat(),
         "current_status": bundle.status,
         "live_totals": live_totals,
+        "unified_percent": unified.get("percent"),
     }
     bundle.progress_snapshot = snapshot
     if persist:
@@ -253,3 +269,30 @@ def stream_events_since(*, bundle_id: int, after_id: int = 0):
             "detail": ev.detail,
             "at": ev.created_at.isoformat(),
         }
+
+
+def recent_log_lines(*, bundle_id: int, limit: int = 40) -> list[dict[str, Any]]:
+    """Latest progress messages for the tenant live board terminal."""
+    limit = max(1, min(int(limit or 40), 100))
+    rows = (
+        MigrationProgressEvent.objects.filter(bundle_id=bundle_id)
+        .order_by("-id")
+        .values("id", "kind", "stage", "message", "detail", "created_at")[:limit]
+    )
+    out: list[dict[str, Any]] = []
+    for row in reversed(list(rows)):
+        msg = (row.get("message") or "").strip()
+        if not msg:
+            continue
+        detail = row.get("detail") if isinstance(row.get("detail"), dict) else {}
+        out.append(
+            {
+                "id": row["id"],
+                "message": msg,
+                "kind": row.get("kind") or "",
+                "stage": row.get("stage") or "",
+                "pct": detail.get("pct"),
+                "at": row["created_at"].isoformat() if row.get("created_at") else "",
+            }
+        )
+    return out

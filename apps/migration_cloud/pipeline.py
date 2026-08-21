@@ -254,7 +254,8 @@ def _advance_bundle_inner(*, bundle_id: int, use_accelerator: bool = True) -> di
             (bundle.discovery_summary or {}).get("operator_assigned_domains") or {}
         )
         per_artifact: dict[str, dict[str, Any]] = {}
-        for artifact in artifacts:
+        artifacts_total = max(len(artifacts), 1)
+        for index, artifact in enumerate(artifacts, start=1):
             domain_result = classify_domain(artifact=artifact)
             assigned = _operator_domain_for(operator_domains, artifact)
             artifact.inferred_source = source_result["chosen"][:64]
@@ -273,6 +274,18 @@ def _advance_bundle_inner(*, bundle_id: int, use_accelerator: bool = True) -> di
             }
             if not assigned and domain_result["method"] == "ai_bridge":
                 summary["ai_calls"] += 1
+            try:
+                from .unified_progress import pulse_detection_progress
+
+                pulse_detection_progress(
+                    bundle_id=bundle_id,
+                    stage="CLASSIFIED",
+                    message=f"Detected type for {artifact.filename or artifact.path_within_bundle}",
+                    artifacts_done=index,
+                    artifacts_total=artifacts_total,
+                )
+            except Exception:  # noqa: BLE001
+                logger.debug("pipeline: classify progress pulse failed", exc_info=True)
 
         bundle.discovery_summary = {
             **bundle.discovery_summary,
@@ -362,7 +375,9 @@ def _advance_bundle_inner(*, bundle_id: int, use_accelerator: bool = True) -> di
         per_artifact_domain = (
             (bundle.discovery_summary or {}).get("per_artifact_domain") or {}
         )
-        for artifact in bundle.artifacts.filter(quarantined=False):
+        map_artifacts = list(bundle.artifacts.filter(quarantined=False))
+        map_total = max(len(map_artifacts), 1)
+        for map_index, artifact in enumerate(map_artifacts, start=1):
             domain_entry = per_artifact_domain.get(artifact.path_within_bundle, {})
             domain = domain_entry.get("domain", "custom_fields")
 
@@ -373,6 +388,18 @@ def _advance_bundle_inner(*, bundle_id: int, use_accelerator: bool = True) -> di
             )
             all_mappings[artifact.path_within_bundle] = [m.__dict__ for m in mappings]
             summary["ai_calls"] += sum(1 for m in mappings if m.method == "ai_bridge")
+            try:
+                from .unified_progress import pulse_detection_progress
+
+                pulse_detection_progress(
+                    bundle_id=bundle_id,
+                    stage="CLASSIFIED",
+                    message=f"Mapped columns for {artifact.filename or artifact.path_within_bundle}",
+                    artifacts_done=map_index,
+                    artifacts_total=map_total,
+                )
+            except Exception:  # noqa: BLE001
+                logger.debug("pipeline: map progress pulse failed", exc_info=True)
 
         bundle.mapping_summary = {
             **(bundle.mapping_summary or {}),

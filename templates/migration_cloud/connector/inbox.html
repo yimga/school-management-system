@@ -23,11 +23,12 @@ other tenant-shelled Migration Cloud surfaces.
 </div>
 
 {% if attention_count %}
-<div class="rmc-card rmc-card--danger mb-4" role="alert">
+<div class="rmc-card rmc-card--danger mb-4" role="alert" data-mc-inbox-attention="1">
   <h2 class="h6 mb-1">
     {% blocktrans count counter=attention_count %}1 import needs your attention{% plural %}{{ counter }} imports need your attention{% endblocktrans %}
   </h2>
-  <p class="text-muted small mb-0">{% trans "An import that stopped responding was interrupted, not rejected — Repair resumes it safely. Records that already imported are updated in place, never duplicated." %}</p>
+  <p class="text-muted small mb-2">{% trans "An import that stopped responding was interrupted, not rejected — Repair resumes it safely. Records that already imported are updated in place, never duplicated." %}</p>
+  <p class="text-muted small mb-0">{% trans "This tray refreshes automatically while something needs you." %}</p>
 </div>
 {% endif %}
 
@@ -84,5 +85,14 @@ other tenant-shelled Migration Cloud surfaces.
 
 {% if truncated %}
 <p class="text-muted small mt-3 mb-0">{% trans "Showing your most recent imports only." %}</p>
+{% endif %}
+{% if attention_count %}
+<script nonce="{{ csp_nonce }}">
+(function () {
+  if (document.querySelector("[data-mc-inbox-attention]")) {
+    window.setTimeout(function () { window.location.reload(); }, 30000);
+  }
+})();
+</script>
 {% endif %}
 {% endblock %}

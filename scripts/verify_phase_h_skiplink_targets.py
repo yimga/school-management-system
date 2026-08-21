@@ -21,7 +21,12 @@ TARGET_SPECS: tuple[tuple[str, str, str | None], ...] = (
     ("templates/control_plane_skeleton.html", "cp-main-content", "templates/control_plane_base.html"),
     ("templates/portal_base.html", "main-content", None),
     ("templates/portal/kb_home.html", "kb-main-content", None),
-    ("templates/admin/base_site.html", "content", "templates/admin/base.html"),
+    # The href lives in admin/base.html, not base_site.html, and that is
+    # deliberate: base_site.html:734 records "Never put skip-link in nav-global
+    # — Unfold injects nav_global into tab_actions as a visible action. Canvas
+    # skip-link in admin/base.html is the single SOT." Moved 2026-07-19
+    # (cb607d610); this spec was written 2026-05-21 and never followed.
+    ("templates/admin/base.html", "content", None),
     ("templates/marketing/base_marketing.html", "main-content", None),
     ("templates/schools/marketing_landing.html", "hero", None),
     (

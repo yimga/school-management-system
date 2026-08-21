@@ -111,9 +111,14 @@ def _pulse_apply_progress(
     *,
     wave_index: int,
     jobs_total: int,
+    tracker: Any | None = None,
+    bundle: MigrationBundle | None = None,
 ) -> None:
     """Emit running created / updated / held so the kickoff page can paint live."""
     try:
+        if tracker is not None:
+            tracker.on_artifact_complete(outcomes, wave_index=wave_index)
+            return
         totals = _summarize_outcomes(outcomes)
         done = len(outcomes)
         total = max(int(jobs_total or 0), 1)
@@ -133,11 +138,30 @@ def _pulse_apply_progress(
                 "created": totals["created"],
                 "updated": totals["updated"],
                 "quarantined": totals["quarantined"],
-                "wave": wave_index,
                 "artifacts_done": done,
                 "artifacts_total": total,
+                "wave": wave_index,
             },
         )
+        if bundle is not None:
+            from .unified_progress import pulse_apply_progress, expected_row_total
+
+            pulse_apply_progress(
+                bundle_id=bundle_id,
+                bundle=bundle,
+                message=(
+                    f"Imported {totals['created']} new, {totals['updated']} updated, "
+                    f"{totals['quarantined']} held ({done}/{total} files)"
+                ),
+                rows_processed=rows,
+                rows_expected=expected_row_total(bundle),
+                artifacts_done=done,
+                artifacts_total=total,
+                created=int(totals["created"]),
+                updated=int(totals["updated"]),
+                quarantined=int(totals["quarantined"]),
+                wave=wave_index,
+            )
     except Exception:  # noqa: BLE001 — live pulse must never break the apply
         logger.debug(
             "orchestrator: apply progress pulse failed for bundle %s",
@@ -390,82 +414,120 @@ def _apply_bundle_inner(
     # so child rows can resolve their parent FKs. custom_fields runs last
     # since it references the entity that owns the dynamic value.
     waves = _partition_jobs_by_dependency(per_artifact_jobs)
+    jobs_total = max(sum(len(w) for w in waves), 1)
+    from .unified_progress import ApplyProgressTracker
+
+    apply_tracker = ApplyProgressTracker(bundle=bundle, jobs_total=jobs_total)
 
     def _run_waves() -> None:
-        for wave_index, wave_jobs in enumerate(waves):
-            if not wave_jobs:
-                continue
-            if (
-                not dry_run
-                and any(job.domain in _DEPENDENT_STRUCTURE_DOMAINS for job in wave_jobs)
-            ):
-                with _bundle_schema_context(bundle):
-                    try:
-                        from apps.migration_cloud.post_apply_provision import (
-                            provision_structure_before_dependent_domains,
-                        )
+        from .loop_watchdog import LoopWatchdog
 
-                        provision_structure_before_dependent_domains(bundle=bundle)
-                    except Exception as exc:  # noqa: BLE001 — never abort apply
-                        logger.warning(
-                            "orchestrator: mid-apply structure provision errored "
-                            "for bundle %s: %s",
-                            bundle_id,
-                            exc,
-                            exc_info=True,
-                        )
-            # Liveness pulse: a real (live=persisted) apply keeps updated_at fresh so
-            # the wedged-apply reclaim never mistakes a slow-but-healthy import for a
-            # dead worker. Skipped for dry runs (the bundle stays MAPPED — nothing to
-            # heartbeat). See _heartbeat_apply.
-            if not dry_run:
-                _heartbeat_apply(bundle_id)
-            _emit_progress(
-                bundle_id=bundle_id, kind="artifact_progress", stage="APPLYING",
-                message=f"Wave {wave_index} starting ({len(wave_jobs)} artifact(s))",
-                detail={"wave": wave_index, "artifacts": len(wave_jobs)},
-            )
-            try:
-                from apps.platform_runtime.workflow_tracker import (
-                    active_workflow_run,
-                    pulse_workflow_step,
-                )
+        with LoopWatchdog(
+            max_stall_iterations=3,
+            timeout_seconds=120.0,
+            workflow_identifier=f"migration.apply bundle={bundle_id}",
+        ) as apply_watchdog:
+            for wave_index, wave_jobs in enumerate(waves):
+                if not wave_jobs:
+                    continue
+                if (
+                    not dry_run
+                    and any(job.domain in _DEPENDENT_STRUCTURE_DOMAINS for job in wave_jobs)
+                ):
+                    with _bundle_schema_context(bundle):
+                        try:
+                            from apps.migration_cloud.post_apply_provision import (
+                                provision_structure_before_dependent_domains,
+                            )
 
-                pulse_workflow_step(
-                    active_workflow_run(),
-                    "apply_waves",
-                    payload={"wave": wave_index, "artifacts": len(wave_jobs)},
+                            provision_structure_before_dependent_domains(bundle=bundle)
+                        except Exception as exc:  # noqa: BLE001 — never abort apply
+                            logger.warning(
+                                "orchestrator: mid-apply structure provision errored "
+                                "for bundle %s: %s",
+                                bundle_id,
+                                exc,
+                                exc_info=True,
+                            )
+                if not dry_run:
+                    _heartbeat_apply(bundle_id)
+                _emit_progress(
+                    bundle_id=bundle_id,
+                    kind="artifact_progress",
+                    stage="APPLYING",
+                    message=f"Wave {wave_index} starting ({len(wave_jobs)} artifact(s))",
+                    detail={"wave": wave_index, "artifacts": len(wave_jobs)},
                 )
-            except Exception:
-                pass
-            jobs_total = max(sum(len(w) for w in waves), 1)
-            if worker_count <= 1 or len(wave_jobs) <= 1:
-                for job in wave_jobs:
-                    outcomes.append(_apply_artifact(bundle, job, dry_run=dry_run))
-                    if not dry_run:
-                        _heartbeat_apply(bundle_id)
-                        _pulse_apply_progress(
-                            bundle_id,
-                            outcomes,
-                            wave_index=wave_index,
-                            jobs_total=jobs_total,
+                try:
+                    from apps.platform_runtime.workflow_tracker import (
+                        active_workflow_run,
+                        pulse_workflow_step,
+                    )
+
+                    pulse_workflow_step(
+                        active_workflow_run(),
+                        "apply_waves",
+                        payload={"wave": wave_index, "artifacts": len(wave_jobs)},
+                    )
+                except Exception:
+                    pass
+                jobs_total = max(sum(len(w) for w in waves), 1)
+                if worker_count <= 1 or len(wave_jobs) <= 1:
+                    for job in wave_jobs:
+                        outcomes.append(
+                            _apply_artifact(
+                                bundle,
+                                job,
+                                dry_run=dry_run,
+                                progress_tracker=apply_tracker,
+                            )
                         )
-            else:
-                with ThreadPoolExecutor(max_workers=worker_count) as pool:
-                    futures = {
-                        pool.submit(_apply_artifact, bundle, job, dry_run=dry_run): job
-                        for job in wave_jobs
-                    }
-                    for future in as_completed(futures):
-                        outcomes.append(future.result())
                         if not dry_run:
                             _heartbeat_apply(bundle_id)
+                            totals = _summarize_outcomes(outcomes)
+                            apply_watchdog.heartbeat(
+                                current_pointer=len(outcomes),
+                                mutations_count=int(totals["created"])
+                                + int(totals["updated"])
+                                + int(totals["quarantined"]),
+                            )
                             _pulse_apply_progress(
                                 bundle_id,
                                 outcomes,
                                 wave_index=wave_index,
                                 jobs_total=jobs_total,
+                                tracker=apply_tracker,
                             )
+                else:
+                    with ThreadPoolExecutor(max_workers=worker_count) as pool:
+                        futures = {
+                            pool.submit(
+                                _apply_artifact,
+                                bundle,
+                                job,
+                                dry_run=dry_run,
+                                progress_tracker=apply_tracker,
+                            ): job
+                            for job in wave_jobs
+                        }
+                        for future in as_completed(futures):
+                            outcomes.append(future.result())
+                            if not dry_run:
+                                _heartbeat_apply(bundle_id)
+                                totals = _summarize_outcomes(outcomes)
+                                apply_watchdog.heartbeat(
+                                    current_pointer=len(outcomes),
+                                    mutations_count=int(totals["created"])
+                                    + int(totals["updated"])
+                                    + int(totals["quarantined"]),
+                                )
+                                _pulse_apply_progress(
+                                    bundle_id,
+                                    outcomes,
+                                    wave_index=wave_index,
+                                    jobs_total=jobs_total,
+                                    tracker=apply_tracker,
+                                )
 
     # Finance MUST be all-or-nothing. In non-atomic mode finance rows commit
     # (autocommit) BEFORE the financial guardrail runs; a control-total mismatch
@@ -1075,6 +1137,7 @@ def _apply_artifact(
     job: _ArtifactJob,
     *,
     dry_run: bool,
+    progress_tracker: Any | None = None,
 ) -> ArtifactApplyOutcome:
     outcome = ArtifactApplyOutcome(
         artifact_id=job.artifact.pk,
@@ -1095,6 +1158,9 @@ def _apply_artifact(
 
     try:
         rows_iter = _iter_canonical_rows(job)
+        if progress_tracker is not None and not dry_run:
+            label = job.artifact.filename or job.artifact.path_within_bundle or job.domain
+            rows_iter = progress_tracker.wrap_rows(rows_iter, artifact_label=label)
         result = _run_lander_under_schema(
             lander=lander,
             rows_iter=rows_iter,
@@ -1795,10 +1861,9 @@ def _create_audit_run(bundle: MigrationBundle, job: _ArtifactJob, *, dry_run: bo
 
 def _json_safe(value: Any) -> Any:
     """Make lander audit payloads JSONField-safe (no model instances)."""
-    try:
-        return json.loads(json.dumps(value, default=str))
-    except (TypeError, ValueError):
-        return str(value)[:500]
+    from .landers._helpers import json_field_safe
+
+    return json_field_safe(value)
 
 
 def _finalize_audit_run(run, outcome: ArtifactApplyOutcome, *, status: str) -> None:
@@ -1824,13 +1889,16 @@ def _finalize_audit_run(run, outcome: ArtifactApplyOutcome, *, status: str) -> N
             "errors_sample": outcome.result.errors[:20],
         },
     )
-    # Rollback snapshot: minimal enough to revert.
-    run.rollback_snapshot = {
-        "created_ids": outcome.result.created_ids,
-        "updated_ids_with_old_values": outcome.result.updated_ids_with_old_values,
-        "domain": outcome.domain,
-        "artifact_id": outcome.artifact_id,
-    }
+    # Rollback snapshot: minimal enough to revert. Must be JSON-safe — landers
+    # often snapshot FK fields via getattr(obj, "school") which is a model inst.
+    run.rollback_snapshot = _json_safe(
+        {
+            "created_ids": outcome.result.created_ids,
+            "updated_ids_with_old_values": outcome.result.updated_ids_with_old_values,
+            "domain": outcome.domain,
+            "artifact_id": outcome.artifact_id,
+        }
+    )
     run.save(update_fields=["rollback_snapshot"])
 
 

@@ -3532,6 +3532,16 @@ body:has([data-rmc-flow-launchpad]) .rmc-page__header::after {
   filter: brightness(0.92);
 }
 
+.rmc-btn--warning {
+  background: var(--status-warning, #d97706);
+  color: var(--surface-elevated, #fff);
+  border-color: var(--status-warning, #d97706);
+}
+
+.rmc-btn--warning:hover {
+  filter: brightness(0.92);
+}
+
 .rmc-form__check {
   display: flex;
   align-items: flex-start;
