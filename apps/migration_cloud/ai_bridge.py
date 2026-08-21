@@ -1113,7 +1113,7 @@ def _describe_personal_column(values: list[Any]) -> str:
     """
     texts = [str(v).strip() for v in values if str(v).strip()]
     if not texts:
-        return "personal; no sample values"
+        return "[personal: no sample values]"
     sample = texts[0]
     if re.fullmatch(r"(?:19|20)\d{2}[-/]\d{1,2}[-/]\d{1,2}", sample):
         kind = "an ISO-style date"
@@ -1128,9 +1128,12 @@ def _describe_personal_column(values: list[Any]) -> str:
     else:
         words = [len(t.split()) for t in texts]
         kind = f"free text of {min(words)}-{max(words)} word(s)"
+    # Bracketed on purpose: services.inference treats "[...]" as an
+    # already-handled value, so the transport redactor leaves this
+    # description intact instead of scrubbing it to "[redacted]".
     lengths = [len(t) for t in texts]
     span = f"{min(lengths)}" if min(lengths) == max(lengths) else f"{min(lengths)}-{max(lengths)}"
-    return f"personal; {kind}, {span} chars"
+    return f"[personal: {kind}, {span} chars]"
 
 
 def _column_is_personal(header: str, values: list[Any]) -> bool:

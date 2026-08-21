@@ -11,6 +11,7 @@ import os
 import re
 import urllib.error
 import urllib.request
+from collections.abc import Callable
 from typing import Any
 
 from django.conf import settings
@@ -54,7 +55,10 @@ AI_INFERENCE_CACHE_TTL = 300
 # values (and their tokens, covering locale-varying name order).
 # ---------------------------------------------------------------------------
 
-_PatternSpec = tuple[str, re.Pattern, str]
+# The replacement is a literal for shape-based rules, or a callable for rules
+# that must inspect the match (see _labelled_personal_field_spec).
+_PatternReplacement = str | Callable[["re.Match[str]"], str]
+_PatternSpec = tuple[str, re.Pattern, _PatternReplacement]
 
 _BASE_HARD_PII_PATTERNS: tuple[_PatternSpec, ...] = (
     (
@@ -184,8 +188,73 @@ def _soft_pii_patterns() -> list[_PatternSpec]:
     return list(_BASE_SOFT_PII_PATTERNS) + _extra_pii_patterns()[1]
 
 
+# A value that has already been handled. Redaction must be idempotent, and a
+# payload whose personal fields are all markers carries nothing personal.
+_REDACTION_MARKER_RE = re.compile(r"^\[[^\]]*\]$")
+
+#: Serialisation shapes a record arrives in: ``full_name: X``, ``"full_name": "X"``,
+#: ``full_name=X``, ``- full_name: X``. The label is kept (it is schema, and the
+#: migration classifier needs it); only the VALUE is replaced.
+_LABELLED_FIELD_RE = re.compile(
+    r"""(?x)
+    (?<![\w.])
+    (?P<q>['"]?)(?P<label>[A-Za-z_][A-Za-z0-9_]*)(?P=q)
+    \s*[:=]\s*
+    (?P<value>'[^']*'|"[^"]*"|\[[^\]]*\]|[^,;\n}\)\]]+)
+    """
+)
+
+
+def _label_is_personal(label: str) -> bool:
+    """Whether a field label names a person, per the shared PII vocabulary.
+
+    Reuses ``pii_metadata_fields()`` / ``pii_metadata_exempt_fields()`` rather
+    than inventing a second list — one vocabulary cannot drift against itself,
+    and a deployment extending either setting extends this too.
+    """
+    key = (label or "").strip().lower()
+    if not key or key in pii_metadata_exempt_fields():
+        return False
+    return any(fragment in key for fragment in pii_metadata_fields())
+
+
+def _redact_labelled_personal_value(match: "re.Match[str]") -> str:
+    value = match.group("value")
+    if _REDACTION_MARKER_RE.match(value.strip()):
+        return match.group(0)
+    if not _label_is_personal(match.group("label")):
+        return match.group(0)
+    return match.group(0)[: match.start("value") - match.start(0)] + "[redacted]"
+
+
+def _labelled_personal_field_spec() -> _PatternSpec:
+    """Personal data arrives LABELLED, and that is what makes it detectable.
+
+    The pattern registry matches value SHAPES — an email, a phone, a date. A
+    person's name has no shape, so ``{"full_name": "Ngwa Divine Ache"}`` passed
+    both the detector and the redactor untouched: nothing refused it and nothing
+    scrubbed it, so a name reached the third-party model in the clear whenever
+    the record carried no email, phone or date alongside it.
+
+    What a name does have is a LABEL. Every realistic leak is a serialised
+    record, and the field it sits under says exactly what it is. Matching the
+    label and replacing the value catches names, and does it without guessing
+    which capitalised words in prose are people.
+
+    Registered as a HARD pattern, so it both denies the external tier
+    (``contains_hard_pii``) and scrubs the value (``redact_for_external_inference``).
+    """
+    return ("labelled_personal_field", _LABELLED_FIELD_RE, _redact_labelled_personal_value)
+
+
 def _hard_pii_patterns() -> list[_PatternSpec]:
-    return list(_BASE_HARD_PII_PATTERNS) + _extra_pii_patterns()[0]
+    # The labelled-field rule runs FIRST so a whole value is replaced once,
+    # rather than the email rule rewriting its interior and leaving the rest.
+    return (
+        [_labelled_personal_field_spec()]
+        + list(_BASE_HARD_PII_PATTERNS)
+        + _extra_pii_patterns()[0]
+    )
 
 
 def pii_redaction_patterns() -> list[_PatternSpec]:
