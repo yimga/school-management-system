@@ -402,12 +402,26 @@
 }
 
 /* ------------------------------------------------------------ sentence editor -- */
-/* Same fields, same names, same validation as the old {{ form.as_p }} — read as a
- * sentence instead of eight stacked controls. SyncSchedule.clean() remains the single
- * validation implementation, so this is a widget change and nothing more. */
+/* Same fields, same names, same validation as the old form.as_p — read as a sentence
+ * instead of eight stacked controls. SyncSchedule.clean() remains the single validation
+ * implementation, so this is a widget change and nothing more.
+ *
+ * SIZED BY THE COLUMN IT IS IN, NOT THE WINDOW. This editor renders inside the rules
+ * aside, which is a fixed 15rem track — so on a 27" display the editor is still 240px
+ * wide and a viewport media query never fires. Every narrow-width rule here is a
+ * CONTAINER query against the editor itself, which is the box that actually varies.
+ * @supports keeps the wrapped-row layout for engines without container queries.
+ *
+ * GEOMETRY HERE, PALETTE FROM THE THEME. The backend theme sheets set background,
+ * color and border on every input, select and textarea with !important, so a page
+ * cannot win that fight and should not try — an override here would hold only until
+ * the next theme. What those sheets do NOT set is size, padding, radius or alignment,
+ * which is what actually made these controls look assembled from spare parts. So this
+ * file owns the geometry and the theme owns the palette. */
 .rmc-sc-sentence {
+  container-type: inline-size;
   font-size: 0.95rem;
-  line-height: 2.2;
+  line-height: 1.5;
   color: var(--text-primary);
 }
 
@@ -415,71 +429,117 @@
 .rmc-sc-sentence input[type="time"],
 .rmc-sc-sentence input[type="text"] {
   font: inherit;
-  font-size: 0.9rem;
-  padding: 2px 8px;
+  font-size: 0.875rem;
+  min-height: 2rem;
+  padding: 0.25rem 0.5rem;
   border-radius: var(--radius-sm, 8px);
   border: 1px solid var(--hairline-strong, rgba(0, 0, 0, 0.14));
-  background: var(--surface-elevated);
+  background: var(--surface-sunken);
   color: var(--text-primary);
+  /* min-width:0 is what stops a select refusing to shrink and truncating its own label
+     mid-word — the flex and grid default is min-content, which for a select is the
+     widest option string it holds. */
+  min-width: 0;
   max-width: 100%;
 }
 
-.rmc-sc-daypick {
-  display: inline-flex;
-  gap: 3px;
-  vertical-align: middle;
-}
+.rmc-sc-sentence input[type="time"] { min-width: 6.5rem; }
 
 .rmc-sc-sentence__line {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-2, 0.5rem);
-  margin: 0 0 var(--space-2, 0.5rem);
+  gap: var(--space-2, 0.5rem) var(--space-3, 0.75rem);
+  margin: 0 0 var(--space-3, 0.75rem);
 }
 
-.rmc-sc-sentence__line > span {
+.rmc-sc-sentence__line:last-of-type { margin-bottom: 0; }
+
+/* One label plus its control is ONE flex item, so a wrap can never land between them. */
+.rmc-sc-field {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2, 0.5rem);
+  min-width: 0;
+}
+
+.rmc-sc-field--grow { flex: 1 1 12rem; }
+.rmc-sc-field--grow > input[type="text"] { flex: 1 1 auto; }
+
+.rmc-sc-field__label {
+  flex: 0 0 auto;
+  margin: 0;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+/* The mode-specific half of the sentence. It is hidden wholesale when the other mode is
+   chosen, so it has to be one box rather than three loose fields. */
+.rmc-sc-clause {
   display: inline-flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-2, 0.5rem);
+  gap: var(--space-2, 0.5rem) var(--space-3, 0.75rem);
+  min-width: 0;
 }
 
-.rmc-sc-daypick__slot { position: relative; display: inline-block; }
+/* Seven columns, always. The old rule was an inline-flex row with a 3px gap, so at the
+   width this editor actually renders at the seventh chip wrapped onto a line of its own,
+   turning a week into "six days, and Sunday". A grid of seven equal tracks fits seven at
+   any width, because the chips shrink instead of wrapping. */
+.rmc-sc-daypick {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 17rem;
+}
+
+.rmc-sc-daypick__slot { position: relative; display: block; }
 
 /* The checkbox is the state; the label is the chip. Styling :checked + label rather than
    scripting aria-pressed keeps every day toggle working with JavaScript off — and keeps
    the control a real checkbox for a screen reader and for form submission. */
 .rmc-sc-daypick__slot input[type="checkbox"] {
   position: absolute;
+  inset: 0;
   opacity: 0;
-  width: 28px;
-  height: 28px;
+  width: 100%;
+  height: 100%;
   margin: 0;
   cursor: pointer;
 }
 
 .rmc-sc-daypick__day {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 100%;
+  height: 2rem;
   padding: 0;
+  margin: 0;
   border-radius: var(--radius-sm, 8px);
   border: 1px solid var(--hairline-strong, rgba(0, 0, 0, 0.14));
-  background: var(--surface-elevated);
-  color: var(--text-tertiary);
-  font-size: 0.74rem;
+  background: var(--surface-sunken);
+  /* Was --text-tertiary, which on an unselected chip read as disabled — so a rule that
+     runs Monday to Friday looked like a rule that runs nothing. */
+  color: var(--text-secondary);
+  font-size: 0.78rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background var(--motion-fast, 150ms ease);
+  transition: background var(--motion-fast, 150ms ease),
+              border-color var(--motion-fast, 150ms ease);
+}
+
+.rmc-sc-daypick__slot:hover .rmc-sc-daypick__day {
+  border-color: var(--school-primary, #4f46e5);
 }
 
 .rmc-sc-daypick__slot input[type="checkbox"]:checked + .rmc-sc-daypick__day {
   background: var(--school-primary, #4f46e5);
   border-color: var(--school-primary, #4f46e5);
-  color: var(--surface-elevated);
+  color: #ffffff; /* off-token-allow: fixed-on-brand-fill */
 }
 
 .rmc-sc-daypick__slot input[type="checkbox"]:focus-visible + .rmc-sc-daypick__day {
@@ -487,9 +547,111 @@
   outline-offset: 2px;
 }
 
+/* The contextual-help icon rmc-info-tag-auto.js attaches to any label whose field is in
+   the page manifest. It is sized for a stacked form label; dropped into a line of running
+   text it rendered as a badge taller than the sentence it sat in. */
+.rmc-sc-sentence .rmc-info-tag { display: inline-flex; align-items: center; }
+
+.rmc-sc-sentence .rmc-info-tag__btn {
+  width: 1.1rem;
+  height: 1.1rem;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  font-size: 0.7rem;
+  line-height: 1;
+}
+
 /* Hidden by the editor script when the chosen mode does not use them. Without JS both
    clauses stay visible and labelled, which is what the old form did anyway. */
 .rmc-sc-sentence [data-rmc-sc-when][hidden] { display: none; }
+
+/* Below this width the sentence stops being a sentence and becomes a stack of named
+   fields: the label moves above its control and the control takes the full width. That
+   is the only honest layout once "between 06:00 and 18:00" no longer fits on one line. */
+@container (max-width: 26rem) {
+  .rmc-sc-sentence__line,
+  .rmc-sc-clause {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-2, 0.5rem);
+  }
+
+  .rmc-sc-field {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.2rem;
+    align-items: stretch;
+  }
+
+  .rmc-sc-field__label {
+    font-size: var(--type-size-micro, 0.7rem);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+  }
+
+  .rmc-sc-sentence select,
+  .rmc-sc-sentence input[type="time"],
+  .rmc-sc-sentence input[type="text"] { width: 100%; }
+
+  .rmc-sc-daypick { max-width: none; }
+
+  /* The one line that must NOT become a stack: a checkbox belongs beside its label. */
+  .rmc-sc-sentence__line > .form-check.rmc-sc-field {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2, 0.5rem);
+  }
+}
+
+@supports not (container-type: inline-size) {
+  /* Engines without container queries keep the wrapped-row layout. It is the layout this
+     file shipped with and it is still usable — it is simply not as tidy. */
+  .rmc-sc-sentence { container-type: normal; }
+}
+
+/* The add-rule editor: a full-width row of .rmc-sc-sched, so the form is laid out
+ * against the whole band rather than the 15rem rules track. Closed by default — adding a
+ * rule is a deliberate act, and an always-open nine-control form is most of why this
+ * panel read as long. */
+.rmc-sc-editor {
+  grid-column: 1 / -1;
+  margin-top: var(--space-4, 1rem);
+  padding-top: var(--space-4, 1rem);
+  border-top: 1px solid var(--hairline);
+}
+
+.rmc-sc-editor__summary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2, 0.5rem);
+  cursor: pointer;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.rmc-sc-editor__summary:hover { color: var(--text-primary); }
+
+.rmc-sc-editor[open] .rmc-sc-editor__summary,
+.rmc-sc-editor details[open] .rmc-sc-editor__summary {
+  margin-bottom: var(--space-3, 0.75rem);
+}
+
+.rmc-sc-editor__form {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3, 0.75rem);
+  max-width: 46rem;
+  padding: var(--space-4, 1rem);
+  border-radius: var(--radius-md, 12px);
+  border: 1px solid var(--hairline);
+  background: var(--surface-elevated);
+}
+
+.rmc-sc-editor__form > .rmc-sc-sentence { width: 100%; }
 
 /* The one control that is not part of the sentence proper: the check-in floor, read as
  * its closing clause. It used to live below an <hr> in a second form with a second Save

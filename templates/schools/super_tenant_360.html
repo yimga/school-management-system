@@ -267,6 +267,19 @@
     </div>
   </div>
   {% if lifecycle_registration or lifecycle_enrollment %}
+  {% comment %}
+  Phase 8 density: this page carries 24 card shells. Registration / enrollment
+  progress is reference detail about a tenant, not something an operator opens
+  Tenant 360 to act on, so it folds.
+  Deliberately NOT the offboarding panel below, even though a danger zone is the
+  obvious thing to collapse: #offboarding is deep-linked from five places (the
+  offboarding queue, the schools list, this page's own jump button, a form post
+  redirect, and apps/schools/admin.py), and anchoring into a closed disclosure element is
+  not reliable across browsers. Folding it would trade a density warning for
+  broken operator navigation.
+  {% endcomment %}
+  <details class="de-secondary-collapsible mb-3">
+    <summary class="small text-muted">{% trans "Registration & enrollment detail" %}</summary>
   <div class="card shadow-sm border-secondary mb-3" data-rmc-lifecycle-workflow-hub="1">
     <div class="card-header">{% trans "Registration & enrollment" %}</div>
     <div class="card-body row g-3">
@@ -294,6 +307,7 @@
       </div>
     </div>
   </div>
+  </details>
   {% endif %}
   <div id="offboarding" class="card shadow-sm border-danger mb-3 rmc-danger-zone" data-rmc-offboarding-panel data-rmc-workflow-track="1" data-rmc-scroll-policy="paginate">
     <div class="card-header bg-danger-subtle text-danger-emphasis">{% trans "Offboarding & data custody" %}</div>

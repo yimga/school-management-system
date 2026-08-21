@@ -29,7 +29,13 @@ from apps.sync_engine.models_schedule import (
     format_times,
     parse_times,
 )
-from apps.sync_engine.schedule import MAX_INTERVAL_MINUTES, MIN_INTERVAL_MINUTES, WEEKDAYS
+from apps.sync_engine.schedule import (
+    MAX_INTERVAL_MINUTES,
+    MIN_INTERVAL_MINUTES,
+    MODE_AT_TIMES,
+    MODE_INTERVAL,
+    WEEKDAYS,
+)
 
 # Named, because "how often?" is a question with about five real answers and a text box
 # invites the sixth. The shortest offered matches the engine's own floor, so the form can
@@ -44,6 +50,18 @@ INTERVAL_CHOICES = (
 )
 
 DAY_CHOICES = tuple((str(value), _(label)) for value, label in WEEKDAYS)
+
+# WIDGET COPY ONLY -- the stored values stay MODE_INTERVAL / MODE_AT_TIMES, so this
+# changes nothing about what is saved, what the engine reads, or what the admin shows.
+# The model's own label for the first mode is "Every N minutes, within a window", which
+# is a fine description and a poor option: it is the widest string in the editor, it is
+# what forced the control to truncate to "Every N minutes, within a windo", and the very
+# next control in the sentence already says "Every 30 minutes" -- so the reader was shown
+# the word "Every" twice and the useful half of neither.
+MODE_CHOICES = (
+    (MODE_INTERVAL, _("Repeatedly, in a window")),
+    (MODE_AT_TIMES, _("At set times")),
+)
 
 
 class SyncScheduleForm(forms.ModelForm):
@@ -62,6 +80,7 @@ class SyncScheduleForm(forms.ModelForm):
         empty_value=None,
         label=_("How often"),
     )
+
     at_times = forms.CharField(
         required=False,
         label=_("Times"),
@@ -91,6 +110,8 @@ class SyncScheduleForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # See MODE_CHOICES: shorter labels for the same two values.
+        self.fields["mode"].choices = MODE_CHOICES
         instance = getattr(self, "instance", None)
         # UNIQUE IDS PER RULE. A tenant may hold several rules, and the panel renders an
         # editor for each plus a blank one to add another -- so Django's default

@@ -21,7 +21,7 @@ from django.utils import timezone as dj_timezone
 from apps.schools.models import School
 from apps.sync_engine import schedule_policy
 from apps.sync_engine.models_schedule import SyncSchedule, rules_for
-from apps.sync_engine.schedule import MODE_AT_TIMES, MODE_INTERVAL, next_run_at
+from apps.sync_engine.schedule import MODE_INTERVAL, next_run_at
 
 
 def _school(slug="sched-a", tz="Africa/Douala"):

@@ -152,6 +152,16 @@
     </div>
   </div>
 
+  {% comment %}
+  Phase 8 density: this page carries 23 card shells. The KPI strip, the four
+  processor-health cards and the subscriptions / trial watchlist are what an
+  operator opens platform billing to decide on. The three ledgers below are
+  drill-down -- a full processor sync ledger, the payout queue and the raw
+  platform ledger -- so they fold rather than pushing the decision surface
+  off the first screen.
+  {% endcomment %}
+  <details class="de-secondary-collapsible mb-2">
+    <summary class="small text-muted">{% trans "Ledgers and payout queue" %}</summary>
   <div class="card shadow-sm mt-4">
     <div class="card-header">{% trans "Processor sync ledger" %}</div>
     <div class="card-body p-0">
@@ -268,5 +278,6 @@
       </div>
     </div>
   </div>
+  </details>
 </div>
 {% endblock %}

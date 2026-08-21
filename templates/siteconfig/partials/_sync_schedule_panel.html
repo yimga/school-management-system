@@ -161,18 +161,6 @@ off. What JS adds is the hover readout and the preview-before-save.
         </p>
       {% endif %}
 
-      {% if sync_schedule_save_url and sync_schedule_new_form %}
-        <details class="mt-2">
-          <summary class="rmc-sc-band__note">{% trans "Add a rule" %}</summary>
-          <form method="post" action="{{ sync_schedule_save_url }}" class="mt-2"
-                data-rmc-sc-rule-form="1">
-            {% csrf_token %}
-            {% include "siteconfig/partials/_sync_rule_sentence.html" with form=sync_schedule_new_form %}
-            <button type="submit" class="btn btn-sm btn-primary mt-2">{% trans "Add rule" %}</button>
-          </form>
-        </details>
-      {% endif %}
-
       <p class="rmc-sc-aside__label mt-4">{% trans "Next five syncs" %}</p>
       <ul class="rmc-sc-next" data-rmc-sc-next-list="1">
         {% for run in sync_schedule_summary.coverage.next_runs %}
@@ -205,6 +193,31 @@ off. What JS adds is the hover readout and the preview-before-save.
         {% endif %}
       </div>
     </aside>
+
+    {% comment %}
+    A FULL-WIDTH ROW OF THE SAME GRID, not a fourth thing in the aside.
+
+    The aside is a fixed 15rem track — it is sized for the rules LIST, which is a name
+    and a sentence per rule and reads fine at 240px. The EDITOR is nine controls, and at
+    240px it had nowhere to go: the mode select truncated mid-word, "between" and its
+    time box landed on different lines, and the seven day chips broke six-and-one. None
+    of that is a styling problem; it is a form in a column that was never meant to hold
+    one. This is the same call as the conflicts table, which moved to its own page for
+    the same reason: the summary can be narrow, the thing you EDIT with needs room.
+    {% endcomment %}
+    {% if sync_schedule_save_url and sync_schedule_new_form %}
+      <div class="rmc-sc-editor">
+        <details>
+          <summary class="rmc-sc-editor__summary">{% trans "Add a rule" %}</summary>
+          <form method="post" action="{{ sync_schedule_save_url }}" class="rmc-sc-editor__form"
+                data-rmc-sc-rule-form="1">
+            {% csrf_token %}
+            {% include "siteconfig/partials/_sync_rule_sentence.html" with form=sync_schedule_new_form %}
+            <button type="submit" class="btn btn-sm btn-primary">{% trans "Add rule" %}</button>
+          </form>
+        </details>
+      </div>
+    {% endif %}
   </div>
   {% else %}
     {% comment %}

@@ -156,6 +156,8 @@ DOMAIN_CANONICAL_HEADERS: dict[str, set[str]] = {
     # resolve Subjects at the target.
     "academics": {
         "subject_code", "subject_name", "credits", "department", "name", "code",
+        # Francophone / legacy SIS exports (e.g. a live tenant's subjects_2026.xlsx).
+        "title", "description", "category",
     },
     # Specialty / trade / stream catalog (SpecialtyLander → apps.academics.Specialty
     # + its required Department). Shares name/code/department with academics, so a
@@ -683,20 +685,32 @@ def _domain_from_headers(artifact: Any) -> str | None:
 
 
 def _domain_for_artifact(artifact: Any) -> str | None:
-    """Resolve an artifact to a canonical domain via filename first, then headers.
+    """Resolve an artifact to a canonical domain — same brain as ``classify_domain``.
 
-    An EXACT canonical filename (``teachers.csv``) is authoritative. Otherwise we
-    score headers, then let a filename entity-token break the person-roster tie
-    the columns cannot (``teachers_<timestamp>.csv`` scored ``students`` → ``staff``).
+    The universal classifier (filename-led fallback, AI tie-break, report detect)
+    is authoritative. Header-only heuristics here previously disagreed with it
+    (``subjects_2026.xlsx`` → ``behavior`` in the accelerator while
+    ``classify_domain`` → ``academics``), and ``refresh_bundle_inference`` then
+    overwrote repair-time domains with the wrong lander on bundle #84.
     """
+    from apps.migration_cloud.classifiers.domain import classify_domain
+
+    result = classify_domain(artifact=artifact)
+    chosen = (result.get("chosen") or "").strip()
+    if chosen and chosen != "custom_fields":
+        return chosen
+
     filename = ((getattr(artifact, "filename", "") or "").strip().lower())
-    # A derived statistics report is caught BEFORE any roster matching so its
-    # aggregate lines never land as phantom enrollment/records.
     if is_derived_report(_artifact_headers(artifact), filename):
         return "reports"
     if filename in CANONICAL_FILENAME_TO_DOMAIN:
         return CANONICAL_FILENAME_TO_DOMAIN[filename]
-    return reconcile_domain_with_filename(filename, _domain_from_headers(artifact))
+    header_domain = _domain_from_headers(artifact)
+    hint = guess_domain_from_filename(filename)
+    if hint and not header_domain:
+        return hint
+    reconciled = reconcile_domain_with_filename(filename, header_domain)
+    return reconciled or hint or header_domain
 
 
 register_accelerator("runmycampus_canonical", RunMyCampusCanonicalAccelerator())

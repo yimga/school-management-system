@@ -27,6 +27,8 @@ import json
 import logging
 from typing import Any
 
+from django.utils import timezone
+
 from .accelerators import get_accelerator
 from .classifiers import classify_domain, classify_source
 from .mapper import ColumnMapping, map_artifact
@@ -427,6 +429,104 @@ def _advance_bundle_inner(*, bundle_id: int, use_accelerator: bool = True) -> di
             bundle_id,
             exc_info=True,
         )
+    return summary
+
+
+def refresh_bundle_inference(*, bundle_id: int, use_accelerator: bool = True) -> dict[str, Any]:
+    """Re-classify domains and rebuild column mappings before a repair re-apply.
+
+    Bundles that were classified under an older classifier (e.g.
+    ``subjects_2026.xlsx`` routed to ``behavior`` instead of ``academics``)
+    keep stale ``discovery_summary`` / ``mapping_summary`` until inference is
+    refreshed. Repair calls this so the UI re-import uses current rules without
+    re-uploading files.
+    """
+    from .classifiers.domain import classify_domain
+
+    bundle = MigrationBundle.objects.get(pk=bundle_id)  # tenant-isolation-allow: PK lookup by internal bundle id
+    artifacts = list(bundle.artifacts.filter(quarantined=False))
+    summary: dict[str, Any] = {"bundle_id": bundle_id, "artifacts": len(artifacts), "ai_calls": 0}
+
+    operator_domains = (
+        (bundle.discovery_summary or {}).get("operator_assigned_domains") or {}
+    )
+    per_artifact: dict[str, dict[str, Any]] = {}
+    for artifact in artifacts:
+        domain_result = classify_domain(artifact=artifact)
+        assigned = _operator_domain_for(operator_domains, artifact)
+        chosen = (assigned or domain_result["chosen"] or "custom_fields").strip()
+        method = "operator_assigned" if assigned else domain_result["method"]
+        per_artifact[artifact.path_within_bundle] = {
+            "domain": chosen,
+            "candidates": domain_result["candidates"],
+            "method": method,
+        }
+        if not assigned and domain_result["method"] == "ai_bridge":
+            summary["ai_calls"] += 1
+
+    accelerator_contract = None
+    chosen_source = (bundle.discovery_summary or {}).get("source", {}).get("chosen", "")
+    if use_accelerator and chosen_source:
+        accelerator = get_accelerator(chosen_source)
+        if accelerator is not None and accelerator.is_handle_supported(bundle):
+            try:
+                accelerator_contract = accelerator.execute(
+                    bundle_id=bundle.pk, handle=bundle
+                )
+                per_artifact_domain = dict(per_artifact)
+                for path, entry in (
+                    accelerator_contract.pre_classified_artifacts.items()
+                ):
+                    domain = (entry or {}).get("domain")
+                    if not domain:
+                        continue
+                    existing = dict(per_artifact_domain.get(path) or {})
+                    if existing.get("method") == "operator_assigned":
+                        continue
+                    existing.update(
+                        {
+                            "domain": domain,
+                            "method": (entry or {}).get("method", "accelerator"),
+                        }
+                    )
+                    per_artifact_domain[path] = existing
+                per_artifact = per_artifact_domain
+                summary["accelerator"] = True
+            except Exception:  # noqa: BLE001
+                logger.warning(
+                    "migration_cloud.pipeline: refresh accelerator failed bundle=%s",
+                    bundle_id,
+                    exc_info=True,
+                )
+
+    all_mappings: dict[str, list[dict[str, Any]]] = {}
+    for artifact in artifacts:
+        domain_entry = per_artifact.get(artifact.path_within_bundle) or {}
+        domain = domain_entry.get("domain", "custom_fields")
+        mappings = _apply_accelerator_then_map(
+            artifact=artifact,
+            domain=domain,
+            contract=accelerator_contract,
+        )
+        all_mappings[artifact.path_within_bundle] = [m.__dict__ for m in mappings]
+        summary["ai_calls"] += sum(1 for m in mappings if m.method == "ai_bridge")
+
+    bundle.discovery_summary = {
+        **(bundle.discovery_summary or {}),
+        "per_artifact_domain": per_artifact,
+        "inference_refreshed_at": timezone.now().isoformat(),
+    }
+    bundle.mapping_summary = {
+        **(bundle.mapping_summary or {}),
+        "per_artifact": all_mappings,
+        "vendor_enum_tables": (
+            accelerator_contract.vendor_enum_tables
+            if accelerator_contract is not None
+            else (bundle.mapping_summary or {}).get("vendor_enum_tables") or {}
+        ),
+    }
+    bundle.save(update_fields=["discovery_summary", "mapping_summary", "updated_at"])
+    summary["per_artifact"] = per_artifact
     return summary
 
 

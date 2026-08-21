@@ -45,6 +45,11 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # apps/accounts/tasks.py was found TRUNCATED mid-statement on main - the reference
     # gates treat an unparseable file as opaque and skip it, so nothing reported it.
     ("scripts/verify_python_files_parse.py", "architectural-boundaries.yml"),
+    # Added 2026-08-21: `ink` and `midnight` both paired a navy ground with the WARM
+    # surface ramp belonging to `steel`, so every form control on those themes rendered
+    # brown inside a navy shell. Every contrast gate was green throughout -- the defect
+    # is hue, and nothing asked that question until this gate.
+    ("scripts/scan_theme_hue_coherence.py", "architectural-boundaries.yml"),
     # The floor for code that compiles, imports, and still never runs. Added 2026-08-20:
     # EdgeAutosyncMiddleware existed to keep a LAN box syncing when nothing pings
     # /health/, was never added to MIDDLEWARE, and so was dead during the exact failure

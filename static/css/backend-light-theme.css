@@ -10,8 +10,19 @@
 body.portal-backend-light,
 body.portal-backend-light[data-bs-theme="dark"],
 body.portal-backend-light[data-bs-theme="light"] {
-  background: linear-gradient(135deg, #f8f4fc 0%, var(--color-bg-primary, #fff) 50%, #faf5ff 100%) !important;
-  color: #1a1a2e !important;
+  /* GROUND MATCHES ITS OWN RAMP. Every token below is warm -- text #1a1612, muted
+     #544d44, surface-alt #fffaf0, admin-surface-alt #f5eedd, borders rgba(168,160,146).
+     The page gradient was lavender (270deg) and the body colour a cool near-black
+     (240deg), so the two declarations that paint the largest area on the page were the
+     only two not speaking the ramp's language. Same lightness as before (0.9174 /
+     0.9259 vs 0.9169 / 0.9285), warm instead of violet; the body colour is now simply
+     --backend-text's value, which also reads slightly better (17.27:1 vs 16.37:1).
+     NOTE for a future wave: this theme is warm while its counterpart
+     backend-dark-theme.css is cool slate (--color-base-*). Each is now internally
+     coherent, but the light/dark PAIR is not -- deciding which way that resolves is a
+     design call, not a bug fix, so it is left alone here. */
+  background: linear-gradient(135deg, #faf5ed 0%, var(--color-bg-primary, #fff) 50%, #fbf6ee 100%) !important;
+  color: #1a1612 !important;
   /* Semantic variables for templates and JS */
   --backend-text: #1a1612;
   --backend-text-muted: #544d44;

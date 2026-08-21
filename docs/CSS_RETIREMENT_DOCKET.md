@@ -2,7 +2,119 @@
 
 **Last updated:** 2026-08-21
 
-## 2026-08-21 (latest) — The Sync Center was long because it taught on every render
+## 2026-08-21 (latest) — Platform palette sweep: three more borrowed ramps, and a hole in the gate
+
+SW bumped `sms-v4.06.77` → `sms-v4.06.78-platform-palette-coherence-2026-08-21`. No model
+change, no migration.
+
+A sweep of every palette-defining block in `static/css/` and `static/marketing/css/` for
+the defect fixed in the previous entry — a ramp borrowed from a different palette.
+
+**The gate had a hole, and the hole was over a real bug.** `scan_theme_hue_coherence.py`
+matched `body.portal-backend-NAME` only where it sat immediately before the brace, so it
+saw *zero* blocks in `backend-light-theme.css` and `backend-dark-theme.css` — both of which
+open with a multi-selector, attribute-qualified list. `backend-light-theme.css` turned out
+to hold a live instance: a **lavender page gradient** (270°) and a cool near-black body
+colour (240°) over a token ramp that is entirely warm (text `#1a1612`, muted `#544d44`,
+surface-alt `#fffaf0`, admin-surface-alt `#f5eedd`, borders `rgba(168,160,146)`). The two
+declarations painting the largest area on the page were the only two not speaking the
+ramp's language — and the theme bootstrap puts `portal-backend-light` on **every backend
+page in light mode**, so the blast radius was larger than the named themes fixed earlier.
+The gate now reads the whole selector list and requires a real `--backend-surface:`
+definition rather than a substring.
+
+**Two more sites, outside that gate's scope.** `rmc-premium-os.css` defined
+`--rmc-premium-muted: #857c70` — warm taupe (34°) in a ramp whose ground is 216° and ink
+221° — and it also **failed AA**: 3.89:1 on its own ground, 4.11:1 on a white card. It is
+not decorative: `rmc-premium-polish.css` paints marketing section paragraphs, portal and
+control-plane page subtitles, and table `thead th` with it, on both `base.html` and
+`control_plane_base.html`. Now slate-600 (7.18:1 / 7.58:1); the `var()` fallback moved too,
+since that is what applies on the degraded path nobody tests. And
+`tokens-schoolhouse.css`'s dark editorial `--mkt-ink-2` was cool slate beside a warm ivory
+primary on the same ground — the light block was already coherent, so dark had switched its
+primary and left the secondary behind.
+
+**What the sweep disproved is as useful as what it found.** Three tempting groups were
+checked and rejected rather than "fixed":
+
+- Muted text on backend theme cards looked like four AA failures (slate 2.69:1, steel
+  3.22, graphite 4.07, charcoal 4.11). It was the wrong pairing — those themes put cards
+  on `--backend-surface`, not `--backend-surface-alt`. Paired against the surface each
+  theme's cards *actually* use, **all 12 themes pass AA**.
+- `--admin-content-text-muted` on `--admin-content-thead-bg` read as 2.18:1, but
+  `.table thead th` uses `--admin-content-text` — 9.45:1. The hexes involved were also
+  only `var()` fallbacks, not the operative values.
+- A first pass flagged ~31 blocks for cool grounds under warm text. That is the marketing
+  editorial identity, chosen deliberately. Cross-role hue difference is not a defect; the
+  comparison has to be surfaces-to-surfaces and text-to-text.
+
+**The tooling is kept, as reports rather than gates.**
+`scripts/audit_theme_palette_coherence.py` is the wide-angle companion to the
+zero-tolerance `scan_theme_hue_coherence.py`: it asks the same question of every palette
+block on the platform, including marketing and `:root`, and it is what found the three
+sites above. `scripts/audit_narrow_column_forms.py` finds the layout half. Both always
+exit 0 and are deliberately NOT wired into CI — each has known false-positive modes
+(paired `-inv`/`-deep` variants, cross-product pairing inside a large `:root`, `var()`
+fallbacks read as operative values, correct 1-3rem gutters), and every one of those is
+documented in the module docstring. Read it before acting on a row.
+
+**The layout half swept clean.** A search for the other scheduler defect — a form in a
+column that cannot grow — found 68 grids with a rigid track ≤17rem, of which 12 render
+forms. Every one but `.rmc-sc-sched` (already fixed) uses its narrow track as an icon or
+checkbox gutter at 1–2.9rem. That defect was unique to the Sync Center.
+
+## 2026-08-21 — The scheduler looked wrong; two themes were wrong
+
+SW bumped `sms-v4.06.76` → `sms-v4.06.77-theme-hue-coherence-and-rule-editor-2026-08-21`.
+New gate (`scripts/scan_theme_hue_coherence.py`), no model change, no migration.
+
+**The report was that the sync scheduler's rule editor looked bad. Two of its three
+defects were not the editor's.**
+
+**1. Two themes were assembled from two palettes.** `backend-themes.css` shipped `ink`
+with a slate-950 ground (`#030712` — blue-black) over the surface pair `#1a1612` /
+`#241e18`. That pair is the warm brown ramp belonging to `steel`, whose own *body* is
+`#241e18`; `midnight` carried the identical pair. Those sheets set `background-color`,
+`color` and `border-color` with `!important` on bare `input`, `select` and `textarea`, so
+every form control on those two themes rendered brown inside a navy shell — and no page
+could override it, which is why the editor could not be fixed from the editor. The same
+tokens paint every card, alert, dropdown and striped table row those themes touch.
+
+Both ramps re-derived from their own ground. Contrast holds or improves at every pairing
+(ink text 17.06:1 on surface, muted 6.96:1). Auditing the rest of the file found three
+more of the same kind: `midnight`'s masthead lettering was still warm cream, `indigo`'s
+`--backend-text-muted` was `#e6a052` — amber, so every secondary label on an indigo theme
+rendered orange — and `snow`, a theme whose own comment reads "cool light", ran its page
+gradient from sky blue to floral white.
+
+**Why nothing caught it.** Contrast was never the problem: the warm pair measured 6.95:1,
+so the contrast scanners, the axe/pa11y suites and `scan_theme_locked_token_text` were all
+correctly green. The tokens *were* theme-scoped — scoped to the wrong palette. The
+question nobody had asked is whether two colours in the same stack agree about which
+direction neutral is. `scan_theme_hue_coherence.py` asks it, in hue angle rather than a
+warm/cool split (a red-vs-blue test misreads `forest` at 137° as cool and would have
+flagged a perfectly coherent green theme).
+
+**2. The editor was in a column sized for a list.** `.rmc-sc-sched` is
+`minmax(0, 1fr) 15rem`, and the add-rule form — nine controls — was rendering inside that
+15rem aside. At 240px the mode select truncated mid-word, `between` and its time box
+landed on separate lines, and the seven day chips broke six-and-one. The form is now a
+full-width row of the same grid; the rules *list* stays in the aside, where a name and a
+sentence per rule fit fine. Same call as the conflicts table last wave: the summary can be
+narrow, the thing you edit with needs room.
+
+**3. Editor geometry.** Label and control are now one flex item, so a wrap can never
+separate them. The day picker is a seven-column grid that fits seven at any width instead
+of a row that wraps. Narrow-width rules are CONTAINER queries against the editor, not the
+viewport — the aside is 240px on a 27" display, so a media query never fires. Unselected
+day chips moved off `--text-tertiary`, which read as disabled, so a rule running Monday to
+Friday looked like a rule running nothing. The mode labels shortened ("Every N minutes,
+within a window" → "Repeatedly, in a window"); values unchanged, so nothing stored moves.
+
+Geometry is owned here, palette by the theme — the `!important` blanket cannot be won and
+should not be fought; an override would hold only until the next theme.
+
+## 2026-08-21 — The Sync Center was long because it taught on every render
 
 New CSS (`static/css/rmc-sync-center.css`), new JS (`rmc-sync-schedule-strip.js`,
 `rmc-sync-conflicts.js`), one JS file retired, two partials retired, one new page. SW
