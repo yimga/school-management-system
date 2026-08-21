@@ -1,7 +1,7 @@
 """Stop re-applying a bundle that has already proven it changes nothing.
 
-The failure this exists to prevent (observed live on 2026-08-20, bundle 84 of the
-gilead-tech tenant): eighty-five ``mc_apply_bundle`` outbox rows, eighty-four of
+The failure this exists to prevent (observed live on 2026-08-20, bundle 84 of a
+real tenant): eighty-five ``mc_apply_bundle`` outbox rows, eighty-four of
 them ``succeeded``, every one reporting the IDENTICAL result --
 ``0 created, 105 updated, 442 quarantined`` -- with a fresh row minted one to two
 seconds after each finished. It had been running since 2026-08-16. Four days of a

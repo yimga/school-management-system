@@ -123,7 +123,7 @@ def _school_schema(school):
     be on — ``public`` for a management command — where the tenant tables are either
     absent or hold unrelated legacy rows.
 
-    That is not a subtle inaccuracy. Run live against gilead-tech on 2026-08-20 it
+    That is not a subtle inaccuracy. Run live against a real tenant on 2026-08-20 it
     reported **572 unowned rows needing repair** while the tenant's real schema held
     420 correctly-owned students and exactly ONE unowned row. An operator who had
     passed ``--apply`` would have been writing school ownership onto rows in the
