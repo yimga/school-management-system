@@ -1,6 +1,7 @@
 {% extends "control_plane_base.html" %}
 {% comment %} table-column-budget-allow: cp-dashboard-multi-lens-operator-tables {% endcomment %}
 {% load static i18n region_format phase8_tags glocal_tags %}
+{% load operator_elevation %}
 {% load terminology_tags %}
 
 {% block cp_title %}{% trans "Control Plane" %}{% endblock %}
@@ -26,6 +27,7 @@
 {% block cp_layout_attrs %} data-rmc-cp-globe-landing="1" data-rmc-cp-globe-deck-v2="1"{% endblock %}
 
 {% block cp_content %}
+{% elevation_required_banner %}
 <nav class="visually-hidden-focusable position-absolute top-0 start-0 m-2 d-flex flex-column gap-1" aria-label="{% trans 'Skip links' %}">
   <a class="btn btn-sm btn-outline-secondary" href="#super-dashboard-main">{% trans "Skip to control plane dashboard" %}</a>
   <a class="btn btn-sm btn-outline-secondary" href="#rmc-globe-master-lab">{% trans "Skip to live globe mission" %}</a>

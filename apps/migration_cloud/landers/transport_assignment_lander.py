@@ -52,17 +52,19 @@ import logging
 from typing import Any, Iterator
 
 from ._helpers import (
-    unresolved_student_reason,
-    student_name_from_row,
     coerce_date,
     filter_to_model_fields,
     model_field_names,
     record_id_mapping,
+    record_row_error,
     resolve_student,
     row_savepoint,
     student_lookup_field,
+    student_name_from_row,
+    unresolved_student_reason,
 )
 from .base import Lander, LanderContext, LanderError, LanderResult, register
+from .reason_codes import INVALID_REF, LANDER_ERROR, MISSING_REQUIRED
 
 
 logger = logging.getLogger(__name__)
@@ -104,10 +106,12 @@ class TransportAssignmentLander(Lander):
             external_id = (row.get("student_external_id") or "").strip()
             route_name = (row.get("route") or "").strip()
             if not (external_id or student_name_from_row(row)) or not route_name:
-                result.quarantined += 1
-                result.errors.append(
+                record_row_error(
+                    result,
+                    row,
                     f"transport_assignments[row={row_index}]: "
-                    f"missing student_external_id or route"
+                    f"missing student_external_id or route",
+                    reason_code=MISSING_REQUIRED,
                 )
                 continue
 
@@ -119,8 +123,9 @@ class TransportAssignmentLander(Lander):
                 row=row,
             )
             if student is None:
-                result.quarantined += 1
-                result.errors.append(
+                record_row_error(
+                    result,
+                    row,
                     f"[row={row_index}] "
                     + unresolved_student_reason(
                         domain="transport_assignments",
@@ -129,7 +134,8 @@ class TransportAssignmentLander(Lander):
                         row=row,
                         external_id=external_id,
                         lookup_field=student_lookup,
-                    )
+                    ),
+                    reason_code=INVALID_REF,
                 )
                 logger.info(
                     "transport_assignments quarantine row=%d reason=student_unresolved",
@@ -197,10 +203,12 @@ class TransportAssignmentLander(Lander):
                             defaults=defaults, **lookup_kwargs,
                         )
                 except (TypeError, ValueError) as exc:
-                    result.quarantined += 1
-                    result.errors.append(
+                    record_row_error(
+                        result,
+                        row,
                         f"transport_assignments[row={row_index}]: "
-                        f"first-class upsert input error: {type(exc).__name__}"
+                        f"first-class upsert input error: {type(exc).__name__}",
+                        reason_code=LANDER_ERROR,
                     )
                     continue
                 except Exception as exc:  # noqa: BLE001
@@ -283,17 +291,21 @@ class TransportAssignmentLander(Lander):
                         defaults=defaults_dfv, **lookup_kwargs_dfv,
                     )
             except (TypeError, ValueError) as exc:
-                result.quarantined += 1
-                result.errors.append(
+                record_row_error(
+                    result,
+                    row,
                     f"transport_assignments[row={row_index}]: "
-                    f"DFV upsert input error: {type(exc).__name__}"
+                    f"DFV upsert input error: {type(exc).__name__}",
+                    reason_code=LANDER_ERROR,
                 )
                 continue
             except Exception as exc:  # noqa: BLE001
-                result.quarantined += 1
-                result.errors.append(
+                record_row_error(
+                    result,
+                    row,
                     f"transport_assignments[row={row_index}] DFV upsert failed: "
-                    f"{type(exc).__name__}: {exc}"
+                    f"{type(exc).__name__}: {exc}",
+                    reason_code=LANDER_ERROR,
                 )
                 continue
             if created:

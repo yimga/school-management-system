@@ -1,5 +1,5 @@
 {
-  "manifest_last_reviewed": "2026-05-27",
+  "manifest_last_reviewed": "2026-08-21",
   "files": {
     "apps/schools/api_views.py": {
       "expected_count": 2,
@@ -44,6 +44,17 @@
       "audit_logging": "manual_review_required",
       "notes": "Spectacular schema + Redoc mounts are public-readable; authenticated tokens still required for API calls.",
       "last_reviewed": "2026-05-27"
+    },
+    "apps/api/pairing_api.py": {
+      "expected_count": 3,
+      "owner": "edge_box_pairing_api",
+      "verdict": "keep",
+      "auth_model": "device_adoption_bootstrap_then_one_time_poll_secret",
+      "data_exposure": "pairing_status_and_a_single_machine_credential_redeemed_exactly_once",
+      "rate_limiting": "implemented",
+      "audit_logging": "manual_review_required",
+      "notes": "Device-adoption bootstrap: an unpaired box holds no credential by definition, so PairingStartView cannot require one. PairingPollView is authenticated by the one-time poll_secret, not a session -- verify_poll_secret uses secrets.compare_digest against a HASH of the secret, so the comparison is constant-time and the secret is not stored raw. Both views are IP rate-limited and the credential is redeemable exactly once. Added 2026-08-21 after 70bddeded shipped the views with rbac-allow markers but no entry here.",
+      "last_reviewed": "2026-08-21"
     }
   }
 }

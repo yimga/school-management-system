@@ -27,8 +27,12 @@ from __future__ import annotations
 
 from typing import Any, Iterator
 
-from ._helpers import persist_dfv_extras
+from ._helpers import (
+    persist_dfv_extras,
+    record_row_error,
+)
 from .base import Lander, LanderContext, LanderResult, register
+from .reason_codes import LANDER_ERROR, MISSING_REQUIRED
 
 
 class PayrollLander(Lander):
@@ -59,10 +63,12 @@ class PayrollLander(Lander):
                 ).split()
             )
             if not external_id and not staff_name:
-                result.quarantined += 1
-                result.errors.append(
+                record_row_error(
+                    result,
+                    row,
                     "payroll: this row does not say which staff member it "
-                    "belongs to. Add an employee id column or a staff name column."
+                    "belongs to. Add an employee id column or a staff name column.",
+                    reason_code=MISSING_REQUIRED,
                 )
                 continue
             identity = external_id or staff_name
@@ -85,10 +91,12 @@ class PayrollLander(Lander):
                 )
                 result.created += 1
             except Exception as exc:  # noqa: BLE001
-                result.quarantined += 1
-                result.errors.append(
+                record_row_error(
+                    result,
+                    row,
                     f"payroll preserve failed for {external_id} {pay_period}: "
-                    f"{type(exc).__name__}: {exc}"
+                    f"{type(exc).__name__}: {exc}",
+                    reason_code=LANDER_ERROR,
                 )
         return result
 

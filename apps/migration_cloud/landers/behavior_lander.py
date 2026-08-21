@@ -24,16 +24,19 @@ import hashlib
 from typing import Any, Iterator
 
 from ._helpers import (
-    unresolved_student_reason,
-    student_name_from_row,
     coerce_date,
     filter_to_model_fields,
     model_field_names,
     record_row_error,
+    record_row_note,
     resolve_student,
     student_lookup_field,
+    student_name_from_row,
+    unresolved_student_reason,
 )
 from .base import Lander, LanderContext, LanderError, LanderResult, register
+from .reason_codes import LANDER_ERROR
+from .reason_codes import INVALID_REF, MISSING_REQUIRED
 
 
 # Canonical behavior tokens -> real Incident choice VALUES. Verified against
@@ -95,7 +98,8 @@ class BehaviorLander(Lander):
             description = (row.get("description") or "").strip()
             if not (external_id or student_name_from_row(row)) or date_val is None or not description:
                 record_row_error(
-                    result, row, "behavior: missing student/date/description"
+                    result, row, "behavior: missing student/date/description",
+                    reason_code=MISSING_REQUIRED,
                 )
                 continue
             student = resolve_student(
@@ -114,7 +118,8 @@ class BehaviorLander(Lander):
                         row=row,
                         external_id=external_id,
                         lookup_field=student_lookup,
-                    )
+                    ),
+                    reason_code=INVALID_REF,
                 )
                 continue
 
@@ -185,9 +190,11 @@ class BehaviorLander(Lander):
                     ctx=ctx, incident_pk=obj.pk, row=row, result=result,
                 )
             except Exception as exc:  # noqa: BLE001
-                result.quarantined += 1
-                result.errors.append(
-                    f"behavior upsert failed for {external_id} @ {date_val}: {type(exc).__name__}: {exc}"
+                record_row_error(
+                    result,
+                    row,
+                    f"behavior upsert failed for {external_id} @ {date_val}: {type(exc).__name__}: {exc}",
+                    reason_code=LANDER_ERROR,
                 )
         return result
 
@@ -206,8 +213,9 @@ def _persist_behavior_extras(
     try:
         from apps.metadata.models import DynamicFieldDefinition, DynamicFieldValue
     except Exception as exc:  # noqa: BLE001
-        result.errors.append(
-            f"behavior extras: metadata models unavailable: {type(exc).__name__}"
+        record_row_note(
+            result,
+            f"behavior extras: metadata models unavailable: {type(exc).__name__}",
         )
         return
     try:
@@ -227,9 +235,7 @@ def _persist_behavior_extras(
             ),
         )
     except Exception as exc:  # noqa: BLE001 — extras are best-effort, recorded
-        result.errors.append(
-            f"behavior extras write failed: {type(exc).__name__}: {exc}"
-        )
+        record_row_note(result, f"behavior extras write failed: {type(exc).__name__}: {exc}")
 
 
 register("behavior", BehaviorLander())

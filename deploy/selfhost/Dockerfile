@@ -61,6 +61,28 @@ RUN SECRET_KEY="build-time-collectstatic-only" \
     && SECRET_KEY="build-time-collectstatic-only" python manage.py compile_message_catalogs \
     && SECRET_KEY="build-time-collectstatic-only" DEBUG=0 python manage.py collectstatic --noinput
 
+# Stamp the build so the running box can say what code it is. Render sets
+# RENDER_GIT_COMMIT for free; nothing here ever did, so /-/version/ answered
+# `commit_sha: unknown` and no operator (or support engineer) could tell which
+# code a box was running. That also left resolve_deploy_commit_sha() permanently
+# inert, so the post-deploy cache-buster could never tell a browser its shell was
+# stale.
+#
+# ARG is declared HERE, after collectstatic, on purpose: an ARG invalidates the
+# build cache from its declaration point onward, and BUILD_TIME changes on every
+# build. Declared at the top it would re-run the Node bundle and collectstatic
+# every single time.
+#
+# Both args are optional. With neither, the script reads .git from the build
+# context (the plain path here — the context is the repo root and there is no
+# .dockerignore entry for .git, precisely so this works with no operator action).
+# The script never fails the build; see its docstring.
+ARG GIT_COMMIT=""
+ARG BUILD_TIME=""
+ARG ENVIRONMENT=""
+RUN GIT_COMMIT="${GIT_COMMIT}" BUILD_TIME="${BUILD_TIME}" ENVIRONMENT="${ENVIRONMENT}" \
+    python scripts/write_build_stamp.py
+
 EXPOSE 10000
 
 # Default = web. Worker/beat override `command:` in docker-compose.yml.

@@ -1,0 +1,58 @@
+{% load i18n %}
+{% comment %}
+BAND 4 — activity, as one timeline.
+
+WHAT IT REPLACES. "Recent cycles" was rendered TWICE: a server-rendered <ul> in the edge
+sync card and a JS-polled <table> in the live activity card, both showing the same rows.
+One of the two was always stale, and which one depended on whether the poll had fired
+since the page loaded. A third table, "Records that landed", listed the rows those same
+cycles carried — in a different card, with no way to tell which cycle carried which row.
+
+One list now: cycles newest-first, each carrying the records it moved. The rows and the
+cycle that moved them were always one fact; showing them apart was what made three tables
+necessary.
+
+The server-rendered rows are the no-JS fallback and the first paint; the poll replaces
+them in place.
+{% endcomment %}
+
+<section class="rmc-sc-band" id="sync-progress" data-rmc-section-anchor="1"
+         data-rmc-sc-activity="1" aria-label="{% trans 'Sync activity' %}">
+  <div class="rmc-sc-band__head">
+    <h2 class="rmc-sc-band__title">{% trans "Activity" %}</h2>
+    <p class="rmc-sc-band__note">{% trans "Newest first · updates on its own" %}</p>
+  </div>
+
+  {% comment %}
+  A cycle in flight gets the live progress canvas. It is inside Activity rather than a
+  card of its own because "a sync is running" is the newest entry in this list.
+  {% endcomment %}
+  {% include "components/rmc_workflow_kickoff_live.html" with workflow_key="siteconfig-edge-sync" task_type="EDGE_SYNC" %}
+
+  <div class="rmc-sc-timeline" data-rmc-sc-timeline="1">
+    {% for run in sync_live.recent_runs %}
+      <div class="rmc-sc-timeline__row">
+        <span class="rmc-sc-timeline__time">{{ run.created_at }}</span>
+        <span class="rmc-sc-timeline__dot"
+              data-ok="{% if run.ok %}1{% else %}0{% endif %}"
+              data-running="{% if run.in_progress %}1{% else %}0{% endif %}" aria-hidden="true"></span>
+        <span class="rmc-sc-timeline__body" data-ok="{% if run.ok %}1{% else %}0{% endif %}">
+          {% if run.in_progress %}{% trans "Running" %}
+          {% elif run.ok %}{% blocktrans with up=run.pushed|default:0 down=run.pulled|default:0 %}Synced — {{ up }} up, {{ down }} down{% endblocktrans %}
+          {% else %}{% trans "Failed" %}{% endif %}
+          {% comment %}
+          The reason is stored on every row and used to be thrown away, so five
+          consecutive "Failed" lines told a school nothing it could act on.
+          {% endcomment %}
+          {% if run.error %}<span class="rmc-sc-timeline__detail">{{ run.error }}</span>
+          {% elif run.message %}<span class="rmc-sc-timeline__detail">{{ run.message }}</span>{% endif %}
+        </span>
+        <span class="rmc-sc-timeline__took"></span>
+      </div>
+    {% empty %}
+      <p class="rmc-sc-timeline__empty" data-rmc-sc-timeline-empty="1">
+        {% trans "No cycle has run yet. Once one does, each appears here with what it carried and how long it took." %}
+      </p>
+    {% endfor %}
+  </div>
+</section>

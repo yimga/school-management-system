@@ -1,0 +1,95 @@
+{% load i18n %}
+{% comment %}
+BAND 5 — needs you.
+
+Three cards became one, because they were one question: is a human blocking anything?
+Pairing requests had their own card, conflicts had their own card, and a queued full
+resync was a form buried inside the edge-sync card. An operator scanning for "what do I
+have to do" had to read all three and infer the answer.
+
+ABSENT WHEN EMPTY. Not an empty card, not a zero — the band does not render, and a single
+line says so. An empty "boxes waiting to pair" panel on every school's Sync Center is
+chrome, not information.
+
+Every row carries the page that RESOLVES it. "3 conflicts waiting" with no link is the
+exact dead end scan_actionless_attention_surfaces exists to refuse.
+{% endcomment %}
+
+{% if pairing_requests or sync_stats_pending %}
+<section class="rmc-sc-band" data-attention="1" id="sync-needs-you"
+         data-rmc-section-anchor="1" aria-label="{% trans 'Needs your attention' %}">
+  <div class="rmc-sc-band__head">
+    <h2 class="rmc-sc-band__title">{% trans "Needs you" %}</h2>
+  </div>
+
+  <ul class="rmc-sc-queue">
+    {% if pairing_requests %}
+      {% comment %}
+      The code is DISPLAYED on the box and TYPED here — never the reverse. The box's
+      screen is on a school LAN the edge profile serves over plain HTTP by design, so a
+      form there that accepted a credential would be an unauthenticated write surface.
+      Approving happens inside a session that already proved who this admin is.
+      {% endcomment %}
+      {% for req in pairing_requests %}
+      <li class="rmc-sc-queue__item">
+        <div class="rmc-sc-queue__text">
+          <div class="rmc-sc-queue__title">{% trans "A box is asking to pair" %}</div>
+          <div class="rmc-sc-queue__meta">
+            <span class="rmc-sc-queue__code">{{ req.user_code }}</span>
+            {% if req.box_label %} · {{ req.box_label }}{% endif %}
+            {% if req.box_hostname %} · {{ req.box_hostname }}{% endif %}
+            {% if req.box_ip %} · {{ req.box_ip }}{% endif %}
+            · {% blocktrans with expires=req.expires_at|date:"H:i" %}expires {{ expires }}{% endblocktrans %}
+          </div>
+          <div class="rmc-sc-queue__meta">
+            {% trans "Approve it only if you recognise it — approving lets it read and write this school's records." %}
+          </div>
+        </div>
+        <div class="rmc-sc-queue__actions">
+          <form method="post" action="{% url 'siteconfig:sync_center_pair_approve' %}">
+            {% csrf_token %}
+            <input type="hidden" name="user_code" value="{{ req.user_code }}">
+            <button type="submit" class="btn btn-sm btn-primary"
+                    data-rmc-confirm="{% trans 'Approve this box? It will be able to sync this school&#39;s records.' %}">{% trans "Approve" %}</button>
+          </form>
+          <form method="post" action="{% url 'siteconfig:sync_center_pair_deny' %}">
+            {% csrf_token %}
+            <input type="hidden" name="user_code" value="{{ req.user_code }}">
+            <button type="submit" class="btn btn-sm btn-outline-secondary">{% trans "Deny" %}</button>
+          </form>
+        </div>
+      </li>
+      {% endfor %}
+    {% endif %}
+
+    {% if sync_stats_pending %}
+      <li class="rmc-sc-queue__item">
+        <div class="rmc-sc-queue__text">
+          <div class="rmc-sc-queue__title">
+            {% blocktrans count n=sync_stats_pending %}{{ n }} conflict is waiting on a decision{% plural %}{{ n }} conflicts are waiting on a decision{% endblocktrans %}
+          </div>
+          <div class="rmc-sc-queue__meta">
+            {% for group in conflict_groups %}{{ group.pending_count }} {{ group.entity_type }}{% if not forloop.last %}, {% endif %}{% endfor %}
+            {% if oldest_conflict_at %} · {% blocktrans with when=oldest_conflict_at|date:"Y-m-d H:i" %}oldest {{ when }}{% endblocktrans %}{% endif %}
+          </div>
+        </div>
+        <div class="rmc-sc-queue__actions">
+          {% comment %}
+          Carries the page that resolves it. The conflict table lives on its own page
+          because it needs six columns and a field-by-field payload diff.
+          {% endcomment %}
+          {% if conflicts_url %}
+            <a class="btn btn-sm btn-primary" href="{{ conflicts_url }}">{% trans "Review conflicts" %}</a>
+          {% endif %}
+        </div>
+      </li>
+    {% endif %}
+  </ul>
+</section>
+{% else %}
+<p class="rmc-sc-clear">
+  <span class="rmc-sc-clear__tick" aria-hidden="true">✓</span>
+  {% trans "Nothing needs your attention." %}
+  {% if conflicts_url %}<a href="{{ conflicts_url }}">{% trans "Conflict history" %}</a>{% endif %}
+</p>
+{% endif %}

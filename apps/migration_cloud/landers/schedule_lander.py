@@ -36,8 +36,12 @@ from __future__ import annotations
 
 from typing import Any, Iterator
 
-from ._helpers import persist_dfv_extras
+from ._helpers import (
+    persist_dfv_extras,
+    record_row_error,
+)
 from .base import Lander, LanderContext, LanderResult, register
+from .reason_codes import LANDER_ERROR, MISSING_REQUIRED
 
 
 class ScheduleLander(Lander):
@@ -63,9 +67,11 @@ class ScheduleLander(Lander):
             day = (row.get("day_of_week") or row.get("day") or "").strip()
             start = (row.get("start_time") or row.get("begin_time") or "").strip()
             if not section:
-                result.quarantined += 1
-                result.errors.append(
-                    f"schedule: missing section_external_id in {row!r}"
+                record_row_error(
+                    result,
+                    row,
+                    f"schedule: missing section_external_id in {row!r}",
+                    reason_code=MISSING_REQUIRED, field="section_external_id",
                 )
                 continue
             # Stable per-slot identity → re-runs update the same custom record,
@@ -86,10 +92,12 @@ class ScheduleLander(Lander):
                 )
                 result.created += 1
             except Exception as exc:  # noqa: BLE001
-                result.quarantined += 1
-                result.errors.append(
+                record_row_error(
+                    result,
+                    row,
                     f"schedule preserve failed for {section} {day} {start}: "
-                    f"{type(exc).__name__}: {exc}"
+                    f"{type(exc).__name__}: {exc}",
+                    reason_code=LANDER_ERROR,
                 )
         return result
 

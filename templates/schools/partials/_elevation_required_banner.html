@@ -1,0 +1,22 @@
+{% load i18n %}
+{% comment %}
+  Shown when the tenant-host isolation middleware redirected an operator here.
+
+  The wording is deliberate: nothing was denied. Direct operator access to a
+  tenant's data is the least observable path there is, so it is exchanged for an
+  audited one. The tenant name is resolved server-side in the templatetag, never
+  taken from the query string.
+{% endcomment %}
+{% if show %}
+<div class="alert alert-warning d-flex flex-wrap align-items-center justify-content-between gap-2" role="status">
+  <div>
+    <strong>{% blocktrans with school=school.name %}An audited session is required for {{ school }}.{% endblocktrans %}</strong>
+    <div class="small mb-0">
+      {% trans "You were sent back here from that tenant. Operator access to tenant data goes through the signed impersonation flow so it can be recorded — start a session and continue where you left off." %}
+    </div>
+  </div>
+  {% if picker_url %}
+    <a class="btn btn-sm btn-primary" href="{{ picker_url }}">{% trans "Start an audited session" %}</a>
+  {% endif %}
+</div>
+{% endif %}

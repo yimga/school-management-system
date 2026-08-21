@@ -21,16 +21,18 @@ from __future__ import annotations
 from typing import Any, Iterator
 
 from ._helpers import (
-    unresolved_student_reason,
-    student_name_from_row,
     coerce_date,
     filter_to_model_fields,
     map_attendance_status,
     model_field_names,
+    record_row_error,
     resolve_student,
     student_lookup_field,
+    student_name_from_row,
+    unresolved_student_reason,
 )
 from .base import Lander, LanderContext, LanderError, LanderResult, register
+from .reason_codes import INVALID_REF, LANDER_ERROR, MISSING_REQUIRED
 
 
 def _resolve_row_classroom(row, student, ctx, att_fields):
@@ -102,9 +104,11 @@ class AttendanceLander(Lander):
             date_val = coerce_date(row.get("date"))
             status_raw = (row.get("status") or "").strip().lower()
             if not (external_id or student_name_from_row(row)) or date_val is None or not status_raw:
-                result.quarantined += 1
-                result.errors.append(
-                    f"attendance: missing student/date/status in {row!r}"
+                record_row_error(
+                    result,
+                    row,
+                    f"attendance: missing student/date/status in {row!r}",
+                    reason_code=MISSING_REQUIRED,
                 )
                 continue
             student = resolve_student(
@@ -115,8 +119,9 @@ class AttendanceLander(Lander):
                 row=row,
             )
             if student is None:
-                result.quarantined += 1
-                result.errors.append(
+                record_row_error(
+                    result,
+                    row,
                     unresolved_student_reason(
                         domain="attendance",
                         ctx=ctx,
@@ -124,7 +129,8 @@ class AttendanceLander(Lander):
                         row=row,
                         external_id=external_id,
                         lookup_field=student_lookup,
-                    )
+                    ),
+                    reason_code=INVALID_REF,
                 )
                 continue
 
@@ -200,9 +206,11 @@ class AttendanceLander(Lander):
                     canonical_obj=obj, domain="attendance",
                 )
             except Exception as exc:  # noqa: BLE001
-                result.quarantined += 1
-                result.errors.append(
-                    f"attendance upsert failed for {external_id} @ {date_val}: {type(exc).__name__}: {exc}"
+                record_row_error(
+                    result,
+                    row,
+                    f"attendance upsert failed for {external_id} @ {date_val}: {type(exc).__name__}: {exc}",
+                    reason_code=LANDER_ERROR,
                 )
         return result
 

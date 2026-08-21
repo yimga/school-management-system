@@ -17,6 +17,8 @@ import shutil
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
+from apps.siteconfig.deploy_meta import UNKNOWN, resolve_deploy_commit_sha
+
 OK = "OK"
 WARN = "WARN"
 FAIL = "FAIL"
@@ -313,6 +315,29 @@ class Command(BaseCommand):
                 findings.append((OK, f"OLLAMA_ENDPOINT set ({ollama}) — run `ollama serve` + pull a model; if it's down, AI degrades to deterministic rules (no crash)."))
             else:
                 findings.append((WARN, "RMC_DEPLOYMENT_PROFILE=edge but OLLAMA_ENDPOINT is unset — AI will use deterministic rules only (no local LLM)."))
+
+        # --- Build identity --------------------------------------------------
+        # Can this box say what code it is running? `/-/version/` is the only way
+        # an operator (or whoever they call for help) can answer that, and it
+        # reported `commit_sha: unknown` on every self-hosted box until the image
+        # started stamping itself. The same value drives post-deploy cache
+        # busting, so while it is unknown a browser has nothing to notice a stale
+        # shell by — it keeps serving the old one after every upgrade.
+        commit_sha = resolve_deploy_commit_sha()
+        if commit_sha != UNKNOWN:
+            findings.append((
+                OK,
+                f"Build identity resolves ({commit_sha[:12]}) — /-/version/ can report what this box runs.",
+            ))
+        else:
+            findings.append((
+                WARN,
+                "This box cannot say what code it is running — /-/version/ reports commit_sha=unknown, "
+                "and post-deploy cache busting is inert (browsers cannot detect a stale shell). "
+                "Rebuild the image so scripts/write_build_stamp.py can stamp it "
+                "(`docker compose -f deploy/selfhost/docker-compose.yml build`), or set GIT_COMMIT "
+                "in the environment if you deploy without Docker.",
+            ))
 
         # --- Report ---------------------------------------------------------
         styles = {OK: self.style.SUCCESS, WARN: self.style.WARNING, FAIL: self.style.ERROR}

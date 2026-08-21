@@ -49,9 +49,11 @@ from ._helpers import (
     filter_to_model_fields,
     model_field_names,
     record_id_mapping,
+    record_row_error,
     row_savepoint,
 )
 from .base import Lander, LanderContext, LanderError, LanderResult, register
+from .reason_codes import LANDER_ERROR, MISSING_REQUIRED
 
 
 logger = logging.getLogger(__name__)
@@ -96,10 +98,12 @@ class AthleticsTeamsLander(Lander):
             season_name = (row.get("season") or "").strip()
             team_name = (row.get("team_name") or row.get("name") or "").strip()
             if not sport_name or not season_name or not team_name:
-                result.quarantined += 1
-                result.errors.append(
+                record_row_error(
+                    result,
+                    row,
                     f"athletics_teams[row={row_index}]: "
-                    f"missing sport / season / team_name"
+                    f"missing sport / season / team_name",
+                    reason_code=MISSING_REQUIRED,
                 )
                 continue
 
@@ -127,10 +131,12 @@ class AthleticsTeamsLander(Lander):
                     else None
                 )
             except Exception as exc:  # noqa: BLE001 — quarantine, never abort bundle
-                result.quarantined += 1
-                result.errors.append(
+                record_row_error(
+                    result,
+                    row,
                     f"athletics_teams[row={row_index}]: "
-                    f"scaffold resolve failed: {type(exc).__name__}"
+                    f"scaffold resolve failed: {type(exc).__name__}",
+                    reason_code=LANDER_ERROR,
                 )
                 continue
 
@@ -139,9 +145,11 @@ class AthleticsTeamsLander(Lander):
                     # Scaffold not present yet → the team would be created.
                     result.created += 1
                     continue
-                result.quarantined += 1
-                result.errors.append(
-                    f"athletics_teams[row={row_index}]: could not provision season"
+                record_row_error(
+                    result,
+                    row,
+                    f"athletics_teams[row={row_index}]: could not provision season",
+                    reason_code=LANDER_ERROR,
                 )
                 continue
 
@@ -193,17 +201,21 @@ class AthleticsTeamsLander(Lander):
                         defaults=defaults, **lookup_kwargs,
                     )
             except (TypeError, ValueError) as exc:
-                result.quarantined += 1
-                result.errors.append(
+                record_row_error(
+                    result,
+                    row,
                     f"athletics_teams[row={row_index}]: "
-                    f"upsert input error: {type(exc).__name__}"
+                    f"upsert input error: {type(exc).__name__}",
+                    reason_code=LANDER_ERROR,
                 )
                 continue
             except Exception as exc:  # noqa: BLE001
-                result.quarantined += 1
-                result.errors.append(
+                record_row_error(
+                    result,
+                    row,
                     f"athletics_teams[row={row_index}] upsert failed: "
-                    f"{type(exc).__name__}: {exc}"
+                    f"{type(exc).__name__}: {exc}",
+                    reason_code=LANDER_ERROR,
                 )
                 continue
             if created:

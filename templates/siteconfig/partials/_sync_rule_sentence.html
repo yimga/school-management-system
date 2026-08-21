@@ -1,0 +1,84 @@
+{% load i18n %}
+{% comment %}
+One schedule rule, read as a sentence instead of printed as a form.
+
+This is a WIDGET change and nothing more. The field names still match the model's, because
+Django maps a model ValidationError dict onto form fields by name and raises ValueError for
+a key the form has no field for — the constraint documented at the top of
+forms_sync_schedule.py. SyncSchedule.clean() remains the single validation implementation,
+so this can never accept something the engine would refuse.
+
+WHAT IT FIXES. {{ form.as_p }} printed eight stacked controls with no grouping and no
+preview, including a "Times" text box that is meaningful for only one of the two "Type"
+values — with nothing on screen saying which. Read as a sentence, the shape of the rule is
+the shape of the words, and the irrelevant clause is hidden by JS (and merely labelled,
+not hidden, without it).
+
+NO JAVASCRIPT REQUIRED. The days are real checkboxes styled as chips through
+:checked + label, not buttons that need a script to hold state. With JS off every control
+works and the form submits exactly as before.
+{% endcomment %}
+
+<div class="rmc-sc-sentence" data-rmc-sc-sentence="1">
+  <p class="rmc-sc-sentence__line">
+    <label for="{{ form.name.id_for_label }}">{% trans "Call this rule" %}</label>
+    {{ form.name }}
+  </p>
+
+  <p class="rmc-sc-sentence__line">
+    <label for="{{ form.mode.id_for_label }}">{% trans "Sync" %}</label>
+    {{ form.mode }}
+
+    <span data-rmc-sc-when="INTERVAL">
+      <label for="{{ form.interval_minutes.id_for_label }}" class="visually-hidden">{{ form.interval_minutes.label }}</label>
+      {{ form.interval_minutes }}
+      <label for="{{ form.window_start.id_for_label }}">{% trans "between" %}</label>
+      {{ form.window_start }}
+      <label for="{{ form.window_end.id_for_label }}">{% trans "and" %}</label>
+      {{ form.window_end }}
+    </span>
+
+    <span data-rmc-sc-when="AT_TIMES">
+      <label for="{{ form.at_times.id_for_label }}">{% trans "at" %}</label>
+      {{ form.at_times }}
+    </span>
+  </p>
+
+  <p class="rmc-sc-sentence__line">
+    <span id="{{ form.days_of_week.auto_id }}_label">{% trans "on" %}</span>
+    <span class="rmc-sc-daypick" role="group" aria-labelledby="{{ form.days_of_week.auto_id }}_label">
+      {% for day in form.days_of_week %}
+        <span class="rmc-sc-daypick__slot">
+          {{ day.tag }}
+          <label class="rmc-sc-daypick__day" for="{{ day.id_for_label }}" title="{{ day.choice_label }}">
+            <span aria-hidden="true">{{ day.choice_label|slice:":1" }}</span>
+            <span class="visually-hidden">{{ day.choice_label }}</span>
+          </label>
+        </span>
+      {% endfor %}
+    </span>
+  </p>
+
+  <p class="rmc-sc-sentence__line">
+    <span class="form-check">
+      {{ form.is_enabled }}
+      <label class="form-check-label" for="{{ form.is_enabled.id_for_label }}">{{ form.is_enabled.label }}</label>
+    </span>
+  </p>
+
+  {% if form.at_times.help_text %}
+    <p class="rmc-sc-band__note" data-rmc-sc-when="AT_TIMES">{{ form.at_times.help_text }}</p>
+  {% endif %}
+
+  {% comment %}
+  Field-level refusals stay with the field they refuse. A rule that saves cleanly and
+  then silently never fires is the failure this whole feature exists to remove.
+  {% endcomment %}
+  {% if form.errors %}
+    <div class="rmc-sc-band__note text-danger-emphasis" role="alert">
+      {% for field, errors in form.errors.items %}
+        {% for error in errors %}<div>{{ error }}</div>{% endfor %}
+      {% endfor %}
+    </div>
+  {% endif %}
+</div>
