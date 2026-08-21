@@ -3,6 +3,11 @@
 
 {% block cp_title %}{% trans "Owner setup link" %}: {{ school.name }}{% endblock %}
 
+{% comment %}Declared, not inherited: control_plane_base.html already renders this exact
+value as the default, so this states what the page has always rendered without
+changing the attribute. Phase 2 conformance requires the child to say it.{% endcomment %}
+{% block cp_page_archetype %}decision-console{% endblock %}
+
 {% block cp_content %}
 <div class="container-fluid px-3 py-3">
   <h1 class="h4 mb-1">{% trans "Owner setup link" %}</h1>
