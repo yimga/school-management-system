@@ -178,6 +178,14 @@
     // is shown or hidden on every poll rather than only at page load.
     var missed = document.querySelector("[data-rmc-schedule-missed]");
     if (missed) missed.classList.toggle("d-none", !schedule.missed_window);
+    // The clock-change note. Rendered server-side too; refreshed here so a panel left
+    // open across a schedule edit does not keep showing the previous timezone's note.
+    var dst = document.querySelector("[data-rmc-schedule-dst]");
+    if (dst) {
+      var observes = !!(schedule.dst && schedule.dst.observes);
+      dst.textContent = observes ? schedule.dst.note || "" : "";
+      dst.classList.toggle("d-none", !observes);
+    }
   }
 
   function poll() {

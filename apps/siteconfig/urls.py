@@ -95,6 +95,7 @@ from .views_sync_center import (
     sync_center_probe,
     sync_center_resolve,
     sync_center_status,
+    sync_policy_save,
     sync_schedule_save,
     sync_now,
     sync_request_resync,
@@ -603,6 +604,11 @@ urlpatterns = [
         "sync-center/schedule/",
         sync_schedule_save,
         name="sync_schedule_save",
+    ),
+    path(
+        "sync-center/policy/",
+        sync_policy_save,
+        name="sync_policy_save",
     ),
     path(
         "sync-center/bulk-resolve/",

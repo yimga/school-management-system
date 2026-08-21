@@ -172,13 +172,28 @@ def run_edge_sync_now(*, mode: str = "live", force: bool = False, trigger: str =
     if not force:
         due, why = cadence.due_now()
         if not due:
-            return {
-                "enabled": True,
-                "ran": False,
-                "skipped": True,
-                "reason": why,
-                "online": link.get("online"),
-            }
+            # The box is not due on the cadence marker -- but it may have SLEPT THROUGH a
+            # scheduled time, which is the case the whole schedule feature exists for
+            # ("it should have synced at 6, it was off, it synced when I turned it on").
+            # Claimed atomically and once per missed moment, so a weekend outage produces
+            # one Monday run rather than one per missed window.
+            caught_up = None
+            try:
+                from apps.sync_engine import schedule_policy
+
+                caught_up = schedule_policy.should_catch_up(school)
+            except Exception:  # noqa: BLE001 — never fail a tick on the catch-up check
+                logger.debug("catch-up check failed", exc_info=True)
+            if caught_up is None:
+                return {
+                    "enabled": True,
+                    "ran": False,
+                    "skipped": True,
+                    "reason": why,
+                    "online": link.get("online"),
+                }
+            why = f"catch-up for the scheduled run at {caught_up.isoformat()} that was missed"
+            trigger = trigger or "catch-up"
 
         # The box is due, but the cheap probe says the operator is unreachable. Building
         # and signing a bundle for a socket that cannot open is the single most wasteful

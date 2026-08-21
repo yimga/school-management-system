@@ -695,6 +695,13 @@ from apps.sync_engine.models_schedule import (  # noqa: E402
     rules_for,
 )
 
+# How the schedule behaves AROUND the rules (check-in ceiling, catch-up). Same reason as
+# above: Django discovers models through ``<app>.models``.
+from apps.sync_engine.models_policy import (  # noqa: E402
+    SyncPolicy,
+    policy_for,
+)
+
 # Pairing lives in its own module (it is a protocol, not sync state) but must be
 # imported here so Django's app registry discovers the model and makemigrations sees it.
 from .models_pairing import (  # noqa: E402  (re-export for the registry)
@@ -710,6 +717,7 @@ __all__ = [
     "PendingPushConfirmation",
     "EdgePairingRequest",
     "SyncApplyLedger",
+    "SyncPolicy",
     "SyncSchedule",
     "rules_for",
     "parse_days",

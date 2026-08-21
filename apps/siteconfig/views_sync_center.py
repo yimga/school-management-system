@@ -500,6 +500,23 @@ def _edge_sync_panel_context(school):
         ctx["sync_schedule_new_form"] = None
         ctx["sync_schedule_summary"] = None
         ctx["sync_schedule_save_url"] = None
+
+    # The policy AROUND the rules. Separate try block on purpose: a tenant whose schedule
+    # rules fail to load should still be able to see and change the check-in ceiling,
+    # because that is the setting that decides whether support can reach the box at all.
+    try:
+        from apps.siteconfig.forms_sync_policy import SyncPolicyForm
+        from apps.sync_engine.models_policy import SyncPolicy
+
+        row = SyncPolicy.objects.filter(school=school).first()
+        ctx["sync_policy_form"] = SyncPolicyForm(
+            instance=row or SyncPolicy(school=school)
+        )
+        ctx["sync_policy_save_url"] = _safe_sync_reverse("siteconfig:sync_policy_save")
+    except Exception:  # noqa: BLE001
+        _logger.debug("sync policy panel context failed", exc_info=True)
+        ctx["sync_policy_form"] = None
+        ctx["sync_policy_save_url"] = None
     return ctx
 
 
@@ -993,6 +1010,53 @@ def sync_schedule_save(request):
         _(
             "Sync schedule saved. It takes effect on the box at its next sync — the cloud "
             "cannot contact a box directly."
+        ),
+    )
+    return redirect(back)
+
+
+@login_required
+@permission_required("settings.manage")
+@require_http_methods(["POST"])
+def sync_policy_save(request):
+    """Save the check-in ceiling and catch-up preference for ``request.school``.
+
+    School from the REQUEST, never from POST, for the same reason as
+    :func:`sync_schedule_save`: these values decide when a box talks to the cloud, and
+    accepting a school id from the form would let anyone reaching this endpoint retime
+    another tenant's box.
+
+    ``update_or_create`` on the school rather than a pk from the form: this row is a
+    singleton per school, so there is no id for a caller to supply and none to forge.
+    """
+    school = getattr(request, "school", None)
+    if not school:
+        return redirect_staff_without_school(
+            request, message=_("Select your school to change sync settings.")
+        )
+
+    from apps.siteconfig.forms_sync_policy import SyncPolicyForm
+    from apps.sync_engine.models_policy import SyncPolicy
+
+    back = _safe_sync_reverse("siteconfig:sync_center") or "/"
+    instance = SyncPolicy.objects.filter(school=school).first() or SyncPolicy(school=school)
+    form = SyncPolicyForm(request.POST, instance=instance)
+    if not form.is_valid():
+        for field, errors in form.errors.items():
+            label = form.fields[field].label if field in form.fields else ""
+            for error in errors:
+                messages.error(request, f"{label}: {error}" if label else str(error))
+        return redirect(back)
+
+    policy = form.save(commit=False)
+    policy.school = school
+    policy.save()
+    _wake_for_schedule_change(school)
+    messages.success(
+        request,
+        _(
+            "Sync settings saved. They take effect on the box at its next sync — the "
+            "cloud cannot contact a box directly."
         ),
     )
     return redirect(back)

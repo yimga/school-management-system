@@ -2,7 +2,64 @@
 
 **Last updated:** 2026-08-20
 
-## 2026-08-20 (latest) — v4.06.74: a school can decide when its box syncs, and see when that will be
+## 2026-08-21 (latest) — v4.06.75: the two things the schedule decided for you, and the catch-up that was never wired
+
+SW `sms-v4.06.75-sync-policy-and-catchup-2026-08-21`. Python, JS, one template partial and
+docs; no CSS changes. Design: [`docs/EDGE_SYNC_SCHEDULES.md`](EDGE_SYNC_SCHEDULES.md).
+
+v4.06.74 shipped tenant sync schedules and closed with two things flagged as judgement
+calls — an idle ceiling that did not do what the tenant typed, and a DST policy decided in
+code. This wave closes both, and an audit of the scheduler underneath them found a third
+thing that was worse than either: **the catch-up was documented in three places and
+implemented in none.**
+
+**The gap the audit found.** `missed_run()` was correct and unit-tested, and the only
+caller in the entire codebase was the status panel's `missed_window` flag. So the Sync
+Center would display *"a scheduled sync was missed — it will catch up once on its next
+connection"* while `run_edge_sync_now` asked `cadence.due_now()`, got "not due", and
+returned `skipped`. The box waited for the NEXT scheduled time. The sentence that
+motivates the whole feature — *"it should have synced at 6, it was off, it synced when I
+turned it on"* — was in the module docstring, the design doc and the previous docket
+entry, and in none of the code. A unit test on `missed_run()` passed the whole time,
+which is exactly why nobody looked: the function was right, the wiring was absent.
+
+**What landed**
+
+| Area | Change |
+|---|---|
+| `apps/sync_engine/models_policy.py` (new) | `SyncPolicy` — one row per school holding the two decisions that sit AROUND the rules: the check-in ceiling and whether to catch up. A synced row, not an env var, for the same reason the schedule is one: both are the SCHOOL's decision, both are acted on by the BOX, and the cloud cannot reach a box to tell it either. `ResolvedPolicy` is what read paths take, so an unmigrated box / missing row / dead connection all degrade to the documented default instead of stopping a sync. |
+| The idle ceiling | Was `RMC_EDGE_SYNC_IDLE_CEILING_SECONDS`, an environment variable on a host the school cannot see — so "the tenant configures their sync" was half true, and a tenant who asked for "06:00 and 18:00 only" got hourly check-ins with no way to learn that or change it. Now theirs, on the Sync Center, replicated to the box. Resolution order: the operator's env pin (kept, and kept winning — somebody debugging a box in front of them has to be able to hold it still), then the tenant's row, then one hour. |
+| Bounded at one day, deliberately | `MAX_IDLE_CEILING_MINUTES = 1440`. Not a preference — `EdgeSyncDirective` is the only cloud→box channel and it is collected by the box ASKING, so the ceiling is also the worst case on "Queue full resync" reaching this box. Every choice in the picker states its consequence ("Twice a day — slowest; the box is nearly unreachable between check-ins"), because the trade-off is not guessable from the number. Clamped on READ as well as save, so a row from an older build cannot put a box outside the bounds the surface enforces. |
+| The singleton anchor | `SyncSchedule` can afford a random `client_offline_id` — it is a plain FK, so two rules created on two sides are simply two rules. `SyncPolicy` is a OneToOne. Two independently-minted anchors would look like two rows to the rail, which would then INSERT the far side's straight into the one-per-school constraint, every cycle, forever. Both sides mint `"sync-policy"`, so it is one row that converges by LWW — which is what a settings row should do. |
+| `apps/sync_engine/edge_scheduler.py` | The catch-up, wired. A box that is not due on the cadence marker now asks whether it slept through a scheduled time before returning `skipped`. Claimed through the cache, keyed by the missed MOMENT — not inferred from "a run happened", because a cycle that fails still writes a run row (and would count as having made it up) and a cycle that dies before writing one would catch up on every single tick. Backoff still outranks it: a box catching up into a cloud that is down is just the schedule finding a new way to hammer it. |
+| DST | Unchanged in behaviour, now VISIBLE. There is one defensible answer in each direction, so a switch would only let a school pick the wrong one; the actual problem was that nobody could see it. `next_dst_transition()` finds the next offset change for the school's zone and the panel says what will happen, in words — only for zones that observe it, because telling a school in Douala about clock changes is noise. |
+| DST doc correction | Writing the test caught the docs and the engine disagreeing. Three places claimed a skipped wall time "fires at the first instant that DOES exist" (03:00). The engine fires at **03:30** — 02:30 EST and 03:30 EDT are the same absolute moment, so the run keeps its instant and lands just past the gap. The engine's behaviour is the better one; the docs were corrected to match it, and the test now asserts the real guarantee (never dropped, never drifts by more than the gap) rather than a sentence. |
+| `apps/api/sync_services.py` | `sync_policy` registered on the rail, `causal_lww` and not protected — the tenant's own configuration on their own deployment, where the worst a stale write can do is check in on the wrong cadence, which the next edit corrects. Only the two settings ride; the plumbing does not. |
+| `apps/sync_engine/migrations/0016_syncpolicy_rls.py` | RLS lands with the model, as it did for `SyncSchedule`. Scope stated rather than over-read: `should_apply_rls` returns False under `USE_DJANGO_TENANTS`, so this is a **no-op on the cloud** (isolation there is schema-per-tenant, and shared-app tables are guarded by application-level `school=` filtering). It is real on a sovereign box. |
+| `0014_merge_*` | Two waves branched off `0009` in parallel — sync schedules and box pairing. Empty merge migration to give the app one leaf again. Renumbering either chain would have been wrong: `0010_syncschedule`/`0011_syncschedule_rls` are already on `main` and may be recorded in a deployed `django_migrations`, and renaming an APPLIED migration makes Django run it twice. |
+
+**Tests.** 36 new (8 DST, 5 ceiling precedence, 6 policy row + rail, 8 catch-up semantics,
+3 catch-up actually reaching `run_sync_cycle`, 6 surface). The three that matter most
+assert the WIRING, not the function: `should_catch_up` was never the bug.
+
+**Found and NOT fixed, with the measurement.** The RLS coverage gate
+(`scan_rls_force_coverage.py`) checks that an app's `migrations/` contains files matching
+`*_enable_rls_postgresql` and `*_rls_policy_default_deny` — an APP-level check. Those
+migrations enumerate specific tables (`0008` lists seven), so any new tenant-scoped table
+in an app that already has them passes automatically. Measured across the tree: **228
+tenant-scoped models have a table-level policy and 121 do not**, including
+`sync_engine_edgepairingrequest`, `sync_engine_pendingpushconfirmation` and
+`sync_engine_edgeclaimticket` from the pairing wave. This is a platform-wide pre-existing
+pattern rather than anything this wave introduced, it is a no-op on the cloud, and turning
+the gate table-level would redden CI on 121 findings — so it wants a ratchet-with-baseline
+introduction of its own, in the shape this repo already uses, not a silent change here.
+
+**Deliberately not built:** a DST switch (there is one right answer per direction);
+per-entity schedules; blackout windows; cloud→box push (it does not exist).
+
+---
+
+## 2026-08-20 — v4.06.74: a school can decide when its box syncs, and see when that will be
 
 SW `sms-v4.06.74-tenant-sync-schedules-2026-08-20`. Python, JS, one template partial and
 docs; no CSS changes. Full design: [`docs/EDGE_SYNC_SCHEDULES.md`](EDGE_SYNC_SCHEDULES.md).
