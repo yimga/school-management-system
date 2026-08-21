@@ -71952,3 +71952,237 @@ msgstr "Why it was held"
 
 msgid "class configuration"
 msgstr "class configuration"
+
+msgid ""
+"A 502 or 504 means the cloud's proxy answered but the application behind it "
+"did not. The usual cause is schema drift on THIS tenant: a synced table "
+"missing a column raises an error on every bundle build. On the cloud run "
+"“python manage.py check_edge_sync_deploy_readiness”, and on the box run "
+"“python manage.py verify_edge_link --http” to tell that apart from an "
+"unreachable host, a refused credential, or a missing endpoint."
+msgstr ""
+"A 502 or 504 means the cloud's proxy answered but the application behind it "
+"did not. The usual cause is schema drift on THIS tenant: a synced table "
+"missing a column raises an error on every bundle build. On the cloud run "
+"“python manage.py check_edge_sync_deploy_readiness”, and on the box run "
+"“python manage.py verify_edge_link --http” to tell that apart from an "
+"unreachable host, a refused credential, or a missing endpoint."
+
+msgid ""
+"A box on your school's network is asking to sync with this cloud. Approve it"
+" only if you recognise it — approving lets it read and write this school's "
+"records."
+msgstr ""
+"A box on your school's network is asking to sync with this cloud. Approve it"
+" only if you recognise it — approving lets it read and write this school's "
+"records."
+
+msgid "An audited session is required for {{ school }}."
+msgstr "An audited session is required for {{ school }}."
+
+msgid "Approve this box? It will be able to sync this school&#39;s records."
+msgstr "Approve this box? It will be able to sync this school&#39;s records."
+
+msgid "Ask a school administrator to switch it on in Feature Control."
+msgstr "Ask a school administrator to switch it on in Feature Control."
+
+msgid "Between scheduled syncs"
+msgstr "Between scheduled syncs"
+
+msgid "Box approved. It will finish pairing within a few seconds."
+msgstr "Box approved. It will finish pairing within a few seconds."
+
+msgid "Boxes waiting to pair"
+msgstr "Boxes waiting to pair"
+
+msgid "Catch up after a missed time"
+msgstr "Catch up after a missed time"
+
+msgid "Choose one of the listed check-in times."
+msgstr "Choose one of the listed check-in times."
+
+msgid "Control-plane access is required to open the API Center here."
+msgstr "Control-plane access is required to open the API Center here."
+
+msgid "Current pairing"
+msgstr "Current pairing"
+
+msgid "Enter this code in the school's cloud Sync Center:"
+msgstr "Enter this code in the school's cloud Sync Center:"
+
+msgid "Every 15 minutes — instructions arrive almost immediately"
+msgstr "Every 15 minutes — instructions arrive almost immediately"
+
+msgid "Every 3 hours"
+msgstr "Every 3 hours"
+
+msgid "Every 6 hours — instructions can take that long to arrive"
+msgstr "Every 6 hours — instructions can take that long to arrive"
+
+msgid "Every hour (recommended)"
+msgstr "Every hour (recommended)"
+
+msgid "Get a pairing code"
+msgstr "Get a pairing code"
+
+msgid ""
+"If the box was off or offline when a sync was due, sync once as soon as it "
+"is back instead of waiting for the next scheduled time."
+msgstr ""
+"If the box was off or offline when a sync was due, sync once as soon as it "
+"is back instead of waiting for the next scheduled time."
+
+msgid ""
+"Managing API keys, webhooks and integration credentials needs the Manage API"
+" Center permission. A school administrator can grant it from Roles & "
+"permissions."
+msgstr ""
+"Managing API keys, webhooks and integration credentials needs the Manage API"
+" Center permission. A school administrator can grant it from Roles & "
+"permissions."
+
+msgid "None needed — platform access is granted directly, not through a role."
+msgstr ""
+"None needed — platform access is granted directly, not through a role."
+
+msgid "Once a day — the longest allowed"
+msgstr "Once a day — the longest allowed"
+
+msgid "Pair this box"
+msgstr "Pair this box"
+
+msgid "Pair this box with its cloud"
+msgstr "Pair this box with its cloud"
+
+msgid "Paired"
+msgstr "Paired"
+
+msgid "Pairing code"
+msgstr "Pairing code"
+
+msgid "Pairing request denied."
+msgstr "Pairing request denied."
+
+msgid "Requested {{ when }} · expires {{ expires }}"
+msgstr "Requested {{ when }} · expires {{ expires }}"
+
+msgid "Save sync settings"
+msgstr "Save sync settings"
+
+msgid "Select your school to change sync settings."
+msgstr "Select your school to change sync settings."
+
+msgid "Start an audited session"
+msgstr "Start an audited session"
+
+msgid ""
+"Sync settings saved. They take effect on the box at its next sync — the "
+"cloud cannot contact a box directly."
+msgstr ""
+"Sync settings saved. They take effect on the box at its next sync — the "
+"cloud cannot contact a box directly."
+
+msgid ""
+"That box asked for a school this cloud does not recognise. Check the slug "
+"configured on the box."
+msgstr ""
+"That box asked for a school this cloud does not recognise. Check the slug "
+"configured on the box."
+
+msgid "That code belongs to a different school."
+msgstr "That code belongs to a different school."
+
+msgid "That pairing code does not match any request. Check the box's screen."
+msgstr "That pairing code does not match any request. Check the box's screen."
+
+msgid "That request has already been handled."
+msgstr "That request has already been handled."
+
+msgid "That request has expired. Start pairing again on the box."
+msgstr "That request has expired. Start pairing again on the box."
+
+msgid ""
+"The box always checks in from time to time, even outside your scheduled "
+"times. That is how instructions from support reach it — the cloud cannot "
+"contact a box directly."
+msgstr ""
+"The box always checks in from time to time, even outside your scheduled "
+"times. That is how instructions from support reach it — the cloud cannot "
+"contact a box directly."
+
+msgid ""
+"The cloud does not recognise this box's school. Check the slug configured on"
+" this box."
+msgstr ""
+"The cloud does not recognise this box's school. Check the slug configured on"
+" this box."
+
+msgid "The pairing request could not be updated."
+msgstr "The pairing request could not be updated."
+
+msgid "This box is not yet paired with a cloud tenant."
+msgstr "This box is not yet paired with a cloud tenant."
+
+msgid ""
+"This code expires {{ expires }}. Nothing is configured until an "
+"administrator approves it."
+msgstr ""
+"This code expires {{ expires }}. Nothing is configured until an "
+"administrator approves it."
+
+msgid "This school has not enabled the API Center."
+msgstr "This school has not enabled the API Center."
+
+msgid ""
+"This screen never asks for a password or a token. It shows a code that an "
+"administrator approves on the cloud."
+msgstr ""
+"This screen never asks for a password or a token. It shows a code that an "
+"administrator approves on the cloud."
+
+msgid "To pair this box with a different school, run"
+msgstr "To pair this box with a different school, run"
+
+msgid "Turn it on in Feature Control"
+msgstr "Turn it on in Feature Control"
+
+msgid "Twice a day — slowest; the box is nearly unreachable between check-ins"
+msgstr ""
+"Twice a day — slowest; the box is nearly unreachable between check-ins"
+
+msgid "Waiting for approval…"
+msgstr "Waiting for approval…"
+
+msgid "You do not have permission to approve a box for this school."
+msgstr "You do not have permission to approve a box for this school."
+
+msgid "You do not have permission to open the API Center."
+msgstr "You do not have permission to open the API Center."
+
+msgid ""
+"You were sent back here from that tenant. Operator access to tenant data "
+"goes through the signed impersonation flow so it can be recorded — start a "
+"session and continue where you left off."
+msgstr ""
+"You were sent back here from that tenant. Operator access to tenant data "
+"goes through the signed impersonation flow so it can be recorded — start a "
+"session and continue where you left off."
+
+msgid ""
+"Your account is entitled to this surface. The API Center is a tenant feature"
+" switch rather than a permission, and it is currently switched off for this "
+"school."
+msgstr ""
+"Your account is entitled to this surface. The API Center is a tenant feature"
+" switch rather than a permission, and it is currently switched off for this "
+"school."
+
+msgid ""
+"on the box. That requires shell access on this machine — being on the "
+"network is not enough."
+msgstr ""
+"on the box. That requires shell access on this machine — being on the "
+"network is not enough."
+
+msgid "{{ count }} waiting{% plural %}{{ count }} waiting"
+msgstr "{{ count }} waiting{% plural %}{{ count }} waiting"

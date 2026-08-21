@@ -39,21 +39,103 @@ def _apicenter_back_action(request):
     return reverse("accounts:backend_dashboard"), _("Back to dashboard")
 
 
-def _api_center_allowed(request):
-    """Allow manager-host operators by control-plane access alone; tenant access additionally requires the enable_api_center flag and api_center.manage permission (or ADMIN/IT_ADMIN)."""
-    if getattr(request, "public_host_kind", None) == "manager":
-        return user_has_control_plane_access(getattr(request, "user", None))
-    flags = get_effective_flags(request)
-    if not flags.get("enable_api_center", False):
-        return False
-    if getattr(request.user, "is_superuser", False):
+#: Why the API Center said no. These are three DIFFERENT KINDS of refusal and
+#: they must never share one sentence. The page used to answer every one of them
+#: with "API Center is disabled or you do not have permission." -- a single
+#: string covering a tenant configuration fact, a missing grant, and a
+#: manager-host isolation rule at once. For a platform superadmin, who holds
+#: every permission code there is, the "or you do not have permission" half was
+#: not merely unhelpful, it was untrue.
+API_CENTER_OK = ""
+#: Manager host, actor is not a platform operator at all.
+API_CENTER_DENY_CONTROL_PLANE = "control-plane"
+#: Tenant host, actor may not use this surface.
+API_CENTER_DENY_PERMISSION = "permission"
+#: Tenant host, actor MAY use this surface -- the school has not switched it on.
+API_CENTER_DENY_DISABLED = "disabled"
+
+
+def _has_api_center_authority(user):
+    """May this account use the API Center at all, ignoring the tenant's switch?
+
+    ``has_feature_permission`` already answers True for a platform superadmin on
+    any code (see apps/accounts/superadmin.py), so god-mode needs no special case
+    here -- adding one would be a second resolver to drift out of step with the
+    first.
+    """
+    if getattr(user, "is_superuser", False):
         return True
-    if getattr(request.user, "has_feature_permission", lambda _: False)(
+    if getattr(user, "has_feature_permission", lambda _code: False)(
         "api_center.manage"
     ):
         return True
-    role = (getattr(request.user, "role", "") or "").upper()
+    role = (getattr(user, "role", "") or "").upper()
     return role in ("ADMIN", "IT_ADMIN")
+
+
+def _api_center_denial_reason(request):
+    """Return API_CENTER_OK, or the specific reason this request is refused.
+
+    Authority is checked BEFORE the tenant flag, which is a deliberate ordering
+    on two counts. It keeps the tenant's configuration from leaking to someone
+    with no business on the surface, and it means an account that IS entitled to
+    the API Center -- a superadmin above all -- is never told it lacks
+    permission when the real answer is that the school has not enabled it.
+    """
+    user = getattr(request, "user", None)
+    if getattr(request, "public_host_kind", None) == "manager":
+        if user_has_control_plane_access(user):
+            return API_CENTER_OK
+        return API_CENTER_DENY_CONTROL_PLANE
+    if not _has_api_center_authority(user):
+        return API_CENTER_DENY_PERMISSION
+    if not get_effective_flags(request).get("enable_api_center", False):
+        return API_CENTER_DENY_DISABLED
+    return API_CENTER_OK
+
+
+def _api_center_allowed(request):
+    """Boolean form of :func:`_api_center_denial_reason`, kept for readability."""
+    return _api_center_denial_reason(request) == API_CENTER_OK
+
+
+def _api_center_denied(request):
+    """The refusal, worded for the reason it actually happened.
+
+    A tenant feature switch is not a permission. When the school has simply not
+    turned the API Center on, this says so and -- for an actor who can flip it --
+    hands them the switch instead of a dead end.
+    """
+    reason = _api_center_denial_reason(request)
+    if reason == API_CENTER_DENY_CONTROL_PLANE:
+        return HttpResponseForbidden(
+            _("Control-plane access is required to open the API Center here.")
+        )
+    user = getattr(request, "user", None)
+    feature_control_url = None
+    if reason == API_CENTER_DENY_DISABLED and getattr(
+        user, "has_feature_permission", lambda _code: False
+    )("settings.feature_control"):
+        try:
+            feature_control_url = reverse("siteconfig:feature_control_panel")
+        except NoReverseMatch:
+            feature_control_url = None
+    # A refusal page must never be the thing that 500s.
+    try:
+        back_url = _apicenter_back_action(request)[0]
+    except NoReverseMatch:
+        back_url = None
+    return render(
+        request,
+        "apicenter/api_center_unavailable.html",
+        {
+            "reason": reason,
+            "is_disabled": reason == API_CENTER_DENY_DISABLED,
+            "feature_control_url": feature_control_url,
+            "back_url": back_url,
+        },
+        status=403,
+    )
 
 
 @login_required
@@ -62,9 +144,7 @@ def _api_center_allowed(request):
 def api_center_dashboard(request):
     """List all Integrations (one module); toggle enabled with reason; audit log."""
     if not _api_center_allowed(request):
-        return HttpResponseForbidden(
-            "API Center is disabled or you do not have permission."
-        )
+        return _api_center_denied(request)
     school = getattr(request, "school", None)
     if school is None and getattr(request, "public_host_kind", None) != "manager":
         return HttpResponseForbidden("School context required.")
@@ -182,9 +262,7 @@ def api_center_dashboard(request):
 def api_center_toggle(request, slug):
     """Toggle Integration.enabled; require reason. Write to APIAuditLog."""
     if not _api_center_allowed(request):
-        return HttpResponseForbidden(
-            "You do not have permission to manage the API Center."
-        )
+        return _api_center_denied(request)
     school = getattr(request, "school", None)
     if school is None and getattr(request, "public_host_kind", None) != "manager":
         return HttpResponseForbidden("School context required.")
@@ -226,9 +304,7 @@ def api_center_toggle(request, slug):
 def api_portal_docs(request):
     """Developer platform documentation and onboarding portal."""
     if not _api_center_allowed(request):
-        return HttpResponseForbidden(
-            "API Center is disabled or you do not have permission."
-        )
+        return _api_center_denied(request)
     return render(request, "apicenter/api_portal_docs.html", {})
 
 
@@ -237,9 +313,7 @@ def api_portal_docs(request):
 def webhook_docs(request):
     """Developer platform (8.1): webhook docs and subscription list UI."""
     if not _api_center_allowed(request):
-        return HttpResponseForbidden(
-            "API Center is disabled or you do not have permission."
-        )
+        return _api_center_denied(request)
     from apps.events.models import WebhookSubscription
 # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
 
@@ -260,9 +334,7 @@ def webhook_docs(request):
 def api_keys(request):
     """Developer platform (8.1): List API keys. Create via api_key_create (POST); revoke via api_key_revoke (POST)."""
     if not _api_center_allowed(request):
-        return HttpResponseForbidden(
-            "API Center is disabled or you do not have permission."
-        )
+        return _api_center_denied(request)
     school = getattr(request, "school", None)
     qs = APIKey.objects.select_related("created_by", "school").order_by("-created_at")
     if school is not None:
@@ -291,9 +363,7 @@ def api_keys(request):
 def api_key_create(request):
     """Create an API key; show raw secret once in session, then redirect to keys list."""
     if not _api_center_allowed(request):
-        return HttpResponseForbidden(
-            "API Center is disabled or you do not have permission."
-        )
+        return _api_center_denied(request)
     school = getattr(request, "school", None)
     if school is None and getattr(request, "public_host_kind", None) != "manager":
         return HttpResponseForbidden("School context required.")
@@ -326,9 +396,7 @@ def api_key_create(request):
 def api_key_revoke(request, key_id):
     """Revoke an API key (set revoked_at)."""
     if not _api_center_allowed(request):
-        return HttpResponseForbidden(
-            "API Center is disabled or you do not have permission."
-        )
+        return _api_center_denied(request)
     # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
     school = getattr(request, "school", None)
     qs = APIKey.objects.all()
@@ -356,9 +424,7 @@ def webhook_subscription_list(request):
 def webhook_subscription_create(request):
     """Create webhook subscription (8.1). GET: form; POST: create."""
     if not _api_center_allowed(request):
-        return HttpResponseForbidden(
-            "API Center is disabled or you do not have permission."
-        )
+        return _api_center_denied(request)
     from apps.events.models import WebhookSubscription
 
     school = getattr(request, "school", None)
@@ -399,9 +465,7 @@ def webhook_subscription_create(request):
 def webhook_subscription_edit(request, pk: int):
     """Edit webhook subscription (8.1). GET: form; POST: save."""
     if not _api_center_allowed(request):
-        return HttpResponseForbidden(
-            "API Center is disabled or you do not have permission."
-        )
+        return _api_center_denied(request)
     from apps.events.models import WebhookSubscription
 # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
 
@@ -442,9 +506,7 @@ def webhook_subscription_edit(request, pk: int):
 def webhook_subscription_delete(request, pk: int):
     """Delete webhook subscription (8.1)."""
     if not _api_center_allowed(request):
-        return HttpResponseForbidden(
-            "API Center is disabled or you do not have permission."
-        )
+        return _api_center_denied(request)
     # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
     from apps.events.models import WebhookSubscription
 
@@ -465,9 +527,7 @@ def webhook_subscription_delete(request, pk: int):
 def sdk_docs(request):
     """SDK and language-neutral REST client guidance."""
     if not _api_center_allowed(request):
-        return HttpResponseForbidden(
-            "API Center is disabled or you do not have permission."
-        )
+        return _api_center_denied(request)
     return render(request, "apicenter/sdk_docs.html", {})
 
 
@@ -476,9 +536,7 @@ def sdk_docs(request):
 def app_certification(request):
     """Marketplace app certification requirements."""
     if not _api_center_allowed(request):
-        return HttpResponseForbidden(
-            "API Center is disabled or you do not have permission."
-        )
+        return _api_center_denied(request)
     return render(request, "apicenter/app_certification.html", {})
 
 
@@ -487,7 +545,5 @@ def app_certification(request):
 def partner_sandbox(request):
     """Partner sandbox operating and data-handling requirements."""
     if not _api_center_allowed(request):
-        return HttpResponseForbidden(
-            "API Center is disabled or you do not have permission."
-        )
+        return _api_center_denied(request)
     return render(request, "apicenter/partner_sandbox.html", {})
