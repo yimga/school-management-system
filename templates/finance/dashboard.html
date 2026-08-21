@@ -25,7 +25,25 @@
 {% firstof center_eyebrow money_eyebrow as money_frame_eyebrow %}
 {% firstof center_purpose money_purpose as money_frame_purpose %}
 {% include "components/rmc_os_page_header.html" with os_center_key="money_center" center_eyebrow=money_frame_eyebrow center_title=center_title|default:_("Money Center") center_purpose=money_frame_purpose %}
+{% comment %}
+Phase 7 decision surface. The 2026-08-02 consolidation did not DELETE this
+page's decision surface -- it MERGED it into the masthead, which already carries
+the headline, the urgent signal (overdue / access-request chips) and the next
+actions (Open invoices / Payment readiness). What it removed was the separate
+decision-engine band, whose metrics were a literal re-projection of the hero
+band, restating the masthead a second time and the ticker a third.
+So this marks the band that IS the decision surface rather than re-adding a
+duplicate one. The attribute value is deliberately NOT the one that removed
+partial emitted, and that band stays gone -- sealed by
+apps/finance/tests/test_finance_dashboard_consolidation_2026_08_02.py.
+NOTE: this uses a comment BLOCK deliberately. Django only strips the short
+hash-brace comment form when it sits on ONE line; spanning several lines makes
+it render into the page as literal text. That is how the first attempt at this
+note leaked the sealed strings into the DOM and tripped the consolidation seal.
+{% endcomment %}
+<div data-decision-engine="masthead" data-decision-zone="headline">
 {% include "components/rmc_page_masthead.html" %}
+</div>
 {% if show_module_inline_help_assistant and show_kb_ai_assistant_panel %}
 {% include "partials/help_module_inline_assistant.html" %}
 {% endif %}
