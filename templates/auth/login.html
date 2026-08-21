@@ -16,7 +16,7 @@
 {% block footer %}{% endblock %}
 
 {% block extrastyle_tail %}
-  <link rel="stylesheet" href="{% static 'css/auth-login-canvas.css' %}?v=20260816.5">
+  <link rel="stylesheet" href="{% static 'css/auth-login-canvas.css' %}?v=20260818.1">
 {% endblock %}
 
 {% block content %}
@@ -38,8 +38,11 @@
      data-rmc-local-first="{% if immersive.local_first_enabled %}1{% else %}0{% endif %}"
      data-rmc-cache-safe="{% if immersive.local_first_cache_safe %}1{% else %}0{% endif %}"
      data-rmc-hide-sponsored-offline="{% if immersive.hide_sponsored_offline %}1{% else %}0{% endif %}"
+     data-rmc-front-door-contract="12"
      data-rmc-passkey-options-url="{% url 'accounts:passkey_login_options' %}"
      data-rmc-passkey-verify-url="{% url 'accounts:passkey_login_verify' %}"
+     data-rmc-verified-host="{{ request.get_host }}"
+     data-rmc-verified-school="{% if LOGIN_SCHOOL_NAME %}{{ LOGIN_SCHOOL_NAME }}{% elif PUBLIC_BRAND_MODE %}{{ PUBLIC_BRAND_NAME }}{% else %}{{ SITE.site_name|default:'' }}{% endif %}"
      {% if immersive.compact_on_short_viewport %}data-rmc-login-compact="1"{% endif %}
      data-preview-label="{% trans 'Immersive login' %}"
      data-preview-default-label="{{ immersive.role_preview_labels.default }}"
@@ -116,7 +119,7 @@
               {% if is_manager_host %}RunMyCampus{% elif PUBLIC_BRAND_MODE %}{{ PUBLIC_BRAND_NAME }}{% elif LOGIN_SCHOOL_NAME %}{{ LOGIN_SCHOOL_NAME }}{% else %}{{ SITE.site_name|default:"School portal" }}{% endif %}
             </p>
           </div>
-          <span class="rmc-auth-immersive__secure-state" data-rmc-auth-network-status role="status">{% if LOGIN_SCHOOL_NAME %}{% trans "Verified school" %}{% else %}{% trans "Secure" %}{% endif %}</span>
+          <span class="rmc-auth-immersive__secure-state" data-rmc-auth-network-status data-rmc-offline-label="{% trans 'Offline · local view' %}" role="status">{% if LOGIN_SCHOOL_NAME %}{% trans "Verified school" %}{% else %}{% trans "Secure" %}{% endif %}</span>
         </header>
 
         <div class="rmc-auth-immersive__step-labels" aria-hidden="true">
@@ -133,14 +136,25 @@
           <h2 class="rmc-auth-immersive__step-title">{% trans "How are you joining today?" %}</h2>
           <p class="rmc-auth-immersive__sub">{% trans "Pick the door that matches you — the preview on the left updates as you hover." %}</p>
           <div class="rmc-auth-immersive__returning" data-rmc-returning-user hidden>
-            <span><small>{% trans "Saved on this device" %}</small><strong data-rmc-returning-label>{% trans "Continue with your last role" %}</strong></span>
-            <button type="button" data-rmc-returning-continue>{% trans "Continue" %}</button>
+            <span>
+              <small>{% trans "Saved on this device" %}</small>
+              <strong data-rmc-returning-label>{% trans "Continue with your last role" %}</strong>
+              <small>{% trans "Recognized trusted device — no name or email is stored here." %}</small>
+            </span>
+            <div class="rmc-auth-immersive__returning-actions">
+              <button type="button" class="rmc-auth-immersive__passkey-primary" data-rmc-passkey-login>
+                <span aria-hidden="true"><i class="bi bi-fingerprint"></i></span>
+                <span><strong>{% trans "Use passkey" %}</strong><small>{% trans "Face, fingerprint, or device PIN" %}</small></span>
+              </button>
+              <button type="button" data-rmc-returning-continue>{% trans "Continue" %}</button>
+            </div>
           </div>
-          <button type="button" class="rmc-auth-immersive__passkey-primary" data-rmc-passkey-login>
+          <button type="button" class="rmc-auth-immersive__passkey-primary" data-rmc-passkey-login data-rmc-passkey-standalone>
             <span aria-hidden="true"><i class="bi bi-fingerprint"></i></span>
             <span><strong>{% trans "Sign in with this device" %}</strong><small>{% trans "Passkey — no password to type" %}</small></span>
           </button>
           <p class="rmc-auth-immersive__passkey-status" data-rmc-passkey-status role="status" aria-live="polite"></p>
+          <h3 class="rmc-auth-immersive__other-roles" data-rmc-other-roles-title hidden>{% trans "Or choose another role" %}</h3>
           <div class="rmc-auth-immersive__role-list" role="group" aria-label="{% trans 'Sign-in role' %}">
             <button type="button" class="rmc-auth-immersive__role-row{% if post_role == 'staff' %} is-picked{% endif %}" data-rmc-auth-role="staff" data-rmc-auth-role-title="{{ TENANT_LABELS.staff|default:'Staff' }}">
               <span class="rmc-auth-immersive__role-row-ico" aria-hidden="true">🎓</span>
@@ -154,7 +168,7 @@
               <span class="rmc-auth-immersive__role-row-ico" aria-hidden="true">👨‍👩‍👧</span>
               <span class="rmc-auth-immersive__role-row-txt">
                 <strong>{{ TENANT_LABELS.parent|default:"Parent" }} / {% trans "guardian" %}</strong>
-                <small>{% trans "Fees, report cards, and messages — invite required first time" %}</small>
+                <small>{% trans "Magic link, passkey, or invite" %}</small>
               </span>
               <span class="rmc-auth-immersive__role-row-chev" aria-hidden="true">›</span>
             </button>
@@ -162,31 +176,16 @@
               <span class="rmc-auth-immersive__role-row-ico" aria-hidden="true">📚</span>
               <span class="rmc-auth-immersive__role-row-txt">
                 <strong>{{ TENANT_LABELS.student|default:"Student" }}</strong>
-                <small>{% trans "Homework, schedule, and report cards" %}</small>
+                <small>{% trans "School ID, passkey, or email" %}</small>
               </span>
               <span class="rmc-auth-immersive__role-row-chev" aria-hidden="true">›</span>
             </button>
           </div>
 
-          {% if LOGIN_SSO_INTEGRATIONS or saml_login_initiator.available %}
-          <div class="rmc-auth-immersive__sso-block">
-            <span class="rmc-auth-immersive__sso-lbl">{% trans "Or sign in instantly" %}</span>
-            <div class="rmc-auth-immersive__sso">
-              {% for item in LOGIN_SSO_INTEGRATIONS %}
-                <a href="{{ item.url }}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}">{{ item.label }}</a>
-              {% endfor %}
-              {% if saml_login_initiator.available %}
-                <a href="{{ saml_login_initiator.start_url }}" data-rmc-saml-sso-button="1" rel="nofollow">{{ saml_login_initiator.label }}</a>
-              {% endif %}
-            </div>
-          </div>
-          {% endif %}
-
           <div class="rmc-auth-immersive__trust-in" aria-label="{% trans 'Security highlights' %}">
-            <span>{% trans "FERPA-safe" %}</span>
-            <span>{% trans "Encrypted" %}</span>
-            <span>{% trans "SSO ready" %}</span>
-            <span>{% trans "No school name as username" %}</span>
+            <span>{% trans "Phishing resistant" %}</span>
+            <span>{% trans "WCAG 2.2" %}</span>
+            <span>{% trans "No student data shown" %}</span>
           </div>
 
           {% if not is_manager_host %}
@@ -210,8 +209,24 @@
           <h2 class="rmc-auth-immersive__step-title">{% trans "Sign in securely" %}</h2>
           <p class="rmc-auth-immersive__sub">{% blocktrans %}Use <strong data-rmc-auth-picked-role>{{ TENANT_LABELS.staff|default:"Staff" }}</strong> credentials — school email, not the school name.{% endblocktrans %}</p>
 
+          <div class="rmc-auth-immersive__role-methods" data-rmc-role-methods="staff" hidden>
+            <span>{% trans "Staff" %}</span>
+            <small>{% trans "Passkey · SSO · password · MFA when the school requires it" %}</small>
+          </div>
+          <div class="rmc-auth-immersive__role-methods" data-rmc-role-methods="parent" hidden>
+            <span>{% trans "Parent / guardian" %}</span>
+            <small>{% trans "Magic link · invite · passkey" %}</small>
+            <a href="{% url 'accounts:magic_link_request' %}">{% trans "Email me a sign-in link" %}</a>
+            {% if portal_claim_url %}<a href="{{ portal_claim_url }}">{% trans "Claim an invite" %}</a>{% endif %}
+          </div>
+          <div class="rmc-auth-immersive__role-methods" data-rmc-role-methods="student" hidden>
+            <span>{% trans "Student" %}</span>
+            <small>{% trans "School ID or email · passkey on a trusted device" %}</small>
+          </div>
+
           {% if LOGIN_SSO_INTEGRATIONS or saml_login_initiator.available %}
-          <div class="rmc-auth-immersive__sso">
+          <div class="rmc-auth-immersive__sso" data-rmc-staff-sso>
+            <span class="rmc-auth-immersive__sso-lbl">{% trans "Staff single sign-on" %}</span>
             {% for item in LOGIN_SSO_INTEGRATIONS %}
               <a href="{{ item.url }}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}">{{ item.label }}</a>
             {% endfor %}
@@ -219,12 +234,15 @@
               <a href="{{ saml_login_initiator.start_url }}" data-rmc-saml-sso-button="1" rel="nofollow">{{ saml_login_initiator.label }}</a>
             {% endif %}
           </div>
-          <div class="rmc-auth-immersive__divider">{% trans "or email" %}</div>
+          <div class="rmc-auth-immersive__divider" data-rmc-staff-sso>{% trans "or email" %}</div>
           {% endif %}
 
           <div class="mb-3">
-            <label class="form-label" for="login-username">{% trans "Email or username" %}</label>
-            <input id="login-username" class="form-control" type="text" name="username" autocomplete="username" value="{{ request.POST.username|default:'' }}" placeholder="{{ LOGIN_EMAIL_PLACEHOLDER|default:'School Email' }}" required{% if request.method == 'POST' %} autofocus{% endif %}>
+            <label class="form-label" for="login-username" data-rmc-username-label>{% trans "Email or username" %}</label>
+            <input id="login-username" class="form-control" type="text" name="username" autocomplete="username" value="{{ request.POST.username|default:'' }}" placeholder="{{ LOGIN_EMAIL_PLACEHOLDER|default:'School Email' }}" required{% if request.method == 'POST' %} autofocus{% endif %}
+                   data-rmc-username-staff="{% trans 'Email or username' %}"
+                   data-rmc-username-parent="{% trans 'Email' %}"
+                   data-rmc-username-student="{% trans 'School ID or email' %}">
           </div>
           {% trans "Password" as login_password_label %}
           {% include "components/rmc_password_field.html" with field_id="login-password" field_name="password" label=login_password_label autocomplete="current-password" %}
@@ -334,16 +352,47 @@
 </div>
 {% endwith %}
 
-<dialog class="rmc-auth-assistant" data-rmc-access-assistant aria-labelledby="rmc-access-assistant-title">
+<dialog class="rmc-auth-assistant" data-rmc-access-assistant aria-labelledby="rmc-access-assistant-title"
+        data-rmc-answer-parent="{% trans 'Choose Parent / guardian, then use a magic link, invite, or passkey. Private fees and report cards appear only after sign-in.' %}"
+        data-rmc-answer-invite="{% trans 'Use Claim an invite with the email, SMS, or WhatsApp token from the school. We never confirm whether an unrelated account exists.' %}"
+        data-rmc-answer-offline="{% trans 'Previously authorized devices can use cached notices and approved local tools. Finance, payroll, configuration, and private records require a verified online session.' %}"
+        data-rmc-answer-hours="{% trans 'Campus hours and closures that the school published for this doorway appear on the left. Private schedules stay behind sign-in.' %}"
+        data-rmc-answer-why="{% trans 'This page is the public doorway for the school bound to this web address. If it is the wrong school, use Find the correct school workspace.' %}"
+        data-rmc-answer-locked="{% trans 'If a school locks an account, only that school’s office can unlock it. This page will not confirm whether a username exists.' %}"
+        data-rmc-answer-unknown="{% trans 'I can help with sign-in, invites, offline access, and this school’s public doorway — not private student or account records.' %}"
+        data-rmc-i18n-continue-as="{% trans 'Continue as' %}"
+        data-rmc-i18n-passkey-wait="{% trans 'Waiting for your device…' %}"
+        data-rmc-i18n-passkey-ok="{% trans 'Verified. Opening your school workspace…' %}"
+        data-rmc-i18n-passkey-unsupported="{% trans 'This browser does not support passkeys. Use email, SSO, or password.' %}">
   <form method="dialog" class="rmc-auth-assistant__head"><strong id="rmc-access-assistant-title">{% trans "School access support" %}</strong><button value="close" aria-label="{% trans 'Close' %}">&times;</button></form>
   <div class="rmc-auth-assistant__body">
     <p>{% trans "Choose the issue you want to solve. No private account or student information is exposed before sign-in." %}</p>
-    <a href="{% url 'accounts:magic_link_request' %}">{% trans "I need a passwordless email link" %}</a>
-    <a href="{{ password_reset_url }}">{% trans "I forgot my password or changed devices" %}</a>
-    {% if portal_claim_url %}<a href="{{ portal_claim_url }}">{% trans "My child is not linked / claim an invite" %}</a>{% endif %}
-    <a href="{{ public_site_url|default:'https://runmycampus.com' }}/discover/">{% trans "I joined the wrong school" %}</a>
+    <div class="rmc-auth-assistant__prompts" data-rmc-assistant-prompts>
+      <button type="button" data-rmc-assistant-prompt="parent">{% trans "How do I sign in as a parent?" %}</button>
+      <button type="button" data-rmc-assistant-prompt="invite">{% trans "I cannot find my invitation" %}</button>
+      <button type="button" data-rmc-assistant-prompt="offline">{% trans "Can I continue offline?" %}</button>
+      <button type="button" data-rmc-assistant-prompt="hours">{% trans "Is the school open today?" %}</button>
+      <button type="button" data-rmc-assistant-prompt="why">{% trans "Why am I seeing this school?" %}</button>
+    </div>
+    <label class="rmc-auth-assistant__label" for="rmc-recovery-problem">{% trans "What stopped you?" %}</label>
+    <select id="rmc-recovery-problem" data-rmc-recovery-problem>
+      <option value="">{% trans "Select a problem" %}</option>
+      <option value="phone">{% trans "I changed my phone" %}</option>
+      <option value="passkey">{% trans "I lost my passkey device" %}</option>
+      <option value="child">{% trans "My child is not linked" %}</option>
+      <option value="school">{% trans "I joined the wrong school" %}</option>
+      <option value="locked">{% trans "My account is locked" %}</option>
+    </select>
+    <a href="{% url 'accounts:magic_link_request' %}" data-rmc-recovery-action="phone" hidden>{% trans "Email a recovery link for this device" %}</a>
+    <a href="{{ password_reset_url }}" data-rmc-recovery-action="passkey" hidden>{% trans "Revoke access and recover with a reset link" %}</a>
+    {% if portal_claim_url %}<a href="{{ portal_claim_url }}" data-rmc-recovery-action="child" hidden>{% trans "Open guardian linking / claim an invite" %}</a>{% endif %}
+    <a href="{{ public_site_url|default:'https://runmycampus.com' }}/discover/" data-rmc-recovery-action="school" hidden>{% trans "Find the correct school workspace" %}</a>
+    <button type="button" data-rmc-recovery-action="locked" hidden>{% trans "How to unlock a locked account" %}</button>
     <button type="button" data-rmc-offline-continuity>{% trans "Can I continue during an outage?" %}</button>
+    <label class="rmc-auth-assistant__label" for="rmc-assistant-ask">{% trans "Ask a public access question" %}</label>
+    <input id="rmc-assistant-ask" data-rmc-assistant-ask maxlength="200" autocomplete="off" placeholder="{% trans 'Ask a public access question…' %}">
     <p class="rmc-auth-assistant__answer" data-rmc-assistant-answer role="status"></p>
+    <p class="rmc-auth-assistant__note">{% trans "No private student or account information is available before sign-in." %}</p>
   </div>
 </dialog>
 
@@ -362,5 +411,5 @@
 {% include "components/rmc_password_toggle_script.html" %}
 <script src="{% static 'js/rmc-offline-auth-vault.js' %}"></script>
 <script src="{% static 'js/rmc-offline-login-unlock.js' %}" defer></script>
-<script src="{% static 'js/rmc-auth-login-immersive.js' %}?v=20260816.4" defer></script>
+<script src="{% static 'js/rmc-auth-login-immersive.js' %}?v=20260818.1" defer></script>
 {% endblock %}

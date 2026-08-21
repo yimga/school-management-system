@@ -4733,7 +4733,7 @@ def login_view(request):
     context["is_operator_login_surface"] = operator_login_surface
     if not operator_login_surface:
         context["post_role"] = (
-            request.POST.get("role") or request.GET.get("role") or "staff"
+            request.POST.get("role") or request.GET.get("role") or ""
         )
         try:
             from apps.accounts.login_immersive_context import build_login_immersive_context

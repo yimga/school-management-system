@@ -70645,3 +70645,184 @@ msgstr "Your school's sector — Public, Private, International, and so on."
 
 msgid "— Not set —"
 msgstr "— Not set —"
+
+msgid "Ask a public access question"
+msgstr "Ask a public access question"
+
+msgid "Ask a public access question…"
+msgstr "Ask a public access question…"
+
+msgid ""
+"Campus hours and closures that the school published for this doorway appear "
+"on the left. Private schedules stay behind sign-in."
+msgstr ""
+"Campus hours and closures that the school published for this doorway appear "
+"on the left. Private schedules stay behind sign-in."
+
+msgid "Campus routes and timing after sign-in"
+msgstr "Campus routes and timing after sign-in"
+
+msgid "Campus status"
+msgstr "Campus status"
+
+msgid "Can I continue offline?"
+msgstr "Can I continue offline?"
+
+msgid ""
+"Choose Parent / guardian, then use a magic link, invite, or passkey. Private"
+" fees and report cards appear only after sign-in."
+msgstr ""
+"Choose Parent / guardian, then use a magic link, invite, or passkey. Private"
+" fees and report cards appear only after sign-in."
+
+msgid "Continue as"
+msgstr "Continue as"
+
+msgid "Current notices · cached locally when allowed"
+msgstr "Current notices · cached locally when allowed"
+
+msgid "Email a recovery link for this device"
+msgstr "Email a recovery link for this device"
+
+msgid "Face, fingerprint, or device PIN"
+msgstr "Face, fingerprint, or device PIN"
+
+msgid "Find the correct school workspace"
+msgstr "Find the correct school workspace"
+
+msgid "How do I sign in as a parent?"
+msgstr "How do I sign in as a parent?"
+
+msgid "How to unlock a locked account"
+msgstr "How to unlock a locked account"
+
+msgid ""
+"I can help with sign-in, invites, offline access, and this school’s public "
+"doorway — not private student or account records."
+msgstr ""
+"I can help with sign-in, invites, offline access, and this school’s public "
+"doorway — not private student or account records."
+
+msgid "I cannot find my invitation"
+msgstr "I cannot find my invitation"
+
+msgid "I changed my phone"
+msgstr "I changed my phone"
+
+msgid "I lost my passkey device"
+msgstr "I lost my passkey device"
+
+msgid ""
+"If a school locks an account, only that school’s office can unlock it. This "
+"page will not confirm whether a username exists."
+msgstr ""
+"If a school locks an account, only that school’s office can unlock it. This "
+"page will not confirm whether a username exists."
+
+msgid "Is the school open today?"
+msgstr "Is the school open today?"
+
+msgid "Magic link · invite · passkey"
+msgstr "Magic link · invite · passkey"
+
+msgid "Magic link, passkey, or invite"
+msgstr "Magic link, passkey, or invite"
+
+msgid "My account is locked"
+msgstr "My account is locked"
+
+msgid "My child is not linked"
+msgstr "My child is not linked"
+
+msgid "No private student or account information is available before sign-in."
+msgstr ""
+"No private student or account information is available before sign-in."
+
+msgid "No student data shown"
+msgstr "No student data shown"
+
+msgid "Offline · local view"
+msgstr "Offline · local view"
+
+msgid "Open guardian linking / claim an invite"
+msgstr "Open guardian linking / claim an invite"
+
+msgid "Open · support hours on this school"
+msgstr "Open · support hours on this school"
+
+msgid "Or choose another role"
+msgstr "Or choose another role"
+
+msgid "Passkey · SSO · password · MFA when the school requires it"
+msgstr "Passkey · SSO · password · MFA when the school requires it"
+
+msgid "Phishing resistant"
+msgstr "Phishing resistant"
+
+msgid ""
+"Previously authorized devices can use cached notices and approved local "
+"tools. Finance, payroll, configuration, and private records require a "
+"verified online session."
+msgstr ""
+"Previously authorized devices can use cached notices and approved local "
+"tools. Finance, payroll, configuration, and private records require a "
+"verified online session."
+
+msgid "Recognized trusted device — no name or email is stored here."
+msgstr "Recognized trusted device — no name or email is stored here."
+
+msgid "Revoke access and recover with a reset link"
+msgstr "Revoke access and recover with a reset link"
+
+msgid "School ID or email"
+msgstr "School ID or email"
+
+msgid "School ID or email · passkey on a trusted device"
+msgstr "School ID or email · passkey on a trusted device"
+
+msgid "School ID, passkey, or email"
+msgstr "School ID, passkey, or email"
+
+msgid "School announcements"
+msgstr "School announcements"
+
+msgid "Select a problem"
+msgstr "Select a problem"
+
+msgid "Staff single sign-on"
+msgstr "Staff single sign-on"
+
+msgid "This browser does not support passkeys. Use email, SSO, or password."
+msgstr "This browser does not support passkeys. Use email, SSO, or password."
+
+msgid ""
+"This page is the public doorway for the school bound to this web address. If"
+" it is the wrong school, use Find the correct school workspace."
+msgstr ""
+"This page is the public doorway for the school bound to this web address. If"
+" it is the wrong school, use Find the correct school workspace."
+
+msgid ""
+"Use Claim an invite with the email, SMS, or WhatsApp token from the school. "
+"We never confirm whether an unrelated account exists."
+msgstr ""
+"Use Claim an invite with the email, SMS, or WhatsApp token from the school. "
+"We never confirm whether an unrelated account exists."
+
+msgid "Use passkey"
+msgstr "Use passkey"
+
+msgid "Verified. Opening your school workspace…"
+msgstr "Verified. Opening your school workspace…"
+
+msgid "WCAG 2.2"
+msgstr "WCAG 2.2"
+
+msgid "Waiting for your device…"
+msgstr "Waiting for your device…"
+
+msgid "What stopped you?"
+msgstr "What stopped you?"
+
+msgid "Why am I seeing this school?"
+msgstr "Why am I seeing this school?"

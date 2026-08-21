@@ -47,8 +47,25 @@ class LoginFrontDoorTwelveContractTests(SimpleTestCase):
         announcements = (base / "apps/communication/models.py").read_text(encoding="utf-8")
         offline = (base / "static/js/rmc-offline-auth-vault.js").read_text(encoding="utf-8")
         css = (base / "static/css/auth-login-canvas.css").read_text(encoding="utf-8")
-        for marker in ("data-rmc-passkey-login", "data-rmc-returning-user", "Verified school", "data-rmc-access-assistant"):
+        for marker in (
+            "data-rmc-passkey-login",
+            "data-rmc-returning-user",
+            "data-rmc-returning-continue",
+            "data-rmc-role-methods",
+            "data-rmc-recovery-problem",
+            "data-rmc-front-door-contract",
+            "data-rmc-verified-host",
+            "data-rmc-assistant-ask",
+            "Verified school",
+            "Why am I seeing this school?",
+            "WCAG 2.2",
+            "data-rmc-access-assistant",
+        ):
             self.assertIn(marker, login)
+        self.assertNotIn("QR badge", login)
+        self.assertIn("applyRoleSurface", js)
+        self.assertIn("has-returning", js)
+        self.assertIn("data-rmc-i18n-continue-as", login)
         self.assertIn("data-rmc-local-state", canvas)
         self.assertIn("data-rmc-sponsored-region", canvas)
         self.assertIn("navigator.credentials.get", js)
@@ -62,6 +79,8 @@ class LoginFrontDoorTwelveContractTests(SimpleTestCase):
         self.assertIn("scrollbar-gutter: stable", css)
         self.assertIn("data-rmc-auth-high-contrast", css)
         self.assertIn("data-rmc-auth-reduce-motion", css)
+        self.assertIn("min-height: 44px", css)
+        self.assertIn(".rmc-auth-immersive.has-returning [data-rmc-passkey-standalone]", css)
         self.assertIn("rmc-auth-immersive--front-door", login)
         self.assertIn(".rmc-auth-immersive--front-door", css)
         self.assertIn("data-rmc-auth-contrast", login)

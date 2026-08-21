@@ -1,12 +1,12 @@
 {
   "date": "2026-08-18",
-  "generated_at": "2026-08-18T13:00:44+00:00",
+  "generated_at": "2026-08-18T18:41:16+00:00",
   "major": 4,
   "minor": 6,
-  "patch": 54,
-  "raw": "sms-v4.06.54-sync-now-audit-2026-08-18",
+  "patch": 55,
+  "raw": "sms-v4.06.55-login-front-door-12-2026-08-18",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "sync-now-audit",
+  "slug": "login-front-door-12",
   "valid": true
 }
