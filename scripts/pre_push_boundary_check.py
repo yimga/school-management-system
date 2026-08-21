@@ -109,6 +109,11 @@ GATES: list[tuple[str, list[str]]] = [
     # deliberately WITHOUT --compare: there is no baseline to hide behind, and the
     # next lander that throws a row away blocks the push.
     ("lander-row-error-contract", ["scan_lander_row_error_contract.py", "--strict"]),
+    # A theme whose surfaces come from a different palette than its ground renders the
+    # wrong hue on every card, alert, dropdown and form control it touches -- and the
+    # contrast gates stay green while it does, because the pair that shipped measured
+    # 6.95:1. Zero-tolerance and without --compare: there is no baseline to hide behind.
+    ("theme-hue-coherence", ["scan_theme_hue_coherence.py", "--strict"]),
 ]
 
 # Gates that CANNOT answer without the live Django app registry, and are therefore not

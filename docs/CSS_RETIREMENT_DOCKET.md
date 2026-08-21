@@ -2,7 +2,58 @@
 
 **Last updated:** 2026-08-21
 
-## 2026-08-21 (latest) — The Sync Center was long because it taught on every render
+## 2026-08-21 (latest) — The scheduler looked wrong; two themes were wrong
+
+SW bumped `sms-v4.06.76` → `sms-v4.06.77-theme-hue-coherence-and-rule-editor-2026-08-21`.
+New gate (`scripts/scan_theme_hue_coherence.py`), no model change, no migration.
+
+**The report was that the sync scheduler's rule editor looked bad. Two of its three
+defects were not the editor's.**
+
+**1. Two themes were assembled from two palettes.** `backend-themes.css` shipped `ink`
+with a slate-950 ground (`#030712` — blue-black) over the surface pair `#1a1612` /
+`#241e18`. That pair is the warm brown ramp belonging to `steel`, whose own *body* is
+`#241e18`; `midnight` carried the identical pair. Those sheets set `background-color`,
+`color` and `border-color` with `!important` on bare `input`, `select` and `textarea`, so
+every form control on those two themes rendered brown inside a navy shell — and no page
+could override it, which is why the editor could not be fixed from the editor. The same
+tokens paint every card, alert, dropdown and striped table row those themes touch.
+
+Both ramps re-derived from their own ground. Contrast holds or improves at every pairing
+(ink text 17.06:1 on surface, muted 6.96:1). Auditing the rest of the file found three
+more of the same kind: `midnight`'s masthead lettering was still warm cream, `indigo`'s
+`--backend-text-muted` was `#e6a052` — amber, so every secondary label on an indigo theme
+rendered orange — and `snow`, a theme whose own comment reads "cool light", ran its page
+gradient from sky blue to floral white.
+
+**Why nothing caught it.** Contrast was never the problem: the warm pair measured 6.95:1,
+so the contrast scanners, the axe/pa11y suites and `scan_theme_locked_token_text` were all
+correctly green. The tokens *were* theme-scoped — scoped to the wrong palette. The
+question nobody had asked is whether two colours in the same stack agree about which
+direction neutral is. `scan_theme_hue_coherence.py` asks it, in hue angle rather than a
+warm/cool split (a red-vs-blue test misreads `forest` at 137° as cool and would have
+flagged a perfectly coherent green theme).
+
+**2. The editor was in a column sized for a list.** `.rmc-sc-sched` is
+`minmax(0, 1fr) 15rem`, and the add-rule form — nine controls — was rendering inside that
+15rem aside. At 240px the mode select truncated mid-word, `between` and its time box
+landed on separate lines, and the seven day chips broke six-and-one. The form is now a
+full-width row of the same grid; the rules *list* stays in the aside, where a name and a
+sentence per rule fit fine. Same call as the conflicts table last wave: the summary can be
+narrow, the thing you edit with needs room.
+
+**3. Editor geometry.** Label and control are now one flex item, so a wrap can never
+separate them. The day picker is a seven-column grid that fits seven at any width instead
+of a row that wraps. Narrow-width rules are CONTAINER queries against the editor, not the
+viewport — the aside is 240px on a 27" display, so a media query never fires. Unselected
+day chips moved off `--text-tertiary`, which read as disabled, so a rule running Monday to
+Friday looked like a rule running nothing. The mode labels shortened ("Every N minutes,
+within a window" → "Repeatedly, in a window"); values unchanged, so nothing stored moves.
+
+Geometry is owned here, palette by the theme — the `!important` blanket cannot be won and
+should not be fought; an override would hold only until the next theme.
+
+## 2026-08-21 — The Sync Center was long because it taught on every render
 
 New CSS (`static/css/rmc-sync-center.css`), new JS (`rmc-sync-schedule-strip.js`,
 `rmc-sync-conflicts.js`), one JS file retired, two partials retired, one new page. SW

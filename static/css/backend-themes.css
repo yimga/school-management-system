@@ -33,16 +33,24 @@ body.portal-backend-black .alert { background-color: var(--backend-surface) !imp
 body.portal-backend-black .table-striped tbody tr:nth-of-type(odd),
 body.portal-backend-black .dropdown-menu { background: var(--backend-surface) !important; }
 
-/* ---- INK: deep black #030712 ---- */
+/* ---- INK: deep blue-black #030712 ----
+   HUE COHERENCE. The body here is slate-950 (#030712 — blue-black), but the surface
+   ramp was #1a1612/#241e18: the WARM brown pair belonging to `steel`, whose own body
+   IS #241e18. Copied across, they made every card, alert, dropdown, striped row and
+   form control on a backend page render brown inside a navy shell — most visibly on a
+   dense form, where a dozen small brown controls sit on a navy card. Re-derived from
+   the slate ramp the body already sits on. Lightness is preserved (the surfaces still
+   read as the same two steps up from the ground) and every pairing measures better
+   than or equal to what it replaces: text 17.06:1 on surface, muted 6.96:1 — AA. */
 body.portal-backend-ink {
   background: #030712 !important; /* off-token-allow: hex-literal-decorative */
-  color: #fffaf0 !important; /* off-token-allow: hex-literal-decorative */
-  --header-brand-bg: linear-gradient(90deg, #030712 0%, #1a1612 50%, #241e18 100%);
-  --header-brand-fg: #fffaf0;
-  --backend-text: #fffaf0;
-  --backend-text-muted: #a8a092;
-  --backend-surface: #1a1612;
-  --backend-surface-alt: #241e18;
+  color: #f8fafc !important; /* off-token-allow: hex-literal-decorative */
+  --header-brand-bg: linear-gradient(90deg, #030712 0%, #0f172a 50%, #1e293b 100%);
+  --header-brand-fg: #f8fafc;
+  --backend-text: #f8fafc;
+  --backend-text-muted: #94a3b8;
+  --backend-surface: #0f172a;
+  --backend-surface-alt: #1e293b;
   --backend-border: rgba(248, 250, 252, 0.1); /* off-token-allow: rgba-decorative */
 }
 body.portal-backend-ink .topbar,
@@ -214,13 +222,18 @@ body.portal-backend-amber .table-striped tbody tr:nth-of-type(odd),
 body.portal-backend-amber .dropdown-menu { background: var(--backend-surface) !important; }
 
 /* ---- MIDNIGHT: deep blue-black ---- */
+/* HUE COHERENCE — the same warm/cool split `ink` carried, and the giveaway that it was
+   a copy rather than a choice: this theme's own --backend-border is slate (cool), so it
+   was drawing COOL borders around WARM surfaces on a NAVY ground. Surfaces re-derived
+   from the body's blue-black; the border stays as it was. Text 14.61:1 on surface,
+   muted 7.73:1 — AA, and above the warm pair it replaces. */
 body.portal-backend-midnight {
   background: #0a0f1a !important; /* off-token-allow: hex-literal-decorative */
-  color: #ede4d6 !important; /* off-token-allow: hex-literal-decorative */
-  --backend-text: #ede4d6;
-  --backend-text-muted: #a8a092;
-  --backend-surface: #1a1612;
-  --backend-surface-alt: #241e18;
+  color: #e8eefc !important; /* off-token-allow: hex-literal-decorative */
+  --backend-text: #e8eefc;
+  --backend-text-muted: #9fb0cc;
+  --backend-surface: #131c30;
+  --backend-surface-alt: #1e2a45;
   --backend-border: rgba(71, 85, 105, 0.4); /* off-token-allow: rgba-decorative */
   --chart-color-1: rgba(59, 130, 246, 0.85);
   --chart-color-2: rgba(34, 197, 94, 0.85);
@@ -228,8 +241,8 @@ body.portal-backend-midnight {
   --chart-color-4: rgba(239, 68, 68, 0.85);
   --chart-color-5: rgba(168, 85, 247, 0.85);
   --chart-color-6: rgba(6, 182, 212, 0.85);
-  --header-brand-bg: linear-gradient(90deg, #050810 0%, #0a0f1a 50%, #1a1612 100%);
-  --header-brand-fg: #ede4d6;
+  --header-brand-bg: linear-gradient(90deg, #050810 0%, #0a0f1a 50%, #1e2a45 100%);
+  --header-brand-fg: #e8eefc;
 }
 body.portal-backend-midnight .topbar,
 body.portal-backend-midnight .navbar.topbar { background: var(--header-brand-bg) !important; color: var(--header-brand-fg) !important; }
@@ -339,7 +352,7 @@ body.portal-backend-indigo {
   background: #1e1b4b !important; /* off-token-allow: hex-literal-decorative */
   color: #e0e7ff !important; /* off-token-allow: hex-literal-decorative */
   --backend-text: #e0e7ff;
-  --backend-text-muted: #e6a052;
+  --backend-text-muted: #a5b4fc;
   --backend-surface: #312e81;
   --backend-surface-alt: #3730a3;
   --backend-border: rgba(129, 140, 248, 0.25); /* off-token-allow: rgba-decorative */
@@ -393,7 +406,7 @@ body.portal-backend-sand .card-title { color: var(--backend-text) !important; }
 
 /* ---- SNOW: cool light ---- */
 body.portal-backend-snow {
-  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #fffaf0 100%) !important; /* off-token-allow: decorative-gradient */
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #f5fbff 100%) !important; /* off-token-allow: decorative-gradient */
   color: #0c4a6e !important; /* off-token-allow: hex-literal-decorative */
   --backend-text: #0c4a6e;
   --backend-text-muted: #0369a1;
