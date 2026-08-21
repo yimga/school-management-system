@@ -14,11 +14,26 @@ Single reference for how RunMyCampus routes **live AI**, **guided fallback**, an
 
 ## Deployment profiles (`RMC_DEPLOYMENT_PROFILE`)
 
-| Profile | Typical host | Default gateway tiers (when env set) |
+**Ollama is edge-only.** It serves LAN hubs and tenants running offline mode on
+hardware they own. OpenAI serves the cloud instance. A hosted cloud host has no
+Ollama daemon to reach, so an Ollama tier there is not a fallback — it is a
+guaranteed-dead hop that burns a connection attempt before reaching `rules`.
+
+`online` covers two different machines, so the chain depends on which one it is.
+`services.ai_deployment_posture.is_cloud_host()` decides, inferring from the
+deploy environment and overridable with `RMC_AI_CLOUD_HOST` for an on-prem
+server that is permanently online yet still hosts its own model.
+
+| Profile | Typical host | Default gateway tiers |
 | --- | --- | --- |
-| `online` (default) | Render SaaS | `litellm` → `ollama` → `rules` if `LITELLM_PROXY_URL` set; else `ollama` → `rules` |
-| `edge` | School LAN hub | `ollama` → `rules` |
-| `hybrid` | Render + optional `RMC_HUB_BASE_URL` | Per serving origin: Render uses configured cloud/server tiers; the hub origin may use local Ollama |
+| `online` + cloud host | Render SaaS | `litellm` → `rules` (`rules` alone when `LITELLM_PROXY_URL` is unset) |
+| `online` + not a cloud host | Dev laptop / on-prem server | `litellm` → `ollama` → `rules`; `ollama` → `rules` without a cloud key |
+| `edge` | School LAN hub | `ollama` → `rules` — never the paid cloud tier, even if a key is present |
+| `hybrid` | Render + `RMC_HUB_BASE_URL` | `litellm` → `ollama` → `rules` — the one profile where both are real |
+
+A stray or inherited `LITELLM_API_KEY` on an edge box does **not** pull it
+online. A tenant who chose offline mode chose it for a reason, and the chain
+refuses to ship their data off-site on the strength of a copy-pasted key.
 
 Implementation: `services/ai_deployment_posture.py` — merged into `services/ai_gateway._task_tiers()`.
 
@@ -35,7 +50,7 @@ Default for **Render SaaS** until usage or quality data says otherwise:
 
 | Choice | Value | Why |
 | --- | --- | --- |
-| Routing | One cloud model + built-in tier fallback | `litellm` → `ollama` → `rules` — no per-task or proxy router required at launch |
+| Routing | One cloud model + rules fallback | `litellm` → `rules` on the cloud host — no per-task or proxy router required at launch |
 | Model | `gpt-5.4-mini` | Stable cost/latency for copilot, help, support, and short operator answers |
 | Fallback | `AI_ALLOW_RULES_FALLBACK=1` | Guided help when cloud is down or over budget |
 | OpenAI direct | `LITELLM_PROXY_URL=https://api.openai.com` | API host — not `platform.openai.com` (login UI only) |

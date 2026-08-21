@@ -232,6 +232,24 @@ services:
       # mails dead-end without this. Set to the ops inbox in the Dashboard.
       - key: RMC_OPERATOR_ALERT_EMAIL
         sync: false
+      # --- AI routing -------------------------------------------------------
+      # OpenAI serves the cloud instance; Ollama serves edge boxes and tenants
+      # running offline mode on their own hardware. Nothing here declared the
+      # cloud side, so AI configuration lived only in the Dashboard where it is
+      # unversioned and invisible to review — and the code's default provider is
+      # "ollama", which does not exist on a Render web service.
+      - key: RMC_DEPLOYMENT_PROFILE
+        value: "online"
+      # Marks this as a hosted cloud host, so the gateway never offers an Ollama
+      # tier here. See services/ai_deployment_posture.py::is_cloud_host.
+      - key: RMC_AI_CLOUD_HOST
+        value: "1"
+      # OpenAI direct. Set LITELLM_API_KEY in the Dashboard; without it the
+      # chain is ["rules"] and every AI surface degrades to the guided layer.
+      - key: LITELLM_PROXY_URL
+        value: "https://api.openai.com"
+      - key: LITELLM_API_KEY
+        sync: false
       - key: RMC_REBAC_ENFORCE_SENSITIVE
         value: "1"
       - key: RMC_REBAC_ENABLED

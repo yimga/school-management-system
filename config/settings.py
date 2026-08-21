@@ -3963,7 +3963,12 @@ AI_GATEWAY_BUDGET_REQUESTS_PER_TENANT_DAY = int(
     os.getenv("AI_GATEWAY_BUDGET_REQUESTS_PER_TENANT_DAY", "0")
 )
 # Default gateway inference follows RMC_DEPLOYMENT_PROFILE (services.ai_deployment_posture):
-# online + LITELLM_PROXY_URL → litellm, ollama, rules; edge/hybrid → ollama, rules (hybrid adds litellm when configured).
+#   online on a CLOUD host  → litellm, rules        (Ollama is edge-only; none exists here)
+#   online on a dev/on-prem → litellm, ollama, rules (a local model really is reachable)
+#   edge                    → ollama, rules         (never calls the paid cloud tier)
+#   hybrid                  → litellm, ollama, rules (Render plus a LAN hub: both are real)
+# The cloud/on-prem split is services.ai_deployment_posture.is_cloud_host(), overridable
+# with RMC_AI_CLOUD_HOST for an on-prem server that is online yet hosts its own model.
 # Optional: merge per task via settings.AI_GATEWAY_TASK_TIERS dict (not env string).
 # VLLM_ENDPOINT, VLLM_MODEL / LITELLM_PROXY_URL, LITELLM_MODEL only apply when those tiers are enabled.
 # Embeddings default to Ollama when AI_EMBEDDING_BACKEND is unset (services/embeddings.py).

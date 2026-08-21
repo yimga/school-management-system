@@ -782,6 +782,13 @@ def _invoke(
                 "school": school,
                 "school_id": _school_id(school),
                 "northstar_prompt_type": prompt_type,
+                # The external-tier gate reads ``sensitivity_class`` and nothing
+                # else. Sending only ``content_sensitivity`` left the class
+                # UNKNOWN, which denies by default — so every Migration Cloud
+                # prompt was refused with ``data_tier_disallowed`` and the
+                # classifier silently lost its arbitrator. Both keys are sent:
+                # the gate reads the first, the audit trail keeps the second.
+                "sensitivity_class": _sensitivity_class_for(content_sensitivity),
                 "content_sensitivity": content_sensitivity,
             },
         )
@@ -1042,6 +1049,7 @@ def invoke_task(
                 "school": school,
                 "school_id": _school_id(school),
                 "northstar_prompt_type": prompt_type,
+                "sensitivity_class": _sensitivity_class_for(content_sensitivity),
                 "content_sensitivity": content_sensitivity,
             },
         )
@@ -1051,12 +1059,124 @@ def invoke_task(
         return None
 
 
+# --- Sensitivity + PII-safe prompt material ---------------------------------
+
+# The gateway's external-tier gate reads ``sensitivity_class`` against the
+# allowlist {low, medium, public, internal}. Anything else — including an absent
+# key — is UNKNOWN and denies. These are the two classes this bridge produces.
+_SENSITIVITY_CLASS_BY_CONTENT: dict[str, str] = {
+    "standard": "internal",   # schema-level material; may reach the cloud tier
+    "high_pii": "high",       # explicitly denied external transport; stays local
+}
+
+
+def _sensitivity_class_for(content_sensitivity: str) -> str:
+    """Map this module's content label onto the gateway's data-tier vocabulary."""
+    return _SENSITIVITY_CLASS_BY_CONTENT.get(
+        str(content_sensitivity or "").strip().lower(), "high"
+    )
+
+
+# Columns whose VALUES identify a person. A file's domain is inferred from the
+# shape of its columns, never from who is listed in them, so these values are
+# reduced to a format silhouette before any prompt is built.
+_PERSONAL_COLUMN_HINTS: tuple[str, ...] = (
+    "name", "surname", "firstname", "first_name", "lastname", "last_name",
+    "father", "mother", "guardian", "parent", "next_of_kin", "emergency",
+    "email", "mail", "phone", "mobile", "tel", "contact", "whatsapp",
+    "address", "street", "city", "postcode", "zip",
+    "dob", "birth", "ssn", "national_id", "nin", "passport", "id_number",
+    "photo", "picture", "avatar",
+    # Direct student identifiers. These do not read as personal, but an
+    # admission or matriculation number singles out one child as precisely as a
+    # name does, and it is the join key an outside party would need.
+    "admission", "matricule", "registration_no", "reg_no", "roll", "candidate",
+    "student_id", "staff_id", "employee_number",
+)
+
+_MAX_DIGEST_COLUMNS = 40  # magic-number-allow: prompt-column-budget
+_MAX_DIGEST_EXEMPLARS = 3  # magic-number-allow: exemplars-per-column
+
+
+def _describe_personal_column(values: list[Any]) -> str:
+    """Describe the SHAPE of a personal column without reproducing its pattern.
+
+    An earlier version emitted a character-class silhouette — ``"2009-04-17"``
+    became ``"9999-99-99"``. It leaked nothing readable, but it reproduced the
+    format so faithfully that the gateway's own PII detector matched it and
+    refused the payload, which is the failure this change exists to fix. Worse,
+    a format-preserving mask of a national id is still a template for one.
+
+    So: say what the column holds, never show it. A model can tell students from
+    staff from a timetable knowing a column carries ISO dates or email addresses;
+    it does not need one.
+    """
+    texts = [str(v).strip() for v in values if str(v).strip()]
+    if not texts:
+        return "personal; no sample values"
+    sample = texts[0]
+    if re.fullmatch(r"(?:19|20)\d{2}[-/]\d{1,2}[-/]\d{1,2}", sample):
+        kind = "an ISO-style date"
+    elif re.search(r"@", sample):
+        kind = "an email address"
+    elif re.fullmatch(r"[+()\d][\d\s().-]{6,}", sample):
+        kind = "a telephone number"
+    elif re.fullmatch(r"\d+", sample):
+        kind = "digits only"
+    elif re.search(r"\d", sample) and re.search(r"[A-Za-z]", sample):
+        kind = "an alphanumeric identifier"
+    else:
+        words = [len(t.split()) for t in texts]
+        kind = f"free text of {min(words)}-{max(words)} word(s)"
+    lengths = [len(t) for t in texts]
+    span = f"{min(lengths)}" if min(lengths) == max(lengths) else f"{min(lengths)}-{max(lengths)}"
+    return f"personal; {kind}, {span} chars"
+
+
+def _column_is_personal(header: str, values: list[Any]) -> bool:
+    """Whether a column's values name or contact a person."""
+    name = str(header or "").strip().lower()
+    if any(hint in name for hint in _PERSONAL_COLUMN_HINTS):
+        return True
+    return _looks_like_pii(name, values)
+
+
+def _column_digest(headers: list[str], sample_rows: list[dict[str, Any]]) -> str:
+    """Per-column exemplars, with personal columns reduced to a silhouette.
+
+    This replaces dumping raw sample rows into the prompt. Raw rows were the one
+    place real student names and dates of birth entered an outbound payload, and
+    they also made the payload fail the gateway's PII check — so the cloud tier
+    refused it and the classifier lost the very arbitration it was asking for.
+    Sending column shape instead is both safer and the only form that is allowed
+    through to a cloud model.
+    """
+    lines: list[str] = []
+    for header in list(headers or [])[:_MAX_DIGEST_COLUMNS]:
+        values = [
+            row.get(header)
+            for row in (sample_rows or [])
+            if isinstance(row, dict) and row.get(header) not in (None, "")
+        ][:_MAX_DIGEST_EXEMPLARS]
+        if not values:
+            lines.append(f"  - {header}: (no sample values)")
+            continue
+        if _column_is_personal(header, values):
+            lines.append(f"  - {header}: {_describe_personal_column(values)}")
+        else:
+            shown = ", ".join(repr(str(v)[:60]) for v in values)
+            lines.append(f"  - {header}: {shown}")
+    return "\n".join(lines) or "  (no columns profiled)"
+
+
 # --- Prompt builders --------------------------------------------------------
 
 _PROMPT_PREAMBLE = (
     "You are a data migration assistant for a multi-tenant school management "
-    "platform. You receive headers and a few sample rows from a customer's "
-    "data export and must return JSON only. Never hallucinate fields; if "
+    "platform. You receive the column names of a customer's data export and a "
+    "short description of what each column holds. Values that identify a person "
+    "are described rather than shown, so judge the file by its column structure. "
+    "Return JSON only. Never hallucinate fields; if "
     "uncertain, return confidence below 0.5 and explain in 'reasoning'."
 )
 
@@ -1069,7 +1189,9 @@ def _build_source_prompt(
         "Task: classify the source system that produced this export.\n"
         f"Allowed values: {known_sources + ['unknown_custom']}\n"
         f"Headers: {headers[:40]}\n"
-        f"Sample rows (max 3): {sample_rows[:3]}\n\n"
+        "Columns. Values of columns that identify a person are DESCRIBED, not\n"
+        "shown; the description is all that is sent off-site.\n"
+        f"{_column_digest(headers, sample_rows)}\n\n"
         "Return JSON exactly: "
         '{"source": "<one of allowed>", "confidence": <float 0..1>, "reasoning": "<one sentence>"}'
     )
@@ -1083,7 +1205,9 @@ def _build_domain_prompt(
         "Task: classify the school-data domain this file represents.\n"
         f"Allowed domains: {candidate_domains}\n"
         f"Headers: {headers[:40]}\n"
-        f"Sample rows (max 3): {sample_rows[:3]}\n\n"
+        "Columns. Values of columns that identify a person are DESCRIBED, not\n"
+        "shown; the description is all that is sent off-site.\n"
+        f"{_column_digest(headers, sample_rows)}\n\n"
         "Return JSON exactly: "
         '{"domain": "<one of allowed>", "confidence": <float 0..1>, "reasoning": "<one sentence>"}'
     )

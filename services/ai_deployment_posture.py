@@ -27,7 +27,13 @@ VALID_PROFILES = frozenset({"online", "edge", "hybrid"})
 DEFAULT_LITELLM_MODEL = "gpt-5.4-mini"
 DEFAULT_OPENAI_API_BASE = "https://api.openai.com"
 
-_ONLINE_CLOUD_CHAIN = ["litellm", "ollama", "rules"]
+# Ollama is an EDGE provider. It serves LAN hubs and tenants running offline mode
+# on hardware they own. A hosted cloud web service has no Ollama daemon to reach,
+# so an Ollama tier there is not a fallback — it is a guaranteed-dead hop that
+# burns a connection attempt on every call before the request reaches ``rules``.
+_ONLINE_CLOUD_CHAIN = ["litellm", "ollama", "rules"]  # online, self-hosted: local model is a real fallback
+_ONLINE_HOSTED_CHAIN = ["litellm", "rules"]           # online, cloud host: no Ollama exists here
+_ONLINE_HOSTED_RULES_ONLY = ["rules"]                 # cloud host with no cloud model configured
 _ONLINE_LOCAL_CHAIN = ["ollama", "rules"]
 _EDGE_CHAIN = ["ollama", "rules"]
 _HYBRID_CHAIN = ["litellm", "ollama", "rules"]
@@ -88,14 +94,42 @@ def is_litellm_configured() -> bool:
     return bool(litellm_proxy_url())
 
 
+def is_cloud_host() -> bool:
+    """True when this process runs on a hosted cloud deployment (Render).
+
+    Distinguishes the two very different things the ``online`` profile covers: a
+    Render web service, which can only reach a cloud model, and a developer or
+    on-prem machine that is online but also runs its own Ollama. Routing is not
+    the same for both, so the code detects which one it is.
+
+    ``RMC_AI_CLOUD_HOST`` overrides the inference for an on-prem server that is
+    permanently online yet still hosts its own model.
+    """
+    override = _setting_str("RMC_AI_CLOUD_HOST")
+    if override:
+        return override.strip().lower() in ("1", "true", "yes", "on")
+    return bool(getattr(settings, "_IS_CLOUD_DEPLOYED", False))
+
+
 def default_tier_chain_for_profile(profile: str | None = None) -> list[str]:
-    """Default gateway tier order for a deployment profile (before per-task overrides)."""
+    """Default gateway tier order for a deployment profile (before per-task overrides).
+
+    The contract, stated once: **cloud runs the cloud model, edge runs Ollama.**
+    An edge box never calls out to a paid cloud tier, and a cloud host is never
+    handed an Ollama tier it cannot reach. ``hybrid`` is the one profile that is
+    deliberately both — a Render deployment with a LAN hub behind it.
+    """
     p = normalize_deployment_profile(profile)
-    if p == "online":
-        return list(_ONLINE_CLOUD_CHAIN if is_litellm_configured() else _ONLINE_LOCAL_CHAIN)
     if p == "hybrid":
         return list(_HYBRID_CHAIN if is_litellm_configured() else _EDGE_CHAIN)
-    return list(_EDGE_CHAIN)
+    if p == "edge":
+        return list(_EDGE_CHAIN)
+    # online
+    if is_cloud_host():
+        return list(
+            _ONLINE_HOSTED_CHAIN if is_litellm_configured() else _ONLINE_HOSTED_RULES_ONLY
+        )
+    return list(_ONLINE_CLOUD_CHAIN if is_litellm_configured() else _ONLINE_LOCAL_CHAIN)
 
 
 # --- AI mode (operator default + per-tenant override) -----------------------
@@ -124,7 +158,9 @@ def ai_mode_to_allowed_backends(mode: str | None) -> list[str] | None:
     """
     m = normalize_ai_mode(mode)
     if m == "cloud":
-        return ["litellm", "ollama", "rules"]
+        # Same rule as the profile chain: a hosted cloud host has no Ollama, so
+        # offering it as the middle tier only delays the fall through to rules.
+        return ["litellm", "rules"] if is_cloud_host() else ["litellm", "ollama", "rules"]
     if m == "local":
         return ["ollama", "rules"]
     return None  # auto -> profile default

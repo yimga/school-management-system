@@ -753,6 +753,7 @@ SETTINGS_REGISTRY: tuple[SettingSpec, ...] = (
     # RMC deployment / hub / edge / docs
     SettingSpec("RMC_AUTO_APPLY_OFFLINE_BUNDLE_ON_PROVISION", "str", '"1"', "ops", "Auto-apply the offline bundle when provisioning an edge tenant."),
     SettingSpec("RMC_DEPLOYMENT_PROFILE", "str", '"online"', "ops", "Deployment profile selector (online / edge / offline)."),
+    SettingSpec("RMC_AI_CLOUD_HOST", "str", '""', "ops", "Force the AI cloud-host verdict (1/0). Blank infers from the deploy env. A cloud host is never offered an Ollama tier; Ollama is edge-only."),
     SettingSpec("RMC_EDGE_FALLBACK_ENABLED", "str", '""', "ops", "Enable edge-fallback middleware behavior when truthy."),
     SettingSpec("RMC_EDGE_OPERATOR_BASE", "str", '""', "ops", "Cloud base URL a sovereign edge box syncs against; falls back to RMC_HUB_BASE_URL. Use the TENANT host."),
     SettingSpec("RMC_EDGE_PAIRING_TTL_HOURS", "int", "72", "ops", "Hours a box<->cloud pairing request stays open for an admin to approve."),
