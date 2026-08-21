@@ -2,7 +2,52 @@
 
 **Last updated:** 2026-08-20
 
-## 2026-08-21 (latest) — v4.06.75: the two things the schedule decided for you, and the catch-up that was never wired
+## 2026-08-21 (latest) — A zero-baseline RLS gate went red on main, and nothing was left to notice
+
+No CSS or JS; Python, one migration, one gate runner and docs. No SW bump.
+
+**What happened.** Merging PR #184 added three tenant-scoped tables —
+`sync_engine_edgepairingrequest`, `sync_engine_pendingpushconfirmation`,
+`sync_engine_edgeclaimticket` — and enumerated none of them in an `enable_rls` migration.
+`scan_rls_table_coverage.py` is a **zero-baseline** gate wired into `ci.yml`, so that is a
+regression from green, and it sat red on `main` until someone ran the scanner by hand.
+
+**Why nothing caught it, which is the more useful half.** Three independent layers each
+had a reason not to fire:
+
+| Layer | Why it stayed quiet |
+|---|---|
+| `scan_rls_force_coverage.py` | Asks whether the model's APP has both RLS migration FILES. `sync_engine/` has had 0008 and 0009 since forever, so it reports green no matter how many tables arrive later. It is not broken — it answers a coarser question, and the finer one has its own gate. |
+| `ci.yml::django-tests` | Where the finer gate is wired. GitHub Actions has run **no jobs since 2026-08-15** (billing), so "it is covered in CI" was simply false. |
+| `pre_push_boundary_check.py` | Deps-free by design, and this gate needs the Django app registry to enumerate tenant-scoped models. It could not run it, so it did not. |
+
+Each choice is defensible alone. Together they left a zero-tolerance security gate with
+nothing actually executing it.
+
+**What landed**
+
+| Area | Change |
+|---|---|
+| `apps/sync_engine/migrations/0017_pairing_rls.py` (new) | ENABLE + FORCE + policy for the three tables. FORCE matters: without it the table-owner role (Django's own) bypasses the policy and the whole thing is decorative. |
+| Two policy shapes, not one | `EdgePairingRequest.school` is **nullable** by design — a box naming an unrecognised slug still produces a request row so the operator sees a real attempt rather than silence. Under the ordinary `school_id = current_setting(...)` predicate a NULL never compares equal, so every unclaimed request would become invisible — and the claim path is a lookup BY USER_CODE, exactly the query that would then find nothing. That table's policy also admits `school_id IS NULL`. Not a hole: an unclaimed request belongs to no tenant, the user code is the secret that authorises claiming it, and `may_adopt_for()` re-derives standing against the request's own school before anything is minted. The other two are NOT NULL and get the strict policy. |
+| `scripts/pre_push_boundary_check.py` | New `DJANGO_GATES` phase, run after the deps-free set. Probes Django once and reports **SKIP** — never PASS — when it is absent, so the deps-free guarantee survives for anyone without it while the gate actually runs here. ~8s on a 51s suite. Mutation-proven: removing 0017 turns the run FAIL and aborts a `--strict` push. |
+| `apps/sync_engine/tests/test_pairing_rls_policy_2026_08_21.py` (new) | 7 tests for the thing a scanner cannot check. The scanner asks only whether a table is NAMED; it cannot tell a correct policy from one that silently hides every row. These assert the invariant instead: every strict-list table has a NOT NULL school, every nullable-list table really is nullable, the lists are disjoint and cover `TABLES`, and both clauses still honour the bypass. Mutation-proven — moving the nullable table onto the strict policy fails test 01 with the reason spelled out. |
+| `CLAUDE.md` | The gate had no row in the scanner table, which is part of how it stayed invisible. Added, including the severity note below so the next reader does not over-correct. |
+
+**Severity, stated so it is not over-read.** `should_apply_rls` returns False when
+`USE_DJANGO_TENANTS` is set, which `render.yaml` does — so RLS is a **no-op in the
+deployed topology**, where isolation is Postgres schemas plus service-layer `school=`
+scoping. This was never a live cross-tenant leak. What the gate measures is **RLS-mode
+readiness**: the work that has to be in place before anyone runs with
+`USE_DJANGO_TENANTS=0` on PostgreSQL, where RLS *is* the isolation and an unenumerated
+table has none at all. It is also why the SQLite suite can never prove any of it, and why
+the tests assert the policy's SHAPE rather than its behaviour.
+
+`apps.sync_engine` 866 tests with the same 5 pre-existing failures as base. 20/20 gates.
+
+---
+
+## 2026-08-21 — v4.06.75: the two things the schedule decided for you, and the catch-up that was never wired
 
 SW `sms-v4.06.75-sync-policy-and-catchup-2026-08-21`. Python, JS, one template partial and
 docs; no CSS changes. Design: [`docs/EDGE_SYNC_SCHEDULES.md`](EDGE_SYNC_SCHEDULES.md).
