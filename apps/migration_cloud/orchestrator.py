@@ -282,6 +282,29 @@ def _apply_bundle_inner(
                 "Re-bind the school or repair Client.schema_name, then retry."
             )
 
+        if not dry_run and effective_schema:
+            from .tenant_schema_readiness import (
+                assess_tenant_schema_readiness,
+                schema_drift_summary_patch,
+            )
+
+            schema_ready = assess_tenant_schema_readiness(
+                effective_schema, attempt_repair=True
+            )
+            if not schema_ready.ready:
+                logger.error(
+                    "migration_cloud.apply: tenant schema drift blocks bundle=%s "
+                    "schema=%s missing=%s",
+                    bundle_id,
+                    effective_schema,
+                    schema_ready.missing_labels,
+                )
+                bundle.mark_status(
+                    BundleStatus.FAILED,
+                    summary_patch=schema_drift_summary_patch(schema_ready),
+                )
+                return _empty_result(bundle, dry_run, BundleStatus.FAILED)
+
         if not dry_run:
             # Drop per-domain / notes from a prior apply so a successful retry
             # cannot keep showing stale "held for review" copy if reconcile is
@@ -513,12 +536,17 @@ def _apply_bundle_inner(
             gap_fill_summary = gap_fill_after_apply(
                 bundle=bundle, outcomes=outcomes, dry_run=dry_run
             )
-        except Exception:  # noqa: BLE001 — gap-fill is additive; never break the apply
+        except Exception as exc:  # noqa: BLE001 — gap-fill is additive; never break apply
+            from .tenant_schema_readiness import post_apply_step_error
+
             logger.warning(
                 "orchestrator: post-apply gap-fill errored for bundle %s",
                 bundle_id,
                 exc_info=True,
             )
+            if gap_fill_summary is None:
+                gap_fill_summary = {}
+            gap_fill_summary["gap_fill_error"] = post_apply_step_error(exc)
         try:
             from apps.migration_cloud.guardian_directory import (
                 promote_unlinked_guardian_hints,
@@ -531,12 +559,17 @@ def _apply_bundle_inner(
                 gap_fill_summary = {}
             if isinstance(gap_fill_summary, dict):
                 gap_fill_summary["guardian_directory"] = directory_summary
-        except Exception:  # noqa: BLE001 — directory promote is additive; never break apply
+        except Exception as exc:  # noqa: BLE001 — directory promote is additive; never break apply
+            from .tenant_schema_readiness import post_apply_step_error
+
             logger.warning(
                 "orchestrator: guardian-directory promote errored for bundle %s",
                 bundle_id,
                 exc_info=True,
             )
+            if gap_fill_summary is None:
+                gap_fill_summary = {}
+            gap_fill_summary["guardian_directory"] = post_apply_step_error(exc)
         try:
             from apps.migration_cloud.staff_role_map import promote_imported_staff_roles
 
@@ -547,12 +580,17 @@ def _apply_bundle_inner(
                 gap_fill_summary = {}
             if isinstance(gap_fill_summary, dict):
                 gap_fill_summary["staff_role_backfill"] = role_summary
-        except Exception:  # noqa: BLE001 — role backfill is additive; never break apply
+        except Exception as exc:  # noqa: BLE001 — role backfill is additive; never break apply
+            from .tenant_schema_readiness import post_apply_step_error
+
             logger.warning(
                 "orchestrator: staff-role backfill errored for bundle %s",
                 bundle_id,
                 exc_info=True,
             )
+            if gap_fill_summary is None:
+                gap_fill_summary = {}
+            gap_fill_summary["staff_role_backfill"] = post_apply_step_error(exc)
 
     totals = _summarize_outcomes(outcomes)
     # Landers wrote operator-review data (dedup_candidates / dedup_links) STRAIGHT to
@@ -1768,7 +1806,8 @@ def _finalize_audit_run(run, outcome: ArtifactApplyOutcome, *, status: str) -> N
 # Per-artifact ceiling on durable quarantine records. A runaway lander must not
 # be able to write a million rows, but exceeding this is a REPORTED event, never
 # a silent one — see _quarantine_errors.
-QUARANTINE_RECORD_CAP = 200  # magic-number-allow: quarantine-records-per-artifact
+# Bundle 84 held 326 student row errors; the old cap of 200 dropped 126 with no record.
+QUARANTINE_RECORD_CAP = 2000  # magic-number-allow: quarantine-records-per-artifact
 
 
 def _classify_quarantine_issue(err: str) -> str:

@@ -469,6 +469,25 @@ def repair_readiness(bundle: MigrationBundle) -> RepairReadiness:
             status=status,
         )
 
+    from .schema_binding import ensure_bundle_schema_name
+    from .tenant_schema_readiness import (
+        assess_tenant_schema_readiness,
+        format_schema_drift_reason,
+    )
+
+    schema_name = ensure_bundle_schema_name(bundle)
+    if schema_name:
+        schema_ready = assess_tenant_schema_readiness(schema_name, attempt_repair=True)
+        if not schema_ready.ready:
+            return RepairReadiness(
+                repairable=False,
+                reason=format_schema_drift_reason(schema_ready),
+                blockers=["tenant_schema_drift", *schema_ready.missing_labels[:5]],
+                has_finance=has_finance,
+                issue_count=_unresolved_issue_count(bundle),
+                status=status,
+            )
+
     return RepairReadiness(
         repairable=True,
         reason=reason,

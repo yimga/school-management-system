@@ -187,7 +187,11 @@ class BuildRepairPanelTests(SimpleTestCase):
     def test_shown_when_repairable(self):
         from apps.migration_cloud.views_tenant_upload import _build_repair
 
-        panel = _build_repair(FakeBundle(status=BundleStatus.FAILED))
+        with mock.patch(
+            "apps.migration_cloud.schema_binding.ensure_bundle_schema_name",
+            return_value="",
+        ):
+            panel = _build_repair(FakeBundle(status=BundleStatus.FAILED))
         self.assertIsNotNone(panel)
         self.assertTrue(panel["repairable"])
 
@@ -201,3 +205,24 @@ class BuildRepairPanelTests(SimpleTestCase):
         self.assertIsNotNone(panel)
         self.assertFalse(panel["repairable"])
         self.assertIn("financial_guardrail_failed", panel["blockers"])
+
+    @mock.patch("apps.migration_cloud.tenant_schema_readiness.assess_tenant_schema_readiness")
+    @mock.patch("apps.migration_cloud.schema_binding.ensure_bundle_schema_name")
+    def test_shown_with_reason_on_schema_drift(self, ensure_schema, assess):
+        from apps.migration_cloud.tenant_schema_readiness import TenantSchemaReadiness
+        from apps.migration_cloud.views_tenant_upload import _build_repair
+
+        ensure_schema.return_value = "tenant_gilead"
+        assess.return_value = TenantSchemaReadiness(
+            schema_name="tenant_gilead",
+            ready=False,
+            missing_labels=("people_teacherprofile.merged_into_id",),
+        )
+        panel = _build_repair(FakeBundle(
+            status=BundleStatus.APPLIED,
+            mapping=_quarantined(442),
+        ))
+        self.assertIsNotNone(panel)
+        self.assertFalse(panel["repairable"])
+        self.assertIn("tenant_schema_drift", panel["blockers"])
+        self.assertIn("merged_into_id", panel["reason"])
