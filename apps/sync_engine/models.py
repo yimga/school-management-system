@@ -699,7 +699,6 @@ from apps.sync_engine.models_schedule import (  # noqa: E402
 # above: Django discovers models through ``<app>.models``.
 from apps.sync_engine.models_policy import (  # noqa: E402
     SyncPolicy,
-    policy_for,
 )
 
 # Pairing lives in its own module (it is a protocol, not sync state) but must be

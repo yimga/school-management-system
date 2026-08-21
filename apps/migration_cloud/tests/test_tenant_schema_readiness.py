@@ -10,7 +10,6 @@ from apps.migration_cloud.tenant_schema_readiness import (
     assess_tenant_schema_readiness,
     format_schema_drift_reason,
     post_apply_step_error,
-    readiness_for_bundle,
     schema_drift_summary_patch,
 )
 

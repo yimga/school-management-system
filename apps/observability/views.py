@@ -6,7 +6,6 @@ import json
 import logging
 import math
 import os
-import re
 from datetime import timedelta
 from functools import wraps
 from urllib.parse import urlencode
