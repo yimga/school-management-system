@@ -156,7 +156,7 @@ DOMAIN_CANONICAL_HEADERS: dict[str, set[str]] = {
     # resolve Subjects at the target.
     "academics": {
         "subject_code", "subject_name", "credits", "department", "name", "code",
-        # Francophone / legacy SIS exports (e.g. Gilead subjects_2026.xlsx).
+        # Francophone / legacy SIS exports (e.g. a live tenant's subjects_2026.xlsx).
         "title", "description", "category",
     },
     # Specialty / trade / stream catalog (SpecialtyLander → apps.academics.Specialty
