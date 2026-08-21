@@ -75,6 +75,11 @@ class SyncScheduleForm(forms.ModelForm):
         widgets = {
             "window_start": forms.TimeInput(attrs={"type": "time"}, format="%H:%M"),
             "window_end": forms.TimeInput(attrs={"type": "time"}, format="%H:%M"),
+            # The editor reads as a sentence ("Call this rule ___. Sync every ___
+            # between ___ and ___ on M T W T F."), so the name field carries an example
+            # rather than a label repeated from the words beside it. Presentation only:
+            # the field names still match the model's, for the reason above.
+            "name": forms.TextInput(attrs={"placeholder": "Term time"}),
         }
         labels = {
             "name": _("Name"),
@@ -87,7 +92,15 @@ class SyncScheduleForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         instance = getattr(self, "instance", None)
+        # UNIQUE IDS PER RULE. A tenant may hold several rules, and the panel renders an
+        # editor for each plus a blank one to add another -- so Django's default
+        # `id_%s` puts `id_mode` on the page four times. Every <label for="id_mode">
+        # then points at the FIRST one, which means clicking a label in the third rule
+        # focuses the first rule's control, and a screen reader announces the wrong rule.
+        # `auto_id` renames only the ids; the field NAMES stay untouched, which they must
+        # -- the save view reads request.POST["mode"], and a `prefix` would break it.
         if instance is not None and instance.pk:
+            self.auto_id = f"id_rule{instance.pk}_%s"
             self.fields["days_of_week"].initial = [str(d) for d in sorted(instance.days)]
             self.fields["interval_minutes"].initial = instance.interval_minutes
             self.fields["at_times"].initial = ", ".join(

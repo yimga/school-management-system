@@ -340,3 +340,301 @@ def describe_dst(tz, *, after: _dt.datetime) -> dict:
         "direction": transition["direction"],
         "note": note,
     }
+
+
+# ----------------------------------------------------------------- week plan --
+# What the Sync Center draws. The panel used to render one SENTENCE ("every 30 minutes,
+# 06:00 to 18:00, Monday to Friday. At 22:00, every day.") and nothing else, so a school
+# could not see that those two rules leave Sunday with a fourteen-hour hole, that they
+# overlap at 18:00, or that the idle check-in is doing most of the real work.
+#
+# WHY IT LIVES HERE AND NOT IN JAVASCRIPT. This module's first paragraph is the reason:
+# the promise on the screen and the moment the scheduler acts have to be the SAME
+# computation. A strip drawn by a re-implementation in the browser would drift from the
+# engine the first time either changed, and it would drift SILENTLY -- the picture would
+# still look plausible. So the browser draws exactly what this returns and computes no
+# occurrence of its own; the live preview while editing posts a candidate rule set back
+# here and renders the answer.
+#
+# HOURLY BUCKETS, NOT RAW INSTANTS, is a bound rather than a simplification: a 5-minute
+# rule over a full week is 2016 instants, and this is built on a page render. 7 x 24
+# cells is 168 regardless of interval, and an hour is already finer than the strip can
+# draw.
+_WEEK_PLAN_DAYS = 7  # magic-number-allow: one week, the period of every rule shape here
+_HOURS_PER_DAY = 24  # magic-number-allow: hours in a day
+_STRIP_LEVELS = 4  # magic-number-allow: intensity steps the strip can render
+_MINUTES_PER_HOUR = 60  # magic-number-allow: minutes in an hour
+
+
+def _bucket_day_span(rules, day: _dt.date, tz) -> list:
+    """Every occurrence produced by a window OPENING on ``day``, with its rule index."""
+    out = []
+    for index, rule in enumerate(rules):
+        if not rule.days or day.weekday() not in rule.days:
+            continue
+        if rule.mode == MODE_INTERVAL:
+            moments = _interval_occurrences(rule, day, tz)
+        elif rule.mode == MODE_AT_TIMES:
+            moments = _at_times_occurrences(rule, day, tz)
+        else:
+            continue
+        for moment in moments:
+            out.append((moment, index))
+    return out
+
+
+def week_plan(rules, *, start, tz, days: int = _WEEK_PLAN_DAYS) -> dict:
+    """Hour-by-hour coverage for ``days`` local days beginning with ``start``'s day.
+
+    Returns a structure the panel renders directly::
+
+        {
+          "days": [
+            {"date": "2026-08-21", "weekday": 4, "label": "Friday",
+             "hours": [{"count": 2, "rules": [0, 1], "first": "06:00"}, ... 24 ]},
+            ...
+          ],
+          "total": 134,
+          "rule_count": 2,
+        }
+
+    ``rules`` is positional-indexed: ``hours[h]["rules"]`` holds the INDEX of each rule
+    that fires in that hour, so the caller can colour a cell without this module needing
+    to know anything about names, colours or the ORM.
+
+    Occurrences are bucketed by the local date they LAND on, not the date whose window
+    produced them -- a 22:00-02:00 rule shows up in both Tuesday's late hours and
+    Wednesday's early ones, which is what it actually does. That is also why the scan
+    starts a day early.
+
+    Pure and bounded: at most ``days + 1`` day-spans are expanded and each is bounded by
+    :func:`_interval_occurrences`. Safe on a page render.
+    """
+    if start.tzinfo is None:
+        raise ValueError("week_plan requires an aware `start` datetime")
+    usable = [r for r in rules if r.mode in (MODE_INTERVAL, MODE_AT_TIMES)]
+
+    first_day = start.astimezone(tz).date()
+    wanted = [first_day + _dt.timedelta(days=offset) for offset in range(days)]
+    index_of = {day: position for position, day in enumerate(wanted)}
+
+    # `level` is `count` clamped to the strip's four intensity steps. It is computed
+    # here because a Django template cannot call min(), and a strip that reads its own
+    # shading from a raw count would go uniformly solid the moment a rule ran every five
+    # minutes -- losing exactly the overlap the strip exists to show.
+    grid = [
+        [
+            {"count": 0, "level": 0, "rules": [], "first": None, "in_gap": False}
+            for _ in range(_HOURS_PER_DAY)
+        ]
+        for _ in wanted
+    ]
+    total = 0
+
+    # One day EARLIER than the window, so a rule whose window opened yesterday and runs
+    # past midnight still fills today's early hours instead of leaving a phantom gap.
+    for offset in range(-1, days):
+        span_day = first_day + _dt.timedelta(days=offset)
+        for moment, rule_index in _bucket_day_span(usable, span_day, tz):
+            local = moment.astimezone(tz)
+            position = index_of.get(local.date())
+            if position is None:
+                continue
+            cell = grid[position][local.hour]
+            cell["count"] += 1
+            if rule_index not in cell["rules"]:
+                cell["rules"].append(rule_index)
+            if cell["first"] is None or local.strftime("%H:%M") < cell["first"]:
+                cell["first"] = local.strftime("%H:%M")
+            cell["level"] = min(_STRIP_LEVELS, cell["count"])
+            total += 1
+
+    return {
+        "days": [
+            {
+                "date": day.isoformat(),
+                "weekday": day.weekday(),
+                "label": WEEKDAY_NAMES[day.weekday()],
+                "hours": grid[position],
+            }
+            for position, day in enumerate(wanted)
+        ],
+        "total": total,
+        "rule_count": len(usable),
+    }
+
+
+def longest_gap(rules, *, start, tz, days: int = _WEEK_PLAN_DAYS) -> dict:
+    """The longest stretch with no scheduled sync at all, over ``days`` from ``start``.
+
+    This is the number the audit question reduces to. Every rule shape here repeats
+    weekly, so a scan of one full week plus the WRAP (from the last occurrence of the
+    week back round to the first) is the true periodic answer rather than an artefact of
+    where the window happened to be cut.
+
+    ``{"minutes": None, "unbounded": True}`` means no rule fires at all in the window --
+    the honest answer, and distinct from "the gap is seven days", because with no rules
+    the box falls back to the adaptive cadence rather than going silent.
+    """
+    if start.tzinfo is None:
+        raise ValueError("longest_gap requires an aware `start` datetime")
+    usable = [r for r in rules if r.days and r.mode in (MODE_INTERVAL, MODE_AT_TIMES)]
+
+    first_day = start.astimezone(tz).date()
+    window_start = _resolve_local(tz, _dt.datetime.combine(first_day, _dt.time.min))
+    window_end = window_start + _dt.timedelta(days=days)
+
+    moments = []
+    for offset in range(-1, days + 1):
+        span_day = first_day + _dt.timedelta(days=offset)
+        for moment, _index in _bucket_day_span(usable, span_day, tz):
+            if window_start <= moment < window_end:
+                moments.append(moment)
+
+    if not moments:
+        return {"minutes": None, "unbounded": True, "start": None, "end": None}
+
+    moments.sort()
+    best_minutes = -1
+    best_pair = (moments[0], moments[0])
+    for earlier, later in zip(moments, moments[1:]):
+        span = int((later - earlier).total_seconds() // 60)
+        if span > best_minutes:
+            best_minutes = span
+            best_pair = (earlier, later)
+
+    # The wrap. Without it a schedule whose only rule is "Monday 06:00" reports a gap of
+    # zero, because it has a single occurrence and no consecutive pair.
+    wrap_end = moments[0] + _dt.timedelta(days=days)
+    wrap = int((wrap_end - moments[-1]).total_seconds() // 60)
+    if wrap > best_minutes:
+        best_minutes = wrap
+        best_pair = (moments[-1], wrap_end)
+
+    return {
+        "minutes": max(0, best_minutes),
+        "unbounded": False,
+        "start": best_pair[0].isoformat(),
+        "end": best_pair[1].isoformat(),
+    }
+
+
+# The panel shows FIVE upcoming syncs, not one. A single "next sync" answers "is it
+# armed"; five answer "is it armed CORRECTLY" -- a rule that fires at 06:00 and then not
+# again until Monday is indistinguishable from a healthy one until you can see the second
+# entry. Five is also the point where a strip and a list start saying the same thing.
+_DEFAULT_NEXT_RUNS = 5  # magic-number-allow: how many upcoming syncs the panel lists
+
+
+def next_runs(rules, *, after, tz, count: int = _DEFAULT_NEXT_RUNS) -> list:
+    """The next ``count`` firing instants, ascending, each with the rule that owns it.
+
+    Built by walking :func:`next_run_at` forward rather than by re-deriving occurrences,
+    so the list and the scheduler's own decision cannot disagree even by one entry.
+    Bounded: it stops at ``count``, and at the first moment the walk stops advancing.
+    """
+    if after.tzinfo is None:
+        raise ValueError("next_runs requires an aware `after` datetime")
+    usable = [r for r in rules if r.days and r.mode in (MODE_INTERVAL, MODE_AT_TIMES)]
+    out: list = []
+    cursor = after
+    for _ in range(max(0, int(count))):
+        moment = next_run_at(usable, after=cursor, tz=tz)
+        if moment is None or moment <= cursor:
+            break
+        # Which rule owns this instant. A moment can belong to more than one rule; the
+        # first match is enough for a label, and the strip shows the overlap properly.
+        owner = ""
+        local_day = moment.astimezone(tz).date()
+        for rule in usable:
+            for day in (local_day - _dt.timedelta(days=1), local_day):
+                if day.weekday() not in rule.days:
+                    continue
+                candidates = (
+                    _interval_occurrences(rule, day, tz)
+                    if rule.mode == MODE_INTERVAL
+                    else _at_times_occurrences(rule, day, tz)
+                )
+                if moment in candidates:
+                    owner = rule.label
+                    break
+            if owner:
+                break
+        # `at` is the wire format the browser re-formats; `display` is what the SERVER
+        # renders, so the no-JavaScript path reads a time rather than an ISO string.
+        # "%a" and "%H:%M" only -- "%-d" is glibc-only and raises on Windows.
+        local = moment.astimezone(tz)
+        out.append(
+            {
+                "at": moment.isoformat(),
+                "display": f"{local.strftime('%a')} {local.strftime('%H:%M')}",
+                "label": owner,
+            }
+        )
+        cursor = moment
+    return out
+
+
+def dst_note_for_rule(rule: Rule, tz, *, after: _dt.datetime) -> str:
+    """The clock-change note for THIS rule, or ``""`` if it is not affected.
+
+    The page used to carry one DST paragraph for the whole tenant, rendered all year. It
+    is only ever true of a rule whose configured wall-clock time falls in the hour the
+    clock skips or repeats, and only in the week or so around the change -- so it belongs
+    on that rule, where a school reading "At 02:30, every day" can see what happens to
+    *that* line, and nowhere else for the other fifty-one weeks.
+
+    Checked against the rule's CONFIGURED wall-clock values rather than its resolved
+    instants, deliberately: a spring-forward time is resolved past the gap by
+    :func:`_resolve_local`, so by the time it is an instant the evidence that it was ever
+    inside the gap is gone.
+    """
+    try:
+        transition = next_dst_transition(tz, after=after)
+    except Exception:  # noqa: BLE001 -- a display aid must never break a panel
+        return ""
+    if transition is None:
+        return ""
+
+    local = transition["at"].astimezone(tz)
+    if local.date().weekday() not in (rule.days or frozenset()):
+        return ""
+
+    # The affected wall-clock band: the hour the clock skips (forward) or repeats (back).
+    # Derived from the offset delta rather than assumed to be exactly one hour, because
+    # not every zone moves by 60 minutes.
+    shift_minutes = abs(int(transition.get("shift_minutes") or 0)) or _MINUTES_PER_HOUR
+    band_start = local.replace(minute=0, second=0, microsecond=0)
+    if transition["direction"] == "forward":
+        band_start = band_start - _dt.timedelta(minutes=shift_minutes)
+    band_end = band_start + _dt.timedelta(minutes=shift_minutes)
+
+    def _in_band(value: _dt.time) -> bool:
+        stamp = _dt.datetime.combine(local.date(), value)
+        return band_start.replace(tzinfo=None) <= stamp < band_end.replace(tzinfo=None)
+
+    affected = False
+    if rule.mode == MODE_AT_TIMES:
+        affected = any(_in_band(t) for t in rule.times)
+    elif rule.mode == MODE_INTERVAL and rule.window_start and rule.window_end:
+        # A window that merely CONTAINS the band is affected: an interval rule stepping
+        # through it will land inside.
+        start = _dt.datetime.combine(local.date(), rule.window_start)
+        end_day = local.date() + _dt.timedelta(days=1) if rule.crosses_midnight else local.date()
+        end = _dt.datetime.combine(end_day, rule.window_end)
+        affected = start < band_end.replace(tzinfo=None) and end > band_start.replace(tzinfo=None)
+
+    if not affected:
+        return ""
+
+    when = f"{local.day} {local.strftime('%B')} {local.year}"
+    if transition["direction"] == "forward":
+        return (
+            f"The clocks go forward on {when} and this rule's time does not exist that "
+            "morning. It still runs, at the same absolute moment, just after the change — "
+            "never dropped."
+        )
+    return (
+        f"The clocks go back on {when} and this rule's time happens twice. It runs once, "
+        "on the first."
+    )

@@ -1,349 +1,69 @@
 {% extends "backend_base.html" %}
 {% load i18n static %}
+{% comment %}
+THE SYNC CENTER, rebuilt 2026-08-21.
+
+WHAT IT WAS. Six stacked cards, fifteen counter tiles, twenty-two always-on paragraphs,
+thirteen forms and four tables across this file and three partials — 676 template lines.
+Three of the cards had been written to stand on their own, so each re-derived what its
+neighbour already showed, and FIVE separate facts rendered twice:
+
+  * last sync      — absolute timestamp in Schedule, relative age in Live activity
+  * next sync      — the next occurrence of a RULE in one card, the next moment CADENCE
+                     was due in another. Both correct, DIFFERENT QUESTIONS, and nothing
+                     on screen said so, so "18:00" beside "in 26 min" left an operator to
+                     decide which one was lying
+  * recent cycles  — a server-rendered <ul> in one card and a JS-polled <table> in another
+  * pushed/pulled  — last cycle in one card, 24 hours in another, only one naming its window
+  * conflicts      — the page summary strip, an edge-sync tile, and the table itself
+
+WHAT IT IS. Three always-on bands, one activity timeline, and a work queue that does not
+render when nothing needs a person:
+
+  1. VERDICT     is it working, right now
+  2. WHAT MOVED  how much crossed, and did any of it fail
+  3. SCHEDULE    when will it sync, and are there holes
+  4. ACTIVITY    what actually happened
+  5. NEEDS YOU   is a human blocking anything            (absent when empty)
+  6. DISCLOSURES everything that used to explain itself permanently
+
+Conflicts moved to siteconfig:sync_conflicts. That table is six columns with a
+field-by-field payload diff and four resolution forms per row: folded in here it was both
+the longest section and the most cramped one — the comparison that decides which version
+of a grade survives was rendering inside a collapsed row of a table inside a card.
+
+Nothing was deleted. What changed is WHEN each thing renders: once instead of twice, on
+demand instead of always, and next to the thing it describes.
+{% endcomment %}
 {% block title %}{% trans "Sync Center" %} – {{ school.name }}{% endblock %}
 {% block backend_title %}{% trans "Sync Center" %}{% endblock %}
 {% block extrastyle %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/cp-operator-density-1096-1097.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-sync-center.css' %}">
 {% endblock %}
 
 {% block backend_page %}
 {% include "components/next_action_strip.html" %}
 
   <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
-<div class="container-fluid py-3 cp-evidence-page" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-shell-surface="sync-center" data-cp-evidence-surface="sync-center" data-rmc-scroll-policy="paginate" data-page-critical-read="1" data-rmc-page-fold-nav="required" data-rmc-sync-center="1" data-status-url="{% url 'siteconfig:sync_center_status' %}" data-probe-url="{% url 'siteconfig:sync_center_probe' %}" data-bulk-url="{% url 'siteconfig:sync_center_bulk_resolve' %}" data-poll-ms="3000" data-rmc-label-running="{% trans 'Running' %}" data-rmc-label-ok="{% trans 'OK' %}" data-rmc-label-failed="{% trans 'Failed' %}" data-rmc-bulk-error="{% trans 'Could not resolve conflicts.' %}">
-    {% include "studio_os/components/page_header.html" with title=_("Sync Center") subtitle=_("Live edge sync status, plus bulk tools for resolving offline conflicts.") action_url=action_url|default:None action_text=action_text|default:None %}
-    <nav class="rmc-page-fold-nav rmc-section-nav mb-3" aria-label="{% trans 'On this page' %}">
-      <a href="#edge-sync">{% trans "Edge sync" %}</a>
-      <a href="#sync-schedule">{% trans "Schedule" %}</a>
-      <a href="#sync-progress">{% trans "Progress" %}</a>
-      <a href="#sync-conflicts">{% trans "Conflicts" %}</a>
-    </nav>
-    {% if sync_available %}
-    <div class="d-flex flex-wrap align-items-stretch gap-2 mb-3 cp-evidence-summary" data-rmc-operator-evidence-summary="1" aria-label="{% trans 'Summary' %}">
-      <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1">
-        <div class="text-uppercase small">{% trans "Total" %}</div>
-        <div class="fw-semibold text-body fs-6" data-rmc-sync-stat-total>{{ sync_stats_total|default:0 }}</div>
-      </div>
-      <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1">
-        <div class="text-uppercase small">{% trans "Pending" %}</div>
-        <div class="fw-semibold text-body fs-6" data-rmc-sync-stat-pending>{{ sync_stats_pending|default:0 }}</div>
-      </div>
-    </div>
-    {% endif %}
-    <div class="d-flex flex-wrap gap-2 mb-3 cp-evidence-related" data-rmc-evidence-related-links="1" aria-label="{% trans 'Related control-plane links' %}">
-      {% if scheduled_hub_url %}
-      <a class="btn btn-sm btn-outline-primary" href="{{ scheduled_hub_url }}">{% trans "Scheduled report delivery" %}</a>
-      {% endif %}
-      {% if console_url %}
-      <a class="btn btn-sm btn-outline-primary" href="{{ console_url }}">{% trans "Configuration control center" %}</a>
-      {% endif %}
-    </div>
-    <div class="card shadow-sm mb-3" id="edge-sync" data-rmc-section-anchor="1" data-rmc-edge-sync-panel="1">
-      <div class="card-body">
-        <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
-          <div>
-            <h2 class="h5 mb-1">{% trans "Edge sync" %}</h2>
-            <p class="text-muted mb-0 small">{% trans "Push local changes up to the cloud and pull cloud changes down. Money stays cloud-authoritative." %}</p>
-          </div>
-          <span class="badge rounded-pill {% if sync_live.phase == 'ok' %}bg-success-subtle text-success-emphasis{% elif sync_live.phase == 'failed' %}bg-danger-subtle text-danger-emphasis{% elif sync_live.phase == 'queued' or sync_live.phase == 'running' %}bg-warning-subtle text-warning-emphasis{% else %}bg-body-secondary text-body-secondary{% endif %}" data-rmc-sync-badge data-phase="{{ sync_live.phase|default:'idle' }}">{{ sync_live.badge|default:_("Idle") }}</span>
-        </div>
-        {% if not edge_sync_enabled %}
-          <p class="text-body-secondary mb-2 small">
-            {% trans "This is the cloud side. Your box syncs by calling out on its own schedule — the cloud cannot reach into its network, so there is nothing to start from here." %}
-          </p>
-        {% endif %}
-        <p class="small mb-2" data-rmc-sync-headline>{{ sync_live.headline|default:_("No sync has run yet.") }}</p>
-        <div class="d-flex flex-wrap gap-2 mb-2">
-          <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary">
-            <div class="text-uppercase small">{% trans "Pushed" %}</div>
-            <div class="fw-semibold text-body fs-6" data-rmc-sync-pushed>{{ sync_live.pushed|default:0 }}</div>
-          </div>
-          <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary">
-            <div class="text-uppercase small">{% trans "Pulled" %}</div>
-            <div class="fw-semibold text-body fs-6" data-rmc-sync-pulled>{{ sync_live.pulled|default:0 }}</div>
-          </div>
-          <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary">
-            <div class="text-uppercase small">{% trans "Conflicts" %}</div>
-            <div class="fw-semibold text-body fs-6" data-rmc-sync-conflicts>{{ sync_live.conflicts|default:0 }}</div>
-          </div>
-        </div>
-        {% if sync_live.recent_runs %}
-          <h3 class="h6 mt-3">{% trans "Recent cycles" %}</h3>
-          <ul class="small mb-2" data-rmc-sync-recent>
-            {% for run in sync_live.recent_runs %}
-              <li>
-                {% if run.in_progress %}{% trans "Running" %}{% elif run.ok %}{% trans "OK" %}{% else %}{% trans "Failed" %}{% endif %}
-                — {{ run.created_at }}
-                ({% trans "pushed" %} {{ run.pushed }}, {% trans "pulled" %} {{ run.pulled }})
-                {# The reason is stored on every row and was being thrown away, so five #}
-                {# consecutive "Failed" lines told a school nothing it could act on. #}
-                {% if run.error %}<div class="text-danger-emphasis">{{ run.error }}</div>
-                {% elif run.message %}<div class="text-body-secondary">{{ run.message }}</div>{% endif %}
-              </li>
-            {% endfor %}
-          </ul>
-        {% else %}
-          <ul class="small mb-2 d-none" data-rmc-sync-recent></ul>
-        {% endif %}
-        {% if edge_sync_enabled %}
-          <p class="text-body-secondary small mb-2">
-            {% trans "Run sync from this page — no command line needed. Dry-run checks cloud reachability without applying changes; Sync now runs the full push-then-pull cycle." %}
-          </p>
-          <form method="post" action="{% url 'siteconfig:sync_center_sync_now' %}" class="d-flex flex-wrap gap-2 align-items-center" data-rmc-wfp-hold="1" data-rmc-wfp-stay="1">
-            {% csrf_token %}
-            <button type="submit" name="mode" value="dry" class="btn btn-sm btn-outline-primary">{% trans "Dry-run sync" %}</button>
-            <button type="submit" name="mode" value="live" class="btn btn-sm btn-primary">{% trans "Sync now" %}</button>
-            <button type="button" class="btn btn-sm btn-outline-secondary" data-rmc-sync-probe-btn>{% trans "Test cloud connection" %}</button>
-          </form>
-          <p class="small mb-0 mt-2 d-none" data-rmc-sync-probe-result role="status"></p>
-          {% if sync_interval_seconds %}
-            <p class="text-body-secondary small mb-0 mt-2">
-              {% blocktrans with seconds=sync_interval_seconds %}Syncing automatically every {{ seconds }} seconds whenever this box has a connection.{% endblocktrans %}
-            </p>
-          {% endif %}
-          {% if edge_connectivity %}
-            <div class="border rounded-2 p-3 mt-3 small bg-body-tertiary" data-rmc-sync-connectivity>
-              <h3 class="h6 mb-2">{% trans "Cloud connection" %}</h3>
-              <dl class="row mb-0 g-1">
-                <dt class="col-sm-4 text-body-secondary">{% trans "Profile" %}</dt>
-                <dd class="col-sm-8 mb-1">{{ edge_connectivity.deployment_profile|default:"—" }}</dd>
-                <dt class="col-sm-4 text-body-secondary">{% trans "Operator base" %}</dt>
-                <dd class="col-sm-8 mb-1 text-break">
-                  {% if edge_connectivity.operator_base_configured %}
-                    {{ edge_connectivity.operator_base }}
-                  {% else %}
-                    <span class="text-danger-emphasis">{% trans "Not configured — set RMC_EDGE_OPERATOR_BASE to your TENANT cloud host." %}</span>
-                  {% endif %}
-                </dd>
-                <dt class="col-sm-4 text-body-secondary">{% trans "Credential" %}</dt>
-                <dd class="col-sm-8 mb-1">
-                  {% if edge_connectivity.credential_configured %}
-                    <span class="text-success-emphasis">{% trans "Configured" %}</span>
-                  {% else %}
-                    <span class="text-danger-emphasis">{% trans "Missing — mint RMC_EDGE_CREDENTIAL on the cloud." %}</span>
-                  {% endif %}
-                </dd>
-                {% if edge_connectivity.school_slug_pin %}
-                  <dt class="col-sm-4 text-body-secondary">{% trans "School pin" %}</dt>
-                  <dd class="col-sm-8 mb-1">{{ edge_connectivity.school_slug_pin }}</dd>
-                {% endif %}
-              </dl>
-              {% if sync_live.phase == 'failed' and sync_live.error %}
-                <p class="text-danger-emphasis mb-0 mt-2" data-rmc-sync-error-detail>{{ sync_live.error }}</p>
-              {% endif %}
-              {# This used to assert that a 502 meant RMC_EDGE_OPERATOR_BASE was wrong, #}
-              {# and told the operator to edit .env and restart. That was a guess stated #}
-              {# as a diagnosis, and it was wrong: a 502 is the cloud's PROXY answering #}
-              {# because the application behind it did not, so the box's configuration #}
-              {# is not implicated at all. It also no longer matches how a paired box is #}
-              {# configured, which is not in .env. Point at the command that actually #}
-              {# distinguishes the cases instead of naming a suspect. #}
-              <p class="text-body-secondary mb-0 mt-2">
-                {% trans "A 502 or 504 means the cloud's proxy answered but the application behind it did not. The usual cause is schema drift on THIS tenant: a synced table missing a column raises an error on every bundle build. On the cloud run “python manage.py check_edge_sync_deploy_readiness”, and on the box run “python manage.py verify_edge_link --http” to tell that apart from an unreachable host, a refused credential, or a missing endpoint." %}
-              </p>
-            </div>
-          {% endif %}
-        {% else %}
-          {% if pending_resync %}
-            <p class="text-warning small mb-2" data-rmc-sync-queue-note>
-              {% blocktrans with when=pending_resync.requested_at|date:"Y-m-d H:i" %}Full resync queued {{ when }} — waiting for the box to connect.{% endblocktrans %}
-            </p>
-          {% elif last_served_resync %}
-            <p class="text-success small mb-2" data-rmc-sync-queue-note>
-              {% blocktrans with when=last_served_resync.served_at|date:"Y-m-d H:i" %}Last full resync collected by the box {{ when }}.{% endblocktrans %}
-            </p>
-          {% else %}
-            <p class="text-body-secondary small mb-2 d-none" data-rmc-sync-queue-note></p>
-          {% endif %}
-          <form method="post" action="{% url 'siteconfig:sync_center_request_resync' %}" class="d-flex flex-wrap gap-2 align-items-center">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-sm btn-primary" data-rmc-sync-queue-btn {% if pending_resync %}disabled{% endif %}>{% trans "Queue full resync" %}</button>
-            <span class="text-body-secondary small">
-              {% trans "Has the box missed a lot of changes? This makes it replay every record on its next connection. Safe to press while it is offline." %}
-            </span>
-          </form>
-        {% endif %}
-      </div>
-    </div>
-    {% include "siteconfig/partials/_sync_pairing_panel.html" %}
-    {% include "siteconfig/partials/_sync_schedule_panel.html" %}
+<div class="container-fluid py-3 cp-evidence-page" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-shell-surface="sync-center" data-cp-evidence-surface="sync-center" data-rmc-scroll-policy="paginate" data-page-critical-read="1" data-rmc-sync-center="1" data-status-url="{% url 'siteconfig:sync_center_status' %}" data-probe-url="{% url 'siteconfig:sync_center_probe' %}" data-poll-ms="3000">
+    {% include "studio_os/components/page_header.html" with title=_("Sync Center") subtitle=_("Is the box talking to the cloud, when does it sync next, and is anything waiting on you.") action_url=action_url|default:None action_text=action_text|default:None %}
 
-    <section id="sync-progress" data-rmc-section-anchor="1">
-      {% include "components/rmc_workflow_kickoff_live.html" with workflow_key="siteconfig-edge-sync" task_type="EDGE_SYNC" %}
-    </section>
-
-    {# Live evidence sits BELOW the static summary: that summary renders with JS off, so #}
-    {# the no-JS reader still gets the last outcome before this augments it. #}
-    {% include "siteconfig/partials/_sync_live_panel.html" %}
-
-    <div class="card shadow-sm" id="sync-conflicts" data-rmc-section-anchor="1">
-      <div class="card-body">
-        <h1 class="h5 mb-3">{% trans "Sync conflicts" %}</h1>
-        <p class="text-muted">{% trans "Select several rows, or resolve a whole entity type with school policy. Keep server, keep client, discard, or let the registered merge policy decide." %}</p>
-        <p class="small text-danger d-none" data-rmc-sync-bulk-msg role="status"></p>
-        {% if not sync_available %}
-          <p class="text-warning">{% trans "Sync conflict model not available." %}</p>
-        {% else %}
-          <div class="d-flex flex-wrap gap-2 mb-3" role="navigation" aria-label="{% trans 'Conflict filters' %}">
-            <a class="btn btn-sm {% if conflict_status_filter == 'pending' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="?status=pending">{% trans "Pending" %}</a>
-            <a class="btn btn-sm {% if conflict_status_filter == 'all' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="?status=all">{% trans "All" %}</a>
-            <a class="btn btn-sm {% if conflict_status_filter == 'resolved' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="?status=resolved">{% trans "Resolved" %}</a>
-          </div>
-          {% if conflict_groups %}
-            <div class="d-flex flex-wrap gap-2 mb-3">
-              {% for group in conflict_groups %}
-                <form method="post" action="{% url 'siteconfig:sync_center_bulk_resolve' %}" class="d-inline">
-                  {% csrf_token %}
-                  <input type="hidden" name="entity_type" value="{{ group.entity_type }}">
-                  <input type="hidden" name="resolution" value="policy">
-                  <button type="submit" class="btn btn-sm btn-outline-secondary">
-                    {% blocktrans with entity=group.entity_type n=group.pending_count %}Resolve {{ n }} {{ entity }} by policy{% endblocktrans %}
-                  </button>
-                </form>
-              {% endfor %}
-            </div>
-          {% endif %}
-          {% if not conflicts %}
-            {% include "components/dashboard_empty_state.html" with icon="bi-check2-circle" title=_("No pending conflicts") message=_("When offline edits disagree with the server, they appear here so you can keep a version or apply school policy in bulk.") purpose=_("Keep data trustworthy") %}
-          {% else %}
-            {% include "components/_bulk_actions_toolbar.html" with bulk_table_id="sync-conflicts-table" bulk_actions=bulk_actions %}
-            <div class="table-responsive">
-              <table id="sync-conflicts-table" class="table table-sm table-family align-middle rmc-data-table" data-rmc-bulk-table data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
-                <caption class="visually-hidden">{% trans "Sync conflicts" %}</caption>
-                <thead>
-                  <tr>
-                    <th scope="col"><input type="checkbox" data-rmc-bulk-select-all aria-label="{% trans 'Select all conflicts on this page' %}"></th>
-                    <th scope="col">{% trans "Entity" %}</th>
-                    <th scope="col">{% trans "ID" %}</th>
-                    <th scope="col">{% trans "Status" %}</th>
-                    <th scope="col">{% trans "Created" %}</th>
-                    <th scope="col">{% trans "Actions" %}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for c in conflicts %}
-                    <tr>
-                      <td>
-                        {% if c.status == "PENDING" %}
-                          <input type="checkbox" data-rmc-bulk-checkbox value="{{ c.id }}" aria-label="{% trans 'Select conflict' %}">
-                        {% endif %}
-                      </td>
-                      <td>{{ c.entity_type }}</td>
-                      <td>{{ c.entity_id }}</td>
-                      <td>{{ c.get_status_display }}</td>
-                      <td>{{ c.created_at|date:"Y-m-d H:i" }}</td>
-                      <td>
-            <details class="rmc-row-disclosure">
-              <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
-              <div class="rmc-row-disclosure__body mt-1">
-  {% if c.client_data or c.server_data %}
-                          <button type="button" class="btn btn-sm btn-outline-info me-1" data-bs-toggle="collapse" data-bs-target="#sync-payload-{{ c.id }}" aria-expanded="false">{% trans "Side-by-side" %}</button>
-                        {% endif %}
-                        {% if c.status == "PENDING" %}
-                          {# Why, captured with the decision: resolution_note is the audit #}
-                          {# trail beside resolved_by/resolved_at. A money or grade record #}
-                          {# settled for a reason nobody can recover later is not settled. #}
-                          <label class="visually-hidden" for="sync-note-{{ c.id }}">{% trans "Reason" %}</label>
-                          <input type="text" form="sync-keep-server-{{ c.id }}" id="sync-note-{{ c.id }}"
-                                 class="form-control form-control-sm d-inline-block mb-1" style="max-width:22rem"
-                                 name="note" placeholder="{% trans 'Reason (recorded with your name)' %}">
-                          <form method="post" id="sync-keep-server-{{ c.id }}" action="{% url 'siteconfig:sync_center_resolve' c.id %}" class="d-inline">
-                            {% csrf_token %}
-                            <input type="hidden" name="resolution" value="server">
-                            <button type="submit" class="btn btn-sm btn-outline-primary">{% trans "Keep cloud version" %}</button>
-                          </form>
-                          {% if c.may_keep_client %}
-                          <form method="post" action="{% url 'siteconfig:sync_center_resolve' c.id %}" class="d-inline">
-                            {% csrf_token %}
-                            <input type="hidden" name="resolution" value="client">
-                            <button type="submit" class="btn btn-sm btn-outline-secondary">{% trans "Keep local (offline) version" %}</button>
-                          </form>
-                          {% else %}
-                          {# Not offered rather than offered-and-refused: this record is #}
-                          {# cloud-authoritative, and a button that always fails is worse #}
-                          {# than no button. The reason is stated instead of hidden. #}
-                          <span class="badge bg-light text-dark border" title="{{ c.keep_client_refusal }}">{% trans "Cloud-authoritative" %}</span>
-                          {% endif %}
-                          <form method="post" action="{% url 'siteconfig:sync_center_resolve' c.id %}" class="d-inline">
-                            {% csrf_token %}
-                            <input type="hidden" name="resolution" value="policy">
-                            <button type="submit" class="btn btn-sm btn-outline-secondary">{% trans "Apply policy" %}</button>
-                          </form>
-                          <form method="post" action="{% url 'siteconfig:sync_center_resolve' c.id %}" class="d-inline">
-                            {% csrf_token %}
-                            <input type="hidden" name="resolution" value="discard">
-                            <button type="submit" class="btn btn-sm btn-outline-danger">{% trans "Skip &amp; log" %}</button>
-                          </form>
-                          {% if not c.may_keep_client and c.keep_client_refusal %}
-                            <div class="small text-muted mt-1">{{ c.keep_client_refusal }}</div>
-                          {% endif %}
-                        {% else %}
-                          {% if c.resolution_note %}<span class="small text-muted">{{ c.resolution_note }}</span>{% else %}—{% endif %}
-                        {% endif %}
-              </div>
-            </details></td>
-                    </tr>
-                    {% if c.client_data or c.server_data %}
-                    <tr class="collapse" id="sync-payload-{{ c.id }}">
-                      <td colspan="6" class="p-0">
-                        {# Field by field, aligned, with WHICH side and WHEN. Two raw dict #}
-                        {# dumps side by side made the reviewer diff blobs by eye, and the #}
-                        {# one field that actually differs is what they most reliably miss. #}
-                        <div class="border-top bg-light small p-2">
-                          <div class="d-flex flex-wrap gap-3 mb-2 text-muted">
-                            <span>{% trans "Cloud updated" %}: <strong>{{ c.server_updated_at|date:"Y-m-d H:i"|default:"—" }}</strong></span>
-                            <span>{% trans "Local/offline updated" %}: <strong>{{ c.client_updated_at|date:"Y-m-d H:i"|default:"—" }}</strong></span>
-                          </div>
-                          <div class="table-responsive">
-                            <table class="table table-sm mb-0">
-                              <thead>
-                                <tr>
-                                  <th scope="col">{% trans "Field" %}</th>
-                                  <th scope="col">{% trans "Cloud version" %}</th>
-                                  <th scope="col">{% trans "Local (offline) version" %}</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {% for f in c.field_rows %}
-                                  <tr{% if f.differs %} class="table-warning"{% endif %}>
-                                    <th scope="row" class="fw-normal">
-                                      {{ f.name }}
-                                      {% if f.down_only %}<span class="badge bg-secondary ms-1" title="{% trans 'Cloud-governed: this column never travels upward, and is not applied even if you keep the local version.' %}">{% trans "cloud-only" %}</span>{% endif %}
-                                    </th>
-                                    <td><code>{{ f.server|default_if_none:"—" }}</code></td>
-                                    <td><code>{{ f.client|default_if_none:"—" }}</code></td>
-                                  </tr>
-                                {% empty %}
-                                  <tr><td colspan="3" class="text-muted">{% trans "No comparable fields were recorded." %}</td></tr>
-                                {% endfor %}
-                              </tbody>
-                            </table>
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                    {% endif %}
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
-            {% include "components/pagination.html" %}
-          {% endif %}
-        {% endif %}
-      </div>
+    <div class="rmc-sc">
+      {% include "siteconfig/partials/_sync_verdict.html" %}
+      {% include "siteconfig/partials/_sync_flow.html" %}
+      {% include "siteconfig/partials/_sync_schedule_panel.html" %}
+      {% include "siteconfig/partials/_sync_activity.html" %}
+      {% include "siteconfig/partials/_sync_work_queue.html" %}
+      {% include "siteconfig/partials/_sync_diagnostics.html" %}
     </div>
-    {% if user.is_superuser and admin_sync_conflict_url %}
-    <div class="cp-evidence-advanced border-top pt-3 mt-3" data-rmc-evidence-advanced="1">
-      <a class="btn btn-sm btn-outline-secondary" href="{{ admin_sync_conflict_url }}">{% trans "Advanced/Admin: sync conflict rows" %}</a>
-    </div>
-    {% endif %}
   </div>
-{% include "partials/portal_row_detail_drawer_bundle.html" %}
-<script src="{% static 'js/_pages/siteconfig__sync_center_live.js' %}" defer></script>
+{{ sync_live_strings|json_script:"rmc-sync-live-strings" }}
 {% endblock %}
 
 {% block extra_js %}
 {{ block.super }}
 <script src="{% static 'js/rmc-sync-center.js' %}" defer></script>
+<script src="{% static 'js/rmc-sync-schedule-strip.js' %}" defer></script>
 {% endblock %}

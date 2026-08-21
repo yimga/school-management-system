@@ -12,6 +12,7 @@ from django.views.decorators.http import require_http_methods
 import logging
 
 from django.http import JsonResponse
+from django.utils.timezone import now as dj_timezone_now
 
 _logger = logging.getLogger(__name__)
 
@@ -30,6 +31,20 @@ _resolve_sync_conflict = resolve_sync_conflict_row
 
 _CONFLICT_PAGE_SIZE = 25
 
+#: How many entity types the work queue names before it stops listing. The queue exists
+#: to tell an operator the SHAPE of the backlog at a glance; a list long enough to scroll
+#: has stopped doing that, and the full breakdown is one click away on the conflicts page.
+_WORK_QUEUE_GROUP_LIMIT = 4
+
+#: The strip's header row. Every third hour is numbered and the rest are blank — 24
+#: numbers across a column that narrow is unreadable, and the shape is what is being read
+#: anyway. Built here because a Django template cannot do modulo arithmetic on a range.
+_STRIP_HOUR_LABEL_EVERY = 3
+_STRIP_HOUR_LABELS = [
+    str(hour) if hour % _STRIP_HOUR_LABEL_EVERY == 0 else ""
+    for hour in range(24)  # magic-number-allow: hours in a day
+]
+
 
 #: How much history the live panel carries. Small on purpose — this is an at-a-glance
 #: trust surface polled every few seconds, not an audit export (the admin changelist and
@@ -37,6 +52,13 @@ _CONFLICT_PAGE_SIZE = 25
 _STATUS_RUN_LIMIT = 12
 _STATUS_RECORD_LIMIT = 25
 _STATUS_WINDOW_HOURS = 24
+
+#: The windows the flow band can ask for. FETCHED ON DEMAND rather than computed on every
+#: poll: the panel re-asks every few seconds and a second aggregate per tick is a real
+#: cost on a box that is also trying to sync. Whichever window is selected is the only one
+#: computed, and 24h stays the default because it is the one an operator opens the page
+#: holding a question about.
+_STATUS_WINDOW_CHOICES = {"24h": 24, "7d": 24 * 7}
 
 
 def _run_row(run, now) -> dict:
@@ -97,49 +119,140 @@ def _parse_json_body(request):
 @permission_required("settings.manage")
 @require_http_methods(["GET"])
 def sync_center(request):
-    """List SyncConflict for request.school; link to resolve from UI or admin."""
+    """The Sync Center: is it working, when does it run, what needs a human.
+
+    WHAT CHANGED, AND WHY. This page used to carry six stacked cards -- edge sync,
+    schedule, progress, live activity, conflicts, diagnostics -- each written to stand on
+    its own, so each re-derived what its neighbour already showed. Five separate facts
+    were rendered twice (last sync, next sync, recent cycles, pushed/pulled, the conflict
+    count), and one of those pairs could legitimately DISAGREE: the schedule panel showed
+    the next occurrence of a RULE while the live panel showed the next moment CADENCE was
+    due. Both correct, different questions, and nothing on screen said so.
+
+    The page is now three always-on bands (verdict, flow, schedule), one activity
+    timeline, and a work queue that is absent when nothing needs a person. Conflicts
+    moved to :func:`sync_conflicts`: that table is six columns with a field-by-field
+    payload diff and four resolution forms per row, and it was the single largest thing
+    on a page whose complaint was length. It is linked from the work queue, which is
+    where somebody looking for it actually is.
+
+    Nothing was deleted. Every fact, control and explanation still has a home -- what
+    changed is WHEN it renders: once instead of twice, on demand instead of always, and
+    next to the thing it describes.
+    """
+    school = getattr(request, "school", None)
+    if not school:
+        return redirect_staff_without_school(
+            request,
+            message="Select your school to view sync status.",
+        )
+    pref_url = reverse("siteconfig:user_preferences")
+    # include_coverage: the week strip is the one expensive field in the schedule
+    # summary, so the PAGE asks for it and the status poll does not.
+    panel = _edge_sync_panel_context(school, include_coverage=True)
+    ctx = {
+        "pairing_requests": _pending_pairing_requests(school),
+        "school": school,
+        "sync_available": False,
+        "action_url": pref_url,
+        "action_text": _("Back to preferences"),
+        "sync_stats_total": 0,
+        "sync_stats_pending": 0,
+        "conflict_groups": [],
+        "conflicts_url": _safe_sync_reverse("siteconfig:sync_conflicts"),
+        "scheduled_hub_url": _safe_sync_reverse(
+            "siteconfig:scheduled_reports_delivery_hub"
+        ),
+        "console_url": _safe_sync_reverse("siteconfig:console_domains_hub"),
+        "admin_sync_conflict_url": None,
+        "oldest_conflict_at": None,
+        # LAST, so the panel wins every key it owns. Dropping this spread is not a
+        # subtle failure: `edge_sync_enabled` becomes undefined, the template reads it as
+        # falsy, and a BOX silently renders the cloud-side controls -- offering "Queue
+        # full resync" to a deployment that can call out perfectly well, while the
+        # strings island renders empty and the week strip never draws.
+        **panel,
+    }
+    try:
+        from .models import SyncConflict
+    except ImportError:
+        return render(request, "siteconfig/sync_center.html", ctx)
+
+    stats = SyncConflict.objects.filter(school=school).aggregate(
+        total=Count("id"),
+        pending=Count("id", filter=Q(status=SyncConflict.Status.PENDING)),
+    )
+    # The work queue needs the SHAPE of the backlog, not the rows: "2 Attendance, 1
+    # Student" is what tells an operator whether this is one bad import or a systemic
+    # disagreement, and it is three integers rather than a page of records.
+    pending = SyncConflict.objects.filter(
+        school=school, status=SyncConflict.Status.PENDING
+    )
+    groups = list(
+        pending.values("entity_type")
+        .annotate(pending_count=Count("id"))
+        .order_by("-pending_count", "entity_type")[:_WORK_QUEUE_GROUP_LIMIT]
+    )
+    oldest = (
+        pending.order_by("created_at").values_list("created_at", flat=True).first()
+    )
+    ctx.update(
+        {
+            "sync_available": True,
+            "sync_stats_total": stats.get("total") or 0,
+            "sync_stats_pending": stats.get("pending") or 0,
+            "conflict_groups": groups,
+            "oldest_conflict_at": oldest,
+        }
+    )
+    return render(request, "siteconfig/sync_center.html", ctx)
+
+
+@login_required
+@permission_required("settings.manage")
+@require_http_methods(["GET"])
+def sync_conflicts(request):
+    """The conflict queue, on its own page.
+
+    IT LIVES HERE RATHER THAN ON THE SYNC CENTER because of what it needs: six columns, a
+    field-by-field comparison of the two versions of every record, and four resolution
+    forms per row. Folded into a status page it was both the longest section and the most
+    cramped one -- the diff that decides which version of a grade survives was rendering
+    inside a collapsed row of a table inside a card. Given a page, the comparison gets the
+    width it needs and the Sync Center gets to be short.
+    """
     school = getattr(request, "school", None)
     if not school:
         return redirect_staff_without_school(
             request,
             message="Select your school to view sync conflicts.",
         )
-    pref_url = reverse("siteconfig:user_preferences")
-    # Edge<->cloud sync status panel context (feature ②). Never let a missing model /
-    # stray error on this observability read break the conflicts page.
-    panel = _edge_sync_panel_context(school)
+    back_url = _safe_sync_reverse("siteconfig:sync_center")
     empty_ctx = {
-        "pairing_requests": _pending_pairing_requests(school),
         "school": school,
         "conflicts": [],
         "page_obj": None,
         "sync_available": False,
-        "action_url": pref_url,
-        "action_text": _("Back to preferences"),
+        "sync_center_url": back_url,
+        "action_url": back_url,
+        "action_text": _("Back to Sync Center"),
         "sync_stats_total": 0,
         "sync_stats_pending": 0,
         "conflict_status_filter": "pending",
+        "conflict_entity_filter": "",
         "conflict_groups": [],
         "bulk_actions": _conflict_bulk_actions(),
-        "scheduled_hub_url": _safe_sync_reverse(
-            "siteconfig:scheduled_reports_delivery_hub"
-        ),
-        "console_url": _safe_sync_reverse("siteconfig:console_domains_hub"),
+        "bulk_url": _safe_sync_reverse("siteconfig:sync_center_bulk_resolve"),
         "admin_sync_conflict_url": None,
-        **panel,
+        "pagination_extra_query": "",
     }
     try:
         from .models import SyncConflict
     except ImportError:
-        return render(request, "siteconfig/sync_center.html", empty_ctx)
-    stats = (
-        SyncConflict.objects.filter(school=school)
-        .aggregate(
-            total=Count("id"),
-            pending=Count(
-                "id", filter=Q(status=SyncConflict.Status.PENDING)
-            ),
-        )
+        return render(request, "siteconfig/sync_conflicts.html", empty_ctx)
+    stats = SyncConflict.objects.filter(school=school).aggregate(
+        total=Count("id"),
+        pending=Count("id", filter=Q(status=SyncConflict.Status.PENDING)),
     )
     status_filter = (request.GET.get("status") or "pending").strip().lower()
     if status_filter not in {"pending", "all", "resolved"}:
@@ -172,7 +285,7 @@ def sync_center(request):
             admin_sync_url = None
     # Attach the aligned field-by-field comparison and whether THIS viewer may settle
     # the conflict in the client's favour. Both are computed here rather than in the
-    # template because the template cannot call a function with arguments — and a button
+    # template because the template cannot call a function with arguments -- and a button
     # that is going to be refused should not be offered in the first place (the same
     # lesson as the admin index: a control that exists only to refuse you is worse than
     # no control).
@@ -183,13 +296,13 @@ def sync_center(request):
             _c.may_keep_client, _c.keep_client_refusal = may_resolve(
                 request.user, _c, "client"
             )
-        except Exception:  # noqa: BLE001 — a display aid must never break the page
+        except Exception:  # noqa: BLE001 -- a display aid must never break the page
             _logger.debug("could not build the conflict comparison", exc_info=True)
             _c.field_rows = []
             _c.may_keep_client, _c.keep_client_refusal = True, ""
     return render(
         request,
-        "siteconfig/sync_center.html",
+        "siteconfig/sync_conflicts.html",
         {
             **empty_ctx,
             "conflicts": conflict_rows,
@@ -315,11 +428,11 @@ def sync_center_resolve(request, conflict_id):
             return JsonResponse(
                 {"ok": False, "error": "SyncConflict not available"}, status=404
             )
-        return redirect("siteconfig:sync_center")
+        return redirect("siteconfig:sync_conflicts")
     conflict = get_object_or_404(SyncConflict, pk=conflict_id, school=school)
     if conflict.status != SyncConflict.Status.PENDING:
         messages.info(request, "Conflict already resolved.")
-        return redirect("siteconfig:sync_center")
+        return redirect("siteconfig:sync_conflicts")
     resolution_str = (request.POST.get("resolution") or "").strip().lower()
     # WHY, captured with the decision. resolution_note is the audit trail alongside
     # resolved_by/resolved_at, and a resolution nobody can explain later is not a
@@ -328,12 +441,12 @@ def sync_center_resolve(request, conflict_id):
     ok, reason = apply_resolution(conflict, resolution_str, request.user, note=note)
     if not ok:
         messages.error(request, reason or _("Invalid resolution."))
-        return redirect("siteconfig:sync_center")
+        return redirect("siteconfig:sync_conflicts")
     messages.success(
         request,
         _("Conflict resolved (%(resolution)s).") % {"resolution": resolution_str},
     )
-    return redirect("siteconfig:sync_center")
+    return redirect("siteconfig:sync_conflicts")
 
 
 def _conflict_bulk_actions():
@@ -413,10 +526,64 @@ def _sync_live_strings() -> dict:
             "Could not read sync status just now. Syncing itself is unaffected — this "
             "panel will keep trying."
         ),
+        # --- the verdict line. One sentence, one place. -----------------------------
+        "verdict_ok": gettext("Syncing normally"),
+        "verdict_failed": gettext("Last sync failed"),
+        "verdict_running": gettext("Syncing now"),
+        "verdict_queued": gettext("Sync queued"),
+        "verdict_idle": gettext("No sync has run yet"),
+        "verdict_cloud": gettext("Waiting for the box to call in"),
+        "verdict_last": gettext("Last synced"),
+        "verdict_never": gettext("Never synced"),
+        # The two "next" answers are DIFFERENT QUESTIONS and used to be rendered as if
+        # they were the same one, in two cards, with no way to tell them apart.
+        "verdict_next_rule": gettext("next scheduled"),
+        "verdict_next_cadence": gettext("next check"),
+        "cycles_word": gettext("cycles in"),
+        "cycles_last_day": gettext("the last day"),
+        "unit_days": gettext("days"),
+        "cycles_failed": gettext("failed"),
+        # --- the sparkline ----------------------------------------------------------
+        "spark_caption": gettext("Cycles per hour, oldest on the left."),
+        "spark_hours": gettext("hours"),
+        "spark_failed_hours": gettext("hour(s) had a failure."),
+        "spark_quiet_hours": gettext("hour(s) with no cycle at all."),
+        # --- the activity timeline --------------------------------------------------
+        "timeline_synced": gettext("Synced"),
+        "timeline_failed": gettext("Failed"),
+        "timeline_records": gettext("records"),
+        "timeline_up": gettext("up"),
+        "timeline_down": gettext("down"),
+        "timeline_empty": gettext(
+            "No cycle has run yet. Once one does, each appears here with what it carried "
+            "and how long it took."
+        ),
+        # --- the week strip ---------------------------------------------------------
+        "strip_sync": gettext("sync"),
+        "strip_syncs": gettext("syncs"),
+        "strip_first_at": gettext("first at"),
+        "strip_no_sync": gettext("no scheduled sync. The check-in floor still applies."),
+        "strip_in_gap": gettext(
+            "inside the longest gap. Only the check-in floor covers this hour."
+        ),
+        "next_none": gettext("Nothing scheduled"),
+        "next_floor_only": gettext("check-in floor only"),
+        "coverage_per_week": gettext("syncs a week"),
+        "coverage_longest_gap": gettext("longest gap"),
+        "coverage_unbounded": gettext("No rule fires — the adaptive cadence is in charge."),
+        "coverage_flagged": gettext(
+            "That is longer than this schedule's own threshold — worth a look."
+        ),
+        "coverage_clear": gettext("No gap longer than this schedule's threshold."),
+        "unit_min": gettext("min"),
+        "policy_unsaved": gettext("Not saved yet"),
+        "policy_saving": gettext("Saving…"),
+        "probe_done": gettext("Done."),
+        "probe_failed": gettext("Could not reach the cloud from here."),
     }
 
 
-def _edge_sync_panel_context(school):
+def _edge_sync_panel_context(school, *, include_coverage=False):
     """Shared Sync Center panel context for both render paths.
 
     ``edge_sync_enabled`` distinguishes the two deployments this ONE page serves, and the
@@ -484,22 +651,37 @@ def _edge_sync_panel_context(school):
         from apps.siteconfig.forms_sync_schedule import SyncScheduleForm
         from apps.sync_engine import schedule_policy
         from apps.sync_engine.models_schedule import SyncSchedule
-        from apps.sync_engine.schedule import describe_rule
+        from apps.sync_engine.schedule import describe_rule, dst_note_for_rule
 
         rows = list(SyncSchedule.objects.filter(school=school))
+        tz = schedule_policy.school_timezone(school)
+        moment = dj_timezone_now()
         for row in rows:
-            row.human = describe_rule(row.to_rule())
+            rule = row.to_rule()
+            row.human = describe_rule(rule)
             row.form = SyncScheduleForm(instance=row)
+            # The clock-change note belongs to the rule whose time is actually affected,
+            # not to the page. Empty for every other rule and for the other fifty-one
+            # weeks of the year.
+            row.dst_note = dst_note_for_rule(rule, tz, after=moment)
         ctx["sync_schedule_rules"] = rows
         ctx["sync_schedule_new_form"] = SyncScheduleForm(instance=SyncSchedule(school=school))
-        ctx["sync_schedule_summary"] = schedule_policy.schedule_summary(school)
+        ctx["sync_schedule_summary"] = schedule_policy.schedule_summary(
+            school, include_coverage=include_coverage
+        )
         ctx["sync_schedule_save_url"] = _safe_sync_reverse("siteconfig:sync_schedule_save")
+        ctx["sync_schedule_preview_url"] = _safe_sync_reverse(
+            "siteconfig:sync_schedule_preview"
+        )
+        ctx["sync_schedule_hour_labels"] = _STRIP_HOUR_LABELS
     except Exception:  # noqa: BLE001 — an unmigrated box must still render the page
         _logger.debug("sync schedule panel context failed", exc_info=True)
         ctx["sync_schedule_rules"] = []
         ctx["sync_schedule_new_form"] = None
         ctx["sync_schedule_summary"] = None
         ctx["sync_schedule_save_url"] = None
+        ctx["sync_schedule_preview_url"] = None
+        ctx["sync_schedule_hour_labels"] = _STRIP_HOUR_LABELS
 
     # The policy AROUND the rules. Separate try block on purpose: a tenant whose schedule
     # rules fail to load should still be able to see and change the check-in ceiling,
@@ -591,7 +773,7 @@ def sync_center_bulk_resolve(request):
         messages.success(request, result.get("message") or _("Conflicts resolved."))
     else:
         messages.error(request, result.get("message") or _("Could not resolve conflicts."))
-    return redirect("siteconfig:sync_center")
+    return redirect("siteconfig:sync_conflicts")
 
 
 @login_required
@@ -821,9 +1003,18 @@ def sync_center_status(request):
     except Exception:  # noqa: BLE001 — polling must fail explicitly, never as HTML/500
         return JsonResponse({"ok": False, "error": "status_unavailable"}, status=503)
 
+    # The requested window, clamped to the offered set. An unknown value is the default
+    # rather than an error: this is an observability read, and a panel that 400s because
+    # somebody hand-edited a query string is a panel that looks like broken sync.
+    window_key = (request.GET.get("window") or "24h").strip().lower()
+    if window_key not in _STATUS_WINDOW_CHOICES:
+        window_key = "24h"
+    window_hours = _STATUS_WINDOW_CHOICES[window_key]
+
     now = timezone.now()
     payload.update({
         "ok": True,
+        "window": window_key,
         "generated_at": now.isoformat(),
         "edge_sync_enabled": edge_enabled,
         "link": None,
@@ -832,6 +1023,7 @@ def sync_center_status(request):
         "recent_runs": [],
         "recent_records": [],
         "totals": {},
+        "history": [],
         "pending_conflicts": None,
         # Whether THIS deployment's schema is current. A box behind on migrations cannot
         # apply rows for the new columns, and the raw OperationalError names a column,
@@ -885,7 +1077,7 @@ def sync_center_status(request):
         payload["recent_runs"] = [_run_row(r, now) for r in runs]
         payload["latest_run"] = payload["recent_runs"][0] if payload["recent_runs"] else None
 
-        window_start = now - timedelta(hours=_STATUS_WINDOW_HOURS)
+        window_start = now - timedelta(hours=window_hours)
         window = EdgeSyncRun.objects.filter(school=school, created_at__gte=window_start)
         agg = window.aggregate(
             runs=Count("id"),
@@ -896,8 +1088,13 @@ def sync_center_status(request):
             deleted=Sum("deleted"),
             failed=Count("id", filter=Q(ok=False)),
         )
+        # One count per hour across the window, so the panel can draw a shape instead
+        # of a number. "44 cycles, 2 failed" cannot tell a box that has been steady all
+        # day from one that did 44 cycles in ten minutes and then went silent -- and
+        # that difference is the entire question an operator opens this page to ask.
+        payload["history"] = _hourly_history(window, now=now, hours=window_hours)
         payload["totals"] = {
-            "window_hours": _STATUS_WINDOW_HOURS,
+            "window_hours": window_hours,
             "runs": agg.get("runs") or 0,
             "pushed": agg.get("pushed") or 0,
             "pulled": agg.get("pulled") or 0,
@@ -947,6 +1144,131 @@ def sync_center_status(request):
         pass
 
     return JsonResponse(payload)
+
+
+def _hourly_history(window_qs, *, now, hours=_STATUS_WINDOW_HOURS) -> list:
+    """Cycles per hour over the status window, oldest first, gaps filled with zeros.
+
+    ZEROS ARE THE POINT. Returning only the hours that HAVE runs would draw a continuous
+    healthy line over a box that was off all night -- the sparkline would compress the
+    silence out of existence. Every hour in the window gets a slot whether or not
+    anything happened in it.
+    """
+    from django.db.models.functions import TruncHour
+    from django.utils import timezone as dj_tz
+
+    buckets = {}
+    try:
+        rows = (
+            window_qs.annotate(hour=TruncHour("created_at"))
+            .values("hour")
+            .annotate(runs=Count("id"), failed=Count("id", filter=Q(ok=False)))
+            .order_by("hour")
+        )
+        for row in rows:
+            hour = row["hour"]
+            if hour is None:
+                continue
+            buckets[hour.replace(minute=0, second=0, microsecond=0)] = (
+                row["runs"] or 0,
+                row["failed"] or 0,
+            )
+    except Exception:  # noqa: BLE001 -- a sparkline must never break the status poll
+        _logger.debug("hourly history failed", exc_info=True)
+        return []
+
+    local_now = dj_tz.localtime(now)
+    top_of_hour = local_now.replace(minute=0, second=0, microsecond=0)
+    out = []
+    for back in range(hours - 1, -1, -1):
+        slot = top_of_hour - timedelta(hours=back)
+        runs, failed = buckets.get(slot, (0, 0))
+        out.append({"at": slot.isoformat(), "runs": runs, "failed": failed})
+    return out
+
+
+@login_required
+@permission_required("settings.manage")
+@require_http_methods(["POST"])
+def sync_schedule_preview(request):
+    """Cost a CANDIDATE schedule without saving it, and return the week strip.
+
+    THIS ENDPOINT IS WHY THE STRIP IS TRUSTWORTHY. The obvious implementation of a live
+    preview is to re-derive occurrences in JavaScript as the operator types. That would
+    put a second scheduler in the browser, and the two would drift the first time either
+    changed -- silently, because a wrong strip still looks like a strip. So the browser
+    computes NOTHING: it posts the rule set currently in the editor, and this runs the
+    same ``apps.sync_engine.schedule`` functions the box itself obeys.
+
+    Read-only in every path. It builds unsaved model instances to validate them and
+    never calls ``save()``, so a preview cannot retime anybody's box.
+
+    Accepts:
+      * the ``SyncScheduleForm`` fields for the rule being edited or added (optional);
+      * ``rule_id`` -- the saved rule that candidate REPLACES, excluded from the set;
+      * ``paused_ids`` -- saved rules to treat as switched off, for the toggle preview.
+    """
+    school = getattr(request, "school", None)
+    if not school:
+        return JsonResponse({"ok": False, "error": "No school"}, status=403)
+
+    from apps.siteconfig.forms_sync_schedule import SyncScheduleForm
+    from apps.sync_engine import schedule_policy
+    from apps.sync_engine.models_schedule import SyncSchedule
+    from apps.sync_engine.schedule import describe
+
+    rule_id = (request.POST.get("rule_id") or "").strip()
+    paused = {
+        int(value)
+        for value in (request.POST.get("paused_ids") or "").split(",")
+        if value.strip().isdigit()
+    }
+
+    saved = list(SyncSchedule.objects.filter(school=school, is_enabled=True))
+    rules = [
+        row.to_rule()
+        for row in saved
+        if row.pk not in paused and str(row.pk) != rule_id
+    ]
+
+    errors = {}
+    candidate_valid = None
+    # A candidate is only in play when the editor actually sent one. An empty POST is the
+    # toggle case: preview what is saved, minus whatever is paused.
+    if any(key in request.POST for key in ("mode", "interval_minutes", "at_times")):
+        instance = None
+        if rule_id.isdigit():
+            instance = SyncSchedule.objects.filter(
+                pk=int(rule_id), school=school
+            ).first()
+        form = SyncScheduleForm(
+            request.POST, instance=instance or SyncSchedule(school=school)
+        )
+        candidate_valid = form.is_valid()
+        if candidate_valid:
+            unsaved = form.save(commit=False)
+            unsaved.school = school
+            if unsaved.is_enabled:
+                rules.append(unsaved.to_rule())
+        else:
+            errors = {
+                field: [str(message) for message in messages_]
+                for field, messages_ in form.errors.items()
+            }
+
+    now = dj_timezone_now()
+    return JsonResponse(
+        {
+            "ok": True,
+            "valid": candidate_valid,
+            "errors": errors,
+            "description": describe(rules),
+            "rule_labels": [rule.label for rule in rules],
+            # next_runs rides inside coverage rather than beside it, so the strip and the
+            # list next to it are guaranteed to describe the same rule set.
+            "coverage": schedule_policy.coverage_for(school, now=now, rules=rules),
+        }
+    )
 
 
 # --------------------------------------------------------------- schedule editor --

@@ -109,12 +109,38 @@ class RecentCyclesShowTheReasonTests(TestCase):
     """The stored reason must reach the page. Five unexplained 'Failed' lines is the bug."""
 
     def test_the_template_renders_the_failure_reason(self):
+        """Follows the cycle list to its new home rather than being deleted with the old.
+
+        On 2026-08-21 "recent cycles" stopped being two lists. It had been rendered TWICE
+        -- a server-rendered <ul data-rmc-sync-recent> in one card and a JS-polled table
+        in another -- so one of the two was always stale. They are now one timeline in
+        `_sync_activity.html`, and the assertion that matters is unchanged: a cycle that
+        failed has to carry WHY, or five consecutive "Failed" lines tell a school nothing
+        it can act on.
+        """
         from pathlib import Path
 
-        src = Path("templates/siteconfig/sync_center.html").read_text(encoding="utf-8")
-        block = src.split('data-rmc-sync-recent')[1][:900]
+        src = Path("templates/siteconfig/partials/_sync_activity.html").read_text(
+            encoding="utf-8"
+        )
+        block = src
+        self.assertIn("rmc-sc-timeline", block)
         self.assertTrue(
             ("run.error" in block) or ("run.message" in block),
-            "Recent cycles renders 'Failed' and discards the stored reason, so a "
+            "The activity timeline renders 'Failed' and discards the stored reason, so a "
             "school cannot tell a real sync failure from a no-op it can ignore",
         )
+
+    def test_the_live_timeline_also_carries_the_reason(self):
+        """The server-rendered list is the first paint; the poll replaces it.
+
+        Retiring the duplicate <ul> means the JS renderer is now the ONLY thing drawing
+        cycles after the first second, so it has to carry the reason too -- otherwise the
+        page shows why a cycle failed until the first poll and then quietly stops.
+        """
+        from pathlib import Path
+
+        src = Path("static/js/rmc-sync-center.js").read_text(encoding="utf-8")
+        block = src.split("function paintTimeline")[1][:3000]
+        self.assertIn("run.error", block)
+        self.assertIn("rmc-sc-timeline__detail", block)

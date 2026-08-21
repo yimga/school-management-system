@@ -1,0 +1,782 @@
+/* Sync Center — the band layout, the week strip, the activity timeline.
+ *
+ * WHY THIS FILE EXISTS. The Sync Center was six stacked cards, fifteen counter tiles and
+ * twenty-two always-on paragraphs of explanation, built almost entirely out of Bootstrap
+ * utilities inline in the template. Two consequences: the page was long enough that the
+ * answer to "is sync working?" was below the fold, and the five facts it rendered twice
+ * were impossible to see as duplicates because each copy was assembled from a different
+ * pile of utility classes.
+ *
+ * Everything here resolves through the semantic tokens in design-tokens.css — no raw
+ * colour, no theme-locked value. Both themes come out of the token layer, which is what
+ * lets the strip's intensity ramp stay legible on either ground: it is a color-mix
+ * against the school's own accent rather than a fixed palette.
+ */
+
+/* ------------------------------------------------------------------ page bands -- */
+.rmc-sc {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3, 0.75rem);
+}
+
+.rmc-sc-band {
+  background: var(--surface-elevated, #fff);
+  border: 1px solid var(--hairline, rgba(0, 0, 0, 0.08));
+  border-radius: var(--radius-md, 12px);
+  box-shadow: var(--elev-1);
+  padding: var(--space-4, 1rem) var(--space-5, 1.25rem);
+}
+
+.rmc-sc-band__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2, 0.5rem);
+  margin-bottom: var(--space-3, 0.75rem);
+}
+
+.rmc-sc-band__title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.rmc-sc-band__note {
+  font-size: var(--type-size-micro, 0.7rem);
+  color: var(--text-tertiary);
+  margin: 0;
+}
+
+/* ---------------------------------------------------------------- 1. verdict -- */
+/* One line that answers "is it working, right now". It replaces the phase badge, the
+ * headline, BOTH next/last pairs and the automatic-interval note — five renderings of
+ * three facts, two of which could legitimately disagree with each other. */
+.rmc-sc-verdict {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3, 0.75rem);
+}
+
+.rmc-sc-verdict__lead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3, 0.75rem);
+  min-width: 0;
+  flex: 1 1 20rem;
+}
+
+.rmc-sc-verdict__dot {
+  width: 11px;
+  height: 11px;
+  border-radius: var(--radius-pill, 999px);
+  flex: none;
+  background: var(--text-tertiary);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--text-tertiary) 22%, transparent);
+}
+
+.rmc-sc-verdict__dot[data-phase="ok"] {
+  background: var(--ds-success);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--ds-success) 22%, transparent);
+}
+
+.rmc-sc-verdict__dot[data-phase="running"],
+.rmc-sc-verdict__dot[data-phase="queued"] {
+  background: var(--ds-warning);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--ds-warning) 22%, transparent);
+}
+
+.rmc-sc-verdict__dot[data-phase="failed"] {
+  background: var(--ds-danger);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--ds-danger) 22%, transparent);
+}
+
+/* The pulse says "a cycle is in flight" without a spinner competing with the page. It
+ * is the only motion on the surface, and it stops entirely under reduced-motion. */
+.rmc-sc-verdict__dot[data-phase="running"] {
+  animation: rmc-sc-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes rmc-sc-pulse {
+  0%, 100% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--ds-warning) 26%, transparent); }
+  50%      { box-shadow: 0 0 0 8px color-mix(in srgb, var(--ds-warning) 8%, transparent); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rmc-sc-verdict__dot[data-phase="running"] { animation: none; }
+}
+
+.rmc-sc-verdict__text { min-width: 0; }
+
+.rmc-sc-verdict__title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.rmc-sc-verdict__meta {
+  font-size: 0.82rem;
+  color: var(--text-tertiary);
+  margin: 2px 0 0;
+  line-height: 1.45;
+}
+
+.rmc-sc-verdict__meta strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.rmc-sc-verdict__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2, 0.5rem);
+  align-items: center;
+}
+
+/* The failure reason, and the guidance that used to render permanently above it. It is
+ * inside the failure state now: a 502 explanation on a healthy page is 120 words the
+ * reader has to skip every visit. */
+.rmc-sc-verdict__reason {
+  margin: var(--space-3, 0.75rem) 0 0;
+  padding: var(--space-3, 0.75rem);
+  border-radius: var(--radius-sm, 8px);
+  background: color-mix(in srgb, var(--ds-danger) 8%, transparent);
+  border-left: 3px solid var(--ds-danger);
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.rmc-sc-verdict__reason-head {
+  display: block;
+  font-weight: 600;
+  color: var(--ds-danger);
+  margin-bottom: 3px;
+}
+
+/* --------------------------------------------------------------- 2. what moved -- */
+.rmc-sc-flow__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(6.5rem, 1fr));
+  gap: var(--space-3, 0.75rem);
+  margin-bottom: var(--space-3, 0.75rem);
+}
+
+.rmc-sc-figure__label {
+  display: block;
+  font-size: var(--type-size-micro, 0.7rem);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rmc-sc-figure__value {
+  display: block;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.rmc-sc-figure__value[data-tone="warn"] { color: var(--ds-warning); }
+.rmc-sc-figure__value[data-tone="bad"] { color: var(--ds-danger); }
+
+/* The sparkline. It answers a question no counter can: "44 cycles, 2 failed" reads the
+ * same for a box that was steady all day and one that did 44 cycles in ten minutes and
+ * then went silent. */
+.rmc-sc-spark {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 38px;
+  margin-bottom: var(--space-2, 0.5rem);
+}
+
+.rmc-sc-spark__bar {
+  flex: 1 1 0;
+  min-height: 2px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--school-primary, #4f46e5) 42%, transparent);
+}
+
+.rmc-sc-spark__bar[data-empty="1"] {
+  background: var(--surface-sunken);
+}
+
+.rmc-sc-spark__bar[data-failed="1"] {
+  background: var(--ds-danger);
+}
+
+/* --------------------------------------------------------------- 3. week strip -- */
+.rmc-sc-sched {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 15rem;
+  gap: var(--space-5, 1.25rem);
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .rmc-sc-sched { grid-template-columns: 1fr; }
+}
+
+.rmc-sc-strip__hours,
+.rmc-sc-strip__row {
+  display: grid;
+  grid-template-columns: 2.4rem repeat(24, minmax(0, 1fr));
+  gap: 2px;
+}
+
+.rmc-sc-strip__hours { margin-bottom: 3px; }
+
+.rmc-sc-strip__hour {
+  font-size: 0.55rem;
+  color: var(--text-muted);
+  text-align: center;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.rmc-sc-strip__grid {
+  display: grid;
+  gap: 2px;
+}
+
+.rmc-sc-strip__row { align-items: stretch; }
+
+.rmc-sc-strip__day {
+  font-size: var(--type-size-micro, 0.7rem);
+  color: var(--text-secondary);
+  align-self: center;
+  white-space: nowrap;
+}
+
+.rmc-sc-strip__cell {
+  height: 20px;
+  border-radius: 3px;
+  background: var(--surface-sunken);
+  border: 1px solid transparent;
+  position: relative;
+}
+
+/* The check-in FLOOR, drawn under every hour. Without it an empty Sunday reads as "the
+ * box is off all day", which is not what happens: the ceiling guarantees a check-in
+ * whether or not any rule fires. */
+.rmc-sc-strip__cell::after {
+  content: "";
+  position: absolute;
+  inset: auto 3px 2px 3px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--hairline-strong, rgba(0, 0, 0, 0.14));
+}
+
+.rmc-sc-strip__cell[data-hits="1"] { background: color-mix(in srgb, var(--school-primary, #4f46e5) 24%, var(--surface-sunken)); }
+.rmc-sc-strip__cell[data-hits="2"] { background: color-mix(in srgb, var(--school-primary, #4f46e5) 48%, var(--surface-sunken)); }
+.rmc-sc-strip__cell[data-hits="3"] { background: color-mix(in srgb, var(--school-primary, #4f46e5) 70%, var(--surface-sunken)); }
+.rmc-sc-strip__cell[data-hits="4"] { background: var(--school-primary, #4f46e5); }
+
+.rmc-sc-strip__cell[data-gap="1"] {
+  background: color-mix(in srgb, var(--ds-warning) 16%, transparent);
+  border-color: color-mix(in srgb, var(--ds-warning) 55%, transparent);
+}
+
+/* A paused rule stays visible, hatched. Removing it from the strip leaves a school
+ * asking "why did nothing run?" in front of a blank grid. */
+.rmc-sc-strip__cell[data-paused="1"] {
+  background: repeating-linear-gradient(
+    45deg,
+    var(--surface-sunken),
+    var(--surface-sunken) 3px,
+    var(--hairline) 3px,
+    var(--hairline) 6px
+  );
+}
+
+.rmc-sc-strip__readout {
+  margin: var(--space-3, 0.75rem) 0 0;
+  padding: var(--space-2, 0.5rem) var(--space-3, 0.75rem);
+  border-radius: var(--radius-sm, 8px);
+  background: var(--surface-sunken);
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  min-height: 2.4em;
+}
+
+.rmc-sc-strip__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4, 1rem);
+  margin-top: var(--space-3, 0.75rem);
+  font-size: 0.76rem;
+  color: var(--text-tertiary);
+}
+
+.rmc-sc-strip__legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.rmc-sc-swatch {
+  width: 11px;
+  height: 11px;
+  border-radius: 3px;
+  display: inline-block;
+  flex: none;
+  background: var(--school-primary, #4f46e5);
+}
+
+.rmc-sc-swatch[data-kind="empty"] { background: var(--surface-sunken); }
+.rmc-sc-swatch[data-kind="gap"] {
+  background: color-mix(in srgb, var(--ds-warning) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ds-warning) 55%, transparent);
+}
+.rmc-sc-swatch[data-kind="floor"] {
+  background: var(--surface-sunken);
+  border-bottom: 2px solid var(--hairline-strong, rgba(0, 0, 0, 0.14));
+}
+.rmc-sc-swatch[data-rule="1"] { background: color-mix(in srgb, var(--school-primary, #4f46e5) 55%, transparent); }
+.rmc-sc-swatch[data-rule="2"] { background: color-mix(in srgb, var(--ds-info) 62%, transparent); }
+.rmc-sc-swatch[data-rule="3"] { background: color-mix(in srgb, var(--ds-success) 62%, transparent); }
+.rmc-sc-swatch[data-paused="1"] { background: var(--text-muted); }
+
+/* ------------------------------------------------------------------- rule rows -- */
+.rmc-sc-rules {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--space-3, 0.75rem);
+  display: grid;
+  gap: var(--space-2, 0.5rem);
+}
+
+.rmc-sc-rule {
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm, 8px);
+  padding: var(--space-2, 0.5rem) var(--space-3, 0.75rem);
+  background: var(--surface-elevated);
+}
+
+.rmc-sc-rule[data-enabled="0"] { opacity: 0.68; }
+
+.rmc-sc-rule__top {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 0.5rem);
+  flex-wrap: wrap;
+}
+
+.rmc-sc-rule__name {
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: var(--text-primary);
+}
+
+.rmc-sc-rule__human {
+  font-size: 0.78rem;
+  color: var(--text-tertiary);
+  margin: 3px 0 0 1.05rem;
+}
+
+.rmc-sc-rule__actions {
+  margin-left: auto;
+  display: flex;
+  gap: var(--space-1, 0.25rem);
+}
+
+/* The DST note sits on the rule it affects rather than at page level, so it is absent
+ * for the other fifty-one weeks of the year. */
+.rmc-sc-rule__dst {
+  font-size: 0.76rem;
+  color: var(--ds-warning);
+  margin: 5px 0 0 1.05rem;
+}
+
+/* ------------------------------------------------------------ sentence editor -- */
+/* Same fields, same names, same validation as the old {{ form.as_p }} — read as a
+ * sentence instead of eight stacked controls. SyncSchedule.clean() remains the single
+ * validation implementation, so this is a widget change and nothing more. */
+.rmc-sc-sentence {
+  font-size: 0.95rem;
+  line-height: 2.2;
+  color: var(--text-primary);
+}
+
+.rmc-sc-sentence select,
+.rmc-sc-sentence input[type="time"],
+.rmc-sc-sentence input[type="text"] {
+  font: inherit;
+  font-size: 0.9rem;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm, 8px);
+  border: 1px solid var(--hairline-strong, rgba(0, 0, 0, 0.14));
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  max-width: 100%;
+}
+
+.rmc-sc-daypick {
+  display: inline-flex;
+  gap: 3px;
+  vertical-align: middle;
+}
+
+.rmc-sc-sentence__line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2, 0.5rem);
+  margin: 0 0 var(--space-2, 0.5rem);
+}
+
+.rmc-sc-sentence__line > span {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2, 0.5rem);
+}
+
+.rmc-sc-daypick__slot { position: relative; display: inline-block; }
+
+/* The checkbox is the state; the label is the chip. Styling :checked + label rather than
+   scripting aria-pressed keeps every day toggle working with JavaScript off — and keeps
+   the control a real checkbox for a screen reader and for form submission. */
+.rmc-sc-daypick__slot input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 28px;
+  height: 28px;
+  margin: 0;
+  cursor: pointer;
+}
+
+.rmc-sc-daypick__day {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: var(--radius-sm, 8px);
+  border: 1px solid var(--hairline-strong, rgba(0, 0, 0, 0.14));
+  background: var(--surface-elevated);
+  color: var(--text-tertiary);
+  font-size: 0.74rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--motion-fast, 150ms ease);
+}
+
+.rmc-sc-daypick__slot input[type="checkbox"]:checked + .rmc-sc-daypick__day {
+  background: var(--school-primary, #4f46e5);
+  border-color: var(--school-primary, #4f46e5);
+  color: var(--surface-elevated);
+}
+
+.rmc-sc-daypick__slot input[type="checkbox"]:focus-visible + .rmc-sc-daypick__day {
+  outline: 2px solid var(--focus-ring, var(--school-primary, #4f46e5));
+  outline-offset: 2px;
+}
+
+/* Hidden by the editor script when the chosen mode does not use them. Without JS both
+   clauses stay visible and labelled, which is what the old form did anyway. */
+.rmc-sc-sentence [data-rmc-sc-when][hidden] { display: none; }
+
+/* The one control that is not part of the sentence proper: the check-in floor, read as
+ * its closing clause. It used to live below an <hr> in a second form with a second Save
+ * button, which meant "how often does this box sync?" was answered in two places that
+ * never mentioned each other. */
+.rmc-sc-ceiling {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2, 0.5rem);
+  margin-top: var(--space-3, 0.75rem);
+  padding-top: var(--space-3, 0.75rem);
+  border-top: 1px solid var(--hairline);
+  font-size: 0.86rem;
+  color: var(--text-secondary);
+}
+
+.rmc-sc-ceiling select {
+  font: inherit;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm, 8px);
+  border: 1px solid var(--hairline-strong, rgba(0, 0, 0, 0.14));
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+}
+
+.rmc-sc-ceiling__status {
+  font-size: 0.78rem;
+  color: var(--text-tertiary);
+  margin-left: auto;
+}
+
+.rmc-sc-ceiling__status[data-state="saved"] { color: var(--ds-success); }
+.rmc-sc-ceiling__status[data-state="error"] { color: var(--ds-danger); }
+
+/* ------------------------------------------------------------- next five list -- */
+.rmc-sc-next {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 0.79rem;
+}
+
+.rmc-sc-next__item {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2, 0.5rem);
+  padding: 5px 0;
+  border-bottom: 1px dashed var(--hairline);
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.rmc-sc-next__item:first-child {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.rmc-sc-next__rule { color: var(--text-muted); font-weight: 400; }
+
+.rmc-sc-coverage {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.rmc-sc-coverage__flag { color: var(--ds-warning); }
+.rmc-sc-coverage__clear { color: var(--ds-success); }
+
+.rmc-sc-aside__label {
+  font-size: var(--type-size-micro, 0.7rem);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-muted);
+  margin: 0 0 var(--space-2, 0.5rem);
+}
+
+/* ---------------------------------------------------------------- 4. timeline -- */
+/* Both "Recent cycles" renderings and the "Records that landed" table, interleaved.
+ * Previously the same rows were drawn twice — a server-rendered <ul> in one card and a
+ * JS-polled <table> in another — so one of them was always stale. */
+.rmc-sc-timeline {
+  display: grid;
+  gap: 0;
+}
+
+.rmc-sc-timeline__row {
+  display: grid;
+  grid-template-columns: 3.6rem 0.75rem minmax(0, 1fr) auto;
+  gap: var(--space-3, 0.75rem);
+  align-items: baseline;
+  padding: var(--space-2, 0.5rem) 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.rmc-sc-timeline__row:last-child { border-bottom: 0; }
+
+.rmc-sc-timeline__time {
+  font-size: 0.78rem;
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.rmc-sc-timeline__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--ds-success);
+  align-self: center;
+}
+
+.rmc-sc-timeline__dot[data-ok="0"] { background: var(--ds-danger); }
+.rmc-sc-timeline__dot[data-running="1"] { background: var(--ds-warning); }
+
+.rmc-sc-timeline__body {
+  font-size: 0.86rem;
+  color: var(--text-primary);
+  min-width: 0;
+}
+
+.rmc-sc-timeline__body[data-ok="0"] { color: var(--ds-danger); }
+
+.rmc-sc-timeline__detail {
+  font-size: 0.78rem;
+  color: var(--text-tertiary);
+  margin-top: 2px;
+  overflow-wrap: anywhere;
+}
+
+.rmc-sc-timeline__took {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.rmc-sc-timeline__empty {
+  font-size: 0.85rem;
+  color: var(--text-tertiary);
+  margin: 0;
+}
+
+/* --------------------------------------------------------------- 5. needs you -- */
+/* Pairing requests, the conflict backlog and a queued resync were three separate cards.
+ * They are one question — is a human blocking anything — and the band is ABSENT when the
+ * answer is no, rather than rendering an empty card on every school's page. */
+.rmc-sc-band[data-attention="1"] {
+  border-color: color-mix(in srgb, var(--ds-warning) 42%, transparent);
+}
+
+.rmc-sc-queue {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: var(--space-2, 0.5rem);
+}
+
+.rmc-sc-queue__item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2, 0.5rem);
+  padding: var(--space-2, 0.5rem) var(--space-3, 0.75rem);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm, 8px);
+  background: var(--surface-elevated);
+}
+
+.rmc-sc-queue__text { flex: 1 1 16rem; min-width: 0; }
+
+.rmc-sc-queue__title {
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: var(--text-primary);
+}
+
+.rmc-sc-queue__meta {
+  font-size: 0.78rem;
+  color: var(--text-tertiary);
+  margin-top: 2px;
+  overflow-wrap: anywhere;
+}
+
+.rmc-sc-queue__code {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.rmc-sc-queue__actions {
+  display: flex;
+  gap: var(--space-2, 0.5rem);
+  flex-wrap: wrap;
+}
+
+.rmc-sc-clear {
+  font-size: 0.85rem;
+  color: var(--text-tertiary);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 0.5rem);
+}
+
+.rmc-sc-clear__tick { color: var(--ds-success); font-weight: 600; }
+
+/* ------------------------------------------------------------- 6. disclosures -- */
+/* Where every permanently-rendered explanation went. The 502 guidance, the connectivity
+ * table, the manage.py commands, the "how sync works here" primer: all still present,
+ * all closed until asked for — except the connection block, which opens itself when the
+ * last cycle failed, because then it IS the answer. */
+.rmc-sc-disclosures {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: var(--space-2, 0.5rem);
+}
+
+.rmc-sc-disclosure {
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm, 8px);
+  background: var(--surface-elevated);
+  padding: var(--space-2, 0.5rem) var(--space-3, 0.75rem);
+}
+
+.rmc-sc-disclosure > summary {
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.rmc-sc-disclosure > summary:focus-visible {
+  outline: 2px solid var(--focus-ring, var(--school-primary, #4f46e5));
+  outline-offset: 2px;
+}
+
+.rmc-sc-disclosure__body {
+  margin-top: var(--space-3, 0.75rem);
+  font-size: 0.83rem;
+  color: var(--text-secondary);
+}
+
+.rmc-sc-disclosure__body > p { margin-bottom: var(--space-2, 0.5rem); }
+.rmc-sc-disclosure__body > p:last-child { margin-bottom: 0; }
+
+.rmc-sc-facts {
+  display: grid;
+  grid-template-columns: minmax(6rem, 30%) 1fr;
+  gap: 4px var(--space-3, 0.75rem);
+  margin: 0 0 var(--space-3, 0.75rem);
+  font-size: 0.83rem;
+}
+
+.rmc-sc-facts dt { color: var(--text-tertiary); margin: 0; }
+.rmc-sc-facts dd { color: var(--text-primary); margin: 0; overflow-wrap: anywhere; }
+.rmc-sc-facts dd[data-tone="bad"] { color: var(--ds-danger); }
+.rmc-sc-facts dd[data-tone="ok"] { color: var(--ds-success); }
+
+/* ------------------------------------------------------- conflicts, own page -- */
+.rmc-sc-conflict-diff {
+  background: var(--surface-sunken);
+  border-top: 1px solid var(--hairline);
+  padding: var(--space-3, 0.75rem);
+}
+
+.rmc-sc-conflict-diff__when {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4, 1rem);
+  margin-bottom: var(--space-2, 0.5rem);
+  font-size: 0.8rem;
+  color: var(--text-tertiary);
+}
+
+.rmc-sc-conflict-note {
+  max-width: 22rem;
+  display: inline-block;
+}
+
+.rmc-sc-conflict-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1, 0.25rem);
+  align-items: center;
+}
+
+.rmc-sc-diff-changed { background: color-mix(in srgb, var(--ds-warning) 14%, transparent); }

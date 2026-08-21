@@ -1,0 +1,58 @@
+{% load i18n %}
+{% comment %}
+BAND 2 — what moved.
+
+Fifteen counter tiles became five figures under ONE window selector. The fifteen were not
+fifteen facts: "Pushed" appeared twice (last cycle, and 24 hours) with only one of the two
+naming its window, so a school read `3` beside `418` and had no way to know they were
+measuring different things. Same for Pulled. "Conflicts" appeared three times.
+
+The sparkline is the one thing added rather than removed, and it answers what no counter
+can: "44 cycles, 2 failed" reads identically for a box that was steady all day and one
+that ran 44 cycles in ten minutes and then went silent. That difference is the whole
+question.
+{% endcomment %}
+
+<section class="rmc-sc-band" data-rmc-sc-flow="1" aria-label="{% trans 'Records moved' %}">
+  <div class="rmc-sc-band__head">
+    <h2 class="rmc-sc-band__title">{% trans "What moved" %}</h2>
+    <div class="btn-group btn-group-sm" role="group" aria-label="{% trans 'Time window' %}">
+      <button type="button" class="btn btn-outline-secondary" data-rmc-sc-window="cycle" aria-pressed="false">{% trans "Last cycle" %}</button>
+      <button type="button" class="btn btn-primary" data-rmc-sc-window="24h" aria-pressed="true">{% trans "24 hours" %}</button>
+      <button type="button" class="btn btn-outline-secondary" data-rmc-sc-window="7d" aria-pressed="false">{% trans "7 days" %}</button>
+    </div>
+  </div>
+
+  <div class="rmc-sc-flow__grid">
+    <div>
+      <span class="rmc-sc-figure__label">{% trans "Up (box → cloud)" %}</span>
+      <span class="rmc-sc-figure__value" data-rmc-sc-fig="pushed">{{ sync_live.pushed|default:0 }}</span>
+    </div>
+    <div>
+      <span class="rmc-sc-figure__label">{% trans "Down (cloud → box)" %}</span>
+      <span class="rmc-sc-figure__value" data-rmc-sc-fig="pulled">{{ sync_live.pulled|default:0 }}</span>
+    </div>
+    <div>
+      {% comment %}
+      A row the box RECEIVED but could not apply. Not a failure (the cycle ran) and not
+      a conflict (nobody is being asked to choose). Without its own figure it hid inside
+      "down", so a pull that refused every row read as a healthy sync.
+      {% endcomment %}
+      <span class="rmc-sc-figure__label">{% trans "Not applied" %}</span>
+      <span class="rmc-sc-figure__value" data-rmc-sc-fig="skipped">0</span>
+    </div>
+    <div>
+      {# The only count whose meaning is "records were destroyed". #}
+      <span class="rmc-sc-figure__label">{% trans "Deleted" %}</span>
+      <span class="rmc-sc-figure__value" data-rmc-sc-fig="deleted">0</span>
+    </div>
+    <div>
+      <span class="rmc-sc-figure__label">{% trans "Failed cycles" %}</span>
+      <span class="rmc-sc-figure__value" data-rmc-sc-fig="failed">0</span>
+    </div>
+  </div>
+
+  <div class="rmc-sc-spark" data-rmc-sc-spark="1" aria-hidden="true"></div>
+  <p class="rmc-sc-band__note" data-rmc-sc-spark-caption="1"></p>
+  <p class="rmc-sc-band__note" data-rmc-sc-explain="1"></p>
+</section>
