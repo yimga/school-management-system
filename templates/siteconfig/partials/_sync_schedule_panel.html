@@ -41,6 +41,14 @@
         <p class="mb-0 mt-2 text-body-secondary">
           {% blocktrans with tz=sync_schedule_summary.timezone %}Times are shown in the school's timezone ({{ tz }}).{% endblocktrans %}
         </p>
+        {# What happens when the clocks change is a DECISION, not a setting -- there is one #}
+        {# defensible answer in each direction. It was already made and tested; what was    #}
+        {# missing is that nobody could SEE it, so a school setting "02:30" had no way to   #}
+        {# learn that one night a year that time does not exist. Only rendered for zones    #}
+        {# that actually observe DST.                                                       #}
+        {% if sync_schedule_summary.dst and sync_schedule_summary.dst.observes %}
+          <p class="mb-0 mt-2 text-body-secondary" data-rmc-schedule-dst>{{ sync_schedule_summary.dst.note }}</p>
+        {% endif %}
       </div>
     {% endif %}
 
@@ -97,6 +105,35 @@
       <p class="small text-body-secondary mb-0 mt-3">
         {% trans "Schedule changes reach the box on its next sync — the cloud cannot contact a box directly." %}
       </p>
+    {% endif %}
+
+    {# The policy AROUND the rules. Both of these were decisions the product used to make #}
+    {# silently: the check-in ceiling lived in an environment variable on a host the      #}
+    {# school cannot see, and catch-up was documented but not implemented.                #}
+    {% if sync_policy_form and sync_policy_save_url %}
+      <hr class="my-3">
+      <h3 class="h6 mb-1">{% trans "Between scheduled syncs" %}</h3>
+      <p class="small text-body-secondary">
+        {% trans "The box always checks in from time to time, even outside your scheduled times. That is how instructions from support reach it — the cloud cannot contact a box directly." %}
+      </p>
+      <form method="post" action="{{ sync_policy_save_url }}" class="row g-3 align-items-start">
+        {% csrf_token %}
+        <div class="col-sm-7">
+          <label class="form-label small fw-semibold" for="{{ sync_policy_form.idle_ceiling_minutes.id_for_label }}">{{ sync_policy_form.idle_ceiling_minutes.label }}</label>
+          {{ sync_policy_form.idle_ceiling_minutes }}
+          <div class="form-text">{{ sync_policy_form.idle_ceiling_minutes.help_text }}</div>
+        </div>
+        <div class="col-sm-5">
+          <div class="form-check mt-sm-4">
+            {{ sync_policy_form.catch_up_missed }}
+            <label class="form-check-label small" for="{{ sync_policy_form.catch_up_missed.id_for_label }}">{{ sync_policy_form.catch_up_missed.label }}</label>
+          </div>
+          <div class="form-text">{{ sync_policy_form.catch_up_missed.help_text }}</div>
+        </div>
+        <div class="col-12">
+          <button type="submit" class="btn btn-sm btn-primary">{% trans "Save sync settings" %}</button>
+        </div>
+      </form>
     {% endif %}
   </div>
 </div>

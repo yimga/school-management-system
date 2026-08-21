@@ -59,5 +59,6 @@ class ConnectivitySnapshotTests(SimpleTestCase):
             snap = connectivity_snapshot()
         self.assertTrue(snap["operator_base_configured"])
         self.assertIn(reverse("api:sync-bundle-download"), snap["pull_endpoint"])
+        self.assertIn(reverse("api:sync-bundle-upload"), snap["upload_endpoint"])
         # And the specific wrong prefix stays named, so a regression is unmistakable.
         self.assertNotIn("/api/v1/", snap["pull_endpoint"])

@@ -4114,6 +4114,30 @@ try:
     )
 except ValueError:
     RMC_SYNC_BUNDLE_REPLAY_WINDOW_SECONDS = 7 * 24 * 3600
+# Migration Cloud apply forward-progress breaker (apps/migration_cloud/apply_progress_guard.py).
+# Consecutive LIVE applies of one bundle that return identical totals AND create no rows
+# before automatic re-apply is refused. Bundle 84 of gilead-tech re-ran an identical
+# "0 created, 105 updated, 442 quarantined" apply for four days because the outbox
+# idempotency key frees the moment a row succeeds and nothing asked whether the previous
+# pass had accomplished anything. A human repair always re-arms the budget.
+try:
+    RMC_MC_APPLY_NO_PROGRESS_LIMIT = max(
+        1, int(os.getenv("RMC_MC_APPLY_NO_PROGRESS_LIMIT", "3"))
+    )
+except ValueError:
+    RMC_MC_APPLY_NO_PROGRESS_LIMIT = 3
+# Box<->cloud pairing window (apps/sync_engine/models_pairing.py). Deliberately DAYS,
+# not the minutes a device-code flow usually allows: the technician at the box and the
+# admin holding cloud credentials are routinely different people on different days, and
+# a 15-minute window means the install simply cannot be finished on site. The short code
+# is not a secret (the poll secret is) and approval still requires an authenticated
+# admin, which is what makes the long window affordable.
+try:
+    RMC_EDGE_PAIRING_TTL_HOURS = max(
+        1, int(os.getenv("RMC_EDGE_PAIRING_TTL_HOURS", "72"))
+    )
+except ValueError:
+    RMC_EDGE_PAIRING_TTL_HOURS = 72
 # Cursor overlap. The delta cursors on wall-clock `updated_at`, which has two holes a
 # monotonic sequence would not: rows sharing one timestamp straddling a page boundary,
 # and a transaction that COMMITS after a concurrent cycle already read the high-water

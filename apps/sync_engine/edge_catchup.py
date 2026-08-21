@@ -7,7 +7,6 @@ students never arrive. One rewind (then a flag) is the catch-up, tenant-wide.
 
 from __future__ import annotations
 
-from django.conf import settings
 
 _EDGE_SETTINGS_KEY = "rmc_edge"
 _EMPTY_PULL_DONE = "empty_box_full_pull_done"
@@ -18,7 +17,9 @@ def maybe_rewind_empty_box_pull(school) -> bool:
 
     Returns True when cursors were rewound. Never raises into the sync runner.
     """
-    if not bool(getattr(settings, "RMC_EDGE_SYNC_ENABLED", False)):
+    from apps.sync_engine.edge_enabled import edge_sync_enabled
+
+    if not edge_sync_enabled():
         return False
     if school is None:
         return False

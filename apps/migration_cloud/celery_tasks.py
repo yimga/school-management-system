@@ -121,17 +121,84 @@ def _kick_advance_off_request(
     )()
 
 
+class RefusedApply:
+    """Returned instead of an outbox handle when the breaker declines a re-apply.
+
+    Shaped like the success handle (``id`` / ``outbox_id`` / ``durable_outbox``)
+    so no caller crashes on attribute access, but carries ``queued=False`` and a
+    human-readable ``reason``. Callers that surface a message to an operator
+    should prefer ``reason`` over reporting "queued" — telling a tenant work was
+    scheduled when it was refused is the "Repair does nothing" complaint this
+    subsystem already has scar tissue for.
+    """
+
+    durable_outbox = True
+    queued = False
+
+    def __init__(self, reason: str) -> None:
+        self.id = ""
+        self.outbox_id = ""
+        self.reason = reason
+        self.refused = True
+
+
+def _refuse_livelocked_apply(bundle_id: int):
+    """``RefusedApply`` when this bundle has stopped making progress, else None."""
+    try:
+        from apps.migration_cloud.apply_progress_guard import (
+            apply_is_livelocked,
+            livelock_reason,
+        )
+        from apps.migration_cloud.models import MigrationBundle
+
+        bundle = (
+            MigrationBundle.objects  # tenant-isolation-allow: platform-apply-breaker-lookup-by-bundle-pk
+            .filter(pk=bundle_id)
+            .first()
+        )
+        if bundle is None or not apply_is_livelocked(bundle):
+            return None
+        reason = livelock_reason(bundle)
+        logger.warning(
+            "migration_cloud.celery_tasks: refused automatic re-apply of bundle %s — %s",
+            bundle_id,
+            reason,
+        )
+        return RefusedApply(reason)
+    except Exception:  # noqa: BLE001 — a broken breaker must not block a real apply
+        logger.debug(
+            "migration_cloud.celery_tasks: livelock check failed bundle=%s",
+            bundle_id,
+            exc_info=True,
+        )
+        return None
+
+
 def _kick_apply_off_request(
     bundle_id: int,
     *,
     dry_run: bool = True,
     reconcile_after: bool = False,
+    force: bool = False,
 ) -> object:
-    """Queue apply on durable outbox — never on the HTTP caller."""
+    """Queue apply on durable outbox — never on the HTTP caller.
+
+    ``force=True`` bypasses the forward-progress breaker and is reserved for a
+    DELIBERATE human action (the Repair button). Automatic callers must leave it
+    False: the outbox idempotency key only dedupes against pending/processing
+    rows, so once an apply succeeds any caller can mint another, and without the
+    breaker an apply that changes nothing re-queues itself forever.
+    """
     from apps.platform_runtime.heavy_work_outbox import enqueue_heavy_work
     from apps.platform_runtime.models_heavy_work_outbox import HeavyWorkOutbox
 
     bid = int(bundle_id)
+
+    if not dry_run and not force:
+        refusal = _refuse_livelocked_apply(bid)
+        if refusal is not None:
+            return refusal
+
     row = enqueue_heavy_work(
         HeavyWorkOutbox.Kind.MC_APPLY_BUNDLE,
         bundle_id=bid,
@@ -171,10 +238,15 @@ def enqueue_apply(
     *,
     dry_run: bool = True,
     reconcile_after: bool = False,
+    force: bool = False,
 ):
-    """Enqueue apply on durable outbox (never sync on HTTP)."""
+    """Enqueue apply on durable outbox (never sync on HTTP).
+
+    ``force=True`` is for an explicit human retry only — see
+    :func:`_kick_apply_off_request`.
+    """
     return _kick_apply_off_request(
-        bundle_id, dry_run=dry_run, reconcile_after=reconcile_after
+        bundle_id, dry_run=dry_run, reconcile_after=reconcile_after, force=force
     )
 
 

@@ -114,6 +114,11 @@ _DERIVED_ENTITY_SPECS: list[tuple[str, str, str]] = [
     # set and the delta builder scopes by `school_id`, so what actually matters is the
     # anchor + `updated_at`, and SyncSchedule carries both.
     ("sync_schedule", "sync_engine", "SyncSchedule"),
+    # The policy that sits AROUND the rules: how long the box may stay silent when
+    # nothing is due, and whether it catches up after sleeping through a scheduled time.
+    # It rides for the same reason the schedule does -- both are the SCHOOL's decision and
+    # both are acted on by the BOX, and the cloud cannot reach a box to tell it either.
+    ("sync_policy", "sync_engine", "SyncPolicy"),
 ]
 
 # Entities that sync as UPDATES but whose offline-CREATED rows are refused outright.
@@ -240,6 +245,10 @@ _LWW_SAFE_ENTITIES = frozenset(
         # edit corrects. Protecting it instead would turn every schedule change made
         # during an outage into a manual conflict for no safety gain.
         "sync_schedule",
+        # Same reasoning as sync_schedule: the tenant's own configuration on their own
+        # deployment, converging two-way, and the worst a stale write can do is check in
+        # on the wrong cadence -- which the next edit corrects.
+        "sync_policy",
     }
 )
 

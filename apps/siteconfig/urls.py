@@ -90,9 +90,12 @@ from .views_custom_requirement import request_custom_requirement
 from .views_sync_center import (
     sync_center,
     sync_center_bulk_resolve,
+    sync_center_pair_approve,
+    sync_center_pair_deny,
     sync_center_probe,
     sync_center_resolve,
     sync_center_status,
+    sync_policy_save,
     sync_schedule_save,
     sync_now,
     sync_request_resync,
@@ -576,6 +579,18 @@ urlpatterns = [
         name="request_custom_requirement",
     ),
     path("sync-center/", sync_center, name="sync_center"),
+    # Box adoption. POST-only: approving is a state change made inside an
+    # authenticated session, which is the entire security model of pairing.
+    path(
+        "sync-center/pair/approve/",
+        sync_center_pair_approve,
+        name="sync_center_pair_approve",
+    ),
+    path(
+        "sync-center/pair/deny/",
+        sync_center_pair_deny,
+        name="sync_center_pair_deny",
+    ),
     path("sync-center/sync-now/", sync_now, name="sync_center_sync_now"),
     # Polled by the Sync Center live panel; read-only JSON evidence.
     path("sync-center/status/", sync_center_status, name="sync_center_status"),
@@ -589,6 +604,11 @@ urlpatterns = [
         "sync-center/schedule/",
         sync_schedule_save,
         name="sync_schedule_save",
+    ),
+    path(
+        "sync-center/policy/",
+        sync_policy_save,
+        name="sync_policy_save",
     ),
     path(
         "sync-center/bulk-resolve/",

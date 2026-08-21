@@ -24,7 +24,6 @@ from __future__ import annotations
 import logging
 import os
 
-from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +35,10 @@ _MIN_INTERVAL_SECONDS = 60  # floor so a misconfig can't hammer the cloud
 
 
 def _edge_sync_enabled() -> bool:
-    return bool(getattr(settings, "RMC_EDGE_SYNC_ENABLED", False))
+    """Env flag OR a durable pairing binding — see apps.sync_engine.edge_enabled."""
+    from apps.sync_engine.edge_enabled import edge_sync_enabled
+
+    return edge_sync_enabled()
 
 
 def _env_int(name: str, default: int) -> int:
@@ -85,15 +87,24 @@ def resolve_edge_school():
     """The single school this edge box serves, or ``None``.
 
     Resolution order:
-      1. an explicit ``RMC_EDGE_SCHOOL_SLUG`` (wins if set), else
+      1. the slug this box is PAIRED to, else an explicit ``RMC_EDGE_SCHOOL_SLUG``
+         (both via ``edge_binding.school_slug``), else
       2. the sole active school (an edge box serves exactly one).
+
+    Step 1 goes through the binding rather than reading the environment directly.
+    Pairing already records which school the cloud adopted this box INTO, and that
+    is a better answer than an env var — it is the school the credential is scoped
+    to, so any other choice would push rows the cloud will reject. Reading the env
+    here also meant a paired box serving more than one local school still resolved
+    to ``None`` and silently no-opped, with nothing anywhere saying why.
 
     Ambiguous — no slug and 0 or >1 active schools — returns ``None`` so the caller
     no-ops instead of guessing which tenant to sync.
     """
     from apps.schools.models import School
+    from apps.sync_engine.edge_binding import school_slug
 
-    slug = (os.getenv("RMC_EDGE_SCHOOL_SLUG", "") or "").strip().lower()
+    slug = (school_slug() or "").strip().lower()
     if slug:
         return School.objects.filter(slug=slug).first()
     # Pull two so we can distinguish "exactly one" from "more than one" cheaply.
@@ -126,7 +137,9 @@ def run_edge_sync_now(*, mode: str = "live", force: bool = False, trigger: str =
     comes back, and to make the status surface honest.
     """
     if not _edge_sync_enabled():
-        return {"enabled": False, "ran": False, "reason": "RMC_EDGE_SYNC_ENABLED is off"}
+        from apps.sync_engine.edge_enabled import why
+
+        return {"enabled": False, "ran": False, "reason": f"edge sync is off — {why()['reason']}"}
 
     from apps.sync_engine import cadence, connectivity
 
@@ -159,13 +172,28 @@ def run_edge_sync_now(*, mode: str = "live", force: bool = False, trigger: str =
     if not force:
         due, why = cadence.due_now()
         if not due:
-            return {
-                "enabled": True,
-                "ran": False,
-                "skipped": True,
-                "reason": why,
-                "online": link.get("online"),
-            }
+            # The box is not due on the cadence marker -- but it may have SLEPT THROUGH a
+            # scheduled time, which is the case the whole schedule feature exists for
+            # ("it should have synced at 6, it was off, it synced when I turned it on").
+            # Claimed atomically and once per missed moment, so a weekend outage produces
+            # one Monday run rather than one per missed window.
+            caught_up = None
+            try:
+                from apps.sync_engine import schedule_policy
+
+                caught_up = schedule_policy.should_catch_up(school)
+            except Exception:  # noqa: BLE001 — never fail a tick on the catch-up check
+                logger.debug("catch-up check failed", exc_info=True)
+            if caught_up is None:
+                return {
+                    "enabled": True,
+                    "ran": False,
+                    "skipped": True,
+                    "reason": why,
+                    "online": link.get("online"),
+                }
+            why = f"catch-up for the scheduled run at {caught_up.isoformat()} that was missed"
+            trigger = trigger or "catch-up"
 
         # The box is due, but the cheap probe says the operator is unreachable. Building
         # and signing a bundle for a socket that cannot open is the single most wasteful

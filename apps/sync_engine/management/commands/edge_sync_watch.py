@@ -49,9 +49,12 @@ class Command(BaseCommand):
         from apps.sync_engine import edge_outbox
         from apps.sync_engine.sync_runner import run_sync_cycle
 
-        if not getattr(settings, "RMC_EDGE_SYNC_ENABLED", False):
+        from apps.sync_engine.edge_enabled import edge_sync_enabled
+
+        if not edge_sync_enabled():
             self.stdout.write(self.style.WARNING(
-                "RMC_EDGE_SYNC_ENABLED is off; the watcher would drive nothing. Exiting."
+                "Edge sync is off; the watcher would drive nothing. Pair this box "
+                "(manage.py pair_box) or set RMC_EDGE_SYNC_ENABLED=1. Exiting."
             ))
             return
 
@@ -142,16 +145,17 @@ class Command(BaseCommand):
 
     @staticmethod
     def _operator_base():
-        base = (getattr(settings, "RMC_EDGE_OPERATOR_BASE", "") or "").strip()
-        if not base:
-            base = (getattr(settings, "RMC_HUB_BASE_URL", "") or "").strip()
-        return base.rstrip("/")
+        # Through the binding: on a paired box the env vars are empty by design, and a
+        # watcher reading them would silently long-poll nothing at all.
+        from apps.sync_engine.edge_binding import operator_base
+
+        return operator_base()
 
     @staticmethod
     def _edge_token():
-        import os
+        from apps.sync_engine.edge_binding import edge_credential
 
-        return (os.getenv("RMC_EDGE_CREDENTIAL") or "").strip()
+        return edge_credential()
 
     @staticmethod
     def _path(url_name, fallback):

@@ -75,10 +75,13 @@ _EDGE_SCAN_THROTTLE_SECONDS = int(os.getenv("RMC_EDGE_PERIODIC_SCAN_THROTTLE", "
 
 def _scan_throttle_seconds() -> int:
     """Seconds between scans for THIS process. Shorter on an edge box (see above)."""
-    from django.conf import settings as _dj_settings
+    try:
+        from apps.sync_engine.edge_enabled import edge_sync_enabled
 
-    if getattr(_dj_settings, "RMC_EDGE_SYNC_ENABLED", False):
-        return max(1, min(SCAN_THROTTLE_SECONDS, _EDGE_SCAN_THROTTLE_SECONDS))
+        if edge_sync_enabled():
+            return max(1, min(SCAN_THROTTLE_SECONDS, _EDGE_SCAN_THROTTLE_SECONDS))
+    except Exception:  # noqa: BLE001 — a throttle question must never break a request
+        logger.debug("edge scan-throttle check failed", exc_info=True)
     return SCAN_THROTTLE_SECONDS
 DEFAULT_LOCK_TTL_SECONDS = 600  # magic-number-allow: default per-job lock TTL (seconds)
 WEEKLY_SECONDS = 7 * 24 * 60 * 60
@@ -617,20 +620,37 @@ def ensure_default_jobs() -> None:
         # stable again" (incl. after a power loss, since /health/ resumes being
         # pinged on reboot). The claim lock + last_run gate keep the boot reconcile,
         # the beat task, and the health tick from double-running.
-        _maybe_register_edge_sync_job(_REGISTRY)
+        # allow_db=False: this runs inside AppConfig.ready(), where touching the
+        # database is discouraged (and on some deployments actively harmful — a
+        # connection opened per worker before the app is ready). The env flag is a
+        # settings read and costs nothing; a PAIRED box is picked up moments later
+        # by ensure_edge_sync_job_registered() on the scan thread.
+        _maybe_register_edge_sync_job(_REGISTRY, allow_db=False)
         _DEFAULTS_INSTALLED = True
 
 
-def _maybe_register_edge_sync_job(registry: dict) -> None:
+def _maybe_register_edge_sync_job(registry: dict, *, allow_db: bool = True) -> None:
     """Register the edge auto-sync job into ``registry`` iff this is an edge box.
 
     Split out (and taking the registry as an argument) so it can be unit-tested
     against a fresh dict without mutating the process-global ``_REGISTRY`` or
     tripping the ``_DEFAULTS_INSTALLED`` cache.
-    """
-    from django.conf import settings as _dj_settings
 
-    if not getattr(_dj_settings, "RMC_EDGE_SYNC_ENABLED", False):
+    ``allow_db=False`` answers using only the environment flag. Startup passes it
+    because this is reached from ``AppConfig.ready()``; the durable-binding half of
+    the answer needs a query, and a query at app-init time is exactly what Django
+    warns about. Nothing is lost — the scan thread calls
+    :func:`ensure_edge_sync_job_registered` seconds later with the full answer.
+    """
+    if allow_db:
+        from apps.sync_engine.edge_enabled import edge_sync_enabled
+
+        enabled = edge_sync_enabled()
+    else:
+        from apps.sync_engine.edge_enabled import env_flag_enabled
+
+        enabled = env_flag_enabled()
+    if not enabled:
         return
     # Registered at the fast TICK cadence, NOT the sync interval. The cadence decision
     # moved into ``run_edge_sync_now`` (apps.sync_engine.cadence) so a wake — the network
@@ -647,6 +667,42 @@ def _maybe_register_edge_sync_job(registry: dict) -> None:
         auto_eligible=True,
         tags=("sync", "edge"),
     )
+
+
+EDGE_SYNC_JOB_NAME = "sync_engine.edge_sync_cycle"
+
+
+def ensure_edge_sync_job_registered() -> bool:
+    """Register the edge sync job LATE, if this box became an edge box after boot.
+
+    ``ensure_default_jobs`` is deliberately one-shot — it flips ``_DEFAULTS_INSTALLED``
+    and never reconsiders. That is right for every other job, whose eligibility is a
+    settings question fixed at import. It is wrong for this one: a box is adopted at
+    RUNTIME, by an administrator clicking approve in the cloud while the box is already
+    up and serving. Without this, a freshly paired box would go on doing nothing until
+    somebody restarted the container — which is exactly the "why is it not syncing?"
+    silence that pairing was built to remove.
+
+    Cheap by construction: a dict membership test on the common path, and the
+    :func:`edge_sync_enabled` answer behind it is memoised. Returns True if the job is
+    registered when this returns.
+    """
+    if EDGE_SYNC_JOB_NAME in _REGISTRY:
+        return True
+    try:
+        with _REGISTRY_LOCK:
+            if EDGE_SYNC_JOB_NAME in _REGISTRY:
+                return True
+            _maybe_register_edge_sync_job(_REGISTRY)
+            registered = EDGE_SYNC_JOB_NAME in _REGISTRY
+        if registered:
+            logger.info(
+                "periodic: edge sync job registered late — this box is now paired"
+            )
+        return registered
+    except Exception:  # noqa: BLE001 — never let this break a scheduler tick
+        logger.debug("late edge-sync registration failed", exc_info=True)
+        return False
 
 
 def _run_edge_sync_cycle() -> object:
@@ -1259,6 +1315,10 @@ def close_thread_connections() -> None:
 
 def _scan_and_run() -> None:
     try:
+        # A box adopted while this process was already running needs its sync job
+        # registered now, not at the next restart. Done here, on the daemon thread,
+        # because the eligibility answer can touch the database. No-op once present.
+        ensure_edge_sync_job_registered()
         # AUTO path: only auto-eligible jobs. Heavy / financial / fan-out jobs
         # (auto_eligible=False) are deliberately excluded from the hot health
         # thread and run via the secured cron endpoint / command instead.

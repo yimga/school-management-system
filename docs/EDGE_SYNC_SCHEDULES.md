@@ -67,22 +67,47 @@ UI does not promise that, because on a box that is asleep or offline it is not t
 | Outside every window | the idle ceiling | Never zero — see below. |
 | No schedule | adaptive cadence | The zero-configuration default. |
 
-### The idle ceiling — the one place this does not do exactly what was typed
+### The idle ceiling — the tenant's number, with its consequence stated
 
-A tenant who asks for "06:00 and 18:00 only" still gets a check-in at most
-`RMC_EDGE_SYNC_IDLE_CEILING_SECONDS` apart (default **3600**). `EdgeSyncDirective` is the
-only cloud→box channel and it is collected by the box ASKING. A box that goes twelve hours
-without asking cannot receive the operator's "Queue full resync" for twelve hours, and from
-the cloud it is indistinguishable from a box that has been switched off.
+A tenant who asks for "06:00 and 18:00 only" still gets a check-in in between.
+`EdgeSyncDirective` is the only cloud→box channel and it is collected by the box ASKING, so
+the ceiling is also the worst case on an operator's "Queue full resync" reaching this box:
+twelve hours without asking means twelve hours before an instruction lands, and from the
+cloud that is indistinguishable from a box that has been switched off.
 
-Raise the ceiling if a tenant genuinely wants twice-daily-and-nothing-else, and accept that
-operator instructions will queue for that long.
+Until v4.06.75 this was a deviation the product made silently — the only knob was an
+environment variable on a host the school cannot see. It is now set on the Sync Center and
+replicated to the box like every other decision here (`SyncPolicy`), and every choice in
+the picker states its consequence rather than leaving it to be discovered.
+
+| Resolution order | Source |
+|---|---|
+| 1 | `RMC_EDGE_SYNC_IDLE_CEILING_SECONDS` — the operator's pin for ONE box. An operator debugging a box in front of them has to be able to hold it still. |
+| 2 | The tenant's `SyncPolicy.idle_ceiling_minutes`. |
+| 3 | One hour. |
+
+Bounded at **24 hours**. That is a safety limit, not a preference: beyond a day a box
+cannot be reached at all. The value is clamped on read as well as on save, so a row from
+an older build cannot put a box outside the bounds the surface enforces.
 
 ### Missed windows — catch up once
 
 If the box was off or offline through a scheduled moment, it runs once when it comes back
-and then resumes. One catch-up, not one per missed moment: the state is a single next-due
-marker, so a weekend outage produces one run on Monday rather than forty-eight.
+and then resumes. One catch-up, not one per missed moment: a weekend outage produces one
+run on Monday rather than forty-eight. A tenant who does not want this can turn it off
+(`SyncPolicy.catch_up_missed`) — a 3am job landing at 7am is not always welcome.
+
+The claim is held in the cache and keyed by the missed MOMENT, not inferred from "a run
+happened". A cycle that FAILS still writes a run row and would otherwise count as having
+made the moment up; a cycle that dies before writing one would otherwise catch up on every
+tick. Backoff outranks catch-up, because a box catching up into a cloud that is down is
+just the schedule finding another way to hammer it.
+
+> Between v4.06.74 and v4.06.75 this section described behaviour that did not exist.
+> `missed_run()` was correct and unit-tested, and nothing called it except the status
+> panel's "missed window" flag — so the Sync Center said a sync would be caught up while
+> the box waited for the next scheduled time. The function was never the bug; the wiring
+> was absent, which is why a passing unit test hid it.
 
 The Sync Center shows a missed window explicitly, because "next sync: 6:00 PM" beside a
 last sync three days old is exactly the state a next-run label would otherwise paper over.
@@ -98,9 +123,10 @@ as UTC instants, which would silently shift by an hour twice a year.
 **DST, decided and asserted in both directions:**
 
 - **Spring forward.** A rule at a wall-clock time the day skips (02:30, where the clock
-  jumps 02:00 → 03:00) fires at the first instant that DOES exist. It is never dropped — a
-  nightly report that silently skipped one night a year would be blamed on anything but
-  the clock.
+  jumps 02:00 → 03:00) still fires, at the instant that wall time would have denoted —
+  02:30 EST *is* 03:30 EDT, the same absolute moment under a renamed clock. It is never
+  dropped and never drifts by more than the gap; a nightly report that silently skipped
+  one night a year would be blamed on anything but the clock.
 - **Fall back.** A rule inside the hour the clock repeats fires ONCE, on the first
   occurrence. Firing twice would double a nightly job with no way to tell why.
 
@@ -123,7 +149,9 @@ displayed value against the FUNCTION, never against a hardcoded expectation.
 
 | Setting | Default | What it does |
 |---|---|---|
-| `RMC_EDGE_SYNC_IDLE_CEILING_SECONDS` | `3600` | Longest gap between check-ins when no scheduled run is due |
+| `SyncPolicy.idle_ceiling_minutes` (tenant, Sync Center) | `60` | Longest gap between check-ins when no scheduled run is due. Bounded 5 min – 24 h |
+| `SyncPolicy.catch_up_missed` (tenant, Sync Center) | `True` | Sync once on return after sleeping through a scheduled time |
+| `RMC_EDGE_SYNC_IDLE_CEILING_SECONDS` | unset | Operator pin for ONE box; overrides the tenant's ceiling |
 | `RMC_EDGE_SYNC_INTERVAL_SECONDS` | unset | Operator pin for ONE box. Predates schedules and still wins — an operator debugging a box has to be able to hold it still |
 | `MIN_INTERVAL_MINUTES` | `5` | Floor. A mis-typed "1" must not turn a box into a request loop |
 
@@ -147,6 +175,6 @@ an outage into a manual conflict for no safety gain.
 - **Blackout / maintenance windows.**
 - **Cloud→box push.** It does not exist (see the NAT section) and inventing it is a
   different project.
-- **`RuntimeDefaults` first-class field for the idle ceiling.** It is an env var today,
-  which is layer 2 of the configurability cascade; promoting it to the tenant cascade needs
-  the full first-class-field chain and is a follow-up.
+- **A DST switch.** There is one defensible answer in each direction, so a setting would
+  only let a school choose the wrong one for a decision they should never have to think
+  about. The panel SHOWS what will happen instead — visible was the actual problem.

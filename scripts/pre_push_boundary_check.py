@@ -105,6 +105,25 @@ GATES: list[tuple[str, list[str]]] = [
     ("actionless-attention-surfaces", ["scan_actionless_attention_surfaces.py"]),
 ]
 
+# Gates that CANNOT answer without the live Django app registry, and are therefore not
+# part of the deps-free contract above. They run only when Django imports, and report
+# SKIP (never PASS) when it does not.
+#
+# WHY THEY ARE HERE AT ALL, given this runner exists to mirror the deps-free CI job:
+# these gates live in `ci.yml::django-tests`, and GitHub Actions has run NO jobs on this
+# repository since 2026-08-15 (billing). So "it is covered in CI" is currently false for
+# every one of them, and this runner is the only thing standing between a red gate and
+# `main`. That is not hypothetical -- `scan_rls_table_coverage` is a ZERO-baseline gate
+# that went red the moment PR #184 merged (three tenant-scoped pairing tables enumerated
+# in no enable_rls migration) and stayed red on main until someone ran it by hand.
+#
+# Kept deliberately short. Each entry pays ~8s for django.setup(), so this list earns its
+# place one gate at a time: zero-tolerance, security-relevant, and invisible to every
+# stdlib gate above.
+DJANGO_GATES: list[tuple[str, list[str]]] = [
+    ("rls-table-coverage", ["scan_rls_table_coverage.py", "--compare"]),
+]
+
 _PER_GATE_TIMEOUT_S = 120
 
 
@@ -146,6 +165,24 @@ def _run_gate(label: str, argv: list[str]) -> tuple[bool | None, str]:
     return proc.returncode == 0, output.strip()
 
 
+def _django_available() -> bool:
+    """Can a subprocess import Django and load settings? Probed once, cheaply."""
+    try:
+        proc = subprocess.run(
+            [sys.executable, "-c", "import django; django.setup()"],
+            cwd=str(REPO_ROOT),
+            capture_output=True,
+            text=True,
+            timeout=_PER_GATE_TIMEOUT_S,
+            env={**os.environ, "DJANGO_SETTINGS_MODULE": os.environ.get(
+                "DJANGO_SETTINGS_MODULE", "config.settings"
+            )},
+        )
+    except (subprocess.TimeoutExpired, OSError):
+        return False
+    return proc.returncode == 0
+
+
 def _tail(text: str, lines: int = 15) -> str:
     rows = [r for r in text.splitlines() if r.strip()]
     return "\n".join(rows[-lines:])
@@ -169,11 +206,13 @@ def main(argv: list[str] | None = None) -> int:
         print("Pre-push boundary gates (mirror of architectural-boundaries.yml):")
         for label, gate_argv in GATES:
             print(f"  - {label}: python scripts/{' '.join(gate_argv)}")
+        for label, gate_argv in DJANGO_GATES:
+            print(f"  - {label}: python scripts/{' '.join(gate_argv)}  [needs Django]")
         return 0
 
     strict = args.strict or _truthy(os.environ.get("RMC_PREPUSH_STRICT"))
 
-    print("Pre-push boundary gates (fast, deps-free subset of CI)...")
+    print("Pre-push boundary gates (deps-free subset of CI, plus Django-only gates)...")
     failures: list[tuple[str, str]] = []
     skipped: list[tuple[str, str]] = []
     for label, gate_argv in GATES:
@@ -188,6 +227,23 @@ def main(argv: list[str] | None = None) -> int:
         else:
             print(f"  FAIL  {label}")
             failures.append((label, output))
+
+    if DJANGO_GATES:
+        if _django_available():
+            for label, gate_argv in DJANGO_GATES:
+                passed, output = _run_gate(label, gate_argv)
+                if passed is None:
+                    print(f"  SKIP  {label}")
+                    skipped.append((label, output))
+                elif passed:
+                    print(f"  PASS  {label}")
+                else:
+                    print(f"  FAIL  {label}")
+                    failures.append((label, output))
+        else:
+            for label, _argv in DJANGO_GATES:
+                print(f"  SKIP  {label}")
+                skipped.append((label, "Django could not be imported in this environment"))
 
     for label, output in skipped:
         print("")

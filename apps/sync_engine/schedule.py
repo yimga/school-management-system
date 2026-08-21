@@ -25,9 +25,11 @@ an hour twice a year.
 DST, decided and documented rather than left to chance:
 
   * **Spring forward.** A rule at a wall-clock time the day skips (02:30, where the clock
-    jumps 02:00 → 03:00) fires at the first instant that DOES exist. It is never dropped:
-    a nightly report that silently skipped one night a year would be blamed on anything
-    but the clock.
+    jumps 02:00 → 03:00) still fires: at the instant that wall time WOULD have denoted,
+    which lands just the other side of the gap (02:30 EST is 03:30 EDT — the same absolute
+    moment, renamed by the clock). It is never dropped, and it never drifts by more than
+    the gap: a nightly report that silently skipped one night a year would be blamed on
+    anything but the clock.
   * **Fall back.** A rule inside the hour the clock repeats fires ONCE, on the first
     occurrence. Firing twice would double a nightly job with no way for the operator to
     tell why.
@@ -98,8 +100,11 @@ def _resolve_local(tz, naive: _dt.datetime) -> _dt.datetime:
     """Turn a local wall-clock datetime into a real instant, DST included.
 
     Round-tripping through UTC is what detects a spring-forward gap: a wall time the day
-    never showed comes back as a DIFFERENT wall time, and that returned value is the first
-    instant which does exist. ``fold=0`` picks the first of an ambiguous fall-back pair.
+    never showed comes back as a DIFFERENT wall time, and that returned value is the
+    instant the original wall time denoted under the pre-transition offset — 02:30 EST
+    resolves to 07:30 UTC, which is 03:30 EDT. So the run keeps its absolute moment and
+    lands just past the gap rather than being dropped. ``fold=0`` picks the first of an
+    ambiguous fall-back pair.
     """
     aware = naive.replace(tzinfo=tz, fold=0)
     roundtrip = aware.astimezone(_dt.timezone.utc).astimezone(tz).replace(tzinfo=None)
@@ -255,3 +260,83 @@ def describe_rule(rule: Rule) -> str:
 def describe(rules) -> str:
     parts = [describe_rule(r) for r in rules]
     return " ".join(parts) if parts else ""
+
+
+# ------------------------------------------------------------------------- DST --
+# The behaviour was already decided and asserted (see the module docstring). What was
+# missing is that nobody could SEE it: a school administrator setting "02:30 every day"
+# had no way to learn that one night a year that time does not exist. Offering a switch
+# would be worse than useless -- there is one defensible answer in each direction -- so
+# this makes the decision visible rather than configurable.
+_DST_SEARCH_DAYS = 400  # magic-number-allow: just over a year, to always find the next one
+
+
+def next_dst_transition(tz, *, after: _dt.datetime):
+    """The next UTC-offset change for ``tz``, or ``None`` if the zone has no DST.
+
+    Day-stepped to find the day, then hour-stepped inside it, so the cost is bounded and
+    tiny (<= 400 + 24 offset lookups) and it is safe to call on a page render.
+    """
+    if after.tzinfo is None:
+        raise ValueError("next_dst_transition requires an aware `after` datetime")
+
+    def offset_at(moment: _dt.datetime):
+        return moment.astimezone(tz).utcoffset()
+
+    cursor = after
+    previous = offset_at(cursor)
+    for _ in range(_DST_SEARCH_DAYS):
+        following = cursor + _dt.timedelta(days=1)
+        current = offset_at(following)
+        if current != previous:
+            # Narrow to the hour inside the day we just crossed.
+            lo = cursor
+            for _hour in range(25):
+                probe = lo + _dt.timedelta(hours=1)
+                if offset_at(probe) != previous:
+                    return {
+                        "at": probe,
+                        "shift_minutes": int(
+                            (current - previous).total_seconds() // 60
+                        ),
+                        "direction": "forward" if current > previous else "back",
+                    }
+                lo = probe
+            return {
+                "at": following,
+                "shift_minutes": int((current - previous).total_seconds() // 60),
+                "direction": "forward" if current > previous else "back",
+            }
+        cursor = following
+    return None
+
+
+def describe_dst(tz, *, after: _dt.datetime) -> dict:
+    """What the Sync Center says about the clock changing. Always safe to call."""
+    try:
+        transition = next_dst_transition(tz, after=after)
+    except Exception:  # noqa: BLE001 — a status panel must never fail on a timezone
+        return {"observes": False, "note": ""}
+    if transition is None:
+        return {"observes": False, "note": ""}
+
+    local = transition["at"].astimezone(tz)
+    # Built by hand rather than with "%-d": that directive is glibc-only and raises on
+    # Windows, where this very code runs during development.
+    when = f"{local.day} {local.strftime('%B')} {local.year}"
+    if transition["direction"] == "forward":
+        note = (
+            f"The clocks go forward on {when}. A scheduled time the clock skips that "
+            "morning still runs, just after the change — nothing is missed."
+        )
+    else:
+        note = (
+            f"The clocks go back on {when}. A scheduled time inside the hour that repeats "
+            "runs once, not twice."
+        )
+    return {
+        "observes": True,
+        "at": transition["at"].isoformat(),
+        "direction": transition["direction"],
+        "note": note,
+    }

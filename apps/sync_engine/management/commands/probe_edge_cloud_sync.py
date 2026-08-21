@@ -43,7 +43,11 @@ class Command(BaseCommand):
 
         problems: list[str] = []
         if not snap.get("edge_sync_enabled"):
-            problems.append("RMC_EDGE_SYNC_ENABLED is off — enable it on the box.")
+            problems.append(
+                "Edge sync is off: "
+                f"{snap.get('edge_sync_enabled_reason') or 'unknown reason'}. "
+                "Pair the box (manage.py pair_box) or set RMC_EDGE_SYNC_ENABLED=1."
+            )
         if not snap.get("operator_base_configured"):
             problems.append(
                 "RMC_EDGE_OPERATOR_BASE is empty — set it to the TENANT host "

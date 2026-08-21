@@ -9,16 +9,22 @@ because a precedence rule that only exists in an ``if`` is one the next person w
 | Consecutive failures                        | backoff              | A schedule is not permission to hammer a cloud that is down.                                  |
 | Inside a configured window                  | the tenant's interval| It is their decision, on their deployment.                                                    |
 | Outside every window                        | the idle ceiling     | Never zero: a box that stops checking in cannot be TOLD anything, including to start again.   |
+| A scheduled time was slept through          | one catch-up run     | The motivating case: "it should have synced at 6, it was off, it synced when I turned it on". |
 | No schedule at all                          | adaptive cadence     | The zero-configuration default, unchanged from before this feature existed.                   |
 
-THE IDLE CEILING, stated plainly because it is the one place the product does not do
-exactly what the tenant typed. A tenant who asks for "06:00 and 18:00 only" still gets a
-check-in at most ``RMC_EDGE_SYNC_IDLE_CEILING_SECONDS`` apart (default one hour). That is
-deliberate: ``EdgeSyncDirective`` is the ONLY cloud→box channel, and it is collected by
-the box asking. A box that goes twelve hours without asking cannot receive the operator's
-"Queue full resync" for twelve hours, and from the cloud it is indistinguishable from a
-box that has been switched off. The ceiling is configurable, and a tenant who genuinely
-wants twice-daily-and-nothing-else can raise it.
+THE IDLE CEILING. A tenant who asks for "06:00 and 18:00 only" still gets a check-in in
+between. ``EdgeSyncDirective`` is the ONLY cloud→box channel and it is collected by the
+box ASKING, so this ceiling is also the worst case on "Queue full resync" reaching this
+box: go twelve hours without asking and an operator instruction waits twelve hours, which
+from the cloud is indistinguishable from a box that has been switched off.
+
+That used to be a deviation the product made silently, with the only knob an environment
+variable on a host the school cannot see — so "the tenant configures their sync" was half
+true. It is now the TENANT's number, on the Sync Center, replicated to the box like every
+other decision here (:class:`~apps.sync_engine.models_policy.SyncPolicy`), bounded at one
+day because beyond that a box cannot be reached at all. Resolution order is: the
+operator's ``RMC_EDGE_SYNC_IDLE_CEILING_SECONDS`` pin, then the tenant's row, then one
+hour. The screen states the consequence in words rather than leaving it to be discovered.
 
 MISSED WINDOWS: CATCH UP ONCE. If the box was off or offline through a scheduled moment,
 it runs once when it comes back and then resumes the schedule. The alternative — skip and
@@ -43,14 +49,46 @@ logger = logging.getLogger(__name__)
 _DEFAULT_IDLE_CEILING_SECONDS = 3600  # magic-number-allow: idle check-in ceiling (1h)
 
 
-def idle_ceiling_seconds() -> int:
-    """Longest a box may go without checking in, even with no scheduled run due."""
+def _env_idle_ceiling_seconds() -> int | None:
+    """The operator's pin for ONE box, or ``None``.
+
+    Kept, and kept WINNING, for the same reason ``RMC_EDGE_SYNC_INTERVAL_SECONDS`` wins:
+    somebody debugging a box in front of them has to be able to hold it still, and they
+    cannot do that if a row that arrives down the rail can move it back.
+    """
     raw = (os.getenv("RMC_EDGE_SYNC_IDLE_CEILING_SECONDS", "") or "").strip()
+    if not raw:
+        return None
     try:
-        value = int(raw) if raw else _DEFAULT_IDLE_CEILING_SECONDS
+        return int(raw)
     except (TypeError, ValueError):
-        value = _DEFAULT_IDLE_CEILING_SECONDS
-    return max(cadence.MIN_INTERVAL_SECONDS, value)
+        return None
+
+
+def idle_ceiling_seconds(school=None) -> int:
+    """Longest a box may go without checking in, even with no scheduled run due.
+
+    Resolution order, highest first:
+
+      1. ``RMC_EDGE_SYNC_IDLE_CEILING_SECONDS`` -- the operator's pin for one box.
+      2. The tenant's :class:`~apps.sync_engine.models_policy.SyncPolicy` row, which is
+         what the Sync Center writes and what the rail carries down to the box.
+      3. The documented default (one hour).
+
+    ``school`` is optional so the older call sites keep working, but passing it is what
+    makes this the TENANT's number rather than the host's.
+    """
+    pinned = _env_idle_ceiling_seconds()
+    if pinned is not None:
+        return max(cadence.MIN_INTERVAL_SECONDS, pinned)
+    if school is not None:
+        try:
+            from apps.sync_engine.models_policy import policy_for
+
+            return max(cadence.MIN_INTERVAL_SECONDS, policy_for(school).idle_ceiling_seconds)
+        except Exception:  # noqa: BLE001 — never let a settings read stop a sync
+            logger.debug("idle ceiling: policy read failed", exc_info=True)
+    return max(cadence.MIN_INTERVAL_SECONDS, _DEFAULT_IDLE_CEILING_SECONDS)
 
 
 def school_timezone(school):
@@ -124,7 +162,7 @@ def interval_for(school, *, now=None) -> tuple:
         return None, "nothing scheduled — automatic cadence"
 
     wait = int((upcoming - now).total_seconds())
-    ceiling = idle_ceiling_seconds()
+    ceiling = idle_ceiling_seconds(school)
     if wait > ceiling:
         # Not zero, and not the full wait either. See THE IDLE CEILING above.
         return ceiling, f"next run {upcoming.isoformat()}; checking in meanwhile"
@@ -152,6 +190,74 @@ def _tightest_active_interval(rules, *, now, tz):
     if best is None:
         return None
     return max(cadence.MIN_INTERVAL_SECONDS, best)
+
+
+def last_run_at_for(school):
+    """When this box last recorded a cycle, or ``None``. Never raises."""
+    try:
+        from apps.sync_engine.models import EdgeSyncRun
+
+        latest = EdgeSyncRun.objects.filter(school=school).order_by("-created_at").first()
+        return getattr(latest, "created_at", None)
+    except Exception:  # noqa: BLE001 — a status panel must never 500 on its own query
+        logger.debug("last-run lookup failed", exc_info=True)
+        return None
+
+
+# One catch-up per missed moment, remembered OUTSIDE the run record on purpose. Clearing
+# on "a run happened" alone would be wrong twice: a cycle that fails writes a run row and
+# would count as having made the moment up, and a cycle that dies before writing one would
+# make the box catch up again on every single tick. Keyed by the moment itself, so the
+# next missed moment is a different key and still gets its run.
+_CATCHUP_KEY_PREFIX = "rmc:edge_sync:catchup_claimed"
+_CATCHUP_TTL_SECONDS = 36 * 3600  # magic-number-allow: outlives a weekend outage
+
+
+def _catchup_key(school, moment) -> str:
+    return f"{_CATCHUP_KEY_PREFIX}:{getattr(school, 'pk', 'na')}:{moment.isoformat()}"
+
+
+def should_catch_up(school, *, now=None):
+    """The scheduled moment this box slept through and has not made up yet, or ``None``.
+
+    THE GAP THIS CLOSES. ``missed_run`` existed and was correct, and nothing called it
+    except the status panel — so the Sync Center would say "missed window" while the box
+    quietly waited for the NEXT scheduled time. The motivating sentence for the whole
+    feature ("it should have synced at 6, it was off, it synced when I turned it on") was
+    documented in three places and implemented in none.
+
+    Backoff still outranks this: a box catching up into a cloud that is down is just the
+    schedule finding a new way to hammer it.
+    """
+    try:
+        if cadence.current_state() == cadence.BACKOFF:
+            return None
+        policy = _policy(school)
+        if not policy.catch_up_missed:
+            return None
+        now = now or dj_timezone.now()
+        moment = missed_run(school, last_run_at=last_run_at_for(school), now=now)
+        if moment is None:
+            return None
+        from django.core.cache import cache
+
+        key = _catchup_key(school, moment)
+        # add() is atomic: two workers ticking at once cannot both claim the same moment.
+        if not cache.add(key, "1", _CATCHUP_TTL_SECONDS):
+            return None
+        return moment
+    except Exception:  # noqa: BLE001 — a catch-up check must never break a cycle
+        logger.debug("catch-up check failed", exc_info=True)
+        return None
+
+
+def _policy(school):
+    from apps.sync_engine.models_policy import ResolvedPolicy, policy_for
+
+    try:
+        return policy_for(school)
+    except Exception:  # noqa: BLE001
+        return ResolvedPolicy()
 
 
 def missed_run(school, *, last_run_at, now=None):
@@ -188,21 +294,14 @@ def schedule_summary(school, *, now=None) -> dict:
     beside the last ACTUAL run, a box that stopped a week ago is visible instead of being
     quietly implied to be fine.
     """
-    from apps.sync_engine.schedule import describe
+    from apps.sync_engine.schedule import describe, describe_dst
 
     now = now or dj_timezone.now()
     rules = active_rules(school)
     tz = school_timezone(school)
     upcoming = planned_next_run(school, after=now)
 
-    last_run_at = None
-    try:
-        from apps.sync_engine.models import EdgeSyncRun
-
-        latest = EdgeSyncRun.objects.filter(school=school).order_by("-created_at").first()
-        last_run_at = getattr(latest, "created_at", None)
-    except Exception:  # noqa: BLE001 — a status panel must never 500 on its own query
-        logger.debug("schedule summary: last-run lookup failed", exc_info=True)
+    last_run_at = last_run_at_for(school)
 
     stale = False
     if rules and last_run_at is not None:
@@ -210,15 +309,26 @@ def schedule_summary(school, *, now=None) -> dict:
         # which is the state a next-run label would otherwise paper over.
         stale = missed_run(school, last_run_at=last_run_at, now=now) is not None
 
+    policy = _policy(school)
     return {
         "configured": bool(rules),
         "timezone": str(tz),
         "description": describe(rules),
+        # DST is a DECISION, not a setting -- there is one defensible answer in each
+        # direction. What was missing is that nobody could see it, so it is stated here
+        # and rendered on the panel. Only shown when the tenant's zone actually observes
+        # it; telling a school in Douala about clock changes would be noise.
+        "dst": describe_dst(tz, after=now),
+        "idle_ceiling_minutes": policy.idle_ceiling_minutes,
+        "idle_ceiling_source": (
+            "operator pin" if _env_idle_ceiling_seconds() is not None else policy.source
+        ),
+        "catch_up_missed": policy.catch_up_missed,
         "next_run_at": upcoming.isoformat() if upcoming else None,
         "next_run_in_seconds": int((upcoming - now).total_seconds()) if upcoming else None,
         "last_run_at": last_run_at.isoformat() if last_run_at else None,
         "missed_window": stale,
-        "idle_ceiling_seconds": idle_ceiling_seconds(),
+        "idle_ceiling_seconds": idle_ceiling_seconds(school),
         # Said in the payload rather than only in a template, so every surface that reads
         # this tells the same truth: the cloud cannot push, so a change lands on the next
         # cycle.

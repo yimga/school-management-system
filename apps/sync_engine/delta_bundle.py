@@ -57,6 +57,32 @@ def export_delta_bundle(*, school_id: str | int, rows: list[dict[str, Any]], dev
     return payload + b"\n" + trailer.encode("utf-8") + b"\n"
 
 
+def bundle_nonce(data: bytes) -> str:
+    """The replay nonce out of a bundle this side BUILT.
+
+    Deliberately unverified, and safe precisely because of who calls it: the box reads
+    the header of bytes it just produced itself, to remember which bundle it put on the
+    wire. Nothing trusts this value as evidence about a bundle that arrived from
+    somewhere else -- the receiving side gets its nonce from
+    ``verify_and_parse_bundle(collect=...)``, which only populates the header AFTER the
+    signature checks out.
+
+    Returns "" for anything unparseable rather than raising: the caller is recording a
+    breadcrumb after a push already failed, and a bookkeeping error must not turn a
+    recoverable timeout into a crash.
+    """
+    try:
+        for line in data.decode("utf-8").splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            header = json.loads(line)
+            return str(header.get("nonce") or "") if isinstance(header, dict) else ""
+    except (UnicodeDecodeError, json.JSONDecodeError, AttributeError):
+        return ""
+    return ""
+
+
 def iter_bundle_lines(data: bytes) -> Iterator[dict[str, Any]]:
     for line in data.decode("utf-8").splitlines():
         line = line.strip()

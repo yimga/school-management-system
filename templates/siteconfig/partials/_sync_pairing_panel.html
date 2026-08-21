@@ -1,0 +1,60 @@
+{% load i18n %}
+{% comment %}
+Box adoption queue. Shown only when a box is actually waiting, because an empty
+"pair a box" panel on every school's Sync Center is chrome, not information.
+
+The code is DISPLAYED on the box and TYPED here — never the reverse. The box's
+screen is on a school LAN that the edge profile serves over plain HTTP by design,
+so a form there that accepted a credential would be an unauthenticated write
+surface. Approving here happens inside a session that already proved who this
+admin is, against the school they are already signed in to.
+{% endcomment %}
+{% if pairing_requests %}
+<section id="pairing" class="rmc-command-panel mb-3" aria-label="{% trans 'Boxes waiting to pair' %}" data-rmc-section-anchor="1">
+  <div class="rmc-command-panel__body">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+      <h2 class="h6 mb-0">
+        <i class="bi bi-hdd-network me-1" aria-hidden="true"></i>{% trans "Boxes waiting to pair" %}
+      </h2>
+      <span class="rmc-badge rmc-badge--warning">{% blocktrans count count=pairing_requests|length %}{{ count }} waiting{% plural %}{{ count }} waiting{% endblocktrans %}</span>
+    </div>
+    <p class="small text-body-secondary">
+      {% trans "A box on your school's network is asking to sync with this cloud. Approve it only if you recognise it — approving lets it read and write this school's records." %}
+    </p>
+    <div class="d-grid gap-2">
+      {% for req in pairing_requests %}
+      <div class="rmc-list-item">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+          <div>
+            <div class="fw-semibold font-monospace">{{ req.user_code }}</div>
+            <div class="small text-body-secondary">
+              {% if req.box_label %}{{ req.box_label }} · {% endif %}
+              {% if req.box_hostname %}{{ req.box_hostname }}{% endif %}
+              {% if req.box_ip %} · {{ req.box_ip }}{% endif %}
+            </div>
+            <div class="small text-body-secondary">
+              {% blocktrans with when=req.created_at|date:"Y-m-d H:i" expires=req.expires_at|date:"Y-m-d H:i" %}Requested {{ when }} · expires {{ expires }}{% endblocktrans %}
+            </div>
+          </div>
+          <div class="d-flex gap-2">
+            <form method="post" action="{% url 'siteconfig:sync_center_pair_approve' %}">
+              {% csrf_token %}
+              <input type="hidden" name="user_code" value="{{ req.user_code }}">
+              <button type="submit" class="btn btn-sm btn-primary"
+                      data-rmc-confirm="{% trans 'Approve this box? It will be able to sync this school&#39;s records.' %}">
+                {% trans "Approve" %}
+              </button>
+            </form>
+            <form method="post" action="{% url 'siteconfig:sync_center_pair_deny' %}">
+              {% csrf_token %}
+              <input type="hidden" name="user_code" value="{{ req.user_code }}">
+              <button type="submit" class="btn btn-sm btn-outline-secondary">{% trans "Deny" %}</button>
+            </form>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
