@@ -197,8 +197,53 @@ def _schema_drift_remediator(bundle: Any) -> dict[str, Any] | None:
     return {
         "title": _("Issue Remediator — Database update required"),
         "steps": [format_schema_drift_reason(readiness)],
-        "action_label": _("Repair this import"),
+        "action_label": _("Contact support"),
         "show_repair": False,
+        "kind": "schema_drift",
+    }
+
+
+def _repair_blocker_remediator(bundle: Any) -> dict[str, Any] | None:
+    from .repair import repair_readiness
+
+    readiness = repair_readiness(bundle)
+    if readiness.repairable:
+        return None
+    blockers = set(readiness.blockers or [])
+    if "financial_guardrail_failed" in blockers:
+        return {
+            "title": _("Issue Remediator — Financial totals must match"),
+            "steps": [readiness.reason],
+            "action_label": _("Review finance totals"),
+            "show_repair": False,
+            "kind": "financial_guardrail",
+        }
+    if "finance_requires_atomic" in blockers:
+        return {
+            "title": _("Issue Remediator — Finance import needs all-or-nothing mode"),
+            "steps": [readiness.reason],
+            "action_label": _("Ask your operator"),
+            "show_repair": False,
+            "kind": "finance_atomic",
+        }
+    return None
+
+
+def _aborted_remediator(bundle: Any) -> dict[str, Any] | None:
+    if getattr(bundle, "status", "") != BundleStatus.ABORTED:
+        return None
+    return {
+        "title": _("Issue Remediator — Import closed"),
+        "steps": [
+            _(
+                "This import was closed so you can start fresh. Upload a new export "
+                "or open a new import from the inbox — nothing here will block it."
+            )
+        ],
+        "action_label": _("Start a new import"),
+        "show_repair": False,
+        "show_start_fresh": True,
+        "kind": "aborted",
     }
 
 
@@ -214,6 +259,12 @@ def remediator_for(
     drift = _schema_drift_remediator(bundle)
     if drift is not None:
         return drift
+    aborted = _aborted_remediator(bundle)
+    if aborted is not None:
+        return aborted
+    blocker = _repair_blocker_remediator(bundle)
+    if blocker is not None and not flight.get("stuck") and status != BundleStatus.FAILED:
+        return blocker
     if flight.get("stuck"):
         return {
             "title": _("Issue Remediator — Import stopped responding"),
@@ -226,6 +277,7 @@ def remediator_for(
             ],
             "action_label": _("Repair this import"),
             "show_repair": True,
+            "kind": "stuck",
         }
     if status == BundleStatus.FAILED:
         err = str((getattr(bundle, "size_summary", None) or {}).get("error") or "").strip()
@@ -235,6 +287,7 @@ def remediator_for(
             "steps": [step],
             "action_label": _("Repair this import"),
             "show_repair": True,
+            "kind": "failed",
         }
     if issues > 0:
         held_step = ngettext(
@@ -247,13 +300,16 @@ def remediator_for(
             "steps": [
                 held_step,
                 _(
-                    "Correct the data on the files below, then Repair to "
-                    "re-attempt just those. Already-imported records are never "
-                    "duplicated."
+                    "Use Clear queue to dismiss safe rows and skip the rest, or "
+                    "review row-by-row. Repair auto-refreshes file types and "
+                    "re-imports anything still pending."
                 ),
             ],
-            "action_label": _("Repair this import"),
+            "action_label": _("Auto-fix & re-import"),
             "show_repair": True,
+            "held_review": True,
+            "show_clear_queue": True,
+            "kind": "held",
         }
     return None
 
@@ -294,8 +350,14 @@ def bundle_needs_attention(bundle: Any) -> bool:
 
     An APPLIED bundle with quarantined=0 and stale recon notes is NOT attention.
     """
+    from .repair import tenant_apply_stuck
+
     status = getattr(bundle, "status", "") or ""
     if status == BundleStatus.FAILED:
+        return True
+    if status == BundleStatus.ABORTED:
+        return False
+    if tenant_apply_stuck(bundle):
         return True
     if status in _APPLY_DONE and unresolved_issue_count(bundle) > 0:
         return True
@@ -322,7 +384,28 @@ def compose_live_import(
 
     schema_readiness = readiness_for_bundle(bundle, attempt_repair=False)
     schema_blocked = schema_readiness is not None and not schema_readiness.ready
-    pct = percent_complete(stages, status=status, flight=flight)
+    unified_pct = (snap.get("unified_percent") if isinstance(snap, dict) else None)
+    pipeline_pct = percent_complete(stages, status=status, flight=flight)
+    if unified_pct is not None:
+        try:
+            pct = max(float(unified_pct), pipeline_pct)
+        except (TypeError, ValueError):
+            pct = pipeline_pct
+    else:
+        try:
+            from .unified_progress import compute_unified_percent
+
+            computed = compute_unified_percent(
+                bundle,
+                snapshot=snap,
+                flight=flight,
+                in_flight=in_flight,
+            )
+            pct = max(float(computed.get("percent") or 0), pipeline_pct)
+        except Exception:  # noqa: BLE001
+            pct = pipeline_pct
+    if in_flight:
+        pct = min(max(pct, pipeline_pct), 99.0)
     remediator = remediator_for(bundle, issues=0 if in_flight else issues, flight=flight)
     created = int((last or {}).get("created") or 0)
     updated = int((last or {}).get("updated") or 0)

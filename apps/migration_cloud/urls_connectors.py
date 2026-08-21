@@ -65,6 +65,26 @@ urlpatterns = [
         views_tenant_upload.TenantMigrationRepairView.as_view(),
         name="bundle-repair",
     ),
+    path(
+        "bundle/<int:bundle_id>/held/",
+        views_tenant_upload.TenantMigrationHeldReviewView.as_view(),
+        name="bundle-held-review",
+    ),
+    path(
+        "bundle/<int:bundle_id>/quarantine/export/",
+        views_tenant_upload.TenantMigrationQuarantineExportView.as_view(),
+        name="bundle-quarantine-export",
+    ),
+    path(
+        "bundle/<int:bundle_id>/quarantine/",
+        views_tenant_upload.TenantMigrationQuarantineResolveView.as_view(),
+        name="bundle-quarantine-resolve",
+    ),
+    path(
+        "bundle/<int:bundle_id>/abandon/",
+        views_tenant_upload.TenantMigrationAbandonView.as_view(),
+        name="bundle-abandon",
+    ),
     # Full-bundle rollback (child-first, honest not-reverted reporting) — the tenant
     # half of resume+rollback parity. See TenantMigrationRollbackView +
     # connector_rollback.rollback_bundle. DESTRUCTIVE: requires confirm=1.

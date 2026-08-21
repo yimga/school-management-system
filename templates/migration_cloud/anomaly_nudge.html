@@ -12,7 +12,7 @@
 <main class="rmc-page rmc-page--migration-cloud-review" id="main" data-rmc-scroll-policy="paginate">
   <header class="rmc-page__header">
     <a class="rmc-back"
-       href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_detail' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_detail' bundle_id=bundle.pk %}{% endif %}">
+       href="{% if back_url %}{{ back_url }}{% elif shell == 'portal' %}{% url 'migration_cloud_portal:bundle_detail' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_detail' bundle_id=bundle.pk %}{% endif %}">
       {% trans "← Back to bundle" %}
     </a>
     <h1 class="rmc-h1">{% trans "Review queue" %}</h1>
@@ -133,8 +133,11 @@
         <button type="button" class="rmc-btn rmc-btn--sm rmc-btn--ghost" data-rmc-q-action="deny">{% trans "Deny permanently" %}</button>
         <button type="button" class="rmc-btn rmc-btn--sm rmc-btn--primary" data-rmc-q-action="accept_edit">{% trans "Accept edits & re-import" %}</button>
         <button type="button" class="rmc-btn rmc-btn--sm rmc-btn--ghost" data-rmc-q-bulk="dismiss_informational">{% trans "Dismiss all informational" %}</button>
+        <button type="button" class="rmc-btn rmc-btn--sm rmc-btn--warning" data-rmc-q-bulk="clear_queue">{% trans "Clear entire queue" %}</button>
+        <button type="button" class="rmc-btn rmc-btn--sm rmc-btn--ghost" data-rmc-q-bulk="waive_all_pending">{% trans "Skip all remaining" %}</button>
+        <button type="button" class="rmc-btn rmc-btn--sm rmc-btn--ghost" data-rmc-q-bulk="deny_all_pending">{% trans "Deny all remaining" %}</button>
         <a class="rmc-btn rmc-btn--sm rmc-btn--ghost"
-           href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_quarantine_export' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_quarantine_export' bundle_id=bundle.pk %}{% endif %}">
+           href="{% if quarantine_export_url %}{{ quarantine_export_url }}{% elif shell == 'portal' %}{% url 'migration_cloud_portal:bundle_quarantine_export' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_quarantine_export' bundle_id=bundle.pk %}{% endif %}">
           {% trans "Export CSV" %}
         </a>
         <button type="button" class="rmc-btn rmc-btn--sm rmc-btn--ghost" data-rmc-q-retry>{% trans "Re-import bundle" %}</button>
@@ -278,7 +281,7 @@
 
 <script nonce="{{ csp_nonce }}">
 (function () {
-  var resolveUrl = "{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_quarantine_resolve' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_quarantine_resolve' bundle_id=bundle.pk %}{% endif %}";
+  var resolveUrl = "{% if quarantine_resolve_url %}{{ quarantine_resolve_url|escapejs }}{% elif shell == 'portal' %}{% url 'migration_cloud_portal:bundle_quarantine_resolve' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_quarantine_resolve' bundle_id=bundle.pk %}{% endif %}";
   var csrf = "{{ csrf_token }}";
 
   function selectedIds() {
@@ -368,15 +371,35 @@
     });
   });
 
-  var bulkInfo = document.querySelector("[data-rmc-q-bulk]");
-  if (bulkInfo) {
-    bulkInfo.addEventListener("click", function () {
-      if (!window.confirm("{% trans 'Dismiss every informational held row (deleted in source / duplicate)?' %}")) return;
-      postAction({ action: "dismiss_informational" }).then(function () { window.location.reload(); }).catch(function () {
-        window.alert("{% trans 'Could not dismiss informational rows. Try again.' %}");
+  var bulkActions = document.querySelectorAll("[data-rmc-q-bulk]");
+  bulkActions.forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var bulkAction = btn.getAttribute("data-rmc-q-bulk");
+      var confirmMsg = {
+        dismiss_informational: "{% trans 'Dismiss every informational held row (deleted in source / duplicate)?' %}",
+        clear_queue: "{% trans 'Clear the entire held queue? Informational rows will be dismissed and everything else will be skipped (not imported). This cannot be undone.' %}",
+        waive_all_pending: "{% trans 'Skip import for every pending held row? They will not be imported.' %}",
+        deny_all_pending: "{% trans 'Permanently deny every pending held row?' %}"
+      }[bulkAction] || "{% trans 'Apply this bulk action to all pending rows?' %}";
+      if (!window.confirm(confirmMsg)) return;
+      var body = { action: bulkAction };
+      if (bulkAction === "clear_queue") body.auto_retry = true;
+      postAction(body).then(function () { window.location.reload(); }).catch(function () {
+        window.alert("{% trans 'Could not apply bulk action. Try again.' %}");
       });
     });
-  }
+  });
+
+  document.querySelectorAll("[data-mc-clear-queue]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      if (!window.confirm("{% trans 'Clear the entire held queue? Safe rows dismiss automatically; the rest will be skipped.' %}")) return;
+      postAction({ action: "clear_queue", auto_retry: true }).then(function () {
+        window.location.reload();
+      }).catch(function () {
+        window.alert("{% trans 'Could not clear the queue. Try again.' %}");
+      });
+    });
+  });
 
   document.querySelectorAll("[data-rmc-q-retry]").forEach(function (btn) {
     btn.addEventListener("click", function () {

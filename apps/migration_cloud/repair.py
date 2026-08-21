@@ -36,6 +36,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
+from typing import Any
 
 from django.utils import timezone
 
@@ -77,6 +78,7 @@ class RepairResult:
     blockers: list[str] = field(default_factory=list)
     queued: bool = False
     outbox_id: str = ""
+    auto_remediate: dict[str, Any] = field(default_factory=dict)
 
 
 def _resolved_domains(bundle: MigrationBundle) -> set[str]:
@@ -323,6 +325,36 @@ def live_apply_in_flight(bundle: MigrationBundle) -> bool:
 # thread on every poll from every open tab.
 _NUDGE_COOLDOWN_SECONDS = 60  # magic-number-allow: stuck-apply-nudge-cooldown-seconds
 
+# Tenant-facing wedge: shorter than orchestrator self-heal (30m) so Repair matches
+# the Issue Remediator "stopped responding" card instead of spinning for half an hour.
+_TENANT_WEDGE_HEARTBEAT_SECONDS = 180  # magic-number-allow: tenant-wedge-heartbeat-stuck-seconds
+
+
+def tenant_apply_stuck(bundle: MigrationBundle) -> bool:
+    """True when the tenant UI should treat this import as wedged / recoverable.
+
+    Uses the same queued threshold as the progress poller and a shorter heartbeat
+    window for PROCESSING/APPLYING so Repair is available when the remediator says
+    the import stopped — not 30 minutes later.
+    """
+    from apps.platform_runtime.models_heavy_work_outbox import HeavyWorkOutbox
+
+    if bundle.status in (BundleStatus.RECONCILED, BundleStatus.ABORTED):
+        return False
+    now = timezone.now()
+    for row in _apply_rows(bundle):
+        if row.status == HeavyWorkOutbox.Status.PENDING:
+            created = getattr(row, "created_at", None)
+            if created is not None and (now - created).total_seconds() > _QUEUED_APPLY_STUCK_SECONDS:
+                return True
+        elif row.status == HeavyWorkOutbox.Status.PROCESSING:
+            if _seconds_since_apply_signal(bundle) > _TENANT_WEDGE_HEARTBEAT_SECONDS:
+                return True
+    if bundle.status == BundleStatus.APPLYING and not live_apply_in_flight(bundle):
+        if _seconds_since_apply_signal(bundle) > _TENANT_WEDGE_HEARTBEAT_SECONDS:
+            return True
+    return False
+
 
 def nudge_stuck_apply(bundle: MigrationBundle) -> bool:
     """Self-heal a queued apply that no drain has claimed. True if a nudge fired.
@@ -452,7 +484,9 @@ def repair_readiness(bundle: MigrationBundle) -> RepairReadiness:
             "is safe: records that already imported are updated in place, never "
             "duplicated, and the rest get another attempt."
         )
-    elif status == BundleStatus.APPLYING and _applying_is_stale(bundle):
+    elif status == BundleStatus.APPLYING and (
+        _applying_is_stale(bundle) or tenant_apply_stuck(bundle)
+    ):
         # Reclaim a wedged apply — the worker was interrupted and no apply is in
         # flight. Same safety envelope as FAILED: the finance-atomic gate below
         # still applies, and apply_bundle upserts so landed rows are never dupes.
@@ -461,6 +495,12 @@ def repair_readiness(bundle: MigrationBundle) -> RepairReadiness:
             "interrupted before it could finish. Retrying is safe: records that "
             "already imported are updated in place, never duplicated, and the rest "
             "get another attempt."
+        )
+    elif tenant_apply_stuck(bundle) and not live_apply_in_flight(bundle):
+        reason = (
+            "The importer never picked up this attempt (or it stopped without "
+            "finishing). Retrying is safe: records that already imported are "
+            "updated in place, never duplicated."
         )
     else:
         return RepairReadiness(
@@ -560,12 +600,18 @@ def repair_bundle(*, bundle_id: int, off_http: bool = False) -> RepairResult:
         off_http,
     )
     try:
-        from .pipeline import refresh_bundle_inference
+        from .auto_remediate import auto_remediate_before_repair
 
-        refresh_bundle_inference(bundle_id=bundle_id, use_accelerator=True)
-    except Exception:  # noqa: BLE001 — stale inference must not block repair
+        auto_stats = auto_remediate_before_repair(bundle)
+        logger.info(
+            "migration_cloud.repair: auto-remediate bundle %s — %s",
+            bundle_id,
+            auto_stats,
+        )
+    except Exception:  # noqa: BLE001 — auto-remediate must not block repair
+        auto_stats = {}
         logger.warning(
-            "migration_cloud.repair: inference refresh failed for bundle %s; continuing with stored mappings",
+            "migration_cloud.repair: auto-remediate failed for bundle %s; continuing",
             bundle_id,
             exc_info=True,
         )
@@ -582,6 +628,7 @@ def repair_bundle(*, bundle_id: int, off_http: bool = False) -> RepairResult:
         summary_patch={
             "repair_requested_at": now_iso,
             APPLY_RUN_EPOCH_KEY: now_iso,
+            "unified_progress_hwm": {"epoch": now_iso, "pct": 0.0},
         },
     )
     # A repair is a HUMAN deliberately asking for another attempt, so it re-arms the
@@ -619,6 +666,20 @@ def repair_bundle(*, bundle_id: int, off_http: bool = False) -> RepairResult:
                 "cleared and a fresh repair is queued. Refresh this page in a "
                 "moment to see updated import results."
             )
+        try:
+            from apps.platform_runtime.heavy_work_outbox import kick_heavy_work_drain
+
+            # The tenant clicked Repair and is watching this page. Drain in-process
+            # immediately — a configured-but-unconsumed broker accepts `.delay()`
+            # yet never runs it, which otherwise leaves "Queued — waiting for the
+            # importer…" frozen until the 90s poller nudge (or forever without one).
+            kick_heavy_work_drain(force_local=True)
+        except Exception:  # noqa: BLE001 — enqueue succeeded; drain kick is best-effort
+            logger.warning(
+                "migration_cloud.repair: local drain kick after enqueue failed for %s",
+                bundle_id,
+                exc_info=True,
+            )
         return RepairResult(
             ok=True,
             ran=False,
@@ -627,6 +688,7 @@ def repair_bundle(*, bundle_id: int, off_http: bool = False) -> RepairResult:
             message=message,
             before_status=before,
             after_status=BundleStatus.MAPPED,
+            auto_remediate=auto_stats,
         )
 
     from .orchestrator import apply_bundle
@@ -685,4 +747,5 @@ def repair_bundle(*, bundle_id: int, off_http: bool = False) -> RepairResult:
         created=result.total_created,
         updated=result.total_updated,
         quarantined=result.total_quarantined,
+        auto_remediate=auto_stats,
     )

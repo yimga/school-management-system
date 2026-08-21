@@ -7,9 +7,10 @@
 (function () {
   "use strict";
 
-  var POLL_MS_ACTIVE = 1800;
+  var POLL_MS_ACTIVE = 1200;
   var POLL_MS_SETTLED = 5000;
-  var MAX_ACTIVE_TRIES = 160;
+  var MAX_ACTIVE_TRIES = 240;
+  var _maxPercentSeen = 0;
 
   function board() {
     return document.getElementById("mc-live-board");
@@ -50,6 +51,31 @@
     }
   }
 
+  function monotonicPercent(data) {
+    var raw = Number(data && data.percent != null ? data.percent : 0);
+    if (!isFinite(raw)) raw = 0;
+    var rowsProcessed = Number(
+      data && data.rows_processed != null ? data.rows_processed : data.processed || 0
+    );
+    if (data && data.importing) {
+      if (
+        rowsProcessed === 0 &&
+        _maxPercentSeen > 0 &&
+        raw + 15 < _maxPercentSeen
+      ) {
+        _maxPercentSeen = raw;
+      }
+      if (raw < _maxPercentSeen) raw = _maxPercentSeen;
+      else _maxPercentSeen = raw;
+    } else if (data && data.succeeded) {
+      _maxPercentSeen = 100;
+      raw = 100;
+    } else {
+      _maxPercentSeen = Math.max(_maxPercentSeen, raw);
+    }
+    return raw;
+  }
+
   function paintCanvas(data) {
     var el = document.querySelector("[data-rmc-wfp-canvas]");
     if (!el || !data) return;
@@ -57,12 +83,41 @@
     var pct = el.querySelector("[data-rmc-wfp-pct]");
     var processed = el.querySelector("[data-rmc-wfp-processed]");
     var expected = el.querySelector("[data-rmc-wfp-expected]");
-    var percent = Number(data.percent || 0);
-    if (!isFinite(percent)) percent = 0;
+    var percent = monotonicPercent(data);
     if (fill) fill.style.width = percent.toFixed(2) + "%";
     if (pct) pct.textContent = percent.toFixed(2) + "%";
-    if (processed) processed.textContent = String(data.processed || 0);
-    if (expected) expected.textContent = String(data.expected || 0);
+    var rowsProcessed = data.rows_processed != null ? data.rows_processed : data.processed;
+    if (processed) processed.textContent = String(rowsProcessed != null ? rowsProcessed : 0);
+    var rowsExpected = data.rows_expected != null ? data.rows_expected : data.expected;
+    if (expected) expected.textContent = String(rowsExpected != null ? rowsExpected : 0);
+    paintLogTerminal(el, data);
+  }
+
+  var _seenLogCount = 0;
+
+  function paintLogTerminal(canvasEl, data) {
+    var logHost = canvasEl.querySelector("[data-rmc-wfp-log]");
+    if (!logHost || !data) return;
+    var lines = data.log_lines || [];
+    if (data.importing && lines.length < _seenLogCount) {
+      _seenLogCount = 0;
+      logHost.innerHTML = "";
+    }
+    if (lines.length <= _seenLogCount) return;
+    for (var i = _seenLogCount; i < lines.length; i++) {
+      var line = lines[i];
+      if (!line) continue;
+      var row = document.createElement("div");
+      row.className = "rmc-wfp-log__line";
+      row.textContent = line;
+      logHost.appendChild(row);
+    }
+    _seenLogCount = lines.length;
+    while (logHost.children.length > 80) {
+      logHost.removeChild(logHost.firstChild);
+      _seenLogCount = Math.max(0, _seenLogCount - 1);
+    }
+    logHost.scrollTop = logHost.scrollHeight;
   }
 
   function paintRemediator(root, remediator) {
@@ -113,15 +168,80 @@
   function paintRepairPanel(data) {
     var panel = document.getElementById("mc-repair-panel");
     if (!panel) return;
-    var keep = Boolean(data && (data.repair || data.issues_open || (data.remediator && !data.importing)));
+    var stuck = Boolean(data && data.import_stuck);
+    var keep = Boolean(
+      data &&
+        (!data.importing || stuck) &&
+        (data.repair || data.issues_open || (data.remediator && data.remediator.show_repair))
+    );
     panel.hidden = !keep;
+  }
+
+  function csrfToken() {
+    var match = document.cookie.match(/csrftoken=([^;]+)/);
+    return match ? decodeURIComponent(match[1]) : "";
+  }
+
+  function postRepair(repairUrl) {
+    if (!repairUrl || !window.fetch) return Promise.reject();
+    var body = new URLSearchParams();
+    body.set("csrfmiddlewaretoken", csrfToken());
+    return fetch(repairUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "X-CSRFToken": csrfToken(),
+        "X-Requested-With": "XMLHttpRequest",
+      },
+      credentials: "same-origin",
+      body: body.toString(),
+    });
+  }
+
+  function postClearQueue(resolveUrl) {
+    if (!resolveUrl || !window.fetch) return Promise.reject();
+    return fetch(resolveUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrfToken(),
+        "X-Requested-With": "XMLHttpRequest",
+      },
+      credentials: "same-origin",
+      body: JSON.stringify({ action: "clear_queue", auto_retry: true }),
+    });
+  }
+
+  function wireRecoveryActions(root) {
+    if (!root) return;
+    var repairUrl = root.getAttribute("data-repair-url");
+    var resolveUrl = root.getAttribute("data-resolve-url");
+    document.querySelectorAll("[data-mc-clear-queue]").forEach(function (btn) {
+      if (btn.getAttribute("data-mc-clear-wired")) return;
+      btn.setAttribute("data-mc-clear-wired", "1");
+      btn.addEventListener("click", function () {
+        if (!resolveUrl) return;
+        if (!window.confirm("Clear the entire held queue? Safe rows dismiss automatically; the rest will be skipped.")) return;
+        btn.disabled = true;
+        postClearQueue(resolveUrl)
+          .then(function (r) {
+            if (!r.ok) throw new Error("clear failed");
+            window.location.reload();
+          })
+          .catch(function () {
+            btn.disabled = false;
+            window.alert("Could not clear the queue. Try again from Review held rows.");
+          });
+      });
+    });
+    if (root.getAttribute("data-mc-repair-wired")) return;
+    root.setAttribute("data-mc-repair-wired", "1");
   }
 
   function paint(root, data) {
     if (!root || !data) return;
     setText(root.querySelector("[data-mc-live-state]"), data.workflow_state);
-    var pct = Number(data.percent || 0);
-    if (!isFinite(pct)) pct = 0;
+    var pct = monotonicPercent(data);
     setText(root.querySelector("[data-mc-live-pct]"), pct.toFixed(2) + "%");
     setText(root.querySelector("[data-mc-live-created]"), data.created || 0);
     setText(root.querySelector("[data-mc-live-updated]"), data.updated || 0);
@@ -157,7 +277,11 @@
     var wasImporting = root.getAttribute("data-importing") === "1";
     var tries = 0;
     var seed = seedPayload();
-    if (seed) paint(root, seed);
+    if (seed) {
+      if (seed.importing) _maxPercentSeen = Number(seed.percent || 0) || 0;
+      paint(root, seed);
+    }
+    wireRecoveryActions(root);
 
     function delay() {
       return wasImporting ? POLL_MS_ACTIVE : POLL_MS_SETTLED;
@@ -180,7 +304,7 @@
           if (data.importing) {
             wasImporting = true;
             tries += 1;
-            if (data.import_stuck && data.import_phase === "running") {
+            if (data.import_stuck) {
               window.setTimeout(function () {
                 window.location.reload();
               }, 1200);
@@ -197,6 +321,11 @@
           }
           if (wasImporting) {
             window.location.reload();
+            return;
+          }
+          // Keep polling while issues are open so repair / held counts stay fresh.
+          if (data.issues_open || (data.held && Number(data.held) > 0)) {
+            window.setTimeout(tick, POLL_MS_SETTLED);
             return;
           }
           // Terminal + clean: stop polling. Nothing further can change here, so

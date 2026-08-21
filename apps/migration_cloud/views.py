@@ -1541,6 +1541,103 @@ QUARANTINE_TABLE_LIMIT = 200  # magic-number-allow: review-table-render-cap
 QUARANTINE_PAGE_SIZE = 50  # magic-number-allow: review-table-page-size
 
 
+def build_anomaly_nudge_context(request, bundle, *, shell: str = "super") -> dict[str, Any]:
+    """Shared context for held-row review (operator wizard + tenant connector)."""
+    from apps.migration_cloud import defaults as mc_defaults
+
+    threshold = float(mc_defaults.get("migration_cloud.mapper.field_min_confidence"))
+    low_conf_mappings: list[dict[str, Any]] = []
+    tracked_custom_mappings: list[dict[str, Any]] = []
+    per_artifact = (bundle.mapping_summary or {}).get("per_artifact") or {}
+    for path, mappings in per_artifact.items():
+        for m in mappings or []:
+            conf = float(m.get("confidence") or 0.0)
+            canonical = str(m.get("canonical_field") or "")
+            is_custom = m.get("method") == "custom_field" or canonical.startswith("custom_fields.")
+            entry = {
+                "artifact": path,
+                "source_column": m.get("source_column"),
+                "canonical_field": m.get("canonical_field"),
+                "confidence": conf,
+                "method": m.get("method"),
+                "transformer": m.get("transformer"),
+                "reasoning": m.get("reasoning"),
+                "domain": m.get("domain"),
+                "is_custom": is_custom,
+            }
+            if is_custom:
+                tracked_custom_mappings.append(entry)
+            elif conf < threshold:
+                low_conf_mappings.append(entry)
+
+    quarantine_rows: list[dict[str, Any]] = []
+    quarantine_total = 0
+    quarantine_pending = 0
+    quarantine_breakdown_list: list[dict[str, Any]] = []
+    quarantine_action_needed = 0
+    quarantine_page_obj = None
+    quarantine_resolved: list[dict[str, Any]] = []
+    try:
+        from apps.automation.models import MigrationQuarantineRecord
+
+        quarantine_pending = pending_quarantine_count(bundle)
+        quarantine_total = quarantine_queryset_for_bundle(
+            bundle, pending_only=False
+        ).count()
+        quarantine_breakdown_list = quarantine_breakdown(bundle, pending_only=True)
+        quarantine_action_needed = sum(
+            b["count"] for b in quarantine_breakdown_list if b["needs_action"]
+        )
+        pending_qs = quarantine_queryset_for_bundle(bundle, pending_only=True).order_by(
+            "-id"
+        )
+        quarantine_page_obj = Paginator(
+            pending_qs, QUARANTINE_PAGE_SIZE
+        ).get_page(request.GET.get("q_page") or 1)
+        for q in quarantine_page_obj.object_list:
+            quarantine_rows.append(enrich_quarantine_row(q))
+
+        resolved_qs = (
+            quarantine_queryset_for_bundle(bundle, pending_only=False)
+            .exclude(status=MigrationQuarantineRecord.Status.PENDING)
+            .order_by("-resolved_at")[:20]
+        )
+        quarantine_resolved = [enrich_quarantine_row(q) for q in resolved_qs]
+    except Exception:  # noqa: BLE001
+        logger.debug("anomaly_nudge: quarantine fetch failed", exc_info=True)
+
+    reconciliation = bundle.reconciliation_summary or {}
+    drift_domains = [
+        d
+        for d in (reconciliation.get("per_domain") or [])
+        if float(d.get("parity_pct") or 100.0) < 99.0
+    ]
+    apply_held = int(
+        ((bundle.mapping_summary or {}).get("apply_totals") or {}).get("quarantined") or 0
+    )
+    return {
+        "mc_base": _mc_base_for_shell(shell),
+        "shell": shell,
+        "bundle": bundle,
+        "low_conf_mappings": low_conf_mappings,
+        "tracked_custom_mappings": tracked_custom_mappings,
+        "quarantine_rows": quarantine_rows,
+        "quarantine_total": quarantine_total,
+        "quarantine_pending": quarantine_pending,
+        "quarantine_shown": len(quarantine_rows),
+        "quarantine_breakdown": quarantine_breakdown_list,
+        "quarantine_action_needed": quarantine_action_needed,
+        "quarantine_table_limit": QUARANTINE_TABLE_LIMIT,
+        "quarantine_page_obj": quarantine_page_obj,
+        "quarantine_resolved": quarantine_resolved,
+        "quarantine_issue_labels": QUARANTINE_ISSUE_LABELS,
+        "drift_domains": drift_domains,
+        "threshold": threshold,
+        "apply_held_total": apply_held,
+        "page_title": f"Review queue — {bundle.label or bundle.idempotency_key}",
+    }
+
+
 class MigrationCloudAnomalyNudgeView(LoginRequiredMixin, View):
     """GET endpoint: operator review queue for a bundle.
 
@@ -1556,104 +1653,11 @@ class MigrationCloudAnomalyNudgeView(LoginRequiredMixin, View):
         gate = _enforce_portal_entitlement(request, shell)
         if gate is not None:
             return gate
-        from apps.migration_cloud import defaults as mc_defaults
-
         bundle = _tenant_scoped_bundle(request, bundle_id, shell)
-        threshold = float(mc_defaults.get("migration_cloud.mapper.field_min_confidence"))
-
-        # A custom-field capture (method 'custom_field' / canonical starts with
-        # 'custom_fields.') has confidence 0.0 because it has no *standard* target
-        # — but it is captured verbatim and imported, NOT a failed mapping. Keep it
-        # OUT of the low-confidence review queue (which is for genuinely uncertain
-        # mappings an operator must fix) and list it separately as "Tracked · will
-        # import", so a lossless capture never reads as a red 0% failure.
-        low_conf_mappings: list[dict[str, Any]] = []
-        tracked_custom_mappings: list[dict[str, Any]] = []
-        per_artifact = (bundle.mapping_summary or {}).get("per_artifact") or {}
-        for path, mappings in per_artifact.items():
-            for m in (mappings or []):
-                conf = float(m.get("confidence") or 0.0)
-                canonical = str(m.get("canonical_field") or "")
-                is_custom = m.get("method") == "custom_field" or canonical.startswith("custom_fields.")
-                entry = {
-                    "artifact": path,
-                    "source_column": m.get("source_column"),
-                    "canonical_field": m.get("canonical_field"),
-                    "confidence": conf,
-                    "method": m.get("method"),
-                    "transformer": m.get("transformer"),
-                    "reasoning": m.get("reasoning"),
-                    "domain": m.get("domain"),
-                    "is_custom": is_custom,
-                }
-                if is_custom:
-                    tracked_custom_mappings.append(entry)
-                elif conf < threshold:
-                    low_conf_mappings.append(entry)
-
-        quarantine_rows: list[dict[str, Any]] = []
-        quarantine_total = 0
-        quarantine_pending = 0
-        quarantine_breakdown_list: list[dict[str, Any]] = []
-        quarantine_action_needed = 0
-        quarantine_page_obj = None
-        quarantine_resolved: list[dict[str, Any]] = []
-        try:
-            from apps.automation.models import MigrationQuarantineRecord
-
-            quarantine_pending = pending_quarantine_count(bundle)
-            quarantine_total = quarantine_queryset_for_bundle(
-                bundle, pending_only=False
-            ).count()
-            quarantine_breakdown_list = quarantine_breakdown(bundle, pending_only=True)
-            quarantine_action_needed = sum(
-                b["count"] for b in quarantine_breakdown_list if b["needs_action"]
-            )
-            pending_qs = quarantine_queryset_for_bundle(bundle, pending_only=True).order_by(
-                "-id"
-            )
-            quarantine_page_obj = Paginator(
-                pending_qs, QUARANTINE_PAGE_SIZE
-            ).get_page(request.GET.get("q_page") or 1)
-            for q in quarantine_page_obj.object_list:
-                quarantine_rows.append(enrich_quarantine_row(q))
-
-            resolved_qs = quarantine_queryset_for_bundle(
-                bundle, pending_only=False
-            ).exclude(status=MigrationQuarantineRecord.Status.PENDING).order_by("-resolved_at")[:20]
-            quarantine_resolved = [enrich_quarantine_row(q) for q in resolved_qs]
-        except Exception:  # noqa: BLE001
-            logger.debug("anomaly_nudge: quarantine fetch failed", exc_info=True)
-
-        reconciliation = bundle.reconciliation_summary or {}
-        drift_domains = [
-            d for d in (reconciliation.get("per_domain") or [])
-            if float(d.get("parity_pct") or 100.0) < 99.0
-        ]
-
         return render(
             request,
             self.template_name,
-            {
-                "mc_base": _mc_base_for_shell(shell),
-                "shell": shell,
-                "bundle": bundle,
-                "low_conf_mappings": low_conf_mappings,
-                "tracked_custom_mappings": tracked_custom_mappings,
-                "quarantine_rows": quarantine_rows,
-                "quarantine_total": quarantine_total,
-                "quarantine_pending": quarantine_pending,
-                "quarantine_shown": len(quarantine_rows),
-                "quarantine_breakdown": quarantine_breakdown_list,
-                "quarantine_action_needed": quarantine_action_needed,
-                "quarantine_table_limit": QUARANTINE_TABLE_LIMIT,
-                "quarantine_page_obj": quarantine_page_obj,
-                "quarantine_resolved": quarantine_resolved,
-                "quarantine_issue_labels": QUARANTINE_ISSUE_LABELS,
-                "drift_domains": drift_domains,
-                "threshold": threshold,
-                "page_title": f"Review queue — {bundle.label or bundle.idempotency_key}",
-            },
+            build_anomaly_nudge_context(request, bundle, shell=shell),
         )
 
 
@@ -1714,8 +1718,29 @@ class MigrationCloudQuarantineResolveView(LoginRequiredMixin, View):
                     "ok": result.ok or result.queued,
                     "queued": result.queued,
                     "message": result.message,
+                    "auto_remediate": result.auto_remediate,
                 }
             )
+
+        bulk_actions = {
+            "dismiss_informational",
+            "waive_all_pending",
+            "deny_all_pending",
+            "clear_queue",
+        }
+        if action in bulk_actions:
+            outcome = apply_quarantine_action(
+                bundle=bundle,
+                user=request.user,
+                action=action,
+                note=str(payload.get("note") or ""),
+            )
+            if payload.get("auto_retry") or outcome.get("queue_reimport"):
+                from .repair import repair_bundle
+
+                repair_bundle(bundle_id=bundle.pk, off_http=True)
+                outcome["retry_queued"] = True
+            return JsonResponse(outcome)
 
         record_ids = payload.get("record_ids") or []
         if isinstance(record_ids, (str, int)):

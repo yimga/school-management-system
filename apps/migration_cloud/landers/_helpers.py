@@ -684,7 +684,30 @@ def detect_conflict(
 def _jsonable(value: Any) -> Any:
     if value is None or isinstance(value, (str, int, float, bool)):
         return value
+    try:
+        from django.db.models import Model
+
+        if isinstance(value, Model):
+            return value.pk
+    except Exception:  # noqa: BLE001
+        pass
+    iso = getattr(value, "isoformat", None)
+    if callable(iso):
+        try:
+            return iso()
+        except Exception:  # noqa: BLE001
+            pass
     return str(value)[:200]
+
+
+def json_field_safe(value: Any) -> Any:
+    """Make a structure safe for Django ``JSONField`` persistence."""
+    import json
+
+    try:
+        return json.loads(json.dumps(value, default=_jsonable))
+    except (TypeError, ValueError):
+        return str(value)[:500]
 
 
 # --- Quarantine source-row threading (audit C-4) ----------------------------

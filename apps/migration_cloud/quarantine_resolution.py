@@ -79,7 +79,16 @@ QUARANTINE_GUIDANCE: dict[str, dict[str, Any]] = {
 }
 
 _RESOLUTION_ACTIONS = frozenset(
-    {"dismiss", "waive", "deny", "accept_edit", "dismiss_informational"}
+    {
+        "dismiss",
+        "waive",
+        "deny",
+        "accept_edit",
+        "dismiss_informational",
+        "waive_all_pending",
+        "deny_all_pending",
+        "clear_queue",
+    }
 )
 
 
@@ -368,6 +377,11 @@ def apply_quarantine_action(
         qs = quarantine_queryset_for_bundle(bundle, pending_only=True).filter(
             issue_class__in=QUARANTINE_NO_ACTION_CLASSES
         )
+    elif action in ("waive_all_pending", "deny_all_pending", "clear_queue"):
+        qs = quarantine_queryset_for_bundle(bundle, pending_only=True)
+        if action == "clear_queue":
+            # Phase 1: informational rows — handled in-loop below via dual pass.
+            pass
     else:
         ids = [int(i) for i in (record_ids or []) if str(i).isdigit()]
         if not ids:
@@ -375,8 +389,33 @@ def apply_quarantine_action(
         qs = _scoped_records(bundle, ids)
 
     now = timezone.now()
+    if action == "clear_queue":
+        info_outcome = apply_quarantine_action(
+            bundle=bundle,
+            user=user,
+            action="dismiss_informational",
+        )
+        waive_outcome = apply_quarantine_action(
+            bundle=bundle,
+            user=user,
+            action="waive_all_pending",
+            note=note or "Cleared from queue by operator",
+        )
+        remaining = pending_quarantine_count(bundle)
+        return {
+            "ok": True,
+            "action": action,
+            "updated": int(info_outcome.get("updated") or 0)
+            + int(waive_outcome.get("updated") or 0),
+            "skipped": int(waive_outcome.get("skipped") or 0),
+            "pending_remaining": remaining,
+            "informational_dismissed": info_outcome.get("updated"),
+            "waived": waive_outcome.get("updated"),
+            "queue_reimport": remaining == 0,
+        }
+
     for rec in qs.iterator():
-        if action == "deny":
+        if action == "deny_all_pending" or action == "deny":
             rec.status = MigrationQuarantineRecord.Status.FAILED
             rec.resolved_at = now
             rec.resolution_payload = {
@@ -409,10 +448,14 @@ def apply_quarantine_action(
             updated_ids.append(rec.pk)
             continue
 
-        if action == "waive":
+        if action == "waive" or action == "waive_all_pending":
             mark_repaired(
                 rec,
-                {"operator_waive": True, "note": note, "by": getattr(user, "pk", None)},
+                {
+                    "operator_waive": True,
+                    "note": note or "Skipped import by operator",
+                    "by": getattr(user, "pk", None),
+                },
             )
             updated += 1
             updated_ids.append(rec.pk)
@@ -486,7 +529,7 @@ def export_quarantine_csv(bundle, *, pending_only: bool = True) -> str:
                 enriched["issue_label"],
                 rec.status,
                 enriched["reason"],
-                json.dumps(enriched["source_row"], ensure_ascii=False),
+                json.dumps(enriched["source_row"], ensure_ascii=False, default=str),
             ]
         )
     return buf.getvalue()

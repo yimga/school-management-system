@@ -309,9 +309,12 @@ def profile_bundle(bundle: MigrationBundle) -> int:
     expand_tabular_source_artifacts(bundle)
 
     candidates = bundle.artifacts.filter(quarantined=False).order_by("id")
+    candidates_list = list(candidates)
+    artifacts_total = max(len(candidates_list), 1)
     profiled = 0
-    for artifact in candidates:
+    for artifact in candidates_list:
         if artifact.profile:
+            profiled += 1
             continue
         try:
             with transaction.atomic():
@@ -333,6 +336,18 @@ def profile_bundle(bundle: MigrationBundle) -> int:
             artifact.save(update_fields=["quarantined", "quarantine_reason", "updated_at"])
             continue
         profiled += 1
+        try:
+            from .unified_progress import pulse_detection_progress
+
+            pulse_detection_progress(
+                bundle_id=bundle.pk,
+                stage="PROFILED",
+                message=f"Profiled {artifact.filename or artifact.path_within_bundle}",
+                artifacts_done=profiled,
+                artifacts_total=artifacts_total,
+            )
+        except Exception:  # noqa: BLE001
+            logger.debug("profiler: progress pulse failed", exc_info=True)
 
     # Transition bundle if every non-quarantined artifact now has a profile.
     unprofiled = bundle.artifacts.filter(quarantined=False, profile={}).exists()
