@@ -29,6 +29,8 @@ jobs:
         run: python scripts/verify_cross_host_template_reverse.py --compare
       - name: Scan hardcoded dead paths
         run: python scripts/scan_hardcoded_dead_paths.py
+      - name: Scan RBAC permission catalog
+        run: python scripts/scan_rbac_permission_catalog.py
       - name: Verify template-reference integrity
         run: python scripts/verify_template_reference_integrity.py --compare
       - name: Verify every template compiles (TemplateSyntaxError gate)

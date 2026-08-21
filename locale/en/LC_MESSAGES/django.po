@@ -71695,3 +71695,67 @@ msgstr ""
 
 msgid "{{ created }} added · {{ updated }} updated"
 msgstr "{{ created }} added · {{ updated }} updated"
+
+msgid "A bundle is listed when every role it contains is held."
+msgstr "A bundle is listed when every role it contains is held."
+
+msgid "Assigned role"
+msgstr "Assigned role"
+
+msgid "Django superuser — every permission, present and future."
+msgstr "Django superuser — every permission, present and future."
+
+msgid "Full platform access"
+msgstr "Full platform access"
+
+msgid "Granted directly"
+msgstr "Granted directly"
+
+msgid ""
+"Holds the Super Administrator role — every permission, present and future."
+msgstr ""
+"Holds the Super Administrator role — every permission, present and future."
+
+msgid "Manage roles &amp; permissions"
+msgstr "Manage roles &amp; permissions"
+
+msgid "No access roles are assigned to this account yet."
+msgstr "No access roles are assigned to this account yet."
+
+msgid "No permission codes are granted to this account."
+msgstr "No permission codes are granted to this account."
+
+msgid "Primary role"
+msgstr "Primary role"
+
+msgid ""
+"Primary role is Super Administrator — every permission, present and future."
+msgstr ""
+"Primary role is Super Administrator — every permission, present and future."
+
+msgid "Roles &amp; permissions"
+msgstr "Roles &amp; permissions"
+
+msgid "Roles held"
+msgstr "Roles held"
+
+msgid "Temporary grant"
+msgstr "Temporary grant"
+
+msgid "from"
+msgstr "from"
+
+msgid "held as platform superadmin"
+msgstr "held as platform superadmin"
+
+msgid "this school only"
+msgstr "this school only"
+
+msgid "until"
+msgstr "until"
+
+msgid "{{ counter }} permission {% plural %} {{ counter }} permissions"
+msgstr "{{ counter }} permission {% plural %} {{ counter }} permissions"
+
+msgid "{{ counter }} role {% plural %} {{ counter }} roles"
+msgstr "{{ counter }} role {% plural %} {{ counter }} roles"

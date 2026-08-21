@@ -49,12 +49,20 @@ _IDENTITY_HUB_MANAGE_ROLES = frozenset(
 
 
 def _can_manage_tenant_identity(user, school) -> bool:
+    from apps.accounts.superadmin import is_platform_superadmin
+
     if not user or not getattr(user, "is_authenticated", False):
         return False
+    # God-mode is resolved BEFORE membership. The superuser bypass used to sit
+    # below the membership gate, which made it unreachable: a platform operator
+    # has no SchoolMembership row at a tenant they are inspecting, so they were
+    # refused with "Not permitted." by the line above the check meant to admit
+    # them. The rest of the function is unchanged — a member still needs a
+    # manage role or settings.manage.
+    if is_platform_superadmin(user):
+        return True
     if not user_has_school_membership(user, school):
         return False
-    if getattr(user, "is_superuser", False):
-        return True
     membership = SchoolMembership.objects.filter(
         user_id=user.pk, school_id=school.pk
     ).first()
@@ -197,6 +205,8 @@ def tenant_identity_roster(request):
 @require_school
 @require_GET
 def tenant_identity_detail(request, user_id: int):
+    from apps.accounts.access_summary import effective_access_summary
+
     school = request.school
     if not _can_manage_tenant_identity(request.user, school):
         return HttpResponseForbidden("Not permitted.")
@@ -245,6 +255,10 @@ def tenant_identity_detail(request, user_id: int):
             "membership": membership,
             "effective_role": localized_role_for_user(user, school),
             "role_code": membership.role,
+            # An admin looking at a staff member saw ONE role and no permissions,
+            # so there was nowhere to confirm what a grant had actually done.
+            # Same resolver, same partial as the person's own profile.
+            "access_summary": effective_access_summary(user, school=school),
             "mfa_ok": mfa_enrolled_for_user(user),
             "sessions": sessions,
             "roster_url": roster_url,
