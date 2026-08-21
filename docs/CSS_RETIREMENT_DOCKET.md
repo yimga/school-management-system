@@ -2,7 +2,58 @@
 
 **Last updated:** 2026-08-21
 
-## 2026-08-21 (latest) — The scheduler looked wrong; two themes were wrong
+## 2026-08-21 (latest) — Platform palette sweep: three more borrowed ramps, and a hole in the gate
+
+SW bumped `sms-v4.06.77` → `sms-v4.06.78-platform-palette-coherence-2026-08-21`. No model
+change, no migration.
+
+A sweep of every palette-defining block in `static/css/` and `static/marketing/css/` for
+the defect fixed in the previous entry — a ramp borrowed from a different palette.
+
+**The gate had a hole, and the hole was over a real bug.** `scan_theme_hue_coherence.py`
+matched `body.portal-backend-NAME` only where it sat immediately before the brace, so it
+saw *zero* blocks in `backend-light-theme.css` and `backend-dark-theme.css` — both of which
+open with a multi-selector, attribute-qualified list. `backend-light-theme.css` turned out
+to hold a live instance: a **lavender page gradient** (270°) and a cool near-black body
+colour (240°) over a token ramp that is entirely warm (text `#1a1612`, muted `#544d44`,
+surface-alt `#fffaf0`, admin-surface-alt `#f5eedd`, borders `rgba(168,160,146)`). The two
+declarations painting the largest area on the page were the only two not speaking the
+ramp's language — and the theme bootstrap puts `portal-backend-light` on **every backend
+page in light mode**, so the blast radius was larger than the named themes fixed earlier.
+The gate now reads the whole selector list and requires a real `--backend-surface:`
+definition rather than a substring.
+
+**Two more sites, outside that gate's scope.** `rmc-premium-os.css` defined
+`--rmc-premium-muted: #857c70` — warm taupe (34°) in a ramp whose ground is 216° and ink
+221° — and it also **failed AA**: 3.89:1 on its own ground, 4.11:1 on a white card. It is
+not decorative: `rmc-premium-polish.css` paints marketing section paragraphs, portal and
+control-plane page subtitles, and table `thead th` with it, on both `base.html` and
+`control_plane_base.html`. Now slate-600 (7.18:1 / 7.58:1); the `var()` fallback moved too,
+since that is what applies on the degraded path nobody tests. And
+`tokens-schoolhouse.css`'s dark editorial `--mkt-ink-2` was cool slate beside a warm ivory
+primary on the same ground — the light block was already coherent, so dark had switched its
+primary and left the secondary behind.
+
+**What the sweep disproved is as useful as what it found.** Three tempting groups were
+checked and rejected rather than "fixed":
+
+- Muted text on backend theme cards looked like four AA failures (slate 2.69:1, steel
+  3.22, graphite 4.07, charcoal 4.11). It was the wrong pairing — those themes put cards
+  on `--backend-surface`, not `--backend-surface-alt`. Paired against the surface each
+  theme's cards *actually* use, **all 12 themes pass AA**.
+- `--admin-content-text-muted` on `--admin-content-thead-bg` read as 2.18:1, but
+  `.table thead th` uses `--admin-content-text` — 9.45:1. The hexes involved were also
+  only `var()` fallbacks, not the operative values.
+- A first pass flagged ~31 blocks for cool grounds under warm text. That is the marketing
+  editorial identity, chosen deliberately. Cross-role hue difference is not a defect; the
+  comparison has to be surfaces-to-surfaces and text-to-text.
+
+**The layout half swept clean.** A search for the other scheduler defect — a form in a
+column that cannot grow — found 68 grids with a rigid track ≤17rem, of which 12 render
+forms. Every one but `.rmc-sc-sched` (already fixed) uses its narrow track as an icon or
+checkbox gutter at 1–2.9rem. That defect was unique to the Sync Center.
+
+## 2026-08-21 — The scheduler looked wrong; two themes were wrong
 
 SW bumped `sms-v4.06.76` → `sms-v4.06.77-theme-hue-coherence-and-rule-editor-2026-08-21`.
 New gate (`scripts/scan_theme_hue_coherence.py`), no model change, no migration.

@@ -12,7 +12,7 @@
   --rmc-polish-shadow-focus: 0 0 0 0.18rem rgba(37, 99, 235, 0.2);
   --rmc-polish-surface: rgba(255, 255, 255, 0.92);
   --rmc-polish-ink: var(--rmc-premium-ink, #111827);
-  --rmc-polish-muted: var(--rmc-premium-muted, #857c70);
+  --rmc-polish-muted: var(--rmc-premium-muted, #475569);
 }
 
 body {

@@ -186,6 +186,31 @@ class HueMathTests(unittest.TestCase):
         self.assertEqual(gate._chroma((23, 23, 23)), 0)
 
 
+class SelectorShapeTests(unittest.TestCase):
+    """The gate's first version could not see the file that held a real bug."""
+
+    MULTI_SELECTOR = 'body.portal-backend-probe,\nbody.portal-backend-probe[data-bs-theme="dark"],\nbody.portal-backend-probe[data-bs-theme="light"] {\n  background: #f8f4fc;\n  --backend-surface: #ffffff;\n  --backend-surface-alt: #fffaf0;\n}'
+    SHIPPED_BACKEND_LIGHT = 'body.portal-backend-light,\nbody.portal-backend-light[data-bs-theme="light"] {\n  background: linear-gradient(135deg, #f8f4fc 0%, #fff 50%, #faf5ff 100%);\n  color: #1a1a2e;\n  --backend-text: #1a1612;\n  --backend-text-muted: #544d44;\n  --backend-surface: #ffffff;\n  --backend-surface-alt: #fffaf0;\n}'
+    REFERENCE_ONLY = 'body.portal-backend-ink .card,\nbody.portal-backend-ink input {\n  background-color: var(--backend-surface-alt) !important;\n  color: #241e18;\n  border-color: #030712;\n}'
+
+    def test_a_multi_selector_theme_block_is_scanned(self):
+        """backend-light-theme.css opens with a three-selector list; requiring the
+        theme name to sit immediately before the brace skipped the whole file."""
+        findings = scan(self.MULTI_SELECTOR)
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(findings[0]["theme"], "probe")
+
+    def test_the_shipped_backend_light_values_are_a_finding(self):
+        """Pinned literally: a lavender ground over an entirely warm ramp."""
+        self.assertEqual(len(scan(self.SHIPPED_BACKEND_LIGHT)), 1)
+
+    def test_referencing_a_surface_token_is_not_defining_one(self):
+        """background: var(--backend-surface-alt) contains the token name.
+        Treating that as a palette makes every component rule a theme.
+        """
+        self.assertEqual(scan(self.REFERENCE_ONLY), [])
+
+
 class TheLiveTreeTests(unittest.TestCase):
     """Calibration against the real stylesheets, not a synthetic fixture."""
 
@@ -196,10 +221,24 @@ class TheLiveTreeTests(unittest.TestCase):
         )
         blocks = [
             m
-            for m in gate._THEME_BLOCK.finditer(css)
-            if "--backend-surface" in m.group(2)
+            for m in gate._RULE.finditer(css)
+            if gate._THEME_SELECTOR.search(m.group(1))
+            and gate._DEFINES_SURFACE.search(m.group(2))
         ]
         self.assertGreaterEqual(len(blocks), 12, "theme blocks stopped being matched")
+
+    def test_the_sibling_theme_files_are_read_too(self):
+        """The first version of the gate matched zero blocks in BOTH of these, because
+        each opens with a multi-selector list. The bug it missed was real."""
+        for name in ("backend-light-theme.css", "backend-dark-theme.css"):
+            css = (REPO_ROOT / "static" / "css" / name).read_text(encoding="utf-8")
+            blocks = [
+                m
+                for m in gate._RULE.finditer(css)
+                if gate._THEME_SELECTOR.search(m.group(1))
+                and gate._DEFINES_SURFACE.search(m.group(2))
+            ]
+            self.assertGreaterEqual(len(blocks), 1, f"{name} is not being scanned")
 
     def test_the_tree_is_clean(self):
         findings = gate.scan()

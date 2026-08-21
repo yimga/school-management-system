@@ -69,7 +69,20 @@ _COLOR_PROPS = (
     "--header-brand-fg",
 )
 
-_THEME_BLOCK = re.compile(r"body\.portal-backend-([a-z0-9-]+)\s*\{(.*?)\}", re.S)
+#: ANY rule block, so the selector list can be inspected properly. The first version of
+#: this gate matched `body.portal-backend-NAME` only when it sat immediately before the
+#: brace, which silently skipped every theme declared as a selector LIST -- including
+#: `backend-light-theme.css`, whose block opens
+#: `body.portal-backend-light, body.portal-backend-light[data-bs-theme="dark"], ... {`.
+#: That file turned out to hold a real instance of exactly this defect (a lavender page
+#: gradient over an entirely warm token ramp), so the gate was blind over the ground it
+#: was written to cover.
+_RULE = re.compile(r"([^{}]+)\{([^{}]*)\}", re.S)
+_THEME_SELECTOR = re.compile(r"body\.portal-backend-([a-z0-9-]+)")
+#: A DEFINITION, not a reference. `background: var(--backend-surface-alt)` contains the
+#: token name but declares nothing, so a substring test would treat every component rule
+#: in the file as a palette.
+_DEFINES_SURFACE = re.compile(r"--backend-surface[a-z0-9-]*\s*:")
 _HEX = re.compile(r"#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})\b")
 
 
@@ -129,13 +142,19 @@ def _css_files() -> list[pathlib.Path]:
 def scan_text(rel: str, text: str) -> list[dict]:
     """Findings for one stylesheet's source. The unit the tests drive."""
     findings: list[dict] = []
-    for match in _THEME_BLOCK.finditer(text):
-        name, body = match.group(1), match.group(2)
-        if "--backend-surface" not in body:
+    for match in _RULE.finditer(text):
+        selectors, body = match.group(1), match.group(2)
+        names = _THEME_SELECTOR.findall(selectors)
+        if not names:
+            continue
+        if not _DEFINES_SURFACE.search(body):
             # Not a theme DEFINITION block — just a rule scoped to the theme.
             continue
         if ALLOW_MARKER in body:
             continue
+        # A list may name one theme several times over (base + attribute-qualified
+        # variants); report the theme once.
+        name = names[0]
 
         samples: list[tuple[str, str, float]] = []
         for prop in _COLOR_PROPS:
