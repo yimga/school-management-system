@@ -184,8 +184,11 @@ lane** needs a worker reload, and where the deployment is not laid out for a sym
 the ordinary `COPY . .` image is not — it stages, verifies, prechecks, records, and reports
 `activation="deferred"`. It does not claim a swap it did not perform.
 
-Set `RMC_OTA_RELEASE_ROOT` only on a deployment laid out as `<root>/releases/<id>` with a
-`current` symlink.
+`RMC_OTA_RELEASE_ROOT` names that layout. On the selfhost image you do not have to build
+it by hand — the entrypoint seeds `releases/<id>/` and `current` on first boot (§4d) —
+but it must point at a **mounted volume**, or every restart discards the releases and
+re-seeds, throwing away the one thing a rollback needs. On any other deployment, set it
+only where that layout already exists.
 
 ---
 
