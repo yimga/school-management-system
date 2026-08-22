@@ -402,22 +402,6 @@ WORKFLOWS: dict[str, WorkflowDefinition] = {
             TAG_NOT_REVERSIBLE,
         ),
     ),
-    "parent-portal-pay-all": WorkflowDefinition(
-        key="parent-portal-pay-all",
-        title="Parent portal — Pay all open balances",
-        audience=AUDIENCE_PARENT,
-        module="finance",
-        route="portal:parent_finance_pay_all",
-        purpose="Pay all open family invoices in one flow (wallet or PSP).",
-        related_help_article="parent-pay-invoice",
-        related_audit_event="finance.invoice.paid",
-        default_tags=(
-            TAG_TENANT_SAFE,
-            TAG_BILLING_IMPACT,
-            TAG_AUDIT_LOGGED,
-            TAG_NOT_REVERSIBLE,
-        ),
-    ),
     "parent-portal-contact-school": WorkflowDefinition(
         key="parent-portal-contact-school",
         title="Parent portal — Contact school",

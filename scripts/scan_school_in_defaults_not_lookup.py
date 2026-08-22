@@ -159,21 +159,34 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--compare", action="store_true")
     parser.add_argument("--json", action="store_true")
+    parser.add_argument(
+        "--update-baseline",
+        action="store_true",
+        help=(
+            "Rewrite the baseline from the current tree. This is what a BARE run "
+            "used to do, which meant anyone running the gate to READ it destroyed "
+            "the drift evidence in the same command -- and got exit 0 while doing "
+            "it. Writing has to be asked for now."
+        ),
+    )
     args = parser.parse_args()
     findings = _scan()
     if args.json:
         print(json.dumps(_payload(findings), indent=2, sort_keys=True))
         return 0
-    if args.compare:
-        return _compare(findings)
-    _summary(findings)
-    BASELINE_PATH.parent.mkdir(parents=True, exist_ok=True)
-    BASELINE_PATH.write_text(
-        json.dumps(_payload(findings), indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
-    )
-    print(f"  wrote baseline -> {BASELINE_PATH.relative_to(REPO_ROOT)}")
-    return 0
+    if args.update_baseline:
+        _summary(findings)
+        BASELINE_PATH.parent.mkdir(parents=True, exist_ok=True)
+        BASELINE_PATH.write_text(
+            json.dumps(_payload(findings), indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        print(f"  wrote baseline -> {BASELINE_PATH.relative_to(REPO_ROOT)}")
+        return 0
+    # The default is the RATCHET, not a write. --compare is kept because every
+    # existing caller passes it explicitly; the two are deliberately the same
+    # thing now, so a bare invocation can no longer be the destructive one.
+    return _compare(findings)
 
 
 if __name__ == "__main__":

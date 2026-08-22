@@ -36,20 +36,27 @@ def enqueue_in_chunks(
     chunk_size: int = DEFAULT_ENQUEUE_CHUNK,
     max_total: int = MAX_ENQUEUE_PER_SWEEP,
     task_kwarg: str = "meal_plan_balance_id",
+    school_id: str | None = None,
 ) -> dict[str, int]:
     """
     Enqueue ``task.delay`` for each id with bounded fan-out.
 
+    ``school_id``, when given, is passed through to every enqueued task. The
+    caller runs inside a tenant context; the WORKER that picks the message up
+    does not, so the id alone is not enough to find the row -- see
+    ``apps.schoolops.tasks._with_tenant``.
+
     Returns summary counts: ``enqueued``, ``skipped_cap``.
     """
     summary = {"enqueued": 0, "skipped_cap": 0}
+    extra = {} if school_id is None else {"school_id": str(school_id)}
     seen = 0
     for batch in chunked(ids, chunk_size):
         for pk in batch:
             if seen >= max_total:
                 summary["skipped_cap"] += 1
                 continue
-            task.delay(**{task_kwarg: int(pk)})
+            task.delay(**{task_kwarg: int(pk)}, **extra)
             summary["enqueued"] += 1
             seen += 1
     return summary

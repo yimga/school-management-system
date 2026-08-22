@@ -156,8 +156,12 @@ def _dispatch_low_balance_notification(
 
         from apps.schoolops.tasks import notify_low_meal_plan_balance
         try:
+            # school_id must ride along: this handler runs in a request, with
+            # tenant context; the WORKER that picks the message up does not,
+            # and schoolops tables live only in tenant schemas.
             notify_low_meal_plan_balance.delay(
                 meal_plan_balance_id=int(instance.pk),
+                school_id=str(instance.school_id),
             )
         except Exception:  # noqa: BLE001 - broker transport errors are diverse
             # Free tier often has no Celery broker, so .delay() raises
@@ -264,7 +268,11 @@ def _dispatch_low_inventory_notification(
 
         from apps.schoolops.tasks import notify_low_inventory_stock
         try:
-            notify_low_inventory_stock.delay(inventory_item_id=int(instance.pk))
+            # See the meal-plan handler above: the worker has no tenant context.
+            notify_low_inventory_stock.delay(
+                inventory_item_id=int(instance.pk),
+                school_id=str(instance.school_id),
+            )
         except Exception:  # noqa: BLE001 — free tier often has no broker
             logger.warning(
                 "schoolops.low_inventory: broker enqueue failed; sending inline "

@@ -162,6 +162,12 @@ GATES: list[tuple[str, list[str]]] = [
     # Zero-tolerance and WITHOUT --compare: there is no input for which cutting
     # a word separator out of a token is the right answer.
     ("raw-token-in-ui", ["scan_raw_token_in_ui.py", "--strict"]),
+    # A repeated key in a dict literal is not an error and not a warning -- Python
+    # keeps the last value and the earlier entry is simply gone. It cost a workflow
+    # definition its steps and a gate two of its markers, one of which was already
+    # failing. Zero-tolerance and WITHOUT --compare: there is no baseline, because
+    # a dict that discards one of its own entries is never what was meant.
+    ("duplicate-dict-keys", ["scan_duplicate_dict_keys.py", "--strict"]),
     # --- RLS: the two halves that `rls-table-coverage` does NOT cover ---------
     # scan_rls_table_coverage (DJANGO_GATES, below) catches a NEW tenant-scoped
     # table with no RLS at all. It says nothing about whether the RLS that exists

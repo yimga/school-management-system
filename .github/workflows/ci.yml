@@ -101,42 +101,22 @@ jobs:
       - name: Run Django tests
         run: python manage.py test --noinput -v 0
 
-  a11y-lighthouse:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      - name: Install Python deps
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt 2>/dev/null || pip install django
-      - name: Install Node for pa11y / Lighthouse
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-      - name: npm install
-        run: npm ci 2>/dev/null || npm install
-      - name: Migrate DB
-        run: python manage.py migrate --noinput 2>/dev/null || true
-      - name: Start server
-        run: |
-          python manage.py runserver 0.0.0.0:8000 &
-          sleep 8
-      - name: Pa11y (accessibility)
-        run: npm run lint:accessibility
-        continue-on-error: true
-      - name: Axe (accessibility)
-        run: npm run lint:a11y
-        continue-on-error: true
-      - name: Lighthouse (performance + a11y assertions)
-        run: npm run lighthouse:assert
-        env:
-          LHCI_URL: 'http://localhost:8000/accounts/login/'
-          LHCI_URL_PORTAL: 'http://localhost:8000/portal/parent/'
-        continue-on-error: true
+  # The a11y-lighthouse job was REMOVED on 2026-08-22. All three of its steps
+  # carried continue-on-error, and none of them could have reported a failure
+  # even without it:
+  #   * `npm run lint:a11y` and `npm run lighthouse:assert` name package.json
+  #     scripts that DO NOT EXIST. Both steps failed with "Missing script" on
+  #     every run and had never once invoked axe or Lighthouse -- the flag is
+  #     the only reason nobody noticed the job was hollow.
+  #   * `npm run lint:accessibility` does exist, but the script itself ended in
+  #     `|| true`, so pa11y's exit code was already discarded inside npm before
+  #     continue-on-error saw it. (That `|| true` is removed in this same
+  #     change, so the script is honest for local use.)
+  # The real, ENFORCING coverage is unaffected and lives in dedicated
+  # workflows: pa11y-ci.yml, a11y-axe.yml and lighthouse-ci.yml each run their
+  # tool with no continue-on-error and no `|| true` on the assertion. Deleting
+  # this job removes a green checkmark that stood for nothing. It removes no
+  # coverage.
 
   e2e-smoke:
     runs-on: ubuntu-latest
@@ -162,8 +142,12 @@ jobs:
       - name: Start server
         run: python manage.py runserver 0.0.0.0:8000 & sleep 6
       - name: Run smoke E2E (login page load)
+        # Enforcing since 2026-08-22. Unlike the two deleted above, this is a
+        # REAL invocation -- the `chromium` project is defined in
+        # playwright.config.js -- so masking it was discarding a genuine browser
+        # proof, which is exactly the evidence class the audit caps a score for
+        # lacking.
         run: npx playwright test --project=chromium
         env:
           CI: true
           BASE_URL: 'http://localhost:8000'
-        continue-on-error: true
