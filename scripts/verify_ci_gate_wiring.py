@@ -45,6 +45,11 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # apps/accounts/tasks.py was found TRUNCATED mid-statement on main - the reference
     # gates treat an unparseable file as opaque and skip it, so nothing reported it.
     ("scripts/verify_python_files_parse.py", "architectural-boundaries.yml"),
+    # Added 2026-08-22: `include(..., {"shell": "super"})` injects a kwarg into every
+    # view in the included module, and 31 views did not accept it -- 124 routes across the
+    # operator AND tenant hosts were a guaranteed TypeError 500. The URL resolved, the view
+    # existed, the permission passed; only calling it failed, so no route-name gate saw it.
+    ("scripts/audit_url_kwarg_contract.py", "ci.yml"),
     # Added 2026-08-21: `ink` and `midnight` both paired a navy ground with the WARM
     # surface ramp belonging to `steel`, so every form control on those themes rendered
     # brown inside a navy shell. Every contrast gate was green throughout -- the defect

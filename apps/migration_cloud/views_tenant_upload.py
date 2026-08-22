@@ -549,7 +549,7 @@ class TenantMigrationProgressView(LoginRequiredMixin, View):
     operator visibility (isolation preserved).
     """
 
-    def get(self, request, bundle_id: int):
+    def get(self, request, bundle_id: int, **kwargs):
         bundle = _tenant_bundle_or_404(request, bundle_id)
         return JsonResponse(_progress_payload(bundle))
 
@@ -575,7 +575,7 @@ class TenantMigrationUploadView(_TenantAdminWriteRequiredMixin, View):
         ctx.update(_canonical_template_urls(request))
         return ctx
 
-    def get(self, request):
+    def get(self, request, **kwargs):
         school = _request_school(request)
         if school is None:
             raise Http404()
@@ -583,7 +583,7 @@ class TenantMigrationUploadView(_TenantAdminWriteRequiredMixin, View):
 
     @idempotent_post
     @safe_500
-    def post(self, request):
+    def post(self, request, **kwargs):
         school = _request_school(request)
         if school is None:
             raise Http404()
@@ -1039,13 +1039,13 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
 
     template_name = "migration_cloud/connector/bundle_review.html"
 
-    def get(self, request, bundle_id: int):
+    def get(self, request, bundle_id: int, **kwargs):
         bundle = _tenant_bundle_or_404(request, bundle_id)
         return render(request, self.template_name, self.build_context(request, bundle))
 
     @idempotent_post
     @safe_500
-    def post(self, request, bundle_id: int):
+    def post(self, request, bundle_id: int, **kwargs):
         bundle = _tenant_bundle_or_404(request, bundle_id)
         changed = 0
         for artifact in bundle.artifacts.all():
@@ -1418,7 +1418,7 @@ class TenantMigrationApplyView(_TenantAdminWriteRequiredMixin, View):
 
     @idempotent_post
     @safe_500
-    def post(self, request, bundle_id: int):
+    def post(self, request, bundle_id: int, **kwargs):
         bundle = _tenant_bundle_or_404(request, bundle_id)
         confirmed = str(request.POST.get("confirm", "")).lower() in ("1", "true", "yes", "on")
         dry_run = not confirmed
@@ -1480,7 +1480,7 @@ class TenantMigrationRetryAdvanceView(_TenantAdminWriteRequiredMixin, View):
 
     @idempotent_post
     @safe_500
-    def post(self, request, bundle_id: int):
+    def post(self, request, bundle_id: int, **kwargs):
         bundle = _tenant_bundle_or_404(request, bundle_id)
         if bundle.status in _FAILED_STATUSES:
             summary = dict(bundle.size_summary or {})
@@ -1521,7 +1521,7 @@ class TenantMigrationRepairView(_TenantAdminWriteRequiredMixin, View):
 
     template_name = "migration_cloud/connector/bundle_review.html"
 
-    def get(self, request, bundle_id: int):
+    def get(self, request, bundle_id: int, **kwargs):
         bundle = _tenant_bundle_or_404(request, bundle_id)
         return render(
             request,
@@ -1531,7 +1531,7 @@ class TenantMigrationRepairView(_TenantAdminWriteRequiredMixin, View):
 
     @idempotent_post
     @safe_500
-    def post(self, request, bundle_id: int):
+    def post(self, request, bundle_id: int, **kwargs):
         from .repair import repair_bundle
 
         bundle = _tenant_bundle_or_404(request, bundle_id)
@@ -1612,7 +1612,7 @@ class TenantMigrationRollbackView(_TenantAdminWriteRequiredMixin, View):
 
     @idempotent_post
     @safe_500
-    def post(self, request, bundle_id: int):
+    def post(self, request, bundle_id: int, **kwargs):
         from .services.connector_rollback import rollback_bundle
 
         bundle = _tenant_bundle_or_404(request, bundle_id)
@@ -1675,7 +1675,7 @@ class TenantMigrationPeopleActivateView(_TenantAdminWriteRequiredMixin, View):
     """
 
     @safe_500
-    def post(self, request, bundle_id: int):
+    def post(self, request, bundle_id: int, **kwargs):
         bundle = _tenant_bundle_or_404(request, bundle_id)
         action = (request.POST.get("action") or "").strip().lower()
         school = getattr(bundle, "school", None)
@@ -1759,7 +1759,7 @@ class TenantMigrationInboxView(_TenantAdminWriteRequiredMixin, View):
 
     template_name = "migration_cloud/connector/inbox.html"
 
-    def get(self, request):
+    def get(self, request, **kwargs):
         school = _request_school(request)
         if school is None:
             raise Http404()
@@ -1817,7 +1817,7 @@ class TenantMigrationHeldReviewView(LoginRequiredMixin, View):
 
     template_name = "migration_cloud/anomaly_nudge.html"
 
-    def get(self, request, bundle_id: int):
+    def get(self, request, bundle_id: int, **kwargs):
         from .views import build_anomaly_nudge_context
 
         bundle = _tenant_bundle_or_404(request, bundle_id)
@@ -1839,7 +1839,7 @@ class TenantMigrationHeldReviewView(LoginRequiredMixin, View):
 class TenantMigrationQuarantineExportView(LoginRequiredMixin, View):
     """CSV export of held rows on the tenant connector path."""
 
-    def get(self, request, bundle_id: int):
+    def get(self, request, bundle_id: int, **kwargs):
         from django.http import HttpResponse
 
         from .quarantine_resolution import export_quarantine_csv
@@ -1859,7 +1859,7 @@ class TenantMigrationAbandonView(_TenantAdminWriteRequiredMixin, View):
 
     @idempotent_post
     @safe_500
-    def post(self, request, bundle_id: int):
+    def post(self, request, bundle_id: int, **kwargs):
         from .repair import supersede_wedged_apply
 
         bundle = _tenant_bundle_or_404(request, bundle_id)
@@ -1892,7 +1892,7 @@ class TenantMigrationQuarantineResolveView(_TenantAdminWriteRequiredMixin, View)
 
     @idempotent_post
     @safe_500
-    def post(self, request, bundle_id: int):
+    def post(self, request, bundle_id: int, **kwargs):
         import json
 
         from .quarantine_resolution import apply_quarantine_action

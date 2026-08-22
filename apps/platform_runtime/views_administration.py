@@ -457,7 +457,10 @@ def internal_admin_alias_redirect(request, remaining: str = ""):
 
 
 @login_required
-def school_configuration_center(request):
+# `configuration/<path:remaining>` is a deliberate catch-all so any deep link under
+# /configuration/ lands on the hub -- but the view never accepted the segment the
+# route hands it, so every one of those deep links was a 500 on a tenant host.
+def school_configuration_center(request, remaining=""):
     school = getattr(request, "school", None)
     if school is None or not tenant_operator_hub_eligible(request.user):
         return HttpResponseForbidden("Tenant school configuration access required.")
