@@ -54,6 +54,39 @@ class Command(BaseCommand):
             default="",
             help="Print the ordered steps to move this box to another mode.",
         )
+        parser.add_argument(
+            "--export-ca",
+            default="",
+            metavar="PATH",
+            help=(
+                "Write the box CA (certificate + private key) to PATH as encrypted "
+                "PKCS#12. The only artefact on this box that cannot be regenerated -- "
+                "take it before the box moves or is rebuilt."
+            ),
+        )
+        parser.add_argument(
+            "--import-ca",
+            default="",
+            metavar="PATH",
+            help=(
+                "Restore a box CA exported earlier. Run BEFORE --issue-selfsigned on "
+                "replacement hardware so devices keep their trust."
+            ),
+        )
+        parser.add_argument(
+            "--plan-relocation",
+            action="store_true",
+            help="Print the ordered steps to move this box, for its current mode.",
+        )
+        parser.add_argument(
+            "--changed",
+            default="",
+            help=(
+                "What the move changes, comma separated: "
+                + ",".join(edge_tls.RELOCATION_CHANGES)
+                + ". Used with --plan-relocation."
+            ),
+        )
         parser.add_argument("--json", action="store_true", help="Machine-readable output.")
 
     # -- helpers ---------------------------------------------------------------
@@ -108,8 +141,118 @@ class Command(BaseCommand):
 
     # -- entry point -----------------------------------------------------------
 
+    def _passphrase(self) -> bytes:
+        raw = os.environ.get(edge_tls.ENV_CA_PASSPHRASE, "")
+        if not raw:
+            raise CommandError(
+                f"Set {edge_tls.ENV_CA_PASSPHRASE} in the environment first. This bundle "
+                "carries the CA private key, so it is deliberately not accepted as a "
+                "command-line flag: a command line is visible in `ps`, in shell history "
+                "and in docker's own event log."
+            )
+        return raw.encode("utf-8")
+
+    def _ca_bundle(self, options: dict) -> None:
+        passphrase = self._passphrase()
+
+        if options["export_ca"]:
+            try:
+                blob = edge_tls.export_ca_bundle(passphrase=passphrase)
+            except (FileNotFoundError, ValueError) as exc:
+                raise CommandError(str(exc)) from exc
+            target = options["export_ca"]
+            try:
+                with open(target, "wb") as handle:
+                    handle.write(blob)
+            except OSError as exc:
+                raise CommandError(f"cannot write {target}: {exc}") from exc
+            try:
+                os.chmod(target, 0o600)
+            except OSError:
+                pass
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f"exported box CA -> {target} ({len(blob)} bytes, encrypted PKCS#12)"
+                )
+            )
+            self.stdout.write(
+                "  Store it somewhere that is NOT this box, and not beside the passphrase.\n"
+                "  Restoring it onto replacement hardware is the difference between a\n"
+                "  five-minute swap and re-installing a CA on every device in the building."
+            )
+            return
+
+        source = options["import_ca"]
+        try:
+            with open(source, "rb") as handle:
+                blob = handle.read()
+        except OSError as exc:
+            raise CommandError(f"cannot read {source}: {exc}") from exc
+        try:
+            info = edge_tls.import_ca_bundle(blob, passphrase, force=options["force"])
+        except (ValueError, FileExistsError) as exc:
+            raise CommandError(str(exc)) from exc
+        self.stdout.write(self.style.SUCCESS(f"restored box CA -> {info['ca_cert']}"))
+        self.stdout.write(f"  subject      {info['subject']}")
+        self.stdout.write(f"  fingerprint  {info['fingerprint']}")
+        if info["replaced"]:
+            self.stdout.write(
+                self.style.WARNING("  a DIFFERENT CA was present and has been replaced")
+            )
+        self.stdout.write(
+            "  Now issue the leaf: `edge_tls --issue-selfsigned --force`. It chains to this\n"
+            "  CA, so devices that already trust it need nothing done to them."
+        )
+
     def handle(self, *args, **options):
         facts = self._facts()
+
+        if options["export_ca"] and options["import_ca"]:
+            raise CommandError("--export-ca and --import-ca are opposites; pick one.")
+
+        if options["export_ca"] or options["import_ca"]:
+            self._ca_bundle(options)
+            return
+
+        if options["plan_relocation"]:
+            changed = {
+                token.strip().lower()
+                for token in str(options["changed"] or "").split(",")
+                if token.strip()
+            }
+            unknown = changed - set(edge_tls.RELOCATION_CHANGES)
+            if unknown:
+                raise CommandError(
+                    "unknown --changed value(s): "
+                    + ", ".join(sorted(unknown))
+                    + ". Valid: "
+                    + ", ".join(edge_tls.RELOCATION_CHANGES)
+                )
+            if not changed:
+                # The commonest move, and the one people forget to describe.
+                changed = {edge_tls.CHANGE_ADDRESS}
+            steps = edge_tls.relocation_plan(
+                facts["mode"],
+                changed,
+                hsts_seconds=int(getattr(settings, "SECURE_HSTS_SECONDS", 0) or 0),
+            )
+            if options["json"]:
+                self.stdout.write(
+                    json.dumps(
+                        {"mode": facts["mode"], "changed": sorted(changed), "steps": steps},
+                        indent=2,
+                    )
+                )
+                return
+            joined = ", ".join(sorted(changed))
+            self.stdout.write(
+                self.style.MIGRATE_HEADING(
+                    f"relocating a {facts['mode']} box ({joined})"
+                )
+            )
+            for index, step in enumerate(steps, 1):
+                self.stdout.write(f"  {index}. {step}")
+            return
 
         if options["plan_to"]:
             try:

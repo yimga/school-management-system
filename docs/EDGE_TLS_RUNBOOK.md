@@ -164,7 +164,94 @@ pinning HTTPS onto it for a year turns a reversible decision into a one-way door
 
 ---
 
-## 7. Reading the box's posture
+## 7. Moving a box — a new room, a new country, new hardware
+
+A box is a physical object and physical objects move. Exactly **one** thing on it
+cannot be regenerated: the box CA's private key. The leaf certificate, the
+Caddyfile, `ALLOWED_HOSTS`, the origins — all derived, all rebuilt in a minute.
+
+Preserve the CA and a relocation is a reissue that no device notices. Lose it and
+every phone, laptop and tablet that trusted this box must be physically revisited,
+which for a school that has just moved is the difference between an afternoon and
+a term.
+
+```bash
+# BEFORE the box is switched off. RMC_EDGE_TLS_CA_PASSPHRASE must be set in the
+# environment -- it is deliberately not a command-line flag, because a command line
+# is visible in `ps`, in shell history and in docker's own event log.
+docker compose -f deploy/selfhost/docker-compose.yml exec \
+  -e RMC_EDGE_TLS_CA_PASSPHRASE web \
+  python manage.py edge_tls --export-ca /tmp/box-ca-bundle.p12
+
+docker compose -f deploy/selfhost/docker-compose.yml \
+  cp web:/tmp/box-ca-bundle.p12 ./box-ca-bundle.p12
+
+# Write it to /tmp, NOT to the certificate directory. A backup that shares a volume
+# with the key it protects survives none of the events a backup exists for, and
+# check_edge_readiness reports a bundle left there as a finding.
+#
+# Store the copy somewhere that is NOT the box, and NOT beside the passphrase. It is
+# encrypted PKCS#12 (AES-256) holding the CA PRIVATE KEY: whoever holds both can
+# impersonate any site to every device that trusts this box.
+```
+
+Ask the box what a specific move requires. The steps genuinely differ by mode and
+by what is changing, and a plan that lists every step for every move is a plan
+people stop reading:
+
+```bash
+python manage.py edge_tls --plan-relocation --changed address
+python manage.py edge_tls --plan-relocation --changed country,hardware
+```
+
+### On replacement hardware, restore before you issue
+
+```bash
+# 1. Restore the CA FIRST.
+python manage.py edge_tls --import-ca /path/box-ca-bundle.p12
+
+# 2. THEN issue a leaf for the new addresses. It chains to the restored CA, so the
+#    devices that already trust it need nothing done to them.
+python manage.py edge_tls --issue-selfsigned --force
+```
+
+Reversed, the box mints a *second* CA and every device is stranded. Restoring over
+a different CA is refused unless you pass `--force`, so the mistake announces
+itself instead of being discovered one device at a time.
+
+### The parts of a move that are not the certificate
+
+- **A new address must be in `ALLOWED_HOSTS` before the box answers at all.** Django
+  rejects a host it was not told about, so a box at an unlisted new IP looks dead
+  rather than misconfigured.
+- **`CSRF_TRUSTED_ORIGINS` carries the scheme and the host.** A stale entry produces
+  a login that submits, returns to the login page, and reports nothing.
+- **A new country means a new `TIME_ZONE`.** Attendance, timetables, schedule
+  due-ness and sync cursors are all evaluated locally on this box; left on the old
+  zone they are silently wrong by the offset.
+- **Check the clock.** A box whose RTC battery died in transit powers on believing it
+  is years in the past and rejects its own certificate as "not yet valid" — a total
+  TLS failure whose error message never mentions time. `check_edge_readiness`
+  detects this without a network by comparing the clock to the box's own CA.
+- **On `acme`, update the public DNS record as part of the move, not after it.**
+  Renewal runs unattended about 30 days before expiry; if DNS still points at the
+  old site it fails silently and the first symptom is a dead box weeks later.
+  Consider DNS-01 for a box that moves, since it needs no inbound reachability.
+- **Devices left at the old site still trust this box's CA.** If a *different* box
+  takes over there, remove the old CA from them.
+
+### A public CA cannot issue for a LAN address
+
+This is the constraint that surprises schools, and it does not change by moving.
+No public certificate authority will issue for `10.10.20.137` or `gilead.school.lan`
+— nobody can demonstrate ownership of an address that resolves to a different
+machine in every building on earth. An ACME order is also **all-or-nothing**: one
+private name in the list means the box gets *no* certificate, not a partial one.
+
+`check_edge_readiness` reports this as a blocking failure with the reason, rather
+than letting the terminator retry an impossible order forever.
+
+## 8. Reading the box's posture
 
 ```bash
 python manage.py edge_tls           # mode, source, certificate, derived flags
@@ -184,7 +271,7 @@ re-install everywhere.
 
 ---
 
-## 8. What readiness will tell you
+## 9. What readiness will tell you
 
 `check_edge_readiness` (advisory) / `--strict` (blocks go-live):
 
@@ -201,7 +288,7 @@ re-install everywhere.
 
 ---
 
-## 9. Related
+## 10. Related
 
 - `apps/schools/edge_tls.py` — the policy, and why the database is deliberately not a
   layer in this particular cascade

@@ -73,6 +73,7 @@ const WIZARD_REGISTRY_KEYS = [
   "report_card_template_studio",
   "self_healing_observability_guard",
   "staff_onboarding",
+  "edge_location_onboarding",
 ];
 
 const OPERATOR_INDEX_PATH = "/super/wizards/";

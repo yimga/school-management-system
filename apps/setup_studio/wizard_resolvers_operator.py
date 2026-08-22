@@ -493,3 +493,212 @@ def write_student_self_onboarding_step(*, school: Any, wizard_key: str, step_key
             create_student_from_wizard(school=school, wizard_payload=safe_payload, actor_user_id=actor_user_id)
         except Exception as exc:  # noqa: BLE001
             logger.debug("student_self_onboarding create delegation skipped: %s", exc)
+
+
+# ============================================================================
+# 6. edge_location_onboarding — turnkey sovereign box / edge site deployment
+# ============================================================================
+#
+# A school that wants an on-premise box has to make about six decisions and then
+# translate them into an .env, a terminator config and an ordered procedure. Done
+# by hand, the translation is where the mistakes live -- a missing IP in the
+# certificate, an origin left on http://, a certificate mode that no public CA
+# can ever deliver for a LAN address.
+#
+# The wizard collects the decisions; ``apps.schools.edge_onboarding`` does the
+# translation as a pure function. Nothing here invents a value: an address the
+# school has not decided yet stays empty and the generated plan says so, because
+# a plan that guesses at an address is worse than one that admits a gap.
+
+
+def list_edge_tls_mode_choices(*, request: Any, school: Any) -> list[dict[str, Any]]:
+    """The four certificate postures, with the trade-off stated in each label.
+
+    Deliberately offers all four rather than hiding the ones that cannot work for
+    this school's addresses: the options resolver does not receive earlier answers,
+    so filtering here would have to guess. Instead the labels carry the constraint
+    and ``build_edge_plan`` reports the combination as blocking, with the reason,
+    on the review step -- where the school can see it next to everything else.
+    """
+    from apps.schools import edge_tls
+
+    return [
+        {
+            "value": edge_tls.MODE_SELF_SIGNED,
+            "label_token": "The box issues its own certificate",
+            "metadata": {
+                "hint": (
+                    "No internet, domain or cost. Install the box CA once per device. "
+                    "Works at a LAN address or an IP. This is the usual choice."
+                ),
+                "recommended": True,
+            },
+        },
+        {
+            "value": edge_tls.MODE_PROVIDED,
+            "label_token": "We supply certificate files from our own CA",
+            "metadata": {
+                "hint": (
+                    "For schools that already run an internal certificate authority. "
+                    "No PUBLIC CA will issue for a .lan name or a private IP, so this "
+                    "means your organisation's own CA, whose root still has to be on "
+                    "every device."
+                ),
+            },
+        },
+        {
+            "value": edge_tls.MODE_ACME,
+            "label_token": "A public certificate authority, renewed automatically",
+            "metadata": {
+                "hint": (
+                    "Needs a real public domain name pointing at the box and reachable "
+                    "from the internet. Impossible for a box only reachable at a LAN "
+                    "address -- and nothing to install on devices when it is possible."
+                ),
+            },
+        },
+        {
+            "value": edge_tls.MODE_OFF,
+            "label_token": "Plain HTTP for now",
+            "metadata": {
+                "hint": (
+                    "Login works, but offline PIN / local mode cannot be enabled on ANY "
+                    "browser: plain HTTP is not a secure context. Reversible at any time."
+                ),
+            },
+        },
+    ]
+
+
+def list_edge_mobility_choices(*, request: Any, school: Any) -> list[dict[str, Any]]:
+    """How likely is this box to move?
+
+    This is not idle curiosity. It decides how loudly the plan talks about
+    exporting the box CA, which is the single irreversible mistake available in
+    this whole flow: lose it and every device that trusted the box must be
+    physically revisited.
+    """
+    from apps.schools import edge_onboarding
+
+    return [
+        {
+            "value": edge_onboarding.MOVE_NEVER,
+            "label_token": "It stays where it is installed",
+            "metadata": {"hint": "Still back up the box CA -- hardware fails too."},
+        },
+        {
+            "value": edge_onboarding.MOVE_WITHIN_SITE,
+            "label_token": "It may move room, or change IP",
+            "metadata": {"hint": "A reissue covers this; devices are untouched."},
+        },
+        {
+            "value": edge_onboarding.MOVE_BETWEEN_SITES,
+            "label_token": "It may move between campuses",
+            "metadata": {"hint": "Plan for the CA bundle to travel with it."},
+        },
+        {
+            "value": edge_onboarding.MOVE_BETWEEN_COUNTRIES,
+            "label_token": "It may move to another country",
+            "metadata": {
+                "hint": (
+                    "Adds data-residency, timezone and clock steps -- a box whose RTC "
+                    "dies in transit rejects its own certificate."
+                )
+            },
+        },
+    ]
+
+
+#: Wizard step key -> the key ``build_edge_plan`` understands. Keeping the mapping
+#: explicit means renaming a step cannot silently drop an answer out of the plan.
+_EDGE_STEP_TO_ANSWER: dict[str, str] = {
+    "tls_choice": "tls_mode",
+    "acme_contact": "acme_email",
+    "certificate_source": "provided_source",
+    "mobility": "mobility",
+}
+
+#: The one structured_form step carries two answers at once, keyed by field name
+#: rather than the usual "value". Kept separate so the single-value path below
+#: stays a single, obvious rule.
+_EDGE_FORM_FIELDS: tuple[str, ...] = ("site_name", "addresses")
+
+
+def write_edge_location_onboarding_step(
+    *,
+    school: Any,
+    wizard_key: str,
+    step_key: str,
+    payload: dict[str, Any],
+    actor_user_id: int | None,
+) -> None:
+    """Capture the answer, and on review, build the deployable plan.
+
+    The plan is NOT stored as a second copy of the answers. It is a pure function
+    of them, so persisting it would create a way for the two to disagree -- and
+    the stale one always wins an argument with an operator standing at the box.
+    """
+    _default_cockpit_writer(
+        school=school,
+        wizard_key=wizard_key,
+        step_key=step_key,
+        payload=payload,
+        actor_user_id=actor_user_id,
+    )
+
+    if school is not None:
+        if step_key == "site_and_addresses":
+            for field_name in _EDGE_FORM_FIELDS:
+                field_value = payload.get(field_name)
+                if field_value not in (None, ""):
+                    _write_to_site_settings(
+                        school, f"edge_onboarding.{field_name}", field_value
+                    )
+        else:
+            answer_key = _EDGE_STEP_TO_ANSWER.get(step_key)
+            if answer_key:
+                value = payload.get("value")
+                if value is None:
+                    value = payload.get(answer_key)
+                if value is not None:
+                    # Positional, and the dotted path NESTS: this lands at
+                    # school.settings["edge_onboarding"][answer_key].
+                    _write_to_site_settings(
+                        school, f"edge_onboarding.{answer_key}", value
+                    )
+
+    if step_key != "review":
+        return
+
+    answers = _collect_edge_answers(school)
+    from apps.setup_studio.wizard_resolvers import _try_domain_integration
+
+    _try_domain_integration(
+        "apps.schools.edge_onboarding",
+        "record_edge_plan",
+        school=school,
+        answers=answers,
+        actor_user_id=actor_user_id,
+    )
+
+
+def _collect_edge_answers(school: Any) -> dict[str, Any]:
+    """Read back what the school answered, tolerating a partly-finished wizard.
+
+    Returns only what was actually answered. A missing address stays missing so
+    the generated plan can say "you have not decided this yet" rather than
+    inventing something that will not match the box.
+    """
+    answers: dict[str, Any] = {}
+    settings_blob = getattr(school, "settings", None) or {}
+    if not isinstance(settings_blob, dict):
+        return answers
+    # _write_to_site_settings nests on dots, so the answers live in a sub-dict.
+    bucket = settings_blob.get("edge_onboarding")
+    if not isinstance(bucket, dict):
+        return answers
+    for answer_key in set(_EDGE_STEP_TO_ANSWER.values()) | set(_EDGE_FORM_FIELDS):
+        stored = bucket.get(answer_key)
+        if stored not in (None, ""):
+            answers[answer_key] = stored
+    return answers

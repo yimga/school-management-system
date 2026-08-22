@@ -33,6 +33,8 @@ _ACRONYMS = {
     "ai": "AI", "id": "ID", "url": "URL", "api": "API", "sso": "SSO",
     "kpi": "KPI", "pos": "POS", "csv": "CSV", "pdf": "PDF", "dob": "DOB",
     "sis": "SIS", "lms": "LMS", "pin": "PIN", "2fa": "2FA",
+    "tls": "TLS", "http": "HTTP", "https": "HTTPS", "acme": "ACME",
+    "ca": "CA", "dns": "DNS", "ip": "IP", "lan": "LAN",
 }
 
 # Trailing token segments that are structural, not content.
