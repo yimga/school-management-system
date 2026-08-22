@@ -22,7 +22,9 @@
 #
 # REQUIRES A VOLUME. The releases live outside the image; on a container without a mount
 # at RMC_OTA_RELEASE_ROOT every restart discards them and re-seeds, which works but throws
-# away the rollback target. deploy/selfhost/docker-compose.yml mounts one.
+# away the rollback target. deploy/selfhost/docker-compose.yml carries the volume and
+# the mount, both commented out beside RMC_OTA_RELEASE_ROOT -- uncomment the three
+# together or not at all.
 
 set -o errexit
 set -o nounset
