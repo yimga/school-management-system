@@ -2207,8 +2207,21 @@ def rbac_dashboard(request):
         elif form_type == "edit_role":
             edit_role_form = EditRoleForm(request.POST)
             if edit_role_form.is_valid():
+                # Scope the EDIT target to this school's own catalog.
+                #
+                # roles_queryset_for_school() deliberately includes the
+                # platform-global templates (school IS NULL) because those are
+                # ASSIGNABLE at every school -- and every other caller uses it to
+                # populate a choice field, which is exactly right. Using it as the
+                # MUTATION target was not: EditRoleForm.role_id is a bare
+                # IntegerField in a HiddenInput (a widget, not a control), so any
+                # tenant admin holding settings.manage could POST a global
+                # template's pk and rewrite permissions on a row shared by EVERY
+                # school on the platform. Reading a global template is still fine
+                # -- line ~2107 loads it for display -- only writing is refused,
+                # which surfaces as a 404 on the edit POST.
                 role = get_object_or_404(
-                    roles_queryset_for_school(school),
+                    AccessRole.objects.filter(school=school),
                     pk=edit_role_form.cleaned_data["role_id"],
                 )
                 role.description = edit_role_form.cleaned_data["description"] or ""
