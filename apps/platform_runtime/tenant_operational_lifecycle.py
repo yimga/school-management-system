@@ -11,6 +11,7 @@ from __future__ import annotations
 from typing import Any
 
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 # Public operational contract (moderator program P1-W1.2)
 STATE_CONCEPTION = "conception"
@@ -47,6 +48,44 @@ ALL_OPERATIONAL_STATES: tuple[str, ...] = (
 
 # States that must have at least one resolver emission site (verifier-enforced).
 REQUIRED_OPERATIONAL_STATES: tuple[str, ...] = ALL_OPERATIONAL_STATES
+
+# The words a school reads. ``operational_lifecycle_strip.html`` renders this
+# state on tenant pages, and until 2026-08-22 it did so with ``|cut:"_"`` --
+# which DELETES the separator, so a school in daily operation was told its
+# lifecycle was "dailyoperations". Casing was never the fix: "Conception" is
+# no more meaningful to a head teacher than "conception". These are curated,
+# translated sentences, kept HERE rather than in the template so that adding a
+# 15th state without adding its label is a diff a reviewer sees --
+# ``scripts/scan_raw_token_in_ui.py`` reports the gap, and
+# ``test_display_labels_2026_08_22`` fails on it.
+OPERATIONAL_STATE_LABELS: dict[str, Any] = {
+    STATE_CONCEPTION: _("Being created"),
+    STATE_PROVISIONING: _("Being provisioned"),
+    STATE_COUNTRY_SETUP: _("Country setup"),
+    STATE_SETUP_STUDIO: _("Setup in progress"),
+    STATE_LAUNCH_READINESS: _("Getting ready to launch"),
+    STATE_DAILY_OPERATIONS: _("Day-to-day operations"),
+    STATE_ACADEMIC_YEAR_CLOSE: _("Closing the academic year"),
+    STATE_RENEWAL: _("Up for renewal"),
+    STATE_SUSPENSION: _("Suspended"),
+    STATE_READ_ONLY: _("Read-only"),
+    STATE_EXPORT: _("Preparing your export"),
+    STATE_OFFBOARDING: _("Offboarding"),
+    STATE_PURGE_SCHEDULED: _("Data purge scheduled"),
+    STATE_DELETION_CERTIFICATE: _("Deleted — certificate issued"),
+}
+
+
+def operational_state_label(state: object) -> str:
+    """School-readable label for an operational lifecycle state.
+
+    An unknown state is humanized rather than dropped: a strange label is
+    recoverable, a blank chip is not. Returns ``""`` only for an empty state,
+    which the strip template already treats as "render nothing".
+    """
+    from apps.platform_runtime.display_labels import label_for
+
+    return label_for(OPERATIONAL_STATE_LABELS, state)
 
 ALLOWED_OPERATIONAL_TRANSITIONS: dict[str, frozenset[str]] = {
     STATE_CONCEPTION: frozenset(

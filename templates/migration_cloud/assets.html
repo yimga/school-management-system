@@ -1,5 +1,5 @@
 {% extends mc_base|default:"control_plane_base.html" %}
-{% load i18n glocal_tags rmc_explain_tags %}
+{% load i18n glocal_tags rmc_explain_tags rmc_labels %}
 
 {% block page_title %}{{ page_title }}{% endblock %}
 
@@ -27,7 +27,7 @@
     <h2 class="rmc-h2">{% trans "Summary" %}</h2>
     <ul class="rmc-stat-list">
       {% for status, count in counts.items %}
-        <li><strong>{{ count }}</strong> {{ status }}</li>
+        <li><strong>{{ count }}</strong> {{ status|humanize_token }}</li>
       {% endfor %}
     </ul>
     <form method="post"

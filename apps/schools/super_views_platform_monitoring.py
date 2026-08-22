@@ -13,6 +13,7 @@ from django.utils import timezone
 from apps.tenancy.context import TenantContext
 
 from .control_plane_lifecycle import batch_current_subscriptions, get_lifecycle_snapshot
+from .onboarding_recommendations import hydrate_confidence_display
 from .fleet_status import format_fleet_summary_label, resolve_fleet_summary, resolve_school_fleet_status
 from .models import School, TenantApiUsage, TenantQuotaLimit
 from .super_dashboard_registry import (
@@ -387,8 +388,11 @@ def super_tenant_360(request, school_id):
         school_settings.get("recommendation_manifest") or {}
     )
     onboarding_intent = dict(school_settings.get("onboarding_intent") or {})
-    confidence_envelope = dict(
-        recommendation_manifest.get("confidence_envelope") or {}
+    # Hydrated at READ time, so a manifest stored before the display fields
+    # existed still renders words rather than dict keys. See
+    # `onboarding_recommendations.hydrate_confidence_display`.
+    confidence_envelope = hydrate_confidence_display(
+        recommendation_manifest.get("confidence_envelope")
     )
     evidence = dict(confidence_envelope.get("critical_evidence") or {})
     signup_completion_percent = (

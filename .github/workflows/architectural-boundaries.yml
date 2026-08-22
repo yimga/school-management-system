@@ -383,6 +383,23 @@ jobs:
         run: |
           python -m unittest scripts.tests.test_scan_lander_row_error_contract -v
 
+  raw-token-in-ui:
+    name: No internal identifier is shown to a human as words
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run scanner --strict
+        run: |
+          python scripts/scan_raw_token_in_ui.py --strict
+      - name: Unit tests
+        run: |
+          python -m unittest scripts.tests.test_scan_raw_token_in_ui -v
+
   lander-row-streaming:
     name: Migration Cloud landers stream canonical rows
     runs-on: ubuntu-latest
