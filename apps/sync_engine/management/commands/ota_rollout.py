@@ -24,6 +24,9 @@ from apps.sync_engine.models_rollout import (
 )
 from apps.sync_engine.system_manifest import load_manifest
 
+# How many rows `--status` prints. Announced when it binds, never silent.
+_STATUS_ROW_CAP = 200  # magic-number-allow: terminal-readable row cap for --status
+
 
 def _school_by_slug(slug: str):
     from apps.schools.models import School
@@ -111,7 +114,13 @@ class Command(BaseCommand):
         from apps.schools.models import School
 
         policies = {p.school_id: p for p in EdgeRolloutPolicy.objects.all()}
-        schools = list(School.objects.all().order_by("name")[:200])
+        released = ManifestRelease.rings_for(digest) if digest else []
+        total = School.objects.count()
+        # Capped so `--status` on a large fleet stays readable in a terminal. The cap is
+        # ANNOUNCED, because a listing that silently stops at 200 reads as "that is the
+        # whole fleet" -- and the schools an operator most needs to see during a rollout
+        # are exactly the ones a truncation would hide.
+        schools = list(School.objects.all().order_by("name")[:_STATUS_ROW_CAP])
         if not schools:
             self.stdout.write("no schools on this deployment")
             return
@@ -121,6 +130,19 @@ class Command(BaseCommand):
             policy = policies.get(school.pk)
             ring = policy.ring if policy else RolloutRing.STABLE.value
             paused = bool(policy and policy.paused)
-            allowed, reason = may_receive(school, digest) if digest else (False, "no manifest")
+            allowed, reason = (
+                may_receive(school, digest, ring=ring, paused=paused, released=released)
+                if digest
+                else (False, "no manifest")
+            )
             state = "paused" if paused else ("eligible" if allowed else "waiting")
             self.stdout.write(f"{str(school)[:33]:<34} {ring:<8} {state:<9} {reason}")
+
+        if total > len(schools):
+            self.stdout.write("")
+            self.stdout.write(
+                self.style.WARNING(
+                    f"showing {len(schools)} of {total} schools (alphabetical); "
+                    f"{total - len(schools)} not listed"
+                )
+            )
