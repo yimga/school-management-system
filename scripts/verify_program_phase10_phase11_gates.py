@@ -27,6 +27,15 @@ PHASE10_STATIC_MARKERS: dict[str, tuple[str, ...]] = {
         "Migration & interoperability hub",
         "Rollback expectations",
         "Install to sandbox",
+    ),
+    # The graceful-degradation marker moved rather than disappeared. It used to be
+    # required on tenant_app_catalog.html, which no longer renders <img> at all --
+    # 8b03d9307 replaced the image cards with icon cards and took the fallback
+    # plumbing with them, so demanding the placeholder there guards a rendering
+    # path that does not exist. The property it protects -- a listing with no
+    # preview image still shows something -- is now owned by the card partial, and
+    # is checked there instead of being dropped.
+    "templates/marketplace/partials/app_catalog_card.html": (
         "catalog-placeholder.svg",
     ),
     "templates/marketplace/app_catalog.html": (

@@ -880,7 +880,10 @@
   })();
   </script>
   {% endif %}
-  {% comment %} Phase 1: Bootstrap bundle required for offcanvas Context drawer (data-bs-toggle) — Unfold does not ship it. {% endcomment %}
+  {% comment %} Bootstrap JS bundle — Unfold does not ship it. Originally added for the
+     offcanvas Context drawer, which 5fcd59f63 removed from this shell; the bundle is
+     still required because rmc-dropdown-viewport-safe.js (loaded on the next line)
+     and the header utilities call the Bootstrap JS API. {% endcomment %}
   <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
   {% include "partials/rmc_dropdown_viewport_safe_boot.html" %}
   {% include "partials/rmc_tour_bootstrap.html" with rmc_tour_css_in_head=True %}

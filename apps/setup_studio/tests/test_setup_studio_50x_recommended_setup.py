@@ -44,6 +44,13 @@ class SetupStudioRecommendedSetupTests(TestCase):
             supported_country_scope=["CM"],
             is_active=True,
         )
+        # _rank_blueprints ranks every ACTIVE pack, and seed_blueprint_policy_packs
+        # ships its own CM-scoped pack ("cameroon-anglophone"). Whether that seed is
+        # present depends on what else ran against this --keepdb database, so the
+        # assertion below passed alone and failed inside the full bundle. Narrow the
+        # field to this test's pack so the outcome depends on the code under test
+        # rather than on database history; the assertion itself is unchanged.
+        BlueprintPack.objects.exclude(slug="cm-secondary-launch").update(is_active=False)
         result = apply_recommended_setup(self.school, actor_id=1)
         self.assertEqual(
             result["recommended_blueprint_slug"], "cm-secondary-launch"

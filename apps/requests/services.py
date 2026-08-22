@@ -83,7 +83,14 @@ def sync_request_for_target(
     object_id = str(target.pk)
     resolved_school, schema_name = _resolve_scope(school=school, target=target)
 
+    # school belongs in the LOOKUP. object_id is str(target.pk) and content_type is
+    # a GLOBAL row, so (request_type, content_type, object_id) is not unique across
+    # tenants: two schools whose targets share a pk collide, and get_or_create then
+    # hands the caller the OTHER school's AccessRequest -- whose school_id stays
+    # wrong because `school` only ever appears in defaults. Every later decision on
+    # that request (approve, deny, audit) then acts on the wrong tenant's row.
     req, created = AccessRequest.objects.get_or_create(
+        school=resolved_school,
         request_type=request_type,
         target_content_type=content_type,
         target_object_id=object_id,
@@ -92,7 +99,6 @@ def sync_request_for_target(
             "title": title,
             "summary": summary,
             "details": details,
-            "school": resolved_school,
             "schema_name": schema_name,
             "status": status or AccessRequest.Status.PENDING,
         },

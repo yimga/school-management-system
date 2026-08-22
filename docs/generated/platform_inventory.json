@@ -3,16 +3,16 @@
     "allow_any": 166,
     "csrf_exempt": 767,
     "cursor_execute": 718,
-    "except_exception": 3981,
+    "except_exception": 3984,
     "get_solo": 213,
-    "gilead": 42084,
-    "gilead_files": 466,
-    "html_files": 2101,
-    "management_commands": 400,
-    "markdown_files": 1888,
-    "migration_files": 1281,
-    "print_calls": 5609,
-    "python_files": 8702,
+    "gilead": 42089,
+    "gilead_files": 468,
+    "html_files": 2103,
+    "management_commands": 401,
+    "markdown_files": 1889,
+    "migration_files": 1282,
+    "print_calls": 5619,
+    "python_files": 8715,
     "site_settings": 2590
   },
   "doc_drift": {
@@ -38,8 +38,8 @@
       "path": "config/settings.py"
     },
     {
-      "bytes": 206143,
-      "lines": 5003,
+      "bytes": 207081,
+      "lines": 5021,
       "path": "apps/accounts/views.py"
     },
     {
@@ -1986,6 +1986,11 @@
     },
     {
       "app": "sync_engine",
+      "command": "deployment_parity",
+      "path": "apps/sync_engine/management/commands/deployment_parity.py"
+    },
+    {
+      "app": "sync_engine",
       "command": "drain_edge_outbox",
       "path": "apps/sync_engine/management/commands/drain_edge_outbox.py"
     },
@@ -2133,7 +2138,7 @@
     "cursor_execute_apps_config_py_excl_migrations": 70,
     "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
     "print_calls_apps_py_excl_migrations_tests_management": 0,
-    "print_calls_scripts_py": 5386,
+    "print_calls_scripts_py": 5396,
     "site_settings_refs_apps_py_excl_migrations": 237,
     "site_settings_refs_apps_py_excl_migrations_tests": 165
   },
