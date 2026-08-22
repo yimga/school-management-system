@@ -149,6 +149,36 @@ def oauth_authorize(request):
             "invalid_request", "redirect_uri is not registered for this client", 400
         )
 
+    # Constrain the requested scope to what this client actually registered.
+    #
+    # `scope` arrives verbatim on the query string and used to be stored verbatim
+    # on the authorization code, then on OAuthTokenPair.scope. On the read side
+    # apps/marketplace/permissions_runtime.py::effective_scopes_for_oauth_pair
+    # UNIONS the token's own scope string with the installation's GRANTED
+    # ScopeGrant rows -- so a token's self-declared scope was trusted outright.
+    # A client registered for nothing but "read" could send a user through
+    # authorize with scope=finance:write and receive a token that app_has_scopes()
+    # accepts for finance writes. RFC 6749 sec. 3.3 makes this the authorization
+    # server's job, and invalid_scope is its named error for it.
+    #
+    # Empty request => the client's registered default set (RFC 6749 sec. 3.3),
+    # NOT "everything" and not "nothing".
+    registered = {
+        str(s).strip() for s in (app.scopes or []) if str(s).strip()
+    }
+    requested = {s for s in scope.split() if s}
+    if requested:
+        granted_scopes = requested & registered
+        if not granted_scopes:
+            return _oauth_error(
+                "invalid_scope",
+                "None of the requested scopes are registered for this client",
+                400,
+            )
+    else:
+        granted_scopes = registered
+    scope = " ".join(sorted(granted_scopes))
+
     code = create_authorization_code(
         application=app,
         user=request.user,
