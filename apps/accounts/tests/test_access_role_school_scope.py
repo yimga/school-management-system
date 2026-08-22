@@ -71,7 +71,24 @@ class AccessRoleSchoolScopeTests(TestCase):
             )
 
     def test_has_feature_permission_respects_school_scoped_role(self) -> None:
-        perm = Permission.objects.create(code="reports.view", name="View reports")
+        # This test was doubly broken and nothing reported it, because CI has
+        # started no job since 2026-08-15.
+        #
+        # 1. It used Permission.objects.create(code="reports.view"), but accounts
+        #    migration 0058_superadmin_full_permission_coverage already seeds that
+        #    code -- UNIQUE error on every properly-migrated database.
+        # 2. Once that was fixed it FAILED, because a signal attaches the GLOBAL
+        #    AccessRole matching User.role (here: the platform-wide "TEACHER"
+        #    template, school=None) to every user, and that template grants
+        #    reports.view. A global template applies at every school by design, so
+        #    has_feature_permission(..., school=school_b) was correctly True and
+        #    the assertion below was asserting the wrong thing.
+        #
+        # The intent -- a SCHOOL-SCOPED role must not confer its permission at a
+        # different school -- is right, so use a code no global template grants.
+        perm = Permission.objects.create(
+            code=f"scoped.only.{uuid.uuid4().hex[:8]}", name="Scoped-only permission"
+        )
         self.role_a.permissions.add(perm)
         user = User.objects.create_user(
             username=f"scoped-{uuid.uuid4().hex[:6]}",
@@ -80,8 +97,8 @@ class AccessRoleSchoolScopeTests(TestCase):
             role=User.Role.TEACHER,
         )
         user.roles.add(self.role_a)
-        self.assertTrue(user.has_feature_permission("reports.view", school=self.school_a))
-        self.assertFalse(user.has_feature_permission("reports.view", school=self.school_b))
+        self.assertTrue(user.has_feature_permission(perm.code, school=self.school_a))
+        self.assertFalse(user.has_feature_permission(perm.code, school=self.school_b))
 
 
 @override_settings(POLICY_PDP_ENFORCEMENT_MODE="off")
@@ -110,11 +127,16 @@ class GlobalRoleTemplateIsNotEditableFromATenantTests(TestCase):
             subdomain=f"t1-{uuid.uuid4().hex[:10]}",
             is_active=True,
         )
+        # Codes seeded by accounts migration 0058 (e.g. "reports.view") would
+        # collide on create(); use suite-unique codes so this class is independent
+        # of whatever the catalog already holds.
+        self.kept_code = f"kept.{uuid.uuid4().hex[:8]}"
+        self.injected_code = f"inject.{uuid.uuid4().hex[:8]}"
         self.kept = Permission.objects.create(
-            code="reports.view", name="View reports"
+            code=self.kept_code, name="Kept permission"
         )
         self.injected = Permission.objects.create(
-            code="finance.manage", name="Manage finance"
+            code=self.injected_code, name="Injected permission"
         )
         self.global_role = AccessRole.objects.create(
             code="platform_template", name="Platform template", school=None
@@ -164,8 +186,8 @@ class GlobalRoleTemplateIsNotEditableFromATenantTests(TestCase):
         self.assertEqual(self.global_role.name, "Platform template")
         self.assertNotEqual(self.global_role.description, "pwned")
         codes = set(self.global_role.permissions.values_list("code", flat=True))
-        self.assertEqual(codes, {"reports.view"})
-        self.assertNotIn("finance.manage", codes)
+        self.assertEqual(codes, {self.kept_code})
+        self.assertNotIn(self.injected_code, codes)
 
     def test_the_tenants_own_role_is_still_editable(self) -> None:
         # The fix must not break the feature it guards.
@@ -177,5 +199,5 @@ class GlobalRoleTemplateIsNotEditableFromATenantTests(TestCase):
         self.assertEqual(self.local_role.description, "pwned")
         self.assertEqual(
             set(self.local_role.permissions.values_list("code", flat=True)),
-            {"finance.manage"},
+            {self.injected_code},
         )
