@@ -181,3 +181,92 @@ class ReverseTrialTests(TestCase):
             self.assertFalse(is_feature_enabled(school, "premium_analytics"))
             # A universal / plan-included code still resolves.
             self.assertTrue(is_feature_enabled(school, "core"))
+
+
+class NoActiveDefaultPlanTests(TestCase):
+    """The ceiling must fail OPEN when no ACTIVE default plan resolves.
+
+    ``_compute_plan_gated_codes`` derives the gated set as "in some active plan
+    but NOT in the default plan". It used to substitute an empty set for the
+    default's features when ``get_default_plan()`` returned None, which makes
+    *every* feature of *every* active plan plan-gated -- so with the flag ON a
+    catalog misconfiguration denies every capability every school reaches
+    through the union. These pin the opposite: gate nothing, change nothing.
+    """
+
+    def setUp(self):
+        self.paid = Plan.objects.create(
+            name="Pro",
+            slug="pro-tier",
+            included_features=["core", "premium_analytics"],
+            is_active=True,
+        )
+        clear_plan_gated_cache()
+        self.addCleanup(clear_plan_gated_cache)
+
+    def _school(self, **kwargs):
+        defaults = dict(name="S", slug="s2", subdomain="s2", is_active=True)
+        defaults.update(kwargs)
+        return School.objects.create(**defaults)
+
+    def test_no_default_plan_at_all_gates_nothing(self):
+        # Route 1: plans seeded after siteconfig.0200 ran on an empty table, so
+        # no row was ever marked default.
+        self.assertIsNone(Plan.get_default_plan())
+        self.assertEqual(plan_gated_feature_codes(), frozenset())
+
+    def test_flag_on_with_no_default_plan_does_not_lock_out_a_union_grant(self):
+        """The regression this class exists for.
+
+        The capability must be reachable ONLY through the union (a module
+        manifest / policy toggle) and by no explicit plan, addon, School.features
+        or Entitlement grant -- an explicit grant satisfies the ceiling either
+        way and so cannot detect the bug. Pre-fix, the absent default plan made
+        every feature of every active plan gated, the ceiling demanded an
+        explicit grant, found none, and the school silently lost a capability it
+        has today.
+        """
+        school = self._school()
+        with mock.patch(
+            "apps.siteconfig.tenant_config.get_tenant_modules",
+            return_value=["premium_analytics"],
+        ):
+            # Flag OFF -- the historical union answer, for contrast.
+            self.assertTrue(is_feature_enabled(school, "premium_analytics"))
+            # Flag ON -- must be unchanged, because a catalog with no default
+            # plan gates nothing at all.
+            with _enforced():
+                self.assertTrue(is_feature_enabled(school, "premium_analytics"))
+
+    def test_inactive_default_plan_is_repaired_not_obeyed(self):
+        # Route 2: the plan carrying is_default is deactivated. The check
+        # constraint plan_default_must_be_active now refuses that write, so the
+        # state cannot arise -- assert the refusal rather than the old fallout.
+        from django.db import IntegrityError, transaction
+
+        default = Plan.objects.create(
+            name="Free",
+            slug="free-tier",
+            included_features=["core"],
+            is_default=True,
+            is_active=True,
+        )
+        default.is_active = False
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                default.save()
+
+    def test_clean_gives_an_operator_a_sentence_not_an_integrityerror(self):
+        from django.core.exceptions import ValidationError
+
+        default = Plan.objects.create(
+            name="Free",
+            slug="free-tier-2",
+            included_features=["core"],
+            is_default=True,
+            is_active=True,
+        )
+        default.is_active = False
+        with self.assertRaises(ValidationError) as ctx:
+            default.full_clean()
+        self.assertIn("is_active", ctx.exception.message_dict)
