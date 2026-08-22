@@ -1,8 +1,9 @@
 """Landers must stream canonical rows — not buffer whole files without an allow marker.
 
-``list(canonical_rows)`` before the write loop means row heartbeats only fire during
-the read phase; a large file can then spend minutes in DB writes with a frozen
-``rows_processed`` counter and trip ``SystemicStallError``. Streaming
+``list(canonical_rows)``, list/set/dict comprehensions, ``sorted(canonical_rows)``, or
+``for row in list(canonical_rows)`` before the write loop means row heartbeats only
+fire during materialisation; a large file can then spend minutes in DB writes with a
+frozen ``rows_processed`` counter and trip ``SystemicStallError``. Streaming
 ``for row in canonical_rows`` (or an explicit ``# lander-stream-allow: <reason>``
 plus ``maybe_stall_pulse`` in post-buffer loops) keeps the apply watchdog honest.
 """
@@ -21,6 +22,8 @@ BASELINE = REPO_ROOT / "var" / "security-audit-baseline-lander-row-streaming.jso
 
 ALLOW_MARKER = "# lander-stream-allow:"
 NON_LANDER_MODULES = frozenset({"base.py", "__init__.py", "reason_codes.py"})
+_CANONICAL_ROWS = "canonical_rows"
+_MATERIALIZE_FUNCS = frozenset({"list", "tuple", "sorted"})
 
 
 def _rel(path: Path) -> str:
@@ -37,15 +40,36 @@ def _allowed(lines: list[str], lineno: int) -> bool:
     return False
 
 
-def _is_list_canonical_rows(node: ast.AST) -> bool:
+def _is_canonical_rows(node: ast.AST | None) -> bool:
+    return isinstance(node, ast.Name) and node.id == _CANONICAL_ROWS
+
+
+def _call_materializes_canonical_rows(node: ast.AST) -> bool:
     if not isinstance(node, ast.Call):
         return False
-    if not isinstance(node.func, ast.Name) or node.func.id != "list":
+    if not isinstance(node.func, ast.Name) or node.func.id not in _MATERIALIZE_FUNCS:
         return False
-    if not node.args:
+    return bool(node.args) and _is_canonical_rows(node.args[0])
+
+
+def _comp_materializes_canonical_rows(node: ast.AST) -> bool:
+    if not isinstance(node, (ast.ListComp, ast.SetComp, ast.DictComp)):
         return False
-    arg = node.args[0]
-    return isinstance(arg, ast.Name) and arg.id == "canonical_rows"
+    if not node.generators:
+        return False
+    return _is_canonical_rows(node.generators[0].iter)
+
+
+def _materializes_canonical_rows(node: ast.AST) -> str | None:
+    if _call_materializes_canonical_rows(node):
+        func = getattr(getattr(node, "func", None), "id", "list")
+        return f"{func}(canonical_rows)"
+    if _comp_materializes_canonical_rows(node):
+        return f"{type(node).__name__}(canonical_rows)"
+    if isinstance(node, ast.For) and _call_materializes_canonical_rows(node.iter):
+        func = node.iter.func.id  # type: ignore[union-attr]
+        return f"for ... in {func}(canonical_rows)"
+    return None
 
 
 def scan_source(path: Path, source: str) -> list[dict]:
@@ -56,7 +80,8 @@ def scan_source(path: Path, source: str) -> list[dict]:
     lines = source.splitlines()
     findings: list[dict] = []
     for node in ast.walk(tree):
-        if not _is_list_canonical_rows(node):
+        kind = _materializes_canonical_rows(node)
+        if kind is None:
             continue
         lineno = getattr(node, "lineno", None)
         if lineno is None or _allowed(lines, lineno):
@@ -65,7 +90,10 @@ def scan_source(path: Path, source: str) -> list[dict]:
             "path": _rel(path),
             "line": lineno,
             "kind": "buffered_canonical_rows",
-            "detail": "list(canonical_rows) stalls row heartbeats — stream or allow + maybe_stall_pulse",
+            "detail": (
+                f"{kind} stalls row heartbeats during DB writes — stream or allow + "
+                "maybe_stall_pulse"
+            ),
         })
     findings.sort(key=lambda f: (f["path"], f["line"]))
     return findings

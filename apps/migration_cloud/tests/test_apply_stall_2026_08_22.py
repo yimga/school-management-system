@@ -8,6 +8,8 @@ from unittest import mock
 
 from apps.migration_cloud.apply_stall import (
     maybe_stall_pulse,
+    read_with_stall_pulse,
+    resolve_applying_stale_seconds,
     resolve_stall_timeout_seconds,
     stall_pulse_scope,
 )
@@ -64,6 +66,42 @@ class StallPulseHookTests(unittest.TestCase):
             for i in range(5):
                 maybe_stall_pulse(every=2, counter=i)
         self.assertEqual(len(calls), 3)
+
+
+class ReadWithStallPulseTests(unittest.TestCase):
+    def test_reads_in_chunks_and_pulses(self):
+        calls: list[int] = []
+
+        class _Stream:
+            def __init__(self) -> None:
+                self._parts = [b"a" * 512, b"b" * 512, b""]
+
+            def read(self, size: int) -> bytes:
+                if not self._parts:
+                    return b""
+                return self._parts.pop(0)
+
+        with stall_pulse_scope(lambda: calls.append(1)):
+            payload = read_with_stall_pulse(_Stream(), chunk_size=512)
+        self.assertEqual(payload, (b"a" * 512) + (b"b" * 512))
+        self.assertGreaterEqual(len(calls), 2)
+
+
+class ApplyingStaleThresholdTests(unittest.TestCase):
+    @mock.patch("apps.migration_cloud.defaults.get")
+    @mock.patch("apps.migration_cloud.unified_progress.expected_row_total")
+    @mock.patch("apps.migration_cloud.apply_stall.resolve_stall_timeout_seconds")
+    def test_stale_outlives_stall_timeout(self, stall_timeout, row_total, mc_get):
+        stall_timeout.return_value = 240.0
+        row_total.return_value = 0
+        mc_get.side_effect = lambda key: {
+            "migration_cloud.repair.applying_stale_seconds": {"small": 600},
+            "migration_cloud.repair.applying_stale_row_scale_per_1000": 0,
+            "migration_cloud.repair.applying_stale_min_seconds": 300,
+            "migration_cloud.repair.applying_stale_max_seconds": 1800,
+        }[key]
+        bundle = SimpleNamespace(pk=1, sla_tier="small")
+        self.assertGreaterEqual(resolve_applying_stale_seconds(bundle), 240.0 * 2.0 + 120.0)
 
 
 if __name__ == "__main__":

@@ -86,6 +86,16 @@ _SEED: dict[str, Any] = {
     "migration_cloud.apply.stall_timeout_row_scale_per_1000": 30,
     "migration_cloud.apply.stall_timeout_min_seconds": 90,
     "migration_cloud.apply.stall_timeout_max_seconds": 900,
+    # Wedged APPLYING reclaim (SIGKILL/OOM/dead worker) — tier base + row scale.
+    "migration_cloud.repair.applying_stale_seconds": {
+        "small": 600,
+        "mid": 900,
+        "large": 1200,
+        "state": 1800,
+    },
+    "migration_cloud.repair.applying_stale_row_scale_per_1000": 15,
+    "migration_cloud.repair.applying_stale_min_seconds": 300,
+    "migration_cloud.repair.applying_stale_max_seconds": 1800,
     # Classifier confidence thresholds (Phase U3/U4). Below these the
     # operator is asked to review; never auto-applied.
     "migration_cloud.classifier.source_min_confidence": 0.65,

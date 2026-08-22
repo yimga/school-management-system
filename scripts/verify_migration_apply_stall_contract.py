@@ -56,6 +56,10 @@ def main() -> int:
         "migration_cloud.apply.stall_timeout_row_scale_per_1000",
         "migration_cloud.apply.stall_timeout_min_seconds",
         "migration_cloud.apply.stall_timeout_max_seconds",
+        "migration_cloud.repair.applying_stale_seconds",
+        "migration_cloud.repair.applying_stale_row_scale_per_1000",
+        "migration_cloud.repair.applying_stale_min_seconds",
+        "migration_cloud.repair.applying_stale_max_seconds",
     ):
         if key not in defaults:
             failures.append(f"defaults.py missing stall config key: {key}")
@@ -67,7 +71,9 @@ def main() -> int:
         apply_stall_src = apply_stall.read_text(encoding="utf-8")
         for token in (
             "resolve_stall_timeout_seconds",
+            "resolve_applying_stale_seconds",
             "maybe_stall_pulse",
+            "read_with_stall_pulse",
             "set_stall_pulse_hook",
             "stall_pulse_scope",
         ):
@@ -102,6 +108,14 @@ def main() -> int:
     if "MigrationProgressEvent" not in repair or "applying_stale_by_time" not in repair:
         failures.append(
             "repair.py must measure wedged apply from progress events, not viewer saves"
+        )
+    if "resolve_applying_stale_seconds" not in repair:
+        failures.append("repair.py must use tier-scaled applying_stale threshold")
+
+    orch_parse_tokens = ("read_with_stall_pulse", "maybe_stall_pulse()")
+    if not all(token in orch for token in orch_parse_tokens):
+        failures.append(
+            "orchestrator.py must pulse during artifact parse (read_with_stall_pulse / maybe_stall_pulse)"
         )
 
     if failures:

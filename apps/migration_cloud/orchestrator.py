@@ -1197,6 +1197,9 @@ def _apply_artifact(
         return outcome
 
     try:
+        from .apply_stall import maybe_stall_pulse
+
+        maybe_stall_pulse()
         rows_iter = _iter_canonical_rows(job)
         if progress_tracker is not None and not dry_run:
             label = job.artifact.filename or job.artifact.path_within_bundle or job.domain
@@ -1266,6 +1269,9 @@ def _iter_canonical_rows(job: _ArtifactJob) -> Iterator[dict[str, Any]]:
     When the parent bundle has ``diff_mode='since'`` set with ``diff_since``,
     rows older than the threshold are filtered out before reaching the lander.
     """
+    from .apply_stall import maybe_stall_pulse, read_with_stall_pulse
+
+    maybe_stall_pulse()
     artifact = job.artifact
     mapping_index = {m["source_column"]: m for m in job.mappings}
     locale_hints = dict(artifact.locale_hints or {})
@@ -1309,15 +1315,17 @@ def _iter_canonical_rows(job: _ArtifactJob) -> Iterator[dict[str, Any]]:
     blob_stream, blob_encoding = open_artifact_blob_stream(artifact)
     if blob_stream is not None:
         try:
-            raw_bytes = blob_stream.read()
+            raw_bytes = read_with_stall_pulse(blob_stream)
         finally:
             try:
                 blob_stream.close()
             except Exception:  # noqa: BLE001
                 pass
+        maybe_stall_pulse()
         fmt = artifact.detected_format
         if fmt in ("csv", "tsv", "unknown", "json", "jsonl"):
             text = raw_bytes.decode(blob_encoding or "utf-8", errors="replace")
+            maybe_stall_pulse()
             if fmt == "json":
                 raw_iter = _iter_json_rows_text(text, mapping_index, locale_hints)
             elif fmt == "jsonl":
@@ -1367,10 +1375,12 @@ def _iter_canonical_rows(job: _ArtifactJob) -> Iterator[dict[str, Any]]:
     elif artifact.detected_format == "jsonl":
         raw_iter = _iter_jsonl_rows(path, encoding, mapping_index, locale_hints)
     elif artifact.detected_format in ("xlsx", "xls"):
+        maybe_stall_pulse()
         raw_iter = _iter_spreadsheet_rows_bytes(
             path.read_bytes(), artifact.detected_format, mapping_index, locale_hints
         )
     elif artifact.detected_format == "pdf":
+        maybe_stall_pulse()
         raw_iter = _iter_pdf_rows_bytes(path.read_bytes(), mapping_index, locale_hints)
     else:
         return iter(())

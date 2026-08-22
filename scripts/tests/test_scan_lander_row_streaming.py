@@ -22,6 +22,23 @@ class ScanLanderRowStreamingTests(unittest.TestCase):
         )
         self.assertEqual(proc.returncode, 0, proc.stderr or proc.stdout)
 
+    def test_list_comp_materialization_fails(self):
+        import importlib.util
+
+        spec = importlib.util.spec_from_file_location("scan_lander_row_streaming", SCRIPT)
+        mod = importlib.util.module_from_spec(spec)
+        assert spec.loader is not None
+        spec.loader.exec_module(mod)
+        source = (
+            "def land(self, *, canonical_rows, ctx):\n"
+            "    rows = [r for r in canonical_rows]\n"
+            "    for row in rows:\n"
+            "        pass\n"
+        )
+        findings = mod.scan_source(Path("fake_lander.py"), source)
+        self.assertEqual(len(findings), 1)
+        self.assertIn("ListComp", findings[0]["detail"])
+
     def test_unmarked_list_canonical_rows_fails(self):
         path = ROOT / "apps" / "migration_cloud" / "landers" / "report_lander.py"
         original = path.read_text(encoding="utf-8")

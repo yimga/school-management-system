@@ -206,7 +206,14 @@ def _not_repairable_reason(status: str) -> str:
 # repair_readiness refused APPLYING forever ("still running") and re-apply requires
 # MAPPED, so the import was unrecoverable without DB surgery. Reclaim it only when
 # NO apply is actually in flight AND it has been APPLYING past this threshold.
-_APPLYING_STALE_SECONDS = 30 * 60  # generous — longer than a real large apply's quiet gaps
+# Legacy test alias — maximum wedged-apply reclaim window (see apply_stall.py).
+_APPLYING_STALE_SECONDS = 30 * 60
+
+
+def _applying_stale_threshold_seconds(bundle: MigrationBundle) -> float:
+    from .apply_stall import resolve_applying_stale_seconds
+
+    return resolve_applying_stale_seconds(bundle)
 
 
 def _apply_in_flight(bundle: MigrationBundle) -> bool:
@@ -244,7 +251,7 @@ def applying_stale_by_time(bundle: MigrationBundle) -> bool:
     """
     if bundle.status != BundleStatus.APPLYING:
         return False
-    return _seconds_since_apply_signal(bundle) > _APPLYING_STALE_SECONDS
+    return _seconds_since_apply_signal(bundle) > _applying_stale_threshold_seconds(bundle)
 
 
 def _seconds_since_apply_signal(bundle: MigrationBundle) -> float:
@@ -340,7 +347,7 @@ def _row_is_wedged(bundle: MigrationBundle, row) -> bool:
         if created is None:
             return False
         return (now - created).total_seconds() > _QUEUED_APPLY_STUCK_SECONDS
-    return _seconds_since_apply_signal(bundle) > _APPLYING_STALE_SECONDS
+    return _seconds_since_apply_signal(bundle) > _applying_stale_threshold_seconds(bundle)
 
 
 def live_apply_in_flight(bundle: MigrationBundle) -> bool:
