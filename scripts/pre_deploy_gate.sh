@@ -59,6 +59,9 @@ python scripts/verify_gilead_full_tree_classification.py
 echo "[pre_deploy_gate] No print() in application code"
 python scripts/lint_no_print_in_apps.py
 
+echo "[pre_deploy_gate] Duplicate dict keys (silently discarded entries)"
+python scripts/scan_duplicate_dict_keys.py
+
 echo "[pre_deploy_gate] Ruff F401/F841 (unused imports / unused variables)"
 python -m ruff check apps --select F401,F841
 

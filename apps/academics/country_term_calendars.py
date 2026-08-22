@@ -133,7 +133,7 @@ _TERM_CALENDARS: dict[str, list[tuple[int, int, int, int]]] = {
     "PT": [(9, 15, 12, 17), (1, 4, 3, 25), (4, 5, 6, 14)],
     "IE": [(9, 1, 12, 20), (1, 6, 3, 28), (4, 10, 6, 28)],
     "BE": _TRI_SEP_FR,
-    "IT": _SEM_SEP, "PL": _SEM_SEP, "AT": _SEM_SEP, "GR": _SEM_SEP,
+    "IT": _SEM_SEP, "AT": _SEM_SEP, "GR": _SEM_SEP,
     "RO": _SEM_SEP, "UA": _SEM_SEP,
     "NL": [(8, 25, 1, 31), (2, 1, 7, 15)],
     "SE": [(8, 20, 12, 20), (1, 10, 6, 10)],

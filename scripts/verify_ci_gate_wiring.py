@@ -40,6 +40,14 @@ WORKFLOWS_DIR = REPO_ROOT / ".github" / "workflows"
 # is "present in SOME workflow"). Removing a gate from CI is a reviewed edit
 # to this tuple.
 REQUIRED_GATES: tuple[tuple[str, str], ...] = (
+    # Added 2026-08-22: a repeated key in a dict literal is silently collapsed by
+    # Python -- last value wins, the earlier entry simply is not there. The
+    # workflow registry declared parent-portal-pay-all twice and the surviving copy
+    # was a paste of the neighbouring pay-invoice entry, so the workflow resolved
+    # with NO steps and the single-invoice help article. verify_ux_completion
+    # declared one template twice, and the shadowed entry's markers -- one of which
+    # had genuinely regressed out of the template -- were never checked at all.
+    ("scripts/scan_duplicate_dict_keys.py", "architectural-boundaries.yml"),
     # The floor: a module that does not compile cannot be imported at all, and every
     # other gate is then answering about a tree that does not run. Added 2026-08-19 after
     # apps/accounts/tasks.py was found TRUNCATED mid-statement on main - the reference
@@ -279,14 +287,61 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
 )
 
 
+def _run_step_text(source: str) -> str:
+    """Every `run:` body in one workflow file.
+
+    Deliberately NOT the whole file. A script path listed under
+    ``on.pull_request.paths`` only decides WHEN the workflow runs -- it never
+    causes the gate to execute -- yet a whole-file substring search counts it as
+    wired. That was proven by mutation: deleting the run step for
+    scan_duplicate_dict_keys.py left this gate green because the path entry
+    remained. Matching run bodies only is what makes the assertion true.
+
+    Stdlib line scanner rather than a YAML parse, because this gate runs in the
+    deps-free boundary job and must not import PyYAML. It is biased toward being
+    GENEROUS -- an unrecognised shape yields the whole file rather than an
+    accusation, since a false 'un-wired' report would send someone re-wiring a
+    gate that is already wired.
+    """
+    lines = source.splitlines()
+    bodies: list[str] = []
+    index = 0
+    saw_run = False
+    while index < len(lines):
+        line = lines[index]
+        stripped = line.strip()
+        if stripped == "run:" or stripped.startswith("run: "):
+            saw_run = True
+            remainder = stripped[len("run:"):].strip()
+            indent = len(line) - len(line.lstrip())
+            if remainder and remainder[0] not in "|>":
+                bodies.append(remainder)  # inline: `run: python x.py`
+            index += 1
+            # Block scalar: consume blank lines and anything indented deeper.
+            while index < len(lines):
+                nxt = lines[index]
+                if not nxt.strip():
+                    index += 1
+                    continue
+                if len(nxt) - len(nxt.lstrip()) <= indent:
+                    break
+                bodies.append(nxt)
+                index += 1
+            continue
+        index += 1
+    if not saw_run:
+        return source  # unrecognised shape -- never accuse
+    return "\n".join(bodies)
+
+
 def _workflow_text() -> str:
-    """Concatenated text of every workflow file (forward-slashed for matching)."""
+    """Concatenated `run:` bodies of every workflow (forward-slashed)."""
     if not WORKFLOWS_DIR.is_dir():
         return ""
     chunks: list[str] = []
     for path in sorted(WORKFLOWS_DIR.glob("*.yml")) + sorted(WORKFLOWS_DIR.glob("*.yaml")):
         try:
-            chunks.append(path.read_text(encoding="utf-8"))
+            chunks.append(_run_step_text(path.read_text(encoding="utf-8")))
         except (OSError, UnicodeDecodeError):
             continue
     return "\n".join(chunks).replace("\\", "/")

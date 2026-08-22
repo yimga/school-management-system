@@ -50,7 +50,6 @@ class OfflineWorkflowApplyTests(TestCase):
                     "absence_end": end.strftime("%Y-%m-%dT%H:%M"),
                     "grace_minutes": "30",
                     "reason_code": "sick",
-                    "grace_minutes": "30",
                     "lesson_outline_json": "[]",
                 },
             }

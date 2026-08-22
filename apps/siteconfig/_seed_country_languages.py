@@ -1288,7 +1288,6 @@ _PRIMARY_LANGUAGE_BY_COUNTRY: dict[str, tuple[str, str]] = {
     "SL": ("en", "English"),
     "LR": ("en", "English"),
     "SS": ("en", "English"),
-    "ET": ("am", "አማርኛ"),
     # Africa francophone
     "BJ": ("fr", "Français"),
     "BF": ("fr", "Français"),
@@ -1335,7 +1334,6 @@ _PRIMARY_LANGUAGE_BY_COUNTRY: dict[str, tuple[str, str]] = {
     "AD": ("ca", "Català"),
     "MC": ("fr", "Français"),
     "GU": ("en", "English"),  # US territory (not UN)
-    "GE": ("ka", "ქართული"),
 }
 
 
