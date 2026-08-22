@@ -271,6 +271,53 @@ release back while a fix is prepared.
 
 ---
 
+## 4c. What the cloud keeps, and where an operator reads it
+
+`apps/sync_engine/models_fleet.py` (`EdgeFleetState`), migrations `0021` + `0022`,
+console at `/super/edge-fleet/`.
+
+Every box already told the cloud what it was: `X-RMC-Sync-Manifest` on every handshake,
+`X-RMC-Sync-Engine` naming the build, `X-RMC-Sync-Upgrade-Failure` carrying a stopped
+upgrade. All three were read and **discarded** — the hash was compared and dropped, the
+failure went to a logfile. So "which school is on which release, and which one is stuck"
+had no answer, and the honest way to get one was to ring the school.
+
+`EdgeDeploymentHistory` cannot answer it and that is not a defect: it is written on the
+**box**, in the box's own database, behind that school's link. `EdgeFleetState` is the
+other half — what the *cloud* observed. One row per school, overwritten; the durable
+history stays on the box, because a row per handshake per school is millions of rows a
+year to answer "what is it on now".
+
+Three distinctions the console is careful about:
+
+* **Seen ≠ moved.** A box that checked in four minutes ago and last changed manifest in
+  June is healthy on the network and stuck on the upgrade. Separate columns.
+* **Waiting ≠ stuck.** A school not yet promoted to is behaving correctly. Painting it
+  like a failure teaches an operator to ignore the colour.
+* **A resolved failure stops being shown**, or the operator chases a ghost.
+
+Read-only: promotion is `manage.py ota_rollout`, because a button that releases a build to
+every school is a button that gets clicked by accident.
+
+---
+
+## 4d. Release layout — how the full lane becomes real
+
+`deploy/selfhost/release_layout.sh`, `RMC_OTA_RELEASE_ROOT`.
+
+The stock image is one tree, so a code swap cannot be atomic and the manager refuses:
+`deferred — apply with an image rebuild`. Set `RMC_OTA_RELEASE_ROOT` (and mount a volume
+there) and the box gets `releases/<hash>/` plus a `current` symlink; the entrypoint serves
+**from the symlink**, which is the part that makes it real — a symlink nothing serves from
+is decoration. Opt-in: unset, the box boots exactly as before.
+
+And the half that is easy to forget: **a swapped file changes nothing until the process
+reloads.** gunicorn writes `GUNICORN_PIDFILE`, both entrypoint paths export it, and
+`RMC_OTA_WORKER_RELOAD_PIDFILE` falls back to it — two env vars that must name the same
+file is a trap where a wrong path degrades silently to "reload NOT configured".
+
+---
+
 ## 5. `EdgeDeploymentHistory`
 
 `apps/sync_engine/models_deployment.py`, migration `0018`. Append-only
