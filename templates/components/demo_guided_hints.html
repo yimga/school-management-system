@@ -10,17 +10,24 @@
   <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="d-flex flex-wrap gap-2 mt-2 mb-2" data-rmc-demo-guided-ctas="1">
     {% if role == 'PARENT' %}
-    <a class="btn btn-sm btn-primary" href="{% url 'portal:parent_attendance_discipline' %}">{% trans_term "Attendance" key="attendance" %}</a>
-    <a class="btn btn-sm btn-primary" href="{% url 'portal:parent_dashboard' %}">{% trans "Grades & results" %}</a>
+    {% comment %} portal:/evals: are tenant-only; this strip is role-guarded but not host-guarded and portal_base.html also renders on the operator host. The `as` form degrades to no button instead of a 500. {% endcomment %}
+    {% url 'portal:parent_attendance_discipline' as rmc_dg_attendance %}
+    {% url 'portal:parent_dashboard' as rmc_dg_parent_home %}
+    {% if rmc_dg_attendance %}<a class="btn btn-sm btn-primary" href="{{ rmc_dg_attendance }}">{% trans_term "Attendance" key="attendance" %}</a>{% endif %}
+    {% if rmc_dg_parent_home %}<a class="btn btn-sm btn-primary" href="{{ rmc_dg_parent_home }}">{% trans "Grades & results" %}</a>{% endif %}
     {% if demo_parent_child_results_url %}
     <a class="btn btn-sm btn-primary" href="{{ demo_parent_child_results_url }}">{% trans "Generate report" %}</a>
     {% else %}
-    <a class="btn btn-sm btn-outline-primary" href="{% url 'portal:link_child' %}">{% trans "Link a child" %}</a>
+    {% url 'portal:link_child' as rmc_dg_link_child %}
+    {% if rmc_dg_link_child %}<a class="btn btn-sm btn-outline-primary" href="{{ rmc_dg_link_child }}">{% trans "Link a child" %}</a>{% endif %}
     {% endif %}
     {% else %}
-    <a class="btn btn-sm btn-primary" href="{% url 'portal:take_student_attendance' %}">{% trans "Take attendance" %}</a>
-    <a class="btn btn-sm btn-primary" href="{% url 'evals:teacher_marks_entry' %}">{% trans "Enter marks" %}</a>
-    <a class="btn btn-sm btn-primary" href="{% url 'evals:teacher_marks_list' %}">{% trans "Generate report" %}</a>
+    {% url 'portal:take_student_attendance' as rmc_dg_take_attendance %}
+    {% url 'evals:teacher_marks_entry' as rmc_dg_marks_entry %}
+    {% url 'evals:teacher_marks_list' as rmc_dg_marks_list %}
+    {% if rmc_dg_take_attendance %}<a class="btn btn-sm btn-primary" href="{{ rmc_dg_take_attendance }}">{% trans "Take attendance" %}</a>{% endif %}
+    {% if rmc_dg_marks_entry %}<a class="btn btn-sm btn-primary" href="{{ rmc_dg_marks_entry }}">{% trans "Enter marks" %}</a>{% endif %}
+    {% if rmc_dg_marks_list %}<a class="btn btn-sm btn-primary" href="{{ rmc_dg_marks_list }}">{% trans "Generate report" %}</a>{% endif %}
     {% endif %}
   </div>
   {% endwith %}

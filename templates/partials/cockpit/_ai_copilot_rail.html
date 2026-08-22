@@ -332,7 +332,9 @@
               {% else %}
               <li><a class="lx-copilot__shortcut" href="{% url 'portal:teacher_dashboard_alias' %}"><span class="lx-copilot__shortcut-icon" aria-hidden="true">◐</span><span>{% trans 'My classes' %}</span></a></li>
               {% endif %}
-              <li><a class="lx-copilot__shortcut" href="{% url 'evals:teacher_dashboard' %}"><span class="lx-copilot__shortcut-icon" aria-hidden="true">▤</span><span>{% trans 'Gradebook' %}</span></a></li>
+              {% comment %} evals: is tenant-only. The line above is host-guarded; this one was not, so a TEACHER-role session on the manager host 500'd the whole page. {% endcomment %}
+              {% url 'evals:teacher_dashboard' as rmc_evals_teacher_url %}
+              {% if rmc_evals_teacher_url %}<li><a class="lx-copilot__shortcut" href="{{ rmc_evals_teacher_url }}"><span class="lx-copilot__shortcut-icon" aria-hidden="true">▤</span><span>{% trans 'Gradebook' %}</span></a></li>{% endif %}
               <li><a class="lx-copilot__shortcut" href="{% url 'accounts:user_messages' %}"><span class="lx-copilot__shortcut-icon" aria-hidden="true">✉</span><span>{% trans 'Inbox' %}</span></a></li>
             {% elif nav_role == 'PARENT' %}
               {% if request.public_host_kind == 'manager' %}

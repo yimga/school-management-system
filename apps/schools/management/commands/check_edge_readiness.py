@@ -367,6 +367,121 @@ class Command(BaseCommand):
                 "in the environment if you deploy without Docker.",
             ))
 
+        # --- TLS posture -----------------------------------------------------
+        # A box without a certificate is not merely "less secure": the origin is not
+        # a SECURE CONTEXT, so the browser withholds crypto.subtle and the offline
+        # PIN vault can never seal. Every school that pressed "make this device
+        # offline ready" on a plain-HTTP box got "Local access could not be enabled
+        # on this browser", which blamed the browser for a property of the URL.
+        # Readiness has to SAY that, because nothing else in the stack can.
+        from apps.schools import edge_tls as _tls
+
+        resolution = _tls.resolve_mode()
+        if resolution.error:
+            findings.append((
+                FAIL,
+                f"{_tls.ENV_MODE}={resolution.raw!r} is not a mode I recognise "
+                f"({', '.join(_tls.TLS_MODES)}), so the box fell back to plain HTTP. "
+                "A typo here hands a school HTTP while its runbook says HTTPS.",
+            ))
+        elif resolution.mode == _tls.MODE_OFF:
+            findings.append((
+                WARN,
+                "TLS is off — the box serves plain HTTP. Login works, but the origin "
+                "is not a secure context, so offline PIN / local mode CANNOT be "
+                "enabled on any browser. `manage.py edge_tls --plan-to selfsigned` "
+                "prints the way out; docs/EDGE_TLS_RUNBOOK.md explains the choices.",
+            ))
+        else:
+            findings.append((
+                OK,
+                f"TLS mode is {resolution.mode} — the box serves a secure context, so "
+                "offline PIN / local mode can enrol.",
+            ))
+
+        if resolution.mode in _tls.FILE_BACKED_MODES:
+            cert_path, key_path, _ca = _tls.certificate_paths()
+            dns_names, ip_addresses = _tls.san_candidates(allowed_hosts=allowed_hosts)
+            cert = _tls.inspect_certificate(cert_path)
+            if not cert.exists:
+                findings.append((
+                    FAIL,
+                    f"TLS mode is {resolution.mode} but no certificate at {cert_path}. "
+                    + (
+                        "Run `manage.py edge_tls --issue-selfsigned`."
+                        if resolution.mode == _tls.MODE_SELF_SIGNED
+                        else f"Point {_tls.ENV_CERT} at the fullchain your CA issued."
+                    ),
+                ))
+            elif cert.error:
+                findings.append((FAIL, f"Certificate at {cert_path}: {cert.error}"))
+            else:
+                # Presence is not usability — the lesson _fernet_key_defects learned.
+                missing = cert.covers(dns_names, ip_addresses)
+                if missing:
+                    findings.append((
+                        FAIL,
+                        "The certificate does not assert "
+                        + ", ".join(missing)
+                        + " — browsers show a name-mismatch warning at exactly the "
+                        "addresses people type. Reissue with those names "
+                        f"({_tls.ENV_HOSTNAMES}) or add them to ALLOWED_HOSTS.",
+                    ))
+                elif cert.days_remaining is not None and cert.days_remaining < 0:
+                    findings.append((
+                        FAIL,
+                        f"The certificate EXPIRED {abs(cert.days_remaining)} days ago "
+                        f"({cert.not_after}). Every browser refuses the box.",
+                    ))
+                elif cert.days_remaining is not None and cert.days_remaining < 30:
+                    findings.append((
+                        WARN,
+                        f"The certificate expires in {cert.days_remaining} days "
+                        f"({cert.not_after}). An offline box has nothing to renew it "
+                        "automatically — put the date in the school's calendar.",
+                    ))
+                else:
+                    findings.append((
+                        OK,
+                        f"Certificate covers every address the box answers at and is "
+                        f"valid for {cert.days_remaining} more days.",
+                    ))
+            if not os.path.exists(key_path):
+                findings.append((FAIL, f"TLS mode is {resolution.mode} but no private key at {key_path}."))
+
+        # The flags a mode implies, versus the flags actually in force. An explicit
+        # env var deliberately wins — but ONE direction is a lockout and the other is
+        # merely a downgrade, so they are not the same finding.
+        if resolution.source != "default" and not debug:
+            for name, expected in _tls.derived_security_flags(resolution.mode).items():
+                actual = getattr(settings, name, None)
+                if actual == expected:
+                    continue
+                if expected is False and actual:
+                    findings.append((
+                        FAIL,
+                        f"{name}={actual} but {_tls.ENV_MODE}={resolution.mode} implies "
+                        f"{expected}. On a plain-HTTP origin this is the classic lockout: "
+                        "the cookie is never set, the login POST 302s and bounces, and "
+                        "nothing is logged. Delete the explicit value from .env.",
+                    ))
+                else:
+                    findings.append((
+                        WARN,
+                        f"{name}={actual} overrides the {resolution.mode} default of "
+                        f"{expected}. Legal, but the mode no longer describes the box.",
+                    ))
+            if resolution.mode in {_tls.MODE_SELF_SIGNED, _tls.MODE_PROVIDED} and int(
+                getattr(settings, "SECURE_HSTS_SECONDS", 0) or 0
+            ) > 0:
+                findings.append((
+                    FAIL,
+                    "SECURE_HSTS_SECONDS is set on a LAN certificate. HSTS tells every "
+                    "browser to refuse plain HTTP to this origin for the full max-age, "
+                    "and a LAN name or IP is an origin another box may hold next term. "
+                    "This makes the TLS decision irreversible from the browser side.",
+                ))
+
         # --- Report ---------------------------------------------------------
         styles = {OK: self.style.SUCCESS, WARN: self.style.WARNING, FAIL: self.style.ERROR}
         for level, msg in findings:

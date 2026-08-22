@@ -50,6 +50,12 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # operator AND tenant hosts were a guaranteed TypeError 500. The URL resolved, the view
     # existed, the permission passed; only calling it failed, so no route-name gate saw it.
     ("scripts/audit_url_kwarg_contract.py", "ci.yml"),
+    # Added 2026-08-22: portal_base.html renders on the tenant host AND the operator
+    # host, and its closing chrome included a bare {% url 'portal:support_quick_create' %}.
+    # portal: is tenant-only, so seven /super/migration/connectors/* routes 500'd AFTER
+    # the body had rendered. verify_url_name_integrity was green throughout, because the
+    # name reverses -- just not on that host.
+    ("scripts/audit_shell_url_namespace_contract.py", "ci.yml"),
     # Added 2026-08-21: `ink` and `midnight` both paired a navy ground with the WARM
     # surface ramp belonging to `steel`, so every form control on those themes rendered
     # brown inside a navy shell. Every contrast gate was green throughout -- the defect

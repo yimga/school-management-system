@@ -77,8 +77,12 @@
         <span class="rmc-nas-chip-title">{% trans "Operations home" %}</span>
         <span class="rmc-nas-chip-desc text-muted">{% trans "Open your main school workspace." %}</span>
       </a>
-      {% if not strict %}
-      <a class="rmc-nas-chip" role="listitem" href="{% url 'feedback:help_center' %}?section=support" data-action="fallback-open" data-task="platform-next-action" data-task-step="help:next-action-fallback">
+      {% comment %} feedback: is not mounted on config/public_urls.py. This is the
+      no-rows fallback, so the branch whose whole job is to avoid a dead end was itself
+      a 500 on the public host. `as` drops the chip; the primary one above still renders. {% endcomment %}
+      {% url 'feedback:help_center' as rmc_nas_help_url %}
+      {% if not strict and rmc_nas_help_url %}
+      <a class="rmc-nas-chip" role="listitem" href="{{ rmc_nas_help_url }}?section=support" data-action="fallback-open" data-task="platform-next-action" data-task-step="help:next-action-fallback">
         <span class="rmc-nas-chip-title">{% trans "Help center" %}</span>
         <span class="rmc-nas-chip-desc text-muted">{% trans "Guides and answers when you are stuck." %}</span>
       </a>

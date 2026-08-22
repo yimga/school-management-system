@@ -71,6 +71,8 @@ jobs:
         run: python scripts/verify_orm_filter_field_integrity.py --compare
       - name: URL kwarg contract (views must accept their own URL kwargs)
         run: python scripts/audit_url_kwarg_contract.py
+      - name: Shell chrome cross-host {% url %} contract
+        run: python scripts/audit_shell_url_namespace_contract.py
       - name: Verify offline manifest taxonomy (operational_state always present)
         run: python scripts/verify_offline_manifest_taxonomy.py
       - name: Verify tenant cannot reach operator routes (super-segment coverage)

@@ -2,7 +2,44 @@
 
 **Last updated:** 2026-08-22
 
-## 2026-08-22 (latest) — The box was being served the developer urlconf, and 124 operator/tenant routes could not accept their own URL kwargs
+## 2026-08-22 (latest, second pass) — Tenant-only `{% url %}` in shared shell chrome, and a TLS decision the school gets to make
+
+No SW bump: no new CSS. Template edits are `{% url %}`-form only (hard → `as var` +
+`{% if %}`), so no class names change and the undefined-css / off-token / theme-locked
+gates are unaffected. Full write-up: [`docs/EDGE_TLS_RUNBOOK.md`](EDGE_TLS_RUNBOOK.md).
+
+**Seven `/super/migration/connectors/*` routes were 500, and it was not the block
+names.** The earlier pass reported this as "their templates extend `portal_base.html`,
+which reverses the tenant-only `portal:` namespace — 109 templates do that; fixing it
+needs a host-aware base and every block renamed". Reproducing it instead of reasoning
+about it found something much smaller and much wider: the failing tag is **one bare
+`{% url 'portal:support_quick_create' %}`** in `templates/partials/rmc_support_quick_create.html`,
+included unguarded from `portal_base.html:942`. The four `portal:` reverses in
+`portal_base.html` itself already use the `as var` form and never raised. No base
+rewrite and no block renaming were needed.
+
+`scripts/audit_shell_url_namespace_contract.py` then found the same defect class in
+**five files, 15 unguarded tags** — including `base.html`'s preview bar (`siteconfig:`
+is not on the public marketing host, so a staff member in preview mode 500'd every
+marketing page) and `next_action_strip.html`'s help-centre chip (`feedback:` likewise —
+the branch whose entire job is to avoid a dead end *was* the dead end). All converted to
+the `as var` form. **15 → 0 unguarded**; 38 already-guarded tags are counted, not failed.
+Verified end to end: 1,569 no-arg routes on `config.manager_urls` driven through the real
+stack, **0 × 5xx** (3 × 503 remain, all deliberate "connector not configured" placeholders
+in `apps/api/ministry_placeholders.py`).
+
+**Edge TLS became a choice with a supported reversal, not an omission.**
+`RMC_EDGE_TLS_MODE` = `off | selfsigned | provided | acme` now derives the four flags
+that decide whether login works at all, so a school flipping one value does not also
+have to know that `SECURE_SSL_REDIRECT`, `SESSION_COOKIE_SECURE`, `CSRF_COOKIE_SECURE`
+and `SECURE_HSTS_SECONDS` follow. HSTS deliberately stays **0** for `selfsigned` and
+`provided`: on a `.lan` name or an IP it would tell every browser to refuse plain HTTP
+to that origin for a year, turning a reversible decision into a one-way door. Gilead
+runs `selfsigned`. `manage.py edge_tls` issues the box CA + leaf (reusing the CA on
+reissue, so a box that changes IP does not invalidate every device's trust install),
+prints the Caddy config, and prints the ordered transition steps in either direction.
+
+## 2026-08-22 — The box was being served the developer urlconf, and 124 operator/tenant routes could not accept their own URL kwargs
 
 No SW bump: no new CSS and no new JS. Full write-up: [`docs/EDGE_UPDATE_PIPELINE.md`](EDGE_UPDATE_PIPELINE.md).
 

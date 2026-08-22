@@ -1,0 +1,51 @@
+# TLS terminator for a sovereign RunMyCampus box.
+#
+# WHY THIS FILE EXISTS. A box reached at http://10.10.20.137:10000 is not a SECURE
+# CONTEXT, so the browser withholds crypto.subtle -- and the offline capability vault
+# derives its PIN key with WebCrypto. "Make this device offline ready" could never
+# succeed on any browser at that origin. The certificate is the fix; nothing in the
+# application layer is.
+#
+# This file is rendered from the box's own configuration. Regenerate it after any
+# change to RMC_EDGE_TLS_MODE / RMC_EDGE_TLS_HOSTNAMES / ALLOWED_HOSTS:
+#
+#   docker compose -f deploy/selfhost/docker-compose.yml exec web \
+#     python manage.py edge_tls --print-caddyfile > deploy/selfhost/Caddyfile.edge
+#   docker compose -f deploy/selfhost/docker-compose.yml --profile tls up -d edge-tls
+#
+# The three HTTPS modes differ by ONE directive, which is the whole reason the
+# terminator is Caddy here rather than nginx -- a school moving from self-signed to a
+# CA-issued pair changes a line, not a config:
+#
+#   selfsigned  tls internal                    (Caddy's own local CA)
+#   selfsigned  tls /path/tls.crt /path/tls.key (a CA minted by `manage.py edge_tls
+#                                                --issue-selfsigned`, when several
+#                                                appliances must share one box CA)
+#   provided    tls /path/fullchain.pem /path/privkey.pem
+#   acme        tls ops@school.example           (public CA, auto-renewing)
+#
+# The header_up lines are load-bearing. config/settings.py sets
+# SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https"); without them every
+# request looks like plain HTTP to Django and SECURE_SSL_REDIRECT sends the browser
+# into a redirect loop that looks exactly like a broken login.
+
+{
+	# A LAN box has no public name to register with a CA, and an admin endpoint that
+	# answers on the LAN is a needless surface. Both off by default.
+	admin off
+	auto_https disable_redirects
+}
+
+# ---------------------------------------------------------------------------
+# Replace the site line and the tls directive with the output of
+# `manage.py edge_tls --print-caddyfile`. The block below is the Gilead shape:
+# self-signed, two LAN names plus the IP people actually type.
+# ---------------------------------------------------------------------------
+gilead.school.lan, 10.10.20.137 {
+	tls internal
+	encode zstd gzip
+	reverse_proxy web:10000 {
+		header_up X-Forwarded-Proto {scheme}
+		header_up X-Forwarded-Host {host}
+	}
+}
