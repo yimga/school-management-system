@@ -588,7 +588,7 @@ class TenantMigrationProgressStreamView(_TenantAdminRequiredMixin, View):
     tenant review pages can subscribe via ``EventSource`` instead of polling.
     """
 
-    def get(self, request, bundle_id: int):
+    def get(self, request, bundle_id: int, **kwargs):
         from django.http import StreamingHttpResponse
 
         from .progress import stream_events_since
@@ -617,7 +617,7 @@ class TenantMigrationAIExplainView(_TenantAdminRequiredMixin, View):
 
     @idempotent_post
     @safe_500
-    def post(self, request, bundle_id: int):
+    def post(self, request, bundle_id: int, **kwargs):
         import json
 
         from .ai_bridge import explain_quarantine_row
@@ -651,7 +651,7 @@ class TenantMigrationArchiveSourceView(_TenantAdminWriteRequiredMixin, View):
 
     @idempotent_post
     @safe_500
-    def post(self, request, bundle_id: int):
+    def post(self, request, bundle_id: int, **kwargs):
         from .artifact_blob_store import archive_bundle_source_files, source_blob_count
         from .models import BundleStatus
         from .quarantine_resolution import pending_quarantine_count
