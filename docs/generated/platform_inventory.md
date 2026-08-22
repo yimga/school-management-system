@@ -1,24 +1,24 @@
 # Platform Inventory
 
 - Installed app modules: `55`
-- Python files: `8702`
-- HTML templates: `2101`
-- Markdown files: `1888`
-- Migration files: `1281`
-- Management commands: `400` (full list in JSON key `management_commands_list`)
+- Python files: `8715`
+- HTML templates: `2103`
+- Markdown files: `1889`
+- Migration files: `1282`
+- Management commands: `401` (full list in JSON key `management_commands_list`)
 - `SiteSettings` refs (gross scan): `2590`
 - `SiteSettings` refs (`apps/**/*.py`, excl. migrations): `237`
 - `SiteSettings` refs (`apps/**/*.py`, excl. migrations+tests): `165`
 - `get_solo()` refs: `213`
-- `except Exception`: `3981`
+- `except Exception`: `3984`
 - `cursor.execute()` (gross): `718`
 - `cursor.execute()` (`apps`+`config` `.py`, excl. migrations): `70`
 - `csrf_exempt` (substring, gross): `767`
 - `csrf_exempt` decorator lines (`apps`+`config`, excl. migrations): `115`
 - `AllowAny`: `166`
-- `print()` (gross all `.py`): `5609`
-- `print()` (`apps` product paths): `0`; `scripts/`: `5386`
-- `gilead` matches (gross corpus): `42084` across `466` files
+- `print()` (gross all `.py`): `5619`
+- `print()` (`apps` product paths): `0`; `scripts/`: `5396`
+- `gilead` matches (gross corpus): `42089` across `468` files
 - `gilead` line hits (`apps`+`templates`+`config`, excl. migrations+tests+`management/commands`): `0`
 
 Gross totals include migrations and broad file pools; use **scoped** lines around SQL/SiteSettings/Tenant gravity for trend tracking (see SOT §0 *Structural remediation stack*).
@@ -26,7 +26,7 @@ Gross totals include migrations and broad file pools; use **scoped** lines aroun
 
 ## Management Commands (full list)
 
-Total: `400` commands. First 25 by app/command:
+Total: `401` commands. First 25 by app/command:
 
 - `academics` / `export_certification_pack` — `apps/academics/management/commands/export_certification_pack.py`
 - `academics` / `export_country_catalog_template` — `apps/academics/management/commands/export_country_catalog_template.py`
@@ -53,7 +53,7 @@ Total: `400` commands. First 25 by app/command:
 - `accounts` / `promote_superadmin` — `apps/accounts/management/commands/promote_superadmin.py`
 - `accounts` / `recover_unactivated_owners` — `apps/accounts/management/commands/recover_unactivated_owners.py`
 - `accounts` / `refresh_saml_idp_metadata` — `apps/accounts/management/commands/refresh_saml_idp_metadata.py`
-- … and 375 more (see `platform_inventory.json` key `management_commands_list`).
+- … and 376 more (see `platform_inventory.json` key `management_commands_list`).
 
 ## Public Endpoint Review
 
@@ -80,7 +80,7 @@ Total: `400` commands. First 25 by app/command:
 - `apps/siteconfig/_seed_country_localization.py`: `16897` lines / `1225749` bytes
 - `apps/siteconfig/forms_cockpit.py`: `6416` lines / `257782` bytes
 - `config/settings.py`: `4735` lines / `242768` bytes
-- `apps/accounts/views.py`: `5003` lines / `206143` bytes
+- `apps/accounts/views.py`: `5021` lines / `207081` bytes
 - `apps/schools/marketing_views.py`: `4217` lines / `169799` bytes
 - `apps/migration_cloud/views.py`: `3659` lines / `159377` bytes
 - `apps/api/saml.py`: `3487` lines / `147039` bytes
