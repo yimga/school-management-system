@@ -21,6 +21,7 @@ import logging
 from typing import Any
 
 from django.apps import apps as django_apps
+from django.conf import settings
 from django.db import IntegrityError, transaction
 from django.utils import timezone
 
@@ -209,12 +210,81 @@ def apply_merge(op, *, actor=None) -> dict[str, Any]:
         cache.delete(lock_key)
 
 
+def _is_shared_schema_model(model) -> bool:
+    """True when ``model``'s table lives in the PUBLIC schema under django-tenants.
+
+    False on a single-schema deploy (USE_DJANGO_TENANTS=0), where every tenant
+    shares one table set and person pks are globally unique, so the cross-tenant
+    collision this guards against cannot arise.
+    """
+    shared = getattr(settings, "SHARED_APPS", None)
+    if not shared:
+        return False
+    tenant_apps = set(getattr(settings, "TENANT_APPS", ()) or ())
+    app_name = model._meta.app_config.name
+    return app_name in set(shared) and app_name not in tenant_apps
+
+
+def _shared_schema_school_field(model) -> str | None:
+    """Name of ``model``'s school FK when the model lives in the PUBLIC schema.
+
+    Returns None for a model that is tenant-scoped (the schema itself isolates
+    it, so no extra filter is needed) and raises nothing.
+
+    Why this exists: ``inbound_fk_fields`` walks the WHOLE app registry, which is
+    what makes it self-maintaining -- and correct for TENANT models, because under
+    django-tenants each tenant's schema holds only its own rows. A SHARED model is
+    different: ``compliance.FerpaDisclosure`` (SHARED_APPS) carries a
+    ``db_constraint=False`` FK to ``people.StudentProfile`` (TENANT_APPS), so one
+    public table holds every tenant's disclosure rows while StudentProfile pks are
+    per-schema BigAutoField sequences that collide freely across tenants. An
+    unfiltered ``filter(student=secondary).update(student=primary)`` therefore
+    matches ANOTHER school's rows whose student_id happens to equal this
+    secondary's pk, and re-parents that school's FERPA disclosures onto a student
+    in this one.
+    """
+    if not _is_shared_schema_model(model):
+        return None
+    for field in model._meta.get_fields():
+        if (
+            getattr(field, "many_to_one", False)
+            and getattr(field, "concrete", False)
+            and getattr(field, "related_model", None) is not None
+            and field.related_model._meta.label == "schools.School"
+        ):
+            return field.name
+    return None
+
+
 def _repoint_all(op, person_model, primary, secondary) -> dict[str, Any]:
     repointed = 0
     collisions: list[dict[str, Any]] = list(op.collisions or [])
     for model, field in inbound_fk_fields(person_model):
         try:
-            qs = model._default_manager.filter(**{field.name: secondary})  # tenant-isolation-allow: walker-scoped-via-secondary-person-row-same-school
+            # A SHARED-schema model is NOT isolated by the walk: see
+            # _shared_schema_school_field. Constrain it to this operation's
+            # school, and refuse outright when it carries no school FK -- an
+            # unscopeable public table must quarantine, never be updated blind.
+            extra: dict[str, Any] = {}
+            school_field = _shared_schema_school_field(model)
+            if school_field is not None:
+                extra[school_field] = op.school_id
+            elif _is_shared_schema_model(model):
+                collisions.append(
+                    {
+                        "model": model._meta.label_lower,
+                        "field": field.name,
+                        "pk": "",
+                        "error": (
+                            "shared-schema model has no school FK; refusing to "
+                            "re-point it across tenants"
+                        ),
+                        "at": timezone.now().isoformat(),
+                    }
+                )
+                continue
+
+            qs = model._default_manager.filter(**{field.name: secondary}, **extra)  # tenant-isolation-allow: tenant-models-scoped-by-schema-shared-models-scoped-by-op-school
             if not qs.exists():
                 continue
             # Fast path: one bulk UPDATE under a savepoint. If ANY row in the
@@ -226,7 +296,7 @@ def _repoint_all(op, person_model, primary, secondary) -> dict[str, Any]:
                 continue
             except IntegrityError:
                 pass
-            for obj in model._default_manager.filter(**{field.name: secondary}).iterator():  # tenant-isolation-allow: walker-scoped-via-secondary-person-row-same-school
+            for obj in model._default_manager.filter(**{field.name: secondary}, **extra).iterator():  # tenant-isolation-allow: tenant-models-scoped-by-schema-shared-models-scoped-by-op-school
                 try:
                     with transaction.atomic():
                         setattr(obj, field.name, primary)
