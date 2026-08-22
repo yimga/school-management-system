@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 
 from django.db import transaction
+from django.utils import timezone
 
 from apps.packages.engine import rollback as rollback_package
 from apps.packages.models import InstalledPackage
@@ -217,6 +218,27 @@ def rollback_blueprint_installation(
             skipped_changes.append("installed_package_marker_missing")
         installation.status = BlueprintInstallation.Status.ROLLED_BACK
         installation.save(update_fields=["status", "updated_at"])
+        # Retire any sibling rows for the same blueprint_key. Version bumps use
+        # different idempotency keys, so a tenant can hold multiple ``applied``
+        # rows; rolling back one must not leave a stale row blocking the next base.
+        superseded = list(
+            BlueprintInstallation.objects.filter(
+                school=school,
+                blueprint_key=installation.blueprint_key,
+                status__in=(
+                    BlueprintInstallation.Status.APPLIED,
+                    BlueprintInstallation.Status.PARTIALLY_APPLIED,
+                ),
+            )
+            .exclude(pk=installation.pk)
+            .values_list("pk", flat=True)
+        )
+        if superseded:
+            BlueprintInstallation.objects.filter(pk__in=superseded).update(
+                status=BlueprintInstallation.Status.ROLLED_BACK,
+                updated_at=timezone.now(),
+            )
+            reverted_changes.append("superseded_sibling_installations")
         event = audit_blueprint_event(
             "blueprint_rolled_back",
             blueprint_key=installation.blueprint_key,

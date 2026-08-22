@@ -161,6 +161,13 @@ def apply_blueprint(
             ),
         }
 
+    reactivated = BlueprintInstallation.objects.filter(
+        school=school,
+        blueprint_key=blueprint.key,
+        idempotency_key=idem,
+        status=BlueprintInstallation.Status.ROLLED_BACK,
+    ).first()
+
     rollback_snapshot = _snapshot_school(school)
     applied_changes = preview.get("changes", [])
     package_result: dict[str, Any] = {}
@@ -207,21 +214,49 @@ def apply_blueprint(
         # it, rollback restored school.settings and left the modules enabled
         # forever — a state that is neither pre-apply nor post-apply.
         rollback_snapshot["modules_enabled"] = list(module_sync.get("enabled", []))
-        installation = BlueprintInstallation.objects.create(
-            school=school,
-            blueprint_key=blueprint.key,
-            blueprint_version=blueprint.version,
-            installed_version=blueprint.version,
-            available_version=blueprint.version,
-            status=BlueprintInstallation.Status.APPLIED,
-            applied_by=actor if getattr(actor, "pk", None) else None,
-            applied_at=timezone.now(),
-            preview_snapshot=preview,
-            applied_changes=applied_changes,
-            external_blockers=list(preview.get("external_required") or []),
-            rollback_snapshot=rollback_snapshot,
-            idempotency_key=idem,
-        )
+        if reactivated is not None:
+            installation = reactivated
+            installation.status = BlueprintInstallation.Status.APPLIED
+            installation.blueprint_version = blueprint.version
+            installation.installed_version = blueprint.version
+            installation.available_version = blueprint.version
+            installation.applied_by = actor if getattr(actor, "pk", None) else None
+            installation.applied_at = timezone.now()
+            installation.preview_snapshot = preview
+            installation.applied_changes = applied_changes
+            installation.external_blockers = list(preview.get("external_required") or [])
+            installation.rollback_snapshot = rollback_snapshot
+            installation.save(
+                update_fields=[
+                    "status",
+                    "blueprint_version",
+                    "installed_version",
+                    "available_version",
+                    "applied_by",
+                    "applied_at",
+                    "preview_snapshot",
+                    "applied_changes",
+                    "external_blockers",
+                    "rollback_snapshot",
+                    "updated_at",
+                ]
+            )
+        else:
+            installation = BlueprintInstallation.objects.create(
+                school=school,
+                blueprint_key=blueprint.key,
+                blueprint_version=blueprint.version,
+                installed_version=blueprint.version,
+                available_version=blueprint.version,
+                status=BlueprintInstallation.Status.APPLIED,
+                applied_by=actor if getattr(actor, "pk", None) else None,
+                applied_at=timezone.now(),
+                preview_snapshot=preview,
+                applied_changes=applied_changes,
+                external_blockers=list(preview.get("external_required") or []),
+                rollback_snapshot=rollback_snapshot,
+                idempotency_key=idem,
+            )
         event = audit_blueprint_event(
             "blueprint_applied",
             blueprint_key=blueprint.key,
