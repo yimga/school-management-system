@@ -391,6 +391,17 @@ def write_academic_year_setup(
     else:
         end_date = date.fromisoformat(str(end_raw)[:10])
 
+    # Checked here because the wizard engine validates fields one at a time and
+    # has no way to express a rule spanning two of them. Without this the first
+    # objection comes from the database as
+    # "CHECK constraint failed: academicyear_end_after_start", which is true but
+    # is not a sentence anyone should be shown.
+    if end_date <= start_date:
+        raise ValueError(
+            f"Academic year end date ({end_date}) must fall after its start date "
+            f"({start_date})."
+        )
+
     with transaction.atomic():
         ay, _ = AcademicYear.objects.get_or_create(
             school=school,
