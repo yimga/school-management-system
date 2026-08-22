@@ -4338,7 +4338,15 @@ except ValueError:
 # Web-worker reload after a code swap. Both empty by default: guessing at a master PID and
 # signalling it is how you kill a school's web server. Configured, the manager reloads; not
 # configured, it REPORTS that the swap lands on the next container restart.
-RMC_OTA_WORKER_RELOAD_PIDFILE = (os.getenv("RMC_OTA_WORKER_RELOAD_PIDFILE", "") or "").strip()
+# Falls back to GUNICORN_PIDFILE, because those two must name the SAME file and making an
+# operator set both correctly is a configuration trap: set one to the wrong path and the
+# reload silently degrades to "NOT configured" while looking configured. The self-host
+# entrypoint exports GUNICORN_PIDFILE, so a box gets a working reload with no extra env.
+RMC_OTA_WORKER_RELOAD_PIDFILE = (
+    os.getenv("RMC_OTA_WORKER_RELOAD_PIDFILE", "")
+    or os.getenv("GUNICORN_PIDFILE", "")
+    or ""
+).strip()
 RMC_OTA_WORKER_RELOAD_COMMAND = (os.getenv("RMC_OTA_WORKER_RELOAD_COMMAND", "") or "").strip()
 # Background-worker pause/resume. Empty => Celery remote control over the broker the
 # workers are already connected to; no broker => nothing to pause, and it says so.

@@ -17,6 +17,23 @@ bind = f"0.0.0.0:{port}"
 accesslog = "-"
 errorlog = "-"
 
+# Write the master PID somewhere the OTA rollout manager can find it.
+#
+# Swapping a .py under a running interpreter changes nothing until the process reloads, so
+# without this every applied upgrade reported "reload NOT configured -- this swap reaches
+# users on the next container restart" and then waited for one. That was tolerable while
+# the OTA default was off; it is not now that the assets lane applies by default, because
+# a template swap that needs a container restart to be visible is not really an OTA at all.
+#
+# HUP is gunicorn's graceful reload: new workers start on the new code and old ones retire
+# as they finish their current request, so nobody's request is dropped to pick up a
+# stylesheet. Off unless GUNICORN_PIDFILE is set, so no existing deployment changes shape;
+# the self-host image sets it, and settings.RMC_OTA_WORKER_RELOAD_PIDFILE points at the
+# same path.
+_pidfile = (os.environ.get("GUNICORN_PIDFILE") or "").strip()
+if _pidfile:
+    pidfile = _pidfile
+
 
 def _int_env(name: str, default: int) -> int:
     raw = os.environ.get(name, "")
