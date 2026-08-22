@@ -748,7 +748,9 @@ def _execute_sync_transport(school, *, mode, result, run_row) -> None:
                         (collected.get("manifest_advice") or "").strip()
                         or f"upgrade available: {manifest_target[:12]}"
                     )
-                    # A hold is only justified when this box is going to ACT on it.
+                    # A hold is only justified when this box is going to ACT on it in a
+                    # way that could produce split-brain. That is the FULL lane and only
+                    # the full lane.
                     #
                     # With RMC_OTA_AUTO_APPLY off, nothing on the box will apply anything
                     # until a human runs `edge_apply_upgrade`, so holding would stop a
@@ -757,13 +759,22 @@ def _execute_sync_transport(school, *, mode, result, run_row) -> None:
                     # than the drift it is guarding against. So the mismatch is REPORTED
                     # on every cycle and the rail keeps moving.
                     #
+                    # ASSETS mode does not hold either, and that is the important case now
+                    # that it is the default. The hold exists because the DATABASE may be
+                    # mid-migration; an asset lane carries no migration and no python, so
+                    # there is no schema to be mid-anything. Holding a school's data sync
+                    # to deliver a stylesheet would be pure cost. Row-level safety in the
+                    # skew case is already handled precisely, and one layer up: the
+                    # cloud's `_schema_handshake` withholds exactly the entities owned by
+                    # an app the box is behind on, and lets everything else through.
+                    #
                     # `acknowledged_target` is the second half of the same idea: once the
                     # box has carried a target as far as its mode allows (an assets-only
                     # lane, or a code lane that needs an image rebuild), re-holding for it
                     # every cycle would be a permanent outage for a thing the box cannot
                     # finish. It stays visible; it stops being a blocker.
                     if (
-                        local_upgrade.auto_apply_mode() != local_upgrade.MODE_OFF
+                        local_upgrade.auto_apply_mode() == local_upgrade.MODE_FULL
                         and manifest_target != upgrade_lock.acknowledged_target()
                     ):
                         upgrade_lock.arm_local(

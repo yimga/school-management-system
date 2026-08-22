@@ -210,9 +210,20 @@ hangs the worker on its own status check.
   assets-only lane, or a code lane needing an image rebuild), it stops blocking. The
   upgrade stays visible on every cycle via `result["upgrade_available"]`.
 
-And it is **never armed at all** when `RMC_OTA_AUTO_APPLY=off`, because nothing on the box
-would act on it: a school whose records stop syncing because a code update is pending is
-worse off than a school running one release behind.
+And it is **armed only for the `full` lane**. That is the whole of it — not "any mode that
+is not off".
+
+The hold exists because the *database* may be mid-migration. An `assets` lane carries no
+migration and no importable python, by construction: `ASSET_CATEGORIES` cannot contain a
+`.py` file, because `categorise()` returns `APP_CORE` for `.py` before the fall-through. So
+there is no schema to be mid-anything, and pausing a school's records to deliver a
+stylesheet would be pure cost. With `off`, nothing on the box would act on the hold at all,
+and a school whose records stop syncing because a code update is pending is worse off than
+a school running one release behind.
+
+The skew case that *does* need care is handled precisely, one layer up: the cloud's
+`_schema_handshake` withholds exactly the entities owned by an app the box is behind on and
+lets everything else through — it degrades, it does not refuse.
 
 A `mode="dry"` probe is exempt — it writes nothing in either direction, and it is the one
 tool that answers "can this box still reach the cloud" while the box is held.
@@ -240,7 +251,7 @@ stopped, and which manifest it is still serving.
 | Setting | Default | Notes |
 |---|---|---|
 | `RMC_OTA_ENABLED` | `1` | cloud half; read-only, costs nothing until a box asks |
-| `RMC_OTA_AUTO_APPLY` | `off` | `off` \| `assets` \| `full` |
+| `RMC_OTA_AUTO_APPLY` | `assets` | `off` \| `assets` \| `full` — `assets` is the default so the pipeline is not ceremonial; `full` stays opt-in |
 | `RMC_OTA_MANIFEST_PATH` / `_ROOT` | `""` | default `BASE_DIR` |
 | `RMC_OTA_STAGING_ROOT` | `""` | default `<BASE_DIR>/.rmc_ota_staging` |
 | `RMC_OTA_RELEASE_ROOT` | `""` | unset ⇒ code swap defers rather than pretends |

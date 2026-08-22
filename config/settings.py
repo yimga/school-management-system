@@ -4251,10 +4251,23 @@ RMC_OTA_ENABLED = os.getenv("RMC_OTA_ENABLED", "1").strip().lower() in (
     "yes",
     "on",
 )
-# "off" | "assets" | "full". "assets" swaps templates/static/locale only, which take
-# effect without reloading the interpreter; "full" also moves python + migrations and
-# needs a release-symlink layout (RMC_OTA_RELEASE_ROOT) to activate rather than defer.
-RMC_OTA_AUTO_APPLY = (os.getenv("RMC_OTA_AUTO_APPLY", "off") or "off").strip().lower()
+# "off" | "assets" | "full".
+#
+# DEFAULT IS "assets", and the reason is that "off" made the whole pipeline ceremonial:
+# a box would detect drift, report it on every handshake, and wait for a hand that has
+# to reach every school individually. Nothing upgraded unless somebody remembered.
+#
+# "assets" moves templates, static, locale and non-executable data -- the categories in
+# ASSET_CATEGORIES, which by construction contain no importable python, so they take
+# effect without reloading the interpreter, without a write freeze, without pausing
+# workers and without touching the schema. The blast radius of a bad asset release is a
+# wrong-looking page, and the box can be put back with the previous manifest.
+#
+# "full" additionally moves python and runs migrations. That one stays opt-in: an
+# appliance that rewrites its own code and migrates its own database unattended, while a
+# school is teaching, must be a decision somebody made. It also needs a release-symlink
+# layout (RMC_OTA_RELEASE_ROOT) to activate rather than defer.
+RMC_OTA_AUTO_APPLY = (os.getenv("RMC_OTA_AUTO_APPLY", "assets") or "assets").strip().lower()
 # Where system_manifest.json lives / which tree its relative paths resolve against.
 # Both empty by default => BASE_DIR, which is correct for the standard image.
 RMC_OTA_MANIFEST_PATH = (os.getenv("RMC_OTA_MANIFEST_PATH", "") or "").strip()
