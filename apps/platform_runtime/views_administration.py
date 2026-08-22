@@ -791,11 +791,11 @@ def tenant_blueprint_setup(request):
         BlueprintInstallation.objects.filter(school=school)
         .order_by("-applied_at", "-id")[:25]
     )
-    applied_keys = {
-        row.blueprint_key
-        for row in installations
-        if row.status == BlueprintInstallation.Status.APPLIED
-    }
+    from apps.platform_runtime.blueprint_composition import (
+        effective_installed_blueprint_keys,
+    )
+
+    applied_keys = set(effective_installed_blueprint_keys(school))
     return render(
         request,
         "platform_runtime/tenant_blueprint_setup.html",

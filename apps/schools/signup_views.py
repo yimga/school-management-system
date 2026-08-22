@@ -2898,6 +2898,7 @@ def signup_recommendations_preview(request: HttpRequest) -> JsonResponse:
 
     from apps.schools.onboarding_recommendations import (
         build_onboarding_recommendations,
+        hydrate_confidence_display,
     )
 
     def values(name: str, *, limit: int = 24) -> list[str]:
@@ -2953,7 +2954,12 @@ def signup_recommendations_preview(request: HttpRequest) -> JsonResponse:
             "engine": manifest["engine"],
             "version": manifest["version"],
             "fingerprint": manifest["fingerprint"],
-            "confidence": manifest["confidence_envelope"],
+            # Hydrated per request, so the browser is handed WORDS. The wizard
+            # used to do `.replaceAll("_", " ")` on the raw keys in JS, where
+            # no translation catalog could ever reach them.
+            "confidence": hydrate_confidence_display(
+                manifest["confidence_envelope"]
+            ),
             "recommendations": manifest["recommendations"],
             "cards": manifest["recommendation_cards"],
             "missing_inputs": manifest["missing_inputs"],

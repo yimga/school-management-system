@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n rmc_labels %}
 {% url 'siteconfig:quick_set_dashboard_visual_preset' as preset_post_url %}
 {% url 'siteconfig:user_preferences' as prefs_url %}
 {% comment %}
@@ -15,7 +15,7 @@
   </span>
   <details class="rmc-setup-style-strip__disclosure" data-rmc-style-disclosure="1">
     <summary class="rmc-setup-style-strip__summary">
-      <span class="rmc-setup-style-strip__value">{{ USER_DASHBOARD_VISUAL_PRESET|default:"soft-glass"|cut:"-" }}</span>
+      <span class="rmc-setup-style-strip__value">{{ USER_DASHBOARD_VISUAL_PRESET|default:"soft-glass"|humanize_token }}</span>
       <span class="rmc-setup-style-strip__summary-cue">{% trans "Change" %}</span>
     </summary>
     <div class="rmc-setup-style-strip__picker" role="group" aria-label="{% trans 'Pick dashboard style' %}">

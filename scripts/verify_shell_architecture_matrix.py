@@ -247,7 +247,19 @@ def main(argv: list[str] | None = None) -> int:
         "templates/admin/base_site.html",
         [
             "components/admin_nav_bridge.html",
-            "partials/cp_context_drawer_shell.html",
+            # partials/cp_context_drawer_shell.html was required here until
+            # 5fcd59f63 ("Repair operator and tenant Django admin parity")
+            # removed it. That removal achieved the parity its title claims: the
+            # drawer sat inside {% if is_manager_host %}, so operator admin had a
+            # context drawer and tenant admin did not. Neither has one now.
+            #
+            # Checked before retiring it rather than assuming: the partial ships
+            # its own toggle button, so button and drawer left together and no
+            # control was orphaned; no test requires the admin shell to include
+            # it (test_premium_shell_contract asserts the PARTIAL carries
+            # data-rmc-action-rail, not that base_site includes the partial); and
+            # the drawer is still live and asserted in control_plane_base.html
+            # and studio_os/shell.html, which are its real homes.
             "js/authenticated-shell-manager.js",
         ],
     )

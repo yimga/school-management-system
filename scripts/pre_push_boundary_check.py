@@ -152,6 +152,13 @@ GATES: list[tuple[str, list[str]]] = [
     # contrast gates stay green while it does, because the pair that shipped measured
     # 6.95:1. Zero-tolerance and without --compare: there is no baseline to hide behind.
     ("theme-hue-coherence", ["scan_theme_hue_coherence.py", "--strict"]),
+    # "Exact next confirmations: funding_type, learner_scale, connectivity,
+    # operating_model" -- a banner promising exactness and handing over dict
+    # keys. `|cut:"_"` DELETES the separator, so the same page said
+    # "Inputcompleteness" and the tenant lifecycle strip said "dailyoperations".
+    # Zero-tolerance and WITHOUT --compare: there is no input for which cutting
+    # a word separator out of a token is the right answer.
+    ("raw-token-in-ui", ["scan_raw_token_in_ui.py", "--strict"]),
     # --- RLS: the two halves that `rls-table-coverage` does NOT cover ---------
     # scan_rls_table_coverage (DJANGO_GATES, below) catches a NEW tenant-scoped
     # table with no RLS at all. It says nothing about whether the RLS that exists

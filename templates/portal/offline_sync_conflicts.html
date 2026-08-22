@@ -1,6 +1,6 @@
 {% extends "portal_base.html" %}
 {% block rmc_workspace_os_header %}{% endblock %}
-{% load i18n static glocal_tags %}
+{% load i18n static glocal_tags rmc_labels %}
 
 {% block title %}{% trans "Sync conflicts" %} — {{ block.super }}{% endblock %}
 
@@ -71,7 +71,7 @@
             <dl class="small bg-body-secondary p-2 rounded mb-0">
               {% if card.server_vals %}
                 {% for k,v in card.server_vals.items %}
-                <dt class="d-inline">{{ k }}:</dt>
+                <dt class="d-inline">{{ k|humanize_token }}:</dt>
                 <dd class="d-inline ms-1">{{ v }}</dd><br>
                 {% endfor %}
               {% else %}
@@ -84,7 +84,7 @@
             <dl class="small bg-body-secondary p-2 rounded mb-0">
               {% if card.local_vals %}
                 {% for k,v in card.local_vals.items %}
-                <dt class="d-inline">{{ k }}:</dt>
+                <dt class="d-inline">{{ k|humanize_token }}:</dt>
                 <dd class="d-inline ms-1">{{ v }}</dd><br>
                 {% endfor %}
               {% else %}
@@ -99,7 +99,7 @@
           <summary>{% trans "Raw conflict details (technical)" %}</summary>
           <dl class="bg-body-tertiary p-2 rounded mt-2 mb-0">
             {% for k,v in c.conflict_details.items %}
-            <dt class="d-inline">{{ k }}:</dt>
+            <dt class="d-inline">{{ k|humanize_token }}:</dt>
             <dd class="d-inline ms-1">{{ v }}</dd><br>
             {% endfor %}
           </dl>

@@ -66470,3 +66470,60 @@ msgid ""
 "{{ count }} record is held for review.{% plural %}{{ count }} records are "
 "held for review."
 msgstr ""
+
+msgid "Being created"
+msgstr ""
+
+msgid "Being provisioned"
+msgstr ""
+
+msgid "Closing the academic year"
+msgstr ""
+
+msgid "Confirmed with the school during guided setup."
+msgstr ""
+
+msgid "Country setup"
+msgstr ""
+
+msgid "Data purge scheduled"
+msgstr ""
+
+msgid "Day-to-day operations"
+msgstr ""
+
+msgid "Deleted — certificate issued"
+msgstr ""
+
+msgid "Education levels you teach"
+msgstr ""
+
+msgid "Getting ready to launch"
+msgstr ""
+
+msgid "How the school is funded"
+msgstr ""
+
+msgid "How the school runs day to day"
+msgstr ""
+
+msgid "Internet reliability on site"
+msgstr ""
+
+msgid "Number of learners you expect"
+msgstr ""
+
+msgid "One campus or several"
+msgstr ""
+
+msgid "Preparing your export"
+msgstr ""
+
+msgid "Sample rows in this report pack"
+msgstr ""
+
+msgid "Up for renewal"
+msgstr ""
+
+msgid "What you are bringing from your current system"
+msgstr ""

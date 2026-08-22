@@ -1,8 +1,8 @@
-{% load i18n %}
+{% load i18n rmc_labels %}
 {% if rmc_operational_lifecycle and rmc_operational_lifecycle.state %}
 <nav class="rmc-lifecycle-strip mb-2" aria-label="{% trans 'Operational lifecycle' %}" data-rmc-lifecycle-strip="1" data-page-critical-read="1" data-rmc-lifecycle-school-key="{{ request.school.slug|default:request.school.pk }}">
   <span class="rmc-lifecycle-strip__label badge bg-secondary-subtle text-secondary-emphasis">{% trans "Lifecycle" %}</span>
-  <span class="rmc-lifecycle-strip__state ms-1">{{ rmc_operational_lifecycle.state|cut:"_" }}</span>
+  <span class="rmc-lifecycle-strip__state ms-1">{{ rmc_operational_lifecycle.state|lifecycle_state_label }}</span>
   <span class="small text-warning-emphasis ms-2" data-rmc-lifecycle-stale="1" hidden>{% trans "Offline · cached lifecycle state" %}</span>
 </nav>
 {% endif %}

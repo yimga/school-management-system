@@ -92,9 +92,26 @@ class WalStreamConsumer(AsyncJsonWebsocketConsumer):
             "captured_at": _coerce_captured_at(content.get("captured_at")),
             "received_at": time.time(),
         }
-        await _ship_to_redis_stream(envelope)
+        shipped = await _ship_to_redis_stream(envelope)
         if getattr(settings, "KAFKA_BOOTSTRAP_SERVERS", ""):
             await _ship_to_kafka(envelope)
+        if not shipped:
+            # Do NOT ack a write that reached no durable sink. The client treats
+            # ok=True as permission to delete its outbox row, so acking here is how
+            # an offline write disappears. `retryable` tells the client to keep the
+            # row and send it again rather than surfacing an error to the user.
+            logger.warning(
+                "wal_stream.not_durable: refusing ack txn_id=%s", content["txn_id"]
+            )
+            await self.send_json(
+                {
+                    "ok": False,
+                    "error": "sink_unavailable",
+                    "retryable": True,
+                    "txn_id": content["txn_id"],
+                }
+            )
+            return
         await self.send_json({"ok": True, "txn_id": content["txn_id"]})
 
 
@@ -152,35 +169,64 @@ def _validate(
     return True, ""
 
 
-async def _ship_to_redis_stream(envelope: dict) -> None:
-    """Push to Redis Streams via channels_redis's underlying client.
+async def _ship_to_redis_stream(envelope: dict) -> bool:
+    """Push to Redis Streams. Returns True only when the envelope is durable.
 
-    Best-effort: a Redis hiccup must NOT close the WS. The client retries
-    on its own (vector_clock + txn_id dedupe protects against double-apply).
+    This used to reach into channels_redis for a connection:
+    ``conn_pool = getattr(layer, "pools", None)``, then ship only ``if conn_pool``.
+    ``RedisChannelLayer`` has no ``pools`` attribute -- it keeps
+    ``self._layers`` (verified against channels-redis 4.3.0, the pinned version) --
+    so the getattr always returned None, the ``if`` never ran, and NOTHING was ever
+    written to the stream. The caller then sent ``{"ok": True}`` regardless, so the
+    device marked its offline outbox row synced and dropped it. That is silent data
+    loss on exactly the path whose comment promises at-least-once.
+
+    Talk to Redis directly instead, the same way
+    apps/observability/sync_health.py::_get_redis_client already does, rather than
+    depending on another library's private attributes.
     """
     try:
-        import channels_redis.core  # noqa: F401 — confirm channels-redis present
-        from channels.layers import get_channel_layer
+        import redis.asyncio as aioredis  # type: ignore[import-not-found]
+        from redis.exceptions import RedisError  # type: ignore[import-not-found]
+    except ImportError:
+        logger.warning("wal_stream.redis_unavailable: redis package not installed")
+        return False
 
-        layer = get_channel_layer()
-        if layer is None:
-            return
-        # channels_redis pools to the same Redis we want. Use its raw conn.
-        conn_pool = getattr(layer, "pools", None)
-        stream_name = f"rmc.wal.{envelope['tenant_hash']}"
-        payload = json.dumps(envelope).encode("utf-8")
-        if conn_pool:
-            for pool in conn_pool.values():
-                async with pool.connection() as conn:
-                    await conn.xadd(
-                        stream_name,
-                        {"envelope": payload},
-                        maxlen=10_000,
-                        approximate=True,
-                    )
-                    return
-    except (ImportError, AttributeError, OSError) as exc:
-        logger.debug("wal_stream.redis_ship_skipped: %s", exc)
+    redis_url = (
+        getattr(settings, "REDIS_URL", "")
+        or getattr(settings, "CELERY_BROKER_URL", "")
+        or ""
+    )
+    if not redis_url:
+        return False
+
+    client = None
+    try:
+        client = aioredis.from_url(redis_url)
+        await client.xadd(
+            f"rmc.wal.{envelope['tenant_hash']}",
+            {"envelope": json.dumps(envelope).encode("utf-8")},
+            maxlen=10_000,
+            approximate=True,
+        )
+        return True
+    except (RedisError, OSError, AttributeError, ValueError) as exc:
+        # RedisError first and explicitly: redis-py's ConnectionError/TimeoutError
+        # descend from RedisError, NOT from OSError, so an unreachable broker
+        # escaped an (OSError, ...) tuple and would surface inside the WebSocket
+        # handler instead of being reported as a failed ship.
+        # A Redis hiccup must not close the WS -- but it must not be reported as a
+        # successful write either. The caller refuses the ack so the row stays in
+        # the device outbox and is retried (txn_id + vector_clock dedupe already
+        # protect against double-apply).
+        logger.warning("wal_stream.redis_ship_failed: %s", exc)
+        return False
+    finally:
+        if client is not None:
+            try:
+                await client.aclose()
+            except Exception:  # noqa: BLE001 — close must never mask the result
+                pass
 
 
 async def _ship_to_kafka(envelope: dict) -> None:
