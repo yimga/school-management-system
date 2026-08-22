@@ -20,6 +20,7 @@ See docs/plans/TIER3_TENANT_PORTABILITY_AND_EDGE_SYNC.md (Slice 1).
 from __future__ import annotations
 
 import json
+import logging
 
 from django.conf import settings
 from django.http import HttpResponse
@@ -45,7 +46,11 @@ from apps.sync_engine.edge_outbox import (
     SYNC_PARITY_HEADER,
     SYNC_ROW_COUNT_HEADER,
     SYNC_SCHEMA_ADVICE_HEADER,
+    SYNC_MANIFEST_ADVICE_HEADER,
+    SYNC_MANIFEST_HEADER,
+    SYNC_MANIFEST_TARGET_HEADER,
     SYNC_SCHEMA_HEAD_HEADER,
+    SYNC_UPGRADE_FAILURE_HEADER,
     SYNC_WITHHELD_HEADER,
     build_edge_delta_bundle,
 )
@@ -87,6 +92,110 @@ def _schema_handshake(request):
         return withheld, describe_skew(comparison)
     except Exception:  # noqa: BLE001 - advisory only; never cost the box its data
         return set(), ""
+
+
+def _manifest_handshake(request, school):
+    """OTA: is this box built from the code and assets the operator is serving?
+
+    Returns ``(target_hash, advice)`` — both empty when the box declared no manifest,
+    when this deployment has none of its own, or when the two agree.
+
+    SIBLING OF ``_schema_handshake``, NOT A REPLACEMENT FOR IT. That one asks what the
+    box's DATABASE has applied and withholds rows it could not store. This one asks what
+    the box's FILES are and offers it the code that would let it store them. Two boxes on
+    identical migration heads can still be a whole UI release apart, and no amount of
+    row-level guarding closes that.
+
+    IT NEVER WITHHOLDS DATA. A manifest mismatch does not make a row unsafe — the schema
+    handshake already covers the case where it would. All this does is set the hold flag
+    and name a target, so the box can decide to upgrade before its next cycle. Failing
+    silently is therefore always the right failure: the worst outcome of a broken
+    manifest comparison is that a box upgrades one cycle later than it might have.
+    """
+    raw = (request.META.get("HTTP_" + SYNC_MANIFEST_HEADER.upper().replace("-", "_")) or "").strip()
+    if not raw:
+        return "", ""
+    try:
+        from apps.sync_engine import upgrade_lock
+        from apps.sync_engine.system_manifest import load_manifest
+
+        target = str((load_manifest() or {}).get("manifest_hash") or "")
+        if not target:
+            return "", ""
+        if target == raw:
+            upgrade_lock.release(school)
+            return "", ""
+        upgrade_lock.hold(
+            school,
+            target_hash=target,
+            current_hash=raw,
+            reason="manifest mismatch at bundle download",
+        )
+        return target, (
+            f"upgrade available: box manifest {raw[:12]} -> operator {target[:12]}"
+        )
+    except Exception:  # noqa: BLE001 - advisory only; never cost the box its data
+        return "", ""
+
+
+logger = logging.getLogger(__name__)
+
+# The box already capped what it sends; this is the receiver's own belt-and-braces so a
+# malformed header cannot write an unbounded line into the operator's log.
+_UPGRADE_FAILURE_LOG_MAX_CHARS = 500  # magic-number-allow: logged excerpt of a box failure
+
+
+def _log_upgrade_failure(request, school) -> None:
+    """Surface a box's failed upgrade in the OPERATOR's logs.
+
+    An appliance that cannot apply an upgrade is the case where nobody is present to read
+    a local log — that is the entire premise of an edge box. The box therefore attaches
+    its last failure to the next request it makes, and this is where it stops being
+    invisible. Logged, not stored: a durable record already exists on the box
+    (``EdgeDeploymentHistory``), and minting a cloud table for a string would add a write
+    to the hot path of every pull for a diagnostic nobody queries.
+    """
+    raw = (request.META.get("HTTP_" + SYNC_UPGRADE_FAILURE_HEADER.upper().replace("-", "_")) or "").strip()
+    if not raw:
+        return
+    logger.warning(
+        "edge upgrade FAILED on box for school=%s: %s",
+        getattr(school, "pk", None),
+        raw[:_UPGRADE_FAILURE_LOG_MAX_CHARS],
+    )
+
+
+def _stamp_manifest_handshake(resp, request, school) -> str:
+    """Put the OTA target on a response, and record the operator-visible directive.
+
+    Returns the target hash (``""`` when in parity). The ``EdgeSyncDirective`` row is an
+    AUDIT record, not the delivery mechanism — the header above is what the box acts on.
+    Recording it means a cloud operator can see "this box has been offered 7c41d9ba since
+    Tuesday and has not come back", which a stateless header comparison cannot show.
+    """
+    _log_upgrade_failure(request, school)
+    try:
+        target, advice = _manifest_handshake(request, school)
+    except Exception:  # noqa: BLE001
+        return ""
+    if not target:
+        return ""
+    resp[SYNC_MANIFEST_TARGET_HEADER] = target
+    if advice:
+        resp[SYNC_MANIFEST_ADVICE_HEADER] = advice
+    try:
+        from apps.sync_engine.models import EdgeSyncDirective
+
+        # One pending upgrade directive per school at a time: re-offering the same target
+        # on every poll would turn a slow link into an unbounded audit log.
+        EdgeSyncDirective.objects.get_or_create(
+            school=school,
+            kind=EdgeSyncDirective.UPGRADE,
+            served_at=None,
+        )
+    except Exception:  # noqa: BLE001 - the header is the mechanism; the row is the record
+        pass
+    return target
 
 
 def _parity_handshake(request, school, withheld=()):
@@ -357,6 +466,10 @@ class SyncBundleDownloadView(APIView):
                 resp[SYNC_ROW_COUNT_HEADER] = "0"
                 resp[SYNC_SCHEMA_ADVICE_HEADER] = advice or "schema skew: nothing servable"
                 resp[SYNC_WITHHELD_HEADER] = ",".join(sorted(withheld))
+                # This is the branch where the box needs the upgrade MOST — it can accept
+                # nothing at all until it migrates — so the target must be stamped here
+                # too, not only on the success path below.
+                _stamp_manifest_handshake(resp, request, school)
                 return resp
         try:
             data, meta = build_edge_delta_bundle(
@@ -385,6 +498,11 @@ class SyncBundleDownloadView(APIView):
                     resp[SYNC_PARITY_ADVICE_HEADER] = parity_advice
         except Exception:  # noqa: BLE001 — the bundle is the payload; parity is a bonus
             pass
+        # OTA manifest handshake, on the response the box was already collecting. This is
+        # the whole "no second channel" property: an upgrade is ANNOUNCED on the data
+        # rail, and only the bytes travel on the upgrade routes.
+        _stamp_manifest_handshake(resp, request, school)
+
         # The box is behind NAT, so this response is the only moment the cloud can hand it
         # an instruction. Best-effort: a directive failure must never cost the box its data.
         directive_kind = ""

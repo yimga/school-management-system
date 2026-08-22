@@ -473,6 +473,13 @@ class EdgeSyncDirective(models.Model):
     """
 
     FULL_RESYNC = "full-resync"
+    # An OTA upgrade OFFER. Unlike full-resync this is a RECORD, not an instruction: the
+    # box acts on the X-RMC-Sync-Manifest-Target header, which is stateless and therefore
+    # always current. The row exists so a cloud operator can see "offered on Tuesday, box
+    # has not come back" — a question a stateless header cannot answer. It is excluded
+    # from claim_pending_directive for exactly that reason: serving it would mark it and
+    # mint a fresh one on the next poll, turning a stalled box into an unbounded log.
+    UPGRADE = "upgrade"
 
     school = models.ForeignKey(
         "schools.School", on_delete=models.CASCADE, related_name="edge_sync_directives"
@@ -545,6 +552,7 @@ def claim_pending_directive(school):
 
     directive = (
         EdgeSyncDirective.objects.filter(school=school, served_at__isnull=True)
+        .exclude(kind=EdgeSyncDirective.UPGRADE)  # an offer, not an instruction — see UPGRADE
         .order_by("requested_at")
         .first()
     )
@@ -710,7 +718,16 @@ from .models_pairing import (  # noqa: E402  (re-export for the registry)
     PendingPushConfirmation,
 )
 
+# What CODE this box has run, and which manifest it can fall back to. Box-level rather
+# than tenant-level (no ``school`` FK) — see models_deployment for why.
+from .models_deployment import (  # noqa: E402  (re-export for the registry)
+    DeploymentState,
+    EdgeDeploymentHistory,
+)
+
 __all__ = [
+    "DeploymentState",
+    "EdgeDeploymentHistory",
     "EdgeClaimTicket",
     "EdgeCloudBinding",
     "PendingPushConfirmation",

@@ -40,6 +40,8 @@ CLOUD_SYNC_PATHS: dict[str, str] = {
     "api:sync-changes-feed": "/api/sync/changes/",
     "api:sync-file-manifest": "/api/sync/files/manifest/",
     "api:sync-file-chunk": "/api/sync/files/chunk/",
+    "api:sync-upgrade-manifest": "/api/sync/upgrade/manifest/",
+    "api:sync-upgrade-chunk": "/api/sync/upgrade/chunk/",
     "api:sync-pair-start": "/api/sync/pair/start/",
     "api:sync-pair-poll": "/api/sync/pair/poll/",
 }

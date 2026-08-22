@@ -21,6 +21,13 @@ echo "Installing dependencies..."
 python3 -m pip install --upgrade pip --no-cache-dir
 python3 -m pip install -r requirements.txt --no-cache-dir
 
+# Record what this operator deployment is made of, so a box can ask "am I built from the
+# same thing?" and get an answer. Without this the OTA manifest endpoint has nothing to
+# serve and answers 503 with that exact explanation rather than an empty delta a box
+# would read as "you are up to date".
+echo "Generating system manifest..."
+SECRET_KEY="${SECRET_KEY:-build-time-manifest-only}" DEBUG=0   python3 manage.py generate_system_manifest --channel "${RMC_OTA_CHANNEL:-stable}" ||   echo "WARNING: system manifest not generated; OTA endpoints will report no_manifest"
+
 # ── Optional OCR system binaries (scanned / image-only PDF support) ──────────
 # Render's native Python runtime has no apt / root, so Tesseract + Poppler can't
 # be apt-installed. When RMC_OCR_ENABLED=1 we vendor them from conda-forge into a

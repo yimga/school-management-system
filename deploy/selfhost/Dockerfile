@@ -61,6 +61,15 @@ RUN SECRET_KEY="build-time-collectstatic-only" \
     && SECRET_KEY="build-time-collectstatic-only" python manage.py compile_message_catalogs \
     && SECRET_KEY="build-time-collectstatic-only" DEBUG=0 python manage.py collectstatic --noinput
 
+# Record WHAT THIS IMAGE IS MADE OF: SHA-256 of every shippable file plus the per-app
+# migration heads, hashed into one value the OTA handshake can exchange in a header.
+# Deliberately AFTER collectstatic and BEFORE the build stamp: the manifest describes the
+# source tree (static/, templates/, apps/), never the collected output, so running it
+# earlier would be equally correct — but running it here keeps every "what did we ship"
+# artefact in one place. It is cheap (a hash pass over ~10k files) and it never fails a
+# build in a way collectstatic would not have failed first.
+RUN SECRET_KEY="build-time-manifest-only" DEBUG=0     python manage.py generate_system_manifest --channel stable
+
 # Stamp the build so the running box can say what code it is. Render sets
 # RENDER_GIT_COMMIT for free; nothing here ever did, so /-/version/ answered
 # `commit_sha: unknown` and no operator (or support engineer) could tell which

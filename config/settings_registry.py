@@ -348,6 +348,28 @@ SETTINGS_REGISTRY: tuple[SettingSpec, ...] = (
     SettingSpec("DISABLE_TENANT_API_QUOTA", "bool", "False", "ops", "Bypass TenantApiQuotaMiddleware for debugging."),
     SettingSpec("GLOBAL_HOT_PATH_RATE_LIMIT_RPM", "int", "60", "security", "Per-IP cap on OneRoster/SCIM/LTI/token hot paths."),
 
+    # ---- Cascading OTA (code + UI/UX delivery over the sync rail) ------------
+    SettingSpec("RMC_OTA_ENABLED", "bool", "True", "ops", "Serve the upgrade manifest + chunk endpoints (cloud half; read-only)."),
+    SettingSpec("RMC_OTA_AUTO_APPLY", "str", '"off"', "ops", "off | assets | full — how much a box may apply unattended."),
+    SettingSpec("RMC_OTA_MANIFEST_PATH", "str", '""', "ops", "Override where system_manifest.json is read/written."),
+    SettingSpec("RMC_OTA_MANIFEST_ROOT", "str", '""', "ops", "Tree the manifest's relative paths resolve against (default BASE_DIR)."),
+    SettingSpec("RMC_OTA_STAGING_ROOT", "str", '""', "ops", "Isolated directory incoming upgrades are staged into."),
+    SettingSpec("RMC_OTA_RELEASE_ROOT", "str", '""', "ops", "Release-symlink root; unset means a code swap defers instead of pretending."),
+    SettingSpec("RMC_OTA_HEALTH_URL", "str", '"http://127.0.0.1:10000/health/"', "ops", "URL the post-upgrade health gate polls."),
+    SettingSpec("RMC_OTA_HEALTH_TIMEOUT_SECONDS", "int", "60", "ops", "Budget for the post-upgrade health gate before rollback."),
+    SettingSpec("RMC_OTA_HOLD_TTL_SECONDS", "int", "3600", "ops", "Ceiling on SYNC_STATE_HELD_FOR_UPGRADE so a failed upgrade cannot mute sync forever."),
+    SettingSpec("RMC_OTA_DELTA_MAX_FILES", "int", "5000", "ops", "File-count ceiling on one upgrade delta."),
+    SettingSpec("RMC_OTA_DELTA_MAX_BYTES", "int", "268435456", "ops", "Byte ceiling on one upgrade delta."),
+    SettingSpec("RMC_OTA_COLLECTSTATIC", "bool", "True", "ops", "Run collectstatic after an asset swap (required under ManifestStaticFilesStorage)."),
+    SettingSpec("RMC_OTA_FREEZE_WRITES", "bool", "True", "ops", "Freeze user writes during an upgrade via the existing maintenance middleware."),
+    SettingSpec("RMC_OTA_WRITE_FREEZE_TTL_SECONDS", "int", "1800", "ops", "Ceiling on the write freeze so a dead upgrade cannot lock a school out."),
+    SettingSpec("RMC_OTA_WORKER_RELOAD_PIDFILE", "str", '""', "ops", "Web-server master pidfile to SIGHUP after a code swap."),
+    SettingSpec("RMC_OTA_WORKER_RELOAD_COMMAND", "str", '""', "ops", "Explicit argv to reload web workers (shlex-split, never a shell)."),
+    SettingSpec("RMC_OTA_WORKER_PAUSE_COMMAND", "str", '""', "ops", "Explicit argv to pause background workers; empty uses Celery remote control."),
+    SettingSpec("RMC_OTA_WORKER_RESUME_COMMAND", "str", '""', "ops", "Explicit argv to resume background workers."),
+    SettingSpec("RMC_OTA_REVERSE_MIGRATIONS_ON_ROLLBACK", "bool", "True", "ops", "Unwind the schema to the recorded floor when an upgrade rolls back."),
+    SettingSpec("RMC_OTA_ALLOW_DANGEROUS_MIGRATIONS", "bool", "False", "ops", "Permit destructive migration ops during an unattended upgrade."),
+
     # ---- App / build version + endpoints ------------------------------------
     SettingSpec("APP_VERSION", "str", '""', "ops", "Human-readable app version surfaced at /-/version/."),
     SettingSpec("RMC_RELEASE_VERSION", "str", '""', "ops", "Calendar release used by marketplace compatibility floors (YYYY.MM)."),

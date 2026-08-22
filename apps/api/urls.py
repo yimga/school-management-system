@@ -99,6 +99,7 @@ from apps.api.sync_receipt_api import SyncBundleReceiptView
 from apps.api.sync_bundle_api import SyncBundleDownloadView, SyncBundleUploadView
 from apps.api.sync_changes_api import SyncChangesFeedView
 from apps.api.sync_files_api import SyncFileChunkView, SyncFileManifestView
+from apps.api.sync_upgrade_api import SyncUpgradeChunkView, SyncUpgradeManifestView
 from apps.portal.views_command_bar import api_command_bar_search
 from apps.portal.views_ai_line import api_ai_line_interpret
 from apps.portal.views_admissions_intake import (
@@ -927,6 +928,21 @@ urlpatterns = [
         "sync/files/chunk/",
         SyncFileChunkView.as_view(),
         name="sync-file-chunk",
+    ),
+    # OTA code/asset channel. Same mount, same bearer credential, same shape as the file
+    # rail above — a school firewall has approved exactly one lane and an upgrade channel
+    # that needs a second one is an upgrade channel that never runs. See
+    # apps/api/sync_upgrade_api.py for why `path` is authorised against the manifest
+    # rather than sanitised.
+    path(
+        "sync/upgrade/manifest/",
+        SyncUpgradeManifestView.as_view(),
+        name="sync-upgrade-manifest",
+    ),
+    path(
+        "sync/upgrade/chunk/",
+        SyncUpgradeChunkView.as_view(),
+        name="sync-upgrade-chunk",
     ),
     # Pairing (box adoption). Anonymous by necessity — an unpaired box holds no
     # credential — and safe because approval happens in an authenticated cloud

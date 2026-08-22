@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en" data-state="before">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Edge Box — Deployment State (BEFORE)</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#141a22; --panel2:#0f151c; --line:#232c38;
+    --ink:#e6edf3; --dim:#8b98a9; --faint:#5c6875;
+    --ok:#2ea043; --warn:#d29922; --bad:#f85149; --info:#388bfd; --violet:#a371f7;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font:14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+       -webkit-font-smoothing:antialiased}
+  .wrap{max-width:1180px;margin:0 auto;padding:24px 20px 64px}
+
+  /* ── chrome ─────────────────────────────────────────────── */
+  .topbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+          border:1px solid var(--line);background:var(--panel);
+          border-radius:10px;padding:14px 16px;margin-bottom:8px}
+  .brand{font-weight:650;letter-spacing:.2px}
+  .brand small{display:block;color:var(--faint);font-weight:400;font-size:11px;letter-spacing:.6px;text-transform:uppercase}
+  .spacer{flex:1}
+  .pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;
+        padding:3px 10px;font-size:11.5px;font-weight:600;letter-spacing:.3px;
+        border:1px solid transparent;white-space:nowrap}
+  .pill.ok{background:rgba(46,160,67,.14);color:#4ac26b;border-color:rgba(46,160,67,.35)}
+  .pill.warn{background:rgba(210,153,34,.14);color:#e3b341;border-color:rgba(210,153,34,.35)}
+  .pill.bad{background:rgba(248,81,73,.14);color:#ff7b72;border-color:rgba(248,81,73,.35)}
+  .pill.info{background:rgba(56,139,253,.14);color:#6ea8fe;border-color:rgba(56,139,253,.35)}
+  .pill.mute{background:rgba(139,152,169,.10);color:var(--dim);border-color:var(--line)}
+  .dot{width:7px;height:7px;border-radius:50%;background:currentColor;flex:none}
+
+  .banner{border:1px solid var(--line);border-left:3px solid var(--warn);
+          background:linear-gradient(90deg,rgba(210,153,34,.09),transparent 60%);
+          border-radius:8px;padding:12px 16px;margin:14px 0 22px;font-size:13px;color:#e3b341}
+  .banner b{color:#f0c657}
+
+  h2{font-size:12px;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);
+     margin:26px 0 10px;font-weight:650}
+
+  .grid{display:grid;gap:14px}
+  .g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .g2{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr)}
+  @media(max-width:900px){.g3,.g2{grid-template-columns:1fr}}
+
+  .card{border:1px solid var(--line);background:var(--panel);border-radius:10px;overflow:hidden}
+  .card h3{margin:0;padding:11px 14px;font-size:11.5px;letter-spacing:.9px;text-transform:uppercase;
+           color:var(--dim);border-bottom:1px solid var(--line);background:var(--panel2);font-weight:650;
+           display:flex;align-items:center;gap:8px}
+  .card .body{padding:14px}
+
+  .kv{display:grid;grid-template-columns:auto 1fr;gap:7px 14px;font-size:13px}
+  .kv dt{color:var(--dim);white-space:nowrap}
+  .kv dd{margin:0;font-family:var(--mono);font-size:12.5px;word-break:break-all}
+  .u{color:var(--faint);font-style:italic;font-family:var(--mono)}
+
+  .stat{font-family:var(--mono);font-size:26px;font-weight:600;letter-spacing:-.5px}
+  .stat small{display:block;font:400 11.5px/1.4 system-ui;color:var(--faint);
+              letter-spacing:.4px;text-transform:uppercase;margin-top:4px;font-family:inherit}
+
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  th{ text-align:left;color:var(--faint);font-weight:600;font-size:10.5px;letter-spacing:.8px;
+      text-transform:uppercase;padding:9px 14px;border-bottom:1px solid var(--line);background:var(--panel2)}
+  td{padding:9px 14px;border-bottom:1px solid rgba(35,44,56,.6);font-family:var(--mono);font-size:12px}
+  tr:last-child td{border-bottom:none}
+  .scroll{overflow-x:auto}
+
+  .term{background:#05080c;border:1px solid var(--line);border-radius:8px;
+        font-family:var(--mono);font-size:12px;line-height:1.75;padding:12px 14px;overflow-x:auto}
+  .term .t{color:var(--faint)}
+  .term .g{color:#4ac26b}.term .y{color:#e3b341}.term .r{color:#ff7b72}
+  .term .b{color:#6ea8fe}.term .v{color:#c297ff}.term .w{color:var(--ink)}
+
+  .rail{display:flex;gap:0;margin:4px 0 2px;flex-wrap:wrap}
+  .step{flex:1;min-width:118px;border:1px solid var(--line);border-right:none;padding:9px 11px;background:var(--panel2)}
+  .step:first-child{border-radius:7px 0 0 7px}
+  .step:last-child{border-right:1px solid var(--line);border-radius:0 7px 7px 0}
+  .step .n{font:600 10px/1 system-ui;letter-spacing:.9px;color:var(--faint);text-transform:uppercase}
+  .step .s{font-family:var(--mono);font-size:12px;margin-top:6px}
+  .step.blind{background:repeating-linear-gradient(45deg,rgba(139,152,169,.05),rgba(139,152,169,.05) 6px,transparent 6px,transparent 12px)}
+  .step.blind .s{color:var(--faint)}
+
+  .foot{margin-top:34px;padding-top:14px;border-top:1px solid var(--line);
+        color:var(--faint);font-size:11.5px;font-family:var(--mono)}
+  .tag{font-family:var(--mono);font-size:11px;color:var(--faint)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="brand">RunMyCampus · Edge Appliance<small>box-local configuration portal — 10.10.20.137:10000</small></div>
+    <div class="spacer"></div>
+    <span class="pill ok"><i class="dot"></i>PAIRED</span>
+    <span class="pill ok"><i class="dot"></i>WEB UP</span>
+    <span class="pill info"><i class="dot"></i>SYNC ACTIVE</span>
+    <span class="pill mute"><i class="dot"></i>BEFORE — no upgrade interlock</span>
+  </div>
+
+  <div class="banner">
+    <b>The box is syncing data against a cloud that is four commits ahead of it, and nothing on this
+    page can say so.</b> There is no manifest field to compare, so "Sync OK" below is reported
+    while <span style="font-family:var(--mono)">finance</span> and
+    <span style="font-family:var(--mono)">billing</span> rows are being silently withheld by the
+    cloud's schema handshake.
+  </div>
+
+  <h2>Cycle rail — what this box actually does on a tick</h2>
+  <div class="rail">
+    <div class="step"><div class="n">1 · Tick</div><div class="s" style="color:#4ac26b">run_edge_sync_now</div></div>
+    <div class="step"><div class="n">2 · Handshake</div><div class="s" style="color:#4ac26b">schema-head + parity</div></div>
+    <div class="step blind"><div class="n">3 · Manifest</div><div class="s">— not sent —</div></div>
+    <div class="step blind"><div class="n">4 · Upgrade gate</div><div class="s">— does not exist —</div></div>
+    <div class="step"><div class="n">5 · Push / Pull</div><div class="s" style="color:#4ac26b">applies rows</div></div>
+    <div class="step"><div class="n">6 · Record</div><div class="s" style="color:#4ac26b">EdgeSyncRun ok=True</div></div>
+  </div>
+
+  <h2>Build identity · <span class="tag">GET /-/version/</span></h2>
+  <div class="grid g3">
+    <div class="card"><h3>This box reports</h3><div class="body">
+      <dl class="kv">
+        <dt>commit_sha</dt><dd>a9603ca21e4f<span style="color:var(--faint)">…</span></dd>
+        <dt>build_time</dt><dd>2026-08-18T09:14:02Z</dd>
+        <dt>app_version</dt><dd>unknown</dd>
+        <dt>environment</dt><dd>selfhost</dd>
+        <dt>source</dt><dd>.build-stamp.json</dd>
+      </dl>
+    </div></div>
+
+    <div class="card"><h3>Cloud is running</h3><div class="body">
+      <dl class="kv">
+        <dt>commit_sha</dt><dd style="color:#e3b341">e01b3154e7aa<span style="color:var(--faint)">…</span></dd>
+        <dt>build_time</dt><dd>2026-08-22T06:41:55Z</dd>
+        <dt>ahead by</dt><dd style="color:#e3b341">4 commits</dd>
+        <dt class="u">the box learns this</dt><dd class="u">never</dd>
+      </dl>
+      <div style="margin-top:12px;font-size:12px;color:var(--dim)">
+        Nothing on the rail carries a build identity, so no comparison is possible in either direction.
+      </div>
+    </div></div>
+
+    <div class="card"><h3>Manifest state</h3><div class="body">
+      <dl class="kv">
+        <dt>system_manifest.json</dt><dd class="u">absent</dd>
+        <dt>manifest hash</dt><dd class="u">not tracked</dd>
+        <dt>asset footprint</dt><dd class="u">not computed</dd>
+        <dt>EdgeDeploymentHistory</dt><dd class="u">table does not exist</dd>
+        <dt>rollback target</dt><dd class="u">none recorded</dd>
+      </dl>
+    </div></div>
+  </div>
+
+  <h2>Last sync cycle · <span class="tag">EdgeSyncRun #4,412</span></h2>
+  <div class="grid g3">
+    <div class="card"><div class="body"><div class="stat" style="color:#4ac26b">OK<small>reported outcome</small></div></div></div>
+    <div class="card"><div class="body"><div class="stat">311<small>rows pushed / pulled</small></div></div></div>
+    <div class="card"><div class="body"><div class="stat" style="color:#e3b341">6<small>entities withheld — unexplained on this page</small></div></div></div>
+  </div>
+
+  <h2>Console — box tick at 09:41:02</h2>
+  <div class="term">
+<span class="t">09:41:02</span> <span class="b">[edge_scheduler]</span> tick — RMC_EDGE_SYNC_ENABLED=1, cadence=<span class="v">HOT</span> (10s)
+<span class="t">09:41:02</span> <span class="b">[connectivity]</span> tcp 443 → operator reachable (41ms)
+<span class="t">09:41:02</span> <span class="b">[sync_runner]</span> mode=live school=gilead-tech-high
+<span class="t">09:41:02</span> <span class="b">[edge_outbox]</span> GET /api/sync/bundle/download/?since=2026-08-22T09:38:44Z
+<span class="t">09:41:02</span>   <span class="w">X-RMC-Sync-Schema-Head:</span> academics=0141,people=0087,finance=<span class="y">0093</span>
+<span class="t">09:41:02</span>   <span class="w">X-RMC-Sync-Parity:</span> student=8f2a…,invoice=b41c…
+<span class="t">09:41:02</span>   <span class="t">(no manifest header — the box has nothing to declare)</span>
+<span class="t">09:41:03</span> <span class="b">[cloud]</span> 200 · <span class="w">X-RMC-Sync-High-Water:</span> 2026-08-22T09:40:58Z
+<span class="t">09:41:03</span> <span class="b">[cloud]</span> <span class="y">X-RMC-Sync-Withheld-Entities: invoice,payment,feeitem,receipt,ledgerentry,payout</span>
+<span class="t">09:41:03</span> <span class="b">[cloud]</span> <span class="y">X-RMC-Sync-Schema-Advice: behind on finance (cloud 0097, box 0093)</span>
+<span class="t">09:41:03</span> <span class="b">[edge_inbox]</span> applied 311 rows · conflicts 0 · skipped 0
+<span class="t">09:41:03</span> <span class="g">[sync_runner] cycle ok — EdgeSyncRun #4412 written (ok=True)</span>
+<span class="t">09:41:03</span> <span class="r">        ^ "ok" here means the TRANSPORT worked. Six entities did not move,</span>
+<span class="t">09:41:03</span> <span class="r">          and the only place that is visible is this raw header line.</span>
+  </div>
+
+  <h2>What an operator can act on from here</h2>
+  <div class="grid g2">
+    <div class="card"><h3>Available controls</h3><div class="scroll"><table>
+      <tr><th>Control</th><th>Effect on a code / UI upgrade</th></tr>
+      <tr><td>Sync now</td><td style="color:var(--faint)">moves rows. Not code, not templates, not static.</td></tr>
+      <tr><td>Request full resync</td><td style="color:var(--faint)">EdgeSyncDirective(full-resync). Rows again.</td></tr>
+      <tr><td>Re-pair box</td><td style="color:var(--faint)">new credential. Same code.</td></tr>
+      <tr><td>check_edge_readiness</td><td style="color:var(--faint)">advisory findings only.</td></tr>
+      <tr><td colspan="2" style="color:#ff7b72">Upgrade this box → <b>no such control exists</b></td></tr>
+    </table></div></div>
+
+    <div class="card"><h3>The only way new UI reaches this box today</h3><div class="body">
+      <div class="term" style="border:none;padding:0;background:transparent">
+<span class="t">#</span> on the operator's laptop, physically or over SSH
+<span class="w">$</span> git pull
+<span class="w">$</span> docker compose -f deploy/selfhost/docker-compose.yml build
+<span class="w">$</span> docker compose up -d          <span class="t"># container replaced wholesale</span>
+<span class="t">#</span> migrations run in entrypoint.web.sh
+<span class="t">#</span> collectstatic already baked at image build
+<span class="t">#</span> <span class="r">no staging, no checksum verify, no dry-run, no rollback</span>
+      </div>
+      <div style="margin-top:12px;font-size:12px;color:var(--dim)">
+        Requires a human at the school, a working link large enough for a full image pull,
+        and downtime for the swap. Nothing about it is driven by the sync rail.
+      </div>
+    </div></div>
+  </div>
+
+  <div class="foot">
+    MOCKUP · current_deployment_state.html · edge box on baseline version, blind to cloud code state ·
+    values drawn from apps/sync_engine + apps/siteconfig/deploy_meta.py as they exist on main @ a9603ca21
+  </div>
+</div>
+</body>
+</html>
