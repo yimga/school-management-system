@@ -134,8 +134,14 @@ class PackageEngineApplyRollbackTests(TestCase):
 
     def test_apply_package_integrity_error_atomic_block_leaves_no_installed_row(self):
         """§6.4: mid-apply DB error rolls back the atomic apply block; no InstalledPackage row."""
+        # Patch update_or_create, which is what apply_package calls now. It used
+        # to call create() unconditionally -- and because rollback() only soft-
+        # deactivates, that made a rolled-back package permanently un-
+        # reinstallable for its tenant (unique_together is package/version/
+        # school). The contract under test is unchanged: any DB error inside the
+        # atomic block leaves no install row behind.
         with patch(
-            "apps.packages.engine.InstalledPackage.objects.create",
+            "apps.packages.engine.InstalledPackage.objects.update_or_create",
             side_effect=IntegrityError("simulated unique violation"),
         ):
             result = apply_package(
