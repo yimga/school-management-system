@@ -79,6 +79,18 @@ class RecoveryGapTemplateTests(SimpleTestCase):
         self.assertIn("data-rmc-q-explain", text)
         self.assertIn("aiExplainUrl", text)
 
+    def test_held_review_live_board_id_matches_js(self):
+        text = Path("templates/migration_cloud/anomaly_nudge.html").read_text(encoding="utf-8")
+        self.assertIn('id="mc-live-board"', text)
+        js = Path("static/js/rmc-migration-live-import.js").read_text(encoding="utf-8")
+        self.assertIn("mc-live-board", js)
+
+    def test_operator_bundle_detail_has_archive_ui(self):
+        text = Path("templates/migration_cloud/bundle_detail.html").read_text(encoding="utf-8")
+        self.assertIn("archive_eligible", text)
+        self.assertIn("archive_source_url", text)
+        self.assertIn("Archive source files", text)
+
     def test_review_page_has_archive_and_sse(self):
         text = Path("templates/migration_cloud/connector/bundle_review.html").read_text(
             encoding="utf-8"
@@ -100,6 +112,12 @@ class RecoveryGapScopeTests(SimpleTestCase):
         self.assertEqual(ACTION_SCOPE_REQUIREMENTS[("bundle", "quarantine_list")], "bundles:read")
         self.assertEqual(ACTION_SCOPE_REQUIREMENTS[("bundle", "quarantine_resolve")], "bundles:write")
         self.assertEqual(ACTION_SCOPE_REQUIREMENTS[("bundle", "ai_explain_row")], "bundles:read")
+        self.assertEqual(ACTION_SCOPE_REQUIREMENTS[("token", "scopes_catalog")], "tokens:manage")
+
+    def test_quarantine_write_gate_helper_exported(self):
+        from apps.migration_cloud.api.quarantine_actions import _require_quarantine_write_access
+
+        self.assertTrue(callable(_require_quarantine_write_access))
 
 
 class ArchiveHelperTests(SimpleTestCase):

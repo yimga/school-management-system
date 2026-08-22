@@ -13,7 +13,10 @@
   var _maxPercentSeen = 0;
 
   function board() {
-    return document.getElementById("mc-live-board");
+    return (
+      document.getElementById("mc-live-board") ||
+      document.querySelector("[data-mc-live-board]")
+    );
   }
 
   function seedPayload() {

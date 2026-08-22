@@ -201,6 +201,8 @@ class ScopedTokenInvariantTests(SimpleTestCase):
             ("token", "list"),
             ("token", "create"),
             ("token", "destroy"),
+            ("token", "rotate"),
+            ("token", "scopes_catalog"),
             ("webhook", "list"),
             ("webhook", "create"),
             ("webhook", "retrieve"),

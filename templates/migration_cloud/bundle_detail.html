@@ -400,6 +400,28 @@
       </button>
       {% endif %}
     </div>
+    {% if source_archived %}
+    <div class="mt-3 rmc-banner rmc-banner--info" role="status">
+      <strong>{% trans "Source files archived" %}</strong>
+      <p class="mb-0 rmc-muted">{% trans "Uploaded source bytes were removed to protect student privacy. Import metadata and audit history are kept." %}</p>
+    </div>
+    {% elif archive_eligible %}
+    <div class="mt-3 p-3 border rounded">
+      <h3 class="rmc-h3">{% trans "Archive source files" %}</h3>
+      <p class="rmc-muted mb-2">
+        {% blocktrans with n=source_blobs_remaining %}Import complete — {{ n }} captured source file(s) can be removed now.{% endblocktrans %}
+      </p>
+      <form method="post" action="{{ archive_source_url }}" class="d-inline">
+        {% csrf_token %}
+        <button type="submit" class="rmc-btn rmc-btn--ghost rmc-btn--sm">{% trans "Archive source files now" %}</button>
+      </form>
+    </div>
+    {% elif quarantine_pending %}
+    <p class="rmc-muted mt-3 mb-0">
+      {% blocktrans count count=quarantine_pending %}{{ count }} held row still needs review before source files can be archived.{% plural %}{{ count }} held rows still need review before source files can be archived.{% endblocktrans %}
+      <a href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_review' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_review' bundle_id=bundle.pk %}{% endif %}">{% trans "Open review queue" %}</a>
+    </p>
+    {% endif %}
     {% if rollback_runs %}
     <div class="mt-3" data-mc-rollback-panel>
       <h3 class="rmc-h2">{% trans "Roll back a migration run" %}</h3>

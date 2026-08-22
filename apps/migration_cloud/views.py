@@ -869,6 +869,38 @@ def _rollback_runs_for_bundle(bundle):
     return [r for r in run_qs if r.can_rollback]
 
 
+def _bundle_archive_context(*, bundle, shell: str) -> dict:
+    """Shared archive eligibility for tenant connector + operator bundle detail."""
+    from django.urls import reverse
+
+    from .artifact_blob_store import bundle_source_archived, source_blob_count
+    from .models import BundleStatus
+    from .quarantine_resolution import pending_quarantine_count
+
+    q_pending = pending_quarantine_count(bundle)
+    source_archived = bundle_source_archived(bundle)
+    source_blobs_remaining = source_blob_count(bundle)
+    archive_eligible = (
+        bundle.status in (BundleStatus.RECONCILED, BundleStatus.APPLIED)
+        and q_pending == 0
+        and not source_archived
+        and source_blobs_remaining > 0
+    )
+    archive_source_url = ""
+    if shell in ("super", "portal"):
+        archive_source_url = reverse(
+            f"migration_cloud_{shell}:bundle_archive_source",
+            kwargs={"bundle_id": bundle.pk},
+        )
+    return {
+        "quarantine_pending": q_pending,
+        "source_archived": source_archived,
+        "source_blobs_remaining": source_blobs_remaining,
+        "archive_eligible": archive_eligible,
+        "archive_source_url": archive_source_url,
+    }
+
+
 class MigrationCloudBundleDetailView(LoginRequiredMixin, View):
     """Show one bundle's profile / classification / mapping / reconciliation surfaces."""
 
@@ -886,6 +918,7 @@ class MigrationCloudBundleDetailView(LoginRequiredMixin, View):
         )
         per_artifact_mappings = (bundle.mapping_summary or {}).get("per_artifact") or {}
         pending_methods = {value for value, kind, _ in _INTAKE_WIZARD_METHODS if kind == "pending"}
+        archive_ctx = _bundle_archive_context(bundle=bundle, shell=shell)
         return render(
             request,
             self.template_name,
@@ -918,6 +951,7 @@ class MigrationCloudBundleDetailView(LoginRequiredMixin, View):
                 "rollback_runs": _rollback_runs_for_bundle(bundle),
                 # Operator RESUME control: is a safe re-apply available for this bundle?
                 "can_repair": _bundle_repairable(bundle),
+                **archive_ctx,
             },
         )
 

@@ -28,6 +28,26 @@ from apps.migration_cloud.reliability import idempotent_post, safe_500
 logger = logging.getLogger(__name__)
 
 
+def _require_quarantine_write_access(request):
+    """Tenant writes require admin — mirrors connector HTML POST gate."""
+    from apps.accounts.decorators import user_is_tenant_admin
+
+    from .permissions import _is_operator_shell_request
+
+    if _is_operator_shell_request(request):
+        return None
+    school = getattr(request, "school", None) or getattr(request, "tenant", None)
+    user = getattr(request, "user", None)
+    if user is None or not getattr(user, "is_authenticated", False):
+        return Response({"error": "forbidden"}, status=status.HTTP_403_FORBIDDEN)
+    if not user_is_tenant_admin(user, school):
+        return Response(
+            {"error": "forbidden", "detail": "tenant admin required for held-row writes"},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+    return None
+
+
 def _resolve_payload(request) -> dict:
     if hasattr(request, "data") and isinstance(request.data, dict):
         return dict(request.data)
@@ -203,6 +223,9 @@ def quarantine_resolve_action_factory():
     @idempotent_post
     @safe_500
     def quarantine_resolve(self, request, pk=None):
+        denied = _require_quarantine_write_access(request)
+        if denied is not None:
+            return denied
         bundle = self.get_object()
         payload = _resolve_payload(request)
         outcome, code = _apply_resolve(bundle=bundle, user=request.user, payload=payload)

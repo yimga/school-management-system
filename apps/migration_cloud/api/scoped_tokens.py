@@ -68,6 +68,7 @@ ACTION_SCOPE_REQUIREMENTS: dict[tuple[str, str], str] = {
     ("token", "create"): "tokens:manage",
     ("token", "destroy"): "tokens:manage",
     ("token", "rotate"): "tokens:manage",
+    ("token", "scopes_catalog"): "tokens:manage",
     ("webhook", "list"): "webhooks:manage",
     ("webhook", "create"): "webhooks:manage",
     ("webhook", "retrieve"): "webhooks:manage",
