@@ -793,6 +793,22 @@ urlpatterns = [
         name="resend_signup_verification",
     ),
     path("super/", include(("apps.schools.super_urls", "super"), namespace="super")),
+    # Orchestration workbench + JSON API. This module was included ONLY from
+    # config/urls.py -- the urlconf a dev machine or bare-IP host resolves to --
+    # so the operator workbench, the retry action and all six API endpoints
+    # 404'd on manager.runmycampus.com. The operator views self-defend via
+    # require_super_access_with_host, which is satisfied by the manager host.
+    path(
+        "orchestration/",
+        include(("apps.orchestration.urls", "orchestration"), namespace="orchestration"),
+    ),
+    path(
+        "orchestration/api/",
+        include(
+            ("apps.orchestration.urls_api", "orchestration_api"),
+            namespace="orchestration_api",
+        ),
+    ),
     path(
         "super/migration/",
         include(

@@ -661,6 +661,18 @@ urlpatterns = [
     # tenant host needs the same reverse() targets for template resolution.
     path("edge/", include(("apps.sync_engine.urls", "sync_engine"), namespace="sync_engine")),
     path("api/v1/", include(("apps.api.urls_v1", "api_v1"), namespace="api_v1")),
+    # Orchestration JSON API. api.py authenticates by session-or-JWT and scopes
+    # every read to request.school for non-staff callers, so a school's own
+    # subdomain is where it belongs -- it was reachable only from config/urls.py
+    # (dev / bare-IP hosts), which no tenant ever resolves to. The OPERATOR
+    # workbench is deliberately NOT mounted here.
+    path(
+        "orchestration/api/",
+        include(
+            ("apps.orchestration.urls_api", "orchestration_api"),
+            namespace="orchestration_api",
+        ),
+    ),
     # v4.02.13: assist-dock client endpoints on the tenant host (portal + tenant
     # admin render the dock) so dock actions are not silently dead.
     path(
