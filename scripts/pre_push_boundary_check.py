@@ -21,19 +21,27 @@ styles, render safety, attribute-context includes, service-worker monotonicity).
 
 Behaviour
 ---------
-* Default is WARN mode: every gate runs, failures are reported loudly, but the
-  process still exits 0 so a push is never blocked. This keeps it safe to
-  install into a shared clone (it will never wedge a teammate/agent mid-push).
-* STRICT mode (``--strict`` or env ``RMC_PREPUSH_STRICT=1``) exits non-zero when
-  any gate fails, so `git push` aborts. Turn this on once your working tree is
-  clean and you want the machine to hold the line.
+* Default is ENFORCING (since 2026-08-21): a failed gate exits non-zero, so
+  `git push` aborts. It was warn-only until then, on the reasoning that a shared
+  clone should never wedge a teammate mid-push -- but that reasoning assumed
+  something downstream would catch what slipped through, and nothing does.
+  Branch protection is unavailable on this plan, and GitHub Actions has started
+  no job since 2026-08-15 (each run is created and refused for budget, so the
+  workflows report red without executing). This hook is the whole chain.
+* WARN-ONLY (``--warn-only`` or env ``RMC_PREPUSH_STRICT=0``) reports and exits 0.
+  Still one env var away, deliberately -- the point is not to make the override
+  hard, it is to make it a decision someone made rather than the silent default.
+* A gate that TIMES OUT is reported as a resource result, not a finding. The
+  ceiling is ``RMC_PREPUSH_GATE_TIMEOUT_S`` (default 600s), generous because
+  several agents share this machine and a squeezed ceiling manufactures failures.
 
 Usage
 -----
-    python scripts/pre_push_boundary_check.py            # warn-only
-    python scripts/pre_push_boundary_check.py --strict   # block on red
-    RMC_PREPUSH_STRICT=1 git push                        # block via env
-    python scripts/pre_push_boundary_check.py --list     # show the gate list
+    python scripts/pre_push_boundary_check.py              # enforcing (default)
+    python scripts/pre_push_boundary_check.py --warn-only  # report, exit 0
+    RMC_PREPUSH_STRICT=0 git push                          # override via env
+    RMC_PREPUSH_GATE_TIMEOUT_S=1200 git push               # slow/busy machine
+    python scripts/pre_push_boundary_check.py --list       # show the gate list
 """
 
 from __future__ import annotations
@@ -172,7 +180,18 @@ DJANGO_GATES: list[tuple[str, list[str]]] = [
     ),
 ]
 
-_PER_GATE_TIMEOUT_S = 120
+# Per-gate wall-clock ceiling, overridable with RMC_PREPUSH_GATE_TIMEOUT_S.
+#
+# Generous ON PURPOSE. Several agents share this machine, and the widest gates walk
+# ~8,600 Python files or ~1,900 templates; while a peer is replaying migrations they
+# take minutes. A timeout is reported as FAIL, which is INDISTINGUISHABLE from a real
+# finding at a glance -- on 2026-08-21 `python-files-parse` "failed" here at 120s while
+# being completely clean (8,617 files checked, 0 findings, exit 0 when run directly).
+# A ceiling short enough to manufacture failures teaches people to ignore red, and under
+# --strict it would block correct pushes outright. Prefer waiting to guessing.
+_PER_GATE_TIMEOUT_S = int(  # magic-number-allow: pre-push per-gate wall-clock ceiling (seconds)
+    os.environ.get("RMC_PREPUSH_GATE_TIMEOUT_S") or 600
+)
 
 
 def _truthy(value: str | None) -> bool:
@@ -206,7 +225,15 @@ def _run_gate(label: str, argv: list[str]) -> tuple[bool | None, str]:
             timeout=_PER_GATE_TIMEOUT_S,
         )
     except subprocess.TimeoutExpired:
-        return False, f"gate timed out after {_PER_GATE_TIMEOUT_S}s"
+        # Say what this IS, because a bare "FAIL" here reads as a finding and is not one.
+        return False, (
+            f"gate TIMED OUT after {_PER_GATE_TIMEOUT_S}s -- this is a RESOURCE result, "
+            f"not a finding. The gate did not reach a verdict, so nothing here says your "
+            f"tree is dirty. Re-run it alone for a real answer:\n"
+            f"    python scripts/{argv[0]} {' '.join(argv[1:])}\n"
+            f"If the machine is simply busy (peers running tests), raise the ceiling with "
+            f"RMC_PREPUSH_GATE_TIMEOUT_S=<seconds>."
+        )
     output = (proc.stdout or "") + (proc.stderr or "")
     if proc.returncode == _SKIPPED_EXIT_CODE:
         return None, output.strip()
@@ -241,7 +268,14 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--strict",
         action="store_true",
-        help="Exit non-zero when any gate fails (also enabled by RMC_PREPUSH_STRICT=1).",
+        help="Exit non-zero when any gate fails. This is now the DEFAULT; kept so existing "
+             "callers and hooks that pass it keep working.",
+    )
+    parser.add_argument(
+        "--warn-only",
+        action="store_true",
+        help="Report failures but exit 0 (also via RMC_PREPUSH_STRICT=0). Use when you "
+             "need to push past a gate you have already understood.",
     )
     parser.add_argument(
         "--list",
@@ -258,7 +292,27 @@ def main(argv: list[str] | None = None) -> int:
             print(f"  - {label}: python scripts/{' '.join(gate_argv)}  [needs Django]")
         return 0
 
-    strict = args.strict or _truthy(os.environ.get("RMC_PREPUSH_STRICT"))
+    # ENFORCING BY DEFAULT since 2026-08-21.
+    #
+    # This hook is not one layer of several -- it is currently the ONLY thing that gates a
+    # push. Branch protection is unavailable on this plan (see CLAUDE.md), and GitHub
+    # Actions has started no job since 2026-08-15: every run is created and immediately
+    # refused with "The job was not started because an Actions budget is preventing
+    # further use", so the workflows report red without ever executing. Warn-only on top
+    # of that meant nothing, anywhere, enforced anything -- a red gate reached `main` and
+    # no later stage would catch it.
+    #
+    # Opting out is still one env var, deliberately: the ceiling is now 600s so a busy
+    # machine no longer manufactures failures (see _PER_GATE_TIMEOUT_S), which is what
+    # made warn-only defensible before. The difference is that skipping a red gate is now
+    # an act someone chose and can be seen in a shell history, not the silent default.
+    _strict_env = (os.environ.get("RMC_PREPUSH_STRICT") or "").strip()
+    if args.warn_only:
+        strict = False
+    elif _strict_env:
+        strict = _truthy(_strict_env)
+    else:
+        strict = True
 
     print("Pre-push boundary gates (deps-free subset of CI, plus Django-only gates)...")
     failures: list[tuple[str, str]] = []
@@ -314,15 +368,21 @@ def main(argv: list[str] | None = None) -> int:
     print("")
     if strict:
         print(
-            "STRICT mode: push aborted. Fix the gate(s) above, or re-run with "
-            "RMC_PREPUSH_STRICT unset to warn-only.",
+            "Push ABORTED (gates are enforcing by default).\n"
+            "  A gate that TIMED OUT is a resource result, not a finding -- re-run that one\n"
+            "  alone, or raise RMC_PREPUSH_GATE_TIMEOUT_S, rather than overriding.\n"
+            "  To push anyway once you have understood the failure:\n"
+            "      RMC_PREPUSH_STRICT=0 git push        (or: --warn-only)\n"
+            "  Nothing downstream will catch this for you: branch protection is unavailable\n"
+            "  on this plan and Actions has run no job since 2026-08-15.",
         )
         return 1
 
     print(
-        "WARN mode: push NOT blocked. These will turn the "
-        "`architectural-boundaries` CI job red once a PR runs it.\n"
-        "  Set RMC_PREPUSH_STRICT=1 (or pass --strict) to block red pushes locally.",
+        "WARN-ONLY (override in effect): push NOT blocked.\n"
+        "  You asked for this explicitly, so the gate above is yours to own -- and it is\n"
+        "  the last check in the chain. Actions has started no job since 2026-08-15, so\n"
+        "  no CI run will re-report it after you push.",
     )
     return 0
 

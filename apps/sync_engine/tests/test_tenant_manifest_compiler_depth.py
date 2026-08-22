@@ -6,6 +6,8 @@ validation on top of the contract tests.
 
 from __future__ import annotations
 
+import logging
+
 from django.test import SimpleTestCase
 
 from apps.sync_engine.tenant_manifest_compiler import (
@@ -124,6 +126,13 @@ class TenantManifestCompilerDepthTests(SimpleTestCase):
         self.assertEqual(d["feature_flags"], {"x": True, "y": False})
 
     def test_log_emission_omits_raw_tenant_id_and_uses_hash(self) -> None:
+        # config/settings_test.py calls logging.disable(logging.CRITICAL) at import, which
+        # suppresses every record before assertLogs can see one -- so this test passes
+        # under config.settings and fails under config.settings_test, for reasons that have
+        # nothing to do with the compiler. Lift the global disable for this test only and
+        # restore it on the way out, so the assertion holds under either settings module.
+        logging.disable(logging.NOTSET)
+        self.addCleanup(logging.disable, logging.CRITICAL)
         with self.assertLogs("apps.sync_engine.tenant_manifest_compiler", level="INFO") as cm:
             compile_manifest(tenant_id="tenant-distinctive-XYZ")
         log_text = "\n".join(cm.output)

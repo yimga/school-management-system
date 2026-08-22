@@ -47,7 +47,12 @@ class RunEdgeSyncNowTests(TestCase):
         with mock.patch(_RUN_SYNC_CYCLE, return_value=canned) as rsc:
             from apps.sync_engine.edge_scheduler import run_edge_sync_now
 
-            result = run_edge_sync_now()
+            # force=True because this asserts DELEGATION, not cadence. A bare call is
+            # cadence-gated (edge_scheduler.run_edge_sync_now: "if not force"), so on a
+            # fresh test DB it returns not-due and never reaches run_sync_cycle. force is
+            # what the real explicit triggers pass -- the "Sync now" button, the boot
+            # entrypoint and the edge_autosync command -- so this exercises a real caller.
+            result = run_edge_sync_now(force=True)
         rsc.assert_called_once()
         self.assertEqual(rsc.call_args.args[0], school)
         self.assertEqual(rsc.call_args.kwargs.get("mode"), "live")

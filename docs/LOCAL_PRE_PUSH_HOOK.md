@@ -36,20 +36,36 @@ plus the runner [`scripts/pre_push_boundary_check.py`](../scripts/pre_push_bound
 Run the installer in **every** clone that pushes (including the one the
 peer/agent session works from — that is the clone that has been landing red).
 
-## Behaviour: warn by default, strict on demand
+## Behaviour: enforcing by default, override on demand
 
-* **WARN (default).** Every gate runs; failures are reported loudly, but the push
-  is **not** blocked (exit 0). This makes it safe to install into a shared clone —
-  it will never wedge a push mid-flight, even if the working tree is currently red.
-* **STRICT.** Set `RMC_PREPUSH_STRICT=1` (or run the checker with `--strict`) and a
-  red gate aborts `git push`. Turn this on once your tree is clean and you want the
-  machine to hold the line.
+**This inverted on 2026-08-21.** It was warn-by-default, on the reasoning that a
+shared clone should never wedge a teammate mid-push. That reasoning assumed
+something downstream would catch whatever slipped through — and nothing does.
+Branch protection is unavailable on this plan (see above), and **GitHub Actions
+has started no job since 2026-08-15**: each run is created and immediately refused
+with *"The job was not started because an Actions budget is preventing further
+use"*, so every workflow reports red without ever executing. Warn-only on top of
+that meant nothing, anywhere, enforced anything.
+
+* **ENFORCING (default).** A failed gate exits non-zero and `git push` aborts.
+* **WARN-ONLY (override).** `--warn-only`, or `RMC_PREPUSH_STRICT=0`. Still one env
+  var away on purpose: the goal is not to make the override hard, it is to make
+  skipping a red gate a decision someone made and can be seen in a shell history,
+  rather than the silent default.
+* **Timeouts are not findings.** A gate that exceeds the ceiling reports
+  `TIMED OUT … this is a RESOURCE result, not a finding` and names the command to
+  re-run it alone. The ceiling is `RMC_PREPUSH_GATE_TIMEOUT_S` (default **600s**),
+  deliberately generous — several agents share this machine, and a squeezed ceiling
+  manufactures failures that look exactly like real ones. On 2026-08-21
+  `python-files-parse` "failed" at the old 120s while being entirely clean (8,617
+  files, 0 findings). Raise the ceiling before reaching for the override.
 
 ```sh
-python scripts/pre_push_boundary_check.py            # warn-only, ad-hoc
-python scripts/pre_push_boundary_check.py --strict   # block on red
-python scripts/pre_push_boundary_check.py --list     # show the gate list
-RMC_PREPUSH_STRICT=1 git push                        # block via env for one push
+python scripts/pre_push_boundary_check.py              # enforcing (default)
+python scripts/pre_push_boundary_check.py --warn-only  # report, exit 0
+python scripts/pre_push_boundary_check.py --list       # show the gate list
+RMC_PREPUSH_STRICT=0 git push                          # override for one push
+RMC_PREPUSH_GATE_TIMEOUT_S=1200 git push               # slow or busy machine
 ```
 
 ## Keeping it in sync with CI
@@ -58,8 +74,10 @@ RMC_PREPUSH_STRICT=1 git push                        # block via env for one pus
 `.github/workflows/architectural-boundaries.yml` **flag-for-flag** — a green run
 here means a green `architectural-boundaries` job there. When a gate is added,
 removed, or re-flagged in that workflow, update `GATES` to match.
-`scripts/tests/test_pre_push_boundary_check.py` locks the warn/strict contract and
-that every referenced gate script + flag still exists.
+`scripts/tests/test_pre_push_boundary_check.py` locks the enforcement contract
+(blocks by default; `--warn-only` and `RMC_PREPUSH_STRICT=0` release it; an
+exported-but-empty value is not an override) and that every referenced gate script
++ flag still exists.
 
 ## Scope
 
