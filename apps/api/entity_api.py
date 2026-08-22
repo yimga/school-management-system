@@ -499,6 +499,41 @@ class TeacherProfileViewSet(viewsets.ModelViewSet):
             )
         return None
 
+    # Every write goes through _require_admin. It was DEFINED above and never
+    # called -- so the class docstring ("admin-only writes"), the
+    # @extend_schema_view block advertising 403 on each of these, and the helper
+    # itself all described a gate that did not exist. get_queryset returns the
+    # caller's OWN row for role TEACHER (correct, for self-read), so get_object()
+    # resolved it and the write landed: a teacher could PATCH their own
+    # salary_amount, allow_finance_panel, allow_paystub_access and
+    # allow_leave_approvals and get 200. Same viewset on /api/entities/teachers/
+    # and, via V1TeacherViewSet, /api/v1/people/teachers/.
+    #
+    # TeacherProfile.school is null=True, so an ungated create also minted rows
+    # belonging to no tenant.
+
+    def create(self, request, *args, **kwargs):
+        denied = self._require_admin(request)
+        if denied:
+            return denied
+        return super().create(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        denied = self._require_admin(request)
+        if denied:
+            return denied
+        return super().update(request, *args, **kwargs)
+
+    def partial_update(self, request, *args, **kwargs):
+        kwargs["partial"] = True
+        return self.update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        denied = self._require_admin(request)
+        if denied:
+            return denied
+        return super().destroy(request, *args, **kwargs)
+
 
 @extend_schema_view(
     list=extend_schema(tags=["Entity"], summary="List guardian/student links", description="Parents see their own links; admins see all links in the active school.", responses={200: StudentGuardianSerializer(many=True)}),

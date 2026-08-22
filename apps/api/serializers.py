@@ -164,6 +164,29 @@ class TeacherProfileSerializer(serializers.ModelSerializer):
             "mark_reminder_opt_in",
             "is_active",
         ]
+        # Second, independent layer. The viewset now gates writes on an admin
+        # role, but this serializer is inherited by V1TeacherViewSet and is
+        # available to any future caller, so the pay and authority fields are
+        # locked here too -- readable, never writable through the generic entity
+        # surface.
+        #
+        # apps/api/sync_services.py names allow_finance_panel /
+        # allow_paystub_access / allow_leave_approvals as authority fields the
+        # sync path must protect; this is the REST equivalent. salary_amount is
+        # the gross-pay source in apps/payroll/services.py, and salary_cap /
+        # pay_grade / next_pay_date / payment_method are the rest of the pay
+        # record. They are set through the HR/payroll surfaces that own them,
+        # not through a generic profile PATCH.
+        read_only_fields = [
+            "pay_grade",
+            "salary_amount",
+            "salary_cap",
+            "next_pay_date",
+            "payment_method",
+            "allow_finance_panel",
+            "allow_paystub_access",
+            "allow_leave_approvals",
+        ]
 
 
 # ==================== FINANCE SERIALIZERS ====================
