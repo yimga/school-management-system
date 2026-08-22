@@ -16,6 +16,17 @@
 | Rollback | Platform docs | Revert deploy; DB migrations are forward-only — document rollback strategy per migration. |
 | Fresh DB | docs/FRESH_DB_FIX.md | DB_FILE, clean SQLite path. |
 
+## Sovereign / offline edge boxes
+
+| Topic | Doc | Notes |
+|-------|-----|--------|
+| **TLS certificate — onboarding decision** | docs/EDGE_TLS_RUNBOOK.md | The school chooses `off` / `selfsigned` / `provided` (any CA) / `acme`, and can change later in either direction. Do this WITH the school before go-live. Without a certificate the origin is not a secure context, so WebCrypto is withheld and offline PIN / local mode cannot be enabled on any browser — "Local access could not be enabled on this browser" is the URL, not the browser. Gilead runs `selfsigned`. |
+| Getting a name onto the LAN | docs/EDGE_LAN_HOSTNAME_DNS.md | Prerequisite for a certificate that asserts a hostname rather than only an IP. |
+| Getting a new build to the box | docs/EDGE_UPDATE_PIPELINE.md | Image digest + compatibility floor; nothing ships while CI cannot start a job. |
+| Sync operations | docs/EDGE_SYNC_OPERATIONS.md, docs/EDGE_CLOUD_SYNC_OPERATOR_RUNBOOK.md | Bundles, holds, parity. |
+| Cloud/box drift | `manage.py deployment_parity --against <url>` | MUST_MATCH / MAY_DIFFER / MUST_DIFFER; `RMC_EDGE_TLS_MODE` is MAY_DIFFER and reported so an operator can see which certificate a school chose. |
+| Is this box ready? | `manage.py check_edge_readiness --strict` | Blocks go-live on an unrecognised TLS mode, a missing/expired certificate, a certificate that omits an address the box answers at, HSTS on a LAN certificate, and the cookie-flag lockout. |
+
 ## Failure modes
 
 | Failure mode | Doc / location | Notes |

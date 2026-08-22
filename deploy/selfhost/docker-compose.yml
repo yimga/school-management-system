@@ -36,6 +36,10 @@ x-app: &app
     # hosted conversion / paid-install enforcement. A label must not route.
     ENVIRONMENT: "${ENVIRONMENT:-selfhost}"
   volumes:
+    # Certificates the box mints for itself (manage.py edge_tls --issue-selfsigned)
+    # and the box CA that signs them. A named volume because losing ca.key means
+    # every device that trusted this box has to install a new CA by hand.
+    - edgetlsdata:/app/var/edge-tls
     # PERSIST uploaded media (student/teacher photos, evaluation evidence, logos,
     # receipts, documents). MEDIA_ROOT is /app/media INSIDE the container; without a
     # named volume `docker compose up --build` recreates the web container and WIPES all
@@ -137,7 +141,52 @@ services:
       retries: 3
       start_period: 180s
 
+  # TLS terminator. OPT-IN: it only starts with `--profile tls`, so an existing
+  # plain-HTTP box is completely unaffected by this file until a school chooses
+  # otherwise. Which certificate it presents is the school's decision
+  # (RMC_EDGE_TLS_MODE: off | selfsigned | provided | acme) -- see
+  # docs/EDGE_TLS_RUNBOOK.md and `manage.py edge_tls`.
+  #
+  # This is what makes "make this device offline ready" possible at all: the offline
+  # PIN vault derives its key with crypto.subtle, which browsers withhold outside a
+  # secure context, so on plain HTTP it could never seal on ANY browser.
+  edge-tls:
+    profiles: ["tls"]
+    image: caddy:2-alpine
+    depends_on:
+      web:
+        condition: service_started
+    ports:
+      - "${EDGE_TLS_HTTPS_PORT:-443}:443"
+      # 80 is needed for the ACME HTTP-01 challenge and for the plain-HTTP redirect.
+      # Harmless on a LAN in the other modes.
+      - "${EDGE_TLS_HTTP_PORT:-80}:80"
+    volumes:
+      - ./Caddyfile.edge:/etc/caddy/Caddyfile:ro
+      # Caddy's own local CA (mode=selfsigned with `tls internal`) and any ACME
+      # material live here. Losing this volume means every device that installed the
+      # box CA has to install the new one, so it is NAMED, not anonymous.
+      - edgecaddydata:/data
+      - edgecaddyconfig:/config
+      # Certificates minted by `manage.py edge_tls --issue-selfsigned`, or files
+      # supplied by the school's CA. Shared read-only with the terminator; the web
+      # container writes them.
+      - edgetlsdata:/app/var/edge-tls:ro
+    restart: unless-stopped
+    healthcheck:
+      # Proves the terminator is actually serving TLS, not merely running. --insecure
+      # because in selfsigned / provided mode the container itself has no reason to
+      # trust the school's CA -- we are checking the handshake, not the trust chain.
+      test: ["CMD-SHELL", "wget -q --spider --no-check-certificate https://127.0.0.1/health/ || exit 1"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
 volumes:
   pgdata:
   valkeydata:
   mediadata:
+  edgetlsdata:
+  edgecaddydata:
+  edgecaddyconfig:

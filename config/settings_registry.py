@@ -334,6 +334,7 @@ SETTINGS_REGISTRY: tuple[SettingSpec, ...] = (
     SettingSpec("TENANCY_MODE", "str", '"shared"', "tenancy", "High-level tenancy mode (shared / schema / db)."),
     SettingSpec("DB_POOL_MODE", "str", '"direct"', "tenancy", "Database endpoint mode: direct, session, or transaction. Transaction is not currently supported."),
     SettingSpec("SINGLE_TENANT", "bool", "False", "tenancy", "Force single-tenant operation (disables host-based dispatch)."),
+    SettingSpec("RMC_EDGE_TLS_MODE", "str", '"off"', "tenancy", "Sovereign box TLS posture: off | selfsigned | provided | acme. Derives SECURE_SSL_REDIRECT, SESSION_COOKIE_SECURE, CSRF_COOKIE_SECURE and SECURE_HSTS_SECONDS; see apps/schools/edge_tls.py and docs/EDGE_TLS_RUNBOOK.md."),
     SettingSpec("SHARED_APPS", "tuple[str]", "()", "tenancy", "django-tenants SHARED_APPS list."),
     SettingSpec("TENANT_APPS", "tuple[str]", "()", "tenancy", "django-tenants TENANT_APPS list."),
     SettingSpec("TENANT_EXAMPLE_SLUG", "str", '""', "tenancy", "Example tenant slug used in demos / docs."),

@@ -1311,9 +1311,43 @@ MAINTENANCE_MODE = False
 METADATA_DYNAMICFIELD_SITECONFIG_FALLBACK = False
 METADATA_DYNAMICFIELD_DUAL_WRITE_FROM_SITECONFIG = False
 
+# --- Sovereign edge box: the four flags that follow from RMC_EDGE_TLS_MODE -------
+# A school on a LAN chooses ONE thing -- self-signed, a CA-issued pair, ACME, or
+# plain HTTP -- and these four booleans follow from it. Before this, the school had
+# to know that choosing HTTPS also meant flipping SECURE_SSL_REDIRECT,
+# SESSION_COOKIE_SECURE and CSRF_COOKIE_SECURE, and that getting it wrong produces
+# a login that 302s and bounces with no error anywhere. .env.edge.example carries a
+# warning block about exactly that trap; this removes the trap instead.
+#
+# An explicit env var still WINS (the getenv calls below read these as defaults), so
+# an operator can pin one value without losing the rest. apps/schools/edge_tls.py
+# owns the policy and explains why HSTS stays 0 for every LAN mode -- that zero is
+# what keeps the decision reversible.
+try:
+    from apps.schools.edge_tls import derived_security_flags as _edge_tls_flags
+    from apps.schools.edge_tls import resolve_mode as _edge_tls_resolve
+
+    _edge_tls = _edge_tls_resolve()
+    RMC_EDGE_TLS_MODE = _edge_tls.mode
+    _edge_tls_defaults = _edge_tls_flags(_edge_tls.mode) if _edge_tls.source != "default" else {}
+except Exception:  # noqa: BLE001 - settings must import even if the app tree is odd
+    RMC_EDGE_TLS_MODE = "off"
+    _edge_tls_defaults = {}
+
+
+def _edge_default(name, fallback):
+    """Mode-derived default for a security flag, or the platform default."""
+    if name not in _edge_tls_defaults:
+        return fallback
+    value = _edge_tls_defaults[name]
+    return ("1" if value else "0") if isinstance(value, bool) else str(value)
+
+
 # Render terminates TLS at the edge. Internal platform probes may hit HTTP
 # without X-Forwarded-Proto and get redirected, which can break startup scans.
-_secure_ssl_redirect_default = "0" if _is_render else "1"
+_secure_ssl_redirect_default = _edge_default(
+    "SECURE_SSL_REDIRECT", "0" if _is_render else "1"
+)
 SECURE_SSL_REDIRECT = (
     os.getenv("SECURE_SSL_REDIRECT", _secure_ssl_redirect_default) == "1" and not DEBUG
 )
@@ -1346,8 +1380,14 @@ SECURE_REDIRECT_EXEMPT = [
     r"^discover/",  # Section 8: Global login discovery (landing page)
     r"^account-frozen/",  # Section 8: Frozen account page (may be hit before HTTPS)
 ]
-SESSION_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE", "1") == "1" and not DEBUG
-CSRF_COOKIE_SECURE = os.getenv("CSRF_COOKIE_SECURE", "1") == "1" and not DEBUG
+SESSION_COOKIE_SECURE = (
+    os.getenv("SESSION_COOKIE_SECURE", _edge_default("SESSION_COOKIE_SECURE", "1")) == "1"
+    and not DEBUG
+)
+CSRF_COOKIE_SECURE = (
+    os.getenv("CSRF_COOKIE_SECURE", _edge_default("CSRF_COOKIE_SECURE", "1")) == "1"
+    and not DEBUG
+)
 if RUNNING_TESTS:
     # Django test Client uses HTTP; Secure cookies would never round-trip.
     SESSION_COOKIE_SECURE = False
@@ -1375,7 +1415,11 @@ SESSION_COOKIE_HTTPONLY = os.getenv("SESSION_COOKIE_HTTPONLY", "1") == "1"
 CSRF_COOKIE_HTTPONLY = os.getenv("CSRF_COOKIE_HTTPONLY", "1") == "1"
 # HSTS: 60s is too short for any real protection. Default to 1 year in production
 # so a single MITM cannot strip HTTPS within an hour. Leave 0 in DEBUG (local dev).
-SECURE_HSTS_SECONDS = int(os.getenv("SECURE_HSTS_SECONDS", "31536000")) if not DEBUG else 0
+SECURE_HSTS_SECONDS = (
+    int(os.getenv("SECURE_HSTS_SECONDS", _edge_default("SECURE_HSTS_SECONDS", "31536000")))
+    if not DEBUG
+    else 0
+)
 SECURE_HSTS_INCLUDE_SUBDOMAINS = os.getenv("SECURE_HSTS_INCLUDE_SUBDOMAINS", "1") == "1"
 SECURE_HSTS_PRELOAD = os.getenv("SECURE_HSTS_PRELOAD", "1") == "1"
 SECURE_BROWSER_XSS_FILTER = True

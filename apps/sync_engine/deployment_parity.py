@@ -78,6 +78,10 @@ PARITY_MAY_DIFFER: frozenset[str] = frozenset(
         "RMC_EDGE_SYNC_ENABLED",
         "RMC_EDGE_SCHOOL_SLUG",
         "RMC_EDGE_OPERATOR_BASE",
+        # A box behind a school CA and a cloud dyno behind Let's Encrypt is the
+        # design, not drift. The MODE is reported so an operator can SEE which
+        # certificate a school chose without asking them.
+        "RMC_EDGE_TLS_MODE",
         "CONVERSION_LOCK_STRICT",
     }
 )

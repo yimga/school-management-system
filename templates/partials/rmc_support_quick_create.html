@@ -1,11 +1,19 @@
 {% load i18n static %}
 {% comment %} v4.00.37 — Universal "Report issue" chip booted from every tenant shell.
 The stylesheet is head-owned by portal_base.html; this body partial owns runtime data/scripts only. {% endcomment %}
-{% if request.user.is_authenticated %}
+{% comment %} The `as` form assigns "" instead of raising. portal: is mounted ONLY in
+config/tenant_urls.py, and portal_base.html renders on the OPERATOR host too — a bare
+{% url %} here raised NoReverseMatch in the closing chrome and returned 500 AFTER the
+page body had already rendered. Seven /super/migration/connectors/* routes were dead
+this way. No endpoint means no chip: the feature is tenant-only, so absence is correct.
+{% endcomment %}
+{% url 'portal:support_quick_create' as rmc_sqc_endpoint %}
+{% url 'portal:kb_search_inline' as rmc_sqc_kb_endpoint %}
+{% if request.user.is_authenticated and rmc_sqc_endpoint %}
 <script nonce="{{ csp_nonce }}" id="rmc-support-quick-create-config" type="application/json">
 {
-  "endpoint": "{% url 'portal:support_quick_create' %}",
-  "kbSearchEndpoint": "{% url 'portal:kb_search_inline' %}",
+  "endpoint": "{{ rmc_sqc_endpoint }}",
+  "kbSearchEndpoint": "{{ rmc_sqc_kb_endpoint }}",
   "shortcutHint": "Shift+?",
   "roleLabel": "{{ rmc_shell.role_label|default:request.user.get_role_display|default:'' }}",
   "voiceLocale": "{{ LANGUAGE_CODE|default:'en' }}",
