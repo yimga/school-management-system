@@ -26,9 +26,9 @@ opposite directions:
                 name and reachability for the challenge, which many sovereign boxes
                 deliberately do not have.
 
-``off``         Plain HTTP. Honest, and what Gilead runs today. Named as a mode rather
-                than left as an absence, so readiness can SAY what is off and what
-                that costs instead of silently omitting the subject.
+``off``         Plain HTTP. Honest, and what the pilot box runs today. Named as a
+                mode rather than left as an absence, so readiness can SAY what is
+                off and what that costs instead of silently omitting the subject.
 
 THE TRANSITION IS THE FEATURE. A school starts self-signed because it is the only
 thing that works on day one, and moves to a real CA when it gets a domain -- or moves
