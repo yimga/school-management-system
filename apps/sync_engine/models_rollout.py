@@ -152,22 +152,30 @@ class ManifestRelease(models.Model):
         return row
 
 
-def may_receive(school, manifest_hash) -> tuple[bool, str]:
+def may_receive(school, manifest_hash, *, ring=None, paused=None, released=None) -> tuple[bool, str]:
     """``(allowed, reason)`` — may this school be offered this manifest yet?
 
     The reason is returned even when allowed, because it is what the operator console and
     the handshake advice header show; "no" without a "why" turns every rollout question
     into a code-reading exercise.
+
+    ``ring``/``paused``/``released`` let a caller that has ALREADY loaded those hand them
+    in. On the handshake path — one school, one call — the lookups are free and the
+    defaults are right. On a fleet-wide listing they are not: without this, the operator
+    console did two extra queries per school on top of the policy map it had just built,
+    so a 300-school fleet cost 600 avoidable round trips to render one page.
     """
     digest = str(manifest_hash or "")[:64]
     if not digest:
         return False, "no manifest on the operator"
 
-    ring, paused = EdgeRolloutPolicy.ring_for(school)
+    if ring is None or paused is None:
+        ring, paused = EdgeRolloutPolicy.ring_for(school)
     if paused:
         return False, "held: this school is paused for upgrades"
 
-    released = ManifestRelease.rings_for(digest)
+    if released is None:
+        released = ManifestRelease.rings_for(digest)
     if ring in released:
         return True, f"released to {ring}"
     return False, f"not yet released to {ring} (currently {', '.join(released) or 'no ring'})"

@@ -82,6 +82,10 @@ def edge_fleet_console(request, **kwargs):
 
     states = {s.school_id: s for s in EdgeFleetState.objects.all()}
     policies = {p.school_id: p for p in EdgeRolloutPolicy.objects.all()}
+    # Read once, not once per school. Both of these are fleet-wide facts; looking them up
+    # inside the loop turned one page into 2N+3 queries, and the policy half of it was
+    # re-reading the very map built on the line above.
+    released = ManifestRelease.rings_for(operator_hash) if operator_hash else []
 
     rows = []
     counts = {"parity": 0, "behind": 0, "waiting": 0, "failed": 0, "paused": 0, "quiet": 0, "never": 0}
@@ -91,7 +95,9 @@ def edge_fleet_console(request, **kwargs):
         ring = policy.ring if policy else "stable"
         paused = bool(policy and policy.paused)
         allowed, reason = (
-            may_receive(school, operator_hash) if operator_hash else (False, _("Operator has no manifest"))
+            may_receive(school, operator_hash, ring=ring, paused=paused, released=released)
+            if operator_hash
+            else (False, _("Operator has no manifest"))
         )
         state, label = _state_for(row, ring, paused, allowed, reason, operator_hash, now)
         counts[state] = counts.get(state, 0) + 1

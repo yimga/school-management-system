@@ -400,9 +400,23 @@ byte-for-byte the same gates as a network transfer.
 | `test_ota_sync_interlock_2026_08_22.py` | `UpgradeRouteContractTests` + `NoDatabaseInterlockTests` no database (17); `HeldCycleIntegrationTests` needs one |
 | `test_ota_runtime_controls_2026_08_22.py` | no database (21) |
 | `test_ota_corrupt_bundle_2026_08_22.py` | needs a database |
+| `test_ota_default_lane_2026_08_22.py` | the assets-only default and the re-gated hold (12) |
+| `test_ota_rollout_rings_2026_08_22.py` | ring policy, promotion, reversibility (20) |
+| `test_ota_rollout_command_2026_08_22.py` | every `ota_rollout` flag, incl. query-count scaling (24) |
+| `test_ota_fleet_console_2026_08_22.py` | what the cloud keeps and how it classifies it (22) |
+| `test_ota_release_layout_2026_08_22.py` | the deployment wiring and the reload (12) |
+| `scripts/tests/test_verify_ota_pipeline_wiring.py` | the wiring gate itself, stdlib (10) |
 
 The corrupt-bundle suite is the load-bearing one. It writes a real tree, truncates one JS
 bundle exactly the way a dropped link does, and asserts the guard detects it, that the
 running tree is **byte-identical** afterwards, that the failure is recorded, and that the
 box keeps syncing on its old code. It is paired with a clean-bundle calibration test —
 without that, "it stopped on corruption" proves nothing.
+
+`test_ota_rollout_command_2026_08_22.py` exists because `ota_rollout` is the **only** path
+from "the canary looks fine" to "everybody gets it" — the console is read-only on purpose.
+A crash in that command would not fail a gate and would surface for the first time when an
+operator reached for it during an incident. It also pins the cost of the fleet listing as
+*independent of fleet size*, which is not a micro-optimisation: `may_receive` does two
+lookups per call, which is right for the handshake (one school) and 600 avoidable queries
+for a 300-school console page.
