@@ -1,5 +1,5 @@
 {% extends "backend_base.html" %}
-{% load i18n glocal_tags %}
+{% load i18n glocal_tags rmc_labels %}
 
 {% block title %}Report Library · {{ SITE.site_name|default:"Portal" }}{% endblock %}
 
@@ -68,7 +68,7 @@
                 {% for key, value in report_pack_preview.summary.items %}
                   <div class="col-md-4">
                     <div class="border rounded p-3 h-100">
-                      <div class="text-muted text-uppercase small">{{ key|cut:"_" }}</div>
+                      <div class="text-muted text-uppercase small">{{ key|humanize_token }}</div>
                       <div class="fw-semibold">{{ value }}</div>
                     </div>
                   </div>
@@ -77,7 +77,7 @@
               <div class="table-responsive mb-3">
                 <!-- large-collection-allow: catalog-link-row-actions -->
 <table class="table table-sm align-middle mb-0 table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1" data-rmc-table-5col="1">
-                  <caption class="visually-hidden">{{ key|cut:"_" }}</caption>
+                  <caption class="visually-hidden">{% trans "Sample rows in this report pack" %}</caption>
                   <tbody>
                     {% for row in report_pack_preview.rows %}
                       <tr>

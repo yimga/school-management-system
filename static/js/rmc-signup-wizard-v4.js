@@ -200,12 +200,14 @@
     var bar = panel.querySelector("[data-rmc-recommendation-confidence-bar]");
     var next = panel.querySelector("[data-rmc-confidence-next]");
     var breakdown = panel.querySelector("[data-rmc-confidence-breakdown]");
-    if (label) label.textContent = score + "% recommendation readiness · " + String(envelope.label || "provisional").replace("-", " ");
+    if (label) label.textContent = score + "% recommendation readiness · " + String(envelope.label_display || envelope.label || "provisional").replaceAll("-", " ");
     if (bar) bar.style.inlineSize = score + "%";
     if (next) {
-      var missing = envelope.missing_critical_evidence || [];
+      // Server-supplied WORDS (translated). `missing_critical_evidence` is the
+      // machine list and stays untouched; rendering it was the bug.
+      var missing = envelope.missing_critical_evidence_labels || [];
       next.hidden = !missing.length;
-      next.textContent = missing.length ? "To improve confidence: confirm " + missing.join(", ").replaceAll("_", " ") + "." : "All critical evidence is confirmed.";
+      next.textContent = missing.length ? "To improve confidence, confirm: " + missing.join("; ") + "." : "All critical evidence is confirmed.";
     }
     if (breakdown) {
       breakdown.hidden = false;
@@ -228,7 +230,7 @@
       var issueBox = document.createElement("div");
       issueBox.dataset.rmcConfidenceIssue = "1";
       issueBox.className = "rmc-signup-confidence-next";
-      issueBox.textContent = "Resolve before high confidence: " + issues.map(function (issue) { return issue.message || issue.code; }).join(" · ");
+      issueBox.textContent = "Resolve before high confidence: " + issues.map(function (issue) { return issue.message || String(issue.code || "").replaceAll("_", " "); }).join(" · ");
       panel.appendChild(issueBox);
     }
     panel.dataset.rmcConfidenceEligible = envelope.high_confidence_eligible ? "true" : "false";
