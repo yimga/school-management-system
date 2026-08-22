@@ -616,6 +616,7 @@ def check_constraints_immediately() -> None:
     if connection.vendor != "postgresql":
         return
     with connection.cursor() as cursor:
+        # rls-bypass-allow: sets transaction constraint timing, reads and writes no rows
         cursor.execute("SET CONSTRAINTS ALL IMMEDIATE")
 
 
