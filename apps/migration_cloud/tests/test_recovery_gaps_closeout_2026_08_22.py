@@ -16,7 +16,6 @@ from unittest import mock
 from django.test import RequestFactory, SimpleTestCase
 from django.urls import reverse
 
-from apps.migration_cloud.models import BundleStatus
 
 
 class RecoveryGapURLTests(SimpleTestCase):
