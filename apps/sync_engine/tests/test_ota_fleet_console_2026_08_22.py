@@ -207,3 +207,42 @@ class ConsoleContextTests(TestCase):
         allowed, reason = may_receive(self.school, HASH_A)
         state, _label = _state_for(row, "stable", False, allowed, reason, HASH_A, timezone.now())
         self.assertEqual(state, "behind")
+
+
+class FilterTests(TestCase):
+    """A count you cannot reach the rows behind is a number, not a readout.
+
+    `scan_actionless_attention_surfaces` caught this page reporting "N failed" with no way
+    to act on it, and it was right: across 300 schools that means scrolling a table hunting
+    for red. Each summary tile is a filter link, so the count and the rows behind it are
+    the same click.
+    """
+
+    def test_every_summary_tile_is_a_link_to_its_own_rows(self):
+        from pathlib import Path
+
+        template = (
+            Path(__file__).resolve().parents[3]
+            / "templates/sync_engine/super/fleet_console.html"
+        ).read_text(encoding="utf-8")
+        for state in ("parity", "behind", "waiting", "failed", "quiet", "never"):
+            with self.subTest(state=state):
+                self.assertIn(
+                    f'href="?state={state}"',
+                    template,
+                    f"the {state} tile reports a count with no way to reach the rows",
+                )
+
+    def test_an_unknown_state_does_not_silently_empty_the_table(self):
+        """A typo'd query param must not look like "the fleet is fine"."""
+        import inspect
+
+        from apps.sync_engine import views_fleet_console
+
+        source = inspect.getsource(views_fleet_console)
+        self.assertIn(
+            "if wanted in counts:",
+            source,
+            "the filter does not check the requested state against the known set, so "
+            "?state=faild would return an empty table that reads as a healthy fleet",
+        )

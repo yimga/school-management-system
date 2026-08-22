@@ -111,9 +111,18 @@ def edge_fleet_console(request, **kwargs):
             }
         )
 
+    # FILTER, not decoration. A summary tile that reports "3 failed" across 300 schools
+    # and gives you no way to reach those 3 is a number you cannot act on — you would be
+    # scrolling a table hunting for red. Each tile links here, so the count and the rows
+    # behind it are the same click.
+    wanted = (request.GET.get("state") or "").strip().lower()
+    if wanted in counts:
+        rows = [r for r in rows if r["state"] == wanted]
+
     release = ManifestRelease.objects.filter(manifest_hash=operator_hash).first() if operator_hash else None
     context = {
         "page_title": _("Edge fleet — releases"),
+        "active_filter": wanted if wanted in counts else "",
         "operator_hash": operator_hash,
         "operator_version": str(manifest.get("version_label") or ""),
         "operator_channel": str(manifest.get("channel") or ""),
@@ -122,6 +131,7 @@ def edge_fleet_console(request, **kwargs):
         "rows": rows,
         "counts": counts,
         "total": len(rows),
+        "fleet_total": sum(counts.values()),
         "quiet_after_hours": _QUIET_AFTER_HOURS,
     }
     return render(request, "sync_engine/super/fleet_console.html", context)

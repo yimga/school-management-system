@@ -33,36 +33,41 @@ own reported failure string, nothing else.
 
   {# Summary before detail: an operator scans this row and only then reads the table. #}
   <section class="rmc-grid rmc-grid--edge-fleet-summary" aria-label="{% trans 'Fleet summary' %}">
-    <div class="rmc-card rmc-metric">
+    <a class="rmc-card rmc-metric" href="?state=parity">
       <span class="rmc-metric__value">{{ counts.parity }}</span>
       <span class="rmc-metric__label">{% trans "On the current release" %}</span>
-    </div>
-    <div class="rmc-card rmc-metric">
+    </a>
+    <a class="rmc-card rmc-metric" href="?state=behind">
       <span class="rmc-metric__value">{{ counts.behind }}</span>
       <span class="rmc-metric__label">{% trans "Released, not yet applied" %}</span>
-    </div>
-    <div class="rmc-card rmc-metric">
+    </a>
+    <a class="rmc-card rmc-metric" href="?state=waiting">
       <span class="rmc-metric__value">{{ counts.waiting }}</span>
       <span class="rmc-metric__label">{% trans "Waiting on a promotion" %}</span>
-    </div>
-    <div class="rmc-card rmc-metric">
+    </a>
+    <a class="rmc-card rmc-metric" href="?state=failed">
       <span class="rmc-metric__value">{{ counts.failed }}</span>
       <span class="rmc-metric__label">{% trans "Failed on the box" %}</span>
-    </div>
-    <div class="rmc-card rmc-metric">
+    </a>
+    <a class="rmc-card rmc-metric" href="?state=quiet">
       <span class="rmc-metric__value">{{ counts.quiet }}</span>
       <span class="rmc-metric__label">{% trans "Quiet" %}</span>
-    </div>
-    <div class="rmc-card rmc-metric">
+    </a>
+    <a class="rmc-card rmc-metric" href="?state=never">
       <span class="rmc-metric__value">{{ counts.never }}</span>
       <span class="rmc-metric__label">{% trans "Never checked in" %}</span>
-    </div>
+    </a>
   </section>
 
   <section class="rmc-stack">
     <table class="rmc-data-table">
       <caption>
-        {% blocktrans with n=total h=quiet_after_hours %}{{ n }} school(s). A box is called quiet after {{ h }} hours of silence — an edge box is expected to be offline, so silence alone is not a fault.{% endblocktrans %}
+        {% if active_filter %}
+          {% blocktrans with n=total f=active_filter %}{{ n }} school(s) in state "{{ f }}".{% endblocktrans %}
+          <a href="?">{% trans "Show all schools" %}</a>
+        {% else %}
+          {% blocktrans with n=total h=quiet_after_hours %}{{ n }} school(s). A box is called quiet after {{ h }} hours of silence — an edge box is expected to be offline, so silence alone is not a fault.{% endblocktrans %}
+        {% endif %}
       </caption>
       <thead>
         <tr>
@@ -100,7 +105,11 @@ own reported failure string, nothing else.
         {% empty %}
         <tr>
           <td colspan="6">
-            <div class="rmc-empty">{% trans "No schools on this deployment yet." %}</div>
+            {% if active_filter %}
+              <div class="rmc-empty">{% trans "No school is in that state right now." %} <a href="?">{% trans "Show all schools" %}</a></div>
+            {% else %}
+              <div class="rmc-empty">{% trans "No schools on this deployment yet." %}</div>
+            {% endif %}
           </td>
         </tr>
         {% endfor %}
