@@ -154,7 +154,16 @@ class NoDatabaseInterlockTests(SimpleTestCase):
         self.assertEqual(_manifest_handshake(request, self.school), ("", ""))
         self.assertFalse(upgrade_lock.is_held(self.school))
 
-    def test_handshake_holds_when_the_manifests_differ(self):
+    def test_handshake_holds_when_the_manifests_differ_and_the_ring_allows_it(self):
+        """Drift alone is no longer enough — the school must also be RELEASED to.
+
+        The rollout ring was added after this test was written, and it is consulted here
+        rather than mocked away in the ring's own suite only: an advice header naming a
+        target the box will then be refused makes a box retry every cycle forever and look
+        stuck to its operator. This class has no database, so the ring decision is supplied
+        directly; whether the DECISION is right is
+        test_ota_rollout_rings_2026_08_22.HandshakeRespectsRingsTests.
+        """
         from apps.api.sync_bundle_api import _manifest_handshake
 
         cloud = _manifest_file("c" * 64)
@@ -163,11 +172,38 @@ class NoDatabaseInterlockTests(SimpleTestCase):
             **{"HTTP_" + SYNC_MANIFEST_HEADER.upper().replace("-", "_"): "b" * 64},
         )
         with override_settings(RMC_OTA_MANIFEST_PATH=cloud):
-            target, advice = _manifest_handshake(request, self.school)
+            with mock.patch(
+                "apps.sync_engine.models_rollout.may_receive",
+                return_value=(True, "released to stable"),
+            ):
+                target, advice = _manifest_handshake(request, self.school)
 
         self.assertEqual(target, "c" * 64)
         self.assertIn("upgrade available", advice)
         self.assertTrue(upgrade_lock.is_held(self.school))
+
+    def test_handshake_advertises_nothing_when_the_ring_refuses(self):
+        """The other half: an unreleased school is not told about a build it cannot have."""
+        from apps.api.sync_bundle_api import _manifest_handshake
+
+        cloud = _manifest_file("c" * 64)
+        request = RequestFactory().get(
+            "/api/sync/bundle/download/",
+            **{"HTTP_" + SYNC_MANIFEST_HEADER.upper().replace("-", "_"): "b" * 64},
+        )
+        with override_settings(RMC_OTA_MANIFEST_PATH=cloud):
+            with mock.patch(
+                "apps.sync_engine.models_rollout.may_receive",
+                return_value=(False, "not yet released to stable"),
+            ):
+                target, advice = _manifest_handshake(request, self.school)
+
+        self.assertEqual(target, "")
+        self.assertEqual(advice, "")
+        self.assertFalse(
+            upgrade_lock.is_held(self.school),
+            "a school that is not released to yet was left holding its data sync",
+        )
 
     def test_handshake_releases_when_the_manifests_agree(self):
         from apps.api.sync_bundle_api import _manifest_handshake

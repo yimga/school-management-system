@@ -21,6 +21,7 @@ from . import views_mat_group_hub
 from .control_plane import require_super_access_with_host
 from . import super_views_config
 from . import super_views_config_crud
+from apps.sync_engine.views_fleet_console import edge_fleet_console
 from . import super_views_enterprise_security
 from . import super_views_security_surface
 from . import super_views_mfa_policy
@@ -1491,4 +1492,12 @@ urlpatterns = [
         EmailProviderWebhookView.as_view(),
         name="email_provider_webhook",
     ),  # rbac-allow: anonymous-signature-verified-bounce-webhook-receiver
+    # Which school is on which release, and which one is stuck. Read-only: promotion runs
+    # through `manage.py ota_rollout`, because releasing a build to the whole fleet is not
+    # something to do by accident from a page you opened to look at something else.
+    path(
+        "edge-fleet/",
+        edge_fleet_console,
+        name="edge_fleet_console",
+    ),  # rbac-allow: super-staff-edge-fleet-release-readout
 ]

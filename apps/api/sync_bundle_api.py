@@ -49,6 +49,7 @@ from apps.sync_engine.edge_outbox import (
     SYNC_MANIFEST_ADVICE_HEADER,
     SYNC_MANIFEST_HEADER,
     SYNC_MANIFEST_TARGET_HEADER,
+    SYNC_ENGINE_HEADER,
     SYNC_SCHEMA_HEAD_HEADER,
     SYNC_UPGRADE_FAILURE_HEADER,
     SYNC_WITHHELD_HEADER,
@@ -120,6 +121,21 @@ def _manifest_handshake(request, school):
         from apps.sync_engine.system_manifest import load_manifest
 
         target = str((load_manifest() or {}).get("manifest_hash") or "")
+
+        # KEEP what the box just told us. It says this on every handshake and it used to be
+        # compared and dropped, so "which schools are on which release" had no answer
+        # anywhere on the cloud and the honest way to get one was to ask each school to
+        # read a screen. EdgeDeploymentHistory cannot answer it either — that lives on the
+        # box and never leaves it.
+        from apps.sync_engine.models_fleet import EdgeFleetState
+
+        EdgeFleetState.record_seen(
+            school,
+            reported_hash=raw,
+            engine=(request.META.get("HTTP_" + SYNC_ENGINE_HEADER.upper().replace("-", "_")) or "").strip(),
+            offered_hash=target,
+        )
+
         if not target:
             return "", ""
         if target == raw:
@@ -170,9 +186,17 @@ def _log_upgrade_failure(request, school) -> None:
     An appliance that cannot apply an upgrade is the case where nobody is present to read
     a local log — that is the entire premise of an edge box. The box therefore attaches
     its last failure to the next request it makes, and this is where it stops being
-    invisible. Logged, not stored: a durable record already exists on the box
-    (``EdgeDeploymentHistory``), and minting a cloud table for a string would add a write
-    to the hot path of every pull for a diagnostic nobody queries.
+    invisible.
+
+    It is now logged AND stored. This used to say "logged, not stored", on the reasoning
+    that a durable record already exists on the box and a cloud table would be a write for
+    "a diagnostic nobody queries". That reasoning was sound and is no longer true on its
+    second half: the operator fleet console queries it, and the box's own record is
+    unreachable from the cloud by design — it lives in the box's database behind a village
+    link. A failure only a grep can find is a failure nobody finds.
+
+    The write is bounded and cannot cost the box its sync: one row per school, updated,
+    inside ``record_failure``'s own try/except.
     """
     raw = (request.META.get("HTTP_" + SYNC_UPGRADE_FAILURE_HEADER.upper().replace("-", "_")) or "").strip()
     if not raw:
@@ -182,6 +206,9 @@ def _log_upgrade_failure(request, school) -> None:
         getattr(school, "pk", None),
         raw[:_UPGRADE_FAILURE_LOG_MAX_CHARS],
     )
+    from apps.sync_engine.models_fleet import EdgeFleetState
+
+    EdgeFleetState.record_failure(school, text=raw)
 
 
 def _stamp_manifest_handshake(resp, request, school) -> str:

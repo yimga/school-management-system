@@ -728,6 +728,10 @@ from .models_deployment import (  # noqa: E402  (re-export for the registry)
 # WHO may move to a new manifest yet. EdgeRolloutPolicy is per school (tenant-scoped, so
 # it is enumerated in 0019_rollout_rls); ManifestRelease describes how far a RELEASE has
 # been promoted, which is identical for every school, so it has no ``school`` FK.
+# What the CLOUD observed about each box. The box's own EdgeDeploymentHistory never
+# leaves the box, so without this the operator had no way to answer "which schools are on
+# which release" except by asking each school to read a screen.
+from .models_fleet import EdgeFleetState  # noqa: E402  (re-export for the registry)
 from .models_rollout import (  # noqa: E402  (re-export for the registry)
     DEFAULT_RING,
     EdgeRolloutPolicy,
@@ -740,6 +744,7 @@ from .models_rollout import (  # noqa: E402  (re-export for the registry)
 __all__ = [
     "DeploymentState",
     "EdgeDeploymentHistory",
+    "EdgeFleetState",
     "EdgeRolloutPolicy",
     "ManifestRelease",
     "RolloutRing",
