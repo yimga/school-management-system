@@ -12,6 +12,9 @@ import hashlib
 import json
 from typing import Any, NotRequired, TypedDict
 
+from django.utils.translation import gettext_lazy as _
+
+from apps.platform_runtime.display_labels import humanize_token, labels_for
 from apps.schools.onboarding_profile import normalize_institution_profile
 
 MANIFEST_VERSION = 5
@@ -25,6 +28,47 @@ ENGINE_ID = "tenant-configuration-autopilot-v5"
 #: behaviour for every country except CM.
 COUNTRY_SECONDARY_BLUEPRINTS: dict[str, tuple[str, str]] = {
     "CM": ("cameroon-gce-school", "BP-CM-GCE-001"),
+}
+
+#: The critical-evidence vocabulary, declared once so the label registry below
+#: can be checked against it. ``_build_confidence_envelope`` keeps the readable
+#: inline dict; ``test_every_critical_evidence_key_is_declared`` holds the two
+#: in lockstep.
+CRITICAL_EVIDENCE_KEYS: tuple[str, ...] = (
+    "country",
+    "education_cycles",
+    "languages",
+    "funding_type",
+    "learner_scale",
+    "campus_structure",
+    "connectivity",
+    "operating_model",
+    "migration_scope",
+)
+
+#: What a human is actually being asked to confirm.
+#:
+#: Until 2026-08-22 Tenant 360 rendered the *keys* under a banner reading
+#: "Exact next confirmations" -- "funding_type, learner_scale, connectivity,
+#: operating_model" -- and the signup wizard swapped the underscores for spaces
+#: in the browser and called it done. Both were reading a list that this very
+#: function already knew how to phrase properly: ``missing_inputs``, twenty
+#: lines further down, says "funding model" and "expected learners" because
+#: somebody wrote those words by hand. Only one of the two lists reached the UI.
+#:
+#: Phrased as the thing to confirm, not as the field name, and translated --
+#: the surrounding banner has been translatable since it was written, so a
+#: French school read a French sentence ending in four English identifiers.
+CRITICAL_EVIDENCE_LABELS: dict[str, Any] = {
+    "country": _("Country"),
+    "education_cycles": _("Education levels you teach"),
+    "languages": _("Languages of instruction"),
+    "funding_type": _("How the school is funded"),
+    "learner_scale": _("Number of learners you expect"),
+    "campus_structure": _("One campus or several"),
+    "connectivity": _("Internet reliability on site"),
+    "operating_model": _("How the school runs day to day"),
+    "migration_scope": _("What you are bringing from your current system"),
 }
 
 
@@ -129,6 +173,38 @@ def _build_confidence_envelope(
             "statement": "This score measures evidence readiness, not outcome probability.",
         },
     }
+
+
+def hydrate_confidence_display(envelope: Any) -> dict[str, Any]:
+    """Return ``envelope`` plus the fields a human reads. Never mutates the input.
+
+    Display text is resolved HERE, per request, and deliberately not stored in
+    the manifest:
+
+    * ``ensure_school_recommendations`` returns a stored manifest untouched when
+      its ``version`` and ``fingerprint`` still match, so a tenant whose manifest
+      was written before this function existed would never gain the words. Every
+      such tenant reads correctly through this path.
+    * ``gettext`` resolves against the language of the request that ran it. A
+      manifest built during a French signup and later opened by an English
+      support engineer would have shown French, permanently, because JSON in a
+      settings blob does not re-translate.
+
+    So the stored envelope stays machine-only and language-neutral, and this is
+    the single place that turns it into words.
+    """
+    if not isinstance(envelope, dict):
+        return {}
+    hydrated = dict(envelope)
+    hydrated["missing_critical_evidence_labels"] = labels_for(
+        CRITICAL_EVIDENCE_LABELS, envelope.get("missing_critical_evidence")
+    )
+    hydrated["label_display"] = humanize_token(envelope.get("label"))
+    hydrated["status_display"] = humanize_token(envelope.get("status"))
+    hydrated["registry_status_display"] = humanize_token(
+        envelope.get("registry_status")
+    )
+    return hydrated
 
 
 class RecommendationCard(TypedDict):
@@ -690,9 +766,12 @@ def ensure_school_recommendations(school, *, save: bool = True) -> dict[str, Any
 
 
 __all__ = [
+    "CRITICAL_EVIDENCE_KEYS",
+    "CRITICAL_EVIDENCE_LABELS",
     "ENGINE_ID",
     "MANIFEST_VERSION",
     "RecommendationCard",
     "build_onboarding_recommendations",
     "ensure_school_recommendations",
+    "hydrate_confidence_display",
 ]

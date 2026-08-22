@@ -1,0 +1,207 @@
+{
+  "count": 40,
+  "findings": [
+    {
+      "call": "get_or_create",
+      "line": 272,
+      "path": "apps/academics/lms_services.py"
+    },
+    {
+      "call": "get_or_create",
+      "line": 572,
+      "path": "apps/academics/structure_provisioning.py"
+    },
+    {
+      "call": "get_or_create",
+      "line": 1097,
+      "path": "apps/academics/structure_provisioning.py"
+    },
+    {
+      "call": "get_or_create",
+      "line": 1189,
+      "path": "apps/academics/structure_provisioning.py"
+    },
+    {
+      "call": "update_or_create",
+      "line": 123,
+      "path": "apps/accounts/migration_importers.py"
+    },
+    {
+      "call": "update_or_create",
+      "line": 319,
+      "path": "apps/accounts/migration_importers.py"
+    },
+    {
+      "call": "get_or_create",
+      "line": 382,
+      "path": "apps/accounts/migration_importers.py"
+    },
+    {
+      "call": "update_or_create",
+      "line": 465,
+      "path": "apps/accounts/migration_importers.py"
+    },
+    {
+      "call": "get_or_create",
+      "line": 243,
+      "path": "apps/accounts/persona_onboarding_kernel.py"
+    },
+    {
+      "call": "update_or_create",
+      "line": 124,
+      "path": "apps/analytics/management/commands/compute_nightly_grade_predictions.py"
+    },
+    {
+      "call": "get_or_create",
+      "line": 107,
+      "path": "apps/analytics/management/commands/seed_grade_prediction_labels_from_history.py"
+    },
+    {
+      "call": "update_or_create",
+      "line": 104,
+      "path": "apps/athletics/services/scheduling.py"
+    },
+    {
+      "call": "update_or_create",
+      "line": 31,
+      "path": "apps/athletics/services/transport.py"
+    },
+    {
+      "call": "get_or_create",
+      "line": 177,
+      "path": "apps/athletics/tests/base.py"
+    },
+    {
+      "call": "get_or_create",
+      "line": 242,
+      "path": "apps/athletics/tests/test_eligibility.py"
+    },
+    {
+      "call": "get_or_create",
+      "line": 1410,
+      "path": "apps/billing/services.py"
+    },
+    {
+      "call": "get_or_create",
+      "line": 313,
+      "path": "apps/communication/notification_service.py"
+    },
+    {
+      "call": "get_or_create",
+      "line": 191,
+      "path": "apps/events/webhooks.py"
+    },
+    {
+      "call": "update_or_create",
+      "line": 411,
+      "path": "apps/feedback/services.py"
+    },
+    {
+      "call": "get_or_create",
+      "line": 124,
+      "path": "apps/finance/provisioning_seed.py"
+    },
+    {
+      "call": "get_or_create",
+      "line": 1429,
+      "path": "apps/finance/services.py"
+    },
+    {
+      "call": "get_or_create",
+      "line": 180,
+      "path": "apps/interop/roster_sync.py"
+    },
+    {
+      "call": "get_or_create",
+      "line": 119,
+      "path": "apps/marketplace/monetization.py"
+    },
+    {
+      "call": "get_or_create",
+      "line": 72,
+      "path": "apps/marketplace/webhooks.py"
+    },
+    {
+      "call": "update_or_create",
+      "line": 30,
+      "path": "apps/migration_cloud/services/connector_mapping.py"
+    },
+    {
+      "call": "get_or_create",
+      "line": 50,
+      "path": "apps/migration_cloud/services/intake_init.py"
+    },
+    {
+      "call": "get_or_create",
+      "line": 390,
+      "path": "apps/migration_cloud/views.py"
+    },
+    {
+      "call": "get_or_create",
+      "line": 277,
+      "path": "apps/platform_runtime/tenant_retention_playbooks.py"
+    },
+    {
+      "call": "get_or_create",
+      "line": 135,
+      "path": "apps/portal/portal_smoke_prerequisites.py"
+    },
+    {
+      "call": "update_or_create",
+      "line": 171,
+      "path": "apps/portal/views_at_risk_labeling.py"
+    },
+    {
+      "call": "get_or_create",
+      "line": 548,
+      "path": "apps/reports/bulk_generation.py"
+    },
+    {
+      "call": "get_or_create",
+      "line": 371,
+      "path": "apps/reports/views.py"
+    },
+    {
+      "call": "get_or_create",
+      "line": 552,
+      "path": "apps/reports/views.py"
+    },
+    {
+      "call": "update_or_create",
+      "line": 329,
+      "path": "apps/schools/demo_user_seeding.py"
+    },
+    {
+      "call": "get_or_create",
+      "line": 336,
+      "path": "apps/schools/demo_user_seeding.py"
+    },
+    {
+      "call": "update_or_create",
+      "line": 87,
+      "path": "apps/schools/provisioning_personas.py"
+    },
+    {
+      "call": "get_or_create",
+      "line": 93,
+      "path": "apps/schools/provisioning_personas.py"
+    },
+    {
+      "call": "get_or_create",
+      "line": 2011,
+      "path": "apps/schools/tasks.py"
+    },
+    {
+      "call": "update_or_create",
+      "line": 85,
+      "path": "apps/siteconfig/management/commands/seed_provider_registry.py"
+    },
+    {
+      "call": "get_or_create",
+      "line": 130,
+      "path": "apps/siteconfig/user_identity.py"
+    }
+  ],
+  "generated_at": "2026-08-22T19:41:31.971307+00:00",
+  "rule": "school must be in the LOOKUP of get_or_create/update_or_create, not defaults"
+}

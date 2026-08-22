@@ -969,7 +969,22 @@ class Evaluation(models.Model):
         try:
             from apps.evals.grading import score_to_normalized
 
-            school = getattr(self, "school", None)
+            # Resolve the school the SAME way the score-bounds path does
+            # (_resolve_grading_school, used above): this row's own `school` FK is
+            # nullable and, per that resolver's docstring, "frequently unset --
+            # schema isolation makes it redundant, so seeders and bulk writers omit
+            # it". Reading the raw FK therefore handed score_to_normalized a None
+            # for ordinary rows, which falls back to the legacy /20 basis. On a /100
+            # school that turns a mark of 80 into 1.0000 instead of 0.8000 -- and
+            # since the value is clamped to [0,1], every mark >= 20 collapses to
+            # 1.0000, so 20/100 and 100/100 become indistinguishable in the
+            # cross-system Rosetta Stone value and in the report-card remark band.
+            #
+            # The /20 default in score_to_normalized is NOT the bug and is left
+            # alone: it is deliberate, and pinned by
+            # reports/tests/test_auto_teacher_remark.py::test_legacy_20_preserved_via_default_scale
+            # for genuinely schoolless calls (historical francophone behaviour).
+            school = self._resolve_grading_school()
             if self.final_score is not None:
                 self.normalized_value = score_to_normalized(
                     float(self.final_score), school

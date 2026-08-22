@@ -225,12 +225,17 @@ def _persist_behavior_extras(
             school=ctx.school,
             defaults={"label": "Action taken", "data_type": "json"},
         )
+        # school belongs in the LOOKUP: DynamicFieldValue.unique_together is
+        # [school, entity_type, entity_id, field_key] and metadata is a SHARED app,
+        # so omitting it matches ANOTHER tenant's row and update_or_create
+        # overwrites its value and re-parents it.
         DynamicFieldValue.objects.update_or_create(
+            school=ctx.school,
             entity_type="incident",
             entity_id=str(incident_pk)[:64],
             field_key="action_taken",
             defaults=filter_to_model_fields(
-                {"value_json": {"v": action_taken[:1024]}, "school": ctx.school},  # magic-number-allow: defensive DFV value cap
+                {"value_json": {"v": action_taken[:1024]}},  # magic-number-allow: defensive DFV value cap
                 DynamicFieldValue,
             ),
         )

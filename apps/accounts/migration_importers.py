@@ -362,10 +362,17 @@ def import_roster(school, rows: Iterable[dict], *, actor=None) -> dict:
                 specialty_code = (
                     specialty_code or f"{school.slug or 'sch'}-GEN"
                 )[:30]
+                # school belongs in the LOOKUP: specialty_code comes from the
+                # IMPORTED ROW (row["specialty_code"]), not from anything
+                # school-derived, so a file carrying a common code like "SCI"
+                # matched a DIFFERENT school's Specialty and handed it back. Every
+                # SubjectAssignment built below then pointed at another tenant's
+                # specialty row. (Contrast the Classroom upsert above, whose code is
+                # f"{school.slug}-..." and so is school-scoped by construction.)
                 specialty, _ = Specialty.objects.get_or_create(
+                    school=school,
                     code=specialty_code,
                     defaults={
-                        "school": school,
                         "department": department,
                         "name": specialty_name[:120],
                     },

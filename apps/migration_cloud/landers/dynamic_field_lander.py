@@ -106,12 +106,18 @@ class DynamicFieldLander(Lander):
                     continue
                 try:
                     with row_savepoint():
+                        # school belongs in the LOOKUP: DynamicFieldValue's
+                        # unique_together is [school, entity_type, entity_id,
+                        # field_key] and metadata is a SHARED app, so omitting it
+                        # matches ANOTHER tenant's row and update_or_create
+                        # overwrites its value and re-parents it.
                         obj, created = DynamicFieldValue.objects.update_or_create(
+                            school=ctx.school,
                             entity_type=_ENTITY_TYPE,
                             entity_id=entity_id,
                             field_key=key_str[:_FIELD_KEY_CAP],
                             defaults=filter_to_model_fields(
-                                {"value_json": {"v": value}, "school": ctx.school},
+                                {"value_json": {"v": value}},
                                 DynamicFieldValue,
                             ),
                         )

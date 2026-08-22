@@ -215,12 +215,17 @@ def _persist_alumni_extras(
                 school=ctx.school,
                 defaults={"label": f"Alumni {key}"[:255], "data_type": "json"},
             )
+            # school belongs in the LOOKUP: DynamicFieldValue.unique_together is
+            # [school, entity_type, entity_id, field_key] and metadata is a SHARED
+            # app, so omitting it matches ANOTHER tenant's row and update_or_create
+            # overwrites its value and re-parents it.
             DynamicFieldValue.objects.update_or_create(
+                school=ctx.school,
                 entity_type="student",
                 entity_id=str(alumni_pk)[:64],
                 field_key=key[:120],
                 defaults=filter_to_model_fields(
-                    {"value_json": {"v": str(value)[:1024]}, "school": ctx.school},
+                    {"value_json": {"v": str(value)[:1024]}},
                     DynamicFieldValue,
                 ),
             )

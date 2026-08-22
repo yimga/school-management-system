@@ -199,10 +199,18 @@ def _synthesize_field_value(field_def: dict):
         return "1.00"
     if field_type == "boolean":
         return True
-    if field_type == "date":
-        return "2026-05-26"
-    if field_type == "datetime":
-        return "2026-05-26T00:00:00+00:00"
+    if field_type in ("date", "datetime"):
+        # Every date field used to get the SAME value, so a wizard collecting a
+        # range produced start == end and any end-after-start rule correctly
+        # refused it. The happy path was therefore never happy for
+        # academic_year_setup, whose writer creates an AcademicYear guarded by
+        # the academicyear_end_after_start check constraint. Give the closing
+        # end of a range a later date so the walk feeds a VALID payload; the
+        # assertions are unchanged.
+        name = (field_def.get("name") or "").lower()
+        closing = ("end", "finish", "until", "expiry", "expires", "to_date")
+        day = "2027-05-26" if any(tok in name for tok in closing) else "2026-05-26"
+        return day if field_type == "date" else day + "T00:00:00+00:00"
     if field_type in ("multi_select", "multiselect", "checkbox_group"):
         return ["a"]
     if field_type == "domain":

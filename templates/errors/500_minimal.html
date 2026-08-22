@@ -72,6 +72,12 @@ Self-contained Apple-tier polish, no external CSS dependency.
       {% endif %}
       <p>If this happened during a normal action (login, save, view), please retry once. If it persists, contact your school administrator or RunMyCampus support.</p>
       <div class="actions">
+        {% comment %}handler500 renders this page with no shell and possibly no
+        csp_nonce, so the retry control must not depend on JS at all. An empty href
+        is the JS-free way to re-request this exact URL, and the exact string is
+        pinned by test_csp_inline_handler_burndown, which replaced an inline onclick
+        reload here during the CSP burndown.{% endcomment %}
+        {# ui-wiring-allow: same-document retry on a JS-free error page #}
         <a class="primary" href="">{% trans "Retry" %}</a>
         <a class="secondary" href="/">{% trans "Home" %}</a>
         <a class="secondary" href="/-/version/">{% trans "Version" %}</a>

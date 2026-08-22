@@ -169,6 +169,10 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # makes automated remediation impossible BY CONSTRUCTION — you cannot replay a
     # row you did not keep. Every later step of the zero-touch spec depends on it.
     ("scripts/scan_lander_row_error_contract.py", "architectural-boundaries.yml"),
+    # A banner promising "Exact next confirmations" printed four dict keys.
+    # Added 2026-08-22 after the same `|cut:"_"` mistake was found on three
+    # surfaces, one of them on every page of a live tenant.
+    ("scripts/scan_raw_token_in_ui.py", "architectural-boundaries.yml"),
     # Landers must not buffer list(canonical_rows) without an allow marker — frozen
     # rows_processed trips SystemicStallError on large edge applies.
     ("scripts/scan_lander_row_streaming.py", "architectural-boundaries.yml"),

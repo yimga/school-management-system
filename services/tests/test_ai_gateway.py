@@ -59,9 +59,21 @@ class InvokeTests(TestCase):
     @patch("services.ai_gateway._call_ollama", return_value=(None, {"error": "unavailable"}))
     @patch("services.ai_gateway._call_vllm", return_value=(None, {"error": "unavailable"}))
     def test_invoke_falls_back_to_rules(self, _mock_vllm, _mock_ollama):
-        result, meta = invoke(TaskType.CONFIG_EXPLAIN, "Prompt", user_query="query")
+        """The rules tier must answer without echoing what it was asked.
+
+        This used to assert the query came BACK in the reply. That is the behaviour
+        apps/portal/ai_provider._rules_fallback was deliberately changed to stop:
+        the gateway's "user_query" is often an internal aggregate payload rather
+        than human chat, and parroting it put a stringified Python dict straight
+        into a tenant-facing nudge card. Asserting the echo was asserting the leak.
+        """
+        sentinel = "zz-sentinel-8814"
+        result, meta = invoke(TaskType.CONFIG_EXPLAIN, "Prompt", user_query=sentinel)
         self.assertIsInstance(result, str)
-        self.assertIn("query", result or "")
+        # It still has to say something useful...
+        self.assertTrue((result or "").strip())
+        # ...and it must not hand the input back.
+        self.assertNotIn(sentinel, result or "")
         self.assertEqual(meta.get("provider"), "rules")
         self.assertTrue(meta.get("fallback"))
 

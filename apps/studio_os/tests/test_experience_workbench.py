@@ -98,4 +98,13 @@ class ExperienceStudioWorkbenchTests(TestCase):
         self.assertEqual(response.status_code, 200)
         body = response.content.decode("utf-8", errors="ignore").lower()
         self.assertEqual(body.count("<h1"), 1)
-        self.assertIn('data-rmc-studio-context-title="1"', body)
+        # The masthead owns that single H1.
+        self.assertIn("school studio", body)
+        # ...and the retired toolbar band must not come back. Studio used to
+        # inject a second header-like band carrying its own context title
+        # (data-rmc-studio-context-title). Quiet-header v2 removed it in
+        # 0711ac109 -- shell.html:34 records why -- so asserting the marker is
+        # PRESENT guarded an element that no longer exists by design. Asserting
+        # it is ABSENT keeps the same invariant pointed the way the
+        # architecture actually went, and fails if the second band returns.
+        self.assertNotIn("data-rmc-studio-context-title", body)

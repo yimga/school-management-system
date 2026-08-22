@@ -1,5 +1,5 @@
 {% extends "control_plane_base.html" %}
-{% load i18n static glocal_tags %}
+{% load i18n static glocal_tags rmc_labels %}
 {% load region_format %}
 {% load phase8_tags %}
 
@@ -52,24 +52,24 @@
   <section id="tenant-360-signup-intelligence" class="card shadow-sm border-secondary mb-3" aria-labelledby="tenant-360-signup-title" data-rmc-tenant-360-signup="1">
     <div class="card-header d-flex flex-wrap justify-content-between gap-2 align-items-center">
       <span id="tenant-360-signup-title">{% trans "Signup intelligence & recommendation evidence" %}</span>
-      <span class="rmc-badge {% if signup_confidence.high_confidence_eligible %}rmc-badge--success{% else %}rmc-badge--warning{% endif %}">{{ signup_confidence.overall_score|default:0 }}% · {{ signup_confidence.label|default:"Not evaluated" }}</span>
+      <span class="rmc-badge {% if signup_confidence.high_confidence_eligible %}rmc-badge--success{% else %}rmc-badge--warning{% endif %}">{{ signup_confidence.overall_score|default:0 }}% · {{ signup_confidence.label_display|default:"Not evaluated" }}</span>
     </div>
     <div class="card-body">
       <div class="row g-3 mb-3">
         <div class="col-sm-6 col-xl-3"><div class="border rounded p-3 h-100"><span class="small text-secondary d-block">{% trans "Signup evidence" %}</span><strong>{{ signup_completion_percent }}%</strong></div></div>
         <div class="col-sm-6 col-xl-3"><div class="border rounded p-3 h-100"><span class="small text-secondary d-block">{% trans "Engine" %}</span><strong>{{ recommendation_manifest.engine|default:"Not generated" }}</strong></div></div>
-        <div class="col-sm-6 col-xl-3"><div class="border rounded p-3 h-100"><span class="small text-secondary d-block">{% trans "Registry" %}</span><strong>{{ signup_confidence.registry_status|default:"Unknown" }}</strong></div></div>
+        <div class="col-sm-6 col-xl-3"><div class="border rounded p-3 h-100"><span class="small text-secondary d-block">{% trans "Registry" %}</span><strong>{{ signup_confidence.registry_status_display|default:"Unknown" }}</strong></div></div>
         <div class="col-sm-6 col-xl-3"><div class="border rounded p-3 h-100"><span class="small text-secondary d-block">{% trans "Review state" %}</span><strong>{{ recommendation_manifest.review_state.status|default:"Pending" }}</strong></div></div>
       </div>
       {% if signup_confidence.components %}
       <div class="row g-2 mb-3">
-        {% for key, value in signup_confidence.components.items %}<div class="col-md-4 col-xl"><div class="border rounded p-2 h-100"><span class="small text-secondary text-capitalize d-block">{{ key|cut:"_" }}</span><strong>{{ value }}%</strong></div></div>{% endfor %}
+        {% for key, value in signup_confidence.components.items %}<div class="col-md-4 col-xl"><div class="border rounded p-2 h-100"><span class="small text-secondary d-block">{{ key|humanize_token }}</span><strong>{{ value }}%</strong></div></div>{% endfor %}
       </div>
       {% endif %}
-      {% if signup_confidence.missing_critical_evidence %}<div class="rmc-banner rmc-banner--warning"><strong>{% trans "Exact next confirmations" %}:</strong> {{ signup_confidence.missing_critical_evidence|join:", " }}</div>{% endif %}
+      {% if signup_confidence.missing_critical_evidence_labels %}<div class="rmc-banner rmc-banner--warning"><strong>{% trans "Exact next confirmations" %}:</strong> {{ signup_confidence.missing_critical_evidence_labels|join:"; " }}. <span class="small">{% trans "Confirmed with the school during guided setup." %}</span></div>{% endif %}
       <div class="row g-3 mt-1">
         <div class="col-lg-6"><h3 class="h6">{% trans "Recommended configuration" %}</h3><dl class="small mb-0"><dt>{% trans "Plan" %}</dt><dd>{{ recommendation_manifest.recommendations.subscription_plan|default:"Not recommended" }}</dd><dt>{% trans "Dashboard" %}</dt><dd>{{ recommendation_manifest.recommendations.dashboard|default:"Not recommended" }}</dd><dt>{% trans "Continuity" %}</dt><dd>{{ recommendation_manifest.recommendations.local_first|default:"Not recommended" }}</dd><dt>{% trans "Modules" %}</dt><dd>{{ recommendation_manifest.recommendations.modules|join:", "|default:"Not recommended" }}</dd></dl></div>
-        <div class="col-lg-6"><h3 class="h6">{% trans "Traceability" %}</h3><dl class="small mb-0"><dt>{% trans "Fingerprint" %}</dt><dd>{{ recommendation_manifest.fingerprint|default:"—" }}</dd><dt>{% trans "Score meaning" %}</dt><dd>{{ signup_confidence.score_kind|default:"Not evaluated" }}</dd><dt>{% trans "Overrides" %}</dt><dd>{% if recommendation_manifest.review_state.overridden %}{% trans "Tenant override recorded" %}{% else %}{% trans "No override recorded" %}{% endif %}</dd></dl></div>
+        <div class="col-lg-6"><h3 class="h6">{% trans "Traceability" %}</h3><dl class="small mb-0"><dt>{% trans "Fingerprint" %}</dt><dd>{{ recommendation_manifest.fingerprint|default:"—" }}</dd><dt>{% trans "Score meaning" %}</dt><dd>{{ signup_confidence.calibration.statement|default:"Not evaluated" }}</dd><dt>{% trans "Overrides" %}</dt><dd>{% if recommendation_manifest.review_state.overridden %}{% trans "Tenant override recorded" %}{% else %}{% trans "No override recorded" %}{% endif %}</dd></dl></div>
       </div>
     </div>
   </section>

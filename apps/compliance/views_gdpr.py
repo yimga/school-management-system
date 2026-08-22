@@ -46,7 +46,16 @@ def _mfa_verified(request):
 @login_required
 @require_http_methods(["GET", "POST"])
 def data_portability_export(request):
-    """Data portability (GDPR Art. 20). Requires MFA verification and returns export payload."""
+    """Data portability (GDPR Art. 20) for a student the caller is entitled to see.
+
+    NOTE on MFA: the step-up below fires only when ``user_has_device(request.user)``
+    is true, so an account with no OTP device skips it entirely -- the previous
+    docstring's "Requires MFA verification" was not accurate. That is left as-is
+    rather than forcing enrollment here (it would lock out every account without a
+    device), and it is far less material now that the payload is bound to students
+    the caller may already see. Forcing enrollment on this surface is a policy
+    decision, not a code fix.
+    """
     school = getattr(request, "school", None)
     if not school:
         return HttpResponseForbidden("School context required.")
@@ -72,6 +81,28 @@ def data_portability_export(request):
     student = StudentProfile.objects.filter(school=school, pk=student_id).first()
     if not student:
         return JsonResponse({"error": "Student not found"}, status=404)
+
+    # AUTHORIZATION. This view carried only @login_required: no role, staff, or
+    # feature-permission check anywhere on the view or the route. The school filter
+    # above stops a CROSS-tenant read, but within a tenant any authenticated
+    # account -- including a STUDENT or a PARENT -- could walk student_id and
+    # export another child's full portability payload (identifiers, contacts,
+    # guardians, health and discipline records). That is the GDPR Art. 15/20
+    # subject-access surface, so reading it is exactly the thing that must be
+    # bound to the subject.
+    #
+    # can_view_student_data already encodes the right matrix and is used across the
+    # platform: ADMIN/LEADERSHIP/PRINCIPAL/VICE_PRINCIPAL/DEAN/CENSOR see every
+    # student, a TEACHER only students in a classroom they are assigned to, a
+    # PARENT only their own children (and only with can_view_results), a STUDENT
+    # only themselves. Art. 20 is a right OF THE DATA SUBJECT, so gating on a staff
+    # permission alone would have been wrong in the other direction -- it would
+    # have removed the legitimate self-service export.
+    from apps.accounts.permissions import can_view_student_data
+
+    if not can_view_student_data(request.user, student_id):
+        return JsonResponse({"error": "Not authorized for this student"}, status=403)
+
     from .gdpr_services import export_student_data_portability
 
     export_format = (
