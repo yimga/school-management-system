@@ -389,9 +389,6 @@ def build_portal_sidebar_items(request, site):
     workflow_badge, finance_badge, signatures_badge = _cached_sidebar_badge_counts(
         user, role, staff_like, request=request
     )
-    # Single entry via Studio OS for operational hubs; resolve once for staff.
-    studio_shell_url = _safe_reverse("studio_os:shell") if show_staff_admin_nav else None
-
     items = []
 
     # --- Home ---
@@ -536,7 +533,7 @@ def build_portal_sidebar_items(request, site):
                 "badge": messages_unread_count,
             }
         )
-        _msg_url = studio_shell_url or _safe_reverse("communication:group_list")
+        _msg_url = _safe_reverse("communication:group_list")
         if _msg_url:
             items.append(
                 {
@@ -555,9 +552,7 @@ def build_portal_sidebar_items(request, site):
             )
 
             if _can_access_school_wide_announcement_create(user):
-                _ann_url = studio_shell_url or _safe_reverse(
-                    "communication:announcement_create"
-                )
+                _ann_url = _safe_reverse("communication:announcement_create")
                 if _ann_url:
                     items.append(
                         {
@@ -570,9 +565,7 @@ def build_portal_sidebar_items(request, site):
                         }
                     )
             if _can_create_school_wide_announcement(user):
-                _pend_url = studio_shell_url or _safe_reverse(
-                    "communication:announcement_list_pending"
-                )
+                _pend_url = _safe_reverse("communication:announcement_list_pending")
                 if _pend_url:
                     items.append(
                         {
@@ -1115,7 +1108,7 @@ def build_portal_sidebar_items(request, site):
                     "badge": None,
                 }
             )
-        _rbac_url = studio_shell_url or _safe_reverse("accounts:rbac")
+        _rbac_url = _safe_reverse("accounts:rbac")
         _tenant_identity_url = _safe_reverse("accounts:tenant_identity_roster")
         if _tenant_identity_url and (
             is_superuser
@@ -1265,7 +1258,7 @@ def build_portal_sidebar_items(request, site):
                     "badge": None,
                 }
             )
-        _report_base = studio_shell_url or _safe_reverse("studio_os:output")
+        _report_base = _safe_reverse("studio_os:output")
         if _report_base:
             _rq = "&" if "?" in _report_base else "?"
             _report_url = f"{_report_base}{_rq}pane=reports"
@@ -1329,9 +1322,7 @@ def build_portal_sidebar_items(request, site):
         if is_superuser or getattr(user, "has_feature_permission", lambda _: False)(
             "settings.feature_control"
         ):
-            _fc_url = studio_shell_url or _safe_reverse(
-                "siteconfig:feature_control_panel"
-            )
+            _fc_url = _safe_reverse("siteconfig:feature_control_panel")
             if _fc_url:
                 items.append(
                     {
@@ -1343,9 +1334,7 @@ def build_portal_sidebar_items(request, site):
                         "badge": None,
                     }
                 )
-            _fca_url = studio_shell_url or _safe_reverse(
-                "siteconfig:feature_control_audit"
-            )
+            _fca_url = _safe_reverse("siteconfig:feature_control_audit")
             if _fca_url:
                 items.append(
                     {
@@ -1428,7 +1417,7 @@ def build_portal_sidebar_items(request, site):
                     "badge": workflow_badge,
                 }
             )
-        approval_hub_url = studio_shell_url or _safe_reverse("studio_os:approval_hub")
+        approval_hub_url = _safe_reverse("studio_os:approval_hub")
         if approval_hub_url:
             items.append(
                 {
@@ -1517,8 +1506,7 @@ def build_portal_sidebar_items(request, site):
                         "badge": None,
                     }
                 )
-        # Import & bulk: entry via Studio OS Overview when available; else legacy import hub.
-        import_hub_url = studio_shell_url or _safe_reverse("studio_os:import_hub")
+        import_hub_url = _safe_reverse("studio_os:import_hub")
         if import_hub_url:
             items.append(
                 {
