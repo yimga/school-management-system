@@ -171,6 +171,21 @@ GATES: list[tuple[str, list[str]]] = [
     # baseline. A bare run is the gate; --update-baseline is what rewrites, and
     # is deliberately not passed here.
     ("rls-policy-coverage", ["scan_rls_policy_coverage.py"]),
+    # `school` inside defaults= instead of the lookup of get_or_create /
+    # update_or_create. Those calls match on their DIRECT kwargs; `defaults` is
+    # only what gets written once the lookup has already chosen a row. So on a
+    # model carrying `school` in a uniqueness key, the lookup matches ANOTHER
+    # school's row -- and update_or_create then overwrites that row and
+    # re-parents it by writing `school` from defaults. Silent cross-tenant
+    # corruption, no exception, no log line.
+    #
+    # Shipped four times against metadata.DynamicFieldValue
+    # (unique_together = [school, entity_type, entity_id, field_key], SHARED app,
+    # so one public table holds every tenant's rows): importing one tenant's
+    # custom fields could overwrite and steal another tenant's. Baselined rather
+    # than zero-tolerance because 19 further call sites need per-case judgement
+    # about whether their model is genuinely per-school; --compare blocks NEW ones.
+    ("school-in-defaults-not-lookup", ["scan_school_in_defaults_not_lookup.py", "--compare"]),
 ]
 
 # Gates that CANNOT answer without the live Django app registry, and are therefore not

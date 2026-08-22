@@ -1104,12 +1104,23 @@ def persist_dfv_extras(
                     school=getattr(ctx, "school", None),
                     defaults={"label": field_key.replace("_", " ").title(), "data_type": "json"},
                 )
+                # `school` belongs in the LOOKUP, not in defaults.
+                # DynamicFieldValue.Meta.unique_together is
+                # ["school", "entity_type", "entity_id", "field_key"], so a lookup
+                # of (entity_type, entity_id, field_key) alone matches ANY school's
+                # row -- metadata is a SHARED app, one table for every tenant, and
+                # entity_id is the target's pk as a string, which collides across
+                # tenants as a matter of course. update_or_create then overwrote
+                # that other school's value AND re-parented the row by writing
+                # `school` from defaults. The get_or_create immediately above
+                # already scopes by school; this call did not.
                 DynamicFieldValue.objects.update_or_create(
+                    school=getattr(ctx, "school", None),
                     entity_type=entity_type,
                     entity_id=str(entity_id)[:64],
                     field_key=field_key,
                     defaults=filter_to_model_fields(
-                        {"value_json": {"v": value}, "school": getattr(ctx, "school", None)},
+                        {"value_json": {"v": value}},
                         DynamicFieldValue,
                     ),
                 )
