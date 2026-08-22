@@ -19,6 +19,7 @@ from django.test import SimpleTestCase
 from apps.sync_engine import upgrade_delta
 from apps.sync_engine.system_manifest import (
     APP_CORE,
+    DATA_ASSET,
     MIGRATION,
     STATIC_ASSET,
     UI_TEMPLATE,
@@ -104,10 +105,74 @@ class CategorisationTests(SimpleTestCase):
             "templates/dashboard/grading_card.html": UI_TEMPLATE,
             "static/js/bundles/dashboard.js": STATIC_ASSET,
             "apps/finance/models.py": APP_CORE,
+            # Non-python data. Read at runtime, never imported, so it can never need a
+            # reload -- see test_a_gate_run_on_the_operator_is_not_a_code_change.
+            "docs/generated/security_surface_audit.json": DATA_ASSET,
+            "var/admin-surface-platformwide-sweep.json": DATA_ASSET,
+            "docs/generated/country_governance_matrix/ng.json": DATA_ASSET,
         }
         for path, expected in cases.items():
             with self.subTest(path=path):
                 self.assertEqual(SystemManifestGenerator.categorise(path), expected)
+
+    def test_a_gate_run_on_the_operator_is_not_a_code_change(self):
+        """The fleet must not take the full lane to receive a regenerated audit report.
+
+        1713 files -- 13.35% of the manifest -- are audit output under docs/generated/
+        and var/, and every pre_push_boundary_check.py run on the operator rewrites some
+        of them. While they were classified APP_CORE, that made a GATE RUN indistinguishable
+        from a code change: every box in the fleet would freeze writes, pause workers, run
+        a migration precheck, swap its tree and sit out a health gate, to receive a json
+        recording a test duration.
+        """
+        base = {
+            "manifest_hash": "a" * 64,
+            "files": {"docs/generated/security_surface_audit.json": {"sha256": "1" * 64, "bytes": 10, "category": DATA_ASSET}},
+        }
+        target = {
+            "manifest_hash": "b" * 64,
+            "files": {"docs/generated/security_surface_audit.json": {"sha256": "2" * 64, "bytes": 11, "category": DATA_ASSET}},
+        }
+        delta = upgrade_delta.compute_delta(base, target)
+
+        self.assertEqual(delta["file_count"], 1)
+        self.assertFalse(
+            upgrade_delta.requires_code_reload(delta),
+            "a regenerated audit artifact was treated as a code change; every box in the "
+            "fleet would take the full upgrade lane for it",
+        )
+        self.assertFalse(upgrade_delta.requires_migration(delta))
+
+    def test_python_is_still_a_code_change(self):
+        """Calibration: without this, the test above passes by disabling the full lane."""
+        base = {
+            "manifest_hash": "a" * 64,
+            "files": {"apps/finance/models.py": {"sha256": "1" * 64, "bytes": 10, "category": APP_CORE}},
+        }
+        target = {
+            "manifest_hash": "b" * 64,
+            "files": {"apps/finance/models.py": {"sha256": "2" * 64, "bytes": 11, "category": APP_CORE}},
+        }
+        self.assertTrue(upgrade_delta.requires_code_reload(upgrade_delta.compute_delta(base, target)))
+
+    def test_data_assets_ship_rather_than_being_excluded(self):
+        """They are product surface: an operator dashboard renders them.
+
+        super_views_enterprise_security loads nine of these json files and
+        views_cockpit_previews serves the generated preview HTML. Dropping them from the
+        manifest to stop the churn would leave a box with empty dashboards, which is why
+        the fix is the CATEGORY and not an exclusion.
+        """
+        with tempfile.TemporaryDirectory() as a:
+            root = Path(a)
+            _tree(root, {
+                "docs/generated/security_surface_audit.json": "{}",
+                "var/admin-surface-platformwide-sweep.json": "{}",
+            })
+            paths = set(SystemManifestGenerator(root=root).entries())
+
+        self.assertIn("docs/generated/security_surface_audit.json", paths)
+        self.assertIn("var/admin-surface-platformwide-sweep.json", paths)
 
     def test_migration_index_and_app_label_are_extracted(self):
         path = "apps/finance/migrations/0094_ledger_split.py"

@@ -52,12 +52,35 @@ STATIC_ASSET = "STATIC_ASSET"  # js/css/img/font — swappable, then collectstat
 MIGRATION = "MIGRATION"        # schema changes — the only category that touches the DB
 CONFIG = "CONFIG"              # settings, urls, requirements, deploy descriptors
 LOCALE = "LOCALE"              # gettext catalogues
+DATA_ASSET = "DATA_ASSET"      # non-executable data the app READS — json, md, txt
 
-CATEGORIES = (APP_CORE, UI_TEMPLATE, STATIC_ASSET, MIGRATION, CONFIG, LOCALE)
+CATEGORIES = (APP_CORE, UI_TEMPLATE, STATIC_ASSET, MIGRATION, CONFIG, LOCALE, DATA_ASSET)
 
 # Categories an edge box may apply WITHOUT reloading the python interpreter. Used by the
 # rollout manager's "assets" mode, which is the safe default for a school appliance.
-ASSET_CATEGORIES = frozenset({UI_TEMPLATE, STATIC_ASSET, LOCALE})
+#
+# DATA_ASSET is in this set for a measured reason. It was originally folded into APP_CORE
+# as "the conservative bucket", and the cost of that was never counted. Measured on this
+# tree: APP_CORE held 6607 files, of which 3261 — 49.4% of it, 25.4% of the whole
+# manifest — are not python at all. 1713 of those are regenerated audit output under
+# docs/generated/ and var/, rewritten by every pre_push_boundary_check.py run on the
+# operator; the rest is docs prose, fixtures and READMEs. Classified APP_CORE, a GATE RUN
+# on the operator was indistinguishable from a code change to every box in the fleet: each
+# one would freeze writes, pause workers, run a migration precheck, swap its tree and sit
+# out a health gate to receive a json recording a test duration. Nothing that reaches this
+# bucket is importable python — categorise() returns APP_CORE for .py before it gets here —
+# so nothing in it can require an interpreter reload.
+#
+# They cannot simply be excluded from the manifest instead: super_views_enterprise_security
+# renders nine of those audit json files into an operator dashboard and
+# views_cockpit_previews serves the generated preview HTML, so they are product surface. A
+# box that never received them would show empty dashboards.
+#
+# The caveat, stated rather than hidden: a data file that a module caches in a global at
+# import time takes effect on the next reload, not on the swap. That is already the
+# contract for UI_TEMPLATE (Django caches templates) and LOCALE (gettext caches
+# catalogues), so this leaves the lane semantics unchanged rather than weakening them.
+ASSET_CATEGORIES = frozenset({UI_TEMPLATE, STATIC_ASSET, LOCALE, DATA_ASSET})
 
 _HASH_READ_BYTES = 1024 * 1024  # magic-number-allow: 1 MiB hashing read size
 
@@ -188,10 +211,10 @@ class SystemManifestGenerator:
             return CONFIG
         if suffix == ".py":
             return APP_CORE
-        # Anything else that survived the exclusions is data the app reads at runtime
-        # (json catalogues, .txt fixtures). APP_CORE is the conservative bucket: it is
-        # the one the rollout manager refuses to hot-swap.
-        return APP_CORE
+        # Anything that survived the exclusions and is NOT python is data the app reads
+        # at runtime — json catalogues, generated audit reports, .txt fixtures. It cannot
+        # require an interpreter reload, because there is nothing in it to import.
+        return DATA_ASSET
 
     @staticmethod
     def app_label_for(relative_path: str) -> str:
@@ -430,6 +453,7 @@ __all__ = [
     "MIGRATION",
     "CONFIG",
     "LOCALE",
+    "DATA_ASSET",
     "CATEGORIES",
     "ASSET_CATEGORIES",
     "ManifestEntry",
