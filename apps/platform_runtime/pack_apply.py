@@ -255,6 +255,15 @@ def apply_pack(
             "audit_id": getattr(event, "pk", None),
             "package_result": package_result,
         }
+    from apps.platform_runtime.installation_reconciliation import (
+        finalize_installation_mutation,
+    )
+
+    finalize_installation_mutation(
+        school,
+        context=f"pack_apply:{pack.pack_type}:{pack.key}:ok",
+        actor=actor,
+    )
     return {
         "ok": True,
         "installation_id": installation.pk,

@@ -1,0 +1,32 @@
+{% load i18n %}
+{% if installation_drift and not installation_drift.ok %}
+<div class="alert alert-warning rmc-installation-drift-banner mb-3" role="alert" data-rmc-installation-drift="1">
+  <div class="d-flex flex-wrap align-items-start justify-content-between gap-2">
+    <div>
+      <strong>{% trans "Installation layer drift detected" %}</strong>
+      <p class="small mb-2 mt-1">
+        {% blocktrans count counter=installation_drift.finding_count %}
+        One layer still reflects a previous apply or rollback. Scheduled changes run automatically when due; immediate apply/rollback should already reconcile — use repair if drift remains.
+        {% plural %}
+        {{ counter }} layers still reflect a previous apply or rollback. Scheduled changes run automatically when due; immediate apply/rollback should already reconcile — use repair if drift remains.
+        {% endblocktrans %}
+      </p>
+      <ul class="small mb-0 ps-3">
+        {% for finding in installation_drift.findings|slice:":5" %}
+        <li>{{ finding.message }}</li>
+        {% endfor %}
+        {% if installation_drift.finding_count > 5 %}
+        <li>{% blocktrans with extra=installation_drift.finding_count|add:"-5" %}…and {{ extra }} more{% endblocktrans %}</li>
+        {% endif %}
+      </ul>
+    </div>
+    {% if installation_reconcile_url %}
+    <form method="post" action="{{ installation_reconcile_url }}" class="flex-shrink-0">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="reconcile_installations">
+      <button type="submit" class="btn btn-sm btn-warning">{% trans "Reconcile now" %}</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+{% endif %}

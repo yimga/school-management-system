@@ -47,7 +47,10 @@ def rollback_blueprint_installation(
             "errors": ["Rollback confirmation is required."],
             "audit_id": getattr(event, "pk", None),
         }
-    if installation.status != BlueprintInstallation.Status.APPLIED:
+    if installation.status not in {
+        BlueprintInstallation.Status.APPLIED,
+        BlueprintInstallation.Status.PARTIALLY_APPLIED,
+    }:
         event = audit_blueprint_event(
             "blueprint_rollback_failed",
             blueprint_key=installation.blueprint_key,
@@ -59,7 +62,9 @@ def rollback_blueprint_installation(
         )
         return {
             "ok": False,
-            "errors": ["Only applied blueprint installations can be rolled back."],
+            "errors": [
+                "Only applied or partially applied blueprint installations can be rolled back."
+            ],
             "audit_id": getattr(event, "pk", None),
         }
 
@@ -251,6 +256,15 @@ def rollback_blueprint_installation(
                 "offline_manifest_invalidation": offline_manifest_invalidation,
             },
         )
+    from apps.platform_runtime.installation_reconciliation import (
+        finalize_installation_mutation,
+    )
+
+    finalize_installation_mutation(
+        school,
+        context=f"blueprint_rollback:{installation.blueprint_key}",
+        actor=actor,
+    )
     return {
         "ok": True,
         "reverted_changes": reverted_changes,

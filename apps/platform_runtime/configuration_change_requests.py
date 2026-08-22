@@ -10,21 +10,36 @@ from django.db import transaction
 from django.utils import timezone
 
 from apps.platform_runtime.blueprint_apply import apply_blueprint
+from apps.platform_runtime.blueprint_composition import _installation_sort_key
+from apps.platform_runtime.blueprint_rollback import rollback_blueprint_installation
 from apps.platform_runtime.configuration_change_set import (
     assert_change_set_fresh,
     generate_blueprint_change_set,
     generate_pack_change_set,
 )
 from apps.platform_runtime.events import emit_platform_event
-from apps.platform_runtime.models import ConfigurationChangeRequest
+from apps.platform_runtime.models import BlueprintInstallation, ConfigurationChangeRequest, PackInstallation
 from apps.platform_runtime.pack_apply import apply_pack
+from apps.platform_runtime.pack_rollback import (
+    deactivate_pack_installation,
+    rollback_pack_installation,
+)
 
 
 TERMINAL_STATUSES = {
     ConfigurationChangeRequest.Status.REJECTED,
     ConfigurationChangeRequest.Status.CANCELLED,
     ConfigurationChangeRequest.Status.APPLIED,
+    ConfigurationChangeRequest.Status.ROLLED_BACK,
 }
+
+_ROLLBACK_REQUEST_TYPES = frozenset(
+    {
+        ConfigurationChangeRequest.RequestType.BLUEPRINT_ROLLBACK,
+        ConfigurationChangeRequest.RequestType.PACK_ROLLBACK,
+        ConfigurationChangeRequest.RequestType.PACK_DEACTIVATE,
+    }
+)
 
 
 def _hash(payload: dict[str, Any]) -> str:
@@ -165,6 +180,43 @@ def _stored_change_set(change_request: ConfigurationChangeRequest) -> dict[str, 
     }
 
 
+def _latest_blueprint_installation_for_mutation(school, blueprint_key):
+    if school is None:
+        return None
+    candidates = list(
+        BlueprintInstallation.objects.filter(
+            school=school,
+            blueprint_key=blueprint_key,
+            status__in=(
+                BlueprintInstallation.Status.APPLIED,
+                BlueprintInstallation.Status.PARTIALLY_APPLIED,
+            ),
+        )
+    )
+    if not candidates:
+        return None
+    return max(candidates, key=_installation_sort_key)
+
+
+def _latest_pack_installation_for_mutation(school, pack_key, pack_type):
+    if school is None:
+        return None
+    candidates = list(
+        PackInstallation.objects.filter(
+            school=school,
+            pack_key=pack_key,
+            pack_type=pack_type,
+            status__in=(
+                PackInstallation.Status.APPLIED,
+                PackInstallation.Status.PARTIALLY_APPLIED,
+            ),
+        )
+    )
+    if not candidates:
+        return None
+    return max(candidates, key=_installation_sort_key)
+
+
 def apply_approved_change_request(change_request: ConfigurationChangeRequest, *, actor=None, force_scheduled: bool = False) -> dict[str, Any]:
     if change_request.status not in {ConfigurationChangeRequest.Status.APPROVED, ConfigurationChangeRequest.Status.SCHEDULED}:
         return {"ok": False, "errors": ["Only approved or due scheduled change requests can apply."]}
@@ -172,6 +224,7 @@ def apply_approved_change_request(change_request: ConfigurationChangeRequest, *,
         if not force_scheduled and change_request.scheduled_at and change_request.scheduled_at > timezone.now():
             return {"ok": False, "errors": ["Scheduled change request is not due yet."], "scheduled": True}
     assert_change_set_fresh(_stored_change_set(change_request))
+    result: dict[str, Any]
     with transaction.atomic():
         if change_request.request_type == ConfigurationChangeRequest.RequestType.BLUEPRINT_APPLY:
             result = apply_blueprint(
@@ -196,14 +249,60 @@ def apply_approved_change_request(change_request: ConfigurationChangeRequest, *,
                 platform_operator=True,
                 idempotency_key=change_request.idempotency_key,
             )
+        elif change_request.request_type == ConfigurationChangeRequest.RequestType.BLUEPRINT_ROLLBACK:
+            installation = _latest_blueprint_installation_for_mutation(
+                change_request.school, change_request.target_key
+            )
+            if installation is None:
+                result = {
+                    "ok": False,
+                    "errors": ["No applied blueprint installation found to roll back."],
+                }
+            else:
+                result = rollback_blueprint_installation(
+                    installation, actor=actor, confirmed=True
+                )
+        elif change_request.request_type == ConfigurationChangeRequest.RequestType.PACK_ROLLBACK:
+            installation = _latest_pack_installation_for_mutation(
+                change_request.school,
+                change_request.target_key,
+                change_request.target_type,
+            )
+            if installation is None:
+                result = {
+                    "ok": False,
+                    "errors": ["No applied pack installation found to roll back."],
+                }
+            else:
+                result = rollback_pack_installation(
+                    installation, actor=actor, confirmed=True
+                )
+        elif change_request.request_type == ConfigurationChangeRequest.RequestType.PACK_DEACTIVATE:
+            installation = _latest_pack_installation_for_mutation(
+                change_request.school,
+                change_request.target_key,
+                change_request.target_type,
+            )
+            if installation is None:
+                result = {
+                    "ok": False,
+                    "errors": ["No applied pack installation found to deactivate."],
+                }
+            else:
+                result = deactivate_pack_installation(
+                    installation, actor=actor, confirmed=True
+                )
         else:
             result = {"ok": False, "errors": ["This request type is not applyable by this helper."]}
-        change_request.status = (
-            ConfigurationChangeRequest.Status.APPLIED
-            if result.get("ok")
-            else ConfigurationChangeRequest.Status.FAILED
-        )
-        change_request.applied_at = timezone.now() if result.get("ok") else None
+        if result.get("ok"):
+            if change_request.request_type in _ROLLBACK_REQUEST_TYPES:
+                change_request.status = ConfigurationChangeRequest.Status.ROLLED_BACK
+            else:
+                change_request.status = ConfigurationChangeRequest.Status.APPLIED
+            change_request.applied_at = timezone.now()
+        else:
+            change_request.status = ConfigurationChangeRequest.Status.FAILED
+            change_request.applied_at = None
         change_request.audit_ref = str(result.get("audit_id") or change_request.audit_ref)
         change_request.save(update_fields=["status", "applied_at", "audit_ref", "updated_at"])
     _event("configuration_change_applied" if result.get("ok") else "configuration_change_failed", change_request, actor=actor, payload={"result": result})

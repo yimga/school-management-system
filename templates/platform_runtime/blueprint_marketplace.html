@@ -19,6 +19,7 @@
   {% url 'configuration:center' as wcx_config_url %}
   {% url 'configuration:blueprint_installations' as wcx_installations_url %}
   {% include "components/rmc_operational_center_frame.html" with hide_nav_detail="1" os_center_key="blueprint_marketplace" center_eyebrow=center_eyebrow center_title=center_title center_purpose=center_purpose status_badge_text=status_badge_text nav_groups=operational_nav_groups primary_url=wcx_installations_url primary_label=_("Installation history") secondary_url=wcx_config_url secondary_label=_("Configuration center") %}
+  {% include "components/installation_drift_banner.html" %}
   {% include "components/apple_class_dependency_graph.html" with graph_id="blueprint-dependency-graph" title=_("Blueprint install graph") source=_("Blueprint") dependency=_("Packs and policies") target=_("Tenant operating model") %}
   <div class="row g-3">
     {% for blueprint in blueprints %}

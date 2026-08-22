@@ -2332,6 +2332,12 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": 300.0,
         "options": {"expires": 240},
     },
+    # Governed blueprint/pack changes scheduled for a future window.
+    "platform-runtime-process-due-configuration-changes": {
+        "task": "platform_runtime.process_due_configuration_changes",
+        "schedule": 300.0,
+        "options": {"expires": 240},
+    },
     "platform-runtime-workflow-failed-provision-requeue": {
         "task": "platform_runtime.workflow_failed_provision_auto_requeue_sweep",
         "schedule": 600.0,

@@ -258,4 +258,44 @@ def revert_capability_bindings_on_uninstall(
         school, list(feature_codes), exclude_app_slug=app.slug
     )
     _clear_integration_adapters(school, app.slug, list(adapters))
-    return {"features_cleared": cleared, "adapters_cleared": adapters}
+    packages = list(cfg.get(_CONFIG_PACKAGES_KEY) or [])
+    packages_rolled_back: list[str] = []
+    for package_id in packages:
+        try:
+            from apps.packages.engine import rollback as rollback_package
+            from apps.packages.models import InstalledPackage
+
+            installed = (
+                InstalledPackage.objects.filter(
+                    school=school, package_id=package_id, is_active=True
+                )
+                .order_by("-applied_at")
+                .first()
+            )
+            if installed is not None:
+                rollback_package(installed, actor_id=None)
+                packages_rolled_back.append(package_id)
+        except (ImportError, AttributeError, TypeError, ValueError, OSError) as exc:
+            logger.debug(
+                "package rollback skipped on uninstall package_id=%s: %s",
+                package_id,
+                exc,
+            )
+    if packages:
+        cfg[_CONFIG_PACKAGES_KEY] = []
+        installation.config = cfg
+        installation.save(update_fields=["config"])
+    from apps.platform_runtime.installation_reconciliation import (
+        finalize_installation_mutation,
+    )
+
+    finalize_installation_mutation(
+        school,
+        context=f"marketplace_uninstall:{app.slug}",
+        actor=None,
+    )
+    return {
+        "features_cleared": cleared,
+        "adapters_cleared": adapters,
+        "packages_rolled_back": packages_rolled_back,
+    }

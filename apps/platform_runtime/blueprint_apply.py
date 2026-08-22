@@ -301,7 +301,7 @@ def apply_blueprint(
                 installation_id=installation.pk,
                 payload={"pack_result": pack_result},
             )
-            return {
+            result = {
                 "ok": False,
                 "errors": ["A referenced pack failed to install."],
                 "installation_id": installation.pk,
@@ -312,7 +312,26 @@ def apply_blueprint(
                 "audit_id": installation.audit_ref,
                 "local_first_manifest": local_first_manifest,
             }
+            from apps.platform_runtime.installation_reconciliation import (
+                finalize_installation_mutation,
+            )
 
+            finalize_installation_mutation(
+                school,
+                context=f"blueprint_apply:{blueprint.key}:partial",
+                actor=actor,
+            )
+            return result
+
+    from apps.platform_runtime.installation_reconciliation import (
+        finalize_installation_mutation,
+    )
+
+    finalize_installation_mutation(
+        school,
+        context=f"blueprint_apply:{blueprint.key}:ok",
+        actor=actor,
+    )
     return {
         "ok": True,
         "installation_id": installation.pk,

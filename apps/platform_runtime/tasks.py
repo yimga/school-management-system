@@ -280,6 +280,19 @@ def process_offline_queues_due(
 
 
 
+@shared_task(name="platform_runtime.process_due_configuration_changes")
+def process_due_configuration_changes_task(limit: int = 50) -> dict:
+    """Apply approved configuration changes whose scheduled_at is due."""
+    try:
+        from apps.platform_runtime.governance_queue import (
+            process_due_configuration_changes,
+        )
+
+        return process_due_configuration_changes(limit=limit)
+    except Exception as exc:
+        return {"ok": False, "reason": f"exception:{type(exc).__name__}"}
+
+
 @shared_task(name="platform_runtime.tenant_reactivation_sweep")
 def tenant_reactivation_sweep_task() -> dict:
     """v4.00.98 Phase 4 — daily reactivation sweep entrypoint for Celery beat.

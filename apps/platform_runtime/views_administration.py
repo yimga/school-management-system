@@ -154,7 +154,35 @@ def _selected_school(request):
 def blueprint_marketplace(request):
     from django.core.paginator import Paginator
 
+    from apps.platform_runtime.installation_reconciliation import audit_installation_layers
+
     schools = School.objects.filter(is_active=True).order_by("name")[:50]
+    selected_school = _selected_school(request)
+    installation_drift = audit_installation_layers(selected_school)
+    if request.method == "POST" and request.POST.get("action") == "reconcile_installations":
+        from django.contrib import messages
+
+        from apps.platform_runtime.installation_reconciliation import (
+            reconcile_school_installations,
+        )
+
+        if selected_school is None:
+            messages.error(request, "Select a school before reconciling.")
+        else:
+            repair = reconcile_school_installations(
+                selected_school,
+                repair=True,
+                context="operator_blueprint_marketplace",
+            )
+            if repair.get("ok"):
+                messages.success(request, "Installation layers are consistent.")
+            else:
+                messages.warning(
+                    request,
+                    f"Repaired {len(repair.get('repaired') or [])} item(s); "
+                    f"{repair.get('finding_count', 0)} finding(s) remain.",
+                )
+        return redirect(request.path + f"?school={selected_school.slug}" if selected_school else request.path)
     blueprint_page = Paginator(list_blueprints(), 12).get_page(
         request.GET.get("page") or 1
     )
@@ -165,7 +193,9 @@ def blueprint_marketplace(request):
             "blueprints": blueprint_page.object_list,
             "page_obj": blueprint_page,
             "schools": schools,
-            "selected_school": _selected_school(request),
+            "selected_school": selected_school,
+            "installation_drift": installation_drift,
+            "installation_reconcile_url": request.path,
             "page_marker": "rmc-blueprint-marketplace-depth",
             **blueprint_marketplace_frame_context(),
         },
@@ -728,9 +758,34 @@ def tenant_blueprint_rollback(request, installation_id: int):
 
 @login_required
 def tenant_blueprint_setup(request):
+    from django.contrib import messages
+
+    from apps.platform_runtime.installation_reconciliation import (
+        audit_installation_layers,
+        reconcile_school_installations,
+    )
+
     school = getattr(request, "school", None)
     if school is None or not tenant_operator_hub_eligible(request.user):
         return HttpResponseForbidden("Tenant school configuration access required.")
+    if request.method == "POST" and request.POST.get("action") == "reconcile_installations":
+        repair = reconcile_school_installations(
+            school,
+            repair=True,
+            context="tenant_blueprint_setup",
+        )
+        if repair.get("ok"):
+            messages.success(
+                request,
+                "Installation layers are consistent across blueprints, packs, and packages.",
+            )
+        else:
+            messages.warning(
+                request,
+                f"Repaired {len(repair.get('repaired') or [])} item(s); "
+                f"{repair.get('finding_count', 0)} finding(s) may still need review.",
+            )
+        return redirect("tenant_blueprint_setup")
     # Rank by fit for THIS school's country/region so the region-appropriate
     # blueprint sorts first and becomes the default selection (was region-blind).
     blueprints = rank_blueprints_for_school(school, tenant_safe_only=True)
@@ -796,6 +851,7 @@ def tenant_blueprint_setup(request):
     )
 
     applied_keys = set(effective_installed_blueprint_keys(school))
+    installation_drift = audit_installation_layers(school)
     return render(
         request,
         "platform_runtime/tenant_blueprint_setup.html",
@@ -806,6 +862,8 @@ def tenant_blueprint_setup(request):
             "preview": preview,
             "installations": installations,
             "applied_keys": applied_keys,
+            "installation_drift": installation_drift,
+            "installation_reconcile_url": request.path,
             # Real, per-tenant readiness derived from this preview (applyable /
             # conflict-free / offline proof / live-payment onboarding) — replaces
             # the old hardcoded "72" placeholder so the bar can actually reach 100.

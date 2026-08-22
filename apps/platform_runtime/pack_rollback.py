@@ -49,6 +49,15 @@ def deactivate_pack_installation(installation: PackInstallation, *, actor=None, 
             result="deactivated",
             installation_id=installation.pk,
         )
+    from apps.platform_runtime.installation_reconciliation import (
+        finalize_installation_mutation,
+    )
+
+    finalize_installation_mutation(
+        school,
+        context=f"pack_deactivate:{installation.pack_type}:{installation.pack_key}",
+        actor=actor,
+    )
     return {"ok": True, "status": installation.status, "audit_id": getattr(event, "pk", None)}
 
 
@@ -133,6 +142,15 @@ def rollback_pack_installation(installation: PackInstallation, *, actor=None, co
             installation_id=installation.pk,
             payload={"reverted_changes": installation.applied_changes},
         )
+    from apps.platform_runtime.installation_reconciliation import (
+        finalize_installation_mutation,
+    )
+
+    finalize_installation_mutation(
+        school,
+        context=f"pack_rollback:{installation.pack_type}:{installation.pack_key}",
+        actor=actor,
+    )
     return {
         "ok": True,
         "reverted_changes": installation.applied_changes,

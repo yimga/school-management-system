@@ -28,6 +28,7 @@ def governance_queue_snapshot(now=None) -> dict[str, Any]:
         ConfigurationChangeRequest.RequestType.PACK_DEACTIVATE,
     ]).exclude(status__in=[
         ConfigurationChangeRequest.Status.APPLIED,
+        ConfigurationChangeRequest.Status.ROLLED_BACK,
         ConfigurationChangeRequest.Status.CANCELLED,
         ConfigurationChangeRequest.Status.REJECTED,
     ])

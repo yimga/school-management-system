@@ -22,6 +22,8 @@
   {% url 'school_configuration_center' as wcx_school_settings_url %}
   {% include "components/rmc_operational_center_frame.html" with tenant_surface="1" hide_nav_detail="1" os_center_key="tenant_blueprint_setup" center_eyebrow=center_eyebrow center_title=center_title center_purpose=center_purpose status_badge_text=status_badge_text nav_groups=operational_nav_groups primary_url=wcx_school_settings_url primary_label=_("School configuration center") secondary_url="/school/setup/packs/" secondary_label=_("Setup packs") jump_a_id="rmc-bp-recommended" jump_a_label=_("Blueprints") jump_b_id="rmc-bp-preview" jump_b_label=_("Preview") %}
 
+  {% include "components/installation_drift_banner.html" %}
+
   {% if result %}
   <div class="rmc-bp-result {% if result.ok %}rmc-bp-result--ok{% else %}rmc-bp-result--warn{% endif %}" data-rmc-blueprint-result="1" role="status">
     {% if result.ok %}

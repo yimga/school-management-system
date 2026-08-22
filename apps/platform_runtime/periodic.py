@@ -304,6 +304,15 @@ def ensure_default_jobs() -> None:
             auto_eligible=False,
             tags=("orchestration", "slo"),
         )
+        _REGISTRY["platform_runtime.process_due_configuration_changes"] = PeriodicJob(
+            name="platform_runtime.process_due_configuration_changes",
+            interval_seconds=FREQUENT_DRAIN_SECONDS,
+            func=_run_process_due_configuration_changes,
+            description="Apply scheduled blueprint/pack configuration change requests when due.",
+            lock_ttl_seconds=HEAVY_JOB_LOCK_TTL_SECONDS,
+            auto_eligible=False,
+            tags=("platform_runtime", "governance"),
+        )
         # 3c. Recurring-trigger scheduler — wires the orphaned
         #     orchestration.trigger_runs_for_definition capability in. OPT-IN and
         #     default-OFF (fires only definitions whose config_schema.auto_trigger
@@ -925,6 +934,12 @@ def _run_orchestration_aggregate_slos() -> object:
     from apps.orchestration.slo_aggregator import aggregate_recent_window
 
     return aggregate_recent_window(window_minutes=60)
+
+
+def _run_process_due_configuration_changes() -> object:
+    from apps.platform_runtime.governance_queue import process_due_configuration_changes
+
+    return process_due_configuration_changes(limit=50)
 
 
 def _run_orchestration_auto_trigger() -> object:
