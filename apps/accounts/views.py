@@ -2205,7 +2205,7 @@ def rbac_dashboard(request):
                 messages.error(request, _("User is not a member of this school."))
                 return _rbac_redirect(request)
         elif form_type == "edit_role":
-            edit_role_form = EditRoleForm(request.POST)
+            edit_role_form = EditRoleForm(data=request.POST)
             if edit_role_form.is_valid():
                 # Scope the EDIT target to this school's own catalog.
                 #
