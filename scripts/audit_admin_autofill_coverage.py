@@ -115,7 +115,7 @@ from config.admin import platform_admin_site, tenant_admin_site  # noqa: E402
 REQUIRED_EMPTY_GROWTH_ALLOWANCE = 40
 
 
-def _resolver_reachable(model) -> int:
+def _resolver_reachable(model, *, is_platform: bool) -> int:
     """How many of this model's fields a generic resolver could answer for.
 
     Pure model metadata: no database, no request, no tenant state.  This is the
@@ -127,6 +127,11 @@ def _resolver_reachable(model) -> int:
         return 0
     count = 0
     for model_field in model._meta.get_fields():
+        # `school` is EXCLUDED from every tenant-site form (ownership is host-derived),
+        # so a resolver matching its shape there can never produce a rendered value.
+        # Counting it would overstate reach by ~100 models on the tenant site.
+        if not is_platform and getattr(model_field, "name", "") == "school":
+            continue
         name = getattr(model_field, "name", "")
         if not name or getattr(model_field, "auto_created", False):
             continue
@@ -139,6 +144,14 @@ def _resolver_reachable(model) -> int:
     return count
 
 
+def _is_model_field(model, name: str) -> bool:
+    try:
+        model._meta.get_field(name)
+    except FieldDoesNotExist:
+        return False
+    return True
+
+
 def _blank(value: Any) -> bool:
     if value is None:
         return True
@@ -149,8 +162,8 @@ def _blank(value: Any) -> bool:
     return False
 
 
-def _audit_request(*, host: str, urlconf: str, host_kind: str, school, user):
-    request = RequestFactory().get("/admin/", HTTP_HOST=host)
+def _audit_request(*, host: str, urlconf: str, host_kind: str, school, user, query=None):
+    request = RequestFactory().get("/admin/", query or {}, HTTP_HOST=host)
     request.user = user
     request.school = school
     request.public_host_kind = host_kind
@@ -171,7 +184,9 @@ def _model_row(*, model, model_admin, request) -> dict[str, Any]:
         "tenant_scoped": any(f.name == "school" for f in model._meta.fields),
         "concrete_fields": len(model._meta.fields),
         "has_builder": label in INITIAL_BUILDERS,
-        "resolver_reachable": _resolver_reachable(model),
+        "resolver_reachable": _resolver_reachable(
+            model, is_platform=model_admin.admin_site.is_platform_site()
+        ),
         "builder_returned": 0,
         "presented": 0,
         "visible": 0,
@@ -192,7 +207,12 @@ def _model_row(*, model, model_admin, request) -> dict[str, Any]:
     except (DatabaseError, TypeError, ValueError) as exc:
         row["error"] = f"initials:{type(exc).__name__}"
         initial = {}
-    row["builder_returned"] = len(initial)
+    # Django's get_changeform_initial_data copies EVERY query-string key into
+    # `initial`, `_changelist_filters` included. Counting those would report a
+    # suggestion for every model on the site the moment that parameter is present.
+    row["builder_returned"] = sum(
+        1 for name in initial if _is_model_field(model, name)
+    )
 
     try:
         contract = build_admin_field_contract(
@@ -309,11 +329,26 @@ def run() -> dict[str, Any]:
             user=user,
         ),
     )
+    # The operator flow that actually happens: arriving at Add from a changelist
+    # already filtered to one school. Django preserves that filter across the link.
+    operator_with_context = audit_site(
+        label="operator",
+        site=platform_admin_site,
+        request=_audit_request(
+            host="manager.runmycampus.com",
+            urlconf="config.manager_urls",
+            host_kind="manager",
+            school=None,
+            user=user,
+            query={"_changelist_filters": f"school__id__exact={school.pk}"},
+        ),
+    )
     return {
         "ok": True,
         "registry_builders": len(INITIAL_BUILDERS),
         "school_used": school.slug,
         "sites": {"tenant": tenant, "operator": operator},
+        "operator_from_filtered_changelist": operator_with_context["totals"],
     }
 
 
@@ -430,6 +465,17 @@ def main() -> int:
             f"{t['resolver_reachable_models']} models / "
             f"{t['resolver_reachable_fields']} fields, "
             f"{t['builder_models']} exact builders"
+        )
+
+    context = payload.get("operator_from_filtered_changelist")
+    if context:
+        base = payload["sites"]["operator"]["totals"]
+        print()
+        print("  OPERATOR arriving from a school-filtered changelist (the common flow)")
+        print(
+            f"    prefilled {base['prefilled']} -> {context['prefilled']}, "
+            f"required-and-empty {base['required_empty']} -> {context['required_empty']}, "
+            f"models with a suggestion {base['builder_hits']} -> {context['builder_hits']}"
         )
 
     for site in ("tenant", "operator"):

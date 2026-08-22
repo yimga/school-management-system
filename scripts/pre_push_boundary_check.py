@@ -75,6 +75,12 @@ GATES: list[tuple[str, list[str]]] = [
     ("admin-super-help-nav-bridge", ["verify_admin_super_help_nav_bridge.py"]),
     ("operator-admin-sidebar-v2", ["verify_operator_admin_sidebar_v2.py"]),
     ("tenant-admin-sidebar-v2", ["verify_tenant_admin_sidebar_v2.py"]),
+    # Red until 2026-08-21, and red for a reason that made them unwireable: they
+    # asserted an EXACT service-worker version from var/admin-approval-build-lock.json
+    # while the deploy checklist bumps CACHE_VERSION every wave. Now monotonic.
+    ("admin-miss-nothing", ["audit_django_admin_miss_nothing.py"]),
+    ("admin-platformwide-sweep", ["sweep_django_admin_platformwide_layout.py"]),
+    ("admin-change-form-product-links", ["verify_admin_tenant_change_form_product_links.py"]),
     # Its sibling, and for a worse failure mode: a JavaScript file that does not parse
     # fails SILENTLY in the browser - the tag 200s, the console throws, and the page
     # renders normally with one feature dead. Skipped (not failed) when Node is absent,

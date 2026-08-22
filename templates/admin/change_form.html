@@ -51,6 +51,9 @@
                   <a class="rmc-django-band-action" href="{{ history_url }}">{% trans "History" %}</a>
                   {% endif %}
                 {% endif %}
+                <a class="rmc-django-band-action"
+                   href="{% url 'siteconfig:console_domains_hub' %}"
+                   data-rmc-admin-product-escape="1">{% if is_manager_host %}{% trans "Platform configuration" %}{% else %}{% trans "Guided settings" %}{% endif %}</a>
                 <span>{% if is_manager_host %}{% trans "Operator scoped" %}{% else %}{% trans "This school only" %}{% endif %}</span>
             </div>
         </section>

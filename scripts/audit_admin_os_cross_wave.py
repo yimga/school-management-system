@@ -7,6 +7,8 @@ import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+
+import admin_build_lock  # sibling helper; scripts/ is sys.path[0] when run directly
 errors: list[str] = []
 warns: list[str] = []
 oks: list[str] = []
@@ -286,14 +288,22 @@ def main() -> int:
         errors.append(f"FAIL base_site cache bust mismatch want {lock['cache_bust']}")
     else:
         oks.append(f"OK cache bust {lock['cache_bust']}")
-    if lock["sw_version"] not in sw:
-        errors.append(f"FAIL SW mismatch want {lock['sw_version']}")
+    sw_ok, sw_why = admin_build_lock.sw_at_least(lock["sw_version"], sw)
+    if not sw_ok:
+        errors.append(f"FAIL {sw_why}")
     else:
-        oks.append(f"OK SW {lock['sw_version']}")
-    if lock["seal"] not in terminal_css:
-        errors.append(f"FAIL CSS seal missing {lock['seal']}")
+        oks.append(f"OK {sw_why}")
+    # A seal documents the contract a rule set implements, so it lives WITH those
+    # rules. The v22 build is a tenant-SIDEBAR build; looking only in the terminal
+    # canvas sheet asks the wrong file.
+    seal_ok, seal_where = admin_build_lock.seal_present(lock["seal"])
+    if not seal_ok:
+        errors.append(
+            f"FAIL CSS seal missing {lock['seal']} "
+            f"(searched {len(admin_build_lock.SEAL_SEARCH_PATHS)} admin stylesheets)"
+        )
     else:
-        oks.append(f"OK CSS seal {lock['seal']}")
+        oks.append(f"OK CSS seal {lock['seal']} in {seal_where}")
 
     for path, host in (
         ("templates/admin/index_superadmin.html", "op"),

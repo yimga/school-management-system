@@ -1024,7 +1024,17 @@ def _auto_generate_fee_invoices_body(
         schedule = finance_settings["auto_generate_schedule"]
         due_date_offset = finance_settings["auto_generate_due_date_offset_days"]
 
-        current_year = get_current_academic_year()
+        # The school has to be resolved FIRST: the academic year below is looked up
+        # per tenant, and an unscoped lookup can return another school's year --
+        # which then decides which fee plans are invoiced and which billing period
+        # the run is deduplicated on.
+        school = None
+        if school_id is not None:
+            school = School.objects.filter(pk=school_id).first()
+        if school is None:
+            school = School.objects.filter(is_active=True).first()
+
+        current_year = get_current_academic_year(school=school)
         if not current_year:
             execution_log.mark_completed(
                 AutomationExecutionLog.Status.FAILED,
@@ -1032,13 +1042,7 @@ def _auto_generate_fee_invoices_body(
             )
             return {"status": "error", "message": "No active academic year"}
 
-        school = None
-        if school_id is not None:
-            school = School.objects.filter(pk=school_id).first()
-        if school is None:
-            school = School.objects.filter(is_active=True).first()
-
-        current_term = get_current_term(current_year)
+        current_term = get_current_term(current_year, school=school)
         term_start = current_term.start_date if current_term else None
         should_generate = is_invoice_generation_due_for_school(
             school,

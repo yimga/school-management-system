@@ -3,6 +3,8 @@
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
+from django_otp.plugins.otp_totp.models import TOTPDevice
+
 from apps.accounts.models import User
 from apps.accounts.migration_services import run_migration_finish, run_migration_start
 from apps.automation.models import (
@@ -11,6 +13,15 @@ from apps.automation.models import (
     MigrationRun,
 )
 from apps.schools.models import School
+
+
+def _sign_in_operator(client, user):
+    """force_login + the MFA state a real operator login would have established."""
+    TOTPDevice.objects.get_or_create(user=user, name="default", defaults={"confirmed": True})
+    client.force_login(user)
+    session = client.session
+    session["mfa_verified"] = True
+    session.save()
 
 
 class MigrationExceptionQueueSot0155Tests(TestCase):
@@ -28,7 +39,11 @@ class MigrationExceptionQueueSot0155Tests(TestCase):
             is_staff=True,
             is_superuser=True,
         )
-        self.client.force_login(self.superuser)
+        # RequireMFAMiddleware gates privileged users twice: no confirmed device
+        # redirects to /mfa/setup/, and a device without a verified session
+        # redirects to /mfa/verify/. force_login() skips the real login flow, so
+        # neither is satisfied unless the fixture does it.
+        _sign_in_operator(self.client, self.superuser)
         self.host = "manager.runmycampus.com"
 
     def test_run_migration_finish_opens_exception_queue(self):

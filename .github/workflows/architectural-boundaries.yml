@@ -383,6 +383,19 @@ jobs:
         run: |
           python -m unittest scripts.tests.test_scan_lander_row_error_contract -v
 
+  admin-manager-shell-aggressive:
+    name: Admin manager shell bundle (15 checks, ~8 min)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: admin-manager-shell-aggressive
+        run: python scripts/verify_admin_manager_shell_aggressive.py
+
   admin-surface-contracts:
     name: Admin surface contracts (previously invoked by nothing)
     runs-on: ubuntu-latest
@@ -413,6 +426,18 @@ jobs:
         run: python scripts/verify_operator_admin_sidebar_v2.py
       - name: tenant-admin-sidebar-v2
         run: python scripts/verify_tenant_admin_sidebar_v2.py
+      - name: admin-miss-nothing
+        run: python scripts/audit_django_admin_miss_nothing.py
+      - name: admin-platformwide-sweep
+        run: python scripts/sweep_django_admin_platformwide_layout.py
+      - name: admin-change-form-product-links
+        run: python scripts/verify_admin_tenant_change_form_product_links.py
+      - name: admin-usage-extended
+        run: python scripts/audit_admin_usage_extended.py
+      - name: admin-gravity
+        run: python scripts/audit_admin_gravity.py
+      - name: admin-os-cross-wave
+        run: python scripts/audit_admin_os_cross_wave.py
 
   theme-hue-coherence:
     name: A theme sits in one hue family

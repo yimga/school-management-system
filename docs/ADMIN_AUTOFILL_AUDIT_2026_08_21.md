@@ -75,8 +75,15 @@ one had seen, because nothing ran them:
 - **11 pass** in under a second each — real pass/fail gates, reachable only by
   somebody remembering they exist.
 - **4 are RED right now** on `main`.
-- **2 hang** (`audit_admin_gravity.py`, `verify_admin_manager_shell_aggressive.py`)
-  and produce no output within 100s.
+- **2 produce no output within 100s** (`audit_admin_gravity.py`,
+  `verify_admin_manager_shell_aggressive.py`).
+
+> **This last line was wrong and is corrected below.** Neither hangs. `audit_admin_gravity`
+> completes in 18–24s; the 100s timeout hit a cold filesystem cache while eighteen
+> other scripts ran in the same loop. `verify_admin_manager_shell_aggressive` takes
+> 454s because it is a bundle runner spawning fifteen subprocesses. Recording the
+> mistake rather than editing it away: "timed out once under load" is not "hangs",
+> and the difference decided whether they could be wired.
 
 The four red ones share one root cause, and it is a design fault rather than a
 defect in the admin surface: they assert an **exact** service-worker version and
@@ -92,6 +99,9 @@ monotonicity) and **is** wired. The four duplicate it in a form that cannot hold
 > **I did not bump the approval lock to make them green.** The lock records that a
 > specific admin build was *approved*; editing it would be asserting an approval
 > that nobody gave. That is a decision for whoever owns that sign-off.
+
+All four are now green — see "The deferrals, closed" below. The lock was still not
+edited; the *gates* were, to assert an invariant instead of a snapshot.
 
 ## 0.5 The add-form reality check
 
@@ -261,20 +271,155 @@ re-baselined to a number that proves nothing. It guards
 
 ---
 
-## Not done — stated plainly
+## The deferrals, closed
 
-- **The four red admin gates are still red.** Diagnosed, not fixed: they need their
-  exact-version pins replaced with the monotonic check `verify_service_worker_version.py`
-  already performs, or the approval lock re-signed by its owner.
-- **Two admin scripts hang** and were not wired or investigated further.
-- **`verify_admin_tenant_change_form_product_links.py`** wants a product URL tag in
-  `templates/admin/change_form.html`. Real and current; adding one is a UX decision.
-- **`finance/tasks.py` cross-tenant year resolution** — reported above, not fixed.
-- **Usage inference is unproven outside tests** on this database, for the reason in
-  §0.5. It wants a run against a populated tenant before anyone trusts the feature
-  in production.
+Everything the first pass deferred was worked to a conclusion. Two of the four
+"findings" turned out to be wrong about the world, which is recorded here rather
+than quietly corrected.
+
+### The four red gates: one root cause, one design fault
+
+All four asserted an **exact** service-worker version (three read it from
+`var/admin-approval-build-lock.json`, one kept a private copy nine days staler), while
+the deploy checklist requires bumping `CACHE_VERSION` every wave. They reddened on
+every wave *by construction*, which is why nobody had wired them.
+
+Replaced with the invariant they were reaching for — **the shipped service worker is
+at least the approved build's** — in one shared reader, `scripts/admin_build_lock.py`,
+so the lock now has a single consumer instead of three drifting ones.
+
+- `audit_django_admin_miss_nothing.py` → PASS
+- `sweep_django_admin_platformwide_layout.py` → PASS (also stopped keeping its own copy of the lock)
+- `audit_admin_os_cross_wave.py` → PASS (94 OK / 0 FAIL)
+- `verify_admin_tenant_change_form_product_links.py` → PASS
+
+The last one was a genuine gap, not a pin: 33 of 34 `change_form.html` templates carry
+a product escape link and the **base** template — the one every model on both sites
+actually renders — did not. Added to its command band.
+
+The cross-wave gate also wanted a CSS seal that existed in no stylesheet. The v22
+build demonstrably shipped (its cache-bust is live in `base_site.html`, its
+`data-rmc-admin-approval-build` attribute is in the rendered shell, and the wired
+`verify_django_admin_preview_parity` gate — which checks that same lock's
+`visible_proofs` — is green), so the seal was written where the v22 rules live, and
+the gate now searches the admin stylesheet family rather than one hardcoded file.
+
+**The approval lock was still not edited.** It records that a build was *approved*;
+making a gate green by rewriting it would assert an approval nobody gave.
+
+### The two "hangs" were not hangs
+
+- `audit_admin_gravity.py` completes in **18–24s, exit 0**. The earlier verdict came
+  from a 100s timeout that landed on a cold filesystem cache while eighteen other
+  scripts ran in the same loop. "Timed out once" is not "hangs", and it should not
+  have been reported as one.
+- `verify_admin_manager_shell_aggressive.py` takes **454s** because it is a *bundle
+  runner* — fifteen sub-checks, each spawning a subprocess with `timeout=300`. It was
+  red for the same exact-pin reason as the others and now passes.
+
+All 16 are wired, placed by cost so none gets skipped: <1s to pre-push and the
+boundaries workflow, 6–32s to the workflow only, Django-dependent to `ci.yml`, and the
+454s bundle to its own job with a 20-minute timeout. **76 required gates, 0 un-wired.**
+
+### `finance/tasks.py` — fixed
+
+`_auto_generate_fee_invoices_body` resolved the academic year with an unscoped
+`get_current_academic_year()` and only then worked out which school it was billing.
+The year is not cosmetic: it selects the fee plans to invoice and the billing period
+the run is deduplicated on. School is now resolved first and passed to both resolvers.
+
+Five tests in `apps/finance/tests/test_invoice_year_is_scoped_to_school_2026_08_21.py`;
+two of them fail against the previous ordering. The sibling `_auto_copy_fee_plans_body`
+was deliberately left alone — it has no school to scope by and its markers say it runs
+inside a tenant schema.
+
+### The test that never finished — and the defect underneath it
+
+`test_admin_model_outcomes.py` did not complete in nine minutes. That was not a slow
+test; it was a slow **product**.
+
+One tenant admin changelist (`/admin/accounts/user/`) issued **8,944 queries**, and
+**8,275 of them were the same SELECT** against `platform_runtime_runtimedefaults`.
+Tracing the callers put 8,118 of them behind `SiteSettings.__getattr__`, which
+consults RuntimeDefaults for every behavioural field Phase B moved off that table —
+and `owned_payload()` loops those fields, making it quadratic. A single changelist
+cost ~53 seconds of server time. The operator site was ~100× faster for the same work.
+
+`RuntimeDefaults.get_singleton()` is now memoized in-process, invalidated two ways so
+it cannot serve something this process has superseded: a version counter bumped by
+`save()`/`delete()`, and a short TTL for writes from other processes. A schema-drift
+`None` is deliberately **not** memoized, so migrations landing do not leave the
+platform degraded for the life of the process.
+
+| | before | after |
+|---|---:|---:|
+| queries, one tenant changelist | 8,944 | **1,286** |
+| `test_admin_model_outcomes.py` | never finished (>9 min) | **10 passed, 567s** |
+
+Sealed by `apps/platform_runtime/tests/test_runtime_defaults_singleton_cache_2026_08_21.py`,
+which asserts the invalidation paths as well as the speed — a cache that cannot be
+invalidated trades a performance bug for a correctness one, and the admin's own
+edit-then-re-read flow is exactly where that would surface.
+
+### The four `apps/automation` failures — fixed
+
+All four were fixtures that had fallen behind the product, not product defects:
+
+1. **MFA.** `RequireMFAMiddleware` augments tenant-configured roles with a platform
+   baseline that always requires MFA for privileged roles. It gates twice — no
+   confirmed device redirects to `/mfa/setup/`, a device without a verified session
+   redirects to `/mfa/verify/` — and `force_login()` establishes neither. The fixtures
+   modelled an operator who cannot exist.
+2. **School binding.** `test_studio_simulation_engine_lists_catalog_when_school_bound`
+   never bound its user to a school. `User` has no `school` column at all; the binding
+   is a `SchoolMembership` row. Added inside that one test, because sibling tests in
+   the same class deliberately exercise the unbound user.
+
+`apps/automation/tests`: **132 passed, 0 failed** (was 4 failed / 128 passed).
+
+### Operator-side: two real signals, and a live 500 found on the way
+
+The "operator gain is structural, ~nil" conclusion was two-thirds right and one-third
+not looking hard enough.
+
+1. **Django already carries the school.** An operator who filters a changelist to one
+   school and clicks Add sends `?_changelist_filters=school__id__exact=…`. That is the
+   operator's own immediately preceding input, not a guess, and reading it makes every
+   tenant-state resolver work on the operator site. A `school` resolver was added for
+   the 34 operator models that require it (guarded so it can never fire on the tenant
+   site, where `school` is excluded from the form by policy).
+2. **An event recorded now happened now** — for a tight allowlist of names meaning
+   "when the recorded thing took place". This is a convention rather than derived
+   state, so every one carries a note into the field's help text. Future-facing names
+   (`expires_at`, `starts_at`, `due_at`, `scheduled_at`) are excluded: defaulting those
+   to now is wrong, not merely unhelpful.
+
+| operator | before | after |
+|---|---:|---:|
+| context-free request | 382 required-and-empty | 379 |
+| **arriving from a filtered changelist** | 382 | **345** |
+| models receiving a suggestion | 0 | **74** |
+| resolver-reachable models / fields | 0 / 0 | **88 / 108** |
+
+**A live 500, found by a test written for something else.** `School`'s primary key is a
+UUID, so `School.objects.filter(pk=<not-a-uuid>)` *raises* rather than matching
+nothing. `_request_school` passed the query string straight in, so
+`?school=anything-not-a-uuid` on **any admin add form on either site** was a 500 — on
+`origin/main`, before this work. Now guarded.
+
+Two measurement artifacts were also corrected rather than reported as wins:
+`builder_hits` had counted `_changelist_filters` itself as a "suggestion" (Django
+copies every query key into `initial`), and `resolver_reachable` had counted the
+tenant-site `school` field that policy excludes from the form.
+
+## Still open
+
+- **Usage inference remains unproven on real data.** Not one of 141 tenant-scoped
+  models has the 25 rows it requires in this database, so it is proven by fixtures
+  only. It wants a run against a populated tenant before anyone trusts it.
 - **The dev database is missing 4 tenant-scoped tables** (`schoolops_vendor` among
-  them), so those models were skipped by every data-dependent measurement here.
-- **Operator-side gain is ~nil** (−1 field). The operator site has no
-  `request.school`, so tenant-state resolvers have nothing to resolve against unless
-  a `?school=` parameter is present. This is structural, not an oversight.
+  them); those models are skipped by every data-dependent measurement here.
+- **`test_admin_model_outcomes.py` still takes 567s.** 478 full admin page renders is
+  inherently heavy; the pathological part is gone, the bulk is not.
+- **~64% of the remaining required-and-empty fields are irreducible by pre-fill** —
+  content a human writes, or a relational choice only they can make.

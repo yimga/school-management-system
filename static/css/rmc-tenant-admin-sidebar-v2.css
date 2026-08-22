@@ -1,3 +1,15 @@
+/* ============================================================
+   2026-08-20-tenant-admin-sidebar-v22: the approved tenant `/admin/` sidebar.
+
+   Named as `seal` by var/admin-approval-build-lock.json (build 2026-08-20-v22.0)
+   and asserted by scripts/audit_admin_os_cross_wave.py. The rules below ARE that
+   contract: a tenant-scoped `#nav-sidebar` (operator navigation is excluded by the
+   host attribute), the context strip, the search control with its live status and
+   reset, section heads with counts, recents, and the compact-mode collapse.
+
+   The seal is a note about which rules carry an approved contract. Do not move it
+   away from them, and do not add one for a build that has not shipped.
+   ============================================================ */
 /* Tenant `/admin/` sidebar only. Operator navigation is intentionally excluded. */
 [data-rmc-app-shell-host="tenant"] #nav-sidebar{--rmc-side-accent:var(--rmc-admin-intel,#38bdf8);background:linear-gradient(180deg,rgba(56,189,248,.055),transparent 12rem),var(--body-bg,var(--surface-0,#081224))!important}
 [data-rmc-app-shell-host="tenant"] #nav-sidebar-inner{gap:0}

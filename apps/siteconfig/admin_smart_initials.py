@@ -81,6 +81,55 @@ USER_LABEL_SETTING = "AUTH_USER_MODEL"
 #: say so on the form.
 NOTE_YEAR_FALLBACK = "Suggested: this school's most recent academic year (no year is marked active)."
 NOTE_TERM_FALLBACK = "Suggested: this school's active term (today falls outside every term's dates)."
+NOTE_EVENT_NOW = "Defaulted to now. Change it if this happened earlier."
+
+#: Fields naming WHEN THE RECORDED THING TOOK PLACE. For a row a person is creating
+#: by hand, now is the honest default -- but it is a convention rather than derived
+#: state, so every one of these carries NOTE_EVENT_NOW into the field's help text.
+#: Future-facing names (`expires_at`, `starts_at`, `due_at`, `scheduled_at`,
+#: `valid_until`) are deliberately absent: defaulting those to now is wrong, not
+#: merely unhelpful. Names already in SYSTEM_EVIDENCE_FIELDS are absent too -- those
+#: are read-only evidence bound at save time and are never rendered as inputs.
+EVENT_TIMESTAMP_FIELD_NAMES = frozenset(
+    {
+        "detected_at",
+        "happened_at",
+        "logged_at",
+        "observed_at",
+        "occurred_at",
+        "performed_at",
+        "recorded_at",
+        "reported_at",
+    }
+)
+
+
+#: Query keys a changelist school filter can arrive under.
+_SCHOOL_FILTER_KEYS = ("school", "school__id__exact", "school__id", "school_id")
+
+
+def _school_id_from_changelist_filters(request) -> str:
+    """Read the school an operator already chose on the changelist they came from.
+
+    Django carries the changelist's active filters across the Add link as
+    ``?_changelist_filters=school__id__exact%3D5``. On the operator site there is no
+    ``request.school``, so without this every tenant-derived value is unavailable on
+    a form the operator reached by filtering to exactly one school.
+    """
+    from urllib.parse import parse_qsl
+
+    raw = str(request.GET.get("_changelist_filters") or "").strip()
+    if not raw:
+        return ""
+    try:
+        filters = dict(parse_qsl(raw))
+    except (TypeError, ValueError):
+        return ""
+    for key in _SCHOOL_FILTER_KEYS:
+        value = str(filters.get(key) or "").strip()
+        if value:
+            return value
+    return ""
 
 
 def _request_school(request):
@@ -89,10 +138,21 @@ def _request_school(request):
         return school
     school_id = str(request.GET.get("school") or "").strip()
     if not school_id:
+        school_id = _school_id_from_changelist_filters(request)
+    if not school_id:
         return None
+    from django.core.exceptions import ValidationError
     from apps.schools.models import School
 
-    return School.objects.filter(pk=school_id).first()
+    # School's primary key is a UUID, so a value that is not one raises out of
+    # `filter()` rather than simply matching nothing -- and this value comes from the
+    # query string. Before this guard, `?school=anything-not-a-uuid` on any admin add
+    # form on either site was a 500.
+    try:
+        return School.objects.filter(pk=school_id).first()
+    except (ValidationError, TypeError, ValueError):
+        logger.warning("admin initials: unusable school id in query string")
+        return None
 
 
 @dataclass
@@ -194,6 +254,22 @@ def _resolve_term(ctx: InitialContext):
     return term.pk
 
 
+def _resolve_school(ctx: InitialContext):
+    """The school the operator is already working in.
+
+    Only meaningful on the operator site. On the tenant site `school` is EXCLUDED
+    from the form by `AdminFormAutomationMixin.get_exclude` and bound from the
+    resolved host at save time, which is stronger than any initial value -- offering
+    one there would put a control on a field the form does not render.
+    """
+    if ctx.school is None:
+        return None
+    if getattr(ctx.request, "school", None) is not None:
+        # A tenant-host request: ownership is host-derived and the field is excluded.
+        return None
+    return ctx.school.pk
+
+
 def _resolve_region(ctx: InitialContext):
     if ctx.school is None:
         return None
@@ -218,6 +294,15 @@ def _resolve_teacher_profile(ctx: InitialContext):
     return profile.pk if profile is not None else None
 
 
+def _resolve_event_timestamp(ctx: InitialContext):
+    """Now, for an event being recorded now -- and it says so on the form."""
+    from django.utils import timezone
+
+    for name in EVENT_TIMESTAMP_FIELD_NAMES:
+        ctx.notes.setdefault(name, NOTE_EVENT_NOW)
+    return timezone.now()
+
+
 def _school_attr(attribute: str) -> Callable[[InitialContext], Any]:
     def _resolve(ctx: InitialContext):
         if ctx.school is None:
@@ -229,6 +314,12 @@ def _school_attr(attribute: str) -> Callable[[InitialContext], Any]:
 
 
 FIELD_RESOLVERS: tuple[FieldResolver, ...] = (
+    FieldResolver(
+        names=frozenset({"school"}),
+        resolve=_resolve_school,
+        target_label="schools.school",
+        reason="the school the operator filtered the changelist to",
+    ),
     FieldResolver(
         names=frozenset({"academic_year"}),
         resolve=_resolve_academic_year,
@@ -252,6 +343,12 @@ FIELD_RESOLVERS: tuple[FieldResolver, ...] = (
         resolve=_resolve_teacher_profile,
         target_label=TEACHER_PROFILE_LABEL,
         reason="the requesting user's own teacher record in this school",
+    ),
+    FieldResolver(
+        names=EVENT_TIMESTAMP_FIELD_NAMES,
+        resolve=_resolve_event_timestamp,
+        value_field_types=("DateTimeField",),
+        reason="an event being recorded now happened now (announced in help text)",
     ),
     FieldResolver(
         names=frozenset({"country_code"}),

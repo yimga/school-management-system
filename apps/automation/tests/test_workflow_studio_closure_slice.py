@@ -10,8 +10,13 @@ from __future__ import annotations
 import json
 
 from django.contrib.auth import get_user_model
+import os
+from unittest.mock import patch
+
 from django.test import RequestFactory, TestCase, override_settings
 from django.urls import reverse
+
+from django_otp.plugins.otp_totp.models import TOTPDevice
 
 from apps.accounts.models import Permission
 
@@ -98,6 +103,15 @@ def _trigger_only_workflow(school: School, trigger_event: str) -> Workflow:
     )
     WorkflowEdge.objects.create(workflow=wf, source=t, target=a)
     return wf
+
+
+def _sign_in_operator(client, user):
+    """force_login + the MFA state a real operator login would have established."""
+    TOTPDevice.objects.get_or_create(user=user, name="default", defaults={"confirmed": True})
+    client.force_login(user)
+    session = client.session
+    session["mfa_verified"] = True
+    session.save()
 
 
 @override_settings(ALLOWED_HOSTS=["*"])
@@ -201,10 +215,34 @@ class WorkflowStudioClosureSliceTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, wf.name)
 
+    @patch.dict(os.environ, {"MULTI_TENANT_BASE_DOMAIN": "runmycampus.com"}, clear=False)
     def test_studio_simulation_engine_lists_catalog_when_school_bound(self):
-        self.client.force_login(self.user)
+        # "when school bound" is the premise of this test and was never set up: an
+        # unbound user on a tenant host is redirected to the marketing login, so the
+        # assertion could not be reached. Bound here rather than in setUp because
+        # sibling tests in this class deliberately exercise the UNBOUND user.
+        # "when school bound" is this test's premise and was never set up. A user is
+        # bound to a school through SchoolMembership -- User has no `school` column --
+        # and without it the tenant host resolves no membership and the request is
+        # bounced to the marketing login before the view runs. Created here rather
+        # than in setUp because sibling tests exercise the UNBOUND user deliberately.
+        from apps.schools.models import SchoolMembership
+
+        SchoolMembership.objects.get_or_create(
+            user=self.user,
+            school=self.school_a,
+            defaults={"role": "ADMIN", "is_primary": True},
+        )
         url = reverse("studio_os:automation_simulation_engine")
         host = f"{self.school_a.subdomain}.runmycampus.com"
+        # Log in through a client already pinned to the tenant host: force_login on a
+        # host-less client establishes the session outside tenant context, and the
+        # request then arrives unauthenticated. Same shape as the tenant crawl in
+        # apps/siteconfig/tests/test_admin_model_outcomes.py.
+        from django.test import Client
+
+        self.client = Client(HTTP_HOST=host)
+        _sign_in_operator(self.client, self.user)
         response = self.client.get(url, HTTP_HOST=host)
         self.assertEqual(response.status_code, 200)
         content = response.content.decode()

@@ -108,6 +108,22 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     ("scripts/verify_admin_super_help_nav_bridge.py", "architectural-boundaries.yml"),
     ("scripts/verify_operator_admin_sidebar_v2.py", "architectural-boundaries.yml"),
     ("scripts/verify_tenant_admin_sidebar_v2.py", "architectural-boundaries.yml"),
+    # Added 2026-08-21 after being fixed rather than excused. Three of these
+    # pinned an exact service-worker version and so reddened on every wave by
+    # construction; one was missing the product escape link its 33 sibling
+    # change_form templates all carry.
+    ("scripts/audit_django_admin_miss_nothing.py", "architectural-boundaries.yml"),
+    ("scripts/sweep_django_admin_platformwide_layout.py", "architectural-boundaries.yml"),
+    ("scripts/verify_admin_tenant_change_form_product_links.py", "architectural-boundaries.yml"),
+    ("scripts/audit_admin_usage_extended.py", "architectural-boundaries.yml"),
+    ("scripts/audit_admin_gravity.py", "architectural-boundaries.yml"),
+    ("scripts/audit_admin_os_cross_wave.py", "architectural-boundaries.yml"),
+    # A bundle runner (15 sub-checks, ~8 min) so it has its own job and its own
+    # timeout. Recorded as hanging before 2026-08-21; it was red on the same exact
+    # service-worker pin as its siblings, reached through audit_django_admin_miss_nothing.
+    ("scripts/verify_admin_manager_shell_aggressive.py", "architectural-boundaries.yml"),
+    ("scripts/audit_admin_emergency_surface_contract.py", "ci.yml"),
+    ("scripts/verify_django_admin_canvas_templates_compile.py", "ci.yml"),
     ("scripts/verify_template_reference_integrity.py", "ci.yml"),
     # Compile sibling of the two template gates above: a balanced-but-invalid
     # tag argument ({% trans 'a'b' %}) compiles-fail without being a missing

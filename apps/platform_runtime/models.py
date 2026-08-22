@@ -724,10 +724,52 @@ class RuntimeDefaults(models.Model):
         verbose_name = "Runtime defaults"
         verbose_name_plural = "Runtime defaults"
 
+    #: Bumped by save()/delete(). A memo captured under an older value is stale, so
+    #: an in-process write invalidates every memo without touching the database.
+    _rmc_cache_version: int = 0
+    #: (version, monotonic_deadline, instance)
+    _rmc_singleton_memo: "tuple[int, float, RuntimeDefaults | None] | None" = None
+
+    @classmethod
+    def _rmc_cache_seconds(cls) -> float:
+        from django.conf import settings
+
+        try:
+            return max(
+                0.0,
+                float(getattr(settings, "RUNTIME_DEFAULTS_SINGLETON_CACHE_SECONDS", 5.0)),
+            )
+        except (TypeError, ValueError):
+            return 5.0
+
+    @classmethod
+    def invalidate_singleton_cache(cls) -> None:
+        """Drop the memo. Called on every write; safe to call at any time."""
+        RuntimeDefaults._rmc_cache_version += 1
+        RuntimeDefaults._rmc_singleton_memo = None
+
     @classmethod
     def get_singleton(cls) -> "RuntimeDefaults | None":
+        """The platform runtime-defaults row, memoized for a few seconds.
+
+        Uncached, this was one query per missed attribute on SiteSettings: a single
+        tenant admin changelist measured 8,275 identical SELECTs against this table,
+        because `SiteSettings.__getattr__` consults it for every behavioural field
+        that Phase B moved off that table. The memo turns that into one.
+        """
+        import time
+
+        seconds = cls._rmc_cache_seconds()
+        memo = RuntimeDefaults._rmc_singleton_memo
+        if (
+            seconds
+            and memo is not None
+            and memo[0] == RuntimeDefaults._rmc_cache_version
+            and time.monotonic() < memo[1]
+        ):
+            return memo[2]
         try:
-            return cls.objects.filter(pk=1).first()
+            value = cls.objects.filter(pk=1).first()
         except DatabaseError:
             # Deploy/code can lead migrations (e.g. ai_mode on 0091); a missing column
             # must not 500 every authenticated request until migrate_schemas --shared runs.
@@ -735,7 +777,16 @@ class RuntimeDefaults(models.Model):
                 "RuntimeDefaults.get_singleton: database schema drift (run migrate_schemas --shared)",
                 exc_info=True,
             )
+            # Deliberately NOT memoized: caching a schema-drift failure would keep the
+            # platform degraded for the life of the process after migrations land.
             return None
+        if seconds:
+            RuntimeDefaults._rmc_singleton_memo = (
+                RuntimeDefaults._rmc_cache_version,
+                time.monotonic() + seconds,
+                value,
+            )
+        return value
 
     @classmethod
     def build_payload_from_site_settings(
@@ -831,8 +882,18 @@ class RuntimeDefaults(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
+        # Invalidate BEFORE the pk check: a row saved with any pk can still change
+        # what a subsequent read should see, and a stale memo is worse than a
+        # redundant miss.
+        RuntimeDefaults.invalidate_singleton_cache()
         if self.pk == 1:
             _invalidate_effective_site_settings_cache()
+
+    def delete(self, *args, **kwargs):
+        result = super().delete(*args, **kwargs)
+        RuntimeDefaults.invalidate_singleton_cache()
+        _invalidate_effective_site_settings_cache()
+        return result
 
 
 class PlatformPhaseBDomainSnapshot(models.Model):

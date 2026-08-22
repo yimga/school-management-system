@@ -34,6 +34,7 @@ BUILD_LOCK = json.loads(
 )
 EXPECTED_CACHE_BUST = BUILD_LOCK["cache_bust"]
 EXPECTED_SW = BUILD_LOCK["sw_version"]
+import admin_build_lock  # noqa: E402  (sibling helper; scripts/ is sys.path[0])
 
 REQUIRED_SEALS = (
     "2026-07-19-tools-no-span-explode",
@@ -281,9 +282,12 @@ def main() -> int:
     if "data-rmc-admin-html','unfold'" not in base_site and 'data-rmc-admin-html","unfold"' not in base_site:
         add("P0", ADMIN / "base_site.html", 0, "pre-paint data-rmc-admin-html=unfold missing")
 
-    sw = _read(ROOT / "static" / "js" / "service-worker.js")
-    if EXPECTED_SW not in sw:
-        add("P0", "static/js/service-worker.js", 0, f"SW must be {EXPECTED_SW}")
+    # MONOTONIC, not equal: CLAUDE.md's deploy checklist bumps CACHE_VERSION on
+    # every wave that ships CSS/JS, so an equality pin here reddens on every wave by
+    # construction -- which is why this gate went years without being wired.
+    _sw_ok, _sw_why = admin_build_lock.sw_at_least(EXPECTED_SW)
+    if not _sw_ok:
+        add("P0", "static/js/service-worker.js", 0, _sw_why)
 
     canvas = _read(ROOT / "static" / "css" / "rmc-admin-django-canvas-contract.css")
     for seal in REQUIRED_SEALS:

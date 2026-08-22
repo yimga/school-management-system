@@ -2,7 +2,68 @@
 
 **Last updated:** 2026-08-21
 
-## 2026-08-21 (latest) — The admin auto-fill engine was wired to 100% of the platform and the registry answered for 0.2% of it
+## 2026-08-21 (latest) — Closing the deferrals: an 8,944-query changelist, four gates that could never be wired, and two "hangs" that were not
+
+No SW bump: still no CSS and no JS. Follow-up to the entry below, closing every item
+it deferred. Full detail: [`docs/ADMIN_AUTOFILL_AUDIT_2026_08_21.md`](ADMIN_AUTOFILL_AUDIT_2026_08_21.md).
+
+**The biggest find was not in the admin at all.** `test_admin_model_outcomes.py` would
+not finish in nine minutes, which was read as a slow test. It was a slow product: one
+tenant admin changelist (`/admin/accounts/user/`) issued **8,944 queries, 8,275 of them
+the same SELECT** against `platform_runtime_runtimedefaults`, 8,118 arriving through
+`SiteSettings.__getattr__` — which consults RuntimeDefaults for every behavioural field
+Phase B moved off that table, while `owned_payload()` loops those fields, making it
+quadratic. One changelist cost ~53s of server time; the operator site was ~100x faster
+for the same work. `get_singleton()` is now memoized in-process and invalidated by BOTH
+a `save()`/`delete()` version counter and a short TTL, and a schema-drift `None` is
+deliberately never memoized. **8,944 → 1,286 queries; the module now passes in 567s.**
+
+**The four red gates shared one design fault.** Each asserted an EXACT service-worker
+version (three from `var/admin-approval-build-lock.json`, one from a private copy nine
+days staler) while the deploy checklist bumps `CACHE_VERSION` every wave — so they
+reddened by construction, which is exactly why nobody had wired them. Replaced with the
+invariant they were reaching for (**shipped SW >= approved build**) behind one shared
+reader, `scripts/admin_build_lock.py`. The approval lock itself was NOT edited: it
+records an approval, and rewriting it to make a gate green would assert one nobody gave.
+The missing v22 CSS seal was written where the v22 rules actually live, and the gate now
+searches the admin stylesheet family instead of one hardcoded file.
+
+**Two "hangs" were a measurement artifact.** `audit_admin_gravity.py` completes in 18-24s;
+the earlier 100s timeout hit a cold filesystem cache mid-triage.
+`verify_admin_manager_shell_aggressive.py` takes 454s because it is a bundle runner
+(fifteen subprocesses) and was red on the same pin. Both pass. All 16 admin gates are
+now wired, placed by cost so none is skipped — **76 required gates, 0 un-wired**.
+
+**A live 500 on `origin/main`, found by a test written for something else.** `School`'s
+primary key is a UUID, so `School.objects.filter(pk=<not-a-uuid>)` RAISES rather than
+matching nothing. `_request_school` passed the query string straight in, so
+`?school=anything-not-a-uuid` on any admin add form on either site was a 500. Guarded.
+
+**Operator side, revisited.** The earlier "structural, ~nil" verdict was two-thirds right.
+Django already carries the school across the Add link as
+`?_changelist_filters=school__id__exact=…` — the operator's own preceding input, not a
+guess — so reading it makes every tenant-state resolver work there, and a `school`
+resolver was added for the 34 operator models that require it. Plus an event-timestamp
+resolver for a tight allowlist of names meaning "when the recorded thing took place",
+each announcing itself in help text because it is a convention rather than derived state;
+future-facing names are excluded, since defaulting an expiry to now is wrong rather than
+unhelpful. **Operator required-and-empty 382 → 345 on the flow that actually happens.**
+Two measurement artifacts were corrected rather than banked as wins: `builder_hits` had
+counted `_changelist_filters` itself, and `resolver_reachable` had counted a tenant field
+policy excludes from the form.
+
+**`finance/tasks.py` fixed.** The invoice run resolved the academic year before resolving
+the school it was billing; the year selects the fee plans and the dedup billing period.
+School first now, passed to both resolvers, with two tests that fail against the old
+ordering.
+
+**Four `apps/automation` failures were fixtures behind the product, not defects.**
+`RequireMFAMiddleware` gates privileged users twice (no device → `/mfa/setup/`, device
+without a verified session → `/mfa/verify/`) and `force_login()` establishes neither; and
+one test named `..._when_school_bound` never bound its user — `User` has no `school`
+column, the binding is a `SchoolMembership` row. **132 passed, 0 failed** (was 4/128).
+
+## 2026-08-21 — The admin auto-fill engine was wired to 100% of the platform and the registry answered for 0.2% of it
 
 **No SW bump: this wave ships no CSS and no JS.** One template changed
 (`admin/includes/admin_field_visibility.html`) and it reuses the picker's existing

@@ -102,12 +102,20 @@
           {% if cmdk_kb_home_url %}{"label": "{% trans 'Knowledge base' %}", "url": "{{ cmdk_kb_home_url }}", "icon": "bi-book", "keywords": "docs guide articles runbooks"},{% endif %}
           {% url 'kb:kb_search' as cmdk_kb_search_url %}
           {% if request.public_host_kind == 'manager' and cmdk_kb_search_url %}{"label": "{% trans 'Search help (KB)' %}", "url": "{{ cmdk_kb_search_url }}?q=", "icon": "bi-search", "keywords": "search help faq articles"}{% endif %}
-          {% url 'manager_help_analytics' as cmdk_help_analytics_url %}
-          {% if request.public_host_kind == 'manager' and cmdk_help_analytics_url %},{"label": "{% trans 'Help analytics' %}", "url": "{{ cmdk_help_analytics_url }}", "icon": "bi-graph-up", "keywords": "deflection csat north star metrics export"}{% endif %}
-          {% url 'manager_ai_review_queue' as cmdk_ai_review_url %}
-          {% if request.public_host_kind == 'manager' and cmdk_ai_review_url %},{"label": "{% trans 'AI review queue' %}", "url": "{{ cmdk_ai_review_url }}", "icon": "bi-shield-check", "keywords": "hitl failed ai support review"}{% endif %}
-          {% url 'manager_kb_locale_families' as cmdk_locale_families_url %}
-          {% if request.public_host_kind == 'manager' and cmdk_locale_families_url %},{"label": "{% trans 'KB translation families' %}", "url": "{{ cmdk_locale_families_url }}", "icon": "bi-translate", "keywords": "locale translation kb i18n"}{% endif %}
+          {# The `manager_*` namespace is mounted only on config/manager_urls.py, and
+             base.html includes this palette on every authenticated request. Keep the
+             reverses themselves inside the host guard, not just their output: the
+             `as var` form cannot raise, but an operator reverse sitting in a
+             tenant-reachable template is what scan_tenant_template_operator_links
+             exists to catch, and the guard belongs around the reference. #}
+          {% if request.public_host_kind == 'manager' %}
+            {% url 'manager_help_analytics' as cmdk_help_analytics_url %}
+            {% if cmdk_help_analytics_url %},{"label": "{% trans 'Help analytics' %}", "url": "{{ cmdk_help_analytics_url }}", "icon": "bi-graph-up", "keywords": "deflection csat north star metrics export"}{% endif %}
+            {% url 'manager_ai_review_queue' as cmdk_ai_review_url %}
+            {% if cmdk_ai_review_url %},{"label": "{% trans 'AI review queue' %}", "url": "{{ cmdk_ai_review_url }}", "icon": "bi-shield-check", "keywords": "hitl failed ai support review"}{% endif %}
+            {% url 'manager_kb_locale_families' as cmdk_locale_families_url %}
+            {% if cmdk_locale_families_url %},{"label": "{% trans 'KB translation families' %}", "url": "{{ cmdk_locale_families_url }}", "icon": "bi-translate", "keywords": "locale translation kb i18n"}{% endif %}
+          {% endif %}
         {% endif %}
       ]
     },

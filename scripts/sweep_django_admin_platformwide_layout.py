@@ -23,8 +23,15 @@ ADMIN_TPL = ROOT / "templates" / "admin"
 REPORT = ROOT / "var" / "admin-surface-platformwide-sweep.json"
 
 # Bump together with base_site ?v= and SW CACHE_VERSION on each layout wave.
-EXPECTED_CACHE_BUST = "20260811-experience-runtime-v172"
-EXPECTED_SW = "sms-v4.06.34-experience-runtime-2026-08-11"
+import admin_build_lock  # noqa: E402  (sibling helper; scripts/ is sys.path[0])
+
+# Read the approval lock rather than keeping a private copy of it. These two were
+# hardcoded and had drifted NINE DAYS behind the lock -- the sweep was asserting a
+# cache-bust string that base_site.html had already superseded, and nobody could see
+# the two disagreeing because neither this gate nor the lock's reader was running.
+_BUILD_LOCK = admin_build_lock.load()
+EXPECTED_CACHE_BUST = _BUILD_LOCK["cache_bust"]
+EXPECTED_SW = _BUILD_LOCK["sw_version"]
 
 
 def _read(path: Path) -> str:
@@ -174,8 +181,10 @@ def main() -> int:
         add("P0", ADMIN_TPL / "base_site.html", 0, "pre-paint data-rmc-admin-html=unfold missing")
 
     sw = _read(ROOT / "static" / "js" / "service-worker.js")
-    if EXPECTED_SW not in sw:
-        add("P0", ROOT / "static" / "js" / "service-worker.js", 0, f"SW must be {EXPECTED_SW}")
+    # Monotonic: see admin_build_lock.sw_at_least.
+    _sw_ok, _sw_why = admin_build_lock.sw_at_least(EXPECTED_SW)
+    if not _sw_ok:
+        add("P0", ROOT / "static" / "js" / "service-worker.js", 0, _sw_why)
 
     canvas = _read(ROOT / "static" / "css" / "rmc-admin-django-canvas-contract.css")
     for seal in (

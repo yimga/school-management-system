@@ -57,6 +57,10 @@ jobs:
           python scripts/audit_admin_form_intelligence_contract.py
       - name: Ratchet admin auto-fill coverage (structural floor only)
         run: python scripts/audit_admin_autofill_coverage.py --compare var/admin-autofill-coverage-baseline.json --top 0
+      - name: admin-emergency-surface-contract
+        run: python scripts/audit_admin_emergency_surface_contract.py
+      - name: django-admin-canvas-templates-compile
+        run: python scripts/verify_django_admin_canvas_templates_compile.py
       - name: Verify grading-scale registry coverage
         run: python scripts/verify_grading_scale_registry_coverage.py --strict
       - name: Verify field-reference integrity
