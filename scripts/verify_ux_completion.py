@@ -267,17 +267,41 @@ def audit_template_markers(failures: list[str]) -> None:
         ],
         "templates/marketplace/app_catalog.html": [
             "Install with trust, not guesswork.",
-            "Sandbox-first rollout available for every install from this page.",
+            # Repointed from the raw, UNTRANSLATED per-card line
+            # "Sandbox-first rollout available for every install from this page."
+            # that 9983d01d7 dropped when it extracted the card markup into
+            # marketplace/partials/app_catalog_card.html. The sandbox-first promise
+            # it carried is now made in three translated places ("3. Sandbox first",
+            # the line below, and the promotion line under it); this pins the
+            # load-bearing one. It went unnoticed because a SECOND
+            # "templates/marketplace/app_catalog.html" key further down this dict
+            # silently replaced this entry -- see scan_duplicate_dict_keys.py.
+            "Sandbox install keeps rollout deliberate instead of instantly live.",
             "Rollback and safety posture",
+            "data-phase9-listing-trust",
+            "data-listing-compatibility",
         ],
         "templates/marketplace/tenant_app_catalog.html": [
-            "Install with confidence.",
+            # Repointed from the marketing hero title "Install with confidence.",
+            # which 8b03d9307 replaced with the shared operational-center frame.
+            # The headline and purpose line now come from
+            # tenant_app_catalog_frame_context() in
+            # apps/platform_runtime/operational_center_nav.py, so pin the frame
+            # wiring that supplies them rather than a string the page no longer owns.
+            'os_center_key="tenant_app_catalog"',
             "Install to sandbox",
             "Rollback expectations",
             "data-phase9-ecosystem-hub",
             "Migration & interoperability hub",
             "data-phase9-listing-trust",
             "data-listing-compatibility",
+            # catalog-placeholder.svg moved to the card-partial entry below. This
+            # page's cards render a bi-box-seam glyph, not an <img>, so there is no
+            # broken-image surface left here to protect.
+        ],
+        # The placeholder contract lives here now (extracted by 9983d01d7): a
+        # listing with no preview still renders something instead of a broken image.
+        "templates/marketplace/partials/app_catalog_card.html": [
             "catalog-placeholder.svg",
         ],
         "templates/accounts/migration_wizard.html": [
@@ -286,11 +310,6 @@ def audit_template_markers(failures: list[str]) -> None:
             "Migration run history",
             "data-migration-source-detection",
             "data-migration-confidence",
-        ],
-        "templates/marketplace/app_catalog.html": [
-            "Install with trust, not guesswork.",
-            "data-phase9-listing-trust",
-            "data-listing-compatibility",
         ],
         "templates/accounts/district_lms_interop.html": [
             "data-phase9-interop-workbench",
@@ -338,9 +357,17 @@ def audit_template_markers(failures: list[str]) -> None:
             ".proof-hero",
             ".proof-card-grid",
         ],
+        # Repointed off a hard contradiction: this gate required two strings that
+        # apps/finance/tests/test_finance_dashboard_consolidation_2026_08_02.py
+        # ::test_duplicate_bands_removed_from_template forbids by exact string, so
+        # the gate and the test could not both pass. The 2026-08-02 consolidation
+        # merged the decision surface INTO the masthead (the removed band's metrics
+        # were a literal re-projection of the hero band). The sealing test is the
+        # authority; these pin the band that is the decision surface now, and match
+        # that test's own positive assertions.
         "templates/finance/dashboard.html": [
-            "decision_engine_surface.html",
-            "phase7_de",
+            'data-decision-engine="masthead"',
+            "components/rmc_page_masthead.html",
         ],
     }
 
