@@ -7,7 +7,11 @@ from typing import Any
 from django.db.models import Count
 
 from apps.platform_runtime.blueprint_audit import audit_blueprint_event
-from apps.platform_runtime.blueprint_composition import composition_findings
+from apps.platform_runtime.blueprint_composition import (
+    composition_findings,
+    effective_installed_blueprint_keys,
+    reconcile_blueprint_marketplace_markers,
+)
 from apps.platform_runtime.blueprint_contract import BlueprintContract, get_blueprint_or_raise
 from apps.platform_runtime.pack_preview import preview_pack
 
@@ -77,11 +81,9 @@ def _tenant_counts(school, blueprint_key: str = "") -> dict[str, int]:
         # blueprint was already applied to this tenant — including the UI that
         # has to choose between offering "Apply" and showing "Applied".
         "active_same_blueprint": (
-            rows.filter(
-                blueprint_key=blueprint_key,
-                status=BlueprintInstallation.Status.APPLIED,
-            ).count()
+            1
             if blueprint_key
+            and blueprint_key in effective_installed_blueprint_keys(school)
             else 0
         ),
     }
@@ -139,6 +141,8 @@ def preview_blueprint(
     emit_audit: bool = False,
 ) -> dict[str, Any]:
     blueprint = get_blueprint_or_raise(blueprint_key)
+    if school is not None:
+        reconcile_blueprint_marketplace_markers(school)
     conflicts: list[dict[str, str]] = []
     warnings: list[str] = []
     safety_notes: list[str] = []

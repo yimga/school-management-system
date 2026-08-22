@@ -33,21 +33,86 @@ BASE_ROLE = "base"
 
 CONFLICT_INCOMPATIBLE_BASE = "incompatible_base_blueprint"
 
+# Installations in these states still occupy the tenant's operating-model slot.
+_ACTIVE_INSTALL_STATUSES: frozenset[str] = frozenset(
+    {
+        "applied",
+        "partially_applied",
+    }
+)
 
-def installed_blueprint_keys(school) -> list[str]:
-    """Distinct blueprint keys currently APPLIED to this school."""
+
+def _installation_sort_key(row) -> tuple:
+    """Order installations newest-first within a blueprint_key."""
+    stamp = row.applied_at or row.created_at
+    return (stamp, row.pk)
+
+
+def _latest_installation_by_key(school) -> dict[str, object]:
+    """Most recent BlueprintInstallation row per blueprint_key for this school."""
     if school is None:
-        return []
+        return {}
     from apps.platform_runtime.models import BlueprintInstallation
 
-    return sorted(
-        set(
-            BlueprintInstallation.objects.filter(
-                school=school,
-                status=BlueprintInstallation.Status.APPLIED,
-            ).values_list("blueprint_key", flat=True)
-        )
+    latest: dict[str, BlueprintInstallation] = {}
+    rows = BlueprintInstallation.objects.filter(school=school).only(
+        "pk",
+        "blueprint_key",
+        "status",
+        "applied_at",
+        "created_at",
     )
+    for row in rows:
+        prev = latest.get(row.blueprint_key)
+        if prev is None or _installation_sort_key(row) > _installation_sort_key(prev):
+            latest[row.blueprint_key] = row
+    return latest
+
+
+def effective_installed_blueprint_keys(school) -> list[str]:
+    """Blueprint keys whose *latest* installation row is actively installed.
+
+    A tenant can accumulate multiple installation rows for the same blueprint_key
+    (version bumps use different idempotency keys). Rolling back only the newest
+    row must not leave an older ``applied`` row blocking the next base blueprint.
+    """
+    latest = _latest_installation_by_key(school)
+    return sorted(
+        key
+        for key, row in latest.items()
+        if row.status in _ACTIVE_INSTALL_STATUSES
+    )
+
+
+def installed_blueprint_keys(school) -> list[str]:
+    """Distinct blueprint keys currently installed on this school."""
+    return effective_installed_blueprint_keys(school)
+
+
+def reconcile_blueprint_marketplace_markers(school) -> list[str]:
+    """Drop stale ``school.settings`` blueprint markers with no live installation."""
+    if school is None:
+        return []
+    effective = set(effective_installed_blueprint_keys(school))
+    settings = dict(getattr(school, "settings", None) or {})
+    removed: list[str] = []
+    changed = False
+    for bucket in ("blueprint_marketplace", "local_first_blueprints"):
+        markers = dict(settings.get(bucket) or {})
+        for key in list(markers):
+            if key not in effective:
+                del markers[key]
+                removed.append(key)
+                changed = True
+        if markers:
+            settings[bucket] = markers
+        elif bucket in settings:
+            settings.pop(bucket, None)
+            changed = True
+    if changed:
+        school.settings = settings
+        school.save(update_fields=["settings"])
+    return removed
 
 
 def _declared_compatible(candidate, other) -> bool:

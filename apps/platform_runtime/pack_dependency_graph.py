@@ -4,9 +4,12 @@ from __future__ import annotations
 
 from typing import Any
 
-from apps.platform_runtime.blueprint_composition import composition_conflicts
+from apps.platform_runtime.blueprint_composition import (
+    composition_conflicts,
+    effective_installed_blueprint_keys,
+)
 from apps.platform_runtime.blueprint_contract import get_blueprint_or_raise
-from apps.platform_runtime.models import BlueprintInstallation, PackInstallation
+from apps.platform_runtime.models import PackInstallation
 from apps.platform_runtime.pack_contract import get_pack_or_raise
 
 
@@ -22,14 +25,7 @@ def _installed_pack_keys(school) -> set[str]:
 
 
 def _installed_blueprint_keys(school) -> set[str]:
-    if school is None:
-        return set()
-    return set(
-        BlueprintInstallation.objects.filter(
-            school=school,
-            status=BlueprintInstallation.Status.APPLIED,
-        ).values_list("blueprint_key", flat=True)
-    )
+    return set(effective_installed_blueprint_keys(school))
 
 
 def resolve_pack_dependencies(pack_key: str, *, pack_type: str | None = None, school=None) -> dict[str, Any]:

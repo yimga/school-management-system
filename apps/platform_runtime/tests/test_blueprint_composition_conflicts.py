@@ -137,6 +137,62 @@ class BlueprintCompositionConflictTests(TestCase):
 
         self.assertTrue(preview["can_apply"], msg=preview["conflicts"])
 
+    def test_rollback_supersedes_stale_sibling_applied_rows(self):
+        """A version-bump duplicate must not keep blocking after rollback."""
+        from apps.platform_runtime.blueprint_rollback import rollback_blueprint_installation
+        from apps.platform_runtime.models import BlueprintInstallation
+
+        first = self._apply("private-secondary-school")
+        BlueprintInstallation.objects.create(
+            school=self.school,
+            blueprint_key="private-secondary-school",
+            blueprint_version="9.9.9",
+            installed_version="9.9.9",
+            available_version="9.9.9",
+            status=BlueprintInstallation.Status.APPLIED,
+            applied_at=BlueprintInstallation.objects.get(pk=first["installation_id"]).applied_at,
+            idempotency_key="stale-sibling-secondary",
+            preview_snapshot={},
+            applied_changes=[],
+            rollback_snapshot={},
+        )
+        latest = (
+            BlueprintInstallation.objects.filter(
+                school=self.school, blueprint_key="private-secondary-school"
+            )
+            .order_by("-pk")
+            .first()
+        )
+        rollback_blueprint_installation(latest, actor=self.actor, confirmed=True)
+
+        preview = preview_blueprint("private-primary-school", school=self.school)
+        self.assertTrue(preview["can_apply"], msg=preview["conflicts"])
+        self.assertNotIn(
+            "incompatible_base_blueprint",
+            _conflict_codes(preview),
+        )
+
+    def test_orphan_settings_marker_does_not_block_after_rollback(self):
+        """Stale settings markers must not outlive the installation row."""
+        from apps.platform_runtime.blueprint_rollback import rollback_blueprint_installation
+        from apps.platform_runtime.models import BlueprintInstallation
+
+        applied = self._apply("private-secondary-school")
+        installation = BlueprintInstallation.objects.get(pk=applied["installation_id"])
+        rollback_blueprint_installation(installation, actor=self.actor, confirmed=True)
+        self.school.settings.setdefault("blueprint_marketplace", {})[
+            "private-secondary-school"
+        ] = {"version": "1.0.0", "applied_at": "2020-01-01T00:00:00+00:00"}
+        self.school.save(update_fields=["settings"])
+
+        preview = preview_blueprint("private-primary-school", school=self.school)
+        self.assertTrue(preview["can_apply"], msg=preview["conflicts"])
+        self.school.refresh_from_db()
+        self.assertNotIn(
+            "private-secondary-school",
+            (self.school.settings or {}).get("blueprint_marketplace", {}),
+        )
+
 
 class DependencyConflictMustFireTests(TestCase):
     """``detect_dependency_conflicts`` returned [] unconditionally. Prove it fires."""
