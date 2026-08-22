@@ -116,12 +116,38 @@ def redeem_join_code(*, code, email, password, first_name="", last_name="", scho
             .distinct()
             .first()
         )
-        if existing is not None and existing.has_usable_password():
+        if existing is not None:
+            # NEVER adopt a pre-existing account here. This used to admit any
+            # account whose password was unusable, on the reading that such a row
+            # is "unclaimed" -- but set_unusable_password() is how this codebase
+            # provisions EVERY federated and imported identity: OIDC
+            # (views_oidc.py:380), SAML (views_saml.py:334), SCIM
+            # (apps/api/scim_views.py:629), roster sync (apps/interop/roster_sync.py:158),
+            # the guardian and structure landers, and every self-serve provisioned
+            # owner (hence the recover_unactivated_owners command).
+            #
+            # A join code is a PUBLIC, deliberately shareable token -- there is a
+            # poster view for printing one. Anyone holding it could submit a
+            # federated user's address with a password of their choosing, and the
+            # code below would set that password on the VICTIM's row, flip
+            # is_active, attach a membership, and views_join.py would then
+            # authenticate() + login() the caller as them. Full takeover of every
+            # SSO/SCIM/roster account at the school, from a poster.
+            #
+            # Claiming a never-claimed account has its own path: the password
+            # reset confirm view, which apps/accounts/password_reset.py
+            # deliberately admits for exactly this population ("A never-claimed
+            # account has no password to protect and the reset-confirm view is its
+            # intended claim path").
+            #
+            # One message for both cases on purpose: splitting it would turn this
+            # endpoint into an oracle for which addresses are federated.
             raise JoinCodeError(
-                "An account with this email already exists — please sign in instead."
+                "An account with this email already exists — please sign in, or "
+                "use \"Forgot password\" to claim it."
             )
 
-        user = existing or User(username=email, email=email, role=join_code.role)
+        user = User(username=email, email=email, role=join_code.role)
         if first_name:
             user.first_name = first_name.strip()
         if last_name:

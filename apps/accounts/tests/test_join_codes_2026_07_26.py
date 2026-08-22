@@ -118,3 +118,93 @@ class JoinCodeRedemptionTests(TestCase):
     def test_wrong_code_rejected(self):
         with self.assertRaises(JoinCodeError):
             redeem_join_code(code="NOTACODE", email="f@ex.com", password="ChosenPw123", school=self.school)
+
+
+class JoinCodeNeverAdoptsExistingAccountTests(TestCase):
+    """A join code must never take over an account that already exists.
+
+    Redemption used to block an existing account only when
+    ``has_usable_password()`` was True. But ``set_unusable_password()`` is how
+    this codebase provisions every federated and imported identity -- OIDC, SAML,
+    SCIM, roster sync, the migration landers, and self-serve provisioned owners --
+    so every one of those was adoptable by anyone holding the code. Join codes are
+    public and deliberately shareable (there is a poster view), and
+    ``views_join.join_school`` calls ``login()`` on the result, so the caller
+    landed signed in AS the victim.
+
+    ``test_existing_active_account_blocked`` above covers only the usable-password
+    case, which is why this went unnoticed.
+    """
+
+    def setUp(self):
+        self.school = School.objects.create(
+            name="Gilead Tech", slug="gilead-tech", subdomain="gilead-tech", is_active=True
+        )
+
+    def _federated_user(self, email="teacher@school.edu"):
+        """A user shaped exactly like the OIDC/SAML/SCIM provisioning paths."""
+        user = User.objects.create(username=email, email=email, role="TEACHER")
+        user.set_unusable_password()
+        user.save()
+        return user
+
+    def test_unusable_password_account_is_not_adopted(self):
+        victim = self._federated_user()
+        jc = generate_join_code(school=self.school, role="TEACHER")
+        with self.assertRaises(JoinCodeError):
+            redeem_join_code(
+                code=jc.code,
+                email="teacher@school.edu",
+                password="AttackerChosen123",
+                school=self.school,
+            )
+        victim.refresh_from_db()
+        # The attacker's password must NOT have been written to the victim's row.
+        self.assertFalse(victim.has_usable_password())
+        self.assertIsNone(
+            authenticate(username="teacher@school.edu", password="AttackerChosen123")
+        )
+
+    def test_refused_redemption_creates_no_membership_and_burns_no_use(self):
+        self._federated_user("staff@school.edu")
+        jc = generate_join_code(school=self.school, role="TEACHER")
+        with self.assertRaises(JoinCodeError):
+            redeem_join_code(
+                code=jc.code,
+                email="staff@school.edu",
+                password="AttackerChosen123",
+                school=self.school,
+            )
+        self.assertFalse(
+            SchoolMembership.objects.filter(
+                user__email="staff@school.edu", school=self.school
+            ).exists()
+        )
+        jc.refresh_from_db()
+        self.assertEqual(jc.uses_count, 0)
+
+    def test_case_insensitive_email_cannot_slip_past(self):
+        self._federated_user("mixed@school.edu")
+        jc = generate_join_code(school=self.school, role="TEACHER")
+        with self.assertRaises(JoinCodeError):
+            redeem_join_code(
+                code=jc.code,
+                email="MiXeD@School.EDU",
+                password="AttackerChosen123",
+                school=self.school,
+            )
+
+    def test_a_genuinely_new_email_still_works(self):
+        # The fix must not break the feature it guards.
+        jc = generate_join_code(school=self.school, role="TEACHER")
+        user = redeem_join_code(
+            code=jc.code,
+            email="brandnew@school.edu",
+            password="ChosenPw123",
+            school=self.school,
+        )
+        self.assertEqual(user.email, "brandnew@school.edu")
+        self.assertTrue(user.has_usable_password())
+        self.assertTrue(
+            SchoolMembership.objects.filter(user=user, school=self.school).exists()
+        )

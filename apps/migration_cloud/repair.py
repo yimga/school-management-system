@@ -87,7 +87,21 @@ def _resolved_domains(bundle: MigrationBundle) -> set[str]:
     per_artifact_domain = (getattr(bundle, "discovery_summary", None) or {}).get(
         "per_artifact_domain"
     ) or {}
-    for artifact in bundle.artifacts.all():
+    for _path, entry in per_artifact_domain.items():
+        if entry.get("domain"):
+            domains.add(entry["domain"])
+    if not getattr(bundle, "pk", None):
+        return domains
+    try:
+        artifacts = bundle.artifacts.all()
+    except Exception:  # noqa: BLE001 — unpersisted bundle / SimpleTestCase fakes
+        logger.debug(
+            "repair: artifact domain walk skipped for bundle %s",
+            getattr(bundle, "pk", None),
+            exc_info=True,
+        )
+        return domains
+    for artifact in artifacts:
         entry = per_artifact_domain.get(artifact.path_within_bundle) or {}
         if entry.get("domain"):
             domains.add(entry["domain"])
@@ -162,6 +176,14 @@ def _has_unresolved_issues(bundle: MigrationBundle) -> bool:
     return _unresolved_issue_count(bundle) > 0
 
 
+def prior_apply_evidence(bundle: MigrationBundle) -> bool:
+    """True when this bundle has already run at least one live apply."""
+    totals = (getattr(bundle, "mapping_summary", None) or {}).get("apply_totals") or {}
+    if str(totals.get("applied_at") or "").strip():
+        return True
+    return any(int(totals.get(k) or 0) for k in ("created", "updated", "quarantined"))
+
+
 def _financial_guardrail_locked(bundle: MigrationBundle) -> bool:
     return bool((bundle.size_summary or {}).get("financial_guardrail_failed"))
 
@@ -184,7 +206,14 @@ def _not_repairable_reason(status: str) -> str:
 # repair_readiness refused APPLYING forever ("still running") and re-apply requires
 # MAPPED, so the import was unrecoverable without DB surgery. Reclaim it only when
 # NO apply is actually in flight AND it has been APPLYING past this threshold.
-_APPLYING_STALE_SECONDS = 30 * 60  # generous — longer than a real large apply's quiet gaps
+# Legacy test alias — maximum wedged-apply reclaim window (see apply_stall.py).
+_APPLYING_STALE_SECONDS = 30 * 60
+
+
+def _applying_stale_threshold_seconds(bundle: MigrationBundle) -> float:
+    from .apply_stall import resolve_applying_stale_seconds
+
+    return resolve_applying_stale_seconds(bundle)
 
 
 def _apply_in_flight(bundle: MigrationBundle) -> bool:
@@ -222,7 +251,7 @@ def applying_stale_by_time(bundle: MigrationBundle) -> bool:
     """
     if bundle.status != BundleStatus.APPLYING:
         return False
-    return _seconds_since_apply_signal(bundle) > _APPLYING_STALE_SECONDS
+    return _seconds_since_apply_signal(bundle) > _applying_stale_threshold_seconds(bundle)
 
 
 def _seconds_since_apply_signal(bundle: MigrationBundle) -> float:
@@ -280,16 +309,26 @@ def _apply_rows(bundle: MigrationBundle):
     """Open (PENDING / PROCESSING) apply outbox rows for this bundle, newest first."""
     from apps.platform_runtime.models_heavy_work_outbox import HeavyWorkOutbox
 
-    return list(
-        HeavyWorkOutbox.objects.filter(  # tenant-isolation-allow: bundle_id is the globally-unique shared MigrationBundle pk; the bundle is already tenant-scoped by the caller
-            bundle_id=bundle.pk,
-            kind=HeavyWorkOutbox.Kind.MC_APPLY_BUNDLE,
-            status__in=(
-                HeavyWorkOutbox.Status.PENDING,
-                HeavyWorkOutbox.Status.PROCESSING,
-            ),
-        ).order_by("-created_at")
-    )
+    if not getattr(bundle, "pk", None):
+        return []
+    try:
+        return list(
+            HeavyWorkOutbox.objects.filter(  # tenant-isolation-allow: bundle_id is the globally-unique shared MigrationBundle pk; the bundle is already tenant-scoped by the caller
+                bundle_id=bundle.pk,
+                kind=HeavyWorkOutbox.Kind.MC_APPLY_BUNDLE,
+                status__in=(
+                    HeavyWorkOutbox.Status.PENDING,
+                    HeavyWorkOutbox.Status.PROCESSING,
+                ),
+            ).order_by("-created_at")
+        )
+    except Exception:  # noqa: BLE001 — SimpleTestCase / offline callers use in-memory fakes
+        logger.debug(
+            "repair: apply outbox lookup unavailable for bundle %s",
+            getattr(bundle, "pk", None),
+            exc_info=True,
+        )
+        return []
 
 
 def _row_is_wedged(bundle: MigrationBundle, row) -> bool:
@@ -308,7 +347,7 @@ def _row_is_wedged(bundle: MigrationBundle, row) -> bool:
         if created is None:
             return False
         return (now - created).total_seconds() > _QUEUED_APPLY_STUCK_SECONDS
-    return _seconds_since_apply_signal(bundle) > _APPLYING_STALE_SECONDS
+    return _seconds_since_apply_signal(bundle) > _applying_stale_threshold_seconds(bundle)
 
 
 def live_apply_in_flight(bundle: MigrationBundle) -> bool:
@@ -483,6 +522,19 @@ def repair_readiness(bundle: MigrationBundle) -> RepairReadiness:
             "The repair you started was never picked up by the importer. Retrying "
             "is safe: records that already imported are updated in place, never "
             "duplicated, and the rest get another attempt."
+        )
+    elif (
+        status == BundleStatus.MAPPED
+        and tenant_apply_stuck(bundle)
+        and (prior_apply_evidence(bundle) or _has_unresolved_issues(bundle))
+    ):
+        # Operator reclaim or a crashed repair left the bundle at MAPPED while a
+        # wedged outbox row still pins the UI at "Running". Retire the row (via
+        # supersede_wedged_apply / --force-reclaim) then re-queue repair.
+        reason = (
+            "This import partially ran and the background job wedged. Retrying "
+            "is safe: records that already imported are updated in place, never "
+            "duplicated, and held rows can be cleared or re-attempted."
         )
     elif status == BundleStatus.APPLYING and (
         _applying_is_stale(bundle) or tenant_apply_stuck(bundle)

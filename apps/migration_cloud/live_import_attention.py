@@ -204,9 +204,28 @@ def _schema_drift_remediator(bundle: Any) -> dict[str, Any] | None:
 
 
 def _repair_blocker_remediator(bundle: Any) -> dict[str, Any] | None:
-    from .repair import repair_readiness
+    from .repair import _financial_guardrail_locked, repair_readiness
 
-    readiness = repair_readiness(bundle)
+    if _financial_guardrail_locked(bundle):
+        return {
+            "title": _("Issue Remediator — Financial totals must match"),
+            "steps": [
+                _(
+                    "This import stopped on a financial control-total check. Repair "
+                    "cannot bypass it — reconcile the expected money totals first, "
+                    "then re-import."
+                )
+            ],
+            "action_label": _("Review finance totals"),
+            "show_repair": False,
+            "kind": "financial_guardrail",
+        }
+    if not getattr(bundle, "pk", None):
+        return None
+    try:
+        readiness = repair_readiness(bundle)
+    except Exception:  # noqa: BLE001 — SimpleTestCase fakes / unpersisted bundles
+        return None
     if readiness.repairable:
         return None
     blockers = set(readiness.blockers or [])
@@ -266,7 +285,7 @@ def remediator_for(
     if blocker is not None and not flight.get("stuck") and status != BundleStatus.FAILED:
         return blocker
     if flight.get("stuck"):
-        return {
+        payload = {
             "title": _("Issue Remediator — Import stopped responding"),
             "steps": [
                 _(
@@ -279,6 +298,16 @@ def remediator_for(
             "show_repair": True,
             "kind": "stuck",
         }
+        if issues > 0:
+            held_step = ngettext(
+                "1 record is still held for review from the last attempt.",
+                "%(count)s records are still held for review from the last attempt.",
+                issues,
+            ) % {"count": issues}
+            payload["steps"].append(held_step)
+            payload["held_review"] = True
+            payload["show_clear_queue"] = True
+        return payload
     if status == BundleStatus.FAILED:
         err = str((getattr(bundle, "size_summary", None) or {}).get("error") or "").strip()
         step = err or _("The last import failed part-way. Repair re-attempts the failed records only.")
@@ -406,7 +435,8 @@ def compose_live_import(
             pct = pipeline_pct
     if in_flight:
         pct = min(max(pct, pipeline_pct), 99.0)
-    remediator = remediator_for(bundle, issues=0 if in_flight else issues, flight=flight)
+    remediator_issues = issues if (not in_flight or flight.get("stuck")) else 0
+    remediator = remediator_for(bundle, issues=remediator_issues, flight=flight)
     created = int((last or {}).get("created") or 0)
     updated = int((last or {}).get("updated") or 0)
     held = int((last or {}).get("held") or 0) if in_flight else issues

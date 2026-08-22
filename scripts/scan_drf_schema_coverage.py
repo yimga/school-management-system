@@ -86,11 +86,45 @@ def _is_drf_view(class_def: ast.ClassDef) -> bool:
     return False
 
 
+HTTP_HANDLERS = frozenset(
+    {"get", "post", "put", "patch", "delete", "head", "options", "trace"}
+)
+
+
+def _has_http_handler(class_def: ast.ClassDef) -> bool:
+    """True when the class actually serves a request.
+
+    A shared base such as sync_files_api._EdgeFileView carries only helpers and is
+    never routed; drf-spectacular generates nothing for it, so demanding a schema
+    on it is a finding about a thing that has no endpoint to document.
+    """
+    for item in class_def.body:
+        if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            if item.name in HTTP_HANDLERS:
+                return True
+    return False
+
+
 def _has_schema_decorator(class_def: ast.ClassDef) -> bool:
+    """Accept the decorator on the CLASS or on any HTTP handler inside it.
+
+    Decorating the method is the ordinary drf-spectacular way to document a single
+    handler on an APIView, and spectacular emits the operation either way. Checking
+    only class_def.decorator_list reported four correctly-documented views as
+    undocumented -- pairing start/poll and the sync bundle receipt all carry
+    @extend_schema on their handler.
+    """
     for deco in class_def.decorator_list:
         name = _decorator_name(deco)
         if name and name in SCHEMA_DECORATORS:
             return True
+    for item in class_def.body:
+        if not isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            continue
+        for deco in item.decorator_list:
+            name = _decorator_name(deco)
+            if name and name in SCHEMA_DECORATORS:
+                return True
     return False
 
 
@@ -117,6 +151,8 @@ def _scan() -> list[dict[str, str | int]]:
             if not isinstance(node, ast.ClassDef):
                 continue
             if not _is_drf_view(node):
+                continue
+            if not _has_http_handler(node):
                 continue
             if _has_schema_decorator(node):
                 continue

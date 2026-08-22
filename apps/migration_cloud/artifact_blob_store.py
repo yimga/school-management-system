@@ -358,14 +358,66 @@ def delete_blobs_for_bundle(bundle: Any) -> int:
     No-op when delete-on-reconcile is disabled. Artifact metadata is untouched —
     only the raw bytes go.
     """
-    if not delete_on_reconcile_enabled():
+    return purge_source_blobs_for_bundle(bundle, respect_setting=True)
+
+
+def source_blob_count(bundle: Any) -> int:
+    """Count captured source blobs still stored for a bundle."""
+    bundle_id = getattr(bundle, "pk", None)
+    if not bundle_id:
+        return 0
+    try:
+        from .models import MigrationArtifactBlob
+
+        return MigrationArtifactBlob.objects.filter(artifact__bundle_id=bundle_id).count()
+    except Exception:  # noqa: BLE001
+        logger.debug("artifact_blob: source_blob_count failed", exc_info=True)
+        return 0
+
+
+def bundle_source_archived(bundle: Any) -> bool:
+    """True when source bytes were dropped (auto on reconcile or manual archive)."""
+    summary = getattr(bundle, "size_summary", None) or {}
+    if summary.get("source_archived_at"):
+        return True
+    return source_blob_count(bundle) == 0 and bool(summary.get("reconciled_at"))
+
+
+def purge_source_blobs_for_bundle(bundle: Any, *, respect_setting: bool = True) -> int:
+    """Delete encrypted source blobs for every artifact on the bundle."""
+    if respect_setting and not delete_on_reconcile_enabled():
+        return 0
+    bundle_id = getattr(bundle, "pk", None)
+    if not bundle_id:
+        return 0
+    try:
+        from .models import MigrationArtifactBlob
+    except Exception:  # noqa: BLE001
         return 0
     # tenant-isolation-allow: bundle-scoped-cascade-via-artifact-fk-drop-source-bytes-on-reconcile
-    qs = MigrationArtifactBlob.objects.filter(artifact__bundle_id=getattr(bundle, "pk", None))
+    qs = MigrationArtifactBlob.objects.filter(artifact__bundle_id=bundle_id)
     deleted, _detail = qs.delete()
     if deleted:
         logger.info(
-            "migration_cloud.artifact_blob: dropped source blobs on reconcile",
-            extra={"bundle_id": getattr(bundle, "pk", None), "deleted": int(deleted)},
+            "migration_cloud.artifact_blob: dropped source blobs",
+            extra={"bundle_id": bundle_id, "deleted": int(deleted)},
         )
     return int(deleted)
+
+
+def archive_bundle_source_files(bundle: Any, *, actor_id: int | None = None) -> dict[str, Any]:
+    """Operator/tenant manual archive — drop source bytes and stamp metadata."""
+    from django.utils import timezone as tz
+
+    summary = dict(getattr(bundle, "size_summary", None) or {})
+    if summary.get("source_archived_at") and source_blob_count(bundle) == 0:
+        return {"ok": True, "deleted": 0, "already_archived": True}
+
+    deleted = purge_source_blobs_for_bundle(bundle, respect_setting=False)
+    summary["source_archived_at"] = tz.now().isoformat()
+    if actor_id is not None:
+        summary["source_archived_by"] = actor_id
+    summary["source_blobs_deleted"] = int(deleted)
+    bundle.size_summary = summary
+    bundle.save(update_fields=["size_summary", "updated_at"])
+    return {"ok": True, "deleted": int(deleted), "already_archived": False}

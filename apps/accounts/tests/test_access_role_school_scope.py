@@ -4,12 +4,14 @@ from __future__ import annotations
 
 import uuid
 
+from django.contrib.messages.storage.fallback import FallbackStorage
 from django.db import IntegrityError
-from django.test import TestCase
+from django.http import Http404
+from django.test import RequestFactory, TestCase, override_settings
 
 from apps.accounts.access_roles import role_applies_to_school, roles_queryset_for_school
 from apps.accounts.models import AccessRole, Permission, User
-from apps.schools.models import School
+from apps.schools.models import School, SchoolMembership
 
 
 class AccessRoleSchoolScopeTests(TestCase):
@@ -69,7 +71,24 @@ class AccessRoleSchoolScopeTests(TestCase):
             )
 
     def test_has_feature_permission_respects_school_scoped_role(self) -> None:
-        perm = Permission.objects.create(code="reports.view", name="View reports")
+        # This test was doubly broken and nothing reported it, because CI has
+        # started no job since 2026-08-15.
+        #
+        # 1. It used Permission.objects.create(code="reports.view"), but accounts
+        #    migration 0058_superadmin_full_permission_coverage already seeds that
+        #    code -- UNIQUE error on every properly-migrated database.
+        # 2. Once that was fixed it FAILED, because a signal attaches the GLOBAL
+        #    AccessRole matching User.role (here: the platform-wide "TEACHER"
+        #    template, school=None) to every user, and that template grants
+        #    reports.view. A global template applies at every school by design, so
+        #    has_feature_permission(..., school=school_b) was correctly True and
+        #    the assertion below was asserting the wrong thing.
+        #
+        # The intent -- a SCHOOL-SCOPED role must not confer its permission at a
+        # different school -- is right, so use a code no global template grants.
+        perm = Permission.objects.create(
+            code=f"scoped.only.{uuid.uuid4().hex[:8]}", name="Scoped-only permission"
+        )
         self.role_a.permissions.add(perm)
         user = User.objects.create_user(
             username=f"scoped-{uuid.uuid4().hex[:6]}",
@@ -78,5 +97,107 @@ class AccessRoleSchoolScopeTests(TestCase):
             role=User.Role.TEACHER,
         )
         user.roles.add(self.role_a)
-        self.assertTrue(user.has_feature_permission("reports.view", school=self.school_a))
-        self.assertFalse(user.has_feature_permission("reports.view", school=self.school_b))
+        self.assertTrue(user.has_feature_permission(perm.code, school=self.school_a))
+        self.assertFalse(user.has_feature_permission(perm.code, school=self.school_b))
+
+
+@override_settings(POLICY_PDP_ENFORCEMENT_MODE="off")
+class GlobalRoleTemplateIsNotEditableFromATenantTests(TestCase):
+    """A tenant admin must not be able to rewrite a PLATFORM-GLOBAL role template.
+
+    ``roles_queryset_for_school`` includes the global templates (school IS NULL)
+    on purpose -- they are assignable at every school, and every caller that
+    populates a choice field wants exactly that. The RBAC dashboard's
+    ``edit_role`` branch used the same queryset as its MUTATION target, and
+    ``EditRoleForm.role_id`` is a bare ``IntegerField`` in a ``HiddenInput`` --
+    a widget, not a control. So any tenant admin holding ``settings.manage``
+    could POST a global template's pk and rewrite the permission set of a row
+    every school on the platform inherits.
+
+    Uses RequestFactory and calls the view directly, matching
+    test_control_plane_boundaries.py: the tenant MFA middleware otherwise
+    redirects a privileged view to /mfa/setup/ and the assertion becomes vacuous.
+    """
+
+    def setUp(self) -> None:
+        self.factory = RequestFactory()
+        self.school = School.objects.create(
+            name="Tenant One",
+            slug=f"t1-{uuid.uuid4().hex[:10]}",
+            subdomain=f"t1-{uuid.uuid4().hex[:10]}",
+            is_active=True,
+        )
+        # Codes seeded by accounts migration 0058 (e.g. "reports.view") would
+        # collide on create(); use suite-unique codes so this class is independent
+        # of whatever the catalog already holds.
+        self.kept_code = f"kept.{uuid.uuid4().hex[:8]}"
+        self.injected_code = f"inject.{uuid.uuid4().hex[:8]}"
+        self.kept = Permission.objects.create(
+            code=self.kept_code, name="Kept permission"
+        )
+        self.injected = Permission.objects.create(
+            code=self.injected_code, name="Injected permission"
+        )
+        self.global_role = AccessRole.objects.create(
+            code="platform_template", name="Platform template", school=None
+        )
+        self.global_role.permissions.add(self.kept)
+        self.local_role = AccessRole.objects.create(
+            code="local_role", name="Local role", school=self.school
+        )
+        self.admin = User.objects.create_user(
+            username=f"ta-{uuid.uuid4().hex[:6]}",
+            email="ta@example.com",
+            password="testpass123",
+            role=User.Role.ADMIN,
+        )
+        SchoolMembership.objects.create(
+            user=self.admin,
+            school=self.school,
+            role=User.Role.ADMIN,
+            is_primary=True,
+        )
+
+    def _edit_role_post(self, role_id):
+        request = self.factory.post(
+            "/rbac/",
+            {
+                "form_type": "edit_role",
+                "role_id": str(role_id),
+                "description": "pwned",
+                "permissions": [str(self.injected.pk)],
+            },
+        )
+        request.user = self.admin
+        request.school = self.school
+        request.public_host_kind = "tenant"
+        # The view uses django.contrib.messages; RequestFactory has no middleware.
+        setattr(request, "session", {})
+        setattr(request, "_messages", FallbackStorage(request))
+        return request
+
+    def test_posting_a_global_template_id_does_not_mutate_it(self) -> None:
+        from apps.accounts.views import rbac_dashboard
+
+        with self.assertRaises(Http404):
+            rbac_dashboard(self._edit_role_post(self.global_role.pk))
+
+        self.global_role.refresh_from_db()
+        self.assertEqual(self.global_role.name, "Platform template")
+        self.assertNotEqual(self.global_role.description, "pwned")
+        codes = set(self.global_role.permissions.values_list("code", flat=True))
+        self.assertEqual(codes, {self.kept_code})
+        self.assertNotIn(self.injected_code, codes)
+
+    def test_the_tenants_own_role_is_still_editable(self) -> None:
+        # The fix must not break the feature it guards.
+        from apps.accounts.views import rbac_dashboard
+
+        rbac_dashboard(self._edit_role_post(self.local_role.pk))
+
+        self.local_role.refresh_from_db()
+        self.assertEqual(self.local_role.description, "pwned")
+        self.assertEqual(
+            set(self.local_role.permissions.values_list("code", flat=True)),
+            {self.injected_code},
+        )

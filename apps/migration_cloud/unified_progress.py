@@ -13,7 +13,7 @@ from __future__ import annotations
 import logging
 import threading
 import time
-from typing import Any
+from typing import Any, Callable
 
 from django.db.models import Sum
 
@@ -334,6 +334,7 @@ class ApplyProgressTracker:
         rows_expected: int | None = None,
         pulse_every_rows: int = 40,
         min_pulse_seconds: float = 0.45,
+        on_stall_heartbeat: Callable[[], None] | None = None,
     ) -> None:
         self.bundle = bundle
         self.bundle_id = int(bundle.pk)
@@ -341,11 +342,17 @@ class ApplyProgressTracker:
         self.rows_expected = max(int(rows_expected or 0) or expected_row_total(bundle), 1)
         self._pulse_every_rows = max(1, int(pulse_every_rows))
         self._min_pulse_seconds = max(0.1, float(min_pulse_seconds))
+        self.on_stall_heartbeat = on_stall_heartbeat
         self._rows_global = 0
         self._artifacts_done = 0
         self._last_pulse_at = 0.0
         self._running_totals = {"created": 0, "updated": 0, "quarantined": 0}
         self._lock = threading.Lock()
+
+    @property
+    def rows_global(self) -> int:
+        with self._lock:
+            return self._rows_global
 
     def wrap_rows(self, rows: Any, *, artifact_label: str) -> RowProgressIterator:
         return RowProgressIterator(rows, tracker=self, artifact_label=artifact_label)
@@ -365,6 +372,20 @@ class ApplyProgressTracker:
                 message=f"Importing {label} — row {rows_in_artifact:,} "
                 f"({rows_global:,}/{self.rows_expected:,} total)",
                 wave=-1,
+            )
+            self._maybe_stall_heartbeat()
+
+    def _maybe_stall_heartbeat(self) -> None:
+        hook = self.on_stall_heartbeat
+        if hook is None:
+            return
+        try:
+            hook()
+        except Exception:  # noqa: BLE001 — stall hook must never break apply
+            logger.debug(
+                "unified_progress: stall heartbeat failed bundle=%s",
+                self.bundle_id,
+                exc_info=True,
             )
 
     def absorb_outcomes(self, outcomes: list[Any]) -> None:

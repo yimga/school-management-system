@@ -387,6 +387,18 @@
   border: 1px solid var(--hairline, rgba(0, 0, 0, 0.08));
   color: var(--text-primary);
 }
+
+.rmc-alert--warn {
+  background: var(--status-warning-bg, color-mix(in srgb, var(--status-warning, #f59e0b) 8%, transparent));
+  border-color: var(--status-warning, #f59e0b);
+  color: var(--status-warning-fg, var(--status-warning, #92400e));
+}
+
+.rmc-alert--info {
+  background: var(--status-info-bg, color-mix(in srgb, var(--status-info, #2563eb) 8%, transparent));
+  border-color: var(--status-info, #2563eb);
+  color: var(--status-info-fg, var(--status-info, #1d4ed8));
+}
 .rmc-integration-mark {
   inline-size: 40px;
   block-size: 40px;
@@ -3105,6 +3117,11 @@ body:has([data-rmc-flow-launchpad]) .rmc-page__header::after {
 .rmc-card--danger {
   background: var(--status-danger-bg, color-mix(in srgb, var(--status-danger, var(--text-danger, #ef4444)) 8%, transparent));
   border-color: var(--status-danger, var(--text-danger, #ef4444));
+}
+
+.rmc-card--attention {
+  background: var(--status-warning-bg, color-mix(in srgb, var(--status-warning, #f59e0b) 8%, transparent));
+  border-color: var(--status-warning, #f59e0b);
 }
 
 /* Base row for a short, scannable list inside a command panel — the pairing

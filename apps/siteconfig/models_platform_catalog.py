@@ -607,10 +607,38 @@ class Plan(models.Model):
                 condition=models.Q(is_default=True),
                 name="plan_unique_default",
             ),
+            # ...and that default must stay ACTIVE. get_default_plan() filters on
+            # is_default AND is_active, so an inactive default resolves to None,
+            # which apps/schools/plan_gating.py cannot distinguish from "no
+            # catalog" -- see the fail-open branch there. Keep the two flags
+            # consistent in the database so no code path can observe that state.
+            models.CheckConstraint(
+                condition=models.Q(is_default=False) | models.Q(is_active=True),
+                name="plan_default_must_be_active",
+            ),
         ]
 
     def __str__(self):
         return self.name
+
+    def clean(self):
+        """Readable twin of the ``plan_default_must_be_active`` constraint.
+
+        The constraint is the real guarantee; this exists so an operator editing
+        the plan in a form gets a sentence instead of an IntegrityError.
+        """
+        from django.core.exceptions import ValidationError
+
+        super().clean()
+        if self.is_default and not self.is_active:
+            raise ValidationError(
+                {
+                    "is_active": (
+                        "The platform default plan must stay active. Mark another "
+                        "active plan as the default first, then deactivate this one."
+                    )
+                }
+            )
 
     def save(self, *args, **kwargs):
         # Keep the single-default invariant DWIM: marking this plan as the

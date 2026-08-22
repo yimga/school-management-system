@@ -8,6 +8,7 @@ operational workflow tools are un-buried out of the "Admin Panel" config zone.
 
 from django.contrib.auth import get_user_model
 from django.test import RequestFactory, SimpleTestCase, TestCase
+from django.urls import reverse
 
 from apps.platform_runtime.helpers import get_platform_site_settings_record
 from apps.siteconfig.portal_sidebar_items import (
@@ -132,6 +133,29 @@ class PortalSidebarSplitIntegrationTests(TestCase):
                 # section (refined out of the old monolithic "Admin Panel").
                 self.assertEqual(by_id[cid]["section"], "Access & Roles", msg=cid)
                 self.assertEqual(by_id[cid]["surface"], "config", msg=cid)
+
+    def test_named_sidebar_urls_resolve_to_intended_destinations(self):
+        """Sidebar rows must deep-link to their named routes — never fall back to Studio shell."""
+        by_id = self._by_id(self._items())
+        self.assertIn("rbac", by_id)
+        self.assertEqual(by_id["rbac"]["url"], reverse("accounts:rbac"))
+        self.assertNotEqual(by_id["rbac"]["url"], reverse("studio_os:shell"))
+        for item_id, url_name in (
+            ("feature_control", "siteconfig:feature_control_panel"),
+            ("feature_control_audit", "siteconfig:feature_control_audit"),
+            ("message_groups", "communication:group_list"),
+            ("approval_hub", "studio_os:approval_hub"),
+            ("import_hub", "studio_os:import_hub"),
+        ):
+            if item_id in by_id:
+                self.assertEqual(by_id[item_id]["url"], reverse(url_name), msg=item_id)
+        if "report_library" in by_id:
+            output_url = reverse("studio_os:output")
+            self.assertTrue(
+                by_id["report_library"]["url"].startswith(output_url),
+                msg=by_id["report_library"]["url"],
+            )
+            self.assertIn("pane=reports", by_id["report_library"]["url"])
 
     def test_people_access_keeps_only_rosters(self):
         """People & Access (ops) must not retain access-config items after the move."""

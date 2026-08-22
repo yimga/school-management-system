@@ -6,11 +6,20 @@
 
 {% include "components/next_action_strip.html" %}
 
-<ul class="list-group">
-  {% for item in quarantine_items %}
-  <li class="list-group-item"><strong>{{ item.issue_code }}</strong> — {{ item.issue_message }}</li>
-  {% empty %}
-  <li class="list-group-item text-muted">{% trans "No quarantine items." %}</li>
-  {% endfor %}
-</ul>
+<section class="rmc-card mb-4">
+  <h2 class="h5">{% trans "Staging quarantine (read-only)" %}</h2>
+  <p class="text-muted small">
+    {% trans "These items were flagged while reading your upload. For row-level held records after import, use the full review queue on your bundle." %}
+  </p>
+  {% if bundle_review_url %}
+  <a class="btn btn-primary btn-sm mb-3" href="{{ bundle_review_url }}">{% trans "Open import review" %}</a>
+  {% endif %}
+  <ul class="list-group">
+    {% for item in quarantine_items %}
+    <li class="list-group-item"><strong>{{ item.issue_code }}</strong> — {{ item.issue_message }}</li>
+    {% empty %}
+    <li class="list-group-item text-muted">{% trans "No staging quarantine items." %}</li>
+    {% endfor %}
+  </ul>
+</section>
 {% endblock %}

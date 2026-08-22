@@ -49,6 +49,11 @@ urlpatterns = [
         name="bundle-progress",
     ),
     path(
+        "bundle/<int:bundle_id>/progress/stream/",
+        views_tenant_upload.TenantMigrationProgressStreamView.as_view(),
+        name="bundle-progress-stream",
+    ),
+    path(
         "bundle/<int:bundle_id>/retry/",
         views_tenant_upload.TenantMigrationRetryAdvanceView.as_view(),
         name="bundle-retry",
@@ -79,6 +84,16 @@ urlpatterns = [
         "bundle/<int:bundle_id>/quarantine/",
         views_tenant_upload.TenantMigrationQuarantineResolveView.as_view(),
         name="bundle-quarantine-resolve",
+    ),
+    path(
+        "bundle/<int:bundle_id>/ai-explain/",
+        views_tenant_upload.TenantMigrationAIExplainView.as_view(),
+        name="bundle-ai-explain",
+    ),
+    path(
+        "bundle/<int:bundle_id>/archive-source/",
+        views_tenant_upload.TenantMigrationArchiveSourceView.as_view(),
+        name="bundle-archive-source",
     ),
     path(
         "bundle/<int:bundle_id>/abandon/",

@@ -769,6 +769,13 @@ def row_marks_deletion(row: Any) -> bool:
     return any(key in row and is_tombstone_status(row.get(key)) for key in _DELETE_MARKER_KEYS)
 
 
+def maybe_stall_pulse(*, every: int = 1, counter: int = 0) -> None:
+    """Pulse the apply stall watchdog during long lander loops."""
+    from apps.migration_cloud.apply_stall import maybe_stall_pulse as _pulse
+
+    _pulse(every=every, counter=counter)
+
+
 def record_row_error(
     result,
     row: Any,

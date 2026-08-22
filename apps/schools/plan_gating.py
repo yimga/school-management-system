@@ -115,11 +115,32 @@ def _compute_plan_gated_codes() -> frozenset[str]:
         return frozenset()
     try:
         default = Plan.get_default_plan()
-        default_features = (
-            {_normalize(f) for f in (default.included_features or []) if f}
-            if default is not None
-            else set()
-        )
+        if default is None:
+            # No ACTIVE default plan. Substituting an empty default_features set
+            # here (what this did before) classifies EVERY feature of EVERY active
+            # plan as plan-gated, so with the flag ON the ceiling denies every
+            # capability a school reaches through the union -- a catalog
+            # misconfiguration turning into a platform-wide lockout. Fail OPEN
+            # instead: gate nothing, and say so loudly. The ceiling is a revenue
+            # control; it must never be the cause of an outage.
+            #
+            # Two real routes into this state:
+            #   1. Plans seeded AFTER siteconfig migration 0200 ran -- its seeder
+            #      is ``if candidate is not None`` and marks no default on an
+            #      empty table, and nothing sets one later except an operator;
+            #   2. an operator deactivating the plan that carries is_default --
+            #      ``plan_unique_default`` enforces at most ONE default, not that
+            #      an ACTIVE one exists, while get_default_plan() filters on both.
+            # Migration siteconfig.0211 closes route 2 with a check constraint;
+            # this branch still guards route 1 and any pre-existing bad row.
+            logger.warning(
+                "plan_gating: no active default plan (is_default=True, is_active=True); "
+                "the plan ceiling is INERT until one is set."
+            )
+            return frozenset()
+        default_features = {
+            _normalize(f) for f in (default.included_features or []) if f
+        }
         gated: set[str] = set()
         for plan in Plan.objects.filter(is_active=True).only("included_features"):
             for feature in plan.included_features or []:

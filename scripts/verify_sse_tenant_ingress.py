@@ -31,7 +31,17 @@ def main() -> int:
     if "_tenant_scoped_bundle" not in mc_views:
         failures.append("migration_cloud views must scope bundles by tenant")
     if "MigrationCloudProgressStreamView" not in mc_views:
-        failures.append("migration cloud progress SSE view missing")
+        failures.append("migration cloud operator progress SSE view missing")
+
+    mc_tenant = (
+        ROOT / "apps" / "migration_cloud" / "views_tenant_upload.py"
+    ).read_text(encoding="utf-8")
+    if "TenantMigrationProgressStreamView" not in mc_tenant:
+        failures.append("migration cloud tenant progress SSE view missing")
+    if "_tenant_bundle_or_404" not in mc_tenant:
+        failures.append("tenant migration views must scope bundles via _tenant_bundle_or_404")
+    if "_TenantAdminRequiredMixin" not in mc_tenant:
+        failures.append("tenant migration held/progress surfaces must use tenant-admin gate")
 
     if failures:
         for line in failures:

@@ -32,9 +32,13 @@ from apps.accounts.decorators import user_is_tenant_admin
 from apps.accounts.models import User
 from apps.migration_cloud.models import MigrationBundle
 from apps.migration_cloud.views_tenant_upload import (
+    _TenantAdminRequiredMixin,
     _TenantAdminWriteRequiredMixin,
     TenantMigrationApplyView,
+    TenantMigrationHeldReviewView,
+    TenantMigrationProgressStreamView,
     TenantMigrationProgressView,
+    TenantMigrationQuarantineExportView,
     TenantMigrationRepairView,
     TenantMigrationReviewView,
     TenantMigrationUploadView,
@@ -181,18 +185,33 @@ class TenantMigrationApplyAdminGateTests(TestCase):
         with self.assertRaises(PermissionDenied):
             TenantMigrationReviewView.as_view()(request, bundle_id=self.bundle.pk)
 
-    # ── scope documentation: read poller stays lighter, writes are gated ───
+    # ── scope documentation: held/progress read surfaces are admin-gated ───
 
-    def test_gating_topology_write_views_gated_progress_lighter(self):
-        """The four WRITE views carry the admin gate; the read-only progress
-        poller deliberately stays on LoginRequiredMixin only (per the mandate)."""
+    def test_non_admin_member_progress_json_is_denied(self):
+        request = self.factory.get("/school/setup/migration-cloud/bundle/progress/")
+        request.user = self.member
+        request.school = self.school
+        with self.assertRaises(PermissionDenied):
+            TenantMigrationProgressView.as_view()(request, bundle_id=self.bundle.pk)
+
+    def test_non_admin_member_held_review_is_denied(self):
+        request = self.factory.get("/school/setup/migration-cloud/bundle/held/")
+        request.user = self.member
+        request.school = self.school
+        with self.assertRaises(PermissionDenied):
+            TenantMigrationHeldReviewView.as_view()(request, bundle_id=self.bundle.pk)
+
+    def test_gating_topology_sensitive_surfaces_gated(self):
+        """Write and held/progress read views carry the tenant-admin gate."""
         for view in (
             TenantMigrationUploadView,
             TenantMigrationReviewView,
             TenantMigrationApplyView,
             TenantMigrationRepairView,
+            TenantMigrationProgressView,
+            TenantMigrationProgressStreamView,
+            TenantMigrationHeldReviewView,
+            TenantMigrationQuarantineExportView,
         ):
-            self.assertIn(_TenantAdminWriteRequiredMixin, view.__mro__, view.__name__)
-        self.assertNotIn(
-            _TenantAdminWriteRequiredMixin, TenantMigrationProgressView.__mro__
-        )
+            self.assertIn(_TenantAdminRequiredMixin, view.__mro__, view.__name__)
+        self.assertIs(_TenantAdminWriteRequiredMixin, _TenantAdminRequiredMixin)

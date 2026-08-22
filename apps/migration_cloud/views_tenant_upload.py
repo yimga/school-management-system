@@ -373,6 +373,25 @@ def _import_flight(bundle) -> dict:
             stuck = tenant_apply_stuck(bundle)
         except Exception:  # noqa: BLE001 — never break the review page on this probe
             stuck = False
+
+    if (
+        getattr(bundle, "status", "") == BundleStatus.MAPPED
+        and row is not None
+        and stuck
+    ):
+        try:
+            from .repair import prior_apply_evidence, tenant_apply_stuck
+
+            if prior_apply_evidence(bundle) and tenant_apply_stuck(bundle):
+                return {
+                    "in_flight": False,
+                    "phase": "",
+                    "stuck": True,
+                    "dry_run": dry_run,
+                }
+        except Exception:  # noqa: BLE001
+            pass
+
     return {
         "in_flight": True,
         "phase": "running" if (running or processing) else "queued",
@@ -501,8 +520,13 @@ def _expected_row_total(bundle) -> int:
     return int(total or 0)
 
 
-class _TenantAdminWriteRequiredMixin(LoginRequiredMixin):
-    """Gate a Migration Cloud tenant WRITE surface on the tenant-admin tier.
+class _TenantAdminRequiredMixin(LoginRequiredMixin):
+    """Gate a Migration Cloud tenant surface on the tenant-admin tier.
+
+    Applies to both read surfaces that expose held-row counts / source rows
+    (progress, SSE, held review, export, AI explain) and write surfaces
+    (upload, apply, quarantine resolve). Plain members must not see migration
+    triage data or drive irreversible imports.
 
     ``LoginRequiredMixin`` alone answers only "authenticated"; combined with
     ``_request_school`` (which falls back to the caller's FIRST school membership
@@ -536,7 +560,10 @@ class _TenantAdminWriteRequiredMixin(LoginRequiredMixin):
         return super().dispatch(request, *args, **kwargs)
 
 
-class TenantMigrationProgressView(LoginRequiredMixin, View):
+_TenantAdminWriteRequiredMixin = _TenantAdminRequiredMixin
+
+
+class TenantMigrationProgressView(_TenantAdminRequiredMixin, View):
     """GET JSON: live auto-detection progress for the caller's OWN bundle.
 
     Polled by ``bundle_review.html`` while profile → classify → map runs on the
@@ -552,6 +579,112 @@ class TenantMigrationProgressView(LoginRequiredMixin, View):
     def get(self, request, bundle_id: int, **kwargs):
         bundle = _tenant_bundle_or_404(request, bundle_id)
         return JsonResponse(_progress_payload(bundle))
+
+
+class TenantMigrationProgressStreamView(_TenantAdminRequiredMixin, View):
+    """GET SSE: live progress events for the tenant's own bundle.
+
+    Mirrors ``MigrationCloudProgressStreamView`` on the operator shell so
+    tenant review pages can subscribe via ``EventSource`` instead of polling.
+    """
+
+    def get(self, request, bundle_id: int):
+        from django.http import StreamingHttpResponse
+
+        from .progress import stream_events_since
+
+        bundle = _tenant_bundle_or_404(request, bundle_id)
+        try:
+            after_id = int(request.GET.get("after_id") or 0)
+        except ValueError:
+            after_id = 0
+
+        def _events():
+            yield ": connected\n\n"
+            for event_id, payload in stream_events_since(bundle_id=bundle.pk, after_id=after_id):
+                import json as _json
+
+                yield f"id: {event_id}\ndata: {_json.dumps(payload, default=str)}\n\n"
+
+        response = StreamingHttpResponse(_events(), content_type="text/event-stream")
+        response["Cache-Control"] = "no-cache"
+        response["X-Accel-Buffering"] = "no"
+        return response
+
+
+class TenantMigrationAIExplainView(_TenantAdminRequiredMixin, View):
+    """POST JSON: AI plain-language explanation for one held row."""
+
+    @idempotent_post
+    @safe_500
+    def post(self, request, bundle_id: int):
+        import json
+
+        from .ai_bridge import explain_quarantine_row
+
+        bundle = _tenant_bundle_or_404(request, bundle_id)
+        try:
+            payload = json.loads(request.body or b"{}")
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "invalid JSON"}, status=400)
+
+        row = payload.get("row") or {}
+        reason = (payload.get("reason") or "").strip()
+        if not isinstance(row, (dict, list)):
+            return JsonResponse({"error": "row must be an object or array"}, status=400)
+        if not reason:
+            return JsonResponse({"error": "reason required"}, status=400)
+
+        explanation = explain_quarantine_row(school=bundle.school, row=row, reason=reason)
+        return JsonResponse(
+            {
+                "bundle_id": bundle.pk,
+                "explanation": explanation.answer if explanation else None,
+                "confidence": explanation.confidence if explanation else 0.0,
+                "ai_available": explanation is not None,
+            }
+        )
+
+
+class TenantMigrationArchiveSourceView(_TenantAdminWriteRequiredMixin, View):
+    """POST: drop captured source file bytes after a completed import."""
+
+    @idempotent_post
+    @safe_500
+    def post(self, request, bundle_id: int):
+        from .artifact_blob_store import archive_bundle_source_files, source_blob_count
+        from .models import BundleStatus
+        from .quarantine_resolution import pending_quarantine_count
+
+        bundle = _tenant_bundle_or_404(request, bundle_id)
+        if bundle.status not in (BundleStatus.RECONCILED, BundleStatus.APPLIED):
+            messages.error(
+                request,
+                "Source files can only be archived after a successful import.",
+            )
+            return redirect(_connector_reverse(request, "bundle-review", bundle_id=bundle.pk))
+
+        if pending_quarantine_count(bundle) > 0:
+            messages.error(
+                request,
+                "Resolve all held rows before archiving source files.",
+            )
+            return redirect(_connector_reverse(request, "bundle-held-review", bundle_id=bundle.pk))
+
+        outcome = archive_bundle_source_files(
+            bundle,
+            actor_id=getattr(request.user, "pk", None),
+        )
+        if outcome.get("already_archived"):
+            messages.info(request, "Source files were already archived for this import.")
+        else:
+            remaining = source_blob_count(bundle)
+            messages.success(
+                request,
+                f"Archived source files ({outcome.get('deleted', 0)} blob(s) removed). "
+                f"Import metadata is kept; {remaining} blob(s) remain.",
+            )
+        return redirect(_connector_reverse(request, "bundle-review", bundle_id=bundle.pk))
 
 
 class TenantMigrationUploadView(_TenantAdminWriteRequiredMixin, View):
@@ -1228,12 +1361,24 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
         from .quarantine_resolution import (
             pending_quarantine_count,
             quarantine_breakdown,
+            quarantine_preview_rows,
         )
 
         q_pending = pending_quarantine_count(bundle)
         q_breakdown = quarantine_breakdown(bundle, pending_only=True) if q_pending else []
+        held_preview_rows = quarantine_preview_rows(bundle, limit=5) if q_pending else []
         apply_held = int(
             ((bundle.mapping_summary or {}).get("apply_totals") or {}).get("quarantined") or 0
+        )
+        from .artifact_blob_store import bundle_source_archived, source_blob_count
+
+        source_blobs_remaining = source_blob_count(bundle)
+        source_archived = bundle_source_archived(bundle)
+        archive_eligible = (
+            bundle.status in (BundleStatus.RECONCILED, BundleStatus.APPLIED)
+            and q_pending == 0
+            and not source_archived
+            and source_blobs_remaining > 0
         )
         return {
             "page_title": "Review & import",
@@ -1270,7 +1415,9 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
             "inbox_url": _connector_reverse(request, "migration-inbox"),
             "quarantine_pending": q_pending,
             "quarantine_breakdown": q_breakdown,
+            "held_preview_rows": held_preview_rows,
             "apply_held_total": apply_held,
+            "quarantine_review_gap": max(0, apply_held - q_pending) if apply_held else 0,
             "rollback": _build_rollback(bundle),
             "rollback_url": _connector_reverse(request, "bundle-rollback", bundle_id=bundle.pk),
             "retry_url": _connector_reverse(request, "bundle-retry", bundle_id=bundle.pk),
@@ -1278,6 +1425,15 @@ class TenantMigrationReviewView(_TenantAdminWriteRequiredMixin, View):
             "detection_failed": bundle.status in _FAILED_STATUSES,
             "detecting": _is_detecting(bundle),
             "progress_url": _connector_reverse(request, "bundle-progress", bundle_id=bundle.pk),
+            "progress_stream_url": _connector_reverse(
+                request, "bundle-progress-stream", bundle_id=bundle.pk
+            ),
+            "archive_source_url": _connector_reverse(
+                request, "bundle-archive-source", bundle_id=bundle.pk
+            ),
+            "source_blobs_remaining": source_blobs_remaining,
+            "source_archived": source_archived,
+            "archive_eligible": archive_eligible,
             "upload_url": _connector_reverse(request, "upload"),
             "review_url": _connector_reverse(request, "bundle-review", bundle_id=bundle.pk),
             "apply_url": _connector_reverse(request, "bundle-apply", bundle_id=bundle.pk),
@@ -1812,7 +1968,7 @@ class TenantMigrationInboxView(_TenantAdminWriteRequiredMixin, View):
         )
 
 
-class TenantMigrationHeldReviewView(LoginRequiredMixin, View):
+class TenantMigrationHeldReviewView(_TenantAdminRequiredMixin, View):
     """Row-level held-row review on the connector path (same workspace as wizard queue)."""
 
     template_name = "migration_cloud/anomaly_nudge.html"
@@ -1830,13 +1986,32 @@ class TenantMigrationHeldReviewView(LoginRequiredMixin, View):
         ctx["quarantine_export_url"] = _connector_reverse(
             request, "bundle-quarantine-export", bundle_id=bundle.pk
         )
+        ctx["progress_url"] = _connector_reverse(
+            request, "bundle-progress", bundle_id=bundle.pk
+        )
+        ctx["progress_stream_url"] = _connector_reverse(
+            request, "bundle-progress-stream", bundle_id=bundle.pk
+        )
+        ctx["ai_explain_url"] = _connector_reverse(
+            request, "bundle-ai-explain", bundle_id=bundle.pk
+        )
+        flight = _import_flight(bundle)
+        from .live_import_attention import compose_live_import
+
+        ctx["live_import"] = compose_live_import(
+            bundle,
+            snapshot=getattr(bundle, "progress_snapshot", None) or {},
+            flight=flight,
+        )
+        ctx["import_flight"] = flight
         ctx["repair_url"] = _connector_reverse(request, "bundle-repair", bundle_id=bundle.pk)
         ctx["review_url"] = _connector_reverse(request, "bundle-review", bundle_id=bundle.pk)
         ctx["upload_url"] = _connector_reverse(request, "upload")
+        ctx["import_flight"] = flight
         return render(request, self.template_name, ctx)
 
 
-class TenantMigrationQuarantineExportView(LoginRequiredMixin, View):
+class TenantMigrationQuarantineExportView(_TenantAdminRequiredMixin, View):
     """CSV export of held rows on the tenant connector path."""
 
     def get(self, request, bundle_id: int, **kwargs):

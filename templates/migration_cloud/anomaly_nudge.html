@@ -97,6 +97,17 @@
       {% trans "Held for review" %}
       <span class="rmc-muted">({{ quarantine_pending }} {% trans "pending" %} / {{ quarantine_total }} {% trans "total" %})</span>
     </h2>
+    <p class="rmc-lede">
+      {% trans "These rows did not pass validation and were not written into your school. Each row shows the source values we read, why it was held, and actions you can take — dismiss, skip, edit & re-import, or deny." %}
+    </p>
+    {% if quarantine_review_gap %}
+    <div class="rmc-alert rmc-alert--warn mb-3" role="status">
+      {% blocktrans with gap=quarantine_review_gap total=apply_held_total pending=quarantine_pending %}
+        The last apply reported {{ total }} held rows, but only {{ pending }} are in the review queue here.
+        {{ gap }} could not be stored for row-by-row review (engine cap per file). Use Export CSV or re-import after fixing the source file.
+      {% endblocktrans %}
+    </div>
+    {% endif %}
     {% if quarantine_pending %}
       <p class="rmc-lede">
         {% blocktrans count counter=quarantine_action_needed trimmed %}
@@ -138,7 +149,11 @@
         <button type="button" class="rmc-btn rmc-btn--sm rmc-btn--ghost" data-rmc-q-bulk="deny_all_pending">{% trans "Deny all remaining" %}</button>
         <a class="rmc-btn rmc-btn--sm rmc-btn--ghost"
            href="{% if quarantine_export_url %}{{ quarantine_export_url }}{% elif shell == 'portal' %}{% url 'migration_cloud_portal:bundle_quarantine_export' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_quarantine_export' bundle_id=bundle.pk %}{% endif %}">
-          {% trans "Export CSV" %}
+          {% trans "Export pending CSV" %}
+        </a>
+        <a class="rmc-btn rmc-btn--sm rmc-btn--ghost"
+           href="{% if quarantine_export_url %}{{ quarantine_export_url }}?scope=all{% elif shell == 'portal' %}{% url 'migration_cloud_portal:bundle_quarantine_export' bundle_id=bundle.pk %}?scope=all{% else %}{% url 'migration_cloud_super:bundle_quarantine_export' bundle_id=bundle.pk %}?scope=all{% endif %}">
+          {% trans "Export all (incl. resolved)" %}
         </a>
         <button type="button" class="rmc-btn rmc-btn--sm rmc-btn--ghost" data-rmc-q-retry>{% trans "Re-import bundle" %}</button>
       </div>
@@ -153,6 +168,7 @@
           <tr>
             <th scope="col" class="rmc-col-check"></th>
             <th scope="col">{% trans "Type" %}</th>
+            <th scope="col">{% trans "Source file" %}</th>
             <th scope="col">{% trans "What" %}</th>
             <th scope="col">{% trans "Guidance" %}</th>
             <th scope="col">{% trans "Reason" %}</th>
@@ -169,6 +185,12 @@
             </td>
             <td>
               <span class="rmc-pill rmc-pill--{{ q.tone|default:'warn' }}">{{ q.issue_label }}</span>
+              {% if q.reason_source %}
+              <span class="rmc-muted d-block small">{% trans "Class" %}: {{ q.reason_source }}</span>
+              {% endif %}
+            </td>
+            <td class="rmc-muted" title="{{ q.artifact|default:'' }}">
+              {{ q.artifact_label|default:"—" }}
             </td>
             <td>
               <strong>{{ q.domain|default:"—" }}</strong>
@@ -185,15 +207,22 @@
               <strong>{{ q.guidance_headline }}</strong>
               <p class="rmc-muted mb-0">{{ q.guidance_hint }}</p>
             </td>
-            <td class="rmc-muted">{{ q.reason|truncatechars:120 }}</td>
+            <td class="rmc-muted">{{ q.reason|truncatechars:200 }}</td>
             <td>
               <button type="button" class="rmc-btn rmc-btn--xs rmc-btn--ghost" data-rmc-q-row-action="dismiss">{% trans "Dismiss" %}</button>
               <button type="button" class="rmc-btn rmc-btn--xs rmc-btn--ghost" data-rmc-q-row-action="waive">{% trans "Waive" %}</button>
-              <button type="button" class="rmc-btn rmc-btn--xs rmc-btn--ghost" data-rmc-q-toggle-edit>{% trans "Edit" %}</button>
+              <button type="button" class="rmc-btn rmc-btn--xs rmc-btn--ghost" data-rmc-q-row-action="deny">{% trans "Deny" %}</button>
+              <button type="button" class="rmc-btn rmc-btn--xs rmc-btn--ghost" data-rmc-toggle-edit>{% trans "Edit" %}</button>
+              {% if ai_explain_url %}
+              <button type="button" class="rmc-btn rmc-btn--xs rmc-btn--ghost" data-rmc-q-explain
+                      data-row-id="{{ q.id }}"
+                      data-row-reason="{{ q.reason|escapejs }}">{% trans "Explain" %}</button>
+              {% endif %}
             </td>
           </tr>
+          {% with row_sid="qrow-"|add:q.id %}{{ q.source_row|json_script:row_sid }}{% endwith %}
           <tr class="rmc-quarantine-edit-row" data-rmc-quarantine-edit-for="{{ q.id }}" hidden>
-            <td colspan="6">
+            <td colspan="7">
               <details open>
                 <summary>{% trans "Source values — edit then Accept" %}</summary>
                 <div class="rmc-quarantine-edit-grid" data-rmc-quarantine-fields>
@@ -205,6 +234,10 @@
                   {% empty %}
                     <p class="rmc-muted">{% trans "No source row captured — only the error message is available." %}</p>
                   {% endfor %}
+                </div>
+                <div class="rmc-alert rmc-alert--info mt-2" data-rmc-q-explain-panel-for="{{ q.id }}" hidden role="status">
+                  <strong>{% trans "AI explanation" %}</strong>
+                  <p class="mb-0 rmc-muted" data-rmc-q-explain-text></p>
                 </div>
                 <label class="rmc-field mt-2">
                   <span class="rmc-field__label">{% trans "Operator note (optional)" %}</span>
@@ -249,6 +282,19 @@
     {% endif %}
   </section>
 
+  {% if progress_url %}
+  <section class="rmc-card rmc-reveal mb-4" id="mc-live-board" aria-live="polite"
+           data-mc-live-board="1"
+           data-progress-url="{{ progress_url }}"
+           {% if progress_stream_url %}data-progress-stream-url="{{ progress_stream_url }}"{% endif %}
+           data-importing="{% if import_flight.in_flight %}1{% else %}0{% endif %}">
+    {% if live_import %}{{ live_import|json_script:"mc-live-import-seed" }}{% endif %}
+    <h2 class="rmc-h2">{% trans "Import activity log" %}</h2>
+    <p class="rmc-muted">{% trans "Live events from this import — updates automatically while apply or repair is running." %}</p>
+    {% include "components/rmc_workflow_progress_canvas.html" with workflow_key="migration_bundle_apply" task_type="MIGRATION_INGESTION" %}
+  </section>
+  {% endif %}
+
   <section class="rmc-card rmc-reveal">
     <h2 class="rmc-h2">{% trans "Reconciliation drift" %}</h2>
     {% if drift_domains %}
@@ -286,6 +332,7 @@
 <script nonce="{{ csp_nonce }}">
 (function () {
   var resolveUrl = "{% if quarantine_resolve_url %}{{ quarantine_resolve_url|escapejs }}{% elif shell == 'portal' %}{% url 'migration_cloud_portal:bundle_quarantine_resolve' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_quarantine_resolve' bundle_id=bundle.pk %}{% endif %}";
+  var aiExplainUrl = "{% if ai_explain_url %}{{ ai_explain_url|escapejs }}{% endif %}";
   var csrf = "{{ csrf_token }}";
 
   function selectedIds() {
@@ -334,6 +381,46 @@
     });
   });
 
+  document.querySelectorAll("[data-rmc-q-explain]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      if (!aiExplainUrl || !window.fetch) return;
+      var rowId = btn.getAttribute("data-row-id");
+      var reason = btn.getAttribute("data-row-reason") || "";
+      var row = {};
+      var rowNode = document.getElementById("qrow-" + rowId);
+      if (rowNode) {
+        try { row = JSON.parse(rowNode.textContent || "{}"); } catch (_e) { row = {}; }
+      } else {
+        row = rowEditedSource(rowId) || {};
+      }
+      var panel = document.querySelector('[data-rmc-q-explain-panel-for="' + rowId + '"]');
+      var textEl = panel && panel.querySelector("[data-rmc-q-explain-text]");
+      if (panel) {
+        panel.hidden = false;
+        if (textEl) textEl.textContent = "{% trans 'Generating explanation…' %}";
+      }
+      btn.disabled = true;
+      fetch(aiExplainUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-CSRFToken": csrf },
+        credentials: "same-origin",
+        body: JSON.stringify({ row: row, reason: reason }),
+      })
+        .then(function (r) { return r.ok ? r.json() : r.json().then(function (j) { throw j; }); })
+        .then(function (data) {
+          if (textEl) {
+            textEl.textContent = data.explanation || reason || "{% trans 'AI is unavailable — see the reason column.' %}";
+          }
+          var editRow = document.querySelector('[data-rmc-quarantine-edit-for="' + rowId + '"]');
+          if (editRow) editRow.hidden = false;
+        })
+        .catch(function () {
+          if (textEl) textEl.textContent = reason || "{% trans 'Could not fetch an explanation.' %}";
+        })
+        .finally(function () { btn.disabled = false; });
+    });
+  });
+
   document.querySelectorAll("[data-rmc-q-row-action]").forEach(function (btn) {
     btn.addEventListener("click", function () {
       var editRow = btn.closest(".rmc-quarantine-edit-row");
@@ -347,6 +434,15 @@
         extra.auto_retry = true;
         var noteEl = editRow && editRow.querySelector("[data-rmc-q-note]");
         if (noteEl && noteEl.value) extra.note = noteEl.value;
+      } else if (action === "dismiss") {
+        var needsNote = mainRow && mainRow.classList.contains("rmc-quarantine-row--warn") || mainRow && mainRow.classList.contains("rmc-quarantine-row--danger");
+        if (needsNote) {
+          var prompted = window.prompt("{% trans 'Optional note — why are you dismissing this row?' %}");
+          if (prompted) extra.note = prompted;
+          else extra.note = "{% trans 'Dismissed from review queue' %}";
+        }
+      } else if (action === "deny") {
+        if (!window.confirm("{% trans 'Permanently deny this row? It will never be imported.' %}")) return;
       }
       runAction(action, [id], extra);
     });
@@ -371,7 +467,14 @@
         });
         return;
       }
-      runAction(action, ids);
+      var extra = {};
+      if (action === "dismiss") {
+        extra.note = window.prompt("{% trans 'Optional note for dismiss (required for actionable rows):' %}") || "{% trans 'Dismissed from review queue' %}";
+      }
+      if (action === "deny" && !window.confirm("{% trans 'Permanently deny selected rows?' %}")) {
+        return;
+      }
+      runAction(action, ids, extra);
     });
   });
 
