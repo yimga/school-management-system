@@ -268,9 +268,28 @@ def apply_step_answer(
         except wizard_engine.ResolverImportError as exc:
             logger.error("persistence writer import failed for %s.%s: %s", wizard_key, step_key, exc)
             wizard_telemetry.emit_persistence_failed(wizard_key, step_key, writer_path)
+            # writer_failed_surfaces: see the note below.
+            raise wizard_engine.WizardError(
+                f"persistence writer could not be loaded for {wizard_key}.{step_key}: {exc}"
+            ) from exc
         except Exception as exc:  # noqa: BLE001
             logger.exception("persistence writer failed for %s.%s: %s", wizard_key, step_key, exc)
             wizard_telemetry.emit_persistence_failed(wizard_key, step_key, writer_path)
+            # writer_failed_surfaces: a step whose writer raised is NOT complete.
+            #
+            # This used to log, emit telemetry and fall through. The step had
+            # already been appended to state["completed"] a few lines above, the
+            # wizard then advanced and could emit wizard_completed -- so the
+            # operator saw success while the database was untouched. Raising here
+            # discards every in-memory mutation, because the state slice is not
+            # written until the end of this function.
+            #
+            # WizardError is the contract callers already handle: an invalid
+            # payload raises it a few lines up. A write that did not happen is
+            # not a lesser failure than a payload that was rejected.
+            raise wizard_engine.WizardError(
+                f"persistence writer failed for {wizard_key}.{step_key}: {exc}"
+            ) from exc
 
     # Advance current_step_key
     next_step = wizard_engine.resolve_next_step(
