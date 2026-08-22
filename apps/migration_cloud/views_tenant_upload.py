@@ -520,8 +520,13 @@ def _expected_row_total(bundle) -> int:
     return int(total or 0)
 
 
-class _TenantAdminWriteRequiredMixin(LoginRequiredMixin):
-    """Gate a Migration Cloud tenant WRITE surface on the tenant-admin tier.
+class _TenantAdminRequiredMixin(LoginRequiredMixin):
+    """Gate a Migration Cloud tenant surface on the tenant-admin tier.
+
+    Applies to both read surfaces that expose held-row counts / source rows
+    (progress, SSE, held review, export, AI explain) and write surfaces
+    (upload, apply, quarantine resolve). Plain members must not see migration
+    triage data or drive irreversible imports.
 
     ``LoginRequiredMixin`` alone answers only "authenticated"; combined with
     ``_request_school`` (which falls back to the caller's FIRST school membership
@@ -555,7 +560,10 @@ class _TenantAdminWriteRequiredMixin(LoginRequiredMixin):
         return super().dispatch(request, *args, **kwargs)
 
 
-class TenantMigrationProgressView(LoginRequiredMixin, View):
+_TenantAdminWriteRequiredMixin = _TenantAdminRequiredMixin
+
+
+class TenantMigrationProgressView(_TenantAdminRequiredMixin, View):
     """GET JSON: live auto-detection progress for the caller's OWN bundle.
 
     Polled by ``bundle_review.html`` while profile → classify → map runs on the
@@ -573,7 +581,7 @@ class TenantMigrationProgressView(LoginRequiredMixin, View):
         return JsonResponse(_progress_payload(bundle))
 
 
-class TenantMigrationProgressStreamView(LoginRequiredMixin, View):
+class TenantMigrationProgressStreamView(_TenantAdminRequiredMixin, View):
     """GET SSE: live progress events for the tenant's own bundle.
 
     Mirrors ``MigrationCloudProgressStreamView`` on the operator shell so
@@ -604,7 +612,7 @@ class TenantMigrationProgressStreamView(LoginRequiredMixin, View):
         return response
 
 
-class TenantMigrationAIExplainView(LoginRequiredMixin, View):
+class TenantMigrationAIExplainView(_TenantAdminRequiredMixin, View):
     """POST JSON: AI plain-language explanation for one held row."""
 
     @idempotent_post
@@ -1960,7 +1968,7 @@ class TenantMigrationInboxView(_TenantAdminWriteRequiredMixin, View):
         )
 
 
-class TenantMigrationHeldReviewView(LoginRequiredMixin, View):
+class TenantMigrationHeldReviewView(_TenantAdminRequiredMixin, View):
     """Row-level held-row review on the connector path (same workspace as wizard queue)."""
 
     template_name = "migration_cloud/anomaly_nudge.html"
@@ -2003,7 +2011,7 @@ class TenantMigrationHeldReviewView(LoginRequiredMixin, View):
         return render(request, self.template_name, ctx)
 
 
-class TenantMigrationQuarantineExportView(LoginRequiredMixin, View):
+class TenantMigrationQuarantineExportView(_TenantAdminRequiredMixin, View):
     """CSV export of held rows on the tenant connector path."""
 
     def get(self, request, bundle_id: int):

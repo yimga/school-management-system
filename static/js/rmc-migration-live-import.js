@@ -97,6 +97,53 @@
   }
 
   var _seenLogCount = 0;
+  var _lastStreamEventId = 0;
+
+  function appendStreamLogLine(message) {
+    var canvasEl = document.querySelector("[data-rmc-wfp-canvas]");
+    if (!canvasEl || !message) return;
+    var logHost = canvasEl.querySelector("[data-rmc-wfp-log]");
+    if (!logHost) return;
+    var row = document.createElement("div");
+    row.className = "rmc-wfp-log__line";
+    row.textContent = message;
+    logHost.appendChild(row);
+    _seenLogCount += 1;
+    while (logHost.children.length > 80) {
+      logHost.removeChild(logHost.firstChild);
+      _seenLogCount = Math.max(0, _seenLogCount - 1);
+    }
+    logHost.scrollTop = logHost.scrollHeight;
+  }
+
+  function applyStreamEvent(data) {
+    if (!data || typeof data !== "object") return;
+    if (data.id != null) {
+      var eventId = Number(data.id);
+      if (isFinite(eventId)) _lastStreamEventId = Math.max(_lastStreamEventId, eventId);
+    }
+    var msg = (data.message || "").trim();
+    if (msg) appendStreamLogLine(msg);
+    var detail = data.detail && typeof data.detail === "object" ? data.detail : {};
+    if (detail.pct != null || detail.rows != null || detail.processed != null) {
+      var root = board();
+      if (!root) return;
+      var partial = {
+        importing: root.getAttribute("data-importing") === "1",
+        percent: detail.pct != null ? detail.pct : undefined,
+        rows_processed: detail.rows != null ? detail.rows : detail.processed,
+        rows_expected: detail.expected != null ? detail.expected : detail.total,
+        log_lines: msg ? [msg] : [],
+      };
+      paintCanvas(partial);
+      if (partial.percent != null) {
+        var pct = monotonicPercent(partial);
+        setText(root.querySelector("[data-mc-live-pct]"), pct.toFixed(2) + "%");
+        var fill = root.querySelector("[data-mc-live-fill]");
+        if (fill) fill.style.width = pct.toFixed(2) + "%";
+      }
+    }
+  }
 
   function paintLogTerminal(canvasEl, data) {
     var logHost = canvasEl.querySelector("[data-rmc-wfp-log]");
@@ -347,12 +394,25 @@
       window.setTimeout(tick, wasImporting ? 1200 : POLL_MS_SETTLED);
     }
 
+    function streamUrlWithCursor() {
+      if (!streamUrl) return "";
+      if (!_lastStreamEventId) return streamUrl;
+      var join = streamUrl.indexOf("?") >= 0 ? "&" : "?";
+      return streamUrl + join + "after_id=" + encodeURIComponent(String(_lastStreamEventId));
+    }
+
     if (wasImporting && streamUrl && window.EventSource) {
-      var es = new EventSource(streamUrl, { withCredentials: true });
+      var es = new EventSource(streamUrlWithCursor(), { withCredentials: true });
       var pollFallbackTimer = window.setTimeout(startPolling, POLL_MS_ACTIVE * 2);
-      es.onmessage = function () {
+      es.onmessage = function (ev) {
         window.clearTimeout(pollFallbackTimer);
+        try {
+          if (ev.data) applyStreamEvent(JSON.parse(ev.data));
+        } catch (_parseErr) {
+          /* keep polling fallback alive */
+        }
         pollFallbackTimer = window.setTimeout(startPolling, POLL_MS_ACTIVE);
+        window.setTimeout(tick, 50);
       };
       es.onerror = function () {
         try { es.close(); } catch (_err) {}

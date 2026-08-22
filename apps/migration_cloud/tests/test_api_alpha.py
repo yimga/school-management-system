@@ -106,6 +106,22 @@ class APIURLResolutionTests(SimpleTestCase):
         url = reverse(f"{_API_NS_SUPER}:bundle-artifacts", kwargs={"pk": 7})
         self.assertIn("/bundles/7/artifacts/", url)
 
+    def test_quarantine_list_url_resolves(self):
+        url = reverse(f"{_API_NS_SUPER}:bundle-quarantine-list", kwargs={"pk": 7})
+        self.assertIn("/bundles/7/quarantine/", url)
+
+    def test_quarantine_resolve_url_resolves(self):
+        url = reverse(f"{_API_NS_SUPER}:bundle-quarantine-resolve", kwargs={"pk": 7})
+        self.assertIn("/bundles/7/quarantine/resolve/", url)
+
+    def test_quarantine_export_url_resolves(self):
+        url = reverse(f"{_API_NS_SUPER}:bundle-quarantine-export", kwargs={"pk": 7})
+        self.assertIn("/bundles/7/quarantine/export/", url)
+
+    def test_ai_explain_url_resolves(self):
+        url = reverse(f"{_API_NS_SUPER}:bundle-ai-explain-row", kwargs={"pk": 7})
+        self.assertIn("/bundles/7/ai-explain/", url)
+
     def test_portal_mount_also_resolves(self):
         """The same router is mounted at the tenant shell too."""
         url = reverse(f"{_API_NS_PORTAL}:bundle-list")
@@ -158,7 +174,9 @@ class APISchemaCoverageTests(SimpleTestCase):
     def test_bundle_viewset_custom_actions_decorated(self):
         from apps.migration_cloud.api.viewsets import BundleViewSet
 
-        for action_name in ("advance", "apply_bundle", "reconcile", "artifacts"):
+        for action_name in ("advance", "apply_bundle", "reconcile", "artifacts",
+                            "quarantine_list", "quarantine_resolve",
+                            "quarantine_export", "ai_explain_row"):
             method = getattr(BundleViewSet, action_name, None)
             self.assertIsNotNone(
                 method, f"BundleViewSet must expose action {action_name}()",
@@ -193,7 +211,9 @@ class APISchemaCoverageTests(SimpleTestCase):
             "BundleViewSet": (
                 BundleViewSet,
                 ("list", "retrieve", "create", "advance",
-                 "apply_bundle", "reconcile", "artifacts"),
+                 "apply_bundle", "reconcile", "artifacts",
+                 "quarantine_list", "quarantine_resolve",
+                 "quarantine_export", "ai_explain_row"),
             ),
             "CanonicalTemplateViewSet": (
                 CanonicalTemplateViewSet,

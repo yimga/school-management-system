@@ -1837,7 +1837,7 @@ class MigrationCloudQuarantineResolveView(LoginRequiredMixin, View):
         if not outcome.get("ok"):
             return JsonResponse(outcome, status=400)
 
-        if outcome.get("queue_reimport") and payload.get("auto_retry"):
+        if payload.get("auto_retry") or outcome.get("queue_reimport"):
             from .repair import repair_bundle
 
             repair_bundle(bundle_id=bundle.pk, off_http=True)

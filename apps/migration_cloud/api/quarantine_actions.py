@@ -28,8 +28,8 @@ from apps.migration_cloud.reliability import idempotent_post, safe_500
 logger = logging.getLogger(__name__)
 
 
-def _require_quarantine_write_access(request):
-    """Tenant writes require admin — mirrors connector HTML POST gate."""
+def _require_quarantine_tenant_admin(request, *, detail: str):
+    """Tenant held-row surfaces require admin — mirrors connector HTML gate."""
     from apps.accounts.decorators import user_is_tenant_admin
 
     from .permissions import _is_operator_shell_request
@@ -42,10 +42,24 @@ def _require_quarantine_write_access(request):
         return Response({"error": "forbidden"}, status=status.HTTP_403_FORBIDDEN)
     if not user_is_tenant_admin(user, school):
         return Response(
-            {"error": "forbidden", "detail": "tenant admin required for held-row writes"},
+            {"error": "forbidden", "detail": detail},
             status=status.HTTP_403_FORBIDDEN,
         )
     return None
+
+
+def _require_quarantine_write_access(request):
+    return _require_quarantine_tenant_admin(
+        request,
+        detail="tenant admin required for held-row writes",
+    )
+
+
+def _require_quarantine_read_access(request):
+    return _require_quarantine_tenant_admin(
+        request,
+        detail="tenant admin required for held-row review",
+    )
 
 
 def _resolve_payload(request) -> dict:
@@ -150,6 +164,9 @@ def quarantine_list_action_factory():
     )
     @action(detail=True, methods=["get"], url_path="quarantine")
     def quarantine_list(self, request, pk=None):
+        denied = _require_quarantine_read_access(request)
+        if denied is not None:
+            return denied
         from apps.migration_cloud.quarantine_resolution import (
             enrich_quarantine_row,
             pending_quarantine_count,
@@ -252,6 +269,9 @@ def quarantine_export_action_factory():
     )
     @action(detail=True, methods=["get"], url_path="quarantine/export")
     def quarantine_export(self, request, pk=None):
+        denied = _require_quarantine_read_access(request)
+        if denied is not None:
+            return denied
         from apps.migration_cloud.quarantine_resolution import export_quarantine_csv
 
         bundle = self.get_object()
@@ -297,6 +317,9 @@ def ai_explain_action_factory():
     @idempotent_post
     @safe_500
     def ai_explain_row(self, request, pk=None):
+        denied = _require_quarantine_read_access(request)
+        if denied is not None:
+            return denied
         from apps.migration_cloud.ai_bridge import explain_quarantine_row
 
         bundle = self.get_object()

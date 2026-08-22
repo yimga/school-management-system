@@ -115,9 +115,18 @@ class RecoveryGapScopeTests(SimpleTestCase):
         self.assertEqual(ACTION_SCOPE_REQUIREMENTS[("token", "scopes_catalog")], "tokens:manage")
 
     def test_quarantine_write_gate_helper_exported(self):
-        from apps.migration_cloud.api.quarantine_actions import _require_quarantine_write_access
+        from apps.migration_cloud.api.quarantine_actions import (
+            _require_quarantine_read_access,
+            _require_quarantine_write_access,
+        )
 
         self.assertTrue(callable(_require_quarantine_write_access))
+        self.assertTrue(callable(_require_quarantine_read_access))
+
+    def test_live_import_js_parses_sse_payload(self):
+        js = Path("static/js/rmc-migration-live-import.js").read_text(encoding="utf-8")
+        self.assertIn("applyStreamEvent", js)
+        self.assertIn("JSON.parse(ev.data)", js)
 
 
 class ArchiveHelperTests(SimpleTestCase):
@@ -146,8 +155,9 @@ class ArchiveHelperTests(SimpleTestCase):
 
 class TenantSSEViewSmokeTests(SimpleTestCase):
     @mock.patch("apps.migration_cloud.views_tenant_upload._tenant_bundle_or_404")
+    @mock.patch("apps.migration_cloud.views_tenant_upload.user_is_tenant_admin", return_value=True)
     @mock.patch("apps.migration_cloud.progress.stream_events_since")
-    def test_sse_stream_yields_connected(self, stream_mock, bundle_mock):
+    def test_sse_stream_yields_connected(self, stream_mock, _admin_mock, bundle_mock):
         from apps.migration_cloud.views_tenant_upload import TenantMigrationProgressStreamView
 
         bundle_mock.return_value = SimpleNamespace(pk=4)
@@ -164,8 +174,9 @@ class TenantSSEViewSmokeTests(SimpleTestCase):
 
 class TenantAIExplainSmokeTests(SimpleTestCase):
     @mock.patch("apps.migration_cloud.views_tenant_upload._tenant_bundle_or_404")
+    @mock.patch("apps.migration_cloud.views_tenant_upload.user_is_tenant_admin", return_value=True)
     @mock.patch("apps.migration_cloud.ai_bridge.explain_quarantine_row")
-    def test_ai_explain_returns_json(self, explain_mock, bundle_mock):
+    def test_ai_explain_returns_json(self, explain_mock, _admin_mock, bundle_mock):
         from apps.migration_cloud.views_tenant_upload import TenantMigrationAIExplainView
 
         bundle_mock.return_value = SimpleNamespace(pk=2, school=SimpleNamespace(pk=1))
