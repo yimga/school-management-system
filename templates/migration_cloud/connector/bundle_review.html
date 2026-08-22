@@ -111,6 +111,7 @@ any locale can't break the inline script's string literals.
 {% endif %}
 
 {% if quarantine_pending and held_review_url %}
+{# attention-allow: resolver-surface — held preview card; review/clear/export actions in same section #}
 <section class="rmc-card mb-4 rmc-card--attention" aria-labelledby="mc-held-preview-heading" id="mc-held-preview">
   <h2 id="mc-held-preview-heading" class="h5">{% trans "Held for review — action required" %}</h2>
   <p class="text-muted small">
