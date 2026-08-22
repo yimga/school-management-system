@@ -134,8 +134,19 @@ def _compare(findings: list[dict]) -> int:
         _summary(findings)
         print("\nNo baseline on disk. Run without --compare to write one.")
         return 1 if findings else 0
-    known = {(i["path"], i["line"]) for i in baseline.get("findings", [])}
-    new = [f for f in findings if (f["path"], f["line"]) not in known]
+    # Key on PATH + per-file count, not on the exact line. A line number is not a
+    # stable identity: editing anything above a finding shifts it and would report
+    # a phantom NEW entry, which trains people to ignore this gate. What matters is
+    # that no file gains a call of this shape.
+    from collections import Counter
+
+    known = Counter(i["path"] for i in baseline.get("findings", []))
+    current = Counter(f["path"] for f in findings)
+    new = [
+        f
+        for f in findings
+        if current[f["path"]] > known.get(f["path"], 0)
+    ]
     _summary(findings)
     if new:
         print("\nNEW school-in-defaults writes:")

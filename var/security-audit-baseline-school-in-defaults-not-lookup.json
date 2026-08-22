@@ -1,5 +1,5 @@
 {
-  "count": 42,
+  "count": 40,
   "findings": [
     {
       "call": "get_or_create",
@@ -33,17 +33,12 @@
     },
     {
       "call": "get_or_create",
-      "line": 365,
-      "path": "apps/accounts/migration_importers.py"
-    },
-    {
-      "call": "get_or_create",
-      "line": 375,
+      "line": 382,
       "path": "apps/accounts/migration_importers.py"
     },
     {
       "call": "update_or_create",
-      "line": 458,
+      "line": 465,
       "path": "apps/accounts/migration_importers.py"
     },
     {
@@ -172,11 +167,6 @@
       "path": "apps/reports/views.py"
     },
     {
-      "call": "get_or_create",
-      "line": 86,
-      "path": "apps/requests/services.py"
-    },
-    {
       "call": "update_or_create",
       "line": 329,
       "path": "apps/schools/demo_user_seeding.py"
@@ -212,6 +202,6 @@
       "path": "apps/siteconfig/user_identity.py"
     }
   ],
-  "generated_at": "2026-08-22T15:34:21.500341+00:00",
+  "generated_at": "2026-08-22T19:41:31.971307+00:00",
   "rule": "school must be in the LOOKUP of get_or_create/update_or_create, not defaults"
 }
