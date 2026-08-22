@@ -622,9 +622,14 @@ class OperatorWizardView(LoginRequiredMixin, View):
         )
         return render(request, self.template, context)
 
-    def post(self, request: HttpRequest, wizard_key: str, step_key: str) -> HttpResponse:
+    # `<wizard_key>/` (no step) routes to this same view, so POST arrives without a
+    # step_key and this raised TypeError -> 500. `_resolve` already tolerates None
+    # (GET passes it that way); the missing piece was the guard on `step`.
+    def post(
+        self, request: HttpRequest, wizard_key: str, step_key: str | None = None
+    ) -> HttpResponse:
         wizard, step, school = self._resolve(request, wizard_key, step_key)
-        if wizard is None or school is None:
+        if wizard is None or school is None or step is None:
             return redirect("setup_studio:operator_wizard_index")
         nl_response = _maybe_handle_nl_intake(
             request, wizard=wizard, step=step, school=school,
@@ -782,7 +787,12 @@ class TenantWizardView(LoginRequiredMixin, View):
         )
         return render(request, self.template, context)
 
-    def post(self, request: HttpRequest, wizard_key: str, step_key: str) -> HttpResponse:
+    # `<wizard_key>/` (no step) routes to this same view, so POST arrives without a
+    # step_key and this raised TypeError -> 500. `_resolve` already tolerates None
+    # (GET passes it that way); the missing piece was the guard on `step`.
+    def post(
+        self, request: HttpRequest, wizard_key: str, step_key: str | None = None
+    ) -> HttpResponse:
         try:
             wizard_for_audience_check = wizard_engine.get_wizard(wizard_key)
         except wizard_engine.WizardNotFound:
@@ -790,7 +800,7 @@ class TenantWizardView(LoginRequiredMixin, View):
         if not _user_can_run_wizard(request, wizard_for_audience_check):
             return redirect("/")
         wizard, step, school = self._resolve(request, wizard_key, step_key)
-        if wizard is None or school is None:
+        if wizard is None or school is None or step is None:
             return redirect("setup_studio:tenant_wizard_index")
         nl_response = _maybe_handle_nl_intake(
             request, wizard=wizard, step=step, school=school,

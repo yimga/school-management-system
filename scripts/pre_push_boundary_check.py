@@ -205,6 +205,9 @@ GATES: list[tuple[str, list[str]]] = [
 # stdlib gate above.
 DJANGO_GATES: list[tuple[str, list[str]]] = [
     ("rls-table-coverage", ["scan_rls_table_coverage.py", "--compare"]),
+    # Zero-baseline: a view that cannot accept its own URL kwargs is a certain 500,
+    # and it is invisible to every stdlib gate because the URL resolves fine.
+    ("url-kwarg-contract", ["audit_url_kwarg_contract.py"]),
     # Structural floor only: how many models a resolver or builder can reach.
     # The headline coverage numbers depend on the database and are deliberately
     # NOT ratcheted -- see the script's docstring.

@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n collapsable_tags %}
 {% comment %}
   _collapsable_section.html — v3.58.x (2026-05-22) Wave 10 Agent T
 
@@ -20,15 +20,23 @@
   Usage:
     {% include "partials/cockpit/_collapsable_section.html" with title="Tenant Health Grid" key="tenant_heatmap" include_partial="partials/cockpit/_tenant_heatmap.html" %}
 
-  Inner partials retain their own cockpit.<section>.enabled self-gate, so when
-  the section is disabled the partial renders nothing and the user still sees
-  an empty expandable. Callers who want to avoid that should gate the include
-  itself: {% if cockpit.tenant_heatmap.enabled %}{% include ... %}{% endif %}.
+  Inner partials retain their own cockpit.<section>.enabled self-gate. When a
+  partial renders nothing, this wrapper now renders nothing either -- the
+  <details>, its summary and its rule are all suppressed, instead of leaving an
+  empty expandable behind. That used to be pushed onto callers ("gate the include
+  itself"); none of the 42 call sites did, which is why the founder dashboard
+  showed six blank rules above its first real content. See
+  apps/platform_runtime/templatetags/collapsable_tags.py.
 {% endcomment %}
 {% comment %} Dashboard Packs (depth): a pack may hide specific cockpit sections by key.
    Default-visible — a section is hidden ONLY when the active pack explicitly lists it in
    dashboard_pack_hidden_sections, so an unassigned school renders unchanged. {% endcomment %}
 {% if not dashboard_pack_hidden_sections or key not in dashboard_pack_hidden_sections %}
+{% comment %} Render the inner partial FIRST. A section with nothing to say must not
+   leave its chrome behind; only a partial that produced visible output gets a
+   <details> around it. {% endcomment %}
+{% collapsable_body include_partial as rmc_collapsable_body %}
+{% if rmc_collapsable_body %}
 <details class="rmc-collapsable"
          data-rmc-collapsable-key="{{ key }}"
          data-rmc-collapsable-default="{{ default_state|default:'open' }}"
@@ -42,7 +50,8 @@
   </summary>
   <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="rmc-collapsable__body">
-    {% if include_partial %}{% include include_partial %}{% endif %}
+    {{ rmc_collapsable_body }}
   </div>
 </details>
+{% endif %}
 {% endif %}

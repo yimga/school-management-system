@@ -153,7 +153,7 @@ class TenantTokenListView(_TenantAdminWriteRequiredMixin, View):
 
     template_name = "migration_cloud/connector/provisioning_tokens.html"
 
-    def get(self, request):
+    def get(self, request, **kwargs):
         school = _request_school(request)
         if school is None:
             raise Http404()
@@ -191,13 +191,13 @@ class TenantTokenMintView(_TenantAdminWriteRequiredMixin, View):
             "tokens_url": _connector_reverse(request, "provisioning-tokens"),
         }
 
-    def get(self, request):
+    def get(self, request, **kwargs):
         school = _request_school(request)
         if school is None:
             raise Http404()
         return render(request, self.template_name, self._form_context(request, school))
 
-    def post(self, request):
+    def post(self, request, **kwargs):
         school = _request_school(request)
         if school is None:
             raise Http404()
@@ -262,7 +262,7 @@ class TenantTokenMintView(_TenantAdminWriteRequiredMixin, View):
 class TenantTokenRevokeView(_TenantAdminWriteRequiredMixin, View):
     """POST — revoke one of the caller's OWN school's tokens (IDOR-safe 404)."""
 
-    def post(self, request, token_id: int):
+    def post(self, request, token_id: int, **kwargs):
         school = _request_school(request)
         if school is None:
             raise Http404()
@@ -318,13 +318,13 @@ class TenantWebhookView(_TenantAdminWriteRequiredMixin, View):
             "home_url": _connector_reverse(request, "connector-home"),
         }
 
-    def get(self, request):
+    def get(self, request, **kwargs):
         school = _request_school(request)
         if school is None:
             raise Http404()
         return render(request, self.template_name, self._list_context(request, school))
 
-    def post(self, request):
+    def post(self, request, **kwargs):
         school = _request_school(request)
         if school is None:
             raise Http404()
@@ -375,7 +375,7 @@ class TenantWebhookView(_TenantAdminWriteRequiredMixin, View):
 class TenantWebhookDeactivateView(_TenantAdminWriteRequiredMixin, View):
     """POST — deactivate one of the caller's OWN subscriptions (IDOR-safe 404)."""
 
-    def post(self, request, sub_id: int):
+    def post(self, request, sub_id: int, **kwargs):
         school = _request_school(request)
         if school is None:
             raise Http404()

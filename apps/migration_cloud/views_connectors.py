@@ -238,7 +238,7 @@ class MigrationCloudConnectorHomeView(_ConnectorTenantAdminRequiredMixin, Templa
 class MigrationCloudConnectorConnectView(_ConnectorTenantAdminRequiredMixin, View):
     template_name = "migration_cloud/connector/connect.html"
 
-    def get(self, request: HttpRequest) -> HttpResponse:
+    def get(self, request: HttpRequest, **kwargs) -> HttpResponse:
         school = _request_school(request)
         if school is None:
             raise Http404()
@@ -254,7 +254,7 @@ class MigrationCloudConnectorConnectView(_ConnectorTenantAdminRequiredMixin, Vie
             },
         )
 
-    def post(self, request: HttpRequest) -> HttpResponse:
+    def post(self, request: HttpRequest, **kwargs) -> HttpResponse:
         school = _request_school(request)
         if school is None:
             raise Http404()
@@ -309,7 +309,7 @@ class MigrationCloudConnectorConnectView(_ConnectorTenantAdminRequiredMixin, Vie
 class MigrationCloudConnectorDiscoverView(_ConnectorTenantAdminRequiredMixin, View):
     template_name = "migration_cloud/connector/discover.html"
 
-    def get(self, request: HttpRequest, connection_id: UUID) -> HttpResponse:
+    def get(self, request: HttpRequest, connection_id: UUID, **kwargs) -> HttpResponse:
         connection = _connection_for_request(request, connection_id)
         runs = connection.discovery_runs.order_by("-started_at")[:5]
         return render(
@@ -323,7 +323,7 @@ class MigrationCloudConnectorDiscoverView(_ConnectorTenantAdminRequiredMixin, Vi
             },
         )
 
-    def post(self, request: HttpRequest, connection_id: UUID) -> HttpResponse:
+    def post(self, request: HttpRequest, connection_id: UUID, **kwargs) -> HttpResponse:
         connection = _connection_for_request(request, connection_id)
         if connection.status != SourceConnectionStatus.VERIFIED:
             # A DRAFT/REVOKED/FAILED connection is still linked from the home
@@ -354,7 +354,7 @@ class MigrationCloudConnectorDiscoverView(_ConnectorTenantAdminRequiredMixin, Vi
 class MigrationCloudConnectorMappingView(_ConnectorTenantAdminRequiredMixin, View):
     template_name = "migration_cloud/connector/mapping.html"
 
-    def get(self, request: HttpRequest, connection_id: UUID, run_id: UUID) -> HttpResponse:
+    def get(self, request: HttpRequest, connection_id: UUID, run_id: UUID, **kwargs) -> HttpResponse:
         connection = _connection_for_request(request, connection_id)
         discovery_run = get_object_or_404(
             MigrationDiscoveryRun,
@@ -385,7 +385,7 @@ class MigrationCloudConnectorMappingView(_ConnectorTenantAdminRequiredMixin, Vie
             },
         )
 
-    def post(self, request: HttpRequest, connection_id: UUID, run_id: UUID) -> HttpResponse:
+    def post(self, request: HttpRequest, connection_id: UUID, run_id: UUID, **kwargs) -> HttpResponse:
         connection = _connection_for_request(request, connection_id)
         entity = request.POST.get("entity_type", "students")
         confirm_mappings(connection=connection, entity_type=entity, actor=request.user)
@@ -399,7 +399,7 @@ class MigrationCloudConnectorMappingView(_ConnectorTenantAdminRequiredMixin, Vie
 class MigrationCloudConnectorValidateView(_ConnectorTenantAdminRequiredMixin, View):
     template_name = "migration_cloud/connector/validate.html"
 
-    def get(self, request: HttpRequest, connection_id: UUID, run_id: UUID) -> HttpResponse:
+    def get(self, request: HttpRequest, connection_id: UUID, run_id: UUID, **kwargs) -> HttpResponse:
         connection = _connection_for_request(request, connection_id)
         discovery_run = get_object_or_404(
             MigrationDiscoveryRun,
@@ -473,7 +473,7 @@ class MigrationCloudConnectorQuarantineView(_ConnectorTenantAdminRequiredMixin, 
 class MigrationCloudConnectorImportView(_ConnectorTenantAdminRequiredMixin, View):
     template_name = "migration_cloud/connector/import.html"
 
-    def get(self, request: HttpRequest, connection_id: UUID, batch_id: UUID) -> HttpResponse:
+    def get(self, request: HttpRequest, connection_id: UUID, batch_id: UUID, **kwargs) -> HttpResponse:
         connection = _connection_for_request(request, connection_id)
         batch = get_object_or_404(
             MigrationStagingBatch,
@@ -492,7 +492,7 @@ class MigrationCloudConnectorImportView(_ConnectorTenantAdminRequiredMixin, View
             },
         )
 
-    def post(self, request: HttpRequest, connection_id: UUID, batch_id: UUID) -> HttpResponse:
+    def post(self, request: HttpRequest, connection_id: UUID, batch_id: UUID, **kwargs) -> HttpResponse:
         connection = _connection_for_request(request, connection_id)
         batch = get_object_or_404(
             MigrationStagingBatch,
@@ -565,7 +565,7 @@ class MigrationCloudConnectorReviewView(_ConnectorTenantAdminRequiredMixin, Temp
 
 @method_decorator(csrf_protect, name="dispatch")
 class MigrationCloudConnectorRevokeView(_ConnectorTenantAdminRequiredMixin, View):
-    def post(self, request: HttpRequest, connection_id: UUID) -> HttpResponse:
+    def post(self, request: HttpRequest, connection_id: UUID, **kwargs) -> HttpResponse:
         connection = _connection_for_request(request, connection_id)
         revoke_source_connection(connection)
         purge_source_credentials(connection)

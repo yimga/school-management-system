@@ -655,6 +655,21 @@ def _tenant_cache_key(host_or_sub: str, kind: str = "host") -> str:
     return tenant_resolution_cache_key(host_or_sub, kind)
 
 
+def is_sovereign_single_tenant_box() -> bool:
+    """True when this process is a single-school sovereign box, not the cloud.
+
+    ``SINGLE_TENANT`` is the box's own switch and defaults off, so the cloud and
+    every developer machine are untouched by anything gated on this. The schema
+    check mirrors ``check_edge_readiness``: under django-tenants the schema is
+    resolved from the hostname upstream, so the bare-host fallback is inert and
+    claiming otherwise would be worse than not claiming it.
+    """
+    flag = str(getattr(settings, "SINGLE_TENANT", "") or "").strip().lower()
+    if flag not in {"1", "true", "yes"}:
+        return False
+    return not bool(getattr(settings, "USE_DJANGO_TENANTS", False))
+
+
 class UrlConfSwitcherMiddleware(MiddlewareMixin):
     """
     Set request.urlconf to public_urls or tenant_urls so the root URL resolver
@@ -678,6 +693,31 @@ class UrlConfSwitcherMiddleware(MiddlewareMixin):
         # request to config.tenant_urls (below) so those guards fire on real tenant
         # hosts. Fail-safe default is False.
         request.is_tenant_host = False
+        # A sovereign box serves exactly ONE school and is reached by whatever the
+        # LAN offers: an IP literal (http://10.10.20.137:10000), a bare hostname, or
+        # its own base domain. `public_host_kind` answers "local"/"base" for all
+        # three -- correct for the cloud, and wrong here in a way that was never
+        # only cosmetic. It handed the box `config.urls`, the DEVELOPER urlconf,
+        # which:
+        #   * mounts NO admin site, so /authentication/backend/ 500'd inside
+        #     `AdminSite.each_context` on reverse("admin:app_list");
+        #   * cannot reverse 1,422 `tenant_admin:*` names the tenant chrome asks
+        #     for, which is why sidebars came up empty;
+        #   * DOES mount 428 `/super/` control-plane routes that a school's own
+        #     box must never serve, and `public_host_kind == "local"` additionally
+        #     hands control-plane users the tenant-crossing bypass in
+        #     `tenant_api_guards` that is meant for operators on the manager host.
+        # `TenantMiddleware` ALREADY resolves the school for exactly these hosts
+        # (`_get_single_tenant_school`, locked by test_single_tenant_bare_host.py).
+        # Only the URL layer never agreed with it. This is that agreement.
+        if kind in {"local", "base", None} and is_sovereign_single_tenant_box():
+            request.urlconf = "config.tenant_urls"
+            request.is_tenant_host = True
+            # Positive tenant marker for the guards that read the ATTRIBUTE. A
+            # school's own box is a tenant host, not a developer loopback.
+            request.public_host_kind = "tenant"
+            set_urlconf(request.urlconf)
+            return None
         # Local/test hosts keep full URL surface for developer workflows and legacy tests.
         if kind == "local":
             request.urlconf = "config.urls"
@@ -731,7 +771,14 @@ class ReservedPublicHostAccessMiddleware(MiddlewareMixin):
         host = _request_host_raw(request)
         path = (request.path or "").strip()
         kind = public_host_kind(host)
-        request.public_host_kind = kind
+        # `UrlConfSwitcherMiddleware` runs first and OWNS this attribute. Recomputing
+        # it here overwrote whatever it decided -- which was invisible while the two
+        # always agreed, and silently wrong the moment they did not: on a sovereign
+        # box the switcher records "tenant" for a host `public_host_kind()` calls
+        # "local", and this line put "local" straight back. Two middlewares cannot
+        # both own one attribute; the first one does.
+        if not hasattr(request, "public_host_kind"):
+            request.public_host_kind = kind
 
         # Super-admin command center is canonical on manager.<base>, but never
         # bounce tenant subdomains/custom domains into the operator plane.

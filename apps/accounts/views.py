@@ -2737,7 +2737,25 @@ def backend_dashboard(request):
         ),
     }
 
-    app_context = admin_site.each_context(request)
+    # `each_context` builds `available_apps`, and Django's `_build_app_dict` reverses
+    # "admin:app_list" for every app while doing it. On a host whose urlconf mounts no
+    # admin site that reverse raises, and it raised from INSIDE this call -- so the
+    # guarded `reverse("admin:index")` twenty lines below, added for exactly this
+    # failure, never got the chance to run. That is how a sovereign box reached at
+    # http://<ip>:10000/authentication/backend/ returned a 500 instead of a dashboard.
+    # The module COUNT is a hero-stat; losing it must never cost the whole page.
+    try:
+        app_context = admin_site.each_context(request)
+    except NoReverseMatch:
+        import logging
+
+        logging.getLogger(__name__).warning(
+            "backend_dashboard: no admin site on urlconf %r (host=%r) -- rendering "
+            "without the module count",
+            getattr(request, "urlconf", None),
+            request.get_host(),
+        )
+        app_context = {}
     modules = sum(
         len(app.get("models") or []) for app in app_context.get("available_apps", [])
     )

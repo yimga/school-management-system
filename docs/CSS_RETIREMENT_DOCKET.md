@@ -1,8 +1,75 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-08-21
+**Last updated:** 2026-08-22
 
-## 2026-08-21 (latest) — Closing the deferrals: an 8,944-query changelist, four gates that could never be wired, and two "hangs" that were not
+## 2026-08-22 (latest) — The box was being served the developer urlconf, and 124 operator/tenant routes could not accept their own URL kwargs
+
+No SW bump: no new CSS and no new JS. Full write-up: [`docs/EDGE_UPDATE_PIPELINE.md`](EDGE_UPDATE_PIPELINE.md).
+
+**One root cause explained the box's 500 AND its wrong branding.** `public_host_kind()`
+answers `"local"` for any IP literal -- the same answer it gives `localhost` -- so
+`UrlConfSwitcherMiddleware` handed a sovereign box reached at `http://10.10.20.137:10000`
+`config.urls`, the DEVELOPER urlconf. That urlconf mounts **no admin site**, so
+`/authentication/backend/` died inside `AdminSite.each_context` on
+`reverse("admin:app_list")` (reproduced exactly: `NoReverseMatch: 'admin' is not a
+registered namespace`); it cannot reverse **1,422 `tenant_admin:*` names**, which is why
+sidebars came up empty and the platform wordmark showed instead of the school's; and it
+DOES mount **428 `/super/` control-plane routes** a school's own box must never serve --
+`/super/founder/` returned **200** on the box. `public_host_kind == "local"` additionally
+hands control-plane users the tenant-crossing bypass in `tenant_api_guards` meant for
+operators on the manager host.
+
+The school was resolving correctly the whole time. `_get_single_tenant_school` was wired
+and tested (`test_single_tenant_bare_host.py`), and `deploy/selfhost/.env.edge.example`
+promises in writing that "the machine's IP ... resolves to the sole active school". Only
+the URL layer never agreed with it. Measured on the box's own host:
+`/super/founder/` **200 -> 404**; `/authentication/profile/` and `/studio/` **10 and 7
+`/super/` links -> 0**, platform wordmark -> tenant wordmark, and **166 KB -> 301 KB**
+because the tenant chrome and sidebar now render at all.
+
+A second, quieter defect surfaced on the way: `ReservedPublicHostAccessMiddleware`
+recomputed `request.public_host_kind` and **overwrote** whatever `UrlConfSwitcherMiddleware`
+had decided. Invisible while the two agreed; silently wrong the moment they did not.
+
+**124 routes on both hosts could not accept their own URL kwargs.** `include(..., {"shell":
+"super"})` injects a kwarg into EVERY view in the included module. 31 views -- the whole
+Migration Cloud connector, tenant-upload and LMS-diagnostics surface -- did not take
+`**kwargs`, so every one raised `TypeError` on first request, on the operator host AND the
+tenant host. No gate could see it: the URL resolves, the module imports, the permission
+passes, and only calling the view fails. New zero-baseline gate
+`scripts/audit_url_kwarg_contract.py` checks BOTH directions (a view that cannot accept a
+kwarg, and one that REQUIRES a kwarg the URL never supplies) -- which is how it also found
+`SocialModerationAPI`, mounted at a list URL and a detail URL and broken on each in the
+opposite direction, and `school_configuration_center`, whose `configuration/<path:remaining>`
+catch-all made every deep link under `/configuration/` a tenant-host 500. **129 -> 0.**
+
+**Seven empty expandables above the first real content on the founder dashboard.**
+`_collapsable_section.html` rendered its `<details>`, summary and rule unconditionally while
+every inner partial self-gated on `cockpit.<section>.enabled` plus a data list. The
+wrapper's own docstring admitted this and pushed the fix onto callers; none of the 42 call
+sites did it, and a caller-side gate cannot be written correctly anyway (the wrapper key
+`founder__tenant_heatmap` is not the cockpit key `tenant_heatmap`, and "enabled" is only
+half the condition). New `{% collapsable_body %}` tag renders the partial first and
+suppresses the whole wrapper when it produced nothing visible. `/super/founder/`:
+**9 sections / 7 empty -> 2 sections / 0 empty**, `/super/` unchanged.
+
+**The PIN dialog and the cloud go-live 500 were not product defects.** Both were fixed in
+`main` on 2026-08-20 and 2026-08-19 and had reached neither deployment: GitHub Actions has
+started no job since 2026-08-15 ("The job was not started because an Actions budget is
+preventing further use"), so eight workflows go red without executing. `manage.py
+deployment_parity [--against <url>]` now reports commit / service-worker / applied-migration
+fingerprints and classifies every setting MUST_MATCH / MAY_DIFFER / MUST_DIFFER -- the last
+because two boxes sharing a `SECRET_KEY` is a finding, not parity. `check_edge_readiness`
+gained a host-routing probe so a box cannot boot into the wrong urlconf unnoticed.
+
+**Still open, stated plainly:** seven `/super/migration/connectors/*` routes remain 500 on
+the operator host for a DIFFERENT reason -- their templates extend `portal_base.html`, the
+tenant shell, which reverses the tenant-only `portal:` namespace. 109 templates reverse
+`portal:`. Fixing that means giving those wizards a host-aware base and renaming every
+block; it would likely break the tenant-side wizard, which works today, so it is reported
+rather than attempted.
+
+## 2026-08-21 — Closing the deferrals: an 8,944-query changelist, four gates that could never be wired, and two "hangs" that were not
 
 No SW bump: still no CSS and no JS. Follow-up to the entry below, closing every item
 it deferred. Full detail: [`docs/ADMIN_AUTOFILL_AUDIT_2026_08_21.md`](ADMIN_AUTOFILL_AUDIT_2026_08_21.md).

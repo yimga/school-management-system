@@ -181,7 +181,7 @@ def _compute_lms_diagnostics() -> dict:
 
 @require_control_plane_access
 @require_http_methods(["GET"])
-def lms_diagnostics(request: HttpRequest):
+def lms_diagnostics(request: HttpRequest, **kwargs):
     """v4.00.56 — Operator dashboard at /super/migration/lms/diagnostics/.
 
     v4.00.60 — emits the last-action ring snapshot alongside the diag rollup.
@@ -715,7 +715,7 @@ def _action_totals() -> dict:
 
 @require_control_plane_access
 @require_http_methods(["GET"])
-def lms_diagnostics_action_history(request: HttpRequest):
+def lms_diagnostics_action_history(request: HttpRequest, **kwargs):
     """v4.00.60 — JSON-only endpoint returning the last-action ring snapshot.
 
     v4.00.62 — supports ISO-8601 ``?since=`` + ``?before=`` window
@@ -1115,7 +1115,7 @@ def _read_retention_purge_token(raw: str):
 
 @require_control_plane_access
 @require_http_methods(["GET"])
-def lms_diagnostics_retention_preview(request: HttpRequest):
+def lms_diagnostics_retention_preview(request: HttpRequest, **kwargs):
     """v4.00.64 — Operator preview of the next retention sweep's footprint.
 
     Always runs ``sweep_lms_diag_action_retention(dry_run=True)`` regardless
@@ -1230,7 +1230,7 @@ def lms_diagnostics_retention_preview(request: HttpRequest):
 
 @require_control_plane_access
 @require_http_methods(["POST"])
-def lms_diagnostics_retention_purge(request: HttpRequest):
+def lms_diagnostics_retention_purge(request: HttpRequest, **kwargs):
     """v4.00.66 — Honor the "Confirm purge" click from the preview UI.
 
     Validates the signed token + runs the REAL sweep with ``dry_run=False``.
@@ -1343,7 +1343,7 @@ def _parse_window_iso(raw):
 
 @require_control_plane_access
 @require_http_methods(["POST"])
-def lms_diagnostics_force_refresh(request: HttpRequest):
+def lms_diagnostics_force_refresh(request: HttpRequest, **kwargs):
     """v4.00.59 — Force-refresh every expired token for ``?provider=<slug>``.
 
     Reuses v4.00.59 ``lms_oauth_health.sweep_lms_oauth_health`` so the
@@ -1387,7 +1387,7 @@ def lms_diagnostics_force_refresh(request: HttpRequest):
 
 @require_control_plane_access
 @require_http_methods(["POST"])
-def lms_diagnostics_force_rotate(request: HttpRequest):
+def lms_diagnostics_force_rotate(request: HttpRequest, **kwargs):
     """v4.00.59 — Force-rotate every token past the rotation-grace window
     for ``?provider=<slug>``.
 

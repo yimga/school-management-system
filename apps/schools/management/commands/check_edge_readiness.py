@@ -131,6 +131,34 @@ class Command(BaseCommand):
             ))
         elif single_tenant:
             findings.append((OK, "SINGLE_TENANT + shared mode: bare-hostname resolution active."))
+            # The school resolving is only half of it. Until 2026-08-22 the URL layer
+            # disagreed with the school layer: an IP-literal host got `config.urls`,
+            # the DEVELOPER urlconf, which mounts no admin site (a 500 on
+            # /authentication/backend/), cannot reverse the tenant admin (empty
+            # sidebars), and DOES mount the /super/ control plane. Assert the two
+            # layers now agree, because a box reached by IP is the normal case.
+            try:
+                from django.test import RequestFactory
+
+                from apps.schools.middleware import UrlConfSwitcherMiddleware
+
+                probe = RequestFactory().get("/", HTTP_HOST="10.0.0.1")
+                UrlConfSwitcherMiddleware(lambda r: None).process_request(probe)
+                if getattr(probe, "urlconf", "") == "config.tenant_urls":
+                    findings.append((
+                        OK,
+                        "Bare-IP access routes to the tenant URL surface "
+                        "(no control plane, tenant admin reversible).",
+                    ))
+                else:
+                    findings.append((
+                        FAIL,
+                        "SINGLE_TENANT is on but a bare-IP host still routes to "
+                        f"{getattr(probe, 'urlconf', '?')} — this box serves the operator "
+                        "control plane to its school and 500s on /authentication/backend/.",
+                    ))
+            except Exception as exc:  # noqa: BLE001 — readiness must never crash
+                findings.append((WARN, f"Could not probe host routing: {exc}"))
             # Confirm exactly one active school (tolerant of an unmigrated/unavailable DB).
             try:
                 from apps.schools.models import School

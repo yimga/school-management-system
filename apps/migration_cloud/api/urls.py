@@ -74,7 +74,7 @@ _VERIFIER_ASSETS = {
 
 
 @require_GET
-def webhook_verifier_download(request, asset: str):
+def webhook_verifier_download(request, asset: str, **kwargs):
     """Serve a single verifier-SDK asset as a downloadable attachment.
 
     Public-anonymous: the SDK files contain zero secrets — they are the

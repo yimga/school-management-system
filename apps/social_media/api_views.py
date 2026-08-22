@@ -92,7 +92,10 @@ class SocialModerationAPI(APIView):
     permission_classes = [IsAuthenticated, IsAdminUser]
 
     @extend_schema(summary="List pending proud-campus moderation items")
-    def get(self, request):
+    # One class serves BOTH `social/moderation/` and `social/moderation/<item_id>/`.
+    # `get` had no `item_id` (500 on the detail route) and `post` required one
+    # (500 on the list route) -- the same mismatch in both directions at once.
+    def get(self, request, item_id=None):
         school, platform_scope = resolve_feed_scope(request)
         if platform_scope or school is None:
             return Response(
@@ -118,7 +121,11 @@ class SocialModerationAPI(APIView):
         )
 
     @extend_schema(summary="Approve or reject a moderation item")
-    def post(self, request, item_id):
+    def post(self, request, item_id=None):
+        if item_id is None:
+            return Response(
+                {"error": "item_id_required"}, status=status.HTTP_400_BAD_REQUEST
+            )
         school, platform_scope = resolve_feed_scope(request)
         if platform_scope or school is None:
             return Response({"error": "tenant_required"}, status=status.HTTP_403_FORBIDDEN)

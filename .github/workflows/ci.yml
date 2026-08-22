@@ -69,6 +69,8 @@ jobs:
         run: python scripts/verify_relation_path_integrity.py --compare
       - name: Verify ORM filter-field integrity
         run: python scripts/verify_orm_filter_field_integrity.py --compare
+      - name: URL kwarg contract (views must accept their own URL kwargs)
+        run: python scripts/audit_url_kwarg_contract.py
       - name: Verify offline manifest taxonomy (operational_state always present)
         run: python scripts/verify_offline_manifest_taxonomy.py
       - name: Verify tenant cannot reach operator routes (super-segment coverage)
