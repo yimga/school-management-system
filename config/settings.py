@@ -4350,6 +4350,17 @@ RMC_OTA_WORKER_RESUME_COMMAND = (os.getenv("RMC_OTA_WORKER_RESUME_COMMAND", "") 
 RMC_OTA_REVERSE_MIGRATIONS_ON_ROLLBACK = os.getenv(
     "RMC_OTA_REVERSE_MIGRATIONS_ON_ROLLBACK", "1"
 ).strip().lower() in ("1", "true", "yes", "on")
+# Which rollout rings a NEW manifest is released to before anybody promotes it.
+#
+# Defaults to canary alone, so a deploy reaches the boxes an operator nominated and stops
+# there. That is the point of the ring: a release that is wrong in a way no test caught —
+# and the reason this pipeline exists is that some of them are — must not reach every
+# school in the fleet before anyone has looked at the first one.
+#
+# Set to "canary,stable" to restore release-to-everyone-immediately.
+RMC_OTA_DEFAULT_RELEASE_RINGS = (
+    os.getenv("RMC_OTA_DEFAULT_RELEASE_RINGS", "canary") or "canary"
+).strip()
 RMC_OTA_ALLOW_DANGEROUS_MIGRATIONS = os.getenv(
     "RMC_OTA_ALLOW_DANGEROUS_MIGRATIONS", "0"
 ).strip().lower() in ("1", "true", "yes", "on")

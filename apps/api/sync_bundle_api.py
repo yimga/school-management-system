@@ -125,6 +125,25 @@ def _manifest_handshake(request, school):
         if target == raw:
             upgrade_lock.release(school)
             return "", ""
+
+        # ROLLOUT RING. A manifest existing on the operator is not the same as this
+        # school being allowed to move to it. Without this check the first box to sync
+        # after a deploy takes the new release and so does every box behind it, which
+        # means a release that is wrong in a way no test caught reaches the whole fleet
+        # before anyone has looked at the first one.
+        #
+        # An unreleased target is not advertised AT ALL rather than advertised-and-
+        # refused: a box told "upgrade available" that is then refused the bytes would
+        # retry every cycle forever, and its operator would see a box that looks stuck.
+        from apps.sync_engine.models_rollout import may_receive
+
+        allowed, reason = may_receive(school, target)
+        if not allowed:
+            # Not a hold. The school is simply staying where it is, and its data must
+            # keep moving while it does.
+            upgrade_lock.release(school)
+            return "", ""
+
         upgrade_lock.hold(
             school,
             target_hash=target,
@@ -132,7 +151,7 @@ def _manifest_handshake(request, school):
             reason="manifest mismatch at bundle download",
         )
         return target, (
-            f"upgrade available: box manifest {raw[:12]} -> operator {target[:12]}"
+            f"upgrade available ({reason}): box manifest {raw[:12]} -> operator {target[:12]}"
         )
     except Exception:  # noqa: BLE001 - advisory only; never cost the box its data
         return "", ""

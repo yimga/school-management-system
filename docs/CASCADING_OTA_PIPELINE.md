@@ -230,6 +230,47 @@ tool that answers "can this box still reach the cloud" while the box is held.
 
 ---
 
+## 4b. Rollout rings — who may move, and when
+
+`apps/sync_engine/models_rollout.py`, migrations `0019` + `0020_rollout_rls`.
+
+A manifest existing on the operator is not the same as a school being allowed to move to
+it. Before rings, the first box to sync after a deploy took the new release and so did
+every box behind it — so a release wrong in a way no test caught reached the whole fleet
+before anyone had looked at the first one. The failure being guarded against is not "a box
+gets a bad release"; it is "every box gets it at once and there is no healthy peer left to
+compare against".
+
+| Record | Scope | Holds |
+|---|---|---|
+| `EdgeRolloutPolicy` | per school (`school` FK → RLS-enumerated in `0020`) | `ring` (canary \| stable), `paused` |
+| `ManifestRelease` | per manifest, **no** `school` FK | which `rings` that manifest is released to |
+
+`ManifestRelease` is deliberately not tenant-scoped: how far a release has been promoted is
+identical for every school, so a `school` FK would both misdescribe it and enrol it in the
+tenant RLS gate for data it does not hold — the same call `EdgeDeploymentHistory` makes.
+
+**A missing row is never a refusal.** A school with no policy is on `stable`; a manifest
+with no release row is on `RMC_OTA_DEFAULT_RELEASE_RINGS` (default `canary`). Requiring an
+operator to pre-create a row per school before anything could ship would make a fresh
+install silently dead. Nothing writes on the read path — rows appear only when an operator
+decides something.
+
+Enforced in **two** places, on purpose: the handshake declines to *advertise* an unreleased
+manifest (a box told "upgrade available" and then refused the bytes retries forever and
+looks stuck), and `sync_upgrade_api._guard` refuses to *serve* one — 409 `not_released`,
+not 403, because nothing is wrong with the box or its credentials.
+
+    manage.py ota_rollout --status
+    manage.py ota_rollout --ring <school> canary
+    manage.py ota_rollout --promote canary stable
+    manage.py ota_rollout --pause <school>
+
+Promotion is not monotonic: `--promote canary` after `--promote canary stable` pulls a bad
+release back while a fix is prepared.
+
+---
+
 ## 5. `EdgeDeploymentHistory`
 
 `apps/sync_engine/models_deployment.py`, migration `0018`. Append-only

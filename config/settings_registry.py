@@ -370,6 +370,7 @@ SETTINGS_REGISTRY: tuple[SettingSpec, ...] = (
     SettingSpec("RMC_OTA_WORKER_RESUME_COMMAND", "str", '""', "ops", "Explicit argv to resume background workers."),
     SettingSpec("RMC_OTA_REVERSE_MIGRATIONS_ON_ROLLBACK", "bool", "True", "ops", "Unwind the schema to the recorded floor when an upgrade rolls back."),
     SettingSpec("RMC_OTA_ALLOW_DANGEROUS_MIGRATIONS", "bool", "False", "ops", "Permit destructive migration ops during an unattended upgrade."),
+    SettingSpec("RMC_OTA_DEFAULT_RELEASE_RINGS", "str", "canary", "ops", "Rings a new manifest is released to before an operator promotes it."),
 
     # ---- App / build version + endpoints ------------------------------------
     SettingSpec("APP_VERSION", "str", '""', "ops", "Human-readable app version surfaced at /-/version/."),

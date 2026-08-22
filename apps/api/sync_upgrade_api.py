@@ -128,6 +128,21 @@ class _EdgeUpgradeView(APIView):
                 },
                 status=503,
             )
+
+        # ROLLOUT RING. The handshake already declines to ADVERTISE a manifest this
+        # school is not released to; this is the enforcement half, because a box can ask
+        # directly and the advice header is advisory. Refused with 409 rather than 403:
+        # nothing is wrong with the box or its credentials, the release simply has not
+        # reached its ring yet, and an operator reading a 403 would go looking for a
+        # permissions bug that does not exist.
+        from apps.sync_engine.models_rollout import may_receive
+
+        allowed, reason = may_receive(school, str(manifest.get("manifest_hash") or ""))
+        if not allowed:
+            return None, None, Response(
+                {"ok": False, "error": "not_released", "detail": reason},
+                status=409,
+            )
         return school, manifest, None
 
 

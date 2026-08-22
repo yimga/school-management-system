@@ -725,9 +725,27 @@ from .models_deployment import (  # noqa: E402  (re-export for the registry)
     EdgeDeploymentHistory,
 )
 
+# WHO may move to a new manifest yet. EdgeRolloutPolicy is per school (tenant-scoped, so
+# it is enumerated in 0019_rollout_rls); ManifestRelease describes how far a RELEASE has
+# been promoted, which is identical for every school, so it has no ``school`` FK.
+from .models_rollout import (  # noqa: E402  (re-export for the registry)
+    DEFAULT_RING,
+    EdgeRolloutPolicy,
+    ManifestRelease,
+    RolloutRing,
+    default_release_rings,
+    may_receive,
+)
+
 __all__ = [
     "DeploymentState",
     "EdgeDeploymentHistory",
+    "EdgeRolloutPolicy",
+    "ManifestRelease",
+    "RolloutRing",
+    "DEFAULT_RING",
+    "default_release_rings",
+    "may_receive",
     "EdgeClaimTicket",
     "EdgeCloudBinding",
     "PendingPushConfirmation",
