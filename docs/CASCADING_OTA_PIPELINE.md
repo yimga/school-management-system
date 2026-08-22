@@ -28,8 +28,21 @@ puts everything back.
 | `manage.py generate_system_manifest` | `apps/sync_engine/management/commands/` |
 | Run at build time | `build.sh` (Render), `deploy/selfhost/Dockerfile` (appliance) |
 
-Categories: `APP_CORE`, `UI_TEMPLATE`, `STATIC_ASSET`, `MIGRATION`, `CONFIG`, `LOCALE`.
-`ASSET_CATEGORIES` = the three a box can swap without reloading the interpreter.
+Categories: `APP_CORE`, `UI_TEMPLATE`, `STATIC_ASSET`, `MIGRATION`, `CONFIG`, `LOCALE`,
+`DATA_ASSET`. `ASSET_CATEGORIES` = the four a box can swap without reloading the
+interpreter (`UI_TEMPLATE`, `STATIC_ASSET`, `LOCALE`, `DATA_ASSET`).
+
+`DATA_ASSET` is the fall-through: anything that is not python and did not match an earlier
+rule. It exists because classifying that bucket as `APP_CORE` made a **gate run on the
+operator** indistinguishable from a code change. 3261 files on this tree are non-python
+data — 1713 of them regenerated audit output under `docs/generated/` and `var/` that
+`pre_push_boundary_check.py` rewrites — so every boundary-gate run would have sent the
+whole fleet through the full lane (write freeze, worker pause, migration precheck, tree
+swap, health gate) to deliver a json recording a test duration. They cannot simply be
+dropped from the manifest: `super_views_enterprise_security` renders nine of those json
+files into an operator dashboard and `country_matrix_service` reads the governance shards
+at request time, so they are product surface. `.py` never reaches the fall-through, so
+nothing in `DATA_ASSET` can require an interpreter reload.
 
 **The manifest hash is content-only.** It is computed over the file map plus the migration
 heads, and deliberately *not* over `generated_at` or the root path. Two builds of identical
