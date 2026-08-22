@@ -72887,3 +72887,315 @@ msgstr ""
 
 msgid "Use the pages below to reach the rest."
 msgstr "Use the pages below to reach the rest."
+
+msgid "%(count)s records are still held for review from the last attempt."
+msgstr "%(count)s records are still held for review from the last attempt."
+
+msgid "%(label)s must be a JSON array, e.g. [\"monthly\", \"annual\"]."
+msgstr "%(label)s must be a JSON array, e.g. [\"monthly\", \"annual\"]."
+
+msgid "%(label)s must be a JSON object, e.g. {\"students\": 500}."
+msgstr "%(label)s must be a JSON object, e.g. {\"students\": 500}."
+
+msgid ""
+"({{ gap }} more were reported but are not stored for row review — fix the "
+"source file or export CSV)"
+msgstr ""
+"({{ gap }} more were reported but are not stored for row review — fix the "
+"source file or export CSV)"
+
+msgid "({{ reviewable }} reviewable of {{ total }} reported held)"
+msgstr "({{ reviewable }} reviewable of {{ total }} reported held)"
+
+msgid "1 record is still held for review from the last attempt."
+msgstr "1 record is still held for review from the last attempt."
+
+msgid "AI explanation"
+msgstr "AI explanation"
+
+msgid "AI is unavailable — see the reason column."
+msgstr "AI is unavailable — see the reason column."
+
+msgid "Apply this bulk action to all pending rows?"
+msgstr "Apply this bulk action to all pending rows?"
+
+msgid "Archive source files"
+msgstr "Archive source files"
+
+msgid "Archive source files now"
+msgstr "Archive source files now"
+
+msgid "Ask your operator"
+msgstr "Ask your operator"
+
+msgid "At set times"
+msgstr "At set times"
+
+msgid "Auto-fix & re-import"
+msgstr "Auto-fix & re-import"
+
+msgid "Clear entire queue"
+msgstr "Clear entire queue"
+
+msgid "Clear held queue"
+msgstr "Clear held queue"
+
+msgid ""
+"Clear the entire held queue? Informational rows will be dismissed and "
+"everything else will be skipped (not imported). This cannot be undone."
+msgstr ""
+"Clear the entire held queue? Informational rows will be dismissed and "
+"everything else will be skipped (not imported). This cannot be undone."
+
+msgid ""
+"Clear the entire held queue? Safe rows dismiss automatically; the rest will "
+"be skipped."
+msgstr ""
+"Clear the entire held queue? Safe rows dismiss automatically; the rest will "
+"be skipped."
+
+msgid "Close & upload new files"
+msgstr "Close & upload new files"
+
+msgid "Close import"
+msgstr "Close import"
+
+msgid "Close this import"
+msgstr "Close this import"
+
+msgid "Could not apply bulk action. Try again."
+msgstr "Could not apply bulk action. Try again."
+
+msgid "Could not clear the queue. Try again."
+msgstr "Could not clear the queue. Try again."
+
+msgid "Could not fetch an explanation."
+msgstr "Could not fetch an explanation."
+
+msgid "Deny all remaining"
+msgstr "Deny all remaining"
+
+msgid "Dismissed from review queue"
+msgstr "Dismissed from review queue"
+
+msgid "Export all (incl. resolved)"
+msgstr "Export all (incl. resolved)"
+
+msgid "Export pending CSV"
+msgstr "Export pending CSV"
+
+msgid "Generating explanation…"
+msgstr "Generating explanation…"
+
+msgid "Guided settings"
+msgstr "Guided settings"
+
+msgid "Held for review — action required"
+msgstr "Held for review — action required"
+
+msgid "Hidden because this school's existing records have never used it."
+msgstr "Hidden because this school's existing records have never used it."
+
+msgid "Import activity log"
+msgstr "Import activity log"
+
+msgid "Import complete — {{ n }} captured source file(s) can be removed now."
+msgstr "Import complete — {{ n }} captured source file(s) can be removed now."
+
+msgid "Issue Remediator — Finance import needs all-or-nothing mode"
+msgstr "Issue Remediator — Finance import needs all-or-nothing mode"
+
+msgid "Issue Remediator — Financial totals must match"
+msgstr "Issue Remediator — Financial totals must match"
+
+msgid "Issue Remediator — Import closed"
+msgstr "Issue Remediator — Import closed"
+
+msgid ""
+"Live events from this import — updates automatically while apply or repair "
+"is running."
+msgstr ""
+"Live events from this import — updates automatically while apply or repair "
+"is running."
+
+msgid ""
+"Marks this import closed so it stops asking for attention. Records already "
+"in your school are kept. Upload new files to try again."
+msgstr ""
+"Marks this import closed so it stops asking for attention. Records already "
+"in your school are kept. Upload new files to try again."
+
+msgid "Never used here"
+msgstr "Never used here"
+
+msgid "No staging quarantine items."
+msgstr "No staging quarantine items."
+
+msgid "Open import review"
+msgstr "Open import review"
+
+msgid "Optional note for dismiss (required for actionable rows):"
+msgstr "Optional note for dismiss (required for actionable rows):"
+
+msgid "Optional note — why are you dismissing this row?"
+msgstr "Optional note — why are you dismissing this row?"
+
+msgid "Permanently deny every pending held row?"
+msgstr "Permanently deny every pending held row?"
+
+msgid "Permanently deny selected rows?"
+msgstr "Permanently deny selected rows?"
+
+msgid "Permanently deny this row? It will never be imported."
+msgstr "Permanently deny this row? It will never be imported."
+
+msgid "Preview of held rows"
+msgstr "Preview of held rows"
+
+msgid "Recovery options"
+msgstr "Recovery options"
+
+msgid "Repeatedly, in a window"
+msgstr "Repeatedly, in a window"
+
+msgid "Review all held rows"
+msgstr "Review all held rows"
+
+msgid "Review finance totals"
+msgstr "Review finance totals"
+
+msgid "Review held rows"
+msgstr "Review held rows"
+
+msgid "Skip all remaining"
+msgstr "Skip all remaining"
+
+msgid "Skip import for every pending held row? They will not be imported."
+msgstr "Skip import for every pending held row? They will not be imported."
+
+msgid ""
+"Some optional fields start hidden because none of this school's {{ rows }} "
+"existing record uses them. Show all brings them back. {% plural %} Some "
+"optional fields start hidden because none of this school's {{ rows }} "
+"existing records use them. Show all brings them back."
+msgstr ""
+"Some optional fields start hidden because none of this school's {{ rows }} "
+"existing record uses them. Show all brings them back. {% plural %} Some "
+"optional fields start hidden because none of this school's {{ rows }} "
+"existing records use them. Show all brings them back."
+
+msgid "Source file"
+msgstr "Source file"
+
+msgid "Source files archived"
+msgstr "Source files archived"
+
+msgid "Staging quarantine (read-only)"
+msgstr "Staging quarantine (read-only)"
+
+msgid ""
+"The last apply reported {{ total }} held rows, but only {{ pending }} are in"
+" the review queue here. {{ gap }} could not be stored for row-by-row review "
+"(engine cap per file). Use Export CSV or re-import after fixing the source "
+"file."
+msgstr ""
+"The last apply reported {{ total }} held rows, but only {{ pending }} are in"
+" the review queue here. {{ gap }} could not be stored for row-by-row review "
+"(engine cap per file). Use Export CSV or re-import after fixing the source "
+"file."
+
+msgid ""
+"These items were flagged while reading your upload. For row-level held "
+"records after import, use the full review queue on your bundle."
+msgstr ""
+"These items were flagged while reading your upload. For row-level held "
+"records after import, use the full review queue on your bundle."
+
+msgid ""
+"These rows did not pass validation and were not written into your school. "
+"Each row shows the source values we read, why it was held, and actions you "
+"can take — dismiss, skip, edit & re-import, or deny."
+msgstr ""
+"These rows did not pass validation and were not written into your school. "
+"Each row shows the source values we read, why it was held, and actions you "
+"can take — dismiss, skip, edit & re-import, or deny."
+
+msgid ""
+"This %(child)s belongs to a different %(parent)s than the one selected."
+msgstr ""
+"This %(child)s belongs to a different %(parent)s than the one selected."
+
+msgid ""
+"This import is complete. {{ n }} captured source file(s) can be removed now "
+"— only metadata stays for audit."
+msgstr ""
+"This import is complete. {{ n }} captured source file(s) can be removed now "
+"— only metadata stays for audit."
+
+msgid ""
+"This import stopped on a financial control-total check. Repair cannot bypass"
+" it — reconcile the expected money totals first, then re-import."
+msgstr ""
+"This import stopped on a financial control-total check. Repair cannot bypass"
+" it — reconcile the expected money totals first, then re-import."
+
+msgid ""
+"This import was closed so you can start fresh. Upload a new export or open a"
+" new import from the inbox — nothing here will block it."
+msgstr ""
+"This import was closed so you can start fresh. Upload a new export or open a"
+" new import from the inbox — nothing here will block it."
+
+msgid "This tray refreshes automatically while something needs you."
+msgstr "This tray refreshes automatically while something needs you."
+
+msgid ""
+"Uploaded source bytes were removed to protect student privacy. Import "
+"metadata and audit history are kept."
+msgstr ""
+"Uploaded source bytes were removed to protect student privacy. Import "
+"metadata and audit history are kept."
+
+msgid ""
+"Uploaded source bytes were removed to protect student privacy. Import "
+"metadata, counts, and audit history are kept."
+msgstr ""
+"Uploaded source bytes were removed to protect student privacy. Import "
+"metadata, counts, and audit history are kept."
+
+msgid ""
+"Use Clear queue to dismiss safe rows and skip the rest, or review row-by-"
+"row. Repair auto-refreshes file types and re-imports anything still pending."
+msgstr ""
+"Use Clear queue to dismiss safe rows and skip the rest, or review row-by-"
+"row. Repair auto-refreshes file types and re-imports anything still pending."
+
+msgid ""
+"Use these when an import has been stuck for a long time or you want to start"
+" over without losing work accidentally."
+msgstr ""
+"Use these when an import has been stuck for a long time or you want to start"
+" over without losing work accidentally."
+
+msgid ""
+"{{ count }} held row still needs review before source files can be "
+"archived.{% plural %}{{ count }} held rows still need review before source "
+"files can be archived."
+msgstr ""
+"{{ count }} held row still needs review before source files can be "
+"archived.{% plural %}{{ count }} held rows still need review before source "
+"files can be archived."
+
+msgid ""
+"{{ count }} record did not pass validation and was not imported.{% plural "
+"%}{{ count }} records did not pass validation and were not imported."
+msgstr ""
+"{{ count }} record did not pass validation and was not imported.{% plural "
+"%}{{ count }} records did not pass validation and were not imported."
+
+msgid ""
+"{{ count }} record is held for review.{% plural %}{{ count }} records are "
+"held for review."
+msgstr ""
+"{{ count }} record is held for review.{% plural %}{{ count }} records are "
+"held for review."
