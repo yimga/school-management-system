@@ -180,6 +180,9 @@ def enrich_quarantine_row(record) -> dict[str, Any]:
     issue_class = str(record.issue_class or "lander_error")
     tone = QUARANTINE_ISSUE_TONES.get(issue_class, "warn")
     guidance = QUARANTINE_GUIDANCE.get(issue_class, QUARANTINE_GUIDANCE["lander_error"])
+    artifact_path = str(payload.get("artifact") or "").strip()
+    artifact_label = artifact_path.rsplit("/", 1)[-1] if artifact_path else ""
+    reason_source = str(payload.get("reason_source") or "").strip()
     return {
         "id": record.pk,
         "run_id": record.migration_run_id,
@@ -192,14 +195,25 @@ def enrich_quarantine_row(record) -> dict[str, Any]:
         "tone": tone,
         "needs_action": issue_class not in QUARANTINE_NO_ACTION_CLASSES,
         "reason": error,
+        "reason_source": reason_source,
         "source_row": source_row,
         "field_flags": infer_field_flags(issue_class, error, source_row),
         "guidance_headline": guidance.get("headline", ""),
         "guidance_hint": guidance.get("hint", ""),
         "suggested_action": guidance.get("suggested_action", "edit"),
         "ack_status": record.status,
-        "artifact": payload.get("artifact") or "",
+        "artifact": artifact_path,
+        "artifact_label": artifact_label or artifact_path,
     }
+
+
+def quarantine_preview_rows(bundle, *, limit: int = 5) -> list[dict[str, Any]]:
+    """First N pending held rows for inline review on the kickoff page."""
+    limit = max(1, min(int(limit or 5), 25))
+    qs = quarantine_queryset_for_bundle(bundle, pending_only=True).order_by(
+        "issue_class", "domain", "row_index", "pk"
+    )[:limit]
+    return [enrich_quarantine_row(rec) for rec in qs]
 
 
 def quarantine_breakdown(bundle, *, pending_only: bool = True) -> list[dict[str, Any]]:
@@ -434,8 +448,7 @@ def apply_quarantine_action(
                 and rec.issue_class not in QUARANTINE_NO_ACTION_CLASSES
                 and not note
             ):
-                skipped += 1
-                continue
+                note = str(_("Dismissed from review queue"))
             mark_repaired(
                 rec,
                 {

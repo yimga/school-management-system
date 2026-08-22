@@ -110,6 +110,52 @@ any locale can't break the inline script's string literals.
 </script>
 {% endif %}
 
+{% if quarantine_pending and held_review_url %}
+<section class="rmc-card mb-4 rmc-card--attention" aria-labelledby="mc-held-preview-heading" id="mc-held-preview">
+  <h2 id="mc-held-preview-heading" class="h5">{% trans "Held for review — action required" %}</h2>
+  <p class="text-muted small">
+    {% blocktrans count count=quarantine_pending %}{{ count }} record did not pass validation and was not imported.{% plural %}{{ count }} records did not pass validation and were not imported.{% endblocktrans %}
+    {% if quarantine_review_gap %}
+    <span class="text-warning">{% blocktrans with gap=quarantine_review_gap %}({{ gap }} more were reported but are not stored for row review — fix the source file or export CSV){% endblocktrans %}</span>
+    {% endif %}
+  </p>
+  {% if held_preview_rows %}
+  <div class="table-responsive mb-3">
+    <table class="table table-sm align-middle rmc-data-table">
+      <caption class="visually-hidden">{% trans "Preview of held rows" %}</caption>
+      <thead>
+        <tr>
+          <th scope="col">{% trans "Type" %}</th>
+          <th scope="col">{% trans "File" %}</th>
+          <th scope="col">{% trans "Record" %}</th>
+          <th scope="col">{% trans "Reason" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in held_preview_rows %}
+        <tr>
+          <td><span class="rmc-badge">{{ row.issue_label }}</span></td>
+          <td class="small text-muted">{{ row.artifact_label|default:"—" }}</td>
+          <td>{{ row.domain }} #{{ row.row_index }}</td>
+          <td class="small text-muted">{{ row.reason|truncatechars:80 }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+  <div class="d-flex gap-2 flex-wrap">
+    <a class="btn btn-primary" href="{{ held_review_url }}"><i class="bi bi-list-check me-1" aria-hidden="true"></i>{% trans "Review all held rows" %}</a>
+    {% if quarantine_resolve_url %}
+    <button type="button" class="btn btn-outline-warning" data-mc-clear-queue="1"><i class="bi bi-eraser me-1" aria-hidden="true"></i>{% trans "Clear held queue" %}</button>
+    {% endif %}
+    {% if quarantine_export_url %}
+    <a class="btn btn-outline-secondary btn-sm" href="{{ quarantine_export_url }}">{% trans "Export CSV" %}</a>
+    {% endif %}
+  </div>
+</section>
+{% endif %}
+
 {% if progress_url and not detecting %}
 {% comment %}
 Kickoff-page live board. Import / repair progress, pipeline, created/updated/held,
@@ -120,6 +166,7 @@ widget uses, then hides remediator / repair / held-copy the moment issue_count i
 <section class="rmc-card mb-4" id="mc-live-board" aria-live="polite"
          data-mc-live-board="1"
          data-progress-url="{{ progress_url }}"
+         {% if progress_stream_url %}data-progress-stream-url="{{ progress_stream_url }}"{% endif %}
          data-repair-url="{{ repair_url }}"
          data-resolve-url="{{ quarantine_resolve_url }}"
          data-importing="{% if importing %}1{% else %}0{% endif %}"
@@ -655,6 +702,24 @@ repair.repair_readiness — the button is only a trigger.
   {% endif %}
 </section>
 {% endif %}
+{% endif %}
+
+{% if source_archived %}
+<section class="rmc-card mt-4 rmc-reveal" id="mc-archive-done">
+  <h2 class="h5">{% trans "Source files archived" %}</h2>
+  <p class="text-muted small mb-0">{% trans "Uploaded source bytes were removed to protect student privacy. Import metadata, counts, and audit history are kept." %}</p>
+</section>
+{% elif archive_eligible %}
+<section class="rmc-card mt-4 rmc-reveal" id="mc-archive-prompt">
+  <h2 class="h5">{% trans "Archive source files" %}</h2>
+  <p class="text-muted small mb-2">
+    {% blocktrans with n=source_blobs_remaining %}This import is complete. {{ n }} captured source file(s) can be removed now — only metadata stays for audit.{% endblocktrans %}
+  </p>
+  <form method="post" action="{{ archive_source_url }}" class="d-inline">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-outline-secondary btn-sm">{% trans "Archive source files now" %}</button>
+  </form>
+</section>
 {% endif %}
 
 {% if not importing %}

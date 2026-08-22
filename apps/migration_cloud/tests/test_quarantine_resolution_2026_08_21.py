@@ -93,7 +93,7 @@ class QuarantineActionTests(TestCase):
         self.record.refresh_from_db()
         self.assertTrue(self.record.resolution_payload.get("operator_waive"))
 
-    def test_dismiss_action_needed_without_note_is_skipped(self):
+    def test_dismiss_action_needed_without_note_applies_default(self):
         self.record.issue_class = "missing_required"
         self.record.save(update_fields=["issue_class"])
         outcome = apply_quarantine_action(
@@ -102,10 +102,10 @@ class QuarantineActionTests(TestCase):
             action="dismiss",
             record_ids=[self.record.pk],
         )
-        self.assertEqual(outcome["updated"], 0)
-        self.assertEqual(outcome["skipped"], 1)
+        self.assertEqual(outcome["updated"], 1)
         self.record.refresh_from_db()
-        self.assertEqual(self.record.status, MigrationQuarantineRecord.Status.PENDING)
+        self.assertEqual(self.record.status, MigrationQuarantineRecord.Status.REPAIRED)
+        self.assertTrue(self.record.resolution_payload.get("operator_dismissed"))
 
     def test_dismiss_action_needed_with_note_succeeds(self):
         self.record.issue_class = "missing_required"

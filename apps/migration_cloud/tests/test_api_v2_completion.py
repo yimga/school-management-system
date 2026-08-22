@@ -133,7 +133,14 @@ class V29SchemaCoverageTests(SimpleTestCase):
 
     def test_bundle_viewset_v29_actions_decorated(self):
         from apps.migration_cloud.api.viewsets import BundleViewSet
-        for action_name in ("bulk_artifacts", "events_stream"):
+        for action_name in (
+            "bulk_artifacts",
+            "events_stream",
+            "quarantine_list",
+            "quarantine_resolve",
+            "quarantine_export",
+            "ai_explain_row",
+        ):
             method = getattr(BundleViewSet, action_name, None)
             self.assertIsNotNone(method, f"Missing action {action_name}")
             self.assertTrue(
@@ -184,6 +191,10 @@ class ScopedTokenInvariantTests(SimpleTestCase):
             ("bundle", "artifacts"),
             ("bundle", "bulk_artifacts"),
             ("bundle", "events_stream"),
+            ("bundle", "quarantine_list"),
+            ("bundle", "quarantine_resolve"),
+            ("bundle", "quarantine_export"),
+            ("bundle", "ai_explain_row"),
             ("template", "list"),
             ("template", "retrieve"),
             ("template", "download"),

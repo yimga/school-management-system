@@ -35,6 +35,7 @@ from django.utils import timezone
 from apps.migration_cloud.models import BundleStatus, MigrationBundle
 from apps.migration_cloud.repair import (
     live_apply_in_flight,
+    prior_apply_evidence,
     repair_bundle,
     repair_readiness,
     supersede_wedged_apply,
@@ -45,6 +46,7 @@ from apps.migration_cloud.repair import (
 # already treats as recoverable.
 _CANDIDATE_STATUSES = (
     BundleStatus.APPLYING,
+    BundleStatus.MAPPED,
     BundleStatus.FAILED,
     BundleStatus.APPLIED,
 )
@@ -168,6 +170,11 @@ class Command(BaseCommand):
                 bundle.status == BundleStatus.APPLYING
                 and not readiness.repairable
                 and "status:APPLYING" in (readiness.blockers or [])
+            ) or (
+                bundle.status == BundleStatus.MAPPED
+                and tenant_apply_stuck(bundle)
+                and prior_apply_evidence(bundle)
+                and not readiness.repairable
             ):
                 retired = self._force_reclaim(bundle)
                 if retired:

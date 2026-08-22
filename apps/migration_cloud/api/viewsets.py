@@ -52,6 +52,12 @@ from .bulk_artifacts import bulk_artifacts_action_factory
 from .helpers import delegate_to_view, shell_for_request
 from .auth import migration_cloud_authentication_classes
 from .permissions import ScopedAPIPermission
+from .quarantine_actions import (
+    ai_explain_action_factory,
+    quarantine_export_action_factory,
+    quarantine_list_action_factory,
+    quarantine_resolve_action_factory,
+)
 from .serializers import (
     MigrationArtifactSerializer,
     MigrationBundleSerializer,
@@ -383,6 +389,12 @@ class BundleViewSet(viewsets.ModelViewSet):
 
     # ─── SSE progress stream (v3.29) ──────────────────────────────────────
     events_stream = events_stream_action_factory()
+
+    # ─── Held-row triage + AI explain (v3.29 completion) ─────────────────
+    quarantine_list = quarantine_list_action_factory()
+    quarantine_resolve = quarantine_resolve_action_factory()
+    quarantine_export = quarantine_export_action_factory()
+    ai_explain_row = ai_explain_action_factory()
 
 
 @extend_schema_view(

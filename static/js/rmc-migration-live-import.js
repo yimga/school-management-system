@@ -274,6 +274,7 @@
     if (!root || !window.fetch) return;
     var url = root.getAttribute("data-progress-url");
     if (!url) return;
+    var streamUrl = root.getAttribute("data-progress-stream-url");
     var wasImporting = root.getAttribute("data-importing") === "1";
     var tries = 0;
     var seed = seedPayload();
@@ -285,6 +286,30 @@
 
     function delay() {
       return wasImporting ? POLL_MS_ACTIVE : POLL_MS_SETTLED;
+    }
+
+    function applyProgressData(data) {
+      if (!data) return;
+      paint(root, data);
+      if (data.importing) {
+        wasImporting = true;
+        if (data.import_stuck) {
+          window.setTimeout(function () {
+            window.location.reload();
+          }, 1200);
+          return true;
+        }
+        return false;
+      }
+      if (wasImporting) {
+        window.location.reload();
+        return true;
+      }
+      if (data.issues_open || (data.held && Number(data.held) > 0)) {
+        return false;
+      }
+      if (data.succeeded) return true;
+      return false;
     }
 
     function tick() {
@@ -300,45 +325,42 @@
             window.setTimeout(tick, delay());
             return;
           }
-          paint(root, data);
-          if (data.importing) {
-            wasImporting = true;
-            tries += 1;
-            if (data.import_stuck) {
-              window.setTimeout(function () {
-                window.location.reload();
-              }, 1200);
-              return;
-            }
-            if (tries > MAX_ACTIVE_TRIES) {
-              window.setTimeout(function () {
-                window.location.reload();
-              }, 800);
-              return;
-            }
-            window.setTimeout(tick, POLL_MS_ACTIVE);
+          if (applyProgressData(data)) return;
+          tries += 1;
+          if (tries > MAX_ACTIVE_TRIES) {
+            window.setTimeout(function () {
+              window.location.reload();
+            }, 800);
             return;
           }
-          if (wasImporting) {
-            window.location.reload();
-            return;
-          }
-          // Keep polling while issues are open so repair / held counts stay fresh.
-          if (data.issues_open || (data.held && Number(data.held) > 0)) {
-            window.setTimeout(tick, POLL_MS_SETTLED);
-            return;
-          }
-          // Terminal + clean: stop polling. Nothing further can change here, so
-          // continuing to hit the endpoint every few seconds is pure noise.
-          if (data.succeeded) return;
-          window.setTimeout(tick, POLL_MS_SETTLED);
+          window.setTimeout(tick, data.importing ? POLL_MS_ACTIVE : POLL_MS_SETTLED);
         })
         .catch(function () {
           window.setTimeout(tick, delay());
         });
     }
 
-    window.setTimeout(tick, wasImporting ? 1200 : POLL_MS_SETTLED);
+    function startPolling() {
+      window.setTimeout(tick, wasImporting ? 1200 : POLL_MS_SETTLED);
+    }
+
+    if (wasImporting && streamUrl && window.EventSource) {
+      var es = new EventSource(streamUrl, { withCredentials: true });
+      var pollFallbackTimer = window.setTimeout(startPolling, POLL_MS_ACTIVE * 2);
+      es.onmessage = function () {
+        window.clearTimeout(pollFallbackTimer);
+        pollFallbackTimer = window.setTimeout(startPolling, POLL_MS_ACTIVE);
+      };
+      es.onerror = function () {
+        try { es.close(); } catch (_err) {}
+        window.clearTimeout(pollFallbackTimer);
+        startPolling();
+      };
+      window.setTimeout(tick, 800);
+      return;
+    }
+
+    startPolling();
   }
 
   if (document.readyState === "loading") {

@@ -59,6 +59,7 @@ urlpatterns = [
     path("<int:bundle_id>/review/", views.MigrationCloudAnomalyNudgeView.as_view(), name="bundle_review"),
     path("<int:bundle_id>/quarantine/", views.MigrationCloudQuarantineResolveView.as_view(), name="bundle_quarantine_resolve"),
     path("<int:bundle_id>/quarantine/export/", views.MigrationCloudQuarantineExportView.as_view(), name="bundle_quarantine_export"),
+    path("<int:bundle_id>/archive-source/", views.MigrationCloudArchiveSourceView.as_view(), name="bundle_archive_source"),
     path("<int:bundle_id>/shadow/", views.MigrationCloudShadowView.as_view(), name="bundle_shadow"),
     path("<int:bundle_id>/runs/<int:run_id>/rollback/", views.MigrationCloudRollbackView.as_view(), name="run_rollback"),
     # Operator resume + FULL-bundle rollback (parity with the tenant flow). Repair =

@@ -117,6 +117,37 @@ class RepairReadinessWedgedTests(TestCase):
                         readiness = repair_readiness(self.bundle)
         self.assertTrue(readiness.repairable)
 
+    def test_mapped_wedged_after_partial_apply_is_repairable(self):
+        self.bundle.status = BundleStatus.MAPPED
+        self.bundle.mapping_summary = {
+            "apply_totals": {"created": 0, "updated": 105, "quarantined": 442}
+        }
+        with patch("apps.migration_cloud.repair.tenant_apply_stuck", return_value=True):
+            with patch(
+                "apps.migration_cloud.tenant_schema_readiness.assess_tenant_schema_readiness",
+                return_value=type("R", (), {"ready": True, "missing_labels": []})(),
+            ):
+                with patch(
+                    "apps.migration_cloud.schema_binding.ensure_bundle_schema_name",
+                    return_value="",
+                ):
+                    readiness = repair_readiness(self.bundle)
+        self.assertTrue(readiness.repairable)
+
+
+class StuckRemediatorHeldTests(SimpleTestCase):
+    def test_stuck_remediator_offers_clear_queue_when_held(self):
+        from apps.migration_cloud.tests.test_repair_2026_07_13 import FakeBundle
+
+        bundle = FakeBundle(
+            status=BundleStatus.MAPPED,
+            mapping={"apply_totals": {"updated": 105, "quarantined": 442}},
+        )
+        payload = remediator_for(bundle, issues=442, flight={"stuck": True})
+        self.assertIsNotNone(payload)
+        self.assertTrue(payload.get("show_clear_queue"))
+        self.assertTrue(payload.get("show_repair"))
+
 
 class ComposeLiveImportAttentionTests(TestCase):
     def setUp(self):
