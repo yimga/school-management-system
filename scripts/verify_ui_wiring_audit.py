@@ -62,6 +62,14 @@ STYLE_BLOCK_RE = re.compile(r"<style\b[^>]*>.*?</style>", re.DOTALL | re.IGNOREC
 # {% comment %} spans lines. Both are stripped before hazard scanning, because a
 # comment that DOCUMENTS a hazard is not a hazard -- four sites here carry notes
 # like 'plain text beats a link to nowhere' and were flagged for saying so.
+# Inline, auditable exception for an href a human has justified, matching the
+# repo-wide "<thing>-allow: <reason>" convention (rbac-allow, rls-bypass-allow,
+# attention-allow, magic-number-allow). Honoured on the offending line or the
+# one directly above it. href="#" already had such an escape via
+# HREF_HASH_OK_LINE; an empty href had none, which left a correct page unable
+# to satisfy two gates at once.
+UI_WIRING_ALLOW = "ui-wiring-allow:"
+
 DJANGO_HASH_COMMENT_RE = re.compile("[{]#.*?#[}]")
 DJANGO_COMMENT_BLOCK_RE = re.compile(
     "[{]%[ ]*comment[ ]*%[}].*?[{]%[ ]*endcomment[ ]*%[}]", re.DOTALL | re.IGNORECASE
@@ -217,10 +225,20 @@ def _scan_href_action_hazards() -> list[str]:
         text = _strip_non_html_blocks(raw)
         rel = str(p.relative_to(ROOT)).replace("\\", "/")
         lines = text.splitlines()
+        # Allow markers are read from the RAW source. Stripping blanks template
+        # comments (so prose describing a hazard is not mistaken for one), which
+        # would also blank a {# ui-wiring-allow: ... #} justification written the
+        # way every other gate in this repo expects one. Line numbers still line
+        # up because the strip preserves newlines.
+        raw_lines = raw.splitlines()
         for i, line in enumerate(lines, 1):
             for m in HREF_RE.finditer(line):
                 val = (m.group(2) or "").strip()
                 if not val.strip():
+                    here = raw_lines[i - 1] if i - 1 < len(raw_lines) else ""
+                    prev = raw_lines[i - 2] if 2 <= i <= len(raw_lines) else ""
+                    if UI_WIRING_ALLOW in here or UI_WIRING_ALLOW in prev:
+                        continue
                     failures.append(f"{rel}:{i}: empty href")
                     continue
                 low = val.lower()
