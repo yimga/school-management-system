@@ -76,6 +76,16 @@ _SEED: dict[str, Any] = {
     "migration_cloud.slo.large_seconds": 12 * 60 * 60,      # 12h
     # Worker fan-out for parallel domain ingest (Phase U5).
     "migration_cloud.orchestrator.worker_count": 8,
+    # Apply stall watchdog (LoopWatchdog) — tier base + row scale (see apply_stall.py).
+    "migration_cloud.apply.stall_timeout_seconds": {
+        "small": 120,
+        "mid": 240,
+        "large": 360,
+        "state": 600,
+    },
+    "migration_cloud.apply.stall_timeout_row_scale_per_1000": 30,
+    "migration_cloud.apply.stall_timeout_min_seconds": 90,
+    "migration_cloud.apply.stall_timeout_max_seconds": 900,
     # Classifier confidence thresholds (Phase U3/U4). Below these the
     # operator is asked to review; never auto-applied.
     "migration_cloud.classifier.source_min_confidence": 0.65,

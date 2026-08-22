@@ -141,11 +141,36 @@ GATES: list[tuple[str, list[str]]] = [
     # deliberately WITHOUT --compare: there is no baseline to hide behind, and the
     # next lander that throws a row away blocks the push.
     ("lander-row-error-contract", ["scan_lander_row_error_contract.py", "--strict"]),
+    # Non-streaming landers freeze rows_processed during long DB writes and trip
+    # SystemicStallError on edge boxes. Zero-tolerance: stream canonical_rows or
+    # carry lander-stream-allow + maybe_stall_pulse in post-buffer loops.
+    ("lander-row-streaming", ["scan_lander_row_streaming.py", "--strict"]),
+    # Row pulses → LoopWatchdog, tier-scaled timeout, lander pulse hook, repair reclaim.
+    ("migration-apply-stall-contract", ["verify_migration_apply_stall_contract.py"]),
     # A theme whose surfaces come from a different palette than its ground renders the
     # wrong hue on every card, alert, dropdown and form control it touches -- and the
     # contrast gates stay green while it does, because the pair that shipped measured
     # 6.95:1. Zero-tolerance and without --compare: there is no baseline to hide behind.
     ("theme-hue-coherence", ["scan_theme_hue_coherence.py", "--strict"]),
+    # --- RLS: the two halves that `rls-table-coverage` does NOT cover ---------
+    # scan_rls_table_coverage (DJANGO_GATES, below) catches a NEW tenant-scoped
+    # table with no RLS at all. It says nothing about whether the RLS that exists
+    # actually binds. These two close that, and both were sitting in scripts/
+    # wired to NOTHING -- not this runner, not any of the 64 workflows -- while
+    # the property they protect is the isolation mechanism on every sovereign
+    # edge box (USE_DJANGO_TENANTS=0 + RLS).
+    #
+    # FORCE matters because PostgreSQL exempts a table's OWNER from its own row
+    # policies unless FORCE ROW LEVEL SECURITY is set -- and Django connects AS
+    # the owner. Without FORCE the policies are decorative on the one connection
+    # that matters. Both gates run clean today (force: 0 gaps; policy: every
+    # enable_rls_postgresql migration has its matching default-deny), so wiring
+    # them costs nothing now and locks the property from here on.
+    ("rls-force-coverage", ["scan_rls_force_coverage.py", "--compare"]),
+    # No --compare: this one is a structural pairing check with nothing to
+    # baseline. A bare run is the gate; --update-baseline is what rewrites, and
+    # is deliberately not passed here.
+    ("rls-policy-coverage", ["scan_rls_policy_coverage.py"]),
 ]
 
 # Gates that CANNOT answer without the live Django app registry, and are therefore not

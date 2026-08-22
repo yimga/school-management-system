@@ -28,6 +28,7 @@ from typing import Any, Iterator
 
 from ._helpers import (
     filter_to_model_fields,
+    maybe_stall_pulse,
     record_row_error,
     row_savepoint,
 )
@@ -64,30 +65,11 @@ class DynamicFieldLander(Lander):
 
         result = LanderResult()
 
-        # Materialise rows once so we can (a) pre-create DynamicFieldDefinition
-        # rows in one batch (avoids racing per-row get_or_create) and
-        # (b) stream them into DynamicFieldValue writes.
-        rows = list(canonical_rows)
-        if not rows:
-            return result
-
-        all_keys = {k for row in rows if row for k in row.keys()}
-        # Ensure a schema-less field definition exists per key (real fields
-        # only). A failure here no longer vanishes — the reason is captured so
-        # rows for that key quarantine WITH the true error, not a generic one.
         definition_errors: dict[str, str] = {}
-        for key in all_keys:
-            try:
-                DynamicFieldDefinition.objects.get_or_create(
-                    entity_type=_ENTITY_TYPE,
-                    field_key=str(key)[:_FIELD_KEY_CAP],
-                    school=ctx.school,
-                    defaults={"label": str(key)[:_LABEL_CAP], "data_type": "json"},
-                )
-            except Exception as exc:  # noqa: BLE001 — recorded, not swallowed
-                definition_errors[key] = f"{type(exc).__name__}: {exc}"
+        seen_keys: set[str] = set()
 
-        for row_index, row in enumerate(rows):
+        for row_index, row in enumerate(canonical_rows):
+            maybe_stall_pulse(every=25, counter=row_index)
             if not row:
                 result.skipped += 1
                 continue
@@ -98,12 +80,27 @@ class DynamicFieldLander(Lander):
             for key, value in row.items():
                 if value in (None, ""):
                     continue
-                if key in definition_errors:
+                key_str = str(key)
+                if key_str not in seen_keys:
+                    seen_keys.add(key_str)
+                    try:
+                        DynamicFieldDefinition.objects.get_or_create(
+                            entity_type=_ENTITY_TYPE,
+                            field_key=key_str[:_FIELD_KEY_CAP],
+                            school=ctx.school,
+                            defaults={
+                                "label": key_str[:_LABEL_CAP],
+                                "data_type": "json",
+                            },
+                        )
+                    except Exception as exc:  # noqa: BLE001 — recorded, not swallowed
+                        definition_errors[key_str] = f"{type(exc).__name__}: {exc}"
+                if key_str in definition_errors:
                     record_row_error(
                         result,
                         row,
-                        f"dynamic_field: definition failed for key={key!r}: "
-                        f"{definition_errors[key]}",
+                        f"dynamic_field: definition failed for key={key_str!r}: "
+                        f"{definition_errors[key_str]}",
                         reason_code=LANDER_ERROR,
                     )
                     continue
@@ -112,7 +109,7 @@ class DynamicFieldLander(Lander):
                         obj, created = DynamicFieldValue.objects.update_or_create(
                             entity_type=_ENTITY_TYPE,
                             entity_id=entity_id,
-                            field_key=str(key)[:_FIELD_KEY_CAP],
+                            field_key=key_str[:_FIELD_KEY_CAP],
                             defaults=filter_to_model_fields(
                                 {"value_json": {"v": value}, "school": ctx.school},
                                 DynamicFieldValue,
@@ -122,7 +119,7 @@ class DynamicFieldLander(Lander):
                     record_row_error(
                         result,
                         row,
-                        f"dynamic_field write failed for {key}: "
+                        f"dynamic_field write failed for {key_str}: "
                         f"{type(exc).__name__}: {exc}",
                         reason_code=LANDER_ERROR,
                     )

@@ -110,6 +110,30 @@ class UnifiedProgressIntegrationTests(TestCase):
         list(rows)
         self.assertGreater(pulse_mock.call_count, 0)
 
+    def test_register_row_invokes_stall_heartbeat_hook(self):
+        bundle = MigrationBundle.objects.create(
+            label="stall-hook",
+            intake_method=IntakeMethod.FILE_UPLOAD,
+            idempotency_key="stall-hook-1",
+            status=BundleStatus.APPLYING,
+        )
+        calls: list[int] = []
+
+        def _hook() -> None:
+            calls.append(tracker.rows_global)
+
+        tracker = ApplyProgressTracker(
+            bundle=bundle,
+            jobs_total=1,
+            rows_expected=50,
+            pulse_every_rows=5,
+            min_pulse_seconds=0.01,
+            on_stall_heartbeat=_hook,
+        )
+        list(tracker.wrap_rows(iter(range(12)), artifact_label="big.csv"))
+        self.assertGreaterEqual(len(calls), 2)
+        self.assertEqual(calls[-1], 10)
+
     def test_compose_live_import_prefers_unified_percent(self):
         bundle = MigrationBundle.objects.create(
             label="live",

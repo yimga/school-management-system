@@ -383,6 +383,40 @@ jobs:
         run: |
           python -m unittest scripts.tests.test_scan_lander_row_error_contract -v
 
+  lander-row-streaming:
+    name: Migration Cloud landers stream canonical rows
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run scanner --strict
+        run: |
+          python scripts/scan_lander_row_streaming.py --strict
+      - name: Unit tests
+        run: |
+          python -m unittest scripts.tests.test_scan_lander_row_streaming -v
+
+  migration-apply-stall-contract:
+    name: Migration apply stall detection contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: verify_migration_apply_stall_contract
+        run: |
+          python scripts/verify_migration_apply_stall_contract.py
+      - name: Unit tests
+        run: |
+          python -m unittest scripts.tests.test_verify_migration_apply_stall_contract -v
+
   admin-manager-shell-aggressive:
     name: Admin manager shell bundle (15 checks, ~8 min)
     runs-on: ubuntu-latest

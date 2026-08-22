@@ -26,7 +26,7 @@ from __future__ import annotations
 import datetime as _dt
 from typing import Any, Iterator
 
-from ._helpers import coerce_date, model_field_names, record_row_error, row_savepoint
+from ._helpers import coerce_date, model_field_names, maybe_stall_pulse, record_row_error, row_savepoint
 from .base import Lander, LanderContext, LanderError, LanderResult, register
 from .reason_codes import LANDER_ERROR, MISSING_REQUIRED
 
@@ -80,7 +80,7 @@ class AcademicSessionsLander(Lander):
             ) from exc
 
         result = LanderResult()
-        rows = list(canonical_rows)
+        rows = list(canonical_rows)  # lander-stream-allow: two-pass-oneroster-session-parent-resolution
         school = getattr(ctx, "school", None)
         year_fields = model_field_names(AcademicYear)
         term_fields = model_field_names(Term)
@@ -115,7 +115,8 @@ class AcademicSessionsLander(Lander):
             return obj
 
         # Pass 1 — years.
-        for row in rows:
+        for row_index, row in enumerate(rows):
+            maybe_stall_pulse(every=25, counter=row_index)
             if _norm_type(row) not in _YEAR_TYPES:
                 continue
             year = _resolve_or_make_year(
@@ -128,7 +129,8 @@ class AcademicSessionsLander(Lander):
                 year_by_extid[extid] = year
 
         # Pass 2 — terms / periods.
-        for row in rows:
+        for row_index, row in enumerate(rows):
+            maybe_stall_pulse(every=25, counter=row_index)
             if _norm_type(row) in _YEAR_TYPES:
                 continue
             title = (row.get("session_title") or "").strip()
