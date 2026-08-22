@@ -269,9 +269,15 @@ def apply_step_answer(
             logger.error("persistence writer import failed for %s.%s: %s", wizard_key, step_key, exc)
             wizard_telemetry.emit_persistence_failed(wizard_key, step_key, writer_path)
             # writer_failed_surfaces: see the note below.
-            raise wizard_engine.WizardError(
+            error = wizard_engine.WizardError(
                 f"persistence writer could not be loaded for {wizard_key}.{step_key}: {exc}"
-            ) from exc
+            )
+            # operator_message stays at its default of None: a missing or
+            # incorrect dotted resolver path is a deployment fault, and an
+            # import traceback tells the person at the screen nothing they can
+            # act on. The view falls back to the generic 'not saved' line, and
+            # the detail goes to the log and to telemetry.
+            raise error from exc
         except Exception as exc:  # noqa: BLE001
             logger.exception("persistence writer failed for %s.%s: %s", wizard_key, step_key, exc)
             wizard_telemetry.emit_persistence_failed(wizard_key, step_key, writer_path)
@@ -287,9 +293,16 @@ def apply_step_answer(
             # WizardError is the contract callers already handle: an invalid
             # payload raises it a few lines up. A write that did not happen is
             # not a lesser failure than a payload that was rejected.
-            raise wizard_engine.WizardError(
+            error = wizard_engine.WizardError(
                 f"persistence writer failed for {wizard_key}.{step_key}: {exc}"
-            ) from exc
+            )
+            # The message above is for the log -- it names wizard.step, which means
+            # nothing to the person who just pressed Save. This is what they see:
+            # the writer's own sentence. The resolvers phrase these for humans
+            # ("Academic year end date (X) must fall after its start date (Y)").
+            detail = str(exc).strip()
+            error.operator_message = detail or None
+            raise error from exc
 
     # Advance current_step_key
     next_step = wizard_engine.resolve_next_step(

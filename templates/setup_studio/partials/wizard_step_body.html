@@ -1,4 +1,29 @@
-{% comment %} Renders one of 18 input-type partials based on step.input_type. {% endcomment %}
+{% comment %}
+Renders one of 19 input-type partials based on step.input_type, under a
+step-level error region.
+
+The region exists because a step could fail with nothing on screen. Both view
+handlers rebuild `errors` by RE-VALIDATING the submitted payload, so a payload
+that validated and then failed to PERSIST yields an empty dict -- the writer's
+reason was logged and dropped, and the step simply re-rendered unchanged.
+`step_error` carries that reason.
+
+`unrendered_errors` covers the second half: 4 of the 19 input partials
+(csv_mapping, duration, key_value_pairs, ranked_list) use fixed field names
+instead of a field loop and so render no per-field errors at all. 11 of the 146
+registered steps use one. The view decides which list is non-empty; this
+template never needs to know the input type.
+{% endcomment %}
+{% if step_error or unrendered_errors %}
+  <div class="rmc-banner rmc-banner--error" role="alert" data-rmc-wizard-step-error>
+    {% if step_error %}<p class="mb-0">{{ step_error }}</p>{% endif %}
+    {% if unrendered_errors %}
+      <ul class="mb-0">
+        {% for message in unrendered_errors %}<li>{{ message }}</li>{% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+{% endif %}
 {% if wizard.wizard_key == "account_migration" and step.key == "select_scope" %}
   {% include "setup_studio/partials/wizard_migration_scope_zero_friction.html" %}
 {% else %}
