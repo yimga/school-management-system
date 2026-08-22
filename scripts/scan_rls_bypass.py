@@ -222,6 +222,15 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--compare", action="store_true")
     parser.add_argument("--json", action="store_true")
+    parser.add_argument(
+        "--update-baseline",
+        action="store_true",
+        dest="update_baseline",
+        help=(
+            "Rewrite the baseline from the current tree, then exit 0. "
+            "Deliberate and auditable; the default run never writes."
+        ),
+    )
     args = parser.parse_args()
     findings = _scan()
     if args.json:
@@ -229,9 +238,18 @@ def main() -> int:
         return 0
     if args.compare:
         return _compare(findings)
+    if args.update_baseline:
+        _print_summary(findings)
+        _write_baseline(findings)
+        return 0
+    # Default is READ-ONLY and fails on findings.
+    #
+    # It used to print a summary, REWRITE the baseline and return 0. Running the
+    # bare script therefore reported success and destroyed the evidence of drift
+    # in the same command -- an auditor checking this gate by hand silently
+    # re-baselined it. That is how a genuinely new callsite sat unnoticed.
     _print_summary(findings)
-    _write_baseline(findings)
-    return 0
+    return 1 if findings else 0
 
 
 if __name__ == "__main__":
