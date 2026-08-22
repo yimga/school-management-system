@@ -6,8 +6,15 @@
 # runs, so redness is caught locally BEFORE it lands on main (that workflow only
 # fires on pull_request, and branch protection isn't available on this plan).
 #
-# Warn-only by default: it reports red gates but never blocks the push. Set
-# RMC_PREPUSH_STRICT=1 in your environment to make a red gate abort `git push`.
+# ENFORCING by default since 2026-08-21: a red gate aborts `git push`. It was
+# warn-only until then, which was reasonable while something downstream still
+# checked -- nothing does. Branch protection is unavailable on this plan, and
+# Actions has started no job since 2026-08-15 (runs are created and refused for
+# budget, so the workflows go red without executing). This hook is the chain.
+#
+# To push past a gate you have already understood:  RMC_PREPUSH_STRICT=0 git push
+# A gate that TIMED OUT is a resource result, not a finding -- prefer re-running
+# it alone, or raise RMC_PREPUSH_GATE_TIMEOUT_S (default 600s), over overriding.
 #
 # git streams the push refs on stdin; the checker doesn't read them, so redirect
 # from /dev/null to guarantee no accidental blocking read.
