@@ -30,8 +30,52 @@ from django.utils import timezone
 logger = logging.getLogger(__name__)
 
 _LOW_BALANCE_COOLDOWN_DAYS = 7
+# Per-SCHOOL cap. It used to cap one query across every tenant's rows at once,
+# which let a single large school starve every other one of its daily sweep.
 _SWEEP_BATCH_LIMIT = 500
 _SUPPORTED_LOCALES = ("en", "fr", "es", "pt", "ar")
+
+
+def _with_tenant(school_id, fn, /, **kwargs):
+    """Run ``fn(**kwargs)`` inside the tenant context for ``school_id``.
+
+    Both leading parameters are POSITIONAL-ONLY. The per-school sweep bodies
+    take their own ``school_id`` kwarg -- naming these would make
+    ``_with_tenant(sid, fn, school_id=sid)`` a "multiple values for argument"
+    TypeError, which the callers' ``except Exception`` would file as a per-tenant
+    failure rather than surfacing.
+
+    A Celery worker carries NO tenant context. It has no request, no tenant
+    middleware and no URL host to resolve from, so its connection sits on the
+    ``public`` schema for the whole task. ``apps.schoolops`` is in TENANT_APPS
+    only (config/settings.py), which means under ``USE_DJANGO_TENANTS`` its
+    tables exist *exclusively* inside tenant schemas -- a model query issued
+    from the worker without this wrapper resolves against ``public``, where the
+    relation does not exist, and raises ProgrammingError. These tasks each wrap
+    their body in ``except Exception``, so that lands as ``errors += 1`` and a
+    log line: the sweep then reports a clean zero-work run, forever.
+
+    Under RLS mode (the sovereign edge boxes: one schema, many schools) the
+    failure is quieter and worse -- the query succeeds against whatever the
+    session GUC happens to be, with no school scoping of its own.
+
+    Returns whatever ``fn`` returns; propagates ValueError when the tenant
+    cannot be resolved, which the sweeps count per school rather than aborting.
+    """
+    from apps.schools.celery_tasks import _run_with_tenant_context
+
+    return _run_with_tenant_context(
+        school_id=str(school_id), runnable=lambda: fn(**kwargs)
+    )
+
+
+def _sweep_target_school_ids(school_id=None) -> list:
+    """School ids a beat-driven sweep should visit (one, or every active one)."""
+    if school_id is not None:
+        return [school_id]
+    from apps.schools.celery_tasks import get_active_school_ids
+
+    return list(get_active_school_ids())
 
 
 def _resolve_guardian_locale(student) -> str:
@@ -172,13 +216,27 @@ def _maybe_dispatch_sms_short_form(
 
 
 @shared_task(name="schoolops.notify_low_meal_plan_balance")
-def notify_low_meal_plan_balance(meal_plan_balance_id: int) -> dict[str, Any]:
+def notify_low_meal_plan_balance(
+    meal_plan_balance_id: int, school_id: str | None = None
+) -> dict[str, Any]:
     """Deliver low-balance notification for one :class:`MealPlanBalance` row.
 
     Idempotent: enforces 7-day cooldown via
     ``last_low_balance_notification_sent_at``. Returns a structured
     summary so test code can assert behavior without parsing logs.
+
+    ``school_id`` is what makes this safe to enqueue. Callers already inside a
+    request (the signal path) run in tenant context, but ``.delay()`` hands the
+    row pk to a worker that has none -- see :func:`_with_tenant`. Pass the
+    row's ``school_id`` and the body runs against the right schema. It stays
+    optional so a direct in-context call is unchanged.
     """
+    if school_id is not None:
+        return _with_tenant(
+            school_id,
+            notify_low_meal_plan_balance,
+            meal_plan_balance_id=meal_plan_balance_id,
+        )
     result: dict[str, Any] = {
         "meal_plan_balance_id": int(meal_plan_balance_id),
         "delivered_email": False,
@@ -334,20 +392,14 @@ def _format_money_display(amount, currency: str) -> str:
     return f"{amount} {currency or ''}".strip()
 
 
-@shared_task(name="schoolops.sweep_low_meal_plan_balances")
-def sweep_low_meal_plan_balances() -> dict[str, Any]:
-    """Daily sweep: catch low rows the signal missed.
-
-    Iterates :class:`MealPlanBalance` rows where ``status='active'`` and
-    either (a) never notified or (b) cooldown has elapsed. For each
-    row that is currently :attr:`is_low`, dispatches the point-shot
-    task. Cooldown logic in the task itself prevents repeat sends.
-    """
+def _sweep_low_meal_plan_balances_for_school(school_id) -> dict[str, Any]:
+    """One school's low-balance sweep. Runs INSIDE that school's tenant context."""
     summary: dict[str, Any] = {
         "scanned": 0,
         "enqueued": 0,
         "skipped_not_low": 0,
         "skipped_cooldown": 0,
+        "skipped_cap": 0,
         "errors": 0,
     }
     try:
@@ -355,8 +407,11 @@ def sweep_low_meal_plan_balances() -> dict[str, Any]:
         cutoff = timezone.now() - _dt.timedelta(
             days=_LOW_BALANCE_COOLDOWN_DAYS,
         )
-        # tenant-isolation-allow: sweep-task-runs-across-all-tenants-by-design-platform-wide-beat-job
+        # school_id is belt-and-braces on top of the tenant context: in RLS
+        # mode every school shares one table, so this filter -- not the schema
+        # -- is what keeps one school's sweep out of another's rows.
         rows = MealPlanBalance.objects.filter(
+            school_id=school_id,
             status="active",
         ).only(
             "pk", "balance", "low_balance_threshold",
@@ -382,23 +437,80 @@ def sweep_low_meal_plan_balances() -> dict[str, Any]:
                 notify_low_meal_plan_balance,
                 eligible_ids,
                 max_total=_SWEEP_BATCH_LIMIT,
+                school_id=str(school_id),
             )
             summary["enqueued"] = batch_summary["enqueued"]
             summary["skipped_cap"] = batch_summary.get("skipped_cap", 0)
         except Exception:  # noqa: BLE001
             summary["errors"] += 1
-            logger.warning("schoolops.sweep_batch_enqueue_failed")
-        logger.info(
-            "schoolops.sweep_low_meal_plan_balances summary=%s", summary,
-        )
+            logger.warning(
+                "schoolops.sweep_batch_enqueue_failed school_id=%s", school_id
+            )
         return summary
     except Exception as exc:  # noqa: BLE001
         summary["errors"] += 1
         logger.exception(
-            "schoolops.sweep_low_meal_plan_balances crashed exc_type=%s",
+            "schoolops.sweep_low_meal_plan_balances crashed school_id=%s "
+            "exc_type=%s",
+            school_id,
             type(exc).__name__,
         )
         return summary
+
+
+@shared_task(name="schoolops.sweep_low_meal_plan_balances")
+def sweep_low_meal_plan_balances(school_id: str | None = None) -> dict[str, Any]:
+    """Daily sweep: catch low rows the signal missed.
+
+    Visits every active school IN ITS OWN TENANT CONTEXT and, for each,
+    iterates :class:`MealPlanBalance` rows where ``status='active'`` and either
+    (a) never notified or (b) cooldown has elapsed. Rows currently
+    :attr:`is_low` get the point-shot task, which is itself idempotent via the
+    cooldown, so a repeat sweep never double-sends.
+
+    The per-school loop is not a refinement, it is the whole thing working: this
+    is a beat job on a worker with no tenant context, and ``apps.schoolops`` is
+    TENANT_APPS-only, so a single un-wrapped query ran against ``public`` --
+    where the table does not exist -- and was swallowed by the ``except`` below.
+    See :func:`_with_tenant`.
+
+    ``school_id`` runs a single school, for operators and tests.
+    """
+    summary: dict[str, Any] = {
+        "schools": 0,
+        "schools_failed": 0,
+        "scanned": 0,
+        "enqueued": 0,
+        "skipped_not_low": 0,
+        "skipped_cooldown": 0,
+        "skipped_cap": 0,
+        "errors": 0,
+    }
+    for sid in _sweep_target_school_ids(school_id):
+        summary["schools"] += 1
+        try:
+            one = (
+                _with_tenant(
+                    sid, _sweep_low_meal_plan_balances_for_school, school_id=sid
+                )
+                or {}
+            )
+        except Exception as exc:  # noqa: BLE001 - one bad tenant must not end the sweep
+            summary["errors"] += 1
+            summary["schools_failed"] += 1
+            logger.exception(
+                "schoolops.sweep_low_meal_plan_balances tenant_context_failed "
+                "school_id=%s exc_type=%s",
+                sid,
+                type(exc).__name__,
+            )
+            continue
+        for key, value in one.items():
+            summary[key] = summary.get(key, 0) + value
+    logger.info(
+        "schoolops.sweep_low_meal_plan_balances summary=%s", summary,
+    )
+    return summary
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -554,14 +666,25 @@ def _school_admin_recipients(school) -> list:
 
 
 @shared_task(name="schoolops.notify_low_inventory_stock")
-def notify_low_inventory_stock(inventory_item_id: int) -> dict[str, Any]:
+def notify_low_inventory_stock(
+    inventory_item_id: int, school_id: str | None = None
+) -> dict[str, Any]:
     """Deliver a low-stock alert for one :class:`InventoryItem` row.
 
     Idempotent per low-stock episode: skips when the row is no longer low or
     when ``last_low_stock_notified_at`` is already set (the signal clears that
     stamp on replenishment above the reorder level). Returns a structured
     summary so tests can assert behaviour without parsing logs.
+
+    ``school_id`` puts the body in tenant context; see
+    :func:`notify_low_meal_plan_balance` for why an enqueued call needs it.
     """
+    if school_id is not None:
+        return _with_tenant(
+            school_id,
+            notify_low_inventory_stock,
+            inventory_item_id=inventory_item_id,
+        )
     result: dict[str, Any] = {
         "inventory_item_id": int(inventory_item_id),
         "notified_recipients": 0,
@@ -659,16 +782,8 @@ def notify_low_inventory_stock(inventory_item_id: int) -> dict[str, Any]:
         return result
 
 
-@shared_task(name="schoolops.sweep_low_inventory_stock")
-def sweep_low_inventory_stock() -> dict[str, Any]:
-    """Daily sweep: alert on low-stock rows the signal missed.
-
-    Catches items that were already low before the feature shipped (or whose
-    transition signal did not fire). Only rows with a positive reorder level,
-    ``quantity <= reorder_threshold``, and no open alert
-    (``last_low_stock_notified_at IS NULL``) are enqueued — so it never
-    double-fires an episode already alerted.
-    """
+def _sweep_low_inventory_stock_for_school(school_id) -> dict[str, Any]:
+    """One school's low-stock sweep. Runs INSIDE that school's tenant context."""
     summary: dict[str, Any] = {
         "scanned": 0,
         "enqueued": 0,
@@ -679,9 +794,12 @@ def sweep_low_inventory_stock() -> dict[str, Any]:
 
         from apps.schoolops.models import InventoryItem
 
-        # tenant-isolation-allow: sweep-task-runs-across-all-tenants-by-design-platform-wide-beat-job
+        # school_id is belt-and-braces on top of the tenant context: in RLS
+        # mode every school shares one table, so this filter -- not the schema
+        # -- is what keeps one school's sweep out of another's rows.
         rows = (
             InventoryItem.objects.filter(
+                school_id=school_id,
                 reorder_threshold__gt=0,
                 quantity__lte=F("reorder_threshold"),
                 last_low_stock_notified_at__isnull=True,
@@ -693,19 +811,71 @@ def sweep_low_inventory_stock() -> dict[str, Any]:
         summary["scanned"] = len(eligible_ids)
         for item_id in eligible_ids:
             try:
-                notify_low_inventory_stock.delay(inventory_item_id=item_id)
+                notify_low_inventory_stock.delay(
+                    inventory_item_id=item_id, school_id=str(school_id)
+                )
             except Exception:  # noqa: BLE001 — free tier has no broker
+                # Inline, and already inside this school's context, so the
+                # school_id round-trip would be redundant work.
                 notify_low_inventory_stock(inventory_item_id=item_id)
             summary["enqueued"] += 1
-        logger.info("schoolops.sweep_low_inventory_stock summary=%s", summary)
         return summary
     except Exception as exc:  # noqa: BLE001
         summary["errors"] += 1
         logger.exception(
-            "schoolops.sweep_low_inventory_stock crashed exc_type=%s",
+            "schoolops.sweep_low_inventory_stock crashed school_id=%s exc_type=%s",
+            school_id,
             type(exc).__name__,
         )
         return summary
+
+
+@shared_task(name="schoolops.sweep_low_inventory_stock")
+def sweep_low_inventory_stock(school_id: str | None = None) -> dict[str, Any]:
+    """Daily sweep: alert on low-stock rows the signal missed.
+
+    Visits every active school IN ITS OWN TENANT CONTEXT. Catches items that
+    were already low before the feature shipped (or whose transition signal did
+    not fire). Only rows with a positive reorder level,
+    ``quantity <= reorder_threshold``, and no open alert
+    (``last_low_stock_notified_at IS NULL``) are enqueued — so it never
+    double-fires an episode already alerted.
+
+    On the per-school loop, see :func:`sweep_low_meal_plan_balances`: this runs
+    on a Celery worker with no tenant context, against TENANT_APPS-only tables.
+
+    ``school_id`` runs a single school, for operators and tests.
+    """
+    summary: dict[str, Any] = {
+        "schools": 0,
+        "schools_failed": 0,
+        "scanned": 0,
+        "enqueued": 0,
+        "errors": 0,
+    }
+    for sid in _sweep_target_school_ids(school_id):
+        summary["schools"] += 1
+        try:
+            one = (
+                _with_tenant(
+                    sid, _sweep_low_inventory_stock_for_school, school_id=sid
+                )
+                or {}
+            )
+        except Exception as exc:  # noqa: BLE001 - one bad tenant must not end the sweep
+            summary["errors"] += 1
+            summary["schools_failed"] += 1
+            logger.exception(
+                "schoolops.sweep_low_inventory_stock tenant_context_failed "
+                "school_id=%s exc_type=%s",
+                sid,
+                type(exc).__name__,
+            )
+            continue
+        for key, value in one.items():
+            summary[key] = summary.get(key, 0) + value
+    logger.info("schoolops.sweep_low_inventory_stock summary=%s", summary)
+    return summary
 
 
 @shared_task(name="schoolops.run_procurement_scan")
