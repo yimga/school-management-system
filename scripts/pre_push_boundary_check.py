@@ -65,6 +65,9 @@ GATES: list[tuple[str, list[str]]] = [
     # First: a module that does not compile cannot be imported at all, and every
     # gate below it is answering about a tree that does not run.
     ("python-files-parse", ["verify_python_files_parse.py"]),
+    # Cheap, stdlib-only, and it answers a question no other gate asks: is the OTA
+    # pipeline still CONNECTED? A cut wire here ships a green tree that upgrades nobody.
+    ("ota-pipeline-wiring", ["verify_ota_pipeline_wiring.py"]),
     # The admin-surface family. Every one of these was written as a pass/fail gate,
     # passes on the current tree, and runs in under a second -- and until 2026-08-21
     # not one was invoked by any workflow or by this runner, so nothing distinguished

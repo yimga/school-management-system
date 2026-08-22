@@ -276,6 +276,11 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # real AdminSite instances and proves field classification, ownership binding,
     # evidence immutability, and optional-field preference metadata stay complete.
     ("scripts/audit_admin_form_intelligence_contract.py", "ci.yml"),
+    # The cascading-OTA pipeline can be fully present and deliver nothing: every wire
+    # in it (operator manifest build, box manifest build, box apply step, mounted
+    # routes, cloud-pinned paths) fails SILENTLY when cut, because nothing is broken —
+    # the code is simply never reached. Same class as scan_unregistered_middleware.
+    ("scripts/verify_ota_pipeline_wiring.py", "architectural-boundaries.yml"),
 )
 
 

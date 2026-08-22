@@ -25,8 +25,24 @@ python3 -m pip install -r requirements.txt --no-cache-dir
 # same thing?" and get an answer. Without this the OTA manifest endpoint has nothing to
 # serve and answers 503 with that exact explanation rather than an empty delta a box
 # would read as "you are up to date".
-echo "Generating system manifest..."
-SECRET_KEY="${SECRET_KEY:-build-time-manifest-only}" DEBUG=0   python3 manage.py generate_system_manifest --channel "${RMC_OTA_CHANNEL:-stable}" ||   echo "WARNING: system manifest not generated; OTA endpoints will report no_manifest"
+#
+# THIS STEP IS FATAL, and that is a deliberate reversal. It used to end in
+# `|| echo "WARNING: ..."`, which meant a failure here produced a GREEN deploy whose OTA
+# system was silently dead: every box in the fleet would ask for a manifest, receive 503
+# no_manifest, and never upgrade again — with nothing anywhere reporting it. A warning in
+# a build log nobody reads is not a signal. The command crawls the filesystem and needs
+# no database, no network and no migrations, so a failure here means something is
+# genuinely wrong with the tree rather than flaky infrastructure.
+#
+# An operator who deliberately runs without OTA sets RMC_OTA_ENABLED=0 — the same switch
+# the runtime already reads — and the step is skipped rather than silently tolerated.
+if [[ "${RMC_OTA_ENABLED:-1}" == "0" || "${RMC_OTA_ENABLED:-1}" == "false" ]]; then
+  echo "Skipping system manifest: RMC_OTA_ENABLED=0 (OTA endpoints will report no_manifest)"
+else
+  echo "Generating system manifest..."
+  SECRET_KEY="${SECRET_KEY:-build-time-manifest-only}" DEBUG=0 \
+    python3 manage.py generate_system_manifest --channel "${RMC_OTA_CHANNEL:-stable}"
+fi
 
 # ── Optional OCR system binaries (scanned / image-only PDF support) ──────────
 # Render's native Python runtime has no apt / root, so Tesseract + Poppler can't
