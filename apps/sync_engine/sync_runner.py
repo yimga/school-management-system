@@ -312,6 +312,11 @@ def run_sync_cycle(school, *, mode="live", run_row=None) -> dict:
         # simply did not land, and a cycle that reports only "pulled N" would present that
         # as success.
         "skipped": 0,
+        # OTA interlock. Always present so a caller never has to distinguish "not held"
+        # from "this build predates the interlock" — the Sync Center reads both.
+        "held_for_upgrade": False,
+        "upgrade_target": "",
+        "upgrade_available": "",
         "message": "",
         "error": "",
     }
@@ -417,6 +422,44 @@ def _execute_sync_transport(school, *, mode, result, run_row) -> None:
     token = _edge_token()
     errors: list[str] = []
     notes: list[str] = []
+
+    # OTA INTERLOCK. The previous cycle learned from a response header that this box is
+    # not built from the code the operator is serving. Move NOTHING until the upgrade has
+    # been applied: a bundle applied by stale code against a schema the cloud has already
+    # moved is the split-brain this whole mechanism exists to prevent.
+    #
+    # The cursors are deliberately left where they are, so the held ground is re-offered
+    # in full on the cycle after the upgrade — a hold defers work, it never drops it.
+    # The hold also EXPIRES (see upgrade_lock.hold_ttl_seconds), so a box whose upgrade
+    # never completes returns to syncing on its old code rather than going quiet forever.
+    #
+    # A dry run is exempt: it writes nothing in either direction, and it is exactly what
+    # an operator runs to ask "can this box still reach the cloud" while the box is held.
+    if mode != "dry":
+        try:
+            from apps.sync_engine import upgrade_lock
+
+            hold = upgrade_lock.local_state()
+            if hold.get("state") == upgrade_lock.SYNC_STATE_HELD_FOR_UPGRADE:
+                target = str(hold.get("target_hash") or "")[:12]
+                result["held_for_upgrade"] = True
+                result["upgrade_target"] = str(hold.get("target_hash") or "")
+                # ok=True: nothing failed. The box did exactly what it should have done.
+                # Reporting this as an error would train an operator to ignore red rows
+                # during every upgrade window.
+                result["ok"] = True
+                result["message"] = (
+                    f"held for upgrade -> {target} ({hold.get('held_seconds', 0)}s); "
+                    "data sync resumes once the upgrade is applied"
+                )
+                logger.info(
+                    "edge sync: school=%s held for upgrade target=%s",
+                    getattr(school, "pk", None),
+                    target,
+                )
+                return
+        except Exception:  # noqa: BLE001 - the interlock must never be what breaks a cycle
+            logger.debug("upgrade interlock check failed", exc_info=True)
 
     # A box that pulled new code but never ran migrate cannot apply rows for any column it
     # does not have yet. Those rows now degrade individually (sync_services catches
@@ -688,6 +731,48 @@ def _execute_sync_transport(school, *, mode, result, run_row) -> None:
             if withheld_entities:
                 note += f" [withheld: {', '.join(sorted(withheld_entities))}]"
             notes.append(note)
+
+        # OTA: the cloud named a manifest this box is not on. Arming is all that happens
+        # here — the current cycle is already complete and was protected by the schema
+        # handshake; the hold takes effect on the NEXT tick, which costs nothing and
+        # keeps the learning path free of an extra round trip.
+        manifest_target = (collected.get("manifest_target") or "").strip()
+        if manifest_target and mode != "dry":
+            try:
+                from apps.sync_engine import local_upgrade, upgrade_lock
+                from apps.sync_engine.system_manifest import local_manifest_hash
+
+                if manifest_target != local_manifest_hash():
+                    result["upgrade_available"] = manifest_target
+                    notes.append(
+                        (collected.get("manifest_advice") or "").strip()
+                        or f"upgrade available: {manifest_target[:12]}"
+                    )
+                    # A hold is only justified when this box is going to ACT on it.
+                    #
+                    # With RMC_OTA_AUTO_APPLY off, nothing on the box will apply anything
+                    # until a human runs `edge_apply_upgrade`, so holding would stop a
+                    # school's records from syncing for as long as an operator takes to
+                    # notice — strictly worse than running one release behind, and worse
+                    # than the drift it is guarding against. So the mismatch is REPORTED
+                    # on every cycle and the rail keeps moving.
+                    #
+                    # `acknowledged_target` is the second half of the same idea: once the
+                    # box has carried a target as far as its mode allows (an assets-only
+                    # lane, or a code lane that needs an image rebuild), re-holding for it
+                    # every cycle would be a permanent outage for a thing the box cannot
+                    # finish. It stays visible; it stops being a blocker.
+                    if (
+                        local_upgrade.auto_apply_mode() != local_upgrade.MODE_OFF
+                        and manifest_target != upgrade_lock.acknowledged_target()
+                    ):
+                        upgrade_lock.arm_local(
+                            target_hash=manifest_target,
+                            current_hash=local_manifest_hash(),
+                            reason=(collected.get("manifest_advice") or "").strip(),
+                        )
+            except Exception:  # noqa: BLE001 - advisory; never cost the box its data
+                logger.debug("could not arm the upgrade hold", exc_info=True)
 
         directive = (collected.get("directive") or "").strip()
         resyncing = directive == "full-resync" and mode != "dry"

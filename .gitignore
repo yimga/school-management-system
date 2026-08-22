@@ -204,3 +204,10 @@ locale/en_XA/
 # Build stamp written at image build time by scripts/write_build_stamp.py so a
 # running box can answer /-/version/. Per-build and per-machine; never committed.
 .build-stamp.json
+
+# Cascading OTA. Generated at BUILD time (build.sh / deploy/selfhost/Dockerfile), not
+# committed: it is a hash of the tree, so committing it would change on every edit and
+# every diff would be 12k lines of noise. `generate_system_manifest --check` is the gate
+# that proves a deployment's manifest is current.
+system_manifest.json
+.rmc_ota_staging/

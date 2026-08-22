@@ -4189,6 +4189,75 @@ try:
 except ValueError:
     RMC_EDGE_SYNC_CURSOR_OVERLAP_SECONDS = 120
 
+# ── Cascading OTA (code + UI/UX asset delivery over the sync rail) ────────────
+# The cloud half is READ-ONLY (serve a manifest, serve a byte range) and defaults ON:
+# it costs nothing until a box asks. The box half — the part that rewrites a running
+# deployment — defaults OFF, because an appliance that upgrades itself unattended while
+# a school is teaching must be a decision an operator made. See
+# apps/sync_engine/local_upgrade.py for the gate sequence and what each gate protects.
+RMC_OTA_ENABLED = os.getenv("RMC_OTA_ENABLED", "1").strip().lower() in (
+    "1",
+    "true",
+    "yes",
+    "on",
+)
+# "off" | "assets" | "full". "assets" swaps templates/static/locale only, which take
+# effect without reloading the interpreter; "full" also moves python + migrations and
+# needs a release-symlink layout (RMC_OTA_RELEASE_ROOT) to activate rather than defer.
+RMC_OTA_AUTO_APPLY = (os.getenv("RMC_OTA_AUTO_APPLY", "off") or "off").strip().lower()
+# Where system_manifest.json lives / which tree its relative paths resolve against.
+# Both empty by default => BASE_DIR, which is correct for the standard image.
+RMC_OTA_MANIFEST_PATH = (os.getenv("RMC_OTA_MANIFEST_PATH", "") or "").strip()
+RMC_OTA_MANIFEST_ROOT = (os.getenv("RMC_OTA_MANIFEST_ROOT", "") or "").strip()
+RMC_OTA_STAGING_ROOT = (os.getenv("RMC_OTA_STAGING_ROOT", "") or "").strip()
+# Set ONLY on a deployment laid out as <root>/releases/<id> with a `current` symlink.
+# Left unset (the ordinary `COPY . .` image), a full-lane upgrade reports
+# activation="deferred" instead of pretending it swapped code it could not swap.
+RMC_OTA_RELEASE_ROOT = (os.getenv("RMC_OTA_RELEASE_ROOT", "") or "").strip()
+RMC_OTA_HEALTH_URL = (
+    os.getenv("RMC_OTA_HEALTH_URL", "") or "http://127.0.0.1:10000/health/"
+).strip()
+try:
+    # The blue-green budget. Past this with no 200, the rollback set goes back.
+    RMC_OTA_HEALTH_TIMEOUT_SECONDS = max(
+        5, int(os.getenv("RMC_OTA_HEALTH_TIMEOUT_SECONDS", "60"))
+    )
+except ValueError:
+    RMC_OTA_HEALTH_TIMEOUT_SECONDS = 60
+try:
+    # A hold that never expires is a box that stops syncing forever because an upgrade
+    # failed at 2am. Past this the rail resumes on the OLD code — a state the box is
+    # known to survive — and the next handshake re-offers the upgrade.
+    RMC_OTA_HOLD_TTL_SECONDS = max(60, int(os.getenv("RMC_OTA_HOLD_TTL_SECONDS", "3600")))
+except ValueError:
+    RMC_OTA_HOLD_TTL_SECONDS = 3600
+try:
+    RMC_OTA_DELTA_MAX_FILES = max(1, int(os.getenv("RMC_OTA_DELTA_MAX_FILES", "5000")))
+except ValueError:
+    RMC_OTA_DELTA_MAX_FILES = 5000
+try:
+    RMC_OTA_DELTA_MAX_BYTES = max(
+        1, int(os.getenv("RMC_OTA_DELTA_MAX_BYTES", str(256 * 1024 * 1024)))
+    )
+except ValueError:
+    RMC_OTA_DELTA_MAX_BYTES = 256 * 1024 * 1024
+# A destructive migration (RemoveField / RenameField / DeleteModel / RunSQL, per
+# platform_runtime.schema_rollout.DANGEROUS_OP_TYPES) stops an unattended upgrade. There
+# is no safe automatic answer to "may I drop this column on a school's live database".
+# collectstatic after an asset swap is REQUIRED in production (ManifestStaticFilesStorage
+# resolves {% static %} through staticfiles.json, so uncollected bytes are unreachable by
+# any URL a template can build). Switchable only for tests and for a box that serves
+# static from a CDN it updates separately.
+RMC_OTA_COLLECTSTATIC = os.getenv("RMC_OTA_COLLECTSTATIC", "1").strip().lower() in (
+    "1",
+    "true",
+    "yes",
+    "on",
+)
+RMC_OTA_ALLOW_DANGEROUS_MIGRATIONS = os.getenv(
+    "RMC_OTA_ALLOW_DANGEROUS_MIGRATIONS", "0"
+).strip().lower() in ("1", "true", "yes", "on")
+
 RMC_AUTO_APPLY_OFFLINE_BUNDLE_ON_PROVISION = os.getenv(
     "RMC_AUTO_APPLY_OFFLINE_BUNDLE_ON_PROVISION", "1"
 ).strip().lower() in ("1", "true", "yes", "on")

@@ -293,6 +293,33 @@ def local_schema_head_header() -> str:
         return ""
 
 
+def local_manifest_headers() -> dict:
+    """This deployment's manifest hash and build commit, for the OTA handshake.
+
+    Silent on every failure and absent when this deployment has no manifest: a peer that
+    sends no manifest header is treated exactly as every peer was treated before the
+    handshake existed, which is what keeps a mixed-version fleet working while it rolls.
+    """
+    headers: dict[str, str] = {}
+    try:
+        from apps.sync_engine.system_manifest import local_manifest_hash
+
+        digest = local_manifest_hash()
+        if digest:
+            headers[SYNC_MANIFEST_HEADER] = digest
+    except Exception:  # noqa: BLE001 - the handshake is advisory; never break transport
+        pass
+    try:
+        from apps.siteconfig.deploy_meta import UNKNOWN, resolve_deploy_commit_sha
+
+        commit = resolve_deploy_commit_sha()
+        if commit and commit != UNKNOWN:
+            headers[SYNC_ENGINE_HEADER] = commit
+    except Exception:  # noqa: BLE001
+        pass
+    return headers
+
+
 def post_bundle(endpoint: str, token: str, data: bytes, *, timeout: float = 30.0):
     """POST a signed bundle to the operator's receiver with a bearer credential.
 
@@ -308,6 +335,7 @@ def post_bundle(endpoint: str, token: str, data: bytes, *, timeout: float = 30.0
     schema_head = local_schema_head_header()
     if schema_head:
         headers[SYNC_SCHEMA_HEAD_HEADER] = schema_head
+    headers.update(local_manifest_headers())
     def _attempt():
         req = urllib.request.Request(endpoint, data=data, method="POST", headers=headers)
         try:
@@ -359,6 +387,16 @@ SYNC_PARITY_HEADER = "X-RMC-Sync-Parity"
 SYNC_PARITY_DRIFT_HEADER = "X-RMC-Sync-Parity-Drift"
 SYNC_PARITY_ADVICE_HEADER = "X-RMC-Sync-Parity-Advice"
 
+# OTA manifest handshake. The box declares WHICH CODE AND ASSETS it is made of; the cloud
+# answers with the target it expects. This is the schema handshake's sibling: that one
+# compares migration heads (what the DATABASE has applied), this one compares file
+# content (what the DEPLOYMENT is built from). Two boxes on the same migration head can
+# still differ by a whole UI release, which is exactly the drift this closes.
+SYNC_MANIFEST_HEADER = "X-RMC-Sync-Manifest"
+SYNC_ENGINE_HEADER = "X-RMC-Sync-Engine"
+SYNC_MANIFEST_TARGET_HEADER = "X-RMC-Sync-Manifest-Target"
+SYNC_MANIFEST_ADVICE_HEADER = "X-RMC-Sync-Manifest-Advice"
+
 
 def pull_bundle(
     endpoint: str,
@@ -407,6 +445,10 @@ def pull_bundle(
     schema_head = local_schema_head_header()
     if schema_head:
         headers[SYNC_SCHEMA_HEAD_HEADER] = schema_head
+    # OTA: what this box is BUILT from, so the cloud can answer with the target manifest
+    # on the response of a request the box was making anyway. Learning that an upgrade
+    # exists therefore costs zero extra round trips.
+    headers.update(local_manifest_headers())
     # G8: what this box HOLDS, so the cloud can answer with what disagrees. Only present
     # on the cycles the caller decided a sweep was due, so the ordinary pull is unchanged.
     if parity:
@@ -418,15 +460,20 @@ def pull_bundle(
     withheld = None
     parity_drift = None
     parity_advice = None
+    manifest_target = None
+    manifest_advice = None
 
     def _read_meta(source):
         nonlocal advice, withheld, parity_drift, parity_advice
+        nonlocal manifest_target, manifest_advice
         if not source:
             return
         advice = source.get(SYNC_SCHEMA_ADVICE_HEADER)
         withheld = source.get(SYNC_WITHHELD_HEADER)
         parity_drift = source.get(SYNC_PARITY_DRIFT_HEADER)
         parity_advice = source.get(SYNC_PARITY_ADVICE_HEADER)
+        manifest_target = source.get(SYNC_MANIFEST_TARGET_HEADER)
+        manifest_advice = source.get(SYNC_MANIFEST_ADVICE_HEADER)
 
     def _attempt():
         nonlocal high_water, directive
@@ -464,6 +511,8 @@ def pull_bundle(
             e.strip() for e in (parity_drift or "").split(",") if e.strip()
         ]
         collect["parity_advice"] = (parity_advice or "").strip()
+        collect["manifest_target"] = (manifest_target or "").strip()
+        collect["manifest_advice"] = (manifest_advice or "").strip()
     return status, body, high_water
 
 
