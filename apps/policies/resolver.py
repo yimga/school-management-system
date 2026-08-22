@@ -464,37 +464,42 @@ def get_effective_policy(
                                     out["forms"][form_name] = form_schema
                         else:
                             out[key] = value
-                    if capability is not None:
-                        from apps.schools.models import is_feature_enabled
-
-                        return {
-                            "enabled": is_feature_enabled(school, capability),
-                            "policy": out,
-                        }
-                    # Fill country_code / plan_slug for modules (no direct school.default_region/plan read)
-                    region = getattr(school, "default_region", None)
-                    if region and hasattr(region, "country_code"):
-                        out.setdefault(
-                            "country_code",
-                            (getattr(region, "country_code", None) or "")[:10],
-                        )
-                    plan = getattr(school, "plan", None)
-                    if plan and hasattr(plan, "slug"):
-                        out.setdefault(
-                            "plan_slug",
-                            (getattr(plan, "slug", None) or "").strip().lower(),
-                        )
-                    try:
-                        ttl = getattr(django_settings, "POLICY_CACHE_TTL", None)
-                        if ttl and ttl > 0:
-                            from django.core.cache import cache
-
-                            key = _policy_cache_key(school)
-                            if key:
-                                cache.set(key, out, timeout=int(ttl))
-                    except _POLICY_CACHE_ERRORS as e:
-                        logger.debug("Policy cache set failed: %s", e)
-                    return out
+                    # NO early return here, deliberately.
+                    #
+                    # This branch used to fill country_code/plan_slug, cache, and
+                    # `return out` right here -- skipping EVERYTHING below it. And
+                    # POLICY_USE_BUNDLES defaults to ON (config/settings.py: the
+                    # env default is "1"), so any school with a TenantBlueprint
+                    # whose active bundle has a non-empty policy_snapshot took it.
+                    #
+                    # What that silently dropped, for exactly the schools that had
+                    # adopted a blueprint:
+                    #   * region defaults -- currency, timezone, default_language,
+                    #     grading_scale, rtl;
+                    #   * _merge_sector_defaults_into_policy and
+                    #     _merge_education_registry_into_policy;
+                    #   * the ENTIRE School.settings tenant-override block
+                    #     (terminology, grading, grade_approval, workflows, rtl,
+                    #     default_language, education_dna_preset, admissions, forms,
+                    #     finance, attendance, communication, hr_staff, compliance,
+                    #     a11y);
+                    #   * School.features feature flags;
+                    #   * the admissions backfill and TenantAdmissionNumberPolicy.
+                    #
+                    # So applying a blueprint turned the school's own configuration
+                    # off. Falling through instead makes the bundle a DEFAULTS layer:
+                    # region values use setdefault and sector defaults are guarded by
+                    # `not in`, so neither clobbers the snapshot, while School.settings
+                    # merges on top -- which is the documented precedence ("before
+                    # tenant overrides so tenant can override").
+                    #
+                    # capability handling and the cache write are not lost: the tail
+                    # of this function does both, identically, for every path.
+                    # (_merge_education_registry_into_policy does assign
+                    # education_levels, education_system_types and grading.preset_key
+                    # outright, so a bundle setting those three now yields to the
+                    # registry. That is the one precedence change here, and it is the
+                    # right way round -- those are platform registry facts.)
     except _POLICY_MERGE_ERRORS as e:
         log_exception_with_context(
             "policies.resolver: Policy merge from TenantBlueprint failed",
