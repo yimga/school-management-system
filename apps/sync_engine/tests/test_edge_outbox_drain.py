@@ -20,6 +20,9 @@ from apps.schoolops.email_delivery import send_transactional
 from apps.schoolops.models_email_deadletter import DeadLetterStatus, EmailDeadLetter
 from apps.schools.models import School
 
+# The redrive backend guard, stubbed by _run_delivering (see its docstring).
+_CAN_DELIVER = "apps.schoolops.email_delivery._email_backend_can_deliver"
+
 _FAST = dict(
     SCHOOLOPS_EMAIL_DELIVERY_RETRY_BACKOFF=[0],
     SCHOOLOPS_EMAIL_DELIVERY_SYNC_BUDGET_SECONDS=2,
@@ -40,13 +43,30 @@ class DrainEdgeOutboxTests(TestCase):
         self._last_stderr = err.getvalue()
         return out.getvalue()
 
+    def _run_delivering(self, *args):
+        """Drain with the backend guard neutralised.
+
+        Django's test runner pins ``EMAIL_BACKEND`` to locmem, and
+        ``_email_backend_can_deliver`` deliberately refuses console/locmem/dummy so the
+        cron that exists to RESCUE parked mail cannot mark rows ``redriven`` while
+        delivering them to nobody (added 2026-08-20, covered by
+        ``apps/schoolops/tests/test_redrive_refuses_non_delivering_backend_2026_08_20.py``).
+
+        That guard is correct and is NOT what these two tests are about -- they assert the
+        drain forwards parked mail and reports it. So the guard is stubbed here while
+        locmem still captures into ``mail.outbox``, which is what makes the forwarding
+        assertion real rather than a counter read back to itself.
+        """
+        with patch(_CAN_DELIVER, return_value=(True, "")):
+            return self._run(*args)
+
     @override_settings(RMC_EMAIL_OFFLINE_QUEUE=True)
     def test_email_queue_drained_and_forwarded(self):
         # Park an email offline (the guard writes a pending EmailDeadLetter row).
         send_transactional(subject="Hi", body="body", to=["p@example.com"], priority="transactional")
         self.assertEqual(EmailDeadLetter.objects.filter(status=DeadLetterStatus.PENDING).count(), 1)
 
-        out = self._run("--skip-sms")
+        out = self._run_delivering("--skip-sms")
 
         self.assertIn("email(redriven=1", out)
         self.assertEqual(len(mail.outbox), 1)  # actually forwarded (locmem in tests)
@@ -79,7 +99,7 @@ class DrainEdgeOutboxTests(TestCase):
             status="pending",
         )
         with patch("apps.communication.channels.send_whatsapp", return_value=True):
-            out = self._run()
+            out = self._run_delivering()
         self.assertIn("email(redriven=1", out)
         self.assertIn("sms_whatsapp(sent=1", out)
 

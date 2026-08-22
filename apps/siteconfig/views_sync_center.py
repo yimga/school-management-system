@@ -983,7 +983,15 @@ def sync_center_status(request):
 
     school = getattr(request, "school", None)
     if not school:
-        return JsonResponse({"ok": False, "error": "No school"}, status=403)
+        # 409, NOT 403. No tenant bound to the request is a STATE problem, not an
+        # authorization one: the caller may be perfectly entitled and simply be on a
+        # host that resolves no school. The permission check a few lines below returns
+        # a real 403, and collapsing both into 403 leaves the polling panel unable to
+        # tell "you may not see this" from "there is nothing here to see" -- different
+        # problems with different fixes for the operator. This WAS 409 until 852b3990a
+        # (a 139-file land) changed it in passing along with the payload key;
+        # test_no_school_in_context_is_a_409_not_a_crash exists to pin it.
+        return JsonResponse({"ok": False, "error": "No school"}, status=409)
 
     # DELIBERATELY the raw env flag, not the resolved edge_sync_enabled(). This is an
     # authorization bypass ("on a box, let the box's own screens probe without a tenant
