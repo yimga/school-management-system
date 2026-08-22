@@ -1,19 +1,19 @@
 {
   "baseline_counts": {
-    "allow_any": 161,
-    "csrf_exempt": 755,
-    "cursor_execute": 606,
-    "except_exception": 3271,
+    "allow_any": 166,
+    "csrf_exempt": 767,
+    "cursor_execute": 718,
+    "except_exception": 3981,
     "get_solo": 213,
-    "gilead": 17103,
-    "gilead_files": 254,
-    "html_files": 2001,
-    "management_commands": 342,
-    "markdown_files": 1832,
-    "migration_files": 1185,
-    "print_calls": 5128,
-    "python_files": 7711,
-    "site_settings": 2505
+    "gilead": 42084,
+    "gilead_files": 466,
+    "html_files": 2101,
+    "management_commands": 400,
+    "markdown_files": 1888,
+    "migration_files": 1281,
+    "print_calls": 5609,
+    "python_files": 8702,
+    "site_settings": 2590
   },
   "doc_drift": {
     "actual_installed_app_count": 55,
@@ -28,24 +28,29 @@
       "path": "apps/siteconfig/_seed_country_localization.py"
     },
     {
-      "bytes": 254532,
-      "lines": 6335,
+      "bytes": 257782,
+      "lines": 6416,
       "path": "apps/siteconfig/forms_cockpit.py"
     },
     {
-      "bytes": 213312,
-      "lines": 4239,
+      "bytes": 242768,
+      "lines": 4735,
       "path": "config/settings.py"
     },
     {
-      "bytes": 191001,
-      "lines": 4711,
+      "bytes": 206143,
+      "lines": 5003,
       "path": "apps/accounts/views.py"
     },
     {
-      "bytes": 169135,
-      "lines": 4207,
+      "bytes": 169799,
+      "lines": 4217,
       "path": "apps/schools/marketing_views.py"
+    },
+    {
+      "bytes": 159377,
+      "lines": 3659,
+      "path": "apps/migration_cloud/views.py"
     },
     {
       "bytes": 147039,
@@ -58,8 +63,8 @@
       "path": "apps/schools/marketing_page_definitions.py"
     },
     {
-      "bytes": 140257,
-      "lines": 3618,
+      "bytes": 141015,
+      "lines": 3639,
       "path": "apps/evals/views.py"
     },
     {
@@ -68,18 +73,13 @@
       "path": "apps/api/oneroster_results.py"
     },
     {
-      "bytes": 126469,
-      "lines": 2921,
-      "path": "apps/migration_cloud/views.py"
+      "bytes": 125707,
+      "lines": 2999,
+      "path": "apps/schools/signup_views.py"
     },
     {
-      "bytes": 123722,
-      "lines": 3006,
-      "path": "apps/api/views_v1.py"
-    },
-    {
-      "bytes": 120762,
-      "lines": 3337,
+      "bytes": 123979,
+      "lines": 3407,
       "path": "apps/finance/models.py"
     }
   ],
@@ -91,8 +91,18 @@
     },
     {
       "app": "academics",
+      "command": "export_country_catalog_template",
+      "path": "apps/academics/management/commands/export_country_catalog_template.py"
+    },
+    {
+      "app": "academics",
       "command": "fix_term_positions",
       "path": "apps/academics/management/commands/fix_term_positions.py"
+    },
+    {
+      "app": "academics",
+      "command": "import_country_official_catalog",
+      "path": "apps/academics/management/commands/import_country_official_catalog.py"
     },
     {
       "app": "academics",
@@ -123,6 +133,11 @@
       "app": "academics",
       "command": "solve_timetable",
       "path": "apps/academics/management/commands/solve_timetable.py"
+    },
+    {
+      "app": "accounts",
+      "command": "backfill_guardian_memberships",
+      "path": "apps/accounts/management/commands/backfill_guardian_memberships.py"
     },
     {
       "app": "accounts",
@@ -166,6 +181,16 @@
     },
     {
       "app": "accounts",
+      "command": "fix_tenant_login",
+      "path": "apps/accounts/management/commands/fix_tenant_login.py"
+    },
+    {
+      "app": "accounts",
+      "command": "invite_school_owner",
+      "path": "apps/accounts/management/commands/invite_school_owner.py"
+    },
+    {
+      "app": "accounts",
       "command": "list_expired_temporary_grants",
       "path": "apps/accounts/management/commands/list_expired_temporary_grants.py"
     },
@@ -173,6 +198,11 @@
       "app": "accounts",
       "command": "promote_superadmin",
       "path": "apps/accounts/management/commands/promote_superadmin.py"
+    },
+    {
+      "app": "accounts",
+      "command": "recover_unactivated_owners",
+      "path": "apps/accounts/management/commands/recover_unactivated_owners.py"
     },
     {
       "app": "accounts",
@@ -206,8 +236,23 @@
     },
     {
       "app": "accounts",
+      "command": "seed_tenant_test_accounts",
+      "path": "apps/accounts/management/commands/seed_tenant_test_accounts.py"
+    },
+    {
+      "app": "accounts",
       "command": "sync_rebac_tuples",
       "path": "apps/accounts/management/commands/sync_rebac_tuples.py"
+    },
+    {
+      "app": "accounts",
+      "command": "sync_roster",
+      "path": "apps/accounts/management/commands/sync_roster.py"
+    },
+    {
+      "app": "accounts",
+      "command": "sync_superadmin_permissions",
+      "path": "apps/accounts/management/commands/sync_superadmin_permissions.py"
     },
     {
       "app": "analytics",
@@ -416,6 +461,11 @@
     },
     {
       "app": "billing",
+      "command": "ensure_showcase_tenant_entitlements",
+      "path": "apps/billing/management/commands/ensure_showcase_tenant_entitlements.py"
+    },
+    {
+      "app": "billing",
       "command": "import_platform_billing_snapshot",
       "path": "apps/billing/management/commands/import_platform_billing_snapshot.py"
     },
@@ -458,6 +508,11 @@
       "app": "billing",
       "command": "send_renewal_reminders",
       "path": "apps/billing/management/commands/send_renewal_reminders.py"
+    },
+    {
+      "app": "brand_experience",
+      "command": "reconcile_experience_template_runtime",
+      "path": "apps/brand_experience/management/commands/reconcile_experience_template_runtime.py"
     },
     {
       "app": "communication",
@@ -691,6 +746,11 @@
     },
     {
       "app": "finance",
+      "command": "run_settlement_reconciliation",
+      "path": "apps/finance/management/commands/run_settlement_reconciliation.py"
+    },
+    {
+      "app": "finance",
       "command": "seed_finance_defaults",
       "path": "apps/finance/management/commands/seed_finance_defaults.py"
     },
@@ -703,6 +763,11 @@
       "app": "finance",
       "command": "send_payment_reminders",
       "path": "apps/finance/management/commands/send_payment_reminders.py"
+    },
+    {
+      "app": "finance",
+      "command": "set_payment_webhook_signature_scheme",
+      "path": "apps/finance/management/commands/set_payment_webhook_signature_scheme.py"
     },
     {
       "app": "finance",
@@ -761,8 +826,63 @@
     },
     {
       "app": "integrations_marketplace",
+      "command": "sync_calendar_events",
+      "path": "apps/integrations_marketplace/management/commands/sync_calendar_events.py"
+    },
+    {
+      "app": "integrations_marketplace",
       "command": "verify_oauth_token_rotation_policy",
       "path": "apps/integrations_marketplace/management/commands/verify_oauth_token_rotation_policy.py"
+    },
+    {
+      "app": "lifecycle",
+      "command": "drill_tenant_snapshot_restore",
+      "path": "apps/lifecycle/management/commands/drill_tenant_snapshot_restore.py"
+    },
+    {
+      "app": "lifecycle",
+      "command": "edge_bringup",
+      "path": "apps/lifecycle/management/commands/edge_bringup.py"
+    },
+    {
+      "app": "lifecycle",
+      "command": "edge_onboarding_verify",
+      "path": "apps/lifecycle/management/commands/edge_onboarding_verify.py"
+    },
+    {
+      "app": "lifecycle",
+      "command": "export_school_branding",
+      "path": "apps/lifecycle/management/commands/export_school_branding.py"
+    },
+    {
+      "app": "lifecycle",
+      "command": "export_tenant_bundle",
+      "path": "apps/lifecycle/management/commands/export_tenant_bundle.py"
+    },
+    {
+      "app": "lifecycle",
+      "command": "export_tenant_identities",
+      "path": "apps/lifecycle/management/commands/export_tenant_identities.py"
+    },
+    {
+      "app": "lifecycle",
+      "command": "import_school_branding",
+      "path": "apps/lifecycle/management/commands/import_school_branding.py"
+    },
+    {
+      "app": "lifecycle",
+      "command": "import_sovereign_tenant",
+      "path": "apps/lifecycle/management/commands/import_sovereign_tenant.py"
+    },
+    {
+      "app": "lifecycle",
+      "command": "import_tenant_bundle",
+      "path": "apps/lifecycle/management/commands/import_tenant_bundle.py"
+    },
+    {
+      "app": "lifecycle",
+      "command": "import_tenant_identities",
+      "path": "apps/lifecycle/management/commands/import_tenant_identities.py"
     },
     {
       "app": "marketplace",
@@ -836,8 +956,18 @@
     },
     {
       "app": "migration_cloud",
+      "command": "inspect_migration_tenant",
+      "path": "apps/migration_cloud/management/commands/inspect_migration_tenant.py"
+    },
+    {
+      "app": "migration_cloud",
       "command": "maa_v2_resign_campaign",
       "path": "apps/migration_cloud/management/commands/maa_v2_resign_campaign.py"
+    },
+    {
+      "app": "migration_cloud",
+      "command": "mc_recover_import",
+      "path": "apps/migration_cloud/management/commands/mc_recover_import.py"
     },
     {
       "app": "migration_cloud",
@@ -903,6 +1033,11 @@
       "app": "observability",
       "command": "emit_prometheus_alert_rules",
       "path": "apps/observability/management/commands/emit_prometheus_alert_rules.py"
+    },
+    {
+      "app": "observability",
+      "command": "ping_celery_workers",
+      "path": "apps/observability/management/commands/ping_celery_workers.py"
     },
     {
       "app": "observability",
@@ -996,8 +1131,18 @@
     },
     {
       "app": "platform_runtime",
+      "command": "blueprint_readiness_report",
+      "path": "apps/platform_runtime/management/commands/blueprint_readiness_report.py"
+    },
+    {
+      "app": "platform_runtime",
       "command": "certify_edge_ai",
       "path": "apps/platform_runtime/management/commands/certify_edge_ai.py"
+    },
+    {
+      "app": "platform_runtime",
+      "command": "check_beat_publishing",
+      "path": "apps/platform_runtime/management/commands/check_beat_publishing.py"
     },
     {
       "app": "platform_runtime",
@@ -1236,6 +1381,11 @@
     },
     {
       "app": "reports",
+      "command": "generate_term_report_cards",
+      "path": "apps/reports/management/commands/generate_term_report_cards.py"
+    },
+    {
+      "app": "reports",
       "command": "seed_report_card_e2e",
       "path": "apps/reports/management/commands/seed_report_card_e2e.py"
     },
@@ -1243,6 +1393,16 @@
       "app": "reports",
       "command": "send_scheduled_reports",
       "path": "apps/reports/management/commands/send_scheduled_reports.py"
+    },
+    {
+      "app": "school_events",
+      "command": "expire_stale_event_reservations",
+      "path": "apps/school_events/management/commands/expire_stale_event_reservations.py"
+    },
+    {
+      "app": "schoolops",
+      "command": "check_missing_immunizations",
+      "path": "apps/schoolops/management/commands/check_missing_immunizations.py"
     },
     {
       "app": "schoolops",
@@ -1281,8 +1441,23 @@
     },
     {
       "app": "schools",
+      "command": "backfill_country_baseline",
+      "path": "apps/schools/management/commands/backfill_country_baseline.py"
+    },
+    {
+      "app": "schools",
+      "command": "backfill_onboarding_recommendations",
+      "path": "apps/schools/management/commands/backfill_onboarding_recommendations.py"
+    },
+    {
+      "app": "schools",
       "command": "backfill_schooldomain",
       "path": "apps/schools/management/commands/backfill_schooldomain.py"
+    },
+    {
+      "app": "schools",
+      "command": "check_edge_readiness",
+      "path": "apps/schools/management/commands/check_edge_readiness.py"
     },
     {
       "app": "schools",
@@ -1351,6 +1526,11 @@
     },
     {
       "app": "schools",
+      "command": "provision_sovereign_school",
+      "path": "apps/schools/management/commands/provision_sovereign_school.py"
+    },
+    {
+      "app": "schools",
       "command": "resend_owner_setup_email",
       "path": "apps/schools/management/commands/resend_owner_setup_email.py"
     },
@@ -1363,6 +1543,11 @@
       "app": "schools",
       "command": "seed_demo_tenant_users",
       "path": "apps/schools/management/commands/seed_demo_tenant_users.py"
+    },
+    {
+      "app": "schools",
+      "command": "seed_feature_registry",
+      "path": "apps/schools/management/commands/seed_feature_registry.py"
     },
     {
       "app": "schools",
@@ -1541,6 +1726,11 @@
     },
     {
       "app": "siteconfig",
+      "command": "compile_message_catalogs",
+      "path": "apps/siteconfig/management/commands/compile_message_catalogs.py"
+    },
+    {
+      "app": "siteconfig",
       "command": "compile_translations",
       "path": "apps/siteconfig/management/commands/compile_translations.py"
     },
@@ -1583,6 +1773,11 @@
       "app": "siteconfig",
       "command": "generate_models_diagram",
       "path": "apps/siteconfig/management/commands/generate_models_diagram.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "generate_pseudo_locale",
+      "path": "apps/siteconfig/management/commands/generate_pseudo_locale.py"
     },
     {
       "app": "siteconfig",
@@ -1663,6 +1858,11 @@
       "app": "siteconfig",
       "command": "seed_br10_plan_skus",
       "path": "apps/siteconfig/management/commands/seed_br10_plan_skus.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "seed_country_grading_profiles",
+      "path": "apps/siteconfig/management/commands/seed_country_grading_profiles.py"
     },
     {
       "app": "siteconfig",
@@ -1781,8 +1981,98 @@
     },
     {
       "app": "sync_engine",
+      "command": "check_edge_sync_deploy_readiness",
+      "path": "apps/sync_engine/management/commands/check_edge_sync_deploy_readiness.py"
+    },
+    {
+      "app": "sync_engine",
+      "command": "drain_edge_outbox",
+      "path": "apps/sync_engine/management/commands/drain_edge_outbox.py"
+    },
+    {
+      "app": "sync_engine",
+      "command": "edge_autosync",
+      "path": "apps/sync_engine/management/commands/edge_autosync.py"
+    },
+    {
+      "app": "sync_engine",
+      "command": "edge_sync_cycle",
+      "path": "apps/sync_engine/management/commands/edge_sync_cycle.py"
+    },
+    {
+      "app": "sync_engine",
+      "command": "edge_sync_files",
+      "path": "apps/sync_engine/management/commands/edge_sync_files.py"
+    },
+    {
+      "app": "sync_engine",
+      "command": "edge_sync_resync",
+      "path": "apps/sync_engine/management/commands/edge_sync_resync.py"
+    },
+    {
+      "app": "sync_engine",
+      "command": "edge_sync_watch",
+      "path": "apps/sync_engine/management/commands/edge_sync_watch.py"
+    },
+    {
+      "app": "sync_engine",
+      "command": "export_edge_delta_bundle",
+      "path": "apps/sync_engine/management/commands/export_edge_delta_bundle.py"
+    },
+    {
+      "app": "sync_engine",
+      "command": "mint_claim_ticket",
+      "path": "apps/sync_engine/management/commands/mint_claim_ticket.py"
+    },
+    {
+      "app": "sync_engine",
+      "command": "mint_edge_credential",
+      "path": "apps/sync_engine/management/commands/mint_edge_credential.py"
+    },
+    {
+      "app": "sync_engine",
+      "command": "pair_box",
+      "path": "apps/sync_engine/management/commands/pair_box.py"
+    },
+    {
+      "app": "sync_engine",
+      "command": "post_edge_outbox",
+      "path": "apps/sync_engine/management/commands/post_edge_outbox.py"
+    },
+    {
+      "app": "sync_engine",
+      "command": "probe_edge_cloud_sync",
+      "path": "apps/sync_engine/management/commands/probe_edge_cloud_sync.py"
+    },
+    {
+      "app": "sync_engine",
+      "command": "pull_edge_inbox",
+      "path": "apps/sync_engine/management/commands/pull_edge_inbox.py"
+    },
+    {
+      "app": "sync_engine",
+      "command": "repair_sync_ownership",
+      "path": "apps/sync_engine/management/commands/repair_sync_ownership.py"
+    },
+    {
+      "app": "sync_engine",
       "command": "verify_crdt_convergence",
       "path": "apps/sync_engine/management/commands/verify_crdt_convergence.py"
+    },
+    {
+      "app": "sync_engine",
+      "command": "verify_edge_link",
+      "path": "apps/sync_engine/management/commands/verify_edge_link.py"
+    },
+    {
+      "app": "sync_engine",
+      "command": "verify_edge_sync_convergence",
+      "path": "apps/sync_engine/management/commands/verify_edge_sync_convergence.py"
+    },
+    {
+      "app": "sync_engine",
+      "command": "verify_sync_parity",
+      "path": "apps/sync_engine/management/commands/verify_sync_parity.py"
     },
     {
       "app": "sync_engine",
@@ -1798,19 +2088,21 @@
   "public_endpoint_audits": {
     "allow_any": {
       "owners": [
+        "edge_box_pairing_api",
         "marketplace_platform_api",
         "migration_cloud_public_api_docs",
         "tenant_bootstrap_api",
         "webhook_platform_api"
       ],
-      "reviewed_files": 4,
-      "reviewed_occurrences": 10
+      "reviewed_files": 5,
+      "reviewed_occurrences": 13
     },
     "csrf_exempt": {
       "owners": [
         "api_platform",
         "beyond_reach_api",
         "billing",
+        "edge_box_pairing_api",
         "finance_payments",
         "identity_access",
         "identity_provisioning",
@@ -1832,18 +2124,18 @@
         "security_observability",
         "setup_studio"
       ],
-      "reviewed_endpoints": 113,
-      "reviewed_files": 38
+      "reviewed_endpoints": 115,
+      "reviewed_files": 39
     }
   },
   "scoped_gravity_counts": {
-    "csrf_exempt_decorator_lines_apps_config_excl_migrations": 113,
-    "cursor_execute_apps_config_py_excl_migrations": 58,
+    "csrf_exempt_decorator_lines_apps_config_excl_migrations": 115,
+    "cursor_execute_apps_config_py_excl_migrations": 70,
     "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
     "print_calls_apps_py_excl_migrations_tests_management": 0,
-    "print_calls_scripts_py": 4915,
-    "site_settings_refs_apps_py_excl_migrations": 217,
-    "site_settings_refs_apps_py_excl_migrations_tests": 158
+    "print_calls_scripts_py": 5386,
+    "site_settings_refs_apps_py_excl_migrations": 237,
+    "site_settings_refs_apps_py_excl_migrations_tests": 165
   },
   "site_settings_fields": [
     {
@@ -1866,6 +2158,7 @@
       "apps/brand_experience/tests/test_services_apply_palette.py",
       "apps/brand_experience/tests/test_template_marketplace_runtime.py",
       "apps/brand_experience/tests/test_template_marketplace_semantic_runtime.py",
+      "apps/brand_experience/tests/test_template_runtime_activation.py",
       "apps/brand_experience/tests/test_template_tenant_boundary_runtime.py"
     ],
     "global_registries": [
@@ -1886,6 +2179,7 @@
       "apps/integrations_marketplace/tests/test_resolver_cascade.py",
       "apps/integrations_marketplace/tests/test_v2_94_residuals.py",
       "apps/integrations_marketplace/tests/test_v3_4_ten_items.py",
+      "apps/integrations_marketplace/token_access.py",
       "apps/integrations_marketplace/token_refresh.py",
       "apps/integrations_marketplace/views.py",
       "apps/integrations_marketplace/webhook_handlers.py",
