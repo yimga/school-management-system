@@ -534,6 +534,7 @@ def dispatch_bulk_email(
     from_email: Any = None,
     headers: Any = None,
     priority: str = "bulk",
+    school_id: str = "",
     idempotency_key: str = "",
 ) -> dict[str, Any]:
     """Worker entry-point for ``send_bulk`` — runs ``send_transactional``.
@@ -541,8 +542,13 @@ def dispatch_bulk_email(
     Returns the underlying send_transactional dict so the Celery result
     backend records the outcome. The send itself is best-effort —
     failures persist EmailDeliveryEvent rows for the operator dashboard.
+
+    ``school_id``, when the caller supplies it, puts the send inside that
+    school's tenant context: the worker has none of its own, and
+    EmailDeliveryEvent is TENANT_APPS-only. See
+    :func:`dispatch_transactional_email`.
     """
-    try:
+    def _run(resolved_school=None) -> dict[str, Any]:
         from apps.schoolops.email_delivery import send_transactional
 
         return send_transactional(
@@ -554,11 +560,26 @@ def dispatch_bulk_email(
             from_email=from_email,
             headers=headers,
             priority=priority or "bulk",
+            school=resolved_school,
             idempotency_key=idempotency_key,
         )
+
+    try:
+        sid = str(school_id or "").strip()
+        if not sid:
+            return _run()
+
+        def _resolved():
+            from apps.schools.models import School
+
+            # School is the tenant root, in the SHARED schema.
+            return _run(School.objects.filter(pk=sid).first())
+
+        return _with_tenant(sid, _resolved) or {}
     except Exception as exc:  # noqa: BLE001  — worker boundary
         logger.exception(
-            "schoolops.dispatch_bulk_email crashed exc_type=%s",
+            "schoolops.dispatch_bulk_email crashed school_id=%s exc_type=%s",
+            school_id or "",
             type(exc).__name__,
         )
         return {
@@ -581,17 +602,27 @@ def dispatch_transactional_email(
     headers: Any = None,
     priority: str = "transactional",
     school: Any = None,
+    school_id: str = "",
     idempotency_key: str = "",
 ) -> dict[str, Any]:
     """Durable worker entry-point for ``send_transactional(async_send=True)``.
 
     Audit C2 — when ``SCHOOLOPS_EMAIL_ASYNC_USE_CELERY`` is set (an always-on
     worker is available), async transactional sends route here instead of a
-    daemon thread so they survive a web-worker restart. ``school`` is dropped
-    on the wire (not JSON-serializable); the resolved SMTP config falls back
-    to env/operator settings, which is correct for platform-level mail.
+    daemon thread so they survive a web-worker restart.
+
+    ``school_id`` (not ``school``) is what crosses the wire. The broker
+    serializer is JSON, so a School instance raised EncodeError at
+    ``.delay()`` and the caller silently fell back to the daemon thread --
+    meaning the durable path never ran for any send that named a school, which
+    is the only kind it was built for. The id is re-resolved here, inside the
+    tenant context, which also restores the per-tenant SMTP override the old
+    docstring recorded as unavoidably lost.
+
+    ``school`` is still accepted, and ignored, so an old in-flight message
+    cannot fail with an unexpected-keyword TypeError.
     """
-    try:
+    def _run(resolved_school=None) -> dict[str, Any]:
         from apps.schoolops.email_delivery import send_transactional
 
         return send_transactional(
@@ -603,11 +634,28 @@ def dispatch_transactional_email(
             from_email=from_email,
             headers=headers,
             priority=priority or "transactional",
+            school=resolved_school,
             idempotency_key=idempotency_key,
         )
+
+    try:
+        sid = str(school_id or "").strip()
+        if not sid:
+            # Platform-level mail: no tenant to enter, same as before.
+            return _run()
+
+        def _resolved():
+            from apps.schools.models import School
+
+            # School is the tenant root and lives in the SHARED schema; a pk
+            # lookup is not itself a tenant-scoped read.
+            return _run(School.objects.filter(pk=sid).first())
+
+        return _with_tenant(sid, _resolved) or {}
     except Exception as exc:  # noqa: BLE001  — worker boundary
         logger.exception(
-            "schoolops.dispatch_transactional_email crashed exc_type=%s",
+            "schoolops.dispatch_transactional_email crashed school_id=%s exc_type=%s",
+            school_id or "",
             type(exc).__name__,
         )
         return {
