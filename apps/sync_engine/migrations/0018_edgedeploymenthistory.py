@@ -27,6 +27,7 @@ class Migration(migrations.Migration):
                 ('files_verified', models.IntegerField(default=0)),
                 ('bytes_total', models.BigIntegerField(default=0)),
                 ('migrations_applied', models.JSONField(blank=True, default=list)),
+                ('migration_floor', models.JSONField(blank=True, default=dict)),
                 ('complete', models.BooleanField(default=False)),
                 ('mode', models.CharField(blank=True, default='', max_length=16)),
                 ('activation', models.CharField(blank=True, default='', max_length=16)),

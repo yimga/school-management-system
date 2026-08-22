@@ -54,7 +54,7 @@ from pathlib import Path
 
 from django.conf import settings
 
-from apps.sync_engine import upgrade_delta, upgrade_lock
+from apps.sync_engine import upgrade_delta, upgrade_lock, upgrade_runtime
 from apps.sync_engine.system_manifest import (
     ASSET_CATEGORIES,
     STATIC_ASSET,
@@ -77,6 +77,26 @@ _DEFAULT_DRAIN_TIMEOUT = 60  # magic-number-allow: drain budget (seconds)
 _DEFAULT_STAGING_DIRNAME = ".rmc_ota_staging"
 _ROLLBACK_DIRNAME = "rollback"
 _MAX_ATTEMPTS_PER_FILE = 3  # magic-number-allow: chunk attempts before a file is failed
+# One line of an exception is enough to say WHICH migration refused; the full traceback is
+# already in the logs and in EdgeDeploymentHistory.error.
+_REFUSAL_DETAIL_MAX_CHARS = 120  # magic-number-allow: excerpt of a refusal in a log line
+
+
+def _current_migration_heads() -> dict:
+    """Per-app migration heads as the DATABASE has them right now.
+
+    ``schema_guard.local_migration_heads`` reads the applied graph, which is the right
+    source here — the manifest's file-derived heads answer a different question ("what
+    does this tree contain") and would name a migration that has not run.
+    """
+    try:
+        from apps.api.sync_services import entity_app_labels
+        from apps.sync_engine.schema_guard import local_migration_heads
+
+        return dict(local_migration_heads(set(entity_app_labels().values())))
+    except Exception:  # noqa: BLE001 - no floor is recorded rather than a wrong one
+        logger.debug("ota: could not read migration heads", exc_info=True)
+        return {}
 
 
 class UpgradeAborted(RuntimeError):
@@ -147,6 +167,9 @@ class LocalRuntimeUpgradeManager:
         self._now = now or time.monotonic
         self.log: list[str] = []
         self.history_row = None
+        self._writes_frozen = False
+        self._migration_floor: dict = {}
+        self._previous_release: Path | None = None
 
     # ── logging ──────────────────────────────────────────────────────────────
     def _say(self, message: str) -> None:
@@ -210,6 +233,17 @@ class LocalRuntimeUpgradeManager:
         """
         target = str(self.target_manifest.get("manifest_hash") or "")
         upgrade_lock.arm_local(target_hash=target, reason="local upgrade in progress")
+
+        # Stop NEW work arriving before waiting for the work already in flight — the
+        # other order races forever on a busy box.
+        self._writes_frozen = upgrade_runtime.freeze_writes()
+        self._say(
+            "drain: user writes frozen (maintenance 503; /health/ and superusers exempt)"
+            if self._writes_frozen
+            else "drain: write freeze NOT installed — no usable cache; proceeding without it"
+        )
+        self._say("drain: " + upgrade_runtime.pause_workers())
+
         deadline = self._now() + max(1, timeout_seconds)
         in_flight = 0
         while self._now() < deadline:
@@ -370,6 +404,8 @@ class LocalRuntimeUpgradeManager:
         halfway, which is the property that actually matters here.
         """
         root = release_root()
+        if root is not None and self.mode == MODE_FULL:
+            return self._activate_release_symlink(delta, release, root)
         if self.mode == MODE_FULL and root is None:
             self._say(
                 "activate: DEFERRED — this deployment is a single tree with no release "
@@ -397,6 +433,74 @@ class LocalRuntimeUpgradeManager:
 
         self._collect_static(delta)
         self._flush_caches()
+        self._say("activate: " + upgrade_runtime.reload_workers())
+        return "swapped"
+
+    def _activate_release_symlink(self, delta: dict, release: Path, root: Path) -> str:
+        """Whole-tree blue-green: build the new release beside the old, then flip one link.
+
+        This is the activation the ordinary image cannot have. ``<root>/releases/<hash>``
+        is materialised by copying the CURRENT release and overlaying the verified staged
+        files, so the new directory is a complete tree rather than a diff; then
+        ``<root>/current`` is repointed with an atomic rename. Nothing the web server is
+        serving changes until that one call, and going back is the same call with the old
+        target — which is why this path does not need the per-file rollback set.
+        """
+        releases = root / "releases"
+        releases.mkdir(parents=True, exist_ok=True)
+        digest = str(self.target_manifest.get("manifest_hash") or "unknown")[:12]
+        new_release = releases / digest
+        current = root / "current"
+
+        previous = current.resolve() if current.exists() else None
+        if new_release.exists():
+            shutil.rmtree(new_release, ignore_errors=True)
+        if previous is not None and previous.is_dir():
+            shutil.copytree(previous, new_release, symlinks=True)
+        else:
+            # No current release yet: seed from the live tree so the new release is whole.
+            shutil.copytree(live_root(), new_release, symlinks=True, dirs_exist_ok=True)
+
+        records = list(delta.get("added") or []) + list(delta.get("changed") or [])
+        for record in records:
+            destination = new_release / record["path"]
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(release / record["path"], destination)
+        for removed in list(delta.get("removed") or []):
+            candidate = new_release / removed
+            if candidate.is_file():
+                candidate.unlink()
+
+        # Verify the ASSEMBLED release, not just the delta — a copytree that silently
+        # dropped a file would otherwise reach traffic on the strength of a check that
+        # only ever looked at the files we happened to fetch.
+        report = verify_tree(self.target_manifest, new_release)
+        if not report["ok"]:
+            shutil.rmtree(new_release, ignore_errors=True)
+            raise UpgradeAborted(
+                f"assembled release failed verification: {len(report['mismatched'])} corrupt, "
+                f"{len(report['missing'])} missing"
+            )
+
+        # Atomic flip. A symlink cannot be replaced in place on either platform, so the
+        # new link is created beside it and renamed over — os.replace is atomic for both.
+        staging_link = root / f".current.{digest}"
+        if staging_link.exists() or staging_link.is_symlink():
+            staging_link.unlink()
+        try:
+            staging_link.symlink_to(new_release, target_is_directory=True)
+            os.replace(staging_link, current)
+        except OSError as exc:
+            # Windows without developer mode, or a filesystem with no symlink support.
+            if staging_link.exists() or staging_link.is_symlink():
+                staging_link.unlink()
+            raise UpgradeAborted(f"symlink swap failed ({exc}); running tree untouched") from exc
+
+        self._previous_release = previous
+        self._say(f"activate: {current} -> releases/{digest} (atomic symlink flip)")
+        self._collect_static(delta)
+        self._flush_caches()
+        self._say("activate: " + upgrade_runtime.reload_workers())
         return "swapped"
 
     def _collect_static(self, delta: dict | None = None) -> None:
@@ -472,10 +576,35 @@ class LocalRuntimeUpgradeManager:
 
     # ── 7. rollback ──────────────────────────────────────────────────────────
     def rollback(self, release: Path) -> int:
-        """Put every overwritten file back. Returns how many were restored."""
+        """Put the box back: the schema first, then the files. Returns files restored.
+
+        SCHEMA FIRST, and the order is not arbitrary. Restoring the code while the
+        database still carries the new columns leaves old code reading a schema it was
+        never written against — the same split-brain a failed upgrade is supposed to
+        avoid, arrived at from the other direction. Reversing first means that at no
+        point is there a schema the running code cannot handle.
+        """
+        self._reverse_migrations()
+
+        # A release-symlink deployment goes back by pointing the link at the tree it came
+        # from. There is no per-file set to restore because no file was ever overwritten.
+        if self._previous_release is not None:
+            current = (release_root() or Path(".")) / "current"
+            staging_link = current.parent / ".current.rollback"
+            try:
+                if staging_link.exists() or staging_link.is_symlink():
+                    staging_link.unlink()
+                staging_link.symlink_to(self._previous_release, target_is_directory=True)
+                os.replace(staging_link, current)
+                self._say(f"rollback: {current} -> {self._previous_release} (atomic symlink flip)")
+                self._say("rollback: " + upgrade_runtime.reload_workers())
+                return 0
+            except OSError as exc:
+                self._say(f"rollback: symlink restore FAILED ({exc}); falling through to file restore")
+
         rollback_dir = release / _ROLLBACK_DIRNAME
         if not rollback_dir.is_dir():
-            self._say("rollback: nothing to restore (activation had not begun)")
+            self._say("rollback: no file set to restore (activation had not begun)")
             return 0
         live = live_root()
         restored = 0
@@ -489,8 +618,61 @@ class LocalRuntimeUpgradeManager:
             restored += 1
         self._collect_static()
         self._flush_caches()
+        self._say("rollback: " + upgrade_runtime.reload_workers())
         self._say(f"rollback: {restored} file(s) restored to the previous manifest")
         return restored
+
+    def _reverse_migrations(self) -> None:
+        """Unwind the schema to the floor recorded before this attempt ran.
+
+        BOUNDED AND HONEST. Only apps this attempt actually advanced are touched, and
+        only back to the exact index they were on. A migration Django cannot reverse
+        (``IrreversibleError`` — a data migration with no ``reverse_code``) is REPORTED and
+        left applied rather than forced: there is no safe automatic way to undo a data
+        migration on a school's live database, and a rollback that destroys records to
+        restore a schema has done more damage than the failure it was cleaning up.
+
+        Opt-out for an operator who would rather fix forward:
+        ``RMC_OTA_REVERSE_MIGRATIONS_ON_ROLLBACK=0``.
+        """
+        if not self._migration_floor:
+            return
+        if not bool(_setting("RMC_OTA_REVERSE_MIGRATIONS_ON_ROLLBACK", True)):
+            self._say("rollback: migration reversal disabled by setting; schema left as applied")
+            return
+
+        current = _current_migration_heads()
+        advanced = {
+            app: floor
+            for app, floor in self._migration_floor.items()
+            if str(current.get(app, "")) > str(floor)
+        }
+        # An app that had NO migrations applied before and has some now cannot be expressed
+        # as "migrate <app> <index>"; Django spells that "migrate <app> zero".
+        for app, head in current.items():
+            if app not in self._migration_floor and head:
+                advanced[app] = "zero"
+
+        if not advanced:
+            self._say("rollback: schema unchanged by this attempt; nothing to reverse")
+            return
+
+        from django.core.management import call_command
+
+        reversed_apps, refused = [], []
+        for app, floor in sorted(advanced.items()):
+            try:
+                call_command("migrate", app, floor, interactive=False, verbosity=0)
+                reversed_apps.append(f"{app}->{floor}")
+            except Exception as exc:  # noqa: BLE001 - a refusal is information, not a crash
+                refused.append(f"{app} ({type(exc).__name__}: {str(exc)[:_REFUSAL_DETAIL_MAX_CHARS]})")
+        if reversed_apps:
+            self._say("rollback: schema reversed " + ", ".join(reversed_apps))
+        if refused:
+            self._say(
+                "rollback: could NOT reverse " + "; ".join(refused)
+                + " — these migrations remain applied; fix forward"
+            )
 
     # ── orchestration ────────────────────────────────────────────────────────
     def run(self) -> dict:
@@ -525,7 +707,9 @@ class LocalRuntimeUpgradeManager:
             self._say("already in parity with the operator manifest")
             return result
 
+        self._migration_floor = _current_migration_heads()
         self.history_row = EdgeDeploymentHistory.begin(
+            migration_floor=self._migration_floor,
             manifest_hash=target_hash,
             previous_manifest_hash=previous,
             version_label=self.target_manifest.get("version_label") or "",
@@ -565,6 +749,7 @@ class LocalRuntimeUpgradeManager:
                 # every cycle via result["upgrade_available"].
                 upgrade_lock.acknowledge_local(target_hash)
                 upgrade_lock.disarm_local()
+                self._restore_runtime()
                 result["ok"] = True
                 self._say("finished: staged + verified, activation deferred")
                 return result
@@ -581,6 +766,7 @@ class LocalRuntimeUpgradeManager:
                 )
                 upgrade_lock.record_local_failure(target_hash=target_hash, error=f"health: {detail}")
                 upgrade_lock.disarm_local()
+                self._restore_runtime()
                 result["error"] = f"health gate failed: {detail}"
                 return result
 
@@ -594,6 +780,8 @@ class LocalRuntimeUpgradeManager:
             )
             upgrade_lock.clear_local_failure()
             upgrade_lock.disarm_local()
+            self._restore_runtime()
+            self._say(self._notify_cloud_revived())
             result["ok"] = True
             self._say("finished: upgrade live")
             return result
@@ -606,6 +794,7 @@ class LocalRuntimeUpgradeManager:
                 self.history_row.mark_failed(str(exc), message="aborted at a safety gate")
             upgrade_lock.record_local_failure(target_hash=target_hash, error=str(exc))
             upgrade_lock.disarm_local()
+            self._restore_runtime()
             self._say(f"ABORTED: {exc}")
             return result
         except Exception as exc:  # noqa: BLE001 — an unexpected failure must still restore
@@ -616,8 +805,49 @@ class LocalRuntimeUpgradeManager:
                 self.history_row.mark_failed(str(exc), message="unexpected failure")
             upgrade_lock.record_local_failure(target_hash=target_hash, error=str(exc))
             upgrade_lock.disarm_local()
+            self._restore_runtime()
             logger.exception("ota: unexpected failure applying %s", target_hash[:12])
             return result
+
+    def _restore_runtime(self) -> None:
+        """Undo everything :meth:`drain` did. Called on EVERY exit, success or not.
+
+        A box left frozen after a failed upgrade is a school locked out of its own system,
+        which is a strictly worse outcome than the drift the upgrade was closing. The
+        freeze also carries a TTL for the case where this process never reaches here.
+        """
+        if self._writes_frozen:
+            self._say(
+                "restore: user writes thawed" if upgrade_runtime.thaw_writes()
+                else "restore: could not lift the write freeze — it expires on its own TTL"
+            )
+        self._say("restore: " + upgrade_runtime.resume_workers())
+
+    def _notify_cloud_revived(self) -> str:
+        """Tell the cloud immediately that this box is on the new manifest.
+
+        Without this the hold clears on the box's next ordinary cycle, which is correct
+        but up to a cadence interval away — and for that whole window the cloud reports a
+        school as held for an upgrade it has already finished. One cheap GET closes it:
+        the manifest endpoint releases the hold the moment the hashes agree, so this is
+        the revival callback rather than a second status protocol.
+        """
+        if self.source_root is not None or not self.operator_base or not self.token:
+            return "revival callback skipped (no operator link on this run)"
+        from apps.sync_engine.cloud_endpoints import cloud_endpoint
+
+        digest = str(load_manifest().get("manifest_hash") or "")
+        url = cloud_endpoint(self.operator_base, "api:sync-upgrade-manifest")
+        if digest:
+            url += "?" + urllib.parse.urlencode({"since": digest})
+        request = urllib.request.Request(url, headers={"Authorization": f"Bearer {self.token}"})
+        try:
+            with urllib.request.urlopen(request, timeout=30) as response:  # noqa: S310
+                return f"revival callback -> cloud answered {response.status}"
+        except (urllib.error.URLError, OSError) as exc:
+            # The box is upgraded and healthy either way; the cloud finds out on the next
+            # cycle. A failed callback must never turn a successful upgrade into a failure.
+            return f"revival callback could not reach the cloud ({exc}); cloud clears on next cycle"
 
     def _apply_migrations(self, delta: dict) -> None:
         """Run the migrations the delta brought, the way this deployment runs them."""

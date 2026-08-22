@@ -63,6 +63,11 @@ class EdgeDeploymentHistory(AppendOnlyModelMixin, models.Model):
     # Migration labels this attempt applied, e.g. ["finance.0094_ledger_split"]. The
     # rollback floor is the state BEFORE these ran.
     migrations_applied = models.JSONField(default=list, blank=True)
+    # Per-app migration heads as they stood BEFORE this attempt ran anything, e.g.
+    # {"finance": "0093"}. This is the ONLY thing a rollback can aim the database at:
+    # restoring files without unwinding the schema leaves new columns under old code,
+    # which is precisely the split-brain the whole pipeline exists to prevent.
+    migration_floor = models.JSONField(default=dict, blank=True)
     # True when the whole target manifest was received; False for an asset-only or
     # truncated pass, which must NOT be recorded as reaching the target hash.
     complete = models.BooleanField(default=False)
@@ -104,7 +109,8 @@ class EdgeDeploymentHistory(AppendOnlyModelMixin, models.Model):
     @classmethod
     def begin(cls, *, manifest_hash, previous_manifest_hash="", version_label="",
               channel="stable", engine_commit="", release_id="", release_path="",
-              files_total=0, bytes_total=0, mode="", complete=False, message=""):
+              files_total=0, bytes_total=0, mode="", complete=False, message="",
+              migration_floor=None):
         return cls.objects.create(
             manifest_hash=str(manifest_hash or "")[:64],
             previous_manifest_hash=str(previous_manifest_hash or "")[:64],
@@ -118,6 +124,7 @@ class EdgeDeploymentHistory(AppendOnlyModelMixin, models.Model):
             mode=str(mode or "")[:16],
             complete=bool(complete),
             message=str(message or ""),
+            migration_floor=dict(migration_floor or {}),
             state=DeploymentState.STAGED,
         )
 

@@ -4254,6 +4254,39 @@ RMC_OTA_COLLECTSTATIC = os.getenv("RMC_OTA_COLLECTSTATIC", "1").strip().lower() 
     "yes",
     "on",
 )
+# Runtime controls used while an upgrade is in flight (apps/sync_engine/upgrade_runtime.py).
+# The write freeze reuses the platform's EXISTING MaintenanceModeMiddleware by writing the
+# key it already consults before the database — no new middleware, no new 503 template, and
+# no DB write at the moment the schema is being altered.
+RMC_OTA_FREEZE_WRITES = os.getenv("RMC_OTA_FREEZE_WRITES", "1").strip().lower() in (
+    "1",
+    "true",
+    "yes",
+    "on",
+)
+try:
+    # A freeze with no expiry is a school locked out of its own system because an upgrade
+    # died between the freeze and the thaw. This is the guarantee; the thaw is best-effort.
+    RMC_OTA_WRITE_FREEZE_TTL_SECONDS = max(
+        60, int(os.getenv("RMC_OTA_WRITE_FREEZE_TTL_SECONDS", "1800"))
+    )
+except ValueError:
+    RMC_OTA_WRITE_FREEZE_TTL_SECONDS = 1800
+# Web-worker reload after a code swap. Both empty by default: guessing at a master PID and
+# signalling it is how you kill a school's web server. Configured, the manager reloads; not
+# configured, it REPORTS that the swap lands on the next container restart.
+RMC_OTA_WORKER_RELOAD_PIDFILE = (os.getenv("RMC_OTA_WORKER_RELOAD_PIDFILE", "") or "").strip()
+RMC_OTA_WORKER_RELOAD_COMMAND = (os.getenv("RMC_OTA_WORKER_RELOAD_COMMAND", "") or "").strip()
+# Background-worker pause/resume. Empty => Celery remote control over the broker the
+# workers are already connected to; no broker => nothing to pause, and it says so.
+RMC_OTA_WORKER_PAUSE_COMMAND = (os.getenv("RMC_OTA_WORKER_PAUSE_COMMAND", "") or "").strip()
+RMC_OTA_WORKER_RESUME_COMMAND = (os.getenv("RMC_OTA_WORKER_RESUME_COMMAND", "") or "").strip()
+# Unwind the schema to the recorded floor when a rollback happens. On by default because
+# old code against a new schema is the split-brain this pipeline exists to prevent; an
+# irreversible migration is reported and left applied rather than forced.
+RMC_OTA_REVERSE_MIGRATIONS_ON_ROLLBACK = os.getenv(
+    "RMC_OTA_REVERSE_MIGRATIONS_ON_ROLLBACK", "1"
+).strip().lower() in ("1", "true", "yes", "on")
 RMC_OTA_ALLOW_DANGEROUS_MIGRATIONS = os.getenv(
     "RMC_OTA_ALLOW_DANGEROUS_MIGRATIONS", "0"
 ).strip().lower() in ("1", "true", "yes", "on")

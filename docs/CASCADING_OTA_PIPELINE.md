@@ -55,6 +55,12 @@ no longer matches the tree.
 | `X-RMC-Sync-Engine` | box → cloud | the box's build commit (advisory) |
 | `X-RMC-Sync-Manifest-Target` | cloud → box | the manifest the operator is serving |
 | `X-RMC-Sync-Manifest-Advice` | cloud → box | one human sentence for the Sync Center |
+| `X-RMC-Sync-Upgrade-Failure` | box → cloud | why the last upgrade did not land |
+
+`X-RMC-Sync-Upgrade-Failure` is how a box nobody is standing next to reports a failed
+upgrade: it rides the next ordinary request and the cloud logs it at `WARNING` against the
+school. Logged rather than stored — the durable record already exists on the box, and a
+cloud table for a diagnostic string would add a write to the hot path of every pull.
 
 Emitted by `edge_outbox.local_manifest_headers()`, compared by
 `sync_bundle_api._manifest_handshake()`, which is the exact sibling of the existing
@@ -95,8 +101,9 @@ manifest it did not fully receive.
 `apps/sync_engine/local_upgrade.py::LocalRuntimeUpgradeManager`. Six steps, in this order
 for these reasons:
 
-1. **drain** — hold the rail, let in-flight cycles finish. Bounded; a cycle that outlives
-   the budget is recorded, not fatal.
+1. **drain** — freeze user writes, pause background workers, hold the rail, then let
+   in-flight cycles finish. Bounded; a cycle that outlives the budget is recorded, not
+   fatal. See §3.1 — every one of these is undone on **every** exit path.
 2. **stage** — every byte into an isolated directory. The running tree is untouched, so an
    abort here costs nothing.
 3. **verify** — re-hash everything against the manifest. **This is the step that makes the
@@ -107,11 +114,54 @@ for these reasons:
    transactional DDL and django-tenants is off, actually executed inside a transaction that
    is then rolled back. The manager reports which tier it got: `transactional` or
    `plan-only`. It does not imply the stronger one.
-5. **activate** — per-file `os.replace` (atomic on POSIX and Windows), with every
-   overwritten file copied into the release's `rollback/` set *first*, then `collectstatic`
-   (only when a `STATIC_ASSET` actually changed) and a cache flush.
+5. **activate** — two shapes, chosen by whether `RMC_OTA_RELEASE_ROOT` is set:
+   * **release layout** — `<root>/releases/<hash>` is assembled by copying the current
+     release and overlaying the verified staged files, the *assembled* tree is re-verified
+     against the whole manifest (a `copytree` that silently dropped a file must not reach
+     traffic on the strength of a check that only looked at what we fetched), then
+     `<root>/current` is repointed with an atomic rename. Nothing serving changes until
+     that one call, and going back is the same call.
+   * **single tree** — per-file `os.replace` (atomic on POSIX and Windows), with every
+     overwritten file copied into the release's `rollback/` set *first*.
+
+   Either shape then runs `collectstatic` (only when a `STATIC_ASSET` actually changed),
+   flushes caches, and asks the web workers to reload (§3.2).
 6. **health** — poll `/health/` for `RMC_OTA_HEALTH_TIMEOUT_SECONDS` (60). No 200 → the
-   rollback set goes back and `EdgeDeploymentHistory` records `ROLLED_BACK`.
+   **schema is reversed first, then the files** (§3.3), and `EdgeDeploymentHistory` records
+   `ROLLED_BACK`.
+7. **revive** — on success the box fires one GET at the upgrade-manifest endpoint with its
+   new hash, which releases the cloud-side hold immediately instead of a cadence interval
+   later. A failed callback never turns a successful upgrade into a failure.
+
+### 3.1 Quieting the box — `apps/sync_engine/upgrade_runtime.py`
+
+| Control | How | If unavailable |
+|---|---|---|
+| user writes | writes the cache key the **existing** `MaintenanceModeMiddleware` consults before the DB — no new middleware, no new 503 template, no DB write while the schema is moving | reported, upgrade proceeds |
+| background workers | Celery `cancel_consumer` over the broker they are already on (a drain, not a shutdown — shutdown abandons in-flight work) | "no broker configured", stated plainly |
+| web workers | §3.2 | |
+
+The freeze **deletes** its key to thaw rather than writing `False` — writing `False` would
+pin the box out of a maintenance mode an operator turned on deliberately before the
+upgrade. It also carries `RMC_OTA_WRITE_FREEZE_TTL_SECONDS`, so a process that dies
+between freeze and thaw cannot leave a school locked out.
+
+### 3.2 Worker reload
+
+`RMC_OTA_WORKER_RELOAD_COMMAND` (shlex-split argv, never a shell) → else
+`RMC_OTA_WORKER_RELOAD_PIDFILE` (SIGHUP = gunicorn graceful reload) → else it **reports**
+that the swap lands on the next container restart. It does not hunt for a plausible parent
+process to signal: a wrong guess kills a school's web server.
+
+### 3.3 Rollback unwinds the schema, not just the files
+
+`EdgeDeploymentHistory.migration_floor` records the per-app heads **before** anything ran.
+On rollback the schema is reversed to that floor *first*, then the files — restoring code
+while the database still carries new columns is the same split-brain arrived at from the
+other direction. Only apps this attempt advanced are touched. A migration Django cannot
+reverse is **reported and left applied**: there is no safe automatic way to undo a data
+migration on a school's live database, and a rollback that destroys records to restore a
+schema has done more damage than the failure it was cleaning up.
 
 ### What it does not pretend to do
 
@@ -187,6 +237,11 @@ stopped, and which manifest it is still serving.
 | `RMC_OTA_COLLECTSTATIC` | `1` | required under `ManifestStaticFilesStorage` |
 | `RMC_OTA_DELTA_MAX_FILES` / `_MAX_BYTES` | `5000` / `256 MiB` | |
 | `RMC_OTA_ALLOW_DANGEROUS_MIGRATIONS` | `0` | there is no safe automatic answer to "may I drop this column on a school's live database" |
+| `RMC_OTA_FREEZE_WRITES` | `1` | reuses the existing maintenance middleware |
+| `RMC_OTA_WRITE_FREEZE_TTL_SECONDS` | `1800` | floored at 60 |
+| `RMC_OTA_WORKER_RELOAD_PIDFILE` / `_COMMAND` | `""` | unset ⇒ reload is reported, never guessed |
+| `RMC_OTA_WORKER_PAUSE_COMMAND` / `_RESUME_COMMAND` | `""` | unset ⇒ Celery remote control |
+| `RMC_OTA_REVERSE_MIGRATIONS_ON_ROLLBACK` | `1` | irreversible migrations are reported, not forced |
 
 ---
 
@@ -228,6 +283,7 @@ byte-for-byte the same gates as a network transfer.
 |---|---|
 | `test_ota_manifest_2026_08_22.py` | no database (18) |
 | `test_ota_sync_interlock_2026_08_22.py` | `UpgradeRouteContractTests` + `NoDatabaseInterlockTests` no database (17); `HeldCycleIntegrationTests` needs one |
+| `test_ota_runtime_controls_2026_08_22.py` | no database (21) |
 | `test_ota_corrupt_bundle_2026_08_22.py` | needs a database |
 
 The corrupt-bundle suite is the load-bearing one. It writes a real tree, truncates one JS

@@ -20,6 +20,7 @@ See docs/plans/TIER3_TENANT_PORTABILITY_AND_EDGE_SYNC.md (Slice 1).
 from __future__ import annotations
 
 import json
+import logging
 
 from django.conf import settings
 from django.http import HttpResponse
@@ -49,6 +50,7 @@ from apps.sync_engine.edge_outbox import (
     SYNC_MANIFEST_HEADER,
     SYNC_MANIFEST_TARGET_HEADER,
     SYNC_SCHEMA_HEAD_HEADER,
+    SYNC_UPGRADE_FAILURE_HEADER,
     SYNC_WITHHELD_HEADER,
     build_edge_delta_bundle,
 )
@@ -136,6 +138,33 @@ def _manifest_handshake(request, school):
         return "", ""
 
 
+logger = logging.getLogger(__name__)
+
+# The box already capped what it sends; this is the receiver's own belt-and-braces so a
+# malformed header cannot write an unbounded line into the operator's log.
+_UPGRADE_FAILURE_LOG_MAX_CHARS = 500  # magic-number-allow: logged excerpt of a box failure
+
+
+def _log_upgrade_failure(request, school) -> None:
+    """Surface a box's failed upgrade in the OPERATOR's logs.
+
+    An appliance that cannot apply an upgrade is the case where nobody is present to read
+    a local log — that is the entire premise of an edge box. The box therefore attaches
+    its last failure to the next request it makes, and this is where it stops being
+    invisible. Logged, not stored: a durable record already exists on the box
+    (``EdgeDeploymentHistory``), and minting a cloud table for a string would add a write
+    to the hot path of every pull for a diagnostic nobody queries.
+    """
+    raw = (request.META.get("HTTP_" + SYNC_UPGRADE_FAILURE_HEADER.upper().replace("-", "_")) or "").strip()
+    if not raw:
+        return
+    logger.warning(
+        "edge upgrade FAILED on box for school=%s: %s",
+        getattr(school, "pk", None),
+        raw[:_UPGRADE_FAILURE_LOG_MAX_CHARS],
+    )
+
+
 def _stamp_manifest_handshake(resp, request, school) -> str:
     """Put the OTA target on a response, and record the operator-visible directive.
 
@@ -144,6 +173,7 @@ def _stamp_manifest_handshake(resp, request, school) -> str:
     Recording it means a cloud operator can see "this box has been offered 7c41d9ba since
     Tuesday and has not come back", which a stateless header comparison cannot show.
     """
+    _log_upgrade_failure(request, school)
     try:
         target, advice = _manifest_handshake(request, school)
     except Exception:  # noqa: BLE001

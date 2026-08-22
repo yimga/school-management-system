@@ -361,6 +361,13 @@ SETTINGS_REGISTRY: tuple[SettingSpec, ...] = (
     SettingSpec("RMC_OTA_DELTA_MAX_FILES", "int", "5000", "ops", "File-count ceiling on one upgrade delta."),
     SettingSpec("RMC_OTA_DELTA_MAX_BYTES", "int", "268435456", "ops", "Byte ceiling on one upgrade delta."),
     SettingSpec("RMC_OTA_COLLECTSTATIC", "bool", "True", "ops", "Run collectstatic after an asset swap (required under ManifestStaticFilesStorage)."),
+    SettingSpec("RMC_OTA_FREEZE_WRITES", "bool", "True", "ops", "Freeze user writes during an upgrade via the existing maintenance middleware."),
+    SettingSpec("RMC_OTA_WRITE_FREEZE_TTL_SECONDS", "int", "1800", "ops", "Ceiling on the write freeze so a dead upgrade cannot lock a school out."),
+    SettingSpec("RMC_OTA_WORKER_RELOAD_PIDFILE", "str", '""', "ops", "Web-server master pidfile to SIGHUP after a code swap."),
+    SettingSpec("RMC_OTA_WORKER_RELOAD_COMMAND", "str", '""', "ops", "Explicit argv to reload web workers (shlex-split, never a shell)."),
+    SettingSpec("RMC_OTA_WORKER_PAUSE_COMMAND", "str", '""', "ops", "Explicit argv to pause background workers; empty uses Celery remote control."),
+    SettingSpec("RMC_OTA_WORKER_RESUME_COMMAND", "str", '""', "ops", "Explicit argv to resume background workers."),
+    SettingSpec("RMC_OTA_REVERSE_MIGRATIONS_ON_ROLLBACK", "bool", "True", "ops", "Unwind the schema to the recorded floor when an upgrade rolls back."),
     SettingSpec("RMC_OTA_ALLOW_DANGEROUS_MIGRATIONS", "bool", "False", "ops", "Permit destructive migration ops during an unattended upgrade."),
 
     # ---- App / build version + endpoints ------------------------------------

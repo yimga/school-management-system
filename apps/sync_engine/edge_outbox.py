@@ -293,6 +293,9 @@ def local_schema_head_header() -> str:
         return ""
 
 
+_FAILURE_HEADER_MAX_CHARS = 300  # magic-number-allow: upgrade-failure header cap (chars)
+
+
 def local_manifest_headers() -> dict:
     """This deployment's manifest hash and build commit, for the OTA handshake.
 
@@ -315,6 +318,20 @@ def local_manifest_headers() -> dict:
         commit = resolve_deploy_commit_sha()
         if commit and commit != UNKNOWN:
             headers[SYNC_ENGINE_HEADER] = commit
+    except Exception:  # noqa: BLE001
+        pass
+    try:
+        from apps.sync_engine.upgrade_lock import local_failure
+
+        failure = local_failure()
+        if failure.get("error"):
+            # Header-safe and bounded: one line, latin-1 encodable, capped. A traceback
+            # is diagnostic, not a payload, and a header a proxy rejects reports nothing.
+            detail = " ".join(str(failure["error"]).split())[:_FAILURE_HEADER_MAX_CHARS]
+            target = str(failure.get("target_hash") or "")[:12]
+            headers[SYNC_UPGRADE_FAILURE_HEADER] = (
+                f"{target}: {detail}".encode("ascii", "replace").decode("ascii")
+            )
     except Exception:  # noqa: BLE001
         pass
     return headers
@@ -396,6 +413,11 @@ SYNC_MANIFEST_HEADER = "X-RMC-Sync-Manifest"
 SYNC_ENGINE_HEADER = "X-RMC-Sync-Engine"
 SYNC_MANIFEST_TARGET_HEADER = "X-RMC-Sync-Manifest-Target"
 SYNC_MANIFEST_ADVICE_HEADER = "X-RMC-Sync-Manifest-Advice"
+# Why the last upgrade did not land. Travels box -> cloud on the request the box was
+# already making, so a failure that happens on an appliance nobody is standing next to
+# reaches the operator's logs without an inbound connection, a second channel, or the box
+# having to stay up long enough for somebody to SSH in.
+SYNC_UPGRADE_FAILURE_HEADER = "X-RMC-Sync-Upgrade-Failure"
 
 
 def pull_bundle(
