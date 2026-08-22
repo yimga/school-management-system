@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 from django.conf import settings
+from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 from django.core.validators import MinValueValidator
 from apps.academics.models import Department
@@ -423,7 +424,18 @@ class Payslip(models.Model):
     paid_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    details = models.JSONField(default=dict, blank=True)
+    # DjangoJSONEncoder is REQUIRED here, not cosmetic. services.calculate_payroll
+    # builds this blob from model fields, so it always contains Decimals
+    # (base_pay, overtime_pay, every adjustments[].amount and
+    # contributions[].employee_amount/employer_amount) and a datetime.date
+    # (adjustments[].effective_date). Without an encoder the plain json.dumps
+    # behind JSONField raises "Object of type Decimal is not JSON serializable"
+    # and generate_payslips dies for EVERY employee -- payroll cannot run at all.
+    #
+    # Safe to add: nothing reads Payslip.details back (it is a write-only audit
+    # blob; the itemised figures live on PayslipLine and the header fields), so
+    # DjangoJSONEncoder rendering Decimal as a string breaks no consumer.
+    details = models.JSONField(default=dict, blank=True, encoder=DjangoJSONEncoder)
 
     class Meta:
         ordering = ["-payroll_run__period_start", "employee__user__last_name"]
