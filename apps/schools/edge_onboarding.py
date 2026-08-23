@@ -240,8 +240,27 @@ def _runbook(
         f"Confirm the box is healthy before changing anything: `{compose} ps` and "
         f"`curl -s http://127.0.0.1:10000/health/`. Adding TLS to an unwell box gives "
         "you two problems to debug at once.",
-        "Put the lines from this plan into deploy/selfhost/.env.",
     ]
+
+    # Before .env, not after it. The addresses ARE the .env line, and the two
+    # conditions that make a '.local' name the wrong choice have to be checked while
+    # the name can still be changed for free -- afterwards it means reissuing the
+    # certificate and revisiting whatever has already been set up.
+    if mobility != MOVE_NEVER:
+        steps.append(
+            "Decide the NAME first, because the next step writes it down. This box is "
+            "expected to move, and a name survives an address change where an IP "
+            "cannot -- an mDNS '.local' name needs no DNS server and follows the box "
+            "anywhere on the segment. Two local conditions break '.local' and neither "
+            "says so when it fails: a Windows domain that is itself named .local (the "
+            "domain controller answers instead of the box), and access points that "
+            "filter multicast or isolate clients (wired devices resolve it, wireless "
+            "ones do not). Where either holds, use a name in the school's own DNS. "
+            "Either way add a DHCP reservation for the box's MAC so the address stops "
+            "moving in the first place."
+        )
+
+    steps.append("Put the lines from this plan into deploy/selfhost/.env.")
 
     if mode == edge_tls.MODE_SELF_SIGNED:
         steps.append(
@@ -321,14 +340,6 @@ def _runbook(
         )
 
     if mobility != MOVE_NEVER:
-        steps.append(
-            "This box is expected to move, so give it a stable NAME as well as an "
-            "address -- an mDNS '.local' name needs no DNS server and follows the box "
-            "anywhere on the segment. Check two things first: that the school's "
-            "Windows domain is not itself named .local, and that the access points do "
-            "not filter multicast (client isolation). Where either holds, use a name "
-            "in the school's own DNS and a DHCP reservation instead."
-        )
         steps.append(
             "After any address change the box reissues its own certificate on the "
             f"next start, but the terminator only reads those files at config load: "
