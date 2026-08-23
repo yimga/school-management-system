@@ -21,6 +21,10 @@ on:
       - "apps/**/*.py"
       - "services/**/*.py"
       - "scripts/scan_duplicate_dict_keys.py"
+      - "scripts/lint_broad_except.py"
+      - "scripts/allowlists/broad_except_allowlist.json"
+      - "scripts/verify_control_plane_hub_registry_drift.py"
+      - "apps/dashboard/control_plane_hub_scan.py"
       - "scripts/scan_ai_gateway_boundary.py"
       - "scripts/verify_ai_copilot_rbac_coverage.py"
       - "var/security-audit-baseline-ai-copilot-rbac-coverage.json"
@@ -2179,3 +2183,38 @@ jobs:
       - name: Run scanner --compare
         run: |
           python scripts/scan_config_resolver_fragmentation.py --compare
+
+
+  # Deploy-gate checks that had no workflow at all. They ran only inside
+  # scripts/pre_deploy_gate.sh, which nothing schedules -- so a violation
+  # reached main and waited for someone to run a 40-minute script by hand.
+  # verify_control_plane_hub_registry_drift caught a page in neither registry
+  # on the day it landed; lint_broad_except caught a guard that would have
+  # downgraded a box to plain HTTP in silence. Both were found by hand.
+  broad-except-baseline:
+    name: No new broad except in high-risk paths
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run lint --strict
+        run: |
+          python scripts/lint_broad_except.py --allowlist scripts/allowlists/broad_except_allowlist.json --strict
+
+  control-plane-registry-drift:
+    name: Every control-plane page is registered or exempt
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify registry closure
+        run: |
+          python scripts/verify_control_plane_hub_registry_drift.py

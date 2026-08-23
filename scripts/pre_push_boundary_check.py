@@ -57,10 +57,12 @@ from pathlib import Path
 # developer may invoke it from anywhere).
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
-# (label, argv) — argv mirrors the CI step invocations in
-# .github/workflows/architectural-boundaries.yml exactly. Keep this list in sync
-# with that workflow's stdlib-only jobs; the whole point is byte-for-byte parity
-# with what CI would say.
+# (label, argv) — argv mirrors the CI step invocation that owns each gate, so a
+# green run here means a green job there. Most are
+# .github/workflows/architectural-boundaries.yml stdlib-only jobs; keep those in
+# sync byte-for-byte. Where a gate's home is a DIFFERENT workflow, the entry says
+# so, because a reader syncing this list against one workflow would otherwise
+# delete it as foreign.
 GATES: list[tuple[str, list[str]]] = [
     # First: a module that does not compile cannot be imported at all, and every
     # gate below it is answering about a tree that does not run.
@@ -202,6 +204,26 @@ GATES: list[tuple[str, list[str]]] = [
     # than zero-tolerance because 19 further call sites need per-case judgement
     # about whether their model is genuinely per-school; --compare blocks NEW ones.
     ("school-in-defaults-not-lookup", ["scan_school_in_defaults_not_lookup.py", "--compare"]),
+
+    # The three below were deploy-gate-only until 2026-08-22. Every gate that
+    # halted a full pre_deploy_gate.sh sweep that day was missing from this list,
+    # and two of them existed in no workflow at all -- so the enforcement was one
+    # person choosing to run a 40-minute script. Added on measurement, not
+    # instinct: 1s + 3s + 6s against a hook that already runs 45 gates.
+    # verify_i18n_catalog_fresh is deliberately NOT here -- it costs ~7 min.
+    #
+    # A page that extends control_plane_base and joins neither PHASE7 nor the
+    # exempt set. Mirrors architectural-boundaries `control-plane-registry-drift`.
+    ("control-plane-registry-drift", ["verify_control_plane_hub_registry_drift.py"]),
+    # A broad `except Exception` swallows the failure it was not written for.
+    # One around edge-TLS would have settled a box on plain HTTP in silence, and
+    # `off` is also the legitimate default, so nothing would have looked wrong.
+    # Mirrors architectural-boundaries `broad-except-baseline`.
+    ("broad-except-baseline", ["lint_broad_except.py", "--allowlist", "scripts/allowlists/broad_except_allowlist.json", "--strict"]),
+    # Pilot-school references outside their classified buckets. HOME IS
+    # smoke-light.yml, not architectural-boundaries -- do not delete this entry
+    # when syncing against that workflow.
+    ("gilead-tree-classification", ["verify_gilead_full_tree_classification.py"]),
 ]
 
 # Gates that CANNOT answer without the live Django app registry, and are therefore not
