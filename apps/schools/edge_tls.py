@@ -743,7 +743,7 @@ def classify_host(name: str) -> str:
     """What kind of address is this, for the purpose of getting a certificate?
 
     The answer decides which TLS modes are even possible. A public CA can issue
-    for ``sms.gilead-tech.org``; it can never issue for ``gilead.school.lan`` or
+    for ``sms.example-school.org``; it can never issue for ``box.school.lan`` or
     ``10.10.20.137``, no matter how the school fills in the form.
     """
     candidate = str(name or "").strip().strip(".")

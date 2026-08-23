@@ -163,6 +163,16 @@ EXEMPT_CONTROL_PLANE_TEMPLATES: frozenset[str] = frozenset(
         "feedback/voice_of_customer.html",
         # Communication operator delivery audit — CP chrome list surface, not Phase 7 DE strip.
         "communication/super/delivery_receipts.html",
+        # Operator fleet console (OTA releases). Read-only by design: it renders
+        # what every box already reports, and promotion runs through
+        # `manage.py ota_rollout`, because a button that releases a build to the
+        # whole fleet is a button that gets clicked by accident. Checked rather
+        # than assumed: 134 lines with 0 forms, 0 buttons, 0 method="post" and no
+        # csrf_token, and no decision-engine marker. Registering it in Phase 7
+        # would demand a DE surface and a Phase 8 declaration on a page whose
+        # whole purpose is to be read BEFORE a decision. Same call as the
+        # neighbouring schools/super_fleet_wall.html.
+        "sync_engine/super/fleet_console.html",
         # Manager operator control-plane page wrapper (CRUD-shaped; not a dashboard).
         "siteconfig/operator_control_plane_page.html",
         # Control-plane shell, AI center CRUD/workbench, migration/operator flows,

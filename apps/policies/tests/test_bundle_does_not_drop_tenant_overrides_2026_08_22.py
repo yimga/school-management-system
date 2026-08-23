@@ -20,7 +20,7 @@ import uuid
 
 from django.test import TestCase, override_settings
 
-from apps.policies.models import BlueprintPack, PolicyBundle, TenantBlueprint
+from apps.policies.models import PolicyBundle, TenantBlueprint
 from apps.policies.resolver import get_effective_policy
 from apps.schools.models import School
 

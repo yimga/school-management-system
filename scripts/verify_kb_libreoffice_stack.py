@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import ast
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -44,12 +45,60 @@ def check_required_files() -> list[str]:
     return errs
 
 
+#: Reaching LibreOffice THROUGH these is the sanctioned path, not a stray usage.
+SERVICE_MODULES = (
+    "apps.portal.document_conversion",
+    "apps.portal.document_generation",
+)
+
+#: Third-party trees are not ours to police, and rglob would walk every one of
+#: them. node_modules alone is ~362MB.
+SKIP_DIRS = {".git", ".venv", "venv", "node_modules", "__pycache__", "staticfiles", "htmlcov"}
+
+
+def _service_layer_names(tree: ast.AST) -> set[str]:
+    """Symbols this module imported from the conversion service layer."""
+    names: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ImportFrom) and node.module in SERVICE_MODULES:
+            for alias in node.names:
+                names.add(alias.asname or alias.name)
+    return names
+
+
 def check_no_stray_soffice() -> list[str]:
+    """Flag files that reach the LibreOffice binary directly.
+
+    The question is whether a file goes AROUND the service layer, not whether
+    the eight letters appear in it. A file that imports ``find_soffice`` from
+    apps.portal.document_conversion is doing exactly what this gate wants, and
+    a substring test cannot tell the two apart -- it flagged
+    apps/schools/super_views_exports.py for a compliant import from 2026-06-09.
+
+    So: blank out the symbols the file imported from the service layer, then
+    look again. A literal "soffice" binary name or a hand-rolled path variable
+    survives that erasure; a call to the service helper does not.
+    """
     errs = []
     for path in ROOT.rglob("*.py"):
         rel = path.relative_to(ROOT).as_posix()
+        if rel in ALLOWED_SOFFICE_FILES:
+            continue
+        if SKIP_DIRS.intersection(path.parts):
+            continue
         text = path.read_text(encoding="utf-8", errors="ignore")
-        if "soffice" in text and rel not in ALLOWED_SOFFICE_FILES:
+        if "soffice" not in text:
+            continue
+        try:
+            imported = _service_layer_names(ast.parse(text))
+        except SyntaxError:
+            imported = set()  # cannot prove it is compliant, so keep flagging it
+        residue = text
+        for name in sorted(imported, key=len, reverse=True):
+            residue = residue.replace(name, "")
+        for module in SERVICE_MODULES:
+            residue = residue.replace(module, "")
+        if "soffice" in residue:
             errs.append(f"stray soffice usage outside service layer: {rel}")
     return errs
 

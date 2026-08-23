@@ -1332,7 +1332,19 @@ try:
     _edge_tls = _edge_tls_resolve()
     RMC_EDGE_TLS_MODE = _edge_tls.mode
     _edge_tls_defaults = _edge_tls_flags(_edge_tls.mode) if _edge_tls.source != "default" else {}
-except Exception:  # noqa: BLE001 - settings must import even if the app tree is odd
+except ImportError:
+    # Only the IMPORT can realistically fail here (a partial checkout, or the
+    # "odd app tree" this guard was written for): edge_tls imports nothing but
+    # stdlib, so it touches no app registry. Everything else in the block is
+    # already total -- resolve_mode() handles an unrecognised mode itself,
+    # returning the safe value while CARRYING the error so check_edge_readiness
+    # fails on it, and derived_security_flags() only ever sees a mode that has
+    # already been normalised.
+    #
+    # So a broad `except Exception` here buys nothing and costs something: it
+    # would turn a genuine bug in either function into a silent downgrade to
+    # plain HTTP, which is precisely the trap the comment above says this block
+    # exists to remove. Narrow, so a real failure is loud.
     RMC_EDGE_TLS_MODE = "off"
     _edge_tls_defaults = {}
 
@@ -1373,7 +1385,13 @@ try:
             for _edge_origin in _edge_origins:
                 if _edge_origin not in CSRF_TRUSTED_ORIGINS:
                     CSRF_TRUSTED_ORIGINS = list(CSRF_TRUSTED_ORIGINS) + [_edge_origin]
-except Exception:  # noqa: BLE001 - settings must import even if discovery fails
+except (ImportError, OSError):
+    # Narrowed from `except Exception: pass`, which swallowed everything and
+    # said nothing. ImportError is the partial-checkout case the comment meant.
+    # OSError covers a box with no usable interface, though local_addresses()
+    # already handles that per-probe. Anything else here is a bug in this
+    # block, and silence is expensive: ALLOWED_HOSTS would quietly lack the
+    # box's own address and every request would 400 with nothing to explain it.
     pass
 
 # Render terminates TLS at the edge. Internal platform probes may hit HTTP
