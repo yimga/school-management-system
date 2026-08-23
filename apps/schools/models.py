@@ -374,7 +374,14 @@ class School(models.Model):
         max_length=120,
         unique=True,
         blank=True,
-        help_text="Subdomain for this school (e.g. ghs-limbe for ghs-limbe.yoursystem.com)",
+        null=True,
+        default=None,
+        help_text=(
+            "Subdomain for this school (e.g. ghs-limbe for ghs-limbe.yoursystem.com). "
+            "Optional: a school without one is reached at /t/<slug>/ instead, which is "
+            "why every consumer reads `school.subdomain or school.slug`. Stored as NULL "
+            "when absent, never as the empty string — see save()."
+        ),
     )
     # Stored, indexed sha256(str(id))[:12] used by the WAL drain to resolve a
     # tenant from its hash in O(1). Kept in sync in save(); the drain falls back
@@ -904,6 +911,15 @@ class School(models.Model):
     def save(self, *args, **kwargs):
         rp = (getattr(self, "report_platform_bundle_slug", None) or "").strip()
         self.report_platform_bundle_slug = rp.lower() if rp else ""
+        # An ABSENT subdomain must be NULL, never "". The column is unique, and Postgres
+        # (like SQLite) treats "" as a value while treating NULLs as distinct — so with
+        # empty strings only ONE school in the entire system may lack a subdomain, and
+        # creating a second raises IntegrityError. Normalising here rather than only in
+        # the field default is what makes that true for every writer: a ModelForm hands
+        # back "" for an untouched CharField even when null=True, and imports, the
+        # OneRoster path and the API all construct School() directly.
+        _sub = self.subdomain
+        self.subdomain = _sub.strip() or None if isinstance(_sub, str) else _sub
         # Keep the WAL tenant_hash in sync. id is a UUID set at instantiation
         # (default=uuid4), so it is available on first save before super().save().
         if self.id:

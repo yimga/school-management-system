@@ -179,7 +179,15 @@ def _resolve_tenant_slug() -> str:
     for slug in candidates:
         if slug and School.objects.filter(subdomain=slug, is_active=True).exists():
             return slug
-    school = School.objects.filter(is_active=True).exclude(subdomain="").first()
+    # Both absent-forms, deliberately. Since 0085 an absent subdomain is NULL, but rows
+    # written before it may still be "", and Django's exclude() on a nullable column keeps
+    # NULL rows -- so excluding only "" would hand back a school with no subdomain at all.
+    school = (
+        School.objects.filter(is_active=True)
+        .exclude(subdomain__isnull=True)
+        .exclude(subdomain="")
+        .first()
+    )
     if school and school.subdomain:
         return school.subdomain
     return "gilead-school"
