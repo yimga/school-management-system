@@ -110,7 +110,13 @@ def build_edge_plan(answers: dict[str, Any]) -> dict[str, Any]:
 
     scheme = "https" if mode in edge_tls.HTTPS_MODES else "http"
     port_suffix = "" if mode in edge_tls.HTTPS_MODES else f":{web_port}"
-    origins = [f"{scheme}://{name}{port_suffix}" for name in (*dns_names, *ip_addresses)]
+    # host_header_form, not the bare address: an IPv6 literal has to be bracketed in
+    # a URL and in ALLOWED_HOSTS, and bare in the certificate. Getting that backwards
+    # produces a 400 on every request with nothing in it that names the address.
+    origins = [
+        f"{scheme}://{edge_tls.host_header_form(name)}{port_suffix}"
+        for name in (*dns_names, *ip_addresses)
+    ]
 
     env_lines = _env_lines(
         mode=mode,
@@ -119,6 +125,7 @@ def build_edge_plan(answers: dict[str, Any]) -> dict[str, Any]:
         origins=origins,
         acme_email=acme_email,
         web_port=web_port,
+        mobility=mobility,
     )
 
     try:
@@ -138,6 +145,11 @@ def build_edge_plan(answers: dict[str, Any]) -> dict[str, Any]:
                 else ""
             ),
             acme_email=acme_email,
+            # A school that has just said its box moves must not be handed a
+            # terminator config with this morning's address pinned into the site
+            # matcher -- the certificate would heal on the next start and the box
+            # would still answer nothing at the new address.
+            address_may_change=mobility != MOVE_NEVER,
         )
     except ValueError as exc:
         terminator = ""
@@ -176,6 +188,7 @@ def _env_lines(
     origins: list[str],
     acme_email: str,
     web_port: str,
+    mobility: str = MOVE_NEVER,
 ) -> list[str]:
     """The exact lines to put in ``deploy/selfhost/.env``.
 
@@ -189,8 +202,22 @@ def _env_lines(
         f"RMC_EDGE_TLS_MODE={mode}",
     ]
     if every:
-        lines.append("ALLOWED_HOSTS=" + ",".join(["localhost", "127.0.0.1", *every]))
+        # ALLOWED_HOSTS is matched against the Host header, so an IPv6 entry is
+        # bracketed here; RMC_EDGE_TLS_HOSTNAMES feeds a certificate, which needs the
+        # bare address. Same addresses, two spellings, and each is wrong in the
+        # other's place.
+        lines.append(
+            "ALLOWED_HOSTS="
+            + ",".join(
+                ["localhost", "127.0.0.1", *[edge_tls.host_header_form(h) for h in every]]
+            )
+        )
         lines.append("RMC_EDGE_TLS_HOSTNAMES=" + ",".join(every))
+    if mobility != MOVE_NEVER:
+        # This is not one of the derived security flags -- it is the school's own
+        # answer about whether the box holds still, and without it the box refuses
+        # requests at the address it just healed onto.
+        lines.append(f"{edge_tls.ENV_TRUST_LOCAL}=1")
     if origins:
         lines.append("CSRF_TRUSTED_ORIGINS=" + ",".join(origins))
     if mode == edge_tls.MODE_ACME and acme_email:
@@ -252,6 +279,14 @@ def _runbook(
             "then check it does not say `tls internal`. Run this AFTER the certificate "
             "exists -- before, it emits a config that serves a different CA than the one "
             "your devices will trust."
+            + (
+                " Because this box moves, the site line will be `:443` rather than a "
+                "list of addresses: a named site block is a host matcher, so pinning "
+                "today's address there would leave the box answering nothing at the "
+                "address it heals onto tomorrow."
+                if mobility != MOVE_NEVER
+                else ""
+            )
         )
 
     if mode in edge_tls.HTTPS_MODES:
@@ -285,11 +320,26 @@ def _runbook(
             "call the PIN vault needs. Choose a TLS mode when that matters."
         )
 
+    if mobility != MOVE_NEVER:
+        steps.append(
+            "This box is expected to move, so give it a stable NAME as well as an "
+            "address -- an mDNS '.local' name needs no DNS server and follows the box "
+            "anywhere on the segment. Check two things first: that the school's "
+            "Windows domain is not itself named .local, and that the access points do "
+            "not filter multicast (client isolation). Where either holds, use a name "
+            "in the school's own DNS and a DHCP reservation instead."
+        )
+        steps.append(
+            "After any address change the box reissues its own certificate on the "
+            f"next start, but the terminator only reads those files at config load: "
+            f"`{compose} --profile tls restart edge-tls` to actually serve them. A "
+            "whole-box reboot does this for free; restarting only the web container "
+            "does not."
+        )
     if mobility != MOVE_NEVER and mode == edge_tls.MODE_SELF_SIGNED:
         steps.append(
-            "This box is expected to move. Keep the exported CA bundle and its "
-            "passphrase somewhere that survives the box, and see the relocation steps in "
-            "this plan before it travels."
+            "Keep the exported CA bundle and its passphrase somewhere that survives "
+            "the box, and see the relocation steps in this plan before it travels."
         )
     return steps
 

@@ -37,15 +37,51 @@
 }
 
 # ---------------------------------------------------------------------------
-# Replace the site line and the tls directive with the output of
-# `manage.py edge_tls --print-caddyfile`. The block below is the Gilead shape:
-# self-signed, two LAN names plus the IP people actually type.
+# THE DEFAULT BELOW NAMES NO SCHOOL, AND THAT IS THE POINT.
+#
+# A Caddy site line is a HOST MATCHER: `gilead.school.lan, 10.10.20.137 {` serves
+# that block ONLY for a request whose Host is one of those. A shipped default with
+# one school's addresses in it therefore serves every other box nothing at all --
+# and nothing at all is what an operator sees, with no error naming the cause.
+#
+# `:443` matches any host and presents the pair this box minted for all of them, so
+# the same file is correct on every box, in every locality, at every address. It is
+# also what keeps a box working after its address changes: `edge_tls --ensure`
+# reissues the certificate on the next start, and a pinned site line would leave the
+# box answering nothing at the address it just healed onto, while every log it wrote
+# said healthy.
+#
+# This widens nothing. ALLOWED_HOSTS in Django is still the Host-header guard.
+# Caddy is the terminator here, not the gate.
+#
+# It requires the certificate to exist first:
+#
+#   docker compose -f deploy/selfhost/docker-compose.yml exec web \
+#     python manage.py edge_tls --issue-selfsigned
+#
+# Until it does, this container will fail to start and say so. That is deliberate:
+# a terminator that refuses to start is a fault you fix in a minute, and a
+# terminator that starts and serves an untrusted certificate is a fault a school
+# discovers device by device.
+#
+# A box on a PINNED address with a public name -- an ACME box, or one where the
+# named block is wanted for per-host behaviour -- should render its own instead:
+#
+#   docker compose -f deploy/selfhost/docker-compose.yml exec -T web \
+#     python manage.py edge_tls --print-caddyfile > deploy/selfhost/Caddyfile.edge
 # ---------------------------------------------------------------------------
-gilead.school.lan, 10.10.20.137 {
-	tls internal
+:443 {
+	tls /app/var/edge-tls/tls.crt /app/var/edge-tls/tls.key
 	encode zstd gzip
 	reverse_proxy web:10000 {
 		header_up X-Forwarded-Proto {scheme}
 		header_up X-Forwarded-Host {host}
 	}
+}
+
+# Someone who types the bare address reaches HTTPS instead of a dead port. 302 and
+# never 301: a permanent redirect is cached by the browser and becomes a one-way
+# door on this host, the same trap HSTS sets on a LAN.
+:80 {
+	redir https://{host}{uri} 302
 }

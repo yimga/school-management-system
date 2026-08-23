@@ -1354,6 +1354,7 @@ def _edge_default(name, fallback):
 # arbitrary Host header. The protection ALLOWED_HOSTS exists to give is preserved:
 # an attacker cannot make the box hold an address it does not hold.
 try:
+    from apps.schools.edge_tls import host_header_form as _edge_host_form
     from apps.schools.edge_tls import local_addresses as _edge_local_addresses
     from apps.schools.edge_tls import trust_local_addresses as _edge_trust_local
 
@@ -1361,13 +1362,17 @@ try:
         _edge_scheme = "https" if RMC_EDGE_TLS_MODE in ("selfsigned", "provided", "acme") else "http"
         _edge_web_port = (os.getenv("WEB_PORT", "") or "").strip()
         for _edge_addr in _edge_local_addresses():
-            if _edge_addr not in ALLOWED_HOSTS:
-                ALLOWED_HOSTS.append(_edge_addr)
-            _edge_origins = [f"{_edge_scheme}://{_edge_addr}"]
+            # Bracketed, because Django's split_domain_port keeps the brackets on an
+            # IPv6 literal: a bare entry here matches nothing and every request to
+            # that address is a 400 that says nothing about why.
+            _edge_host = _edge_host_form(_edge_addr)
+            if _edge_host not in ALLOWED_HOSTS:
+                ALLOWED_HOSTS.append(_edge_host)
+            _edge_origins = [f"{_edge_scheme}://{_edge_host}"]
             if _edge_scheme == "http" and _edge_web_port:
                 # Plain-HTTP boxes are reached on the app port, and the port is part
                 # of the origin for CSRF purposes.
-                _edge_origins.append(f"http://{_edge_addr}:{_edge_web_port}")
+                _edge_origins.append(f"http://{_edge_host}:{_edge_web_port}")
             for _edge_origin in _edge_origins:
                 if _edge_origin not in CSRF_TRUSTED_ORIGINS:
                     CSRF_TRUSTED_ORIGINS = list(CSRF_TRUSTED_ORIGINS) + [_edge_origin]

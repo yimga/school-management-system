@@ -405,6 +405,22 @@ class Command(BaseCommand):
         # the symptom is not an error message -- it is a terminator retrying an ACME
         # order forever while the box serves nothing.
         _feas_dns, _feas_ips = _tls.san_candidates(allowed_hosts=allowed_hosts)
+
+        # Can each declared name go into a certificate AT ALL, and will it look like
+        # itself when it gets there? Local-first means the name on the building is
+        # written in the script the school actually uses, and a certificate carries
+        # DNS names as ASCII. Both outcomes -- silently dropped, or carried as an
+        # "xn--" A-label -- are discovered by someone standing in front of a device
+        # that will not connect unless they are said here first.
+        if resolution.mode in _tls.HTTPS_MODES:
+            # Only where a certificate actually exists. On a plain-HTTP box there is
+            # nothing for a name to fail to go into, and a FAIL about certificates
+            # would be a lie -- the loud thing on that box is the missing TLS itself,
+            # which is already reported above.
+            for _severity, _message in _tls.hostname_findings(
+                _tls.declared_hostnames(allowed_hosts=allowed_hosts)
+            ):
+                findings.append((FAIL if _severity == "fail" else WARN, _message))
         for _severity, _message in _tls.mode_feasibility(
             resolution.mode, _feas_dns, _feas_ips
         ):
