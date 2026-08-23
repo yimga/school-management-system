@@ -118,7 +118,17 @@ _VALID_AUDIENCES = frozenset({"operator", "tenant_admin", "teacher", "parent", "
 
 
 class WizardError(Exception):
-    """Base wizard error."""
+    """Base wizard error.
+
+    ``operator_message`` is the one sentence a person at the screen can act on,
+    kept separate from ``str(exc)`` -- which names wizard.step for the log and
+    means nothing to them. It stays None when the cause is not actionable (a
+    missing dotted writer path is a deployment fault, not an operator's
+    mistake); the view then falls back to a generic line. Declared here rather
+    than attached at each raise site so every WizardError answers to it.
+    """
+
+    operator_message: str | None = None
 
 
 class WizardNotFound(WizardError):

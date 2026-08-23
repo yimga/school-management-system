@@ -399,10 +399,78 @@ class Command(BaseCommand):
                 "offline PIN / local mode can enrol.",
             ))
 
+        # --- Is this mode achievable for these addresses at all? -------------
+        # A school that picks a public certificate authority for a box reachable
+        # only at 10.10.20.137 has chosen something no CA on earth can deliver, and
+        # the symptom is not an error message -- it is a terminator retrying an ACME
+        # order forever while the box serves nothing.
+        _feas_dns, _feas_ips = _tls.san_candidates(allowed_hosts=allowed_hosts)
+        for _severity, _message in _tls.mode_feasibility(
+            resolution.mode, _feas_dns, _feas_ips
+        ):
+            findings.append((FAIL if _severity == "fail" else WARN, _message))
+
+        # Will the way this box is reached SURVIVE the address changing? An IP-only
+        # box works perfectly until DHCP hands out a different lease, and then every
+        # device shows a certificate error at an address that no longer exists. The
+        # fix is free and the failure is invisible until the day it happens, which is
+        # exactly the combination worth a standing warning.
+        for _severity, _message in _tls.stability_findings(_feas_dns, _feas_ips):
+            findings.append((FAIL if _severity == "fail" else WARN, _message))
+        if _tls.trust_local_addresses():
+            _held = _tls.local_addresses()
+            findings.append((
+                OK,
+                "Self-healing addresses are ON: this box serves and asserts the "
+                "addresses it currently holds ("
+                + (", ".join(_held) if _held else "none detected")
+                + "), so a new DHCP lease or a move does not need anyone to edit a file.",
+            ))
+
         if resolution.mode in _tls.FILE_BACKED_MODES:
             cert_path, key_path, _ca = _tls.certificate_paths()
             dns_names, ip_addresses = _tls.san_candidates(allowed_hosts=allowed_hosts)
             cert = _tls.inspect_certificate(cert_path)
+            # A relocated box is the classic victim of a dead RTC: shipped across a
+            # border, it powers on believing it is years in the past, rejects its own
+            # certificate as 'not yet valid', and nothing in the browser error mentions
+            # the clock. Its own CA gives us a floor to detect that without a network.
+            _ca_facts = _tls.inspect_certificate(_ca)
+            for _severity, _message in _tls.clock_findings(cert, _ca_facts):
+                findings.append((FAIL if _severity == "fail" else WARN, _message))
+            if resolution.mode == _tls.MODE_SELF_SIGNED and _ca_facts.exists:
+                # We cannot prove a backup exists somewhere safe, so we never claim
+                # it does. But we CAN detect the mistake of leaving the bundle in the
+                # certificate directory: a backup that shares a volume with the key it
+                # protects survives none of the events a backup exists for, and it puts
+                # an encrypted copy of the CA key on the box permanently.
+                _ca_dir = os.path.dirname(_ca) or "."
+                try:
+                    _stray = sorted(
+                        name
+                        for name in os.listdir(_ca_dir)
+                        if name.lower().endswith((".p12", ".pfx"))
+                    )
+                except OSError:
+                    _stray = []
+                if _stray:
+                    findings.append((
+                        WARN,
+                        "A CA bundle ("
+                        + ", ".join(_stray)
+                        + f") is sitting in {_ca_dir}, the same volume as the key it "
+                        "backs up. It protects against nothing that way -- lose the "
+                        "volume and you lose both. Copy it off the box and delete it "
+                        "from here.",
+                    ))
+                else:
+                    findings.append((
+                        WARN,
+                        "The box CA is the only artefact here that cannot be regenerated: "
+                        "lose it and every device that trusts this box must be visited in "
+                        "person. Export it before the box moves or is rebuilt -- "
+                        "`edge_tls --export-ca <path>` -- and keep the copy off the box.",
+                    ))
             if not cert.exists:
                 findings.append((
                     FAIL,

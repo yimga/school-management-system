@@ -26,9 +26,9 @@ opposite directions:
                 name and reachability for the challenge, which many sovereign boxes
                 deliberately do not have.
 
-``off``         Plain HTTP. Honest, and what Gilead runs today. Named as a mode rather
-                than left as an absence, so readiness can SAY what is off and what
-                that costs instead of silently omitting the subject.
+``off``         Plain HTTP. Honest, and what the pilot box runs today. Named as a
+                mode rather than left as an absence, so readiness can SAY what is
+                off and what that costs instead of silently omitting the subject.
 
 THE TRANSITION IS THE FEATURE. A school starts self-signed because it is the only
 thing that works on day one, and moves to a real CA when it gets a domain -- or moves
@@ -87,6 +87,10 @@ ENV_KEY = "RMC_EDGE_TLS_KEY"
 ENV_HOSTNAMES = "RMC_EDGE_TLS_HOSTNAMES"
 ENV_ACME_EMAIL = "RMC_EDGE_TLS_ACME_EMAIL"
 ENV_ACME_CA = "RMC_EDGE_TLS_ACME_CA"
+# Read from the environment rather than a --passphrase flag on purpose: a command
+# line is visible in `ps`, in shell history and in docker's own event log, and this
+# passphrase protects the CA private key.
+ENV_CA_PASSPHRASE = "RMC_EDGE_TLS_CA_PASSPHRASE"
 
 DEFAULT_DIR = "/app/var/edge-tls"
 DEFAULT_SELF_SIGNED_DAYS = 825  # CA/Browser-Forum leaf ceiling; browsers reject longer
@@ -666,3 +670,823 @@ def transition_plan(from_mode: str, to_mode: str) -> list[str]:
             "browser -- nothing carries over."
         )
     return steps
+
+
+# ---------------------------------------------------------------------------
+# RELOCATION
+# ---------------------------------------------------------------------------
+# A box is a physical object. It moves: to a new room, a new campus, a new
+# country, or onto new hardware after a failure. Exactly one thing it carries
+# cannot be regenerated -- the box CA's private key. Everything else (the leaf
+# certificate, the Caddyfile, ALLOWED_HOSTS, the origins) is derived and can be
+# rebuilt in a minute.
+#
+# That asymmetry is the whole design. Preserve the CA and a relocation is a
+# five-minute reissue that no device notices. Lose it and every phone, laptop
+# and tablet that trusted this box must be physically revisited -- which, for a
+# school that has just moved country, is the difference between an afternoon and
+# a term.
+#
+# The functions below exist to make the recoverable path the easy one.
+
+
+HOST_PUBLIC_DNS = "public_dns"
+HOST_PRIVATE_DNS = "private_dns"
+HOST_PUBLIC_IP = "public_ip"
+HOST_PRIVATE_IP = "private_ip"
+HOST_LOOPBACK = "loopback"
+
+#: DNS suffixes that no public certificate authority can ever issue for, because
+#: nobody can demonstrate ownership of them: they are reserved for local use, and
+#: the same name resolves to a different machine in every building on earth.
+#: RFC 6762 (.local), RFC 8375 (.home.arpa), RFC 2606 (.test/.example/.invalid/
+#: .localhost) and the ICANN permanently-reserved high-risk strings.
+PRIVATE_DNS_SUFFIXES: tuple[str, ...] = (
+    ".local",
+    ".lan",
+    ".internal",
+    ".intranet",
+    ".private",
+    ".home",
+    ".home.arpa",
+    ".corp",
+    ".mail",
+    ".localdomain",
+    ".test",
+    ".example",
+    ".invalid",
+    ".localhost",
+)
+
+#: What changed about the box's situation. Used to build a relocation plan --
+#: the steps genuinely differ, and a plan that lists every step for every move is
+#: a plan people stop reading.
+CHANGE_ADDRESS = "address"      # new IP and/or new hostname, same building
+CHANGE_SITE = "site"            # new building or campus, same country
+CHANGE_COUNTRY = "country"      # new jurisdiction
+CHANGE_HARDWARE = "hardware"    # rebuilt / re-imaged / replaced appliance
+
+RELOCATION_CHANGES: tuple[str, ...] = (
+    CHANGE_ADDRESS,
+    CHANGE_SITE,
+    CHANGE_COUNTRY,
+    CHANGE_HARDWARE,
+)
+
+#: Filename of the portable CA bundle. PKCS#12 because it is the one container
+#: every platform's import tooling already understands, and because it is
+#: encrypted by construction -- this file holds the CA PRIVATE KEY.
+CA_BUNDLE_FILENAME = "box-ca-bundle.p12"
+
+
+def classify_host(name: str) -> str:
+    """What kind of address is this, for the purpose of getting a certificate?
+
+    The answer decides which TLS modes are even possible. A public CA can issue
+    for ``sms.gilead-tech.org``; it can never issue for ``gilead.school.lan`` or
+    ``10.10.20.137``, no matter how the school fills in the form.
+    """
+    candidate = str(name or "").strip().strip(".")
+    if not candidate:
+        return HOST_PRIVATE_DNS
+    if candidate.count(":") == 1 and not candidate.startswith("["):
+        candidate = candidate.split(":", 1)[0]
+    try:
+        ip = ipaddress.ip_address(candidate)
+    except ValueError:
+        lowered = candidate.lower()
+        if "." not in lowered:
+            # A single-label name ("boxroom", "server") is by definition local.
+            return HOST_PRIVATE_DNS
+        for suffix in PRIVATE_DNS_SUFFIXES:
+            if lowered == suffix.lstrip(".") or lowered.endswith(suffix):
+                return HOST_PRIVATE_DNS
+        return HOST_PUBLIC_DNS
+    if ip.is_loopback:
+        return HOST_LOOPBACK
+    # is_global is the honest test: it excludes RFC1918, CGNAT (100.64/10),
+    # link-local, unique-local IPv6 and every other special-use range in one
+    # place, and it tracks the IANA registries as Python updates.
+    return HOST_PUBLIC_IP if ip.is_global else HOST_PRIVATE_IP
+
+
+def publicly_issuable(name: str) -> bool:
+    """Could a public CA ever issue a certificate asserting this name?"""
+    return classify_host(name) in (HOST_PUBLIC_DNS, HOST_PUBLIC_IP)
+
+
+def mode_feasibility(
+    mode: str,
+    dns: list[str] | tuple[str, ...],
+    ips: list[str] | tuple[str, ...],
+) -> list[tuple[str, str]]:
+    """Is this mode actually achievable for these addresses?
+
+    Returns ``(severity, message)`` pairs where severity is ``"fail"`` or
+    ``"warn"``. Empty means the combination is achievable.
+
+    This exists because the failure it prevents is invisible. A school that picks
+    "use a certificate authority" for a box reachable only at ``10.10.20.137``
+    has chosen something no CA on earth can deliver, and the symptom is not an
+    error message -- it is a terminator that retries an ACME order forever while
+    the box serves nothing.
+    """
+    mode = normalize_mode(mode)
+    names = [str(d) for d in dns] + [str(i) for i in ips]
+    findings: list[tuple[str, str]] = []
+
+    if mode == MODE_ACME:
+        if not names:
+            findings.append((
+                "fail",
+                "acme needs at least one address to request a certificate for, and none "
+                "are configured. Set RMC_EDGE_TLS_HOSTNAMES or ALLOWED_HOSTS.",
+            ))
+            return findings
+
+        unissuable = [n for n in names if not publicly_issuable(n)]
+        if unissuable:
+            # The subtle part: an ACME order is all-or-nothing. One private name
+            # in the SAN list fails the WHOLE order, so the box gets no
+            # certificate at all -- not a partial one covering the public names.
+            findings.append((
+                "fail",
+                "acme cannot be issued for "
+                + ", ".join(sorted(unissuable))
+                + ". A public CA cannot validate ownership of a private address, and an "
+                "ACME order is all-or-nothing: one such name means the box gets NO "
+                "certificate, not a partial one. Either remove these names from "
+                "RMC_EDGE_TLS_HOSTNAMES and reach the box only by its public name, or "
+                "choose selfsigned/provided instead.",
+            ))
+        public_names = [n for n in names if publicly_issuable(n)]
+        if public_names and not unissuable:
+            findings.append((
+                "warn",
+                "acme validates over the public internet: "
+                + ", ".join(sorted(public_names))
+                + " must resolve to THIS box and reach it on port 80 (HTTP-01) at renewal "
+                "time, not merely at first issue. A box that moves without its DNS record "
+                "moving renews nothing and fails closed when the certificate expires.",
+            ))
+        return findings
+
+    if mode == MODE_PROVIDED:
+        private = [n for n in names if not publicly_issuable(n)]
+        if private:
+            findings.append((
+                "warn",
+                "The certificate files must come from a CA that will issue for "
+                + ", ".join(sorted(private))
+                + ". No PUBLIC CA will; this needs your organisation's own internal CA, "
+                "whose root must then be installed on every device exactly like the "
+                "selfsigned path. If there is no internal CA, selfsigned is the same "
+                "thing with less paperwork.",
+            ))
+        return findings
+
+    if mode == MODE_SELF_SIGNED:
+        if not names:
+            findings.append((
+                "fail",
+                "Nothing to put in the certificate: no RMC_EDGE_TLS_HOSTNAMES and no "
+                "usable ALLOWED_HOSTS entries.",
+            ))
+        return findings
+
+    return findings
+
+
+def clock_findings(
+    facts: "CertificateFacts",
+    ca_facts: "CertificateFacts | None" = None,
+    now: Any = None,
+) -> list[tuple[str, str]]:
+    """Is the box's clock consistent with the certificate it is serving?
+
+    A relocated appliance is the classic victim here. Ship a box across a border,
+    let the RTC battery die in transit, and it powers on believing it is years in
+    the past. Every certificate it holds is then "not yet valid", TLS fails
+    completely, and nothing in the browser error mentions the clock. Meanwhile
+    the sync rail's cursors and every attendance timestamp are equally wrong.
+
+    We can detect this WITHOUT a network: the box's own CA certificate records a
+    moment the box demonstrably existed. Any system time before that is
+    impossible, so it is the clock that is wrong, not the certificate.
+    """
+    from datetime import datetime, timezone
+
+    current = now or datetime.now(timezone.utc)
+    findings: list[tuple[str, str]] = []
+
+    def _parse(value: str):
+        if not value:
+            return None
+        try:
+            return datetime.fromisoformat(value)
+        except ValueError:
+            return None
+
+    floor = _parse(ca_facts.not_before) if (ca_facts and ca_facts.exists) else None
+    if floor is not None and current < floor:
+        findings.append((
+            "fail",
+            f"The system clock reads {current.isoformat()}, which is BEFORE this box's own "
+            f"CA was created ({floor.isoformat()}). The clock is wrong, not the "
+            "certificate. Every TLS handshake will fail as 'not yet valid', and any "
+            "timestamp the box writes -- attendance, sync cursors, audit rows -- is wrong "
+            "too. Fix the clock (NTP, or the hardware RTC battery) BEFORE anything else; "
+            "reissuing certificates against a bad clock only bakes the error in.",
+        ))
+        return findings
+
+    not_before = _parse(facts.not_before)
+    if not_before is not None and current < not_before:
+        findings.append((
+            "fail",
+            f"The certificate is not valid until {not_before.isoformat()} but the box "
+            f"believes it is {current.isoformat()}. Browsers will refuse it outright. "
+            "Either the clock is behind or the certificate was minted on a machine whose "
+            "clock is ahead.",
+        ))
+    return findings
+
+
+def export_ca_bundle(
+    passphrase: bytes,
+    directory: str | None = None,
+    environ: dict[str, str] | None = None,
+    friendly_name: bytes = b"RunMyCampus Edge CA",
+) -> bytes:
+    """Serialise the box CA (certificate + private key) as encrypted PKCS#12.
+
+    This is the ONLY artefact on the box that cannot be regenerated. Without it a
+    rebuilt or replaced appliance mints a NEW CA, and every device that trusted
+    the old one must be physically revisited.
+
+    Encryption is not optional and there is no default passphrase: this file
+    grants the power to impersonate any name to every device that trusts this
+    box. Treat the exported file exactly as you would treat the box itself.
+    """
+    if not passphrase:
+        raise ValueError(
+            "A passphrase is required. This bundle contains the CA private key; "
+            "whoever holds it unencrypted can impersonate any site to every device "
+            "that trusts this box."
+        )
+    from cryptography import x509
+    from cryptography.hazmat.primitives import hashes, serialization
+    from cryptography.hazmat.primitives.serialization import pkcs12
+
+    env = os.environ if environ is None else environ
+    base = directory or env.get(ENV_DIR) or DEFAULT_DIR
+    ca_cert_path = os.path.join(base, "ca.crt")
+    ca_key_path = os.path.join(base, "ca.key")
+
+    if not os.path.exists(ca_cert_path) or not os.path.exists(ca_key_path):
+        raise FileNotFoundError(
+            f"No box CA at {base} (need both ca.crt and ca.key). Nothing to export -- "
+            "run `edge_tls --issue-selfsigned` first, or this box does not use a box CA."
+        )
+
+    with open(ca_cert_path, "rb") as handle:
+        cert = x509.load_pem_x509_certificate(handle.read())
+    with open(ca_key_path, "rb") as handle:
+        key = serialization.load_pem_private_key(handle.read(), password=None)
+
+    # AES-256 + SHA-256, not the library default. The default container uses
+    # legacy PKCS#12 algorithms that OpenSSL 3 refuses to read without -legacy,
+    # so a school could not inspect or re-wrap its own backup with standard
+    # tooling. Round-tripping through this module would work either way; being
+    # readable by anything else is what makes it a real backup.
+    try:
+        encryption = (
+            serialization.PrivateFormat.PKCS12.encryption_builder()
+            .key_cert_algorithm(pkcs12.PBES.PBESv2SHA256AndAES256CBC)
+            .hmac_hash(hashes.SHA256())
+            .build(passphrase)
+        )
+    except (AttributeError, ValueError, NotImplementedError):
+        # Older cryptography has no builder. Still encrypted, still restorable by
+        # this command -- just a legacy container.
+        encryption = serialization.BestAvailableEncryption(passphrase)
+
+    return pkcs12.serialize_key_and_certificates(
+        name=friendly_name,
+        key=key,
+        cert=cert,
+        cas=None,
+        encryption_algorithm=encryption,
+    )
+
+
+def import_ca_bundle(
+    data: bytes,
+    passphrase: bytes,
+    directory: str | None = None,
+    environ: dict[str, str] | None = None,
+    force: bool = False,
+) -> dict[str, Any]:
+    """Restore a previously exported box CA onto this box.
+
+    Run this BEFORE issuing a leaf on rebuilt hardware. Restore first and the
+    reissued leaf chains to the CA the devices already trust, so the move is
+    invisible to them. Issue first and you have already minted a competing CA.
+    """
+    from cryptography import x509
+    from cryptography.hazmat.primitives import hashes, serialization
+    from cryptography.hazmat.primitives.serialization import pkcs12
+
+    env = os.environ if environ is None else environ
+    base = directory or env.get(ENV_DIR) or DEFAULT_DIR
+    ca_cert_path = os.path.join(base, "ca.crt")
+    ca_key_path = os.path.join(base, "ca.key")
+
+    key, cert, _extra = pkcs12.load_key_and_certificates(data, passphrase)
+    if key is None or cert is None:
+        raise ValueError(
+            "The bundle does not contain both a certificate and a private key. "
+            "Either the passphrase is wrong or this is not a box CA bundle."
+        )
+
+    basic = cert.extensions.get_extension_for_class(x509.BasicConstraints).value
+    if not basic.ca:
+        raise ValueError(
+            "The bundle's certificate is not a CA. You have probably exported or been "
+            "given a LEAF certificate; restoring it would not re-establish device trust."
+        )
+
+    replaced = os.path.exists(ca_cert_path)
+    if replaced and not force:
+        with open(ca_cert_path, "rb") as handle:
+            existing = x509.load_pem_x509_certificate(handle.read())
+        if existing.fingerprint(hashes.SHA256()) != cert.fingerprint(hashes.SHA256()):
+            raise FileExistsError(
+                f"A DIFFERENT box CA already exists at {ca_cert_path}. Overwriting it "
+                "invalidates every device that trusts the current one. Pass force=True "
+                "only if you are certain the incoming CA is the one the devices trust."
+            )
+
+    os.makedirs(base, exist_ok=True)
+    with open(ca_cert_path, "wb") as handle:
+        handle.write(cert.public_bytes(serialization.Encoding.PEM))
+    with open(ca_key_path, "wb") as handle:
+        handle.write(
+            key.private_bytes(
+                encoding=serialization.Encoding.PEM,
+                # Match what issue_self_signed writes, so a restored CA and a
+                # locally minted one are byte-comparable and reload identically.
+                format=serialization.PrivateFormat.TraditionalOpenSSL,
+                encryption_algorithm=serialization.NoEncryption(),
+            )
+        )
+    try:
+        os.chmod(ca_key_path, 0o600)
+    except OSError:
+        # Windows / bind-mounted volumes may not support it. Not fatal, but the
+        # runbook says to check it, so do not pretend it succeeded.
+        pass
+    return {
+        "ca_cert": ca_cert_path,
+        "ca_key": ca_key_path,
+        "replaced": replaced,
+        "subject": cert.subject.rfc4514_string(),
+        "fingerprint": cert.fingerprint(hashes.SHA256()).hex(":").upper(),
+    }
+
+
+def relocation_plan(
+    mode: str,
+    changes: "set[str] | list[str] | tuple[str, ...]",
+    hsts_seconds: int = 0,
+) -> list[str]:
+    """Ordered steps to move a box, for the mode it is on and what changed.
+
+    Order is load-bearing in three places and each one is a mistake that cannot
+    be undone from a keyboard:
+
+    * The CA bundle is exported BEFORE the box is powered down. Afterwards, if
+      the hardware does not survive the journey, it is gone.
+    * On rebuilt hardware the CA is restored BEFORE a leaf is issued. Reversed,
+      the box mints a competing CA and every device is stranded.
+    * HSTS is stood down BEFORE a public-CA box moves to a LAN mode, and the
+      max-age has to be waited out. Reversed, browsers refuse the box at that
+      name for up to a year and will not let anyone click through.
+    """
+    mode = normalize_mode(mode)
+    changed = {str(c) for c in (changes or ())}
+    steps: list[str] = []
+
+    steps.append(
+        "BEFORE the box is switched off: export the box CA and store it somewhere "
+        "that is not the box -- `edge_tls --export-ca --out <path>`. It is the only "
+        "thing here that cannot be rebuilt."
+        if mode == MODE_SELF_SIGNED
+        else "BEFORE the box is switched off: back up deploy/selfhost/.env and the "
+        "certificate directory. The .env records decisions nobody will remember."
+    )
+
+    if CHANGE_COUNTRY in changed:
+        steps.append(
+            "Confirm the move is permitted before it happens: this box holds student "
+            "records, and moving them to another jurisdiction is a data-protection "
+            "decision, not a logistics one. See docs/SOVEREIGNTY_PLEDGE.md."
+        )
+
+    if mode == MODE_ACME and hsts_seconds:
+        steps.append(
+            f"HSTS is currently {hsts_seconds}s. If the box is moving to selfsigned or "
+            "provided at the SAME name, set SECURE_HSTS_SECONDS=0 and redeploy NOW, then "
+            "wait out the max-age already handed to browsers. A browser that cached HSTS "
+            "for this name refuses plain HTTP and refuses to let anyone bypass an "
+            "untrusted certificate -- there is no way through it from the box side."
+        )
+
+    if mode == MODE_ACME and (CHANGE_COUNTRY in changed or CHANGE_SITE in changed):
+        steps.append(
+            "Renew the certificate BEFORE the move if it expires within ~45 days: the "
+            "box cannot answer an HTTP-01 challenge while it is in a crate."
+        )
+        steps.append(
+            "Update the public DNS A/AAAA record to the box's new public address as part "
+            "of the move, not after it. ACME renewal happens unattended ~30 days before "
+            "expiry; if DNS still points at the old site it fails silently and the first "
+            "symptom is a dead box weeks later. Consider DNS-01 for a box that moves, "
+            "since it needs no inbound reachability at all."
+        )
+
+    if CHANGE_HARDWARE in changed:
+        steps.append(
+            "On the new hardware, restore the CA FIRST: `edge_tls --import-ca --in <path>`. "
+            "Do this before issuing anything. If you issue first you mint a second CA and "
+            "every device that trusted the old one must be visited in person."
+            if mode == MODE_SELF_SIGNED
+            else "On the new hardware, restore the certificate and key files to the "
+            "certificate directory before starting the terminator."
+        )
+
+    if changed & {CHANGE_ADDRESS, CHANGE_SITE, CHANGE_COUNTRY}:
+        steps.append(
+            "Set the new address(es) in deploy/selfhost/.env: ALLOWED_HOSTS and "
+            "RMC_EDGE_TLS_HOSTNAMES. Django rejects a host it was not told about, so a "
+            "box at an unlisted new IP answers nothing at all -- which looks like a dead "
+            "box rather than a configuration line."
+        )
+        if mode == MODE_SELF_SIGNED:
+            steps.append(
+                "Reissue the leaf for the new addresses: "
+                "`edge_tls --issue-selfsigned --force`. The CA on disk is reused, so "
+                "devices that installed it need NOTHING done to them."
+            )
+        elif mode == MODE_PROVIDED:
+            steps.append(
+                "Obtain replacement certificate files for the new addresses from whoever "
+                "issues them. A purchased certificate names specific hosts; a new address "
+                "is not covered by the old one, and there is no local way to add it."
+            )
+
+    if mode in FILE_BACKED_MODES:
+        steps.append(
+            "Re-render the terminator config FROM the new certificate: "
+            "`edge_tls --print-caddyfile > deploy/selfhost/Caddyfile.edge`. Run it after "
+            "the certificate exists, never before -- with no certificate on disk it emits "
+            "`tls internal`, which serves a different CA than the one your devices trust."
+        )
+
+    if mode in HTTPS_MODES and (changed & {CHANGE_ADDRESS, CHANGE_SITE, CHANGE_COUNTRY}):
+        steps.append(
+            "Update CSRF_TRUSTED_ORIGINS to the new https:// origins. The scheme and the "
+            "host are both part of the value; a stale entry produces a login that submits, "
+            "returns to the login page, and reports nothing."
+        )
+
+    if CHANGE_COUNTRY in changed:
+        steps.append(
+            "Set TIME_ZONE for the new country and restart. Attendance, timetables, "
+            "schedule due-ness and sync cursors are all evaluated locally on this box; "
+            "left on the old zone they are silently wrong by the offset."
+        )
+        steps.append(
+            "Verify the hardware clock survived the journey and NTP can reach a server "
+            "reachable from the new network. A box whose RTC died in transit rejects its "
+            "own certificate as 'not yet valid'."
+        )
+
+    steps.append(
+        "Bring the stack up and verify: "
+        "`docker compose -f deploy/selfhost/docker-compose.yml --profile tls up -d` then "
+        "`edge_tls` and `check_edge_readiness --strict`."
+    )
+
+    if CHANGE_HARDWARE in changed and mode == MODE_SELF_SIGNED:
+        steps.append(
+            "Confirm the CA fingerprint matches what the devices already trust "
+            "(`edge_tls --json` reports it). If it does not, the restore did not take and "
+            "you are about to discover it one device at a time."
+        )
+
+    # Only the modes that use a PRIVATE CA leave trust behind on devices. An acme
+    # box's devices trust a public CA that has nothing to do with this appliance.
+    if mode in FILE_BACKED_MODES and (changed & {CHANGE_SITE, CHANGE_COUNTRY}):
+        steps.append(
+            "Devices left behind at the old site still trust this box's CA. If the old "
+            "site keeps running a DIFFERENT box, remove the old CA from those devices -- "
+            "otherwise they extend trust to an appliance that is no longer yours."
+        )
+
+    return steps
+
+
+# ---------------------------------------------------------------------------
+# SURVIVING AN ADDRESS CHANGE
+# ---------------------------------------------------------------------------
+# A tenant's box does not hold still. DHCP hands it a different lease, the school
+# re-cables a room onto another subnet, the box moves campus, or it is carried to
+# another country entirely. Every one of those changes the address people type,
+# and a certificate names addresses.
+#
+# There are three layers to this and only the first one is free:
+#
+#   1. DO NOT DEPEND ON THE IP. If devices reach the box by a stable NAME, an
+#      address change costs nothing at all -- the certificate still asserts the
+#      name, and only name resolution has to catch up. On a LAN with no DNS
+#      server, mDNS gives that for free: a `.local` name is answered by the box
+#      itself over multicast, so it follows the box to any address on the segment.
+#   2. PIN THE LEASE. A DHCP reservation keyed to the box's MAC stops the address
+#      moving within a site at all.
+#   3. SELF-HEAL. When the address changes anyway -- and eventually it does --
+#      the box notices that its own certificate no longer covers where it lives,
+#      and reissues. The CA on disk is REUSED, so every device that trusted it
+#      keeps working and nobody is revisited.
+#
+# ``ensure_certificate`` is layer 3. It is deliberately idempotent and cheap
+# enough to run on every container start: it does nothing at all unless something
+# is actually wrong.
+
+#: Reissue this many days before the leaf expires. A box that is switched off for
+#: a long holiday must still come back to a valid certificate, so this is
+#: generous rather than tight.
+DEFAULT_RENEW_BEFORE_DAYS = 30
+
+ENV_RENEW_BEFORE = "RMC_EDGE_TLS_RENEW_BEFORE_DAYS"
+#: Opt-in: fold the addresses this box currently holds into the certificate and
+#: into ALLOWED_HOSTS. Off by default -- a box with a pinned address and a stable
+#: name should not silently start asserting whatever DHCP handed it this morning.
+ENV_TRUST_LOCAL = "RMC_EDGE_TRUST_LOCAL_ADDRESSES"
+
+ACTION_ISSUED = "issued"
+ACTION_REISSUED = "reissued"
+ACTION_NOOP = "noop"
+ACTION_REFUSED = "refused"
+
+
+def local_addresses(include_loopback: bool = False) -> list[str]:
+    """Addresses this box currently answers on, discovered from the host itself.
+
+    Stdlib only and non-blocking: the UDP "connect" sends no packets, it just
+    asks the routing table which source address would be used to reach a given
+    destination. That is the address people on that segment will actually type.
+
+    Loopback and link-local are excluded by default -- nobody reaches a school
+    box at 127.0.0.1 or 169.254.x, and putting them in a certificate only makes
+    the SAN list harder to read.
+    """
+    import socket
+
+    found: set[str] = set()
+
+    # One probe per private range plus a public one, so a box with several
+    # interfaces (wired + wifi is the common case, and they are usually on
+    # different subnets) reports all of them rather than only the default route.
+    for probe in ("10.255.255.255", "172.31.255.255", "192.168.255.255", "8.8.8.8"):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        try:
+            sock.settimeout(0.2)
+            sock.connect((probe, 9))
+            found.add(sock.getsockname()[0])
+        except OSError:
+            continue
+        finally:
+            sock.close()
+
+    try:
+        _name, _aliases, addresses = socket.gethostbyname_ex(socket.gethostname())
+        found.update(addresses)
+    except OSError:
+        # No resolver, or a hostname that does not resolve. Not fatal: the probes
+        # above already answered, and this is only here to catch interfaces the
+        # routing table would not have named.
+        pass
+
+    keep: list[str] = []
+    for raw in found:
+        try:
+            parsed = ipaddress.ip_address(raw)
+        except ValueError:
+            continue
+        if parsed.is_link_local:
+            continue
+        if parsed.is_loopback and not include_loopback:
+            continue
+        keep.append(str(parsed))
+    return sorted(keep, key=lambda a: (ipaddress.ip_address(a).version, a))
+
+
+def certificate_needs_reissue(
+    facts: "CertificateFacts",
+    dns: list[str],
+    ips: list[str],
+    renew_before_days: int = DEFAULT_RENEW_BEFORE_DAYS,
+    _now: Any = None,
+) -> tuple[bool, str]:
+    """Should the leaf be reissued? Returns ``(needed, human reason)``.
+
+    Separate from the doing so a caller -- a readiness check, a dashboard, a dry
+    run -- can ask the question without changing anything.
+    """
+    if not facts.exists:
+        return True, "no certificate on disk"
+    if facts.error:
+        return True, f"certificate could not be read ({facts.error})"
+
+    missing = facts.covers(dns, ips)
+    if missing:
+        return True, "certificate does not cover " + ", ".join(missing)
+
+    if facts.days_remaining is not None and facts.days_remaining <= renew_before_days:
+        return True, f"certificate expires in {facts.days_remaining} days"
+
+    # A leaf dated in the FUTURE is what a box that briefly believed it was 2046
+    # leaves behind. Once the clock is right again, reissuing is precisely the fix
+    # -- so this must read as "needs reissue", not as "the clock is broken".
+    if facts.not_before:
+        from datetime import datetime, timezone
+
+        try:
+            starts = datetime.fromisoformat(facts.not_before)
+        except ValueError:
+            starts = None
+        if starts is not None:
+            current = _now or datetime.now(timezone.utc)
+            if current < starts:
+                return True, (
+                    f"certificate is not valid until {starts.isoformat()} -- it was "
+                    "minted while the clock was wrong"
+                )
+
+    return False, "certificate covers every address and is not near expiry"
+
+
+def ensure_certificate(
+    directory: str,
+    dns: list[str],
+    ips: list[str],
+    days: int = DEFAULT_SELF_SIGNED_DAYS,
+    renew_before_days: int = DEFAULT_RENEW_BEFORE_DAYS,
+    common_name: str = "",
+    now: Any = None,
+) -> dict[str, Any]:
+    """Bring the certificate into line with where this box actually lives.
+
+    Safe to run on every container start. Does nothing unless the certificate is
+    missing, unreadable, no longer covers an address the box answers at, or is
+    within ``renew_before_days`` of expiry. **The CA is never regenerated** --
+    ``issue_self_signed`` reuses the one on disk -- so a self-heal is invisible to
+    every device that installed it.
+
+    Refuses to act when the clock is impossible. A box whose RTC died in transit
+    believes it is years in the past; reissuing then writes a certificate that is
+    "not yet valid" for real, turning a recoverable clock problem into a
+    certificate problem as well.
+    """
+    cert_path = os.path.join(directory, "tls.crt")
+    ca_path = os.path.join(directory, "ca.crt")
+
+    facts = inspect_certificate(cert_path, now=now)
+    ca_facts = inspect_certificate(ca_path, now=now)
+
+    # Only a clock that predates the box's own CA proves the CLOCK is wrong; a
+    # leaf dated in the future merely proves it WAS wrong when that leaf was
+    # minted, and reissuing now is the repair. Refusing on both would leave a
+    # recovered box permanently stuck serving a not-yet-valid certificate.
+    clock = clock_findings(facts, ca_facts, now=now) if ca_facts.exists else []
+    blocking = [
+        message
+        for severity, message in clock
+        if severity == "fail" and "BEFORE this box's own CA" in message
+    ]
+    if blocking:
+        return {
+            "action": ACTION_REFUSED,
+            "reason": blocking[0],
+            "reused_ca": False,
+            "dns_names": list(dns),
+            "ip_addresses": list(ips),
+        }
+
+    needed, reason = certificate_needs_reissue(
+        facts, dns, ips, renew_before_days, _now=now
+    )
+    if not needed:
+        return {
+            "action": ACTION_NOOP,
+            "reason": reason,
+            "reused_ca": True,
+            "dns_names": list(facts.dns_names),
+            "ip_addresses": list(facts.ip_addresses),
+        }
+
+    result = issue_self_signed(
+        directory=directory,
+        dns_names=list(dns),
+        ip_addresses=list(ips),
+        days=days,
+        common_name=common_name,
+    )
+    return {
+        "action": ACTION_ISSUED if not facts.exists else ACTION_REISSUED,
+        "reason": reason,
+        "reused_ca": bool(result.get("reused_ca")),
+        "dns_names": list(dns),
+        "ip_addresses": list(ips),
+        "cert": result.get("cert", ""),
+        "ca": result.get("ca", ""),
+    }
+
+
+def trust_local_addresses(environ: dict[str, str] | None = None) -> bool:
+    """Is this box allowed to fold its own current addresses into what it serves?"""
+    env = os.environ if environ is None else environ
+    return str(env.get(ENV_TRUST_LOCAL, "") or "").strip().lower() in (
+        "1",
+        "true",
+        "yes",
+        "on",
+    )
+
+
+def renew_before_days(environ: dict[str, str] | None = None) -> int:
+    env = os.environ if environ is None else environ
+    try:
+        value = int(str(env.get(ENV_RENEW_BEFORE, "")).strip())
+    except (TypeError, ValueError):
+        return DEFAULT_RENEW_BEFORE_DAYS
+    return value if value > 0 else DEFAULT_RENEW_BEFORE_DAYS
+
+
+def effective_addresses(
+    environ: dict[str, str] | None = None,
+    allowed_hosts: list[str] | None = None,
+) -> tuple[list[str], list[str]]:
+    """The addresses to serve: what was configured, plus (opt-in) what we hold now.
+
+    With ``RMC_EDGE_TRUST_LOCAL_ADDRESSES`` off this is exactly ``san_candidates``
+    -- the school's declared list, nothing invented. With it on, the box's own
+    current addresses are folded in, which is what lets a moved or re-leased box
+    heal itself without anyone editing a file.
+
+    Only the box's OWN addresses are added, never an arbitrary host header, so
+    the Host-header protection ALLOWED_HOSTS exists for is preserved: an attacker
+    cannot make the box hold an address it does not hold.
+    """
+    dns, ips = san_candidates(environ=environ, allowed_hosts=allowed_hosts)
+    if not trust_local_addresses(environ):
+        return dns, ips
+    for address in local_addresses():
+        if address not in ips:
+            ips.append(address)
+    return dns, ips
+
+
+def stability_findings(dns: list[str], ips: list[str]) -> list[tuple[str, str]]:
+    """Warn when the way this box is reached will not survive an address change.
+
+    An IP-only box is the fragile configuration, and it is fragile in a way that
+    is invisible until the day it breaks: everything works perfectly until DHCP
+    hands out a different lease, and then every device shows a certificate error
+    at an address that no longer exists.
+    """
+    findings: list[tuple[str, str]] = []
+    if ips and not dns:
+        findings.append((
+            "warn",
+            "This box is reachable only by IP address ("
+            + ", ".join(ips)
+            + "). That works until the address changes -- a new DHCP lease, a "
+            "re-cabled room, a move -- and then every device shows a certificate "
+            "error. Give the box a stable NAME as well: an mDNS '.local' name "
+            "needs no DNS server and follows the box to any address, and a DHCP "
+            "reservation stops the address moving in the first place. Both are "
+            "free; the certificate then survives the change untouched.",
+        ))
+    mdns = [d for d in dns if d.lower().endswith(".local")]
+    if dns and not mdns and not any(publicly_issuable(d) for d in dns):
+        findings.append((
+            "warn",
+            "The names configured here ("
+            + ", ".join(dns)
+            + ") need something to resolve them -- a LAN DNS record or a hosts "
+            "entry on every device. An mDNS '.local' name is answered by the box "
+            "itself and needs neither.",
+        ))
+    return findings

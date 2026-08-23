@@ -25,6 +25,7 @@ from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.decorators import method_decorator
+from django.utils.translation import gettext
 from django.views import View
 
 from apps.setup_studio import (
@@ -217,6 +218,56 @@ def _wizard_index_context(wizards: list[Any], status_map: dict[str, str] | None 
     }
 
 
+# Input partials that render ``errors|dict_get:field.name`` against their own
+# fields. Every other input type has its field errors rendered by the step-level
+# region instead. Listing the SELF-RENDERING ones (rather than the four that do
+# not) is deliberate: an input type nobody has classified then defaults to being
+# rendered at step level, which is at worst a duplicated message -- never a
+# swallowed one. Kept true by test_wizard_step_error_surface, which greps the
+# partials and fails if this set drifts from the templates.
+_INPUTS_RENDERING_OWN_FIELD_ERRORS: frozenset[str] = frozenset(
+    {
+        "boolean",
+        "color_picker",
+        "datetime",
+        "decimal",
+        "domain_input",
+        "draw_on_map",
+        "file_upload",
+        "image_upload",
+        "long_text",
+        "multi_choice",
+        "number",
+        "rich_select",
+        "single_choice",
+        "structured_form",
+        "text",
+    }
+)
+
+
+def _humanized_errors(errors: dict[str, str] | None) -> dict[str, str]:
+    return {k: humanize_wizard_error(v) for k, v in (errors or {}).items()}
+
+
+def _step_error_message(exc: Exception, errors: dict[str, str] | None) -> str:
+    """Non-field message for the step banner.
+
+    Only produced when re-validation found nothing to show, which is exactly the
+    persistence-failure case: the payload was fine and the write still did not
+    happen. When there ARE field errors they render against their own inputs and
+    a banner would just repeat them.
+    """
+    if errors:
+        return ""
+    detail = getattr(exc, "operator_message", None)
+    if detail:
+        return gettext("This step was not saved. %(detail)s") % {"detail": detail}
+    return gettext(
+        "This step was not saved, and nothing was changed. Try again; if it keeps happening, contact support."
+    )
+
+
 def _build_context(
     *,
     request: HttpRequest,
@@ -226,6 +277,7 @@ def _build_context(
     school: Any,
     state: dict[str, Any],
     errors: dict[str, str] | None = None,
+    step_error: str = "",
 ) -> dict[str, Any]:
     completed_keys = state.get("completed") or []
     prior_answer = (state.get("answers") or {}).get(step.key) or {}
@@ -342,7 +394,18 @@ def _build_context(
         # Error dict values are raw ``wizards.errors.*`` slugs off the validator;
         # humanize them here (the single render seam) so every input partial shows
         # a real message. Keys stay the field name (telemetry/template lookup).
-        "errors": {k: humanize_wizard_error(v) for k, v in (errors or {}).items()},
+        "errors": _humanized_errors(errors),
+        # Non-field failure: a payload that validated and then did not persist.
+        # There is no field to hang it on, so the step body renders a banner.
+        "step_error": step_error,
+        # Field errors the chosen input partial will NOT render itself. Anything
+        # not known to self-render lands here, so a new partial fails LOUD
+        # (a duplicated message) rather than silent (no message at all).
+        "unrendered_errors": (
+            []
+            if step.input_type in _INPUTS_RENDERING_OWN_FIELD_ERRORS
+            else [v for v in _humanized_errors(errors).values() if v]
+        ),
         "form_action_url": form_action_url,
         "back_url": back_url,
         "is_final_step": is_final_step,
@@ -644,12 +707,13 @@ class OperatorWizardView(LoginRequiredMixin, View):
                 actor_user_id=getattr(request.user, "pk", None),
             )
         except wizard_engine.WizardError as exc:
-            logger.info("OperatorWizardView: validation failed: %s", exc)
+            logger.info("OperatorWizardView: step rejected: %s", exc)
             state = wizard_state_resolver.get_wizard_state(school, wizard.wizard_key)
             _, errors = wizard_engine.validate_step_answer(step, payload)
             context = _build_context(
                 request=request, wizard=wizard, step=step,
                 audience=self.audience, school=school, state=state, errors=errors,
+                step_error=_step_error_message(exc, errors),
             )
             return render(request, self.template, context)
         new_state = wizard_state_resolver.get_wizard_state(school, wizard.wizard_key)
@@ -815,12 +879,13 @@ class TenantWizardView(LoginRequiredMixin, View):
                 actor_user_id=getattr(request.user, "pk", None),
             )
         except wizard_engine.WizardError as exc:
-            logger.info("TenantWizardView: validation failed: %s", exc)
+            logger.info("TenantWizardView: step rejected: %s", exc)
             state = wizard_state_resolver.get_wizard_state(school, wizard.wizard_key)
             _, errors = wizard_engine.validate_step_answer(step, payload)
             context = _build_context(
                 request=request, wizard=wizard, step=step,
                 audience=self.audience, school=school, state=state, errors=errors,
+                step_error=_step_error_message(exc, errors),
             )
             return render(request, self.template, context)
         new_state = wizard_state_resolver.get_wizard_state(school, wizard.wizard_key)
