@@ -538,6 +538,40 @@ def scan_teller_placeholder(request: HttpRequest):
     )
 
 
+def _registration_id_for_invoice(invoice):
+    """The RESERVED ticket registration this invoice was raised for, if any.
+
+    Matches on registration.metadata['invoice_id'], which
+    create_ticket_invoice_for_registration writes, and constrains the event to
+    the invoice's school. Returns None on anything unexpected: this runs inside
+    a webhook whose posted Payment must never be rolled back by a ticket lookup.
+    """
+    school_id = getattr(invoice, "school_id", None)
+    if school_id is None or getattr(invoice, "pk", None) is None:
+        return None
+    try:
+        from apps.school_events.models import EventRegistration
+
+        # tenant-isolation-allow: scoped-to-the-paid-invoice-own-school
+        match = (
+            EventRegistration.objects.filter(
+                event__school_id=school_id,
+                status=EventRegistration.Status.RESERVED,
+                metadata__invoice_id=invoice.pk,
+            )
+            .order_by("pk")
+            .first()
+        )
+    except Exception:  # noqa: BLE001 -- a ticket lookup never breaks a payment
+        logger.debug(
+            "Could not resolve an event registration for invoice %s",
+            getattr(invoice, "pk", None),
+            exc_info=True,
+        )
+        return None
+    return None if match is None else match.pk
+
+
 def _maybe_confirm_event_registration(
     *,
     payload: dict,
@@ -564,6 +598,17 @@ def _maybe_confirm_event_registration(
         or data_block.get("event_registration_id")
         or invoice_meta.get("event_registration_id")
     )
+    if raw is None or str(raw).strip() == "":
+        # No id on the callback -- which is the NORMAL case, not an edge one.
+        # Nothing in the product puts event_registration_id into a PSP payload,
+        # and the invoice_meta fallback above is permanently {} because Invoice
+        # has no metadata field at all. create_ticket_invoice_for_registration
+        # does store the link durably, just the other way round --
+        # registration.metadata['invoice_id'] -- and writes the reverse only into
+        # invoice.notes as free text, which nothing reads. Follow the link that
+        # exists, scoped to this invoice's own school so it can no more cross a
+        # tenant than the forward path can.
+        raw = _registration_id_for_invoice(invoice)
     if raw is None or str(raw).strip() == "":
         return
     try:

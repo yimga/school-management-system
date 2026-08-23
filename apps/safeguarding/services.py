@@ -172,6 +172,8 @@ def _dispatch_dsl_alert(*, school: Any, entry: ConcernEntry, category_label: str
     failure must never unwind the concern submission itself.
     """
     try:
+        from django.db import transaction as _txn
+
         from apps.communication.dispatch import Channel, dispatch_event
         from apps.finance.models import Notification
 
@@ -198,20 +200,29 @@ def _dispatch_dsl_alert(*, school: Any, entry: ConcernEntry, category_label: str
         )
         link = build_concern_deep_link(entry.concern_id)
 
-        for user in recipients:
-            dispatch_event(
-                "safeguarding.concern_raised",
-                recipient=user,
-                school=school,
-                context={
-                    "title": title,
-                    "message": message,
-                    "link": link,
-                    "severity": severity,
-                    "phone": _user_phone(user),
-                },
-                channels=channels,
-            )
+        # SAVEPOINT, and it is what makes the 'never unwind submit' promise in
+        # this function's docstring actually true. The caller is
+        # @transaction.atomic and dispatch_event writes a Notification row for
+        # the in-app bell, so a database error here sets
+        # connection.needs_rollback -- and the broad `except` below does NOT
+        # clear it. The outer block then rolls back the CONCERN along with the
+        # alert: a child-protection disclosure accepted, reported as recorded,
+        # and silently gone. Rolling back to a savepoint is what clears the flag.
+        with _txn.atomic():
+            for user in recipients:
+                dispatch_event(
+                    "safeguarding.concern_raised",
+                    recipient=user,
+                    school=school,
+                    context={
+                        "title": title,
+                        "message": message,
+                        "link": link,
+                        "severity": severity,
+                        "phone": _user_phone(user),
+                    },
+                    channels=channels,
+                )
     except Exception:  # noqa: BLE001 — alert must never unwind submit
         logger.warning(
             "safeguarding.dsl_alert_failed concern=%s school=%s",

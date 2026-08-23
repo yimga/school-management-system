@@ -694,3 +694,132 @@ class EventConsoleIsStaffOnlyTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertNotContains(response, "Wealthy Donor Ltd")
         self.assertNotContains(response, "50,000")
+
+
+class TicketInvoiceSettlementTests(TestCase):
+    """A paid ticket invoice must settle its registration.
+
+    ``create_ticket_invoice_for_registration`` writes the durable link the RIGHT
+    way round -- ``registration.metadata["invoice_id"] = invoice.pk`` -- and then
+    writes the reverse direction into the invoice's ``notes`` as FREE TEXT:
+
+        notes=f"Event ticket registration {pk} (event_registration_id={pk})"
+
+    ``_maybe_confirm_event_registration`` never reads notes. It reads the webhook
+    payload, nested metadata, a data block, and finally ``invoice.metadata`` --
+    and ``Invoice`` HAS NO ``metadata`` FIELD, so ``getattr(invoice, "metadata",
+    None)`` is None and that last fallback is permanently ``{}``.
+
+    Nothing in the product writes ``event_registration_id`` into a PSP payload
+    either; the only occurrences in the tree outside this file are in a test. So
+    on a real gateway callback the registration was never found, stayed RESERVED,
+    and ``expire_stale_reservations`` later CANCELLED it. The parent pays and
+    then loses the ticket.
+
+    The fix reads the link that already exists, in the direction it was actually
+    written, scoped to the invoice's own school.
+    """
+
+    def setUp(self):
+        from apps.finance.models import ComplianceProfile
+
+        tag = "tix"
+        self.school = School.objects.create(
+            name="Ticket School", slug=f"ticket-{tag}",
+            subdomain=f"ticket-{tag}", is_active=True,
+        )
+        self.buyer = User.objects.create_user(
+            username="tix-buyer", email="tix-buyer@example.com", password="pass1234"
+        )
+        self.profile = ComplianceProfile.objects.create(
+            name="Ticket profile", country_code="CM"
+        )
+        self.event = SchoolEvent.objects.create(
+            school=self.school, title="Ticketed Gala", slug="ticketed-gala",
+            status=SchoolEvent.Status.PUBLISHED, organizer_name="Advancement",
+            start_at=timezone.now() + timedelta(days=6),
+            is_public=True, ticketing_enabled=True,
+        )
+        self.tier = EventTicketTier.objects.create(
+            event=self.event, name="General", code="gen-tix",
+            price=Decimal("25.00"), capacity=50, sold_quantity=0,
+        )
+
+    def _reserved_with_invoice(self):
+        from apps.school_events.services import create_ticket_invoice_for_registration
+
+        registration = register_for_tier(
+            event=self.event, tier=self.tier, purchaser=self.buyer, quantity=1
+        )
+        invoice = create_ticket_invoice_for_registration(
+            registration=registration, profile=self.profile, academic_year=None
+        )
+        return registration, invoice
+
+    def test_the_link_is_stored_on_the_registration(self):
+        # Calibration: the fix reads this. If it stops being written the lookup
+        # below would silently find nothing and the test would prove nothing.
+        registration, invoice = self._reserved_with_invoice()
+        registration.refresh_from_db()
+        self.assertEqual(registration.metadata.get("invoice_id"), invoice.pk)
+
+    def test_invoice_still_has_no_metadata_field(self):
+        """Pins WHY the payload fallback chain cannot work."""
+        from apps.finance.models import Invoice
+
+        self.assertNotIn(
+            "metadata", {f.name for f in Invoice._meta.get_fields()},
+            "if Invoice gains a real metadata field, the webhook's invoice_meta "
+            "fallback becomes live and this fix should be revisited",
+        )
+
+    def test_a_webhook_with_no_registration_id_still_settles_the_ticket(self):
+        from apps.finance.views_payments import _maybe_confirm_event_registration
+
+        registration, invoice = self._reserved_with_invoice()
+        self.assertEqual(registration.status, EventRegistration.Status.RESERVED)
+
+        _maybe_confirm_event_registration(
+            payload={},  # a real gateway callback carries no event_registration_id
+            invoice=invoice,
+            amount=Decimal("25.00"),
+            method="psp",
+            reference="psp-ref-1",
+        )
+
+        registration.refresh_from_db()
+        self.assertEqual(
+            registration.status, EventRegistration.Status.CONFIRMED,
+            "the parent paid; the ticket must not sit RESERVED until it expires",
+        )
+
+    def test_it_will_not_settle_another_schools_registration(self):
+        """The reverse lookup must stay tenant-scoped like the forward one."""
+        from apps.finance.models import Invoice
+        from apps.finance.views_payments import _maybe_confirm_event_registration
+
+        registration, _invoice = self._reserved_with_invoice()
+        other = School.objects.create(
+            name="Other Ticket School", slug="other-tix",
+            subdomain="other-tix", is_active=True,
+        )
+        foreign_invoice = Invoice.objects.create(
+            profile=self.profile, school=other,
+            invoice_type=Invoice.InvoiceType.AR, status=Invoice.Status.ISSUED,
+            total_amount=Decimal("25.00"), balance_amount=Decimal("25.00"),
+        )
+        registration.refresh_from_db()
+        registration.metadata = dict(registration.metadata or {},
+                                     invoice_id=foreign_invoice.pk)
+        registration.save(update_fields=["metadata"])
+
+        _maybe_confirm_event_registration(
+            payload={}, invoice=foreign_invoice, amount=Decimal("25.00"),
+            method="psp", reference="psp-ref-2",
+        )
+
+        registration.refresh_from_db()
+        self.assertEqual(
+            registration.status, EventRegistration.Status.RESERVED,
+            "a school's invoice must not settle another school's registration",
+        )
