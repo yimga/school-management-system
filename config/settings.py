@@ -1330,7 +1330,19 @@ try:
     _edge_tls = _edge_tls_resolve()
     RMC_EDGE_TLS_MODE = _edge_tls.mode
     _edge_tls_defaults = _edge_tls_flags(_edge_tls.mode) if _edge_tls.source != "default" else {}
-except Exception:  # noqa: BLE001 - settings must import even if the app tree is odd
+except ImportError:
+    # Only the IMPORT can realistically fail here (a partial checkout, or the
+    # "odd app tree" this guard was written for): edge_tls imports nothing but
+    # stdlib, so it touches no app registry. Everything else in the block is
+    # already total -- resolve_mode() handles an unrecognised mode itself,
+    # returning the safe value while CARRYING the error so check_edge_readiness
+    # fails on it, and derived_security_flags() only ever sees a mode that has
+    # already been normalised.
+    #
+    # So a broad `except Exception` here buys nothing and costs something: it
+    # would turn a genuine bug in either function into a silent downgrade to
+    # plain HTTP, which is precisely the trap the comment above says this block
+    # exists to remove. Narrow, so a real failure is loud.
     RMC_EDGE_TLS_MODE = "off"
     _edge_tls_defaults = {}
 
