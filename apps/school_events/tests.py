@@ -274,6 +274,7 @@ class SchoolEventsTests(TestCase):
         )
         confirmed = confirm_registration_from_psp(
             registration_id=registration.pk,
+            school=self.school,
             amount=Decimal("25.00"),
             method="mpesa_daraja",
             reference="ws_CO_TEST_1",
@@ -371,3 +372,204 @@ class SchoolEventsTests(TestCase):
         self.assertEqual(registration.status, EventRegistration.Status.CONFIRMED)
         self.assertEqual(registration.amount_paid, Decimal("25.00"))
         self.assertEqual(registration.metadata.get("psp_reference"), "psk-ticket-1")
+
+
+class EventRegistrationTenantScopeTests(TestCase):
+    """A PSP webhook must not be able to settle another school's ticket.
+
+    ``_maybe_confirm_event_registration`` (apps/finance/views_payments.py) reads
+    ``event_registration_id`` straight off the webhook PAYLOAD -- body, nested
+    ``metadata``, ``data``, or the invoice's own metadata -- and handed it to
+    ``EventRegistration.objects.get(pk=...)`` with no check that the registration
+    belongs to the school whose invoice is being settled.
+
+    So a payment posted against school A's invoice, carrying school B's
+    registration id, confirmed school B's ticket: a free ticket at a school the
+    payer has no relationship with, and a cross-tenant write out of a webhook.
+
+    The same file already guards the other direction -- ``create_ticket_invoice_
+    for_registration`` scopes its invoice-reuse lookup to ``locked.event.school``
+    with a comment saying a stray invoice_id must never resolve cross-tenant. The
+    confirm path was simply missed.
+    """
+
+    def setUp(self):
+        self.buyer = User.objects.create_user(
+            username="xt-buyer", email="xt-buyer@example.com", password="pass1234"
+        )
+        self.school_a, self.tier_a = self._school_with_tier("alpha")
+        self.school_b, self.tier_b = self._school_with_tier("bravo")
+
+    def _school_with_tier(self, tag):
+        school = School.objects.create(
+            name=f"School {tag}", slug=f"sch-{tag}", subdomain=f"sch-{tag}", is_active=True
+        )
+        event = SchoolEvent.objects.create(
+            school=school,
+            title=f"{tag} Gala",
+            slug=f"{tag}-gala",
+            status=SchoolEvent.Status.PUBLISHED,
+            organizer_name="Office",
+            start_at=timezone.now() + timedelta(days=5),
+            is_public=True,
+            ticketing_enabled=True,
+        )
+        tier = EventTicketTier.objects.create(
+            event=event,
+            name="General",
+            code=f"gen-{tag}",
+            price=Decimal("25.00"),
+            capacity=100,
+            sold_quantity=0,
+        )
+        return school, tier
+
+    def test_the_fixture_really_is_two_schools(self):
+        # Calibration: if both tiers hung off one school, "refused" would prove
+        # nothing about tenant scoping.
+        self.assertNotEqual(self.school_a.pk, self.school_b.pk)
+        self.assertNotEqual(self.tier_a.event.school_id, self.tier_b.event.school_id)
+
+    def test_a_webhook_for_one_school_cannot_confirm_another_schools_ticket(self):
+        from apps.school_events.services import confirm_registration_from_psp
+
+        victim = register_for_tier(
+            event=self.tier_b.event, tier=self.tier_b, purchaser=self.buyer, quantity=1
+        )
+        self.assertEqual(victim.status, EventRegistration.Status.RESERVED)
+
+        with self.assertRaises(EventRegistration.DoesNotExist):
+            confirm_registration_from_psp(
+                registration_id=victim.pk,
+                amount=Decimal("25.00"),
+                method="psp",
+                reference="evil-1",
+                school=self.school_a,  # the invoice being settled is school A's
+            )
+
+        victim.refresh_from_db()
+        self.assertEqual(
+            victim.status,
+            EventRegistration.Status.RESERVED,
+            "school B's ticket must still be unpaid",
+        )
+
+    def test_the_owning_school_can_still_confirm_its_own_ticket(self):
+        """The guard must not break the path it is protecting."""
+        from apps.school_events.services import confirm_registration_from_psp
+
+        registration = register_for_tier(
+            event=self.tier_a.event, tier=self.tier_a, purchaser=self.buyer, quantity=1
+        )
+        confirmed = confirm_registration_from_psp(
+            registration_id=registration.pk,
+            amount=Decimal("25.00"),
+            method="psp",
+            reference="ok-1",
+            school=self.school_a,
+        )
+        self.assertEqual(confirmed.status, EventRegistration.Status.CONFIRMED)
+        self.assertEqual(confirmed.metadata.get("psp_reference"), "ok-1")
+
+    def test_the_webhook_helper_passes_the_invoice_school_through(self):
+        """The service-level guard is only real if the caller supplies the school."""
+        import inspect
+
+        from apps.finance import views_payments
+
+        source = inspect.getsource(views_payments._maybe_confirm_event_registration)
+        self.assertIn(
+            "school=",
+            source,
+            "_maybe_confirm_event_registration must pass the invoice's school to "
+            "confirm_registration_from_psp, or the guard is unreachable",
+        )
+
+
+class EventRlsCoverageTests(TestCase):
+    """Every tenant-reaching school_events table must be named in an RLS migration.
+
+    0002/0003 enumerate only the three models carrying a literal ``school`` FK.
+    EventTicketTier, EventSponsorCommitment and EventRegistration reach their
+    school through ``event``, so they had no ENABLE, no policy and no FORCE --
+    under USE_DJANGO_TENANTS=0 (one schema, RLS is the boundary) any tenant
+    connection could read every school's ticket pricing, sponsor pledges and
+    attendee registrations. 0004 closes it.
+
+    ``scripts/scan_rls_table_coverage.py`` could not see this: it decides a model
+    is tenant-scoped by looking for a FK literally NAMED ``school``, so a
+    relation-scoped child is invisible to it and the gate reports 0 while telling
+    the truth about the question it asks. This test asks the other question, for
+    this app, by FOLLOWING relations -- so a new child model added later fails
+    here instead of shipping unprotected.
+
+    NOTE ON WHAT THIS PROVES. The suite runs on SQLite, where RLS does not exist,
+    so this asserts the DECLARATION, not the enforcement. The policy SQL itself
+    only ever executes on PostgreSQL with USE_DJANGO_TENANTS=0 and is not
+    exercised here.
+    """
+
+    maxDiff = None
+
+    def _tenant_reaching_tables(self):
+        from django.apps import apps as django_apps
+
+        app = django_apps.get_app_config("school_events")
+        out = {}
+        for model in app.get_models():
+            seen, frontier, hops = set(), [model], 0
+            while frontier and hops < 4:
+                nxt = []
+                for current in frontier:
+                    if current in seen:
+                        continue
+                    seen.add(current)
+                    for field in current._meta.get_fields():
+                        if not getattr(field, "many_to_one", False):
+                            continue
+                        target = field.related_model
+                        if target is None:
+                            continue
+                        if target._meta.label == "schools.School":
+                            out[model._meta.db_table] = model.__name__
+                            nxt = []
+                            break
+                        nxt.append(target)
+                    else:
+                        continue
+                    break
+                frontier, hops = nxt, hops + 1
+        return out
+
+    def _tables_named_in_rls_migrations(self):
+        import pathlib
+
+        directory = pathlib.Path(__file__).resolve().parent / "migrations"
+        named = set()
+        for path in directory.glob("*.py"):
+            if "rls" not in path.name:
+                continue
+            text = path.read_text(encoding="utf-8")
+            for line in text.splitlines():
+                for token in line.split('"'):
+                    if token.startswith("school_events_"):
+                        named.add(token)
+        return named
+
+    def test_the_probe_finds_the_models_it_is_supposed_to(self):
+        # Calibration: an empty or tiny map would make the assertion below vacuous.
+        reaching = self._tenant_reaching_tables()
+        self.assertGreaterEqual(len(reaching), 6, reaching)
+        self.assertIn("school_events_eventregistration", reaching)
+        self.assertIn("school_events_schoolevent", reaching)
+
+    def test_every_tenant_reaching_table_has_an_rls_declaration(self):
+        reaching = self._tenant_reaching_tables()
+        named = self._tables_named_in_rls_migrations()
+        missing = sorted(set(reaching) - named)
+        self.assertEqual(
+            missing,
+            [],
+            "these school_events tables hold tenant data but appear in no RLS "
+            f"migration, so they have no policy under USE_DJANGO_TENANTS=0: {missing}",
+        )

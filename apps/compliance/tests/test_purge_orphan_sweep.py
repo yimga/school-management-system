@@ -62,6 +62,12 @@ class WalStreamPurgeKeyTests(SimpleTestCase):
             out = purge_streams_for_school(pk)
         self.assertEqual(out.get("tenant_hash"), expected)
         called_keys = set(client.delete.call_args[0])
+        # All SIX tenant WAL keys. conflict/ and lock/ were added to the purge
+        # after this test was written and are genuinely written by
+        # apps/wal_stream/tasks.py -- leaving them behind would leave tenant
+        # residue in Redis after an erasure, so the purge growing is correct and
+        # the assertion is what had gone stale. Enumerated rather than derived
+        # from the implementation, so a key being DROPPED still fails here.
         self.assertEqual(
             called_keys,
             {
@@ -69,8 +75,14 @@ class WalStreamPurgeKeyTests(SimpleTestCase):
                 f"rmc.wal.dedupe.{expected}",
                 f"rmc.wal.attempts.{expected}",
                 f"rmc.wal.deadletter.{expected}",
+                f"rmc.wal.conflict.{expected}",
+                f"rmc.wal.lock.{expected}",
             },
         )
+        # The invariant that actually matters: a purge for one school must never
+        # name a key that is not scoped to that school's tenant hash.
+        for key in called_keys:
+            self.assertTrue(key.endswith(expected), key)
 
     @override_settings(REDIS_URL="")
     def test_purge_streams_no_redis_url_is_safe_noop(self):

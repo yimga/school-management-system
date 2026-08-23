@@ -211,6 +211,7 @@ def expire_stale_reservations(
 def confirm_registration_from_psp(
     *,
     registration_id: int,
+    school,
     amount=None,
     method: str = "psp",
     reference: str = "",
@@ -220,7 +221,17 @@ def confirm_registration_from_psp(
     Looks up by primary key; stores the PSP reference in metadata. Live merchant
     capture remains EXTERNAL — this only closes the in-repo ticket state machine.
     """
-    registration = EventRegistration.objects.get(pk=registration_id)
+    # ``school`` is REQUIRED and has no default on purpose. registration_id
+    # arrives straight off a PSP webhook body -- payload, nested metadata, data
+    # block, or the invoice's own metadata -- so an unscoped get(pk=...) let a
+    # payment posted against one school's invoice confirm ANOTHER school's
+    # ticket. Scoping through event__school makes a mismatch a DoesNotExist,
+    # which the webhook caller reports without touching the posted Payment.
+    # create_ticket_invoice_for_registration already guards the mirror-image
+    # lookup this way; this path was missed.
+    registration = EventRegistration.objects.get(
+        pk=registration_id, event__school=school
+    )
     confirmed = confirm_registration_payment(
         registration=registration,
         amount=amount,

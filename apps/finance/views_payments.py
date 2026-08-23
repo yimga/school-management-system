@@ -576,6 +576,7 @@ def _maybe_confirm_event_registration(
         )
         return
     try:
+        from apps.school_events.models import EventRegistration
         from apps.school_events.services import (
             RegistrationStateError,
             confirm_registration_from_psp,
@@ -583,9 +584,23 @@ def _maybe_confirm_event_registration(
 
         confirm_registration_from_psp(
             registration_id=registration_id,
+            # The id came off the webhook body, so it is attacker-influenced.
+            # Bind it to the school whose invoice this payment settled.
+            school=getattr(invoice, "school", None),
             amount=amount,
             method=method or "psp",
             reference=reference,
+        )
+    except EventRegistration.DoesNotExist:
+        # Not an error path worth a stack trace: either the id is stale, or the
+        # webhook named a registration belonging to a different school. Both are
+        # refusals, and the second is worth seeing in the log as one.
+        logger.warning(
+            "Webhook %s named event registration %s, which does not belong to "
+            "invoice school %s -- refusing to confirm",
+            reference,
+            registration_id,
+            getattr(getattr(invoice, "school", None), "pk", None),
         )
     except RegistrationStateError as exc:
         logger.info(
