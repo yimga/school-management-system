@@ -53,6 +53,10 @@
             {% endfor %}
           </ul>
         </div>
+        {# Sponsor pledge amounts are advancement data. This page stays open to
+           parents and students so ticket purchase works, so the money block is
+           gated on the same codes as the events console. #}
+        {% if can_view_console %}
         <div class="col-12 col-lg-6">
           <h2 class="h5">{% trans "Sponsors" %}</h2>
           <ul class="list-group">
@@ -65,10 +69,11 @@
               <span class="rmc-badge rmc-badge--muted">{{ commitment.pledged_amount|format_currency }}</span>
             </li>
             {% empty %}
-            <li class="list-group-item text-muted">No sponsor commitments configured.</li>
+            <li class="list-group-item text-muted">{% trans "No sponsor commitments configured." %}</li>
             {% endfor %}
           </ul>
         </div>
+        {% endif %}
       </div>
     </div>
   </div>

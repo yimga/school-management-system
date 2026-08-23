@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
+from apps.accounts.decorators import require_permission
 from apps.school_events.models import EventTicketTier, SchoolEvent
 from apps.school_events.services import (
     TicketCapacityError,
@@ -17,7 +18,26 @@ def _current_school(request):
     return getattr(request, "school", None)
 
 
+def _can_view_console(request) -> bool:
+    """Same additive union the decorator applies, for the template flag.
+
+    permission_access is the canonical resolver behind @require_permission;
+    using it here keeps the in-body check and the decorator from drifting
+    apart, which is how a page ends up refusing what its own gate allows.
+    """
+    from apps.accounts.effective_access import permission_access
+
+    return permission_access(
+        getattr(request, "user", None),
+        _current_school(request),
+        ("events.view", "events.manage"),
+    )
+
+
 @login_required
+# The console: EVERY event including drafts, plus event_operations_snapshot.
+# @login_required alone meant a student or parent could open it.
+@require_permission("events.view", "events.manage")
 def event_hub(request):
     school = _current_school(request)
     if school is None:
@@ -44,15 +64,26 @@ def event_detail(request, slug):
     school = _current_school(request)
     if school is None:
         return HttpResponseForbidden("Tenant context required.")
-    event = get_object_or_404(
-        SchoolEvent.objects.select_related("venue").prefetch_related(
-            "ticket_tiers", "sponsor_commitments__sponsor"
-        ),
-        school=school,
-        slug=slug,
+    # Deliberately NOT gated on events.view: register_for_event redirects here
+    # after a purchase, so gating it would break ticket buying for the parents
+    # and students it exists for. What IS restricted is what only staff should
+    # see -- an unpublished event, and the sponsor pledge amounts.
+    can_view_console = _can_view_console(request)
+    queryset = SchoolEvent.objects.select_related("venue").prefetch_related(
+        "ticket_tiers", "sponsor_commitments__sponsor"
     )
+    if not can_view_console:
+        queryset = queryset.filter(status=SchoolEvent.Status.PUBLISHED)
+    event = get_object_or_404(queryset, school=school, slug=slug)
     return render(
-        request, "school_events/event_detail.html", {"school": school, "event": event}
+        request,
+        "school_events/event_detail.html",
+        {
+            "school": school,
+            "event": event,
+            # Drives the sponsor block, which lists every sponsor's pledged amount.
+            "can_view_console": can_view_console,
+        },
     )
 
 

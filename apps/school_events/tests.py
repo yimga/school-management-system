@@ -122,11 +122,28 @@ class SchoolEventsTests(TestCase):
         self.assertEqual(rows[0]["title"], self.event.title)
 
     def test_event_hub_and_detail_render_on_tenant_host(self):
-        self._login_verified()
+        # self.user is a PARENT. The hub is now staff-only -- it lists every
+        # draft event and the operations snapshot -- so the console half of this
+        # test needs a staff account. The DETAIL half stays on the parent, which
+        # is the point: ticket purchase must keep working for them.
+        staff = User.objects.create_user(
+            username="events-staff",
+            email="events-staff@example.com",
+            password="pass1234",
+        )
+        staff.role = User.Role.ADMIN
+        staff.save(update_fields=["role"])
+        SchoolMembership.objects.create(
+            user=staff, school=self.school, role=User.Role.ADMIN
+        )
+        self._login_verified(staff)
 
         hub = self.client.get(
             reverse("school_events:event_hub", urlconf="config.tenant_urls"),
         )
+        self.assertEqual(hub.status_code, 200)
+
+        self._login_verified()
         detail = self.client.get(
             reverse(
                 "school_events:event_detail",
@@ -135,7 +152,6 @@ class SchoolEventsTests(TestCase):
             ),
         )
 
-        self.assertEqual(hub.status_code, 200)
         self.assertContains(hub, self.event.title)
         self.assertEqual(detail.status_code, 200)
         self.assertContains(detail, "General Admission")
@@ -573,3 +589,108 @@ class EventRlsCoverageTests(TestCase):
             "these school_events tables hold tenant data but appear in no RLS "
             f"migration, so they have no policy under USE_DJANGO_TENANTS=0: {missing}",
         )
+
+
+@override_settings(ALLOWED_HOSTS=["*"], DEBUG=False, SECURE_SSL_REDIRECT=False)
+class EventConsoleIsStaffOnlyTests(TestCase):
+    """The events console showed drafts and sponsor money to anyone signed in.
+
+    ``event_hub`` carried ``@login_required`` and nothing else, so a STUDENT or a
+    PARENT of the school could open it and read every DRAFT event plus
+    ``event_operations_snapshot``. ``event_detail`` was the same: no status
+    filter, so an unpublished event was readable by slug, and its template lists
+    every sponsor's name, tier and PLEDGED AMOUNT.
+
+    Ticket purchase must keep working for exactly the people now excluded from
+    the console, so ``event_detail`` stays reachable -- what it stops doing is
+    serving unpublished events and sponsor money to them.
+    """
+
+    def setUp(self):
+        self.env = patch.dict(
+            os.environ,
+            {"MULTI_TENANT_BASE_DOMAIN": "runmycampus.com",
+             "MULTI_TENANT_LEGACY_BASE_DOMAINS": ""},
+            clear=False,
+        )
+        self.env.start()
+        self.addCleanup(self.env.stop)
+        self.school = School.objects.create(
+            name="Console School", slug="console-school",
+            subdomain="console-school", is_active=True,
+        )
+        self.host = "console-school.runmycampus.com"
+        self.parent = User.objects.create_user(
+            username="ev-parent", email="ev-parent@example.com", password="pass1234"
+        )
+        self.parent.role = "PARENT"
+        self.parent.save(update_fields=["role"])
+        SchoolMembership.objects.create(
+            user=self.parent, school=self.school, role="PARENT"
+        )
+        self.draft = SchoolEvent.objects.create(
+            school=self.school, title="Unannounced Gala", slug="unannounced-gala",
+            status=SchoolEvent.Status.DRAFT, organizer_name="Advancement",
+            start_at=timezone.now() + timedelta(days=9), is_public=False,
+        )
+        self.published = SchoolEvent.objects.create(
+            school=self.school, title="Open Day", slug="open-day",
+            status=SchoolEvent.Status.PUBLISHED, organizer_name="Advancement",
+            start_at=timezone.now() + timedelta(days=3), is_public=True,
+            ticketing_enabled=True,
+        )
+
+    def _client(self):
+        client = Client(HTTP_HOST=self.host)
+        client.force_login(self.parent)
+        return client
+
+    def test_the_request_actually_reaches_the_view(self):
+        """Calibration for the vacuous-403 trap.
+
+        Without HTTP_HOST the tenant middleware leaves request.school None, the
+        view returns 'Tenant context required', and a 403 assertion would pass
+        against a completely ungated page.
+        """
+        response = self._client().get(
+            reverse("school_events:event_detail",
+                    kwargs={"slug": self.published.slug},
+                    urlconf="config.tenant_urls")
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Open Day")
+
+    def test_a_parent_cannot_open_the_events_console(self):
+        response = self._client().get(
+            reverse("school_events:event_hub", urlconf="config.tenant_urls")
+        )
+        self.assertEqual(
+            response.status_code, 403,
+            "the hub lists every draft event and the operations snapshot",
+        )
+
+    def test_a_parent_cannot_read_an_unpublished_event(self):
+        response = self._client().get(
+            reverse("school_events:event_detail",
+                    kwargs={"slug": self.draft.slug},
+                    urlconf="config.tenant_urls")
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def test_a_parent_does_not_see_sponsor_pledge_amounts(self):
+        from apps.school_events.models import EventSponsor, EventSponsorCommitment
+
+        sponsor = EventSponsor.objects.create(
+            school=self.school, name="Wealthy Donor Ltd"
+        )
+        EventSponsorCommitment.objects.create(
+            event=self.published, sponsor=sponsor, pledged_amount=Decimal("50000.00")
+        )
+        response = self._client().get(
+            reverse("school_events:event_detail",
+                    kwargs={"slug": self.published.slug},
+                    urlconf="config.tenant_urls")
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, "Wealthy Donor Ltd")
+        self.assertNotContains(response, "50,000")
