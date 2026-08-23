@@ -777,13 +777,27 @@ def write_pos_allergens(*, school, wizard_key, step_key, payload, actor_user_id)
 
 
 def list_incident_categories(*, request: Any, school: Any) -> list[dict[str, Any]]:
-    cats = [
-        "medical_emergency", "disciplinary_action", "safeguarding_concern",
-        "bullying_report", "substance_incident", "weapons_incident",
-        "self_harm_disclosure", "abuse_disclosure", "attendance_truancy",
-        "academic_misconduct", "facility_hazard",
+    """The safeguarding categories the KERNEL can resolve, not a parallel list.
+
+    This returned an eleven-key vocabulary of its own (medical_emergency,
+    bullying_report, abuse_disclosure, ...) with zero overlap with
+    apps.safeguarding.concern_kernel's KCSIE registry. Its only consumer is the
+    REQUIRED incident_categorization step, and apply_enabled_categories filters a
+    selection to keys it knows -- so every choice a school made was filtered to
+    empty and silently replaced with every category. Deriving the options from
+    the registry is what makes the step mean anything, and keeps the two from
+    drifting apart again.
+    """
+    from apps.safeguarding.concern_kernel import list_categories
+
+    return [
+        {
+            "value": category.key,
+            "label_token": f"incident.category.{category.key}",
+            "metadata": {"name": category.label, "is_urgent": category.is_urgent},
+        }
+        for category in list_categories()
     ]
-    return [{"value": c, "label_token": f"incident.category.{c}", "metadata": {}} for c in cats]
 
 
 def list_audit_anchors(*, request: Any, school: Any) -> list[dict[str, Any]]:
