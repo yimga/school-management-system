@@ -247,6 +247,40 @@ def find_concern(school: Any, concern_id: str) -> ConcernEntry | None:
     return None
 
 
+def _persist_audit_row(row) -> None:
+    """Write one kernel ``AuditRow`` to the compliance audit trail.
+
+    ``apps/safeguarding/README.md`` states this as an invariant, not a logging
+    preference: *every transition writes exactly one CRITICAL-sensitivity audit
+    row*. The kernel upholds its half -- ``create_concern`` and
+    ``transition_concern`` each return a fully-populated row whose own docstring
+    says it mirrors ``apps.compliance.models_audit.AuditLog`` -- and the service
+    layer discarded all three of them.
+
+    Deliberately NOT wrapped in a best-effort ``except``, unlike the DSL notify
+    and the real-time alert beside it. Those are notifications; this is the audit
+    trail. Both callers are ``@transaction.atomic`` and this INSERT rides the same
+    connection as the concern write, so letting it raise keeps the pair
+    all-or-nothing: there is never a persisted child-protection concern without
+    its audit row, and a database that cannot take this row could not have taken
+    the concern either.
+    """
+    from apps.compliance.models_audit import AuditLog
+
+    AuditLog.objects.create(
+        user_id=row.user_id,
+        action=row.action,
+        model_name=row.model_name,
+        object_id=row.object_id,
+        sensitivity=row.sensitivity,
+        # The kernel puts only the SHAPE of the disclosure here -- category, stage,
+        # urgency -- never the narrative. Keep it that way.
+        new_values=row.new_values,
+        reason=row.reason,
+        app_label=row.app_label,
+    )
+
+
 @transaction.atomic
 def submit_concern_for_school(
     *,
@@ -257,18 +291,20 @@ def submit_concern_for_school(
     student_id: int | None = None,
 ) -> ConcernEntry:
     """Create → SUBMITTED → persist ledger + DSL inbox (atomic school.settings write)."""
-    entry, _audit = create_concern(
+    entry, created_audit = create_concern(
         school_id=school_id_token(school),
         student_id=student_id,
         reporter_user_id=reporter_user_id,
         category_key=category_key,
         narrative=narrative,
     )
-    entry, _audit2 = transition_concern(
+    _persist_audit_row(created_audit)
+    entry, submitted_audit = transition_concern(
         concern=entry,
         target_stage=SUBMITTED,
         actor_user_id=reporter_user_id,
     )
+    _persist_audit_row(submitted_audit)
 
     settings = dict(getattr(school, "settings", None) or {})
     settings = append_to_school_settings(school_settings=settings, concern=entry)
@@ -331,7 +367,7 @@ def acknowledge_and_transition(
                 is_active=True,
             )
         ]
-    updated, _audit = transition_concern(
+    updated, transition_audit = transition_concern(
         concern=concern,
         target_stage=target_stage,
         actor_user_id=actor_user_id,
@@ -339,6 +375,7 @@ def acknowledge_and_transition(
         note=note,
         referral_reference=referral_reference,
     )
+    _persist_audit_row(transition_audit)
 
     settings = dict(getattr(school, "settings", None) or {})
     settings = append_to_school_settings(school_settings=settings, concern=updated)

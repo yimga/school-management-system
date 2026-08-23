@@ -50,6 +50,7 @@
     {
       "key": "encrypted_stakeholder_pipeline",
       "input_type": "ranked_list",
+      "options_resolver": "apps.setup_studio.wizard_resolvers::list_school_safeguarding_leads",
       "persistence": {
         "target": "custom",
         "writer": "apps.setup_studio.wizard_resolvers::write_safeguarding_stakeholders"
