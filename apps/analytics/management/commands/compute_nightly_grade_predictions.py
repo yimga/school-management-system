@@ -18,6 +18,7 @@ from django.utils import timezone
 
 from apps.analytics.ml.grade_prediction_model import predict_grade
 from apps.analytics.models import GradePrediction
+from apps.analytics.tenant_batch import run_for_school
 from apps.platform_runtime.structured_logging import log_exception_with_context
 from apps.schools.models import School
 
@@ -57,7 +58,14 @@ class Command(BaseCommand):
             return
         total = 0
         for school in schools:
-            total += self._process_school(school, dry_run)
+            # GradePrediction / SubjectAssignment / StudentProfile are
+            # TENANT_APPS tables; without this the connection sits on `public`.
+            total += run_for_school(
+                school,
+                lambda school=school: self._process_school(school, dry_run),
+                label="compute_nightly_grade_predictions",
+                default=0,
+            )
         self.stdout.write(self.style.SUCCESS(f"Wrote {total} grade prediction(s)."))
 
     def _process_school(self, school, dry_run):
@@ -68,8 +76,11 @@ class Command(BaseCommand):
 
         today = timezone.now().date()
         try:
+            # school= is load-bearing, not decoration: under RLS every tenant
+            # shares one table, so an unscoped lookup hands every school in the
+            # loop the globally-newest open term.
             term = Term.objects.filter(
-                start_date__lte=today, end_date__gte=today,
+                school=school, start_date__lte=today, end_date__gte=today,
             ).order_by("-start_date").first()
         except _GRADE_PRED_ERRORS:
             log_exception_with_context(
@@ -85,7 +96,9 @@ class Command(BaseCommand):
 
         try:
             assignments = list(
-                SubjectAssignment.objects.filter(term=term)
+                SubjectAssignment.objects.filter(
+                    term=term, classroom__school=school,
+                )
                 .select_related("classroom", "subject", "academic_year")
             )
         except _GRADE_PRED_ERRORS:
@@ -100,7 +113,7 @@ class Command(BaseCommand):
             classroom = sa.classroom
             subject = sa.subject
             year = sa.academic_year
-            # tenant-isolation-allow: classroom is tenant-bound; sa.classroom.school_id == school.id by construction
+            # tenant-isolation-allow: assignments were fetched with classroom__school=school
             try:
                 students = list(
                     StudentProfile.objects.filter(

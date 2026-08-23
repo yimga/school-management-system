@@ -777,13 +777,27 @@ def write_pos_allergens(*, school, wizard_key, step_key, payload, actor_user_id)
 
 
 def list_incident_categories(*, request: Any, school: Any) -> list[dict[str, Any]]:
-    cats = [
-        "medical_emergency", "disciplinary_action", "safeguarding_concern",
-        "bullying_report", "substance_incident", "weapons_incident",
-        "self_harm_disclosure", "abuse_disclosure", "attendance_truancy",
-        "academic_misconduct", "facility_hazard",
+    """The safeguarding categories the KERNEL can resolve, not a parallel list.
+
+    This returned an eleven-key vocabulary of its own (medical_emergency,
+    bullying_report, abuse_disclosure, ...) with zero overlap with
+    apps.safeguarding.concern_kernel's KCSIE registry. Its only consumer is the
+    REQUIRED incident_categorization step, and apply_enabled_categories filters a
+    selection to keys it knows -- so every choice a school made was filtered to
+    empty and silently replaced with every category. Deriving the options from
+    the registry is what makes the step mean anything, and keeps the two from
+    drifting apart again.
+    """
+    from apps.safeguarding.concern_kernel import list_categories
+
+    return [
+        {
+            "value": category.key,
+            "label_token": f"incident.category.{category.key}",
+            "metadata": {"name": category.label, "is_urgent": category.is_urgent},
+        }
+        for category in list_categories()
     ]
-    return [{"value": c, "label_token": f"incident.category.{c}", "metadata": {}} for c in cats]
 
 
 def list_audit_anchors(*, request: Any, school: Any) -> list[dict[str, Any]]:
@@ -792,6 +806,64 @@ def list_audit_anchors(*, request: Any, school: Any) -> list[dict[str, Any]]:
         {"value": "s3_object_lock", "label_token": "audit.anchor.s3_object_lock", "metadata": {"hsm": False, "worm": True}},
         {"value": "hsm_anchored", "label_token": "audit.anchor.hsm_anchored", "metadata": {"hsm": True}},
     ]
+
+
+# Roles that can never be a school's Designated Safeguarding Lead: the two
+# family-facing ones, the apprentice-portal role, and PLATFORM-global SUPERADMIN,
+# which is not a tenant role at all and must never appear in a tenant picker.
+_NON_STAFF_SAFEGUARDING_ROLES = (  # role-string-allow: dsl-candidate-picker-exclusions
+    "PARENT",
+    "STUDENT",
+    "EMPLOYER",
+    "SUPERADMIN",
+)
+
+
+def list_school_safeguarding_leads(*, request: Any, school: Any) -> list[dict[str, Any]]:
+    """The school's own staff, offerable as its Designated Safeguarding Lead.
+
+    ``encrypted_stakeholder_pipeline`` is the only surface that can populate
+    ``safeguarding["stakeholder_pipeline"]``, which is one of the two keys
+    ``apps.safeguarding.services.load_dsl_assignments`` builds the DSL roster from
+    (the other, ``dsl_user_ids``, has no product writer at all). Without an option
+    source the step collected free-text labels, ``int(raw_uid)`` dropped every row,
+    and the roster stayed empty forever -- which left every tenant admin able to
+    read every child-protection concern under ``user_is_dsl``'s no-roster fallback,
+    while a named lead who is a TEACHER was refused her own inbox.
+
+    Values are stringified user pks because that is what the roster loader coerces
+    with ``int()``; the human name rides in ``metadata`` like every other resolver
+    that returns dynamic rows (see ``list_countries``).
+    """
+    if school is None:
+        return []
+    from apps.schools.models import SchoolMembership
+
+    # tenant-isolation-allow: dsl-candidate-picker-scoped-to-the-wizard's-own-school
+    memberships = (
+        SchoolMembership.objects.filter(school=school)
+        .exclude(role__in=_NON_STAFF_SAFEGUARDING_ROLES)
+        .select_related("user")
+        .order_by("user__last_name", "user__first_name", "user__username")
+    )
+    out: list[dict[str, Any]] = []
+    seen: set = set()
+    for membership in memberships:
+        user = getattr(membership, "user", None)
+        if user is None or not getattr(user, "is_active", False):
+            continue
+        if user.pk in seen:
+            continue
+        seen.add(user.pk)
+        name = (user.get_full_name() or "").strip() or user.get_username()
+        out.append(
+            {
+                "value": str(user.pk),
+                "label_token": "safeguarding.dsl_candidate",
+                "metadata": {"name": name, "role": str(membership.role or "")},
+            }
+        )
+    return out
 
 
 def write_safeguarding_categories(*, school, wizard_key, step_key, payload, actor_user_id):

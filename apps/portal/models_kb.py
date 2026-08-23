@@ -14,6 +14,32 @@ from django.utils.translation import gettext_lazy as _
 logger = logging.getLogger(__name__)
 
 from .sanitizers import sanitize_html
+
+
+def derive_unique_slug(model, source, *, fallback, max_length, pk=None, field="slug"):
+    """A slug that is never empty and never already taken.
+
+    ``slugify`` drops every character it cannot transliterate, so a title written in a
+    script it does not handle returns "" -- ``slugify("教育")`` and
+    ``slugify("التعليم")`` are both the empty string. These slug columns are ``blank=True``
+    AND ``unique=True``, and blank stores "" rather than NULL, so the FIRST such article
+    saved fine and the SECOND raised IntegrityError. RunMyCampus ships 17 locales
+    including Arabic, so "a school writes its help centre in its own language" is the
+    ordinary case, not an edge one.
+
+    Two failures to close, in order: an empty slug, and a colliding one. A fallback alone
+    would not be enough -- every Arabic article would then want the same slug.
+    """
+    base = slugify(source or "")[:max_length].strip("-") or fallback
+    queryset = model.objects.all()
+    if pk is not None:
+        queryset = queryset.exclude(pk=pk)
+    candidate, counter = base, 2
+    while queryset.filter(**{field: candidate}).exists():
+        suffix = f"-{counter}"
+        candidate = f"{base[: max_length - len(suffix)]}{suffix}"
+        counter += 1
+    return candidate
 from apps.accounts.validators import (
     validate_kb_attachment_file,
     validate_file_size_10mb,
@@ -51,7 +77,9 @@ class FAQCategory(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.name)
+            self.slug = derive_unique_slug(
+                type(self), self.name, fallback="category", max_length=100, pk=self.pk
+            )
         super().save(*args, **kwargs)
 
 
@@ -235,7 +263,9 @@ class KBCategory(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.name)
+            self.slug = derive_unique_slug(
+                type(self), self.name, fallback="category", max_length=100, pk=self.pk
+            )
         super().save(*args, **kwargs)
 
     @property
@@ -449,7 +479,9 @@ class KBArticle(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.title)
+            self.slug = derive_unique_slug(
+                type(self), self.title, fallback="article", max_length=200, pk=self.pk
+            )
         if self.content:
             self.content_html = sanitize_html(self.content)
         elif self.content_html:

@@ -12,6 +12,35 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_protect
 
+#: Ceilings on what one tenant may accumulate here. The rail is documented as
+#: "sized for the small, approved namespaces ... not a general document store"
+#: (docs/CRDT_LIVE_RAIL.md), and the state lands in ``School.settings`` -- a
+#: JSONField on the row the tenant middleware loads on EVERY request to that
+#: school. Nothing anywhere reads ``crdt_state`` back, so there is no eviction
+#: either: without a ceiling the only bound on it is how long someone keeps
+#: POSTing, and the cost is paid by every page load for the whole school.
+_DEFAULT_MAX_KEY_CHARS = 128  # magic-number-allow: CRDT key length ceiling (chars)
+_DEFAULT_MAX_VALUE_BYTES = 4096  # magic-number-allow: CRDT op value ceiling (bytes)
+_DEFAULT_MAX_STATE_BYTES = 262144  # magic-number-allow: CRDT tenant state ceiling (bytes)
+
+
+def _max_key_chars() -> int:
+    from django.conf import settings as dj_settings
+
+    return max(1, int(getattr(dj_settings, "RMC_CRDT_MAX_KEY_CHARS", _DEFAULT_MAX_KEY_CHARS)))
+
+
+def _max_value_bytes() -> int:
+    from django.conf import settings as dj_settings
+
+    return max(1, int(getattr(dj_settings, "RMC_CRDT_MAX_VALUE_BYTES", _DEFAULT_MAX_VALUE_BYTES)))
+
+
+def _max_state_bytes() -> int:
+    from django.conf import settings as dj_settings
+
+    return max(1, int(getattr(dj_settings, "RMC_CRDT_MAX_STATE_BYTES", _DEFAULT_MAX_STATE_BYTES)))
+
 
 @method_decorator([login_required, csrf_protect], name="dispatch")
 class CRDTOpsApplyView(View):
@@ -37,6 +66,9 @@ class CRDTOpsApplyView(View):
         tenant = getattr(request, "tenant", None) or getattr(request, "school", None)
         if tenant is None or getattr(tenant, "pk", None) is None:
             return JsonResponse({"error": "no_tenant"}, status=400)
+
+        if not self._has_standing(request.user, tenant):
+            return JsonResponse({"error": "no_standing_in_tenant"}, status=403)
 
         from apps.sync_engine.crdt_wire_protocol import (
             GCounterOp,
@@ -69,6 +101,7 @@ class CRDTOpsApplyView(View):
                     validate_crdt_kind(entity, raw.get("kind"))
                     op = parse_wire_op(raw)
                     self._validate_key_namespace(entity, op)
+                    self._validate_op_size(op)
 
                     if isinstance(op, LWWOp):
                         bound_op = LWWOp(
@@ -123,6 +156,20 @@ class CRDTOpsApplyView(View):
                     rejected.append({"index": index, "reason": str(exc)})
 
             state["policy_version"] = POLICY_VERSION
+            # Individually-legal ops still add up. The ceiling is checked on the
+            # ACCUMULATED state, immediately before it is persisted, because that is
+            # the thing every later request to this school pays to load.
+            over_by = self._state_overflow(state)
+            if over_by > 0:
+                transaction.set_rollback(True)
+                return JsonResponse(
+                    {
+                        "error": "crdt_state_full",
+                        "limit_bytes": _max_state_bytes(),
+                        "over_by_bytes": over_by,
+                    },
+                    status=413,
+                )
             self._write_state(locked_tenant, state)
 
         materialized = {
@@ -160,15 +207,75 @@ class CRDTOpsApplyView(View):
         ) or "browser"
         return f"u{request.user.pk}:{safe_device}"
 
-    def _validate_key_namespace(self, entity: str, op: Any) -> None:
-        key = (
+    def _has_standing(self, user, tenant) -> bool:
+        """May ``user`` write into THIS school's converged state?
+
+        ``login_required`` alone answered "is anyone signed in", never "does this
+        person belong to the school whose settings row is about to be rewritten" --
+        and the tenant comes from the request, not from the user. The check is a
+        LIVE, non-suspended membership: the same standing test
+        ``pairing_service.may_adopt_for`` settled on, for the reason recorded there
+        (the role-shaped checks are not school-scoped, so as an ``or`` they re-open
+        exactly the hole this closes). Platform staff pass by design.
+        """
+        from apps.sync_engine.pairing_service import is_platform_staff
+
+        if is_platform_staff(user):
+            return True
+        if not getattr(user, "is_authenticated", False):
+            return False
+        try:
+            from apps.schools.models import SchoolMembership
+
+            # tenant-isolation-allow: standing-check-is-explicitly-scoped-to-the-bound-school
+            return SchoolMembership.objects.filter(
+                school=tenant,
+                user_id=getattr(user, "pk", None),
+                suspended_at__isnull=True,
+            ).exists()
+        except (AttributeError, ImportError, TypeError, ValueError):
+            return False
+
+    def _key_of(self, op: Any) -> str:
+        return str(
             getattr(op, "key", None)
             or getattr(op, "set_key", None)
             or getattr(op, "counter_key", None)
             or ""
         )
-        if not str(key).startswith(f"{entity}:"):
+
+    def _validate_key_namespace(self, entity: str, op: Any) -> None:
+        if not self._key_of(op).startswith(f"{entity}:"):
             raise ValueError(f"crdt_key_must_start_with:{entity}:")
+
+    def _validate_op_size(self, op: Any) -> None:
+        """Per-op ceilings.
+
+        ``parse_wire_op`` applies none of its own -- ``key`` is any string and
+        ``value`` is arbitrary JSON -- so this is where a padded key or a fat value
+        is refused, before it can reach the accumulated state.
+        """
+        key = self._key_of(op)
+        if len(key) > _max_key_chars():
+            raise ValueError(f"crdt_key_too_long:{_max_key_chars()}")
+        element = getattr(op, "element", None)
+        if element is not None and len(str(element)) > _max_key_chars():
+            raise ValueError(f"crdt_element_too_long:{_max_key_chars()}")
+        if hasattr(op, "value") and not isinstance(op.value, int):
+            try:
+                encoded = json.dumps(op.value, default=str).encode("utf-8")
+            except (TypeError, ValueError) as exc:
+                raise ValueError(f"crdt_value_not_serializable:{exc}") from exc
+            if len(encoded) > _max_value_bytes():
+                raise ValueError(f"crdt_value_too_large:{_max_value_bytes()}")
+
+    def _state_overflow(self, state: dict[str, Any]) -> int:
+        """Bytes by which ``state`` exceeds the per-tenant ceiling, or 0."""
+        try:
+            size = len(json.dumps(state, default=str).encode("utf-8"))
+        except (TypeError, ValueError):
+            return 0
+        return max(0, size - _max_state_bytes())
 
     def _deserialize_lww(self, current: dict[str, Any], key: str):
         from apps.sync_engine.crdt_wire_protocol import HLC, LWWOp

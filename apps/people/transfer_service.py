@@ -258,12 +258,14 @@ def continue_transfer_case_if_ready(case, *, actor=None) -> dict[str, Any]:
     }
 
 
-def _transfer_continue_schema_names() -> list[str | None]:
-    """Schemas that may hold ``TransferCase`` (TENANT_APPS only under django-tenants).
+def tenant_sweep_schema_names() -> list[str | None]:
+    """Schemas a periodic sweep of a TENANT_APPS model must visit.
 
     ``None`` means the current connection / single-schema mode (SQLite tests,
-    RLS shared-DB). Never query ``public`` for TransferCase when tenants mode
+    RLS shared-DB). Never query ``public`` for a tenant table when tenants mode
     is on — the table is not created there and blows the health-tick ERROR.
+    Shared with the school merge/split batch advancer, which has the same
+    public-schema failure mode (apps/people/school_batch_service.py).
     """
     from django.conf import settings
 
@@ -282,6 +284,11 @@ def _transfer_continue_schema_names() -> list[str | None]:
         if name:
             names.append(name)
     return names
+
+
+def _transfer_continue_schema_names() -> list[str | None]:
+    """Back-compat alias for the transfer sweep's own call site."""
+    return tenant_sweep_schema_names()
 
 
 def _continue_applying_transfers_in_schema(*, limit: int) -> dict[str, Any]:

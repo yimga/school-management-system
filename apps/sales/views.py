@@ -16,6 +16,11 @@ from apps.schools.control_plane import require_control_plane_access
 _LEAD_TAG = re.compile(r"\[([a-z_]+):([^\]]*)\]", re.I)
 
 
+# How many staff accounts the deal-owner picker offers. Named, not inlined, so the
+# truncation is visible to the code that has to compensate for it.
+_OWNER_PICKER_LIMIT = 200  # magic-number-allow: deal-owner picker page size
+
+
 def _parse_lead_tags(notes: str) -> dict[str, str]:
     return {k.lower(): v.strip() for k, v in _LEAD_TAG.findall(notes or "")}
 
@@ -215,20 +220,37 @@ def lead_detail(request: HttpRequest, pk: int) -> HttpResponse:
         if request.POST.get("notes") is not None:
             lead.notes = (request.POST.get("notes") or "")[:5000]
         lead.decision_maker = (request.POST.get("decision_maker") or "").strip()[:200]
-        deal_owner_id = (request.POST.get("deal_owner_id") or "").strip()
-        if deal_owner_id.isdigit():
-            lead.deal_owner = User.objects.filter(
-                pk=int(deal_owner_id), is_staff=True
-            ).first()
-        else:
-            lead.deal_owner = None
+        # Only touch the owner when the form actually CARRIED the field. A missing
+        # key used to mean 'unassign', so any save that did not include the select
+        # silently dropped the assignment -- which is what happened whenever the
+        # current owner fell outside the truncated picker below, because the
+        # template can only mark an option selected if the option exists and the
+        # browser then posts the blank one. An explicitly blank value still clears,
+        # since unassigning deliberately has to keep working.
+        if "deal_owner_id" in request.POST:
+            deal_owner_id = (request.POST.get("deal_owner_id") or "").strip()
+            if deal_owner_id.isdigit():
+                lead.deal_owner = User.objects.filter(
+                    pk=int(deal_owner_id), is_staff=True
+                ).first()
+            else:
+                lead.deal_owner = None
         lead.save()
         return redirect("sales:lead_detail", pk=lead.pk)
     activities = list(lead.activity_logs.all()[:200])
     stages = list(PipelineStage.objects.all().order_by("sort_order", "pk"))
     staff_owners = list(
-        User.objects.filter(is_staff=True).order_by("username", "pk")[:200]
+        User.objects.filter(is_staff=True).order_by("username", "pk")[
+            :_OWNER_PICKER_LIMIT
+        ]
     )
+    # The list is truncated, so the CURRENT owner may not be in it. Append rather
+    # than widen the query: the cap exists to keep the page fast.
+    if lead.deal_owner_id and not any(
+        u.pk == lead.deal_owner_id for u in staff_owners
+    ):
+        if lead.deal_owner is not None:
+            staff_owners.append(lead.deal_owner)
     return render(
         request,
         "sales/lead_detail.html",

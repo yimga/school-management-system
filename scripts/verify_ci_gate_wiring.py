@@ -48,6 +48,15 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # declared one template twice, and the shadowed entry's markers -- one of which
     # had genuinely regressed out of the template -- were never checked at all.
     ("scripts/scan_duplicate_dict_keys.py", "architectural-boundaries.yml"),
+    ("scripts/scan_admin_registered_on_unmounted_site.py", "architectural-boundaries.yml"),
+    # Added 2026-08-23: a merge that adds a migration to an app another branch also
+    # touched produces two leaf nodes, and Django then refuses to migrate that app.
+    # git reports a clean merge; the failure is in a graph no diff shows.
+    ("scripts/verify_single_migration_leaf.py", "ci.yml"),
+    # Added 2026-08-23: blank=True + unique=True on a text field means optional exactly
+    # once, because blank stores "" and only one row may hold it under a unique index.
+    # School.subdomain and three KB slugs were all live defects of this shape.
+    ("scripts/scan_blank_unique_text_fields.py", "ci.yml"),
     # The floor: a module that does not compile cannot be imported at all, and every
     # other gate is then answering about a tree that does not run. Added 2026-08-19 after
     # apps/accounts/tasks.py was found TRUNCATED mid-statement on main - the reference
@@ -290,6 +299,8 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # answers "is this table actually enumerated", and must stay wired so the
     # uncovered set cannot grow before an RLS-mode flip.
     ("scripts/scan_rls_table_coverage.py", "ci.yml"),
+    ("scripts/scan_rls_relation_scoped_coverage.py", "ci.yml"),
+    ("scripts/scan_rls_null_school_arm.py", "ci.yml"),
     # Django admin approval HTML → live shell lock (2026-07-20). Prevents shipping
     # layout waves that pass narrative audits but leave tenant/operator /admin/
     # looking unchanged (missing build chip / cache bust / approval grid).

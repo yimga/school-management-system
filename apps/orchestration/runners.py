@@ -387,11 +387,29 @@ class StudentTransferRunner(BaseOrchestrationRunner):
         payload = self.run.input_payload or {}
         case_id = payload.get("case_id") or ""
         from django.core.exceptions import ValidationError
+        from django.db.models import Q
 
         from apps.people.models_transfer import TransferCase
 
+        # ``input_payload`` is caller-supplied — api.py copies the posted body
+        # verbatim and stamps the run with the CALLER's school — so a bare
+        # lookup by pk let one tenant name another tenant's case uuid and have
+        # run_transfer_case() move those student records. A case belongs to
+        # exactly two schools; the run's school must be one of them. A run with
+        # no school has no tenant to authorise against, so it gets nothing
+        # rather than the whole platform.
+        run_school_id = getattr(self.run, "school_id", None)
         try:
-            case = TransferCase.objects.filter(pk=case_id).first()  # tenant-isolation-allow: operator-plane-case-by-pk-from-run-payload
+            case = (
+                TransferCase.objects.filter(pk=case_id)
+                .filter(
+                    Q(source_school_id=run_school_id)
+                    | Q(target_school_id=run_school_id)
+                )
+                .first()
+                if run_school_id
+                else None
+            )
         except (ValidationError, ValueError):
             # A malformed UUID in the payload is a missing case, not a 500.
             case = None

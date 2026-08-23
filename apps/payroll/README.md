@@ -20,8 +20,10 @@ guarded by a four-step FSM**. A run goes `DRAFT → PROCESSED → REVIEWED → A
 → PAID`, each step has exactly one producer in `services.py`, each producer is
 idempotent, and each refuses to skip a step. `mark_payroll_run_paid` raises unless
 the run is `APPROVED`. Marking a run PAID freezes it — and freezing is the whole
-point: `generate_run` refuses to regenerate a PAID run, so the figures cannot
-change after the money has left the building.
+point: `generate_payslips` refuses any run past `PROCESSED`, so the figures cannot
+change after they have been signed off on or after the money has left the
+building. The guard is in the producer, not in `generate_run`: the view is not the
+only door — `manage.py run_payroll_cycle` calls `generate_payslips` directly.
 
 This is worth stating plainly because it was recently untrue. `REVIEWED` and
 `APPROVED` were **dead enum values** — declared on the model, rendered in the UI,
@@ -87,10 +89,12 @@ management command, not by a beat schedule.
   call. That row is the accountability record for a payroll — if it is missing, no
   one signed off. Keep the create inside the same atomic block as the status
   change.
-- **PAID is meant to be a freeze, not a label.** `generate_run` refuses to
-  regenerate a PAID run so figures cannot change post-disbursement. If you make
-  regeneration possible after PAID, you have silently made payslips rewritable
-  after the money went out.
+- **PAID is a freeze, not a label — and so is APPROVED.** `generate_payslips` only
+  accepts a `DRAFT` or `PROCESSED` run. Regenerating past that point rewrites every
+  payslip and rewinds `status` to `PROCESSED` while the `PayrollRunApproval` row
+  survives, so the audit trail would attest to figures that no longer exist. If you
+  need regeneration after sign-off, add an explicit reopen producer that supersedes
+  the approval rows — do not loosen this check.
 - **`PayrollRun` has no `paid_by` column.** `mark_payroll_run_paid` accepts an
   `actor` argument that it deliberately does not persist — it is there for a future
   audit trail. Do not read it back expecting a value; the signed-off identity lives

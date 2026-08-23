@@ -8,9 +8,11 @@ from __future__ import annotations
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from apps.analytics.models import RiskFactor, StudentAtRiskSignal
-
-_AMBER_MIN = 50.0
+from apps.analytics.models import (
+    RiskFactor,
+    StudentAtRiskSignal,
+    get_risk_band_for_school,
+)
 
 
 @receiver(post_save, sender=RiskFactor)
@@ -22,7 +24,10 @@ def sync_student_at_risk_signal_from_risk_factor(
     if not uid:
         return
     score = float(instance.score)
-    if score < _AMBER_MIN:
+    # Bands are per-tenant (RiskThresholds): a hardcoded cut-off here would
+    # disagree with the same student's band on the at-risk dashboard, which is
+    # what decides whether the intervention workflow can ever open.
+    if get_risk_band_for_school(score, instance.school) == "green":
         return
 
     factors = {

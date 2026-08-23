@@ -99,6 +99,8 @@ _DEFAULT_INTERVAL_SECONDS = 3600  # magic-number-allow: default parity sweep gap
 _MIN_INTERVAL_SECONDS = 60
 
 _CACHE_KEY = "rmc:sync_engine:parity:last:%s"
+#: Which entities the LAST sweep reported drifted. See :func:`record_drift`.
+_DRIFT_KEY = "rmc:sync_engine:parity:drift:%s"
 
 
 def _cache():
@@ -464,6 +466,44 @@ def reset(school) -> None:
         pass
 
 
+def record_drift(school, entities) -> bool:
+    """Remember which entities drifted, and answer: is this the SAME set as last time?
+
+    A flush that cannot repair an entity will not repair it on the next sweep either —
+    the box refuses those rows for a reason the repair does not address. Re-pulling the
+    whole entity again is then pure cost on a link a school may be paying for by the
+    megabyte, and it hides the problem behind a repair that reads as ongoing progress.
+    So the second identical report stops the flush and escalates to a human instead.
+
+    Order-insensitive: the cloud makes no promise about the order it names them in, and
+    a re-ordered list is the same drift.
+    """
+    key = _DRIFT_KEY % getattr(school, "pk", school)
+    fingerprint = ",".join(sorted(str(e) for e in (entities or [])))
+    if not fingerprint:
+        clear_drift(school)
+        return False
+    try:
+        cache = _cache()
+        previous = cache.get(key)
+        # Held well past the sweep interval: the two reports being compared are an
+        # interval apart by construction, so a TTL of one interval could expire between
+        # them and every repeat would look like a first sighting.
+        cache.set(key, fingerprint, interval_seconds() * 4)
+        return previous == fingerprint
+    except Exception:  # noqa: BLE001 - a memory of drift must not break a cycle
+        logger.debug("parity: drift memory unavailable", exc_info=True)
+        return False
+
+
+def clear_drift(school) -> None:
+    """Forget the last drift report — the entities agreed again."""
+    try:
+        _cache().delete(_DRIFT_KEY % getattr(school, "pk", school))
+    except Exception:  # noqa: BLE001
+        pass
+
+
 __all__ = [
     "enabled",
     "interval_seconds",
@@ -477,4 +517,6 @@ __all__ = [
     "rank_for_flush",
     "due",
     "reset",
+    "record_drift",
+    "clear_drift",
 ]

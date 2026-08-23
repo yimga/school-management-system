@@ -85,8 +85,14 @@ DASHBOARD_CHART_TOP_N = 12
 DASHBOARD_TIME_WINDOW_DAYS = 30
 
 
-def _snapshot_cache_key(site_id: str, role_code: str) -> str:
-    return f"dashboard:backend:v2:snapshot:{site_id}:{role_code or 'unknown'}"
+def _snapshot_cache_key(site_id: str, role_code: str, school_id: str = "") -> str:
+    # The school is part of the key, not just the site: some of the counts below come
+    # from SHARED tables and are filtered by school, so two schools resolving the same
+    # site_id must not read each other's cached snapshot.
+    return (
+        f"dashboard:backend:v2:snapshot:{site_id}:{school_id or 'none'}:"
+        f"{role_code or 'unknown'}"
+    )
 
 
 def _has_permission(user, *codes: str) -> bool:
@@ -137,8 +143,10 @@ def _dedupe_nav_items(items: list[Dict[str, str]]) -> list[Dict[str, str]]:
     return unique
 
 
-def _build_cached_snapshot(site_id: str, role_code: str) -> Dict[str, int]:
-    key = _snapshot_cache_key(site_id, role_code)
+def _build_cached_snapshot(site_id: str, role_code: str, school=None) -> Dict[str, int]:
+    key = _snapshot_cache_key(
+        site_id, role_code, str(getattr(school, "pk", "") or "")
+    )
     cached = cache.get(key)
     if cached:
         return cached
@@ -186,13 +194,23 @@ def _build_cached_snapshot(site_id: str, role_code: str) -> Dict[str, int]:
         pass
 
     try:
-        # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
         from apps.requests.models import AccessRequest
 
-        # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
-        pending_approvals = AccessRequest.objects.filter(
-            status=AccessRequest.Status.PENDING
-        ).count()
+        # apps.requests is a SHARED app, so requests_accessrequest lives in the public
+        # schema and is visible from every tenant's search_path — the surrounding
+        # tenant context does NOT scope it. The explicit school= filter is the only
+        # boundary, and the requests LIST this tile links to already applies it, so
+        # without this the tile counted requests the page could never show.
+        # (Same reasoning as admin_context.py's shared-identity-table filter.)
+        if school is not None:
+            pending_approvals = AccessRequest.objects.filter(
+                status=AccessRequest.Status.PENDING, school=school
+            ).count()
+        else:
+            # No resolved school: an operator surface, not a tenant one. Reporting a
+            # platform-wide number to nobody in particular is worse than reporting
+            # none, so this stays 0 rather than falling back to an unscoped count.
+            pending_approvals = 0
     except _DASHBOARD_SNAPSHOT_ERRORS:
         pass
 
@@ -465,14 +483,19 @@ def build_dashboard_extras(
         ),
     }
 
-    snapshot = _build_cached_snapshot(site_id, role_code)
+    snapshot = _build_cached_snapshot(
+        site_id, role_code, getattr(request, "school", None)
+    )
 
     fallback_stats = (
         (base.get("stats") or {}) if isinstance(base.get("stats"), dict) else {}
     )
-    pending_approvals = snapshot.get("pending_approvals") or _safe_int(
-        base.get("pending_approvals_count")
-    )
+    # No `or base[...]` fallback here, unlike its neighbours: the caller's
+    # `pending_approvals_count` (apps/accounts/views.py) is an UNSCOPED count of the
+    # shared AccessRequest table, so falling back to it whenever the school-scoped
+    # snapshot is legitimately 0 would put the platform-wide number back on the tile.
+    # A school with nothing pending must read zero.
+    pending_approvals = _safe_int(snapshot.get("pending_approvals"))
     overdue = snapshot.get("overdue") or _safe_int(
         fallback_stats.get("overdue_invoices")
     )

@@ -53,8 +53,9 @@ def compute_missing_immunizations(student, school) -> dict[str, Any]:
       * An exemption on ANY of the student's records for a required vaccine
         marks that vaccine satisfied — it is listed under ``exempt``, never
         ``missing``.
-      * Otherwise the vaccine is satisfied when the counted doses on record
-        reach ``doses_required``.
+      * Otherwise the vaccine is satisfied when the DISTINCT dose numbers on
+        record reach ``doses_required`` — the same dose recorded twice counts
+        once.
     """
     requirements = resolve_vaccine_requirements(school)
     if not requirements:
@@ -65,8 +66,12 @@ def compute_missing_immunizations(student, school) -> dict[str, Any]:
             "exempt": [],
         }
 
-    # Aggregate the student's records by normalized vaccine code.
-    dose_counts: dict[str, int] = {}
+    # Aggregate the student's records by normalized vaccine code. Count the
+    # DISTINCT dose numbers, not the rows: nothing stops the same dose being
+    # saved twice (a double-submitted form, or a correction entered as a new
+    # row rather than an edit), and counting rows would mark a one-dose child
+    # compliant against a two-dose requirement and silence the guardian alert.
+    doses_by_code: dict[str, set[int]] = {}
     exempt_codes: set[str] = set()
     if student is not None:
         from apps.schoolops.models import ImmunizationRecord
@@ -78,7 +83,11 @@ def compute_missing_immunizations(student, school) -> dict[str, Any]:
                 continue
             if (rec.exemption_type or "").strip():
                 exempt_codes.add(code)
-            dose_counts[code] = dose_counts.get(code, 0) + 1
+            try:
+                dose = int(rec.dose_number or 1)
+            except (TypeError, ValueError):
+                dose = 1
+            doses_by_code.setdefault(code, set()).add(dose)
 
     # Merge requirements by normalized code (defensive against duplicate rows;
     # keep the stricter dose count if two rows collide on the same code).
@@ -96,7 +105,7 @@ def compute_missing_immunizations(student, school) -> dict[str, Any]:
         if code in exempt_codes:
             exempt.append({"vaccine": code, "doses_required": need})
             continue
-        on_record = dose_counts.get(code, 0)
+        on_record = len(doses_by_code.get(code, set()))
         if on_record >= need:
             continue
         missing.append(

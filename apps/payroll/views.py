@@ -289,7 +289,13 @@ def generate_run(request: HttpRequest, run_id: int):
         messages.error(request, "This payroll run is already paid.")
         return redirect("payroll:run_detail", run_id=run.id)
 
-    generate_payslips(run)
+    # generate_payslips owns the freeze (it refuses anything past PROCESSED);
+    # this only turns the refusal into a message instead of a 500.
+    try:
+        generate_payslips(run)
+    except ValueError as exc:
+        messages.error(request, str(exc) or "This payroll run can no longer be generated.")
+        return redirect("payroll:run_detail", run_id=run.id)
     messages.success(request, "Payslips generated.")
     return redirect("payroll:run_detail", run_id=run.id)
 

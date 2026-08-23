@@ -1,0 +1,5 @@
+{
+  "finding_count": 121,
+  "generated_at": "2026-08-23",
+  "note": "Tenant tables that reach their school only through a RELATION and are named in no RLS migration. scan_rls_table_coverage cannot see these: it selects models by a field literally named `school`, and correctly reports 0. RLS is a no-op under USE_DJANGO_TENANTS=1 (the deployed topology), so this measures RLS-MODE READINESS for the sovereign edge, not a live cloud exposure. A burndown list: each needs an FK-scoped policy in the shape of apps/feedback/migrations/0010_rls_fk_scoped_children.py. May only shrink."
+}

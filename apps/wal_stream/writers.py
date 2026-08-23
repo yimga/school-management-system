@@ -67,6 +67,52 @@ def _ids_in_school(model, ids, school_id, *, id_field: str = "id", school_field:
         return wanted
 
 
+def _coerce_date(value):
+    """Return ``value`` as a ``datetime.date``, or None when it is not one.
+
+    Two reasons this is not optional. (1) Model.__init__ assigns straight to the
+    attribute — Django coerces nothing — so a client's ISO STRING stays a string on
+    the instance, and the freshness map built from ``values_list("date", ...)`` holds
+    ``datetime.date``. Keys of two different types never meet, which silently turned
+    the stale-write guard below into "the offline write always wins". (2) A malformed
+    value only fails later, inside ``get_prep_value``, as a ValidationError — which the
+    drainer's bounded-retry handler does not catch, so one corrupt row would wedge the
+    tenant's whole WAL drain forever. Both are closed by normalising here and dropping
+    the action when it cannot be parsed.
+    """
+    import datetime as _dt
+
+    if isinstance(value, _dt.datetime):
+        return value.date()
+    if isinstance(value, _dt.date):
+        return value
+    if not value:
+        return None
+    from django.utils.dateparse import parse_date
+
+    try:
+        return parse_date(str(value))
+    except ValueError:
+        # parse_date raises on a well-formed but impossible date ("2026-13-45").
+        return None
+
+
+def _coerce_fk_id(value):
+    """Return ``value`` as an int pk, or None.
+
+    The ownership check below compares against pks read out of the DB, which are
+    ints; a client-supplied ``"12"`` would compare unequal and the row would be
+    dropped as cross-tenant. The compact ``session_id`` marker is parsed out of a
+    string, so this is the ordinary path, not the edge case.
+    """
+    if value is None or isinstance(value, bool):
+        return None
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
 def _captured_dt(envelope: dict[str, Any]):
     """Return the offline-capture time as a tz-aware UTC datetime, or None.
 
@@ -145,8 +191,12 @@ def _apply_attendance(envelope: dict[str, Any]) -> None:
             if classroom_id is None or date is None:
                 logger.warning("wal_stream.attendance_unresolved_session action=%s", a)
                 continue
+            student_id = _coerce_fk_id(a["student_id"])
+            if student_id is None:
+                logger.warning("wal_stream.attendance_bad_student action=%s", a)
+                continue
             records.append(Attendance(
-                student_id=a["student_id"],
+                student_id=student_id,
                 classroom_id=classroom_id,
                 date=date,
                 status=a.get("status", "present"),
@@ -252,16 +302,22 @@ def _resolve_attendance_session(action: dict[str, Any]) -> tuple[Any, Any]:
     The WAL JS sends ``session_id="<classroom_id>::<date>"`` to keep the wire
     envelope compact; this helper unpacks it. Explicit fields win when both
     are present.
+
+    Both halves come back TYPED — an int pk and a ``datetime.date`` — never the
+    strings the marker is made of. See ``_coerce_date``/``_coerce_fk_id``: the
+    untyped values compared unequal against DB pks and freshness keys, so they were
+    not merely untidy. Either being unparseable yields None, which the caller
+    already treats as "drop this action".
     """
     classroom_id = action.get("classroom_id")
     date = action.get("date")
-    if classroom_id and date:
-        return classroom_id, date
-    marker = action.get("session_id") or ""
-    if "::" in marker:
-        c, _, d = marker.partition("::")
-        return classroom_id or c, date or d
-    return classroom_id, date
+    if not (classroom_id and date):
+        marker = action.get("session_id") or ""
+        if "::" in marker:
+            c, _, d = marker.partition("::")
+            classroom_id = classroom_id or c
+            date = date or d
+    return _coerce_fk_id(classroom_id), _coerce_date(date)
 
 
 def _apply_teacher_attendance(envelope: dict[str, Any]) -> None:
@@ -294,9 +350,17 @@ def _apply_teacher_attendance(envelope: dict[str, Any]) -> None:
             status = str(a.get("status", "PRESENT")).upper()
             if status not in {"PRESENT", "ABSENT", "LATE", "ON_LEAVE"}:
                 status = "PRESENT"
+            teacher_id = _coerce_fk_id(a["teacher_id"])
+            date = _coerce_date(a["date"])
+            if teacher_id is None or date is None:
+                # Drop the one bad action rather than let it out of the writer: an
+                # unparseable date surfaces as a ValidationError from get_prep_value,
+                # which the drainer's bounded-retry handler does not catch.
+                logger.warning("wal_stream.teacher_attendance_bad_action action=%s", a)
+                continue
             rows.append(TeacherAttendance(
-                teacher_id=a["teacher_id"],
-                date=a["date"],
+                teacher_id=teacher_id,
+                date=date,
                 status=status,
                 remarks=a.get("remarks", ""),
                 # NOTE: TeacherAttendance has no `school` column — tenant scope is

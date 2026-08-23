@@ -304,6 +304,8 @@ def coach_request_consent(request, membership_id):
             guardian_email=data["guardian_email"],
             consent_text=consent_text,
             version=CONSENT_TEXT_VERSION,
+            # Needed to build the guardian's link on THIS school's host.
+            request=request,
         )
         messages.success(
             request,

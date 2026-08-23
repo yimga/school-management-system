@@ -584,7 +584,13 @@ def run_actions(
         "ai_suggestion": _run_action_ai_suggestion,
         "delay": _run_action_delay,
     }
+    # Audit-only by definition (workflow_registry: "no side effect"); having
+    # no handler is correct, so it must not read as an unsupported type.
+    AUDIT_ONLY_TYPES = {"log"}
     ALIAS_TYPES = {
+        # The catalog advertises "email" with {to, subject, body}, which is the
+        # notify handler's explicit-address email path minus the channel key.
+        "email": "notify",
         "send_message": "notify",
         "update_record": "update_field",
         "trigger_webhook": "webhook",
@@ -593,9 +599,12 @@ def run_actions(
     for a in actions or []:
         if not isinstance(a, dict):
             continue
+        raw_type = (a.get("type") or "").strip().lower()
         action_type = (a.get("type") or "").strip()
         action_type = ALIAS_TYPES.get(action_type.lower(), action_type)
         params = a.get("params") or {}
+        if raw_type == "email" and not params.get("channel"):
+            params = {**params, "channel": "email"}
         try:
             handler = ACTION_HANDLERS.get(action_type)
             extras = {}
@@ -616,6 +625,9 @@ def run_actions(
                     params,
                     getattr(school, "id", None),
                 )
+                if raw_type not in AUDIT_ONLY_TYPES:
+                    # Without this the run log reads as clean and the gap is invisible.
+                    extras = {"error": "unsupported_action_type"}
             results.append(
                 {
                     "type": action_type,

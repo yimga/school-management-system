@@ -138,13 +138,32 @@ PASSWORD_HASHERS = [
     "django.contrib.auth.hashers.MD5PasswordHasher",
 ]
 
-# Silence the noisy structured logger during tests. Individual tests
-# that need to assert on log output use assertLogs() which installs
-# its own handler.
+# Silence the noisy structured logger during tests.
+#
+# LOGGING_CONFIG = None tells Django not to configure logging at all, so the
+# rotating file handler in config.settings never attaches -- which also stops
+# concurrent test runners fighting over logs/django.log. A NullHandler on the
+# root swallows whatever is still emitted.
+#
+# This deliberately does NOT call logging.disable(). It used to, and the comment
+# beside it claimed "individual tests that need to assert on log output use
+# assertLogs() which installs its own handler" -- which is not how
+# logging.disable works. It short-circuits inside Logger.isEnabledFor BEFORE any
+# handler is consulted, so it defeats assertLogs too. 115 assertLogs assertions
+# across 52 test modules were silently unrunnable under these settings, among
+# them the seals proving the password-rotation writer never logs a raw secret
+# and that a soft-mode residency mismatch warns instead of raising. Those tests
+# did not fail loudly -- they failed with "no logs of level INFO or higher",
+# which reads like a product bug and is not one.
+#
+# CI runs config.settings, so this only ever bit local runs -- which is worse,
+# not better: the guards were absent from exactly the runs people iterate on.
 LOGGING_CONFIG = None
 import logging  # noqa: E402
 
-logging.disable(logging.CRITICAL)
+_root_logger = logging.getLogger()
+_root_logger.handlers = [logging.NullHandler()]
+_root_logger.setLevel(logging.WARNING)
 
 # Turn off DEBUG to mimic prod-ish behavior; turn off whitenoise template
 # serving so staticfiles tests don't depend on collectstatic having run.

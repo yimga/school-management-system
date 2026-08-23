@@ -30,10 +30,10 @@ shared-secret HMAC signature in the documented header — we verify with
 ``timestamp + body``; the operator pastes the base64 public key in the
 config form and we verify it via the ``cryptography`` library
 (:func:`_verify_sendgrid_ecdsa`). When a signature cannot be verified we
-fall back to accept-unverified + log INFO unless
-``SCHOOLOPS_SENDGRID_REQUIRE_VERIFIED_WEBHOOK`` is set (then we 401). This is a known v3.58.x
-deferral — the public-key flow needs `pynacl` or a similar lib and is
-covered by the deliverability docs.
+401 + log INFO, the same as every other provider. Setting
+``SCHOOLOPS_SENDGRID_ALLOW_UNVERIFIED_WEBHOOK`` re-opens the legacy
+accept-unverified path — an explicit operator opt-in, off by default,
+because an accepted forged post suppresses the address it names.
 
 Operator pastes per-provider shared secrets at::
 
@@ -364,9 +364,9 @@ def _verify_signature(
       ``X-Twilio-Email-Event-Webhook-Timestamp + body``, verified via the
       ``cryptography`` library (:func:`_verify_sendgrid_ecdsa`) against the
       operator's base64 public key. On a valid signature → ``(True, False)``.
-      If it cannot be verified we fall back to ``(False, True)``
-      (accept-unverified) unless ``SCHOOLOPS_SENDGRID_REQUIRE_VERIFIED_WEBHOOK``
-      is set, in which case → ``(False, False)`` (401).
+      If it cannot be verified → ``(False, False)`` (401), unless the operator
+      has opted back into the legacy accept-unverified path with
+      ``SCHOOLOPS_SENDGRID_ALLOW_UNVERIFIED_WEBHOOK`` → ``(False, True)``.
     """
     if not secret:
         return (False, False)
@@ -429,14 +429,17 @@ def _verify_signature(
         if _verify_sendgrid_ecdsa(secret, timestamp, body_bytes, provided):
             return (True, False)
         # Could not verify (bad/forged signature, missing timestamp, or
-        # cryptography unavailable). Reject when the operator requires verified
-        # webhooks; otherwise fall back to accept-unverified (legacy behaviour,
-        # so this is never a regression) and log the gap.
-        if getattr(settings, "SCHOOLOPS_SENDGRID_REQUIRE_VERIFIED_WEBHOOK", False):
-            logger.info("schoolops.email_webhook.sendgrid_signature_rejected")
-            return (False, False)
-        logger.info("schoolops.email_webhook.sendgrid_unverified_fallback")
-        return (False, True)
+        # cryptography unavailable). Fail closed, like every other provider
+        # above: this endpoint is anonymous and CSRF-exempt, and a payload that
+        # gets past here suppresses the reported address platform-wide, so
+        # accept-unverified was a one-POST blackhole for any address we mail.
+        # The legacy fallback is still reachable, but only as an explicit
+        # operator opt-in while a public key is being wired up.
+        if getattr(settings, "SCHOOLOPS_SENDGRID_ALLOW_UNVERIFIED_WEBHOOK", False):
+            logger.info("schoolops.email_webhook.sendgrid_unverified_fallback")
+            return (False, True)
+        logger.info("schoolops.email_webhook.sendgrid_signature_rejected")
+        return (False, False)
     if provider == "brevo":
         # Brevo's transactional webhooks don't natively HMAC-sign the body, but a
         # webhook definition can carry a static custom header. The operator sets a

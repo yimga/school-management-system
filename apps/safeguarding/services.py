@@ -9,7 +9,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from django.db import transaction
+from django.db import DatabaseError, transaction
 
 from apps.safeguarding.concern_kernel import (
     ACKNOWLEDGED,
@@ -172,6 +172,8 @@ def _dispatch_dsl_alert(*, school: Any, entry: ConcernEntry, category_label: str
     failure must never unwind the concern submission itself.
     """
     try:
+        from django.db import transaction as _txn
+
         from apps.communication.dispatch import Channel, dispatch_event
         from apps.finance.models import Notification
 
@@ -187,31 +189,50 @@ def _dispatch_dsl_alert(*, school: Any, entry: ConcernEntry, category_label: str
         if entry.is_urgent:
             channels = [Channel.SMS, Channel.EMAIL, Channel.IN_APP]
             severity = Notification.Severity.ALERT
-            title = "Urgent safeguarding concern"
+            prefix = "Urgent safeguarding concern"
         else:
             channels = [Channel.EMAIL, Channel.IN_APP]
             severity = Notification.Severity.WARNING
-            title = "New safeguarding concern"
+            prefix = "New safeguarding concern"
+        # The title has to identify THIS concern. _send_in_app routes through
+        # Notification.objects.notify_unread, which update_or_creates on
+        # (recipient, title, is_read=False) -- right for "New message from Mr
+        # Smith", where the reader wants the latest; wrong here, because a
+        # constant title meant the second urgent disclosure of the day OVERWROTE
+        # the first one's bell entry and the DSL could no longer reach the
+        # earlier child's concern from the queue she works from. The reference is
+        # what makes it distinct; the category is what makes it readable.
+        reference = str(entry.concern_id)[:8]
+        title = f"{prefix}: {category_label} ({reference})"
         message = (
             f"A {category_label} concern needs a Designated Safeguarding Lead. "
             "Open it to review."
         )
         link = build_concern_deep_link(entry.concern_id)
 
-        for user in recipients:
-            dispatch_event(
-                "safeguarding.concern_raised",
-                recipient=user,
-                school=school,
-                context={
-                    "title": title,
-                    "message": message,
-                    "link": link,
-                    "severity": severity,
-                    "phone": _user_phone(user),
-                },
-                channels=channels,
-            )
+        # SAVEPOINT, and it is what makes the 'never unwind submit' promise in
+        # this function's docstring actually true. The caller is
+        # @transaction.atomic and dispatch_event writes a Notification row for
+        # the in-app bell, so a database error here sets
+        # connection.needs_rollback -- and the broad `except` below does NOT
+        # clear it. The outer block then rolls back the CONCERN along with the
+        # alert: a child-protection disclosure accepted, reported as recorded,
+        # and silently gone. Rolling back to a savepoint is what clears the flag.
+        with _txn.atomic():
+            for user in recipients:
+                dispatch_event(
+                    "safeguarding.concern_raised",
+                    recipient=user,
+                    school=school,
+                    context={
+                        "title": title,
+                        "message": message,
+                        "link": link,
+                        "severity": severity,
+                        "phone": _user_phone(user),
+                    },
+                    channels=channels,
+                )
     except Exception:  # noqa: BLE001 — alert must never unwind submit
         logger.warning(
             "safeguarding.dsl_alert_failed concern=%s school=%s",
@@ -247,6 +268,70 @@ def find_concern(school: Any, concern_id: str) -> ConcernEntry | None:
     return None
 
 
+def _locked_school(school: Any):
+    """Re-read the School row under a lock, inside the caller's transaction.
+
+    Both writers below rewrite the WHOLE of ``School.settings``. Starting from
+    the caller's in-memory copy means any write that landed since that object
+    was loaded is erased -- a second concern raised moments after the first wiped
+    it out, and a concern raised while any other tenant setting was being saved
+    took that with it. settings is the shared per-tenant blob, not safeguarding's
+    own.
+
+    select_for_update is a no-op on SQLite and a real row lock on PostgreSQL; the
+    re-read is what fixes the stale-copy half, the lock is what serialises two
+    genuinely concurrent submissions. Returns the caller's object unchanged if the
+    row cannot be re-read, so this can never be the reason a disclosure is lost.
+    """
+    from apps.schools.models import School
+
+    pk = getattr(school, "pk", None)
+    if pk is None:
+        return school
+    try:
+        # tenant-isolation-allow: re-reads the caller's own school row by pk
+        return School.objects.select_for_update().get(pk=pk)
+    except (School.DoesNotExist, DatabaseError):
+        logger.warning(
+            "safeguarding.school_relock_failed school=%s", pk, exc_info=True
+        )
+        return school
+
+
+def _persist_audit_row(row) -> None:
+    """Write one kernel ``AuditRow`` to the compliance audit trail.
+
+    ``apps/safeguarding/README.md`` states this as an invariant, not a logging
+    preference: *every transition writes exactly one CRITICAL-sensitivity audit
+    row*. The kernel upholds its half -- ``create_concern`` and
+    ``transition_concern`` each return a fully-populated row whose own docstring
+    says it mirrors ``apps.compliance.models_audit.AuditLog`` -- and the service
+    layer discarded all three of them.
+
+    Deliberately NOT wrapped in a best-effort ``except``, unlike the DSL notify
+    and the real-time alert beside it. Those are notifications; this is the audit
+    trail. Both callers are ``@transaction.atomic`` and this INSERT rides the same
+    connection as the concern write, so letting it raise keeps the pair
+    all-or-nothing: there is never a persisted child-protection concern without
+    its audit row, and a database that cannot take this row could not have taken
+    the concern either.
+    """
+    from apps.compliance.models_audit import AuditLog
+
+    AuditLog.objects.create(
+        user_id=row.user_id,
+        action=row.action,
+        model_name=row.model_name,
+        object_id=row.object_id,
+        sensitivity=row.sensitivity,
+        # The kernel puts only the SHAPE of the disclosure here -- category, stage,
+        # urgency -- never the narrative. Keep it that way.
+        new_values=row.new_values,
+        reason=row.reason,
+        app_label=row.app_label,
+    )
+
+
 @transaction.atomic
 def submit_concern_for_school(
     *,
@@ -257,19 +342,23 @@ def submit_concern_for_school(
     student_id: int | None = None,
 ) -> ConcernEntry:
     """Create → SUBMITTED → persist ledger + DSL inbox (atomic school.settings write)."""
-    entry, _audit = create_concern(
+    entry, created_audit = create_concern(
         school_id=school_id_token(school),
         student_id=student_id,
         reporter_user_id=reporter_user_id,
         category_key=category_key,
         narrative=narrative,
     )
-    entry, _audit2 = transition_concern(
+    _persist_audit_row(created_audit)
+    entry, submitted_audit = transition_concern(
         concern=entry,
         target_stage=SUBMITTED,
         actor_user_id=reporter_user_id,
     )
+    _persist_audit_row(submitted_audit)
 
+    caller_school = school
+    school = _locked_school(school)
     settings = dict(getattr(school, "settings", None) or {})
     settings = append_to_school_settings(school_settings=settings, concern=entry)
     blob = dict(settings.get("safeguarding") or {})
@@ -297,6 +386,11 @@ def submit_concern_for_school(
     settings["safeguarding"] = blob
     school.settings = settings
     school.save(update_fields=["settings"])
+    # The caller still holds the object it passed in; leaving it stale would make
+    # an immediate follow-up call (find_concern, acknowledge) miss what we just
+    # wrote.
+    if caller_school is not school:
+        caller_school.settings = settings
 
     # Real-time DSL alert (best-effort — never unwinds the persisted concern).
     _dispatch_dsl_alert(
@@ -318,6 +412,10 @@ def acknowledge_and_transition(
     referral_reference: str = "",
     inbox_entry_id: str = "",
 ) -> ConcernEntry:
+    # Lock and re-read BEFORE looking the concern up: the caller's object may
+    # predate the submit that created it, and the whole blob is rewritten below.
+    caller_school = school
+    school = _locked_school(school)
     concern = find_concern(school, concern_id)
     if concern is None:
         raise ValueError("concern_not_found")
@@ -331,7 +429,7 @@ def acknowledge_and_transition(
                 is_active=True,
             )
         ]
-    updated, _audit = transition_concern(
+    updated, transition_audit = transition_concern(
         concern=concern,
         target_stage=target_stage,
         actor_user_id=actor_user_id,
@@ -339,6 +437,7 @@ def acknowledge_and_transition(
         note=note,
         referral_reference=referral_reference,
     )
+    _persist_audit_row(transition_audit)
 
     settings = dict(getattr(school, "settings", None) or {})
     settings = append_to_school_settings(school_settings=settings, concern=updated)
@@ -364,6 +463,8 @@ def acknowledge_and_transition(
     settings["safeguarding"] = blob
     school.settings = settings
     school.save(update_fields=["settings"])
+    if caller_school is not school:
+        caller_school.settings = settings
     return updated
 
 

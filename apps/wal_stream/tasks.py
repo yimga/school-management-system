@@ -74,8 +74,6 @@ def drain_tenant_stream(self, tenant_hash: str) -> dict[str, int]:
     if not redis_url:
         return {"applied": 0, "skipped": 0, "missing_redis_url": 1}
 
-    from django.db import DatabaseError
-
     client = redis.Redis.from_url(redis_url)
     stream = f"rmc.wal.{tenant_hash}"
     dedupe_key = f"rmc.wal.dedupe.{tenant_hash}"
@@ -119,13 +117,26 @@ def drain_tenant_stream(self, tenant_hash: str) -> dict[str, int]:
                 continue
             try:
                 _apply_envelope(envelope)
-                client.sadd(dedupe_key, txn_id)
-                client.expire(dedupe_key, _DEDUPE_TTL_SECONDS)
-                applied += 1
-            except (ValueError, TypeError, RuntimeError, DatabaseError) as exc:
+            except Exception as exc:  # noqa: BLE001 - see below
                 # Bounded retry, then dead-letter — so a permanently-failing
                 # envelope (writer IntegrityError, deleted-tenant unknown hash,
                 # malformed action) cannot wedge the tenant's whole drain forever.
+                #
+                # Deliberately EVERY exception, not a named tuple. The tuple used to
+                # be (ValueError, TypeError, RuntimeError, DatabaseError), and a
+                # ValidationError — which Django raises from DateField.get_prep_value
+                # for a bad client date, and which subclasses plain Exception —
+                # walked straight past it: the entry was never xdel'd, its attempt
+                # counter never advanced, and xrange re-read it from the stream head
+                # on every drain forever. One corrupt row froze the tenant's whole
+                # rail, which is the exact head-of-line poison pill the counter below
+                # exists to prevent. Every branch here ends in bounded retry then
+                # dead-letter, so nothing is lost by catching wide — and anything
+                # that escapes is lost silently.
+                #
+                # Only the apply is inside the try: a Redis hiccup on the dedupe
+                # write below must not be charged to the envelope as an apply
+                # failure and eventually dead-letter a message that DID apply.
                 attempts = client.hincrby(attempts_key, txn_id, 1)
                 client.expire(attempts_key, _DEDUPE_TTL_SECONDS)
                 if attempts >= _MAX_APPLY_ATTEMPTS:
@@ -155,6 +166,9 @@ def drain_tenant_stream(self, tenant_hash: str) -> dict[str, int]:
                     )
                     # leave entry in stream for retry on next drain
                 continue
+            client.sadd(dedupe_key, txn_id)
+            client.expire(dedupe_key, _DEDUPE_TTL_SECONDS)
+            applied += 1
             client.xdel(stream, entry_id)
             client.hdel(attempts_key, txn_id)
         return {

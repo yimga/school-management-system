@@ -48,8 +48,11 @@ class _BundleFactory(TestCase):
 
 class WedgedApplyAutoRecoveryTests(_BundleFactory):
     def test_stale_wedged_applying_self_heals_on_retry(self):
-        # An empty (artifact-less, school-less) bundle applies straight through to
-        # APPLIED — so a durable retry that RECLAIMS it must land APPLIED, not raise.
+        # An empty (artifact-less, school-less) bundle applies straight through — so a
+        # durable retry that RECLAIMS it must LAND, not raise. A live apply now ends by
+        # reconciling (run_post_apply_verification), so the settled status is
+        # RECONCILED; the ApplyResult still reports APPLIED, which is the status the
+        # apply itself reached before the verification step ran.
         b = self._bundle("stale", BundleStatus.APPLYING, school=None)
         self._age(b, _APPLYING_STALE_SECONDS + 600)  # worker died; no heartbeat
 
@@ -57,7 +60,7 @@ class WedgedApplyAutoRecoveryTests(_BundleFactory):
         result = orchestrator._apply_bundle_inner(bundle_id=b.pk, dry_run=False)
 
         b.refresh_from_db()
-        self.assertEqual(b.status, BundleStatus.APPLIED)  # reclaimed -> applied
+        self.assertEqual(b.status, BundleStatus.RECONCILED)  # reclaimed -> applied -> reconciled
         self.assertIn("reclaimed_wedged_apply_at", b.size_summary)
         self.assertEqual(result.status, BundleStatus.APPLIED)
 

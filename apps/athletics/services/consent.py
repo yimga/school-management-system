@@ -17,22 +17,61 @@ from apps.athletics.models import ParticipationConsent, ParticipationConsentErro
 logger = logging.getLogger(__name__)
 
 
-def _send_consent_email(*, consent, guardian_email: str, raw_token: str) -> None:
+def _consent_link(*, consent, raw_token: str, request) -> str:
+    """Absolute, TENANT-host URL for the guardian consent page.
+
+    The page has to be on the school's own host: athletics is mounted in
+    config/tenant_urls.py and UrlConfSwitcherMiddleware serves a customer
+    subdomain that urlconf, so a link built against any other host 404s for the
+    guardian. Returns an empty string when there is no host context, and the
+    caller then falls back to sending the bare reference rather than a link that
+    cannot work.
+    """
+    if request is None:
+        return ""
+    from urllib.parse import urlencode
+
+    from apps.schools.tenant_url import tenant_absolute_url
+
+    school = getattr(request, "school", None) or getattr(
+        getattr(consent, "membership", None), "school", None
+    )
+    url = tenant_absolute_url(
+        request, "athletics:participation_consent_public", school=school
+    )
+    query = urlencode({"token": raw_token})
+    return f"{url}?{query}"
+
+
+def _send_consent_email(
+    *, consent, guardian_email: str, raw_token: str, request=None
+) -> None:
     """Best-effort transactional email carrying the one-time consent token.
 
     Wrapped by the caller in try/except; import failures / delivery failures
     must never fail the mint. Never logs the email or the token.
+
+    The body carries a LINK, not a bare reference. It used to say 'Your one-time
+    consent reference is: <token>' and stop there -- the consent pages exist and
+    are reachable, so the guardian was handed a secret with nowhere to put it and
+    the flow had no entry point at all.
     """
     from apps.schoolops.email_compat import send_mail
 
     subject = "Athletics participation consent requested"
+    link = _consent_link(consent=consent, raw_token=raw_token, request=request)
+    action = (
+        f"Open this link to give or decline consent:\n{link}\n\n"
+        if link
+        else f"Your one-time consent reference is: {raw_token}\n\n"
+    )
     body = (
         f"Hello {consent.guardian_name},\n\n"
         "You have been asked to give consent for a student's participation in "
         "a school sports team.\n\n"
-        f"Your one-time consent reference is: {raw_token}\n\n"
-        "This reference expires soon and can be used only once. If you did not "
-        "expect this request you can safely ignore it."
+        f"{action}"
+        "This expires soon and can be used only once. If you did not expect this "
+        "request you can safely ignore it."
     )
     send_mail(
         subject,
@@ -50,6 +89,7 @@ def request_participation_consent(
     guardian_email: str,
     consent_text: str,
     version: str = CONSENT_TEXT_VERSION,
+    request=None,
 ) -> str:
     """Mint a consent token for ``membership`` and email the guardian.
 
@@ -67,7 +107,10 @@ def request_participation_consent(
 
     try:
         _send_consent_email(
-            consent=consent, guardian_email=guardian_email, raw_token=raw_token
+            consent=consent,
+            guardian_email=guardian_email,
+            raw_token=raw_token,
+            request=request,
         )
     except Exception:  # noqa: BLE001 — email is best-effort; never fail the mint
         logger.warning(

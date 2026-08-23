@@ -165,6 +165,18 @@ class AuditorConsoleTests(TestCase):
         self.staff = User.objects.create_user(
             username=f"ops{uid}", email=f"ops{uid}@x.test", password="x", is_staff=True
         )
+        # is_staff alone is NOT control-plane access, by design: the platform
+        # mints is_staff=True TENANT admins, so user_has_control_plane_access
+        # refuses it and this console raises PermissionDenied. Operators are
+        # identified by an active PlatformOperatorProfile. Use that branch rather
+        # than is_superuser, which would pass even with the gate removed.
+        from apps.platform_runtime.models_operator_identity import (
+            PlatformOperatorProfile,
+        )
+
+        PlatformOperatorProfile.objects.create(
+            user=self.staff, status=PlatformOperatorProfile.Status.ACTIVE
+        )
 
     def _staff_request(self, method, data=None):
         from django.contrib.sessions.backends.db import SessionStore
@@ -201,6 +213,30 @@ class AuditorConsoleTests(TestCase):
         stashed = req.session["auditor_fresh_grant"]
         self.assertEqual(stashed["grant_id"], str(grant.id))
         self.assertTrue(stashed["token"])
+
+    def test_a_mere_staff_user_is_refused(self):
+        """The re-gating this fixture had to change for. Do not weaken it.
+
+        A tenant admin carries is_staff=True. If this console ever accepts one,
+        every school administrator can mint an external-auditor access grant for
+        any school on the platform.
+        """
+        from django.contrib.auth import get_user_model
+        from django.core.exceptions import PermissionDenied
+
+        from apps.compliance.views_auditor import AuditorGrantConsoleView
+
+        uid = uuid.uuid4().hex[:8]
+        tenant_admin = get_user_model().objects.create_user(
+            username=f"tadm{uid}",
+            email=f"tadm{uid}@x.test",
+            password="x",
+            is_staff=True,
+        )
+        req = self._staff_request("get")
+        req.user = tenant_admin
+        with self.assertRaises(PermissionDenied):
+            AuditorGrantConsoleView.as_view()(req)
 
     def test_console_create_json_returns_token(self):
         import json as _json

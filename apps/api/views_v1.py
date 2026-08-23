@@ -538,7 +538,9 @@ class TenantChildrenView(View):
                 "id": str(s["id"]),
                 "name": s["name"],
                 "slug": s["slug"],
-                "subdomain": s["subdomain"],
+                # "" not null: an absent subdomain is NULL in the column since
+                # schools.0087, and this field has always been a string on the wire.
+                "subdomain": s["subdomain"] or "",
             }
             for s in children
         ]
@@ -555,7 +557,7 @@ class TenantChildrenView(View):
                     "id": str(p["id"]),
                     "name": p["name"],
                     "slug": p["slug"],
-                    "subdomain": p["subdomain"],
+                    "subdomain": p["subdomain"] or "",
                 }
         return JsonResponse({"children": children_list, "parent": parent})
 
@@ -1388,6 +1390,10 @@ class SuperPulseView(View):
                 "last_activity",
             )
         )
+        for _school in schools:
+            # Keep the wire format a string. An absent subdomain is NULL in the column
+            # since schools.0087; this endpoint has always emitted "".
+            _school["subdomain"] = _school.get("subdomain") or ""
         first_of_month = timezone.now().date().replace(day=1)
         # tenant-isolation-allow: api-v1-scoped-via-request-school-mixin
         try:
@@ -1522,6 +1528,7 @@ class SuperSchoolsListView(View):
         for s in schools:
             s["school_id"] = str(s["id"])
             s["primary_sector"] = s.get("primary_sector") or ""
+            s["subdomain"] = s.get("subdomain") or ""
             s["created_at"] = (
                 s["created_at"].isoformat() if s.get("created_at") else None
             )

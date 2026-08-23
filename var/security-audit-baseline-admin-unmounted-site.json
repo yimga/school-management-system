@@ -1,0 +1,5 @@
+{
+  "finding_count": 26,
+  "generated_at": "2026-08-23",
+  "note": "Admin registrations that name no mounted site, so they land on Django's default admin.site -- which no urlconf in this repo routes. A burndown list, not an accepted state: each is a screen somebody wrote and nobody can open. Deliberately NOT bulk-fixed, because choosing tenant_admin_site vs platform_admin_site is a per-model tenancy decision and four of the eight apps involved (governance, metadata, orchestration, social_media) are in NEITHER SHARED_APPS nor TENANT_APPS, so the answer is not derivable from the settings split. Putting a tenant-scoped model on the operator admin, or the reverse, is the class the tenant-admin scoping seal exists to prevent. May only shrink."
+}

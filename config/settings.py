@@ -4815,7 +4815,6 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         # sits directly after the school bridge. Dormant until RegionFeatureCompliance
         # rows exist, so wiring it changes nothing until a region policy is seeded.
         "apps.compliance.middleware.ComplianceGuardMiddleware",
-        "apps.schools.middleware_session_school_bind.SessionSchoolBindingMiddleware",
         "apps.schools.middleware.TenantSchoolNotFoundMiddleware",
         "apps.tenancy.middleware.TenantContextMiddleware",  # Attach request.tenant_ctx (TenantContext)
         "apps.tenancy.middleware_boundary_guard.TenantBoundaryCoreGuardMiddleware",  # Pin school_id + SQL boundary guard
@@ -4835,6 +4834,14 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "apps.sync_engine.middleware_edge_autosync.EdgeAutosyncMiddleware",
         "apps.accounts.middleware.ManagerCookieIsolationMiddleware",
         "django.contrib.sessions.middleware.SessionMiddleware",
+        # Directly AFTER SessionMiddleware, mirroring the base list. Every branch
+        # of this guard sits behind hasattr(request, "session"), and its
+        # _resolve_user pulls the user out of the session so the check can run
+        # before the view instead of after everything that trusts it. Mounted up
+        # with the tenant middlewares it had no session to read, so on the whole
+        # schema-per-tenant cloud it resolved nothing and returned immediately --
+        # the HMAC check, the realign branch and the 403 never ran.
+        "apps.schools.middleware_session_school_bind.SessionSchoolBindingMiddleware",
         "django.middleware.locale.LocaleMiddleware",
         "django.middleware.common.CommonMiddleware",
         "django.middleware.csrf.CsrfViewMiddleware",

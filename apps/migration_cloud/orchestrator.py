@@ -231,9 +231,20 @@ def _apply_bundle_inner(
     with transaction.atomic():
         bundle = MigrationBundle.objects.select_for_update().get(pk=bundle_id)  # tenant-isolation-allow: PK lookup by internal id from caller
 
-        if bundle.status == BundleStatus.APPLIED and not dry_run:
-            logger.info("migration_cloud.apply: bundle %s already APPLIED — no-op", bundle_id)
-            return _empty_result(bundle, dry_run, BundleStatus.APPLIED)
+        # BOTH terminal success states, not just APPLIED. A live apply now ends by
+        # calling run_post_apply_verification, which reconciles the bundle -- so the
+        # finish line moved to RECONCILED and a guard naming only APPLIED stopped
+        # matching a finished import. The next apply then fell through to the MAPPED
+        # check below and RAISED, which dead-letters the HeavyWorkOutbox durable retry
+        # and strands the import -- exactly what the wedged-apply reclaim block
+        # underneath exists to prevent. A repeat apply is a no-op, never an error.
+        if bundle.status in _APPLY_ALREADY_DONE_STATUSES and not dry_run:
+            logger.info(
+                "migration_cloud.apply: bundle %s already finished (%s) — no-op",
+                bundle_id,
+                bundle.status,
+            )
+            return _empty_result(bundle, dry_run, bundle.status)
 
         # Self-heal a WEDGED apply. A prior worker died mid-apply (SIGKILL / OOM /
         # deploy restart) before the except-handler below could mark it FAILED, so
@@ -2286,6 +2297,13 @@ def wedged_reclaim_budget_exhausted(size_summary) -> bool:
     """True when this bundle has used up its wedged-apply retries."""
     return wedged_reclaims_so_far(size_summary) >= _MAX_WEDGED_APPLY_RECLAIMS
 
+
+# A bundle that already finished. Re-applying one is a no-op, not an error --
+# a live apply reconciles at the end, so a finished import can be in either.
+_APPLY_ALREADY_DONE_STATUSES = frozenset({
+    BundleStatus.APPLIED,
+    BundleStatus.RECONCILED,
+})
 
 _TERMINAL_BUNDLE_STATUSES = frozenset({
     BundleStatus.APPLIED,

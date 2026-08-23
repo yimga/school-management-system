@@ -680,14 +680,29 @@ def _wind_down_source_locked(batch, *, actor, confirm_slug: str) -> dict[str, An
     return dict(batch.wind_down)
 
 
-def advance_running_batches(*, max_batches: int = 5, max_cases: int = DEFAULT_CHUNK) -> dict[str, Any]:
-    """Periodic-job entry: advance each RUNNING batch one chunk."""
+def _advance_running_batches_in_schema(*, max_batches: int, max_cases: int) -> dict[str, Any]:
+    """Advance RUNNING batches in the *current* schema connection."""
+    from django.db import ProgrammingError, connection
+    from django.db.utils import OperationalError
+
     from apps.people.models_school_batch import SchoolTransferBatch
 
+    try:
+        batches = list(
+            SchoolTransferBatch.objects.filter(  # tenant-isolation-allow: operator-plane-batch-advancer-cross-tenant-by-design
+                status=SchoolTransferBatch.Status.RUNNING
+            ).order_by("created_at")[: max(1, int(max_batches))]
+        )
+    except (ProgrammingError, OperationalError) as exc:
+        # Unmigrated / husk schema — skip, do not fail the whole periodic tick.
+        logger.warning(
+            "school_batch.advance_skip_missing_table schema=%s err=%s",
+            getattr(connection, "schema_name", "") or "default",
+            type(exc).__name__,
+        )
+        return {"outcomes": [], "skipped": True}
+
     outcomes = []
-    batches = SchoolTransferBatch.objects.filter(  # tenant-isolation-allow: operator-plane-batch-advancer-cross-tenant-by-design
-        status=SchoolTransferBatch.Status.RUNNING
-    ).order_by("created_at")[: max(1, int(max_batches))]
     for batch in batches:
         try:
             outcomes.append(
@@ -698,7 +713,60 @@ def advance_running_batches(*, max_batches: int = 5, max_cases: int = DEFAULT_CH
         except Exception:  # noqa: BLE001 — one broken batch must not starve the rest of the tick
             logger.exception("school_batch.advance_failed batch=%s", batch.pk)
             outcomes.append({"batch": str(batch.pk), "error": "advance failed"})
-    return {"advanced": len(outcomes), "outcomes": outcomes}
+    return {"outcomes": outcomes, "skipped": False}
+
+
+def advance_running_batches(*, max_batches: int = 5, max_cases: int = DEFAULT_CHUNK) -> dict[str, Any]:
+    """Periodic-job entry: advance each RUNNING batch one chunk.
+
+    ``SchoolTransferBatch`` is an ``apps.people`` model and ``apps.people`` is in
+    TENANT_APPS, so under ``USE_DJANGO_TENANTS`` its table exists only in tenant
+    schemas — while ``periodic.run_job`` calls this with no schema context, i.e.
+    on public. A bare RUNNING query therefore raised ProgrammingError every tick
+    and no batch ever advanced. Walk the tenant schemas the way
+    ``continue_applying_transfers`` does; ``max_batches`` is the budget for the
+    whole tick, shared across schemas.
+    """
+    from contextlib import nullcontext
+
+    from apps.people.transfer_service import tenant_sweep_schema_names
+
+    totals: dict[str, Any] = {
+        "advanced": 0,
+        "outcomes": [],
+        "schemas": 0,
+        "schemas_skipped": 0,
+    }
+    schema_names = tenant_sweep_schema_names()
+    if not schema_names:
+        return totals
+
+    try:
+        from django_tenants.utils import schema_context
+    except ImportError:
+        schema_context = None  # type: ignore[assignment,misc]
+
+    remaining = max(1, int(max_batches))
+    for schema_name in schema_names:
+        if remaining <= 0:
+            break
+        if schema_name and schema_context is not None:
+            ctx = schema_context(schema_name)
+        else:
+            ctx = nullcontext()
+        with ctx:
+            part = _advance_running_batches_in_schema(
+                max_batches=remaining, max_cases=max_cases
+            )
+        totals["schemas"] += 1
+        if part.get("skipped"):
+            totals["schemas_skipped"] += 1
+            continue
+        part_outcomes = part.get("outcomes") or []
+        totals["outcomes"].extend(part_outcomes)
+        remaining -= len(part_outcomes)
+    totals["advanced"] = len(totals["outcomes"])
+    return totals
 
 
 def _audit(batch, actor, note: str) -> None:

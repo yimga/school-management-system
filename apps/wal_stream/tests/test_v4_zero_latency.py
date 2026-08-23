@@ -11,6 +11,8 @@ from __future__ import annotations
 import json
 import time
 
+from datetime import date as _dt_date
+
 from django.test import SimpleTestCase, override_settings
 
 from apps.tenancy.middleware_rls_jwt import _verify_jwt, mint_rls_jwt
@@ -382,21 +384,33 @@ class ResolveAttendanceSessionTests(SimpleTestCase):
 
     The writer's helper must unpack that into (classroom_id, date) AND honor
     explicit fields when both are present.
+
+    The pk comes back an int and the date a ``datetime.date``, never the strings the
+    marker is built from. Both types are load-bearing: the pk is compared against pks
+    read out of the DB by the cross-tenant ownership check, and the date is compared
+    against the ``datetime.date`` the ORM returns for the freshness map. Pinning the
+    raw string shape here is what let both comparisons fail silently.
     """
 
     def test_explicit_fields_win(self):
+        import datetime
+
         from apps.wal_stream.writers import _resolve_attendance_session
 
         c, d = _resolve_attendance_session({"classroom_id": 7, "date": "2026-05-28"})
-        self.assertEqual((c, d), (7, "2026-05-28"))
+        self.assertEqual((c, d), (7, datetime.date(2026, 5, 28)))
 
     def test_session_marker_unpacked(self):
+        import datetime
+
         from apps.wal_stream.writers import _resolve_attendance_session
 
         c, d = _resolve_attendance_session({"session_id": "42::2026-05-28"})
-        self.assertEqual((c, d), ("42", "2026-05-28"))
+        self.assertEqual((c, d), (42, datetime.date(2026, 5, 28)))
 
     def test_session_marker_overridden_by_explicit_classroom(self):
+        import datetime
+
         from apps.wal_stream.writers import _resolve_attendance_session
 
         c, d = _resolve_attendance_session({
@@ -404,13 +418,20 @@ class ResolveAttendanceSessionTests(SimpleTestCase):
             "session_id": "42::2026-05-28",
         })
         # Explicit classroom_id wins; date pulled from marker.
-        self.assertEqual((c, d), (99, "2026-05-28"))
+        self.assertEqual((c, d), (99, datetime.date(2026, 5, 28)))
 
     def test_missing_both_returns_none(self):
         from apps.wal_stream.writers import _resolve_attendance_session
 
         c, d = _resolve_attendance_session({"student_id": "x"})
         self.assertIsNone(c)
+        self.assertIsNone(d)
+
+    def test_impossible_date_resolves_to_none_so_the_action_is_dropped(self):
+        from apps.wal_stream.writers import _resolve_attendance_session
+
+        c, d = _resolve_attendance_session({"session_id": "42::2026-13-45"})
+        self.assertEqual(c, 42)
         self.assertIsNone(d)
 
 
@@ -464,14 +485,22 @@ class WALCaptureTimeCoercionTests(SimpleTestCase):
 
 class WALStaleUpsertPartitionTests(SimpleTestCase):
     """Last-writer-wins by capture time: a stale offline upsert must never
-    clobber newer online state, but must also never be silently dropped."""
+    clobber newer online state, but must also never be silently dropped.
+
+    ``date`` is a ``datetime.date`` on both sides of the comparison, because that is
+    what the writer puts on the record and what ``values_list("date", ...)`` returns
+    for the existing rows. Keying these fixtures by the client's ISO STRING pinned a
+    shape the ORM never produces, so the partition could match nothing and the suite
+    still went green."""
+
+    _DAY = _dt_date(2026, 6, 4)
 
     def _rows(self):
         from types import SimpleNamespace
 
         return [
-            SimpleNamespace(student_id=1, classroom_id=9, date="2026-06-04", status="absent"),
-            SimpleNamespace(student_id=2, classroom_id=9, date="2026-06-04", status="present"),
+            SimpleNamespace(student_id=1, classroom_id=9, date=self._DAY, status="absent"),
+            SimpleNamespace(student_id=2, classroom_id=9, date=self._DAY, status="present"),
         ]
 
     def _key(self, r):
@@ -492,7 +521,7 @@ class WALStaleUpsertPartitionTests(SimpleTestCase):
 
         captured = datetime(2026, 6, 4, 10, 0, tzinfo=timezone.utc)
         # Student 1's online row was updated AFTER capture -> stale (skip clobber).
-        existing = {(1, 9, "2026-06-04"): datetime(2026, 6, 4, 11, 0, tzinfo=timezone.utc)}
+        existing = {(1, 9, self._DAY): datetime(2026, 6, 4, 11, 0, tzinfo=timezone.utc)}
         winners, stale = _partition_stale_upserts(self._rows(), existing, captured, self._key)
         self.assertEqual([w.student_id for w in winners], [2])
         self.assertEqual([s.student_id for s in stale], [1])
@@ -503,7 +532,7 @@ class WALStaleUpsertPartitionTests(SimpleTestCase):
         from apps.wal_stream.writers import _partition_stale_upserts
 
         captured = datetime(2026, 6, 4, 10, 0, tzinfo=timezone.utc)
-        existing = {(1, 9, "2026-06-04"): datetime(2026, 6, 4, 9, 0, tzinfo=timezone.utc)}
+        existing = {(1, 9, self._DAY): datetime(2026, 6, 4, 9, 0, tzinfo=timezone.utc)}
         winners, stale = _partition_stale_upserts(self._rows(), existing, captured, self._key)
         self.assertEqual({w.student_id for w in winners}, {1, 2})
         self.assertEqual(stale, [])
@@ -515,13 +544,13 @@ class WALStaleUpsertPartitionTests(SimpleTestCase):
         from apps.wal_stream.writers import _partition_stale_upserts
 
         rows = [
-            SimpleNamespace(teacher_id=3, date="2026-06-04", status="ABSENT"),
-            SimpleNamespace(teacher_id=4, date="2026-06-04", status="PRESENT"),
+            SimpleNamespace(teacher_id=3, date=self._DAY, status="ABSENT"),
+            SimpleNamespace(teacher_id=4, date=self._DAY, status="PRESENT"),
         ]
         key = lambda r: (r.teacher_id, r.date)
         captured = datetime(2026, 6, 4, 10, 0, tzinfo=timezone.utc)
         # Teacher 3's row is newer online (NULL would be a winner; here it's set).
-        existing = {(3, "2026-06-04"): datetime(2026, 6, 4, 12, 0, tzinfo=timezone.utc)}
+        existing = {(3, self._DAY): datetime(2026, 6, 4, 12, 0, tzinfo=timezone.utc)}
         winners, stale = _partition_stale_upserts(rows, existing, captured, key)
         self.assertEqual([w.teacher_id for w in winners], [4])
         self.assertEqual([s.teacher_id for s in stale], [3])
@@ -534,10 +563,10 @@ class WALStaleUpsertPartitionTests(SimpleTestCase):
 
         from apps.wal_stream.writers import _partition_stale_upserts
 
-        rows = [SimpleNamespace(teacher_id=3, date="2026-06-04", status="ABSENT")]
+        rows = [SimpleNamespace(teacher_id=3, date=self._DAY, status="ABSENT")]
         key = lambda r: (r.teacher_id, r.date)
         captured = datetime(2026, 6, 4, 10, 0, tzinfo=timezone.utc)
-        winners, stale = _partition_stale_upserts(rows, {(3, "2026-06-04"): None}, captured, key)
+        winners, stale = _partition_stale_upserts(rows, {(3, self._DAY): None}, captured, key)
         self.assertEqual([w.teacher_id for w in winners], [3])
         self.assertEqual(stale, [])
 

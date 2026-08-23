@@ -551,12 +551,18 @@ class DrSnapshotRestoreRoundTripBaseTests(TestCase):
 
         # Restore report is honest. Teacher / invoice / payment are NEW under the
         # target. The shared parents (User by global username, ComplianceProfile by
-        # name+country_code) already exist from the source, so they UPDATE in place.
+        # name+country_code) already exist from the source.
         rep = result["restored"]["tables"]
         self.assertEqual(rep["people.TeacherProfile"]["created"], 1)
         self.assertEqual(rep["finance.Invoice"]["created"], 1)
         self.assertEqual(rep["finance.Payment"]["created"], 1)
-        self.assertEqual(rep["accounts.User"]["updated"], 1)
+        # ``accounts.User`` is shared/public and keyed by the GLOBAL username, so
+        # the live row here belongs to the SOURCE school, not the target. It is
+        # left untouched (skipped) rather than rewritten from the snapshot — the
+        # tenant-isolation rule in ``_RestoreSpec.require_school_membership``.
+        # Its pk is still mapped, which is what lets the teacher above resolve.
+        self.assertEqual(rep["accounts.User"]["skipped"], 1)
+        self.assertEqual(rep["accounts.User"]["updated"], 0)
         self.assertEqual(rep["accounts.User"]["created"], 0)
         self.assertEqual(rep["finance.ComplianceProfile"]["updated"], 1)
         self.assertEqual(rep["finance.ComplianceProfile"]["created"], 0)

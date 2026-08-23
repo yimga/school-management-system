@@ -12,6 +12,9 @@ Cadence matching (NotificationPreference.digest_cadence):
     * ``--cadence daily``: only guardians whose pref cadence is DAILY.
     * IMMEDIATE-cadence guardians are skipped on both runs — "immediate" means
       they get real-time notifications, not a batched digest.
+    * A guardian with no pref row who unticked "Send me a weekly summary on
+      Friday afternoon." (``siteconfig.UserPreference.receive_weekly_summary``,
+      the only digest control any user is shown) is skipped on the weekly run.
 
 Honesty: a guardian whose digest would have NO facts is skipped (no hollow
 "nothing happened" email). Sends are failure-isolated per guardian; we only
@@ -153,20 +156,32 @@ def _resolve_email(link) -> str:
     return (getattr(user, "email", "") or "").strip() if user else ""
 
 
-def _cadence_matches(pref, run_cadence: str) -> bool:
+def _cadence_matches(
+    pref, run_cadence: str, *, weekly_summary_optin: bool = True
+) -> bool:
     """Whether a guardian on ``pref`` should receive this run's digest.
 
     No preference row → defaults to WEEKLY. IMMEDIATE never matches a digest.
+
+    ``weekly_summary_optin`` is the "Send me a weekly summary on Friday
+    afternoon." checkbox on accounts:notification_preferences
+    (``siteconfig.UserPreference.receive_weekly_summary``). It is the ONLY digest
+    control a user is ever shown, and nothing on the platform writes a
+    ``NotificationPreference`` row — so reading only ``digest_cadence`` meant the
+    box the parent unticked was written by the screen and read by no sender.
+    A stored ``NotificationPreference`` still wins: an explicit granular choice
+    outranks the coarse checkbox, the same precedence ``dispatch.get_preference``
+    uses.
     """
     from apps.communication.models import NotificationPreference
 
     if pref is None:
-        return run_cadence == "weekly"
+        return run_cadence == "weekly" and weekly_summary_optin
     cadence = (pref.digest_cadence or "").strip().lower()
     if cadence == NotificationPreference.Cadence.IMMEDIATE:
         return False
     if not cadence:
-        return run_cadence == "weekly"
+        return run_cadence == "weekly" and weekly_summary_optin
     return cadence == run_cadence
 
 
@@ -234,6 +249,24 @@ class Command(BaseCommand):
             p.user_id: p
             for p in NotificationPreference.objects.filter(user_id__in=guardian_ids)
         }
+        # The weekly-summary checkbox the parent actually ticks. Absent row →
+        # True (the model default), so a guardian who never opened the screen is
+        # unaffected; a read error fails OPEN for the same reason.
+        try:
+            from apps.siteconfig.models_tooling import UserPreference
+
+            weekly_optin_by_user = {
+                row.user_id: bool(row.receive_weekly_summary)
+                for row in UserPreference.objects.filter(
+                    user_id__in=guardian_ids
+                ).only("user_id", "receive_weekly_summary")
+            }
+        except Exception:  # noqa: BLE001 — a preferences blip never blocks a digest
+            logger.warning(
+                "send_parent_digests: weekly-summary preference read failed",
+                exc_info=True,
+            )
+            weekly_optin_by_user = {}
 
         # Accumulate facts per guardian_user so a parent of several children
         # gets ONE combined email (in-run dedupe).
@@ -250,8 +283,13 @@ class Command(BaseCommand):
                 continue
             scanned += 1
 
-            pref = prefs_by_user.get(getattr(guardian_user, "pk", None))
-            if not _cadence_matches(pref, run_cadence):
+            guardian_pk = getattr(guardian_user, "pk", None)
+            pref = prefs_by_user.get(guardian_pk)
+            if not _cadence_matches(
+                pref,
+                run_cadence,
+                weekly_summary_optin=weekly_optin_by_user.get(guardian_pk, True),
+            ):
                 cadence_skipped += 1
                 continue
 

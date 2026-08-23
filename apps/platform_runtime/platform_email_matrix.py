@@ -130,7 +130,7 @@ def resolve_tenant_admin_from_payload(payload: dict) -> list[str]:
         school = School.objects.filter(pk=school_id).first()
         if school is None:
             return []
-        verification = getattr(school, "signupverification", None)
+        verification = getattr(school, "signup_verification", None)
         if verification and getattr(verification, "email", ""):
             return [str(verification.email)]
         return []

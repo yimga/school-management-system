@@ -27,6 +27,7 @@ from django.core.mail import EmailMessage
 from django.utils import timezone
 
 from apps.analytics.models import RiskDigestRecipient
+from apps.analytics.tenant_batch import run_for_school
 from apps.schools.models import School
 
 logger = logging.getLogger("apps.analytics.commands.send_risk_digest")
@@ -62,39 +63,56 @@ class Command(BaseCommand):
         sent = 0
         failed = 0
         for school in schools:
-            # Check recipients BEFORE generating the digest. _generate_digest
-            # runs ai_narrate_risk_digest — an LLM gateway invoke — so narrating
-            # a school that never configured a recipient burns spend for output
-            # nobody receives. Skipping the narration for opt-out schools bounds
-            # LLM cost to schools that actually enabled the digest. (This ordering
-            # is what makes the nightly fan-out safe to wake.)
-            recipients = list(
-                # tenant-isolation-allow: scoped via school= below
-                RiskDigestRecipient.objects.filter(school=school, enabled=True)
+            # RiskDigestRecipient and the RiskFactor rows the digest narrates are
+            # TENANT_APPS tables; on `public` the recipient list comes back empty
+            # and every school looks opted out.
+            school_sent, school_failed = run_for_school(
+                school,
+                lambda school=school: self._process_school(school, opts),
+                label="send_risk_digest",
+                default=(0, 0),
             )
-            if not recipients:
-                self.stdout.write(
-                    f"{school.slug}: no recipients configured; skipping narration."
-                )
-                continue
-            digest = self._generate_digest(school, top_n=opts["top_n"])
-            if not digest:
-                continue
-            subject = self._resolve_subject(school)
-            for recipient in recipients:
-                if opts.get("dry_run"):
-                    self.stdout.write(
-                        f"  [dry] would send to {recipient}"
-                    )
-                    continue
-                ok = self._deliver(school, recipient, subject, digest)
-                if ok:
-                    sent += 1
-                else:
-                    failed += 1
+            sent += school_sent
+            failed += school_failed
         self.stdout.write(self.style.SUCCESS(
             f"Digest delivery: {sent} sent, {failed} failed."
         ))
+
+    def _process_school(self, school, opts) -> tuple[int, int]:
+        """Narrate and fan out for one school. Returns (sent, failed)."""
+        sent = 0
+        failed = 0
+        # Check recipients BEFORE generating the digest. _generate_digest
+        # runs ai_narrate_risk_digest — an LLM gateway invoke — so narrating
+        # a school that never configured a recipient burns spend for output
+        # nobody receives. Skipping the narration for opt-out schools bounds
+        # LLM cost to schools that actually enabled the digest. (This ordering
+        # is what makes the nightly fan-out safe to wake.)
+        recipients = list(
+            # tenant-isolation-allow: scoped via school= below
+            RiskDigestRecipient.objects.filter(school=school, enabled=True)
+        )
+        if not recipients:
+            self.stdout.write(
+                f"{school.slug}: no recipients configured; skipping narration."
+            )
+            return (0, 0)
+        digest = self._generate_digest(school, top_n=opts["top_n"])
+        if not digest:
+            return (0, 0)
+        subject = self._resolve_subject(school)
+        for recipient in recipients:
+            if opts.get("dry_run"):
+                self.stdout.write(
+                    f"  [dry] would send to {recipient}"
+                )
+                continue
+            ok = self._deliver(school, recipient, subject, digest)
+            if ok:
+                sent += 1
+            else:
+                failed += 1
+        return (sent, failed)
 
     def _generate_digest(self, school, *, top_n: int) -> str:
         """Run ai_narrate_risk_digest in-process and capture its stdout.

@@ -37,7 +37,7 @@ from django.http import HttpRequest, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
-from apps.api.oneroster import _envelope, _gate, _paginate
+from apps.api.oneroster import _envelope, _gate, _paginate, _roster_scope_school
 
 logger = logging.getLogger(__name__)
 
@@ -230,13 +230,31 @@ _SORT_ALLOW_DESC = frozenset(("desc", "DESC"))
 _FIELDS_MASK_PIN = ("sourcedId",)
 
 
-def _iter_demographics() -> Iterable[dict[str, Any]]:
+def _scope_students(qs, school):
+    """Narrow a StudentProfile queryset to the tenant this request resolved to.
+
+    This module borrows ``_gate`` from ``apps.api.oneroster``, so it inherited
+    that module's tenant-BINDING fix -- but none of its own queries were ever
+    narrowed. A token minted for school A, presented on school A's own host,
+    therefore read and wrote every school's demographics: date of birth, sex,
+    place of birth. ``school`` is None only for a token that names no tenant
+    (operator/platform scope), which keeps its historical projection.
+    """
+    if school is None:
+        return qs
+    return qs.filter(school=school)
+
+
+def _iter_demographics(school=None) -> Iterable[dict[str, Any]]:
     try:
         from apps.people.models import StudentProfile
     except Exception as exc:  # noqa: BLE001
         logger.debug("oneroster demographics: StudentProfile unavailable: %s", exc)
         return
-    qs = StudentProfile.objects.all()  # tenant-isolation-allow: oneroster-demographics-platform-scope-bearer-auth
+    qs = _scope_students(
+        StudentProfile.objects.all(),  # tenant-isolation-allow: narrowed below by _scope_students
+        school,
+    )
     for s in qs[:1000]:
         yield _demographic_from_student(s)
 
@@ -260,7 +278,7 @@ def demographics_collection(request: HttpRequest):
     gate = _gate(request)
     if gate is not None:
         return gate
-    items = list(_iter_demographics())
+    items = list(_iter_demographics(_roster_scope_school(request)))
     user_filter = (request.GET.get("userSourcedId") or "").strip()
     if user_filter:
         items = [r for r in items if user_filter in (r.get("userSourcedIds") or [])]
@@ -318,7 +336,10 @@ def demographic_detail(request: HttpRequest, sourced_id: str):
     except Exception:  # noqa: BLE001
         return JsonResponse({"error": "models_unavailable"}, status=503)
     try:
-        obj = StudentProfile.objects.filter(pk=pk).first()  # tenant-isolation-allow: oneroster-demographic-by-pk-bearer-auth
+        obj = _scope_students(
+            StudentProfile.objects.filter(pk=pk),  # tenant-isolation-allow: narrowed by _scope_students
+            _roster_scope_school(request),
+        ).first()
     except (ValueError, TypeError):
         return JsonResponse({"error": "bad_sourced_id"}, status=400)
     if obj is None:
@@ -345,7 +366,10 @@ def student_demographics(request: HttpRequest, sourced_id: str):
     except Exception:  # noqa: BLE001
         return JsonResponse({"error": "models_unavailable"}, status=503)
     try:
-        obj = StudentProfile.objects.filter(user_id=sourced_id).first()  # tenant-isolation-allow: oneroster-demographic-by-user-id-bearer-auth
+        obj = _scope_students(
+            StudentProfile.objects.filter(user_id=sourced_id),  # tenant-isolation-allow: narrowed by _scope_students
+            _roster_scope_school(request),
+        ).first()
     except (ValueError, TypeError):
         return JsonResponse({"error": "bad_sourced_id"}, status=400)
     if obj is None:
@@ -1487,7 +1511,10 @@ def post_demographic(request: HttpRequest):
     if sid_in.startswith("demo-"):
         pk_str = sid_in[5:]
         try:
-            obj = StudentProfile.objects.filter(pk=pk_str).first()  # tenant-isolation-allow: oneroster-demographic-post-by-pk
+            obj = _scope_students(
+                StudentProfile.objects.filter(pk=pk_str),  # tenant-isolation-allow: narrowed by _scope_students
+                _roster_scope_school(request),
+            ).first()
         except (ValueError, TypeError):
             return JsonResponse({"error": "bad_sourced_id"}, status=400)
     if obj is None:
@@ -1495,7 +1522,10 @@ def post_demographic(request: HttpRequest):
         if not stu_sid:
             return JsonResponse({"error": "missing_student_sourced_id"}, status=400)
         try:
-            obj = StudentProfile.objects.filter(user_id=stu_sid).first()  # tenant-isolation-allow: oneroster-demographic-post-by-user-id
+            obj = _scope_students(
+                StudentProfile.objects.filter(user_id=stu_sid),  # tenant-isolation-allow: narrowed by _scope_students
+                _roster_scope_school(request),
+            ).first()
         except (ValueError, TypeError):
             return JsonResponse({"error": "bad_student_sourced_id"}, status=400)
     if obj is None:
@@ -1550,7 +1580,10 @@ def put_demographic(request: HttpRequest, sourced_id: str):
     except Exception:  # noqa: BLE001
         return JsonResponse({"error": "models_unavailable"}, status=503)
     try:
-        obj = StudentProfile.objects.filter(pk=pk_str).first()  # tenant-isolation-allow: oneroster-demographic-put-by-pk
+        obj = _scope_students(
+            StudentProfile.objects.filter(pk=pk_str),  # tenant-isolation-allow: narrowed by _scope_students
+            _roster_scope_school(request),
+        ).first()
     except (ValueError, TypeError):
         return JsonResponse({"error": "bad_sourced_id"}, status=400)
     if obj is None:

@@ -204,9 +204,13 @@ RESTORE_PLAN: tuple[_RestoreSpec, ...] = (
         # table is shared across every tenant, so restoring school A must not
         # rewrite a live row belonging to school B's staff.
         require_school_membership=True,
-        # Platform-wide privilege flags are never restored onto a live row — a
-        # tenant restore must not re-promote a user demoted since capture.
-        preserve_on_update=("is_staff", "is_superuser"),
+        # Platform-wide credentials and privilege flags are never restored onto
+        # a LIVE row. A demoted user must not be re-promoted, and because one
+        # person can hold memberships in several schools, rolling their password
+        # back to this tenant's capture time would lock them out of the others
+        # too. A row this restore CREATES still takes the snapshot's values —
+        # that is the real disaster-recovery case.
+        preserve_on_update=("is_staff", "is_superuser", "password", "last_login"),
     ),
     _RestoreSpec(
         app_label="finance",
@@ -586,7 +590,11 @@ def compile_snapshot_payload(school) -> dict[str, Any]:
     school_config = {
         "slug": getattr(school, "slug", ""),
         "name": getattr(school, "name", ""),
-        "subdomain": getattr(school, "subdomain", ""),
+        # `getattr(..., "")` only defaults a MISSING attribute, not a None value, and
+        # an absent subdomain is NULL since schools.0087. The restore side reads
+        # `cfg.get("subdomain") or slug`, so either would work -- but a snapshot is a
+        # data format, and changing a key's type is not worth the surprise.
+        "subdomain": getattr(school, "subdomain", "") or "",
     }
     # Capture the School config row itself (restored as an upsert by slug).
     school_config["row"] = _serialize_rows(

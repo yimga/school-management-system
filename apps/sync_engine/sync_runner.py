@@ -28,6 +28,7 @@ conflict/money policy.
 from __future__ import annotations
 
 import logging
+from typing import NamedTuple
 
 from django.conf import settings
 from apps.sync_engine.cloud_endpoints import cloud_endpoint
@@ -79,7 +80,21 @@ def _request_replay_for_missing_parents(school) -> str:
         return f"could not request a replay for the missing parents: {exc}"
 
 
-def _flush_drifted_entities(school, endpoint, token, user, drifted) -> str:
+class FlushOutcome(NamedTuple):
+    """What the parity flush actually did, not just what it would say about it.
+
+    The note alone was the whole return value, so the caller could only append it and
+    re-arm the sweep unconditionally — including after a flush that had detected, and
+    said in that very note, that it could NOT repair. ``repaired``/``failed`` make the
+    outcome something a caller can decide on.
+    """
+
+    note: str
+    repaired: list
+    failed: list
+
+
+def _flush_drifted_entities(school, endpoint, token, user, drifted) -> FlushOutcome:
     """G8 repair: re-pull the drifted entities WHOLE, one entity at a time.
 
     Targeted on purpose. The cursor is per ``(school, direction)``, so the existing
@@ -105,8 +120,8 @@ def _flush_drifted_entities(school, endpoint, token, user, drifted) -> str:
     landed and the third is named as still drifted. It also keeps one entity's failure —
     a missing reference, a policy refusal — from being reported as all three failing.
 
-    Returns the operator note. Never raises: a repair must not be the thing that breaks
-    the cycle it is repairing.
+    Returns a :class:`FlushOutcome`. Never raises: a repair must not be the thing
+    that breaks the cycle it is repairing.
     """
     try:
         from apps.sync_engine import edge_outbox, parity
@@ -120,9 +135,14 @@ def _flush_drifted_entities(school, endpoint, token, user, drifted) -> str:
         # it cannot break the cycle it is repairing — and it would surface as "pull
         # failed" AFTER the pull had already succeeded and advanced the cursor.
         logger.debug("parity flush could not start", exc_info=True)
-        return f"parity flush could not start: {exc}"
+        # A setup failure repaired nothing, so it is reported as a failure of every
+        # entity that was asked for, not as an empty outcome - an empty outcome
+        # reads as "no drift left" to the caller that decides the re-arm.
+        return FlushOutcome(
+            f"parity flush could not start: {exc}", [], [str(e) for e in (drifted or [])]
+        )
     if not targets:
-        return ""
+        return FlushOutcome("", [], [])
     repaired, failed = [], []
     for entity_type in targets:
         try:
@@ -157,7 +177,11 @@ def _flush_drifted_entities(school, endpoint, token, user, drifted) -> str:
             f"{len(drifted) - cap} more entit(ies) still drifted and NOT repaired this "
             f"cycle ({deferred}); they follow on later cycles"
         )
-    return "; ".join(bits)
+        # Deferred entities are still drifted, so they belong in `failed`: a caller
+        # deciding whether the drift is CLOSED must not read "we ran out of budget"
+        # as "everything is fixed now" - the same mistake the note above warns of.
+        failed.extend(list(drifted)[cap:])
+    return FlushOutcome("; ".join(bits), repaired, failed)
 
 
 def _operator_base() -> str:
@@ -881,6 +905,11 @@ def _execute_sync_transport(school, *, mode, result, run_row) -> None:
                     # operator who is never told the two sides had diverged cannot know
                     # the box was serving stale records until now.
                     drifted = collected.get("parity_drift") or []
+                    try:
+                        from apps.sync_engine import parity as _parity
+                    except Exception:  # noqa: BLE001 — costs latency, not data
+                        _parity = None
+                        logger.debug("parity module unavailable", exc_info=True)
                     if drifted:
                         result["parity_drift"] = list(drifted)
                         advice = (collected.get("parity_advice") or "").strip()
@@ -891,21 +920,48 @@ def _execute_sync_transport(school, *, mode, result, run_row) -> None:
                             advice or "no detail",
                         )
                         notes.append(advice or f"parity drift: {', '.join(drifted)}")
-                        flush_note = _flush_drifted_entities(
-                            school, endpoint, token, user, drifted
-                        )
-                        if flush_note:
-                            notes.append(flush_note)
-                        # Re-sweep on the NEXT cycle rather than in an hour: the repair
-                        # either worked or it did not, and that answer is worth having
-                        # promptly. It also closes the loop honestly — a flush that
-                        # silently failed would otherwise read as a fix for an hour.
-                        try:
-                            from apps.sync_engine import parity as _parity
-
-                            _parity.reset(school)
-                        except Exception:  # noqa: BLE001 — costs latency, not data
-                            logger.debug("could not re-arm the parity sweep", exc_info=True)
+                        repeat = _parity.record_drift(school, drifted) if _parity else False
+                        if repeat:
+                            # The same entities came back drifted after a flush already
+                            # ran on them. A second re-pull of the same whole tables buys
+                            # the same answer at the same cost, so stop repairing and make
+                            # it an operator's problem — which is what it now is.
+                            result["parity_unrepairable"] = True
+                            notes.append(
+                                "parity drift is unrepairable by the automatic flush "
+                                f"({', '.join(drifted)}): the same entities disagreed on two "
+                                "consecutive sweeps. No further flush will be attempted — "
+                                "an operator needs to look at this box."
+                            )
+                            logger.error(
+                                "edge sync: parity drift unrepairable school=%s entities=%s",
+                                school.pk,
+                                ",".join(drifted),
+                            )
+                        else:
+                            flush = _flush_drifted_entities(
+                                school, endpoint, token, user, drifted
+                            )
+                            if flush.note:
+                                notes.append(flush.note)
+                            # Re-sweep on the NEXT cycle rather than in an hour — but ONLY
+                            # when the flush actually repaired everything it was given. A
+                            # re-arm skips interval_seconds() entirely, so re-arming after a
+                            # flush that could not repair turns the hourly sweep into a
+                            # full-corpus digest plus a whole-entity re-pull on EVERY tick,
+                            # for as long as the drift lasts. Prompt when there is something
+                            # to confirm; the ordinary interval when there is not.
+                            if _parity and flush.repaired and not flush.failed:
+                                try:
+                                    _parity.reset(school)
+                                except Exception:  # noqa: BLE001 — costs latency, not data
+                                    logger.debug(
+                                        "could not re-arm the parity sweep", exc_info=True
+                                    )
+                    elif _parity:
+                        # The sides agree again: forget the drift so a future, unrelated
+                        # drift is treated as a first sighting and gets its one repair.
+                        _parity.clear_drift(school)
     except Exception as exc:  # noqa: BLE001 — never crash the tenant page
         errors.append(f"pull failed: {exc}")
 

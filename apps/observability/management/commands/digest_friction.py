@@ -28,6 +28,20 @@ logger = logging.getLogger(__name__)
 
 KIND_LABEL = dict(FRICTION_KINDS)
 
+_TEMPLATE_KEY = "friction_digest"
+
+# Typed dispatch failures (§2.4 broad-except policy). AttributeError stays in
+# the tuple — a wrong method name must not crash a cron — but it is now logged
+# at ERROR with a traceback instead of an INFO "fallback".
+_DISPATCH_ERRORS = (
+    AttributeError,
+    ImportError,
+    OSError,
+    RuntimeError,
+    TypeError,
+    ValueError,
+)
+
 
 class Command(BaseCommand):
     help = "Summarise FrictionEvent rows from the last 24h per tenant."
@@ -86,7 +100,7 @@ class Command(BaseCommand):
                 self.stdout.write("─" * 60)
                 self.stdout.write(body)
             else:
-                self._dispatch(school_id, body)
+                self._dispatch(events[0].school, body)
 
     def _format_event(self, event: FrictionEvent) -> str:
         actor = getattr(event.user, "username", None) or "anonymous"
@@ -147,25 +161,75 @@ class Command(BaseCommand):
             return None
         return str(text).strip()
 
-    def _dispatch(self, school_id, body: str) -> None:
-        """Hand off to CommunicationTemplate when available.
+    def _recipients(self, school) -> list[str]:
+        """Tenant admins are the digest's success owners."""
+        from apps.schools.models import SchoolMembership  # noqa: PLC0415
 
-        We deliberately fall back to logging if the tenant has no
-        ``friction_digest`` template configured — a missing template should
-        not block the digest run.
+        emails: list[str] = []
+        memberships = (
+            SchoolMembership.objects.filter(school=school, role="ADMIN")
+            .select_related("user")
+            .order_by("-is_primary", "id")[:20]
+        )
+        for membership in memberships:
+            email = (getattr(membership.user, "email", "") or "").strip()
+            if email and email not in emails:
+                emails.append(email)
+        return emails
+
+    def _subject(self, school) -> str:
+        """Subject from the tenant's (or the platform's) ``friction_digest``
+        override when configured.
+
+        Only the subject: the body is composed above from live FrictionEvent
+        rows, so re-rendering it through the override's body_template would
+        throw the digest away.
         """
         try:
             from apps.communication.models import CommunicationTemplate  # noqa: PLC0415
 
-            tpl = CommunicationTemplate.objects.filter(
-                school_id=school_id, key="friction_digest", is_active=True
-            ).first()
-            if tpl is None:
-                logger.info("friction_digest no template for school_id=%s", school_id)
-                return
-            # Real send is handled by the Communication app's worker; here we
-            # just record the digest body in the template's last_render
-            # field so the worker picks it up.
-            tpl.queue_render({"body": body})
-        except (AttributeError, ImportError, RuntimeError, ValueError):
-            logger.info("friction_digest fallback school_id=%s body_chars=%s", school_id, len(body))
+            tpl = (
+                CommunicationTemplate.objects.filter(
+                    school=school, key=_TEMPLATE_KEY, is_active=True
+                ).first()
+                or CommunicationTemplate.objects.filter(
+                    school__isnull=True, key=_TEMPLATE_KEY, is_active=True
+                ).first()
+            )
+            if tpl is not None and tpl.subject_template:
+                return tpl.subject_template
+        except _DISPATCH_ERRORS:
+            logger.exception("friction_digest subject lookup failed school=%s", school.pk)
+        return f"Friction digest — {school.name}"
+
+    def _dispatch(self, school, body: str) -> None:
+        """Email the digest to the tenant's success owners.
+
+        A missing recipient is benign (nobody asked for this tenant's digest)
+        and stays at INFO. A failing send is NOT benign — it used to be
+        downgraded to an INFO "fallback" line indistinguishable from the
+        no-recipient case, which is how a dispatch call to a method that never
+        existed survived unnoticed.
+        """
+        if school is None:
+            logger.info("friction_digest skipped: friction rows carry no tenant")
+            return
+        recipients = self._recipients(school)
+        if not recipients:
+            logger.info("friction_digest no recipients for school_id=%s", school.pk)
+            return
+        try:
+            from apps.communication.notification_service import send_email  # noqa: PLC0415
+
+            send_email(
+                recipients,
+                self._subject(school),
+                body,
+                school=school,
+                fail_silently=True,
+            )
+        except _DISPATCH_ERRORS:
+            logger.exception(
+                "friction_digest dispatch failed school_id=%s recipients=%s body_chars=%s",
+                school.pk, len(recipients), len(body),
+            )

@@ -173,6 +173,8 @@ GATES: list[tuple[str, list[str]]] = [
     # failing. Zero-tolerance and WITHOUT --compare: there is no baseline, because
     # a dict that discards one of its own entries is never what was meant.
     ("duplicate-dict-keys", ["scan_duplicate_dict_keys.py", "--strict"]),
+    # An admin registered on a site no urlconf mounts is a page nobody can open.
+    ("admin-unmounted-site", ["scan_admin_registered_on_unmounted_site.py", "--compare"]),
     # --- RLS: the two halves that `rls-table-coverage` does NOT cover ---------
     # scan_rls_table_coverage (DJANGO_GATES, below) catches a NEW tenant-scoped
     # table with no RLS at all. It says nothing about whether the RLS that exists
@@ -245,7 +247,24 @@ GATES: list[tuple[str, list[str]]] = [
 # place one gate at a time: zero-tolerance, security-relevant, and invisible to every
 # stdlib gate above.
 DJANGO_GATES: list[tuple[str, list[str]]] = [
+    # Cheap, and it catches something a clean merge actively hides. Two agents adding a
+    # migration to the same app in parallel produce two files with DIFFERENT names and
+    # the SAME dependency; git reports no conflict and Django then refuses to migrate the
+    # app at all. It happened on 2026-08-23 (schools/0085 twice) and no diff showed it.
+    ("single-migration-leaf", ["verify_single_migration_leaf.py"]),
+    # blank=True + unique=True on a text field with no null=True is optional EXACTLY
+    # ONCE -- blank stores "" and only one row may hold it under a unique index. Two
+    # live defects came from that shape on 2026-08-23: School.subdomain, and the KB
+    # slugs (slugify returns "" for any script it cannot transliterate, so a school's
+    # SECOND Arabic help article raised IntegrityError).
+    ("blank-unique-text-fields", ["scan_blank_unique_text_fields.py"]),
     ("rls-table-coverage", ["scan_rls_table_coverage.py", "--compare"]),
+    # Its blind spot: a child table that reaches its school through a parent has
+    # no `school` field, so the gate above cannot see it and truthfully says 0.
+    ("rls-relation-coverage", ["scan_rls_relation_scoped_coverage.py", "--compare"]),
+    # A NULLABLE school FK whose policy omits the IS NULL arm hides its own
+    # platform-scope rows: NULL::text = '<uuid>' is NULL, so USING is false.
+    ("rls-null-school-arm", ["scan_rls_null_school_arm.py", "--compare"]),
     # TenantAdminSite.register auto-scopes a changelist only when the model has a
     # concrete `school` field -- that column is what the mixin filters on. A
     # SHARED_APPS model WITHOUT one got no scoping at all, and its table lives in

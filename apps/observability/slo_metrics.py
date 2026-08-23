@@ -35,16 +35,29 @@ _DEFAULT_LATENCY_BUCKETS: tuple[float, ...] = (
     float("inf"),
 )
 
-# Sentry / trace transaction name → SLO key (first registration wins).
-TRANSACTION_TO_SLO: dict[str, str] = {}
+# Sentry / trace transaction name → every SLO key it backs.
+#
+# One transaction routinely backs more than one objective — auth.login is both
+# a latency and an availability SLO. A one-to-one index silently dropped the
+# later registration, leaving that SLO with no producer anywhere in the tree
+# and its generated burn-rate alert evaluating an absent series forever.
+TRANSACTION_TO_SLO: dict[str, list[str]] = {}
 for _slo in SLOS:
     for _txn in _slo.sentry_transactions:
-        TRANSACTION_TO_SLO.setdefault(_txn, _slo.key)
+        _keys = TRANSACTION_TO_SLO.setdefault(_txn, [])
+        if _slo.key not in _keys:
+            _keys.append(_slo.key)
+
+
+def slo_keys_for_transaction(transaction_name: str) -> list[str]:
+    """Every SLO key a trace transaction feeds, in registration order."""
+    return list(TRANSACTION_TO_SLO.get(transaction_name) or ())
 
 
 def slo_key_for_transaction(transaction_name: str) -> str | None:
-    """Resolve a trace transaction name to its backing SLO key."""
-    return TRANSACTION_TO_SLO.get(transaction_name)
+    """Resolve a trace transaction to its primary (first-registered) SLO key."""
+    keys = TRANSACTION_TO_SLO.get(transaction_name)
+    return keys[0] if keys else None
 
 
 def _metric_stems(slo_key: str) -> tuple[str, str, str]:
@@ -108,12 +121,14 @@ def record_traced_transaction(
     labels: dict[str, Any] | None = None,
 ) -> None:
     """Record metrics for a named trace transaction (``trace_view`` / tasks)."""
-    slo_key = slo_key_for_transaction(transaction_name)
-    if not slo_key or slo_key == "web.availability":
-        return
-    record_slo_outcome(
-        slo_key,
-        success=success,
-        duration_seconds=duration_seconds,
-        labels=labels,
-    )
+    for slo_key in slo_keys_for_transaction(transaction_name):
+        # web.availability is recorded by the HTTP middleware for every
+        # response; emitting it again here would double-count each request.
+        if slo_key == "web.availability":
+            continue
+        record_slo_outcome(
+            slo_key,
+            success=success,
+            duration_seconds=duration_seconds,
+            labels=labels,
+        )

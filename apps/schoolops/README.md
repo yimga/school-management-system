@@ -135,8 +135,13 @@ This app has **no `urls.py`**. Its views (`views_tenant_ops`, `views_email_admin
   on replay.
 - **The allergen barrier defaults to ON.** `_allergen_enforced` returns True
   when the tenant setting is absent — safety-first, block until explicitly
-  disabled. `pos_checkout` is Decimal throughout and idempotent per
-  `idempotency_key` so a retried scan never double-charges. Keep both.
+  disabled. Matching folds plurals and compounds (`_term_matches_token`)
+  because a canteen writes "Peanuts" and "Chocolate Milkshake", not the bare
+  allergen word; the 4-character floor on interior substrings is what keeps
+  "raw" from blocking "strawberry". `pos_checkout` is Decimal throughout and
+  idempotent per `idempotency_key` — enforced by the
+  `uniq_possaleline_school_idem` partial unique index, because the pre-insert
+  read cannot see an uncommitted concurrent replay. Keep all three.
 - **`boarding_monitor` taps are idempotent by key** so an offline bus can replay
   a queue without double-counting. `route_optimizer` is an honest greedy first
   cut, not a VRP solver — stops without coordinates keep their sequence rather
