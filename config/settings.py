@@ -1343,6 +1343,37 @@ def _edge_default(name, fallback):
     return ("1" if value else "0") if isinstance(value, bool) else str(value)
 
 
+# An edge box does not hold still: DHCP hands it a new lease, a room is re-cabled,
+# a school moves campus. Opt in with RMC_EDGE_TRUST_LOCAL_ADDRESSES=1 and the box
+# accepts requests at whatever address it currently holds, so an address change does
+# not become a 400 on every request while somebody finds the file to edit. Paired
+# with `manage.py edge_tls --ensure` at start-up, a moved box heals completely on
+# its own -- and the CA is reused, so no device is ever revisited.
+#
+# Only the box's OWN addresses are added, read from its routing table -- never an
+# arbitrary Host header. The protection ALLOWED_HOSTS exists to give is preserved:
+# an attacker cannot make the box hold an address it does not hold.
+try:
+    from apps.schools.edge_tls import local_addresses as _edge_local_addresses
+    from apps.schools.edge_tls import trust_local_addresses as _edge_trust_local
+
+    if _edge_trust_local():
+        _edge_scheme = "https" if RMC_EDGE_TLS_MODE in ("selfsigned", "provided", "acme") else "http"
+        _edge_web_port = (os.getenv("WEB_PORT", "") or "").strip()
+        for _edge_addr in _edge_local_addresses():
+            if _edge_addr not in ALLOWED_HOSTS:
+                ALLOWED_HOSTS.append(_edge_addr)
+            _edge_origins = [f"{_edge_scheme}://{_edge_addr}"]
+            if _edge_scheme == "http" and _edge_web_port:
+                # Plain-HTTP boxes are reached on the app port, and the port is part
+                # of the origin for CSRF purposes.
+                _edge_origins.append(f"http://{_edge_addr}:{_edge_web_port}")
+            for _edge_origin in _edge_origins:
+                if _edge_origin not in CSRF_TRUSTED_ORIGINS:
+                    CSRF_TRUSTED_ORIGINS = list(CSRF_TRUSTED_ORIGINS) + [_edge_origin]
+except Exception:  # noqa: BLE001 - settings must import even if discovery fails
+    pass
+
 # Render terminates TLS at the edge. Internal platform probes may hit HTTP
 # without X-Forwarded-Proto and get redirected, which can break startup scans.
 _secure_ssl_redirect_default = _edge_default(

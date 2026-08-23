@@ -26,7 +26,7 @@ opposite directions:
                 name and reachability for the challenge, which many sovereign boxes
                 deliberately do not have.
 
-``off``         Plain HTTP. Honest, and what Gilead runs today. Named as a mode rather
+``off``         Plain HTTP. Honest, and the state every box starts in. Named as a mode rather
                 than left as an absence, so readiness can SAY what is off and what
                 that costs instead of silently omitting the subject.
 
@@ -1195,3 +1195,298 @@ def relocation_plan(
         )
 
     return steps
+
+
+# ---------------------------------------------------------------------------
+# SURVIVING AN ADDRESS CHANGE
+# ---------------------------------------------------------------------------
+# A tenant's box does not hold still. DHCP hands it a different lease, the school
+# re-cables a room onto another subnet, the box moves campus, or it is carried to
+# another country entirely. Every one of those changes the address people type,
+# and a certificate names addresses.
+#
+# There are three layers to this and only the first one is free:
+#
+#   1. DO NOT DEPEND ON THE IP. If devices reach the box by a stable NAME, an
+#      address change costs nothing at all -- the certificate still asserts the
+#      name, and only name resolution has to catch up. On a LAN with no DNS
+#      server, mDNS gives that for free: a `.local` name is answered by the box
+#      itself over multicast, so it follows the box to any address on the segment.
+#   2. PIN THE LEASE. A DHCP reservation keyed to the box's MAC stops the address
+#      moving within a site at all.
+#   3. SELF-HEAL. When the address changes anyway -- and eventually it does --
+#      the box notices that its own certificate no longer covers where it lives,
+#      and reissues. The CA on disk is REUSED, so every device that trusted it
+#      keeps working and nobody is revisited.
+#
+# ``ensure_certificate`` is layer 3. It is deliberately idempotent and cheap
+# enough to run on every container start: it does nothing at all unless something
+# is actually wrong.
+
+#: Reissue this many days before the leaf expires. A box that is switched off for
+#: a long holiday must still come back to a valid certificate, so this is
+#: generous rather than tight.
+DEFAULT_RENEW_BEFORE_DAYS = 30
+
+ENV_RENEW_BEFORE = "RMC_EDGE_TLS_RENEW_BEFORE_DAYS"
+#: Opt-in: fold the addresses this box currently holds into the certificate and
+#: into ALLOWED_HOSTS. Off by default -- a box with a pinned address and a stable
+#: name should not silently start asserting whatever DHCP handed it this morning.
+ENV_TRUST_LOCAL = "RMC_EDGE_TRUST_LOCAL_ADDRESSES"
+
+ACTION_ISSUED = "issued"
+ACTION_REISSUED = "reissued"
+ACTION_NOOP = "noop"
+ACTION_REFUSED = "refused"
+
+
+def local_addresses(include_loopback: bool = False) -> list[str]:
+    """Addresses this box currently answers on, discovered from the host itself.
+
+    Stdlib only and non-blocking: the UDP "connect" sends no packets, it just
+    asks the routing table which source address would be used to reach a given
+    destination. That is the address people on that segment will actually type.
+
+    Loopback and link-local are excluded by default -- nobody reaches a school
+    box at 127.0.0.1 or 169.254.x, and putting them in a certificate only makes
+    the SAN list harder to read.
+    """
+    import socket
+
+    found: set[str] = set()
+
+    # One probe per private range plus a public one, so a box with several
+    # interfaces (wired + wifi is the common case, and they are usually on
+    # different subnets) reports all of them rather than only the default route.
+    for probe in ("10.255.255.255", "172.31.255.255", "192.168.255.255", "8.8.8.8"):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        try:
+            sock.settimeout(0.2)
+            sock.connect((probe, 9))
+            found.add(sock.getsockname()[0])
+        except OSError:
+            continue
+        finally:
+            sock.close()
+
+    try:
+        _name, _aliases, addresses = socket.gethostbyname_ex(socket.gethostname())
+        found.update(addresses)
+    except OSError:
+        # No resolver, or a hostname that does not resolve. Not fatal: the probes
+        # above already answered, and this is only here to catch interfaces the
+        # routing table would not have named.
+        pass
+
+    keep: list[str] = []
+    for raw in found:
+        try:
+            parsed = ipaddress.ip_address(raw)
+        except ValueError:
+            continue
+        if parsed.is_link_local:
+            continue
+        if parsed.is_loopback and not include_loopback:
+            continue
+        keep.append(str(parsed))
+    return sorted(keep, key=lambda a: (ipaddress.ip_address(a).version, a))
+
+
+def certificate_needs_reissue(
+    facts: "CertificateFacts",
+    dns: list[str],
+    ips: list[str],
+    renew_before_days: int = DEFAULT_RENEW_BEFORE_DAYS,
+    _now: Any = None,
+) -> tuple[bool, str]:
+    """Should the leaf be reissued? Returns ``(needed, human reason)``.
+
+    Separate from the doing so a caller -- a readiness check, a dashboard, a dry
+    run -- can ask the question without changing anything.
+    """
+    if not facts.exists:
+        return True, "no certificate on disk"
+    if facts.error:
+        return True, f"certificate could not be read ({facts.error})"
+
+    missing = facts.covers(dns, ips)
+    if missing:
+        return True, "certificate does not cover " + ", ".join(missing)
+
+    if facts.days_remaining is not None and facts.days_remaining <= renew_before_days:
+        return True, f"certificate expires in {facts.days_remaining} days"
+
+    # A leaf dated in the FUTURE is what a box that briefly believed it was 2046
+    # leaves behind. Once the clock is right again, reissuing is precisely the fix
+    # -- so this must read as "needs reissue", not as "the clock is broken".
+    if facts.not_before:
+        from datetime import datetime, timezone
+
+        try:
+            starts = datetime.fromisoformat(facts.not_before)
+        except ValueError:
+            starts = None
+        if starts is not None:
+            current = _now or datetime.now(timezone.utc)
+            if current < starts:
+                return True, (
+                    f"certificate is not valid until {starts.isoformat()} -- it was "
+                    "minted while the clock was wrong"
+                )
+
+    return False, "certificate covers every address and is not near expiry"
+
+
+def ensure_certificate(
+    directory: str,
+    dns: list[str],
+    ips: list[str],
+    days: int = DEFAULT_SELF_SIGNED_DAYS,
+    renew_before_days: int = DEFAULT_RENEW_BEFORE_DAYS,
+    common_name: str = "",
+    now: Any = None,
+) -> dict[str, Any]:
+    """Bring the certificate into line with where this box actually lives.
+
+    Safe to run on every container start. Does nothing unless the certificate is
+    missing, unreadable, no longer covers an address the box answers at, or is
+    within ``renew_before_days`` of expiry. **The CA is never regenerated** --
+    ``issue_self_signed`` reuses the one on disk -- so a self-heal is invisible to
+    every device that installed it.
+
+    Refuses to act when the clock is impossible. A box whose RTC died in transit
+    believes it is years in the past; reissuing then writes a certificate that is
+    "not yet valid" for real, turning a recoverable clock problem into a
+    certificate problem as well.
+    """
+    cert_path = os.path.join(directory, "tls.crt")
+    ca_path = os.path.join(directory, "ca.crt")
+
+    facts = inspect_certificate(cert_path, now=now)
+    ca_facts = inspect_certificate(ca_path, now=now)
+
+    # Only a clock that predates the box's own CA proves the CLOCK is wrong; a
+    # leaf dated in the future merely proves it WAS wrong when that leaf was
+    # minted, and reissuing now is the repair. Refusing on both would leave a
+    # recovered box permanently stuck serving a not-yet-valid certificate.
+    clock = clock_findings(facts, ca_facts, now=now) if ca_facts.exists else []
+    blocking = [
+        message
+        for severity, message in clock
+        if severity == "fail" and "BEFORE this box's own CA" in message
+    ]
+    if blocking:
+        return {
+            "action": ACTION_REFUSED,
+            "reason": blocking[0],
+            "reused_ca": False,
+            "dns_names": list(dns),
+            "ip_addresses": list(ips),
+        }
+
+    needed, reason = certificate_needs_reissue(
+        facts, dns, ips, renew_before_days, _now=now
+    )
+    if not needed:
+        return {
+            "action": ACTION_NOOP,
+            "reason": reason,
+            "reused_ca": True,
+            "dns_names": list(facts.dns_names),
+            "ip_addresses": list(facts.ip_addresses),
+        }
+
+    result = issue_self_signed(
+        directory=directory,
+        dns_names=list(dns),
+        ip_addresses=list(ips),
+        days=days,
+        common_name=common_name,
+    )
+    return {
+        "action": ACTION_ISSUED if not facts.exists else ACTION_REISSUED,
+        "reason": reason,
+        "reused_ca": bool(result.get("reused_ca")),
+        "dns_names": list(dns),
+        "ip_addresses": list(ips),
+        "cert": result.get("cert", ""),
+        "ca": result.get("ca", ""),
+    }
+
+
+def trust_local_addresses(environ: dict[str, str] | None = None) -> bool:
+    """Is this box allowed to fold its own current addresses into what it serves?"""
+    env = os.environ if environ is None else environ
+    return str(env.get(ENV_TRUST_LOCAL, "") or "").strip().lower() in (
+        "1",
+        "true",
+        "yes",
+        "on",
+    )
+
+
+def renew_before_days(environ: dict[str, str] | None = None) -> int:
+    env = os.environ if environ is None else environ
+    try:
+        value = int(str(env.get(ENV_RENEW_BEFORE, "")).strip())
+    except (TypeError, ValueError):
+        return DEFAULT_RENEW_BEFORE_DAYS
+    return value if value > 0 else DEFAULT_RENEW_BEFORE_DAYS
+
+
+def effective_addresses(
+    environ: dict[str, str] | None = None,
+    allowed_hosts: list[str] | None = None,
+) -> tuple[list[str], list[str]]:
+    """The addresses to serve: what was configured, plus (opt-in) what we hold now.
+
+    With ``RMC_EDGE_TRUST_LOCAL_ADDRESSES`` off this is exactly ``san_candidates``
+    -- the school's declared list, nothing invented. With it on, the box's own
+    current addresses are folded in, which is what lets a moved or re-leased box
+    heal itself without anyone editing a file.
+
+    Only the box's OWN addresses are added, never an arbitrary host header, so
+    the Host-header protection ALLOWED_HOSTS exists for is preserved: an attacker
+    cannot make the box hold an address it does not hold.
+    """
+    dns, ips = san_candidates(environ=environ, allowed_hosts=allowed_hosts)
+    if not trust_local_addresses(environ):
+        return dns, ips
+    for address in local_addresses():
+        if address not in ips:
+            ips.append(address)
+    return dns, ips
+
+
+def stability_findings(dns: list[str], ips: list[str]) -> list[tuple[str, str]]:
+    """Warn when the way this box is reached will not survive an address change.
+
+    An IP-only box is the fragile configuration, and it is fragile in a way that
+    is invisible until the day it breaks: everything works perfectly until DHCP
+    hands out a different lease, and then every device shows a certificate error
+    at an address that no longer exists.
+    """
+    findings: list[tuple[str, str]] = []
+    if ips and not dns:
+        findings.append((
+            "warn",
+            "This box is reachable only by IP address ("
+            + ", ".join(ips)
+            + "). That works until the address changes -- a new DHCP lease, a "
+            "re-cabled room, a move -- and then every device shows a certificate "
+            "error. Give the box a stable NAME as well: an mDNS '.local' name "
+            "needs no DNS server and follows the box to any address, and a DHCP "
+            "reservation stops the address moving in the first place. Both are "
+            "free; the certificate then survives the change untouched.",
+        ))
+    mdns = [d for d in dns if d.lower().endswith(".local")]
+    if dns and not mdns and not any(publicly_issuable(d) for d in dns):
+        findings.append((
+            "warn",
+            "The names configured here ("
+            + ", ".join(dns)
+            + ") need something to resolve them -- a LAN DNS record or a hosts "
+            "entry on every device. An mDNS '.local' name is answered by the box "
+            "itself and needs neither.",
+        ))
+    return findings

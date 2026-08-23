@@ -40,6 +40,26 @@ fi
 # (docs/SELF_HOST_MIGRATION.md); running it every boot makes the box self-report.
 # Advisory by default (never blocks boot); set RMC_EDGE_READINESS_STRICT=1 to make
 # a FAIL-level finding abort startup (via `set -e`).
+# Certificate self-heal. A box does not hold still: DHCP hands it a new lease, a room
+# gets re-cabled onto another subnet, a school moves campus. A certificate names
+# addresses, so any of those silently invalidates it for the address people type.
+#
+# This does NOTHING unless the certificate is missing, no longer covers an address the
+# box answers at, or is within its renewal window -- and when it does act it REUSES the
+# CA already on disk, so the self-heal is invisible to every device that installed it.
+# It also REFUSES to act when the clock is impossible (a box whose RTC died in transit
+# believes it is years in the past), because reissuing then writes a certificate that
+# is genuinely not-yet-valid, turning a recoverable clock fault into a second fault.
+#
+# Runs before the readiness check so that check reports the healed state, and before
+# gunicorn so the terminator never serves a certificate for an address this box left.
+# Advisory (`|| true`): a box that cannot mint a certificate must still boot and serve
+# -- degraded is recoverable, refusing to start is not.
+if [[ "${RMC_EDGE_TLS_MODE:-off}" == "selfsigned" ]]; then
+  echo "[selfhost] certificate self-heal"
+  python manage.py edge_tls --ensure || true
+fi
+
 echo "[selfhost] edge readiness check"
 if [[ "${RMC_EDGE_READINESS_STRICT:-0}" == "1" ]]; then
   python manage.py check_edge_readiness --strict

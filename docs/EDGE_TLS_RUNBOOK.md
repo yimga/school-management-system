@@ -204,6 +204,58 @@ python manage.py edge_tls --plan-relocation --changed address
 python manage.py edge_tls --plan-relocation --changed country,hardware
 ```
 
+### Surviving an address change, which is the common case
+
+Hardware replacement is rare. A changed IP is not: a new DHCP lease, a re-cabled
+room, a different subnet at a new campus. A certificate names addresses, so any of
+those invalidates it for the address people actually type. Three layers, and only
+the first one is free.
+
+**1. Do not depend on the IP.** If devices reach the box by a stable NAME, an
+address change costs nothing at all — the certificate still asserts the name, and
+only name resolution has to catch up. On a LAN with no DNS server, mDNS gives you
+that for free: a `.local` name is answered by the box itself over multicast and
+follows it to any address on the segment. No server, no records, nothing per
+device — and `ALLOWED_HOSTS` already accepts `.local` by default.
+
+Support is native on iOS, macOS, Windows 10+ and Android 12+. Where it is missing
+(an old Android tablet, a kiosk browser), that device falls back to the IP, which
+still works — mDNS is an addition, never a replacement.
+
+**2. Pin the lease.** A DHCP reservation against the box's MAC address stops the
+address moving within a site at all. Two minutes in the router, and it removes the
+whole problem for a box that does not travel.
+
+**3. Let the box heal itself when it changes anyway.**
+
+```bash
+python manage.py edge_tls --ensure
+```
+
+This runs on every boot already (`deploy/selfhost/entrypoint.web.sh`). It does
+**nothing** unless the certificate is missing, no longer covers an address the box
+answers at, or is inside its renewal window. When it does act it **reuses the CA on
+disk**, so the repair is invisible to every device that installed it, and it
+refuses to act on an impossible clock rather than minting a certificate that is
+genuinely not-yet-valid.
+
+Django must also *accept* the new address, or the box returns 400 to every request
+— which is worse than a certificate warning, because nothing on screen explains it.
+For a box that moves, or one on a network you do not control:
+
+```bash
+RMC_EDGE_TRUST_LOCAL_ADDRESSES=1
+```
+
+The box then serves, and asserts, the addresses it currently holds. Only its **own**
+addresses, read from its routing table — never an arbitrary `Host` header — so the
+protection `ALLOWED_HOSTS` exists to give is preserved: an attacker cannot make the
+box hold an address it does not hold.
+
+Together: a box can be unplugged, moved to another building, given a completely
+different address by a different router, and come back working — with no device
+touched and nobody editing a file.
+
 ### On replacement hardware, restore before you issue
 
 ```bash

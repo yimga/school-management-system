@@ -395,3 +395,260 @@ class RelocationPlanTests(SimpleTestCase):
     def test_unknown_mode_is_rejected_rather_than_silently_planned(self):
         with self.assertRaises(edge_tls.UnknownTlsMode):
             edge_tls.relocation_plan("banana", {edge_tls.CHANGE_ADDRESS})
+
+
+class LocalAddressDiscoveryTests(SimpleTestCase):
+    """What the box thinks its own addresses are."""
+
+    def test_returns_parseable_addresses(self):
+        for address in edge_tls.local_addresses():
+            with self.subTest(address=address):
+                self.assertTrue(str(edge_tls.ipaddress.ip_address(address)))
+
+    def test_loopback_and_link_local_are_excluded_by_default(self):
+        # Nobody reaches a school box at 127.0.0.1 or 169.254.x; putting them in a
+        # certificate only makes the SAN list harder to read.
+        for address in edge_tls.local_addresses():
+            parsed = edge_tls.ipaddress.ip_address(address)
+            self.assertFalse(parsed.is_loopback)
+            self.assertFalse(parsed.is_link_local)
+
+    def test_include_loopback_only_widens_the_result(self):
+        # The flag stops loopback being filtered OUT; it does not go looking for it.
+        # Whether 127.0.0.1 is discovered at all depends on the host's routing table
+        # and resolver, so the contract that always holds is superset-ness.
+        narrow = set(edge_tls.local_addresses())
+        wide = set(edge_tls.local_addresses(include_loopback=True))
+        self.assertTrue(narrow.issubset(wide))
+        self.assertFalse(
+            any(edge_tls.ipaddress.ip_address(a).is_loopback for a in narrow)
+        )
+
+    def test_discovery_never_raises(self):
+        # Runs at settings-load time on every box; an exception here is a box that
+        # will not start.
+        edge_tls.local_addresses()
+        edge_tls.local_addresses(include_loopback=True)
+
+
+class TrustAndRenewalSettingTests(SimpleTestCase):
+    def test_trust_local_is_off_unless_asked_for(self):
+        self.assertFalse(edge_tls.trust_local_addresses(environ={}))
+        for value in ("0", "false", "no", "off", "", "banana"):
+            with self.subTest(value=value):
+                self.assertFalse(
+                    edge_tls.trust_local_addresses(
+                        environ={edge_tls.ENV_TRUST_LOCAL: value}
+                    )
+                )
+
+    def test_trust_local_accepts_the_usual_truthy_spellings(self):
+        for value in ("1", "true", "TRUE", "yes", "on"):
+            with self.subTest(value=value):
+                self.assertTrue(
+                    edge_tls.trust_local_addresses(
+                        environ={edge_tls.ENV_TRUST_LOCAL: value}
+                    )
+                )
+
+    def test_renew_window_falls_back_on_nonsense_rather_than_crashing(self):
+        self.assertEqual(
+            edge_tls.renew_before_days(environ={}), edge_tls.DEFAULT_RENEW_BEFORE_DAYS
+        )
+        for bad in ("", "soon", "-5", "0"):
+            with self.subTest(bad=bad):
+                self.assertEqual(
+                    edge_tls.renew_before_days(environ={edge_tls.ENV_RENEW_BEFORE: bad}),
+                    edge_tls.DEFAULT_RENEW_BEFORE_DAYS,
+                )
+        self.assertEqual(
+            edge_tls.renew_before_days(environ={edge_tls.ENV_RENEW_BEFORE: "45"}), 45
+        )
+
+
+class EffectiveAddressTests(SimpleTestCase):
+    def test_without_opt_in_only_the_declared_addresses_are_used(self):
+        env = {edge_tls.ENV_HOSTNAMES: "gilead.local,10.10.20.137"}
+        dns, ips = edge_tls.effective_addresses(environ=env)
+        self.assertEqual(dns, ["gilead.local"])
+        self.assertEqual(ips, ["10.10.20.137"])
+
+    def test_with_opt_in_the_boxes_own_addresses_are_folded_in(self):
+        env = {
+            edge_tls.ENV_HOSTNAMES: "gilead.local,10.10.20.137",
+            edge_tls.ENV_TRUST_LOCAL: "1",
+        }
+        dns, ips = edge_tls.effective_addresses(environ=env)
+        self.assertEqual(dns, ["gilead.local"])
+        self.assertIn("10.10.20.137", ips)
+        for address in edge_tls.local_addresses():
+            self.assertIn(address, ips)
+
+    def test_opt_in_does_not_duplicate_an_already_declared_address(self):
+        held = edge_tls.local_addresses()
+        if not held:
+            self.skipTest("no non-loopback address on this host")
+        env = {
+            edge_tls.ENV_HOSTNAMES: held[0],
+            edge_tls.ENV_TRUST_LOCAL: "1",
+        }
+        _dns, ips = edge_tls.effective_addresses(environ=env)
+        self.assertEqual(ips.count(held[0]), 1)
+
+
+class CertificateNeedsReissueTests(_CertDirMixin, SimpleTestCase):
+    def test_missing_certificate_needs_issuing(self):
+        facts = edge_tls.inspect_certificate(os.path.join(self.tmp, "tls.crt"))
+        needed, reason = edge_tls.certificate_needs_reissue(facts, ["a.local"], [])
+        self.assertTrue(needed)
+        self.assertIn("no certificate", reason)
+
+    def test_a_covering_current_certificate_needs_nothing(self):
+        self._issue(dns=["a.local"], ips=["10.0.0.1"])
+        facts = edge_tls.inspect_certificate(os.path.join(self.tmp, "tls.crt"))
+        needed, _reason = edge_tls.certificate_needs_reissue(
+            facts, ["a.local"], ["10.0.0.1"]
+        )
+        self.assertFalse(needed)
+
+    def test_an_uncovered_address_names_itself_in_the_reason(self):
+        self._issue(dns=["a.local"], ips=["10.0.0.1"])
+        facts = edge_tls.inspect_certificate(os.path.join(self.tmp, "tls.crt"))
+        needed, reason = edge_tls.certificate_needs_reissue(
+            facts, ["a.local"], ["10.0.0.99"]
+        )
+        self.assertTrue(needed)
+        self.assertIn("10.0.0.99", reason)
+
+    def test_a_leaf_dated_in_the_future_is_reissued_not_refused(self):
+        # A box whose clock briefly ran 20 years fast leaves behind a leaf that is
+        # "not yet valid" once the clock is corrected. Every other check calls that
+        # certificate healthy -- it covers everything and is nowhere near expiry --
+        # so without this the box would serve an unusable certificate forever.
+        now = datetime.now(timezone.utc)
+        future = now + timedelta(days=365 * 20)
+        stranded = edge_tls.CertificateFacts(
+            path="tls.crt",
+            exists=True,
+            readable=True,
+            dns_names=("a.local",),
+            ip_addresses=("10.0.0.1",),
+            not_before=future.isoformat(),
+            not_after=(future + timedelta(days=825)).isoformat(),
+            days_remaining=825 + 365 * 20,
+        )
+        needed, reason = edge_tls.certificate_needs_reissue(
+            stranded, ["a.local"], ["10.0.0.1"], _now=now
+        )
+        self.assertTrue(needed)
+        self.assertIn("not valid until", reason)
+
+    def test_near_expiry_triggers_renewal(self):
+        edge_tls.issue_self_signed(
+            directory=self.tmp, dns_names=["a.local"], ip_addresses=[], days=10
+        )
+        facts = edge_tls.inspect_certificate(os.path.join(self.tmp, "tls.crt"))
+        needed, reason = edge_tls.certificate_needs_reissue(
+            facts, ["a.local"], [], renew_before_days=30
+        )
+        self.assertTrue(needed)
+        self.assertIn("expires", reason)
+
+
+class EnsureCertificateTests(_CertDirMixin, SimpleTestCase):
+    """The self-heal. Safe to run on every boot; acts only when something is wrong."""
+
+    def test_first_boot_issues(self):
+        result = edge_tls.ensure_certificate(self.tmp, ["a.local"], ["10.0.0.1"])
+        self.assertEqual(result["action"], edge_tls.ACTION_ISSUED)
+
+    def test_second_run_with_nothing_changed_does_nothing(self):
+        edge_tls.ensure_certificate(self.tmp, ["a.local"], ["10.0.0.1"])
+        result = edge_tls.ensure_certificate(self.tmp, ["a.local"], ["10.0.0.1"])
+        self.assertEqual(result["action"], edge_tls.ACTION_NOOP)
+
+    def test_a_new_dhcp_lease_reissues_and_keeps_the_ca(self):
+        # The whole point: the address moved, and not one device is revisited.
+        edge_tls.ensure_certificate(self.tmp, ["a.local"], ["10.0.0.1"])
+        before = self._ca_fingerprint(self.tmp)
+        result = edge_tls.ensure_certificate(self.tmp, ["a.local"], ["10.0.0.99"])
+        self.assertEqual(result["action"], edge_tls.ACTION_REISSUED)
+        self.assertTrue(result["reused_ca"])
+        self.assertEqual(self._ca_fingerprint(self.tmp), before)
+        leaf = edge_tls.inspect_certificate(os.path.join(self.tmp, "tls.crt"))
+        self.assertIn("10.0.0.99", leaf.ip_addresses)
+
+    def test_a_campus_move_with_a_new_name_and_subnet_also_keeps_the_ca(self):
+        edge_tls.ensure_certificate(self.tmp, ["a.local"], ["10.0.0.1"])
+        before = self._ca_fingerprint(self.tmp)
+        result = edge_tls.ensure_certificate(
+            self.tmp, ["a.local", "new.site.lan"], ["192.168.44.10"]
+        )
+        self.assertEqual(result["action"], edge_tls.ACTION_REISSUED)
+        self.assertEqual(self._ca_fingerprint(self.tmp), before)
+
+    def test_expiry_renews_itself(self):
+        edge_tls.issue_self_signed(
+            directory=self.tmp, dns_names=["a.local"], ip_addresses=[], days=10
+        )
+        before = self._ca_fingerprint(self.tmp)
+        result = edge_tls.ensure_certificate(
+            self.tmp, ["a.local"], [], renew_before_days=30
+        )
+        self.assertEqual(result["action"], edge_tls.ACTION_REISSUED)
+        self.assertEqual(self._ca_fingerprint(self.tmp), before)
+
+    def test_an_impossible_clock_refuses_rather_than_baking_the_error_in(self):
+        # A box whose RTC died in transit believes it is years ago. Reissuing then
+        # writes a certificate that is genuinely not-yet-valid, turning one
+        # recoverable fault into two.
+        edge_tls.ensure_certificate(self.tmp, ["a.local"], ["10.0.0.1"])
+        leaf_before = edge_tls.inspect_certificate(os.path.join(self.tmp, "tls.crt"))
+        result = edge_tls.ensure_certificate(
+            self.tmp,
+            ["a.local"],
+            ["10.0.0.99"],
+            now=datetime(2019, 1, 1, tzinfo=timezone.utc),
+        )
+        self.assertEqual(result["action"], edge_tls.ACTION_REFUSED)
+        self.assertIn("clock", result["reason"])
+        leaf_after = edge_tls.inspect_certificate(os.path.join(self.tmp, "tls.crt"))
+        self.assertEqual(leaf_before.ip_addresses, leaf_after.ip_addresses)
+
+    def test_a_refusal_does_not_destroy_anything(self):
+        edge_tls.ensure_certificate(self.tmp, ["a.local"], ["10.0.0.1"])
+        edge_tls.ensure_certificate(
+            self.tmp, ["a.local"], ["10.0.0.2"],
+            now=datetime(2019, 1, 1, tzinfo=timezone.utc),
+        )
+        self.assertTrue(os.path.exists(os.path.join(self.tmp, "tls.crt")))
+        self.assertTrue(os.path.exists(os.path.join(self.tmp, "ca.crt")))
+        self.assertTrue(os.path.exists(os.path.join(self.tmp, "ca.key")))
+
+    def test_repeated_self_heals_never_mint_a_second_ca(self):
+        # A box that flaps between addresses must not accumulate CAs.
+        edge_tls.ensure_certificate(self.tmp, ["a.local"], ["10.0.0.1"])
+        first = self._ca_fingerprint(self.tmp)
+        for octet in range(2, 8):
+            edge_tls.ensure_certificate(self.tmp, ["a.local"], [f"10.0.0.{octet}"])
+            self.assertEqual(self._ca_fingerprint(self.tmp), first)
+
+
+class AddressStabilityTests(SimpleTestCase):
+    def test_an_ip_only_box_is_warned_about(self):
+        findings = edge_tls.stability_findings([], ["10.10.20.137"])
+        self.assertEqual([s for s, _ in findings], ["warn"])
+        self.assertIn("10.10.20.137", findings[0][1])
+
+    def test_an_mdns_name_is_the_clean_configuration(self):
+        self.assertEqual(edge_tls.stability_findings(["gilead.local"], ["10.10.20.137"]), [])
+
+    def test_a_lan_name_needing_dns_is_flagged_as_needing_resolution(self):
+        findings = edge_tls.stability_findings(["gilead.school.lan"], ["10.10.20.137"])
+        self.assertTrue(findings)
+        self.assertIn("resolve", findings[0][1])
+
+    def test_a_public_name_is_not_flagged(self):
+        self.assertEqual(
+            edge_tls.stability_findings(["sms.gilead-tech.org"], ["8.8.8.8"]), []
+        )

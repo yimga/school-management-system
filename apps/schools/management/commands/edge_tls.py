@@ -74,6 +74,16 @@ class Command(BaseCommand):
             ),
         )
         parser.add_argument(
+            "--ensure",
+            action="store_true",
+            help=(
+                "Reconcile the certificate with where this box actually lives: issue if "
+                "missing, reissue if it no longer covers an address the box answers at "
+                "or is near expiry, otherwise do nothing. Reuses the CA, so a self-heal "
+                "is invisible to every device. Safe to run on every start."
+            ),
+        )
+        parser.add_argument(
             "--plan-relocation",
             action="store_true",
             help="Print the ordered steps to move this box, for its current mode.",
@@ -151,6 +161,77 @@ class Command(BaseCommand):
                 "and in docker's own event log."
             )
         return raw.encode("utf-8")
+
+    def _ensure(self, facts: dict, options) -> None:
+        """Reconcile the certificate with where the box actually lives.
+
+        Cheap and idempotent on purpose: this is meant to run on every container
+        start, so the common case (nothing changed) must cost one file read and
+        print one line.
+        """
+        if facts["mode"] != edge_tls.MODE_SELF_SIGNED:
+            # Saying nothing here would be the wrong kind of quiet: an operator who
+            # wired --ensure into startup deserves to know why it is not acting.
+            self.stdout.write(
+                f"mode is {facts['mode']}: nothing for --ensure to reconcile. It manages "
+                "only a box-minted (selfsigned) certificate -- a provided pair is "
+                "replaced by whoever issues it, and acme renews itself."
+            )
+            return
+
+        directory = os.path.dirname(facts["cert_path"]) or edge_tls.DEFAULT_DIR
+        dns, ips = edge_tls.effective_addresses(
+            allowed_hosts=list(getattr(settings, "ALLOWED_HOSTS", []) or [])
+        )
+        if not dns and not ips:
+            raise CommandError(
+                "No addresses to assert. Set "
+                f"{edge_tls.ENV_HOSTNAMES}, fix ALLOWED_HOSTS, or set "
+                f"{edge_tls.ENV_TRUST_LOCAL}=1 to let the box use the addresses it "
+                "currently holds."
+            )
+
+        result = edge_tls.ensure_certificate(
+            directory,
+            dns,
+            ips,
+            days=options["days"],
+            renew_before_days=edge_tls.renew_before_days(),
+        )
+        if options["json"]:
+            self.stdout.write(json.dumps(result, indent=2))
+            if result["action"] == edge_tls.ACTION_REFUSED:
+                raise CommandError(result["reason"])
+            return
+
+        action = result["action"]
+        if action == edge_tls.ACTION_NOOP:
+            self.stdout.write(f"no change needed -- {result['reason']}")
+            return
+        if action == edge_tls.ACTION_REFUSED:
+            raise CommandError(
+                result["reason"]
+                + "\n  Refusing to reissue: a certificate minted against a wrong clock is "
+                "genuinely invalid, which turns a recoverable clock problem into a "
+                "certificate problem as well. Fix the time first."
+            )
+
+        self.stdout.write(
+            self.style.SUCCESS(f"{action}: {result['reason']}")
+        )
+        self.stdout.write("  names  " + ", ".join([*result["dns_names"], *result["ip_addresses"]]))
+        if result["reused_ca"]:
+            self.stdout.write(
+                "  box CA reused -- devices that trust it need nothing done to them."
+            )
+        else:
+            self.stdout.write(
+                self.style.WARNING(
+                    "  a NEW box CA was created. Every device must install it again. "
+                    "This only happens when ca.key is missing or expired; if you have a "
+                    "bundle, restore it with --import-ca and reissue."
+                )
+            )
 
     def _ca_bundle(self, options: dict) -> None:
         passphrase = self._passphrase()
@@ -266,6 +347,10 @@ class Command(BaseCommand):
             self.stdout.write(self.style.MIGRATE_HEADING(f"{facts['mode']} -> {target}"))
             for index, step in enumerate(steps, 1):
                 self.stdout.write(f"  {index}. {step}")
+            return
+
+        if options["ensure"]:
+            self._ensure(facts, options)
             return
 
         if options["issue_selfsigned"]:

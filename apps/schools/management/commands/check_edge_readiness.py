@@ -410,6 +410,23 @@ class Command(BaseCommand):
         ):
             findings.append((FAIL if _severity == "fail" else WARN, _message))
 
+        # Will the way this box is reached SURVIVE the address changing? An IP-only
+        # box works perfectly until DHCP hands out a different lease, and then every
+        # device shows a certificate error at an address that no longer exists. The
+        # fix is free and the failure is invisible until the day it happens, which is
+        # exactly the combination worth a standing warning.
+        for _severity, _message in _tls.stability_findings(_feas_dns, _feas_ips):
+            findings.append((FAIL if _severity == "fail" else WARN, _message))
+        if _tls.trust_local_addresses():
+            _held = _tls.local_addresses()
+            findings.append((
+                OK,
+                "Self-healing addresses are ON: this box serves and asserts the "
+                "addresses it currently holds ("
+                + (", ".join(_held) if _held else "none detected")
+                + "), so a new DHCP lease or a move does not need anyone to edit a file.",
+            ))
+
         if resolution.mode in _tls.FILE_BACKED_MODES:
             cert_path, key_path, _ca = _tls.certificate_paths()
             dns_names, ip_addresses = _tls.san_candidates(allowed_hosts=allowed_hosts)
