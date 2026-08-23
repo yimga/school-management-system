@@ -234,6 +234,152 @@ def certificate_paths(environ: dict[str, str] | None = None) -> tuple[str, str, 
 _HOST_SPLIT = re.compile(r"[,\s]+")
 
 
+def _idna_ascii(name: str) -> str:
+    """A non-ASCII hostname as its IDNA A-label, or "" if it cannot be carried."""
+    try:
+        import idna  # IDNA 2008 + UTS-46, which is what browsers actually implement
+
+        return idna.encode(name, uts46=True).decode("ascii")
+    except ImportError:
+        pass
+    except Exception:  # noqa: BLE001 - an unencodable name is a config error, not a crash
+        return ""
+    try:
+        # Stdlib fallback (IDNA 2003). Stricter in some places, looser in others, but
+        # it is always present, and a box in a country whose name needs it must not
+        # depend on a transitive dependency staying installed.
+        return name.encode("idna").decode("ascii")
+    except Exception:  # noqa: BLE001
+        return ""
+
+
+def declared_hostnames(
+    environ: dict[str, str] | None = None,
+    allowed_hosts: list[str] | None = None,
+) -> list[str]:
+    """The raw entries this box was told to answer at, before any cleaning.
+
+    Explicit ``RMC_EDGE_TLS_HOSTNAMES`` wins; otherwise ``ALLOWED_HOSTS``, which the
+    box already had to get right for Django to answer at all. Shared with the
+    readiness check so it reports on exactly the entries the certificate is built
+    from instead of re-deriving the precedence rule and drifting away from it.
+    """
+    env = os.environ if environ is None else environ
+    raw = str(env.get(ENV_HOSTNAMES, "") or "").strip()
+    if raw:
+        return [e for e in _HOST_SPLIT.split(raw) if e]
+    return list(allowed_hosts or [])
+
+
+def normalize_hostname(raw: Any) -> str:
+    """One ALLOWED_HOSTS entry as a certificate can actually carry it, or "".
+
+    Local-first means every locality writes its address differently, and three of
+    those spellings were silently wrong here -- each invisible until a device
+    refuses to connect.
+
+    ``[fd00::1]`` / ``[fd00::1]:10000``. Django documents the bracketed form for an
+    IPv6 entry in ALLOWED_HOSTS because that is what a URL needs. A certificate
+    needs the bare address in an ``IPAddress`` entry; leave the brackets on and it
+    becomes a DNS name matching nothing -- precisely the silent name-mismatch the
+    SAN split in :func:`san_candidates` exists to prevent.
+
+    ``ecole.local`` written in the script the school actually uses. x509 DNSName
+    entries are ASCII-only and cryptography raises rather than guess, so one
+    accented character in the box name left the box with no certificate at all. DNS
+    solved this long ago: carry the A-label and every browser converts it back, so
+    the operator still sees the name they typed in the address bar.
+
+    ``FD00::0001``. Typed by hand, it is the same address the certificate records as
+    ``fd00::1`` -- but only after ``ipaddress`` normalises it. Compared as strings
+    the two never match, so the box concludes on EVERY boot that its certificate
+    does not cover its own address and mints another one. On a box that reboots with
+    the mains, that is a new keypair several times a day.
+    """
+    candidate = str(raw or "").strip()
+    if not candidate or "*" in candidate:
+        return ""
+    if candidate.startswith("["):
+        closing = candidate.find("]")
+        if closing == -1:
+            return ""
+        candidate = candidate[1:closing]
+    elif candidate.count(":") == 1:
+        # host:port, common when pasting from CSRF_TRUSTED_ORIGINS. A certificate
+        # names the HOST and never the port.
+        candidate = candidate.split(":", 1)[0]
+    candidate = candidate.strip().strip(".").strip()
+    if not candidate or "%" in candidate:
+        # A zone id ("fe80::1%eth0") names an interface on ONE host. Python accepts
+        # it as an address, so without this it would go into a certificate as an
+        # IPAddress entry that no other machine can ever match -- and "%" cannot
+        # appear in a hostname either, so there is no reading of this that works.
+        return ""
+    try:
+        # Canonical form, so "FD00::0001" and "fd00::1" stop being two addresses.
+        return str(ipaddress.ip_address(candidate))
+    except ValueError:
+        pass
+    if not candidate.isascii():
+        return _idna_ascii(candidate)
+    return candidate
+
+
+def host_header_form(address: Any) -> str:
+    """An address spelled the way ALLOWED_HOSTS and a URL need it.
+
+    The inverse of :func:`normalize_hostname`, and needed for the same reason it is.
+    Django parses the Host header with ``split_domain_port``, which KEEPS the
+    brackets on an IPv6 literal -- so an ALLOWED_HOSTS entry written bare never
+    matches, and every request to that address is a bare 400 with nothing in it that
+    mentions the address. A URL needs the brackets too, or the colons in the address
+    read as the port separator.
+
+    A certificate wants the opposite (bare, in an IPAddress entry), which is exactly
+    why both directions have to be written down rather than assumed.
+    """
+    text = str(address or "").strip()
+    try:
+        parsed = ipaddress.ip_address(text)
+    except ValueError:
+        return text
+    return f"[{parsed}]" if parsed.version == 6 else str(parsed)
+
+
+def hostname_findings(entries: list[str]) -> list[tuple[str, str]]:
+    """Explain what the certificate will do with each declared name.
+
+    Both cases here would otherwise be discovered by a person standing in front of
+    a device that will not connect: a name that cannot go in a certificate at all,
+    and a name that goes in looking like something else. Nobody types "xn--" into
+    anything, so an operator who sees it in a certificate reasonably concludes the
+    box is broken. Saying so up front costs one line and saves that call.
+    """
+    findings: list[tuple[str, str]] = []
+    for entry in entries:
+        raw = str(entry or "").strip()
+        if not raw or "*" in raw:
+            continue
+        normalized = normalize_hostname(raw)
+        if not normalized:
+            findings.append((
+                "fail",
+                f"{raw!r} cannot be put in a certificate and will be dropped. If this "
+                "is the name people type to reach the box, the certificate will not "
+                "match it and every device will show a warning. Use a plain hostname "
+                "(letters, digits and hyphens) or the box's IP address.",
+            ))
+        elif "xn--" in normalized:
+            findings.append((
+                "warn",
+                f"{raw!r} is carried in the certificate as {normalized!r}. That is "
+                "correct and deliberate -- it is the IDNA form every browser uses on "
+                "the wire, and browsers display it back as "
+                f"{raw!r}. Do not 'fix' it.",
+            ))
+    return findings
+
+
 def san_candidates(
     environ: dict[str, str] | None = None,
     allowed_hosts: list[str] | None = None,
@@ -250,22 +396,15 @@ def san_candidates(
     every browser, which is the classic way a hand-rolled LAN certificate still shows
     a name-mismatch warning at the address people actually type.
     """
-    env = os.environ if environ is None else environ
-    raw = str(env.get(ENV_HOSTNAMES, "") or "").strip()
-    if raw:
-        entries = [e for e in _HOST_SPLIT.split(raw) if e]
-    else:
-        entries = list(allowed_hosts or [])
+    entries = declared_hostnames(environ=environ, allowed_hosts=allowed_hosts)
     dns: list[str] = []
     ips: list[str] = []
     for entry in entries:
-        candidate = str(entry or "").strip().strip(".")
-        if not candidate or "*" in candidate:
+        # Bracket-stripping, port-stripping, IDNA and IP canonicalisation all live in
+        # normalize_hostname; see there for why each one is load-bearing.
+        candidate = normalize_hostname(entry)
+        if not candidate:
             continue
-        # A host:port entry is common when pasting from CSRF_TRUSTED_ORIGINS; a
-        # certificate names the HOST and never the port.
-        if candidate.count(":") == 1 and not candidate.startswith("["):
-            candidate = candidate.split(":", 1)[0]
         try:
             ipaddress.ip_address(candidate)
         except ValueError:
@@ -392,6 +531,22 @@ def issue_self_signed(
             "refusing to issue a certificate with no SAN entries: set "
             f"{ENV_HOSTNAMES} or ALLOWED_HOSTS to the names this box answers at"
         )
+
+    # Normalise before anything touches x509: a DNSName is ASCII-only and an
+    # IPAddress must be canonical, and a raw cryptography ValueError at this depth
+    # tells an operator nothing about which name in their .env is the problem.
+    clean_dns: list[str] = []
+    for name in dns_names:
+        normalized = normalize_hostname(name)
+        if not normalized:
+            raise ValueError(
+                f"cannot put {name!r} in a certificate: it is empty, a wildcard, or a "
+                f"name that cannot be encoded for DNS. Fix it in {ENV_HOSTNAMES} or "
+                "ALLOWED_HOSTS and reissue."
+            )
+        clean_dns.append(normalized)
+    dns_names = clean_dns
+    ip_addresses = [str(ipaddress.ip_address(str(i).strip())) for i in ip_addresses]
 
     os.makedirs(directory, exist_ok=True)
     now = datetime.now(timezone.utc)
@@ -535,6 +690,7 @@ def caddyfile(
     key_path: str = "",
     acme_email: str = "",
     acme_ca: str = "",
+    address_may_change: bool = False,
 ) -> str:
     """Render the Caddy site block for a mode.
 
@@ -552,9 +708,22 @@ def caddyfile(
             "# docs/EDGE_TLS_RUNBOOK.md before enabling it for a school.\n"
         )
     hosts = list(dns_names) + list(ip_addresses)
-    if not hosts:
+    # A named site block is a HOST MATCHER, not decoration. Caddy serves it only for a
+    # request whose Host header is one of the names on that line -- so a box that heals
+    # its own certificate onto a new address still answers NOTHING there, because no
+    # site matches. That is the worst shape a failure can take: every log the box
+    # writes says healthy, and it is unreachable from the corridor.
+    mobile = address_may_change and mode in (MODE_SELF_SIGNED, MODE_PROVIDED)
+    if mobile and not (cert_path and key_path):
+        raise ValueError(
+            "a box whose address may change has to present a certificate for an "
+            "address this file has never heard of, so it needs a real key pair rather "
+            "than `tls internal`. Run `manage.py edge_tls --issue-selfsigned` first, "
+            "then render this file again."
+        )
+    if not hosts and not mobile:
         raise ValueError("no hostnames or IPs to serve; set " + ENV_HOSTNAMES)
-    site = ", ".join(hosts)
+    site = ":443" if mobile else ", ".join(hosts)
     if mode == MODE_SELF_SIGNED:
         # `tls internal` = Caddy's own local CA, which it also writes out so the
         # school can install it. We accept a pre-minted pair too (manage.py edge_tls
@@ -577,8 +746,40 @@ def caddyfile(
         tls_line = f"tls {acme_email}"
         if acme_ca:
             tls_line += f" {{\n\t\tca {acme_ca}\n\t}}"
+    preamble = ""
+    trailer = ""
+    if mobile:
+        preamble = (
+            "# This box's address is deliberately NOT pinned in this file.\n"
+            "#\n"
+            "# `:443` matches any host, and the pair this box minted is presented\n"
+            "# for all of them, so a new DHCP lease or a move to another subnet\n"
+            "# costs nothing here. Regenerating a Caddyfile is not a thing that\n"
+            "# happens in a school office on a Monday morning, so the file must\n"
+            "# not need it to.\n"
+            "#\n"
+            "# This widens nothing. ALLOWED_HOSTS in Django is still the\n"
+            "# Host-header guard and it is untouched; Caddy is the terminator\n"
+            "# here, not the gate.\n"
+            + (
+                "# Names known when this was rendered: " + ", ".join(hosts) + "\n"
+                if hosts
+                else ""
+            )
+        )
+        trailer = (
+            "\n"
+            "# Someone who types the bare address reaches HTTPS instead of a dead\n"
+            "# port. 302 and never 301: a permanent redirect is cached by the\n"
+            "# browser and becomes a one-way door on this host, the same trap HSTS\n"
+            "# sets on a LAN.\n"
+            ":80 {\n"
+            "\tredir https://{host}{uri} 302\n"
+            "}\n"
+        )
     return (
-        f"{site} {{\n"
+        preamble
+        + f"{site} {{\n"
         f"\t{tls_line}\n"
         f"\tencode zstd gzip\n"
         f"\treverse_proxy {upstream} {{\n"
@@ -589,6 +790,7 @@ def caddyfile(
         f"\t\theader_up X-Forwarded-Host {{host}}\n"
         f"\t}}\n"
         f"}}\n"
+        + trailer
     )
 
 
@@ -1152,6 +1354,14 @@ def relocation_plan(
             "the certificate exists, never before -- with no certificate on disk it emits "
             "`tls internal`, which serves a different CA than the one your devices trust."
         )
+        steps.append(
+            "RESTART the terminator, do not just bring the stack up: "
+            "`docker compose -f deploy/selfhost/docker-compose.yml --profile tls restart "
+            "edge-tls`. The Caddyfile is bind-mounted, so editing it does not change "
+            "anything compose compares -- `up -d` leaves the container running with the "
+            "configuration and the certificate it loaded at its last start, which is the "
+            "ones belonging to the address this box has just left."
+        )
 
     if mode in HTTPS_MODES and (changed & {CHANGE_ADDRESS, CHANGE_SITE, CHANGE_COUNTRY}):
         steps.append(
@@ -1258,8 +1468,25 @@ def local_addresses(include_loopback: bool = False) -> list[str]:
     # One probe per private range plus a public one, so a box with several
     # interfaces (wired + wifi is the common case, and they are usually on
     # different subnets) reports all of them rather than only the default route.
-    for probe in ("10.255.255.255", "172.31.255.255", "192.168.255.255", "8.8.8.8"):
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    #
+    # IPv6 is probed too, and that is not future-proofing. A campus on ULAs, a
+    # school handed a /64 by its ISP, and every network in the countries that
+    # skipped past IPv4 exhaustion rather than paying for it -- on any of those, an
+    # IPv4-only sweep discovers nothing, and a box that discovers nothing quietly
+    # asserts nothing.
+    probes = (
+        (socket.AF_INET, "10.255.255.255"),
+        (socket.AF_INET, "172.31.255.255"),
+        (socket.AF_INET, "192.168.255.255"),
+        (socket.AF_INET, "8.8.8.8"),
+        (socket.AF_INET6, "2001:4860:4860::8888"),
+        (socket.AF_INET6, "fd00::1"),
+    )
+    for family, probe in probes:
+        try:
+            sock = socket.socket(family, socket.SOCK_DGRAM)
+        except OSError:
+            continue  # no stack for that family on this box
         try:
             sock.settimeout(0.2)
             sock.connect((probe, 9))
@@ -1270,8 +1497,10 @@ def local_addresses(include_loopback: bool = False) -> list[str]:
             sock.close()
 
     try:
-        _name, _aliases, addresses = socket.gethostbyname_ex(socket.gethostname())
-        found.update(addresses)
+        # getaddrinfo, not gethostbyname_ex: the latter is IPv4-only, so on a v6
+        # segment it silently reports nothing rather than failing.
+        for info in socket.getaddrinfo(socket.gethostname(), None):
+            found.add(info[4][0])
     except OSError:
         # No resolver, or a hostname that does not resolve. Not fatal: the probes
         # above already answered, and this is only here to catch interfaces the
@@ -1280,11 +1509,13 @@ def local_addresses(include_loopback: bool = False) -> list[str]:
 
     keep: list[str] = []
     for raw in found:
+        # A v6 address from the routing table can carry a zone id ("fe80::1%eth0").
+        # ipaddress rejects it, and it is meaningless off this host anyway.
         try:
-            parsed = ipaddress.ip_address(raw)
+            parsed = ipaddress.ip_address(str(raw).split("%", 1)[0])
         except ValueError:
             continue
-        if parsed.is_link_local:
+        if parsed.is_link_local or parsed.is_unspecified or parsed.is_multicast:
             continue
         if parsed.is_loopback and not include_loopback:
             continue
@@ -1477,7 +1708,12 @@ def stability_findings(dns: list[str], ips: list[str]) -> list[tuple[str, str]]:
             "error. Give the box a stable NAME as well: an mDNS '.local' name "
             "needs no DNS server and follows the box to any address, and a DHCP "
             "reservation stops the address moving in the first place. Both are "
-            "free; the certificate then survives the change untouched.",
+            "free; the certificate then survives the change untouched. Two local "
+            "conditions break '.local' specifically -- a Windows domain that is "
+            "itself named .local (the domain controller answers instead of the "
+            "box), and access points with client isolation or multicast filtering "
+            "on, which is common on school wifi. Where either holds, use a name in "
+            "the school's own DNS and rely on the DHCP reservation.",
         ))
     mdns = [d for d in dns if d.lower().endswith(".local")]
     if dns and not mdns and not any(publicly_issuable(d) for d in dns):

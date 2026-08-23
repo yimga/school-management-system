@@ -129,9 +129,24 @@ worth more than the box.
 | iOS / iPadOS | mail or AirDrop the file → Settings → Profile Downloaded → Install → then **Settings → General → About → Certificate Trust Settings** and enable it (this second step is separate and is the one everyone misses) |
 | Android | Settings → Security → Encryption & credentials → **Install a certificate → CA certificate** (not "VPN & app user certificate") |
 | Chrome on Linux | `certutil -d sql:$HOME/.pki/nssdb -A -t "C,," -n rmc-edge -i ca.crt` |
+| Chromebook, **managed** | nobody sitting at the device can do this. Push it: Google Admin → Devices → Networks → Certificates, scoped to the org unit, with *Use this certificate as an HTTPS certificate authority* ticked |
+| Chromebook, personal | Settings → Privacy and security → Security → Manage certificates → Authorities → Import |
 
 Firefox keeps its own store on every platform: Settings → Privacy & Security →
 Certificates → View Certificates → Authorities → Import.
+
+Two of these rows decide whether a rollout is an afternoon or a fortnight, so check
+them **before** promising a date:
+
+- **Managed Chromebooks and managed iPads cannot be done device by device.** The
+  install is an admin-console push, and whoever holds that console may not be in the
+  same building or the same organisation. A school on a managed fleet with no
+  console access cannot use a box-minted CA at all — it needs `provided` mode with a
+  certificate from a CA the fleet already trusts.
+- **Android 11 and later put a user-installed CA in a store that apps ignore.**
+  Browsers honour it, so the web app is fine; a native app pointed at the box is
+  not, and that difference will be reported as "it works on my phone but not in the
+  app".
 
 ---
 
@@ -222,6 +237,24 @@ Support is native on iOS, macOS, Windows 10+ and Android 12+. Where it is missin
 (an old Android tablet, a kiosk browser), that device falls back to the IP, which
 still works — mDNS is an addition, never a replacement.
 
+**Two local conditions break `.local` specifically, and both are common enough to
+check for first.** Neither produces an error that mentions mDNS:
+
+- **The school's Windows domain is itself named `.local`.** Plenty are — it was the
+  recommended layout for years. On a domain-joined machine the domain controller
+  answers for everything under `.local`, so `gilead.local` resolves to nothing, or
+  worse, to something else. Ask what the AD domain is called before choosing the
+  name.
+- **The access points filter multicast.** Client isolation, IGMP snooping without a
+  querier, and "block peer-to-peer traffic" are all default-on in some school wifi
+  controllers, and all of them drop the packets mDNS is carried in. Wired devices
+  resolve the box, wireless ones do not, which reads as "it works in the office and
+  not in the classrooms".
+
+Where either holds, use a name in the school's own DNS instead and lean on the DHCP
+reservation below. The certificate does not care which kind of name it is — only
+that the name is stable.
+
 **2. Pin the lease.** A DHCP reservation against the box's MAC address stops the
 address moving within a site at all. Two minutes in the router, and it removes the
 whole problem for a box that does not travel.
@@ -255,6 +288,60 @@ box hold an address it does not hold.
 Together: a box can be unplugged, moved to another building, given a completely
 different address by a different router, and come back working — with no device
 touched and nobody editing a file.
+
+### The certificate healing is only half of it — the terminator has to be told
+
+`--ensure` rewrites the certificate files. The TLS terminator read those files when
+it loaded its configuration and does not re-read them per handshake, so until it is
+restarted it goes on presenting the certificate for the address the box has left:
+
+```bash
+docker compose -f deploy/selfhost/docker-compose.yml --profile tls restart edge-tls
+```
+
+A whole-box reboot — a power cut, which in many places is the usual way a box
+restarts — does this for free, because everything comes up together. It is a
+`restart web` on its own that leaves the two halves disagreeing. `--ensure` prints
+the command whenever it actually reissued.
+
+The second half is subtler and worth understanding once. A Caddy site block that
+begins `gilead.local, 10.10.20.137 {` is a **host matcher**: Caddy serves that block
+only for a request whose `Host` is one of those. So a box that heals its certificate
+onto a new address and keeps a pinned site line answers *nothing* at the new
+address — and every log it writes says it is healthy. That is why a box declared
+mobile renders `:443` instead, which matches any host and presents the pair this box
+minted for all of them:
+
+```bash
+python manage.py edge_tls --print-caddyfile > deploy/selfhost/Caddyfile.edge
+```
+
+With `RMC_EDGE_TRUST_LOCAL_ADDRESSES=1` set, that is what you get automatically, and
+the file then never needs regenerating for an address change again. It widens
+nothing: `ALLOWED_HOSTS` is still the Host-header guard, and Caddy is the terminator,
+not the gate.
+
+### The name on the building, and how it reaches the certificate
+
+A certificate carries DNS names as ASCII, so a box named in any other script — 学校,
+مدرسة, écolé — is carried as its IDNA A-label: `écolé.local` becomes
+`xn--col-9lad.local`. **This is correct and must not be "fixed".** It is what goes
+on the wire for every internationalised domain name in the world, and browsers
+convert it back, so the address bar still shows the name the school typed. The
+readiness check says so explicitly when it sees one, because an operator who finds
+`xn--` in a certificate reasonably assumes something is broken.
+
+An address, meanwhile, is written two ways on purpose and each is wrong in the
+other's place:
+
+| Where | IPv6 is written | Why |
+|---|---|---|
+| `ALLOWED_HOSTS`, `CSRF_TRUSTED_ORIGINS`, any URL | `[fd00::1]` | Django keeps the brackets when it parses the `Host` header; a bare entry matches nothing and every request is a bare 400 |
+| `RMC_EDGE_TLS_HOSTNAMES`, the certificate | `fd00::1` | it goes in an `IPAddress` SAN entry, which holds an address, not text |
+
+Both spellings are accepted wherever you type them and converted to the right one —
+including `FD00::0001`, which is the same address as `fd00::1` and used to read as a
+different one.
 
 ### On replacement hardware, restore before you issue
 

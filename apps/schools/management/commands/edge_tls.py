@@ -232,6 +232,18 @@ class Command(BaseCommand):
                     "bundle, restore it with --import-ca and reissue."
                 )
             )
+        # The terminator reads these files when it loads its config, not on every
+        # handshake. Healing the files is therefore only half the job, and the half
+        # that leaves no trace: the box logs a successful reissue and keeps serving
+        # the certificate for the address it used to have.
+        self.stdout.write(
+            "  the TLS terminator is still serving the OLD certificate until it is "
+            "restarted:"
+        )
+        self.stdout.write(
+            "    docker compose -f deploy/selfhost/docker-compose.yml --profile tls "
+            "restart edge-tls"
+        )
 
     def _ca_bundle(self, options: dict) -> None:
         passphrase = self._passphrase()
@@ -371,6 +383,11 @@ class Command(BaseCommand):
                         key_path=key,
                         acme_email=os.getenv(edge_tls.ENV_ACME_EMAIL, ""),
                         acme_ca=os.getenv(edge_tls.ENV_ACME_CA, ""),
+                        # A box told to trust the addresses it currently holds has
+                        # declared that those addresses move. Pinning them into the
+                        # terminator's site matcher would then undo the self-heal on
+                        # the first DHCP change.
+                        address_may_change=edge_tls.trust_local_addresses(),
                     )
                 )
             except ValueError as exc:
