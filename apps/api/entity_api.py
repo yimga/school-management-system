@@ -285,6 +285,15 @@ class StudentProfileViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         serializer.save(updated_by=self.request.user)
 
+    def create(self, request, *args, **kwargs):
+        # Was NOT overridden, so it ran ungated despite the section comment
+        # above _require_admin: any authenticated tenant member could POST a
+        # student.
+        denied = self._require_admin(request)
+        if denied:
+            return denied
+        return super().create(request, *args, **kwargs)
+
     def update(self, request, *args, **kwargs):
         kwargs.get("partial", False)
         instance = self.get_object()
@@ -295,6 +304,17 @@ class StudentProfileViewSet(viewsets.ModelViewSet):
         if conflict:
             return conflict
         return super().update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        # Also NOT overridden. get_queryset scopes reads to a teacher's assigned
+        # classrooms and a parent's own children -- which is precisely what made
+        # this reachable: get_object() resolved the row and DELETE stamped
+        # deleted_at, hiding the student from every reader. A parent could erase
+        # their own child; a teacher, any student in a classroom they teach.
+        denied = self._require_admin(request)
+        if denied:
+            return denied
+        return super().destroy(request, *args, **kwargs)
 
     def partial_update(self, request, *args, **kwargs):
         kwargs["partial"] = True
@@ -499,6 +519,41 @@ class TeacherProfileViewSet(viewsets.ModelViewSet):
             )
         return None
 
+    # Every write goes through _require_admin. It was DEFINED above and never
+    # called -- so the class docstring ("admin-only writes"), the
+    # @extend_schema_view block advertising 403 on each of these, and the helper
+    # itself all described a gate that did not exist. get_queryset returns the
+    # caller's OWN row for role TEACHER (correct, for self-read), so get_object()
+    # resolved it and the write landed: a teacher could PATCH their own
+    # salary_amount, allow_finance_panel, allow_paystub_access and
+    # allow_leave_approvals and get 200. Same viewset on /api/entities/teachers/
+    # and, via V1TeacherViewSet, /api/v1/people/teachers/.
+    #
+    # TeacherProfile.school is null=True, so an ungated create also minted rows
+    # belonging to no tenant.
+
+    def create(self, request, *args, **kwargs):
+        denied = self._require_admin(request)
+        if denied:
+            return denied
+        return super().create(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        denied = self._require_admin(request)
+        if denied:
+            return denied
+        return super().update(request, *args, **kwargs)
+
+    def partial_update(self, request, *args, **kwargs):
+        kwargs["partial"] = True
+        return self.update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        denied = self._require_admin(request)
+        if denied:
+            return denied
+        return super().destroy(request, *args, **kwargs)
+
 
 @extend_schema_view(
     list=extend_schema(tags=["Entity"], summary="List guardian/student links", description="Parents see their own links; admins see all links in the active school.", responses={200: StudentGuardianSerializer(many=True)}),
@@ -702,6 +757,34 @@ class ClassroomViewSet(viewsets.ModelViewSet):
                 {"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN
             )
         return None
+
+    # The helper above was DEFINED and never called, so "open read, admin-only
+    # writes" was half true: get_queryset hands every classroom in the school to
+    # any authenticated caller (that is the intended open read), which means
+    # get_object() resolved any of them and a parent could rename or delete a
+    # classroom. Read stays open; the four write verbs go through the gate.
+
+    def create(self, request, *args, **kwargs):
+        denied = self._require_admin(request)
+        if denied:
+            return denied
+        return super().create(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        denied = self._require_admin(request)
+        if denied:
+            return denied
+        return super().update(request, *args, **kwargs)
+
+    def partial_update(self, request, *args, **kwargs):
+        kwargs["partial"] = True
+        return self.update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        denied = self._require_admin(request)
+        if denied:
+            return denied
+        return super().destroy(request, *args, **kwargs)
 
 
 @extend_schema(
