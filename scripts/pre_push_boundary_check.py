@@ -173,6 +173,8 @@ GATES: list[tuple[str, list[str]]] = [
     # failing. Zero-tolerance and WITHOUT --compare: there is no baseline, because
     # a dict that discards one of its own entries is never what was meant.
     ("duplicate-dict-keys", ["scan_duplicate_dict_keys.py", "--strict"]),
+    # An admin registered on a site no urlconf mounts is a page nobody can open.
+    ("admin-unmounted-site", ["scan_admin_registered_on_unmounted_site.py", "--compare"]),
     # --- RLS: the two halves that `rls-table-coverage` does NOT cover ---------
     # scan_rls_table_coverage (DJANGO_GATES, below) catches a NEW tenant-scoped
     # table with no RLS at all. It says nothing about whether the RLS that exists

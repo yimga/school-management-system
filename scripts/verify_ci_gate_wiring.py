@@ -48,6 +48,7 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # declared one template twice, and the shadowed entry's markers -- one of which
     # had genuinely regressed out of the template -- were never checked at all.
     ("scripts/scan_duplicate_dict_keys.py", "architectural-boundaries.yml"),
+    ("scripts/scan_admin_registered_on_unmounted_site.py", "architectural-boundaries.yml"),
     # Added 2026-08-23: a merge that adds a migration to an app another branch also
     # touched produces two leaf nodes, and Django then refuses to migrate that app.
     # git reports a clean merge; the failure is in a graph no diff shows.

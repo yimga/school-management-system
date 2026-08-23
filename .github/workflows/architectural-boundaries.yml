@@ -21,6 +21,7 @@ on:
       - "apps/**/*.py"
       - "services/**/*.py"
       - "scripts/scan_duplicate_dict_keys.py"
+      - "scripts/scan_admin_registered_on_unmounted_site.py"
       - "scripts/lint_broad_except.py"
       - "scripts/allowlists/broad_except_allowlist.json"
       - "scripts/verify_control_plane_hub_registry_drift.py"
@@ -319,6 +320,8 @@ jobs:
           u_duplicate_dict_keys() {
             python scripts/scan_duplicate_dict_keys.py --strict
             python -m unittest scripts.tests.test_scan_duplicate_dict_keys -v
+            python scripts/scan_admin_registered_on_unmounted_site.py --compare
+            python -m unittest scripts.tests.test_scan_admin_registered_on_unmounted_site -v
           }
 
           u_operator_landing_header_order() {
