@@ -53,7 +53,7 @@ def null_subdomains_to_blank(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("schools", "0084_alter_marketing_funnel_event_types"),
+        ("schools", "0086_rls_enable_advancement_grant_child_tables"),
     ]
 
     operations = [

@@ -539,7 +539,7 @@ class TenantChildrenView(View):
                 "name": s["name"],
                 "slug": s["slug"],
                 # "" not null: an absent subdomain is NULL in the column since
-                # schools.0085, and this field has always been a string on the wire.
+                # schools.0087, and this field has always been a string on the wire.
                 "subdomain": s["subdomain"] or "",
             }
             for s in children
@@ -1392,7 +1392,7 @@ class SuperPulseView(View):
         )
         for _school in schools:
             # Keep the wire format a string. An absent subdomain is NULL in the column
-            # since schools.0085; this endpoint has always emitted "".
+            # since schools.0087; this endpoint has always emitted "".
             _school["subdomain"] = _school.get("subdomain") or ""
         first_of_month = timezone.now().date().replace(day=1)
         # tenant-isolation-allow: api-v1-scoped-via-request-school-mixin

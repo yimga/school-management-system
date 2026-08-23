@@ -587,7 +587,7 @@ def compile_snapshot_payload(school) -> dict[str, Any]:
         "slug": getattr(school, "slug", ""),
         "name": getattr(school, "name", ""),
         # `getattr(..., "")` only defaults a MISSING attribute, not a None value, and
-        # an absent subdomain is NULL since schools.0085. The restore side reads
+        # an absent subdomain is NULL since schools.0087. The restore side reads
         # `cfg.get("subdomain") or slug`, so either would work -- but a snapshot is a
         # data format, and changing a key's type is not worth the surprise.
         "subdomain": getattr(school, "subdomain", "") or "",
