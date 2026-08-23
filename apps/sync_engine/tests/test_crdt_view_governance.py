@@ -3,7 +3,7 @@ import json
 from django.test import RequestFactory, TestCase
 
 from apps.accounts.models import User
-from apps.schools.models import School
+from apps.schools.models import School, SchoolMembership
 from apps.sync_engine.views_crdt import CRDTOpsApplyView
 
 
@@ -15,6 +15,13 @@ class CRDTOpsApplyGovernanceTests(TestCase):
             name="CRDT School",
             slug="crdt-school",
             subdomain="crdt-school",
+        )
+        # Standing in the school is now part of the contract: the view checks a live
+        # membership, because being signed in somewhere says nothing about belonging
+        # to the tenant whose settings row is about to be rewritten. Every test below
+        # is about POLICY, so its actor must clear the door first.
+        SchoolMembership.objects.create(
+            user=self.user, school=self.school, role="TEACHER", is_primary=True
         )
 
     def _post(self, ops, *, school=None, device_id="device-a"):
@@ -145,6 +152,24 @@ class CRDTOpsApplyGovernanceTests(TestCase):
             name="Other CRDT School",
             slug="other-crdt-school",
             subdomain="other-crdt-school",
+        )
+        # The write below must succeed, or "the other school is untouched" would be
+        # true simply because nothing was written anywhere.
+        self.assertEqual(
+            json.loads(
+                self._post(
+                    [
+                        {
+                            "kind": "LWW",
+                            "entity": "lesson_plan",
+                            "key": "lesson_plan:probe",
+                            "value": "tenant one",
+                            "hlc": "99:0:device",
+                        }
+                    ]
+                ).content
+            )["applied"],
+            1,
         )
         self._post(
             [

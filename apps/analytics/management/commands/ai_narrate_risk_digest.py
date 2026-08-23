@@ -25,6 +25,7 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 
 from apps.analytics.models import RiskFactor
+from apps.analytics.tenant_batch import run_for_school
 from apps.schools.models import School
 
 logger = logging.getLogger("apps.analytics.commands.ai_narrate_risk_digest")
@@ -87,6 +88,15 @@ class Command(BaseCommand):
             self.stderr.write(self.style.ERROR(f"No school '{opts['school']}'."))
             return
 
+        # RiskFactor is a TENANT_APPS table: read it inside the school's tenant
+        # context or the digest is empty for every school on a cloud deployment.
+        return run_for_school(
+            school,
+            lambda: self._emit_digest(school, opts),
+            label="ai_narrate_risk_digest",
+        )
+
+    def _emit_digest(self, school, opts):
         cutoff = timezone.now() - timezone.timedelta(days=1)
         top = list(
             RiskFactor.objects.filter(
@@ -153,7 +163,7 @@ class Command(BaseCommand):
 
     def _narrate(self, school, bullets: list[str], top=None) -> str:
         try:
-            from services.ai_helpers import invoke_with_request
+            from services.ai_helpers import TaskType, invoke_with_request
         except ImportError:
             return ""
         language_code = _resolve_language_code(school)
@@ -168,7 +178,11 @@ class Command(BaseCommand):
         )
         try:
             result = invoke_with_request(
-                task_type="OBSERVABILITY_NARRATIVE",
+                # RISK_EXPLAIN, not a free-form string: invoke_with_request
+                # resolves an unknown task-type name to None and returns before
+                # any provider is contacted, so a typo here silently disables
+                # narration (and with it the assert_grounded guardrail below).
+                task_type=TaskType.RISK_EXPLAIN,
                 prompt=prompt,
                 school=school,
                 metadata={"language": language_code},

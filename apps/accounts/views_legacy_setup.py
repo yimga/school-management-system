@@ -88,6 +88,23 @@ class LegacySetupView(PasswordResetConfirmView):
             return next_url
         return str(self.success_url)
 
+    def _honour_mfa(self, response, user):
+        """Route the session this view just created through the MFA resolver.
+
+        ``post_reset_login`` above makes Django's ``form_valid`` call
+        ``auth_login`` for us, so this door never reached
+        ``resolve_post_login_mfa_redirect`` -- and ``RequireMFAMiddleware``
+        does not cover the gap: it returns "none" the moment the account has
+        a confirmed device and never inspects ``session['mfa_verified']``. So
+        an enrolled user emailed a sunset link got a fully privileged session
+        with no code ever requested. Runs AFTER the legacy fields are cleared,
+        so the challenge never costs the migration it was sent to finish.
+        """
+        from apps.accounts.post_login_mfa import resolve_post_login_mfa_redirect
+
+        mfa_resp = resolve_post_login_mfa_redirect(self.request, user)
+        return mfa_resp if mfa_resp is not None else response
+
     def form_valid(self, form):
         response = super().form_valid(form)
 
@@ -113,10 +130,10 @@ class LegacySetupView(PasswordResetConfirmView):
                 "legacy_setup_clear_fields_failed",
                 extra={"user_id": user.pk, "result": "save_failed"},
             )
-            return response
+            return self._honour_mfa(response, user)
 
         logger.info(
             "legacy_setup_complete",
             extra={"user_id": user.pk, "result": "legacy_fields_cleared"},
         )
-        return response
+        return self._honour_mfa(response, user)

@@ -111,6 +111,11 @@ def backend_student_create(request):
     from apps.lifecycle.tenant_school_resolve import resolve_request_school
 
     school = resolve_request_school(request)
+    if not school:
+        # Mirrors backend_applicant_create: without a school the row would be
+        # written school-less and orphaned from every school-scoped surface.
+        messages.warning(request, "No school context.")
+        return redirect(reverse("accounts:backend_dashboard"))
     if request.method == "POST":
         from apps.lifecycle.wind_down_guards import block_if_wind_down_commerce
 
@@ -122,6 +127,9 @@ def backend_student_create(request):
             try:
                 with transaction.atomic():
                     student = form.save(commit=False)
+                    # StudentCreateForm.Meta.fields has no "school" and
+                    # StudentProfile.school is nullable, so nothing else sets it.
+                    student.school = school
                     student.created_by = request.user
                     student.is_active = True
                     student.save()
@@ -288,6 +296,9 @@ def backend_teacher_create(request):
     from apps.lifecycle.tenant_school_resolve import resolve_request_school
 
     school = resolve_request_school(request)
+    if not school:
+        messages.warning(request, "No school context.")
+        return redirect(reverse("accounts:backend_dashboard"))
     if request.method == "POST":
         from apps.lifecycle.wind_down_guards import block_if_wind_down_commerce
 
@@ -318,6 +329,8 @@ def backend_teacher_create(request):
 
                     # Create teacher profile
                     teacher = form.save(commit=False)
+                    # TeacherCreateForm.Meta.fields has no "school" either.
+                    teacher.school = school
                     teacher.user = user
                     teacher.is_active = True
                     teacher.save()

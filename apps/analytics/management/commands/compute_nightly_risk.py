@@ -14,6 +14,7 @@ from apps.analytics.models import (
     AtRiskModelArtifact,
     RiskFactor,
 )
+from apps.analytics.tenant_batch import run_for_school
 from apps.platform_runtime.structured_logging import log_exception_with_context
 from apps.schools.models import School
 
@@ -59,18 +60,28 @@ class Command(BaseCommand):
             return
         total = 0
         for school in schools:
-            n = self._process_school(school, dry_run)
-            total += n
+            # AtRiskInferenceRun / RiskFactor / StudentProfile are TENANT_APPS
+            # tables; without this the connection sits on `public` and the
+            # nightly run reports success having written nothing.
+            total += run_for_school(
+                school,
+                lambda school=school: self._process_school(school, dry_run),
+                label="compute_nightly_risk",
+                default=0,
+            )
         self.stdout.write(self.style.SUCCESS(f"Wrote {total} risk factor(s)."))
 
     def _process_school(self, school, dry_run):
         run = None
-        if not dry_run:
-            run = AtRiskInferenceRun.objects.create(
-                school=school,
-                artifact=AtRiskModelArtifact.current_production(),
-            )
         try:
+            # Opening the run row is itself a tenant-table write. Inside the try
+            # so a failure records/skips this school instead of aborting the
+            # whole batch on the first one.
+            if not dry_run:
+                run = AtRiskInferenceRun.objects.create(
+                    school=school,
+                    artifact=AtRiskModelArtifact.current_production(),
+                )
             from apps.analytics.ml_inference import run_risk_inference_batch
 
             results = run_risk_inference_batch(school_id=str(school.id), threshold=50)

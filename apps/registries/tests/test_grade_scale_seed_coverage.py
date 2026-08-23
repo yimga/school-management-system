@@ -88,3 +88,54 @@ class GradeScaleSeedDatabaseTests(TestCase):
             count_first,
             "ensure_grade_scale_seed is not idempotent",
         )
+
+
+class GradeScaleSeedCountryCodeTests(TestCase):
+    """The country_code column is the resolver's ONLY per-tenant differentiator.
+
+    Steps 1-2 of ``resolve_grade_scale_for_tenant`` need override rows that only
+    an RMC operator can create and step 3 is a platform-wide singleton, so if the
+    seeders drop ``country_code`` the country fallback matches nothing and every
+    tenant resolves to the same scale (or to None).
+    """
+
+    def test_seed_writes_country_code_for_every_row_that_declares_one(self):
+        from apps.registries.models import GradeScaleRegistry
+
+        declared = {
+            row["code"]: row["country_code"]
+            for row in GRADE_SCALE_SEED_DEFAULTS
+            if row.get("country_code")
+        }
+        # Guard against a vacuous pass if the constant ever loses the key.
+        self.assertGreaterEqual(len(declared), 5, "seed constant declares no country_code")
+
+        ensure_grade_scale_seed()
+        for code, country_code in declared.items():
+            self.assertEqual(
+                GradeScaleRegistry.objects.get(code=code).country_code,
+                country_code,
+                f"{code} was seeded without its country_code",
+            )
+
+    def test_country_fallback_resolves_a_scale_for_a_us_school(self):
+        from apps.platform_runtime.models import RuntimeDefaults
+        from apps.registries.grade_scale_resolver import resolve_grade_scale_for_tenant
+        from apps.registries.models import TenantGradeScaleOverride
+        from apps.schools.models import School
+
+        ensure_grade_scale_seed()
+        school = School.objects.create(
+            name="Country Fallback High",
+            subdomain="country-fallback-high",
+            country_code="US",
+        )
+        # Prove steps 1-3 cannot supply the answer, so step 4 is what is measured.
+        self.assertFalse(TenantGradeScaleOverride.objects.filter(school=school).exists())
+        RuntimeDefaults.objects.update(default_grading_scale="")
+
+        resolved = resolve_grade_scale_for_tenant(school)
+        self.assertIsNotNone(
+            resolved, "country fallback matched no row — country_code was never seeded"
+        )
+        self.assertEqual(resolved.code, "US_LETTER")

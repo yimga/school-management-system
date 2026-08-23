@@ -154,9 +154,14 @@ def calculate_payroll(
     if pay_type == PayrollEmployee.PayType.HOURLY:
         base_pay = hourly_rate * total_hours
     else:
+        # A salaried employee is paid their salary, full stop. This used to
+        # prorate against standard_hours whenever ANY hours were logged, so a
+        # single 8h invigilation TimeEntry cut a monthly teacher to a fraction
+        # of a month (and no TimeEntry at all paid in full) -- pay flipped on
+        # the presence of one unrelated row. Timesheets here are not a
+        # completeness record; short pay belongs in SalaryAdjustment. Hours
+        # above standard_hours still earn overtime below.
         base_pay = base_salary
-        if total_hours > 0 and standard_hours > 0:
-            base_pay = base_salary * min(total_hours, standard_hours) / standard_hours
 
     adjustments = SalaryAdjustment.objects.filter(
         employee=employee,
@@ -217,10 +222,25 @@ def calculate_payroll(
     }
 
 
+# Only an open run may be (re)generated. Anything past PROCESSED has been signed
+# off on: REVIEWED/APPROVED carry a PayrollRunApproval attesting to specific
+# figures, and PAID means the money has left the building. The guard lives in the
+# PRODUCER because the view was never the only door -- the run_payroll_cycle
+# command reaches generate_payslips directly via get_or_create, so a cron re-run
+# would rewrite a disbursed run's payslips and rewind its status to PROCESSED.
+_GENERATABLE_RUN_STATUSES = (PayrollRun.Status.DRAFT, PayrollRun.Status.PROCESSED)
+
+
 @transaction.atomic
 def generate_payslips(
     run: PayrollRun, employees: Iterable[PayrollEmployee] | None = None
 ) -> list[Payslip]:
+    if run.status not in _GENERATABLE_RUN_STATUSES:
+        raise ValueError(
+            f"a {run.status} payroll run cannot be regenerated "
+            "(only a DRAFT or PROCESSED run may be generated)"
+        )
+
     if employees is None:
         employees = PayrollEmployee.objects.filter(is_active=True).select_related(
             "user"

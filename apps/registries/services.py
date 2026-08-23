@@ -796,6 +796,7 @@ def ensure_grade_scale_seed() -> None:
             defaults={
                 "name": row["name"],
                 "family": row.get("family", ""),
+                "country_code": row.get("country_code", ""),
                 "range_definition": row.get("range_definition", {}),
                 "metadata": row.get("metadata", {}),
                 "sort_order": row.get("sort_order", 0),

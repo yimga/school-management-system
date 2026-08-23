@@ -802,6 +802,13 @@ class PosSaleLine(models.Model):
         db_index=True,
         help_text="Client-supplied key; a repeated key returns the prior sale (no double-charge).",
     )
+    idempotency_seq = models.PositiveSmallIntegerField(
+        default=0,
+        db_default=0,
+        help_text="0-based position of this line within its idempotency_key sale. "
+        "One sale writes several lines under ONE key, so the uniqueness that "
+        "makes the key real has to be per line, not per key.",
+    )
     inventory_item = models.ForeignKey(
         "schoolops.InventoryItem",
         on_delete=models.SET_NULL,
@@ -823,6 +830,19 @@ class PosSaleLine(models.Model):
         app_label = "schoolops"
         db_table = "schools_possaleline"
         ordering = ["-created_at"]
+        constraints = [
+            # The dedupe read in pos_checkout.checkout() cannot see a sibling
+            # transaction that has not committed yet, so two workers replaying
+            # one flaky-wifi scan both pass it. This index is what actually
+            # stops the second wallet debit; the service catches the
+            # IntegrityError and returns the winning sale as a dedup hit.
+            # Partial, because a cash sale with no key is not deduped at all.
+            models.UniqueConstraint(
+                fields=["school", "idempotency_key", "idempotency_seq"],
+                condition=~models.Q(idempotency_key=""),
+                name="uniq_possaleline_school_idem",
+            ),
+        ]
 
     def __str__(self):
         return f"{self.item_label} x{self.quantity}"

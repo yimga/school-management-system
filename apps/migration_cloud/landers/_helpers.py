@@ -1162,7 +1162,16 @@ def resolve_or_provision_user(
         # bare username: two DIFFERENT people can collide on a username derivation, and
         # merging them would be a data-integrity bug worse than a quarantine — so with
         # no email match we re-raise and quarantine honestly.
+        #
+        # School-scoped like the email rung above, and for the same reason: this
+        # lookup is reached exactly when that rung saw nothing, so the winner is
+        # a row that committed in the window between the rung and this insert —
+        # and a concurrent import running for a DIFFERENT tenant is precisely
+        # the writer that wins that race. Recovering it unscoped would re-open
+        # the cross-tenant bind through the back door.
         user = User.objects.filter(email__iexact=email).first() if email else None
+        if user is not None and not user_is_linkable_to_school(user, school):
+            return None, FOREIGN_SCHOOL_MATCH_REASON.format(email=email)
         if user is None:
             raise
     return user, ""

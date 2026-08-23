@@ -391,7 +391,13 @@ def _compatibility_report(
         region_code = getattr(
             getattr(school, "default_region", None), "code", None
         ) or getattr(school, "default_region_id", None)
-        if region_code and region_code not in allowed_regions:
+        if not region_code:
+            # School.default_region is nullable; failing open here would install a
+            # region-restricted pack into a tenant whose region is simply unknown.
+            errors.append(
+                f"School has no region; package restricts to allowed_regions {allowed_regions}"
+            )
+        elif region_code not in allowed_regions:
             errors.append(
                 f"School region '{region_code}' is not in package allowed_regions"
             )

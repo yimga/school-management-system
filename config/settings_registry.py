@@ -841,7 +841,7 @@ SETTINGS_REGISTRY: tuple[SettingSpec, ...] = (
     SettingSpec("SCHOOLOPS_EMAIL_DELIVERY_SSE_HEARTBEAT_SECONDS", "int", "5", "ops", "Heartbeat cadence (seconds) for the email-health SSE stream."),
     SettingSpec("SCHOOLOPS_EMAIL_DELIVERY_SYNC_BUDGET_SECONDS", "int", "8", "ops", "Synchronous wall-clock budget (seconds) for in-request email sends."),
     SettingSpec("SCHOOLOPS_EMAIL_DELIVERY_TENANT_HOURLY_CAP", "int", "200", "ops", "Per-tenant sliding-window cap on transactional+bulk sends per hour."),
-    SettingSpec("SCHOOLOPS_SENDGRID_REQUIRE_VERIFIED_WEBHOOK", "bool", "False", "security", "Reject SendGrid event-webhook posts whose ECDSA signature fails to verify (set 1 once the public key is configured)."),
+    SettingSpec("SCHOOLOPS_SENDGRID_ALLOW_UNVERIFIED_WEBHOOK", "bool", "False", "security", "Re-open the legacy accept-unverified SendGrid event-webhook path. An unverifiable ECDSA signature is 401 by DEFAULT; set 1 only while the public key is being wired up, because an accepted forged post suppresses the address it names."),
     # Security strength
     SettingSpec("SECURITY_ENFORCE_MINIMUM_STRENGTH", "bool", "True", "security", "Enforce the minimum account security-strength middleware gate."),
     SettingSpec("SECURITY_PLATFORM_MINIMUM_SCORE", "int", "40", "security", "Minimum platform security score (0-100) required for access."),

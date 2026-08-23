@@ -37,7 +37,7 @@ from django.db import connection
 from django.test import RequestFactory, TestCase, tag
 
 from apps.accounts.models import User
-from apps.schools.models import School
+from apps.schools.models import School, SchoolMembership
 
 # The live rail under proof — NOT apps.sync_engine.crdt (the legacy in-memory
 # module the management command checks). Importing the view + wire protocol is
@@ -117,7 +117,15 @@ class CRDTLiveRailConvergenceTests(TestCase):
         self.user_b = User.objects.create_user(username="crdt-dev-b", password="x")
 
     def _make_school(self, slug):
-        return School.objects.create(name=slug, slug=slug, subdomain=slug)
+        school = School.objects.create(name=slug, slug=slug, subdomain=slug)
+        # Both simulated devices must have standing in the school they write to: the
+        # view requires a live membership, so without this every convergence step
+        # would 403 and the proof would be of nothing.
+        for user in (self.user_a, self.user_b):
+            SchoolMembership.objects.create(
+                user=user, school=school, role="TEACHER", is_primary=False
+            )
+        return school
 
     def _apply(self, school, user, ops, device_id):
         """Drive ONE op batch through the live view's persistence path."""

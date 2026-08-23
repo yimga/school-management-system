@@ -180,6 +180,41 @@ class PackageEngineApplyRollbackTests(TestCase):
         self.assertEqual(result.get("apply_state"), "not_attempted")
         self.assertIn("allowed", " ".join(result["errors"]).lower())
 
+    def test_apply_package_rejects_region_restricted_pack_for_regionless_school(self):
+        """allowed_regions must fail CLOSED, like required_plan_slugs does.
+
+        School.default_region is nullable, so a school with no region resolved to
+        region_code=None and the membership check was skipped entirely — a
+        region-restricted pack installed into an out-of-region tenant.
+        """
+        from apps.schools.models import School
+
+        school = School.objects.create(
+            name="Regionless School",
+            slug="regionless-school",
+            subdomain="regionless-school",
+            is_active=True,
+        )
+        # Guard: the fail-open path is the one under test, not a missing region row.
+        self.assertIsNone(school.default_region_id)
+
+        result = apply_package(
+            tenant_id=school.id,
+            package_id="region-restricted-pack",
+            version="1.0",
+            payload_sections={"dashboard": {}},
+            compatibility={"allowed_regions": ["NG", "GH"]},
+            actor_id=None,
+        )
+        self.assertFalse(result["ok"], result)
+        self.assertEqual(result.get("apply_state"), "not_attempted")
+        self.assertIn("region", " ".join(result["errors"]).lower())
+        self.assertFalse(
+            InstalledPackage.objects.filter(
+                package_id="region-restricted-pack"
+            ).exists()
+        )
+
     def test_apply_package_registers_metadata_dependencies(self):
         result = apply_package(
             tenant_id=None,
