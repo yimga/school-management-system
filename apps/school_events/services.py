@@ -5,7 +5,12 @@ from django.db import models, transaction
 from django.db.models import Count, F, Sum
 from django.utils import timezone
 
-from apps.school_events.models import EventRegistration, EventTicketTier, SchoolEvent
+from apps.school_events.models import (
+    EventRegistration,
+    EventSponsorCommitment,
+    EventTicketTier,
+    SchoolEvent,
+)
 
 
 class TicketCapacityError(Exception):
@@ -52,21 +57,36 @@ def event_operations_snapshot(school) -> dict:
             "sponsor_commitments": 0,
             "sponsorship_total": 0,
         }
-    totals = SchoolEvent.objects.filter(school=school).aggregate(
+    # THREE aggregates, not one. Spanning `registrations` AND
+    # `sponsor_commitments` in a single aggregate makes SQL evaluate the cross
+    # product, so an event with R registrations and S commitments contributes
+    # R*S rows: Count("id") returned R*S instead of 1, and -- the one that
+    # matters -- Sum of the pledged amounts was multiplied by R. A gala with two
+    # 100 sponsors and forty ticket sales reported 8,000 of sponsorship.
+    # distinct=True saves a COUNT but cannot save a SUM: it would dedupe equal
+    # AMOUNTS, so two sponsors pledging 100 each would total 100.
+    events = SchoolEvent.objects.filter(school=school)
+    event_totals = events.aggregate(
         events_total=Count("id"),
         published_events=Count(
             "id", filter=models.Q(status=SchoolEvent.Status.PUBLISHED)
         ),
-        open_registrations=Count("registrations", distinct=True),
-        sponsor_commitment_count=Count("sponsor_commitments", distinct=True),
-        sponsorship_total=Sum("sponsor_commitments__pledged_amount"),
+    )
+    registration_total = EventRegistration.objects.filter(
+        event__school=school
+    ).count()
+    sponsorship = EventSponsorCommitment.objects.filter(
+        event__school=school
+    ).aggregate(
+        commitment_count=Count("id"),
+        pledged_total=Sum("pledged_amount"),
     )
     return {
-        "events_total": totals.get("events_total") or 0,
-        "published_events": totals.get("published_events") or 0,
-        "open_registrations": totals.get("open_registrations") or 0,
-        "sponsor_commitments": totals.get("sponsor_commitment_count") or 0,
-        "sponsorship_total": totals.get("sponsorship_total") or 0,
+        "events_total": event_totals.get("events_total") or 0,
+        "published_events": event_totals.get("published_events") or 0,
+        "open_registrations": registration_total,
+        "sponsor_commitments": sponsorship.get("commitment_count") or 0,
+        "sponsorship_total": sponsorship.get("pledged_total") or 0,
     }
 
 

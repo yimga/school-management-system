@@ -823,3 +823,93 @@ class TicketInvoiceSettlementTests(TestCase):
             registration.status, EventRegistration.Status.RESERVED,
             "a school's invoice must not settle another school's registration",
         )
+
+
+class OperationsSnapshotFanoutTests(TestCase):
+    """The snapshot joined two multi-valued relations in ONE aggregate.
+
+    ``event_operations_snapshot`` aggregates over ``SchoolEvent`` while spanning
+    both ``registrations`` and ``sponsor_commitments``. SQL evaluates that as a
+    cross product, so a single event with R registrations and S commitments
+    produces R*S rows. The counts that pass ``distinct=True`` survive it; three
+    values do not:
+
+      events_total     = Count("id")                     -> R*S, not 1
+      published_events = Count("id", filter=...)         -> R*S, not 1
+      sponsorship_total= Sum("sponsor_commitments__...") -> multiplied by R
+
+    The last one is money. A gala with 2 sponsors pledging 100 each and 40
+    registrations reported 8,000 of sponsorship instead of 200, on the console the
+    advancement office reads.
+
+    Nothing catches this: the query is valid, the page renders, and every number is
+    a plausible-looking integer. It only shows up when you put more than one
+    registration AND more than one commitment on the same event -- which no test
+    did.
+    """
+
+    def setUp(self):
+        self.school = School.objects.create(
+            name="Fanout School", slug="fanout-school",
+            subdomain="fanout-school", is_active=True,
+        )
+        self.buyer = User.objects.create_user(
+            username="fanout-buyer", email="fanout@example.com", password="pass1234"
+        )
+        self.event = SchoolEvent.objects.create(
+            school=self.school, title="Fanout Gala", slug="fanout-gala",
+            status=SchoolEvent.Status.PUBLISHED, organizer_name="Advancement",
+            start_at=timezone.now() + timedelta(days=4),
+            is_public=True, ticketing_enabled=True,
+        )
+        self.tier = EventTicketTier.objects.create(
+            event=self.event, name="General", code="gen-fan",
+            price=Decimal("25.00"), capacity=100, sold_quantity=0,
+        )
+
+    def _snapshot(self):
+        from apps.school_events.services import event_operations_snapshot
+
+        return event_operations_snapshot(self.school)
+
+    def test_one_event_with_nothing_attached_reads_correctly(self):
+        # Calibration: with no fanout the old code was right, so this must pass
+        # both before and after -- it proves the fixture reaches the function.
+        snap = self._snapshot()
+        self.assertEqual(snap["events_total"], 1)
+        self.assertEqual(snap["published_events"], 1)
+        self.assertEqual(snap["sponsorship_total"], 0)
+
+    def _add_fanout(self):
+        from apps.school_events.models import EventSponsor, EventSponsorCommitment
+
+        for _ in range(3):
+            register_for_tier(
+                event=self.event, tier=self.tier, purchaser=self.buyer, quantity=1
+            )
+        for name in ("Sponsor A", "Sponsor B"):
+            sponsor = EventSponsor.objects.create(school=self.school, name=name)
+            EventSponsorCommitment.objects.create(
+                event=self.event, sponsor=sponsor, pledged_amount=Decimal("100.00")
+            )
+
+    def test_the_event_count_is_not_multiplied_by_its_children(self):
+        self._add_fanout()
+        snap = self._snapshot()
+        self.assertEqual(snap["events_total"], 1, "one event is one event")
+        self.assertEqual(snap["published_events"], 1)
+
+    def test_sponsorship_money_is_not_multiplied_by_the_registrations(self):
+        self._add_fanout()
+        snap = self._snapshot()
+        self.assertEqual(
+            Decimal(str(snap["sponsorship_total"])),
+            Decimal("200.00"),
+            "two sponsors pledged 100 each; the total must not scale with ticket sales",
+        )
+
+    def test_the_child_counts_are_still_right(self):
+        self._add_fanout()
+        snap = self._snapshot()
+        self.assertEqual(snap["open_registrations"], 3)
+        self.assertEqual(snap["sponsor_commitments"], 2)
