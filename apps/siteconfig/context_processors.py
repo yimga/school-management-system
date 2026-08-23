@@ -237,7 +237,6 @@ BREADCRUMB_LABELS = {
     "siteconfig": "Site Settings",
     "customizer": "Studio",
     "preferences": "Preferences",
-    "reports": "Reports",
     "reports/download": "Download",
     "analytics": "Analytics",
 }

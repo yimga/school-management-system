@@ -49,6 +49,7 @@ from apps.sync_engine.edge_outbox import (
     SYNC_MANIFEST_ADVICE_HEADER,
     SYNC_MANIFEST_HEADER,
     SYNC_MANIFEST_TARGET_HEADER,
+    SYNC_ENGINE_HEADER,
     SYNC_SCHEMA_HEAD_HEADER,
     SYNC_UPGRADE_FAILURE_HEADER,
     SYNC_WITHHELD_HEADER,
@@ -120,11 +121,45 @@ def _manifest_handshake(request, school):
         from apps.sync_engine.system_manifest import load_manifest
 
         target = str((load_manifest() or {}).get("manifest_hash") or "")
+
+        # KEEP what the box just told us. It says this on every handshake and it used to be
+        # compared and dropped, so "which schools are on which release" had no answer
+        # anywhere on the cloud and the honest way to get one was to ask each school to
+        # read a screen. EdgeDeploymentHistory cannot answer it either — that lives on the
+        # box and never leaves it.
+        from apps.sync_engine.models_fleet import EdgeFleetState
+
+        EdgeFleetState.record_seen(
+            school,
+            reported_hash=raw,
+            engine=(request.META.get("HTTP_" + SYNC_ENGINE_HEADER.upper().replace("-", "_")) or "").strip(),
+            offered_hash=target,
+        )
+
         if not target:
             return "", ""
         if target == raw:
             upgrade_lock.release(school)
             return "", ""
+
+        # ROLLOUT RING. A manifest existing on the operator is not the same as this
+        # school being allowed to move to it. Without this check the first box to sync
+        # after a deploy takes the new release and so does every box behind it, which
+        # means a release that is wrong in a way no test caught reaches the whole fleet
+        # before anyone has looked at the first one.
+        #
+        # An unreleased target is not advertised AT ALL rather than advertised-and-
+        # refused: a box told "upgrade available" that is then refused the bytes would
+        # retry every cycle forever, and its operator would see a box that looks stuck.
+        from apps.sync_engine.models_rollout import may_receive
+
+        allowed, reason = may_receive(school, target)
+        if not allowed:
+            # Not a hold. The school is simply staying where it is, and its data must
+            # keep moving while it does.
+            upgrade_lock.release(school)
+            return "", ""
+
         upgrade_lock.hold(
             school,
             target_hash=target,
@@ -132,7 +167,7 @@ def _manifest_handshake(request, school):
             reason="manifest mismatch at bundle download",
         )
         return target, (
-            f"upgrade available: box manifest {raw[:12]} -> operator {target[:12]}"
+            f"upgrade available ({reason}): box manifest {raw[:12]} -> operator {target[:12]}"
         )
     except Exception:  # noqa: BLE001 - advisory only; never cost the box its data
         return "", ""
@@ -151,9 +186,17 @@ def _log_upgrade_failure(request, school) -> None:
     An appliance that cannot apply an upgrade is the case where nobody is present to read
     a local log — that is the entire premise of an edge box. The box therefore attaches
     its last failure to the next request it makes, and this is where it stops being
-    invisible. Logged, not stored: a durable record already exists on the box
-    (``EdgeDeploymentHistory``), and minting a cloud table for a string would add a write
-    to the hot path of every pull for a diagnostic nobody queries.
+    invisible.
+
+    It is now logged AND stored. This used to say "logged, not stored", on the reasoning
+    that a durable record already exists on the box and a cloud table would be a write for
+    "a diagnostic nobody queries". That reasoning was sound and is no longer true on its
+    second half: the operator fleet console queries it, and the box's own record is
+    unreachable from the cloud by design — it lives in the box's database behind a village
+    link. A failure only a grep can find is a failure nobody finds.
+
+    The write is bounded and cannot cost the box its sync: one row per school, updated,
+    inside ``record_failure``'s own try/except.
     """
     raw = (request.META.get("HTTP_" + SYNC_UPGRADE_FAILURE_HEADER.upper().replace("-", "_")) or "").strip()
     if not raw:
@@ -163,6 +206,9 @@ def _log_upgrade_failure(request, school) -> None:
         getattr(school, "pk", None),
         raw[:_UPGRADE_FAILURE_LOG_MAX_CHARS],
     )
+    from apps.sync_engine.models_fleet import EdgeFleetState
+
+    EdgeFleetState.record_failure(school, text=raw)
 
 
 def _stamp_manifest_handshake(resp, request, school) -> str:

@@ -1146,7 +1146,10 @@ def redrive_dead_letters(limit: int = 50) -> dict:
             continue
 
         to_list = payload.get("to") or []
-        if to_list and is_recipient_suppressed(to_list[0]):
+        # Abandon only when EVERY recipient is suppressed. A partially
+        # suppressed parked message is still worth redriving; send_transactional
+        # drops the suppressed addresses and delivers to the rest.
+        if to_list and all(is_recipient_suppressed(a) for a in to_list):
             row.status = DeadLetterStatus.ABANDONED
             row.last_error_kind = "suppressed"
             row.redriven_at = timezone.now()
@@ -1602,6 +1605,14 @@ def _send_transactional_sync_core(
     }
 
 
+def _school_id_of(school) -> str:
+    """``school``'s pk as a string, or "" when there is no resolvable school."""
+    pk = getattr(school, "pk", None)
+    if pk is None and school is not None and not hasattr(school, "_meta"):
+        pk = school  # already an id
+    return "" if pk is None else str(pk)
+
+
 def _async_send_worker(**kwargs: Any) -> None:
     """Daemon-thread target for ``async_send=True`` callers.
 
@@ -1609,12 +1620,35 @@ def _async_send_worker(**kwargs: Any) -> None:
     swallows ALL exceptions silently into the EmailDeliveryEvent
     audit row. NEVER re-raises — a daemon thread exception would
     only land in the thread's own context anyway.
+
+    Tenant context has to be re-entered here. A thread gets its OWN DB
+    connection, and the schema (django-tenants) / ``app.current_school_id``
+    GUC (RLS) live on the connection, not on the process -- so this thread
+    starts on ``public`` no matter what the request that spawned it was doing.
+    ``EmailDeliveryEvent`` is in apps.schoolops, TENANT_APPS-only, so its
+    terminal forensic row was written to a schema where the table does not
+    exist, and ``_persist_event``'s own ``except Exception`` swallowed it.
+    The in-request "queued" marker landed correctly and the terminal row never
+    did: exactly the stuck-looking send the Audit C2 marker exists to expose,
+    manufactured by the mechanism meant to prevent it.
     """
-    try:
-        _send_transactional_sync_core(
+    school_id = _school_id_of(kwargs.get("school"))
+
+    def _run():
+        return _send_transactional_sync_core(
             enforce_sync_budget=False,
             **kwargs,
         )
+
+    try:
+        if school_id:
+            from apps.schools.celery_tasks import _run_with_tenant_context
+
+            _run_with_tenant_context(school_id=school_id, runnable=_run)
+        else:
+            # Platform-level mail (no school): nothing to enter. The row lands
+            # wherever the thread's default connection points, same as before.
+            _run()
     except Exception as exc:  # broad-by-design — async path never raises
         try:
             logger.warning(
@@ -1724,34 +1758,58 @@ def send_transactional(
     # Before any send, consult the bounce/complaint/unsubscribe list.
     # ``allow_suppressed=True`` lets a caller bypass it for a re-opt-in
     # confirmation mail (e.g. newsletter re-subscribe) — but transactional
-    # callers never set it. Suppression applies to the FIRST recipient.
+    # callers never set it.
+    #
+    # EVERY recipient is checked, not just the first. The send builds ONE
+    # message with ``to=to_list`` (see _send_transactional_sync_core), so a
+    # first-recipient-only check meant anyone who had hard-bounced or
+    # unsubscribed kept receiving mail for as long as they were not at index 0
+    # — which on the bulk path, where multi-recipient is the norm, is every
+    # time. Sending to known-dead addresses is also what wrecks sender
+    # reputation, so this is a deliverability defect as much as a consent one.
     to_list_sup = _coerce_to_list(to)
-    if not allow_suppressed and to_list_sup and is_recipient_suppressed(to_list_sup[0]):
-        to_hash_sup = _hash_recipient(to_list_sup[0])
-        delivery_event_id_sup = _persist_event(
-            to_hash=to_hash_sup,
-            subject_prefix=_redact_subject_for_log(subject or ""),
-            priority=priority,
-            attempts=0,
-            ok=False,
-            error_kind=_ERR_SUPPRESSED,
-            idempotency_key=idempotency_key,
-        )
-        logger.info(
-            "schoolops.email_delivery.send_skipped_suppressed "
-            "to_hash=%s priority=%s event_id=%s",
-            to_hash_sup, priority, delivery_event_id_sup or "n/a",
-        )
-        return {
-            "ok": False,
-            "queued": False,
-            "attempts": 0,
-            "delivery_event_id": delivery_event_id_sup,
-            "error_kind": _ERR_SUPPRESSED,
-            "suppressed": True,
-            "bounced": False,
-            "bounce_kind": "",
-        }
+    if not allow_suppressed and to_list_sup:
+        deliverable = [a for a in to_list_sup if not is_recipient_suppressed(a)]
+        dropped = len(to_list_sup) - len(deliverable)
+        if not deliverable:
+            to_hash_sup = _hash_recipient(to_list_sup[0])
+            delivery_event_id_sup = _persist_event(
+                to_hash=to_hash_sup,
+                subject_prefix=_redact_subject_for_log(subject or ""),
+                priority=priority,
+                attempts=0,
+                ok=False,
+                error_kind=_ERR_SUPPRESSED,
+                idempotency_key=idempotency_key,
+            )
+            logger.info(
+                "schoolops.email_delivery.send_skipped_suppressed "
+                "to_hash=%s priority=%s recipients=%s event_id=%s",
+                to_hash_sup, priority, len(to_list_sup),
+                delivery_event_id_sup or "n/a",
+            )
+            return {
+                "ok": False,
+                "queued": False,
+                "attempts": 0,
+                "delivery_event_id": delivery_event_id_sup,
+                "error_kind": _ERR_SUPPRESSED,
+                "suppressed": True,
+                "suppressed_recipients": dropped,
+                "bounced": False,
+                "bounce_kind": "",
+            }
+        if dropped:
+            # Partial: deliver to the rest. Rebinding ``to`` is what carries the
+            # filtered list downstream — every later path re-coerces from it
+            # (the offline queue, the async marker, _send_transactional_sync_core).
+            to = deliverable
+            to_list_sup = deliverable
+            logger.info(
+                "schoolops.email_delivery.suppressed_recipients_dropped "
+                "dropped=%s remaining=%s priority=%s",
+                dropped, len(deliverable), priority,
+            )
 
     # ── v3.58.x Wave 9 Agent M — per-tenant rate-limit gate ──────────
     # Gate at the outer entry so both sync AND async paths share one
@@ -1909,7 +1967,18 @@ def send_transactional(
             try:
                 from apps.schoolops.tasks import dispatch_transactional_email
 
-                dispatch_transactional_email.delay(**worker_kwargs)
+                # school_id on the wire, NOT the School instance. The broker
+                # serializer is JSON (CELERY_TASK_SERIALIZER), so passing the
+                # model raised EncodeError -- caught by the except below, which
+                # "fell back to the thread". That made the durable path dead on
+                # arrival for every send that named a school, which is the only
+                # kind Audit C2 was written for. The task re-resolves the School
+                # from this id, which also restores the per-tenant SMTP override
+                # the old docstring recorded as unavoidably lost.
+                celery_kwargs = dict(worker_kwargs)
+                celery_kwargs.pop("school", None)
+                celery_kwargs["school_id"] = _school_id_of(school)
+                dispatch_transactional_email.delay(**celery_kwargs)
                 return {
                     "ok": True,
                     "attempts": 0,
@@ -1989,6 +2058,7 @@ def send_bulk(
     from_email: Optional[str] = None,
     headers: Optional[dict] = None,
     priority: str = "bulk",
+    school=None,
     idempotency_key: str = "",
 ) -> dict:
     """Queue a bulk send via Celery when available, fall back to inline.
@@ -2023,6 +2093,8 @@ def send_bulk(
             from_email=from_email,
             headers=headers,
             priority=priority,
+            # id, not the instance: the broker serializer is JSON.
+            school_id=_school_id_of(school),
             idempotency_key=idempotency_key,
         )
         return {
@@ -2044,6 +2116,8 @@ def send_bulk(
             type(exc).__name__,
         )
 
+    # Inline fallback runs in the CALLER's context, so the School instance
+    # itself is the right thing to pass here.
     return send_transactional(
         subject=subject,
         body=body,
@@ -2053,6 +2127,7 @@ def send_bulk(
         from_email=from_email,
         headers=headers,
         priority=priority or "bulk",
+        school=school,
         idempotency_key=idempotency_key,
     )
 

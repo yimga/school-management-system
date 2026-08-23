@@ -184,8 +184,11 @@ lane** needs a worker reload, and where the deployment is not laid out for a sym
 the ordinary `COPY . .` image is not — it stages, verifies, prechecks, records, and reports
 `activation="deferred"`. It does not claim a swap it did not perform.
 
-Set `RMC_OTA_RELEASE_ROOT` only on a deployment laid out as `<root>/releases/<id>` with a
-`current` symlink.
+`RMC_OTA_RELEASE_ROOT` names that layout. On the selfhost image you do not have to build
+it by hand — the entrypoint seeds `releases/<id>/` and `current` on first boot (§4d) —
+but it must point at a **mounted volume**, or every restart discards the releases and
+re-seeds, throwing away the one thing a rollback needs. On any other deployment, set it
+only where that layout already exists.
 
 ---
 
@@ -210,12 +213,111 @@ hangs the worker on its own status check.
   assets-only lane, or a code lane needing an image rebuild), it stops blocking. The
   upgrade stays visible on every cycle via `result["upgrade_available"]`.
 
-And it is **never armed at all** when `RMC_OTA_AUTO_APPLY=off`, because nothing on the box
-would act on it: a school whose records stop syncing because a code update is pending is
-worse off than a school running one release behind.
+And it is **armed only for the `full` lane**. That is the whole of it — not "any mode that
+is not off".
+
+The hold exists because the *database* may be mid-migration. An `assets` lane carries no
+migration and no importable python, by construction: `ASSET_CATEGORIES` cannot contain a
+`.py` file, because `categorise()` returns `APP_CORE` for `.py` before the fall-through. So
+there is no schema to be mid-anything, and pausing a school's records to deliver a
+stylesheet would be pure cost. With `off`, nothing on the box would act on the hold at all,
+and a school whose records stop syncing because a code update is pending is worse off than
+a school running one release behind.
+
+The skew case that *does* need care is handled precisely, one layer up: the cloud's
+`_schema_handshake` withholds exactly the entities owned by an app the box is behind on and
+lets everything else through — it degrades, it does not refuse.
 
 A `mode="dry"` probe is exempt — it writes nothing in either direction, and it is the one
 tool that answers "can this box still reach the cloud" while the box is held.
+
+---
+
+## 4b. Rollout rings — who may move, and when
+
+`apps/sync_engine/models_rollout.py`, migrations `0019` + `0020_rollout_rls`.
+
+A manifest existing on the operator is not the same as a school being allowed to move to
+it. Before rings, the first box to sync after a deploy took the new release and so did
+every box behind it — so a release wrong in a way no test caught reached the whole fleet
+before anyone had looked at the first one. The failure being guarded against is not "a box
+gets a bad release"; it is "every box gets it at once and there is no healthy peer left to
+compare against".
+
+| Record | Scope | Holds |
+|---|---|---|
+| `EdgeRolloutPolicy` | per school (`school` FK → RLS-enumerated in `0020`) | `ring` (canary \| stable), `paused` |
+| `ManifestRelease` | per manifest, **no** `school` FK | which `rings` that manifest is released to |
+
+`ManifestRelease` is deliberately not tenant-scoped: how far a release has been promoted is
+identical for every school, so a `school` FK would both misdescribe it and enrol it in the
+tenant RLS gate for data it does not hold — the same call `EdgeDeploymentHistory` makes.
+
+**A missing row is never a refusal.** A school with no policy is on `stable`; a manifest
+with no release row is on `RMC_OTA_DEFAULT_RELEASE_RINGS` (default `canary`). Requiring an
+operator to pre-create a row per school before anything could ship would make a fresh
+install silently dead. Nothing writes on the read path — rows appear only when an operator
+decides something.
+
+Enforced in **two** places, on purpose: the handshake declines to *advertise* an unreleased
+manifest (a box told "upgrade available" and then refused the bytes retries forever and
+looks stuck), and `sync_upgrade_api._guard` refuses to *serve* one — 409 `not_released`,
+not 403, because nothing is wrong with the box or its credentials.
+
+    manage.py ota_rollout --status
+    manage.py ota_rollout --ring <school> canary
+    manage.py ota_rollout --promote canary stable
+    manage.py ota_rollout --pause <school>
+
+Promotion is not monotonic: `--promote canary` after `--promote canary stable` pulls a bad
+release back while a fix is prepared.
+
+---
+
+## 4c. What the cloud keeps, and where an operator reads it
+
+`apps/sync_engine/models_fleet.py` (`EdgeFleetState`), migrations `0021` + `0022`,
+console at `/super/edge-fleet/`.
+
+Every box already told the cloud what it was: `X-RMC-Sync-Manifest` on every handshake,
+`X-RMC-Sync-Engine` naming the build, `X-RMC-Sync-Upgrade-Failure` carrying a stopped
+upgrade. All three were read and **discarded** — the hash was compared and dropped, the
+failure went to a logfile. So "which school is on which release, and which one is stuck"
+had no answer, and the honest way to get one was to ring the school.
+
+`EdgeDeploymentHistory` cannot answer it and that is not a defect: it is written on the
+**box**, in the box's own database, behind that school's link. `EdgeFleetState` is the
+other half — what the *cloud* observed. One row per school, overwritten; the durable
+history stays on the box, because a row per handshake per school is millions of rows a
+year to answer "what is it on now".
+
+Three distinctions the console is careful about:
+
+* **Seen ≠ moved.** A box that checked in four minutes ago and last changed manifest in
+  June is healthy on the network and stuck on the upgrade. Separate columns.
+* **Waiting ≠ stuck.** A school not yet promoted to is behaving correctly. Painting it
+  like a failure teaches an operator to ignore the colour.
+* **A resolved failure stops being shown**, or the operator chases a ghost.
+
+Read-only: promotion is `manage.py ota_rollout`, because a button that releases a build to
+every school is a button that gets clicked by accident.
+
+---
+
+## 4d. Release layout — how the full lane becomes real
+
+`deploy/selfhost/release_layout.sh`, `RMC_OTA_RELEASE_ROOT`.
+
+The stock image is one tree, so a code swap cannot be atomic and the manager refuses:
+`deferred — apply with an image rebuild`. Set `RMC_OTA_RELEASE_ROOT` (and mount a volume
+there) and the box gets `releases/<hash>/` plus a `current` symlink; the entrypoint serves
+**from the symlink**, which is the part that makes it real — a symlink nothing serves from
+is decoration. Opt-in: unset, the box boots exactly as before.
+
+And the half that is easy to forget: **a swapped file changes nothing until the process
+reloads.** gunicorn writes `GUNICORN_PIDFILE`, both entrypoint paths export it, and
+`RMC_OTA_WORKER_RELOAD_PIDFILE` falls back to it — two env vars that must name the same
+file is a trap where a wrong path degrades silently to "reload NOT configured".
 
 ---
 
@@ -240,7 +342,7 @@ stopped, and which manifest it is still serving.
 | Setting | Default | Notes |
 |---|---|---|
 | `RMC_OTA_ENABLED` | `1` | cloud half; read-only, costs nothing until a box asks |
-| `RMC_OTA_AUTO_APPLY` | `off` | `off` \| `assets` \| `full` |
+| `RMC_OTA_AUTO_APPLY` | `assets` | `off` \| `assets` \| `full` — `assets` is the default so the pipeline is not ceremonial; `full` stays opt-in |
 | `RMC_OTA_MANIFEST_PATH` / `_ROOT` | `""` | default `BASE_DIR` |
 | `RMC_OTA_STAGING_ROOT` | `""` | default `<BASE_DIR>/.rmc_ota_staging` |
 | `RMC_OTA_RELEASE_ROOT` | `""` | unset ⇒ code swap defers rather than pretends |
@@ -298,9 +400,23 @@ byte-for-byte the same gates as a network transfer.
 | `test_ota_sync_interlock_2026_08_22.py` | `UpgradeRouteContractTests` + `NoDatabaseInterlockTests` no database (17); `HeldCycleIntegrationTests` needs one |
 | `test_ota_runtime_controls_2026_08_22.py` | no database (21) |
 | `test_ota_corrupt_bundle_2026_08_22.py` | needs a database |
+| `test_ota_default_lane_2026_08_22.py` | the assets-only default and the re-gated hold (12) |
+| `test_ota_rollout_rings_2026_08_22.py` | ring policy, promotion, reversibility (20) |
+| `test_ota_rollout_command_2026_08_22.py` | every `ota_rollout` flag, incl. query-count scaling (24) |
+| `test_ota_fleet_console_2026_08_22.py` | what the cloud keeps and how it classifies it (22) |
+| `test_ota_release_layout_2026_08_22.py` | the deployment wiring and the reload (12) |
+| `scripts/tests/test_verify_ota_pipeline_wiring.py` | the wiring gate itself, stdlib (10) |
 
 The corrupt-bundle suite is the load-bearing one. It writes a real tree, truncates one JS
 bundle exactly the way a dropped link does, and asserts the guard detects it, that the
 running tree is **byte-identical** afterwards, that the failure is recorded, and that the
 box keeps syncing on its old code. It is paired with a clean-bundle calibration test —
 without that, "it stopped on corruption" proves nothing.
+
+`test_ota_rollout_command_2026_08_22.py` exists because `ota_rollout` is the **only** path
+from "the canary looks fine" to "everybody gets it" — the console is read-only on purpose.
+A crash in that command would not fail a gate and would surface for the first time when an
+operator reached for it during an incident. It also pins the cost of the fleet listing as
+*independent of fleet size*, which is not a micro-optimisation: `may_receive` does two
+lookups per call, which is right for the handshake (one school) and 600 avoidable queries
+for a 300-school console page.

@@ -1,0 +1,134 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% comment %}
+Operator fleet console. Read-only by design: promotion runs through
+`manage.py ota_rollout`, because a button that releases a build to every school in the
+fleet is a button that gets clicked by accident, and this page is what you read BEFORE
+you decide. Renders no tenant secrets — school name, manifest hash prefix and the box's
+own reported failure string, nothing else.
+{% endcomment %}
+
+{% block page_title %}{{ page_title }}{% endblock %}
+
+{% block cp_shell_page %}
+<main class="rmc-page rmc-page--edge-fleet" id="main">
+  <header class="rmc-page__header">
+    <div class="rmc-page__title-row">
+      <h1 class="rmc-h1">{% trans "Edge fleet — releases" %}</h1>
+    </div>
+    <p class="rmc-muted">
+      {% if operator_hash %}
+        {% blocktrans with h=operator_hash|slice:":12" v=operator_version %}This operator is built from manifest {{ h }} ({{ v }}).{% endblocktrans %}
+        {% if release_is_explicit %}
+          {% blocktrans with r=released_rings|join:", " %}Released to: {{ r }}.{% endblocktrans %}
+        {% else %}
+          {% blocktrans with r=released_rings|join:", " %}Not promoted yet — on the default rings: {{ r }}.{% endblocktrans %}
+        {% endif %}
+      {% else %}
+        {% trans "This operator has no system manifest, so no box can be offered an upgrade. Run generate_system_manifest on the operator deployment." %}
+      {% endif %}
+    </p>
+  </header>
+
+  {# Summary before detail: an operator scans this row and only then reads the table. #}
+  <section class="rmc-grid rmc-grid--edge-fleet-summary" aria-label="{% trans 'Fleet summary' %}">
+    <a class="rmc-card rmc-metric" href="?state=parity">
+      <span class="rmc-metric__value">{{ counts.parity }}</span>
+      <span class="rmc-metric__label">{% trans "On the current release" %}</span>
+    </a>
+    <a class="rmc-card rmc-metric" href="?state=behind">
+      <span class="rmc-metric__value">{{ counts.behind }}</span>
+      <span class="rmc-metric__label">{% trans "Released, not yet applied" %}</span>
+    </a>
+    <a class="rmc-card rmc-metric" href="?state=waiting">
+      <span class="rmc-metric__value">{{ counts.waiting }}</span>
+      <span class="rmc-metric__label">{% trans "Waiting on a promotion" %}</span>
+    </a>
+    <a class="rmc-card rmc-metric" href="?state=failed">
+      <span class="rmc-metric__value">{{ counts.failed }}</span>
+      <span class="rmc-metric__label">{% trans "Failed on the box" %}</span>
+    </a>
+    <a class="rmc-card rmc-metric" href="?state=quiet">
+      <span class="rmc-metric__value">{{ counts.quiet }}</span>
+      <span class="rmc-metric__label">{% trans "Quiet" %}</span>
+    </a>
+    <a class="rmc-card rmc-metric" href="?state=never">
+      <span class="rmc-metric__value">{{ counts.never }}</span>
+      <span class="rmc-metric__label">{% trans "Never checked in" %}</span>
+    </a>
+  </section>
+
+  <section class="rmc-stack">
+    <table class="rmc-data-table">
+      <caption>
+        {% if active_filter %}
+          {% blocktrans with n=total f=active_filter %}{{ n }} school(s) in state "{{ f }}".{% endblocktrans %}
+          <a href="?">{% trans "Show all schools" %}</a>
+        {% else %}
+          {% blocktrans with n=total h=quiet_after_hours %}{{ n }} school(s). A box is called quiet after {{ h }} hours of silence — an edge box is expected to be offline, so silence alone is not a fault.{% endblocktrans %}
+        {% endif %}
+      </caption>
+      <thead>
+        <tr>
+          <th scope="col">{% trans "School" %}</th>
+          <th scope="col">{% trans "Ring" %}</th>
+          <th scope="col">{% trans "State" %}</th>
+          <th scope="col">{% trans "On manifest" %}</th>
+          <th scope="col">{% trans "Last seen" %}</th>
+          <th scope="col">{% trans "Last moved" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        <tr>
+          <th scope="row">{{ row.school }}</th>
+          <td><span class="rmc-pill">{{ row.ring }}</span></td>
+          <td>
+            <span class="rmc-badge rmc-badge--{{ row.state }}">{{ row.label }}</span>
+            {% if row.failure %}
+              {# The box's own words. This is the whole reason the header exists. #}
+              <p class="rmc-muted">{{ row.failure }}</p>
+            {% endif %}
+          </td>
+          <td>
+            {% if row.reported %}
+              <code>{{ row.reported|slice:":12" }}</code>
+            {% else %}
+              <span class="rmc-muted">{% trans "unknown" %}</span>
+            {% endif %}
+            {% if row.engine %}<br><span class="rmc-muted">{{ row.engine }}</span>{% endif %}
+          </td>
+          <td>{% if row.last_seen %}{{ row.last_seen }}{% else %}<span class="rmc-muted">{% trans "never" %}</span>{% endif %}</td>
+          <td>{% if row.last_moved %}{{ row.last_moved }}{% else %}<span class="rmc-muted">{% trans "never" %}</span>{% endif %}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6">
+            {% if active_filter %}
+              <div class="rmc-empty">{% trans "No school is in that state right now." %} <a href="?">{% trans "Show all schools" %}</a></div>
+            {% else %}
+              <div class="rmc-empty">{% trans "No schools on this deployment yet." %}</div>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <section class="rmc-stack">
+    <h2 class="rmc-h1">{% trans "Widening a release" %}</h2>
+    <p class="rmc-muted">
+      {% trans "Promotion is a command, not a button here — releasing a build to every school is not something to do by accident." %}
+    </p>
+    <pre><code>manage.py ota_rollout --status
+manage.py ota_rollout --ring &lt;school&gt; canary
+manage.py ota_rollout --promote canary stable
+manage.py ota_rollout --pause &lt;school&gt;</code></pre>
+    <p class="rmc-muted">
+      {% trans "Promotion is reversible: promoting to canary alone after a wider release pulls it back while a fix is prepared." %}
+    </p>
+  </section>
+</main>
+{% endblock %}

@@ -20,6 +20,7 @@ on:
     paths:
       - "apps/**/*.py"
       - "services/**/*.py"
+      - "scripts/scan_duplicate_dict_keys.py"
       - "scripts/scan_ai_gateway_boundary.py"
       - "scripts/verify_ai_copilot_rbac_coverage.py"
       - "var/security-audit-baseline-ai-copilot-rbac-coverage.json"
@@ -383,6 +384,23 @@ jobs:
         run: |
           python -m unittest scripts.tests.test_scan_lander_row_error_contract -v
 
+  ota-pipeline-wiring:
+    name: The OTA pipeline is still connected end to end
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run gate
+        run: |
+          python scripts/verify_ota_pipeline_wiring.py
+      - name: Unit tests
+        run: |
+          python -m unittest scripts.tests.test_verify_ota_pipeline_wiring -v
+
   raw-token-in-ui:
     name: No internal identifier is shown to a human as words
     runs-on: ubuntu-latest
@@ -399,6 +417,23 @@ jobs:
       - name: Unit tests
         run: |
           python -m unittest scripts.tests.test_scan_raw_token_in_ui -v
+
+  duplicate-dict-keys:
+    name: No dict literal silently discards an entry
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run scanner --strict
+        run: |
+          python scripts/scan_duplicate_dict_keys.py --strict
+      - name: Unit tests
+        run: |
+          python -m unittest scripts.tests.test_scan_duplicate_dict_keys -v
 
   lander-row-streaming:
     name: Migration Cloud landers stream canonical rows

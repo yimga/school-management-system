@@ -190,6 +190,22 @@ TENANT_STAFF_SPINE: tuple[NavSpec, ...] = (
 
 OPERATOR_SPINE: tuple[NavSpec, ...] = (
     NavSpec(
+        # Which school is on which release, and which one is stuck. Registered here rather
+        # than left as a bare URL because an operator page nobody can navigate to is very
+        # nearly as useless as no page: the whole point is that somebody LOOKS at the
+        # canary before widening a release.
+        id="super_edge_fleet",
+        label="Edge fleet",
+        url_name="super:edge_fleet_console",
+        icon="bi-hdd-network",
+        planes=("operator",),
+        nav_class="spine",
+        group="Platform Overview",
+        surface="ops",
+        cmd_kind="navigate",
+        cmd_scope="staff",
+    ),
+    NavSpec(
         id="super_founder_dashboard",
         label="Founder dashboard",
         url_name="super:founder_dashboard",

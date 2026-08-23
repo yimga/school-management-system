@@ -87,19 +87,42 @@ python manage.py verify_edge_link || true
 echo "[selfhost] edge auto-sync: initial reconcile on boot (backgrounded)"
 ( python manage.py edge_autosync >/dev/null 2>&1 || true ) &
 
-# Cascading OTA. OFF unless the operator set RMC_OTA_AUTO_APPLY (assets|full) — an
-# appliance that rewrites its own code unattended while a school is teaching must be a
-# decision somebody made. Runs BEFORE gunicorn takes traffic so an asset swap is never
-# half-visible to a request in flight, and it is `|| true` because the manager already
-# refuses at its own safety gates and records the attempt in EdgeDeploymentHistory; a
-# refused upgrade must not stop the box from serving on the code it already has.
-if [[ "${RMC_OTA_AUTO_APPLY:-off}" != "off" ]]; then
-  echo "[selfhost] OTA auto-apply: ${RMC_OTA_AUTO_APPLY}"
-  python manage.py edge_apply_upgrade --mode "${RMC_OTA_AUTO_APPLY}" || true
+# Cascading OTA. Defaults to "assets": templates, static, locale and data move on their
+# own, because they carry no python and no migration, so they need no interpreter reload
+# and cannot leave the schema half-applied. "full" — python plus migrations — stays
+# opt-in, because an appliance that rewrites its own code unattended while a school is
+# teaching must be a decision somebody made. RMC_OTA_AUTO_APPLY=off disables both.
+#
+# Runs BEFORE gunicorn takes traffic so an asset swap is never half-visible to a request
+# in flight, and it is `|| true` because the manager already refuses at its own safety
+# gates and records the attempt in EdgeDeploymentHistory; a refused upgrade must not stop
+# the box from serving on the code it already has.
+if [[ "${RMC_OTA_AUTO_APPLY:-assets}" != "off" ]]; then
+  echo "[selfhost] OTA auto-apply: ${RMC_OTA_AUTO_APPLY:-assets}"
+  python manage.py edge_apply_upgrade --mode "${RMC_OTA_AUTO_APPLY:-assets}" || true
 else
-  echo "[selfhost] OTA auto-apply: off (set RMC_OTA_AUTO_APPLY=assets|full to enable)"
+  echo "[selfhost] OTA auto-apply: off (explicitly disabled; unset to get the assets default)"
   python manage.py edge_apply_upgrade --status || true
 fi
 
+# Blue-green release layout, opt-in via RMC_OTA_RELEASE_ROOT. Without it the box boots
+# from the image tree exactly as before, and a FULL upgrade correctly reports "deferred"
+# because overwriting .py files under a live interpreter cannot be made atomic. With it,
+# gunicorn runs from $RMC_OTA_RELEASE_ROOT/current and the rollout manager can flip that
+# symlink to a whole verified tree in one rename.
+if [[ -n "${RMC_OTA_RELEASE_ROOT:-}" ]]; then
+  # shellcheck source=deploy/selfhost/release_layout.sh
+  . /app/deploy/selfhost/release_layout.sh
+  RMC_SERVE_DIR="$(rmc_release_layout_prepare "${RMC_OTA_RELEASE_ROOT}" /app)"
+  echo "[selfhost] release layout active; serving from ${RMC_SERVE_DIR}"
+  # The manager HUPs this pid to make a swap live; without it every applied upgrade waits
+  # for a container restart nobody is there to perform.
+  export GUNICORN_PIDFILE="${GUNICORN_PIDFILE:-/tmp/rmc-gunicorn.pid}"
+  echo "[selfhost] starting gunicorn from ${RMC_SERVE_DIR}"
+  cd "${RMC_SERVE_DIR}"
+  exec gunicorn -c config/gunicorn.conf.py config.wsgi:application
+fi
+
 echo "[selfhost] starting gunicorn"
+export GUNICORN_PIDFILE="${GUNICORN_PIDFILE:-/tmp/rmc-gunicorn.pid}"
 exec gunicorn -c config/gunicorn.conf.py config.wsgi:application

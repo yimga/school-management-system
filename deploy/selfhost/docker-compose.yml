@@ -40,6 +40,13 @@ x-app: &app
     # and the box CA that signs them. A named volume because losing ca.key means
     # every device that trusted this box has to install a new CA by hand.
     - edgetlsdata:/app/var/edge-tls
+    # Blue-green OTA releases, when RMC_OTA_RELEASE_ROOT is set. Commented out because
+    # the layout is opt-in: without it the box boots from the image tree and a FULL
+    # upgrade honestly defers. Uncomment BOTH this and RMC_OTA_RELEASE_ROOT in .env to
+    # let a code upgrade swap in one atomic rename instead of waiting for an image
+    # rebuild. Budget roughly twice the tree on disk -- one release is kept as the
+    # rollback target.
+    # - otareleases:/srv/rmc
     # PERSIST uploaded media (student/teacher photos, evaluation evidence, logos,
     # receipts, documents). MEDIA_ROOT is /app/media INSIDE the container; without a
     # named volume `docker compose up --build` recreates the web container and WIPES all
@@ -184,6 +191,7 @@ services:
       start_period: 60s
 
 volumes:
+  # otareleases:   # uncomment with the mount above + RMC_OTA_RELEASE_ROOT
   pgdata:
   valkeydata:
   mediadata:

@@ -38,7 +38,7 @@
     "test:visual:qa": "node node_modules/playwright/cli.js test tests/e2e/ux-visual-qa.spec.js",
     "test:visual:qa:full": "bash scripts/run_visual_qa.sh",
     "ux:assurance": "bash scripts/full_ux_assurance.sh",
-    "lint:accessibility": "npx pa11y-ci http://localhost:8000/portal/parent/ http://localhost:8000/teacher/ http://localhost:8000/finance/ || true",
+    "lint:accessibility": "npx pa11y-ci http://localhost:8000/portal/parent/ http://localhost:8000/teacher/ http://localhost:8000/finance/",
     "check:images": "python scripts/check_image_dimensions.py",
     "perf": "npm run check:images -- && echo 'Lighthouse: run in Chrome DevTools (Lighthouse tab) or npm run lighthouse. See docs/PERFORMANCE_BUDGET.md'",
     "lighthouse": "npx @lhci/cli@0.13.x autorun --config=lighthouserc.js",

@@ -729,9 +729,18 @@ urlpatterns = [
         include(("apps.marketplace.urls_developer_platform", "marketplace_dev"), namespace="marketplace_dev"),
     ),
     # Move 2 (workflow engine): orchestration JSON API + workbench.
+    # Split into two includes so a tenant host can mount the API without the
+    # operator UI; the dev urlconf keeps both, at the paths they always had.
     path(
         "orchestration/",
         include(("apps.orchestration.urls", "orchestration"), namespace="orchestration"),
+    ),
+    path(
+        "orchestration/api/",
+        include(
+            ("apps.orchestration.urls_api", "orchestration_api"),
+            namespace="orchestration_api",
+        ),
     ),
     # Wave v2.69 (2026-05-16): integrations marketplace hub + OAuth dance for
     # per-school / per-campus external connectors (Zoom, Teams, Meet, Outlook,

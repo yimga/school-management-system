@@ -7218,3 +7218,23 @@ body:has([data-rmc-flow-launchpad]) .rmc-page__header::after {
   /* off-token-allow: residual-lede-hide-after-info-tag-migration */
   display: none !important;
 }
+
+/* Edge fleet console (OTA rollout). Layout only — every colour on that page comes from
+   the existing .rmc-badge / .rmc-pill / .rmc-muted grammar, so the fleet page inherits
+   whatever the operator shell's theme resolves to rather than declaring a palette of its
+   own. Summary tiles wrap on a narrow control-plane window instead of scrolling
+   sideways, because the whole point of the row is to be read at a glance. */
+.rmc-grid--edge-fleet-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
+  gap: var(--space-3, 0.75rem);
+}
+.rmc-page--edge-fleet .rmc-data-table {
+  width: 100%;
+}
+/* A fleet table is wide by nature (six columns, hashes, timestamps). Scroll it inside its
+   own container so the operator shell never scrolls sideways. */
+.rmc-page--edge-fleet .rmc-stack > .rmc-data-table {
+  display: block;
+  overflow-x: auto;
+}

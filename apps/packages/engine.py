@@ -20,6 +20,7 @@ import uuid
 from typing import Any, Optional
 
 from django.db import DatabaseError, IntegrityError, InterfaceError, OperationalError, transaction
+from django.utils import timezone
 
 # Mid-apply failures: persist changelog without swallowing arbitrary bugs as "apply failed".
 _PACKAGE_APPLY_FAILURE_ERRORS = (
@@ -739,20 +740,38 @@ def apply_package(
                     "changelog_summary": ", ".join(preview["proposed"]["sections"]),
                 },
             )
-            inst = InstalledPackage.objects.create(
+            # update_or_create, not create: rollback() is a SOFT deactivate that
+            # leaves the row in place, and unique_together is
+            # (package_id, version, school) -- so an unconditional create() made a
+            # rolled-back package permanently un-reinstallable for that tenant, the
+            # IntegrityError surfacing as a generic "apply failed" that never named
+            # the cause. Same clash for sandbox -> production, since neither scope
+            # nor apply_stage is part of the key. Re-applying a version to a tenant
+            # IS that same install; the per-apply audit trail is PackageChangeLog,
+            # which stays append-only.
+            inst, _inst_created = InstalledPackage.objects.update_or_create(
                 package_id=package_id,
-                package_type=preview["package_type"],
                 version=version,
                 school_id=tenant_id,
-                scope=("sandbox" if mode == "sandbox" else scope)
-                if tenant_id
-                else "platform",
-                applied_by_id=actor_id,
-                rollback_token=rollback_token,
-                dependency_snapshot=preview["dependencies"],
-                impact_summary=applied_impact_summary,
-                apply_stage=mode,
-                reconciliation_status=reconciliation_status,
+                defaults={
+                    "package_type": preview["package_type"],
+                    "scope": ("sandbox" if mode == "sandbox" else scope)
+                    if tenant_id
+                    else "platform",
+                    "applied_by_id": actor_id,
+                    "rollback_token": rollback_token,
+                    "dependency_snapshot": preview["dependencies"],
+                    "impact_summary": applied_impact_summary,
+                    "apply_stage": mode,
+                    "reconciliation_status": reconciliation_status,
+                    # applied_at is auto_now_add, so it stamps on INSERT only. Set it
+                    # explicitly or a reactivated row keeps the FIRST install's
+                    # timestamp -- and Meta.ordering is -applied_at.
+                    "applied_at": timezone.now(),
+                    # The point of the re-apply: it un-does the rollback.
+                    "is_active": True,
+                    "promoted_from_mode": "",
+                },
             )
             log = PackageChangeLog.objects.create(
                 package_id=package_id,

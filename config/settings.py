@@ -4282,10 +4282,23 @@ RMC_OTA_ENABLED = os.getenv("RMC_OTA_ENABLED", "1").strip().lower() in (
     "yes",
     "on",
 )
-# "off" | "assets" | "full". "assets" swaps templates/static/locale only, which take
-# effect without reloading the interpreter; "full" also moves python + migrations and
-# needs a release-symlink layout (RMC_OTA_RELEASE_ROOT) to activate rather than defer.
-RMC_OTA_AUTO_APPLY = (os.getenv("RMC_OTA_AUTO_APPLY", "off") or "off").strip().lower()
+# "off" | "assets" | "full".
+#
+# DEFAULT IS "assets", and the reason is that "off" made the whole pipeline ceremonial:
+# a box would detect drift, report it on every handshake, and wait for a hand that has
+# to reach every school individually. Nothing upgraded unless somebody remembered.
+#
+# "assets" moves templates, static, locale and non-executable data -- the categories in
+# ASSET_CATEGORIES, which by construction contain no importable python, so they take
+# effect without reloading the interpreter, without a write freeze, without pausing
+# workers and without touching the schema. The blast radius of a bad asset release is a
+# wrong-looking page, and the box can be put back with the previous manifest.
+#
+# "full" additionally moves python and runs migrations. That one stays opt-in: an
+# appliance that rewrites its own code and migrates its own database unattended, while a
+# school is teaching, must be a decision somebody made. It also needs a release-symlink
+# layout (RMC_OTA_RELEASE_ROOT) to activate rather than defer.
+RMC_OTA_AUTO_APPLY = (os.getenv("RMC_OTA_AUTO_APPLY", "assets") or "assets").strip().lower()
 # Where system_manifest.json lives / which tree its relative paths resolve against.
 # Both empty by default => BASE_DIR, which is correct for the standard image.
 RMC_OTA_MANIFEST_PATH = (os.getenv("RMC_OTA_MANIFEST_PATH", "") or "").strip()
@@ -4356,7 +4369,15 @@ except ValueError:
 # Web-worker reload after a code swap. Both empty by default: guessing at a master PID and
 # signalling it is how you kill a school's web server. Configured, the manager reloads; not
 # configured, it REPORTS that the swap lands on the next container restart.
-RMC_OTA_WORKER_RELOAD_PIDFILE = (os.getenv("RMC_OTA_WORKER_RELOAD_PIDFILE", "") or "").strip()
+# Falls back to GUNICORN_PIDFILE, because those two must name the SAME file and making an
+# operator set both correctly is a configuration trap: set one to the wrong path and the
+# reload silently degrades to "NOT configured" while looking configured. The self-host
+# entrypoint exports GUNICORN_PIDFILE, so a box gets a working reload with no extra env.
+RMC_OTA_WORKER_RELOAD_PIDFILE = (
+    os.getenv("RMC_OTA_WORKER_RELOAD_PIDFILE", "")
+    or os.getenv("GUNICORN_PIDFILE", "")
+    or ""
+).strip()
 RMC_OTA_WORKER_RELOAD_COMMAND = (os.getenv("RMC_OTA_WORKER_RELOAD_COMMAND", "") or "").strip()
 # Background-worker pause/resume. Empty => Celery remote control over the broker the
 # workers are already connected to; no broker => nothing to pause, and it says so.
@@ -4368,6 +4389,17 @@ RMC_OTA_WORKER_RESUME_COMMAND = (os.getenv("RMC_OTA_WORKER_RESUME_COMMAND", "") 
 RMC_OTA_REVERSE_MIGRATIONS_ON_ROLLBACK = os.getenv(
     "RMC_OTA_REVERSE_MIGRATIONS_ON_ROLLBACK", "1"
 ).strip().lower() in ("1", "true", "yes", "on")
+# Which rollout rings a NEW manifest is released to before anybody promotes it.
+#
+# Defaults to canary alone, so a deploy reaches the boxes an operator nominated and stops
+# there. That is the point of the ring: a release that is wrong in a way no test caught —
+# and the reason this pipeline exists is that some of them are — must not reach every
+# school in the fleet before anyone has looked at the first one.
+#
+# Set to "canary,stable" to restore release-to-everyone-immediately.
+RMC_OTA_DEFAULT_RELEASE_RINGS = (
+    os.getenv("RMC_OTA_DEFAULT_RELEASE_RINGS", "canary") or "canary"
+).strip()
 RMC_OTA_ALLOW_DANGEROUS_MIGRATIONS = os.getenv(
     "RMC_OTA_ALLOW_DANGEROUS_MIGRATIONS", "0"
 ).strip().lower() in ("1", "true", "yes", "on")

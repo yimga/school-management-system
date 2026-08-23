@@ -58,7 +58,9 @@ jobs:
   help-center-e2e-lane2:
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    continue-on-error: true
+    # Enforcing since 2026-08-22: this is the only place the help-center crawl
+    # runs against a live server, and a browser lane that cannot fail is not a
+    # lane.
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

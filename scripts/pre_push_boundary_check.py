@@ -65,6 +65,9 @@ GATES: list[tuple[str, list[str]]] = [
     # First: a module that does not compile cannot be imported at all, and every
     # gate below it is answering about a tree that does not run.
     ("python-files-parse", ["verify_python_files_parse.py"]),
+    # Cheap, stdlib-only, and it answers a question no other gate asks: is the OTA
+    # pipeline still CONNECTED? A cut wire here ships a green tree that upgrades nobody.
+    ("ota-pipeline-wiring", ["verify_ota_pipeline_wiring.py"]),
     # The admin-surface family. Every one of these was written as a pass/fail gate,
     # passes on the current tree, and runs in under a second -- and until 2026-08-21
     # not one was invoked by any workflow or by this runner, so nothing distinguished
@@ -159,6 +162,12 @@ GATES: list[tuple[str, list[str]]] = [
     # Zero-tolerance and WITHOUT --compare: there is no input for which cutting
     # a word separator out of a token is the right answer.
     ("raw-token-in-ui", ["scan_raw_token_in_ui.py", "--strict"]),
+    # A repeated key in a dict literal is not an error and not a warning -- Python
+    # keeps the last value and the earlier entry is simply gone. It cost a workflow
+    # definition its steps and a gate two of its markers, one of which was already
+    # failing. Zero-tolerance and WITHOUT --compare: there is no baseline, because
+    # a dict that discards one of its own entries is never what was meant.
+    ("duplicate-dict-keys", ["scan_duplicate_dict_keys.py", "--strict"]),
     # --- RLS: the two halves that `rls-table-coverage` does NOT cover ---------
     # scan_rls_table_coverage (DJANGO_GATES, below) catches a NEW tenant-scoped
     # table with no RLS at all. It says nothing about whether the RLS that exists
