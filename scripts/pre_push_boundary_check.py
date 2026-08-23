@@ -262,6 +262,9 @@ DJANGO_GATES: list[tuple[str, list[str]]] = [
     # Its blind spot: a child table that reaches its school through a parent has
     # no `school` field, so the gate above cannot see it and truthfully says 0.
     ("rls-relation-coverage", ["scan_rls_relation_scoped_coverage.py", "--compare"]),
+    # A NULLABLE school FK whose policy omits the IS NULL arm hides its own
+    # platform-scope rows: NULL::text = '<uuid>' is NULL, so USING is false.
+    ("rls-null-school-arm", ["scan_rls_null_school_arm.py", "--compare"]),
     # TenantAdminSite.register auto-scopes a changelist only when the model has a
     # concrete `school` field -- that column is what the mixin filters on. A
     # SHARED_APPS model WITHOUT one got no scoping at all, and its table lives in

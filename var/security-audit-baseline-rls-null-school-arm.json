@@ -1,0 +1,5 @@
+{
+  "finding_count": 40,
+  "generated_at": "2026-08-23",
+  "note": "Tables whose `school` FK is NULLABLE but whose RLS USING/WITH CHECK clause omits the `school_id IS NULL` arm. For such a row NULL::text = '<uuid>' is NULL, so USING is false and the platform-level row is INVISIBLE; the same clause as WITH CHECK rejects the INSERT with 42501. RLS is a no-op under USE_DJANGO_TENANTS=1 (the deployed topology), so this is RLS-MODE READINESS for the sovereign edge. apps/policies fixed its three; the correct shapes are metadata/0012 (leads with the NULL arm) and siteconfig/0129 (a separate clause for its one hybrid table). A burndown list -- each entry needs a reviewed decision on whether NULL really is a platform scope for that table, or whether the column should be NOT NULL. May only shrink."
+}

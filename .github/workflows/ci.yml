@@ -52,6 +52,9 @@ jobs:
 
       - name: RLS relation-scoped coverage (child tables reach school via a parent)
         run: python scripts/scan_rls_relation_scoped_coverage.py --compare
+
+      - name: RLS NULL-school arm (a platform-scope row must not be invisible)
+        run: python scripts/scan_rls_null_school_arm.py --compare
       - name: Scan tenant-admin scope for SHARED models with no school column
         # The auto-scoping mixin only applies to models that HAVE a `school`
         # field. A SHARED_APPS model without one got none, and its table lives in

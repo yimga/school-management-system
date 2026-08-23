@@ -300,6 +300,7 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # uncovered set cannot grow before an RLS-mode flip.
     ("scripts/scan_rls_table_coverage.py", "ci.yml"),
     ("scripts/scan_rls_relation_scoped_coverage.py", "ci.yml"),
+    ("scripts/scan_rls_null_school_arm.py", "ci.yml"),
     # Django admin approval HTML → live shell lock (2026-07-20). Prevents shipping
     # layout waves that pass narrative audits but leave tenant/operator /admin/
     # looking unchanged (missing build chip / cache bust / approval grid).
