@@ -794,6 +794,64 @@ def list_audit_anchors(*, request: Any, school: Any) -> list[dict[str, Any]]:
     ]
 
 
+# Roles that can never be a school's Designated Safeguarding Lead: the two
+# family-facing ones, the apprentice-portal role, and PLATFORM-global SUPERADMIN,
+# which is not a tenant role at all and must never appear in a tenant picker.
+_NON_STAFF_SAFEGUARDING_ROLES = (  # role-string-allow: dsl-candidate-picker-exclusions
+    "PARENT",
+    "STUDENT",
+    "EMPLOYER",
+    "SUPERADMIN",
+)
+
+
+def list_school_safeguarding_leads(*, request: Any, school: Any) -> list[dict[str, Any]]:
+    """The school's own staff, offerable as its Designated Safeguarding Lead.
+
+    ``encrypted_stakeholder_pipeline`` is the only surface that can populate
+    ``safeguarding["stakeholder_pipeline"]``, which is one of the two keys
+    ``apps.safeguarding.services.load_dsl_assignments`` builds the DSL roster from
+    (the other, ``dsl_user_ids``, has no product writer at all). Without an option
+    source the step collected free-text labels, ``int(raw_uid)`` dropped every row,
+    and the roster stayed empty forever -- which left every tenant admin able to
+    read every child-protection concern under ``user_is_dsl``'s no-roster fallback,
+    while a named lead who is a TEACHER was refused her own inbox.
+
+    Values are stringified user pks because that is what the roster loader coerces
+    with ``int()``; the human name rides in ``metadata`` like every other resolver
+    that returns dynamic rows (see ``list_countries``).
+    """
+    if school is None:
+        return []
+    from apps.schools.models import SchoolMembership
+
+    # tenant-isolation-allow: dsl-candidate-picker-scoped-to-the-wizard's-own-school
+    memberships = (
+        SchoolMembership.objects.filter(school=school)
+        .exclude(role__in=_NON_STAFF_SAFEGUARDING_ROLES)
+        .select_related("user")
+        .order_by("user__last_name", "user__first_name", "user__username")
+    )
+    out: list[dict[str, Any]] = []
+    seen: set = set()
+    for membership in memberships:
+        user = getattr(membership, "user", None)
+        if user is None or not getattr(user, "is_active", False):
+            continue
+        if user.pk in seen:
+            continue
+        seen.add(user.pk)
+        name = (user.get_full_name() or "").strip() or user.get_username()
+        out.append(
+            {
+                "value": str(user.pk),
+                "label_token": "safeguarding.dsl_candidate",
+                "metadata": {"name": name, "role": str(membership.role or "")},
+            }
+        )
+    return out
+
+
 def write_safeguarding_categories(*, school, wizard_key, step_key, payload, actor_user_id):
     from apps.safeguarding.wizard_config_kernel import apply_enabled_categories
     apply_enabled_categories(school=school, payload=payload)
