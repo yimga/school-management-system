@@ -1383,7 +1383,13 @@ try:
             for _edge_origin in _edge_origins:
                 if _edge_origin not in CSRF_TRUSTED_ORIGINS:
                     CSRF_TRUSTED_ORIGINS = list(CSRF_TRUSTED_ORIGINS) + [_edge_origin]
-except Exception:  # noqa: BLE001 - settings must import even if discovery fails
+except (ImportError, OSError):
+    # Narrowed from `except Exception: pass`, which swallowed everything and
+    # said nothing. ImportError is the partial-checkout case the comment meant.
+    # OSError covers a box with no usable interface, though local_addresses()
+    # already handles that per-probe. Anything else here is a bug in this
+    # block, and silence is expensive: ALLOWED_HOSTS would quietly lack the
+    # box's own address and every request would 400 with nothing to explain it.
     pass
 
 # Render terminates TLS at the edge. Internal platform probes may hit HTTP
