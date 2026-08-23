@@ -37,6 +37,19 @@ _SQL_SCHOOL_LITERAL = re.compile(
     re.IGNORECASE,
 )
 
+# Django emits `%s` for EVERY value it binds, so `_SQL_SCHOOL_LITERAL` above can
+# only ever match a hand-inlined uuid -- the one form the repo's raw-SQL
+# conventions already forbid, which left the wrapper blind to real traffic. The
+# patterns below locate tenant-column comparisons so the bound value can be read
+# out of `params` BY POSITION instead.
+_SQL_PLACEHOLDER = re.compile(r"%s")
+
+_SQL_SCHOOL_PLACEHOLDER = re.compile(
+    r"""\bschool_id\b"?\s*(?:(?:=|<>|!=)\s*%s|IN\s*\(\s*%s\s*(?:,\s*%s\s*)*\))""",
+    re.IGNORECASE,
+)
+
+
 _bypass_depth: ContextVar[int] = ContextVar("tenancy_boundary_bypass_depth", default=0)
 _pin_state: ContextVar["_PinState | None"] = ContextVar("tenancy_boundary_pin", default=None)
 
@@ -124,6 +137,23 @@ def unpin_tenant_boundary(token: str) -> None:
     _pin_state.set(None)
 
 
+def _canonical_school_id(sid: str) -> str:
+    """
+    Compare tenant ids by VALUE, not by spelling.
+
+    A pinned id arrives dashed (``request.tenant_ctx``) while the driver binds a
+    UUIDField as 32 undashed hex chars, so a raw string compare would mark every
+    in-tenant query foreign. Non-uuid ids (int pks on some deployments) pass through.
+    """
+    token = (sid or "").strip()
+    if not token:
+        return ""
+    try:
+        return str(uuid.UUID(token))
+    except (ValueError, AttributeError, TypeError):
+        return token.lower()
+
+
 def _school_ids_in_mapping(mapping: Mapping[str, Any]) -> set[str]:
     found: set[str] = set()
     for key, value in mapping.items():
@@ -150,6 +180,50 @@ def _school_ids_in_params(params: Any) -> set[str]:
     return found
 
 
+def _school_param_indexes(sql: str) -> set[int]:
+    """Positional indexes of the params bound to a ``school_id`` comparison."""
+    if not sql or "%s" not in sql:
+        return set()
+    ordinals = {m.start(): i for i, m in enumerate(_SQL_PLACEHOLDER.finditer(sql))}
+    if not ordinals:
+        return set()
+    found: set[int] = set()
+    for match in _SQL_SCHOOL_PLACEHOLDER.finditer(sql):
+        # Every placeholder inside the matched span belongs to the comparison,
+        # which also covers the ``IN (%s, %s, ...)`` form in one pass.
+        for placeholder in _SQL_PLACEHOLDER.finditer(sql, match.start(), match.end()):
+            index = ordinals.get(placeholder.start())
+            if index is not None:
+                found.add(index)
+    return found
+
+
+def _school_ids_in_sql_params(sql: str, params: Any, many: bool = False) -> set[str]:
+    """Read tenant ids out of positional ``params`` using the placeholders in ``sql``."""
+    indexes = _school_param_indexes(sql)
+    if not indexes:
+        return set()
+    rows = params if many else [params]
+    if not isinstance(rows, (list, tuple)):
+        return set()
+    found: set[str] = set()
+    for row in rows:
+        if not isinstance(row, (list, tuple)):
+            continue
+        for index in indexes:
+            if index >= len(row):
+                continue
+            try:
+                sid = _normalize_school_id(row[index])
+            except SecurityIsolationException:
+                # A value we cannot read as a tenant id is not evidence of a leak;
+                # the pin comparison below is the only thing allowed to raise.
+                continue
+            if sid:
+                found.add(sid)
+    return found
+
+
 def _school_ids_in_sql(sql: str) -> set[str]:
     if not sql:
         return set()
@@ -162,6 +236,7 @@ def verify_tenant_boundary_scope(
     sql: str = "",
     params: Any = None,
     orm_kwargs: Mapping[str, Any] | None = None,
+    many: bool = False,
 ) -> None:
     """
     Raise SecurityIsolationException when an explicit school_id diverges from pin.
@@ -169,14 +244,17 @@ def verify_tenant_boundary_scope(
     if not pinned_school_id or is_boundary_bypassed():
         return
 
-    pinned = _normalize_school_id(pinned_school_id)
+    pinned = _canonical_school_id(_normalize_school_id(pinned_school_id))
     candidates: set[str] = set()
     candidates.update(_school_ids_in_sql(sql))
     candidates.update(_school_ids_in_params(params))
+    candidates.update(_school_ids_in_sql_params(sql, params, many=many))
     if orm_kwargs:
         candidates.update(_school_ids_in_mapping(orm_kwargs))
 
-    foreign = {sid for sid in candidates if sid and sid != pinned}
+    foreign = {
+        sid for sid in candidates if sid and _canonical_school_id(sid) != pinned
+    }
     if foreign:
         raise SecurityIsolationException(
             "Cross-tenant database boundary violation detected.",
@@ -213,6 +291,7 @@ class TenantBoundaryExecuteWrapper:
                 pinned_school_id=pinned,
                 sql=str(sql or ""),
                 params=params,
+                many=bool(many),
             )
         return execute(sql, params, many, context)
 

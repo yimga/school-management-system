@@ -8,6 +8,7 @@ import re
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.utils.translation import gettext as _
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import (
@@ -402,26 +403,34 @@ def group_detail(request: HttpRequest, thread_id: int):
                 locale_target = str(lang)[:10]
             except Exception:
                 locale_target = ""
-            msg = ThreadMessage.objects.create(
-                thread=thread,
-                author=request.user,
-                content=content,
-                locale_target=locale_target or "",
-            )
-            if attachment_files:
-                _saved, attach_errors = _save_thread_attachments(
-                    msg, attachment_files, request.user
+            # ATOMIC_REQUESTS is not set, so without this block the view runs in
+            # autocommit and transaction.on_commit fires its callback IMMEDIATELY
+            # -- i.e. notify_on_thread_message dispatched while the mention rows
+            # below did not exist yet, so the mute-piercing "mentioned you" path
+            # never ran in production. Creating the message, its attachments and
+            # its mentions in ONE transaction makes on_commit genuinely deferred.
+            attach_errors = []
+            with transaction.atomic():
+                msg = ThreadMessage.objects.create(
+                    thread=thread,
+                    author=request.user,
+                    content=content,
+                    locale_target=locale_target or "",
                 )
-                if attach_errors:
-                    messages.warning(
-                        request,
-                        _("Some attachments were not added: %(errs)s")
-                        % {"errs": "; ".join(attach_errors)},
+                if attachment_files:
+                    _saved, attach_errors = _save_thread_attachments(
+                        msg, attachment_files, request.user
                     )
-            # Record @mentions before the request commits so the notification
-            # signal's on_commit hook can see them (mute-piercing mention path).
-            _resolve_and_record_mentions(msg, thread, request.user)
-            thread.touch_last_message()
+                # Record @mentions before the transaction commits so the
+                # notification signal's on_commit hook can see them.
+                _resolve_and_record_mentions(msg, thread, request.user)
+                thread.touch_last_message()
+            if attach_errors:
+                messages.warning(
+                    request,
+                    _("Some attachments were not added: %(errs)s")
+                    % {"errs": "; ".join(attach_errors)},
+                )
             messages.success(request, _("Message sent."))
             return redirect("communication:group_detail", thread_id=thread.id)
 

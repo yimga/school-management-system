@@ -44,6 +44,7 @@ separators=(",", ":"), ensure_ascii=False)``.
 """
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import json
 import logging
@@ -53,7 +54,7 @@ import uuid
 from typing import Any
 
 from django.conf import settings
-from django.db import models, transaction
+from django.db import models, router, transaction
 from django.utils import timezone
 
 from apps.platform_runtime.append_only import (
@@ -718,6 +719,60 @@ class AuditEventManager(AppendOnlyManager):
         return instance
 
 
+_CHAIN_LOCKS: dict[str, threading.Lock] = {}
+_CHAIN_LOCKS_GUARD = threading.Lock()
+
+
+def _chain_lock_for(tenant_id_hash: str) -> threading.Lock:
+    with _CHAIN_LOCKS_GUARD:
+        return _CHAIN_LOCKS.setdefault(tenant_id_hash or "", threading.Lock())
+
+
+@contextlib.contextmanager
+def _tenant_chain_append_lock(tenant_id_hash: str, using: str | None = None):
+    """Serialise one tenant's chain append — read tail, hash, insert.
+
+    The tail read used to run unlocked, and the ``atomic()`` around ``record()``
+    does not serialise a READ COMMITTED snapshot: two writers for the same
+    tenant both saw tail N and both stored ``prev_event_hash = hash(N)``.
+    ``verify_audit_chain`` walks the chain carrying ONE prev_hash and compares
+    it exactly, so the second of the pair — and every event after it, because
+    the chain never re-converges — is reported BROKEN. That is a permanent false
+    tamper alarm, and an alarm operators learn to ignore hides a real tamper.
+
+    PostgreSQL (production) takes a transaction-scoped advisory lock. It is
+    keyed on the tenant, not on a row, so it also covers the case a
+    ``SELECT ... FOR UPDATE`` cannot lock at all: the FIRST event for a tenant,
+    where there is no tail row to lock.
+
+    Other backends (SQLite dev/test, the sovereign edge box) have no advisory
+    locks, so they fall back to a process-local lock. Be clear about its reach:
+    it serialises threads inside ONE process, and — when ``save()`` is called
+    inside an OUTER atomic block — it is released before that outer transaction
+    commits. It is a mitigation there, not a guarantee.
+    """
+    from django.db import connections
+
+    if using is None:
+        using = router.db_for_write(MigrationCloudAuditEvent)
+    connection = connections[using]
+    if connection.vendor == "postgresql":
+        with transaction.atomic(using=using):
+            # 64-bit signed advisory key derived from the tenant hash.
+            key = int.from_bytes(
+                hashlib.sha256((tenant_id_hash or "").encode("utf-8")).digest()[:8],
+                "big",
+                signed=True,
+            )
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT pg_advisory_xact_lock(%s)", [key])
+            yield
+        return
+    with _chain_lock_for(tenant_id_hash):
+        with transaction.atomic(using=using):
+            yield
+
+
 class MigrationCloudAuditEvent(AppendOnlyModelMixin, models.Model):
     """Tamper-evident, append-only audit event for Migration Cloud."""
 
@@ -852,72 +907,76 @@ class MigrationCloudAuditEvent(AppendOnlyModelMixin, models.Model):
         # First-create path. Populate computed fields.
         if not self.id:
             self.id = uuid.uuid4()
-        # ``created_at`` is set by auto_now_add on insert — for the
-        # canonical pre-image we need a value NOW, so we capture
-        # wall-clock and persist it as ``created_at_iso``. The DB row's
-        # ``created_at`` will match within microseconds.
-        now = timezone.now()
-        self.created_at_iso = now.replace(microsecond=now.microsecond).isoformat()
+        # Serialise the per-tenant append (tail read -> hash -> insert) so two
+        # concurrent writers for one tenant cannot both chain off the same tail
+        # and fork the chain into a permanent, false 'BROKEN' verifier alarm.
+        with _tenant_chain_append_lock(self.tenant_id_hash, kwargs.get("using")):
+            # ``created_at`` is set by auto_now_add on insert — for the
+            # canonical pre-image we need a value NOW, so we capture
+            # wall-clock and persist it as ``created_at_iso``. The DB row's
+            # ``created_at`` will match within microseconds.
+            now = timezone.now()
+            self.created_at_iso = now.replace(microsecond=now.microsecond).isoformat()
 
-        # Tail-lookup the previous event for this tenant. The audit
-        # log is intentionally cross-tenant from the operator's POV;
-        # the tail-per-tenant query is correct.
-        tail = (
-            type(self).objects  # tenant-isolation-allow: audit-chain-tail-lookup-per-tenant
-            .filter(tenant_id_hash=self.tenant_id_hash)
-            .order_by("-created_at")
-            .only("integrity_hash")
-            .first()
-        )
-        self.prev_event_hash = (
-            tail.integrity_hash if tail is not None else GENESIS_SENTINEL
-        )
-
-        # E-4 — sanitize at the single write choke point so a direct
-        # ``.create()``/``.save()`` (not just ``record()``) can never persist a
-        # sensitive-keyword key. ``_sanitize_payload`` also coerces ``None`` →
-        # ``{}`` and non-dicts to ``{"value": …}``. ``record()`` still
-        # sanitizes for an early, clearer rejection; this is the authoritative
-        # gate. Runs BEFORE the hash so the chain covers the sanitized payload
-        # (idempotent for the already-clean ``record()`` path).
-        self.payload_summary = _sanitize_payload(self.payload_summary)
-
-        self.integrity_hash = _compute_integrity_hash(
-            pk=str(self.id),
-            tenant_id_hash=self.tenant_id_hash,
-            event_type=self.event_type,
-            actor_id=self.actor_id,
-            event_subject_hash=self.event_subject_hash,
-            payload_summary=self.payload_summary,
-            created_at_iso=self.created_at_iso,
-            prev_event_hash=self.prev_event_hash,
-        )
-        # v3.39.0 Agent 2 — root-key signature. Computed AFTER
-        # integrity_hash so the same canonical pre-image is locked by
-        # both layers. Failure modes:
-        #   * key unset           → returns None; row persists unsigned.
-        #   * unknown backend     → returns None; row persists unsigned.
-        #   * HSM backend value   → NotImplementedError propagates (we
-        #     refuse to silently degrade an HSM-policy deployment).
-        #   * any other exception → log + None; never breaks the audit
-        #     write hot path.
-        try:
-            from apps.migration_cloud.services.audit_root_signing import (
-                compute_root_signature,
+            # Tail-lookup the previous event for this tenant. The audit
+            # log is intentionally cross-tenant from the operator's POV;
+            # the tail-per-tenant query is correct.
+            tail = (
+                type(self).objects  # tenant-isolation-allow: audit-chain-tail-lookup-per-tenant
+                .filter(tenant_id_hash=self.tenant_id_hash)
+                .order_by("-created_at")
+                .only("integrity_hash")
+                .first()
             )
-            self.root_key_signature = compute_root_signature(self)
-        except NotImplementedError:
-            # HSM-reserved backend — surface to caller. Audit-event
-            # writers should not silently downgrade.
-            raise
-        except Exception as exc:  # broad-by-design — never break hot path
-            logger.warning(
-                "migration_cloud.audit.root_signature.compute_failed "
-                "event_id_prefix=%s err_type=%s",
-                str(self.id)[:8], type(exc).__name__,
+            self.prev_event_hash = (
+                tail.integrity_hash if tail is not None else GENESIS_SENTINEL
             )
-            self.root_key_signature = None
-        super().save(*args, **kwargs)
+
+            # E-4 — sanitize at the single write choke point so a direct
+            # ``.create()``/``.save()`` (not just ``record()``) can never persist a
+            # sensitive-keyword key. ``_sanitize_payload`` also coerces ``None`` →
+            # ``{}`` and non-dicts to ``{"value": …}``. ``record()`` still
+            # sanitizes for an early, clearer rejection; this is the authoritative
+            # gate. Runs BEFORE the hash so the chain covers the sanitized payload
+            # (idempotent for the already-clean ``record()`` path).
+            self.payload_summary = _sanitize_payload(self.payload_summary)
+
+            self.integrity_hash = _compute_integrity_hash(
+                pk=str(self.id),
+                tenant_id_hash=self.tenant_id_hash,
+                event_type=self.event_type,
+                actor_id=self.actor_id,
+                event_subject_hash=self.event_subject_hash,
+                payload_summary=self.payload_summary,
+                created_at_iso=self.created_at_iso,
+                prev_event_hash=self.prev_event_hash,
+            )
+            # v3.39.0 Agent 2 — root-key signature. Computed AFTER
+            # integrity_hash so the same canonical pre-image is locked by
+            # both layers. Failure modes:
+            #   * key unset           → returns None; row persists unsigned.
+            #   * unknown backend     → returns None; row persists unsigned.
+            #   * HSM backend value   → NotImplementedError propagates (we
+            #     refuse to silently degrade an HSM-policy deployment).
+            #   * any other exception → log + None; never breaks the audit
+            #     write hot path.
+            try:
+                from apps.migration_cloud.services.audit_root_signing import (
+                    compute_root_signature,
+                )
+                self.root_key_signature = compute_root_signature(self)
+            except NotImplementedError:
+                # HSM-reserved backend — surface to caller. Audit-event
+                # writers should not silently downgrade.
+                raise
+            except Exception as exc:  # broad-by-design — never break hot path
+                logger.warning(
+                    "migration_cloud.audit.root_signature.compute_failed "
+                    "event_id_prefix=%s err_type=%s",
+                    str(self.id)[:8], type(exc).__name__,
+                )
+                self.root_key_signature = None
+            super().save(*args, **kwargs)
 
     def delete(self, using=None, keep_parents=False):
         raise MigrationCloudAuditEventReadOnlyError(

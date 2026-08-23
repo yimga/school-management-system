@@ -41,6 +41,36 @@ COLLECTED_PAYMENT_STATUS = "completed"
 _FINAL_PAYMENT_STATUSES = frozenset({"completed", "failed", "cancelled", "refunded"})
 
 
+def net_received_payment_total(payments, *, exclude_pk=None) -> Decimal:
+    """Money actually received on an invoice, from a Payment queryset/iterable.
+
+    THE single definition of "already paid". It used to be re-typed in three
+    places (``Invoice.computed_balance``, ``services.recalculate_invoice`` and
+    ``Payment.clean``) and the third copy drifted: it summed GROSS amounts,
+    counting failed/cancelled/refunded rows and ignoring ``refunded_amount``.
+    A partially refunded invoice therefore showed money owing on every screen
+    but rejected the re-collection with "exceeds remaining balance 0", and the
+    same gross sum 400'd legitimate PSP webhooks. Route every paid-total
+    question through here so the three can never disagree again.
+
+    Soft-deleted (reversed) rows and ``_NON_RECEIVED_PAYMENT_STATUSES`` are
+    excluded; a partially refunded payment stays "completed" but contributes
+    only its net (amount - refunded_amount).
+    """
+    queryset = payments.filter(deleted_at__isnull=True).exclude(
+        status__in=_NON_RECEIVED_PAYMENT_STATUSES
+    )
+    if exclude_pk is not None:
+        queryset = queryset.exclude(pk=exclude_pk)
+    return sum(
+        (
+            max(p.amount - (p.refunded_amount or Decimal("0.00")), Decimal("0.00"))
+            for p in queryset
+        ),
+        Decimal("0.00"),
+    )
+
+
 def _default_currency():
     """Platform default currency (no hardcoded XAF). See config.PLATFORM_DEFAULT_CURRENCY."""
     return getattr(settings, "PLATFORM_DEFAULT_CURRENCY", "USD")
@@ -726,12 +756,7 @@ class Invoice(models.Model):
         refunded payment stays 'completed' but only its net (amount -
         refunded_amount) counts, so a partial refund raises the balance too.
         """
-        total_paid = sum(
-            max(p.amount - (p.refunded_amount or Decimal("0.00")), Decimal("0.00"))
-            for p in self.payments.filter(deleted_at__isnull=True).exclude(
-                status__in=_NON_RECEIVED_PAYMENT_STATUSES
-            )
-        ) or Decimal("0.00")
+        total_paid = net_received_payment_total(self.payments)
         return max(self.total_amount - total_paid, Decimal("0.00"))
 
     def reconcile_balance(self) -> bool:
@@ -1018,14 +1043,13 @@ class Payment(models.Model):
                 raise ValidationError(
                     {"method": "Payment method is required for invoice payments."}
                 )
-            # Get total already paid (excluding this payment if editing, and
-            # excluding soft-deleted/cancelled payments — consistent with
-            # Invoice.computed_balance, else a reversed payment would wrongly
-            # inflate paid_amount and reject a legitimate new payment).
-            paid_amount = sum(
-                p.amount
-                for p in self.invoice.payments.filter(deleted_at__isnull=True).exclude(pk=self.pk)
-            ) or Decimal("0")
+            # Total already received (excluding this payment if editing). Shared
+            # helper, not a local sum: this used to be a GROSS sum that counted
+            # failed/refunded rows, so a refunded invoice could never be
+            # re-collected even though computed_balance showed money owing.
+            paid_amount = net_received_payment_total(
+                self.invoice.payments, exclude_pk=self.pk
+            )
             remaining_balance = self.invoice.total_amount - paid_amount
 
             if self.amount > remaining_balance:

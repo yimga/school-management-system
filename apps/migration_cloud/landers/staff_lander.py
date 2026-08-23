@@ -251,6 +251,7 @@ class StaffLander(Lander):
                         last_name=last_name,
                         role=staff_role,
                         dry_run=ctx.dry_run,
+                        school=ctx.school,
                     )
                     if teacher_user is None:
                         record_row_error(

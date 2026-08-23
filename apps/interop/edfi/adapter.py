@@ -5,6 +5,7 @@ Supplies students, studentSchoolAssociations, and student grades for interchange
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 
@@ -101,27 +102,38 @@ def _gender_to_edfi(gender: str) -> str | None:
     return "uri://ed-fi.org/GenderDescriptor#Not Selected"
 
 
+_GRADE_ORDINALS = {
+    1: "First grade",
+    2: "Second grade",
+    3: "Third grade",
+    4: "Fourth grade",
+    5: "Fifth grade",
+    6: "Sixth grade",
+    7: "Seventh grade",
+    8: "Eighth grade",
+    9: "Ninth grade",
+    10: "Tenth grade",
+    11: "Eleventh grade",
+    12: "Twelfth grade",
+}
+
+# The grade number is the first 1..12 run that is not part of a LONGER number,
+# so "10"/"11"/"12" are read whole. The previous substring walk tested "1"
+# first, and "1" is a substring of all three — every 10th/11th/12th grader was
+# reported to the state as a first-grader. Digit boundaries (not \b) so a
+# section label like "2A" or "F4A" still yields its grade.
+_GRADE_NUMBER_RE = re.compile(r"(?<!\d)(1[0-2]|[1-9])(?!\d)")
+
+
 def _section_to_grade_descriptor(section: str) -> str:
     if not section:
         return "uri://ed-fi.org/GradeLevelDescriptor#Ungraded"
     # Map common section names to Ed-Fi grade descriptor URIs
     s = (section or "").strip().upper()
-    for key, uri in [
-        ("1", "First grade"),
-        ("2", "Second grade"),
-        ("3", "Third grade"),
-        ("4", "Fourth grade"),
-        ("5", "Fifth grade"),
-        ("6", "Sixth grade"),
-        ("7", "Seventh grade"),
-        ("8", "Eighth grade"),
-        ("9", "Ninth grade"),
-        ("10", "Tenth grade"),
-        ("11", "Eleventh grade"),
-        ("12", "Twelfth grade"),
-    ]:
-        if key in s or s == key:
-            return f"uri://ed-fi.org/GradeLevelDescriptor#{uri}"
+    match = _GRADE_NUMBER_RE.search(s)
+    if match is not None:
+        uri = _GRADE_ORDINALS[int(match.group(1))]
+        return f"uri://ed-fi.org/GradeLevelDescriptor#{uri}"
     return "uri://ed-fi.org/GradeLevelDescriptor#Ungraded"
 
 

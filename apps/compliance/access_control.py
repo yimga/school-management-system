@@ -12,6 +12,7 @@ from django.db import DatabaseError, OperationalError, ProgrammingError
 from django.db.models import Q
 from django.utils import timezone
 
+from apps.api.rate_limit import client_ip as _trusted_client_ip
 from apps.compliance.models_audit import IPAccessRule, CountryAccessRule
 
 logger = logging.getLogger(__name__)
@@ -203,12 +204,13 @@ def check_request_access(request) -> Tuple[bool, str]:
     Checks both IP and country rules.
     Returns: (is_allowed: bool, reason: str)
     """
-    # Get IP from request
-    x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
-    if x_forwarded_for:
-        ip_address = x_forwarded_for.split(",")[0].strip()
-    else:
-        ip_address = request.META.get("REMOTE_ADDR")
+    # Client IP from the outermost TRUSTED proxy hop. X-Forwarded-For is
+    # client-controlled to the LEFT, so a banned client could previously
+    # prepend any unbanned address and walk straight through the perimeter
+    # -- and defeat CountryAccessRule too, since the country is derived here.
+    ip_address = _trusted_client_ip(request)
+    if ip_address == "unknown":
+        ip_address = None
 
     # Check IP access
     ip_allowed, ip_reason = check_ip_access(ip_address)

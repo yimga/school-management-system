@@ -30,6 +30,41 @@
 
 {% comment %} table-pagination-allow: founder-dashboard-widget-top-N each-tile-is-bounded-summary {% endcomment %}
 {% url 'sales:pipeline_board' as sales_pipeline_url %}
+
+<div class="container-fluid py-2"
+     data-rmc-founder-dashboard="1"
+     data-rmc-ux-role-dashboard="founder-command-center"
+     data-rmc-self-heal-status="1">
+  {% comment %} v3.59.x Wave 11 Agent X (2026-05-22): glow page header + eyebrow per v8 200x preview.
+     v2026-08-22: moved above cockpit widgets so operators see title/actions before globe chrome. {% endcomment %}
+  <header class="rmc-page-header-glow mb-4">
+    <span class="rmc-page-eyebrow">{% trans "Platform operators" %}</span>
+    <h1 class="h3 mb-1">{% trans "Platform Command Center" %}</h1>
+    <p class="text-secondary small mb-0">
+      {% trans "Metrics are read from the live database; audit and kill-test results are read from generated JSON under docs/generated/ when those scripts have been run." %}
+    </p>
+    <nav class="ds-action-bar d-flex flex-wrap align-items-center gap-2 mt-3" role="toolbar" aria-label="{% trans 'Primary actions' %}" data-rmc-founder-toolbar-actions="1">
+      <a class="btn btn-sm btn-primary ds-btn" href="{{ sales_pipeline_url }}" data-rmc-founder-primary-toolbar="1">{% trans "Sales pipeline" %}</a>
+      {% if rmc_conversion_single_action_enforced|default:False %}
+      <details class="rmc-conversion-more-actions border rounded px-2 py-1">
+        <summary class="btn btn-sm btn-outline-secondary ds-btn mb-0">{% trans "More" %}</summary>
+        <div class="pt-2">
+          <a class="btn btn-sm btn-outline-secondary ds-btn" href="{{ command_center_url }}" data-task="founder" data-task-step="dashboard:command-center">{% trans "Command center" %}</a>
+        </div>
+      </details>
+      {% else %}
+      <a class="btn btn-sm btn-outline-secondary ds-btn" href="{{ command_center_url }}" data-task="founder" data-task-step="dashboard:command-center">{% trans "Command center" %}</a>
+      {% endif %}
+      {% comment %} v8 cockpit page-header actions (Export PDF + Quick action), config-driven. {% endcomment %}
+      {% include "partials/cockpit/_page_actions.html" %}
+    </nav>
+  </header>
+  <!-- rmc-ux-above-fold-end -->
+
+  <section class="mb-3" data-rmc-ux-section="one-next-action">
+  {% include "components/next_action_strip.html" %}
+  </section>
+
 {% comment %} v3.57.18 (2026-05-22): founder landing receives the same cockpit chrome as
    the manager landing (platform_pulse + activity_ticker). Per Agent Y audit, this is
    the top-of-the-org operator landing — earns landing-peer parity with super_dashboard.
@@ -59,37 +94,6 @@
    founder landing too — operator-landing parity with super_dashboard.html. Self-gates on
    cockpit.trust_pillars_alerts.enabled so it renders nothing until opted in. {% endcomment %}
 {% include "partials/cockpit/_collapsable_section.html" with title=_("Trust pillars alerts") key="founder__trust_pillars_alerts" include_partial="partials/cockpit/_trust_pillars_alerts.html" chrome="section" %}
-<div class="container-fluid py-2"
-     data-rmc-founder-dashboard="1"
-     data-rmc-ux-role-dashboard="founder-command-center"
-     data-rmc-self-heal-status="1">
-  <section class="mb-3" data-rmc-ux-section="one-next-action">
-  {% include "components/next_action_strip.html" %}
-  </section>
-  {% comment %} v3.59.x Wave 11 Agent X (2026-05-22): glow page header + eyebrow per v8 200x preview. {% endcomment %}
-  <header class="rmc-page-header-glow mb-4">
-    <span class="rmc-page-eyebrow">{% trans "Platform operators" %}</span>
-    <h1 class="h3 mb-1">{% trans "Platform Command Center" %}</h1>
-    <p class="text-secondary small mb-0">
-      {% trans "Metrics are read from the live database; audit and kill-test results are read from generated JSON under docs/generated/ when those scripts have been run." %}
-    </p>
-    <nav class="ds-action-bar d-flex flex-wrap align-items-center gap-2 mt-3" role="toolbar" aria-label="{% trans 'Primary actions' %}" data-rmc-founder-toolbar-actions="1">
-      <a class="btn btn-sm btn-primary ds-btn" href="{{ sales_pipeline_url }}" data-rmc-founder-primary-toolbar="1">{% trans "Sales pipeline" %}</a>
-      {% if rmc_conversion_single_action_enforced|default:False %}
-      <details class="rmc-conversion-more-actions border rounded px-2 py-1">
-        <summary class="btn btn-sm btn-outline-secondary ds-btn mb-0">{% trans "More" %}</summary>
-        <div class="pt-2">
-          <a class="btn btn-sm btn-outline-secondary ds-btn" href="{{ command_center_url }}" data-task="founder" data-task-step="dashboard:command-center">{% trans "Command center" %}</a>
-        </div>
-      </details>
-      {% else %}
-      <a class="btn btn-sm btn-outline-secondary ds-btn" href="{{ command_center_url }}" data-task="founder" data-task-step="dashboard:command-center">{% trans "Command center" %}</a>
-      {% endif %}
-      {% comment %} v8 cockpit page-header actions (Export PDF + Quick action), config-driven. {% endcomment %}
-      {% include "partials/cockpit/_page_actions.html" %}
-    </nav>
-  </header>
-  <!-- rmc-ux-above-fold-end -->
 
   {% comment %} v3.59.x Wave 11 Agent X (2026-05-22): system-pulse KPI cards adopt `.rmc-stat-card--mono` + count pill per v8 200x preview. {% endcomment %}
   <section class="mb-4 rmc-reveal" data-rmc-ux-section="system-pulse" aria-label="{% trans 'System pulse' %}">
@@ -179,7 +183,7 @@
         {% include "components/insight_card.html" with tone="warning" title=_("Billing watchlist needs intervention") explanation=_("Some subscriptions are past due or suspended. Resolve top accounts to protect active-school retention.") action_url=dashboard_url action_label=_("Open control plane dashboard") %}
       </div>
       {% endif %}
-      {% if self_heal_status != "PASS" %}
+      {% if self_heal_requires_attention %}
       <div class="col-md-6 col-xl-4">
         {% include "components/insight_card.html" with tone="danger" title=_("Self-heal signal requires review") explanation=_("Self-heal is not currently passing. Review ticket paths before they turn into operator-facing incidents.") action_url=command_center_url action_label=_("Open command center") %}
       </div>

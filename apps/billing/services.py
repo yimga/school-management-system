@@ -9,6 +9,7 @@ from django.db import models, transaction, DatabaseError, IntegrityError
 from django.core.cache import cache
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 
 from apps.billing.models import (
     BillingAccount,
@@ -591,6 +592,76 @@ def _current_balance_for_account(account: BillingAccount) -> Decimal:
     return Decimal(str(totals.get("debits") or "0")) - Decimal(
         str(totals.get("credits") or "0")
     )
+
+
+def _entry_due_at(entry) -> datetime:
+    """When a posted debit became payable.
+
+    ``happened_at`` is when the ROW was written, which for a subscription charge
+    is whenever the sweep got round to it — a catch-up run after downtime can
+    post a period that ended weeks ago. The lifecycle stamps the real period on
+    every line it writes, so prefer that; hand-posted / dashboard charges carry
+    no period metadata and fall back to ``happened_at``.
+    """
+    raw = (entry.metadata or {}).get("period_end") if entry.metadata else None
+    if raw:
+        parsed = parse_datetime(str(raw))
+        if parsed is not None:
+            if timezone.is_naive(parsed):
+                parsed = timezone.make_aware(parsed, timezone.get_default_timezone())
+            return parsed
+    return entry.happened_at
+
+
+def _delinquency_anchor_for_account(
+    account: BillingAccount, *, fallback: datetime
+) -> datetime:
+    """When the OLDEST still-unsettled platform debit became due.
+
+    Delinquency used to be anchored on ``subscription.current_period_end`` — the
+    very field the same sweep advances a cycle forward on renewal. Under the
+    daily beat the anchor therefore always sat a full cycle in the FUTURE and no
+    tenant could ever be marked PAST_DUE; the state only fired when a sweep
+    skipped a whole period boundary. Anchoring on the age of the unpaid money
+    instead makes the beat idempotent: as long as the oldest charge stays
+    uncovered, the anchor does not move, so grace and suspension elapse exactly
+    once.
+
+    Credits/write-offs are applied FIFO against the debits (open-item
+    allocation), so a tenant who pays the arrears but not the newest period is
+    anchored on that newest period, not on their whole history.
+    """
+    entries = (
+        # tenant-isolation-allow: billing_account is the school-scoped FK (mirrors _current_balance_for_account)
+        PlatformLedgerEntry.objects.filter(
+            billing_account=account,
+            status=PlatformLedgerEntry.Status.POSTED,
+        )
+        .only("entry_type", "amount", "happened_at", "metadata")
+        .order_by("happened_at", "id")
+    )
+    debits: list[tuple[datetime, Decimal]] = []
+    credit_pool = Decimal("0.00")
+    for entry in entries:
+        amount = Decimal(str(entry.amount or "0"))
+        if entry.entry_type in (
+            PlatformLedgerEntry.EntryType.CHARGE,
+            PlatformLedgerEntry.EntryType.ADJUSTMENT,
+        ):
+            debits.append((_entry_due_at(entry), amount))
+        elif entry.entry_type in (
+            PlatformLedgerEntry.EntryType.CREDIT,
+            PlatformLedgerEntry.EntryType.WRITE_OFF,
+        ):
+            credit_pool += amount
+
+    debits.sort(key=lambda pair: pair[0])
+    for due_at, amount in debits:
+        if credit_pool >= amount:
+            credit_pool -= amount
+            continue
+        return due_at or fallback
+    return fallback
 
 
 def platform_account_balance(account: BillingAccount) -> Decimal:
@@ -2138,7 +2209,14 @@ def _advance_subscription_billing(subscription, summary, *, as_of, grace_days, s
         summary["renewed"] += 1
 
     balance = _current_balance_for_account(account)
-    overdue_threshold = due_anchor + timedelta(days=grace_days)
+    # Anchor on the AGE OF THE UNPAID MONEY, not on the subscription period.
+    # ``due_anchor`` (current_period_end, captured before the renewal above
+    # advanced it) is only the fallback for an account with no unsettled debit
+    # row — anchoring on it directly meant the daily beat re-read a period end
+    # that had just moved a cycle into the future, so grace never elapsed and
+    # no tenant was ever marked PAST_DUE.
+    delinquency_anchor = _delinquency_anchor_for_account(account, fallback=due_anchor)
+    overdue_threshold = delinquency_anchor + timedelta(days=grace_days)
     suspension_threshold = overdue_threshold + timedelta(
         days=max(suspension_days - grace_days, 0)
     )

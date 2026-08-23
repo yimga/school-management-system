@@ -28,6 +28,7 @@ from apps.siteconfig.config_service import get_effective_site_settings
 from .json_decimal import quantize_money
 
 from .models import (
+    COLLECTED_PAYMENT_STATUS,
     ComplianceProfile,
     FeeInstallment,
     FeeItem,
@@ -257,6 +258,19 @@ def record_provider_payment(
         "amount": amount_val,
         "method": method,
         "reference": reference or ext_ref or "",
+        # A callback only reaches here once the webhook has already refused any
+        # explicitly non-success PSP status (is_explicit_non_success), so the
+        # money IS settled. Leaving the default "pending" stranded every gateway
+        # receipt: no payment-received notification (apply_payment's gate wants
+        # completed/success/paid), no processor revenue-share accrual, and the
+        # OHADA statutory revenue report — which filters status="completed" —
+        # omitted every mobile-money receipt.
+        "status": COLLECTED_PAYMENT_STATUS,
+        "completed_at": timezone.now(),
+        # _guardian_contacts_for_payment / _resolve_school read school + student
+        # off the Payment row, not off the invoice.
+        "school": getattr(invoice, "school", None),
+        "student": getattr(invoice, "student", None),
     }
     if ext_ref:
         defaults["external_reference"] = ext_ref
@@ -353,10 +367,17 @@ def pay_invoice_with_wallet(
     payment = Payment.objects.create(
         invoice=invoice,
         school=getattr(invoice, "school", None) or school,
+        student=getattr(invoice, "student", None),
         amount=amount_val,
         method=PaymentMethodCode.WALLET,
         reference=ref,
         external_reference=ref,
+        # The wallet debit below is unconditional, so the money HAS moved — same
+        # reasoning as record_provider_payment. Left at the "pending" default,
+        # this stranded every wallet receipt out of the payment-received
+        # notification, the rev-share accrual and the OHADA revenue report.
+        status=COLLECTED_PAYMENT_STATUS,
+        completed_at=timezone.now(),
     )
     # Quantize the running balance to the 2dp currency step so an >2dp
     # value from upstream arithmetic (FX-converted top-up, split remainder)
@@ -806,22 +827,13 @@ def recalculate_invoice(invoice: Invoice) -> None:
             tax_amount = compute_tax(subtotal, region_code, rate_override=rate)
             total = subtotal + tax_amount
 
-    paid = Decimal("0.00")
-    # Exclude soft-deleted payments AND not-received statuses (failed/cancelled/
-    # refunded) so a reversed/failed payment stops counting toward paid — mirrors
-    # Invoice.computed_balance. A partially-refunded payment stays 'completed' but
-    # only its net (amount - refunded_amount) counts, so partial refunds reduce
-    # paid too (also mirrors computed_balance).
-    from apps.finance.models import _NON_RECEIVED_PAYMENT_STATUSES
+    # Shared paid-total definition (excludes soft-deleted + not-received rows and
+    # nets out refunded_amount) — the same helper Invoice.computed_balance and
+    # Payment.clean() use, so the three gates can never drift apart again.
+    from apps.finance.models import net_received_payment_total
 
     # tenant-isolation-allow: service-scoped-via-request-school-context
-    for payment in Payment.objects.filter(
-        invoice_id=invoice.pk, deleted_at__isnull=True
-    ).exclude(status__in=_NON_RECEIVED_PAYMENT_STATUSES):
-        paid += max(
-            payment.amount - (payment.refunded_amount or Decimal("0.00")),
-            Decimal("0.00"),
-        )
+    paid = net_received_payment_total(Payment.objects.filter(invoice_id=invoice.pk))
 
     balance = max(total - paid, Decimal("0.00"))
     invoice.total_amount = total
@@ -914,6 +926,11 @@ def process_refund_request(refund_request, *, processed_by=None):
         if payment.invoice_id:
             payment.refresh_from_db(fields=["refunded_amount", "status"])
             recalculate_invoice(payment.invoice)
+            # Explicit because the .update() above deliberately skips post_save,
+            # which is what normally reconciles the split-billing shares. Without
+            # this the refunded guardian keeps a PAID share and is never chased,
+            # even though the invoice balance has correctly gone back up.
+            allocate_payment_to_payer_shares(payment)
 
     return refund_request
 
@@ -1068,14 +1085,90 @@ def assign_equal_invoice_payer_shares(invoice: Invoice) -> list[InvoicePayerShar
     return assign_invoice_payer_shares(invoice, allocations, due_date=invoice.due_date)
 
 
+def _payer_share_allocatable_amount(payment: Payment) -> Decimal:
+    """How much of ``payment`` is money the school currently holds.
+
+    Zero for a reversed (soft-deleted) or not-received (failed / cancelled /
+    refunded) payment; otherwise the net of any partial refund. This is what a
+    payer share may legitimately be credited with, and it is what
+    ``allocate_payment_to_payer_shares`` reconciles the allocation rows to.
+    """
+    from apps.finance.models import _NON_RECEIVED_PAYMENT_STATUSES
+
+    if getattr(payment, "deleted_at", None) is not None:
+        return Decimal("0.00")
+    if (getattr(payment, "status", "") or "") in _NON_RECEIVED_PAYMENT_STATUSES:
+        return Decimal("0.00")
+    return max(
+        Decimal(str(payment.amount or "0.00"))
+        - Decimal(str(payment.refunded_amount or "0.00")),
+        Decimal("0.00"),
+    )
+
+
+def _release_payer_share_allocations(payment: Payment, excess: Decimal) -> None:
+    """Give back ``excess`` of this payment's payer-share credit, newest first.
+
+    The reverse producer that did not exist: allocations were only ever
+    created, so a refunded / failed / reversed payment left its guardian's
+    share reading PAID forever while the invoice showed the money owing again.
+    run_split_late_fees skips status=PAID and zero-outstanding shares, so that
+    guardian was silently never chased.
+    """
+    touched: dict[int, InvoicePayerShare] = {}
+    allocations = (
+        InvoicePayerSharePaymentAllocation.objects.select_for_update()
+        .filter(payment=payment)
+        .select_related("payer_share")
+        .order_by("-created_at", "-id")
+    )
+    for allocation in allocations:
+        if excess <= Decimal("0.00"):
+            break
+        taken = min(excess, allocation.amount)
+        share = touched.setdefault(allocation.payer_share_id, allocation.payer_share)
+        share.paid_amount = max(
+            (share.paid_amount or Decimal("0.00")) - taken, Decimal("0.00")
+        )
+        if taken >= allocation.amount:
+            allocation.delete()
+        else:
+            allocation.amount -= taken
+            allocation.save(update_fields=["amount"])
+        excess -= taken
+    for share in touched.values():
+        share.refresh_status(save=False)
+        share.save(update_fields=["paid_amount", "status", "updated_at"])
+
+
 @transaction.atomic
 def allocate_payment_to_payer_shares(payment: Payment) -> None:
     """
-    Apply a payment to payer-share obligations once (idempotent via allocation rows).
-    Preference: payer's own share first, then oldest due.
+    Reconcile a payment's payer-share obligations (idempotent via allocation rows).
+    Preference when crediting: payer's own share first, then oldest due.
+
+    Two-way: the allocation rows are synced to the payment's CURRENT allocatable
+    amount, so a refund / failure / reversal releases the credit again instead of
+    leaving the guardian marked PAID. Called from ``apply_payment`` (every Payment
+    post_save) and explicitly from ``process_refund_request``, which deliberately
+    bypasses post_save.
     """
     if not payment or not payment.invoice_id:
         return
+
+    target = _payer_share_allocatable_amount(payment)
+    already_allocated = InvoicePayerSharePaymentAllocation.objects.filter(
+        payment=payment
+    ).aggregate(total=Sum("amount")).get("total") or Decimal("0.00")
+    already_allocated = Decimal(str(already_allocated))
+
+    # Money went away (refund / failure / reversal): hand the credit back. Done
+    # before the active-share lookup because the shares may have been
+    # deactivated since, and a stale credit must be released either way.
+    if target < already_allocated:
+        _release_payer_share_allocations(payment, already_allocated - target)
+        return
+
     # Row-lock the shares for the duration of this atomic block so two payments
     # against the same invoice can't both read a stale paid_amount and clobber
     # each other's allocation (lost update on share.paid_amount).
@@ -1090,10 +1183,7 @@ def allocate_payment_to_payer_shares(payment: Payment) -> None:
     if not shares:
         return
 
-    already_allocated = InvoicePayerSharePaymentAllocation.objects.filter(
-        payment=payment
-    ).aggregate(total=Sum("amount")).get("total") or Decimal("0.00")
-    remaining = Decimal(str(payment.amount or "0.00")) - Decimal(str(already_allocated))
+    remaining = target - already_allocated
     if remaining <= Decimal("0.00"):
         for share in shares:
             share.refresh_status()
@@ -1197,6 +1287,14 @@ def carry_forward_arrears(source_year, target_year) -> int:
                     "due_date": issued,
                     "status": Invoice.Status.ISSUED,
                     "total_amount": total_arrears,
+                    # Invoice.school is nullable and save() does no backfill, so
+                    # omitting it here (this was the only AR creator that did —
+                    # create_fee_invoices sets it) left every arrears invoice
+                    # school=NULL: invisible to student_enrollment_blocked_for_unpaid
+                    # and to the fractional-clearance producers, both of which are
+                    # school-scoped. A student owing a full year walked straight
+                    # into re-enrollment.
+                    "school": getattr(student, "school", None),
                 },
             )
             if not created_inv:

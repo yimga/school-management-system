@@ -31,6 +31,11 @@ class GuardrailCheck:
     tolerance_abs: Decimal
     tolerance_rel: Decimal
     passed: bool
+    #: Set to the operator's raw text when the expected total could not be read
+    #: as a number at all. The check is then a FAILURE, never a skip — a total
+    #: nobody can parse is not a total anyone verified. Carrying the raw text
+    #: makes the report say what was typed, which is what the operator has to fix.
+    unreadable_expected: str = ""
 
 
 @dataclass
@@ -56,6 +61,7 @@ class GuardrailReport:
                     "tolerance_abs": str(c.tolerance_abs),
                     "tolerance_rel": str(c.tolerance_rel),
                     "passed": c.passed,
+                    "unreadable_expected": c.unreadable_expected,
                 }
                 for c in self.checks
             ],
@@ -93,6 +99,19 @@ def _to_decimal(value: Any) -> Decimal | None:
         return None
 
 
+def parse_expected_total(value: Any) -> Decimal | None:
+    """Public name for the control-total parser; ``None`` = not a number here.
+
+    The write boundary (``views.MigrationCloudExpectedTotalsView``) validates
+    with the SAME parser the guardrail later compares with, so a figure the API
+    accepts can never be one the guardrail cannot read. Note what this parser
+    does NOT accept: space-grouped figures (``1 250 000,00``), the normal fr-FR
+    presentation across this product's market — those must be rejected loudly at
+    the boundary rather than silently disappearing from the report.
+    """
+    return _to_decimal(value)
+
+
 def evaluate_expected_totals(
     *,
     bundle: Any,
@@ -116,6 +135,22 @@ def evaluate_expected_totals(
         exp = _to_decimal(raw_expected)
         obs = _to_decimal(observed.get(key))
         if exp is None:
+            # An expected total nobody can read is a FAILED check, not a skipped
+            # one. It used to `continue`, which emptied `checks`, made `ok` True
+            # and let the bundle flip to APPLIED — one typo in a control total
+            # silently disabled the guardrail it was meant to arm.
+            check = GuardrailCheck(
+                key=key,
+                expected=Decimal("0"),
+                observed=obs if obs is not None else Decimal("0"),
+                delta=Decimal("0"),
+                tolerance_abs=tolerance_abs,
+                tolerance_rel=tolerance_rel,
+                passed=False,
+                unreadable_expected=str(raw_expected),
+            )
+            report.checks.append(check)
+            report.failed.append(check)
             continue
         if obs is None:
             check = GuardrailCheck(
@@ -280,7 +315,11 @@ def enforce_financial_guardrail(*, bundle: Any) -> GuardrailReport:
     report = evaluate_expected_totals(bundle=bundle, observed=observed)
     if not report.ok:
         failed_summary = ", ".join(
-            f"{c.key}: expected {c.expected} got {c.observed} (Δ {c.delta})"
+            (
+                f"{c.key}: expected {c.unreadable_expected!r} is not a number"
+                if c.unreadable_expected
+                else f"{c.key}: expected {c.expected} got {c.observed} (Δ {c.delta})"
+            )
             for c in report.failed
         )
         raise FinancialMismatchError(

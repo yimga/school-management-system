@@ -130,11 +130,23 @@ def _step2_tenant_identity(school: Any, tenant_ctx: TenantContext) -> TenantIden
 
 def _step3_registry_context(school: Any, tenant_ctx: TenantContext) -> RegistryContext:
     """Step 3: Load registry context (country, subdivision, currency, etc.). Filled from registries when installed. Cached 5min to avoid 7+ registry queries per request."""
-    country_code = tenant_ctx.country or (
-        getattr(school, "country", None) if school else None
-    )
-    if isinstance(country_code, str) and len(country_code) > 2:
-        country_code = country_code[:2].upper()
+    # School stores the ISO alpha-2 as ``country_code``; it has no ``country``
+    # attribute, so the previous read resolved to None for every tenant - which
+    # collapsed the cache key below to ":default" fleet-wide and skipped the
+    # CountryRegistry lookup entirely. ``canonical_country_code()`` is the
+    # school's own accessor: it upper-cases ``country_code`` and falls back to
+    # the region's alpha-2, so alpha-3 inputs never need blind truncation.
+    country_code = (tenant_ctx.country or "").strip().upper()
+    if not country_code and school is not None:
+        canonical = getattr(school, "canonical_country_code", None)
+        try:
+            country_code = (canonical() if callable(canonical) else "") or ""
+        except (AttributeError, DatabaseError, TypeError, ValueError) as e:
+            logger.debug("canonical_country_code failed, falling back: %s", e)
+            country_code = ""
+        country_code = (
+            country_code or (getattr(school, "country_code", "") or "")
+        ).strip().upper()
     cache_key = f"platform_runtime:registry_context:{country_code or 'default'}"
     cached = cache.get(cache_key)
     if cached is not None:
@@ -181,20 +193,17 @@ def _step3_registry_context(school: Any, tenant_ctx: TenantContext) -> RegistryC
                             "symbol": getattr(cr, "symbol", cr.code),
                         }
             if not currency_dict:
-                try:
-                    cr = CurrencyRegistry.objects.first()
-                    if cr:
-                        currency_dict = {
-                            "code": cr.code,
-                            "name": cr.name,
-                            "symbol": getattr(cr, "symbol", cr.code),
-                        }
-                except (AttributeError, DatabaseError, TypeError, ValueError) as e:
-                    logger.warning(
-                        "Registry currency fallback failed (%s): %s",
-                        RuntimeResolutionError.__name__,
-                        e,
-                    )
+                # Deliberately NO CurrencyRegistry.objects.first() fallback: that
+                # served whichever row sorted first under
+                # Meta.ordering = ['sort_order', 'name'] as the tenant's currency,
+                # and that value lands in module_configs.finance['currency'].
+                # An unresolvable country must surface as a missing currency, not
+                # as a confidently wrong one.
+                logger.warning(
+                    "Registry currency unresolved for country_code=%r; "
+                    "runtime.registry.currency left unset",
+                    country_code,
+                )
             for e in EducationLevelRegistry.objects.filter(is_active=True)[:50]:
                 education_levels.append(
                     {
@@ -914,7 +923,9 @@ def build_tenant_runtime_for_tenant(tenant: Any, mode: str = "job") -> TenantRun
         tenant_id=str(getattr(tenant, "id", "")) if tenant else "",
         schema_name=getattr(tenant, "schema_name", None) if tenant else None,
         school_id=getattr(school, "id", None) if school else None,
-        country=getattr(school, "country", None) if school else None,
+        country=(getattr(school, "country_code", "") or "").strip().upper() or None
+        if school
+        else None,
         timezone=getattr(school, "timezone", None) if school else None,
         feature_flags={},
         policy_overrides={"mode": mode},

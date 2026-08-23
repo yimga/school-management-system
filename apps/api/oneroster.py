@@ -70,6 +70,61 @@ def _allow_dev_open() -> bool:
     return raw.strip().lower() in ("1", "true", "yes", "on")
 
 
+def _tenant_handles(school) -> set[str]:
+    """Identifiers a client registry may legitimately name for ``school``.
+
+    Outside django-tenants there is no schema, and ``School.slug`` /
+    ``School.subdomain`` ARE the tenant handle — the same mapping
+    ``apps/schools/celery_tasks.py`` uses to resolve a ``schema_name`` in RLS
+    mode. ``schema_name`` is included for the django-tenants Client shape.
+    """
+    if school is None:
+        return set()
+    out: set[str] = set()
+    for attr in ("schema_name", "slug", "subdomain"):
+        value = str(getattr(school, attr, "") or "").strip()
+        if value:
+            out.add(value)
+    return out
+
+
+def _roster_scope_school(request: HttpRequest):
+    """The single tenant this request may read, or None for a platform-wide token.
+
+    The roster adapters below query ``School``/``User``/``Classroom`` directly.
+    ``apps.accounts`` and ``apps.schools`` are SHARED_APPS, so under
+    django-tenants the schema search_path does NOT scope User or School either —
+    the scoping has to be explicit in the queryset, in both topologies.
+
+    None means "no tenant resolved", which keeps the historical platform-wide
+    projection for an operator token that names no tenant. A token that DOES name
+    a tenant cannot reach here unresolved: ``_authenticate`` refuses it.
+    """
+    school = getattr(request, "school", None)
+    if school is not None:
+        return school
+    handle = ""
+    tenant = getattr(request, "tenant", None)
+    if tenant is not None:
+        handle = str(getattr(tenant, "schema_name", "") or "").strip()
+    if not handle:
+        payload = getattr(request, "_oneroster_oauth2", None) or {}
+        handle = str(payload.get("tenant_schema") or "").strip()
+    if not handle:
+        return None
+    try:
+        from apps.schools.models import School
+
+        return (
+            # tenant-isolation-allow: tenant-resolver (mapping a schema handle to its own School row)
+            School.objects.filter(slug=handle).first()
+            or School.objects.filter(subdomain=handle).first()
+        )
+    except Exception as exc:  # noqa: BLE001 — an unresolvable handle stays None
+        logger.debug("oneroster: tenant handle %s did not resolve: %s", handle, exc)
+        return None
+
+
 def _authenticate(request: HttpRequest) -> tuple[bool, str | None]:
     """Bearer-token check. Returns (ok, error_code).
 
@@ -120,12 +175,42 @@ def _authenticate(request: HttpRequest) -> tuple[bool, str | None]:
                     req_schema = str(getattr(_t, "schema_name", "") or "").strip()
             except Exception:  # noqa: BLE001
                 req_schema = ""
-            if req_schema and req_schema != token_schema:
-                logger.warning(
-                    "oneroster oauth2: tenant mismatch (token=%s request=%s)",
-                    token_schema, req_schema,
-                )
-                return False, "tenant_mismatch"
+            if req_schema:
+                if req_schema != token_schema:
+                    logger.warning(
+                        "oneroster oauth2: tenant mismatch (token=%s request=%s)",
+                        token_schema, req_schema,
+                    )
+                    return False, "tenant_mismatch"
+            else:
+                # v4.02 SECURITY — the check above was structurally inert on half
+                # the fleet. ``request.tenant`` is set only by django_tenants'
+                # TenantMainMiddleware, which is mounted only in the
+                # USE_DJANGO_TENANTS branch of config/settings.py. On any
+                # TENANCY_MODE=RLS / self-host box (USE_DJANGO_TENANTS=0)
+                # ``req_schema`` stayed "" and the mismatch branch never ran, so a
+                # token minted for one tenant read every tenant's roster.
+                #
+                # In that topology the tenant handle is the School row the schools
+                # middleware resolved — School.slug / School.subdomain, exactly how
+                # apps/schools/celery_tasks.py resolves a schema_name under RLS.
+                handles = _tenant_handles(getattr(request, "school", None))
+                if not handles:
+                    # Fail closed, matching the "no env token configured" branch
+                    # below: a token bound to a named tenant must never be honored
+                    # on a request that resolves to no tenant at all.
+                    logger.warning(
+                        "oneroster oauth2: token names tenant=%s but request "
+                        "resolves to no tenant — refusing",
+                        token_schema,
+                    )
+                    return False, "tenant_unresolved"
+                if token_schema not in handles:
+                    logger.warning(
+                        "oneroster oauth2: tenant mismatch (token=%s request=%s)",
+                        token_schema, sorted(handles),
+                    )
+                    return False, "tenant_mismatch"
         return True, None
     if not expected:
         # v4.01 SECURITY — fail closed. Previously "no env token configured"
@@ -289,12 +374,30 @@ def _collection_get(
 # ----- data adapters ------------------------------------------------------
 
 
-def _iter_orgs() -> Iterable[dict[str, Any]]:
+def _scoped(request: HttpRequest, projection):
+    """Bind an adapter to the tenant this request resolved to.
+
+    The pipeline helpers (``_collection_get`` / ``_empty_response_with_total_count``)
+    call the projection with no arguments, so the tenant is bound here rather than
+    threaded through every signature.
+    """
+    from functools import partial
+
+    return partial(projection, _roster_scope_school(request))
+
+
+def _iter_orgs(school=None) -> Iterable[dict[str, Any]]:
     """v4.00.70 — Enriched projection: parentSourcedId + metadata block w/
-    subdivisionCode (ISO 3166-2 hint when present on the School row)."""
+    subdivisionCode (ISO 3166-2 hint when present on the School row).
+
+    ``school`` narrows the projection to one tenant. It is None only for a token
+    that names no tenant (operator/platform scope) -- see ``_roster_scope_school``.
+    """
     try:
         from apps.schools.models import School
         qs = School.objects.all()  # tenant-isolation-allow: roster-cross-tenant-explicit-platform-scope
+        if school is not None:
+            qs = qs.filter(pk=school.pk)
         for s in qs[:1000]:
             parent_id = ""
             parent = getattr(s, "parent_org", None) or getattr(s, "parent", None)
@@ -326,11 +429,19 @@ def _iter_orgs() -> Iterable[dict[str, Any]]:
         logger.debug("oneroster orgs: school model not available: %s", exc)
 
 
-def _iter_users() -> Iterable[dict[str, Any]]:
+def _iter_users(school=None) -> Iterable[dict[str, Any]]:
+    """``school`` narrows the roster to that tenant's members.
+
+    ``apps.accounts`` is a SHARED_APP, so ``accounts_user`` has no ``school_id``
+    column, no RLS policy and no per-schema copy -- nothing scoped this queryset
+    in EITHER topology. Membership is the tenant edge (``SchoolMembership``).
+    """
     try:
         from django.contrib.auth import get_user_model
         User = get_user_model()
         qs = User.objects.all()  # tenant-isolation-allow: roster-cross-tenant-explicit-platform-scope
+        if school is not None:
+            qs = qs.filter(school_memberships__school_id=school.pk).distinct()
         for u in qs[:1000]:
             role = "student"
             raw_role = str(getattr(u, "role", "") or "").lower()
@@ -351,12 +462,14 @@ def _iter_users() -> Iterable[dict[str, Any]]:
         logger.debug("oneroster users: user model not iterable: %s", exc)
 
 
-def _iter_classes() -> Iterable[dict[str, Any]]:
+def _iter_classes(school=None) -> Iterable[dict[str, Any]]:
     """v4.00.75 — Enriched projection: courseSourcedId + termSourcedIds +
     schoolSourcedId + grades per OneRoster v1.2 Class resource."""
     try:
         from apps.academics.models import Classroom  # adjust if model name differs
         qs = Classroom.objects.all()  # tenant-isolation-allow: roster-cross-tenant-explicit-platform-scope
+        if school is not None:
+            qs = qs.filter(school=school)
         for c in qs[:1000]:
             course = getattr(c, "course", None)
             course_id = str(getattr(course, "pk", "")) if course is not None else str(c.pk)
@@ -379,7 +492,7 @@ def _iter_classes() -> Iterable[dict[str, Any]]:
         logger.debug("oneroster classes: classroom model not iterable: %s", exc)
 
 
-def _iter_courses() -> Iterable[dict[str, Any]]:
+def _iter_courses(school=None) -> Iterable[dict[str, Any]]:
     """v4.00.74 — Project distinct course shapes from the Classroom model
     (when the project has a separate Course model, swap the import).
     Returns OneRoster v1.2 Course resource shape: ``sourcedId, status,
@@ -388,6 +501,8 @@ def _iter_courses() -> Iterable[dict[str, Any]]:
     try:
         from apps.academics.models import Classroom
         qs = Classroom.objects.all()  # tenant-isolation-allow: roster-cross-tenant-explicit-platform-scope
+        if school is not None:
+            qs = qs.filter(school=school)
         seen: set[str] = set()
         for c in qs[:1000]:
             code = (getattr(c, "course_code", "")
@@ -414,12 +529,14 @@ def _iter_courses() -> Iterable[dict[str, Any]]:
         logger.debug("oneroster courses: classroom model not iterable: %s", exc)
 
 
-def _iter_academic_sessions() -> Iterable[dict[str, Any]]:
+def _iter_academic_sessions(school=None) -> Iterable[dict[str, Any]]:
     """v4.00.71 — Enriched projection: startDate / endDate / schoolYear /
     parentSourcedId per OneRoster v1.2 § 4.13 AcademicSession resource."""
     try:
         from apps.academics.models import AcademicYear  # adjust if model name differs
         qs = AcademicYear.objects.all()  # tenant-isolation-allow: roster-cross-tenant-explicit-platform-scope
+        if school is not None:
+            qs = qs.filter(school=school)
         for y in qs[:200]:
             start = getattr(y, "start_date", None) or getattr(y, "starts_on", None)
             end = getattr(y, "end_date", None) or getattr(y, "ends_on", None)
@@ -451,11 +568,11 @@ def orgs(request):
         gate = _gate(request)
         if gate is not None:
             return gate
-        return _empty_response_with_total_count(_iter_orgs, request)
+        return _empty_response_with_total_count(_scoped(request, _iter_orgs), request)
     gate = _gate(request)
     if gate is not None:
         return gate
-    return _collection_get(request, "orgs", _iter_orgs)
+    return _collection_get(request, "orgs", _scoped(request, _iter_orgs))
 
 
 @require_http_methods(["GET"])
@@ -465,15 +582,15 @@ def org_detail(request, sourced_id: str):
     gate = _gate(request)
     if gate is not None:
         return gate
-    for o in _iter_orgs():
+    for o in _scoped(request, _iter_orgs)():
         if o["sourcedId"] == str(sourced_id):
             return JsonResponse({"org": o})
     return JsonResponse({"error": "org_not_found", "sourcedId": str(sourced_id)}, status=404)
 
 
-def _iter_schools():
+def _iter_schools(school=None):
     """Projection wrapper used by both GET and HEAD on /schools/."""
-    return (o for o in _iter_orgs() if o.get("type") == "school")
+    return (o for o in _iter_orgs(school) if o.get("type") == "school")
 
 
 @require_http_methods(["GET", "HEAD"])
@@ -483,11 +600,11 @@ def schools(request):
         gate = _gate(request)
         if gate is not None:
             return gate
-        return _empty_response_with_total_count(_iter_schools, request)
+        return _empty_response_with_total_count(_scoped(request, _iter_schools), request)
     gate = _gate(request)
     if gate is not None:
         return gate
-    return _collection_get(request, "schools", _iter_schools)
+    return _collection_get(request, "schools", _scoped(request, _iter_schools))
 
 
 @require_http_methods(["GET", "HEAD"])
@@ -497,11 +614,11 @@ def users(request):
         gate = _gate(request)
         if gate is not None:
             return gate
-        return _empty_response_with_total_count(_iter_users, request)
+        return _empty_response_with_total_count(_scoped(request, _iter_users), request)
     gate = _gate(request)
     if gate is not None:
         return gate
-    return _collection_get(request, "users", _iter_users)
+    return _collection_get(request, "users", _scoped(request, _iter_users))
 
 
 @require_http_methods(["GET"])
@@ -509,7 +626,7 @@ def students(request):
     gate = _gate(request)
     if gate is not None:
         return gate
-    items = [u for u in _iter_users() if u["role"] == "student"]
+    items = [u for u in _scoped(request, _iter_users)() if u["role"] == "student"]
     page, meta = _paginate(request, items)
     return _envelope("students", page, meta)
 
@@ -523,7 +640,7 @@ def staff(request):
     gate = _gate(request)
     if gate is not None:
         return gate
-    items = [u for u in _iter_users() if u["role"] in ("administrator", "staff")]
+    items = [u for u in _scoped(request, _iter_users)() if u["role"] in ("administrator", "staff")]
     page, meta = _paginate(request, items)
     return _envelope("staff", page, meta)
 
@@ -533,7 +650,7 @@ def teachers(request):
     gate = _gate(request)
     if gate is not None:
         return gate
-    items = [u for u in _iter_users() if u["role"] == "teacher"]
+    items = [u for u in _scoped(request, _iter_users)() if u["role"] == "teacher"]
     page, meta = _paginate(request, items)
     return _envelope("teachers", page, meta)
 
@@ -545,11 +662,11 @@ def classes(request):
         gate = _gate(request)
         if gate is not None:
             return gate
-        return _empty_response_with_total_count(_iter_classes, request)
+        return _empty_response_with_total_count(_scoped(request, _iter_classes), request)
     gate = _gate(request)
     if gate is not None:
         return gate
-    return _collection_get(request, "classes", _iter_classes)
+    return _collection_get(request, "classes", _scoped(request, _iter_classes))
 
 
 @require_http_methods(["GET"])
@@ -557,7 +674,7 @@ def academic_sessions(request):
     gate = _gate(request)
     if gate is not None:
         return gate
-    items = list(_iter_academic_sessions())
+    items = list(_scoped(request, _iter_academic_sessions)())
     # v4.00.72 — ?type=<value> subtype filter per spec § 4.13.
     # Common values: schoolYear / term / gradingPeriod / semester.
     wanted_type = (request.GET.get("type") or "").strip()
@@ -676,7 +793,7 @@ def class_detail(request, sourced_id: str):
     gate = _gate(request)
     if gate is not None:
         return gate
-    for c in _iter_classes():
+    for c in _scoped(request, _iter_classes)():
         if c["sourcedId"] == str(sourced_id):
             return JsonResponse({"class": c})
     return JsonResponse({"error": "class_not_found", "sourcedId": str(sourced_id)}, status=404)
@@ -690,11 +807,11 @@ def courses(request):
         gate = _gate(request)
         if gate is not None:
             return gate
-        return _empty_response_with_total_count(_iter_courses, request)
+        return _empty_response_with_total_count(_scoped(request, _iter_courses), request)
     gate = _gate(request)
     if gate is not None:
         return gate
-    return _collection_get(request, "courses", _iter_courses)
+    return _collection_get(request, "courses", _scoped(request, _iter_courses))
 
 
 @require_http_methods(["GET"])
@@ -706,7 +823,7 @@ def grading_periods(request):
     gate = _gate(request)
     if gate is not None:
         return gate
-    items = [s for s in _iter_academic_sessions() if s.get("type") == "gradingPeriod"]
+    items = [s for s in _scoped(request, _iter_academic_sessions)() if s.get("type") == "gradingPeriod"]
     page, meta = _paginate(request, items)
     return _envelope("gradingPeriods", page, meta)
 
@@ -720,7 +837,7 @@ def terms(request):
     gate = _gate(request)
     if gate is not None:
         return gate
-    items = [s for s in _iter_academic_sessions() if s.get("type") == "term"]
+    items = [s for s in _scoped(request, _iter_academic_sessions)() if s.get("type") == "term"]
     page, meta = _paginate(request, items)
     return _envelope("terms", page, meta)
 
@@ -731,7 +848,7 @@ def academic_session_detail(request, sourced_id: str):
     gate = _gate(request)
     if gate is not None:
         return gate
-    for s in _iter_academic_sessions():
+    for s in _scoped(request, _iter_academic_sessions)():
         if s["sourcedId"] == str(sourced_id):
             return JsonResponse({"academicSession": s})
     return JsonResponse({"error": "academic_session_not_found",
@@ -775,7 +892,7 @@ def _parse_modified_since(raw: str):
         return None
 
 
-def _iter_users_delta(modified_since):
+def _iter_users_delta(modified_since, school=None):
     """v4.00.82 — Iterate User rows with ``dateLastModified`` projected from
     the best-available timestamp on AbstractUser (``last_login`` falls back
     to ``date_joined``).  Yields two streams: active rows where
@@ -796,6 +913,8 @@ def _iter_users_delta(modified_since):
         from django.contrib.auth import get_user_model
         User = get_user_model()
         qs = User.objects.all()  # tenant-isolation-allow: roster-cross-tenant-explicit-platform-scope
+        if school is not None:
+            qs = qs.filter(school_memberships__school_id=school.pk).distinct()
         for u in qs[:1000]:
             # Best-available modification anchor on AbstractUser.
             anchor = getattr(u, "last_login", None) or getattr(u, "date_joined", None)
@@ -894,7 +1013,7 @@ def users_delta_v1p2(request):
             status=400,
         )
 
-    items = list(_iter_users_delta(modified_since))
+    items = list(_iter_users_delta(modified_since, _roster_scope_school(request)))
     active_count = sum(1 for it in items if it.get("status") == "active")
     tombstone_count = sum(1 for it in items if it.get("status") == "tobedeleted")
     page, meta = _paginate(request, items)

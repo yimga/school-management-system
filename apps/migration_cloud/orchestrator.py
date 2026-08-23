@@ -877,6 +877,11 @@ def _apply_bundle_inner(
             quarantined=totals["quarantined"],
             status=new_status,
         )
+        if new_status == BundleStatus.APPLIED:
+            from .reconciliation import run_post_apply_verification
+
+            run_post_apply_verification(bundle_id=bundle.pk)
+            refresh_snapshot(bundle=bundle)
 
     return ApplyResult(
         bundle_id=bundle.pk,

@@ -2196,7 +2196,15 @@ def rbac_dashboard(request):
                     messages.error(request, _("User is not a member of this school."))
                     return _rbac_redirect(request)
                 permissions = user_permission_form.cleaned_data["permissions"]
-                user.feature_permissions.set(permissions)
+                # A TENANT console grants a code AT THIS SCHOOL. Written straight
+                # to the M2M, the direct-grant branch of has_feature_permission
+                # ignored the `school` argument entirely, so School A's admin was
+                # minting a grant School B honoured for any account in both.
+                from apps.accounts.feature_permission_scope import (
+                    set_direct_permissions,
+                )
+
+                set_direct_permissions(user, permissions, school=school)
                 messages.success(request, f"Permissions updated for {user.username}.")
                 return _rbac_redirect(request)
             if _posted_rbac_user_outside_school(
@@ -4945,6 +4953,14 @@ def claim_invite(request):
         # backend or it raises ValueError → 500 on every successful claim. Use
         # the vanilla ModelBackend, matching the SAML/OIDC login() calls.
         login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+        # Route the MFA decision through the one resolver, as login_view does.
+        # RequireMFAMiddleware only walls accounts with NO device, so leaving the
+        # challenge to it makes enforcement depend on which sign-in view ran.
+        from apps.accounts.post_login_mfa import resolve_post_login_mfa_redirect
+
+        mfa_resp = resolve_post_login_mfa_redirect(request, user)
+        if mfa_resp is not None:
+            return mfa_resp
         messages.success(
             request,
             f"Welcome! You are now linked to {invite.student} and can view reports/finance.",

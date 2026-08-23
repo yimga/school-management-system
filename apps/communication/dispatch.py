@@ -112,12 +112,79 @@ def category_for_event(event_key: str) -> str:
     return EVENT_CATEGORY_MAP.get((event_key or "").strip(), DEFAULT_CATEGORY)
 
 
+#: ``siteconfig.UserPreference.NotificationChannel`` → this module's Channels.
+#: The user-facing screen (accounts:notification_preferences) writes the former;
+#: the router speaks the latter. "APP" covers both in-app and push, which are the
+#: two ways a notification reaches the app itself.
+USER_PREFERENCE_CHANNEL_MAP: Dict[str, tuple] = {
+    "EMAIL": (Channel.EMAIL,),
+    "SMS": (Channel.SMS,),
+    "APP": (Channel.IN_APP, Channel.PUSH),
+    "WHATSAPP": (Channel.WHATSAPP,),
+}
+
+
+def _preference_from_user_preference(user: Any) -> Optional[NotificationPreference]:
+    """Derive an UNSAVED :class:`NotificationPreference` from the screen the user uses.
+
+    Nothing on the platform writes a ``communication.NotificationPreference`` row:
+    ``accounts.views.notification_preferences`` — the only channel picker a parent
+    ever sees — writes ``siteconfig.UserPreference.notification_channels``. Without
+    this bridge ``get_preference`` returned ``None`` for every user, so a parent
+    who unticked SMS still got the SMS.
+
+    An EMPTY ``notification_channels`` list means "never configured" (the model
+    default, and ``get_or_create`` stamps it on every user who merely opened the
+    page), NOT "mute everything" — reading it as a mute would silence the whole
+    platform. Safeguarding is excluded from the derived overrides for the same
+    reason ``is_muted`` excludes it: child protection is not silenceable from a
+    preferences screen.
+    """
+    try:
+        from apps.siteconfig.models_tooling import UserPreference
+
+        row = (
+            UserPreference.objects.filter(user=user)
+            .only("notification_channels", "timezone")
+            .first()
+        )
+    except Exception:  # broad-by-design — a preferences blip never blocks a send
+        logger.debug("get_preference UserPreference fallback failed", exc_info=True)
+        return None
+    if row is None:
+        return None
+    selected = [str(c).strip().upper() for c in (row.notification_channels or []) if c]
+    if not selected:
+        return None
+    allowed = sorted(
+        {
+            channel
+            for raw in selected
+            for channel in USER_PREFERENCE_CHANNEL_MAP.get(raw, ())
+        }
+    )
+    overrides = {
+        category: allowed
+        for category in Category.values
+        if category != Category.SAFEGUARDING
+    }
+    return NotificationPreference(
+        user=user,
+        muted_categories=[],
+        channel_overrides=overrides,
+        timezone=getattr(row, "timezone", "") or "",
+    )
+
+
 def get_preference(user: Any) -> Optional[NotificationPreference]:
     """Best-effort load of a user's :class:`NotificationPreference`.
 
+    Falls back to :func:`_preference_from_user_preference` when no granular row
+    exists, so the user's saved channel choices are honoured instead of ignored.
+
     Returns ``None`` (treated downstream as "no preference set → defaults apply")
-    when the user is missing, has no preference row, or the lookup errors. Never
-    raises — a preference-table blip must not block a notification.
+    when the user is missing, has no preference of either kind, or the lookup
+    errors. Never raises — a preference-table blip must not block a notification.
     """
     if user is None or not getattr(user, "pk", None):
         return None
@@ -127,14 +194,15 @@ def get_preference(user: Any) -> Optional[NotificationPreference]:
         if isinstance(pref, NotificationPreference):
             return pref
     except NotificationPreference.DoesNotExist:
-        return None
+        return _preference_from_user_preference(user)
     except Exception:  # broad-by-design — reverse accessor never breaks the send
         logger.debug("get_preference reverse-accessor failed", exc_info=True)
     try:
-        return NotificationPreference.objects.filter(user=user).first()
+        stored = NotificationPreference.objects.filter(user=user).first()
     except Exception:  # broad-by-design — pref lookup never breaks the send
         logger.debug("get_preference query failed", exc_info=True)
         return None
+    return stored if stored is not None else _preference_from_user_preference(user)
 
 
 def _guardian_link_for(recipient: Any) -> Any:

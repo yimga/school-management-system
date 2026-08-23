@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from typing import Any, Dict
 
+from apps.policies.blueprint_services import EntitlementRequired
 from apps.policies.resolver import get_tenant_blueprint as _get_tenant_blueprint
 
 
@@ -21,7 +22,11 @@ def get_tenant_blueprint(school) -> Dict[str, Any]:
 
 # Apply/preview operations — delegate to blueprint_services so one import covers all blueprint operations
 def apply_blueprint_pack(school, pack, *, applied_by=None):
-    """Apply a BlueprintPack to a school; creates PolicyBundle and sets TenantBlueprint.active_bundle."""
+    """Apply a BlueprintPack to a school; creates PolicyBundle and sets TenantBlueprint.active_bundle.
+
+    Raises ``EntitlementRequired`` (a ValueError) when the pack is premium commercial
+    and the school holds no billing entitlement for it.
+    """
     from apps.policies.blueprint_services import apply_blueprint_pack as _apply
 
     return _apply(school, pack, applied_by=applied_by)
@@ -42,6 +47,7 @@ def update_bundle_for_schools(pack, *, school_ids=None, applied_by=None):
 
 
 __all__ = [
+    "EntitlementRequired",
     "get_tenant_blueprint",
     "apply_blueprint_pack",
     "preview_blueprint_pack",

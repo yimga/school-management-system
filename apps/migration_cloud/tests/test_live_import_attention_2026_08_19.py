@@ -14,6 +14,8 @@ from apps.migration_cloud.live_import_attention import (
     bundle_needs_attention,
     compose_live_import,
     last_import_counts,
+    pipeline_stages,
+    post_apply_verification_complete,
     remediator_for,
 )
 from apps.migration_cloud.models import BundleStatus
@@ -170,6 +172,71 @@ class LiveImportComposeTests(SimpleTestCase):
             last_import_counts(bundle)["held"],
             0,
         )
+
+
+class PipelineVerifyStageTests(SimpleTestCase):
+    def _stage_visual(self, bundle, *, flight=None, issues=0):
+        rows = pipeline_stages(bundle, flight=flight or {}, issues=issues)
+        return {row["key"]: row["visual"] for row in rows}
+
+    def test_applied_with_held_rows_marks_import_done_verify_failed(self):
+        bundle = FakeBundle(
+            status=BundleStatus.APPLIED,
+            mapping={
+                "apply_totals": {
+                    "created": 100,
+                    "updated": 0,
+                    "quarantined": 12,
+                    "dry_run": False,
+                    "applied_at": "2026-08-22T12:00:00+00:00",
+                }
+            },
+            recon={
+                "generated_at": "2026-08-22T12:00:01+00:00",
+                "per_domain": [{"domain": "students", "target_created": 100}],
+            },
+        )
+        visual = self._stage_visual(bundle, issues=12)
+        self.assertEqual(visual["import_school"], "done")
+        self.assertEqual(visual["verify_school"], "failed")
+
+    def test_applied_without_reconcile_shows_verify_running(self):
+        bundle = FakeBundle(
+            status=BundleStatus.APPLIED,
+            mapping={
+                "apply_totals": {
+                    "created": 5,
+                    "quarantined": 0,
+                    "dry_run": False,
+                    "applied_at": "2026-08-22T12:00:00+00:00",
+                }
+            },
+            recon={},
+        )
+        self.assertFalse(post_apply_verification_complete(bundle))
+        visual = self._stage_visual(bundle, issues=0)
+        self.assertEqual(visual["import_school"], "done")
+        self.assertEqual(visual["verify_school"], "running")
+
+    def test_applied_after_reconcile_shows_verify_done(self):
+        bundle = FakeBundle(
+            status=BundleStatus.APPLIED,
+            mapping={
+                "apply_totals": {
+                    "created": 5,
+                    "quarantined": 0,
+                    "dry_run": False,
+                    "applied_at": "2026-08-22T12:00:00+00:00",
+                }
+            },
+            recon={
+                "generated_at": "2026-08-22T12:00:01+00:00",
+                "per_domain": [{"domain": "students", "target_created": 5}],
+            },
+        )
+        self.assertTrue(post_apply_verification_complete(bundle))
+        visual = self._stage_visual(bundle, issues=0)
+        self.assertEqual(visual["verify_school"], "done")
 
 
 class ProgressPayloadLiveKeysTests(TestCase):

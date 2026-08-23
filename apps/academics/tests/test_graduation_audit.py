@@ -37,7 +37,7 @@ from apps.academics.models import (
     Term,
 )
 from apps.accounts.models import User
-from apps.evals.models import Evaluation
+from apps.evals.models import AssessmentWeights, Evaluation
 from apps.people.models import StudentProfile, TeacherProfile
 from apps.schools.models import School
 
@@ -81,6 +81,21 @@ class GraduationAuditFixtureMixin:
             department=self.department,
             name="Final Year",
             code=f"FY-{suffix}",
+        )
+        # Real provisioning (apps/evals/grading_provisioning.py) seeds a
+        # school-wide AssessmentWeights row for every school, and that row is the
+        # operational score-scale source of truth: score_scale defaults to 20, and
+        # the letter bands beside it (grade_b_min 16, grade_d_min 10) are /20-shaped.
+        # Without it, resolve_school_score_scale falls through AssessmentWeights to
+        # the locale band, which is 100 for a school carrying no country_code -- so
+        # the pass mark resolved to 50 and the 16/20 marks these tests record all
+        # read as failures. Create it explicitly rather than leaning on the shape
+        # an unprovisioned school happens to have.
+        AssessmentWeights.objects.create(
+            school=self.school,
+            academic_year=self.year,
+            term=None,
+            classroom=None,
         )
         self.student = StudentProfile.objects.create(
             school=self.school,

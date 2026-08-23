@@ -3,6 +3,8 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import Any
 
+from django.db.models import Q
+
 from apps.metadata.models import (
     DynamicFieldDefinition,
     DynamicFieldValue,
@@ -141,17 +143,27 @@ def set_dynamic_field_value(
         return None
 
     entity_type = entity_type_for(instance)
-    DynamicFieldDefinition.objects.get_or_create(
-        entity_type=entity_type,
-        field_key=field_key,
-        school=resolved_school,
-        defaults={
-            "label": label or field_key.replace("_", " ").title(),
-            "data_type": data_type or _guess_data_type(value),
-            "is_active": True,
-            "required": False,
-        },
-    )
+    # A platform-wide definition (school=None, seeded by seed_platform_eav_baseline)
+    # already describes this field for every tenant, so creating a school-scoped row
+    # for it would FORK the definition: unique_together is
+    # (entity_type, field_key, school), so nothing rejects the duplicate, and
+    # definitions_for_entity would then return both rows - the field renders twice on
+    # student detail and on the report card. Only create when neither a school-scoped
+    # nor a platform-wide definition already exists.
+    definition_exists = DynamicFieldDefinition.objects.filter(
+        Q(entity_type=entity_type, field_key=field_key, school=resolved_school)
+        | Q(entity_type=entity_type, field_key=field_key, school__isnull=True)
+    ).exists()
+    if not definition_exists:
+        DynamicFieldDefinition.objects.create(
+            entity_type=entity_type,
+            field_key=field_key,
+            school=resolved_school,
+            label=label or field_key.replace("_", " ").title(),
+            data_type=data_type or _guess_data_type(value),
+            is_active=True,
+            required=False,
+        )
     field_value, _created = DynamicFieldValue.objects.update_or_create(
         school=resolved_school,
         entity_type=entity_type,

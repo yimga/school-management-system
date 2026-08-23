@@ -209,7 +209,7 @@
     },
     {
       "file": "apps/api/oneroster.py",
-      "line": "1027",
+      "line": "1146",
       "signal": "csrf_exempt"
     },
     {
@@ -942,12 +942,12 @@
     },
     {
       "file": "apps/communication/views_groups.py",
-      "line": "17",
+      "line": "18",
       "signal": "export_delivery_hint"
     },
     {
       "file": "apps/communication/views_groups.py",
-      "line": "734",
+      "line": "743",
       "signal": "export_delivery_hint"
     },
     {
@@ -1071,18 +1071,23 @@
       "signal": "export_delivery_hint"
     },
     {
-      "file": "apps/migration_cloud/api/urls.py",
-      "line": "37",
+      "file": "apps/migration_cloud/api/quarantine_actions.py",
+      "line": "283",
       "signal": "export_delivery_hint"
     },
     {
       "file": "apps/migration_cloud/api/urls.py",
-      "line": "95",
+      "line": "41",
       "signal": "export_delivery_hint"
     },
     {
       "file": "apps/migration_cloud/api/urls.py",
-      "line": "97",
+      "line": "99",
+      "signal": "export_delivery_hint"
+    },
+    {
+      "file": "apps/migration_cloud/api/urls.py",
+      "line": "101",
       "signal": "export_delivery_hint"
     },
     {
@@ -1092,27 +1097,32 @@
     },
     {
       "file": "apps/migration_cloud/views.py",
-      "line": "2945",
+      "line": "1748",
       "signal": "export_delivery_hint"
     },
     {
       "file": "apps/migration_cloud/views.py",
-      "line": "3068",
+      "line": "3168",
       "signal": "export_delivery_hint"
     },
     {
       "file": "apps/migration_cloud/views.py",
-      "line": "3072",
+      "line": "3291",
       "signal": "export_delivery_hint"
     },
     {
       "file": "apps/migration_cloud/views.py",
-      "line": "3083",
+      "line": "3295",
       "signal": "export_delivery_hint"
     },
     {
       "file": "apps/migration_cloud/views.py",
-      "line": "3097",
+      "line": "3306",
+      "signal": "export_delivery_hint"
+    },
+    {
+      "file": "apps/migration_cloud/views.py",
+      "line": "3320",
       "signal": "export_delivery_hint"
     },
     {
@@ -1133,6 +1143,11 @@
     {
       "file": "apps/migration_cloud/views_lms_diagnostics.py",
       "line": "1079",
+      "signal": "export_delivery_hint"
+    },
+    {
+      "file": "apps/migration_cloud/views_tenant_upload.py",
+      "line": "2020",
       "signal": "export_delivery_hint"
     },
     {
@@ -1451,20 +1466,20 @@
       "signal": "export_delivery_hint"
     }
   ],
-  "generated_at": "2026-08-21T02:15:09.051541+00:00",
+  "generated_at": "2026-08-23T09:42:31.975963+00:00",
   "post_handler_audit_embed": {
-    "generated_at": "2026-08-21T02:15:04.742699+00:00",
+    "generated_at": "2026-08-23T09:42:16.084699+00:00",
     "summary_by_bucket": {
-      "product": 589,
+      "product": 590,
       "scripts": 6
     },
     "summary_by_classification": {
       "needs_review": 225,
-      "protected_candidate": 364,
+      "protected_candidate": 365,
       "scripts_cli": 6
     },
     "totals": {
-      "hits": 595
+      "hits": 596
     }
   },
   "post_handler_product_needs_review": [
@@ -1521,7 +1536,7 @@
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/api/oneroster.py",
-      "line": "1028",
+      "line": "1147",
       "protective_decorator_nearby": false
     },
     {
@@ -2004,21 +2019,21 @@
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/observability/views.py",
-      "line": "1003",
+      "line": "983",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/observability/views.py",
-      "line": "1468",
+      "line": "1448",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/observability/views.py",
-      "line": "1589",
+      "line": "1569",
       "protective_decorator_nearby": false
     },
     {
@@ -2417,7 +2432,7 @@
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/schools/signup_views.py",
-      "line": "2968",
+      "line": "2974",
       "protective_decorator_nearby": false
     },
     {
@@ -2466,126 +2481,126 @@
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/schools/super_views_config_crud.py",
-      "line": "311",
+      "line": "388",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/schools/super_views_config_crud.py",
-      "line": "333",
+      "line": "410",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/schools/super_views_config_crud.py",
-      "line": "356",
+      "line": "433",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/schools/super_views_config_crud.py",
-      "line": "378",
+      "line": "455",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/schools/super_views_config_crud.py",
-      "line": "405",
+      "line": "482",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/schools/super_views_config_crud.py",
-      "line": "442",
+      "line": "519",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/schools/super_views_config_crud.py",
-      "line": "462",
+      "line": "539",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/schools/super_views_config_crud.py",
-      "line": "484",
+      "line": "561",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/schools/super_views_config_crud.py",
-      "line": "507",
+      "line": "584",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/schools/super_views_config_crud.py",
-      "line": "529",
+      "line": "606",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/schools/super_views_config_crud.py",
-      "line": "552",
+      "line": "629",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/schools/super_views_config_crud.py",
-      "line": "605",
+      "line": "682",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/schools/super_views_config_crud.py",
-      "line": "625",
+      "line": "702",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/schools/super_views_config_crud.py",
-      "line": "651",
+      "line": "728",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/schools/super_views_config_crud.py",
-      "line": "671",
+      "line": "748",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/schools/super_views_config_crud.py",
-      "line": "710",
+      "line": "787",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/schools/super_views_config_crud.py",
-      "line": "730",
+      "line": "807",
       "protective_decorator_nearby": false
     },
     {
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/schools/super_views_config_crud.py",
-      "line": "752",
+      "line": "829",
       "protective_decorator_nearby": false
     },
     {
@@ -2914,7 +2929,7 @@
       "bucket": "product",
       "classification": "needs_review",
       "file": "apps/siteconfig/admin_form_intelligence.py",
-      "line": "652",
+      "line": "850",
       "protective_decorator_nearby": false
     },
     {
@@ -3046,28 +3061,28 @@
   ],
   "post_risk": {
     "product_needs_review_post_handlers": 225,
-    "product_protected_candidate_post_handlers": 364
+    "product_protected_candidate_post_handlers": 365
   },
   "schema_version": 2,
   "security_surface_audit_embed": {
-    "generated_at": "2026-08-06T12:50:41.771657+00:00",
+    "generated_at": "2026-08-23T09:42:06.982237+00:00",
     "summary": {
-      "allow_any": 40,
+      "allow_any": 43,
       "csrf_exempt": 98,
       "cursor_execute": 2,
-      "login_required": 828,
-      "permission_classes": 73,
-      "require_http_methods": 804,
+      "login_required": 856,
+      "permission_classes": 81,
+      "require_http_methods": 830,
       "staff_member_required": 93,
-      "subprocess": 636
+      "subprocess": 655
     },
     "summary_by_classification": {
-      "allowed": 2065,
-      "needs_review": 496,
+      "allowed": 2137,
+      "needs_review": 508,
       "unsafe": 13
     },
     "totals": {
-      "hits": 2574
+      "hits": 2658
     }
   },
   "subprocess_hits": [
@@ -3182,6 +3197,11 @@
       "signal": "subprocess"
     },
     {
+      "file": "apps/siteconfig/deploy_meta.py",
+      "line": "14",
+      "signal": "subprocess"
+    },
+    {
       "file": "apps/siteconfig/management/commands/generate_models_diagram.py",
       "line": "21",
       "signal": "subprocess"
@@ -3225,16 +3245,26 @@
       "file": "apps/siteconfig/management/commands/sync_regional_models.py",
       "line": "47",
       "signal": "subprocess"
+    },
+    {
+      "file": "apps/sync_engine/upgrade_runtime.py",
+      "line": "227",
+      "signal": "subprocess"
+    },
+    {
+      "file": "apps/sync_engine/upgrade_runtime.py",
+      "line": "234",
+      "signal": "subprocess"
     }
   ],
   "summary": {
     "allow_any_hint_hits": 13,
     "csrf_exempt_hits_apps": 159,
     "cursor_execute_hits_apps": 0,
-    "export_delivery_hint_hits_apps": 117,
+    "export_delivery_hint_hits_apps": 120,
     "product_needs_review": 225,
-    "product_post_handlers": 589,
-    "product_protected_candidate": 364,
-    "subprocess_hits_apps": 31
+    "product_post_handlers": 590,
+    "product_protected_candidate": 365,
+    "subprocess_hits_apps": 34
   }
 }

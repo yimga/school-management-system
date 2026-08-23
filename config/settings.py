@@ -370,11 +370,6 @@ MIDDLEWARE = [
     # redeploy.
     "apps.api.middleware_tenant_cors.TenantCorsAllowlistMiddleware",
     "corsheaders.middleware.CorsMiddleware",
-    # Pass 12.B: global Idempotency-Key dedupe for /api/v1/ writes; opt-in via
-    # the Idempotency-Key header (Stripe / GitHub / Twilio semantics). Placed
-    # after CORS so preflights aren't impacted, before everything that could
-    # mutate the response.
-    "apps.api.middleware_idempotency.IdempotencyKeyMiddleware",
     "apps.api.middleware_edge_fallback.EdgeSWRFallbackMiddleware",  # v4.00.0: Django-side SWR for /api/v1/runtime/* when no CDN is in front
     "config.middleware.BlockScannerPathsMiddleware",  # 404 for .git, terraform, wp-config, etc.
     "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -419,6 +414,13 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    # Idempotency keys for API writes. Position is load-bearing, and this is
+    # the list the SOVEREIGN EDGE runs (USE_DJANGO_TENANTS=0 keeps the base
+    # branch). Above session/tenant/auth its _tenant_key/_user_key resolve to
+    # 'global'/'anon', so every key on the box collapses to one value and a
+    # second user's write is dropped in favour of a replay of the first
+    # user's response body. Mirrors the tenants-list placement below.
+    "apps.api.middleware_idempotency.IdempotencyKeyMiddleware",
     "apps.schools.middleware.TenantHostMembershipMiddleware",
     # v4.01.15 — Workflow Progress Bus envelopes for mutating operator/tenant HTTP writes.
     "apps.platform_runtime.workflow_request_middleware.WorkflowProgressRequestMiddleware",
@@ -4801,6 +4803,13 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "django.middleware.security.SecurityMiddleware",
         "config.middleware.BlockScannerPathsMiddleware",
         "whitenoise.middleware.WhiteNoiseMiddleware",
+        # Same driver as in the base list, and it belongs in BOTH: a self-hosted
+        # box run from deploy/selfhost/.env.example sets USE_DJANGO_TENANTS=1 and
+        # therefore takes THIS branch, while being exactly the deployment where
+        # nothing else pings /health/. On Render the platform probe has already
+        # advanced the throttle window, so here it costs a dict lookup and a float
+        # compare. Self-gating and never-raising: see the module docstring.
+        "apps.sync_engine.middleware_edge_autosync.EdgeAutosyncMiddleware",
         "apps.accounts.middleware.ManagerCookieIsolationMiddleware",
         "django.contrib.sessions.middleware.SessionMiddleware",
         "django.middleware.locale.LocaleMiddleware",

@@ -76,13 +76,40 @@ def get_approval_roles_for_workflow(workflow_key: str, school=None) -> list[str]
     return _normalize_roles(roles)
 
 
-def get_users_with_roles(role_codes: list[str]):
-    """Return queryset of users who have any of the given roles (role field or roles M2M)."""
+def get_users_with_roles(role_codes: list[str], *, school=None):
+    """Return queryset of users who have any of the given roles (role field or roles M2M).
+
+    ``school=None`` is the platform-wide shape and stays unscoped — that is the
+    contract ``test_delegation.py`` exercises and the answer callers want when no
+    tenant is in play.
+
+    With a ``school``, the answer must be that school's staff. Neither leg of the
+    filter is tenant-bound on its own: ``AccessRole`` carries a nullable ``school``
+    FK (a row scoped to School B matched a School A lookup), and ``User.role`` is
+    a platform column. The resulting set is the SOLE authorization check on the
+    syllabus queue/approve/preview views, so a teacher at A holding a DEAN role
+    scoped to B could list and approve A's syllabi. Admit a global template
+    (``school IS NULL`` applies everywhere by design) or this school's own row,
+    and require live standing here in either case.
+    """
     if not role_codes:
         return User.objects.none()
-    return User.objects.filter(
-        Q(role__in=role_codes) | Q(roles__code__in=role_codes)
-    ).distinct()
+    if school is None:
+        return User.objects.filter(
+            Q(role__in=role_codes) | Q(roles__code__in=role_codes)
+        ).distinct()
+    return (
+        User.objects.filter(
+            Q(role__in=role_codes)
+            | Q(roles__code__in=role_codes, roles__school__isnull=True)
+            | Q(roles__code__in=role_codes, roles__school_id=school.pk)
+        )
+        .filter(
+            school_memberships__school_id=school.pk,
+            school_memberships__suspended_at__isnull=True,
+        )
+        .distinct()
+    )
 
 
 def get_active_delegations_for_delegators(
@@ -131,7 +158,7 @@ def get_effective_approvers(workflow_key: str, school=None):
     if not role_codes:
         return list(User.objects.none())
 
-    primary_approvers = get_users_with_roles(role_codes)
+    primary_approvers = get_users_with_roles(role_codes, school=school)
     primary_ids = list(primary_approvers.values_list("id", flat=True))
     effective = set(primary_ids)
 
@@ -142,7 +169,17 @@ def get_effective_approvers(workflow_key: str, school=None):
     for d in active_delegations.select_related("delegate"):
         effective.add(d.delegate_id)
 
-    return list(User.objects.filter(id__in=effective).order_by("username"))
+    qs = User.objects.filter(id__in=effective)
+    if school is not None:
+        # ``Delegation`` carries no school FK, so a delegation is global today.
+        # Apply the same standing test to the delegate that the delegator had to
+        # pass, otherwise the substitution leg re-opens what the primary leg just
+        # closed. (Giving Delegation its own school FK is the durable answer.)
+        qs = qs.filter(
+            school_memberships__school_id=school.pk,
+            school_memberships__suspended_at__isnull=True,
+        ).distinct()
+    return list(qs.order_by("username"))
 
 
 def get_active_delegation_for_delegate(user: User):
@@ -228,13 +265,14 @@ def get_allowed_delegate_role_codes(delegator_user: User, school=None) -> list[s
 
 def get_allowed_delegate_queryset(delegator_user: User):
     """Return queryset of users the delegator can assign as delegate (excluding self)."""
-    role_codes = get_allowed_delegate_role_codes(
-        delegator_user, school=_school_for_user(delegator_user)
-    )
+    school = _school_for_user(delegator_user)
+    role_codes = get_allowed_delegate_role_codes(delegator_user, school=school)
     if not role_codes:
         return User.objects.none()
     return (
-        get_users_with_roles(role_codes)
+        # Same scoping as the read side: a delegator must not be able to pick a
+        # delegate from a school they have no standing in.
+        get_users_with_roles(role_codes, school=school)
         .exclude(pk=delegator_user.pk)
         .filter(is_active=True)
         .order_by("username")

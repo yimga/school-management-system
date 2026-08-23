@@ -162,6 +162,9 @@ GATES: list[tuple[str, list[str]]] = [
     # Zero-tolerance and WITHOUT --compare: there is no input for which cutting
     # a word separator out of a token is the right answer.
     ("raw-token-in-ui", ["scan_raw_token_in_ui.py", "--strict"]),
+    # Founder + CS dashboards stacked collapsable cockpit chrome above the real page
+    # title — operators scrolled past empty rules to reach "Platform Command Center".
+    ("operator-landing-header-order", ["verify_operator_landing_header_order.py", "--strict"]),
     # A repeated key in a dict literal is not an error and not a warning -- Python
     # keeps the last value and the earlier entry is simply gone. It cost a workflow
     # definition its steps and a gate two of its markers, one of which was already

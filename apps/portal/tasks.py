@@ -181,16 +181,55 @@ def apply_support_ticket_ai_triage(ticket_id: str) -> dict[str, Any]:
     return _run()
 
 
+def _fan_out_per_school(task_name: str, runnable) -> dict[str, Any]:
+    """Run ``runnable`` once per active school, inside that school's tenant context.
+
+    ``apps.portal`` (and ``apps.feedback``) are TENANT_APPS-only, so a beat worker
+    -- a plain ``celery -A config worker`` -- has its connection on ``public``,
+    where ``portal_kbarticle`` / ``feedback_*`` do not exist. An unscoped task
+    body therefore fails on every tenant. Same convention as
+    apps/people/tasks.py: iterate active schools and enter tenant context per id.
+
+    One bad tenant must not skip the rest, so failures are collected and logged
+    per school; the last one is re-raised at the end so a schema/connection
+    failure is visible to Celery instead of being folded into a return value
+    that nothing inspects.
+    """
+    from apps.schools.celery_tasks import (
+        _run_with_tenant_context,
+        get_active_school_ids,
+    )
+
+    school_ids = get_active_school_ids()
+    failures: list[str] = []
+    last_exc: BaseException | None = None
+    for sid in school_ids:
+        try:
+            _run_with_tenant_context(school_id=sid, runnable=runnable)
+        except Exception as exc:  # noqa: BLE001 — isolate one tenant, report at end
+            failures.append(str(sid))
+            last_exc = exc
+            log_exception_with_context(
+                f"{task_name} failed for school",
+                school_id=str(sid),
+                exc_info=True,
+                extra={"error": str(exc)},
+            )
+    if last_exc is not None:
+        raise last_exc
+    return {"ok": True, "schools": len(school_ids), "failed": failures}
+
+
 @shared_task(name="portal.reindex_kb_help_embeddings_weekly")
 def reindex_kb_help_embeddings_weekly(limit: int = 0) -> dict[str, Any]:
     """Weekly KB embedding refresh (batch 1341). No-op when Ollama unavailable."""
-    from django.core.management import call_command
 
-    try:
+    def _run() -> None:
+        from django.core.management import call_command
+
         call_command("reindex_kb_help_embeddings", limit=limit or 0)
-        return {"ok": True}
-    except Exception as exc:
-        return {"ok": False, "error": str(exc)}
+
+    return _fan_out_per_school("portal.reindex_kb_help_embeddings_weekly", _run)
 
 
 @shared_task(name="portal.build_code_support_index_weekly")
@@ -207,14 +246,14 @@ def build_code_support_index_weekly() -> dict[str, Any]:
 
 @shared_task(name="portal.purge_help_telemetry_monthly")
 def purge_help_telemetry_monthly() -> dict[str, Any]:
-    """Purge aged help telemetry (batch 1354)."""
-    from django.core.management import call_command
+    """Purge aged help telemetry (batch 1354). Reads feedback_* (tenant) tables."""
 
-    try:
+    def _run() -> None:
+        from django.core.management import call_command
+
         call_command("purge_help_telemetry", apply=True)
-        return {"ok": True}
-    except Exception as exc:
-        return {"ok": False, "error": str(exc)}
+
+    return _fan_out_per_school("portal.purge_help_telemetry_monthly", _run)
 
 
 @shared_task(name="portal.help_north_star_weekly_email")
@@ -229,12 +268,29 @@ def help_north_star_weekly_email(days: int = 7) -> dict[str, Any]:
 
 
 @shared_task(name="portal.notify_forum_reply")
-def notify_forum_reply_task(reply_id: int, topic_url: str = "") -> dict[str, Any]:
-    """Email topic followers when a new forum reply is posted (batch 1360)."""
-    try:
+def notify_forum_reply_task(
+    reply_id: int, topic_url: str = "", school_id: Any = None
+) -> dict[str, Any]:
+    """Email topic followers when a new forum reply is posted (batch 1360).
+
+    ``school_id`` is required in production: ``portal_communityforumreply`` is a
+    tenant table and the worker's connection defaults to ``public``, so the
+    lookup has to run inside the reply's own tenant context. It stays optional
+    only so an already-queued payload from before this change still runs (eager
+    mode, where the caller's schema is already active).
+    """
+
+    def _run() -> dict[str, Any]:
         from apps.portal.forum_notifications import send_forum_reply_notifications
 
         return send_forum_reply_notifications(reply_id, topic_url=topic_url)
+
+    try:
+        if school_id is None:
+            return _run()
+        from apps.schools.celery_tasks import _run_with_tenant_context
+
+        return _run_with_tenant_context(school_id=school_id, runnable=_run)
     except Exception as exc:
         log_exception_with_context(
             "portal.notify_forum_reply failed",
@@ -246,11 +302,16 @@ def notify_forum_reply_task(reply_id: int, topic_url: str = "") -> dict[str, Any
 @shared_task(name="portal.archive_stale_kb_articles_monthly")
 def archive_stale_kb_articles_monthly(limit: int = 50) -> dict[str, Any]:
     """Auto-archive unhelpful published KB articles (batch 1356)."""
-    try:
-        from apps.portal.kb_archive import archive_kb_articles, stale_kb_archive_candidates
+    results: list[dict[str, Any]] = []
+
+    def _run() -> None:
+        from apps.portal.kb_archive import (
+            archive_kb_articles,
+            stale_kb_archive_candidates,
+        )
 
         candidates = stale_kb_archive_candidates(limit=limit)
-        result = archive_kb_articles(candidates, dry_run=False)
-        return {"ok": True, **result}
-    except Exception as exc:
-        return {"ok": False, "error": str(exc)}
+        results.append(archive_kb_articles(candidates, dry_run=False))
+
+    outcome = _fan_out_per_school("portal.archive_stale_kb_articles_monthly", _run)
+    return {**outcome, "results": results}

@@ -336,6 +336,33 @@ class ClassroomSerializer(serializers.ModelSerializer):
         rel = getattr(obj, "students", None) or getattr(obj, "student_set", None)
         return rel.filter(is_active=True).count() if rel else 0
 
+    def validate(self, attrs):
+        """Refuse an FK that belongs to a different tenant.
+
+        ``academic_year`` and ``department`` arrive as bare pks and a
+        ModelSerializer's default related queryset is unscoped, so a write could
+        point one school's classroom at another school's academic year or
+        department. ``ClassroomViewSet.get_queryset`` scopes the ROW being
+        written; nothing scoped the rows it points AT.
+
+        A row with no ``school_id`` is a platform-global one and stays allowed.
+        With no resolvable school on the request there is nothing to compare
+        against, so this declines to judge rather than guessing.
+        """
+        attrs = super().validate(attrs)
+        request = self.context.get("request")
+        school = getattr(request, "school", None) if request is not None else None
+        if school is None:
+            return attrs
+        for field in ("academic_year", "department"):
+            related = attrs.get(field)
+            related_school_id = getattr(related, "school_id", None)
+            if related_school_id is not None and related_school_id != school.pk:
+                raise serializers.ValidationError(
+                    {field: "Does not belong to this school."}
+                )
+        return attrs
+
 
 # ==================== COMMUNICATION SERIALIZERS ====================
 

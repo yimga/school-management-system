@@ -418,6 +418,23 @@ jobs:
         run: |
           python -m unittest scripts.tests.test_scan_raw_token_in_ui -v
 
+  operator-landing-header-order:
+    name: Operator landing header precedes cockpit chrome
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run scanner --strict
+        run: |
+          python scripts/verify_operator_landing_header_order.py --strict
+      - name: Unit tests
+        run: |
+          python -m unittest scripts.tests.test_verify_operator_landing_header_order -v
+
   duplicate-dict-keys:
     name: No dict literal silently discards an entry
     runs-on: ubuntu-latest

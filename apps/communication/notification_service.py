@@ -287,9 +287,9 @@ def _sms_idempotency_reserve(*, key: str, to_phone: str, school: Any) -> Any:
     double-sends a real message. Returns one of:
 
     * ``"duplicate"`` — a SENT row already exists for this key, OR a concurrent
-      writer already holds the unique row (we lost the ``get_or_create`` race and
+      writer already holds a PENDING row (we lost the ``get_or_create`` race and
       another in-flight send owns the dispatch); the caller MUST NOT call the
-      provider.
+      provider. A FAILED row is NOT a duplicate — it is reclaimed below.
     * an ``SmsSendLog`` instance (status PENDING) — this call owns the dispatch
       and must finalize the row via :func:`_sms_idempotency_finalize`.
     * ``None`` — fail-open: the ledger is unavailable (DB hiccup) so we proceed
@@ -319,6 +319,18 @@ def _sms_idempotency_reserve(*, key: str, to_phone: str, school: Any) -> Any:
             },
         )
         if not created:
+            # A FAILED row is a spent attempt, not an in-flight one: the provider
+            # rejected it and the queue row went to "retrying". Reclaiming it
+            # (conditionally, so a concurrent reclaim loses the race) lets the
+            # retry actually reach the provider. Without this the retry was
+            # reported "duplicate" -> send_sms returned True -> the drainer
+            # marked the queue row sent for a message nobody ever received.
+            reclaimed = SmsSendLog.objects.filter(
+                pk=log_row.pk, status=SmsSendLog.Status.FAILED
+            ).update(status=SmsSendLog.Status.PENDING)
+            if reclaimed:
+                log_row.status = SmsSendLog.Status.PENDING
+                return log_row
             # A concurrent PENDING/SENT row already owns this key — treat as a
             # duplicate so only the first writer dispatches to the provider.
             return "duplicate"

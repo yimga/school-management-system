@@ -36,7 +36,18 @@ def definitions_for_entity(
             is_active=True,
             school__isnull=True,
         )
-    return list(qs.order_by("field_key"))
+    # Collapse to one definition per field_key. A platform-wide row (school=None)
+    # and a school-scoped row can legitimately coexist for the same field_key -
+    # unique_together is (entity_type, field_key, school) - and the README promises
+    # the null-school row "may be overridden per school". Insert the platform-wide
+    # rows first and let the school-scoped row overwrite, so the override wins
+    # deterministically instead of the DB breaking the order_by("field_key") tie.
+    collapsed: dict[str, DynamicFieldDefinition] = {}
+    for defn in qs.order_by("field_key"):
+        if defn.school_id is None and defn.field_key in collapsed:
+            continue
+        collapsed[defn.field_key] = defn
+    return sorted(collapsed.values(), key=lambda d: d.field_key)
 
 
 def _validation_rules(defn: DynamicFieldDefinition) -> dict[str, Any]:

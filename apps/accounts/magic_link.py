@@ -3,7 +3,9 @@
 A 2026 best practice for low-friction access (parents/teachers who sign in
 sporadically). The link works once, expires quickly, and requests are rate-limited
 + enumeration-safe (callers always show a generic message). MFA, if enrolled, is
-still enforced by RequireMFAMiddleware after the passwordless login.
+challenged by the consuming view (``views_magic_link.magic_link_login`` calls
+``resolve_post_login_mfa_redirect``) — NOT by RequireMFAMiddleware, which returns
+"none" for anyone who already holds a confirmed device.
 """
 
 from __future__ import annotations
