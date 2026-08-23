@@ -84,6 +84,14 @@ jobs:
         run: python scripts/audit_url_kwarg_contract.py
       - name: Shell chrome cross-host {% url %} contract
         run: python scripts/audit_shell_url_namespace_contract.py
+      - name: Single migration leaf per app (a merge can create two silently)
+        run: python scripts/verify_single_migration_leaf.py
+      - name: blank+unique text fields (optional exactly once)
+        run: python scripts/scan_blank_unique_text_fields.py
+      - name: Unit tests for the two field/migration shape gates
+        run: |
+          python -m unittest scripts.tests.test_scan_blank_unique_text_fields -v
+          python -m unittest scripts.tests.test_verify_single_migration_leaf -v
       - name: Verify offline manifest taxonomy (operational_state always present)
         run: python scripts/verify_offline_manifest_taxonomy.py
       - name: Verify tenant cannot reach operator routes (super-segment coverage)

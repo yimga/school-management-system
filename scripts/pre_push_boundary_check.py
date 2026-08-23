@@ -245,6 +245,17 @@ GATES: list[tuple[str, list[str]]] = [
 # place one gate at a time: zero-tolerance, security-relevant, and invisible to every
 # stdlib gate above.
 DJANGO_GATES: list[tuple[str, list[str]]] = [
+    # Cheap, and it catches something a clean merge actively hides. Two agents adding a
+    # migration to the same app in parallel produce two files with DIFFERENT names and
+    # the SAME dependency; git reports no conflict and Django then refuses to migrate the
+    # app at all. It happened on 2026-08-23 (schools/0085 twice) and no diff showed it.
+    ("single-migration-leaf", ["verify_single_migration_leaf.py"]),
+    # blank=True + unique=True on a text field with no null=True is optional EXACTLY
+    # ONCE -- blank stores "" and only one row may hold it under a unique index. Two
+    # live defects came from that shape on 2026-08-23: School.subdomain, and the KB
+    # slugs (slugify returns "" for any script it cannot transliterate, so a school's
+    # SECOND Arabic help article raised IntegrityError).
+    ("blank-unique-text-fields", ["scan_blank_unique_text_fields.py"]),
     ("rls-table-coverage", ["scan_rls_table_coverage.py", "--compare"]),
     # TenantAdminSite.register auto-scopes a changelist only when the model has a
     # concrete `school` field -- that column is what the mixin filters on. A
