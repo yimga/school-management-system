@@ -4,21 +4,21 @@ API endpoints for compliance dashboard actions.
 
 from datetime import timedelta
 
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.decorators import login_required
 from django.db import DatabaseError, IntegrityError, OperationalError
 from django.http import JsonResponse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 from django_ratelimit.decorators import ratelimit
 
-from apps.compliance.auth_utils import is_admin_or_staff
 from apps.compliance.models_audit import ThreatDetectionConfig
 from apps.platform_runtime.structured_logging import log_view_exception
+from apps.schools.control_plane import require_control_plane_access
 
 
 @require_POST
 @login_required
-@user_passes_test(is_admin_or_staff)
+@require_control_plane_access
 @ratelimit(key="user", rate="10/m", method="POST", block=True)
 def mute_threats(request):
     """
@@ -26,6 +26,15 @@ def mute_threats(request):
 
     POST parameters:
         - duration: '1h', '4h', '24h', or 'clear' to unmute
+
+    OPERATOR-ONLY. ThreatDetectionConfig is a platform singleton (no school FK,
+    ``is_active`` is unique) and ``detect_threats`` returns nothing for EVERY
+    school while it is muted. This route is mounted on the tenant urlconf, so
+    the previous ``is_admin_or_staff`` gate -- which admits any school ADMIN or
+    LEADERSHIP user -- let one tenant suppress brute-force and after-hours
+    alerting for the whole platform. The admin surface for the same model is
+    kept off the tenant site the same way (config/admin.py
+    TENANT_ADMIN_OPERATOR_ONLY).
     """
     duration_str = request.POST.get("duration", "1h")
 

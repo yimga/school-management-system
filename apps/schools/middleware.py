@@ -1039,6 +1039,31 @@ def _resolve_bridge_school_fallback(request):
     return None
 
 
+def _stash_incoming_session_school(request):
+    """
+    Record the session's school_id BEFORE a host-resolving middleware overwrites it.
+
+    ``TenantMiddleware`` / ``TenantSchemaSchoolBridgeMiddleware`` both write the
+    HOST school into ``request.session["school_id"]``. They run above
+    ``SessionSchoolBindingMiddleware``, so by the time that BOLA guard compares
+    "session campus" against "host campus" the two are equal by construction and
+    the mismatch branch can never fire. Keep the value the browser actually sent
+    on the request so the guard has something real to compare.
+
+    Records once per request: the first writer wins, later realignments must not
+    erase the browser-supplied value.
+    """
+    if hasattr(request, "incoming_session_school_id"):
+        return
+    session = getattr(request, "session", None)
+    if session is None:
+        return
+    try:
+        request.incoming_session_school_id = (session.get("school_id") or "").strip()
+    except (AttributeError, TypeError):
+        request.incoming_session_school_id = ""
+
+
 class TenantSchemaSchoolBridgeMiddleware(MiddlewareMixin):
     """
     When using django-tenants (schema-per-tenant), TenantMainMiddleware sets request.tenant (Client).
@@ -1058,6 +1083,7 @@ class TenantSchemaSchoolBridgeMiddleware(MiddlewareMixin):
                 school = _resolve_bridge_school_fallback(request)
             request.school = school
             if request.school and getattr(request, "session", None) is not None:
+                _stash_incoming_session_school(request)
                 request.session["school_id"] = str(request.school.id)
         else:
             request.school = None
@@ -1243,6 +1269,7 @@ class TenantMiddleware(MiddlewareMixin):
 
         request.school = school
         if school:
+            _stash_incoming_session_school(request)
             request.session["school_id"] = str(school.id)
             try:
                 from django.utils import timezone as tz

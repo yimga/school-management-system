@@ -959,6 +959,30 @@ class Evaluation(models.Model):
 
     def save(self, *args, **kwargs):
         """Call full_clean() before saving to validate scores and persist final_score and normalized_value."""
+        # Backfill the tenant FK at this single chokepoint, the way
+        # Attendance.save() already does (apps/academics/models.py). `school` is
+        # nullable and EVERY write path omits it -- the marks grid
+        # (views._update_evaluations_from_entries), the OCR apply
+        # (views._apply_ocr_entries), the edge offline sync and both CSV
+        # importers. A NULL school makes the row invisible to every
+        # school-scoped reader: views_drilldown filters school=request.school
+        # (so a teacher 404s on the mark they just entered), the Platform v1
+        # API lists zero of them, _apply_ocr_entries looks rows up by
+        # school_id=year.school_id and never matches, and the partial index
+        # uniq_evaluation_school_offline_id cannot dedupe an offline replay
+        # because Postgres treats NULLs as distinct.
+        #
+        # Resolved with the SAME walker the score-bounds and normalized_value
+        # paths below use, so all three agree on which tenant owns the row.
+        # Done before full_clean() so clean() short-circuits on the FK.
+        if self.school_id is None:
+            self.school_id = getattr(self._resolve_grading_school(), "pk", None)
+            update_fields = kwargs.get("update_fields")
+            if update_fields is not None and "school" not in update_fields:
+                # update_or_create's UPDATE branch saves with a narrow
+                # update_fields; without widening it the healed value is
+                # computed and then dropped on the floor.
+                kwargs["update_fields"] = list(update_fields) + ["school"]
         self.full_clean()
         # Persist final_score for efficient aggregation/reporting
         try:

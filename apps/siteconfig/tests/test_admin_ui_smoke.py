@@ -845,6 +845,14 @@ class AdminUiSmokeTests(TestCase):
         )
         request.public_host_kind = "tenant"
         request.urlconf = "config.tenant_urls"
+        # Per-user rows on the tenant admin are scoped to the request school (the
+        # actor's SchoolMembership, plus always the requester's own rows), and
+        # the mixin fails CLOSED without a school -- which is safe, because
+        # tenant_admin_user_has_access refuses entry when request.school is None,
+        # so a real request always carries one. Calling change_view directly
+        # bypasses that gate, so supply it, exactly as the Integration smoke test
+        # above already does.
+        request.school = self.smoke_school
         set_urlconf("config.tenant_urls")
         try:
             response = model_admin.change_view(request, str(pref.pk))
@@ -1672,6 +1680,14 @@ class AdminUiSmokeTests(TestCase):
         )
         request.public_host_kind = "tenant"
         request.urlconf = "config.tenant_urls"
+        # Per-user rows on the tenant admin are scoped to the request school (the
+        # actor's SchoolMembership, plus always the requester's own rows), and
+        # the mixin fails CLOSED without a school -- which is safe, because
+        # tenant_admin_user_has_access refuses entry when request.school is None,
+        # so a real request always carries one. Calling change_view directly
+        # bypasses that gate, so supply it, exactly as the Integration smoke test
+        # above already does.
+        request.school = self.smoke_school
         set_urlconf("config.tenant_urls")
         try:
             response = model_admin.change_view(request, str(pref.pk))

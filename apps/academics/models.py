@@ -323,7 +323,13 @@ class Specialty(models.Model):
         Department, on_delete=models.PROTECT, related_name="specialties"
     )
     name = models.CharField(max_length=120)
-    code = models.CharField(max_length=30, unique=True)
+    # Per-SCHOOL unique, not globally unique -- same reasoning as Department.code
+    # above (migration 0076). Under RLS (USE_DJANGO_TENANTS=0) every school shares
+    # one table, and a unique INDEX is not RLS-filtered, so a global unique here
+    # stopped school B from using a code school A had taken -- and leaked that fact.
+    # Strict LOOSENING: every row satisfying the old global unique satisfies
+    # (school, code) too. See Meta.constraints.
+    code = models.CharField(max_length=30)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
     # Client-generated id for a specialty created offline on an edge box; lets the
     # operator upsert it by (school, client_offline_id) on sync without pk collisions.
@@ -338,6 +344,10 @@ class Specialty(models.Model):
                 fields=["school", "client_offline_id"],
                 condition=~models.Q(client_offline_id=""),
                 name="uniq_specialty_school_offline_id",
+            ),
+            models.UniqueConstraint(
+                fields=["school", "code"],
+                name="uniq_specialty_school_code",
             ),
         ]
 
@@ -360,7 +370,13 @@ class Classroom(models.Model):
         Department, on_delete=models.PROTECT, related_name="classrooms"
     )
     name = models.CharField(max_length=120)
-    code = models.CharField(max_length=30, unique=True)
+    # Per-SCHOOL unique, not globally unique -- same reasoning as Department.code
+    # above (migration 0076). Under RLS (USE_DJANGO_TENANTS=0) every school shares
+    # one table, and a unique INDEX is not RLS-filtered, so a global unique here
+    # stopped school B from using a code school A had taken -- and leaked that fact.
+    # Strict LOOSENING: every row satisfying the old global unique satisfies
+    # (school, code) too. See Meta.constraints.
+    code = models.CharField(max_length=30)
     allows_third_term = models.BooleanField(
         default=True,
         help_text="Disable to block third-term activities (e.g., Form 5/Upper Sixth).",
@@ -391,6 +407,10 @@ class Classroom(models.Model):
                 fields=["school", "client_offline_id"],
                 condition=~models.Q(client_offline_id=""),
                 name="uniq_classroom_school_offline_id",
+            ),
+            models.UniqueConstraint(
+                fields=["school", "code"],
+                name="uniq_classroom_school_code",
             ),
         ]
 

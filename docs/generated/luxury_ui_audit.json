@@ -50,11 +50,11 @@
       ]
     }
   },
-  "generated_at": "2026-08-06T12:23:08.072584+00:00",
-  "high_impact_templates_total": 276,
+  "generated_at": "2026-08-23T09:43:05.637939+00:00",
+  "high_impact_templates_total": 286,
   "inline_styles": {
-    "count": 47,
-    "needs_review_count": 47,
+    "count": 46,
+    "needs_review_count": 46,
     "needs_review_paths": [
       "templates/accounts/backend_dashboard.html",
       "templates/marketplace/tenant_installed_apps.html",
@@ -94,7 +94,6 @@
       "templates/siteconfig/report_table_pdf.html",
       "templates/siteconfig/reportcard_style_preview.html",
       "templates/siteconfig/super/cockpit_previews.html",
-      "templates/siteconfig/sync_center.html",
       "templates/siteconfig/template_gallery.html",
       "templates/siteconfig/tenant_studio_hub.html",
       "templates/studio_os/components/card.html",
@@ -110,8 +109,8 @@
   "luxury_gate_min_score": 13,
   "luxury_gate_passed": true,
   "missing_ds_btn": {
-    "count": 144,
-    "needs_review_count": 144,
+    "count": 150,
+    "needs_review_count": 150,
     "needs_review_paths": [
       "templates/base.html",
       "templates/control_plane_base.html",
@@ -131,6 +130,7 @@
       "templates/siteconfig/campus_workflow_canvas_hub.html",
       "templates/siteconfig/command_palette_settings.html",
       "templates/siteconfig/config_mutation_audit_evidence.html",
+      "templates/siteconfig/currency_settings.html",
       "templates/siteconfig/curriculum_templates.html",
       "templates/siteconfig/customizer.html",
       "templates/siteconfig/dashboard_settings.html",
@@ -148,6 +148,10 @@
       "templates/siteconfig/modal_settings.html",
       "templates/siteconfig/module_market.html",
       "templates/siteconfig/notification_settings.html",
+      "templates/siteconfig/partials/_sync_flow.html",
+      "templates/siteconfig/partials/_sync_schedule_panel.html",
+      "templates/siteconfig/partials/_sync_verdict.html",
+      "templates/siteconfig/partials/_sync_work_queue.html",
       "templates/siteconfig/partials/academic_years_setup_evidence_body.html",
       "templates/siteconfig/partials/ai_center_body.html",
       "templates/siteconfig/partials/ai_governance_body.html",
@@ -193,6 +197,7 @@
       "templates/siteconfig/request_custom_requirement.html",
       "templates/siteconfig/request_waiver.html",
       "templates/siteconfig/school_group_hierarchy.html",
+      "templates/siteconfig/school_region_settings.html",
       "templates/siteconfig/school_theme_settings.html",
       "templates/siteconfig/sidebar_settings.html",
       "templates/siteconfig/super/cockpit_configure.html",
@@ -202,7 +207,7 @@
       "templates/siteconfig/super/marketing_voice_configure.html",
       "templates/siteconfig/super/theme_personality_configure.html",
       "templates/siteconfig/super_dashboard_defaults_admin.html",
-      "templates/siteconfig/sync_center.html",
+      "templates/siteconfig/sync_conflicts.html",
       "templates/siteconfig/table_settings.html",
       "templates/siteconfig/template_gallery.html",
       "templates/siteconfig/tenant_launch_fast_path.html",
@@ -359,7 +364,8 @@
   "score_out_of_15": 14,
   "screen_headers_actions": {
     "action_bar_violations": [
-      "templates/schools/billing_dashboard.html"
+      "templates/schools/billing_dashboard.html",
+      "templates/studio_os/shell.html"
     ],
     "header_violations": [
       "templates/schools/billing_dashboard.html",
@@ -367,7 +373,7 @@
       "templates/parent/dashboard.html",
       "templates/studio_os/shell.html"
     ],
-    "missing_action_bars": 1,
+    "missing_action_bars": 2,
     "missing_headers": 4,
     "rows": [
       {
@@ -461,7 +467,7 @@
         "path": "templates/siteconfig/console_domains_hub.html"
       },
       {
-        "action_bar": true,
+        "action_bar": false,
         "exists": true,
         "header": false,
         "path": "templates/studio_os/shell.html"
@@ -850,8 +856,8 @@
       ]
     },
     "inline_style_cleanup": {
-      "count": 47,
-      "needs_review_count": 47,
+      "count": 46,
+      "needs_review_count": 46,
       "needs_review_paths": [
         "templates/accounts/backend_dashboard.html",
         "templates/marketplace/tenant_installed_apps.html",
@@ -891,7 +897,6 @@
         "templates/siteconfig/report_table_pdf.html",
         "templates/siteconfig/reportcard_style_preview.html",
         "templates/siteconfig/super/cockpit_previews.html",
-        "templates/siteconfig/sync_center.html",
         "templates/siteconfig/template_gallery.html",
         "templates/siteconfig/tenant_studio_hub.html",
         "templates/studio_os/components/card.html",
@@ -972,7 +977,8 @@
     },
     "page_header_action_bar_contract": {
       "action_bar_violations": [
-        "templates/schools/billing_dashboard.html"
+        "templates/schools/billing_dashboard.html",
+        "templates/studio_os/shell.html"
       ],
       "header_violations": [
         "templates/schools/billing_dashboard.html",
@@ -980,7 +986,7 @@
         "templates/parent/dashboard.html",
         "templates/studio_os/shell.html"
       ],
-      "missing_action_bars": 1,
+      "missing_action_bars": 2,
       "missing_headers": 4,
       "rows": [
         {
@@ -1074,7 +1080,7 @@
           "path": "templates/siteconfig/console_domains_hub.html"
         },
         {
-          "action_bar": true,
+          "action_bar": false,
           "exists": true,
           "header": false,
           "path": "templates/studio_os/shell.html"

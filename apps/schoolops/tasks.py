@@ -573,7 +573,7 @@ def dispatch_bulk_email(
             from apps.schools.models import School
 
             # School is the tenant root, in the SHARED schema.
-            return _run(School.objects.filter(pk=sid).first())
+            return _run(School.objects.filter(pk=sid).first())  # tenant-isolation-allow: school-is-the-tenant-root (pk IS the tenant key, and the call already runs inside _with_tenant(sid))
 
         return _with_tenant(sid, _resolved) or {}
     except Exception as exc:  # noqa: BLE001  — worker boundary
@@ -649,7 +649,7 @@ def dispatch_transactional_email(
 
             # School is the tenant root and lives in the SHARED schema; a pk
             # lookup is not itself a tenant-scoped read.
-            return _run(School.objects.filter(pk=sid).first())
+            return _run(School.objects.filter(pk=sid).first())  # tenant-isolation-allow: school-is-the-tenant-root (pk IS the tenant key, and the call already runs inside _with_tenant(sid))
 
         return _with_tenant(sid, _resolved) or {}
     except Exception as exc:  # noqa: BLE001  — worker boundary

@@ -38,4 +38,7 @@ class SessionSchoolBindingTests(TestCase):
         session["school_id"] = str(school_a.pk)
         session.save()
         resp = client.get("/authentication/backend/")
-        self.assertIn(resp.status_code, (403, 302))
+        # 403 specifically: the old `in (403, 302)` passed on the 302 that
+        # TenantHostMembershipMiddleware emits further down the stack, which kept
+        # this green while SessionSchoolBindingMiddleware was completely inert.
+        self.assertEqual(resp.status_code, 403)

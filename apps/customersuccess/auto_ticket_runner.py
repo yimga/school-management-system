@@ -17,9 +17,39 @@ from django.utils import timezone
 logger = logging.getLogger(__name__)
 
 
-def _open_ticket(*, school, title: str, body: str, source: str = "auto_ticket_rule") -> bool:
+# Stamped on every auto-ticket so the dedup prefilter can hit an indexed column.
+AUTO_TICKET_MODULE = "customersuccess.auto_ticket"
+
+
+def _already_opened(FeedbackSubmission, *, school, dedupe_key: str) -> bool:
+    """True when this (rule, source row) already has a ticket.
+
+    The beat runs every 10 minutes while the rules select over a 24-hour window,
+    so without this every matching row would re-open the same ticket 144 times a
+    day. ``tags`` is a JSONField and the ``__contains`` lookup is unsupported on
+    SQLite, so prefilter on the indexed columns and match in Python.
+    """
+    rows = FeedbackSubmission.objects.filter(
+        school=school, module=AUTO_TICKET_MODULE
+    ).only("tags")
+    return any(dedupe_key in (row.tags or []) for row in rows)
+
+
+def _open_ticket(
+    *,
+    school,
+    title: str,
+    body: str,
+    source: str = "auto_ticket_rule",
+    dedupe_key: str = "",
+) -> bool:
     """Create a FeedbackSubmission as the auto-ticket; safe across the
-    edge cases where feedback isn't installed yet."""
+    edge cases where feedback isn't installed yet.
+
+    ``dedupe_key`` identifies the (rule, source row) pair. When supplied and a
+    ticket already carries it, nothing is written and False is returned — the
+    caller counts tickets OPENED, so a suppressed duplicate is not a firing.
+    """
 
     try:
         from apps.feedback.models import FeedbackSubmission
@@ -27,6 +57,13 @@ def _open_ticket(*, school, title: str, body: str, source: str = "auto_ticket_ru
         logger.warning("AutoTicketRule fired but feedback app not available.")
         return False
     try:
+        tags = [source, "auto_ticket"]
+        if dedupe_key:
+            if _already_opened(
+                FeedbackSubmission, school=school, dedupe_key=dedupe_key
+            ):
+                return False
+            tags.append(dedupe_key)
         FeedbackSubmission.objects.create(
             school=school,
             user=None,
@@ -36,7 +73,8 @@ def _open_ticket(*, school, title: str, body: str, source: str = "auto_ticket_ru
             severity=FeedbackSubmission.Severity.HIGH,
             status=FeedbackSubmission.Status.NEW,
             privacy_level=FeedbackSubmission.PrivacyLevel.RMC_PRIVATE,
-            tags=[source, "auto_ticket"],
+            module=AUTO_TICKET_MODULE,
+            tags=tags,
         )
         return True
     except Exception as exc:
@@ -66,6 +104,7 @@ def _evaluate_rule_health_below(rule, *, now) -> int:
                 f"{getattr(hs.school, 'slug', '?')} has a health score of {hs.score}.\n"
                 f"Dimensions: {hs.dimensions or {}}"
             ),
+            dedupe_key=f"auto_ticket:health_below:{rule.pk}:{hs.pk}",
         )
         if ok:
             fired += 1
@@ -100,6 +139,7 @@ def evaluate_feedback_critical_rules(feedback) -> int:
                 f"category={feedback.category} severity={feedback.severity}."
             ),
             source="auto_ticket_feedback_critical",
+            dedupe_key=f"auto_ticket:feedback_critical:{rule.pk}:{feedback.pk}",
         )
         if ok:
             fired += 1
@@ -121,6 +161,7 @@ def _evaluate_rule_risk_alert_red(rule, *, now) -> int:
             school=alert.school,
             title=f"RED risk alert: {alert.reason[:80] if hasattr(alert, 'reason') else 'unknown'}",
             body=f"Auto-ticket rule {rule.name!r} fired on red alert id={alert.pk}.",
+            dedupe_key=f"auto_ticket:risk_alert_red:{rule.pk}:{alert.pk}",
         )
         if ok:
             fired += 1

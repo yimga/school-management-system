@@ -31,16 +31,16 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from apps.platform_runtime.jit_operator_controller import EU_GDPR_COUNTRIES
+
 logger = logging.getLogger(__name__)
 
 
-_EU_MEMBER_COUNTRIES: frozenset[str] = frozenset({
-    "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR",
-    "DE", "GR", "HU", "IE", "IT", "LV", "LT", "LU", "MT", "NL",
-    "PL", "PT", "RO", "SK", "SI", "ES", "SE",
-    # Treated as GDPR-equivalent for masking purposes:
-    "IS", "LI", "NO", "GB",
-})
+# Single source of truth, shared with the mask that consumes it. A second copy
+# here is what let the two lists drift: this module knew all 27 member states
+# while jit_operator_controller.apply_regional_mask recognised only six.
+_EU_MEMBER_COUNTRIES: frozenset[str] = EU_GDPR_COUNTRIES
+
 _US_COUNTRIES: frozenset[str] = frozenset({"US"})
 
 

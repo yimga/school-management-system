@@ -21,6 +21,10 @@ on:
       - "apps/**/*.py"
       - "services/**/*.py"
       - "scripts/scan_duplicate_dict_keys.py"
+      - "scripts/lint_broad_except.py"
+      - "scripts/allowlists/broad_except_allowlist.json"
+      - "scripts/verify_control_plane_hub_registry_drift.py"
+      - "apps/dashboard/control_plane_hub_scan.py"
       - "scripts/scan_ai_gateway_boundary.py"
       - "scripts/verify_ai_copilot_rbac_coverage.py"
       - "var/security-audit-baseline-ai-copilot-rbac-coverage.json"
@@ -196,1986 +200,856 @@ defaults:
     working-directory: .
 
 jobs:
-  ai-gateway-boundary:
-    name: AI gateway import boundary
+  # These two jobs were 108 separate jobs until 2026-08-23. Actions bills per
+  # JOB rounded up to the minute, so 108 scanners taking 1-6s each cost >=108
+  # billable minutes per push -- essentially all of it VM boot, checkout and
+  # setup-python, repeated 108 times. That is what exhausted the allowance.
+  #
+  # Nothing stopped being checked: every former job is a unit below, its
+  # commands verbatim, and a unit failure fails the job. The split is only
+  # whether the job needed `pip install -r requirements.txt`, so the 12 that
+  # did now share ONE install instead of paying for twelve.
+  boundary-scanners:
+    name: Boundary scanners (97 gates, stdlib only)
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Run scanner --compare
-        run: |
-          python scripts/scan_ai_gateway_boundary.py --compare
-
-  ai-copilot-rbac-coverage:
-    name: AI copilot RBAC invoke coverage
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Verify copilot RBAC coverage
-        run: |
-          python scripts/verify_ai_copilot_rbac_coverage.py --strict
-
-  ai-naming-honesty:
-    name: AI naming honesty + consolidation seals
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Verify AI naming honesty + consolidation seals
-        run: |
-          python scripts/verify_ai_naming_honesty.py
-
-  tenant-control-plane-rbac:
-    name: Tenant vs control-plane RBAC boundary (5-pass)
-    runs-on: ubuntu-latest
-    timeout-minutes: 8
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Verify tenant/control-plane RBAC (5 passes)
-        run: |
-          python scripts/verify_tenant_control_plane_rbac.py --strict
-
-  signup-production-readiness:
-    name: Signup production readiness (9-pass)
-    runs-on: ubuntu-latest
-    timeout-minutes: 12
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Verify signup production readiness (9 passes)
-        run: |
-          python scripts/verify_signup_production_readiness.py --strict
-
-  sentry-boundary:
-    name: Sentry SDK import boundary
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run scanner --compare
-        run: |
-          python scripts/scan_sentry_boundary.py --compare
-
-  staff-gate-tenant-surface:
-    name: is_staff operator-gate on tenant surface (H1 seal)
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: No is_staff-only operator gate on a tenant-reachable view
-        run: |
-          python scripts/scan_staff_gate_on_tenant_surface.py --strict
-
-  access-resolver-fragmentation:
-    name: Access-resolver fragmentation ratchet
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run scanner --compare
-        run: |
-          python scripts/scan_access_resolver_fragmentation.py --compare
-
-  config-resolver-fragmentation:
-    name: Config-resolver adoption ratchet
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run scanner --compare
-        run: |
-          python scripts/scan_config_resolver_fragmentation.py --compare
-
-  upload-validation-coverage:
-    name: Upload-validation coverage ratchet
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run scanner --compare
-        run: |
-          python scripts/scan_upload_validation_coverage.py --compare
-
-  granular-rbac-adoption:
-    name: Granular-RBAC adoption ratchet
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run scanner --compare
-        run: |
-          python scripts/scan_granular_rbac_adoption.py --compare
-
-  lander-phantom-fields:
-    name: Migration Cloud lander phantom-field seal
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run scanner --compare
-        run: |
-          python scripts/scan_lander_phantom_fields.py --compare
-      - name: Unit tests
-        run: |
-          python -m unittest scripts.tests.test_scan_lander_phantom_fields -v
-
-  lander-row-error-contract:
-    name: Migration Cloud landers keep the row they reject
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run scanner --strict
-        run: |
-          python scripts/scan_lander_row_error_contract.py --strict
-      - name: Unit tests
-        run: |
-          python -m unittest scripts.tests.test_scan_lander_row_error_contract -v
-
-  ota-pipeline-wiring:
-    name: The OTA pipeline is still connected end to end
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run gate
-        run: |
-          python scripts/verify_ota_pipeline_wiring.py
-      - name: Unit tests
-        run: |
-          python -m unittest scripts.tests.test_verify_ota_pipeline_wiring -v
-
-  raw-token-in-ui:
-    name: No internal identifier is shown to a human as words
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run scanner --strict
-        run: |
-          python scripts/scan_raw_token_in_ui.py --strict
-      - name: Unit tests
-        run: |
-          python -m unittest scripts.tests.test_scan_raw_token_in_ui -v
-
-  duplicate-dict-keys:
-    name: No dict literal silently discards an entry
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run scanner --strict
-        run: |
-          python scripts/scan_duplicate_dict_keys.py --strict
-      - name: Unit tests
-        run: |
-          python -m unittest scripts.tests.test_scan_duplicate_dict_keys -v
-
-  lander-row-streaming:
-    name: Migration Cloud landers stream canonical rows
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run scanner --strict
-        run: |
-          python scripts/scan_lander_row_streaming.py --strict
-      - name: Unit tests
-        run: |
-          python -m unittest scripts.tests.test_scan_lander_row_streaming -v
-
-  migration-apply-stall-contract:
-    name: Migration apply stall detection contract
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: verify_migration_apply_stall_contract
-        run: |
-          python scripts/verify_migration_apply_stall_contract.py
-      - name: Unit tests
-        run: |
-          python -m unittest scripts.tests.test_verify_migration_apply_stall_contract -v
-
-  admin-manager-shell-aggressive:
-    name: Admin manager shell bundle (15 checks, ~8 min)
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: admin-manager-shell-aggressive
-        run: python scripts/verify_admin_manager_shell_aggressive.py
-
-  admin-surface-contracts:
-    name: Admin surface contracts (previously invoked by nothing)
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: admin-canvas-contract
-        run: python scripts/audit_django_admin_canvas_contract.py
-      - name: admin-surface-leftovers
-        run: python scripts/audit_django_admin_surface_leftovers.py
-      - name: admin-os-empty-space
-        run: python scripts/verify_admin_os_empty_space.py
-      - name: admin-os-sections-restore
-        run: python scripts/verify_admin_os_sections_restore.py
-      - name: admin-os-three-click-sla
-        run: python scripts/verify_admin_os_three_click_sla.py
-      - name: admin-production-upgrade
-        run: python scripts/verify_admin_production_upgrade.py
-      - name: admin-replacement-roadmap
-        run: python scripts/verify_admin_replacement_roadmap.py
-      - name: admin-super-help-nav-bridge
-        run: python scripts/verify_admin_super_help_nav_bridge.py
-      - name: operator-admin-sidebar-v2
-        run: python scripts/verify_operator_admin_sidebar_v2.py
-      - name: tenant-admin-sidebar-v2
-        run: python scripts/verify_tenant_admin_sidebar_v2.py
-      - name: admin-miss-nothing
-        run: python scripts/audit_django_admin_miss_nothing.py
-      - name: admin-platformwide-sweep
-        run: python scripts/sweep_django_admin_platformwide_layout.py
-      - name: admin-change-form-product-links
-        run: python scripts/verify_admin_tenant_change_form_product_links.py
-      - name: admin-usage-extended
-        run: python scripts/audit_admin_usage_extended.py
-      - name: admin-gravity
-        run: python scripts/audit_admin_gravity.py
-      - name: admin-os-cross-wave
-        run: python scripts/audit_admin_os_cross_wave.py
-
-  theme-hue-coherence:
-    name: A theme sits in one hue family
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run scanner --strict
-        run: |
-          python scripts/scan_theme_hue_coherence.py --strict
-      - name: Unit tests
-        run: |
-          python -m unittest scripts.tests.test_scan_theme_hue_coherence -v
-
-  migration-cloud-provision-boundary:
-    name: Migration Cloud must not dispatch school provision
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run scanner --compare
-        run: |
-          python scripts/scan_migration_cloud_provision_boundary.py --compare
-
-  provisioning-broker-topology:
-    name: Broker-up requires worker+beat + defer contract
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Verify provisioning broker topology
-        run: |
-          python scripts/verify_provisioning_broker_topology.py
-
-  tenant-migrate-lock-timeout:
-    name: Fix D tenant migrate lock_timeout wiring
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Verify Fix D lock_timeout contract
-        run: |
-          python scripts/verify_tenant_migrate_lock_timeout.py
-
-  celery-worker-ping-contract:
-    name: Celery worker ping healthz + CLI contract
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Verify celery worker ping contract
-        run: |
-          python scripts/verify_celery_worker_ping_contract.py
-
-  migration-transaction-side-effects:
-    name: No side effects in a migration transaction (deploy-abort seal)
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run scanner (zero-tolerance)
-        run: |
-          python scripts/scan_migration_transaction_side_effects.py
-      - name: Unit tests
-        run: |
-          python -m unittest scripts.tests.test_scan_migration_transaction_side_effects -v
-
-  tenant-template-operator-links:
-    name: No tenant-facing template links to an operator route (H4.6)
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run scanner --compare
-        run: |
-          python scripts/scan_tenant_template_operator_links.py --compare
-
-  tenant-isolation-penetration-freshness:
-    name: Tenant-isolation penetration scenario matrix is current (H4.7)
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Penetration report artifact must match current scenarios
-        run: |
-          python scripts/generate_tenant_isolation_penetration_report.py --check
-
-  print-statements:
-    name: print() statement boundary
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run scanner --compare
-        run: |
-          python scripts/scan_print_statements.py --compare
-
-  config-sot-domain-ownership:
-    name: Config SOT — domain-ownership exact-storage parity
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Verify first-class tuple <-> owner-map parity
-        run: |
-          python scripts/verify_domain_ownership_exact_storage.py
-
-  bare-except:
-    name: "Bare except: clause boundary"
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run scanner --compare
-        run: |
-          python scripts/scan_bare_except.py --compare
-
-  migration-model-imports:
-    name: Migration live-model-import boundary
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run scanner --compare
-        run: |
-          python scripts/scan_migration_model_imports.py --compare
-
-  import-reference-integrity:
-    name: Import-reference integrity boundary
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run scanner --compare
-        run: |
-          python scripts/scan_import_reference_integrity.py --compare
-
-  offline-capability-implementation:
-    name: Offline capability implementation
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run gate
-        run: |
-          python scripts/verify_offline_capability_implementation.py
-
-  drf-schema-coverage:
-    name: DRF view schema coverage
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run scanner --compare
-        run: |
-          python scripts/scan_drf_schema_coverage.py --compare
-
-  role-strings:
-    name: Hardcoded role-string boundary
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run scanner --compare
-        run: |
-          python scripts/scan_role_strings.py --compare
-
-  terminology-adoption:
-    name: Terminology-adoption drift (templates)
-    runs-on: ubuntu-latest
-    timeout-minutes: 8
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run linter --compare
-        run: |
-          python scripts/lint_terminology_adoption.py --compare
-
-  exam-board-filtering:
-    name: Exam-board local-first filtering
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run scanner --compare
-        run: |
-          python scripts/scan_exam_board_filtering.py --compare
-
-  currency-tenant-fallback:
-    name: Currency tenant-fallback (no XAF lock)
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run scanner --compare
-        run: |
-          python scripts/scan_currency_tenant_fallback.py --compare
-
-  locale-display:
-    name: Locale display (no hardcoded currency symbol)
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run scanner --compare
-        run: |
-          python scripts/scan_locale_display.py --compare
-
-  assert-in-production:
-    name: assert statements in production code
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run scanner --compare
-        run: |
-          python scripts/scan_assert_in_production.py --compare
-
-  magic-numbers:
-    name: Magic-number (>= 100) drift
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run scanner --compare
-        run: |
-          python scripts/scan_magic_numbers.py --compare
-
-  subprocess-shell-true:
-    name: "subprocess(..., shell=True) / os.system boundary"
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run scanner --compare
-        run: |
-          python scripts/scan_subprocess_shell_true.py --compare
-
-  intelligence-model-producers:
-    name: "Surface model producers (read-only-orphan seal)"
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Verify every watchlisted surface model has a producer
-        run: |
-          python scripts/verify_intelligence_model_producers.py
-
-  rls-bypass:
-    name: "RLS bypass (raw SQL / cursor.execute) boundary"
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run scanner --compare
-        run: |
-          python scripts/scan_rls_bypass.py --compare
-
-  wallpaper-status-badges:
-    name: Wallpaper status badges (MAX)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Scan wallpaper Operational / ready badges
-        run: python scripts/scan_wallpaper_status_badges.py --compare
-      - name: Twin masthead contract
-        run: python scripts/verify_page_masthead_twin_contract.py
-      - name: Band-count / fold SLA
-        run: python scripts/verify_band_count_fold_sla.py
-      - name: Visibility / anti-bleed
-        run: python scripts/scan_visibility_anti_bleed.py
-
-  money-float:
-    name: "FinTech: float() on money paths (Decimal-only)"
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run scanner --compare
-        # P5 seven-pillar FinTech guardrail: prevents new Decimal->float
-        # casts on amount/balance/fee/tax/etc. expressions in apps/finance,
-        # apps/billing, apps/marketplace, payment/. Allowlist marker:
-        #   # money-float-allow: <reason>
-        run: |
-          python scripts/scan_money_float.py --compare
-
-  cross-tenancy-fk:
-    name: "P3: Cross-tenancy ForeignKey (SHARED -> TENANT)"
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run scanner --compare
-        # A SHARED_APPS model cannot ForeignKey a TENANT_APPS table: under
-        # USE_DJANGO_TENANTS=1 (what render.yaml sets) the target does not exist
-        # in `public` and there is one copy per tenant. `makemigrations` writes
-        # such an FK happily and NOTHING else catches it — the Postgres CI job
-        # sets USE_DJANGO_TENANTS="0" (RLS, one schema, so it resolves) and the
-        # SQLite suites cannot create tenant schemas at all. On a FRESH database
-        # `migrate_schemas --shared` (render_predeploy.sh) then dies, breaking DR
-        # restore / new region / staging rebuild. Allowlist marker:
-        #   # cross-tenancy-fk-allow: <reason>
-        run: |
-          python scripts/scan_cross_tenancy_fk.py --compare
-
-  tenant-isolation-marker-quality:
-    name: "P3: Tenant-isolation marker reason quality"
-    runs-on: ubuntu-latest
-    timeout-minutes: 3
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run scanner --compare
-        # Sister gate to scan_tenant_queryset_safety (count) and
-        # verify_tenant_scoping_burndown (schedule). This one audits
-        # the REASON STRING on each `# tenant-isolation-allow:` marker.
-        # Flags: empty reasons, "TODO"/"FIXME"/"WIP", "fix later",
-        # "see above", reasons <8 chars, single-token generic strings.
-        # Baseline-pinned at 0 from day one (the 802 existing markers
-        # all have plausibly-descriptive reasons).
-        run: |
-          python scripts/scan_tenant_isolation_marker_quality.py --compare
-
-  dr-drill-schedule:
-    name: "P12: DR restore drill cadence"
-    runs-on: ubuntu-latest
-    timeout-minutes: 3
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run schedule verifier --strict
-        # Reads var/dr-drill-schedule.json (cadence + next due date) and
-        # docs/generated/dr_drill_log.json (history). Fails when today
-        # is past the next-due date AND no in-window drill is recorded.
-        # Pairs with scripts/restore_drill.py (the dry-run scaffold that
-        # appends to the log).
-        run: |
-          python scripts/verify_dr_drill_schedule.py --strict
-
-  locale-coverage:
-    name: "i18n: per-locale msgstr coverage (drift detection)"
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run scanner --compare
-        # P11 seven-pillar i18n guardrail: per-locale translated/total
-        # ratio is baselined; a locale that USED to have translations
-        # cannot regress to zero without CI flagging it.
-        run: |
-          python scripts/scan_locale_coverage.py --compare
-      - name: Critical msgid depth
-        # Ran on ZERO workflows until 2026-07-21, so it guarded nothing. It
-        # asserts that the 19 highest-traffic UI strings are actually translated
-        # in the shipped catalogs (fr / es / pt_BR) rather than silently falling
-        # back to English on a screen a parent uses every day.
-        run: |
-          python scripts/verify_critical_msgid_depth.py
-      - name: Pseudo-locale interpolation safety
-        # M21/G3: the en_XA pseudo-locale QA transform must never corrupt an
-        # interpolation/markup token — a %(name)s accented into %(námé)s would
-        # KeyError the moment Django formats it, 500-ing the very QA build it
-        # powers. Zero-tolerance across every source msgid; no baseline.
-        run: |
-          python scripts/verify_pseudo_locale.py
-      - name: Untranslated template text (ratchet)
-        # M21/G4: hardcoded user-facing text in label-bearing elements
-        # (button / a / label / th / h1-6 / option / ...) must be wrapped in
-        # {% trans %}/{% blocktrans %}. Ratchet — a NEW hardcoded label fails;
-        # the baseline is the burndown backlog and can only shrink.
-        run: |
-          python scripts/scan_untranslated_template_text.py --compare
-
-  world-engine-i18n-ci:
-    name: "World Engine: i18n catalog freshness + compile"
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-      - name: Install GNU gettext (compilemessages secondary check)
-        run: sudo apt-get update -qq && sudo apt-get install -y -qq gettext
-      - name: Run World Engine i18n CI verifier
-        # World Engine §11: committed django.po must match scan; polib compile path green.
-        run: python scripts/verify_world_engine_i18n_ci.py
-
-  global-footprint-glocal-offline:
-    name: "Global Footprint + glocal + offline integration"
-    runs-on: ubuntu-latest
-    timeout-minutes: 8
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run integration verifiers
-        run: |
-          pip install -r requirements.txt
-          npm ci
-          npm run build:world-globe
-          python scripts/generate_global_footprint_preview.py
-          python scripts/verify_global_footprint_preview.py
-          python scripts/verify_world_globe_footprint.py
-          python scripts/verify_world_globe_10x.py
-          python scripts/verify_global_footprint_glocal_offline_integration.py
-          python manage.py test apps.siteconfig.tests.test_globe_10x apps.siteconfig.tests.test_world_map_geo apps.siteconfig.tests.test_world_globe_wiring --verbosity=1 --no-input
-          python scripts/verify_offline_queue_encryption_at_rest.py
-          python scripts/verify_collabora_offline_posture.py
-
-  service-worker-version:
-    name: "PWA: service-worker CACHE_VERSION shape + monotonicity"
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run verifier --check-monotonic
-        # P9 seven-pillar mobile/offline guardrail: every wave bumps
-        # CACHE_VERSION per CLAUDE.md deploy checklist. Shape must match
-        # sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and (MAJOR,MINOR,PATCH)
-        # must be >= baseline.
-        run: |
-          python scripts/verify_service_worker_version.py --check-monotonic
-
-  django-admin-preview-parity:
-    name: "Admin: approval HTML → live shell lock (visible chip + grid)"
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Verify Django admin preview parity (lock + approval HTML)
-        # Prevents another CSS-only / uncached deploy that looks unchanged.
-        # Lock: var/admin-approval-build-lock.json. Proof: tenant /admin/ chip.
-        run: |
-          python scripts/verify_django_admin_preview_parity.py
-      - name: Unit tests (lock shape + clean-tree calibration)
-        run: |
-          python -m unittest scripts.tests.test_verify_django_admin_preview_parity -v
-
-  deploy-cache-posture:
-    name: "PWA: deploy cache posture (SW scope + freshness + no scanner block)"
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run deploy cache posture verifier
-        run: |
-          python scripts/verify_deploy_cache_posture.py
-
-  slo-registry:
-    name: "SRE: SLO registry structural integrity"
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run verifier --strict
-        # P10 seven-pillar observability guardrail: apps/observability/slo.py
-        # SLODefinition tuple must have unique keys, valid kinds, sane
-        # targets, and threshold_ms only on latency SLOs.
-        run: |
-          python scripts/verify_slo_registry.py --strict
-
-  report-entity-coverage:
-    name: "Reports: entity catalog coverage"
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run report entity coverage verifier
-        run: |
-          python scripts/verify_report_entity_coverage.py
-
-  sri-required:
-    name: "P1: Subresource Integrity required on third-party HTTPS assets"
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run scanner --compare
-        run: |
-          python scripts/scan_sri_required.py --compare
-
-  csp-nonce-emission:
-    name: "P1: CSP nonce emission across shells"
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run verifier --compare
-        run: |
-          python scripts/verify_csp_nonce_emission.py --compare
-
-  pwa-manifest-coverage:
-    name: "P9: PWA manifest coverage across dashboard shells"
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run scanner --compare
-        run: |
-          python scripts/scan_pwa_manifest_coverage.py --compare
-
-  plan-deliverables-12-pillar:
-    name: "12-pillar plan deliverables (all P0-P12 artifacts present)"
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run 12-pillar deliverables verifier --strict
-        run: |
-          python scripts/verify_plan_deliverables_12_pillar.py --strict
-
-  global-governance-plan-completion:
-    name: "Global governance program closure (Phase 5 strict gate)"
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Install Python dependencies
-        run: |
-          pip install -r requirements.txt
-      - name: Run global governance Phase 5 program closure bundle
-        run: |
-          python scripts/verify_country_governance_matrix.py --require-verified --drift-check --write
-          python scripts/verify_country_dissection_ledger.py --require-verified
-          python scripts/verify_subdivision_coverage.py --min-sovereign-pct 100
-          python scripts/verify_country_layer_consistency.py --mc-depth
-          python scripts/verify_hierarchy_silo_drift.py --write
-          python scripts/verify_governance_no_hardcode.py
-          python scripts/verify_school_operating_modes.py
-          python scripts/verify_global_operational_blind_spots.py --granular-ops
-          python scripts/verify_governance_doc_truth.py
-          python scripts/verify_regulatory_matrix_coverage.py --json
-          python scripts/verify_edge_jurisdiction_coverage.py --json
-          python scripts/verify_matrix_provenance.py --json
-          python scripts/verify_org_lifecycle_events.py --json
-          python scripts/verify_exam_board_coverage.py --json
-          python scripts/verify_legacy_mis_route_coverage.py --json
-          python scripts/verify_national_sso_brokers.py --json
-          python scripts/verify_calendar_ingestion.py --json
-          python scripts/verify_labor_law_matrix.py --json
-          python scripts/verify_minority_language_rights.py --json
-          python scripts/verify_accessibility_matrix.py --json
-          python scripts/verify_dr_rto_rpo_residency.py --json
-          python scripts/verify_pricing_ppp_matrix.py --json
-          python scripts/verify_risk_register.py --json
-          python scripts/verify_rollback_runbooks.py --json
-          python scripts/verify_customer_comms_templates.py --json
-          python scripts/verify_phase_slo_budgets.py --json
-          python scripts/verify_governance_property_tests.py --json
-          python scripts/verify_matrix_freshness.py --json
-          python scripts/verify_tla_specs.py --json
-          python scripts/verify_compliance_engine.py --json
-          python scripts/verify_sovereignty_trust_score.py --json
-          python scripts/verify_cross_vertical_kernel.py --json
-          python scripts/verify_multimodal_terminology.py --json
-          python scripts/verify_regulator_api_federation.py --json
-          python scripts/verify_adversarial_redteam.py --json
-          python scripts/verify_w3c_verifiable_credentials.py --json
-          python scripts/verify_time_traveling_matrix.py --json
-          python scripts/verify_zero_form_bootstrap.py --json
-          python scripts/verify_ai_policy_copilot.py --json
-          python scripts/verify_cross_org_marketplace.py --json
-          python scripts/verify_federated_emis_aggregator.py --json
-          python scripts/verify_competitor_tracker.py --json
-          python -m unittest discover -s apps/governance/turbo/tests -t .
-          python scripts/verify_org_backfill_operator_smoke.py --write
-          python scripts/verify_poly_institution_final_sweep.py --write
-          python scripts/verify_poly_institution_governance_stack.py --write
-          python scripts/verify_global_governance_plan_completion.py --strict --json
-          python scripts/verify_doc_plan_density_discipline.py
-          python scripts/verify_scheduling_exclude_constraints.py --write
-          python scripts/verify_group_console_http_contract.py --write
-          python scripts/verify_multicampus_wedge_http_contract.py --write
-          python scripts/run_sqlite_memory_tests.py apps.schools.tests.test_group_console apps.schools.tests.test_group_console_http apps.portal.tests.test_multicampus_wedge_http apps.interop.tests.test_transfer_apply apps.billing.tests.test_group_consolidation emis.tests.test_org_aggregate apps.people.tests.test_staff_compliance apps.schools.tests.test_governance_matrix_runtime apps.governance.tests.test_prompt_shaping_terminology apps.finance.tests.test_org_fx_rollup apps.schools.tests.test_context_profiles.ContextProfileServiceTests apps.registries.tests.test_seed_iso3166_subdivisions apps.governance.tests.test_models apps.siteconfig.tests.test_country_language_overlay_regression apps.academics.test_fractional_capacity apps.governance.tests.test_backfill_organizations apps.governance.tests.test_mat_groups_sync apps.academics.tests.test_scheduling_db_constraints apps.academics.tests.test_instruction_shift_conflicts
-
-  studio-os-10x-completion:
-    name: "Studio OS 10X program closure (5-wave sweep gate)"
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    defaults:
-      run:
-        working-directory: .
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Install Python dependencies
-        run: |
-          pip install -r requirements.txt
-      - name: Run Studio OS 10X program closure gate (Wave 1-5, --strict — register must be 100% DONE)
-        run: |
-          python scripts/smoke_studio_os_10x_w1.py
-          python scripts/smoke_studio_os_10x_all_waves.py
-          python scripts/verify_studio_os_10x_completion.py --strict --json
-
-  workflow-progress-bus:
-    name: "Workflow Progress Bus 10x gate (v4.01.18)"
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    defaults:
-      run:
-        working-directory: .
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Install Python dependencies
-        run: |
-          pip install -r requirements.txt
-      - name: Run Workflow Progress Bus 10x gate (smoke + coverage + shell wiring)
-        run: |
-          python scripts/verify_workflow_progress_10x.py
-          python scripts/verify_workflow_recovery_end_to_end.py
-          python scripts/verify_workflow_recovery_command_center.py
-          python scripts/verify_workflow_healing_coverage.py --strict
-
-  email-infrastructure:
-    name: "Email infrastructure 7-phase gate (v4.00.98)"
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    defaults:
-      run:
-        working-directory: .
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Install Python dependencies
-        run: |
-          pip install -r requirements.txt
-      - name: Phase 1 — reliability layer
-        run: python scripts/smoke_email_infrastructure_phase1.py
-      - name: Phase 2 — Platform Email Matrix SOT
-        run: python scripts/smoke_email_infrastructure_phase2.py
-      - name: Phase 3 — Newsletter double-opt-in
-        run: python scripts/smoke_email_infrastructure_phase3.py
-      - name: Phase 4 — Tenant reactivation engine
-        run: python scripts/smoke_email_infrastructure_phase4.py
-      - name: Phase 5 — Platform-event wiring
-        run: python scripts/smoke_email_infrastructure_phase5.py
-      - name: Phase 6 — Workflow bus email integration
-        run: python scripts/smoke_email_infrastructure_phase6.py
-      - name: Phase 7 — Legacy send_mail compat + scanner
-        run: python scripts/smoke_email_infrastructure_phase7.py
-
-  legacy-send-mail-scan:
-    name: "Legacy send_mail scan (v4.00.98 Phase 7)"
-    runs-on: ubuntu-latest
-    timeout-minutes: 3
-    defaults:
-      run:
-        working-directory: .
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run legacy send_mail scanner (--strict, baseline 37)
-        run: python scripts/scan_legacy_send_mail.py --strict --json
-
-  ai-engine-room:
-    name: "AI engine room completeness (tiers 1-5)"
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    defaults:
-      run:
-        working-directory: .
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: verify_ai_engine_room
-        run: python scripts/verify_ai_engine_room.py
-
-  reveal-armed-invariants:
-    name: "Reveal-armed defense + no-duplicate-class-attrs invariants"
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run reveal-armed invariants scanner --strict
-        run: |
-          python scripts/scan_reveal_armed_invariants.py --strict
-
-  layout-frame-guard:
-    name: "Layout frame guard (flex collapse + horizontal overflow + sticky clip)"
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    defaults:
-      run:
-        working-directory: .
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run layout-frame guard scanners --strict
-        run: |
-          python scripts/scan_flex_collapse_risk.py --strict
-          python scripts/scan_horizontal_overflow_risk.py --strict
-          python scripts/scan_sticky_with_overflow_hidden.py --strict
-          python scripts/scan_attribute_context_includes.py
-
-  theme-attribute-contract:
-    name: "Theme attribute contract (data-theme = effective, never preference)"
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run theme-attribute-contract scanner --strict
-        run: |
-          python scripts/scan_theme_attribute_contract.py --strict
-
-  pii-logging-smell:
-    name: "PII logging smell (passwords/tokens/secrets interpolated into logger calls)"
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run pii-logging-smell scanner --strict
-        run: |
-          python scripts/scan_pii_logging_smell.py --strict
-
-  sigalrm-worker-thread-safety:
-    name: "SIGALRM / ITIMER only in guarded nuance_engine path (Gunicorn gthread)"
-    runs-on: ubuntu-latest
-    timeout-minutes: 3
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Nuance engine safety (SIGALRM, logic toolset contract, tests)
-        run: |
-          python scripts/verify_nuance_engine_gunicorn_safety.py
-
-  hardcoded-client-fetch:
-    name: "Hardcoded client fetch paths (platform configurability cascade)"
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run client config cascade verifiers
-        run: |
-          python scripts/verify_client_config_cascade.py
-          python scripts/generate_platform_client_url_catalog.py --check
-
-  wizard-json-schema-drift:
-    name: "Unified Wizard Framework: JSON schema drift (baseline 0)"
-    runs-on: ubuntu-latest
-    timeout-minutes: 3
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run wizard JSON schema drift scanner
-        # Zero-tolerance gate introduced with the Unified Wizard Framework.
-        # Asserts every apps/setup_studio/wizards/*.json file matches the
-        # documented schema (input_type allowlist, audience allowlist,
-        # branches XOR next_step_resolver, dotted-path format, etc.).
-        run: |
-          python scripts/scan_wizard_json_schema_drift.py
-
-  wizard-class-grammar:
-    name: "Unified Wizard Framework: .rmc-wizard-* class grammar (baseline 0)"
-    runs-on: ubuntu-latest
-    timeout-minutes: 2
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run wizard class grammar scanner
-        # Every .rmc-wizard-* class referenced in templates/setup_studio/
-        # MUST be defined in static/css/rmc-wizard.css (or rmc-class-grammar.css).
-        run: |
-          python scripts/scan_wizard_class_grammar.py
-
-  canonical-headers-drift:
-    name: "Companion canonical_headers.json drift vs Django SOT"
-    runs-on: ubuntu-latest
-    timeout-minutes: 3
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run canonical-headers drift scanner --strict
-        # v3.39.0 Agent 3 introduction (2026-05-19). Sister gate to the
-        # v3.38.0 per-vendor CSV pre-processors. Asserts the
-        # `DOMAIN_CANONICAL_HEADERS` dict in
-        # apps/migration_cloud/accelerators/runmycampus_canonical.py is
-        # mirrored byte-for-byte (order-sensitive) into both
-        # companion-tauri/src-tauri/src/canonical_headers.json AND
-        # companion-docker/app/canonical_headers.json. Drift = silently
-        # wrong canonical mappings client-side. Stdlib-only; no Django
-        # boot required.
-        run: |
-          python scripts/scan_companion_canonical_headers_drift.py --strict
-
-  sentry-alert-rule-drift:
-    name: "P6: Sentry alert-rule drift (rules-as-code vs snapshot)"
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Install Django runtime
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-      - name: Run drift detector --strict
-        # Soft-passes when snapshot is missing (operator runs the export
-        # asynchronously). Hard-fails on any drift between two present sets.
-        run: |
-          python scripts/verify_sentry_alert_rule_drift.py --strict
-
-  template-render-safety:
-    name: "Template render-safety (leaks / unclosed tags / missing refs)"
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run scanner --compare
-        # Zero-tolerance gate: any of these is a real bug.
-        #   - multi-line `{# ... #}` (Django supports single-line only)
-        #   - orphan template tokens that would render as visible page text
-        #   - unbalanced {% if/for/block/with/comment/verbatim/... %} tags
-        #   - {% include %} / {% extends %} pointing to a missing template
-        #   - {% static %} pointing to a missing file under static/
-        run: |
-          python scripts/audit_template_render_safety.py --compare
-
-  include-with-default-context-var:
-    name: "|default/slice/add missing_var (VariableDoesNotExist 500)"
-    runs-on: ubuntu-latest
-    timeout-minutes: 8
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Static scanner + completion (static-only)
-        # Django eagerly resolves EVERY |default: / |default_if_none: / |slice: /
-        # |add: argument. A missing top-level context var 500s the page even when
-        # the left-hand value is set (ops_surface on /super/schools/ + /configuration/,
-        # and |slice:backend_max_items_slice on backend dashboard).
-        # Full Django runtime rows of the completion verifier run in ci.yml.
-        run: |
-          python scripts/scan_include_with_default_context_var.py --strict
-          python -m unittest scripts.tests.test_scan_include_with_default_context_var -v
-          python -m unittest scripts.tests.test_verify_eager_filter_arg_completion -v
-          python scripts/verify_eager_filter_arg_completion.py --static-only
-
-  nav-engine-coverage:
-    name: "Nav Engine coverage (static catalog + projector wiring)"
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Static projector + group-label wiring
-        # Spine reverse() needs Django (ci.yml). This job only proves the
-        # catalog is still consumed by portal / CP / Cmd+K and that the HTML
-        # role-tree fork did not return.
-        run: |
-          python -m unittest scripts.tests.test_verify_nav_engine_coverage -v
-          python scripts/verify_nav_engine_coverage.py --static-only
-
-  template-tag-loads:
-    name: "Template custom tag {% load %} integrity"
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run verifier --compare
-        run: |
-          python scripts/verify_template_tag_loads.py --compare
-
-  inline-style-off-token:
-    name: "Apple HIG: inline styles off the token system"
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run scanner --compare
-        # Drift-detection gate. Inline `style="font-size:..."` /
-        # `style="color: #..."` / `style="transition: ... cubic-bezier(...)"`
-        # bypass the token system, defeat tenant brand cascade, and break
-        # Apple-tier quiet-luxury consistency. Baseline allows existing debt;
-        # CI fails on any new violation. Mark intentional exceptions with
-        # `<!-- inline-style-allow: <reason> -->` or `inline-style-allow:`
-        # inside the style itself.
-        run: |
-          python scripts/scan_inline_style_off_token.py --compare
-
-  inline-event-handlers:
-    name: "CSP enforce seal: no inline on*= event handlers"
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run scanner --compare
-        # M9 CSP enforce seal. A strict `script-src` (no 'unsafe-inline') blocks
-        # inline `onclick=`/`onchange=`/`onsubmit=` … attributes, so they must be
-        # zero on every served (non-admin) template before CSP_ENFORCE=1 is safe.
-        # Retire the handler into a nonced <script> (addEventListener) or a
-        # data-attribute handled by static/js/rmc-csp-handlers.js. Mark an
-        # unavoidable site with `<!-- inline-handler-allow: <reason> -->`. The
-        # /admin/ surface is excluded (CSP-bypassed by the middleware).
-        run: |
-          python scripts/scan_inline_event_handlers.py --compare
-
-  off-token-colors:
-    name: "Off-token color literals in CSS (theme switching safety)"
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run scanner --strict
-        # Drift-detection gate: a color/background/border declaration in
-        # static/css or static/marketing/css that contains a hex / rgb / rgba
-        # literal AND sits outside a theme block (:root, [data-theme=...],
-        # [data-bs-theme=...], [data-rmc-aesthetic=...], @media prefers-color-scheme)
-        # cannot adapt across the light/dark/system theme cascade. This is
-        # the root cause of "elements invisible in dark mode" bugs.
-        # Mark intentional literals with /* off-token-allow: <reason> */ on
-        # the declaration. Baseline allows existing debt; CI fails on any
-        # NEW violation while the burndown wave reduces the existing 897.
-        run: |
-          python scripts/scan_off_token_colors.py --strict
-
-  theme-locked-token-text:
-    name: "Theme-locked token references in CSS (subtle invisibility bugs)"
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run scanner --strict
-        # Companion to off-token-colors. That scanner catches raw hex literals;
-        # this one catches the more subtle bug where the literal hides behind a
-        # token reference (var(--color-base-900) etc.) that's defined once in
-        # :root and never theme-overridden — same dark-on-dark / light-on-light
-        # bug class. Drift-detection: baseline allows existing debt, CI fails
-        # on any NEW occurrence. Mark intentional sites with
-        # /* theme-locked-allow: <reason> */ on the declaration line.
-        run: |
-          python scripts/scan_theme_locked_token_text.py --strict
-
-  undefined-css-classes:
-    name: "Undefined CSS classes (typos & silent layout bugs)"
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run scanner --compare
-        # Drift-detection gate. Catches project-prefixed CSS class names
-        # referenced in templates but never defined in any CSS file —
-        # the class of bug that hid `content-max-960` (referenced 25x,
-        # never defined → silent empty-column on every manager page).
-        # Scans both `static/css/` and `static/marketing/css/` for definitions.
-        # Tailwind / Bootstrap / icon-font utilities are allowlisted; only
-        # project-prefixed classes (rmc-, cp-, mkt-, portal-, ccc-, etc.)
-        # are flagged. Baseline allows existing debt; CI fails on any new
-        # undefined class.
-        run: |
-          python scripts/scan_undefined_css_classes.py --compare
-
-  unregistered-middleware:
-    name: "Every middleware class is registered (zero tolerance)"
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Every middleware class under apps/ must be wired in config/
-        # The floor for code that compiles, imports, and still never runs.
-        # apps/sync_engine/middleware_edge_autosync.py was written to keep a LAN
-        # box syncing when nothing pings /health/ - its own docstring said "without
-        # this middleware a box with internet still waits forever" - and it was
-        # never added to MIDDLEWARE. For months it was referenced exactly once in
-        # the repository, at its own class statement, so it was dead during the
-        # precise failure it existed for and the sovereign box never synced.
-        # Nothing else sees this: it imports cleanly, parses, and raises no
-        # unused-import warning. Added 2026-08-20. No baseline; a deliberately
-        # unwired class is named in the script's ALLOWLIST with its reason.
-        run: |
-          python scripts/scan_unregistered_middleware.py --strict
-
-  python-files-parse:
-    name: "Every Python file parses (zero tolerance)"
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Every Python file must compile
-        # The floor. A module that does not compile cannot be imported at all -
-        # Celery autodiscovers <app>.tasks, Django imports <app>.models at
-        # startup, and any `from apps.x import y` against it is an ImportError
-        # 500. Added 2026-08-19 after apps/accounts/tasks.py was found TRUNCATED
-        # mid-statement on main: the reference-integrity gates treat an
-        # unparseable file as opaque and skip it, so nothing reported it and it
-        # surfaced only as unrelated test-collection errors. Stdlib only, no
-        # baseline, no allow-marker - a file that does not parse is never
-        # intentional.
-        run: |
-          python scripts/verify_python_files_parse.py
-
-  javascript-files-parse:
-    name: "Every shipped JavaScript file parses (zero tolerance)"
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - uses: actions/setup-node@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
         with:
           node-version: "20"
-      - name: Every shipped JavaScript file must parse
-        # The same floor as python-files-parse, for a QUIETER failure. A Python module
-        # that does not compile fails loudly at import; a JavaScript file that does not
-        # parse fails silently in the user's browser - the script tag 200s, the engine
-        # throws into a console nobody is watching, and the page renders looking normal
-        # with one feature simply dead. No server log, no Sentry event by default.
-        # static/js/service-worker.js is the worst case: a SyntaxError there kills
-        # registration, so the offline shell an appliance depends on stops updating and
-        # nothing says so. Uses `node`'s own parser (not a regex) so it cannot disagree
-        # with the engine that will actually run the file. No baseline, no allow-marker.
+      - name: Run 96 stdlib boundary gates
         run: |
-          python scripts/verify_javascript_files_parse.py
+          set -uo pipefail
+          failed=""
+          passed=0
 
-  template-html-structure:
-    name: "Every template closes what it opens (zero tolerance)"
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Every shipped template must close the elements it opens
-        # The third floor gate, and the QUIETEST of them. Python fails loudly at import;
-        # JavaScript fails silently in the console; unbalanced markup does not fail at
-        # all - the template compiles, the view returns 200, and the browser repairs the
-        # document by auto-closing the element at its parent's boundary, reparenting
-        # everything after it. Found this way on 2026-08-20: #section-today never closed
-        # on the admin home (so the sticky section-nav's own anchors became its
-        # children), a surplus </div> evicted three cards from the account grid, and two
-        # marketplace tables shipped </motion> - an element that does not exist, which
-        # browsers discard, leaving a <div> open once per row.
-        #
-        # Branch-aware: Django templates are not HTML until rendered, so every {% if %}
-        # branch is measured separately and the {% if x %}<a>{% else %}<div>{% endif %}
-        # wrapper idiom is correctly clean. Deliberate _open/_close partial pairs carry
-        # {# html-structure-allow: reason #}. Stdlib only, no baseline.
-        run: |
-          python scripts/verify_template_html_structure.py
+          # Each unit is one former job. `set -e` inside the subshell reproduces
+          # step-aborts-on-failure WITHIN a job; the caller never aborts, so every unit
+          # still runs and every failure is still reported -- which is what 108 separate
+          # jobs bought, and the only property worth preserving from them.
+          run_unit() {
+            local fn="$1" label="$2"
+            echo "::group::${label}"
+            # NOT `if ( set -e; "$fn" )`. POSIX disables set -e inside anything used as an
+            # if-condition, so that form runs a unit's REMAINING commands after one fails
+            # and then reports PASS. Verified: a unit of `false; echo X` printed X and
+            # passed. Run the subshell on its own line and read $? instead.
+            ( set -e; "$fn" )
+            rc=$?
+            if [ "$rc" -eq 0 ]; then
+              echo "PASS  ${label}"
+              passed=$((passed + 1))
+            else
+              echo "::error title=${label}::boundary gate failed (exit ${rc})"
+              failed="${failed}  - ${label}"$'\n'
+            fi
+            echo "::endgroup::"
+          }
 
-  real-migration-drift:
-    name: "Real migration drift (cosmetic F2 drift filtered)"
+          u_ai_gateway_boundary() {
+            python scripts/scan_ai_gateway_boundary.py --compare
+          }
+
+          u_ai_copilot_rbac_coverage() {
+            python scripts/verify_ai_copilot_rbac_coverage.py --strict
+          }
+
+          u_ai_naming_honesty() {
+            python scripts/verify_ai_naming_honesty.py
+          }
+
+          u_tenant_control_plane_rbac() {
+            python scripts/verify_tenant_control_plane_rbac.py --strict
+          }
+
+          u_signup_production_readiness() {
+            python scripts/verify_signup_production_readiness.py --strict
+          }
+
+          u_sentry_boundary() {
+            python scripts/scan_sentry_boundary.py --compare
+          }
+
+          u_staff_gate_tenant_surface() {
+            python scripts/scan_staff_gate_on_tenant_surface.py --strict
+          }
+
+          u_access_resolver_fragmentation() {
+            python scripts/scan_access_resolver_fragmentation.py --compare
+          }
+
+          u_config_resolver_fragmentation() {
+            python scripts/scan_config_resolver_fragmentation.py --compare
+          }
+
+          u_upload_validation_coverage() {
+            python scripts/scan_upload_validation_coverage.py --compare
+          }
+
+          u_granular_rbac_adoption() {
+            python scripts/scan_granular_rbac_adoption.py --compare
+          }
+
+          u_lander_phantom_fields() {
+            python scripts/scan_lander_phantom_fields.py --compare
+            python -m unittest scripts.tests.test_scan_lander_phantom_fields -v
+          }
+
+          u_lander_row_error_contract() {
+            python scripts/scan_lander_row_error_contract.py --strict
+            python -m unittest scripts.tests.test_scan_lander_row_error_contract -v
+          }
+
+          u_ota_pipeline_wiring() {
+            python scripts/verify_ota_pipeline_wiring.py
+            python -m unittest scripts.tests.test_verify_ota_pipeline_wiring -v
+          }
+
+          u_raw_token_in_ui() {
+            python scripts/scan_raw_token_in_ui.py --strict
+            python -m unittest scripts.tests.test_scan_raw_token_in_ui -v
+          }
+
+          u_duplicate_dict_keys() {
+            python scripts/scan_duplicate_dict_keys.py --strict
+            python -m unittest scripts.tests.test_scan_duplicate_dict_keys -v
+          }
+
+          u_operator_landing_header_order() {
+            python scripts/verify_operator_landing_header_order.py --strict
+            python -m unittest scripts.tests.test_verify_operator_landing_header_order -v
+          }
+
+          u_lander_row_streaming() {
+            python scripts/scan_lander_row_streaming.py --strict
+            python -m unittest scripts.tests.test_scan_lander_row_streaming -v
+          }
+
+          u_migration_apply_stall_contract() {
+            python scripts/verify_migration_apply_stall_contract.py
+            python -m unittest scripts.tests.test_verify_migration_apply_stall_contract -v
+          }
+
+          u_admin_manager_shell_aggressive() {
+            python scripts/verify_admin_manager_shell_aggressive.py
+          }
+
+          u_admin_surface_contracts() {
+            python scripts/audit_django_admin_canvas_contract.py
+            python scripts/audit_django_admin_surface_leftovers.py
+            python scripts/verify_admin_os_empty_space.py
+            python scripts/verify_admin_os_sections_restore.py
+            python scripts/verify_admin_os_three_click_sla.py
+            python scripts/verify_admin_production_upgrade.py
+            python scripts/verify_admin_replacement_roadmap.py
+            python scripts/verify_admin_super_help_nav_bridge.py
+            python scripts/verify_operator_admin_sidebar_v2.py
+            python scripts/verify_tenant_admin_sidebar_v2.py
+            python scripts/audit_django_admin_miss_nothing.py
+            python scripts/sweep_django_admin_platformwide_layout.py
+            python scripts/verify_admin_tenant_change_form_product_links.py
+            python scripts/audit_admin_usage_extended.py
+            python scripts/audit_admin_gravity.py
+            python scripts/audit_admin_os_cross_wave.py
+          }
+
+          u_theme_hue_coherence() {
+            python scripts/scan_theme_hue_coherence.py --strict
+            python -m unittest scripts.tests.test_scan_theme_hue_coherence -v
+          }
+
+          u_migration_cloud_provision_boundary() {
+            python scripts/scan_migration_cloud_provision_boundary.py --compare
+          }
+
+          u_provisioning_broker_topology() {
+            python scripts/verify_provisioning_broker_topology.py
+          }
+
+          u_tenant_migrate_lock_timeout() {
+            python scripts/verify_tenant_migrate_lock_timeout.py
+          }
+
+          u_celery_worker_ping_contract() {
+            python scripts/verify_celery_worker_ping_contract.py
+          }
+
+          u_migration_transaction_side_effects() {
+            python scripts/scan_migration_transaction_side_effects.py
+            python -m unittest scripts.tests.test_scan_migration_transaction_side_effects -v
+          }
+
+          u_tenant_template_operator_links() {
+            python scripts/scan_tenant_template_operator_links.py --compare
+          }
+
+          u_tenant_isolation_penetration_freshness() {
+            python scripts/generate_tenant_isolation_penetration_report.py --check
+          }
+
+          u_print_statements() {
+            python scripts/scan_print_statements.py --compare
+          }
+
+          u_config_sot_domain_ownership() {
+            python scripts/verify_domain_ownership_exact_storage.py
+          }
+
+          u_bare_except() {
+            python scripts/scan_bare_except.py --compare
+          }
+
+          u_migration_model_imports() {
+            python scripts/scan_migration_model_imports.py --compare
+          }
+
+          u_import_reference_integrity() {
+            python scripts/scan_import_reference_integrity.py --compare
+          }
+
+          u_offline_capability_implementation() {
+            python scripts/verify_offline_capability_implementation.py
+          }
+
+          u_drf_schema_coverage() {
+            python scripts/scan_drf_schema_coverage.py --compare
+          }
+
+          u_role_strings() {
+            python scripts/scan_role_strings.py --compare
+          }
+
+          u_terminology_adoption() {
+            python scripts/lint_terminology_adoption.py --compare
+          }
+
+          u_exam_board_filtering() {
+            python scripts/scan_exam_board_filtering.py --compare
+          }
+
+          u_currency_tenant_fallback() {
+            python scripts/scan_currency_tenant_fallback.py --compare
+          }
+
+          u_locale_display() {
+            python scripts/scan_locale_display.py --compare
+          }
+
+          u_assert_in_production() {
+            python scripts/scan_assert_in_production.py --compare
+          }
+
+          u_magic_numbers() {
+            python scripts/scan_magic_numbers.py --compare
+          }
+
+          u_subprocess_shell_true() {
+            python scripts/scan_subprocess_shell_true.py --compare
+          }
+
+          u_intelligence_model_producers() {
+            python scripts/verify_intelligence_model_producers.py
+          }
+
+          u_rls_bypass() {
+            python scripts/scan_rls_bypass.py --compare
+          }
+
+          u_wallpaper_status_badges() {
+            python scripts/scan_wallpaper_status_badges.py --compare
+            python scripts/verify_page_masthead_twin_contract.py
+            python scripts/verify_band_count_fold_sla.py
+            python scripts/scan_visibility_anti_bleed.py
+          }
+
+          u_money_float() {
+            python scripts/scan_money_float.py --compare
+          }
+
+          u_cross_tenancy_fk() {
+            python scripts/scan_cross_tenancy_fk.py --compare
+          }
+
+          u_tenant_isolation_marker_quality() {
+            python scripts/scan_tenant_isolation_marker_quality.py --compare
+          }
+
+          u_dr_drill_schedule() {
+            python scripts/verify_dr_drill_schedule.py --strict
+          }
+
+          u_locale_coverage() {
+            python scripts/scan_locale_coverage.py --compare
+            python scripts/verify_critical_msgid_depth.py
+            python scripts/verify_pseudo_locale.py
+            python scripts/scan_untranslated_template_text.py --compare
+          }
+
+          u_service_worker_version() {
+            python scripts/verify_service_worker_version.py --check-monotonic
+          }
+
+          u_django_admin_preview_parity() {
+            python scripts/verify_django_admin_preview_parity.py
+            python -m unittest scripts.tests.test_verify_django_admin_preview_parity -v
+          }
+
+          u_deploy_cache_posture() {
+            python scripts/verify_deploy_cache_posture.py
+          }
+
+          u_slo_registry() {
+            python scripts/verify_slo_registry.py --strict
+          }
+
+          u_report_entity_coverage() {
+            python scripts/verify_report_entity_coverage.py
+          }
+
+          u_sri_required() {
+            python scripts/scan_sri_required.py --compare
+          }
+
+          u_csp_nonce_emission() {
+            python scripts/verify_csp_nonce_emission.py --compare
+          }
+
+          u_pwa_manifest_coverage() {
+            python scripts/scan_pwa_manifest_coverage.py --compare
+          }
+
+          u_plan_deliverables_12_pillar() {
+            python scripts/verify_plan_deliverables_12_pillar.py --strict
+          }
+
+          u_legacy_send_mail_scan() {
+            python scripts/scan_legacy_send_mail.py --strict --json
+          }
+
+          u_ai_engine_room() {
+            python scripts/verify_ai_engine_room.py
+          }
+
+          u_reveal_armed_invariants() {
+            python scripts/scan_reveal_armed_invariants.py --strict
+          }
+
+          u_layout_frame_guard() {
+            python scripts/scan_flex_collapse_risk.py --strict
+            python scripts/scan_horizontal_overflow_risk.py --strict
+            python scripts/scan_sticky_with_overflow_hidden.py --strict
+            python scripts/scan_attribute_context_includes.py
+          }
+
+          u_theme_attribute_contract() {
+            python scripts/scan_theme_attribute_contract.py --strict
+          }
+
+          u_pii_logging_smell() {
+            python scripts/scan_pii_logging_smell.py --strict
+          }
+
+          u_sigalrm_worker_thread_safety() {
+            python scripts/verify_nuance_engine_gunicorn_safety.py
+          }
+
+          u_hardcoded_client_fetch() {
+            python scripts/verify_client_config_cascade.py
+            python scripts/generate_platform_client_url_catalog.py --check
+          }
+
+          u_wizard_json_schema_drift() {
+            python scripts/scan_wizard_json_schema_drift.py
+          }
+
+          u_wizard_class_grammar() {
+            python scripts/scan_wizard_class_grammar.py
+          }
+
+          u_canonical_headers_drift() {
+            python scripts/scan_companion_canonical_headers_drift.py --strict
+          }
+
+          u_template_render_safety() {
+            python scripts/audit_template_render_safety.py --compare
+          }
+
+          u_include_with_default_context_var() {
+            python scripts/scan_include_with_default_context_var.py --strict
+            python -m unittest scripts.tests.test_scan_include_with_default_context_var -v
+            python -m unittest scripts.tests.test_verify_eager_filter_arg_completion -v
+            python scripts/verify_eager_filter_arg_completion.py --static-only
+          }
+
+          u_nav_engine_coverage() {
+            python -m unittest scripts.tests.test_verify_nav_engine_coverage -v
+            python scripts/verify_nav_engine_coverage.py --static-only
+          }
+
+          u_template_tag_loads() {
+            python scripts/verify_template_tag_loads.py --compare
+          }
+
+          u_inline_style_off_token() {
+            python scripts/scan_inline_style_off_token.py --compare
+          }
+
+          u_inline_event_handlers() {
+            python scripts/scan_inline_event_handlers.py --compare
+          }
+
+          u_off_token_colors() {
+            python scripts/scan_off_token_colors.py --strict
+          }
+
+          u_theme_locked_token_text() {
+            python scripts/scan_theme_locked_token_text.py --strict
+          }
+
+          u_undefined_css_classes() {
+            python scripts/scan_undefined_css_classes.py --compare
+          }
+
+          u_unregistered_middleware() {
+            python scripts/scan_unregistered_middleware.py --strict
+          }
+
+          u_python_files_parse() {
+            python scripts/verify_python_files_parse.py
+          }
+
+          u_javascript_files_parse() {
+            python scripts/verify_javascript_files_parse.py
+          }
+
+          u_template_html_structure() {
+            python scripts/verify_template_html_structure.py
+          }
+
+          u_documented_baselines() {
+            python scripts/check_documented_baselines.py
+            python scripts/verify_ci_gate_wiring.py
+          }
+
+          u_emotional_ux_signals() {
+            python scripts/audit_emotional_ux_signals.py
+          }
+
+          u_rbac_matrix() {
+            python scripts/audit_role_permission_matrix.py --max-candidate-anonymous 0
+          }
+
+          u_migration_files_tracked() {
+            python scripts/verify_migration_files_tracked.py
+            python scripts/verify_tenant_schema_app_registration.py
+          }
+
+          u_marketing_bell_clock() {
+            python scripts/scan_bell_clock_consistency.py
+          }
+
+          u_marketing_asset_parity() {
+            python scripts/check_marketing_assets_claimed_vs_present.py
+          }
+
+          u_marketing_css_bundles_fresh() {
+            python scripts/verify_marketing_css_bundles_fresh.py
+          }
+
+          u_marketing_public_shell() {
+            python scripts/setup_marketing_ci_assets.py
+            python scripts/verify_marketing_public_shell.py
+            python scripts/verify_marketing_hero_media.py
+          }
+
+          u_playwright_ci_harness() {
+            python scripts/verify_ci_harness_bundle.py
+          }
+
+          u_orchestrator_prompt_pack() {
+            python scripts/verify_orchestrator_prompt_pack.py --strict
+          }
+
+          # Deploy-gate checks that had no workflow at all. They ran only inside
+          # scripts/pre_deploy_gate.sh, which nothing schedules -- so a violation
+          # reached main and waited for someone to run a 40-minute script by hand.
+          # verify_control_plane_hub_registry_drift caught a page in neither registry
+          # on the day it landed; lint_broad_except caught a guard that would have
+          # downgraded a box to plain HTTP in silence. Both were found by hand.
+          u_broad_except_baseline() {
+            python scripts/lint_broad_except.py --allowlist scripts/allowlists/broad_except_allowlist.json --strict
+          }
+
+          u_control_plane_registry_drift() {
+            python scripts/verify_control_plane_hub_registry_drift.py
+          }
+
+          run_unit u_ai_gateway_boundary "AI gateway import boundary"
+          run_unit u_ai_copilot_rbac_coverage "AI copilot RBAC invoke coverage"
+          run_unit u_ai_naming_honesty "AI naming honesty + consolidation seals"
+          run_unit u_tenant_control_plane_rbac "Tenant vs control-plane RBAC boundary (5-pass)"
+          run_unit u_signup_production_readiness "Signup production readiness (9-pass)"
+          run_unit u_sentry_boundary "Sentry SDK import boundary"
+          run_unit u_staff_gate_tenant_surface "is_staff operator-gate on tenant surface (H1 seal)"
+          run_unit u_access_resolver_fragmentation "Access-resolver fragmentation ratchet"
+          run_unit u_config_resolver_fragmentation "Config-resolver adoption ratchet"
+          run_unit u_upload_validation_coverage "Upload-validation coverage ratchet"
+          run_unit u_granular_rbac_adoption "Granular-RBAC adoption ratchet"
+          run_unit u_lander_phantom_fields "Migration Cloud lander phantom-field seal"
+          run_unit u_lander_row_error_contract "Migration Cloud landers keep the row they reject"
+          run_unit u_ota_pipeline_wiring "The OTA pipeline is still connected end to end"
+          run_unit u_raw_token_in_ui "No internal identifier is shown to a human as words"
+          run_unit u_duplicate_dict_keys "No dict literal silently discards an entry"
+          run_unit u_operator_landing_header_order "Operator landing header precedes cockpit chrome"
+          run_unit u_lander_row_streaming "Migration Cloud landers stream canonical rows"
+          run_unit u_migration_apply_stall_contract "Migration apply stall detection contract"
+          run_unit u_admin_manager_shell_aggressive "Admin manager shell bundle (15 checks, ~8 min)"
+          run_unit u_admin_surface_contracts "Admin surface contracts (previously invoked by nothing)"
+          run_unit u_theme_hue_coherence "A theme sits in one hue family"
+          run_unit u_migration_cloud_provision_boundary "Migration Cloud must not dispatch school provision"
+          run_unit u_provisioning_broker_topology "Broker-up requires worker+beat + defer contract"
+          run_unit u_tenant_migrate_lock_timeout "Fix D tenant migrate lock_timeout wiring"
+          run_unit u_celery_worker_ping_contract "Celery worker ping healthz + CLI contract"
+          run_unit u_migration_transaction_side_effects "No side effects in a migration transaction (deploy-abort seal)"
+          run_unit u_tenant_template_operator_links "No tenant-facing template links to an operator route (H4.6)"
+          run_unit u_tenant_isolation_penetration_freshness "Tenant-isolation penetration scenario matrix is current (H4.7)"
+          run_unit u_print_statements "print() statement boundary"
+          run_unit u_config_sot_domain_ownership "Config SOT — domain-ownership exact-storage parity"
+          run_unit u_bare_except "Bare except: clause boundary"
+          run_unit u_migration_model_imports "Migration live-model-import boundary"
+          run_unit u_import_reference_integrity "Import-reference integrity boundary"
+          run_unit u_offline_capability_implementation "Offline capability implementation"
+          run_unit u_drf_schema_coverage "DRF view schema coverage"
+          run_unit u_role_strings "Hardcoded role-string boundary"
+          run_unit u_terminology_adoption "Terminology-adoption drift (templates)"
+          run_unit u_exam_board_filtering "Exam-board local-first filtering"
+          run_unit u_currency_tenant_fallback "Currency tenant-fallback (no XAF lock)"
+          run_unit u_locale_display "Locale display (no hardcoded currency symbol)"
+          run_unit u_assert_in_production "assert statements in production code"
+          run_unit u_magic_numbers "Magic-number (>= 100) drift"
+          run_unit u_subprocess_shell_true "subprocess(..., shell=True) / os.system boundary"
+          run_unit u_intelligence_model_producers "Surface model producers (read-only-orphan seal)"
+          run_unit u_rls_bypass "RLS bypass (raw SQL / cursor.execute) boundary"
+          run_unit u_wallpaper_status_badges "Wallpaper status badges (MAX)"
+          run_unit u_money_float "FinTech: float() on money paths (Decimal-only)"
+          run_unit u_cross_tenancy_fk "P3: Cross-tenancy ForeignKey (SHARED -> TENANT)"
+          run_unit u_tenant_isolation_marker_quality "P3: Tenant-isolation marker reason quality"
+          run_unit u_dr_drill_schedule "P12: DR restore drill cadence"
+          run_unit u_locale_coverage "i18n: per-locale msgstr coverage (drift detection)"
+          run_unit u_service_worker_version "PWA: service-worker CACHE_VERSION shape + monotonicity"
+          run_unit u_django_admin_preview_parity "Admin: approval HTML → live shell lock (visible chip + grid)"
+          run_unit u_deploy_cache_posture "PWA: deploy cache posture (SW scope + freshness + no scanner block)"
+          run_unit u_slo_registry "SRE: SLO registry structural integrity"
+          run_unit u_report_entity_coverage "Reports: entity catalog coverage"
+          run_unit u_sri_required "P1: Subresource Integrity required on third-party HTTPS assets"
+          run_unit u_csp_nonce_emission "P1: CSP nonce emission across shells"
+          run_unit u_pwa_manifest_coverage "P9: PWA manifest coverage across dashboard shells"
+          run_unit u_plan_deliverables_12_pillar "12-pillar plan deliverables (all P0-P12 artifacts present)"
+          run_unit u_legacy_send_mail_scan "Legacy send_mail scan (v4.00.98 Phase 7)"
+          run_unit u_ai_engine_room "AI engine room completeness (tiers 1-5)"
+          run_unit u_reveal_armed_invariants "Reveal-armed defense + no-duplicate-class-attrs invariants"
+          run_unit u_layout_frame_guard "Layout frame guard (flex collapse + horizontal overflow + sticky clip)"
+          run_unit u_theme_attribute_contract "Theme attribute contract (data-theme = effective, never preference)"
+          run_unit u_pii_logging_smell "PII logging smell (passwords/tokens/secrets interpolated into logger calls)"
+          run_unit u_sigalrm_worker_thread_safety "SIGALRM / ITIMER only in guarded nuance_engine path (Gunicorn gthread)"
+          run_unit u_hardcoded_client_fetch "Hardcoded client fetch paths (platform configurability cascade)"
+          run_unit u_wizard_json_schema_drift "Unified Wizard Framework: JSON schema drift (baseline 0)"
+          run_unit u_wizard_class_grammar "Unified Wizard Framework: .rmc-wizard-* class grammar (baseline 0)"
+          run_unit u_canonical_headers_drift "Companion canonical_headers.json drift vs Django SOT"
+          run_unit u_template_render_safety "Template render-safety (leaks / unclosed tags / missing refs)"
+          run_unit u_include_with_default_context_var "|default/slice/add missing_var (VariableDoesNotExist 500)"
+          run_unit u_nav_engine_coverage "Nav Engine coverage (static catalog + projector wiring)"
+          run_unit u_template_tag_loads "Template custom tag {% load %} integrity"
+          run_unit u_inline_style_off_token "Apple HIG: inline styles off the token system"
+          run_unit u_inline_event_handlers "CSP enforce seal: no inline on*= event handlers"
+          run_unit u_off_token_colors "Off-token color literals in CSS (theme switching safety)"
+          run_unit u_theme_locked_token_text "Theme-locked token references in CSS (subtle invisibility bugs)"
+          run_unit u_undefined_css_classes "Undefined CSS classes (typos & silent layout bugs)"
+          run_unit u_unregistered_middleware "Every middleware class is registered (zero tolerance)"
+          run_unit u_python_files_parse "Every Python file parses (zero tolerance)"
+          run_unit u_javascript_files_parse "Every shipped JavaScript file parses (zero tolerance)"
+          run_unit u_template_html_structure "Every template closes what it opens (zero tolerance)"
+          run_unit u_documented_baselines "Documented baselines (CLAUDE.md vs var/*.json drift)"
+          run_unit u_emotional_ux_signals "Emotional UX signals (ratchet-only)"
+          run_unit u_rbac_matrix "RBAC matrix (candidate-anonymous gate)"
+          run_unit u_migration_files_tracked "Migration files tracked in git"
+          run_unit u_marketing_bell_clock "Bell-clock mark consistency"
+          run_unit u_marketing_asset_parity "Marketing asset parity"
+          run_unit u_marketing_css_bundles_fresh "Marketing CSS bundles fresh"
+          run_unit u_marketing_public_shell "Marketing public shell hygiene"
+          run_unit u_playwright_ci_harness "Playwright + 50-app CI harness wiring"
+          run_unit u_orchestrator_prompt_pack "Orchestrator agent prompt pack completeness"
+          run_unit u_broad_except_baseline "No new broad except in high-risk paths"
+          run_unit u_control_plane_registry_drift "Every control-plane page is registered or exempt"
+
+          if [ -n "$failed" ]; then
+            echo ""
+            echo "FAILED boundary gates:"
+            printf '%s' "$failed"
+            echo ""
+            echo "passed: ${passed}"
+            exit 1
+          fi
+          echo ""
+          echo "All ${passed} boundary gates passed."
+
+
+  boundary-scanners-deps:
+    name: Boundary scanners (12 gates, needs requirements)
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install runtime dependencies
-        # Required for manage.py makemigrations --dry-run inside the helper.
-        working-directory: .
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install requirements once (was 12 separate installs)
         run: |
-          pip install --upgrade pip
+          python -m pip install --upgrade pip
           pip install -r requirements.txt
-      - name: Detect real schema drift
-        # Wave L (v2.48+L1b): `manage.py makemigrations --check` is
-        # noisy after F2's callable inlining (v2.47), reporting ~38
-        # cosmetic AlterField ops on every run. This wrapper filters
-        # those out and exits 1 only when a REAL schema change has
-        # slipped past the migration graph. Without this, operators
-        # can't tell ambient drift from genuine forgotten migrations.
+      - name: Run 12 dependency-backed boundary gates
         run: |
-          python scripts/check_real_migration_drift.py
+          set -uo pipefail
+          failed=""
+          passed=0
 
-  settings-registry-strict:
-    name: Settings registry coverage (strict)
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Install dependencies
-        run: |
-          pip install --upgrade pip
-          pip install -r requirements.txt
-      - name: verify_settings_registry_coverage --strict
-        run: python scripts/verify_settings_registry_coverage.py --strict
+          # Each unit is one former job. `set -e` inside the subshell reproduces
+          # step-aborts-on-failure WITHIN a job; the caller never aborts, so every unit
+          # still runs and every failure is still reported -- which is what 108 separate
+          # jobs bought, and the only property worth preserving from them.
+          run_unit() {
+            local fn="$1" label="$2"
+            echo "::group::${label}"
+            # NOT `if ( set -e; "$fn" )`. POSIX disables set -e inside anything used as an
+            # if-condition, so that form runs a unit's REMAINING commands after one fails
+            # and then reports PASS. Verified: a unit of `false; echo X` printed X and
+            # passed. Run the subshell on its own line and read $? instead.
+            ( set -e; "$fn" )
+            rc=$?
+            if [ "$rc" -eq 0 ]; then
+              echo "PASS  ${label}"
+              passed=$((passed + 1))
+            else
+              echo "::error title=${label}::boundary gate failed (exit ${rc})"
+              failed="${failed}  - ${label}"$'\n'
+            fi
+            echo "::endgroup::"
+          }
 
-  documented-baselines:
-    name: "Documented baselines (CLAUDE.md vs var/*.json drift)"
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Detect doc-vs-baseline drift
-        # Wave N (v2.53+). Every scanner has three numbers that should
-        # agree: CLAUDE.md table, var/security-audit-baseline-*.json,
-        # and live scanner output. CI already catches #2 vs #3 on every
-        # PR; this gate catches #1 vs #2 — the L1a failure mode where
-        # the JSON moved but the doc didn't.
-        run: |
-          python scripts/check_documented_baselines.py
-      - name: Verify CI gate wiring
-        # Meta-gate: assert every critical gate (the reference-integrity
-        # family + key zero-tolerance scanners) is still invoked in a
-        # workflow, so an unrelated workflow edit can never silently
-        # un-enforce a gate (the url-name-step-dropped regression).
-        run: |
-          python scripts/verify_ci_gate_wiring.py
+          u_world_engine_i18n_ci() {
+            sudo apt-get update -qq && sudo apt-get install -y -qq gettext
+            python scripts/verify_world_engine_i18n_ci.py
+          }
 
-  platform-readiness:
-    name: "Platform readiness preflight (csp / at_risk / baselines)"
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    env:
-      DEBUG: "0"
-      SECRET_KEY: "ci-platform-readiness-not-for-production-use-64chars______________________"
-      ALLOWED_HOSTS: "localhost,127.0.0.1,testserver,runmycampus.com,.runmycampus.com"
-      MULTI_TENANT_BASE_DOMAIN: runmycampus.com
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Install runtime dependencies
-        # verify_platform_readiness boots Django to import the readiness
-        # modules. residency / rls are intentionally skipped here — they
-        # need a populated tenants DB and run in operator pre-deploy
-        # workflows (see docs/PLATFORM_READINESS_PREFLIGHTS.md).
-        run: |
-          pip install --upgrade pip
-          pip install -r requirements.txt
-      - name: Run readiness preflight (csp + at_risk + baselines)
-        # Tier 1 gap closure (v2.60). The N1 preflight was previously
-        # manual-only; this CI gate ensures the same release-blocker
-        # criteria the operator runs pre-deploy are evaluated on every
-        # PR. Exit codes: 0 ready / 1 not-ready / 2 invocation error.
-        run: |
-          python manage.py verify_platform_readiness \
-            --settings=config.settings \
-            --section csp at_risk baselines
+          u_global_footprint_glocal_offline() {
+            npm ci
+            npm run build:world-globe
+            python scripts/generate_global_footprint_preview.py
+            python scripts/verify_global_footprint_preview.py
+            python scripts/verify_world_globe_footprint.py
+            python scripts/verify_world_globe_10x.py
+            python scripts/verify_global_footprint_glocal_offline_integration.py
+            python manage.py test apps.siteconfig.tests.test_globe_10x apps.siteconfig.tests.test_world_map_geo apps.siteconfig.tests.test_world_globe_wiring --verbosity=1 --no-input
+            python scripts/verify_offline_queue_encryption_at_rest.py
+            python scripts/verify_collabora_offline_posture.py
+          }
 
-  emotional-ux-signals:
-    name: Emotional UX signals (ratchet-only)
-    runs-on: ubuntu-latest
-    timeout-minutes: 4
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run emotional UX scanner with ratchet baseline
-        # v2.86: heuristic proxies for bad emotional UX (hostile error copy,
-        # naked exception leakage, alarming numbers without context, hostile
-        # empty states, imperative tone without reason). Ratchet-only:
-        # baseline pinned in var/security-audit-baseline-emotional-ux.json.
-        # Mark intentional sites with `<!-- ux-allow: <reason> -->`. Lower
-        # the baseline as you fix; NEVER raise it to silence the scanner.
-        run: python scripts/audit_emotional_ux_signals.py
+          u_global_governance_plan_completion() {
+            python scripts/verify_country_governance_matrix.py --require-verified --drift-check --write
+            python scripts/verify_country_dissection_ledger.py --require-verified
+            python scripts/verify_subdivision_coverage.py --min-sovereign-pct 100
+            python scripts/verify_country_layer_consistency.py --mc-depth
+            python scripts/verify_hierarchy_silo_drift.py --write
+            python scripts/verify_governance_no_hardcode.py
+            python scripts/verify_school_operating_modes.py
+            python scripts/verify_global_operational_blind_spots.py --granular-ops
+            python scripts/verify_governance_doc_truth.py
+            python scripts/verify_regulatory_matrix_coverage.py --json
+            python scripts/verify_edge_jurisdiction_coverage.py --json
+            python scripts/verify_matrix_provenance.py --json
+            python scripts/verify_org_lifecycle_events.py --json
+            python scripts/verify_exam_board_coverage.py --json
+            python scripts/verify_legacy_mis_route_coverage.py --json
+            python scripts/verify_national_sso_brokers.py --json
+            python scripts/verify_calendar_ingestion.py --json
+            python scripts/verify_labor_law_matrix.py --json
+            python scripts/verify_minority_language_rights.py --json
+            python scripts/verify_accessibility_matrix.py --json
+            python scripts/verify_dr_rto_rpo_residency.py --json
+            python scripts/verify_pricing_ppp_matrix.py --json
+            python scripts/verify_risk_register.py --json
+            python scripts/verify_rollback_runbooks.py --json
+            python scripts/verify_customer_comms_templates.py --json
+            python scripts/verify_phase_slo_budgets.py --json
+            python scripts/verify_governance_property_tests.py --json
+            python scripts/verify_matrix_freshness.py --json
+            python scripts/verify_tla_specs.py --json
+            python scripts/verify_compliance_engine.py --json
+            python scripts/verify_sovereignty_trust_score.py --json
+            python scripts/verify_cross_vertical_kernel.py --json
+            python scripts/verify_multimodal_terminology.py --json
+            python scripts/verify_regulator_api_federation.py --json
+            python scripts/verify_adversarial_redteam.py --json
+            python scripts/verify_w3c_verifiable_credentials.py --json
+            python scripts/verify_time_traveling_matrix.py --json
+            python scripts/verify_zero_form_bootstrap.py --json
+            python scripts/verify_ai_policy_copilot.py --json
+            python scripts/verify_cross_org_marketplace.py --json
+            python scripts/verify_federated_emis_aggregator.py --json
+            python scripts/verify_competitor_tracker.py --json
+            python -m unittest discover -s apps/governance/turbo/tests -t .
+            python scripts/verify_org_backfill_operator_smoke.py --write
+            python scripts/verify_poly_institution_final_sweep.py --write
+            python scripts/verify_poly_institution_governance_stack.py --write
+            python scripts/verify_global_governance_plan_completion.py --strict --json
+            python scripts/verify_doc_plan_density_discipline.py
+            python scripts/verify_scheduling_exclude_constraints.py --write
+            python scripts/verify_group_console_http_contract.py --write
+            python scripts/verify_multicampus_wedge_http_contract.py --write
+            python scripts/run_sqlite_memory_tests.py apps.schools.tests.test_group_console apps.schools.tests.test_group_console_http apps.portal.tests.test_multicampus_wedge_http apps.interop.tests.test_transfer_apply apps.billing.tests.test_group_consolidation emis.tests.test_org_aggregate apps.people.tests.test_staff_compliance apps.schools.tests.test_governance_matrix_runtime apps.governance.tests.test_prompt_shaping_terminology apps.finance.tests.test_org_fx_rollup apps.schools.tests.test_context_profiles.ContextProfileServiceTests apps.registries.tests.test_seed_iso3166_subdivisions apps.governance.tests.test_models apps.siteconfig.tests.test_country_language_overlay_regression apps.academics.test_fractional_capacity apps.governance.tests.test_backfill_organizations apps.governance.tests.test_mat_groups_sync apps.academics.tests.test_scheduling_db_constraints apps.academics.tests.test_instruction_shift_conflicts
+          }
 
-  rbac-matrix:
-    name: RBAC matrix (candidate-anonymous gate)
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run RBAC matrix scanner with baseline gate
-        # v2.83: any NEW candidate-anonymous route (no @login_required,
-        # @role_required, @permission_required, DRF permission_classes,
-        # auth-enforcing mixin, inline is_authenticated check, or
-        # `# rbac-allow:` marker detectable by AST) makes the gate fail.
-        # Pin to the current count. If a new route is intentionally
-        # public, add the right decorator; if it's protected by
-        # middleware/RLS, add `# rbac-allow: <reason>` on the same line
-        # as path(...). NEVER raise this number to silence the scanner.
-        run: |
-          python scripts/audit_role_permission_matrix.py --max-candidate-anonymous 0
+          u_studio_os_10x_completion() {
+            python scripts/smoke_studio_os_10x_w1.py
+            python scripts/smoke_studio_os_10x_all_waves.py
+            python scripts/verify_studio_os_10x_completion.py --strict --json
+          }
 
-  migration-files-tracked:
-    name: Migration files tracked in git
-    runs-on: ubuntu-latest
-    timeout-minutes: 3
-    steps:
-      - uses: actions/checkout@v4
-      - name: Verify migration files are not gitignored or untracked
-        run: python scripts/verify_migration_files_tracked.py
-      - name: Verify tenant SHARED_APPS / TENANT_APPS cover migrated apps
-        run: python scripts/verify_tenant_schema_app_registration.py
+          u_workflow_progress_bus() {
+            python scripts/verify_workflow_progress_10x.py
+            python scripts/verify_workflow_recovery_end_to_end.py
+            python scripts/verify_workflow_recovery_command_center.py
+            python scripts/verify_workflow_healing_coverage.py --strict
+          }
 
-  marketing-bell-clock:
-    name: Bell-clock mark consistency
-    runs-on: ubuntu-latest
-    timeout-minutes: 3
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run bell-clock consistency scanner
-        run: python scripts/scan_bell_clock_consistency.py
+          u_email_infrastructure() {
+            python scripts/smoke_email_infrastructure_phase1.py
+            python scripts/smoke_email_infrastructure_phase2.py
+            python scripts/smoke_email_infrastructure_phase3.py
+            python scripts/smoke_email_infrastructure_phase4.py
+            python scripts/smoke_email_infrastructure_phase5.py
+            python scripts/smoke_email_infrastructure_phase6.py
+            python scripts/smoke_email_infrastructure_phase7.py
+          }
 
-  marketing-asset-parity:
-    name: Marketing asset parity
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run marketing asset parity scanner
-        run: python scripts/check_marketing_assets_claimed_vs_present.py
+          u_sentry_alert_rule_drift() {
+            python scripts/verify_sentry_alert_rule_drift.py --strict
+          }
 
-  marketing-css-bundles-fresh:
-    name: Marketing CSS bundles fresh
-    runs-on: ubuntu-latest
-    timeout-minutes: 3
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Verify marketing-critical/enhanced bundles match sources
-        run: python scripts/verify_marketing_css_bundles_fresh.py
+          u_real_migration_drift() {
+            python scripts/check_real_migration_drift.py
+          }
 
-  marketing-public-shell:
-    name: Marketing public shell hygiene
-    runs-on: ubuntu-latest
-    timeout-minutes: 3
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Marketing shell + hero media gates
-        run: |
-          python scripts/setup_marketing_ci_assets.py
-          python scripts/verify_marketing_public_shell.py
-          python scripts/verify_marketing_hero_media.py
+          u_settings_registry_strict() {
+            python scripts/verify_settings_registry_coverage.py --strict
+          }
 
-  playwright-ci-harness:
-    name: Playwright + 50-app CI harness wiring
-    runs-on: ubuntu-latest
-    timeout-minutes: 3
-    steps:
-      - uses: actions/checkout@v4
-      - name: Verify CI harness bundle
-        run: python scripts/verify_ci_harness_bundle.py
+          u_platform_readiness() {
+            python manage.py verify_platform_readiness \
+              --settings=config.settings \
+              --section csp at_risk baselines
+          }
 
-  platform-pillar-gates:
-    name: "Platform pillars: middleware order, tenant cache, list search"
-    runs-on: ubuntu-latest
-    timeout-minutes: 12
-    defaults:
-      run:
-        working-directory: .
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Install dependencies
-        run: pip install -r requirements.txt
-      - name: Pillar mechanical gates
-        env:
-          SECRET_KEY: "ci-platform-pillar-gates-not-production-64chars-long"
-          ALLOWED_HOSTS: "127.0.0.1,localhost,testserver,manager.runmycampus.com"
-        run: |
-          python scripts/verify_github_artifact_retention.py
-          python scripts/verify_middleware_stack_order.py
-          python scripts/verify_tenant_resolution_cache_keys.py
-          python scripts/verify_websocket_tenant_scope.py
-          python scripts/scan_staff_bypass_tenant_guards.py --compare
-          python scripts/verify_delta_sync_requires_school.py
-          python scripts/verify_graphql_control_plane_host.py
-          python scripts/verify_platform_authenticated_realdata.py
-          python scripts/verify_sse_tenant_ingress.py
-          python scripts/audit_celery_tenant_task_scoping.py --compare
-          python scripts/verify_list_search_adoption.py
-          python scripts/verify_slo_metrics_emit_sites.py
-          python scripts/verify_prometheus_observability_stack.py
-          python scripts/verify_five_pillar_platform_completion.py --write
-          python scripts/verify_greatest_education_os_matrix.py --write
-          python scripts/verify_geos_lane2_scaffold.py
-          python scripts/verify_tenant_sovereignty_pillar.py --write
-          python scripts/verify_six_pillar_global_dominance.py --write
-          python scripts/verify_footer_surface_contract.py --write
-          python scripts/verify_manager_portal_chrome_completion.py --write
-          python scripts/verify_admin_steering_strip_contract.py
-          ADMIN_RENDER_SAMPLE_MAX=32 python scripts/verify_admin_changelist_render_contract.py
-          python scripts/verify_interaction_integrity_completion.py
-          python scripts/scan_operator_shell_dead_hrefs.py --strict
-          python scripts/verify_tenant_copilot_expand_contract.py
-          python scripts/verify_operator_primary_nav_contract.py
-          python scripts/verify_operator_tools_tray.py
-          python scripts/verify_preview_shell_100x_tenant_parity.py
-          python scripts/verify_tenant_preview_to_live_adoption.py --wave W0
-          python scripts/verify_tenant_preview_to_live_adoption.py --wave W1
-          python scripts/verify_manager_header_account_completion.py
-          python scripts/verify_operator_help_center_completion.py
-          python scripts/verify_provisioning_migrates_tenant_schema.py
-          npm run test:interaction-integrity
-          python manage.py migrate --noinput
-          python manage.py backfill_search_indexes --only all
-          python scripts/run_sqlite_memory_tests.py \
-            apps.schools.tests.test_tenant_resolution_cache \
-            apps.siteconfig.tests.test_list_search \
-            apps.siteconfig.tests.test_tenant_switch_security \
-            apps.people.tests.test_student_search \
-            apps.marketplace.tests.test_extension_manifest_validation \
-            apps.marketplace.tests.test_install_manifest_gate \
-            apps.automation.tests.test_domain_event_bridge_depth \
-            apps.automation.tests.test_domain_event_dedup \
-            apps.automation.tests.test_trigger_dispatcher_depth \
-            apps.schoolops.tests.test_notification_batch \
-            apps.finance.tests.test_webhook_ingress \
-            apps.finance.tests.test_views_payments_dedup_bucket \
-            apps.api.tests.test_me_schools_bola \
-            apps.portal.tests.test_document_search \
-            payment.tests.test_webhook_ingress \
-            --verbosity=1
+          u_platform_pillar_gates() {
+            python scripts/verify_github_artifact_retention.py
+            python scripts/verify_middleware_stack_order.py
+            python scripts/verify_tenant_resolution_cache_keys.py
+            python scripts/verify_websocket_tenant_scope.py
+            python scripts/scan_staff_bypass_tenant_guards.py --compare
+            python scripts/verify_delta_sync_requires_school.py
+            python scripts/verify_graphql_control_plane_host.py
+            python scripts/verify_platform_authenticated_realdata.py
+            python scripts/verify_sse_tenant_ingress.py
+            python scripts/audit_celery_tenant_task_scoping.py --compare
+            python scripts/verify_list_search_adoption.py
+            python scripts/verify_slo_metrics_emit_sites.py
+            python scripts/verify_prometheus_observability_stack.py
+            python scripts/verify_five_pillar_platform_completion.py --write
+            python scripts/verify_greatest_education_os_matrix.py --write
+            python scripts/verify_geos_lane2_scaffold.py
+            python scripts/verify_tenant_sovereignty_pillar.py --write
+            python scripts/verify_six_pillar_global_dominance.py --write
+            python scripts/verify_footer_surface_contract.py --write
+            python scripts/verify_manager_portal_chrome_completion.py --write
+            python scripts/verify_admin_steering_strip_contract.py
+            ADMIN_RENDER_SAMPLE_MAX=32 python scripts/verify_admin_changelist_render_contract.py
+            python scripts/verify_interaction_integrity_completion.py
+            python scripts/scan_operator_shell_dead_hrefs.py --strict
+            python scripts/verify_tenant_copilot_expand_contract.py
+            python scripts/verify_operator_primary_nav_contract.py
+            python scripts/verify_operator_tools_tray.py
+            python scripts/verify_preview_shell_100x_tenant_parity.py
+            python scripts/verify_tenant_preview_to_live_adoption.py --wave W0
+            python scripts/verify_tenant_preview_to_live_adoption.py --wave W1
+            python scripts/verify_manager_header_account_completion.py
+            python scripts/verify_operator_help_center_completion.py
+            python scripts/verify_provisioning_migrates_tenant_schema.py
+            npm run test:interaction-integrity
+            python manage.py migrate --noinput
+            python manage.py backfill_search_indexes --only all
+            python scripts/run_sqlite_memory_tests.py \
+              apps.schools.tests.test_tenant_resolution_cache \
+              apps.siteconfig.tests.test_list_search \
+              apps.siteconfig.tests.test_tenant_switch_security \
+              apps.people.tests.test_student_search \
+              apps.marketplace.tests.test_extension_manifest_validation \
+              apps.marketplace.tests.test_install_manifest_gate \
+              apps.automation.tests.test_domain_event_bridge_depth \
+              apps.automation.tests.test_domain_event_dedup \
+              apps.automation.tests.test_trigger_dispatcher_depth \
+              apps.schoolops.tests.test_notification_batch \
+              apps.finance.tests.test_webhook_ingress \
+              apps.finance.tests.test_views_payments_dedup_bucket \
+              apps.api.tests.test_me_schools_bola \
+              apps.portal.tests.test_document_search \
+              payment.tests.test_webhook_ingress \
+              --verbosity=1
+          }
 
-  orchestrator-prompt-pack:
-    name: Orchestrator agent prompt pack completeness
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Verify prompt pack (strict)
-        run: |
-          python scripts/verify_orchestrator_prompt_pack.py --strict
+          u_theme_visibility_platform() {
+            python manage.py migrate --noinput
+            python scripts/verify_theme_visibility_platform.py
+            python scripts/verify_sidebar_rail_contract.py
+            python scripts/verify_manager_admin_cp_layout.py
+            python scripts/audit_security_posture_banner_layout.py
+            python scripts/audit_sidebar_disclosure_overflow.py
+            python scripts/audit_section_nav_platform.py --strict --write
+            python scripts/scan_main_content_text_utilities.py
+            python scripts/run_sqlite_memory_tests.py apps.siteconfig.tests.test_theme_visibility_matrix --verbosity=1
+          }
 
-  theme-visibility-platform:
-    name: "Theme visibility: shell wiring + main-content utility baseline"
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Install dependencies
-        run: pip install -r requirements.txt
-      - name: Theme visibility gates
-        env:
-          SECRET_KEY: "ci-theme-visibility-arch-boundary-not-production-64chars"
-          ALLOWED_HOSTS: "127.0.0.1,localhost,testserver,manager.runmycampus.com"
-        run: |
-          python manage.py migrate --noinput
-          python scripts/verify_theme_visibility_platform.py
-          python scripts/verify_sidebar_rail_contract.py
-          python scripts/verify_manager_admin_cp_layout.py
-          python scripts/audit_security_posture_banner_layout.py
-          python scripts/audit_sidebar_disclosure_overflow.py
-          python scripts/audit_section_nav_platform.py --strict --write
-          python scripts/scan_main_content_text_utilities.py
-          python scripts/run_sqlite_memory_tests.py apps.siteconfig.tests.test_theme_visibility_matrix --verbosity=1
+          run_unit u_world_engine_i18n_ci "World Engine: i18n catalog freshness + compile"
+          run_unit u_global_footprint_glocal_offline "Global Footprint + glocal + offline integration"
+          run_unit u_global_governance_plan_completion "Global governance program closure (Phase 5 strict gate)"
+          run_unit u_studio_os_10x_completion "Studio OS 10X program closure (5-wave sweep gate)"
+          run_unit u_workflow_progress_bus "Workflow Progress Bus 10x gate (v4.01.18)"
+          run_unit u_email_infrastructure "Email infrastructure 7-phase gate (v4.00.98)"
+          run_unit u_sentry_alert_rule_drift "P6: Sentry alert-rule drift (rules-as-code vs snapshot)"
+          run_unit u_real_migration_drift "Real migration drift (cosmetic F2 drift filtered)"
+          run_unit u_settings_registry_strict "Settings registry coverage (strict)"
+          run_unit u_platform_readiness "Platform readiness preflight (csp / at_risk / baselines)"
+          run_unit u_platform_pillar_gates "Platform pillars: middleware order, tenant cache, list search"
+          run_unit u_theme_visibility_platform "Theme visibility: shell wiring + main-content utility baseline"
 
-  access-resolver-fragmentation:
-    name: Access-resolver fragmentation ratchet
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run scanner --compare
-        run: |
-          python scripts/scan_access_resolver_fragmentation.py --compare
+          if [ -n "$failed" ]; then
+            echo ""
+            echo "FAILED boundary gates:"
+            printf '%s' "$failed"
+            echo ""
+            echo "passed: ${passed}"
+            exit 1
+          fi
+          echo ""
+          echo "All ${passed} boundary gates passed."
 
-  config-resolver-fragmentation:
-    name: Config-resolver adoption ratchet
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run scanner --compare
-        run: |
-          python scripts/scan_config_resolver_fragmentation.py --compare

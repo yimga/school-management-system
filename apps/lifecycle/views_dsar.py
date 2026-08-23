@@ -4,7 +4,8 @@ URL: /portal/configure/offboarding/export-and-close/
 - GET → confirmation page describing export + request flow
 - POST → submits offboarding request (operator-only) or legacy self-close when enabled
 
-Permissions: tenant must be authenticated AND user.is_staff (school admin).
+Permissions: tenant-lifecycle access for THIS school (membership + settings.manage
+/ owner / admin-like role), as used by the export-only sibling view.
 """
 
 from __future__ import annotations
@@ -12,34 +13,26 @@ from __future__ import annotations
 import logging
 
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseForbidden
 from django.shortcuts import render
 from django.views.decorators.http import require_http_methods
 
+from apps.schools.tenant_access import user_belongs_to_school
 from apps.schools.tenant_offboarding_policy import operator_only_offboarding
 
 from .services_offboarding import grace_expires_at
+from .tenant_school_resolve import (
+    can_access_tenant_lifecycle,
+    lifecycle_access_denied_response,
+    resolve_request_school,
+)
 
 logger = logging.getLogger(__name__)
-
-
-def _resolve_school(request):
-    school = (
-        getattr(request, "school", None)
-        or getattr(request, "tenant_school", None)
-        or getattr(request, "tenant", None)
-    )
-    if school and hasattr(school, "id"):
-        return school
-    return None
 
 
 @login_required
 @require_http_methods(["GET", "POST"])
 def dsar_export_and_close(request):
-    if not (request.user.is_staff or getattr(request.user, "is_superuser", False)):
-        return HttpResponseForbidden("Only school staff/admin may initiate offboarding.")
-    school = _resolve_school(request)
+    school = resolve_request_school(request)
     if school is None:
         return render(
             request,
@@ -49,6 +42,19 @@ def dsar_export_and_close(request):
             },
             status=400,
         )
+
+    # ``is_staff`` is the PLATFORM operator-team flag; nothing in signup or
+    # provisioning ever sets it on a school owner, so gating on it 403'd every
+    # real tenant admin on their own GDPR close page. Gate on tenant-lifecycle
+    # access instead — the same check the export-only sibling already uses.
+    if not can_access_tenant_lifecycle(request, school):
+        return lifecycle_access_denied_response(request)
+    # Closing a tenant is destructive and irreversible, so — unlike the
+    # export-only sibling — the actor must also BELONG to this school.
+    # can_access_tenant_lifecycle() admits any platform operator through
+    # tenant_operator_hub_eligible(), which never looks at membership.
+    if not user_belongs_to_school(request.user, school):
+        return lifecycle_access_denied_response(request)
 
     operator_only = operator_only_offboarding()
 

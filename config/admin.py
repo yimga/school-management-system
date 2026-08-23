@@ -5,13 +5,16 @@ The platform control plane and tenant admin now run on separate admin site
 instances so manager-host routes no longer behave like a tenant surface.
 """
 
+import functools
 import logging
+
+from django.contrib.admin.sites import AlreadyRegistered
 
 from apps.dashboard.admin_context import build_admin_dashboard_context
 
 from django.conf import settings
 from django.contrib.auth.forms import AuthenticationForm
-from django.core.exceptions import ImproperlyConfigured
+from django.core.exceptions import FieldDoesNotExist, ImproperlyConfigured
 from django.db import DatabaseError
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect
@@ -568,6 +571,253 @@ class _TenantScopedQuerysetMixin:
         return qs
 
 
+@functools.lru_cache(maxsize=1)
+def _tenancy_app_lists():
+    """(SHARED_APPS, TENANT_APPS) parsed from config/settings.py SOURCE.
+
+    See TenantAdminSite._model_is_schema_isolated for why this cannot read the
+    live settings object. Pure ``ast``; returns ((), ()) if anything goes wrong,
+    which callers treat as "unknown", never as "isolated".
+    """
+    import ast as _ast
+    import pathlib as _pathlib
+
+    try:
+        src = _pathlib.Path(__file__).with_name("settings.py").read_text(
+            encoding="utf-8", errors="ignore"
+        )
+        tree = _ast.parse(src)
+    except (OSError, SyntaxError, ValueError):
+        return ((), ())
+    found = {"SHARED_APPS": [], "TENANT_APPS": []}
+    for node in _ast.walk(tree):
+        if not isinstance(node, _ast.Assign) or not isinstance(node.value, _ast.List):
+            continue
+        for target in node.targets:
+            if isinstance(target, _ast.Name) and target.id in found:
+                for elt in node.value.elts:
+                    if isinstance(elt, _ast.Constant) and isinstance(elt.value, str):
+                        found[target.id].append(elt.value)
+    return (tuple(found["SHARED_APPS"]), tuple(found["TENANT_APPS"]))
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# SHARED models with NO ``school`` field.
+#
+# _TenantScopedQuerysetMixin can only be applied to a model that HAS a concrete
+# ``school`` field, because that is the column it filters on. A SHARED_APPS model
+# WITHOUT one therefore received no changelist scoping at all -- and its table
+# lives in ``public``, which a tenant-schema request's search_path includes. An
+# audit of the live registry found 53 such registrations: one school's admin
+# could read, filter and CSV-export every tenant's AuditLog, AccessLog,
+# UserActivitySession and ComplianceReport, and mutate the platform-global
+# ThreatDetectionConfig / IPAccessRule / CountryAccessRule perimeter.
+#
+# Every one of them is classified below, in exactly one of four ways. An
+# unclassified model FAILS CLOSED (see ``_tenant_scoped_admin_class``): a
+# changelist nobody has reasoned about must render nothing rather than silently
+# render every tenant's rows, which is the same fail-closed stance
+# _TenantFormFKScopeMixin already takes for an indeterminate School picker.
+
+# (a) Genuinely global catalogs. A school is MEANT to browse the whole list --
+#     platform permission codes, region compliance requirements, blueprint
+#     templates, report-card styles. Not a leak; browsing is the feature.
+TENANT_ADMIN_GLOBAL_CATALOGS = frozenset({
+    "accounts.Permission",
+    "auth.Group",
+    "brand_experience.ThemePack",
+    "compliance.CertificateTemplate",
+    "compliance.ComplianceRule",
+    "compliance.LegalDocument",
+    "compliance.RegionFeatureCompliance",
+    "compliance.RegionalComplianceRequirement",
+    "compliance.StudentIDFormat",
+    "emis.EMISCompliance",       # keyed by country_code/ministry, not by school
+    "emis.EMISFieldMapping",     # country-keyed export field catalog
+    "global_registries.GradingScaleConfig",
+    "global_registries.HolidayCalendar",
+    "global_registries.WeatherLocation",
+    "metadata.EntityCatalogEntry",
+    "runtime_blueprints.DashboardLayout",
+    "runtime_blueprints.DashboardPack",
+    "runtime_blueprints.DashboardTemplate",
+    "runtime_blueprints.DashboardWidget",
+    "runtime_blueprints.WorkflowPack",
+    "runtime_blueprints.WorkflowTemplate",
+    "siteconfig.FeatureToggleDefinition",
+    # A singleton with no school column, and its tenant-admin placement is
+    # DELIBERATE: two tests -- accounts test_site_settings_tenant_admin_only_
+    # platform_uses_super and platform_runtime test_site_settings_on_tenant_
+    # admin_only -- assert it is on the tenant site and NOT the platform one,
+    # because the operator has its own surface at super:site_settings_*.
+    #
+    # It is listed here rather than scoped because there is nothing to scope: one
+    # row, no school. Worth an operator's attention rather than a silent entry --
+    # its `maintenance_mode` is the PLATFORM-DEFAULT layer of a cascade
+    # (RuntimeDefaults -> School.settings -> here; see
+    # siteconfig/domain_ownership.py, which labels it "safe_platform_default"),
+    # and MaintenanceModeMiddleware resolves the EFFECTIVE value per tenant. So a
+    # tenant admin editing this row moves the default that every school which has
+    # NOT overridden it will inherit. That is a product decision about who may
+    # edit a shared default, not a scoping bug, and it is reported rather than
+    # changed here.
+    "siteconfig.SiteSettings",
+    "siteconfig.GlobalSyllabus",
+    "siteconfig.ReportCardStyle",
+    "siteconfig.ReportTemplate",
+})
+
+# (b) Reachable from a school by a relation path. Same shape as the school-field
+#     mixin, one join further out.
+TENANT_ADMIN_RELATION_SCOPE = {
+    "schools.DonorGiftAccessLink": "donor__school",
+    "siteconfig.WorkflowRunLog": "tenant_workflow__school",
+}
+
+# (c) Rows about a PERSON, with no school of their own -- audit trails,
+#     delegations, per-user preferences. The only tenant signal is who the actor
+#     is, so the row belongs to this school when that actor is a member of it.
+#     A row whose actor is NULL (system-initiated) is deliberately NOT shown to
+#     any tenant: it cannot be attributed, and guessing would leak.
+TENANT_ADMIN_ACTOR_SCOPE = {
+    "accounts.Delegation": "delegator",
+    "accounts.DelegationActionLog": "actor",
+    "accounts.TemporaryRoleGrant": "user",
+    "accounts.UserPasskey": "user",
+    "accounts.UserPreference": "user",
+    "apicenter.APIAuditLog": "changed_by",
+    "compliance.AccessLog": "user",
+    "compliance.AuditLog": "user",
+    "compliance.ComplianceAuditLog": "user",
+    "compliance.ComplianceCheck": "checked_by",
+    "compliance.ComplianceReport": "generated_by",
+    "compliance.UserActivitySession": "user",
+    "emis.EMISExport": "exported_by",
+    "requests.RequestAudit": "actor",
+    "requests.RequestDecision": "decided_by",
+    "runtime_blueprints.DashboardUserPreference": "user",
+    "siteconfig.DashboardUserPreference": "user",
+    "siteconfig.UserPreference": "user",
+}
+
+# (d) Platform-operator surfaces that must not appear on a tenant admin at all.
+#     These are not "a school's data the school may not see" -- they are the
+#     PLATFORM's own security perimeter and config history. ThreatDetectionConfig
+#     is a global singleton, so a tenant admin toggling it disabled threat
+#     detection for every school on the platform; IPAccessRule / CountryAccessRule
+#     are the platform-wide allow/deny perimeter.
+TENANT_ADMIN_OPERATOR_ONLY = frozenset({
+    "compliance.AuditArchiveRecord",
+    "compliance.AuditLegalHold",
+    "compliance.CountryAccessRule",
+    "compliance.IPAccessRule",
+    "compliance.ThreatDetectionConfig",
+    "metadata.ConfigMutationAuditLog",
+})
+
+# (e) Already scoped by the ModelAdmin's own get_queryset. Listed here rather
+#     than left to the fail-closed arm, and listed HERE rather than flagged in
+#     the app so all five classifications are read in one place.
+TENANT_ADMIN_SELF_SCOPED = frozenset({
+    # TenantScopedUserAdmin.get_queryset filters to users_queryset_for_school
+    # and returns .none() when the school is indeterminate.
+    "accounts.User",
+})
+
+
+class _TenantUnclassifiedFailClosedMixin:
+    """Render nothing for a SHARED model nobody has classified.
+
+    Reached only when a model is in SHARED_APPS, has no ``school`` field, and
+    appears in none of the four maps above. The alternative -- rendering the
+    changelist unscoped -- is a cross-tenant read on a table that physically
+    holds every tenant's rows, which is how 53 registrations came to leak. An
+    empty changelist is visible and reportable; a full one is not.
+    """
+
+    _rmc_tenant_scoped = True
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        logging.getLogger(__name__).warning(
+            "tenant admin: %s is a SHARED model with no school field and no "
+            "tenant-scope classification; rendering empty. Classify it in "
+            "config/admin.py (TENANT_ADMIN_* maps).",
+            qs.model._meta.label,
+        )
+        return qs.none()
+
+
+class _TenantRelationScopedQuerysetMixin:
+    """Scope a changelist through a relation path that reaches ``school``.
+
+    ``tenant_scope_path`` is a normal ORM lookup (``donor__school``). Fails
+    CLOSED when the school is indeterminate: an unscoped fallback on a SHARED
+    table is the leak this exists to prevent.
+    """
+
+    _rmc_tenant_scoped = True
+    tenant_scope_path = None
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        school = getattr(request, "school", None)
+        path = self.tenant_scope_path
+        if not path:
+            return qs.none()
+        if school is None:
+            return qs.none()
+        return qs.filter(**{path: school})
+
+
+class _TenantActorScopedQuerysetMixin:
+    """Scope a person-keyed changelist to actors who belong to this school.
+
+    ``tenant_actor_path`` names the FK to the acting user. A row is this
+    school's when that user holds a SchoolMembership here. Rows with a NULL
+    actor are excluded: a system-initiated event carries no tenant, and showing
+    it to one school would show it to all of them.
+
+    The REQUESTING user's own rows are always included, membership or not. On a
+    per-person model -- a passkey, a dashboard preference, one's own audit trail
+    -- your own row is the one thing that is unambiguously yours to see, and
+    excluding it leaks nothing to anybody. Without this, a platform superuser
+    opening a tenant /admin/ could not reach their own preference row; two
+    existing admin-smoke tests do exactly that and caught it.
+
+    Fails CLOSED on an indeterminate school, and on any error resolving
+    membership -- an admin changelist that cannot prove which tenant it is
+    serving must render nothing.
+    """
+
+    _rmc_tenant_scoped = True
+    tenant_actor_path = None
+
+    def get_queryset(self, request):
+        from django.db.models import Q
+
+        qs = super().get_queryset(request)
+        school = getattr(request, "school", None)
+        path = self.tenant_actor_path
+        if not path or school is None:
+            return qs.none()
+        try:
+            from apps.schools.models import SchoolMembership
+
+            # tenant-isolation-allow: request-school-scoped-membership-lookup-for-admin-changelist
+            member_ids = SchoolMembership.objects.filter(school=school).values_list(
+                "user_id", flat=True
+            )
+        except (DatabaseError, ImportError, TypeError, ValueError):
+            return qs.none()
+
+        scope = Q(**{f"{path}__in": member_ids})
+        user = getattr(request, "user", None)
+        if user is not None and getattr(user, "is_authenticated", False):
+            scope |= Q(**{path: user})
+        return qs.filter(scope)
+
+
 class _TenantFormFKScopeMixin:
     """Scope FK / M2M OPTION LISTS in tenant ``/admin/`` add & change forms to the
     request's school — the ``formfield_for_foreignkey`` / ``formfield_for_manytomany``
@@ -784,10 +1034,59 @@ class TenantAdminSite(BaseRunMyCampusAdminSite):
     # models are schema-isolated already; the extra filter there is a harmless
     # no-op (their rows carry this school or NULL).
     @staticmethod
+    def _model_is_schema_isolated(model) -> bool:
+        """True when the model's app is TENANT_APPS-only.
+
+        Its table then exists solely inside a tenant schema under
+        django-tenants, and is confined by RLS in single-schema mode -- so an
+        unscoped changelist on it cannot cross tenants and needs no mixin.
+
+        Parsed from the SOURCE of config/settings.py, not read off the settings
+        module or object. SHARED_APPS / TENANT_APPS are only ASSIGNED inside the
+        ``if USE_DJANGO_TENANTS and postgresql`` branch, so under any other
+        configuration -- which includes local dev, the SQLite test settings and
+        every RLS/edge deployment -- both names are simply absent. Reading them
+        at runtime therefore returns nothing, every model reads as "not
+        isolated", and the fail-closed arm blanks ~89 legitimate tenant
+        changelists. That is not hypothetical: this method was written that way
+        first, and 89 registrations went empty.
+
+        The two lists are the platform's canonical tenancy declaration whether
+        or not the branch that assigns them executes, so the source is the
+        honest place to read them.
+        """
+        from django.apps import apps as _django_apps
+
+        try:
+            module = _django_apps.get_app_config(model._meta.app_label).name
+        except LookupError:
+            return False
+
+        shared, tenant = _tenancy_app_lists()
+        if not tenant:
+            # Could not read the declaration at all -- say nothing rather than
+            # claim isolation the deployment may not have.
+            return False
+
+        def _has(pool):
+            for entry in pool:
+                mod = entry.split(".apps.")[0] if ".apps." in entry else entry
+                if mod == module:
+                    return True
+            return False
+
+        return bool(_has(tenant) and not _has(shared))
+
+    @staticmethod
     def _model_has_concrete_school_field(model) -> bool:
         try:
             field = model._meta.get_field("school")
-        except Exception:  # noqa: BLE001 — FieldDoesNotExist / unusual meta → not scopable
+        except FieldDoesNotExist:
+            # Was `except Exception`, whose own comment already named the real
+            # one. Anything else raised by _meta.get_field is a broken model,
+            # and reporting it as "not scopable" would quietly drop that model
+            # out of tenant scoping -- the opposite of what a caller asking
+            # this question wants.
             return False
         return bool(getattr(field, "concrete", False)) and not getattr(
             field, "many_to_many", False
@@ -803,20 +1102,47 @@ class TenantAdminSite(BaseRunMyCampusAdminSite):
             admin_class, "_rmc_tenant_fk_scoped", False
         ):
             mixins.append(_TenantFormFKScopeMixin)
-        # (2) Changelist queryset scope — only models with a concrete ``school``
-        #     field (a SHARED model whose public table holds every tenant's rows).
-        if (
-            not getattr(admin_class, "tenant_scope_exempt", False)
-            and not getattr(admin_class, "_rmc_tenant_scoped", False)
-            and self._model_has_concrete_school_field(model)
-        ):
-            mixins.append(_TenantScopedQuerysetMixin)
+        # (2) Changelist queryset scope.
+        attrs = {}
+        label = f"{model._meta.app_label}.{model.__name__}"
+        already = getattr(admin_class, "tenant_scope_exempt", False) or getattr(
+            admin_class, "_rmc_tenant_scoped", False
+        )
+        if not already:
+            if self._model_has_concrete_school_field(model):
+                # A SHARED model whose public table holds every tenant's rows,
+                # and which carries the column to filter on.
+                mixins.append(_TenantScopedQuerysetMixin)
+            elif label in TENANT_ADMIN_RELATION_SCOPE:
+                mixins.append(_TenantRelationScopedQuerysetMixin)
+                attrs["tenant_scope_path"] = TENANT_ADMIN_RELATION_SCOPE[label]
+            elif label in TENANT_ADMIN_ACTOR_SCOPE:
+                mixins.append(_TenantActorScopedQuerysetMixin)
+                attrs["tenant_actor_path"] = TENANT_ADMIN_ACTOR_SCOPE[label]
+            elif label in TENANT_ADMIN_GLOBAL_CATALOGS:
+                # Deliberately unscoped: browsing the whole catalog is the point.
+                pass
+            elif label in TENANT_ADMIN_SELF_SCOPED:
+                # The ModelAdmin scopes itself; wrapping it would double-filter.
+                pass
+            elif self._model_is_schema_isolated(model):
+                # TENANT_APPS: its table exists only inside this tenant's schema
+                # under django-tenants, and RLS confines it in single-schema mode.
+                pass
+            else:
+                # Unclassified SHARED model with no school column. Render
+                # nothing rather than every tenant's rows -- the same
+                # fail-closed stance _TenantFormFKScopeMixin takes for an
+                # indeterminate School picker. Classify it in one of the four
+                # maps above; scripts/scan_unscoped_shared_tenant_admin.py
+                # fails CI until you do.
+                mixins.append(_TenantUnclassifiedFailClosedMixin)
         if not mixins:
             return admin_class
         return type(
             admin_class.__name__,
             (*mixins, admin_class),
-            {"__module__": getattr(admin_class, "__module__", __name__)},
+            {**attrs, "__module__": getattr(admin_class, "__module__", __name__)},
         )
 
     def register(self, model_or_iterable, admin_class=None, **options):
@@ -838,6 +1164,31 @@ class TenantAdminSite(BaseRunMyCampusAdminSite):
 
         base_class = admin_class or _DjangoModelAdmin
         for model in models_iter:
+            label = f"{model._meta.app_label}.{model.__name__}"
+            if label in TENANT_ADMIN_OPERATOR_ONLY:
+                # Not a school's data at all -- the PLATFORM's security
+                # perimeter and config history. register_both() would otherwise
+                # put ThreatDetectionConfig (a global singleton) on every
+                # school's admin, where one tenant could disable threat
+                # detection for all of them. Handled here rather than at each
+                # call site so the decision lives in one reviewed place.
+                #
+                # REDIRECTED, not dropped. ThreatDetectionConfig, IPAccessRule,
+                # CountryAccessRule and siteconfig.SiteSettings were registered
+                # ONLY on the tenant site, so skipping them would have deleted
+                # the platform's own access to its security perimeter -- turning
+                # a leak into an outage. Re-home each on the platform admin
+                # unless it is already there.
+                try:
+                    platform_admin_site.register(model, base_class)
+                except AlreadyRegistered:
+                    pass
+                except Exception:  # noqa: BLE001 — a re-home must never break startup
+                    logging.getLogger(__name__).exception(
+                        "tenant admin: could not re-home operator-only model %s "
+                        "onto the platform admin", label,
+                    )
+                continue
             cls = base_class
             if options:
                 cls = type(
@@ -1090,6 +1441,16 @@ def register_platform_admin(model, admin_class):
 
 
 def register_both(model, admin_class, platform_admin_class=None):
-    """Register on both tenant and platform admin. Use platform_admin_class for a different backoffice class."""
-    tenant_admin_site.register(model, admin_class)
+    """Register on both tenant and platform admin. Use platform_admin_class for a different backoffice class.
+
+    An OPERATOR_ONLY model gets the platform registration only. Doing the skip
+    HERE as well as in TenantAdminSite.register is not redundant: the tenant
+    site re-homes an operator-only model onto the platform admin (so a model
+    registered ONLY on the tenant site does not lose its last surface), and
+    without this skip that re-home would land first and make this function's own
+    platform call raise AlreadyRegistered at import time.
+    """
+    label = f"{model._meta.app_label}.{model.__name__}"
+    if label not in TENANT_ADMIN_OPERATOR_ONLY:
+        tenant_admin_site.register(model, admin_class)
     platform_admin_site.register(model, platform_admin_class or admin_class)

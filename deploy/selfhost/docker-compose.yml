@@ -44,8 +44,11 @@ x-app: &app
     # the layout is opt-in: without it the box boots from the image tree and a FULL
     # upgrade honestly defers. Uncomment BOTH this and RMC_OTA_RELEASE_ROOT in .env to
     # let a code upgrade swap in one atomic rename instead of waiting for an image
-    # rebuild. Budget roughly twice the tree on disk -- one release is kept as the
-    # rollback target.
+    # rebuild. Budget roughly twice the tree -- ~1GB at the 2026-08-22 measurement of
+    # 496MB across 16333 files -- because two releases are kept: the running one and
+    # the rollback target (RMC_OTA_RELEASES_KEPT, floored at 2). Older ones are pruned
+    # after every successful flip, and a box that cannot spare the room refuses the
+    # swap and keeps running rather than filling its disk.
     # - otareleases:/srv/rmc
     # PERSIST uploaded media (student/teacher photos, evaluation evidence, logos,
     # receipts, documents). MEDIA_ROOT is /app/media INSIDE the container; without a

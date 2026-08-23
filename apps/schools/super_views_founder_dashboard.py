@@ -39,6 +39,12 @@ def _load_json(path: Path) -> dict | None:
         return None
 
 
+from apps.platform_runtime.northstar_self_heal_status import (
+    self_heal_display_status,
+    self_heal_requires_attention,
+)
+
+
 def _parse_sot_slices_fallback(sot_path: Path) -> dict[int, str | None]:
     if not sot_path.is_file():
         return {n: None for n in range(15, 25)}
@@ -140,7 +146,7 @@ def super_founder_dashboard(request):
     recent_platform_events = PlatformEventLog.objects.count()
     recent_ai_audits = AIActionAuditLog.objects.count()
 
-    self_heal_status = (self_heal.get("status") or "not run").strip()
+    self_heal_status = self_heal_display_status(self_heal)
     open_tickets = list(self_heal.get("unsafe_ticket_paths") or [])
     founder_sales = {
         "total_leads": 0,
@@ -199,6 +205,7 @@ def super_founder_dashboard(request):
             "security_surface_signal": security_surface_summary,
             "self_heal": self_heal,
             "self_heal_status": self_heal_status,
+            "self_heal_requires_attention": self_heal_requires_attention(self_heal),
             "open_repair_tickets": open_tickets,
             "slice_rows": slice_rows,
             "schools_total": schools_total,

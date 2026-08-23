@@ -38,8 +38,16 @@ def _client_country_code(request: Any) -> str:
             return raw
 
     # 2. GeoIP on the client IP (returns "" on hosts with no GeoIP DB, e.g. Render).
-    xff = str(meta.get("HTTP_X_FORWARDED_FOR") or "").split(",")[0].strip()
-    ip = xff or str(meta.get("REMOTE_ADDR") or "").strip()
+    #    Read from the outermost TRUSTED proxy hop: X-Forwarded-For is
+    #    client-controlled to the LEFT, so a leftmost read let the caller pick
+    #    the country this residency decision is made against.
+    from types import SimpleNamespace
+
+    from apps.api.rate_limit import client_ip as _trusted_client_ip
+
+    ip = _trusted_client_ip(SimpleNamespace(META=meta))
+    if ip == "unknown":
+        ip = ""
     if ip:
         try:
             from apps.compliance.access_control import get_country_from_ip

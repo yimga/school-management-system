@@ -15,14 +15,23 @@ from django.template.loader import render_to_string
 from django.utils.decorators import method_decorator
 from django.views import View
 
+from apps.api.rate_limit import client_ip as _trusted_client_ip
 from apps.compliance import auditor_access
 
 
 def _client_ip(request):
-    xff = request.META.get("HTTP_X_FORWARDED_FOR", "")
-    if xff:
-        return xff.split(",")[0].strip()
-    return request.META.get("REMOTE_ADDR") or None
+    """Client IP from the outermost TRUSTED proxy hop, or ``None``.
+
+    ``X-Forwarded-For`` is client-controlled to the LEFT, so reading ``[0]``
+    let anyone holding a leaked inspection token satisfy the grant's
+    ``ip_allowlist`` by naming an allowlisted address from anywhere -- and
+    stamped that forged value onto ``AuditorAccessLog`` as the source of the
+    inspection. Delegates to the platform's proxy-depth-aware parse.
+    """
+    ip = _trusted_client_ip(request)
+    # ip_is_allowed fails CLOSED on a missing IP; the parse's no-address
+    # sentinel must not be passed on as though it were an address.
+    return ip if ip and ip != "unknown" else None
 
 
 def _wants_json(request) -> bool:

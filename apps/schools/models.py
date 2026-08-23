@@ -1684,6 +1684,13 @@ class AdvancementDonor(models.Model):
 class AdvancementGift(models.Model):
     """Gift / receipt line tied to a donor."""
 
+    # Denormalized from ``donor.school`` so the row carries its own tenant column;
+    # see ``_fill_school_from_parent``.
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="advancement_gifts",
+    )
     donor = models.ForeignKey(
         AdvancementDonor,
         on_delete=models.CASCADE,
@@ -1744,6 +1751,34 @@ class AdvancementGift(models.Model):
                 name="uniq_advancementgift_donor_client_offline_id",
             ),
         ]
+
+    def _fill_school_from_parent(self, parent_field: str, update_fields=None):
+        """
+        Denormalize the owning school off the parent FK.
+
+        These child rows are tenant data reachable only through their parent, so
+        without a real ``school_id`` COLUMN they can carry no RLS policy at all --
+        and ``scripts/scan_rls_table_coverage.py`` skips any model without a
+        ``school`` field, which is why four money/PII tables sat at a clean zero
+        baseline with no database backstop. Fills a blank only; an explicitly set
+        school is left alone.
+        """
+        if self.school_id:
+            return update_fields
+        parent = getattr(self, parent_field, None)
+        school_id = getattr(parent, "school_id", None)
+        if school_id is None:
+            return update_fields
+        self.school_id = school_id
+        if update_fields is not None and "school" not in update_fields:
+            update_fields = list(update_fields) + ["school"]
+        return update_fields
+
+    def save(self, *args, **kwargs):
+        kwargs["update_fields"] = self._fill_school_from_parent(
+            "donor", kwargs.get("update_fields")
+        )
+        return super().save(*args, **kwargs)
 
 
 class InKindDonation(models.Model):
@@ -1858,6 +1893,12 @@ class DonorGiftAccessLink(models.Model):
     (mirrors SignupVerification). Tenant-scoped via the donor's school.
     """
 
+    # Denormalized from ``donor.school``; see ``_fill_school_from_parent``.
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="donor_gift_access_links",
+    )
     donor = models.ForeignKey(
         AdvancementDonor,
         on_delete=models.CASCADE,
@@ -1873,6 +1914,34 @@ class DonorGiftAccessLink(models.Model):
         ordering = ["-created_at"]
         verbose_name = "Donor gift access link"
         verbose_name_plural = "Donor gift access links"
+
+    def _fill_school_from_parent(self, parent_field: str, update_fields=None):
+        """
+        Denormalize the owning school off the parent FK.
+
+        These child rows are tenant data reachable only through their parent, so
+        without a real ``school_id`` COLUMN they can carry no RLS policy at all --
+        and ``scripts/scan_rls_table_coverage.py`` skips any model without a
+        ``school`` field, which is why four money/PII tables sat at a clean zero
+        baseline with no database backstop. Fills a blank only; an explicitly set
+        school is left alone.
+        """
+        if self.school_id:
+            return update_fields
+        parent = getattr(self, parent_field, None)
+        school_id = getattr(parent, "school_id", None)
+        if school_id is None:
+            return update_fields
+        self.school_id = school_id
+        if update_fields is not None and "school" not in update_fields:
+            update_fields = list(update_fields) + ["school"]
+        return update_fields
+
+    def save(self, *args, **kwargs):
+        kwargs["update_fields"] = self._fill_school_from_parent(
+            "donor", kwargs.get("update_fields")
+        )
+        return super().save(*args, **kwargs)
 
     def __str__(self) -> str:
         return f"link for {self.donor_id} (exp {self.expires_at:%Y-%m-%d})"
@@ -1979,6 +2048,12 @@ class GrantMilestone(models.Model):
         COMPLETED = "completed", "Completed"
         WAIVED = "waived", "Waived"
 
+    # Denormalized from ``grant.school``; see ``_fill_school_from_parent``.
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="grant_milestones",
+    )
     grant = models.ForeignKey(
         GrantApplication, on_delete=models.CASCADE, related_name="milestones"
     )
@@ -1998,6 +2073,34 @@ class GrantMilestone(models.Model):
         verbose_name = "Grant milestone"
         verbose_name_plural = "Grant milestones"
 
+    def _fill_school_from_parent(self, parent_field: str, update_fields=None):
+        """
+        Denormalize the owning school off the parent FK.
+
+        These child rows are tenant data reachable only through their parent, so
+        without a real ``school_id`` COLUMN they can carry no RLS policy at all --
+        and ``scripts/scan_rls_table_coverage.py`` skips any model without a
+        ``school`` field, which is why four money/PII tables sat at a clean zero
+        baseline with no database backstop. Fills a blank only; an explicitly set
+        school is left alone.
+        """
+        if self.school_id:
+            return update_fields
+        parent = getattr(self, parent_field, None)
+        school_id = getattr(parent, "school_id", None)
+        if school_id is None:
+            return update_fields
+        self.school_id = school_id
+        if update_fields is not None and "school" not in update_fields:
+            update_fields = list(update_fields) + ["school"]
+        return update_fields
+
+    def save(self, *args, **kwargs):
+        kwargs["update_fields"] = self._fill_school_from_parent(
+            "grant", kwargs.get("update_fields")
+        )
+        return super().save(*args, **kwargs)
+
     def __str__(self) -> str:
         return f"{self.title} ({self.get_status_display()})"
 
@@ -2014,6 +2117,12 @@ class GrantReport(models.Model):
         SUBMITTED = "submitted", "Submitted"
         ACCEPTED = "accepted", "Accepted"
 
+    # Denormalized from ``grant.school``; see ``_fill_school_from_parent``.
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="grant_reports",
+    )
     grant = models.ForeignKey(
         GrantApplication, on_delete=models.CASCADE, related_name="reports"
     )
@@ -2034,6 +2143,34 @@ class GrantReport(models.Model):
         ordering = ["-period_end", "-created_at"]
         verbose_name = "Grant report"
         verbose_name_plural = "Grant reports"
+
+    def _fill_school_from_parent(self, parent_field: str, update_fields=None):
+        """
+        Denormalize the owning school off the parent FK.
+
+        These child rows are tenant data reachable only through their parent, so
+        without a real ``school_id`` COLUMN they can carry no RLS policy at all --
+        and ``scripts/scan_rls_table_coverage.py`` skips any model without a
+        ``school`` field, which is why four money/PII tables sat at a clean zero
+        baseline with no database backstop. Fills a blank only; an explicitly set
+        school is left alone.
+        """
+        if self.school_id:
+            return update_fields
+        parent = getattr(self, parent_field, None)
+        school_id = getattr(parent, "school_id", None)
+        if school_id is None:
+            return update_fields
+        self.school_id = school_id
+        if update_fields is not None and "school" not in update_fields:
+            update_fields = list(update_fields) + ["school"]
+        return update_fields
+
+    def save(self, *args, **kwargs):
+        kwargs["update_fields"] = self._fill_school_from_parent(
+            "grant", kwargs.get("update_fields")
+        )
+        return super().save(*args, **kwargs)
 
     def __str__(self) -> str:
         return f"{self.get_report_type_display()} report ({self.get_status_display()})"

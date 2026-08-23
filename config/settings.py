@@ -370,11 +370,6 @@ MIDDLEWARE = [
     # redeploy.
     "apps.api.middleware_tenant_cors.TenantCorsAllowlistMiddleware",
     "corsheaders.middleware.CorsMiddleware",
-    # Pass 12.B: global Idempotency-Key dedupe for /api/v1/ writes; opt-in via
-    # the Idempotency-Key header (Stripe / GitHub / Twilio semantics). Placed
-    # after CORS so preflights aren't impacted, before everything that could
-    # mutate the response.
-    "apps.api.middleware_idempotency.IdempotencyKeyMiddleware",
     "apps.api.middleware_edge_fallback.EdgeSWRFallbackMiddleware",  # v4.00.0: Django-side SWR for /api/v1/runtime/* when no CDN is in front
     "config.middleware.BlockScannerPathsMiddleware",  # 404 for .git, terraform, wp-config, etc.
     "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -419,6 +414,13 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    # Idempotency keys for API writes. Position is load-bearing, and this is
+    # the list the SOVEREIGN EDGE runs (USE_DJANGO_TENANTS=0 keeps the base
+    # branch). Above session/tenant/auth its _tenant_key/_user_key resolve to
+    # 'global'/'anon', so every key on the box collapses to one value and a
+    # second user's write is dropped in favour of a replay of the first
+    # user's response body. Mirrors the tenants-list placement below.
+    "apps.api.middleware_idempotency.IdempotencyKeyMiddleware",
     "apps.schools.middleware.TenantHostMembershipMiddleware",
     # v4.01.15 — Workflow Progress Bus envelopes for mutating operator/tenant HTTP writes.
     "apps.platform_runtime.workflow_request_middleware.WorkflowProgressRequestMiddleware",
@@ -1330,7 +1332,19 @@ try:
     _edge_tls = _edge_tls_resolve()
     RMC_EDGE_TLS_MODE = _edge_tls.mode
     _edge_tls_defaults = _edge_tls_flags(_edge_tls.mode) if _edge_tls.source != "default" else {}
-except Exception:  # noqa: BLE001 - settings must import even if the app tree is odd
+except ImportError:
+    # Only the IMPORT can realistically fail here (a partial checkout, or the
+    # "odd app tree" this guard was written for): edge_tls imports nothing but
+    # stdlib, so it touches no app registry. Everything else in the block is
+    # already total -- resolve_mode() handles an unrecognised mode itself,
+    # returning the safe value while CARRYING the error so check_edge_readiness
+    # fails on it, and derived_security_flags() only ever sees a mode that has
+    # already been normalised.
+    #
+    # So a broad `except Exception` here buys nothing and costs something: it
+    # would turn a genuine bug in either function into a silent downgrade to
+    # plain HTTP, which is precisely the trap the comment above says this block
+    # exists to remove. Narrow, so a real failure is loud.
     RMC_EDGE_TLS_MODE = "off"
     _edge_tls_defaults = {}
 
@@ -1376,7 +1390,13 @@ try:
             for _edge_origin in _edge_origins:
                 if _edge_origin not in CSRF_TRUSTED_ORIGINS:
                     CSRF_TRUSTED_ORIGINS = list(CSRF_TRUSTED_ORIGINS) + [_edge_origin]
-except Exception:  # noqa: BLE001 - settings must import even if discovery fails
+except (ImportError, OSError):
+    # Narrowed from `except Exception: pass`, which swallowed everything and
+    # said nothing. ImportError is the partial-checkout case the comment meant.
+    # OSError covers a box with no usable interface, though local_addresses()
+    # already handles that per-probe. Anything else here is a bug in this
+    # block, and silence is expensive: ALLOWED_HOSTS would quietly lack the
+    # box's own address and every request would 400 with nothing to explain it.
     pass
 
 # Render terminates TLS at the edge. Internal platform probes may hit HTTP
@@ -4313,6 +4333,22 @@ RMC_OTA_STAGING_ROOT = (os.getenv("RMC_OTA_STAGING_ROOT", "") or "").strip()
 # Left unset (the ordinary `COPY . .` image), a full-lane upgrade reports
 # activation="deferred" instead of pretending it swapped code it could not swap.
 RMC_OTA_RELEASE_ROOT = (os.getenv("RMC_OTA_RELEASE_ROOT", "") or "").strip()
+# A release is a whole tree, so applying one costs roughly the size of the app again. Many
+# schools run this on the cheapest hardware they could buy, where an upgrade that fills the
+# disk does not merely fail -- Postgres stops being able to write and the box loses its
+# data sync too. Below this much headroom the box refuses the swap and keeps running.
+try:
+    RMC_OTA_RELEASE_HEADROOM_PCT = max(
+        100, int(os.getenv("RMC_OTA_RELEASE_HEADROOM_PCT", "140"))
+    )
+except ValueError:
+    RMC_OTA_RELEASE_HEADROOM_PCT = 140
+# How many release trees to leave on disk. Two is the floor: the second one is the
+# rollback target. Without pruning the layout is a slow disk leak on a small volume.
+try:
+    RMC_OTA_RELEASES_KEPT = max(2, int(os.getenv("RMC_OTA_RELEASES_KEPT", "2")))
+except ValueError:
+    RMC_OTA_RELEASES_KEPT = 2
 RMC_OTA_HEALTH_URL = (
     os.getenv("RMC_OTA_HEALTH_URL", "") or "http://127.0.0.1:10000/health/"
 ).strip()
@@ -4790,6 +4826,13 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "django.middleware.security.SecurityMiddleware",
         "config.middleware.BlockScannerPathsMiddleware",
         "whitenoise.middleware.WhiteNoiseMiddleware",
+        # Same driver as in the base list, and it belongs in BOTH: a self-hosted
+        # box run from deploy/selfhost/.env.example sets USE_DJANGO_TENANTS=1 and
+        # therefore takes THIS branch, while being exactly the deployment where
+        # nothing else pings /health/. On Render the platform probe has already
+        # advanced the throttle window, so here it costs a dict lookup and a float
+        # compare. Self-gating and never-raising: see the module docstring.
+        "apps.sync_engine.middleware_edge_autosync.EdgeAutosyncMiddleware",
         "apps.accounts.middleware.ManagerCookieIsolationMiddleware",
         "django.contrib.sessions.middleware.SessionMiddleware",
         "django.middleware.locale.LocaleMiddleware",

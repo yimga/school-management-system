@@ -1,6 +1,6 @@
 {
   "allowlist_path": "scripts/allowlists/raw_sql_allowlist.json",
-  "generated_at": "2026-08-06T12:21:29.503501+00:00",
+  "generated_at": "2026-08-23T09:43:04.974207+00:00",
   "hits": [
     {
       "classification": "migration_safe",
@@ -117,9 +117,57 @@
       "pattern": "connection_cursor"
     },
     {
-      "classification": "needs_review",
+      "classification": "migration_safe",
+      "file": "apps/academics/migrations/0079_enable_rls_specialtysubject.py",
+      "line": "32",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/academics/migrations/0079_enable_rls_specialtysubject.py",
+      "line": "51",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "performance_safe",
       "file": "apps/academics/schema_repair.py",
       "line": "29",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "performance_safe",
+      "file": "apps/academics/schema_repair.py",
+      "line": "88",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "performance_safe",
+      "file": "apps/academics/schema_repair.py",
+      "line": "96",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "performance_safe",
+      "file": "apps/academics/schema_repair.py",
+      "line": "108",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "performance_safe",
+      "file": "apps/academics/schema_repair.py",
+      "line": "119",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/academics/tests/test_offline_sync_columns_heal.py",
+      "line": "20",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/academics/tests/test_offline_sync_columns_heal.py",
+      "line": "39",
       "pattern": "connection_cursor"
     },
     {
@@ -276,6 +324,12 @@
       "classification": "performance_safe",
       "file": "apps/analytics/semantic_search.py",
       "line": "68",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "performance_safe",
+      "file": "apps/api/sync_services.py",
+      "line": "618",
       "pattern": "connection_cursor"
     },
     {
@@ -658,6 +712,18 @@
     },
     {
       "classification": "migration_safe",
+      "file": "apps/feedback/migrations/0010_rls_fk_scoped_children.py",
+      "line": "86",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/feedback/migrations/0010_rls_fk_scoped_children.py",
+      "line": "110",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
       "file": "apps/finance/migrations/0024_alter_payment_options_and_more.py",
       "line": "19",
       "pattern": "connection_cursor"
@@ -838,6 +904,18 @@
     },
     {
       "classification": "migration_safe",
+      "file": "apps/lifecycle/migrations/0007_enable_rls_edgeonboardingrun.py",
+      "line": "26",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/lifecycle/migrations/0007_enable_rls_edgeonboardingrun.py",
+      "line": "46",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
       "file": "apps/marketplace/migrations/0014_enable_rls_postgresql.py",
       "line": "13",
       "pattern": "connection_cursor"
@@ -984,6 +1062,24 @@
       "classification": "migration_safe",
       "file": "apps/migration_cloud/migrations/0043_cutoverrunbook_rls.py",
       "line": "58",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/migration_cloud/migrations/0046_tenant_fk_tables_rls.py",
+      "line": "89",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/migration_cloud/migrations/0046_tenant_fk_tables_rls.py",
+      "line": "110",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "needs_review",
+      "file": "apps/migration_cloud/models_audit.py",
+      "line": "767",
       "pattern": "connection_cursor"
     },
     {
@@ -1335,6 +1431,18 @@
       "pattern": "connection_cursor"
     },
     {
+      "classification": "migration_safe",
+      "file": "apps/policies/migrations/0011_rls_null_school_arm_on_hybrid_tables.py",
+      "line": "57",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/policies/migrations/0011_rls_null_school_arm_on_hybrid_tables.py",
+      "line": "76",
+      "pattern": "connection_cursor"
+    },
+    {
       "classification": "performance_safe",
       "file": "apps/portal/kb_pgvector.py",
       "line": "28",
@@ -1486,6 +1594,18 @@
     },
     {
       "classification": "migration_safe",
+      "file": "apps/reports/migrations/0027_reportcardbatch_rls.py",
+      "line": "34",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/reports/migrations/0027_reportcardbatch_rls.py",
+      "line": "50",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
       "file": "apps/requests/migrations/0002_accessrequest_schema_name_accessrequest_school.py",
       "line": "11",
       "pattern": "connection_cursor"
@@ -1590,6 +1710,30 @@
       "classification": "migration_safe",
       "file": "apps/schoolops/migrations/0033_inventory_movement_rls.py",
       "line": "36",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/schoolops/migrations/0038_immunization_vaccine_rls.py",
+      "line": "42",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/schoolops/migrations/0038_immunization_vaccine_rls.py",
+      "line": "61",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/schoolops/migrations/0040_procurement_rls.py",
+      "line": "47",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/schoolops/migrations/0040_procurement_rls.py",
+      "line": "64",
       "pattern": "connection_cursor"
     },
     {
@@ -1815,6 +1959,18 @@
       "pattern": "connection_cursor"
     },
     {
+      "classification": "migration_safe",
+      "file": "apps/schools/migrations/0086_rls_enable_advancement_grant_child_tables.py",
+      "line": "55",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/schools/migrations/0086_rls_enable_advancement_grant_child_tables.py",
+      "line": "74",
+      "pattern": "connection_cursor"
+    },
+    {
       "classification": "performance_safe",
       "file": "apps/schools/onboarding_service.py",
       "line": "122",
@@ -1887,31 +2043,31 @@
       "pattern": "connection_cursor"
     },
     {
-      "classification": "needs_review",
+      "classification": "performance_safe",
       "file": "apps/schools/schema_repair.py",
       "line": "40",
       "pattern": "connection_cursor"
     },
     {
-      "classification": "needs_review",
+      "classification": "performance_safe",
       "file": "apps/schools/schema_repair.py",
       "line": "51",
       "pattern": "connection_cursor"
     },
     {
-      "classification": "needs_review",
+      "classification": "performance_safe",
       "file": "apps/schools/schema_repair.py",
       "line": "61",
       "pattern": "connection_cursor"
     },
     {
-      "classification": "needs_review",
+      "classification": "performance_safe",
       "file": "apps/schools/schema_repair.py",
       "line": "74",
       "pattern": "connection_cursor"
     },
     {
-      "classification": "needs_review",
+      "classification": "performance_safe",
       "file": "apps/schools/schema_repair.py",
       "line": "90",
       "pattern": "connection_cursor"
@@ -1919,13 +2075,13 @@
     {
       "classification": "performance_safe",
       "file": "apps/schools/tasks.py",
-      "line": "933",
+      "line": "943",
       "pattern": "connection_cursor"
     },
     {
       "classification": "performance_safe",
       "file": "apps/schools/tasks.py",
-      "line": "948",
+      "line": "958",
       "pattern": "connection_cursor"
     },
     {
@@ -1986,6 +2142,12 @@
       "classification": "test_safe",
       "file": "apps/schools/tests/test_rls_force_coverage.py",
       "line": "30",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/schools/tests/test_selfhost_boot_pgvector.py",
+      "line": "81",
       "pattern": "connection_cursor"
     },
     {
@@ -2087,7 +2249,7 @@
     {
       "classification": "migration_safe",
       "file": "apps/siteconfig/migrations/0123_enable_pgvector_extension.py",
-      "line": "11",
+      "line": "35",
       "pattern": "connection_cursor"
     },
     {
@@ -2271,6 +2433,120 @@
       "pattern": "connection_cursor"
     },
     {
+      "classification": "performance_safe",
+      "file": "apps/sync_engine/management/commands/check_edge_sync_deploy_readiness.py",
+      "line": "79",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "performance_safe",
+      "file": "apps/sync_engine/management/commands/check_edge_sync_deploy_readiness.py",
+      "line": "95",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/sync_engine/migrations/0008_enable_rls_postgresql.py",
+      "line": "29",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/sync_engine/migrations/0008_enable_rls_postgresql.py",
+      "line": "38",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/sync_engine/migrations/0009_rls_policy_default_deny.py",
+      "line": "28",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/sync_engine/migrations/0009_rls_policy_default_deny.py",
+      "line": "46",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/sync_engine/migrations/0011_syncschedule_rls.py",
+      "line": "32",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/sync_engine/migrations/0011_syncschedule_rls.py",
+      "line": "49",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/sync_engine/migrations/0016_syncpolicy_rls.py",
+      "line": "35",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/sync_engine/migrations/0016_syncpolicy_rls.py",
+      "line": "52",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/sync_engine/migrations/0017_pairing_rls.py",
+      "line": "78",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/sync_engine/migrations/0017_pairing_rls.py",
+      "line": "104",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/sync_engine/migrations/0020_rollout_rls.py",
+      "line": "49",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/sync_engine/migrations/0020_rollout_rls.py",
+      "line": "70",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/sync_engine/migrations/0022_fleet_state_rls.py",
+      "line": "46",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "migration_safe",
+      "file": "apps/sync_engine/migrations/0022_fleet_state_rls.py",
+      "line": "67",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/sync_engine/tests/test_edge_sync_deploy_readiness_2026_08_17.py",
+      "line": "29",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/sync_engine/tests/test_edge_sync_deploy_readiness_2026_08_17.py",
+      "line": "41",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/sync_engine/tests/test_pairing_protocol_2026_08_20.py",
+      "line": "352",
+      "pattern": "connection_cursor"
+    },
+    {
       "classification": "needs_review",
       "file": "apps/tenancy/schema_repair.py",
       "line": "45",
@@ -2290,6 +2566,36 @@
     },
     {
       "classification": "test_safe",
+      "file": "apps/tenancy/tests/test_boundary_core_guard_parameterized_2026_08_23.py",
+      "line": "39",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/tenancy/tests/test_boundary_core_guard_parameterized_2026_08_23.py",
+      "line": "58",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/tenancy/tests/test_boundary_core_guard_parameterized_2026_08_23.py",
+      "line": "86",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/tenancy/tests/test_boundary_core_guard_parameterized_2026_08_23.py",
+      "line": "105",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "test_safe",
+      "file": "apps/tenancy/tests/test_boundary_core_guard_parameterized_2026_08_23.py",
+      "line": "122",
+      "pattern": "connection_cursor"
+    },
+    {
+      "classification": "test_safe",
       "file": "apps/tenancy/tests/test_schema_repair.py",
       "line": "16",
       "pattern": "connection_cursor"
@@ -2297,6 +2603,6 @@
   ],
   "schema_version": 1,
   "totals": {
-    "hits": 382
+    "hits": 433
   }
 }

@@ -278,6 +278,78 @@ def _merge_sector_defaults_into_policy(out: Dict[str, Any], school) -> None:
             out["features"]["multi_language_default"] = True
 
 
+def _set_policy_path(out: Dict[str, Any], policy_key: str, value: Any) -> None:
+    """Write ``value`` into ``out`` at the dotted ``policy_key`` path.
+
+    ``admissions.numbering_strategy`` => ``out["admissions"]["numbering_strategy"]``.
+    Intermediate segments are created (or replaced, when what is there is not a dict)
+    so an override never silently no-ops on a branch the defaults did not build. The
+    leaf is REPLACED, not merged: an override row states the value for exactly one key.
+    """
+    parts = [p for p in str(policy_key or "").split(".") if p]
+    if not parts:
+        return
+    node = out
+    for part in parts[:-1]:
+        child = node.get(part)
+        if not isinstance(child, dict):
+            child = {}
+            node[part] = child
+        node = child
+    node[parts[-1]] = value
+
+
+def _apply_tenant_policy_overrides(out: Dict[str, Any], school) -> None:
+    """Tenant-level overrides (``policies.TenantPolicyOverride``) -- last-wins layer.
+
+    These rows are written by three paths -- the tenant admin, ``manage.py
+    apply_tenant_overrides`` and ``declarative_overrides.apply_overrides_dict`` -- and
+    until now had NO reader: every write reported success and this resolver returned
+    byte-identical output. Applied here, after every defaults / blueprint /
+    School.settings merge, which is the precedence the model name promises.
+    """
+    if school is None or not getattr(school, "pk", None):
+        return
+    try:
+        from apps.policies.models import TenantPolicyOverride
+
+        rows = TenantPolicyOverride.objects.filter(
+            school=school, is_active=True
+        ).order_by("policy_key")
+        for row in rows:
+            _set_policy_path(out, row.policy_key, row.value)
+    except _POLICY_MERGE_ERRORS as e:
+        logger.warning("Tenant policy override merge failed: %s", e)
+
+
+def _apply_scheduled_policy_overrides(out: Dict[str, Any], school) -> None:
+    """Time-windowed overrides (``policies.ScheduledPolicyOverride``).
+
+    Due-ness is evaluated HERE, on read -- there is no beat task and none is needed:
+    a window opens and closes on its own because every resolve compares start_at/end_at
+    to now. Applied AFTER the standing tenant overrides so a scheduled window (an
+    exam-week comms freeze, say) wins for its duration and reverts when it closes.
+
+    POLICY_CACHE_TTL (default 300s) bounds how quickly a window boundary is observed;
+    call ``invalidate_policy_cache(school)`` when a boundary must take effect at once.
+    """
+    if school is None or not getattr(school, "pk", None):
+        return
+    try:
+        from django.utils import timezone
+
+        from apps.policies.models import ScheduledPolicyOverride
+
+        now = timezone.now()
+        rows = ScheduledPolicyOverride.objects.filter(
+            school=school, is_active=True, start_at__lte=now, end_at__gt=now
+        ).order_by("start_at", "pk")
+        for row in rows:
+            _set_policy_path(out, row.policy_key, row.value)
+    except _POLICY_MERGE_ERRORS as e:
+        logger.warning("Scheduled policy override merge failed: %s", e)
+
+
 def get_effective_policy(
     school,
     user=None,
@@ -721,6 +793,13 @@ def get_effective_policy(
             out["grade_approval"].setdefault("grade_approval_deadline_note", "")
             out["grade_approval"].setdefault("grade_approval_auto_validate", True)
             out["grade_approval"].setdefault("grade_approval_enabled", False)
+
+    # Tenant policy overrides -- the LAST layer before capability/cache, so a tenant
+    # (or an operator's GitOps override file) wins over every defaults merge above,
+    # including TenantAdmissionNumberPolicy. Scheduled windows are applied after the
+    # standing overrides so an open window wins for its duration.
+    _apply_tenant_policy_overrides(out, school)
+    _apply_scheduled_policy_overrides(out, school)
 
     if capability is not None:
         # Return whether this capability is enabled for this tenant

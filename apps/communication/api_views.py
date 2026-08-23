@@ -481,6 +481,9 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
             )
 
         from apps.communication.models import log_announcement_audit
+        from apps.communication.views_announcements import (
+            _deliver_published_announcement_best_effort,
+        )
 
         announcement = Announcement.objects.create(
             title=request.data.get("title"),
@@ -497,6 +500,12 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
             announcement.save()
 
         log_announcement_audit(announcement, request.user, "created")
+
+        # Same fan-out the two web publish paths perform (views_announcements
+        # :publish and :approve). Without it an API-created announcement was
+        # PUBLISHED but delivered to no channel at all, and the periodic sweep
+        # could not rescue it either (scheduled_at is NULL here).
+        _deliver_published_announcement_best_effort(announcement)
 
         from apps.api.serializers import AnnouncementSerializer
 

@@ -356,6 +356,8 @@ SETTINGS_REGISTRY: tuple[SettingSpec, ...] = (
     SettingSpec("RMC_OTA_MANIFEST_ROOT", "str", '""', "ops", "Tree the manifest's relative paths resolve against (default BASE_DIR)."),
     SettingSpec("RMC_OTA_STAGING_ROOT", "str", '""', "ops", "Isolated directory incoming upgrades are staged into."),
     SettingSpec("RMC_OTA_RELEASE_ROOT", "str", '""', "ops", "Release-symlink root; unset means a code swap defers instead of pretending."),
+    SettingSpec("RMC_OTA_RELEASE_HEADROOM_PCT", "int", "140", "ops", "Free space, as a percentage of the tree, required before a release copy starts."),
+    SettingSpec("RMC_OTA_RELEASES_KEPT", "int", "2", "ops", "Release trees kept on disk; 2 is the floor because the second is the rollback target."),
     SettingSpec("RMC_OTA_HEALTH_URL", "str", '"http://127.0.0.1:10000/health/"', "ops", "URL the post-upgrade health gate polls."),
     SettingSpec("RMC_OTA_HEALTH_TIMEOUT_SECONDS", "int", "60", "ops", "Budget for the post-upgrade health gate before rollback."),
     SettingSpec("RMC_OTA_HOLD_TTL_SECONDS", "int", "3600", "ops", "Ceiling on SYNC_STATE_HELD_FOR_UPGRADE so a failed upgrade cannot mute sync forever."),

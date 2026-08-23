@@ -47,7 +47,17 @@ def magic_link_login(request, token):
             _("That sign-in link is invalid or has expired. Request a new one."),
         )
         return redirect("accounts:magic_link_request")
-    # MFA (if enrolled) is still enforced by RequireMFAMiddleware after login.
     login(request, user, backend=settings.AUTHENTICATION_BACKENDS[0])
+    # RequireMFAMiddleware does NOT cover an enrolled user: resolve_mfa_enforcement
+    # returns "none" the moment the account has a confirmed device, and the
+    # middleware never inspects session["mfa_verified"]. So a bursar with TOTP who
+    # arrived through the mailbox got a fully privileged session with no code ever
+    # requested. resolve_post_login_mfa_redirect is the only thing that issues the
+    # challenge — call it here exactly as login_view does.
+    from apps.accounts.post_login_mfa import resolve_post_login_mfa_redirect
+
+    mfa_resp = resolve_post_login_mfa_redirect(request, user)
+    if mfa_resp is not None:
+        return mfa_resp
     messages.success(request, _("You're signed in."))
     return redirect("accounts:backend_dashboard")

@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.db import DatabaseError
 from apps.schoolops.email_compat import send_mail
 from django.template.loader import render_to_string
 from django.urls import reverse
@@ -27,8 +28,15 @@ def _user_wants_forum_email(user) -> bool:
         prefs = PortalPreferences.objects.filter(parent_id=user.pk).first()
         if prefs is not None and not prefs.notification_email:
             return False
-    except Exception:
-        pass
+    except (DatabaseError, ImportError):
+        # Fail CLOSED: we cannot tell whether this user opted out, and mailing an
+        # opted-out recipient is the worse of the two errors.
+        logger.warning(
+            "forum_reply_notification: preference read failed for user_id=%s; skipping",
+            getattr(user, "pk", None),
+            exc_info=True,
+        )
+        return False
     return True
 
 
@@ -148,6 +156,13 @@ def queue_forum_reply_notifications(
     try:
         from apps.portal.tasks import notify_forum_reply_task
 
-        notify_forum_reply_task.delay(reply.pk, topic_url=topic_url)
+        # school_id must cross the wire: the worker runs on the public schema and
+        # portal_communityforumreply is a tenant table, so the task has to
+        # re-enter this reply's tenant before it can load the row at all.
+        notify_forum_reply_task.delay(
+            reply.pk,
+            topic_url=topic_url,
+            school_id=reply.topic.school_id,
+        )
     except Exception:
         send_forum_reply_notifications(reply.pk, topic_url=topic_url)

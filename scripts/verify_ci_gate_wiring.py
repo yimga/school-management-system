@@ -58,6 +58,16 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # operator AND tenant hosts were a guaranteed TypeError 500. The URL resolved, the view
     # existed, the permission passed; only calling it failed, so no route-name gate saw it.
     ("scripts/audit_url_kwarg_contract.py", "ci.yml"),
+    # Added 2026-08-22: TenantAdminSite.register auto-scopes a changelist only when
+    # the model has a concrete `school` field -- that column is what the mixin filters
+    # on. A SHARED_APPS model WITHOUT one got no scoping at all, and its table lives in
+    # `public`, which a tenant-schema request's search_path includes. 53 registrations
+    # were in that state, so one school's admin could read, filter and CSV-export every
+    # tenant's AuditLog / AccessLog / UserActivitySession, and mutate the platform-global
+    # ThreatDetectionConfig / IPAccessRule / CountryAccessRule perimeter. The mixin was
+    # working exactly as designed; it simply had nothing to filter on and said so to
+    # nobody.
+    ("scripts/scan_unscoped_shared_tenant_admin.py", "ci.yml"),
     # Added 2026-08-22: portal_base.html renders on the tenant host AND the operator
     # host, and its closing chrome included a bare {% url 'portal:support_quick_create' %}.
     # portal: is tenant-only, so seven /super/migration/connectors/* routes 500'd AFTER
@@ -181,6 +191,10 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # Added 2026-08-22 after the same `|cut:"_"` mistake was found on three
     # surfaces, one of them on every page of a live tenant.
     ("scripts/scan_raw_token_in_ui.py", "architectural-boundaries.yml"),
+    # Operator workbench landings must show page header before optional cockpit chrome.
+    # Added 2026-08-22 after founder + CS dashboards stacked collapsable widgets above
+    # "Platform Command Center" / "Benchmark & Customer Success".
+    ("scripts/verify_operator_landing_header_order.py", "architectural-boundaries.yml"),
     # Landers must not buffer list(canonical_rows) without an allow marker — frozen
     # rows_processed trips SystemicStallError on large edge applies.
     ("scripts/scan_lander_row_streaming.py", "architectural-boundaries.yml"),

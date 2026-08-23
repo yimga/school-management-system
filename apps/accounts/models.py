@@ -384,7 +384,8 @@ class User(AbstractUser):
                     pass
                 return False
             if self.feature_permissions.filter(code=code).exists():
-                return True
+                if school is None or self._direct_grant_reaches(code, school):
+                    return True
             # `| global SUPERADMIN` folds god-mode into the SAME query rather
             # than adding one: holding the platform's top access role grants the
             # code whether or not the M2M row was ever seeded. Restricted to the
@@ -423,6 +424,70 @@ class User(AbstractUser):
             except (DatabaseError, TransactionManagementError):
                 pass
             return False
+
+    def _direct_grant_reaches(self, code: str, school) -> bool:
+        """Does this account's DIRECT grant of ``code`` apply at ``school``?
+
+        The role and temporary-grant branches above are school-scoped; this one
+        was not -- ``feature_permissions`` is a plain M2M with no school column,
+        so a code granted on School A's RBAC console was held at School B too by
+        anyone who belongs to both. See ``FeaturePermissionScope``.
+        """
+        scoped = list(
+            FeaturePermissionScope.objects.filter(
+                user_id=self.pk, permission__code=code
+            ).values_list("school_id", flat=True)
+        )
+        if not scoped:
+            # No scope row: the historical platform-wide grant. Every row that
+            # predates scoping keeps the meaning it was written with.
+            return True
+        return None in scoped or school.pk in scoped
+
+
+class FeaturePermissionScope(models.Model):
+    """Narrows a direct ``User.feature_permissions`` grant to one school.
+
+    ``feature_permissions`` is a plain M2M with no tenant column, and
+    ``has_feature_permission`` honoured it whatever ``school`` was asked about --
+    so the resolver behind ``require_permission`` answered True at EVERY school
+    the account belongs to. That was measured, not theorised:
+    ``apps/sync_engine/pairing_service.py`` documents this call returning True
+    for a user whose only membership was in a different school, and routed around
+    it locally instead of fixing the resolver.
+
+    Absence of a row means the platform-wide grant, so existing rows keep their
+    meaning and no data migration is needed. A tenant surface writes a row naming
+    ITS school (see ``set_direct_permissions``), which is what stops a grant it
+    mints from reaching another tenant.
+    """
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="feature_permission_scopes",
+    )
+    permission = models.ForeignKey(
+        "accounts.Permission",
+        on_delete=models.CASCADE,
+        related_name="user_scopes",
+    )
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="+",
+        help_text="NULL means the grant applies platform-wide.",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("user", "permission", "school")
+        indexes = [models.Index(fields=["user", "permission"])]
+
+    def __str__(self) -> str:
+        return f"{self.user_id}:{self.permission_id}@{self.school_id or 'platform'}"
 
 
 class Delegation(models.Model):
