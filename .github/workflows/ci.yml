@@ -49,6 +49,12 @@ jobs:
         run: python scripts/verify_app_readmes.py
       - name: Scan RLS table-level coverage (no NEW unenumerated tenant-scoped tables)
         run: python scripts/scan_rls_table_coverage.py --compare
+      - name: Scan tenant-admin scope for SHARED models with no school column
+        # The auto-scoping mixin only applies to models that HAVE a `school`
+        # field. A SHARED_APPS model without one got none, and its table lives in
+        # `public` -- 53 registrations let one school's admin read and export
+        # every tenant's audit trail.
+        run: python scripts/scan_unscoped_shared_tenant_admin.py
       - name: Migrate DB (grade-scale registry gate needs tables)
         run: python manage.py migrate --noinput 2>/dev/null || true
       - name: Audit tenant/operator admin form intelligence

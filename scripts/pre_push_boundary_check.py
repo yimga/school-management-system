@@ -221,6 +221,16 @@ GATES: list[tuple[str, list[str]]] = [
 # stdlib gate above.
 DJANGO_GATES: list[tuple[str, list[str]]] = [
     ("rls-table-coverage", ["scan_rls_table_coverage.py", "--compare"]),
+    # TenantAdminSite.register auto-scopes a changelist only when the model has a
+    # concrete `school` field -- that column is what the mixin filters on. A
+    # SHARED_APPS model WITHOUT one got no scoping at all, and its table lives in
+    # `public`, which a tenant-schema request's search_path includes. 53
+    # registrations were in that state: one school's admin could read and export
+    # every tenant's AuditLog / AccessLog / UserActivitySession, and could mutate
+    # the platform-global ThreatDetectionConfig / IPAccessRule / CountryAccessRule
+    # perimeter. Zero-baseline; the fail-closed arm in config/admin.py means a red
+    # gate here is an unmade decision, never live exposure.
+    ("unscoped-shared-tenant-admin", ["scan_unscoped_shared_tenant_admin.py"]),
     # Zero-baseline: a view that cannot accept its own URL kwargs is a certain 500,
     # and it is invisible to every stdlib gate because the URL resolves fine.
     ("url-kwarg-contract", ["audit_url_kwarg_contract.py"]),

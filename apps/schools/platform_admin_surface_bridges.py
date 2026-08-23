@@ -669,6 +669,20 @@ _SUPPLEMENTAL_PLATFORM_ADMIN_SURFACES: tuple[tuple[str, str, str], ...] = (
     ("billing_usagecap", "Billing usage caps", "bi-speedometer"),
     ("compliance_auditarchiverecord", "Audit archive records", "bi-archive"),
     ("compliance_auditlegalhold", "Audit legal holds", "bi-shield-lock"),
+    # Moved off the TENANT admin 2026-08-22 and re-homed here. These three are the
+    # platform's own security perimeter -- a global ThreatDetectionConfig singleton
+    # plus the IP / country allow-deny rules -- and they were registered on the
+    # tenant site with no scoping and no gate, so one school's admin could disable
+    # threat detection, or open the perimeter, for every school on the platform.
+    # They had no platform-admin registration at all, so the operator would have
+    # lost its only surface if they had simply been dropped.
+    ("compliance_countryaccessrule", "Country access rules", "bi-globe-americas"),
+    ("compliance_ipaccessrule", "IP access rules", "bi-hdd-network"),
+    (
+        "compliance_threatdetectionconfig",
+        "Threat detection config",
+        "bi-shield-exclamation",
+    ),
     ("marketplace_apprating", "Marketplace app ratings", "bi-star"),
     ("marketplace_appversion", "Marketplace app versions", "bi-box-seam"),
     (

@@ -58,6 +58,16 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # operator AND tenant hosts were a guaranteed TypeError 500. The URL resolved, the view
     # existed, the permission passed; only calling it failed, so no route-name gate saw it.
     ("scripts/audit_url_kwarg_contract.py", "ci.yml"),
+    # Added 2026-08-22: TenantAdminSite.register auto-scopes a changelist only when
+    # the model has a concrete `school` field -- that column is what the mixin filters
+    # on. A SHARED_APPS model WITHOUT one got no scoping at all, and its table lives in
+    # `public`, which a tenant-schema request's search_path includes. 53 registrations
+    # were in that state, so one school's admin could read, filter and CSV-export every
+    # tenant's AuditLog / AccessLog / UserActivitySession, and mutate the platform-global
+    # ThreatDetectionConfig / IPAccessRule / CountryAccessRule perimeter. The mixin was
+    # working exactly as designed; it simply had nothing to filter on and said so to
+    # nobody.
+    ("scripts/scan_unscoped_shared_tenant_admin.py", "ci.yml"),
     # Added 2026-08-22: portal_base.html renders on the tenant host AND the operator
     # host, and its closing chrome included a bare {% url 'portal:support_quick_create' %}.
     # portal: is tenant-only, so seven /super/migration/connectors/* routes 500'd AFTER

@@ -31,11 +31,11 @@
         "prefilled": 613,
         "prefilled_pct": 38.87,
         "presented": 1577,
-        "registered_models": 197,
+        "registered_models": 200,
         "required": 659,
         "required_empty": 379,
-        "resolver_reachable_fields": 108,
-        "resolver_reachable_models": 88,
+        "resolver_reachable_fields": 109,
+        "resolver_reachable_models": 89,
         "site": "operator",
         "visible": 1577
       }
@@ -50,11 +50,11 @@
         "prefilled": 781,
         "prefilled_pct": 37.82,
         "presented": 2065,
-        "registered_models": 281,
+        "registered_models": 275,
         "required": 949,
         "required_empty": 544,
-        "resolver_reachable_fields": 123,
-        "resolver_reachable_models": 91,
+        "resolver_reachable_fields": 122,
+        "resolver_reachable_models": 90,
         "site": "tenant",
         "visible": 2065
       }
