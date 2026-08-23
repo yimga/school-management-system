@@ -204,9 +204,13 @@ RESTORE_PLAN: tuple[_RestoreSpec, ...] = (
         # table is shared across every tenant, so restoring school A must not
         # rewrite a live row belonging to school B's staff.
         require_school_membership=True,
-        # Platform-wide privilege flags are never restored onto a live row — a
-        # tenant restore must not re-promote a user demoted since capture.
-        preserve_on_update=("is_staff", "is_superuser"),
+        # Platform-wide credentials and privilege flags are never restored onto
+        # a LIVE row. A demoted user must not be re-promoted, and because one
+        # person can hold memberships in several schools, rolling their password
+        # back to this tenant's capture time would lock them out of the others
+        # too. A row this restore CREATES still takes the snapshot's values —
+        # that is the real disaster-recovery case.
+        preserve_on_update=("is_staff", "is_superuser", "password", "last_login"),
     ),
     _RestoreSpec(
         app_label="finance",

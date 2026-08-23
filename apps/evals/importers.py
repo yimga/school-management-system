@@ -7,7 +7,7 @@ admin action, management command, or portal view later without duplication.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from typing import Any, Iterable, List, Optional, Sequence
 
 from django.apps import apps as django_apps
@@ -88,13 +88,25 @@ def _optional_decimal(raw: Any) -> Optional[Decimal]:
     ``is_complete_for_ranking`` then reports the class as fully marked and
     ``_apply_fill_missing`` (which only fills ``None`` components) will never
     touch it. Only an explicit "0" writes a zero.
+
+    An unparseable cell is re-raised as ``ValueError`` because that is the type
+    every guard on this pipeline is written against — ``preview_import``'s own
+    ``except (ValueError, TypeError)``, ``_EVALS_IMPORTERS_ROW_ERRORS``, and the
+    migration wizard's ``except`` in ``apps/accounts/views_migration.py``.
+    ``Decimal("18,5")`` raises ``decimal.InvalidOperation``, an
+    ``ArithmeticError``, so it escaped all three and one typo in one cell
+    aborted the whole file (the wizard 500'd) where the previous ``float()``
+    coercion had reported the row and moved on.
     """
     if raw is None:
         return None
     text = str(raw).strip()
     if not text:
         return None
-    return Decimal(text)
+    try:
+        return Decimal(text)
+    except InvalidOperation as exc:
+        raise ValueError(f"{text!r} is not a number") from exc
 
 
 def _optional_float(raw: Any) -> Optional[float]:

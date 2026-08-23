@@ -1,16 +1,31 @@
-"""v4.00.36 Phase 3 — wire ``apply_regional_mask`` into tenant-facing surfaces.
+"""v4.00.36 Phase 3 — regional-mask primitives for non-JIT callers.
 
-Up to Phase 1, regional GDPR/CCPA masking lived in
-``apps.platform_runtime.jit_operator_controller`` and was reached only
-through the JIT operator view path. Tenant-facing DRF/API surfaces
-returning student / parent / staff records were unmasked even when the
-school's country was an EU/GDPR jurisdiction.
+STATUS (audited 2026-08-23): nothing outside this app's tests imports any name
+below. Read that as "an available primitive", NOT as "a protection in force" —
+an earlier version of this docstring claimed the latter, and the passing
+contract tests below made the claim look sealed.
+
+It is deliberately not wired to tenant-facing DRF views, despite the module's
+original framing. ``apply_regional_mask`` redacts ``first_name`` /
+``last_name`` / ``full_name`` / ``email`` / ``phone``, so dropping
+``RegionalMaskingMixin`` on a tenant's own student or staff API would hide a
+German school's pupils from that school's own registrar. GDPR constrains what
+the PLATFORM may see of a tenant's people, not what the school may see of its
+own; that boundary is enforced on the operator path, which composes the same
+mask through ``jit_operator_controller.compose_operator_view`` (see
+``views_operator_tenant_inspect.py``).
+
+Use these helpers when a NEW surface exposes one tenant's person records to a
+party outside that tenant — an operator console, a cross-tenant export, a
+support tool. ``RegionalMaskingMixin.finalize_response`` only rewrites
+``Response.data``, so a plain Django ``JsonResponse`` endpoint must call
+``mask_dict_for_school`` itself.
 
 This module ships:
 
 * ``RegionalMaskingMixin`` — a DRF view mixin that wraps ``Response.data``
   through ``apply_regional_mask`` using the tenant's ``country_code`` →
-  region map. Drop on any list/detail view returning PII to opt in.
+  region map. Opt a CROSS-TENANT view in; never a tenant's own.
 
 * ``mask_dict_for_school(record, school)`` — pure helper for callers
   outside DRF (Django views, templated reports, exports).
@@ -100,8 +115,12 @@ class RegionalMaskingMixin:
 
     Usage::
 
-        class StudentListView(RegionalMaskingMixin, generics.ListAPIView):
+        class OperatorStudentSampleView(RegionalMaskingMixin, generics.ListAPIView):
             ...
+
+    For a CROSS-TENANT reader only — see the module docstring. A tenant's own
+    roster API must not carry this mixin or the school loses sight of its own
+    pupils.
 
     No effect when the request has no tenant-resolved ``request.school``
     or when the school's region is not EU/US (the mask is a no-op).

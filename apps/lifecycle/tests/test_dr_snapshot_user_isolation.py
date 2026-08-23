@@ -120,3 +120,41 @@ class DrSnapshotUserIsolationTests(TestCase):
         self.assertEqual(result["restored"]["tables"]["accounts.User"]["updated"], 1)
         # ...but a tenant restore may never re-promote a demoted account.
         self.assertFalse(self.user.is_superuser)
+
+    def test_a_member_keeps_the_password_they_set_after_capture(self):
+        """A member's row is updated, but their CREDENTIAL is not rolled back.
+
+        ``accounts.User`` is shared/public, so one person can hold memberships
+        in several schools at once. ``require_school_membership`` protects a
+        stranger who merely collides on username; it does NOT protect a genuine
+        member, whose row is updated in full — so restoring school A used to
+        revert the password they had since changed and lock them out of school B
+        as well as A.
+        """
+        tag = uuid.uuid4().hex[:8]
+        other = School.objects.create(
+            name="Second School", slug=f"dr-2nd-{tag}", subdomain=f"dr-2nd-{tag}"
+        )
+        SchoolMembership.objects.create(
+            user=self.user, school=other, role=User.Role.TEACHER
+        )
+
+        self.user.set_password("password-changed-after-capture")
+        self.user.save(update_fields=["password"])
+        current_hash = self.user.password
+        self.assertNotEqual(current_hash, self.captured_hash)
+
+        result = self._restore_into(self.source)
+
+        # Vacuity guards: the snapshot really carried this user, and the row
+        # really was taken down the UPDATE branch — so an unchanged password is
+        # a decision the restore made, not a row it never reached.
+        snapshot_usernames = {
+            row["fields"]["username"] for row in result["tables"]["accounts.User"]
+        }
+        self.assertIn(self.user.username, snapshot_usernames)
+        self.assertEqual(result["restored"]["tables"]["accounts.User"]["updated"], 1)
+
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.password, current_hash)
+        self.assertTrue(self.user.check_password("password-changed-after-capture"))

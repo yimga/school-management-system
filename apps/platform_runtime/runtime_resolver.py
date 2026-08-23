@@ -128,6 +128,24 @@ def _step2_tenant_identity(school: Any, tenant_ctx: TenantContext) -> TenantIden
     )
 
 
+def _resolve_language_code(school: Any) -> str:
+    """Language for the presentation context — never the tenant's country code.
+
+    ``LocaleContext.language_code`` used to be fed ``tenant_ctx.country``. That
+    field was permanently None while it was read off a non-existent
+    ``School.country``, so the expression silently meant "en"; once the country
+    read was corrected a real ISO-3166 code (``"CM"``, ``"DE"``) started arriving
+    in a field the runtime inspector labels as the language. The school stores
+    its language in ``default_language``.
+    """
+    lang = (getattr(school, "default_language", "") or "").strip() if school else ""
+    if lang:
+        return lang
+    from django.conf import settings
+
+    return (getattr(settings, "LANGUAGE_CODE", "") or "").strip() or "en"
+
+
 def _step3_registry_context(school: Any, tenant_ctx: TenantContext) -> RegistryContext:
     """Step 3: Load registry context (country, subdivision, currency, etc.). Filled from registries when installed. Cached 5min to avoid 7+ registry queries per request."""
     # School stores the ISO alpha-2 as ``country_code``; it has no ``country``
@@ -875,7 +893,7 @@ def build_tenant_runtime(
         marketplace=marketplace,
         compliance=compliance,
         locale=LocaleContext(
-            language_code=tenant_ctx.country or "en",
+            language_code=_resolve_language_code(school),
             direction="ltr",
             terminology_pack=registry.terminology if registry else None,
         ),
