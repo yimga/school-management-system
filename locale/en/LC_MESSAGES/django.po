@@ -73256,3 +73256,140 @@ msgstr "Up for renewal"
 
 msgid "What you are bringing from your current system"
 msgstr "What you are bringing from your current system"
+
+msgid "Behind — released, not yet applied"
+msgstr "Behind — released, not yet applied"
+
+msgid "Edge fleet — releases"
+msgstr "Edge fleet — releases"
+
+msgid "Failed on the box"
+msgstr "Failed on the box"
+
+msgid "Fleet summary"
+msgstr "Fleet summary"
+
+msgid "Held back by an operator"
+msgstr "Held back by an operator"
+
+msgid "Installation layer drift detected"
+msgstr "Installation layer drift detected"
+
+msgid "Last moved"
+msgstr "Last moved"
+
+msgid "Never checked in"
+msgstr "Never checked in"
+
+msgid "No school is in that state right now."
+msgstr "No school is in that state right now."
+
+msgid "No schools on this deployment yet."
+msgstr "No schools on this deployment yet."
+
+msgid "Not promoted yet — on the default rings: {{ r }}."
+msgstr "Not promoted yet — on the default rings: {{ r }}."
+
+msgid "On manifest"
+msgstr "On manifest"
+
+msgid "On the current release"
+msgstr "On the current release"
+
+msgid ""
+"One layer still reflects a previous apply or rollback. Scheduled changes run"
+" automatically when due; immediate apply/rollback should already reconcile —"
+" use repair if drift remains. {% plural %} {{ counter }} layers still "
+"reflect a previous apply or rollback. Scheduled changes run automatically "
+"when due; immediate apply/rollback should already reconcile — use repair if "
+"drift remains."
+msgstr ""
+"One layer still reflects a previous apply or rollback. Scheduled changes run"
+" automatically when due; immediate apply/rollback should already reconcile —"
+" use repair if drift remains. {% plural %} {{ counter }} layers still "
+"reflect a previous apply or rollback. Scheduled changes run automatically "
+"when due; immediate apply/rollback should already reconcile — use repair if "
+"drift remains."
+
+msgid "Operator has no manifest"
+msgstr "Operator has no manifest"
+
+msgid ""
+"Promotion is a command, not a button here — releasing a build to every "
+"school is not something to do by accident."
+msgstr ""
+"Promotion is a command, not a button here — releasing a build to every "
+"school is not something to do by accident."
+
+msgid ""
+"Promotion is reversible: promoting to canary alone after a wider release "
+"pulls it back while a fix is prepared."
+msgstr ""
+"Promotion is reversible: promoting to canary alone after a wider release "
+"pulls it back while a fix is prepared."
+
+msgid "Quiet"
+msgstr "Quiet"
+
+msgid "Quiet, and behind"
+msgstr "Quiet, and behind"
+
+msgid "Quiet, but on the current release"
+msgstr "Quiet, but on the current release"
+
+msgid "Reconcile now"
+msgstr "Reconcile now"
+
+msgid "Released to: {{ r }}."
+msgstr "Released to: {{ r }}."
+
+msgid "Released, not yet applied"
+msgstr "Released, not yet applied"
+
+msgid "Ring"
+msgstr "Ring"
+
+msgid "Show all schools"
+msgstr "Show all schools"
+
+msgid ""
+"This operator has no system manifest, so no box can be offered an upgrade. "
+"Run generate_system_manifest on the operator deployment."
+msgstr ""
+"This operator has no system manifest, so no box can be offered an upgrade. "
+"Run generate_system_manifest on the operator deployment."
+
+msgid "This operator is built from manifest {{ h }} ({{ v }})."
+msgstr "This operator is built from manifest {{ h }} ({{ v }})."
+
+msgid ""
+"This step was not saved, and nothing was changed. Try again; if it keeps "
+"happening, contact support."
+msgstr ""
+"This step was not saved, and nothing was changed. Try again; if it keeps "
+"happening, contact support."
+
+msgid "This step was not saved. %(detail)s"
+msgstr "This step was not saved. %(detail)s"
+
+msgid "Upgrade failed on the box"
+msgstr "Upgrade failed on the box"
+
+msgid "Waiting on a promotion"
+msgstr "Waiting on a promotion"
+
+msgid "Widening a release"
+msgstr "Widening a release"
+
+msgid "{{ n }} school(s) in state \"{{ f }}\"."
+msgstr "{{ n }} school(s) in state \"{{ f }}\"."
+
+msgid ""
+"{{ n }} school(s). A box is called quiet after {{ h }} hours of silence — an"
+" edge box is expected to be offline, so silence alone is not a fault."
+msgstr ""
+"{{ n }} school(s). A box is called quiet after {{ h }} hours of silence — an"
+" edge box is expected to be offline, so silence alone is not a fault."
+
+msgid "…and {{ extra }} more"
+msgstr "…and {{ extra }} more"

@@ -66065,3 +66065,124 @@ msgstr ""
 
 msgid "What you are bringing from your current system"
 msgstr ""
+
+msgid "Behind — released, not yet applied"
+msgstr ""
+
+msgid "Edge fleet — releases"
+msgstr ""
+
+msgid "Failed on the box"
+msgstr ""
+
+msgid "Fleet summary"
+msgstr ""
+
+msgid "Held back by an operator"
+msgstr ""
+
+msgid "Installation layer drift detected"
+msgstr ""
+
+msgid "Last moved"
+msgstr ""
+
+msgid "Never checked in"
+msgstr ""
+
+msgid "No school is in that state right now."
+msgstr ""
+
+msgid "No schools on this deployment yet."
+msgstr ""
+
+msgid "Not promoted yet — on the default rings: {{ r }}."
+msgstr ""
+
+msgid "On manifest"
+msgstr ""
+
+msgid "On the current release"
+msgstr ""
+
+msgid ""
+"One layer still reflects a previous apply or rollback. Scheduled changes run"
+" automatically when due; immediate apply/rollback should already reconcile —"
+" use repair if drift remains. {% plural %} {{ counter }} layers still "
+"reflect a previous apply or rollback. Scheduled changes run automatically "
+"when due; immediate apply/rollback should already reconcile — use repair if "
+"drift remains."
+msgstr ""
+
+msgid "Operator has no manifest"
+msgstr ""
+
+msgid ""
+"Promotion is a command, not a button here — releasing a build to every "
+"school is not something to do by accident."
+msgstr ""
+
+msgid ""
+"Promotion is reversible: promoting to canary alone after a wider release "
+"pulls it back while a fix is prepared."
+msgstr ""
+
+msgid "Quiet"
+msgstr ""
+
+msgid "Quiet, and behind"
+msgstr ""
+
+msgid "Quiet, but on the current release"
+msgstr ""
+
+msgid "Reconcile now"
+msgstr ""
+
+msgid "Released to: {{ r }}."
+msgstr ""
+
+msgid "Released, not yet applied"
+msgstr ""
+
+msgid "Ring"
+msgstr ""
+
+msgid "Show all schools"
+msgstr ""
+
+msgid ""
+"This operator has no system manifest, so no box can be offered an upgrade. "
+"Run generate_system_manifest on the operator deployment."
+msgstr ""
+
+msgid "This operator is built from manifest {{ h }} ({{ v }})."
+msgstr ""
+
+msgid ""
+"This step was not saved, and nothing was changed. Try again; if it keeps "
+"happening, contact support."
+msgstr ""
+
+msgid "This step was not saved. %(detail)s"
+msgstr ""
+
+msgid "Upgrade failed on the box"
+msgstr ""
+
+msgid "Waiting on a promotion"
+msgstr ""
+
+msgid "Widening a release"
+msgstr ""
+
+msgid "{{ n }} school(s) in state \"{{ f }}\"."
+msgstr ""
+
+msgid ""
+"{{ n }} school(s). A box is called quiet after {{ h }} hours of silence — an"
+" edge box is expected to be offline, so silence alone is not a fault."
+msgstr ""
+
+msgid "…and {{ extra }} more"
+msgstr ""
