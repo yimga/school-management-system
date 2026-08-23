@@ -1282,19 +1282,12 @@ def carry_forward_arrears(source_year, target_year) -> int:
                 student_id=student_id,
                 reference=ref,
                 invoice_type=Invoice.InvoiceType.AR,
+                school=getattr(student, "school", None),
                 defaults={
                     "issued_date": issued,
                     "due_date": issued,
                     "status": Invoice.Status.ISSUED,
                     "total_amount": total_arrears,
-                    # Invoice.school is nullable and save() does no backfill, so
-                    # omitting it here (this was the only AR creator that did —
-                    # create_fee_invoices sets it) left every arrears invoice
-                    # school=NULL: invisible to student_enrollment_blocked_for_unpaid
-                    # and to the fractional-clearance producers, both of which are
-                    # school-scoped. A student owing a full year walked straight
-                    # into re-enrollment.
-                    "school": getattr(student, "school", None),
                 },
             )
             if not created_inv:
@@ -1530,13 +1523,13 @@ def create_fee_invoices(
                 student=student,
                 invoice_type=Invoice.InvoiceType.AR,
                 reference=f"FEE-{plan.academic_year.name}-{student.student_code}",
+                school=getattr(student, "school", None)
+                or getattr(plan, "school", None),
                 defaults={
                     "issued_date": issued_date,
                     "due_date": due_date,
                     "status": Invoice.Status.ISSUED,
                     "total_amount": Decimal("0.01"),
-                    "school": getattr(student, "school", None)
-                    or getattr(plan, "school", None),
                 },
             )
             if not created:

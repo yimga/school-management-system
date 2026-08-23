@@ -210,7 +210,7 @@ jobs:
   # whether the job needed `pip install -r requirements.txt`, so the 12 that
   # did now share ONE install instead of paying for twelve.
   boundary-scanners:
-    name: Boundary scanners (96 gates, stdlib only)
+    name: Boundary scanners (97 gates, stdlib only)
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
