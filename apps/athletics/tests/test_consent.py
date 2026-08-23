@@ -173,3 +173,72 @@ class ConsentServiceTests(BaseAthleticsTestCase):
         # The membership was never activated.
         self.membership.refresh_from_db()
         self.assertEqual(self.membership.status, TeamMembership.Status.PENDING)
+
+
+class ConsentEmailIsActionableTests(BaseAthleticsTestCase):
+    """The guardian must be able to ACT on the consent request.
+
+    ``_send_consent_email`` wrote the raw token into the body as a bare
+    reference -- "Your one-time consent reference is: <token>" -- and no link.
+    The consent pages exist (``athletics:participation_consent_public`` and
+    ``:participation_consent_decide``, both mounted on the tenant host and both
+    reading ``?token=``), so the flow was fully built and simply had no entry
+    point: a guardian receiving that email has a secret and nowhere to put it.
+
+    Nothing catches this class. The URL resolves, the view renders, the email
+    sends, and every assertion about token minting passes. Only a person holding
+    the email can see that it asks them to do something impossible.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.membership = self.add_member(
+            self.fx, status=TeamMembership.Status.PENDING
+        )
+
+    def _send_and_capture(self, request=None):
+        from django.core import mail
+
+        mail.outbox = []
+        raw = request_participation_consent(
+            membership=self.membership,
+            guardian_name="Guardian",
+            guardian_email="guardian@example.com",
+            consent_text="Consent text.",
+            request=request,
+        )
+        return raw, mail.outbox
+
+    def _tenant_request(self):
+        from django.test import RequestFactory
+
+        request = RequestFactory().post(
+            "/athletics/memberships/1/request-consent/",
+            HTTP_HOST=f"{self.fx.school.subdomain}.runmycampus.com",
+        )
+        request.school = self.fx.school
+        return request
+
+    def test_an_email_is_actually_sent(self):
+        # Calibration: every assertion below is vacuous if the outbox is empty.
+        _raw, outbox = self._send_and_capture(self._tenant_request())
+        self.assertEqual(len(outbox), 1)
+        self.assertEqual(outbox[0].to, ["guardian@example.com"])
+
+    def test_the_email_carries_a_link_the_guardian_can_open(self):
+        raw, outbox = self._send_and_capture(self._tenant_request())
+        body = outbox[0].body
+        self.assertIn("/athletics/consent/", body)
+        self.assertIn(f"token={raw}", body)
+        self.assertIn("http", body)
+
+    def test_the_link_is_on_the_tenant_host(self):
+        """A consent page served from the wrong host 404s for the guardian."""
+        _raw, outbox = self._send_and_capture(self._tenant_request())
+        self.assertIn(f"{self.fx.school.subdomain}.", outbox[0].body)
+
+    def test_without_a_request_the_mint_still_succeeds(self):
+        """Email is best-effort and must never roll back the mint."""
+        raw, _outbox = self._send_and_capture(None)
+        self.assertTrue(raw)
+        self.assertIsNotNone(ParticipationConsent.lookup_by_raw_token(raw))
