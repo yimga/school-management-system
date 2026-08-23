@@ -259,6 +259,9 @@ DJANGO_GATES: list[tuple[str, list[str]]] = [
     # SECOND Arabic help article raised IntegrityError).
     ("blank-unique-text-fields", ["scan_blank_unique_text_fields.py"]),
     ("rls-table-coverage", ["scan_rls_table_coverage.py", "--compare"]),
+    # Its blind spot: a child table that reaches its school through a parent has
+    # no `school` field, so the gate above cannot see it and truthfully says 0.
+    ("rls-relation-coverage", ["scan_rls_relation_scoped_coverage.py", "--compare"]),
     # TenantAdminSite.register auto-scopes a changelist only when the model has a
     # concrete `school` field -- that column is what the mixin filters on. A
     # SHARED_APPS model WITHOUT one got no scoping at all, and its table lives in
