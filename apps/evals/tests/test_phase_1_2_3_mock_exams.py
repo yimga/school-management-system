@@ -3,6 +3,8 @@ Tests for Phase 1.2.3: Mock Exam Support
 Tests mock exam configuration, blending algorithm, and integration with ranking system.
 """
 
+from datetime import timedelta
+
 from django.test import TestCase
 from django.core.exceptions import ValidationError
 from django.utils import timezone
@@ -33,7 +35,10 @@ class MockExamSettingModelTests(TestCase):
         self.academic_year = AcademicYear.objects.create(
             name="2024/2025",
             start_date=timezone.now().date(),
-            end_date=timezone.now().date(),
+            # end_date must be strictly AFTER start_date: the
+            # academicyear_end_after_start CHECK constraint (academics/0084)
+            # rejects a same-day year, which is what these fixtures created.
+            end_date=timezone.now().date() + timedelta(days=300),
         )
         self.term = Term.objects.create(
             academic_year=self.academic_year,
@@ -166,7 +171,10 @@ class CalculateBlendedScoreTests(TestCase):
         self.academic_year = AcademicYear.objects.create(
             name="2024/2025",
             start_date=timezone.now().date(),
-            end_date=timezone.now().date(),
+            # end_date must be strictly AFTER start_date: the
+            # academicyear_end_after_start CHECK constraint (academics/0084)
+            # rejects a same-day year, which is what these fixtures created.
+            end_date=timezone.now().date() + timedelta(days=300),
         )
         self.term = Term.objects.create(
             academic_year=self.academic_year,
@@ -312,7 +320,10 @@ class ShouldUseMockBlendingTests(TestCase):
         self.academic_year = AcademicYear.objects.create(
             name="2024/2025",
             start_date=timezone.now().date(),
-            end_date=timezone.now().date(),
+            # end_date must be strictly AFTER start_date: the
+            # academicyear_end_after_start CHECK constraint (academics/0084)
+            # rejects a same-day year, which is what these fixtures created.
+            end_date=timezone.now().date() + timedelta(days=300),
         )
 
     def test_detect_form5_by_name(self):
@@ -458,7 +469,10 @@ class RankingWithMockBlendingTests(TestCase):
         self.academic_year = AcademicYear.objects.create(
             name="2024/2025",
             start_date=timezone.now().date(),
-            end_date=timezone.now().date(),
+            # end_date must be strictly AFTER start_date: the
+            # academicyear_end_after_start CHECK constraint (academics/0084)
+            # rejects a same-day year, which is what these fixtures created.
+            end_date=timezone.now().date() + timedelta(days=300),
         )
         self.term = Term.objects.create(
             academic_year=self.academic_year,
@@ -532,7 +546,10 @@ class MockBlendingIntegrationTests(TestCase):
         self.academic_year = AcademicYear.objects.create(
             name="2024/2025",
             start_date=timezone.now().date(),
-            end_date=timezone.now().date(),
+            # end_date must be strictly AFTER start_date: the
+            # academicyear_end_after_start CHECK constraint (academics/0084)
+            # rejects a same-day year, which is what these fixtures created.
+            end_date=timezone.now().date() + timedelta(days=300),
         )
         self.term = Term.objects.create(
             academic_year=self.academic_year,
@@ -595,7 +612,10 @@ class MockExamCacheStrategyTests(TestCase):
         self.academic_year = AcademicYear.objects.create(
             name="2024/2025",
             start_date=timezone.now().date(),
-            end_date=timezone.now().date(),
+            # end_date must be strictly AFTER start_date: the
+            # academicyear_end_after_start CHECK constraint (academics/0084)
+            # rejects a same-day year, which is what these fixtures created.
+            end_date=timezone.now().date() + timedelta(days=300),
         )
         self.term = Term.objects.create(
             academic_year=self.academic_year,
