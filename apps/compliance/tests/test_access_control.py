@@ -228,19 +228,34 @@ class RequestAccessControlTestCase(TestCase):
         self.assertIn("blocked", reason.lower())
 
     def test_request_with_x_forwarded_for(self):
-        """Test that X-Forwarded-For header is respected."""
-        # Block specific IP
+        """The TRUSTED X-Forwarded-For hop decides, not the leftmost one.
+
+        X-Forwarded-For is client-controlled to the LEFT (a proxy appends its
+        observation on the right), so this used to assert the leftmost entry --
+        which meant any banned client could walk through the perimeter by
+        prepending an unbanned address. The entry contributed by the outermost
+        trusted proxy (RATE_LIMIT_TRUSTED_PROXY_COUNT hops from the right) is
+        the one that is honoured. See test_client_ip_trust_boundary.py.
+        """
         IPAccessRule.objects.create(
             rule_type=IPAccessRule.RuleType.DENY,
             ip_address="203.0.113.5",
             is_active=True,
         )
 
-        # Create request with X-Forwarded-For
+        # One proxy, which appended the real peer address 203.0.113.5 last.
         request = self.factory.get("/")
-        request.META["HTTP_X_FORWARDED_FOR"] = "203.0.113.5, 192.168.1.1"
-        request.META["REMOTE_ADDR"] = "192.168.1.1"
+        request.META["HTTP_X_FORWARDED_FOR"] = "192.168.1.1, 203.0.113.5"
+        request.META["REMOTE_ADDR"] = "10.0.0.1"
 
-        # Should use first IP from X-Forwarded-For
         is_allowed, _ = check_request_access(request)
         self.assertFalse(is_allowed)
+
+        # The same banned address in the forgeable LEFT position must not be
+        # what the perimeter reads -- and must not let the client through.
+        request = self.factory.get("/")
+        request.META["HTTP_X_FORWARDED_FOR"] = "203.0.113.5, 198.51.100.7"
+        request.META["REMOTE_ADDR"] = "10.0.0.1"
+
+        is_allowed, _ = check_request_access(request)
+        self.assertTrue(is_allowed)

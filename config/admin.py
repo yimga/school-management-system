@@ -14,7 +14,7 @@ from apps.dashboard.admin_context import build_admin_dashboard_context
 
 from django.conf import settings
 from django.contrib.auth.forms import AuthenticationForm
-from django.core.exceptions import ImproperlyConfigured
+from django.core.exceptions import FieldDoesNotExist, ImproperlyConfigured
 from django.db import DatabaseError
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect
@@ -1081,7 +1081,12 @@ class TenantAdminSite(BaseRunMyCampusAdminSite):
     def _model_has_concrete_school_field(model) -> bool:
         try:
             field = model._meta.get_field("school")
-        except Exception:  # noqa: BLE001 — FieldDoesNotExist / unusual meta → not scopable
+        except FieldDoesNotExist:
+            # Was `except Exception`, whose own comment already named the real
+            # one. Anything else raised by _meta.get_field is a broken model,
+            # and reporting it as "not scopable" would quietly drop that model
+            # out of tenant scoping -- the opposite of what a caller asking
+            # this question wants.
             return False
         return bool(getattr(field, "concrete", False)) and not getattr(
             field, "many_to_many", False

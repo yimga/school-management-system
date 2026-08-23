@@ -880,6 +880,49 @@ class RuntimeDefaults(models.Model):
             )
         return obj, created
 
+    #: JSONFields whose consumers index them as a mapping. A list or scalar here
+    #: does not raise at save time - it breaks a `.get()` deep in a request.
+    _MAP_SHAPED_JSON_FIELDS = (
+        "backend_feature_flags",
+        "portal_features",
+        "default_widgets_per_role",
+    )
+    #: JSONFields whose consumers iterate them as a sequence of codes.
+    _LIST_SHAPED_JSON_FIELDS = (
+        "notification_channels",
+        "require_mfa_roles",
+    )
+
+    def clean(self) -> None:
+        """Reject a JSON value whose CONTAINER is wrong.
+
+        forms.JSONField validates JSON syntax, not shape, so `7` and
+        `"ADMIN,FINANCE"` both save into `require_mfa_roles` from the platform
+        admin. This is the id=1 singleton at the base of the cascade, so the value
+        reaches every tenant: apps.accounts.middleware feeds it to
+        `effective_required_roles`, whose `for r in tenant_required or ()` raises
+        TypeError on `7` - and that TypeError is swallowed by the middleware's
+        broad `except`, skipping the ENTIRE MFA enforcement block with no log
+        line. The string case is worse than loud: it iterates CHARACTERS, so the
+        configured roles never match and enforcement silently narrows to the
+        baseline. Fail at the admin form instead.
+        """
+        from django.core.exceptions import ValidationError
+
+        errors: dict[str, str] = {}
+        for name in self._MAP_SHAPED_JSON_FIELDS:
+            value = getattr(self, name, None)
+            if value is not None and not isinstance(value, dict):
+                errors[name] = "Must be a JSON object (a map), or left blank."
+        for name in self._LIST_SHAPED_JSON_FIELDS:
+            value = getattr(self, name, None)
+            # A str is iterable, so `isinstance(value, (list, tuple))` is the check
+            # that matters: a bare "ADMIN,FINANCE" must not pass as a sequence.
+            if value is not None and not isinstance(value, (list, tuple)):
+                errors[name] = "Must be a JSON array (a list), or left blank."
+        if errors:
+            raise ValidationError(errors)
+
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         # Invalidate BEFORE the pk check: a row saved with any pk can still change

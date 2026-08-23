@@ -33,6 +33,7 @@ from ._helpers import (
     model_field_names,
     record_id_mapping,
     record_row_error,
+    row_is_unstructured_text_fragment,
     row_marks_deletion,
 )
 from .base import Lander, LanderContext, LanderError, LanderResult, register
@@ -77,6 +78,9 @@ class AcademicsLander(Lander):
             # code when a source only carries a code.
             name = name or code
             if not name:
+                if row_is_unstructured_text_fragment(row):
+                    result.skipped += 1
+                    continue
                 record_row_error(
                     result,
                     row,

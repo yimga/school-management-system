@@ -302,6 +302,71 @@ def reconcile_bundle(
     return report
 
 
+def run_post_apply_verification(*, bundle_id: int) -> None:
+    """Best-effort visible-count verification immediately after a live apply.
+
+    The tenant Review & Import pipeline's "Verify in school" bead and the
+    per-domain verification table both depend on ``reconciliation_summary``,
+    which is written only by :func:`reconcile_bundle`. Repair already called
+    this path; normal applies did not — so verify never reached the finish line.
+
+    Never raises: a reconcile failure must not undo a successful apply.
+    """
+    try:
+        from .progress import emit
+
+        emit(
+            bundle_id=bundle_id,
+            kind="stage_started",
+            stage="VERIFYING",
+            message="Verifying imported records are visible in your school…",
+        )
+        try:
+            from .auto_remediate import auto_remediate_before_repair
+            from .models import MigrationBundle
+
+            bundle = MigrationBundle.objects.filter(pk=bundle_id).first()
+            if bundle is not None:
+                auto_remediate_before_repair(bundle)
+        except Exception:  # noqa: BLE001
+            logger.debug(
+                "migration_cloud: post-apply auto-remediate skipped for bundle %s",
+                bundle_id,
+                exc_info=True,
+            )
+        reconcile_bundle(bundle_id=bundle_id)
+        emit(
+            bundle_id=bundle_id,
+            kind="stage_finished",
+            stage="VERIFYING",
+            message="School verification finished.",
+        )
+    except Exception:  # noqa: BLE001
+        logger.warning(
+            "migration_cloud: post-apply verification failed for bundle %s",
+            bundle_id,
+            exc_info=True,
+        )
+        try:
+            from .progress import emit
+
+            emit(
+                bundle_id=bundle_id,
+                kind="error",
+                stage="VERIFYING",
+                message=(
+                    "Could not complete school verification — "
+                    "review counts manually or use Repair."
+                ),
+            )
+        except Exception:  # noqa: BLE001
+            logger.debug(
+                "migration_cloud: VERIFYING error event failed for bundle %s",
+                bundle_id,
+                exc_info=True,
+            )
+
+
 def _mark_onboarding_migration_completed(bundle) -> None:
     """Write back the public-onboarding migration status so build_school_readiness
     resolves the "Data migrated" phase after a real reconcile.

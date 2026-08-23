@@ -191,6 +191,10 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # Added 2026-08-22 after the same `|cut:"_"` mistake was found on three
     # surfaces, one of them on every page of a live tenant.
     ("scripts/scan_raw_token_in_ui.py", "architectural-boundaries.yml"),
+    # Operator workbench landings must show page header before optional cockpit chrome.
+    # Added 2026-08-22 after founder + CS dashboards stacked collapsable widgets above
+    # "Platform Command Center" / "Benchmark & Customer Success".
+    ("scripts/verify_operator_landing_header_order.py", "architectural-boundaries.yml"),
     # Landers must not buffer list(canonical_rows) without an allow marker — frozen
     # rows_processed trips SystemicStallError on large edge applies.
     ("scripts/scan_lander_row_streaming.py", "architectural-boundaries.yml"),

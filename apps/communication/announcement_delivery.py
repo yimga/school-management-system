@@ -30,6 +30,7 @@ Design rules honoured here:
 from __future__ import annotations
 
 import logging
+from datetime import timedelta
 from typing import Any, Dict, Iterator, List
 
 from django.contrib.auth import get_user_model
@@ -51,6 +52,12 @@ ANNOUNCEMENT_EVENT_KEY = "announcement.published"
 #: builds an unbounded in-memory recipient list. 500 >= 100 so the value is an
 #: intentional capacity constant, not an incidental literal.
 ANNOUNCEMENT_FANOUT_BATCH_SIZE = 500  # magic-number-allow: announcement fan-out batch size
+
+#: How far back :func:`send_due_scheduled_announcements` will reach to rescue an
+#: IMMEDIATE publish (``scheduled_at IS NULL``) whose inline fan-out never ran.
+#: Deliberately short: this is a backstop for a delivery that just failed, not a
+#: replay of announcements published before ``delivered_at`` existed.
+IMMEDIATE_PUBLISH_RESCUE_WINDOW = timedelta(days=1)
 
 #: Roles treated as "staff" for the STAFF audience: everyone who works at the
 #: school, i.e. not a student and not a parent/guardian. Keyed off the role enum
@@ -315,10 +322,18 @@ def send_due_scheduled_announcements() -> Dict[str, Any]:
     the operator — this module only provides the callable.)
     """
     now = timezone.now()
+    # An immediate publish leaves scheduled_at NULL, and `NULL <= now` is NULL,
+    # so such a row was excluded from the due set forever -- if its inline
+    # fan-out raised (or the caller never performed one) it was never delivered
+    # at all. Include them, but only inside IMMEDIATE_PUBLISH_RESCUE_WINDOW:
+    # this is a backstop for a fan-out that just failed, NOT a replay of every
+    # historical announcement that predates delivered_at.
+    rescue_cutoff = now - IMMEDIATE_PUBLISH_RESCUE_WINDOW
     # tenant-isolation-allow: each-row-carries-its-own-school-fk
     due = Announcement.objects.filter(
+        Q(scheduled_at__lte=now)
+        | Q(scheduled_at__isnull=True, created_at__gte=rescue_cutoff),
         status=Announcement.Status.PUBLISHED,
-        scheduled_at__lte=now,
         delivered_at__isnull=True,
     ).order_by("scheduled_at")
 

@@ -16,9 +16,12 @@ already done by ``apps.communication.channel_adapter``.
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 from datetime import date as date_type
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 
 # --- Onboarding task registry ---------------------------------------------
@@ -186,3 +189,133 @@ def record_nudge_sent(
 def get_sent_markers(school_settings: dict[str, Any] | None) -> set[str]:
     bucket = (school_settings or {}).get("customersuccess") or {}
     return set(bucket.get("nudges_sent") or [])
+
+
+# --- Completed-task derivation --------------------------------------------
+
+# ``School.settings["customersuccess"]["completed_tasks"]`` is read by the
+# scheduler but nothing in the repo ever WRITES it, so on its own the completed
+# set is permanently empty and every task looks outstanding forever. Derive the
+# completions from the same predicates the guided-onboarding rail already
+# computes, mapped onto this module's task keys.
+_GUIDED_STEP_TO_TASK: dict[str, str] = {
+    "student_csv_import": "import_students",
+    "branding": "configure_branding",
+    "post_fees": "set_up_fees",
+    "academic_year": "calendar_setup",
+}
+
+
+def compute_completed_task_keys(school, *, stored=None) -> set[str]:
+    """Onboarding tasks this tenant has genuinely finished."""
+    done = set(stored or [])
+    try:
+        from apps.customersuccess.services import get_guided_onboarding_steps
+
+        for step in get_guided_onboarding_steps(school):
+            task_key = _GUIDED_STEP_TO_TASK.get(str(step.get("key") or ""))
+            if task_key and step.get("done"):
+                done.add(task_key)
+    except Exception:  # noqa: BLE001 — a nudge must never break the sweep
+        logger.debug(
+            "onboarding nudges: guided-step probe failed school_id=%s",
+            getattr(school, "pk", None),
+            exc_info=True,
+        )
+    try:
+        from apps.people.models import TeacherProfile
+
+        if TeacherProfile.objects.filter(school=school).exists():
+            done.add("invite_teachers")
+    except Exception:  # noqa: BLE001
+        logger.debug(
+            "onboarding nudges: teacher probe failed school_id=%s",
+            getattr(school, "pk", None),
+            exc_info=True,
+        )
+    return done
+
+
+# --- Delivery --------------------------------------------------------------
+
+
+def resolve_nudge_recipient(school) -> str:
+    """Best available tenant-admin address for this school ("" when unknown)."""
+    try:
+        from apps.schools.tasks import resolve_provisioning_contact_email
+
+        return (resolve_provisioning_contact_email(school) or "").strip()
+    except Exception:  # noqa: BLE001
+        logger.debug(
+            "onboarding nudges: recipient lookup failed school_id=%s",
+            getattr(school, "pk", None),
+            exc_info=True,
+        )
+        return ""
+
+
+def _nudge_body(school, nudge: DueNudge) -> str:
+    return (
+        f"Hi {getattr(school, 'name', '')},\n\n"
+        f"You signed up {nudge.day_offset} days ago and this step is still open:\n"
+        f"  - {nudge.task_label}\n\n"
+        "Finishing it unlocks the rest of the platform for your team.\n"
+    )
+
+
+def deliver_nudge(*, school, nudge: DueNudge, recipient_email: str) -> bool:
+    """Send one nudge. True ONLY when a real transport accepted it.
+
+    The caller records the idempotency marker on True and the marker suppresses
+    the nudge forever, so a stub hop or a transient outage must return False —
+    otherwise the nudge is burned without ever having been delivered.
+    """
+    recipient_email = (recipient_email or "").strip()
+    if not recipient_email:
+        return False
+    subject = f"{getattr(school, 'name', '')}: {nudge.task_label}"
+    body = _nudge_body(school, nudge)
+
+    try:
+        from apps.communication.channel_adapter import (
+            ChannelAddress,
+            ChannelMessage,
+            send_message,
+        )
+
+        result = send_message(
+            tenant_id=str(getattr(school, "pk", "")),
+            address=ChannelAddress(channel="email", address=recipient_email),
+            message=ChannelMessage(
+                subject=subject,
+                body_text=body,
+                template_key="customersuccess.onboarding_day_n_nudge",
+            ),
+            preferred_channels=tuple(nudge.channels),
+        )
+        if result.success and not result.simulated:
+            return True
+        # A log-only / loopback adapter is honest that it sent nothing
+        # (success=False or simulated=True). That is not a delivery — fall
+        # through to real mail rather than burning the marker on a stub.
+    except Exception:  # noqa: BLE001 — registry may have no adapter wired
+        logger.debug(
+            "onboarding nudges: channel adapter unavailable school_id=%s",
+            getattr(school, "pk", None),
+            exc_info=True,
+        )
+
+    try:
+        from django.core.mail import send_mail
+
+        return bool(
+            send_mail(subject, body, None, [recipient_email], fail_silently=False)
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(
+            "onboarding nudges: delivery failed school_id=%s marker=%s err=%s",
+            getattr(school, "pk", None),
+            nudge.marker,
+            type(exc).__name__,
+        )
+        return False

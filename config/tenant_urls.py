@@ -29,6 +29,10 @@ from apps.portal.views_ai_copilot import (
     ai_health,
 )
 from apps.portal.views_configure import portal_configure_hub
+from apps.people.views_transfer_consent import (
+    transfer_consent_decide,
+    transfer_consent_landing,
+)
 from apps.siteconfig.views_school_help_ai import school_help_ai
 from apps.schools.views_pending_provision import api_public_pending_provision_progress
 from apps.schools.views_school_readiness import api_school_readiness
@@ -394,6 +398,30 @@ urlpatterns = [
                 "migration_guardian_consent",
             ),
             namespace="migration_guardian_consent",
+        ),
+    ),
+    # A customer subdomain is served config.tenant_urls, so a route declared
+    # only in config/urls.py resolves on a developer laptop and nowhere else.
+    # apps/portal/views_transfers.py reverses the landing name AFTER minting the
+    # consent row, so its absence here 500'd the request and wedged the case in
+    # CONSENT_PENDING with an unrecoverable token.
+    path(  # rbac-allow: anonymous-by-design-consent-token-in-url-sha256-lookup
+        "transfer-consent/",
+        transfer_consent_landing,
+        name="people_transfer_consent_landing",
+    ),
+    path(  # rbac-allow: anonymous-by-design-consent-token-in-url-sha256-lookup
+        "transfer-consent/decide/",
+        transfer_consent_decide,
+        name="people_transfer_consent_decide",
+    ),
+    # Wave P-C embedded parent-fee checkout. Same story: mounted only on the
+    # dev urlconf, so it 404'd for every paying parent.
+    path(
+        "billing/embedded-checkout/",
+        include(
+            ("apps.billing.urls_embedded_checkout", "billing_embedded_checkout"),
+            namespace="billing_embedded_checkout",
         ),
     ),
     path(

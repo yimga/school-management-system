@@ -376,6 +376,58 @@ def filter_to_model_fields(defaults: dict[str, Any], model) -> dict[str, Any]:
     return {k: v for k, v in defaults.items() if k in available and v not in (None, "")}
 
 
+_ACADEMICS_IDENTITY_KEYS = (
+    "subject_name",
+    "subject_code",
+    "name",
+    "title",
+    "code",
+    "course_name",
+    "course_code",
+)
+
+
+def row_is_unstructured_text_fragment(row: dict | None) -> bool:
+    """True when a row is only a PDF/stat-sheet text line with no domain identity.
+
+    PDF tabularisation emits ``raw_line`` rows when a page has no grade-table or
+    key/value structure (headers, footers, column titles). Those lines are not
+    importable course records and should be skipped — not held for review.
+    """
+    if not isinstance(row, dict):
+        return False
+    flat: dict[str, Any] = dict(row)
+    custom_fields = row.get("custom_fields")
+    if isinstance(custom_fields, dict):
+        for key, value in custom_fields.items():
+            flat.setdefault(f"custom_fields.{key}", value)
+            flat.setdefault(key, value)
+    raw_line = (
+        flat.get("custom_fields.raw_line")
+        or flat.get("raw_line")
+        or (custom_fields.get("raw_line") if isinstance(custom_fields, dict) else None)
+    )
+    if not str(raw_line or "").strip():
+        return False
+    for key in _ACADEMICS_IDENTITY_KEYS:
+        if str(flat.get(key) or "").strip():
+            return False
+    meaningful = {
+        key: value
+        for key, value in flat.items()
+        if key != "custom_fields"
+        and value not in (None, "", [], {})
+        and str(value).strip()
+    }
+    if not meaningful:
+        return False
+    allowed_keys = {"raw_line", "custom_fields.raw_line"}
+    return all(
+        key in allowed_keys or key.startswith("custom_fields.")
+        for key in meaningful
+    )
+
+
 # Canonical enrollment_status token → StudentProfile.Status value. Kept here so
 # the students AND enrollment landers map identically (both write onto the same
 # StudentProfile.status column). Returns "" for tokens with no confident mapping —
@@ -1017,9 +1069,44 @@ def _free_username(User, base: str) -> str:
     return f"{base}-{digest}"[:150]  # magic-number-allow: django-username-field-max-length-150
 
 
+def user_is_linkable_to_school(user, school) -> bool:
+    """May an import bind this EXISTING ``user`` to ``school``?
+
+    ``accounts.User`` / ``schools.SchoolMembership`` are SHARED_APPS in the
+    public schema, so an email lookup inside a lander sees EVERY tenant's users.
+    Taking the first hit let a bundle uploaded by school A bind school B's
+    headteacher to an A record — and, for guardians, hand that account a
+    ``SchoolMembership`` in A (``ensure_school_membership`` is deliberately
+    additive and cannot be the gate). Linkable means: already a member here, or
+    a member of NO school yet (a freshly provisioned / unclaimed account). A
+    user who belongs only to OTHER schools is not linkable by a weak key —
+    genuine inter-school transfers carry the platform identity and land through
+    the username rung instead.
+    """
+    if user is None or school is None or not getattr(user, "pk", None):
+        return True
+    try:
+        from apps.schools.models import SchoolMembership
+    except Exception:  # noqa: BLE001 — membership model absent → no scoping signal
+        return True
+    memberships = SchoolMembership.objects.filter(user=user)  # tenant-isolation-allow: the cross-school reach IS what this gate measures
+    if memberships.filter(school=school).exists():
+        return True
+    return not memberships.exists()
+
+
+#: Held-row wording for a weak-key match that belongs to a DIFFERENT tenant.
+#: Phrased for the school admin reading the quarantine table, and it names the
+#: way out (re-upload carrying the platform username).
+FOREIGN_SCHOOL_MATCH_REASON = (
+    "email {email!r} already belongs to a user in another school — not linked. "
+    "Supply that person's platform username to move them deliberately."
+)
+
+
 def resolve_or_provision_user(
     *, User, username_hint: str, email: str, first_name: str, last_name: str,
-    role: str, dry_run: bool,
+    role: str, dry_run: bool, school: Any = None,
 ):
     """Return ``(user, reason)`` — reason set only when user is None.
 
@@ -1029,6 +1116,9 @@ def resolve_or_provision_user(
     users are NEVER mutated (their role/names/credentials stay theirs). Mirrors
     ``guardian_lander._resolve_or_provision_user`` so staff land the same way
     guardians do.
+
+    The email rung is school-scoped (:func:`user_is_linkable_to_school`): a match
+    that belongs only to ANOTHER tenant holds the row instead of linking.
     """
     if username_hint:
         user = User.objects.filter(username=username_hint).first()
@@ -1037,6 +1127,8 @@ def resolve_or_provision_user(
     if email:
         user = User.objects.filter(email__iexact=email).first()
         if user is not None:
+            if not user_is_linkable_to_school(user, school):
+                return None, FOREIGN_SCHOOL_MATCH_REASON.format(email=email)
             return user, ""
     if not (email or first_name or last_name or username_hint):
         return None, "no email or name to resolve or provision a user"

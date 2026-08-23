@@ -14,7 +14,7 @@
      .aria_label              str  — capsule aria-label
 {% endcomment %}
 
-{% if cockpit.operator_presence.enabled %}
+{% if cockpit.operator_presence.enabled and cockpit.operator_presence.operators_online_count|default:0 > 0 %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 <div class="cp-presence" role="status" aria-label="{{ cockpit.operator_presence.aria_label|default:_('Operators online and platform status') }}" title="{% blocktrans count counter=cockpit.operator_presence.operators_online_count trimmed %}{{ counter }} operator online{% plural %}{{ counter }} operators online{% endblocktrans %}{% if cockpit.operator_presence.status_pill_text %} · {{ cockpit.operator_presence.status_pill_text }}{% endif %}">
   {% if cockpit.operator_presence.avatars %}

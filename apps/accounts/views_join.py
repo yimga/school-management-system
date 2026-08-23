@@ -51,6 +51,16 @@ def join_school(request):
         auth_user = authenticate(request, username=user.username, password=password)
         if auth_user is not None:
             login(request, auth_user)
+            # Same contract as login_view: the MFA decision belongs to
+            # resolve_post_login_mfa_redirect, not to whichever view happened to
+            # call login(). RequireMFAMiddleware only walls users with NO device,
+            # so leaving it to the middleware makes the policy depend on the
+            # sign-in door.
+            from apps.accounts.post_login_mfa import resolve_post_login_mfa_redirect
+
+            mfa_resp = resolve_post_login_mfa_redirect(request, auth_user)
+            if mfa_resp is not None:
+                return mfa_resp
             messages.success(request, _("Welcome! Your account is ready."))
             return redirect("accounts:backend_dashboard")
         # Account created but auto-login unavailable — send them to sign in.

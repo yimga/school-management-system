@@ -9,7 +9,6 @@ from apps.accounts.models import User
 from apps.platform_runtime.blueprint_apply import apply_blueprint
 from apps.platform_runtime.blueprint_rollback import rollback_blueprint_installation
 from apps.platform_runtime.configuration_change_requests import (
-    apply_approved_change_request,
     approve_change_request,
     create_change_request,
     schedule_change_request,

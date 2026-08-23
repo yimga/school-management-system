@@ -7,7 +7,8 @@ admin action, management command, or portal view later without duplication.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Iterable, List, Sequence
+from decimal import Decimal
+from typing import Any, Iterable, List, Optional, Sequence
 
 from django.apps import apps as django_apps
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -47,11 +48,14 @@ class GradeImportRow:
     subject_assignment_id: int
     term_id: int
     teacher_username: str
-    seq1: float
-    seq2: float
-    exam: float
-    mock: float
-    practical: float
+    # A blank sheet cell stays None (missing) rather than becoming 0.0 — see
+    # _optional_decimal. Consumers write these straight onto the nullable
+    # Evaluation score columns.
+    seq1: Optional[float]
+    seq2: Optional[float]
+    exam: Optional[float]
+    mock: Optional[float]
+    practical: Optional[float]
     remarks: str
     raw: dict
     is_valid: bool = True
@@ -73,6 +77,30 @@ class GradeImportPreview:
     @property
     def is_valid(self) -> bool:
         return not self.errors
+
+
+def _optional_decimal(raw: Any) -> Optional[Decimal]:
+    """A BLANK grade cell is a missing mark, not a mark of zero.
+
+    ``or 0`` collapsed the two: a school importing sequence-1 marks in October
+    leaves the exam column empty because the exam has not been sat, and every row
+    landed with ``exam_score=0``. That reads as a genuine zero forever —
+    ``is_complete_for_ranking`` then reports the class as fully marked and
+    ``_apply_fill_missing`` (which only fills ``None`` components) will never
+    touch it. Only an explicit "0" writes a zero.
+    """
+    if raw is None:
+        return None
+    text = str(raw).strip()
+    if not text:
+        return None
+    return Decimal(text)
+
+
+def _optional_float(raw: Any) -> Optional[float]:
+    """``_optional_decimal`` for the preview dataclass, which carries floats."""
+    value = _optional_decimal(raw)
+    return None if value is None else float(value)
 
 
 def _validate_headers(headers: Sequence[str]) -> List[str]:
@@ -106,11 +134,11 @@ def preview_import(data: Iterable[dict]) -> GradeImportPreview:
                 subject_assignment_id=int(raw["subject_assignment_id"]),
                 term_id=int(raw["term_id"]),
                 teacher_username=str(raw.get("teacher_username") or "").strip(),
-                seq1=float(raw.get("seq1") or 0),
-                seq2=float(raw.get("seq2") or 0),
-                exam=float(raw.get("exam") or 0),
-                mock=float(raw.get("mock") or 0),
-                practical=float(raw.get("practical") or 0),
+                seq1=_optional_float(raw.get("seq1")),
+                seq2=_optional_float(raw.get("seq2")),
+                exam=_optional_float(raw.get("exam")),
+                mock=_optional_float(raw.get("mock")),
+                practical=_optional_float(raw.get("practical")),
                 remarks=str(raw.get("remarks") or "").strip(),
                 raw=raw,
             )
@@ -338,15 +366,11 @@ def preview_import_with_validation(csv_rows):
                 subject_assignment=subject_assignment,
                 student=student,
                 teacher=teacher,
-                seq1_score=Decimal(str(row.get("seq1") or 0)),
-                seq2_score=Decimal(str(row.get("seq2") or 0)),
-                exam_score=Decimal(str(row.get("exam") or 0)),
-                mock_score=Decimal(str(row.get("mock") or 0))
-                if row.get("mock")
-                else None,
-                practical_score=Decimal(str(row.get("practical") or 0))
-                if row.get("practical")
-                else None,
+                seq1_score=_optional_decimal(row.get("seq1")),
+                seq2_score=_optional_decimal(row.get("seq2")),
+                exam_score=_optional_decimal(row.get("exam")),
+                mock_score=_optional_decimal(row.get("mock")),
+                practical_score=_optional_decimal(row.get("practical")),
                 remarks=row.get("remarks", ""),
             )
 
@@ -359,11 +383,11 @@ def preview_import_with_validation(csv_rows):
                 subject_assignment_id=row.get("subject_assignment_id"),
                 term_id=row.get("term_id"),
                 teacher_username=row.get("teacher_username"),
-                seq1=float(row.get("seq1") or 0),
-                seq2=float(row.get("seq2") or 0),
-                exam=float(row.get("exam") or 0),
-                mock=float(row.get("mock") or 0),
-                practical=float(row.get("practical") or 0),
+                seq1=_optional_float(row.get("seq1")),
+                seq2=_optional_float(row.get("seq2")),
+                exam=_optional_float(row.get("exam")),
+                mock=_optional_float(row.get("mock")),
+                practical=_optional_float(row.get("practical")),
                 remarks=row.get("remarks", ""),
                 raw=row,
                 is_valid=validation_result["is_valid"],
@@ -435,15 +459,11 @@ def apply_import(csv_rows, academic_year=None):
                 student=student,
                 defaults={
                     "teacher": teacher,
-                    "seq1_score": Decimal(str(row.get("seq1") or 0)),
-                    "seq2_score": Decimal(str(row.get("seq2") or 0)),
-                    "exam_score": Decimal(str(row.get("exam") or 0)),
-                    "mock_score": Decimal(str(row.get("mock") or 0))
-                    if row.get("mock")
-                    else None,
-                    "practical_score": Decimal(str(row.get("practical") or 0))
-                    if row.get("practical")
-                    else None,
+                    "seq1_score": _optional_decimal(row.get("seq1")),
+                    "seq2_score": _optional_decimal(row.get("seq2")),
+                    "exam_score": _optional_decimal(row.get("exam")),
+                    "mock_score": _optional_decimal(row.get("mock")),
+                    "practical_score": _optional_decimal(row.get("practical")),
                     "remarks": row.get("remarks", ""),
                 },
             )

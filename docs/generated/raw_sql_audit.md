@@ -1,12 +1,12 @@
 # Raw SQL audit (generated)
 
-**UTC** `2026-08-06T12:21:29.503501+00:00`
+**UTC** `2026-08-23T09:43:04.974207+00:00`
 
-**Total hits:** 382
+**Total hits:** 433
 
 | Classification | Count |
 | --- | --- |
-| migration_safe | 262 |
-| needs_review | 21 |
-| performance_safe | 63 |
-| test_safe | 36 |
+| migration_safe | 294 |
+| needs_review | 16 |
+| performance_safe | 76 |
+| test_safe | 47 |

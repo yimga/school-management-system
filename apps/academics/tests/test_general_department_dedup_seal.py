@@ -48,7 +48,10 @@ class EnsureGeneralDepartmentSealTests(SimpleTestCase):
     def test_existing_canonical_is_reused(self):
         existing = mock.Mock(name="canonical_dept")
         model = self._model(canonical=existing)
-        school = mock.Mock(id="abcdef1234567890")
+        # settings={} matters: resolve_provision_seed_inputs does dict(school.settings or {}),
+        # and a bare Mock attribute is truthy, so dict() raises TypeError before
+        # namespaced_structure_code can derive the code prefix.
+        school = mock.Mock(id="abcdef1234567890", settings={})
         with mock.patch.object(structure_provisioning, "Department", model):
             out = structure_provisioning.ensure_general_department(school)
         self.assertIs(out, existing)
@@ -57,7 +60,10 @@ class EnsureGeneralDepartmentSealTests(SimpleTestCase):
     def test_legacy_named_department_is_adopted_not_duplicated(self):
         legacy = mock.Mock(name="legacy_slug_gen_dept")
         model = self._model(canonical=None, legacy=legacy)
-        school = mock.Mock(id="abcdef1234567890")
+        # settings={} matters: resolve_provision_seed_inputs does dict(school.settings or {}),
+        # and a bare Mock attribute is truthy, so dict() raises TypeError before
+        # namespaced_structure_code can derive the code prefix.
+        school = mock.Mock(id="abcdef1234567890", settings={})
         with mock.patch.object(structure_provisioning, "Department", model):
             out = structure_provisioning.ensure_general_department(school)
         self.assertIs(out, legacy)
@@ -67,7 +73,10 @@ class EnsureGeneralDepartmentSealTests(SimpleTestCase):
         created = mock.Mock(name="created_dept")
         model = self._model(canonical=None, legacy=None)
         model.objects.create.return_value = created
-        school = mock.Mock(id="abcdef1234567890")
+        # settings={} matters: resolve_provision_seed_inputs does dict(school.settings or {}),
+        # and a bare Mock attribute is truthy, so dict() raises TypeError before
+        # namespaced_structure_code can derive the code prefix.
+        school = mock.Mock(id="abcdef1234567890", settings={})
         with mock.patch.object(structure_provisioning, "Department", model):
             out = structure_provisioning.ensure_general_department(school)
         self.assertIs(out, created)

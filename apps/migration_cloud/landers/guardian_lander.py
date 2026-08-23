@@ -249,7 +249,15 @@ def _resolve_or_provision_user(
     email → PHONE + name (phone-first dedup) → provision-with-unusable-password
     (email required). Existing users are NEVER mutated (role, names, credentials
     stay theirs).
+
+    The email rung is school-scoped, like the phone rung below it: ``User`` is a
+    SHARED public-schema table, so an unscoped email match let a bundle uploaded
+    by school A bind school B's account to an A guardian row (and, via
+    ``ensure_school_membership``, into A's parent directory). A match belonging
+    only to another tenant now HOLDS the row for a human instead.
     """
+    from ._helpers import FOREIGN_SCHOOL_MATCH_REASON, user_is_linkable_to_school
+
     if user_ref:
         user = User.objects.filter(username=user_ref).first()
         if user is not None:
@@ -257,6 +265,8 @@ def _resolve_or_provision_user(
     if email:
         user = User.objects.filter(email__iexact=email).first()
         if user is not None:
+            if not user_is_linkable_to_school(user, school):
+                return None, FOREIGN_SCHOOL_MATCH_REASON.format(email=email)
             return user, ""
     # Phone-first dedup: many regions this platform serves are phone-primary and
     # email-rare, so the SAME guardian re-appearing for a sibling under an

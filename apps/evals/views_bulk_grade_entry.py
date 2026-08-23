@@ -6,9 +6,11 @@ flow — teachers select multiple Evaluation rows for one subject_assignment +
 term, then apply the same score field (seq1/seq2/exam/mock/practical) to all
 selected rows in a single POST.
 
-Pure-Decimal arithmetic; never coerces money/marks through float. Validates
-the score against the SubjectAssignment's resolved max (falling back to 20
-when no scale is bound, matching the existing grade-entry contract).
+Pure-Decimal arithmetic; never coerces money/marks through float. Validates the
+score against the SCHOOL's resolved grading scale — the same
+``resolve_school_score_scale`` bound ``Evaluation.clean()`` enforces — and
+persists every row through ``Evaluation.save()`` so the denormalized columns,
+the audit trail and the ranking-cache invalidation all fire.
 """
 
 from __future__ import annotations
@@ -19,6 +21,7 @@ from decimal import Decimal, InvalidOperation
 from typing import Any
 
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render
@@ -28,6 +31,7 @@ from django.views.decorators.csrf import csrf_protect
 
 from apps.accounts.decorators import role_required
 from apps.accounts.models import User
+from apps.schools.mixins import require_school
 
 logger = logging.getLogger(__name__)
 
@@ -42,23 +46,28 @@ ALLOWED_SCORE_FIELDS: tuple[str, ...] = (
 )
 
 
-def _resolve_subject_max(subject_assignment) -> Decimal:
-    """Return the max score for ``subject_assignment`` (defaults to Decimal("20"))."""
-    if subject_assignment is None:
-        return Decimal("20")
-    scale = (
-        getattr(subject_assignment, "grading_scale", None)
-        or getattr(subject_assignment, "scale", None)
+def _resolve_max_score(school) -> Decimal:
+    """The upper bound a mark may carry at ``school``.
+
+    This used to probe ``subject_assignment.grading_scale`` / ``.scale``.
+    SubjectAssignment has NEITHER attribute, so the helper always fell through
+    to a hardcoded ``Decimal("20")``: a teacher at a percentage school got
+    ``value_out_of_range`` for 75 and the workbench was unusable, while a school
+    on a 4.0 GPA scale had an 18 waved through. Resolve it the way
+    ``Evaluation.clean()`` does so the view and the model agree, with the same
+    fail-closed fallback — an unresolvable scale clamps to the NARROWEST bound,
+    so the failure mode over-rejects (loud) rather than over-admits (silent).
+    """
+    from apps.evals.grading_provisioning import (
+        UNRESOLVED_SCALE_FALLBACK_MAX,
+        UnresolvedScoreScale,
+        resolve_school_score_scale,
     )
-    if scale is not None:
-        for attr in ("max_score", "max_value", "scale_max", "ceiling"):
-            raw = getattr(scale, attr, None)
-            if raw is not None:
-                try:
-                    return Decimal(str(raw))
-                except (InvalidOperation, ValueError, TypeError):
-                    continue
-    return Decimal("20")
+
+    try:
+        return resolve_school_score_scale(school)
+    except UnresolvedScoreScale:
+        return UNRESOLVED_SCALE_FALLBACK_MAX
 
 
 @method_decorator(
@@ -67,6 +76,13 @@ def _resolve_subject_max(subject_assignment) -> Decimal:
         role_required(
             User.Role.ADMIN, User.Role.HOD, User.Role.TEACHER, "HEAD_OF_ACADEMICS"
         ),
+        # The tenant binding is MANDATORY, not best-effort. The previous guard
+        # read ``request.user.active_school`` — an attribute that exists nowhere
+        # in the codebase — so it silently resolved to None and the school
+        # filter never applied, leaving the write queryset addressable by bare
+        # pk. request.school is set by TenantSchemaSchoolBridgeMiddleware; with
+        # no tenant there is nothing legitimate to bulk-edit, so refuse.
+        require_school,
         csrf_protect,
     ],
     name="dispatch",
@@ -84,6 +100,7 @@ class BulkGradeEntryView(View):
     template = "evals/bulk_grade_entry.html"
 
     def get(self, request: HttpRequest) -> HttpResponse:
+        school = request.school  # guaranteed by require_school
         subject_assignment_id = request.GET.get("subject_assignment") or ""
         term_id = request.GET.get("term") or ""
 
@@ -99,20 +116,17 @@ class BulkGradeEntryView(View):
         rows: list[dict[str, Any]] = []
 
         if subject_assignment_id:
-            # tenant-isolation-allow: scoped-via-user-school-bulk-grade-entry-subject-pick
-            sa_qs = SubjectAssignment.objects.filter(pk=subject_assignment_id)
-            user_school_id = getattr(getattr(request.user, "active_school", None), "pk", None)
-            if user_school_id is not None:
-                sa_qs = sa_qs.filter(school_id=user_school_id)
-            subject_assignment = sa_qs.first()
+            subject_assignment = SubjectAssignment.objects.filter(
+                pk=subject_assignment_id, school=school
+            ).first()
 
         if term_id:
             term = Term.objects.filter(pk=term_id).first()  # tenant-isolation-allow: term-lookup-shared-vocab
 
         if subject_assignment is not None and term is not None:
-            # tenant-isolation-allow: scoped-via-subject-assignment-and-term-bulk-grade-entry
             qs = (
                 Evaluation.objects.filter(
+                    school=school,
                     subject_assignment=subject_assignment,
                     term=term,
                 )
@@ -134,7 +148,7 @@ class BulkGradeEntryView(View):
                     "practical_score": ev.practical_score,
                 })
 
-        max_score = _resolve_subject_max(subject_assignment)
+        max_score = _resolve_max_score(school)
         return render(request, self.template, {
             "subject_assignment": subject_assignment,
             "term": term,
@@ -148,6 +162,8 @@ class BulkGradeEntryView(View):
         })
 
     def post(self, request: HttpRequest) -> JsonResponse:
+        school = request.school  # guaranteed by require_school
+
         try:
             payload = json.loads(request.body or b"{}")
         except (json.JSONDecodeError, ValueError):
@@ -179,26 +195,13 @@ class BulkGradeEntryView(View):
         except ImportError:
             return JsonResponse({"error": "evals_unavailable"}, status=503)
 
-        # Scope by user's school + ID list. We intentionally read the school
-        # off the first row and reject any rows that don't match it — bulk
-        # update across tenants is never legitimate.
         try:
             int_ids = [int(i) for i in ids]
         except (ValueError, TypeError):
             return JsonResponse({"error": "ids_must_be_integers"}, status=400)
 
-        user_school_id = getattr(getattr(request.user, "active_school", None), "pk", None)
-        # tenant-isolation-allow: explicit-user-school-bind-bulk-grade-entry-apply
-        qs = Evaluation.objects.filter(pk__in=int_ids)
-        if user_school_id is not None:
-            qs = qs.filter(school_id=user_school_id)
-
         if value is not None:
-            # Validate against the subject's resolved max (single read).
-            sample = qs.select_related("subject_assignment").first()
-            if sample is None:
-                return JsonResponse({"error": "no_matching_rows"}, status=404)
-            max_score = _resolve_subject_max(sample.subject_assignment)
+            max_score = _resolve_max_score(school)
             if value < Decimal("0") or value > max_score:
                 return JsonResponse({
                     "error": "value_out_of_range",
@@ -206,11 +209,69 @@ class BulkGradeEntryView(View):
                     "max": str(max_score),
                 }, status=400)
 
+        # The school predicate is unconditional — bulk update across tenants is
+        # never legitimate, and a pk list arrives straight from the client.
+        rows = list(
+            Evaluation.objects.filter(pk__in=int_ids, school=school)
+            .select_related("academic_year")
+        )
+        if not rows:
+            return JsonResponse({"error": "no_matching_rows"}, status=404)
+
+        # Soft/Hard Close is checked BEFORE anything is written, and once per
+        # academic year (a pk list can in principle span years). The other three
+        # evals write paths — views.py _update_evaluations_from_entries,
+        # _apply_ocr_entries and the marks-entry POST — already refuse here.
+        from apps.academics.year_close import assert_period_writable
+
+        checked_years: set[Any] = set()
+        for evaluation in rows:
+            year = evaluation.academic_year
+            if year is None or year.pk in checked_years:
+                continue
+            checked_years.add(year.pk)
+            try:
+                assert_period_writable(
+                    year, domain="grades", actor=request.user, school=school
+                )
+            except ValidationError as exc:
+                return JsonResponse({
+                    "error": "period_not_writable",
+                    "detail": "; ".join(exc.messages),
+                }, status=409)
+
+        updated = 0
+        failures: list[dict[str, Any]] = []
         with transaction.atomic():
-            updated = qs.update(**{field: value})
+            for evaluation in rows:
+                setattr(evaluation, field, value)
+                try:
+                    # Deliberately NOT a queryset .update() (see the app README):
+                    # final_score / normalized_value are recomputed only inside
+                    # save(), and .update() also skips full_clean()'s fail-closed
+                    # score ceiling, the GradeAudit post_save receiver, and the
+                    # ranking-cache invalidation.
+                    evaluation.save()
+                except ValidationError as exc:
+                    # full_clean() raises before any SQL, so the row simply did
+                    # not change — report it instead of failing the whole batch.
+                    failures.append({
+                        "id": evaluation.pk,
+                        "errors": "; ".join(exc.messages),
+                    })
+                    continue
+                updated += 1
+
+        if updated == 0 and failures:
+            return JsonResponse({
+                "error": "no_rows_written",
+                "applied": 0,
+                "failed": failures,
+            }, status=400)
 
         return JsonResponse({
             "applied": int(updated),
+            "failed": failures,
             "field": field,
             "value": str(value) if value is not None else None,
         })

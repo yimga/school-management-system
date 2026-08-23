@@ -39,6 +39,24 @@ _MAPPED_READY = frozenset({BundleStatus.MAPPED, BundleStatus.READY})
 _APPLY_DONE = frozenset({BundleStatus.APPLIED, BundleStatus.RECONCILED})
 
 
+def _current_apply_applied_at(bundle: Any) -> str:
+    totals = (getattr(bundle, "mapping_summary", None) or {}).get("apply_totals") or {}
+    return str(totals.get("applied_at") or "").strip()
+
+
+def post_apply_verification_complete(bundle: Any) -> bool:
+    """True when reconciliation_summary reflects the current apply's verify pass."""
+    applied_at = _current_apply_applied_at(bundle)
+    if not applied_at:
+        return False
+    recon = getattr(bundle, "reconciliation_summary", None) or {}
+    generated = str(recon.get("generated_at") or "").strip()
+    per_domain = recon.get("per_domain") or []
+    if not generated or not per_domain:
+        return False
+    return generated >= applied_at
+
+
 def last_import_counts(
     bundle: Any,
     *,
@@ -122,8 +140,16 @@ def pipeline_stages(
     elif status in _APPLY_DONE:
         visual["read_files"] = "done"
         visual["detect_types"] = "done"
-        visual["import_school"] = "failed" if issues else "done"
-        visual["verify_school"] = "failed" if issues else "done"
+        # Apply finished — rows landed and/or were held. Held rows block verify,
+        # but import itself completed; marking import "failed" made tenants think
+        # nothing wrote to the school.
+        visual["import_school"] = "done"
+        if issues:
+            visual["verify_school"] = "failed"
+        elif post_apply_verification_complete(bundle):
+            visual["verify_school"] = "done"
+        else:
+            visual["verify_school"] = "running"
     elif status == BundleStatus.ABORTED:
         visual["read_files"] = "done"
         visual["detect_types"] = "failed"
@@ -144,6 +170,8 @@ def pipeline_stages(
             pct = int((_stage_named(snap, "INGESTING") or {}).get("pct") or 0)
         elif v == "running" and key == "detect_types":
             pct = int((_stage_named(snap, "CLASSIFIED") or {}).get("pct") or 0)
+        elif v == "running" and key == "verify_school":
+            pct = int((_stage_named(snap, "VERIFYING") or {}).get("pct") or 50)
         rows.append(
             {
                 "key": key,

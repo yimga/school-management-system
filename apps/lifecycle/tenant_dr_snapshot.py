@@ -146,6 +146,17 @@ class _RestoreSpec:
     ``full_clean`` / interactive-create validation (invoice-balance checks,
     payment_code autogen) that must not re-fire when faithfully restoring an
     already-validated historical row.
+
+    ``require_school_membership`` guards the SHARED, platform-wide tables whose
+    natural key is global (``accounts.User.username``). A tenant restore must
+    never write a live row it merely COLLIDES with by username: an EXISTING row
+    is only updated when a live ``SchoolMembership`` ties that user to the
+    school being restored. Skipped rows are still entered in ``pk_map`` so the
+    tenant's own children (memberships, teacher profiles) still resolve to the
+    right identity.
+
+    ``preserve_on_update`` names columns that are never taken from the snapshot
+    when the row already exists. They are still written on CREATE.
     """
 
     app_label: str
@@ -156,6 +167,8 @@ class _RestoreSpec:
     school_scoped: bool = True
     fallback_natural_key: tuple[str, ...] = ()
     raw_save: bool = False
+    require_school_membership: bool = False
+    preserve_on_update: tuple[str, ...] = ()
 
     @property
     def label(self) -> str:
@@ -187,6 +200,13 @@ RESTORE_PLAN: tuple[_RestoreSpec, ...] = (
         natural_key=("username",),
         remap_fk={},
         school_scoped=False,
+        # ...and globally unique means a collision is NOT identity: the User
+        # table is shared across every tenant, so restoring school A must not
+        # rewrite a live row belonging to school B's staff.
+        require_school_membership=True,
+        # Platform-wide privilege flags are never restored onto a live row — a
+        # tenant restore must not re-promote a user demoted since capture.
+        preserve_on_update=("is_staff", "is_superuser"),
     ),
     _RestoreSpec(
         app_label="finance",
@@ -809,6 +829,20 @@ def _key_all_empty(fields: dict[str, Any], keys: tuple[str, ...]) -> bool:
     return all((fields.get(k) in (None, "")) for k in keys)
 
 
+def _member_of_school(user, school) -> bool:
+    """True when this live user already belongs to the school being restored.
+
+    ``accounts.User`` is shared/public across tenants and keyed globally by
+    username, so a snapshot row can land on a stranger. Membership is the only
+    durable tie between a user and a tenant.
+    """
+    from apps.schools.models import SchoolMembership
+
+    return SchoolMembership.objects.filter(
+        user_id=user.pk, school_id=school.pk
+    ).exists()
+
+
 def _natural_lookup(spec: _RestoreSpec, fields: dict[str, Any], school) -> dict[str, Any]:
     """Idempotent-upsert lookup for one row.
 
@@ -870,6 +904,7 @@ def restore_from_snapshot(
             rows = tables.get(spec.label) or []
             created = 0
             updated = 0
+            skipped = 0
             for raw in rows:
                 old_pk = raw.get("pk")
                 fields = dict(raw.get("fields") or {})
@@ -903,6 +938,20 @@ def restore_from_snapshot(
                 lookup = _natural_lookup(spec, fields, school)
                 existing = model.objects.filter(**lookup).first()
 
+                # A globally-unique natural key can match a live row that has
+                # nothing to do with this tenant (a teacher who moved to another
+                # school and kept their username). Leave such a row completely
+                # untouched — still map its pk so this tenant's own children
+                # point at the right identity.
+                if (
+                    existing is not None
+                    and spec.require_school_membership
+                    and not _member_of_school(existing, school)
+                ):
+                    skipped += 1
+                    pk_map[spec.label][old_pk] = existing.pk
+                    continue
+
                 # Deserialize a single object from the (remapped) field dict.
                 # Use the JSON deserializer (matching the JSON serializer used at
                 # capture time) so ISO date / decimal-string values parse back to
@@ -921,6 +970,9 @@ def restore_from_snapshot(
                 if existing is not None:
                     instance.pk = existing.pk
                     instance.id = existing.pk
+                    # Columns the snapshot may not dictate on a live row.
+                    for preserved in spec.preserve_on_update:
+                        setattr(instance, preserved, getattr(existing, preserved))
                     updated += 1
                 else:
                     instance.pk = None
@@ -939,7 +991,13 @@ def restore_from_snapshot(
                     instance.save()
                 pk_map[spec.label][old_pk] = instance.pk
 
-            report["tables"][spec.label] = {"created": created, "updated": updated}
+            report["tables"][spec.label] = {
+                "created": created,
+                "updated": updated,
+                # Live rows deliberately left alone (username collision with a
+                # non-member); surfaced so a recovery is never silently partial.
+                "skipped": skipped,
+            }
 
     payload["restored"] = report
     return payload

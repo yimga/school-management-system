@@ -32,12 +32,16 @@ The ``attr`` is resolved against the merged context (subject + resource + extras
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from typing import Any, Iterable
 
-from django.db import transaction
+from django.db import DatabaseError, transaction
 
 from apps.policies.models import PolicyDecisionLog, PolicyRule
+
+
+logger = logging.getLogger(__name__)
 
 
 _TIER_ORDER = {"public": 0, "internal": 1, "restricted": 2, "confidential": 3, "secret": 4}
@@ -152,14 +156,22 @@ def _inject_rebac_context(ctx: dict, subject: dict, school) -> None:
             return
         from apps.accounts.models import User
 
-        user = User.objects.filter(pk=uid).first()
-        ctx["rebac"] = {
-            "permission_code": perm,
-            "allowed": bool(
+        # decide() is @transaction.atomic, so a DB error swallowed here would leave
+        # PostgreSQL with an aborted transaction and break the CALLER's next query.
+        # The savepoint contains it; see the log write in decide() for the same shape.
+        with transaction.atomic():
+            user = User.objects.filter(pk=uid).first()
+            allowed = bool(
                 user and check_permission_token(user, perm, school=school),
-            ),
-        }
-    except Exception:
+            )
+        ctx["rebac"] = {"permission_code": perm, "allowed": allowed}
+    except (DatabaseError, ImportError, AttributeError, TypeError, ValueError):
+        logger.warning(
+            "pdp: rebac context injection failed for permission_code=%s; "
+            "falling back to allowed=False",
+            perm,
+            exc_info=True,
+        )
         ctx["rebac"] = {"permission_code": perm, "allowed": False}
 
 
@@ -304,24 +316,37 @@ def decide(
 
     if log:
         try:
-            PolicyDecisionLog.objects.create(
-                school=school,
-                subject_id=str(subject.get("user_id") or "")[:_SUBJECT_ID_MAXLEN],
-                subject_role=(subject.get("role") or "")[:_SUBJECT_ROLE_MAXLEN],
-                action=action[:_ACTION_MAXLEN],
-                resource_type=(resource.get("entity") or "")[:_RESOURCE_TYPE_MAXLEN],
-                resource_id=str(resource.get("id") or "")[:_RESOURCE_ID_MAXLEN],
-                effect=effect,
-                matched_rule=matched_rule,
-                decision_reason=reason[:_DECISION_REASON_SOFT_CAP],
-                context_snapshot={
-                    "subject": ctx["subject"],
-                    "resource": ctx["resource"],
-                },
+            # Savepointed on purpose. decide() is @transaction.atomic and this write
+            # is allowed to fail (RLS denial, statement timeout, deadlock victim...);
+            # without a savepoint, swallowing that error leaves PostgreSQL with an
+            # aborted transaction, so the CALLER's next unrelated query is the one
+            # that 500s and the true cause is invisible in the traceback.
+            with transaction.atomic():
+                PolicyDecisionLog.objects.create(
+                    school=school,
+                    subject_id=str(subject.get("user_id") or "")[:_SUBJECT_ID_MAXLEN],
+                    subject_role=(subject.get("role") or "")[:_SUBJECT_ROLE_MAXLEN],
+                    action=action[:_ACTION_MAXLEN],
+                    resource_type=(resource.get("entity") or "")[:_RESOURCE_TYPE_MAXLEN],
+                    resource_id=str(resource.get("id") or "")[:_RESOURCE_ID_MAXLEN],
+                    effect=effect,
+                    matched_rule=matched_rule,
+                    decision_reason=reason[:_DECISION_REASON_SOFT_CAP],
+                    context_snapshot={
+                        "subject": ctx["subject"],
+                        "resource": ctx["resource"],
+                    },
+                )
+        except (DatabaseError, TypeError, ValueError):
+            # Decision logging failure must not block the actual decision -- but a
+            # persistently failing decision log is an audit gap, so it is visible.
+            logger.warning(
+                "pdp: decision log write failed (action=%s entity=%s effect=%s)",
+                action,
+                (resource or {}).get("entity"),
+                effect,
+                exc_info=True,
             )
-        except Exception:
-            # Decision logging failure must not block the actual decision.
-            pass
 
     return Decision(
         effect=effect,

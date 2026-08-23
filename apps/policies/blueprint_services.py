@@ -6,6 +6,7 @@ Applying a BlueprintPack to a school creates a PolicyBundle and sets TenantBluep
 
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING, Any
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -15,6 +16,71 @@ from apps.platform_runtime.structured_logging import log_exception_with_context
 
 if TYPE_CHECKING:
     pass
+
+logger = logging.getLogger(__name__)
+
+# Blanket grant: entitles a school to every premium commercial pack.
+PREMIUM_BLUEPRINT_ENTITLEMENT_CODE = "premium_blueprints"
+
+
+class EntitlementRequired(ValueError):
+    """A premium commercial pack was applied without a commercial entitlement.
+
+    Subclasses ValueError on purpose: every existing caller of apply_blueprint_pack
+    already handles ValueError (the pack-not-active refusal has always been one), so
+    a refused premium apply degrades to "skipped and logged" rather than a 500.
+    """
+
+
+def premium_entitlement_codes(pack) -> list[str]:
+    """Entitlement codes that satisfy this pack, most specific first."""
+    slug = (getattr(pack, "slug", "") or "").strip().lower()
+    codes = []
+    if slug:
+        codes.append(f"blueprint_pack:{slug}")
+    codes.append(PREMIUM_BLUEPRINT_ENTITLEMENT_CODE)
+    return codes
+
+
+def has_premium_entitlement(school, pack) -> bool:
+    """True when this school holds an in-window billing grant for this pack.
+
+    Deliberately reads the billing ``Entitlement`` table directly rather than going
+    through ``entitlements.can`` / ``is_feature_enabled``: those resolve a UNION of
+    plan features, add-ons, the module manifest and an operator floor, and grant
+    everything outright for COMPLIMENTARY/MANUAL_OVERRIDE billing. A commercial gate
+    a module manifest can open is not a commercial gate -- this one wants an explicit,
+    auditable row. Fails CLOSED.
+    """
+    if school is None or not getattr(school, "pk", None):
+        return False
+    try:
+        from django.db.models import Q
+        from django.utils import timezone
+
+        from apps.billing.models import Entitlement
+
+        now = timezone.now()
+        return (
+            Entitlement.objects.filter(
+                school=school,
+                code__in=premium_entitlement_codes(pack),
+                kind=Entitlement.Kind.FEATURE,
+                is_enabled=True,
+            )
+            .filter(Q(effective_from__isnull=True) | Q(effective_from__lte=now))
+            .filter(Q(effective_until__isnull=True) | Q(effective_until__gt=now))
+            .exists()
+        )
+    except (ImportError, LookupError, AttributeError, TypeError, ValueError) as e:
+        logger.warning(
+            "apply_blueprint_pack: premium entitlement lookup failed for "
+            "school=%s pack=%s; failing closed: %s",
+            getattr(school, "pk", None),
+            getattr(pack, "slug", None),
+            e,
+        )
+        return False
 
 # Do not fail blueprint apply if package engine is unavailable (§2.4 allowlist 0).
 _BLUEPRINT_PACKAGE_ENGINE_ERRORS = (
@@ -54,12 +120,22 @@ def preview_blueprint_pack(school, pack) -> dict[str, Any]:
         )
         if tb and tb.active_bundle_id:
             current_bundle_id = tb.active_bundle_id
+    # A premium pack previews normally but says so, so the caller can render
+    # "requires entitlement" rather than offering an apply that will be refused.
+    requires_entitlement = bool(getattr(pack, "is_premium_commercial", False))
     return {
         "pack_slug": getattr(pack, "slug", ""),
         "pack_name": getattr(pack, "name", ""),
         "pack_version": getattr(pack, "version", ""),
         "policy_keys": policy_keys,
         "current_bundle_id": current_bundle_id,
+        "requires_entitlement": requires_entitlement,
+        "entitlement_codes": premium_entitlement_codes(pack)
+        if requires_entitlement
+        else [],
+        "entitlement_satisfied": (
+            has_premium_entitlement(school, pack) if requires_entitlement else True
+        ),
     }
 
 
@@ -80,6 +156,16 @@ def apply_blueprint_pack(school, pack, *, applied_by=None):
         )
     if not pack.is_active:
         raise ValueError(f"Blueprint pack {pack.slug} is not active.")
+    # Commercial gate. is_premium_commercial + list_price existed on the model with
+    # no reader, so a self-signup POST of a paid pack's slug provisioned the tenant
+    # onto it with no entitlement and no billing record. Refuse BEFORE any write.
+    if getattr(pack, "is_premium_commercial", False) and not has_premium_entitlement(
+        school, pack
+    ):
+        raise EntitlementRequired(
+            f"Blueprint pack {pack.slug} is premium commercial and requires one of "
+            f"{premium_entitlement_codes(pack)} for this school."
+        )
 
     bundle = PolicyBundle.objects.create(
         school=school,
@@ -129,6 +215,10 @@ def update_bundle_for_schools(pack, *, school_ids=None, applied_by=None):
     If school_ids is None, applies to all schools that have this pack applied and need update
     (active_bundle.applied_pack_version != pack.version).
     Returns list of (school, bundle) for each updated school.
+
+    A school whose premium entitlement has lapsed raises ``EntitlementRequired``
+    (a ValueError, so it is in ``_BLUEPRINT_APPLY_ERRORS``) and is skipped and logged
+    rather than silently upgraded onto the paid pack again.
     """
     from apps.policies.models import BlueprintPack
 

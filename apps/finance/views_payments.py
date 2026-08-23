@@ -1086,9 +1086,12 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
         )
         return HttpResponseBadRequest(f"Invoice {invoice_id} not found.")
 
-    invoice_paid = sum(invoice.payments.values_list("amount", flat=True)) or Decimal(
-        "0"
-    )
+    # Net received, NOT a gross sum of every payment row. The gross sum counted
+    # soft-deleted, failed, cancelled and refunded attempts at face value, so a
+    # legitimate signed callback on an invoice with any reversed history was
+    # rejected 400 "exceeds remaining balance 0" — and past the dead-letter
+    # threshold the endpoint started acking 200 and dropping the money.
+    invoice_paid = invoice.total_amount - invoice.computed_balance
     is_valid, error_msg = PaymentValidator.validate_against_invoice(
         Decimal(str(amount)),
         invoice.total_amount,

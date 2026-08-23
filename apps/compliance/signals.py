@@ -4,13 +4,62 @@ Phase 4: Automatically log CREATE, UPDATE, DELETE for audit trail.
 """
 
 from decimal import Decimal
-from django.db.models.signals import post_save, post_delete
+from django.db import DatabaseError
+from django.db.models.signals import post_save, post_delete, pre_save
 from django.dispatch import receiver
 
 from apps.compliance.models_audit import AuditLog
 
+# The audit trail's own tables - writing an AuditLog about an AuditLog recurses.
+_AUDIT_EXEMPT_MODELS = (
+    "AuditLog",
+    "UserActivitySession",
+    "AccessLog",
+    "ComplianceReport",
+)
 
-def get_model_changes(sender, instance, created=False, **kwargs):
+# Attribute the pre_save receiver stashes the previous row on. Not a model field.
+_AUDIT_OLD_VALUES_ATTR = "_audit_old_values"
+
+
+def _sender_is_audited(sender) -> bool:
+    """True when this model opts into the automatic CREATE/UPDATE/DELETE trail."""
+    if sender.__name__ in _AUDIT_EXEMPT_MODELS:
+        return False
+    if sender.__module__.startswith("django."):
+        return False
+    return bool(getattr(sender, "audit_enabled", False))
+
+
+@receiver(pre_save)
+def stash_pre_save_state(sender, instance, **kwargs):
+    """Capture the PRE-change row before the UPDATE overwrites it.
+
+    ``post_save`` fires after the UPDATE statement, so a SELECT there returns the
+    row that was just written: ``old_values`` would be a copy of ``new_values``
+    and ``changed_fields`` would always be empty - the audit trail could say an
+    invoice was edited but never what the amount used to be. Before the write is
+    the only moment the previous state is still readable, so it is serialised
+    onto the instance here and read back in ``get_model_changes``.
+
+    Never raises - an audit stash must not break the save it is observing. A
+    failure leaves the stash empty, which ``get_model_changes`` reports as
+    "previous state unknown" rather than as a self-comparison.
+    """
+    if not _sender_is_audited(sender):
+        return
+    # Always reset: an instance saved twice must never inherit the earlier stash.
+    setattr(instance, _AUDIT_OLD_VALUES_ATTR, None)
+    if instance.pk is None:
+        return
+    try:
+        old_instance = sender.objects.get(pk=instance.pk)
+    except (sender.DoesNotExist, DatabaseError, AttributeError, TypeError, ValueError):
+        return
+    setattr(instance, _AUDIT_OLD_VALUES_ATTR, _serialize_instance(old_instance))
+
+
+def get_model_changes(sender, instance, created=False, update_fields=None, **kwargs):
     """
     Extract changes from a model instance for audit logging.
     Returns: (old_values, new_values, changed_fields)
@@ -18,14 +67,26 @@ def get_model_changes(sender, instance, created=False, **kwargs):
     if created:
         return None, _serialize_instance(instance), None
 
-    try:
-        old_instance = sender.objects.get(pk=instance.pk)
-        old_values = _serialize_instance(old_instance)
-        new_values = _serialize_instance(instance)
-        changed_fields = _get_changed_fields(old_values, new_values)
-        return old_values, new_values, changed_fields
-    except sender.DoesNotExist:
-        return None, _serialize_instance(instance), None
+    old_values = getattr(instance, _AUDIT_OLD_VALUES_ATTR, None)
+    new_values = _serialize_instance(instance)
+    if not old_values:
+        # No stash: a bulk/raw path the pre_save receiver never saw, or the row
+        # did not exist. Report the new state alone - re-reading the row here
+        # would hand back the post-UPDATE values and claim nothing changed.
+        return None, new_values, None
+
+    if update_fields:
+        # Only these columns were written. A field edited in memory but left out
+        # of update_fields never reached the database, so the row still holds the
+        # old value there and reporting it as changed would be a false entry.
+        written = set(update_fields)
+        new_values = {
+            name: (value if name in written else old_values.get(name, value))
+            for name, value in new_values.items()
+        }
+
+    changed_fields = _get_changed_fields(old_values, new_values)
+    return old_values, new_values, changed_fields
 
 
 def _serialize_instance(instance):
@@ -109,21 +170,12 @@ def log_model_save(sender, instance, created, **kwargs):
     from apps.compliance.models_audit import AuditLog
 
     # Skip audit models and Django internals
-    if sender.__name__ in [
-        "AuditLog",
-        "UserActivitySession",
-        "AccessLog",
-        "ComplianceReport",
-    ]:
-        return
-    if sender.__module__.startswith("django."):
-        return
-    if not getattr(sender, "audit_enabled", False):
+    if not _sender_is_audited(sender):
         return
 
     action = AuditLog.Action.CREATE if created else AuditLog.Action.UPDATE
     old_values, new_values, changed_fields = get_model_changes(
-        sender, instance, created=created
+        sender, instance, created=created, update_fields=kwargs.get("update_fields")
     )
 
     # Classify sensitivity
@@ -158,16 +210,7 @@ def log_model_delete(sender, instance, **kwargs):
     """Auto-log model DELETE via AuditLog."""
     from apps.compliance.models_audit import AuditLog
 
-    if sender.__name__ in [
-        "AuditLog",
-        "UserActivitySession",
-        "AccessLog",
-        "ComplianceReport",
-    ]:
-        return
-    if sender.__module__.startswith("django."):
-        return
-    if not getattr(sender, "audit_enabled", False):
+    if not _sender_is_audited(sender):
         return
 
     model_name = sender.__name__
@@ -271,13 +314,19 @@ from django.contrib.auth.signals import (
 
 
 def _client_ip(request) -> str | None:
-    """Best-effort client IP extraction honoring X-Forwarded-For."""
-    if request is None:
+    """Client IP from the outermost TRUSTED proxy hop, or ``None``.
+
+    ``X-Forwarded-For`` is client-controlled to the LEFT, so the leftmost hop
+    is caller-supplied: a LOGIN / ACCESS_DENIED row stamped with it names the
+    address the attacker chose, which also defeats the per-IP brute-force
+    counting in ``threat_detection`` that reads these rows back.
+    """
+    if request is None or not hasattr(request, "META"):
         return None
-    xff = request.META.get("HTTP_X_FORWARDED_FOR", "") if hasattr(request, "META") else ""
-    if xff:
-        return xff.split(",")[0].strip() or None
-    return request.META.get("REMOTE_ADDR") if hasattr(request, "META") else None
+    from apps.api.rate_limit import client_ip as _trusted_client_ip
+
+    ip = _trusted_client_ip(request)
+    return ip if ip and ip != "unknown" else None
 
 
 def _client_user_agent(request) -> str:

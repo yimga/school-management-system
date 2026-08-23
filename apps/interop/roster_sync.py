@@ -13,7 +13,13 @@ resolution, and connection-state recording. A management command
 Tenant safety: a roster row sets the PER-SCHOOL ``SchoolMembership.role`` and
 only sets the shared ``User.role`` when the account is first created — a
 district roster for school A must never rewrite the global role of a user who is
-an admin at school B.
+an admin at school B. The same rule now covers the rest of that user's identity:
+``email`` / ``first_name`` / ``last_name`` are create-only, filled on an existing
+row only where the field is EMPTY and only for someone already in the target
+school. The roster body is tenant-controlled (``native_classlink_base_url`` is
+the school's own config), so an overwritable email was a way to redirect another
+school's password-reset mail; the base URL itself is checked before use
+(:func:`validate_roster_base_url`).
 
 Certification boundary: live district pulls require a certified Clever/ClassLink
 district bearer token (partner onboarding — see
@@ -157,10 +163,23 @@ def upsert_roster_person(school, person: dict[str, Any], *, User=None) -> dict[s
     if created:
         user.set_unusable_password()
         changed = True
-    for field, value in (("first_name", first_name), ("last_name", last_name), ("email", email)):
-        if value and getattr(user, field, None) != value:
-            setattr(user, field, value)
-            changed = True
+    # Identity is create-only, exactly like the shared ``User.role`` above.
+    # ``username`` is a GLOBAL key, and the roster body is tenant-controlled
+    # (``native_classlink_base_url`` is set by the school itself), so a district
+    # pull for school A that names school B's principal used to overwrite that
+    # account's email — redirecting its password-reset mail. An existing row is
+    # only ever FILLED where it is empty, and only for someone who already
+    # belongs to this school; nothing is ever overwritten.
+    may_fill = not created and SchoolMembership.objects.filter(  # tenant-isolation-allow: the cross-school reach IS what this gate measures
+        user=user, school=school
+    ).exists()
+    if may_fill:
+        for field, value in (
+            ("first_name", first_name), ("last_name", last_name), ("email", email),
+        ):
+            if value and not getattr(user, field, None):
+                setattr(user, field, value)
+                changed = True
     if changed:
         user.save()
 
@@ -279,8 +298,48 @@ def clever_fetch_pages(bearer: str, *, limit: int = 100):
     return _fetch
 
 
+#: Hosts a district OneRoster base URL may never point at. The base URL is
+#: tenant-supplied config, and the puller runs server-side with no user context,
+#: so an unchecked value is a server-side-request primitive aimed at the cloud
+#: metadata endpoint or at anything on the deploy box's own network.
+_PRIVATE_HOSTNAMES = frozenset({"localhost", "localhost.localdomain", "metadata", ""})
+
+
+def validate_roster_base_url(base_url: str) -> None:
+    """Raise :class:`RosterSyncError` unless ``base_url`` is a safe public https
+    target. An EMPTY value is allowed — it means "use the vendor default", which
+    ``clever_classlink_client`` supplies itself.
+
+    Literal-IP and obvious-name checks only: this does NOT resolve DNS, so a
+    hostname that resolves into private space still gets through. It closes the
+    direct ``http://169.254.169.254`` / ``https://10.x`` case, which is what a
+    tenant can set from the district-interop form.
+    """
+    base_url = (base_url or "").strip()
+    if not base_url:
+        return
+    import ipaddress
+    from urllib.parse import urlsplit
+
+    parts = urlsplit(base_url)
+    if parts.scheme != "https":
+        raise RosterSyncError(
+            f"classlink:invalid_base_url — {parts.scheme or 'no'} scheme; https required"
+        )
+    host = (parts.hostname or "").strip().lower()
+    if host in _PRIVATE_HOSTNAMES or host.endswith(".local") or host.endswith(".internal"):
+        raise RosterSyncError(f"classlink:invalid_base_url — non-public host {host!r}")
+    try:
+        ip = ipaddress.ip_address(host)
+    except ValueError:
+        return  # a name, not a literal — nothing more we can check without DNS
+    if not ip.is_global:
+        raise RosterSyncError(f"classlink:invalid_base_url — non-public host {host!r}")
+
+
 def classlink_fetch_pages(bearer: str, base_url: str, *, limit: int = 100):
     def _fetch():
+        validate_roster_base_url(base_url)
         from apps.interop.clever_classlink_client import classlink_list_users
 
         resp = classlink_list_users(bearer, base_url, limit=limit)

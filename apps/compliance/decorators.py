@@ -57,10 +57,16 @@ def _emit_view_event(
 
 
 def _client_ip(request) -> Optional[str]:
-    xff = request.META.get("HTTP_X_FORWARDED_FOR")
-    if xff:
-        return xff.split(",")[0].strip()
-    return request.META.get("REMOTE_ADDR") or None
+    """Client IP from the outermost TRUSTED proxy hop, or ``None``.
+
+    ``X-Forwarded-For`` is client-controlled to the LEFT, so the leftmost hop
+    is whatever the caller typed -- an audit row stamped with it records the
+    attacker's choice of source address, not the request's.
+    """
+    from apps.api.rate_limit import client_ip as _trusted_client_ip
+
+    ip = _trusted_client_ip(request)
+    return ip if ip and ip != "unknown" else None
 
 
 def audit_pii_view(

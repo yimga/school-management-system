@@ -19,6 +19,7 @@ from django.http import HttpResponseForbidden, JsonResponse
 from django.utils import timezone
 from django.utils.deprecation import MiddlewareMixin
 
+from apps.api.rate_limit import client_ip as _trusted_client_ip
 from apps.compliance.access_control import check_request_access
 from apps.compliance.models_audit import AccessLog, AuditLog
 from apps.platform_runtime.structured_logging import (
@@ -27,6 +28,17 @@ from apps.platform_runtime.structured_logging import (
 )
 
 logger = logging.getLogger(__name__)
+
+# AccessLog.ip_address / AuditLog.ip_address are 45 chars (IPv6 + zone).
+_IP_COLUMN_MAX = 45
+
+
+def _trusted_ip_for_log(request) -> str:
+    """Column-safe client IP from the outermost trusted proxy hop, or ``""``."""
+    ip = _trusted_client_ip(request)
+    if not ip or ip == "unknown":
+        return ""
+    return ip[:_IP_COLUMN_MAX]
 
 
 def _access_log_middleware_writes_enabled() -> bool:
@@ -305,14 +317,13 @@ class AuditLoggingMiddleware(MiddlewareMixin):
 
     @staticmethod
     def _get_ip_address(request):
-        """Extract real IP address from request (handles proxies)."""
-        # Check for IP through proxy headers
-        x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
-        if x_forwarded_for:
-            ip = x_forwarded_for.split(",")[0].strip()
-        else:
-            ip = request.META.get("REMOTE_ADDR", "")
-        return ip[:45]
+        """Client IP from the outermost TRUSTED proxy hop.
+
+        ``X-Forwarded-For`` is client-controlled to the LEFT, so the leftmost
+        hop is whatever the caller sent -- every AccessLog / AuditLog row
+        written from it recorded a forgeable address.
+        """
+        return _trusted_ip_for_log(request)
 
     @staticmethod
     def _extract_error(response):
@@ -360,13 +371,8 @@ class AccessControlMiddleware(MiddlewareMixin):
 
     @staticmethod
     def _get_ip_address(request):
-        """Extract real IP address from request."""
-        x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
-        if x_forwarded_for:
-            ip = x_forwarded_for.split(",")[0].strip()
-        else:
-            ip = request.META.get("REMOTE_ADDR", "")
-        return ip[:45]
+        """Client IP from the outermost TRUSTED proxy hop. See above."""
+        return _trusted_ip_for_log(request)
 
 
 class IPCountryAccessMiddleware(MiddlewareMixin):
@@ -485,13 +491,8 @@ class IPCountryAccessMiddleware(MiddlewareMixin):
 
     @staticmethod
     def _get_ip_address(request):
-        """Extract real IP address from request."""
-        x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
-        if x_forwarded_for:
-            ip = x_forwarded_for.split(",")[0].strip()
-        else:
-            ip = request.META.get("REMOTE_ADDR", "")
-        return ip[:45]
+        """Client IP from the outermost TRUSTED proxy hop. See above."""
+        return _trusted_ip_for_log(request)
 
 
 def log_access_denial(user, action, resource, reason, ip_address="", severity="HIGH"):

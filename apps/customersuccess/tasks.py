@@ -46,19 +46,25 @@ def deliver_onboarding_day_n_nudges(*, limit: int = 50) -> dict:
     from datetime import date
 
     from apps.customersuccess.onboarding_day_n_nudges import (
+        compute_completed_task_keys,
         compute_due_nudges,
+        deliver_nudge,
         get_sent_markers,
         record_nudge_sent,
+        resolve_nudge_recipient,
     )
     from apps.schools.models import School
 
     sent = 0
     scanned = 0
+    undelivered = 0
     for school in School.objects.filter(is_active=True).order_by("id")[: max(1, limit)]:  # tenant-isolation-allow: cross-tenant-sweep-active-schools-each-iteration-school-scoped
         scanned += 1
         settings_blob = dict(getattr(school, "settings", None) or {})
         cs = dict(settings_blob.get("customersuccess") or {})
-        completed = set(cs.get("completed_tasks") or [])
+        completed = compute_completed_task_keys(
+            school, stored=cs.get("completed_tasks")
+        )
         signup = getattr(school, "created_at", None)
         if signup is None:
             continue
@@ -69,16 +75,29 @@ def deliver_onboarding_day_n_nudges(*, limit: int = 50) -> dict:
             completed_task_keys=completed,
             already_sent_markers=get_sent_markers(settings_blob),
         )
+        if not batch.due:
+            continue
+        recipient = resolve_nudge_recipient(school)
+        recorded = False
         for nudge in batch.due:
+            # Record the marker only on a real delivery: the marker suppresses
+            # the nudge forever, so marking an undelivered nudge as sent burns
+            # it and no later retry can recover it.
+            if not deliver_nudge(
+                school=school, nudge=nudge, recipient_email=recipient
+            ):
+                undelivered += 1
+                continue
             settings_blob = record_nudge_sent(
                 school_settings=settings_blob,
                 marker=nudge.marker,
             )
             sent += 1
-        if batch.due:
+            recorded = True
+        if recorded:
             school.settings = settings_blob
             school.save(update_fields=["settings", "updated_at"])
-    return {"scanned": scanned, "sent": sent}
+    return {"scanned": scanned, "sent": sent, "undelivered": undelivered}
 
 
 @shared_task(name="customersuccess.sweep_tenant_health_scores")

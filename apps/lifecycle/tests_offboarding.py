@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import timedelta
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from django.test import TestCase
 from django.utils import timezone
@@ -131,18 +131,78 @@ class GraceExpiresAtTests(TestCase):
 
 
 class BillingClearanceTests(TestCase):
+    """The gate must read the money records, not an entitlement key.
+
+    It used to ask ``apps.billing.entitlements.limits()`` for an
+    ``"outstanding_balance"`` entry that no billing code ever writes, so it
+    could only ever answer "unknown" — the offboarding checklist step was
+    never done and the operator queue's outstanding-balance banner was
+    permanently 0. These cases assert the real states, so it cannot silently
+    regress to "unknown" again.
+    """
+
+    def setUp(self):
+        self.school = School.objects.create(
+            name="Bill", slug="bill-test", subdomain="bill-test"
+        )
+
+    def _issue_invoice(self, school, amount="150.00"):
+        from decimal import Decimal
+
+        from apps.finance.models import ComplianceProfile, Invoice
+
+        profile, _ = ComplianceProfile.objects.get_or_create(
+            name="Gate Test Profile", country_code="NG"
+        )
+        return Invoice.objects.create(
+            school=school,
+            profile=profile,
+            status=Invoice.Status.ISSUED,
+            total_amount=Decimal(amount),
+            balance_amount=Decimal(amount),
+        )
+
     def test_returns_unknown_when_no_school(self):
         clearance = check_billing_clearance(None)
         self.assertEqual(clearance.state, "unknown")
         self.assertFalse(clearance.cleared)
 
-    def test_returns_unknown_on_billing_error(self):
-        school = School.objects.create(
-            name="Bill", slug="bill-test", subdomain="bill-test"
+    def test_school_with_no_invoices_is_cleared(self):
+        clearance = check_billing_clearance(self.school)
+        self.assertEqual(clearance.state, "cleared")
+        self.assertTrue(clearance.cleared)
+
+    def test_unpaid_invoice_reports_outstanding(self):
+        from decimal import Decimal
+
+        self._issue_invoice(self.school, "150.00")
+        clearance = check_billing_clearance(self.school)
+        self.assertEqual(clearance.state, "outstanding")
+        self.assertFalse(clearance.cleared)
+        # The exact figure proves the gate summed the ledger row rather than
+        # merely noticing that some row exists.
+        self.assertEqual(clearance.outstanding_balance, Decimal("150.00"))
+
+    def test_other_tenants_invoice_does_not_block_this_school(self):
+        other = School.objects.create(
+            name="Bill Other", slug="bill-other", subdomain="bill-other"
         )
-        # Without billing context wired, clearance falls back to unknown.
-        clearance = check_billing_clearance(school)
-        self.assertIn(clearance.state, ("unknown", "cleared"))
+        self._issue_invoice(other, "999.00")
+        clearance = check_billing_clearance(self.school)
+        self.assertEqual(clearance.state, "cleared")
+
+    def test_unreachable_ledger_falls_back_to_unknown(self):
+        """Both money sources unreadable -> 'unknown', so operators can dual-approve."""
+        with (
+            patch("apps.lifecycle.billing_gate._platform_debt", return_value=None),
+            patch(
+                "apps.lifecycle.billing_gate._tenant_ledger_outstanding",
+                return_value=None,
+            ),
+        ):
+            clearance = check_billing_clearance(self.school)
+        self.assertEqual(clearance.state, "unknown")
+        self.assertFalse(clearance.cleared)
 
 
 class AuditMirrorTests(TestCase):

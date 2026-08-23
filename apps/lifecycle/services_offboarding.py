@@ -245,7 +245,10 @@ def notify_offboarding_confirmed(event) -> bool:
         return False
     # Capture the admin address NOW (before purge wipes it).
     admin_email = ""
-    verification = getattr(school, "signupverification", None)
+    # ``SignupVerification.school`` declares ``related_name="signup_verification"``
+    # (with the underscore) — the accessor-shaped ``signupverification`` silently
+    # returned the getattr default on every call, so admin_email was always "".
+    verification = getattr(school, "signup_verification", None)
     if verification is not None:
         admin_email = getattr(verification, "email", "") or ""
     try:

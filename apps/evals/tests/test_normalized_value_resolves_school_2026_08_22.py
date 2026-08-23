@@ -133,9 +133,15 @@ class NormalizedValueUsesResolvedSchoolTests(TestCase):
         )
         self.assertAlmostEqual(float(ev.normalized_value), 0.80, places=2)
 
-    def test_evaluation_school_fk_is_still_none(self) -> None:
-        # Guards the premise: the fix must resolve the school WITHOUT
-        # backfilling the FK, which is a separate concern.
+    def test_evaluation_school_fk_is_backfilled_from_the_same_resolver(self) -> None:
+        # Was ``test_evaluation_school_fk_is_still_none``: this fix had to
+        # resolve the school WITHOUT backfilling the FK, because backfilling
+        # was "a separate concern". That separate concern has since landed --
+        # Evaluation.save() now derives the tenant FK from this very same
+        # walker (see tests/test_evaluation_school_backfill.py), so the row no
+        # longer persists NULL. What still matters here is that the value comes
+        # from the RESOLVER and not from what the writer passed in: the caller
+        # above passes school=None explicitly.
         ev = self._save_evaluation()
         ev.refresh_from_db()
-        self.assertIsNone(ev.school_id)
+        self.assertEqual(ev.school_id, self.school.pk)

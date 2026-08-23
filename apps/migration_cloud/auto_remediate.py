@@ -5,8 +5,10 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from .landers._helpers import row_is_unstructured_text_fragment
 from .quarantine_resolution import (
     QUARANTINE_NO_ACTION_CLASSES,
+    _source_row_from_payload,
     pending_quarantine_count,
     quarantine_queryset_for_bundle,
 )
@@ -35,11 +37,37 @@ def auto_dismiss_informational(bundle, *, user=None) -> dict[str, Any]:
     return {"dismissed": dismissed}
 
 
+def auto_dismiss_unstructured_fragments(bundle, *, user=None) -> dict[str, Any]:
+    """Dismiss PDF/stat-sheet text lines that are not importable records."""
+    from apps.automation.quarantine_services import mark_repaired
+
+    qs = quarantine_queryset_for_bundle(bundle, pending_only=True).filter(
+        issue_class="missing_required"
+    )
+    dismissed = 0
+    for rec in qs.iterator():
+        payload = rec.payload if isinstance(rec.payload, dict) else {}
+        source_row = _source_row_from_payload(payload)
+        if not row_is_unstructured_text_fragment(source_row):
+            continue
+        mark_repaired(
+            rec,
+            {
+                "auto_dismissed": True,
+                "note": "Auto-dismissed — PDF text fragment, not an importable record",
+                "by": getattr(user, "pk", None),
+            },
+        )
+        dismissed += 1
+    return {"dismissed": dismissed}
+
+
 def auto_remediate_before_repair(bundle, *, user=None) -> dict[str, Any]:
     """Run autonomous pre-repair steps: refresh domains, dismiss informational holds."""
     results: dict[str, Any] = {
         "inference_refreshed": False,
         "informational_dismissed": 0,
+        "fragment_dismissed": 0,
         "pending_before": pending_quarantine_count(bundle),
     }
     try:
@@ -55,5 +83,7 @@ def auto_remediate_before_repair(bundle, *, user=None) -> dict[str, Any]:
         )
     dismiss = auto_dismiss_informational(bundle, user=user)
     results["informational_dismissed"] = dismiss["dismissed"]
+    fragments = auto_dismiss_unstructured_fragments(bundle, user=user)
+    results["fragment_dismissed"] = fragments["dismissed"]
     results["pending_after"] = pending_quarantine_count(bundle)
     return results

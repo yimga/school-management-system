@@ -2470,11 +2470,34 @@ class MigrationCloudExpectedTotalsView(LoginRequiredMixin, View):
             return JsonResponse({"error": "invalid JSON"}, status=400)
         if not isinstance(payload, dict):
             return JsonResponse({"error": "payload must be an object"}, status=400)
+        from .guardrails import parse_expected_total
+
         cleaned: dict[str, str] = {}
+        unreadable: list[str] = []
         for key, value in payload.items():
             if not isinstance(key, str) or value in (None, ""):
                 continue
-            cleaned[key[:64]] = str(value)[:64]
+            trimmed_key, trimmed_value = key[:64], str(value)[:64]
+            # Validate with the guardrail's OWN parser at the write boundary. A
+            # figure it cannot read (a space-grouped "1 250 000,00", a stray
+            # letter) used to be stored and echoed back in a 200 — and then
+            # silently dropped from the comparison, so the guardrail passed on
+            # nothing AND the "finance landed unverified" fallback stayed
+            # suppressed because expected_totals was still truthy.
+            if parse_expected_total(trimmed_value) is None:
+                unreadable.append(trimmed_key)
+                continue
+            cleaned[trimmed_key] = trimmed_value
+        if unreadable:
+            # Store NOTHING on a partial set — half-applied control totals would
+            # arm the guardrail on some keys and leave the rest unverified.
+            return JsonResponse(
+                {
+                    "error": "expected totals must be numbers",
+                    "unreadable_keys": sorted(unreadable),
+                },
+                status=400,
+            )
         bundle.expected_totals = cleaned
         bundle.save(update_fields=["expected_totals", "updated_at"])
         return JsonResponse({"bundle_id": bundle.pk, "expected_totals": cleaned})

@@ -1453,18 +1453,9 @@ def _safe_reconcile(bundle) -> None:
     visible per domain) so the results page can prove the data actually populated
     the school. A reconcile failure must never break the import the tenant ran.
     """
-    try:
-        from .reconciliation import reconcile_bundle
+    from .reconciliation import run_post_apply_verification
 
-        reconcile_bundle(bundle_id=bundle.pk)
-    except Exception:  # noqa: BLE001
-        import logging
-
-        logging.getLogger(__name__).warning(
-            "tenant apply: post-apply reconcile failed for bundle %s",
-            bundle.pk,
-            exc_info=True,
-        )
+    run_post_apply_verification(bundle_id=bundle.pk)
 
 
 def _build_verification(bundle):
@@ -1978,7 +1969,9 @@ class TenantMigrationHeldReviewView(_TenantAdminRequiredMixin, View):
 
         bundle = _tenant_bundle_or_404(request, bundle_id)
         ctx = build_anomaly_nudge_context(request, bundle, shell="portal")
-        ctx["mc_base"] = "migration_cloud/connector/_wizard_base.html"
+        # anomaly_nudge.html authors body in cp_shell_page; _wizard_base only exposes
+        # connector_body, which leaves a blank page. build_anomaly_nudge_context already
+        # sets mc_base to _mc_base_portal.html for shell="portal".
         ctx["back_url"] = _connector_reverse(request, "bundle-review", bundle_id=bundle.pk)
         ctx["quarantine_resolve_url"] = _connector_reverse(
             request, "bundle-quarantine-resolve", bundle_id=bundle.pk

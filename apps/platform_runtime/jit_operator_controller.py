@@ -48,6 +48,32 @@ _OPERATOR_FORBIDDEN_FIELDS: frozenset[str] = frozenset({
     "password", "password_hash", "totp_secret", "recovery_codes",
 })
 
+# The GDPR jurisdictions, as ISO 3166-1 alpha-2. This is THE membership list for
+# the platform: apps.platform_runtime.tenant_mask_wiring imports it rather than
+# keeping its own copy. Two hand-maintained copies had drifted, and the copy this
+# module used listed only six member states - so an Irish, Swedish or Belgian
+# tenant's person fields fell through _REGIONAL_MASK_FIELDS.get(...) unmasked.
+EU_GDPR_COUNTRIES: frozenset[str] = frozenset({
+    "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR",
+    "DE", "GR", "HU", "IE", "IT", "LV", "LT", "LU", "MT", "NL",
+    "PL", "PT", "RO", "SK", "SI", "ES", "SE",
+    # Treated as GDPR-equivalent for masking purposes (EEA + UK GDPR):
+    "IS", "LI", "NO", "GB",
+})
+
+
+def _normalize_region(region: str | None) -> str | None:
+    """Map a tenant country code onto the regulatory block used for masking."""
+    if not region:
+        return None
+    region_norm = region.strip().upper()
+    if region_norm in EU_GDPR_COUNTRIES or region_norm in ("EU", "GDPR"):
+        return "EU"
+    if region_norm == "US":
+        return "CCPA"
+    return region_norm
+
+
 # Fields that are visible IN MASKED FORM under GDPR/EU regional context.
 # The mask replaces character runs with a placeholder so structure is
 # preserved (length, ASCII-ness) but identity is not derivable.
@@ -114,23 +140,18 @@ def check_jit_authorization(
 def gdpr_resolver(field_key: str, *, region: str | None) -> bool:
     """Return True if ``field_key`` is visible to platform operators in ``region``.
 
-    Region-aware: under EU/GDPR additional fields are forbidden beyond the
-    platform's base forbidden list. ``None`` region uses the base list.
+    The forbidden list is region-INDEPENDENT: it is the platform's own stance,
+    not a regulatory minimum, so no jurisdiction adds to it. Regionally sensitive
+    fields are visible but MASKED, and that tier is applied by
+    ``apply_regional_mask`` — not here — so this resolver returns True for them.
+    The old ``if region:`` branch normalised a region and then returned True
+    either way; it was removed rather than left looking load-bearing.
     """
     if not field_key:
         return True
     key = field_key.lower().strip()
     if key in _OPERATOR_FORBIDDEN_FIELDS:
         return False
-    if region:
-        region_norm = region.strip().upper()
-        if region_norm in ("DE", "FR", "IT", "ES", "NL", "PL", "EU"):
-            region_norm = "EU"
-        if region_norm == "US":
-            region_norm = "CCPA"
-        # Masked fields ARE visible — but only in masked form (see
-        # apply_regional_mask). The resolver returns True for them.
-        return True
     return True
 
 
@@ -151,12 +172,8 @@ def apply_regional_mask(record: dict[str, Any], *, region: str | None) -> dict[s
     """
     if not isinstance(record, dict) or not region:
         return dict(record or {})
-    region_norm = region.strip().upper()
-    if region_norm in ("DE", "FR", "IT", "ES", "NL", "PL", "EU"):
-        region_norm = "EU"
-    if region_norm == "US":
-        region_norm = "CCPA"
-    masked_keys = _REGIONAL_MASK_FIELDS.get(region_norm, frozenset())
+    region_norm = _normalize_region(region)
+    masked_keys = _REGIONAL_MASK_FIELDS.get(region_norm or "", frozenset())
     out: dict[str, Any] = {}
     for k, v in record.items():
         if k in masked_keys:
