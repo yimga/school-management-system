@@ -30,6 +30,7 @@ from django.urls import Resolver404, resolve, reverse
 
 TENANT = "config.tenant_urls"
 DEV = "config.urls"
+PUBLIC = "config.public_urls"
 
 
 class TransferConsentIsReachableOnATenantHostTests(SimpleTestCase):
@@ -95,5 +96,43 @@ class EmbeddedCheckoutIsReachableOnATenantHostTests(SimpleTestCase):
     def test_both_urlconfs_point_at_the_same_view(self):
         self.assertIs(
             resolve(self.PATH, urlconf=TENANT).func,
+            resolve(self.PATH, urlconf=DEV).func,
+        )
+
+
+class AcceptInviteIsReachableOnThePublicHostTests(SimpleTestCase):
+    """The operator school-invite email points at the PUBLIC base domain.
+
+    apps/schools/super_views_invite_school.py builds the link as
+    ``f"{_public_base_url()}/accept-invite/?token={invite.token}"`` and its own
+    module docstring says the accept link lives on the public site. The route was
+    registered only in config/urls.py, and UrlConfSwitcherMiddleware serves the
+    base domain from config.public_urls -- so every invite a real operator sent
+    landed on a 404, while the tests, running on `testserver`, got config.urls and
+    passed.
+    """
+
+    NAME = "accept_school_invite"
+    PATH = "/accept-invite/"
+
+    def test_the_dev_urlconf_still_has_it(self):
+        self.assertEqual(reverse(self.NAME, urlconf=DEV), self.PATH)
+
+    def test_it_resolves_on_the_public_urlconf(self):
+        try:
+            match = resolve(self.PATH, urlconf=PUBLIC)
+        except Resolver404:  # pragma: no cover - the failure message reports it
+            self.fail(
+                f"{self.PATH} does not resolve under config.public_urls, so every "
+                "operator school-invite email 404s."
+            )
+        self.assertTrue(callable(match.func))
+
+    def test_it_reverses_on_the_public_urlconf(self):
+        self.assertEqual(reverse(self.NAME, urlconf=PUBLIC), self.PATH)
+
+    def test_both_urlconfs_point_at_the_same_view(self):
+        self.assertIs(
+            resolve(self.PATH, urlconf=PUBLIC).func,
             resolve(self.PATH, urlconf=DEV).func,
         )

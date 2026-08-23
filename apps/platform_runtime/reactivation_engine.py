@@ -62,7 +62,7 @@ def _resolve_admin_email(school) -> str:
     """Best-effort recipient resolution. Prefers the verified signup email."""
 
     try:
-        verification = getattr(school, "signupverification", None)
+        verification = getattr(school, "signup_verification", None)
         if verification and getattr(verification, "email", ""):
             return str(verification.email)
     except Exception:
