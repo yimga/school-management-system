@@ -76,7 +76,49 @@ Many sovereign deployments exist *precisely* to avoid that. Do not talk a school
 
 ---
 
-## 4. The Gilead path — self-signed, start to finish
+## 4. One command
+
+Everything in section 4b is performed, in the only correct order, by:
+
+```bash
+export RMC_EDGE_TLS_CA_PASSPHRASE='something-long'
+bash deploy/selfhost/edge-bootstrap.sh
+```
+
+Safe to run again, any number of times. On a box that is already correct it changes
+nothing and says so.
+
+**Use this rather than the manual steps.** Four of those steps are ordering traps —
+each one correct in isolation, the sequence wrong, and the result invisible until
+thirty devices have been touched. They are not documentation problems, so they are
+not solved by documentation:
+
+| The mistake | What now happens |
+|---|---|
+| Render the terminator config before the certificate exists | `edge_tls --print-caddyfile` **refuses**. It would emit `tls internal` — Caddy's own CA — so the `ca.crt` you distribute matches nothing the box presents. |
+| Issue on a box whose certificate volume was lost | **Refused**, including by the unattended boot-time `--ensure`. The box records its CA fingerprint in a *different volume*, so it can tell a first install from a loss. |
+| Install the CA on devices before backing it up | The bootstrap exports and **reads the bundle back** before it reports success. An unverified backup is a belief. |
+| Back the CA up into the certificate directory | **Refused before the file is written**, not reported afterwards — by then the step is ticked off and the operator has walked away. |
+| Reissue and forget to restart the terminator | Detected: the box compares what is **served** against what is on disk and names both. |
+| Pin `SECURE_SSL_REDIRECT` and friends in `.env` | Readiness warns whenever they are set by hand at all — not only when they currently disagree. They will not follow the next mode change. |
+
+What the machine *cannot* do is the part that needs a person: moving the bundle off
+the box, installing the CA on devices, and re-enrolling offline PIN. The script ends
+by listing exactly those three and nothing else.
+
+### Checking a box without changing it
+
+```bash
+docker compose -f deploy/selfhost/docker-compose.yml exec web \
+  python manage.py edge_bootstrap --dry-run
+
+docker compose -f deploy/selfhost/docker-compose.yml exec web \
+  python manage.py edge_tls --check-terminator
+```
+
+---
+
+## 4b. The Gilead path — self-signed, start to finish
 
 ```bash
 cd deploy/selfhost

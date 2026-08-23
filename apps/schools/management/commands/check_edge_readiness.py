@@ -454,6 +454,37 @@ class Command(BaseCommand):
             _ca_facts = _tls.inspect_certificate(_ca)
             for _severity, _message in _tls.clock_findings(cert, _ca_facts):
                 findings.append((FAIL if _severity == "fail" else WARN, _message))
+
+            # The one artefact that cannot be regenerated, and whether this box still
+            # holds the one it recorded. A CA that has silently been REPLACED looks
+            # perfect from every other angle -- the certificate is valid, the chain is
+            # complete, the dates are fine -- and every device in the building rejects
+            # it. Only the recorded fingerprint can tell you.
+            from apps.schools import edge_trust_state as _anchor
+
+            for _severity, _message in _anchor.anchor_findings(_ca_facts):
+                findings.append((
+                    {"fail": FAIL, "warn": WARN}.get(_severity, OK),
+                    _message,
+                ))
+
+            # Reissuing is only half a heal: the terminator reads its certificate at
+            # config load, not per handshake. Comparing what is SERVED against what is
+            # on disk is the only way to see, from in here, that the two disagree.
+            _term = (os.getenv("RMC_EDGE_TLS_TERMINATOR", "edge-tls:443") or "").strip()
+            if _term and cert.exists:
+                _thost, _, _tport = _term.partition(":")
+                try:
+                    _tport_n = int(_tport or "443")
+                except ValueError:
+                    _tport_n = 443
+                for _severity, _message in _tls.terminator_findings(
+                    cert_path, _thost, _tport_n, timeout=3.0
+                ):
+                    findings.append((
+                        {"fail": FAIL, "warn": WARN}.get(_severity, OK),
+                        _message,
+                    ))
             if resolution.mode == _tls.MODE_SELF_SIGNED and _ca_facts.exists:
                 # We cannot prove a backup exists somewhere safe, so we never claim
                 # it does. But we CAN detect the mistake of leaving the bundle in the
@@ -479,7 +510,11 @@ class Command(BaseCommand):
                         "volume and you lose both. Copy it off the box and delete it "
                         "from here.",
                     ))
-                else:
+                elif not ((_anchor.load_state().get("active") or {}).get("exported_at")):
+                    # Only when the box cannot confirm a backup for itself. Saying this
+                    # alongside "backup read back and verified" is noise that trains an
+                    # operator to skim the report, which is how the findings that matter
+                    # get missed.
                     findings.append((
                         WARN,
                         "The box CA is the only artefact here that cannot be regenerated: "
@@ -555,6 +590,29 @@ class Command(BaseCommand):
                         f"{name}={actual} overrides the {resolution.mode} default of "
                         f"{expected}. Legal, but the mode no longer describes the box.",
                     ))
+            # Present in the environment AT ALL, even where it currently agrees with
+            # the mode. Agreement today is not the property that matters: an explicit
+            # value wins forever, so the day somebody changes the mode -- selfsigned to
+            # acme, or back to off to debug something -- the flag silently does not
+            # follow, and the box is left in a combination nobody chose. That is
+            # exactly the trap deriving them removed.
+            _pinned = [
+                _name
+                for _name in _tls.derived_security_flags(resolution.mode)
+                if os.environ.get(_name) not in (None, "")
+            ]
+            if _pinned:
+                findings.append((
+                    WARN,
+                    "Set by hand in the environment: "
+                    + ", ".join(sorted(_pinned))
+                    + f". These are DERIVED from {_tls.ENV_MODE}, and an explicit value "
+                    "wins permanently -- so they will not follow the next mode change, "
+                    "and the box ends up in a combination nobody chose. They agree with "
+                    f"{resolution.mode} today; delete them from .env and they will agree "
+                    "with whatever the mode is tomorrow.",
+                ))
+
             if resolution.mode in {_tls.MODE_SELF_SIGNED, _tls.MODE_PROVIDED} and int(
                 getattr(settings, "SECURE_HSTS_SECONDS", 0) or 0
             ) > 0:

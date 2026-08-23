@@ -21,7 +21,7 @@ import os
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
-from apps.schools import edge_tls
+from apps.schools import edge_tls, edge_trust_state
 
 
 class Command(BaseCommand):
@@ -43,6 +43,19 @@ class Command(BaseCommand):
             "--force",
             action="store_true",
             help="Overwrite an existing certificate. Without this, issuing is refused.",
+        )
+        parser.add_argument(
+            "--check-terminator",
+            nargs="?",
+            const="edge-tls:443",
+            default="",
+            metavar="HOST[:PORT]",
+            help=(
+                "Ask the running TLS terminator what certificate it is actually "
+                "presenting, and compare it to the one on disk. They disagree whenever "
+                "a reissue was not followed by a restart -- the box looks healthy and "
+                "devices fail. Default target: edge-tls:443"
+            ),
         )
         parser.add_argument(
             "--print-caddyfile",
@@ -191,6 +204,23 @@ class Command(BaseCommand):
                 "currently holds."
             )
 
+        # THE SAME GUARD THE BOOTSTRAP USES. --ensure runs on every container start,
+        # so without this it is a back door around the one irreversible action: a box
+        # whose certificate volume was lost would come up, notice it has no
+        # certificate, helpfully mint a brand new CA, and report success -- stranding
+        # every device that trusted the old one, at 3am, with nobody watching.
+        _ca_path = os.path.join(directory, "ca.crt")
+        _ca_facts = edge_tls.inspect_certificate(_ca_path)
+        _allowed, _why = edge_trust_state.new_ca_allowed(_ca_facts)
+        if not _allowed:
+            raise CommandError(
+                _why
+                + "\n  --ensure will not mint a replacement CA on its own. Restore the "
+                "bundle and run this again, or run `edge_bootstrap --force-new-ca` if "
+                "the backup is genuinely gone and you accept re-installing on every "
+                "device."
+            )
+
         result = edge_tls.ensure_certificate(
             directory,
             dns,
@@ -198,6 +228,11 @@ class Command(BaseCommand):
             days=options["days"],
             renew_before_days=edge_tls.renew_before_days(),
         )
+        # Record what we ended up with, so a box set up before this existed still
+        # gains an anchor the first time it heals, and so the guard above has
+        # something to compare against next time.
+        if result["action"] in (edge_tls.ACTION_ISSUED, edge_tls.ACTION_REISSUED, edge_tls.ACTION_NOOP):
+            edge_trust_state.record(edge_tls.inspect_certificate(_ca_path))
         if options["json"]:
             self.stdout.write(json.dumps(result, indent=2))
             if result["action"] == edge_tls.ACTION_REFUSED:
@@ -369,9 +404,54 @@ class Command(BaseCommand):
             self._issue(facts, options)
             facts = self._facts()
 
+        if options["check_terminator"]:
+            endpoint = options["check_terminator"]
+            host, _, port = endpoint.partition(":")
+            try:
+                port_number = int(port or "443")
+            except ValueError as exc:
+                raise CommandError(
+                    f"--check-terminator wants host[:port], got {endpoint!r}"
+                ) from exc
+            results = edge_tls.terminator_findings(
+                facts["cert_path"], host, port_number
+            )
+            if not results:
+                self.stdout.write(
+                    "No certificate on disk to compare against; nothing to check."
+                )
+                return
+            severity, message = results[0]
+            style = {
+                "ok": self.style.SUCCESS,
+                "warn": self.style.WARNING,
+            }.get(severity, self.style.ERROR)
+            self.stdout.write(f"[{style(severity.upper())}] {message}")
+            if severity == "fail":
+                raise CommandError(
+                    "The terminator is not serving the certificate on disk."
+                )
+            return
+
         if options["print_caddyfile"]:
             cert = facts["cert_path"] if facts["certificate"]["exists"] else ""
             key = facts["key_path"] if facts["key_present"] else ""
+            if facts["mode"] in edge_tls.FILE_BACKED_MODES and not (cert and key):
+                # THE ORDERING TRAP, refused instead of documented. With no certificate
+                # on disk this renders `tls internal`, which serves Caddy's OWN
+                # certificate authority -- so the ca.crt someone then installs on thirty
+                # devices matches nothing the box presents. Every device still warns and
+                # nothing in the browser error explains why. The output looks perfectly
+                # valid, which is what makes it expensive.
+                raise CommandError(
+                    "Refusing to render a terminator config before the certificate "
+                    f"exists (mode={facts['mode']}, nothing at {facts['cert_path']}).\n"
+                    "  This would emit `tls internal`, which serves Caddy's own CA -- "
+                    "so the ca.crt you install on every device would match nothing this "
+                    "box presents, and no browser error would say why.\n"
+                    "  Run `manage.py edge_tls --issue-selfsigned` first, or use "
+                    "`manage.py edge_bootstrap`, which does both in the right order."
+                )
             try:
                 self.stdout.write(
                     edge_tls.caddyfile(

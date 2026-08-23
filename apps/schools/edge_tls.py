@@ -299,6 +299,15 @@ def normalize_hostname(raw: Any) -> str:
     candidate = str(raw or "").strip()
     if not candidate or "*" in candidate:
         return ""
+    if candidate.startswith("."):
+        # Django spells "this domain and every subdomain of it" with a leading dot,
+        # so ".local" and ".runmycampus.com" are WILDCARDS, exactly like "*". Stripping
+        # the dot does not translate that -- it invents a single name nobody asked
+        # for. ".local" became a certificate asserting the bare label "local", which
+        # no device ever types, on every box that inherited the platform default.
+        # A certificate cannot assert a wildcard we did not decide, so drop it; name
+        # what the certificate should cover in RMC_EDGE_TLS_HOSTNAMES.
+        return ""
     if candidate.startswith("["):
         closing = candidate.find("]")
         if closing == -1:
@@ -431,6 +440,10 @@ class CertificateFacts:
     not_before: str = ""
     not_after: str = ""
     days_remaining: int | None = None
+    #: SHA-256 of the DER, colon-separated upper hex -- the same string
+    #: ``openssl x509 -fingerprint -sha256`` prints, so an operator can compare what
+    #: this reports against what their device shows them without converting anything.
+    fingerprint: str = ""
     error: str = ""
 
     def covers(self, dns: list[str], ips: list[str]) -> list[str]:
@@ -440,6 +453,153 @@ class CertificateFacts:
         missing = [d for d in dns if d.lower() not in have_dns]
         missing += [i for i in ips if i not in have_ip]
         return missing
+
+
+def _fingerprint(cert: Any) -> str:
+    """SHA-256 of the DER as ``openssl`` prints it, so the two can be compared."""
+    try:
+        from cryptography.hazmat.primitives import hashes
+
+        raw = cert.fingerprint(hashes.SHA256()).hex().upper()
+    except Exception:  # noqa: BLE001 - a fingerprint is a nicety, never a crash
+        return ""
+    return ":".join(raw[i : i + 2] for i in range(0, len(raw), 2))
+
+
+def export_path_findings(destination: str, environ: dict[str, str] | None = None) -> list[tuple[str, str]]:
+    """Is this a safe place to put the CA backup?
+
+    Checked BEFORE the file is written, not reported afterwards. A backup that
+    lands in the certificate directory shares a volume with the key it protects,
+    so it survives none of the events a backup exists for -- and by the time a
+    readiness check mentions it, the operator has already ticked the step off and
+    walked away believing the box is backed up.
+    """
+    findings: list[tuple[str, str]] = []
+    target = os.path.abspath(str(destination or "").strip())
+    if not target or os.path.isdir(target):
+        findings.append((
+            "fail",
+            "the export needs a FILE path, not a directory: "
+            f"--export-ca /tmp/{CA_BUNDLE_FILENAME}",
+        ))
+        return findings
+
+    cert_dir, _, _ = certificate_paths(environ=environ)
+    cert_dir = os.path.abspath(os.path.dirname(cert_dir) or DEFAULT_DIR)
+    try:
+        inside = os.path.commonpath([target, cert_dir]) == cert_dir
+    except ValueError:  # different drives on Windows
+        inside = False
+    if inside:
+        findings.append((
+            "fail",
+            f"refusing to write the CA backup to {target}: that is inside the "
+            f"certificate directory ({cert_dir}), so the backup shares a volume with "
+            "the key it protects and survives none of the events a backup exists "
+            f"for -- a lost volume, a wiped disk, a `docker compose down -v`. Write it "
+            f"to /tmp/{CA_BUNDLE_FILENAME} and copy it OFF the box.",
+        ))
+    return findings
+
+
+def served_certificate(
+    host: str,
+    port: int = 443,
+    timeout: float = 5.0,
+) -> tuple[CertificateFacts | None, str]:
+    """What the TLS terminator is ACTUALLY presenting right now.
+
+    Returns ``(facts, error)``. The certificate is fetched without validating it --
+    we are asking what is served, not whether we trust it, and in selfsigned mode
+    this process has no reason to trust the box CA anyway.
+
+    This exists because reissuing is only half a heal. The terminator reads its
+    certificate when it loads its configuration, not per handshake, so after a
+    reissue it goes on presenting the certificate for an address the box has left --
+    and every log the box writes says healthy. Comparing what is served against what
+    is on disk is the only way to see that from here.
+    """
+    import socket
+    import ssl
+    import tempfile
+
+    context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+    context.check_hostname = False
+    context.verify_mode = ssl.CERT_NONE
+    try:
+        with socket.create_connection((host, port), timeout=timeout) as raw:
+            with context.wrap_socket(raw, server_hostname=host) as tls:
+                der = tls.getpeercert(binary_form=True)
+    except OSError as exc:
+        return None, f"could not reach {host}:{port} ({exc})"
+    if not der:
+        return None, f"{host}:{port} completed a handshake but presented no certificate"
+
+    try:
+        from cryptography import x509
+        from cryptography.hazmat.primitives import serialization
+
+        cert = x509.load_der_x509_certificate(der)
+        pem = cert.public_bytes(serialization.Encoding.PEM)
+    except Exception as exc:  # noqa: BLE001
+        return None, f"{host}:{port} presented something unparseable: {exc}"
+
+    handle = tempfile.NamedTemporaryFile(suffix=".crt", delete=False)
+    try:
+        handle.write(pem)
+        handle.close()
+        return inspect_certificate(handle.name), ""
+    finally:
+        try:
+            os.unlink(handle.name)
+        except OSError:
+            pass
+
+
+def terminator_findings(
+    cert_path: str,
+    host: str,
+    port: int = 443,
+    timeout: float = 5.0,
+) -> list[tuple[str, str]]:
+    """Does the terminator serve the certificate that is on disk?
+
+    A mismatch is the invisible failure this whole check exists for: the files
+    healed, the terminator did not, and nothing anywhere says so.
+    """
+    on_disk = inspect_certificate(cert_path)
+    if not on_disk.exists or not on_disk.fingerprint:
+        return []  # nothing to compare against; other checks cover a missing cert
+
+    served, error = served_certificate(host, port, timeout=timeout)
+    if error:
+        return [(
+            "warn",
+            f"could not ask the TLS terminator what it is serving: {error}. That is "
+            "expected if the terminator is not running yet; if it IS running, the box "
+            "cannot confirm the certificate it just wrote is the one being presented.",
+        )]
+    if served is None:
+        return []
+    if served.fingerprint == on_disk.fingerprint:
+        return [(
+            "ok",
+            "The TLS terminator is serving the certificate on disk "
+            f"({on_disk.fingerprint[:17]}...). Files and terminator agree.",
+        )]
+    return [(
+        "fail",
+        "The TLS terminator is serving a DIFFERENT certificate from the one on disk. "
+        f"On disk: {on_disk.fingerprint[:17]}... covering "
+        f"{', '.join([*on_disk.dns_names, *on_disk.ip_addresses]) or 'nothing'}. "
+        f"Being served: {served.fingerprint[:17]}... covering "
+        f"{', '.join([*served.dns_names, *served.ip_addresses]) or 'nothing'}. "
+        "The certificate was reissued and the terminator was never restarted, so it "
+        "is still presenting the old one -- which is why devices fail at an address "
+        "the box believes it holds. Fix: `docker compose -f "
+        "deploy/selfhost/docker-compose.yml --profile tls restart edge-tls`.",
+    )]
 
 
 def inspect_certificate(path: str, now: Any = None) -> CertificateFacts:
@@ -501,6 +661,7 @@ def inspect_certificate(path: str, now: Any = None) -> CertificateFacts:
         not_before=not_before.isoformat(),
         not_after=not_after.isoformat(),
         days_remaining=days,
+        fingerprint=_fingerprint(cert),
     )
 
 

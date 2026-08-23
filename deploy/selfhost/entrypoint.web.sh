@@ -55,6 +55,16 @@ fi
 # gunicorn so the terminator never serves a certificate for an address this box left.
 # Advisory (`|| true`): a box that cannot mint a certificate must still boot and serve
 # -- degraded is recoverable, refusing to start is not.
+#
+# It also REFUSES to mint a replacement certificate authority. This is the one
+# irreversible action in the whole procedure, and boot is exactly when it would
+# happen unattended: a box whose certificate volume was lost -- a wiped disk, a
+# `docker compose down -v`, a restore onto fresh storage -- comes up, notices it has
+# no certificate, and without the guard would helpfully mint a brand new CA and
+# report success, stranding every device that trusted the old one, at 3am, with
+# nobody watching. The box records which CA it holds in a DIFFERENT volume from the
+# certificates (see apps/schools/edge_trust_state.py), so it can tell a first install
+# from a loss. On a loss it refuses, and check_edge_readiness below says so loudly.
 if [[ "${RMC_EDGE_TLS_MODE:-off}" == "selfsigned" ]]; then
   echo "[selfhost] certificate self-heal"
   python manage.py edge_tls --ensure || true
