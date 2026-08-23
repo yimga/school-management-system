@@ -314,6 +314,38 @@ there) and the box gets `releases/<hash>/` plus a `current` symlink; the entrypo
 **from the symlink**, which is the part that makes it real — a symlink nothing serves from
 is decoration. Opt-in: unset, the box boots exactly as before.
 
+### It has to fit, on the box the school could actually afford
+
+A release is a whole tree. The app measured ~496MB across 16333 files on 2026-08-22, so a
+box on this layout is committing roughly a gigabyte to hold two of them. That is fine on a
+mini-PC with a real disk and completely wrong on a small appliance, and the failure is not
+"the upgrade did not apply" — it is a **full filesystem**, which stops Postgres writing, so
+the school loses its data sync, its portal and its offline shell along with an upgrade it
+never wanted that badly.
+
+So nothing copies a tree without measuring first:
+
+* **On boot** (`release_layout.sh`) the seed is skipped unless `df` reports
+  `RMC_OTA_RELEASE_HEADROOM_PCT` of what `du` says the tree costs. Every failure path —
+  no volume, short disk, broken copy, no symlink support — falls back to serving the live
+  tree and says so. **The function cannot fail the boot.** A school whose box does not
+  start is in far more trouble than one whose box needs an image rebuild to take a code
+  upgrade, and the boxes most likely to hit a short disk belong to the schools least able
+  to absorb an outage. The copy goes to `<seed>.partial` and is renamed only on success,
+  so an interrupted copy can never be mistaken for a complete release.
+* **On upgrade** (`local_upgrade._require_disk_headroom`) the same measurement runs before
+  `copytree`, and a short disk raises `UpgradeAborted` — the box stays on its current code
+  and keeps syncing. If the copy fails anyway, the half-built tree is removed rather than
+  left holding down the space that ran out.
+* **After a successful flip**, `_prune_old_releases` deletes everything but the current
+  release and the rollback target. Without it the layout is a slow disk leak: every
+  upgrade adds a tree and nothing removes one, so the box eventually fails the check above
+  having spent its disk on releases nobody will ever roll back to.
+
+Neither measurement is allowed to be fatal by itself. If `du`/`df`/`disk_usage` cannot
+answer, the upgrade proceeds — refusing on "I could not tell" would strand every box with
+an unusual filesystem.
+
 And the half that is easy to forget: **a swapped file changes nothing until the process
 reloads.** gunicorn writes `GUNICORN_PIDFILE`, both entrypoint paths export it, and
 `RMC_OTA_WORKER_RELOAD_PIDFILE` falls back to it — two env vars that must name the same
@@ -346,6 +378,8 @@ stopped, and which manifest it is still serving.
 | `RMC_OTA_MANIFEST_PATH` / `_ROOT` | `""` | default `BASE_DIR` |
 | `RMC_OTA_STAGING_ROOT` | `""` | default `<BASE_DIR>/.rmc_ota_staging` |
 | `RMC_OTA_RELEASE_ROOT` | `""` | unset ⇒ code swap defers rather than pretends |
+| `RMC_OTA_RELEASE_HEADROOM_PCT` | `140` | free space required before a release copy starts, as a % of the tree; floored at 100 |
+| `RMC_OTA_RELEASES_KEPT` | `2` | release trees left on disk; floored at 2, because the second one is the rollback target |
 | `RMC_OTA_HEALTH_URL` | `http://127.0.0.1:10000/health/` | |
 | `RMC_OTA_HEALTH_TIMEOUT_SECONDS` | `60` | blue-green budget |
 | `RMC_OTA_HOLD_TTL_SECONDS` | `3600` | floored at 60 |

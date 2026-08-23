@@ -4277,6 +4277,22 @@ RMC_OTA_STAGING_ROOT = (os.getenv("RMC_OTA_STAGING_ROOT", "") or "").strip()
 # Left unset (the ordinary `COPY . .` image), a full-lane upgrade reports
 # activation="deferred" instead of pretending it swapped code it could not swap.
 RMC_OTA_RELEASE_ROOT = (os.getenv("RMC_OTA_RELEASE_ROOT", "") or "").strip()
+# A release is a whole tree, so applying one costs roughly the size of the app again. Many
+# schools run this on the cheapest hardware they could buy, where an upgrade that fills the
+# disk does not merely fail -- Postgres stops being able to write and the box loses its
+# data sync too. Below this much headroom the box refuses the swap and keeps running.
+try:
+    RMC_OTA_RELEASE_HEADROOM_PCT = max(
+        100, int(os.getenv("RMC_OTA_RELEASE_HEADROOM_PCT", "140"))
+    )
+except ValueError:
+    RMC_OTA_RELEASE_HEADROOM_PCT = 140
+# How many release trees to leave on disk. Two is the floor: the second one is the
+# rollback target. Without pruning the layout is a slow disk leak on a small volume.
+try:
+    RMC_OTA_RELEASES_KEPT = max(2, int(os.getenv("RMC_OTA_RELEASES_KEPT", "2")))
+except ValueError:
+    RMC_OTA_RELEASES_KEPT = 2
 RMC_OTA_HEALTH_URL = (
     os.getenv("RMC_OTA_HEALTH_URL", "") or "http://127.0.0.1:10000/health/"
 ).strip()

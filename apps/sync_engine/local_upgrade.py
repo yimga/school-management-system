@@ -123,6 +123,47 @@ def release_root() -> Path | None:
     return Path(raw) if raw else None
 
 
+def release_headroom_ratio() -> float:
+    """How much free space a release copy must find before it is allowed to start.
+
+    A release is a whole tree, so applying one costs roughly the size of the app again.
+    On the cheap hardware many schools actually run, filling the disk does not merely fail
+    the upgrade -- it stops Postgres being able to write, and the box loses its data sync
+    along with everything else. A refused upgrade is recoverable; a full disk on an
+    appliance nobody is standing next to is not.
+    """
+    try:
+        pct = int(_setting("RMC_OTA_RELEASE_HEADROOM_PCT", 140))
+    except (TypeError, ValueError):
+        pct = 140
+    return max(1.0, pct / 100.0)
+
+
+def tree_bytes(path) -> int:
+    """Bytes on disk under ``path``. Unreadable entries are skipped, never fatal."""
+    total = 0
+    for root, _dirs, names in os.walk(str(path)):
+        for name in names:
+            try:
+                total += os.lstat(os.path.join(root, name)).st_size
+            except OSError:
+                continue
+    return total
+
+
+def releases_to_keep() -> int:
+    """How many release trees to leave on disk, newest first. Two is the floor.
+
+    Two, because the second one IS the rollback target: pruning to one would mean the box
+    can no longer go back, which is the entire reason for the layout. Anything above two
+    is disk spent on history nobody reads.
+    """
+    try:
+        return max(2, int(_setting("RMC_OTA_RELEASES_KEPT", 2)))
+    except (TypeError, ValueError):
+        return 2
+
+
 def staging_root() -> Path:
     raw = str(_setting("RMC_OTA_STAGING_ROOT", "") or "").strip()
     if raw:
@@ -436,6 +477,62 @@ class LocalRuntimeUpgradeManager:
         self._say("activate: " + upgrade_runtime.reload_workers())
         return "swapped"
 
+    def _require_disk_headroom(self, source: Path, root: Path) -> None:
+        """Refuse to start a release copy the disk cannot hold."""
+        try:
+            need = tree_bytes(source)
+            free = shutil.disk_usage(str(root)).free
+        except OSError as exc:
+            # Cannot measure -- do not invent a verdict. The copy itself fails honestly if
+            # there is no room, and that path cleans up after itself.
+            self._say(f"space: could not measure free space ({exc}); continuing")
+            return
+        want = int(need * release_headroom_ratio())
+        if free < want:
+            raise UpgradeAborted(
+                f"not enough disk to build the new release: ~{want // (1024 * 1024)}MB "
+                f"wanted at {root}, {free // (1024 * 1024)}MB free. The box stays on its "
+                f"current code and keeps syncing. Free space on the release volume, lower "
+                f"RMC_OTA_RELEASES_KEPT, or unset RMC_OTA_RELEASE_ROOT on this box to go "
+                f"back to image-rebuild upgrades."
+            )
+        self._say(f"space: {free // (1024 * 1024)}MB free, ~{want // (1024 * 1024)}MB wanted -- ok")
+
+    def _prune_old_releases(self, releases: Path, keep) -> None:
+        """Delete release trees older than the ones still needed.
+
+        Without this the layout is a slow disk leak: every upgrade adds a whole tree and
+        nothing removes one, so a box with a small volume fills up after enough upgrades
+        and then fails the very check above -- having spent the space on releases nobody
+        will ever roll back to. Newest-first by mtime; the current release and the
+        rollback target are never candidates.
+        """
+        keep_paths = set()
+        for candidate in keep:
+            if candidate is None:
+                continue
+            try:
+                keep_paths.add(candidate.resolve())
+            except OSError:
+                continue
+        try:
+            directories = [d for d in releases.iterdir() if d.is_dir()]
+            directories.sort(key=lambda d: d.stat().st_mtime, reverse=True)
+        except OSError:
+            return
+        seen = 0
+        for directory in directories:
+            try:
+                if directory.resolve() in keep_paths:
+                    continue
+            except OSError:
+                continue
+            seen += 1
+            if seen < releases_to_keep():
+                continue
+            self._say(f"prune: removing old release {directory.name}")
+            shutil.rmtree(directory, ignore_errors=True)
+
     def _activate_release_symlink(self, delta: dict, release: Path, root: Path) -> str:
         """Whole-tree blue-green: build the new release beside the old, then flip one link.
 
@@ -455,11 +552,26 @@ class LocalRuntimeUpgradeManager:
         previous = current.resolve() if current.exists() else None
         if new_release.exists():
             shutil.rmtree(new_release, ignore_errors=True)
-        if previous is not None and previous.is_dir():
-            shutil.copytree(previous, new_release, symlinks=True)
-        else:
-            # No current release yet: seed from the live tree so the new release is whole.
-            shutil.copytree(live_root(), new_release, symlinks=True, dirs_exist_ok=True)
+
+        # No current release yet: seed from the live tree so the new release is whole.
+        source = previous if (previous is not None and previous.is_dir()) else live_root()
+
+        # MEASURE BEFORE COPYING. A release is a whole tree -- roughly the size of the app
+        # again -- and on a small disk an upgrade that runs out of space does not merely
+        # fail: Postgres stops being able to write and the box loses its data sync too.
+        # Refusing here leaves it on its current code, still syncing, with a message that
+        # says what to do about it.
+        self._require_disk_headroom(source, root)
+
+        try:
+            shutil.copytree(source, new_release, symlinks=True, dirs_exist_ok=True)
+        except OSError as exc:
+            # Never leave a half-copied tree behind. It holds down the very space that ran
+            # out, and the next attempt would copy IT forward as though it were whole.
+            shutil.rmtree(new_release, ignore_errors=True)
+            raise UpgradeAborted(
+                f"could not build the new release ({exc}); the running tree is untouched"
+            ) from exc
 
         records = list(delta.get("added") or []) + list(delta.get("changed") or [])
         for record in records:
@@ -498,6 +610,7 @@ class LocalRuntimeUpgradeManager:
 
         self._previous_release = previous
         self._say(f"activate: {current} -> releases/{digest} (atomic symlink flip)")
+        self._prune_old_releases(releases, keep=[new_release, previous])
         self._collect_static(delta)
         self._flush_caches()
         self._say("activate: " + upgrade_runtime.reload_workers())
