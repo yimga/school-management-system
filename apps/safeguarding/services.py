@@ -9,7 +9,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from django.db import transaction
+from django.db import DatabaseError, transaction
 
 from apps.safeguarding.concern_kernel import (
     ACKNOWLEDGED,
@@ -258,6 +258,36 @@ def find_concern(school: Any, concern_id: str) -> ConcernEntry | None:
     return None
 
 
+def _locked_school(school: Any):
+    """Re-read the School row under a lock, inside the caller's transaction.
+
+    Both writers below rewrite the WHOLE of ``School.settings``. Starting from
+    the caller's in-memory copy means any write that landed since that object
+    was loaded is erased -- a second concern raised moments after the first wiped
+    it out, and a concern raised while any other tenant setting was being saved
+    took that with it. settings is the shared per-tenant blob, not safeguarding's
+    own.
+
+    select_for_update is a no-op on SQLite and a real row lock on PostgreSQL; the
+    re-read is what fixes the stale-copy half, the lock is what serialises two
+    genuinely concurrent submissions. Returns the caller's object unchanged if the
+    row cannot be re-read, so this can never be the reason a disclosure is lost.
+    """
+    from apps.schools.models import School
+
+    pk = getattr(school, "pk", None)
+    if pk is None:
+        return school
+    try:
+        # tenant-isolation-allow: re-reads the caller's own school row by pk
+        return School.objects.select_for_update().get(pk=pk)
+    except (School.DoesNotExist, DatabaseError):
+        logger.warning(
+            "safeguarding.school_relock_failed school=%s", pk, exc_info=True
+        )
+        return school
+
+
 def _persist_audit_row(row) -> None:
     """Write one kernel ``AuditRow`` to the compliance audit trail.
 
@@ -317,6 +347,8 @@ def submit_concern_for_school(
     )
     _persist_audit_row(submitted_audit)
 
+    caller_school = school
+    school = _locked_school(school)
     settings = dict(getattr(school, "settings", None) or {})
     settings = append_to_school_settings(school_settings=settings, concern=entry)
     blob = dict(settings.get("safeguarding") or {})
@@ -344,6 +376,11 @@ def submit_concern_for_school(
     settings["safeguarding"] = blob
     school.settings = settings
     school.save(update_fields=["settings"])
+    # The caller still holds the object it passed in; leaving it stale would make
+    # an immediate follow-up call (find_concern, acknowledge) miss what we just
+    # wrote.
+    if caller_school is not school:
+        caller_school.settings = settings
 
     # Real-time DSL alert (best-effort — never unwinds the persisted concern).
     _dispatch_dsl_alert(
@@ -365,6 +402,10 @@ def acknowledge_and_transition(
     referral_reference: str = "",
     inbox_entry_id: str = "",
 ) -> ConcernEntry:
+    # Lock and re-read BEFORE looking the concern up: the caller's object may
+    # predate the submit that created it, and the whole blob is rewritten below.
+    caller_school = school
+    school = _locked_school(school)
     concern = find_concern(school, concern_id)
     if concern is None:
         raise ValueError("concern_not_found")
@@ -412,6 +453,8 @@ def acknowledge_and_transition(
     settings["safeguarding"] = blob
     school.settings = settings
     school.save(update_fields=["settings"])
+    if caller_school is not school:
+        caller_school.settings = settings
     return updated
 
 
