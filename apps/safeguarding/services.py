@@ -189,11 +189,21 @@ def _dispatch_dsl_alert(*, school: Any, entry: ConcernEntry, category_label: str
         if entry.is_urgent:
             channels = [Channel.SMS, Channel.EMAIL, Channel.IN_APP]
             severity = Notification.Severity.ALERT
-            title = "Urgent safeguarding concern"
+            prefix = "Urgent safeguarding concern"
         else:
             channels = [Channel.EMAIL, Channel.IN_APP]
             severity = Notification.Severity.WARNING
-            title = "New safeguarding concern"
+            prefix = "New safeguarding concern"
+        # The title has to identify THIS concern. _send_in_app routes through
+        # Notification.objects.notify_unread, which update_or_creates on
+        # (recipient, title, is_read=False) -- right for "New message from Mr
+        # Smith", where the reader wants the latest; wrong here, because a
+        # constant title meant the second urgent disclosure of the day OVERWROTE
+        # the first one's bell entry and the DSL could no longer reach the
+        # earlier child's concern from the queue she works from. The reference is
+        # what makes it distinct; the category is what makes it readable.
+        reference = str(entry.concern_id)[:8]
+        title = f"{prefix}: {category_label} ({reference})"
         message = (
             f"A {category_label} concern needs a Designated Safeguarding Lead. "
             "Open it to review."
