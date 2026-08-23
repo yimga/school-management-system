@@ -56,7 +56,12 @@ jobs:
         # every tenant's audit trail.
         run: python scripts/scan_unscoped_shared_tenant_admin.py
       - name: Migrate DB (grade-scale registry gate needs tables)
-        run: python manage.py migrate --noinput 2>/dev/null || true
+        # Was `2>/dev/null || true`, which threw away the exit code AND the
+        # error text. Verified on a fresh sqlite DB (what this job uses -- no
+        # services:, no DATABASE_URL) that migrate exits 0 clean, so the mask
+        # was protecting nothing and would have hidden a partial migration:
+        # later steps would then read an incomplete schema as green.
+        run: python manage.py migrate --noinput
       - name: Audit tenant/operator admin form intelligence
         run: |
           python manage.py shell -c "from django.contrib.auth import get_user_model; from apps.schools.models import School; User=get_user_model(); user,_=User.objects.get_or_create(username='ci_admin_form_audit', defaults={'is_active':True,'is_staff':True,'is_superuser':True}); user.is_active=True; user.is_staff=True; user.is_superuser=True; user.set_unusable_password(); user.save(); School.objects.get_or_create(slug='ci-admin-form-audit', defaults={'name':'CI Admin Form Audit','subdomain':'ci-admin-form-audit','is_active':True})"
@@ -144,7 +149,12 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install chromium --with-deps
       - name: Migrate
-        run: python manage.py migrate --noinput 2>/dev/null || true
+        # Was `2>/dev/null || true`, which threw away the exit code AND the
+        # error text. Verified on a fresh sqlite DB (what this job uses -- no
+        # services:, no DATABASE_URL) that migrate exits 0 clean, so the mask
+        # was protecting nothing and would have hidden a partial migration:
+        # later steps would then read an incomplete schema as green.
+        run: python manage.py migrate --noinput
       - name: Start server
         run: python manage.py runserver 0.0.0.0:8000 & sleep 6
       - name: Run smoke E2E (login page load)
