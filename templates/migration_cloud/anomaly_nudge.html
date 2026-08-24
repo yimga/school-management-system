@@ -359,8 +359,14 @@
       credentials: "same-origin",
       body: JSON.stringify(body),
     }).then(function (r) {
-      if (r.ok) return r.json();
-      return r.json().then(function (j) { throw j; });
+      if (!r.ok) {
+        return r.json().then(function (j) { throw j; });
+      }
+      var ct = (r.headers.get("content-type") || "").toLowerCase();
+      if (ct.indexOf("application/json") === -1) {
+        throw new Error("not json");
+      }
+      return r.json();
     });
   }
 

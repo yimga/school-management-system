@@ -275,7 +275,12 @@
         btn.disabled = true;
         postClearQueue(resolveUrl)
           .then(function (r) {
-            if (!r.ok) throw new Error("clear failed");
+            if (!r.ok) throw new Error("clear failed " + r.status);
+            var ct = (r.headers.get("content-type") || "").toLowerCase();
+            if (ct.indexOf("application/json") === -1) throw new Error("not json");
+            return r.json();
+          })
+          .then(function () {
             window.location.reload();
           })
           .catch(function () {

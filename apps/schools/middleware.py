@@ -741,6 +741,11 @@ class UrlConfSwitcherMiddleware(MiddlewareMixin):
         else:
             request.urlconf = "config.tenant_urls"
             request.is_tenant_host = True
+            # Cloud tenant subdomains/custom domains never returned "tenant" from
+            # public_host_kind() (that helper returns None), which left guards and
+            # template chrome keyed on the string "tenant" blind while still serving
+            # tenant_urls. Align the marker with is_tenant_host everywhere we route here.
+            request.public_host_kind = "tenant"
         set_urlconf(request.urlconf)
         return None
 

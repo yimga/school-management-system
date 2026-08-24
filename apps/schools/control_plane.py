@@ -155,8 +155,16 @@ def use_control_plane_shell(request) -> bool:
     True when the request should see the control-plane UI (same top bar/sidebar as /super/).
     Use for template choice (Studio, Theme & Experience). Includes "local" so localhost
     gets the same shell without requiring manager.localhost.
+
+    Never True on a tenant host — a school's subdomain, custom domain, or sovereign
+    appliance must show tenant chrome (school name/logo), not the RunMyCampus operator
+    topbar.
     """
+    if getattr(request, "is_tenant_host", False):
+        return False
     kind = (getattr(request, "public_host_kind", None) or "").lower()
+    if kind == "tenant":
+        return False
     return kind in ("manager", "local")
 
 

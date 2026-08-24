@@ -16,6 +16,11 @@ from apps.accounts.platform_access_policy import (
     user_meets_platform_security_minimum,
 )
 
+# Tenant school-setup surfaces must stay reachable while an admin improves posture.
+_MINIMUM_STRENGTH_EXEMPT_PATH_PREFIXES = (
+    "/school/setup/migration-cloud/",
+)
+
 
 class MinimumSecurityStrengthMiddleware:
     """Redirect users below required security score to profile security center."""
@@ -36,6 +41,11 @@ class MinimumSecurityStrengthMiddleware:
         if view_name in MINIMUM_STRENGTH_EXEMPT_VIEW_NAMES:
             return self.get_response(request)
 
+        path = (request.path or "").strip()
+        for prefix in _MINIMUM_STRENGTH_EXEMPT_PATH_PREFIXES:
+            if path.startswith(prefix):
+                return self.get_response(request)
+
         # Platform operators use operator MFA + tier scopes, not tenant posture gates.
         try:
             from apps.platform_runtime.operator_identity import user_is_platform_operator
@@ -52,6 +62,13 @@ class MinimumSecurityStrengthMiddleware:
         request.rmc_security_evaluation = evaluation  # noqa: B018 — template bridge
 
         if allowed:
+            return self.get_response(request)
+
+        # Tenant hosts (subdomain, custom domain, sovereign appliance): show posture
+        # banners and the profile gauge but never hard-lock the whole school portal.
+        # Admins must reach Migration Cloud, backend dashboards, and imports while
+        # improving MFA/recovery; hard redirect is reserved for non-tenant surfaces.
+        if getattr(request, "is_tenant_host", False):
             return self.get_response(request)
 
         profile_url = reverse("accounts:user_profile")
