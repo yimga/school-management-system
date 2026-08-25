@@ -989,10 +989,11 @@ def _resolve_school_from_request(request) -> "School | None":
     # Single-tenant edge deployments (a sovereign on-prem box serving ONE school):
     # any host that didn't match a domain/subdomain — a bare LAN hostname, the
     # machine's IP, or even the base domain — resolves to the sole active school,
-    # so the box works without per-school subdomain DNS. Fully gated on the
-    # SINGLE_TENANT setting: _get_single_tenant_school() returns None unless
-    # SINGLE_TENANT is on AND exactly one active school exists, so multi-tenant /
-    # cloud deployments (SINGLE_TENANT=False by default) are completely unaffected.
+    # so the box works without per-school subdomain DNS. Gated inside
+    # _get_single_tenant_school(), which returns None unless this is a box AND
+    # exactly one active school exists. A hosted deployment is never a box (see
+    # config/deployment_kind.py) and never has exactly one school, so the cloud is
+    # unaffected on both counts.
     single = _get_single_tenant_school()
     if single is not None:
         return single
@@ -1006,14 +1007,26 @@ def _resolve_school_from_request(request) -> "School | None":
 
 def _get_single_tenant_school():
     """
-    Backward-compatible helper used by older single-tenant tests.
-    Returns the only active school when SINGLE_TENANT is enabled.
+    Returns the only active school on a sovereign single-school box.
+
+    Gated on the literal ``SINGLE_TENANT`` setting OR on this process being
+    recognised as a box. The literal flag alone was not enough: the URL layer has
+    routed a box to ``config.tenant_urls`` on ``ENVIRONMENT=selfhost`` since the
+    compose file started stamping it, while this function still demanded a
+    ``SINGLE_TENANT`` line that ``deploy/selfhost/.env.example`` has never carried.
+    A box built from the shipped template therefore got the right URL surface and
+    ``request.school = None`` -- the same two layers disagreeing about whether this
+    is a box, just in the other direction.
+
+    A SUPERSET: everything that resolved before still resolves, because the flag is
+    still honoured on its own.
     """
     single_tenant_flag = (
         str(getattr(settings, "SINGLE_TENANT", "") or "").strip().lower()
     )
     if single_tenant_flag not in {"1", "true", "yes"}:
-        return None
+        if not is_sovereign_single_tenant_box():
+            return None
 
     from apps.schools.models import School
 

@@ -82,6 +82,11 @@ PARITY_MAY_DIFFER: frozenset[str] = frozenset(
         # design, not drift. The MODE is reported so an operator can SEE which
         # certificate a school chose without asking them.
         "RMC_EDGE_TLS_MODE",
+        # Present ("1") on a box, absent on the cloud -- that asymmetry IS the
+        # expected state, so it belongs here rather than in MUST_DIFFER, whose
+        # contract is "never print the value". Here an operator can read it, and a
+        # box reporting nothing for it is a box that is not being recognised as one.
+        "RMC_SELFHOST_STACK",
         "CONVERSION_LOCK_STRICT",
     }
 )

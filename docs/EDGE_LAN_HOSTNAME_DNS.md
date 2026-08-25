@@ -115,6 +115,17 @@ Why each matters:
   school, so you don't have to bind a per-host domain. (If you ever turn this off, set
   `School.subdomain="gilead-tech"` to match the `gilead-tech.school.lan` label, or
   register a verified `SchoolDomain` row for the exact FQDN.)
+  > **You no longer have to remember this line.** A box started by
+  > `deploy/selfhost/docker-compose.yml` carries `RMC_SELFHOST_STACK=1` and
+  > `ENVIRONMENT=selfhost`, and either one is enough on its own — including for the
+  > bare-host school resolution this bullet describes. The flag is kept because
+  > existing boxes may be carrying nothing else.
+  >
+  > It matters because forgetting it used to be silent and severe: an unrecognised
+  > box is served the **developer** URL surface, which mounts the `/super/` operator
+  > control plane, shows the school operator chrome, and hard-redirects every page —
+  > logout included — to My profile. Reached by IP rather than by name, that was the
+  > only outcome. `check_edge_readiness` now names it directly.
 - **The four secure-cookie flags = 0** — the single most common "I can't log in" cause
   on a LAN box. `check_edge_readiness` flags this as the *plain-HTTP-over-LAN
   secure-cookie trap*.

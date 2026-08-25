@@ -17,6 +17,12 @@ TRUTHY = frozenset({"1", "true", "yes", "on"})
 #: The label the selfhost compose file puts on every box, without anyone setting it.
 SELFHOST_LABEL = "selfhost"
 
+#: Provenance, not configuration: the selfhost compose file sets this as a LITERAL
+#: (not ``${RMC_SELFHOST_STACK:-1}``), so unlike every other marker here it cannot
+#: be turned off by editing .env. It answers "which stack started this process",
+#: which is a fact about the deployment rather than a preference about it.
+SELFHOST_STACK_ENV = "RMC_SELFHOST_STACK"
+
 
 def selfhost_box_from_env(
     environ: Mapping[str, str],
@@ -35,9 +41,15 @@ def selfhost_box_from_env(
     a hosted environment -- copied into a shared .env, inherited from a template,
     set while debugging -- and a cloud process that believed it was a single-school
     appliance would serve every operator the wrong surface entirely.
+
+    The three markers are checked strongest-first: stack provenance (a literal the
+    compose file sets and .env cannot override), then the environment label, then
+    the legacy flag an existing box may be the only thing carrying.
     """
     if is_cloud_deployed:
         return False
+    if str(environ.get(SELFHOST_STACK_ENV, "") or "").strip().lower() in TRUTHY:
+        return True
     label = str(environ.get("ENVIRONMENT", "") or "").strip().lower()
     if label == SELFHOST_LABEL:
         return True

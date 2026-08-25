@@ -28,9 +28,15 @@ from __future__ import annotations
 
 from unittest import mock
 
-from django.test import SimpleTestCase, override_settings
+from pathlib import Path
 
-from apps.schools.middleware import is_sovereign_single_tenant_box
+from django.conf import settings
+from django.test import SimpleTestCase, TestCase, override_settings
+
+from apps.schools.middleware import (
+    _get_single_tenant_school,
+    is_sovereign_single_tenant_box,
+)
 
 
 class BoxRecognitionTests(SimpleTestCase):
@@ -55,6 +61,19 @@ class BoxRecognitionTests(SimpleTestCase):
             USE_DJANGO_TENANTS=False,
         ):
             self.assertTrue(is_sovereign_single_tenant_box())
+
+    def test_an_env_edit_cannot_un_box_a_box(self):
+        # The point of the compose marker. Every other signal lives in .env and can
+        # be blanked by one edit; this one is a literal in the compose file, so a
+        # box stays a box even when somebody empties ENVIRONMENT and SINGLE_TENANT.
+        from config.deployment_kind import selfhost_box_from_env
+
+        self.assertTrue(
+            selfhost_box_from_env(
+                {"RMC_SELFHOST_STACK": "1", "ENVIRONMENT": "", "SINGLE_TENANT": ""},
+                False,
+            )
+        )
 
     def test_a_plain_developer_machine_is_not_a_box(self):
         with override_settings(
@@ -109,6 +128,16 @@ class DerivationTests(SimpleTestCase):
             with self.subTest(spelling=spelling):
                 self.assertTrue(self._derive(SINGLE_TENANT=spelling))
 
+    def test_the_stack_marker_alone_derives_a_box(self):
+        for spelling in ("1", "true", "TRUE", "yes", "on"):
+            with self.subTest(spelling=spelling):
+                self.assertTrue(self._derive(RMC_SELFHOST_STACK=spelling))
+
+    def test_the_stack_marker_is_still_beaten_by_hosted(self):
+        # Provenance is not a licence: a hosted process is never an appliance, and
+        # the marker must not become the one way to smuggle that past the check.
+        self.assertFalse(self._derive(cloud=True, RMC_SELFHOST_STACK="1"))
+
     def test_nothing_set_is_not_a_box(self):
         self.assertFalse(self._derive())
         self.assertFalse(self._derive(ENVIRONMENT="", SINGLE_TENANT=""))
@@ -131,6 +160,105 @@ class DerivationTests(SimpleTestCase):
 
         source = inspect.getsource(settings_module)
         self.assertIn("selfhost_box_from_env(os.environ", source)
+
+
+class ComposeProvenanceTests(SimpleTestCase):
+    """The marker is only worth anything if the shipped compose file really sets it.
+
+    Asserted as TEXT rather than through a YAML parser, because the thing that has
+    to hold is not merely "the key is present" but "the value is a literal". The
+    moment it becomes ``${RMC_SELFHOST_STACK:-1}`` it is an .env-overridable
+    preference again, and every argument for preferring it collapses.
+    """
+
+    def _compose(self, directives_only=False):
+        path = Path(settings.BASE_DIR) / "deploy" / "selfhost" / "docker-compose.yml"
+        self.assertTrue(path.exists(), f"missing {path}")
+        text = path.read_text(encoding="utf-8")
+        if not directives_only:
+            return text
+        # Comments have to come out before asserting on the SHAPE of a value: the
+        # comment beside this very key quotes the interpolation it is deliberately
+        # not, so a naive substring search on the whole file matches its own
+        # explanation and fails a correct file.
+        return "\n".join(
+            line for line in text.splitlines() if not line.strip().startswith("#")
+        )
+
+    def test_the_compose_file_stamps_the_marker(self):
+        self.assertIn('RMC_SELFHOST_STACK: "1"', self._compose())
+
+    def test_the_marker_is_a_literal_not_an_interpolation(self):
+        directives = self._compose(directives_only=True)
+        self.assertIn('RMC_SELFHOST_STACK: "1"', directives)
+        self.assertNotIn("${RMC_SELFHOST_STACK", directives)
+
+    def test_it_sits_on_the_shared_anchor_so_worker_and_beat_get_it_too(self):
+        # web, worker and beat all merge x-app. A worker that disagrees with web
+        # about whether this is a box is the same class of split-brain this whole
+        # file exists to prevent.
+        anchor = self._compose(directives_only=True).split("services:")[0]
+        self.assertIn('RMC_SELFHOST_STACK: "1"', anchor)
+
+
+class SchoolResolutionAgreesTests(TestCase):
+    """The URL layer and the school layer must answer the same question the same way.
+
+    Recognising a box from ``ENVIRONMENT=selfhost`` routes it to
+    ``config.tenant_urls``, but ``_get_single_tenant_school`` used to demand the
+    literal ``SINGLE_TENANT`` setting -- which ``deploy/selfhost/.env.example`` has
+    never carried. A box built from the shipped template therefore got the right URL
+    surface and ``request.school = None``: the same disagreement as the original
+    bug, pointing the other way.
+    """
+
+    def setUp(self):
+        from apps.schools.models import School
+
+        School.objects.update(is_active=False)
+        self.school = School.objects.create(
+            name="Sovereign Box School",
+            slug="sovereign-box-school",
+            subdomain="sovereign-box-school",
+            is_active=True,
+        )
+
+    def test_a_box_resolves_its_school_without_a_single_tenant_line(self):
+        with override_settings(
+            SINGLE_TENANT=False,
+            RMC_IS_SELFHOST_BOX=True,
+            RMC_IS_CLOUD_DEPLOYED=False,
+            USE_DJANGO_TENANTS=False,
+        ):
+            self.assertEqual(_get_single_tenant_school(), self.school)
+
+    def test_the_legacy_flag_still_resolves_on_its_own(self):
+        # Superset, not replacement: nothing that resolved before stops resolving.
+        with override_settings(
+            SINGLE_TENANT=True,
+            RMC_IS_SELFHOST_BOX=False,
+            RMC_IS_CLOUD_DEPLOYED=False,
+            USE_DJANGO_TENANTS=False,
+        ):
+            self.assertEqual(_get_single_tenant_school(), self.school)
+
+    def test_a_developer_machine_still_resolves_nothing(self):
+        with override_settings(
+            SINGLE_TENANT=False,
+            RMC_IS_SELFHOST_BOX=False,
+            RMC_IS_CLOUD_DEPLOYED=False,
+            USE_DJANGO_TENANTS=False,
+        ):
+            self.assertIsNone(_get_single_tenant_school())
+
+    def test_a_hosted_deployment_resolves_nothing_however_it_is_labelled(self):
+        with override_settings(
+            SINGLE_TENANT=False,
+            RMC_IS_SELFHOST_BOX=True,
+            RMC_IS_CLOUD_DEPLOYED=True,
+            USE_DJANGO_TENANTS=False,
+        ):
+            self.assertIsNone(_get_single_tenant_school())
 
 
 class ControlPlaneIsNotMountedTests(SimpleTestCase):
@@ -203,24 +331,25 @@ class ControlPlaneIsNotMountedTests(SimpleTestCase):
 class ReadinessSaysSoTests(SimpleTestCase):
     """A box that would serve the operator surface has to announce it."""
 
-    def _run(self, appliance=True):
-        """Run the readiness check, optionally as an appliance.
+    #: Either of these marks the process as an appliance and lets the check speak.
+    #: Both are deliberately independent of the recognition markers being checked --
+    #: keying off those would be circular, since a box that is not recognised is
+    #: exactly the box that has to be told.
+    APPLIANCE_SIGNALS = ("RMC_SELFHOST_STACK", "RMC_EDGE_TLS_MODE")
 
-        ``RMC_EDGE_TLS_MODE`` present in the environment is what marks this process
-        as an appliance at all. It is deliberately independent of the recognition
-        markers being checked: keying the check off those would be circular, since
-        a box that is not recognised is exactly the box that has to be told.
-        """
+    def _run(self, appliance=True, signal="RMC_EDGE_TLS_MODE", value="selfsigned"):
+        """Run the readiness check, optionally as an appliance."""
         import os
         from io import StringIO
 
         from django.core.management import call_command
 
-        env = {"RMC_EDGE_TLS_MODE": "selfsigned"} if appliance else {}
+        env = {signal: value} if appliance else {}
         out = StringIO()
         with mock.patch.dict(os.environ, env, clear=False):
-            if not appliance:
-                os.environ.pop("RMC_EDGE_TLS_MODE", None)
+            for other in self.APPLIANCE_SIGNALS:
+                if other != signal or not appliance:
+                    os.environ.pop(other, None)
             try:
                 call_command("check_edge_readiness", stdout=out, stderr=out)
             except SystemExit:
@@ -248,6 +377,21 @@ class ReadinessSaysSoTests(SimpleTestCase):
         ):
             output = self._run()
         self.assertIn("sovereign single-school box", output)
+
+    def test_the_compose_marker_alone_lets_the_check_speak(self):
+        # The gap this closes. RMC_EDGE_TLS_MODE was the ONLY signal, on the strength
+        # of a comment claiming the shipped template set it -- and neither
+        # .env.example nor the .env of the box this was written for ever did. On a
+        # real appliance the loudest check in the file was silent in both directions.
+        with override_settings(
+            RMC_IS_SELFHOST_BOX=False,
+            RMC_IS_CLOUD_DEPLOYED=False,
+            SINGLE_TENANT=False,
+            USE_DJANGO_TENANTS=False,
+        ):
+            output = self._run(signal="RMC_SELFHOST_STACK", value="1")
+        self.assertIn("operator URL surface", output)
+        self.assertIn("[FAIL]", output)
 
     def test_a_developer_machine_is_told_nothing_about_this(self):
         # A dev machine serves config.urls on purpose. Reporting that as a finding

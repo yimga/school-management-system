@@ -122,15 +122,31 @@ class Command(BaseCommand):
                     ))
 
         # --- Single-tenant / tenancy coherence ------------------------------
-        if single_tenant and use_django_tenants:
+        # Not `single_tenant` alone. A box recognised from the compose marker or
+        # ENVIRONMENT=selfhost carries no SINGLE_TENANT line -- .env.example has
+        # never had one -- and every check in this block used to be gated on that
+        # literal, so the boxes most likely to be misconfigured were the ones that
+        # got no checks at all.
+        sovereign_box = single_tenant or bool(
+            getattr(settings, "RMC_IS_SELFHOST_BOX", False)
+        )
+        if sovereign_box and use_django_tenants:
             findings.append((
                 WARN,
                 "SINGLE_TENANT=True but USE_DJANGO_TENANTS=True: the bare-hostname "
                 "fallback only works in shared/RLS mode. Set USE_DJANGO_TENANTS=0 for a "
                 "bare-host single-school box, or reach the school via its subdomain.",
             ))
-        elif single_tenant:
-            findings.append((OK, "SINGLE_TENANT + shared mode: bare-hostname resolution active."))
+        elif sovereign_box:
+            findings.append((
+                OK,
+                (
+                    "SINGLE_TENANT + shared mode: bare-hostname resolution active."
+                    if single_tenant
+                    else "Sovereign box + shared mode: bare-hostname resolution "
+                    "active (recognised without a SINGLE_TENANT line)."
+                ),
+            ))
             # The school resolving is only half of it. Until 2026-08-22 the URL layer
             # disagreed with the school layer: an IP-literal host got `config.urls`,
             # the DEVELOPER urlconf, which mounts no admin site (a 500 on
@@ -153,8 +169,8 @@ class Command(BaseCommand):
                 else:
                     findings.append((
                         FAIL,
-                        "SINGLE_TENANT is on but a bare-IP host still routes to "
-                        f"{getattr(probe, 'urlconf', '?')} — this box serves the operator "
+                        "This is a single-school box but a bare-IP host still routes "
+                        f"to {getattr(probe, 'urlconf', '?')} — it serves the operator "
                         "control plane to its school and 500s on /authentication/backend/.",
                     ))
             except Exception as exc:  # noqa: BLE001 — readiness must never crash
@@ -165,11 +181,11 @@ class Command(BaseCommand):
 
                 count = School.objects.filter(is_active=True).count()
                 if count == 0:
-                    findings.append((WARN, "SINGLE_TENANT is on but no active school exists yet — provision one."))
+                    findings.append((WARN, "This is a single-school box but no active school exists yet — provision one."))
                 elif count == 1:
                     findings.append((OK, "Exactly one active school — bare-hostname will resolve to it."))
                 else:
-                    findings.append((FAIL, f"SINGLE_TENANT is on but {count} active schools exist — resolution is ambiguous (returns none)."))
+                    findings.append((FAIL, f"This is a single-school box but {count} active schools exist — resolution is ambiguous (returns none)."))
             except Exception as exc:  # noqa: BLE001 — DB may be pre-migration during bring-up
                 findings.append((WARN, f"Could not count active schools (DB not ready?): {exc}"))
 
@@ -414,12 +430,25 @@ class Command(BaseCommand):
         # serves config.urls on purpose and is not a finding, and saying otherwise
         # would make --strict unusable everywhere except the box.
         #
-        # RMC_EDGE_TLS_MODE is the signal because it is INDEPENDENT of the thing
-        # being checked: it comes from the box's own .env, it is set on every box
-        # (the shipped template carries it), and nothing else sets it. Keying off
-        # the recognition markers instead would be circular -- a box that is not
-        # recognised is exactly the box that needs to be told.
-        _looks_like_an_appliance = os.environ.get("RMC_EDGE_TLS_MODE") is not None
+        # RMC_SELFHOST_STACK is the primary signal: the compose file sets it as a
+        # literal on every box, no .env can remove it, and it is provenance rather
+        # than classification -- so it does not make this circular, which keying off
+        # the recognition markers would (a box that is not recognised is exactly the
+        # box that needs to be told).
+        #
+        # RMC_EDGE_TLS_MODE stays as a second signal for a box that predates the
+        # compose marker or runs outside compose. It was the ONLY signal until
+        # 2026-08-25, on the strength of a comment here claiming the shipped
+        # template carried it. It does not: neither deploy/selfhost/.env.example nor
+        # the .env of the box this check was written for had ever set it, so on a
+        # real appliance the loudest check in this file was silent in BOTH
+        # directions -- no FAIL when the school was being shown the operator
+        # surface, and no OK to confirm the fix afterwards.
+        _looks_like_an_appliance = (
+            str(os.environ.get("RMC_SELFHOST_STACK", "") or "").strip().lower()
+            in {"1", "true", "yes", "on"}
+            or os.environ.get("RMC_EDGE_TLS_MODE") is not None
+        )
         if not _looks_like_an_appliance:
             pass
         elif not _sovereign():

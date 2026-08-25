@@ -35,6 +35,21 @@ x-app: &app
     # hosted-cloud posture — dropping its local Ollama tier and switching on
     # hosted conversion / paid-install enforcement. A label must not route.
     ENVIRONMENT: "${ENVIRONMENT:-selfhost}"
+    # PROVENANCE. Deliberately a literal and NOT "${RMC_SELFHOST_STACK:-1}": every
+    # other marker that says "this is a box" can be undone by an .env edit, and one
+    # school found out what that costs -- reached by IP, not recognised as a box,
+    # served the developer urlconf, and shown an operator surface offering to
+    # request access into the control plane. This one answers a question about the
+    # deployment ("which stack started this process") rather than a preference
+    # about it, so there is nothing an operator could legitimately want to set it
+    # to. config/deployment_kind.py reads it, and check_edge_readiness uses it to
+    # know it is allowed to speak.
+    #
+    # This does not violate the rule above that a label must not route. That rule
+    # guards against a label silently GRANTING hosted-cloud posture; this only ever
+    # REMOVES capability -- it takes the control plane away from a box and grants
+    # nothing -- and _IS_CLOUD_DEPLOYED still wins over it outright.
+    RMC_SELFHOST_STACK: "1"
   volumes:
     # Certificates the box mints for itself (manage.py edge_tls --issue-selfsigned)
     # and the box CA that signs them. A named volume because losing ca.key means
