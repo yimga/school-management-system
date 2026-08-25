@@ -1959,3 +1959,45 @@ if _OBSERVABILITY_PROM_BACKEND:
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+
+# ---------------------------------------------------------------------------
+# A SCHOOL'S OWN BOX DOES NOT HAVE A CONTROL PLANE.
+# ---------------------------------------------------------------------------
+# UrlConfSwitcherMiddleware already routes a sovereign box to config.tenant_urls,
+# which mounts none of this. This is the second lock, and it exists because the
+# first one is a decision made per request from a host string: get that wrong once
+# -- an address shape nobody anticipated, a proxy that rewrites Host, a middleware
+# ordering change -- and a school is looking at operator chrome with a "Request
+# access" button that offers to put them INTO the control plane. That happened.
+#
+# Routes that are not mounted cannot be reached by any of those mistakes. So on a
+# box the control-plane patterns are removed from the developer urlconf outright,
+# and /super/ is a 404 rather than a permission page. A 404 cannot offer anybody
+# anything.
+#
+# Filtered by prefix and namespace rather than by naming each route, so a new
+# /super/ route added years from now is covered without anyone remembering to
+# come back here.
+CONTROL_PLANE_PREFIXES = ("super/",)
+CONTROL_PLANE_NAMESPACES = frozenset(
+    {"super", "migration_cloud_super", "feedback_operator"}
+)
+
+
+def is_control_plane_pattern(entry) -> bool:
+    """Is this URL entry part of the operator control plane?
+
+    Module level and always defined, so it can be asserted directly rather than
+    only through the side effect of importing this module under the right settings.
+    """
+    route = str(getattr(entry, "pattern", "") or "")
+    if any(route.startswith(prefix) for prefix in CONTROL_PLANE_PREFIXES):
+        return True
+    return getattr(entry, "namespace", None) in CONTROL_PLANE_NAMESPACES
+
+
+if getattr(settings, "RMC_IS_SELFHOST_BOX", False):
+    urlpatterns = [
+        entry for entry in urlpatterns if not is_control_plane_pattern(entry)
+    ]

@@ -160,6 +160,16 @@ def use_control_plane_shell(request) -> bool:
     appliance must show tenant chrome (school name/logo), not the RunMyCampus operator
     topbar.
     """
+    # A school's own appliance NEVER shows operator chrome, whatever the host
+    # classification decided. Both checks below read a per-request attribute
+    # derived from the Host header, and a school once saw the RunMyCampus operator
+    # topbar -- wordmark, ADMIN badge, "Search tenants, incidents, commands" -- on
+    # their own box because that derivation went one way it was not expected to.
+    # This one is a property of the DEPLOYMENT, so it cannot be wrong per request.
+    from django.conf import settings as _settings
+
+    if bool(getattr(_settings, "RMC_IS_SELFHOST_BOX", False)):
+        return False
     if getattr(request, "is_tenant_host", False):
         return False
     kind = (getattr(request, "public_host_kind", None) or "").lower()

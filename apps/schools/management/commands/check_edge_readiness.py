@@ -399,6 +399,48 @@ class Command(BaseCommand):
                 "offline PIN / local mode can enrol.",
             ))
 
+        # --- Will this box serve the OPERATOR surface to a school? -----------
+        # The worst outcome in this whole file. A box that is not recognised as a box
+        # is handed config.urls, the developer urlconf: operator chrome ("Search
+        # tenants, incidents, commands"), 428 /super/ control-plane routes, and an
+        # "Access required" page offering a Request-access button INTO the control
+        # plane -- to a school, on their own appliance, after logging in with their
+        # own credentials. It also hard-redirects every page to My profile when the
+        # account is below the ADMIN security minimum, which reads as "the box is
+        # broken" rather than as a posture gate.
+        from apps.schools.middleware import is_sovereign_single_tenant_box as _sovereign
+
+        # Only where this process is actually an appliance. A developer machine
+        # serves config.urls on purpose and is not a finding, and saying otherwise
+        # would make --strict unusable everywhere except the box.
+        #
+        # RMC_EDGE_TLS_MODE is the signal because it is INDEPENDENT of the thing
+        # being checked: it comes from the box's own .env, it is set on every box
+        # (the shipped template carries it), and nothing else sets it. Keying off
+        # the recognition markers instead would be circular -- a box that is not
+        # recognised is exactly the box that needs to be told.
+        _looks_like_an_appliance = os.environ.get("RMC_EDGE_TLS_MODE") is not None
+        if not _looks_like_an_appliance:
+            pass
+        elif not _sovereign():
+            findings.append((
+                FAIL,
+                "This process is NOT recognised as a sovereign single-school box, so "
+                "it will serve the operator URL surface: /super/ control-plane routes, "
+                "operator chrome, and a 'Request access' page a school must never be "
+                "shown. Set ENVIRONMENT=selfhost (the shipped compose file already "
+                "does) or SINGLE_TENANT=1 in deploy/selfhost/.env and restart. Verify "
+                "with `manage.py check_edge_readiness` -- this line must disappear.",
+            ))
+        else:
+            findings.append((
+                OK,
+                "Recognised as a sovereign single-school box: it serves "
+                "config.tenant_urls, the control-plane routes are not mounted at all, "
+                "and the security-strength gate soft-locks instead of hard-redirecting "
+                "every page to My profile.",
+            ))
+
         # --- Is this mode achievable for these addresses at all? -------------
         # A school that picks a public certificate authority for a box reachable
         # only at 10.10.20.137 has chosen something no CA on earth can deliver, and

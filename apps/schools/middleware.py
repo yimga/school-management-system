@@ -664,10 +664,23 @@ def is_sovereign_single_tenant_box() -> bool:
     resolved from the hostname upstream, so the bare-host fallback is inert and
     claiming otherwise would be worse than not claiming it.
     """
-    flag = str(getattr(settings, "SINGLE_TENANT", "") or "").strip().lower()
-    if flag not in {"1", "true", "yes"}:
+    if bool(getattr(settings, "USE_DJANGO_TENANTS", False)):
         return False
-    return not bool(getattr(settings, "USE_DJANGO_TENANTS", False))
+    # A hosted deployment is NEVER a sovereign box, whatever its labels say. Without
+    # this, a cloud process that happened to carry SINGLE_TENANT -- copied into a
+    # shared .env, inherited from a template, set while debugging -- would be routed
+    # to config.tenant_urls and serve every operator the single-school surface. The
+    # legacy flag below predates this check; it is what made that reachable.
+    if bool(getattr(settings, "RMC_IS_CLOUD_DEPLOYED", False)):
+        return False
+    # RMC_IS_SELFHOST_BOX is derived from every marker a box carries, not from one
+    # line somebody has to remember -- see config/settings.py. Keeping the explicit
+    # SINGLE_TENANT check below as well means an existing box that sets only that
+    # keeps working unchanged.
+    if bool(getattr(settings, "RMC_IS_SELFHOST_BOX", False)):
+        return True
+    flag = str(getattr(settings, "SINGLE_TENANT", "") or "").strip().lower()
+    return flag in {"1", "true", "yes"}
 
 
 class UrlConfSwitcherMiddleware(MiddlewareMixin):

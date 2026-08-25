@@ -60,6 +60,33 @@ _IS_PRODUCTION_OR_STAGING = _RMC_DEPLOY_ENV in (
 )
 # Hosted deploy (Render/Heroku-style): enforce conversion + paid-install billing even when DEBUG=1.
 _IS_CLOUD_DEPLOYED = _is_render or _IS_PRODUCTION_OR_STAGING
+
+# Is this process a school's own sovereign box, rather than the cloud?
+#
+# WHY THIS IS NOT JUST `SINGLE_TENANT`. It used to be, and that was fail-OPEN. A box
+# whose .env omitted one line was handed `config.urls` -- the DEVELOPER urlconf --
+# which mounts the operator control plane. The school then saw operator chrome
+# ("Search tenants, incidents, commands"), could open /super/, and was offered a
+# "Request access" button into the control plane, on their own appliance, after
+# logging in with their own credentials. One missing line in one file.
+#
+# So it is derived from every marker a box actually carries, and the compose file
+# already gives every box `ENVIRONMENT=selfhost` without anyone remembering
+# anything. docker-compose.yml carries a standing rule that "a label must not
+# route", and that rule is respected here: the fear there was a label silently
+# GRANTING hosted-cloud posture (dropping the local Ollama tier, switching on paid
+# -install enforcement). This flag can only ever REMOVE capability -- it takes the
+# control plane away from a box and grants nothing -- so a process wrongly treated
+# as a box loses only what a box should never have had.
+#
+# Render and production/staging are excluded outright, so the cloud can never be
+# mistaken for an appliance however its labels are set.
+from config.deployment_kind import selfhost_box_from_env  # noqa: E402
+
+RMC_IS_SELFHOST_BOX = selfhost_box_from_env(os.environ, _IS_CLOUD_DEPLOYED)
+#: Exposed so request-time code can ask the same question settings already answered,
+#: instead of re-deriving "am I hosted?" from raw env and drifting away from it.
+RMC_IS_CLOUD_DEPLOYED = _IS_CLOUD_DEPLOYED
 if not SECRET_KEY:
     if DEBUG:
         SECRET_KEY = "dev-only-change-in-production"
