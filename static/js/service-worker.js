@@ -216,7 +216,7 @@
 // v4.06.66: platform-wide Ctrl+K search seal (palette scroll, shortcut yield, unified /).
 // v4.06.68: tenant/operator admin form intelligence and server-owned preferences.
 // v4.06.71: tenant admin sidebar server-owned, host-isolated preferences.
-const CACHE_VERSION = "sms-v4.06.79-tenant-chrome-sovereign-security-2026-08-24";
+const CACHE_VERSION = "sms-v4.06.80-auth-checkpoint-layout-fix-2026-08-26";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 
