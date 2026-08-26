@@ -270,17 +270,27 @@ class Command(BaseCommand):
                             # reported as [OK]. A device opening it gets NXDOMAIN, and
                             # an unresolvable name is strictly WORSE than an IP: the
                             # IP works today.
+                            # WARN and deliberately not FAIL. This resolves from
+                            # INSIDE the container, whose resolver is not a phone's:
+                            # a router DNS entry can be visible to every device on the
+                            # LAN and invisible here. A FAIL would refuse to boot an
+                            # otherwise healthy box (RMC_EDGE_READINESS_STRICT=1) over
+                            # an inference this check cannot authoritatively make --
+                            # and the box serves perfectly well at its IP meanwhile.
                             findings.append((
-                                FAIL,
+                                WARN,
                                 f"Devices are told to install this box's CA at {_t_url}, "
-                                f"but '{_host}' does not resolve from this box — a "
-                                "device opening that URL gets NXDOMAIN. The address is "
-                                "in the certificate, which is not the same as being on "
-                                "the network. Either map the name to this box in the "
+                                f"but '{_host}' does not resolve FROM THIS BOX, so a "
+                                "device opening that URL probably gets NXDOMAIN. Being "
+                                "in the certificate is not the same as being on the "
+                                "network. Either map the name to this box in the "
                                 "router's DNS (docs/EDGE_LAN_HOSTNAME_DNS.md), or hand "
-                                "devices the IP instead; the CA is identical whichever "
+                                "devices the IP instead — the CA is identical whichever "
                                 "address they fetch it from. `.local` is mDNS and this "
-                                "stack runs no mDNS responder.",
+                                "stack runs no mDNS responder. Checked from inside the "
+                                "container: if the school's DNS serves this name to "
+                                "devices but not to Docker, enrolment is fine and this "
+                                "line is the false alarm.",
                             ))
                         else:
                             findings.append((

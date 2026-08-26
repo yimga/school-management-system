@@ -725,6 +725,61 @@ class TheDarkThemeCannotBeUndoneByOrderingTests(SimpleTestCase):
         self.assertIn("color:", panel.group(1))
 
 
+class AnUnresolvableNameWarnsButMustNotHaltABoxTests(SimpleTestCase):
+    """The enrolment hostname check is advisory on purpose.
+
+    It resolves from INSIDE the container, whose resolver is not a phone's: a router
+    DNS entry can be visible to every device on the LAN and invisible to Docker. So
+    the check can be wrong in exactly the direction that matters.
+
+    ``deploy/selfhost/entrypoint.web.sh`` runs this command on EVERY container start
+    and honours ``RMC_EDGE_READINESS_STRICT=1``, where a FAIL raises CommandError
+    under ``set -euo pipefail``. Promoting this line to FAIL would therefore refuse
+    to boot an otherwise healthy box over a DNS inference -- while the box serves
+    perfectly well at its IP the whole time.
+    """
+
+    def _source(self):
+        return (
+            Path(settings.BASE_DIR)
+            .joinpath("apps", "schools", "management", "commands", "check_edge_readiness.py")
+            .read_text(encoding="utf-8")
+        )
+
+    def test_the_unresolvable_branch_is_a_warn(self):
+        source = self._source()
+        marker = "does not resolve FROM THIS BOX"
+        self.assertIn(marker, source)
+        before = source.split(marker, 1)[0]
+        # The severity is the argument of the findings.append() that carries it.
+        opener = before.rfind("findings.append((")
+        self.assertNotEqual(opener, -1)
+        severity = before[opener:].split("((", 1)[1].split(",", 1)[0].strip()
+        self.assertEqual(
+            severity,
+            "WARN",
+            "an unresolvable enrolment hostname must not be able to halt a boot: "
+            "the entrypoint runs this on every start and honours "
+            "RMC_EDGE_READINESS_STRICT=1",
+        )
+
+    def test_the_resolver_cannot_hang_a_boot(self):
+        source = self._source()
+        self.assertIn("def _resolves(", source)
+        # A daemon thread with a join timeout, so a slow resolver cannot hold a
+        # school's box in a boot loop.
+        self.assertIn("daemon=True", source)
+        self.assertIn("worker.join(timeout_seconds)", source)
+
+    def test_the_entrypoint_still_tolerates_a_non_strict_failure(self):
+        entrypoint = (
+            Path(settings.BASE_DIR)
+            .joinpath("deploy", "selfhost", "entrypoint.web.sh")
+            .read_text(encoding="utf-8")
+        )
+        self.assertIn("check_edge_readiness || true", entrypoint)
+
+
 class CaMaterialCannotReachGitTests(SimpleTestCase):
     """box-ca-bundle.p12 carries the CA private key. /srv/rmc is a git tree."""
 
