@@ -24,6 +24,32 @@ WARN = "WARN"
 FAIL = "FAIL"
 
 
+def _resolves(hostname: str, timeout_seconds: float = 3.0) -> bool:
+    """Does this name resolve from the box? Never blocks readiness for long.
+
+    Run on a daemon thread with a join timeout because the entrypoint calls this
+    command on EVERY container start: a resolver that hangs must not be able to hold
+    a school's box in a boot loop. A timeout counts as "does not resolve", which is
+    the honest answer for a name nobody can look up quickly.
+    """
+    import socket
+    import threading
+
+    outcome: list[bool] = []
+
+    def _probe() -> None:
+        try:
+            socket.getaddrinfo(hostname, None)
+            outcome.append(True)
+        except Exception:  # noqa: BLE001 — any resolver failure is "no"
+            outcome.append(False)
+
+    worker = threading.Thread(target=_probe, daemon=True)
+    worker.start()
+    worker.join(timeout_seconds)
+    return bool(outcome and outcome[0])
+
+
 def _truthy(value) -> bool:
     return str(value if value is not None else "").strip().lower() in {"1", "true", "yes", "on"}
 
@@ -230,15 +256,41 @@ class Command(BaseCommand):
                                 "printout and whiteboard naming it is wrong and the "
                                 "box gives no sign; the CA itself is fine, so nobody "
                                 "has to be revisited, but nobody NEW can enrol either. "
-                                "A stable name fixes it for good (mDNS `.local` needs "
-                                "no DNS server).",
+                                "A stable name fixes it for good — map it in the "
+                                "router's DNS (see docs/EDGE_LAN_HOSTNAME_DNS.md). "
+                                "Note `.local` is mDNS and this stack ships no mDNS "
+                                "responder, so a .local name resolves only where "
+                                "something else publishes it.",
+                            ))
+                        elif not _resolves(_host):
+                            # THE FAILURE THIS CHECK EXISTS FOR. A name in the
+                            # certificate is not an address until something resolves
+                            # it, and the box cannot tell the difference by looking at
+                            # its own config -- which is exactly why this used to be
+                            # reported as [OK]. A device opening it gets NXDOMAIN, and
+                            # an unresolvable name is strictly WORSE than an IP: the
+                            # IP works today.
+                            findings.append((
+                                FAIL,
+                                f"Devices are told to install this box's CA at {_t_url}, "
+                                f"but '{_host}' does not resolve from this box — a "
+                                "device opening that URL gets NXDOMAIN. The address is "
+                                "in the certificate, which is not the same as being on "
+                                "the network. Either map the name to this box in the "
+                                "router's DNS (docs/EDGE_LAN_HOSTNAME_DNS.md), or hand "
+                                "devices the IP instead; the CA is identical whichever "
+                                "address they fetch it from. `.local` is mDNS and this "
+                                "stack runs no mDNS responder.",
                             ))
                         else:
                             findings.append((
                                 OK,
                                 f"Devices install this box's CA at {_t_url} — a NAME, "
-                                "so a new DHCP lease or a move to another subnet does "
-                                "not change it and nothing printed goes stale.",
+                                "and it resolves from this box, so a new DHCP lease or "
+                                "a move to another subnet does not change it. Resolution "
+                                "is checked from the BOX; a device with its own resolver "
+                                "(or a hosts-file entry someone made on one laptop) can "
+                                "still differ.",
                             ))
             except Exception as exc:  # noqa: BLE001 — readiness must never crash
                 findings.append((WARN, f"Could not resolve trust enrolment: {exc}"))

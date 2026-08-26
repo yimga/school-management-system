@@ -9,36 +9,67 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% translate "Trust this box" %}</title>
   <style>
-    :root { color-scheme: light dark; }
+    /* PALETTE AS TOKENS, and the dark block redefines ONLY tokens.
+       This page shipped once with the dark @media block sitting ABOVE the component
+       rules: at equal specificity the later rule wins, so .card/.fp/.warn snapped
+       back to their light backgrounds while body -- defined before the block --
+       stayed dark. Every phone in dark mode got near-white text on white cards, and
+       the fingerprint, the one thing a person opens this page to read, was
+       invisible. Components now reference variables and resolve them at use, so
+       reordering cannot separate a surface from the ink meant to sit on it. */
+    :root {
+      color-scheme: light dark;
+      --paper: #fbfaf7;
+      --ink: #1a1d1a;
+      --muted: #5f6660;
+      --surface: #ffffff;
+      --line: #e4e2db;
+      --sunk: #f3f1eb;
+      --accent: #0f5c4e;
+      --accent-ink: #ffffff;
+      --warn-bg: #fbf1dc;
+      --warn-line: #e8ce95;
+      --warn-ink: #8a5a00;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --paper: #131513;
+        --ink: #edefea;
+        --muted: #9ba39c;
+        --surface: #1b1e1b;
+        --line: #2a2e29;
+        --sunk: #101210;
+        --accent: #5fcfb4;
+        --accent-ink: #101210;
+        --warn-bg: #2e2411;
+        --warn-line: #58421c;
+        --warn-ink: #e0ae5a;
+      }
+    }
     body {
       margin: 0; padding: 24px 18px 64px;
       font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-      background: #fbfaf7; color: #1a1d1a;
-    }
-    @media (prefers-color-scheme: dark) {
-      body { background: #131513; color: #edefea; }
-      .card, .step { background: #1b1e1b; border-color: #2a2e29; }
-      .fp { background: #101210; border-color: #2a2e29; }
-      a.btn { background: #5fcfb4; color: #101210; }
-      .warn { background: #2e2411; border-color: #58421c; color: #e0ae5a; }
+      background: var(--paper); color: var(--ink);
     }
     main { max-width: 640px; margin: 0 auto; }
     h1 { font-size: 26px; line-height: 1.2; margin: 0 0 6px; }
     h2 { font-size: 17px; margin: 28px 0 8px; }
     p { margin: 0 0 12px; }
-    .lede { color: #5f6660; margin-bottom: 22px; }
-    @media (prefers-color-scheme: dark) { .lede { color: #9ba39c; } }
+    .lede { color: var(--muted); margin-bottom: 22px; }
     .card, .step {
-      background: #fff; border: 1px solid #e4e2db; border-radius: 6px;
+      background: var(--surface); border: 1px solid var(--line); border-radius: 6px;
       padding: 16px; margin: 0 0 16px;
     }
     .fp {
       font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-      font-size: 13px; word-break: break-all; background: #f3f1eb;
-      border: 1px solid #e4e2db; border-radius: 4px; padding: 12px; margin: 8px 0 0;
+      font-size: 13px; word-break: break-all; background: var(--sunk);
+      border: 1px solid var(--line); border-radius: 4px; padding: 12px; margin: 8px 0 0;
+      /* The fingerprint is the point of the page: never inherit a muted colour. */
+      color: var(--ink);
     }
     a.btn {
-      display: inline-block; background: #0f5c4e; color: #fff; text-decoration: none;
+      display: inline-block; background: var(--accent); color: var(--accent-ink);
+      text-decoration: none;
       padding: 13px 22px; border-radius: 6px; font-weight: 600; font-size: 17px;
     }
     img.qr { width: 190px; height: 190px; image-rendering: pixelated; display: block; }
@@ -53,7 +84,8 @@
        else on the box could ever reconcile with. */
     .fine { font-size: 14px; }
     .warn {
-      background: #fbf1dc; border: 1px solid #e8ce95; color: #8a5a00;
+      background: var(--warn-bg); border: 1px solid var(--warn-line);
+      color: var(--warn-ink);
       border-radius: 6px; padding: 14px 16px; margin: 0 0 18px;
     }
     ol { padding-left: 20px; margin: 0; }

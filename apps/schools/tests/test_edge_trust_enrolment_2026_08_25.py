@@ -632,6 +632,99 @@ class BothSurfacesShowTheSameFingerprintTests(TenantUrlconfMixin, SimpleTestCase
         self.assertIn(ca.fingerprint, console.getvalue())
 
 
+class TheDarkThemeCannotBeUndoneByOrderingTests(SimpleTestCase):
+    """It shipped once with light text on white cards. On a phone. In a corridor.
+
+    The dark ``@media`` block sat ABOVE the component rules. At equal specificity
+    the later rule wins, so ``.card`` / ``.fp`` / ``.warn`` snapped back to their
+    light backgrounds while ``body`` -- defined before the block -- stayed dark.
+    Every device in dark mode got near-white text on a white card, and the
+    FINGERPRINT, the one thing a person opens this page to read and the only
+    security this page has, was invisible.
+
+    Structural rather than visual, because nothing here can screenshot a phone: if
+    every colour resolves from a custom property, and the dark block only ever
+    redefines those properties, then no ordering can separate a surface from the
+    ink meant to sit on it.
+    """
+
+    def _style(self):
+        text = (
+            Path(settings.BASE_DIR)
+            .joinpath("templates", "schools", "edge_trust.html")
+            .read_text(encoding="utf-8")
+        )
+        return text.split("<style>", 1)[1].split("</style>", 1)[0]
+
+    def test_no_colour_is_declared_with_a_bare_hex_outside_the_token_blocks(self):
+        style = self._style()
+        without_tokens = re.sub(r":root\s*\{[^}]*\}", "", style)
+        offenders = re.findall(
+            r"^[^\n]*(?:background|color)\s*:\s*#[0-9A-Fa-f]{3,8}[^\n]*$",
+            without_tokens,
+            re.M,
+        )
+        self.assertEqual(
+            offenders,
+            [],
+            "a colour is pinned to a literal outside :root, so it cannot follow the "
+            "theme: " + "; ".join(o.strip() for o in offenders),
+        )
+
+    def test_the_dark_block_redefines_only_tokens(self):
+        # The actual bug: a dark block that restyles COMPONENTS has to win on
+        # ordering, and one day it will not.
+        style = self._style()
+        match = re.search(
+            r"@media\s*\(prefers-color-scheme:\s*dark\)\s*\{(.*?)\n    \}",
+            style,
+            re.S,
+        )
+        self.assertIsNotNone(match, "no dark-mode block found at all")
+        body = match.group(1)
+        selectors = re.findall(r"([^{};]+)\{", body)
+        self.assertTrue(selectors, "dark block declares nothing")
+        for selector in selectors:
+            self.assertEqual(
+                selector.strip(),
+                ":root",
+                "the dark block restyles a component instead of redefining tokens; "
+                "that is what made the fingerprint invisible",
+            )
+
+    def test_every_token_used_is_actually_defined(self):
+        style = self._style()
+        used = set(re.findall(r"var\((--[a-z-]+)\)", style))
+        defined = set(re.findall(r"^\s*(--[a-z-]+)\s*:", style, re.M))
+        self.assertTrue(used, "no tokens are referenced at all")
+        self.assertEqual(
+            used - defined, set(), "a var() with no definition renders as nothing"
+        )
+
+    def test_both_themes_define_the_same_token_set(self):
+        # A token defined in light but not dark silently keeps its light value on a
+        # dark ground -- the same class of bug, one shade quieter.
+        style = self._style()
+        blocks = re.findall(r":root\s*\{([^}]*)\}", style)
+        self.assertGreaterEqual(len(blocks), 2, "expected a light and a dark :root")
+        names = [set(re.findall(r"(--[a-z-]+)\s*:", b)) for b in blocks]
+        light, dark = names[0], names[1]
+        self.assertEqual(
+            light - dark,
+            set(),
+            "these tokens have no dark value and will keep the light one: "
+            + ", ".join(sorted(light - dark)),
+        )
+
+    def test_the_fingerprint_panel_sets_its_own_colour(self):
+        # It must never inherit a muted/secondary colour: it is the thing the page
+        # exists to show, and it is compared character by character.
+        style = self._style()
+        panel = re.search(r"\.fp\s*\{([^}]*)\}", style)
+        self.assertIsNotNone(panel)
+        self.assertIn("color:", panel.group(1))
+
+
 class CaMaterialCannotReachGitTests(SimpleTestCase):
     """box-ca-bundle.p12 carries the CA private key. /srv/rmc is a git tree."""
 
