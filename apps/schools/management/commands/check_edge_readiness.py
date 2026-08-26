@@ -175,6 +175,74 @@ class Command(BaseCommand):
                     ))
             except Exception as exc:  # noqa: BLE001 — readiness must never crash
                 findings.append((WARN, f"Could not probe host routing: {exc}"))
+
+            # Where devices install this box's CA. Reported here rather than left to
+            # the bootstrap banner because THIS is the command a runbook tells an
+            # operator to run after a move, and after a move is exactly when nobody
+            # is sure whether the address changed.
+            try:
+                from django.urls import reverse as _reverse
+
+                from apps.schools import edge_tls as _et
+
+                _resolved = _reverse("edge_trust", urlconf="config.tenant_urls")
+                if _resolved != _et.TRUST_ENROLMENT_PATH:
+                    findings.append((
+                        FAIL,
+                        f"Trust enrolment resolves to {_resolved} but every runbook, "
+                        f"banner and printout says {_et.TRUST_ENROLMENT_PATH}. "
+                        "Devices sent to the documented address get a 404.",
+                    ))
+                else:
+                    _t_dns, _t_ips = _et.effective_addresses(
+                        allowed_hosts=list(getattr(settings, "ALLOWED_HOSTS", []) or [])
+                    )
+                    _t_url = _et.trust_enrolment_url(_t_dns, _t_ips)
+                    if not _t_url:
+                        findings.append((
+                            WARN,
+                            "This box holds no address a device could be sent to, so "
+                            "there is no trust-enrolment URL to hand out. Set "
+                            f"{_et.ENV_HOSTNAMES} or ALLOWED_HOSTS.",
+                        ))
+                    else:
+                        # Asked of the address that was actually CHOSEN. An earlier
+                        # version asked a parallel question -- "are there any
+                        # non-localhost names?" -- and got yes from the platform's
+                        # public domain, which trust_enrolment_url had already
+                        # refused to use. It then reported an IP-only box as
+                        # name-stable, which is the reassurance you least want to be
+                        # wrong.
+                        import ipaddress as _ipa
+
+                        _host = _t_url.split("//", 1)[-1].split("/", 1)[0]
+                        _host = _host.rsplit(":", 1)[0].strip("[]")
+                        try:
+                            _ipa.ip_address(_host)
+                            _is_ip = True
+                        except ValueError:
+                            _is_ip = False
+                        if _is_ip:
+                            findings.append((
+                                WARN,
+                                f"Devices install this box's CA at {_t_url} — but that "
+                                "is an IP, and an IP changes. When it does, every "
+                                "printout and whiteboard naming it is wrong and the "
+                                "box gives no sign; the CA itself is fine, so nobody "
+                                "has to be revisited, but nobody NEW can enrol either. "
+                                "A stable name fixes it for good (mDNS `.local` needs "
+                                "no DNS server).",
+                            ))
+                        else:
+                            findings.append((
+                                OK,
+                                f"Devices install this box's CA at {_t_url} — a NAME, "
+                                "so a new DHCP lease or a move to another subnet does "
+                                "not change it and nothing printed goes stale.",
+                            ))
+            except Exception as exc:  # noqa: BLE001 — readiness must never crash
+                findings.append((WARN, f"Could not resolve trust enrolment: {exc}"))
+
             # Confirm exactly one active school (tolerant of an unmigrated/unavailable DB).
             try:
                 from apps.schools.models import School

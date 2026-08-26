@@ -271,6 +271,123 @@ def declared_hostnames(
     return list(allowed_hosts or [])
 
 
+#: The port a box publishes its app on. Compose maps ``${WEB_PORT:-10000}`` onto the
+#: container's 10000 AND ``.env`` carries ``WEB_PORT``, which ``env_file:`` puts in the
+#: container environment -- the only reason a process inside the container can tell
+#: anyone the address to reach it from outside.
+DEFAULT_WEB_PORT = "10000"
+
+#: Where a device goes to install this box's certificate authority. Kept here rather
+#: than spelled out at each call site because four surfaces print it -- the bootstrap
+#: script's banner, ``edge_bootstrap``, ``edge_tls``, and the generated onboarding
+#: runbook -- and a URL that drifts from its route is a page nobody can find. A test
+#: asserts this equals ``reverse("edge_trust")``.
+TRUST_ENROLMENT_PATH = "/edge/trust/"
+
+
+def web_port() -> str:
+    """The externally published app port, as the box's own environment reports it."""
+    return (os.environ.get("WEB_PORT", "") or "").strip() or DEFAULT_WEB_PORT
+
+
+def platform_public_suffixes() -> tuple[str, ...]:
+    """Names that belong to the PLATFORM, not to any one box.
+
+    config/settings.py appends the canonical domain (and its wildcard) to
+    ALLOWED_HOSTS on every deployment -- a box included, because the same settings
+    module runs there. So a box's own address list contains the control plane's
+    public domain, and anything that picks "the first real name" picks the wrong one.
+
+    Read lazily and defensively: this module is deliberately free of Django imports
+    at module scope so its address logic stays testable as plain functions, and it
+    must keep working in a management command run before settings are configured.
+    """
+    try:
+        from django.conf import settings as _settings
+
+        base = str(getattr(_settings, "MULTI_TENANT_BASE_DOMAIN", "") or "").strip()
+    except Exception:  # noqa: BLE001 — no Django, or settings not configured yet
+        return ()
+    base = base.lstrip(".").lower()
+    return (base,) if base else ()
+
+
+def _is_platform_public(name: str, suffixes: "tuple[str, ...]") -> bool:
+    candidate = str(name or "").strip().lstrip(".").lower()
+    if not candidate:
+        return False
+    return any(
+        candidate == suffix or candidate.endswith("." + suffix) for suffix in suffixes
+    )
+
+
+def trust_enrolment_url(
+    dns_names: Any = (),
+    ip_addresses: Any = (),
+    port: Any = None,
+    exclude_public: Any = None,
+) -> str:
+    """The URL a device opens to install this box's CA. "" when there is no address.
+
+    PLAIN http, and never https. A device arrives here precisely BECAUSE https warns;
+    an https URL would be the chicken-and-egg this page exists to break.
+
+    A DNS name beats an IP for a reason that outlives the certificate: the leaf can be
+    reissued onto a new address without anybody revisiting a device, but only if what
+    people wrote on the whiteboard was a name. ``localhost`` is skipped -- it is on
+    every box's certificate and is the one address that means "not this box" to a
+    phone in a corridor.
+
+    The PLATFORM'S public domain is skipped for a sharper reason. It is in every
+    box's ALLOWED_HOSTS because config/settings.py puts it there, so it arrives in
+    this list looking exactly like a school's own hostname. A device sent to it
+    either has no route off the LAN, or reaches the CLOUD -- which 404s this page by
+    design, because a control plane publishing a certificate authority is a phishing
+    surface. Handing a school that address would be inviting a device to install a
+    "certificate authority" from somewhere that is not the box.
+
+    ``exclude_public`` overrides the lazily-read set, for tests.
+    """
+    suffixes = (
+        platform_public_suffixes() if exclude_public is None else tuple(exclude_public)
+    )
+    chosen = ""
+    for candidate in list(dns_names or ()):
+        name = str(candidate or "").strip()
+        if not name or name.lower() == "localhost":
+            continue
+        if _is_platform_public(name, suffixes):
+            continue
+        chosen = name
+        break
+    if not chosen:
+        for candidate in list(ip_addresses or ()):
+            addr = str(candidate or "").strip()
+            if addr and not addr.startswith("127.") and addr != "::1":
+                # Bracketed for IPv6, or the port reads as another hextet.
+                chosen = host_header_form(addr)
+                break
+    if not chosen:
+        return ""
+    resolved = str(port or "").strip() or web_port()
+    return f"http://{chosen}:{resolved}{TRUST_ENROLMENT_PATH}"
+
+
+#: Hosts that exist only inside the framework and can never be reached over a
+#: network, so a certificate must never assert them.
+#:
+#: ``testserver`` is Django's default ``SERVER_NAME`` for its test client, and
+#: config/settings.py appends it to ALLOWED_HOSTS unconditionally. It is NOT removed
+#: there, deliberately: two production views (accounts/views_migration.py,
+#: api/offline_replay_views.py) and five management commands drive the Django test
+#: client at RUNTIME, so a host present only under tests would raise DisallowedHost
+#: on real requests. It is dropped HERE instead, where the question is "can a browser
+#: connect to this name" -- and for testserver the answer is no, on any network,
+#: ever. Caught on a real box: it was sitting in the certificate's address list, one
+#: command away from being minted into a school's certificate authority.
+FRAMEWORK_ONLY_HOSTNAMES = frozenset({"testserver"})
+
+
 def normalize_hostname(raw: Any) -> str:
     """One ALLOWED_HOSTS entry as a certificate can actually carry it, or "".
 
@@ -323,6 +440,8 @@ def normalize_hostname(raw: Any) -> str:
         # it as an address, so without this it would go into a certificate as an
         # IPAddress entry that no other machine can ever match -- and "%" cannot
         # appear in a hostname either, so there is no reading of this that works.
+        return ""
+    if candidate.lower() in FRAMEWORK_ONLY_HOSTNAMES:
         return ""
     try:
         # Canonical form, so "FD00::0001" and "fd00::1" stop being two addresses.
@@ -1500,6 +1619,15 @@ def relocation_plan(
                 "Reissue the leaf for the new addresses: "
                 "`edge_tls --issue-selfsigned --force`. The CA on disk is reused, so "
                 "devices that installed it need NOTHING done to them."
+            )
+            steps.append(
+                "Devices enrolled BEFORE the move need nothing -- they trust the CA, "
+                "not the address. But the page that hands the CA to a NEW device "
+                f"({TRUST_ENROLMENT_PATH}) is served at whatever address the box now "
+                "answers on, so if this box is reached by IP rather than by a name, "
+                "that URL has just changed and every printout naming the old one is "
+                "wrong. `edge_tls --trust-url` prints the current one; "
+                "`check_edge_readiness` reports it too."
             )
         elif mode == MODE_PROVIDED:
             steps.append(

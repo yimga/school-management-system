@@ -1,0 +1,179 @@
+{% load i18n %}<!doctype html>
+{# Deliberately standalone: no portal base, no static pipeline, no fonts, no JS.     #}
+{# This page is reached over PLAIN HTTP by devices that do not trust the box yet,    #}
+{# often by an anonymous person holding a phone in a corridor. Every dependency it   #}
+{# does not have is one that cannot fail there.                                      #}
+<html lang="{{ LANGUAGE_CODE|default:'en' }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% translate "Trust this box" %}</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body {
+      margin: 0; padding: 24px 18px 64px;
+      font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: #fbfaf7; color: #1a1d1a;
+    }
+    @media (prefers-color-scheme: dark) {
+      body { background: #131513; color: #edefea; }
+      .card, .step { background: #1b1e1b; border-color: #2a2e29; }
+      .fp { background: #101210; border-color: #2a2e29; }
+      a.btn { background: #5fcfb4; color: #101210; }
+      .warn { background: #2e2411; border-color: #58421c; color: #e0ae5a; }
+    }
+    main { max-width: 640px; margin: 0 auto; }
+    h1 { font-size: 26px; line-height: 1.2; margin: 0 0 6px; }
+    h2 { font-size: 17px; margin: 28px 0 8px; }
+    p { margin: 0 0 12px; }
+    .lede { color: #5f6660; margin-bottom: 22px; }
+    @media (prefers-color-scheme: dark) { .lede { color: #9ba39c; } }
+    .card, .step {
+      background: #fff; border: 1px solid #e4e2db; border-radius: 6px;
+      padding: 16px; margin: 0 0 16px;
+    }
+    .fp {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 13px; word-break: break-all; background: #f3f1eb;
+      border: 1px solid #e4e2db; border-radius: 4px; padding: 12px; margin: 8px 0 0;
+    }
+    a.btn {
+      display: inline-block; background: #0f5c4e; color: #fff; text-decoration: none;
+      padding: 13px 22px; border-radius: 6px; font-weight: 600; font-size: 17px;
+    }
+    img.qr { width: 190px; height: 190px; image-rendering: pixelated; display: block; }
+    .qrwrap { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; }
+    .url {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 13px; word-break: break-all;
+    }
+    /* The page's own fine-print step. A class rather than an inline font-size so
+       the type scale lives in one place -- this page loads no token stylesheet
+       (that is the point of it), so an inline literal would be a size nothing
+       else on the box could ever reconcile with. */
+    .fine { font-size: 14px; }
+    .warn {
+      background: #fbf1dc; border: 1px solid #e8ce95; color: #8a5a00;
+      border-radius: 6px; padding: 14px 16px; margin: 0 0 18px;
+    }
+    ol { padding-left: 20px; margin: 0; }
+    li { margin-bottom: 7px; }
+    strong { font-weight: 600; }
+  </style>
+</head>
+<body>
+<main>
+
+  <h1>{% translate "Trust this box" %}</h1>
+  <p class="lede">
+    {% blocktranslate trimmed %}
+      Install this box's certificate authority once per device. Until you do, every
+      browser warns, and offline PIN cannot be enabled at all.
+    {% endblocktranslate %}
+  </p>
+
+  {% if ca_unreadable %}
+    {# Present but unparseable. Deliberately NOT the "run the bootstrap" message: #}
+    {# the file is already there, and sending someone to mint another one is how a #}
+    {# box ends up with a second CA that strands every device trusting the first.  #}
+    <div class="warn">
+      <p><strong>{% translate "This box's certificate authority cannot be read." %}</strong></p>
+      <p>
+        {% blocktranslate trimmed %}
+          The file is there but it is not a certificate this box can parse, so there
+          is no fingerprint to check and nothing safe to install. Do not work around
+          this from a device.
+        {% endblocktranslate %}
+      </p>
+      <p>
+        {% blocktranslate trimmed %}
+          On the box console, run manage.py check_edge_readiness --strict. If the CA
+          was lost rather than corrupted, restore it from the backup bundle with
+          edge_tls --import-ca; minting a new one strands every device that already
+          trusts this box.
+        {% endblocktranslate %}
+      </p>
+      {% if ca_error %}<div class="fp">{{ ca_error }}</div>{% endif %}
+    </div>
+  {% elif not has_ca %}
+    <div class="warn">
+      <p><strong>{% translate "This box has no certificate authority yet." %}</strong></p>
+      <p>
+        {% blocktranslate trimmed %}
+          Run the bootstrap on the box first, then come back to this page:
+          bash deploy/selfhost/edge-bootstrap.sh
+        {% endblocktranslate %}
+      </p>
+    </div>
+  {% else %}
+
+    <div class="card">
+      <h2 style="margin-top:0">{% translate "1. Check the fingerprint first" %}</h2>
+      <p>
+        {% blocktranslate trimmed %}
+          A certificate authority you install can vouch for any site. Before you accept
+          it, confirm this matches what the box itself reports.
+        {% endblocktranslate %}
+      </p>
+      <div class="fp">{{ fingerprint }}</div>
+      <p class="fine" style="margin-top:10px;">
+        {% blocktranslate trimmed %}
+          On the box console, run manage.py edge_tls and compare. If the two differ,
+          stop: something on the network answered in the box's place.
+        {% endblocktranslate %}
+      </p>
+      {% if not_after %}
+        <p class="fine" style="margin-bottom:0;">
+          {% blocktranslate trimmed %}Valid until{% endblocktranslate %} {{ not_after }}
+        </p>
+      {% endif %}
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">{% translate "2. Install it" %}</h2>
+      <p><a class="btn" href="{{ download_url }}">{% translate "Download the certificate" %}</a></p>
+      <div class="qrwrap" style="margin-top:18px;">
+        {% if qr_data_uri %}
+          <img class="qr" src="{{ qr_data_uri }}" alt="{% translate 'QR code for this page' %}">
+        {% endif %}
+        <div>
+          <p style="margin-bottom:4px;">{% translate "Open this page on another device:" %}</p>
+          <p class="url" style="margin:0;">{{ page_url }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <h2 style="margin-top:0">{% translate "3. Finish it on the device" %}</h2>
+      <p><strong>Windows</strong> &mdash;
+        {% blocktranslate trimmed %}
+          open the file, choose Local Machine, then place it in Trusted Root
+          Certification Authorities.
+        {% endblocktranslate %}
+      </p>
+      <p><strong>Android 11+</strong> &mdash;
+        {% blocktranslate trimmed %}
+          Settings, Security, Encryption &amp; credentials, then Install a certificate
+          and CA certificate. The general "install from storage" entry puts it in the
+          wrong store and the warning stays.
+        {% endblocktranslate %}
+      </p>
+      <p><strong>iPhone / iPad</strong> &mdash;
+        {% blocktranslate trimmed %}
+          install the profile, then go to Settings, General, About, Certificate Trust
+          Settings and switch it on. Skipping that second screen is the usual reason a
+          device still warns after installing.
+        {% endblocktranslate %}
+      </p>
+      <p style="margin-bottom:0;"><strong>{% translate "Managed Chromebooks and supervised iPads" %}</strong> &mdash;
+        {% blocktranslate trimmed %}
+          push it from the admin console instead. Installing per device does not stick.
+        {% endblocktranslate %}
+      </p>
+    </div>
+
+  {% endif %}
+
+</main>
+</body>
+</html>

@@ -110,6 +110,16 @@ class Command(BaseCommand):
                 + ". Used with --plan-relocation."
             ),
         )
+        parser.add_argument(
+            "--trust-url",
+            action="store_true",
+            help=(
+                "Print ONLY the URL devices open to install this box's CA, then exit. "
+                "For scripts: the bootstrap prints this in its closing banner, and "
+                "deriving it in shell instead means a second copy of the port and of "
+                "the which-address-do-we-name rule."
+            ),
+        )
         parser.add_argument("--json", action="store_true", help="Machine-readable output.")
 
     # -- helpers ---------------------------------------------------------------
@@ -140,6 +150,7 @@ class Command(BaseCommand):
             "key_present": bool(key_path and os.path.exists(key_path)),
             "dns_names": dns,
             "ip_addresses": ips,
+            "trust_enrolment_url": edge_tls.trust_enrolment_url(dns, ips),
             "certificate": {
                 "exists": facts.exists,
                 "readable": facts.readable,
@@ -335,6 +346,15 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         facts = self._facts()
 
+        if options["trust_url"]:
+            # Bare stdout, no styling, no trailing prose: a caller does
+            # `URL=$(... --trust-url)` and anything else here ends up inside a URL.
+            # Prints an empty line rather than failing when the box holds no
+            # reachable address -- the caller decides what to say about that, and a
+            # non-zero exit here would abort a bootstrap that otherwise succeeded.
+            self.stdout.write(facts["trust_enrolment_url"])
+            return
+
         if options["export_ca"] and options["import_ca"]:
             raise CommandError("--export-ca and --import-ca are opposites; pick one.")
 
@@ -529,6 +549,18 @@ class Command(BaseCommand):
             "Installing the CA is what lets you reissue the leaf later -- new IP, new "
             "hostname, expiry -- without touching those devices again."
         )
+        # Printed from the same helper the bootstrap banner uses, so the address a
+        # school writes on a whiteboard is one THIS certificate covers.
+        trust_url = edge_tls.trust_enrolment_url(
+            facts["dns_names"], facts["ip_addresses"]
+        )
+        if trust_url:
+            self.stdout.write(
+                f"Devices do that themselves at {trust_url} -- nobody carries a file "
+                "around.\nThe fingerprint above is what they should see there; "
+                "if it differs, something\non the network answered in this "
+                "box's place."
+            )
 
     def _report(self, facts: dict) -> None:
         style = self.style

@@ -53,7 +53,10 @@ _MOBILITY_TO_CHANGES: dict[str, set[str]] = {
     },
 }
 
-DEFAULT_WEB_PORT = "10000"
+#: Re-exported, not redeclared: the port and the enrolment path belong to edge_tls,
+#: which is what the box itself reads at runtime. Two copies of a port number is how
+#: a runbook ends up naming an address nothing answers on.
+DEFAULT_WEB_PORT = edge_tls.DEFAULT_WEB_PORT
 
 
 def split_addresses(raw: Any) -> tuple[list[str], list[str]]:
@@ -169,7 +172,7 @@ def build_edge_plan(answers: dict[str, Any]) -> dict[str, Any]:
         "security_flags": edge_tls.derived_security_flags(mode),
         "env_lines": env_lines,
         "caddyfile": terminator,
-        "steps": _runbook(mode, dns_names, ip_addresses, mobility),
+        "steps": _runbook(mode, dns_names, ip_addresses, mobility, web_port),
         "relocation_steps": edge_tls.relocation_plan(
             mode,
             _MOBILITY_TO_CHANGES.get(mobility, set()) | {edge_tls.CHANGE_HARDWARE},
@@ -232,6 +235,7 @@ def _runbook(
     dns_names: list[str],
     ip_addresses: list[str],
     mobility: str,
+    web_port: str = DEFAULT_WEB_PORT,
 ) -> list[str]:
     """The ordered procedure for THIS school, not a generic one."""
     compose = "docker compose -f deploy/selfhost/docker-compose.yml"
@@ -319,11 +323,28 @@ def _runbook(
     )
 
     if mode == edge_tls.MODE_SELF_SIGNED:
+        # A URL, not a file. Copying ca.crt off the box and walking it round the
+        # building is thirty chances to hand somebody the .p12 by mistake -- and the
+        # .p12 carries the CA private key. The box publishes the public half itself.
+        # The path comes from edge_tls, not from a string spelled out here. This is
+        # the fourth surface that prints this URL, and the wizard's copy is the one
+        # most likely to be read weeks later, off a printout, by somebody who cannot
+        # check it against a running box.
+        enrol = (
+            f"http://{first}:{web_port or DEFAULT_WEB_PORT}"
+            f"{edge_tls.TRUST_ENROLMENT_PATH}"
+        )
         steps.append(
-            f"Copy the CA off the box -- `{compose} cp web:{edge_tls.DEFAULT_DIR}/ca.crt "
-            "./box-ca.crt` -- and install it on every device that will use the box. "
-            "Install the CA, never the leaf: the leaf appears to work and then breaks at "
-            "the first reissue."
+            f"Send devices to {enrol} "
+            "and install it on every device that will use the box. That page carries "
+            "the fingerprint, a QR code so a phone need not type an address, and the "
+            "per-platform step people skip (iOS needs a second screen under Certificate "
+            "Trust Settings; Android needs the 'CA certificate' entry, not 'install "
+            "from storage'). Install the CA, never the leaf: the leaf appears to work "
+            "and then breaks at the first reissue. The page is plain HTTP on purpose "
+            "-- a device reaches it BECAUSE it does not trust the box yet -- so have "
+            f"someone compare the fingerprint shown there against `{compose} exec web "
+            "python manage.py edge_tls` on the box console before accepting it."
         )
 
     if mode in edge_tls.HTTPS_MODES:

@@ -44,6 +44,24 @@ HEALTH_PREFIXES = (
     "/version.json",
 )
 
+#: Trust enrolment: where a device installs this box's certificate authority.
+#:
+#: Skipped for the same reason HEALTH_PREFIXES is, and it is not a courtesy. This
+#: is infrastructure, not tenant content: it renders with no request context and no
+#: database query precisely so it works on a box that has just booted, is still
+#: migrating, or has no school row yet -- and those are the boxes where a device
+#: most needs it, because until the CA is installed nothing on the box can be
+#: reached over https at all.
+#:
+#: Without this the tenant layer answers first with a redirect to
+#: ``https://<base-domain>/school-not-found/``. On a school LAN with no route to
+#: the internet that is not a 404 page, it is a browser error -- and the person
+#: holding the phone has no way to tell those apart. The one surface that must
+#: survive a half-configured box was the one that did not.
+#:
+#: See apps/schools/views_edge_trust.py; both views 404 off a sovereign box.
+TRUST_ENROLMENT_PREFIXES = ("/edge/trust/",)
+
 # Legacy path-based tenancy marker kept for compatibility redirects only.
 TENANT_PATH_PREFIX = "/t/"
 MANAGER_ONLY_PREFIXES = (
@@ -1133,6 +1151,7 @@ class TenantSchoolNotFoundMiddleware(MiddlewareMixin):
             SUPER_PREFIXES
             + STATIC_PREFIXES
             + HEALTH_PREFIXES
+            + TRUST_ENROLMENT_PREFIXES
             + (
                 "/discover/",
                 "/marketing/",
@@ -1237,7 +1256,12 @@ class TenantMiddleware(MiddlewareMixin):
         path = request.path or ""
 
         # Skip paths that don't need a school (except /admin/: we resolve tenant so we can redirect tenant /admin/ to Backend)
-        for prefix in SUPER_PREFIXES + STATIC_PREFIXES + HEALTH_PREFIXES:
+        for prefix in (
+            SUPER_PREFIXES
+            + STATIC_PREFIXES
+            + HEALTH_PREFIXES
+            + TRUST_ENROLMENT_PREFIXES
+        ):
             if path.startswith(prefix):
                 request.school = None
                 return None

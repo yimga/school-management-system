@@ -20,7 +20,7 @@
 
 | Topic | Doc | Notes |
 |-------|-----|--------|
-| **TLS certificate — onboarding decision** | docs/EDGE_TLS_RUNBOOK.md | The school chooses `off` / `selfsigned` / `provided` (any CA) / `acme`, and can change later in either direction. Do this WITH the school before go-live. Without a certificate the origin is not a secure context, so WebCrypto is withheld and offline PIN / local mode cannot be enabled on any browser — "Local access could not be enabled on this browser" is the URL, not the browser. Gilead runs `selfsigned`. |
+| **TLS certificate — onboarding decision** | docs/EDGE_TLS_RUNBOOK.md | The school chooses `off` / `selfsigned` / `provided` (any CA) / `acme`, and can change later in either direction. Do this WITH the school before go-live. Without a certificate the origin is not a secure context, so WebCrypto is withheld and offline PIN / local mode cannot be enabled on any browser — "Local access could not be enabled on this browser" is the URL, not the browser. Gilead runs `selfsigned`. Devices install the box CA by browsing to `http://<box>:10000/edge/trust/` (fingerprint + QR + the certificate) rather than being handed a file -- plain HTTP on purpose, since a device reaches it BEFORE it trusts the box. |
 | Getting a name onto the LAN | docs/EDGE_LAN_HOSTNAME_DNS.md | Prerequisite for a certificate that asserts a hostname rather than only an IP. |
 | Getting a new build to the box | docs/EDGE_UPDATE_PIPELINE.md | Image digest + compatibility floor; nothing ships while CI cannot start a job. |
 | Sync operations | docs/EDGE_SYNC_OPERATIONS.md, docs/EDGE_CLOUD_SYNC_OPERATOR_RUNBOOK.md | Bundles, holds, parity. |

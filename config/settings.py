@@ -1462,6 +1462,12 @@ SECURE_REDIRECT_EXEMPT = [
     r"^api/caddy-check/",  # Section 8: Caddy on-demand TLS (often called over HTTP by Caddy)
     r"^discover/",  # Section 8: Global login discovery (landing page)
     r"^account-frozen/",  # Section 8: Frozen account page (may be hit before HTTPS)
+    # Trust enrolment on a sovereign box. NOT a convenience: a device reaches this
+    # page BECAUSE it does not trust the box yet, so redirecting it to https shows
+    # the very warning it came to fix, and people learn to click through warnings.
+    # apps/schools/views_edge_trust.py serves only the CA certificate (public by
+    # design -- the private key is not reachable from any route).
+    r"^edge/trust/",
 ]
 SESSION_COOKIE_SECURE = (
     os.getenv("SESSION_COOKIE_SECURE", _edge_default("SESSION_COOKIE_SECURE", "1")) == "1"

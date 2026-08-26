@@ -87,6 +87,13 @@ services:
     # opt-in migrate_embeddings_to_pgvector command) can `CREATE EXTENSION vector`
     # instead of crash-looping the web boot on a stock image that lacks it.
     image: pgvector/pgvector:pg16
+    # Postgres ships max_connections=100. A box runs 4 gunicorn workers x 4 threads
+    # plus a celery worker and beat, so 100 is tight and the failure is ugly: new
+    # requests get "sorry, too many clients already" while the box looks healthy.
+    # A knob rather than a literal because the right number follows the hardware --
+    # and because a box that edits this file by hand fights every `git pull`, which
+    # is exactly how one box arrived 269 commits behind with an unmergeable tree.
+    command: ["postgres", "-c", "max_connections=${POSTGRES_MAX_CONNECTIONS:-200}"]
     environment:
       POSTGRES_DB: "${POSTGRES_DB:-runmycampus}"
       POSTGRES_USER: "${POSTGRES_USER:-rmc}"

@@ -86,7 +86,18 @@ bash deploy/selfhost/edge-bootstrap.sh
 ```
 
 Safe to run again, any number of times. On a box that is already correct it changes
-nothing and says so.
+nothing and says so. It ends by printing the URL devices should be sent to.
+
+**Where it writes the two files.** `box-ca-bundle.p12` (the encrypted CA backup,
+which carries the PRIVATE KEY) and `box-ca.crt` (the public CA) land in the repo's
+**parent** — `/srv` on a stock box, beside `/srv/rmc`. Override with
+`RMC_EDGE_OUT_DIR=/some/path`.
+
+> **This default changed.** It used to be the repo itself. `$REPO` is a git working
+> tree on every box, so a CA private key sat one `git add -A` away from a public
+> remote with nothing in `.gitignore` to stop it. Both filenames are now gitignored
+> as a second lock. If you bootstrapped a box before this change, look for
+> `box-ca-bundle.p12` **inside** the checkout and move it out.
 
 **Use this rather than the manual steps.** Four of those steps are ordering traps —
 each one correct in isolation, the sequence wrong, and the result invisible until
@@ -163,6 +174,107 @@ worth more than the box.
 ---
 
 ## 5. Installing the box CA on a device
+
+### 5a. Send devices to a URL, not a file
+
+The box publishes its own certificate authority. `edge-bootstrap.sh` prints the
+address at the end of its run; it is the box's own, on the app port:
+
+```
+http://<box>:10000/edge/trust/
+```
+
+Ask for it at any time — no bootstrap run needed. This prints the URL and nothing
+else, so it is safe in a script:
+
+```
+docker compose -f deploy/selfhost/docker-compose.yml \
+  exec -T web python manage.py edge_tls --trust-url
+```
+
+One computation, four surfaces. The bootstrap banner, `edge_bootstrap`, `edge_tls`
+and the onboarding wizard's generated runbook all read the same helper, so the
+address on a printout and the address in a terminal cannot disagree. It picks a DNS
+name over an IP where the box has one — the leaf can be reissued onto a new address
+without revisiting a device, but only if what people wrote down was a name — and it
+prints nothing at all rather than a URL with a hole in it when the box holds no
+reachable address.
+
+That page shows the fingerprint, a QR code so a phone does not have to type an IP,
+the certificate itself, and the per-platform step below for whichever device is
+looking at it. Nobody copies a file off the box and nobody carries one around.
+
+**It is plain HTTP, deliberately.** A device reaches this page precisely because it
+does not trust the box yet, so redirecting it to HTTPS shows the very warning it
+came to fix — and people who are taught to click through a warning keep doing it.
+`^edge/trust/` is in `SECURE_REDIRECT_EXEMPT` for that reason and no other.
+
+**Have someone check the fingerprint.** A certificate authority you install can
+vouch for any site, and over plain HTTP another machine on the LAN could answer in
+the box's place and offer its own. Code cannot close that; a person comparing the
+fingerprint on the page against the one `manage.py edge_tls` prints on the box
+console can, and it takes five seconds.
+
+Only the CA is served. The private key is not reachable from any route: the view
+reads one path from `certificate_paths()` and takes nothing from the request.
+`box-ca-bundle.p12` — which *does* carry the private key — is written outside the
+repo, is gitignored, and is never offered over HTTP.
+
+The page 404s anywhere that is not a sovereign box, so the cloud never serves
+something calling itself a certificate authority.
+
+**It answers even when the school does not resolve.** `/edge/trust/` is skipped by
+both school-resolving middlewares, the way `/health` is. Without that, a box that has
+just booted, is still migrating, or has no school row yet answers a device with a
+redirect to `https://<base-domain>/school-not-found/` — which, on a school LAN with
+no route to the internet, is a browser error rather than a page. The one surface that
+has to survive a half-configured box was the one that did not.
+
+**The address handed out is never the platform's.** `config/settings.py` appends the
+canonical domain and its wildcard to `ALLOWED_HOSTS` on *every* deployment, a box
+included, so the public domain sits in a box's own address list looking exactly like
+a school's hostname. It is excluded explicitly: a device sent there either has no
+route off the LAN, or reaches the cloud, which 404s this page by design.
+
+**If that URL shows a marketing page, the box is on the wrong urlconf.** `/edge/trust/`
+is declared only in `config/tenant_urls.py`. On the developer urlconf it matches an
+unrelated two-segment locale route as `language=edge, country=trust` and renders a
+regional landing page -- so a device gets a *website* rather than an error, and the
+person assumes they are in the right place and hunts for a download button that is
+not there. That symptom means one thing: this box is not being recognised as a box.
+`check_edge_readiness` already FAILs on it with *"a bare-IP host still routes to
+config.urls"*; fix that and the page appears.
+
+### 5a-i. When the box's IP changes
+
+It will. DHCP hands out a new lease, a room gets re-cabled, the box moves campus.
+
+**Devices already enrolled need nothing.** They trust the *CA*, not the address, and
+`ensure_certificate` reissues the leaf onto the new address while reusing the CA on
+disk. That is the whole reason the box mints two certificates instead of one.
+
+**What changes is where a NEW device goes to enrol** — and only if this box is
+reached by an IP. Ask, rather than remembering:
+
+```
+docker compose -f deploy/selfhost/docker-compose.yml \
+  exec -T web python manage.py edge_tls --trust-url
+```
+
+`check_edge_readiness` reports it too, and grades it:
+
+| It says | Meaning |
+|---|---|
+| `[OK] ... — a NAME` | The URL survives any address change. Nothing printed goes stale. |
+| `[WARN] ... — but that is an IP` | The CA is still fine and nobody is revisited, but every printout naming this URL is now wrong and the box gives no sign. |
+| `[WARN] This box holds no address...` | Nothing to hand out at all — fix `RMC_EDGE_TLS_HOSTNAMES` or `ALLOWED_HOSTS`. |
+
+The fix for the middle row is free and permanent: give the box a stable name. On a
+LAN with no DNS server, mDNS `.local` is answered by the box itself and follows it to
+any address on the segment — see docs/EDGE_LAN_HOSTNAME_DNS.md. A DHCP reservation
+keyed to the box's MAC stops the address moving within a site at all.
+
+### 5b. Where it lands on each platform
 
 | Platform | Where |
 |---|---|

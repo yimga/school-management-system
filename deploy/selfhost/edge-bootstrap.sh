@@ -33,7 +33,11 @@ COMPOSE_FILE="$HERE/docker-compose.yml"
 COMPOSE=(docker compose -f "$COMPOSE_FILE")
 CADDYFILE="$HERE/Caddyfile.edge"
 BUNDLE_IN_BOX="/tmp/box-ca-bundle.p12"
-OUT_DIR="${RMC_EDGE_OUT_DIR:-$REPO}"
+# Deliberately the repo's PARENT, not the repo. box-ca-bundle.p12 carries the CA
+# PRIVATE KEY, and $REPO is a git working tree on every box -- so the old default put
+# a private key one `git add -A` away from a public remote, with nothing in
+# .gitignore to stop it. On a stock box this resolves to /srv, beside /srv/rmc.
+OUT_DIR="${RMC_EDGE_OUT_DIR:-$(dirname "$REPO")}"
 
 say()  { printf '\n\033[1m== %s\033[0m\n' "$*"; }
 ok()   { printf '   \033[32mok\033[0m   %s\n' "$*"; }
@@ -132,19 +136,50 @@ say "Verification"
   || die "readiness is not clean. The box is NOT ready for devices yet; fix the
   findings above and run this script again."
 
+# --- 7. the enrolment URL, so nobody carries a file to thirty devices -------
+# Devices install the CA by browsing to the box, not by being handed box-ca.crt on
+# a USB stick.
+#
+# ASKED FOR, not derived here. Building this URL in shell needs the published port
+# and the which-of-our-names-do-we-hand-out rule, and both already exist inside the
+# app -- where they are tested. A shell copy is a second answer that drifts, and it
+# drifts into a URL nobody can open. `tr -d` strips the CR that Compose adds on
+# some hosts, which would otherwise land in the middle of the printed line.
+TRUST_URL="$("${COMPOSE[@]}" exec -T web python manage.py edge_tls --trust-url \
+  2>/dev/null | tr -d '\r' | head -1)"
+if [ -z "$TRUST_URL" ]; then
+  # The box holds no address a device could reach. Say so rather than printing a
+  # URL with a hole in it -- somebody would try it.
+  TRUST_URL="(this box has no reachable address -- see ALLOWED_HOSTS)"
+fi
+
 cat <<BANNER
 
 $(printf '\033[32m== Box is ready.\033[0m')
 
-Only three things are left, and all three need a person:
+Send every device here, on the school wifi:
+
+  $(printf '\033[1m%s\033[0m' "$TRUST_URL")
+
+That page shows this box's fingerprint, a QR code so a phone does not have to type
+an address, and the certificate itself. PLAIN http on purpose -- a device reaches
+it precisely because it does not trust the box yet, and sending it to https would
+show the very warning it came to fix.
+
+Have whoever installs it compare the fingerprint on that page against the one
+\`manage.py edge_tls\` prints on this console. Over http that comparison is the only
+thing standing between a school and somebody else's certificate authority.
+
+Two things still need a person:
 
   1. Move  $OUT_DIR/box-ca-bundle.p12  off this machine, and store the passphrase
      somewhere else again. Together in one place, the encryption bought you nothing.
-  2. Install  $OUT_DIR/box-ca.crt  on each device -- the CA, never the leaf.
-     Managed Chromebooks and supervised iPads are an admin-console push, not a
-     per-device job; if nobody here holds that console, stop and read the runbook.
-  3. Re-enrol offline PIN on each device at the https origin. Nothing carries over
+     It carries the CA PRIVATE KEY and is never the file you hand to a device.
+  2. Re-enrol offline PIN on each device at the https origin. Nothing carries over
      from the old one, and it could never have sealed there anyway.
+
+Managed Chromebooks and supervised iPads are still an admin-console push rather
+than a per-device visit; if nobody here holds that console, read the runbook.
 
 Re-run this script any time. On a correct box it changes nothing.
 BANNER

@@ -211,3 +211,10 @@ locale/en_XA/
 # that proves a deployment's manifest is current.
 system_manifest.json
 .rmc_ota_staging/
+
+# Edge box certificate authority material. box-ca-bundle.p12 carries the CA
+# PRIVATE KEY; box-ca.crt is public but has no business in the repo either.
+# deploy/selfhost/edge-bootstrap.sh writes these OUTSIDE the tree by default --
+# this is the second lock, for a box whose RMC_EDGE_OUT_DIR points back at it.
+box-ca-bundle.p12
+box-ca.crt

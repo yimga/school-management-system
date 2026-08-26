@@ -300,10 +300,35 @@ class Command(BaseCommand):
         self._say(self.style.SUCCESS(f"edge_bootstrap: {counts}"))
         if not dry:
             self._say("")
+            # Only when THIS run verified what the terminator is actually serving.
+            # `--terminator ''` means somebody else is doing that check -- which is
+            # what deploy/selfhost/edge-bootstrap.sh passes, because it starts and
+            # restarts Caddy itself and then checks, several steps after this one.
+            #
+            # This is an ordering guard, not tidiness. The expensive failure in this
+            # whole area is a terminator serving Caddy's OWN certificate authority
+            # while every log says healthy; enrolling devices before that check has
+            # run is how a school spends an afternoon installing a CA that matches
+            # nothing the box presents. If this run cannot vouch for what is served,
+            # it does not send anyone anywhere -- the caller that CAN, does.
+            checked_terminator = bool(str(options["terminator"] or "").strip())
+            trust_url = edge_tls.trust_enrolment_url(dns, ips)
+            if trust_url and checked_terminator:
+                self._say("Send every device here, on the school network:")
+                self._say(self.style.MIGRATE_HEADING(f"  {trust_url}"))
+                self._say(
+                    "  Fingerprint, QR code, the CA itself and the per-platform "
+                    "step people skip.\n  Plain http on purpose: a device "
+                    "reaches it BECAUSE it does not trust this\n  box yet. "
+                    "Have whoever installs it compare the fingerprint shown there\n"
+                    "  against `manage.py edge_tls` -- over http, that comparison "
+                    "is the only thing\n  between a school and somebody "
+                    "else's certificate authority."
+                )
+                self._say("")
             self._say("Remaining human steps, and only these:")
             self._say("  1. Move the CA bundle and its passphrase OFF the box, stored apart.")
-            self._say("  2. Install ca.crt on the devices (the CA, never the leaf).")
-            self._say("  3. Re-enrol offline PIN on each device at the https origin.")
+            self._say("  2. Re-enrol offline PIN on each device at the https origin.")
 
     # -- pieces ---------------------------------------------------------------
     def _render_caddyfile(self, mode, dns, ips, cert_path, key_path):

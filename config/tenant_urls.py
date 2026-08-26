@@ -34,6 +34,7 @@ from apps.people.views_transfer_consent import (
     transfer_consent_landing,
 )
 from apps.siteconfig.views_school_help_ai import school_help_ai
+from apps.schools.views_edge_trust import edge_trust_ca, edge_trust_page
 from apps.schools.views_pending_provision import api_public_pending_provision_progress
 from apps.schools.views_school_readiness import api_school_readiness
 from apps.academics.views_discipline_api import (
@@ -297,6 +298,16 @@ urlpatterns = [
         name="set_language_persist",
     ),
     path("", home, name="home"),
+    # Trust enrolment. A sovereign box publishes its OWN certificate authority so
+    # nobody has to carry box-ca.crt to thirty devices by hand -- a device browses
+    # here, checks the fingerprint against the box console, and installs.
+    #
+    # Reachable over PLAIN HTTP by necessity: you install the CA precisely because
+    # https warns, so `^edge/trust/` is in SECURE_REDIRECT_EXEMPT. Both views 404
+    # anywhere `is_sovereign_single_tenant_box()` is false, so the cloud never
+    # serves a page offering a certificate authority.
+    path("edge/trust/", edge_trust_page, name="edge_trust"),
+    path("edge/trust/ca.crt", edge_trust_ca, name="edge_trust_ca"),
     # Universal command bar (v3.53.0): mirror of config.urls / config.manager_urls
     # path so the cmd+k overlay loaded into every tenant-host shell can reverse the
     # action-registry endpoint. # rbac-allow: command-bar-server-filters-actions-per-user-and-tenant
