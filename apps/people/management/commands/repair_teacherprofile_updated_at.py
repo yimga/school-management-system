@@ -5,9 +5,9 @@ django-tenants applies TENANT_APPS only via migrate_schemas --tenant. Legacy
 people_* tables left in the public schema never receive those migrations, which
 breaks manager.runmycampus.com views that resolve teacher_profile on the public
 connection (500: column does not exist). The same drift family covers
-``client_offline_id`` (migration 0057/0059), not just ``updated_at`` — so this
-command runs the full ``ensure_people_schema_current`` repair bundle, healing
-BOTH ``updated_at`` and the offline-sync columns (incl. ``client_offline_id``).
+``client_offline_id`` (migration 0057/0059), and merge tombstones
+``merged_into_id`` / guardian ``is_active`` (migration 0064/0068) — so this
+command runs the full ``ensure_people_schema_current`` repair bundle.
 
 Run automatically from render_predeploy.sh after migrate_schemas.
 """
@@ -23,9 +23,9 @@ from apps.people.schema_repair import ensure_people_schema_current
 
 class Command(BaseCommand):
     help = (
-        "Heal drifted people_* columns (updated_at + offline-sync columns incl. "
-        "client_offline_id) when the table exists but a column is missing "
-        "(public legacy + tenant schemas)."
+        "Heal drifted people_* columns (updated_at, offline-sync incl. "
+        "client_offline_id, merge tombstones incl. merged_into_id) when the "
+        "table exists but a column is missing (public legacy + tenant schemas)."
     )
 
     def add_arguments(self, parser):
@@ -74,7 +74,7 @@ class Command(BaseCommand):
                     self.stdout.write(
                         self.style.SUCCESS(
                             f"  {schema_name}: healed people_* columns "
-                            "(updated_at / offline-sync)"
+                            "(updated_at / offline-sync / merge tombstones)"
                         )
                     )
                 else:

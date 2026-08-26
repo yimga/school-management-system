@@ -144,8 +144,91 @@ def ensure_people_offline_sync_columns() -> bool:
     return changed
 
 
+# Migration 0064/0068 merge-tombstone columns. Legacy ``people_*`` tables left in
+# the public schema never receive ``migrate_schemas --tenant``, so they can lack
+# ``merged_into_id`` (and guardian ``is_active``) while Django's model expects them
+# — e.g. ensure_all_user_identities → TeacherProfile.objects.get_or_create 500s.
+_MERGE_TOMBSTONE_TABLES = (
+    ("people_teacherprofile", "TeacherProfile", "merged_into"),
+    ("people_studentprofile", "StudentProfile", "merged_into"),
+    ("people_studentguardian", "StudentGuardian", "merged_into"),
+)
+
+
+def _table_columns(table_name: str) -> set[str]:
+    with connection.cursor() as cursor:
+        if table_name not in connection.introspection.table_names(cursor):
+            return set()
+        return {
+            col.name
+            for col in connection.introspection.get_table_description(cursor, table_name)
+        }
+
+
+def ensure_people_merge_tombstone_columns() -> bool:
+    """Add merge tombstone columns when migration 0064/0068 never reached this schema.
+
+    Returns True when any column was added, False when already present or tables absent.
+    """
+    changed = False
+
+    if connection.vendor == "postgresql":
+        for table, _model_attr, _field_name in _MERGE_TOMBSTONE_TABLES:
+            cols = _table_columns(table)
+            if not cols or "merged_into_id" in cols:
+                continue
+            q_table = connection.ops.quote_name(table)
+            q_col = connection.ops.quote_name("merged_into_id")
+            with connection.cursor() as cursor:
+                # rls-bypass-allow: schema-repair-ddl-must-bypass-row-policies-to-add-column
+                cursor.execute(
+                    f"ALTER TABLE {q_table} ADD COLUMN IF NOT EXISTS {q_col} bigint NULL;"
+                )
+            changed = True
+
+        guardian_cols = _table_columns("people_studentguardian")
+        if guardian_cols and "is_active" not in guardian_cols:
+            q_table = connection.ops.quote_name("people_studentguardian")
+            q_col = connection.ops.quote_name("is_active")
+            with connection.cursor() as cursor:
+                # rls-bypass-allow: schema-repair-ddl-must-bypass-row-policies-to-add-column
+                cursor.execute(
+                    f"ALTER TABLE {q_table} ADD COLUMN IF NOT EXISTS {q_col} "
+                    "boolean NOT NULL DEFAULT true;"
+                )
+                cursor.execute(
+                    f"ALTER TABLE {q_table} ALTER COLUMN {q_col} DROP DEFAULT;"
+                )
+            changed = True
+        return changed
+
+    import apps.people.models as people_models
+
+    for table, model_attr, field_name in _MERGE_TOMBSTONE_TABLES:
+        cols = _table_columns(table)
+        if not cols or "merged_into_id" in cols:
+            continue
+        model = getattr(people_models, model_attr, None)
+        if model is None:
+            continue
+        field = model._meta.get_field(field_name)
+        with connection.schema_editor() as editor:
+            editor.add_field(model, field)
+        changed = True
+
+    guardian_cols = _table_columns("people_studentguardian")
+    if guardian_cols and "is_active" not in guardian_cols:
+        model = people_models.StudentGuardian
+        field = model._meta.get_field("is_active")
+        with connection.schema_editor() as editor:
+            editor.add_field(model, field)
+        changed = True
+    return changed
+
+
 def ensure_people_schema_current() -> bool:
     """Run every idempotent people-table schema repair. Returns True if any ran."""
     healed_updated_at = ensure_teacherprofile_updated_at_column()
     healed_offline = ensure_people_offline_sync_columns()
-    return bool(healed_updated_at or healed_offline)
+    healed_merge = ensure_people_merge_tombstone_columns()
+    return bool(healed_updated_at or healed_offline or healed_merge)
