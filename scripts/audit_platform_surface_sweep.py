@@ -31,6 +31,14 @@ AUTH_SECURITY_GLOBS = (
     "portal/mfa_policy.html",
     "marketing/global_discovery.html",
     "schools/global_login_discovery.html",
+    "accounts/magic_link_request.html",
+    "accounts/join_school.html",
+    "accounts/onboarding_profile.html",
+    "accounts/staff_setup.html",
+    "accounts/legacy_setup.html",
+    "accounts/tenant_staff_invite_accept.html",
+    "accounts/operator_invite_accept.html",
+    "accounts/owner_onboarding/*.html",
 )
 
 SPARSE_VOID_RE = re.compile(
@@ -113,6 +121,13 @@ def audit() -> list[dict[str, str]]:
                 "settings_security",
                 "401.html",
                 "owner_onboarding",
+                "magic_link",
+                "join_school",
+                "onboarding_profile",
+                "staff_setup",
+                "legacy_setup",
+                "tenant_staff_invite",
+                "operator_invite",
             )
         )
         if not is_security:
@@ -175,6 +190,33 @@ def audit() -> list[dict[str, str]]:
     return findings
 
 
+PORTAL_BASE_EXTENDS_RE = re.compile(r'{%\s*extends\s+["\']portal_base\.html["\']\s*%}')
+
+
+def _audit_portal_auth_shell_trap() -> list[dict[str, str]]:
+    """auth-shell inside portal chrome without checkpoint wrapper collapses to ~1 char width."""
+    findings: list[dict[str, str]] = []
+    for path in sorted(TEMPLATES.rglob("*.html")):
+        rel = _rel(path)
+        if "/partials/" in rel:
+            continue
+        text = path.read_text(encoding="utf-8", errors="replace")
+        if not PORTAL_BASE_EXTENDS_RE.search(text):
+            continue
+        if not AUTH_SHELL_RE.search(text):
+            continue
+        if CHECKPOINT_OPEN in text or "data-rmc-security-checkpoint-page" in text:
+            continue
+        findings.append(
+            {
+                "severity": "high",
+                "file": rel,
+                "issue": "portal_base + auth-shell without security_checkpoint_page_open (layout collapse)",
+            }
+        )
+    return findings
+
+
 def _audit_auth_clip_integrity() -> list[str]:
     script = ROOT / "scripts/audit_auth_immersive_clip_integrity.py"
     spec = importlib.util.spec_from_file_location("audit_auth_immersive_clip_integrity", script)
@@ -192,6 +234,7 @@ def main() -> int:
     args = parser.parse_args()
 
     findings = audit()
+    findings.extend(_audit_portal_auth_shell_trap())
     clip_failures = _audit_auth_clip_integrity()
     for msg in clip_failures:
         findings.append(

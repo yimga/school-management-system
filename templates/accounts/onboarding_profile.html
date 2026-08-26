@@ -11,6 +11,7 @@
 {% block content %}
 <div class="visually-hidden rmc-empty-state-sentinel" aria-describedby="rmc_smart_action_hub" data-rmc-scroll-policy="paginate" data-page-critical-read="1" aria-hidden="true"></div>
 
+{% include "components/security_checkpoint_page_open.html" with checkpoint_flow="onboarding" %}
 <section class="auth-shell" aria-labelledby="onb-title">
   <div data-rmc-scroll-policy="paginate" class="auth-card">
     <div class="rmc-security-checkpoint__head" style="border-bottom:0;padding-bottom:0">
@@ -49,4 +50,5 @@
     </div>
   </div>
 </section>
+{% include "components/security_checkpoint_page_close.html" %}
 {% endblock %}
