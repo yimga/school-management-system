@@ -541,6 +541,97 @@ class ACorruptCaIsItsOwnStateTests(TenantUrlconfMixin, SimpleTestCase):
         self.assertNotIn("cannot be read", body)
 
 
+class BothSurfacesShowTheSameFingerprintTests(TenantUrlconfMixin, SimpleTestCase):
+    """Over plain http, a person comparing two numbers is the ONLY security here.
+
+    The page says "check this against `manage.py edge_tls`". For a long time that
+    command printed no fingerprint at all -- only the LEAF's subject and expiry --
+    so the instruction pointed at output that did not contain the thing to compare.
+    Somebody following it finds nothing, shrugs, and clicks Download, which is the
+    exact behaviour the page exists to prevent.
+
+    It must be the CA's fingerprint on both, not the leaf's. They are different
+    certificates: devices install the CA, and the leaf is reissued underneath it
+    every time the box changes address -- so a leaf fingerprint would stop matching
+    the moment DHCP moved the box, and the page would start crying wolf.
+    """
+
+    def test_the_page_and_the_command_print_the_same_number(self):
+        from io import StringIO
+
+        from django.core.management import call_command
+
+        with tempfile.TemporaryDirectory() as directory:
+            edge_tls.issue_self_signed(
+                directory,
+                dns_names=["gilead-tech.local"],
+                ip_addresses=["10.10.20.137"],
+                days=825,
+            )
+            env = {
+                edge_tls.ENV_DIR: directory,
+                edge_tls.ENV_MODE: edge_tls.MODE_SELF_SIGNED,
+            }
+            with override_settings(**BOX), mock.patch.dict(
+                os.environ, env, clear=False
+            ):
+                ca_fingerprint = edge_tls.inspect_certificate(
+                    os.path.join(directory, "ca.crt")
+                ).fingerprint
+                page = edge_trust_page(RequestFactory().get("/edge/trust/"))
+                console = StringIO()
+                call_command("edge_tls", stdout=console)
+
+        self.assertTrue(ca_fingerprint, "the fixture did not produce a fingerprint")
+        body = page.content.decode("utf-8")
+        printed = console.getvalue()
+
+        self.assertIn(ca_fingerprint, body, "the PAGE does not show the CA fingerprint")
+        self.assertIn(
+            ca_fingerprint,
+            printed,
+            "`manage.py edge_tls` does not print the CA fingerprint, so the "
+            "instruction on the page points at nothing to compare",
+        )
+
+    def test_it_is_the_CA_fingerprint_and_not_the_leaf(self):
+        # If these two were ever the same certificate the test above would pass
+        # while the design was wrong, so pin them apart.
+        from io import StringIO
+
+        from django.core.management import call_command
+
+        with tempfile.TemporaryDirectory() as directory:
+            edge_tls.issue_self_signed(
+                directory,
+                dns_names=["gilead-tech.local"],
+                ip_addresses=["10.10.20.137"],
+                days=825,
+            )
+            ca = edge_tls.inspect_certificate(os.path.join(directory, "ca.crt"))
+            leaf = edge_tls.inspect_certificate(os.path.join(directory, "tls.crt"))
+            self.assertNotEqual(ca.fingerprint, leaf.fingerprint)
+            env = {
+                edge_tls.ENV_DIR: directory,
+                edge_tls.ENV_MODE: edge_tls.MODE_SELF_SIGNED,
+            }
+            with override_settings(**BOX), mock.patch.dict(
+                os.environ, env, clear=False
+            ):
+                page = edge_trust_page(RequestFactory().get("/edge/trust/"))
+                console = StringIO()
+                call_command("edge_tls", stdout=console)
+
+        body = page.content.decode("utf-8")
+        self.assertNotIn(
+            leaf.fingerprint,
+            body,
+            "the page shows the LEAF fingerprint -- it would stop matching the "
+            "moment the box changed address and the leaf was reissued",
+        )
+        self.assertIn(ca.fingerprint, console.getvalue())
+
+
 class CaMaterialCannotReachGitTests(SimpleTestCase):
     """box-ca-bundle.p12 carries the CA private key. /srv/rmc is a git tree."""
 

@@ -131,6 +131,7 @@ class Command(BaseCommand):
             allowed_hosts=list(getattr(settings, "ALLOWED_HOSTS", []) or [])
         )
         facts = edge_tls.inspect_certificate(cert_path)
+        ca_facts = edge_tls.inspect_certificate(ca_path)
         derived = edge_tls.derived_security_flags(resolution.mode)
         actual = {
             name: getattr(settings, name, None) for name in derived
@@ -151,6 +152,18 @@ class Command(BaseCommand):
             "dns_names": dns,
             "ip_addresses": ips,
             "trust_enrolment_url": edge_tls.trust_enrolment_url(dns, ips),
+            # The CA, not the leaf. Devices install this one; the leaf is reissued
+            # beneath it whenever the box changes address, so its fingerprint is the
+            # only stable thing to compare against.
+            "trust_anchor": {
+                "exists": ca_facts.exists,
+                "readable": ca_facts.readable,
+                "subject": ca_facts.subject,
+                "not_after": ca_facts.not_after,
+                "days_remaining": ca_facts.days_remaining,
+                "fingerprint": ca_facts.fingerprint,
+                "error": ca_facts.error,
+            },
             "certificate": {
                 "exists": facts.exists,
                 "readable": facts.readable,
@@ -606,6 +619,35 @@ class Command(BaseCommand):
                     self.stdout.write(style.SUCCESS("  covers every address above"))
             if not facts["key_present"]:
                 self.stdout.write(style.ERROR(f"  MISSING key  {facts['key_path']}"))
+
+            # THE NUMBER PEOPLE ARE TOLD TO COMPARE. The enrolment page shows the CA
+            # fingerprint and says "check this against `manage.py edge_tls`" -- so
+            # this command has to show it, and has to show the CA's rather than the
+            # leaf's. They are different certificates: devices install the CA, the
+            # leaf is reissued underneath it whenever the box changes address.
+            # Printed last in this block so it is the thing still on screen when
+            # somebody walks over with a phone.
+            anchor = facts["trust_anchor"]
+            self.stdout.write("")
+            self.stdout.write(style.MIGRATE_HEADING("Trust anchor (this is what devices install)"))
+            if not anchor["exists"]:
+                self.stdout.write(style.ERROR(f"  MISSING  {facts['ca_path']}"))
+            elif anchor["error"]:
+                self.stdout.write(style.ERROR(f"  UNREADABLE  {anchor['error']}"))
+            else:
+                self.stdout.write(f"  subject      {anchor['subject']}")
+                self.stdout.write(f"  expires      {anchor['not_after']} ({anchor['days_remaining']} days)")
+                self.stdout.write(style.SUCCESS(f"  fingerprint  {anchor['fingerprint']}"))
+                if facts["trust_enrolment_url"]:
+                    self.stdout.write(
+                        "  Devices install it at "
+                        f"{facts['trust_enrolment_url']} -- the fingerprint above is "
+                        "what that page must show."
+                    )
+                self.stdout.write(
+                    "  If they differ, stop: something on the network answered in "
+                    "this box's place."
+                )
 
         self.stdout.write("")
         self.stdout.write(style.MIGRATE_HEADING("Django flags that follow from the mode"))

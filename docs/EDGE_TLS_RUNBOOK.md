@@ -211,9 +211,23 @@ came to fix — and people who are taught to click through a warning keep doing 
 
 **Have someone check the fingerprint.** A certificate authority you install can
 vouch for any site, and over plain HTTP another machine on the LAN could answer in
-the box's place and offer its own. Code cannot close that; a person comparing the
-fingerprint on the page against the one `manage.py edge_tls` prints on the box
-console can, and it takes five seconds.
+the box's place and offer its own. Code cannot close that; a person comparing two
+numbers can, and it takes five seconds.
+
+On the box console, `manage.py edge_tls` prints it under **Trust anchor**:
+
+```
+Trust anchor (this is what devices install)
+  subject      CN=RunMyCampus Edge CA (gilead-tech.local),O=RunMyCampus Edge
+  expires      2036-08-23T15:41:19+00:00 (3649 days)
+  fingerprint  92:FA:BB:5A:...:09:A6
+  Devices install it at http://gilead-tech.local:10000/edge/trust/
+```
+
+That is the **CA's** fingerprint, deliberately, and not the leaf's above it. Devices
+install the CA; the leaf is reissued underneath it every time the box changes
+address, so a leaf fingerprint would stop matching the moment DHCP moved the box and
+the page would start crying wolf.
 
 Only the CA is served. The private key is not reachable from any route: the view
 reads one path from `certificate_paths()` and takes nothing from the request.

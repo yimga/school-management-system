@@ -118,8 +118,9 @@
       <div class="fp">{{ fingerprint }}</div>
       <p class="fine" style="margin-top:10px;">
         {% blocktranslate trimmed %}
-          On the box console, run manage.py edge_tls and compare. If the two differ,
-          stop: something on the network answered in the box's place.
+          On the box console, run manage.py edge_tls and look under "Trust anchor".
+          Compare it with the line above. If the two differ, stop: something on the
+          network answered in the box's place.
         {% endblocktranslate %}
       </p>
       {% if not_after %}
