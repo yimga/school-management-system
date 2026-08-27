@@ -110,9 +110,18 @@ ok "docker, compose file and .env all present"
 # --- 1. is the box well enough to change? -----------------------------------
 say "Box health"
 "${COMPOSE[@]}" ps --status running --services 2>/dev/null | grep -qx web \
-  || die "the 'web' service is not running. Start it (\`docker compose -f $COMPOSE_FILE up -d\`)
-  and let migrations finish. Adding TLS to an unwell box gives you two problems to
-  debug at once, and from the corridor they look identical."
+  || die "the 'web' service is not running. Start it with the rebuild script:
+
+      $HERE/box-rebuild.sh
+
+  and let migrations finish. Do NOT reach for a bare \`docker compose up -d\`: the
+  containers run a BAKED image, so that restarts whatever was compiled last time and
+  every check below then passes against code you did not deploy. box-rebuild.sh
+  builds first and refuses to report success unless the running image matches this
+  checkout.
+
+  Adding TLS to an unwell box gives you two problems to debug at once, and from the
+  corridor they look identical."
 ok "web is running"
 
 # --- 2. certificate, trust anchor, verified backup --------------------------
