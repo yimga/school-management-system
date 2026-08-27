@@ -349,7 +349,9 @@ def _truthy(value: str | None) -> bool:
 _SKIPPED_EXIT_CODE = 2
 
 
-def _run_gate(label: str, argv: list[str]) -> tuple[bool | None, str]:
+def _run_gate(
+    label: str, argv: list[str], python: str | None = None
+) -> tuple[bool | None, str]:
     """Run one gate; return ``(passed, captured_output)``.
 
     ``passed`` is ``None`` when the gate reported that it could not run at all.
@@ -359,7 +361,7 @@ def _run_gate(label: str, argv: list[str]) -> tuple[bool | None, str]:
         # A missing gate script must not silently pass — report it as a failure
         # so the drift is visible, but the caller decides whether it blocks.
         return False, f"gate script not found: {script}"
-    cmd = [sys.executable, str(script), *argv[1:]]
+    cmd = [python or sys.executable, str(script), *argv[1:]]
     try:
         proc = subprocess.run(
             cmd,
@@ -384,22 +386,84 @@ def _run_gate(label: str, argv: list[str]) -> tuple[bool | None, str]:
     return proc.returncode == 0, output.strip()
 
 
-def _django_available() -> bool:
-    """Can a subprocess import Django and load settings? Probed once, cheaply."""
+def _interpreter_candidates() -> list[str]:
+    """Interpreters that might have Django, best first.
+
+    The pre-push hook invokes bare ``python``. On the ordinary setup that is the
+    SYSTEM interpreter, whose site-packages hold none of the project
+    dependencies -- so every gate below would report SKIP and this script would
+    still exit 0, reporting the ABSENCE of eight checks as a clean tree. Look for
+    the project venv before concluding Django is unavailable.
+
+    A linked worktree has no ``.venv`` of its own (verified 2026-08-27: 38
+    registered worktrees, none carry one), so also try the main checkout --
+    which is exactly what the git common dir points back to.
+    """
+    found: list[str] = []
+
+    def add(path: str | None) -> None:
+        if path and path not in found:
+            found.append(path)
+
+    add(sys.executable)
+    roots = [REPO_ROOT]
     try:
-        proc = subprocess.run(
-            [sys.executable, "-c", "import django; django.setup()"],
+        common = subprocess.run(
+            ["git", "rev-parse", "--git-common-dir"],
             cwd=str(REPO_ROOT),
             capture_output=True,
             text=True,
-            timeout=_PER_GATE_TIMEOUT_S,
-            env={**os.environ, "DJANGO_SETTINGS_MODULE": os.environ.get(
-                "DJANGO_SETTINGS_MODULE", "config.settings"
-            )},
-        )
-    except (subprocess.TimeoutExpired, OSError):
-        return False
-    return proc.returncode == 0
+            timeout=15,
+        ).stdout.strip()
+    except (subprocess.SubprocessError, OSError):
+        common = ""
+    if common:
+        common_path = Path(common)
+        if not common_path.is_absolute():
+            common_path = (REPO_ROOT / common_path).resolve()
+        roots.append(common_path.parent)
+    for root in roots:
+        for rel in ("Scripts/python.exe", "bin/python", "bin/python3"):
+            candidate = root / ".venv" / rel
+            if candidate.is_file():
+                add(str(candidate))
+    return found
+
+
+# Resolved once per run; [] means "not probed yet", [None] means "no interpreter
+# in this environment can import Django".
+_DJANGO_PYTHON_CACHE: list[str | None] = []
+
+
+def _django_python() -> str | None:
+    """First candidate interpreter that can import Django AND load settings."""
+    if _DJANGO_PYTHON_CACHE:
+        return _DJANGO_PYTHON_CACHE[0]
+    resolved: str | None = None
+    for python in _interpreter_candidates():
+        try:
+            proc = subprocess.run(
+                [python, "-c", "import django; django.setup()"],
+                cwd=str(REPO_ROOT),
+                capture_output=True,
+                text=True,
+                timeout=_PER_GATE_TIMEOUT_S,
+                env={**os.environ, "DJANGO_SETTINGS_MODULE": os.environ.get(
+                    "DJANGO_SETTINGS_MODULE", "config.settings"
+                )},
+            )
+        except (subprocess.TimeoutExpired, OSError):
+            continue
+        if proc.returncode == 0:
+            resolved = python
+            break
+    _DJANGO_PYTHON_CACHE.append(resolved)
+    return resolved
+
+
+def _django_available() -> bool:
+    """Can ANY candidate interpreter import Django and load settings?"""
+    return _django_python() is not None
 
 
 def _tail(text: str, lines: int = 15) -> str:
@@ -475,9 +539,10 @@ def main(argv: list[str] | None = None) -> int:
             failures.append((label, output))
 
     if DJANGO_GATES:
-        if _django_available():
+        django_python = _django_python()
+        if django_python:
             for label, gate_argv in DJANGO_GATES:
-                passed, output = _run_gate(label, gate_argv)
+                passed, output = _run_gate(label, gate_argv, python=django_python)
                 if passed is None:
                     print(f"  SKIP  {label}")
                     skipped.append((label, output))
@@ -498,7 +563,19 @@ def main(argv: list[str] | None = None) -> int:
             print(f"    {row}")
 
     if not failures:
-        print("All boundary gates green - safe to push.")
+        if skipped:
+            # A gate that did not run has said NOTHING about this tree. Reporting
+            # "all green" here would present the ABSENCE of a check as a clean
+            # result -- the same overstatement a missing gate script is
+            # deliberately FAILED for in _run_gate. Exit stays 0: skipping on a
+            # machine without the toolchain is a deliberate trade-off (see
+            # _SKIPPED_EXIT_CODE), and only the sentence was wrong.
+            print(
+                f"No boundary gate FAILED, but {len(skipped)} did NOT run "
+                f"(listed above) -- that subject matter is UNCHECKED, not clean."
+            )
+        else:
+            print("All boundary gates green - safe to push.")
         return 0
 
     print("")
