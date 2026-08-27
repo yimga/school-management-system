@@ -229,6 +229,33 @@ GATES: list[tuple[str, list[str]]] = [
     # smoke-light.yml, not architectural-boundaries -- do not delete this entry
     # when syncing against that workflow.
     ("gilead-tree-classification", ["verify_gilead_full_tree_classification.py"]),
+
+    # --- detector integrity (added 2026-08-27) -------------------------------
+    # Four gates that existed, passed, and enforced nothing. They are grouped
+    # because they share one failure mode: the gate was green for a reason
+    # unrelated to the tree being clean.
+    #
+    # A ratchet promises a number can only fall, and the promise is kept by a
+    # baseline file. Delete the file and most scanners fall through to their
+    # "write the baseline" branch, author one from whatever they find right now,
+    # and exit 0 -- passing forever against a reference they invented.
+    # scan_rls_table_coverage had exactly that shape. This is the general form,
+    # so the next scanner written that way is caught by structure.
+    ("ratchet-baselines-present", ["verify_ratchet_baselines_present.py"]),
+    # An audit log that can be edited is not an audit log. The first version of
+    # this guard matched the LAST TWO names of the attribute chain, so it only
+    # saw a bare `AuditLog.objects.update()` -- a form that is not valid Django
+    # and nobody writes. It could only print PASS, and did, while a real
+    # `filter(...).update()` sat in apps/compliance/privacy.py.
+    ("audit-log-append-only", ["verify_audit_log_append_only.py"]),
+    # Every SMS the platform sends is written in a template catalog; this
+    # scanner only opened files whose NAME said sms, which matches one module
+    # holding none of them. It also enforced only under --strict, and was wired
+    # to nothing -- three independent reasons its zero meant nothing.
+    ("sms-template-length", ["scan_sms_template_length.py", "--compare"]),
+    # MIDDLEWARE is built twice in config/settings.py and prod runs only the
+    # second list, so a middleware present in the first is dead in production.
+    ("middleware-topology-parity", ["verify_middleware_topology_parity.py"]),
 ]
 
 # Gates that CANNOT answer without the live Django app registry, and are therefore not

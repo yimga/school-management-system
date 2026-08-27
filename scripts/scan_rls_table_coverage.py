@@ -176,7 +176,21 @@ def main() -> int:
 
     print(f"rls_table_coverage scan: {len(findings)} tenant-scoped table(s) not enumerated in any enable_rls migration")
 
-    if args.compare and BASELINE_PATH.exists():
+    if args.compare and not BASELINE_PATH.exists():
+        # Falling through to the writer below would create the baseline from
+        # the CURRENT findings and exit 0 -- a ratchet that silently re-anchors
+        # to whatever it happens to find is not a ratchet. Refuse instead, and
+        # say which deliberate command creates one.
+        print(
+            f"FAIL: --compare but no baseline at "
+            f"{BASELINE_PATH}. Run this script with "
+            "--update-baseline and COMMIT the result; a comparison run must "
+            "never author its own reference.",
+            file=sys.stderr,
+        )
+        return 1
+
+    if args.compare:
         base = json.loads(BASELINE_PATH.read_text(encoding="utf-8"))
         base_tables = {f["table"] for f in base.get("findings", [])}
         now_tables = {f["table"] for f in findings}
@@ -194,7 +208,7 @@ def main() -> int:
         print("RLS_TABLE_COVERAGE_PASS")
         return 0
 
-    if args.compare or args.update_baseline or not BASELINE_PATH.exists():
+    if args.update_baseline or not BASELINE_PATH.exists():
         BASELINE_PATH.parent.mkdir(parents=True, exist_ok=True)
         BASELINE_PATH.write_text(
             json.dumps(_payload(findings), indent=2, sort_keys=True) + "\n",

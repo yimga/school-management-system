@@ -49,6 +49,23 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # had genuinely regressed out of the template -- were never checked at all.
     ("scripts/scan_duplicate_dict_keys.py", "architectural-boundaries.yml"),
     ("scripts/scan_admin_registered_on_unmounted_site.py", "architectural-boundaries.yml"),
+    # Added 2026-08-27, detector integrity. These three were each green for a
+    # reason unrelated to the tree being clean, which is the worst state a gate
+    # can be in: a green light nobody re-checks.
+    #
+    # A ratchet's promise is kept by a baseline file. Delete it and most
+    # scanners here do not fail -- they fall through to their "write the
+    # baseline" branch, author one from what they happen to find, and exit 0.
+    # scan_rls_table_coverage had exactly that shape; this is the general form.
+    ("scripts/verify_ratchet_baselines_present.py", "architectural-boundaries.yml"),
+    # The old matcher tested the last two names of the attribute chain, so it
+    # only matched a bare AuditLog.objects.update() -- not valid Django, and not
+    # what anyone writes. The real filter(...).update() in compliance/privacy.py
+    # never matched, so the gate could only ever print PASS.
+    ("scripts/verify_audit_log_append_only.py", "architectural-boundaries.yml"),
+    # Its file matcher only opened files whose NAME said sms (one module, which
+    # holds none), it enforced only under --strict, and it was wired to nothing.
+    ("scripts/scan_sms_template_length.py", "architectural-boundaries.yml"),
     # Added 2026-08-23: a merge that adds a migration to an app another branch also
     # touched produces two leaf nodes, and Django then refuses to migrate that app.
     # git reports a clean merge; the failure is in a graph no diff shows.

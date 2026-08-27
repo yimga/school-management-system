@@ -400,6 +400,27 @@ jobs:
             python scripts/scan_print_statements.py --compare
           }
 
+          # --- detector integrity (2026-08-27) ---
+          # A ratchet whose baseline file is missing does not fail: most
+          # scanners fall through to their "write the baseline" branch and
+          # author one from what they find right now. This asserts every
+          # --compare gate has a baseline that exists AND that git tracks.
+          u_ratchet_baselines_present() {
+            python scripts/verify_ratchet_baselines_present.py
+          }
+
+          # The previous matcher only saw a bare AuditLog.objects.update(),
+          # which is not valid Django, so this gate could only print PASS.
+          u_audit_log_append_only() {
+            python scripts/verify_audit_log_append_only.py
+          }
+
+          # Reads the template catalog where the SMS bodies actually live,
+          # not just files whose NAME says sms.
+          u_sms_template_length() {
+            python scripts/scan_sms_template_length.py --compare
+          }
+
           u_config_sot_domain_ownership() {
             python scripts/verify_domain_ownership_exact_storage.py
           }
@@ -1044,6 +1065,9 @@ jobs:
           run_unit u_platform_readiness "Platform readiness preflight (csp / at_risk / baselines)"
           run_unit u_platform_pillar_gates "Platform pillars: middleware order, tenant cache, list search"
           run_unit u_theme_visibility_platform "Theme visibility: shell wiring + main-content utility baseline"
+          run_unit u_ratchet_baselines_present "Detector integrity: every --compare gate has a committed baseline"
+          run_unit u_audit_log_append_only "Detector integrity: AuditLog is append-only outside a declared allowlist"
+          run_unit u_sms_template_length "SMS bodies fit one carrier segment (reads the template catalog)"
 
           if [ -n "$failed" ]; then
             echo ""
