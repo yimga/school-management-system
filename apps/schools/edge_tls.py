@@ -1327,6 +1327,25 @@ def caddyfile(
     # site matches. That is the worst shape a failure can take: every log the box
     # writes says healthy, and it is unreachable from the corridor.
     mobile = address_may_change and mode in (MODE_SELF_SIGNED, MODE_PROVIDED)
+    # THE OTHER REASON A NAMED BLOCK CANNOT WORK, and it has nothing to do with moving.
+    #
+    # The TLS server_name extension carries DNS names only, and every browser omits it
+    # for an IP literal -- so a device opening https://10.10.20.137/ sends NO SNI at
+    # all. A host matcher has nothing to match, Caddy presents no certificate, and the
+    # connection FAILS rather than warning: there is no "proceed anyway" for a
+    # handshake that never produced a certificate.
+    #
+    # Measured on a live box before this was written, not reasoned about. With a
+    # named block: no SNI -> "no peer certificate available"; the same socket with a
+    # DNS name as SNI -> the certificate. The leaf asserted the box's IP the whole
+    # time; Caddy never got far enough to offer it. On a LAN the IP is the address
+    # most people type, so this is the common case failing, not the exotic one.
+    #
+    # Only where a real key pair exists. `tls internal` on a catch-all would have
+    # Caddy issue per SNI, which is precisely what a no-SNI client cannot drive, and
+    # ACME needs the named form for its own challenge (and cannot issue for an IP
+    # anyway -- see publicly_issuable).
+    serves_ip = bool(ip_addresses) and mode in FILE_BACKED_MODES and bool(cert_path and key_path)
     if mobile and not (cert_path and key_path):
         raise ValueError(
             "a box whose address may change has to present a certificate for an "
@@ -1336,7 +1355,8 @@ def caddyfile(
         )
     if not hosts and not mobile:
         raise ValueError("no hostnames or IPs to serve; set " + ENV_HOSTNAMES)
-    site = ":443" if mobile else ", ".join(hosts)
+    catch_all = mobile or serves_ip
+    site = ":443" if catch_all else ", ".join(hosts)
     if mode == MODE_SELF_SIGNED:
         # `tls internal` = Caddy's own local CA, which it also writes out so the
         # school can install it. We accept a pre-minted pair too (manage.py edge_tls
@@ -1361,6 +1381,24 @@ def caddyfile(
             tls_line += f" {{\n\t\tca {acme_ca}\n\t}}"
     preamble = ""
     trailer = ""
+    if serves_ip and not mobile:
+        preamble = (
+            "# This box answers at an IP address, so the site line is `:443` rather\n"
+            "# than a list of names.\n"
+            "#\n"
+            "# A named site block is a HOST MATCHER, and the thing it matches on is\n"
+            "# SNI. The TLS server_name extension carries DNS names only, and every\n"
+            "# browser omits it for an IP literal -- so a device opening\n"
+            "# https://<ip>/ sends no SNI, nothing matches, and Caddy presents no\n"
+            "# certificate at all. That FAILS the connection rather than warning:\n"
+            "# there is no 'proceed anyway' for a handshake with no certificate in\n"
+            "# it. The certificate below asserts the IP perfectly well -- Caddy just\n"
+            "# never gets far enough to offer it.\n"
+            "#\n"
+            "# This widens nothing. ALLOWED_HOSTS in Django is still the Host-header\n"
+            "# guard and it is untouched; Caddy is the terminator here, not the gate.\n"
+            "# Addresses this was rendered for: " + ", ".join(hosts) + "\n"
+        )
     if mobile:
         preamble = (
             "# This box's address is deliberately NOT pinned in this file.\n"
@@ -1380,6 +1418,12 @@ def caddyfile(
                 else ""
             )
         )
+    if catch_all:
+        # `:443` alone turns OFF the automatic HTTP->HTTPS redirect Caddy adds for a
+        # named site, so port 80 would go dead without this. The trust page is NOT
+        # affected either way: it is served by the app on its own port, not through
+        # the terminator, which is the whole reason a device can reach it before it
+        # trusts anything.
         trailer = (
             "\n"
             "# Someone who types the bare address reaches HTTPS instead of a dead\n"
