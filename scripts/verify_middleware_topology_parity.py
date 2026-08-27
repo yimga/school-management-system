@@ -67,14 +67,20 @@ DO_NOT_ADD = {
         "anyway: REQUEST_TIMEOUT_SECONDS defaults to 120 = the gunicorn timeout "
         "(config/gunicorn.conf.py:72). Arguably should be removed from the base list too.",
     "apps.api.middleware_tenant_cors.TenantCorsAllowlistMiddleware":
-        "CROSS-TENANT LEAK, currently masked by being broken. middleware_tenant_cors.py:78 "
-        "does `settings.CORS_ALLOWED_ORIGINS = _merge_origins(...)` — a permanent PROCESS-GLOBAL "
-        "mutation, never restored, despite a docstring claiming a thread-local override. It is "
-        "inert today only because it sits above tenant resolution in the base list, so "
-        "tenant_origins is always empty. Wiring it into prod CORRECTLY (after school "
-        "resolution) is what ACTIVATES the leak: tenant A's custom origins accumulate into the "
-        "global allowlist for every later request in that worker. Fix the mutation first "
-        "(restore in a finally, or use the corsheaders check_request_enabled signal).",
+        "The cross-tenant leak this entry described was FIXED on 2026-08-27; it is kept "
+        "unregistered because MOUNTING it is a separate, deliberate decision about production "
+        "CORS, not because it is dangerous. What was here: middleware_tenant_cors.py did "
+        "`settings.CORS_ALLOWED_ORIGINS = _merge_origins(...)` — a permanent PROCESS-GLOBAL "
+        "mutation, never restored, despite a docstring claiming a thread-local override that "
+        "did not exist. Because the static list was re-read from the already-mutated value, it "
+        "GREW monotonically: tenant A's custom origins became valid for every later request in "
+        "that worker, for every tenant. It was inert only because it sat above tenant "
+        "resolution, so tenant_origins was always empty — meaning the obvious fix, moving it "
+        "below school resolution, would have ACTIVATED the leak. It now grants a matching "
+        "origin on that RESPONSE only, sets Vary: Origin, defers to CorsMiddleware when that "
+        "has already answered, and never touches settings. Sealed by "
+        "apps/api/tests/test_tenant_cors_no_global_leak.py (6 tests), whose central assertion "
+        "was proven to fail against the old implementation before being kept.",
     "apps.schools.middleware.ModuleActivationMiddleware":
         "DEAD CODE. It writes request.active_modules and nothing reads it — grepped across "
         "*.py / *.html / *.js, the only hits are the middleware itself and the settings line "
