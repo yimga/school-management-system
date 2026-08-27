@@ -3385,7 +3385,24 @@ REST_FRAMEWORK = {
     # so version-aware serializers/views can branch without re-parsing the path.
     "DEFAULT_VERSIONING_CLASS": "rest_framework.versioning.NamespaceVersioning",
     "DEFAULT_VERSION": "api_v1",
-    "ALLOWED_VERSIONS": ("api", "api_v1", "api_v2"),
+    # Every namespace that mounts a DRF view must appear here. NamespaceVersioning
+    # splits the colon-joined namespace chain and raises NotFound -- a 404, at
+    # request time, with no log line of its own -- unless SOME part of the chain
+    # is listed. "api" is already here for exactly that reason; it is not a
+    # version number either.
+    #
+    # migration_cloud_api was missing. Its 92 routes are mounted twice --
+    # `migration_cloud_super:migration_cloud_api` on the manager host and
+    # `migration_cloud_portal:migration_cloud_api` on the tenant host -- and
+    # NEITHER chain contains an allowed part, so all 184 returned 404 to every
+    # caller: the whole Migration Cloud REST surface (bundles, canonical
+    # templates, artifact upload, reconcile, scoped tokens, webhooks). Confirmed
+    # by handing both chains to DRF's own NamespaceVersioning.determine_version,
+    # which answers "Invalid version in URL path. Does not match any version
+    # namespace." Sealed by apps/api/tests/test_drf_namespace_versions.py, which
+    # asserts the rule for EVERY namespace carrying a DRF view rather than for
+    # this one name, so the next mount cannot repeat it.
+    "ALLOWED_VERSIONS": ("api", "api_v1", "api_v2", "migration_cloud_api"),
     # Pass 12: cursor pagination is opaque (clients can't skip pages or guess IDs)
     # and stable under inserts — better default for our high-write tenant tables.
     #
