@@ -1276,12 +1276,65 @@ def _step_by_key(step_key: str) -> Optional[EdgeOnboardingStep]:
 # --------------------------------------------------------------------------- #
 # Engine functions — ALL self-healing (never raise to the caller).
 # --------------------------------------------------------------------------- #
-def generate_runbook(school) -> dict:
+#: What a step can be, from the reader's point of view. Deliberately four values and
+#: not two: "not done" and "cannot be answered from here" are different facts, and
+#: collapsing them is how a checklist starts lying. A box-side check evaluated on the
+#: cloud is NOT_CHECKED, never TODO -- telling somebody to redo work that is already
+#: finished is exactly as bad as telling them it is finished when it is not.
+STATUS_DONE = "done"
+STATUS_TODO = "todo"
+STATUS_SKIPPED = "skipped"
+STATUS_NOT_CHECKED = "not_checked"
+
+
+def runbook_progress(steps: "list[dict]") -> dict:
+    """Counts for a progress bar, plus the number that is actually the goal.
+
+    ``healable_todo`` is the one to watch: how many outstanding steps the wizard can
+    finish on its own. A runbook where every remaining step is healable needs a person
+    to press one button; the same runbook with the same ``done`` count and zero
+    healable needs somebody who knows what a terminal is. The two look identical on a
+    percentage bar, which is why the percentage alone is not the measure.
+    """
+    tally = {STATUS_DONE: 0, STATUS_TODO: 0, STATUS_SKIPPED: 0, STATUS_NOT_CHECKED: 0}
+    healable = 0
+    for entry in steps:
+        status = entry.get("status") or STATUS_NOT_CHECKED
+        tally[status] = tally.get(status, 0) + 1
+        if status == STATUS_TODO and entry.get("can_self_heal"):
+            healable += 1
+    total = len(steps)
+    done = tally[STATUS_DONE]
+    return {
+        "total": total,
+        "done": done,
+        "todo": tally[STATUS_TODO],
+        "skipped": tally[STATUS_SKIPPED],
+        "not_checked": tally[STATUS_NOT_CHECKED],
+        # Integer, and floored: a bar that reads 100% while a step is outstanding is
+        # worse than one that reads 99%.
+        "percent": (done * 100) // total if total else 0,
+        "healable_todo": healable,
+        "needs_a_person": tally[STATUS_TODO] - healable,
+    }
+
+
+def generate_runbook(school, *, with_status: bool = False, host_kind=None) -> dict:
     """A deterministic, ordered, per-school runbook.
 
     Returns ``{school_id, slug, country, total, steps}`` where each step is
     ``{key, title, purpose, category, command, workaround, runs_on, evidence,
     named_url_name, help_doc, cloud_preview}`` with placeholders filled.
+
+    ``with_status=True`` additionally runs every check and adds ``status``, ``detail``
+    and ``can_self_heal`` to each step plus a ``progress`` block -- everything a
+    checklist and a progress bar need, from one call, so a surface cannot render a
+    step list and a completion count that disagree.
+
+    It runs the READ-ONLY preview (``include_gate=False``): no network, and no
+    ``EdgeSyncRun`` recorded. Rendering a page must never look like an operator ran
+    the live gate -- the three gate steps come back NOT_CHECKED, which is the honest
+    answer for a check whose evidence lives on the box.
     """
     steps: list[dict] = []
     for step in EDGE_ONBOARDING_STEPS:
@@ -1304,13 +1357,40 @@ def generate_runbook(school) -> dict:
                 "cloud_preview": bool(step.cloud_preview),
             }
         )
-    return {
+    runbook = {
         "school_id": _school_id(school),
         "slug": _slug(school),
         "country": _country(school),
         "total": len(steps),
         "steps": steps,
     }
+    if not with_status:
+        return runbook
+
+    suite = run_verification_suite(school, include_gate=False, host_kind=host_kind)
+    by_key = {row.get("key"): row for row in suite.get("steps", [])}
+    for entry, step in zip(steps, EDGE_ONBOARDING_STEPS):
+        entry["can_self_heal"] = step.self_heal is not None
+        row = by_key.get(entry["key"])
+        if row is None:
+            # Not in the read-only preview at all: its evidence is on the box, and a
+            # cloud render has no way to see it. Say that, rather than guessing.
+            entry["status"] = STATUS_NOT_CHECKED
+            entry["detail"] = (
+                "Not evaluated here -- this check reads box-side state. Run "
+                "`edge_onboarding_verify --slug {slug} --include-gate` on the box."
+            ).format(slug=runbook["slug"])
+        elif row.get("skipped"):
+            entry["status"] = STATUS_SKIPPED
+            entry["detail"] = str(row.get("detail") or "")
+        elif row.get("ok"):
+            entry["status"] = STATUS_DONE
+            entry["detail"] = str(row.get("detail") or "")
+        else:
+            entry["status"] = STATUS_TODO
+            entry["detail"] = str(row.get("detail") or "")
+    runbook["progress"] = runbook_progress(steps)
+    return runbook
 
 
 def run_verification_suite(school, *, include_gate: bool = True, host_kind: Optional[str] = None) -> dict:
