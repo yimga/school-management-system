@@ -155,3 +155,109 @@ class TheMobilityRouteStillWorksTests(SimpleTestCase):
         rendered = _render(["box.school.lan"], ["10.0.0.9"], address_may_change=True)
         self.assertEqual(_site_line(rendered), ":443 {")
         self.assertEqual(rendered.count(":80 {"), 1)
+class ThePortEightyRedirectMustNotBounceTheTrustPageTests(SimpleTestCase):
+    """MEASURED on the live box, and the bug was in the fix for the previous bug.
+
+        http://10.10.20.137/edge/trust/       -> 302 -> https://10.10.20.137/edge/trust/
+        http://10.10.20.137/edge/trust/ca.crt -> 302 -> https://...
+        http://10.10.20.137:10000/edge/trust/ -> 200
+
+    Django exempts `^edge/trust/` in SECURE_REDIRECT_EXEMPT and says why: a device
+    opens that page BECAUSE it does not trust this box, so redirecting it to HTTPS
+    shows the very warning it came to fix. The `:80` block added for the catch-all
+    site undid that one layer above Django -- and neither layer is wrong alone, which
+    is why nothing caught it.
+    """
+
+    def _eighty(self, rendered):
+        """The :80 block, comments stripped."""
+        out, inside = [], False
+        for line in rendered.splitlines():
+            if line.startswith(":80 {"):
+                inside = True
+            if inside and not line.strip().startswith("#"):
+                out.append(line)
+            if inside and line == "}":
+                inside = False
+        return "\n".join(out)
+
+    def test_the_trust_page_is_served_not_redirected(self):
+        block = self._eighty(_render(["box.school.lan"], ["10.0.0.9"]))
+        self.assertIn("handle @trust {", block)
+        self.assertIn("reverse_proxy web:10000", block)
+
+    def test_the_no_slash_form_is_matched_too(self):
+        # People type the address off a sticker and leave the slash off. That form
+        # would fall through to the redirect and land on the warning -- and Django
+        # never gets the chance to APPEND_SLASH it, because it never sees it.
+        block = self._eighty(_render(["box.school.lan"], ["10.0.0.9"]))
+        self.assertIn("@trust path /edge/trust /edge/trust/*", block)
+
+    def test_everything_that_is_not_the_trust_page_still_goes_to_https(self):
+        block = self._eighty(_render(["box.school.lan"], ["10.0.0.9"]))
+        self.assertIn("handle {", block)
+        self.assertIn("redir https://{host}{uri} 302", block)
+
+    def test_it_uses_handle_blocks_and_not_a_bare_redir(self):
+        # Caddy orders directives by its OWN table, not by source order, and `redir`
+        # sorts BEFORE `reverse_proxy`. So the obvious spelling -- a matcher-scoped
+        # reverse_proxy sitting beside an unscoped redir -- still redirects the trust
+        # page, and looks completely correct while doing it. `handle` blocks are
+        # mutually exclusive and run in written order, which is the property we need.
+        block = self._eighty(_render(["box.school.lan"], ["10.0.0.9"]))
+        # Two handle blocks: the trust one and the catch-all. The @trust line above
+        # them DEFINES the matcher and is not itself a handler.
+        self.assertEqual(block.count("handle"), 2)
+        self.assertIn("handle @trust {", block)
+        self.assertIn("handle {", block)
+        for line in block.splitlines():
+            if line.strip().startswith("redir "):
+                self.assertIn("\t\t", line, "redir must be INSIDE a handle block")
+
+    def test_the_proxied_trust_page_still_declares_the_real_scheme(self):
+        # X-Forwarded-Proto must say `http` here, because that is true. If it claimed
+        # https, Django would consider the request secure, SECURE_REDIRECT_EXEMPT
+        # would never be consulted, and the page would work for the wrong reason --
+        # until something else depended on is_secure() being honest.
+        block = self._eighty(_render(["box.school.lan"], ["10.0.0.9"]))
+        self.assertIn("header_up X-Forwarded-Proto {scheme}", block)
+
+    def test_django_and_caddy_agree_on_the_prefix(self):
+        # The two layers spell this path in two places on purpose: Django's list has
+        # to be total even on a checkout where edge_tls fails to import, and an
+        # exemption that silently disappears has no symptom. So pin them together --
+        # this is the test that makes two spellings safe.
+        from django.conf import settings
+
+        expected = "^" + edge_tls.TRUST_PATH.lstrip("/") + "/"
+        self.assertIn(
+            expected,
+            list(settings.SECURE_REDIRECT_EXEMPT),
+            "Caddy exempts %s but Django's SECURE_REDIRECT_EXEMPT does not carry %r"
+            % (edge_tls.TRUST_PATH, expected),
+        )
+
+    def test_acme_gets_no_port_80_block_of_ours(self):
+        # ACME proves control over :80. An explicit block of ours sitting on top of
+        # the HTTP-01 challenge would break issuance -- and a publicly trusted
+        # certificate needs no trust page at all, so there is nothing to exempt.
+        rendered = edge_tls.caddyfile(
+            edge_tls.MODE_ACME, ["school.example.com"], [], acme_email="a@b.c"
+        )
+        self.assertNotIn(":80 {", rendered)
+
+    def test_a_name_only_box_is_a_KNOWN_GAP_and_is_recorded_as_one(self):
+        # Not fixed, and deliberately not papered over. A box whose certificate names
+        # no IP takes the NAMED branch, gets no `:80` block from us, and Caddy adds
+        # its own automatic HTTP->HTTPS redirect for that host -- which bounces the
+        # trust page exactly as ours did.
+        #
+        # The fix is not obviously "emit the block anyway": Caddy composes an explicit
+        # `:80` catch-all with its own host-matched auto-redirect route, and which one
+        # wins is a route-precedence question this suite cannot answer by rendering
+        # text. It needs a running Caddy. Asserting the CURRENT behaviour means the
+        # day somebody changes it, they are told, instead of this comment quietly
+        # becoming untrue.
+        rendered = _render(["box.school.lan"], [])
+        self.assertNotIn(":80 {", rendered)
+        self.assertEqual(_site_line(rendered), "box.school.lan {")

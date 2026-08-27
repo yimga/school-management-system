@@ -239,6 +239,29 @@ does not trust the box yet, so redirecting it to HTTPS shows the very warning it
 came to fix — and people who are taught to click through a warning keep doing it.
 `^edge/trust/` is in `SECURE_REDIRECT_EXEMPT` for that reason and no other.
 
+**Two layers have to agree about that, and for a while only one did.** Django's
+exemption governs the app; the terminator sits above it, and the `:80` block that
+sends everyone to HTTPS was redirecting the trust page too. Measured on a live box:
+`http://<box>/edge/trust/` answered `302` to `https://<box>/edge/trust/`, which is
+the certificate warning, on the address people actually type. Neither layer was
+wrong on its own, which is why nothing caught it. The rendered `:80` block now
+serves `/edge/trust/` by proxy and redirects everything else.
+
+So the bare address works:
+
+```
+http://<box>/edge/trust/
+```
+
+**`--trust-url` still prints the `:10000` form, and that is not an oversight.** The
+`:80` block is only rendered where the box serves a key pair of its own — the
+common case, and the only one where a trust page means anything. A box on `acme`
+needs port 80 for its own challenge and has a publicly trusted certificate, so it
+has nothing to enrol; a box still on `tls internal` is presenting a certificate
+this page's CA did not sign. The app port answers in every one of those states, so
+that is what the tooling prints and what belongs on a printout. Use the bare
+address when you are typing it yourself.
+
 **Have someone check the fingerprint.** A certificate authority you install can
 vouch for any site, and over plain HTTP another machine on the LAN could answer in
 the box's place and offer its own. Code cannot close that; a person comparing two

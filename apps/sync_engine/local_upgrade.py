@@ -107,6 +107,26 @@ def _setting(name, default):
     return getattr(settings, name, default)
 
 
+def _resolve_credential() -> str:
+    """The box's bearer credential, resolved the way the rest of sync_engine does.
+
+    Two sources, and only one of them is an env var: a box that was PAIRED keeps its
+    credential in the database, where no amount of environment reading would find it.
+    ``edge_binding.edge_credential()`` covers both, and is what every other caller in
+    this app already uses.
+
+    Falls back to the raw env var if the app registry is not up -- this module is
+    importable from an entrypoint, and a credential lookup must not be the thing that
+    turns a partially-booted box into a traceback.
+    """
+    try:
+        from apps.sync_engine.edge_binding import edge_credential
+
+        return edge_credential()
+    except Exception:  # noqa: BLE001 - see docstring; the fallback is the same value
+        return (os.getenv("RMC_EDGE_CREDENTIAL") or "").strip()
+
+
 def auto_apply_mode() -> str:
     """``off`` | ``assets`` | ``full`` — how much this box may apply unattended."""
     raw = str(_setting("RMC_OTA_AUTO_APPLY", MODE_OFF) or MODE_OFF).strip().lower()
@@ -197,7 +217,19 @@ class LocalRuntimeUpgradeManager:
         now=None,
     ):
         self.operator_base = (operator_base or str(_setting("RMC_EDGE_OPERATOR_BASE", "") or "")).rstrip("/")
-        self.token = token or str(_setting("RMC_EDGE_SYNC_TOKEN", "") or "")
+        # This read a Django setting named RMC_EDGE_SYNC_TOKEN, which is defined
+        # NOWHERE -- not settings.py, not the settings registry, not
+        # .env.edge.example. It occurred exactly twice in the tree: on this line, and
+        # in the --token help text that documented it. So it always resolved to "",
+        # every unattended upgrade sent `Authorization: Bearer ` with nothing after
+        # it, and the cloud answered 401. MEASURED on a live box: edge_apply_upgrade
+        # 401'd against the manifest endpoint that answers 409 not_released for the
+        # credential everything else uses -- so OTA had never once authenticated, and
+        # the failure looked like a credential problem rather than a missing setting.
+        #
+        # A wrong name fails exactly like a revoked token, which is why this survived:
+        # both are a 401, and the box holds a credential that demonstrably works.
+        self.token = token or _resolve_credential()
         self.mode = mode if mode in (MODE_ASSETS, MODE_FULL) else MODE_ASSETS
         self.target_manifest = target_manifest or {}
         # ``source_root`` lets a test (or a LAN data-mule with a USB stick) supply the
