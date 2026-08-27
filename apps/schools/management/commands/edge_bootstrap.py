@@ -63,6 +63,16 @@ class Command(BaseCommand):
             ),
         )
         parser.add_argument(
+            "--re-export-backup",
+            action="store_true",
+            help=(
+                "Export the CA bundle again even though this CA already has a "
+                "verified backup on record. Use when rotating the passphrase. It "
+                "OVERWRITES the bundle at --backup-to, so any copy you hold keeps "
+                "the OLD passphrase and the two stop matching."
+            ),
+        )
+        parser.add_argument(
             "--force-new-ca",
             action="store_true",
             help=(
@@ -368,10 +378,19 @@ class Command(BaseCommand):
         active = state.get("active") or {}
         already = bool(active.get("export_verified_at")) and active.get("fingerprint") == ca_facts.fingerprint
 
+        # This used to live INSIDE the --no-backup branch, so it was unreachable
+        # whenever a passphrase was set -- and a passphrase is set exactly when an
+        # operator wants a backup. edge-bootstrap.sh is meant to be idempotent ("on
+        # a correct box it changes nothing"), and it was silently re-encrypting and
+        # OVERWRITING the one artefact that cannot be regenerated, on every run.
+        # The copy the operator had already moved off the box kept the old
+        # passphrase, so the two quietly stopped matching -- discovered, if ever,
+        # during a restore.
+        if already and not options["re_export_backup"]:
+            self._ok(f"Backup skipped; this CA already has a verified one ({active.get('exported_at')}).")
+            self._info("Re-export deliberately with --re-export-backup (rotates the passphrase).")
+            return
         if options["no_backup"]:
-            if already:
-                self._ok(f"Backup skipped; this CA already has a verified one ({active.get('exported_at')}).")
-                return
             raise CommandError(
                 "--no-backup refused: this CA has no verified backup on record. It is "
                 "the only artefact on the box that cannot be rebuilt, and the window "
