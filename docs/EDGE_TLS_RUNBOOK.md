@@ -597,6 +597,44 @@ Together: a box can be unplugged, moved to another building, given a completely
 different address by a different router, and come back working — with no device
 touched and nobody editing a file.
 
+### https://<ip>/ and why the site line is `:443`
+
+Found on a live box, and it looks like nothing until you try it from a phone.
+
+The box had a healthy terminator, a certificate that asserted `10.10.20.137`, and
+`https://10.10.20.137/` **failed for every browser on the network** — not a warning
+anyone could click through, a dead connection:
+
+```
+no SNI                -> "no peer certificate available"
+SNI gilead-tech.local -> subject=CN=gilead-tech.local
+SNI 10.10.20.137      -> subject=CN=gilead-tech.local
+```
+
+The TLS `server_name` extension carries DNS names only, and every browser omits it
+for an IP literal. A **named** Caddy site block is a host matcher, and with no SNI
+there is nothing to match — so Caddy presents no certificate at all. The leaf
+asserted the IP the whole time; Caddy never got far enough to offer it.
+
+This is worse than it sounds, in a specific way: a certificate a device does not
+trust produces a warning with a *proceed anyway*. A handshake with no certificate in
+it produces neither. So the box looks **more** broken to an untrained user than an
+untrusted CA does, and every log it writes says healthy.
+
+`edge_tls --print-caddyfile` therefore renders `:443` whenever the certificate
+asserts any IP address, not only when the box is mobile, and adds the `:80` redirect
+that a named block would have got automatically. It stays a named block where the
+catch-all would not help: `acme` needs the named form for its own challenge and
+cannot issue for a private IP anyway, and `tls internal` issues per SNI — which is
+exactly what a no-SNI client cannot drive.
+
+**This also explains `--check-terminator`.** It defaults to `edge-tls:443`, the
+compose service name, which is never in the certificate. Against a named block that
+reported `TLSV1_ALERT_INTERNAL_ERROR` about a terminator that was working; against
+`:443` it gets the certificate and can compare it properly.
+
+---
+
 ### The certificate healing is only half of it — the terminator has to be told
 
 `--ensure` rewrites the certificate files. The TLS terminator read those files when
