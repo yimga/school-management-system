@@ -256,6 +256,26 @@ GATES: list[tuple[str, list[str]]] = [
     # MIDDLEWARE is built twice in config/settings.py and prod runs only the
     # second list, so a middleware present in the first is dead in production.
     ("middleware-topology-parity", ["verify_middleware_topology_parity.py"]),
+
+    # --- wired 2026-08-27 after a sweep of guards no runner invoked ----------
+    # 436 of 809 guard scripts were referenced by no workflow and no runner.
+    # Almost all are one-shot wave-closeout scripts and wiring them would bury
+    # the real ones, so they were triaged by EVIDENCE (documented in CLAUDE.md,
+    # has a test, has a baseline) rather than by filename. These three are
+    # standing contracts that CLAUDE.md names and that pass today.
+    #
+    # A CSS custom property that is referenced but never DECLARED makes the whole
+    # declaration collapse -- `color: var(--nope)` is not an error, the element
+    # simply inherits. Three such tokens were live (--rmc-admin-text,
+    # --rmc-admin-muted, --surface-subtle) across five sites. --strict is
+    # zero-tolerance here: the baseline defaults to 0 when absent.
+    ("undefined-color-token-fallback", ["scan_undefined_color_token_fallback.py", "--strict"]),
+    # Ollama is edge-only; an Ollama tier configured on Render is a dead hop.
+    ("render-online-ai-posture", ["verify_render_online_ai_posture.py"]),
+    # The schedule sibling of the tenant-isolation ratchets: it asserts the
+    # burndown is still ahead of its committed dates, which the count-based
+    # gates cannot see.
+    ("tenant-scoping-burndown", ["verify_tenant_scoping_burndown.py"]),
 ]
 
 # Gates that CANNOT answer without the live Django app registry, and are therefore not

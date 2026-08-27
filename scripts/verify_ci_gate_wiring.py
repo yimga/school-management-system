@@ -66,6 +66,14 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     # Its file matcher only opened files whose NAME said sms (one module, which
     # holds none), it enforced only under --strict, and it was wired to nothing.
     ("scripts/scan_sms_template_length.py", "architectural-boundaries.yml"),
+    # Wired 2026-08-27. 436 of 809 guard scripts were invoked by no runner at
+    # all. Most are one-shot wave-closeout scripts and wiring them wholesale
+    # would bury the real ones, so they were triaged by evidence -- named in
+    # CLAUDE.md, has a test, has a baseline -- rather than by filename. These
+    # three are standing contracts that pass today.
+    ("scripts/scan_undefined_color_token_fallback.py", "architectural-boundaries.yml"),
+    ("scripts/verify_render_online_ai_posture.py", "architectural-boundaries.yml"),
+    ("scripts/verify_tenant_scoping_burndown.py", "architectural-boundaries.yml"),
     # Added 2026-08-23: a merge that adds a migration to an app another branch also
     # touched produces two leaf nodes, and Django then refuses to migrate that app.
     # git reports a clean merge; the failure is in a graph no diff shows.

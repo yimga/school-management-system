@@ -421,6 +421,21 @@ jobs:
             python scripts/scan_sms_template_length.py --compare
           }
 
+          # --- wired 2026-08-27: guards that existed and no runner invoked ---
+          # `color: var(--never-declared)` is not an error; the declaration
+          # collapses and the element inherits. Zero-tolerance.
+          u_undefined_color_token_fallback() {
+            python scripts/scan_undefined_color_token_fallback.py --strict
+          }
+
+          u_render_online_ai_posture() {
+            python scripts/verify_render_online_ai_posture.py
+          }
+
+          u_tenant_scoping_burndown() {
+            python scripts/verify_tenant_scoping_burndown.py
+          }
+
           u_config_sot_domain_ownership() {
             python scripts/verify_domain_ownership_exact_storage.py
           }
@@ -1068,6 +1083,9 @@ jobs:
           run_unit u_ratchet_baselines_present "Detector integrity: every --compare gate has a committed baseline"
           run_unit u_audit_log_append_only "Detector integrity: AuditLog is append-only outside a declared allowlist"
           run_unit u_sms_template_length "SMS bodies fit one carrier segment (reads the template catalog)"
+          run_unit u_undefined_color_token_fallback "CSS: no colour declaration collapses on an undeclared token"
+          run_unit u_render_online_ai_posture "AI posture: online profile does not route to an edge-only tier"
+          run_unit u_tenant_scoping_burndown "Tenant-scoping burndown is ahead of its committed dates"
 
           if [ -n "$failed" ]; then
             echo ""
