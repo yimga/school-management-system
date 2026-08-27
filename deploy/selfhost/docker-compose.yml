@@ -6,6 +6,13 @@
 # Run from the repo root (beta/school-management-system/):
 #   cp deploy/selfhost/.env.example deploy/selfhost/.env   # then edit secrets
 #   docker compose -f deploy/selfhost/docker-compose.yml up -d --build
+#
+# That bare `up -d` is right for a FIRST run, where RMC_EDGE_TLS_MODE is still
+# `off`. Once a box has TLS it is wrong: the terminator below sits behind a
+# compose PROFILE, and `up -d` does not start a profiled service -- the stack
+# comes back with :10000 answering and :443 dead, saying nothing about why.
+# Use deploy/selfhost/box-rebuild.sh, which reads the box's own mode and carries
+# --profile tls when there is one to carry.
 
 x-app: &app
   build:
