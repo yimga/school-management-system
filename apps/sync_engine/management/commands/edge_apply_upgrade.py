@@ -32,7 +32,11 @@ class Command(BaseCommand):
         parser.add_argument("--status", action="store_true", help="Report state and exit without changing anything.")
         parser.add_argument("--from", dest="source_root", default="", help="Read the bundle from a local directory instead of the network.")
         parser.add_argument("--base", default="", help="Operator base URL (default: RMC_EDGE_OPERATOR_BASE).")
-        parser.add_argument("--token", default="", help="Edge credential (default: RMC_EDGE_SYNC_TOKEN).")
+        parser.add_argument(
+            "--token",
+            default="",
+            help="Edge credential (default: the paired credential, else RMC_EDGE_CREDENTIAL).",
+        )
 
     def handle(self, *args, **options):
         if options["status"]:
