@@ -118,12 +118,34 @@ fi
 sec "D. TLS, end to end, from this box"
 "${COMPOSE[@]}" exec -T web python manage.py edge_tls --check-terminator edge-tls:443 2>&1 \
   | grep -viE "^(WARNING|INFO|DEBUG) " | tail -3 | sed 's/^/     /'
-site="$(grep -m1 -vE '^\s*#|^\s*$' deploy/selfhost/Caddyfile.edge)"
-[ "$site" = ":443 {" ] && ok "site line is the catch-all :443 (an IP client sends no SNI)" \
-                       || bad "site line is '$site' -- an IP client gets NO certificate"
-grep -q "handle @trust" deploy/selfhost/Caddyfile.edge \
-  && ok "the RENDERED Caddyfile carries the trust exemption" \
-  || bad "rendered Caddyfile has no trust exemption -- re-run edge-bootstrap.sh"
+# The file compose actually MOUNTS. This used to read Caddyfile.edge, which is
+# tracked and is a host-agnostic template -- so once the render moved to its own
+# path, this section failed a healthy box twice over: the template's first line is
+# a bare `{` (a global options block, not a site address) and it carries no trust
+# exemption. Both FAILs were the audit's, and the live probes below disagreed with
+# it in the same breath.
+CADDY_RENDERED="$HERE/Caddyfile.edge.rendered"
+CADDY_LEGACY="$HERE/Caddyfile.edge"
+CADDY_IN_USE=""
+if [ -f "$CADDY_RENDERED" ]; then
+  CADDY_IN_USE="$CADDY_RENDERED"
+elif grep -q "handle @trust" "$CADDY_LEGACY" 2>/dev/null; then
+  # A box that has not bootstrapped since the move still keeps its render on the
+  # tracked path. Reading it is correct, and worth saying out loud.
+  CADDY_IN_USE="$CADDY_LEGACY"
+  warn "this box still keeps its render at the tracked path -- edge-bootstrap.sh moves it"
+fi
+if [ -z "$CADDY_IN_USE" ]; then
+  bad "no rendered Caddyfile at $CADDY_RENDERED -- the terminator is mounting nothing this box wrote"
+else
+  echo "     terminator config: ${CADDY_IN_USE#$REPO_ROOT/}"
+  site="$(grep -m1 -vE '^[[:space:]]*#|^[[:space:]]*$' "$CADDY_IN_USE")"
+  [ "$site" = ":443 {" ] && ok "site line is the catch-all :443 (an IP client sends no SNI)" \
+                         || bad "site line is '$site' -- an IP client gets NO certificate"
+  grep -q "handle @trust" "$CADDY_IN_USE" \
+    && ok "the rendered Caddyfile carries the trust exemption" \
+    || bad "rendered Caddyfile has no trust exemption -- re-run edge-bootstrap.sh"
+fi
 for u in http://127.0.0.1/edge/trust/ http://127.0.0.1/edge/trust/ca.crt http://127.0.0.1:10000/edge/trust/; do
   c="$(curl -s -o /dev/null -w '%{http_code}' --max-time 12 "$u")"
   [ "$c" = "200" ] && ok "$u -> 200" || bad "$u -> $c"

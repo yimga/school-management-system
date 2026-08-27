@@ -548,3 +548,118 @@ class TheTlsProfileMustSurviveAColdStartTests(SimpleTestCase):
         step5 = self._step5()
         self.assertIn("ps -q edge-tls", step5)
         self.assertIn("die ", step5[step5.index("ps -q edge-tls") :])
+
+
+class TheAuditMustReadTheFileComposeMountsTests(SimpleTestCase):
+    """The audit read the tracked TEMPLATE and failed a healthy box.
+
+    Moving the render to Caddyfile.edge.rendered left section D pointed at
+    deploy/selfhost/Caddyfile.edge -- which is tracked, host-agnostic, opens with a
+    bare `{` and carries no trust exemption. On the Gilead box that printed:
+
+        [FAIL] site line is '{' -- an IP client gets NO certificate
+        [FAIL] rendered Caddyfile has no trust exemption -- re-run edge-bootstrap.sh
+        VERDICT: do NOT rebuild until the FAILs above are understood.
+
+    while three live probes in the same section returned 200 and the terminator was
+    serving the right certificate. Both FAILs were the audit's own, and it told an
+    operator to stop working on a box that was fine.
+
+    These RUN the block against real files on disk.
+    """
+
+    START = 'CADDY_RENDERED="$HERE/Caddyfile.edge.rendered"'
+    END = "for u in http://127.0.0.1/edge/trust/"
+
+    GOOD = ":443 {\n  handle @trust {\n    reverse_proxy web:10000\n  }\n}\n"
+
+    def setUp(self):
+        _need_bash(self)
+        self.dir = tempfile.mkdtemp(prefix="audit-caddy-")
+        self.addCleanup(shutil.rmtree, self.dir, True)
+
+    def _template(self) -> str:
+        """The real tracked file -- the thing that was being read by mistake."""
+        return (SELFHOST / "Caddyfile.edge").read_text(encoding="utf-8")
+
+    def _run(self, rendered=None, legacy=None) -> str:
+        d = pathlib.Path(self.dir)
+        if rendered is not None:
+            (d / "Caddyfile.edge.rendered").write_text(rendered, encoding="utf-8")
+        if legacy is not None:
+            (d / "Caddyfile.edge").write_text(legacy, encoding="utf-8")
+        text = AUDIT.read_text(encoding="utf-8")
+        block = text[text.index(self.START) : text.index(self.END)]
+        here = self.dir.replace(chr(92), "/")
+        script = (
+            "set -uo pipefail\n"
+            'HERE="' + here + '"\n'
+            'REPO_ROOT="' + here + '"\n'
+            'ok()   { echo "OK: $*"; }\n'
+            'bad()  { echo "FAIL: $*"; }\n'
+            'warn() { echo "WARN: $*"; }\n'
+            + block
+        )
+        proc = subprocess.run(["bash", "-c", script], capture_output=True, text=True)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        return proc.stdout
+
+    def test_a_correct_render_passes_both_checks(self):
+        out = self._run(rendered=self.GOOD)
+        self.assertIn("OK: site line is the catch-all :443", out)
+        self.assertIn("OK: the rendered Caddyfile carries the trust exemption", out)
+        self.assertNotIn("FAIL:", out)
+
+    def test_the_pristine_template_is_ignored_when_a_render_exists(self):
+        # The regression, precisely: both files present, and it must read the render.
+        out = self._run(rendered=self.GOOD, legacy=self._template())
+        self.assertNotIn("FAIL:", out)
+        self.assertNotIn("site line is '{'", out)
+
+    def test_a_pristine_template_alone_is_a_clear_failure_not_a_baffling_one(self):
+        # No render anywhere. The old code reported the template's first character as
+        # if it were a site address; an operator cannot act on "site line is '{'".
+        out = self._run(legacy=self._template())
+        self.assertIn("no rendered Caddyfile", out)
+        self.assertNotIn("site line is '{'", out)
+
+    def test_a_box_that_has_not_migrated_reads_its_legacy_render_and_says_so(self):
+        # Its render is still written over the tracked path. Reading it is correct;
+        # staying quiet about it would hide why that box cannot git pull.
+        out = self._run(legacy=self.GOOD)
+        self.assertIn("OK: site line is the catch-all :443", out)
+        self.assertIn("WARN:", out)
+        self.assertIn("tracked path", out)
+
+    def test_a_render_whose_site_line_names_addresses_is_still_caught(self):
+        out = self._run(rendered="gilead-tech.local:443 {\n  handle @trust {}\n}\n")
+        self.assertIn("FAIL: site line is 'gilead-tech.local:443 {'", out)
+
+    def test_a_render_missing_the_trust_exemption_is_still_caught(self):
+        out = self._run(rendered=":443 {\n  reverse_proxy web:10000\n}\n")
+        self.assertIn("FAIL: rendered Caddyfile has no trust exemption", out)
+
+    def test_comments_and_blank_lines_do_not_become_the_site_line(self):
+        out = self._run(rendered="# rendered by edge-bootstrap\n\n" + self.GOOD)
+        self.assertIn("OK: site line is the catch-all :443", out)
+
+    def test_it_names_which_file_it_read(self):
+        # Two candidate paths and a verdict that stops work: say which one was read.
+        self.assertIn("terminator config:", self._run(rendered=self.GOOD))
+
+    def test_no_grep_in_the_block_reads_a_hardcoded_path(self):
+        # The invariant, stated properly: every read of the terminator config goes
+        # through a CADDY_ variable, so there is no second place to forget when the
+        # path moves again. An earlier version of this test counted occurrences and
+        # miscounted -- the -z guard reads the variable too.
+        text = AUDIT.read_text(encoding="utf-8")
+        block = text[text.index(self.START) : text.index(self.END)]
+        greps = [
+            ln.strip()
+            for ln in block.splitlines()
+            if "grep" in ln and not ln.strip().startswith("#")
+        ]
+        self.assertTrue(greps, block)
+        for ln in greps:
+            self.assertIn("$CADDY_", ln, ln)
+            self.assertNotIn("deploy/selfhost/", ln, ln)
