@@ -63,13 +63,38 @@ def record_utm_attribution(
     transaction_id: str = "",
     post_id: str = "",
 ) -> SocialCampaignAttribution:
-    return SocialCampaignAttribution.objects.create(
+    """Record one attributed conversion, idempotently when a transaction id is given.
+
+    This used to be a bare ``objects.create``. Because the endpoint is
+    integrator-facing, the same conversion arrives twice all the time -- a client
+    retry after a timeout, a double-clicked donate button, a redelivered payment
+    webhook -- and every duplicate was summed straight into the dashboard's
+    ``revenue`` series by ``pulse_timeseries_for_school``. Keying on the caller's
+    own ``transaction_id`` makes the retry a no-op instead of a double-count; the
+    matching partial UniqueConstraint means two concurrent retries cannot both win.
+
+    A blank ``transaction_id`` means the caller gave us nothing to be idempotent
+    ON, so those rows are still plain inserts -- de-duplicating them would silently
+    merge genuinely distinct conversions.
+    """
+    payload = {
+        "utm_source": utm_source,
+        "utm_medium": utm_medium,
+        "utm_campaign": utm_campaign,
+        "amount_cents": amount_cents,
+        "post_id": post_id,
+    }
+    if not transaction_id:
+        return SocialCampaignAttribution.objects.create(
+            school_id=school_id,
+            provider=provider,
+            transaction_id="",
+            **payload,
+        )
+    row, _created = SocialCampaignAttribution.objects.get_or_create(
         school_id=school_id,
         provider=provider,
-        utm_source=utm_source,
-        utm_medium=utm_medium,
-        utm_campaign=utm_campaign,
-        amount_cents=amount_cents,
         transaction_id=transaction_id,
-        post_id=post_id,
+        defaults=payload,
     )
+    return row

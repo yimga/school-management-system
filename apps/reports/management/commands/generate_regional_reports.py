@@ -128,7 +128,11 @@ class Command(BaseCommand):
             students = students.filter(id=options["student"])
 
         if options.get("classroom"):
-            students = students.filter(current_classroom_id=options["classroom"])
+            # ``current_classroom`` is a PROPERTY on StudentProfile (derived from
+            # the active Enrollment), not a column -- filtering on it raised
+            # FieldError and made ``--classroom`` unusable. The column is
+            # ``classroom``.
+            students = students.filter(classroom_id=options["classroom"])
 
         if not students.exists():
             self.stdout.write(self.style.WARNING("No students found"))

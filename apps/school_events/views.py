@@ -6,9 +6,10 @@ from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from apps.accounts.decorators import require_permission
-from apps.school_events.models import EventTicketTier, SchoolEvent
+from apps.school_events.models import EventRegistration, EventTicketTier, SchoolEvent
 from apps.school_events.services import (
     TicketCapacityError,
+    ensure_ticket_invoice,
     event_operations_snapshot,
     register_for_tier,
 )
@@ -99,7 +100,15 @@ def register_for_event(request, slug):
     if not event.ticketing_enabled:
         return HttpResponseForbidden("Ticketing is not enabled for this event.")
 
-    ticket_tier_id = request.POST.get("ticket_tier_id")
+    # quantity had a try/except and the tier id did not. get_object_or_404 only
+    # converts DoesNotExist into an Http404 -- an unparseable pk raises ValueError
+    # out of AutoField.get_prep_value, so `ticket_tier_id=abc` was an unhandled
+    # 500 and a Sentry event instead of a form error.
+    try:
+        ticket_tier_id = int(request.POST.get("ticket_tier_id") or "")
+    except (TypeError, ValueError):
+        messages.error(request, _("Choose a ticket type."))
+        return redirect("school_events:event_detail", slug=event.slug)
     try:
         quantity = max(int(request.POST.get("quantity", 1) or 1), 1)
     except (TypeError, ValueError):
@@ -108,7 +117,7 @@ def register_for_event(request, slug):
         EventTicketTier, event=event, pk=ticket_tier_id, is_active=True
     )
     try:
-        register_for_tier(
+        registration = register_for_tier(
             event=event,
             tier=tier,
             purchaser=request.user,
@@ -117,4 +126,19 @@ def register_for_event(request, slug):
         messages.success(request, _("Registration recorded."))
     except TicketCapacityError as exc:
         messages.error(request, str(exc))
+        return redirect("school_events:event_detail", slug=event.slug)
+    # A paid tier lands RESERVED with amount_due set. Nothing used to raise the
+    # matching AR invoice, so the family had nothing to pay, the payment webhook
+    # had no invoice to settle, and expire_stale_reservations cancelled the hold
+    # 45 minutes later. Best-effort: a finance misconfiguration must not lose the
+    # registration the family just made.
+    if registration.status == EventRegistration.Status.RESERVED:
+        if ensure_ticket_invoice(registration=registration) is None:
+            messages.warning(
+                request,
+                _(
+                    "Your place is held, but we could not raise the invoice "
+                    "automatically \u2014 please contact the school office to pay."
+                ),
+            )
     return redirect("school_events:event_detail", slug=event.slug)

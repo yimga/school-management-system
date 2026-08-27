@@ -24,7 +24,6 @@ Idempotent: safe to re-run (and to schedule via Celery beat). Read-only with
 from __future__ import annotations
 
 import logging
-import os
 from decimal import Decimal
 
 from django.core.management.base import BaseCommand
@@ -32,35 +31,31 @@ from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_MIN_MEMBERS = 5
+# Re-exported so callers keep a stable name; the value and the env override now
+# live in services, where the READ path can apply the identical floor.
+from apps.customersuccess.services import (  # noqa: E402
+    DEFAULT_BENCHMARK_MIN_MEMBERS as DEFAULT_MIN_MEMBERS,
+)
 
 
 def _resolve_min_members(explicit: int | None) -> int:
-    if explicit and explicit > 0:
-        return explicit
-    try:
-        return max(1, int(os.getenv("BENCHMARK_COHORT_MIN_MEMBERS", str(DEFAULT_MIN_MEMBERS))))
-    except (TypeError, ValueError):
-        return DEFAULT_MIN_MEMBERS
+    """Delegates to services so the READER can apply an identical floor."""
+    from apps.customersuccess.services import resolve_benchmark_min_members
+
+    return resolve_benchmark_min_members(explicit)
 
 
 def _student_count(school) -> int | None:
     """Best-effort student count for the size band.
 
-    Uses the school's ``student_profiles`` reverse relation. Returns None when
-    the tenant table isn't reachable from the current schema (under django-tenants
-    the public-schema operator run can't see a tenant's people table) — the size
-    band then degrades to "unknown" and the cohort buckets by country + type only.
+    Thin alias for ``services.student_count_for_size_band`` -- producer and
+    reader must derive the band from the SAME function, or an unreadable count
+    buckets one way here and another way in ``match_active_cohort`` and the
+    cohort this command publishes can never be matched back.
     """
-    try:
-        # tenant-isolation-allow: reverse relation scoped to this single school
-        return school.student_profiles.count()
-    except Exception as exc:  # noqa: BLE001 — size band is best-effort; degrade to unknown
-        logger.debug(
-            "benchmark size-band count unavailable for school=%s: %s",
-            getattr(school, "pk", None), exc,
-        )
-        return None
+    from apps.customersuccess.services import student_count_for_size_band
+
+    return student_count_for_size_band(school)
 
 
 def _percentile(sorted_vals: list[float], q: float) -> Decimal:

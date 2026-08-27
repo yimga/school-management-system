@@ -9,7 +9,14 @@ from django.db import models
 from django_tenants.models import TenantMixin, DomainMixin
 
 
-def _schema_name_max_length():
+def _schema_name_max_length() -> int:
+    """PostgreSQL's identifier limit, in one place.
+
+    Referenced by ``db_alias`` below and asserted against
+    ``schema_provisioning_repository.SCHEMA_NAME_MAX_LENGTH`` by a test, so the
+    number cannot drift between the model and the validator that enforces it.
+    Changing it here changes both.
+    """
     return 63  # PostgreSQL schema name limit
 
 
@@ -32,7 +39,7 @@ class Client(TenantMixin):
     created_on = models.DateField(auto_now_add=True)
     # World Engine: optional DB alias for regional/dedicated instance (router selects DB by this).
     db_alias = models.CharField(
-        max_length=63,
+        max_length=_schema_name_max_length(),
         blank=True,
         help_text="Optional: database alias for this tenant (e.g. region_eu, dedicated_xyz). Leave blank for default.",
     )

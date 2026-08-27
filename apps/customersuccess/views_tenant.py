@@ -59,6 +59,12 @@ def _csv_upload_text(request) -> str:
 
 
 def _staff_may_run_csv_import(request) -> bool:
+    """Global role gate: is this KIND of user allowed to import a roster at all?
+
+    Deliberately says nothing about WHICH school -- ``User.role`` is one
+    CharField on the user, not a per-school grant. ``_resolve_csv_target_school``
+    below answers the school question, and both must pass.
+    """
     user = getattr(request, "user", None)
     if user is None or not getattr(user, "is_authenticated", False):
         return False
@@ -66,6 +72,55 @@ def _staff_may_run_csv_import(request) -> bool:
         return True
     role = str(getattr(user, "role", "") or "").upper()
     return role in {"ADMIN", "SUPERADMIN", "PROPRIETOR"}
+
+
+def _resolve_csv_target_school(request):
+    """Return ``(school, error_payload)`` for a roster-CSV write.
+
+    ``request.school`` is a binding the middleware derived from the HOST, so it
+    is authoritative. Everything else is a GUESS: ``resolve_request_school``
+    falls back to a session key, then to a SignupVerification matched by email,
+    then to ``SchoolMembership...order_by("-is_primary", "-id").first()``. These
+    two routes are mounted on the base host as well as the tenant host, so on
+    the base host a user who belongs to schools A and B had a roster written
+    into whichever membership happened to sort first -- with no school selector
+    in the request and no school named in the response.
+
+    Off the tenant host we therefore require the answer to be UNAMBIGUOUS: an
+    explicit ``school_id`` the user belongs to, or exactly one membership.
+    """
+    from apps.schools.models import School, SchoolMembership
+    from apps.schools.tenant_access import user_belongs_to_school
+
+    user = getattr(request, "user", None)
+    bound = getattr(request, "school", None)
+    if bound is not None:
+        return bound, None
+
+    explicit = (request.POST.get("school_id") or "").strip()
+    if explicit:
+        school = School.objects.filter(pk=explicit).first()
+        if school is None or not user_belongs_to_school(user, school):
+            return None, {"ok": False, "error": "forbidden_school"}
+        return school, None
+
+    if getattr(user, "is_superuser", False):
+        # A superuser has no membership to disambiguate with, so make them say.
+        return None, {"ok": False, "error": "school_id_required"}
+
+    member_ids = list(
+        SchoolMembership.objects.filter(user_id=getattr(user, "pk", None))
+        .values_list("school_id", flat=True)
+        .distinct()[:2]
+    )
+    if not member_ids:
+        return None, {"ok": False, "error": "no_school"}
+    if len(member_ids) > 1:
+        return None, {"ok": False, "error": "ambiguous_school"}
+    school = School.objects.filter(pk=member_ids[0]).first()
+    if school is None:
+        return None, {"ok": False, "error": "no_school"}
+    return school, None
 
 
 def _guided_onboarding_fallback_context(*, school=None, detail: str) -> dict:
@@ -973,8 +1028,18 @@ def _normalized_recommendations(raw_items) -> list[dict]:
 
 @login_required
 def support_copilot_view(request):
-    """Section 11.4: Support co-pilot - suggested actions from interventions, risk alerts, health."""
-    school = getattr(request, "school", None)
+    """Section 11.4: Support co-pilot - suggested actions from interventions, risk alerts, health.
+
+    School-admin only, for the same reason as tenant_health_dashboard: the
+    suggestions carry the risk-alert reasons and the tenant health score, which
+    are operator-facing commentary about the school, not portal content for its
+    parents and students.
+    """
+    from apps.lifecycle.tenant_school_resolve import require_tenant_lifecycle_school
+
+    school, denied = require_tenant_lifecycle_school(request)
+    if denied is not None:
+        return denied
     if not school:
         return render(
             request,
@@ -1116,15 +1181,19 @@ def guided_onboarding_csv_dry_run(request):
     """Validate roster CSV without writing — tenant-scoped, staff-only."""
     if not _staff_may_run_csv_import(request):
         return JsonResponse({"ok": False, "error": "forbidden"}, status=403)
-    school = _resolve_guided_onboarding_school(request)
-    if not school:
-        return JsonResponse({"ok": False, "error": "no_school"}, status=400)
+    school, error = _resolve_csv_target_school(request)
+    if error is not None:
+        return JsonResponse(error, status=403 if "forbidden" in error["error"] else 400)
     text = _csv_upload_text(request)
     if not text.strip():
         return JsonResponse({"ok": False, "error": "empty_csv"}, status=400)
     validated = parse_and_validate_csv(text)
     payload = validated.as_dict()
     payload["ok"] = True
+    # Name the tenant in the response so a mis-resolution is visible to the
+    # caller instead of only to the rows it lands on.
+    payload["school_id"] = str(school.pk)
+    payload["school_slug"] = getattr(school, "slug", "")
     return JsonResponse(payload)
 
 
@@ -1134,9 +1203,9 @@ def guided_onboarding_csv_apply(request):
     """Apply a validated roster CSV — tenant-scoped, staff-only."""
     if not _staff_may_run_csv_import(request):
         return JsonResponse({"ok": False, "error": "forbidden"}, status=403)
-    school = _resolve_guided_onboarding_school(request)
-    if not school:
-        return JsonResponse({"ok": False, "error": "no_school"}, status=400)
+    school, error = _resolve_csv_target_school(request)
+    if error is not None:
+        return JsonResponse(error, status=403 if "forbidden" in error["error"] else 400)
     text = _csv_upload_text(request)
     if not text.strip():
         return JsonResponse({"ok": False, "error": "empty_csv"}, status=400)
@@ -1149,6 +1218,8 @@ def guided_onboarding_csv_apply(request):
     apply_result = apply_bulk_csv(school_id=school.pk, validated=validated)
     payload = apply_result.as_dict()
     payload["ok"] = not apply_result.errors
+    payload["school_id"] = str(school.pk)
+    payload["school_slug"] = getattr(school, "slug", "")
     return JsonResponse(payload, status=200 if payload["ok"] else 400)
 
 

@@ -7,7 +7,7 @@ from decimal import Decimal
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import DatabaseError
-from django.db.models import Avg, Q
+from django.db.models import Avg, Count, Q
 from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
 
@@ -360,6 +360,55 @@ def ensure_health_score_record(school):
 # cohort bucketing (shared by the producer command + match_active_cohort).
 _SIZE_BAND_CEILINGS = ((100, "micro"), (500, "small"), (2000, "medium"))  # magic-number-allow: size-band student-count thresholds
 
+# k-anonymity floor for anything derived from peers. The producer command owns
+# the published aggregates; this is here so the on-the-fly FALLBACK path can
+# apply the identical floor without importing a management command.
+DEFAULT_BENCHMARK_MIN_MEMBERS = 5  # magic-number-allow: k-anonymity floor
+
+
+def resolve_benchmark_min_members(explicit=None) -> int:
+    """The k-anonymity floor: explicit override, else env, else the default."""
+    import os
+
+    try:
+        if explicit and int(explicit) > 0:
+            return int(explicit)
+    except (TypeError, ValueError):
+        pass
+    try:
+        return max(
+            1,
+            int(
+                os.getenv(
+                    "BENCHMARK_COHORT_MIN_MEMBERS", str(DEFAULT_BENCHMARK_MIN_MEMBERS)
+                )
+            ),
+        )
+    except (TypeError, ValueError):
+        return DEFAULT_BENCHMARK_MIN_MEMBERS
+
+
+def student_count_for_size_band(school):
+    """Student count for cohort bucketing, or None when it is UNREADABLE.
+
+    The distinction matters: the producer bucketed an unreadable count as None
+    -> band "" while the reader swallowed the same failure as 0 -> band "micro",
+    so every cohort produced for an unreachable tenant table was unmatchable and
+    the reader fell through to the un-suppressed peer average. Both sides call
+    this, so the same input can only ever yield one band.
+    """
+    if school is None or not hasattr(school, "student_profiles"):
+        return None
+    try:
+        # tenant-isolation-allow: reverse relation scoped to this single school
+        return school.student_profiles.count()
+    except Exception as exc:  # noqa: BLE001 -- best-effort; unreadable is not zero
+        logger.debug(
+            "benchmark size-band count unavailable for school=%s: %s",
+            getattr(school, "pk", None), exc,
+        )
+        return None
+
 
 def size_band_for_count(count):
     """Map a student count to a BenchmarkCohort.SizeBand value ('' when unknown)."""
@@ -384,11 +433,9 @@ def match_active_cohort(school):
         return None
     country = (getattr(school, "country_code", "") or "").strip().upper()
     inst = (getattr(school, "school_type", "") or "").strip().lower()
-    try:
-        cnt = school.student_profiles.count() if hasattr(school, "student_profiles") else 0
-    except CUSTOMER_SUCCESS_SOFT_FAILURES:
-        cnt = 0
-    band = size_band_for_count(cnt)
+    # UNREADABLE is None, not 0 -- 0 buckets to "micro" and could never match the
+    # band="" row the producer writes for the very same failure.
+    band = size_band_for_count(student_count_for_size_band(school))
     # tenant-isolation-allow: platform-level cohort registry, not tenant-scoped
     return BenchmarkCohort.objects.filter(
         is_auto=True, is_active=True,
@@ -434,19 +481,30 @@ def get_peer_benchmark_metrics(school, metric_key="maturity"):
     if published and published.get("p50") is not None:
         return published["p50"]
 
+    # The published aggregate is small-cell suppressed. Reaching THIS line means
+    # the producer declined to publish, which is exactly when an un-floored
+    # average is most dangerous: with one peer in the country, Avg("score") over
+    # a single school's rows IS that school's exact score, and the operator API
+    # serves it beside `"published_metrics": {}` -- advertising suppression next
+    # to un-suppressed single-tenant data. Apply the same floor here.
+    k = resolve_benchmark_min_members()
     peer_ids = get_peer_school_ids(school)
-    if not peer_ids:
+    if len(peer_ids) < k:
         return None
     if metric_key == "maturity":
         agg = TenantMaturityScore.objects.filter(
             school_id__in=peer_ids,
             computed_at__gte=timezone.now() - timezone.timedelta(days=90),
-        ).aggregate(avg=Avg("score"))
+        ).aggregate(avg=Avg("score"), contributors=Count("school_id", distinct=True))
     else:
         agg = TenantHealthScore.objects.filter(
             school_id__in=peer_ids,
             computed_at__gte=timezone.now() - timezone.timedelta(days=30),
-        ).aggregate(avg=Avg("score"))
+        ).aggregate(avg=Avg("score"), contributors=Count("school_id", distinct=True))
+    # A 50-school peer list can still have only two schools with a score in the
+    # window, so count the schools the aggregate ACTUALLY saw, not the peer list.
+    if (agg.get("contributors") or 0) < k:
+        return None
     return float(agg["avg"]) if agg.get("avg") is not None else None
 
 

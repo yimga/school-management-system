@@ -225,7 +225,10 @@ class Command(BaseCommand):
             )
         sr.last_run = now
         sr.next_run = compute_next_scheduled_run(
-            sr.last_run, sr.schedule_frequency, sr.schedule_time
+            sr.last_run,
+            sr.schedule_frequency,
+            sr.schedule_time,
+            school=sr.school,
         )
         sr.save()
         return emailed, not has_addresses

@@ -36,12 +36,35 @@ except ImportError:  # pragma: no cover - celery is optional in tests
     shared_task = None
 
 
+# A domain event that blew up mid-sweep used to be flipped to FAILED and left
+# there forever: the sweep selected `status=PENDING` only, so `retry_count` was
+# incremented by a field nothing ever read again. One transient IntegrityError /
+# OperationalError therefore dead-lettered the event permanently — no webhook
+# delivery, no internal subscriber, no automation, and no operator signal short of
+# reading the table by hand. FAILED rows under this attempt ceiling are redriven on
+# the next sweep; past it the row stays FAILED and is a genuine dead letter.
+#
+# Redrive is safe against double effects: `queue_deliveries_for_event` reuses the
+# existing (subscription, event) delivery rather than creating a second one, and
+# `automation.domain_event_bridge` dedups on the event pk via a 24h cache key, so a
+# redriven event cannot re-fire a workflow that already ran for it.
+MAX_OUTBOX_ATTEMPTS = 3
+
+
 def process_outbox_batch(batch_size: int = 100):
+    from django.db.models import Q
+
     from apps.events.models import DomainEvent
 
     # tenant-isolation-allow: domain-event outbox sweep across all tenants (reviewed 2026-05-14)
     queryset = list(
-        DomainEvent.objects.filter(status=DomainEvent.Status.PENDING)
+        DomainEvent.objects.filter(
+            Q(status=DomainEvent.Status.PENDING)
+            | Q(
+                status=DomainEvent.Status.FAILED,
+                retry_count__lt=MAX_OUTBOX_ATTEMPTS,
+            )
+        )
         .order_by("created_at")[: max(1, int(batch_size))]
     )
     school_ids = {e.school_id for e in queryset if getattr(e, "school_id", None)}

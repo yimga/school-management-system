@@ -58,10 +58,17 @@ def distribute_report_batch(
         scope_label = (
             getattr(term, "label", None) or getattr(term, "name", None) or "term"
         )
+    # A hardcoded "/reports/" is not a page: on the tenant host
+    # (config/tenant_urls.py) apps.reports mounts no index route, so the link
+    # 404s for every school. It only resolves on the dev-only config/urls.py,
+    # where it is the public marketing page. Reuse the one resolver the
+    # term-publish notification uses so both point at the same real destination.
+    from apps.reports.notify_term_published import student_results_link
+
     context = {
         "title": "Report card ready",
         "message": f"Your {scope_label} report card is ready to view.",
-        "link": "/reports/",
+        "link": student_results_link(),
         "severity": "INFO",
     }
 

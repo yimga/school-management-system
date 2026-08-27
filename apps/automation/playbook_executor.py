@@ -316,7 +316,17 @@ def execute_playbook(
     runs = []
     status = "SUCCESS"
     for i, profile in enumerate(profiles):
-        payload = (steps_payload or [{}])[i] if steps_payload else {}
+        # steps_payload is optional AND may be shorter than the profile list (a
+        # caller supplying rows for only the first step is the common case). The
+        # old `(steps_payload or [{}])[i]` raised IndexError on step 2, aborting the
+        # whole playbook with a 500 and leaving step 1's MigrationRun orphaned with
+        # no AutomationExecutionLog. _estimate_preflight_confidence already guards
+        # the same index this way.
+        payload = (
+            steps_payload[i]
+            if (steps_payload and i < len(steps_payload) and isinstance(steps_payload[i], dict))
+            else {}
+        )
         run = _run_one_step(playbook, profile, i, school, user, dry_run, payload)
         runs.append(run)
         if run.status == MigrationRun.Status.FAILED:

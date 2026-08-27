@@ -112,6 +112,25 @@ def aggregate_scope_feeds(
     return timeline[:50]
 
 
+def connected_account_count(*, school_id=None, platform_scope: bool = False) -> int:
+    """How many active integrations back this scope's feed.
+
+    An empty ``read_cached_feed`` result has two completely different meanings --
+    "this campus has connected accounts but posted nothing lately" and "no account
+    has ever been connected" -- and the UI cannot tell them apart from the items
+    list alone. Nothing in the codebase creates a SocialMediaIntegration yet, so
+    today every real tenant is in the second state and the grid renders as if the
+    campus were simply quiet.
+    """
+    if not platform_scope and not school_id:
+        return 0
+    if platform_scope:
+        qs = SocialMediaIntegration.objects.filter(is_active=True, school__isnull=True)
+    else:
+        qs = SocialMediaIntegration.objects.filter(is_active=True, school_id=school_id)
+    return qs.count()
+
+
 def read_cached_feed(
     *,
     school_id=None,

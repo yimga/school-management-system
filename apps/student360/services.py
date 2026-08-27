@@ -148,16 +148,20 @@ def get_student_timeline_feed(
         from apps.events.models import DomainEvent
         from django.db.models import Q
 
-        qs = (
-            DomainEvent.objects.filter(school_id=school_id)
-            .filter(
-                Q(payload__student_id=student_id)
-                | Q(payload__student_id=str(student_id))
-            )
-            .order_by("-created_at")[:limit]
+        qs = DomainEvent.objects.filter(school_id=school_id).filter(
+            Q(payload__student_id=student_id)
+            | Q(payload__student_id=str(student_id))
         )
+        # `event_types` has to narrow the queryset BEFORE the slice. Filtering a
+        # sliced queryset raises `TypeError: Cannot filter a query once a slice
+        # has been taken` -- and TypeError is inside _STUDENT360_SERVICE_ERRORS,
+        # so the old order swallowed it and returned an EMPTY feed for every
+        # caller that used the documented parameter. Slicing first was also the
+        # wrong query: it took the newest `limit` events of ANY type and then kept
+        # whichever of those matched, instead of the newest `limit` matching ones.
         if event_types:
             qs = qs.filter(event_type__in=event_types)
+        qs = qs.order_by("-created_at")[:limit]
         return [
             {
                 "id": str(e.id),

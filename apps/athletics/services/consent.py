@@ -137,9 +137,53 @@ def record_consent_decision(
 
     if consented:
         consent.consent(request)
+        _bill_activated_membership(consent)
     else:
         consent.decline(request)
     return consent
+
+
+def _bill_activated_membership(consent) -> None:
+    """Raise the team's mandatory kit fee once the athlete is really on the roster.
+
+    ``raise_kit_fee_invoice`` was written, admin-configurable and reachable from
+    NOTHING -- no view, form, signal, command or task called it anywhere in the
+    repo. ``TeamKitFee`` is a first-class model on the mounted tenant admin with
+    ``is_mandatory`` defaulting to True, so an operator set up a mandatory kit
+    fee, saw it saved, and no family was ever invoiced.
+
+    This is the right hook and ``coach_add_member`` is not: there the membership
+    is PENDING and the guardian has not agreed to anything, so invoicing would
+    bill a family for a place they may still refuse. ``ParticipationConsent
+    .consent()`` is the ONLY transition that sets ``ACTIVE``.
+
+    Best-effort by construction. ``record_consent_decision`` is deliberately not
+    wrapped in an outer atomic and ``raise_kit_fee_invoice`` runs its own, so a
+    billing failure rolls back only the invoice: a finance outage must never cost
+    the athlete the roster place their guardian just approved.
+    """
+    from apps.athletics.models.roster import TeamMembership
+
+    membership = getattr(consent, "membership", None)
+    if membership is None:
+        return
+    membership.refresh_from_db()
+    if membership.status != TeamMembership.Status.ACTIVE:
+        return
+    try:
+        from apps.athletics.services.fees import raise_kit_fee_invoice
+
+        raise_kit_fee_invoice(membership=membership)
+    except ValueError as exc:
+        # No active mandatory kit fee for the team, or finance has no compliance
+        # profile configured. Both are ordinary states, not failures.
+        logger.debug(
+            "no kit fee raised for membership %s: %s", membership.pk, exc
+        )
+    except Exception:  # noqa: BLE001 -- billing never costs a roster place
+        logger.exception(
+            "kit_fee_invoice_failed membership=%s", membership.pk
+        )
 
 
 __all__ = ["request_participation_consent", "record_consent_decision"]

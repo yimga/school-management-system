@@ -37,11 +37,20 @@ class SocialFeedAPI(APIView):
             school_id=getattr(school, "id", None),
             platform_scope=platform_scope,
         )
+        # ``connected_accounts`` distinguishes "quiet campus" from "no account has
+        # ever been connected" -- an empty ``items`` list alone cannot, and the
+        # second is the state every tenant is really in until an OAuth connect
+        # surface exists. Additive: existing consumers read ``items``.
+        connected = aggregator.connected_account_count(
+            school_id=getattr(school, "id", None),
+            platform_scope=platform_scope,
+        )
         return Response(
             {
                 "scope": "platform" if platform_scope else "tenant",
                 "school_id": str(school.id) if school else None,
                 "items": items,
+                "connected_accounts": connected,
             }
         )
 
@@ -51,8 +60,23 @@ class SocialPublishAPI(APIView):
 
     permission_classes = [IsAuthenticated, IsAdminUser]
 
+    NO_ACCOUNTS_DETAIL = (
+        "No active social accounts are connected for this scope, so nothing was "
+        "sent. Connect an account before publishing."
+    )
+
     @extend_schema(summary="Enqueue multi-channel social publish")
     def post(self, request):
+        # Every other view in this file resolves scope and refuses an unresolved
+        # tenant; this one did not, and handed the raw request to a publisher that
+        # read a missing school as "platform scope" -- i.e. the company's own
+        # accounts. Resolve first, and refuse on the same terms as SocialFeedAPI.
+        school, platform_scope = resolve_feed_scope(request)
+        if not platform_scope and school is None:
+            return Response(
+                {"error": "tenant_required", "detail": "School context required."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
         body = (request.data.get("body") or "").strip()
         if not body:
             return Response({"error": "body_required"}, status=status.HTTP_400_BAD_REQUEST)
@@ -64,6 +88,22 @@ class SocialPublishAPI(APIView):
                 result = emergency.route_emergency_broadcast(
                     request, body=body, media_urls=media_urls
                 )
+                if result.posted == 0 and result.failed == 0:
+                    # A campus-closure broadcast that reached ZERO channels is the
+                    # worst possible thing to report as 202 Accepted. Nothing in
+                    # the codebase creates a SocialMediaIntegration yet, so this is
+                    # the state every real tenant is actually in -- say so loudly
+                    # instead of returning a confident {"posted": 0}.
+                    return Response(
+                        {
+                            "error": "no_connected_accounts",
+                            "mode": "emergency",
+                            "detail": self.NO_ACCOUNTS_DETAIL,
+                            "posted": 0,
+                            "failed": 0,
+                        },
+                        status=status.HTTP_409_CONFLICT,
+                    )
                 return Response(
                     {
                         "mode": "emergency",
@@ -80,6 +120,19 @@ class SocialPublishAPI(APIView):
                 media_urls=media_urls,
                 source=request.data.get("source") or "api",
             )
+            if not rows:
+                # 202 + {"queued": 0} let an admin click Publish, see success, and
+                # have nothing ever post. An empty integration set is a refusal,
+                # not an acceptance.
+                return Response(
+                    {
+                        "error": "no_connected_accounts",
+                        "detail": self.NO_ACCOUNTS_DETAIL,
+                        "queued": 0,
+                        "outbox_ids": [],
+                    },
+                    status=status.HTTP_409_CONFLICT,
+                )
             return Response(
                 {"queued": len(rows), "outbox_ids": [str(r.id) for r in rows]},
                 status=status.HTTP_202_ACCEPTED,

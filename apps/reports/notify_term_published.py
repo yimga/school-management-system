@@ -74,14 +74,36 @@ def _term_label(term: Any) -> str:
     return label[:TERM_PREVIEW_CHARS]
 
 
-def _results_link() -> str:
-    """Best-effort student results URL → ``""`` if not reversible."""
-    try:
-        from django.urls import reverse
+#: Route names tried, in order, for the "your results are ready" deep link.
+#: This used to reverse ``reports:student_results``, a name that exists in NO
+#: urlconf, so ``_results_link`` returned ``""`` every single time and every
+#: term-publish notification shipped with no way to reach the results. (The
+#: bulk-share notification had the mirror-image bug: a hardcoded ``"/reports/"``,
+#: which resolves to nothing on ``config/tenant_urls.py`` — it is only a route on
+#: the dev-only ``config/urls.py``, where it is the public MARKETING page, which
+#: is exactly why it looked fine locally.) ``portal`` IS mounted on the tenant
+#: host, so these names resolve for a real school.
+STUDENT_RESULTS_ROUTE_NAMES = (
+    "portal:student_portal_grades",
+    "portal:parent_dashboard",
+)
 
-        return reverse("reports:student_results")
-    except Exception:  # noqa: BLE001 — missing/renamed URL must not break the notify
-        return ""
+
+def student_results_link() -> str:
+    """The URL a "results are ready" notification should open — ``""`` if none."""
+    from django.urls import reverse
+
+    for name in STUDENT_RESULTS_ROUTE_NAMES:
+        try:
+            return reverse(name)
+        except Exception:  # noqa: BLE001 — missing/renamed URL must not break the notify
+            continue
+    return ""
+
+
+def _results_link() -> str:
+    """Backwards-compatible alias for :func:`student_results_link`."""
+    return student_results_link()
 
 
 def _students_for_scope(
@@ -197,4 +219,4 @@ def notify_term_results_published(
         )
 
 
-__all__ = ["notify_term_results_published"]
+__all__ = ["notify_term_results_published", "student_results_link"]

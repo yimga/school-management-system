@@ -107,17 +107,49 @@ class InvalidStageTransition(ValueError):
     pass
 
 
-def can_transition(current: str, target: str) -> bool:
+# ENROLLED is not a stage an operator walks an applicant into. It is what
+# ``enroll_applicant_to_student`` leaves behind AFTER it has created the
+# StudentProfile. The applicant detail page renders one POST button per target
+# ``can_transition`` accepts, so while ACCEPTED -> ENROLLED was an ordinary edge
+# an operator could set the stage with no student created anywhere -- and the
+# stage is terminal, so there was no way back: every stage button disappears,
+# ``can_enroll`` answers ``applicant_must_be_accepted_not_ENROLLED``, and the
+# admissions queue tile drops the row. The child counted as enrolled in the
+# funnel and existed in no roster, gradebook, register or fee ledger.
+#
+# The edge stays in ``_ALLOWED_TRANSITIONS`` -- it is a legal move, just not a
+# freehand one. The enrollment service passes the keyword; nothing else does.
+_SERVICE_ONLY_STAGES = frozenset({ENROLLED})
+
+
+def can_transition(
+    current: str, target: str, *, via_enrollment_service: bool = False
+) -> bool:
+    if target in _SERVICE_ONLY_STAGES and not via_enrollment_service:
+        return False
     return target in _ALLOWED_TRANSITIONS.get(current, frozenset())
 
 
-def require_transition(current: str, target: str) -> None:
+def require_transition(
+    current: str, target: str, *, via_enrollment_service: bool = False
+) -> None:
     if current == target:
         return
-    if not can_transition(current, target):
+    if can_transition(
+        current, target, via_enrollment_service=via_enrollment_service
+    ):
+        return
+    if target in _SERVICE_ONLY_STAGES and can_transition(
+        current, target, via_enrollment_service=True
+    ):
+        # Reachable, but only through the door that also creates the student.
         raise InvalidStageTransition(
-            f"Cannot advance applicant from {current!r} to {target!r}."
+            f"{target} is recorded by the enrollment action, not by a stage "
+            "change -- use Enroll so the student record is actually created."
         )
+    raise InvalidStageTransition(
+        f"Cannot advance applicant from {current!r} to {target!r}."
+    )
 
 
 # ---- Application payload helpers -----------------------------------------
@@ -237,14 +269,21 @@ def advance_stage(
     extra_data: dict[str, Any] | None,
     actor_id: int | None = None,
     note: str = "",
+    via_enrollment_service: bool = False,
 ) -> tuple[str, dict[str, Any]]:
     """Validate + record the stage transition.
 
     Returns ``(new_stage, new_extra_data)``. Caller persists.
+
+    ``via_enrollment_service`` is the enrollment runner's key to ENROLLED (see
+    ``_SERVICE_ONLY_STAGES``). No view passes it, and none should: a stage
+    button that sets ENROLLED creates no student.
     """
     if target_stage not in ALL_STAGES:
         raise ValueError(f"Unknown stage {target_stage!r}")
-    require_transition(current_stage, target_stage)
+    require_transition(
+        current_stage, target_stage, via_enrollment_service=via_enrollment_service
+    )
 
     payload = get_application_payload(extra_data)
     payload["history"].append(
@@ -372,6 +411,7 @@ def _default_enroll_runner(
             extra_data=applicant.extra_data,
             actor_id=actor_user_id,
             note="auto-promoted by enrollment service",
+            via_enrollment_service=True,
         )
         applicant.stage = new_stage
         applicant.extra_data = new_extra

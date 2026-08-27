@@ -51,6 +51,15 @@ def queryset_for_scope(
     school: School | None,
     platform_scope: bool,
 ):
+    """Turn a resolved scope into a queryset, fail-closed on the ambiguous case.
+
+    The three arms are NOT interchangeable: "platform" means ``school__isnull=True``
+    (the corporate accounts), a tenant means ``school=``, and "no school and no
+    affirmative platform host" means ``.none()`` -- never an unfiltered queryset.
+    This helper had zero callers and was catalogued as dead code while
+    ``publisher.enqueue_cross_post`` open-coded the same decision and got the third
+    arm backwards, reading "no school" as "platform". It is the caller now.
+    """
     if platform_scope:
         return model_manager.filter(school__isnull=True)
     if school is None:
@@ -69,16 +78,28 @@ def assert_integration_access(
         user = getattr(request, "user", None)
         if not user or not getattr(user, "is_authenticated", False):
             raise SocialTenantScopeError("Authentication required for platform social scope.")
-        if not (getattr(user, "is_superuser", False) or getattr(user, "is_staff", False)):
+        # ``is_staff`` is NOT an operator marker on this platform: the default
+        # tenant admin is created with is_staff=True
+        # (accounts/management/commands/ensure_default_tenant_admin.py), so the
+        # old test admitted every school's ADMIN to the COMPANY's own social
+        # credentials. ``user_has_control_plane_access`` is the platform's real
+        # operator predicate -- superuser, or an active PlatformOperatorProfile,
+        # or an operator role with no SchoolMembership -- and it deliberately
+        # excludes tenant staff.
+        from apps.schools.control_plane import user_has_control_plane_access
+
+        if not user_has_control_plane_access(user):
             logger.critical(
                 "social_cross_scope_blocked",
                 extra={
                     "action": action,
                     "integration_id": str(integration.id),
-                    "reason": "platform_integration_non_staff",
+                    "reason": "platform_integration_non_operator",
                 },
             )
-            raise SocialTenantScopeError("Platform social credentials require staff access.")
+            raise SocialTenantScopeError(
+                "Platform social credentials require platform-operator access."
+            )
         return
 
     if school is None or integration.school_id != school.id:
