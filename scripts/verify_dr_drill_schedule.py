@@ -58,21 +58,62 @@ def _read_schedule() -> Schedule | None:
     return Schedule(cadence_days=cadence, next_drill_due_by=due)
 
 
+def _disqualifying_reason(entry: dict) -> str:
+    """Why this log entry is not evidence that disaster recovery was exercised.
+
+    Returns "" when the entry IS a real drill.
+
+    The previous implementation counted ANY entry carrying a parseable
+    ``finished_at``. Its own docstring claimed it required an ``--apply`` run or
+    a dry-run with operator-recorded statuses; it checked neither, and never
+    looked at ``status`` at all. Every entry in the log therefore satisfied it,
+    including:
+
+    * ``dry_run: true`` entries whose nine checks all record ``"would-run"`` --
+      the literal string meaning nothing executed;
+    * ``apply_local: true`` entries, which are ``restore_drill.py --apply-local``
+      smoke tests that COUNT ROWS IN THE LOCAL DEVELOPMENT DATABASE. Their
+      checks carry ``allow_empty=True`` ("empty local OK; table must exist"), so
+      on the usual empty dev DB they assert only that the table exists. None has
+      a ``backup_ts``: no backup was fetched and nothing was restored.
+
+    So the gate that certifies quarterly DR compliance was green because someone
+    had run a script on a laptop. A drill is a RESTORE: a real backup, restored,
+    then queried. That is what this now requires.
+    """
+    if entry.get("dry_run") is True:
+        return "dry-run: checks record 'would-run', nothing was restored"
+    if entry.get("apply_local") is True:
+        return "--apply-local: smoke test against the local DB, not a restore"
+    if not entry.get("backup_ts"):
+        return "no backup_ts: no backup was restored"
+    checks = entry.get("checklist") or []
+    if not checks:
+        return "no checklist recorded"
+    if any(
+        isinstance(c, dict) and c.get("status") == "fail" for c in checks
+    ):
+        return "checklist contains a failing check"
+    return ""
+
+
 def _last_successful_drill_date() -> date | None:
+    for candidate, _entry in _qualifying_drills():
+        return candidate  # _qualifying_drills yields newest first
+    return None
+
+
+def _qualifying_drills() -> list[tuple[date, dict]]:
+    """(date, entry) for every log entry that is a real restore drill, newest first."""
     if not LOG_PATH.exists():
-        return None
+        return []
     try:
         log = json.loads(LOG_PATH.read_text(encoding="utf-8"))
     except json.JSONDecodeError:
-        return None
+        return []
     if not isinstance(log, list):
-        return None
-    # Consider an entry "successful" when it has a finished_at timestamp
-    # and is either an --apply run (dry_run=False) OR a dry-run that
-    # explicitly recorded operator-run checklist statuses. We accept the
-    # dry-run case because the runbook design treats a passing dry-run
-    # against the live runbook as an acceptable cadence touchpoint.
-    most_recent: date | None = None
+        return []
+    found: list[tuple[date, dict]] = []
     for entry in log:
         if not isinstance(entry, dict):
             continue
@@ -83,10 +124,30 @@ def _last_successful_drill_date() -> date | None:
             ts = datetime.fromisoformat(finished.replace("Z", "+00:00"))
         except ValueError:
             continue
-        candidate = ts.astimezone(timezone.utc).date()
-        if most_recent is None or candidate > most_recent:
-            most_recent = candidate
-    return most_recent
+        if _disqualifying_reason(entry):
+            continue
+        found.append((ts.astimezone(timezone.utc).date(), entry))
+    return sorted(found, key=lambda pair: pair[0], reverse=True)
+
+
+def _rejected_summary() -> dict[str, int]:
+    """How many log entries were rejected, by reason -- so a red is explainable."""
+    if not LOG_PATH.exists():
+        return {}
+    try:
+        log = json.loads(LOG_PATH.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return {}
+    if not isinstance(log, list):
+        return {}
+    counts: dict[str, int] = {}
+    for entry in log:
+        if not isinstance(entry, dict):
+            continue
+        reason = _disqualifying_reason(entry)
+        if reason:
+            counts[reason] = counts.get(reason, 0) + 1
+    return counts
 
 
 def _summary(today: date) -> dict:
@@ -127,6 +188,12 @@ def _summary(today: date) -> dict:
         "last_drill_date": last_drill.isoformat() if last_drill else None,
         "verdict": verdict,
         "ok": ok,
+        # A gate that just says "overdue" invites someone to move the date. Say
+        # what was in the log and why it did not count, so the operator can see
+        # the difference between "we never drilled" and "we drilled and the
+        # entry is malformed".
+        "qualifying_drills": len(_qualifying_drills()),
+        "rejected_log_entries": _rejected_summary(),
     }
 
 
