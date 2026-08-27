@@ -200,3 +200,49 @@ class TheOrderingIsLoadBearingTests(SimpleTestCase):
             ),
             chain.index("django.middleware.security.SecurityMiddleware"),
         )
+
+
+class TheRedirectMustNotBePermanentTests(SimpleTestCase):
+    """A 301 outlives the fix. The wrong target was cached by every device.
+
+    Django issues HttpResponsePermanentRedirect and sets no cache directives, so a
+    browser keeps a 301 indefinitely and stops asking. That is how a box that had
+    been rebuilt onto the corrected code still sent one operator to the dead
+    address: the box was right and the browser never consulted it.
+
+    This stack already refuses that kind of irreversibility once -- HSTS is pinned
+    to 0 so the TLS decision stays reversible. A box can move address or have TLS
+    switched off again; nothing about where it answers deserves "permanent".
+    """
+
+    def _fix(self, code, location="https://10.10.20.137:10000/x/"):
+        response = HttpResponse(status=code)
+        response["Location"] = location
+        return EdgeHttpsPortRedirectMiddleware(lambda r: response)(
+            RequestFactory().get("/x/")
+        )
+
+    def test_a_rewritten_permanent_redirect_becomes_temporary(self):
+        fixed = self._fix(301)
+        self.assertEqual(fixed.status_code, 302)
+        self.assertEqual(fixed["Location"], "https://10.10.20.137/x/")
+
+    def test_the_method_preserving_permanent_becomes_the_temporary_one(self):
+        # 308 -> 307, not 302: downgrading to 302 would let a client turn a POST
+        # into a GET, which is a different bug than the one being fixed.
+        self.assertEqual(self._fix(308).status_code, 307)
+
+    def test_an_already_temporary_redirect_keeps_its_code(self):
+        self.assertEqual(self._fix(302).status_code, 302)
+        self.assertEqual(self._fix(307).status_code, 307)
+
+    def test_a_redirect_it_does_not_touch_keeps_being_permanent(self):
+        # Only the target this class corrects is downgraded. Everything else --
+        # canonical hosts, appended slashes -- keeps whatever it chose.
+        untouched = self._fix(301, location="https://10.10.20.137/already/")
+        self.assertEqual(untouched.status_code, 301)
+        self.assertEqual(untouched["Location"], "https://10.10.20.137/already/")
+
+    def test_a_plain_http_permanent_redirect_is_left_alone(self):
+        untouched = self._fix(301, location="http://10.10.20.137:10000/x/")
+        self.assertEqual(untouched.status_code, 301)

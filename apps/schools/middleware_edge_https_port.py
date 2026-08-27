@@ -70,6 +70,10 @@ def retarget_location(location: str) -> str:
     return urlunsplit(("https", netloc, parsed.path, parsed.query, parsed.fragment))
 
 
+#: Permanent -> temporary, preserving whether the method may be rewritten.
+_TEMPORARY = {301: 302, 308: 307}
+
+
 class EdgeHttpsPortRedirectMiddleware:
     """Rewrite an https redirect that points at the plain-HTTP web port."""
 
@@ -84,6 +88,17 @@ class EdgeHttpsPortRedirectMiddleware:
                 fixed = retarget_location(location)
                 if fixed != location:
                     response["Location"] = fixed
+                    # And stop it being PERMANENT. A 301 with no cache directives
+                    # is kept by browsers indefinitely, so the wrong target -- the
+                    # one this class exists to correct -- outlives the fix in every
+                    # device that saw it, and no rebuild can reach it. That is the
+                    # same irreversibility this stack already refuses elsewhere by
+                    # pinning HSTS to 0 so the TLS decision stays reversible. A box
+                    # can move address, or have TLS turned off again; nothing about
+                    # where it answers deserves the word permanent.
+                    response.status_code = _TEMPORARY.get(
+                        response.status_code, response.status_code
+                    )
         except Exception:  # noqa: BLE001
             # Never turn a working page into a 500 over a redirect target. A box in
             # a school office has no one to read the traceback.
