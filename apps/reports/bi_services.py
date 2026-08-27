@@ -331,25 +331,11 @@ class ReportCacheManager:
         params_str = json.dumps(parameters, sort_keys=True)
         return f"{prefix}:report:{report_type}:{hash(params_str)}"
 
-    @staticmethod
-    def _store_materialized(
-        cache_key: str, report_type: str, data: Any, parameters: Dict, duration: int
-    ):
-        """Store materialized report in database"""
-        from apps.reports.bi_models import MaterializedReportCache
-
-        expires_at = timezone.now() + timedelta(seconds=duration)
-
-        MaterializedReportCache.objects.update_or_create(
-            cache_key=cache_key,
-            defaults={
-                "report_type": report_type,
-                "data": data if isinstance(data, dict) else {"result": str(data)},
-                "parameters": parameters,
-                "row_count": len(data) if isinstance(data, (list, dict)) else 0,
-                "expires_at": expires_at,
-            },
-        )
+    # _store_materialized was removed with the MaterializedReportCache model.
+    # reports.0017 dropped that table; this writer kept calling
+    # update_or_create against it and had no callers, so it was not a live 500
+    # -- it was a landmine for whoever wired it up next. get_or_generate above
+    # already materialises through the Django cache.
 
     @staticmethod
     def invalidate_report_cache(report_type: str, school_id: Optional[str] = None):
