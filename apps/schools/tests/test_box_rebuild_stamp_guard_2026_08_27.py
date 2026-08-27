@@ -130,8 +130,10 @@ class TheScriptRefusesToClaimSuccessTests(SimpleTestCase):
     def test_the_build_runs_before_the_containers_are_recreated(self):
         # Ordering IS the fix. Recreating first would serve the old image and the
         # later build would look like it worked.
+        # The up goes through the compose() wrapper now, because a box in a TLS
+        # mode has to carry --profile tls or its terminator never starts.
         build_at = self.text.index('"${COMPOSE[@]}" build web')
-        up_at = self.text.index('"${COMPOSE[@]}" up -d')
+        up_at = self.text.index("if ! compose up -d")
         self.assertLess(build_at, up_at)
 
     def test_a_failed_build_leaves_the_box_alone(self):
@@ -142,7 +144,7 @@ class TheScriptRefusesToClaimSuccessTests(SimpleTestCase):
         # --check exists so somebody can ask the question without committing to a
         # twenty-minute build. It must return before anything mutates.
         check_at = self.text.index('if [ "$CHECK_ONLY" = "1" ]; then')
-        for mutation in ('"${COMPOSE[@]}" build web', '"${COMPOSE[@]}" up -d', "merge --ff-only"):
+        for mutation in ('"${COMPOSE[@]}" build web', "if ! compose up -d", "merge --ff-only"):
             self.assertLess(
                 check_at, self.text.index(mutation), "%s runs before --check exits" % mutation
             )
@@ -428,3 +430,121 @@ echo "RENDERED_EXISTS=$([ -f "$CADDYFILE" ] && echo yes || echo no)"
         # Otherwise the next bootstrap re-dirties the checkout and we are back here.
         ignore = (SELFHOST.parents[1] / ".gitignore").read_text(encoding="utf-8")
         self.assertIn("deploy/selfhost/Caddyfile.edge.rendered", ignore)
+
+
+class TheTlsProfileMustSurviveAColdStartTests(SimpleTestCase):
+    """A box in a TLS mode keeps its terminator behind a compose PROFILE.
+
+    `docker compose up -d` does not start a profiled service. So a rebuild on a box
+    that was fully down -- a `compose down`, a disk swap, a stop somebody did on
+    purpose -- brought the stack back with no HTTPS at all: :10000 answered, :443
+    did not, and the script printed "Done. This box is running its own checkout."
+    The claim it makes about the code was true, and the box half worked.
+
+    These RUN the real block out of the real script. The mode is read from the
+    box's own .env, and .env files get edited on laptops, quoted by hand, and set
+    twice.
+    """
+
+    START = "# The TLS terminator runs behind a compose PROFILE"
+    END = "printf '%sRunMyCampus box rebuild%s"
+
+    def setUp(self):
+        _need_bash(self)
+        self.dir = tempfile.mkdtemp(prefix="tls-profile-")
+        self.addCleanup(shutil.rmtree, self.dir, True)
+
+    def _block(self) -> str:
+        text = REBUILD.read_text(encoding="utf-8")
+        start = text.index(self.START)
+        return text[start : text.index(self.END, start)]
+
+    def _run(self, env_text) -> str:
+        if env_text is not None:
+            (pathlib.Path(self.dir) / ".env").write_bytes(env_text.encode("utf-8"))
+        script = (
+            "set -uo pipefail\n"
+            'HERE="' + self.dir.replace(chr(92), "/") + '"\n'
+            "COMPOSE=(echo DOCKER)\n"
+            'die() { echo "DIE: $*"; exit 1; }\n'
+            + self._block()
+            + '\necho "MODE=[$TLS_MODE]"\n'
+            + self._up_line()
+            + "\n"
+        )
+        proc = subprocess.run(["bash", "-c", script], capture_output=True, text=True)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        return proc.stdout
+
+    def _up_line(self) -> str:
+        """The REAL up invocation, lifted out of step 5 -- not one typed here.
+
+        A behavioural test that writes its own `compose up -d` proves the wrapper
+        works and nothing at all about whether step 5 calls it. Reverting the fix
+        left every one of these green; only the structural test noticed.
+        """
+        step5 = self._step5()
+        start = step5.index("if ! ")
+        return step5[start : step5.index(chr(10) + "fi", start) + 3]
+
+    # -- reading the mode out of a real .env ---------------------------------
+
+    def test_a_plain_value_is_read(self):
+        self.assertIn("MODE=[lan-mkcert]", self._run("RMC_EDGE_TLS_MODE=lan-mkcert\n"))
+
+    def test_a_quoted_value_is_read(self):
+        self.assertIn("MODE=[lan-mkcert]", self._run('RMC_EDGE_TLS_MODE="lan-mkcert"\n'))
+
+    def test_a_crlf_env_does_not_smuggle_a_carriage_return_into_the_mode(self):
+        # A trailing CR makes the value compare unequal to "off", so an OFF box
+        # would start a terminator it has no certificate for. That is worse than
+        # no HTTPS: something binds :443 and presents nothing.
+        out = self._run("RMC_EDGE_TLS_MODE=off" + chr(13) + "\n")
+        self.assertIn("MODE=[off]", out)
+        self.assertNotIn("--profile", out)
+
+    def test_the_last_assignment_wins(self):
+        self.assertIn(
+            "MODE=[lan-ca]",
+            self._run("RMC_EDGE_TLS_MODE=off\nRMC_EDGE_TLS_MODE=lan-ca\n"),
+        )
+
+    def test_a_commented_out_line_is_not_read(self):
+        self.assertIn("MODE=[]", self._run("#RMC_EDGE_TLS_MODE=lan-ca\n"))
+
+    def test_a_missing_env_is_empty_rather_than_an_error(self):
+        self.assertIn("MODE=[]", self._run(None))
+
+    # -- what the mode does to the up ----------------------------------------
+
+    def test_a_tls_box_brings_its_terminator_up_with_the_stack(self):
+        self.assertIn(
+            "DOCKER --profile tls up -d", self._run("RMC_EDGE_TLS_MODE=lan-mkcert\n")
+        )
+
+    def test_an_off_box_does_not_start_a_terminator(self):
+        out = self._run("RMC_EDGE_TLS_MODE=off\n")
+        self.assertIn("DOCKER up -d", out)
+        self.assertNotIn("--profile", out)
+
+    def test_a_box_that_never_set_a_mode_does_not_start_a_terminator(self):
+        out = self._run("SOMETHING_ELSE=1\n")
+        self.assertIn("DOCKER up -d", out)
+        self.assertNotIn("--profile", out)
+
+    # -- structure -----------------------------------------------------------
+
+    def _step5(self) -> str:
+        text = REBUILD.read_text(encoding="utf-8")
+        return text[text.index("--- 5. swap the containers") : text.index("--- 6.")]
+
+    def test_step_five_goes_through_the_profile_aware_wrapper(self):
+        step5 = self._step5()
+        self.assertIn("compose up -d", step5)
+        self.assertNotIn('"${COMPOSE[@]}" up -d', step5)
+
+    def test_a_terminator_that_will_not_start_fails_the_run(self):
+        # A warning is not enough. An operator who reads "Done" walks away.
+        step5 = self._step5()
+        self.assertIn("ps -q edge-tls", step5)
+        self.assertIn("die ", step5[step5.index("ps -q edge-tls") :])

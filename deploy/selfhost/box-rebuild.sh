@@ -75,6 +75,24 @@ running_commit() {
 container_id() { "${COMPOSE[@]}" ps -q web 2>/dev/null | head -1; }
 checkout_commit() { git -C "$REPO_ROOT" rev-parse HEAD 2>/dev/null; }
 
+# The TLS terminator runs behind a compose PROFILE, and a plain `up -d` does not
+# start a profiled service. On a box that was fully down -- `compose down`, a disk
+# swap, a rebuild after a stop -- that brings the stack back with NO HTTPS: :10000
+# answers, :443 does not, and nothing in the output says why. So read the box's own
+# configured mode and carry the profile when it has one. `off` is the default and
+# must stay profile-less: starting Caddy on a box with no certificate binds :443 to
+# a terminator that has nothing to present.
+edge_tls_mode() {
+  awk -F= '/^[[:space:]]*RMC_EDGE_TLS_MODE[[:space:]]*=/ {v=$2} END {gsub(/[^[:alnum:]_-]/, "", v); print v}' "$HERE/.env" 2>/dev/null
+}
+TLS_MODE="$(edge_tls_mode)"
+PROFILE_ARGS=()
+if [ -n "$TLS_MODE" ] && [ "$TLS_MODE" != "off" ]; then
+  PROFILE_ARGS=(--profile tls)
+fi
+# ${arr[@]+...} because `set -u` and an empty array are not friends on older bash.
+compose() { "${COMPOSE[@]}" ${PROFILE_ARGS[@]+"${PROFILE_ARGS[@]}"} "$@"; }
+
 printf '%sRunMyCampus box rebuild%s   %s\n' "$B" "$N" "$REPO_ROOT"
 
 # --- 1. can we act at all? ---------------------------------------------------
@@ -190,10 +208,26 @@ step "Recreate the containers"
 # The entrypoint runs migrations and check_edge_readiness on the way up, so there
 # is deliberately no separate migrate step here -- two places that migrate is one
 # place too many.
-if ! "${COMPOSE[@]}" up -d 2>&1 | sed 's/^/       /'; then
+if [ -n "$TLS_MODE" ] && [ "$TLS_MODE" != "off" ]; then
+  ok "TLS mode is '$TLS_MODE' -- bringing the terminator up with the stack"
+fi
+if ! compose up -d 2>&1 | sed 's/^/       /'; then
   die "containers failed to come up. \`docker compose -f $COMPOSE_FILE logs web\` will say why."
 fi
 ok "containers recreated"
+
+# A box in a TLS mode whose terminator is not running has no HTTPS at all. The
+# rebuild itself may have gone perfectly; saying so and stopping there is how an
+# operator walks away from a box that half works.
+if [ -n "$TLS_MODE" ] && [ "$TLS_MODE" != "off" ]; then
+  TLS_CID="$(compose ps -q edge-tls 2>/dev/null | head -1)"
+  if [ -z "$TLS_CID" ]; then
+    die "TLS mode is '$TLS_MODE' but the terminator did not start, so nothing is
+  serving HTTPS on this box. \`docker compose -f $COMPOSE_FILE --profile tls logs edge-tls\`
+  will say why. The code rebuild itself succeeded."
+  fi
+  ok "terminator running"
+fi
 bar 5
 
 # --- 6. wait for it to actually serve ----------------------------------------
