@@ -436,6 +436,12 @@ jobs:
             python scripts/verify_tenant_scoping_burndown.py
           }
 
+          # Deliberately NARROW: a hand-maintained pin on four money mutators,
+          # not coverage of apps/finance/. See the script's docstring.
+          u_finance_payment_atomicity() {
+            python scripts/verify_finance_payment_atomicity.py
+          }
+
           u_config_sot_domain_ownership() {
             python scripts/verify_domain_ownership_exact_storage.py
           }
@@ -1086,6 +1092,7 @@ jobs:
           run_unit u_undefined_color_token_fallback "CSS: no colour declaration collapses on an undeclared token"
           run_unit u_render_online_ai_posture "AI posture: online profile does not route to an edge-only tier"
           run_unit u_tenant_scoping_burndown "Tenant-scoping burndown is ahead of its committed dates"
+          run_unit u_finance_payment_atomicity "Four named money mutators still wrap writes in transaction.atomic"
 
           if [ -n "$failed" ]; then
             echo ""

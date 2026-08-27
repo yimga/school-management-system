@@ -74,6 +74,9 @@ REQUIRED_GATES: tuple[tuple[str, str], ...] = (
     ("scripts/scan_undefined_color_token_fallback.py", "architectural-boundaries.yml"),
     ("scripts/verify_render_online_ai_posture.py", "architectural-boundaries.yml"),
     ("scripts/verify_tenant_scoping_burndown.py", "architectural-boundaries.yml"),
+    # Narrow by construction (a hand-maintained pin on four money mutators), but
+    # four enforced invariants beat zero and nothing invoked it before.
+    ("scripts/verify_finance_payment_atomicity.py", "architectural-boundaries.yml"),
     # Added 2026-08-23: a merge that adds a migration to an app another branch also
     # touched produces two leaf nodes, and Django then refuses to migrate that app.
     # git reports a clean merge; the failure is in a graph no diff shows.

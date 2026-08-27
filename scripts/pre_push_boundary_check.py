@@ -276,6 +276,11 @@ GATES: list[tuple[str, list[str]]] = [
     # burndown is still ahead of its committed dates, which the count-based
     # gates cannot see.
     ("tenant-scoping-burndown", ["verify_tenant_scoping_burndown.py"]),
+    # Pins transaction.atomic on four named money mutators. Deliberately NARROW
+    # -- it is a hand-maintained list, not coverage of apps/finance/, and its own
+    # docstring says so at length. Wired because four enforced invariants beat
+    # zero, and nothing invoked it before.
+    ("finance-payment-atomicity", ["verify_finance_payment_atomicity.py"]),
 ]
 
 # Gates that CANNOT answer without the live Django app registry, and are therefore not
