@@ -109,6 +109,7 @@ def run_edge_bringup(
     inputs: BringupInputs,
     do_prep: bool = True,
     do_sync_gate: bool = True,
+    do_go_dark: bool = True,
     self_heal: bool = True,
     runner=None,
 ) -> dict:
@@ -126,6 +127,10 @@ def run_edge_bringup(
         "steps_ok": False,
         "healed": [],
         "offline_ready": False,
+        # Steps 16-17. Separate from offline_ready on purpose -- see the tail of this
+        # function for why the older word is left meaning exactly what it meant.
+        "go_dark": None,
+        "converged": False,
         "error": "",
     }
 
@@ -179,4 +184,54 @@ def run_edge_bringup(
     #    gate can NEVER be certified offline-ready — it is held back until the gate runs.
     prep_ok = all(e["ok"] for e in report["prep"]) if report["prep"] else True
     report["offline_ready"] = bool(prep_ok and report["steps_ok"] and gate_cleared is True)
+
+    # 6) Steps 16-17: prove one live round-trip, then the go-dark composite.
+    #
+    # These cannot come from the loop in (3). That loop walks
+    # run_verification_suite(include_gate=False), which keeps only cloud_preview
+    # steps -- and all three verification steps are cloud_preview=False precisely
+    # because their evidence is a real sync. So they are healed explicitly, here,
+    # after the gate has cleared.
+    #
+    # Ordering is not incidental: a live cycle attempted before the dry gate clears
+    # fails for the same reason the gate would have, and writes a failed LIVE run
+    # into the record an operator reads to decide whether this box converges at all.
+    # The heals refuse on their own too, but a caller that invites the refusal is a
+    # caller that will one day be read as permission.
+    if do_go_dark and gate_cleared:
+        from apps.lifecycle.edge_onboarding import heal_step
+
+        go_dark: dict = {"attempted": True, "live": None, "checklist": None, "ok": False}
+        live = heal_step(school, "live_sync_proof")
+        go_dark["live"] = live
+        if live.get("healed"):
+            report["healed"].append("live_sync_proof")
+        checklist = heal_step(school, "go_dark_checklist")
+        go_dark["checklist"] = checklist
+        if checklist.get("healed"):
+            report["healed"].append("go_dark_checklist")
+        go_dark["ok"] = bool(checklist.get("healed"))
+        report["go_dark"] = go_dark
+    elif do_go_dark:
+        # Saying WHY it did not run matters: "not attempted" and "attempted and
+        # failed" send somebody to different places.
+        report["go_dark"] = {
+            "attempted": False,
+            "live": None,
+            "checklist": None,
+            "ok": False,
+            "detail": (
+                "not attempted -- the dry sync gate did not clear"
+                if do_sync_gate
+                else "not attempted -- the sync gate was skipped"
+            ),
+        }
+
+    # `converged` is the strong claim: cleared to go offline AND proven to come back.
+    # `offline_ready` deliberately keeps its original, weaker meaning, because it is
+    # already pinned by tests and by an operator's expectations, and redefining a
+    # word in place is how a report starts disagreeing with the people reading it.
+    report["converged"] = bool(
+        report["offline_ready"] and (report.get("go_dark") or {}).get("ok")
+    )
     return report
