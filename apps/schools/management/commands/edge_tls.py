@@ -120,6 +120,31 @@ class Command(BaseCommand):
                 "the which-address-do-we-name rule."
             ),
         )
+        parser.add_argument(
+            "--export-mdm",
+            default="",
+            metavar="DIR",
+            help=(
+                "Write everything a management console needs into DIR: the CA itself, "
+                "an Apple .mobileconfig, the Android Enterprise caCerts snippet, and a "
+                "README naming the fingerprint. Public material only -- the private key "
+                "is never read by this path. On a managed fleet this replaces the "
+                "per-device steps entirely."
+            ),
+        )
+        parser.add_argument(
+            "--verify-fingerprint",
+            default="",
+            metavar="VALUE",
+            help=(
+                "Compare VALUE against this box's certificate authority and answer "
+                "MATCH or exit non-zero. Paste what the trust page showed the device: "
+                "the comparison that page depends on is 64 hex characters read by a "
+                "person, and everybody checks the first four and the last four. "
+                "Colons, spaces and case are all accepted; a partial fingerprint is "
+                "refused rather than compared."
+            ),
+        )
         parser.add_argument("--json", action="store_true", help="Machine-readable output.")
 
     # -- helpers ---------------------------------------------------------------
@@ -356,6 +381,154 @@ class Command(BaseCommand):
             "  CA, so devices that already trust it need nothing done to them."
         )
 
+    def _verify_fingerprint(self, claimed: str) -> None:
+        """Answer whether a pasted fingerprint is this box's. Non-zero if not.
+
+        Non-zero on mismatch and not merely a printed line, so this composes: a
+        rollout script can branch on it, and an operator who is only half reading
+        still gets a red exit rather than a paragraph they skimmed.
+        """
+        _cert, _key, ca_path = edge_tls.certificate_paths()
+        ca = edge_tls.inspect_certificate(ca_path)
+        mine = edge_tls.compact_fingerprint(getattr(ca, "fingerprint", ""))
+        if not mine:
+            raise CommandError(
+                f"this box has no readable certificate authority at {ca_path}, so "
+                "there is nothing to compare against. Run "
+                "`deploy/selfhost/edge-bootstrap.sh` first."
+            )
+
+        given = edge_tls.compact_fingerprint(claimed)
+        if len(given) != len(mine):
+            # Refused, not truncated-and-compared. A prefix comparison passes on a
+            # certificate that merely STARTS the same way, and the whole reason this
+            # flag exists is that people compare prefixes.
+            raise CommandError(
+                f"{claimed!r} is not a full SHA-256 fingerprint "
+                f"({len(given)} hex characters, expected {len(mine)}). Refusing to "
+                "compare part of one: matching a prefix is exactly the mistake this "
+                "is here to remove. Copy the whole line from the page."
+            )
+
+        if given != mine:
+            raise CommandError(
+                "DOES NOT MATCH.\n"
+                f"  the page showed  {given}\n"
+                f"  this box has     {mine}\n"
+                "  Do NOT install what that page is offering. Over plain http anyone "
+                "on the network can answer in the box's place, and a certificate "
+                "authority you install can vouch for ANY site -- so this is the one "
+                "check that stands between the school and somebody else's CA. Confirm "
+                "the device is on the school network and reaching the right address."
+            )
+
+        self.stdout.write(
+            self.style.SUCCESS("MATCH  ") + f"{ca.fingerprint}"
+        )
+        self.stdout.write(
+            "  That is this box's certificate authority. The page the device is "
+            "looking at is this box."
+        )
+
+    def _export_mdm(self, destination: str, facts: dict) -> None:
+        """Write the console payloads. Public material only, by construction.
+
+        This path reads exactly one file -- ``ca.crt`` -- and never resolves the key
+        or the .p12 bundle. That is deliberate and is tested: an export folder is the
+        thing most likely to be zipped up and emailed, and the difference between
+        shipping a certificate authority and shipping the power to impersonate every
+        site in the school is one wrong filename.
+        """
+        _cert, _key, ca_path = edge_tls.certificate_paths()
+        ca = edge_tls.inspect_certificate(ca_path)
+        if not ca.readable or not ca.fingerprint:
+            raise CommandError(
+                f"cannot read a certificate authority at {ca_path} -- run "
+                "`manage.py edge_tls --issue-selfsigned` first, or check the volume."
+            )
+
+        target = os.path.abspath(str(destination or "").strip())
+        certificate_dir = os.path.abspath(os.path.dirname(ca_path))
+        if target == certificate_dir:
+            # These files are public and the key in that directory is not. Keeping
+            # them apart means "send them the export folder" can never become "send
+            # them the folder with ca.key in it".
+            raise CommandError(
+                f"refusing to write public payloads into {target}: that directory "
+                "holds the CA PRIVATE KEY, and an export folder is the thing most "
+                "likely to be copied off the box wholesale. Pick another directory."
+            )
+
+        profile = edge_tls.mobileconfig(ca_path)
+        android = edge_tls.android_policy_snippet(ca_path)
+        if not profile or not android:
+            raise CommandError(
+                f"the certificate authority at {ca_path} could not be encoded for "
+                "distribution; it parses but does not re-serialize, which means the "
+                "file is damaged."
+            )
+
+        with open(ca_path, "rb") as handle:
+            ca_bytes = handle.read()
+
+        readme = (
+            "This box's certificate authority, packaged for device management.\n"
+            "\n"
+            f"FINGERPRINT (SHA-256)\n  {ca.fingerprint}\n"
+            "\n"
+            "Check this against what `manage.py edge_tls` prints under \"Trust\n"
+            "anchor\" on the box console BEFORE you push it to anything. A\n"
+            "certificate authority can vouch for any site, so pushing the wrong one\n"
+            "to a fleet is not a small mistake.\n"
+            "\n"
+            f"  subject   {ca.subject}\n"
+            f"  expires   {ca.not_after}\n"
+            "\n"
+            "FILES\n"
+            "  box-ca.crt            The authority itself. Google Admin (Devices >\n"
+            "                        Networks > Certificates, tick 'use as an HTTPS\n"
+            "                        certificate authority'), Microsoft Intune\n"
+            "                        (Trusted certificate profile, destination store\n"
+            "                        'Computer certificate store - Root'), and Group\n"
+            "                        Policy (Trusted Root Certification Authorities)\n"
+            "                        all take this file.\n"
+            "  box-ca.mobileconfig   Apple configuration profile. Jamf, Mosyle,\n"
+            "                        Kandji, Intune or Apple Configurator. A PUSHED\n"
+            "                        profile is trusted on arrival; the same CA\n"
+            "                        installed by hand still needs the Certificate\n"
+            "                        Trust Settings screen on each device.\n"
+            "  android-policy.json   The caCerts fragment for an Android Management\n"
+            "                        API policy. On Android this is not a shortcut --\n"
+            "                        a user-installed authority is ignored by apps, so\n"
+            "                        for managed devices it is the only route at all.\n"
+            "\n"
+            "Nothing here is secret. The private key stays on the box and is not\n"
+            "readable by the command that wrote this folder.\n"
+        )
+
+        os.makedirs(target, exist_ok=True)
+        written = []
+        for name, blob in (
+            ("box-ca.crt", ca_bytes),
+            (edge_tls.MOBILECONFIG_NAME, profile),
+            ("android-policy.json", android.encode("utf-8")),
+            ("README.txt", readme.encode("utf-8")),
+        ):
+            full = os.path.join(target, name)
+            with open(full, "wb") as handle:
+                handle.write(blob)
+            written.append((name, len(blob)))
+
+        style = self.style
+        self.stdout.write(style.MIGRATE_HEADING(f"Wrote device-management payloads to {target}"))
+        for name, size in written:
+            self.stdout.write(f"  {name:<24} {size:>6} bytes")
+        self.stdout.write("")
+        self.stdout.write(style.SUCCESS(f"  fingerprint  {ca.fingerprint}"))
+        self.stdout.write(
+            "  Compare that against the Trust anchor block above before pushing it."
+        )
+
     def handle(self, *args, **options):
         facts = self._facts()
 
@@ -366,6 +539,14 @@ class Command(BaseCommand):
             # reachable address -- the caller decides what to say about that, and a
             # non-zero exit here would abort a bootstrap that otherwise succeeded.
             self.stdout.write(facts["trust_enrolment_url"])
+            return
+
+        if options["verify_fingerprint"]:
+            self._verify_fingerprint(options["verify_fingerprint"])
+            return
+
+        if options["export_mdm"]:
+            self._export_mdm(options["export_mdm"], facts)
             return
 
         if options["export_ca"] and options["import_ca"]:

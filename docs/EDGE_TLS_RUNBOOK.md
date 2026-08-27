@@ -81,17 +81,37 @@ Many sovereign deployments exist *precisely* to avoid that. Do not talk a school
 Everything in section 4b is performed, in the only correct order, by:
 
 ```bash
-export RMC_EDGE_TLS_CA_PASSPHRASE='something-long'
 bash deploy/selfhost/edge-bootstrap.sh
 ```
 
-Safe to run again, any number of times. On a box that is already correct it changes
-nothing and says so. It ends by printing the URL devices should be sent to.
+That is the whole of it. There is nothing to decide first and nothing to set in the
+environment. Safe to run again, any number of times: on a box that is already correct
+it changes nothing and says so. It ends by printing the URL devices should be sent to.
 
-**Where it writes the two files.** `box-ca-bundle.p12` (the encrypted CA backup,
-which carries the PRIVATE KEY) and `box-ca.crt` (the public CA) land in the repo's
-**parent** — `/srv` on a stock box, beside `/srv/rmc`. Override with
-`RMC_EDGE_OUT_DIR=/some/path`.
+**The backup passphrase generates itself.** It used to be a hard stop — set
+`RMC_EDGE_TLS_CA_PASSPHRASE` or the script refused — and that was the wrong trade. A
+secret invented at a console in a school office is either weak or lost by the time it
+is needed, and both of those end with a box whose CA cannot be restored. So when the
+variable is unset the script generates 44 random characters, writes them
+owner-only to `box-ca-passphrase.txt` beside the bundle, and **reuses that file on
+every later run** rather than re-encrypting the bundle under a second passphrase.
+
+Set `RMC_EDGE_TLS_CA_PASSPHRASE` yourself and nothing is generated or written. Point
+`RMC_EDGE_CA_PASSPHRASE_FILE` somewhere else — a mounted secrets volume — and it goes
+there instead. Either way it is read from the environment and never passed as a flag:
+a command line is visible in `ps`, in shell history and in docker's own event log.
+
+> The generated file starts life **next to the bundle it protects**, which is not
+> where it should stay: together in one place, the encryption bought you nothing. The
+> script's closing notes name both paths and ask you to move one. That is a real
+> remaining task, not a formality — but a box with a backup whose passphrase is
+> sitting beside it is strictly better than the box with no backup that the hard stop
+> was producing.
+
+**Where it writes.** `box-ca-bundle.p12` (the encrypted CA backup, which carries the
+PRIVATE KEY), `box-ca.crt` (the public CA), `box-ca-passphrase.txt` and the `mdm/`
+folder all land in the repo's **parent** — `/srv` on a stock box, beside `/srv/rmc`.
+Override with `RMC_EDGE_OUT_DIR=/some/path`.
 
 > **This default changed.** It used to be the repo itself. `$REPO` is a git working
 > tree on every box, so a CA private key sat one `git add -A` away from a public
@@ -113,9 +133,19 @@ not solved by documentation:
 | Reissue and forget to restart the terminator | Detected: the box compares what is **served** against what is on disk and names both. |
 | Pin `SECURE_SSL_REDIRECT` and friends in `.env` | Readiness warns whenever they are set by hand at all — not only when they currently disagree. They will not follow the next mode change. |
 
-What the machine *cannot* do is the part that needs a person: moving the bundle off
-the box, installing the CA on devices, and re-enrolling offline PIN. The script ends
-by listing exactly those three and nothing else.
+**It also writes the management-console payloads, every run.** `mdm/` lands beside
+the bundle and holds `box-ca.mobileconfig`, `box-ca.crt`, `android-policy.json` and a
+README naming the fingerprint. That used to be a separate command
+(`edge_tls --export-mdm`), which is a command nobody remembers exists — and the cost
+of not remembering is a school that could have pushed the CA to every device from one
+console walking the building instead. It still exists for a box being brought up by
+hand; see 5c.
+
+What the machine *cannot* do is the part that genuinely needs a person: moving the
+bundle (or the passphrase) off the box, and re-enrolling offline PIN at the new
+origin. The script ends by listing exactly those two and nothing else. Installing the
+CA on devices used to be on that list; on Windows, macOS and Linux it is now one
+paste, and on a managed fleet it is one console push — see 5b-i and 5c.
 
 ### Checking a box without changing it
 
@@ -315,6 +345,116 @@ them **before** promising a date:
   Browsers honour it, so the web app is fine; a native app pointed at the box is
   not, and that difference will be reported as "it works on my phone but not in the
   app".
+
+Both of those rows stop being hard if the school manages its devices — see 5c.
+
+---
+
+### 5b-i. On a computer, it is one paste
+
+The table above is what the OS makes you do by hand. The trust page does not ask
+anyone to do it by hand: on Windows, macOS and Linux it renders a single command for
+that platform, with the box's own fingerprint compiled into it. The command fetches
+the certificate, computes its SHA-256, compares it against that literal, and installs
+**only** on a match.
+
+That is worth being precise about, because it is easy to read as more than it is.
+
+- **What it removes** is every way this goes wrong that is not an attacker: the wrong
+  store (the single commonest failure — Windows defaults to the *user* store, where
+  Chrome and Edge do not look), a truncated download, yesterday's `ca.crt` still in
+  Downloads from before the box was rebuilt, the wrong box on a site that has two.
+- **What it does not remove** is the reason section 5a asks you to check the
+  fingerprint against the console. A page that lied about the certificate would lie
+  about the literal beside it too. The comparison a person makes against
+  `manage.py edge_tls` is still the only thing standing between a school and somebody
+  else's certificate authority, and no command can make it for you.
+
+**Nothing fetched is ever executed.** The page could have offered a downloadable
+installer and saved another step; it does not, and that is the design rather than an
+omission. This page is served over plain http on a school LAN — that is load-bearing,
+see 5a — and a page that told a device to run whatever the box sent would escalate a
+LAN attacker from *your trust store* to *your machine*. A command that only ever
+installs a fingerprint-checked certificate cannot do that however the page is
+answered.
+
+Administrator / `sudo` is still required and always will be. Writing the machine-wide
+root store is exactly the thing every OS reserves for an administrator, and a web page
+is never going to be granted it.
+
+Firefox keeps its own certificate store on every platform, and Chrome does too on
+Linux. A browser that still warns after one of these commands succeeded is not
+evidence that it failed.
+
+---
+
+### 5c. Managed fleets — the box builds the payload
+
+If the school manages its devices, **nobody performs 5a or 5b at all**. Every console
+can install a root CA on every enrolled device at once, and on Apple hardware a
+*pushed* profile is trusted on arrival: the Certificate Trust Settings screen that
+everybody misses exists only for hand-installed certificates.
+
+The box generates what each console wants, from its own CA:
+
+```
+docker compose -f deploy/selfhost/docker-compose.yml exec web \
+  python manage.py edge_tls --export-mdm /app/var/mdm
+```
+
+| File | Console |
+|---|---|
+| `box-ca.mobileconfig` | Jamf, Mosyle, Kandji, Intune, Apple Configurator |
+| `box-ca.crt` | Google Admin (ChromeOS / Chrome), Intune *Trusted certificate* profile, Group Policy |
+| `android-policy.json` | the `caCerts` fragment for an Android Management API policy |
+| `README.txt` | what each file is for, **with the fingerprint printed in it** |
+
+The profile is also served straight off the box at
+`/edge/trust/box-ca.mobileconfig`, and the trust page offers it as the primary
+download to any Apple device that opens the page.
+
+**The identifiers are derived from the CA fingerprint, deliberately.** Apple replaces
+an installed profile when a new one carries the same `PayloadIdentifier`, and
+installs a *second* one when it does not. So re-pushing after a box rebuild replaces,
+while a genuinely new CA installs alongside and can be told apart. Random UUIDs would
+have quietly accumulated another trust anchor on every device in the school on every
+push.
+
+**Do not write the export into the certificate directory** — the command refuses.
+Everything it writes is public; `ca.key` sits in that directory and is not; and an
+export folder is the thing most likely to be copied off the box wholesale.
+
+Android is the row where this matters most. Since Android 7 a user-installed CA is
+ignored by apps entirely, and Android 11 removed the install intent — so for a
+managed fleet the policy route is not a convenience, it is the only route that works.
+
+---
+
+### 5d. Confirming it actually worked
+
+Almost nobody finds out an install failed on the device they installed it on. They
+find out on the fourth device, a week later, and they blame the phone.
+
+The trust page ends with **4. Check it worked**, and nobody has to press anything:
+it runs on load. It fetches a 1×1 image from the box over https, so a device that
+trusts the box CA completes the handshake and one that does not, does not. Same signal
+on every platform, nothing to install to use it.
+
+It was a button first. A button is a thing to notice, and the person who most needs
+this answer is the one who did not notice — so it now answers before it is asked, and
+the button remains only as *Check again* for after you have fixed something.
+
+Read the answer in one direction only:
+
+- **Confirmed** is definitive. That device trusts this box.
+- **Not confirmed** is *not* proof the CA is missing. A handshake also fails when the
+  terminator is down or listening on another port. The message says so, and names the
+  address it tried.
+
+The check is only offered when it can give a true answer. If the box serves no HTTPS,
+or the address this device used is not in the certificate, the page says *that*
+instead — an unwinnable check reported as "not trusted" would send somebody to
+reinstall a CA that was already fine.
 
 ---
 

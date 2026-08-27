@@ -60,11 +60,15 @@ easy to get wrong:
 """
 from __future__ import annotations
 
+import base64
 import ipaddress
+import json
 import os
 import re
+import uuid
 from dataclasses import dataclass
 from typing import Any
+from xml.sax.saxutils import escape
 
 MODE_OFF = "off"
 MODE_SELF_SIGNED = "selfsigned"
@@ -288,6 +292,319 @@ TRUST_ENROLMENT_PATH = "/edge/trust/"
 def web_port() -> str:
     """The externally published app port, as the box's own environment reports it."""
     return (os.environ.get("WEB_PORT", "") or "").strip() or DEFAULT_WEB_PORT
+
+
+#: The compose file maps this same name (`EDGE_TLS_HTTPS_PORT`) to the terminator's
+#: 443, and `env_file: .env` carries it into the app container -- so the port the LAN
+#: publishes and the port this reports are the same value from the same line, which
+#: they have to be: the trust page builds its verify probe from this, and a probe
+#: aimed at a port nothing listens on reports "not trusted" about a device that is.
+ENV_HTTPS_PORT = "EDGE_TLS_HTTPS_PORT"
+DEFAULT_TLS_PORT = "443"
+
+
+def tls_port() -> str:
+    """The externally published HTTPS port, as the box's own environment reports it."""
+    return (os.environ.get(ENV_HTTPS_PORT, "") or "").strip() or DEFAULT_TLS_PORT
+
+
+# --- What a management console wants, built from this box's own CA -----------------
+#
+# A managed fleet never has to see the per-device install steps: every console can
+# push a root CA to every enrolled device at once. What each one wants differs enough
+# that "export the .crt" is not an answer -- Apple wants a signed plist, Android
+# Enterprise wants base64 DER inside a policy document, Windows and ChromeOS want the
+# DER file itself under different extensions.
+
+#: Apple's configuration-profile media type. Safari uses it to hand the file to the
+#: profile installer instead of downloading it, so serving the wrong one turns a
+#: one-tap install into a file sitting in Downloads that nothing will open.
+MOBILECONFIG_CONTENT_TYPE = "application/x-apple-aspen-config"
+MOBILECONFIG_NAME = "box-ca.mobileconfig"
+
+#: Reverse-DNS root for payload identifiers. Suffixed with the CA fingerprint so a
+#: re-push REPLACES the installed profile and a genuinely different CA installs
+#: alongside it rather than silently overwriting a trust anchor.
+PAYLOAD_IDENTIFIER_ROOT = "com.runmycampus.edge"
+
+#: Used only when the CA carries no common name at all -- which this code never
+#: mints, but a provided-mode CA might. Deliberately generic: guessing a school name
+#: here would put a wrong name in front of every device in the building.
+FALLBACK_PROFILE_NAME = "RunMyCampus box certificate authority"
+
+
+def _subject_attribute(cert: Any, oid: Any) -> str:
+    """One attribute off a certificate subject, or "" -- never a raise."""
+    try:
+        found = cert.subject.get_attributes_for_oid(oid)
+    except Exception:  # noqa: BLE001 - an absent attribute is not an error here
+        return ""
+    return str(found[0].value).strip() if found else ""
+
+
+def ca_der_base64(ca_path: str) -> str:
+    """The CA as base64 DER, or "" -- the one encoding every console consumes.
+
+    Android Enterprise policy documents, Apple payloads and Chrome's admin console
+    all want the DER, and the PEM on disk is that DER base64'd with a header glued
+    on. Reading it through ``cryptography`` rather than string-slicing the PEM means
+    a file that is not actually a certificate returns "" instead of producing a
+    payload that every device in a school will reject one at a time.
+    """
+    try:
+        from cryptography import x509
+        from cryptography.hazmat.primitives.serialization import Encoding
+
+        with open(ca_path, "rb") as handle:
+            cert = x509.load_pem_x509_certificate(handle.read())
+        return base64.b64encode(cert.public_bytes(Encoding.DER)).decode("ascii")
+    except Exception:  # noqa: BLE001 - an unreadable CA is a state, not a crash
+        return ""
+
+
+def mobileconfig(ca_path: str) -> bytes:
+    """An Apple configuration profile carrying this box's CA, or b"".
+
+    ``com.apple.security.root`` is the payload type that puts a certificate in the
+    system root store. Pushed through MDM it is trusted on arrival; installed BY HAND
+    it still needs the Certificate Trust Settings toggle, because Apple reserves
+    automatic trust for profiles a device is supervised into. That asymmetry is why
+    the page keeps the manual iOS step even though it offers this file.
+    """
+    facts = inspect_certificate(ca_path)
+    payload = ca_der_base64(ca_path) if facts.readable else ""
+    if not payload or not facts.fingerprint:
+        return b""
+
+    try:
+        from cryptography import x509
+        from cryptography.hazmat.primitives.serialization import Encoding  # noqa: F401
+        from cryptography.x509.oid import NameOID
+
+        with open(ca_path, "rb") as handle:
+            cert = x509.load_pem_x509_certificate(handle.read())
+        common_name = _subject_attribute(cert, NameOID.COMMON_NAME)
+        organization = _subject_attribute(cert, NameOID.ORGANIZATION_NAME)
+    except Exception:  # noqa: BLE001
+        common_name, organization = "", ""
+
+    name = common_name or FALLBACK_PROFILE_NAME
+    # Derived from the fingerprint, NOT random: see the module note on replace-vs-
+    # duplicate. uuid5 is a pure function of its input, so the same CA always
+    # produces the same profile identity on every box that serves it.
+    seed = facts.fingerprint.replace(":", "").lower()
+    root_uuid = str(uuid.uuid5(uuid.NAMESPACE_URL, f"urn:rmc:edge:ca:{seed}")).upper()
+    cert_uuid = str(uuid.uuid5(uuid.NAMESPACE_URL, f"urn:rmc:edge:root:{seed}")).upper()
+    identifier = f"{PAYLOAD_IDENTIFIER_ROOT}.{seed[:16]}"
+
+    wrapped = "\n".join(
+        "\t\t\t" + payload[index : index + 60] for index in range(0, len(payload), 60)
+    )
+    esc = escape
+
+    document = f"""<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+\t<key>PayloadContent</key>
+\t<array>
+\t\t<dict>
+\t\t\t<key>PayloadType</key>
+\t\t\t<string>com.apple.security.root</string>
+\t\t\t<key>PayloadVersion</key>
+\t\t\t<integer>1</integer>
+\t\t\t<key>PayloadIdentifier</key>
+\t\t\t<string>{esc(identifier)}.root</string>
+\t\t\t<key>PayloadUUID</key>
+\t\t\t<string>{cert_uuid}</string>
+\t\t\t<key>PayloadDisplayName</key>
+\t\t\t<string>{esc(name)}</string>
+\t\t\t<key>PayloadCertificateFileName</key>
+\t\t\t<string>box-ca.crt</string>
+\t\t\t<key>PayloadContent</key>
+\t\t\t<data>
+{wrapped}
+\t\t\t</data>
+\t\t</dict>
+\t</array>
+\t<key>PayloadType</key>
+\t<string>Configuration</string>
+\t<key>PayloadVersion</key>
+\t<integer>1</integer>
+\t<key>PayloadIdentifier</key>
+\t<string>{esc(identifier)}</string>
+\t<key>PayloadUUID</key>
+\t<string>{root_uuid}</string>
+\t<key>PayloadDisplayName</key>
+\t<string>{esc(name)}</string>
+\t<key>PayloadOrganization</key>
+\t<string>{esc(organization or "RunMyCampus")}</string>
+\t<key>PayloadDescription</key>
+\t<string>{esc(f"Trusts this site's own certificate authority. SHA-256 {facts.fingerprint}")}</string>
+\t<key>PayloadRemovalDisallowed</key>
+\t<false/>
+</dict>
+</plist>
+"""
+    return document.encode("utf-8")
+
+
+def android_policy_snippet(ca_path: str) -> str:
+    """The ``caCerts`` fragment an Android Management API policy takes, or "".
+
+    Android is the platform where per-device install is worst -- since Android 7 a
+    user-installed CA is ignored by apps entirely, and Android 11 removed the install
+    intent -- so for anything managed this is not a convenience, it is the only route
+    that works at all.
+    """
+    payload = ca_der_base64(ca_path)
+    if not payload:
+        return ""
+    return json.dumps({"caCerts": [payload]}, indent=2)
+
+
+#: Where the certificate is parked while it is being checked. A scratch path, not a
+#: downloads folder: nothing here should survive to become the stale ca.crt somebody
+#: installs on a device two box rebuilds later.
+_WINDOWS_SCRATCH = "Join-Path $env:TEMP 'box-ca.crt'"
+_POSIX_SCRATCH = "/tmp/box-ca.crt"
+
+#: Written once so the three commands cannot disagree about what refusing sounds like.
+_INSTALL_STOP = "STOP: this is not the certificate this page named"
+
+
+@dataclass(frozen=True)
+class InstallCommand:
+    """One platform's install, as something to paste rather than something to follow."""
+
+    platform: str
+    label: str
+    #: Where it is pasted. Named separately because on Windows the difference between
+    #: an ordinary window and an elevated one is the difference between this working
+    #: and it landing in a store no browser reads.
+    shell: str
+    command: str
+    #: What this route does NOT cover. Never empty, deliberately: an install that
+    #: quietly misses the browser somebody actually uses is reported a week later as
+    #: "the box is broken".
+    caveat: str
+
+
+def install_commands(ca_url: str, fingerprint: Any) -> "tuple[InstallCommand, ...]":
+    """Self-verifying install commands for the desktop platforms, or ``()``.
+
+    Each one fetches the certificate, computes its SHA-256, compares it against a
+    literal, and installs ONLY on a match. Nothing fetched is ever executed. That
+    line is the whole design: this page is served over plain http on a school LAN,
+    and a page that told a device to run whatever the box sent would hand a LAN
+    attacker the machine rather than merely the trust store.
+
+    The comparison is NOT the same guarantee as a person reading the box console --
+    a page that lied about the certificate would lie about the literal too. What it
+    removes is every other way this goes wrong: a truncated download, yesterday's
+    ca.crt still sitting in Downloads, the wrong box on a site that has two. Those
+    are the ones that actually happen.
+
+    Returns nothing at all unless BOTH the URL and a full fingerprint are known. A
+    command built without one would install whatever it was handed, which is worse
+    than the manual steps it replaces -- those at least end with a person looking at
+    a certificate.
+
+    Mobile is deliberately absent. iOS and iPadOS take the ``.mobileconfig``
+    instead, and Android has no shell to paste into; offering a command there would
+    be a screen of text nobody can act on.
+    """
+    want = compact_fingerprint(fingerprint)
+    url = str(ca_url or "").strip()
+    if not url or len(want) != 64:
+        # Length-checked, not merely non-empty: `grep` matches a prefix, so a
+        # truncated fingerprint is a check that passes when it should not.
+        return ()
+
+    # `openssl x509 -fingerprint` prints `SHA256 Fingerprint=AA:BB:...`, and older
+    # builds spell that label in lower case -- so strip the separators and match
+    # without case rather than trying to reproduce the exact line.
+    posix_check = (
+        f"if openssl x509 -in {_POSIX_SCRATCH} -noout -fingerprint -sha256 "
+        f"| tr -d ': ' | grep -qi '{want}'; then"
+    )
+    fetch = f"curl -fsS -o {_POSIX_SCRATCH} '{url}'"
+
+    windows = [
+        f"$src = '{url}'",
+        f"$want = '{want}'",
+        f"$file = {_WINDOWS_SCRATCH}",
+        "Invoke-WebRequest -Uri $src -OutFile $file -UseBasicParsing",
+        "$cert = New-Object "
+        "System.Security.Cryptography.X509Certificates.X509Certificate2 $file",
+        "$got = [BitConverter]::ToString("
+        "[System.Security.Cryptography.SHA256]::Create().ComputeHash($cert.RawData)"
+        ").Replace('-','')",
+        # The if and the else share a line on purpose. Pasted into a console, a
+        # block that ends at a newline is executed before the `else` arrives, and
+        # the operator gets a parse error on a line they did not write.
+        f"if ($got -ne $want) {{ Write-Error \"{_INSTALL_STOP} ($got)\" }} "
+        "else { Import-Certificate -FilePath $file "
+        "-CertStoreLocation Cert:\\LocalMachine\\Root }",
+    ]
+
+    return (
+        InstallCommand(
+            platform="windows",
+            label="Windows",
+            shell="PowerShell, started as Administrator",
+            command="\n".join(windows),
+            caveat=(
+                "Administrator is not a formality here -- the machine store is the "
+                "one every browser on the PC reads, and an ordinary window puts the "
+                "certificate in the user store where Chrome and Edge will not look "
+                "for it. Firefox keeps its own store either way."
+            ),
+        ),
+        InstallCommand(
+            platform="macos",
+            label="macOS",
+            shell="Terminal",
+            command="\n".join(
+                [
+                    fetch,
+                    posix_check,
+                    "  sudo security add-trusted-cert -d -r trustRoot "
+                    f"-k /Library/Keychains/System.keychain {_POSIX_SCRATCH}",
+                    "else",
+                    f"  echo '{_INSTALL_STOP}'",
+                    "fi",
+                ]
+            ),
+            caveat=(
+                "Installs for every account on the Mac, which is why it asks for a "
+                "password. The profile above does the same thing by double-click "
+                "where a terminal is not welcome. Firefox keeps its own store."
+            ),
+        ),
+        InstallCommand(
+            platform="linux",
+            label="Linux",
+            shell="Terminal",
+            command="\n".join(
+                [
+                    fetch,
+                    posix_check,
+                    f"  sudo cp {_POSIX_SCRATCH} /usr/local/share/ca-certificates/box-ca.crt",
+                    "  sudo update-ca-certificates",
+                    "else",
+                    f"  echo '{_INSTALL_STOP}'",
+                    "fi",
+                ]
+            ),
+            caveat=(
+                "Debian, Ubuntu and derivatives. On Fedora and RHEL the destination "
+                "is /etc/pki/ca-trust/source/anchors/ and the command is "
+                "update-ca-trust. Firefox and Chrome both keep their own NSS store "
+                "on Linux, so a browser that still warns is not evidence this failed."
+            ),
+        ),
+    )
 
 
 def platform_public_suffixes() -> tuple[str, ...]:
@@ -583,6 +900,22 @@ def _fingerprint(cert: Any) -> str:
     except Exception:  # noqa: BLE001 - a fingerprint is a nicety, never a crash
         return ""
     return ":".join(raw[i : i + 2] for i in range(0, len(raw), 2))
+
+
+def compact_fingerprint(value: Any) -> str:
+    """The same SHA-256, colon-free and upper -- the spelling Windows prints.
+
+    ``openssl x509 -fingerprint`` separates the bytes with colons and .NET's
+    ``X509Certificate2`` does not. Both are correct and they are the same digest,
+    which is the problem: a person asked to compare across that difference decides
+    they match long before they have actually read 64 characters.
+
+    So anything that hands a fingerprint to a MACHINE to compare picks a spelling
+    here rather than in whichever caller noticed the mismatch first. Tolerant of
+    what it is given -- colons, spaces or hyphens -- because the value may have come
+    back through a shell, a clipboard or a console log on the way.
+    """
+    return "".join(ch for ch in str(value or "") if ch.isalnum()).upper()
 
 
 def export_path_findings(destination: str, environ: dict[str, str] | None = None) -> list[tuple[str, str]]:

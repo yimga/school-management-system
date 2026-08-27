@@ -218,3 +218,29 @@ system_manifest.json
 # this is the second lock, for a box whose RMC_EDGE_OUT_DIR points back at it.
 box-ca-bundle.p12
 box-ca.crt
+# The passphrase that decrypts the bundle. The bootstrap now GENERATES one when
+# the operator has not set RMC_EDGE_TLS_CA_PASSPHRASE -- a secret invented at a
+# console in a school office is either weak or lost -- and writes it owner-only
+# beside the bundle. Committing it would put the key and its passphrase in the
+# same public place, which is the one arrangement where the encryption bought
+# nothing at all.
+box-ca-passphrase.txt
+# What `manage.py edge_tls --export-mdm` writes for a management console. Public
+# material -- but it is still THIS box's identity, and the export folder is the one
+# most likely to be produced in a hurry inside the checkout and committed by the next
+# `git add`.
+box-ca.mobileconfig
+android-policy.json
+# The whole folder, because the bootstrap writes it on EVERY run now rather than
+# only when somebody remembers the command -- so it appears beside a checkout far
+# more often than it used to, README and all.
+mdm/
+# Box identity handed out during onboarding. Same class as the .p12 above: these
+# name and authenticate one specific box, and a shared repo is the wrong place for
+# any of them.
+*.rmcidentity
+*.rmcbundle
+# Onboarding hands these out base64'd for copy-paste over a terminal. Broad on
+# purpose: verified no tracked file in this repo carries the extension, so the rule
+# can only ever catch something that was pasted in rather than authored here.
+*.b64

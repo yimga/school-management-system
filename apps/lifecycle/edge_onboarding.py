@@ -301,6 +301,40 @@ def _validate_configure_box_env(school) -> "tuple[bool, str]":
         return False, f"box-env check failed: {exc}"
 
 
+def _lan_scheme() -> str:
+    """http or https, read from the box's own TLS mode rather than assumed.
+
+    This step used to state flatly that the box has no TLS and that an https URL is
+    the "no lock" failure. That was true of every box when it was written and is
+    false of any box that has since chosen a TLS mode -- and a runbook line that
+    confidently names the wrong scheme sends an operator to debug a working box.
+    """
+    try:
+        from apps.schools import edge_tls
+
+        return "https" if edge_tls.resolve_mode().serves_https else "http"
+    except Exception:  # noqa: BLE001 - a scheme is a nicety, never a crash
+        return "http"
+
+
+def _lan_port_hint() -> str:
+    """The port to name after the host. Empty on https, where 443 is implied."""
+    return "" if _lan_scheme() == "https" else ":<web-port>"
+
+
+def _lan_scheme_reason() -> str:
+    """Why that scheme, in the words the operator needs at that moment."""
+    if _lan_scheme() == "https":
+        return (
+            "this box terminates TLS, so devices must trust its certificate "
+            "authority first (see the edge TLS step) or every page warns"
+        )
+    return (
+        "plain HTTP, because this box has no TLS mode set. An https:// URL is the "
+        "'no lock' failure, and offline PIN cannot be enabled at this origin at all"
+    )
+
+
 def _validate_lan_hostname(school) -> "tuple[bool, str]":
     """The BOX side of LAN-hostname reachability is ready.
 
@@ -309,8 +343,9 @@ def _validate_lan_hostname(school) -> "tuple[bool, str]":
     that it would ACCEPT that hostname instead of 400-ing on it: ALLOWED_HOSTS must
     cover the tenant's LAN host, which on this platform comes from setting
     ``MULTI_TENANT_BASE_DOMAIN`` (it injects a leading-dot ``.<base>`` wildcard into
-    ALLOWED_HOSTS). Pure settings — no tenant tables. The box is served over plain
-    HTTP on the LAN, so the working URL is ``http://<host>:<web-port>/`` (not https)."""
+    ALLOWED_HOSTS). Pure settings — no tenant tables. The SCHEME is not assumed here any more: a box
+    with a TLS mode set serves https, and telling its operator that https is the
+    failure mode is how a working box gets debugged for an afternoon."""
     try:
         hosts = [str(h).strip().lower() for h in (getattr(settings, "ALLOWED_HOSTS", []) or [])]
         if "*" in hosts:
@@ -333,8 +368,8 @@ def _validate_lan_hostname(school) -> "tuple[bool, str]":
         if covered:
             return True, (
                 f"ALLOWED_HOSTS accepts {lan_host}. Reach the box at "
-                f"http://{lan_host}:<web-port>/ (plain HTTP — the box has no TLS; "
-                "an https:// URL is the 'no lock' failure)."
+                f"{_lan_scheme()}://{lan_host}"
+                f"{_lan_port_hint()}/ -- {_lan_scheme_reason()}"
             )
         return (
             False,
@@ -626,6 +661,165 @@ def _heal_seed_baseline(school) -> "tuple[bool, str]":
 # The ORDERED runbook — cloud data path through go-dark. Delta sync is never
 # a bulk loader; --fresh never seeds roster/finance.
 # --------------------------------------------------------------------------- #
+def _validate_edge_tls_trust(school) -> "tuple[bool, str]":
+    """Is this box's TLS in the state it is configured for -- and can a device trust it?
+
+    Files and environment only, no tenant tables, so this answers on a box whose
+    database is still migrating. That is not incidental: TLS is set up before a box
+    is finished, and a check that needs the database is a check that is unavailable
+    exactly when it is wanted.
+
+    ``off`` PASSES, deliberately. A great many boxes run plain http on purpose and
+    failing them would paint every one of them red until operators learned this
+    step's colour means nothing. What it must not do is pass QUIETLY, so the detail
+    says what a plain-http origin costs: offline PIN cannot be enabled on ANY browser
+    there, because http is not a secure context and the browser withholds the
+    WebCrypto call the PIN vault needs.
+    """
+    try:
+        from django.conf import settings as _settings
+
+        from apps.schools import edge_tls
+
+        resolution = edge_tls.resolve_mode()
+        if resolution.error:
+            return False, (
+                f"RMC_EDGE_TLS_MODE={resolution.raw!r} is not a mode this box knows "
+                f"({resolution.error}), so it fell back to plain http while the "
+                "configuration claims otherwise."
+            )
+        if not resolution.serves_https:
+            return True, (
+                "TLS is off, so the box serves plain http. That is a legitimate "
+                "choice, and it has one hard consequence: offline PIN / local mode "
+                "cannot be enabled on ANY browser at that origin -- http is not a "
+                "secure context, so the WebCrypto call the PIN vault needs is "
+                "withheld. Set RMC_EDGE_TLS_MODE and run "
+                "deploy/selfhost/edge-bootstrap.sh when that matters."
+            )
+
+        cert_path, _key_path, ca_path = edge_tls.certificate_paths()
+        leaf = edge_tls.inspect_certificate(cert_path)
+        if not leaf.exists:
+            return False, (
+                f"mode is {resolution.mode!r} but there is no certificate at "
+                f"{cert_path}. Every device warns until there is: run "
+                "deploy/selfhost/edge-bootstrap.sh."
+            )
+        if leaf.error:
+            return False, f"the certificate at {cert_path} cannot be read: {leaf.error}"
+
+        dns, ips = edge_tls.effective_addresses(
+            allowed_hosts=list(getattr(_settings, "ALLOWED_HOSTS", []) or [])
+        )
+        needed, why = edge_tls.certificate_needs_reissue(
+            leaf, dns, ips, renew_before_days=edge_tls.renew_before_days()
+        )
+        if needed:
+            return False, f"the certificate needs reissuing: {why}."
+
+        if resolution.mode != edge_tls.MODE_SELF_SIGNED:
+            return True, (
+                f"mode {resolution.mode!r}: the certificate covers "
+                f"{', '.join([*leaf.dns_names, *leaf.ip_addresses]) or 'nothing named'} "
+                "and is not near expiry. Devices trust it through a public authority, "
+                "so there is nothing to install per device."
+            )
+
+        ca = edge_tls.inspect_certificate(ca_path)
+        if not ca.readable or not ca.fingerprint:
+            # A certificate no device can install is not a smaller problem than no
+            # certificate -- it is the same problem found one device at a time.
+            return False, (
+                f"the leaf is fine but the certificate authority at {ca_path} cannot "
+                "be read, so there is nothing devices can be given to trust it with."
+            )
+        return True, (
+            f"Serving {resolution.mode}. Trust anchor {ca.fingerprint}. Devices enrol "
+            f"at {edge_tls.TRUST_ENROLMENT_PATH} (plain http on purpose -- a device "
+            "reaches it precisely because it does not trust the box yet), and on "
+            "Windows, macOS and Linux that page hands over one command that checks "
+            "this fingerprint before it installs anything."
+        )
+    except Exception as exc:  # noqa: BLE001
+        return False, f"edge TLS check failed: {exc}"
+
+
+def _heal_edge_tls_trust(school) -> "tuple[bool, str]":
+    """Reissue the leaf for the addresses the box actually holds. Never a new CA.
+
+    ``ensure_certificate`` reuses the CA on disk, so a heal is invisible to every
+    device that already installed it, and it refuses outright when the clock is
+    impossible rather than minting a certificate that is "not yet valid" for real.
+
+    Two things this deliberately will NOT do:
+
+    * mint a certificate authority. ``edge_trust_state.new_ca_allowed`` is the guard
+      the bootstrap and ``--ensure`` both use, and it is used here rather than
+      re-derived: a box whose certificate volume was lost would otherwise come up,
+      notice it has no CA, helpfully mint a new one and report success -- stranding
+      every device that trusted the old one, permanently, with nobody watching;
+    * restart the TLS terminator. A container cannot restart a sibling without the
+      docker socket, which is not worth handing it for this. So a healed file may
+      not be the file being SERVED, and the detail says so -- a box in that state
+      looks healthy in every log it writes.
+    """
+    try:
+        import os as _os
+
+        from django.conf import settings as _settings
+
+        from apps.schools import edge_tls, edge_trust_state
+
+        if not edge_tls.resolve_mode().serves_https:
+            return False, (
+                "TLS is off, and turning it on is a decision, not a repair: it "
+                "changes the origin every device uses and re-enrols offline PIN. "
+                "Set RMC_EDGE_TLS_MODE deliberately, then run the bootstrap."
+            )
+
+        cert_path, _key_path, ca_path = edge_tls.certificate_paths()
+        directory = _os.path.dirname(cert_path) or edge_tls.DEFAULT_DIR
+        allowed, why = edge_trust_state.new_ca_allowed(
+            edge_tls.inspect_certificate(ca_path)
+        )
+        if not allowed:
+            return False, (
+                why + " A self-heal will not mint a replacement certificate "
+                "authority. Restore the backup bundle with `edge_tls --import-ca`, or "
+                "run `edge_bootstrap --force-new-ca` if the backup is genuinely gone "
+                "and you accept re-installing on every device."
+            )
+
+        dns, ips = edge_tls.effective_addresses(
+            allowed_hosts=list(getattr(_settings, "ALLOWED_HOSTS", []) or [])
+        )
+        if not dns and not ips:
+            return False, (
+                "no addresses to assert. Set RMC_EDGE_TLS_HOSTNAMES, fix "
+                "ALLOWED_HOSTS, or set RMC_EDGE_TRUST_LOCAL_ADDRESSES=1 to let the "
+                "box use the addresses it currently holds."
+            )
+
+        result = edge_tls.ensure_certificate(
+            directory, dns, ips, renew_before_days=edge_tls.renew_before_days()
+        )
+        action = result.get("action")
+        if action == edge_tls.ACTION_REFUSED:
+            return False, str(result.get("reason") or "refused")
+        if action == edge_tls.ACTION_NOOP:
+            return True, "certificate already covers every address (idempotent no-op)."
+        return True, (
+            f"certificate {action} for {', '.join([*dns, *ips])}, reusing the existing "
+            "certificate authority so no device has to install anything again. The "
+            "TLS terminator reads its certificate at config load, NOT per handshake, "
+            "so restart it (`docker compose --profile tls restart edge-tls`) or this "
+            "box keeps serving the old one while looking healthy."
+        )
+    except Exception as exc:  # noqa: BLE001
+        return False, f"edge TLS self-heal failed: {exc}"
+
+
 EDGE_ONBOARDING_STEPS: "tuple[EdgeOnboardingStep, ...]" = (
     EdgeOnboardingStep(
         key="cloud_entitle_pin",
@@ -862,9 +1056,14 @@ EDGE_ONBOARDING_STEPS: "tuple[EdgeOnboardingStep, ...]" = (
         command_template="python manage.py check_edge_readiness --strict   # edge box: {slug} ({country})",
         validate=_validate_configure_box_env,
         workaround=(
-            "Address each FAIL/WARN check_edge_readiness prints. For a plain-HTTP LAN "
-            "box set SECURE_SSL_REDIRECT / SESSION_COOKIE_SECURE / CSRF_COOKIE_SECURE / "
-            "HSTS all to 0, and schedule run_periodic_jobs on cron when there is no broker."
+            "Address each FAIL/WARN check_edge_readiness prints, and schedule "
+            "run_periodic_jobs on cron when there is no broker. Do NOT pin "
+            "SECURE_SSL_REDIRECT / SESSION_COOKIE_SECURE / CSRF_COOKIE_SECURE / HSTS "
+            "in .env to silence a warning: all four are DERIVED from RMC_EDGE_TLS_MODE, "
+            "and an explicit value in .env overrides the mode without saying so -- the "
+            "box then serves cookies without the Secure flag on the day it moves to "
+            "https, and nothing anywhere explains why. Set the MODE; let the flags "
+            "follow it."
         ),
         runs_on=RUNS_ON_BOX,
         evidence=EVIDENCE_BOX_SETTINGS,
@@ -913,6 +1112,52 @@ EDGE_ONBOARDING_STEPS: "tuple[EdgeOnboardingStep, ...]" = (
         runs_on=RUNS_ON_LAN,
         evidence=EVIDENCE_BOX_SETTINGS,
         help_doc="docs/EDGE_LAN_HOSTNAME_DNS.md",
+    ),
+    EdgeOnboardingStep(
+        key="edge_tls_trust",
+        title="Serve https, and get every device trusting this box",
+        purpose=(
+            "Bring the box's certificate into line with the addresses it answers at, "
+            "and give devices a way to install the box's certificate authority that "
+            "is not one file walked round the building. Until a device trusts the "
+            "box, every browser warns and offline PIN cannot be enabled at all -- "
+            "plain http is not a secure context, so the browser withholds the "
+            "WebCrypto call the PIN vault needs."
+        ),
+        category="network",
+        command_template=(
+            "# Edge box: {slug} ({country}). One command, safe to run again, and\n"
+            "# it refuses rather than proceeds on every precondition:\n"
+            "bash deploy/selfhost/edge-bootstrap.sh\n"
+            "#   mints the CA and leaf, backs the CA up and reads the backup BACK,\n"
+            "#   renders the terminator config FROM the certificate rather than\n"
+            "#   before it exists, restarts the terminator so it holds today's\n"
+            "#   certificate, writes the management-console payloads, and checks\n"
+            "#   what is SERVED against what is on disk.\n"
+            "# MANAGED FLEET? Nobody visits a device at all: push the files the\n"
+            "#   bootstrap left in ../mdm/ from your console. On managed Chromebooks\n"
+            "#   and supervised iPads a per-device install does not stick, and on\n"
+            "#   Android 11+ a hand-installed authority is ignored by apps.\n"
+            "# Otherwise send devices to the URL this prints:\n"
+            "python manage.py edge_tls --trust-url\n"
+            "# and have the first one compare the fingerprint against:\n"
+            "python manage.py edge_tls   # look under 'Trust anchor'"
+        ),
+        validate=_validate_edge_tls_trust,
+        self_heal=_heal_edge_tls_trust,
+        workaround=(
+            "TLS off is a legitimate answer and this step passes on it -- but choose "
+            "it, do not drift into it: offline PIN cannot be enabled on ANY browser "
+            "at a plain-http origin. If the mode is set and the CERTIFICATE is the "
+            "problem, check_edge_readiness --strict names it and `edge_tls --ensure` "
+            "reissues for the addresses the box now holds without touching the CA. "
+            "Never mint a second certificate authority to clear a warning: every "
+            "device that trusted the first is stranded permanently and there is no "
+            "undo -- `edge_tls --import-ca` with the backup bundle is the repair."
+        ),
+        runs_on=RUNS_ON_BOX,
+        evidence=EVIDENCE_BOX_SETTINGS,
+        help_doc="docs/EDGE_TLS_RUNBOOK.md",
     ),
     EdgeOnboardingStep(
         key="enable_configure_sync",
