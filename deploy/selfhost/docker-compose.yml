@@ -194,7 +194,10 @@ services:
       # Harmless on a LAN in the other modes.
       - "${EDGE_TLS_HTTP_PORT:-80}:80"
     volumes:
-      - ./Caddyfile.edge:/etc/caddy/Caddyfile:ro
+      # The RENDERED config (gitignored), never the tracked template. See
+      # edge-bootstrap.sh: writing a render over a tracked path left every box
+      # dirty and unable to pull.
+      - ./Caddyfile.edge.rendered:/etc/caddy/Caddyfile:ro
       # Caddy's own local CA (mode=selfsigned with `tls internal`) and any ACME
       # material live here. Losing this volume means every device that installed the
       # box CA has to install the new one, so it is NAMED, not anonymous.

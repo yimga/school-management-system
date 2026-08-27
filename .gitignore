@@ -244,3 +244,8 @@ mdm/
 # purpose: verified no tracked file in this repo carries the extension, so the rule
 # can only ever catch something that was pasted in rather than authored here.
 *.b64
+
+# Rendered by deploy/selfhost/edge-bootstrap.sh from THIS box's own config.
+# It used to be written over the tracked Caddyfile.edge, which left every box
+# permanently dirty and therefore unable to `git pull`.
+deploy/selfhost/Caddyfile.edge.rendered

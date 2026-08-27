@@ -27,6 +27,7 @@ import pathlib
 import re
 import shutil
 import subprocess
+import tempfile
 
 from django.test import SimpleTestCase
 
@@ -291,3 +292,139 @@ class TheAuditIsReadOnlyAndPortableTests(SimpleTestCase):
         # Everything else on a box is derived and rebuilds in a minute. The CA cannot
         # be regenerated: losing it means physically revisiting every trusting device.
         self.assertIn("cannot be regenerated", self.text)
+
+
+class TheCaddyfileMigrationTests(SimpleTestCase):
+    """A generated file was committed, and the generator overwrote it in place.
+
+    `deploy/selfhost/Caddyfile.edge` is TRACKED and carries the prose explaining the
+    three TLS modes. The bootstrap rendered this box's real terminator config
+    straight over it. So every box was permanently dirty from its first bootstrap,
+    every `git pull` on every box was blocked -- which is what stopped the Gilead box
+    updating, and what box-rebuild.sh correctly refused to force -- and the
+    documentation only survived on machines nobody had set up.
+
+    These RUN the migration block out of the real script. `bash -n` is not enough: it
+    happily passed a version of this block whose line continuation was a literal
+    backslash-n, which bash reads as a command named `n`. Valid syntax, wrong
+    behaviour, and only running it tells the two apart.
+    """
+
+    HARNESS = """
+set -uo pipefail
+ok()   {{ echo "OK: $*"; }}
+warn() {{ echo "WARN: $*"; }}
+HERE="{here}"
+REPO="{here}"
+CADDYFILE="$HERE/Caddyfile.edge.rendered"
+git() {{
+  case "$*" in
+    *"status --porcelain"*) printf "%s" "{dirty}" ;;
+    *) echo "GIT: $*" ;;
+  esac
+  return {git_rc}
+}}
+{block}
+echo "RENDERED_EXISTS=$([ -f "$CADDYFILE" ] && echo yes || echo no)"
+"""
+
+    START = 'LEGACY_CADDY="$HERE/Caddyfile.edge"'
+    END = "# --- 1. is the box well enough to change?"
+    RENDER_MARKER = "x { reverse_proxy web:10000 }"
+
+    def setUp(self):
+        _need_bash(self)
+        self.dir = tempfile.mkdtemp(prefix="caddy-mig-")
+        self.addCleanup(shutil.rmtree, self.dir, True)
+        self.legacy = pathlib.Path(self.dir) / "Caddyfile.edge"
+        self.rendered = pathlib.Path(self.dir) / "Caddyfile.edge.rendered"
+
+    def _block(self):
+        text = BOOTSTRAP.read_text(encoding="utf-8")
+        start = text.index(self.START)
+        end = text.index(self.END, start)
+        return text[start:end]
+
+    def _run(self, git_rc=0, dirty=" M deploy/selfhost/Caddyfile.edge"):
+        # `git_rc` only shapes the CHECKOUT result; `dirty` is what status reports.
+        script = self.HARNESS.format(
+            here=self.dir.replace(chr(92), "/"),
+            block=self._block(),
+            git_rc=git_rc,
+            dirty=dirty,
+        )
+        proc = subprocess.run(["bash", "-c", script], capture_output=True, text=True)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        # A literal backslash-n in the condition surfaces here as a command named n.
+        self.assertNotIn("command not found", proc.stderr, proc.stderr)
+        return proc.stdout
+
+    def _write_render(self):
+        self.legacy.write_text(self.RENDER_MARKER + "\n", encoding="utf-8")
+
+    def test_a_box_holding_a_render_on_the_tracked_path_is_migrated(self):
+        self._write_render()
+        out = self._run()
+        self.assertIn("RENDERED_EXISTS=yes", out)
+        self.assertIn("moved this box", out)
+        self.assertEqual(
+            self.rendered.read_text(encoding="utf-8"), self.RENDER_MARKER + "\n"
+        )
+
+    def test_it_restores_the_tracked_template_so_the_box_can_pull(self):
+        self._write_render()
+        out = self._run()
+        self.assertIn("checkout -- deploy/selfhost/Caddyfile.edge", out)
+        self.assertIn("can git pull again", out)
+
+    def test_it_copies_BEFORE_it_restores(self):
+        # Restoring first would destroy the very thing being migrated.
+        self._write_render()
+        out = self._run()
+        self.assertLess(out.index("moved this box"), out.index("GIT: -C"), out)
+
+    def test_a_failed_restore_warns_instead_of_claiming_success(self):
+        self._write_render()
+        out = self._run(git_rc=1)
+        self.assertIn("WARN:", out)
+        self.assertIn("may still be blocked", out)
+        # The copy still happened, so the render is safe either way.
+        self.assertIn("RENDERED_EXISTS=yes", out)
+
+    def test_an_already_migrated_box_is_left_alone(self):
+        self.rendered.write_text("already here\n", encoding="utf-8")
+        self._write_render()
+        out = self._run()
+        self.assertNotIn("moved this box", out)
+        self.assertEqual(self.rendered.read_text(encoding="utf-8"), "already here\n")
+
+    def test_a_clean_checkout_is_left_alone(self):
+        # Nothing was written over the tracked file, so there is nothing to
+        # rescue. The render lands at the new path moments later either way.
+        self._write_render()
+        out = self._run(dirty="")
+        self.assertNotIn("moved this box", out)
+        self.assertIn("RENDERED_EXISTS=no", out)
+
+    def test_the_tracked_file_is_still_the_documented_default(self):
+        # It is NOT pure prose -- it is a working host-agnostic default, and it
+        # legitimately contains reverse_proxy web:10000. That is exactly why the
+        # migration asks git whether the file is modified instead of sniffing for a
+        # directive: a content sniff also fires on a pristine checkout.
+        real = (SELFHOST / "Caddyfile.edge").read_text(encoding="utf-8")
+        self.assertIn("WHY THIS FILE EXISTS", real)
+        self.assertIn(":443 {", real)
+
+    def test_the_migration_asks_git_rather_than_sniffing_content(self):
+        text = BOOTSTRAP.read_text(encoding="utf-8")
+        self.assertIn("status --porcelain -- deploy/selfhost/Caddyfile.edge", text)
+
+    def test_compose_mounts_the_rendered_file_not_the_template(self):
+        compose = (SELFHOST / "docker-compose.yml").read_text(encoding="utf-8")
+        self.assertIn("./Caddyfile.edge.rendered:/etc/caddy/Caddyfile:ro", compose)
+        self.assertNotIn("./Caddyfile.edge:/etc/caddy/Caddyfile:ro", compose)
+
+    def test_the_rendered_path_is_gitignored(self):
+        # Otherwise the next bootstrap re-dirties the checkout and we are back here.
+        ignore = (SELFHOST.parents[1] / ".gitignore").read_text(encoding="utf-8")
+        self.assertIn("deploy/selfhost/Caddyfile.edge.rendered", ignore)
