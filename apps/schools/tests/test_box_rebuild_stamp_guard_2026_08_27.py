@@ -33,6 +33,10 @@ from django.test import SimpleTestCase
 SELFHOST = pathlib.Path(__file__).resolve().parents[3] / "deploy" / "selfhost"
 REBUILD = SELFHOST / "box-rebuild.sh"
 BOOTSTRAP = SELFHOST / "edge-bootstrap.sh"
+AUDIT = SELFHOST / "box-audit.sh"
+
+#: Every shell script that runs ON a box. They share one set of ways to stop working.
+BOX_SCRIPTS = (REBUILD, BOOTSTRAP, AUDIT)
 
 REAL_STAMP = (
     '{\n  "build_time": "2026-08-27T14:52:31Z",\n'
@@ -170,7 +174,7 @@ class TheShellScriptsMustRunOnTheBoxTests(SimpleTestCase):
 
     def test_both_parse(self):
         _need_bash(self)
-        for script in (REBUILD, BOOTSTRAP):
+        for script in BOX_SCRIPTS:
             proc = subprocess.run(
                 ["bash", "-n", str(script)], capture_output=True, text=True
             )
@@ -178,7 +182,7 @@ class TheShellScriptsMustRunOnTheBoxTests(SimpleTestCase):
 
     def test_neither_is_CRLF(self):
         # A CRLF here is `$'\r': command not found` on the first line that matters.
-        for script in (REBUILD, BOOTSTRAP):
+        for script in BOX_SCRIPTS:
             self.assertEqual(
                 script.read_bytes().count(b"\r\n"), 0, "%s gained CRLF" % script.name
             )
@@ -187,7 +191,7 @@ class TheShellScriptsMustRunOnTheBoxTests(SimpleTestCase):
         # A `\1` backreference written through a careless Python patch becomes a
         # literal 0x01 byte, and sed then substitutes NOTHING -- which made the
         # stamp parser silently return empty while still exiting 0.
-        for script in (REBUILD, BOOTSTRAP):
+        for script in BOX_SCRIPTS:
             raw = script.read_bytes()
             bad = [b for b in raw if b < 9 or (13 < b < 32)]
             self.assertEqual(bad, [], "%s contains control bytes %r" % (script.name, bad))
@@ -197,7 +201,7 @@ class TheShellScriptsMustRunOnTheBoxTests(SimpleTestCase):
         # one: the new bootstrap message referenced $SCRIPT_DIR, which does not exist
         # in that script (it is $HERE) -- and it sat on the error path, so it would
         # have fired exactly when somebody needed to read the message.
-        for script in (REBUILD, BOOTSTRAP):
+        for script in BOX_SCRIPTS:
             text = script.read_text(encoding="utf-8")
             # Assignment can follow `then`/`else`/`do`/`;` on the same line -- the
             # colour variables are set inside a one-line `if [ -t 1 ]; then B=...`.
@@ -210,11 +214,22 @@ class TheShellScriptsMustRunOnTheBoxTests(SimpleTestCase):
             )
             assigned |= set(re.findall(r"\bfor\s+([A-Za-z_][A-Za-z0-9_]*)\s+in\b", text))
             assigned |= set(re.findall(r"local\s+([a-z_][a-z0-9_]*)=", text))
+            # Only what THIS shell expands. Comments and single-quoted spans go
+            # first: `$RMC_EDGE_CREDENTIAL` inside a `sh -c '...'` is not an
+            # expansion here at all -- the shell INSIDE the container expands it,
+            # from that container's environment. Counting it produced a confident
+            # false positive on box-audit.sh, which runs clean on real hardware.
+            #
+            # The stripping is naive, and deliberately so: a mis-paired quote drops
+            # real code and costs a missed finding. For a test whose whole value is
+            # being believed when it fires, that is the right direction to be wrong.
+            scannable = re.sub(r"(?m)#.*$", "", text)
+            scannable = re.sub(r"'[^']*'", "''", scannable)
             # `${VAR:-default}` / `${VAR:=x}` / `${VAR:+x}` are SAFE under set -u --
             # that is the whole point of the form. Only a bare $VAR or ${VAR} can
             # abort the script, so only those need an assignment to exist.
-            used = set(re.findall(r"\$([A-Z][A-Z0-9_]*)\b", text))
-            used |= set(re.findall(r"\$\{([A-Z][A-Z0-9_]*)\}", text))
+            used = set(re.findall(r"\$([A-Z][A-Z0-9_]*)\b", scannable))
+            used |= set(re.findall(r"\$\{([A-Z][A-Z0-9_]*)\}", scannable))
             # Environment and shell builtins are legitimately unassigned here.
             used -= {
                 "BASH_SOURCE", "PATH", "HOME", "PWD", "USER", "IFS", "SHELL", "TERM",
@@ -244,3 +259,35 @@ class TheBootstrapStopsTeachingTheTrapTests(SimpleTestCase):
     def test_the_rebuild_script_it_names_actually_exists(self):
         # A runbook that names a command which is not there is worse than no runbook.
         self.assertTrue(REBUILD.exists(), "edge-bootstrap.sh points at a missing script")
+
+
+class TheAuditIsReadOnlyAndPortableTests(SimpleTestCase):
+    """It runs before a rebuild to decide whether one is safe. Two properties follow."""
+
+    def setUp(self):
+        self.text = AUDIT.read_text(encoding="utf-8")
+
+    def test_it_does_not_hardcode_one_box_s_path(self):
+        # It has to audit ANY box, not the one it was first written on. /srv/rmc is
+        # the conventional location, not a guaranteed one.
+        self.assertNotIn("cd /srv/rmc", self.text)
+        self.assertIn('REPO_ROOT="$(cd "$HERE/../.." && pwd)"', self.text)
+
+    def test_it_changes_nothing(self):
+        # An audit that restarts a container to find out whether it is healthy has
+        # destroyed the thing it was measuring, and an operator can no longer tell a
+        # pre-existing fault from one the audit caused.
+        mutating = re.compile(
+            r"^\s*(?:\"\$\{COMPOSE\[@\]\}\"\s+(?:up|down|restart|build|stop|start|rm)"
+            r"|docker\s+(?:rm|rmi|kill|stop|start|restart)"
+            r"|git\s+(?:checkout|reset|clean|stash|merge|pull)"
+            r"|rm\s+-[rf]|mv\s|>\s*/)",
+            re.M,
+        )
+        found = mutating.findall(self.text)
+        self.assertEqual(found, [], "box-audit.sh mutates the box: %r" % found)
+
+    def test_the_backup_section_is_the_only_thing_that_blocks_a_rebuild(self):
+        # Everything else on a box is derived and rebuilds in a minute. The CA cannot
+        # be regenerated: losing it means physically revisiting every trusting device.
+        self.assertIn("cannot be regenerated", self.text)
