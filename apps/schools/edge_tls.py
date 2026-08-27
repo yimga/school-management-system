@@ -209,6 +209,17 @@ def resolve_mode(environ: dict[str, str] | None = None) -> TlsResolution:
         return TlsResolution(mode=MODE_OFF, source="default", raw=raw, error=str(exc))
 
 
+#: The one path that must stay reachable over plain HTTP on a box whose certificate
+#: nobody trusts yet. Spelled WITHOUT a trailing slash so a Caddy path matcher can be
+#: built as `{TRUST_PATH} {TRUST_PATH}/*` and catch the no-slash form people type.
+#:
+#: Django carries the same prefix as a literal in SECURE_REDIRECT_EXEMPT rather than
+#: importing this: that list has to be total even on a checkout where this module
+#: fails to import, and an exemption that silently disappears is the failure mode with
+#: no symptom. A test pins the two spellings together so they cannot drift.
+TRUST_PATH = "/edge/trust"
+
+
 def derived_security_flags(mode: str) -> dict[str, Any]:
     """The four Django flags that follow from the mode.
 
@@ -1420,18 +1431,46 @@ def caddyfile(
         )
     if catch_all:
         # `:443` alone turns OFF the automatic HTTP->HTTPS redirect Caddy adds for a
-        # named site, so port 80 would go dead without this. The trust page is NOT
-        # affected either way: it is served by the app on its own port, not through
-        # the terminator, which is the whole reason a device can reach it before it
-        # trusts anything.
+        # named site, so port 80 would go dead without this.
+        #
+        # THE TRUST PAGE IS THE ONE PATH THAT MUST NOT BE REDIRECTED. An earlier
+        # version of this comment said the trust page was unaffected because it "is
+        # served by the app on its own port, not through the terminator" -- true only
+        # for somebody who types :10000. A device that types the bare address arrives
+        # HERE, and a blanket redirect sends it to HTTPS, which shows the certificate
+        # warning it opened the page to fix. Django already exempts `^edge/trust/` in
+        # SECURE_REDIRECT_EXEMPT for precisely this reason; a redirect one layer ABOVE
+        # Django silently undoes that, and neither layer is wrong on its own. Measured
+        # on a live box before this was written: http://<ip>/edge/trust/ -> 302.
+        #
+        # `handle` blocks are mutually exclusive and evaluated in the order written,
+        # so this does not depend on Caddy's directive-ordering rules the way a bare
+        # `redir` beside a `reverse_proxy` would -- `redir` sorts BEFORE
+        # `reverse_proxy`, so the obvious spelling would still redirect everything.
         trailer = (
             "\n"
             "# Someone who types the bare address reaches HTTPS instead of a dead\n"
             "# port. 302 and never 301: a permanent redirect is cached by the\n"
             "# browser and becomes a one-way door on this host, the same trap HSTS\n"
             "# sets on a LAN.\n"
+            "#\n"
+            "# " + TRUST_PATH + "/ is the exception, and it is not a convenience: a\n"
+            "# device opens it BECAUSE it does not trust this box yet, so bouncing it\n"
+            "# to HTTPS shows the very warning it came to fix -- and people who meet a\n"
+            "# warning on the page that exists to remove warnings learn to click\n"
+            "# through them. Only the CA certificate is reachable there; no route\n"
+            "# serves the private key.\n"
             ":80 {\n"
-            "\tredir https://{host}{uri} 302\n"
+            "\t@trust path " + TRUST_PATH + " " + TRUST_PATH + "/*\n"
+            "\thandle @trust {\n"
+            f"\t\treverse_proxy {upstream} {{\n"
+            "\t\t\theader_up X-Forwarded-Proto {scheme}\n"
+            "\t\t\theader_up X-Forwarded-Host {host}\n"
+            "\t\t}\n"
+            "\t}\n"
+            "\thandle {\n"
+            "\t\tredir https://{host}{uri} 302\n"
+            "\t}\n"
             "}\n"
         )
     return (
