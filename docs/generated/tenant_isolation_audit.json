@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-23T09:42:38.297044+00:00",
+  "generated_at": "2026-08-23T17:22:24.127523+00:00",
   "hits": [
     {
       "classification": "tenant_scoped",
@@ -9178,253 +9178,253 @@
     {
       "classification": "tenant_scoped",
       "file": "apps/api/views_v1.py",
-      "line": "547",
+      "line": "549",
       "preview": "if getattr(school, \"parent_school_id\", None):"
     },
     {
       "classification": "needs_review",
       "file": "apps/api/views_v1.py",
-      "line": "549",
+      "line": "551",
       "preview": "School.objects.filter(pk=school.parent_school_id)"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/api/views_v1.py",
-      "line": "599",
+      "line": "601",
       "preview": "visible = [p for p in profiles if p.school_id == school.id]"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/api/views_v1.py",
-      "line": "612",
+      "line": "614",
       "preview": "\"school_id\": str(p.school_id),"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/api/views_v1.py",
-      "line": "644",
+      "line": "646",
       "preview": "to_school_id = data.get(\"to_school_id\") or data.get(\"target_tenant_id\")"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/api/views_v1.py",
-      "line": "645",
+      "line": "647",
       "preview": "if not global_id or not to_school_id:"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/api/views_v1.py",
-      "line": "647",
+      "line": "649",
       "preview": "{\"error\": \"global_id and to_school_id required\"}, status=400"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/api/views_v1.py",
-      "line": "659",
+      "line": "661",
       "preview": "to_school = get_object_or_404(School, id=to_school_id)"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/api/views_v1.py",
-      "line": "1153",
+      "line": "1155",
       "preview": "\"school_id\": str(school.id),"
     },
     {
       "classification": "needs_review",
       "file": "apps/api/views_v1.py",
-      "line": "1379",
+      "line": "1381",
       "preview": "School.objects.filter(is_active=True)"
     },
     {
       "classification": "needs_review",
       "file": "apps/api/views_v1.py",
-      "line": "1401",
+      "line": "1407",
       "preview": "School.objects.filter(is_active=True)"
     },
     {
       "classification": "needs_review",
       "file": "apps/api/views_v1.py",
-      "line": "1435",
+      "line": "1441",
       "preview": "schools_qs = School.objects.filter(is_active=True).annotate("
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/api/views_v1.py",
-      "line": "1454",
+      "line": "1460",
       "preview": "school_ids = [s[\"id\"] for s in schools]"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/api/views_v1.py",
-      "line": "1456",
+      "line": "1462",
       "preview": "(r[\"school_id\"], r[\"limit_type\"]): r[\"request_count\"]"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/api/views_v1.py",
-      "line": "1457",
+      "line": "1463",
       "preview": "for r in TenantApiUsage.objects.filter(school_id__in=school_ids)"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/api/views_v1.py",
-      "line": "1458",
+      "line": "1464",
       "preview": ".values(\"school_id\", \"limit_type\")"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/api/views_v1.py",
-      "line": "1463",
+      "line": "1469",
       "preview": "school_id__in=school_ids, is_active=True"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/api/views_v1.py",
-      "line": "1464",
+      "line": "1470",
       "preview": ").values(\"school_id\", \"limit_type\", \"limit_value\", \"period_days\"):"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/api/views_v1.py",
-      "line": "1465",
+      "line": "1471",
       "preview": "quotas_by_school.setdefault(q[\"school_id\"], []).append("
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/api/views_v1.py",
-      "line": "1473",
+      "line": "1479",
       "preview": "s[\"school_id\"] = str(s[\"id\"])"
     },
     {
       "classification": "needs_review",
       "file": "apps/api/views_v1.py",
-      "line": "1506",
+      "line": "1512",
       "preview": "School.objects.filter(is_active=True)"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/api/views_v1.py",
-      "line": "1523",
+      "line": "1529",
       "preview": "s[\"school_id\"] = str(s[\"id\"])"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/api/views_v1.py",
-      "line": "1551",
+      "line": "1558",
       "preview": ".values(\"student_id\", \"school_id\")"
     },
     {
       "classification": "needs_review",
       "file": "apps/api/views_v1.py",
-      "line": "1598",
+      "line": "1605",
       "preview": "School.objects.all()"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/api/views_v1.py",
-      "line": "1710",
+      "line": "1717",
       "preview": "\"school_id\": str(school.id),"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/api/views_v1.py",
-      "line": "2049",
+      "line": "2056",
       "preview": "PaymentDispute.objects.filter(payment__school_id=school.pk)"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/api/views_v1.py",
-      "line": "2103",
+      "line": "2110",
       "preview": "Payment.objects.filter(pk=payment_id, school_id=school.pk)"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/api/views_v1.py",
-      "line": "2183",
+      "line": "2190",
       "preview": "dispute = get_object_or_404(PaymentDispute, id=id, payment__school_id=school.pk)"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/api/views_v1.py",
-      "line": "2502",
+      "line": "2509",
       "preview": "s = get_object_or_404(TenantReportSchedule, pk=id, school_id=school.pk)"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/api/views_v1.py",
-      "line": "2536",
+      "line": "2543",
       "preview": "s = get_object_or_404(TenantReportSchedule, pk=id, school_id=school.pk)"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/api/views_v1.py",
-      "line": "2605",
+      "line": "2612",
       "preview": "s = get_object_or_404(TenantReportSchedule, pk=id, school_id=school.pk)"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/api/views_v1.py",
-      "line": "2633",
+      "line": "2640",
       "preview": "qs = qs.filter(Q(school_id=school.pk) | Q(school__isnull=True))"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/api/views_v1.py",
-      "line": "2702",
+      "line": "2709",
       "preview": "if school and definition.school_id and definition.school_id != school.pk:"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/api/views_v1.py",
-      "line": "2715",
+      "line": "2722",
       "preview": "school_id_override=str(school.pk) if school else None,"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/api/views_v1.py",
-      "line": "2748",
+      "line": "2755",
       "preview": "Q(classroom__academic_year__school_id=school.pk)"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/api/views_v1.py",
-      "line": "2749",
+      "line": "2756",
       "preview": "| Q(host__school_memberships__school_id=school.pk)"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/api/views_v1.py",
-      "line": "2813",
+      "line": "2820",
       "preview": "pk=classroom_id, academic_year__school_id=school.pk"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/api/views_v1.py",
-      "line": "2859",
+      "line": "2866",
       "preview": "session_school_id = None"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/api/views_v1.py",
-      "line": "2861",
+      "line": "2868",
       "preview": "session_school_id = getattr("
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/api/views_v1.py",
-      "line": "2862",
+      "line": "2869",
       "preview": "getattr(session.classroom, \"academic_year\", None), \"school_id\", None"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/api/views_v1.py",
-      "line": "2864",
+      "line": "2871",
       "preview": "if session_school_id is not None and session_school_id != school.pk:"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/api/views_v1.py",
-      "line": "2984",
+      "line": "2991",
       "preview": "sub = get_object_or_404(EMISSubmission, pk=id, school_id=school.pk)"
     },
     {
@@ -9957,6 +9957,12 @@
     },
     {
       "classification": "tenant_scoped",
+      "file": "apps/athletics/services/consent.py",
+      "line": "36",
+      "preview": "school = getattr(request, \"school\", None) or getattr("
+    },
+    {
+      "classification": "tenant_scoped",
       "file": "apps/athletics/services/eligibility.py",
       "line": "111",
       "preview": "def _attendance_ok(*, school_id, student_id, reasons: list[str], snapshot: dict) -> bool:"
@@ -10109,6 +10115,12 @@
       "classification": "tenant_scoped",
       "file": "apps/athletics/tests/test_clubs.py",
       "line": "181",
+      "preview": "request.school = self.fx.school"
+    },
+    {
+      "classification": "tenant_scoped",
+      "file": "apps/athletics/tests/test_consent.py",
+      "line": "219",
       "preview": "request.school = self.fx.school"
     },
     {
@@ -10318,19 +10330,19 @@
     {
       "classification": "tenant_scoped",
       "file": "apps/athletics/views/coach.py",
-      "line": "331",
+      "line": "333",
       "preview": "school = request.school"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/athletics/views/coach.py",
-      "line": "366",
+      "line": "368",
       "preview": "school = request.school"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/athletics/views/coach.py",
-      "line": "402",
+      "line": "404",
       "preview": "return team_manage_allowed(request.user, request.school, team_id)"
     },
     {
@@ -13756,43 +13768,43 @@
     {
       "classification": "tenant_scoped",
       "file": "apps/compliance/tests/test_auditor_access.py",
-      "line": "199",
+      "line": "211",
       "preview": "grant = AuditorAccessGrant.objects.get(school_id=self.school.id)"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/compliance/tests/test_auditor_access.py",
-      "line": "226",
+      "line": "262",
       "preview": "school_id=self.school.id, ip_allowlist=[\"198.51.100.7\"]"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/compliance/tests/test_auditor_access.py",
-      "line": "252",
+      "line": "288",
       "preview": "grant, _ = auditor_access.create_grant(school_id=self.school.id)"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/compliance/tests/test_auditor_access.py",
-      "line": "285",
+      "line": "321",
       "preview": "grant, _ = auditor_access.create_grant(school_id=self.school.id)"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/compliance/tests/test_auditor_access.py",
-      "line": "291",
+      "line": "327",
       "preview": "school_id=self.school.id, ip_allowlist=[\"198.51.100.0/24\"]"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/compliance/tests/test_auditor_access.py",
-      "line": "298",
+      "line": "334",
       "preview": "school_id=self.school.id, ip_allowlist=[\"198.51.100.7\"]"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/compliance/tests/test_auditor_access.py",
-      "line": "309",
+      "line": "345",
       "preview": "school_id=self.school.id, ip_allowlist=[\"198.51.100.0/24\"]"
     },
     {
@@ -17572,37 +17584,37 @@
     {
       "classification": "tenant_scoped",
       "file": "apps/finance/services.py",
-      "line": "1419",
+      "line": "1412",
       "preview": "school_id = getattr(invoice, \"school_id\", None) or getattr("
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/finance/services.py",
-      "line": "1420",
+      "line": "1413",
       "preview": "getattr(invoice, \"student\", None), \"school_id\", None"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/finance/services.py",
-      "line": "1428",
+      "line": "1421",
       "preview": "\"school_id\": str(school_id) if school_id else None,"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/finance/services.py",
-      "line": "1433",
+      "line": "1426",
       "preview": "school_id=school_id,"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/finance/services.py",
-      "line": "1551",
+      "line": "1544",
       "preview": "school_id = getattr(student, \"school_id\", None)"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/finance/services.py",
-      "line": "1560",
+      "line": "1553",
       "preview": "school_id=school_id,"
     },
     {
@@ -18720,6 +18732,24 @@
       "file": "apps/finance/views_payment_setup.py",
       "line": "24",
       "preview": "school = getattr(request, \"school\", None)"
+    },
+    {
+      "classification": "tenant_scoped",
+      "file": "apps/finance/views_payments.py",
+      "line": "549",
+      "preview": "school_id = getattr(invoice, \"school_id\", None)"
+    },
+    {
+      "classification": "tenant_scoped",
+      "file": "apps/finance/views_payments.py",
+      "line": "550",
+      "preview": "if school_id is None or getattr(invoice, \"pk\", None) is None:"
+    },
+    {
+      "classification": "tenant_scoped",
+      "file": "apps/finance/views_payments.py",
+      "line": "558",
+      "preview": "event__school_id=school_id,"
     },
     {
       "classification": "tenant_scoped",
@@ -20530,79 +20560,79 @@
     {
       "classification": "tenant_scoped",
       "file": "apps/lifecycle/tenant_dr_snapshot.py",
-      "line": "680",
+      "line": "684",
       "preview": "\"school_id\": sid,"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/lifecycle/tenant_dr_snapshot.py",
-      "line": "730",
+      "line": "734",
       "preview": "stored = encrypt_blob(compressed, school_id=str(school.pk))"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/lifecycle/tenant_dr_snapshot.py",
-      "line": "732",
+      "line": "736",
       "preview": "sig = sign_payload(stored, school_id=str(school.pk))"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/lifecycle/tenant_dr_snapshot.py",
-      "line": "759",
+      "line": "763",
       "preview": "\"school_id\": str(school.pk),"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/lifecycle/tenant_dr_snapshot.py",
-      "line": "769",
+      "line": "773",
       "preview": "def load_snapshot_payload(path: Path, *, school_id: str, expected_sig: str) -> dict[str, Any]:"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/lifecycle/tenant_dr_snapshot.py",
-      "line": "780",
+      "line": "784",
       "preview": "if not verify_signature(data, expected_sig, school_id=school_id):"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/lifecycle/tenant_dr_snapshot.py",
-      "line": "782",
+      "line": "786",
       "preview": "compressed = decrypt_blob(data, school_id=school_id)"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/lifecycle/tenant_dr_snapshot.py",
-      "line": "784",
+      "line": "788",
       "preview": "if str(payload.get(\"school_id\")) != str(school_id):"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/lifecycle/tenant_dr_snapshot.py",
-      "line": "838",
+      "line": "842",
       "preview": "user_id=user.pk, school_id=school.pk"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/lifecycle/tenant_dr_snapshot.py",
-      "line": "864",
+      "line": "868",
       "preview": "school_id: str,"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/lifecycle/tenant_dr_snapshot.py",
-      "line": "881",
+      "line": "885",
       "preview": "payload = load_snapshot_payload(path, school_id=school_id, expected_sig=expected_sig)"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/lifecycle/tenant_dr_snapshot.py",
-      "line": "890",
+      "line": "894",
       "preview": "report: dict[str, Any] = {\"tables\": {}, \"target_school_id\": None}"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/lifecycle/tenant_dr_snapshot.py",
-      "line": "894",
+      "line": "898",
       "preview": "report[\"target_school_id\"] = str(school.pk)"
     },
     {
@@ -23164,13 +23194,13 @@
     {
       "classification": "tenant_scoped",
       "file": "apps/migration_cloud/orchestrator.py",
-      "line": "303",
+      "line": "314",
       "preview": "if bundle.school_id and not effective_schema:"
     },
     {
       "classification": "tenant_scoped",
       "file": "apps/migration_cloud/orchestrator.py",
-      "line": "305",
+      "line": "316",
       "preview": "f\"Bundle {bundle_id} is bound to school_id={bundle.school_id} but has no \""
     },
     {
@@ -29970,41 +30000,11 @@
       "file": "apps/platform_runtime/tenant_retention_playbooks.py",
       "line": "236",
       "preview": "return f\"{playbook_code}:{school_id}:{day_iso}:{phase}\""
-    },
-    {
-      "classification": "tenant_scoped",
-      "file": "apps/platform_runtime/tenant_retention_playbooks.py",
-      "line": "240",
-      "preview": "school_id: int,"
-    },
-    {
-      "classification": "tenant_scoped",
-      "file": "apps/platform_runtime/tenant_retention_playbooks.py",
-      "line": "249",
-      "preview": "school_id=school_id,"
-    },
-    {
-      "classification": "manager_scoped",
-      "file": "apps/platform_runtime/tests/experience_control_registry.py",
-      "line": "22",
-      "preview": "\"urlconf\": \"config.manager_urls\","
-    },
-    {
-      "classification": "manager_scoped",
-      "file": "apps/platform_runtime/tests/experience_control_registry.py",
-      "line": "175",
-      "preview": "\"urlconf\": \"config.manager_urls\","
-    },
-    {
-      "classification": "manager_scoped",
-      "file": "apps/platform_runtime/tests/experience_control_registry.py",
-      "line": "184",
-      "preview": "\"urlconf\": \"config.manager_urls\","
     }
   ],
   "schema_version": 1,
   "totals": {
-    "hits": 10442
+    "hits": 10454
   },
   "truncated": true
 }

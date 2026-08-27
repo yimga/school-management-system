@@ -1,7 +1,7 @@
 {
   "critical_count": 0,
   "django_test_db_file": ".django_test_dbs/kill_test_recovery.sqlite3",
-  "generated_at": "2026-08-06T12:22:59.913113+00:00",
+  "generated_at": "2026-08-23T17:24:28.620015+00:00",
   "keepdb": true,
   "result": "PASS",
   "scenarios": [

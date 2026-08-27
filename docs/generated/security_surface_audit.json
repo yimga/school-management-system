@@ -384,7 +384,7 @@
         "classification": "allowed",
         "file": "apps/api/oneroster_demographics.py",
         "governance_tier": "safe",
-        "line": "1448",
+        "line": "1472",
         "pattern": "csrf_exempt"
       },
       {
@@ -392,7 +392,7 @@
         "classification": "allowed",
         "file": "apps/api/oneroster_demographics.py",
         "governance_tier": "safe",
-        "line": "1512",
+        "line": "1542",
         "pattern": "csrf_exempt"
       },
       {
@@ -864,7 +864,7 @@
         "classification": "allowed",
         "file": "apps/finance/views_payments.py",
         "governance_tier": "safe",
-        "line": "605",
+        "line": "665",
         "pattern": "csrf_exempt"
       },
       {
@@ -1293,6 +1293,14 @@
         "file": "apps/accounts/iam_pdp_guards.py",
         "governance_tier": "safe",
         "line": "10",
+        "pattern": "login_required"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/accounts/migrations/0063_school_events_permission_codes.py",
+        "governance_tier": "safe",
+        "line": "3",
         "pattern": "login_required"
       },
       {
@@ -3036,7 +3044,7 @@
         "classification": "allowed",
         "file": "apps/athletics/views/coach.py",
         "governance_tier": "safe",
-        "line": "317",
+        "line": "319",
         "pattern": "login_required"
       },
       {
@@ -3044,7 +3052,7 @@
         "classification": "allowed",
         "file": "apps/athletics/views/coach.py",
         "governance_tier": "safe",
-        "line": "360",
+        "line": "362",
         "pattern": "login_required"
       },
       {
@@ -4364,7 +4372,7 @@
         "classification": "allowed",
         "file": "apps/payroll/views.py",
         "governance_tier": "safe",
-        "line": "342",
+        "line": "348",
         "pattern": "login_required"
       },
       {
@@ -4372,7 +4380,7 @@
         "classification": "allowed",
         "file": "apps/payroll/views.py",
         "governance_tier": "safe",
-        "line": "375",
+        "line": "381",
         "pattern": "login_required"
       },
       {
@@ -4380,7 +4388,7 @@
         "classification": "allowed",
         "file": "apps/payroll/views.py",
         "governance_tier": "safe",
-        "line": "393",
+        "line": "399",
         "pattern": "login_required"
       },
       {
@@ -6042,9 +6050,9 @@
       {
         "bucket": "product",
         "classification": "allowed",
-        "file": "apps/school_events/views.py",
+        "file": "apps/school_events/tests.py",
         "governance_tier": "safe",
-        "line": "20",
+        "line": "598",
         "pattern": "login_required"
       },
       {
@@ -6052,7 +6060,7 @@
         "classification": "allowed",
         "file": "apps/school_events/views.py",
         "governance_tier": "safe",
-        "line": "42",
+        "line": "37",
         "pattern": "login_required"
       },
       {
@@ -6060,7 +6068,23 @@
         "classification": "allowed",
         "file": "apps/school_events/views.py",
         "governance_tier": "safe",
-        "line": "59",
+        "line": "39",
+        "pattern": "login_required"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/school_events/views.py",
+        "governance_tier": "safe",
+        "line": "62",
+        "pattern": "login_required"
+      },
+      {
+        "bucket": "product",
+        "classification": "allowed",
+        "file": "apps/school_events/views.py",
+        "governance_tier": "safe",
+        "line": "90",
         "pattern": "login_required"
       },
       {
@@ -9528,7 +9552,7 @@
         "classification": "allowed",
         "file": "apps/api/oneroster_demographics.py",
         "governance_tier": "safe",
-        "line": "244",
+        "line": "262",
         "pattern": "require_http_methods"
       },
       {
@@ -9536,7 +9560,7 @@
         "classification": "allowed",
         "file": "apps/api/oneroster_demographics.py",
         "governance_tier": "safe",
-        "line": "305",
+        "line": "323",
         "pattern": "require_http_methods"
       },
       {
@@ -9544,7 +9568,7 @@
         "classification": "allowed",
         "file": "apps/api/oneroster_demographics.py",
         "governance_tier": "safe",
-        "line": "333",
+        "line": "354",
         "pattern": "require_http_methods"
       },
       {
@@ -9552,7 +9576,7 @@
         "classification": "allowed",
         "file": "apps/api/oneroster_demographics.py",
         "governance_tier": "safe",
-        "line": "1449",
+        "line": "1473",
         "pattern": "require_http_methods"
       },
       {
@@ -9560,7 +9584,7 @@
         "classification": "allowed",
         "file": "apps/api/oneroster_demographics.py",
         "governance_tier": "safe",
-        "line": "1513",
+        "line": "1543",
         "pattern": "require_http_methods"
       },
       {
@@ -10496,7 +10520,7 @@
         "classification": "allowed",
         "file": "apps/athletics/views/coach.py",
         "governance_tier": "safe",
-        "line": "320",
+        "line": "322",
         "pattern": "require_http_methods"
       },
       {
@@ -10504,7 +10528,7 @@
         "classification": "allowed",
         "file": "apps/athletics/views/coach.py",
         "governance_tier": "safe",
-        "line": "363",
+        "line": "365",
         "pattern": "require_http_methods"
       },
       {
@@ -11016,7 +11040,7 @@
         "classification": "allowed",
         "file": "apps/finance/views_payments.py",
         "governance_tier": "safe",
-        "line": "606",
+        "line": "666",
         "pattern": "require_http_methods"
       },
       {
@@ -11440,7 +11464,7 @@
         "classification": "allowed",
         "file": "apps/payroll/views.py",
         "governance_tier": "safe",
-        "line": "298",
+        "line": "304",
         "pattern": "require_http_methods"
       },
       {
@@ -11448,7 +11472,7 @@
         "classification": "allowed",
         "file": "apps/payroll/views.py",
         "governance_tier": "safe",
-        "line": "315",
+        "line": "321",
         "pattern": "require_http_methods"
       },
       {
@@ -11456,7 +11480,7 @@
         "classification": "allowed",
         "file": "apps/payroll/views.py",
         "governance_tier": "safe",
-        "line": "329",
+        "line": "335",
         "pattern": "require_http_methods"
       },
       {
@@ -12936,7 +12960,7 @@
         "classification": "allowed",
         "file": "apps/sales/views.py",
         "governance_tier": "safe",
-        "line": "109",
+        "line": "114",
         "pattern": "require_http_methods"
       },
       {
@@ -12944,7 +12968,7 @@
         "classification": "allowed",
         "file": "apps/sales/views.py",
         "governance_tier": "safe",
-        "line": "160",
+        "line": "165",
         "pattern": "require_http_methods"
       },
       {
@@ -12952,7 +12976,7 @@
         "classification": "allowed",
         "file": "apps/sales/views.py",
         "governance_tier": "safe",
-        "line": "245",
+        "line": "267",
         "pattern": "require_http_methods"
       },
       {
@@ -12960,7 +12984,7 @@
         "classification": "allowed",
         "file": "apps/school_events/views.py",
         "governance_tier": "safe",
-        "line": "60",
+        "line": "91",
         "pattern": "require_http_methods"
       },
       {
@@ -16026,7 +16050,7 @@
         "classification": "allowed",
         "file": "scripts/verify_ci_gate_wiring.py",
         "governance_tier": "safe",
-        "line": "256",
+        "line": "264",
         "pattern": "staff_member_required"
       },
       {
@@ -18652,7 +18676,7 @@
         "classification": "needs_review",
         "file": "scripts/pre_push_boundary_check.py",
         "governance_tier": "controlled",
-        "line": "296",
+        "line": "329",
         "pattern": "subprocess"
       },
       {
@@ -18660,7 +18684,7 @@
         "classification": "needs_review",
         "file": "scripts/pre_push_boundary_check.py",
         "governance_tier": "controlled",
-        "line": "303",
+        "line": "336",
         "pattern": "subprocess"
       },
       {
@@ -18668,7 +18692,7 @@
         "classification": "needs_review",
         "file": "scripts/pre_push_boundary_check.py",
         "governance_tier": "controlled",
-        "line": "322",
+        "line": "355",
         "pattern": "subprocess"
       },
       {
@@ -18676,7 +18700,7 @@
         "classification": "needs_review",
         "file": "scripts/pre_push_boundary_check.py",
         "governance_tier": "controlled",
-        "line": "332",
+        "line": "365",
         "pattern": "subprocess"
       },
       {
@@ -18852,7 +18876,7 @@
         "classification": "needs_review",
         "file": "scripts/run_local_browser_ux_certification.py",
         "governance_tier": "controlled",
-        "line": "190",
+        "line": "198",
         "pattern": "subprocess"
       },
       {
@@ -18860,7 +18884,7 @@
         "classification": "needs_review",
         "file": "scripts/run_local_browser_ux_certification.py",
         "governance_tier": "controlled",
-        "line": "198",
+        "line": "206",
         "pattern": "subprocess"
       },
       {
@@ -21281,7 +21305,7 @@
       }
     ]
   },
-  "generated_at": "2026-08-23T09:42:06.982237+00:00",
+  "generated_at": "2026-08-23T18:01:52.286267+00:00",
   "known_csrf_exempt_product_paths": [
     "apps/accounts/views_saml.py",
     "apps/api/br_northstar_views.py",
@@ -21328,25 +21352,25 @@
     "allow_any": 43,
     "csrf_exempt": 98,
     "cursor_execute": 2,
-    "login_required": 856,
+    "login_required": 859,
     "permission_classes": 81,
     "require_http_methods": 830,
     "staff_member_required": 93,
     "subprocess": 655
   },
   "summary_by_classification": {
-    "allowed": 2137,
+    "allowed": 2140,
     "needs_review": 508,
     "unsafe": 13
   },
   "summary_by_governance_tier": {
     "controlled": 446,
     "needs_review": 63,
-    "safe": 2137,
+    "safe": 2140,
     "violation": 12
   },
   "totals": {
-    "hits": 2658
+    "hits": 2661
   },
   "unified": [
     {
@@ -21730,7 +21754,7 @@
       "classification": "allowed",
       "file": "apps/api/oneroster_demographics.py",
       "governance_tier": "safe",
-      "line": "1448",
+      "line": "1472",
       "pattern": "csrf_exempt"
     },
     {
@@ -21738,7 +21762,7 @@
       "classification": "allowed",
       "file": "apps/api/oneroster_demographics.py",
       "governance_tier": "safe",
-      "line": "1512",
+      "line": "1542",
       "pattern": "csrf_exempt"
     },
     {
@@ -22210,7 +22234,7 @@
       "classification": "allowed",
       "file": "apps/finance/views_payments.py",
       "governance_tier": "safe",
-      "line": "605",
+      "line": "665",
       "pattern": "csrf_exempt"
     },
     {
@@ -22635,6 +22659,14 @@
       "file": "apps/accounts/iam_pdp_guards.py",
       "governance_tier": "safe",
       "line": "10",
+      "pattern": "login_required"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/accounts/migrations/0063_school_events_permission_codes.py",
+      "governance_tier": "safe",
+      "line": "3",
       "pattern": "login_required"
     },
     {
@@ -24378,7 +24410,7 @@
       "classification": "allowed",
       "file": "apps/athletics/views/coach.py",
       "governance_tier": "safe",
-      "line": "317",
+      "line": "319",
       "pattern": "login_required"
     },
     {
@@ -24386,7 +24418,7 @@
       "classification": "allowed",
       "file": "apps/athletics/views/coach.py",
       "governance_tier": "safe",
-      "line": "360",
+      "line": "362",
       "pattern": "login_required"
     },
     {
@@ -25706,7 +25738,7 @@
       "classification": "allowed",
       "file": "apps/payroll/views.py",
       "governance_tier": "safe",
-      "line": "342",
+      "line": "348",
       "pattern": "login_required"
     },
     {
@@ -25714,7 +25746,7 @@
       "classification": "allowed",
       "file": "apps/payroll/views.py",
       "governance_tier": "safe",
-      "line": "375",
+      "line": "381",
       "pattern": "login_required"
     },
     {
@@ -25722,7 +25754,7 @@
       "classification": "allowed",
       "file": "apps/payroll/views.py",
       "governance_tier": "safe",
-      "line": "393",
+      "line": "399",
       "pattern": "login_required"
     },
     {
@@ -27384,9 +27416,9 @@
     {
       "bucket": "product",
       "classification": "allowed",
-      "file": "apps/school_events/views.py",
+      "file": "apps/school_events/tests.py",
       "governance_tier": "safe",
-      "line": "20",
+      "line": "598",
       "pattern": "login_required"
     },
     {
@@ -27394,7 +27426,7 @@
       "classification": "allowed",
       "file": "apps/school_events/views.py",
       "governance_tier": "safe",
-      "line": "42",
+      "line": "37",
       "pattern": "login_required"
     },
     {
@@ -27402,7 +27434,23 @@
       "classification": "allowed",
       "file": "apps/school_events/views.py",
       "governance_tier": "safe",
-      "line": "59",
+      "line": "39",
+      "pattern": "login_required"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/school_events/views.py",
+      "governance_tier": "safe",
+      "line": "62",
+      "pattern": "login_required"
+    },
+    {
+      "bucket": "product",
+      "classification": "allowed",
+      "file": "apps/school_events/views.py",
+      "governance_tier": "safe",
+      "line": "90",
       "pattern": "login_required"
     },
     {
@@ -30866,7 +30914,7 @@
       "classification": "allowed",
       "file": "apps/api/oneroster_demographics.py",
       "governance_tier": "safe",
-      "line": "244",
+      "line": "262",
       "pattern": "require_http_methods"
     },
     {
@@ -30874,7 +30922,7 @@
       "classification": "allowed",
       "file": "apps/api/oneroster_demographics.py",
       "governance_tier": "safe",
-      "line": "305",
+      "line": "323",
       "pattern": "require_http_methods"
     },
     {
@@ -30882,7 +30930,7 @@
       "classification": "allowed",
       "file": "apps/api/oneroster_demographics.py",
       "governance_tier": "safe",
-      "line": "333",
+      "line": "354",
       "pattern": "require_http_methods"
     },
     {
@@ -30890,7 +30938,7 @@
       "classification": "allowed",
       "file": "apps/api/oneroster_demographics.py",
       "governance_tier": "safe",
-      "line": "1449",
+      "line": "1473",
       "pattern": "require_http_methods"
     },
     {
@@ -30898,7 +30946,7 @@
       "classification": "allowed",
       "file": "apps/api/oneroster_demographics.py",
       "governance_tier": "safe",
-      "line": "1513",
+      "line": "1543",
       "pattern": "require_http_methods"
     },
     {
@@ -31834,7 +31882,7 @@
       "classification": "allowed",
       "file": "apps/athletics/views/coach.py",
       "governance_tier": "safe",
-      "line": "320",
+      "line": "322",
       "pattern": "require_http_methods"
     },
     {
@@ -31842,7 +31890,7 @@
       "classification": "allowed",
       "file": "apps/athletics/views/coach.py",
       "governance_tier": "safe",
-      "line": "363",
+      "line": "365",
       "pattern": "require_http_methods"
     },
     {
@@ -32354,7 +32402,7 @@
       "classification": "allowed",
       "file": "apps/finance/views_payments.py",
       "governance_tier": "safe",
-      "line": "606",
+      "line": "666",
       "pattern": "require_http_methods"
     },
     {
@@ -32778,7 +32826,7 @@
       "classification": "allowed",
       "file": "apps/payroll/views.py",
       "governance_tier": "safe",
-      "line": "298",
+      "line": "304",
       "pattern": "require_http_methods"
     },
     {
@@ -32786,7 +32834,7 @@
       "classification": "allowed",
       "file": "apps/payroll/views.py",
       "governance_tier": "safe",
-      "line": "315",
+      "line": "321",
       "pattern": "require_http_methods"
     },
     {
@@ -32794,7 +32842,7 @@
       "classification": "allowed",
       "file": "apps/payroll/views.py",
       "governance_tier": "safe",
-      "line": "329",
+      "line": "335",
       "pattern": "require_http_methods"
     },
     {
@@ -34274,7 +34322,7 @@
       "classification": "allowed",
       "file": "apps/sales/views.py",
       "governance_tier": "safe",
-      "line": "109",
+      "line": "114",
       "pattern": "require_http_methods"
     },
     {
@@ -34282,7 +34330,7 @@
       "classification": "allowed",
       "file": "apps/sales/views.py",
       "governance_tier": "safe",
-      "line": "160",
+      "line": "165",
       "pattern": "require_http_methods"
     },
     {
@@ -34290,7 +34338,7 @@
       "classification": "allowed",
       "file": "apps/sales/views.py",
       "governance_tier": "safe",
-      "line": "245",
+      "line": "267",
       "pattern": "require_http_methods"
     },
     {
@@ -34298,7 +34346,7 @@
       "classification": "allowed",
       "file": "apps/school_events/views.py",
       "governance_tier": "safe",
-      "line": "60",
+      "line": "91",
       "pattern": "require_http_methods"
     },
     {
@@ -37362,7 +37410,7 @@
       "classification": "allowed",
       "file": "scripts/verify_ci_gate_wiring.py",
       "governance_tier": "safe",
-      "line": "256",
+      "line": "264",
       "pattern": "staff_member_required"
     },
     {
@@ -39986,7 +40034,7 @@
       "classification": "needs_review",
       "file": "scripts/pre_push_boundary_check.py",
       "governance_tier": "controlled",
-      "line": "296",
+      "line": "329",
       "pattern": "subprocess"
     },
     {
@@ -39994,7 +40042,7 @@
       "classification": "needs_review",
       "file": "scripts/pre_push_boundary_check.py",
       "governance_tier": "controlled",
-      "line": "303",
+      "line": "336",
       "pattern": "subprocess"
     },
     {
@@ -40002,7 +40050,7 @@
       "classification": "needs_review",
       "file": "scripts/pre_push_boundary_check.py",
       "governance_tier": "controlled",
-      "line": "322",
+      "line": "355",
       "pattern": "subprocess"
     },
     {
@@ -40010,7 +40058,7 @@
       "classification": "needs_review",
       "file": "scripts/pre_push_boundary_check.py",
       "governance_tier": "controlled",
-      "line": "332",
+      "line": "365",
       "pattern": "subprocess"
     },
     {
@@ -40186,7 +40234,7 @@
       "classification": "needs_review",
       "file": "scripts/run_local_browser_ux_certification.py",
       "governance_tier": "controlled",
-      "line": "190",
+      "line": "198",
       "pattern": "subprocess"
     },
     {
@@ -40194,7 +40242,7 @@
       "classification": "needs_review",
       "file": "scripts/run_local_browser_ux_certification.py",
       "governance_tier": "controlled",
-      "line": "198",
+      "line": "206",
       "pattern": "subprocess"
     },
     {

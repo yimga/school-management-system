@@ -13,6 +13,15 @@
   --rmc-admin-card: var(--surface-raised, var(--surface-1, #141d32));
   --rmc-admin-card-soft: var(--surface-subtle, var(--surface-2, #10182a));
   --rmc-admin-line: var(--hairline, rgba(137, 153, 187, 0.24));
+  /* Referenced by .rmc-admin-fieldset__heading / __description below and by
+     rmc-admin-production-polish-v18.css, but never DECLARED anywhere in
+     static/ -- so `color: var(--rmc-admin-text)` resolved to nothing and the
+     declaration collapsed, leaving those elements to inherit whatever colour
+     the surrounding shell happened to set. Declared here, in this family's own
+     idiom (semantic token first, then a literal floor), so the cascade still
+     wins when the shell defines the semantic names. */
+  --rmc-admin-text: var(--admin-content-text, var(--text-primary, #e8eefc));
+  --rmc-admin-muted: var(--admin-content-text-muted, var(--text-secondary, #9fb0cd));
 }
 
 html[data-rmc-admin-html="unfold"],

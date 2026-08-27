@@ -113,14 +113,30 @@ def _run_local_checklist() -> list[dict]:
     from django.db import connection
 
     results: list[dict] = []
-    for label, (table, min_count, allow_empty) in zip(
-        CHECKLIST, _LOCAL_CHECKS, strict=True
-    ):
+    for table, min_count, allow_empty in _LOCAL_CHECKS:
+        # Record what THIS mode actually asserted, not the CHECKLIST wording.
+        #
+        # This used to zip CHECKLIST onto these results, so a row landed in the
+        # durable drill log reading {"check": "schools_school row count > 0",
+        # "count": 0, "status": "pass"} -- a check whose text promises rows,
+        # reporting zero, and passing. The pass was CORRECT (--apply-local is a
+        # repo-contained smoke test and these entries carry allow_empty=True,
+        # "empty local OK; table must exist"), but the evidence file said
+        # something that was not true, and docs/generated/dr_drill_log.json is
+        # what verify_dr_drill_schedule.py reads to decide whether disaster
+        # recovery has been exercised. Evidence that misstates its own assertion
+        # is worse than no evidence: somebody auditing it cannot tell the
+        # difference between "we restored and the data was there" and "the table
+        # existed on a developer laptop".
+        if allow_empty:
+            label = f"{table} exists (local mode: rows not required)"
+        else:
+            label = f"{table} row count >= {min_count}"
         try:
             with connection.cursor() as cursor:
                 cursor.execute(f'SELECT COUNT(*) FROM "{table}"')  # noqa: S608
                 count = int(cursor.fetchone()[0])
-            ok = count >= min_count if not allow_empty else True
+            ok = True if allow_empty else count >= min_count
             status = "pass" if ok else "fail"
             results.append(
                 {
@@ -128,6 +144,9 @@ def _run_local_checklist() -> list[dict]:
                     "status": status,
                     "table": table,
                     "count": count,
+                    # So a reader (and any future gate) can tell at a glance that
+                    # this row is a local smoke result, not a restore proof.
+                    "assertion": "table_exists" if allow_empty else "min_row_count",
                 }
             )
         except Exception as exc:  # noqa: BLE001 — drill must record failures

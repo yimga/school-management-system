@@ -7,6 +7,7 @@ from django.urls import reverse
 
 from apps.requests.models import AccessRequest
 from apps.schools.models import School
+from apps.test_utils.http_clients import login_tenant_admin_client
 
 
 User = get_user_model()
@@ -80,14 +81,29 @@ class RequestsViewSecurityTests(TestCase):
             school=self.school_b,
             schema_name="school-b",
         )
-        self.client.force_login(self.staff)
+        # This ran as force_login(self.staff) and returned 302 to the APEX
+        # /authentication/login/ -- the user read as anonymous on the tenant host,
+        # because it holds no SchoolMembership for school-a. The sibling test above
+        # passes only because it uses the default host, where that is not checked.
+        # login_tenant_admin_client creates the membership AND arms MFA (this role
+        # is on the baseline strict-MFA list, which is the next wall behind it).
+        client = login_tenant_admin_client(
+            self.staff,
+            password="password",
+            host="school-a.runmycampus.com",
+            school=self.school_a,
+        )
         with patch.dict(
             os.environ, {"MULTI_TENANT_BASE_DOMAIN": "runmycampus.com"}, clear=False
         ):
-            response = self.client.get(
+            response = client.get(
                 reverse("requests:dashboard"), HTTP_HOST="school-a.runmycampus.com"
             )
-        self.assertEqual(response.status_code, 200)
+        # Name the redirect target on failure: a bare "302 != 200" here has read
+        # as a scoping bug more than once when it was a gate redirect.
+        self.assertEqual(
+            response.status_code, 200, f"redirected to {getattr(response, 'url', '?')}"
+        )
         rows = list(response.context["requests"])
         self.assertEqual(len(rows), 1)
         self.assertEqual(rows[0].school_id, self.school_a.id)

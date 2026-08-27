@@ -29,9 +29,16 @@ class PaidInstallLedgerEntitlementWebhookE2ETests(MarketplaceMonetizationClosure
         acct.external_customer_ref = "cus_geos_e2e"
         acct.save(update_fields=["external_customer_ref"])
 
-        install_app(self.school, self.paid_app, actor=None)
+        # `actor=` is apps.marketplace.lifecycle.install_app's parameter, and that
+        # function is reached by no production code -- only tests. The install path
+        # the marketplace views and the runtime actually call is the one imported
+        # here, apps.marketplace.services.install_app, whose parameter is
+        # `installed_by`. Passing the wrong one raised TypeError on this line, so
+        # every assertion below it had never executed.
+        install_app(self.school, self.paid_app, installed_by=None)
         sub = TenantMarketplaceSubscription.objects.get(school=self.school, app=self.paid_app)
-        self.assertTrue(sub.is_active)
+        # The model carries a `status` TextChoices, not an `is_active` boolean.
+        self.assertEqual(sub.status, TenantMarketplaceSubscription.Status.ACTIVE)
         ledger_install = MarketplaceMonetizationLedgerEntry.objects.filter(
             school=self.school,
             app=self.paid_app,
@@ -39,7 +46,7 @@ class PaidInstallLedgerEntitlementWebhookE2ETests(MarketplaceMonetizationClosure
         )
         self.assertEqual(ledger_install.count(), 1)
 
-        uninstall_app(self.school, self.paid_app, actor=None)
+        uninstall_app(self.school, self.paid_app, uninstalled_by=None)
         ledger_uninstall = MarketplaceMonetizationLedgerEntry.objects.filter(
             school=self.school,
             app=self.paid_app,

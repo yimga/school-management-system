@@ -1949,13 +1949,28 @@ urlpatterns += [
 ]
 
 # v3.39.0 Agent 4 — Prometheus scrape endpoint (lazy include).
+#
+# PREPEND, for the same reason the Wave 25 block above prepends: ``path("metrics/",
+# obs_views.metrics)`` is registered ~1400 lines earlier in this list and Django
+# resolves first-match-wins. Appending here mounted this view at a path that had
+# already been claimed, so it was unreachable on this urlconf and the v3.40.0
+# ``OBSERVABILITY_METRICS_BEARER_TOKEN`` guard it carries was inert -- an operator
+# following the docs would set that token, believe the scrape endpoint was
+# secured by it, and actually be relying on ``@observability_auth_required`` on a
+# different view. (Not an exposure: the view that answered was gated. But the
+# token did nothing, and the endpoint the operator configured never ran.)
+#
+# This only takes effect when OBSERVABILITY_METRICS_BACKEND is explicitly set to
+# prometheus-client -- it defaults to "noop", where this block does not run at all
+# and obs_views.metrics keeps /metrics/. Opting into that backend is precisely a
+# request for THIS exporter, so it is the one that should answer.
 if _OBSERVABILITY_PROM_BACKEND:
     from apps.observability.views_metrics import PrometheusMetricsView  # noqa: E402
 
-    urlpatterns += [
-        # rbac-allow: prometheus-scrape-anonymous-firewall-protected
+    urlpatterns = [
+        # rbac-allow: prometheus-scrape-bearer-or-firewall-protected
         path("metrics/", PrometheusMetricsView.as_view(), name="prometheus_metrics"),
-    ]
+    ] + urlpatterns
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

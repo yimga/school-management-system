@@ -1,12 +1,12 @@
 {
   "schema_version": 2,
-  "generated_at": "2026-08-06T12:51:16.587461+00:00",
+  "generated_at": "2026-08-23T18:03:28.514105+00:00",
   "class_level_allowlist": [
     "apps/platform_runtime/helpers.py",
     "apps/siteconfig/models.py"
   ],
   "totals": {
-    "sitesettings_word": 160,
+    "sitesettings_word": 166,
     "get_solo_paren": 3,
     "sitesettings_objects": 1,
     "import_siteconfig_sitesettings": 0,
@@ -16,7 +16,7 @@
     "get_effective_site_settings": 95,
     "get_platform_site_settings_record": 33,
     "runtime_defaults_get_singleton": 14,
-    "files_with_any_hit": 133
+    "files_with_any_hit": 135
   },
   "by_app": {
     "accounts": {
@@ -175,7 +175,7 @@
       "sitesettings_objects": 0,
       "sitesettings_word": 1
     },
-    "migration_cloud": {
+    "lifecycle": {
       "django_get_model_sitesettings": 0,
       "files": 1,
       "get_effective_site_settings": 0,
@@ -188,6 +188,19 @@
       "sitesettings_objects": 0,
       "sitesettings_word": 1
     },
+    "migration_cloud": {
+      "django_get_model_sitesettings": 0,
+      "files": 1,
+      "get_effective_site_settings": 0,
+      "get_platform_site_settings_record": 0,
+      "get_solo_paren": 0,
+      "import_siteconfig_sitesettings": 0,
+      "runtime_defaults_get_singleton": 0,
+      "sitesettings_get_solo": 0,
+      "sitesettings_load": 0,
+      "sitesettings_objects": 0,
+      "sitesettings_word": 2
+    },
     "platform_runtime": {
       "django_get_model_sitesettings": 0,
       "files": 13,
@@ -199,7 +212,7 @@
       "sitesettings_get_solo": 0,
       "sitesettings_load": 0,
       "sitesettings_objects": 1,
-      "sitesettings_word": 13
+      "sitesettings_word": 15
     },
     "policies": {
       "django_get_model_sitesettings": 0,
@@ -255,7 +268,7 @@
     },
     "schools": {
       "django_get_model_sitesettings": 0,
-      "files": 11,
+      "files": 12,
       "get_effective_site_settings": 1,
       "get_platform_site_settings_record": 8,
       "get_solo_paren": 0,
@@ -264,7 +277,7 @@
       "sitesettings_get_solo": 0,
       "sitesettings_load": 0,
       "sitesettings_objects": 0,
-      "sitesettings_word": 12
+      "sitesettings_word": 14
     },
     "setup_studio": {
       "django_get_model_sitesettings": 0,
@@ -737,8 +750,21 @@
       "runtime_defaults_get_singleton": 0
     },
     {
-      "relpath": "apps/migration_cloud/defaults.py",
+      "relpath": "apps/lifecycle/management/commands/import_sovereign_tenant.py",
       "sitesettings_word": 1,
+      "get_solo_paren": 0,
+      "sitesettings_objects": 0,
+      "import_siteconfig_sitesettings": 0,
+      "django_get_model_sitesettings": 0,
+      "sitesettings_get_solo": 0,
+      "sitesettings_load": 0,
+      "get_effective_site_settings": 0,
+      "get_platform_site_settings_record": 0,
+      "runtime_defaults_get_singleton": 0
+    },
+    {
+      "relpath": "apps/migration_cloud/defaults.py",
+      "sitesettings_word": 2,
       "get_solo_paren": 0,
       "sitesettings_objects": 0,
       "import_siteconfig_sitesettings": 0,
@@ -803,7 +829,7 @@
     },
     {
       "relpath": "apps/platform_runtime/models.py",
-      "sitesettings_word": 3,
+      "sitesettings_word": 5,
       "get_solo_paren": 1,
       "sitesettings_objects": 0,
       "import_siteconfig_sitesettings": 0,
@@ -1192,6 +1218,19 @@
       "runtime_defaults_get_singleton": 0
     },
     {
+      "relpath": "apps/schools/edge_tls.py",
+      "sitesettings_word": 1,
+      "get_solo_paren": 0,
+      "sitesettings_objects": 0,
+      "import_siteconfig_sitesettings": 0,
+      "django_get_model_sitesettings": 0,
+      "sitesettings_get_solo": 0,
+      "sitesettings_load": 0,
+      "get_effective_site_settings": 0,
+      "get_platform_site_settings_record": 0,
+      "runtime_defaults_get_singleton": 0
+    },
+    {
       "relpath": "apps/schools/forms_mat_group_hub.py",
       "sitesettings_word": 1,
       "get_solo_paren": 0,
@@ -1271,7 +1310,7 @@
     },
     {
       "relpath": "apps/schools/tasks.py",
-      "sitesettings_word": 2,
+      "sitesettings_word": 3,
       "get_solo_paren": 0,
       "sitesettings_objects": 0,
       "import_siteconfig_sitesettings": 0,
@@ -2536,6 +2575,19 @@
       "runtime_defaults_get_singleton": 0
     },
     {
+      "relpath": "apps/platform_runtime/models.py",
+      "sitesettings_word": 5,
+      "get_solo_paren": 1,
+      "sitesettings_objects": 0,
+      "import_siteconfig_sitesettings": 0,
+      "django_get_model_sitesettings": 0,
+      "sitesettings_get_solo": 0,
+      "sitesettings_load": 0,
+      "get_effective_site_settings": 0,
+      "get_platform_site_settings_record": 1,
+      "runtime_defaults_get_singleton": 0
+    },
+    {
       "relpath": "apps/siteconfig/admin.py",
       "sitesettings_word": 5,
       "get_solo_paren": 0,
@@ -2627,19 +2679,6 @@
       "runtime_defaults_get_singleton": 0
     },
     {
-      "relpath": "apps/platform_runtime/models.py",
-      "sitesettings_word": 3,
-      "get_solo_paren": 1,
-      "sitesettings_objects": 0,
-      "import_siteconfig_sitesettings": 0,
-      "django_get_model_sitesettings": 0,
-      "sitesettings_get_solo": 0,
-      "sitesettings_load": 0,
-      "get_effective_site_settings": 0,
-      "get_platform_site_settings_record": 1,
-      "runtime_defaults_get_singleton": 0
-    },
-    {
       "relpath": "apps/schoolops/email_delivery.py",
       "sitesettings_word": 3,
       "get_solo_paren": 0,
@@ -2653,7 +2692,33 @@
       "runtime_defaults_get_singleton": 0
     },
     {
+      "relpath": "apps/schools/tasks.py",
+      "sitesettings_word": 3,
+      "get_solo_paren": 0,
+      "sitesettings_objects": 0,
+      "import_siteconfig_sitesettings": 0,
+      "django_get_model_sitesettings": 0,
+      "sitesettings_get_solo": 0,
+      "sitesettings_load": 0,
+      "get_effective_site_settings": 0,
+      "get_platform_site_settings_record": 1,
+      "runtime_defaults_get_singleton": 0
+    },
+    {
       "relpath": "apps/accounts/middleware_session_pinning.py",
+      "sitesettings_word": 2,
+      "get_solo_paren": 0,
+      "sitesettings_objects": 0,
+      "import_siteconfig_sitesettings": 0,
+      "django_get_model_sitesettings": 0,
+      "sitesettings_get_solo": 0,
+      "sitesettings_load": 0,
+      "get_effective_site_settings": 0,
+      "get_platform_site_settings_record": 0,
+      "runtime_defaults_get_singleton": 0
+    },
+    {
+      "relpath": "apps/migration_cloud/defaults.py",
       "sitesettings_word": 2,
       "get_solo_paren": 0,
       "sitesettings_objects": 0,
@@ -2715,19 +2780,6 @@
       "sitesettings_load": 0,
       "get_effective_site_settings": 0,
       "get_platform_site_settings_record": 0,
-      "runtime_defaults_get_singleton": 0
-    },
-    {
-      "relpath": "apps/schools/tasks.py",
-      "sitesettings_word": 2,
-      "get_solo_paren": 0,
-      "sitesettings_objects": 0,
-      "import_siteconfig_sitesettings": 0,
-      "django_get_model_sitesettings": 0,
-      "sitesettings_get_solo": 0,
-      "sitesettings_load": 0,
-      "get_effective_site_settings": 0,
-      "get_platform_site_settings_record": 1,
       "runtime_defaults_get_singleton": 0
     },
     {
@@ -2797,19 +2849,6 @@
     },
     {
       "relpath": "apps/siteconfig/domain_ownership.py",
-      "sitesettings_word": 2,
-      "get_solo_paren": 0,
-      "sitesettings_objects": 0,
-      "import_siteconfig_sitesettings": 0,
-      "django_get_model_sitesettings": 0,
-      "sitesettings_get_solo": 0,
-      "sitesettings_load": 0,
-      "get_effective_site_settings": 0,
-      "get_platform_site_settings_record": 0,
-      "runtime_defaults_get_singleton": 0
-    },
-    {
-      "relpath": "apps/siteconfig/email_palette.py",
       "sitesettings_word": 2,
       "get_solo_paren": 0,
       "sitesettings_objects": 0,

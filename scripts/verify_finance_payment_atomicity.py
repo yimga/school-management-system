@@ -1,5 +1,27 @@
 #!/usr/bin/env python3
-"""Verify money-mutation helpers in finance use transaction.atomic."""
+"""Verify money-mutation helpers in finance use transaction.atomic.
+
+WHAT THIS DOES AND DOES NOT COVER -- read before trusting a PASS
+----------------------------------------------------------------
+This is a REGRESSION PIN on four named functions, not coverage of
+``apps/finance/``. ``REQUIRED_ATOMIC_BY_FILE`` is hand-maintained, so a brand-new
+money mutator is not checked by it -- which is the thing a reader most naturally
+assumes a green "finance payment atomicity" gate means. Two further limits:
+
+* ``_func_has_atomic`` accepts ANY ``.atomic`` call anywhere in the body. It does
+  not check that the atomic block actually wraps the ledger write, so a function
+  with an unrelated ``atomic()`` elsewhere reads as safe.
+* Only MODULE-LEVEL functions are collected (``tree.body``), so a money mutator
+  written as a class method is invisible to the name lookup. Listing one here
+  fails loudly as "missing", which is the safe direction, but it means the file
+  cannot be used to pin methods.
+
+It is wired anyway (2026-08-27) because pinning four real invariants beats
+pinning none, and because it had been invoked by no workflow and no runner at
+all -- so even those four were unenforced. Widening it to find money mutators
+structurally, rather than by a list somebody has to remember to update, is the
+follow-up; do not read the current PASS as "finance writes are atomic".
+"""
 
 from __future__ import annotations
 
