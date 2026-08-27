@@ -176,6 +176,15 @@ def run_edge_bringup(
     # 4) MANDATORY pre-offline sync gate (unless explicitly skipped).
     gate_cleared = None
     if do_sync_gate:
+        # NOT guarded by running_on_edge_box(), deliberately. That helper reads
+        # Django settings, which load once at process start -- and the step that
+        # makes a box look like a box (enable_configure_sync) is a PREP step of this
+        # same command. Guarding here would refuse the gate on a fresh box, before
+        # the step that clears the guard has run.
+        #
+        # The refusal lives on the self-heals instead, which is where the risk is: a
+        # console button somebody clicks. This command is typed by a person standing
+        # at the box.
         gate = run_sync_gate(school)
         report["sync_gate"] = gate
         gate_cleared = bool(gate.get("cleared"))

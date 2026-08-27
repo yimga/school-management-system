@@ -657,7 +657,7 @@ def _heal_seed_baseline(school) -> "tuple[bool, str]":
         return False, f"baseline self-heal failed: {exc}"
 
 
-def _running_on_a_box() -> "tuple[bool, str]":
+def running_on_edge_box() -> "tuple[bool, str]":
     """Is this process the EDGE replica, or the cloud control plane?
 
     The three verification heals below all produce their evidence by running a real
@@ -696,7 +696,7 @@ def _heal_verify_and_sync_gate(school) -> "tuple[bool, str]":
     which IS the evidence this step is asking for -- so the step could always have
     produced its own answer, and instead printed a command.
     """
-    on_box, why = _running_on_a_box()
+    on_box, why = running_on_edge_box()
     if not on_box:
         return False, why
     try:
@@ -724,7 +724,7 @@ def _heal_live_sync_proof(school) -> "tuple[bool, str]":
     it has written a failed LIVE run into the record an operator reads to decide
     whether this box converges.
     """
-    on_box, why = _running_on_a_box()
+    on_box, why = running_on_edge_box()
     if not on_box:
         return False, why
     try:
@@ -774,7 +774,7 @@ def _heal_go_dark_checklist(school) -> "tuple[bool, str]":
     that quietly does two fifths of the work and reports failure is indistinguishable
     from one that is broken.
     """
-    on_box, why = _running_on_a_box()
+    on_box, why = running_on_edge_box()
     if not on_box:
         return False, why
     try:
@@ -1678,6 +1678,7 @@ def heal_step(school, step_key: str) -> dict:
 
 
 __all__ = [
+    "running_on_edge_box",
     "EdgeOnboardingStep",
     "EDGE_ONBOARDING_STEPS",
     "EDGE_ONBOARDING_STEP_KEYS",
