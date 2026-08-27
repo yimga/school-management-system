@@ -7,12 +7,12 @@ speaks TLS there: the terminator listens on ``EDGE_TLS_HTTPS_PORT``. The browser
 opens a TLS connection to a plain-HTTP socket and waits until it gives up, so the
 person sees ERR_TIMED_OUT with nothing on screen to explain it.
 
-Measured on the Gilead box, not reasoned about::
+Measured on a live box, not reasoned about. Same host, same path, two ports::
 
-    http://10.10.20.137:10000/authentication/login/
-      -> 301 https://10.10.20.137:10000/authentication/login/   (hangs)
-    http://10.10.20.137/authentication/login/
-      -> 302 https://10.10.20.137/authentication/login/         (200)
+    http://<box>:<web-port>/authentication/login/
+      -> 301 https://<box>:<web-port>/authentication/login/   (hangs)
+    http://<box>/authentication/login/
+      -> 302 https://<box>/authentication/login/              (200)
 
 Port 80 was right the whole time because Caddy, not Django, writes that one. And
 ``:10000`` is not a stray address a box could simply stop publishing: it is the
