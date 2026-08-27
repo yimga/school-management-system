@@ -16,6 +16,7 @@ with the code under test.
 
 from __future__ import annotations
 
+import ast
 import contextlib
 import importlib.util
 import io
@@ -49,8 +50,15 @@ class PrePushBoundaryCheckTests(unittest.TestCase):
         os.environ.pop("RMC_PREPUSH_STRICT", None)
         self.mod = _load_module()
 
+    def _all_gates(self) -> list[tuple[str, list[str]]]:
+        """Both lists. Structural checks that skip DJANGO_GATES leave the
+        gates with the most setup -- and the whole tenant-isolation half --
+        as the only ones nothing pins.
+        """
+        return [*self.mod.GATES, *self.mod.DJANGO_GATES]
+
     def test_every_referenced_gate_script_exists(self) -> None:
-        for label, argv in self.mod.GATES:
+        for label, argv in self._all_gates():
             script = SCRIPTS_DIR / argv[0]
             self.assertTrue(
                 script.is_file(),
@@ -60,7 +68,7 @@ class PrePushBoundaryCheckTests(unittest.TestCase):
     def test_gate_flags_are_recognised_by_the_gate(self) -> None:
         # Each flag the runner passes must exist in the target gate's source, so
         # a flag rename in CI can't leave the runner invoking a dead switch.
-        for label, argv in self.mod.GATES:
+        for label, argv in self._all_gates():
             flags = [a for a in argv[1:] if a.startswith("--")]
             if not flags:
                 continue
@@ -275,6 +283,97 @@ class InterpreterResolutionTests(unittest.TestCase):
                 python="/chosen/python",
             )
         self.assertEqual(seen, ["/chosen/python"])
+
+
+def _module_scope_django_imports(source: str) -> list[int]:
+    """Line numbers of module-scope ``django`` imports in ``source``.
+
+    Module scope only. An import inside a function or a ``try`` runs after (or
+    instead of) argparse, so ``--static-only`` can still take effect; a bare
+    top-level one runs before any flag is read and takes the process down.
+
+    AST, not text search: ``verify_audit_log_append_only.py`` carries a
+    ``from apps...`` line inside a selftest STRING, and a grep-shaped detector
+    reports it as an import that is not there.
+    """
+    found: list[int] = []
+    for node in ast.parse(source).body:
+        names: set[str] = set()
+        if isinstance(node, ast.Import):
+            names = {a.name.split(".")[0] for a in node.names}
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            names = {node.module.split(".")[0]}
+        if "django" in names:
+            found.append(node.lineno)
+    return found
+
+
+class DepsFreeGateContractTests(unittest.TestCase):
+    """``GATES`` is the deps-free list, and that is a promise to a stranger.
+
+    The pre-push hook invokes bare ``python``. Everything in ``GATES`` runs
+    under it, so a gate there that needs Django does not skip -- it raises
+    ModuleNotFoundError, which the runner reads as a FAILED gate and aborts the
+    push. The contributor is then blocked by a red gate that says nothing about
+    their code. That is the mirror image of the bug fixed on 2026-08-27 (an
+    un-run gate reported as green): both are the gate lying about whether it
+    looked. A gate that genuinely needs Django belongs in ``DJANGO_GATES``,
+    where an absent toolchain is reported as UNCHECKED.
+    """
+
+    def setUp(self) -> None:
+        self.mod = _load_module()
+
+    def test_no_deps_free_gate_imports_django_at_module_scope(self) -> None:
+        offenders = []
+        for label, argv in self.mod.GATES:
+            script = SCRIPTS_DIR / argv[0]
+            if not script.is_file():
+                continue  # covered by test_every_referenced_gate_script_exists
+            source = script.read_text(encoding='utf-8', errors='ignore')
+            try:
+                lines = _module_scope_django_imports(source)
+            except SyntaxError:  # pragma: no cover - parse gate owns this
+                continue
+            if lines:
+                offenders.append(f"{label} ({argv[0]}) line {lines[0]}")
+        self.assertEqual(
+            offenders,
+            [],
+            "deps-free gates that import Django at module scope -- these abort "
+            "the push of anyone whose python lacks it; move them to "
+            "DJANGO_GATES: " + ", ".join(offenders),
+        )
+
+    def test_the_module_scope_detector_actually_fires(self) -> None:
+        # The assertion above passes by finding NOTHING, so it is only worth as
+        # much as the detector behind it. Pin both directions here: a zero from
+        # a detector never shown to fire is not evidence.
+        must_fire = {
+            "bare import": "import django\nprint(1)\n",
+            "bare from-import": "from django.urls import reverse\n",
+        }
+        for name, source in must_fire.items():
+            with self.subTest(sample=name):
+                self.assertTrue(
+                    _module_scope_django_imports(source),
+                    f"detector missed a known-bad sample: {name}",
+                )
+
+        must_not_fire = {
+            "inside a function": "def f():\n    import django\n",
+            "guarded by try": (
+                "try:\n    import django\nexcept ImportError:\n"
+                "    django = None\n"
+            ),
+            "only inside a string": 'S = """\nimport django\n"""\n',
+        }
+        for name, source in must_not_fire.items():
+            with self.subTest(sample=name):
+                self.assertFalse(
+                    _module_scope_django_imports(source),
+                    f"detector fired on a legitimate form: {name}",
+                )
 
 
 if __name__ == "__main__":  # pragma: no cover
