@@ -1390,6 +1390,10 @@ def generate_runbook(school, *, with_status: bool = False, host_kind=None) -> di
             entry["status"] = STATUS_TODO
             entry["detail"] = str(row.get("detail") or "")
     runbook["progress"] = runbook_progress(steps)
+    # The suite comes back with the runbook so a surface never has to run it twice,
+    # and so a caller cannot accidentally pair THIS step list with a DIFFERENT run's
+    # counts. One call in, one consistent picture out.
+    runbook["verification"] = suite
     return runbook
 
 

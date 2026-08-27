@@ -69,12 +69,37 @@ def _attach_named_urls(runbook: dict) -> dict:
     return runbook
 
 
-def _safe_runbook(school) -> dict:
+#: What an empty progress block looks like. Named so the failure path below and the
+#: template agree about the shape; a missing key here renders as a blank bar, which
+#: reads like "0% done" rather than "we could not tell".
+_NO_PROGRESS = {
+    "total": 0, "done": 0, "todo": 0, "skipped": 0, "not_checked": 0,
+    "percent": 0, "healable_todo": 0, "needs_a_person": 0,
+}
+
+
+def _safe_runbook(school, *, host_kind: str = "") -> dict:
+    """The runbook WITH per-step status and a progress block, from one call.
+
+    One call matters: the step list and the counts above it come from the same
+    verification run, so the page cannot show "6 of 14 passing" over a list with a
+    different number of ticks. Read-only by construction -- ``generate_runbook``
+    runs the preview (``include_gate=False``), so a GET still records no
+    ``EdgeSyncRun`` and touches no network.
+    """
     try:
-        return _attach_named_urls(edge_onboarding.generate_runbook(school))
+        return _attach_named_urls(
+            edge_onboarding.generate_runbook(
+                school, with_status=True, host_kind=host_kind or None
+            )
+        )
     except Exception as extra:  # noqa: BLE001 — the surface must never 500 over a read
         logger.warning("edge onboarding runbook generation failed: %s", extra)
-        return {"school_id": "", "slug": "", "country": "", "total": 0, "steps": []}
+        return {
+            "school_id": "", "slug": "", "country": "", "total": 0, "steps": [],
+            "progress": dict(_NO_PROGRESS),
+            "verification": {"steps": [], "ok": False, "passed": 0, "total": 0, "skipped": 0},
+        }
 
 
 def _safe_verification(school, *, host_kind: str) -> dict:
@@ -238,23 +263,26 @@ def super_edge_onboarding_runbook(request):
     year_gov = None
     host_kind = _host_kind(request) or "manager"
     if selected is not None:
-        runbook = _safe_runbook(selected)
-        verification = _safe_verification(selected, host_kind=host_kind)
+        runbook = _safe_runbook(selected, host_kind=host_kind)
+        verification = runbook.get("verification") or _safe_verification(
+            selected, host_kind=host_kind
+        )
         fmt = (request.GET.get("format") or "").strip().lower()
         if fmt in ("txt", "text", "plain"):
             return _render_text(selected, runbook, verification)
         live_sync = _latest_live_sync(selected)
         year_gov = _year_governance(selected)
-        by_key = {row["key"]: row for row in (verification.get("steps") or [])}
         for step in runbook.get("steps") or []:
-            row = by_key.get(step["key"]) or {}
-            step["ok"] = bool(row.get("ok"))
-            step["skipped"] = bool(row.get("skipped"))
-            step["detail"] = row.get("detail") or ""
-        evaluated = int(verification.get("evaluated") or verification.get("total") or 0)
-        passed = int(verification.get("passed") or 0)
-        progress_pct = int(round(100.0 * passed / evaluated)) if evaluated else 0
+            # Kept for the existing template rows, now derived from the status the
+            # engine assigned rather than re-derived from a second suite run.
+            step["ok"] = step.get("status") == edge_onboarding.STATUS_DONE
+            step["skipped"] = step.get("status") == edge_onboarding.STATUS_SKIPPED
+        progress = runbook.get("progress") or dict(_NO_PROGRESS)
+        # Over EVERY step, not just the ones this host could evaluate. A step that
+        # could not be checked is still a step the school has to finish.
+        progress_pct = int(progress.get("percent") or 0)
     else:
+        progress = dict(_NO_PROGRESS)
         progress_pct = 0
 
     if request.GET.get("skip_ok") == "1":
@@ -279,5 +307,6 @@ def super_edge_onboarding_runbook(request):
         "skip_notice": skip_notice,
         "mc_skip_min": edge_onboarding.MC_SKIP_REASON_MIN_LEN,
         "progress_pct": progress_pct,
+        "progress": progress,
     }
     return render(request, "schools/super_edge_onboarding_runbook.html", context)
