@@ -334,6 +334,20 @@ def _runbook(
             f"http://{first}:{web_port or DEFAULT_WEB_PORT}"
             f"{edge_tls.TRUST_ENROLMENT_PATH}"
         )
+        # Said BEFORE the per-device instructions, because a school that can push
+        # skips them entirely -- and reading them first is how somebody ends up
+        # walking a building doing by hand what one console push would have done.
+        steps.append(
+            "If the school manages its devices (Google Admin, Intune, Jamf, Mosyle, "
+            "Android Enterprise), do NOT install per device: run "
+            f"`{compose} exec web python manage.py edge_tls --export-mdm /app/var/mdm` "
+            "and push the payload it writes from the console instead. On managed "
+            "Chromebooks and supervised iPads a per-device install does not stick at "
+            "all, and on Android 11+ a hand-installed authority is ignored by apps -- "
+            "so for a managed fleet this is the only route that works. A pushed Apple "
+            "profile is also trusted on arrival, skipping the Certificate Trust "
+            "Settings screen that is the usual reason a device still warns."
+        )
         steps.append(
             f"Send devices to {enrol} "
             "and install it on every device that will use the box. That page carries "
@@ -345,6 +359,15 @@ def _runbook(
             "-- a device reaches it BECAUSE it does not trust the box yet -- so have "
             f"someone compare the fingerprint shown there against `{compose} exec web "
             "python manage.py edge_tls` on the box console before accepting it."
+        )
+
+        steps.append(
+            "Confirm on the first device before doing the rest: that page ends with a "
+            "'Check it worked' button which asks THIS device whether it trusts the box. "
+            "A confirmed answer is definitive; a not-confirmed answer means the "
+            "certificate is not installed OR the box is not answering on https, and "
+            "the page says which address it tried. Checking one device first is the "
+            "difference between one mistake and thirty."
         )
 
     if mode in edge_tls.HTTPS_MODES:

@@ -39,9 +39,11 @@ from __future__ import annotations
 
 import base64
 import io
+import ipaddress
 import os
 
 from django.http import FileResponse, Http404, HttpRequest, HttpResponse
+from django.http.request import split_domain_port
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.views.decorators.cache import never_cache
@@ -59,6 +61,17 @@ CA_CONTENT_TYPE = "application/x-x509-ca-cert"
 #: The filename the device is offered. Deliberately names the box, not "ca.crt", so a
 #: person with three of these in a downloads folder can tell them apart.
 CA_DOWNLOAD_NAME = "box-ca.crt"
+
+#: A 1x1 transparent PNG. Its only job is to be fetched over https from this box and
+#: either load or fail: a device that trusts the box CA completes the handshake and
+#: decodes it, a device that does not never gets that far. Inline bytes rather than a
+#: static asset because the static pipeline is one more thing that can be down at the
+#: exact moment this page matters, and because a 404 and a TLS failure are
+#: indistinguishable from the browser side -- so the file has to be certain to exist.
+PROBE_PNG = base64.b64decode(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk"
+    "YPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+)
 
 
 def _require_box() -> None:
@@ -106,6 +119,107 @@ def _usable(facts) -> bool:
     return bool(facts is not None and facts.readable and facts.fingerprint)
 
 
+#: Substrings that identify a device family well enough to REORDER two links.
+#: Checked in this order because the strings overlap: an Android user agent also
+#: says Linux, and Safari on iPadOS has claimed to be a Macintosh since iPadOS 13 --
+#: which is correct here, because a Mac installs the same profile the same way.
+_DEVICE_TOKENS = (
+    ("apple", ("iphone", "ipad", "ipod", "macintosh", "mac os x")),
+    ("android", ("android",)),
+    ("chromeos", ("cros",)),
+    ("windows", ("windows",)),
+)
+
+
+def _device_hint(request: HttpRequest) -> str:
+    """Which family is asking, or "" -- used ONLY to order equivalent choices.
+
+    Never used to withhold anything. Every platform's steps stay on the page and both
+    downloads stay one click apart, so a wrong guess costs a click. Sniffing that
+    decides what a person is ALLOWED to see would be a different and much worse idea.
+    """
+    agent = (request.META.get("HTTP_USER_AGENT") or "").lower()
+    if not agent:
+        return ""
+    for family, tokens in _DEVICE_TOKENS:
+        if any(token in agent for token in tokens):
+            return family
+    return ""
+
+
+def _verify_facts(request: HttpRequest) -> dict:
+    """Can this device be TOLD whether the install worked, and at what address?
+
+    Every branch that returns ``verify_available: False`` is a case where offering
+    the check would produce a WRONG answer, not merely an unavailable one -- a failed
+    probe reads as "the CA is not installed", so a probe that was never going to
+    succeed is worse than no probe. Hence the box refuses to offer one when it can
+    already see why it would fail.
+
+    Deliberately reads the certificate on disk and the environment, never the
+    database: this runs inside the one page on the box that guarantees it renders
+    while the database is still migrating.
+    """
+    blank = {
+        "verify_available": False,
+        "verify_blocked": "",
+        "probe_url": "",
+        "probe_origin": "",
+        "probe_address": "",
+        "covered_addresses": "",
+    }
+    # No https at all: there is no second address to check, and telling somebody
+    # their install "failed" because this box only ever serves plain http would send
+    # them to re-install a CA that is already fine.
+    if not edge_tls.resolve_mode().serves_https:
+        return dict(blank, verify_blocked="tls_off")
+
+    leaf_path, _key, _ca = edge_tls.certificate_paths()
+    leaf = (
+        edge_tls.inspect_certificate(leaf_path)
+        if leaf_path and os.path.isfile(leaf_path)
+        else None
+    )
+    if leaf is None or not leaf.readable:
+        return dict(blank, verify_blocked="no_leaf")
+
+    domain, _port = split_domain_port(request.get_host())
+    bare = edge_tls.normalize_hostname(domain)
+    if not bare:
+        return dict(blank, verify_blocked="no_host")
+
+    covered = ", ".join([*leaf.dns_names, *leaf.ip_addresses])
+    try:
+        ipaddress.ip_address(bare)
+    except ValueError:
+        missing = leaf.covers([bare], [])
+    else:
+        missing = leaf.covers([], [bare])
+    if missing:
+        # The box KNOWS this one. Saying "not covered" is a different instruction
+        # from "install the CA" -- the CA is fine and the certificate needs
+        # reissuing -- and a probe here would have failed and blamed the device.
+        return dict(
+            blank,
+            verify_blocked="not_covered",
+            probe_address=bare,
+            covered_addresses=covered,
+        )
+
+    port = edge_tls.tls_port()
+    origin = "https://" + edge_tls.host_header_form(bare)
+    if port != edge_tls.DEFAULT_TLS_PORT:
+        origin = f"{origin}:{port}"
+    return {
+        "verify_available": True,
+        "verify_blocked": "",
+        "probe_url": f"{origin}{reverse('edge_trust_probe')}",
+        "probe_origin": origin,
+        "probe_address": bare,
+        "covered_addresses": covered,
+    }
+
+
 @require_GET
 @never_cache
 def edge_trust_page(request: HttpRequest) -> HttpResponse:
@@ -138,8 +252,18 @@ def edge_trust_page(request: HttpRequest) -> HttpResponse:
         "page_url": page_url,
         "qr_data_uri": _qr_data_uri(page_url),
         "download_url": reverse("edge_trust_ca"),
+        "profile_url": reverse("edge_trust_profile"),
+        "platform": _device_hint(request),
         "is_secure": request.is_secure(),
+        # Passed EXPLICITLY. The nonce normally arrives via the `csp_nonce` context
+        # processor, and this page renders with a plain dict precisely so that no
+        # context processor runs -- so `{{ csp_nonce }}` would be empty here and
+        # `script-src 'self'` (CSP_ENFORCE defaults to 1) would block the verify
+        # script with nothing in the page to say why. Reading the attribute the
+        # middleware already set costs no query and keeps that guarantee.
+        "csp_nonce": getattr(request, "csp_nonce", ""),
     }
+    context.update(_verify_facts(request))
     return HttpResponse(render_to_string("schools/edge_trust.html", context))
 
 
@@ -164,3 +288,44 @@ def edge_trust_ca(request: HttpRequest) -> FileResponse:
         filename=CA_DOWNLOAD_NAME,
     )
     return response
+
+
+@require_GET
+@never_cache
+def edge_trust_profile(request: HttpRequest) -> HttpResponse:
+    """This box's CA as an Apple configuration profile.
+
+    Same public certificate as the .crt, in the container Apple's tooling consumes.
+    The media type matters as much as the bytes: served as anything else, Safari
+    downloads it to a folder no profile installer looks in, and the file quietly does
+    nothing rather than visibly failing.
+    """
+    _require_box()
+    ca_path = _ca_path()
+    if not ca_path:
+        raise Http404("this box has not minted a certificate authority yet")
+    payload = edge_tls.mobileconfig(ca_path)
+    if not payload:
+        # Same refusal as the .crt download and for the same reason: a profile built
+        # from an unreadable CA installs on nothing, and the person finds out one
+        # device at a time.
+        raise Http404("this box's certificate authority cannot be read")
+    response = HttpResponse(payload, content_type=edge_tls.MOBILECONFIG_CONTENT_TYPE)
+    response["Content-Disposition"] = (
+        f'attachment; filename="{edge_tls.MOBILECONFIG_NAME}"'
+    )
+    return response
+
+
+@require_GET
+@never_cache
+def edge_trust_probe(request: HttpRequest) -> HttpResponse:
+    """A 1x1 PNG that exists to be fetched over https and either load or not.
+
+    Carries nothing and reveals nothing -- the answer is entirely in whether the
+    device's TLS stack was willing to complete the handshake, which is precisely the
+    question "did the CA install work" asks. Public for the same reason the CA is:
+    there is nothing here to protect.
+    """
+    _require_box()
+    return HttpResponse(PROBE_PNG, content_type="image/png")

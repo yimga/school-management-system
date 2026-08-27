@@ -218,3 +218,18 @@ system_manifest.json
 # this is the second lock, for a box whose RMC_EDGE_OUT_DIR points back at it.
 box-ca-bundle.p12
 box-ca.crt
+# What `manage.py edge_tls --export-mdm` writes for a management console. Public
+# material -- but it is still THIS box's identity, and the export folder is the one
+# most likely to be produced in a hurry inside the checkout and committed by the next
+# `git add`.
+box-ca.mobileconfig
+android-policy.json
+# Box identity handed out during onboarding. Same class as the .p12 above: these
+# name and authenticate one specific box, and a shared repo is the wrong place for
+# any of them.
+*.rmcidentity
+*.rmcbundle
+# Onboarding hands these out base64'd for copy-paste over a terminal. Broad on
+# purpose: verified no tracked file in this repo carries the extension, so the rule
+# can only ever catch something that was pasted in rather than authored here.
+*.b64

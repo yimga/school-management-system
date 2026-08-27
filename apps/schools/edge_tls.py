@@ -60,11 +60,15 @@ easy to get wrong:
 """
 from __future__ import annotations
 
+import base64
 import ipaddress
+import json
 import os
 import re
+import uuid
 from dataclasses import dataclass
 from typing import Any
+from xml.sax.saxutils import escape
 
 MODE_OFF = "off"
 MODE_SELF_SIGNED = "selfsigned"
@@ -288,6 +292,175 @@ TRUST_ENROLMENT_PATH = "/edge/trust/"
 def web_port() -> str:
     """The externally published app port, as the box's own environment reports it."""
     return (os.environ.get("WEB_PORT", "") or "").strip() or DEFAULT_WEB_PORT
+
+
+#: The compose file maps this same name (`EDGE_TLS_HTTPS_PORT`) to the terminator's
+#: 443, and `env_file: .env` carries it into the app container -- so the port the LAN
+#: publishes and the port this reports are the same value from the same line, which
+#: they have to be: the trust page builds its verify probe from this, and a probe
+#: aimed at a port nothing listens on reports "not trusted" about a device that is.
+ENV_HTTPS_PORT = "EDGE_TLS_HTTPS_PORT"
+DEFAULT_TLS_PORT = "443"
+
+
+def tls_port() -> str:
+    """The externally published HTTPS port, as the box's own environment reports it."""
+    return (os.environ.get(ENV_HTTPS_PORT, "") or "").strip() or DEFAULT_TLS_PORT
+
+
+# --- What a management console wants, built from this box's own CA -----------------
+#
+# A managed fleet never has to see the per-device install steps: every console can
+# push a root CA to every enrolled device at once. What each one wants differs enough
+# that "export the .crt" is not an answer -- Apple wants a signed plist, Android
+# Enterprise wants base64 DER inside a policy document, Windows and ChromeOS want the
+# DER file itself under different extensions.
+
+#: Apple's configuration-profile media type. Safari uses it to hand the file to the
+#: profile installer instead of downloading it, so serving the wrong one turns a
+#: one-tap install into a file sitting in Downloads that nothing will open.
+MOBILECONFIG_CONTENT_TYPE = "application/x-apple-aspen-config"
+MOBILECONFIG_NAME = "box-ca.mobileconfig"
+
+#: Reverse-DNS root for payload identifiers. Suffixed with the CA fingerprint so a
+#: re-push REPLACES the installed profile and a genuinely different CA installs
+#: alongside it rather than silently overwriting a trust anchor.
+PAYLOAD_IDENTIFIER_ROOT = "com.runmycampus.edge"
+
+#: Used only when the CA carries no common name at all -- which this code never
+#: mints, but a provided-mode CA might. Deliberately generic: guessing a school name
+#: here would put a wrong name in front of every device in the building.
+FALLBACK_PROFILE_NAME = "RunMyCampus box certificate authority"
+
+
+def _subject_attribute(cert: Any, oid: Any) -> str:
+    """One attribute off a certificate subject, or "" -- never a raise."""
+    try:
+        found = cert.subject.get_attributes_for_oid(oid)
+    except Exception:  # noqa: BLE001 - an absent attribute is not an error here
+        return ""
+    return str(found[0].value).strip() if found else ""
+
+
+def ca_der_base64(ca_path: str) -> str:
+    """The CA as base64 DER, or "" -- the one encoding every console consumes.
+
+    Android Enterprise policy documents, Apple payloads and Chrome's admin console
+    all want the DER, and the PEM on disk is that DER base64'd with a header glued
+    on. Reading it through ``cryptography`` rather than string-slicing the PEM means
+    a file that is not actually a certificate returns "" instead of producing a
+    payload that every device in a school will reject one at a time.
+    """
+    try:
+        from cryptography import x509
+        from cryptography.hazmat.primitives.serialization import Encoding
+
+        with open(ca_path, "rb") as handle:
+            cert = x509.load_pem_x509_certificate(handle.read())
+        return base64.b64encode(cert.public_bytes(Encoding.DER)).decode("ascii")
+    except Exception:  # noqa: BLE001 - an unreadable CA is a state, not a crash
+        return ""
+
+
+def mobileconfig(ca_path: str) -> bytes:
+    """An Apple configuration profile carrying this box's CA, or b"".
+
+    ``com.apple.security.root`` is the payload type that puts a certificate in the
+    system root store. Pushed through MDM it is trusted on arrival; installed BY HAND
+    it still needs the Certificate Trust Settings toggle, because Apple reserves
+    automatic trust for profiles a device is supervised into. That asymmetry is why
+    the page keeps the manual iOS step even though it offers this file.
+    """
+    facts = inspect_certificate(ca_path)
+    payload = ca_der_base64(ca_path) if facts.readable else ""
+    if not payload or not facts.fingerprint:
+        return b""
+
+    try:
+        from cryptography import x509
+        from cryptography.hazmat.primitives.serialization import Encoding  # noqa: F401
+        from cryptography.x509.oid import NameOID
+
+        with open(ca_path, "rb") as handle:
+            cert = x509.load_pem_x509_certificate(handle.read())
+        common_name = _subject_attribute(cert, NameOID.COMMON_NAME)
+        organization = _subject_attribute(cert, NameOID.ORGANIZATION_NAME)
+    except Exception:  # noqa: BLE001
+        common_name, organization = "", ""
+
+    name = common_name or FALLBACK_PROFILE_NAME
+    # Derived from the fingerprint, NOT random: see the module note on replace-vs-
+    # duplicate. uuid5 is a pure function of its input, so the same CA always
+    # produces the same profile identity on every box that serves it.
+    seed = facts.fingerprint.replace(":", "").lower()
+    root_uuid = str(uuid.uuid5(uuid.NAMESPACE_URL, f"urn:rmc:edge:ca:{seed}")).upper()
+    cert_uuid = str(uuid.uuid5(uuid.NAMESPACE_URL, f"urn:rmc:edge:root:{seed}")).upper()
+    identifier = f"{PAYLOAD_IDENTIFIER_ROOT}.{seed[:16]}"
+
+    wrapped = "\n".join(
+        "\t\t\t" + payload[index : index + 60] for index in range(0, len(payload), 60)
+    )
+    esc = escape
+
+    document = f"""<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+\t<key>PayloadContent</key>
+\t<array>
+\t\t<dict>
+\t\t\t<key>PayloadType</key>
+\t\t\t<string>com.apple.security.root</string>
+\t\t\t<key>PayloadVersion</key>
+\t\t\t<integer>1</integer>
+\t\t\t<key>PayloadIdentifier</key>
+\t\t\t<string>{esc(identifier)}.root</string>
+\t\t\t<key>PayloadUUID</key>
+\t\t\t<string>{cert_uuid}</string>
+\t\t\t<key>PayloadDisplayName</key>
+\t\t\t<string>{esc(name)}</string>
+\t\t\t<key>PayloadCertificateFileName</key>
+\t\t\t<string>box-ca.crt</string>
+\t\t\t<key>PayloadContent</key>
+\t\t\t<data>
+{wrapped}
+\t\t\t</data>
+\t\t</dict>
+\t</array>
+\t<key>PayloadType</key>
+\t<string>Configuration</string>
+\t<key>PayloadVersion</key>
+\t<integer>1</integer>
+\t<key>PayloadIdentifier</key>
+\t<string>{esc(identifier)}</string>
+\t<key>PayloadUUID</key>
+\t<string>{root_uuid}</string>
+\t<key>PayloadDisplayName</key>
+\t<string>{esc(name)}</string>
+\t<key>PayloadOrganization</key>
+\t<string>{esc(organization or "RunMyCampus")}</string>
+\t<key>PayloadDescription</key>
+\t<string>{esc(f"Trusts this site's own certificate authority. SHA-256 {facts.fingerprint}")}</string>
+\t<key>PayloadRemovalDisallowed</key>
+\t<false/>
+</dict>
+</plist>
+"""
+    return document.encode("utf-8")
+
+
+def android_policy_snippet(ca_path: str) -> str:
+    """The ``caCerts`` fragment an Android Management API policy takes, or "".
+
+    Android is the platform where per-device install is worst -- since Android 7 a
+    user-installed CA is ignored by apps entirely, and Android 11 removed the install
+    intent -- so for anything managed this is not a convenience, it is the only route
+    that works at all.
+    """
+    payload = ca_der_base64(ca_path)
+    if not payload:
+        return ""
+    return json.dumps({"caCerts": [payload]}, indent=2)
 
 
 def platform_public_suffixes() -> tuple[str, ...]:

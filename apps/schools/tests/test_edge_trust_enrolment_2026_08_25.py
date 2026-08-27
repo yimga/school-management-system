@@ -45,7 +45,10 @@ from apps.schools.views_edge_trust import (
     CA_CONTENT_TYPE,
     edge_trust_ca,
     edge_trust_page,
+    edge_trust_probe,
+    edge_trust_profile,
 )
+from apps.schools.views_edge_trust import _device_hint
 
 BOX = {
     # build_absolute_uri() validates the Host header, and a box is reached at an
@@ -780,6 +783,544 @@ class AnUnresolvableNameWarnsButMustNotHaltABoxTests(SimpleTestCase):
         self.assertIn("check_edge_readiness || true", entrypoint)
 
 
+class TheDeviceCanBeToldWhetherItWorkedTests(TenantUrlconfMixin, SimpleTestCase):
+    """Almost nobody finds out an install failed on the device they installed it on.
+
+    They find out on the fourth device, a week later, and they blame the phone. The
+    page can just ask: load a 1x1 PNG over https from this box. A device that trusts
+    the box CA completes the handshake; one that does not, does not.
+
+    Most of what is asserted here is the ways this could have quietly answered WRONG,
+    because a check that reports "not trusted" about a trusting device is worse than
+    no check at all -- it sends somebody to reinstall a CA that was already fine.
+    """
+
+    def _page(self, host, dns, ips, mode=edge_tls.MODE_SELF_SIGNED, https_port=""):
+        with tempfile.TemporaryDirectory() as directory:
+            edge_tls.issue_self_signed(
+                directory, dns_names=list(dns), ip_addresses=list(ips), days=825
+            )
+            env = {edge_tls.ENV_DIR: directory, edge_tls.ENV_MODE: mode}
+            if https_port:
+                env[edge_tls.ENV_HTTPS_PORT] = https_port
+            with override_settings(**BOX), mock.patch.dict(
+                os.environ, env, clear=False
+            ):
+                request = RequestFactory().get("/edge/trust/", HTTP_HOST=host)
+                # What ContentSecurityPolicyMiddleware sets before the view runs.
+                request.csp_nonce = "test-nonce-abc"
+                return edge_trust_page(request).content.decode("utf-8")
+
+    # -- the happy path ------------------------------------------------------------
+
+    def test_a_device_at_an_address_the_certificate_covers_is_offered_the_check(self):
+        body = self._page("gilead-tech.local", ["gilead-tech.local"], [])
+        self.assertIn('id="rmc-verify"', body)
+        self.assertIn(
+            "https://gilead-tech.local/edge/trust/probe.png",
+            body,
+            "the probe must be aimed at the box over https, at the address the "
+            "device actually used to get here",
+        )
+
+    def test_the_probe_carries_the_tls_port_when_it_is_not_443(self):
+        # The compose file publishes EDGE_TLS_HTTPS_PORT; a probe aimed at 443 on a
+        # box that terminates on 8443 reports "not trusted" about every device.
+        body = self._page(
+            "gilead-tech.local", ["gilead-tech.local"], [], https_port="8443"
+        )
+        self.assertIn("https://gilead-tech.local:8443/edge/trust/probe.png", body)
+
+    def test_tls_port_reads_the_environment_and_defaults_to_443(self):
+        with mock.patch.dict(os.environ, {}, clear=False):
+            os.environ.pop(edge_tls.ENV_HTTPS_PORT, None)
+            self.assertEqual(edge_tls.tls_port(), "443")
+        with mock.patch.dict(
+            os.environ, {edge_tls.ENV_HTTPS_PORT: " 8443 "}, clear=False
+        ):
+            self.assertEqual(edge_tls.tls_port(), "8443")
+
+    # -- the cases where offering a check would have LIED --------------------------
+
+    def test_no_check_is_offered_when_the_box_serves_no_https_at_all(self):
+        # There is no second address to check. A probe here fails for every device,
+        # and "not trusted" would be a lie about a box that simply has TLS off.
+        body = self._page(
+            "gilead-tech.local", ["gilead-tech.local"], [], mode=edge_tls.MODE_OFF
+        )
+        self.assertNotIn('id="rmc-verify"', body)
+
+    def test_an_address_outside_the_certificate_is_named_rather_than_probed(self):
+        # The box KNOWS this one: the device reached it at an address the certificate
+        # does not asssert, so https was always going to warn here whatever the
+        # device installed. "Reissue the certificate" is a different instruction from
+        # "install the CA", and a failed probe would have given the wrong one.
+        body = self._page("10.10.20.137", ["gilead-tech.local"], [])
+        self.assertNotIn('id="rmc-verify"', body)
+        self.assertIn("10.10.20.137", body)
+        self.assertIn("gilead-tech.local", body)
+        self.assertIn("--issue-selfsigned", body)
+
+    def test_the_failure_message_does_not_assert_a_cause_it_cannot_know(self):
+        # A failed image load cannot distinguish "CA not installed" from "terminator
+        # down" from "wrong port". Saying the first outright is how a readiness
+        # message sends somebody to fix the wrong thing -- so it must name the
+        # possibility that the box, not the device, is the problem.
+        body = self._page("gilead-tech.local", ["gilead-tech.local"], [])
+        message = body.split('id="rmc-msg-no"', 1)[1].split("</span>", 1)[0]
+        self.assertIn("not answering", message)
+
+    # -- the two CSP traps ---------------------------------------------------------
+
+    def test_the_script_carries_the_nonce_the_middleware_set(self):
+        # THE TRAP. `csp_nonce` normally arrives via a context processor, and this
+        # page renders with a plain dict SO THAT no context processor runs -- so the
+        # nonce would have been empty, script-src 'self' would have blocked the
+        # script (CSP_ENFORCE defaults to 1), and the button would have done nothing
+        # at all with nothing in the page to say why.
+        body = self._page("gilead-tech.local", ["gilead-tech.local"], [])
+        self.assertIn('nonce="test-nonce-abc"', body)
+
+    def test_the_page_never_emits_a_script_with_an_empty_nonce(self):
+        body = self._page("gilead-tech.local", ["gilead-tech.local"], [])
+        self.assertNotIn('<script nonce=""', body)
+        for match in re.findall(r"<script[^>]*>", body):
+            self.assertIn(
+                "nonce=", match, "an un-nonced inline script is a script that is blocked"
+            )
+
+    def test_the_probe_is_an_image_and_never_a_fetch(self):
+        # THE OTHER TRAP. The page is http on the app port; the probe is https on the
+        # TLS port -- a different ORIGIN. `connect-src 'self'` blocks a fetch there
+        # outright, so the page would have reported "not trusted" about a device that
+        # trusts the box perfectly well. `img-src` already carries `https:`.
+        body = self._page("gilead-tech.local", ["gilead-tech.local"], [])
+        script = body.split("<script", 1)[1]
+        # Comments stripped: the block explains at length that it is deliberately
+        # NOT a fetch, and an assertion that reads its own prose proves nothing.
+        code = "\n".join(
+            line
+            for line in script.splitlines()
+            if not line.strip().startswith("//")
+        )
+        self.assertNotIn("fetch(", code)
+        self.assertNotIn("XMLHttpRequest", code)
+        self.assertIn("new Image()", code)
+
+    def test_no_inline_event_handler_attributes(self):
+        # The M9 CSP enforce seal: a nonce cannot authorize an on*= ATTRIBUTE, so a
+        # strict script-src blocks them. Property assignment in JS is fine.
+        body = self._page("gilead-tech.local", ["gilead-tech.local"], [])
+        offenders = re.findall(r"<[^>]*\son(?:click|load|error|submit)\s*=", body)
+        self.assertEqual(offenders, [], "inline handlers are blocked under CSP")
+        self.assertIn("addEventListener", body)
+
+    # -- the endpoint itself -------------------------------------------------------
+
+    def test_the_probe_endpoint_serves_a_real_png(self):
+        with override_settings(**BOX):
+            response = edge_trust_probe(RequestFactory().get("/edge/trust/probe.png"))
+        self.assertEqual(response["Content-Type"], "image/png")
+        self.assertTrue(
+            response.content.startswith(b"\x89PNG\r\n\x1a\n"),
+            "a device cannot fire onload for something that is not an image",
+        )
+
+    def test_the_probe_is_not_served_off_a_box(self):
+        with override_settings(**NOT_A_BOX):
+            with self.assertRaises(Http404):
+                edge_trust_probe(RequestFactory().get("/edge/trust/probe.png"))
+
+    def test_the_probe_sits_under_the_prefix_the_tenant_middlewares_skip(self):
+        # A box being set up is exactly a box whose school does not resolve yet. If
+        # this route sat anywhere else, the middleware would answer with the
+        # school-not-found redirect and the image would "fail" on every device.
+        from apps.schools.middleware import TRUST_ENROLMENT_PREFIXES
+
+        probe = reverse("edge_trust_probe")
+        self.assertTrue(
+            any(probe.startswith(prefix) for prefix in TRUST_ENROLMENT_PREFIXES),
+            f"{probe} is not under a skipped prefix: {TRUST_ENROLMENT_PREFIXES}",
+        )
+
+
+class WhatAManagementConsoleActuallyWantsTests(TenantUrlconfMixin, SimpleTestCase):
+    """On a managed fleet, step 3 should never happen at all.
+
+    Every console can push a root CA to every enrolled device at once, and on Apple
+    hardware a PUSHED profile is trusted on arrival while a hand-installed one still
+    needs the Trust Settings screen. So the box builds the payloads rather than
+    leaving an administrator to hand-write a plist.
+
+    The identifiers being STABLE is the load-bearing property, not a detail: Apple
+    replaces a profile carrying the same PayloadIdentifier and installs a second one
+    when it differs. Random UUIDs would mean every re-push silently accumulates
+    another trust anchor on every device in the school.
+    """
+
+    def _ca(self, directory, dns=("gilead-tech.local",), ips=("10.10.20.137",)):
+        edge_tls.issue_self_signed(
+            directory, dns_names=list(dns), ip_addresses=list(ips), days=825
+        )
+        return os.path.join(directory, "ca.crt")
+
+    def test_the_profile_is_a_plist_carrying_a_root_payload(self):
+        import plistlib
+
+        with tempfile.TemporaryDirectory() as directory:
+            document = plistlib.loads(edge_tls.mobileconfig(self._ca(directory)))
+        self.assertEqual(document["PayloadType"], "Configuration")
+        self.assertEqual(
+            document["PayloadContent"][0]["PayloadType"],
+            "com.apple.security.root",
+            "any other payload type puts the certificate somewhere trust is never "
+            "consulted from",
+        )
+
+    def test_the_certificate_inside_the_profile_is_this_box_ca(self):
+        # The one that matters. A profile that installs cleanly and carries the WRONG
+        # authority is worse than one that fails: it is a fleet-wide trust anchor
+        # nobody has any reason to look at again.
+        import plistlib
+
+        from cryptography import x509
+        from cryptography.hazmat.primitives import hashes
+
+        with tempfile.TemporaryDirectory() as directory:
+            ca_path = self._ca(directory)
+            document = plistlib.loads(edge_tls.mobileconfig(ca_path))
+            embedded = x509.load_der_x509_certificate(
+                document["PayloadContent"][0]["PayloadContent"]
+            )
+            with open(ca_path, "rb") as handle:
+                on_disk = x509.load_pem_x509_certificate(handle.read())
+        self.assertEqual(
+            embedded.fingerprint(hashes.SHA256()),
+            on_disk.fingerprint(hashes.SHA256()),
+        )
+
+    def test_the_same_ca_always_produces_the_same_identifiers(self):
+        # Re-push REPLACES. Anything else accumulates trust anchors on every device.
+        import plistlib
+
+        with tempfile.TemporaryDirectory() as directory:
+            ca_path = self._ca(directory)
+            first = plistlib.loads(edge_tls.mobileconfig(ca_path))
+            second = plistlib.loads(edge_tls.mobileconfig(ca_path))
+        self.assertEqual(first["PayloadIdentifier"], second["PayloadIdentifier"])
+        self.assertEqual(first["PayloadUUID"], second["PayloadUUID"])
+
+    def test_a_different_ca_produces_different_identifiers(self):
+        # Two boxes in one district must not have their profiles overwrite each other.
+        import plistlib
+
+        with tempfile.TemporaryDirectory() as one, tempfile.TemporaryDirectory() as two:
+            first = plistlib.loads(edge_tls.mobileconfig(self._ca(one)))
+            second = plistlib.loads(
+                edge_tls.mobileconfig(self._ca(two, dns=("other-school.local",)))
+            )
+        self.assertNotEqual(first["PayloadIdentifier"], second["PayloadIdentifier"])
+        self.assertNotEqual(first["PayloadUUID"], second["PayloadUUID"])
+
+    def test_the_display_name_comes_from_the_certificate_not_from_a_fixture(self):
+        # Tenant-wide: nothing here may name one school. The CA subject is the only
+        # per-box identity this page is allowed to read, because the page renders
+        # with no database at all.
+        import plistlib
+
+        with tempfile.TemporaryDirectory() as directory:
+            ca_path = self._ca(directory, dns=("st-mary-college.local",))
+            document = plistlib.loads(edge_tls.mobileconfig(ca_path))
+        self.assertIn("st-mary-college.local", document["PayloadDisplayName"])
+
+    def test_an_unreadable_ca_yields_no_profile_rather_than_a_broken_one(self):
+        with tempfile.TemporaryDirectory() as directory:
+            broken = os.path.join(directory, "ca.crt")
+            with open(broken, "w", encoding="utf-8") as handle:
+                handle.write("-----BEGIN CERTIFICATE-----\nnope\n")
+            self.assertEqual(edge_tls.mobileconfig(broken), b"")
+            self.assertEqual(edge_tls.android_policy_snippet(broken), "")
+
+    def test_the_android_snippet_decodes_back_to_the_certificate(self):
+        import base64 as b64
+        import json as js
+
+        from cryptography import x509
+
+        with tempfile.TemporaryDirectory() as directory:
+            ca_path = self._ca(directory)
+            payload = js.loads(edge_tls.android_policy_snippet(ca_path))
+            der = b64.b64decode(payload["caCerts"][0])
+        self.assertEqual(list(payload), ["caCerts"])
+        x509.load_der_x509_certificate(der)  # raises if this is not a certificate
+
+    # -- the served endpoint ---------------------------------------------------------
+
+    def _serve(self, settings_override, directory):
+        env = {
+            edge_tls.ENV_DIR: directory,
+            edge_tls.ENV_MODE: edge_tls.MODE_SELF_SIGNED,
+        }
+        with override_settings(**settings_override), mock.patch.dict(
+            os.environ, env, clear=False
+        ):
+            return edge_trust_profile(
+                RequestFactory().get("/edge/trust/box-ca.mobileconfig")
+            )
+
+    def test_the_profile_is_served_as_an_apple_configuration_profile(self):
+        # Served as anything else, Safari files it in Downloads and the tap that was
+        # meant to open the installer does nothing at all.
+        with tempfile.TemporaryDirectory() as directory:
+            self._ca(directory)
+            response = self._serve(BOX, directory)
+        self.assertEqual(response["Content-Type"], edge_tls.MOBILECONFIG_CONTENT_TYPE)
+        self.assertIn(".mobileconfig", response["Content-Disposition"])
+
+    def test_the_profile_is_not_served_off_a_box(self):
+        with tempfile.TemporaryDirectory() as directory:
+            self._ca(directory)
+            with self.assertRaises(Http404):
+                self._serve(NOT_A_BOX, directory)
+
+    def test_a_corrupt_ca_refuses_rather_than_serving_an_empty_profile(self):
+        with tempfile.TemporaryDirectory() as directory:
+            with open(os.path.join(directory, "ca.crt"), "w", encoding="utf-8") as h:
+                h.write("not a certificate")
+            with self.assertRaises(Http404):
+                self._serve(BOX, directory)
+
+
+class TheExportFolderCannotCarryTheKeyTests(SimpleTestCase):
+    """`--export-mdm` writes the folder most likely to be zipped up and emailed.
+
+    Everything in it is public by design. The private key sits one directory away and
+    is not: the difference between distributing a certificate authority and
+    distributing the power to impersonate every site in the school is one filename,
+    and it is worth a test rather than a careful reading.
+    """
+
+    def _run(self, out_dir, cert_dir):
+        from io import StringIO
+
+        from django.core.management import call_command
+
+        env = {
+            edge_tls.ENV_DIR: cert_dir,
+            edge_tls.ENV_MODE: edge_tls.MODE_SELF_SIGNED,
+        }
+        console = StringIO()
+        with mock.patch.dict(os.environ, env, clear=False):
+            call_command("edge_tls", export_mdm=out_dir, stdout=console)
+        return console.getvalue()
+
+    def test_it_writes_what_each_console_needs(self):
+        with tempfile.TemporaryDirectory() as certs, tempfile.TemporaryDirectory() as out:
+            edge_tls.issue_self_signed(
+                certs, dns_names=["gilead-tech.local"], ip_addresses=[], days=825
+            )
+            self._run(out, certs)
+            written = sorted(os.listdir(out))
+        self.assertEqual(
+            written,
+            ["README.txt", "android-policy.json", "box-ca.crt", "box-ca.mobileconfig"],
+        )
+
+    def test_no_private_key_material_reaches_the_export(self):
+        with tempfile.TemporaryDirectory() as certs, tempfile.TemporaryDirectory() as out:
+            edge_tls.issue_self_signed(
+                certs, dns_names=["gilead-tech.local"], ip_addresses=[], days=825
+            )
+            # Prove the key was THERE to leak, or this test passes for the wrong reason.
+            self.assertTrue(os.path.isfile(os.path.join(certs, "ca.key")))
+            self._run(out, certs)
+            for name in os.listdir(out):
+                with open(os.path.join(out, name), "rb") as handle:
+                    body = handle.read()
+                self.assertNotIn(b"PRIVATE KEY", body, f"{name} carries key material")
+
+    def test_it_refuses_to_write_beside_the_private_key(self):
+        from django.core.management import call_command
+        from django.core.management.base import CommandError
+
+        with tempfile.TemporaryDirectory() as certs:
+            edge_tls.issue_self_signed(
+                certs, dns_names=["gilead-tech.local"], ip_addresses=[], days=825
+            )
+            env = {
+                edge_tls.ENV_DIR: certs,
+                edge_tls.ENV_MODE: edge_tls.MODE_SELF_SIGNED,
+            }
+            with mock.patch.dict(os.environ, env, clear=False):
+                with self.assertRaises(CommandError) as caught:
+                    call_command("edge_tls", export_mdm=certs)
+        self.assertIn("PRIVATE KEY", str(caught.exception))
+
+    def test_the_readme_carries_the_fingerprint_to_compare(self):
+        # The folder gets forwarded. If the fingerprint is only in the covering
+        # email, the person who ends up pushing it has nothing to check against.
+        with tempfile.TemporaryDirectory() as certs, tempfile.TemporaryDirectory() as out:
+            edge_tls.issue_self_signed(
+                certs, dns_names=["gilead-tech.local"], ip_addresses=[], days=825
+            )
+            self._run(out, certs)
+            with open(os.path.join(out, "README.txt"), encoding="utf-8") as handle:
+                readme = handle.read()
+            expected = edge_tls.inspect_certificate(
+                os.path.join(certs, "ca.crt")
+            ).fingerprint
+        self.assertIn(expected, readme)
+
+
+class ThePageOffersTheFileThisDeviceCanUseTests(TenantUrlconfMixin, SimpleTestCase):
+    """An iPhone handed a raw .crt files it where the trust screen never looks.
+
+    Sniffing decides ORDER only. Every platform's steps stay on the page and both
+    downloads stay one click apart, so a wrong guess costs a click and can never cost
+    correctness -- which is the only kind of decision a user-agent string is good
+    enough to make.
+    """
+
+    APPLE = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15"
+    ANDROID = "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/125"
+    WINDOWS = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/125"
+
+    def _page(self, agent):
+        with tempfile.TemporaryDirectory() as directory:
+            edge_tls.issue_self_signed(
+                directory,
+                dns_names=["gilead-tech.local"],
+                ip_addresses=[],
+                days=825,
+            )
+            env = {
+                edge_tls.ENV_DIR: directory,
+                edge_tls.ENV_MODE: edge_tls.MODE_SELF_SIGNED,
+            }
+            with override_settings(**BOX), mock.patch.dict(
+                os.environ, env, clear=False
+            ):
+                request = RequestFactory().get(
+                    "/edge/trust/",
+                    HTTP_HOST="gilead-tech.local",
+                    HTTP_USER_AGENT=agent,
+                )
+                request.csp_nonce = "n"
+                return edge_trust_page(request).content.decode("utf-8")
+
+    def test_an_apple_device_is_offered_the_profile_first(self):
+        body = self._page(self.APPLE)
+        primary = body.split('class="btn"', 1)[1].split(">", 1)[0]
+        self.assertIn(".mobileconfig", primary)
+
+    def test_everything_else_is_offered_the_certificate_first(self):
+        for agent in (self.ANDROID, self.WINDOWS, ""):
+            with self.subTest(agent=agent[:24] or "no user agent"):
+                body = self._page(agent)
+                primary = body.split('class="btn"', 1)[1].split(">", 1)[0]
+                self.assertIn("ca.crt", primary)
+
+    def test_both_files_are_always_reachable_whatever_the_guess(self):
+        # The sniff must never WITHHOLD. A misidentified device still has to be able
+        # to get the file it needs without knowing that it was misidentified.
+        for agent in (self.APPLE, self.ANDROID, self.WINDOWS, ""):
+            with self.subTest(agent=agent[:24] or "no user agent"):
+                body = self._page(agent)
+                self.assertIn("/edge/trust/ca.crt", body)
+                self.assertIn("/edge/trust/box-ca.mobileconfig", body)
+
+    def test_every_platform_keeps_its_instructions_whatever_the_guess(self):
+        for agent in (self.APPLE, self.ANDROID, self.WINDOWS, ""):
+            with self.subTest(agent=agent[:24] or "no user agent"):
+                body = self._page(agent)
+                for needle in ("Windows", "Android", "iPhone"):
+                    self.assertIn(needle, body)
+
+    def test_windows_is_given_the_one_command_that_replaces_the_wizard(self):
+        body = self._page(self.WINDOWS)
+        self.assertIn("Import-Certificate", body)
+        self.assertIn("Cert:\\LocalMachine\\Root", body)
+        self.assertNotIn("Import-Certificate", self._page(self.APPLE))
+
+    def test_an_android_user_agent_is_not_mistaken_for_a_desktop(self):
+        # It says "Linux" and it says "Chrome"; the ordering of the token table is
+        # what keeps it out of the wrong branch.
+        request = RequestFactory().get("/edge/trust/", HTTP_USER_AGENT=self.ANDROID)
+        self.assertEqual(_device_hint(request), "android")
+
+    def test_an_ipad_claiming_to_be_a_macintosh_still_gets_the_profile(self):
+        # Safari on iPadOS has reported itself as a Macintosh since iPadOS 13. That
+        # is the right answer here anyway -- a Mac installs the same profile -- but
+        # only because the apple branch is checked before anything else.
+        ipad = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15"
+        request = RequestFactory().get("/edge/trust/", HTTP_USER_AGENT=ipad)
+        self.assertEqual(_device_hint(request), "apple")
+
+
+class BothRunbooksCarryTheManagedRouteTests(SimpleTestCase):
+    """A school that can push should never read the per-device steps.
+
+    The wizard's copy is the one printed and read weeks later by somebody who cannot
+    check it against a running box, so it cannot be the copy that omits the route
+    which makes the whole chore unnecessary.
+    """
+
+    def _generated(self):
+        from apps.schools import edge_onboarding
+
+        return edge_onboarding._runbook(
+            mode=edge_tls.MODE_SELF_SIGNED,
+            dns_names=["gilead-tech.local"],
+            ip_addresses=["10.10.20.137"],
+            mobility=edge_onboarding.MOVE_NEVER,
+            web_port="10000",
+        )
+
+    def test_the_console_push_is_offered_before_the_per_device_walk(self):
+        # ORDER, not presence. Reading "install it on every device" first is exactly
+        # how somebody spends an afternoon walking a building doing by hand what one
+        # console push would have done for the whole fleet in a minute.
+        steps = self._generated()
+        managed = next(i for i, s in enumerate(steps) if "--export-mdm" in s)
+        per_device = next(
+            i for i, s in enumerate(steps) if "install it on every device" in s
+        )
+        self.assertLess(managed, per_device)
+
+    def test_the_generated_runbook_says_how_to_confirm_before_doing_thirty(self):
+        joined = "\n".join(self._generated())
+        self.assertIn("Check it worked", joined)
+        self.assertIn("one mistake and thirty", joined)
+
+    def test_the_generated_runbook_is_honest_about_a_negative_answer(self):
+        # The same discipline the page keeps: a failed handshake is not proof the CA
+        # is missing, and a runbook that says it is sends people to reinstall.
+        joined = "\n".join(self._generated())
+        self.assertIn("OR the box is not answering", joined)
+
+    def test_the_tls_runbook_documents_the_export_and_the_check(self):
+        text = (
+            Path(settings.BASE_DIR)
+            .joinpath("docs", "EDGE_TLS_RUNBOOK.md")
+            .read_text(encoding="utf-8")
+        )
+        self.assertIn("--export-mdm", text)
+        self.assertIn("box-ca.mobileconfig", text)
+        self.assertIn("android-policy.json", text)
+        self.assertIn("5d.", text)
+
+    def test_the_tls_runbook_explains_why_the_identifiers_are_stable(self):
+        # If this reasoning is not written down, the next person "tidies" it into a
+        # random UUID and every push silently adds a trust anchor to every device.
+        text = (
+            Path(settings.BASE_DIR)
+            .joinpath("docs", "EDGE_TLS_RUNBOOK.md")
+            .read_text(encoding="utf-8")
+        )
+        self.assertIn("PayloadIdentifier", text)
+        self.assertIn("Random UUIDs", text)
+
+
 class CaMaterialCannotReachGitTests(SimpleTestCase):
     """box-ca-bundle.p12 carries the CA private key. /srv/rmc is a git tree."""
 
@@ -797,6 +1338,21 @@ class CaMaterialCannotReachGitTests(SimpleTestCase):
         ignored = self._repo_file(".gitignore").read_text(encoding="utf-8")
         self.assertIn("box-ca-bundle.p12", ignored)
         self.assertIn("box-ca.crt", ignored)
+
+    def test_the_management_export_cannot_be_committed_either(self):
+        # `--export-mdm` produces a folder in a hurry, and the obvious place to put
+        # it is wherever you are standing -- which on a box is the checkout.
+        ignored = self._repo_file(".gitignore").read_text(encoding="utf-8")
+        self.assertIn("box-ca.mobileconfig", ignored)
+        self.assertIn("android-policy.json", ignored)
+
+    def test_box_identity_handed_out_at_onboarding_is_ignored(self):
+        # Same exposure class as the .p12: these name and authenticate ONE box, and
+        # five of them were found sitting untracked in a live box's checkout, none
+        # of them matched by any rule at the time.
+        ignored = self._repo_file(".gitignore").read_text(encoding="utf-8")
+        for pattern in ("*.rmcidentity", "*.rmcbundle", "*.b64"):
+            self.assertIn(pattern, ignored)
 
 
 class EnrolmentUrlIsOneValueTests(TenantUrlconfMixin, SimpleTestCase):

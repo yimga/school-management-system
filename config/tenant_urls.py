@@ -34,7 +34,12 @@ from apps.people.views_transfer_consent import (
     transfer_consent_landing,
 )
 from apps.siteconfig.views_school_help_ai import school_help_ai
-from apps.schools.views_edge_trust import edge_trust_ca, edge_trust_page
+from apps.schools.views_edge_trust import (
+    edge_trust_ca,
+    edge_trust_page,
+    edge_trust_probe,
+    edge_trust_profile,
+)
 from apps.schools.views_pending_provision import api_public_pending_provision_progress
 from apps.schools.views_school_readiness import api_school_readiness
 from apps.academics.views_discipline_api import (
@@ -308,6 +313,18 @@ urlpatterns = [
     # serves a page offering a certificate authority.
     path("edge/trust/", edge_trust_page, name="edge_trust"),
     path("edge/trust/ca.crt", edge_trust_ca, name="edge_trust_ca"),
+    # Fetched over HTTPS by the trust page itself, to tell a device whether the CA it
+    # just installed actually took. Under the /edge/trust/ prefix deliberately: the
+    # tenant middlewares skip that prefix already, so this answers on a box whose
+    # school does not resolve, which is the state a box is in while it is being set up.
+    path("edge/trust/probe.png", edge_trust_probe, name="edge_trust_probe"),
+    # The same CA, in the container Apple's MDM tooling consumes. A managed fleet
+    # never performs the per-device steps at all.
+    path(
+        "edge/trust/box-ca.mobileconfig",
+        edge_trust_profile,
+        name="edge_trust_profile",
+    ),
     # Universal command bar (v3.53.0): mirror of config.urls / config.manager_urls
     # path so the cmd+k overlay loaded into every tenant-host shell can reverse the
     # action-registry endpoint. # rbac-allow: command-bar-server-filters-actions-per-user-and-tenant

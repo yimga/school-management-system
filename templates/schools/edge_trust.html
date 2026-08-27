@@ -67,11 +67,22 @@
       /* The fingerprint is the point of the page: never inherit a muted colour. */
       color: var(--ink);
     }
-    a.btn {
+    a.btn, button.btn {
       display: inline-block; background: var(--accent); color: var(--accent-ink);
       text-decoration: none;
       padding: 13px 22px; border-radius: 6px; font-weight: 600; font-size: 17px;
     }
+    /* The verify control is a real <button>, not a link: it performs an action on
+       this device and goes nowhere. Resetting the UA styles here rather than
+       inline so the two buttons on this page cannot drift apart. */
+    button.btn { border: 0; cursor: pointer; font-family: inherit; }
+    button.btn[disabled] { opacity: 0.6; cursor: default; }
+    /* Reuses the palette rather than adding a green/amber pair: an answer of "yes"
+       is the accent this page already uses for its action, and "no" is the same
+       amber the warning banner uses, so both are already proven on both grounds. */
+    .verdict { margin: 12px 0 0; font-weight: 600; min-height: 1.6em; }
+    .verdict.ok { color: var(--accent); }
+    .verdict.no { color: var(--warn-ink); }
     img.qr { width: 190px; height: 190px; image-rendering: pixelated; display: block; }
     .qrwrap { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; }
     .url {
@@ -83,6 +94,19 @@
        (that is the point of it), so an inline literal would be a size nothing
        else on the box could ever reconcile with. */
     .fine { font-size: 14px; }
+    .cmd {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 13px; white-space: pre-wrap; word-break: normal;
+      background: var(--sunk); border: 1px solid var(--line); border-radius: 4px;
+      padding: 12px; margin: 8px 0 0; color: var(--ink);
+    }
+    /* Marks the one line on the page that is about the device reading it. */
+    .you {
+      font-size: 12px; font-weight: 600; letter-spacing: 0.04em;
+      text-transform: uppercase; color: var(--accent-ink);
+      background: var(--accent); border-radius: 999px; padding: 2px 8px;
+      margin-left: 6px; white-space: nowrap;
+    }
     .warn {
       background: var(--warn-bg); border: 1px solid var(--warn-line);
       color: var(--warn-ink);
@@ -164,7 +188,18 @@
 
     <div class="card">
       <h2 style="margin-top:0">{% translate "2. Install it" %}</h2>
+      {% if platform == "apple" %}
+      <p><a class="btn" href="{{ profile_url }}">{% translate "Download the profile" %}</a></p>
+      <p class="fine">
+        {% blocktranslate trimmed %}
+          The same certificate authority as the plain file, in the form iPhone, iPad
+          and Mac hand straight to the installer.
+        {% endblocktranslate %}
+        <a href="{{ download_url }}">{% translate "Plain certificate instead" %}</a>
+      </p>
+      {% else %}
       <p><a class="btn" href="{{ download_url }}">{% translate "Download the certificate" %}</a></p>
+      {% endif %}
       <div class="qrwrap" style="margin-top:18px;">
         {% if qr_data_uri %}
           <img class="qr" src="{{ qr_data_uri }}" alt="{% translate 'QR code for this page' %}">
@@ -178,20 +213,29 @@
 
     <div class="step">
       <h2 style="margin-top:0">{% translate "3. Finish it on the device" %}</h2>
-      <p><strong>Windows</strong> &mdash;
+      <p><strong>Windows</strong>{% if platform == "windows" %}<span class="you">{% translate "this device" %}</span>{% endif %} &mdash;
         {% blocktranslate trimmed %}
           open the file, choose Local Machine, then place it in Trusted Root
           Certification Authorities.
         {% endblocktranslate %}
       </p>
-      <p><strong>Android 11+</strong> &mdash;
+      {% if platform == "windows" %}
+      <p class="fine" style="margin-bottom:4px;">
+        {% blocktranslate trimmed %}
+          Or, in PowerShell started as Administrator — the elevation is the part
+          Windows will not let a web page do for you:
+        {% endblocktranslate %}
+      </p>
+      <p class="cmd">Import-Certificate -FilePath .\box-ca.crt -CertStoreLocation Cert:\LocalMachine\Root</p>
+      {% endif %}
+      <p><strong>Android 11+</strong>{% if platform == "android" %}<span class="you">{% translate "this device" %}</span>{% endif %} &mdash;
         {% blocktranslate trimmed %}
           Settings, Security, Encryption &amp; credentials, then Install a certificate
           and CA certificate. The general "install from storage" entry puts it in the
           wrong store and the warning stays.
         {% endblocktranslate %}
       </p>
-      <p><strong>iPhone / iPad</strong> &mdash;
+      <p><strong>iPhone / iPad</strong>{% if platform == "apple" %}<span class="you">{% translate "this device" %}</span>{% endif %} &mdash;
         {% blocktranslate trimmed %}
           install the profile, then go to Settings, General, About, Certificate Trust
           Settings and switch it on. Skipping that second screen is the usual reason a
@@ -200,10 +244,149 @@
       </p>
       <p style="margin-bottom:0;"><strong>{% translate "Managed Chromebooks and supervised iPads" %}</strong> &mdash;
         {% blocktranslate trimmed %}
-          push it from the admin console instead. Installing per device does not stick.
+          do not do any of the above. Installing per device does not stick on a
+          managed device, and it does not have to &mdash; see below.
         {% endblocktranslate %}
       </p>
     </div>
+
+    <div class="card">
+      <h2 style="margin-top:0">{% translate "Managed devices: push it once, for everyone" %}</h2>
+      <p>
+        {% blocktranslate trimmed %}
+          If the school manages its devices, none of step 3 applies. Every console can
+          install a certificate authority on every enrolled device at once, and on
+          Apple hardware that is also the only route that skips the Trust Settings
+          screen — a pushed profile is trusted on arrival, a hand-installed one is not.
+        {% endblocktranslate %}
+      </p>
+      <p>
+        <a class="btn" href="{{ profile_url }}">{% translate "Download the Apple profile" %}</a>
+      </p>
+      <p class="fine">
+        {% blocktranslate trimmed %}
+          Jamf, Mosyle, Intune, Kandji or Apple Configurator — upload that
+          .mobileconfig as a configuration profile and scope it to your devices. It
+          carries the same certificate authority as the download above.
+        {% endblocktranslate %}
+      </p>
+      <h2>{% translate "Everywhere else, upload the .crt from step 2" %}</h2>
+      <p class="fine"><strong>{% translate "Google Admin (ChromeOS and Chrome)" %}</strong> &mdash;
+        {% blocktranslate trimmed %}
+          Devices, Networks, Certificates. Upload it and tick the box that makes it an
+          HTTPS certificate authority; without that tick it is stored and ignored.
+        {% endblocktranslate %}
+      </p>
+      <p class="fine"><strong>{% translate "Microsoft Intune (Windows)" %}</strong> &mdash;
+        {% blocktranslate trimmed %}
+          Devices, Configuration, a Trusted certificate profile. Set the destination
+          store to Computer certificate store - Root, not the user store.
+        {% endblocktranslate %}
+      </p>
+      <p class="fine"><strong>{% translate "Windows domain without Intune" %}</strong> &mdash;
+        {% blocktranslate trimmed %}
+          Group Policy, Computer Configuration, Policies, Windows Settings, Security
+          Settings, Public Key Policies, Trusted Root Certification Authorities.
+        {% endblocktranslate %}
+      </p>
+      <p class="fine" style="margin-bottom:0;"><strong>{% translate "Android Enterprise" %}</strong> &mdash;
+        {% blocktranslate trimmed %}
+          the certificate goes into the device policy as base64, under caCerts. On the
+          box console, manage.py edge_tls --export-mdm writes that snippet out along
+          with every file named on this page. This is not a convenience on Android: a
+          user-installed authority is ignored by apps, so for anything managed it is
+          the only route that works.
+        {% endblocktranslate %}
+      </p>
+    </div>
+
+    {% if verify_available %}
+    <div class="card">
+      <h2 style="margin-top:0">{% translate "4. Check it worked" %}</h2>
+      <p>
+        {% blocktranslate trimmed %}
+          Almost nobody finds out an install failed on the device they installed it
+          on. They find out on the fourth device, a week later, and they blame the
+          phone. This asks THIS device, right now.
+        {% endblocktranslate %}
+      </p>
+      <p style="margin-bottom:0;">
+        <button type="button" class="btn" id="rmc-verify" data-probe="{{ probe_url }}">
+          {% translate "Check this device" %}
+        </button>
+      </p>
+      <p id="rmc-verify-out" class="verdict" role="status" aria-live="polite"></p>
+      <div id="rmc-verify-msgs" hidden>
+        <span id="rmc-msg-checking">{% translate "Checking this device…" %}</span>
+        <span id="rmc-msg-yes">
+          {% blocktranslate trimmed %}
+            This device trusts the box. Nothing else to do here.
+          {% endblocktranslate %}
+        </span>
+        <span id="rmc-msg-no">
+          {% blocktranslate trimmed with origin=probe_origin %}
+            Not confirmed. Most likely the certificate is not installed yet, or it is
+            installed but not trusted — on iPhone and iPad that is the separate
+            Certificate Trust Settings screen, and on Android it has to go in under
+            CA certificate rather than install from storage. It can also mean this box
+            is not answering on {{ origin }} at all, which is not a problem with your
+            device. Re-run the check after finishing the step above.
+          {% endblocktranslate %}
+        </span>
+      </div>
+    </div>
+    <script nonce="{{ csp_nonce }}">
+      // Deliberately an <img>, not fetch(). The page is served over http on port
+      // 10000 and the probe is https on the TLS port, which is a DIFFERENT ORIGIN --
+      // `connect-src 'self'` would block a fetch outright, and the page would then
+      // report "not trusted" about a device that trusts the box perfectly well. The
+      // policy already allows `img-src https:`, so this needs nothing loosened.
+      (function () {
+        var btn = document.getElementById("rmc-verify");
+        var out = document.getElementById("rmc-verify-out");
+        if (!btn || !out) { return; }
+        var say = function (id, cls) {
+          var node = document.getElementById(id);
+          out.textContent = node ? node.textContent.trim() : "";
+          out.className = "verdict " + cls;
+        };
+        btn.addEventListener("click", function () {
+          var url = btn.getAttribute("data-probe");
+          if (!url) { return; }
+          btn.disabled = true;
+          say("rmc-msg-checking", "");
+          var settled = false;
+          var finish = function (id, cls) {
+            if (settled) { return; }
+            settled = true;
+            btn.disabled = false;
+            say(id, cls);
+          };
+          var img = new Image();
+          img.onload = function () { finish("rmc-msg-yes", "ok"); };
+          img.onerror = function () { finish("rmc-msg-no", "no"); };
+          // A device that trusts nothing can also just hang. Answering "not
+          // confirmed" after 8s is worth more than a spinner nobody can interpret.
+          window.setTimeout(function () { finish("rmc-msg-no", "no"); }, 8000);
+          // Cache-busted: a cached 200 from a previous visit would report trust this
+          // device may since have lost, which is the one answer worse than no answer.
+          img.src = url + "?t=" + String(Date.now()) + "-" +
+            String(Math.floor(Math.random() * 1000000));
+        });
+      })();
+    </script>
+    {% elif verify_blocked == "not_covered" %}
+    <div class="warn">
+      <strong>{% translate "This address is not in the box certificate." %}</strong>
+      {% blocktranslate trimmed with address=probe_address covered=covered_addresses %}
+        You reached this page at {{ address }}, but this box issued its certificate
+        for {{ covered }}. Installing the certificate authority above is still correct
+        and still worth doing — but https will keep warning at THIS address until the
+        box reissues a certificate that includes it. On the box console, run
+        manage.py edge_tls --issue-selfsigned.
+      {% endblocktranslate %}
+    </div>
+    {% endif %}
 
   {% endif %}
 

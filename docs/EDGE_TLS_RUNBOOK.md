@@ -316,6 +316,73 @@ them **before** promising a date:
   not, and that difference will be reported as "it works on my phone but not in the
   app".
 
+Both of those rows stop being hard if the school manages its devices — see 5c.
+
+---
+
+### 5c. Managed fleets — the box builds the payload
+
+If the school manages its devices, **nobody performs 5a or 5b at all**. Every console
+can install a root CA on every enrolled device at once, and on Apple hardware a
+*pushed* profile is trusted on arrival: the Certificate Trust Settings screen that
+everybody misses exists only for hand-installed certificates.
+
+The box generates what each console wants, from its own CA:
+
+```
+docker compose -f deploy/selfhost/docker-compose.yml exec web \
+  python manage.py edge_tls --export-mdm /app/var/mdm
+```
+
+| File | Console |
+|---|---|
+| `box-ca.mobileconfig` | Jamf, Mosyle, Kandji, Intune, Apple Configurator |
+| `box-ca.crt` | Google Admin (ChromeOS / Chrome), Intune *Trusted certificate* profile, Group Policy |
+| `android-policy.json` | the `caCerts` fragment for an Android Management API policy |
+| `README.txt` | what each file is for, **with the fingerprint printed in it** |
+
+The profile is also served straight off the box at
+`/edge/trust/box-ca.mobileconfig`, and the trust page offers it as the primary
+download to any Apple device that opens the page.
+
+**The identifiers are derived from the CA fingerprint, deliberately.** Apple replaces
+an installed profile when a new one carries the same `PayloadIdentifier`, and
+installs a *second* one when it does not. So re-pushing after a box rebuild replaces,
+while a genuinely new CA installs alongside and can be told apart. Random UUIDs would
+have quietly accumulated another trust anchor on every device in the school on every
+push.
+
+**Do not write the export into the certificate directory** — the command refuses.
+Everything it writes is public; `ca.key` sits in that directory and is not; and an
+export folder is the thing most likely to be copied off the box wholesale.
+
+Android is the row where this matters most. Since Android 7 a user-installed CA is
+ignored by apps entirely, and Android 11 removed the install intent — so for a
+managed fleet the policy route is not a convenience, it is the only route that works.
+
+---
+
+### 5d. Confirming it actually worked
+
+Almost nobody finds out an install failed on the device they installed it on. They
+find out on the fourth device, a week later, and they blame the phone.
+
+The trust page ends with **4. Check it worked**: it loads a 1×1 image from the box
+over https, so a device that trusts the box CA completes the handshake and one that
+does not, does not. Same signal on every platform, nothing to install to use it.
+
+Read the answer in one direction only:
+
+- **Confirmed** is definitive. That device trusts this box.
+- **Not confirmed** is *not* proof the CA is missing. A handshake also fails when the
+  terminator is down or listening on another port. The message says so, and names the
+  address it tried.
+
+The check is only offered when it can give a true answer. If the box serves no HTTPS,
+or the address this device used is not in the certificate, the page says *that*
+instead — an unwinnable check reported as "not trusted" would send somebody to
+reinstall a CA that was already fine.
+
 ---
 
 ## 6. Changing your mind later — in either direction
