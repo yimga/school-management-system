@@ -25,6 +25,8 @@ moment this matters is a box that has not finished coming up.
 
 from __future__ import annotations
 
+import pathlib
+
 from django.test import SimpleTestCase
 
 from apps.schools import edge_tls
@@ -261,3 +263,55 @@ class ThePortEightyRedirectMustNotBounceTheTrustPageTests(SimpleTestCase):
         rendered = _render(["box.school.lan"], [])
         self.assertNotIn(":80 {", rendered)
         self.assertEqual(_site_line(rendered), "box.school.lan {")
+
+
+class TheReportMustDescribeWhatWasRenderedTests(SimpleTestCase):
+    """edge_bootstrap printed `site line: :443` and then warned that it names addresses.
+
+    Both lines came from the same block, three lines apart: the line itself from the
+    render, the verdict from RMC_EDGE_TRUST_LOCAL_ADDRESSES. Those disagree whenever
+    the OTHER reason for a catch-all applies -- a box that serves an IP -- which is
+    every box on a LAN. Measured on the Gilead box:
+
+        [5] Terminator config
+                  site line: :443
+            warn  The site line names addresses. ... Set RMC_EDGE_TRUST_LOCAL_ADDRESSES=1
+
+    telling an operator to change a variable to fix a file that was already right.
+    A report must describe the artefact, not one of the two inputs that produced it.
+    """
+
+    @staticmethod
+    def _segment() -> str:
+        from apps.schools.management.commands import edge_bootstrap as cmd
+
+        text = pathlib.Path(cmd.__file__).read_text(encoding="utf-8")
+        start = text.index('site_line = site.rstrip(" {")')
+        return text[start : text.index("ENV_TRUST_LOCAL", start)]
+
+    def test_the_verdict_reads_the_line_that_was_rendered(self):
+        seg = self._segment()
+        self.assertIn('if site_line == ":443":', seg)
+
+    def test_the_verdict_does_not_read_the_flag_instead(self):
+        # The flag is one of two independent reasons. Branching on it is right
+        # exactly half the time, and wrong on every LAN box that serves an IP.
+        seg = self._segment()
+        self.assertNotIn("trust_local_addresses()", seg)
+
+    def test_a_box_that_serves_an_ip_gets_the_catch_all_with_the_flag_OFF(self):
+        # The condition under which the two disagreed. If this ever stops holding,
+        # the report above is free to go back to reading the flag.
+        rendered = _render(
+            ["gilead-tech.local", "localhost"],
+            ["10.10.20.137", "127.0.0.1"],
+            address_may_change=False,
+        )
+        self.assertEqual(_site_line(rendered), ":443 {")
+
+    def test_a_names_only_box_still_earns_the_warning(self):
+        # The warning is not wrong, only mis-triggered. A named site line really does
+        # answer nothing at a new address, and this is the shape that produces one.
+        rendered = _render(["gilead-tech.local"], [], address_may_change=False)
+        self.assertNotEqual(_site_line(rendered), ":443 {")
+        self.assertIn("gilead-tech.local", _site_line(rendered))

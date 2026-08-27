@@ -258,8 +258,15 @@ class Command(BaseCommand):
             return
         rendered = self._render_caddyfile(resolution.mode, dns, ips, cert_path, key_path)
         site = next((ln for ln in rendered.splitlines() if ln and not ln.startswith("#")), "")
-        self._info(f"site line: {site.rstrip(' {')}")
-        if edge_tls.trust_local_addresses():
+        site_line = site.rstrip(" {")
+        self._info(f"site line: {site_line}")
+        # Branch on what was RENDERED, not on the flag. The renderer emits the
+        # catch-all for two independent reasons -- a box that may move, OR a box that
+        # serves an IP at all, because a browser sends no SNI for an IP literal and a
+        # host matcher would have nothing to match. Reading only the flag made this
+        # print "site line: :443" and then warn that the site line names addresses,
+        # telling an operator to fix a box that was already correct.
+        if site_line == ":443":
             self._ok("Address-independent (`:443`) -- no regeneration needed when the address changes.")
         else:
             self._warn(
