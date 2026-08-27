@@ -147,6 +147,44 @@ def _device_hint(request: HttpRequest) -> str:
     return ""
 
 
+#: Device family -> the desktop platform whose paste-in command applies. Only two
+#: entries, because only two of the families HAVE a shell a person can paste into:
+#: Android and ChromeOS deliberately map to nothing rather than to a guess.
+_HINT_TO_DESKTOP = {"windows": "windows", "apple": "macos"}
+
+
+def _install_platform(hint: str) -> str:
+    """Which install command to open by default, or "" to open none.
+
+    Known and accepted imprecision: since iPadOS 13, Safari on an iPad presents
+    itself as a Macintosh with no iPad token in it at all, so an iPad lands on
+    "macos" here and is offered a Terminal command it has no Terminal for. That
+    costs a closed disclosure triangle and nothing else -- the profile is already
+    the primary button on an Apple device, which is the route an iPad actually
+    takes. Guessing WRONG about which of several visible options to open is the
+    only kind of mistake a user-agent string is allowed to make on this page.
+    """
+    return _HINT_TO_DESKTOP.get(hint, "")
+
+
+def _install_facts(request: HttpRequest, fingerprint: str) -> dict:
+    """The paste-in commands, ordered so this device's own comes first.
+
+    Absent entirely when there is no fingerprint to pin them to -- see
+    ``edge_tls.install_commands``. The page then falls back to the per-OS prose,
+    which is the same instruction with more steps in it, not a worse one.
+    """
+    commands = edge_tls.install_commands(
+        request.build_absolute_uri(reverse("edge_trust_ca")), fingerprint
+    )
+    here = _install_platform(_device_hint(request))
+    if here:
+        commands = tuple(
+            sorted(commands, key=lambda entry: 0 if entry.platform == here else 1)
+        )
+    return {"install_commands": commands, "install_platform": here}
+
+
 def _verify_facts(request: HttpRequest) -> dict:
     """Can this device be TOLD whether the install worked, and at what address?
 
@@ -263,6 +301,7 @@ def edge_trust_page(request: HttpRequest) -> HttpResponse:
         # middleware already set costs no query and keeps that guarantee.
         "csp_nonce": getattr(request, "csp_nonce", ""),
     }
+    context.update(_install_facts(request, context["fingerprint"]))
     context.update(_verify_facts(request))
     return HttpResponse(render_to_string("schools/edge_trust.html", context))
 

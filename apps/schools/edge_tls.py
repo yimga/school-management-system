@@ -463,6 +463,150 @@ def android_policy_snippet(ca_path: str) -> str:
     return json.dumps({"caCerts": [payload]}, indent=2)
 
 
+#: Where the certificate is parked while it is being checked. A scratch path, not a
+#: downloads folder: nothing here should survive to become the stale ca.crt somebody
+#: installs on a device two box rebuilds later.
+_WINDOWS_SCRATCH = "Join-Path $env:TEMP 'box-ca.crt'"
+_POSIX_SCRATCH = "/tmp/box-ca.crt"
+
+#: Written once so the three commands cannot disagree about what refusing sounds like.
+_INSTALL_STOP = "STOP: this is not the certificate this page named"
+
+
+@dataclass(frozen=True)
+class InstallCommand:
+    """One platform's install, as something to paste rather than something to follow."""
+
+    platform: str
+    label: str
+    #: Where it is pasted. Named separately because on Windows the difference between
+    #: an ordinary window and an elevated one is the difference between this working
+    #: and it landing in a store no browser reads.
+    shell: str
+    command: str
+    #: What this route does NOT cover. Never empty, deliberately: an install that
+    #: quietly misses the browser somebody actually uses is reported a week later as
+    #: "the box is broken".
+    caveat: str
+
+
+def install_commands(ca_url: str, fingerprint: Any) -> "tuple[InstallCommand, ...]":
+    """Self-verifying install commands for the desktop platforms, or ``()``.
+
+    Each one fetches the certificate, computes its SHA-256, compares it against a
+    literal, and installs ONLY on a match. Nothing fetched is ever executed. That
+    line is the whole design: this page is served over plain http on a school LAN,
+    and a page that told a device to run whatever the box sent would hand a LAN
+    attacker the machine rather than merely the trust store.
+
+    The comparison is NOT the same guarantee as a person reading the box console --
+    a page that lied about the certificate would lie about the literal too. What it
+    removes is every other way this goes wrong: a truncated download, yesterday's
+    ca.crt still sitting in Downloads, the wrong box on a site that has two. Those
+    are the ones that actually happen.
+
+    Returns nothing at all unless BOTH the URL and a full fingerprint are known. A
+    command built without one would install whatever it was handed, which is worse
+    than the manual steps it replaces -- those at least end with a person looking at
+    a certificate.
+
+    Mobile is deliberately absent. iOS and iPadOS take the ``.mobileconfig``
+    instead, and Android has no shell to paste into; offering a command there would
+    be a screen of text nobody can act on.
+    """
+    want = compact_fingerprint(fingerprint)
+    url = str(ca_url or "").strip()
+    if not url or len(want) != 64:
+        # Length-checked, not merely non-empty: `grep` matches a prefix, so a
+        # truncated fingerprint is a check that passes when it should not.
+        return ()
+
+    # `openssl x509 -fingerprint` prints `SHA256 Fingerprint=AA:BB:...`, and older
+    # builds spell that label in lower case -- so strip the separators and match
+    # without case rather than trying to reproduce the exact line.
+    posix_check = (
+        f"if openssl x509 -in {_POSIX_SCRATCH} -noout -fingerprint -sha256 "
+        f"| tr -d ': ' | grep -qi '{want}'; then"
+    )
+    fetch = f"curl -fsS -o {_POSIX_SCRATCH} '{url}'"
+
+    windows = [
+        f"$src = '{url}'",
+        f"$want = '{want}'",
+        f"$file = {_WINDOWS_SCRATCH}",
+        "Invoke-WebRequest -Uri $src -OutFile $file -UseBasicParsing",
+        "$cert = New-Object "
+        "System.Security.Cryptography.X509Certificates.X509Certificate2 $file",
+        "$got = [BitConverter]::ToString("
+        "[System.Security.Cryptography.SHA256]::Create().ComputeHash($cert.RawData)"
+        ").Replace('-','')",
+        # The if and the else share a line on purpose. Pasted into a console, a
+        # block that ends at a newline is executed before the `else` arrives, and
+        # the operator gets a parse error on a line they did not write.
+        f"if ($got -ne $want) {{ Write-Error \"{_INSTALL_STOP} ($got)\" }} "
+        "else { Import-Certificate -FilePath $file "
+        "-CertStoreLocation Cert:\\LocalMachine\\Root }",
+    ]
+
+    return (
+        InstallCommand(
+            platform="windows",
+            label="Windows",
+            shell="PowerShell, started as Administrator",
+            command="\n".join(windows),
+            caveat=(
+                "Administrator is not a formality here -- the machine store is the "
+                "one every browser on the PC reads, and an ordinary window puts the "
+                "certificate in the user store where Chrome and Edge will not look "
+                "for it. Firefox keeps its own store either way."
+            ),
+        ),
+        InstallCommand(
+            platform="macos",
+            label="macOS",
+            shell="Terminal",
+            command="\n".join(
+                [
+                    fetch,
+                    posix_check,
+                    "  sudo security add-trusted-cert -d -r trustRoot "
+                    f"-k /Library/Keychains/System.keychain {_POSIX_SCRATCH}",
+                    "else",
+                    f"  echo '{_INSTALL_STOP}'",
+                    "fi",
+                ]
+            ),
+            caveat=(
+                "Installs for every account on the Mac, which is why it asks for a "
+                "password. The profile above does the same thing by double-click "
+                "where a terminal is not welcome. Firefox keeps its own store."
+            ),
+        ),
+        InstallCommand(
+            platform="linux",
+            label="Linux",
+            shell="Terminal",
+            command="\n".join(
+                [
+                    fetch,
+                    posix_check,
+                    f"  sudo cp {_POSIX_SCRATCH} /usr/local/share/ca-certificates/box-ca.crt",
+                    "  sudo update-ca-certificates",
+                    "else",
+                    f"  echo '{_INSTALL_STOP}'",
+                    "fi",
+                ]
+            ),
+            caveat=(
+                "Debian, Ubuntu and derivatives. On Fedora and RHEL the destination "
+                "is /etc/pki/ca-trust/source/anchors/ and the command is "
+                "update-ca-trust. Firefox and Chrome both keep their own NSS store "
+                "on Linux, so a browser that still warns is not evidence this failed."
+            ),
+        ),
+    )
+
+
 def platform_public_suffixes() -> tuple[str, ...]:
     """Names that belong to the PLATFORM, not to any one box.
 
@@ -756,6 +900,22 @@ def _fingerprint(cert: Any) -> str:
     except Exception:  # noqa: BLE001 - a fingerprint is a nicety, never a crash
         return ""
     return ":".join(raw[i : i + 2] for i in range(0, len(raw), 2))
+
+
+def compact_fingerprint(value: Any) -> str:
+    """The same SHA-256, colon-free and upper -- the spelling Windows prints.
+
+    ``openssl x509 -fingerprint`` separates the bytes with colons and .NET's
+    ``X509Certificate2`` does not. Both are correct and they are the same digest,
+    which is the problem: a person asked to compare across that difference decides
+    they match long before they have actually read 64 characters.
+
+    So anything that hands a fingerprint to a MACHINE to compare picks a spelling
+    here rather than in whichever caller noticed the mismatch first. Tolerant of
+    what it is given -- colons, spaces or hyphens -- because the value may have come
+    back through a shell, a clipboard or a console log on the way.
+    """
+    return "".join(ch for ch in str(value or "") if ch.isalnum()).upper()
 
 
 def export_path_findings(destination: str, environ: dict[str, str] | None = None) -> list[tuple[str, str]]:

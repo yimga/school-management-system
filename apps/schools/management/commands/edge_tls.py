@@ -132,6 +132,19 @@ class Command(BaseCommand):
                 "per-device steps entirely."
             ),
         )
+        parser.add_argument(
+            "--verify-fingerprint",
+            default="",
+            metavar="VALUE",
+            help=(
+                "Compare VALUE against this box's certificate authority and answer "
+                "MATCH or exit non-zero. Paste what the trust page showed the device: "
+                "the comparison that page depends on is 64 hex characters read by a "
+                "person, and everybody checks the first four and the last four. "
+                "Colons, spaces and case are all accepted; a partial fingerprint is "
+                "refused rather than compared."
+            ),
+        )
         parser.add_argument("--json", action="store_true", help="Machine-readable output.")
 
     # -- helpers ---------------------------------------------------------------
@@ -368,6 +381,55 @@ class Command(BaseCommand):
             "  CA, so devices that already trust it need nothing done to them."
         )
 
+    def _verify_fingerprint(self, claimed: str) -> None:
+        """Answer whether a pasted fingerprint is this box's. Non-zero if not.
+
+        Non-zero on mismatch and not merely a printed line, so this composes: a
+        rollout script can branch on it, and an operator who is only half reading
+        still gets a red exit rather than a paragraph they skimmed.
+        """
+        _cert, _key, ca_path = edge_tls.certificate_paths()
+        ca = edge_tls.inspect_certificate(ca_path)
+        mine = edge_tls.compact_fingerprint(getattr(ca, "fingerprint", ""))
+        if not mine:
+            raise CommandError(
+                f"this box has no readable certificate authority at {ca_path}, so "
+                "there is nothing to compare against. Run "
+                "`deploy/selfhost/edge-bootstrap.sh` first."
+            )
+
+        given = edge_tls.compact_fingerprint(claimed)
+        if len(given) != len(mine):
+            # Refused, not truncated-and-compared. A prefix comparison passes on a
+            # certificate that merely STARTS the same way, and the whole reason this
+            # flag exists is that people compare prefixes.
+            raise CommandError(
+                f"{claimed!r} is not a full SHA-256 fingerprint "
+                f"({len(given)} hex characters, expected {len(mine)}). Refusing to "
+                "compare part of one: matching a prefix is exactly the mistake this "
+                "is here to remove. Copy the whole line from the page."
+            )
+
+        if given != mine:
+            raise CommandError(
+                "DOES NOT MATCH.\n"
+                f"  the page showed  {given}\n"
+                f"  this box has     {mine}\n"
+                "  Do NOT install what that page is offering. Over plain http anyone "
+                "on the network can answer in the box's place, and a certificate "
+                "authority you install can vouch for ANY site -- so this is the one "
+                "check that stands between the school and somebody else's CA. Confirm "
+                "the device is on the school network and reaching the right address."
+            )
+
+        self.stdout.write(
+            self.style.SUCCESS("MATCH  ") + f"{ca.fingerprint}"
+        )
+        self.stdout.write(
+            "  That is this box's certificate authority. The page the device is "
+            "looking at is this box."
+        )
+
     def _export_mdm(self, destination: str, facts: dict) -> None:
         """Write the console payloads. Public material only, by construction.
 
@@ -477,6 +539,10 @@ class Command(BaseCommand):
             # reachable address -- the caller decides what to say about that, and a
             # non-zero exit here would abort a bootstrap that otherwise succeeded.
             self.stdout.write(facts["trust_enrolment_url"])
+            return
+
+        if options["verify_fingerprint"]:
+            self._verify_fingerprint(options["verify_fingerprint"])
             return
 
         if options["export_mdm"]:

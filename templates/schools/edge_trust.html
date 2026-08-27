@@ -107,6 +107,14 @@
       background: var(--accent); border-radius: 999px; padding: 2px 8px;
       margin-left: 6px; white-space: nowrap;
     }
+    /* One install route per platform, only one of them unfolded. A page that
+       shows four platforms' instructions at once is a page where somebody follows
+       the wrong three. */
+    details.ins { border-top: 1px solid var(--line); padding: 10px 0 2px; }
+    details.ins:first-of-type { border-top: 0; padding-top: 2px; }
+    details.ins summary { cursor: pointer; padding: 4px 0; font-size: 15px; }
+    details.ins summary::-webkit-details-marker { color: var(--muted); }
+    pre.cmd { cursor: pointer; }
     .warn {
       background: var(--warn-bg); border: 1px solid var(--warn-line);
       color: var(--warn-ink);
@@ -179,6 +187,13 @@
           network answered in the box's place.
         {% endblocktranslate %}
       </p>
+      <p class="fine" style="margin-bottom:4px;">
+        {% blocktranslate trimmed %}
+          Or let the box do the comparing — paste the line above into this on the
+          console. It answers MATCH, or fails:
+        {% endblocktranslate %}
+      </p>
+      <pre class="cmd">python manage.py edge_tls --verify-fingerprint {{ fingerprint }}</pre>
       {% if not_after %}
         <p class="fine" style="margin-bottom:0;">
           {% blocktranslate trimmed %}Valid until{% endblocktranslate %} {{ not_after }}
@@ -213,21 +228,51 @@
 
     <div class="step">
       <h2 style="margin-top:0">{% translate "3. Finish it on the device" %}</h2>
-      <p><strong>Windows</strong>{% if platform == "windows" %}<span class="you">{% translate "this device" %}</span>{% endif %} &mdash;
+      {% if install_commands %}
+      <p>
+        {% blocktranslate trimmed %}
+          On a computer this is one paste. The command fetches the certificate,
+          checks its fingerprint against the one in step 1, and installs it only if
+          they match — so getting this right does not depend on anyone reading 64
+          characters carefully.
+        {% endblocktranslate %}
+      </p>
+      {% for cmd in install_commands %}
+      <details class="ins"{% if cmd.platform == install_platform %} open{% endif %}>
+        <summary><strong>{{ cmd.label }}</strong>{% if cmd.platform == install_platform %}<span class="you">{% translate "this device" %}</span>{% endif %} &mdash; {{ cmd.shell }}</summary>
+        <pre class="cmd">{{ cmd.command }}</pre>
+        <p class="fine" style="margin:8px 0 0;">{{ cmd.caveat }}</p>
+      </details>
+      {% endfor %}
+      <script nonce="{{ csp_nonce }}">
+        // Click-to-select, NOT navigator.clipboard.writeText. This page is plain
+        // http on purpose -- a device reaches it precisely because it does not
+        // trust the box yet -- and http is not a secure context, so the Clipboard
+        // API is withheld exactly here. A copy button would be a button that does
+        // nothing on the one page that cannot be served any other way. Selecting
+        // the block leaves the copy to Ctrl-C, which has never needed permission.
+        (function () {
+          var blocks = document.querySelectorAll("pre.cmd");
+          var select = function () {
+            var range = document.createRange();
+            range.selectNodeContents(this);
+            var chosen = window.getSelection();
+            chosen.removeAllRanges();
+            chosen.addRange(range);
+          };
+          for (var i = 0; i < blocks.length; i++) {
+            blocks[i].addEventListener("click", select);
+          }
+        })();
+      </script>
+      <h2>{% translate "Phones, tablets, and doing it by hand" %}</h2>
+      {% endif %}
+      <p><strong>Windows</strong> &mdash;
         {% blocktranslate trimmed %}
           open the file, choose Local Machine, then place it in Trusted Root
           Certification Authorities.
         {% endblocktranslate %}
       </p>
-      {% if platform == "windows" %}
-      <p class="fine" style="margin-bottom:4px;">
-        {% blocktranslate trimmed %}
-          Or, in PowerShell started as Administrator — the elevation is the part
-          Windows will not let a web page do for you:
-        {% endblocktranslate %}
-      </p>
-      <p class="cmd">Import-Certificate -FilePath .\box-ca.crt -CertStoreLocation Cert:\LocalMachine\Root</p>
-      {% endif %}
       <p><strong>Android 11+</strong>{% if platform == "android" %}<span class="you">{% translate "this device" %}</span>{% endif %} &mdash;
         {% blocktranslate trimmed %}
           Settings, Security, Encryption &amp; credentials, then Install a certificate
@@ -307,7 +352,7 @@
         {% blocktranslate trimmed %}
           Almost nobody finds out an install failed on the device they installed it
           on. They find out on the fourth device, a week later, and they blame the
-          phone. This asks THIS device, right now.
+          phone. So this device checks itself, now, without being asked.
         {% endblocktranslate %}
       </p>
       <p style="margin-bottom:0;">
@@ -318,6 +363,7 @@
       <p id="rmc-verify-out" class="verdict" role="status" aria-live="polite"></p>
       <div id="rmc-verify-msgs" hidden>
         <span id="rmc-msg-checking">{% translate "Checking this device…" %}</span>
+        <span id="rmc-msg-again">{% translate "Check again" %}</span>
         <span id="rmc-msg-yes">
           {% blocktranslate trimmed %}
             This device trusts the box. Nothing else to do here.
@@ -350,7 +396,8 @@
           out.textContent = node ? node.textContent.trim() : "";
           out.className = "verdict " + cls;
         };
-        btn.addEventListener("click", function () {
+        var again = document.getElementById("rmc-msg-again");
+        var run = function () {
           var url = btn.getAttribute("data-probe");
           if (!url) { return; }
           btn.disabled = true;
@@ -360,6 +407,9 @@
             if (settled) { return; }
             settled = true;
             btn.disabled = false;
+            // Only after an answer exists. Relabelling in the markup would offer
+            // "Check again" to somebody who has not been told anything yet.
+            if (again) { btn.textContent = again.textContent.trim(); }
             say(id, cls);
           };
           var img = new Image();
@@ -372,7 +422,13 @@
           // device may since have lost, which is the one answer worse than no answer.
           img.src = url + "?t=" + String(Date.now()) + "-" +
             String(Math.floor(Math.random() * 1000000));
-        });
+        };
+        btn.addEventListener("click", run);
+        // Runs itself. The button existed because the check needed permission it
+        // does not need -- it loads one image from this box and reads nothing. A
+        // person who has just followed step 3 should not also have to be told that
+        // there is a way to find out whether it worked.
+        run();
       })();
     </script>
     {% elif verify_blocked == "not_covered" %}

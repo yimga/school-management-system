@@ -267,6 +267,33 @@ def _runbook(
     steps.append("Put the lines from this plan into deploy/selfhost/.env.")
 
     if mode == edge_tls.MODE_SELF_SIGNED:
+        # THE step, not one of them. Everything from here down to the readiness check
+        # is what this script performs, in the only order that is correct. Four of
+        # those orderings are traps where each command is individually right and the
+        # sequence is not -- rendering the terminator config before the certificate
+        # exists emits `tls internal`, and the CA you then install on thirty devices
+        # matches nothing the box presents, with no error anywhere that says so.
+        #
+        # The hand-run commands stay below it on purpose. A box whose HOST has no
+        # shell -- the appliance case -- still has to be brought up somehow, and a
+        # step nobody can read is a step nobody can debug the day the script refuses.
+        steps.append(
+            "Run the bootstrap. This one command is the whole of the next several "
+            "steps: `bash deploy/selfhost/edge-bootstrap.sh`. It checks the box is "
+            "healthy first, mints the CA and the leaf, backs the CA up and reads the "
+            "backup BACK before calling it a backup, renders the terminator config "
+            "from the certificate rather than before it, restarts the terminator so "
+            "it is actually holding the certificate on disk, writes the "
+            "management-console payloads, checks what is being SERVED against what is "
+            "on disk, runs readiness, and prints the enrolment URL. It generates the "
+            "backup passphrase if you have not set one, so there is nothing to decide "
+            "before running it. Safe to run again: on a box that is already correct it "
+            "changes nothing and says so. If it succeeds, go straight to the enrolment "
+            "step -- the commands between here and there are the ones it just ran, "
+            "kept because a box with no shell on the host has to be brought up by hand."
+        )
+
+    if mode == edge_tls.MODE_SELF_SIGNED:
         steps.append(
             f"Mint the box CA and leaf: `{compose} exec web python manage.py edge_tls "
             "--issue-selfsigned`."
@@ -339,13 +366,19 @@ def _runbook(
         # walking a building doing by hand what one console push would have done.
         steps.append(
             "If the school manages its devices (Google Admin, Intune, Jamf, Mosyle, "
-            "Android Enterprise), do NOT install per device: run "
+            "Android Enterprise), do NOT install per device -- and do not run anything "
+            "either: the bootstrap already wrote the console payloads beside the repo, "
+            "in an `mdm/` folder it names on the way out. Push box-ca.mobileconfig to "
+            "Jamf, Mosyle, Kandji, Intune or Apple Configurator; box-ca.crt to Google "
+            "Admin (tick the box that makes it an HTTPS authority -- without it the "
+            "file is stored and ignored) or to Group Policy; android-policy.json into "
+            "an Android Enterprise policy. Bringing the box up by hand instead? "
             f"`{compose} exec web python manage.py edge_tls --export-mdm /app/var/mdm` "
-            "and push the payload it writes from the console instead. On managed "
-            "Chromebooks and supervised iPads a per-device install does not stick at "
-            "all, and on Android 11+ a hand-installed authority is ignored by apps -- "
-            "so for a managed fleet this is the only route that works. A pushed Apple "
-            "profile is also trusted on arrival, skipping the Certificate Trust "
+            "writes the same four files. On managed Chromebooks and supervised iPads a "
+            "per-device install does not stick at all, and on Android 11+ a "
+            "hand-installed authority is ignored by apps -- so for a managed fleet "
+            "this is not the convenient route, it is the only one that works. A pushed "
+            "Apple profile is also trusted on arrival, skipping the Certificate Trust "
             "Settings screen that is the usual reason a device still warns."
         )
         steps.append(
@@ -354,7 +387,11 @@ def _runbook(
             "the fingerprint, a QR code so a phone need not type an address, and the "
             "per-platform step people skip (iOS needs a second screen under Certificate "
             "Trust Settings; Android needs the 'CA certificate' entry, not 'install "
-            "from storage'). Install the CA, never the leaf: the leaf appears to work "
+            "from storage'). On Windows, macOS and Linux that page also carries a "
+            "single command per platform which fetches the certificate, compares its "
+            "fingerprint against the one shown, and installs it ONLY on a match -- so "
+            "on a computer this is one paste rather than six screens, and it cannot "
+            "install the wrong file. Install the CA, never the leaf: the leaf appears to work "
             "and then breaks at the first reissue. The page is plain HTTP on purpose "
             "-- a device reaches it BECAUSE it does not trust the box yet -- so have "
             f"someone compare the fingerprint shown there against `{compose} exec web "
@@ -362,12 +399,13 @@ def _runbook(
         )
 
         steps.append(
-            "Confirm on the first device before doing the rest: that page ends with a "
-            "'Check it worked' button which asks THIS device whether it trusts the box. "
-            "A confirmed answer is definitive; a not-confirmed answer means the "
-            "certificate is not installed OR the box is not answering on https, and "
-            "the page says which address it tried. Checking one device first is the "
-            "difference between one mistake and thirty."
+            "Confirm on the first device before doing the rest. Nobody has to remember "
+            "to: that page ends with a 'Check it worked' section which runs by itself "
+            "on load and asks THIS device whether it trusts the box. A confirmed "
+            "answer is definitive; a not-confirmed answer means the certificate is not "
+            "installed OR the box is not answering on https, and the page says which "
+            "address it tried. Watching the first device answer is the difference "
+            "between one mistake and thirty."
         )
 
     if mode in edge_tls.HTTPS_MODES:

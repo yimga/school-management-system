@@ -39,6 +39,19 @@ BUNDLE_IN_BOX="/tmp/box-ca-bundle.p12"
 # .gitignore to stop it. On a stock box this resolves to /srv, beside /srv/rmc.
 OUT_DIR="${RMC_EDGE_OUT_DIR:-$(dirname "$REPO")}"
 
+# Where a generated passphrase is kept. Overridable, because the right answer on a
+# box with a mounted secrets volume is not the default one -- and the default has to
+# be somewhere, so it may as well be somewhere findable.
+PASSPHRASE_FILE="${RMC_EDGE_CA_PASSPHRASE_FILE:-$OUT_DIR/box-ca-passphrase.txt}"
+
+new_passphrase() {
+  # `head -c` closes the pipe, and a closed pipe under `set -o pipefail` fails the
+  # script. Turned off inside this subshell only: pipefail is doing real work in
+  # every other pipeline here, and disabling it globally to fix one line is how a
+  # later failure gets swallowed.
+  ( set +o pipefail; LC_ALL=C tr -dc 'A-Za-z0-9' < /dev/urandom 2>/dev/null | head -c 44 )
+}
+
 say()  { printf '\n\033[1m== %s\033[0m\n' "$*"; }
 ok()   { printf '   \033[32mok\033[0m   %s\n' "$*"; }
 warn() { printf '   \033[33mwarn\033[0m %s\n' "$*"; }
@@ -50,17 +63,29 @@ command -v docker >/dev/null 2>&1 || die "docker is not on PATH."
 [ -f "$COMPOSE_FILE" ] || die "no compose file at $COMPOSE_FILE"
 [ -f "$HERE/.env" ] || die "no $HERE/.env -- copy .env.edge.example and fill it in first."
 
+# The passphrase encrypts the CA backup. Still taken from the environment and never
+# from a flag -- a command line is visible in ps, in shell history and in docker's own
+# event log. What changed is that not having one is no longer a reason to stop: an
+# operator who is made to invent a secret here either picks a weak one or loses it,
+# and both of those end with an unrecoverable box.
 if [ -z "${RMC_EDGE_TLS_CA_PASSPHRASE:-}" ]; then
-  die "Set RMC_EDGE_TLS_CA_PASSPHRASE in your shell first:
-
-    export RMC_EDGE_TLS_CA_PASSPHRASE='something-long'
-
-  It encrypts the CA backup. It is taken from the environment and never from a
-  flag, because a command line is visible in ps, in shell history and in docker's
-  own event log. Store it somewhere separate from the bundle itself -- together,
-  the encryption bought you nothing."
+  if [ -s "$PASSPHRASE_FILE" ]; then
+    # Reused, not regenerated. A second passphrase would re-encrypt the bundle and
+    # silently strand whatever copy is already off the box.
+    RMC_EDGE_TLS_CA_PASSPHRASE="$(tr -d '\r\n' < "$PASSPHRASE_FILE")"
+    ok "passphrase read from $PASSPHRASE_FILE"
+  else
+    RMC_EDGE_TLS_CA_PASSPHRASE="$(new_passphrase)"
+    [ "${#RMC_EDGE_TLS_CA_PASSPHRASE}" -ge 32 ] || die "could not generate a passphrase
+  (/dev/urandom unreadable?). Set RMC_EDGE_TLS_CA_PASSPHRASE yourself and run again."
+    ( umask 077; printf '%s\n' "$RMC_EDGE_TLS_CA_PASSPHRASE" > "$PASSPHRASE_FILE" )
+    ok "generated a passphrase and wrote it to $PASSPHRASE_FILE (owner-only)"
+    warn "it is currently in the same place as the backup it protects. Moving one of
+       the two elsewhere is the last item in this run's closing notes."
+  fi
+  export RMC_EDGE_TLS_CA_PASSPHRASE
 fi
-ok "docker, compose file, .env and passphrase all present"
+ok "docker, compose file and .env all present"
 
 # --- 1. is the box well enough to change? -----------------------------------
 say "Box health"
@@ -83,7 +108,7 @@ say "Certificate, trust anchor and backup"
 # --- 3. terminator config, rendered AFTER the certificate exists ------------
 say "Terminator config"
 TMP_CADDY="$(mktemp)"
-trap 'rm -f "$TMP_CADDY"' EXIT
+trap 'rm -f "$TMP_CADDY"; [ -n "${MDM_TMP:-}" ] && rm -rf "$MDM_TMP"; true' EXIT
 if ! "${COMPOSE[@]}" exec -T web python manage.py edge_bootstrap --print-caddyfile > "$TMP_CADDY"; then
   die "could not render the terminator config. The certificate step above must have
   succeeded first; the command refuses to render before a certificate exists,
@@ -127,6 +152,35 @@ ok "removed the bundle from inside the container"
 "${COMPOSE[@]}" cp "web:/app/var/edge-tls/ca.crt" "$OUT_DIR/box-ca.crt" >/dev/null
 ok "$OUT_DIR/box-ca.crt          (public CA certificate -- this is what devices install)"
 
+# --- 5b. what a device-management console needs, asked for or not -----------
+# Written on every run rather than on request. The command that produces these is one
+# nobody remembers exists, and a school that manages its devices should never walk the
+# building at all: one console push installs the CA on every enrolled device, and on
+# Apple hardware a PUSHED profile is trusted on arrival where a hand-installed one
+# still needs the Certificate Trust Settings screen.
+say "Management-console payloads"
+MDM_TMP="$(mktemp -d)"
+# Copied via a temp directory and moved into place: `docker compose cp` of a
+# directory copies INTO an existing target, so a second run would otherwise leave
+# $OUT_DIR/mdm/mdm and a stale copy above it.
+if "${COMPOSE[@]}" exec -T web python manage.py edge_tls --export-mdm /app/var/mdm >/dev/null \
+   && "${COMPOSE[@]}" cp web:/app/var/mdm "$MDM_TMP/" >/dev/null 2>&1 \
+   && [ -d "$MDM_TMP/mdm" ]; then
+  rm -rf "$OUT_DIR/mdm"
+  mv "$MDM_TMP/mdm" "$OUT_DIR/mdm"
+  ok "$OUT_DIR/mdm/              (push these from your console instead of visiting devices)"
+  for f in "$OUT_DIR"/mdm/*; do
+    [ -e "$f" ] || continue   # an unmatched glob is the literal pattern, not nothing
+    printf '        %s\n' "$(basename "$f")"
+  done
+else
+  # Never fatal. These are a convenience for a fleet console, and a box whose TLS is
+  # correct is not less correct because a folder could not be copied off it.
+  warn "could not write the management-console payloads -- everything else is fine.
+       Run it by hand with:
+         docker compose -f $COMPOSE_FILE exec web python manage.py edge_tls --export-mdm /app/var/mdm"
+fi
+
 # --- 6. verify against what is ACTUALLY being served ------------------------
 say "Verification"
 "${COMPOSE[@]}" exec -T web python manage.py edge_tls --check-terminator edge-tls:443 \
@@ -162,24 +216,34 @@ Send every device here, on the school wifi:
   $(printf '\033[1m%s\033[0m' "$TRUST_URL")
 
 That page shows this box's fingerprint, a QR code so a phone does not have to type
-an address, and the certificate itself. PLAIN http on purpose -- a device reaches
-it precisely because it does not trust the box yet, and sending it to https would
-show the very warning it came to fix.
+an address, and -- on Windows, macOS and Linux -- a single command that fetches the
+certificate, checks its fingerprint and installs it only on a match. PLAIN http on
+purpose: a device reaches it precisely because it does not trust the box yet, and
+sending it to https would show the very warning it came to fix.
 
 Have whoever installs it compare the fingerprint on that page against the one
 \`manage.py edge_tls\` prints on this console. Over http that comparison is the only
-thing standing between a school and somebody else's certificate authority.
+thing standing between a school and somebody else's certificate authority, and no
+command can make it for you: a page that lied about the certificate would lie about
+the fingerprint printed beside it too.
 
-Two things still need a person:
+IF THE SCHOOL MANAGES ITS DEVICES, NOBODY VISITS A DEVICE AT ALL. Push
+$OUT_DIR/mdm/ from the console -- box-ca.mobileconfig to Jamf / Mosyle / Kandji /
+Intune, box-ca.crt to Google Admin or Group Policy, android-policy.json into an
+Android Enterprise policy. On managed Chromebooks and supervised iPads a per-device
+install does not stick, and on Android 11+ a hand-installed authority is ignored by
+apps -- so there this is not the convenient route, it is the only one.
 
-  1. Move  $OUT_DIR/box-ca-bundle.p12  off this machine, and store the passphrase
-     somewhere else again. Together in one place, the encryption bought you nothing.
-     It carries the CA PRIVATE KEY and is never the file you hand to a device.
+Two things still need a person, and neither can be automated from here:
+
+  1. Move ONE of these off this machine, so they stop sitting together:
+       $OUT_DIR/box-ca-bundle.p12       the encrypted CA backup
+       $PASSPHRASE_FILE
+     In one place the encryption bought you nothing. The bundle carries the CA
+     PRIVATE KEY and is never the file you hand to a device. It is also the only
+     artefact on this box that cannot be regenerated.
   2. Re-enrol offline PIN on each device at the https origin. Nothing carries over
      from the old one, and it could never have sealed there anyway.
-
-Managed Chromebooks and supervised iPads are still an admin-console push rather
-than a per-device visit; if nobody here holds that console, read the runbook.
 
 Re-run this script any time. On a correct box it changes nothing.
 BANNER

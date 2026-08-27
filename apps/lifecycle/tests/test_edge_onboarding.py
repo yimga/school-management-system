@@ -40,6 +40,7 @@ _EXPECTED_KEYS = (
     "conversion_first_action",
     "configure_box_env",
     "configure_lan_hostname",
+    "edge_tls_trust",
     "enable_configure_sync",
     "verify_and_sync_gate",
     "live_sync_proof",
